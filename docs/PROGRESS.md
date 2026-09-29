@@ -19,6 +19,7 @@
 | Vercel/Supabase projects / production secrets | Not inspected or provisioned |
 | Tests / CI / preview / production deployment | About continuation: lint/types/69 unit/build/60 browser checks PASS; 14 axe scans found zero violations with manual-review caveats. Hosted CI NOT TESTED. Local preview running; no deployment. |
 | KAU collection access / email sender | Not verified |
+| Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
 ## Milestone status
 
@@ -41,12 +42,58 @@ Do not convert this table to percentage completion without observable evidence. 
 
 ## Next task
 
-Review/approve the draft homepage and About copy in English and Arabic. The About slice is
-implemented; the next bounded public-content slice is Dates and Venue once its actual inputs
-are supplied (an unpublished-state preview requires its own task). Exact required assets are
-listed in [design-system notes](features/design-system.md). Preserve closed workflows and
-unset values. Independently, install/start a Docker-compatible runtime for the prepared
-database tests and establish durable organizational repository ownership.
+Use the [implementation backlog](backlog/README.md) to select one bounded slice. The smallest
+environment-verification task is BL-FND-02: provide a Docker-compatible runtime and execute
+the prepared local database tests. Independent security work can begin with BL-SEC-01's
+permission contract; a public-content continuation can use BL-PUB-02's unpublished Dates
+and Venue preview. Actual dates/venue and final publication remain gated. Review/approve
+the existing draft homepage/About copy under DR-CFG-12; exact assets remain listed in
+[design-system notes](features/design-system.md). Establish durable organizational custody
+under DR-CFG-11 before production. This planning task does not implement those next slices.
+
+## 29 September 2026 — Complete implementation backlog, documentation only
+
+User scope: plan all 24 requested epics using the master context and v0.5, with small
+PR-sized issues and a separate Decision Required list. No application code requested.
+
+Created [docs/backlog](backlog/README.md): **152 implementation issues**, **13 decision
+packets** and Markdown/CSV indexes. Each issue contains its title, source/status, purpose,
+scope/exclusions/dependencies/roles, states/data, acceptance criteria, bilingual and
+accessibility behavior, security/RLS, audit/email, automated tests/manual UAT, release gate,
+owner type and explicit TBD blocking status. All 13 CFG question sets are retained verbatim;
+confirmed choices and configurable defaults remain distinguished from unresolved inputs.
+Existing M1/M2/homepage/About evidence is recorded as local completion with release gates.
+
+Changed files: 24 epic documents, Decision Required, backlog README and validation evidence,
+two CSV indexes, plus navigation/continuity updates in root README, DECISIONS, ROADMAP and
+this PROGRESS file. No source snapshot, application code, migration, dependency, environment
+variable, provider resource, DNS record or production state changed. No real messages or
+external issues were created. No new organizer decision was made.
+
+Executed documentation verification:
+
+- PASS: all 24 epics, 165 unique issue bodies and all 19 required metadata fields plus titles.
+- PASS: every cited source ID exists; all 212 source IDs covered, including implementation
+  references for all 199 non-CFG requirements/acceptance IDs and separate CFG decision packets.
+- PASS: no dangling exact issue references or cycles in the explicit implementation dependency
+  graph; integration prerequisites remain in activation gates and need end-to-end evidence.
+- PASS: 215 local Markdown links, 165 stable anchors and 13 verbatim CFG question sets.
+- PASS: CSV row counts (165 issues / 212 source IDs), new-document whitespace checks and
+  `git diff --check`; actual Git state/history inspected before work.
+- Independent review fixed missing actual KAU handoff, live sender setup and annual data
+  separation slices; tightened workshop overlap checks, split media processing and clarified
+  implementation versus activation dependencies. See [validation record](backlog/VALIDATION.md).
+
+Commands: inline PowerShell document/source parsers with `Get-Content`, `Get-ChildItem`,
+`Test-Path`, `Export-Csv`, `Import-Csv`; reference/cycle checks over parsed results;
+`git status --short`, `git log -3`, `git diff --check`.
+
+Lint/typecheck/unit/browser/database tests/build: **NOT RUN for this documentation-only
+task**. Prior results are not new passes. The recorded local database container blocker,
+unverified hosted CI/infrastructure and pending manual accessibility/content checks remain.
+No UI changed, so no new screenshot or preview test was required. Named decision owners and
+due dates remain unassigned; production gates remain closed. Documentation rollback needs
+no database or environment action. Next smallest tasks are listed above and in the backlog.
 
 ## 29 September 2026 — M1 local foundation
 

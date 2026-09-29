@@ -6,6 +6,8 @@ Primary source: **S1 Development Specification v0.5**, modified 2026-09-29 11:30
 
 Supporting source: **S2 Hackathon Draft**, modified 2026-09-29 11:09:52 UTC / 14:09:52 Asia/Riyadh. [Current source snapshot](../sources/Hackathon_Draft.txt).
 
+Planning companion: [Decision Required backlog](backlog/DECISION_REQUIRED.md) maps every CFG-01–CFG-13 packet to actionable questions and affected release gates. Creating that backlog resolved no organizer decision and changed no confirmed choice, default, source snapshot or production configuration.
+
 ## 1. How to interpret status
 
 | Status | Meaning |

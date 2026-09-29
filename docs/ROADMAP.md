@@ -1,6 +1,6 @@
 # Development roadmap
 
-**Status at handoff:** documentation prepared; implementation has not been verified. This order reconciles the previous starter pack with S1 v0.5. It retains the selected scope and opens each workflow only when its own dependencies are complete.
+**Original handoff status:** documentation prepared; implementation had not yet been verified. Current local implementation evidence is in [PROGRESS.md](PROGRESS.md). The [detailed implementation backlog](backlog/README.md) expands all 24 epics into bounded issues, with a separate [Decision Required list](backlog/DECISION_REQUIRED.md). This order reconciles the previous starter pack with S1 v0.5. It retains the selected scope and opens each workflow only when its own dependencies are complete.
 
 ## Milestones
 
