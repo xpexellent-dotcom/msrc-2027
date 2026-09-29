@@ -81,7 +81,7 @@ This machine's browser download is in `.tools/playwright`; set
 A normal `playwright install chromium` uses the default browser cache instead.
 
 [CI](.github/workflows/ci.yml) defines frozen installs, application checks and local
-database tests. It does not deploy. The [hosted PR run](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36616046623)
+database tests. It does not deploy. The [M2 implementation PR run](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36632458600)
 passed, including security advisors and generated-type validation, in the user-authorized
 private [development repository](https://github.com/xpexellent-dotcom/msrc-2027).
 Actual results and limitations live in [PROGRESS.md](docs/PROGRESS.md) and the

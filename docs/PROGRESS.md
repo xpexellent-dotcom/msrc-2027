@@ -18,7 +18,7 @@
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed; optional PC fixture tests still require restart/first launch. User now selected direct hosted access for normal work (ENG-006). |
 | Vercel/Supabase projects / production secrets | Existing hosted Supabase `msrc` selected by user and connected using its publishable key only. Public schema/migrations empty; no hosted mutation. Vercel not provisioned; no privileged credentials used. |
-| Tests / CI / preview / production deployment | Hosted-connection local checks PASS: lint/types/build, 158 final unit tests, 60 browser cases, live service/key check and hosted-test refusal. Earlier Linux database workflow36617162980 passed20 pgTAP/10 integration/advisors/types. Current PR retains that isolated CI. Optional Windows engine untested; no deployment. |
+| Tests / CI / preview / production deployment | M2 local and GitHub checks PASS: lint/types/build, 181 unit tests, 90 browser cases. Workflow36632458600 passed application and isolated database jobs including20 pgTAP/10 integration/advisors/types. Local preview available; optional Windows engine untested; no remote deployment. |
 | KAU collection access / email sender | Not verified |
 | Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
@@ -86,7 +86,7 @@ Verification on the Windows checkout (Node24.21.0 / pnpm11.19.0):
 | `git diff --check`; scoped final test ESLint | PASS; no whitespace errors or lint findings |
 | Hosted database/RLS mutation tests | NOT RUN: no database code/schema changed and this UI slice must not mutate live Supabase |
 | Windows local database stack | NOT RUN: optional installed Docker still needs first-launch/restart setup; Linux CI provides the isolated fixture check |
-| GitHub application/database CI | Pending publication of this M2 branch |
+| GitHub application/database CI | PASS: [PR run36632458600](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36632458600) on implementation commit `1c6be4e`; 181 unit /90 browser /20 pgTAP /10 integration tests; schema lint, security advisors and generated types passed |
 
 The dialog now cycles available controls while excluding hidden/disabled controls, restores
 focus on Escape/backdrop close and preserves native modality. Tests also cover anchor
@@ -96,6 +96,10 @@ Semantic text colour pairs meet4.5:1; tested control/focus pairs meet3:1. Gold-o
 decorative. Automated axe checks include the full showcase and open dialogs.
 
 Local preview: `http://127.0.0.1:3000/en/design-system` and `/ar/design-system`.
+Reviewable change: [PR3](https://github.com/xpexellent-dotcom/msrc-2027/pull/3), stacked on
+PR2. No PR was merged. A final independent code review found no actionable P1/P2 issues;
+that review is separate from the executed tests above. A documentation-only follow-up
+records the immutable implementation-run evidence and does not alter verified app code.
 For a new terminal use the README. Remote staging requires explicit deployment protection;
 no Vercel deployment or production publication was created. Screen readers, real devices,
 Safari/Firefox and final Arabic editorial review are NOT TESTED in this slice. Rollback is
