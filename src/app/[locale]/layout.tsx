@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { SiteShell } from "@/components/site-shell";
 import { defaultLocale, dictionaries, direction, isLocale, locales } from "@/lib/i18n";
 import "../globals.css";
+import { arabicFont, bodyFont, headingFont } from "@/lib/fonts";
 
 export const viewport: Viewport = { themeColor: "#F8F6F0" };
 
@@ -36,7 +37,7 @@ export default async function LocaleLayout({
   // Route pages validate the locale before rendering any conference content.
   const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
   return (
-    <html lang={locale} dir={direction(locale)}>
+    <html lang={locale} dir={direction(locale)} className={`${headingFont.variable} ${bodyFont.variable} ${arabicFont.variable}`}>
       <body><SiteShell locale={locale}>{children}</SiteShell></body>
     </html>
   );

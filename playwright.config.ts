@@ -29,5 +29,8 @@ export default defineConfig({
     url: `${baseURL}/en`,
     reuseExistingServer: false,
     timeout: 60_000,
+    // This local production-build process explicitly enables the synthetic
+    // showcase. The deployment-production guard is covered separately.
+    env: { DESIGN_PREVIEW_ENABLED: "true", VERCEL_ENV: "preview" },
   },
 });

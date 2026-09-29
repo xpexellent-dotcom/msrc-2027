@@ -1,51 +1,83 @@
 import { notFound } from "next/navigation";
-import { dictionaries, isLocale } from "@/lib/i18n";
+import { HeroMedia } from "@/components/hero-media";
+import { Container } from "@/components/ui/container";
+import { ButtonLink } from "@/components/ui/button";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { homepageAssets, homepageCopy } from "@/content/public-site";
+import { isLocale } from "@/lib/i18n";
 
-export default async function HomePage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const copy = dictionaries[locale];
-
+  const copy = homepageCopy[locale];
   return (
     <>
-      <section className="hero site-container" aria-labelledby="conference-title">
-        <div className="hero-copy">
-          <p className="eyebrow"><span className="eyebrow-rule" aria-hidden="true" />{copy.edition}</p>
-          <h1 id="conference-title">{copy.title}<span className="hero-year" dir="ltr">2027</span></h1>
-          <p className="hero-description">{copy.introduction}</p>
-          <div className="institution">
-            <span className="institution-mark" aria-hidden="true">↗</span>
-            <div><p>{copy.institution}</p><span>{copy.location}</span></div>
+      <section id="top" tabIndex={-1} className="conference-hero" aria-labelledby="hero-title">
+        <HeroMedia locale={locale} video={homepageAssets.heroVideo} posterSrc={homepageAssets.heroPoster} />
+        <Container className="hero-content">
+          <div className="hero-topline"><span>{copy.kicker}</span><span dir="ltr">MSRC / 2027</span></div>
+          <div className="hero-editorial">
+            <p className="hero-location">{copy.institution} <span aria-hidden="true">/</span> {copy.city}</p>
+            <h1 id="hero-title"><span>{copy.title[0]}</span><span>{copy.title[1]}</span></h1>
+            <p className="hero-lead">{copy.lead}</p>
+            <div className="hero-actions">
+              <ButtonLink href="#about" variant="gold">{copy.explore}<span className="directional-arrow" aria-hidden="true">↗</span></ButtonLink>
+              <a className="hero-secondary" href="#program">{copy.programLink}<span aria-hidden="true">↓</span></a>
+            </div>
           </div>
-        </div>
-        <div className="edition-art" aria-hidden="true">
-          <div className="art-topline"><span>MSRC</span><span>2027</span></div>
-          <span className="art-number">05</span>
-          <svg className="art-waves" viewBox="0 0 540 380" fill="none">
-            <path d="M-100 90C40 90 70 250 240 250S400 60 620 60" />
-            <path d="M-100 116C40 116 70 276 240 276S400 86 620 86" />
-            <path d="M-100 142C40 142 70 302 240 302S400 112 620 112" />
-            <path d="M-100 168C40 168 70 328 240 328S400 138 620 138" />
-            <path d="M-100 194C40 194 70 354 240 354S400 164 620 164" />
-            <path d="M-100 220C40 220 70 380 240 380S400 190 620 190" />
-          </svg>
-          <div className="art-bottomline"><span>{copy.edition}</span><span>↗</span></div>
-        </div>
+          <div className="hero-caption"><span>{copy.editionLabel}</span><span>{copy.posterCaption}</span></div>
+        </Container>
       </section>
-
-      <section className="conference-status site-container" aria-label={copy.participation}>
-        <dl className="event-details">
-          <div><dt>{copy.date}</dt><dd>{copy.pending}</dd></div>
-          <div><dt>{copy.venue}</dt><dd>{copy.pending}</dd></div>
+      <Container>
+        <dl id="event-details" tabIndex={-1} className="event-strip">
+          <div><dt>{copy.dateLabel}</dt><dd>{copy.pending}</dd></div>
+          <div><dt>{copy.venueLabel}</dt><dd>{copy.pending}</dd></div>
+          <div className="event-strip-status"><dt className="sr-only">{locale === "ar" ? "المشاركة" : "Participation"}</dt><dd><StatusBadge tone="neutral">{copy.closed}</StatusBadge></dd></div>
         </dl>
-        <div className="participation-status">
-          <div className="status-heading"><span className="status-dot" aria-hidden="true" /><h2>{copy.participation}: {copy.closed}</h2></div>
-          <p>{copy.closedDescription}</p>
-        </div>
+      </Container>
+      <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
+        <Container className="intro-grid">
+          <SectionHeading eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" />
+          <div className="intro-body"><p className="intro-statement">{copy.aboutBody}</p><p>{copy.aboutNote}</p><span className="editorial-rule" aria-hidden="true" /></div>
+        </Container>
+      </section>
+      <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
+        <Container>
+          <div className="section-introduction"><SectionHeading eyebrow={copy.pathwaysEyebrow} title={copy.pathwaysTitle} id="pathways-title" /><p>{copy.pathwaysBody}</p></div>
+          <div className="pathway-list">
+            {copy.pathways.map((pathway, index) => (
+              <article className="pathway-row" key={pathway.category}>
+                <span className="pathway-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <div className="pathway-title"><p>{pathway.category}</p><h3>{pathway.title}</h3></div>
+                <p className="pathway-description">{pathway.description}</p>
+                <StatusBadge tone="neutral">{copy.closed}</StatusBadge>
+              </article>
+            ))}
+          </div>
+        </Container>
+      </section>
+      <section id="program" tabIndex={-1} className="editorial-section program-section" aria-labelledby="program-title">
+        <Container className="program-grid">
+          <div><SectionHeading eyebrow={copy.programEyebrow} title={copy.programTitle} id="program-title" inverse /><p className="program-intro">{copy.programBody}</p><p className="program-disclaimer">{copy.illustrative}</p></div>
+          <div className="program-list">
+            {copy.programRows.map((row, index) => (
+              <article className="program-row" key={row.format}>
+                <div className="program-row-top"><span>{row.format}</span><span aria-hidden="true">0{index + 1}</span></div>
+                <h3>{row.title}</h3><p>{row.description}</p>
+              </article>
+            ))}
+          </div>
+        </Container>
+      </section>
+      <section id="legacy" tabIndex={-1} className="editorial-section legacy-section" aria-labelledby="legacy-title">
+        <Container className="legacy-grid">
+          <div className="legacy-art" aria-hidden="true"><div className="legacy-art-years" dir="ltr"><span>2026</span><span>2027</span></div><div className="legacy-arch"/><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
+          <div className="legacy-copy"><SectionHeading eyebrow={copy.legacyEyebrow} title={copy.legacyTitle} id="legacy-title" /><p>{copy.legacyBody}</p><p className="legacy-note">{copy.legacyNote}</p></div>
+        </Container>
+      </section>
+      <section className="closing-section" aria-labelledby="closing-title">
+        <Container className="closing-grid"><h2 id="closing-title">{copy.endingTitle}</h2><div><p>{copy.endingBody}</p><ButtonLink href="#top" variant="secondary">{copy.backToTop}<span aria-hidden="true">↑</span></ButtonLink></div></Container>
       </section>
     </>
   );

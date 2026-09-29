@@ -305,3 +305,50 @@ inferred. Email has no live adapter and remains console/test-only policy; paymen
 no live adapter and remains mock-only policy until its later authorized milestone.
 Local Git commits use an explicit automation identity when no user Git identity is
 configured; this is not a named organizer approval. External CFG/REL gates stay closed.
+
+## 12. ENG-002 — M2 design system and focused M3 preview, 29 September 2026
+
+Authority: the user's explicit second task authorizes the reversible local design system
+and homepage preview. Source IDs: SCP-02, DSN-01/02, LOC-01/02/03, ACC-01, CMS-04,
+MED-01 through MED-04, CFG-12. This decision adopts working design defaults; it does not
+approve a final brand, translation, public launch or media publication.
+
+- Use the five documented colors, DM Sans for English headings/buttons, Inter for English
+  body text and Noto Sans Arabic for Arabic. Self-host variable WOFF2 assets with `next/font/local`
+  from exact Fontsource packages5.3.0. OFL1.1 notices are retained in `docs/licenses`.
+- Adopt additional semantic colors solely as engineering defaults: success `#245D45` on
+  `#E9F2EB`, error `#A02935` on `#FFF0F0`, warning `#755119` on `#F4EDDB`, information purple
+  on `#EBE3F4`. Use written state labels as well as color. Keep native scrolling,180ms
+  button feedback and a single400ms/12px entrance; remove nonessential motion on request.
+- Use an original abstract SVG poster and provisional text identity while approved MSRC/KAU
+  marks and conference footage are absent. The homepage video stays `null`. A61KB silent
+  four-second original geometry animation is authorized as a clearly labelled synthetic
+  component test fixture only. No2026 source footage was downloaded or reused.
+- Keep the full15-entry future public sitemap typed. Existing homepage section destinations
+  are links; unpublished entries are labelled non-links. Missing standalone pages return404.
+  No invented schedule, dates, prices, speakers, sponsor roster or capacity values are added.
+- The server-rendered showcase is allowed in development or with an explicit server-only
+  flag on local/protected staging; `VERCEL_ENV=production` always denies it. It contains no
+  private/admin data or operational actions. Deployment protection remains a separate gate.
+- The synthetic form retains only one of two predefined choices in sessionStorage, allowing
+  language switching without retaining personal/research data. Scientific sample text remains
+  English/LTR. Real participant forms, authentication and CMS are outside this milestone.
+- Decorative video enhancement uses local approved paths only, muted inline playback,
+  explicit pause/resume, poster on error, reduced-motion and save-data/slow-connection
+  fallbacks. Network Information API support varies; unsupported browsers cannot report
+  connection speed. Final footage codecs/crops/size budget and frame contrast remain open.
+- Added exact `@axe-core/playwright4.13.0` for automated accessibility evidence. Package pins
+  and the lockfile are preserved. Disabled pnpm optimistic repeat installs so dependency-store
+  configuration is checked after this machine's old global-store metadata was discovered.
+
+Current API references reviewed: installed Next font documentation and
+[Next font optimization](https://nextjs.org/docs/app/getting-started/fonts),
+[Playwright accessibility testing](https://playwright.dev/docs/accessibility-testing),
+[Fontsource variable fonts](https://fontsource.org/docs/getting-started/variable),
+[React external store hook](https://react.dev/reference/react/useSyncExternalStore),
+[MDN media play](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play) and
+[data-saving preference](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData).
+Registry metadata and local tool help were checked before package/CLI use.
+
+Verification is recorded in PROGRESS.md. All15 operational gates remain false. M3 is a
+homepage preview only; full public content, final brand/media approval and deployment are pending.

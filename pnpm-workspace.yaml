@@ -4,6 +4,7 @@ storeDir: .pnpm-store
 saveExact: true
 enableGlobalVirtualStore: false
 verifyDepsBeforeRun: error
+optimisticRepeatInstall: false
 allowBuilds:
   '@tailwindcss/oxide': true
   esbuild: true

@@ -2,7 +2,7 @@
 
 **Development handoff v1.0 | Prepared 29 September 2026 | Event timezone: Asia/Riyadh**
 
-This folder now contains the local M1 application alongside the original handoff. It is an English/Arabic engineering preview with closed operational workflows. It runs without credentials or a database. No production service, DNS change, real email, payment integration or live participation workflow has been created.
+This folder contains the M1 foundation, M2 shared design system and a focused M3 homepage preview alongside the original handoff. The English/Arabic preview runs without credentials or a database. Dates, venue and operational workflows remain unpublished or closed; the working brand and draft copy still need approval.
 
 ## Run locally
 
@@ -18,6 +18,18 @@ pnpm dev
 
 Open [English](http://127.0.0.1:3000/en) or [Arabic](http://127.0.0.1:3000/ar).
 The root redirects to English. Stop the terminal with Ctrl+C. No `.env.local` is needed.
+
+Review the component states at [English design system](http://127.0.0.1:3000/en/design-system)
+or [Arabic design system](http://127.0.0.1:3000/ar/design-system). These routes are enabled
+automatically in development. For a local production build or protected staging preview,
+explicitly set the server-only `DESIGN_PREVIEW_ENABLED=true`; otherwise they return HTTP404.
+They always return404 when `VERCEL_ENV=production`, even with that flag. The flag and
+no-index responses are not authentication: protect any remote staging deployment separately.
+The showcase has synthetic examples only and never submits or stores participant data.
+
+The homepage uses original static artwork. Only the design-system route uses the small,
+silent synthetic motion fixture to demonstrate playback and fallback controls. Fonts are
+self-hosted; there are no third-party embeds or external font requests.
 
 On this Windows machine, a checksum-verified portable Node is already in the ignored
 `.tools/node` directory. From the project root, run:
@@ -47,8 +59,11 @@ pnpm test:e2e
 
 `pnpm check` runs lint, route type generation/TypeScript, unit tests and production build.
 Browser tests need the build first; they start and stop their own loopback production
-server on port 3210. Chromium desktop, tablet and mobile cases cover both languages, keyboard,
-reduced motion, unknown routes, no-index responses and closed API operations.
+server on port 3210 with the synthetic design preview explicitly enabled. Chromium desktop,
+tablet and mobile cases cover both languages, keyboard/menu/focus behavior, enlarged text,
+automated accessibility checks, media fallbacks, unknown routes and closed API operations.
+Screenshots and axe findings are written to `test-results`; automated checks do not replace
+manual accessibility or final Arabic editorial review.
 `pnpm start` serves an existing production build on port 3000. Ports 3000 and 3210 must
 be free. `pnpm test:watch` is available for iterative unit work.
 
@@ -90,8 +105,10 @@ See [local data notes](docs/features/local-data.md) for policy tests and current
 
 ## Next work
 
-Review the M1 preview, then implement F07 / M2 shared design tokens and accessible
-components with English/Arabic visual review. Keep all workflow flags closed.
+Review the M2/focused M3 preview, then complete one approved public-content slice, beginning
+with the About page and its Arabic translation. The exact content/asset request list is in
+[design-system feature notes](docs/features/design-system.md) and the
+[media register](docs/MEDIA_REGISTER.md). Keep all workflow flags closed.
 The organizational GitHub repository, production ownership, plans, regions and external
 approvals remain separate setup work. This local folder was initially opened from a
 temporary preview directory; preserve the resulting project in a durable project location.

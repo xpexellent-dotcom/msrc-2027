@@ -38,7 +38,7 @@ Read access is established for the inventory reviewed. It does not establish pub
 | Main File PDF imagery | Historical/reference material; not a cleared asset collection | Identify candidates and request/use proper originals |
 | Drive past-edition photos/videos | Partial metadata inventory only | Shortlist after visual review and rights check |
 | Homepage hero video | Not selected, edited, optimized or approved | Select authentic footage and create responsive derivatives |
-| Homepage poster | Not selected or approved | Build static-first hero before video integration |
+| Homepage poster | Original abstract development SVG implemented; final conference poster not selected or approved | Replace only with a cleared final poster |
 | Speaker/committee portraits | 2027 approval and source files required | Approved profiles; no private contact data |
 | Sponsor logos | 2027 participation and logo approval required | Current sponsor tiers and profiles |
 | Gallery albums | Not selected or published | Approved edition/activity albums |
@@ -106,4 +106,25 @@ Suggested operational states: `discovered`, `shortlisted`, `rights_pending`, `ap
 - [ ] Removal and withdrawal can unpublish controlled assets and derivatives.
 - [ ] Original and derivative backup/restore responsibilities are recorded.
 
-No media publication, conversion, artwork generation or Drive permission changes were performed while compiling this handoff.
+No media publication, conversion, artwork generation or Drive permission changes were performed while compiling the original handoff. The local M2 implementation below adds original synthetic preview assets only.
+
+## 7. M2 local preview assets and open slots — 29 September 2026
+
+| Asset ID | Source / properties | Use / status |
+|---|---|---|
+| DEV-POSTER-01 | `public/brand/hero-poster.svg`; original1920x1080 abstract purple/lilac ribbon, gold curves; no people, photos or institutional marks | Local homepage and component poster; allowed synthetic task artwork, not final brand approval |
+| DEV-MOTION-01 | `public/brand/synthetic-motion.webm`; original mathematical shapes,320x180,24fps,4s, silent VP8;61,190 bytes | Clearly labelled component test only; not conference footage; homepage video remains null |
+| DEV-TYPE-01 | Fontsource variable DM Sans/Inter/Noto Sans Arabic5.3.0, locally served WOFF2; OFL1.1 notices in `docs/licenses` | Working documented typefaces; final CFG-12 type approval remains pending |
+| SLOT-HERO-01 | Final footage/poster not supplied or cleared | Need source/file ID, rights/consent and explicit placement approval, crop/poster selection, then measured derivatives |
+| SLOT-MARKS-01 | Final MSRC2027/KAU/RPClub source marks absent | Need approved variants/proportions/clear-space guidance; current identity is text only |
+| SLOT-LEGACY-01 | No approved2026 selections | Need selected originals, verified captions/year/activity and per-asset permissions |
+| SLOT-SPONSORS-01 | No confirmed2027 assets | Need current sponsor identity/tier, approved logo/link/usage; no sponsor section is rendered |
+
+DEV-MOTION-01 was encoded locally from original SVG geometry rendered to JPEG frames,
+using the installed Playwright FFmpeg VP8 encoder. No external footage, third-party embed,
+real person or audio is involved. The file is a playback/failure test fixture, not a decision
+about final film codec, duration, dimensions or delivery budget. `hero-poster.svg` is decorative
+and has empty alternative text; conference identity remains live semantic page text.
+
+See [design-system feature notes](features/design-system.md) for the complete next-content
+request list. All real-media rights/approval and removal responsibilities remain open.

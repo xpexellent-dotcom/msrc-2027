@@ -1,0 +1,61 @@
+/* DSN-02 / CFG-12: source-backed working defaults, awaiting final brand approval.
+   Semantic state values are local engineering defaults, not organizer decisions. */
+:root {
+  --color-purple: #3b1e6d;
+  --color-gold: #c9a24a;
+  --color-ivory: #f8f6f0;
+  --color-lilac: #dccff0;
+  --color-ink: #1f1930;
+  --color-white: #ffffff;
+  --color-muted: #645b70;
+  --color-line: #d9d2df;
+  --color-line-strong: #91839e;
+  --color-success: #245d45;
+  --color-success-surface: #e9f2eb;
+  --color-error: #a02935;
+  --color-error-surface: #fff0f0;
+  --color-warning: #755119;
+  --color-warning-surface: #f4eddb;
+  --color-info: #3b1e6d;
+  --color-info-surface: #ebe3f4;
+  --color-disabled: #655e70;
+  --color-disabled-surface: #e8e3ec;
+  --muted: var(--color-muted);
+  --line: var(--color-line);
+  --font-heading: var(--font-dm-sans), Arial, sans-serif;
+  --font-body: var(--font-inter), Arial, sans-serif;
+  --font-interface: var(--font-body);
+  --font-arabic: var(--font-noto-arabic), Tahoma, Arial, sans-serif;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+  --section-space: clamp(4.5rem, 8vw, 8rem);
+  --container-width: 1280px;
+  --container-gutter: clamp(1.25rem, 4.7vw, 5rem);
+  --radius-small: 0.2rem;
+  --radius-medium: 0.55rem;
+  --radius-pill: 999px;
+  --motion-feedback: 180ms;
+  --motion-reveal: 400ms;
+  --motion-easing: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --focus-ring: var(--color-purple);
+}
+
+[lang="ar"] {
+  --font-interface: var(--font-arabic);
+  --font-heading: var(--font-arabic);
+  --font-body: var(--font-arabic);
+}
+
+[lang="en"] {
+  --font-interface: var(--font-inter), Arial, sans-serif;
+  --font-heading: var(--font-dm-sans), Arial, sans-serif;
+  --font-body: var(--font-inter), Arial, sans-serif;
+}

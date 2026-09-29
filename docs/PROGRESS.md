@@ -17,7 +17,7 @@
 | Git / application code | Inspected: no existing local repository/app; new local main repository and M1 code created. No remote configured. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Vercel/Supabase projects / production secrets | Not inspected or provisioned |
-| Tests / CI / preview / production deployment | Local lint/types/41 unit/build/28 browser checks PASS. CI defined but remote NOT TESTED. Local preview running; no deployment. |
+| Tests / CI / preview / production deployment | M2: local lint/types/69 unit/build/45 browser checks PASS; eight axe scans found zero violations with manual-review caveats. CI remote NOT TESTED. Local preview running; no deployment. |
 | KAU collection access / email sender | Not verified |
 
 ## Milestone status
@@ -26,8 +26,8 @@
 |---|---|---|---|
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
 | M1 Foundation | ENG-001 adopted; relevant source IDs retained | Local app PASS; Docker database execution BLOCKED; CI defined | Local preview only; all production gates closed |
-| M2 Design system | Working defaults prepared; final approval pending | Not verified | Pending |
-| M3 Public alpha | Page scope defined | Not verified | Pending |
+| M2 Design system | ENG-002 adopts working defaults; final brand approval pending | Shared bilingual primitives/showcase implemented and locally verified | Local preview only; final content/accessibility/brand gates pending |
+| M3 Public alpha | Full sitemap retained in typed content | Focused homepage preview implemented and locally verified; standalone public pages remain pending | Public launch not approved |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
 | M5 Participant auth | Requirements defined | Not verified | Pending |
 | M6 Abstract/review | Detailed baseline; configuration gates remain | Not verified | Pending |
@@ -41,11 +41,11 @@ Do not convert this table to percentage completion without observable evidence. 
 
 ## Next task
 
-Implement F07 / M2: shared design tokens and accessible components, with English/Arabic
-desktop/mobile review. Preserve closed workflows and unset business values. Independently,
-install/start an approved local Docker-compatible runtime to execute the prepared database
-tests. Establish the organizational repository and ownership separately; no production
-business decision blocks local visual work.
+Review/approve the draft homepage and About copy in English and Arabic, then implement the
+single About page using the shared components. Exact required content/assets are listed in
+[design-system notes](features/design-system.md). Preserve closed workflows and unset values.
+Independently, install/start a Docker-compatible runtime for the prepared database tests and
+establish durable organizational repository ownership. These do not block local content work.
 
 ## 29 September 2026 — M1 local foundation
 
@@ -136,6 +136,79 @@ Next's automatic AGENTS append was removed and disabled, restoring the original 
   launch approval and this synthetic foundation is not production-ready.
 
 Next smallest task: F07 / M2 shared design primitives and bilingual component review.
+
+## 29 September 2026 — M2 design system and focused M3 homepage
+
+Requested outcome: a cinematic bilingual homepage preview and shared accessible UI
+foundations. Continued the actual clean local M1 repository at `0d2f728`, preserving the
+handoff and closed operational boundaries. Decision: ENG-002. Feature notes:
+[design system](features/design-system.md). No remote or production service was added.
+
+Source IDs: SCP-02, DSN-01/02, LOC-01/02/03, ACC-01, CMS-04, MED-01 through MED-04,
+CFG-12; existing INF/SEC/REL foundation constraints remain in force.
+
+### Implemented and inspected
+
+- Working five-color tokens, locally served DM Sans/Inter/Noto Sans Arabic, semantic
+  states, responsive containers/type, header/mobile navigation/footer/language switch,
+  buttons/links, section headings and accessible field/status conventions.
+- Focus, disabled, busy/loading, hover, press, error-summary/field validation and success
+  states in the local/staging showcase. Only predefined synthetic choices are retained
+  across language switches; scientific sample text remains English/LTR in Arabic.
+- Homepage hero, conference introduction, four participation pathways, explicitly
+  illustrative program rows, previous-edition context and full typed public sitemap.
+  Empty sponsor/gallery sections are omitted. Dates/venue remain unconfirmed; no names,
+  old sponsor logos, proposed dates, countdown, prices or capacities became public claims.
+- Original abstract poster. No conference footage or final marks were available/cleared.
+  Separate synthetic motion fixture exercises muted inline playback, pause/resume,
+  reduced-motion/save-data/slow-network/hidden-tab rules and poster-on-error behavior.
+- Server-only dynamic showcase gate, disabled by default in a production build and always
+  disabled for Vercel production. All 15 operational gates remain closed, including CMS.
+- Existing application CI automatically includes the new tests. No database/schema changes.
+
+### Commands and observed results
+
+All checks used Node 24.21.0 / pnpm 11.19.0 and local synthetic content, without credentials.
+
+| Command / check | Result | Observed evidence / limit |
+|---|---|---|
+| Official font/media/test docs, registry metadata and local CLI help | PASS | Next local font API, pinned Fontsource packages 5.3.0, axe-core/playwright 4.13.0; font OFL notices retained. |
+| Exact dependency installation; `pnpm install --frozen-lockfile --offline` | PASS | Updated lockfile accepted; final repeat completed with no changes. |
+| `pnpm check` | PASS | Final ESLint zero warnings, route types/tsc, 69 unit cases and optimized production build. |
+| `pnpm test:e2e` with local browser path | PASS | Final 45/45 Chromium cases, 27.1 seconds, exit 0; test-owned production server stopped. |
+| Bilingual responsive/keyboard/RTL checks | PASS | Home at 1280, 791 and 412 CSS px; additional 320px checks. Menu Escape/refocus, skip link, native anchors, query/hash and synthetic choice preservation. |
+| Text enlargement and overflow | PASS | 200% root text at desktop/tablet/mobile; heading clipping checks; narrow-phone legacy graphic bounds. |
+| Eight axe WCAG 2.2 AA rule scans | PASS with scope limit | EN/AR homepage/showcase at desktop/mobile: zero violations. Gradient media text and decorative glyphs have manual-review records; this is not a full accessibility certification. |
+| Contrast and visual review | PASS for current preview | Text combinations measured by axe include neutral 4.90:1, ink/gold 7.05:1, purple/ivory 12.20:1 and muted/ivory 5.93:1. Original poster/screenshots visually reviewed; focus ring corrected on dark showcase surface. |
+| Media controls/failure/preferences | PASS | Synthetic video actually plays, pauses/resumes, and falls back after aborted fetch. Reduced-motion/data-saving modes request no video. Homepage requests no video or third-party fonts/embeds. |
+| Actual production showcase denial | PASS | Local production server: EN/AR showcase HTTP404 without flag; EN/AR HTTP404 even with true flag when VERCEL_ENV=production. Owned test process stopped. |
+| No-operation regression | PASS | Existing direct/method/spoofed-role/repeated/concurrent denials remain covered; demo form creates no POST or participant record. |
+| Dev server / in-app preview | PASS | Loopback port 3000 renders current homepage; server restarted after dependency reinstallation. |
+| Hosted CI/staging; Firefox/WebKit/real phones; screen readers; full WCAG audit | NOT TESTED | No hosted target/remote; local Chromium evidence only. Final human Arabic editorial review remains pending. |
+| Real-footage frame contrast, crop, codecs and bandwidth measurements | NOT TESTED | No cleared final footage/poster exists. Synthetic fixture is not production media validation. |
+| Local database execution | BLOCKED (unchanged from M1) | Docker/Podman unavailable; no DB changes in this task. |
+
+Evidence: ignored `deliverables/m2-preview` contains named EN/AR desktop/tablet/mobile
+full-page and entrance screenshots, 320px entrances, component screenshots, eight detailed
+axe reports and `accessibility-summary.json`. `playwright-report/index.html` has the test
+report. Tests regenerate artifacts; screenshots are not approval of final content.
+
+Resolved findings: initial browser run passed 37/45. Four checks needed a form-scoped alert
+selector because Next also provides a route announcer. Real enlarged-text header overflow
+was fixed with wrapping; heading wrapping and narrow legacy artwork were checked. A gold
+button's contrast was caught during the entrance fade, so text now remains fully opaque
+during the 400ms/12px rise. The dark showcase focus ring now uses ivory. Final rerun passed.
+The package-store mismatch was repaired with a local store and non-optimistic install checks.
+
+### Remaining inputs and next task
+
+CFG-12 still needs final MSRC/KAU marks, brand/typography approval, approved EN/AR copy,
+hero/poster rights and selection, accurate past-edition captions/assets, approved program,
+speaker/committee/sponsor content and legal/contact text. Exact delivery fields and asset
+slots are in [MEDIA_REGISTER.md](MEDIA_REGISTER.md) and [design-system notes](features/design-system.md).
+No public launch, real email, payment, production provisioning, DNS change or operational
+opening occurred. The working folder remains a temporary Codex copy; preserve the archive
+in a durable project location. Next smallest task: the approved bilingual About page slice.
 
 ## Session handover template
 

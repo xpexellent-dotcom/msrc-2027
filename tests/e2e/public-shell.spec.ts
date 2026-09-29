@@ -16,7 +16,7 @@ test("the default route opens the English public page", async ({ page }) => {
 });
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} placeholder is readable without opening a workflow`, async ({ page }, testInfo) => {
+  test(`${locale} homepage is readable without opening a workflow`, async ({ page }, testInfo) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => {
@@ -28,9 +28,18 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(page.locator("form, input, textarea, select")).toHaveCount(0);
     await expect(page.locator('a[href*="register"], a[href*="payment"], a[href*="admin"], a[href*="submit"]')).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    expect(response?.headers()["x-robots-tag"]).toContain("noindex");
+    // CFG-01/02, MED-01: no tentative dates or unapproved embedded footage.
+    await expect(page.locator("iframe, video, [data-countdown]")).toHaveCount(0);
+    await expect(page.getByRole("main")).not.toContainText(/27\s*[-–]\s*28\s*January|٢٧\s*[-–]\s*٢٨\s*يناير/i);
+    const missingAnchors = await page.locator('a[href*="#"]').evaluateAll((links) => links
+      .map((link) => new URL((link as HTMLAnchorElement).href).hash.slice(1))
+      .filter((id) => id && !document.getElementById(decodeURIComponent(id))));
+    expect(missingAnchors).toEqual([]);
 
     // Detect horizontal clipping at desktop, tablet, and phone project sizes.
     const widths = await page.evaluate(() => ({
@@ -42,26 +51,99 @@ for (const locale of ["en", "ar"] as const) {
       body: await page.screenshot({ fullPage: true }),
       contentType: "image/png",
     });
+    await testInfo.attach(`${locale}-${testInfo.project.name}-entrance`, {
+      body: await page.screenshot(),
+      contentType: "image/png",
+    });
+    // ACC-01: text-only enlargement must not require horizontal scrolling.
+    await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth))
+      .toBeLessThanOrEqual(await page.evaluate(() => document.documentElement.clientWidth));
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    const clippedHeadline = await page.locator("h1 > span").evaluateAll((spans) => spans.some((span) => {
+      const range = document.createRange();
+      range.selectNodeContents(span);
+      const text = range.getBoundingClientRect();
+      return text.left < 0 || text.right > document.documentElement.clientWidth + 1;
+    }));
+    expect(clippedHeadline).toBe(false);
+    if (testInfo.project.name === "chromium-mobile") {
+      await page.evaluate(() => { document.documentElement.style.fontSize = ""; });
+      await page.setViewportSize({ width: 320, height: 850 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+      const clippedYears = await page.locator(".legacy-art-years span").evaluateAll((spans) => spans.some((span) => {
+        const artwork = span.closest(".legacy-art")!.getBoundingClientRect();
+        const range = document.createRange();
+        range.selectNodeContents(span);
+        const text = range.getBoundingClientRect();
+        return text.left < artwork.left || text.right > artwork.right;
+      }));
+      expect(clippedYears).toBe(false);
+      await testInfo.attach(`${locale}-small-phone-entrance`, {
+        body: await page.screenshot(),
+        contentType: "image/png",
+      });
+    }
     expect(errors).toEqual([]);
   });
 }
 
-test("keyboard access reaches content and changes the interface language", async ({ page }) => {
-  await page.goto("/en");
+test("keyboard access reaches content and changes language without losing location", async ({ page }) => {
+  await page.goto("/en?view=preview");
   await page.keyboard.press("Tab");
   await expect(page.locator('a[href="#main-content"]')).toBeFocused();
+  await expect(page.locator('a[href="#main-content"]')).toBeVisible();
+  expect(await page.locator('a[href="#main-content"]').evaluate((element) => {
+    const outline = getComputedStyle(element);
+    return outline.outlineStyle !== "none" && parseFloat(outline.outlineWidth) >= 2;
+  })).toBe(true);
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
 
   const arabic = page.getByRole("link", { name: "View this page in Arabic" });
   await arabic.focus();
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/ar$/);
+  await expect(page).toHaveURL(/\/ar\?view=preview#main-content$/);
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   const english = page.getByRole("link", { name: "View this page in English" });
   await english.focus();
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/en$/);
+  await expect(page).toHaveURL(/\/en\?view=preview#main-content$/);
+});
+
+test("responsive navigation is keyboard usable in both languages", async ({ page }) => {
+  for (const locale of ["en", "ar"] as const) {
+    await page.goto(`/${locale}`);
+    const toggle = page.locator(".menu-toggle");
+    const menu = page.locator(".mobile-menu");
+    if ((page.viewportSize()?.width ?? 1280) >= 1100) {
+      await expect(toggle).toBeHidden();
+      await expect(page.locator(".desktop-nav")).toBeVisible();
+      await expect(menu).toHaveCount(0);
+      continue;
+    }
+    await expect(page.locator(".desktop-nav")).toBeHidden();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(menu).toHaveCount(0);
+    const size = await toggle.boundingBox();
+    expect(size?.width).toBeGreaterThanOrEqual(44);
+    expect(size?.height).toBeGreaterThanOrEqual(44);
+    await toggle.focus();
+    await page.keyboard.press("Enter");
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect(menu).toBeVisible();
+    await page.keyboard.press("Tab");
+    await expect(menu.getByRole("link").first()).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await expect(toggle).toBeFocused();
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Enter");
+    await expect(menu).toHaveCount(0);
+    await expect(page).toHaveURL(new RegExp(`/${locale}#about$`));
+    await expect(page.locator("#about")).toBeInViewport();
+  }
 });
 
 test("reduced-motion preference keeps native page navigation usable", async ({ page }) => {
@@ -69,6 +151,16 @@ test("reduced-motion preference keeps native page navigation usable", async ({ p
   await page.goto("/ar");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe("auto");
+  const movingElements = await page.locator("body *").evaluateAll((elements) => elements
+    .filter((element) => {
+      const style = getComputedStyle(element);
+      return style.animationName !== "none" || style.transitionDuration.split(",").some((duration) => parseFloat(duration) > 0);
+    })
+    .map((element) => element.tagName));
+  expect(movingElements).toEqual([]);
+  await page.getByRole("main").focus();
+  await page.keyboard.press("PageDown");
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   await page.getByRole("link", { name: "View this page in English" }).click();
   await expect(page).toHaveURL(/\/en$/);
 });
