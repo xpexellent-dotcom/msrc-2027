@@ -3,6 +3,11 @@
 29 September 2026. Engineering preview only. Source IDs: SCP-02, DSN-01/02,
 LOC-01/02/03, ACC-01, CMS-04, MED-01 through MED-04, CFG-12. Decision: ENG-002.
 
+Continuation, 30 September: ENG-007 selects the user-specified palette/fonts/motion for
+M2 implementation and completes the component inventory. See [M2 components](m2-components.md)
+for the current scope, state contracts, file inventory and remaining publication gates.
+The original notes below describe the earlier foundation and remain historical context.
+
 ## What exists
 
 - `/en` and `/ar`: original static hero, clear identity/date/venue state, introduction,

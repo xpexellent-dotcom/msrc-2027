@@ -468,3 +468,31 @@ development. It does not authorize any operational workflow or unrelated hosted 
 
 Relevant source requirements: INF-01/04/05, SEC-01/02/06, REL-06. See
 [hosted connection contract](features/hosted-supabase.md) for actual verification and rollback.
+
+## 17. ENG-007 — Complete M2 component system, 30 September 2026
+
+Authority: the current user request to implement M2 using the approved MSRC visual system.
+Adopt the specified five colours, DM Sans / Inter / Noto Sans Arabic, native scrolling,
+180 ms feedback, 1 px hover lift, 98% press and 400 ms one-time reveal as the M2
+implementation baseline. This supersedes the earlier provisional implementation status
+of those exact values in ENG-002; it does not approve final marks, public copy or media.
+Semantic state colours, spacing, radii and shadows remain configurable engineering tokens.
+
+Complete the shared native-control library and bilingual synthetic showcase. Extract the
+existing footer/mobile navigation without introducing product workflows. Keep both locale
+routes and add the gated `/design-system` English alias. Local development is permitted;
+remote staging requires the explicit server flag and separately configured deployment
+protection. Vercel production refuses all showcase entry points even if the flag is set.
+
+Use native modal dialog behavior, persistent dismissible toast announcements and static
+loading skeletons. Keep reveal text opaque while it moves to preserve contrast. Only
+explicit same-page link activation requests smooth scrolling; reduced motion jumps directly.
+FileUpload is a file-selector UI only: no reading, persistence, storage or upload endpoint.
+
+The user reconfirmed the MSRC2026 Drive folder for future hero, highlights, gallery and
+mobile-poster selection. Metadata access was verified again; final per-asset review and
+publication clearance remain open. No footage was copied into the app in M2.
+
+Relevant source IDs: DSN-01/02, LOC-01/02/03, ACC-01, MED-01/02/03/04, CFG-12,
+CMS-04, INF-04. No migrations, dependency changes, new environment values, Supabase
+mutations, live workflow release or deployment are part of this slice.

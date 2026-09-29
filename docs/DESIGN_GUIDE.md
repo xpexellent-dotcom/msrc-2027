@@ -1,6 +1,6 @@
 # MSRC 2027 website design guide
 
-Snapshot: 29 September 2026. This guide separates required experience behavior from working visual defaults. Final logo, typography, footage, public content and brand approval remain open under S1 CFG-12.
+Snapshot: 30 September 2026. ENG-007 records the user's current M2 implementation approval for the specified palette, fonts and motion. Final logos, footage, public content and publication approval remain open under S1 CFG-12. Other component tokens are configurable engineering defaults.
 
 Primary references: [Development Specification v0.5](../sources/Development_Specification_v0.5.txt), section 15 and CFG-12 (S1); [Website Brand Guide](../sources/MSRC27_Website_Brand_Guide.pdf), pages 1-2 (S4); prior development pack (S5); visible project conversation (S6); original [MSRC27 brand reference sheet in Canva](https://www.canva.com/d/zrujOnVYUtutnfB), with [text snapshot](../sources/MSRC27_Brand_Reference_Canva.txt) (S8).
 
@@ -18,15 +18,16 @@ Build a cinematic, clear conference website for The 5th Medical Students Researc
 | WCAG 2.2 AA accessibility target | REQUIRED TARGET | S1 ACC-01 |
 | Cinematic homepage inspiration from [Slush](https://slush.org/) | USER PREFERENCE | S6 |
 | General information-layout inspiration from [ESC Congress](https://www.escardio.org/events/congresses/esc-congress/) | USER PREFERENCE | S6 |
-| Exact palette and English fonts below | SOURCE-CORROBORATED WORKING DEFAULT | S8 text; S4/S5 |
-| Arabic font, motion timing and component styling below | WORKING DEFAULT | S4; carried into S5 |
-| Final MSRC/KAU marks, footage, fonts, translations and public content | OPEN PUBLIC-LAUNCH GATE | S1 DSN-02, CFG-12 |
+| Exact palette and English fonts below | SELECTED M2 IMPLEMENTATION BASELINE | Current user request; ENG-007; S8 text; S4/S5 |
+| Arabic font and motion timing below | SELECTED M2 IMPLEMENTATION BASELINE | Current user request; ENG-007 |
+| Spacing, radii, shadows and semantic component colours | CONFIGURABLE ENGINEERING DEFAULTS | ENG-007 |
+| Final MSRC/KAU marks, footage, translations and public content | OPEN PUBLIC-LAUNCH GATE | S1 DSN-02, CFG-12 |
 
 The inspiration links record the user's preferences. This handoff does not claim a fresh audit of either site's current implementation. Carry over the cinematic entrance and clear content organization through original MSRC layouts and assets.
 
 ## 2. Working palette
 
-The original Canva reference sheet's text explicitly lists these five values, corroborating the generated brand guide. S8 was read as text, not visually inspected; its metadata reports an update on 29 September 2026 at 12:16:35 UTC. It also contains the tentative note "Not sure but this was in the previous designs...." Final brand approval remains open under CFG-12. Use these source-backed values as the working build baseline until the design/content owner confirms the system.
+The original Canva reference sheet's text explicitly lists these five values, corroborating the generated brand guide. S8 was read as text, not visually inspected; its metadata reports an update on 29 September 2026 at 12:16:35 UTC. Its tentative note remains preserved in the historical source. The latest explicit user request selects these values for M2 implementation (ENG-007); this does not settle final logo or publication approval under CFG-12.
 
 | Token | Hex | Intended use |
 |---|---|---|

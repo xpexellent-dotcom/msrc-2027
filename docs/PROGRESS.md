@@ -1,6 +1,6 @@
 # Progress and session handover
 
-**Snapshot: 29 September 2026. Update this file after each development task.**
+**Snapshot: 30 September 2026. Update this file after each development task.**
 
 ## Current evidence
 
@@ -28,7 +28,7 @@
 |---|---|---|---|
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
 | M1 Foundation | ENG-001/004/005/006 adopted; relevant source IDs retained | Hosted connection configured/verified; synthetic Linux database CI retained. Windows local stack optional and untested | Connection foundation only; operational and production release gates remain closed |
-| M2 Design system | ENG-002 adopts working defaults; final brand approval pending | Shared bilingual primitives/showcase implemented and locally verified | Local preview only; final content/accessibility/brand gates pending |
+| M2 Design system | ENG-007 selects the requested palette/fonts/motion for implementation | Full requested component inventory and bilingual showcase implemented; local verification recorded below | Local/protected-staging preview only; final content/media/human accessibility review pending |
 | M3 Public alpha | Full sitemap retained in typed content | Homepage and bilingual About previews implemented; remaining standalone public pages pending | Public launch not approved |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
 | M5 Participant auth | Requirements defined | Not verified | Pending |
@@ -43,15 +43,63 @@ Do not convert this table to percentage completion without observable evidence. 
 
 ## Next task
 
+Next smallest PR: select a bounded set of MSRC2026 candidate assets from the reconfirmed
+Drive source, record source IDs, intended hero/highlight/gallery/poster placements, captions
+and rights/consent evidence, then propose compressed derivatives for review. Do not publish
+unreviewed footage. Bilingual homepage/About editorial approval also remains open.
+
 Use the selected hosted Supabase connection for normal development. Windows Docker setup
-is now optional for PC fixture tests; GitHub retains isolated synthetic database verification.
-Next smallest product task is editorial approval of the bilingual homepage/About copy before
-another public-page slice. Any hosted schema feature needs explicit grants/RLS and a reviewed
-migration, not a copy of the local synthetic fixture. All operational gates remain closed. See
+is optional for PC fixture tests; GitHub retains isolated synthetic database verification.
+Any hosted schema feature needs explicit grants/RLS and a reviewed migration, not a copy
+of the local synthetic fixture. All operational gates remain closed. See
 [hosted connection](features/hosted-supabase.md) for current evidence and
 [database/CI verification](reviews/m1-database-ci.md) for earlier local-stack results.
 The [implementation backlog](backlog/README.md), DR-CFG-11 ownership and DR-CFG-12
 content/brand decisions remain available for later work; no decision was silently resolved.
+
+## 30 September 2026 — Complete M2 component system
+
+Implemented the current requested inventory without adding operational modules: expanded
+tokens, shared Section/Link/ContentSplit/StatBlock/ProgramRow, extracted MobileNav/Footer,
+native FormField/Select/Checkbox/Radio/FileUpload, Alert/EmptyState/LoadingSkeleton,
+controlled Dialog/persistent Toast, semantic Table and pagination. Existing Container,
+Header, Button, LanguageSwitch, SectionHeading, StatusBadge and local font setup are reused.
+Both English/LTR and Arabic/RTL showcase routes include applicable states. Added gated
+`/design-system` alias. All 15 operational flags remain closed; no live data access occurs.
+
+ENG-007 records the latest palette/font/motion implementation decision. Drive metadata and
+six root folders were readable again; no new media was downloaded or published. File
+selection remains browser-memory-only. No migration, dependency, lockfile or environment
+configuration changed. See [scope, full file inventory and rollback](features/m2-components.md).
+
+Verification on the Windows checkout (Node24.21.0 / pnpm11.19.0):
+
+| Command / inspection | Observed result |
+|---|---|
+| `pnpm check` (lint, route type generation, TypeScript, Vitest, production build) | PASS; final code run has 181 unit tests across 8 files; all routes built |
+| `pnpm test:e2e` with local Chromium cache | PASS: 90 desktop/mobile/tablet cases, including 30 focused M2 cases; final full run51.4s |
+| Initial 84-case browser run | 78 passed / 6 failed: native dialog Tab boundary plus a broad Arabic status selector |
+| Expanded 90-case rerun | 88 passed / 2 failed: alias test expected an exact robots header but existing global config adds `noarchive`; corrected assertion to retain required directives |
+| `node .tools/ci/verify-m2-production.mjs` | PASS: `/design-system`, `/en/design-system`, `/ar/design-system` all HTTP404 under `VERCEL_ENV=production`, even with preview flag true |
+| `node .tools/ci/capture-m2.mjs` | PASS: English1440px/Arabic390px pages and dialogs rendered, no console errors/framework overlays |
+| Screenshot inspection | English desktop and Arabic mobile overview, fields, table and dialog inspected; eight PNGs in ignored `.tools/verification/m2/` |
+| `git diff --check`; scoped final test ESLint | PASS; no whitespace errors or lint findings |
+| Hosted database/RLS mutation tests | NOT RUN: no database code/schema changed and this UI slice must not mutate live Supabase |
+| Windows local database stack | NOT RUN: optional installed Docker still needs first-launch/restart setup; Linux CI provides the isolated fixture check |
+| GitHub application/database CI | Pending publication of this M2 branch |
+
+The dialog now cycles available controls while excluding hidden/disabled controls, restores
+focus on Escape/backdrop close and preserves native modality. Tests also cover anchor
+smooth/instant behavior, touch targets, reduced motion, file clearing/no writes, table
+boundaries, local/staging route headers, existing bilingual pages and closed endpoints.
+Semantic text colour pairs meet4.5:1; tested control/focus pairs meet3:1. Gold-on-ivory remains
+decorative. Automated axe checks include the full showcase and open dialogs.
+
+Local preview: `http://127.0.0.1:3000/en/design-system` and `/ar/design-system`.
+For a new terminal use the README. Remote staging requires explicit deployment protection;
+no Vercel deployment or production publication was created. Screen readers, real devices,
+Safari/Firefox and final Arabic editorial review are NOT TESTED in this slice. Rollback is
+the component commit revert; no database action is required.
 
 ## 29 September 2026 — Direct hosted Supabase connection
 

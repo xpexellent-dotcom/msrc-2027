@@ -1,0 +1,86 @@
+/* DSN-02 / ACC-01: editorial data presentation, with the same logical flow in RTL. */
+.content-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-7);
+}
+.content-split--reverse { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+.content-split__main, .content-split__aside { min-inline-size: 0; }
+.content-split__aside { border-inline-start: 2px solid var(--color-gold); padding-inline-start: var(--space-6); }
+
+.stat-block { padding-block: var(--space-5); border-block-start: 1px solid var(--color-line-strong); }
+.stat-block dl { margin: 0; }
+.stat-block dt { color: var(--color-muted); font-size: 1rem; }
+.stat-block dd {
+  margin: var(--space-2) 0 0;
+  color: var(--color-purple);
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.stat-block__description { margin-block: var(--space-3) 0; font-size: 0.9rem; color: var(--color-muted); }
+
+.schedule-row {
+  display: grid;
+  grid-template-columns: minmax(6rem, 0.3fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  padding-block: var(--space-6);
+  border-block-start: 1px solid var(--color-line-strong);
+}
+.schedule-row__time { color: var(--color-purple); font-weight: 600; overflow-wrap: anywhere; }
+.schedule-row__content { min-inline-size: 0; text-align: start; }
+.schedule-row__content > :is(h2, h3, h4) { font-size: clamp(1.3rem, 2.4vw, 1.8rem); line-height: 1.4; }
+.schedule-row__meta { color: var(--color-muted); margin-block: var(--space-2) 0; }
+.schedule-row__description { margin-block-start: var(--space-4); }
+
+.data-table { min-inline-size: 0; max-inline-size: 100%; }
+.data-table__hint { margin-block-end: var(--space-3); color: var(--color-muted); font-size: 0.9rem; }
+.data-table__scroll { overflow-x: auto; max-inline-size: 100%; border-block-end: 1px solid var(--color-line-strong); }
+.data-table table { border-collapse: collapse; inline-size: 100%; min-inline-size: 36rem; text-align: start; }
+.data-table caption {
+  text-align: start;
+  padding-block: var(--space-4);
+  font-family: var(--font-heading);
+  color: var(--color-purple);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.data-table :is(th, td) { text-align: start; padding: var(--space-4); vertical-align: top; border-block-start: 1px solid var(--color-line); }
+.data-table thead th { background: var(--color-lilac); color: var(--color-ink); border-block-start-color: var(--color-line-strong); }
+.data-table tbody th { font-weight: 600; }
+.data-table tbody tr:nth-child(even) { background: var(--color-white); }
+.data-table .data-table__message { padding-block: var(--space-7); color: var(--color-muted); }
+
+.pagination { margin-block-start: var(--space-5); }
+.pagination ul { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; padding: 0; margin: 0; list-style: none; }
+.pagination button {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-small);
+  background: var(--color-ivory);
+  color: var(--color-purple);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--motion-feedback) var(--motion-easing), background-color var(--motion-feedback) var(--motion-easing), transform var(--motion-feedback) var(--motion-easing);
+}
+.pagination button[aria-current="page"] { background: var(--color-purple); border-color: var(--color-purple); color: var(--color-ivory); }
+.pagination button:disabled { background: var(--color-disabled-surface); color: var(--color-disabled); cursor: not-allowed; }
+.pagination button:not(:disabled):active { transform: scale(0.98); }
+.pagination__gap { display: inline-block; padding-inline: var(--space-1); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .pagination button:not(:disabled):hover { transform: translateY(-1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagination button { transition: none; }
+  .pagination button:not(:disabled):active { transform: none; }
+}
+@media (max-width: 700px) {
+  .content-split, .content-split--reverse { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
+  .schedule-row { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+}

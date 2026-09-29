@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 @import "../styles/components.css";
+@import "../styles/forms.css";
+@import "../styles/feedback.css";
+@import "../styles/data-display.css";
 @import "../styles/media.css";
 @import "../styles/design-system.css";
 @import "../styles/homepage.css";
@@ -11,7 +14,7 @@ body { margin: 0; min-width: 320px; background: var(--color-ivory); color: var(-
 h1, h2, h3, h4 { font-family: var(--font-heading); text-wrap: balance; overflow-wrap: anywhere; }
 button, input, select, textarea { font: inherit; }
 button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 5px; }
+:focus-visible { outline: var(--focus-width) solid var(--focus-ring); outline-offset: var(--focus-offset); }
 ::selection { background: var(--color-lilac); color: var(--color-purple); }
 .section-heading h2 { white-space: pre-line; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }

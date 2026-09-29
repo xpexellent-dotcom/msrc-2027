@@ -128,3 +128,14 @@ and has empty alternative text; conference identity remains live semantic page t
 
 See [design-system feature notes](features/design-system.md) for the complete next-content
 request list. All real-media rights/approval and removal responsibilities remain open.
+
+## 30 September 2026 — M2 source reconfirmation
+
+The user reconfirmed the existing MSRC2026 Drive folder for hero clips, homepage
+photographs, a clearly labelled previous-edition gallery and a mobile still. A fresh
+metadata/list call read the root `Without frame` and the same six photographer folders.
+This verifies current metadata access, not complete media selection or usage rights.
+M2 introduces no downloaded/encoded media and keeps the original static poster. Next:
+select individual source IDs, record placement/caption/year and rights/consent approval,
+then create reviewed compressed derivatives and desktop/mobile posters. No third-party
+embed or unreviewed 2026 footage is published by this change.

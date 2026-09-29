@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/ui/link";
+import { MobileNav } from "@/components/mobile-nav";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { LanguageSwitch } from "@/components/language-switch";
@@ -93,22 +94,8 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         </div>
       </Container>
       {menuOpen ? (
-        <div id={menuId} className="mobile-menu">
-          <Container>
-            <nav aria-label={copy.navigation}>
-              {copy.links.map((link) => (
-                <Link key={link.href} href={`/${locale}${link.href}`} aria-current={pathname === `/${locale}${link.href}` ? "page" : undefined} onClick={() => {
-                  setMenuOpen(false);
-                  // Activating the current page still moves focus out of the removed menu.
-                  if (pathname === `/${locale}${link.href}`) document.getElementById("main-content")?.focus();
-                }}>
-                  {link.label}<span className="directional-arrow" aria-hidden="true">↗</span>
-                </Link>
-              ))}
-            </nav>
-            <p className="mobile-menu-status">{copy.registration}</p>
-          </Container>
-        </div>
+        <MobileNav id={menuId} label={copy.navigation} links={copy.links.map((link) => ({...link, href: `/${locale}${link.href}`}))}
+          pathname={pathname} status={copy.registration} onNavigate={() => setMenuOpen(false)} />
       ) : null}
     </header>
   );

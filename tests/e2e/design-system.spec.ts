@@ -61,7 +61,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(title).toHaveValue(scientificTitle);
     await expect(title).toHaveAttribute("dir", "ltr");
     await page.getByRole("button", { name: nextLocale === "ar" ? "تحقق من المثال" : "Check example", exact: true }).click();
-    await expect(page.getByRole("status").filter({ hasText: nextLocale === "en" ? /No submission was created or sent/ : /لم/ })).toBeVisible();
+    await expect(page.getByRole("form").getByRole("status")).toHaveText(nextLocale === "en" ? "Demo checked. No submission was created or sent." : "تم التحقق من المثال. لم يُنشأ أو يُرسل أي طلب.");
     expect(writes).toEqual([]);
   });
 }

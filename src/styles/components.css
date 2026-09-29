@@ -1,4 +1,12 @@
 /* Shared bilingual foundations. Native scrolling and native form controls are retained. */
+.site-section { padding-block: var(--section-space); }
+.site-link { min-block-size: var(--touch-target); display: inline-flex; align-items: center; }
+.site-link[aria-disabled="true"] { color: var(--color-disabled); cursor: not-allowed; }
+.site-link:not(.button):not(.wordmark) { text-decoration: underline; text-underline-offset: .25em; }
+.site-link:not([aria-disabled="true"]):hover { text-decoration-thickness: 2px; }
+.reveal--seen { animation: reveal-once var(--motion-reveal) var(--motion-easing) both; }
+@keyframes reveal-once { from { transform: translateY(var(--motion-reveal-distance)); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .reveal--seen { animation: none; } }
 .site-container { width: min(calc(100% - var(--container-gutter) * 2), var(--container-width)); margin-inline: auto; }
 .site-container--narrow { max-width: 860px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
@@ -36,9 +44,9 @@
 
 .button { display: inline-flex; justify-content: center; align-items: center; gap: 0.6rem; min-height: 50px; padding: 0.8rem 1.3rem; border: 1px solid transparent; border-radius: var(--radius-small); font-family: var(--font-heading); font-size: 0.88rem; line-height: 1.4; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; transition: color var(--motion-feedback) var(--motion-easing), background-color var(--motion-feedback) var(--motion-easing), border-color var(--motion-feedback) var(--motion-easing), transform var(--motion-feedback) var(--motion-easing), box-shadow var(--motion-feedback) var(--motion-easing); }
 .button--primary { background: var(--color-purple); color: var(--color-ivory); }
-.button--primary:hover { background: #4b2c80; box-shadow: 0 4px 12px #1f193014; }
+.button--primary:hover { background: var(--color-purple-hover); box-shadow: var(--shadow-button); }
 .button--gold { background: var(--color-gold); color: var(--color-ink); }
-.button--gold:hover { background: #d6b566; box-shadow: 0 4px 14px #00000018; }
+.button--gold:hover { background: var(--color-gold-hover); box-shadow: var(--shadow-button); }
 .button--secondary { border-color: var(--color-line-strong); background: transparent; color: var(--color-purple); }
 .button--secondary:hover { background: var(--color-lilac); border-color: var(--color-purple); }
 .button--ghost { background: transparent; color: var(--color-purple); }
@@ -50,9 +58,9 @@
 .button:focus-visible, .language-switch:focus-visible, .menu-toggle:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
 @keyframes button-spin { to { transform: rotate(360deg); } }
 @media (hover: hover) {
-  .button:not(:disabled):not([aria-disabled="true"]):hover { transform: translateY(-1px); }
+  .button:not(:disabled):not([aria-disabled="true"]):hover { transform: translateY(var(--motion-hover-lift)); }
 }
-.button:not(:disabled):not([aria-disabled="true"]):active { transform: scale(0.98); }
+.button:not(:disabled):not([aria-disabled="true"]):active { transform: scale(var(--motion-press-scale)); }
 
 .eyebrow { display: flex; align-items: center; gap: 0.7rem; margin: 0; color: var(--color-purple); font-size: 0.72rem; font-weight: 600; line-height: 1.6; }
 :lang(en) .eyebrow { letter-spacing: 0.15em; text-transform: uppercase; }

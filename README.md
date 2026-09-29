@@ -31,6 +31,10 @@ explicitly set the server-only `DESIGN_PREVIEW_ENABLED=true`; otherwise they ret
 They always return404 when `VERCEL_ENV=production`, even with that flag. The flag and
 no-index responses are not authentication: protect any remote staging deployment separately.
 The showcase has synthetic examples only and never submits or stores participant data.
+`/design-system` is a gated alias to the English showcase. Both languages demonstrate
+forms, dialogs, persistent dismissible toasts, table/pagination states, content composition
+and shared navigation. File selection is an in-memory filename demo; no file is read or
+uploaded. See [M2 component inventory and verification](docs/features/m2-components.md).
 
 The homepage uses original static artwork. Only the design-system route uses the small,
 silent synthetic motion fixture to demonstrate playback and fallback controls. Fonts are

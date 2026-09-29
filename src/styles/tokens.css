@@ -1,4 +1,4 @@
-/* DSN-02 / CFG-12: source-backed working defaults, awaiting final brand approval.
+/* DSN-02 / CFG-12 / ENG-007: organizer-selected M2 implementation baseline.
    Semantic state values are local engineering defaults, not organizer decisions. */
 :root {
   --color-purple: #3b1e6d;
@@ -20,12 +20,25 @@
   --color-info-surface: #ebe3f4;
   --color-disabled: #655e70;
   --color-disabled-surface: #e8e3ec;
+  --color-purple-hover: #4b2c80;
+  --color-gold-hover: #d6b566;
   --muted: var(--color-muted);
   --line: var(--color-line);
   --font-heading: var(--font-dm-sans), Arial, sans-serif;
   --font-body: var(--font-inter), Arial, sans-serif;
   --font-interface: var(--font-body);
   --font-arabic: var(--font-noto-arabic), Tahoma, Arial, sans-serif;
+  --text-caption: 0.875rem;
+  --text-body: 1rem;
+  --text-lead: 1.125rem;
+  --text-title: clamp(2.2rem, 4vw, 3.5rem);
+  --text-display: clamp(2.6rem, 6vw, 5.2rem);
+  --leading-body: 1.65;
+  --leading-heading: 1.13;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -42,20 +55,31 @@
   --radius-small: 0.2rem;
   --radius-medium: 0.55rem;
   --radius-pill: 999px;
+  --shadow-button: 0 4px 12px #1f193014;
+  --shadow-dialog: 0 16px 48px #1f193033;
+  --shadow-toast: 0 6px 24px #1f19301f;
+  --touch-target: 44px;
   --motion-feedback: 180ms;
   --motion-reveal: 400ms;
   --motion-easing: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --motion-hover-lift: -1px;
+  --motion-press-scale: 0.98;
+  --motion-reveal-distance: 12px;
   --focus-ring: var(--color-purple);
+  --focus-width: 3px;
+  --focus-offset: 4px;
 }
 
 [lang="ar"] {
   --font-interface: var(--font-arabic);
   --font-heading: var(--font-arabic);
   --font-body: var(--font-arabic);
+  --leading-heading: 1.5;
 }
 
 [lang="en"] {
   --font-interface: var(--font-inter), Arial, sans-serif;
   --font-heading: var(--font-dm-sans), Arial, sans-serif;
   --font-body: var(--font-inter), Arial, sans-serif;
+  --leading-heading: 1.13;
 }

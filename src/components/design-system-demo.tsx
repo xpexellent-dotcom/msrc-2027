@@ -7,14 +7,15 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TextField } from "@/components/ui/text-field";
 import { HeroMedia } from "@/components/hero-media";
+import { DesignSystemComponents } from "@/components/design-system-components";
 import type { Locale } from "@/lib/i18n";
 
 const copy = {
   en: {
     eyebrow: "MSRC 2027 / design study", title: "A shared visual language.",
-    intro: "Working design defaults for review. These components use synthetic examples; no registration or submissions are available here.",
+    intro: "The MSRC visual system, built for bilingual interfaces. These components use synthetic examples; no registration or submissions are available here.",
     foundations: "01 / Foundations", foundationsTitle: "Colour, space & type",
-    foundationsDescription: "The source palette and locally served typefaces are working defaults, pending final brand approval.",
+    foundationsDescription: "The selected palette and locally served typefaces form the M2 implementation baseline. Final marks, event content and media remain subject to review.",
     palette: ["Royal purple", "Warm gold", "Ivory", "Soft lilac", "Deep ink"],
     typography: "Type specimens", headingSample: "Research starts with a question.",
     bodySample: "A clear interface makes room for ideas. Reading surfaces, labels and supporting text share a consistent rhythm.",
@@ -39,9 +40,9 @@ const copy = {
   },
   ar: {
     eyebrow: "مؤتمر أبحاث طلاب الطب ٢٠٢٧ / دراسة التصميم", title: "لغة بصرية مشتركة.",
-    intro: "قيم تصميم مبدئية للمراجعة. تستخدم هذه المكوّنات أمثلة تجريبية؛ التسجيل وتقديم الطلبات غير متاحين هنا.",
+    intro: "نظام MSRC البصري لواجهات ثنائية اللغة. تستخدم هذه المكوّنات أمثلة تجريبية؛ التسجيل وتقديم الطلبات غير متاحين هنا.",
     foundations: "٠١ / الأسس", foundationsTitle: "الألوان والمسافات والخطوط",
-    foundationsDescription: "لوحة الألوان والخطوط المستضافة محليًا قيم عمل مبدئية بانتظار الاعتماد النهائي للهوية.",
+    foundationsDescription: "لوحة الألوان والخطوط المختارة والمستضافة محليًا أساس تنفيذ المرحلة الثانية. تبقى الشعارات ومحتوى المؤتمر والوسائط خاضعة للمراجعة.",
     palette: ["البنفسجي الملكي", "الذهبي الدافئ", "العاجي", "الليلكي الفاتح", "الحبر الداكن"],
     typography: "نماذج الخطوط", headingSample: "البحث يبدأ بسؤال.",
     bodySample: "تتيح الواجهة الواضحة مساحة للأفكار. تتبع مساحات القراءة والعناوين والنصوص المساندة إيقاعًا متّسقًا.",
@@ -155,6 +156,13 @@ export function DesignSystemDemo({ locale }: { locale: Locale }) {
             <div key={space}><code dir="ltr">{space}px</code><span style={{ inlineSize: space }} aria-hidden="true" /></div>
           ))}
         </div>
+        <div className="design-token-details" aria-label={locale === "ar" ? "الزوايا والظلال والتركيز" : "Radii, shadows and focus"}>
+          <div style={{borderRadius:"var(--radius-small)"}}><code>radius-small</code><span>0.2rem</span></div>
+          <div style={{borderRadius:"var(--radius-medium)"}}><code>radius-medium</code><span>0.55rem</span></div>
+          <div style={{borderRadius:"var(--radius-pill)"}}><code>radius-pill</code><span>999px</span></div>
+          <div style={{boxShadow:"var(--shadow-dialog)"}}><code>shadow-dialog</code><span>{locale === "ar" ? "للأسطح المؤقتة فقط" : "Transient surfaces only"}</span></div>
+          <div><code>focus / target</code><span dir="ltr">3px + 4px / ≥44px</span></div>
+        </div>
       </section>
 
       <section className="design-system-section" aria-labelledby="design-interaction">
@@ -204,6 +212,7 @@ export function DesignSystemDemo({ locale }: { locale: Locale }) {
         <SectionHeading id="design-media" eyebrow={text.media} title={text.mediaTitle} description={text.mediaDescription} />
         <div className="design-media-frame"><HeroMedia locale={locale} video={{ src: "/brand/synthetic-motion.webm", poster: "/brand/hero-poster.svg", approval: "approved" }} /><p>{text.mediaNote}</p></div>
       </section>
+      <DesignSystemComponents locale={locale} />
       <ButtonLink href={`/${locale}`} variant="secondary">{text.home}</ButtonLink>
     </Container>
   );
