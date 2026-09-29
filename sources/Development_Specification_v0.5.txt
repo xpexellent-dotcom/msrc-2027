@@ -1,0 +1,533 @@
+MSRC 2027 Website
+
+Development Specification v0.5
+
+Purpose: implementation baseline for the public website and conference operations platform.
+
+Authority: the organizer's latest selections confirm O1 organizational ownership, managed Vercel + managed Supabase, P1 authorized KAU payment collection, C3 solo and team hackathon entries, A1 attendance evidence with no one-day certificate, and S2 unlinked feedback with separately tracked completion. Answered items from the updated Hackathon Draft [H1] inform Section 9. Its options, examples, tentative statements, and conflicts remain identified as such. Selecting an approach does not certify implementation, available integrations, or completed institutional approvals.
+
+Reading key: MUST identifies a required behavior. DEFAULT identifies an adopted engineering starting value that an authorized owner can change through documented configuration. TBD identifies an unresolved business value or approval, listed in Section 23. A dependent workflow must remain closed until its required TBDs are resolved.
+
+1. Product scope and delivery baseline
+
+SCP-01. The platform MUST support the two-day MSRC 2027 conference, parallel sessions, general attendance, research abstracts with oral/poster allocation, postgraduate Three Minute Thesis (3MT), hackathon tracks, workshops, keynotes, exhibitions, sponsors, and post-conference archives. Actual event dates, venue, rooms, and capacities are configuration gates, not assumed facts.
+
+SCP-02. Public pages MUST include Home, About, Dates and Venue, Program, Speakers, Workshops, Participation and Submission Guidelines, Teams/Committees/Board, Sponsors and Sponsorship, Gallery/Past Editions, Announcements, FAQ, Contact, Privacy, and Terms. Public information and workshop availability MUST be accessible without login.
+
+SCP-03. Verified users MUST have a dashboard for registrations and payments, submissions and revisions, workshop bookings/waitlists, QR tickets, and certificates. Registration, research submission, hackathon participation, and 3MT MUST be distinct workflows connected to one account. Listing someone as a co-author MUST NOT register them for attendance.
+
+SCP-04. Operational scope includes manually approved registration, paid and fully discounted orders, review and AI-assessment workflows, restricted committee dashboards, event judging, email automation, QR scanning, survey-based certificate eligibility, content administration, audit trails, and reporting.
+
+SCP-05. Out of scope: public attendee directories; public abstracts or research search; sponsor accounts/self-service uploads; user-built personal schedules; full-site search; attendee messaging/networking; native mobile apps; automatic team matching; university SSO; SMS, WhatsApp, or push notifications. My Bookings is a read-only list of booked activities, not a schedule builder. Program filters remain in scope.
+
+SCP-06. Planning estimates are 15,000+ visitors, approximately 1,000 attendees, 300–400 abstracts, 30–40 reviewers/judges, and 3–10 administrative accounts. The stated 30–100 workshop registrations must be clarified as total or per workshop. Hackathon application volume remains TBD; its draft specifies eight finalist teams per track, sixteen total, with solo-place accounting unresolved under HAC-07. Estimates and finalist quotas MUST NOT be confused with general admission limits or numbers of individual participants.
+
+SCP-07. All selected functions remain delivery scope. Certificates may be released after initial public launch, but attendance, eligibility evidence, and retention design MUST be implemented before their data is collected. Each operational feature MUST be tested before its own opening date. Section 22 defines release gates rather than silently downgrading selected features to enhancements.
+
+2. Roles and permission boundaries
+
+ROL-01. Permissions MUST be additive and scoped to an edition, track, assignment, or operational function. Being logged in MUST NOT grant general database access. Authorization MUST be enforced on the server and data layer, not only by hiding interface controls. [R4, R5]
+
+ROL-02. Participant: manage their own permitted profile fields, registrations, orders, drafts, revisions, bookings, tickets, and certificates. They MUST NOT see another participant's personal records, unpublished decisions, reviewer identities, scores, or confidential comments.
+
+ROL-03. Abstract Reviewer: access only assigned anonymized submissions and the relevant rubric; declare conflicts, decline assignments, save and submit reviews, and amend them while the review is open. No author names, contact details, affiliations, administrative evidence, peer reviews, or peer-review status may be returned to this role.
+
+ROL-04. Hackathon Reviewer and 3MT Reviewer: assignment-scoped access to the relevant track's sanitized review packet and scoring interface. Applicant identities MUST remain hidden in reviewer views. Team identifiers presented for review MUST be anonymized where they identify applicants. Track-specific judging that occurs in person is distinguished from this pre-event review.
+
+ROL-05. Scientific Administrator: validate submissions, manage assignments and rubric configuration, request revisions, resolve review disagreements, prepare decisions, allocate oral/poster formats, and publish authorized scientific outcomes. Access to author details is limited to duties requiring them; administrative evidence access follows ROL-11.
+
+ROL-06. Judging Committee: categorize accepted presentations, assign faculty judges, and manage judging readiness within assigned categories. Faculty Judge: view assigned event materials, declare conflicts, submit event-day scores, and amend them before locking. Event judging and awards MUST use separate score records from abstract acceptance review.
+
+ROL-07. Registration/Workshop Administrator: process manual approvals, manage capacity and reserved seats, resolve bookings/waitlists, and inspect necessary attendance records. Finance permission: inspect orders, payment reconciliation, discounts, and authorized refunds. Neither permission grants scientific-review content or full profile exports.
+
+ROL-08. Check-in Staff: use the scanning interface for assigned days/workshops; see the minimum name, registration identifier, ticket validity, and check-in information needed at entry. They MUST NOT browse submissions, licence numbers, finance records, or unrestricted participant lists.
+
+ROL-09. Content/Media Editor: manage assigned public content and upload media. Media publication requires an explicit authorized approval. Sponsorship/PR: manage sponsor profiles, tiers, inquiry records, and permitted follow-up. General support remains an email workflow, not an internal helpdesk.
+
+ROL-10. Exactly three named Super Admin accounts MUST be designated before production. Super Admins manage roles, security settings, integrations, personal-data exports, audit access, and exceptional actions. Organizational owners retain authority; the developer receives delegated technical access rather than personal ownership of the platform.
+
+ROL-11. Confidential IRB and similarity-report downloads are restricted to Super Admins under the selected policy. Scientific administrators may see validation outcomes; if they need the original evidence, a separately approved, logged permission change is required. Assigned judges may receive presentation files, which are a different document class. No role receives unrestricted access by implication.
+
+ROL-12. All administrative, reviewer, judge, and check-in accounts MUST be individually identifiable. Privileged access requires MFA. A participant who is also a reviewer MUST NOT review their own submission or a conflicted assignment. Staff offboarding MUST remove grants and invalidate applicable sessions. Role changes, overrides, downloads, exports, and decision publication MUST be auditable.
+
+3. Authentication, profiles, language, and accessibility
+
+AUTH-01. Accounts MUST use email and password with managed authentication. Public browsing requires no account; submitting, registering, paying, or booking requires verified email. KAU accounts receive no special authentication path. Duplicate accounts using the same normalized email MUST be prevented without exposing whether an email belongs to another user through public responses.
+
+AUTH-02. Email verification MUST use a six-digit numeric code. DEFAULT: ten-minute validity, 60-second resend cooldown, at most three issued codes per email within 15 minutes, and at most five failed entries per code. Issuing a replacement invalidates the previous code. Codes are single-use and protected at rest. Account/IP rate limits and accessible anti-bot protection MUST cover issuance, entry, and password recovery.
+
+AUTH-03. Failed-password attempts MUST trigger progressive throttling. DEFAULT: five failed attempts within 15 minutes before an additional challenge/cooldown. This MUST NOT become a permanent account lockout. Password-reset requests return a generic response, use expiring single-use credentials, and support session revocation after recovery. Rate limits and recovery steps require automated tests.
+
+AUTH-04. MFA MUST use an authenticator-app time-based code for privileged roles, with documented enrollment, factor-loss recovery, and audited reset. The app generates the code locally; this does not introduce SMS or another notification channel. Email verification alone MUST NOT be treated as the required second factor for privileged operations. Supabase supports authenticator-app MFA, but enforcement must also cover APIs and database access. [R3]
+
+AUTH-05. DEFAULT session limits: participants, 24-hour absolute session lifetime; privileged screens, 30-minute idle timeout and eight-hour absolute lifetime. Sensitive actions require recent authentication. Warn before timeout where possible and retain saved drafts. The developer MUST enforce the configured policy server-side and test logout, suspension, factor reset, and revoked-session behavior rather than assuming an interface logout immediately invalidates every token.
+
+AUTH-06. Name and email are required. Professional category is required when selecting an applicable participation path; institution and academic level are conditional on that category. Country/city and phone are optional unless an approved operational purpose makes them necessary. Medical licence number is conditional on an approved professional purpose, never mandatory for students or non-medical attendees. National ID collection is excluded.
+
+AUTH-07. Users may correct permitted profile fields. Email changes and account/data deletion are handled through verified support requests rather than immediate self-service actions. A changed email MUST be reverified before becoming the account credential. A deletion request MUST follow retention exceptions and revoke access; it MUST NOT erase financial obligations or required audit evidence without assessment.
+
+AUTH-08. DEFAULT: remove abandoned unverified accounts after seven days, provided no retained operational record requires them. The deletion job MUST not delete verified users or records with an approved retention obligation. Account recovery and cleanup actions MUST be logged without retaining passwords or codes.
+
+LOC-01. Public pages, authentication, participant dashboard, navigation, form instructions/labels, errors, and participant support interfaces MUST support English and Arabic. English is the default. Arabic views use full RTL layout; users can change their interface language without losing entered data.
+
+LOC-02. All submitted scientific/project content, including abstracts, hackathon narratives, 3MT material, and stage-two presentation content, MUST be English-only. Scientific-content fields remain LTR inside Arabic pages. Author names and official institution names may retain their correct original spelling. Interface language MUST NOT be confused with submission language.
+
+LOC-03. Reviewer and faculty-judge assessment screens are English-only. Non-review organizer interfaces follow the bilingual interface requirement. Transactional emails are English-only, consistent with the answered email-language requirement; they may link to the selected participant interface language. Public and participant translation coverage MUST be checked before launch.
+
+ACC-01. The accessibility target is WCAG 2.2 AA. Test keyboard access, visible focus, semantic headings, meaningful labels, error association, contrast, text resizing, screen-reader feedback, and Arabic directionality. Codes must support paste/autofill. Mandatory animations, camera-only admission, and inaccessible CAPTCHA must have alternatives. Honor reduced-motion preferences. [R6]
+
+4. General attendance registration and approval
+
+REG-01. General attendance is open to students, non-medical attendees, faculty, healthcare professionals, and external/international participants. Eligibility for research competitions remains separately defined. Account creation, general registration, payment, and attendance MUST remain separate records and states.
+
+REG-02. Every registration MUST start as pending manual approval. Approval is never automatic, including for a 100% discounted order. The registration interface MUST explain that submitting the form or verifying email does not confirm admission.
+
+REG-03. Adopted workflow: verified account → registration request → pending approval → organizer approval → payment due or valid zero-value order → confirmed registration → ticket. Approval occurs before payment collection by default. Both approval and financial completion MUST exist before confirmation. An organizer rejection before payment creates no charge.
+
+REG-04. State vocabulary: draft, pending_approval, rejected, approved_awaiting_payment, confirmed, cancelled, and expired. Payment has its own states. Approval records MUST include actor and timestamp; rejection, cancellation, expiry exceptions, and manual overrides require a reason. Participants receive the published outcome by email and in their dashboard.
+
+REG-05. Collect an attendance declaration for the configured two-day event and acceptance of applicable terms. Show approved dates, price, discount conditions, cancellation/refund rules, and capacity status before submission. Registration MUST remain closed while event dates, admission capacity, approval responsibility, or financial configuration is incomplete.
+
+REG-06. Pending requests do not themselves guarantee admission. Approval MUST atomically allocate an available seat or place the request in an explicit capacity-pending queue. The administrator may never approve beyond capacity. Approved unpaid reservations expire after a configured payment deadline, releasing capacity and notifying the participant. Approval/payment deadlines are business settings in Section 23.
+
+REG-07. The dashboard MUST show registration ID, current status, payment action where applicable, approval/payment expiry, ticket availability, and support route. QR credentials are issued only for confirmed registration. A pending, rejected, cancelled, expired, refunded-and-revoked, or suspended entitlement MUST not admit the user.
+
+REG-08. Research submission is independent of paid attendance. A verified user may submit eligible work without buying attendance first. Rules for required attendance by accepted presenters, winners, or teams MUST be published before decisions are released; no hidden payment prerequisite may be added retrospectively.
+
+5. Orders, payments, discounts, and refunds
+
+PAY-01. Selected collection route: the existing, authorized KAU payment arrangement (P1), rather than a new independent MSRC merchant account. Conference attendance and workshops remain paid products with promotional codes, including a 100% university-student discount. The responsible KAU unit, exact collection system, recipient account, supported integration, prices, currency, enabled payment methods, discount evidence/limits, receipt/tax treatment, settlement reporting, and refund authority must be documented before live collection. The selected route is not evidence that an API or credentials have been supplied.
+
+PAY-02. Orders MUST retain a server-calculated snapshot of items, base price, discount, taxes where applicable, currency, and final amount. Monetary values MUST use integer minor units appropriate to the configured currency. Client-supplied amounts or discount eligibility MUST never be trusted.
+
+PAY-03. A full discount MUST create a completed zero-value order after eligibility validation, without requiring a card or gateway charge. It still consumes applicable discount usage and requires manual registration/workshop approval. Codes MUST support activation/expiry, allowed products, per-user/global limits, eligible groups, and non-stacking by default. Usage allocation must be race-safe.
+
+PAY-04. After manual registration/booking approval, positive-value orders MUST use the authorized KAU collection interface. Implement hosted checkout, a payment link, or another collection method only when KAU confirms the supported interface and its order-reference behavior. Card numbers and security codes MUST NOT enter MSRC storage, logs, or email. A redirect, uploaded receipt image, or participant assertion does not prove payment. Confirmation requires an authenticated system result or an authorized reconciliation against an official KAU collection record, matched to order, amount, currency, and transaction/reference.
+
+PAY-05. Payment attempts, approvals, orders, and entitlements MUST remain separate. Isolate the KAU integration behind a payment adapter and develop it initially with synthetic/test transactions. Use signed callbacks or authenticated status retrieval only if the actual KAU system supports them; do not invent a webhook contract. If an approved official-report reconciliation process is required instead, document the authorized operator, evidence reference, matching rule, timing, and audit trail before launch. Repeated or out-of-order confirmations must not duplicate payment credit, tickets, or bookings. Unmatched/ambiguous records enter a visible reconciliation queue.
+
+PAY-06. Payment completion after seat expiry MUST NOT overbook. Place the order into an exception workflow for available-seat reconciliation or refund according to the published policy. Finance staff must see failed, pending, successful, refunded, partially refunded, and disputed transactions with an audit trail.
+
+PAY-07. Cancellation and refund are separate actions. Refund requests follow the approved KAU authority and collection-system procedure; an MSRC request is not evidence that funds were returned. Record requested, approved, submitted-to-KAU, and confirmed-refunded outcomes as applicable, with official references and an audit trail. The refunded amount must not exceed the eligible paid amount. Zero-value orders do not generate monetary refunds. Admission revocation, workshop release, discount restoration, and dependent-booking effects require explicit published rules.
+
+PAY-08. Before taking money, publish the seller identity, contact route, currency/prices, included activities, cancellation policy, refund conditions, and applicable receipt/invoice information. Finance access MUST exclude scientific reports and unnecessary profile fields. Receipts and all payment communications are email-only.
+
+6. Abstract submission, authorship, and file stages
+
+ABS-01. Abstract applicants may be undergraduate or postgraduate students, interns/residents, healthcare practitioners, or faculty from any institution, including international institutions. Completed and incomplete/ongoing studies are eligible. The system MUST NOT require completed results as a condition for every submission.
+
+ABS-02. Required structured data: title, research specialty, study type, completion status, abstract body, ordered author list, each author's affiliations, designated principal investigator, corresponding author, presenting author where known, ethics status, conflict-of-interest declaration, funding declaration, and required administrative evidence. Keywords are supported; their required count is a configurable scientific setting.
+
+ABS-03. For ordinary research, use Background, Aim, Methods, Results/Current Progress, and Conclusion/Current Implications. For an ongoing study, clearly label unavailable results and stage of progress; do not require invented findings. For case reports, use Background/Context, Case Presentation, Discussion, Outcome, and Conclusion. The relevant template is selected by study type.
+
+ABS-04. The combined submitted body MUST not exceed 300 words. Title, author information, affiliations, keywords, and interface-generated headings are excluded. Client and server MUST use the same counter. DEFAULT rule: count whitespace-separated tokens containing a letter or digit; a hyphenated expression without spaces is one token. Display a live total and reject a server-validated total above 300. References, tables, and figures are not accepted in the stage-one abstract body.
+
+ABS-05. Authors may have multiple affiliations; there is no scientific author-count cap. Technical anti-abuse payload limits must not silently impose one. The submitter, principal investigator, first author, corresponding author, and presenter are separate fields. The scientific lead must confirm corresponding-author eligibility, including whether the first author may hold that role, before the form opens. Do not infer this responsibility automatically from author order. Co-authors need no accounts merely to be listed.
+
+ABS-06. The submitter MUST confirm authority to provide co-author data and submit the work. Co-author email messages are informational/invitational and do not create attendance, paid orders, accounts, or public profiles. Incorrect co-author information must have a correction route.
+
+ABS-07. Retain the two-submission-per-principal-investigator rule from the participation terms. Count finalized stage-one applications within the edition, not drafts or co-authorship alone. Block an attempted third application with a clear explanation rather than automatically disqualifying the existing two. Withdrawn applications remain counted by default; any authorized exception requires a reason. No overall conference-wide abstract submission cap is implied by this rule.
+
+ABS-08. A research supervisor is NOT required at initial submission, review, acceptance, presentation allocation, or award nomination. Supervisor information becomes mandatory ONLY when a nominee is selected as an award winner. Missing supervisor information must not block ordinary participation or distort scientific scoring. The award record enters winner_pending_supervisor until the award administrator validates the required details. Evidence and response deadline are configured before award results are released.
+
+ABS-09. Stage one accepts only the abstract text/data and two administrative supporting-file classes: IRB/ethics documentation where applicable and a plagiarism/similarity report. No stage-one presentations, posters, research supplements, figures, or general attachments are allowed. DEFAULT: PDF only for those reports, maximum 10 MB per file.
+
+ABS-10. Ethics status MUST distinguish approval provided from a declared not-required/exempt basis. Where approval is required, the evidence must be supplied. A study-type selection alone MUST NOT automatically waive ethics review. Where documentation is not applicable, require an explanation for administrative validation. Patient-identifying data is prohibited; case-report consent and research ethics approval are distinct matters. [R10]
+
+ABS-11. A similarity report MUST be supplied. The current policy target is no more than 20%; approved provider/report settings remain TBD. The system flags values above the threshold or unverifiable reports for human administrative action or revision. It MUST NOT call a percentage proof of plagiarism or automatically reject scientifically on that percentage alone. The baseline includes report upload/manual validation, not an assumed external plagiarism-checking integration. [R7]
+
+ABS-12. Applicants MUST be able to save drafts, resume across sessions/devices, preview, and explicitly submit. Autosave must show saving/saved/error states. Final submission records a timestamp and immutable snapshot of text, author data, declarations, and attachments. Finalized work is locked except through an authorized reopen or revision request. Replacing a file must not erase the material attached to an earlier review.
+
+ABS-13. Each submission receives an internal random identifier and a stable display reference such as MSRC27-CA-0001. Specialty codes and sequences must be unique within the edition and safely allocated concurrently. Reclassification does not change an issued reference. Display references MUST NOT function as access credentials.
+
+ABS-14. Stage two opens only for the accepted/conditionally accepted submission or an explicitly authorized final-material request. Allow presentation/poster files in PDF, PPTX, and DOCX, subject to the requested deliverable. DEFAULT maximum: 50 MB per file. Legacy DOC/PPT and additional formats require an approved allowlist change; macro-enabled or executable formats are prohibited. Stage-two templates, counts, deliverables, and deadlines are configured per presentation type.
+
+ABS-15. Stage-one administrative files remain private and separate from stage-two presentation files. Reviewers receive sanitized review content, not identity-bearing reports. Assigned event judges receive only the approved material necessary for judging. Applicant-visible version history is not required, but submitted snapshots and replacement audit records MUST be retained under the approved retention schedule.
+
+7. Review, revisions, decisions, and awards
+
+REV-01. Scientific review is blinded to applicant identity. Reviewer pages, API responses, file names, document properties where exposed, notifications, and downloadable review packets MUST omit applicant names, contact details, and identifying affiliations. Check body text for identifying disclosures before assignment. Reviewer identities and confidential review material are also hidden from applicants. Event-day judges may naturally see the presenter; that is a separate stage, not an exception to pre-event reviewer anonymity.
+
+REV-02. Administrators assign one to five eligible reviewers manually. Each assignment is tied to a submission version and rubric version. Required completed-review count, scoring scale, acceptance threshold, and any track-specific criteria must be finalized before reviewing opens. Do not interpret missing or declined reviews as zero scores.
+
+REV-03. Reviewers MUST declare or flag conflicts, decline assignments, save drafts, submit criterion scores/comments/recommendations, and edit before the review lock deadline. Conflicted assignments are withdrawn and reassigned. Administrators can track their completion status; reviewers cannot see other reviewers' status or scores.
+
+REV-04. Abstract criteria are equally weighted unless a formally versioned rubric changes this policy. Calculate a review total from its applicable criteria, then aggregate valid completed human reviews using the approved rule. Preserve component values and denominators. Handling of not-applicable criteria and ongoing studies must be specified in the rubric, not improvised by the model or developer.
+
+REV-05. Committee decisions use scores plus scientific review, with the scientific lead resolving disagreement and ethical concerns. No automated threshold alone publishes acceptance/rejection. Overrides of the calculated recommendation require an authorized actor and recorded reason. Oral/poster allocation is a committee decision, not an applicant-selected submission category.
+
+REV-06. Workflow vocabulary: draft, submitted, administrative_review, scientific_review, revision_requested, conditionally_accepted, accepted, rejected, withdrawn, revision_expired, and final_material_received. Record the presentation format and stage-two completion separately from scientific acceptance. Reopening or receiving a file does not automatically change an acceptance decision.
+
+REV-07. Internal decision preparation and publication MUST be separate events even where status names are shared. Authorized staff can prepare a batch, preview affected references/outcomes/emails, correct it, and explicitly publish. Only published transitions update applicant dashboards and trigger decision emails. Internal edits, provisional scores, and confidential notes do not send applicant notifications.
+
+REV-08. A revision request must specify the permitted fields/files and applicant-facing instructions without disclosing confidential reviewer material. The default deadline is 14 calendar days from publication of the request, with an exact timestamp displayed. The applicant must submit the revised version by that deadline; an email reply alone is not completion. Expiry sets revision_expired/voided, not scientific rejection. Authorized extensions and reopening are logged.
+
+REV-09. Each revision creates a new snapshot. Prior reviews remain linked to the version assessed. The scientific administrator must explicitly decide which reviews need repeating; stale scores must not silently become scores of revised work. Withdrawals stop outstanding review/assessment jobs and retain history, but do not automatically cancel separately purchased attendance.
+
+REV-10. Event judging MUST have separate assignments, criteria, scorecards, lock times, tie handling, and award approval. The judging committee assigns accepted work to faculty judges and categories. An award outcome requires authorized confirmation and, for a research winner, ABS-08 supervisor validation before the award is finalized. No public live leaderboard is included by default.
+
+8. AI-assisted abstract assessment
+
+AI-01. AI assessment is advisory, distinct from deterministic form validation, similarity checking, independent human review, and final committee approval. The intended sequence is submission → administrative readiness checks → AI assessment job → human review → committee decision → authorized publication. A failed AI job MUST NOT lose a submission or prevent a permitted manual review.
+
+AI-02. Each assessment uses a locked rubric and submission snapshot. Send only approved, sanitized scientific content and needed study metadata. Do not send author/account names, email, phone, affiliations, licence data, IRB documents, or similarity reports. Identifying text within the abstract must be checked rather than assuming removal of profile fields guarantees anonymity.
+
+AI-03. DEFAULT reviewer experience: enter an independent draft assessment before revealing the model's suggested assessment. The reviewer then confirms or changes their final scores and records substantive override reasons. Human scores, AI suggestions, and final committee decisions must remain separate records; AI scores are excluded from the human-review average unless a later explicit policy approves a different formula.
+
+AI-04. Store the model/provider identifier, model version where available, rubric/prompt version, submission version, assessment timestamp, validated output, and human follow-up. Outputs must use a validated structured schema with allowed criteria/ranges. Treat submission text as untrusted input: embedded instructions cannot change system rules, access tools, expose secrets, or publish decisions.
+
+AI-05. The provider, data-processing location, retention/training terms, confidentiality controls, costs, and applicant disclosure require approval before live use. Reviewers must not upload manuscripts independently to external tools. ICMJE confidentiality and transparency guidance informs this control; it is a benchmark, not a claim of journal accreditation. [R8]
+
+AI-06. Before activation, test against committee-scored examples, including incomplete studies, different study types, identifying text, prompt-injection attempts, unsupported claims, and failed/malformed outputs. Record disagreement and override patterns. A queued/error/manual-review state, bounded retries, cost limit, and administrator disable switch are required. AI unavailability must never cause automatic rejection.
+
+9. Hackathon and Three Minute Thesis
+
+TRK-01. Hackathon and 3MT MUST be distinct submission types with their own eligibility, form schema, deadlines, attachments, stage transitions, review assignments, rubrics, final materials, and event-judging records. Reuse shared accounts, draft saving, versioning, notifications, and permission infrastructure without assuming abstract rules apply to every competition.
+
+HAC-01. Confirmed participation model: both solo competitors and preformed teams may submit and compete (C3). Solo applicants are not a team-matching pool and are not required to join a team. Model a competition entry with participation_mode, project, submitting lead, and participant roster: one participant for solo; a maximum of five for a team. The draft permits cross-university teams, one team per person, and one project per team. Cross-mode duplicate participation and multiple solo-entry rules still require an explicit policy; do not infer them from the team rule. Automatic team matching remains excluded. [H1, Sections 3.2–3.3]
+
+HAC-02. Working identity: MSRC 2027 Hackathon, theme Research-to-impact. Configure exactly two tracks: (1) Translating research into practice, using published research to develop practical, evidence-based solutions to healthcare challenges; (2) Advancing medical student research, improving how medical students conduct, collaborate on, and contribute to research. Entries bring their own problems and defend the applicability/feasibility of their proposed solutions. The accepted track is locked after acceptance. The draft says a healthcare member is not required and international applicants are eligible; its broader student/intern eligibility sentence remains labelled Options and needs final publication approval. [H1, Sections 2–3.1]
+
+HAC-03. All listed participants verify their accounts while signing up/registering for the hackathon. The draft places invitation acceptance AFTER receiving hackathon participation acceptance. Therefore distinguish the registered application roster, committee acceptance, and subsequent member confirmation; do not make post-acceptance confirmation a prerequisite for initial review. Invitations must not disclose projects to unrelated people, and resends must not duplicate members. Editing permissions, membership-change cutoff, confirmation window, refusal/no-response handling, and approved solo-to-team changes remain configuration gates. Membership and authorized changes are auditable. [H1, Section 3.4]
+
+HAC-04. Initial submission includes an entry title and an English pitch field limited to 300 words, with track and participant details. The draft's list of problem/users/solution/innovation/approach/feasibility/impact/progress is starting guidance; confirm whether these are prompts within the pitch or separate required fields before publishing the form. Supporting documents are optional, except applicable ethics/IRB evidence. Prototype evidence is supplied where applicable, and final presentation files belong to the later stage. Require references and an appendix as stated in the draft; their format and treatment relative to the pitch word limit remain TBD. This is a hackathon-specific rule, not automatic inheritance of abstract-stage restrictions. [H1, Sections 5.1–5.3]
+
+HAC-05. Eligible projects must be new ideas, not previously pitched/entered in hackathons, prize-winning, funded, or commercially launched projects. Record the relevant declarations and route doubts to the authorized selection team. The draft intends AI-assisted plagiarism/originality checking, but names no provider, method, evidential standard, or decision procedure. Preserve that intention as pending implementation approval; no automated service is assumed to prove creativity or novelty. Any approved check must have documented data handling and human assessment of flags. Rules on participant use of AI/outside assistance remain open in Section 11 of the source. [H1, Sections 5.2, 11.1]
+
+HAC-06. Initial selection includes eligibility checking and assignment of two independent reviewers per application. Keep this separate from final event judging and preserve blinded pre-event access. The draft leaves selection criteria, minimum completed-review count, score scale, and ranking/capacity rules undecided; finalize these before reviewing opens. Do not copy the illustrative final-rubric percentages or research-abstract weights into live scoring. Publish decisions and final-material requests only through the authorized release process. [H1, Sections 5.4, 8]
+
+HAC-07. The source states a finalist capacity of eight teams per track, sixteen teams total. It does not define whether solo entries consume those places. The public cap and ranking implementation must explicitly resolve this before selection opens. PROPOSED, not yet approved: count each solo project and each team project as one entry within the same eight-per-track limit. Do not assume extra unlimited solo places or treat sixteen as the number of individual participants. Exact application/confirmation/preparation/final-upload deadlines remain TBD. [H1, Section 4]
+
+HAC-08. Planned journey: structured off-campus preparation and online orientation, on-site mentoring on conference day one, then on-site pitches, judging, and awards on day two. The draft makes all listed stages compulsory and requires all participants to attend on-site finals to qualify for awards. Record required activity evidence per participant rather than giving every member attendance credit from one team scan. Allocate mentoring time fairly across entries. Detailed attendance evidence and exception rules require approval before participant onboarding. [H1, Sections 4, 6]
+
+HAC-09. Minimum final output is the idea plus a pitch; a prototype is encouraged, not required. Each pitch is five minutes followed by three minutes of questions, assessed by a closed judging panel. Written materials remain English-only; spoken pitch/Q&A language, final file list, submission lock, presenter count, timekeeping, and overrun treatment remain TBD. A backup recording, screenshots, or PDF walkthrough can replace a failed live demo under the approved fairness procedure. The source's likely recording restriction is tentative, not an adopted blanket ban. Do not record or publish pitches automatically. [H1, Section 7]
+
+HAC-10. Source conflict register: Section 5.1 requests national ID and phone/profile information, while AUTH-06 and PRV-03 exclude national ID and make phone conditional. National ID remains excluded until the organizer explicitly resolves the discrepancy and approves its purpose/access/retention; do not add it silently. Section 6.1 mentions a WhatsApp group, whereas the confirmed website is email-only. Keep automated platform communication email-only. Whether an external organizer-run group will exist, and whether it is optional, remains an operational question; do not automatically share participant numbers. [H1, Sections 5.1, 6.1]
+
+HAC-11. Separate hackathon fees/inclusions, final rubrics, judge count, cross-panel comparison, tie rules, solo-versus-team award treatment, prize distribution, budgets, partners, IP terms, publicity permissions, and hackathon-specific certificate evidence remain unresolved. The source's options/examples are not commitments. Conference admission and workshop bookings remain separate manually approved workflows. Research-supervisor award rules do not automatically apply to hackathon winners. [H1, Sections 8–12]
+
+TMT-01. 3MT is a dedicated postgraduate participation path, not an abstract presentation-format option. Support title, study/project narrative, presenter, affiliation, required declarations, review outcome, and final presentation material with English content and an English reviewer interface.
+
+TMT-02. Exact postgraduate eligibility/evidence, participation limits, initial file requirements, presentation rules, slide/file limits, rubric, judge count, qualification stages, and certificate/award rules remain with the 3MT lead. Those settings are required before opening the relevant stage. Do not imply affiliation with an external competition or import rules merely from the name.
+
+10. Workshop booking and program scheduling
+
+WKS-01. Public workshop records MUST contain bilingual title/description, instructor, room/location, start/end time, capacity, remaining bookable seats, eligibility, price, and booking deadline. Capacity calculations distinguish administrator-reserved seats, active holds, and confirmed bookings. No participant names are exposed publicly.
+
+WKS-02. Workshops require manual approval as specified in the draft, then completed payment or a validated full discount before booking confirmation. Confirmed conference registration is required to confirm a workshop place. Browsing does not require login. Multiple workshops are allowed provided the attendee's active holds/confirmed bookings do not overlap.
+
+WKS-03. First-come-first-served order is determined by the server-recorded valid booking request, not the order in which staff click approve. A seat is provisionally held for a defined approval/payment window. The administrator must accept or reject it within that window or record an authorized extension. Holds must expire rather than block capacity indefinitely.
+
+WKS-04. Capacity allocation, release, and discount redemption MUST be transactional and race-safe. When the last place is requested concurrently, at most one allocation succeeds. Declined, cancelled, or expired requests release their hold. Staff-reserved seats count against capacity and require a recorded reason and release deadline.
+
+WKS-05. When capacity is unavailable, offer a waitlist entry without charging. On release, offer the next eligible person a time-limited place, record acceptance, complete any required approval and payment, then confirm. An offer is not an automatic charge or confirmed booking. Expired/declined offers pass to the next eligible person. Recheck eligibility and time conflicts at offer acceptance.
+
+WKS-06. Overlap exists when start A < end B and start B < end A. Adjacent workshops are allowed unless a published transfer buffer is configured. A waitlist entry may exist for an overlapping workshop, but confirmation cannot create a conflict. Approval and payment must not bypass this validation.
+
+WKS-07. Cancellations, workshop removal, time changes, and capacity edits require audit records and affected-user emails. A schedule change creating a conflict must enter a resolution workflow, not silently retain conflicting bookings. Capacity cannot be lowered below existing allocations without explicit reconciliation.
+
+PRG-01. The program MUST be dynamically managed with days, parallel sessions, rooms, speakers, categories, descriptions, and day/category/room filtering. Show times in the event timezone. There is no user-built schedule feature; My Bookings lists actual registrations. Notify booked/assigned participants of relevant changes; major general changes may use an authorized conference-wide email.
+
+11. QR tickets, check-in, and attendance evidence
+
+CHK-01. Issue a unique, unpredictable QR credential for confirmed admission. It references an entitlement rather than embedding email, phone, licence number, or financial information. Sequential registration/submission references are not ticket secrets. Reissued/revoked credentials must be distinguished from current valid credentials.
+
+CHK-02. The phone-compatible staff interface MUST request camera access securely, offer manual reference lookup with appropriate authorization, and show valid, already checked in, wrong activity/day, pending/unpaid, cancelled/revoked, and unknown-ticket outcomes. Staff access is limited to assigned entry points and minimum attendee information.
+
+CHK-03. Selected attendance model A1: staff record one valid check-in for each conference day. Ordinary conference certificates do not require checkout or tracked hours. Workshops record their own check-in plus explicit completion confirmation by an authorized instructor/organizer. Keep individual activity events with participant, activity/day, timestamp, and staff identity; repeated scans do not create duplicate credit or attendance on a missing day. Hackathon compulsory activities and presentation/role evidence are recorded separately when required.
+
+CHK-04. Each event records entitlement, activity/day, server time, scanner identity, result, and correction history. Authorized manual corrections require a reason and preserve the original record. Administrators can view live counts. Check-in staff cannot issue refunds, approve admission, or modify certificate criteria.
+
+CHK-05. Online scanning is the baseline. Before the event, operations must choose and test an outage procedure. Full offline synchronization remains a gated feature, not a promised capability. A controlled minimal roster/manual-check-in fallback must protect data, record staff/time, and reconcile duplicate/conflicting entries after connectivity returns. Offline acceptance cannot claim real-time revocation checks across disconnected devices.
+
+12. Surveys and certificates
+
+CRT-01. Ordinary participant certificates have exactly two selected pathways. Full two-day conference attendance requires valid check-in on BOTH conference days plus completion of the general conference survey. No one-day attendance certificate is issued. Workshop participation requires a confirmed workshop booking, workshop check-in, authorized instructor/organizer completion confirmation, and completion of that workshop's survey. Workshop certificate eligibility does not additionally require earning the full two-day conference certificate. These records establish the specified participation evidence, not measured hours or accredited professional credit.
+
+CRT-02. Selected survey model S2: retain participant-linked completion evidence for the relevant survey, but store feedback without a retained account-to-response link. Neither administrators nor ordinary exports may recover an identity through a response ID mapping, reusable token, request log, or shared join key. Do not store names, email, account IDs, IP addresses, or precise correlated request identifiers with answers. Assess metadata, free-text identification, small demographic groups, and logs before describing the design as anonymous. Submission/retry handling must durably accept valid feedback and record completion without duplicate completion credit or retaining a linkage. Approve question sets, deadlines, retention, and the technical unlinking method before enabling surveys; personal follow-up uses a separate contact route.
+
+CRT-03. The selected ordinary-participant templates are Full Two-Day Conference Attendance and Workshop Participation only. Do not create a one-day variant. Existing research-presenter, reviewer, speaker, organizer, hackathon, and 3MT role/competition certificates remain separate approval-dependent pathways; this ordinary-attendance selection does not establish their eligibility or cancel them by implication. Each needs its own evidence rule and release approval. Non-attending co-authors do not automatically receive attendance or presenter certificates. Hackathon certificate conditions remain open in its draft Section 12.
+
+CRT-04. The system calculates eligibility and prepares certificate generation automatically. Authorized administrators approve the template/signature and release batch; release then generates/issues eligible certificates and emails recipients automatically. Automatic processing does not remove the approval gate. Never imply accredited hours or professional credit without an approved entitlement to state them.
+
+CRT-05. Certificates MUST have a unique opaque verification code and a public single-certificate verification page showing only the necessary recipient name, certificate type, edition/activity, and validity. No public directory, email, phone, licence number, or score is exposed. Rate-limit lookups and prevent predictable enumeration.
+
+CRT-06. Support verified name-correction requests, revocation, and reissue with an audit trail. The original certificate must show revoked/replaced status when applicable. Speakers without accounts may receive a protected certificate-delivery link. Define private download access and public verification retention separately before issuance.
+
+13. Email delivery and support
+
+EML-01. All platform notifications MUST be email-only: verification, password recovery, registration/approval/rejection, payment/receipt events, submission receipt, revisions, published decisions, co-author/team invitations, workshop offers/bookings/cancellations, reminders, schedule changes, and certificate release. No SMS provider, WhatsApp integration, or push notification service is included.
+
+EML-02. Configure a transactional email provider and verified branded sender on the approved domain. Candidate address convention: noreply@msrc2027.com, with an appropriate monitored Reply-To. Domain ownership, exact senders, provider, DNS access, and SPF/DKIM/DMARC configuration must be verified during implementation. A domain name alone does not establish a functioning mailbox or sender.
+
+EML-03. Persist outbound jobs with event, recipient, template/version, deduplication key, attempt count, and delivery state. Retries must be bounded with backoff; exhausted jobs require administrator attention. Duplicate provider callbacks must not create duplicate messages. Do not hold a registration or submission request open while a bulk email batch sends.
+
+EML-04. Staff MUST preview and send test templates before activation. Template variables are validated and escaped; missing recipient-specific data cannot become another participant's data. Track delivery failures/bounces and preserve a dashboard fallback for critical outcomes. Nonessential announcements follow communication preferences; essential account and participation messages remain operational.
+
+EML-05. Size and test delivery for a 300–400-decision batch and approximately 1,000 attendee announcements, including provider quotas and a documented delivery target. Track queued-to-provider and provider-delivery states separately. A successfully queued email must not be described as delivered.
+
+SUP-01. General support uses a website form and the existing single main inbox with category labels. Routes: MSRC27kau+generalinquiry@gmail.com; MSRC27kau+scientificinquiry@gmail.com; MSRC27kau+hackathon@gmail.com; MSRC27kau+workshop@gmail.com; MSRC27kau+sponsor@gmail.com; MSRC27kau+technical@gmail.com. Configure exact tested destinations, not arbitrary user-supplied recipients.
+
+SUP-02. Form fields are category, name, email, related reference where applicable, and message. Send from the platform's verified sender with the validated user address as Reply-To. Apply spam controls and avoid echoing sensitive submission content in messages. General support creates no internal helpdesk ticket/status workflow; committee assignment happens through email.
+
+SUP-03. Labels in a shared inbox are organizational routing, not committee-level access controls. Only authorized personnel may access the inbox. Business-email addresses are recommended for sponsors, never enforced by blocking consumer domains. Sponsorship inquiry tracking is the explicit exception described in Section 14.
+
+14. Sponsorship, speakers, and public content administration
+
+SPN-01. Public sponsor content includes approved packages, tiers, names/logos, descriptions, and booth details. PR/authorized administrators manage this content; sponsors have no portal or direct upload access. The sponsorship prospectus is sent by organizers/university through email rather than assumed to be a public download.
+
+SPN-02. Sponsor inquiry fields include company, contact person, work/contact email, optional phone/job title, sponsorship interest, and message. Persist a restricted inquiry record, email the designated team, and acknowledge receipt. Track owner and statuses such as new, assigned, contacted, and closed. Only this inquiry category needs internal status tracking.
+
+CMS-01. Authorized organizers MUST edit homepage copy, dates/countdown, About, announcements, speakers, program, workshops, sponsor profiles, committees/board, FAQ, contact information, and gallery through structured forms without code deployments. Fixed component layouts protect the design; arbitrary page-builder functionality is not required.
+
+CMS-02. Support drafts, preview, publication, unpublication, and recovery of deleted content. Ordinary content may be published directly by its authorized publisher without a second approval. Media requires an explicit approval action. Capture content revisions and audit changes; scheduling of publication is optional until assigned a business requirement.
+
+CMS-03. Speaker profiles contain approved name, title, institution, biography, photograph, professional links, and linked sessions. Speakers need no accounts. Private contact information is stored separately and excluded from public responses. Committee/board records follow the same approval/privacy principles. No separate international-speaker category is assumed.
+
+CMS-04. Arabic/English public fields must have required translations or a clearly controlled fallback. Do not publish broken language switches or silently mixed navigation. Draft/preview content must be inaccessible through public search indexes or unauthenticated content APIs.
+
+15. Media, visual design, and archive behavior
+
+MED-01. Organizers upload images and videos directly to approved storage; third-party video embeds are excluded from the baseline. Albums support edition and activity categories, including opening, presentations, workshops, hackathon, awards, and closing. Public display includes only explicitly approved assets.
+
+MED-02. Media consent is required. Record the permission wording/version, purpose, subject or group permissions where applicable, grant/withdrawal status, and evidence. Publication must be gated by valid permission and asset-use rights. Consent at registration must not be assumed to cover every bystander; identifiable non-registrants need the approved event process. Minor-participant handling remains an explicit policy gate.
+
+MED-03. Declining optional publicity consent MUST NOT silently invalidate paid attendance. Provide an operational no-photo/withdrawal process and a route to request removal. Approved removal unpublishes the controlled asset and invalidates relevant delivery caches where supported; no promise is made to erase independent third-party copies.
+
+MED-04. Preserve originals privately where justified and serve optimized display derivatives, thumbnails, responsive images, and appropriately encoded video. DEFAULT accepted gallery inputs: JPEG/PNG/WebP and MP4/WebM; exact upload sizes, duration limits, codecs, and storage budget must be configured. No public photo-download button is provided, but displayed media cannot be represented as technically impossible to copy.
+
+DSN-01. Use a video-led homepage, clear conference information hierarchy, clean transitions, responsive button states, and controlled micro-interactions. Scrolling must retain normal keyboard, touch, and wheel behavior. Provide a static video poster, muted playback, a pause control, reduced-motion behavior, and a low-bandwidth fallback; decorative video must not delay registration access.
+
+DSN-02. The design system must define English/Arabic fonts, colors, spacing, components, form states, motion limits, and approved KAU/MSRC branding. Logo, video, final assets, and brand approval are delivery inputs. Dark mode is not part of the committed scope unless separately approved.
+
+ARC-01. After the event, close participation actions and retain approved public summaries, statistics, speakers, sponsors, consented media, and approved winners. Do not publish abstracts or an attendee directory. Private certificate access and public verification remain available for their approved retention periods. Archive behavior must not retain every personal record indefinitely.
+
+ARC-02. Reuse the codebase for future editions but keep annual operational databases/storage/configuration separate, as selected in the draft. Public historical pages may coexist. No automatic transfer of participant accounts, submissions, or consent to a new edition is implied. Domain continuity, archive routing, and certificate verification ownership must survive annual committee handover.
+
+16. Administration, reporting, and audit
+
+ADM-01. Provide scoped dashboards for registrations by state, verified accounts, orders and exceptions, submissions by track/specialty/stage, review workload and completion, accepted work, workshop holds/occupancy/waitlists, attendance, email failures, sponsor inquiries, and certificate readiness. Counts must respect the viewer's permission scope.
+
+ADM-02. Administrators can search/filter the records needed for their duties. Search in private dashboards is distinct from the excluded public full-site/abstract search. Actions include assignment, approval, revision, decision preparation/release, booking resolution, content publication, and permitted exports, with confirmation for consequential bulk changes.
+
+ADM-03. Reports must support final conference statistics and CSV/Excel export. Full personal-data exports are Super Admin-only. Other roles receive aggregate or specifically authorized minimal operational views; generic administrator status does not grant profile export. Export files must use protected, expiring access and neutralize spreadsheet formula injection in untrusted text.
+
+ADM-04. Audit records must include actor, action, target, timestamp, result, relevant previous/new values, and reason where required. Include role changes, approvals, overrides, decision publication, evidence downloads, refunds, consent changes, export generation, and attendance/certificate corrections. Audit access is Super Admin-only, and ordinary administrators cannot edit or delete their own audit records.
+
+ADM-05. Logs must exclude passwords, OTPs, secrets, card data, and unnecessary full manuscript/profile content. Configure a retention period and access policy. Product changelogs are separate from security/audit records and may expose only non-sensitive release information.
+
+17. Logical data model and service contracts
+
+DAT-01. Core identity records: account, participant profile, edition-scoped role grants, staff assignments, consent records, and support/privacy request records. General inquiry content need not become a helpdesk table merely because privacy requests require processing evidence.
+
+DAT-02. Scientific records: track configuration, submission, immutable submission version, ordered authors and affiliations, author responsibility assignments, attachment/version, evidence-validation result, rubric/version, review assignment, conflict declaration, human review, AI assessment, revision request, decision, publication batch, presentation allocation, judging assignment/scorecard, and award record.
+
+DAT-03. Operations records: conference registration, order/order item, KAU payment attempt/official confirmation or reconciliation evidence, refund, discount/redemption, workshop, seat hold, waitlist entry/offer, booking, room/session/speaker, ticket, participant-level attendance event/correction, workshop completion sign-off, survey completion ledger, separate unlinked feedback records, certificate template/eligibility/release/verification, sponsor/inquiry, public content/revisions, media/album, email job/delivery event, and audit event. Feedback has no foreign key or retained correlation mapping to participant/completion records. Hackathon entries additionally require solo/team mode, registered roster, and post-acceptance member-confirmation states.
+
+DAT-04. Enforce foreign keys and appropriate uniqueness: normalized account email; edition/reference; user/workshop active booking; provider event/transaction identity; invitation identity; active seat allocation; certificate verification token; and notification deduplication key. Use stable internal identifiers, creation/update timestamps, and immutable decision/submission snapshots. Deletion and anonymization follow Section 18 rather than indiscriminate cascade deletion.
+
+API-01. Backend operations must explicitly cover draft save/finalize/withdraw/revise; solo/team entry and post-acceptance membership confirmation; review assignment/submission/locking; decision preparation/publication; registration approval; KAU collection handoff/reconciliation/refund tracking; seat allocation/waitlist offers; scan/correction/workshop completion sign-off; unlinked feedback submission with separate completion evidence; consent/publication; certificate release/verification; and scoped reporting/export. Each operation declares permissions, allowed source state, validation, resulting state, audit event, and notification behavior. Feedback payloads must not enter identity-linked audit logs.
+
+API-02. Mutating operations use server-authoritative prices, capacity, deadlines, and identity. Use idempotency keys for final submission, checkout, webhook processing, booking, scanning, and publication. Use optimistic concurrency for competing edits and transactional allocation for scarce seats. Return stable error codes and user-safe messages without revealing unrelated records.
+
+API-03. Long-running work uses durable jobs: email, AI assessment, file scanning, certificate generation, report export, and cleanup. Jobs require retry limits, deduplication, visibility, and authorized replay. The successful user response must distinguish accepted-for-processing from completed work. No notification is sent for a database mutation that rolled back.
+
+18. Privacy, consent, retention, and research confidentiality
+
+PRV-01. Identify the legal data controller, approved contact channel, processors, purposes, and applicable legal bases before collecting production data. The Research Principles Club/MSRC operational ownership statement does not itself settle the legal controller. Document KAU approvals or confirmation that no additional institutional restrictions apply; do not treat an unanswered institutional check as approval.
+
+PRV-02. Implement a privacy notice covering account/participation, authorship data, payments, review and AI assessment, attendance, certificates, surveys, publicity, service providers, transfers, retention, and rights. Record notice/terms versions. Photography/publicity permission and optional announcements must be separate from necessary registration processing. Saudi PDPL rights and transfer conditions inform the implementation; detailed applicability must be recorded before launch. [R9, R11]
+
+PRV-03. Minimize data. Do not collect national IDs or patient-identifying health records. Collect medical licence numbers only for the specifically approved professional purpose. Restrict access by duty, and avoid exposing personal data in URLs, analytics, exports, public certificate search, or ordinary email bodies.
+
+PRV-04. Support verified access, correction, deletion/destruction, and applicable consent-withdrawal requests. Record receipt, identity verification, decision, exceptions, actions, and response. Lack of an instant delete button is not absence of a request process. Publicity withdrawal and account deletion are different requests and must not be conflated.
+
+PRV-05. DEFAULT ordinary participant-data retention: one year from conference end. This is the baseline, not a universal deletion rule. Before collection, separately approve financial record obligations, scientific/award audit needs, media permission evidence, anonymous aggregates, and minimal certificate verification retention. Each exception needs purpose, fields, duration, and owner; indefinite retention is not an implied default.
+
+PRV-06. Scheduled cleanup must cover database records, private files, derivative media where applicable, exports, logs, and backup expiry. Where retention is justified, restrict processing rather than claiming the data was deleted. Preserve only non-identifying aggregate statistics after anonymization. A restore procedure must reapply deletion/revocation records so erased data is not silently returned to normal use.
+
+PRV-07. Map actual data flows and locations for database, storage, backups, application processing, email, AI provider, analytics, and logs. Cross-border processing requires documented assessment and applicable safeguards under the Saudi rules. Consent alone must not be treated as a universal transfer authorization. Region selection is a technical setting, not proof of compliance. [R1, R11]
+
+PRV-08. Add a public photography notice plus recorded publication permission, copyright/asset-use validation, and a removal workflow. No photographer-credit feature is required by product scope, but contractual attribution/use restrictions still need to be honored. Research confidentiality continues after rejection, withdrawal, or event completion.
+
+19. Security and file protection
+
+SEC-01. Use HTTPS, managed password security, protected sessions, input validation, output encoding, CSRF protections where applicable, rate limiting, accessible anti-bot controls, and least-privilege authorization. Protect both interface routes and direct API/storage access. Every sensitive record must be checked against ownership, assignment, and scope. [R4]
+
+SEC-02. With Supabase, enable row-level security on exposed tables and explicitly authorize permitted rows/operations. Keep identity-bearing records separate from sanitized reviewer data. User-editable metadata must not control roles. Secret/service-role keys remain server-only; publishable client access does not justify broad grants. Views/functions and storage policies need explicit security tests. [R5]
+
+SEC-03. Upload controls must check authenticated purpose, exact extension allowlist, MIME/content signature, size, and malware status. Use generated storage names, private buckets, quarantine until cleared, and expiring authorized access. Block executables, macro-enabled Office files, and arbitrary archives. Failed scanning must not publish a file. Keep metadata and scan results without exposing confidential originals. [R12]
+
+SEC-04. Stage-one PDF reports and stage-two PDF/DOCX/PPTX files must follow their distinct size/purpose rules. File acceptance before a deadline is based on completed upload/finalization at the server; a background security scan may finish later. A rejected file generates a remediation status and notice, not silent replacement or deletion of the submission history.
+
+SEC-05. A preview does not prevent copying. Do not claim that hiding a download button protects confidentiality; authorization and private delivery are the controls. Signed links must expire, and unauthorized users must not obtain them. Never expose stage-one evidence to blind reviewers through a preview endpoint.
+
+SEC-06. Protect secrets in the provider's secret store/environment controls, rotate credentials during handover or incidents, pin dependencies, and require reviewed production changes. Production diagnostic logs and error monitoring must redact sensitive content. Staff suspension must revoke relevant privileges even where an old token still exists.
+
+SEC-07. Maintain an incident procedure with named operational/privacy owners, containment, evidence preservation, access revocation, recovery, and assessment of required notifications. This document does not assert a completed security assessment; permission tests, backup restoration, and critical failure tests are launch gates.
+
+20. Hosting, environments, and operational ownership
+
+INF-01. Selected platform: managed Vercel for the web application and managed Supabase for PostgreSQL, authentication, and private storage. Saudi self-hosting and university-provided application hosting are not the selected baseline. Framework, provider plans, and exact regions remain implementation/configuration decisions. Payment uses the selected authorized KAU arrangement; email, file scanning, assessment services, and any analytics require their own approved configuration. No cloud project, paid plan, or production credential is created by this specification.
+
+INF-02. The providers are selected, but no exact data region is selected and Saudi hosting must not be assumed. Confirm actual locations and data flows for application processing, database, authentication, files, backups, email, assessment services, and logs against current provider documentation and institutional requirements before production provisioning. Development and demonstrations may proceed with synthetic data while these approvals are pending. Record approval evidence separately from the organizer's selection of managed Vercel and Supabase. [R1]
+
+INF-03. Selected ownership model O1: MSRC/RPClub-managed organizational repository and service accounts with institutional authorization. Keep msrc2027.com, the repository, Vercel team, Supabase organization, billing, and recovery arrangements under organizational control with named individual custodians and delegated developer access. Designate a continuing custodian for annual handover and a backup owner; verify registrar/DNS control and renewal responsibility. Website Super Admin permissions are separate from infrastructure ownership. Named custodians and evidence of institutional authorization remain to be recorded; neither is implied by selecting O1.
+
+INF-04. Maintain development, staging, and production environments with separate data, secrets, provider keys, and access. Staging uses test accounts, sandbox payments, and email recipient restrictions. Do not copy live participant data into staging without an approved minimized/sanitized process. Preview deployments must not expose private content or become indexed.
+
+INF-05. Deployment requires source control, reviewed changes, automated tests, database migrations, and a named release approver. Record configuration and migration changes; keep a tested rollback/recovery path. Database rollback must not discard newly received orders/submissions without reconciliation. Technical handover includes runbooks, credentials ownership, billing, schema/migrations, job monitoring, and renewal obligations.
+
+INF-06. Back up database records and actual storage objects separately. Supabase database backups retain storage metadata, not the stored file contents, so restoring the database alone does not recover deleted files. Maintain a tested object-backup/restore process and verify the chosen plan supports the approved recovery targets. [R2]
+
+INF-07. DEFAULT recovery targets: maximum 24-hour data loss and four-hour service restoration during ordinary periods. For registration deadlines and event operations, target no more than 15-minute database loss and one-hour restoration, subject to approved infrastructure/budget and demonstrated tests. File-recovery targets must be specified separately. These are engineering objectives, not provider guarantees.
+
+INF-08. Monitor service availability, failed final submissions, queue backlog, payment exceptions, email failures, unauthorized-access attempts, file-scan failures, and check-in errors. Send operational alerts by email to named owners. Schedule daily/critical-window checks, rehearse restoration before launch, and define who responds during the event. The website does not rely on this chat to monitor production.
+
+21. Performance, time, reliability, and error handling
+
+NFR-01. Baseline load test: 100 concurrent active registration/submission users. Stress scenario: 1,000 concurrent public browsers with an explicitly documented mix of authenticated operations. These reconcile the draft's two different concurrency figures as test scenarios, not measured demand. Actual workshop/hackathon peaks and provider quotas must be confirmed.
+
+NFR-02. DEFAULT targets on agreed mobile hardware/network: public-page Largest Contentful Paint at or below 2.5 seconds at the 75th percentile; ordinary internal API responses at or below one second at the 95th percentile, excluding uploads and external/background work. Report test conditions, error rate, and result, not only averages. The organizer must approve any measured exception before opening the affected flow.
+
+NFR-03. Target 99.9% monthly application availability, with no planned maintenance during published opening/deadline/event windows. This is a service objective rather than a promise of zero downtime. Static content should use caching/CDN delivery without caching private dashboards or exposing personalized API responses.
+
+TIM-01. Store instants in UTC and display event deadlines/times in Asia/Riyadh with the timezone label. Forms open/close according to server time. Conference, workshop, abstract, hackathon, 3MT, review, revision, final-upload, and survey/certificate deadlines are separately configurable and auditable.
+
+TIM-02. A form opened before a deadline does not reserve the right to finalize after it. Accept only a server-completed finalization before the configured deadline; retain drafts and show a clear closed message. Authorized extensions must state scope, new cutoff, actor, reason, and whether notifications are sent. No browser-clock workaround may bypass the rule.
+
+ERR-01. Handle expired verification, duplicate registration, failed/oversized uploads, failed autosave, simultaneous edits, full workshops, expired offers, failed/ambiguous payments, missed deadlines, withdrawn assignments, and inaccessible records explicitly. Preserve valid saved work and give a reference/support route. Avoid generic success states while required downstream actions failed.
+
+ERR-02. Use optimistic edit-version checks, retry-safe mutation identifiers, and durable job status. A closed browser must not duplicate a charge/submission on retry. A provider outage cannot silently discard an accepted request. Applicants see a recoverable status; staff see diagnostic details without leaking secrets or other participants' information.
+
+22. Delivery gates and definition of done
+
+REL-01. Public-site gate: approved branding/core content, bilingual participant navigation, accessibility checks, working contact/privacy/terms, secured CMS, verified ownership, monitoring, and tested backups. An informational public launch does not authorize opening unfinished participation workflows.
+
+REL-02. Registration/workshop gate: prices, capacity, manual approvers, hold/payment windows, discounts, named KAU collection owner and verified integration/reconciliation contract, refund rules, tested email, race-safe allocation, and valid-ticket enforcement. All critical payment/approval failure scenarios must pass before accepting real money or issuing tickets. Selecting P1 does not bypass proof of the actual collection and confirmation procedure.
+
+REL-03. Submission/review gate: final field schemas, study-stage templates, ethics/similarity policy, upload security, submission limits, reviewed rubric/quorum, reviewer anonymity, revision logic, and decision release controls. AI production use additionally requires provider/privacy approval and a recorded assessment evaluation; manual review remains the failure fallback.
+
+REL-04. The hackathon's two tracks, solo/team participation, five-member maximum, and answered event structure may now guide development. Remaining eligibility wording, cross-mode membership rules, finalist-capacity accounting, source conflicts, form/file details, deadlines, and public terms must be resolved before the affected stages open. 3MT retains its separate unresolved settings. Keep clear not-yet-open states and do not replace unapproved rubric/fee/prize options with invented values.
+
+REL-05. Event gate: correct program/rooms, valid rosters/tickets, trained staff, device tests, daily check-in and workshop completion-sign-off procedures, hackathon compulsory-activity evidence, judging configuration, and rehearsed outage handling. Certificate gate: approved full two-day/workshop templates, survey question sets/deadlines, tested S2 unlinking and completion handling, retention/public verification policy, administrator release, and correction/revocation tests. Ordinary eligibility is defined in CRT-01, not deferred as an unknown attendance threshold. Role/competition certificates require separate approval.
+
+REL-06. Definition of done for each feature: requirement implemented; permission and state-transition tests passed; relevant Arabic/English/accessibility checks passed; failure paths tested; audit/email behavior verified; staging acceptance recorded; operational owner/runbook assigned; and production configuration verified. A successful demonstration of the happy path alone is insufficient.
+
+23. Decision status, business configuration, and approvals
+
+Record confirmed selections separately from remaining operational inputs and external approvals. Confirmed: O1 MSRC/RPClub management with institutional authorization; managed Vercel + managed Supabase; P1 KAU collection; C3 solo/team hackathon entries; A1 daily check-in with full two-day and workshop certificates only; S2 unlinked feedback with tracked completion. These choices permit development with synthetic data. A dependent production workflow remains closed until its listed configuration, evidence, and approvals are complete. Source proposals and engineering defaults retain their labels.
+
+CFG-01. Conference leadership: exact event dates/venue, general capacity, admission categories, manual approval owners, decision turnaround, payment/seat-hold deadlines, and handling of capacity-pending requests. Gate: registration opening.
+
+CFG-02. Finance/leadership. CONFIRMED: P1, use the authorized KAU payment arrangement. REMAINING: responsible KAU unit/contact, exact system and official payee, integration documentation/access or authorized report-based reconciliation, order references, currency/prices/tax treatment, methods actually enabled, student-discount evidence/limits, refunds/cancellations and their authority, settlement reporting, and dependent-booking rules. Test the actual confirmation process; do not assume API/webhook support. Gate: relevant paid or discounted registration opening.
+
+CFG-03. Scientific lead: specialty codes, study-type choices, corresponding-author eligibility, keyword requirements, rubric criteria/scales, ongoing-study treatment, required review count, acceptance threshold, tie/disagreement rules, similarity provider/settings, and final-material requirements/deadlines. Gate: the relevant submission/review stage.
+
+CFG-04. Scientific/award lead: award categories, event-judging rubric/ties, supervisor details/evidence required ONLY from selected research winners, verification responsibility, and response deadline. Gate: event judging and award release.
+
+CFG-05. Hackathon lead. CARRIED FORWARD: C3 solo/team competition, no matching, maximum five per team, cross-university teams, two named tracks locked after acceptance, title plus 300-word pitch, new ideas only, two independent reviewer assignments, compulsory orientation/day-one mentoring/day-two finals, idea-plus-pitch minimum, optional prototype, and five-minute pitch plus three-minute Q&A. REMAINING: final eligibility wording, cross-mode duplicate rules, member editing/confirmation/lock policy, solo inclusion in the eight-per-track finalist limit, detailed forms/files/references, dates, review quorum/rubrics, recording/spoken-language policy, fees/inclusions, prizes, IP terms, and hackathon certificate evidence. Resolve CFG-13 source discrepancies. Gate: each relevant hackathon stage. [H1]
+
+CFG-06. 3MT lead: postgraduate eligibility, presenter limits, form/file requirements, stage deadlines, presentation rules, judge/rubric configuration, and certificate/award evidence. Gate: 3MT opening.
+
+CFG-07. Workshop lead: catalog, rooms, per-workshop capacity, price, reserved seats, approval responsibility, hold/offer windows, deadlines, prerequisites, cancellation handling, and whether the 30–100 estimate is per workshop or total. Gate: workshop opening.
+
+CFG-08. Operations/certificate lead. CONFIRMED: A1 daily check-in; full conference certificate requires BOTH days plus general survey; NO one-day certificate; workshop certificate requires its booking/check-in/completion sign-off/survey, independently of earning the full conference certificate. S2 feedback is unlinked while completion is tracked. REMAINING: sign-off owners/procedure, survey questions/deadlines and privacy-tested unlinking method, templates/signatures, role/competition certificate rules, release authority, correction handling, and outage contingency. Gate: event operations and certificate release.
+
+CFG-09. Organizational/privacy owner: record legal controller/contact and institutional approval evidence under the selected O1 model. Finalize field purposes, media/minor policies, notices/legal bases, processor contracts, actual locations/transfer assessment, retention exceptions, request handling, certificate-verification lifespan, and S2 metadata/log separation. Resolve the hackathon's requested national ID/phone fields against the existing minimal-profile policy before opening its form; national ID remains excluded pending an explicit decision and approved handling. Gate: production data collection.
+
+CFG-10. Technical owner with privacy/scientific approval. CONFIRMED: managed Vercel + managed Supabase. REMAINING: approved plans/regions and complete data-flow assessment, KAU payment integration details, email sender/DNS, assessment provider/data terms/evaluation, hackathon originality-check procedure, malware scanning, storage/backups, throughput/quotas, monitoring, and monthly/event budget including video delivery. Use synthetic development data while production location/processing approvals are pending. Gate: production provisioning or relevant integration activation.
+
+CFG-11. Club/leadership. CONFIRMED: O1 MSRC/RPClub-managed organization accounts with institutional authorization. REMAINING: authorization evidence, named continuing custodian and backup owner, organizational repository/domain/Vercel/Supabase/billing access, DNS/recovery controls, three website Super Admins, release approver, support/incident coverage, renewal responsibility, and annual handover. Infrastructure ownership and website Super Admin roles remain separate. Gate: production deployment.
+
+CFG-12. Design/content lead: logo/brand system, English/Arabic fonts, homepage video/poster, approved speaker/committee/sponsor assets, translations, public-page content, media permissions, and archive/domain continuity. Gate: public launch.
+
+CFG-13. Hackathon lead with privacy/operations/technical owners. SOURCE RECONCILIATION REQUIRED: (a) requested national ID and phone/profile fields versus current exclusions/conditional fields; (b) the draft's WhatsApp group versus confirmed email-only platform communications, including whether any external group is optional; (c) whether solo projects consume the stated eight-team-per-track/sixteen-team finalist quota; (d) broader eligibility still labelled Options; (e) originality-check method and human decision process. Do not silently resolve these or activate the affected collection/communication/selection behavior. [H1, Sections 3–6]
+
+24. Acceptance tests and release evidence
+
+AT-01 Identity. A visitor can browse public pages. An unverified account cannot submit, register for payment, or book. An expired/reused code fails; resend and attempt limits work; valid verification succeeds once. Password recovery and privileged MFA are tested without SMS.
+
+AT-02 Authorization. A participant cannot obtain another user's record by changing an ID. Reviewers cannot retrieve author identity or administrative evidence through UI, API, file links, exports, or metadata. Check-in, finance, media, and sponsorship permissions do not leak scientific/private profile data. Revoked roles fail on direct requests.
+
+AT-03 Approval. Ordinary and 100%-discount registrations remain pending until a named organizer approves. Approval without payment/zero-order completion does not issue a ticket. Rejection, expiry, cancellation, and revocation produce the defined states and notification behavior.
+
+AT-04 Payments. Test the actual authorized KAU interface or approved official-record reconciliation. Forged/mismatched confirmations and manipulated client prices fail. Repeated/out-of-order confirmations cannot duplicate payment credit, tickets, bookings, discounts, or refunds. A browser return or receipt screenshot alone cannot confirm payment. Late confirmation after hold expiry cannot overbook, and a refund request is not displayed as a completed refund before official confirmation.
+
+AT-05 Capacity. Simultaneous requests for the final conference/workshop seat allocate at most one place. Reserved seats and active holds reduce availability correctly. Hold expiry and cancellation release exactly once. Admin approval cannot exceed capacity.
+
+AT-06 Waitlists. No charge occurs on joining a waitlist. The next eligible participant receives a time-limited offer. Decline/expiry advances it once; acceptance rechecks approval, payment, eligibility, and overlap. Stale links cannot claim an already allocated seat.
+
+AT-07 Abstract rules. Accept an eligible ongoing study with explicitly unavailable results and no supervisor. Enforce 300 body words with excluded metadata, both ordinary and case-report templates, English scientific content, and the two-finalized-applications-per-PI rule. A third attempt does not disqualify the existing two.
+
+AT-08 File stages. Stage one accepts only applicable IRB and similarity-report PDFs within limits; it rejects presentation files. Stage two accepts configured PDF/DOCX/PPTX only after authorization. Spoofed, oversized, malicious, and macro-enabled files are rejected/quarantined. Replacing a file preserves the reviewed snapshot.
+
+AT-09 Review and AI. Conflicted/unassigned reviewers cannot score. Required review quorum excludes missing scores. AI failures and injected manuscript instructions cannot publish a decision. Human independent scores, model suggestions, rubric versions, and overrides remain distinct. Provider transmission excludes prohibited identity/evidence fields.
+
+AT-10 Decisions and revisions. Prepared decisions remain hidden until authorized batch publication. Only published changes trigger applicant emails, without duplicate deliveries. A revised submission must be finalized within its 14-day window or an audited extension. Expiry and email replies alone do not count as revised submission.
+
+AT-11 Winner condition. Nomination and ordinary acceptance work without supervisor information. Only selecting a research award winner activates the supervisor requirement; award finalization waits for validation without cancelling the research acceptance.
+
+AT-12 Tracks. A solo entrant can submit/compete without joining a team; a five-person hackathon team is allowed and a sixth member is rejected. Cross-university teams are accepted. Verify accounts at registration and request member acceptance at the post-acceptance stage. Repeated invitations do not duplicate membership. Enforce the two tracks, acceptance lock, 300-word pitch, optional prototype, and two independent reviewer assignments without applying unapproved rubric weights. Solo-capacity accounting, cross-mode duplicates, and other unresolved settings block the relevant stage until configured. 3MT retains its own rules; pre-event identities remain hidden.
+
+AT-13 Check-in. Pending/unpaid/revoked, wrong-day, and wrong-workshop credentials fail. Duplicate scans do not add credit or satisfy the other conference day. Ordinary check-in does not require checkout. Workshop completion sign-off is a separate restricted, audited action. Missing hackathon-member attendance is not filled from a teammate's scan. Manual lookup/corrections and the selected outage procedure are tested on staff phones.
+
+AT-14 Certificates and feedback. Full conference eligibility requires BOTH daily check-ins and the general survey; a one-day attendee receives no ordinary conference certificate. A booked workshop attendee with workshop check-in, completion sign-off, and its survey may earn that workshop certificate without earning the two-day certificate. Missing evidence blocks issuance, and generation cannot bypass administrator release. S2 completion retry tests award credit once while response records, exports, mappings, and logs retain no account-to-answer link. Public verification and revocation/reissue expose only intended certificate details.
+
+AT-15 Content and consent. Unapproved media cannot publish. Consent refusal is not treated as registration rejection. Removal requests unpublish controlled assets as designed. General content publishing, private previews, bilingual pages, reduced motion, and keyboard/error handling behave as specified.
+
+AT-16 Reliability. Retry after browser closure does not duplicate a submission or payment. Autosave failures are visible. Load tests meet the agreed profile/targets, queues handle decision/announcement batches, and no success message misrepresents delivery. Document measured results and any approved exceptions.
+
+AT-17 Recovery and privacy. Restore both database and stored files into an isolated environment, reconcile identifiers/payments, reapply deletion/revocation records, and verify recovery time/data-loss results. Test conditional licence collection, data-request handling, export permissions, and retention cleanup with synthetic records.
+
+AT-18 Handover. Verify O1 organizational ownership and authorization evidence, named custodians, selected managed Vercel/Supabase environments and approved locations, KAU collection responsibility, production/staging isolation, secret access, role offboarding, renewals, critical-window support, and completed gate values. Record an accountable sign-off for each opened workflow. Unresolved national ID/WhatsApp source discrepancies cannot silently enable new collection or automated channels.
+
+25. Privacy notice implementation copy
+
+Status: working publication copy. Replace bracketed controller/contact/processor/retention fields and complete the Section 23 privacy approval before publishing. Do not display unresolved brackets to participants.
+
+Who manages your information. [Legal controller name] manages personal information for MSRC 2027. Questions and privacy requests can be sent to [verified privacy contact]. The notice applies to website accounts, event participation, submissions, reviews, payments, attendance, certificates, and approved conference media.
+
+Information we use. We use the information needed for your selected activity, such as your name, email, role/institution, registration details, submission and author information, payment references, attendance records, and certificate eligibility. Professional licence details are requested only where we explain a relevant professional purpose. We do not request national ID details or patient-identifying research material through this platform.
+
+Purposes and access. We use this information to administer accounts and applications, review work, process approved bookings/payments, communicate outcomes, record attendance, issue certificates, provide support, and protect the service. Access is limited by role. Public abstract and attendee directories are not provided. Essential communications are sent by email; optional announcements follow your recorded preferences. [Insert approved purpose-to-legal-basis statement.]
+
+Research assessment. Submitted work is confidential. Authorized reviewers receive anonymized review material. Where approved AI-assisted assessment is used, the submission notice identifies the tool/purpose and the scientific information processed. Human reviewers and the committee retain decision responsibility. [Insert approved provider, processing location, retention, and confidentiality arrangements before enabling AI assessment.]
+
+Service providers and locations. Approved providers process only the information needed for hosting, storage, authentication, email, payments, security, and any enabled assessment services. [Identify providers/categories and applicable locations.] Any processing outside Saudi Arabia must follow the approved safeguards and applicable transfer requirements. Card details are handled by the payment provider rather than stored by the conference website.
+
+Photos and videos. Publicity permission is requested separately and recorded. You may decline optional publicity or contact us to withdraw permission/request removal of controlled published material. This does not automatically cancel your registration. [Insert the approved on-site no-photo procedure and any minor-participant rules.]
+
+Retention and certificates. Ordinary participant data is retained for one year after the conference unless a stated financial, scientific, security, or other lawful retention need applies. [Insert the approved exceptions and durations.] Minimal certificate verification details remain available for [approved verification period]. Your account records completion of the applicable survey for certificate eligibility. Feedback is stored without a retained link between your account and your answers. Avoid identifying yourself or others in free-text feedback. The implementation and its logs must be checked against this separation before this notice is published.
+
+Your requests. You may contact us to request access, correction, deletion/destruction, or withdrawal of applicable consent, subject to the law and justified retention requirements. We verify requests, explain any applicable limits, and record the response. An account-deletion request is handled through support; the absence of an instant deletion button does not remove this process.
+
+26. Technical and governance references
+
+References support the specifically marked technical/legal statements. Product requirements and defaults are MSRC design decisions, not claims that the cited organizations mandate every implementation detail. Recheck changing provider documentation and applicable regulations before deployment.
+
+[R1] Supabase: Available regions and data residency.
+
+[R2] Supabase: Database backups and exclusion of stored file objects.
+
+[R3] Supabase: Multi-factor authentication and server/data-layer enforcement.
+
+[R4] OWASP: Authorization Cheat Sheet.
+
+[R5] Supabase: Row-level security.
+
+[R6] W3C: Web Content Accessibility Guidelines 2.2.
+
+[R7] Crossref: Understanding your Similarity Report.
+
+[R8] ICMJE: Use of Artificial Intelligence in Publishing.
+
+[R9] SDAIA: Personal Data Protection Law.
+
+[R10] ICMJE: Protection of Research Participants.
+
+[R11] SDAIA: Regulation on Personal Data Transfer Outside the Kingdom.
+
+[R12] OWASP: File Upload Cheat Sheet.
+
+[H1] Hackathon Draft, working draft v0.1 with updated answers. Sections 2–7 provide answered planning details; options, examples, tentative statements, and unresolved conflicts remain identified in Section 9 and CFG-13 of this specification. Source document: 

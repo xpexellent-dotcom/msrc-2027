@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.env*
+!.env.example
+.tools/
+.pnpm-store/
+.npm-cache/
+.vercel/
+supabase/.temp/
+supabase/.branches/
+*.log
+deliverables/

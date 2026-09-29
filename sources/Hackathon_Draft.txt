@@ -1,0 +1,309 @@
+Hackathon Draft
+
+MSRC 2027 | King Abdulaziz University | Working draft v0.1
+
+A planning document for us to agree on the hackathon before publishing its rules. The existing MSRC website decisions are carried over below. Everything labelled as an option, example, or proposal is for discussion, not an approved commitment.
+
+Start with Sections 2–5. Add answers under each question, then record the agreed direction and owner at the end of each section. Dates, capacities, partners, prizes, and fees remain undecided unless we confirm them.
+
+1. Overview and existing decisions
+
+Context: The hackathon is part of MSRC 2027 at KAU. The conference is planned as a two-day event, but the hackathon's preparation period and event schedule are still open. [S1: SCP-01, CFG-05]
+
+Platform: Applications will run through the MSRC website as a separate pathway from conference registration, abstracts, and 3MT. The planned setup includes a project, submitting lead, invited members, drafts, review, decisions, and final materials. Automatic team matching is excluded. [S1: TRK-01, HAC-01–04]
+
+Language and review: Public and participant interfaces are Arabic/English. Project submissions and assessment screens are English-only. Pre-event reviewers must not see applicant identities; live event judging is a separate stage. [S1: LOC-01–03, ROL-04]
+
+Communication and attendance: Platform notifications are email-only, in English. Conference registration requires manual approval and is separate from hackathon acceptance. The current specification lists MSRC27kau+hackathon@gmail.com as the hackathon inquiry route, to be tested before launch. [S1: REG-02–03, EML-01, SUP-01]
+
+Rules still needed: Tracks, eligibility, solo/team model, team limits, deadlines, submission requirements, scoring, awards, and certificate criteria. Research-abstract word limits, scoring weights, and supervisor rules must not automatically be applied to the hackathon. [S1: TRK-01, CFG-05]
+
+2. Purpose, theme, and tracks
+
+2.1 What do we mainly want participants to achieve?
+
+Turn research into practical and innovative solutions.
+
+Come up with innovative tools and ideas to improve research in medicine.
+
+Build and demonstrate prototypes if possible.
+
+Targeted outcome is a mix of learning and innovation.
+
+2.2 What should the overall theme be?
+
+Research-to-impact
+
+Working name: MSRC 2027 Hackathon.
+
+2.3 Do we want one open category or several tracks?
+
+Two focused tracks. 
+
+1. Translating research into practice: Students can use published research to develop practical, evidence-based solutions to real-world healthcare challenges.
+
+2. Advancing medical student research: Students can develop innovative ideas to improve how medical students conduct, collaborate on, and contribute to research, strengthening its quality and impact on healthcare.
+
+2.4 Where will the challenges come from?
+
+Teams will bring their own problems, and discuss potential solutions and their applicability and feasibility, and will defend the implementation of such solutions.
+
+Can teams switch tracks after acceptance? No, whatever track a team is accepted into will be the one they will participate in during the conference.
+
+3. Eligibility and team rules
+
+3.1 Who can participate?
+
+Options: University students (and interns) across Saudi Arabia, from any specialty.
+
+Is a healthcare member required? No
+
+Are international applicants eligible? Yes
+
+3.2 How will people enter, and how large should teams be?
+
+Both pre-formed teams and solo applicants are allowed. 
+
+Solo applicants will not be matched to an existing team. 
+
+Maximum number of members in a team will be 5. 
+
+3.3 What membership rules should we set?
+
+One team per person.
+
+One project per team.
+
+Should cross-university teams be allowed? Yes, it will be allowed.
+
+3.4 When must members accept invitations, and who can edit?
+
+All members will verify accounts while signing up and registering for the hackathon, and will accept the invitation after receiving acceptance to hackathon participation. 
+
+4. Format, timing, and capacity
+
+4.1 How should the hackathon fit around the two-day conference?
+
+Hackathon will be scheduled on the second day (both pitch and judging).
+
+Off-campus preparation followed by on-site pitch with a presentation during the conference. All details regarding the competition will be provided at a sufficient time period prior to the hackathon.
+
+How do we avoid conflicts with research presentations and key sessions? Refer to leader of flow and schedule (Aisha).
+
+4.2 What attendance model can we support?
+
+Off-campus preparation with mandatory on-site finals. 
+
+Are all members required on-site, or only a minimum number? All teams present with all participants attending in order to qualify for awards.
+
+Will work happen in daytime sessions or include extended hours, subject to venue approval?
+
+4.3 How many teams can we realistically support?
+
+8 teams per track, 16 teams total. 
+
+4.4 What are the key dates and response windows?
+
+All TBD soon.
+
+Applications open [TBD], applications close [TBD], decisions [TBD], team confirmation [TBD], preparation [TBD], event [TBD], final upload [TBD], awards [TBD]. 
+
+5. Application and selection
+
+5.1 What should the initial form ask for?
+
+Personal information, including name, national ID, email, number, university, and specialty will all be provided in applicants’ profiles created on the website.
+
+Starting fields: project title, track, problem, target users, proposed solution, innovation, technical approach, feasibility, expected impact, current progress, and team details. 
+
+One field will be for the title, another will be for the pitch, with a 300-word limit provided.
+
+Participants will be able to upload documents to support their pitch or idea, but this is not a requirement.
+
+5.2 What stage of project can enter?
+
+New ideas only for the hackathon. Applicants’ ideas will be checked to ensure that they have not been pitched in previous hackathons. An AI-assisted plagiarism checker will be employed to ensure creativity. 
+
+Are previously entered, prize-winning, funded, or commercially launched projects eligible? No, only new ideas.
+
+What must teams declare about existing work and contributions made during this event? They should cite references and add an appendix at the end.
+
+5.3 Which supporting documents are actually needed?
+
+Ethics or IRB document if necessary.
+
+Prototype evidence of applicable.
+
+Final presentation files belong to the later stage. 
+
+5.4 How will we shortlist and confirm teams?
+
+Eligibility check plus two independent reviewers for each applicant. 
+
+What selection criteria, minimum completed reviews, and capacity rule apply? To be decided before the conference.
+
+6. Participant journey and mentoring
+
+6.1 What happens between acceptance and the final pitch?
+
+Online orientation with whatsapp group → on-site mentoring during first day → pitch on second day→ awards on second day. 
+
+A structured preparation period will be provided. 
+
+Which stages are compulsory? All stages are compulsory.
+
+6.2 What mentors do we need, and how do we allocate their time?
+
+Mentors will be provided and will meet applicants on the first day.
+
+Finding mentors will be the task of leader of faculty and judges (Reem).
+
+Mentors will mentor all teams fairly and with equal treatment.
+
+How much contact time is guaranteed equally? The first day of the conference will be spent with the mentors for an allocated time period.
+
+6.3 Which sessions and resources should we provide?
+
+Look into getting a specific course to sponsor the hackathon.
+
+Mentoring session will be provided the day before the hackathon.
+
+7. Final deliverables and pitching
+
+7.1 What is the minimum final output?
+
+Minimum output is the idea plus the pitch.
+
+Prototype is not required but encouraged.
+
+7.2 What must teams submit, and when does it lock?
+
+To be decided before conference.
+
+7.3 How long should each pitch and discussion be?
+
+5-minute pitch + 3-minute questions.
+
+Set the speaking order, timekeeping rule, number of presenters, and treatment of overruns. 
+
+Written materials stay English-only; decide the spoken pitch and audience-question language separately.
+
+7.4 Who sees the projects, and what is the demo fallback?
+
+A closed judging panel will be responsible for judging all the pitches.
+
+What can be recorded or published with permission? Most likely, all recording will be restricted during the hackathon.
+
+A backup recording, screenshots, or a PDF walkthrough can replace a failed live demo without unfair advantage.
+
+8. Judging and awards decisions
+
+8.1 What should the final rubric reward?
+
+Illustrative weights only: clinical/problem relevance 25%, feasibility 20%, innovation 20%, evidence and validation 15%, safety and responsible use 10%, pitch clarity 10%. Total: 100%. Options: adapt this / equal weights / different rubrics for idea and prototype categories. Are any safety or originality issues disqualifying regardless of score?
+
+8.2 How will judging work across rounds and tracks?
+
+Keep selection scores separate from event scores. Options: final round starts fresh / a published combination of event rounds. Do all teams pitch to the same panel, or are there track panels? Define the scoring scale, missing-score handling, and any cross-panel comparison before judging begins.
+
+8.3 Who judges, and how are conflicts or ties handled?
+
+Options: three / five judges per panel, with clinical, research, technical, and implementation expertise as appropriate. Require conflict declarations and reassignment. Tie options: priority criterion / additional independent judge / documented panel discussion. Who approves the final winners?
+
+8.4 What feedback and review route will participants receive?
+
+Options: short written feedback for finalists / brief feedback for all reviewed teams. Keep reviewer identities, peer scores, and confidential notes private. Should procedural complaints have a short response window? Name the decision owner and distinguish process errors from disagreement with a score.
+
+Agreed direction / notes: ____________________    Owner: ____________________
+
+9. Fees, prizes, partners, and budget
+
+9.1 Is hackathon participation free or paid, and what does it include?
+
+Options: free entry / a separate hackathon fee / included with conference registration. Define conference access, workshops, meals, and any student discount separately. Hackathon acceptance must not silently confirm conference admission or bypass manual registration approval. Decide cancellation and refund conditions before collecting payment.
+
+9.2 What prizes can we actually commit to?
+
+Options: first–third overall / one winner per track / overall winners plus a special award. Prize types: cash, in-kind support, mentoring, or an agreed incubation pathway. Confirm funding, eligibility, team prize distribution, and payment responsibility before advertising amounts or benefits.
+
+9.3 Which partners would add useful support?
+
+Options: a university innovation unit, clinical departments, research groups, healthcare organizations, or technology partners. What do we need from each: challenges, mentors, judges, venue, tools, or funding? Sponsorship must not buy influence over selection or scoring. No partner is confirmed in this draft.
+
+9.4 What is the budget ceiling and minimum viable version?
+
+Fill in SAR amounts: prizes [TBD], venue/equipment [TBD], food [TBD], materials/software [TBD], media/printing [TBD], travel support [TBD], contingency [TBD], total [TBD]. What is already covered by MSRC? If funding is lower than expected, do we reduce team count, extras, or format?
+
+Agreed direction / notes: ____________________    Owner: ____________________
+
+10. Organizing team and event operations
+
+10.1 Who owns each part, and who has final approval?
+
+Assign: hackathon lead, scientific/challenge lead, applications and reviewers, mentors, judging, operations, sponsorship/finance, marketing, website liaison, and participant support. Which decisions need conference leadership or KAU approval? Assign a backup for critical roles.
+
+10.2 What venue and participant support are needed?
+
+Decide: working area, team tables, power, Wi-Fi, presentation room, quiet/prayer breaks, accessibility arrangements, catering, and permitted working hours. Will out-of-city participants arrange their own travel/accommodation, or is any support funded? Confirm room access and booking ownership.
+
+10.3 How will we handle problems on the day?
+
+Set owners for check-in, late arrival, absent teammates, mentor/judge cancellation, technical failures, safety incidents, and complaints. Agree a controlled fallback for internet, upload, or presentation failures, with a way to record and reconcile any manual decisions.
+
+Agreed direction / notes: ____________________    Owner: ____________________
+
+11. Originality, safety, ownership, and media
+
+11.1 What are the rules on AI tools and outside assistance?
+
+Options: allowed with disclosure / allowed within defined limits. Require teams to explain their own contribution, prior work, third-party assets, and AI-generated material. What assistance is permitted from mentors? Who investigates plagiarism, misrepresentation, or undisclosed external work?
+
+11.2 What data and testing are allowed?
+
+Existing platform boundary: no patient-identifying records. Proposed event approach: use synthetic or properly authorized public data and simulated demonstrations, not real clinical deployment. Who checks evidence permissions, ethics applicability, prototype safety, and unsupported clinical claims? Any real-world testing needs a separate approved pathway.
+
+11.3 What ownership and confidentiality terms should apply?
+
+Proposal for institutional review: teams retain their work, while MSRC receives limited permission for agreed judging and publicity uses. What rights do sponsors or partners request? Who reviews the terms before publication? Do participants need a warning that public pitches are not confidential? Do not promise patents, ownership outcomes, or adoption.
+
+11.4 What can be photographed, recorded, or published?
+
+Media publication needs the existing consent and approval process. Decide permissions for team photos, pitch recordings, prototype images, and short winner descriptions separately from full submissions. Who handles no-photo requests and withdrawal? Avoid publishing confidential content or assuming consent from every person shown.
+
+Agreed direction / notes: ____________________    Owner: ____________________
+
+12. Certificates and follow-up
+
+12.1 What earns a participation or winner certificate?
+
+Options for participation evidence: required session attendance + a completed final submission / those requirements plus a feedback survey. Define member-level evidence and any minimum attendance rule. Distinguish participant, finalist, winner, mentor, judge, and organizer certificates; do not automatically copy general conference rules.
+
+12.2 What happens to promising projects afterwards?
+
+Options: recognition only / an approved showcase / a follow-up mentoring session / referral to a confirmed development partner. Who owns follow-up, and what can realistically be promised? Define what we will record, such as completed projects, feedback, and agreed next steps, without claiming unverified impact.
+
+12.3 Who signs off and releases the outcomes?
+
+Assign the award approver, certificate wording/signature owner, and person responsible for checking names, member eligibility, results, and release timing. Confirm the publication and correction process before sending emails or announcing winners.
+
+Agreed direction / notes: ____________________    Owner: ____________________
+
+13. Decisions to close before applications open
+
+Start by agreeing the purpose and tracks, eligible participants, team rules, event format/capacity, application requirements, selection process, and budget. Then close the full public rules: dates, fees and inclusions, deliverables, scoring, prizes, certificates, and participant terms.
+
+For each resolved item, record: decision, rationale if needed, owner, approval status, and where it must be reflected in the website or participant guide. Use Pending / Proposed / Agreed / Needs approval as plain-text status labels.
+
+Decision: ____________________    Status: ____________________
+
+Owner / approver: ____________________    Next action: ____________________
+
+Questions still needing input: ____________________________________________________________
+
+Website handoff: Send the agreed rules to the technical lead to update the hackathon configuration and participant pages. Applications should remain closed until the required settings and approvals are complete. [S1: REL-04, CFG-05]
+
+Source context
+
+[S1] MSRC 2027 Website — Development Specification v0.4, particularly Section 9 and CFG-05. This is the current planning baseline, not evidence that the platform is implemented or that institutional approvals are complete.
+
+Reference document: 
