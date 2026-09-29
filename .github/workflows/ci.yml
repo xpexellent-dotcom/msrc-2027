@@ -86,6 +86,17 @@ jobs:
       - run: pnpm db:reset
       - run: pnpm db:lint
       - run: pnpm db:test
+      - name: Inspect local database security findings
+        run: pnpm exec supabase db advisors --local --type security --level warn --fail-on error
+      - name: Generate the public synthetic schema types for review
+        shell: bash
+        run: |
+          types_file="$(mktemp "${RUNNER_TEMP}/msrc-types.XXXXXX.ts")"
+          trap 'rm -f -- "$types_file"' EXIT
+          pnpm --silent db:types >"$types_file"
+          test -s "$types_file"
+          pnpm exec tsc --noEmit --strict --skipLibCheck --target ES2020 "$types_file"
+          cat "$types_file"
       - name: Prepare local public client settings without printing credentials
         run: pnpm db:env
       - name: Verify browser and server wrappers against the local Data API

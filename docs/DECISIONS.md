@@ -413,3 +413,26 @@ Relevant requirements: INF-01/04/05, SEC-01/02/06, ROL-01, ERR-01, REL-06. See
 [M1 audit](reviews/m1-foundation.md) for commands, evidence, file list and remaining steps.
 The implementation follows the [pinned CLI source](https://github.com/supabase/cli/blob/v2.118.0/apps/cli/src/command-internal/status-values.ts)
 and installed CLI help. All 15 operational flags and unknown business values are unchanged.
+
+## 15. ENG-005 — Windows runtime and private GitHub verification, 29 September 2026
+
+Authority: user explicitly requested Docker/WSL installation and database/CI verification,
+then asked to create the repository on their own GitHub account. The user separately
+approved Git Credential Manager's displayed OAuth access and completed GitHub's security
+verification. Credentials are handled by the credential manager, never copied into source.
+
+- Install WSL 3.0.1 and verified Docker Desktop 4.93.0 per-user, using its WSL2/Linux
+  backend. No automatic restart or Docker terms acceptance. Windows reports a required
+  restart to activate Virtual Machine Platform; local engine/database checks remain pending.
+- Create private development repository `xpexellent-dotcom/msrc-2027`, preserve all five
+  existing commits and set it as origin. No collaborator, paid plan, production service,
+  public repository, DNS record or platform email change. Personal development custody is
+  expressly authorized; institutional production custody remains an unresolved release gate.
+- Execute the committed workflow on GitHub's Ubuntu runner. Its local synthetic Supabase
+  stack is separate from this Windows installation and all managed production projects.
+- Add the already-documented local security-advisor and generated-type commands to CI.
+  Findings and generated fixture types are review evidence; neither command prints keys.
+  Advisor warnings remain visible while its error threshold fails the job.
+
+No business requirement, operational flag, dependency pin, migration or application page
+changes. See [database/CI verification](reviews/m1-database-ci.md) for evidence and limits.

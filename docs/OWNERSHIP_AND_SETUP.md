@@ -7,7 +7,7 @@ This is a setup register, not evidence that accounts or integrations already exi
 | Item | Required record | Current status |
 |---|---|---|
 | Domain and DNS | Registrar account custodian, organization control, renewal date/responsibility, recovery and DNS access | User reports purchase of msrc2027.com; live status unverified |
-| Repository | Organizational GitHub owner, repository URL, access roles, reviewed-change policy | No repository inspected or created |
+| Repository | Organizational GitHub owner, repository URL, access roles, reviewed-change policy | User explicitly authorized private development repository [xpexellent-dotcom/msrc-2027](https://github.com/xpexellent-dotcom/msrc-2027), created and initial history pushed 29 September 2026. Institutional custody/transfer remains a production dependency. |
 | Vercel | Organizational team/project, plan, region/data flows, billing and recovery | Provider selected; provisioning unverified |
 | Supabase | Organizational owner, isolated staging/production projects, regions/plans, backups/access | Provider selected; provisioning unverified |
 | KAU collection | Responsible unit/contact, official payee/system, authorized confirmation or report-reconciliation procedure | Route selected; details pending CFG-02 |

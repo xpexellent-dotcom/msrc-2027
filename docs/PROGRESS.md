@@ -14,10 +14,11 @@
 | 2026 media folder | Readable metadata inspected; no footage downloaded or rights cleared |
 | Codex handoff documents and prompts | Prepared in this package |
 | Domain purchase | Reported in project conversation; current account/DNS/renewal not inspected |
-| Git / application code | Inspected: no existing local repository/app; new local main repository and M1 code created. No remote configured. |
+| Git / application code | User-authorized private repository xpexellent-dotcom/msrc-2027 created; original five-commit history pushed, origin configured. Institutional production custody remains pending. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
+| Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed successfully. Windows restart and Docker first launch/terms required before local engine/database checks. |
 | Vercel/Supabase projects / production secrets | Not inspected or provisioned |
-| Tests / CI / preview / production deployment | M1 re-audit: lint/types/89 unit/build/60 browser checks PASS; fresh patched local clone installed and started, with eight smoke checks PASS. Local database BLOCKED; hosted CI NOT TESTED. No deployment. |
+| Tests / CI / preview / production deployment | First hosted workflow36614744871 PASS: app checks and local Linux Supabase migration/lint/20 pgTAP/10 API integration tests. Windows engine remains BLOCKED by restart. Additional advisor/type steps tracked in latest verification record. No deployment. |
 | KAU collection access / email sender | Not verified |
 | Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
@@ -26,7 +27,7 @@
 | Milestone | Requirements/planning | Implementation | Release |
 |---|---|---|---|
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
-| M1 Foundation | ENG-001/004 adopted; relevant source IDs retained | Fresh local-clone startup PASS; safe env helper and wrapper integration checks added; Docker database execution BLOCKED; CI defined | Local preview only; database and hosted CI acceptance outstanding; all production gates closed |
+| M1 Foundation | ENG-001/004/005 adopted; relevant source IDs retained | Hosted app/database workflow PASS; Windows Docker/WSL installed, local execution pending restart | Development verification only; Windows check outstanding and all production gates closed |
 | M2 Design system | ENG-002 adopts working defaults; final brand approval pending | Shared bilingual primitives/showcase implemented and locally verified | Local preview only; final content/accessibility/brand gates pending |
 | M3 Public alpha | Full sitemap retained in typed content | Homepage and bilingual About previews implemented; remaining standalone public pages pending | Public launch not approved |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
@@ -42,13 +43,37 @@ Do not convert this table to percentage completion without observable evidence. 
 
 ## Next task
 
-Finish M1 acceptance with BL-FND-02 and the CI portion of BL-FND-03: install/start a
-Docker-compatible runtime, execute migration/seed/pgTAP/client checks using the README,
-and run the committed workflow in the authorized organizational GitHub repository.
-No product feature is needed for this PR. All operational gates remain closed. See the
-[M1 review](reviews/m1-foundation.md) for exact remaining commands and evidence limits.
+Finish Windows M1 acceptance with BL-FND-02: save work, restart Windows, launch the installed
+Docker Desktop and complete its first-run terms if accepted, then execute the README database
+sequence after verifying its Linux engine. Hosted CI already passed in the private repository
+the user authorized. No product feature is needed. All operational gates remain closed. See
+[database/CI verification](reviews/m1-database-ci.md) for commands and current evidence limits.
 The [implementation backlog](backlog/README.md), DR-CFG-11 ownership and DR-CFG-12
 content/brand decisions remain available for later work; no decision was silently resolved.
+
+## 29 September 2026 — Windows runtime installation and hosted CI
+
+The user authorized installation, database checks and CI, then explicitly requested creating
+the repository on their GitHub account. Created private `xpexellent-dotcom/msrc-2027`, kept
+the existing history and pushed `4f0f37d`. The user approved Git Credential Manager access
+and completed GitHub email verification; no token entered source, documents or tool output.
+
+WSL3.0.1 and Docker Desktop4.93.0 per-user installation both exited0. The official Docker
+installer's signature and versioned SHA256 matched. Docker CLI29.8.1 is installed, but its
+server probe fails because Windows requires a restart to activate Virtual Machine Platform.
+No automatic reboot, Docker terms acceptance or managed production resource was performed.
+
+The [initial hosted workflow](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36614744871)
+passed in3m30s: application lint/type/unit/build/browser job and local Linux Supabase
+startup/reset/lint/20 pgTAP/10 real-client checks/stop. This proves the isolated runner stack,
+not this Windows engine. The follow-up adds the documented security-advisor and generated-type
+commands to CI; final results and generated-contract inspection belong in the
+[verification record](reviews/m1-database-ci.md).
+
+Changed scope: CI verification steps, README and ownership/decision/progress/evidence notes.
+No application UI, dependency/lockfile, migration, seed, operational flags or business values
+changed. ENG-005 distinguishes authorized personal development custody from the unresolved
+institutional production handover. Remaining Windows commands are listed above and in README.
 
 ## 29 September 2026 — M1-only reproducibility follow-up
 

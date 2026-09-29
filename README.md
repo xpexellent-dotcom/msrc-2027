@@ -77,15 +77,19 @@ This machine's browser download is in `.tools/playwright`; set
 A normal `playwright install chromium` uses the default browser cache instead.
 
 [CI](.github/workflows/ci.yml) defines frozen installs, application checks and local
-database tests. It does not deploy. Hosted CI has not run without an organizational
-remote repository. Actual results and limitations live in [PROGRESS.md](docs/PROGRESS.md).
+database tests. It does not deploy. The first hosted run passed in the user-authorized
+private [development repository](https://github.com/xpexellent-dotcom/msrc-2027).
+Actual results and limitations live in [PROGRESS.md](docs/PROGRESS.md) and the
+[database/CI verification record](docs/reviews/m1-database-ci.md).
 
 ## Local Supabase — required for database acceptance
 
 Install and start a Docker-compatible Linux container runtime. On Windows, use Docker
 Desktop with its supported WSL2/Linux-container setup and complete any required restart.
-Check `docker version` shows a running server before continuing. This host currently has
-neither Docker/Podman nor WSL installed, so database acceptance is still blocked here.
+Check `docker version` shows a running server before continuing. WSL 3.0.1 and Docker
+Desktop 4.93.0 are now installed on this host. Windows requires a restart to activate
+Virtual Machine Platform; Docker's first launch/terms and local engine verification are
+still pending. Local database acceptance remains blocked until those steps are complete.
 The public app remains runnable without it; that does not count as a database pass.
 The pinned project CLI is used; do not link a remote Supabase project for M1.
 
@@ -95,6 +99,7 @@ pnpm db:start
 pnpm db:reset
 pnpm db:lint
 pnpm db:test
+pnpm exec supabase db advisors --local --type security --level warn --fail-on error
 pnpm db:env
 pnpm db:integration
 pnpm db:types
@@ -148,14 +153,16 @@ commands actually executed, acceptance results and remaining host/CI setup.
 
 ## Next work
 
-Finish M1 acceptance first: provide the container runtime, run the database sequence above,
-and run the workflow in an authorized organizational GitHub repository. The next recommended
-PR is the bounded local-database/CI verification follow-up; no operational feature is needed.
+Finish Windows M1 acceptance first: restart Windows, launch Docker Desktop, complete its
+first-run terms if accepted, and run the database sequence above after its Linux engine is
+ready. The committed workflow already passed on GitHub's Linux runner; that does not prove
+this Windows engine is running. No operational feature is needed for this follow-up.
 After that, review and approve the existing homepage/About copy and Arabic translations.
 The exact content/asset request list is in
 [design-system feature notes](docs/features/design-system.md) and the
 [media register](docs/MEDIA_REGISTER.md). Keep all workflow flags closed.
-The organizational GitHub repository, production ownership, plans, regions and external
+The user-authorized private repository is `xpexellent-dotcom/msrc-2027`. Institutional
+custody, production ownership, plans, regions and external
 approvals remain separate setup work. This local folder was initially opened from a
 temporary preview directory; preserve the resulting project in a durable project location.
 The separate Downloads handoff copy was inspected but not edited.
