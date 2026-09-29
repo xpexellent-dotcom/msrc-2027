@@ -9,7 +9,7 @@ This is a setup register, not evidence that accounts or integrations already exi
 | Domain and DNS | Registrar account custodian, organization control, renewal date/responsibility, recovery and DNS access | User reports purchase of msrc2027.com; live status unverified |
 | Repository | Organizational GitHub owner, repository URL, access roles, reviewed-change policy | User explicitly authorized private development repository [xpexellent-dotcom/msrc-2027](https://github.com/xpexellent-dotcom/msrc-2027), created and initial history pushed 29 September 2026. Institutional custody/transfer remains a production dependency. |
 | Vercel | Organizational team/project, plan, region/data flows, billing and recovery | Provider selected; provisioning unverified |
-| Supabase | Organizational owner, isolated staging/production projects, regions/plans, backups/access | Provider selected; provisioning unverified |
+| Supabase | Organizational owner, isolated staging/production projects, regions/plans, backups/access | User selected existing `msrc` (`ecemjggwlzqpjcwmchrl`), inspected ACTIVE_HEALTHY in ap-northeast-1 and connected with its publishable key (ENG-006). No provisioning or hosted mutation; institutional custody, region approval, isolated staging and backup configuration remain release dependencies. |
 | KAU collection | Responsible unit/contact, official payee/system, authorized confirmation or report-reconciliation procedure | Route selected; details pending CFG-02 |
 | Email | Provider, branded sender, monitored Reply-To, tested inbox routes, DNS verification | Candidate configuration only; no sender verified |
 | Continuing custodian | Name, acceptance of role, access and annual handover responsibility | Unassigned in this handoff |

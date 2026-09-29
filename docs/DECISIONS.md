@@ -439,3 +439,32 @@ verification. Credentials are handled by the credential manager, never copied in
 
 No business requirement, operational flag, dependency pin, migration or application page
 changes. See [database/CI verification](reviews/m1-database-ci.md) for evidence and limits.
+
+## 16. ENG-006 — Direct hosted Supabase connection, 29 September 2026
+
+Authority: the user explicitly requested direct use of live Supabase and supplied
+`https://ecemjggwlzqpjcwmchrl.supabase.co`. This supersedes the M1 local-only connection
+restriction and the requirement to finish Windows Docker setup before continuing normal
+development. It does not authorize any operational workflow or unrelated hosted mutation.
+
+- Connect to existing project `msrc` / `ecemjggwlzqpjcwmchrl`, observed ACTIVE_HEALTHY
+  in `ap-northeast-1`. Its actual region is evidence of the existing project, not a new
+  institutional data-residency approval. The project was not provisioned by this task.
+- Use its existing enabled modern publishable key in ignored `.env.local`, with explicit
+  hosted target and HTTPS origin validation. Retrieve no secret/service-role key or DB
+  password. No schema/table/row/Auth/Storage setting is changed; no local fixture is deployed.
+- The hosted public schema and migration history were empty on inspection. Supabase's
+  security advisor returned no findings; empty-schema checks do not prove future policies.
+  Default client types expose no tables. Only explicit guarded local factories expose the
+  synthetic fixture contract for CI tests.
+- Keep local reset/seed/pgTAP commands strictly local and make integration tests reject
+  hosted settings before collection or client construction. Use a separate read-only
+  metadata request for hosted connectivity. The GitHub workflow keeps synthetic containers;
+  Docker on this Windows PC becomes optional for daily development.
+- Preserve all 15 closed flags, source snapshots and unresolved business values. Separate
+  staging/production data and access (INF-04), ownership, region approval, backups and
+  release authorization remain gates before operational use. No paid plan, DNS, Vercel
+  deployment, real emails or account workflow is added.
+
+Relevant source requirements: INF-01/04/05, SEC-01/02/06, REL-06. See
+[hosted connection contract](features/hosted-supabase.md) for actual verification and rollback.

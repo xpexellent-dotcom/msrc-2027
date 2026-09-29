@@ -11,13 +11,13 @@ const hiddenSampleId = "00000000-0000-4000-8000-000000000002";
 const absentSampleId = "00000000-0000-4000-8000-ffffffffffff";
 
 describe.each([
-  ["browser", createBrowserDataClient],
-  ["server", createServerDataClient],
+  ["browser", () => createBrowserDataClient("local")],
+  ["server", () => createServerDataClient("local")],
 ] as const)("%s wrapper against local Supabase (INF-04, SEC-02)", (_name, createClient) => {
   let client: NonNullable<ReturnType<typeof createClient>>;
 
   beforeAll(() => {
-    // Both real factories apply the same loopback-only, publishable-key guard.
+    // Explicit local factories and suite startup independently enforce loopback.
     // Missing settings must fail this explicit command rather than report a skip.
     const configuredClient = createClient();
     if (!configuredClient) {

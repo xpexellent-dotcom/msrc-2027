@@ -2,6 +2,11 @@
 
 Requirement references: **INF-01, INF-02, INF-04, INF-05, SEC-01, SEC-02, SEC-06, REL-06**. This is a synthetic development fixture, not an implementation of the operational data domains in DAT-01 to DAT-04.
 
+**Current hosted choice:** ENG-006 authorizes the user's selected managed project for normal
+app work. This file documents the retained local-only fixture path; historical local-only app
+restrictions below are superseded by [hosted connection notes](hosted-supabase.md). The CI
+fixture remains isolated. Never execute its seed/pgTAP SQL on the hosted project.
+
 Latest verification: [hosted PR workflow 36616046623](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36616046623)
 passed local Linux Supabase startup/reset/lint, all 20 pgTAP assertions and all ten
 actual-client integration checks. Security advisors reported no warning/error findings;
@@ -14,7 +19,7 @@ entries below are historical. See [current verification](../reviews/m1-database-
 
 The public placeholder works without a database or environment file. `src/lib/supabase/browser.ts` and `server.ts` provide separate optional anonymous data clients. The Next.js `client-only` and `server-only` markers prevent the modules being imported into the wrong application layer. The server client is created per call and disables fetch caching. Both clients disable session persistence, refresh and URL session detection. Staff/participant authentication, cookie handling, storage, email delivery and payments are outside M1.
 
-Both clients accept only a loopback HTTP origin and a local `sb_publishable_...` key. They return `null` when both settings are absent, and reject incomplete settings, remote URLs, URL credentials, paths, query strings, fragments, secret keys and legacy JWT keys. A remote endpoint needs an explicit later implementation change and release review. This validation is an accident-prevention boundary; database permissions remain the authority for data access.
+Explicit local client factories accept only a loopback HTTP origin and a local `sb_publishable_...` key. They return `null` when both settings are absent, and reject incomplete settings, remote URLs, URL credentials, paths, query strings, fragments, secret keys and legacy JWT keys. Default factories now support an explicit hosted target under ENG-006, with an empty schema contract until feature types are integrated. Local integration configuration independently refuses hosted settings before test collection. This validation is an accident-prevention boundary; database permissions remain the authority for data access.
 
 Only these optional values belong in the ignored `.env.local`:
 

@@ -16,9 +16,9 @@
 | Domain purchase | Reported in project conversation; current account/DNS/renewal not inspected |
 | Git / application code | User-authorized private repository xpexellent-dotcom/msrc-2027 created; original five-commit history pushed, origin configured. Institutional production custody remains pending. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
-| Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed successfully. Windows restart and Docker first launch/terms required before local engine/database checks. |
-| Vercel/Supabase projects / production secrets | Not inspected or provisioned |
-| Tests / CI / preview / production deployment | Hosted PR workflow36616046623 PASS: lint/types/build, 89 unit, 60 browser, 20 pgTAP and 10 API integration tests; security advisor reported no warning/error findings; generated schema validated and manually matched. Windows engine remains BLOCKED by restart. No deployment. |
+| Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed; optional PC fixture tests still require restart/first launch. User now selected direct hosted access for normal work (ENG-006). |
+| Vercel/Supabase projects / production secrets | Existing hosted Supabase `msrc` selected by user and connected using its publishable key only. Public schema/migrations empty; no hosted mutation. Vercel not provisioned; no privileged credentials used. |
+| Tests / CI / preview / production deployment | Hosted-connection local checks PASS: lint/types/build, 158 final unit tests, 60 browser cases, live service/key check and hosted-test refusal. Earlier Linux database workflow36617162980 passed20 pgTAP/10 integration/advisors/types. Current PR retains that isolated CI. Optional Windows engine untested; no deployment. |
 | KAU collection access / email sender | Not verified |
 | Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
@@ -27,7 +27,7 @@
 | Milestone | Requirements/planning | Implementation | Release |
 |---|---|---|---|
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
-| M1 Foundation | ENG-001/004/005 adopted; relevant source IDs retained | Hosted app/database workflow PASS; Windows Docker/WSL installed, local execution pending restart | Development verification only; Windows check outstanding and all production gates closed |
+| M1 Foundation | ENG-001/004/005/006 adopted; relevant source IDs retained | Hosted connection configured/verified; synthetic Linux database CI retained. Windows local stack optional and untested | Connection foundation only; operational and production release gates remain closed |
 | M2 Design system | ENG-002 adopts working defaults; final brand approval pending | Shared bilingual primitives/showcase implemented and locally verified | Local preview only; final content/accessibility/brand gates pending |
 | M3 Public alpha | Full sitemap retained in typed content | Homepage and bilingual About previews implemented; remaining standalone public pages pending | Public launch not approved |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
@@ -43,13 +43,44 @@ Do not convert this table to percentage completion without observable evidence. 
 
 ## Next task
 
-Finish Windows M1 acceptance with BL-FND-02: save work, restart Windows, launch the installed
-Docker Desktop and complete its first-run terms if accepted, then execute the README database
-sequence after verifying its Linux engine. Hosted CI already passed in the private repository
-the user authorized. No product feature is needed. All operational gates remain closed. See
-[database/CI verification](reviews/m1-database-ci.md) for commands and current evidence limits.
+Use the selected hosted Supabase connection for normal development. Windows Docker setup
+is now optional for PC fixture tests; GitHub retains isolated synthetic database verification.
+Next smallest product task is editorial approval of the bilingual homepage/About copy before
+another public-page slice. Any hosted schema feature needs explicit grants/RLS and a reviewed
+migration, not a copy of the local synthetic fixture. All operational gates remain closed. See
+[hosted connection](features/hosted-supabase.md) for current evidence and
+[database/CI verification](reviews/m1-database-ci.md) for earlier local-stack results.
 The [implementation backlog](backlog/README.md), DR-CFG-11 ownership and DR-CFG-12
 content/brand decisions remain available for later work; no decision was silently resolved.
+
+## 29 September 2026 — Direct hosted Supabase connection
+
+The user requested direct use of live Supabase and supplied the `ecemjggwlzqpjcwmchrl`
+API URL. Confirmed existing project `msrc`, ACTIVE_HEALTHY, region `ap-northeast-1`;
+public tables and migration history empty; generated public schema empty; security advisor
+returned no findings. This records the existing region, not institutional production approval.
+No project, key, migration, data record, Auth/Storage setting or paid resource was created.
+
+Added explicit hosted configuration, HTTPS/publishable-key validation, separate default empty
+schema and guarded local fixture types, and a read-only hosted connection command. Kept all
+15 flags closed. Wrote the existing publishable key and public settings to an ignored local
+environment file without printing values. Public pages remain static and database-independent.
+
+The initial Data API root metadata check returned HTTP401 (`Secret API key required`);
+this was a restricted metadata endpoint, not a need to add privileged credentials. Switched
+verification to public Auth service settings, which accepted the publishable key with HTTP200.
+This endpoint creates no user/session or email. A separate constant `SELECT 1` passed through
+the authorized connector. No table rows were requested. Local `db:integration` correctly
+refused hosted settings before test collection (expected exit1). The per-client local guard
+also rejects hosted targets before constructing a client.
+
+Full application/CI evidence and remaining limits are recorded in the
+[hosted connection feature note](features/hosted-supabase.md). ENG-006 supersedes the local-only
+connection restriction and makes Windows Docker optional for ordinary hosted work. The
+source specification, infrastructure ownership and operational release decisions remain intact.
+Local verification passed lint/types/build, 158 final unit tests and all 60 EN/AR browser
+cases. No page or live data workflow changed. GitHub reruns the isolated Linux database
+suite on the associated hosted-connection PR; this never uses the hosted project key.
 
 ## 29 September 2026 — Windows runtime installation and hosted CI
 

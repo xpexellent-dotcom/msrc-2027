@@ -10,7 +10,7 @@
 | Ownership | Organizational MSRC/RPClub accounts with institutional authorization | Selected O1; evidence/custodians pending |
 | Web framework | Next.js App Router, TypeScript, Tailwind | Adopted for local M1 by explicit user task; ENG-001 in DECISIONS.md |
 | Package management | pnpm with committed lockfile | Adopted for local M1; exact versions and compatibility notes in ENG-001 |
-| Local data environment | Local Supabase with a compatible container runtime | Recommended in S5; verify machine support |
+| Data environments | User-selected hosted Supabase for normal work; synthetic local Supabase for CI/optional PC tests | ENG-006; explicit target configuration and local test guards; staging/production separation remains a release gate |
 | Tests | Vitest, appropriate component tools, Playwright, database policy tests | Recommended tooling; verify compatibility at foundation time |
 | Email, malware scanning, advisory assessment, analytics | Provider selection and approved configuration required | Unresolved CFG-10 |
 | Versions, regions, plans, budget | Choose and record explicitly before relevant provisioning | Unresolved; no claims of Saudi hosting |
@@ -66,7 +66,7 @@ src/
     surveys/                 reserved
     certificates/            reserved
   lib/
-    supabase/                existing anonymous local browser/server data clients
+      supabase/                anonymous hosted/local clients; guarded local fixture types
     permissions/             reserved
     validation/              reserved
     email/                   reserved

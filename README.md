@@ -83,16 +83,46 @@ private [development repository](https://github.com/xpexellent-dotcom/msrc-2027)
 Actual results and limitations live in [PROGRESS.md](docs/PROGRESS.md) and the
 [database/CI verification record](docs/reviews/m1-database-ci.md).
 
-## Local Supabase — required for database acceptance
+## Hosted Supabase — day-to-day connection
+
+The user selected the existing managed `msrc` project for direct hosted access (ENG-006).
+Docker is **not required** to start the app or connect to that project. This checkout has
+an ignored `.env.local` containing only the verified project URL, existing publishable key,
+and `NEXT_PUBLIC_SUPABASE_TARGET=hosted`. No database password or privileged key is used.
+
+For a new clone, copy `.env.example` to `.env.local`, set target to `hosted`, and obtain
+the HTTPS project URL and modern `sb_publishable_...` key from the authorized project's
+Dashboard. Keep local/staging/production settings separate. Do not copy secrets into public
+variables or commit the environment file. Then run:
+
+```sh
+pnpm db:verify-hosted
+pnpm dev
+```
+
+The verification command only requests public Auth service settings, discards its response body,
+and prints status without keys. It never reads table rows, creates users, sends emails or
+changes data. It does not sign in or enable app authentication. A successful response proves
+service connectivity and key acceptance, not Data API CRUD access, production readiness or RLS
+coverage. The selected project's public schema was empty at inspection; no local fixture,
+migration or seed is uploaded. Default clients expose no invented table types. Public
+pages still render static content, and all 15 operational gates remain closed.
+
+The normal CI workflow remains isolated and uses synthetic local Supabase on GitHub's
+runner. It has no hosted project key. See [hosted connection notes](docs/features/hosted-supabase.md)
+for verification, environment boundaries and rollback.
+
+## Local Supabase — optional fixture testing on this PC
 
 Install and start a Docker-compatible Linux container runtime. On Windows, use Docker
 Desktop with its supported WSL2/Linux-container setup and complete any required restart.
 Check `docker version` shows a running server before continuing. WSL 3.0.1 and Docker
 Desktop 4.93.0 are now installed on this host. Windows requires a restart to activate
 Virtual Machine Platform; Docker's first launch/terms and local engine verification are
-still pending. Local database acceptance remains blocked until those steps are complete.
-The public app remains runnable without it; that does not count as a database pass.
-The pinned project CLI is used; do not link a remote Supabase project for M1.
+still pending. Windows local fixture acceptance remains untested until those steps are
+complete; the user has chosen hosted access for normal work. Hosted connectivity and
+GitHub's Linux fixture results are distinct from a Windows local database pass.
+The pinned project CLI is used; these commands must stay unlinked and local.
 
 ```sh
 docker network create -o com.docker.network.bridge.host_binding_ipv4=127.0.0.1 msrc2027-local
@@ -117,25 +147,30 @@ connection details and generated privileged keys; keep their output out of commi
 and shared logs. CI captures startup output privately and removes it without uploading it. Local Auth
 infrastructure runs because the pinned CLI needs it to expose the publishable key.
 Account sign-up, anonymous sign-in, application authentication and all operational
-workflows remain disabled. No real SMTP, storage or production connection is configured.
+workflows remain disabled in the local stack. No hosted settings are changed by this setup.
 
 `pnpm db:env` captures CLI status without printing it, rejects hosted references and
 creates the ignored `.env.local` with only the validated loopback URL and publishable
 key. It refuses to overwrite an existing file. If using this helper, do not copy the
 example first. For manual setup, copy `.env.example` to `.env.local` and set only those
-two local values. Never add privileged keys to `NEXT_PUBLIC_`
-variables. Clients reject remote endpoints and secret keys. The sample table contains
+two local values and leave target blank or set it to `local`. Never add privileged keys to
+`NEXT_PUBLIC_` variables. Local mode rejects remote endpoints; both modes reject secret
+keys. The sample table contains
 synthetic text only, with explicit read grants and RLS denying hidden rows and writes.
 `pnpm db:integration` loads `.env.local` and exercises both actual client wrappers with
-10 local Data API checks. Missing configuration or an unavailable stack fails the command;
+10 local Data API checks. It refuses hosted mode or a remote URL **before collecting tests**,
+and the explicit local client factories enforce the same boundary before any request.
+Missing configuration or an unavailable stack fails the command;
 it is never reported as a skipped success. Restart `pnpm dev` after changing public
 environment variables; production builds capture these values at build time.
 See [local data notes](docs/features/local-data.md) for policy tests and current blockers.
 
-Environment boundaries: local uses only synthetic loopback services; staging and
-production require separate projects, credentials and later approvals. Do not run
-`supabase link`, copy production data or configure hosted credentials for M1. The public
-page and ordinary unit/E2E suite work with both Supabase variables absent. CMS preview
+Environment boundaries: local fixture tests use synthetic loopback services; hosted
+access uses the explicitly selected project's public settings. Separate staging and
+production projects/access remain release requirements before data workflows open. This
+connection task does not authorize `supabase db push`, hosted resets, copying real data,
+or executing local pgTAP SQL remotely. The public page and ordinary unit/E2E suite work
+with all Supabase variables absent. CMS preview
 configuration is server-only and does not enable editing or any operational workflow.
 
 For a fresh Windows checkout with the pinned runtime installed:
@@ -154,11 +189,9 @@ commands actually executed, acceptance results and remaining host/CI setup.
 
 ## Next work
 
-Finish Windows M1 acceptance first: restart Windows, launch Docker Desktop, complete its
-first-run terms if accepted, and run the database sequence above after its Linux engine is
-ready. The committed workflow already passed on GitHub's Linux runner; that does not prove
-this Windows engine is running. No operational feature is needed for this follow-up.
-After that, review and approve the existing homepage/About copy and Arabic translations.
+Use the hosted connection for normal development; Docker restart/setup is optional unless
+you want to run fixture tests on this PC. CI retains those tests on GitHub's Linux runner.
+Next, review and approve the existing homepage/About copy and Arabic translations.
 The exact content/asset request list is in
 [design-system feature notes](docs/features/design-system.md) and the
 [media register](docs/MEDIA_REGISTER.md). Keep all workflow flags closed.

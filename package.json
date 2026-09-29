@@ -25,6 +25,7 @@
     "db:reset": "supabase db reset --local --yes --network-id msrc2027-local",
     "db:test": "supabase test db --local --network-id msrc2027-local",
     "db:integration": "vitest run --config vitest.integration.config.ts",
+    "db:verify-hosted": "node --env-file-if-exists=.env.local scripts/verify-hosted-supabase.mjs",
     "db:lint": "supabase db lint --local --level warning --fail-on warning",
     "db:types": "supabase gen types --local --schema public"
   },
