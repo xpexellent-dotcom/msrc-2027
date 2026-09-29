@@ -12,7 +12,7 @@ export type PublicPage = Readonly<{
 /** S1 SCP-02: full future public sitemap; it does not claim empty pages exist. */
 export const publicSitemap = [
   { id: "home", path: "/", label: { en: "Home", ar: "الرئيسية" }, previewHref: "/" },
-  { id: "about", path: "/about", label: { en: "About", ar: "عن المؤتمر" }, previewHref: "/#about" },
+  { id: "about", path: "/about", label: { en: "About", ar: "عن المؤتمر" }, previewHref: "/about" },
   { id: "dates", path: "/dates-venue", label: { en: "Dates & venue", ar: "المواعيد والمقر" }, previewHref: "/#event-details" },
   { id: "program", path: "/program", label: { en: "Program", ar: "البرنامج" }, previewHref: "/#program" },
   { id: "speakers", path: "/speakers", label: { en: "Speakers", ar: "المتحدثون" }, previewHref: null },

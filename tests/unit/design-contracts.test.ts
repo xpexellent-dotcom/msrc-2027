@@ -12,7 +12,7 @@ describe("public content publication boundaries (SCP-02, CFG-12, MED-01)", () =>
     for (const page of publicSitemap) {
       expect(page.label.en.trim().length).toBeGreaterThan(0);
       expect(page.label.ar).toMatch(/[\u0600-\u06ff]/);
-      expect(page.previewHref === null || page.previewHref === "/" || page.previewHref.startsWith("/#")).toBe(true);
+      expect(page.previewHref === null || page.previewHref === "/" || page.previewHref === "/about" || page.previewHref.startsWith("/#")).toBe(true);
     }
     expect(homepageAssets).toMatchObject({ heroVideo: null, finalLogo: null, sponsors: [], gallery: [] });
   });

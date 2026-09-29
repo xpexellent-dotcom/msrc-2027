@@ -17,7 +17,7 @@
 | Git / application code | Inspected: no existing local repository/app; new local main repository and M1 code created. No remote configured. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Vercel/Supabase projects / production secrets | Not inspected or provisioned |
-| Tests / CI / preview / production deployment | M2: local lint/types/69 unit/build/45 browser checks PASS; eight axe scans found zero violations with manual-review caveats. CI remote NOT TESTED. Local preview running; no deployment. |
+| Tests / CI / preview / production deployment | About continuation: lint/types/69 unit/build/60 browser checks PASS; 14 axe scans found zero violations with manual-review caveats. Hosted CI NOT TESTED. Local preview running; no deployment. |
 | KAU collection access / email sender | Not verified |
 
 ## Milestone status
@@ -27,7 +27,7 @@
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
 | M1 Foundation | ENG-001 adopted; relevant source IDs retained | Local app PASS; Docker database execution BLOCKED; CI defined | Local preview only; all production gates closed |
 | M2 Design system | ENG-002 adopts working defaults; final brand approval pending | Shared bilingual primitives/showcase implemented and locally verified | Local preview only; final content/accessibility/brand gates pending |
-| M3 Public alpha | Full sitemap retained in typed content | Focused homepage preview implemented and locally verified; standalone public pages remain pending | Public launch not approved |
+| M3 Public alpha | Full sitemap retained in typed content | Homepage and bilingual About previews implemented; remaining standalone public pages pending | Public launch not approved |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
 | M5 Participant auth | Requirements defined | Not verified | Pending |
 | M6 Abstract/review | Detailed baseline; configuration gates remain | Not verified | Pending |
@@ -41,11 +41,12 @@ Do not convert this table to percentage completion without observable evidence. 
 
 ## Next task
 
-Review/approve the draft homepage and About copy in English and Arabic, then implement the
-single About page using the shared components. Exact required content/assets are listed in
-[design-system notes](features/design-system.md). Preserve closed workflows and unset values.
-Independently, install/start a Docker-compatible runtime for the prepared database tests and
-establish durable organizational repository ownership. These do not block local content work.
+Review/approve the draft homepage and About copy in English and Arabic. The About slice is
+implemented; the next bounded public-content slice is Dates and Venue once its actual inputs
+are supplied (an unpublished-state preview requires its own task). Exact required assets are
+listed in [design-system notes](features/design-system.md). Preserve closed workflows and
+unset values. Independently, install/start a Docker-compatible runtime for the prepared
+database tests and establish durable organizational repository ownership.
 
 ## 29 September 2026 — M1 local foundation
 
@@ -209,6 +210,76 @@ slots are in [MEDIA_REGISTER.md](MEDIA_REGISTER.md) and [design-system notes](fe
 No public launch, real email, payment, production provisioning, DNS change or operational
 opening occurred. The working folder remains a temporary Codex copy; preserve the archive
 in a durable project location. Next smallest task: the approved bilingual About page slice.
+
+## 29 September 2026 — M2 review and bilingual About page
+
+Requested outcome: review the completed M2/homepage changes and continue with the bilingual
+About page. Starting evidence: clean local `main` at `8f6d020`; foundation parent `0d2f728`.
+Decision ENG-003; [review record](reviews/m2-homepage.md) and [About contract](features/about.md).
+
+### Review result and scope
+
+No actionable defects were found in the inspected M2 change. Source/content boundaries,
+bilingual navigation, shared accessibility states, preview gating, media behavior and closed
+operational routes were reviewed. Focused design-contract/media unit execution passed
+28/28 cases. This review did not execute a database or certify unimplemented payment,
+capacity, review-anonymity or data-retention workflows.
+
+A meaningful browser coverage gap was closed: explicit user pause now gets tested across
+reduced-motion on/off changes before resuming. This is a coverage improvement, not a claim
+that a reproduced M2 bug was fixed. An independent inspection of the new About/navigation
+slice also found no actionable defect; browser evidence is recorded separately below.
+
+### Implemented slice
+
+- `/en/about` and `/ar/about` provide localized metadata, semantic breadcrumbs, identity,
+  purpose, intended community and working links to the homepage participation/program overview.
+- Complete typed English/Arabic copy is adapted from source context in CONFERENCE_BACKGROUND
+  (S3 pp1,4,13,17,33,37). A visible draft notice retains CFG-12. Audience context explicitly
+  does not define eligibility; host institution does not establish an approved venue.
+- Header/mobile/footer About links now reach the standalone page. The homepage introduction
+  has a contextual About link. Current-page indication and current-page mobile menu focus
+  are supported; language switching preserves the route, query and section.
+- Reused M2 tokens and components; no new media, dependency, database/storage read, personal
+  input, mutation, authentication, email, audit transition, operational state or durable job.
+  All 15 operational guards and all unset business values remain unchanged.
+
+Source IDs: SCP-01/02, LOC-01/02/03, CMS-04, DSN-01/02, ACC-01, CFG-12, REL-01.
+Original AGENTS/source snapshots remain unchanged; no organizer decision was superseded.
+
+### Executed verification
+
+Node 24.21.0 and pnpm 11.19.0 were confirmed again. Dependencies and lockfile were unchanged.
+
+| Command / check | Result | Evidence / limitation |
+|---|---|---|
+| M2 focused review unit command | PASS | 28/28 media-policy and design-contract tests, exit 0. |
+| Scoped About ESLint | PASS | New content/page checked with zero warnings. |
+| `pnpm check` | PASS | ESLint, Next route types/tsc, all 69 unit cases, optimized build; both About locales prerendered. |
+| Scoped ESLint after final test adjustments | PASS | Updated About, media/navigation browser tests and content contract; zero warnings. |
+| `pnpm test:e2e` | PASS | Final 60/60 Chromium cases, 38.5 seconds, exit 0; owned production test server stopped. |
+| About browsing/navigation/content | PASS | Six language/viewport combinations; real 200 routes and /fr/about HTTP404, header/footer/breadcrumb/homepage CTAs, menu focus, locale/query/hash continuity, no operational form or POST. |
+| Responsive and accessibility | PASS with scope limit | About at 1280/791/412 CSS px, extra 320px checks, 200% text and glyph bounds, keyboard/skip/focus, RTL and reduced motion. Six About axe scans plus eight retained M2 scans: zero violations. Manual/real-device audit still required. |
+| Screenshot inspection | PASS | EN/AR About desktop/tablet/mobile and narrow entrances; current homepage with About link. No clipping, overlap or RTL issue found. About axe reports have no incomplete items; M2 reports retain their documented contrast-review caveats. |
+| Media pause persistence and prior regressions | PASS | User pause survives reduced-motion toggle before explicit resume; previous media failure and workflow-denial regressions retained. |
+| Live dev preview | PASS | In-app About route on loopback3000 renders; inspected console had no errors/warnings. |
+| Database, hosted CI/deployment, real-device/Firefox/WebKit, screen reader/full WCAG audit | NOT TESTED in this task | No data changes. Prior DB execution remains BLOCKED by missing Docker/Podman; no remote deployment or broader audit performed. |
+
+Initial browser run: 54/60 passed; six new navigation assertions expected a slash before the
+homepage fragment although Next normalized the rendered href. Selectors were corrected to
+the actual destination and still verify the resulting URL/visible target. No product behavior
+was weakened. Final full rerun passed. Screenshot/accessibility evidence is saved in ignored
+`deliverables/m3-about`; the complete browser report remains in `playwright-report`.
+
+### Release state and remaining work
+
+This remains a local unindexed draft. Final bilingual editorial review, institutional/organizer
+naming approval, branding/media and all REL-01 public launch requirements remain open.
+No production service, DNS, real email/payment, CMS or participation opening occurred.
+The next bounded task is approved homepage/About copy refinement, followed by a Dates and
+Venue content slice once its inputs are provided. Docker execution and durable organizational
+repository ownership remain independent setup needs. Preserve the latest project archive
+outside this temporary workspace for continuity.
 
 ## Session handover template
 

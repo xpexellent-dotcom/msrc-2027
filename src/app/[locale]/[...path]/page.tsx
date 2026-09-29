@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-// No operational or editorial route is exposed by the M1 preview.
+// All destinations without an implemented page remain genuine 404s.
 export default function UnavailablePage() {
   notFound();
 }

@@ -22,7 +22,7 @@
 .intro-body { padding-block-start: 2.8rem; }
 .intro-body p { max-width: 540px; color: var(--color-muted, #655c72); font-size: .92rem; line-height: 1.9; }
 .intro-body .intro-statement { color: var(--color-ink); font-size: clamp(1.2rem, 1.7vw, 1.55rem); line-height: 1.65; margin-block-end: 1.6rem; }
-.editorial-rule { display: block; width: 64px; height: 2px; background: var(--color-gold); margin-block-start: 2.3rem; }
+.intro-link { margin-block-start: 2rem; }
 .pathways-section { background: #efeaf3; }
 .section-introduction { display: grid; grid-template-columns: 1.2fr .8fr; gap: 4rem; align-items: end; margin-block-end: 3rem; }
 .section-introduction > p { max-width: 420px; padding-block-end: .2rem; color: var(--color-muted, #655c72); font-size: .92rem; line-height: 1.85; }

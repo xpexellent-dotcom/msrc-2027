@@ -18,6 +18,7 @@
 .desktop-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; max-inline-size: 100%; gap: clamp(1rem, 2vw, 2rem); }
 .desktop-nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.79rem; font-weight: 500; white-space: nowrap; text-underline-offset: 0.45rem; text-decoration-thickness: 1px; }
 .desktop-nav a:hover { color: var(--color-purple); text-decoration-line: underline; }
+.desktop-nav a[aria-current="page"], .mobile-menu a[aria-current="page"] { color: var(--color-purple); text-decoration: underline; text-underline-offset: 0.35rem; font-weight: 600; }
 .header-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; max-inline-size: 100%; gap: 0.75rem; }
 .language-switch { display: inline-flex; justify-content: center; align-items: center; gap: 0.5rem; min-height: 44px; padding: 0.6rem 0.75rem; border: 1px solid transparent; border-radius: var(--radius-small); color: var(--color-purple); font-family: var(--font-interface); font-size: 0.76rem; font-weight: 500; white-space: nowrap; transition: background-color var(--motion-feedback) var(--motion-easing); }
 .language-switch:hover { background: var(--color-lilac); }

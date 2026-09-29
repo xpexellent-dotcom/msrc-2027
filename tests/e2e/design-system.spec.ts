@@ -124,6 +124,15 @@ test("synthetic video controls pause, resume and fall back after an asset failur
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Play background video" })).toBeFocused();
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  // A system preference change must not silently undo the user's pause.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(video).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(video).toHaveCount(1);
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  const resume = page.getByRole("button", { name: "Play background video" });
+  await expect(resume).toBeVisible();
+  await resume.focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Pause background video" })).toBeFocused();
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);

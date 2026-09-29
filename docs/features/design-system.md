@@ -80,6 +80,7 @@ See `docs/PROGRESS.md` for commands actually executed, screenshots, failures cor
 unrun checks. Automated Chromium/axe coverage supplements manual layout/focus review;
 real-device, screen-reader, final Arabic editorial and real-footage reviews remain required.
 
-Next smallest task: replace and approve the About/homepage editorial copy in both languages,
-then implement the single About page using these primitives. Keep missing facts unset and
-all operational flags closed. Full M3 public alpha is not complete in this focused preview.
+Continuation: the user subsequently authorized the M2 review and bilingual About slice.
+The About page now exists; see [its feature note](about.md) and the latest PROGRESS entry.
+Final About/homepage editorial approval remains open. Keep missing facts unset and all
+operational flags closed. Full M3 public alpha is not complete in these focused previews.

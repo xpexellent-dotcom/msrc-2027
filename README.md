@@ -2,7 +2,7 @@
 
 **Development handoff v1.0 | Prepared 29 September 2026 | Event timezone: Asia/Riyadh**
 
-This folder contains the M1 foundation, M2 shared design system and a focused M3 homepage preview alongside the original handoff. The English/Arabic preview runs without credentials or a database. Dates, venue and operational workflows remain unpublished or closed; the working brand and draft copy still need approval.
+This folder contains the M1 foundation, M2 shared design system and M3 homepage/About previews alongside the original handoff. The English/Arabic preview runs without credentials or a database. Dates, venue and operational workflows remain unpublished or closed; the working brand and draft copy still need approval.
 
 ## Run locally
 
@@ -18,6 +18,11 @@ pnpm dev
 
 Open [English](http://127.0.0.1:3000/en) or [Arabic](http://127.0.0.1:3000/ar).
 The root redirects to English. Stop the terminal with Ctrl+C. No `.env.local` is needed.
+
+The About page is available in [English](http://127.0.0.1:3000/en/about) and
+[Arabic](http://127.0.0.1:3000/ar/about), with a visible draft notice. Its source-derived
+purpose and audience descriptions still need editorial approval. The header, footer and
+homepage introduction link to it. See the [feature contract](docs/features/about.md).
 
 Review the component states at [English design system](http://127.0.0.1:3000/en/design-system)
 or [Arabic design system](http://127.0.0.1:3000/ar/design-system). These routes are enabled
@@ -105,8 +110,8 @@ See [local data notes](docs/features/local-data.md) for policy tests and current
 
 ## Next work
 
-Review the M2/focused M3 preview, then complete one approved public-content slice, beginning
-with the About page and its Arabic translation. The exact content/asset request list is in
+Review and approve the homepage/About copy and Arabic translations, then continue one
+public-content slice using confirmed inputs. The exact content/asset request list is in
 [design-system feature notes](docs/features/design-system.md) and the
 [media register](docs/MEDIA_REGISTER.md). Keep all workflow flags closed.
 The organizational GitHub repository, production ownership, plans, regions and external

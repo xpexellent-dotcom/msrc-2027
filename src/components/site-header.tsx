@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Button } from "@/components/ui/button";
@@ -16,10 +17,10 @@ const headerCopy = {
     edition: "The fifth edition",
     registration: "Registration not open yet",
     links: [
-      { label: "About", anchor: "about" },
-      { label: "Participate", anchor: "participate" },
-      { label: "Program", anchor: "program" },
-      { label: "Our legacy", anchor: "legacy" },
+      { label: "About", href: "/about" },
+      { label: "Participate", href: "#participate" },
+      { label: "Program", href: "#program" },
+      { label: "Our legacy", href: "#legacy" },
     ],
   },
   ar: {
@@ -30,16 +31,17 @@ const headerCopy = {
     edition: "النسخة الخامسة",
     registration: "التسجيل لم يُفتح بعد",
     links: [
-      { label: "عن المؤتمر", anchor: "about" },
-      { label: "المشاركة", anchor: "participate" },
-      { label: "البرنامج", anchor: "program" },
-      { label: "مسيرتنا", anchor: "legacy" },
+      { label: "عن المؤتمر", href: "/about" },
+      { label: "المشاركة", href: "#participate" },
+      { label: "البرنامج", href: "#program" },
+      { label: "مسيرتنا", href: "#legacy" },
     ],
   },
 } as const;
 
 export function SiteHeader({ locale }: { locale: Locale }) {
   const copy = headerCopy[locale];
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -72,7 +74,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           <span className="wordmark-edition">{copy.edition}</span>
         </Link>
         <nav className="desktop-nav" aria-label={copy.navigation}>
-          {copy.links.map((link) => <Link key={link.anchor} href={`/${locale}#${link.anchor}`}>{link.label}</Link>)}
+          {copy.links.map((link) => <Link key={link.href} href={`/${locale}${link.href}`} aria-current={pathname === `/${locale}${link.href}` ? "page" : undefined}>{link.label}</Link>)}
         </nav>
         <div className="header-actions">
           <LanguageSwitch locale={locale} />
@@ -95,7 +97,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           <Container>
             <nav aria-label={copy.navigation}>
               {copy.links.map((link) => (
-                <Link key={link.anchor} href={`/${locale}#${link.anchor}`} onClick={() => setMenuOpen(false)}>
+                <Link key={link.href} href={`/${locale}${link.href}`} aria-current={pathname === `/${locale}${link.href}` ? "page" : undefined} onClick={() => {
+                  setMenuOpen(false);
+                  // Activating the current page still moves focus out of the removed menu.
+                  if (pathname === `/${locale}${link.href}`) document.getElementById("main-content")?.focus();
+                }}>
                   {link.label}<span className="directional-arrow" aria-hidden="true">↗</span>
                 </Link>
               ))}

@@ -352,3 +352,30 @@ Registry metadata and local tool help were checked before package/CLI use.
 
 Verification is recorded in PROGRESS.md. All15 operational gates remain false. M3 is a
 homepage preview only; full public content, final brand/media approval and deployment are pending.
+
+## 13. ENG-003 — bilingual About preview after M2 review, 29 September 2026
+
+Authority: the user explicitly requested review of the completed M2/homepage changes and
+continuation with the bilingual About page. This authorizes local implementation and review,
+not final content approval, new organizer policy, infrastructure changes or public launch.
+
+- Add `/en/about` and `/ar/about` as the next SCP-02 public-content slice, reusing M2
+  components and the current pinned stack. No dependencies, database/storage schema,
+  authentication, operational transitions, media assets or jobs are added.
+- Draft English/Arabic identity, purpose and audience copy from the source context recorded
+  in CONFERENCE_BACKGROUND.md (S3 pp1,4,13,17,33,37). Show an explicit draft notice. Host
+  institution is not an approved venue; community descriptions are not eligibility criteria.
+  No source snapshot or organizer decision is superseded.
+- Header/footer About links now reach the standalone page; a contextual homepage link
+  provides the same destination. Language switching retains the page/query/section. Unknown
+  routes/locales remain 404. The homepage introduction anchor remains available.
+- Retain all 15 closed operational gates and the null dates, venue, price/capacity values.
+  No legal, editorial, brand, media or institutional approval is inferred. The preview stays
+  unindexed and local; a future remote draft still needs approved deployment protection.
+- M2 code review found no actionable defect. Extend one media browser regression to verify
+  that a visitor's pause survives reduced-motion changes; do not mislabel this coverage gap
+  as a proven implementation failure.
+
+Affected requirements: SCP-01/02, LOC-01/02/03, CMS-04, DSN-01/02, ACC-01, CFG-12,
+REL-01. See [About feature contract](features/about.md), [M2 review](reviews/m2-homepage.md)
+and the current PROGRESS entry for executed checks. All production gates remain closed.

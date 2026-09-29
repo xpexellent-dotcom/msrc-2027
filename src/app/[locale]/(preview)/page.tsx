@@ -39,7 +39,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
         <Container className="intro-grid">
           <SectionHeading eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" />
-          <div className="intro-body"><p className="intro-statement">{copy.aboutBody}</p><p>{copy.aboutNote}</p><span className="editorial-rule" aria-hidden="true" /></div>
+          <div className="intro-body"><p className="intro-statement">{copy.aboutBody}</p><p>{copy.aboutNote}</p><div className="intro-link"><ButtonLink href={`/${locale}/about`} variant="secondary">{locale === "ar" ? "المزيد عن المؤتمر" : "More about the conference"}<span className="directional-arrow" aria-hidden="true">↗</span></ButtonLink></div></div>
         </Container>
       </section>
       <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">

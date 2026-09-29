@@ -141,8 +141,8 @@ test("responsive navigation is keyboard usable in both languages", async ({ page
     await page.keyboard.press("Tab");
     await page.keyboard.press("Enter");
     await expect(menu).toHaveCount(0);
-    await expect(page).toHaveURL(new RegExp(`/${locale}#about$`));
-    await expect(page.locator("#about")).toBeInViewport();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/about$`));
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }
 });
 
