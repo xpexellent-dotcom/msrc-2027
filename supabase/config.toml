@@ -56,7 +56,9 @@ enabled = false
 enabled = false
 
 [auth]
-enabled = false
+# The pinned CLI only exposes the local publishable key when this infrastructure
+# runs. This does not open application authentication or permit account signup.
+enabled = true
 site_url = "http://127.0.0.1:3000"
 additional_redirect_urls = []
 enable_signup = false

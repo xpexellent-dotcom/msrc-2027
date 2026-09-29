@@ -6,10 +6,11 @@ REL-01 through REL-06. M1 does not satisfy a public or operational release gate.
 
 ## Boundaries
 
-- `/` selects English. `/en` and `/ar` provide the safe placeholder; document language
-  and native direction are set on the server. All other content remains future work.
+- `/` selects English. `/en` and `/ar` provide safe unpublished information; document
+  language and native direction are set on the server. The subsequent M2 design system
+  and bilingual About preview remain preserved; this M1 follow-up adds no public page.
 - Static content renders without environment variables or a database. Working colors
-  come from the handoff; system fonts avoid build-time network access. Logo, video,
+  come from the handoff; M2's self-hosted fonts avoid build-time network access. Logo, video,
   final typography, copy and translations remain CFG-12 dependencies.
 - Typed `conferenceConfig` keeps event dates, venue, prices, capacities and production
   regions null. Estimates and draft proposals are not defaults.
@@ -28,6 +29,11 @@ REL-01 through REL-06. M1 does not satisfy a public or operational release gate.
 - Local Supabase clients use public credentials with separate browser/server boundaries;
   their explicit local-only configuration rejects remote projects and privileged keys.
   See [local-data.md](local-data.md) for fixtures, policies and remaining Docker checks.
+- The playbook's remaining folder boundaries are README-only reservations, documented in
+  [ARCHITECTURE](../ARCHITECTURE.md). They create no operational route, table or workflow.
+- `pnpm db:env` safely derives only public local client variables without overwriting a
+  user's environment file. The local Auth container is an infrastructure dependency for
+  the pinned CLI's publishable key; sign-up and every application flag remain disabled.
 
 ## Verification and extension
 
@@ -41,5 +47,11 @@ Loading and sanitized error conventions exist without intentional public crash r
 Runtime exception recovery remains NOT TESTED until there is a real async feature to
 exercise. No synthetic error endpoint is shipped solely to test framework behavior.
 
-Next smallest slice: F07 / M2 design tokens and shared accessible components, reviewed
-in English and Arabic on mobile and desktop; retain all workflow gates.
+The explicit `pnpm db:integration` suite exercises both real client factories against
+seeded local data. It fails on missing configuration or service availability instead of
+claiming an integration pass. The suite does not create an account or expose a debug page.
+
+Current verification and complete file inventory are in [the M1 review](../reviews/m1-foundation.md).
+Next smallest foundation PR: provide Docker/WSL, run the prepared database checks and
+record the authorized repository's actual hosted CI result. M2/About already exist and
+are preserved; later operational feature work is excluded from this task.

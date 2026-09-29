@@ -17,7 +17,7 @@
 | Git / application code | Inspected: no existing local repository/app; new local main repository and M1 code created. No remote configured. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Vercel/Supabase projects / production secrets | Not inspected or provisioned |
-| Tests / CI / preview / production deployment | About continuation: lint/types/69 unit/build/60 browser checks PASS; 14 axe scans found zero violations with manual-review caveats. Hosted CI NOT TESTED. Local preview running; no deployment. |
+| Tests / CI / preview / production deployment | M1 re-audit: lint/types/89 unit/build/60 browser checks PASS; fresh patched local clone installed and started, with eight smoke checks PASS. Local database BLOCKED; hosted CI NOT TESTED. No deployment. |
 | KAU collection access / email sender | Not verified |
 | Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
@@ -26,7 +26,7 @@
 | Milestone | Requirements/planning | Implementation | Release |
 |---|---|---|---|
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
-| M1 Foundation | ENG-001 adopted; relevant source IDs retained | Local app PASS; Docker database execution BLOCKED; CI defined | Local preview only; all production gates closed |
+| M1 Foundation | ENG-001/004 adopted; relevant source IDs retained | Fresh local-clone startup PASS; safe env helper and wrapper integration checks added; Docker database execution BLOCKED; CI defined | Local preview only; database and hosted CI acceptance outstanding; all production gates closed |
 | M2 Design system | ENG-002 adopts working defaults; final brand approval pending | Shared bilingual primitives/showcase implemented and locally verified | Local preview only; final content/accessibility/brand gates pending |
 | M3 Public alpha | Full sitemap retained in typed content | Homepage and bilingual About previews implemented; remaining standalone public pages pending | Public launch not approved |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
@@ -42,14 +42,49 @@ Do not convert this table to percentage completion without observable evidence. 
 
 ## Next task
 
-Use the [implementation backlog](backlog/README.md) to select one bounded slice. The smallest
-environment-verification task is BL-FND-02: provide a Docker-compatible runtime and execute
-the prepared local database tests. Independent security work can begin with BL-SEC-01's
-permission contract; a public-content continuation can use BL-PUB-02's unpublished Dates
-and Venue preview. Actual dates/venue and final publication remain gated. Review/approve
-the existing draft homepage/About copy under DR-CFG-12; exact assets remain listed in
-[design-system notes](features/design-system.md). Establish durable organizational custody
-under DR-CFG-11 before production. This planning task does not implement those next slices.
+Finish M1 acceptance with BL-FND-02 and the CI portion of BL-FND-03: install/start a
+Docker-compatible runtime, execute migration/seed/pgTAP/client checks using the README,
+and run the committed workflow in the authorized organizational GitHub repository.
+No product feature is needed for this PR. All operational gates remain closed. See the
+[M1 review](reviews/m1-foundation.md) for exact remaining commands and evidence limits.
+The [implementation backlog](backlog/README.md), DR-CFG-11 ownership and DR-CFG-12
+content/brand decisions remain available for later work; no decision was silently resolved.
+
+## 29 September 2026 — M1-only reproducibility follow-up
+
+Scope: audit and close engineering-foundation gaps in the existing repository. Preserve
+M2/homepage/About and the backlog; implement no operational workflow or new public page.
+Recorded ENG-004. Corrected local Auth infrastructure configuration so the pinned CLI can
+provide its publishable key, while every signup setting and application auth gate stays
+closed. Added a safe local-env helper, 20 unit checks, ten live-local client checks and
+the database CI steps. Final review corrected reset/pgTAP custom-network flags and kept
+credential-bearing CLI startup output out of CI logs. Added 29 README-only playbook
+boundaries; these create no routes.
+Updated Windows/local setup instructions and feature notes. No dependency, lockfile,
+migration, source snapshot, production service, real credential or participant data changed.
+
+Executed evidence:
+
+- PASS: `pnpm install --frozen-lockfile`; `pnpm check` (lint, route types/TypeScript,
+  **89 unit tests**, production build); no operational route appeared in the build.
+- PASS: `pnpm test:e2e`, **60 tests in 36.8 seconds**, clean exit. An earlier run also
+  passed all cases but Windows sandbox process cleanup stalled; only its verified owned
+  server was stopped. The rerun with local process permissions resolved that limitation.
+- PASS: fresh local Git clone with the current patch, no copied dependencies or environment
+  files; frozen install downloaded 400 packages, `pnpm dev --port 3024` started, and eight
+  English/Arabic desktop/mobile/navigation/closed-endpoint smoke checks passed. Screenshot
+  evidence is in ignored `deliverables/m1-verification/`; the verification server was stopped.
+- BLOCKED: `pnpm db:start` found neither Docker nor Podman; WSL is not installed. `pnpm db:env`
+  failed safely without creating a file; `pnpm db:integration` exited 1 on missing local
+  settings, so none of its ten live assertions executed. pgTAP/reset/lint/types remain unrun.
+- NOT TESTED: hosted GitHub CI and deployment; no Git remote or production connection.
+- Final file, whitespace, environment and credential-pattern checks are recorded in the
+  [M1 review](reviews/m1-foundation.md). Such scans are scoped evidence, not a security certification.
+
+Full command/result details, acceptance matrix, file inventory, remaining setup and rollback
+are in [M1 verification](reviews/m1-foundation.md). Local app acceptance passed; local
+database and hosted CI acceptance are explicitly outstanding. Preserve this checkout in a
+durable project location because its current parent is a temporary preview directory.
 
 ## 29 September 2026 — Complete implementation backlog, documentation only
 

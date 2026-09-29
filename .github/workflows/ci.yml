@@ -71,10 +71,25 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Bind the synthetic local stack to loopback
         run: docker network create -o com.docker.network.bridge.host_binding_ipv4=127.0.0.1 msrc2027-local
-      - run: pnpm db:start
+      - name: Start local stack without exposing generated credentials
+        shell: bash
+        run: |
+          umask 077
+          startup_log="$(mktemp "${RUNNER_TEMP}/msrc-local-start.XXXXXX")"
+          trap 'rm -f -- "$startup_log"' EXIT
+          if pnpm db:start >"$startup_log" 2>&1; then
+            printf '%s\n' 'Local Supabase started; credential-bearing output withheld.'
+          else
+            printf '%s\n' 'Local Supabase startup failed. Reproduce locally and inspect output privately.'
+            exit 1
+          fi
       - run: pnpm db:reset
       - run: pnpm db:lint
       - run: pnpm db:test
+      - name: Prepare local public client settings without printing credentials
+        run: pnpm db:env
+      - name: Verify browser and server wrappers against the local Data API
+        run: pnpm db:integration
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop

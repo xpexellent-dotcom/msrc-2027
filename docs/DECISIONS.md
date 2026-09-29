@@ -381,3 +381,35 @@ not final content approval, new organizer policy, infrastructure changes or publ
 Affected requirements: SCP-01/02, LOC-01/02/03, CMS-04, DSN-01/02, ACC-01, CFG-12,
 REL-01. See [About feature contract](features/about.md), [M2 review](reviews/m2-homepage.md)
 and the current PROGRESS entry for executed checks. All production gates remain closed.
+
+## 14. ENG-004 — M1 reproducibility audit, 29 September 2026
+
+Authority: explicit user request to ensure M1 only. Preserve existing M2/About code and
+all product exclusions; no new operational feature or organizer decision is authorized.
+
+- Retain the pinned stack and lockfile. Add only the playbook's missing README-only
+  boundaries; keep the established `(preview)` group, root `tests/` and `lib/i18n.ts`
+  with the reasons recorded in ARCHITECTURE. Empty folders are not feature completion.
+- Correct local Supabase's key prerequisite: CLI 2.118.0 exposes its publishable key only
+  with the local Auth service enabled. Enable that infrastructure container, while global
+  and email signup, anonymous sign-in and the application's auth workflow stay disabled.
+  No account, cookie/session feature, SMTP provider, storage or hosted connection is added.
+- Add an explicit safe local-env helper and a separate live-local integration suite for
+  both existing data-client wrappers. Capture status privately; copy only local public
+  values; reject linked projects/privileged keys and refuse existing-file overwrite.
+- Pass the same loopback-bound network to startup, reset and pgTAP. The pinned CLI's
+  reset/test paths otherwise choose its default network instead of the custom one;
+  in-process type generation explicitly rejects the network flag and stays unchanged.
+- Extend the database CI job with local environment generation and the 10 integration
+  checks after migration/seed/pgTAP. The application CI contract remains lint/types/unit/
+  build/E2E. Capture credential-bearing startup output in a restrictive temporary file,
+  print only sanitized status and delete the file without uploading it. A workflow
+  definition or local run is not a passed hosted GitHub run.
+- Docker/Podman and WSL are absent on this host, and no Git remote is configured. Those
+  prevent executing local database acceptance and hosted CI respectively. They do not
+  authorize production provisioning or fabricated passes. No new migration is required.
+
+Relevant requirements: INF-01/04/05, SEC-01/02/06, ROL-01, ERR-01, REL-06. See
+[M1 audit](reviews/m1-foundation.md) for commands, evidence, file list and remaining steps.
+The implementation follows the [pinned CLI source](https://github.com/supabase/cli/blob/v2.118.0/apps/cli/src/command-internal/status-values.ts)
+and installed CLI help. All 15 operational flags and unknown business values are unchanged.

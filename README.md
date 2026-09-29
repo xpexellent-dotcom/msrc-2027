@@ -80,10 +80,13 @@ A normal `playwright install chromium` uses the default browser cache instead.
 database tests. It does not deploy. Hosted CI has not run without an organizational
 remote repository. Actual results and limitations live in [PROGRESS.md](docs/PROGRESS.md).
 
-## Optional local Supabase
+## Local Supabase — required for database acceptance
 
-Install and start a Docker-compatible Linux container runtime. The supplied machine
-does not currently have Docker available. The public app remains runnable without it.
+Install and start a Docker-compatible Linux container runtime. On Windows, use Docker
+Desktop with its supported WSL2/Linux-container setup and complete any required restart.
+Check `docker version` shows a running server before continuing. This host currently has
+neither Docker/Podman nor WSL installed, so database acceptance is still blocked here.
+The public app remains runnable without it; that does not count as a database pass.
 The pinned project CLI is used; do not link a remote Supabase project for M1.
 
 ```sh
@@ -92,26 +95,64 @@ pnpm db:start
 pnpm db:reset
 pnpm db:lint
 pnpm db:test
+pnpm db:env
+pnpm db:integration
 pnpm db:types
 pnpm db:stop
 ```
 
-Create the network once. It restricts published container ports to loopback.
+Create the network once. It restricts published container ports to loopback. The start,
+reset and pgTAP scripts explicitly use this same network so replacement/helper containers
+can reach the local stack. Type generation runs in-process and needs no network flag.
 `db:reset` deletes/reseeds this local development database; never use it with valuable
 data. `db:types` prints generated types for comparison with the small hand-maintained
-fixture contract. `db:stop` preserves local volumes. `db:status` provides local connection
-details; keep its credential output out of committed files and shared logs.
+fixture contract. `db:stop` preserves local volumes. `db:start` and `db:status` print local
+connection details and generated privileged keys; keep their output out of committed files
+and shared logs. CI captures startup output privately and removes it without uploading it. Local Auth
+infrastructure runs because the pinned CLI needs it to expose the publishable key.
+Account sign-up, anonymous sign-in, application authentication and all operational
+workflows remain disabled. No real SMTP, storage or production connection is configured.
 
-To explicitly use the anonymous local clients, copy `.env.example` to `.env.local` and
-set only the local URL and publishable key. Never add privileged keys to `NEXT_PUBLIC_`
+`pnpm db:env` captures CLI status without printing it, rejects hosted references and
+creates the ignored `.env.local` with only the validated loopback URL and publishable
+key. It refuses to overwrite an existing file. If using this helper, do not copy the
+example first. For manual setup, copy `.env.example` to `.env.local` and set only those
+two local values. Never add privileged keys to `NEXT_PUBLIC_`
 variables. Clients reject remote endpoints and secret keys. The sample table contains
 synthetic text only, with explicit read grants and RLS denying hidden rows and writes.
+`pnpm db:integration` loads `.env.local` and exercises both actual client wrappers with
+10 local Data API checks. Missing configuration or an unavailable stack fails the command;
+it is never reported as a skipped success. Restart `pnpm dev` after changing public
+environment variables; production builds capture these values at build time.
 See [local data notes](docs/features/local-data.md) for policy tests and current blockers.
+
+Environment boundaries: local uses only synthetic loopback services; staging and
+production require separate projects, credentials and later approvals. Do not run
+`supabase link`, copy production data or configure hosted credentials for M1. The public
+page and ordinary unit/E2E suite work with both Supabase variables absent. CMS preview
+configuration is server-only and does not enable editing or any operational workflow.
+
+For a fresh Windows checkout with the pinned runtime installed:
+
+```powershell
+. ./scripts/use-local-node.ps1
+pnpm install --frozen-lockfile
+pnpm check
+pnpm exec playwright install chromium
+pnpm test:e2e
+pnpm dev
+```
+
+See [the M1 verification report](docs/reviews/m1-foundation.md) for the complete file list,
+commands actually executed, acceptance results and remaining host/CI setup.
 
 ## Next work
 
-Review and approve the homepage/About copy and Arabic translations, then continue one
-public-content slice using confirmed inputs. The exact content/asset request list is in
+Finish M1 acceptance first: provide the container runtime, run the database sequence above,
+and run the workflow in an authorized organizational GitHub repository. The next recommended
+PR is the bounded local-database/CI verification follow-up; no operational feature is needed.
+After that, review and approve the existing homepage/About copy and Arabic translations.
+The exact content/asset request list is in
 [design-system feature notes](docs/features/design-system.md) and the
 [media register](docs/MEDIA_REGISTER.md). Keep all workflow flags closed.
 The organizational GitHub repository, production ownership, plans, regions and external

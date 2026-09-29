@@ -21,8 +21,10 @@
     "db:start": "supabase start --network-id msrc2027-local",
     "db:stop": "supabase stop",
     "db:status": "supabase status",
-    "db:reset": "supabase db reset --local --yes",
-    "db:test": "supabase test db --local",
+    "db:env": "node scripts/write-local-env.mjs",
+    "db:reset": "supabase db reset --local --yes --network-id msrc2027-local",
+    "db:test": "supabase test db --local --network-id msrc2027-local",
+    "db:integration": "vitest run --config vitest.integration.config.ts",
     "db:lint": "supabase db lint --local --level warning --fail-on warning",
     "db:types": "supabase gen types --local --schema public"
   },

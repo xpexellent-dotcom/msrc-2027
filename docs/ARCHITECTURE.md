@@ -17,24 +17,97 @@
 
 Do not substitute a new payment merchant or a third-party hosted video embed for the selected scope. Do not create paid resources simply because this document names a provider.
 
-## Recommended application layout
+## Actual foundation layout and reserved boundaries
 
-Use one maintainable codebase with feature boundaries. The layout below is a proposal for the foundation, not evidence of files already built.
+The M1 structure follows **Stage 2 — Architecture and security baseline / Establish
+the application boundaries** in the archived
+[development playbook](../sources/previous_starter_pack/MSRC27_Website_Development_Playbook.md).
+The tree below distinguishes running code from reserved directories. Each reserved
+directory contains only a `README.md`: it adds no executable route, handler, component,
+database table or operational behavior. These placeholders preserve the intended feature
+boundaries in a clean clone without implementing later milestones.
 
 ```text
-src/app/[locale]/          public, auth, dashboard, admin, reviewer, check-in routes
-src/components/           shared accessible interface and brand components
-src/features/             content, accounts, submissions, review, registration,
-                          orders, workshops, hackathon, 3mt, attendance,
-                          surveys, certificates, reporting
-src/lib/                  permissions, database clients, validation, i18n,
-                          payment adapter, email, durable jobs, audit
-supabase/                 migration history, seed data, policies, database tests
-tests/                    scoped integration and end-to-end coverage
-docs/                     product decisions, feature contracts, release evidence
+src/
+  app/
+    [locale]/
+      (preview)/             existing safe public homepage/About and loading boundary
+      design-system/         existing local/staging component showcase
+      (auth)/                reserved
+      dashboard/             reserved
+      reviewer/              reserved; future assessment screens English-only
+      admin/                 reserved
+      check-in/              reserved
+      [...path]/             existing unavailable-route 404 boundary
+      layout.tsx             existing English/Arabic document and shared shell
+      error.tsx              existing localized sanitized error recovery
+      not-found.tsx          existing localized not-found convention
+    api/                     existing process health and closed-workflow denial only
+    global-error.tsx          existing bilingual root-failure recovery
+  components/
+    ui/                      existing shared interface primitives
+    brand/                   reserved
+    forms/                   reserved
+    data-display/            reserved
+    feedback/                reserved
+  content/                   existing typed public draft copy
+  features/
+    content/                 reserved
+    auth/                    reserved
+    registration/            reserved
+    payments/                reserved
+    submissions/             reserved
+    review/                  reserved
+    workshops/               reserved
+    hackathon/               reserved
+    three-minute-thesis/     reserved
+    program/                 reserved
+    attendance/              reserved
+    surveys/                 reserved
+    certificates/            reserved
+  lib/
+    supabase/                existing anonymous local browser/server data clients
+    permissions/             reserved
+    validation/              reserved
+    email/                   reserved
+    payments/                reserved
+    jobs/                    reserved
+    audit/                   reserved
+    i18n.ts                  existing locale helpers and interface dictionary
+    workflows.server.ts      existing hard-closed server guard
+  config/                    existing typed unknown values and workflow identities
+  styles/                    existing working design tokens and public preview styles
+tests/                       existing Vitest unit and Playwright E2E suites
+supabase/
+  migrations/                existing synthetic fixture migration only
+  schemas/                   reserved; declarative schema paths remain disabled
+  seed.sql                   existing synthetic development records
+  tests/                     existing pgTAP permission tests
+scripts/                     existing Windows runtime/start helpers
+docs/                        decisions, feature contracts, backlog and evidence
+.github/                     existing CI definition; no deployment
 ```
 
-Authenticated interfaces still require server and database checks. URL groups and hidden buttons are organizational aids, not permission boundaries.
+Three deliberate naming/layout differences preserve the established code:
+
+- The playbook's `(public)` group is the existing `(preview)` group. Its layout validates
+  the locale before its loading boundary can stream, preserving real HTTP404 responses
+  for unsupported locales. The group name is not a URL segment or a release approval.
+- Tests remain at repository-root `tests/`, as configured by Vitest and Playwright and
+  already used in CI, instead of duplicating the playbook's `src/tests/` directory.
+- Locale utilities remain in `src/lib/i18n.ts`; an empty parallel `lib/i18n/` directory
+  would duplicate an existing boundary without adding behavior.
+
+Existing M2 and public previews are preserved, not rebuilt as part of M1 verification.
+The playbook remains historical guidance: its example `FEATURE_CMS=true` does not
+override the current requirement that every operational workflow, including CMS editing,
+is closed. Its later cross-cutting schema suggestions do not authorize M1 account,
+permission, content or operational tables. No secret key is needed for the anonymous
+local data clients. Source v0.5 and explicit current task instructions take precedence.
+
+Authenticated interfaces still require server and database checks. URL groups and hidden
+buttons are organizational aids, not permission boundaries. Empty reserved folders are
+not evidence that any later feature is implemented, tested or approved for release.
 
 ## Data domains
 
