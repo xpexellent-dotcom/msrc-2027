@@ -433,6 +433,9 @@ verification. Credentials are handled by the credential manager, never copied in
 - Add the already-documented local security-advisor and generated-type commands to CI.
   Findings and generated fixture types are review evidence; neither command prints keys.
   Advisor warnings remain visible while its error threshold fails the job.
+- Compare generated fixture types with the checked-in contract. Match the four empty
+  schema registries to the generated empty-key form; this tightens compile-time keys
+  without changing the migration or runtime behavior.
 
 No business requirement, operational flag, dependency pin, migration or application page
 changes. See [database/CI verification](reviews/m1-database-ci.md) for evidence and limits.

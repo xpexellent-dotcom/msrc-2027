@@ -18,7 +18,7 @@
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed successfully. Windows restart and Docker first launch/terms required before local engine/database checks. |
 | Vercel/Supabase projects / production secrets | Not inspected or provisioned |
-| Tests / CI / preview / production deployment | First hosted workflow36614744871 PASS: app checks and local Linux Supabase migration/lint/20 pgTAP/10 API integration tests. Windows engine remains BLOCKED by restart. Additional advisor/type steps tracked in latest verification record. No deployment. |
+| Tests / CI / preview / production deployment | Hosted PR workflow36616046623 PASS: lint/types/build, 89 unit, 60 browser, 20 pgTAP and 10 API integration tests; security advisor reported no warning/error findings; generated schema validated and manually matched. Windows engine remains BLOCKED by restart. No deployment. |
 | KAU collection access / email sender | Not verified |
 | Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
@@ -66,11 +66,15 @@ No automatic reboot, Docker terms acceptance or managed production resource was 
 The [initial hosted workflow](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36614744871)
 passed in3m30s: application lint/type/unit/build/browser job and local Linux Supabase
 startup/reset/lint/20 pgTAP/10 real-client checks/stop. This proves the isolated runner stack,
-not this Windows engine. The follow-up adds the documented security-advisor and generated-type
-commands to CI; final results and generated-contract inspection belong in the
-[verification record](reviews/m1-database-ci.md).
+not this Windows engine. The extended [PR workflow](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36616046623)
+also passed all checks and the added security-advisor/generated-type commands. The advisor
+reported no issues at its warning/error threshold; generated types passed TypeScript. Manual
+comparison matched all table shapes and found four empty schema registries whose key types
+needed tightening to the generated form. Applied that compile-time-only correction. See the [verification record](reviews/m1-database-ci.md)
+for exact commands, job links and non-failing CLI notices. [PR #1](https://github.com/xpexellent-dotcom/msrc-2027/pull/1)
+preserves this focused change for review; no merge or release was performed.
 
-Changed scope: CI verification steps, README and ownership/decision/progress/evidence notes.
+Changed scope: CI verification steps, empty schema registry types, README and ownership/decision/progress/evidence notes.
 No application UI, dependency/lockfile, migration, seed, operational flags or business values
 changed. ENG-005 distinguishes authorized personal development custody from the unresolved
 institutional production handover. Remaining Windows commands are listed above and in README.

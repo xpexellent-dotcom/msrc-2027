@@ -39,10 +39,39 @@ Application job: [109564774681](https://github.com/xpexellent-dotcom/msrc-2027/a
 Browser evidence is attached to the run as `browser-smoke-results` (seven-day retention).
 Sanitized local evidence is in ignored `deliverables/m1-ci-verification/`.
 
-This follow-up adds the previously documented security-advisor and generated-type commands
-to the database job. Their new run/results must be recorded after execution; the initial
-workflow above did not contain those two steps. Generated public-schema types are compared
-semantically with the handwritten fixture contract, not byte-for-byte formatting/helper aliases.
+**Extended workflow PASS:** [PR run 36616046623](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36616046623)
+on branch commit `7ae4d098005e7e896ea31e4bfa1008f3e82ccd69`. Both jobs and all steps passed.
+The same 89 unit, 60 browser, 20 pgTAP and ten real-client assertions passed again. The
+companion push run 36615908745 also passed; an earlier duplicate was cancelled by concurrency.
+Changes are reviewable in [PR #1](https://github.com/xpexellent-dotcom/msrc-2027/pull/1).
+
+| Added command / inspection | Observed result |
+|---|---|
+| `pnpm exec supabase db advisors --local --type security --level warn --fail-on error` | PASS; `No issues found` at the selected warning/error threshold. Informational findings were not requested. |
+| `pnpm --silent db:types` | PASS; generated the public synthetic schema from local Postgres. |
+| `pnpm exec tsc --noEmit --strict --skipLibCheck --target ES2020` on the generated temporary file | PASS; generated output is valid TypeScript. |
+| Manual generated-contract comparison | Table MATCH: only `foundation_samples`; non-null string `id`/`label`, boolean `is_public`; Insert requires id/label and permits omitted is_public; Update makes all three optional; no relationships. Empty schema registries required the precision fix below. |
+
+Database evidence: [job 109569191306](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36616046623/job/109569191306).
+Application evidence: [job 109569191503](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36616046623/job/109569191503).
+The schema comparison was a manual semantic review of the job output against
+`src/lib/supabase/database.types.ts`; CI validates generation and syntax, not automatic
+contract equality. Review found that the handwritten empty Views/Functions/Enums/CompositeTypes
+used `Record<string, never>`, whose keys include arbitrary strings. Tightened those four
+registries to the generated `{ [_ in never]: never }` form so empty schema names also match.
+This changes compile-time precision only; no database or runtime behavior changes. The
+local `pnpm lint` and `pnpm typecheck` passed after the correction. A one-off in-memory
+TypeScript comparison also passed for the full `Database` type, public schema and its keys,
+with zero diagnostics; it is review evidence, not a new committed CI assertion. The
+subsequent PR run validates the updated source. CLI formatting/helper aliases otherwise
+differ without changing the fixture contract.
+The runner emitted a non-failing pnpm v10-layout migration notice while selecting pinned
+pnpm 11.19.0, and the type generator noted unformatted output. Neither was a database
+security finding or test failure. No new dependency was installed to format generated output.
+
+Local documentation checks: CI YAML parsed successfully; `git diff --check`, changed-file
+relative Markdown links and tracked-file credential-pattern/environment-file checks passed.
+These are scoped checks, not a comprehensive repository security audit.
 
 ## Windows installation and blocker
 
@@ -94,12 +123,13 @@ References reviewed: [Microsoft WSL installation](https://learn.microsoft.com/en
 
 ## Change and rollback boundaries
 
-Application files, dependency pins/lockfile, migrations, seed and operational flags are
-unchanged. Repository changes in this follow-up are CI verification steps and setup/evidence
-documentation. Reverting that focused commit/PR does not remove the private repository,
+Application runtime, dependency pins/lockfile, migrations, seed and operational flags are
+unchanged. Repository changes in this follow-up are CI verification steps, the empty-schema
+type precision fix and setup/evidence documentation. Reverting this focused PR does not remove the private repository,
 credential-manager login or Windows installation. Those are deliberate user-authorized
 setup changes; removal would be a separate request, not an automatic cleanup operation.
 
 Changed files: `.github/workflows/ci.yml`, `README.md`, `docs/DECISIONS.md`,
-`docs/OWNERSHIP_AND_SETUP.md`, `docs/PROGRESS.md`, `docs/features/local-data.md` and this
-`docs/reviews/m1-database-ci.md`. No migrations or environment templates changed.
+`docs/OWNERSHIP_AND_SETUP.md`, `docs/PROGRESS.md`, `docs/features/local-data.md`,
+`src/lib/supabase/database.types.ts` and this `docs/reviews/m1-database-ci.md`.
+No migrations or environment templates changed.

@@ -2,9 +2,11 @@
 
 Requirement references: **INF-01, INF-02, INF-04, INF-05, SEC-01, SEC-02, SEC-06, REL-06**. This is a synthetic development fixture, not an implementation of the operational data domains in DAT-01 to DAT-04.
 
-Latest verification: [hosted workflow 36614744871](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36614744871)
+Latest verification: [hosted PR workflow 36616046623](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36616046623)
 passed local Linux Supabase startup/reset/lint, all 20 pgTAP assertions and all ten
-actual-client integration checks. WSL and Docker Desktop are now installed on Windows;
+actual-client integration checks. Security advisors reported no warning/error findings;
+generated public types passed TypeScript and manual fixture-contract comparison.
+WSL and Docker Desktop are now installed on Windows;
 the required restart and Docker first launch remain pending. Earlier missing-container
 entries below are historical. See [current verification](../reviews/m1-database-ci.md).
 

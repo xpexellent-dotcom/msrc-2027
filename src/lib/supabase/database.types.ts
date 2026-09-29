@@ -1,5 +1,5 @@
 /**
- * M1 fixture contract, maintained alongside the migration while Docker is unavailable.
+ * M1 fixture contract, checked against local Postgres generation in hosted CI.
  * Regenerate against the local database before adding operational schema.
  */
 export type Database = {
@@ -24,9 +24,9 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-    CompositeTypes: Record<string, never>;
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 };
