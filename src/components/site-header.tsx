@@ -30,7 +30,7 @@ const headerCopy = {
     close: "إغلاق القائمة",
     home: "الصفحة الرئيسية لمؤتمر MSRC 2027",
     edition: "النسخة الخامسة",
-    registration: "التسجيل لم يُفتح بعد",
+    registration: "لم يُفتح التسجيل بعد",
     links: [
       { label: "عن المؤتمر", href: "/about" },
       { label: "المشاركة", href: "#participate" },

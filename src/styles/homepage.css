@@ -60,6 +60,16 @@
 [lang="ar"] .hero-topline, [lang="ar"] .pathway-title > p { letter-spacing: 0; }
 [lang="ar"] .closing-grid h2 { letter-spacing: 0; line-height: 1.5; }
 [lang="ar"] .hero-editorial { max-width: 1010px; }
+/* Arabic glyphs read smaller than Latin at equal sizes; lift the smallest labels to stay legible. */
+[lang="ar"] .hero-topline { font-size: .8rem; }
+[lang="ar"] .hero-location { font-size: .88rem; }
+[lang="ar"] .hero-secondary { font-size: .92rem; }
+[lang="ar"] .hero-caption { font-size: .76rem; }
+[lang="ar"] .event-strip dt { font-size: .82rem; }
+[lang="ar"] .pathway-number, [lang="ar"] .program-row-top { font-size: .82rem; }
+[lang="ar"] .pathway-title > p, [lang="ar"] .program-disclaimer { font-size: .8rem; }
+[lang="ar"] .legacy-art-caption { font-size: .76rem; }
+[lang="ar"] .legacy-copy > .legacy-note { font-size: .84rem; }
 /* Keep text contrast stable throughout the entrance. */
 @keyframes entrance { from { transform: translateY(12px); } to { transform: translateY(0); } }
 @media (max-width: 1000px) {

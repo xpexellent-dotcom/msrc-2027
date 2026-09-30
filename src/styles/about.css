@@ -35,6 +35,8 @@
 .about-closed-note p { font-size: .8rem; line-height: 1.85; margin-block-start: .8rem; color: var(--color-muted); }
 [lang="ar"] .about-hero-copy h1 { font-size: clamp(2.65rem, 4.7vw, 4.6rem); line-height: 1.6; letter-spacing: 0; }
 [dir="rtl"] .about-audiences li > span { transform: scaleX(-1); }
+[lang="ar"] .about-breadcrumb, [lang="ar"] .about-identity dt, [lang="ar"] .about-purpose-number { font-size: .86rem; }
+[lang="ar"] .about-draft p, [lang="ar"] .about-audience-note, [lang="ar"] .about-closed-note p { font-size: .86rem; }
 @media (max-width: 800px) {
   .about-hero-grid, .about-section-intro, .about-community-grid, .about-explore-grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
   .about-identity { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.5rem; }

@@ -64,7 +64,7 @@
 
 .eyebrow { display: flex; align-items: center; gap: 0.7rem; margin: 0; color: var(--color-purple); font-size: 0.72rem; font-weight: 600; line-height: 1.6; }
 :lang(en) .eyebrow { letter-spacing: 0.15em; text-transform: uppercase; }
-:lang(ar) .eyebrow { letter-spacing: 0; text-transform: none; }
+:lang(ar) .eyebrow { letter-spacing: 0; text-transform: none; font-size: .8rem; }
 .eyebrow-rule { inline-size: 28px; block-size: 2px; flex-shrink: 0; background: var(--color-gold); }
 .section-heading { max-width: 750px; }
 .section-heading h2 { margin-block: 1rem 0; color: var(--color-purple); font-family: var(--font-heading); font-size: clamp(2.2rem, 4vw, 3.5rem); line-height: 1.13; font-weight: 600; letter-spacing: -0.045em; text-wrap: balance; }
@@ -119,6 +119,16 @@
 .footer-bottom p { max-width: 620px; }
 .footer-bottom a { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-ivory); white-space: nowrap; }
 .footer-bottom a:hover { text-decoration: underline; text-underline-offset: 0.3rem; }
+
+/* Arabic glyphs read smaller than Latin at equal sizes; lift the smallest shell labels. */
+[lang="ar"] .preview-label { font-size: .76rem; }
+[lang="ar"] .wordmark-edition { font-size: .7rem; }
+[lang="ar"] .desktop-nav a { font-size: .88rem; }
+[lang="ar"] .button--small { font-size: .82rem; }
+[lang="ar"] .status-badge { font-size: .78rem; }
+[lang="ar"] .footer-directory-note, [lang="ar"] .footer-bottom { font-size: .76rem; }
+[lang="ar"] .footer-directory li { font-size: .8rem; }
+[lang="ar"] .footer-brand > .footer-institution { font-size: .82rem; }
 
 @media (max-width: 1099px) {
   .desktop-nav, .header-registration { display: none; }

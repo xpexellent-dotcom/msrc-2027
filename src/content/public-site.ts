@@ -41,7 +41,9 @@ type ProgramRow = { title: string; description: string; format: string };
 type HomepageCopy = {
   kicker: string; title: readonly [string, string]; lead: string; explore: string;
   programLink: string; posterCaption: string; institution: string; city: string;
-  aboutEyebrow: string; aboutTitle: string; aboutBody: string; aboutNote: string;
+  aboutEyebrow: string; aboutTitle: string; aboutBody: string; aboutNote: string; aboutLink: string;
+  /** Arabic status wording agrees with its noun: pathway rows (مسار) vs. participation (المشاركة). */
+  participationLabel: string; participationStatus: string;
   pathwaysEyebrow: string; pathwaysTitle: string; pathwaysBody: string; closed: string;
   pathways: readonly Pathway[]; programEyebrow: string; programTitle: string;
   programBody: string; illustrative: string; programRows: readonly ProgramRow[];
@@ -61,6 +63,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     aboutEyebrow: "01 / The conference", aboutTitle: "Good research starts\nwith a better question.",
     aboutBody: "MSRC brings medical students into a shared conversation about research: how we ask, how we investigate, and how an idea can make a difference.",
     aboutNote: "The fifth edition takes shape at King Abdulaziz University in Jeddah. This is an early look at the experience we are building for 2027.",
+    aboutLink: "More about the conference", participationLabel: "Participation", participationStatus: "Not open yet",
     pathwaysEyebrow: "02 / Find your path", pathwaysTitle: "More than one way\nto move an idea forward.",
     pathwaysBody: "Discover the participation pathways. Applications and bookings remain closed while details are finalized.",
     closed: "Not open yet",
@@ -87,37 +90,40 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     backToTop: "Back to the beginning", dateLabel: "Conference dates", venueLabel: "Conference venue", pending: "Awaiting confirmation", editionLabel: "Fifth edition / 2027",
   },
   ar: {
-    kicker: "مؤتمر أبحاث طلاب الطب الخامس",
-    title: ["هنا يبدأ الفضول،", "وتتشكّل الاكتشافات."],
+    // Arabic follows the English meaning in idiomatic MSA rather than word-for-word.
+    // "المؤتمر الخامس لأبحاث طلاب الطب" keeps "fifth" attached to the conference, not the students.
+    kicker: "المؤتمر الخامس لأبحاث طلاب الطب",
+    title: ["حيث يتحوّل الفضول", "إلى اكتشاف."],
     lead: "مساحة للأسئلة التي تصنع فرقًا، وملتقى للجيل القادم من الباحثين في الطب.",
-    explore: "اكتشف المؤتمر", programLink: "استكشف المعاينة", posterCaption: "تصميم تصوّري أصلي · فيلم المؤتمر قريبًا",
+    explore: "اكتشف المؤتمر", programLink: "جولة في المعاينة", posterCaption: "عمل فني تصوّري أصلي · فيلم المؤتمر قريبًا",
     institution: "جامعة الملك عبدالعزيز", city: "جدة، المملكة العربية السعودية",
-    aboutEyebrow: "٠١ / عن المؤتمر", aboutTitle: "البحث الجيد يبدأ\nبسؤال أفضل.",
-    aboutBody: "يجمع المؤتمر طلاب الطب في حوار حول البحث العلمي: كيف نطرح الأسئلة، وكيف نستقصي، وكيف يمكن لفكرة أن تُحدث فرقًا.",
-    aboutNote: "تتشكّل النسخة الخامسة في جامعة الملك عبدالعزيز بجدة. هذه نظرة أولية على التجربة التي نعدّها لعام ٢٠٢٧.",
-    pathwaysEyebrow: "٠٢ / اختر مسارك", pathwaysTitle: "أكثر من طريق\nلتطوير فكرتك.",
-    pathwaysBody: "تعرّف على مسارات المشاركة. يبقى التقديم والحجز مغلقين حتى استكمال التفاصيل.",
-    closed: "لم تُفتح بعد",
+    aboutEyebrow: "٠١ / عن المؤتمر", aboutTitle: "يبدأ البحث الجيد\nبسؤال أفضل.",
+    aboutBody: "يجمع المؤتمر طلاب الطب في حوار مشترك حول البحث العلمي: كيف نطرح السؤال، وكيف نبحث عن إجابته، وكيف يمكن لفكرة أن تُحدث فرقًا.",
+    aboutNote: "يجري إعداد النسخة الخامسة في جامعة الملك عبدالعزيز بجدة، وهذه لمحة أولى عن التجربة التي نعدّها لعام ٢٠٢٧.",
+    aboutLink: "المزيد عن المؤتمر", participationLabel: "المشاركة", participationStatus: "لم تُفتح بعد",
+    pathwaysEyebrow: "٠٢ / اختر مسارك", pathwaysTitle: "أكثر من طريق\nلتمضي بفكرتك قُدمًا.",
+    pathwaysBody: "تعرّف على مسارات المشاركة. يبقى باب التقديم والحجز مغلقًا حتى تُستكمل التفاصيل.",
+    closed: "لم يُفتح بعد",
     pathways: [
-      { category: "البحث العلمي", title: "شارك بحثك", description: "مسار لأبحاث طلاب الطب، يشمل الأعمال البحثية الجارية. ستُنشر إرشادات التقديم قبل فتح الطلبات." },
-      { category: "الهاكاثون", title: "طوّر فكرتك", description: "استكشف تحويل البحث إلى ممارسة أو تطوير البحث لدى طلاب الطب، بمشاركة فردية أو ضمن فريق مُشكّل مسبقًا." },
-      { category: "الأطروحة في ثلاث دقائق", title: "أوصل صوت بحثك", description: "مسار مستقل لطلاب الدراسات العليا. ستُعلن شروط الأهلية وقواعد العرض وتفاصيل التقديم لاحقًا." },
-      { category: "ورش العمل", title: "تعلّم بالممارسة", description: "تعلّم عملي ضمن تجربة المؤتمر. لم تُنشر بعد قائمة الورش ومتطلباتها وتفاصيل الحجز." },
+      { category: "البحث العلمي", title: "شارك بحثك", description: "مسار لأبحاث طلاب الطب، بما فيها الأبحاث التي لا تزال جارية. ستُنشر إرشادات التقديم قبل فتح باب التقديم." },
+      { category: "الهاكاثون", title: "ابنِ على فكرتك", description: "استكشف تحويل البحث إلى تطبيق عملي، أو النهوض بالبحث العلمي لدى طلاب الطب، بمشاركة فردية أو ضمن فريق مُشكَّل مسبقًا." },
+      { category: "الأطروحة في ثلاث دقائق", title: "اجعل بحثك مسموعًا", description: "مسار مستقل لطلاب الدراسات العليا بصيغة «الأطروحة في ثلاث دقائق». ستُعلَن شروط الأهلية وقواعد العرض وتفاصيل التقديم لاحقًا." },
+      { category: "ورش العمل", title: "تعلّم بالممارسة", description: "تعلّم تطبيقي يرافق المؤتمر. لم تُنشر بعدُ قائمة الورش ومتطلباتها المسبقة وتفاصيل الحجز." },
     ],
-    programEyebrow: "٠٣ / البرنامج", programTitle: "مساحة للاكتشاف،\nوفرصة لتبادل المعرفة.",
-    programBody: "تصوّر توضيحي لشكل البرنامج. ستُنشر الجلسات وأسماء المتحدثين والمواعيد بعد اعتمادها.",
+    programEyebrow: "٠٣ / البرنامج", programTitle: "متّسع للاكتشاف،\nومساحة لتبادل المعرفة.",
+    programBody: "تصوّر توضيحي لشكل البرنامج. ستُنشر الجلسات وأسماء المتحدثين والمواعيد هنا بعد اعتمادها.",
     illustrative: "تصوّر توضيحي · ليس جدولًا معتمدًا",
     programRows: [
-      { format: "اعرض", title: "البحث تحت الضوء", description: "مساحة للعروض البحثية وما تثيره من أسئلة." },
-      { format: "ناقش", title: "حوار يستمر", description: "وجهات نظر ونقاشات تجمع مجتمع البحث العلمي." },
-      { format: "جرّب", title: "من الفكرة إلى التجربة", description: "لمحة عن التعلّم العملي وتبادل الخبرات." },
+      { format: "عرض", title: "البحث في دائرة الضوء", description: "مساحة للعروض البحثية وما تثيره من أسئلة." },
+      { format: "نقاش", title: "حوار لا يتوقف", description: "وجهات نظر ونقاشات تجمع مجتمع البحث العلمي." },
+      { format: "تطبيق", title: "من الفكرة إلى التجربة", description: "لمحة عن التعلّم العملي وتبادل الخبرات." },
     ],
     legacyEyebrow: "٠٤ / امتداد لما سبق", legacyTitle: "تنتهي نسخة،\nويستمر الفضول.",
-    legacyBody: "يمثّل مؤتمر ٢٠٢٧ الفصل الخامس في مسيرة المؤتمر. ستُعرض هنا مختارات من نسخة ٢٠٢٦ بعد مراجعة الأرشيف وأذونات استخدام المواد الإعلامية.",
-    legacyNote: "تجري دراسة صور وأفلام من النسخ السابقة لهذا القسم. لا تُعرض أي مواد أرشيفية في هذه المعاينة.",
+    legacyBody: "تمثّل نسخة ٢٠٢٧ الفصل الخامس في مسيرة المؤتمر. وسنعرض هنا مختارات من نسخة ٢٠٢٦ بعد مراجعة الأرشيف وأذونات استخدام المواد الإعلامية.",
+    legacyNote: "ندرس إدراج صور ومقاطع مرئية من النسخ السابقة في هذا القسم. لا تتضمن هذه المعاينة أي مواد أرشيفية.",
     legacyArtLabel: "النسخ السابقة · الأرشيف قيد الإعداد",
     endingTitle: "الفصل القادم\nقيد الإعداد.",
-    endingBody: "ستُضاف المواعيد والمقر ومعلومات المشاركة المعتمدة مع تقدّم الاستعدادات. لم يُفتح التسجيل أو التقديم بعد.",
-    backToTop: "العودة إلى البداية", dateLabel: "مواعيد المؤتمر", venueLabel: "مقر انعقاد المؤتمر", pending: "بانتظار التأكيد", editionLabel: "النسخة الخامسة / ٢٠٢٧",
+    endingBody: "ستُضاف المواعيد والمقر ومعلومات المشاركة المعتمدة مع تقدّم الاستعدادات. لم يُفتح باب التسجيل أو التقديم بعد.",
+    backToTop: "العودة إلى الأعلى", dateLabel: "موعد المؤتمر", venueLabel: "مكان انعقاد المؤتمر", pending: "بانتظار التأكيد", editionLabel: "النسخة الخامسة / ٢٠٢٧",
   },
 };

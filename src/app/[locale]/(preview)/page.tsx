@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
-import { isLocale } from "@/lib/i18n";
+import { formatIndex, isLocale } from "@/lib/i18n";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -33,13 +33,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <dl id="event-details" tabIndex={-1} className="event-strip">
           <div><dt>{copy.dateLabel}</dt><dd>{copy.pending}</dd></div>
           <div><dt>{copy.venueLabel}</dt><dd>{copy.pending}</dd></div>
-          <div className="event-strip-status"><dt className="sr-only">{locale === "ar" ? "المشاركة" : "Participation"}</dt><dd><StatusBadge tone="neutral">{copy.closed}</StatusBadge></dd></div>
+          <div className="event-strip-status"><dt className="sr-only">{copy.participationLabel}</dt><dd><StatusBadge tone="neutral">{copy.participationStatus}</StatusBadge></dd></div>
         </dl>
       </Container>
       <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
         <Container className="intro-grid">
           <SectionHeading eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" />
-          <div className="intro-body"><p className="intro-statement">{copy.aboutBody}</p><p>{copy.aboutNote}</p><div className="intro-link"><ButtonLink href={`/${locale}/about`} variant="secondary">{locale === "ar" ? "المزيد عن المؤتمر" : "More about the conference"}<span className="directional-arrow" aria-hidden="true">↗</span></ButtonLink></div></div>
+          <div className="intro-body"><p className="intro-statement">{copy.aboutBody}</p><p>{copy.aboutNote}</p><div className="intro-link"><ButtonLink href={`/${locale}/about`} variant="secondary">{copy.aboutLink}<span className="directional-arrow" aria-hidden="true">↗</span></ButtonLink></div></div>
         </Container>
       </section>
       <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
@@ -48,7 +48,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <div className="pathway-list">
             {copy.pathways.map((pathway, index) => (
               <article className="pathway-row" key={pathway.category}>
-                <span className="pathway-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <span className="pathway-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span>
                 <div className="pathway-title"><p>{pathway.category}</p><h3>{pathway.title}</h3></div>
                 <p className="pathway-description">{pathway.description}</p>
                 <StatusBadge tone="neutral">{copy.closed}</StatusBadge>
@@ -63,7 +63,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <div className="program-list">
             {copy.programRows.map((row, index) => (
               <article className="program-row" key={row.format}>
-                <div className="program-row-top"><span>{row.format}</span><span aria-hidden="true">0{index + 1}</span></div>
+                <div className="program-row-top"><span>{row.format}</span><span aria-hidden="true">{formatIndex(index + 1, locale)}</span></div>
                 <h3>{row.title}</h3><p>{row.description}</p>
               </article>
             ))}

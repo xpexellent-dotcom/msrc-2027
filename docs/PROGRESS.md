@@ -57,7 +57,28 @@ of the local synthetic fixture. All operational gates remain closed. See
 The [implementation backlog](backlog/README.md), DR-CFG-11 ownership and DR-CFG-12
 content/brand decisions remain available for later work; no decision was silently resolved.
 
-## 30 September 2026 — Complete M2 component system
+## 30 September 2026 — QA pass: Arabic polish, favicon, apex domain
+
+Exploratory QA of the live preview (www.msrc2027.com, EN/AR, 1280/1100/390px) plus the
+full local suite. Scope: copy/style/metadata only; no workflow, data or gate changed.
+
+| Finding | Change |
+|---|---|
+| Arabic kicker/footer "مؤتمر أبحاث طلاب الطب الخامس" can read as "fifth medical students" | Now "المؤتمر الخامس لأبحاث طلاب الطب", matching the About page |
+| Arabic hero, several headings and pathway titles were word-for-word translations | Rewritten as idiomatic MSA following the English meaning (for example "حيث يتحوّل الفضول / إلى اكتشاف.") |
+| Mixed digit systems in Arabic (٠١ eyebrows, but 01–04 pathway and program numbers) | Shared `formatIndex` helper; unit test prevents Western digits returning to Arabic copy |
+| "Not open yet" badge did not agree with its noun in Arabic | Masculine form for pathways (مسار), feminine form for participation (المشاركة) |
+| About purpose item repeated its section title; footer "المحددة" note was unclear | Distinct item title; the note now says pages are "marked with a dot" (EN and AR) |
+| Arabic labels rendered at 10–11px, visibly smaller than Latin at equal size | Arabic-only size lift for small labels (preview bar, eyebrows, badges, captions, footer) |
+| `/favicon.ico` 404; tabs showed no icon | `src/app/icon.svg` monogram in the working palette |
+| Apex `msrc2027.com` had no DNS A record (only `www` resolved) | User-authorized: added `msrc2027.com` to the Vercel project (308 → www) and a Namecheap `@` A record to `216.198.79.1`; verified on the authoritative and public resolvers |
+
+Verification (Node 24.21.0 portable, pnpm 11.19.0): ESLint PASS; typegen and `tsc` PASS;
+Vitest 183/183 PASS (two new numeral tests); `next build` PASS; Playwright 90/90 PASS.
+Local Playwright screenshots of AR 1280/1100/390px and About were inspected, with no horizontal
+overflow or console errors. Arabic editorial approval is still required under CFG-12; these
+are draft improvements, not approved copy.
+
 
 Implemented the current requested inventory without adding operational modules: expanded
 tokens, shared Section/Link/ContentSplit/StatBlock/ProgramRow, extracted MobileNav/Footer,

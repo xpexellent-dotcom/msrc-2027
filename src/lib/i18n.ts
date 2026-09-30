@@ -10,6 +10,14 @@ export function direction(locale: Locale): "ltr" | "rtl" {
   return locale === "ar" ? "rtl" : "ltr";
 }
 
+const arabicIndicDigits = "٠١٢٣٤٥٦٧٨٩";
+
+/** Two-digit sequence labels (01 / ٠١) matching the digits used in each language's copy. */
+export function formatIndex(value: number, locale: Locale): string {
+  const padded = String(value).padStart(2, "0");
+  return locale === "ar" ? padded.replace(/\d/g, (digit) => arabicIndicDigits[Number(digit)]) : padded;
+}
+
 export function localizePathname(pathname: string, locale: Locale): string {
   const segments = pathname.split("/");
   if (isLocale(segments[1] ?? "")) {
