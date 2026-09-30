@@ -83,12 +83,13 @@ test("disabled and loading demonstrations cannot trigger operations", async ({ p
   for (const button of await registration.all()) await expect(button).toBeDisabled();
 });
 
-test("absent approved footage stays static with reduced motion and limited bandwidth", async ({ page }) => {
+test("absent approved footage stays static with reduced motion and limited bandwidth", async ({ page, baseURL }) => {
   const externalRequests: string[] = [];
   const videoRequests: string[] = [];
   const fontRequests: string[] = [];
+  const siteOrigin = new URL(baseURL!).origin;
   page.on("request", (request) => {
-    if (new URL(request.url()).origin !== "http://127.0.0.1:3210") externalRequests.push(request.url());
+    if (new URL(request.url()).origin !== siteOrigin) externalRequests.push(request.url());
     if (request.resourceType() === "media" || /\.(mp4|webm)(\?|$)/i.test(request.url())) videoRequests.push(request.url());
     if (request.resourceType() === "font") fontRequests.push(request.url());
   });

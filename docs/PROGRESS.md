@@ -84,10 +84,18 @@ Verification (Node 24.21.0 portable, pnpm 11.19.0): ESLint PASS; typegen and `ts
 Vitest 184/184 PASS (numeral and metadata tests added); `next build` PASS; Playwright 102/102 PASS
 (preview-image, Arabic-webfont, security-header, root-redirect and axe best-practice tests added).
 
-Open recommendation: Arabic pages still discover Noto Sans Arabic late (it finishes at about 2.4s on
-throttled mobile, after the hero paints), because `next/font` preloading cannot differ by locale on a shared
-`[locale]` layout. Preloading it only for `/ar` would need a manual `@font-face` plus a locale-aware
-`preload()`, which is a change to the recorded `next/font/local` decision, so it is left for review.
+Cross-browser (local Playwright WebKit 26.6: Desktop Safari and iPhone 15 profiles). Every public
+homepage/About check passes: rendering, overflow, axe, headers, preview image and 404s. The only failures
+are the five keyboard tests that press Tab to reach links, because WebKit follows Safari's default of not
+tabbing to links without Option+Tab, which is a browser preference rather than a site defect. The staff-only
+design-system specs also hit harness limits (no WebM codec, 32,767px screenshot cap, radio arrow keys). The
+reduced-motion test hard-coded port 3210 and now reads `baseURL`. Firefox: NOT TESTED, because the browser
+cannot launch in this sandbox (`spawn UNKNOWN`).
+
+Low-priority recommendation: Arabic pages discover Noto Sans Arabic without a preload. On throttled slow
+mobile it finishes at about 2.4s, after the hero paints; on a fast 4G profile (40ms, 12Mbps) it finishes at
+about 0.48s, before LCP (about 0.78s), so most visitors see no swap. A locale-specific preload would need a manual
+`@font-face` outside `next/font/local` (a recorded decision), so it is left for review.
 Local Playwright screenshots of AR 1280/1100/390px and About were inspected, with no horizontal
 overflow or console errors. Arabic editorial approval is still required under CFG-12; these
 are draft improvements, not approved copy.
