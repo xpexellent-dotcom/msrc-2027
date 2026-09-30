@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 // LOC-01/03, SEC-01, INF-04, REL-06: static public browsing stays separate
@@ -102,6 +103,14 @@ test("shared links carry a working preview image and language alternates", async
     expect(response.headers()["content-type"]).toBe("image/png");
     await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveAttribute("href", /\/ar$/);
     await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", /\/en$/);
+  }
+});
+
+test("public pages pass axe best-practice rules, including landmark coverage", async ({ page }) => {
+  for (const path of ["/en", "/ar", "/en/about", "/ar/about"]) {
+    await page.goto(path);
+    const results = await new AxeBuilder({ page }).withTags(["best-practice"]).analyze();
+    expect(results.violations.map((violation) => `${path} ${violation.id}`)).toEqual([]);
   }
 });
 

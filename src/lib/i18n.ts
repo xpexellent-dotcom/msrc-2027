@@ -29,6 +29,7 @@ export function localizePathname(pathname: string, locale: Locale): string {
 
 type Dictionary = {
   skip: string;
+  siteStatus: string;
   preview: string;
   edition: string;
   institution: string;
@@ -56,6 +57,7 @@ type Dictionary = {
 export const dictionaries: Record<Locale, Dictionary> = {
   en: {
     skip: "Skip to content",
+    siteStatus: "Site status",
     preview: "Development preview",
     edition: "The fifth edition",
     institution: "King Abdulaziz University",
@@ -82,6 +84,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
   },
   ar: {
     skip: "انتقل إلى المحتوى الرئيسي",
+    siteStatus: "حالة الموقع",
     preview: "معاينة قيد التطوير",
     edition: "النسخة الخامسة",
     institution: "جامعة الملك عبدالعزيز",
