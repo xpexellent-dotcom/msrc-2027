@@ -101,6 +101,18 @@ test("shared links carry a working preview image and language alternates", async
   }
 });
 
+test("public pages send baseline security headers", async ({ request }) => {
+  for (const path of ["/en", "/ar/about", "/ar/missing-page"]) {
+    const headers = (await request.get(path)).headers();
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    expect(headers["x-frame-options"]).toBe("DENY");
+    expect(headers["cross-origin-opener-policy"]).toBe("same-origin");
+    for (const directive of ["base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'", "object-src 'none'"]) {
+      expect(headers["content-security-policy"]).toContain(directive);
+    }
+  }
+});
+
 test("English pages do not download the Arabic webfont", async ({ page }) => {
   const fonts: string[] = [];
   page.on("request", (request) => { if (request.resourceType() === "font") fonts.push(request.url()); });

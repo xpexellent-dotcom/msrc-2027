@@ -32,7 +32,7 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
         <Container>
           <div className="footer-top">
             <div className="footer-brand">
-              <span className="footer-identity" dir="ltr">MSRC<span>2027</span></span>
+              <span className="footer-identity" dir="ltr" lang="en">MSRC<span>2027</span></span>
               <p>{footer.description}</p>
               <p className="footer-institution">{footer.institution}</p>
               <p className="footer-tagline">{footer.edition}</p>

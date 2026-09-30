@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
         { key: "Referrer-Policy", value: "no-referrer" },
         { key: "X-Frame-Options", value: "DENY" },
         { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        // Structural directives only; script/style sources stay unrestricted until nonce-based CSP is designed.
+        { key: "Content-Security-Policy", value: "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" },
+        { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
       ],
     }];
   },

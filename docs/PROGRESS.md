@@ -73,11 +73,13 @@ full local suite. Scope: copy/style/metadata only; no workflow, data or gate cha
 | `/favicon.ico` 404; tabs showed no icon | `src/app/icon.svg` monogram in the working palette |
 | English pages downloaded the 166 KB Arabic webfont only to draw the "العربية" switch label (≈40% of page bytes) | The label uses the system Arabic face; measured EN transfer 425 KB → 260 KB and CLS 0.0001 → 0 (390px, throttled). An e2e test guards it |
 | No canonical, hreflang or link-preview metadata; shared links had no card | Per-page canonical and `en`/`ar`/`x-default` alternates, Open Graph/Twitter tags and a static 1200×630 card per locale (`[locale]/opengraph-image.tsx`); `noindex` is unchanged |
+| No Content-Security-Policy or COOP header | Structural CSP (`base-uri`, `form-action`, `frame-ancestors`, `object-src`) and `Cross-Origin-Opener-Policy: same-origin`; script/style sources are left open until a nonce-based policy is designed. An e2e test covers the headers |
+| Latin "MSRC 2027" spans on Arabic pages lacked `lang="en"`, and the Arabic 404 code used Western digits | `lang="en"` added for screen-reader pronunciation; Arabic 404 shows ٤٠٤ |
 | Apex `msrc2027.com` had no DNS A record (only `www` resolved) | User-authorized: added `msrc2027.com` to the Vercel project (308 → www) and a Namecheap `@` A record to `216.198.79.1`; verified on the authoritative and public resolvers |
 
 Verification (Node 24.21.0 portable, pnpm 11.19.0): ESLint PASS; typegen and `tsc` PASS;
-Vitest 184/184 PASS (numeral and metadata tests added); `next build` PASS; Playwright 96/96 PASS
-(preview-image and Arabic-webfont tests added).
+Vitest 184/184 PASS (numeral and metadata tests added); `next build` PASS; Playwright 99/99 PASS
+(preview-image, Arabic-webfont and security-header tests added).
 
 Open recommendation: Arabic pages still discover Noto Sans Arabic late (it finishes at about 2.4s on
 throttled mobile, after the hero paints), because `next/font` preloading cannot differ by locale on a shared

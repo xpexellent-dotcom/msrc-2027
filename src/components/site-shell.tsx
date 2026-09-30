@@ -18,7 +18,7 @@ export function SiteShell({ children, locale, showDesignSystem = false }: {
       <div className="preview-banner">
         <Container className="preview-banner-inner">
           <span className="preview-label"><span aria-hidden="true" />{copy.preview}</span>
-          <span className="preview-edition" dir="ltr">MSRC 2027</span>
+          <span className="preview-edition" dir="ltr" lang="en">MSRC 2027</span>
         </Container>
       </div>
       <SiteHeader locale={locale} />

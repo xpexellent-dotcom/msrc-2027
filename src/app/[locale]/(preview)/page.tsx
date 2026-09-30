@@ -27,7 +27,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <section id="top" tabIndex={-1} className="conference-hero" aria-labelledby="hero-title">
         <HeroMedia locale={locale} video={homepageAssets.heroVideo} posterSrc={homepageAssets.heroPoster} />
         <Container className="hero-content">
-          <div className="hero-topline"><span>{copy.kicker}</span><span dir="ltr">MSRC / 2027</span></div>
+          <div className="hero-topline"><span>{copy.kicker}</span><span dir="ltr" lang="en">MSRC / 2027</span></div>
           <div className="hero-editorial">
             <p className="hero-location">{copy.institution} <span aria-hidden="true">/</span> {copy.city}</p>
             <h1 id="hero-title"><span>{copy.title[0]}</span><span>{copy.title[1]}</span></h1>
