@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 import { locales } from "@/lib/i18n";
+import { conferenceConfig } from "@/config/conference";
+import { formatConferenceDateRange } from "@/lib/conference-dates";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -30,7 +32,10 @@ export default function OpenGraphImage() {
           </div>
           <span style={{ fontSize: 42, marginTop: 36 }}>The 5th Medical Students Research Conference</span>
         </div>
-        <div style={{ display: "flex", width: 168, height: 6, borderRadius: 3, background: "#C9A24A" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+          <div style={{ display: "flex", width: 100, height: 6, borderRadius: 3, background: "#C9A24A" }} />
+          {conferenceConfig.dates && <span style={{ fontSize: 32, color: "#DCCFF0" }}>{formatConferenceDateRange(conferenceConfig.dates, "en")}</span>}
+        </div>
       </div>
     ),
     size,

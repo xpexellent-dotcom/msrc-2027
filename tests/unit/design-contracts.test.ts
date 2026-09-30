@@ -4,6 +4,7 @@ import { homepageAssets, homepageCopy, publicSitemap } from "@/content/public-si
 import { aboutCopy } from "@/content/about";
 import { formatIndex } from "@/lib/i18n";
 import { localizedPageMetadata } from "@/lib/metadata";
+import { hasApprovedVideo } from "@/lib/media-policy";
 
 describe("localized link metadata (LOC-01, CMS-04)", () => {
   it("pairs each page with its other-language twin and a locale-specific preview image", () => {
@@ -50,9 +51,12 @@ describe("public content publication boundaries (SCP-02, CFG-12, MED-01)", () =>
     for (const page of publicSitemap) {
       expect(page.label.en.trim().length).toBeGreaterThan(0);
       expect(page.label.ar).toMatch(/[\u0600-\u06ff]/);
-      expect(page.previewHref === null || page.previewHref === "/" || page.previewHref === "/about" || page.previewHref.startsWith("/#")).toBe(true);
+      expect(page.previewHref === null || page.previewHref === "/" || page.previewHref === "/about" || page.previewHref === "/dates-venue" || page.previewHref.startsWith("/#")).toBe(true);
     }
-    expect(homepageAssets).toMatchObject({ heroVideo: null, finalLogo: null, sponsors: [], gallery: [] });
+    expect(hasApprovedVideo(homepageAssets.heroVideo)).toBe(true);
+    expect(homepageAssets.heroVideo.src).toBe("/media/msrc2026/hero-desktop-v1.mp4");
+    expect(homepageAssets.heroVideo.mobileSrc).toBe("/media/msrc2026/hero-mobile-v1.mp4");
+    expect(homepageAssets).toMatchObject({ finalLogo: null, sponsors: [], gallery: [] });
   });
 });
 

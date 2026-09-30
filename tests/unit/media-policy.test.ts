@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  type ApprovedHeroVideo, type MediaPreferences,
-  hasApprovedVideo, isLocalPoster, shouldLoadHeroVideo, shouldPlayHeroVideo,
+  type ApprovedHeroVideo, type MediaPreferences, type PreviewHeroVideo,
+  hasApprovedVideo, hasRenderableVideo, isLocalPoster, shouldLoadHeroVideo, shouldPlayHeroVideo,
 } from "@/lib/media-policy";
 
 const preferences: MediaPreferences = {
@@ -51,5 +51,20 @@ describe("approved local media boundary (MED-01/04)", () => {
     expect(hasApprovedVideo({ ...fixture, poster: "https://example.test/poster.jpg" })).toBe(false);
     expect(isLocalPoster("/brand/hero-poster.svg")).toBe(true);
     expect(isLocalPoster("/brand/readme.txt")).toBe(false);
+  });
+  it("rejects untrusted mobile sources alongside an otherwise valid desktop asset", () => {
+    expect(hasApprovedVideo({ ...fixture, mobileSrc: "https://example.test/mobile.mp4" })).toBe(false);
+    expect(hasApprovedVideo({ ...fixture, mobilePoster: "/media/../poster.jpg" })).toBe(false);
+  });
+  it("keeps the exact local review cut separate from approved public media", () => {
+    const preview: PreviewHeroVideo = {
+      approval: "preview", src: "/api/preview-media/desktop.mp4", poster: "/api/preview-media/poster-desktop.jpg",
+      mobileSrc: "/api/preview-media/mobile.mp4", mobilePoster: "/api/preview-media/poster-mobile.jpg",
+    };
+    expect(hasRenderableVideo(preview)).toBe(false);
+    expect(hasRenderableVideo(preview, true)).toBe(true);
+    expect(hasRenderableVideo({ ...preview, src: "/media/original.mp4" }, true)).toBe(false);
+    expect(hasRenderableVideo({ ...preview, mobilePoster: "https://example.test/poster.jpg" }, true)).toBe(false);
+    expect(hasRenderableVideo(fixture)).toBe(true);
   });
 });

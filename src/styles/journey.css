@@ -1,0 +1,26 @@
+/* DSN-01: browser-owned scrolling; no mandatory stops or input cancellation. */
+html { scrollbar-color: var(--color-purple) var(--color-lilac); scrollbar-width: auto; }
+.homepage-journey > section { scroll-snap-align: start; scroll-snap-stop: normal; }
+.section-journey { position: sticky; inset-block-start: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-inline: var(--container-gutter); padding-block: .55rem; background: var(--color-ivory); border-block-end: 1px solid var(--color-line); }
+.section-journey-links { display: flex; flex-wrap: wrap; gap: .3rem 1.8rem; }
+.section-journey-links > a { display: inline-flex; align-items: center; min-height: 44px; font-size: .8rem; color: var(--color-purple); text-decoration: none; }
+.section-journey-links > a:hover { text-decoration: underline; text-underline-offset: .4em; }
+.section-glide-toggle { display: inline-flex; align-items: center; gap: .6rem; flex-shrink: 0; min-height: 44px; padding-inline: .75rem; border: 1px solid var(--color-line); border-radius: var(--radius-pill); color: var(--color-purple); font-size: .72rem; cursor: pointer; }
+.section-glide-toggle:disabled { cursor: default; color: var(--color-muted); }
+@media (max-width: 959px), (max-height: 699px) { .section-glide-toggle { display: none; } }
+.glide-indicator { width: .45rem; height: .45rem; border-radius: 50%; background: var(--color-muted); }
+[aria-pressed="true"] > .glide-indicator { background: var(--color-purple); }
+@media (min-width: 960px) and (min-height: 700px) {
+  html:has(.homepage-journey):not([data-free-scroll="true"]) { scroll-snap-type: y proximity; }
+  .homepage-journey > .editorial-section { min-height: calc(100svh - 8rem); display: flex; align-items: center; }
+}
+@media (max-width: 700px) {
+  .section-journey { position: relative; flex-direction: column; align-items: stretch; padding-block: .65rem; gap: .35rem; }
+  .section-journey-links { justify-content: space-between; gap: .3rem .75rem; }
+  .section-journey-links > a { font-size: .72rem; }
+  .section-glide-toggle { display: none; }
+  html[lang="ar"] .section-journey-links > a { font-size: .8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.homepage-journey) { scroll-snap-type: none !important; }
+}

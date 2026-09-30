@@ -1,5 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function openShowcase(page: Page, locale: "en" | "ar") {
+  await page.goto(`/${locale}/design-system`);
+  // A loading boundary can leave server-rendered controls in a hidden stream
+  // container. Focus and setInputFiles do not perform visibility auto-waits.
+  await expect(page.locator(".design-system-intro h1")).toBeVisible();
+}
 
 test("unlocalized design-system alias redirects to the English gated preview without caching or indexing", async ({ page }) => {
   const response = await page.goto("/design-system");
@@ -18,7 +25,7 @@ for (const locale of ["en", "ar"] as const) {
   const text = (en: string, arabic: string) => ar ? arabic : en;
 
   test(`${locale} form controls expose labels, guidance and native keyboard selection`, async ({ page }) => {
-    await page.goto(`/${locale}/design-system`);
+    await openShowcase(page, locale);
     await expect(page.locator("html")).toHaveAttribute("dir", ar ? "rtl" : "ltr");
     const input = page.locator("#m2-default");
     await expect(input).toHaveAccessibleName(text("Default field", "حقل افتراضي"));
@@ -72,7 +79,7 @@ for (const locale of ["en", "ar"] as const) {
     page.on("request", (request) => {
       if (!["GET", "HEAD"].includes(request.method())) writes.push(`${request.method()} ${request.url()}`);
     });
-    await page.goto(`/${locale}/design-system`);
+    await openShowcase(page, locale);
     const file = page.locator("#m2-file");
     await file.setInputFiles({ name: "synthetic-example.txt", mimeType: "text/plain", buffer: Buffer.from("Synthetic test only") });
     await expect(page.locator(".file-selection").filter({ hasText: "synthetic-example.txt" })).toBeVisible();
@@ -88,7 +95,7 @@ for (const locale of ["en", "ar"] as const) {
   });
 
   test(`${locale} table pagination changes synthetic rows and enforces disabled boundaries`, async ({ page }) => {
-    await page.goto(`/${locale}/design-system`);
+    await openShowcase(page, locale);
     const table = page.getByRole("table", { name: text("Synthetic table example", "مثال جدول تجريبي"), exact: true });
     const pages = page.getByRole("navigation", { name: text("Example pages", "صفحات المثال"), exact: true });
     const previous = pages.getByRole("button", { name: text("Previous", "السابق"), exact: true });
@@ -111,7 +118,7 @@ for (const locale of ["en", "ar"] as const) {
   });
 
   test(`${locale} dialog contains keyboard focus and Escape restores the opener`, async ({ page }, testInfo) => {
-    await page.goto(`/${locale}/design-system`);
+    await openShowcase(page, locale);
     const opener = page.getByRole("button", { name: text("Open dialog example", "فتح مثال الحوار"), exact: true });
     await opener.focus();
     await page.keyboard.press("Enter");
@@ -164,7 +171,7 @@ for (const locale of ["en", "ar"] as const) {
   });
 
   test(`${locale} toast reports synthetic feedback and manual dismissal restores focus`, async ({ page }) => {
-    await page.goto(`/${locale}/design-system`);
+    await openShowcase(page, locale);
     const trigger = page.locator("#m2-toast-trigger");
     await trigger.focus();
     await page.keyboard.press("Enter");
@@ -196,7 +203,7 @@ for (const locale of ["en", "ar"] as const) {
       };
     });
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto(`/${locale}/design-system`);
+    await openShowcase(page, locale);
     const anchor = page.getByRole("link", { name: text("Jump to table examples", "انتقل إلى أمثلة الجداول"), exact: true });
     const destination = page.locator("#design-data");
     for (const preference of ["no-preference", "reduce"] as const) {
@@ -218,7 +225,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} 320px preview retains focus, touch targets and reduced-motion behavior`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 740 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto(`/${locale}/design-system`);
+    await openShowcase(page, locale);
     await page.evaluate(() => document.fonts.ready);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
     const input = page.locator("#m2-default");

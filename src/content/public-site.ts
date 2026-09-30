@@ -13,7 +13,7 @@ export type PublicPage = Readonly<{
 export const publicSitemap = [
   { id: "home", path: "/", label: { en: "Home", ar: "الرئيسية" }, previewHref: "/" },
   { id: "about", path: "/about", label: { en: "About", ar: "عن المؤتمر" }, previewHref: "/about" },
-  { id: "dates", path: "/dates-venue", label: { en: "Dates & venue", ar: "المواعيد والمقر" }, previewHref: "/#event-details" },
+  { id: "dates", path: "/dates-venue", label: { en: "Dates & venue", ar: "المواعيد والمقر" }, previewHref: "/dates-venue" },
   { id: "program", path: "/program", label: { en: "Program", ar: "البرنامج" }, previewHref: "/#program" },
   { id: "speakers", path: "/speakers", label: { en: "Speakers", ar: "المتحدثون" }, previewHref: null },
   { id: "workshops", path: "/workshops", label: { en: "Workshops", ar: "ورش العمل" }, previewHref: "/#participate" },
@@ -29,8 +29,15 @@ export const publicSitemap = [
 ] as const satisfies readonly PublicPage[];
 
 export const homepageAssets = {
-  heroPoster: "/brand/hero-poster.svg",
-  heroVideo: null,
+  // User-approved 18.7s previous-edition cut; source original stays private.
+  heroPoster: "/media/msrc2026/poster-desktop-v1.jpg",
+  heroVideo: {
+    approval: "approved",
+    src: "/media/msrc2026/hero-desktop-v1.mp4",
+    mobileSrc: "/media/msrc2026/hero-mobile-v1.mp4",
+    poster: "/media/msrc2026/poster-desktop-v1.jpg",
+    mobilePoster: "/media/msrc2026/poster-mobile-v1.jpg",
+  },
   finalLogo: null,
   sponsors: [],
   gallery: [],
@@ -52,13 +59,13 @@ type HomepageCopy = {
   dateLabel: string; venueLabel: string; pending: string; editionLabel: string;
 };
 
-/** Draft bilingual editorial copy: no dates, people, prices, sponsors or metrics invented. */
+/** Draft bilingual editorial copy; confirmed dates come from typed configuration. */
 export const homepageCopy: Record<Locale, HomepageCopy> = {
   en: {
     kicker: "The 5th Medical Students Research Conference",
     title: ["Where curiosity", "becomes discovery."],
     lead: "A place for questions that matter. A meeting point for the next generation of medical research.",
-    explore: "Explore the conference", programLink: "Inside the preview", posterCaption: "Original concept artwork · Conference film forthcoming",
+    explore: "Explore the conference", programLink: "Inside the preview", posterCaption: "MSRC2026 · Previous-edition footage",
     institution: "King Abdulaziz University", city: "Jeddah, Saudi Arabia",
     aboutEyebrow: "01 / The conference", aboutTitle: "Good research starts\nwith a better question.",
     aboutBody: "MSRC brings medical students into a shared conversation about research: how we ask, how we investigate, and how an idea can make a difference.",
@@ -83,10 +90,10 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     ],
     legacyEyebrow: "04 / Building on what came before", legacyTitle: "One edition ends.\nThe curiosity continues.",
     legacyBody: "The 2027 conference is the fifth chapter of MSRC. A selected look back at the 2026 edition will be shared here once the archive and media permissions are reviewed.",
-    legacyNote: "Past-edition photography and films are being considered for this space. No archive media is published in this preview.",
+    legacyNote: "Selected MSRC2026 footage introduces the conference above. The full archive will follow after review.",
     legacyArtLabel: "Past editions · Archive in preparation",
     endingTitle: "The next chapter\nis taking shape.",
-    endingBody: "Approved dates, venue and participation information will be added as preparations progress. Registration and applications are not open.",
+    endingBody: "Conference dates are confirmed. Venue and participation details will follow as preparations progress. Registration and applications are not open.",
     backToTop: "Back to the beginning", dateLabel: "Conference dates", venueLabel: "Conference venue", pending: "Awaiting confirmation", editionLabel: "Fifth edition / 2027",
   },
   ar: {
@@ -95,7 +102,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     kicker: "المؤتمر الخامس لأبحاث طلاب الطب",
     title: ["حيث يتحوّل الفضول", "إلى اكتشاف."],
     lead: "مساحة للأسئلة التي تصنع فرقًا، وملتقى للجيل القادم من الباحثين في الطب.",
-    explore: "اكتشف المؤتمر", programLink: "جولة في المعاينة", posterCaption: "عمل فني تصوّري أصلي · فيلم المؤتمر قريبًا",
+    explore: "اكتشف المؤتمر", programLink: "جولة في المعاينة", posterCaption: "لقطات من النسخة السابقة · ٢٠٢٦",
     institution: "جامعة الملك عبدالعزيز", city: "جدة، المملكة العربية السعودية",
     aboutEyebrow: "٠١ / عن المؤتمر", aboutTitle: "يبدأ البحث الجيد\nبسؤال أفضل.",
     aboutBody: "يجمع المؤتمر طلاب الطب في حوار مشترك حول البحث العلمي: كيف نطرح السؤال، وكيف نبحث عن إجابته، وكيف يمكن لفكرة أن تُحدث فرقًا.",
@@ -120,10 +127,10 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     ],
     legacyEyebrow: "٠٤ / امتداد لما سبق", legacyTitle: "تنتهي نسخة،\nويستمر الفضول.",
     legacyBody: "تمثّل نسخة ٢٠٢٧ الفصل الخامس في مسيرة المؤتمر. وسنعرض هنا مختارات من نسخة ٢٠٢٦ بعد مراجعة الأرشيف وأذونات استخدام المواد الإعلامية.",
-    legacyNote: "ندرس إدراج صور ومقاطع مرئية من النسخ السابقة في هذا القسم. لا تتضمن هذه المعاينة أي مواد أرشيفية.",
+    legacyNote: "تظهر في مقدّمة الصفحة لقطات مختارة من نسخة ٢٠٢٦. سيُضاف الأرشيف الكامل بعد مراجعته.",
     legacyArtLabel: "النسخ السابقة · الأرشيف قيد الإعداد",
     endingTitle: "الفصل القادم\nقيد الإعداد.",
-    endingBody: "ستُضاف المواعيد والمقر ومعلومات المشاركة المعتمدة مع تقدّم الاستعدادات. لم يُفتح باب التسجيل أو التقديم بعد.",
+    endingBody: "تم تأكيد موعد المؤتمر. سيُعلَن المقر وتفاصيل المشاركة مع تقدّم الاستعدادات. لم يُفتح باب التسجيل أو التقديم بعد.",
     backToTop: "العودة إلى الأعلى", dateLabel: "موعد المؤتمر", venueLabel: "مكان انعقاد المؤتمر", pending: "بانتظار التأكيد", editionLabel: "النسخة الخامسة / ٢٠٢٧",
   },
 };

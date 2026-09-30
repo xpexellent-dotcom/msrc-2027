@@ -1,10 +1,12 @@
 # MSRC 2027 implementation requirements
 
-Snapshot: 29 September 2026. Status: implementation baseline, not evidence of a built or launched system.
+Source snapshot: 29 September 2026; current requirements reconciled 1 October 2026. Status: implementation baseline, not evidence of a built or launched system.
 
 **Primary authority: S1, Development Specification v0.5**, last modified 2026-09-29 11:30:21 UTC (14:30:21 Riyadh). Read the [full specification](../sources/Development_Specification_v0.5.txt) whenever a condensed rule needs detail. [S2, Hackathon Draft](../sources/Hackathon_Draft.txt), modified 11:09:52 UTC the same day, supplements answered hackathon choices. S1 explicitly reconciles its open questions and conflicts. Older S3/Main PDF and S5/starter content do not override S1.
 
 MUST means required behavior. DEFAULT means an adopted, configurable engineering starting value. TBD means unresolved business configuration or approval. Use [DECISIONS.md](DECISIONS.md) for every gate and conflict. Develop with synthetic data while production approval or configuration remains pending. All selected functions remain delivery scope; sequencing their releases does not remove them.
+
+The current organizer date decision, ORG-001 in [DECISIONS.md](DECISIONS.md), confirms Day 1 on **27 January 2027** and Day 2 on **28 January 2027**. It supersedes only the unresolved event-date portion of SCP-01/CFG-01. Preserve the v0.5 source snapshot; venue, rooms, capacities, opening times and individual workflow deadlines remain unresolved.
 
 ## Navigation
 
@@ -27,7 +29,7 @@ MUST means required behavior. DEFAULT means an adopted, configurable engineering
 
 | IDs | Required behavior |
 | --- | --- |
-| SCP-01 | Two-day MSRC conference, parallel sessions, general attendance, abstract research with oral/poster allocation, postgraduate 3MT, hackathon, workshops, keynotes, exhibitions, sponsors, post-event archives. Actual dates, venue, rooms and capacity remain configuration gates. |
+| SCP-01 | Two-day MSRC conference, parallel sessions, general attendance, abstract research with oral/poster allocation, postgraduate 3MT, hackathon, workshops, keynotes, exhibitions, sponsors, post-event archives. Day 1 is 27 January 2027; Day 2 is 28 January 2027 (ORG-001). Venue, rooms and capacity remain configuration gates; no session start times are inferred. |
 | SCP-02 | Home; About; Dates and Venue; Program; Speakers; Workshops; Participation and Submission Guidelines; Teams/Committees/Board; Sponsors and Sponsorship; Gallery/Past Editions; Announcements; FAQ; Contact; Privacy; Terms. Public information and workshop availability require no login. |
 | SCP-03 | Verified-user dashboard for registrations/payments, submissions/revisions, workshop bookings/waitlists, QR tickets and certificates. Registration, research, hackathon and 3MT are distinct workflows sharing one account. Co-author listing creates no registration. |
 | SCP-04, SCP-07 | Delivery scope includes manual approvals, paid/fully discounted orders, human review and advisory assessment, committee dashboards, live judging, email automation, scans, survey-based certificates, CMS, audits and reports. Certificate release can follow initial public launch; evidence/retention design must exist before collection. |
@@ -192,7 +194,7 @@ TRK-01 requires separate schema, eligibility, dates, files, states, review/rubri
 - **INF-04 through INF-06:** Isolated development/staging/production secrets/data/keys, test payment/email restrictions and protected/noindex previews. Source control/reviews/tests/migrations/release approver and rollback without dropping new records. Back up database **and storage objects separately** and prove restoration. Handover schema/runbooks/access/billing/jobs/renewals.
 - **INF-07, INF-08:** DEFAULT ordinary recovery objectives 24-hour maximum data loss/four-hour restoration; critical registration/deadline/event windows target 15-minute database loss/one-hour restore, budget/plan/test dependent; file target separate. Not guarantees. Monitor availability/submission/queue/payment/email/access/file-scan/check-in failures with named email responders; production never relies on a chat session.
 - **NFR-01 through NFR-03:** Baseline 100 active registration/submission users; stress 1,000 public browsers with documented authenticated mix. DEFAULT agreed-mobile p75 LCP <=2.5s; normal internal API p95 <=1s excluding external/uploads/jobs. Report conditions/error rates and approved exceptions. 99.9% monthly availability objective; no planned critical-window maintenance. Cache public/static, never private personalized responses.
-- **TIM-01, TIM-02:** UTC instants, Asia/Riyadh display with label. Separate auditable opening/deadline settings per workflow. Server finalize before cutoff; pre-open browser grants no late entitlement. Retain drafts and clear closed state. Authorized scoped extension records actor/reason/cutoff/notifications.
+- **TIM-01, TIM-02:** UTC instants, Asia/Riyadh display with label. ORG-001 approves calendar dates only: the homepage countdown expresses days until 27 January 2027 using the Asia/Riyadh calendar date, with Day 1/Day 2/finished display states. Do not turn a calendar date into an approved doors/session opening instant, registration/submission deadline or attendance rule. Separate auditable opening/deadline settings per workflow remain unset until approved; real configured instants follow the UTC requirement. Server finalize before cutoff; pre-open browser grants no late entitlement. Retain drafts and clear closed state. Authorized scoped extension records actor/reason/cutoff/notifications.
 - **ERR-01, ERR-02:** Explicit recoverable states for auth/upload/autosave/edit conflict/full/expired/payment/deadline/access errors. Preserve saved work/reference/support. Retry-safe behavior and durable jobs; no false success or leaked diagnostic/private information.
 
 ## 13. Release requirements

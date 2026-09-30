@@ -1,8 +1,8 @@
 # MSRC 2027 media register
 
-Snapshot: 29 September 2026. Sources: S1 Development Specification v0.5 section 15 and CFG-12; S3 Main File PDF; S4 generated brand guide; S6 visible project conversation; S7 connected Drive metadata inventory; S8 original Canva brand reference sheet.
+Original snapshot: 29 September 2026; current asset approval reconciled 1 October 2026. Sources: S1 Development Specification v0.5 section 15 and CFG-12; S3 Main File PDF; S4 generated brand guide; S6 visible project conversation; S7 connected Drive metadata inventory; S8 original Canva brand reference sheet; ORG-002 in DECISIONS.
 
-The supplied media folder is readable through the connected Drive integration. Its listing was inspected without downloading or viewing the individual photo/video assets. No hero clip, crop, poster or gallery selection has been approved through this handoff.
+The supplied media folder is readable through the connected Drive integration. Its original listing was inspected without downloading or viewing individual assets. On 1 October 2026, the user separately supplied and reviewed one montage, then approved the current 18.7-second cut, desktop/mobile crops and still fallbacks for public homepage use (ORG-002). Other folder and gallery selections remain unapproved. Publication is authorized; deployment/live verification is pending and must be recorded separately.
 
 ## 1. Source collection
 
@@ -37,8 +37,8 @@ Read access is established for the inventory reviewed. It does not establish pub
 | Generated Website Brand Guide | Two pages reviewed; working direction | Development defaults; see [DESIGN_GUIDE.md](DESIGN_GUIDE.md) |
 | Main File PDF imagery | Historical/reference material; not a cleared asset collection | Identify candidates and request/use proper originals |
 | Drive past-edition photos/videos | Partial metadata inventory only | Shortlist after visual review and rights check |
-| Homepage hero video | Not selected, edited, optimized or approved | Select authentic footage and create responsive derivatives |
-| Homepage poster | Original abstract development SVG implemented; final conference poster not selected or approved | Replace only with a cleared final poster |
+| Homepage hero video | Current 18.7-second MSRC2026 cut selected, compressed and explicitly approved for public homepage use on 1 October 2026 (ORG-002); deployment pending verification | Publish reviewed desktop/mobile derivatives with previous-edition caption; preserve muted playback and fallbacks |
+| Homepage poster | Desktop/mobile stills from the reviewed cut approved for its homepage fallback; synthetic SVG remains an available fallback | Publish approved responsive stills; no final 2027 brand approval inferred |
 | Speaker/committee portraits | 2027 approval and source files required | Approved profiles; no private contact data |
 | Sponsor logos | 2027 participation and logo approval required | Current sponsor tiers and profiles |
 | Gallery albums | Not selected or published | Approved edition/activity albums |
@@ -139,3 +139,68 @@ M2 introduces no downloaded/encoded media and keeps the original static poster. 
 select individual source IDs, record placement/caption/year and rights/consent approval,
 then create reviewed compressed derivatives and desktop/mobile posters. No third-party
 embed or unreviewed 2026 footage is published by this change.
+
+## 8. MSRC2026 montage local review candidate — 1 October 2026
+
+The user supplied `Montage_3.mp4` for homepage editing and explicitly requested a preview
+before publication. It is a candidate for CFG-12/MED-02 review, not cleared public media.
+
+| Field | Observed record |
+|---|---|
+| Asset ID | PREVIEW-MSRC2026-HERO-01 |
+| Source | [User-supplied montage](https://drive.google.com/file/d/1IWiM3LApzIWx5Ri3fZFphjyjkt2XfH_C/view); Drive ID `1IWiM3LApzIWx5Ri3fZFphjyjkt2XfH_C`; original filename `Montage_3.mp4` |
+| Edition/content | User-designated MSRC2026 footage: auditorium, seated audience and research-poster discussions. No people, roles, sponsor status or scientific claims have been inferred for2027. |
+| Original properties | 184,022,647 bytes;1920×1080;60 fps H.264 with AAC;72.55-second video stream. Original Drive item unchanged; local source copy read-only. |
+| Integrity | SHA256 before/after: `2b2b82e05c11e0eeeacfef60efed222f1cfba439003e210b9c521202ea90372c` |
+| Proposed cut | 18.7 seconds: wide auditorium → audience → three research-discussion shots → audience. Short300 ms dissolves and an eight-frame final seam blend; omit catering and empty-room footage. |
+| Desktop derivative | `.tools/media/msrc2026-preview/desktop.mp4`;1280×720;30 fps;2,762,552 bytes. Poster `poster-desktop.jpg`:139,823 bytes. |
+| Mobile derivative | `.tools/media/msrc2026-preview/mobile.mp4`;720×1280;30 fps;1,866,350 bytes. Subject-centred crop per shot. Poster `poster-mobile.jpg`:107,520 bytes. |
+| Encoding | Candidate FFmpeg9.0.2/H.264 High level3.1, yuv420p, audio removed, faststart; desktop CRF26/maxrate1800 kbps, mobile CRF28/maxrate1000 kbps. These are measured candidate settings, not a final site-wide budget. |
+| Placement | Private loopback development routes `/en/hero-preview` and `/ar/hero-preview` only. Source/derivatives/recipe are ignored by Git; no real footage is placed under `public/`. |
+| Accessibility | Decorative muted inline loop; live translated title/controls; pause freezes frame; reduced motion, saveData, slow-network and failure use a still. Responsive poster/crop, readable directional scrim; no substantive audio is published. |
+| Rights/consent | PENDING: identifiable people, any bystanders/minors, poster/slide publication, photographer/source grants and marks require applicable coverage and review. Source access/encoding are not approval. |
+| Publication | NOT APPROVED / NOT PUBLISHED. Organizer preview review and explicit per-asset placement approval pending. Technical passing checks do not close CFG-12/MED-02. |
+| Retention/removal | Owner, retention and withdrawal process remain unresolved before release. Local preview is removable by disabling its flag; originals are not served. No public delivery/cache has been created by this slice. |
+
+Candidate source cuts (seconds) are53.3–56.6,38.4–42.4,57.1–60.7,61.3–64.9,
+65.3–69.3 and70.0–71.7. The53.0–53.3 opening preroll joins the loop seam.
+The privately retained `manifest.json` records exact cuts, crop centres, source hashes and
+output probes; `encode-preview.mjs` records the recipe. Full decoding,
+duration/audio-stream and MP4 moov-before-mdat checks passed for both final derivatives.
+Every shot, portrait crop and first/last seam frames were visually reviewed locally.
+
+Current interface and browser evidence, exact opening instructions and remaining
+human checks are in [the feature record](features/brand-motion-media-preview.md).
+Public Home/About continue to show synthetic artwork. After tomorrow's official brand
+inputs, review the proposed composition, poster/crop/contrast and rights with the named
+media/design owners before implementing a separately authorized release.
+
+## 9. Approved public homepage derivative set — 1 October 2026
+
+This later organizer decision supersedes only the local-review/no-publication status of
+the candidate in section 8. Preserve that earlier review and its executed checks as dated
+evidence. **ORG-002 authorizes public homepage use; actual deployment/live verification
+is pending.** The project requester explicitly approved the current 18.7-second cut,
+including its visible people and research posters, and authorized pushing/publishing.
+This records the supplied approval; it does not assert an independent institutional or
+legal audit, approve other collection assets, or settle final brand/REL-01 requirements.
+
+| Field | Current approved record |
+|---|---|
+| Asset ID / source | MSRC2026-HERO-01; derives from PREVIEW-MSRC2026-HERO-01 and the same user-supplied Drive original |
+| Approved purpose and coverage | Decorative EN/AR public homepage hero and responsive still fallback; current people, posters, crop and montage selection approved by the requester in the current chat on 1 October 2026 |
+| Approval evidence | ORG-002 in [DECISIONS.md](DECISIONS.md); status AUTHORIZED / DEPLOYMENT VERIFICATION PENDING |
+| Edition/caption | MSRC2026 previous-edition footage, translated in Arabic; no 2027 participant, speaker, sponsor or scientific outcome is implied |
+| Desktop delivery | `public/media/msrc2026/hero-desktop-v1.mp4`; 18.7 s, 1280×720, 30 fps, 2,762,552 bytes; `poster-desktop-v1.jpg`, 139,823 bytes |
+| Mobile delivery | `public/media/msrc2026/hero-mobile-v1.mp4`; 18.7 s, 720×1280, 30 fps, 1,866,350 bytes; `poster-mobile-v1.jpg`, 107,520 bytes |
+| Encoding and accessibility | Existing reviewed H.264/yuv420p/faststart silent derivatives; one responsive video source, muted inline loop, translated pause/resume, frozen paused frame, reduced-motion/low-bandwidth/error stills and semantic live text |
+| Original/source integrity | Drive original and ignored read-only source unchanged; SHA256 `2b2b82e05c11e0eeeacfef60efed222f1cfba439003e210b9c521202ea90372c`; original, manifest and recipe never served publicly |
+| Development review boundary | Existing local review pages and allowlisted private endpoints remain development-only and production 404; approval does not turn their flag into a public-delivery switch |
+| Scope of consent/rights record | Explicit requester approval for this actual reviewed cut and people/posters shown; other footage, gallery assets, minors policy and institutional mark guidance are not silently approved |
+| Removal/retention/backup | Named responsible owners and procedures remain unresolved. Revert approved public asset references to synthetic artwork and unpublish controlled copies on an authorized withdrawal; do not claim third-party copies can be erased |
+
+The four public files are approved display derivatives, not confidential originals.
+The public hero does not require a database or a hosted environment variable. Technical
+checks and deployment evidence must be recorded for the public build before claiming
+publication completed. Final official branding, full bilingual copy approval and broader
+REL-01 evidence remain separate work; all operational gates stay closed.

@@ -68,6 +68,7 @@ for (const locale of ["en", "ar"] as const) {
 
 test("disabled and loading demonstrations cannot trigger operations", async ({ page }) => {
   await page.goto("/en/design-system");
+  await expect(page.locator(".design-system-intro h1")).toBeVisible();
   const loading = page.locator('button[aria-busy="true"]');
   expect(await loading.count()).toBeGreaterThan(0);
   for (const button of await loading.all()) await expect(button).toBeDisabled();
@@ -83,7 +84,7 @@ test("disabled and loading demonstrations cannot trigger operations", async ({ p
   for (const button of await registration.all()) await expect(button).toBeDisabled();
 });
 
-test("absent approved footage stays static with reduced motion and limited bandwidth", async ({ page, baseURL }) => {
+test("approved footage stays static with reduced motion and limited bandwidth", async ({ page, baseURL }) => {
   const externalRequests: string[] = [];
   const videoRequests: string[] = [];
   const fontRequests: string[] = [];
@@ -103,6 +104,7 @@ test("absent approved footage stays static with reduced motion and limited bandw
   await page.goto("/ar");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.locator("video, iframe")).toHaveCount(0);
+  await expect(page.locator(".hero-media-poster")).toBeVisible();
   // The private workshop has an original synthetic test clip. With these
   // preferences, even that configured clip must never be fetched.
   await page.goto("/ar/design-system");
@@ -125,6 +127,9 @@ test("synthetic video controls pause, resume and fall back after an asset failur
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Play background video" })).toBeFocused();
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  // A manual pause freezes the visible frame instead of swapping back to the poster.
+  await expect(video).toHaveClass(/is-playing/);
+  await expect(page.locator(".design-media-frame .hero-media")).toHaveAttribute("data-media-state", "paused");
   // A system preference change must not silently undo the user's pause.
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(video).toHaveCount(0);

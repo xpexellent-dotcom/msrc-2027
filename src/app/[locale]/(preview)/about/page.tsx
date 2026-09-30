@@ -6,6 +6,8 @@ import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { aboutCopy } from "@/content/about";
+import { conferenceConfig } from "@/config/conference";
+import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { formatIndex, isLocale } from "@/lib/i18n";
 import { localizedPageMetadata } from "@/lib/metadata";
 
@@ -15,10 +17,11 @@ export async function generateMetadata({ params }: AboutPageProps): Promise<Meta
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = aboutCopy[locale];
+  const datePrefix = conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}. ` : "";
   return {
-    ...localizedPageMetadata(locale, "/about", copy.metadataTitle, copy.metadataDescription),
+    ...localizedPageMetadata(locale, "/about", copy.metadataTitle, `${datePrefix}${copy.metadataDescription}`),
     title: copy.metadataTitle,
-    description: copy.metadataDescription,
+    description: `${datePrefix}${copy.metadataDescription}`,
     robots: { index: false, follow: false },
   };
 }
@@ -46,6 +49,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
             </div>
             <dl className="about-identity">
               <div><dt>{copy.edition}</dt><dd>{copy.editionValue}</dd></div>
+              {conferenceConfig.dates && <div><dt>{copy.dates}</dt><dd><Link className="about-date-link" href={`/${locale}/dates-venue`}>{formatConferenceDateRange(conferenceConfig.dates, locale)}</Link></dd></div>}
               <div><dt>{copy.host}</dt><dd>{copy.hostValue}</dd></div>
               <div><dt>{copy.organizer}</dt><dd>{copy.organizerValue}</dd></div>
             </dl>

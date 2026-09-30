@@ -9,11 +9,11 @@ Every decision needs source, date, accountable approver, exact wording, affected
 <a id="dr-cfg-01"></a>
 
 ## DR-CFG-01 — Approve event and admission operating inputs
-- **Source IDs:** CFG-01, REG-05, REG-06.
-- **Status:** Decision Required — open; no new organizer approval recorded.
-- **Purpose:** Obtain an evidenced decision for event dates/venue, admission categories/capacity, approvers, turnaround and reservation policy so the affected stage can be implemented and opened honestly.
+- **Source IDs:** CFG-01, SCP-01, REG-05, REG-06, TIM-01, CMS-01.
+- **Status:** Partially resolved — ORG-001 records the project requester's 1 October 2026 confirmation of Day 1 on 27 January 2027 and Day 2 on 28 January 2027. Remaining operating questions stay open.
+- **Purpose:** Obtain evidenced decisions for the remaining venue, admission categories/capacity, approvers, turnaround and reservation policy so the affected stage can be implemented and opened honestly. Confirmed calendar dates no longer block public date copy/countdown.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
-- **Exclusions:** Date proposals, venue options and attendance estimates are not approved facts. This issue does not itself implement or activate a workflow.
+- **Exclusions:** Venue options and attendance estimates are not approved facts. Date confirmation supplies no doors/session start times or registration/submission/workshop opening/deadline settings, and does not activate a workflow.
 - **Dependencies:** Named accountable approver; relevant source/contract/policy evidence; [current decision register](../DECISIONS.md). Coordinate related CFG packets without silently deciding them.
 - **Roles:** Conference leadership; product engineer records the result. Named owner/approver: unassigned.
 - **States/transitions:** Open question → evidence gathered → exact decision approved and recorded; unanswered subquestions remain open and their live gates closed. These are planning statuses, not product state enums.
@@ -25,9 +25,9 @@ Every decision needs source, date, accountable approver, exact wording, affected
 - **Audit/email:** Version the decision and approval evidence references; identify downstream audit/English email changes. No real messages are sent to obtain or announce this decision by this task.
 - **Automated tests:** After approval, add configuration/transition boundary tests to affected issues; validate no unresolved value enables its gate. This decision PR itself checks source IDs, links and required fields.
 - **Manual UAT:** Conference leadership reviews exact wording, affected-stage examples and exclusions; demonstrate one allowed and one still-blocked example with synthetic data.
-- **Release gate:** Registration opening; approved date/venue publication as applicable.
+- **Release gate:** Registration opening remains closed. Calendar-date publication/countdown is authorized by ORG-001; venue publication and all remaining operational release requirements are still gated.
 - **Owner type:** Conference leadership; product/technical owner coordinates implementation.
-- **TBD blocked:** Yes for closure and affected live stages. Evidence gathering, documentation and independent synthetic implementation remain unblocked.
+- **TBD blocked:** Yes for packet closure, venue publication and affected live operational stages; no for confirmed calendar-date copy/countdown. Evidence gathering, documentation and independent synthetic implementation remain unblocked.
 
 Authoritative question set (v0.5; retained verbatim):
 

@@ -1,6 +1,6 @@
 # MSRC 2027 website design guide
 
-Snapshot: 30 September 2026. ENG-007 records the user's current M2 implementation approval for the specified palette, fonts and motion. Final logos, footage, public content and publication approval remain open under S1 CFG-12. Other component tokens are configurable engineering defaults.
+Original design snapshot: 30 September 2026; current approval reconciled 1 October 2026. ENG-007 records M2 implementation approval for the specified palette, fonts and motion. ORG-002 approves the reviewed 18.7-second MSRC2026 homepage cut and responsive stills for public use; deployment remains pending verification. Final logos, other media, full bilingual content and institutional brand/REL-01 approval remain open under S1 CFG-12. Other component tokens are configurable engineering defaults.
 
 Primary references: [Development Specification v0.5](../sources/Development_Specification_v0.5.txt), section 15 and CFG-12 (S1); [Website Brand Guide](../sources/MSRC27_Website_Brand_Guide.pdf), pages 1-2 (S4); prior development pack (S5); visible project conversation (S6); original [MSRC27 brand reference sheet in Canva](https://www.canva.com/d/zrujOnVYUtutnfB), with [text snapshot](../sources/MSRC27_Brand_Reference_Canva.txt) (S8).
 
@@ -21,7 +21,8 @@ Build a cinematic, clear conference website for The 5th Medical Students Researc
 | Exact palette and English fonts below | SELECTED M2 IMPLEMENTATION BASELINE | Current user request; ENG-007; S8 text; S4/S5 |
 | Arabic font and motion timing below | SELECTED M2 IMPLEMENTATION BASELINE | Current user request; ENG-007 |
 | Spacing, radii, shadows and semantic component colours | CONFIGURABLE ENGINEERING DEFAULTS | ENG-007 |
-| Final MSRC/KAU marks, footage, translations and public content | OPEN PUBLIC-LAUNCH GATE | S1 DSN-02, CFG-12 |
+| Reviewed 18.7-second MSRC2026 homepage cut and desktop/mobile stills | PUBLIC USE AUTHORIZED; DEPLOYMENT VERIFICATION PENDING | Current explicit requester approval; ORG-002 |
+| Final MSRC/KAU marks, other footage, translations and public content | OPEN PUBLIC-LAUNCH GATE | S1 DSN-02, CFG-12 |
 
 The inspiration links record the user's preferences. This handoff does not claim a fresh audit of either site's current implementation. Carry over the cinematic entrance and clear content organization through original MSRC layouts and assets.
 
@@ -136,3 +137,44 @@ For each significant visual slice, record representative desktop/mobile and LTR/
 - [ ] Privacy/contact/removal routes and archive responsibilities are configured.
 
 This checklist implements S1 DSN-01/02, MED-01/04, CMS-04, CFG-12 and the public-release gate. Its items remain unverified until implementation and approval evidence is recorded.
+
+## 10. Local Brand/interface review — 1 October 2026
+
+ENG-008 refines ENG-007 without approving new brand assets. Buttons use a single solid
+fill entering from the reading edge, 180 ms feedback, a1 px lift and98% press; directional
+arrows and navigation underlines mirror in Arabic. Reduced motion removes travel.
+Home/About keep editorial splits, clearer reading widths and generous spacing.
+
+Homepage section navigation offers browser-owned `y proximity` snapping at widths at
+least960 px and heights at least700 px. It is optional, has a visible free-scrolling
+toggle and is disabled for reduced motion. Phones retain unrestricted native scrolling.
+There are no wheel/touch/keyboard handlers, mandatory snap stops or page-flipping logic.
+Explicit anchors carry the URL hash and keyboard focus to their section.
+
+The local real-media proposal uses a direction-aware ink/purple scrim, a stronger dark
+top band for small gold labels and bottom shading for the edition caption. Pausing freezes
+the current frame. The mobile pause control sits in the quiet gap below the hero kicker,
+within the entrance viewport; a still image remains for reduced motion, low bandwidth
+or failed playback. Public pages still use the synthetic poster until review/clearance.
+
+Review evidence and remaining human/editorial/browser checks are recorded in the
+[feature note](features/brand-motion-media-preview.md). Final assets, typography/mark
+guidance and EN/AR editorial approval remain the next inputs; do not mark CFG-12 complete.
+
+## 11. Approved homepage media placement — 1 October 2026
+
+ORG-002 supersedes the section 10 local-only treatment for the approved montage derivative
+set. Use the current 18.7-second silent film and reviewed portrait crop/stills on the
+English/Arabic public homepage, with a clearly translated MSRC2026 previous-edition
+caption. Use the same readable directional scrim, responsive source selection, pause,
+reduced-motion and low-bandwidth/error still behavior. Approval includes the people and
+posters shown in this cut; it does not turn historical faces, logos or research into
+confirmed 2027 participants/content or approve the rest of the source collection.
+
+Serve only the four approved derivatives under `/media/msrc2026/`. Keep originals,
+manifests and recipes private, and retain production 404 for local review routes and their
+API. Source/date/approval details are in [MEDIA_REGISTER.md](MEDIA_REGISTER.md#9-approved-public-homepage-derivative-set--1-october-2026).
+Public use is authorized; actual push/deployment and public-frame/browser checks must be
+recorded separately. Official brand files, complete EN/AR copy sign-off, removal/retention
+ownership and the remaining REL-01 requirements are still pending. No operational flag
+opens and no site-wide brand approval is inferred from this scoped media decision.
