@@ -57,7 +57,49 @@ of the local synthetic fixture. All operational gates remain closed. See
 The [implementation backlog](backlog/README.md), DR-CFG-11 ownership and DR-CFG-12
 content/brand decisions remain available for later work; no decision was silently resolved.
 
-## 30 September 2026 — Complete M2 component system
+## 30 September 2026 — QA pass: Arabic polish, favicon, apex domain
+
+Exploratory QA of the live preview (www.msrc2027.com, EN/AR, 1280/1100/390px) plus the
+full local suite. Scope: copy/style/metadata only; no workflow, data or gate changed.
+
+| Finding | Change |
+|---|---|
+| Arabic kicker/footer "مؤتمر أبحاث طلاب الطب الخامس" can read as "fifth medical students" | Now "المؤتمر الخامس لأبحاث طلاب الطب", matching the About page |
+| Arabic hero, several headings and pathway titles were word-for-word translations | Rewritten as idiomatic MSA following the English meaning (for example "حيث يتحوّل الفضول / إلى اكتشاف.") |
+| Mixed digit systems in Arabic (٠١ eyebrows, but 01–04 pathway and program numbers) | Shared `formatIndex` helper; unit test prevents Western digits returning to Arabic copy |
+| "Not open yet" badge did not agree with its noun in Arabic | Masculine form for pathways (مسار), feminine form for participation (المشاركة) |
+| About purpose item repeated its section title; footer "المحددة" note was unclear | Distinct item title; the note now says pages are "marked with a dot" (EN and AR) |
+| Arabic labels rendered at 10–11px, visibly smaller than Latin at equal size | Arabic-only size lift for small labels (preview bar, eyebrows, badges, captions, footer) |
+| `/favicon.ico` 404; tabs showed no icon, and there was no iOS home-screen icon | `src/app/icon.svg` monogram in the working palette, plus a matching static 180×180 `apple-icon` |
+| English pages downloaded the 166 KB Arabic webfont only to draw the "العربية" switch label (≈40% of page bytes) | The label uses the system Arabic face; measured EN transfer 425 KB → 260 KB and CLS 0.0001 → 0 (390px, throttled). An e2e test guards it |
+| No canonical, hreflang or link-preview metadata; shared links had no card | Per-page canonical and `en`/`ar`/`x-default` alternates, Open Graph/Twitter tags and a static 1200×630 card per locale (`[locale]/opengraph-image.tsx`); `noindex` is unchanged |
+| No Content-Security-Policy or COOP header | Structural CSP (`base-uri`, `form-action`, `frame-ancestors`, `object-src`) and `Cross-Origin-Opener-Policy: same-origin`; script/style sources are left open until a nonce-based policy is designed. An e2e test covers the headers |
+| Latin "MSRC 2027" spans on Arabic pages lacked `lang="en"`, and the Arabic 404 code used Western digits | `lang="en"` added for screen-reader pronunciation; Arabic 404 shows ٤٠٤ |
+| Root `/` → `/en` ran as a serverless function in `iad1` with no caching: live TTFB 0.41–0.50s versus about 0.20s for `/en` from the Mumbai edge | Replaced `src/app/route.ts` with a `next.config.ts` temporary redirect answered at the edge; e2e asserts 307 → `/en` |
+| axe best-practice sweep (EN/AR, home/About/404, 390 and 1280px): the preview banner sat outside any landmark (`region`) | Banner is a labelled region («حالة الموقع» / "Site status"); an e2e test now runs the axe best-practice rules on the four public pages. Arabic layouts at 320/768/1024px inspected with no overflow |
+| Arabic skip link and retry wording | «انتقل إلى المحتوى الرئيسي» and the standard «أعد المحاولة» |
+| Apex `msrc2027.com` had no DNS A record (only `www` resolved) | User-authorized: added `msrc2027.com` to the Vercel project (308 → www) and a Namecheap `@` A record to `216.198.79.1`; verified on the authoritative and public resolvers |
+
+Verification (Node 24.21.0 portable, pnpm 11.19.0): ESLint PASS; typegen and `tsc` PASS;
+Vitest 184/184 PASS (numeral and metadata tests added); `next build` PASS; Playwright 102/102 PASS
+(preview-image, Arabic-webfont, security-header, root-redirect and axe best-practice tests added).
+
+Cross-browser (local Playwright WebKit 26.6: Desktop Safari and iPhone 15 profiles). Every public
+homepage/About check passes: rendering, overflow, axe, headers, preview image and 404s. The only failures
+are the five keyboard tests that press Tab to reach links, because WebKit follows Safari's default of not
+tabbing to links without Option+Tab, which is a browser preference rather than a site defect. The staff-only
+design-system specs also hit harness limits (no WebM codec, 32,767px screenshot cap, radio arrow keys). The
+reduced-motion test hard-coded port 3210 and now reads `baseURL`. Firefox: NOT TESTED, because the browser
+cannot launch in this sandbox (`spawn UNKNOWN`).
+
+Low-priority recommendation: Arabic pages discover Noto Sans Arabic without a preload. On throttled slow
+mobile it finishes at about 2.4s, after the hero paints; on a fast 4G profile (40ms, 12Mbps) it finishes at
+about 0.48s, before LCP (about 0.78s), so most visitors see no swap. A locale-specific preload would need a manual
+`@font-face` outside `next/font/local` (a recorded decision), so it is left for review.
+Local Playwright screenshots of AR 1280/1100/390px and About were inspected, with no horizontal
+overflow or console errors. Arabic editorial approval is still required under CFG-12; these
+are draft improvements, not approved copy.
+
 
 Implemented the current requested inventory without adding operational modules: expanded
 tokens, shared Section/Link/ContentSplit/StatBlock/ProgramRow, extracted MobileNav/Footer,

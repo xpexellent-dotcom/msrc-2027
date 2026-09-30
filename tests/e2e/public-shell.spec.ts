@@ -1,8 +1,13 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 // LOC-01/03, SEC-01, INF-04, REL-06: static public browsing stays separate
 // from closed operational flows. This is a smoke check, not a launch audit.
-test("the default route opens the English public page", async ({ page }) => {
+test("the default route opens the English public page", async ({ page, request }) => {
+  // Temporary, so browsers do not cache the default-locale choice permanently.
+  const redirect = await request.get("/", { maxRedirects: 0 });
+  expect(redirect.status()).toBe(307);
+  expect(redirect.headers()["location"]).toBe("/en");
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const response = await page.goto("/");
@@ -87,6 +92,47 @@ for (const locale of ["en", "ar"] as const) {
     expect(errors).toEqual([]);
   });
 }
+
+test("shared links carry a working preview image and language alternates", async ({ page, request }) => {
+  for (const locale of ["en", "ar"] as const) {
+    await page.goto(`/${locale}`);
+    const image = await page.locator('meta[property="og:image"]').getAttribute("content");
+    expect(image).toMatch(new RegExp(`/${locale}/opengraph-image`));
+    const response = await request.get(new URL(image!).pathname);
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toBe("image/png");
+    await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveAttribute("href", /\/ar$/);
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", /\/en$/);
+  }
+});
+
+test("public pages pass axe best-practice rules, including landmark coverage", async ({ page }) => {
+  for (const path of ["/en", "/ar", "/en/about", "/ar/about"]) {
+    await page.goto(path);
+    const results = await new AxeBuilder({ page }).withTags(["best-practice"]).analyze();
+    expect(results.violations.map((violation) => `${path} ${violation.id}`)).toEqual([]);
+  }
+});
+
+test("public pages send baseline security headers", async ({ request }) => {
+  for (const path of ["/en", "/ar/about", "/ar/missing-page"]) {
+    const headers = (await request.get(path)).headers();
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    expect(headers["x-frame-options"]).toBe("DENY");
+    expect(headers["cross-origin-opener-policy"]).toBe("same-origin");
+    for (const directive of ["base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'", "object-src 'none'"]) {
+      expect(headers["content-security-policy"]).toContain(directive);
+    }
+  }
+});
+
+test("English pages do not download the Arabic webfont", async ({ page }) => {
+  const fonts: string[] = [];
+  page.on("request", (request) => { if (request.resourceType() === "font") fonts.push(request.url()); });
+  await page.goto("/en", { waitUntil: "networkidle" });
+  expect(fonts.length).toBeGreaterThan(0);
+  expect(fonts.filter((url) => /arabic/i.test(url))).toEqual([]);
+});
 
 test("keyboard access reaches content and changes language without losing location", async ({ page }) => {
   await page.goto("/en?view=preview");

@@ -10,6 +10,14 @@ export function direction(locale: Locale): "ltr" | "rtl" {
   return locale === "ar" ? "rtl" : "ltr";
 }
 
+const arabicIndicDigits = "٠١٢٣٤٥٦٧٨٩";
+
+/** Two-digit sequence labels (01 / ٠١) matching the digits used in each language's copy. */
+export function formatIndex(value: number, locale: Locale): string {
+  const padded = String(value).padStart(2, "0");
+  return locale === "ar" ? padded.replace(/\d/g, (digit) => arabicIndicDigits[Number(digit)]) : padded;
+}
+
 export function localizePathname(pathname: string, locale: Locale): string {
   const segments = pathname.split("/");
   if (isLocale(segments[1] ?? "")) {
@@ -21,6 +29,7 @@ export function localizePathname(pathname: string, locale: Locale): string {
 
 type Dictionary = {
   skip: string;
+  siteStatus: string;
   preview: string;
   edition: string;
   institution: string;
@@ -48,6 +57,7 @@ type Dictionary = {
 export const dictionaries: Record<Locale, Dictionary> = {
   en: {
     skip: "Skip to content",
+    siteStatus: "Site status",
     preview: "Development preview",
     edition: "The fifth edition",
     institution: "King Abdulaziz University",
@@ -73,7 +83,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
     languageSwitch: "View this page in Arabic",
   },
   ar: {
-    skip: "انتقل إلى المحتوى",
+    skip: "انتقل إلى المحتوى الرئيسي",
+    siteStatus: "حالة الموقع",
     preview: "معاينة قيد التطوير",
     edition: "النسخة الخامسة",
     institution: "جامعة الملك عبدالعزيز",
@@ -93,7 +104,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     notFoundDescription: "قد يكون العنوان غير صحيح، أو لم تُضَف هذه الصفحة إلى المعاينة بعد.",
     errorTitle: "تعذّر تحميل هذه الصفحة.",
     errorDescription: "يرجى المحاولة مجددًا أو العودة إلى الصفحة الرئيسية للمعاينة.",
-    retry: "حاول مجددًا",
+    retry: "أعد المحاولة",
     home: "العودة إلى المعاينة",
     languageSwitch: "View this page in English",
   },

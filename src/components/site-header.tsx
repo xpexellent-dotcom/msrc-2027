@@ -30,7 +30,7 @@ const headerCopy = {
     close: "إغلاق القائمة",
     home: "الصفحة الرئيسية لمؤتمر MSRC 2027",
     edition: "النسخة الخامسة",
-    registration: "التسجيل لم يُفتح بعد",
+    registration: "لم يُفتح التسجيل بعد",
     links: [
       { label: "عن المؤتمر", href: "/about" },
       { label: "المشاركة", href: "#participate" },
@@ -71,7 +71,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     <header className="site-header">
       <Container className="site-header-inner">
         <Link className="wordmark" href={`/${locale}`} aria-label={copy.home} onClick={() => setMenuOpen(false)}>
-          <span className="wordmark-name" dir="ltr">MSRC<span className="wordmark-year">2027</span></span>
+          <span className="wordmark-name" dir="ltr" lang="en">MSRC<span className="wordmark-year">2027</span></span>
           <span className="wordmark-edition">{copy.edition}</span>
         </Link>
         <nav className="desktop-nav" aria-label={copy.navigation}>

@@ -3,6 +3,7 @@ import { SiteShell } from "@/components/site-shell";
 import { defaultLocale, dictionaries, direction, isLocale, locales } from "@/lib/i18n";
 import "../globals.css";
 import { arabicFont, bodyFont, headingFont } from "@/lib/fonts";
+import { siteOrigin } from "@/lib/metadata";
 
 export const viewport: Viewport = { themeColor: "#F8F6F0" };
 
@@ -19,6 +20,7 @@ export async function generateMetadata({
   const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
   const copy = dictionaries[locale];
   return {
+    metadataBase: new URL(siteOrigin),
     title: `MSRC 2027 | ${copy.preview}`,
     description: `${copy.title}. ${copy.footer}`,
     robots: { index: false, follow: false },

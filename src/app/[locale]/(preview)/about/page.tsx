@@ -6,7 +6,8 @@ import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { aboutCopy } from "@/content/about";
-import { isLocale } from "@/lib/i18n";
+import { formatIndex, isLocale } from "@/lib/i18n";
+import { localizedPageMetadata } from "@/lib/metadata";
 
 type AboutPageProps = { params: Promise<{ locale: string }> };
 
@@ -15,6 +16,7 @@ export async function generateMetadata({ params }: AboutPageProps): Promise<Meta
   if (!isLocale(locale)) notFound();
   const copy = aboutCopy[locale];
   return {
+    ...localizedPageMetadata(locale, "/about", copy.metadataTitle, copy.metadataDescription),
     title: copy.metadataTitle,
     description: copy.metadataDescription,
     robots: { index: false, follow: false },
@@ -61,7 +63,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
           <div className="about-purpose-list">
             {copy.purposes.map((purpose, index) => (
               <article key={purpose.title} className="about-purpose-item">
-                <span className="about-purpose-number" aria-hidden="true">{locale === "ar" ? ["٠١", "٠٢", "٠٣"][index] : `0${index + 1}`}</span>
+                <span className="about-purpose-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span>
                 <h3>{purpose.title}</h3>
                 <p>{purpose.body}</p>
               </article>

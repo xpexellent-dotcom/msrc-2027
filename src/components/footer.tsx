@@ -8,17 +8,17 @@ const footerCopy = {
     institution: "King Abdulaziz University · Jeddah",
     navigation: "Explore the conference",
     forthcoming: "More information is on its way.",
-    unpublished: "Marked pages are awaiting content.",
+    unpublished: "Pages marked with a dot are awaiting content.",
     contentPending: "Awaiting content",
     designSystem: "Design system preview",
     edition: "An idea. A question. The next chapter.",
   },
   ar: {
-    description: "مؤتمر أبحاث طلاب الطب الخامس.",
+    description: "المؤتمر الخامس لأبحاث طلاب الطب.",
     institution: "جامعة الملك عبدالعزيز · جدة",
     navigation: "استكشف المؤتمر",
     forthcoming: "المزيد من المعلومات قريبًا.",
-    unpublished: "الصفحات المحددة بانتظار المحتوى.",
+    unpublished: "الصفحات المميّزة بنقطة بانتظار المحتوى.",
     contentPending: "بانتظار المحتوى",
     designSystem: "معاينة نظام التصميم",
     edition: "فكرة. سؤال. فصل جديد.",
@@ -32,7 +32,7 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
         <Container>
           <div className="footer-top">
             <div className="footer-brand">
-              <span className="footer-identity" dir="ltr">MSRC<span>2027</span></span>
+              <span className="footer-identity" dir="ltr" lang="en">MSRC<span>2027</span></span>
               <p>{footer.description}</p>
               <p className="footer-institution">{footer.institution}</p>
               <p className="footer-tagline">{footer.edition}</p>

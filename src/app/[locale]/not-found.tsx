@@ -10,7 +10,7 @@ export default function NotFound() {
   const copy = dictionaries[locale];
   return (
     <section className="message-page site-container">
-      <p className="eyebrow" dir="ltr">404</p>
+      <p className="eyebrow" dir="ltr">{locale === "ar" ? "٤٠٤" : "404"}</p>
       <h1>{copy.notFoundTitle}</h1>
       <p>{copy.notFoundDescription}</p>
       <Link className="action-link" href={`/${locale}`}>{copy.home}</Link>
