@@ -2,12 +2,14 @@
 
 Managed Vercel and managed Supabase are selected. These issues do not constitute permission to provision paid services, change DNS or open production workflows now. Production execution requires the named approvals and verified configuration. Existing local work and its actual evidence must be preserved.
 
+Status reconciled in the [1 October 2026 checklist audit](../reviews/checklist-audit-2026-10-01.md). The public draft is deployed; deployment success does not establish organizational release approval or complete provider settings verification.
+
 <a id="bl-dep-01"></a>
 
 ## BL-DEP-01 — Validate separated environment configuration
 
 - **Source IDs:** INF-01, INF-02, INF-04, SEC-06, PRV-07, AT-18.
-- **Status:** Partial: local environment documentation and closed flags exist; staging/production projects, approved regions and separation not verified.
+- **Status:** Partial: guarded local/hosted configuration and public production deployment exist; one Preview denies unauthenticated access, but authenticated showcase, provider settings and full environment/data separation remain unverified.
 - **Purpose:** Prevent preview or development activity from reaching production data, payments or recipients.
 - **Scope:** Typed environment manifest and validation for local/staging/production; independent keys/data/access; staging test-recipient restriction and mock-payment enforcement; private preview controls.
 - **Exclusions:** Purchasing plans, selecting unresolved regions, copying live data, treating noindex as access control, enabling operational flags.
@@ -31,7 +33,7 @@ Managed Vercel and managed Supabase are selected. These issues do not constitute
 ## BL-DEP-02 — Run reviewed pull requests and protected preview CI
 
 - **Source IDs:** INF-03, INF-04, INF-05, SEC-06, REL-06, AT-18.
-- **Status:** Partial: local Git commits, pinned lockfile and CI definition exist; no remote or hosted CI execution verified.
+- **Status:** Partial: private GitHub remote, merged PRs and successful PR CI 36734074148 at 9e018ae verified; separate main run cancelled. Branch API reports protected=false, not a full ruleset audit; required merge-check enforcement and organizational custody remain unverified.
 - **Purpose:** Give reviewers reproducible, access-controlled evidence before a change reaches a release environment.
 - **Scope:** Once organizational repository access is approved, configure protected PR review and preview pipeline; run frozen dependency install, lint/type/build, unit/browser and actual database policy checks where relevant; retain artifacts.
 - **Exclusions:** Personal repository ownership; claiming local checks prove hosted CI; automatic production promotion; unrelated dependency upgrades.
@@ -127,7 +129,7 @@ Managed Vercel and managed Supabase are selected. These issues do not constitute
 ## BL-DEP-06 — Package a release with reversible migration evidence
 
 - **Source IDs:** INF-05, REL-01, REL-02, REL-03, REL-04, REL-05, REL-06, DAT-04, AT-18.
-- **Status:** Planned; local source checkpoints do not establish production release approval.
+- **Status:** Partial evidence: production deployment 6762942669 succeeded at 9e018ae and public route checks passed; complete gate approval, monitoring and tested recovery evidence remain outstanding.
 - **Purpose:** Open only the specific workflow whose evidence and business settings are complete.
 - **Scope:** Versioned release manifest listing commit, reviewed migrations/config, gate evidence, owner sign-off, rollout checks and rollback/recovery procedure; rehearse one additive schema release in isolated staging.
 - **Exclusions:** Opening all features with one global approval; destructive rollback that loses post-release submissions/orders; automatic resolution of TBDs.

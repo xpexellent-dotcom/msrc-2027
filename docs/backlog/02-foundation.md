@@ -2,11 +2,13 @@
 
 Reuse the existing M1 baseline; do not scaffold a replacement. [Evidence](../features/foundation.md) and [progress](../PROGRESS.md).
 
+Status reconciled in the [1 October 2026 checklist audit](../reviews/checklist-audit-2026-10-01.md); original M1 checkpoints remain valid historical records.
+
 <a id="bl-fnd-01"></a>
 
 ## BL-FND-01 — Preserve and reproduce the pinned local application baseline
 - **Source IDs:** INF-01, INF-04, INF-05, SEC-06, LOC-01, ERR-01.
-- **Status:** Complete locally — M1 commit 0d2f728; production infrastructure remains unverified.
+- **Status:** Baseline implemented — preserved M1 plus application CI at 9e018ae and deployed public shell; production governance and operational configuration remain separate gates.
 - **Purpose:** Give engineers a reproducible Next.js App Router, TypeScript, Tailwind and pnpm starting point.
 - **Scope:** Retain pinned runtime/dependencies and lockfile, bilingual shell, safe environment example, separated browser/server clients, error/loading/not-found conventions and setup commands; fresh-machine replay when environment changes.
 - **Exclusions:** Dependency upgrades without need; live service provisioning; registration or CMS opening.
@@ -29,7 +31,7 @@ Reuse the existing M1 baseline; do not scaffold a replacement. [Evidence](../fea
 
 ## BL-FND-02 — Execute the prepared local database migration and permission tests
 - **Source IDs:** SEC-02, DAT-04, INF-04, INF-05.
-- **Status:** Blocked environment verification — migration and 20 pgTAP tests exist; Docker unavailable in recorded run.
+- **Status:** Verified in isolated Linux CI — fresh job success at 9e018ae; prior database evidence records 20 pgTAP and 10 client integration checks passing. Optional Windows local replay remains unverified.
 - **Purpose:** Verify database behavior rather than treating committed SQL as proof it ran.
 - **Scope:** Start an authorized Docker-compatible local runtime, replay local Supabase migration/seed and pgTAP suite, document reset/replay results and preserve loopback isolation.
 - **Exclusions:** Remote Supabase linking, production data, operational schema expansion.
@@ -46,7 +48,7 @@ Reuse the existing M1 baseline; do not scaffold a replacement. [Evidence](../fea
 - **Manual UAT:** Start/stop local services and follow database README without a cloud account.
 - **Release gate:** M1 database verification; required before claiming database-dependent slices verified.
 - **Owner type:** Database/platform engineer.
-- **TBD blocked:** No business TBD; blocked only by local container availability.
+- **TBD blocked:** No business TBD; isolated CI verification is available. Optional Windows replay requires a working local engine; ENG-006 permits daily hosted development without it.
 
 <a id="bl-fnd-03"></a>
 

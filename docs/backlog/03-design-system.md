@@ -1,12 +1,12 @@
 # Design system
 
-Use [working defaults](../DESIGN_GUIDE.md), not presumed final brand approval.
+Use [the design guide](../DESIGN_GUIDE.md) and ENG-007's approved palette/font/motion implementation baseline. Other semantic tokens remain configurable engineering defaults; final marks and content approval are separate. Current evidence is in the [1 October 2026 checklist audit](../reviews/checklist-audit-2026-10-01.md).
 
 <a id="bl-dsn-01"></a>
 
 ## BL-DSN-01 — Retain the bilingual component and layout baseline
 - **Source IDs:** DSN-02, LOC-01, LOC-02, LOC-03, ACC-01.
-- **Status:** Complete locally — M2 8f6d020 and About review f4bfcbc; final approval outstanding.
+- **Status:** Component inventory implemented and merged through 9e018ae — bilingual layouts, forms, feedback/dialog/toast and table/pagination foundations; final editorial/brand and full accessibility review outstanding.
 - **Purpose:** Give public and operational screens consistent readable, accessible controls.
 - **Scope:** Preserve semantic tokens, DM Sans/Inter/Noto Sans Arabic, containers, type, header/mobile navigation/footer, language switch, buttons, headings and field/status states in the local/staging showcase.
 - **Exclusions:** Final brand certification, dark mode, public admin surface or arbitrary page builder.
@@ -23,7 +23,7 @@ Use [working defaults](../DESIGN_GUIDE.md), not presumed final brand approval.
 - **Manual UAT:** Arabic editorial review and actual assistive-technology checks remain required.
 - **Release gate:** M2 local completion; REL-01 final content/brand/accessibility still open.
 - **Owner type:** UI engineer and accessibility/design reviewer.
-- **TBD blocked:** Local work no; final marks/fonts/brand approval DR-CFG-12.
+- **TBD blocked:** Component work no; specified fonts/palette/motion adopted under ENG-007. Final marks, content and remaining brand approval require DR-CFG-12.
 
 <a id="bl-dsn-02"></a>
 
@@ -52,7 +52,7 @@ Use [working defaults](../DESIGN_GUIDE.md), not presumed final brand approval.
 
 ## BL-DSN-03 — Close design-system accessibility and brand review findings
 - **Source IDs:** ACC-01, DSN-02, LOC-01, REL-01, REL-06.
-- **Status:** Planned — automated Chromium evidence exists; full manual coverage does not.
+- **Status:** Partial — Chromium evidence and recorded WebKit public checks exist; WebKit keyboard/design-system failures or limitations, Firefox, real-device and assistive-technology review remain open.
 - **Purpose:** Turn measured review findings into scoped fixes before public release.
 - **Scope:** Review existing primitives with keyboard and screen readers, actual Safari/Firefox/mobile devices, Arabic typography, zoom and approved brand assets; fix only demonstrated issues.
 - **Exclusions:** Claiming WCAG conformance from axe alone; aesthetic redesign without approval.

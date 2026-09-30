@@ -1,6 +1,6 @@
 # MSRC 2027 decision and configuration register
 
-Snapshot: 29 September 2026. This register records source-confirmed choices, working defaults, unresolved details and publication gates. It does not certify institutional approval, provisioning, implementation or test completion.
+Source baseline: 29 September 2026; evidence reconciliation updated 1 October 2026. This register records source-confirmed choices, working defaults, unresolved details and publication gates. It does not certify institutional approval, provisioning, implementation or test completion.
 
 Primary source: **S1 Development Specification v0.5**, modified 2026-09-29 11:30:21 UTC / 14:30:21 Asia/Riyadh. [Current source snapshot](../sources/Development_Specification_v0.5.txt).
 
@@ -32,7 +32,7 @@ Named final owners and due dates are **unassigned unless explicitly recorded**. 
 | Application hosting | SELECTED | Managed Vercel. | Plan, region/data-flow assessment, organization/team access, budget, provisioning and launch evidence. No Saudi-location claim. | INF-01/02, CFG-10 |
 | Database/auth/files | SELECTED | Managed Supabase PostgreSQL, managed authentication and private storage. | Plan/region/data locations, organization access, approved RLS/storage, backup and recovery setup. | INF-01/02, SEC-02, CFG-10 |
 | Framework | ADOPTED FOR M1 | Next.js App Router + TypeScript + Tailwind under the explicit foundation task; versions in ENG-001 below. | Final public and operational release gates remain closed. | INF-01 |
-| Development tooling | ADOPTED FOR M1 | pnpm with lockfile, Vitest/Playwright and local Supabase fixture/policy tests; see ENG-001. | Docker unavailable on inspected host; database execution and remote CI still need evidence. | INF-04/05, REL-06 |
+| Development tooling | ADOPTED FOR M1 | pnpm with lockfile, Vitest/Playwright and local Supabase fixture/policy tests; see ENG-001/005/006. | Isolated Linux database CI verified; optional Windows engine still untested. Current evidence and remaining merge-check enforcement are in PROGRESS. | INF-04/05, REL-06 |
 | P1 payments | SELECTED | Existing authorized KAU collection arrangement, isolated adapter. | Responsible unit/payee/system, real integration or approved official-report reconciliation, amounts/methods/tax/refunds/references and evidence. No webhook/API assumed. | PAY-01/04/05, CFG-02 |
 | Three site Super Admins | REQUIRED | Exactly three individually named website Super Admin accounts before production. | Names, verified identity, appropriate grants/MFA/offboarding; distinct from infrastructure owners. | ROL-10/12, CFG-11 |
 | Production data locations | OPEN | No exact region selected; no assumption that managed providers are Saudi-hosted. | Full database/storage/auth/app/backups/email/model/logs flows and required approvals. Synthetic development can proceed. | INF-02, PRV-07 |
@@ -45,6 +45,7 @@ The source selects providers and intended ownership; it does not create accounts
 
 | Decision | Current rule | IDs / source |
 | --- | --- | --- |
+| Event dates | Day 1: 27 January 2027; Day 2: 28 January 2027. Confirmed by the project requester on 1 October 2026; date-only approval, no inferred start times or workflow windows. | SCP-01, CFG-01, TIM-01; ORG-001 below |
 | Participation pathways | Separate registration, abstracts, hackathon, 3MT and workshop states linked to one account. Co-authors are not attendees automatically. | SCP-03, REG-01/08 |
 | Admission | Every registration manual approval, including full discounts. Default approve before financial completion; confirm/ticket only when both exist. | REG-02/03, PAY-03 |
 | Workshop dependency | Manual approval and payment/valid discount, plus confirmed conference registration before confirming workshop. | WKS-02 |
@@ -93,7 +94,7 @@ S3 is valuable conference background. Its proposals and roster drafts need confi
 
 | Older source detail | Current interpretation | Required action |
 | --- | --- | --- |
-| S3 page 15 proposes 27-28 January 2027. | SOURCE PROPOSAL. S1 SCP-01/CFG-01 still leave exact dates open. | Leadership confirms exact event dates; then configure countdown, deadlines, public copy and operational windows. Do not publish the proposed date as confirmed. |
+| S3 page 15 proposes 27-28 January 2027. | The source proposal is preserved. ORG-001, the explicit user decision of 1 October 2026, now confirms those two calendar dates and supersedes their former unresolved status. | Publish confirmed dates and the labelled date countdown. Venue, start times and separate operational windows still require their own decisions. |
 | S3 page 15 lists King Faisal Conference Center / University Hospital theater as venue options. | SOURCE OPTIONS. S1 leaves venue/rooms/capacities open. | Confirm one approved venue and actual rooms/capacities/accessibility, then update content/booking/program. |
 | S3 page 14 chart names Abdulrahman Ismail scientific leader and Fatimah Al Farhah organizational leader; S6 context identifies Akram as conference co-leader/scientific lead. | UNRESOLVED ROSTER DIFFERENCE. Draft chart and user role context do not establish final public organization or account grants. | Ask leadership to confirm names, titles, hierarchy and public roster before publishing; separately verify role grants. |
 | S2 footer references Development Specification v0.4. | HISTORICAL SOURCE POINTER. The live technical document is now v0.5 and already reconciles current S2 answers. | Use S1 v0.5 for construction and preserve S2 answered choices without treating its old footer as priority. |
@@ -164,9 +165,11 @@ S2 mentions Aisha for flow/schedule coordination and Reem for faculty/judges/men
 
 ### CFG-01
 
-**State: OPEN REMAINING INPUTS. Named owner: Unassigned. Due date: Unassigned.**
+**State: PARTIALLY RESOLVED — event dates confirmed by ORG-001; remaining inputs OPEN. Named operating owner: Unassigned. Due date: Unassigned.**
 
 CFG-01. Conference leadership: exact event dates/venue, general capacity, admission categories, manual approval owners, decision turnaround, payment/seat-hold deadlines, and handling of capacity-pending requests. Gate: registration opening.
+
+Current reconciliation (1 October 2026): Day 1 is **27 January 2027** and Day 2 is **28 January 2027**. The statement above remains the preserved v0.5 question set, not a claim that these dates are still undecided. Venue, rooms, capacities, admission categories, approval owners/turnaround, payment/seat-hold policy and capacity-pending handling remain open. Event/session start times and separate registration, submission, review, workshop, competition and certificate windows are not supplied by this date decision. Registration remains closed.
 
 ### CFG-02
 
@@ -496,3 +499,126 @@ publication clearance remain open. No footage was copied into the app in M2.
 Relevant source IDs: DSN-01/02, LOC-01/02/03, ACC-01, MED-01/02/03/04, CFG-12,
 CMS-04, INF-04. No migrations, dependency changes, new environment values, Supabase
 mutations, live workflow release or deployment are part of this slice.
+
+## 18. Checklist reconciliation — 1 October 2026 (no new product decision)
+
+Authority: the user's request to audit and update the
+[feature checklist](https://chatgpt.com/space/page_5962a54672888191869e3c6108c27678).
+Its earlier architecture and completion statements do not supersede v0.5 or current
+ENG-001/005/006/007. Current implementation/hosting evidence is recorded in
+[PROGRESS](PROGRESS.md) and the [audit](reviews/checklist-audit-2026-10-01.md).
+
+- The Page mentioned a later AI-proposal/committee-approval design without an exact
+  organizer decision source, date or approver. Record that as an unreconciled reference,
+  not a replacement policy. AI-03 remains the configurable default: independent human
+  draft before advisory reveal; separate human/model/committee records; no model score
+  in the human average absent an explicit later policy. DR-CFG-03/10 stay open. The
+  separate prototype and its historical20-test claim do not select DeepSeek or prove
+  integration, data-processing approval, calibration or platform permissions.
+- ABS-01/04/07/08/09–11 and HAC-01/02/04/05/06/08/09 contain settled baseline rules;
+  the checklist now separates them from remaining DR-CFG-03/04/05/13 inputs. 3MT
+  retains its separate DR-CFG-06 gate. No scientific value or rule was invented.
+- Hosting/DNS and a successful Production deployment are observed engineering facts,
+  not proof of REL-01 or CFG-09/10/11/12 institutional, privacy, content or media approval.
+  Public Home/About drafts are accessible. Noindex is not privacy. A responsible
+  approver must resolve the public-draft boundary and release evidence; this audit
+  changes no deployment protection, DNS, environment variable or operational flag.
+- The M3 continuation and parallel BL-SEC-01 contract are unblocked; M4 staff identity,
+  grants and MFA precede CMS writes. Static public content need not expose the editor.
+  ENG-006 continues to make Windows Docker optional for daily hosted development.
+
+Rollback is documentation-only. Preserve earlier source snapshots and later human edits;
+no schema, data, infrastructure or product behavior changes accompany this reconciliation.
+
+## 19. ENG-008 — Provisional interface polish and local film review, 1 October 2026
+
+Authority: the user's current Brand/interface checklist, motion and montage request.
+Official brand information is expected next; retain ENG-007 colours/fonts/motion rather
+than inventing final marks or changing the public content approvals. Slush supplies the
+video-first reference and ESC Congress the information-hierarchy reference; neither
+licenses reuse of their assets, copy or operational claims.
+
+- Improve the shared English/Arabic Home/About hierarchy and directional button feedback.
+  Keep native scrolling. Interpret guided section movement as optional CSS `y proximity`
+  settling on large/tall screens, explicit anchor links and a free-scrolling toggle; no
+  wheel/touch/key cancellation or mandatory stops. Disable snapping for reduced motion.
+- Prepare a roughly19-second proposal from the user-supplied MSRC2026 montage: audience,
+  auditorium and research discussion with short dissolves and a seamless loop. Encode
+  desktop/mobile versions and posters as private local review derivatives; preserve the
+  original. The measured18.7-second duration and codecs/budgets are candidate engineering
+  settings for this cut, not final conference media policy.
+- Serve only four allowlisted derivatives through a loopback development process with
+  `LOCAL_MEDIA_PREVIEW_ENABLED=true`. A production build or Vercel production context
+  denies the preview and media endpoints even when the flag is enabled. Keep all real
+  footage outside `public/` and ignored by Git. Public Home/About retain safe artwork.
+- Preview before publication is an explicit user requirement. Selection, encoding and
+  technical checks do not approve identifiable people, scientific posters/slides, marks,
+  captions or rights/consent for public use. CFG-12/MED-02 remain open; final brand, copy
+  and media owner approval must be recorded before any release.
+
+Relevant source IDs: DSN-01/02, LOC-01/03, ACC-01, MED-01/02/03/04, CMS-04, CFG-12,
+INF-04, REL-01. No operational gate, schema, dependency pin, hosted environment, service
+or DNS changes. See [feature record](features/brand-motion-media-preview.md) for evidence,
+manual setup, verification limits and rollback.
+
+## 20. ORG-001 — Confirmed conference dates, 1 October 2026
+
+**Status: CONFIRMED calendar dates; related operating inputs remain OPEN.**
+
+- **Source/date/approver:** The current explicit instruction from the project requester in this chat, 1 October 2026. The requester provides the organizer decision; no additional staff identity or institutional approval is inferred.
+- **Exact decision:** “The dates are confirmed add a countdown on the frontpage and also update everything related: Day 1: 27th of January; Day 2: 28th of January. Also publish and push all the updates after.” The year is **2027**, from the current MSRC 2027 edition context.
+- **Approved values:** `2027-01-27` for Day 1 and `2027-01-28` for Day 2, displayed bilingually in the event's Asia/Riyadh timezone. Public calendar-date copy and a homepage countdown are authorized.
+- **Superseded:** Only the exact-event-date TBD in SCP-01/CFG-01 and the former source-proposal-only treatment of S3 page 15. The original Development Specification v0.5, Main File and historical engineering/task notes stay unchanged as dated evidence. Historical null-date statements describe their earlier snapshots and are superseded for current configuration by this entry.
+- **Countdown convention:** Show calendar days until Day 1 using the current Asia/Riyadh calendar date and date-only typed configuration. Do not invent a doors opening or first-session instant to produce an hours/minutes/seconds clock. Use honest Day 1, Day 2 and finished display states once the corresponding calendar dates arrive; never show negative countdown values. No application cutoff or operational workflow transition follows from this public display.
+- **Affected requirements and work:** SCP-01, CFG-01, CMS-01, TIM-01, LOC-01/03, ACC-01 and DSN-01; typed event configuration, English/Arabic Home/About/date notices, countdown boundary/localization/accessibility tests, project brief, current requirements and DR-CFG-01. No migration, grant, RLS or email change is required for public date copy. CMS editing remains closed.
+- **Release boundary:** The user authorizes pushing/publishing the reviewed date/interface changes. This date decision does not settle venue, schedule times, admission capacity, prices, registration/submission/workshop windows, payment integration, media rights/consent, final brand or unrelated approvals. Every operational workflow remains closed behind its existing gate; REL-01 and the remaining CFG packets retain their independent requirements.
+- **Audit/email and rollback:** This versioned decision record is the change evidence; no participant email or operational mutation follows from it. A rollback can restore the prior public UI/configuration without deleting this confirmed decision or changing stored participant data.
+
+Implementation and executed verification are recorded in [PROGRESS.md](PROGRESS.md) by the date-countdown slice.
+
+## 21. ORG-002 — Public use of the reviewed MSRC2026 homepage montage, 1 October 2026
+
+**Status: PUBLIC HOMEPAGE USE AUTHORIZED; push/deployment and live verification pending.**
+
+Authority: the project requester's explicit approval in the current chat on 1 October
+2026 of the reviewed **18.7-second MSRC2026 montage**, including the people and research
+posters shown, for public homepage use. The requester also explicitly authorized pushing
+and publishing the current updates. This is the supplied organizer approval evidence;
+no independent legal/institutional review or named media custodian is inferred.
+
+- Approved placement: the decorative English/Arabic homepage hero, with a visible
+  **MSRC2026 previous-edition** caption. The approval covers this reviewed cut, desktop
+  and mobile crops and their still-image fallbacks; it does not approve the entire Drive
+  collection, a gallery, new footage, new crops or 2027 participation claims.
+- Supersession: ENG-008 and the initial Brand/film feature note correctly recorded local
+  review only. Their earlier no-publication status is superseded for these four approved
+  derivatives by this later explicit decision. Preserve their historical commands,
+  results and source records. Other media, final marks, branding, translations, privacy
+  procedures and REL-01 evidence retain their independent requirements.
+- Public derivative paths: `public/media/msrc2026/hero-desktop-v1.mp4`,
+  `hero-mobile-v1.mp4`, `poster-desktop-v1.jpg` and `poster-mobile-v1.jpg`.
+  Publish the compressed silent derivative files only, retaining their reviewed encoding
+  and crops; no third-party embed or audio track. Pause/resume, reduced-motion,
+  low-bandwidth, failure and responsive still modes remain required.
+- Original protection: the Drive item and ignored read-only source copy remain unchanged
+  and are never public assets. Original SHA256 is
+  `2b2b82e05c11e0eeeacfef60efed222f1cfba439003e210b9c521202ea90372c`.
+  Private manifests and encoding recipes are not copied into `public/`.
+- Keep `/en/hero-preview`, `/ar/hero-preview` and `/api/preview-media/*` development-only.
+  Their production404 boundary remains intact after public derivative approval.
+  `LOCAL_MEDIA_PREVIEW_ENABLED` is not a production publication switch.
+- Affected IDs: MED-01/02/03/04, DSN-01/02, LOC-01/03, ACC-01, CMS-02/04, CFG-12,
+  INF-04/05, REL-01. This versioned record is the approval audit reference; no participant
+  email, database/storage mutation, grant/RLS change or operational publication follows.
+  CMS editing and all 15 operational workflow flags remain closed.
+- Verification/release: technical verification and actual GitHub/Vercel/live results belong
+  in the current feature record and PROGRESS. Authorization is not evidence that a push or
+  deployment has already completed, nor a blanket REL-01 or institutional brand sign-off.
+- Withdrawal/rollback: the scoped app change can restore the synthetic hero or prior
+  deployment and remove public derivative references. Removing the local-review flag
+  closes only local review, not the approved public hero. Handle controlled derivative
+  unpublication/cache invalidation when required; no promise to erase third-party copies.
+  Named removal, retention and backup responsibilities remain to be assigned.
+
+See [MEDIA_REGISTER.md](MEDIA_REGISTER.md) for the per-asset reconciliation. The original
+v0.5 and earlier source snapshots stay unchanged.

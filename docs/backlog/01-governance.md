@@ -29,7 +29,7 @@ Planning only; decisions require recorded evidence, not a developer's inference.
 
 ## BL-GOV-02 — Record organizational custody and authorized release owners
 - **Source IDs:** INF-03, ROL-10, CFG-11, REL-01.
-- **Status:** Planned — current local repository has no organizational remote.
+- **Status:** Partial — authorized private personal GitHub repository exists; institutional organizational custody, named owners and release authority remain unverified (1 October 2026 audit).
 - **Purpose:** Give the conference durable ownership beyond a developer or annual committee.
 - **Scope:** Record institutional authorization, primary/backup custodians for repository/domain/providers/billing/recovery, support/incident owners, exactly three website Super Admin identities and release approvers.
 - **Exclusions:** Treating infrastructure custody as a website role; provisioning paid resources; publishing personal recovery details.
@@ -52,7 +52,7 @@ Planning only; decisions require recorded evidence, not a developer's inference.
 
 ## BL-GOV-03 — Establish evidence-based release approval packets
 - **Source IDs:** REL-01, REL-02, REL-03, REL-04, REL-05, REL-06, SCP-07.
-- **Status:** Partial — release checklist exists; no live release approved.
+- **Status:** Partial — release checklist exists and the public draft is deployed; the complete REL-01 approval/evidence packet remains outstanding (1 October 2026 audit).
 - **Purpose:** Release each usable workflow only after its own business, privacy and operational evidence passes.
 - **Scope:** One reusable release packet with source IDs, code/configuration versions, test evidence, open gates, rollback/recovery, runbook and named sign-off; apply separately to public, research, registration, competitions, event and certificate releases.
 - **Exclusions:** One global approval opening every workflow; postponing attendance/privacy design until certificate UI work.

@@ -15,7 +15,8 @@ Akram Awan is the project requester and has identified his role in conversation 
 | Edition | Fifth MSRC, 2027, KAU, Jeddah | Conference context |
 | Domain | `msrc2027.com` | Purchase reported by user; current DNS, renewal, and account control not inspected |
 | Event length | Two-day conference | Product baseline |
-| Date and venue | Main File proposes 27-28 January 2027 and two venue options | Final dates/venue remain CFG-01; do not publish as confirmed |
+| Event dates | Day 1: 27 January 2027; Day 2: 28 January 2027 | Confirmed by the project requester in the current chat on 1 October 2026; see ORG-001 in DECISIONS |
+| Venue and schedule | Venue, rooms, doors/session start times and workflow windows remain unset | Remaining CFG-01 and track-specific gates; date confirmation does not approve these values |
 | Ownership | MSRC/RPClub organizational accounts with institutional authorization, O1 | Selected model; custodians/authorization evidence pending |
 | Hosting and data | Managed Vercel plus managed Supabase | Selected; actual projects/plans/regions/access not verified |
 | Payments | Authorized KAU arrangement, P1 | Selected route; actual interface and finance rules pending |

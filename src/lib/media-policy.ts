@@ -1,9 +1,15 @@
 // DSN-01 / MED-01/04: enhancement is optional; the poster is always available.
-export type ApprovedHeroVideo = {
+type HeroVideoSources = {
   src: string;
   poster: string;
+  mobileSrc?: string;
+  mobilePoster?: string;
+};
+export type ApprovedHeroVideo = HeroVideoSources & {
   approval: "approved";
 };
+export type PreviewHeroVideo = HeroVideoSources & { approval: "preview" };
+export type HeroVideo = ApprovedHeroVideo | PreviewHeroVideo;
 
 export type MediaPreferences = {
   hydrated: boolean;
@@ -11,6 +17,7 @@ export type MediaPreferences = {
   saveData: boolean;
   effectiveType: string | undefined;
   visible: boolean;
+  smallScreen?: boolean;
 };
 
 export const defaultHeroPoster = "/brand/hero-poster.svg";
@@ -27,8 +34,20 @@ export function hasApprovedVideo(video: ApprovedHeroVideo | null | undefined): v
   return Boolean(
     video?.approval === "approved" &&
     isLocalAsset(video.src) && /\.(mp4|webm)$/i.test(video.src) &&
-    isLocalPoster(video.poster),
+    isLocalPoster(video.poster) &&
+    (!video.mobileSrc || (isLocalAsset(video.mobileSrc) && /\.(mp4|webm)$/i.test(video.mobileSrc))) &&
+    (!video.mobilePoster || isLocalPoster(video.mobilePoster)),
   );
+}
+
+/** A review cut never qualifies as published media. Its server routes are dev-only. */
+export function hasRenderableVideo(video: HeroVideo | null | undefined, allowPreview = false): video is HeroVideo {
+  if (video?.approval === "approved") return hasApprovedVideo(video);
+  return Boolean(allowPreview && video?.approval === "preview" &&
+    video.src === "/api/preview-media/desktop.mp4" &&
+    video.poster === "/api/preview-media/poster-desktop.jpg" &&
+    video.mobileSrc === "/api/preview-media/mobile.mp4" &&
+    video.mobilePoster === "/api/preview-media/poster-mobile.jpg");
 }
 
 export function shouldLoadHeroVideo(preferences: MediaPreferences): boolean {

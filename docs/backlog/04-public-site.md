@@ -2,11 +2,13 @@
 
 All pages are browseable without login. Publish approved information only; a preview is not public launch approval.
 
+Current implementation and deployment evidence is in the [1 October 2026 checklist audit](../reviews/checklist-audit-2026-10-01.md); the full public sitemap is still incomplete.
+
 <a id="bl-pub-01"></a>
 
 ## BL-PUB-01 — Preserve homepage and bilingual About preview evidence
 - **Source IDs:** SCP-01, SCP-02, DSN-01, LOC-01, ACC-01, CFG-12.
-- **Status:** Complete locally — homepage 8f6d020; reviewed M2 and About f4bfcbc.
+- **Status:** Preview implemented, merged and deployed at 9e018ae — fresh English/Arabic Home and About HTTP checks returned 200; approved final bilingual copy remains outstanding.
 - **Purpose:** Introduce the conference honestly before operational workflows open.
 - **Scope:** Existing hero, introduction, participation pathways, program preview, previous-edition context and source-derived About content; obtain copy approval and apply only approved corrections.
 - **Exclusions:** Invented dates, sponsors, roster names, capacity, active registration or cleared-media claims.
@@ -23,7 +25,7 @@ All pages are browseable without login. Publish approved information only; a pre
 - **Manual UAT:** Content owner reads both pages in both languages at desktop/mobile widths.
 - **Release gate:** M3 preview achieved; REL-01 public approval remains open.
 - **Owner type:** Content/UI engineer with bilingual editor.
-- **TBD blocked:** Final publication yes — DR-CFG-12; existing local preview remains available.
+- **TBD blocked:** Final content approval yes — DR-CFG-12; the existing deployed draft is not evidence that REL-01 is complete.
 
 <a id="bl-pub-02"></a>
 

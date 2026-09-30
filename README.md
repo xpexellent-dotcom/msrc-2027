@@ -2,7 +2,7 @@
 
 **Development handoff v1.0 | Prepared 29 September 2026 | Event timezone: Asia/Riyadh**
 
-This folder contains the M1 foundation, M2 shared design system and M3 homepage/About previews alongside the original handoff. The English/Arabic preview runs without credentials or a database. Dates, venue and operational workflows remain unpublished or closed; the working brand and draft copy still need approval.
+This folder contains the M1 foundation, M2 shared design system and M3 homepage/About alongside the original handoff. English/Arabic pages run without credentials or a database. Confirmed dates are 27–28 January 2027 (ORG-001); venue and operational workflows remain unset or closed. The user approved the reviewed MSRC2026 homepage montage (ORG-002) and authorized pushing/publishing; current deployment evidence is in [PROGRESS](docs/PROGRESS.md). Final institutional brand and full bilingual draft-copy approval remain separate.
 
 ## Run locally
 
@@ -36,9 +36,44 @@ forms, dialogs, persistent dismissible toasts, table/pagination states, content 
 and shared navigation. File selection is an in-memory filename demo; no file is read or
 uploaded. See [M2 component inventory and verification](docs/features/m2-components.md).
 
-The homepage uses original static artwork. Only the design-system route uses the small,
-silent synthetic motion fixture to demonstrate playback and fallback controls. Fonts are
-self-hosted; there are no third-party embeds or external font requests.
+The public homepage is configured to use the approved 18.7-second silent MSRC2026 montage
+with desktop/mobile crops and still fallbacks. Its caption identifies the previous edition;
+pause/resume, reduced-motion and low-bandwidth/error still modes remain available. The four
+versioned display files live in `public/media/msrc2026/`; the original is not public. The
+design-system route uses a small synthetic motion fixture. Fonts are self-hosted; there
+are no third-party embeds or external font requests. Publication is authorized; do not
+assume a completed deployment without the evidence in [PROGRESS](docs/PROGRESS.md).
+
+### Private montage review on this computer
+
+The reviewed MSRC2026 montage has an 18.7-second desktop/mobile candidate and still posters
+in the ignored `.tools/media/msrc2026-preview` folder. The original is unchanged. With
+those four derivatives present, use this development-only preview:
+
+```powershell
+. ./scripts/use-local-node.ps1
+$env:LOCAL_MEDIA_PREVIEW_ENABLED = 'true'
+pnpm dev --port 3300
+```
+
+Open [English film preview](http://127.0.0.1:3300/en/hero-preview) or
+[Arabic film preview](http://127.0.0.1:3300/ar/hero-preview). Public `/en` and `/ar` keep
+the approved public montage independently of this local flag. `hero-preview` and its four
+private media endpoints always return404 outside development, even with the local flag
+enabled; they also return404 when the ignored review files are absent. The public app uses
+only the four approved display derivatives committed under `public/media/msrc2026/`; the
+unchanged original, private manifest and recipe remain ignored. A clean clone can run the
+public homepage without the private source/review files. Stop with Ctrl+C and remove the
+flag with `Remove-Item Env:LOCAL_MEDIA_PREVIEW_ENABLED` when finished; this flag controls
+local review only, not approved public playback.
+
+The English/Arabic interface now includes directional button feedback and optional native
+section settling on large screens. Choose “Free scrolling” to disable settling; reduced
+motion disables it automatically. See [scope, complete file list, media recipe and
+verification](docs/features/brand-motion-media-preview.md). The current montage has explicit
+requester approval, including the people and posters shown; see [its approval record](docs/MEDIA_REGISTER.md#9-approved-public-homepage-derivative-set--1-october-2026).
+Other media, official brand inputs, full EN/AR copy approval and broader REL-01 evidence
+remain pending. All 15 operational workflows stay disabled.
 
 On this Windows machine, a checksum-verified portable Node is already in the ignored
 `.tools/node` directory. From the project root, run:

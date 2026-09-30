@@ -38,9 +38,10 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator('a[href*="register"], a[href*="payment"], a[href*="admin"], a[href*="submit"]')).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     expect(response?.headers()["x-robots-tag"]).toContain("noindex");
-    // CFG-01/02, MED-01: no tentative dates or unapproved embedded footage.
-    await expect(page.locator("iframe, video, [data-countdown]")).toHaveCount(0);
-    await expect(page.getByRole("main")).not.toContainText(/27\s*[-–]\s*28\s*January|٢٧\s*[-–]\s*٢٨\s*يناير/i);
+    // ORG-001/002: explicit date and montage approval does not open operations.
+    await expect(page.locator("iframe")).toHaveCount(0);
+    await expect(page.locator("[data-countdown]")).toHaveCount(1);
+    await expect(page.locator(".event-strip")).toContainText(locale === "en" ? /27\D+28 January 2027/ : /٢٧\D+٢٨ يناير ٢٠٢٧/);
     const missingAnchors = await page.locator('a[href*="#"]').evaluateAll((links) => links
       .map((link) => new URL((link as HTMLAnchorElement).href).hash.slice(1))
       .filter((id) => id && !document.getElementById(decodeURIComponent(id))));
@@ -107,7 +108,7 @@ test("shared links carry a working preview image and language alternates", async
 });
 
 test("public pages pass axe best-practice rules, including landmark coverage", async ({ page }) => {
-  for (const path of ["/en", "/ar", "/en/about", "/ar/about"]) {
+  for (const path of ["/en", "/ar", "/en/about", "/ar/about", "/en/dates-venue", "/ar/dates-venue"]) {
     await page.goto(path);
     const results = await new AxeBuilder({ page }).withTags(["best-practice"]).analyze();
     expect(results.violations.map((violation) => `${path} ${violation.id}`)).toEqual([]);

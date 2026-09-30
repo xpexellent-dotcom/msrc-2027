@@ -7,7 +7,7 @@ Feature PRs retain their own unit, authorization, database and failure tests. Th
 ## BL-TST-01 — Make the acceptance inventory executable
 
 - **Source IDs:** AT-01, AT-02, AT-12, REL-06, SEC-02, ROL-12, AUTH-01, AUTH-04.
-- **Status:** Partial foundation: local unit/browser suites and CI definition exist; operational identity/policy cases pending, database execution blocked by absent container runtime on inspected host.
+- **Status:** Partial foundation: application and isolated database jobs passed in PR CI 36734074148 at 9e018ae; operational identity/policy cases remain pending and optional Windows database replay is unverified.
 - **Purpose:** Show which requirement has executed evidence and which remains blocked or untested.
 - **Scope:** Map each AT requirement to its owning feature tests and artifact; add one verified/unverified/privileged-MFA journey and reusable role/edition/assignment fixtures as authentication becomes available.
 - **Exclusions:** Rebuilding existing local smoke tests; declaring all AT requirements passed from one journey; production test data.

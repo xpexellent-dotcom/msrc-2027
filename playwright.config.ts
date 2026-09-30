@@ -18,7 +18,7 @@ export default defineConfig({
     { name: "chromium-desktop", use: { ...devices["Desktop Chrome"] } },
     {
       name: "chromium-tablet",
-      testMatch: ["public-shell.spec.ts", "about.spec.ts"],
+      testMatch: ["public-shell.spec.ts", "about.spec.ts", "dates-venue.spec.ts", "countdown.spec.ts"],
       use: { ...devices["Desktop Chrome"], viewport: { width: 791, height: 1000 } },
     },
     { name: "chromium-mobile", use: { ...devices["Pixel 7"] } },
@@ -31,6 +31,8 @@ export default defineConfig({
     timeout: 60_000,
     // This local production-build process explicitly enables the synthetic
     // showcase. The deployment-production guard is covered separately.
-    env: { DESIGN_PREVIEW_ENABLED: "true", VERCEL_ENV: "preview" },
+    // Unpublished real-media routes must stay closed in a production build,
+    // even when an operator mistakenly leaves the local-review flag enabled.
+    env: { DESIGN_PREVIEW_ENABLED: "true", LOCAL_MEDIA_PREVIEW_ENABLED: "true", VERCEL_ENV: "preview" },
   },
 });

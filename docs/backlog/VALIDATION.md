@@ -46,3 +46,27 @@ Confirmed/default/TBD treatment, blinded evidence access, separate human/AI/deci
 - No new organizer decision was approved. Source snapshots and existing application files were preserved.
 
 Next work and documentation-only rollback are in the [backlog index](README.md).
+
+## Status reconciliation verification — 1 October 2026
+
+The [checklist audit](../reviews/checklist-audit-2026-10-01.md) reconciles current repository,
+CI and deployment evidence. The 29 September results above remain historical; in particular,
+their Docker/remote limitations do not describe the later successful isolated Linux CI.
+This update changes status and next-work notes, not issue scope, source rules or release gates.
+
+- **PASS:** 24 epic files, 152 implementation issues, 13 decision packets and 165 unique
+  issue-index rows; every issue retains its title and 19 nonempty required metadata fields.
+- **PASS:** all 212 unique v0.5 IDs retain coverage; all 199 non-CFG IDs have implementation
+  mappings; referenced source/issue IDs resolve; all 13 CFG paragraphs remain verbatim.
+- **PASS:** regenerated ISSUE_INDEX matches every issue's title, file and indexed metadata;
+  SOURCE_COVERAGE is unchanged. Relative file/anchor checks resolve, including the audit report.
+- **PASS:** scoped Git whitespace check and diff inspection. Historical evidence was retained.
+- **NOT RUN:** local lint/typecheck/unit/build/E2E/database suites for these documentation-only
+  edits. Inspected remote CI and historical QA results are distinguished in the audit report.
+
+Commands executed: inline PowerShell `Get-ChildItem`, `Get-Content`, regular-expression
+issue/field/source/link/anchor parsing, `Test-Path`, `Import-Csv` and `ConvertTo-Csv`, followed
+by `git diff --check -- docs/backlog` and scoped diff review. The first link check reported
+five references to the audit report while that parallel document was still being written;
+the check was repeated after it was saved and returned no errors. No application, migration,
+environment or service change was made by this backlog reconciliation.

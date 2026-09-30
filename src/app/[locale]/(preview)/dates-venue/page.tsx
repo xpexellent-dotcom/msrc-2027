@@ -1,0 +1,101 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ButtonLink } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
+import { Link } from "@/components/ui/link";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { conferenceConfig } from "@/config/conference";
+import { datesVenueCopy } from "@/content/dates-venue";
+import { formatConferenceDate, formatConferenceDateRange } from "@/lib/conference-dates";
+import { isLocale } from "@/lib/i18n";
+import { localizedPageMetadata } from "@/lib/metadata";
+
+type DatesVenuePageProps = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: DatesVenuePageProps): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const copy = datesVenueCopy[locale];
+  const description = `${conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}. ` : ""}${copy.metadataDescription}`;
+  return {
+    ...localizedPageMetadata(locale, "/dates-venue", copy.metadataTitle, description),
+    title: copy.metadataTitle,
+    description,
+    robots: { index: false, follow: false },
+  };
+}
+
+export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const copy = datesVenueCopy[locale];
+  const dates = conferenceConfig.dates;
+
+  return (
+    <>
+      <section className="dates-hero" aria-labelledby="dates-page-title">
+        <Container>
+          <nav aria-label={copy.breadcrumb} className="about-breadcrumb">
+            <ol>
+              <li><Link href={`/${locale}`}>{copy.home}</Link></li>
+              <li><span aria-hidden="true">/</span><span aria-current="page">{copy.page}</span></li>
+            </ol>
+          </nav>
+          <div className="dates-hero-grid">
+            <div>
+              <p className="eyebrow"><span className="eyebrow-rule" aria-hidden="true" />{copy.eyebrow}</p>
+              <h1 id="dates-page-title">{copy.title}</h1>
+              <p className="dates-lead">{copy.lead}</p>
+            </div>
+            <div className="dates-calendar" aria-labelledby="confirmed-days-title">
+              <h2 id="confirmed-days-title" className="sr-only">{copy.datesHeading}</h2>
+              {dates ? (
+                <>
+                  <StatusBadge tone="success">{copy.confirmed}</StatusBadge>
+                  <ol className="dates-day-list">
+                    {[{ label: copy.day1, date: dates.day1 }, { label: copy.day2, date: dates.day2 }].map((day) => (
+                      <li key={day.date}>
+                        <span>{day.label}</span>
+                        <time dateTime={day.date}>{formatConferenceDate(day.date, locale)}</time>
+                      </li>
+                    ))}
+                  </ol>
+                </>
+              ) : <p>{copy.datesPending}</p>}
+              <p className="dates-note">{copy.dateNote}</p>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      <section id="venue" tabIndex={-1} className="editorial-section dates-location" aria-labelledby="venue-title">
+        <Container className="dates-content-grid">
+          <div>
+            <SectionHeading eyebrow={copy.locationEyebrow} title={copy.locationTitle} id="venue-title" />
+            <p className="dates-body">{copy.locationBody}</p>
+          </div>
+          <dl className="dates-location-details">
+            <div><dt>{copy.city}</dt><dd>{copy.cityValue}</dd></div>
+            <div><dt>{copy.host}</dt><dd>{copy.hostValue}</dd></div>
+            <div><dt>{copy.venue}</dt><dd>{conferenceConfig.venue ?? copy.venuePending}</dd></div>
+          </dl>
+        </Container>
+      </section>
+
+      <section id="schedule" tabIndex={-1} className="editorial-section dates-schedule" aria-labelledby="schedule-title">
+        <Container className="dates-content-grid">
+          <SectionHeading eyebrow={copy.scheduleEyebrow} title={copy.scheduleTitle} id="schedule-title" />
+          <div>
+            <p className="dates-body">{copy.scheduleBody}</p>
+            <ButtonLink href={`/${locale}/#program`} className="dates-program-link" variant="secondary">{copy.program}</ButtonLink>
+            <div className="dates-closed-note">
+              <StatusBadge tone="neutral">{copy.closed}</StatusBadge>
+              <p>{copy.closedNote}</p>
+            </div>
+          </div>
+        </Container>
+      </section>
+    </>
+  );
+}

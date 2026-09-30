@@ -1,6 +1,6 @@
 # Progress and session handover
 
-**Snapshot: 30 September 2026. Update this file after each development task.**
+**Snapshot: 1 October 2026. Update this file after each development task.**
 
 ## Current evidence
 
@@ -11,14 +11,14 @@
 | Updated Hackathon Draft | Read and reconciled; options and conflicts preserved |
 | Brand guide and previous starter pack | Reviewed; recommendations distinguished from approvals |
 | Original Canva brand reference sheet | Text read; palette and English font names corroborated, final brand approval still pending |
-| 2026 media folder | Readable metadata inspected; no footage downloaded or rights cleared |
+| 2026 media | User approved the reviewed18.7-second MSRC2026 homepage cut, including people/posters, on1October (ORG-002). Four public derivatives exactly match the review files; both videos fully decode; original hash unchanged. Publication verification pending. Other gallery/brand assets remain open. |
 | Codex handoff documents and prompts | Prepared in this package |
-| Domain purchase | Reported in project conversation; current account/DNS/renewal not inspected |
-| Git / application code | User-authorized private repository xpexellent-dotcom/msrc-2027 created; original five-commit history pushed, origin configured. Institutional production custody remains pending. |
+| Domain / HTTPS | Fresh checks: www CNAME matches Vercel; HTTPS EN/AR Home/About return 200; HTTP/HTTPS apex resolve to https://www.msrc2027.com/en. Account custody/renewals remain unverified. |
+| Git / application code | Fresh origin/main remains9e018ae; current codex/confirmed-dates-homepage preserves prior Brand/audit/backlog work and adds approved dates/countdown/media. Push/PR/deployment authorized and pending execution. Custody/required-check enforcement remain separate follow-up items. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed; optional PC fixture tests still require restart/first launch. User now selected direct hosted access for normal work (ENG-006). |
-| Vercel/Supabase projects / production secrets | Existing hosted Supabase `msrc` selected by user and connected using its publishable key only. Public schema/migrations empty; no hosted mutation. Vercel not provisioned; no privileged credentials used. |
-| Tests / CI / preview / production deployment | M2 local and GitHub checks PASS: lint/types/build, 181 unit tests, 90 browser cases. Workflow36632458600 passed application and isolated database jobs including20 pgTAP/10 integration/advisors/types. Local preview available; optional Windows engine untested; no remote deployment. |
+| Vercel/Supabase projects / production secrets | GitHub records successful Vercel Production deployment6762942669 of 9e018ae; live draft reachable. Vercel connector scope access returned403, so full settings not verified. Hosted Supabase connection/empty schema were observed29 September, NOT refreshed today. No secrets inspected or service settings changed. |
+| Tests / CI / preview / production deployment | Current date/media slice: pnpm check PASS (lint, type-check,232 unit tests, production build); final157/157 Chromium desktop/tablet/mobile cases PASS in1.7minutes. Seven production-gated/original paths return404 with preview flags set. Remote CI/deployment pending. Prior Brand213/112/media checks and prior database CI remain historical until the current run is verified. |
 | KAU collection access / email sender | Not verified |
 | Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
@@ -27,9 +27,9 @@
 | Milestone | Requirements/planning | Implementation | Release |
 |---|---|---|---|
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
-| M1 Foundation | ENG-001/004/005/006 adopted; relevant source IDs retained | Hosted connection configured/verified; synthetic Linux database CI retained. Windows local stack optional and untested | Connection foundation only; operational and production release gates remain closed |
-| M2 Design system | ENG-007 selects the requested palette/fonts/motion for implementation | Full requested component inventory and bilingual showcase implemented; local verification recorded below | Local/protected-staging preview only; final content/media/human accessibility review pending |
-| M3 Public alpha | Full sitemap retained in typed content | Homepage and bilingual About previews implemented; remaining standalone public pages pending | Public launch not approved |
+| M1 Foundation | ENG-001/004/005/006 adopted; relevant source IDs retained | Foundation and isolated Linux database CI verified; Windows local stack optional and untested | Deployed foundation does not open operational or institutional approval gates |
+| M2 Design system | ENG-007 palette/fonts/motion retained; ENG-008 provisional polish | Full component inventory/showcase plus local directional-button, EN/AR reading/reflow and optional native-section refinement verified | Final official brand/human reviews pending. Production showcase remains closed; remote protection evidence unchanged |
+| M3 Public alpha | Full15-destination sitemap retained; ORG-001 confirms27/28January2027 | Home/About now show dates; read-only Riyadh countdown and standalone EN/AR Dates & Venue page implemented; approved18.7-second previous-edition film integrated | Public use and deployment authorized; actual release verification pending. Final brand/copy and broader REL-01 remain open;15 operational gates closed |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
 | M5 Participant auth | Requirements defined | Not verified | Pending |
 | M6 Abstract/review | Detailed baseline; configuration gates remain | Not verified | Pending |
@@ -43,10 +43,27 @@ Do not convert this table to percentage completion without observable evidence. 
 
 ## Next task
 
-Next smallest PR: select a bounded set of MSRC2026 candidate assets from the reconfirmed
-Drive source, record source IDs, intended hero/highlight/gallery/poster placements, captions
-and rights/consent evidence, then propose compressed derivatives for review. Do not publish
-unreviewed footage. Bilingual homepage/About editorial approval also remains open.
+M3 can continue now. Do not rebuild M1/M2/About or wait for optional Windows Docker.
+The [checklist audit](reviews/checklist-audit-2026-10-01.md) records current source,
+deployment, evidence gaps and the sequence agreed by the existing roadmap.
+
+The user confirmed27–28January2027 and approved this18.7-second MSRC2026 montage,
+including people/posters shown, then authorized pushing/publishing all updates. ORG-001/002
+record the exact authority. The Dates & Venue slice is implemented with venue/time details
+still pending. Finish current CI/deployment checks, then apply forthcoming official brand
+inputs and approved bilingual copy. Gallery selections remain separate.
+
+Next smallest content PR: approved contact/privacy/terms details and remaining public
+informational routes, after receiving the responsible owners' wording. The
+[BL-SEC-01](backlog/21-privacy-security.md#bl-sec-01) can proceed independently with
+synthetic actors; M4 must establish staff grants/MFA before exposing CMS writes.
+
+Before calling the existing draft an approved public release, resolve the public-draft
+boundary, record approved copy/contact/privacy/terms, finish relevant human UAT, assign
+custody/release/support owners and verify monitoring/recovery. Follow up the cancelled main
+workflow, merge-check enforcement and stale PR2 as separate governance work. The current
+user explicitly authorizes this release; no operational workflow opening follows from it.
+Venue, start times, deadlines, prices and capacities remain gated.
 
 Use the selected hosted Supabase connection for normal development. Windows Docker setup
 is optional for PC fixture tests; GitHub retains isolated synthetic database verification.
@@ -56,6 +73,117 @@ of the local synthetic fixture. All operational gates remain closed. See
 [database/CI verification](reviews/m1-database-ci.md) for earlier local-stack results.
 The [implementation backlog](backlog/README.md), DR-CFG-11 ownership and DR-CFG-12
 content/brand decisions remain available for later work; no decision was silently resolved.
+
+## 1 October 2026 — Confirmed dates, countdown and authorized publication
+
+Scope: publish the previously reviewed Brand/interface polish and approved MSRC2026 film,
+set Day1 to27January2027 and Day2 to28January2027, add a homepage calendar-days countdown,
+and reconcile Home/About/Dates/metadata, decisions and checklist. See
+[feature contract](features/confirmed-dates-publication.md) for files, acceptance and rollback.
+Source IDs include SCP-01/02, CFG-01/12, TIM-01, LOC-01/03, ACC-01, MED-01–04 and REL-01.
+
+Dates remain date-only; no opening/session instant is invented. Current Riyadh calendar
+determines before/Day1/Day2/after states and midnight refresh. Cached HTML contains static
+dates; no-JS browsing remains readable. The new Dates & Venue page explicitly preserves
+unknown venue/rooms/times. Home/About metadata and preview image share typed date values.
+
+Only four approved media derivatives are public; source/recipe remain ignored/private.
+Pause, inline muted playback, mobile crop, poster and motion/network/error fallbacks remain.
+All15 operational flags stayfalse; no migration, data write, RLS/grant, hosted secret,
+environment, DNS or real communication changes. Final brand/REL-01 decisions are separate.
+
+First browser pass found a reproduced English ICU hydration mismatch and no-JS static
+content hidden by streamed loading UI. Server-formatted date props and a loading boundary
+scoped to the interactive showcase fix these; a layout guard preserves actual production404.
+Normalized anchor selector and media-opacity timing assertions were repaired without
+weakening expected outcomes. Initial suite stopped after74 tests; no full pass was claimed.
+
+Executed: final pnpm check PASS (232 unit tests, lint, types, build); pnpm test:e2e PASS
+(157/157 Chromium desktop/tablet/mobile,1.7minutes), including date boundaries/no-JS,
+actual public film/preferences/failure and all closed-workflow regressions. Original/source-copy
+hash checks PASS; both public videos fully decode; seven production preview/original paths
+return404 with both flags set. Independent visual QA PASS:36 Home/About/Dates views across
+EN/AR,1440/390/320px and normal/200% text, plus six actual-film keyboard pause/focus checks;
+no console/page errors, overflow, glyph clipping or control/caption overlap. Reduced-motion
+still and production404 guards passed. Evidence: ignored deliverables/m3-confirmed-dates.
+Manual review found an enlarged Arabic skip-link/banner overlap missed by main-content
+geometry checks; hiding now follows the link's own height, with keyboard regression tests.
+Final157-case browser retest PASS, including the enlarged-text skip-link regression. Remote CI/database and release evidence remain pending. No hosted data changed.
+
+## 1 October 2026 — Brand/interface polish and private homepage film preview
+
+Scope: complete the currently unblocked Brand/interface checklist work, improve English/
+Arabic Home/About, refine button/section motion and prepare the user-supplied montage for
+review before publication. Official brand assets remain pending; ENG-007 defaults retained.
+No product workflow, database change, credential, dependency, hosted setting, deployment,
+DNS change or real communication. Earlier audit/backlog edits are preserved.
+
+Implemented: directional solid button fills and mirrored arrows/underlines, clearer
+reading widths/spacing, enlarged-text recovery, optional native proximity scrolling with
+free-scrolling/reduced-motion alternatives. Public Home/About retain synthetic artwork.
+
+Prepared:18.7-second MSRC2026 muted loop with auditorium/audience/research discussion,
+desktop1280×720 (2,762,552 B), mobile720×1280 (1,866,350 B) and JPEG still posters.
+Original is read-only/unchanged. Four derivatives are private and ignored; server-enforced
+development-only review pages and byte-range endpoints cannot serve footage in production
+even with their flag enabled. Pause freezes the frame; mobile controls use a flow slot.
+
+Actual final checks:
+- PASS: `pnpm check` — ESLint, route type generation/TypeScript,213 unit tests, build.
+- PASS: `pnpm test:e2e` with documented browser cache —112 Chromium desktop/tablet/mobile
+  tests, including actual production-build preview denial and all15 closed API gates.
+- PASS:25 independent actual-film checks for device source, pause/resume/focus, frozen
+  frame, reduced motion/low bandwidth/failure, exact ranges and denied original paths.
+- PASS:6 desktop/mobile EN/AR film views with zero Axe/console errors;30 views at200%
+  text and8 mobile control-flow checks; source hash, full decode, no audio and faststart.
+- PASS: `git diff --check`; original/derivatives ignored. Native checklist9 scoped patches
+  applied at sequence2, separating technical preparation from pending publication approval.
+- Earlier107/112 browser result exposed two real CSS defects and a computed-style test
+  expectation; fixed and full suite rerun. One cache-path setup attempt and concurrent
+  Turbopack HMR issue are recorded with recovery in the feature note.
+- NOT RUN: database suite, remote CI/Preview/deployment for this UI/read-only media slice.
+  Safari/Firefox, real-device/screen-reader UAT and final Arabic/brand/media review remain open.
+
+Review at [English](http://127.0.0.1:3300/en/hero-preview) or
+[Arabic](http://127.0.0.1:3300/ar/hero-preview), while the local server is running with
+`LOCAL_MEDIA_PREVIEW_ENABLED=true`. Blank documentation added to `.env.example`; no hosted
+environment changed. The Codex browser-open request was queued, so links are provided.
+See [complete file list, commands, evidence, manual setup and rollback](features/brand-motion-media-preview.md)
+and [media record](MEDIA_REGISTER.md#8-msrc2026-montage-local-review-candidate--1-october-2026).
+
+Release: LOCAL REVIEW READY, UNPUBLISHED. Next inputs: official brand, organizer preview
+review and per-asset clearance. Next code PR remains BL-PUB-02, honest bilingual Dates/Venue;
+BL-SEC-01 synthetic permission contract can proceed independently. No migration rollback
+is required; disable the local preview flag or revert only this slice's changes.
+
+## 1 October 2026 — Feature checklist audit and sequence reconciliation
+
+Audited and updated the user-linked [feature checklist](https://chatgpt.com/space/page_5962a54672888191869e3c6108c27678).
+Its previous no-application/no-deployment assessment came from a different inspected
+workspace and is superseded by current repository, CI and public HTTP/DNS evidence.
+Reconciled confirmed abstract/hackathon choices and the AI-03 default with v0.5; kept
+the separate AI prototype's20-test claim explicitly historical and outside this platform.
+
+Read all checklist blocks and open comments (none); inspected current code, source,
+decision and backlog records; independently checked24 epics/152 implementation issues/
+13 decision packets/212 source IDs. Read GitHub PRs, commit comparison, CI jobs and
+deployment receipts. Fast-forwarded the clean local checkout from706219d to existing
+remote9e018ae, preserving all eight newer commits and their QA notes. No implementation
+was authored by this audit. Full lint/type/unit/build/browser/database suites were not
+rerun; CI conclusions were read and live read-only smoke checks were executed.
+
+Fresh checks: four EN/AR Home/About responses200, three public design-system responses404,
+all15 operational GET endpoints503 WORKFLOW_CLOSED, robots disallow all, sitemap404,
+DNS CNAME matches Vercel and both apex protocols reach HTTPS www/en. One recorded Preview
+redirected an unauthenticated design-system request to Vercel login; authenticated content
+and full deployment settings remain unverified. Main-specific workflow was cancelled;
+successful PR CI covers the same source commit, not that cancelled run.
+
+Updated current progress, backlog status and the decision reconciliation note. Kept dated
+historical results intact. M3 media/editorial work and BL-PUB-02 are unblocked; public
+REL-01, CMS and all operational opening gates remain unmet. See the
+[audit record](reviews/checklist-audit-2026-10-01.md) for commands, findings, next tickets,
+scope and rollback. No reminders, production changes, secrets, emails or live data writes.
 
 ## 30 September 2026 — QA pass: Arabic polish, favicon, apex domain
 
@@ -100,6 +228,7 @@ Local Playwright screenshots of AR 1280/1100/390px and About were inspected, wit
 overflow or console errors. Arabic editorial approval is still required under CFG-12; these
 are draft improvements, not approved copy.
 
+## 30 September 2026 — Complete M2 component system
 
 Implemented the current requested inventory without adding operational modules: expanded
 tokens, shared Section/Link/ContentSplit/StatBlock/ProgramRow, extracted MobileNav/Footer,

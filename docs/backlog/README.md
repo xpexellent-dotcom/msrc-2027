@@ -1,6 +1,6 @@
 # MSRC 2027 implementation backlog
 
-**Planning snapshot: 29 September 2026. 152 implementation issues across 24 epics, plus 13 separate Decision Required packets. No application implementation is authorized by this backlog alone.**
+**Planning baseline: 29 September 2026; status reconciled 1 October 2026. 152 implementation issues across 24 epics, plus 13 separate Decision Required packets. No application implementation is authorized by this backlog alone.**
 
 Read [Development Specification v0.5](../../sources/Development_Specification_v0.5.txt), [master context](../../MSRC27_Codex_Context.md), [current decisions](../DECISIONS.md), [progress](../PROGRESS.md) and [roadmap](../ROADMAP.md) together. The master context preserves the original handoff; current Git/code/progress supersede its historical statement that no app existed. Explicit current organizer decisions govern, then the reconciled specification. Source proposals, estimates and old starter material never become approved product values.
 
@@ -52,17 +52,21 @@ No schema/migration filenames or new environment secrets are fabricated in advan
 
 ## Current evidence, not assumed completion
 
-- M1 exists locally (commit `0d2f728`); retain it. Prepared local Supabase SQL/20 pgTAP checks have not run on this host because a Docker-compatible runtime was unavailable. Hosted CI and cloud infrastructure are unverified.
-- M2/homepage exists locally (`8f6d020`); M2 review and bilingual About followed in `f4bfcbc`. Prior recorded checks: lint/typecheck/69 unit tests/build and 60 Chromium browser tests passed; 14 axe scans found zero violations with stated manual limitations. These checks were **not rerun for this documentation-only task**.
-- Existing static pages/showcase use synthetic or draft content. Brand, Arabic editorial review, rights-cleared footage, real-device/assistive-technology coverage and public release approval remain open.
-- Authentication, structured CMS and operational modules are planned, not established by this issue list. All operational flags remain closed; no real sender, payment integration, production deployment or repository remote is inferred.
+Current evidence is reconciled in the [1 October checklist audit](../reviews/checklist-audit-2026-10-01.md). Earlier dated validation and engineering records remain historical evidence.
+
+- The private [GitHub repository](https://github.com/xpexellent-dotcom/msrc-2027) exists; `main` was observed at `9e018ae`. PRs #1, #3 and #4 are merged. PR #2 remains open although its implementation is already in `main`; it is not a missing feature prerequisite.
+- M1 application and isolated local Supabase verification passed in [PR CI run 36734074148](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36734074148) at `9e018ae`, including both application and database jobs. The separate `main` run `36734737705` was cancelled, not passed. Windows Docker replay remains unverified and is optional for daily hosted development under ENG-006; Linux CI supplies the synthetic database evidence.
+- M2's complete shared component inventory and bilingual Home/About preview are implemented. Recorded QA reports 184 unit and 102 browser tests passing; these suites were **not rerun for this documentation audit**. Recorded WebKit public-page checks passed with keyboard/design-system failures or limitations still identified; Firefox, full assistive-technology and real-device coverage remain incomplete.
+- GitHub production deployment `6762942669` succeeded for `9e018ae`. Fresh HTTP checks found English/Arabic Home and About returning 200 on `www.msrc2027.com`; all three design-system routes returned 404. `robots.txt` returns a crawl-disallow policy, page response headers carry noindex, and `sitemap.xml` returns 404. Apex HTTP/HTTPS redirects reach `www.msrc2027.com/en`; the observed `www` CNAME matches `faa763cc393bee28.vercel-dns-017.com`. Serving the draft site does not satisfy the full REL-01 approval gate.
+- One recorded Preview (`8xk97f37l`) redirected an unauthenticated request to Vercel login. Authenticated showcase access was not tested. GitHub's branch API reports `main` with `protected=false`; this does not independently audit all rulesets, so required merge-check enforcement remains unverified. Organizational custody remains open. The Vercel connector returned 403, so project settings were not verified. Hosted Supabase health/schema was not refreshed in this audit.
+- The approved palette/fonts/motion are the ENG-007 implementation baseline. Final marks, bilingual editorial approval, rights-cleared media and public release evidence remain open under DR-CFG-12. Authentication, structured CMS, live email, payments and operational modules remain unimplemented/closed; this issue list and the successful deployment do not open them.
 
 ## Smallest next tasks and release order
 
-1. **Environment verification:** [BL-FND-02](02-foundation.md#bl-fnd-02) — make a Docker-compatible runtime available and run the prepared local database reset/permission suite. This is an environment blocker, not a missing business decision.
-2. **Independent security work:** [BL-SEC-01](21-privacy-security.md#bl-sec-01) — turn the documented role rules into a concrete permission contract and denied-access matrix using synthetic actors. Do not wait for final event dates to define authorization.
-3. **Optional bounded public continuation:** [BL-PUB-02](04-public-site.md#bl-pub-02) — build Dates and Venue's honest unpublished preview. Actual dates/venue remain gated; homepage/About copy approval is [DR-CFG-12](DECISION_REQUIRED.md#dr-cfg-12).
-4. Establish custody and named approval evidence through [BL-GOV-02](01-governance.md#bl-gov-02) and [DR-CFG-11](DECISION_REQUIRED.md#dr-cfg-11) before production, without blocking local synthetic work.
+1. **Begin M3 content preparation now:** shortlist the user-selected MSRC2026 media by source ID, proposed placement, rights/consent and caption; obtain bilingual Home/About copy approval through [DR-CFG-12](DECISION_REQUIRED.md#dr-cfg-12). Selection is not publication clearance. Existing safe static media remains in place until assets are approved.
+2. **Next bounded coding PR:** [BL-PUB-02](04-public-site.md#bl-pub-02) — Dates and Venue's honest unpublished preview. Actual dates/venue stay unset; missing decisions do not block this closed public-information slice.
+3. **Independent security work:** [BL-SEC-01](21-privacy-security.md#bl-sec-01) — turn the documented role rules into a concrete permission contract and denied-access matrix using synthetic actors. M4 staff grants, identity and MFA must precede CMS writes; M5 participant accounts do not defer that prerequisite.
+4. **Close release-governance gaps:** [BL-GOV-02](01-governance.md#bl-gov-02), [BL-DEP-02](23-deployment.md#bl-dep-02) and [DR-CFG-11](DECISION_REQUIRED.md#dr-cfg-11) cover custody, named release owners and protected required checks. Complete REL-01's copy/contact/privacy/terms, accessibility, monitoring and recovery evidence before treating the deployed draft as an approved informational release. Optional Windows database replay is not the next-work blocker.
 
 Choose one issue for the next coding task; this list is not an instruction to implement all four now. There are no invented calendar deadlines, effort estimates, priorities derived from business urgency, named assignees, prices or capacities.
 

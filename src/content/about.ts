@@ -13,6 +13,7 @@ type AboutCopy = {
   draftNote: string;
   edition: string;
   editionValue: string;
+  dates: string;
   host: string;
   hostValue: string;
   organizer: string;
@@ -54,6 +55,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     draftNote: "This introduction and its Arabic translation are awaiting editorial approval.",
     edition: "Edition",
     editionValue: "Fifth / 2027",
+    dates: "Conference dates",
     host: "Host institution",
     hostValue: "Faculty of Medicine, King Abdulaziz University",
     organizer: "Organizing club",
@@ -96,7 +98,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     program: "View the program overview",
     closed: "Not open yet",
     closedNote:
-      "Registration and applications remain closed. Confirmed dates, venue and participation details will be shared after approval.",
+      "Conference dates are confirmed. Registration and applications remain closed; venue and participation details will follow after approval.",
   },
   ar: {
     metadataTitle: "عن مؤتمر أبحاث طلاب الطب | معاينة MSRC 2027",
@@ -113,6 +115,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     draftNote: "هذا التعريف بالمؤتمر وصياغته باللغتين العربية والإنجليزية بانتظار المراجعة والاعتماد.",
     edition: "النسخة",
     editionValue: "الخامسة / ٢٠٢٧",
+    dates: "موعد المؤتمر",
     host: "الجهة المستضيفة",
     hostValue: "كلية الطب، جامعة الملك عبدالعزيز",
     organizer: "النادي المنظّم",
@@ -156,6 +159,6 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     program: "اطّلع على تصوّر البرنامج",
     closed: "لم تُفتح بعد",
     closedNote:
-      "لم يُفتح التسجيل أو تقديم الطلبات بعد. ستُنشر المواعيد والمقر وتفاصيل المشاركة المؤكدة بعد اعتمادها.",
+      "تم تأكيد موعد المؤتمر. لم يُفتح التسجيل أو تقديم الطلبات بعد؛ سيُعلَن المقر وتفاصيل المشاركة بعد اعتمادها.",
   },
 };

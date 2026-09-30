@@ -22,6 +22,9 @@
   --color-disabled-surface: #e8e3ec;
   --color-purple-hover: #4b2c80;
   --color-gold-hover: #d6b566;
+  --color-surface-lilac: #efeaf3;
+  --color-surface-warm: #efeadf;
+  --color-inverse-line: #dccff033;
   --muted: var(--color-muted);
   --line: var(--color-line);
   --font-heading: var(--font-dm-sans), Arial, sans-serif;
@@ -30,7 +33,7 @@
   --font-arabic: var(--font-noto-arabic), Tahoma, Arial, sans-serif;
   --text-caption: 0.875rem;
   --text-body: 1rem;
-  --text-lead: 1.125rem;
+  --text-lead: clamp(1.0625rem, 1.4vw, 1.1875rem);
   --text-title: clamp(2.2rem, 4vw, 3.5rem);
   --text-display: clamp(2.6rem, 6vw, 5.2rem);
   --leading-body: 1.65;
@@ -62,12 +65,25 @@
   --motion-feedback: 180ms;
   --motion-reveal: 400ms;
   --motion-easing: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --motion-slide-easing: cubic-bezier(0.22, 0.68, 0.3, 1);
+  --motion-inline-direction: 1;
+  --motion-fill-start: -101%;
   --motion-hover-lift: -1px;
   --motion-press-scale: 0.98;
   --motion-reveal-distance: 12px;
   --focus-ring: var(--color-purple);
   --focus-width: 3px;
   --focus-offset: 4px;
+}
+
+[dir="rtl"] {
+  --motion-inline-direction: -1;
+  --motion-fill-start: 101%;
+}
+
+[dir="ltr"] {
+  --motion-inline-direction: 1;
+  --motion-fill-start: -101%;
 }
 
 [lang="ar"] {

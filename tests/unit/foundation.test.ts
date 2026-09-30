@@ -9,16 +9,19 @@ import {
 } from "@/lib/workflows.server";
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 
-describe("unapproved business configuration (CFG-01/02/10)", () => {
-  it("keeps dates, prices, capacities, and deployment regions unset", () => {
+describe("confirmed dates and closed business configuration (CFG-01/02/10)", () => {
+  it("records calendar days while keeping venue, prices, capacities, and regions unset", () => {
     expect(conferenceConfig).toMatchObject({
-      dates: null,
+      dates: { day1: "2027-01-27", day2: "2027-01-28" },
       venue: null,
       registrationPrice: null,
       conferenceCapacity: null,
       workshopCapacity: null,
       production: { vercelRegion: null, supabaseRegion: null },
     });
+    expect(conferenceConfig.dates).not.toHaveProperty("startsAt");
+    expect(conferenceConfig.dates).not.toHaveProperty("endsAt");
+    expect(Object.isFrozen(conferenceConfig.dates)).toBe(true);
   });
 });
 
