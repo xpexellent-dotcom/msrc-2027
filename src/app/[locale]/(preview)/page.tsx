@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { HeroMedia } from "@/components/hero-media";
 import { Container } from "@/components/ui/container";
@@ -6,8 +7,18 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
 import { formatIndex, isLocale } from "@/lib/i18n";
+import { localizedPageMetadata } from "@/lib/metadata";
 
-export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+type HomePageProps = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const copy = homepageCopy[locale];
+  return localizedPageMetadata(locale, "", `MSRC 2027 | ${copy.kicker}`, copy.lead);
+}
+
+export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = homepageCopy[locale];

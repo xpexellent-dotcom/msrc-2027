@@ -7,6 +7,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { aboutCopy } from "@/content/about";
 import { formatIndex, isLocale } from "@/lib/i18n";
+import { localizedPageMetadata } from "@/lib/metadata";
 
 type AboutPageProps = { params: Promise<{ locale: string }> };
 
@@ -15,6 +16,7 @@ export async function generateMetadata({ params }: AboutPageProps): Promise<Meta
   if (!isLocale(locale)) notFound();
   const copy = aboutCopy[locale];
   return {
+    ...localizedPageMetadata(locale, "/about", copy.metadataTitle, copy.metadataDescription),
     title: copy.metadataTitle,
     description: copy.metadataDescription,
     robots: { index: false, follow: false },

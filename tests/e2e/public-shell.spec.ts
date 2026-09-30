@@ -88,6 +88,27 @@ for (const locale of ["en", "ar"] as const) {
   });
 }
 
+test("shared links carry a working preview image and language alternates", async ({ page, request }) => {
+  for (const locale of ["en", "ar"] as const) {
+    await page.goto(`/${locale}`);
+    const image = await page.locator('meta[property="og:image"]').getAttribute("content");
+    expect(image).toMatch(new RegExp(`/${locale}/opengraph-image`));
+    const response = await request.get(new URL(image!).pathname);
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toBe("image/png");
+    await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveAttribute("href", /\/ar$/);
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", /\/en$/);
+  }
+});
+
+test("English pages do not download the Arabic webfont", async ({ page }) => {
+  const fonts: string[] = [];
+  page.on("request", (request) => { if (request.resourceType() === "font") fonts.push(request.url()); });
+  await page.goto("/en", { waitUntil: "networkidle" });
+  expect(fonts.length).toBeGreaterThan(0);
+  expect(fonts.filter((url) => /arabic/i.test(url))).toEqual([]);
+});
+
 test("keyboard access reaches content and changes language without losing location", async ({ page }) => {
   await page.goto("/en?view=preview");
   await page.keyboard.press("Tab");

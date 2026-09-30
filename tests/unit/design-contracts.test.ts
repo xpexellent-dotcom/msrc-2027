@@ -3,6 +3,22 @@ import { isDesignPreviewAllowed } from "@/lib/preview.server";
 import { homepageAssets, homepageCopy, publicSitemap } from "@/content/public-site";
 import { aboutCopy } from "@/content/about";
 import { formatIndex } from "@/lib/i18n";
+import { localizedPageMetadata } from "@/lib/metadata";
+
+describe("localized link metadata (LOC-01, CMS-04)", () => {
+  it("pairs each page with its other-language twin and a locale-specific preview image", () => {
+    const metadata = localizedPageMetadata("ar", "/about", "عن المؤتمر", "وصف");
+    expect(metadata.alternates).toEqual({
+      canonical: "/ar/about",
+      languages: { en: "/en/about", ar: "/ar/about", "x-default": "/en/about" },
+    });
+    expect(metadata.openGraph).toMatchObject({
+      url: "/ar/about", locale: "ar_SA", alternateLocale: "en_US",
+      images: [{ url: "/ar/opengraph-image", width: 1200, height: 630 }],
+    });
+    expect(metadata.twitter).toMatchObject({ card: "summary_large_image", images: ["/ar/opengraph-image"] });
+  });
+});
 
 function strings(value: unknown): string[] {
   if (typeof value === "string") return [value];

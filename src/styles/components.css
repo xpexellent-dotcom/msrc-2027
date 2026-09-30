@@ -29,6 +29,8 @@
 .desktop-nav a[aria-current="page"], .mobile-menu a[aria-current="page"] { color: var(--color-purple); text-decoration: underline; text-underline-offset: 0.35rem; font-weight: 600; }
 .header-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; max-inline-size: 100%; gap: 0.75rem; }
 .language-switch { display: inline-flex; justify-content: center; align-items: center; gap: 0.5rem; min-height: 44px; padding: 0.6rem 0.75rem; border: 1px solid transparent; border-radius: var(--radius-small); color: var(--color-purple); font-family: var(--font-interface); font-size: 0.76rem; font-weight: 500; white-space: nowrap; transition: background-color var(--motion-feedback) var(--motion-easing); }
+/* English pages show one Arabic word here; a system Arabic face avoids fetching the 166 KB Noto file for it. */
+.language-switch:lang(ar) { font-family: system-ui, "Segoe UI", Tahoma, "Geeza Pro", sans-serif; font-size: 0.84rem; }
 .language-switch:hover { background: var(--color-lilac); }
 .language-switch svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.4; flex-shrink: 0; }
 .menu-toggle { display: none; place-items: center; width: 44px; height: 44px; padding: 10px; border: 1px solid var(--color-line); border-radius: var(--radius-small); background: transparent; color: var(--color-purple); }

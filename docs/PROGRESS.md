@@ -71,10 +71,18 @@ full local suite. Scope: copy/style/metadata only; no workflow, data or gate cha
 | About purpose item repeated its section title; footer "المحددة" note was unclear | Distinct item title; the note now says pages are "marked with a dot" (EN and AR) |
 | Arabic labels rendered at 10–11px, visibly smaller than Latin at equal size | Arabic-only size lift for small labels (preview bar, eyebrows, badges, captions, footer) |
 | `/favicon.ico` 404; tabs showed no icon | `src/app/icon.svg` monogram in the working palette |
+| English pages downloaded the 166 KB Arabic webfont only to draw the "العربية" switch label (≈40% of page bytes) | The label uses the system Arabic face; measured EN transfer 425 KB → 260 KB and CLS 0.0001 → 0 (390px, throttled). An e2e test guards it |
+| No canonical, hreflang or link-preview metadata; shared links had no card | Per-page canonical and `en`/`ar`/`x-default` alternates, Open Graph/Twitter tags and a static 1200×630 card per locale (`[locale]/opengraph-image.tsx`); `noindex` is unchanged |
 | Apex `msrc2027.com` had no DNS A record (only `www` resolved) | User-authorized: added `msrc2027.com` to the Vercel project (308 → www) and a Namecheap `@` A record to `216.198.79.1`; verified on the authoritative and public resolvers |
 
 Verification (Node 24.21.0 portable, pnpm 11.19.0): ESLint PASS; typegen and `tsc` PASS;
-Vitest 183/183 PASS (two new numeral tests); `next build` PASS; Playwright 90/90 PASS.
+Vitest 184/184 PASS (numeral and metadata tests added); `next build` PASS; Playwright 96/96 PASS
+(preview-image and Arabic-webfont tests added).
+
+Open recommendation: Arabic pages still discover Noto Sans Arabic late (it finishes at about 2.4s on
+throttled mobile, after the hero paints), because `next/font` preloading cannot differ by locale on a shared
+`[locale]` layout. Preloading it only for `/ar` would need a manual `@font-face` plus a locale-aware
+`preload()`, which is a change to the recorded `next/font/local` decision, so it is left for review.
 Local Playwright screenshots of AR 1280/1100/390px and About were inspected, with no horizontal
 overflow or console errors. Arabic editorial approval is still required under CFG-12; these
 are draft improvements, not approved copy.
