@@ -2,7 +2,11 @@ import { expect, test } from "@playwright/test";
 
 // LOC-01/03, SEC-01, INF-04, REL-06: static public browsing stays separate
 // from closed operational flows. This is a smoke check, not a launch audit.
-test("the default route opens the English public page", async ({ page }) => {
+test("the default route opens the English public page", async ({ page, request }) => {
+  // Temporary, so browsers do not cache the default-locale choice permanently.
+  const redirect = await request.get("/", { maxRedirects: 0 });
+  expect(redirect.status()).toBe(307);
+  expect(redirect.headers()["location"]).toBe("/en");
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const response = await page.goto("/");

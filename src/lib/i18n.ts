@@ -81,7 +81,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     languageSwitch: "View this page in Arabic",
   },
   ar: {
-    skip: "انتقل إلى المحتوى",
+    skip: "انتقل إلى المحتوى الرئيسي",
     preview: "معاينة قيد التطوير",
     edition: "النسخة الخامسة",
     institution: "جامعة الملك عبدالعزيز",
@@ -101,7 +101,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     notFoundDescription: "قد يكون العنوان غير صحيح، أو لم تُضَف هذه الصفحة إلى المعاينة بعد.",
     errorTitle: "تعذّر تحميل هذه الصفحة.",
     errorDescription: "يرجى المحاولة مجددًا أو العودة إلى الصفحة الرئيسية للمعاينة.",
-    retry: "حاول مجددًا",
+    retry: "أعد المحاولة",
     home: "العودة إلى المعاينة",
     languageSwitch: "View this page in English",
   },

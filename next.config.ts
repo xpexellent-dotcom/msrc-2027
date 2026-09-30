@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   // Preserve the handoff's existing project instructions unchanged.
   agentRules: false,
   poweredByHeader: false,
+  // English is the default locale (LOC-01). A config redirect is answered at the CDN edge;
+  // the previous route handler made every root visit wait on a function in iad1.
+  async redirects() {
+    return [{ source: "/", destination: "/en", permanent: false }];
+  },
   async headers() {
     return [{
       source: "/:path*",
