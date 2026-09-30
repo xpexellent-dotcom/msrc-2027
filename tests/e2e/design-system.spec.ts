@@ -68,6 +68,7 @@ for (const locale of ["en", "ar"] as const) {
 
 test("disabled and loading demonstrations cannot trigger operations", async ({ page }) => {
   await page.goto("/en/design-system");
+  await expect(page.locator(".design-system-intro h1")).toBeVisible();
   const loading = page.locator('button[aria-busy="true"]');
   expect(await loading.count()).toBeGreaterThan(0);
   for (const button of await loading.all()) await expect(button).toBeDisabled();

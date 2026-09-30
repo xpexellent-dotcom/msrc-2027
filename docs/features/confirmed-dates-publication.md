@@ -93,6 +93,19 @@ still-status border fragmentation was corrected with an inline-block box; both E
 320px/200% reduced-motion retests PASS with one fully contained box and no video/errors.
 The two screenshots were inspected; lint and production build passed after this style fix.
 Hosted CI/deployment evidence follows when observed.
+The first GitHub run on `3bd8659` passed lint, type-check,232 units and build,
+and its isolated database job passed20 pgTAP permission tests and10 client
+integration tests. The application job failed9/157 browser cases in the
+streamed design-system demonstrations (148 passed). Tests were focusing or
+selecting files in hidden streamed nodes, or counting controls before the
+loading boundary was replaced. The demonstrations now wait for their real
+heading to be visible before raw focus/file/count operations. Original
+assertions remain intact, with no sleeps, retries or relaxed expectations.
+This follows [Playwright's actionability distinction](https://playwright.dev/docs/actionability).
+The corrected revision's local and hosted rerun evidence is recorded below.
+Local correction verification PASS: `pnpm lint`, `pnpm typecheck` and
+`CI=true pnpm exec playwright test tests/e2e/m2-components.spec.ts tests/e2e/design-system.spec.ts`
+(44/44, one worker,1.1minutes). No application code or dependency changed in this repair.
 Firefox/WebKit, real phones and a complete screen-reader/WCAG audit are not
 covered by Chromium automation. No hosted Supabase database is reset or tested.
 
@@ -181,6 +194,7 @@ The loading convention moved from `src/app/[locale]/(preview)/loading.tsx` to
 - tests/e2e/countdown.spec.ts
 - tests/e2e/dates-venue.spec.ts
 - tests/e2e/design-system.spec.ts
+- tests/e2e/m2-components.spec.ts
 - tests/e2e/public-media.spec.ts
 - tests/e2e/public-shell.spec.ts
 - tests/unit/conference-dates.test.ts
