@@ -86,7 +86,13 @@ English desktop hero, Arabic mobile hero and Arabic desktop Dates; evidence is i
 `deliverables/m3-confirmed-dates`. Manual review then found the unfocused Arabic skip link
 overlapping the banner at320px/200% text: its fixed hiding offset was shorter than its
 wrapped height. A size-relative transform fixes this, with a keyboard regression test.
-Final full157-case browser retest PASS, including the new enlarged-text skip-link regression. Hosted CI/deployment evidence follows when observed.
+Final full157-case browser retest PASS, including the new enlarged-text skip-link regression.
+All six320px/200% EN/AR Home/About/Dates skip-link visual retests passed: hidden before
+focus, complete3px ring on firstTab and Enter reaches main. A further minor enlarged-text
+still-status border fragmentation was corrected with an inline-block box; both EN/AR
+320px/200% reduced-motion retests PASS with one fully contained box and no video/errors.
+The two screenshots were inspected; lint and production build passed after this style fix.
+Hosted CI/deployment evidence follows when observed.
 Firefox/WebKit, real phones and a complete screen-reader/WCAG audit are not
 covered by Chromium automation. No hosted Supabase database is reset or tested.
 

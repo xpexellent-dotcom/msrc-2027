@@ -14,7 +14,7 @@ html[dir="rtl"] .hero-media-scrim { transform: scaleX(-1); }
 .hero-media-control:active { transform: scale(var(--motion-press-scale)); }
 .conference-hero:has(.hero-media-control, .hero-media-status) .hero-caption { padding-inline-end: min(22rem, 35%); }
 .hero-media-control:focus-visible { outline: 3px solid var(--color-ivory); outline-offset: 4px; }
-.hero-media-status { max-width: min(32rem, calc(100% - 2rem)); }
+.hero-media-status { display: inline-block; max-width: min(32rem, calc(100% - 2rem)); }
 @media (max-width: 640px) {
   .hero-media-poster, .hero-media-video { object-position: center; }
   .hero-media-scrim { background: rgb(31 25 48 / 78%); }
