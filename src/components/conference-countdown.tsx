@@ -39,7 +39,7 @@ export function ConferenceCountdown({ dates, locale, dateRange }: { dates: Confe
   const currentSecond = useSyncExternalStore(subscribeToClock, getSnapshot, getServerSnapshot);
   const countdown = currentSecond !== null ? getConferenceClockCountdown(dates, new Date(currentSecond * 1000)) : null;
   const label = countdown?.phase === "before"
-    ? locale === "ar" ? "العدّ التنازلي لموعد المؤتمر" : "Counting down to MSRC 2027"
+    ? locale === "ar" ? "العدّ التنازلي" : "Until MSRC 2027"
     : countdown?.phase === "day1"
       ? locale === "ar" ? "اليوم الأول اليوم" : "Day 1 is today"
       : countdown?.phase === "day2"
@@ -57,7 +57,7 @@ export function ConferenceCountdown({ dates, locale, dateRange }: { dates: Confe
     <div className="conference-countdown" data-countdown={countdown?.phase ?? "dates"}>
       <p className="countdown-label">{label}</p>
       {countdown?.phase === "before" && (
-        <div className="countdown-clock" role="timer" aria-live="off" aria-label={locale === "ar" ? "الوقت المتبقي حتى بداية التاريخ المؤكد" : "Time until the confirmed date begins"}>
+        <div className="countdown-clock" role="timer" aria-live="off" aria-label={locale === "ar" ? `الوقت المتبقي حتى بداية التاريخ المؤكد ${dates.day1} عند ٠٠:٠٠ بتوقيت الرياض (Asia/Riyadh)، وليس موعد افتتاح المؤتمر` : `Time until the confirmed date ${dates.day1} begins at 00:00 in Riyadh (Asia/Riyadh), not the conference opening time`}>
           <p className="countdown-remaining">
             <span className="countdown-number" data-countdown-unit="days">{number.format(countdown.days)}</span>
             <span className="countdown-unit">{dayUnit(countdown.days, locale)}</span>
@@ -78,8 +78,6 @@ export function ConferenceCountdown({ dates, locale, dateRange }: { dates: Confe
       )}
       <div className="countdown-context">
         <p className="countdown-dates"><time dateTime={dates.day1}>{dateRange}</time></p>
-        <p className="countdown-zone">{locale === "ar" ? "بداية تاريخ اليوم الأول، ٠٠:٠٠ · Asia/Riyadh" : "Start of the Day 1 date, 00:00 · Asia/Riyadh"}</p>
-        <p className="countdown-note">{locale === "ar" ? "موعد افتتاح المؤتمر سيُعلن لاحقًا." : "Conference opening time will be announced."}</p>
       </div>
     </div>
   );

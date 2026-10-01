@@ -37,7 +37,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("time")).toHaveCount(2);
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].city);
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].pending);
-    await expect(page.locator(".dates-note")).toContainText("UTC+03:00");
+    await expect(page.locator(".dates-note")).toHaveCount(0);
     await expect(page.locator(".dates-closed-note")).toContainText(copy[locale].closed);
     await expect(page.locator("button.header-registration")).toBeDisabled();
     await expect(page.getByRole("main")).not.toContainText(/King Faisal Conference Center|مركز الملك فيصل|09:00|9:00 AM/);

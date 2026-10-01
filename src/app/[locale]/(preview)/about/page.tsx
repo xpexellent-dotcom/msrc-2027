@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/ui/link";
 import { notFound } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Reveal } from "@/components/ui/reveal";
+import { ResearchVisual } from "@/components/research-visual";
 import { aboutCopy } from "@/content/about";
 import { conferenceConfig } from "@/config/conference";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
@@ -54,45 +56,43 @@ export default async function AboutPage({ params }: AboutPageProps) {
               <div><dt>{copy.organizer}</dt><dd>{copy.organizerValue}</dd></div>
             </dl>
           </div>
-          <div className="about-draft"><StatusBadge tone="neutral">{copy.draft}</StatusBadge><p>{copy.draftNote}</p></div>
         </Container>
       </section>
 
       <section id="purpose" tabIndex={-1} className="about-purpose editorial-section" aria-labelledby="purpose-title">
         <Container>
-          <div className="about-section-intro">
+          <Reveal className="about-section-intro" stagger>
             <SectionHeading eyebrow={copy.purposeEyebrow} title={copy.purposeTitle} id="purpose-title" />
             <p>{copy.purposeBody}</p>
-          </div>
-          <div className="about-purpose-list">
+          </Reveal>
+          <Reveal className="about-purpose-list" stagger>
             {copy.purposes.map((purpose, index) => (
               <article key={purpose.title} className="about-purpose-item">
-                <span className="about-purpose-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span>
+                <ResearchVisual variant={index} className="about-purpose-visual" />
                 <h3>{purpose.title}</h3>
                 <p>{purpose.body}</p>
               </article>
             ))}
-          </div>
+          </Reveal>
         </Container>
       </section>
 
       <section id="community" tabIndex={-1} className="about-community editorial-section" aria-labelledby="community-title">
-        <Container className="about-community-grid">
+        <Container><Reveal className="about-community-grid" stagger>
           <div>
             <SectionHeading eyebrow={copy.communityEyebrow} title={copy.communityTitle} id="community-title" inverse />
             <p className="about-community-body">{copy.communityBody}</p>
           </div>
           <div>
             <ul className="about-audiences">
-              {copy.audiences.map((audience) => <li key={audience}><span aria-hidden="true">↗</span>{audience}</li>)}
+              {copy.audiences.map((audience, index) => <li key={audience}><span aria-hidden="true">{formatIndex(index + 1, locale)}</span>{audience}</li>)}
             </ul>
-            <p className="about-audience-note">{copy.audienceNote}</p>
           </div>
-        </Container>
+        </Reveal></Container>
       </section>
 
       <section id="explore" tabIndex={-1} className="about-explore editorial-section" aria-labelledby="explore-title">
-        <Container className="about-explore-grid">
+        <Container><Reveal className="about-explore-grid" stagger>
           <SectionHeading eyebrow={copy.exploreEyebrow} title={copy.exploreTitle} id="explore-title" />
           <div>
             <p>{copy.exploreBody}</p>
@@ -100,9 +100,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
               <ButtonLink href={`/${locale}/#participate`}>{copy.participation}</ButtonLink>
               <ButtonLink href={`/${locale}/#program`} variant="secondary">{copy.program}</ButtonLink>
             </div>
-            <div className="about-closed-note"><StatusBadge tone="neutral">{copy.closed}</StatusBadge><p>{copy.closedNote}</p></div>
+            <StatusBadge tone="neutral">{copy.closed}</StatusBadge>
           </div>
-        </Container>
+        </Reveal></Container>
       </section>
     </>
   );

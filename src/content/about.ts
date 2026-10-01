@@ -9,8 +9,6 @@ type AboutCopy = {
   eyebrow: string;
   title: string;
   lead: string;
-  draft: string;
-  draftNote: string;
   edition: string;
   editionValue: string;
   dates: string;
@@ -26,14 +24,12 @@ type AboutCopy = {
   communityTitle: string;
   communityBody: string;
   audiences: readonly string[];
-  audienceNote: string;
   exploreEyebrow: string;
   exploreTitle: string;
   exploreBody: string;
   participation: string;
   program: string;
   closed: string;
-  closedNote: string;
 };
 
 // SCP-02 / LOC-01/03 / CMS-04 / CFG-12: complete draft copy in both languages.
@@ -41,9 +37,9 @@ type AboutCopy = {
 // Wording is an editorial adaptation for local review, not organizer-approved copy.
 export const aboutCopy: Record<Locale, AboutCopy> = {
   en: {
-    metadataTitle: "About MSRC 2027 | MSRC 2027 preview",
+    metadataTitle: "About MSRC 2027",
     metadataDescription:
-      "Discover the purpose and community of the fifth Medical Students Research Conference. Draft English content for local review.",
+      "Discover the purpose and community of the fifth Medical Students Research Conference in Jeddah.",
     breadcrumbLabel: "Breadcrumb",
     home: "Home",
     about: "About",
@@ -51,8 +47,6 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     title: "Research begins with a question.",
     lead:
       "The fifth Medical Students Research Conference brings student research, scientific exchange and healthcare innovation into one conversation.",
-    draft: "Draft for review",
-    draftNote: "This introduction and its Arabic translation are awaiting editorial approval.",
     edition: "Edition",
     editionValue: "Fifth / 2027",
     dates: "Conference dates",
@@ -63,7 +57,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     purposeEyebrow: "01 / Our purpose",
     purposeTitle: "From a first question\nto a shared understanding.",
     purposeBody:
-      "MSRC is a student-led medical conference shaped around research, collaboration and innovation. Its purpose is to help students present their work, exchange knowledge and connect with the wider research community.",
+      "Student-led. Research-focused. A space to share ideas and connect with the medical research community.",
     purposes: [
       {
         title: "Make room for research",
@@ -81,29 +75,25 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     communityEyebrow: "02 / Our community",
     communityTitle: "Different stages.\nA shared curiosity.",
     communityBody:
-      "Student research grows through conversations across experience levels. The conference is intended to connect learners with researchers and educators who share an interest in medical research.",
+      "Learners, researchers and educators. Connected by an interest in medical research.",
     audiences: [
       "Undergraduate medical students",
       "Interns and residents",
       "Postgraduate students",
       "Faculty and the wider research community",
     ],
-    audienceNote:
-      "This describes the conference community, not eligibility for an application or competition. Each participation pathway will have its own published requirements.",
-    exploreEyebrow: "03 / Explore the preview",
+    exploreEyebrow: "03 / Explore the conference",
     exploreTitle: "Find your starting point.",
     exploreBody:
-      "Read an introduction to the research, hackathon, postgraduate 3MT and workshop pathways, or explore the illustrative program overview.",
+      "Discover research, innovation and hands-on learning.",
     participation: "Explore participation pathways",
-    program: "View the program overview",
+    program: "Explore the experience",
     closed: "Not open yet",
-    closedNote:
-      "Conference dates are confirmed. Registration and applications remain closed; venue and participation details will follow after approval.",
   },
   ar: {
-    metadataTitle: "عن مؤتمر أبحاث طلاب الطب | معاينة MSRC 2027",
+    metadataTitle: "عن مؤتمر أبحاث طلاب الطب | MSRC 2027",
     metadataDescription:
-      "تعرّف إلى هدف المؤتمر الخامس لأبحاث طلاب الطب ومجتمعه. محتوى عربي أولي للمراجعة المحلية.",
+      "تعرّف إلى هدف المؤتمر الخامس لأبحاث طلاب الطب ومجتمعه في جدة.",
     breadcrumbLabel: "مسار التنقل",
     home: "الرئيسية",
     about: "عن المؤتمر",
@@ -111,8 +101,6 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     title: "يبدأ البحث بسؤال.",
     lead:
       "يجمع المؤتمر الخامس لأبحاث طلاب الطب البحثَ الطلابي، وتبادل المعرفة العلمية، والابتكار في الرعاية الصحية، في حوار واحد.",
-    draft: "مسودة للمراجعة",
-    draftNote: "هذا التعريف بالمؤتمر وصياغته باللغتين العربية والإنجليزية بانتظار المراجعة والاعتماد.",
     edition: "النسخة",
     editionValue: "الخامسة / ٢٠٢٧",
     dates: "موعد المؤتمر",
@@ -123,7 +111,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     purposeEyebrow: "٠١ / هدفنا",
     purposeTitle: "من سؤال أول،\nإلى معرفة نتشاركها.",
     purposeBody:
-      "مؤتمر أبحاث طلاب الطب مؤتمرٌ طبي يقوده الطلاب، ويلتقي فيه البحث والتعاون والابتكار. ويهدف إلى دعم الطلاب في عرض أعمالهم، وتبادل المعرفة، والتواصل مع مجتمع البحث العلمي.",
+      "مؤتمر يقوده الطلاب، ويجمعنا حول البحث العلمي لمشاركة الأفكار والتواصل مع مجتمع البحث الطبي.",
     purposes: [
       {
         title: "مساحة للبحث",
@@ -142,23 +130,19 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     communityEyebrow: "٠٢ / مجتمع المؤتمر",
     communityTitle: "مراحل مختلفة،\nوفضول يجمعنا.",
     communityBody:
-      "ينمو البحث الطلابي بالحوار بين أصحاب الخبرات المختلفة. ويسعى المؤتمر إلى ربط المتعلّمين بالباحثين وأعضاء هيئة التدريس الذين يجمعهم الاهتمام بالبحث الطبي.",
+      "متعلّمون وباحثون وأعضاء هيئة تدريس، يجمعنا الاهتمام بالبحث الطبي.",
     audiences: [
       "طلاب الطب في مرحلة البكالوريوس",
       "أطباء الامتياز والأطباء المقيمون",
       "طلاب الدراسات العليا",
       "أعضاء هيئة التدريس ومجتمع البحث العلمي",
     ],
-    audienceNote:
-      "هذا وصف لمجتمع المؤتمر، وليس تحديدًا لأهلية التقديم أو المشاركة في المسابقات. ستُنشر متطلبات مستقلة لكل مسار مشاركة.",
-    exploreEyebrow: "٠٣ / استكشف المعاينة",
+    exploreEyebrow: "٠٣ / استكشف المؤتمر",
     exploreTitle: "اختر نقطة انطلاقك.",
     exploreBody:
-      "تعرّف إلى مسارات المشاركة: البحث العلمي، والهاكاثون، و«الأطروحة في ثلاث دقائق» لطلاب الدراسات العليا، وورش العمل؛ أو اطّلع على التصوّر التوضيحي للبرنامج.",
+      "اكتشف البحث والابتكار والتعلّم بالممارسة.",
     participation: "استكشف مسارات المشاركة",
-    program: "اطّلع على تصوّر البرنامج",
+    program: "اكتشف تجربة المؤتمر",
     closed: "لم تُفتح بعد",
-    closedNote:
-      "تم تأكيد موعد المؤتمر. لم يُفتح التسجيل أو تقديم الطلبات بعد؛ سيُعلَن المقر وتفاصيل المشاركة بعد اعتمادها.",
   },
 };

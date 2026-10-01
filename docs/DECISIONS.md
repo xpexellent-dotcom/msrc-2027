@@ -647,3 +647,36 @@ v0.5 and earlier source snapshots stay unchanged.
 - Affected IDs: DSN-01/02, ACC-01, LOC-01/03, MED-01/04, TIM-01, CFG-01/12, REL-01.
   Scope, verification, recovery and rollback are in
   [the feature note](features/homepage-experience-fixes.md).
+
+## ORG-004 — Concise premium public interface, 1 October 2026
+
+- Status: CONFIRMED scoped requester instruction in the current chat. Restore the exact
+  English title “Where curiosity becomes discovery.”, shorten the welcome to a single
+  line, replace repetitive prose with visual elements, add restrained animation, and
+  give the countdown its own premium background. Apply equivalent Arabic/RTL treatment.
+- Remove the separate visible hero Pause control and repeated public draft/disclaimer
+  blocks. Retain the single top Development preview banner, factual previous-edition
+  identification, honest unknown venue/session fields and closed action states. This
+  does not approve a schedule, institution-wide brand, roster, prices or other TBD values.
+- Supersedes ORG-003's hero wording and visible Pause/Play UI; ORG-002's caption is now
+  the concise MSRC2026 / نسخة ٢٠٢٦ provenance label. Media authorization remains limited
+  to the original four homepage derivatives; originals/crops/encoding are unchanged.
+- Public motion is stopped through a semantic background interaction with bilingual
+  accessible naming, native Space/Enter activation, durable pause and visible keyboard
+  focus. No permanent text/icon control is rendered. Browser autoplay refusal can expose
+  temporary Play recovery; actual media failure keeps the approved poster. Human
+  screen-reader/device review remains required because this interaction is less visually
+  discoverable. Synthetic showcase fixtures keep their original explicit controls.
+- Display typography engineering choice: exact self-hosted Manrope5.3.0 Latin variable
+  font for public English titles; existing DM Sans actions, Inter body and Noto Sans Arabic
+  remain. This is a working visual refinement authorized by the font request, pending
+  final institutional brand assets. Original SVG line art is decorative, not data or a logo.
+- Native scrolling, reduced-motion UI, existing400 ms directional navigation slides,
+ 180 ms button feedback,44 px targets and visible focus stay. Viewport reveals occur
+  once, have short child stagger, and never hide content before JavaScript.
+- Publication/push authorization from the current sequence persists. No workflow, CMS,
+  secret/environment, Supabase/schema/grant/RLS, real email or DNS change. All15 workflow
+  gates remain closed. Unknown conference opening time stays null; the timer continues
+  to use the start of the confirmed date in Riyadh, with its exact target accessible.
+- IDs: DSN-01/02, ACC-01, LOC-01/03, MED-01/04, TIM-01, CFG-01/12, SCP-02, REL-01.
+  Implementation, checks, limitations and rollback: [feature note](features/premium-public-interface.md).

@@ -6,14 +6,14 @@ import { expect, test } from "@playwright/test";
 // the shared foundation suite separately tests all server workflow denials.
 const copy = {
   en: {
-    title: "About MSRC 2027 | MSRC 2027 preview",
+    title: "About MSRC 2027",
     heading: "Research begins with a question.",
     about: "About",
     home: "Home",
     breadcrumb: "Breadcrumb",
   },
   ar: {
-    title: "عن مؤتمر أبحاث طلاب الطب | معاينة MSRC 2027",
+    title: "عن مؤتمر أبحاث طلاب الطب | MSRC 2027",
     heading: "يبدأ البحث بسؤال.",
     about: "عن المؤتمر",
     home: "الرئيسية",

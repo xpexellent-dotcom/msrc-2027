@@ -6,6 +6,8 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SectionJourney } from "@/components/section-journey";
 import { ConferenceCountdown } from "@/components/conference-countdown";
+import { Reveal } from "@/components/ui/reveal";
+import { ResearchVisual } from "@/components/research-visual";
 import { conferenceConfig } from "@/config/conference";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
 import { formatIndex, type Locale } from "@/lib/i18n";
@@ -19,14 +21,14 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
   return (
     <div className="homepage-journey">
       <section id="top" tabIndex={-1} className="conference-hero" aria-labelledby="hero-title">
-        <HeroMedia locale={locale} video={media?.video ?? homepageAssets.heroVideo} posterSrc={media?.poster ?? homepageAssets.heroPoster} allowPreview={Boolean(media)} playbackPolicy="autoplay">
+        <HeroMedia locale={locale} video={media?.video ?? homepageAssets.heroVideo} posterSrc={media?.poster ?? homepageAssets.heroPoster} allowPreview={Boolean(media)} playbackPolicy="autoplay" controlsMode="video">
         <Container className="hero-content">
           <div className="hero-topline"><span>{copy.kicker}</span><span dir="ltr" lang="en">MSRC / 2027</span></div>
           <HeroMediaControls />
           <div className="hero-layout">
           <div className="hero-editorial">
             <p className="hero-location">{copy.institution} <span aria-hidden="true">/</span> {copy.city}</p>
-            <h1 id="hero-title"><span>{copy.title[0]}</span><span>{copy.title[1]}</span></h1>
+            <h1 id="hero-title"><span>{copy.title[0]}</span>{" "}<span>{copy.title[1]}</span></h1>
             <p className="hero-lead">{copy.lead}</p>
             <div className="hero-actions">
               <ButtonLink href="#about" variant="gold">{copy.explore}<svg className="directional-arrow hero-action-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></ButtonLink>
@@ -48,29 +50,31 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
         </dl>
       </Container>
       <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
-        <Container className="intro-grid">
-          <SectionHeading eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" />
-          <div className="intro-body"><p className="intro-statement">{copy.aboutBody}</p><p>{copy.aboutNote}</p><div className="intro-link"><ButtonLink href={`/${locale}/about`} variant="secondary">{copy.aboutLink}</ButtonLink></div></div>
+        <Container>
+          <Reveal className="intro-grid" stagger>
+            <div><SectionHeading eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" /><div className="intro-body"><p className="intro-statement">{copy.aboutBody}</p><div className="intro-link"><ButtonLink href={`/${locale}/about`} variant="secondary">{copy.aboutLink}</ButtonLink></div></div></div>
+            <div className="intro-visual"><ResearchVisual /><span aria-hidden="true" className="visual-edition">05</span></div>
+          </Reveal>
         </Container>
       </section>
       <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
         <Container>
-          <div className="section-introduction"><SectionHeading eyebrow={copy.pathwaysEyebrow} title={copy.pathwaysTitle} id="pathways-title" /><p>{copy.pathwaysBody}</p></div>
-          <div className="pathway-list">
+          <Reveal className="section-introduction" stagger><SectionHeading eyebrow={copy.pathwaysEyebrow} title={copy.pathwaysTitle} id="pathways-title" /><p>{copy.pathwaysBody}</p></Reveal>
+          <Reveal className="pathway-list" stagger>
             {copy.pathways.map((pathway, index) => (
               <article className="pathway-row" key={pathway.category}>
-                <span className="pathway-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span>
+                <ResearchVisual variant={index} className="pathway-visual" />
                 <div className="pathway-title"><p>{pathway.category}</p><h3>{pathway.title}</h3></div>
                 <p className="pathway-description">{pathway.description}</p>
                 <StatusBadge tone="neutral">{copy.closed}</StatusBadge>
               </article>
             ))}
-          </div>
+          </Reveal>
         </Container>
       </section>
       <section id="program" tabIndex={-1} className="editorial-section program-section" aria-labelledby="program-title">
-        <Container className="program-grid">
-          <div><SectionHeading eyebrow={copy.programEyebrow} title={copy.programTitle} id="program-title" inverse /><p className="program-intro">{copy.programBody}</p><p className="program-disclaimer">{copy.illustrative}</p></div>
+        <Container><Reveal className="program-grid" stagger>
+          <div><SectionHeading eyebrow={copy.programEyebrow} title={copy.programTitle} id="program-title" inverse /><p className="program-intro">{copy.programBody}</p><ResearchVisual variant={2} className="program-visual" /></div>
           <div className="program-list">
             {copy.programRows.map((row, index) => (
               <article className="program-row" key={row.format}>
@@ -79,16 +83,16 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
               </article>
             ))}
           </div>
-        </Container>
+        </Reveal></Container>
       </section>
       <section id="legacy" tabIndex={-1} className="editorial-section legacy-section" aria-labelledby="legacy-title">
-        <Container className="legacy-grid">
+        <Container><Reveal className="legacy-grid" stagger>
           <div className="legacy-art" aria-hidden="true"><div className="legacy-art-years" dir="ltr"><span>2026</span><span>2027</span></div><div className="legacy-arch"/><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
-          <div className="legacy-copy"><SectionHeading eyebrow={copy.legacyEyebrow} title={copy.legacyTitle} id="legacy-title" /><p>{copy.legacyBody}</p><p className="legacy-note">{copy.legacyNote}</p></div>
-        </Container>
+          <div className="legacy-copy"><SectionHeading eyebrow={copy.legacyEyebrow} title={copy.legacyTitle} id="legacy-title" /><p>{copy.legacyBody}</p></div>
+        </Reveal></Container>
       </section>
       <section className="closing-section" aria-labelledby="closing-title">
-        <Container className="closing-grid"><h2 id="closing-title">{copy.endingTitle}</h2><div><p>{copy.endingBody}</p><ButtonLink href="#top" variant="secondary">{copy.backToTop}</ButtonLink></div></Container>
+        <Container><Reveal className="closing-grid" stagger><div><p className="closing-date">{conferenceConfig.dates && formatConferenceDateRange(conferenceConfig.dates, locale)}</p><h2 id="closing-title">{copy.endingTitle}</h2></div><ButtonLink href="#top" variant="secondary">{copy.backToTop}</ButtonLink></Reveal></Container>
       </section>
     </div>
   );

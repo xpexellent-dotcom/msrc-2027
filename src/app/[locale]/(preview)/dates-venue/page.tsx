@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Reveal } from "@/components/ui/reveal";
 import { conferenceConfig } from "@/config/conference";
 import { datesVenueCopy } from "@/content/dates-venue";
 import { formatConferenceDate, formatConferenceDateRange } from "@/lib/conference-dates";
@@ -63,14 +64,13 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
                   </ol>
                 </>
               ) : <p>{copy.datesPending}</p>}
-              <p className="dates-note">{copy.dateNote}</p>
             </div>
           </div>
         </Container>
       </section>
 
       <section id="venue" tabIndex={-1} className="editorial-section dates-location" aria-labelledby="venue-title">
-        <Container className="dates-content-grid">
+        <Container><Reveal className="dates-content-grid" stagger>
           <div>
             <SectionHeading eyebrow={copy.locationEyebrow} title={copy.locationTitle} id="venue-title" />
             <p className="dates-body">{copy.locationBody}</p>
@@ -80,21 +80,20 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
             <div><dt>{copy.host}</dt><dd>{copy.hostValue}</dd></div>
             <div><dt>{copy.venue}</dt><dd>{conferenceConfig.venue ?? copy.venuePending}</dd></div>
           </dl>
-        </Container>
+        </Reveal></Container>
       </section>
 
       <section id="schedule" tabIndex={-1} className="editorial-section dates-schedule" aria-labelledby="schedule-title">
-        <Container className="dates-content-grid">
+        <Container><Reveal className="dates-content-grid" stagger>
           <SectionHeading eyebrow={copy.scheduleEyebrow} title={copy.scheduleTitle} id="schedule-title" />
           <div>
             <p className="dates-body">{copy.scheduleBody}</p>
             <ButtonLink href={`/${locale}/#program`} className="dates-program-link" variant="secondary">{copy.program}</ButtonLink>
             <div className="dates-closed-note">
               <StatusBadge tone="neutral">{copy.closed}</StatusBadge>
-              <p>{copy.closedNote}</p>
             </div>
           </div>
-        </Container>
+        </Reveal></Container>
       </section>
     </>
   );
