@@ -22,7 +22,13 @@
   screenshots inspected; no horizontal overflow. Safari/Firefox/real-device/human UAT
   remain NOT TESTED for this task.
 - Initial test-only TS2352 cast failure was corrected; prior diagnostic work is preserved.
-  GitHub CI, deployment and live verification for this new change are pending.
+- Published through [PR7](https://github.com/xpexellent-dotcom/msrc-2027/pull/7) to main
+  da4b93e after [CI36798655620](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36798655620)
+  passed both jobs, including 185 browser, 20 pgTAP and 10 client integration tests.
+  Production6773615857 succeeded. Live six-view EN/AR autoplay/keyboard pause,
+  mirrored400 ms slides/focus and clock/reflow PASS; six public routes200,
+  ten private routes404 and all15 workflows503/no-store. Preview build passed;
+  unauthenticated Preview browser UAT was blocked by Vercel login, protection unchanged.
 - Exact scope, 29 changed paths, verification, limitations and rollback:
   [feature note](features/homepage-experience-fixes.md). Latest request explicitly
   reauthorizes pushing and publishing once the fixes are complete.
@@ -43,14 +49,14 @@
 | Updated Hackathon Draft | Read and reconciled; options and conflicts preserved |
 | Brand guide and previous starter pack | Reviewed; recommendations distinguished from approvals |
 | Original Canva brand reference sheet | Text read; palette and English font names corroborated, final brand approval still pending |
-| 2026 media | ORG-002 approved the reviewed18.7-second cut, including people/posters. Four derivatives published at d6e4be7; live desktop/mobile playback, keyboard pause and still fallbacks PASS. Original hash unchanged; other gallery/brand assets remain open. |
+| 2026 media | ORG-002's four approved18.7-second derivatives remain unchanged. ORG-003 public autoplay correction published at da4b93e; live desktop/mobile/reduced-motion autoplay and keyboard pause PASS. Actual asset-error poster and browser-denial/manual Play covered in CI; other gallery/brand assets remain open. |
 | Codex handoff documents and prompts | Prepared in this package |
 | Domain / HTTPS | Fresh checks: www CNAME matches Vercel; HTTPS EN/AR Home/About return 200; HTTP/HTTPS apex resolve to https://www.msrc2027.com/en. Account custody/renewals remain unverified. |
-| Git / application code | Release PR5 merged to main at d6e4be7 after successful CI on5a27e9c; production deployment6772802242 successful. Prior Brand/audit/backlog work preserved. Custody/required-check enforcement remain separate follow-up items. |
+| Git / application code | Homepage corrections PR7 merged to main da4b93e after successful exact-head CI36798655620; Production6773615857 successful. Prior Brand/audit/backlog work and dated still-image diagnosis preserved. Custody/required-check enforcement remain separate follow-up items. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed; optional PC fixture tests still require restart/first launch. User now selected direct hosted access for normal work (ENG-006). |
-| Vercel/Supabase projects / production secrets | GitHub records successful Production deployment6772802242 of d6e4be7; www EN/AR Home/About/Dates verified. Current Vercel connector project lookup rejects its argument contract, so runtime/settings/drains remain NOT VERIFIED. Hosted Supabase evidence from29 September was NOT refreshed; no hosted data or settings changed. |
-| Tests / CI / preview / production deployment | Release CI36793419169 on5a27e9c PASS: lint/types,232 units, build,157 Chromium tests,20 pgTAP tests and10 client integration tests. Live smoke: six EN/AR public routes200, responsive film/pause, four assets, two reduced-motion fallbacks, ten private/showcase paths404,15 workflow503/no-store. Independent12 views +two200% fallbacks PASS. Protected Preview browser UAT blocked by Vercel login; Preview build succeeded. |
+| Vercel/Supabase projects / production secrets | GitHub records successful Production6773615857 of da4b93e; www EN/AR Home/About/Dates verified. Vercel connector settings/drains remain NOT VERIFIED. Hosted Supabase evidence from29 September was NOT refreshed; no hosted data or settings changed. |
+| Tests / CI / preview / production deployment | Local lint/types,252 units/build PASS; full185 browsers PASS, final CSS reflow rebuild +51 focused browsers PASS. CI36798655620 on aa52692 PASS both application/database jobs,185 browsers/20 pgTAP/10 integrations. Live six EN/AR desktop/mobile/320px+200% views, actual video/pause/slides/focus/clock PASS; six public routes200, ten private paths404,15 workflows503/no-store. Protected Preview browser UAT blocked by Vercel login; Preview build succeeded. Safari/Firefox/human UAT remain open. |
 | KAU collection access / email sender | Not verified |
 | Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
@@ -60,8 +66,8 @@
 |---|---|---|---|
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
 | M1 Foundation | ENG-001/004/005/006 adopted; relevant source IDs retained | Foundation and isolated Linux database CI verified; Windows local stack optional and untested | Deployed foundation does not open operational or institutional approval gates |
-| M2 Design system | ENG-007 palette/fonts/motion retained; ENG-008 provisional polish | Full component inventory/showcase plus local directional-button, EN/AR reading/reflow and optional native-section refinement verified | Final official brand/human reviews pending. Production showcase remains closed; remote protection evidence unchanged |
-| M3 Public alpha | Full15-destination sitemap retained; ORG-001 confirms27/28January2027 | Home/About dates, Riyadh countdown, EN/AR Dates & Venue and approved18.7-second previous-edition film published and verified at d6e4be7 | Scoped release complete. Final brand/copy, remaining public routes and broader REL-01 remain open;15 operational gates verified closed |
+| M2 Design system | ENG-007 palette/fonts/motion retained; ENG-008 polish and ORG-003 explicit navigation refinement | Full component inventory/showcase, directional buttons, mirrored navigation slides/history/focus and EN/AR reflow verified; ordinary scrolling remains native | Final official brand/human reviews pending. Production showcase remains closed |
+| M3 Public alpha | Full15-destination sitemap retained; ORG-001 dates/ORG-002 media/ORG-003 presentation | Home/About/Dates & Venue, larger Riyadh D/H/M/S clock, welcoming copy and approved autoplay film published and verified at da4b93e | Scoped release complete. Opening time/venue, final brand/copy, remaining public routes and broader REL-01 remain open;15 operational gates closed |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
 | M5 Participant auth | Requirements defined | Not verified | Pending |
 | M6 Abstract/review | Detailed baseline; configuration gates remain | Not verified | Pending |
@@ -81,8 +87,9 @@ deployment, evidence gaps and the sequence agreed by the existing roadmap.
 
 The user confirmed27–28January2027 and approved this18.7-second MSRC2026 montage,
 including people/posters shown, then authorized pushing/publishing all updates. ORG-001/002
-record the exact authority. The Dates & Venue slice is implemented with venue/time details
-still pending. Current release CI/live checks passed; apply forthcoming official brand
+record the exact authority. ORG-003's requested homepage corrections are now published and
+live-verified. The Dates & Venue slice is implemented with venue/time details still
+pending. Current release CI/live checks passed; apply forthcoming official brand
 inputs and approved bilingual copy. Gallery selections remain separate.
 
 Next smallest content PR: approved contact/privacy/terms details and remaining public

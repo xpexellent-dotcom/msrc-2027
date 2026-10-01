@@ -53,7 +53,10 @@ states; stable SSR/hydration; and no per-second screen-reader announcements.
 | `pnpm test:e2e` | PASS: all 185 Chromium desktop/tablet/mobile tests. Actual muted decoding, pause/resume, preference cases, autoplay denial/recovery, UI slides, history and language focus are covered. |
 | Local visual/playback review | PASS: six EN/AR desktop/mobile/320 px + 200% views; actual autoplay, keyboard pause, no still-mode UI, desktop clock columns, no horizontal overflow, six public routes 200 and ten private routes 404. Screenshots inspected. |
 | Reflow refinement | Visual review found split English time labels and uneven figures at 320 px/200%. Time units now align at the top and wrap into complete rows when needed; `pnpm build` and 51 focused countdown/public-shell browser regressions PASS. Six-view verification rerun PASS, including 15 closed/no-store workflow endpoints; enlarged clock screenshots inspected. |
-| GitHub workflow, Preview, production and live checks | Pending. |
+| GitHub workflow | PASS: [run36798655620](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36798655620) on aa52692474917bca94a24f944239b9aeeb088c8f. Both application and isolated database jobs succeeded; 185 browser, 20 pgTAP and 10 client integration tests passed. Lint/types/units/build completed successfully. |
+| Vercel Preview | Build PASS. Browser UAT BLOCKED by Vercel login: the unauthenticated browser redirected to vercel.com, title `Login – Vercel`, and rendered no app hero. Protection was not disabled. |
+| Production | [PR7](https://github.com/xpexellent-dotcom/msrc-2027/pull/7) merged to main da4b93e36505b7293f52ba9fd1404ce68b05a7b5. GitHub Production deployment6773615857 status success; Vercel commit status success. |
+| Live verification | PASS at https://www.msrc2027.com: six EN/AR desktop/mobile/320 px + 200% views, actual autoplay despite reduced motion, keyboard pause, mirrored 400 ms navigation slides and destination focus, large clock columns/no horizontal overflow, six public routes200, ten private routes404 and 15 WORKFLOW_CLOSED503/no-store endpoints. Screenshots/receipt saved under ignored `deliverables/m3-homepage-fixes/live/`. |
 | Database migrations | None. Isolated database regression checks remain in committed CI; no live database mutation is required. |
 
 ## Complete changed file list
@@ -87,6 +90,6 @@ in this task. No claim of complete REL-01 or final brand approval follows.
 ## Setup, rollback and next task
 
 No manual configuration or new environment variables are required. Roll back the scoped
-PR or restore the preceding Vercel deployment; do not revoke the confirmed dates or
+PR or restore the preceding verified main992f0f1 / Production6772951472 deployment; do not revoke the confirmed dates or
 approved media rights as a side effect. Next: apply the official brand files when supplied
 and continue the smallest remaining public-content slice with approved source content.
