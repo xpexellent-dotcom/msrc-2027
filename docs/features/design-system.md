@@ -89,3 +89,10 @@ Continuation: the user subsequently authorized the M2 review and bilingual About
 The About page now exists; see [its feature note](about.md) and the latest PROGRESS entry.
 Final About/homepage editorial approval remains open. Keep missing facts unset and all
 operational flags closed. Full M3 public alpha is not complete in these focused previews.
+
+Later scoped decisions ORG-001/002 supersede the unresolved-date and uncleared-hero
+entries in the historical input table above:27–28January2027 and the reviewed18.7-second
+MSRC2026 homepage cut are approved, published and verified at d6e4be7. The bilingual
+Dates & Venue route and calendar-days countdown now exist. Venue/start times, other
+gallery assets, official marks and final EN/AR editorial approval remain pending.
+See [current release evidence](confirmed-dates-publication.md).

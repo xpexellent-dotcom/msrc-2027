@@ -2,13 +2,15 @@
 
 All pages are browseable without login. Publish approved information only; a preview is not public launch approval.
 
-Current implementation and deployment evidence is in the [1 October 2026 checklist audit](../reviews/checklist-audit-2026-10-01.md); the full public sitemap is still incomplete.
+The [1 October 2026 checklist audit](../reviews/checklist-audit-2026-10-01.md) remains dated evidence;
+[current date/media release evidence](../features/confirmed-dates-publication.md) supersedes
+its unresolved-date/media status. The full public sitemap is still incomplete.
 
 <a id="bl-pub-01"></a>
 
 ## BL-PUB-01 — Preserve homepage and bilingual About preview evidence
 - **Source IDs:** SCP-01, SCP-02, DSN-01, LOC-01, ACC-01, CFG-12.
-- **Status:** Preview implemented, merged and deployed at 9e018ae — fresh English/Arabic Home and About HTTP checks returned 200; approved final bilingual copy remains outstanding.
+- **Status:** Static preview published at d6e4be7 with approved dates/countdown and homepage montage; live English/Arabic Home/About checks passed. Final bilingual copy remains outstanding.
 - **Purpose:** Introduce the conference honestly before operational workflows open.
 - **Scope:** Existing hero, introduction, participation pathways, program preview, previous-edition context and source-derived About content; obtain copy approval and apply only approved corrections.
 - **Exclusions:** Invented dates, sponsors, roster names, capacity, active registration or cleared-media claims.
@@ -31,10 +33,10 @@ Current implementation and deployment evidence is in the [1 October 2026 checkli
 
 ## BL-PUB-02 — Add an honest Dates and Venue page
 - **Source IDs:** SCP-02, TIM-01, CFG-01, CFG-12.
-- **Status:** Planned; next bounded public-content preview candidate.
+- **Status:** Implemented and published at d6e4be7; live EN/AR Dates and Venue routes, date metadata and navigation verified. Venue/start times remain pending.
 - **Purpose:** Let visitors find approved timing/location without relying on historical proposals.
 - **Scope:** Locale routes and typed read-only date/venue content; explicit unpublished state until approved fields exist; timezone labels and accessible venue text when supplied.
-- **Exclusions:** Publishing proposed 27–28 January dates or venue options; invented transport/accessibility facilities; countdown to an unset date.
+- **Exclusions:** Unapproved venue options or operating times, invented transport/accessibility facilities and countdown to an unset date. ORG-001 confirms27–28January2027; publishing those calendar dates is authorized.
 - **Dependencies:** BL-PUB-01; typed configuration; DR-CFG-01 and DR-CFG-12.
 - **Roles:** Anonymous visitor; content approver.
 - **States/transitions:** Unpublished details → reviewed configured details → public read-only page.
@@ -46,9 +48,9 @@ Current implementation and deployment evidence is in the [1 October 2026 checkli
 - **Audit/email:** Content changes audited when CMS-backed; no page-view email.
 - **Automated tests:** Null, partial and approved configuration; locale links and unpublished-record denial.
 - **Manual UAT:** Confirm venue wording/directions with organizer and check mobile/RTL.
-- **Release gate:** REL-01 published copy approval; registration remains separately gated.
+- **Release gate:** ORG-001 calendar dates and scoped static page published; final copy/venue details and broader REL-01 remain gated. Registration remains separately gated.
 - **Owner type:** Public-site engineer with content lead.
-- **TBD blocked:** Unpublished preview no; actual details DR-CFG-01/12.
+- **TBD blocked:** Calendar dates/page implementation no; venue/start times and final copy still depend on DR-CFG-01/12.
 
 <a id="bl-pub-03"></a>
 

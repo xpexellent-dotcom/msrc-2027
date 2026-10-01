@@ -174,7 +174,9 @@ confirmed 2027 participants/content or approve the rest of the source collection
 Serve only the four approved derivatives under `/media/msrc2026/`. Keep originals,
 manifests and recipes private, and retain production 404 for local review routes and their
 API. Source/date/approval details are in [MEDIA_REGISTER.md](MEDIA_REGISTER.md#9-approved-public-homepage-derivative-set--1-october-2026).
-Public use is authorized; actual push/deployment and public-frame/browser checks must be
-recorded separately. Official brand files, complete EN/AR copy sign-off, removal/retention
+Public use was authorized, pushed and published through PR5 at d6e4be7. Production
+deployment6772802242 and live EN/AR frame/playback/fallback checks passed;
+see [release evidence](features/confirmed-dates-publication.md). Official brand files,
+complete EN/AR copy sign-off, removal/retention
 ownership and the remaining REL-01 requirements are still pending. No operational flag
 opens and no site-wide brand approval is inferred from this scoped media decision.
