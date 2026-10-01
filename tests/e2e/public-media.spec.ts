@@ -26,11 +26,14 @@ for (const locale of ["en", "ar"] as const) {
     const source = mobile ? mediaPaths.mobile : mediaPaths.desktop;
     const poster = mobile ? mediaPaths.mobilePoster : mediaPaths.desktopPoster;
     const video = page.locator(".conference-hero video");
+    const backgroundToggle = page.locator(".conference-hero .hero-media-toggle");
     await expect(video).toHaveAttribute("src", source);
     await expect(video).toHaveAttribute("autoplay", "");
     await expect(video).toHaveAttribute("playsinline", "");
     await expect(video).toHaveAttribute("loop", "");
     await expect(video).toHaveAttribute("tabindex", "-1");
+    await expect(video).toHaveAttribute("aria-hidden", "true");
+    await expect(backgroundToggle).toHaveAttribute("aria-keyshortcuts", "Space Enter");
     expect(await video.evaluate((element: HTMLVideoElement) => element.muted)).toBe(true);
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
     await expect(page.locator(".conference-hero .hero-media-poster"))
@@ -38,25 +41,37 @@ for (const locale of ["en", "ar"] as const) {
     expect([...new Set(videoRequests)]).toEqual([source]);
     await expect(page.locator(".conference-hero iframe")).toHaveCount(0);
 
-    const pauseName = locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video";
-    const playName = locale === "ar" ? "تشغيل فيديو الخلفية" : "Play background video";
-    const pause = page.getByRole("button", { name: pauseName, exact: true });
-    const dimensions = await pause.boundingBox();
+    await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
+    const dimensions = await backgroundToggle.boundingBox();
     expect(dimensions?.width).toBeGreaterThanOrEqual(44);
     expect(dimensions?.height).toBeGreaterThanOrEqual(44);
-    await pause.focus();
-    await page.keyboard.press("Enter");
-    const resume = page.getByRole("button", { name: playName, exact: true });
-    await expect(resume).toBeFocused();
+    await backgroundToggle.focus();
+    await expect(backgroundToggle).toBeFocused();
+    await expect(backgroundToggle).toHaveAttribute("aria-label", locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video");
+    await expect.poll(() => backgroundToggle.evaluate((element) => getComputedStyle(element).outlineWidth)).toBe("3px");
+    await page.keyboard.press("Space");
+    await expect(backgroundToggle).toBeFocused();
+    await expect(backgroundToggle).toHaveAttribute("aria-label", locale === "ar" ? "تشغيل فيديو الخلفية" : "Play background video");
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
     await expect(page.locator(".conference-hero .hero-media")).toHaveAttribute("data-media-state", "paused");
     await expect(video).toHaveClass(/is-playing/);
     await expect.poll(() => video.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
     const frozenTime = await video.evaluate((element: HTMLVideoElement) => element.currentTime);
+    await page.keyboard.press("Tab");
+    await expect(backgroundToggle).not.toBeFocused();
     await page.waitForTimeout(200);
     expect(await video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeCloseTo(frozenTime, 2);
+    await page.keyboard.press("Shift+Tab");
+    await expect(backgroundToggle).toBeFocused();
     await page.keyboard.press("Enter");
-    await expect(page.getByRole("button", { name: pauseName, exact: true })).toBeFocused();
+    await expect(backgroundToggle).toBeFocused();
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
+    const backgroundPosition = { x: 8, y: Math.min((dimensions?.height ?? 300) / 2, 180) };
+    if (mobile) await backgroundToggle.tap({ position: backgroundPosition });
+    else await backgroundToggle.click({ position: backgroundPosition });
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+    if (mobile) await backgroundToggle.tap({ position: backgroundPosition });
+    else await backgroundToggle.click({ position: backgroundPosition });
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
     expect(errors).toEqual([]);
   });
@@ -76,16 +91,18 @@ for (const locale of ["en", "ar"] as const) {
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
     await expect.poll(() => video.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
     await expect(page.getByText(locale === "ar" ? "وضع الصورة الثابتة" : "Still image mode", { exact: true })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video", exact: true })).toBeVisible();
+    await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
     expect([...new Set(videoRequests.map((url) => new URL(url).pathname))]).toEqual([source]);
   });
 
-  test(`${locale} a failed public film returns to its poster with a translated status`, async ({ page }) => {
+  test(`${locale} a failed public film returns to its poster with a nonvisual translated status`, async ({ page }) => {
     await page.route(`**${mediaRoot}/*.mp4`, (route) => route.abort("failed"));
     await page.goto(`/${locale}`);
-    await expect(page.getByRole("status").filter({
+    const status = page.getByRole("status").filter({
       hasText: locale === "ar" ? "فيديو الخلفية غير متاح. تُعرض صورة ثابتة." : "Background video unavailable. Showing a still image.",
-    })).toBeVisible();
+    });
+    await expect(status).toHaveClass("sr-only");
+    await expect(page.locator(".conference-hero .hero-media-status, .conference-hero .hero-media-control")).toHaveCount(0);
     await expect(page.locator(".conference-hero video")).toHaveCount(0);
     await expect(page.locator(".conference-hero .hero-media-poster")).toBeVisible();
     await expect(page.locator(".conference-hero .hero-media")).toHaveAttribute("data-media-state", "poster");
@@ -131,6 +148,7 @@ test("public film pauses when hidden, resumes when visible, and preserves an exp
   });
   await page.goto("/en");
   const video = page.locator(".conference-hero video");
+  const backgroundToggle = page.locator(".conference-hero .hero-media-toggle");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
   const retainedVideo = await video.elementHandle();
   const source = await video.getAttribute("src");
@@ -153,15 +171,18 @@ test("public film pauses when hidden, resumes when visible, and preserves an exp
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
   expect(await retainedVideo!.evaluate((element) => element.isConnected)).toBe(true);
 
-  await page.getByRole("button", { name: "Pause background video", exact: true }).click();
+  await backgroundToggle.focus();
+  await page.keyboard.press("Space");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
   await changeVisibility("hidden");
   await changeVisibility("visible");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.getByRole("button", { name: "Play background video", exact: true })).toBeVisible();
+  await expect(backgroundToggle).toHaveAttribute("aria-label", "Play background video");
+  await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
   expect(await retainedVideo!.evaluate((element) => element.isConnected)).toBe(true);
-  await page.getByRole("button", { name: "Play background video", exact: true }).click();
+  await backgroundToggle.focus();
+  await page.keyboard.press("Enter");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
 });
 
@@ -187,7 +208,7 @@ for (const locale of ["en", "ar"] as const) {
     });
     await page.goto(`/${locale}`);
     const video = page.locator(".conference-hero video");
-    const play = page.getByRole("button", {
+    const play = page.locator(".conference-hero .hero-media-controls").getByRole("button", {
       name: locale === "ar" ? "تشغيل فيديو الخلفية" : "Play background video", exact: true,
     });
     await expect(video).toHaveCount(1);
@@ -198,9 +219,8 @@ for (const locale of ["en", "ar"] as const) {
     })).toHaveCount(0);
     await play.focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByRole("button", {
-      name: locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video", exact: true,
-    })).toBeFocused();
+    await expect(page.locator(".conference-hero .hero-media-toggle")).toBeFocused();
+    await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
     expect(errors).toEqual([]);
   });

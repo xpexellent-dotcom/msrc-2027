@@ -16,7 +16,7 @@ const headerCopy = {
     menu: "Menu",
     close: "Close menu",
     home: "MSRC 2027 home",
-    edition: "The fifth edition",
+    edition: "Fifth edition",
     registration: "Registration not open yet",
     links: [
       { label: "About", href: "/about" },

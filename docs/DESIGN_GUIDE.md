@@ -201,3 +201,24 @@ Show days, hours, minutes and seconds, with Arabic-Indic digits and RTL parity. 
 label identifies the start of the confirmed Day 1 date at 00:00 Asia/Riyadh; the actual
 conference opening time remains unset. Current verification and release evidence are
 in [the refinement note](features/homepage-experience-fixes.md).
+
+## 13. Current public refinement — ORG-004
+
+Use “Where curiosity becomes discovery.” with a concise bilingual introduction. Public
+English display titles use self-hosted Manrope; Arabic retains Noto Sans Arabic. Keep
+the selected palette and existing action/body fonts. Favor editorial space, original
+decorative research line art, separated countdown units on an ivory panel, precise
+borders and rounded action controls. Do not imitate Apple branding or import its assets.
+
+Remove repeated draft/disclaimer paragraphs from public content; the top Development
+preview banner remains. Unknown values and closed action states remain accurate. The
+program section describes the conference experience, without invented sessions/times.
+Previous-edition film keeps a concise MSRC2026 / نسخة ٢٠٢٦ label.
+
+Public hero has no separate visible Pause button. Its background has a semantic
+keyboard/tap pause mechanism, visible focus and persistent pause state. Browser-denied
+autoplay still needs temporary Play recovery; actual failure still needs a poster.
+This supersedes the visible control direction above, not technical recovery or the
+private synthetic showcase. One-time400 ms reveals with short child stagger supplement
+explicit navigation slides; reduced-motion UI skips these, and normal scrolling stays
+native. See [current evidence](features/premium-public-interface.md).

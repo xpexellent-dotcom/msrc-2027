@@ -202,5 +202,11 @@ legal audit, approve other collection assets, or settle final brand/REL-01 requi
 The four public files are approved display derivatives, not confidential originals.
 The public hero does not require a database or a hosted environment variable. Technical
 checks and deployment evidence are recorded for the published build in the release feature note.
+ORG-004 supersedes the visible Pause/Play UI and long provenance caption above: keep the
+concise MSRC2026 / نسخة ٢٠٢٦ label, expose durable pause through the semantic background
+interaction with native keyboard activation and visible focus, and show temporary Play
+only for an actual browser autoplay refusal. No film/crop/source approval is extended.
+Original SVG research line art added for ORG-004 is decorative artwork, not conference
+photography, a statistic, a final logo or an approval of archive/gallery content.
 Final official branding, full bilingual copy approval and broader
 REL-01 evidence remain separate work; all operational gates stay closed.

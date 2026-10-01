@@ -4,6 +4,9 @@
 .hero-media-poster { z-index: 0; }
 .hero-media-video { position: absolute; inset: 0; opacity: 0; transition: opacity 400ms ease; }
 .hero-media-video.is-playing { opacity: 1; }
+.hero-media-toggle { position: absolute; inset: 0; z-index: 1; inline-size: 100%; block-size: 100%; border: 0; border-radius: 0; padding: 0; background: transparent; cursor: pointer; }
+.hero-media-toggle:focus-visible { outline: 3px solid var(--color-ivory); outline-offset: -8px; }
+.hero-media[data-controls-mode="video"] .hero-media-scrim { pointer-events: none; }
 .hero-media-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(31 25 48 / 80%) 0%, rgb(31 25 48 / 80%) 12%, transparent 35%, transparent 55%, rgb(31 25 48 / 92%) 100%), linear-gradient(90deg, rgb(31 25 48 / 86%) 0%, rgb(31 25 48 / 78%) 64%, rgb(59 30 109 / 46%) 100%); }
 html[dir="rtl"] .hero-media-scrim { transform: scaleX(-1); }
 .hero-media-control, .hero-media-status { position: absolute; z-index: 3; inset-inline-end: 2rem; inset-block-end: 1.25rem; border: 1px solid var(--color-lilac); background: var(--color-ink); color: var(--color-ivory); padding: 0.6rem 0.9rem; font-size: 0.75rem; border-radius: 2rem; }

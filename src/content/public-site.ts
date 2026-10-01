@@ -48,89 +48,74 @@ type ProgramRow = { title: string; description: string; format: string };
 type HomepageCopy = {
   kicker: string; title: readonly [string, string]; lead: string; explore: string;
   programLink: string; posterCaption: string; institution: string; city: string;
-  aboutEyebrow: string; aboutTitle: string; aboutBody: string; aboutNote: string; aboutLink: string;
-  /** Arabic status wording agrees with its noun: pathway rows (مسار) vs. participation (المشاركة). */
+  aboutEyebrow: string; aboutTitle: string; aboutBody: string; aboutLink: string;
   participationLabel: string; participationStatus: string;
   pathwaysEyebrow: string; pathwaysTitle: string; pathwaysBody: string; closed: string;
   pathways: readonly Pathway[]; programEyebrow: string; programTitle: string;
-  programBody: string; illustrative: string; programRows: readonly ProgramRow[];
-  legacyEyebrow: string; legacyTitle: string; legacyBody: string; legacyNote: string;
-  legacyArtLabel: string; endingTitle: string; endingBody: string; backToTop: string;
+  programBody: string; programRows: readonly ProgramRow[];
+  legacyEyebrow: string; legacyTitle: string; legacyBody: string;
+  legacyArtLabel: string; endingTitle: string; backToTop: string;
   dateLabel: string; venueLabel: string; pending: string; editionLabel: string;
 };
 
-/** Draft bilingual editorial copy; confirmed dates come from typed configuration. */
+/** ORG-004: concise bilingual editorial copy; no session or eligibility claims. */
 export const homepageCopy: Record<Locale, HomepageCopy> = {
   en: {
     kicker: "The 5th Medical Students Research Conference",
-    title: ["Bring your questions.", "Help shape what’s next."],
-    lead: "Welcome to MSRC 2027. A community of medical students in Jeddah, sharing ideas, learning together and taking the next step in research.",
-    explore: "Explore the conference", programLink: "Inside the preview", posterCaption: "MSRC2026 · Previous-edition footage",
+    title: ["Where curiosity", "becomes discovery."],
+    lead: "Medical students. Shared ideas. New discoveries.",
+    explore: "Explore the conference", programLink: "The experience", posterCaption: "MSRC2026",
     institution: "King Abdulaziz University", city: "Jeddah, Saudi Arabia",
-    aboutEyebrow: "01 / The conference", aboutTitle: "Good research starts\nwith a better question.",
-    aboutBody: "MSRC brings medical students into a shared conversation about research: how we ask, how we investigate, and how an idea can make a difference.",
-    aboutNote: "The fifth edition takes shape at King Abdulaziz University in Jeddah. This is an early look at the experience we are building for 2027.",
-    aboutLink: "More about the conference", participationLabel: "Participation", participationStatus: "Not open yet",
-    pathwaysEyebrow: "02 / Find your path", pathwaysTitle: "More than one way\nto move an idea forward.",
-    pathwaysBody: "Discover the participation pathways. Applications and bookings remain closed while details are finalized.",
-    closed: "Not open yet",
+    aboutEyebrow: "01 / The conference", aboutTitle: "A question.\nA connection.\nA new possibility.",
+    aboutBody: "Meet a community of medical students exploring ideas, sharing research and learning together.",
+    aboutLink: "Discover MSRC", participationLabel: "Participation", participationStatus: "Not open yet",
+    pathwaysEyebrow: "02 / Find your path", pathwaysTitle: "Bring your curiosity.\nFind your direction.",
+    pathwaysBody: "Research. Innovation. Communication. Hands-on learning.", closed: "Not open yet",
     pathways: [
-      { category: "Research", title: "Share your research", description: "A pathway for medical student research, including ongoing work. Submission guidelines will be published before applications open." },
-      { category: "Hackathon", title: "Build on an idea", description: "Explore translating research into practice or advancing medical student research, through solo or preformed team entries." },
-      { category: "3MT", title: "Make your research heard", description: "A separate postgraduate Three Minute Thesis pathway. Eligibility, presentation rules and application details are forthcoming." },
-      { category: "Workshops", title: "Learn by doing", description: "Practical learning alongside the conference. The workshop catalog, prerequisites and booking details are not yet published." },
+      { category: "Research", title: "Share your research", description: "Student research, including work in progress." },
+      { category: "Hackathon", title: "Build on an idea", description: "Research into practice. Ideas shaped together." },
+      { category: "3MT", title: "Make your research heard", description: "Postgraduate research. Three minutes to connect." },
+      { category: "Workshops", title: "Learn by doing", description: "A space for practical learning." },
     ],
-    programEyebrow: "03 / The program", programTitle: "Room for discovery.\nSpace for exchange.",
-    programBody: "An illustrative look at the program format. Sessions, speakers and times will appear here after approval.",
-    illustrative: "Illustrative format · Not a schedule",
+    programEyebrow: "03 / The experience", programTitle: "Ideas take the stage.\nConversations go further.",
+    programBody: "Explore the ways we share, discuss and develop research.",
     programRows: [
-      { format: "Present", title: "Research in the spotlight", description: "Space for research presentations and the questions they inspire." },
-      { format: "Discuss", title: "A conversation that continues", description: "Perspectives and discussion across the research community." },
-      { format: "Practice", title: "Ideas into experience", description: "A preview of hands-on learning and exchange." },
+      { format: "Present", title: "Research in the spotlight", description: "Share a question. Open a conversation." },
+      { format: "Discuss", title: "Perspectives that connect", description: "Learn through different points of view." },
+      { format: "Practice", title: "Ideas into experience", description: "Discover through hands-on learning." },
     ],
-    legacyEyebrow: "04 / Building on what came before", legacyTitle: "One edition ends.\nThe curiosity continues.",
-    legacyBody: "The 2027 conference is the fifth chapter of MSRC. A selected look back at the 2026 edition will be shared here once the archive and media permissions are reviewed.",
-    legacyNote: "Selected MSRC2026 footage introduces the conference above. The full archive will follow after review.",
-    legacyArtLabel: "Past editions · Archive in preparation",
-    endingTitle: "The next chapter\nis taking shape.",
-    endingBody: "Conference dates are confirmed. Venue and participation details will follow as preparations progress. Registration and applications are not open.",
+    legacyEyebrow: "04 / The next chapter", legacyTitle: "The story continues.",
+    legacyBody: "From MSRC2026 to our fifth edition in 2027. New questions. A shared curiosity.",
+    legacyArtLabel: "The next chapter", endingTitle: "See you in Jeddah.",
     backToTop: "Back to the beginning", dateLabel: "Conference dates", venueLabel: "Conference venue", pending: "Awaiting confirmation", editionLabel: "Fifth edition / 2027",
   },
   ar: {
-    // Arabic follows the English meaning in idiomatic MSA rather than word-for-word.
-    // "المؤتمر الخامس لأبحاث طلاب الطب" keeps "fifth" attached to the conference, not the students.
     kicker: "المؤتمر الخامس لأبحاث طلاب الطب",
-    title: ["ابدأ بأسئلتك.", "وساهم في صناعة القادم."],
-    lead: "مرحبًا بك في مؤتمر أبحاث طلاب الطب ٢٠٢٧. مجتمع في جدة يجمع طلاب الطب لتبادل الأفكار والتعلّم معًا، والانطلاق إلى خطوتهم التالية في البحث.",
-    explore: "اكتشف المؤتمر", programLink: "جولة في المعاينة", posterCaption: "لقطات من النسخة السابقة · ٢٠٢٦",
+    title: ["حيث يتحوّل الفضول", "إلى اكتشاف."],
+    lead: "طلاب طب. أفكار نتشاركها. واكتشافات جديدة.",
+    explore: "اكتشف المؤتمر", programLink: "تجربة المؤتمر", posterCaption: "نسخة ٢٠٢٦",
     institution: "جامعة الملك عبدالعزيز", city: "جدة، المملكة العربية السعودية",
-    aboutEyebrow: "٠١ / عن المؤتمر", aboutTitle: "يبدأ البحث الجيد\nبسؤال أفضل.",
-    aboutBody: "يجمع المؤتمر طلاب الطب في حوار مشترك حول البحث العلمي: كيف نطرح السؤال، وكيف نبحث عن إجابته، وكيف يمكن لفكرة أن تُحدث فرقًا.",
-    aboutNote: "يجري إعداد النسخة الخامسة في جامعة الملك عبدالعزيز بجدة، وهذه لمحة أولى عن التجربة التي نعدّها لعام ٢٠٢٧.",
-    aboutLink: "المزيد عن المؤتمر", participationLabel: "المشاركة", participationStatus: "لم تُفتح بعد",
-    pathwaysEyebrow: "٠٢ / اختر مسارك", pathwaysTitle: "أكثر من طريق\nلتمضي بفكرتك قُدمًا.",
-    pathwaysBody: "تعرّف على مسارات المشاركة. يبقى باب التقديم والحجز مغلقًا حتى تُستكمل التفاصيل.",
-    closed: "لم يُفتح بعد",
+    aboutEyebrow: "٠١ / عن المؤتمر", aboutTitle: "سؤال.\nتواصل.\nوإمكانات جديدة.",
+    aboutBody: "مجتمع من طلاب الطب يجمعنا لاستكشاف الأفكار، ومشاركة الأبحاث، والتعلّم معًا.",
+    aboutLink: "تعرّف إلى المؤتمر", participationLabel: "المشاركة", participationStatus: "لم تُفتح بعد",
+    pathwaysEyebrow: "٠٢ / اختر مسارك", pathwaysTitle: "ابدأ بفضولك.\nواكتشف مسارك.",
+    pathwaysBody: "بحث. ابتكار. تواصل. وتعلّم بالممارسة.", closed: "لم يُفتح بعد",
     pathways: [
-      { category: "البحث العلمي", title: "شارك بحثك", description: "مسار لأبحاث طلاب الطب، بما فيها الأبحاث التي لا تزال جارية. ستُنشر إرشادات التقديم قبل فتح باب التقديم." },
-      { category: "الهاكاثون", title: "ابنِ على فكرتك", description: "استكشف تحويل البحث إلى تطبيق عملي، أو النهوض بالبحث العلمي لدى طلاب الطب، بمشاركة فردية أو ضمن فريق مُشكَّل مسبقًا." },
-      { category: "الأطروحة في ثلاث دقائق", title: "اجعل بحثك مسموعًا", description: "مسار مستقل لطلاب الدراسات العليا بصيغة «الأطروحة في ثلاث دقائق». ستُعلَن شروط الأهلية وقواعد العرض وتفاصيل التقديم لاحقًا." },
-      { category: "ورش العمل", title: "تعلّم بالممارسة", description: "تعلّم تطبيقي يرافق المؤتمر. لم تُنشر بعدُ قائمة الورش ومتطلباتها المسبقة وتفاصيل الحجز." },
+      { category: "البحث العلمي", title: "شارك بحثك", description: "أبحاث طلابية، بما فيها الأبحاث الجارية." },
+      { category: "الهاكاثون", title: "ابنِ على فكرتك", description: "من البحث إلى التطبيق. أفكار نطوّرها معًا." },
+      { category: "الأطروحة في ثلاث دقائق", title: "اجعل بحثك مسموعًا", description: "أبحاث الدراسات العليا. ثلاث دقائق للتواصل." },
+      { category: "ورش العمل", title: "تعلّم بالممارسة", description: "مساحة للتعلّم العملي." },
     ],
-    programEyebrow: "٠٣ / البرنامج", programTitle: "متّسع للاكتشاف،\nومساحة لتبادل المعرفة.",
-    programBody: "تصوّر توضيحي لشكل البرنامج. ستُنشر الجلسات وأسماء المتحدثين والمواعيد هنا بعد اعتمادها.",
-    illustrative: "تصوّر توضيحي · ليس جدولًا معتمدًا",
+    programEyebrow: "٠٣ / تجربة المؤتمر", programTitle: "أفكار في دائرة الضوء.\nوحوارات تفتح آفاقًا.",
+    programBody: "استكشف طرق عرض الأبحاث، ومناقشتها، وتطويرها.",
     programRows: [
-      { format: "عرض", title: "البحث في دائرة الضوء", description: "مساحة للعروض البحثية وما تثيره من أسئلة." },
-      { format: "نقاش", title: "حوار لا يتوقف", description: "وجهات نظر ونقاشات تجمع مجتمع البحث العلمي." },
-      { format: "تطبيق", title: "من الفكرة إلى التجربة", description: "لمحة عن التعلّم العملي وتبادل الخبرات." },
+      { format: "عرض", title: "البحث في دائرة الضوء", description: "شارك سؤالًا. وافتح باب الحوار." },
+      { format: "نقاش", title: "وجهات نظر تجمعنا", description: "نتعلّم من اختلاف وجهات النظر." },
+      { format: "تطبيق", title: "من الفكرة إلى التجربة", description: "اكتشف من خلال التعلّم العملي." },
     ],
-    legacyEyebrow: "٠٤ / امتداد لما سبق", legacyTitle: "تنتهي نسخة،\nويستمر الفضول.",
-    legacyBody: "تمثّل نسخة ٢٠٢٧ الفصل الخامس في مسيرة المؤتمر. وسنعرض هنا مختارات من نسخة ٢٠٢٦ بعد مراجعة الأرشيف وأذونات استخدام المواد الإعلامية.",
-    legacyNote: "تظهر في مقدّمة الصفحة لقطات مختارة من نسخة ٢٠٢٦. سيُضاف الأرشيف الكامل بعد مراجعته.",
-    legacyArtLabel: "النسخ السابقة · الأرشيف قيد الإعداد",
-    endingTitle: "الفصل القادم\nقيد الإعداد.",
-    endingBody: "تم تأكيد موعد المؤتمر. سيُعلَن المقر وتفاصيل المشاركة مع تقدّم الاستعدادات. لم يُفتح باب التسجيل أو التقديم بعد.",
+    legacyEyebrow: "٠٤ / الفصل القادم", legacyTitle: "وتستمر الحكاية.",
+    legacyBody: "من نسخة ٢٠٢٦ إلى نسختنا الخامسة في ٢٠٢٧. أسئلة جديدة، وفضول يجمعنا.",
+    legacyArtLabel: "الفصل القادم", endingTitle: "نلتقي في جدة.",
     backToTop: "العودة إلى الأعلى", dateLabel: "موعد المؤتمر", venueLabel: "مكان انعقاد المؤتمر", pending: "بانتظار التأكيد", editionLabel: "النسخة الخامسة / ٢٠٢٧",
   },
 };

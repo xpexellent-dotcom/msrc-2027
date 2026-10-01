@@ -14,7 +14,6 @@ type DatesVenueCopy = {
   day1: string;
   day2: string;
   datesPending: string;
-  dateNote: string;
   locationEyebrow: string;
   locationTitle: string;
   locationBody: string;
@@ -29,7 +28,6 @@ type DatesVenueCopy = {
   scheduleBody: string;
   program: string;
   closed: string;
-  closedNote: string;
 };
 
 // SCP-02 / CFG-01 / TIM-01 / LOC-01 / ACC-01.
@@ -45,16 +43,15 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     page: "Dates & venue",
     eyebrow: "Plan your visit",
     title: "Two days in Jeddah.",
-    lead: "The fifth Medical Students Research Conference is scheduled for two conference days. Here are the confirmed dates and the details still to come.",
+    lead: "Two days of research, ideas and connection at MSRC 2027.",
     confirmed: "Dates confirmed",
     datesHeading: "Confirmed conference days",
     day1: "Day 1",
     day2: "Day 2",
     datesPending: "Conference dates awaiting confirmation",
-    dateNote: "These are conference dates. Doors and session times have not been announced. Event times, when published, will use Asia/Riyadh (UTC+03:00).",
     locationEyebrow: "01 / The location",
     locationTitle: "Where we'll meet.",
-    locationBody: "The conference is hosted by King Abdulaziz University in Jeddah. The exact venue will be shared once confirmed.",
+    locationBody: "King Abdulaziz University. Jeddah, Saudi Arabia.",
     city: "City",
     cityValue: "Jeddah, Saudi Arabia",
     host: "Host institution",
@@ -63,10 +60,9 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     venuePending: "Awaiting confirmation",
     scheduleEyebrow: "02 / The next details",
     scheduleTitle: "Session times will follow.",
-    scheduleBody: "The detailed program, room assignments and participation windows are still being prepared. The homepage currently provides an illustrative program overview.",
+    scheduleBody: "Explore the conference experience.",
     program: "Explore the program overview",
     closed: "Registration not open yet",
-    closedNote: "Confirmed conference dates do not open registration, payments, submissions or workshop bookings. Each pathway will have its own approved requirements and opening dates.",
   },
   ar: {
     metadataTitle: "المواعيد والمقر | MSRC 2027",
@@ -77,16 +73,15 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     page: "المواعيد والمقر",
     eyebrow: "خطّط لحضور المؤتمر",
     title: "يومان في جدة.",
-    lead: "يُقام المؤتمر الخامس لأبحاث طلاب الطب على مدى يومين. إليك المواعيد المؤكّدة والتفاصيل التي سيُعلن عنها لاحقًا.",
+    lead: "يومان للبحث والأفكار والتواصل في مؤتمر أبحاث طلاب الطب ٢٠٢٧.",
     confirmed: "المواعيد مؤكّدة",
     datesHeading: "يوما المؤتمر المؤكّدان",
     day1: "اليوم الأول",
     day2: "اليوم الثاني",
     datesPending: "مواعيد المؤتمر بانتظار التأكيد",
-    dateNote: "هذه تواريخ انعقاد المؤتمر. لم يُعلن بعد عن أوقات فتح الأبواب أو الجلسات. ستُعرض الأوقات عند نشرها بتوقيت الرياض (UTC+03:00).",
     locationEyebrow: "٠١ / المكان",
     locationTitle: "أين نلتقي.",
-    locationBody: "تستضيف جامعة الملك عبدالعزيز المؤتمر في جدة. سيُعلن عن المقر المحدّد بعد تأكيده.",
+    locationBody: "جامعة الملك عبدالعزيز. جدة، المملكة العربية السعودية.",
     city: "المدينة",
     cityValue: "جدة، المملكة العربية السعودية",
     host: "الجهة المستضيفة",
@@ -95,9 +90,8 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     venuePending: "بانتظار التأكيد",
     scheduleEyebrow: "٠٢ / التفاصيل القادمة",
     scheduleTitle: "مواعيد الجلسات لاحقًا.",
-    scheduleBody: "البرنامج التفصيلي وتوزيع القاعات وفترات المشاركة قيد الإعداد. تتضمّن الصفحة الرئيسية حاليًا تصوّرًا توضيحيًا للبرنامج.",
-    program: "اطّلع على تصوّر البرنامج",
+    scheduleBody: "اكتشف تجربة المؤتمر.",
+    program: "اكتشف تجربة المؤتمر",
     closed: "لم يُفتح التسجيل بعد",
-    closedNote: "تأكيد مواعيد المؤتمر لا يفتح التسجيل أو الدفع أو تقديم الطلبات أو حجز ورش العمل. ستُنشر متطلبات ومواعيد فتح مستقلّة ومعتمدة لكل مسار.",
   },
 };

@@ -14,11 +14,13 @@ for (const locale of ["en", "ar"] as const) {
     await expect(countdown.locator('[data-countdown-unit="hours"]')).toHaveText(locale === "ar" ? "٠٠" : "00");
     await expect(countdown.locator('[data-countdown-unit="minutes"]')).toHaveText(locale === "ar" ? "٠٠" : "00");
     await expect(countdown.locator('[data-countdown-unit="seconds"]')).toHaveText(locale === "ar" ? "١٠" : "10");
-    await expect(countdown).toContainText("Asia/Riyadh");
-    await expect(countdown).toContainText(locale === "ar" ? "بداية تاريخ اليوم الأول، ٠٠:٠٠" : "Start of the Day 1 date, 00:00");
-    await expect(countdown).toContainText(locale === "ar" ? "موعد افتتاح المؤتمر سيُعلن لاحقًا." : "Conference opening time will be announced.");
+    await expect(countdown).toContainText(locale === "ar" ? /٢٧.*٢٨ يناير ٢٠٢٧/ : /27.*28 January 2027/);
+    await expect(countdown.locator(".countdown-zone, .countdown-note")).toHaveCount(0);
     await expect(countdown.locator("button, input, a, [aria-live]:not([aria-live=off])")).toHaveCount(0);
     await expect(countdown.getByRole("timer")).toHaveAttribute("aria-live", "off");
+    await expect(countdown.getByRole("timer")).toHaveAccessibleName(locale === "ar"
+      ? "الوقت المتبقي حتى بداية التاريخ المؤكد 2027-01-27 عند ٠٠:٠٠ بتوقيت الرياض (Asia/Riyadh)، وليس موعد افتتاح المؤتمر"
+      : "Time until the confirmed date 2027-01-27 begins at 00:00 in Riyadh (Asia/Riyadh), not the conference opening time");
     expect(await countdown.evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
 
     await page.clock.runFor(9_000);

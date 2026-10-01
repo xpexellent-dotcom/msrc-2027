@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { SiteShell } from "@/components/site-shell";
 import { defaultLocale, dictionaries, direction, isLocale, locales } from "@/lib/i18n";
 import "../globals.css";
-import { arabicFont, bodyFont, headingFont } from "@/lib/fonts";
+import { arabicFont, bodyFont, displayFont, headingFont } from "@/lib/fonts";
 import { siteOrigin } from "@/lib/metadata";
 
 export const viewport: Viewport = { themeColor: "#F8F6F0" };
@@ -22,7 +22,7 @@ export async function generateMetadata({
   return {
     metadataBase: new URL(siteOrigin),
     title: `MSRC 2027 | ${copy.preview}`,
-    description: `${copy.title}. ${copy.footer}`,
+    description: `${copy.title}. ${copy.institution}. ${copy.location}.`,
     robots: { index: false, follow: false },
   };
 }
@@ -39,7 +39,7 @@ export default async function LocaleLayout({
   // Route pages validate the locale before rendering any conference content.
   const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
   return (
-    <html lang={locale} dir={direction(locale)} className={`${headingFont.variable} ${bodyFont.variable} ${arabicFont.variable}`}>
+    <html lang={locale} dir={direction(locale)} className={`${headingFont.variable} ${bodyFont.variable} ${arabicFont.variable} ${displayFont.variable}`}>
       <body><SiteShell locale={locale}>{children}</SiteShell></body>
     </html>
   );

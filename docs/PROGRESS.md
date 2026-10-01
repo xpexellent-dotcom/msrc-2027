@@ -2,6 +2,26 @@
 
 **Snapshot: 1 October 2026. Update this file after each development task.**
 
+## 1 October 2026 — Premium public interface (ORG-004)
+
+- Scope: restored headline, one-line EN/AR introduction, self-hosted Manrope display
+  titles, original research graphics, concise public prose, refined shared shell/actions,
+  one-time staggered reveals and a sectioned ivory countdown. Only the top Development
+  preview banner remains as a public draft notice; unknown/closed product states stay.
+- Separate visible hero Pause UI removed; semantic background keyboard/tap pause remains,
+  with persistent paused frame, focus and actual browser/error recovery. Existing montage
+  assets unchanged. No workflow, database/migration/RLS, environment, DNS or email change.
+- `pnpm check` PASS (lint/types,252 units, production build). First201-test E2E run197
+  PASS/4 new reveal assertion failures. Actual finished transforms serialize as identity
+  matrices; corrected focused16/16 and final full201/201 PASS. Final types/lint and frozen
+  install PASS. Six-view local
+  EN/AR desktop/mobile/320px+200% playback/pause/slides/countdown/reflow PASS; six public
+  routes200, ten private404,15 workflows503/no-store. Visual screenshots inspected.
+- GitHub/Preview/production release verification pending; do not call this published yet.
+  Full33-file list, source IDs, checks and rollback: [feature note](features/premium-public-interface.md).
+- Final official branding/human Arabic/editorial/device/screen-reader/Safari/Firefox UAT
+  and broader REL-01 remain open. All15 operational gates stay closed.
+
 ## 1 October 2026 — Requested homepage experience fixes (ORG-003)
 
 - Scope: public muted autoplay without automatic still-mode preferences, clean mobile

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
 import {
   type HeroVideo,
@@ -58,16 +58,24 @@ const copy = {
   en: {
     pause: "Pause background video", resume: "Play background video",
     still: "Still image mode", unavailable: "Background video unavailable. Showing a still image.",
+    videoInstructions: "Press Space or Enter to pause or play the background video.",
   },
   ar: {
     pause: "إيقاف فيديو الخلفية مؤقتًا", resume: "تشغيل فيديو الخلفية",
     still: "وضع الصورة الثابتة", unavailable: "فيديو الخلفية غير متاح. تُعرض صورة ثابتة.",
+    videoInstructions: "اضغط مفتاح المسافة أو الإدخال لإيقاف فيديو الخلفية مؤقتًا أو تشغيله.",
   },
-} satisfies Record<Locale, { pause: string; resume: string; still: string; unavailable: string }>;
+} satisfies Record<Locale, {
+  pause: string; resume: string; still: string; unavailable: string;
+  videoInstructions: string;
+}>;
+
+type HeroControlsMode = "button" | "video";
 
 type MediaControlState = {
   locale: Locale; approved: boolean; load: boolean; hydrated: boolean;
-  failed: boolean; playing: boolean; togglePlayback: () => void;
+  failed: boolean; playing: boolean; controlsMode: HeroControlsMode;
+  autoplayBlocked: boolean; togglePlayback: () => void;
 };
 const MediaControls = createContext<MediaControlState | null>(null);
 
@@ -76,6 +84,10 @@ export function HeroMediaControls() {
   const state = useContext(MediaControls);
   if (!state?.approved) return null;
   const text = copy[state.locale];
+  if (state.controlsMode === "video") {
+    if (state.failed) return <span className="sr-only" role="status">{text.unavailable}</span>;
+    if (!state.autoplayBlocked || !state.load) return null;
+  }
   return (
     <div className="hero-media-controls">
       {state.load && (
@@ -102,6 +114,7 @@ export function HeroMedia({
   posterSrc = defaultHeroPoster,
   allowPreview = false,
   playbackPolicy = "respect-preferences",
+  controlsMode = "button",
   children,
 }: {
   locale: Locale;
@@ -109,12 +122,15 @@ export function HeroMedia({
   posterSrc?: string;
   allowPreview?: boolean;
   playbackPolicy?: HeroPlaybackPolicy;
+  controlsMode?: HeroControlsMode;
   children?: ReactNode;
 }) {
   const preferences: MediaPreferences = JSON.parse(
     useSyncExternalStore(subscribePreferences, preferenceSnapshot, () => serverPreferences),
   );
   const videoRef = useRef<HTMLVideoElement>(null);
+  const backgroundToggleRef = useRef<HTMLButtonElement>(null);
+  const videoInstructionsId = useId();
   const [userPaused, setUserPaused] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [frameAvailable, setFrameAvailable] = useState(false);
@@ -125,6 +141,8 @@ export function HeroMedia({
   const play = load && shouldPlayHeroVideo(preferences, userPaused, playbackPolicy) && !autoplayBlocked;
   const poster = approved ? video.poster : isLocalPoster(posterSrc) ? posterSrc : defaultHeroPoster;
   const source = approved ? (preferences.smallScreen && video.mobileSrc ? video.mobileSrc : video.src) : undefined;
+  const videoControls = controlsMode === "video";
+  const text = copy[locale];
 
   useEffect(() => {
     const element = videoRef.current;
@@ -154,11 +172,16 @@ export function HeroMedia({
       videoRef.current?.pause();
     } else {
       setUserPaused(false);
-      setAutoplayBlocked(false);
       // Browser-rejected autoplay is recoverable through this actual gesture.
       // Call play here, before an effect can lose the activation context.
       const element = videoRef.current;
-      if (element) void element.play().then(() => setPlaying(true)).catch((error: unknown) => {
+      if (element) void element.play().then(() => {
+        setPlaying(true);
+        setAutoplayBlocked(false);
+        // The recovery button disappears after successful play. Keep keyboard
+        // focus on its background toggle so a visitor can pause it again.
+        if (videoControls && autoplayBlocked) backgroundToggleRef.current?.focus({ preventScroll: true });
+      }).catch((error: unknown) => {
         setPlaying(false);
         if (error instanceof DOMException && error.name === "NotAllowedError") setAutoplayBlocked(true);
         else if (!(error instanceof DOMException && error.name === "AbortError")) setFailed(true);
@@ -167,8 +190,8 @@ export function HeroMedia({
   }
 
   return (
-    <MediaControls.Provider value={{ locale, approved, load, hydrated: preferences.hydrated, failed, playing, togglePlayback }}>
-    <div className="hero-media" data-playback-policy={playbackPolicy} data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
+    <MediaControls.Provider value={{ locale, approved, load, hydrated: preferences.hydrated, failed, playing, controlsMode, autoplayBlocked, togglePlayback }}>
+    <div className="hero-media" data-playback-policy={playbackPolicy} data-controls-mode={controlsMode} data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
       <picture>
         {approved && video.mobilePoster && <source media="(max-width: 700px)" srcSet={video.mobilePoster} />}
         <Image
@@ -180,7 +203,8 @@ export function HeroMedia({
         <video
           ref={videoRef} src={source} poster={preferences.smallScreen && video.mobilePoster ? video.mobilePoster : poster}
           className={`hero-media-video${frameAvailable ? " is-playing" : ""}`}
-          muted autoPlay={!userPaused && !autoplayBlocked && preferences.visible} playsInline loop preload="metadata" aria-hidden="true" tabIndex={-1}
+          muted autoPlay={!userPaused && !autoplayBlocked && preferences.visible} playsInline loop preload="metadata"
+          aria-hidden="true" tabIndex={-1}
           disablePictureInPicture disableRemotePlayback
           onLoadStart={() => setFrameAvailable(false)}
           onLoadedData={() => setFrameAvailable(true)}
@@ -190,6 +214,14 @@ export function HeroMedia({
         />
       )}
       <div className="hero-media-scrim" aria-hidden="true" />
+      {videoControls && load && <>
+        <button
+          ref={backgroundToggleRef} type="button" className="hero-media-toggle"
+          aria-label={playing ? text.pause : text.resume} aria-describedby={videoInstructionsId}
+          aria-keyshortcuts="Space Enter" onClick={togglePlayback}
+        />
+        <span id={videoInstructionsId} className="sr-only">{text.videoInstructions}</span>
+      </>}
     </div>
     {children ?? <HeroMediaControls />}
     </MediaControls.Provider>

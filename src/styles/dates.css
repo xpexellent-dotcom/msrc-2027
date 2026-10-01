@@ -4,13 +4,13 @@
 .dates-hero-grid { padding-block: clamp(2.5rem, 5vw, 5rem) clamp(3.5rem, 6vw, 6rem); align-items: center; }
 .dates-hero h1 { margin-block: 1.3rem 1.75rem; max-width: 11ch; color: var(--color-purple); font-weight: 600; font-size: clamp(3rem, 5.2vw, 5.2rem); line-height: 1.12; letter-spacing: -.045em; }
 .dates-lead { max-width: 49ch; font-size: var(--text-lead); line-height: 1.85; text-wrap: pretty; }
-.dates-calendar { min-inline-size: 0; border-block-start: 2px solid var(--color-purple); padding-block-start: 1.5rem; }
+.dates-calendar { min-inline-size: 0; border-block-start: 3px solid var(--color-gold); padding: clamp(1rem, 3vw, 2rem); background: var(--color-ivory); border-radius: 1rem; }
+.dates-hero h1, .dates-content-grid .section-heading h2 { font-family: var(--font-display); }
 .dates-day-list { list-style: none; margin-block-start: 1.5rem; }
 .dates-day-list li { display: flex; flex-direction: column; gap: .7rem; padding-block: 1.4rem; border-block-start: 1px solid var(--color-line-strong); }
 .dates-day-list li:last-child { border-block-end: 1px solid var(--color-line-strong); }
 .dates-day-list li > span { color: var(--color-muted); font-size: .9rem; }
 .dates-day-list time { color: var(--color-purple); font-size: clamp(1.65rem, 2.6vw, 2.4rem); font-weight: 600; line-height: 1.45; text-wrap: balance; }
-.dates-note { margin-block-start: 1.4rem; max-width: 52ch; color: var(--color-muted); font-size: .85rem; line-height: 1.9; }
 .dates-body { margin-block-start: 1.6rem; max-width: 54ch; color: var(--color-muted); line-height: 1.9; text-wrap: pretty; }
 .dates-location-details { border-block-start: 2px solid var(--color-purple); }
 .dates-location-details > div { border-block-end: 1px solid var(--color-line-strong); padding-block: 1.5rem; }
@@ -20,10 +20,9 @@
 .dates-schedule .dates-body { margin-block-start: 0; }
 .dates-program-link { margin-block: 1.75rem 2rem; max-inline-size: 100%; }
 .dates-closed-note { border-block-start: 1px solid var(--color-line-strong); padding-block-start: 1.5rem; }
-.dates-closed-note p { margin-block-start: .8rem; font-size: .85rem; line-height: 1.9; color: var(--color-muted); }
 [lang="ar"] .dates-hero h1 { max-width: none; font-size: clamp(2.65rem, 4.7vw, 4.6rem); line-height: 1.6; letter-spacing: 0; }
 [lang="ar"] .dates-day-list time { line-height: 1.8; }
-[lang="ar"] .dates-note, [lang="ar"] .dates-closed-note p, [lang="ar"] .dates-location-details dt { font-size: .9rem; }
+[lang="ar"] .dates-location-details dt { font-size: .9rem; }
 @media (max-width: 800px) {
   .dates-hero-grid, .dates-content-grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
   .dates-hero h1 { max-width: 15ch; }
