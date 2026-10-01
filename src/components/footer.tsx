@@ -8,12 +8,14 @@ const footerCopy = {
     institution: "King Abdulaziz University · Jeddah",
     navigation: "Explore the conference",
     designSystem: "Design system preview",
+    soon: "Soon",
   },
   ar: {
     description: "المؤتمر الخامس لأبحاث طلاب الطب.",
     institution: "جامعة الملك عبدالعزيز · جدة",
     navigation: "استكشف المؤتمر",
     designSystem: "معاينة نظام التصميم",
+    soon: "قريبًا",
   },
 } as const;
 
@@ -36,7 +38,8 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
                     {page.previewHref ? (
                       <Link href={`/${locale}${page.previewHref === "/" ? "" : page.previewHref.replace(/^\/#/, "#")}`}>{page.label[locale]}</Link>
                     ) : (
-                      <span className="footer-unpublished" role="link" aria-disabled="true">{page.label[locale]}</span>
+                      // DECISIONS: unpublished entries are labelled non-links, visibly as well as for assistive tech.
+                      <span className="footer-unpublished" role="link" aria-disabled="true">{page.label[locale]} <span className="footer-soon">{footer.soon}</span></span>
                     )}
                   </li>
                 ))}
