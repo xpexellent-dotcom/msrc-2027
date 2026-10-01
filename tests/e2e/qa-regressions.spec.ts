@@ -23,6 +23,21 @@ test("Arabic words are never letter-spaced", async ({ page }) => {
   }
 });
 
+// Printing: browsers drop background colours, so light text on the dark sections vanished, and
+// the fixed header repeated over the top of every printed page.
+test("print shows the content in black without screen furniture", async ({ page }) => {
+  await page.emulateMedia({ media: "print" });
+  for (const path of ["/en", "/ar", "/en/dates-venue", "/ar/program"]) {
+    await page.goto(path);
+    for (const selector of [".site-header", ".site-footer", ".preview-banner", ".section-journey", ".hero-media"]) {
+      await expect(page.locator(selector).first(), `${path} ${selector}`).toBeHidden();
+    }
+    await expect(page.locator("h1")).toBeVisible();
+    const colours = await page.locator("main h1, main h2, main p").evaluateAll((elements) => [...new Set(elements.map((element) => getComputedStyle(element).color))]);
+    expect(colours, path).toEqual(["rgb(0, 0, 0)"]);
+  }
+});
+
 // The clock counts whole days to 00:00 Riyadh on Day 1 (2027-01-26T21:00Z); each instant sits
 // half a day before a boundary. Plural categories alone gave «٠ يومًا» and «١٠٠ يومًا».
 for (const [instant, days, unit] of [

@@ -14,6 +14,7 @@ Live QA of www.msrc2027.com, before and after PR 11, and of `main` at `e70bf38`.
 | English spelling: the site follows Oxford spelling ("Programme", "catalogue", "organizer", "finalized"), but the Dates & venue button read "Explore the program overview" and the homepage "Organised by …" | "programme overview", "Organized by …" |
 | Homepage venue label «مكان انعقاد المؤتمر» versus «مقر المؤتمر» on Dates & venue and «المواعيد والمقر» in navigation | «مقر المؤتمر» |
 | Six of the fifteen footer entries (Teams, Sponsors, Announcements, Contact, Privacy, Terms) are unpublished non-links. They differed from real links only by ivory versus pale lilac, so phone users tapped them to no effect. DECISIONS asks for "labelled non-links" | A visible "Soon" / «قريبًا» pill, which also joins the accessible name ("Contact Soon"). Arabic size 0.7rem, no tracking |
+| Printing: browsers drop background colours, so light text on the dark sections and footer printed near-invisible. The fixed floating header repeats over every printed page in Chromium, and the hero filled the first page | `src/styles/print.css`: content in black on white, without the header, banner, chapter bar, footer, film and header clearance. A regression test checks four pages in print media and fails on production |
 | On phones the hero date/city line wrapped and left its "·" dangling at the end of the first line (EN/AR) | The two items stack under 700 px without the separator |
 | The hero lead left a one-word last line («جديدة.», "discoveries.") | `text-wrap: pretty`. Chromium and WebKit now break at the sentence: «طلاب طب. أفكار نتشاركها. / واكتشافات جديدة.» and "Medical students. Shared ideas. / New discoveries." Browsers without support keep today's wrapping |
 | Session and recording durations printed a fixed «دقيقة» after any number, so a 3MT talk would read «٣ دقيقة» | `formatMinutes()` uses CLDR counted forms in Arabic («دقيقة», «دقيقتان», «٣ دقائق», «٤٥ دقيقة»). English stays "45 min" |
@@ -32,7 +33,7 @@ Verification (Node 24.21.0):
 - ESLint zero-warning, `next typegen` and `tsc` PASS.
 - Vitest 299/299, including 18 day-unit, 11 minute and 12 result-count cases.
 - `next build` PASS: 40 pages.
-- Playwright Chromium desktop/tablet/mobile: 274 passed and 3 skipped (duplicate tablet cases). A single earlier 404-heading timeout happened under load; it passed 18/18 on repeat.
+- Playwright Chromium desktop/tablet/mobile: 276 passed and 3 skipped (duplicate tablet cases). A single earlier 404-heading timeout happened under load; it passed 18/18 on repeat.
 - WebKit desktop and iPhone, `qa-regressions` and `countdown`: 22/22.
 - iPhone-profile screenshots confirm joined Arabic labels, the stacked date/city line and the sentence-level lead breaks.
 
