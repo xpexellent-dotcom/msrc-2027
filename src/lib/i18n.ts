@@ -18,6 +18,17 @@ export function formatIndex(value: number, locale: Locale): string {
   return locale === "ar" ? padded.replace(/\d/g, (digit) => arabicIndicDigits[Number(digit)]) : padded;
 }
 
+/**
+ * A duration: "45 min" in English; in Arabic the counted noun CLDR uses («٤٥ دقيقة»,
+ * «٣ دقائق», «دقيقتان») rather than a fixed «دقيقة» after every number.
+ */
+export function formatMinutes(minutes: number, locale: Locale): string {
+  if (locale === "en") return `${new Intl.NumberFormat("en-GB").format(minutes)} min`;
+  return new Intl.NumberFormat("ar-SA", {
+    style: "unit", unit: "minute", unitDisplay: "long", numberingSystem: "arab",
+  }).format(minutes);
+}
+
 export function localizePathname(pathname: string, locale: Locale): string {
   const segments = pathname.split("/");
   if (isLocale(segments[1] ?? "")) {

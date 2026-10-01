@@ -9,7 +9,7 @@
 .hero-editorial h1 { margin: 0; font-family: var(--font-heading); font-size: clamp(3.4rem, 6.9vw, 6.65rem); line-height: 1.06; font-weight: 600; letter-spacing: -.06em; }
 .hero-editorial h1 > span { display: block; }
 .hero-editorial h1 > span:last-child { color: var(--color-lilac); }
-.hero-lead { margin-block: 1.6rem .8rem; max-inline-size: 45ch; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.8; }
+.hero-lead { margin-block: 1.6rem .8rem; max-inline-size: 45ch; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.8; text-wrap: pretty; }
 .hero-location { display: flex; flex-wrap: wrap; gap: .7rem; color: var(--color-lilac); font-size: .86rem; }
 .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-block-start: 2rem; }
 .hero-actions .button { min-block-size: 54px; }
@@ -125,6 +125,8 @@
 [lang="ar"] .homepage-journey .section-heading h2, [lang="ar"] .closing-grid h2 { line-height: 1.5; letter-spacing: 0; }
 [lang="ar"] .pathway-title h3, [lang="ar"] .program-row h3 { line-height: 1.6; letter-spacing: 0; }
 [lang="ar"] .date-band-statement { letter-spacing: 0; line-height: 1.65; }
+/* Tracking pulls Arabic letters apart (visible in WebKit, so on every iPhone). */
+[lang="ar"] .hero-topline, [lang="ar"] .hero-caption { letter-spacing: 0 !important; }
 @keyframes entrance { from { transform: translateY(12px); } to { transform: none; } }
 @media (max-width: 1099px) {
   /* Keep two columns when readable, and reflow to one as text is enlarged. */
@@ -141,6 +143,9 @@
   .hero-editorial h1 { font-size: clamp(2.65rem, 9.6vw, 4.15rem); letter-spacing: -.06em; }
   .hero-lead { font-size: .95rem; max-inline-size: 34ch; margin-block-start: 1.2rem; }
   .hero-location { font-size: .76rem; gap: .4rem; max-inline-size: 33ch; }
+  /* Stacked on phones: when the line wrapped, its "·" dangled at the end of the first line. */
+  .hero-location { flex-direction: column; gap: .15rem; }
+  .hero-location > [aria-hidden="true"] { display: none; }
   .hero-actions { gap: .6rem 1rem; margin-block-start: 1.5rem; }
   .hero-actions .button { min-block-size: 50px; }
   .hero-secondary { font-size: .8rem; }
@@ -165,6 +170,8 @@
   .legacy-art { min-block-size: 360px; padding: 1.5rem; }.faq-item summary { padding-block: 1.3rem; }
   .closing-grid { justify-items: start; gap: 1.8rem; }
   [lang="ar"] .hero-editorial h1 { font-size: clamp(2.25rem, 7.8vw, 3.5rem); }
+  /* Arabic script reads smaller than Latin at the same size; about 10px was hard to read. */
+  [lang="ar"] .hero-topline, [lang="ar"] .hero-caption { font-size: .75rem; }
 }
 @media (max-width: 379px) { .pathway-list { grid-template-columns: minmax(0, 1fr); }.hero-bottom { justify-content: start; }.hero-caption { margin-inline-start: 0; }.hero-media-controls { margin-inline-start: auto; }.date-band .countdown-clock { gap: .5rem; }.date-band .countdown-number { font-size: 3.4rem; } }
 @media (prefers-reduced-motion: reduce) { .hero-editorial { animation: none; }.faq-item summary > span { transition: none; } }
