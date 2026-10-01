@@ -67,6 +67,10 @@ for (const locale of ["en", "ar"] as const) {
 }
 
 test("disabled and loading demonstrations cannot trigger operations", async ({ page }) => {
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url());
+  });
   await page.goto("/en/design-system");
   await expect(page.locator(".design-system-intro h1")).toBeVisible();
   const loading = page.locator('button[aria-busy="true"]');
@@ -79,12 +83,23 @@ test("disabled and loading demonstrations cannot trigger operations", async ({ p
     await expect(button).not.toBeFocused();
   }
   await page.goto("/en");
-  const registration = page.locator("button.header-registration");
-  expect(await registration.count()).toBeGreaterThan(0);
-  for (const button of await registration.all()) await expect(button).toBeDisabled();
+  const action = page.locator(".header-primary-action");
+  await expect(action).toHaveAttribute("href", "/en/participate");
+  if (await action.isVisible()) await action.click();
+  else {
+    await page.locator(".menu-toggle").click();
+    await page.locator(".mobile-menu").locator('a[href="/en/participate"]').click();
+    await expect(page.locator(".mobile-menu")).toHaveCount(0);
+  }
+  await expect(page).toHaveURL(/\/en\/participate$/);
+  await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);
+  await page.getByRole("main").locator('a[href="/en/registration"]').first().click();
+  await expect(page.getByTestId("journey-closed")).toBeVisible();
+  await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);
+  expect(writes).toEqual([]);
 });
 
-test("public footage autoplays while the synthetic fixture retains its preference-aware fallback", async ({ page, baseURL }) => {
+test("public footage and the synthetic fixture avoid video requests when motion and data preferences require a poster", async ({ page, baseURL }) => {
   const externalRequests: string[] = [];
   const videoRequests: string[] = [];
   const fontRequests: string[] = [];
@@ -104,14 +119,12 @@ test("public footage autoplays while the synthetic fixture retains its preferenc
   await page.goto("/ar");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   const video = page.locator(".conference-hero video");
-  const source = (page.viewportSize()?.width ?? 1280) <= 700
-    ? "/media/msrc2026/hero-mobile-v1.mp4" : "/media/msrc2026/hero-desktop-v1.mp4";
-  await expect(video).toHaveAttribute("src", source);
-  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
+  await expect(video).toHaveCount(0);
+  await expect(page.locator(".conference-hero .hero-media-poster")).toBeVisible();
+  await expect(page.locator(".conference-hero .hero-media")).toHaveAttribute("data-playback-policy", "respect-preferences");
   await expect(page.locator("iframe")).toHaveCount(0);
-  await expect(page.getByText("وضع الصورة الثابتة", { exact: true })).toHaveCount(0);
-  expect([...new Set(videoRequests.map((url) => new URL(url).pathname))]).toEqual([source]);
-  const publicRequestCount = videoRequests.length;
+  await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
+  expect(videoRequests).toEqual([]);
   // The private workshop has an original synthetic test clip. With these
   // preferences, even that configured clip must never be fetched.
   await page.goto("/ar/design-system");
@@ -120,7 +133,7 @@ test("public footage autoplays while the synthetic fixture retains its preferenc
   await page.evaluate(() => document.fonts.ready);
   expect(fontRequests.length).toBeGreaterThan(0);
   expect(externalRequests).toEqual([]);
-  expect(videoRequests.slice(publicRequestCount)).toEqual([]);
+  expect(videoRequests).toEqual([]);
 });
 
 test("synthetic video controls pause, resume and fall back after an asset failure", async ({ page }) => {

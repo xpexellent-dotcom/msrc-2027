@@ -222,3 +222,44 @@ This supersedes the visible control direction above, not technical recovery or t
 private synthetic showcase. One-time400 ms reveals with short child stagger supplement
 explicit navigation slides; reduced-motion UI skips these, and normal scrolling stays
 native. See [current evidence](features/premium-public-interface.md).
+
+## 14. Cinematic public website — ORG-005
+
+The current request restores a visible, discreet hero Pause/Play control and preference-
+safe video delivery. It supersedes sections12/13 only where those describe unconditional
+public autoplay or a hidden pause control. Approved film/crop provenance is unchanged.
+
+Use the full viewport opening with generous negative space, a readable purple/ink
+scrim, concise white identity and two clear actions. The floating ivory navigation
+capsule has space at its edges, a quiet border/shadow and a more solid scrolled state.
+Mobile uses a compact header and generous disclosure menu. Keep native scrolling,
+keyboard focus, equivalent touch feedback and reduced-motion alternatives.
+
+Continue into ivory editorial sections with short gold rules, purple programme rows,
+selected card grids and original flowing line art. Use consistent tokens for spacing,
+type, pill actions, rounded corners and borders. Speaker portraits use a3:4 frame;
+natural photos are preserved and decorative lines remain outside the content hierarchy.
+Session and scientific prose stay English/LTR inside either language interface.
+
+Programme and media filters remain useful even before publication: clear announcement,
+incomplete metadata, selected-edition and no-result states. Approved speakers, sessions,
+workshops and playable media are separate typed records; no public synthetic catalogue
+is substituted for missing approvals. Current routes, checks and content handoff are
+in [the public-experience note](features/cinematic-public-experience.md).
+
+## 15. Public refinements — ORG-006
+
+The latest explicit requester instruction removes the permanent visible hero Pause
+button. Keep the semantic background pause interaction, keyboard focus, reduced-motion
+and data-saving posters, hidden-tab pause and temporary browser-denial Play recovery.
+This supersedes section14's visible-control direction without changing media approval.
+
+Watch opens a clean nearly full-screen view of the same homepage film, with reading
+layers and navigation hidden and the scrim removed. Preserve a reachable close control,
+Escape/Tab interaction, previous-edition provenance, direct-link preferences and return
+focus/scroll. Use a numbered current-reading chapter index and native section anchors.
+
+Participation uses warm ivory with white cards. Public headings use the supplied DM
+Sans at600/700 weights, with Noto Sans Arabic/RTL parity. Reduce repeated prose and
+actions while retaining useful facts, distinct journeys and honest closed states.
+Latest checks, publication and rollback: [refinement note](features/cinematic-release-refinements.md).

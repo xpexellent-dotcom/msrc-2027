@@ -79,7 +79,9 @@ for (const locale of ["en", "ar"] as const) {
     const slide = await page.evaluate(() => window.navigationEvidence.slides.find((entry) => entry.id === "program"));
     expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -16 : 16}px)`);
     expect(slide?.frames[1].transform).toBe("translateX(0)");
-    await expect.poll(() => page.locator("#program").evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThanOrEqual(90);
+    await expect.poll(() => page.locator("#program").evaluate((element) =>
+      Math.round(element.getBoundingClientRect().top) - parseFloat(getComputedStyle(element).scrollMarginBlockStart),
+    )).toBeLessThanOrEqual(1);
     const position = await page.evaluate(() => window.scrollY);
     await page.keyboard.press("PageDown");
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(position);
@@ -101,17 +103,20 @@ for (const locale of ["en", "ar"] as const) {
     expect(await page.evaluate(() => window.navigationEvidence.slides.length)).toBe(1);
   });
 
-  test(`${locale} cross-page header anchor focuses the actual destination and closes the mobile menu`, async ({ page }) => {
+  test(`${locale} dedicated programme navigation focuses the actual page and closes the mobile menu`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
     await page.goto(`/${locale}/about`);
     const navigation = await headerNavigation(page);
     await expect(navigation.locator(".directional-arrow")).toHaveCount(0);
-    await navigation.locator(`a[href="/${locale}#program"]`).click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}#program$`));
-    await expect(page.locator("#program")).toBeFocused();
+    await navigation.locator(`a[href="/${locale}/program"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/program$`));
+    await expect(page.getByRole("main")).toBeFocused();
+    await expect(page.getByTestId("program-empty")).toBeVisible();
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "program")?.duration)).toBe(400);
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.at(-1)?.duration)).toBe(400);
+    const slide = await page.evaluate(() => window.navigationEvidence.slides.at(-1));
+    expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -16 : 16}px)`);
   });
 
   test(`${locale} an anchor followed by a page visit retains the hash and query on Back`, async ({ page }) => {
@@ -121,7 +126,9 @@ for (const locale of ["en", "ar"] as const) {
     await page.locator('.section-journey a[href="#program"]').click();
     await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#program$`));
     await expect(page.locator("#program")).toBeFocused();
-    await expect.poll(() => page.locator("#program").evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThanOrEqual(90);
+    await expect.poll(() => page.locator("#program").evaluate((element) =>
+      Math.round(element.getBoundingClientRect().top) - parseFloat(getComputedStyle(element).scrollMarginBlockStart),
+    )).toBeLessThanOrEqual(1);
     const navigation = await headerNavigation(page);
     await navigation.locator(`a[href="/${locale}/about"]`).click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/about$`));
@@ -139,7 +146,9 @@ for (const locale of ["en", "ar"] as const) {
     await page.locator('.section-journey a[href="#program"]').click();
     await expect(page.locator("#program")).toBeFocused();
     await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(1);
-    await page.getByRole("link", { name: locale === "en" ? "View this page in Arabic" : "View this page in English" }).click();
+    const language = page.getByRole("link", { name: locale === "en" ? "View this page in Arabic" : "View this page in English" });
+    await expect(language).toHaveAttribute("href", `/${targetLocale}?view=motion#program`);
+    await language.click();
     await expect(page).toHaveURL(new RegExp(`/${targetLocale}\\?view=motion#program$`));
     await expect(page.locator("html")).toHaveAttribute("dir", targetLocale === "ar" ? "rtl" : "ltr");
     await expect(page.locator("#program")).toBeFocused();

@@ -51,7 +51,8 @@ describe("public content publication boundaries (SCP-02, CFG-12, MED-01)", () =>
     for (const page of publicSitemap) {
       expect(page.label.en.trim().length).toBeGreaterThan(0);
       expect(page.label.ar).toMatch(/[\u0600-\u06ff]/);
-      expect(page.previewHref === null || page.previewHref === "/" || page.previewHref === "/about" || page.previewHref === "/dates-venue" || page.previewHref.startsWith("/#")).toBe(true);
+      const implemented = ["/", "/about", "/dates-venue", "/program", "/speakers", "/workshops", "/participate", "/media"];
+      expect(page.previewHref === null || implemented.includes(page.previewHref) || page.previewHref.startsWith("/#")).toBe(true);
     }
     expect(hasApprovedVideo(homepageAssets.heroVideo)).toBe(true);
     expect(homepageAssets.heroVideo.src).toBe("/media/msrc2026/hero-desktop-v1.mp4");

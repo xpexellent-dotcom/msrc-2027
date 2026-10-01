@@ -23,9 +23,13 @@ test("the default route opens the English public page", async ({ page, request }
 for (const locale of ["en", "ar"] as const) {
   test(`${locale} homepage is readable without opening a workflow`, async ({ page }, testInfo) => {
     const errors: string[] = [];
+    const writes: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => {
       if (message.type() === "error") errors.push(message.text());
+    });
+    page.on("request", (request) => {
+      if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url());
     });
     const response = await page.goto(`/${locale}`);
 
@@ -35,7 +39,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(page.locator("form, input, textarea, select")).toHaveCount(0);
-    await expect(page.locator('a[href*="register"], a[href*="payment"], a[href*="admin"], a[href*="submit"]')).toHaveCount(0);
+    await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"], a[href*="/admin"]')).toHaveCount(0);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     expect(response?.headers()["x-robots-tag"]).toContain("noindex");
     // ORG-001/002: explicit date and montage approval does not open operations.
@@ -43,7 +48,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("[data-countdown]")).toHaveCount(1);
     await expect(page.locator(".event-strip")).toContainText(locale === "en" ? /27\D+28 January 2027/ : /٢٧\D+٢٨ يناير ٢٠٢٧/);
     const missingAnchors = await page.locator('a[href*="#"]').evaluateAll((links) => links
-      .map((link) => new URL((link as HTMLAnchorElement).href).hash.slice(1))
+      .map((link) => new URL((link as HTMLAnchorElement).href))
+      .filter((url) => url.pathname === location.pathname)
+      .map((url) => url.hash.slice(1))
       .filter((id) => id && !document.getElementById(decodeURIComponent(id))));
     expect(missingAnchors).toEqual([]);
 
@@ -91,6 +98,7 @@ for (const locale of ["en", "ar"] as const) {
       });
     }
     expect(errors).toEqual([]);
+    expect(writes).toEqual([]);
   });
 }
 

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { createContext, useContext, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
+import { cinematicPlaybackEvent, type CinematicPlayback } from "@/lib/cinematic-film";
 import {
   type HeroVideo,
   type HeroPlaybackPolicy,
@@ -136,13 +137,41 @@ export function HeroMedia({
   const [frameAvailable, setFrameAvailable] = useState(false);
   const [failed, setFailed] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [explicitFilm, setExplicitFilm] = useState(false);
+  const pausedBeforeFilm = useRef(false);
+  const cinematicActive = useRef(false);
   const approved = hasRenderableVideo(video, allowPreview);
-  const load = approved && shouldLoadHeroVideo(preferences, playbackPolicy) && !failed;
-  const play = load && shouldPlayHeroVideo(preferences, userPaused, playbackPolicy) && !autoplayBlocked;
+  // Keep the selected frame/source across hidden tabs; actual playback still
+  // follows visibility, motion/data preferences and the visitor's durable pause.
+  const effectivePolicy = explicitFilm ? "autoplay" : playbackPolicy;
+  const load = approved && shouldLoadHeroVideo({ ...preferences, visible: true }, effectivePolicy) && !failed;
+  const play = load && shouldPlayHeroVideo(preferences, userPaused, effectivePolicy) && !autoplayBlocked;
   const poster = approved ? video.poster : isLocalPoster(posterSrc) ? posterSrc : defaultHeroPoster;
   const source = approved ? (preferences.smallScreen && video.mobileSrc ? video.mobileSrc : video.src) : undefined;
   const videoControls = controlsMode === "video";
   const text = copy[locale];
+
+  useEffect(() => {
+    if (!approved || !videoControls) return;
+    const cinematic = (event: Event) => {
+      const { active, explicit } = (event as CustomEvent<CinematicPlayback>).detail;
+      if (active) {
+        if (!cinematicActive.current) pausedBeforeFilm.current = userPaused;
+        cinematicActive.current = true;
+        setExplicitFilm(explicit);
+        setUserPaused(false);
+        setAutoplayBlocked(false);
+        // Retain actual gesture activation when the existing player is loaded.
+        if (explicit && videoRef.current) void videoRef.current.play().catch(() => {});
+      } else if (cinematicActive.current) {
+        cinematicActive.current = false;
+        setExplicitFilm(false);
+        setUserPaused(pausedBeforeFilm.current);
+      }
+    };
+    window.addEventListener(cinematicPlaybackEvent, cinematic);
+    return () => window.removeEventListener(cinematicPlaybackEvent, cinematic);
+  }, [approved, videoControls, userPaused]);
 
   useEffect(() => {
     const element = videoRef.current;
@@ -191,7 +220,7 @@ export function HeroMedia({
 
   return (
     <MediaControls.Provider value={{ locale, approved, load, hydrated: preferences.hydrated, failed, playing, controlsMode, autoplayBlocked, togglePlayback }}>
-    <div className="hero-media" data-playback-policy={playbackPolicy} data-controls-mode={controlsMode} data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
+    <div className="hero-media" data-playback-policy={effectivePolicy} data-controls-mode={controlsMode} data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
       <picture>
         {approved && video.mobilePoster && <source media="(max-width: 700px)" srcSet={video.mobilePoster} />}
         <Image
@@ -224,6 +253,7 @@ export function HeroMedia({
       </>}
     </div>
     {children ?? <HeroMediaControls />}
+    {children && videoControls ? <HeroMediaControls /> : null}
     </MediaControls.Provider>
   );
 }
