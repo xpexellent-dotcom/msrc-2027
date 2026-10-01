@@ -20,8 +20,8 @@
   Dedicated pages have shorter copy and one clear destination per pathway/profile.
 - Final source `pnpm check` PASS: zero-warning lint, route types/tsc, 258/258 unit
   tests and optimized build with40 generated pages. Targeted cinema/public-shell
-  browser run PASS:60 passed/1 duplicate tablet case skipped,1.3minutes. Final full
-  browser regression is currently pending; release is not asserted at this stage.
+  browser run PASS:60 passed/1 duplicate tablet case skipped,1.3minutes. Final exact-head
+  hosted browser regression PASS:264 passed/3 duplicate skips/0 failures of267.
 - Initial full browser run:246 passed/6 failed/3 duplicate cases skipped. Four failures
   were normalized homepage-link slash assertions; the two others found real chapter
   overflow at412px/200%text. Fixed adaptive columns/wrapping without clipping. Separate
@@ -43,15 +43,27 @@
   skips,20 pgTAP and10 integrations, both jobs successful. Local full run263/1/3 found
   a separate test timing gap: identical search/day values could pass on the prior
   language before the return navigation committed. Added explicit URL/document-language
-  arrival waits and retained query/filter checks. Final-head hosted rerun follows;
-  d878cd8 evidence is preserved separately rather than relabelled as the next revision.
+  arrival waits and retained query/filter checks. The locale/filter repeat then passed
+  12/12 desktop/mobile cases, followed by final c1f7273 CI36905277026 PASS both jobs:
+  258 units/264 browsers/3 duplicate skips/20 pgTAP/10 integrations, lint/types/build
+  and database security checks. d878cd8 remains separately recorded historical evidence.
 - Targeted public-page review PASS:24 language/viewport combinations with normal and
   200%text, filters/reset focus and distinct links. Chapter repair PASS:20 EN/AR width/
   text combinations at320/390/412/791/1440px, no overflow and minimum48px targets.
   `node .tools/cinematic-release-review.mjs` PASS: six EN/AR desktop/tablet/mobile
   homepage/chapter/cinema journeys, HTTP200, correct ivory surface/700 heading weight,
   zero page errors/overflow;18 screenshots captured and desktop/mobile views inspected.
-- GitHub CI, protected branch preview and production publication are pending. No new
+- Published through [PR11](https://github.com/xpexellent-dotcom/msrc-2027/pull/11),
+  merged e70bf38abd5e6567c85f33b348f3224927c46745. Entire merge tree equals checked c1f7273
+  (`git diff --exit-code` PASS). Vercel Production6791979347 succeeded at18:23:37UTC.
+  Preview6791792610 built successfully; app UAT was blocked by existing Vercel Login.
+- Live `node .tools/cinematic-release-review.mjs` PASS: six EN/AR desktop/tablet/mobile
+  homepage/chapter/film journeys, correct ivory/700 headings, zero errors/overflow,
+  18 screenshots with EN desktop/AR mobile participation/cinema inspected.
+  `node .tools/cinematic-live-boundaries.mjs` PASS:24 public200 routes,14 private404
+  paths,15 closed503/no-store gates, four EN/AR320/412px200% text layouts and two
+  preference-safe media/filter/explicit-film-play journeys, no mutation requests.
+- No new
   dependency, database/migration/RLS/grant, secret/environment, DNS, email, payment or
   hosted-resource configuration change. All15 operational gates stay closed; public
   information routes do not fake a submission or expose an unapproved catalogue.
@@ -213,16 +225,16 @@
 | Updated Hackathon Draft | Read and reconciled; options and conflicts preserved |
 | Brand guide and previous starter pack | Reviewed; recommendations distinguished from approvals |
 | Original Canva brand reference sheet | Text read; palette and English font names corroborated, final brand approval still pending |
-| 2026 media | ORG-002 approved derivatives unchanged. ORG-004 public autoplay and semantic background pause replace separate visible controls, verified locally and live at cbfe62a. Browser denial/error recovery pass; other gallery/brand assets remain open. |
+| 2026 media | ORG-002 derivatives/rights unchanged. ORG-006 removes the permanent visible Pause button and reframes the same homepage player into a nearly full-screen film view. Preference-safe entry, explicit Play, focus/history/close and poster recovery verified; other asset rights remain open. |
 | Codex handoff documents and prompts | Prepared in this package |
 | Domain / HTTPS | Fresh checks: www CNAME matches Vercel; HTTPS EN/AR Home/About return 200; HTTP/HTTPS apex resolve to https://www.msrc2027.com/en. Account custody/renewals remain unverified. |
-| Git / application code | PR9 merged at cbfe62a after exact-head CI36847305482 passed application/database jobs; verified tree matches head9d9026a. Production6781771386 succeeded. Previous release evidence/source records preserved; custody/required-check enforcement remain separate work. |
+| Git / application code | PR11 merged at e70bf38 after exact c1f7273 CI36905277026 passed both jobs; complete merge tree matches checked head. Production6791979347 succeeded. Prior release/source evidence remains preserved; custody/required-check enforcement remain separate work. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed; optional PC fixture tests still require restart/first launch. User now selected direct hosted access for normal work (ENG-006). |
-| Vercel/Supabase projects / production secrets | GitHub confirms successful Production6781771386 of app cbfe62a and fresh public EN/AR Home/About/Dates checks. Connector settings/drains remain NOT VERIFIED. Hosted Supabase evidence was not refreshed; no hosted data/settings or secrets changed. |
-| Tests / CI / preview / production deployment | Local lint/types,252 units/build, final201 browsers PASS. Initial Arabic numeral and finished-transform test assertions corrected before passing reruns. Exact-head CI36847305482 PASS both jobs including201 browser/20 pgTAP/10 integrations. Preview build succeeded; browser app UAT blocked by Vercel Login. Production6781771386 and six live EN/AR desktop/mobile/320px+200% views PASS. Six public routes200, ten private404,15 workflows503/no-store. Human Arabic/brand/real-device/screen-reader/Firefox/Safari UAT open. |
+| Vercel/Supabase projects / production secrets | Production6791979347 succeeded for e70bf38; fresh live EN/AR public page/film checks passed. Connector settings/drains remain NOT VERIFIED. Hosted Supabase evidence was not refreshed; no hosted data/settings or secrets changed. |
+| Tests / CI / preview / production deployment | Local lint/types/258 units/build PASS; exact c1f7273 CI36905277026 PASS both jobs,264 browsers/3 duplicate skips/20 pgTAP/10 integrations. Preview6791792610 succeeded, protected app UAT blocked. Production6791979347/live six visual journeys,24 public200/14 private404/15 closed503 gates/four200% text layouts/two preference/filter/film journeys PASS. Retained failed runs/repairs in the latest feature note. Physical-device/human/Safari/Firefox review open. |
 | KAU collection access / email sender | Not verified |
-| Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
+| Implementation backlog | Documentation:152 issues/24 epics/13 decision packets/212 source IDs mapped. ORG-005/006 public journeys and presentation are implemented; operational modules keep their distinct milestones. No operational gate opened. |
 
 ## Milestone status
 
@@ -230,8 +242,8 @@
 |---|---|---|---|
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
 | M1 Foundation | ENG-001/004/005/006 adopted; relevant source IDs retained | Foundation and isolated Linux database CI verified; Windows local stack optional and untested | Deployed foundation does not open operational or institutional approval gates |
-| M2 Design system | ENG-007 palette/motion and ORG-004 display refinement | Complete component showcase, refined shell/buttons, one-time staggered reveals, native scrolling, mirrored navigation/history/focus, EN/AR/no-JS/no-observer/reduced-motion checks verified | Final brand/human review pending; production showcase closed |
-| M3 Public alpha | Full15-entry sitemap; ORG-001 dates/ORG-002 media/ORG-004 presentation | Home/About/Dates published at app cbfe62a; restored title, concise copy, original graphics, sectioned D/H/M/S countdown, autoplay/background pause and premium shared layout verified | Scoped release complete. Final brand/copy, venue/start time, remaining routes and broader REL-01 open;15 operational gates closed |
+| M2 Design system | ENG-007 palette/motion, ORG-005/006 public identity/refinement | Floating navigation, numbered chapters, ivory/white participation, stronger DM Sans/Arabic titles, flowing motifs and reusable public/filter/media treatments verified EN/AR; native scrolling and accessible motion/film behavior | Scoped presentation published; final brand/human review pending, production showcase closed |
+| M3 Public alpha | Public sitemap; ORG-001 dates/ORG-002 media/ORG-005/006 presentation | EN/AR Home/About/Dates/Programme/Speakers/Media/Participate/Registration/Research/Hackathon/Workshops/3MT published at e70bf38, plus safe approved-record detail handlers and aliases; cinematic homepage and filters verified | Scoped public release complete. Final brand/copy, venue/start time, approved catalogues/assets and broader REL-01 open;15 operational gates closed |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
 | M5 Participant auth | Requirements defined | Not verified | Pending |
 | M6 Abstract/review | Detailed baseline; configuration gates remain | Not verified | Pending |
@@ -249,12 +261,12 @@ M3 can continue now. Do not rebuild M1/M2/About or wait for optional Windows Doc
 The [checklist audit](reviews/checklist-audit-2026-10-01.md) records current source,
 deployment, evidence gaps and the sequence agreed by the existing roadmap.
 
-The user confirmed27–28January2027 and approved this18.7-second MSRC2026 montage,
-including people/posters shown, then authorized pushing/publishing all updates. ORG-001/002
-record the exact authority. ORG-004's premium presentation refinement is now published and
-live-verified. The Dates & Venue slice is implemented with venue/time details still
-pending. Current release CI/live checks passed; apply forthcoming official brand
-inputs and approved bilingual copy. Gallery selections remain separate.
+The user confirmed27–28January2027 and approved this18.7-second MSRC2026 montage;
+ORG-001/002 preserve that authority. ORG-005/006's cinematic public pages and requested
+refinements are now published and live-verified. Next: populate approved session/speaker/
+workshop catalogues and official assets, then review bilingual copy and venue/time inputs.
+Gallery rights and recording/access decisions remain separate. Operational work starts
+with its existing milestone/decision contract; public presentation opens no workflow.
 
 Next smallest content PR: approved contact/privacy/terms details and remaining public
 informational routes, after receiving the responsible owners' wording. The

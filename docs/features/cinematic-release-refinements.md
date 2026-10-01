@@ -73,7 +73,7 @@ email, domain/DNS or hosted-resource configuration change is part of this refine
 The server-only approved-catalogue boundary, safe detail-route lookup, addressable
 filters and bilingual navigation from ORG-005 remain in place.
 
-## Verification at documentation handoff
+## Verification and published release
 
 | Check | Observed result |
 |---|---|
@@ -81,23 +81,38 @@ filters and bilingual navigation from ORG-005 remain in place.
 | Public-page agent targeted responsive review | PASS: `node .tools/public-page-polish-check.mjs`, exit 0. Twenty-four English/Arabic route/viewport combinations; details below. |
 | Targeted cinema/public-shell | PASS: `pnpm exec playwright test tests/e2e/cinematic-film.spec.ts tests/e2e/public-shell.spec.ts`,60 passed/1 duplicate skipped in1.3minutes. |
 | Mobile chapter/film restoration repeat | PASS: `pnpm exec playwright test tests/e2e/cinematic-film.spec.ts --project=chromium-mobile --grep 'participation chapter' --repeat-each=3`,6/6 in15.3seconds. |
-| Final complete browser regression suite | PENDING:267-case runs262/2 and263/1 passed/failed, each3 duplicate skips. Traces locate position changes before input; the test now observes the actual native click URL/scroll before the React handler and retains exact return assertions. Final full rerun follows. |
+| Final complete browser regression suite | PASS on exact c1f7273 hosted CI:264 passed/3 duplicate matrix skips/0 failures of267 in6.3minutes. Earlier local262/2 and263/1 runs are retained below; their trace-backed test setup corrections retain exact return and locale/filter assertions. |
 | Visual production-build review | PASS: `node .tools/cinematic-release-review.mjs`, six EN/AR desktop/tablet/mobile homepage/chapter/cinema journeys,200 responses, zero page errors/overflow, correct ivory/700-weight heading;18 screenshots with desktop/mobile inspection. |
 | Hosted d878cd8 CI | PASS: Foundation36903651165,258 units,264 browsers/3 duplicates skipped,20 pgTAP,10 integrations; both jobs succeeded. A later test-only revision must have its own recorded checks. |
-| Final-head CI and production deployment | PENDING: publication is authorized; no successful production release is asserted by this note. |
-| Database checks | NOT TESTED for this public-only slice; schema, permissions and workflow gates are unchanged. |
+| Final-head CI | PASS: [Foundation36905277026](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36905277026), exact c1f7273, both jobs successful:258 units/264 browsers/3 duplicate skips/20 pgTAP/10 integrations, lint/types/build and database security checks. |
+| Production deployment | PASS: [PR11](https://github.com/xpexellent-dotcom/msrc-2027/pull/11) merged at e70bf38abd5e6567c85f33b348f3224927c46745. `git diff --exit-code c1f7273 e70bf38` passed: the entire merge tree matches the checked head. GitHub Vercel Production6791979347 succeeded at18:23:37UTC. |
+| Live visual review | PASS: `MSRC_REVIEW_URL=https://www.msrc2027.com node .tools/cinematic-release-review.mjs`, six EN/AR desktop1440/tablet791/mobile390 journeys;200 responses, ivory248/246/240,700-weight headings, zero page errors/overflow, chapter/focus/film/Escape checks.18 screenshots captured; desktop EN and mobile AR participation/cinema inspected. |
+| Live publication boundaries | PASS: `node .tools/cinematic-live-boundaries.mjs`,24 public routes200,14 private/unpublished paths404, health/15 closed workflows503 with no-store, four320/412px EN/AR200% text layouts, two reduced-motion media/filter/explicit-film-play journeys. No mutation requests or page errors. |
+| Database checks | PASS in isolated synthetic CI:20 pgTAP/10 integration checks. Hosted Supabase was not changed or retested; schema/permissions and operational gates are unchanged. |
 | Physical devices, Safari/Firefox, human screen-reader and Arabic editorial review | NOT TESTED in this slice. |
 
-The root must append the final browser commands/results and exact CI/deployment evidence
-before reporting publication complete. Any failed check and the resulting repair should
-remain recorded, alongside the passing rerun rather than being silently omitted.
+The scoped public presentation is published at [English](https://www.msrc2027.com/en)
+and [Arabic](https://www.msrc2027.com/ar). The successful exact-head checks and production
+receipts above supersede the earlier pending handoff. Failed checks and their repairs
+remain recorded below; the broader product/institutional release gates remain separate.
 
 Actual-click chapter restoration repeat passed12/12 desktop/mobile cases. A subsequent
 local full run263 passed/1 failed/3 skipped exposed an independent test timing gap:
 matching search/day values did not establish that a language return had committed.
 The regression now awaits the target programme URL and `html.lang` after both switches,
 then retains the original query/filter and announcement assertions. Application source
-is unchanged by either test setup correction. Final-head execution is recorded below.
+is unchanged by either test setup correction. Both the actual-click restoration and
+programme language/filter regressions passed12/12 desktop/mobile repeated cases locally;
+the complete exact-head hosted suite then passed264/3/0 as recorded above.
+
+Preview6791792610 succeeded at c1f7273, but its unauthenticated browser check reached
+Vercel Login. Preview application UAT was BLOCKED by existing protection; that protection
+was not bypassed or changed. The public production browser checks passed independently.
+Live receipts/screenshots are in ignored `deliverables/cinematic-live/` and
+`deliverables/cinematic-live-visual/`. Checks used fresh Chromium contexts, not physical
+devices or a human accessibility/editorial audit. The subsequent release-receipt edit is
+documentation-only and must preserve the tested application, tests, configuration and
+approved media tree.
 
 The public-page agent supplied this executed command sequence:
 
@@ -123,8 +138,8 @@ layout inspection or a complete accessibility audit.
 
 ## Preview, open inputs and rollback
 
-Open the existing local preview at `http://127.0.0.1:3000/en` or `/ar`. To start it in
-this Windows checkout:
+Use the published [website](https://www.msrc2027.com/en) or the local preview at
+`http://127.0.0.1:3000/en` or `/ar`. To start a local preview in this Windows checkout:
 
 ```powershell
 . ./scripts/use-local-node.ps1

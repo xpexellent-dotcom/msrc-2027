@@ -745,10 +745,15 @@ v0.5 and earlier source snapshots stay unchanged.
   approval, payment, booking, attendance or certificate result follows from these pages.
   No database/schema/migration/grant/RLS, secret/environment, package, email, domain/DNS
   or paid hosted-resource configuration change is part of this task.
-- Verification at this record: `pnpm check` PASS (lint/types, 258 units, optimized build);
-  public-page agent targeted 24-view EN/AR responsive review PASS. Final browser regression,
-  exact-head CI and deployment evidence are pending and must be recorded before reporting
-  publication complete. Earlier ORG-005 evidence is historical, not this release's result.
+- Verification: `pnpm check` PASS and exact c1f7273 [CI36905277026](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36905277026)
+  PASS both jobs (258 units/264 browsers/3 duplicate skips/20 pgTAP/10 integrations).
+  [PR11](https://github.com/xpexellent-dotcom/msrc-2027/pull/11) merged at e70bf38;
+  the complete tree matches the checked head. Vercel Production6791979347 succeeded.
+  Live EN/AR six visual journeys,24 public routes,14 private404 paths,15 closed gates,
+  four enlarged-text layouts and two reduced-motion/filter/film journeys passed.
+  Preview app UAT remained blocked by existing Vercel Login; production was independently
+  checked. Earlier ORG-005 evidence remains historical. See the feature note for commands,
+  exact receipts, retained failed runs and untested physical-device/human review.
 - Affected IDs: SCP-01/02/03/05, DSN-01/02, ACC-01, LOC-01/02/03, CMS-01/04,
   MED-01 to MED-04, PRG-01, TIM-01, CFG-01/12, REG-02/03, ABS-04/07/08/09,
   HAC-01/02/04, WKS-01/02, REL-01. See the
