@@ -121,9 +121,28 @@ tests/e2e/public-media.spec.ts
   Actual400 ms navigation slides/focus PASS in both languages. Screenshots/receipts:
   ignored `deliverables/m3-premium-refinement/local/`; hero/full-page/mobile/clock inspected.
 - Local server agent-browser open/snapshot/errors PASS; no blank page or error overlay.
-- Database tests on this Windows host NOT RUN in this slice; isolated committed CI
-  database job and exact-head app/Preview checks remain pending before merge.
-- Push, merge, production deployment and live verification: PENDING.
+- Database tests on this Windows host NOT RUN in this slice. Isolated Linux GitHub
+  [CI36847305482](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36847305482)
+  on exact head9d9026a74d2ba2df560d49cf2a66dbd76fbfb406 PASS both jobs: frozen install,
+  lint/types/252 units/build/201 browsers; local stack start/reset/lint/20 pgTAP/security
+  advisors/generated types+strict typecheck/local public client environment/10 client
+  integration tests/stop. No hosted Supabase mutation or production connection.
+- [PR9](https://github.com/xpexellent-dotcom/msrc-2027/pull/9) merged at
+  cbfe62adc1b04e829479b6bbf0ad9d41d5a14bc2 after exact-head CI and Vercel Preview success.
+  `git diff --exit-code 9d9026a HEAD` PASS: merged tree matches verified PR head.
+  Preview6781648361 succeeded; actual unauthenticated browser UAT redirected to Vercel
+  Login and was BLOCKED. Preview protection was preserved.
+- Production6781771386 succeeded for cbfe62a. Fresh live inspection at
+  `https://www.msrc2027.com` PASS all six EN/AR desktop/mobile/320px+200% views:
+  exact restored heading, one notice, no visible hero control, real autoplay/keyboard
+  pause/frozen state, complete countdown/reflow, actual mirrored400 ms navigation
+  slides/focus and no browser errors. Six public routes200, ten private/showcase404,
+  all15 workflows503/no-store. Screenshots/receipts in ignored
+  `deliverables/m3-premium-refinement/live/`; desktop/mobile views inspected.
+- Changed-file and whitespace review PASS. All33 changed paths belong to this slice;
+  no `.env`, migration, Supabase or public media file was staged. The existing final
+  official branding/human editorial/Arabic/device/screen-reader/Firefox/Safari checks
+  remain open. This release does not open broader REL-01 or operational gates.
 
 ## Opening, manual setup and rollback
 
@@ -131,6 +150,9 @@ Use the existing README/portable Node setup and `pnpm install --frozen-lockfile`
 `pnpm start --port 3300` opens the built preview. No hosted environment setting needs
 to change, and no production connection or secret is needed for these public changes.
 Screenshots are local evidence and are not new deployed assets.
+The scoped app is published at [English](https://www.msrc2027.com/en) and
+[Arabic](https://www.msrc2027.com/ar). Local built preview remains at
+`http://127.0.0.1:3300/en` / `/ar` while this task's process remains running.
 
 Rollback through a reviewed revert of the scoped app PR or restore the prior successful
 Vercel app deployment6773736526 / main9de4c1c. No schema rollback is required. Preserve
