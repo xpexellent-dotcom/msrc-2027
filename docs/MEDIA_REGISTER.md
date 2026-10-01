@@ -179,8 +179,8 @@ media/design owners before implementing a separately authorized release.
 
 This later organizer decision supersedes only the local-review/no-publication status of
 the candidate in section 8. Preserve that earlier review and its executed checks as dated
-evidence. **ORG-002 authorizes public homepage use; actual deployment/live verification
-is pending.** The project requester explicitly approved the current 18.7-second cut,
+evidence. **ORG-002 authorizes public homepage use; production deployment6772802242
+at d6e4be7 and live English/Arabic verification passed on1October2026.** The project requester explicitly approved the current 18.7-second cut,
 including its visible people and research posters, and authorized pushing/publishing.
 This records the supplied approval; it does not assert an independent institutional or
 legal audit, approve other collection assets, or settle final brand/REL-01 requirements.
@@ -189,7 +189,7 @@ legal audit, approve other collection assets, or settle final brand/REL-01 requi
 |---|---|
 | Asset ID / source | MSRC2026-HERO-01; derives from PREVIEW-MSRC2026-HERO-01 and the same user-supplied Drive original |
 | Approved purpose and coverage | Decorative EN/AR public homepage hero and responsive still fallback; current people, posters, crop and montage selection approved by the requester in the current chat on 1 October 2026 |
-| Approval evidence | ORG-002 in [DECISIONS.md](DECISIONS.md); status AUTHORIZED / DEPLOYMENT VERIFICATION PENDING |
+| Approval evidence | ORG-002 in [DECISIONS.md](DECISIONS.md); status APPROVED / PUBLISHED AND VERIFIED; PR5, CI36793419169 and production6772802242 in [release evidence](features/confirmed-dates-publication.md) |
 | Edition/caption | MSRC2026 previous-edition footage, translated in Arabic; no 2027 participant, speaker, sponsor or scientific outcome is implied |
 | Desktop delivery | `public/media/msrc2026/hero-desktop-v1.mp4`; 18.7 s, 1280×720, 30 fps, 2,762,552 bytes; `poster-desktop-v1.jpg`, 139,823 bytes |
 | Mobile delivery | `public/media/msrc2026/hero-mobile-v1.mp4`; 18.7 s, 720×1280, 30 fps, 1,866,350 bytes; `poster-mobile-v1.jpg`, 107,520 bytes |
@@ -201,6 +201,6 @@ legal audit, approve other collection assets, or settle final brand/REL-01 requi
 
 The four public files are approved display derivatives, not confidential originals.
 The public hero does not require a database or a hosted environment variable. Technical
-checks and deployment evidence must be recorded for the public build before claiming
-publication completed. Final official branding, full bilingual copy approval and broader
+checks and deployment evidence are recorded for the published build in the release feature note.
+Final official branding, full bilingual copy approval and broader
 REL-01 evidence remain separate work; all operational gates stay closed.

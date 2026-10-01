@@ -11,14 +11,14 @@
 | Updated Hackathon Draft | Read and reconciled; options and conflicts preserved |
 | Brand guide and previous starter pack | Reviewed; recommendations distinguished from approvals |
 | Original Canva brand reference sheet | Text read; palette and English font names corroborated, final brand approval still pending |
-| 2026 media | User approved the reviewed18.7-second MSRC2026 homepage cut, including people/posters, on1October (ORG-002). Four public derivatives exactly match the review files; both videos fully decode; original hash unchanged. Publication verification pending. Other gallery/brand assets remain open. |
+| 2026 media | ORG-002 approved the reviewed18.7-second cut, including people/posters. Four derivatives published at d6e4be7; live desktop/mobile playback, keyboard pause and still fallbacks PASS. Original hash unchanged; other gallery/brand assets remain open. |
 | Codex handoff documents and prompts | Prepared in this package |
 | Domain / HTTPS | Fresh checks: www CNAME matches Vercel; HTTPS EN/AR Home/About return 200; HTTP/HTTPS apex resolve to https://www.msrc2027.com/en. Account custody/renewals remain unverified. |
-| Git / application code | Fresh origin/main remains9e018ae; current codex/confirmed-dates-homepage preserves prior Brand/audit/backlog work and adds approved dates/countdown/media. Push/PR/deployment authorized and pending execution. Custody/required-check enforcement remain separate follow-up items. |
+| Git / application code | Release PR5 merged to main at d6e4be7 after successful CI on5a27e9c; production deployment6772802242 successful. Prior Brand/audit/backlog work preserved. Custody/required-check enforcement remain separate follow-up items. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed; optional PC fixture tests still require restart/first launch. User now selected direct hosted access for normal work (ENG-006). |
-| Vercel/Supabase projects / production secrets | GitHub records successful Vercel Production deployment6762942669 of 9e018ae; live draft reachable. Vercel connector scope access returned403, so full settings not verified. Hosted Supabase connection/empty schema were observed29 September, NOT refreshed today. No secrets inspected or service settings changed. |
-| Tests / CI / preview / production deployment | Current date/media slice: pnpm check PASS (lint, type-check,232 unit tests, production build); final157/157 Chromium desktop/tablet/mobile cases PASS in1.7minutes. Seven production-gated/original paths return404 with preview flags set. Remote CI/deployment pending. Prior Brand213/112/media checks and prior database CI remain historical until the current run is verified. |
+| Vercel/Supabase projects / production secrets | GitHub records successful Production deployment6772802242 of d6e4be7; www EN/AR Home/About/Dates verified. Current Vercel connector project lookup rejects its argument contract, so runtime/settings/drains remain NOT VERIFIED. Hosted Supabase evidence from29 September was NOT refreshed; no hosted data or settings changed. |
+| Tests / CI / preview / production deployment | Release CI36793419169 on5a27e9c PASS: lint/types,232 units, build,157 Chromium tests,20 pgTAP tests and10 client integration tests. Live smoke: six EN/AR public routes200, responsive film/pause, four assets, two reduced-motion fallbacks, ten private/showcase paths404,15 workflow503/no-store. Independent12 views +two200% fallbacks PASS. Protected Preview browser UAT blocked by Vercel login; Preview build succeeded. |
 | KAU collection access / email sender | Not verified |
 | Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
@@ -29,7 +29,7 @@
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
 | M1 Foundation | ENG-001/004/005/006 adopted; relevant source IDs retained | Foundation and isolated Linux database CI verified; Windows local stack optional and untested | Deployed foundation does not open operational or institutional approval gates |
 | M2 Design system | ENG-007 palette/fonts/motion retained; ENG-008 provisional polish | Full component inventory/showcase plus local directional-button, EN/AR reading/reflow and optional native-section refinement verified | Final official brand/human reviews pending. Production showcase remains closed; remote protection evidence unchanged |
-| M3 Public alpha | Full15-destination sitemap retained; ORG-001 confirms27/28January2027 | Home/About now show dates; read-only Riyadh countdown and standalone EN/AR Dates & Venue page implemented; approved18.7-second previous-edition film integrated | Public use and deployment authorized; actual release verification pending. Final brand/copy and broader REL-01 remain open;15 operational gates closed |
+| M3 Public alpha | Full15-destination sitemap retained; ORG-001 confirms27/28January2027 | Home/About dates, Riyadh countdown, EN/AR Dates & Venue and approved18.7-second previous-edition film published and verified at d6e4be7 | Scoped release complete. Final brand/copy, remaining public routes and broader REL-01 remain open;15 operational gates verified closed |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
 | M5 Participant auth | Requirements defined | Not verified | Pending |
 | M6 Abstract/review | Detailed baseline; configuration gates remain | Not verified | Pending |
@@ -50,7 +50,7 @@ deployment, evidence gaps and the sequence agreed by the existing roadmap.
 The user confirmed27–28January2027 and approved this18.7-second MSRC2026 montage,
 including people/posters shown, then authorized pushing/publishing all updates. ORG-001/002
 record the exact authority. The Dates & Venue slice is implemented with venue/time details
-still pending. Finish current CI/deployment checks, then apply forthcoming official brand
+still pending. Current release CI/live checks passed; apply forthcoming official brand
 inputs and approved bilingual copy. Gallery selections remain separate.
 
 Next smallest content PR: approved contact/privacy/terms details and remaining public
@@ -75,6 +75,18 @@ The [implementation backlog](backlog/README.md), DR-CFG-11 ownership and DR-CFG-
 content/brand decisions remain available for later work; no decision was silently resolved.
 
 ## 1 October 2026 — Confirmed dates, countdown and authorized publication
+
+**Release complete:** [PR5](https://github.com/xpexellent-dotcom/msrc-2027/pull/5)
+merged at `d6e4be7deb98fd5b85d5cf2ff5cca5ead89f8180` after
+[CI36793419169](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36793419169)
+passed on `5a27e9cb766379099832b1093fbc283f5894360b`. GitHub recorded Vercel
+Production deployment6772802242 as success. Actual browser checks of
+[English](https://www.msrc2027.com/en) and [Arabic](https://www.msrc2027.com/ar),
+their About/Dates routes, media/gates and complementary narrow/enlarged layouts
+passed. Complete commands, exact evidence and file list are in the feature contract.
+The merged main revision also passed
+[CI36793777799](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36793777799).
+This completion applies to the approved static date/media release, not all REL-01 gates.
 
 Scope: publish the previously reviewed Brand/interface polish and approved MSRC2026 film,
 set Day1 to27January2027 and Day2 to28January2027, add a homepage calendar-days countdown,
@@ -108,7 +120,11 @@ no console/page errors, overflow, glyph clipping or control/caption overlap. Red
 still and production404 guards passed. Evidence: ignored deliverables/m3-confirmed-dates.
 Manual review found an enlarged Arabic skip-link/banner overlap missed by main-content
 geometry checks; hiding now follows the link's own height, with keyboard regression tests.
-Final157-case browser retest PASS, including the enlarged-text skip-link regression. Remote CI/database and release evidence remain pending. No hosted data changed.
+Final157-case browser retest PASS, including the enlarged-text skip-link regression.
+Remote CI36793419169 subsequently passed all application and isolated database checks;
+the initial9-failure streamed-showcase test run was corrected without relaxing assertions.
+Production6772802242 at d6e4be7 and live root/independent browser checks PASS.
+No hosted data changed. See the feature contract for exact results and remaining UAT.
 
 ## 1 October 2026 — Brand/interface polish and private homepage film preview
 

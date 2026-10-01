@@ -70,3 +70,19 @@ by `git diff --check -- docs/backlog` and scoped diff review. The first link che
 five references to the audit report while that parallel document was still being written;
 the check was repeated after it was saved and returned no errors. No application, migration,
 environment or service change was made by this backlog reconciliation.
+
+## Later 1 October 2026 — Date/media release follow-through
+
+ORG-001/002 and verified production d6e4be7 supersede the former planned/unresolved
+state of BL-PUB-02 and the media/date portion of BL-PUB-01. Issue purpose/source
+rules, unrelated release gates, archived source snapshots and SOURCE_COVERAGE are unchanged.
+The corresponding ISSUE_INDEX rows now match the current issue metadata.
+
+Executed PowerShell epic/issue/field parsing and CSV comparison PASS:24 epic files,
+152 implementation issues,19 nonempty required fields per issue and165 unique
+index rows; all indexed titles/files/status/source/dependency/release/owner/TBD
+fields match. An initial automatic-variable collision stopped the parser; renamed
+task-specific variables and the full rerun passed. `git diff --check` PASS.
+This incremental documentation check does not claim a new full source/link audit.
+Application/database CI and actual public browser evidence are recorded in the
+[release feature note](../features/confirmed-dates-publication.md).
