@@ -29,6 +29,22 @@ export function formatMinutes(minutes: number, locale: Locale): string {
   }).format(minutes);
 }
 
+// Counted forms of «نتيجة» by CLDR plural category; "#" is the formatted number.
+const resultCountForms: Record<Locale, Partial<Record<Intl.LDMLPluralRule, string>> & { other: string }> = {
+  en: { one: "# result", other: "# results" },
+  ar: { one: "نتيجة واحدة", two: "نتيجتان", few: "# نتائج", other: "# نتيجة" },
+};
+
+/** "1 result", «نتيجتان», «٣ نتائج», «١١ نتيجة»: never a fixed plural after every number. */
+export function formatResultCount(count: number, locale: Locale): string {
+  const category = new Intl.PluralRules(locale).select(count);
+  const forms = resultCountForms[locale];
+  const number = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", {
+    numberingSystem: locale === "ar" ? "arab" : "latn",
+  }).format(count);
+  return (forms[category] ?? forms.other).replace("#", number);
+}
+
 export function localizePathname(pathname: string, locale: Locale): string {
   const segments = pathname.split("/");
   if (isLocale(segments[1] ?? "")) {

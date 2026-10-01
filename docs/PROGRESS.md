@@ -15,6 +15,7 @@ Live QA of www.msrc2027.com, before and after PR 11, and of `main` at `e70bf38`.
 | On phones the hero date/city line wrapped and left its "·" dangling at the end of the first line (EN/AR) | The two items stack under 700 px without the separator |
 | The hero lead left a one-word last line («جديدة.», "discoveries.") | `text-wrap: pretty`. Chromium and WebKit now break at the sentence: «طلاب طب. أفكار نتشاركها. / واكتشافات جديدة.» and "Medical students. Shared ideas. / New discoveries." Browsers without support keep today's wrapping |
 | Session and recording durations printed a fixed «دقيقة» after any number, so a 3MT talk would read «٣ دقيقة» | `formatMinutes()` uses CLDR counted forms in Arabic («دقيقة», «دقيقتان», «٣ دقائق», «٤٥ دقيقة»). English stays "45 min" |
+| Programme and media result counts (live region) were built as number plus a fixed «نتائج» or "results", giving «١ نتائج», «٢ نتائج», «١١ نتائج» and "1 results" once records are published | `formatResultCount()` picks the CLDR category: «نتيجة واحدة», «نتيجتان», «٣ نتائج», «١١ نتيجة», «١٠٠ نتيجة», and "1 result" / "2 results". Twelve unit cases cover every Arabic category |
 | The countdown's Arabic day unit used plural categories only, so the final day would read «٠ يومًا» and 100–102 days (from 17 October) «١٠٠ يومًا» | `countdownDayUnit()` takes the counted noun from CLDR unit parts: ٠ يوم, يومان, ٣ أيام, ١١ يومًا, ١٠٠ يوم |
 | Countdown labels «اليوم الأول اليوم»; the timer's name read the ISO string `2027-01-27` digit by digit | «اليوم هو اليوم الأول/الثاني للمؤتمر»; «… حتى بداية يوم ٢٧ يناير ٢٠٢٧ …» and "Time until 27 January 2027 begins …" |
 | Hackathon: «النموذج الأولي مشجّع» says the prototype is *encouraging* | «يُستحسن تقديم نموذج أولي، وهو اختياري.» |
@@ -27,7 +28,7 @@ Live QA of www.msrc2027.com, before and after PR 11, and of `main` at `e70bf38`.
 
 Verification (Node 24.21.0):
 - ESLint zero-warning, `next typegen` and `tsc` PASS.
-- Vitest 287/287, including 18 day-unit and 11 minute cases.
+- Vitest 299/299, including 18 day-unit, 11 minute and 12 result-count cases.
 - `next build` PASS: 40 pages.
 - Playwright Chromium desktop/tablet/mobile: 274 passed and 3 skipped (duplicate tablet cases). A single earlier 404-heading timeout happened under load; it passed 18/18 on repeat.
 - WebKit desktop and iPhone, `qa-regressions` and `countdown`: 22/22.
