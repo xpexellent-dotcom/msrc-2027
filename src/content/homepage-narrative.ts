@@ -5,7 +5,7 @@ export const homepageNarrative = {
   en: {
     identity: "MSRC 2027", programmeAction: "Explore the programme", participationAction: "Find your way to participate",
     scroll: "Step inside", dateNote: "Two days in Jeddah. A new chapter in student research.",
-    organizer: "Organised by the Research Principles Club, Faculty of Medicine, King Abdulaziz University.",
+    organizer: "Organized by the Research Principles Club, Faculty of Medicine, King Abdulaziz University.",
     community: "Medical students, researchers, clinicians and academic faculty. Together to share research, learn practical skills and develop ideas that can improve healthcare.",
     pathwayLink: "Explore this pathway", threeMinute: "Postgraduate researcher? Explore the Three Minute Thesis pathway.",
     programmeLink: "Browse the programme", programmeStatus: "Programme to be announced", programmeNote: "Session times, rooms, and speakers will appear here when confirmed.",
