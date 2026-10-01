@@ -17,8 +17,14 @@
   install PASS. Six-view local
   EN/AR desktop/mobile/320px+200% playback/pause/slides/countdown/reflow PASS; six public
   routes200, ten private404,15 workflows503/no-store. Visual screenshots inspected.
-- GitHub/Preview/production release verification pending; do not call this published yet.
-  Full33-file list, source IDs, checks and rollback: [feature note](features/premium-public-interface.md).
+- Published through [PR9](https://github.com/xpexellent-dotcom/msrc-2027/pull/9), app main
+  cbfe62a, after [CI36847305482](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36847305482)
+  passed both jobs (252 units/201 browsers/20 pgTAP/10 integrations). Preview6781648361
+  and Production6781771386 succeeded. Merged tree matches exact verified PR head9d9026a.
+  Fresh live six-view EN/AR autoplay/background keyboard pause/slides/countdown/reflow
+  PASS; six public routes200, ten private404,15 workflows503/no-store. Preview app UAT
+  BLOCKED by Vercel Login; protection preserved. No `.env`, schema or media file staged.
+  Full33-file list, source IDs, commands/results and rollback: [feature note](features/premium-public-interface.md).
 - Final official branding/human Arabic/editorial/device/screen-reader/Safari/Firefox UAT
   and broader REL-01 remain open. All15 operational gates stay closed.
 
@@ -69,14 +75,14 @@
 | Updated Hackathon Draft | Read and reconciled; options and conflicts preserved |
 | Brand guide and previous starter pack | Reviewed; recommendations distinguished from approvals |
 | Original Canva brand reference sheet | Text read; palette and English font names corroborated, final brand approval still pending |
-| 2026 media | ORG-002's four approved18.7-second derivatives remain unchanged. ORG-003 public autoplay correction published at da4b93e; live desktop/mobile/reduced-motion autoplay and keyboard pause PASS. Actual asset-error poster and browser-denial/manual Play covered in CI; other gallery/brand assets remain open. |
+| 2026 media | ORG-002 approved derivatives unchanged. ORG-004 public autoplay and semantic background pause replace separate visible controls, verified locally and live at cbfe62a. Browser denial/error recovery pass; other gallery/brand assets remain open. |
 | Codex handoff documents and prompts | Prepared in this package |
 | Domain / HTTPS | Fresh checks: www CNAME matches Vercel; HTTPS EN/AR Home/About return 200; HTTP/HTTPS apex resolve to https://www.msrc2027.com/en. Account custody/renewals remain unverified. |
-| Git / application code | Homepage corrections PR7 merged to main da4b93e after successful exact-head CI36798655620; Production6773615857 successful. Prior Brand/audit/backlog work and dated still-image diagnosis preserved. Custody/required-check enforcement remain separate follow-up items. |
+| Git / application code | PR9 merged at cbfe62a after exact-head CI36847305482 passed application/database jobs; verified tree matches head9d9026a. Production6781771386 succeeded. Previous release evidence/source records preserved; custody/required-check enforcement remain separate work. |
 | Local development installation | PASS: exact dependencies installed, frozen lockfile verified, portable Node24.21.0 selected for this host. |
 | Windows container prerequisites | WSL3.0.1 and Docker Desktop4.93.0 installed; optional PC fixture tests still require restart/first launch. User now selected direct hosted access for normal work (ENG-006). |
-| Vercel/Supabase projects / production secrets | GitHub records successful Production6773615857 of da4b93e; www EN/AR Home/About/Dates verified. Vercel connector settings/drains remain NOT VERIFIED. Hosted Supabase evidence from29 September was NOT refreshed; no hosted data or settings changed. |
-| Tests / CI / preview / production deployment | Local lint/types,252 units/build PASS; full185 browsers PASS, final CSS reflow rebuild +51 focused browsers PASS. CI36798655620 on aa52692 PASS both application/database jobs,185 browsers/20 pgTAP/10 integrations. Live six EN/AR desktop/mobile/320px+200% views, actual video/pause/slides/focus/clock PASS; six public routes200, ten private paths404,15 workflows503/no-store. Protected Preview browser UAT blocked by Vercel login; Preview build succeeded. Safari/Firefox/human UAT remain open. |
+| Vercel/Supabase projects / production secrets | GitHub confirms successful Production6781771386 of app cbfe62a and fresh public EN/AR Home/About/Dates checks. Connector settings/drains remain NOT VERIFIED. Hosted Supabase evidence was not refreshed; no hosted data/settings or secrets changed. |
+| Tests / CI / preview / production deployment | Local lint/types,252 units/build, final201 browsers PASS. Initial Arabic numeral and finished-transform test assertions corrected before passing reruns. Exact-head CI36847305482 PASS both jobs including201 browser/20 pgTAP/10 integrations. Preview build succeeded; browser app UAT blocked by Vercel Login. Production6781771386 and six live EN/AR desktop/mobile/320px+200% views PASS. Six public routes200, ten private404,15 workflows503/no-store. Human Arabic/brand/real-device/screen-reader/Firefox/Safari UAT open. |
 | KAU collection access / email sender | Not verified |
 | Implementation backlog | Documentation complete: 152 implementation issues across 24 epics, 13 Decision Required packets; all 212 source IDs mapped. No additional feature implemented or gate opened. |
 
@@ -86,8 +92,8 @@
 |---|---|---|---|
 | M0 Governance | Baseline and decision register prepared; named owners/evidence pending | Organizational setup unverified | Pending |
 | M1 Foundation | ENG-001/004/005/006 adopted; relevant source IDs retained | Foundation and isolated Linux database CI verified; Windows local stack optional and untested | Deployed foundation does not open operational or institutional approval gates |
-| M2 Design system | ENG-007 palette/fonts/motion retained; ENG-008 polish and ORG-003 explicit navigation refinement | Full component inventory/showcase, directional buttons, mirrored navigation slides/history/focus and EN/AR reflow verified; ordinary scrolling remains native | Final official brand/human reviews pending. Production showcase remains closed |
-| M3 Public alpha | Full15-destination sitemap retained; ORG-001 dates/ORG-002 media/ORG-003 presentation | Home/About/Dates & Venue, larger Riyadh D/H/M/S clock, welcoming copy and approved autoplay film published and verified at da4b93e | Scoped release complete. Opening time/venue, final brand/copy, remaining public routes and broader REL-01 remain open;15 operational gates closed |
+| M2 Design system | ENG-007 palette/motion and ORG-004 display refinement | Complete component showcase, refined shell/buttons, one-time staggered reveals, native scrolling, mirrored navigation/history/focus, EN/AR/no-JS/no-observer/reduced-motion checks verified | Final brand/human review pending; production showcase closed |
+| M3 Public alpha | Full15-entry sitemap; ORG-001 dates/ORG-002 media/ORG-004 presentation | Home/About/Dates published at app cbfe62a; restored title, concise copy, original graphics, sectioned D/H/M/S countdown, autoplay/background pause and premium shared layout verified | Scoped release complete. Final brand/copy, venue/start time, remaining routes and broader REL-01 open;15 operational gates closed |
 | M4 Staff auth/CMS | Requirements defined | Not verified | Pending |
 | M5 Participant auth | Requirements defined | Not verified | Pending |
 | M6 Abstract/review | Detailed baseline; configuration gates remain | Not verified | Pending |
@@ -107,7 +113,7 @@ deployment, evidence gaps and the sequence agreed by the existing roadmap.
 
 The user confirmed27–28January2027 and approved this18.7-second MSRC2026 montage,
 including people/posters shown, then authorized pushing/publishing all updates. ORG-001/002
-record the exact authority. ORG-003's requested homepage corrections are now published and
+record the exact authority. ORG-004's premium presentation refinement is now published and
 live-verified. The Dates & Venue slice is implemented with venue/time details still
 pending. Current release CI/live checks passed; apply forthcoming official brand
 inputs and approved bilingual copy. Gallery selections remain separate.
