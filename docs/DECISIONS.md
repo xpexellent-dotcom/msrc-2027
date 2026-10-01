@@ -622,3 +622,28 @@ no independent legal/institutional review or named media custodian is inferred.
 
 See [MEDIA_REGISTER.md](MEDIA_REGISTER.md) for the per-asset reconciliation. The original
 v0.5 and earlier source snapshots stay unchanged.
+
+## ORG-003 — Homepage playback and presentation corrections
+
+- Status: CONFIRMED scoped requester instruction, 1 October 2026, current chat.
+- Public Home must attempt muted inline autoplay and remove its automatic `Still image
+  mode`. This supersedes the earlier DSN-01 working preference policy only for the public
+  homepage: reduced-motion, data-saving and slow-network preferences no longer suppress
+  its video. Preserve translated Pause/Play controls, frozen paused frames, hidden-tab
+  pause, browser-denied autoplay recovery and a poster for actual media failure. Synthetic
+  design-system fixtures retain their preference-safe default. The source snapshot is
+  preserved; this explicit exception is not an unnoticed source-rule change.
+- Remove awkward mobile arrow glyphs, add controlled navigation slides, and retain native
+  scrolling. Other UI animations retain reduced-motion alternatives and visible focus.
+- Enlarge the Day 1 countdown with days, hours, minutes and seconds on the desktop right.
+  Engineering display boundary: 27 January 2027 at 00:00 Asia/Riyadh, explicitly labelled
+  as the start of the date. This is not approval of a conference opening time; that value
+  remains unset. ORG-001's approved dates are unchanged.
+- Replace the hero title/lead with welcoming English/Arabic copy. This authorizes the
+  requested presentation refinement, not full institutional brand/editorial REL-01 sign-off.
+- Earlier push/publication authorization remains applicable. No operational workflow,
+  CMS editing, migration, privilege, real email, production secret or DNS change follows.
+  ORG-002's original and approved derivative files remain unchanged.
+- Affected IDs: DSN-01/02, ACC-01, LOC-01/03, MED-01/04, TIM-01, CFG-01/12, REL-01.
+  Scope, verification, recovery and rollback are in
+  [the feature note](features/homepage-experience-fixes.md).

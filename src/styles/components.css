@@ -42,10 +42,11 @@
 .menu-toggle svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.5; }
 .mobile-menu { border-block-start: 1px solid var(--color-line); padding-block: 0.5rem 1.5rem; }
 .mobile-menu nav { display: grid; }
-.mobile-menu nav a { display: flex; justify-content: space-between; align-items: center; min-height: 58px; padding: 0.85rem 0.35rem; font-family: var(--font-heading); color: var(--color-purple); border-block-end: 1px solid var(--color-line); transition: background-color var(--motion-feedback) var(--motion-easing), color var(--motion-feedback) var(--motion-easing); }
+.mobile-menu nav a { display: flex; align-items: center; min-height: 58px; padding: 0.85rem 0.35rem; font-family: var(--font-heading); color: var(--color-purple); border-block-end: 1px solid var(--color-line); transition: background-color var(--motion-feedback) var(--motion-easing), color var(--motion-feedback) var(--motion-easing); }
 .mobile-menu nav a:hover { background: var(--color-info-surface); }
 .mobile-menu-status { margin-block-start: 1rem; font-size: 0.8rem; color: var(--color-muted); }
 .directional-arrow { display: inline-block; flex-shrink: 0; transform: scaleX(var(--motion-inline-direction)); transition: transform var(--motion-feedback) var(--motion-slide-easing); }
+.directional-arrow svg, svg.directional-arrow { inline-size: 1rem; block-size: 1rem; }
 .button:not(:disabled):not([aria-disabled="true"]):hover .directional-arrow, .mobile-menu a:hover .directional-arrow { transform: translateX(calc(3px * var(--motion-inline-direction))) scaleX(var(--motion-inline-direction)); }
 
 .button { position: relative; isolation: isolate; overflow: hidden; display: inline-flex; justify-content: center; align-items: center; gap: 0.75rem; min-inline-size: 0; max-inline-size: 100%; min-height: 50px; padding: 0.85rem 1.4rem; border: 1px solid transparent; border-radius: var(--radius-small); font-family: var(--font-heading); font-size: 0.9rem; line-height: 1.5; font-weight: 600; text-align: center; text-decoration: none; overflow-wrap: anywhere; cursor: pointer; transition: color var(--motion-feedback) var(--motion-easing), background-color var(--motion-feedback) var(--motion-easing), border-color var(--motion-feedback) var(--motion-easing), transform var(--motion-feedback) var(--motion-easing), box-shadow var(--motion-feedback) var(--motion-easing); }
@@ -158,6 +159,7 @@
   .preview-banner { font-size: 0.7rem; }
   .preview-banner-inner { min-height: 30px; }
   .button { padding-inline: 1.1rem; }
+  .button .directional-arrow { display: none; }
   .site-footer { padding-block-start: 3.5rem; }
   .footer-identity { font-size: clamp(2rem, 12vw, 2.8rem); }
   .footer-top { grid-template-columns: minmax(0, 1fr); gap: 2.6rem; padding-block-end: 2rem; }

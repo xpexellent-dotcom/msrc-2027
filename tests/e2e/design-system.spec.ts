@@ -84,7 +84,7 @@ test("disabled and loading demonstrations cannot trigger operations", async ({ p
   for (const button of await registration.all()) await expect(button).toBeDisabled();
 });
 
-test("approved footage stays static with reduced motion and limited bandwidth", async ({ page, baseURL }) => {
+test("public footage autoplays while the synthetic fixture retains its preference-aware fallback", async ({ page, baseURL }) => {
   const externalRequests: string[] = [];
   const videoRequests: string[] = [];
   const fontRequests: string[] = [];
@@ -103,8 +103,15 @@ test("approved footage stays static with reduced motion and limited bandwidth", 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/ar");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.locator("video, iframe")).toHaveCount(0);
-  await expect(page.locator(".hero-media-poster")).toBeVisible();
+  const video = page.locator(".conference-hero video");
+  const source = (page.viewportSize()?.width ?? 1280) <= 700
+    ? "/media/msrc2026/hero-mobile-v1.mp4" : "/media/msrc2026/hero-desktop-v1.mp4";
+  await expect(video).toHaveAttribute("src", source);
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
+  await expect(page.locator("iframe")).toHaveCount(0);
+  await expect(page.getByText("وضع الصورة الثابتة", { exact: true })).toHaveCount(0);
+  expect([...new Set(videoRequests.map((url) => new URL(url).pathname))]).toEqual([source]);
+  const publicRequestCount = videoRequests.length;
   // The private workshop has an original synthetic test clip. With these
   // preferences, even that configured clip must never be fetched.
   await page.goto("/ar/design-system");
@@ -113,7 +120,7 @@ test("approved footage stays static with reduced motion and limited bandwidth", 
   await page.evaluate(() => document.fonts.ready);
   expect(fontRequests.length).toBeGreaterThan(0);
   expect(externalRequests).toEqual([]);
-  expect(videoRequests).toEqual([]);
+  expect(videoRequests.slice(publicRequestCount)).toEqual([]);
 });
 
 test("synthetic video controls pause, resume and fall back after an asset failure", async ({ page }) => {

@@ -2,6 +2,38 @@
 
 **Snapshot: 1 October 2026. Update this file after each development task.**
 
+## 1 October 2026 — Requested homepage experience fixes (ORG-003)
+
+- Scope: public muted autoplay without automatic still-mode preferences, clean mobile
+  icons, controlled explicit navigation slides/native scrolling, a larger right-column
+  D/H/M/S clock, and welcoming English/Arabic headline/lead. No operational feature,
+  database/migration, environment, dependency, DNS or email change. All 15 gates remain closed.
+- ORG-003 supersedes the automatic public still-image default diagnosed below. Browser
+  autoplay denial retains manual Play; actual failed media retains a poster. Keyboard
+  pause freezes the video frame; hidden tabs pause playback. UI reduced-motion
+  alternatives remain. Approved source and derivative media are unchanged.
+- The clock targets and labels the start of 27 January 2027 at 00:00 Asia/Riyadh.
+  Conference opening time and venue remain unset; this display never opens workflows.
+- Local evidence: `pnpm check` PASS (lint/types, 252 units, production build),
+  `pnpm test:e2e` PASS (185 tests). Actual six-view EN/AR autoplay, keyboard pause,
+  mobile/reflow and production private-route checks PASS. A visual 200% time-label
+  refinement rebuilt successfully; 51 focused browser regressions and the six-view
+  recheck PASS, including 15 closed/no-store workflow endpoints. Enlarged clock
+  screenshots inspected; no horizontal overflow. Safari/Firefox/real-device/human UAT
+  remain NOT TESTED for this task.
+- Initial test-only TS2352 cast failure was corrected; prior diagnostic work is preserved.
+  GitHub CI, deployment and live verification for this new change are pending.
+- Exact scope, 29 changed paths, verification, limitations and rollback:
+  [feature note](features/homepage-experience-fixes.md). Latest request explicitly
+  reauthorizes pushing and publishing once the fixes are complete.
+
+## 1 October 2026 — Live homepage still-image diagnosis
+
+- Read-only browser inspection of `https://www.msrc2027.com/en` reproduced `Still image mode`: the hero had `data-media-state="poster"` and no video element. The inspected browser reported `prefers-reduced-motion: reduce = true`, with the document visible; no warning/error logs were returned. This establishes the trigger in the inspected browser, not in every visitor's device.
+- Source inspection confirms `src/lib/media-policy.ts:53–56` deliberately prevents loading for reduced motion (DSN-01 / ACC-01). `src/components/hero-media.tsx` also omits the Play control in that state, and `src/styles/media.css` hides video under the same preference. Approved desktop/mobile MP4 paths remain configured in `src/content/public-site.ts`.
+- No application, media, browser preference or deployment change. Tests/build were NOT RUN for this diagnostic-only task; normal-motion playback and other devices were NOT TESTED in this check.
+- Suggested next task: retain the motion-safe default while providing an explicit, accessible visitor-initiated Play option, with matching policy/CSS and regression coverage. No organizer decision changed.
+
 ## Current evidence
 
 | Item | Observed status |

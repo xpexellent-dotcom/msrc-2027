@@ -1,14 +1,40 @@
-/* Read-only days display: no ticking seconds, number animation or operational action. */
-.conference-countdown { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem; margin-block-start: 2.3rem; padding-block-start: 1.25rem; border-block-start: 1px solid var(--color-inverse-line); inline-size: fit-content; max-inline-size: 100%; color: var(--color-ivory); }
-.countdown-remaining { display: flex; align-items: baseline; gap: .6rem; margin: 0; line-height: 1.15; }
-.countdown-number { font-family: var(--font-heading); font-size: clamp(2.7rem, 4vw, 3.7rem); font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
-.countdown-unit { color: var(--color-lilac); font-size: .9rem; }
+/* Display clock only: the confirmed date boundary never opens a workflow. */
+.conference-countdown {
+  inline-size: 100%;
+  max-inline-size: 28rem;
+  min-inline-size: 0;
+  padding-block: 1.25rem;
+  border-block-start: 1px solid var(--color-inverse-line);
+  color: var(--color-ivory);
+}
+.countdown-label, .countdown-dates, .countdown-zone, .countdown-note { margin: 0; overflow-wrap: anywhere; }
+.countdown-label { font-size: .9rem; font-weight: 500; color: var(--color-lilac); }
+.countdown-clock { margin-block: .5rem 1.25rem; }
+.countdown-remaining { display: flex; flex-direction: column; align-items: flex-start; margin: 0; }
+.countdown-number {
+  font-family: var(--font-heading);
+  font-size: clamp(3.6rem, 8vw, 9rem);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.06em;
+  line-height: 1.05;
+}
+.countdown-unit { color: var(--color-lilac); font-size: 1rem; }
+.countdown-time { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 5rem), 1fr)); gap: clamp(.25rem, 1vw, .75rem); margin: 1.25rem 0 0; }
+.countdown-time-part { display: flex; flex-direction: column; min-inline-size: 0; }
+.countdown-time-part + .countdown-time-part { padding-inline-start: clamp(.25rem, 1vw, .75rem); border-inline-start: 1px solid var(--color-inverse-line); }
+.countdown-time-number { order: -1; margin: 0; font-family: var(--font-heading); font-size: clamp(1.3rem, 3vw, 3rem); font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1.25; }
+.countdown-time-label { margin-block-start: .3rem; color: var(--color-lilac); font-size: .75rem; overflow-wrap: anywhere; }
 .countdown-context { min-inline-size: 0; }
-.countdown-label, .countdown-dates, .countdown-zone { margin: 0; overflow-wrap: anywhere; }
-.countdown-label { font-size: .85rem; font-weight: 500; }
-.countdown-dates { font-size: .9rem; color: var(--color-lilac); line-height: 1.8; }
-.countdown-zone { font-size: .7rem; color: var(--color-lilac); }
-[lang="ar"] .countdown-number { letter-spacing: 0; line-height: 1.6; }
-[lang="ar"] .countdown-label, [lang="ar"] .countdown-unit { font-size: .88rem; }
-[lang="ar"] .countdown-zone { font-size: .75rem; }
-@media (max-width: 700px) { .conference-countdown { margin-block-start: 1.75rem; gap: .7rem 1.2rem; } .countdown-number { font-size: 2.6rem; } .countdown-zone { font-size: .72rem; } }
+.countdown-dates { margin-block-start: .65rem; font-size: .95rem; line-height: 1.8; }
+.countdown-zone, .countdown-note { font-size: .72rem; color: var(--color-lilac); line-height: 1.8; }
+[lang="ar"] .countdown-number { letter-spacing: 0; line-height: 1.35; }
+[lang="ar"] .countdown-time-number { letter-spacing: 0; line-height: 1.5; }
+[lang="ar"] .countdown-label, [lang="ar"] .countdown-unit { line-height: 1.9; }
+[lang="ar"] .countdown-time-label { font-size: .78rem; line-height: 1.8; }
+[lang="ar"] .countdown-zone, [lang="ar"] .countdown-note { font-size: .75rem; }
+@media (max-width: 700px) {
+  .conference-countdown { max-inline-size: 25rem; padding-block: 1rem; }
+  .countdown-number { font-size: clamp(3rem, 18vw, 7rem); }
+  .countdown-time-number { font-size: clamp(1.3rem, 7vw, 2.5rem); }
+}

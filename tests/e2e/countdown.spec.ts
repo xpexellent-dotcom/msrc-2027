@@ -1,20 +1,29 @@
 import { expect, test } from "@playwright/test";
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} homepage countdown follows Riyadh day boundaries and remains read-only`, async ({ page }) => {
+  test(`${locale} homepage clock counts to the Riyadh date boundary and remains read-only`, async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
     // Allow framework hydration to finish before pausing browser timers.
     await page.clock.install({ time: new Date("2027-01-26T20:00:00Z") });
     await page.goto(`/${locale}`);
     const countdown = page.locator("[data-countdown]");
     await expect(countdown).toHaveAttribute("data-countdown", "before");
     await page.clock.pauseAt(new Date("2027-01-26T20:59:50Z"));
-    await expect(countdown.locator(".countdown-number")).toHaveText(locale === "ar" ? "١" : "1");
-    await expect(countdown.locator(".countdown-unit")).toHaveText(locale === "ar" ? "يوم" : "day");
+    await expect(countdown.locator('[data-countdown-unit="days"]')).toHaveText(locale === "ar" ? "٠" : "0");
+    await expect(countdown.locator('[data-countdown-unit="hours"]')).toHaveText(locale === "ar" ? "٠٠" : "00");
+    await expect(countdown.locator('[data-countdown-unit="minutes"]')).toHaveText(locale === "ar" ? "٠٠" : "00");
+    await expect(countdown.locator('[data-countdown-unit="seconds"]')).toHaveText(locale === "ar" ? "١٠" : "10");
     await expect(countdown).toContainText("Asia/Riyadh");
-    await expect(countdown.locator("button, input, a, [aria-live]")).toHaveCount(0);
+    await expect(countdown).toContainText(locale === "ar" ? "بداية تاريخ اليوم الأول، ٠٠:٠٠" : "Start of the Day 1 date, 00:00");
+    await expect(countdown).toContainText(locale === "ar" ? "موعد افتتاح المؤتمر سيُعلن لاحقًا." : "Conference opening time will be announced.");
+    await expect(countdown.locator("button, input, a, [aria-live]:not([aria-live=off])")).toHaveCount(0);
+    await expect(countdown.getByRole("timer")).toHaveAttribute("aria-live", "off");
     expect(await countdown.evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
 
-    await page.clock.runFor(10_000);
+    await page.clock.runFor(9_000);
+    await expect(countdown.locator('[data-countdown-unit="seconds"]')).toHaveText(locale === "ar" ? "٠١" : "01");
+    await page.clock.runFor(1_000);
     await expect(countdown).toHaveAttribute("data-countdown", "day1");
     await expect(countdown).toContainText(locale === "ar" ? "اليوم الأول اليوم" : "Day 1 is today");
     await expect(countdown.locator(".countdown-number")).toHaveCount(0);
@@ -28,6 +37,23 @@ for (const locale of ["en", "ar"] as const) {
     await expect(countdown).toContainText(locale === "ar" ? "مواعيد المؤتمر المؤكدة" : "Confirmed conference dates");
     await expect(countdown.locator(".countdown-number")).toHaveCount(0);
     await expect(page.locator("#event-details")).toContainText(locale === "ar" ? /٢٧.*٢٨ يناير ٢٠٢٧/ : /27.*28 January 2027/);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test(`${locale} clock refreshes after tab suspension and keeps complete values`, async ({ page }) => {
+    await page.clock.install({ time: new Date("2027-01-25T19:58:57Z") });
+    await page.goto(`/${locale}`);
+    const countdown = page.locator("[data-countdown]");
+    await expect(countdown).toHaveAttribute("data-countdown", "before");
+    await page.clock.pauseAt(new Date("2027-01-25T19:58:58Z"));
+    await expect(countdown.locator('[data-countdown-unit="days"]')).toHaveText(locale === "ar" ? "١" : "1");
+    await expect(countdown.locator('[data-countdown-unit="hours"]')).toHaveText(locale === "ar" ? "٠١" : "01");
+    await expect(countdown.locator('[data-countdown-unit="minutes"]')).toHaveText(locale === "ar" ? "٠١" : "01");
+    await expect(countdown.locator('[data-countdown-unit="seconds"]')).toHaveText(locale === "ar" ? "٠٢" : "02");
+    await page.clock.setSystemTime(new Date("2027-01-27T21:00:00Z"));
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(countdown).toHaveAttribute("data-countdown", "day2");
+    await expect(countdown.locator("[data-countdown-unit]")).toHaveCount(0);
   });
 
   test(`${locale} confirmed dates remain readable without JavaScript`, async ({ browser, baseURL }) => {

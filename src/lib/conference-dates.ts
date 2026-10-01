@@ -5,6 +5,9 @@ export type ConferenceDates = Readonly<{ day1: CalendarDate; day2: CalendarDate 
 export type ConferenceCountdown =
   | { phase: "before"; days: number }
   | { phase: "day1" | "day2" | "after" };
+export type ConferenceClockCountdown =
+  | { phase: "before"; days: number; hours: number; minutes: number; seconds: number }
+  | { phase: "day1" | "day2" | "after" };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RIYADH_OFFSET_MS = 3 * 60 * 60 * 1000;
@@ -58,6 +61,25 @@ export function getConferenceCountdown(dates: ConferenceDates, today: CalendarDa
   return { phase: "after" };
 }
 
+/**
+ * Counts to the start of the confirmed calendar date, not doors or session time.
+ * Riyadh midnight is a display convention; it must never open an operational gate.
+ */
+export function getConferenceClockCountdown(dates: ConferenceDates, now: Date): ConferenceClockCountdown {
+  const phase = getConferenceCountdown(dates, getRiyadhCalendarDate(now)).phase;
+  if (phase !== "before") return { phase };
+  const dateBoundary = calendarEpoch(dates.day1) - RIYADH_OFFSET_MS;
+  // Retain the final displayed second until the date actually changes.
+  const remainingSeconds = Math.ceil((dateBoundary - now.getTime()) / 1000);
+  return {
+    phase: "before",
+    days: Math.floor(remainingSeconds / 86_400),
+    hours: Math.floor((remainingSeconds % 86_400) / 3_600),
+    minutes: Math.floor((remainingSeconds % 3_600) / 60),
+    seconds: remainingSeconds % 60,
+  };
+}
+
 /** Asia/Riyadh is UTC+03:00. This is a display refresh boundary, not an event time. */
 export function millisecondsToNextRiyadhDay(now: Date): number {
   const today = calendarEpoch(getRiyadhCalendarDate(now));
@@ -71,6 +93,42 @@ export type DayClockEnvironment = {
   onFocus: (callback: () => void) => () => void;
   onVisibilityChange: (callback: () => void) => () => void;
 };
+
+export type CountdownClockEnvironment = DayClockEnvironment & {
+  isVisible: () => boolean;
+};
+
+/** Visible tabs tick on second boundaries; suspended tabs recalculate from the clock. */
+export function subscribeToConferenceClock(
+  onChange: () => void, clock: CountdownClockEnvironment, dates: ConferenceDates,
+): () => void {
+  let timer: number | undefined;
+  let active = true;
+  const schedule = () => {
+    if (timer !== undefined) clock.cancel(timer);
+    timer = undefined;
+    if (!clock.isVisible()) return;
+    const now = clock.now();
+    const delay = getConferenceClockCountdown(dates, now).phase === "before"
+      ? 1000 - (now.getTime() % 1000)
+      : millisecondsToNextRiyadhDay(now);
+    timer = clock.schedule(refresh, delay);
+  };
+  const refresh = () => {
+    if (!active) return;
+    onChange();
+    schedule();
+  };
+  const removeFocus = clock.onFocus(refresh);
+  const removeVisibility = clock.onVisibilityChange(refresh);
+  schedule();
+  return () => {
+    active = false;
+    if (timer !== undefined) clock.cancel(timer);
+    removeFocus();
+    removeVisibility();
+  };
+}
 
 /** One timer per Riyadh day; focus/visibility refresh catches background-tab suspension. */
 export function subscribeToRiyadhDayChange(onChange: () => void, clock: DayClockEnvironment): () => void {

@@ -9,7 +9,9 @@ const mediaPaths = {
 };
 
 // MED-01/02/04, DSN-01, ACC-01, LOC-01: these are the exact organizer-approved
-// derivatives. The original source and local-only review endpoints remain private.
+// derivatives. The organizer explicitly selected public autoplay on 1 October
+// 2026; manual pause and genuine browser/asset failure recovery remain available.
+// The original source and local-only review endpoints remain private.
 for (const locale of ["en", "ar"] as const) {
   test(`${locale} public film selects one responsive source and keyboard pause freezes its frame`, async ({ page }) => {
     const videoRequests: string[] = [];
@@ -25,6 +27,7 @@ for (const locale of ["en", "ar"] as const) {
     const poster = mobile ? mediaPaths.mobilePoster : mediaPaths.desktopPoster;
     const video = page.locator(".conference-hero video");
     await expect(video).toHaveAttribute("src", source);
+    await expect(video).toHaveAttribute("autoplay", "");
     await expect(video).toHaveAttribute("playsinline", "");
     await expect(video).toHaveAttribute("loop", "");
     await expect(video).toHaveAttribute("tabindex", "-1");
@@ -58,17 +61,23 @@ for (const locale of ["en", "ar"] as const) {
     expect(errors).toEqual([]);
   });
 
-  test(`${locale} public film honors reduced motion without requesting an MP4`, async ({ page }) => {
+  test(`${locale} public film autoplays with reduced motion and has no still-mode selector`, async ({ page }) => {
     const videoRequests: string[] = [];
     page.on("request", (request) => {
       if (new URL(request.url()).pathname.endsWith(".mp4")) videoRequests.push(request.url());
     });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
-    await expect(page.getByText(locale === "ar" ? "وضع الصورة الثابتة" : "Still image mode", { exact: true })).toBeVisible();
-    await expect(page.locator(".conference-hero video")).toHaveCount(0);
-    await expect(page.locator(".conference-hero .hero-media-poster")).toBeVisible();
-    expect(videoRequests).toEqual([]);
+    const source = (page.viewportSize()?.width ?? 1280) <= 700 ? mediaPaths.mobile : mediaPaths.desktop;
+    const video = page.locator(".conference-hero video");
+    await expect(video).toHaveAttribute("src", source);
+    await expect(video).toHaveAttribute("autoplay", "");
+    await expect(page.locator(".conference-hero .hero-media")).toHaveAttribute("data-playback-policy", "autoplay");
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
+    await expect.poll(() => video.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
+    await expect(page.getByText(locale === "ar" ? "وضع الصورة الثابتة" : "Still image mode", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video", exact: true })).toBeVisible();
+    expect([...new Set(videoRequests.map((url) => new URL(url).pathname))]).toEqual([source]);
   });
 
   test(`${locale} a failed public film returns to its poster with a translated status`, async ({ page }) => {
@@ -88,7 +97,7 @@ for (const preference of [
   { name: "3G", saveData: false, effectiveType: "3g" },
   { name: "2G", saveData: false, effectiveType: "2g" },
 ] as const) {
-  test(`public film uses only the poster for ${preference.name}`, async ({ page }) => {
+  test(`public film autoplays the responsive derivative with ${preference.name}`, async ({ page }) => {
     const videoRequests: string[] = [];
     page.on("request", (request) => {
       if (new URL(request.url()).pathname.endsWith(".mp4")) videoRequests.push(request.url());
@@ -100,10 +109,100 @@ for (const preference of [
       });
     }, preference);
     await page.goto("/en");
-    await expect(page.getByText("Still image mode", { exact: true })).toBeVisible();
-    await expect(page.locator(".conference-hero video")).toHaveCount(0);
-    await expect(page.locator(".conference-hero .hero-media-poster")).toBeVisible();
-    expect(videoRequests).toEqual([]);
+    const source = (page.viewportSize()?.width ?? 1280) <= 700 ? mediaPaths.mobile : mediaPaths.desktop;
+    const video = page.locator(".conference-hero video");
+    await expect(video).toHaveAttribute("src", source);
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
+    await expect(page.getByText("Still image mode", { exact: true })).toHaveCount(0);
+    expect([...new Set(videoRequests.map((url) => new URL(url).pathname))]).toEqual([source]);
+  });
+}
+
+test("public film pauses when hidden, resumes when visible, and preserves an explicit pause", async ({ page }) => {
+  await page.addInitScript(() => {
+    let visibility: DocumentVisibilityState = "visible";
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => visibility });
+    Object.defineProperty(window, "setTestDocumentVisibility", {
+      value: (state: DocumentVisibilityState) => {
+        visibility = state;
+        document.dispatchEvent(new Event("visibilitychange"));
+      },
+    });
+  });
+  await page.goto("/en");
+  const video = page.locator(".conference-hero video");
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
+  const retainedVideo = await video.elementHandle();
+  const source = await video.getAttribute("src");
+  const changeVisibility = async (state: DocumentVisibilityState) => {
+    await page.evaluate((nextState) => {
+      (window as unknown as { setTestDocumentVisibility: (value: DocumentVisibilityState) => void })
+        .setTestDocumentVisibility(nextState);
+    }, state);
+  };
+
+  await changeVisibility("hidden");
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  await expect(video).toHaveCount(1);
+  await expect(video).toHaveAttribute("src", source!);
+  expect(await retainedVideo!.evaluate((element) => element.isConnected)).toBe(true);
+  const frozenTime = await video.evaluate((element: HTMLVideoElement) => element.currentTime);
+  await page.waitForTimeout(150);
+  expect(await video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeCloseTo(frozenTime, 2);
+  await changeVisibility("visible");
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
+  expect(await retainedVideo!.evaluate((element) => element.isConnected)).toBe(true);
+
+  await page.getByRole("button", { name: "Pause background video", exact: true }).click();
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  await changeVisibility("hidden");
+  await changeVisibility("visible");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.getByRole("button", { name: "Play background video", exact: true })).toBeVisible();
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  expect(await retainedVideo!.evaluate((element) => element.isConnected)).toBe(true);
+  await page.getByRole("button", { name: "Play background video", exact: true }).click();
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
+});
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} browser autoplay denial keeps a manual Play control and recovers without an asset failure`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.addInitScript(() => {
+      const nativePlay = HTMLMediaElement.prototype.play;
+      let firstAttempt = true;
+      HTMLMediaElement.prototype.play = function () {
+        if (firstAttempt) {
+          firstAttempt = false;
+          // Suppress native attribute playback as a browser autoplay policy would.
+          // Only this denial case changes the browser behavior; the subsequent
+          // trusted-button attempt uses the real decoder and native play promise.
+          this.autoplay = false;
+          this.pause();
+          return Promise.reject(new DOMException("Autoplay requires a user gesture", "NotAllowedError"));
+        }
+        return nativePlay.call(this);
+      };
+    });
+    await page.goto(`/${locale}`);
+    const video = page.locator(".conference-hero video");
+    const play = page.getByRole("button", {
+      name: locale === "ar" ? "تشغيل فيديو الخلفية" : "Play background video", exact: true,
+    });
+    await expect(video).toHaveCount(1);
+    await expect(play).toBeVisible();
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+    await expect(page.getByRole("status").filter({
+      hasText: locale === "ar" ? "فيديو الخلفية غير متاح" : "Background video unavailable",
+    })).toHaveCount(0);
+    await play.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("button", {
+      name: locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video", exact: true,
+    })).toBeFocused();
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
+    expect(errors).toEqual([]);
   });
 }
 
