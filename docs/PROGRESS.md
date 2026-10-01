@@ -33,6 +33,11 @@
   position correctly. Added trial actionability before measuring the expected position;
   exact URL/focus/scroll assertions remain. Focused mobile repeat PASS:6/6 across three
   repetitions per language. No product behavior was weakened or changed for this setup fix.
+- The subsequent full rerun had263 passed/1 setup failure/3 skips. Trial scrolling
+  could still move before the actual click under the full-suite timing. The regression
+  now records the actual native click's URL/scroll in capture phase, before the React
+  film handler, and checks exact restoration against that independent observation.
+  The normal real click and all assertions remain; application source is unchanged.
 - Targeted public-page review PASS:24 language/viewport combinations with normal and
   200%text, filters/reset focus and distinct links. Chapter repair PASS:20 EN/AR width/
   text combinations at320/390/412/791/1440px, no overflow and minimum48px targets.

@@ -81,7 +81,7 @@ filters and bilingual navigation from ORG-005 remain in place.
 | Public-page agent targeted responsive review | PASS: `node .tools/public-page-polish-check.mjs`, exit 0. Twenty-four English/Arabic route/viewport combinations; details below. |
 | Targeted cinema/public-shell | PASS: `pnpm exec playwright test tests/e2e/cinematic-film.spec.ts tests/e2e/public-shell.spec.ts`,60 passed/1 duplicate skipped in1.3minutes. |
 | Mobile chapter/film restoration repeat | PASS: `pnpm exec playwright test tests/e2e/cinematic-film.spec.ts --project=chromium-mobile --grep 'participation chapter' --repeat-each=3`,6/6 in15.3seconds. |
-| Final complete browser regression suite | PENDING: initial267-case run262 passed/2 test-setup failures/3 skips; trial actionability corrects pre-click position measurement while retaining exact assertions. Final full rerun follows. |
+| Final complete browser regression suite | PENDING:267-case runs262/2 and263/1 passed/failed, each3 duplicate skips. Traces locate position changes before input; the test now observes the actual native click URL/scroll before the React handler and retains exact return assertions. Final full rerun follows. |
 | Visual production-build review | PASS: `node .tools/cinematic-release-review.mjs`, six EN/AR desktop/tablet/mobile homepage/chapter/cinema journeys,200 responses, zero page errors/overflow, correct ivory/700-weight heading;18 screenshots with desktop/mobile inspection. |
 | Exact-head CI and preview/production deployment | PENDING: publication is authorized; no successful release is asserted by this note. |
 | Database checks | NOT TESTED for this public-only slice; schema, permissions and workflow gates are unchanged. |
