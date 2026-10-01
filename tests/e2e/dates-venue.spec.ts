@@ -39,9 +39,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].pending);
     await expect(page.locator(".dates-note")).toHaveCount(0);
     await expect(page.locator(".dates-closed-note")).toContainText(copy[locale].closed);
-    await expect(page.locator("button.header-registration")).toBeDisabled();
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
     await expect(page.getByRole("main")).not.toContainText(/King Faisal Conference Center|مركز الملك فيصل|09:00|9:00 AM/);
-    await expect(page.locator('a[href*="register"], a[href*="payment"], a[href*="submit"], a[href*="maps"]')).toHaveCount(0);
+    await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"], a[href*="maps"]')).toHaveCount(0);
     await expect(page.locator("form, input, textarea, select, iframe, video")).toHaveCount(0);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://www.msrc2027.com/${locale}/dates-venue`);
     await expect(page.locator('link[hreflang="en"]')).toHaveAttribute("href", "https://www.msrc2027.com/en/dates-venue");

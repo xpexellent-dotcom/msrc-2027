@@ -3,9 +3,9 @@
 import { Link } from "@/components/ui/link";
 import { MobileNav } from "@/components/mobile-nav";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { Suspense, useEffect, useId, useRef, useState } from "react";
 import { LanguageSwitch } from "@/components/language-switch";
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import type { Locale } from "@/lib/i18n";
 import { revealPageNavigation } from "@/lib/anchor-navigation";
@@ -18,11 +18,13 @@ const headerCopy = {
     home: "MSRC 2027 home",
     edition: "Fifth edition",
     registration: "Registration not open yet",
+    action: "Explore MSRC",
     links: [
       { label: "About", href: "/about" },
-      { label: "Participate", href: "#participate" },
-      { label: "Program", href: "#program" },
-      { label: "Our legacy", href: "#legacy" },
+      { label: "Programme", href: "/program" },
+      { label: "Participate", href: "/participate" },
+      { label: "Speakers", href: "/speakers" },
+      { label: "Media", href: "/media" },
     ],
   },
   ar: {
@@ -32,11 +34,13 @@ const headerCopy = {
     home: "الصفحة الرئيسية لمؤتمر MSRC 2027",
     edition: "النسخة الخامسة",
     registration: "لم يُفتح التسجيل بعد",
+    action: "اكتشف المؤتمر",
     links: [
       { label: "عن المؤتمر", href: "/about" },
-      { label: "المشاركة", href: "#participate" },
-      { label: "البرنامج", href: "#program" },
-      { label: "مسيرتنا", href: "#legacy" },
+      { label: "البرنامج", href: "/program" },
+      { label: "المشاركة", href: "/participate" },
+      { label: "المتحدثون", href: "/speakers" },
+      { label: "الوسائط", href: "/media" },
     ],
   },
 } as const;
@@ -45,10 +49,18 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const copy = headerCopy[locale];
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => revealPageNavigation(pathname), [pathname]);
+
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 24);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -71,7 +83,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   }, [menuOpen]);
 
   return (
-    <header className="site-header">
+    <header className="site-header" data-scrolled={scrolled} data-home={pathname === `/${locale}`} data-menu-open={menuOpen}>
       <Container className="site-header-inner">
         <Link className="wordmark" href={`/${locale}`} aria-label={copy.home} onClick={() => setMenuOpen(false)}>
           <span className="wordmark-name" dir="ltr" lang="en">MSRC<span className="wordmark-year">2027</span></span>
@@ -81,8 +93,8 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           {copy.links.map((link) => <Link key={link.href} href={`/${locale}${link.href}`} aria-current={pathname === `/${locale}${link.href}` ? "page" : undefined}>{link.label}</Link>)}
         </nav>
         <div className="header-actions">
-          <LanguageSwitch locale={locale} />
-          <Button className="header-registration" variant="secondary" size="small" disabled>{copy.registration}</Button>
+          <Suspense fallback={<Link className="language-switch" href={pathname.replace(/^\/(en|ar)/, locale === "en" ? "/ar" : "/en")} hrefLang={locale === "en" ? "ar" : "en"}>{locale === "en" ? "العربية" : "English"}</Link>}><LanguageSwitch locale={locale} /></Suspense>
+          <ButtonLink className="header-primary-action" href={`/${locale}/participate`} size="small">{copy.action}<span aria-hidden="true">↗</span></ButtonLink>
           <button
             className="menu-toggle"
             type="button"

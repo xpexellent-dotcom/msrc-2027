@@ -11,6 +11,19 @@ function destinationElement(hash: string): HTMLElement | null {
   catch { return null; }
 }
 
+/** Keep client-only fragments separate from Next's cached route canonical URL. */
+function commitFragment(hash: string, replace: boolean) {
+  if (location.hash === hash) return;
+  const address = new URL(location.href);
+  const previousURL = address.href;
+  address.hash = hash;
+  // Passing Next's internal history marker would bypass its canonical sync.
+  history[replace ? "replaceState" : "pushState"](null, "", address.href);
+  // Custom anchor handling must notify hash subscribers just as native
+  // fragment navigation does; rendered locale hrefs then remain accurate.
+  window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL: previousURL, newURL: address.href }));
+}
+
 function focusDestination(target: HTMLElement) {
   const temporaryFocus = !target.hasAttribute("tabindex") && !target.matches("a[href],button,input,select,textarea");
   if (temporaryFocus) {
@@ -40,6 +53,7 @@ function slideDestination(target: HTMLElement) {
 /** Reveal when the section heading enters view, rather than spending motion offscreen. */
 function revealOnArrival(target: HTMLElement) {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return () => {};
+  if (typeof IntersectionObserver === "undefined") return slideDestination(target) ?? (() => {});
   const heading = target.querySelector<HTMLElement>("h1,h2") ?? target;
   let cancelSlide: (() => void) | undefined;
   const observer = new IntersectionObserver((entries) => {
@@ -72,11 +86,7 @@ export function activateNavigation(event: MouseEvent<HTMLAnchorElement>, replace
   const target = destinationElement(destination.hash);
   if (!target) return;
   event.preventDefault();
-  if (location.hash !== destination.hash) {
-    // Next.js copies its internal tree and synchronizes the canonical URL itself.
-    // Passing its existing internal marker would incorrectly bypass that integration.
-    history[replace ? "replaceState" : "pushState"](null, "", destination.href);
-  }
+  commitFragment(destination.hash, replace);
   focusDestination(target);
   cancelAnchorArrival?.();
   // The mobile disclosure can finish closing before its height affects the destination.
@@ -102,6 +112,9 @@ export function revealPageNavigation(pathname: string) {
     // Consume only after the effect survives cleanup, including development Strict Mode.
     if (pendingPageNavigation !== navigation || location.pathname !== navigation.pathname) return;
     pendingPageNavigation = undefined;
+    // The router changes the route first. Apply the requested fragment once,
+    // replacing any stale fragment retained by a prefetched initial route.
+    commitFragment(navigation.hash, true);
     const target = destinationElement(navigation.hash);
     if (!target) return;
     focusDestination(target);

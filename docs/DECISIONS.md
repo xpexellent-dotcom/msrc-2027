@@ -680,3 +680,78 @@ v0.5 and earlier source snapshots stay unchanged.
   to use the start of the confirmed date in Riyadh, with its exact target accessible.
 - IDs: DSN-01/02, ACC-01, LOC-01/03, MED-01/04, TIM-01, CFG-01/12, SCP-02, REL-01.
   Implementation, checks, limitations and rollback: [feature note](features/premium-public-interface.md).
+
+## ORG-005 — Cinematic public website and dedicated journeys
+
+- Status: CONFIRMED scoped requester instruction, 1 October 2026, current chat.
+  Design and implement the public experience using the supplied brand, the existing
+  architecture and four named references. This authorizes public presentation work;
+  operational release gates, approvals and data processing stay separate.
+- Retain the supplied purple/gold/ivory/lilac/ink palette, current self-hosted fonts,
+  accurate text wordmark and approved MSRC2026 homepage derivatives. Original flowing
+  SVG lines connect editorial sections and future portrait treatments. Final official
+  MSRC/KAU marks and institutional brand/copy sign-off remain pending.
+- Homepage: viewport film, floating centred navigation, concise identity and two actions,
+  followed by purpose, participation, programme, speakers, previous-edition highlights,
+  partners, practical information and FAQs. Move the existing date-boundary countdown
+  below the film; its target and confirmed dates are unchanged.
+- Current explicit request supersedes ORG-003's automatic preference override and
+  ORG-004's hidden pause interaction. Home again respects reduced motion and data-saving
+  preferences, with a discreet visible bilingual Pause/Play button, frozen paused frame,
+  hidden-tab pause, browser autoplay recovery and responsive poster fallback. Other
+  nonessential movement also respects reduced motion; scrolling stays native.
+- Add working public information destinations for programme, speakers, media,
+  participation, registration, research, hackathon, workshops and 3MT in EN/AR.
+  Preserve English/LTR scientific content and honest announcement/closed states.
+  Registration is not open; research submission cannot be offered as an active action.
+- Engineering choice: typed content records and a server-only approved-publication
+  boundary. Only approved records enter client props or resolve session/speaker detail
+  URLs. Query filters are addressable and survive language changes. No CMS integration,
+  operational form or recording access entitlement is inferred from this interface.
+- No invented venue, opening time, roster, sessions, sponsors, prices, capacity, deadline
+  or recording policy. No new asset rights, gallery permission, paid resource, database,
+  migration, grants/RLS, secrets/environment, DNS or participant communication change.
+  All15 operational gates remain closed.
+- IDs: SCP-01/02/03/05, DSN-01/02, PRG-01, CMS-01/02/04, MED-01 to MED-04,
+  LOC-01 to LOC-03, ACC-01, TIM-01, CFG-01/12, REG-02/03, ABS-01/04/07/08/09,
+  HAC-01/02/04, WKS-01/02, REL-01. See [handoff](features/cinematic-public-experience.md).
+
+## ORG-006 — Public refinements and authorized publication, 1 October 2026
+
+- Status: CONFIRMED scoped requester instruction in the current chat. The latest
+  explicit organizer request authorizes the requested design refinements and publication
+  when their implementation and verification are complete. This authorizes this public
+  presentation/release; it does not resolve unrelated product or institutional gates.
+- The supplied project instructions and specification remain the baseline for factual
+  accuracy, permissions, English/Arabic interfaces, English/LTR scientific content and
+  operational separation. The latest requester decision supersedes ORG-005's permanent
+  visible Pause/Play treatment: remove that button from the normal homepage, retain the
+  accessible semantic background interaction, keyboard focus, durable pause, preference-safe
+  poster behavior, hidden-tab pause and browser/error recovery. Temporary Play recovery
+  remains available when playback requires it.
+- Watch opens a nearly full-screen view of the same approved homepage film, with its
+  reading/navigation layers hidden while open. Retain an accessible close action,
+  keyboard interaction, Escape/Tab handling, `#film` URL and browser Back/Forward behavior,
+  and restoration of scroll/focus. Direct-link entry respects motion/data preferences
+  until the visitor explicitly chooses Play. This is not a second gallery asset/player.
+- Make the chapter index numbered and useful, with native anchors and current-reading
+  states. Use warm ivory/white participation surfaces, stronger supplied DM Sans heading
+  weights with Noto Sans Arabic/RTL parity, shorter public copy and fewer repeated actions.
+  Existing dates, useful FAQ/programme facts, working journeys and the 3MT anchor stay.
+- Existing ORG-002 assets, source originals, crops, encoding and rights scope are unchanged.
+  No other footage, gallery, portrait, logo, recording policy or publication permission is
+  approved by inference. Final official brand/media/editorial inputs remain open.
+- All 15 workflow gates remain closed. No CMS or operational form is enabled; no application,
+  approval, payment, booking, attendance or certificate result follows from these pages.
+  No database/schema/migration/grant/RLS, secret/environment, package, email, domain/DNS
+  or paid hosted-resource configuration change is part of this task.
+- Verification at this record: `pnpm check` PASS (lint/types, 258 units, optimized build);
+  public-page agent targeted 24-view EN/AR responsive review PASS. Final browser regression,
+  exact-head CI and deployment evidence are pending and must be recorded before reporting
+  publication complete. Earlier ORG-005 evidence is historical, not this release's result.
+- Affected IDs: SCP-01/02/03/05, DSN-01/02, ACC-01, LOC-01/02/03, CMS-01/04,
+  MED-01 to MED-04, PRG-01, TIM-01, CFG-01/12, REG-02/03, ABS-04/07/08/09,
+  HAC-01/02/04, WKS-01/02, REL-01. See the
+  [latest refinement/release note](features/cinematic-release-refinements.md).
+  [ORG-005's original note](features/cinematic-public-experience.md) remains unchanged as
+  a dated baseline; the presentation supersession is scoped to the changes above.

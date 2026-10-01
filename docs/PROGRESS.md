@@ -2,6 +2,132 @@
 
 **Snapshot: 1 October 2026. Update this file after each development task.**
 
+## 1 October 2026 — Public refinements and authorized release (ORG-006)
+
+- Latest explicit requester instruction: remove the permanent visible Pause button,
+  open Watch in a clean nearly full-screen film view, improve the homepage chapter bar,
+  simplify copy/actions, strengthen headings, replace the pale participation background,
+  and publish the finished site. Supplied project instructions remain the baseline;
+  the later scoped organizer decision is recorded as ORG-006.
+- The same approved homepage film/player now has a clean cinema view with hidden
+  reading/navigation layers, a close control, Escape/contained Tab, `#film` history,
+  original scroll/focus restoration and preference-safe direct entry with deliberate
+  Play recovery. Normal playback retains the accessible background interaction without
+  a permanent visible Pause button. No asset was re-encoded or moved into a gallery use.
+- Participation uses warm ivory and white cards. DM Sans/Noto Sans Arabic headings
+  use stronger weights. The numbered chapter index follows the reading position and
+  provides native anchors, with desktop header clearance and adaptive mobile columns.
+  Dedicated pages have shorter copy and one clear destination per pathway/profile.
+- Final source `pnpm check` PASS: zero-warning lint, route types/tsc, 258/258 unit
+  tests and optimized build with40 generated pages. Targeted cinema/public-shell
+  browser run PASS:60 passed/1 duplicate tablet case skipped,1.3minutes. Final full
+  browser regression is currently pending; release is not asserted at this stage.
+- Initial full browser run:246 passed/6 failed/3 duplicate cases skipped. Four failures
+  were normalized homepage-link slash assertions; the two others found real chapter
+  overflow at412px/200%text. Fixed adaptive columns/wrapping without clipping. Separate
+  checks exposed asynchronous history focus restoration, Forward origin loss and live
+  preference-change recovery; fixed these and added bilingual regressions.
+- Subsequent267-case run:262 passed/2 failed/3 skipped. The two exact-scroll checks
+  recorded the position during an entrance reveal, before Playwright recentered394px
+  and activated Watch. Traces show the application restored the actual activation
+  position correctly. Added trial actionability before measuring the expected position;
+  exact URL/focus/scroll assertions remain. Focused mobile repeat PASS:6/6 across three
+  repetitions per language. No product behavior was weakened or changed for this setup fix.
+- Targeted public-page review PASS:24 language/viewport combinations with normal and
+  200%text, filters/reset focus and distinct links. Chapter repair PASS:20 EN/AR width/
+  text combinations at320/390/412/791/1440px, no overflow and minimum48px targets.
+  `node .tools/cinematic-release-review.mjs` PASS: six EN/AR desktop/tablet/mobile
+  homepage/chapter/cinema journeys, HTTP200, correct ivory surface/700 heading weight,
+  zero page errors/overflow;18 screenshots captured and desktop/mobile views inspected.
+- GitHub CI, protected branch preview and production publication are pending. No new
+  dependency, database/migration/RLS/grant, secret/environment, DNS, email, payment or
+  hosted-resource configuration change. All15 operational gates stay closed; public
+  information routes do not fake a submission or expose an unapproved catalogue.
+  Physical devices, Safari/Firefox and human screen-reader/Arabic editorial review are
+  NOT TESTED. Scope, commands, publication receipts and rollback:
+  [latest handoff](features/cinematic-release-refinements.md).
+
+## 1 October 2026 — Cinematic public website (ORG-005)
+
+- Inspected the existing application, project brief/decisions/progress, relevant v0.5
+  requirements, supplied brand guide and the four requested design references. Retained
+  the installed/pinned Next.js architecture and working public/security behaviour.
+  Existing PROGRESS entries and user work are preserved; no new dependency was needed.
+- Implemented a viewport MSRC 2026 opening film, floating responsive navigation,
+  preference-safe playback with visible Pause/Play, responsive posters and an editorial
+  homepage narrative. Added flowing brand lines, reusable page/card/filter treatments,
+  native FAQs, a separate date/countdown band and coherent EN/AR/RTL presentation.
+- Added public programme, speakers, media, participation, registration, research,
+  hackathon, workshops and 3MT information routes plus approved-record detail handlers.
+  Filters are addressable; scientific text is English/LTR. Empty approved catalogues
+  show announcement/no-result states. No synthetic speakers, sessions or playable
+  recordings were substituted for missing approvals. Raw drafts remain server-only.
+- Existing approved homepage derivatives are unchanged and are not reused as gallery
+  or speaker assets. Venue, opening time, roster, sessions, sponsors, prices/windows
+  and recording access remain unresolved. All 15 operational gates remain closed;
+  information journeys do not submit participant records or show a fake success.
+- Final `pnpm check` PASS: zero-warning lint, generated types, 258/258 unit tests and
+  production build (40 generated pages plus dynamic handlers). `pnpm test:e2e` PASS:
+  237 passed / 2 intentionally skipped duplicate matrix cases, 3.6 minutes, desktop,
+  tablet and mobile Chromium. The desktop matrix itself covers 320/791/1440px EN/AR.
+  Keyboard/focus, URL filters, locale/hash, text enlargement, axe, video loading,
+  preference/denial/error recovery, and closed-workflow regressions passed.
+- Earlier 206-case run: 171 passed / 33 failed / 2 skipped, including assertions for
+  the superseded interface. Subsequent 239-case run: 224 passed / 13 failed / 2 skipped.
+  Fixed real anchor clearance, skip-link/text/card/countdown reflow, same-route filter
+  resets, Arabic edition digits and Next16.3.7 cached-route fragment duplication.
+  Updated historical assertions and mobile navigation targets to the current interface;
+  added regressions instead of removing the meaningful failure checks.
+- `node .tools/public-visual-review.mjs`: 30 EN/AR desktop 1440×900, tablet 791×1000,
+  mobile 390×844 route snapshots returned 200, zero page errors, no horizontal overflow.
+  Desktop/mobile film and editorial layouts visually inspected. Screenshots are in
+  ignored `deliverables/public-experience/`; the live local preview is at
+  `http://127.0.0.1:3000/en` and `/ar` and opened in Codex.
+- No database/migration/RLS/grant, environment/secrets, DNS, hosted resource, payment,
+  real email or workflow-opening change. NOT TESTED: physical devices, Safari/Firefox,
+  human screen-reader/Arabic editorial review and real catalogue/recording assets.
+  This change has not been deployed. Next task: review the design and populate the
+  approved catalogue/assets; operational workflows retain their separate milestones.
+  Full scope, content replacement points and rollback: [handoff](features/cinematic-public-experience.md).
+
+## 1 October 2026 — Brave motion diagnosis
+
+- User reported missing navigation slides and section reveals in Brave. Read-only
+  Windows SystemParametersInfo(SPI_GETCLIENTAREAANIMATION) returned success and FALSE:
+  animation effects are disabled on this PC. No system preference was changed.
+- Fresh installed Brave 154.1.96.60 test, with reduced-motion emulation explicitly reset
+  to system defaults, reproduced the issue on the live site: reducedMotion=true,
+  zero button transition duration, no navigation slide, and no section reveal.
+- A separate motion-enabled comparison in the same isolated browser reproduced the
+  working path: 180 ms feedback, actual 16 px / 400 ms Program slide and 400 ms reveal.
+  Both loads returned 200; no page errors. User profile/existing tabs untouched.
+  Command: `node .tools/media/brave-motion-diagnosis.mjs`; receipt is in ignored
+  `deliverables/brave-motion-diagnosis/`. No application/deployment/database change.
+- Earlier positive Chromium checks explicitly enabled motion; they did not establish
+  the user's inherited preference. To view full motion, enable Windows Animation
+  effects and reload: Reveal blocks completed under reduced motion do not replay on
+  a preference change alone. Separate perceptibility issues (small early slides and
+  grouped children revealing offscreen) remain follow-up presentation work.
+
+## 1 October 2026 — Live desktop motion verification
+
+- Read-only application audit requested after the premium release. Fresh live Chromium
+  checks at 1440×900 passed in English and Arabic: 180 ms button fill/hover feedback,
+  1 px lift, 98% press, one-time 400 ms section reveals, actual 16 px / 400 ms route
+  and anchor slides (mirrored RTL), destination focus, and no page errors.
+- Reduced-motion desktop check passed: UI travel is disabled while navigation/focus
+  remain functional. Source confirms native wheel/keyboard scrolling and deliberately
+  subtle content movement; the implementation is not a full-page swipe transition.
+- Executed `node .tools/media/desktop-motion-audit.mjs` plus agent-browser live
+  open/snapshot/About click/URL/error inspection. Initial CLI browser discovery and
+  PowerShell ref quoting were corrected before the successful browser checks.
+  Receipts, screenshots and EN/AR desktop recordings are in ignored
+  `deliverables/desktop-motion-audit/`. No application or deployment change.
+- NOT TESTED: Safari/Firefox, real-device or human screen-reader review; build/database
+  checks were not rerun for this read-only audit. Code inspection found the anchor
+  arrival helper assumes IntersectionObserver exists; that rare unsupported-browser
+  fallback remains a follow-up and was not reproduced or fixed in this check.
+
 ## 1 October 2026 — Premium public interface (ORG-004)
 
 - Scope: restored headline, one-line EN/AR introduction, self-hosted Manrope display

@@ -174,3 +174,24 @@ Keep secret values outside the handoff and source control. Use an implementation
 - Separate annual operational data/configuration while retaining approved archive and certificate verification continuity.
 
 The source's availability/performance/recovery values are objectives to test, not achieved results or provider guarantees. [INF-06 to INF-08; NFR-01 to NFR-03; ARC-02]
+
+## Public content presentation boundary — ORG-005
+
+The public website continues on the existing Next.js App Router, pinned dependencies
+and locale layout. `src/content/conference-experiences.ts` contains presentation types,
+bilingual copy and pure filters; `conference-catalogue.server.ts` is server-only and
+owns the raw session/speaker/workshop/media catalogue. Server pages send only approved
+records to interactive clients. Detail lookup also requires an approved record and
+otherwise returns404. Do not move raw draft catalogues into a client-imported module.
+
+Current catalogues are empty because publication data is not approved. Programme/media
+filters use the URL and language switching preserves query/hash; no-result states do
+not imply that future sessions or assets exist. Public media contracts distinguish
+playable public files from restricted/pending records without asset URLs. They do not
+implement recording entitlements, uploads or CMS editing. All existing server workflow
+gates remain closed; information journeys perform no operational mutations.
+
+ORG-006's `CinematicFilm` reframes the existing homepage hero rather than mounting a
+second player. Local browser events communicate explicit viewing intent to `HeroMedia`;
+the `#film` history state, inert reading layers, contained focus and restored opener
+are presentation state only. No API, media entitlement or persisted record is added.

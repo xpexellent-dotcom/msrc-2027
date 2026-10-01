@@ -14,15 +14,15 @@ export const publicSitemap = [
   { id: "home", path: "/", label: { en: "Home", ar: "الرئيسية" }, previewHref: "/" },
   { id: "about", path: "/about", label: { en: "About", ar: "عن المؤتمر" }, previewHref: "/about" },
   { id: "dates", path: "/dates-venue", label: { en: "Dates & venue", ar: "المواعيد والمقر" }, previewHref: "/dates-venue" },
-  { id: "program", path: "/program", label: { en: "Program", ar: "البرنامج" }, previewHref: "/#program" },
-  { id: "speakers", path: "/speakers", label: { en: "Speakers", ar: "المتحدثون" }, previewHref: null },
-  { id: "workshops", path: "/workshops", label: { en: "Workshops", ar: "ورش العمل" }, previewHref: "/#participate" },
-  { id: "participation", path: "/participation", label: { en: "Participation & submission guidelines", ar: "المشاركة وإرشادات التقديم" }, previewHref: "/#participate" },
+  { id: "program", path: "/program", label: { en: "Programme", ar: "البرنامج" }, previewHref: "/program" },
+  { id: "speakers", path: "/speakers", label: { en: "Speakers", ar: "المتحدثون" }, previewHref: "/speakers" },
+  { id: "workshops", path: "/workshops", label: { en: "Workshops", ar: "ورش العمل" }, previewHref: "/workshops" },
+  { id: "participation", path: "/participation", label: { en: "Participation & submission guidelines", ar: "المشاركة وإرشادات التقديم" }, previewHref: "/participate" },
   { id: "teams", path: "/teams", label: { en: "Teams, committees & board", ar: "الفرق واللجان والمجلس" }, previewHref: null },
   { id: "sponsors", path: "/sponsors", label: { en: "Sponsors & sponsorship", ar: "الرعاة والرعاية" }, previewHref: null },
-  { id: "gallery", path: "/past-editions", label: { en: "Gallery & past editions", ar: "المعرض والنسخ السابقة" }, previewHref: "/#legacy" },
+  { id: "gallery", path: "/past-editions", label: { en: "Media & past editions", ar: "الوسائط والنسخ السابقة" }, previewHref: "/media" },
   { id: "announcements", path: "/announcements", label: { en: "Announcements", ar: "الإعلانات" }, previewHref: null },
-  { id: "faq", path: "/faq", label: { en: "FAQ", ar: "الأسئلة الشائعة" }, previewHref: null },
+  { id: "faq", path: "/faq", label: { en: "FAQ", ar: "الأسئلة الشائعة" }, previewHref: "/#faq" },
   { id: "contact", path: "/contact", label: { en: "Contact", ar: "التواصل" }, previewHref: null },
   { id: "privacy", path: "/privacy", label: { en: "Privacy", ar: "الخصوصية" }, previewHref: null },
   { id: "terms", path: "/terms", label: { en: "Terms", ar: "الشروط" }, previewHref: null },
@@ -43,7 +43,7 @@ export const homepageAssets = {
   gallery: [],
 } as const;
 
-type Pathway = { title: string; description: string; category: string };
+type Pathway = { title: string; description: string; category: string; href: string };
 type ProgramRow = { title: string; description: string; format: string };
 type HomepageCopy = {
   kicker: string; title: readonly [string, string]; lead: string; explore: string;
@@ -58,7 +58,7 @@ type HomepageCopy = {
   dateLabel: string; venueLabel: string; pending: string; editionLabel: string;
 };
 
-/** ORG-004: concise bilingual editorial copy; no session or eligibility claims. */
+/** Concise bilingual public copy; no session or eligibility claims. */
 export const homepageCopy: Record<Locale, HomepageCopy> = {
   en: {
     kicker: "The 5th Medical Students Research Conference",
@@ -66,28 +66,28 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     lead: "Medical students. Shared ideas. New discoveries.",
     explore: "Explore the conference", programLink: "The experience", posterCaption: "MSRC2026",
     institution: "King Abdulaziz University", city: "Jeddah, Saudi Arabia",
-    aboutEyebrow: "01 / The conference", aboutTitle: "A question.\nA connection.\nA new possibility.",
+    aboutEyebrow: "01 / The conference", aboutTitle: "Research brings\nus together.",
     aboutBody: "Meet a community of medical students exploring ideas, sharing research and learning together.",
     aboutLink: "Discover MSRC", participationLabel: "Participation", participationStatus: "Not open yet",
-    pathwaysEyebrow: "02 / Find your path", pathwaysTitle: "Bring your curiosity.\nFind your direction.",
+    pathwaysEyebrow: "02 / Find your path", pathwaysTitle: "Find your place\nat MSRC.",
     pathwaysBody: "Research. Innovation. Communication. Hands-on learning.", closed: "Not open yet",
     pathways: [
-      { category: "Research", title: "Share your research", description: "Student research, including work in progress." },
-      { category: "Hackathon", title: "Build on an idea", description: "Research into practice. Ideas shaped together." },
-      { category: "3MT", title: "Make your research heard", description: "Postgraduate research. Three minutes to connect." },
-      { category: "Workshops", title: "Learn by doing", description: "A space for practical learning." },
+      { category: "Attend", title: "Be part of the conversation", description: "Meet the people asking the next questions in medicine.", href: "/registration" },
+      { category: "Research", title: "Share your research", description: "Present your findings, including work in progress, and open a scientific conversation.", href: "/submissions" },
+      { category: "Workshops", title: "Learn by doing", description: "Build practical skills through focused, hands-on learning.", href: "/workshops" },
+      { category: "Hackathon", title: "Build on an idea", description: "Turn research into practice, or advance the way medical students do research.", href: "/hackathon" },
     ],
-    programEyebrow: "03 / The experience", programTitle: "Ideas take the stage.\nConversations go further.",
-    programBody: "Explore the ways we share, discuss and develop research.",
+    programEyebrow: "03 / The experience", programTitle: "Ideas take\nthe stage.",
+    programBody: "Research presentations, scientific conversations, and practical learning. The full schedule will follow when confirmed.",
     programRows: [
-      { format: "Present", title: "Research in the spotlight", description: "Share a question. Open a conversation." },
-      { format: "Discuss", title: "Perspectives that connect", description: "Learn through different points of view." },
-      { format: "Practice", title: "Ideas into experience", description: "Discover through hands-on learning." },
+      { format: "Present", title: "Research presentations", description: "Student questions, findings and work in progress." },
+      { format: "Discuss", title: "Scientific exchange", description: "Different perspectives on evidence and practice." },
+      { format: "Practice", title: "Practical learning", description: "Focused skills, explored together." },
     ],
-    legacyEyebrow: "04 / The next chapter", legacyTitle: "The story continues.",
+    legacyEyebrow: "05 / The previous edition", legacyTitle: "You had to\nbe there.",
     legacyBody: "From MSRC2026 to our fifth edition in 2027. New questions. A shared curiosity.",
     legacyArtLabel: "The next chapter", endingTitle: "See you in Jeddah.",
-    backToTop: "Back to the beginning", dateLabel: "Conference dates", venueLabel: "Conference venue", pending: "Awaiting confirmation", editionLabel: "Fifth edition / 2027",
+    backToTop: "Back to the beginning", dateLabel: "Conference dates", venueLabel: "Conference venue", pending: "To be announced", editionLabel: "Fifth edition / 2027",
   },
   ar: {
     kicker: "المؤتمر الخامس لأبحاث طلاب الطب",
@@ -95,27 +95,27 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     lead: "طلاب طب. أفكار نتشاركها. واكتشافات جديدة.",
     explore: "اكتشف المؤتمر", programLink: "تجربة المؤتمر", posterCaption: "نسخة ٢٠٢٦",
     institution: "جامعة الملك عبدالعزيز", city: "جدة، المملكة العربية السعودية",
-    aboutEyebrow: "٠١ / عن المؤتمر", aboutTitle: "سؤال.\nتواصل.\nوإمكانات جديدة.",
+    aboutEyebrow: "٠١ / عن المؤتمر", aboutTitle: "البحث\nيجمعنا.",
     aboutBody: "مجتمع من طلاب الطب يجمعنا لاستكشاف الأفكار، ومشاركة الأبحاث، والتعلّم معًا.",
     aboutLink: "تعرّف إلى المؤتمر", participationLabel: "المشاركة", participationStatus: "لم تُفتح بعد",
-    pathwaysEyebrow: "٠٢ / اختر مسارك", pathwaysTitle: "ابدأ بفضولك.\nواكتشف مسارك.",
+    pathwaysEyebrow: "٠٢ / اختر مسارك", pathwaysTitle: "اكتشف مكانك\nفي المؤتمر.",
     pathwaysBody: "بحث. ابتكار. تواصل. وتعلّم بالممارسة.", closed: "لم يُفتح بعد",
     pathways: [
-      { category: "البحث العلمي", title: "شارك بحثك", description: "أبحاث طلابية، بما فيها الأبحاث الجارية." },
-      { category: "الهاكاثون", title: "ابنِ على فكرتك", description: "من البحث إلى التطبيق. أفكار نطوّرها معًا." },
-      { category: "الأطروحة في ثلاث دقائق", title: "اجعل بحثك مسموعًا", description: "أبحاث الدراسات العليا. ثلاث دقائق للتواصل." },
-      { category: "ورش العمل", title: "تعلّم بالممارسة", description: "مساحة للتعلّم العملي." },
+      { category: "الحضور", title: "كن جزءًا من الحوار", description: "التقِ بمن يطرحون أسئلة الطب القادمة.", href: "/registration" },
+      { category: "البحث العلمي", title: "شارك بحثك", description: "اعرض نتائجك، بما فيها الأبحاث الجارية، وافتح باب النقاش العلمي.", href: "/submissions" },
+      { category: "ورش العمل", title: "تعلّم بالممارسة", description: "طوّر مهارات عملية من خلال تعلّم مركّز وتطبيقي.", href: "/workshops" },
+      { category: "الهاكاثون", title: "ابنِ على فكرتك", description: "حوّل البحث إلى تطبيق، أو طوّر طريقة إجراء طلاب الطب لأبحاثهم.", href: "/hackathon" },
     ],
-    programEyebrow: "٠٣ / تجربة المؤتمر", programTitle: "أفكار في دائرة الضوء.\nوحوارات تفتح آفاقًا.",
-    programBody: "استكشف طرق عرض الأبحاث، ومناقشتها، وتطويرها.",
+    programEyebrow: "٠٣ / تجربة المؤتمر", programTitle: "أفكار\nفي دائرة الضوء.",
+    programBody: "عروض أبحاث، وحوارات علمية، وتعلّم عملي. سنعلن الجدول الكامل بعد تأكيده.",
     programRows: [
-      { format: "عرض", title: "البحث في دائرة الضوء", description: "شارك سؤالًا. وافتح باب الحوار." },
-      { format: "نقاش", title: "وجهات نظر تجمعنا", description: "نتعلّم من اختلاف وجهات النظر." },
-      { format: "تطبيق", title: "من الفكرة إلى التجربة", description: "اكتشف من خلال التعلّم العملي." },
+      { format: "عرض", title: "عروض الأبحاث", description: "أسئلة طلابية، ونتائج، وأبحاث لا تزال جارية." },
+      { format: "نقاش", title: "تبادل المعرفة العلمية", description: "وجهات نظر مختلفة حول الأدلة والممارسة." },
+      { format: "تطبيق", title: "تعلّم عملي", description: "مهارات نكتشفها ونطوّرها معًا." },
     ],
-    legacyEyebrow: "٠٤ / الفصل القادم", legacyTitle: "وتستمر الحكاية.",
+    legacyEyebrow: "٠٥ / النسخة السابقة", legacyTitle: "لحظات\nتستحق الحضور.",
     legacyBody: "من نسخة ٢٠٢٦ إلى نسختنا الخامسة في ٢٠٢٧. أسئلة جديدة، وفضول يجمعنا.",
     legacyArtLabel: "الفصل القادم", endingTitle: "نلتقي في جدة.",
-    backToTop: "العودة إلى الأعلى", dateLabel: "موعد المؤتمر", venueLabel: "مكان انعقاد المؤتمر", pending: "بانتظار التأكيد", editionLabel: "النسخة الخامسة / ٢٠٢٧",
+    backToTop: "العودة إلى الأعلى", dateLabel: "موعد المؤتمر", venueLabel: "مكان انعقاد المؤتمر", pending: "سيُعلن لاحقًا", editionLabel: "النسخة الخامسة / ٢٠٢٧",
   },
 };

@@ -208,5 +208,24 @@ interaction with native keyboard activation and visible focus, and show temporar
 only for an actual browser autoplay refusal. No film/crop/source approval is extended.
 Original SVG research line art added for ORG-004 is decorative artwork, not conference
 photography, a statistic, a final logo or an approval of archive/gallery content.
+
+ORG-005 restores the visible bilingual Pause/Play control and preference-safe homepage
+delivery requested on1October2026. Reduced motion/data saving use the appropriate
+approved still poster; normal playback remains muted/inline, with browser-denial recovery,
+hidden-tab pause and durable user pause. This supersedes the playback/UI descriptions
+above only. The same four approved files, source, crop, people/posters and homepage-only
+permission remain; none were re-encoded or repurposed for a gallery or speaker portrait.
+The media library therefore announces future approved content and links back to the
+homepage opening film instead of duplicating that asset into a new use context.
 Final official branding, full bilingual copy approval and broader
 REL-01 evidence remain separate work; all operational gates stay closed.
+
+ORG-006 removes the permanent visible homepage Pause/Play button while preserving the
+accessible semantic background interaction, durable pause, reduced-motion/data-saving
+posters and browser recovery. Watch now opens a nearly full-screen view of that same
+approved homepage video element, retaining translated MSRC 2026 identification, keyboard
+close/Tab handling, URL/Back behavior and scroll/focus restoration. This changes its
+homepage presentation only: the four files, crops, encoding, people/posters and rights
+scope are unchanged; no gallery copy, second player, new footage or recording access
+is approved. The latest scoped publication authorization and verification status are in
+[the ORG-006 refinement note](features/cinematic-release-refinements.md).

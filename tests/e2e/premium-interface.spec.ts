@@ -44,8 +44,9 @@ async function checkReadableSections(page: Page) {
     .toBeLessThanOrEqual(await page.evaluate(() => document.documentElement.clientWidth));
 }
 
-// ORG-004, DSN-01/02, LOC-01/03, ACC-01: editorial changes and one-time
-// enhancement must leave public content readable with every fallback path.
+// DSN-01/02, LOC-01/03, ACC-01: the current cinematic public-experience
+// revision keeps a clean cinematic opening, semantic background pause and
+// one-time enhancement readable with every fallback path.
 for (const locale of ["en", "ar"] as const) {
   test(`${locale} concise homepage retains one preview notice and decorative artwork stays out of the accessibility tree`, async ({ page }) => {
     await page.goto(`/${locale}`);
@@ -53,13 +54,26 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".hero-lead")).toHaveText(content[locale].lead);
     await expect(page.getByText(content[locale].preview, { exact: true })).toHaveCount(1);
     await expect(page.locator(".preview-banner")).toBeVisible();
+    const control = page.locator(".conference-hero .hero-media-toggle");
+    await expect(control).toHaveCount(1);
+    await expect(control).toHaveJSProperty("tagName", "BUTTON");
+    await expect(control).toBeEmpty();
     await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
-    const backgroundToggle = page.locator(".conference-hero .hero-media-toggle");
-    await expect(backgroundToggle).toHaveCount(1);
-    await expect(backgroundToggle).toHaveJSProperty("tagName", "BUTTON");
-    await expect(backgroundToggle).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-    await expect(backgroundToggle).toBeEmpty();
     await expect(page.locator(".footer-directory-note, .program-sample-label, .hero-media-status")).toHaveCount(0);
+    await expect(page.locator(".conference-hero [data-countdown]")).toHaveCount(0);
+    await expect(page.locator(".date-band [data-countdown]")).toHaveCount(1);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
+    await expect(page.locator(".hero-actions a")).toHaveCount(2);
+    const opening = await page.locator(".conference-hero").boundingBox();
+    const viewport = page.viewportSize()!;
+    expect(opening?.width).toBeGreaterThanOrEqual(viewport.width - 1);
+    const previewBanner = await page.locator(".preview-banner").boundingBox();
+    expect(opening?.height).toBeGreaterThanOrEqual(viewport.height - (previewBanner?.height ?? 0) - 1);
+    expect((opening?.y ?? 0) + (opening?.height ?? 0)).toBeGreaterThanOrEqual(viewport.height - 1);
+    const navigation = await page.locator(".site-header-inner").boundingBox();
+    expect(navigation?.x).toBeGreaterThan(0);
+    expect((navigation?.x ?? 0) + (navigation?.width ?? viewport.width)).toBeLessThan(viewport.width);
+    expect(navigation?.y).toBeGreaterThan(0);
     for (const note of content[locale].removedNotes) {
       await expect(page.getByText(note, { exact: true })).toHaveCount(0);
     }
@@ -161,3 +175,21 @@ for (const locale of ["en", "ar"] as const) {
     }
   });
 }
+
+test("the opening headline and navigation appear while footage is still loading", async ({ page }) => {
+  let releaseFilm: (() => void) | undefined;
+  const filmHeld = new Promise<void>((resolve) => { releaseFilm = resolve; });
+  await page.route("**/media/msrc2026/*.mp4", async (route) => {
+    await filmHeld;
+    await route.abort("failed");
+  });
+  try {
+    await page.goto("/en", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(content.en.title);
+    await expect(page.locator(".site-header-inner")).toBeVisible();
+    await expect(page.locator(".conference-hero .hero-media-poster")).toBeVisible();
+    await expect(page.locator(".hero-actions a").first()).toBeVisible();
+  } finally {
+    releaseFilm?.();
+  }
+});
