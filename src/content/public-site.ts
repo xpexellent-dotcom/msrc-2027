@@ -116,6 +116,6 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     legacyEyebrow: "٠٥ / النسخة السابقة", legacyTitle: "لحظات\nتستحق الحضور.",
     legacyBody: "من نسخة ٢٠٢٦ إلى نسختنا الخامسة في ٢٠٢٧. أسئلة جديدة، وفضول يجمعنا.",
     legacyArtLabel: "الفصل القادم", endingTitle: "نلتقي في جدة.",
-    backToTop: "العودة إلى الأعلى", dateLabel: "موعد المؤتمر", venueLabel: "مكان انعقاد المؤتمر", pending: "سيُعلن لاحقًا", editionLabel: "النسخة الخامسة / ٢٠٢٧",
+    backToTop: "العودة إلى الأعلى", dateLabel: "موعد المؤتمر", venueLabel: "مقر المؤتمر", pending: "سيُعلن لاحقًا", editionLabel: "النسخة الخامسة / ٢٠٢٧",
   },
 };
