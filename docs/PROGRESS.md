@@ -9,6 +9,7 @@ Live QA of www.msrc2027.com, before and after PR 11, and of `main` at `e70bf38`.
 | Finding | Change |
 |---|---|
 | WebKit pulls letter-spaced Arabic apart. On phones the hero kicker «المؤتمر الخامس لأبحاث طلاب الطب» (0.09em, `!important`), the hero caption and the film provenance «نسخة ٢٠٢٦» (0.06–0.1em) showed broken joins on iPhones, at 10.1–10.6 px | `[lang="ar"]` overrides remove the tracking. Phone sizes rise to 0.75rem in Arabic only. A regression test fails if any Arabic word on six Arabic pages has non-zero letter-spacing; it failed on production before the fix |
+| The nine new pages titled tabs and link cards with a bare label ("Programme", «البرنامج») | `siteTitle()` gives "Programme \| MSRC 2027", as on About and Dates & venue. Session and speaker detail pages are NOT TESTED (no published records) and unchanged |
 | On phones the hero date/city line wrapped and left its "·" dangling at the end of the first line (EN/AR) | The two items stack under 700 px without the separator |
 | The hero lead left a one-word last line («جديدة.», "discoveries.") | `text-wrap: pretty`. Chromium and WebKit now break at the sentence: «طلاب طب. أفكار نتشاركها. / واكتشافات جديدة.» and "Medical students. Shared ideas. / New discoveries." Browsers without support keep today's wrapping |
 | Session and recording durations printed a fixed «دقيقة» after any number, so a 3MT talk would read «٣ دقيقة» | `formatMinutes()` uses CLDR counted forms in Arabic («دقيقة», «دقيقتان», «٣ دقائق», «٤٥ دقيقة»). English stays "45 min" |
