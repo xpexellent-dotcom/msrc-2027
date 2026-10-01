@@ -33,7 +33,7 @@ export const homepageNarrative = {
     programmeLink: "تصفّح البرنامج", programmeStatus: "سيُعلن البرنامج لاحقًا", programmeNote: "ستظهر مواعيد الجلسات وقاعاتها والمتحدثون عند تأكيدها.",
     speakersEyebrow: "٠٤ / أشخاص ووجهات نظر", speakersTitle: "عقول تثري\nالحوار.",
     speakersBody: "تعرّف إلى الباحثين والأطباء والأكاديميين المشاركين في المؤتمر. سنعلن أسماء المتحدثين هنا.",
-    speakersPending: "سيُعلن المتحدثون لاحقًا", speakersLink: "تعرّف إلى المتحدثين", portraitLabel: "MSRC / PERSPECTIVES",
+    speakersPending: "سيُعلن المتحدثون لاحقًا", speakersLink: "تعرّف إلى المتحدثين", portraitLabel: "MSRC / وجهات نظر",
     legacyLink: "استكشف مكتبة الوسائط", filmLink: "شاهد الفيلم", legacyCaption: "نسخة ٢٠٢٦. أشخاص وأفكار وأجواء تجمعنا.",
     partnersEyebrow: "٠٦ / هدف يجمعنا", partnersTitle: "نرتقي بالبحث\nمعًا.", partnersBody: "سنعرض الشركاء والرعاة المؤكدين هنا.", partnersPending: "إعلانات الشركاء قريبًا",
     practicalEyebrow: "٠٧ / خطّط لزيارتك", practicalTitle: "معلومات واضحة،\nقبل أن تصل.", datesLink: "تفاصيل المواعيد والمقر", faqLabel: "الأسئلة الشائعة",
