@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { localizePathname, type Locale } from "@/lib/i18n";
+import { activateNavigation } from "@/lib/anchor-navigation";
 
 export function LanguageSwitch({ locale }: { locale: Locale }) {
   const pathname = usePathname();
@@ -22,6 +23,7 @@ export function LanguageSwitch({ locale }: { locale: Locale }) {
         const destination = `${targetPath}${window.location.search}${window.location.hash}`;
         event.currentTarget.href = destination;
         if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+          activateNavigation(event);
           event.preventDefault();
           router.push(destination);
         }

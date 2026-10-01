@@ -1,6 +1,6 @@
 # MSRC 2027 website design guide
 
-Original design snapshot: 30 September 2026; current approval reconciled 1 October 2026. ENG-007 records M2 implementation approval for the specified palette, fonts and motion. ORG-002 approves the reviewed 18.7-second MSRC2026 homepage cut and responsive stills for public use; deployment remains pending verification. Final logos, other media, full bilingual content and institutional brand/REL-01 approval remain open under S1 CFG-12. Other component tokens are configurable engineering defaults.
+Original design snapshot: 30 September 2026; current approval reconciled 1 October 2026. ENG-007 records M2 implementation approval for the specified palette, fonts and motion. ORG-002's reviewed 18.7-second MSRC2026 homepage cut and responsive stills were published and verified. ORG-003 changes public playback and navigation as recorded in section 12. Final logos, other media, full bilingual content and institutional brand/REL-01 approval remain open under S1 CFG-12. Other component tokens are configurable engineering defaults.
 
 Primary references: [Development Specification v0.5](../sources/Development_Specification_v0.5.txt), section 15 and CFG-12 (S1); [Website Brand Guide](../sources/MSRC27_Website_Brand_Guide.pdf), pages 1-2 (S4); prior development pack (S5); visible project conversation (S6); original [MSRC27 brand reference sheet in Canva](https://www.canva.com/d/zrujOnVYUtutnfB), with [text snapshot](../sources/MSRC27_Brand_Reference_Canva.txt) (S8).
 
@@ -21,7 +21,7 @@ Build a cinematic, clear conference website for The 5th Medical Students Researc
 | Exact palette and English fonts below | SELECTED M2 IMPLEMENTATION BASELINE | Current user request; ENG-007; S8 text; S4/S5 |
 | Arabic font and motion timing below | SELECTED M2 IMPLEMENTATION BASELINE | Current user request; ENG-007 |
 | Spacing, radii, shadows and semantic component colours | CONFIGURABLE ENGINEERING DEFAULTS | ENG-007 |
-| Reviewed 18.7-second MSRC2026 homepage cut and desktop/mobile stills | PUBLIC USE AUTHORIZED; DEPLOYMENT VERIFICATION PENDING | Current explicit requester approval; ORG-002 |
+| Reviewed 18.7-second MSRC2026 homepage cut and desktop/mobile stills | PUBLIC USE APPROVED; PUBLISHED AND VERIFIED | Current explicit requester approval; ORG-002 |
 | Final MSRC/KAU marks, other footage, translations and public content | OPEN PUBLIC-LAUNCH GATE | S1 DSN-02, CFG-12 |
 
 The inspiration links record the user's preferences. This handoff does not claim a fresh audit of either site's current implementation. Carry over the cinematic entrance and clear content organization through original MSRC layouts and assets.
@@ -180,3 +180,24 @@ see [release evidence](features/confirmed-dates-publication.md). Official brand 
 complete EN/AR copy sign-off, removal/retention
 ownership and the remaining REL-01 requirements are still pending. No operational flag
 opens and no site-wide brand approval is inferred from this scoped media decision.
+
+## 12. Requested homepage refinements — 1 October 2026
+
+ORG-003 supersedes the automatic public still-image preference default above. Home now
+attempts muted inline autoplay regardless of reported reduced-motion/data-saving/slow
+network preferences. Keep an accessible Pause/Play control, preserve a paused frame,
+pause hidden tabs, and offer manual Play if the browser refuses autoplay. A loading/error
+poster remains a resilient fallback, not a selectable public still-image mode. Synthetic
+showcase fixtures retain the original preference-safe policy.
+
+Remove optional proximity snapping and its mode controls. Wheel, touch and keyboard
+scrolling remain native. Explicit navigation keeps URL/history and meaningful focus,
+smoothly reaches anchors and slides the reading container 16 px over 400 ms, mirrored
+in Arabic. UI reduced-motion removes these nonessential slides. Mobile menu text has
+no decorative arrow glyphs; primary action icons use consistent SVGs.
+
+The desktop hero pairs welcoming copy with a larger countdown column on the right.
+Show days, hours, minutes and seconds, with Arabic-Indic digits and RTL parity. The
+label identifies the start of the confirmed Day 1 date at 00:00 Asia/Riyadh; the actual
+conference opening time remains unset. Current verification and release evidence are
+in [the refinement note](features/homepage-experience-fixes.md).

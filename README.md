@@ -37,8 +37,9 @@ and shared navigation. File selection is an in-memory filename demo; no file is 
 uploaded. See [M2 component inventory and verification](docs/features/m2-components.md).
 
 The public homepage is configured to use the approved 18.7-second silent MSRC2026 montage
-with desktop/mobile crops and still fallbacks. Its caption identifies the previous edition;
-pause/resume, reduced-motion and low-bandwidth/error still modes remain available. The four
+with desktop/mobile crops and an error/loading poster. Its caption identifies the previous
+edition. ORG-003 selects muted inline autoplay without a public still-image preference mode;
+Pause/Play remains available, including recovery when the browser blocks autoplay. The four
 versioned display files live in `public/media/msrc2026/`; the original is not public. The
 design-system route uses a small synthetic motion fixture. Fonts are self-hosted; there
 are no third-party embeds or external font requests. Publication is authorized; do not
@@ -67,10 +68,12 @@ public homepage without the private source/review files. Stop with Ctrl+C and re
 flag with `Remove-Item Env:LOCAL_MEDIA_PREVIEW_ENABLED` when finished; this flag controls
 local review only, not approved public playback.
 
-The English/Arabic interface now includes directional button feedback and optional native
-section settling on large screens. Choose “Free scrolling” to disable settling; reduced
-motion disables it automatically. See [scope, complete file list, media recipe and
-verification](docs/features/brand-motion-media-preview.md). The current montage has explicit
+The English/Arabic interface includes directional button feedback, smooth explicit anchor
+navigation and short reading-container slides. All ordinary scrolling remains native;
+UI reduced-motion removes nonessential transitions. Home pairs welcoming copy with a
+larger days/hours/minutes/seconds clock. It targets the labelled start of 27 January in
+Riyadh, not an approved conference opening time. See [current scope and verification](docs/features/homepage-experience-fixes.md)
+and [the original media recipe](docs/features/brand-motion-media-preview.md). The current montage has explicit
 requester approval, including the people and posters shown; see [its approval record](docs/MEDIA_REGISTER.md#9-approved-public-homepage-derivative-set--1-october-2026).
 Other media, official brand inputs, full EN/AR copy approval and broader REL-01 evidence
 remain pending. All 15 operational workflows stay disabled.

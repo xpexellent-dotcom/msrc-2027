@@ -19,18 +19,20 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
   return (
     <div className="homepage-journey">
       <section id="top" tabIndex={-1} className="conference-hero" aria-labelledby="hero-title">
-        <HeroMedia locale={locale} video={media?.video ?? homepageAssets.heroVideo} posterSrc={media?.poster ?? homepageAssets.heroPoster} allowPreview={Boolean(media)}>
+        <HeroMedia locale={locale} video={media?.video ?? homepageAssets.heroVideo} posterSrc={media?.poster ?? homepageAssets.heroPoster} allowPreview={Boolean(media)} playbackPolicy="autoplay">
         <Container className="hero-content">
           <div className="hero-topline"><span>{copy.kicker}</span><span dir="ltr" lang="en">MSRC / 2027</span></div>
           <HeroMediaControls />
+          <div className="hero-layout">
           <div className="hero-editorial">
             <p className="hero-location">{copy.institution} <span aria-hidden="true">/</span> {copy.city}</p>
             <h1 id="hero-title"><span>{copy.title[0]}</span><span>{copy.title[1]}</span></h1>
             <p className="hero-lead">{copy.lead}</p>
             <div className="hero-actions">
-              <ButtonLink href="#about" variant="gold">{copy.explore}<span className="directional-arrow" aria-hidden="true">↗</span></ButtonLink>
-              <Link className="hero-secondary" href="#program">{copy.programLink}<span aria-hidden="true">↓</span></Link>
+              <ButtonLink href="#about" variant="gold">{copy.explore}<svg className="directional-arrow hero-action-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></ButtonLink>
+              <Link className="hero-secondary" href="#program">{copy.programLink}</Link>
             </div>
+          </div>
             {conferenceConfig.dates && <ConferenceCountdown dates={conferenceConfig.dates} locale={locale} dateRange={formatConferenceDateRange(conferenceConfig.dates, locale)} />}
           </div>
           <div className="hero-caption"><span>{copy.editionLabel}</span><span>{media?.caption ?? copy.posterCaption}</span></div>
@@ -48,7 +50,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
       <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
         <Container className="intro-grid">
           <SectionHeading eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" />
-          <div className="intro-body"><p className="intro-statement">{copy.aboutBody}</p><p>{copy.aboutNote}</p><div className="intro-link"><ButtonLink href={`/${locale}/about`} variant="secondary">{copy.aboutLink}<span className="directional-arrow" aria-hidden="true">↗</span></ButtonLink></div></div>
+          <div className="intro-body"><p className="intro-statement">{copy.aboutBody}</p><p>{copy.aboutNote}</p><div className="intro-link"><ButtonLink href={`/${locale}/about`} variant="secondary">{copy.aboutLink}</ButtonLink></div></div>
         </Container>
       </section>
       <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
@@ -86,7 +88,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
         </Container>
       </section>
       <section className="closing-section" aria-labelledby="closing-title">
-        <Container className="closing-grid"><h2 id="closing-title">{copy.endingTitle}</h2><div><p>{copy.endingBody}</p><ButtonLink href="#top" variant="secondary">{copy.backToTop}<span aria-hidden="true">↑</span></ButtonLink></div></Container>
+        <Container className="closing-grid"><h2 id="closing-title">{copy.endingTitle}</h2><div><p>{copy.endingBody}</p><ButtonLink href="#top" variant="secondary">{copy.backToTop}</ButtonLink></div></Container>
       </section>
     </div>
   );

@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useRef, useState, useSyncExternal
 import type { Locale } from "@/lib/i18n";
 import {
   type HeroVideo,
+  type HeroPlaybackPolicy,
   type MediaPreferences,
   defaultHeroPoster,
   hasRenderableVideo,
@@ -79,7 +80,9 @@ export function HeroMediaControls() {
     <div className="hero-media-controls">
       {state.load && (
         <button type="button" className="hero-media-control" onClick={state.togglePlayback}>
-          <span aria-hidden="true">{state.playing ? "Ⅱ" : "▷"}</span>
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" width="18" height="18" fill="none">
+            {state.playing ? <path d="M7 4v12M13 4v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /> : <path d="m6 4 10 6-10 6V4Z" fill="currentColor" />}
+          </svg>
           <span>{state.playing ? text.pause : text.resume}</span>
         </button>
       )}
@@ -98,12 +101,14 @@ export function HeroMedia({
   video = null,
   posterSrc = defaultHeroPoster,
   allowPreview = false,
+  playbackPolicy = "respect-preferences",
   children,
 }: {
   locale: Locale;
   video?: HeroVideo | null;
   posterSrc?: string;
   allowPreview?: boolean;
+  playbackPolicy?: HeroPlaybackPolicy;
   children?: ReactNode;
 }) {
   const preferences: MediaPreferences = JSON.parse(
@@ -114,9 +119,10 @@ export function HeroMedia({
   const [playing, setPlaying] = useState(false);
   const [frameAvailable, setFrameAvailable] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const approved = hasRenderableVideo(video, allowPreview);
-  const load = approved && shouldLoadHeroVideo(preferences) && !failed;
-  const play = load && shouldPlayHeroVideo(preferences, userPaused);
+  const load = approved && shouldLoadHeroVideo(preferences, playbackPolicy) && !failed;
+  const play = load && shouldPlayHeroVideo(preferences, userPaused, playbackPolicy) && !autoplayBlocked;
   const poster = approved ? video.poster : isLocalPoster(posterSrc) ? posterSrc : defaultHeroPoster;
   const source = approved ? (preferences.smallScreen && video.mobileSrc ? video.mobileSrc : video.src) : undefined;
 
@@ -126,8 +132,14 @@ export function HeroMedia({
     let cancelled = false;
     void element.play().then(() => {
       if (!cancelled) setPlaying(true);
-    }).catch(() => {
-      if (!cancelled) setFailed(true);
+    }).catch((error: unknown) => {
+      if (cancelled) return;
+      if (error instanceof DOMException && error.name === "NotAllowedError") {
+        setAutoplayBlocked(true);
+        setPlaying(false);
+      } else if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setFailed(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -142,12 +154,21 @@ export function HeroMedia({
       videoRef.current?.pause();
     } else {
       setUserPaused(false);
+      setAutoplayBlocked(false);
+      // Browser-rejected autoplay is recoverable through this actual gesture.
+      // Call play here, before an effect can lose the activation context.
+      const element = videoRef.current;
+      if (element) void element.play().then(() => setPlaying(true)).catch((error: unknown) => {
+        setPlaying(false);
+        if (error instanceof DOMException && error.name === "NotAllowedError") setAutoplayBlocked(true);
+        else if (!(error instanceof DOMException && error.name === "AbortError")) setFailed(true);
+      });
     }
   }
 
   return (
     <MediaControls.Provider value={{ locale, approved, load, hydrated: preferences.hydrated, failed, playing, togglePlayback }}>
-    <div className="hero-media" data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
+    <div className="hero-media" data-playback-policy={playbackPolicy} data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
       <picture>
         {approved && video.mobilePoster && <source media="(max-width: 700px)" srcSet={video.mobilePoster} />}
         <Image
@@ -159,7 +180,7 @@ export function HeroMedia({
         <video
           ref={videoRef} src={source} poster={preferences.smallScreen && video.mobilePoster ? video.mobilePoster : poster}
           className={`hero-media-video${frameAvailable ? " is-playing" : ""}`}
-          muted playsInline loop preload="none" aria-hidden="true" tabIndex={-1}
+          muted autoPlay={!userPaused && !autoplayBlocked && preferences.visible} playsInline loop preload="metadata" aria-hidden="true" tabIndex={-1}
           disablePictureInPicture disableRemotePlayback
           onLoadStart={() => setFrameAvailable(false)}
           onLoadedData={() => setFrameAvailable(true)}

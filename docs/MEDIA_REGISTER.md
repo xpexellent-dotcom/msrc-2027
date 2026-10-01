@@ -2,7 +2,7 @@
 
 Original snapshot: 29 September 2026; current asset approval reconciled 1 October 2026. Sources: S1 Development Specification v0.5 section 15 and CFG-12; S3 Main File PDF; S4 generated brand guide; S6 visible project conversation; S7 connected Drive metadata inventory; S8 original Canva brand reference sheet; ORG-002 in DECISIONS.
 
-The supplied media folder is readable through the connected Drive integration. Its original listing was inspected without downloading or viewing individual assets. On 1 October 2026, the user separately supplied and reviewed one montage, then approved the current 18.7-second cut, desktop/mobile crops and still fallbacks for public homepage use (ORG-002). Other folder and gallery selections remain unapproved. Publication is authorized; deployment/live verification is pending and must be recorded separately.
+The supplied media folder is readable through the connected Drive integration. Its original listing was inspected without downloading or viewing individual assets. On 1 October 2026, the user separately supplied and reviewed one montage, then approved the current 18.7-second cut, desktop/mobile crops and still fallbacks for public homepage use (ORG-002). This set was published and verified; other folder and gallery selections remain unapproved. ORG-003 subsequently changes the public autoplay preference policy without changing the approved files.
 
 ## 1. Source collection
 
@@ -193,7 +193,7 @@ legal audit, approve other collection assets, or settle final brand/REL-01 requi
 | Edition/caption | MSRC2026 previous-edition footage, translated in Arabic; no 2027 participant, speaker, sponsor or scientific outcome is implied |
 | Desktop delivery | `public/media/msrc2026/hero-desktop-v1.mp4`; 18.7 s, 1280×720, 30 fps, 2,762,552 bytes; `poster-desktop-v1.jpg`, 139,823 bytes |
 | Mobile delivery | `public/media/msrc2026/hero-mobile-v1.mp4`; 18.7 s, 720×1280, 30 fps, 1,866,350 bytes; `poster-mobile-v1.jpg`, 107,520 bytes |
-| Encoding and accessibility | Existing reviewed H.264/yuv420p/faststart silent derivatives; one responsive video source, muted inline loop, translated pause/resume, frozen paused frame, reduced-motion/low-bandwidth/error stills and semantic live text |
+| Encoding and accessibility | Existing reviewed H.264/yuv420p/faststart silent derivatives; one responsive video source, muted inline autoplay, translated pause/resume, frozen paused frame and semantic live text. ORG-003 removes automatic public reduced-motion/low-bandwidth still mode; loading/error posters and browser-denied autoplay recovery remain. UI reduced-motion alternatives remain. |
 | Original/source integrity | Drive original and ignored read-only source unchanged; SHA256 `2b2b82e05c11e0eeeacfef60efed222f1cfba439003e210b9c521202ea90372c`; original, manifest and recipe never served publicly |
 | Development review boundary | Existing local review pages and allowlisted private endpoints remain development-only and production 404; approval does not turn their flag into a public-delivery switch |
 | Scope of consent/rights record | Explicit requester approval for this actual reviewed cut and people/posters shown; other footage, gallery assets, minors policy and institutional mark guidance are not silently approved |

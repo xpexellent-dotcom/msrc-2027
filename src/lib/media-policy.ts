@@ -10,6 +10,7 @@ export type ApprovedHeroVideo = HeroVideoSources & {
 };
 export type PreviewHeroVideo = HeroVideoSources & { approval: "preview" };
 export type HeroVideo = ApprovedHeroVideo | PreviewHeroVideo;
+export type HeroPlaybackPolicy = "respect-preferences" | "autoplay";
 
 export type MediaPreferences = {
   hydrated: boolean;
@@ -50,12 +51,15 @@ export function hasRenderableVideo(video: HeroVideo | null | undefined, allowPre
     video.mobilePoster === "/api/preview-media/poster-mobile.jpg");
 }
 
-export function shouldLoadHeroVideo(preferences: MediaPreferences): boolean {
+export function shouldLoadHeroVideo(preferences: MediaPreferences, policy: HeroPlaybackPolicy = "respect-preferences"): boolean {
+  // ORG-003: the public homepage explicitly attempts muted autoplay. Keeping
+  // the element mounted preserves the selected source/frame across hidden tabs.
+  if (policy === "autoplay") return preferences.hydrated;
   return preferences.hydrated && preferences.visible &&
     !preferences.reducedMotion && !preferences.saveData &&
     !["slow-2g", "2g", "3g"].includes(preferences.effectiveType ?? "");
 }
 
-export function shouldPlayHeroVideo(preferences: MediaPreferences, userPaused: boolean): boolean {
-  return shouldLoadHeroVideo(preferences) && !userPaused;
+export function shouldPlayHeroVideo(preferences: MediaPreferences, userPaused: boolean, policy: HeroPlaybackPolicy = "respect-preferences"): boolean {
+  return shouldLoadHeroVideo(preferences, policy) && preferences.visible && !userPaused;
 }

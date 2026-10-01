@@ -1,4 +1,43 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+declare global {
+  interface Window {
+    navigationEvidence: {
+      slides: { id: string; frames: Keyframe[]; duration: number | null | undefined }[];
+      scrolls: { id: string; behavior: ScrollBehavior | undefined }[];
+    };
+  }
+}
+
+async function observeNavigation(page: Page) {
+  await page.addInitScript(() => {
+    window.navigationEvidence = { slides: [], scrolls: [] };
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (frames, options) {
+      window.navigationEvidence.slides.push({
+        id: this.id || this.closest("section[id]")?.id || "",
+        frames: Array.isArray(frames) ? frames : [],
+        duration: typeof options === "number" ? options : typeof options?.duration === "number" ? options.duration : null,
+      });
+      return animate.call(this, frames, options);
+    };
+    const scrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (options) {
+      window.navigationEvidence.scrolls.push({ id: this.id, behavior: typeof options === "object" ? options.behavior : undefined });
+      return scrollIntoView.call(this, options);
+    };
+  });
+}
+
+async function headerNavigation(page: Page) {
+  const toggle = page.locator(".menu-toggle");
+  if (await toggle.isVisible()) {
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    return page.locator(".mobile-menu nav");
+  }
+  return page.locator(".desktop-nav");
+}
 
 for (const locale of ["en", "ar"] as const) {
   test(`${locale} enlarged-text skip link stays hidden until keyboard focus`, async ({ page }) => {
@@ -19,41 +58,111 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("main")).toBeFocused();
   });
 
-  test(`${locale} section navigation preserves keyboard focus and offers free scrolling`, async ({ page }) => {
+  test(`${locale} explicit section navigation glides and slides without controlling ordinary scrolling`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await observeNavigation(page);
     await page.goto(`/${locale}`);
     const journey = page.locator(".section-journey");
     const links = journey.getByRole("link");
     for (const link of await links.all()) {
       expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(44);
     }
-    const toggle = journey.getByRole("button");
-    if (await toggle.isVisible()) {
-      // Chromium serializes the default proximity strictness as just "y".
-      expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toMatch(/^y(?: proximity)?$/);
-      await toggle.focus();
-      await page.keyboard.press("Enter");
-      await expect(toggle).toHaveAttribute("aria-pressed", "false");
-      expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
-      await page.keyboard.press("Enter");
-      await expect(toggle).toHaveAttribute("aria-pressed", "true");
-    }
+    await expect(journey.getByRole("button")).toHaveCount(0);
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
     const program = journey.locator('a[href="#program"]');
     await program.focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(new RegExp(`/${locale}#program$`));
     await expect(page.locator("#program")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "program")?.behavior)).toBe("smooth");
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "program")?.duration)).toBe(400);
+    const slide = await page.evaluate(() => window.navigationEvidence.slides.find((entry) => entry.id === "program"));
+    expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -16 : 16}px)`);
+    expect(slide?.frames[1].transform).toBe("translateX(0)");
+    await expect.poll(() => page.locator("#program").evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThanOrEqual(90);
+    const position = await page.evaluate(() => window.scrollY);
     await page.keyboard.press("PageDown");
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(position);
+    expect(await page.evaluate(() => window.navigationEvidence.slides.length)).toBe(1);
   });
 
-  test(`${locale} reduced motion removes section snapping and button travel`, async ({ page }) => {
+  test(`${locale} header navigation slides a page and retains browser history`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await observeNavigation(page);
+    await page.goto(`/${locale}`);
+    const navigation = await headerNavigation(page);
+    await navigation.locator(`a[href="/${locale}/about"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/about$`));
+    await expect(page.getByRole("main")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "about-introduction")?.duration)).toBe(400);
+    await expect(page.locator(".mobile-menu")).toHaveCount(0);
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(`/${locale}$`));
+    expect(await page.evaluate(() => window.navigationEvidence.slides.length)).toBe(1);
+  });
+
+  test(`${locale} cross-page header anchor focuses the actual destination and closes the mobile menu`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await observeNavigation(page);
+    await page.goto(`/${locale}/about`);
+    const navigation = await headerNavigation(page);
+    await expect(navigation.locator(".directional-arrow")).toHaveCount(0);
+    await navigation.locator(`a[href="/${locale}#program"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}#program$`));
+    await expect(page.locator("#program")).toBeFocused();
+    await expect(page.locator(".mobile-menu")).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "program")?.duration)).toBe(400);
+  });
+
+  test(`${locale} an anchor followed by a page visit retains the hash and query on Back`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await observeNavigation(page);
+    await page.goto(`/${locale}?view=motion`);
+    await page.locator('.section-journey a[href="#program"]').click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#program$`));
+    await expect(page.locator("#program")).toBeFocused();
+    await expect.poll(() => page.locator("#program").evaluate((element) => Math.round(element.getBoundingClientRect().top))).toBeLessThanOrEqual(90);
+    const navigation = await headerNavigation(page);
+    await navigation.locator(`a[href="/${locale}/about"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/about$`));
+    await expect(page.getByRole("main")).toBeFocused();
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#program$`));
+    await expect(page.locator("#program")).toBeInViewport();
+  });
+
+  test(`${locale} language navigation preserves query, hash, destination focus and directional slide`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await observeNavigation(page);
+    const targetLocale = locale === "en" ? "ar" : "en";
+    await page.goto(`/${locale}?view=motion`);
+    await page.locator('.section-journey a[href="#program"]').click();
+    await expect(page.locator("#program")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(1);
+    await page.getByRole("link", { name: locale === "en" ? "View this page in Arabic" : "View this page in English" }).click();
+    await expect(page).toHaveURL(new RegExp(`/${targetLocale}\\?view=motion#program$`));
+    await expect(page.locator("html")).toHaveAttribute("dir", targetLocale === "ar" ? "rtl" : "ltr");
+    await expect(page.locator("#program")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(2);
+    const slide = await page.evaluate(() => window.navigationEvidence.slides.at(-1));
+    expect(slide?.id).toBe("program");
+    expect(slide?.frames[0].transform).toBe(`translateX(${targetLocale === "ar" ? -16 : 16}px)`);
+    expect(slide?.duration).toBe(400);
+  });
+
+  test(`${locale} reduced motion keeps navigation direct and removes button travel`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await observeNavigation(page);
     await page.goto(`/${locale}`);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
     const button = page.locator(".hero-actions .button--gold");
     await button.hover();
     expect(await button.evaluate((element) => getComputedStyle(element).transform)).toBe("none");
     expect(await button.evaluate((element) => getComputedStyle(element, "::before").transitionDuration)).toBe("0s");
+    await page.locator('.section-journey a[href="#program"]').click();
+    await expect(page.locator("#program")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "program")?.behavior)).toBe("instant");
+    expect(await page.evaluate(() => window.navigationEvidence.slides)).toEqual([]);
   });
 }
 

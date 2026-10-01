@@ -32,6 +32,40 @@ describe("hero enhancement preferences (DSN-01, ACC-01)", () => {
   });
 });
 
+describe("organizer-selected public autoplay policy", () => {
+  it("waits for hydration even when autoplay is selected", () => {
+    const server = { ...preferences, hydrated: false };
+    expect(shouldLoadHeroVideo(server, "autoplay")).toBe(false);
+    expect(shouldPlayHeroVideo(server, false, "autoplay")).toBe(false);
+  });
+  it.each([
+    { reducedMotion: true }, { saveData: true },
+    { effectiveType: "slow-2g" }, { effectiveType: "2g" }, { effectiveType: "3g" },
+    { reducedMotion: true, saveData: true, effectiveType: "2g" },
+  ])("loads and plays the approved public film for %j", (constraint) => {
+    const state = { ...preferences, ...constraint };
+    expect(shouldLoadHeroVideo(state, "autoplay")).toBe(true);
+    expect(shouldPlayHeroVideo(state, false, "autoplay")).toBe(true);
+    expect(shouldPlayHeroVideo(state, true, "autoplay")).toBe(false);
+  });
+  it("keeps a hidden video's source mounted but pauses playback", () => {
+    const hidden = { ...preferences, visible: false };
+    expect(shouldLoadHeroVideo(hidden, "autoplay")).toBe(true);
+    expect(shouldPlayHeroVideo(hidden, false, "autoplay")).toBe(false);
+    expect(shouldPlayHeroVideo(preferences, false, "autoplay")).toBe(true);
+  });
+  it("never overrides a manual pause when visibility or preferences change", () => {
+    for (const state of [
+      preferences,
+      { ...preferences, visible: false },
+      { ...preferences, reducedMotion: true, saveData: true, effectiveType: "3g" },
+      preferences,
+    ]) {
+      expect(shouldPlayHeroVideo(state, true, "autoplay")).toBe(false);
+    }
+  });
+});
+
 describe("approved local media boundary (MED-01/04)", () => {
   it("defaults to no video, and permits an explicitly approved local derivative", () => {
     expect(hasApprovedVideo(null)).toBe(false);

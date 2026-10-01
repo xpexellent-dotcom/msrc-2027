@@ -8,6 +8,7 @@
 html[dir="rtl"] .hero-media-scrim { transform: scaleX(-1); }
 .hero-media-control, .hero-media-status { position: absolute; z-index: 3; inset-inline-end: 2rem; inset-block-end: 1.25rem; border: 1px solid var(--color-lilac); background: var(--color-ink); color: var(--color-ivory); padding: 0.6rem 0.9rem; font-size: 0.75rem; border-radius: 2rem; }
 .hero-media-control { min-height: 44px; display: flex; align-items: center; gap: 0.6rem; }
+.hero-media-control > svg { flex: 0 0 auto; }
 .hero-media-control > span:last-child { min-inline-size: 0; overflow-wrap: anywhere; }
 .hero-media-control:hover { background: var(--color-purple); }
 .hero-media-control { transition: background-color var(--motion-feedback) var(--motion-easing), transform var(--motion-feedback) var(--motion-easing); cursor: pointer; }
@@ -25,6 +26,7 @@ html[dir="rtl"] .hero-media-scrim { transform: scaleX(-1); }
   .conference-hero:has(.hero-media-control, .hero-media-status) .hero-caption { padding-block-end: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-media-video { display: none; transition: none; }
+  .hero-media[data-playback-policy="respect-preferences"] .hero-media-video { display: none; }
+  .hero-media-video { transition: none; }
   .hero-media-control { transition: none; transform: none; }
 }

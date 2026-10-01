@@ -63,8 +63,8 @@ type HomepageCopy = {
 export const homepageCopy: Record<Locale, HomepageCopy> = {
   en: {
     kicker: "The 5th Medical Students Research Conference",
-    title: ["Where curiosity", "becomes discovery."],
-    lead: "A place for questions that matter. A meeting point for the next generation of medical research.",
+    title: ["Bring your questions.", "Help shape what’s next."],
+    lead: "Welcome to MSRC 2027. A community of medical students in Jeddah, sharing ideas, learning together and taking the next step in research.",
     explore: "Explore the conference", programLink: "Inside the preview", posterCaption: "MSRC2026 · Previous-edition footage",
     institution: "King Abdulaziz University", city: "Jeddah, Saudi Arabia",
     aboutEyebrow: "01 / The conference", aboutTitle: "Good research starts\nwith a better question.",
@@ -100,8 +100,8 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     // Arabic follows the English meaning in idiomatic MSA rather than word-for-word.
     // "المؤتمر الخامس لأبحاث طلاب الطب" keeps "fifth" attached to the conference, not the students.
     kicker: "المؤتمر الخامس لأبحاث طلاب الطب",
-    title: ["حيث يتحوّل الفضول", "إلى اكتشاف."],
-    lead: "مساحة للأسئلة التي تصنع فرقًا، وملتقى للجيل القادم من الباحثين في الطب.",
+    title: ["ابدأ بأسئلتك.", "وساهم في صناعة القادم."],
+    lead: "مرحبًا بك في مؤتمر أبحاث طلاب الطب ٢٠٢٧. مجتمع في جدة يجمع طلاب الطب لتبادل الأفكار والتعلّم معًا، والانطلاق إلى خطوتهم التالية في البحث.",
     explore: "اكتشف المؤتمر", programLink: "جولة في المعاينة", posterCaption: "لقطات من النسخة السابقة · ٢٠٢٦",
     institution: "جامعة الملك عبدالعزيز", city: "جدة، المملكة العربية السعودية",
     aboutEyebrow: "٠١ / عن المؤتمر", aboutTitle: "يبدأ البحث الجيد\nبسؤال أفضل.",

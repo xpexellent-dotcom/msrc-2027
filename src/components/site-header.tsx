@@ -8,6 +8,7 @@ import { LanguageSwitch } from "@/components/language-switch";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import type { Locale } from "@/lib/i18n";
+import { revealPageNavigation } from "@/lib/anchor-navigation";
 
 const headerCopy = {
   en: {
@@ -46,6 +47,8 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => revealPageNavigation(pathname), [pathname]);
 
   useEffect(() => {
     if (!menuOpen) return;

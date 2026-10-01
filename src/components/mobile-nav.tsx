@@ -13,7 +13,7 @@ export function MobileNav({ id, label, links, pathname, status, onNavigate }: {
       aria-current={pathname === link.href ? "page" : undefined} onClick={() => {
         onNavigate();
         if (pathname === link.href) document.getElementById("main-content")?.focus();
-      }}>{link.label}<span className="directional-arrow" aria-hidden="true">↗</span></Link>)}</nav>
+      }}>{link.label}</Link>)}</nav>
     <p className="mobile-menu-status">{status}</p>
   </Container></div>;
 }
