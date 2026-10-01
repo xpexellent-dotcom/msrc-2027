@@ -83,13 +83,21 @@ filters and bilingual navigation from ORG-005 remain in place.
 | Mobile chapter/film restoration repeat | PASS: `pnpm exec playwright test tests/e2e/cinematic-film.spec.ts --project=chromium-mobile --grep 'participation chapter' --repeat-each=3`,6/6 in15.3seconds. |
 | Final complete browser regression suite | PENDING:267-case runs262/2 and263/1 passed/failed, each3 duplicate skips. Traces locate position changes before input; the test now observes the actual native click URL/scroll before the React handler and retains exact return assertions. Final full rerun follows. |
 | Visual production-build review | PASS: `node .tools/cinematic-release-review.mjs`, six EN/AR desktop/tablet/mobile homepage/chapter/cinema journeys,200 responses, zero page errors/overflow, correct ivory/700-weight heading;18 screenshots with desktop/mobile inspection. |
-| Exact-head CI and preview/production deployment | PENDING: publication is authorized; no successful release is asserted by this note. |
+| Hosted d878cd8 CI | PASS: Foundation36903651165,258 units,264 browsers/3 duplicates skipped,20 pgTAP,10 integrations; both jobs succeeded. A later test-only revision must have its own recorded checks. |
+| Final-head CI and production deployment | PENDING: publication is authorized; no successful production release is asserted by this note. |
 | Database checks | NOT TESTED for this public-only slice; schema, permissions and workflow gates are unchanged. |
 | Physical devices, Safari/Firefox, human screen-reader and Arabic editorial review | NOT TESTED in this slice. |
 
 The root must append the final browser commands/results and exact CI/deployment evidence
 before reporting publication complete. Any failed check and the resulting repair should
 remain recorded, alongside the passing rerun rather than being silently omitted.
+
+Actual-click chapter restoration repeat passed12/12 desktop/mobile cases. A subsequent
+local full run263 passed/1 failed/3 skipped exposed an independent test timing gap:
+matching search/day values did not establish that a language return had committed.
+The regression now awaits the target programme URL and `html.lang` after both switches,
+then retains the original query/filter and announcement assertions. Application source
+is unchanged by either test setup correction. Final-head execution is recorded below.
 
 The public-page agent supplied this executed command sequence:
 

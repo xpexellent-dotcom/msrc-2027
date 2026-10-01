@@ -38,6 +38,13 @@
   now records the actual native click's URL/scroll in capture phase, before the React
   film handler, and checks exact restoration against that independent observation.
   The normal real click and all assertions remain; application source is unchanged.
+- Actual-click restoration repeat PASS:12/12 desktop/mobile, three repetitions per
+  language. Exact d878cd8 hosted CI36903651165 PASS:258 units,264 browsers/3 duplicate
+  skips,20 pgTAP and10 integrations, both jobs successful. Local full run263/1/3 found
+  a separate test timing gap: identical search/day values could pass on the prior
+  language before the return navigation committed. Added explicit URL/document-language
+  arrival waits and retained query/filter checks. Final-head hosted rerun follows;
+  d878cd8 evidence is preserved separately rather than relabelled as the next revision.
 - Targeted public-page review PASS:24 language/viewport combinations with normal and
   200%text, filters/reset focus and distinct links. Chapter repair PASS:20 EN/AR width/
   text combinations at320/390/412/791/1440px, no overflow and minimum48px targets.

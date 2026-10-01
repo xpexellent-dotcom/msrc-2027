@@ -126,9 +126,17 @@ for (const locale of ["en", "ar"] as const) {
     expect(new URL(page.url()).searchParams.get("q")).toBe("unmatched scientific session");
     const otherLocale = locale === "en" ? "ar" : "en";
     await page.getByRole("link", { name: otherLocale === "ar" ? "View this page in Arabic" : "View this page in English" }).click();
+    await expect(page).toHaveURL(new RegExp(`/${otherLocale}/program(?:\\?|$)`));
+    await expect(page.locator("html")).toHaveAttribute("lang", otherLocale);
     await expect(page.getByTestId("program-search")).toHaveValue("unmatched scientific session");
     await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("link", { name: locale === "ar" ? "View this page in Arabic" : "View this page in English" }).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/program(?:\\?|$)`));
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    await expect(search).toHaveValue("unmatched scientific session");
+    await expect(second).toHaveAttribute("aria-pressed", "true");
+    expect(new URL(page.url()).searchParams.get("day")).toBe("day2");
+    expect(new URL(page.url()).searchParams.get("q")).toBe("unmatched scientific session");
     await page.getByTestId("program-clear").click();
     await expect(search).toHaveValue("");
     await expect(all).toHaveAttribute("aria-pressed", "true");
