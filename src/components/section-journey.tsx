@@ -5,10 +5,11 @@ import { Link } from "@/components/ui/link";
 import { formatIndex, type Locale } from "@/lib/i18n";
 
 const copy = {
-  en: { label: "Explore the conference sections", title: "Inside MSRC", sections: ["The conference", "Participation", "Programme", "Speakers", "MSRC 2026", "Plan your visit"] },
-  ar: { label: "استكشف أقسام المؤتمر", title: "داخل المؤتمر", sections: ["عن المؤتمر", "المشاركة", "البرنامج", "المتحدثون", "نسخة ٢٠٢٦", "خطّط لزيارتك"] },
+  en: { label: "Explore the conference sections", title: "Inside MSRC", sections: ["The conference", "Participation", "Programme", "Speakers", "MSRC 2026", "Partners", "Plan your visit"] },
+  ar: { label: "استكشف أقسام المؤتمر", title: "داخل المؤتمر", sections: ["عن المؤتمر", "المشاركة", "البرنامج", "المتحدثون", "نسخة ٢٠٢٦", "الشركاء", "خطّط لزيارتك"] },
 } as const;
-const destinations = ["about", "participate", "program", "speakers", "legacy", "faq"] as const;
+// One chip per numbered homepage section, so the chips match the eyebrows (06 / Shared purpose).
+const destinations = ["about", "participate", "program", "speakers", "legacy", "partners", "faq"] as const;
 type Chapter = typeof destinations[number];
 
 /**

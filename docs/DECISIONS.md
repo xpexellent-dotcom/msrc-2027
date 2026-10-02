@@ -903,4 +903,9 @@ v0.5 and earlier source snapshots stay unchanged.
   bar scrolls into view its chips glide in one after another; docking under the header settles
   it with a short motion and the header's shadow. At 1100px and above nothing changes.
 - Reduced motion: no entrance, settle, glide or slide, and the scroll jumps (DESIGN_GUIDE).
+- Partners chip, 3 October 2026 (requester: "Yes add a partners chip"). The bar listed six
+  chapters, so "Plan your visit" was 06 in the bar but "07 / Plan your visit" on the page:
+  section 06 ("Shared purpose", partners) had no chip. The bar now has seven chips on every
+  width, adding 06 Partners / «الشركاء». Every chip's number matches its section eyebrow; the
+  desktop grid has seven columns, and the partners section takes focus like the others.
 - Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-02.

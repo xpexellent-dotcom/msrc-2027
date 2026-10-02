@@ -61,3 +61,17 @@ for (const locale of ["en", "ar"] as const) {
       - document.querySelector(".section-journey")!.getBoundingClientRect().bottom)).toBeGreaterThan(8);
   });
 }
+
+// Every chip's number matches its section's eyebrow: before the Partners chip, "Plan your
+// visit" was 06 in the bar but "07 / Plan your visit" on the page.
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} chapter numbers match the section eyebrows`, async ({ page }) => {
+    await page.goto(`/${locale}`);
+    const pairs = await page.locator(".section-journey-links > a").evaluateAll((links) => links.map((link) => {
+      const id = link.getAttribute("href")!.slice(1);
+      return { id, chip: link.querySelector(".chapter-number")!.textContent, eyebrow: (document.querySelector(`#${id} .eyebrow`)?.textContent ?? "").split("/")[0].trim() };
+    }));
+    expect(pairs.map((pair) => pair.id)).toEqual(["about", "participate", "program", "speakers", "legacy", "partners", "faq"]);
+    for (const pair of pairs) expect(pair.chip, pair.id).toBe(pair.eyebrow);
+  });
+}
