@@ -130,6 +130,13 @@ before M4 or any sensitive release (REL-06).
 
 ## Verification and files
 
+- `README.md`: link to this authorization contract.
+- `docs/ARCHITECTURE.md`: identify the implemented contract and pending reader integration.
+- `docs/DECISIONS.md`: record ENG-009 without changing organizer permissions.
+- `docs/PROGRESS.md`: executed checks, failures, release limits and next slice.
+- `docs/backlog/21-privacy-security.md` and `docs/backlog/ISSUE_INDEX.csv`: bounded BL-SEC-01 status.
+- `docs/features/authorization-contract.md`: this source/acceptance/integration note.
+- `src/lib/permissions/README.md`: library boundary and current-authority requirements.
 - `src/lib/permissions/contract.ts`: role/scope/resource/reader types and frozen purpose rules.
 - `src/lib/permissions/authorize.server.ts`: fresh-reader evaluation and generic failure.
 - `src/lib/permissions/messages.ts`: bilingual/assessment error contract.
@@ -138,26 +145,38 @@ before M4 or any sensitive release (REL-06).
   all schema/grant/data changes roll back, no migration or API-exposed production object.
 - Existing `pnpm test` and `pnpm db:test`/CI discover both suites automatically.
 
-Executed evidence is recorded in PROGRESS. `pnpm check` passed lint, types,739 unit cases
-(440 new) and the40-page production build. The43 targeted public-shell/closed-workflow
+Executed evidence is recorded in PROGRESS. `pnpm check` passed lint, types, 739 unit cases
+(440 new) and the 40-page production build. The 43 targeted public-shell/closed-workflow
 desktop/mobile Chromium cases passed, including EN/AR keyboard, axe and reduced motion.
 Locked installation passed; offline installation first missed an uncached font tarball. Initial
 type-check found a narrowed union referenced inside a callback; corrected, rerun PASS.
 Initial unit positive fixtures used scientific input owner as reviewer; corrected fixture
 semantics before final passing rerun, without weakening self-review enforcement. Final
 adversarial review found review/event assignment-stage confusion; corrected both the server
-contract and assignment-bound SQL grant predicate, adding29 unit and two SQL regressions.
+contract and assignment-bound SQL grant predicate, adding 29 unit and two SQL regressions.
 
-Windows database execution is blocked by unavailable Docker engine/WSL, despite the CLI
-being installed; the existing GitHub Linux database job is the runtime verification target.
-No hosted fallback is acceptable for these synthetic fixtures. A successful CI run must
-be linked before calling the SQL checks executed/passed.
+Windows database execution remains blocked by unavailable Docker engine/WSL, despite the
+CLI being installed. The existing GitHub Linux [database job110917372506](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37030963194/job/110917372506)
+actually passed at `39877f2`:110 pgTAP assertions (90 new +20 foundation),10 Data API tests,
+schema lint, security advisors, generated strict types and local stack shutdown. No hosted
+fallback was used. Only the existing foundation migration was applied; test objects rolled
+back and did not enter the generated public schema. [Full PR workflow37030963194](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37030963194)
+and [push workflow37030920867](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37030920867)
+both passed at code commit `39877f2`: lint/types,739 unit cases, production build and
+284 browser cases PASS /3 explicitly skipped. PROGRESS records all commands actually run.
+Vercel Preview deployment6812599008 reports successful build; hosted visual/session checks
+are not claimed. No Production release. The later receipt-only commit changes documentation.
+
+Independent final security review repeated three in-memory stage probes: wrong-stage-only
+DENIED; wrong-stage assignment grant plus separate correct-stage assignment DENIED; properly
+scoped event assignment ALLOWED. The reported finding is closed; named human/domain-owner
+UAT and actual identity/Storage integration are not established by those probes.
 
 ## Setup and rollback
 
 No migrations, environment variables, new dependencies, secret keys or manual hosted setup.
-Use Node24/pnpm11.19.0 and `pnpm install --frozen-lockfile`; local DB tests require a working
-Docker-compatible engine. The managed worktree is based on audited main017220e, preserving
+Use Node 24/pnpm 11.19.0 and `pnpm install --frozen-lockfile`; local DB tests require a working
+Docker-compatible engine. The managed worktree is based on audited main `017220e`, preserving
 the original checkout's uncommitted documents. One exact safe.directory exception was added
 for the user-provided original Git checkout so the Codex worktree tool could access it;
 no wildcard trust. Reverting this PR removes only the contract/tests/docs; no hosted/data

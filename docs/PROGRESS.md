@@ -17,21 +17,45 @@
   automatically discovers both. Type-check initially found a union callback narrowing
   error; fixed and rerun PASS. Final review also separated review/event assignments and
   assignment-bound grant stages; 29 regression cases passed. Full local checks passed;
-  SQL CI receipts are pending below.
+  SQL verification and full browser checks passed in isolated CI.
 - No production identity/reader/grant system, migration, actual Storage/file link or audit
   writer implemented; all 15 operational workflows stay hard closed. Human/domain-owner,
   real identity/MFA/session and per-feature RLS/Storage UAT remain later release work.
-- Worktree based on remote main017220e preserves the original checkout's uncommitted docs.
+- Worktree based on remote main `017220e` preserves the original checkout's uncommitted docs.
   No production service, DNS, secret, email, workflow opening or public-interface change.
 
-Verification (Node24.21.0/pnpm11.19.0): locked install PASS; `pnpm check` PASS
-(lint, types, 739 unit tests including440 new cases, production build with40 pages).
+Verification (Node 24.21.0/pnpm 11.19.0): locked install PASS; `pnpm check` PASS
+(lint, types, 739 unit tests including 440 new cases, production build with 40 pages).
 `pnpm test:e2e tests/e2e/closed-workflows.spec.ts tests/e2e/public-shell.spec.ts` PASS:
 43 desktop/mobile Chromium tests, including EN/AR keyboard, axe and reduced motion.
-`pnpm db:test` BLOCKED: connection refused at127.0.0.1:54322; no running Docker
+`pnpm db:test` BLOCKED: connection refused at 127.0.0.1:54322; no running Docker
 engine/WSL. Initial offline install missed an uncached font tarball; normal locked install
-passed. The isolated GitHub database job will verify the90 new SQL assertions. Exact PR/CI
-evidence will be recorded after execution; fixtures do not establish live grants.
+passed. [Draft PR15](https://github.com/xpexellent-dotcom/msrc-2027/pull/15) at code commit
+`39877f2` has [database CI job110917372506](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37030963194/job/110917372506)
+PASS: actual logs show 110 pgTAP assertions (90 authorization +20 foundation), 10 Data API
+integration tests, reset/lint/security advisors/generated strict types and stack shutdown.
+Only the existing foundation migration was applied. [Vercel Preview](https://msrc-2027-czvn6thf8-msrc2027.vercel.app)
+deployment 6812599008 reports success; no Production deployment or new UI. Fixtures do not
+establish live grants. [PR workflow37030963194](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37030963194)
+and [push workflow37030920867](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37030920867)
+both PASS at code commit `39877f2`. Application logs confirm lint/types, 739 unit tests,
+40-page production build and 284 browser tests PASS /3 explicitly skipped.
+
+CI commands actually executed: `pnpm install --frozen-lockfile`, `pnpm lint`,
+`pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm exec playwright install --with-deps chromium`,
+`pnpm test:e2e`; loopback Docker network creation, `pnpm db:start`, `pnpm db:reset`,
+`pnpm db:lint`, `pnpm db:test`, `pnpm exec supabase db advisors --local --type security --level warn --fail-on error`,
+`pnpm db:types` plus standalone strict `tsc`, `pnpm db:env`, `pnpm db:integration`,
+`pnpm db:stop`. Security advisors returned no issues on the rolled-back synthetic schema;
+that does not validate hosted policies or actual Storage. `git diff --check` PASS.
+
+The later documentation-only receipt commit does not change the tested code. No new
+dependencies, migration, environment values or hosted configuration; no manual hosted setup.
+Human/domain-owner and actual session/MFA/storage UAT NOT TESTED. Original user work preserved.
+
+The feature checklist was updated and read back at sequence11: PR15 remains draft/partial
+for live authorization; the synthetic contract and database results are linked, with M4
+identity, persisted grants, TOTP, per-feature RLS and actual Storage access still pending.
 
 Next smallest PR: BL-AUTH-01 current persisted grant/identity integration, followed by
 BL-AUTH-05 privileged TOTP enrollment/recovery before CMS/staff activation. M3 legal/brand
