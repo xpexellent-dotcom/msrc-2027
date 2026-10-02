@@ -42,7 +42,12 @@ Verification checkpoint: `pnpm install --frozen-lockfile` PASS; `pnpm check` PAS
 lint/types/1073 units and42-page production build after review fixes. Full public browser
 suite `pnpm test:e2e`:300 PASS/3 existing explicit skips; dedicated SMS browser initially
 36 PASS, then expanded to48 for participant messages and periodic expiry/revocation
-announcements. Final48-case execution and isolated CI database checks are pending.
+announcements. Expanded run42 PASS/6 test-fixture failures: a mock expiry was followed by
+navigation that correctly restored the still-active real synthetic server session. Test
+only corrected to restart from the displayed terminal state; final48/48 PASS (37.2s).
+Auth error-context files contained test source only; credential-bearing automatic aria
+snapshots/traces/screenshots are disabled, and explicit captures mask inbox/code fields.
+Isolated CI database and new-head CI/Preview checks remain pending.
 Review also fixed reauthentication clearing code-attempt cooldowns; three new regressions
 PASS. Independent SQL/TS/source review found no actionable issue; it executed no DB tests.
 `git diff --check` PASS. Fresh production auth-lab page/API404 and health200 confirm the

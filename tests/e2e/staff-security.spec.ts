@@ -208,8 +208,10 @@ for (const locale of ["en", "ar"] as const) {
     // The mocked transport exercises UI announcements; server expiry is independently
     // covered by unit/SQL policy checks. No wall-clock wait or live provider is needed.
     await page.clock.install();
+    await page.goto(`/${locale}/staff-security-preview`);
     for (const status of ["expired", "revoked"] as const) {
-      await page.goto(`/${locale}/staff-security-preview`);
+      // Start again from the displayed terminal state. Reloading would correctly
+      // restore the still-active real lab session behind the mocked status response.
       await page.getByRole("button", { name: /^(Simulate staff password sign-in|Start a new synthetic session|محاكاة دخول الفريق بكلمة المرور|بدء جلسة مصطنعة جديدة)$/ }).click();
       await page.getByRole("button", { name: copy.enroll, exact: true }).click();
       const code = await inboxCode(page, "sms");
