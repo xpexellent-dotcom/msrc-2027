@@ -833,3 +833,52 @@ v0.5 and earlier source snapshots stay unchanged.
   without changing its reviewed SQL. Hosted 0029 definer warning is an intentional bounded
   exception, independently reviewed against current official guidance; retain and re-review
   before staff activation. No RLS/table grant is widened to silence it.
+
+## ORG-008 — Visitor analytics, Speed Insights and hosting efficiency, 2 October 2026
+
+- Status: CONFIRMED explicit requester instruction in the current chat. The requester sent a
+  screenshot of Vercel's Web Analytics setup page ("Can you do this"), then asked to optimize
+  the Vercel hosting settings for efficiency, enable Speed Insights and add other useful
+  settings or integrations; a Pro plan may follow at publication. This is the approved
+  analytics configuration that INF-01 requires.
+- Vercel Web Analytics (`@vercel/analytics` 2.0.1) and Speed Insights
+  (`@vercel/speed-insights` 2.0.0) load on the production deployment only
+  (`VERCEL_ENV=production`): previews, local and CI builds render neither, and only Vercel
+  serves their scripts (from project-specific same-origin paths). Both are cookieless and
+  send their beacons to the site's own origin. Before anything is sent, the page address
+  loses its query string and fragment (PRV-03), and automated browsers
+  (`navigator.webdriver`) send nothing, so test runs against a deployment neither count as
+  visits nor make write requests.
+- Only public information pages are counted: the locale home and the sections listed in
+  `countedSections` (`src/lib/vercel-observability.ts`), with one slug segment under
+  programme and speakers. Future account, review and organizer areas, 404s and internal
+  previews send nothing; a unit test fails when a new public page folder is not listed, so
+  each addition is deliberate. This follows ChatGPT's 2 October analytics review (public
+  routes only, no previews, no query strings).
+- The referrer is sent by Vercel's script, not by `beforeSend`. The site's
+  `Referrer-Policy: no-referrer` leaves internal navigations without one, and browsers send
+  other sites' origins only by default.
+- Data flow (PRV-07): Vercel receives the page path and route pattern, referrer, country,
+  and device, browser and OS class, plus Core Web Vitals. Visitors are counted by a hash that
+  rotates daily, not by a cookie or a stored IP address. Vercel processes this outside Saudi
+  Arabia. The cross-border assessment remains with the organizers; this decision claims no
+  compliance. The Privacy page must describe both services before it is published.
+- Speed Insights reports field p75 LCP, CLS and INP per route: the evidence NFR-02 asks for
+  (public-page LCP ≤ 2.5 s at p75).
+- Functions run in `bom1` (Mumbai) instead of the default `iad1` (Washington, D.C.), set in
+  `vercel.json`. Requests from the organizer's connection in Saudi Arabia enter Vercel at
+  the Mumbai edge, and uncached pages (programme, media, 404s, health) then crossed to `iad1`:
+  0.42–0.48 s to first byte, against about 0.21 s for CDN-cached pages. `dxb1` (Dubai)
+  appears in the dashboard, but a deployment with it failed with "Invalid region" on this
+  plan. No public function
+  reads Supabase or personal data. This is a latency setting, not a production
+  data-location approval (INF-02, CFG-10): review it together with the Supabase region
+  (`ap-northeast-1` today) before any personal-data workflow opens.
+- The approved film and posters under `/media/` may be cached by browsers for 30 days
+  (`max-age=2592000, stale-while-revalidate=86400`) instead of being revalidated on every
+  visit (NFR-03). Replacement media must ship under a new file name.
+- Dashboard settings checked and left as they were: Fluid compute on, Node.js 24.x,
+  Prioritize Production Builds on, Vercel Authentication on previews, protected source maps,
+  Web Analytics and Speed Insights enabled, firewall bot protection off (a challenge would
+  also stop link previews and automated QA). Plan-dependent options are listed in PROGRESS.
+- Affected IDs: INF-01/02/08, PRV-03/07, NFR-02/03, CFG-10.

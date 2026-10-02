@@ -22,6 +22,12 @@ const nextConfig: NextConfig = {
         { key: "Content-Security-Policy", value: "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" },
         { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
       ],
+    }, {
+      // ORG-008: the approved film and posters are versioned by file name (hero-desktop-v1.mp4),
+      // so browsers keep them for 30 days instead of revalidating 2.8 MB on every visit. A
+      // replacement ships under a new name (-v2), never over an existing file.
+      source: "/media/:path*",
+      headers: [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }],
     }];
   },
 };
