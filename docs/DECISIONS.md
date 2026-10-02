@@ -889,13 +889,18 @@ v0.5 and earlier source snapshots stay unchanged.
   screenshot of the homepage chapter index. On phones the second navigation bar "isn't
   convenient": on desktop it follows the reader, but on a phone "when you scroll it's kinda
   just gone". The requester suggested a sidebar, leaving the form open.
-- Below 1100px the in-flow chapter index (ORG-006) stays where it is. Once it has scrolled
-  away, a floating pill at the bottom of the screen shows the current chapter (for example
-  "02 Participation") and opens all six chapters in a side panel. The panel is a modal
-  dialog from the inline end (right in English, left in Arabic) with the same native anchors.
-  Choosing a chapter closes the panel, glides there through the existing explicit-navigation
-  helper and moves focus to it. Esc, the close button or a tap outside returns focus to the
-  pill. The pill leaves with the last chapter, while the film view or the main menu is open,
-  and in print. At 1100px and above nothing changes: the sticky index remains.
-- Reduced motion: no slide or fade, and the scroll jumps (DESIGN_GUIDE).
+- First version (PR 18), now superseded: a floating pill that opened a side panel. The
+  requester tried it on an iPhone and rejected it the same evening. The panel needed two taps
+  to reach a chapter, the 2×3 index still looked out of place on a phone, and the bar's
+  appearance and chapter changes were not smooth. The requester asked for something "smooth
+  and convenient", perhaps on the side or centred, with creative freedom, and noted that
+  the desktop version is fine.
+- Current version (PR 20): below 1100px the chapter index is one swipeable row of chapter
+  chips that sticks under the floating header, as the desktop bar does. It is styled as a
+  second deck of the header card. A purple highlight glides to the current chapter, and the
+  row slides that chip to the middle (mirrored in Arabic). One tap goes to any chapter, and the
+  highlight moves straight there rather than through each chapter between. The first time the
+  bar scrolls into view its chips glide in one after another; docking under the header settles
+  it with a short motion and the header's shadow. At 1100px and above nothing changes.
+- Reduced motion: no entrance, settle, glide or slide, and the scroll jumps (DESIGN_GUIDE).
 - Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-02.

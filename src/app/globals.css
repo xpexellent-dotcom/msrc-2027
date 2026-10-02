@@ -14,7 +14,7 @@
 @import "../styles/conference-experiences.css";
 @import "../styles/public-interface.css";
 @import "../styles/cinematic-film.css";
-@import "../styles/chapter-dock.css";
+@import "../styles/chapter-bar.css";
 @import "../styles/print.css";
 
 html { scroll-behavior: auto; scroll-padding-block-start: 6rem; }
