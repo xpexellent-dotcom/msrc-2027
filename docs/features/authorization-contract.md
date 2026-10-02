@@ -160,7 +160,9 @@ CLI being installed. The existing GitHub Linux [database job110917372506](https:
 actually passed at `39877f2`:110 pgTAP assertions (90 new +20 foundation),10 Data API tests,
 schema lint, security advisors, generated strict types and local stack shutdown. No hosted
 fallback was used. Only the existing foundation migration was applied; test objects rolled
-back and did not enter the generated public schema. [Full PR workflow37030963194](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37030963194)
+back and did not enter the generated public schema. Advisors inspected the standing
+foundation schema after fixture rollback; they did not inspect the removed test schema.
+[Full PR workflow37030963194](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37030963194)
 and [push workflow37030920867](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37030920867)
 both passed at code commit `39877f2`: lint/types,739 unit cases, production build and
 284 browser cases PASS /3 explicitly skipped. PROGRESS records all commands actually run.

@@ -46,8 +46,9 @@ CI commands actually executed: `pnpm install --frozen-lockfile`, `pnpm lint`,
 `pnpm test:e2e`; loopback Docker network creation, `pnpm db:start`, `pnpm db:reset`,
 `pnpm db:lint`, `pnpm db:test`, `pnpm exec supabase db advisors --local --type security --level warn --fail-on error`,
 `pnpm db:types` plus standalone strict `tsc`, `pnpm db:env`, `pnpm db:integration`,
-`pnpm db:stop`. Security advisors returned no issues on the rolled-back synthetic schema;
-that does not validate hosted policies or actual Storage. `git diff --check` PASS.
+`pnpm db:stop`. Security advisors returned no issues on the standing foundation schema
+after fixture rollback; the advisor pass does not inspect the removed test schema or
+validate hosted policies/actual Storage. `git diff --check` PASS.
 
 The later documentation-only receipt commit does not change the tested code. No new
 dependencies, migration, environment values or hosted configuration; no manual hosted setup.
