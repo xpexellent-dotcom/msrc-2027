@@ -19,6 +19,9 @@
 html { scroll-behavior: auto; scroll-padding-block-start: 6rem; }
 body { margin: 0; min-width: 320px; background: var(--color-ivory); color: var(--color-ink); font-family: var(--font-interface); line-height: 1.65; -webkit-font-smoothing: antialiased; }
 h1, h2, h3, h4 { font-family: var(--font-heading); text-wrap: balance; overflow-wrap: anywhere; }
+/* Avoid a single word alone on a paragraph's last line: 41 of 490 paragraphs and list items
+   ended that way (4 with this rule). Browsers without support keep greedy wrapping. */
+p, li { text-wrap: pretty; }
 button, input, select, textarea { font: inherit; }
 button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: var(--focus-width) solid var(--focus-ring); outline-offset: var(--focus-offset); }

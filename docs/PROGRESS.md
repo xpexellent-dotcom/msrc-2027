@@ -2,7 +2,7 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
-## 2 October 2026 — PRs 13/14 verified live; permission checks fail closed
+## 2 October 2026 — PRs 13/14 verified live; permission checks fail closed; paragraph wrapping
 
 PR 14 (carrying PR 13) was merged by the requester at 17:29 UTC as `2ae066f`; the production deployment completed at 17:30 UTC. Live checks against www.msrc2027.com:
 
@@ -12,6 +12,8 @@ PR 14 (carrying PR 13) was merged by the requester at 17:29 UTC as `2ae066f`; th
 - `/ar/media`: 1ch measures 0.556em (0.5em before), and first-load desktop CLS is 0.018 (0.206 on production before the release).
 
 Permission evaluator (BL-SEC-01, ENG-009): `switch (rule.check)` had no `default`, so a check kind added to the contract without a matching case would have fallen through to "allowed". A `default` branch now fails type-checking (`never`) and denies at runtime. To confirm, a temporary extra check kind in `contract.ts` made `tsc` fail with TS2322 at the new branch; it was then reverted. The 440 contract unit cases pass unchanged; the eight existing kinds behave as before.
+
+Paragraph wrapping: on the live site 41 of 490 multi-word paragraphs and list items (desktop and phone, EN/AR, 12 pages each) ended with one word alone on the last line, among them «بحثية.» in a Submissions paragraph on phones. `p, li { text-wrap: pretty; }` beside the existing heading `balance` rule leaves 4, all English. Browsers without support keep greedy wrapping. An e2e check confirms the computed style where supported.
 
 ## 2 October 2026 — Arabic webfont: a steady `ch`, no layout jump
 

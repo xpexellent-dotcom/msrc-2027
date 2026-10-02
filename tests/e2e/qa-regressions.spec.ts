@@ -121,6 +121,18 @@ test("the Arabic webfont leaves 1ch unchanged, so authored two-line headings sta
   }
 });
 
+// 41 of 490 paragraphs and list items ended with one word alone on the last line.
+test("paragraphs and list items wrap without a lone last word where supported", async ({ page }) => {
+  for (const path of ["/en", "/ar/submissions"]) {
+    await page.goto(path);
+    const styles = await page.locator("main p, main li").evaluateAll((elements) => {
+      if (!CSS.supports("text-wrap-style", "pretty")) return ["unsupported"];
+      return [...new Set(elements.map((element) => getComputedStyle(element).getPropertyValue("text-wrap-style")))];
+    });
+    if (styles[0] !== "unsupported") expect(styles, path).toEqual(["pretty"]);
+  }
+});
+
 // The clock counts whole days to 00:00 Riyadh on Day 1 (2027-01-26T21:00Z); each instant sits
 // half a day before a boundary. Plural categories alone gave «٠ يومًا» and «١٠٠ يومًا».
 for (const [instant, days, unit] of [
