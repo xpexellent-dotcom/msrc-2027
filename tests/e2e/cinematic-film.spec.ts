@@ -203,8 +203,21 @@ for (const locale of ["en", "ar"] as const) {
     const watch = page.getByTestId("watch-opening-film");
     await watch.scrollIntoViewIfNeeded();
     await watch.focus();
-    const origin = { url: page.url(), scroll: await page.evaluate(() => window.scrollY) };
+    // With motion allowed the #legacy scroll can still be gliding here, and actionability can
+    // scroll before the click: on a slow runner the page moved 88–141 px after an early capture.
+    // Capture the actual activation position, as the participation-chapter test does.
+    await watch.evaluate((element) => {
+      element.addEventListener("click", () => {
+        element.setAttribute("data-test-watch-origin", JSON.stringify({ url: location.href, scroll: window.scrollY }));
+      }, { capture: true, once: true });
+    });
     await watch.click();
+    const origin = await watch.evaluate((element) => {
+      const captured = element.getAttribute("data-test-watch-origin");
+      if (!captured) throw new Error("The real Watch click did not capture its activation position.");
+      element.removeAttribute("data-test-watch-origin");
+      return JSON.parse(captured) as { url: string; scroll: number };
+    });
     await expectCinemaView(page);
     await page.keyboard.press("Escape");
     await expect(page).toHaveURL(origin.url);
