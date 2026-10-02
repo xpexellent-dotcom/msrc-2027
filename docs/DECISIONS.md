@@ -827,3 +827,9 @@ v0.5 and earlier source snapshots stay unchanged.
 - Apply only the reviewed application migration, not the earlier local foundation fixture
   or seed. Current database/CI receipts and deployment state are recorded in PROGRESS and
   the [feature note](features/persisted-authorization.md).
+- Deployed after source review and exact-source full CI: hosted version20261002173712,
+  four private forced-RLS tables, authenticated-only minimized own-context RPC, zero rows.
+  Real anonymous API denial passed. Aligned the migration filename to provider history
+  without changing its reviewed SQL. Hosted 0029 definer warning is an intentional bounded
+  exception, independently reviewed against current official guidance; retain and re-review
+  before staff activation. No RLS/table grant is widened to silence it.

@@ -65,6 +65,49 @@ Dubai wording/privacy review remain a separate PR13 follow-up. Fresh main7ce3112
 37038741543 passed and Production6813936431 succeeded. Live health returns200/no-store/
 closed; full Vercel settings/complete live UAT are not claimed. No PR13 changes here.
 
+Deployment receipt: [PR16](https://github.com/xpexellent-dotcom/msrc-2027/pull/16)
+at `9ce0ef1` passed the full [workflow37041065012](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37041065012):
+lint/types,859 units,40-page build,284 browser cases PASS/3 explicit skips,
+176 pgTAP assertions (66 actual-schema +90 prior contract +20 foundation),10 client
+integration tests, public/private schema lint, local security advisors, generated strict
+types and stack shutdown. [Database job110951022267](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37041065012/job/110951022267)
+actual logs show the new migrated-schema suite passed; no local PC Docker is needed.
+The synthetic SQL suite was executed only in isolated GitHub CI and rolled back.
+
+After independent review and the successful exact-source CI, the authorized Supabase
+connector applied ONLY `persisted_authorization` to `msrc / ecemjggwlzqpjcwmchrl`.
+Hosted history records version `20261002173712`; the committed migration filename was
+aligned to that observed version without changing SQL. Original CLI-generated filename
+was `20261002165850_persisted_authorization.sql`; SHA256 remains
+`F1569BD4A58F17488094092D02BD78ABCF03BF0B500576B84D5B84E0A9EB39D5`.
+No historical foundation fixture/seed, account, edition, grant or bucket was deployed.
+
+Hosted verification executed the four read-only statements in
+`supabase/verification/persisted_authorization.sql`: all4 private tables have enabled+
+forced RLS; anon/authenticated/service_role schema/table/internal-function access is false;
+only authenticated can execute the fixed-search-path own-context RPC. Aggregate counts
+are all0: managed accounts, editions, account access, grants, grant audit and public tables.
+Hosted history is1 migration. The real anonymous API probe returned HTTP401 with42501:
+`node --env-file=<original checkout>/.env.local scripts/verify-hosted-authorization.mjs`
+PASS. The original ignored environment was read without copying/printing its key.
+`pnpm db:verify-authorization-hosted` is the reproducible normal-checkout command.
+
+Hosted advisor results are NOT clean: security has1 WARN for the intentional authenticated
+self-only SECURITY DEFINER RPC and4 INFO for private RLS/no policy; performance has3 INFO
+for unused indexes on the empty schema. See the reviewed rationale and
+[remediation reference](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)
+in the [feature note](features/persisted-authorization.md). Local CLI advisors reported
+no findings, but do not supersede the hosted provider's newer advisor. No grants were
+widened or indexes removed to silence findings. Before activation, review the narrow
+exception again alongside actual staff/session/domain policies.
+
+Production staff/participant workflow access remains closed. Named-human MFA/session/
+recovery UAT, full AUTH-05 enforcement, authoritative domain resource readers, Storage
+and retained-data/production approvals remain NOT TESTED/OPEN. Environment classification
+and the three named Super Admins remain unanswered; no value was assumed. Next smallest
+slice: BL-AUTH-05 controlled staff TOTP enrollment/recovery and session lifecycle, including
+named performer/account-status audits, before BL-CMS-01 draft editing.
+
 ## 2 October 2026 — BL-SEC-01 authorization contract
 
 - Requester authorized the next bounded engineering PR: 13-role/scope/current-authority

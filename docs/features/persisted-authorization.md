@@ -86,6 +86,20 @@ unit tests and current documentation/backlog status. Database lint now includes 
 public and private authorization functions. Existing CI discovers the tests;
 no new dependency, credential, environment variable, public route or UI is needed.
 
+Complete changed-file inventory (17 files):
+
+| Purpose | Files |
+|---|---|
+| Closed context and verified server adapter | `src/lib/permissions/persisted-context.ts`; `src/lib/supabase/identity.server.ts` |
+| Database migration, actual-schema tests and read-only hosted inspection | `supabase/migrations/20261002173712_persisted_authorization.sql`; `supabase/tests/database/persisted_authorization.test.sql`; `supabase/verification/persisted_authorization.sql` |
+| Reproducible hosted denial probe and command/type declaration | `package.json`; `scripts/verify-hosted-authorization.mjs`; `scripts/verify-hosted-authorization.d.mts` |
+| Unit behavior | `tests/unit/persisted-identity.test.ts`; `tests/unit/hosted-authorization-verification.test.ts` |
+| Setup, decisions, progress and backlog | `README.md`; `docs/ARCHITECTURE.md`; `docs/DECISIONS.md`; `docs/PROGRESS.md`; `docs/backlog/06-authentication.md`; `docs/backlog/ISSUE_INDEX.csv`; `docs/features/persisted-authorization.md` |
+
+The committed `.github/workflows/ci.yml` is unchanged; it runs the new suites through
+existing commands. The lockfile and environment example are unchanged because this slice
+adds no dependency or environment setting. All workflow gates remain hard closed.
+
 Apply only this reviewed application migration to the selected hosted project. The earlier
 `foundation_samples` migration and seed are development/CI fixtures; never run hosted
 `db:reset`, `db:push` or seed commands blindly. No database password or service key is needed
@@ -105,3 +119,20 @@ rollback is performed by this task.
 
 Executed results and deployment receipts are recorded in PROGRESS. This note defines the
 acceptance contract; it does not assert that an unrun check passed.
+
+## Hosted advisor exception
+
+The hosted security advisor reports
+[0029 authenticated SECURITY DEFINER execution](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)
+for the self-context RPC. This is an intentional narrow exception: an invoker cannot read
+private managed sessions/factors without widening table access. Fixed empty search path,
+qualified objects, authenticated-only execution, current own managed identity/session,
+minimized own projections and literal closed readiness flags bound the exception. No
+private mutation RPC or domain record is exposed. Preserve this finding for security review
+before staff activation; do not claim a clean hosted advisor result or add broad grants.
+The function is directly callable through Supabase RPC; its own database checks provide
+the boundary. The server adapter does not replace that boundary.
+
+Four INFO findings for private RLS with no policy reflect intentional default denial;
+three unused-index INFO findings reflect the empty deployment. They are recorded rather
+than "fixed" by opening policies or deleting permission/FK indexes.
