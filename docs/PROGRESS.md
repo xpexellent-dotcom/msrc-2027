@@ -2,6 +2,20 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
+## 2 October 2026 — Phone chapter bar redesigned after requester review (ORG-009, PR 20)
+
+The requester tried PR 18's floating pill and side panel on an iPhone and rejected it. Reaching a chapter took two taps (open, then choose), the in-page 2×3 index still looked out of place, and the bar's appearance and chapter changes needed to be smooth. Desktop is fine as it is.
+
+- Below 1100px the index is now one swipeable row of chapter chips. It sticks 8–9 px under the floating header (`5.6rem` on phones, `6rem` on tablets), styled as a second deck of the header card (`src/styles/chapter-bar.css`). The pill, panel, their styles and their spec are removed.
+- A purple highlight sits behind the current chapter and glides between chips (transform/width transitions). The row slides the current chip into the middle; in RTL one formula works because `offsetLeft` and `scrollLeft` both run negative past the start edge.
+- One tap jumps to a chapter through the existing `Link`/`activateNavigation` path. The tapped chapter takes the highlight at once and keeps it for up to 1.5 s, so it never steps through the chapters in between.
+- The first time the bar scrolls into view, its chips glide in with a 45 ms stagger. They are hidden only when the bar was below the fold at hydration, so server HTML and an on-screen bar never blank. Docking adds the header's shadow and a short settling motion. Reduced motion removes all of it.
+- On touch, the tapped chip keeps `:hover`, so the current chip pins its colours.
+- Probes on iPhone, Android and iPad Mini profiles, EN/AR: one row; docked under the header; the highlight aligned with the current chip, which stays in view for all six chapters in both engines; and a tap trail of `#participate → #legacy` with nothing between. The chapter eyebrow lands 39 px below the bar on phones and 107–123 px on tablets.
+- Numbering: the bar called "Plan your visit" 06, while its section eyebrow reads "07 / Plan your visit", because section 06 ("Shared purpose", partners) had no chip. At the requester's choice (3 October) the bar gains 06 Partners / «الشركاء», so every chip matches its eyebrow, now asserted for EN and AR. The desktop grid takes seven columns and stays one row at 1100, 1280 and 1440 px. `#partners` gains `tabIndex={-1}` like the other chapter sections.
+
+Verification: ESLint and `tsc` PASS. `tests/e2e/chapter-bar.spec.ts` (new) passed with `brand-motion` and `cinematic-film`, which click the index right after load: Chromium 61 passed, 1 skipped; the new spec in WebKit desktop and iPhone passed 4/4. Full run: Vitest 888/888, Playwright Chromium 294 passed, 3 skipped (duplicate tablet cases), WebKit `qa-regressions` + `chapter-bar` 30/30.
+
 ## 2 October 2026 — Chapter navigation follows the reader on phones (ORG-009)
 
 The requester sent an iPhone screenshot: below 1100px the homepage chapter index (a 2×3 grid on phones) sits in the page and scrolls away, so it was out of reach while reading; desktop keeps it sticky. A floating pill now appears once the index has left the screen. It shows the current chapter and opens the six chapters in a side panel, a modal `<dialog>` from the inline end, mirrored in Arabic. `SectionJourney` owns both, reusing its current-chapter tracking and the `Link`/`activateNavigation` path. The new styles live in `src/styles/chapter-dock.css`.

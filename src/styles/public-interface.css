@@ -25,7 +25,7 @@ html:has(.homepage-journey) { scroll-padding-block-start: 0; }
 .section-journey-inner { max-inline-size: 1280px; margin-inline: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2rem; }
 .section-journey-title { display: flex; align-items: center; gap: .6rem; font-family: var(--font-heading); font-weight: 600; font-size: .72rem; color: var(--color-purple); }
 .section-journey-title > span { inline-size: 16px; block-size: 2px; background: var(--color-gold); }
-.section-journey-links { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .65rem; }
+.section-journey-links { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .65rem; }
 .section-journey-links > .site-link { position: relative; min-inline-size: 0; min-block-size: 48px; gap: .55rem; color: var(--color-muted); font-size: .74rem; font-weight: 500; text-decoration: none !important; }
 .section-journey-links > .site-link > span:last-child { min-inline-size: 0; max-inline-size: 12ch; line-height: 1.45; overflow-wrap: anywhere; }
 .chapter-number { display: grid; place-items: center; flex: 0 0 1.75rem; block-size: 1.75rem; border: 1px solid var(--color-line); border-radius: 50%; font-size: .65rem; color: var(--color-purple); transition: color var(--motion-feedback), background-color var(--motion-feedback), border-color var(--motion-feedback); }

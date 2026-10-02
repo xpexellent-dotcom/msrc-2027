@@ -102,7 +102,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
         <div className="legacy-art" aria-hidden="true"><FlowLines /><div className="legacy-art-years" dir="ltr"><span>2026</span><span>2027</span></div><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
       </Reveal></Container>
     </section>
-    <section id="partners" className="editorial-section partners-section" aria-labelledby="partners-title">
+    <section id="partners" tabIndex={-1} className="editorial-section partners-section" aria-labelledby="partners-title">
       <Container><Reveal className="partners-grid" stagger><SectionHeading eyebrow={narrative.partnersEyebrow} title={narrative.partnersTitle} id="partners-title" /><p className="announcement-state"><span aria-hidden="true" />{narrative.partnersPending}</p></Reveal></Container>
     </section>
     <section id="faq" tabIndex={-1} className="editorial-section faq-section" aria-labelledby="practical-title">
