@@ -162,6 +162,51 @@ The requester tried PR 18's floating pill and side panel on an iPhone and reject
 
 Verification: ESLint and `tsc` PASS. `tests/e2e/chapter-bar.spec.ts` (new) passed with `brand-motion` and `cinematic-film`, which click the index right after load: Chromium 61 passed, 1 skipped; the new spec in WebKit desktop and iPhone passed 4/4. Full run: Vitest 888/888, Playwright Chromium 294 passed, 3 skipped (duplicate tablet cases), WebKit `qa-regressions` + `chapter-bar` 30/30.
 
+## 2 October 2026 — Bounded BL-AUTH-05/06 closed staff security foundations
+
+Requirements: AUTH-04/05, ROL-12, SEC-01/02/06, LOC-01, ACC-01, ERR-01.
+New isolated managed worktree `staff-mfa-sessions` on `codex/staff-mfa-sessions`
+starts at remote main `eb4c5a005e84a5626e0d6e5bbf01115087810aaf`. Original main
+checkout's uncommitted docs/reviews and previous authorization worktree are preserved.
+Fresh main [CI37053006357](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37053006357)
+reports success; GitHub Vercel status reports successful deployment. These receipts
+supersede the supplied main14a58fb handoff for the starting Git state.
+
+ORG-010 designates `ecemjggwlzqpjcwmchrl` Production; ORG-011 records first intended
+Super Admin and two TBD, withholding login addresses; ORG-012 replaces participant
+24h with confirmed72h absolute maximum while preserving the original v0.5 snapshot.
+Privileged30min idle/8h absolute, recent-auth age/warning null and recovery/privacy/
+security-email gates are recorded in current requirements and typed configuration.
+Fresh read-only hosted history still has only20261002173712; aggregate accounts,
+editions, access accounts, grants and grant audit rows are all0. No hosted mutation.
+
+Implemented local-only bilingual/RTL synthetic TOTP QR/manual enrollment/challenge,
+failure/retry, assurance and session revocation scenarios. Server-generated keys and
+opaque HttpOnly synthetic cookie, strict Origin/512-byte exact JSON actions, no-store,
+deployment404 and disabled managed MFA contract. Approved session policy/evaluator and
+review-only migration20261002193800 add private session evidence, immutable origin,
+revocation cutoffs and safe append-only audit. Public heartbeat does not touch idle;
+private activity awaits successful authorized domain transactions. Consequential
+maintenance/reset stays closed with unresolved recent-auth/recovery and false readiness.
+No staff account/grant/real factor/email or operational module is activated.
+
+Dependencies added and pinned: qrcode1.5.4 and @types/qrcode1.5.6; lockfile committed.
+Node24.21.0/pnpm11.19.0 verified. `pnpm install --frozen-lockfile` PASS. Initial
+typecheck/build exposed test-helper/RPC typing errors, corrected. First `pnpm check`
+PASS: lint, types,1016 unit cases,42-page production build. Initial browser execution
+was BLOCKED by missing pinned Chromium v1243; `pnpm exec playwright install chromium`
+PASS, suites rerun. Final source checks, browser/isolated SQL/CI/Preview receipts are
+pending at this checkpoint; no unrun check is claimed passed. Local Docker/SQL remains
+intentionally NOT TESTED; synthetic SQL runs only in GitHub CI.
+
+The linked checklist has confirmed organizer decisions updated at sequence20; feature
+completion remains partial. [Feature note](features/staff-security-foundations.md)
+records files/migration, local run instructions, UAT/configuration and rollback.
+All15 workflow flags and operational/privileged readiness remain false. Human real-app
+MFA, screen-reader/device review, live provider exchange, saved-draft recovery and
+production data/region/recovery approvals remain open. Next smallest task is approval
+of recovery/recent-auth settings and isolated managed Auth UAT, before domain/CMS access.
+
 ## 2 October 2026 — Chapter navigation follows the reader on phones (ORG-009)
 
 The requester sent an iPhone screenshot: below 1100px the homepage chapter index (a 2×3 grid on phones) sits in the page and scrolls away, so it was out of reach while reading; desktop keeps it sticky. A floating pill now appears once the index has left the screen. It shows the current chapter and opens the six chapters in a side panel, a modal `<dialog>` from the inline end, mirrored in Arabic. `SectionJourney` owns both, reusing its current-chapter tracking and the `Link`/`activateNavigation` path. The new styles live in `src/styles/chapter-dock.css`.

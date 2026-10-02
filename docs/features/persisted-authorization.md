@@ -17,10 +17,12 @@ MFA enrollment/recovery, staff session activation, role editing, scientific assi
 participant profiles, domain records, uploads/buckets, CMS editing/publication, all
 operational workflows, emails, paid provisioning and production-data collection.
 
-The requester authorizes deploying the reviewed schema and permissions to the existing
-selected Supabase project. Environment classification and the three named Super Admins
-have been requested. No organizational appointment, privacy approval, production region
-or retention duration is inferred. Those decisions remain CFG-09/10/11 release gates.
+Earlier authorization deployed only the reviewed persisted-authorization schema. ORG-010
+now designates this project as Production; new migrations are review-only in this task,
+and synthetic data stays isolated. ORG-011 designates the first intended administrator;
+two remain TBD and no accounts/grants are activated. No privacy approval, production region
+or retention duration is inferred. CFG-09/10/11 gates and the new
+[staff security foundations](staff-security-foundations.md) apply.
 
 ## Actor, scope and states
 

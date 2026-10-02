@@ -126,7 +126,7 @@ These are source defaults and service objectives, not measured production perfor
 | --- | --- |
 | AUTH-02 | OTP ten minutes; resend cooldown 60 seconds; <=3 issued/email/15 minutes; <=5 failed attempts/code. |
 | AUTH-03 | Additional challenge/cooldown after five failed password attempts/15 minutes, no permanent lock. |
-| AUTH-05 | Participant absolute 24h; privileged idle 30min/absolute 8h; recent auth for sensitive actions. |
+| AUTH-05 | ORG-012 supersedes participant 24h default: confirmed absolute maximum 72h from original session creation, never restarted by refresh. Privileged idle 30min/absolute 8h remain. Recent-auth age and warning lead TBD; dependent actions closed. |
 | AUTH-08 | Remove abandoned unverified accounts after seven days only if no required record prevents cleanup. |
 | ABS-04 | Whitespace tokens with letter/digit; no-space hyphenated term one word; shared client/server implementation. |
 | ABS-07 | Withdrawn finalized research entries continue counting within two-per-PI cap unless logged exception. |
@@ -1017,3 +1017,52 @@ v0.5 and earlier source snapshots stay unchanged.
   approve content, brand or operations; those remain under REL-01/CFG-12. Google Search
   Console registration is the requester's step.
 - Affected IDs: SCP-01, DSN-01, LOC-01/03, INF-04/06, REL-01.
+## ORG-010 — Production Supabase designation, 2 October 2026
+
+Authority: explicit organizer instruction in this conversation on 2 October 2026.
+Project `ecemjggwlzqpjcwmchrl` is Production. This resolves the environment classification
+question in ENG-006/010; development fixtures are prohibited there. Synthetic database tests
+use isolated GitHub CI, and the local MFA lab uses ephemeral memory with no hosted request.
+Production plan, region/data location, privacy/retention and operational approvals remain
+unresolved. New migrations are review-only; no hosted reset, seed, historical migration push
+or repeat of deployed `20261002173712_persisted_authorization.sql`. INF-04, CFG-09/10/11.
+
+## ORG-011 — Intended website Super Admins, 2 October 2026
+
+Authority: explicit organizer instruction in this conversation on 2 October 2026.
+Akram Awan is the first intended website Super Admin; second and third remain TBD.
+Login addresses are retained only in ignored local private designation material, excluded
+from repository, PR and checklist. This is designation, not activation: no invitation,
+account creation, live grant or reset is authorized. Exactly three individually identified
+administrators, verified appointment/MFA and offboarding evidence remain required
+(ROL-10/12, CFG-11). Recovery approver, operator and verified procedure remain TBD;
+privacy/retention/location and live security-email provider/sender remain TBD. Console/test
+email only; this slice sends no real security notification.
+
+## ORG-012 — Participant absolute session maximum, 2 October 2026
+
+Authority: explicit organizer instruction in this conversation on 2 October 2026.
+AUTH-05 participant absolute maximum becomes 72 hours from original session creation,
+superseding v0.5's 24-hour default in current requirements/configuration/tests. Preserve
+the source snapshot. Public browsing requires no login. Privileged idle remains 30 minutes
+and absolute remains 8 hours. Refresh, MFA challenge and activity cannot restart absolute
+lifetime. Fresh sign-in creates a new origin only after old-session denial and current
+authority checks. Recent-auth maximum age and warning lead remain unset; dependent
+sensitive actions stay closed.
+
+## ENG-011 — Closed local staff security foundations, 2 October 2026
+
+Authority: bounded BL-AUTH-05/06 task; AUTH-04/05, ROL-12, SEC-01/06, LOC-01, ERR-01.
+The local synthetic TOTP lab uses temporary individually scoped identities, server-held
+keys and challenge/replay controls. QR/manual setup show a fresh synthetic key during
+enrollment only; credentials/codes never enter audits or browser storage.
+Routes require `MSRC_AUTH_PREVIEW=synthetic`, loopback Host and no deployment environment;
+Next binds to 127.0.0.1. All Vercel environments reject the lab. It is dynamic, private,
+no-store and excluded from indexing/production analytics. The managed-provider adapter
+is a disabled integration contract; preview never calls Production Auth. Reset requests
+fail closed pending approved recovery. Synthetic revocation scenarios reset no live factor.
+New database policy/session evidence and own-context RPC are review-only; readiness
+remains false. Privileged activity must be server-observed, with expiry checked before
+idle evidence changes; refresh/context reads are never activity. No domain AuthorityReader,
+feature RLS, signup, CMS, operational workflow, email provider or production authorization
+is added. Verification/rollback/release gates are recorded in the feature note and PROGRESS.

@@ -98,7 +98,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-05 — Add privileged TOTP enrollment and audited factor recovery
 - **Source IDs:** AUTH-04, ROL-12, SEC-01, SEC-06.
-- **Status:** Planned; required before CMS editing.
+- **Status:** Partial — closed local synthetic TOTP enrollment/challenge and safe audit/provider contracts; receipts in PROGRESS. Live enrollment, approved factor recovery and human UAT remain closed. See [feature note](../features/staff-security-foundations.md).
 - **Purpose:** Require an independent second factor for every privileged operation.
 - **Scope:** Authenticator-app TOTP enrollment/challenge, factor-loss recovery and explicit audited administrative reset; assurance enforced through API/database authorization.
 - **Exclusions:** Email OTP as MFA, automatic reset on password recovery, shared factors or unverified support override.
@@ -121,9 +121,9 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-06 — Enforce session lifetimes and revocation with draft recovery
 - **Source IDs:** AUTH-05, ROL-12, SEC-06, ERR-01.
-- **Status:** Planned.
+- **Status:** Partial — configurable server/database policy foundations and synthetic expiry/revocation coverage; migration review-only, no live activation or saved-draft module. See [feature note](../features/staff-security-foundations.md) and PROGRESS.
 - **Purpose:** Expire or revoke access predictably without losing already saved work.
-- **Scope:** Server-enforced configurable defaults: participant absolute 24h, privileged idle 30min and absolute 8h; recent-auth checks, warning, logout/suspension/recovery/factor-reset invalidation.
+- **Scope:** ORG-012 participant absolute maximum 72h; privileged idle 30min and absolute 8h. Refresh never restarts absolute origin. Recent-auth age/warning lead TBD; dependent sensitive actions closed. Logout/suspension/recovery/factor-reset invalidation foundations; draft recovery belongs to its later workflow.
 - **Exclusions:** Client timer as authority, unsaved input promised durable, arbitrary permanent session extension.
 - **Dependencies:** Managed identity; BL-AUTH-01; BL-FND-06; BL-AUTH-05 for assurance invalidation tests.
 - **Roles:** Participant; privileged staff; suspension administrator.
@@ -138,7 +138,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Manual UAT:** Expire an editing staff session and resume safely after reauthentication.
 - **Release gate:** Before production participant or privileged access.
 - **Owner type:** Authentication/backend engineer.
-- **TBD blocked:** No business TBD for adopted configurable defaults; provider implementation must prove enforcement.
+- **TBD blocked:** Recent-auth age, warning lead, recovery approver/operator/verified procedure, privacy/retention/location and live security-email configuration remain TBD. Independent synthetic policy tests proceed; live activation requires provider/database enforcement and human UAT.
 
 <a id="bl-auth-07"></a>
 
