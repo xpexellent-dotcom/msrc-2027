@@ -81,6 +81,17 @@ test("print shows the content in black without screen furniture", async ({ page 
   }
 });
 
+// ORG-008: the versioned film and posters were served with max-age=0, so every repeat visit
+// revalidated them before the hero could play. Pages themselves keep their default caching.
+test("versioned hero media may be cached by the browser for 30 days", async ({ request }) => {
+  for (const file of ["hero-desktop-v1.mp4", "hero-mobile-v1.mp4", "poster-desktop-v1.jpg", "poster-mobile-v1.jpg"]) {
+    const response = await request.head(`/media/msrc2026/${file}`);
+    expect(response.status(), file).toBe(200);
+    expect(response.headers()["cache-control"], file).toBe("public, max-age=2592000, stale-while-revalidate=86400");
+  }
+  expect((await request.head("/en")).headers()["cache-control"]).not.toContain("2592000");
+});
+
 // The clock counts whole days to 00:00 Riyadh on Day 1 (2027-01-26T21:00Z); each instant sits
 // half a day before a boundary. Plural categories alone gave «٠ يومًا» and «١٠٠ يومًا».
 for (const [instant, days, unit] of [

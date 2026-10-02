@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { SiteShell } from "@/components/site-shell";
+import { VercelObservability } from "@/components/vercel-observability";
 import { defaultLocale, dictionaries, direction, isLocale, locales } from "@/lib/i18n";
 import "../globals.css";
 import { arabicFont, bodyFont, displayFont, headingFont } from "@/lib/fonts";
@@ -40,7 +41,11 @@ export default async function LocaleLayout({
   const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
   return (
     <html lang={locale} dir={direction(locale)} className={`${headingFont.variable} ${bodyFont.variable} ${arabicFont.variable} ${displayFont.variable}`}>
-      <body><SiteShell locale={locale}>{children}</SiteShell></body>
+      <body>
+        <SiteShell locale={locale}>{children}</SiteShell>
+        {/* ORG-008: Vercel serves the /_vercel scripts; elsewhere (local, CI) they would 404. */}
+        {process.env.VERCEL ? <VercelObservability /> : null}
+      </body>
     </html>
   );
 }

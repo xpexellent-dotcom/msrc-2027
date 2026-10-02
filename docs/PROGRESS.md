@@ -1,6 +1,30 @@
 # Progress and session handover
 
-**Snapshot: 1 October 2026. Update this file after each development task.**
+**Snapshot: 2 October 2026. Update this file after each development task.**
+
+## 2 October 2026 — Visitor analytics, Speed Insights and hosting efficiency (ORG-008)
+
+PR 12 (the 1 October QA pass and ORG-007) was merged by the requester at 14:11 UTC as `017220e`. Live check: the hero caption is gone in both locales; the Step inside cue is 0 px off centre on desktop and phone; with motion allowed it glides (scroll samples 0→103→641→815→880→900 px) and focuses the dates band, with reduced motion it jumps; on phones the band stops 72 px below the top, clear of the header.
+
+| Change | Why | Evidence |
+|---|---|---|
+| Vercel Web Analytics and Speed Insights, on Vercel deployments only | Requested; both were already enabled in the dashboard and waiting for the packages | A `VERCEL=1` build injects `/_vercel/insights/script.js` and `/_vercel/speed-insights/script.js` once per page, reports route patterns (`/[locale]/media`) and registers the `beforeSend` hooks before any event. A normal build contains neither, so CI and local runs make no `/_vercel` requests |
+| Addresses sent without query string or fragment; automated browsers send nothing | PRV-03; tests against deployments must not count as visits or make write requests | Six unit cases. With `navigator.webdriver` the probe recorded no non-GET request |
+| Functions in `dxb1` (Dubai) instead of `iad1` (Washington, D.C.) | Uncached pages took 0.42–0.48 s to first byte from the Mumbai edge versus about 0.21 s for cached pages | Live before: `/en/media`, `/ar/media`, `/en/program`, `/api/health` answered via `bom1::iad1`. NOT TESTED after the change until a deployment exists |
+| Film and posters cached by browsers for 30 days | They were served `max-age=0, must-revalidate`, so every visit revalidated 2.8 MB before the hero could play | An e2e test checks all four files; pages keep their own caching |
+
+Verification (Node 24.21.0): ESLint zero-warning, `next typegen` and `tsc` PASS; Vitest 305/305; `next build` PASS with and without `VERCEL=1` (40 pages, the same static and dynamic routes); Playwright Chromium desktop/tablet/mobile 286 passed, 3 skipped (duplicate tablet cases).
+
+Vercel settings reviewed in the dashboard and left as they were: Fluid compute on; Node.js 24.x (matches `engines`); Prioritize Production Builds on; Vercel Authentication protects previews; source maps protected; Web Analytics and Speed Insights enabled; firewall bot protection off and AI crawlers allowed (a challenge would also stop link previews and automated QA). The Hobby plan allows one function region.
+
+Worth considering with the requester (not changed):
+- **Deployment Checks:** hold each production deployment until GitHub's "Foundation checks" pass, so a broken merge never reaches the public site. Production then updates about 8 minutes after a merge.
+- **At the Pro upgrade:** Skew Protection (visitors with an open tab keep working across deploys), concurrent builds (two agents push branches), Spend Management alerts, longer log and analytics retention, custom analytics events (for example film plays), password-protected previews if outside reviewers need access.
+- **Uptime alerts (INF-08):** an external monitor on `/api/health` with email alerts to named owners, such as Checkly from the Vercel Marketplace. This needs the organizers' own account.
+- **Launch-time firewall:** consider Bot Protection in log mode first, and decide whether AI crawlers may read the public site.
+- **Hobby allowances:** usage for 2 September–2 October was 1.02 GB fast data transfer, 20K CDN requests, 1.7K function invocations and 2 h 8 min build CPU, far inside the plan. Analytics and Speed Insights events count against monthly allowances too; check the Usage page as registration and the event approach.
+
+Known issue measured in this pass, not yet changed: on a first visit, the Arabic webfont (166 KB, `preload: false`) swaps in after first paint and re-wraps Arabic headings. Desktop CLS on first load is 0.21 on `/ar/media` and 0.065 on `/ar/dates-venue`; English pages measure 0.002. Planned fix: preload the font on Arabic pages only.
 
 ## 1 October 2026 — QA pass: Arabic typography and wording, counted numbers, a test race
 

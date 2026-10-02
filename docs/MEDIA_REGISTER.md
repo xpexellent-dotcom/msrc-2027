@@ -233,3 +233,7 @@ is approved. The latest scoped publication authorization and verification status
 ORG-007 (2 October 2026) removes the hero's MSRC2026 / نسخة ٢٠٢٦ label at the requester's
 instruction. The film view keeps its translated MSRC 2026 identification and the previous-edition
 section names MSRC 2026. Files, crops, encoding and rights scope are unchanged.
+
+ORG-008 (2 October 2026) lets browsers cache everything under `public/media/` for 30 days.
+Never overwrite a published file: ship a corrected cut or poster under a new versioned name
+(`-v2`) and update the reference, or returning visitors may see the old file for a month.
