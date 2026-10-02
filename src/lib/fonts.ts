@@ -15,7 +15,5 @@ export const bodyFont = localFont({
   src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
   variable: "--font-inter", weight: "100 900", display: "swap",
 });
-export const arabicFont = localFont({
-  src: "../../node_modules/@fontsource-variable/noto-sans-arabic/files/noto-sans-arabic-arabic-wght-normal.woff2",
-  variable: "--font-noto-arabic", weight: "100 900", display: "swap", preload: false,
-});
+
+// The Arabic face is self-hosted separately: see arabic-font.ts and styles/fonts.css.

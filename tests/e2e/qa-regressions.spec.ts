@@ -92,6 +92,31 @@ test("versioned hero media may be cached by the browser for 30 days", async ({ r
   expect((await request.head("/en")).headers()["cache-control"]).not.toContain("2592000");
 });
 
+// The Arabic face loaded only after first paint (it was never preloaded), so Arabic headings
+// re-wrapped when it swapped in: desktop CLS 0.2 on /ar/media under a slow connection.
+test("Arabic pages preload the Arabic webfont and render with it; English pages never fetch it", async ({ page, request }) => {
+  const fonts: string[] = [];
+  page.on("request", (fontRequest) => { if (fontRequest.resourceType() === "font") fonts.push(fontRequest.url()); });
+  for (const path of ["/ar", "/ar/media"]) {
+    await page.goto(path);
+    const preload = page.locator('head link[rel="preload"][as="font"][href*="noto-sans-arabic"]');
+    await expect(preload, path).toHaveCount(1);
+    // Fonts are fetched in CORS mode; React writes crossorigin="" (anonymous) to match.
+    await expect(preload).toHaveAttribute("crossorigin", /^(anonymous)?$/);
+    expect(await page.evaluate(async () => {
+      await document.fonts.ready;
+      return document.fonts.check('600 32px "MSRC Noto Sans Arabic"', "المؤتمر") && getComputedStyle(document.querySelector("h1")!).fontFamily.includes("MSRC Noto Sans Arabic");
+    }), path).toBe(true);
+  }
+  const fontFile = await page.locator('head link[rel="preload"][as="font"][href*="noto-sans-arabic"]').getAttribute("href");
+  expect((await request.head(fontFile!)).headers()["cache-control"]).toBe("public, max-age=31536000, immutable");
+
+  fonts.length = 0;
+  await page.goto("/en", { waitUntil: "networkidle" });
+  await expect(page.locator('link[rel="preload"][href*="arabic"]')).toHaveCount(0);
+  expect(fonts.filter((url) => /arabic/i.test(url))).toEqual([]);
+});
+
 // The clock counts whole days to 00:00 Riyadh on Day 1 (2027-01-26T21:00Z); each instant sits
 // half a day before a boundary. Plural categories alone gave «٠ يومًا» and «١٠٠ يومًا».
 for (const [instant, days, unit] of [

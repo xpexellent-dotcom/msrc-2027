@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import { preload } from "react-dom";
 import { SiteShell } from "@/components/site-shell";
 import { VercelObservability } from "@/components/vercel-observability";
 import { defaultLocale, dictionaries, direction, isLocale, locales } from "@/lib/i18n";
 import "../globals.css";
-import { arabicFont, bodyFont, displayFont, headingFont } from "@/lib/fonts";
+import { arabicFontFile } from "@/lib/arabic-font";
+import { bodyFont, displayFont, headingFont } from "@/lib/fonts";
 import { siteOrigin } from "@/lib/metadata";
 
 export const viewport: Viewport = { themeColor: "#F8F6F0" };
@@ -39,8 +41,10 @@ export default async function LocaleLayout({
   // Unsupported locales retain a valid English document around the 404 boundary.
   // Route pages validate the locale before rendering any conference content.
   const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
+  // Fetch the Arabic face with the document, before first paint, on Arabic pages only.
+  if (locale === "ar") preload(arabicFontFile, { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
   return (
-    <html lang={locale} dir={direction(locale)} className={`${headingFont.variable} ${bodyFont.variable} ${arabicFont.variable} ${displayFont.variable}`}>
+    <html lang={locale} dir={direction(locale)} className={`${headingFont.variable} ${bodyFont.variable} ${displayFont.variable}`}>
       <body>
         <SiteShell locale={locale}>{children}</SiteShell>
         {/* ORG-008: only Vercel serves these scripts; elsewhere (local, CI) they would 404. */}

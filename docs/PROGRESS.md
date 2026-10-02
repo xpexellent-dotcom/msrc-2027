@@ -2,6 +2,22 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
+## 2 October 2026 — Arabic webfont: preloaded, and a steady `ch`
+
+First visits to Arabic pages jumped when Noto Sans Arabic arrived: desktop CLS 0.208 on `/ar/media`, 0.065 on `/ar/dates-venue` and 0.011 on `/ar`, against 0.002 on English pages. The cause was the `ch` unit, not the letter shapes. The Arabic subset has no "0" glyph, so once it loaded as the first available font, browsers measured 1ch as 0.5em instead of Arial's 0.556em. Every `ch`-based measure (37 `max-inline-size`/`max-width` rules) narrowed by a tenth after first paint. Headings authored as two lines with `\n` («ملتقى\nالعقول الفضولية.», «كن جزءًا\nمن الفصل القادم.», «لحظات نعود إليها.\nوأفكار تبقى معنا.») then broke again into three or four lines.
+
+| Change | Evidence |
+|---|---|
+| The same pinned OFL file is served from `public/fonts/noto-sans-arabic-arabic-wght-5.3.0.woff2` (licence beside it) and declared in `src/styles/fonts.css`, so the Arabic layout preloads it; English pages neither preload nor request it | `/ar` HTML carries the preload; `/en` has none; an e2e test checks both, and that Arabic headings render with the face |
+| Its `unicode-range` leaves out the space, so Arial stays the first available font and 1ch never changes | A unit test fails if the range covers U+0020 (checked by adding it). The file draws no other Latin character; Arabic spaces become 0.278em instead of 0.26em |
+| The font file is cached for a year (`immutable`); its name carries the package version, and a unit test checks the copy is byte-identical to the installed package | Header checked by the e2e test |
+
+Layout shift on first load (local production build): unthrottled desktop `/ar/media` 0.208 → 0.002, `/ar/dates-venue` 0.065 → 0.002, `/ar` 0.011 → 0.002. Slow 4G with 4× CPU: desktop `/ar/media` 0.199 → 0.019, `/ar/dates-venue` 0.068 → 0.006, phone `/ar` 0.020 → 0.003. English unchanged (0.0005).
+
+Visible effect: Arabic measures now always use the width visitors saw before the font loaded. On desktop, 8 of 12 Arabic pages re-wrap, mostly to fewer lines; the three headings above show their authored two lines, as in English. On phones, 2 of 12 change: the home lead fits one line, and one Submissions paragraph wraps to three lines because of the wider spaces. No clipped text at 320 px or 1280 px, and no horizontal scroll at 320 or 375 px on any Arabic page.
+
+Verification: ESLint, `tsc` PASS; Vitest 309/309; build PASS; Playwright Chromium full suite exit 0; WebKit desktop and iPhone `qa-regressions` 24/24.
+
 ## 2 October 2026 — Visitor analytics, Speed Insights and hosting efficiency (ORG-008)
 
 PR 12 (the 1 October QA pass and ORG-007) was merged by the requester at 14:11 UTC as `017220e`. Live check: the hero caption is gone in both locales; the Step inside cue is 0 px off centre on desktop and phone; with motion allowed it glides (scroll samples 0→103→641→815→880→900 px) and focuses the dates band, with reduced motion it jumps; on phones the band stops 72 px below the top, clear of the header.
@@ -26,7 +42,7 @@ Worth considering with the requester (not changed):
 - **Launch-time firewall:** consider Bot Protection in log mode first, and decide whether AI crawlers may read the public site.
 - **Hobby allowances:** usage for 2 September–2 October was 1.02 GB fast data transfer, 20K CDN requests, 1.7K function invocations and 2 h 8 min build CPU, far inside the plan. Analytics and Speed Insights events count against monthly allowances too; check the Usage page as registration and the event approach.
 
-Known issue measured in this pass, not yet changed: on a first visit, the Arabic webfont (166 KB, `preload: false`) swaps in after first paint and re-wraps Arabic headings. Desktop CLS on first load is 0.21 on `/ar/media` and 0.065 on `/ar/dates-venue`; English pages measure 0.002. Planned fix: preload the font on Arabic pages only.
+Known issue measured in this pass: on a first visit, the Arabic webfont (166 KB, `preload: false`) swapped in after first paint and re-wrapped Arabic headings (desktop CLS 0.21 on `/ar/media`). Fixed in the section above.
 
 ## 1 October 2026 — QA pass: Arabic typography and wording, counted numbers, a test race
 
