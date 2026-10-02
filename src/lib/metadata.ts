@@ -6,6 +6,11 @@ export const siteOrigin = "https://www.msrc2027.com";
 
 const openGraphLocale: Record<Locale, string> = { en: "en_US", ar: "ar_SA" };
 
+/** "Programme | MSRC 2027": a bare page label is ambiguous in tabs, bookmarks and link cards. */
+export function siteTitle(page: string): string {
+  return `${page} | MSRC 2027`;
+}
+
 /**
  * Canonical, hreflang and link-preview metadata for one localized page.
  * `path` is the locale-free route ("" for home, "/about"). Indexing stays disabled elsewhere.

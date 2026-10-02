@@ -18,6 +18,33 @@ export function formatIndex(value: number, locale: Locale): string {
   return locale === "ar" ? padded.replace(/\d/g, (digit) => arabicIndicDigits[Number(digit)]) : padded;
 }
 
+/**
+ * A duration: "45 min" in English; in Arabic the counted noun CLDR uses («٤٥ دقيقة»,
+ * «٣ دقائق», «دقيقتان») rather than a fixed «دقيقة» after every number.
+ */
+export function formatMinutes(minutes: number, locale: Locale): string {
+  if (locale === "en") return `${new Intl.NumberFormat("en-GB").format(minutes)} min`;
+  return new Intl.NumberFormat("ar-SA", {
+    style: "unit", unit: "minute", unitDisplay: "long", numberingSystem: "arab",
+  }).format(minutes);
+}
+
+// Counted forms of «نتيجة» by CLDR plural category; "#" is the formatted number.
+const resultCountForms: Record<Locale, Partial<Record<Intl.LDMLPluralRule, string>> & { other: string }> = {
+  en: { one: "# result", other: "# results" },
+  ar: { one: "نتيجة واحدة", two: "نتيجتان", few: "# نتائج", other: "# نتيجة" },
+};
+
+/** "1 result", «نتيجتان», «٣ نتائج», «١١ نتيجة»: never a fixed plural after every number. */
+export function formatResultCount(count: number, locale: Locale): string {
+  const category = new Intl.PluralRules(locale).select(count);
+  const forms = resultCountForms[locale];
+  const number = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", {
+    numberingSystem: locale === "ar" ? "arab" : "latn",
+  }).format(count);
+  return (forms[category] ?? forms.other).replace("#", number);
+}
+
 export function localizePathname(pathname: string, locale: Locale): string {
   const segments = pathname.split("/");
   if (isLocale(segments[1] ?? "")) {

@@ -2,7 +2,7 @@
 
 **Development handoff v1.0 | Prepared 29 September 2026 | Event timezone: Asia/Riyadh**
 
-This folder contains the M1 foundation, M2 shared design system and M3 homepage/About alongside the original handoff. English/Arabic pages run without credentials or a database. Confirmed dates are 27–28 January 2027 (ORG-001); venue and operational workflows remain unset or closed. The user approved the reviewed MSRC2026 homepage montage (ORG-002) and authorized pushing/publishing; current deployment evidence is in [PROGRESS](docs/PROGRESS.md). Final institutional brand and full bilingual draft-copy approval remain separate.
+This folder contains the M1 foundation, the M2 shared design system and the bilingual public site (home, About, Dates & venue, Programme, Participate with its pathway pages, Speakers and Media) alongside the original handoff. English/Arabic pages run without credentials or a database. Confirmed dates are 27–28 January 2027 (ORG-001); venue and operational workflows remain unset or closed. The user approved the reviewed MSRC2026 homepage montage (ORG-002) and authorized pushing/publishing; current deployment evidence is in [PROGRESS](docs/PROGRESS.md). Final institutional brand and full bilingual draft-copy approval remain separate.
 
 ## Run locally
 
@@ -121,7 +121,7 @@ A normal `playwright install chromium` uses the default browser cache instead.
 [CI](.github/workflows/ci.yml) defines frozen installs, application checks and local
 database tests. It does not deploy. The [M2 implementation PR run](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/36632458600)
 passed, including security advisors and generated-type validation, in the user-authorized
-private [development repository](https://github.com/xpexellent-dotcom/msrc-2027).
+[development repository](https://github.com/xpexellent-dotcom/msrc-2027).
 Actual results and limitations live in [PROGRESS.md](docs/PROGRESS.md) and the
 [database/CI verification record](docs/reviews/m1-database-ci.md).
 
@@ -237,7 +237,7 @@ Next, review and approve the existing homepage/About copy and Arabic translation
 The exact content/asset request list is in
 [design-system feature notes](docs/features/design-system.md) and the
 [media register](docs/MEDIA_REGISTER.md). Keep all workflow flags closed.
-The user-authorized private repository is `xpexellent-dotcom/msrc-2027`. Institutional
+The user-authorized repository is `xpexellent-dotcom/msrc-2027` (public since 1 October 2026, by the owner's choice). Institutional
 custody, production ownership, plans, regions and external
 approvals remain separate setup work. This local folder was initially opened from a
 temporary preview directory; preserve the resulting project in a durable project location.

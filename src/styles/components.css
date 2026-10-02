@@ -126,6 +126,8 @@
 .site-footer .footer-directory .site-link { color: var(--color-ivory); text-decoration: none; }
 .site-footer .footer-directory .site-link:hover { color: var(--color-gold); }
 .footer-unpublished { color: var(--color-lilac); cursor: default; }
+.footer-soon { flex-shrink: 0; margin-inline-start: .5rem; padding: 0 .5rem; border: 1px solid currentColor; border-radius: var(--radius-pill); font-size: .65rem; line-height: 1.7; opacity: .85; }
+[lang="ar"] .footer-soon { font-size: .7rem; }
 .footer-bottom { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block-start: 1.35rem; border-block-start: 1px solid var(--color-inverse-line); color: var(--color-lilac); font-size: 0.75rem; }
 .footer-bottom p { max-width: 620px; }
 .footer-bottom a { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-ivory); white-space: nowrap; }

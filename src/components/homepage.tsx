@@ -42,14 +42,15 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
             </div>
           </div>
           <div className="hero-bottom">
-            <Link href="#about" className="hero-scroll"><span className="scroll-line" aria-hidden="true" />{narrative.scroll}</Link>
-            <span className="hero-caption">{media?.caption ?? copy.posterCaption}</span>
+            {/* ORG-007: one centred cue that glides to the next section; reduced motion jumps. */}
+            <Link href="#essentials" className="hero-scroll">{narrative.scroll}<span className="scroll-line" aria-hidden="true" /></Link>
+            {media?.caption ? <span className="hero-caption">{media.caption}</span> : null}
           </div>
         </Container>
       </HeroMedia>
       <CinematicFilm locale={locale} />
     </section>
-    <section className="date-band" aria-labelledby="event-details-title">
+    <section id="essentials" tabIndex={-1} className="date-band" aria-labelledby="event-details-title">
       <Container className="date-band-inner">
         <div>
           <p className="eyebrow" id="event-details-title">{copy.editionLabel}</p>

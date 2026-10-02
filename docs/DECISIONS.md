@@ -760,3 +760,21 @@ v0.5 and earlier source snapshots stay unchanged.
   [latest refinement/release note](features/cinematic-release-refinements.md).
   [ORG-005's original note](features/cinematic-public-experience.md) remains unchanged as
   a dated baseline; the presentation supersession is scoped to the changes above.
+
+## ORG-007 — Hero scroll cue and caption, 2 October 2026
+
+- Status: CONFIRMED explicit requester instruction in the current chat, with an annotated
+  homepage screenshot: make the Step inside button "more centralized and a scroll option
+  with a smooth animation when you scroll down", and remove MSRC2026.
+- One centred Step inside / «اكتشف الأجواء» cue replaces the left-aligned link and right-hand
+  caption. A gold segment loops down its line. Activation scrolls to the dates band directly
+  below the hero (`#essentials`) through the existing explicit-navigation helper, which glides
+  smoothly and moves focus to the band. With reduced motion, the line is static and the
+  scroll jumps, as DESIGN_GUIDE and AGENTS require. On phones the band stops below the
+  floating header.
+- Supersedes ORG-004's concise hero label (MSRC2026 / نسخة ٢٠٢٦) on the homepage hero only.
+  The film view keeps its translated MSRC 2026 identification, and the previous-edition
+  section still names MSRC 2026, so the footage stays identified as the previous edition.
+  ORG-002 files, crops, encoding and rights scope are unchanged; development-only preview
+  captions still render.
+- Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-02, MED-01/04.

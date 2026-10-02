@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { SessionDetailExperience } from "@/components/conference-experiences";
 import { getPublicConferenceCatalogue } from "@/content/conference-catalogue.server";
 import { isLocale } from "@/lib/i18n";
-import { localizedPageMetadata } from "@/lib/metadata";
+import { localizedPageMetadata, siteTitle } from "@/lib/metadata";
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const session = getPublicConferenceCatalogue().sessions.find((record) => record.slug === slug);
   if (!session) notFound();
   return {
-    ...localizedPageMetadata(locale, `/program/${slug}`, session.title, session.description),
-    title: session.title,
+    ...localizedPageMetadata(locale, `/program/${slug}`, siteTitle(session.title), session.description),
+    title: siteTitle(session.title),
     description: session.description,
     robots: { index: false, follow: false },
   };

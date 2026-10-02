@@ -2,6 +2,76 @@
 
 **Snapshot: 1 October 2026. Update this file after each development task.**
 
+## 1 October 2026 — QA pass: Arabic typography and wording, counted numbers, a test race
+
+Live QA of www.msrc2027.com, before and after PR 11, and of `main` at `e70bf38`. Covered EN/AR on Chromium and WebKit (Safari and every iOS browser). Scope: CSS for a few hero labels, two display helpers, Arabic copy and tests. No date, clock rule, workflow, media, route or navigation change.
+
+| Finding | Change |
+|---|---|
+| WebKit pulls letter-spaced Arabic apart. On phones the hero kicker «المؤتمر الخامس لأبحاث طلاب الطب» (0.09em, `!important`), the hero caption and the film provenance «نسخة ٢٠٢٦» (0.06–0.1em) showed broken joins on iPhones, at 10.1–10.6 px | `[lang="ar"]` overrides remove the tracking. Phone sizes rise to 0.75rem in Arabic only. A regression test fails if any Arabic word on six Arabic pages has non-zero letter-spacing; it failed on production before the fix |
+| The nine new pages titled tabs and link cards with a bare label ("Programme", «البرنامج») | `siteTitle()` gives "Programme \| MSRC 2027", as on About and Dates & venue. Session and speaker detail pages use it too; they are NOT TESTED in a browser because no records are published yet (types and build only) |
+| Film view: the title «فيلم مقدمة مؤتمر ٢٠٢٦» ("film of the introduction of conference 2026") differed from the media page's «الفيلم الافتتاحي», and the instructions said «اضغط Escape» and «بالمسافة أو الإدخال» | «الفيلم الافتتاحي لمؤتمر ٢٠٢٦». The instructions now use «مفتاح Esc» and «مفتاح المسافة أو الإدخال», as the hero video's do |
+| English spelling: the site follows Oxford spelling ("Programme", "catalogue", "organizer", "finalized"), but the Dates & venue button read "Explore the program overview" and the homepage "Organised by …" | "programme overview", "Organized by …" |
+| Homepage venue label «مكان انعقاد المؤتمر» versus «مقر المؤتمر» on Dates & venue and «المواعيد والمقر» in navigation | «مقر المؤتمر» |
+| Six of the fifteen footer entries (Teams, Sponsors, Announcements, Contact, Privacy, Terms) are unpublished non-links. They differed from real links only by ivory versus pale lilac, so phone users tapped them to no effect. DECISIONS asks for "labelled non-links" | A visible "Soon" / «قريبًا» pill, which also joins the accessible name ("Contact Soon"). Arabic size 0.7rem, no tracking |
+| Printing: browsers drop background colours, so light text on the dark sections and footer printed near-invisible. The fixed floating header repeats over every printed page in Chromium, and the hero filled the first page | `src/styles/print.css`: content in black on white, without the header, banner, chapter bar, footer, film and header clearance. A regression test checks four pages in print media and fails on production |
+| A structural EN/AR parity check of all twelve public pages found matching headings, links, sections and controls. The only English-only text on an Arabic page was the speakers artwork label "MSRC / PERSPECTIVES"; the matching legacy artwork already uses «الفصل القادم» | «MSRC / وجهات نظر», untracked at 0.75rem in Arabic |
+| ORG-007 (requested 2 October with an annotated screenshot): centre "Step inside", make it a scroll option with a smooth animation, and remove MSRC2026 | One centred cue with a gold segment looping down its line. A click glides to the dates band below the hero (`#essentials`), focusing it; reduced motion shows a static line and jumps. The hero caption is gone, while the film view and previous-edition section keep the MSRC 2026 identification. On phones the band stops below the floating header. Eight regression cases (EN/AR, both motion settings, desktop and mobile) |
+| On phones the hero date/city line wrapped and left its "·" dangling at the end of the first line (EN/AR) | The two items stack under 700 px without the separator |
+| The hero lead left a one-word last line («جديدة.», "discoveries.") | `text-wrap: pretty`. Chromium and WebKit now break at the sentence: «طلاب طب. أفكار نتشاركها. / واكتشافات جديدة.» and "Medical students. Shared ideas. / New discoveries." Browsers without support keep today's wrapping |
+| Session and recording durations printed a fixed «دقيقة» after any number, so a 3MT talk would read «٣ دقيقة» | `formatMinutes()` uses CLDR counted forms in Arabic («دقيقة», «دقيقتان», «٣ دقائق», «٤٥ دقيقة»). English stays "45 min" |
+| Programme and media result counts (live region) were built as number plus a fixed «نتائج» or "results", giving «١ نتائج», «٢ نتائج», «١١ نتائج» and "1 results" once records are published | `formatResultCount()` picks the CLDR category: «نتيجة واحدة», «نتيجتان», «٣ نتائج», «١١ نتيجة», «١٠٠ نتيجة», and "1 result" / "2 results". Twelve unit cases cover every Arabic category |
+| The countdown's Arabic day unit used plural categories only, so the final day would read «٠ يومًا» and 100–102 days (from 17 October) «١٠٠ يومًا» | `countdownDayUnit()` takes the counted noun from CLDR unit parts: ٠ يوم, يومان, ٣ أيام, ١١ يومًا, ١٠٠ يوم |
+| Countdown labels «اليوم الأول اليوم»; the timer's name read the ISO string `2027-01-27` digit by digit | «اليوم هو اليوم الأول/الثاني للمؤتمر»; «… حتى بداية يوم ٢٧ يناير ٢٠٢٧ …» and "Time until 27 January 2027 begins …" |
+| Hackathon: «النموذج الأولي مشجّع» says the prototype is *encouraging* | «يُستحسن تقديم نموذج أولي، وهو اختياري.» |
+| «بما فيهم المشاركون الدوليون» uses the form for things, not people | «بمن فيهم …» |
+| Registration and workshop steps «أتمّ الدفع أو خصمًا …» told readers to "complete a discount" | «أتمّ الدفع أو استخدم خصمًا …» |
+| «التفاصيل القادمة في الطريق» is redundant. The eyebrow «والحوار مستمر» opens with a conjunction. The new pages' breadcrumb «مسار التصفح» differs from About and Dates («مسار التنقل») | «المزيد من التفاصيل قريبًا», «الحوار مستمر», «مسار التنقل» |
+| Homepage wording issues: «المعلمين» for educators reads as school teachers. «خطط لزيارتك» without shadda can read as a noun, and the chapter bar has «خطّط». The FAQ's «وبحد أقصى طلبين نهائيين …» is ungrammatical | «الأكاديميين», «خطّط لزيارتك», «ولكل باحث رئيسي طلبان نهائيان كحد أقصى …» (the submissions page wording) |
+| Dates & venue: «أين نلتقي.» reads as a question, «مواعيد الجلسات لاحقًا.» is telegraphic, and a paragraph repeated its own button | «حيث نلتقي.», «مواعيد الجلسات تُعلَن لاحقًا.», «تعرّف إلى ما ينتظرك في المؤتمر.» |
+| `countdown.spec.ts` (tab suspension) installed the fake clock 1 s before `pauseAt`. Real-time load and hydration made `pauseAt` land in the past on a busy machine (3 local failures) | The clock starts 30 s earlier, and the asserted values are unchanged. 108/108 repeated runs passed alongside another agent's suite |
+
+Verification (Node 24.21.0):
+- ESLint zero-warning, `next typegen` and `tsc` PASS.
+- Vitest 299/299, including 18 day-unit, 11 minute and 12 result-count cases.
+- `next build` PASS: 40 pages.
+- Playwright Chromium desktop/tablet/mobile: 276 passed and 3 skipped (duplicate tablet cases). A single earlier 404-heading timeout happened under load; it passed 18/18 on repeat.
+- WebKit desktop and iPhone, `qa-regressions` and `countdown`: 22/22.
+- iPhone-profile screenshots confirm joined Arabic labels, the stacked date/city line and the sentence-level lead breaks.
+
+Checked on the live redesign without change:
+- **axe (WCAG 2.2 AA plus best practices):** no violations on Home and the nine new routes, in EN/AR at 390 and 1280 px. "Needs review" contrast items are text over the film or gradients.
+- **Hero text over the 18.7 s film:** every text element was measured over 10 frames at 1440/1280/390 px. The worst case was 5.16:1 for the 42 px title on a phone (3:1 needed); small text was at least 5.91:1.
+- **Layout shift on a phone (Slow 4G, 4× CPU):**
+  - Before PR 11, the countdown in the hero swapped from the 110 px dates card to the 286 px clock at hydration: CLS 0.118 Arabic and 0.027 English. A stand-in was built and verified, then dropped because PR 11 moved the countdown below the first viewport.
+  - Live now: 0.0006 English and 0.041 Arabic. The Arabic remainder is the 166 KB Noto Sans Arabic swap (`preload: false`, loading from about 1.3 s to 3.3 s), which reflows the hero title.
+  - Suggested follow-up: preload it on Arabic pages only, or use a smaller static subset. `next/font` exposes no URL to preload, and preloading for every locale would cost English readers 166 KB.
+- **Back navigation in WebKit:** a reader who scrolls to the footer, opens Dates & venue and presses Back returns to the same offset in both engines. Spec failures here come from Playwright scrolling the header link into view before clicking.
+- **Other WebKit spec failures are test artifacts:**
+  - Playwright's WebKit does not report `<video>` downloads to request listeners, so assertions that count film requests fail. The film itself plays: live desktop and iPhone profiles chose the right derivative, played at `readyState` 4 with no error, and the same 16 `cinematic-film` failures occur against production.
+  - Safari's default Tab skips links.
+  - iPhone full-page screenshots are over 32767 px.
+  - Redirect headers are not exposed.
+  - Cancelled RSC prefetches log "due to access control checks".
+  - Filters changed before hydration are dropped; after hydration both filters persist in both engines.
+- **Reduced motion:** with Windows "Animation effects" off, browsers report reduced motion and the site removes reveals as designed.
+- **Headers and dependencies:** security headers present; `pnpm audit --prod` found no known vulnerabilities.
+
+Deferred until after PR 11 and now moot or re-checked:
+- PR 11 adds a Dates & venue link to the homepage's Plan your visit section, replacing the header-link idea.
+- PR 11 replaced «النسخ السابقة» with «نسخة ٢٠٢٦».
+- The «مكان»/«مقر» venue-label difference is now fixed (see the table above).
+
+Known limitations (not changed):
+- **404 pages:** every `notFound()` is answered with Next's empty error shell (`<html id="__next_error__">`). The localized page renders only with JavaScript, so a visitor without it sees a blank page. This needs a routing-level change such as `global-not-found`.
+- **Link-preview card:** English on `/ar`, because the image renderer cannot read the WOFF2-only Arabic font package. A local feasibility render with a system TTF showed that `next/og` joins Arabic letters but lays words out left to right. A word-by-word row-reverse layout fixes the order. However, the static Noto Sans Arabic WOFF (`@fontsource/noto-sans-arabic` 5.3.0) fails the build with "lookupType: 5 - substFormat: 3 is not yet supported" in the bundled opentype parser, so the attempt was reverted with its dependency. Remaining options: another OFL Arabic font whose GSUB the parser accepts, or a committed PNG rendered by a browser. The benefit is small while robots block X/LinkedIn cards, and WhatsApp already shows the Arabic title and description.
+- **404 rendering:** a not-found boundary placed beside the catch-all page still produced the error shell. Next 16 renders the not-found UI on the client for `notFound()` here. Server-rendered alternatives are a site-wide `global-not-found` page, which loses the localized shell, or request middleware, which adds a function to every request; neither was adopted.
+- **GitHub (organizer settings):**
+  - Stale PR 2 is still open, with its head already in `main`.
+  - `main` is unprotected; consider requiring "Foundation checks" before merging.
+  - Merged branches remain; GitHub can delete them automatically after merge.
+- **Robots and preview titles:** `Disallow: /`, `noindex` and the "Development preview" titles are intentional until release approval. While `Disallow: /` stands, robots-respecting preview bots (X, LinkedIn) show no card.
+
 ## 1 October 2026 — Public refinements and authorized release (ORG-006)
 
 - Latest explicit requester instruction: remove the permanent visible Pause button,

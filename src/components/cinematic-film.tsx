@@ -6,7 +6,7 @@ import type { Locale } from "@/lib/i18n";
 
 const copy = {
   en: { title: "MSRC 2026 opening film", close: "Back to conference", play: "Play film", instructions: "Footage from MSRC 2026. Press Escape to return to the conference. The film background can be paused or resumed using Space or Enter." },
-  ar: { title: "فيلم مقدمة مؤتمر ٢٠٢٦", close: "العودة إلى المؤتمر", play: "تشغيل الفيلم", instructions: "لقطات من نسخة مؤتمر ٢٠٢٦. اضغط Escape للعودة إلى المؤتمر. يمكن إيقاف الفيلم أو استئنافه بالمسافة أو الإدخال عند التركيز على خلفية الفيلم." },
+  ar: { title: "الفيلم الافتتاحي لمؤتمر ٢٠٢٦", close: "العودة إلى المؤتمر", play: "تشغيل الفيلم", instructions: "لقطات من نسخة ٢٠٢٦. اضغط مفتاح Esc للعودة إلى المؤتمر. عند التركيز على الفيلم، استخدم مفتاح المسافة أو الإدخال لإيقافه مؤقتًا أو استئنافه." },
 } as const;
 
 type Origin = { href: string; scroll: number; focus: HTMLElement | null; pushed: boolean };

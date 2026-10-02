@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { JourneyExperience } from "@/components/conference-experiences";
 import { experienceCopy } from "@/content/conference-experiences";
 import { isLocale } from "@/lib/i18n";
-import { localizedPageMetadata } from "@/lib/metadata";
+import { localizedPageMetadata, siteTitle } from "@/lib/metadata";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -12,8 +12,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isLocale(locale)) notFound();
   const copy = experienceCopy[locale].pages.registration;
   return {
-    ...localizedPageMetadata(locale, "/registration", copy.label, copy.lead),
-    title: copy.label,
+    ...localizedPageMetadata(locale, "/registration", siteTitle(copy.label), copy.lead),
+    title: siteTitle(copy.label),
     description: copy.lead,
     robots: { index: false, follow: false },
   };

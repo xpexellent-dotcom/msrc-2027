@@ -4,7 +4,7 @@ import { MediaExperience, type CatalogueQuery } from "@/components/conference-ex
 import { experienceCopy } from "@/content/conference-experiences";
 import { getPublicConferenceCatalogue } from "@/content/conference-catalogue.server";
 import { isLocale } from "@/lib/i18n";
-import { localizedPageMetadata } from "@/lib/metadata";
+import { localizedPageMetadata, siteTitle } from "@/lib/metadata";
 
 type PageProps = { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isLocale(locale)) notFound();
   const copy = experienceCopy[locale].pages.media;
   return {
-    ...localizedPageMetadata(locale, "/media", copy.label, copy.lead),
-    title: copy.label,
+    ...localizedPageMetadata(locale, "/media", siteTitle(copy.label), copy.lead),
+    title: siteTitle(copy.label),
     description: copy.lead,
     robots: { index: false, follow: false },
   };

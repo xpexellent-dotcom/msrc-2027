@@ -229,3 +229,7 @@ homepage presentation only: the four files, crops, encoding, people/posters and 
 scope are unchanged; no gallery copy, second player, new footage or recording access
 is approved. The latest scoped publication authorization and verification status are in
 [the ORG-006 refinement note](features/cinematic-release-refinements.md).
+
+ORG-007 (2 October 2026) removes the hero's MSRC2026 / نسخة ٢٠٢٦ label at the requester's
+instruction. The film view keeps its translated MSRC 2026 identification and the previous-edition
+section names MSRC 2026. Files, crops, encoding and rights scope are unchanged.
