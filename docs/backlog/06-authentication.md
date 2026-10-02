@@ -6,7 +6,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-01 — Implement edition-scoped grants and privileged access enforcement
 - **Source IDs:** ROL-01, ROL-02, ROL-03, ROL-04, ROL-05, ROL-06, ROL-07, ROL-08, ROL-09, ROL-10, ROL-11, ROL-12, SEC-02, AUTH-04.
-- **Status:** Planned; no operational role system exists.
+- **Status:** Partial — closed persisted authority/context foundation deployed to the selected hosted project; actual schema CI and hosted ACL/anonymous-denial checks passed. No operational role system or staff activation. See [feature note](../features/persisted-authorization.md) and PROGRESS for receipts and AUTH-05/domain integration gates.
 - **Purpose:** Allow each staff member only the duties and assigned records authorized for them.
 - **Scope:** Individual edition/track/assignment grants, server/database permission helpers and direct-access tests; privileged operations fail closed without MFA assurance; suspension/offboarding revokes grants.
 - **Exclusions:** Roles in user-editable metadata, shared staff accounts, generic admin full-data access, unrestricted scientific evidence for Scientific Administrator.

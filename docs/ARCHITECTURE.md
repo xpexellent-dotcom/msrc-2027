@@ -66,7 +66,7 @@ src/
     surveys/                 reserved
     certificates/            reserved
   lib/
-      supabase/                anonymous hosted/local clients; guarded local fixture types
+    supabase/                anonymous clients; server-only verified own-context adapter
     permissions/             BL-SEC-01 typed contract/evaluator; production reader pending
     validation/              reserved
     email/                   reserved
@@ -79,7 +79,7 @@ src/
   styles/                    existing working design tokens and public preview styles
 tests/                       existing Vitest unit and Playwright E2E suites
 supabase/
-  migrations/                existing synthetic fixture migration only
+  migrations/                CI foundation fixture plus closed private authorization schema
   schemas/                   reserved; declarative schema paths remain disabled
   seed.sql                   existing synthetic development records
   tests/                     existing pgTAP permission tests
@@ -108,6 +108,18 @@ local data clients. Source v0.5 and explicit current task instructions take prec
 Authenticated interfaces still require server and database checks. URL groups and hidden
 buttons are organizational aids, not permission boundaries. Empty reserved folders are
 not evidence that any later feature is implemented, tested or approved for release.
+
+BL-AUTH-01 adds a [closed persisted context](features/persisted-authorization.md): private
+account-access, scoped grant and audit metadata, plus a self-only current managed-session/
+TOTP lookup. Its verified server adapter returns no resource facts, scientific assignments
+or operational authorization. Both readiness flags and session activation stay false until
+AUTH-05 lifecycle enforcement and staff enrollment/recovery pass. The BL-SEC-01 domain
+`AuthorityReader` is still pending feature-specific protected resource integration.
+
+Hosted deployment applies only reviewed application migrations; `foundation_samples` and
+the seed remain isolated development/CI fixtures. Never run an unqualified hosted reset,
+seed or full migration push. Successful empty-schema deployment does not settle staff
+appointments, privacy/retention, annual isolation, custodians or production region approval.
 
 ## Data domains
 

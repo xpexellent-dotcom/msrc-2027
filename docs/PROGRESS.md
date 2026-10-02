@@ -2,6 +2,122 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
+## 2 October 2026 — Closed persisted authorization and reviewed deployment
+
+Scope: requester authorizes checklist review, the next recommended engineering actions
+and deployment of reviewed application schema/permissions. Read current source/backlog,
+reviewed BL-SEC-01 PR15 at exact head `e297c86`, and merged it as `7ce3112` after the
+final-head application/database CI had passed. The connector could read PR15 but its
+ready-transition lacked integration permission; the already authorized Git Credential
+Manager credential completed the transition and guarded merge. No credential was printed.
+
+Implementing the smallest BL-AUTH-01 slice: private edition/account-access/scoped-grant/
+audit metadata, a self-only current managed-session/TOTP RPC and a server-only bearer
+identity/context adapter. No initial edition, account, grant or audit row; no participant
+profile, domain schema, Storage bucket, invitation, email, staff UI, CMS or workflow opening.
+The returned context has `session.active:false`, `operationalAccessReady:false` and
+`privilegedAccessReady:false`; it cannot activate the earlier authorization evaluator.
+Full domain AuthorityReader integration and AUTH-04/05 lifecycle enforcement remain later.
+
+Fresh hosted preflight: selected project `msrc / ecemjggwlzqpjcwmchrl` has zero Auth users,
+application tables/private authorization schemas and migration history. Asked whether this
+project is development/staging or reserved for production, and for the three named Super
+Admins. No answer is inferred; live data/staff activation stays closed under CFG-09/10/11.
+Reviewed empty additive schema work creates no operational authority or participant data.
+
+Initial checks: `pnpm typecheck` first found a nested parser narrowing error, corrected;
+rerun PASS. `pnpm lint`, existing 739 unit tests and `pnpm build` (40 pages) PASS before
+the new identity tests were added. Actual-schema SQL and final complete checks are pending;
+hosted migration NOT YET APPLIED at this point. ENG-010 and the
+[feature note](features/persisted-authorization.md) define acceptance and rollback.
+
+The checklist was updated/read back at sequence14: PR15 reviewed/merged and BL-AUTH-01
+in progress; no deployed schema or staff activation is claimed. Original checkout's
+uncommitted documentation remains untouched; implementation uses the attached managed
+authorization worktree on `codex/persisted-authorization`.
+
+Next: run final application/actual-schema CI, adversarially review the migration, deploy
+only the approved empty application migration, verify hosted ACL/RLS/anonymous denial
+and record receipts. Do not upload the earlier synthetic foundation migration/seed.
+
+Final local application verification: `pnpm check` PASS (lint, types,859 unit tests,
+40-page production build). New coverage:103 identity/context cases and17 hosted-probe
+cases. `pnpm test:e2e tests/e2e/closed-workflows.spec.ts tests/e2e/public-shell.spec.ts`
+PASS:43 Chromium desktop/tablet/mobile cases including EN/AR/keyboard/axe/reduced motion.
+Added66 actual-migration pgTAP assertions, including independent ACL/RLS, own-context,
+current managed user/session/TOTP, grants/scopes/history and transactional audit failure.
+`pnpm exec supabase test db supabase/tests/database/persisted_authorization.test.sql`
+was attempted and BLOCKED by ECONNREFUSED at127.0.0.1:54322 (no local engine).
+No hosted fixture was used. Database lint now includes public and private schema functions;
+CLI help confirmed the comma-separated `--schema` argument. CI runtime result pending.
+
+Read-only hosted role preflight confirmed `current_user` and `session_user` both postgres,
+and zero managed accounts/public application tables. Independent security review found no
+blocking issue in the closed migration/app boundary; real staff activation, named-human
+maintenance attribution, account-status audits, full AUTH-05 lifecycle and actual MFA UAT
+remain explicit follow-ups. TOTP factor name/status maintenance updates `updated_at`; the
+current timestamp check conservatively requires fresh challenge evidence after those
+changes. It does not replace future audited reset/recovery and session revocation.
+
+Checklist factual refresh at sequence15: PR13 is still open/conflicted at632ed46, but its
+latest CI37037534134/37037529901 and Preview6813734225 passed. Its Mumbai code and stale
+Dubai wording/privacy review remain a separate PR13 follow-up. Fresh main7ce3112 CI
+37038741543 passed and Production6813936431 succeeded. Live health returns200/no-store/
+closed; full Vercel settings/complete live UAT are not claimed. No PR13 changes here.
+
+Deployment receipt: [PR16](https://github.com/xpexellent-dotcom/msrc-2027/pull/16)
+at `9ce0ef1` passed the full [workflow37041065012](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37041065012):
+lint/types,859 units,40-page build,284 browser cases PASS/3 explicit skips,
+176 pgTAP assertions (66 actual-schema +90 prior contract +20 foundation),10 client
+integration tests, public/private schema lint, local security advisors, generated strict
+types and stack shutdown. [Database job110951022267](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37041065012/job/110951022267)
+actual logs show the new migrated-schema suite passed; no local PC Docker is needed.
+The synthetic SQL suite was executed only in isolated GitHub CI and rolled back.
+
+After independent review and the successful exact-source CI, the authorized Supabase
+connector applied ONLY `persisted_authorization` to `msrc / ecemjggwlzqpjcwmchrl`.
+Hosted history records version `20261002173712`; the committed migration filename was
+aligned to that observed version without changing SQL. Original CLI-generated filename
+was `20261002165850_persisted_authorization.sql`; SHA256 remains
+`F1569BD4A58F17488094092D02BD78ABCF03BF0B500576B84D5B84E0A9EB39D5`.
+No historical foundation fixture/seed, account, edition, grant or bucket was deployed.
+
+Hosted verification executed the four read-only statements in
+`supabase/verification/persisted_authorization.sql`: all4 private tables have enabled+
+forced RLS; anon/authenticated/service_role schema/table/internal-function access is false;
+only authenticated can execute the fixed-search-path own-context RPC. Aggregate counts
+are all0: managed accounts, editions, account access, grants, grant audit and public tables.
+Hosted history is1 migration. The real anonymous API probe returned HTTP401 with42501:
+`node --env-file=<original checkout>/.env.local scripts/verify-hosted-authorization.mjs`
+PASS. The original ignored environment was read without copying/printing its key.
+`pnpm db:verify-authorization-hosted` is the reproducible normal-checkout command.
+
+Hosted advisor results are NOT clean: security has1 WARN for the intentional authenticated
+self-only SECURITY DEFINER RPC and4 INFO for private RLS/no policy; performance has3 INFO
+for unused indexes on the empty schema. See the reviewed rationale and
+[remediation reference](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)
+in the [feature note](features/persisted-authorization.md). Local CLI advisors reported
+no findings, but do not supersede the hosted provider's newer advisor. No grants were
+widened or indexes removed to silence findings. Before activation, review the narrow
+exception again alongside actual staff/session/domain policies.
+
+Production staff/participant workflow access remains closed. Named-human MFA/session/
+recovery UAT, full AUTH-05 enforcement, authoritative domain resource readers, Storage
+and retained-data/production approvals remain NOT TESTED/OPEN. Environment classification
+and the three named Super Admins remain unanswered; no value was assumed. Next smallest
+slice: BL-AUTH-05 controlled staff TOTP enrollment/recovery and session lifecycle, including
+named performer/account-status audits, before BL-CMS-01 draft editing.
+
+Final filename-alignment CI37042359894 at75795fac passed application and database jobs.
+Before PR16 could merge, PR14 changed main to2ae066f. Merge preserves its Arabic font/
+layout-shift fix, observability/cache/region changes and complete decision/progress records.
+The authorization SQL remains unchanged. Combined-tree `pnpm install --frozen-lockfile`
+and `pnpm check` PASS: lint/types,888 units and40-page production build.
+`pnpm test:e2e tests/e2e/closed-workflows.spec.ts tests/e2e/public-shell.spec.ts tests/e2e/qa-regressions.spec.ts`
+PASS:67 desktop/tablet/mobile EN/AR/keyboard/axe/reduced-motion/font/media cases.
+Independent combined-tree authorization review found no blocking regression; git diff
+check PASS. Final combined-source CI/Preview must pass before the guarded PR16 merge.
+
 ## 2 October 2026 — Arabic webfont: a steady `ch`, no layout jump
 
 First visits to Arabic pages jumped when Noto Sans Arabic arrived: desktop CLS 0.208 on `/ar/media`, 0.065 on `/ar/dates-venue` and 0.011 on `/ar`, against 0.002 on English pages. The cause was the `ch` unit, not the letter shapes. The Arabic subset has no "0" glyph, so once it loaded as the first available font, browsers measured 1ch as 0.5em instead of the fallback's 0.556em (Arial's zero). Every `ch`-based measure (37 `max-inline-size`/`max-width` rules) narrowed by a tenth after first paint. Headings authored as two lines with `\n` («ملتقى / العقول الفضولية.», «كن جزءًا / من الفصل القادم.», «لحظات نعود إليها. / وأفكار تبقى معنا.») then broke again into three or four lines.
