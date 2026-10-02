@@ -47,7 +47,7 @@ type Pathway = { title: string; description: string; category: string; href: str
 type ProgramRow = { title: string; description: string; format: string };
 type HomepageCopy = {
   kicker: string; title: readonly [string, string]; lead: string; explore: string;
-  programLink: string; posterCaption: string; institution: string; city: string;
+  programLink: string; institution: string; city: string;
   aboutEyebrow: string; aboutTitle: string; aboutBody: string; aboutLink: string;
   participationLabel: string; participationStatus: string;
   pathwaysEyebrow: string; pathwaysTitle: string; pathwaysBody: string; closed: string;
@@ -64,7 +64,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     kicker: "The 5th Medical Students Research Conference",
     title: ["Where curiosity", "becomes discovery."],
     lead: "Medical students. Shared ideas. New discoveries.",
-    explore: "Explore the conference", programLink: "The experience", posterCaption: "MSRC2026",
+    explore: "Explore the conference", programLink: "The experience",
     institution: "King Abdulaziz University", city: "Jeddah, Saudi Arabia",
     aboutEyebrow: "01 / The conference", aboutTitle: "Research brings\nus together.",
     aboutBody: "Meet a community of medical students exploring ideas, sharing research and learning together.",
@@ -93,7 +93,7 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     kicker: "المؤتمر الخامس لأبحاث طلاب الطب",
     title: ["حيث يتحوّل الفضول", "إلى اكتشاف."],
     lead: "طلاب طب. أفكار نتشاركها. واكتشافات جديدة.",
-    explore: "اكتشف المؤتمر", programLink: "تجربة المؤتمر", posterCaption: "نسخة ٢٠٢٦",
+    explore: "اكتشف المؤتمر", programLink: "تجربة المؤتمر",
     institution: "جامعة الملك عبدالعزيز", city: "جدة، المملكة العربية السعودية",
     aboutEyebrow: "٠١ / عن المؤتمر", aboutTitle: "البحث\nيجمعنا.",
     aboutBody: "مجتمع من طلاب الطب يجمعنا لاستكشاف الأفكار، ومشاركة الأبحاث، والتعلّم معًا.",

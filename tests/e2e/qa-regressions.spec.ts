@@ -23,6 +23,49 @@ test("Arabic words are never letter-spaced", async ({ page }) => {
   }
 });
 
+// ORG-007: one centred "Step inside" cue without the MSRC2026 caption. It glides to the dates
+// band when motion is allowed and jumps under reduced motion; the band clears the header.
+for (const [motion, glides] of [["no-preference", true], ["reduce", false]] as const) {
+  for (const locale of ["en", "ar"] as const) {
+    test(`${locale} Step inside is centred and ${glides ? "glides" : "jumps"} to the dates band (${motion})`, async ({ page, browserName }) => {
+      await page.emulateMedia({ reducedMotion: motion });
+      await page.goto(`/${locale}`);
+      // Before hydration a click is a plain fragment jump; the live countdown marks hydration.
+      await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before");
+      await expect(page.locator(".conference-hero .hero-caption")).toHaveCount(0);
+      const cue = page.locator(".hero-scroll");
+      await expect(cue).toHaveAttribute("href", "#essentials");
+      expect(await cue.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const row = element.closest(".hero-bottom")!.getBoundingClientRect();
+        return Math.abs(box.left + box.width / 2 - (row.left + row.width / 2));
+      })).toBeLessThanOrEqual(1);
+      expect(await page.locator(".scroll-line").evaluate((line) => getComputedStyle(line, "::after").animationName)).toBe(glides ? "scroll-cue" : "none");
+
+      // Sample the scroll position while the activation's scroll runs. The element is clicked
+      // in the page: Playwright's own pre-click scrolling would add positions of its own.
+      await page.evaluate(() => {
+        const positions: number[] = [];
+        Object.assign(window, { scrollSamples: positions });
+        const timer = setInterval(() => positions.push(window.scrollY), 10);
+        setTimeout(() => clearInterval(timer), 1500);
+      });
+      await cue.evaluate((element) => (element as HTMLElement).click());
+      await expect(page).toHaveURL(new RegExp(`/${locale}#essentials$`));
+      await expect(page.locator("#essentials")).toBeFocused();
+      await page.waitForTimeout(1600);
+      const positions = await page.evaluate(() => (window as unknown as { scrollSamples: number[] }).scrollSamples);
+      const settled = positions[positions.length - 1];
+      expect(settled).toBeGreaterThan(0);
+      // Headless WebKit advances a smooth scroll on this page in one or two coarse steps; a jump
+      // is still asserted there, the glide only where frames are rendered (Chromium, CI).
+      if (!(glides && browserName === "webkit")) expect(positions.some((y) => y > 0 && y < settled - 1), positions.join(",")).toBe(glides);
+      expect(await page.evaluate(() => document.querySelector("#event-details-title")!.getBoundingClientRect().top
+        - document.querySelector(".site-header")!.getBoundingClientRect().bottom)).toBeGreaterThan(0);
+    });
+  }
+}
+
 // Printing: browsers drop background colours, so light text on the dark sections vanished, and
 // the fixed header repeated over the top of every printed page.
 test("print shows the content in black without screen furniture", async ({ page }) => {

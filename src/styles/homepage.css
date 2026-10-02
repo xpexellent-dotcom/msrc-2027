@@ -15,10 +15,14 @@
 .hero-actions .button { min-block-size: 54px; }
 .hero-secondary { gap: .8rem; font-size: .88rem; color: var(--color-ivory); }
 .conference-hero :focus-visible { outline-color: var(--color-ivory); }
-.hero-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; min-block-size: 88px; border-block-start: 1px solid #f8f6f040; padding-block: 1rem; }
-.hero-scroll { gap: .7rem; font-size: .78rem; color: var(--color-ivory); }
+/* ORG-007: one centred "Step inside" cue; a gold segment glides down its line on a loop. */
+.hero-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1rem; min-block-size: 88px; border-block-start: 1px solid #f8f6f040; padding-block: 1rem; }
+.hero-scroll { flex-direction: column; gap: .55rem; font-size: .78rem; color: var(--color-ivory); transition: color var(--motion-feedback) var(--motion-easing); }
 .conference-hero .hero-scroll.site-link { text-decoration: none; }
-.scroll-line { block-size: 32px; inline-size: 1px; background: var(--color-gold); }
+.conference-hero .hero-scroll:hover { color: var(--color-gold); }
+.scroll-line { position: relative; overflow: hidden; block-size: 48px; inline-size: 2px; border-radius: 2px; background: #f8f6f04d; }
+.scroll-line::after { content: ""; position: absolute; inset-inline: 0; inset-block-start: 0; block-size: 40%; background: var(--color-gold); animation: scroll-cue 2.2s cubic-bezier(.65, 0, .35, 1) infinite; }
+@keyframes scroll-cue { 0% { transform: translateY(-100%); } 70%, 100% { transform: translateY(250%); } }
 .hero-caption { margin-inline-start: auto; color: var(--color-ivory); font-size: .75rem; letter-spacing: .06em; }
 .conference-hero .hero-media-controls { min-inline-size: 0; }
 .conference-hero .hero-media-control, .conference-hero .hero-media-status { position: static; border-color: #f8f6f060; background: #1f1930c7; font-size: .75rem; }
@@ -151,13 +155,14 @@
   .hero-actions .button { min-block-size: 50px; }
   .hero-secondary { font-size: .8rem; }
   .hero-bottom { gap: .6rem; min-block-size: 76px; }
-  .hero-scroll { font-size: .7rem; }.scroll-line { block-size: 23px; }
+  .hero-scroll { font-size: .7rem; }.scroll-line { block-size: 36px; }
   .hero-caption { font-size: .63rem; }
   .conference-hero .hero-media-controls { padding: 0; min-block-size: 0; align-self: auto; }
   .conference-hero .hero-media-control { font-size: .67rem; padding: .5rem .65rem; }
   .hero-media-control > svg { inline-size: 13px; }
   .conference-hero .hero-media-status { max-inline-size: 100%; font-size: .67rem; }
-  .date-band { padding-block: 2.5rem; }.date-band-inner { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  /* "Step inside" lands the band below the floating header, not under it. */
+  .date-band { padding-block: 2.5rem; scroll-margin-block-start: 4.5rem; }.date-band-inner { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
   .date-band .conference-countdown { padding: 1.2rem; }
   .date-band .countdown-clock { gap: 1rem; }.date-band .countdown-number { font-size: 4rem; }
   .date-band .countdown-time-number { font-size: clamp(1.5rem, 6vw, 2.2rem); }
@@ -174,5 +179,5 @@
   /* Arabic script reads smaller than Latin at the same size; about 10px was hard to read. */
   [lang="ar"] .hero-topline, [lang="ar"] .hero-caption { font-size: .75rem; }
 }
-@media (max-width: 379px) { .pathway-list { grid-template-columns: minmax(0, 1fr); }.hero-bottom { justify-content: start; }.hero-caption { margin-inline-start: 0; }.hero-media-controls { margin-inline-start: auto; }.date-band .countdown-clock { gap: .5rem; }.date-band .countdown-number { font-size: 3.4rem; } }
-@media (prefers-reduced-motion: reduce) { .hero-editorial { animation: none; }.faq-item summary > span { transition: none; } }
+@media (max-width: 379px) { .pathway-list { grid-template-columns: minmax(0, 1fr); }.hero-caption { margin-inline-start: 0; }.hero-media-controls { margin-inline-start: auto; }.date-band .countdown-clock { gap: .5rem; }.date-band .countdown-number { font-size: 3.4rem; } }
+@media (prefers-reduced-motion: reduce) { .hero-editorial { animation: none; }.faq-item summary > span { transition: none; }.hero-scroll { transition: none; }.scroll-line::after { animation: none; transform: none; block-size: 100%; } }
