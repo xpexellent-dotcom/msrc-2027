@@ -259,6 +259,7 @@ For a chat that accepts attachments but does not open local folders, attach `MSR
 | [docs/PROGRESS.md](docs/PROGRESS.md) | Evidence-based current status and session handover |
 | [docs/ACCEPTANCE_AND_RELEASE.md](docs/ACCEPTANCE_AND_RELEASE.md) | Required verification and release gates |
 | [docs/backlog/README.md](docs/backlog/README.md) | PR-sized implementation issues across all 24 epics, separate Decision Required packets and source coverage |
+| [Authorization contract](docs/features/authorization-contract.md) | BL-SEC-01 role/scope rules, synthetic server/RLS tests and M4 integration gates; no live access enabled |
 | [docs/OWNERSHIP_AND_SETUP.md](docs/OWNERSHIP_AND_SETUP.md) | Accounts, custodians, environments, and setup checklist |
 | [docs/MEDIA_REGISTER.md](docs/MEDIA_REGISTER.md) | Media location, selection, and publication requirements |
 | [docs/SOURCE_REGISTER.md](docs/SOURCE_REGISTER.md) | What was reviewed and how conflicts were resolved |

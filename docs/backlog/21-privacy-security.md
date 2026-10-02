@@ -7,7 +7,7 @@ These issues establish reusable controls; each feature PR must apply and test th
 ## BL-SEC-01 — Define the server and RLS authorization contract
 
 - **Source IDs:** ROL-01, ROL-02, ROL-03, ROL-04, ROL-05, ROL-06, ROL-07, ROL-08, ROL-09, ROL-10, ROL-11, ROL-12, SEC-01, SEC-02, AT-02.
-- **Status:** Planned; M1 synthetic-table policies do not establish operational permissions.
+- **Status:** Synthetic contract implemented under ENG-009 in [draft PR15](https://github.com/xpexellent-dotcom/msrc-2027/pull/15); 440 new unit cases and 90 new SQL assertions passed. Full runtime evidence and open integration gates are in [the feature note](../features/authorization-contract.md) and PROGRESS. No production identity/grant/storage integration or workflow activation.
 - **Purpose:** Give each feature a reviewable permission boundary before exposing sensitive records.
 - **Scope:** Record operation-by-role, edition, ownership, assignment and MFA requirements; create synthetic policy fixtures and a reusable denied-access test contract. Extend the matrix in each feature PR.
 - **Exclusions:** Implementing all future domain tables; blanket access for authenticated users; roles from editable metadata.

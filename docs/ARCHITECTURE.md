@@ -67,7 +67,7 @@ src/
     certificates/            reserved
   lib/
       supabase/                anonymous hosted/local clients; guarded local fixture types
-    permissions/             reserved
+    permissions/             BL-SEC-01 typed contract/evaluator; production reader pending
     validation/              reserved
     email/                   reserved
     payments/                reserved

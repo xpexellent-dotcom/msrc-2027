@@ -779,6 +779,29 @@ v0.5 and earlier source snapshots stay unchanged.
   captions still render.
 - Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-02, MED-01/04.
 
+## ENG-009 — BL-SEC-01 synthetic authorization contract, 2 October 2026
+
+- Status: engineering implementation choice; no product permission or release decision changed.
+  Authority: requester accepted BL-SEC-01 as the next complete engineering PR and said to begin.
+- Adopt frozen purpose-sized role/scope rules, a server-only fresh AuthorityReader contract,
+  independent synthetic allowed/denied tests and a transaction-rolled-back pgTAP fixture.
+  Scope IDs and scientific ownership must be present; undefined actions/scopes deny.
+- Source ROL-01–12/SEC-01/02/AT-02 remain authoritative. Require current grants/session,
+  individual staff identity and trusted AAL2/TOTP. Unresolved conflict remains a denial after
+  assignment withdrawal; an active duplicate cannot clear it. Original evidence requires
+  scoped MFA Super Admin access plus clearance, not participant ownership or generic admin.
+  REV-10 pre-event review and event-day judging use separate assignment kinds, including
+  assignment-bound grants; holding both roles does not merge stages.
+- Check-in/category/content duties use explicit function/resource bindings. Scientific packet,
+  participant, score, file and operational projections remain separate. Purpose names/technical
+  fixture metadata do not define approved production fields or domain tables.
+- No production reader, hosted migration, bucket, credential, account, named staff appointment,
+  actual file link, audit/email job or live endpoint is introduced. All 15 workflow gates closed.
+  PRIVACY/provider/custody/identity/session/annual-isolation and per-feature REL gates remain.
+- [Feature contract](features/authorization-contract.md) records fixtures, audit/language/error
+  behavior, verification limits and rollback. BL-AUTH-01/05 must integrate current persisted
+  grants/managed identity/TOTP before M4 staff or CMS activation.
+
 ## ORG-008 — Visitor analytics, Speed Insights and hosting efficiency, 2 October 2026
 
 - Status: CONFIRMED explicit requester instruction in the current chat. The requester sent a
