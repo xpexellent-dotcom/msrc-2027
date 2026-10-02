@@ -1,6 +1,41 @@
 # Progress and session handover
 
-**Snapshot: 1 October 2026. Update this file after each development task.**
+**Snapshot: 2 October 2026. Update this file after each development task.**
+
+## 2 October 2026 — BL-SEC-01 authorization contract
+
+- Requester authorized the next bounded engineering PR: 13-role/scope/current-authority
+  contract, synthetic permission fixtures, failure/language/audit requirements and tests.
+  Source IDs ROL-01–12, SEC-01/02/06, AT-02; ENG-009 and the
+  [feature note](features/authorization-contract.md) record scope and integration gates.
+- Implemented frozen purpose rules, server-only fresh-reader checks, generic bilingual
+  errors, ownership/edition/track/function/assignment enforcement, current revocation,
+  TOTP assurance, self/co-author/conflict denial, original-evidence restrictions and
+  locked/unpublished/unavailable controls. No domain payload is returned.
+- Added independently expected role/action unit matrix (440 targeted cases PASS) and
+  rollback-contained SQL RLS/grants/view/function/private-metadata fixture. Existing CI
+  automatically discovers both. Type-check initially found a union callback narrowing
+  error; fixed and rerun PASS. Final review also separated review/event assignments and
+  assignment-bound grant stages; 29 regression cases passed. Full local checks passed;
+  SQL CI receipts are pending below.
+- No production identity/reader/grant system, migration, actual Storage/file link or audit
+  writer implemented; all 15 operational workflows stay hard closed. Human/domain-owner,
+  real identity/MFA/session and per-feature RLS/Storage UAT remain later release work.
+- Worktree based on remote main017220e preserves the original checkout's uncommitted docs.
+  No production service, DNS, secret, email, workflow opening or public-interface change.
+
+Verification (Node24.21.0/pnpm11.19.0): locked install PASS; `pnpm check` PASS
+(lint, types, 739 unit tests including440 new cases, production build with40 pages).
+`pnpm test:e2e tests/e2e/closed-workflows.spec.ts tests/e2e/public-shell.spec.ts` PASS:
+43 desktop/mobile Chromium tests, including EN/AR keyboard, axe and reduced motion.
+`pnpm db:test` BLOCKED: connection refused at127.0.0.1:54322; no running Docker
+engine/WSL. Initial offline install missed an uncached font tarball; normal locked install
+passed. The isolated GitHub database job will verify the90 new SQL assertions. Exact PR/CI
+evidence will be recorded after execution; fixtures do not establish live grants.
+
+Next smallest PR: BL-AUTH-01 current persisted grant/identity integration, followed by
+BL-AUTH-05 privileged TOTP enrollment/recovery before CMS/staff activation. M3 legal/brand
+content and affected-phone Safari diagnosis remain independent follow-ups.
 
 ## 1 October 2026 — QA pass: Arabic typography and wording, counted numbers, a test race
 
