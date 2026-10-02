@@ -787,12 +787,22 @@ v0.5 and earlier source snapshots stay unchanged.
   settings or integrations; a Pro plan may follow at publication. This is the approved
   analytics configuration that INF-01 requires.
 - Vercel Web Analytics (`@vercel/analytics` 2.0.1) and Speed Insights
-  (`@vercel/speed-insights` 2.0.0) load on Vercel deployments only (`VERCEL` set); local
-  and CI builds render neither, because only Vercel serves their scripts (from
-  project-specific same-origin paths). Both are cookieless and send their beacons to the
-  site's own origin. Before anything is sent, the page address loses its query
-  string and fragment (PRV-03), and automated browsers (`navigator.webdriver`) send nothing,
-  so test runs against a deployment neither count as visits nor make write requests.
+  (`@vercel/speed-insights` 2.0.0) load on the production deployment only
+  (`VERCEL_ENV=production`): previews, local and CI builds render neither, and only Vercel
+  serves their scripts (from project-specific same-origin paths). Both are cookieless and
+  send their beacons to the site's own origin. Before anything is sent, the page address
+  loses its query string and fragment (PRV-03), and automated browsers
+  (`navigator.webdriver`) send nothing, so test runs against a deployment neither count as
+  visits nor make write requests.
+- Only public information pages are counted: the locale home and the sections listed in
+  `countedSections` (`src/lib/vercel-observability.ts`), with one slug segment under
+  programme and speakers. Future account, review and organizer areas, 404s and internal
+  previews send nothing; a unit test fails when a new public page folder is not listed, so
+  each addition is deliberate. This follows ChatGPT's 2 October analytics review (public
+  routes only, no previews, no query strings).
+- The referrer is sent by Vercel's script, not by `beforeSend`. The site's
+  `Referrer-Policy: no-referrer` leaves internal navigations without one, and browsers send
+  other sites' origins only by default.
 - Data flow (PRV-07): Vercel receives the page path and route pattern, referrer, country,
   and device, browser and OS class, plus Core Web Vitals. Visitors are counted by a hash that
   rotates daily, not by a cookie or a stored IP address. Vercel processes this outside Saudi
