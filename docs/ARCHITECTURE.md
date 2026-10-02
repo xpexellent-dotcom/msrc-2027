@@ -10,7 +10,7 @@
 | Ownership | Organizational MSRC/RPClub accounts with institutional authorization | Selected O1; evidence/custodians pending |
 | Web framework | Next.js App Router, TypeScript, Tailwind | Adopted for local M1 by explicit user task; ENG-001 in DECISIONS.md |
 | Package management | pnpm with committed lockfile | Adopted for local M1; exact versions and compatibility notes in ENG-001 |
-| Data environments | User-selected hosted Supabase for normal work; synthetic local Supabase for CI/optional PC tests | ENG-006; explicit target configuration and local test guards; staging/production separation remains a release gate |
+| Data environments | `ecemjggwlzqpjcwmchrl` is Production; synthetic database tests in isolated GitHub CI; local auth lab in memory | ORG-010; no hosted fixtures; new staff/session migration review-only |
 | Tests | Vitest, appropriate component tools, Playwright, database policy tests | Recommended tooling; verify compatibility at foundation time |
 | Email, malware scanning, advisory assessment, analytics | Provider selection and approved configuration required | Unresolved CFG-10 |
 | Versions, regions, plans, budget | Choose and record explicitly before relevant provisioning | Unresolved; no claims of Saudi hosting |
@@ -33,7 +33,7 @@ src/
     [locale]/
       (preview)/             existing safe public homepage/About and loading boundary
       design-system/         existing local/staging component showcase
-      (auth)/                reserved
+      (auth)/                closed loopback-only staff security lab; all deployments deny
       dashboard/             reserved
       reviewer/              reserved; future assessment screens English-only
       admin/                 reserved
@@ -53,7 +53,7 @@ src/
   content/                   existing typed public draft copy
   features/
     content/                 reserved
-    auth/                    reserved
+    auth/                    local synthetic TOTP lab and disabled managed-provider contract
     registration/            reserved
     payments/                reserved
     submissions/             reserved
@@ -112,8 +112,11 @@ not evidence that any later feature is implemented, tested or approved for relea
 BL-AUTH-01 adds a [closed persisted context](features/persisted-authorization.md): private
 account-access, scoped grant and audit metadata, plus a self-only current managed-session/
 TOTP lookup. Its verified server adapter returns no resource facts, scientific assignments
-or operational authorization. Both readiness flags and session activation stay false until
-AUTH-05 lifecycle enforcement and staff enrollment/recovery pass. The BL-SEC-01 domain
+or operational authorization. Both readiness flags and session activation stay false.
+The [staff security foundations](features/staff-security-foundations.md) add a review-only
+database policy context and local synthetic TOTP lab. AUTH-05 uses ORG-012's participant
+72h maximum and privileged 30min idle/8h absolute; refresh never restarts origin.
+Approved staff recovery and live lifecycle enforcement remain gates. The BL-SEC-01 domain
 `AuthorityReader` is still pending feature-specific protected resource integration.
 
 Hosted deployment applies only reviewed application migrations; `foundation_samples` and

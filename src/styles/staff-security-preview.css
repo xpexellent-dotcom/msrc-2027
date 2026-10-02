@@ -1,0 +1,40 @@
+.staff-security-preview { padding-block: clamp(4.5rem, 10vw, 8rem) var(--space-9); }
+.staff-security-intro { max-inline-size: 48rem; margin-block-end: var(--space-6); }
+.staff-security-intro h1 { margin-block: var(--space-4); color: var(--color-purple); font-size: var(--text-title); line-height: var(--leading-heading); }
+.staff-security-intro > p:not(.eyebrow) { max-inline-size: 42rem; }
+.staff-security-label { display: inline-block; padding: var(--space-2) var(--space-4); border: 1px solid var(--color-line-strong); border-radius: var(--radius-pill); color: var(--color-purple); font-size: var(--text-caption); font-weight: 600; }
+.staff-security-feedback { margin-block-end: var(--space-5); max-inline-size: 48rem; }
+.staff-security-feedback > [role="status"]:empty { display: none; }
+.staff-security-alert { padding: var(--space-4); border: 1px solid var(--color-error); border-radius: var(--radius-medium); background: var(--color-error-surface); color: var(--color-error); }
+.staff-security-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(15rem, 1fr); align-items: start; gap: var(--space-6); }
+.staff-security-flow { display: grid; gap: var(--space-5); min-inline-size: 0; }
+.staff-security-panel { padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--color-line); border-radius: 1rem; background: var(--color-white); min-inline-size: 0; }
+.staff-security-panel h2, .staff-security-policy h2 { margin-block: 0 var(--space-4); color: var(--color-purple); font-size: 1.5rem; }
+.staff-security-panel h3, .staff-security-policy h3 { margin-block: 0 var(--space-3); color: var(--color-ink); font-size: 1.0625rem; }
+.staff-security-panel p { margin-block: 0 var(--space-4); }
+.staff-security-session-state { color: var(--color-purple); font-weight: 600; }
+.staff-security-facts { display: grid; gap: var(--space-3); margin-block: var(--space-5); }
+.staff-security-facts > div { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr); gap: var(--space-4); padding-block-end: var(--space-3); border-block-end: 1px solid var(--color-line); }
+.staff-security-facts dt { color: var(--color-muted); }
+.staff-security-facts dd { margin: 0; overflow-wrap: anywhere; }
+.staff-security-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block-start: var(--space-5); }
+.staff-security-actions > .button { white-space: normal; text-align: center; }
+.staff-security-setup-methods { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--space-5); margin-block: var(--space-5); }
+.staff-security-setup-methods > section { min-inline-size: 0; }
+.staff-security-qr { display: block; inline-size: min(100%, 240px); block-size: auto; margin-block: var(--space-4); border: 1px solid var(--color-line); image-rendering: pixelated; }
+.staff-security-key { font-family: monospace; font-size: .9375rem; letter-spacing: .02em; }
+.staff-security-confirmed { padding: var(--space-4); border-inline-start: 3px solid var(--color-success); background: var(--color-success-surface); color: var(--color-success); }
+.staff-security-policy { min-inline-size: 0; padding: var(--space-5); background: var(--color-surface-lilac); border-radius: 1rem; }
+.staff-security-policy ul { padding-inline-start: var(--space-5); }
+.staff-security-policy li + li { margin-block-start: var(--space-3); }
+.staff-security-scenarios { margin-block-start: var(--space-6); padding-block-start: var(--space-5); border-block-start: 1px solid var(--color-line-strong); }
+.staff-security-closed { color: var(--color-muted); }
+@media (max-width: 960px) {
+  .staff-security-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .staff-security-setup-methods, .staff-security-facts > div { grid-template-columns: minmax(0, 1fr); }
+  .staff-security-setup-methods > section + section { padding-block-start: var(--space-5); border-block-start: 1px solid var(--color-line); }
+  .staff-security-facts > div { gap: var(--space-1); }
+  .staff-security-actions { flex-direction: column; align-items: stretch; }
+}

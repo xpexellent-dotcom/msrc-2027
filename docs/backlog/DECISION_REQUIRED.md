@@ -280,7 +280,7 @@ Authoritative question set (v0.5; retained verbatim):
 
 ## DR-CFG-11 — Confirm institutional authorization and continuing custodians
 - **Source IDs:** CFG-11, INF-03, ROL-10, ROL-12, SEC-07.
-- **Status:** Decision Required — open; no new organizer approval recorded.
+- **Status:** Decision Required — partially resolved by ORG-010/011 (2 October 2026): selected Supabase project designated Production; first intended website Super Admin designated privately, second/third TBD. No invitation/account/grant activation; custody, recovery and operating approvals remain open.
 - **Purpose:** Obtain an evidenced decision for authorization evidence, organization accounts, named primary/backup custodians, three website super admins and operating coverage so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
 - **Exclusions:** Do not equate website Super Admin with billing/domain custody or treat draft roster names as approved appointments. This issue does not itself implement or activate a workflow.
