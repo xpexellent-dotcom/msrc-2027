@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(90);
+select no_plan();
 
 create schema authorization_contract_test;
 revoke all on schema authorization_contract_test from public, anon, authenticated, service_role;
@@ -15,6 +15,7 @@ create table authorization_contract_test.actors (
   user_id uuid primary key,
   active boolean not null default true,
   verified boolean not null default true,
+  phone_verified boolean not null default true,
   individually_identified boolean not null default true
 );
 create table authorization_contract_test.sessions (
@@ -22,7 +23,8 @@ create table authorization_contract_test.sessions (
   user_id uuid not null references authorization_contract_test.actors,
   active boolean not null default true,
   assurance text not null default 'aal2',
-  method text not null default 'totp'
+  method text not null default 'sms',
+  password_verified boolean not null default true
 );
 create table authorization_contract_test.role_grants (
   user_id uuid not null references authorization_contract_test.actors,
@@ -129,16 +131,17 @@ returns boolean language sql stable security invoker set search_path = '' as $$
   select auth.uid() is not null
     and exists (
       select 1 from authorization_contract_test.actors a
-      where a.user_id = auth.uid() and a.active and a.verified
+      where a.user_id = auth.uid() and a.active and a.verified and (privileged or a.phone_verified)
         and (not privileged or a.individually_identified)
     )
     and exists (
       select 1 from authorization_contract_test.sessions s
-      where s.user_id = auth.uid() and s.session_id::text = auth.jwt()->>'session_id' and s.active
+      where s.user_id = auth.uid() and s.session_id::text = auth.jwt()->>'session_id' and s.active and s.password_verified
+        and auth.jwt()->'amr' @> '[{"method":"password"}]'::jsonb
         and (not privileged or (
-          s.assurance = 'aal2' and s.method = 'totp'
+          s.assurance = 'aal2' and s.method = 'sms'
           and auth.jwt()->>'aal' = 'aal2'
-          and auth.jwt()->'amr' @> '[{"method":"totp"}]'::jsonb
+          and auth.jwt()->'amr' @> '[{"method":"password"},{"method":"mfa/phone"}]'::jsonb
         ))
     );
 $$;
@@ -354,7 +357,7 @@ select throws_ok($$select * from authorization_contract_test.sanitized_review$$,
 select throws_ok($$select * from authorization_contract_test.read_review('review-one')$$, '42501', 'permission denied for function read_review', 'Anonymous RPC requests are denied');
 reset role;
 
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000014","session_id":"20000000-0000-4000-8000-000000000014","aal":"aal2","amr":[{"method":"totp"}],"user_metadata":{"role":"superAdmin"},"app_metadata":{"role":"superAdmin"}}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000014","session_id":"20000000-0000-4000-8000-000000000014","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}],"user_metadata":{"role":"superAdmin"},"app_metadata":{"role":"superAdmin"}}';
 set local role authenticated;
 select is((select count(*) from authorization_contract_test.owned_records), 0::bigint, 'Authentication and forged role metadata do not grant owner access');
 select is((select count(*) from authorization_contract_test.private_metadata), 0::bigint, 'Even stale app/JWT role claims cannot grant original access');
@@ -380,7 +383,18 @@ select throws_ok($$update authorization_contract_test.owned_records set owner_id
 select throws_ok($$update authorization_contract_test.owned_records set edition_id = 'synthetic-2026' where id = 'owned-one'$$, '42501', 'new row violates row-level security policy for table "owned_records"', 'WITH CHECK prevents cross-edition reassignment');
 reset role;
 
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","session_id":"20000000-0000-4000-8000-000000000002","aal":"aal2","amr":[{"method":"totp"}]}';
+update authorization_contract_test.actors set phone_verified=false where user_id='10000000-0000-4000-8000-000000000001';
+set local role authenticated;
+select is((select count(*) from authorization_contract_test.owned_records),0::bigint,'Participant phone verification is required independently of email');
+reset role;
+update authorization_contract_test.actors set phone_verified=true where user_id='10000000-0000-4000-8000-000000000001';
+update authorization_contract_test.sessions set password_verified=false where user_id='10000000-0000-4000-8000-000000000001';
+set local role authenticated;
+select is((select count(*) from authorization_contract_test.owned_records),0::bigint,'Participant verification cannot replace password primary login');
+reset role;
+update authorization_contract_test.sessions set password_verified=true where user_id='10000000-0000-4000-8000-000000000001';
+
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","session_id":"20000000-0000-4000-8000-000000000002","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.review_packets order by id$$, $$values ('review-one'::text)$$, 'Abstract reviewer receives only a permitted assigned sanitized packet');
 select ok(not authorization_contract_test.has_grant('abstractReviewer', 'synthetic-2027', 'research', 'research-alpha', 'review-unassigned'), 'Assignment-scoped grant cannot authorize another resource');
@@ -435,21 +449,21 @@ reset role;
 update authorization_contract_test.role_grants set assignment_id = case when resource_id = 'review-related' then 'review-related-assignment' else 'review-assignment-one' end where user_id = '10000000-0000-4000-8000-000000000002';
 delete from authorization_contract_test.assignments where id = 'wrong-stage-event';
 
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000003","session_id":"20000000-0000-4000-8000-000000000003","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000003","session_id":"20000000-0000-4000-8000-000000000003","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.review_packets$$, $$values ('hackathon-one'::text)$$, 'Hackathon reviewer receives only assigned project packet');
 reset role;
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000004","session_id":"20000000-0000-4000-8000-000000000004","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000004","session_id":"20000000-0000-4000-8000-000000000004","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.review_packets$$, $$values ('thesis-one'::text)$$, '3MT reviewer receives only distinct assigned thesis packet');
 reset role;
 
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000005","session_id":"20000000-0000-4000-8000-000000000005","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000005","session_id":"20000000-0000-4000-8000-000000000005","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('validation-one'::text)$$, 'Scientific administrator receives safe validation outcomes');
 select is((select count(*) from authorization_contract_test.private_metadata), 0::bigint, 'Scientific administrator cannot retrieve original evidence metadata');
 reset role;
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000006","session_id":"20000000-0000-4000-8000-000000000006","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000006","session_id":"20000000-0000-4000-8000-000000000006","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('judging-one'::text)$$, 'Judging committee is limited to its assigned readiness category');
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Judging committee does not inherit abstract reviewer privileges');
@@ -459,7 +473,7 @@ set local role authenticated;
 select is((select count(*) from authorization_contract_test.purpose_records), 0::bigint, 'Edition-only judging grant cannot authorize all categories');
 reset role;
 update authorization_contract_test.role_grants set resource_id = 'judging-one' where role_name = 'judgingCommittee';
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000007","session_id":"20000000-0000-4000-8000-000000000007","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000007","session_id":"20000000-0000-4000-8000-000000000007","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.private_metadata$$, $$values ('presentation-one'::text)$$, 'Faculty judge receives only cleared assigned presentation metadata');
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Faculty judge does not inherit pre-event review access');
@@ -485,18 +499,18 @@ select is((select count(*) from authorization_contract_test.private_metadata), 0
 reset role;
 update authorization_contract_test.assignments set track_id = 'research-alpha' where user_id = '10000000-0000-4000-8000-000000000007';
 update authorization_contract_test.private_metadata set track_id = 'research-alpha' where id = 'presentation-one';
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000008","session_id":"20000000-0000-4000-8000-000000000008","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000008","session_id":"20000000-0000-4000-8000-000000000008","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('registration-one'::text)$$, 'Registration administrator receives only its operational purpose');
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Registration administrator cannot read scientific packets');
 reset role;
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000009","session_id":"20000000-0000-4000-8000-000000000009","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000009","session_id":"20000000-0000-4000-8000-000000000009","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('finance-one'::text)$$, 'Finance receives only the financial purpose');
 select ok(not authorization_contract_test.has_grant('finance', 'synthetic-2027', null, null, 'finance-one', 'differentFunction'), 'Function-scoped grant cannot authorize a different operational function');
 select is((select count(*) from authorization_contract_test.identity_details), 0::bigint, 'Finance cannot export private identity-bearing profiles');
 reset role;
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000010","session_id":"20000000-0000-4000-8000-000000000010","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000010","session_id":"20000000-0000-4000-8000-000000000010","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('entry-one'::text)$$, 'Check-in staff receives only assigned minimum entry purpose');
 select is((select count(*) from authorization_contract_test.owned_records), 0::bigint, 'Check-in staff cannot browse participant records');
@@ -506,7 +520,7 @@ set local role authenticated;
 select is((select count(*) from authorization_contract_test.purpose_records), 0::bigint, 'Edition-only check-in grant cannot authorize every day or workshop');
 reset role;
 update authorization_contract_test.role_grants set resource_id = 'entry-one' where role_name = 'checkInStaff';
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000011","session_id":"20000000-0000-4000-8000-000000000011","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000011","session_id":"20000000-0000-4000-8000-000000000011","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('content-one'::text)$$, 'Content editor receives only assigned draft purpose');
 select ok(authorization_contract_test.purpose_role('publishMedia') is null, 'Content editing does not imply media publication approval');
@@ -520,12 +534,12 @@ set local role authenticated;
 select is((select count(*) from authorization_contract_test.purpose_records), 0::bigint, 'Empty resource scope remains denied');
 reset role;
 update authorization_contract_test.role_grants set resource_id = 'content-one' where role_name = 'contentMediaEditor';
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000012","session_id":"20000000-0000-4000-8000-000000000012","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000012","session_id":"20000000-0000-4000-8000-000000000012","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('sponsor-one'::text)$$, 'Sponsorship/PR receives only its permitted inquiry purpose');
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Sponsorship access never implies scientific access');
 reset role;
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000013","session_id":"20000000-0000-4000-8000-000000000013","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000013","session_id":"20000000-0000-4000-8000-000000000013","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.private_metadata$$, $$values ('original-one'::text)$$, 'Scoped MFA Super Admin receives cleared original evidence only');
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('grant-one'::text)$$, 'Super Admin has explicit role administration purpose, not all duties');
@@ -558,19 +572,19 @@ select is((select count(*) from authorization_contract_test.private_metadata), 0
 reset role;
 update authorization_contract_test.sessions set assurance = 'aal2', method = 'email' where user_id = '10000000-0000-4000-8000-000000000013';
 set local role authenticated;
-select is((select count(*) from authorization_contract_test.private_metadata), 0::bigint, 'Email verification is not the required authenticator-app factor');
+select is((select count(*) from authorization_contract_test.private_metadata), 0::bigint, 'Email verification is not the required SMS second factor');
 reset role;
-update authorization_contract_test.sessions set method = 'totp' where user_id = '10000000-0000-4000-8000-000000000013';
+update authorization_contract_test.sessions set method = 'sms' where user_id = '10000000-0000-4000-8000-000000000013';
 
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","session_id":"20000000-0000-4000-8000-000000000002","aal":"aal1","amr":[{"method":"password"}]}';
 set local role authenticated;
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Reviewer without trusted token MFA assurance receives no packet');
 reset role;
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","session_id":"20000000-0000-4000-8000-000000000001","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","session_id":"20000000-0000-4000-8000-000000000001","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Another actor session ID cannot satisfy current identity');
 reset role;
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","session_id":"20000000-0000-4000-8000-000000000001","aal":"aal2","amr":[{"method":"totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","session_id":"20000000-0000-4000-8000-000000000001","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 insert into authorization_contract_test.role_grants(user_id, role_name, edition_id, track, track_id)
 values ('10000000-0000-4000-8000-000000000001', 'abstractReviewer', 'synthetic-2027', 'research', 'research-alpha');
 insert into authorization_contract_test.assignments(id, user_id, resource_id, edition_id, track, track_id, kind)

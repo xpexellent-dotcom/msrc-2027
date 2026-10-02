@@ -1,151 +1,141 @@
-# BL-AUTH-05/06 — Closed staff MFA and session policy foundations
+# BL-AUTH-05/06 — Closed SMS authentication and session foundations
 
-Requirements: AUTH-04/05, ROL-12, SEC-01/02/06, LOC-01, ACC-01, ERR-01.
-Authority: explicit bounded organizer task, 2 October 2026; ORG-010/011/012 and ENG-011.
+Requirements: AUTH-01/02/04/05/06, ROL-12, SEC-01/02/06, LOC-01, ACC-01, ERR-01.
+Authority: bounded organizer task, 2 October 2026; ORG-010/011/012, superseding
+authentication decision ORG-013 (3 October 2026), and ENG-011's continuing closed boundaries.
 
 ## Scope and release state
 
-This is a reviewable local synthetic enrollment/challenge and policy lab. It creates no
-managed account, grant, invitation, live factor, domain record or email. All 15 operational
-workflows and both operational/privileged readiness flags remain false. Participant signup,
-CMS editing, payments, scientific review and other operational modules remain excluded.
+Participants use managed email/password and must verify email **and phone**, without MFA.
+Staff/admins use password **then SMS OTP** as phone MFA. Verification does not grant a role.
+This local review lab uses synthetic identities, a simulated successful password step and
+an ephemeral test inbox. It collects no real password/phone and sends no SMS or email.
+It creates no managed account, invitation, grant, live factor, reset or operational record.
+Participant signup, CMS, registration, submissions, payments, reviews, workshops, check-in
+and certificates remain excluded. All 15 operational flags and both readiness flags stay false.
 
-Production Supabase `ecemjggwlzqpjcwmchrl` is isolated from test data. Its existing
-`20261002173712_persisted_authorization.sql` is unchanged and never reapplied here.
-The new CLI-generated `20261002193800_staff_mfa_session_foundations.sql` is **review-only**:
-GitHub's isolated synthetic stack runs it; this task applies no hosted migration.
+Production Supabase `ecemjggwlzqpjcwmchrl` is isolated from all test data. The deployed
+`20261002173712_persisted_authorization.sql` stays unchanged and is never reapplied.
+The unmerged `20261002193800_staff_mfa_session_foundations.sql` remains **review-only**;
+it overrides the historical TOTP assurance helper and own-context RPC within the same
+additive session migration. Only GitHub's disposable synthetic stack runs it.
+No hosted migration or reset/seed/full historical push is performed.
 
 ## Local preview and failure recovery
 
-Use Node 24.x and pinned pnpm 11.19.0 in the new worktree. On this Windows machine, first
-add the original checkout's `.tools/node` directory to this terminal's PATH, then dot-source
-`scripts/use-local-node.ps1`. Run `pnpm install --frozen-lockfile`, set the server-only
-environment variable `MSRC_AUTH_PREVIEW=synthetic`, clear `VERCEL_ENV` and run `pnpm dev`.
-Next binds to 127.0.0.1. Open `/en/staff-security-preview` or `/ar/staff-security-preview`.
-Do not configure a hosted database for the lab; its ephemeral service has no provider client.
+Use Node 24.x and pinned pnpm 11.19.0. On this machine add the original checkout's
+`.tools/node` directory to PATH, then dot-source `scripts/use-local-node.ps1`.
+Run `pnpm install --frozen-lockfile`, set server-only `MSRC_AUTH_PREVIEW=synthetic`,
+clear `VERCEL_ENV` and run `pnpm dev`. Next binds to 127.0.0.1. Open
+`/en/staff-security-preview` or `/ar/staff-security-preview`. Configure no hosted database.
+The persistent local review server uses `http://127.0.0.1:3220`; automated auth tests use 3211.
 
-The persistent local review server is available at
-`http://127.0.0.1:3220/en/staff-security-preview` and
-`http://127.0.0.1:3220/ar/staff-security-preview` while its process remains running.
-This local review address is separate from the automated browser server on port 3211.
+Start a synthetic participant session; send/verify the separate email and SMS codes from
+the test inbox. Both markers are required for the own-session synthetic probe, which stays
+AAL1 with no MFA factor. Start staff mode; the password step is explicitly simulated, then
+enroll/challenge a synthetic phone factor and verify its SMS code for a synthetic AAL2 probe.
+The inbox code appears only in that send response, never in status, URLs, audit events,
+browser storage or logs. Server memory stores keyed code hashes. Codes are random,
+single-use, invalidated on replacement, expiring and protected by serialized verification
+and bounded failed attempts. Lab limits are engineering test bounds, **not approved live
+SMS policy**. Restart discards all synthetic identities, factors, inboxes and sessions.
 
-Start a synthetic staff session, enroll its fresh QR/manual key in a test authenticator,
-enter the six-digit code, and exercise the synthetic assurance probe. Genuine app code
-verification, single-use counters, bounded challenge attempts and serialized concurrent
-requests are implemented. Lab abuse/challenge limits are engineering bounds, not approved
-live business settings. The page labels successful assurance as synthetic and live access
-as closed. Use a test factor only; discard it after review. Restarting the process discards
-every synthetic identity, factor and session. Keys and codes stay out of browser storage,
-URLs, audit events and diagnostic logs; setup material appears only during enrollment.
-
-Keyboard focus, retry errors, polite success/expiry announcements and manual key setup
-support English and Arabic/RTL. Entered codes/setup stay in transient memory across
-in-app locale changes; reload clears them. A failed provider/QR/audit operation returns a
-sanitized failure and denies existing synthetic assurance. No unsaved work is promised
-durable: actual saved-draft restoration remains for the future editing workflow.
+English/Arabic instructions, full RTL, LTR code entry, Arabic digit normalization,
+keyboard/paste/autofill, focus/status/error handling and retry support are required.
+Transient entered data survives an in-app locale change and recoverable request failure;
+reload clears it. Provider/audit failure returns sanitized feedback and denies assurance.
+Saved-draft recovery belongs to its later workflow; no unsaved input is promised durable.
 
 ## Transport and provider boundary
 
-Page/API gates require exact opt-in, loopback Host and no deployment environment.
-Every Vercel environment returns 404 even if the flag is set; local production builds
-can run the lab. POST requires matching Origin, JSON, an exact action allowlist and a
-512-byte body ceiling. Actor IDs, timestamps, roles and factor IDs cannot be overposted.
-An opaque HttpOnly SameSite=Strict cookie is scoped to `/api/auth-preview`; it conveys only
-synthetic state and is never returned in JSON. Responses use private/no-store headers.
-Production analytics excludes this route; the existing robots exclusion remains.
+Page/API require exact opt-in, loopback Host and no deployment environment. Every Vercel
+environment returns 404 even if the flag is set; a local production build can run the lab.
+POST requires matching Origin, JSON, an exact action allowlist and a 512-byte body ceiling.
+Client actor/time/role/factor overposting is rejected. Opaque HttpOnly SameSite=Strict
+cookie is API-scoped and never returned in JSON. Responses are private/no-store; the
+route is excluded from indexing and production analytics.
 
-The injectable typed Supabase SDK adapter covers enroll/challenge/verify with sanitized
-results. It has no live configured client or reset/unenroll operation, and provider success
-confers no authority. `MANAGED_STAFF_MFA_READY` remains false. Current official
-[TOTP documentation](https://supabase.com/docs/guides/auth/auth-mfa/totp) and
+The injectable typed Supabase SDK adapter enrolls a **phone** factor, challenges with
+`channel: "sms"`, and verifies without exposing provider credentials/errors. There is no
+live client or reset/unenroll operation. `MANAGED_STAFF_MFA_READY` remains false.
+Provider success does not establish authorization. Official
+[phone MFA](https://supabase.com/docs/guides/auth/auth-mfa/phone),
+[phone verification](https://supabase.com/docs/guides/auth/phone-login) and
 [session documentation](https://supabase.com/docs/guides/auth/sessions) informed the contract;
-installed SDK types check the integration. Full live SDK/cookie/refresh exchange is later.
+installed SDK types check it. Primary phone OTP is distinct from privileged phone MFA.
+Managed `mfa/phone` AMR identifies the factor, not SMS versus WhatsApp delivery; the
+trusted adapter, approved configuration and real delivery UAT must enforce SMS-only transport.
+Full live SDK/cookie/refresh exchange and phone change/loss recovery remain closed.
 
 ## Session and database evidence
 
-ORG-012 adopts participant 72h absolute maximum from original session creation;
-privileged limits stay 30min idle/8h absolute. Refresh and MFA challenge never change
-the absolute origin, and refresh/context reads never count as activity. Server policy
-checks fixed origin, current account and session existence/revocation, token expiry,
-managed not-after, individual identity and current verified TOTP assurance. Equality at
-a limit expires. Suspended/offboarded or factor-removed sessions cannot preserve authority
-with a previously issued token. Sensitive policy checks deny with recent-auth age unset.
-Any active staff grant selects the privileged limits across editions; selecting another
-configured edition cannot downgrade a staff session to participant policy.
+ORG-012 keeps participant 72h absolute from original managed session creation; any active
+staff grant selects 30min idle/8h absolute across editions. Refresh, challenge and activity
+cannot move that origin; context/refresh reads do not count as activity. Equality expires.
+Checks use current managed account/session, revocation cutoff, token expiry and not-after.
+Participants require current managed email and phone confirmations without MFA. Staff
+require individual identity, password AMR followed by current verified phone-MFA AMR,
+factor ownership/lifecycle and AAL2. Old TOTP, generic/primary SMS OTP, stale/out-of-order
+proof or factor deletion cannot preserve staff assurance. Logout, suspension/offboarding
+or factor-reset-revoked sessions deny. Sensitive actions deny while recent-auth age is unset.
 
-The additive private `msrc_sessions` schema holds approved policy, immutable session
-origin/server activity, revocation cutoffs and append-only safe audit references. Forced
-RLS and denied client/service-role table grants apply. Narrow own-context/logout RPCs
-inspect current managed Auth evidence with fixed search paths and explicit execution
-grants. The public activity wrapper observes only while closed; only the private activity
-primitive is reserved for future successful domain transactions. No resource facts or
-operational authorization are returned. Security
-audit failure rolls back database transitions. Named references in maintenance evidence
-are attribution foundations; they do not establish a verified live human operator.
+Private `msrc_sessions` tables hold policy, immutable origin/server activity, revocation
+cutoffs and append-only safe audit references with forced RLS and denied client table grants.
+Narrow own-context/logout RPCs have fixed search paths and explicit execution grants.
+Public heartbeat observes only while closed; the private activity primitive is reserved
+for future successful authorized domain transactions. No resource facts or operational
+authorization are returned. Audit failure rolls back security transitions. Maintenance
+attribution references do not establish an approved live human reset operator.
 
 ## Changed-files map
 
-| Area | Changed files | Purpose |
+| Area | Files | Purpose |
 | --- | --- | --- |
-| MFA service, provider and QR | `src/features/auth/mfa-contract.ts`, `mfa-provider.server.ts`, `preview.server.ts`, `totp.server.ts` | Typed closed contract, injectable managed-provider foundation, ephemeral synthetic lab, genuine TOTP and local QR generation. |
-| Bilingual preview and API transport | `src/app/[locale]/(auth)/staff-security-preview/page.tsx`; `src/app/api/auth-preview/route.ts`; `src/lib/auth-preview.server.ts`; `src/features/auth/staff-security-copy.ts`, `staff-security-preview.tsx`; `src/styles/staff-security-preview.css` | Local-only route/API guards, bounded same-origin transport, EN/AR setup, failure/retry, assurance and session instructions. |
-| Session policy and managed adapter | `src/config/session-policy.ts`; `src/lib/auth/session-policy.server.ts`; `src/lib/supabase/session.server.ts` | Confirmed 72-hour participant cap, privileged idle/absolute limits, fail-closed policy evaluation and fresh own-session evidence. |
-| Review-only migration and SQL tests | `supabase/migrations/20261002193800_staff_mfa_session_foundations.sql`; `supabase/tests/database/session_foundations.test.sql` | Private policy/session/revocation/audit foundations and actual-schema permission/lifecycle assertions. No hosted application during this task. |
-| Browser, unit and isolated CI tests | `tests/e2e/staff-security.spec.ts`, `auth-preview-unavailable.spec.ts`; `tests/unit/auth-preview*.test.ts`, `mfa-provider.test.ts`, `persisted-session.test.ts`, `session-policy.test.ts`, `totp.test.ts`; `tests/integration/session-concurrency.test.ts`, `session-denial.test.ts`; `.github/workflows/ci.yml`; `playwright.auth.config.ts`, `playwright.config.ts` | TOTP/UI/closed-route checks, failure and policy boundaries, isolated database concurrency/denial, and separate browser configurations without credential-bearing traces. |
-| Supporting configuration and dependencies | `.env.example`, `.gitignore`, `eslint.config.mjs`, `package.json`, `pnpm-lock.yaml` | Explicit local opt-in, ignored review artifacts, check configuration, pinned QR dependency and reproducible installation. |
-| Current requirements and handoff | `docs/PROJECT_BRIEF.md`, `REQUIREMENTS.md`, `ARCHITECTURE.md`, `DECISIONS.md`, `PROGRESS.md`; `docs/backlog/06-authentication.md`, `DECISION_REQUIRED.md`; `docs/features/persisted-authorization.md`, `staff-security-foundations.md` | Organizer decisions, superseding session requirements, remaining release gates, scoped feature contract and observed receipts. The original v0.5 source snapshot is preserved. |
+| Preview/provider/code service | `src/features/auth/mfa-contract.ts`, `mfa-provider.server.ts`, `preview.server.ts`, `sms-test.server.ts` | Separate participant verification and ordered staff SMS MFA; ephemeral hashed codes and sanitized adapter. Obsolete TOTP/QR code and dependency removed. |
+| UI/transport | `src/app/[locale]/(auth)/staff-security-preview/page.tsx`; `src/app/api/auth-preview/route.ts`; `src/lib/auth-preview.server.ts`; `src/features/auth/staff-security-copy.ts`, `staff-security-preview.tsx`; `src/styles/staff-security-preview.css` | Local guarded lab, separate synthetic inboxes, EN/AR/RTL and failure/retry states. |
+| Policy/identity | `src/config/authentication-policy.ts`, `session-policy.ts`; `src/lib/auth/session-policy.server.ts`; `src/lib/supabase/session.server.ts`; `src/lib/permissions/contract.ts`, `persisted-context.ts`, `authorize.server.ts` | Approved policy with unresolved settings null; current verification/password/phone assurance and fixed origin. |
+| Review-only SQL | `supabase/migrations/20261002193800_staff_mfa_session_foundations.sql`; `supabase/tests/database/session_foundations.test.sql`, `persisted_authorization.test.sql`, `authorization_contract.test.sql` | Private policy/revocation/audit, historical helper override, real-schema permission and lifecycle assertions. |
+| Coverage | Auth/provider/session/identity/authorization unit tests; `tests/e2e/staff-security.spec.ts`, `auth-preview-unavailable.spec.ts`; `tests/integration/session-concurrency.test.ts`, `session-denial.test.ts`; `playwright.auth.config.ts`; `.github/workflows/ci.yml` | Ordered assurance, verification, single-use/failure/concurrency/revocation and local-only UI. Auth traces/screenshots/failure snapshots disabled to protect visible test codes. |
+| Docs/dependencies | `AGENTS.md`; current requirements, decisions, architecture, progress, auth backlog/index and feature notes; `package.json`, `pnpm-lock.yaml` | ORG-013 supersession and gates; original source snapshot preserved; unused QR dependencies removed. |
 
 ## Verification, UAT and configuration
 
-Executed commands, exact CI/Preview receipts and failures are recorded in PROGRESS.
-Local SQL tests are intentionally unrun: no Docker requirement on this computer.
-Database migrations, pgTAP and Data API checks run solely in isolated GitHub CI.
-Actual parallel database connections test expired-session activity and suspension races.
-Their write fixtures require GitHub Actions, the exact isolated project/container and
-validated loopback settings; rows disappear at disposable CI runner teardown. Private forced-RLS
-tables intentionally have no client policies. The narrow authenticated SECURITY DEFINER
-RPC advisory remains a reviewed exception, with fixed search path and own-session checks.
-Automated browser traces/screenshots are disabled while secrets could be visible; visual
-evidence masks setup key, QR and entered code. Human screen-reader and real authenticator
-UAT are separate release gates, and synthetic success is not production readiness.
+Executed commands and source-specific CI/Preview receipts are in PROGRESS. Earlier dated
+TOTP receipts verify that earlier implementation only. The requester reported its preview
+worked; this does not establish the new SMS flow or real delivery. Local SQL is deliberately
+**NOT TESTED**: no Docker requirement on this computer. Isolated GitHub CI runs migrations,
+pgTAP, strict generated types, Data API integration and actual parallel connection races.
+Fixtures require GitHub Actions, validated loopback and the exact isolated project/container;
+they disappear at disposable runner teardown. Private forced-RLS tables intentionally have
+no client policies. SECURITY DEFINER own-context RPCs remain a reviewed advisory exception.
 
-Executed local automated evidence includes 27/27 synthetic authentication browser tests
-across English/Arabic and desktop/tablet/mobile, followed by six focused keyboard/axe reruns.
-The six masked setup screenshots were inspected for responsive layout and RTL parity.
-These checks use computed genuine TOTP codes against synthetic factors; they are not
-human authenticator or screen-reader UAT. Final-source application and isolated database
-CI receipts are recorded separately in PROGRESS.
+Human screen-reader/device and managed-provider UAT remain **NOT TESTED**. Before release:
 
-Human UAT is **NOT TESTED**. Review the local synthetic preview with a disposable test
-authenticator account and complete the following before claiming this gate passed:
+- [ ] Review EN/AR with keyboard and screen reader: focus/announcements, RTL, code paste/autofill, Arabic digits, locale change and input retained after recoverable transport failure.
+- [ ] Participant email only and phone only each deny; both verified allow only the synthetic own-session probe, with AAL1, no MFA factor or staff access.
+- [ ] Test staff password then SMS on named phones in an isolated approved managed environment; confirm SMS-only delivery and reject primary OTP/TOTP/missing or out-of-order password proof.
+- [ ] Verify replaced/reused/expired/invalid codes, approved abuse/resend behavior, delivery failure and recovery after throttling.
+- [ ] Refresh a participant token and confirm its original 72h deadline; exercise staff 30min idle/8h absolute expiry, logout, suspension and factor-change/reset revocation.
+- [ ] Rehearse lost/changed phone and recovery only after approved approver/operator/procedure; no silent password-recovery fallback.
+- [ ] Restart the local lab and confirm old synthetic identities/sessions disappear.
 
-- [ ] Enroll once by scanning QR and separately by entering the manual key in a real test authenticator app; verify each with the app's current code.
-- [ ] Review English/Arabic with keyboard and a screen reader: focus, labels, announcements, RTL layout, LTR key/code entry and preserved input on an in-app language change.
-- [ ] Try invalid and stale codes, an expired challenge and a recoverable request failure; verify clear retry instructions and retained valid input.
-- [ ] Refresh a participant session and confirm its original absolute deadline is unchanged; check staff idle/absolute expiry and recovery instructions.
-- [ ] Exercise logout, simulated suspension and simulated factor-reset revocation; confirm denial, then start a fresh synthetic identity and reenroll a test factor. This does not approve a live reset procedure.
-- [ ] Restart the local process and confirm previous synthetic identities, sessions and factors disappear; start again without retaining setup material.
-
-Live managed-provider enrollment, cookie/refresh exchange, real factor-loss recovery,
-staff activation and security-email delivery remain **BLOCKED** by the release decisions
-and environment approvals below. No human UAT or live-provider result is inferred from
-automated synthetic or isolated CI success.
-
-Remaining decisions: recovery approver/operator/verified reset procedure, recent-auth
-maximum age, timeout-warning lead, privacy/retention/location, live security-email
-provider/sender, production plan/region/operational approvals and two intended Super Admins.
-No real invitation, factor reset or email is performed. Console/test email only.
+Live delivery/enrollment, cookie/refresh exchange, phone recovery/reset, security-email
+delivery and staff activation are **BLOCKED**. Remaining decisions: SMS provider/sender/
+budget and expiry/resend/attempt/account/IP controls; phone-loss/change/reset procedure and
+recovery approver/operator; recent-auth age and warning lead; privacy/retention/location;
+security-email provider/sender; production plan/region/operational approvals; two intended
+Super Admins. Administrator login addresses remain private. Console/test email and synthetic
+SMS only; no real communication or hosted mutation is performed.
 
 ## Rollback and next slice
 
-Stop the local process and clear `MSRC_AUTH_PREVIEW`; memory-only factors/sessions vanish.
-Revert this branch's application changes if needed. No production schema rollback is
-needed because the new migration is not applied there. On an isolated CI database, recreate
-the disposable stack rather than deleting retained production evidence. A future hosted
-deployment requires separate source review and explicit authorization, with a data-aware
-rollback plan; never blindly push historical migrations.
+Stop the local process and clear `MSRC_AUTH_PREVIEW`; memory-only state disappears.
+Revert branch application changes if needed. No production schema rollback is required
+because the session migration is unhosted. Recreate the isolated CI stack rather than
+delete retained production evidence. Future hosted migration requires review and explicit
+authorization with a data-aware rollback plan; never blindly push historical migrations.
 
-Next smallest task: approve the recovery/recent-auth policy and complete an isolated
-managed-Auth test environment with named-human MFA and session-lifecycle UAT. Integrate
-successful domain actions with server activity and feature-specific AuthorityReader/RLS
-only in a later bounded task. Keep staff grants/CMS and all operational releases closed.
+Next smallest task: approve SMS provider/operating and verified recovery/recent-auth
+settings, then integrate and test managed password → SMS in an isolated approved Auth
+environment with named-human delivery/lifecycle UAT. Later bounded tasks implement participant
+signup and domain activity/AuthorityReader/RLS. Keep staff grants/CMS and operations closed.

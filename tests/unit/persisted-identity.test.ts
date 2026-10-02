@@ -21,8 +21,8 @@ function contextFixture() {
     schemaVersion: 1, editionId,
     principal: { userId: actorId, sessionId },
     actor: {
-      id: actorId, state: "active", emailVerified: true, individuallyIdentified: true,
-      session: { id: sessionId, active: false, assurance: "aal2", factor: "totp" as "totp" | null },
+      id: actorId, state: "active", emailVerified: true, phoneVerified: true, individuallyIdentified: true,
+      session: { id: sessionId, active: false, assurance: "aal2", factor: "sms" as "sms" | null, passwordVerified: true },
     },
     grants: [{
       actorId, editionId, role: "finance", state: "active",
@@ -190,12 +190,10 @@ describe("verified bearer to persisted own-context boundary (SEC-01/02, ROL-12)"
     expect(client.rpc).toHaveBeenCalledTimes(2);
   });
 
-  it("reports current suspended access as closed metadata rather than caching old grants", async () => {
-    const current = contextFixture();
-    const suspended = { ...current, actor: { ...current.actor, state: "suspended", individuallyIdentified: false }, grants: [] };
-    client.rpc.mockResolvedValueOnce({ data: current, error: null }).mockResolvedValueOnce({ data: suspended, error: null });
+  it("denies the same bearer after suspension revokes the persisted context", async () => {
+    client.rpc.mockResolvedValueOnce({ data: contextFixture(), error: null }).mockResolvedValueOnce({ data: null, error: null });
     expect((await readVerifiedAccessContext(token, editionId)).state).toBe("verified");
-    expect(await readVerifiedAccessContext(token, editionId)).toEqual({ state: "verified", context: suspended });
+    expect(await readVerifiedAccessContext(token, editionId)).toEqual({ state: "denied" });
   });
 });
 
@@ -238,11 +236,13 @@ describe("persisted metadata parser rejects authority confusion and malformed sc
     { path: ["actor", "id"], value: otherActorId },
     { path: ["actor", "state"], value: "approved" },
     { path: ["actor", "emailVerified"], value: false },
+    { path: ["actor", "phoneVerified"], value: "verified" },
+    { path: ["actor", "session", "passwordVerified"], value: false },
     { path: ["actor", "individuallyIdentified"], value: "true" },
     { path: ["actor", "session", "id"], value: otherSessionId },
     { path: ["actor", "session", "active"], value: true },
     { path: ["actor", "session", "assurance"], value: "aal3" },
-    { path: ["actor", "session", "factor"], value: "sms" },
+    { path: ["actor", "session", "factor"], value: "totp" },
     { path: ["actor", "session", "factor"], value: null },
     { path: ["actor", "session", "assurance"], value: "aal1" },
     { path: ["grants"], value: null },
@@ -292,7 +292,7 @@ describe("persisted metadata parser rejects authority confusion and malformed sc
     input.actor.session.assurance = "aal1";
     input.actor.session.factor = null;
     const parsed = parsePersistedAccessContext(input, actorId, editionId);
-    expect(parsed?.actor.session).toEqual({ id: sessionId, active: false, assurance: "aal1", factor: null });
+    expect(parsed?.actor.session).toEqual({ id: sessionId, active: false, assurance: "aal1", factor: null, passwordVerified: true });
     expect(parsed?.privilegedAccessReady).toBe(false);
   });
 

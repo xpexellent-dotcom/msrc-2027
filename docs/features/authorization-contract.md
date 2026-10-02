@@ -25,7 +25,9 @@ they are not approved production data collection or a domain schema.
 
 Every permit requires current active verified account/session, matching actor/resource
 IDs and an active edition-scoped grant. All staff require an individually identified
-account and trusted AAL2 **plus TOTP** assurance. Participant permission does not require
+account and trusted AAL2 **plus password then current phone MFA** assurance under ORG-013.
+The provider adapter explicitly selects SMS; AMR does not identify the delivery channel.
+Participant permission requires both email and phone verification and does not require
 staff MFA, but still requires its explicit grant and own-record boundary.
 
 | Role | Representative allowed purpose | Mandatory boundary / exclusions |
@@ -185,4 +187,6 @@ no wildcard trust. Reverting this PR removes only the contract/tests/docs; no ho
 rollback applies. Test SQL rolls back itself and must never be run on a linked project.
 
 Next: BL-AUTH-01 scoped persisted grants and verified identity integration, followed by
-BL-AUTH-05 TOTP enrollment/recovery before privileged activation; then protected CMS.
+BL-AUTH-05 password → SMS phone-MFA with approved provider/operating/recovery configuration
+before privileged activation; then protected CMS. The review-only override preserves the
+historical deployed TOTP migration and all closed operational gates.

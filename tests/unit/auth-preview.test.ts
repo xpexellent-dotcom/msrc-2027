@@ -1,15 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSyntheticAuthPreview, type PreviewAudit } from "@/features/auth/preview.server";
-import { totpAt } from "@/features/auth/totp.server";
 import type { PreviewKind } from "@/features/auth/mfa-contract";
 import { SESSION_POLICY } from "@/config/session-policy";
 
-const png = "data:image/png;base64,c3ludGhldGljLXRlc3Q=";
 let at: number;
 beforeEach(() => { at = 1_800_000_000_000; });
-
 function lab(extra: Parameters<typeof createSyntheticAuthPreview>[0] = {}) {
-  return createSyntheticAuthPreview({ enabled: () => true, now: () => at, qr: async () => png, ...extra });
+  return createSyntheticAuthPreview({ enabled: () => true, now: () => at, ...extra });
 }
 type Lab = ReturnType<typeof lab>;
 async function start(service: Lab, kind: PreviewKind = "staff") {
@@ -17,140 +14,162 @@ async function start(service: Lab, kind: PreviewKind = "staff") {
   expect(result.state).toBe("ok");
   return result.token!;
 }
-async function enroll(service: Lab, token: string) {
-  const result = await service.execute(token, { type: "enroll" });
-  expect(result.code).toBe("enrolled");
-  return result.view!.enrollment!.secret;
+async function send(service: Lab, token: string, type: "enroll" | "challenge" | "challenge-email") {
+  const result = await service.execute(token, { type });
+  expect(result.state).toBe("ok");
+  expect(Boolean(result.view?.testMessage?.code.match(/^\d{6}$/))).toBe(true);
+  return result.view!.testMessage!.code;
 }
 async function assure(service: Lab, token: string) {
-  const secret = await enroll(service, token);
-  expect((await service.execute(token, { type: "verify", code: totpAt(secret, at) })).code).toBe("verified");
-  return secret;
+  const code = await send(service, token, "enroll");
+  expect((await service.execute(token, { type: "verify", code })).code).toBe("verified");
+  return code;
+}
+async function verifyParticipant(service: Lab, token: string) {
+  const email = await send(service, token, "challenge-email");
+  expect((await service.execute(token, { type: "verify-email", code: email })).code).toBe("email_verified");
+  const sms = await send(service, token, "challenge");
+  expect((await service.execute(token, { type: "verify", code: sms })).code).toBe("phone_verified");
 }
 
-describe("local ephemeral staff MFA lab (AUTH-04, ROL-12, SEC-01/06)", () => {
-  it("generates separate opaque identities with no hosted, email or production authority", async () => {
+describe("local synthetic password then staff SMS MFA", () => {
+  it("starts separate password-proved identities without collecting credentials or creating authority", async () => {
     const service = lab();
     const first = await start(service);
     const second = await start(service);
     expect(first).toMatch(/^[\w-]{43}$/);
     expect(first).not.toBe(second);
-    const result = await service.execute(first, { type: "status" });
-    expect(result.view).toMatchObject({ synthetic: true, assurance: "aal1", factor: "none", previewAccessAllowed: false, operationalAccessReady: false, privilegedAccessReady: false });
-    expect(result.view).not.toHaveProperty("token");
-    expect(result.view).not.toHaveProperty("actorId");
-    expect(await service.execute("unknown-actor-cookie", { type: "protected" })).toEqual({ state: "denied", code: "no_session" });
+    expect((await service.execute(first, { type: "status" })).view).toMatchObject({
+      synthetic: true, passwordVerified: true, emailVerified: true, phoneVerified: false,
+      assurance: "aal1", factor: "none", previewAccessAllowed: false,
+      operationalAccessReady: false, privilegedAccessReady: false,
+    });
+    expect(await service.execute("other-cookie", { type: "protected" })).toEqual({ state: "denied", code: "no_session" });
   });
 
-  it("denies missing MFA, supports manual/QR setup, and allows only the synthetic assurance probe", async () => {
+  it("requires the SMS code after password and returns the test code only during a synthetic send", async () => {
     const service = lab();
     const token = await start(service);
     expect((await service.execute(token, { type: "protected" })).code).toBe("mfa_required");
-    const enrolled = await service.execute(token, { type: "enroll" });
-    const setup = enrolled.view!.enrollment!;
-    expect(setup.secret).toMatch(/^[A-Z2-7]{32}$/);
-    expect(new URL(setup.uri).searchParams.get("secret")).toBe(setup.secret);
-    expect(setup.qrDataUrl).toBe(png);
-    expect(enrolled.view).toMatchObject({ factor: "pending", challengePending: true, assurance: "aal1" });
+    const enrollment = await service.execute(token, { type: "enroll" });
+    expect(enrollment.view).toMatchObject({ factor: "pending", assurance: "aal1", challengePending: true,
+      testMessage: { channel: "sms", delivery: "test-only", destination: "Synthetic phone •••• 0000" } });
+    expect(enrollment.view).not.toHaveProperty("enrollment");
+    const code = enrollment.view!.testMessage!.code;
+    expect((await service.execute(token, { type: "status" })).view).not.toHaveProperty("testMessage");
     expect((await service.execute(token, { type: "enroll" })).code).toBe("factor_already_enrolled");
-    const verified = await service.execute(token, { type: "verify", code: totpAt(setup.secret, at) });
-    expect(verified.view).toMatchObject({ factor: "verified", assurance: "aal2", challengePending: false, previewAccessAllowed: true, privilegedAccessReady: false });
-    expect(verified.view).not.toHaveProperty("enrollment");
-    expect((await service.execute(token, { type: "status" })).view).not.toHaveProperty("enrollment");
+    const verified = await service.execute(token, { type: "verify", code });
+    expect(verified).toMatchObject({ code: "verified", view: { factor: "verified", phoneVerified: true,
+      assurance: "aal2", previewAccessAllowed: true, privilegedAccessReady: false } });
+    expect(verified.view).not.toHaveProperty("testMessage");
     expect((await service.execute(token, { type: "protected" })).code).toBe("protected_allowed");
+    expect((await service.execute(token, { type: "verify", code })).code).toBe("challenge_required");
   });
 
-  it("creates actual PNG QR pixels without an external service", async () => {
-    const service = createSyntheticAuthPreview({ enabled: () => true, now: () => at });
-    const token = await start(service);
-    const result = await service.execute(token, { type: "enroll" });
-    const encoded = result.view!.enrollment!.qrDataUrl;
-    const bytes = Buffer.from(encoded.split(",")[1], "base64");
-    expect([...bytes.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
-  });
-
-  it("keeps enrollment data and verification isolated between two synthetic actors", async () => {
+  it("isolates codes between two actor cookies", async () => {
     const service = lab();
     const first = await start(service);
     const second = await start(service);
-    await assure(service, first);
-    expect((await service.execute(second, { type: "protected" })).code).toBe("mfa_required");
-    expect((await service.execute(second, { type: "verify", code: "123456" })).code).toBe("mfa_required");
-    const secondState = await service.execute(second, { type: "status" });
-    expect(secondState.view).toMatchObject({ factor: "none", assurance: "aal1" });
+    const firstCode = await send(service, first, "enroll");
+    expect((await service.execute(second, { type: "verify", code: firstCode })).code).toBe("mfa_required");
+    expect((await service.execute(second, { type: "status" })).view).toMatchObject({ factor: "none", phoneVerified: false });
   });
 
-  it("consumes a challenge once under concurrent verification and rejects code replay after reauthentication", async () => {
+  it("serializes verification and consumes each challenge once", async () => {
     const service = lab();
     const token = await start(service);
-    const secret = await enroll(service, token);
-    const code = totpAt(secret, at);
+    const code = await send(service, token, "enroll");
     const results = await Promise.all([service.execute(token, { type: "verify", code }), service.execute(token, { type: "verify", code })]);
     expect(results.map((result) => result.code).sort()).toEqual(["challenge_required", "verified"]);
-    const reauth = await service.execute(token, { type: "reauthenticate" });
-    expect(reauth.token).not.toBe(token);
-    expect(reauth.view).toMatchObject({ factor: "verified", assurance: "aal1", challengeRequired: true, previewAccessAllowed: false });
-    expect((await service.execute(token, { type: "protected" })).code).toBe("no_session");
-    const nextToken = reauth.token!;
-    expect((await service.execute(nextToken, { type: "verify", code })).code).toBe("challenge_required");
-    expect((await service.execute(nextToken, { type: "challenge" })).code).toBe("challenge_created");
-    expect((await service.execute(nextToken, { type: "verify", code })).code).toBe("invalid_code");
-    at += 30_000;
-    expect((await service.execute(nextToken, { type: "verify", code: totpAt(secret, at) })).code).toBe("verified");
   });
 
-  it("serializes concurrent enrollments and does not expose a second secret", async () => {
+  it("serializes enrollment without creating two factors or showing two test codes", async () => {
     const service = lab();
     const token = await start(service);
     const results = await Promise.all([service.execute(token, { type: "enroll" }), service.execute(token, { type: "enroll" })]);
     expect(results.map((result) => result.code).sort()).toEqual(["enrolled", "factor_already_enrolled"]);
-    expect(results.filter((result) => result.view?.enrollment)).toHaveLength(1);
+    expect(results.filter((result) => result.view?.testMessage)).toHaveLength(1);
   });
 
-  it("bounds active synthetic sessions while permitting same-cookie replacement and reauthentication", async () => {
-    const service = lab();
-    let own = await start(service);
-    for (let index = 1; index < 128; index += 1) await start(service, "participant");
-    expect((await service.execute(null, { type: "start", kind: "staff" })).state).toBe("unavailable");
-    const replacement = await service.execute(own, { type: "start", kind: "staff" });
-    expect(replacement.code).toBe("started");
-    own = replacement.token!;
-    for (let index = 0; index < 140; index += 1) {
-      const renewed = await service.execute(own, { type: "reauthenticate" });
-      expect(renewed.code).toBe("reauthenticated");
-      expect((await service.execute(own, { type: "protected" })).code).toBe("no_session");
-      own = renewed.token!;
-    }
-    expect((await service.execute(null, { type: "start", kind: "participant" })).state).toBe("unavailable");
-  });
-
-  it("challenge reissue does not reset failed-attempt throttling; cooldown recovers with a fresh code", async () => {
+  it("reissue invalidates the prior SMS code even before expiry", async () => {
     const service = lab();
     const token = await start(service);
-    const secret = await enroll(service, token);
+    const firstCode = await send(service, token, "enroll");
+    const secondCode = await send(service, token, "challenge");
+    expect(Boolean(firstCode !== secondCode)).toBe(true);
+    expect((await service.execute(token, { type: "verify", code: firstCode })).code).toBe("invalid_code");
+    expect((await service.execute(token, { type: "verify", code: secondCode })).code).toBe("verified");
+  });
+
+  it("reauthentication removes old cookie access and requires a fresh SMS challenge after password", async () => {
+    const service = lab();
+    const token = await start(service);
+    const oldCode = await assure(service, token);
+    const reauth = await service.execute(token, { type: "reauthenticate" });
+    const next = reauth.token!;
+    expect(reauth.view).toMatchObject({ passwordVerified: true, assurance: "aal1", factor: "verified", challengeRequired: true, previewAccessAllowed: false });
+    expect((await service.execute(token, { type: "protected" })).code).toBe("no_session");
+    expect((await service.execute(next, { type: "verify", code: oldCode })).code).toBe("challenge_required");
+    const newCode = await send(service, next, "challenge");
+    expect((await service.execute(next, { type: "verify", code: oldCode })).code).toBe("invalid_code");
+    expect((await service.execute(next, { type: "verify", code: newCode })).code).toBe("verified");
+  });
+
+  it("fresh challenges do not reset failed SMS attempts and cooldown permits recovery", async () => {
+    const service = lab();
+    const token = await start(service);
+    await send(service, token, "enroll");
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      await service.execute(token, { type: "challenge" });
-      const result = await service.execute(token, { type: "verify", code: "abcdef" });
-      expect(result.code).toBe(attempt === 4 ? "retry_limited" : "invalid_code");
+      await send(service, token, "challenge");
+      expect((await service.execute(token, { type: "verify", code: "invalid" })).code).toBe(attempt === 4 ? "retry_limited" : "invalid_code");
     }
     expect((await service.execute(token, { type: "challenge" })).code).toBe("retry_limited");
-    expect((await service.execute(token, { type: "verify", code: totpAt(secret, at) })).code).toBe("retry_limited");
     at += 60_000;
-    expect((await service.execute(token, { type: "challenge" })).code).toBe("challenge_created");
-    expect((await service.execute(token, { type: "verify", code: totpAt(secret, at) })).code).toBe("verified");
+    const code = await send(service, token, "challenge");
+    expect((await service.execute(token, { type: "verify", code })).code).toBe("verified");
   });
 
-  it("expired challenge can be retried without replacing the enrolled secret", async () => {
+  it.each(["staff", "participant"] as const)("reauthentication preserves %s SMS failures and active cooldown", async (kind) => {
+    const service = lab();
+    let token = await start(service, kind);
+    await send(service, token, kind === "staff" ? "enroll" : "challenge");
+    for (let attempt = 0; attempt < 4; attempt += 1) await service.execute(token, { type: "verify", code: "invalid" });
+    token = (await service.execute(token, { type: "reauthenticate" })).token!;
+    await send(service, token, "challenge");
+    expect((await service.execute(token, { type: "verify", code: "invalid" })).code).toBe("retry_limited");
+    token = (await service.execute(token, { type: "reauthenticate" })).token!;
+    expect((await service.execute(token, { type: "challenge" })).code).toBe("retry_limited");
+    at += 60_000;
+    const code = await send(service, token, "challenge");
+    expect((await service.execute(token, { type: "verify", code })).code).toBe(kind === "staff" ? "verified" : "phone_verified");
+  });
+
+  it("reauthentication preserves participant email cooldown independently of phone verification", async () => {
+    const service = lab();
+    let token = await start(service, "participant");
+    await send(service, token, "challenge-email");
+    for (let attempt = 0; attempt < 5; attempt += 1) await service.execute(token, { type: "verify-email", code: "invalid" });
+    token = (await service.execute(token, { type: "reauthenticate" })).token!;
+    expect((await service.execute(token, { type: "challenge-email" })).code).toBe("retry_limited");
+    const sms = await send(service, token, "challenge");
+    expect((await service.execute(token, { type: "verify", code: sms })).code).toBe("phone_verified");
+    expect((await service.execute(token, { type: "challenge-email" })).code).toBe("retry_limited");
+    at += 60_000;
+    const email = await send(service, token, "challenge-email");
+    expect((await service.execute(token, { type: "verify-email", code: email })).code).toBe("email_verified");
+  });
+
+  it("challenge expiry denies at equality, and resend recovers", async () => {
     const service = lab();
     const token = await start(service);
-    const secret = await enroll(service, token);
+    const expired = await send(service, token, "enroll");
     at += 120_000;
-    expect((await service.execute(token, { type: "verify", code: totpAt(secret, at) })).code).toBe("challenge_expired");
-    expect((await service.execute(token, { type: "challenge" })).code).toBe("challenge_created");
-    expect((await service.execute(token, { type: "verify", code: totpAt(secret, at) })).code).toBe("verified");
+    expect((await service.execute(token, { type: "verify", code: expired })).code).toBe("challenge_expired");
+    const fresh = await send(service, token, "challenge");
+    expect((await service.execute(token, { type: "verify", code: fresh })).code).toBe("verified");
   });
 
-  it.each(["logout", "suspend", "simulate-factor-reset"] as const)("%s immediately invalidates old synthetic assurance", async (type) => {
+  it.each(["logout", "suspend", "simulate-factor-reset"] as const)("%s invalidates retained session and factor assurance", async (type) => {
     const service = lab();
     const token = await start(service);
     await assure(service, token);
@@ -158,11 +177,9 @@ describe("local ephemeral staff MFA lab (AUTH-04, ROL-12, SEC-01/06)", () => {
     expect((await service.execute(token, { type: "protected" })).code).toBe("session_revoked");
     expect((await service.execute(token, { type: "refresh" })).code).toBe("session_revoked");
     expect((await service.execute(token, { type: "reauthenticate" })).code).toBe("session_revoked");
-    const fresh = await start(service);
-    expect((await service.execute(fresh, { type: "status" })).view?.factor).toBe("none");
   });
 
-  it("unauthorized factor-loss recovery remains closed and cannot change assurance", async () => {
+  it("factor recovery stays unconfigured, with no silent reset", async () => {
     const service = lab();
     const token = await start(service);
     expect((await service.execute(token, { type: "request-reset" })).code).toBe("recovery_unconfigured");
@@ -170,67 +187,124 @@ describe("local ephemeral staff MFA lab (AUTH-04, ROL-12, SEC-01/06)", () => {
     expect(service.auditSnapshot().at(-1)).toMatchObject({ event: "factor.reset_denied", outcome: "denied" });
   });
 
-  it("safe audit contains only an allowlist of opaque IDs and outcomes, never secrets, codes or tokens", async () => {
+  it("audit fields contain no password, code, destination, token or free-form provider detail", async () => {
     const service = lab();
     const token = await start(service);
-    const secret = await assure(service, token);
-    const audit = service.auditSnapshot();
-    expect(audit).toHaveLength(3);
-    for (const event of audit) expect(Object.keys(event).sort()).toEqual(["actorId", "at", "event", "outcome", "sessionId"]);
-    const serialized = JSON.stringify(audit);
-    expect(serialized).not.toContain(token);
-    expect(serialized).not.toContain(secret);
-    // A random six-digit value can coincidentally occur inside a timestamp/UUID.
-    // The exact event-field allowlist above proves no code-bearing field is recorded.
-    expect(serialized).not.toContain('"code"');
-    expect(serialized).not.toContain("otpauth");
+    await assure(service, token);
+    for (const event of service.auditSnapshot()) expect(Object.keys(event).sort()).toEqual(["actorId", "at", "event", "outcome", "sessionId"]);
+    expect(JSON.stringify(service.auditSnapshot())).not.toContain(token);
   });
 
-  it("audit failure denies promotion, revokes current assurance and emits no private diagnostics", async () => {
+  it("audit failure blocks MFA promotion and revokes existing assurance without logs", async () => {
     let failed = false;
-    const audit: PreviewAudit[] = [];
-    const service = lab({ audit: (event) => { if (failed) throw new Error("private-factor-code"); audit.push(event); } });
+    const events: PreviewAudit[] = [];
+    const service = lab({ audit: (event) => { if (failed) throw new Error("private-code"); events.push(event); } });
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     const token = await start(service);
-    const secret = await enroll(service, token);
+    const code = await send(service, token, "enroll");
     failed = true;
-    expect((await service.execute(token, { type: "verify", code: totpAt(secret, at) })).state).toBe("unavailable");
-    expect(audit.map((event) => event.event)).toEqual(["session.started", "mfa.enrollment_started"]);
+    expect((await service.execute(token, { type: "verify", code })).state).toBe("unavailable");
+    expect(events.map((event) => event.event)).toEqual(["session.started", "mfa.enrollment_started"]);
     expect((await service.execute(token, { type: "protected" })).code).toBe("session_revoked");
     expect(error).not.toHaveBeenCalled();
-    failed = false;
-    const fresh = await start(service);
-    expect((await service.execute(fresh, { type: "status" })).view?.status).toBe("active");
   });
 
-  it("QR-generation failure leaves no pending factor and permits a fresh synthetic retry", async () => {
-    let failed = true;
-    const service = lab({ qr: async () => { if (failed) throw new Error("private-uri"); return png; } });
-    const token = await start(service);
-    const result = await service.execute(token, { type: "enroll" });
-    expect(result).toMatchObject({ state: "unavailable", code: "unavailable", view: { factor: "none", status: "revoked" } });
-    failed = false;
-    expect((await service.execute(await start(service), { type: "enroll" })).code).toBe("enrolled");
+  it("bounds active identities while permitting same-cookie replacement and repeated reauthentication", async () => {
+    const service = lab();
+    let own = await start(service);
+    for (let index = 1; index < 128; index += 1) await start(service, "participant");
+    expect((await service.execute(null, { type: "start", kind: "staff" })).state).toBe("unavailable");
+    own = (await service.execute(own, { type: "start", kind: "staff" })).token!;
+    for (let index = 0; index < 140; index += 1) own = (await service.execute(own, { type: "reauthenticate" })).token!;
+    expect((await service.execute(null, { type: "start", kind: "staff" })).state).toBe("unavailable");
   });
 
-  it("missing or production preview gates deny before synthetic state or QR work", async () => {
+  it("deployment environments and absent opt-in stay closed", async () => {
     vi.stubEnv("MSRC_AUTH_PREVIEW", "synthetic");
-    vi.stubEnv("VERCEL_ENV", "production");
     const service = createSyntheticAuthPreview();
-    expect(await service.execute(null, { type: "start", kind: "staff" })).toEqual({ state: "unavailable", code: "unavailable" });
-    expect(service.auditSnapshot()).toEqual([]);
-    vi.stubEnv("VERCEL_ENV", "preview");
-    expect(await service.execute(null, { type: "start", kind: "staff" })).toEqual({ state: "unavailable", code: "unavailable" });
+    for (const target of ["production", "preview", "development"]) {
+      vi.stubEnv("VERCEL_ENV", target);
+      expect(await service.execute(null, { type: "start", kind: "staff" })).toEqual({ state: "unavailable", code: "unavailable" });
+    }
     vi.stubEnv("VERCEL_ENV", "");
     vi.stubEnv("MSRC_AUTH_PREVIEW", "");
     expect(await service.execute(null, { type: "start", kind: "staff" })).toEqual({ state: "unavailable", code: "unavailable" });
   });
 });
 
-describe("synthetic session policy integration (AUTH-05 organizer override)", () => {
-  it("refresh preserves the same participant origin and absolute cap across 72 hours", async () => {
+describe("participant account email plus phone verification without MFA", () => {
+  it.each([true, false])("allows either verification order (%s) while preserving AAL1 and no factor", async (emailFirst) => {
     const service = lab();
     const token = await start(service, "participant");
+    expect((await service.execute(token, { type: "status" })).view).toMatchObject({ emailVerified: false, phoneVerified: false, passwordVerified: true, assurance: "aal1", factor: "none", verificationComplete: false });
+    expect((await service.execute(token, { type: "protected" })).code).toBe("account_verification_required");
+    const email = await send(service, token, "challenge-email");
+    const sms = await send(service, token, "challenge");
+    const steps = emailFirst ? [{ type: "verify-email" as const, code: email }, { type: "verify" as const, code: sms }]
+      : [{ type: "verify" as const, code: sms }, { type: "verify-email" as const, code: email }];
+    await service.execute(token, steps[0]);
+    expect((await service.execute(token, { type: "protected" })).code).toBe("account_verification_required");
+    await service.execute(token, steps[1]);
+    const probe = await service.execute(token, { type: "protected" });
+    expect(probe).toMatchObject({ code: "protected_allowed", view: { assurance: "aal1", factor: "none", emailVerified: true, phoneVerified: true, verificationComplete: true, operationalAccessReady: false, privilegedAccessReady: false } });
+    expect((await service.execute(token, { type: "enroll" })).code).toBe("invalid_action");
+  });
+
+  it("email and SMS codes are purpose-bound; email resend invalidates old code", async () => {
+    const service = lab();
+    const token = await start(service, "participant");
+    const email = await send(service, token, "challenge-email");
+    const sms = await send(service, token, "challenge");
+    expect((await service.execute(token, { type: "verify-email", code: sms })).code).toBe("invalid_code");
+    expect((await service.execute(token, { type: "verify", code: email })).code).toBe("invalid_code");
+    const replacedEmail = await send(service, token, "challenge-email");
+    expect((await service.execute(token, { type: "verify-email", code: email })).code).toBe("invalid_code");
+    expect((await service.execute(token, { type: "verify-email", code: replacedEmail })).code).toBe("email_verified");
+    expect((await service.execute(token, { type: "verify", code: sms })).code).toBe("phone_verified");
+  });
+
+  it("successful email verification cannot reset failed phone attempts", async () => {
+    const service = lab();
+    const token = await start(service, "participant");
+    await send(service, token, "challenge");
+    for (let index = 0; index < 4; index += 1) await service.execute(token, { type: "verify", code: "invalid" });
+    const email = await send(service, token, "challenge-email");
+    expect((await service.execute(token, { type: "verify-email", code: email })).code).toBe("email_verified");
+    expect((await service.execute(token, { type: "verify", code: "invalid" })).code).toBe("retry_limited");
+  });
+
+  it("participant reauthentication preserves account confirmations without enrolling a second factor", async () => {
+    const service = lab();
+    const token = await start(service, "participant");
+    await verifyParticipant(service, token);
+    const reauth = await service.execute(token, { type: "reauthenticate" });
+    expect(reauth.view).toMatchObject({ assurance: "aal1", factor: "none", verificationComplete: true, passwordVerified: true, previewAccessAllowed: true });
+  });
+
+  it("audit outage during participant verification revokes retained first-factor access", async () => {
+    let failed = false;
+    const service = lab({ audit: () => { if (failed) throw new Error("private-code"); } });
+    const token = await start(service, "participant");
+    const code = await send(service, token, "challenge-email");
+    failed = true;
+    expect((await service.execute(token, { type: "verify-email", code })).state).toBe("unavailable");
+    expect((await service.execute(token, { type: "protected" })).code).toBe("session_revoked");
+  });
+
+  it("cannot use participant email verification to substitute staff phone MFA", async () => {
+    const service = lab();
+    const token = await start(service);
+    expect((await service.execute(token, { type: "challenge-email" })).code).toBe("invalid_action");
+    expect((await service.execute(token, { type: "verify-email", code: "123456" })).code).toBe("invalid_action");
+    expect((await service.execute(token, { type: "protected" })).code).toBe("mfa_required");
+  });
+});
+
+describe("session caps are unchanged by account verification and SMS MFA", () => {
+  it("refresh preserves participant origin and expires exactly at 72 hours", async () => {
+    const service = lab();
+    const token = await start(service, "participant");
+    await verifyParticipant(service, token);
     const origin = at;
     for (let hours = 1; hours < 72; hours += 1) {
       at = origin + hours * 3_600_000;
@@ -238,14 +312,10 @@ describe("synthetic session policy integration (AUTH-05 organizer override)", ()
       expect(result.code).toBe("refreshed");
       expect(result.view).toMatchObject({ startedAt: origin, lastActivityAt: origin, absoluteExpiresAt: origin + 72 * 3_600_000 });
     }
-    at = origin + 72 * 3_600_000 - 1;
-    expect((await service.execute(token, { type: "refresh" })).code).toBe("refreshed");
-    at += 1;
+    at = origin + 72 * 3_600_000;
     expect((await service.execute(token, { type: "refresh" })).code).toBe("session_expired");
-    expect((await service.execute(token, { type: "status" })).view?.status).toBe("expired");
   });
-
-  it("staff refresh/status do not count as activity and idle equality expires", async () => {
+  it("status and refresh do not restart staff idle timeout", async () => {
     const service = lab();
     const token = await start(service);
     await assure(service, token);
@@ -256,8 +326,7 @@ describe("synthetic session policy integration (AUTH-05 organizer override)", ()
     at += 60_000;
     expect((await service.execute(token, { type: "protected" })).code).toBe("session_expired");
   });
-
-  it("successful protected activity extends idle only and never the staff eight-hour cap", async () => {
+  it("staff activity extends idle only, with absolute eight-hour cap", async () => {
     const service = lab();
     const token = await start(service);
     await assure(service, token);
@@ -271,25 +340,14 @@ describe("synthetic session policy integration (AUTH-05 organizer override)", ()
     at = origin + 8 * 3_600_000;
     expect((await service.execute(token, { type: "protected" })).code).toBe("session_expired");
   });
-
-  it("genuine synthetic reauthentication after expiry creates a new lifetime, lowers assurance and preserves factor", async () => {
+  it("reauthentication after idle expiry requires fresh staff SMS verification", async () => {
     const service = lab();
     const token = await start(service);
-    const secret = await assure(service, token);
+    await assure(service, token);
     at += SESSION_POLICY.privilegedIdleSeconds * 1000;
     const reauth = await service.execute(token, { type: "reauthenticate" });
-    expect(reauth.code).toBe("reauthenticated");
     expect(reauth.view).toMatchObject({ startedAt: at, assurance: "aal1", factor: "verified", previewAccessAllowed: false });
-    const nextToken = reauth.token!;
-    await service.execute(nextToken, { type: "challenge" });
-    expect((await service.execute(nextToken, { type: "verify", code: totpAt(secret, at) })).code).toBe("verified");
-  });
-
-  it("participant cannot enroll a staff factor or obtain synthetic privileged assurance", async () => {
-    const service = lab();
-    const token = await start(service, "participant");
-    expect((await service.execute(token, { type: "enroll" })).code).toBe("invalid_action");
-    expect((await service.execute(token, { type: "protected" })).code).toBe("mfa_required");
-    expect((await service.execute(token, { type: "status" })).view?.previewAccessAllowed).toBe(false);
+    const code = await send(service, reauth.token!, "challenge");
+    expect((await service.execute(reauth.token!, { type: "verify", code })).code).toBe("verified");
   });
 });

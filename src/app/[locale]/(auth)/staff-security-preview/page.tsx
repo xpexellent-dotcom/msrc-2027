@@ -8,7 +8,7 @@ import "@/styles/staff-security-preview.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "MSRC staff security | Local synthetic preview",
+  title: "MSRC account and staff SMS verification | Local synthetic preview",
   robots: { index: false, follow: false },
 };
 

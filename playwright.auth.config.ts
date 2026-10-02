@@ -1,5 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// Installed Playwright 1.63's _takePageSnapshot honors this switch. Synthetic
+// inbox codes must not enter automatic failure aria snapshots/error-context files.
+// It is scoped to this authentication runner; public-browser diagnostics are unchanged.
+process.env.PLAYWRIGHT_NO_COPY_PROMPT = "1";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: "staff-security.spec.ts",

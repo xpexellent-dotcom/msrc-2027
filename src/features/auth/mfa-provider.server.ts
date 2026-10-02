@@ -6,15 +6,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export const MANAGED_STAFF_MFA_READY = false as const;
 
 type Auth = SupabaseClient["auth"];
-export type TotpProviderResult<T> =
+export type SmsProviderResult<T> =
   | Readonly<{ state: "ok"; data: T }>
   | Readonly<{ state: "denied" }>
   | Readonly<{ state: "unavailable" }>;
 
-export interface TotpEnrollment {
+export interface SmsEnrollment {
   readonly factorId: string;
-  readonly secret: string;
-  readonly uri: string;
 }
 
 const identifier = (value: unknown): value is string => typeof value === "string" && value.length > 0 && value.length <= 128;
@@ -25,28 +23,28 @@ const identifier = (value: unknown): value is string => typeof value === "string
  * Callers must separately enforce current identity, assignment, database session policy,
  * durable audit and the live gate. Provider success never authorizes an operation.
  */
-export function createSupabaseTotpContract(auth: Auth) {
+export function createSupabaseSmsContract(auth: Auth) {
   return Object.freeze({
-    async enroll(): Promise<TotpProviderResult<TotpEnrollment>> {
+    async enroll(phone: string): Promise<SmsProviderResult<SmsEnrollment>> {
+      if (typeof phone !== "string" || !/^\+[1-9]\d{1,14}$/.test(phone)) return { state: "denied" };
       try {
-        const result = await auth.mfa.enroll({ factorType: "totp", friendlyName: "MSRC staff authenticator" });
+        const result = await auth.mfa.enroll({ factorType: "phone", phone, friendlyName: "MSRC staff SMS" });
         if (result.error) return { state: "unavailable" };
         const data = result.data;
-        if (!data || data.type !== "totp" || !identifier(data.id) || !/^[A-Z2-7]{16,128}$/.test(data.totp.secret)
-          || !data.totp.uri.startsWith("otpauth://totp/")) return { state: "unavailable" };
-        // Provider SVG is not placed into HTML. The future UI generates QR pixels from this URI.
-        return { state: "ok", data: { factorId: data.id, secret: data.totp.secret, uri: data.totp.uri } };
+        if (!data || data.type !== "phone" || !identifier(data.id)) return { state: "unavailable" };
+        return { state: "ok", data: { factorId: data.id } };
       } catch { return { state: "unavailable" }; }
     },
-    async challenge(factorId: string): Promise<TotpProviderResult<Readonly<{ challengeId: string }>>> {
+    async challenge(factorId: string): Promise<SmsProviderResult<Readonly<{ challengeId: string }>>> {
       if (!identifier(factorId)) return { state: "denied" };
       try {
-        const result = await auth.mfa.challenge({ factorId });
+        // SMS is the only organizer-authorized exception. Never select WhatsApp.
+        const result = await auth.mfa.challenge({ factorId, channel: "sms" });
         if (result.error || !result.data || !identifier(result.data.id)) return { state: "unavailable" };
         return { state: "ok", data: { challengeId: result.data.id } };
       } catch { return { state: "unavailable" }; }
     },
-    async verify(factorId: string, challengeId: string, code: string): Promise<TotpProviderResult<Readonly<{ providerVerified: true }>>> {
+    async verify(factorId: string, challengeId: string, code: string): Promise<SmsProviderResult<Readonly<{ providerVerified: true }>>> {
       if (!identifier(factorId) || !identifier(challengeId) || typeof code !== "string" || !/^\d{6}$/.test(code)) return { state: "denied" };
       try {
         const result = await auth.mfa.verify({ factorId, challengeId, code });

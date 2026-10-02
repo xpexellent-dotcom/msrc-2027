@@ -31,13 +31,13 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Source IDs:** AUTH-01, AUTH-06, LOC-01, DAT-01, DAT-04, SEC-01.
 - **Status:** Planned.
 - **Purpose:** Let a participant create one account without revealing other users' account existence.
-- **Scope:** Managed email/password sign-up/sign-in, normalized unique email, minimal name/email profile and safe verified/unverified session boundary.
+- **Scope:** Managed email/password sign-up/sign-in, normalized unique email and name; ORG-013 requires phone for authentication, both email+phone verification and no participant MFA. Collect only approved authentication fields with approved notices; safe verified/unverified session boundary.
 - **Exclusions:** University SSO, national ID, collecting every later pathway field during sign-up, operational entitlement from account creation.
 - **Dependencies:** BL-FND-01; BL-FND-02; BL-SEC-01. Sign-up/sign-in may land while all verification-dependent operations remain closed.
 - **Roles:** Visitor; participant.
 - **States/transitions:** Visitor → unverified account → verified account through verification flow; account creation is not registration.
 - **Data touched:** Managed identity, minimum participant profile and applicable notice version.
-- **Acceptance criteria:** Duplicate/normalized email handled without public enumeration; unverified users cannot register/pay/book/submit; no password or verification secret enters logs.
+- **Acceptance criteria:** Duplicate/normalized email handled without public enumeration; users missing either email or phone verification cannot register/pay/book/submit; both verified markers allow only separately authorized own workflows without MFA. No password or verification code enters logs. Phone change/loss requires its approved verification/recovery process.
 - **English/Arabic:** Bilingual forms/errors with preserved values on locale switch; original names retained.
 - **Accessibility:** Labelled password/email fields, autocomplete, accessible errors and keyboard flow.
 - **Security/RLS:** Profile ownership policies; protected session cookies and CSRF where applicable; server checks verification.
@@ -46,30 +46,30 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Manual UAT:** Sign up, retry existing address and verify unrelated account state is not exposed.
 - **Release gate:** M5; BL-AUTH-03 before verification-dependent operations; CFG-09 privacy and configured identity/email before real users.
 - **Owner type:** Authentication/full-stack engineer.
-- **TBD blocked:** Synthetic auth no; production notices/provider/sender DR-CFG-09/10.
+- **TBD blocked:** Synthetic auth no; production notices/email+SMS provider/sender/budget/abuse/recovery DR-CFG-09/10/11.
 
 <a id="bl-auth-03"></a>
 
 ## BL-AUTH-03 — Implement single-use verification codes with abuse protection
 - **Source IDs:** AUTH-02, ACC-01, EML-01, SEC-01.
 - **Status:** Planned.
-- **Purpose:** Verify email possession without reusable codes or inaccessible challenges.
-- **Scope:** Six-digit numeric verification, protected-at-rest single-use codes, replacement invalidation, account/IP controls and configurable source defaults: 10-minute validity, 60-second resend cooldown, three issues/email/15 minutes, five failed entries/code.
+- **Purpose:** Verify both email and phone possession without participant MFA, reusable codes or inaccessible challenges (ORG-013).
+- **Scope:** Separate email verification and phone SMS verification, protected-at-rest single-use codes, replacement invalidation and account/IP controls. Email defaults remain 10-minute validity, 60-second resend cooldown, three issues/email/15 minutes, five failed entries/code. SMS operating values/provider/sender/budget remain TBD; lab limits do not approve live values.
 - **Exclusions:** New business expiry values, permanent lockout, inaccessible CAPTCHA, email verification treated as privileged MFA.
 - **Dependencies:** BL-AUTH-02; BL-FND-05; BL-SEC-01.
 - **Roles:** Unverified participant; abuse-control operator.
 - **States/transitions:** Issued → verified/expired/replaced/attempts exhausted; old code cannot reactivate.
 - **Data touched:** Protected verification credential, counters and minimal security events.
-- **Acceptance criteria:** Only newest valid code works once; concurrent verification cannot reuse it; resend limits apply across sessions/IP attempts without leaking account state; input survives recoverable failure.
+- **Acceptance criteria:** Both independent verification markers required; neither creates privileged assurance or activates a workflow. Only newest valid code works once; concurrent verification cannot reuse it; approved resend limits apply across sessions/IP attempts without leaking account state; input survives recoverable failure.
 - **English/Arabic:** Bilingual verification/resend/error messages; English-only email; digits and code field have stable LTR entry in RTL.
 - **Accessibility:** Paste and autofill supported, screen-reader status, keyboard anti-bot alternative and readable cooldown.
 - **Security/RLS:** Verification occurs server-side; raw codes absent from logs/client bundles and protected at rest.
-- **Audit/email:** Restricted issuance/failure metadata, never code value; bounded test/approved email delivery.
+- **Audit/email:** Restricted issuance/failure metadata, never code or full phone value; console/test email and synthetic SMS only until providers/settings approved.
 - **Automated tests:** Expiry boundary, rate limits, replacement, parallel single-use, paste/autofill and malformed code.
 - **Manual UAT:** Expired code, resent code, assistive technology and recovery after throttling.
 - **Release gate:** M5 verified operational access; configured email/privacy prerequisites.
 - **Owner type:** Authentication/security engineer.
-- **TBD blocked:** No new business TBD for defaults; live email/anti-bot configuration DR-CFG-10.
+- **TBD blocked:** Email defaults already recorded; live email/SMS, phone recovery and SMS operating controls DR-CFG-09/10/11. Local synthetic verification preview in BL-AUTH-05 is not participant signup or production verification delivery.
 
 <a id="bl-auth-04"></a>
 
@@ -96,26 +96,26 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 <a id="bl-auth-05"></a>
 
-## BL-AUTH-05 — Add privileged TOTP enrollment and audited factor recovery
+## BL-AUTH-05 — Add password then SMS MFA and audited factor recovery
 - **Source IDs:** AUTH-04, ROL-12, SEC-01, SEC-06.
-- **Status:** Partial — closed local synthetic TOTP enrollment/challenge and safe audit/provider contracts; receipts in PROGRESS. Live enrollment, approved factor recovery and human UAT remain closed. See [feature note](../features/staff-security-foundations.md).
+- **Status:** Partial — ORG-013 supersedes TOTP with a closed local password-step/SMS phone-MFA preview and safe audit/provider contracts; receipts in PROGRESS. Live enrollment/delivery, approved factor recovery and managed-provider UAT remain closed. Participant email/phone verification is demonstrated synthetically without implementing signup. See [feature note](../features/staff-security-foundations.md).
 - **Purpose:** Require an independent second factor for every privileged operation.
-- **Scope:** Authenticator-app TOTP enrollment/challenge, factor-loss recovery and explicit audited administrative reset; assurance enforced through API/database authorization.
-- **Exclusions:** Email OTP as MFA, automatic reset on password recovery, shared factors or unverified support override.
+- **Scope:** Password authentication followed by SMS challenge of a verified phone MFA factor; assurance enforced through API/database authorization. Factor-loss recovery and explicit audited reset remain gated by the verified approved procedure. Participants verify email+phone without MFA.
+- **Exclusions:** TOTP fallback, email OTP or primary phone OTP as privileged MFA, automatic reset on password recovery, shared factors or unverified support override; participant signup and live SMS delivery in this foundation task.
 - **Dependencies:** BL-AUTH-01; managed identity; approved staff recovery procedure DR-CFG-11.
 - **Roles:** All privileged users; separately authorized factor-reset administrator.
-- **States/transitions:** Privileged grant without assurance → enrollment/challenge required → assured access; factor reset revokes applicable sessions and requires reenrollment.
+- **States/transitions:** Current password session → phone enrollment/challenge → SMS code verified/AAL2 → assured scoped access; missing password, wrong factor, stale or out-of-order proof denies. Factor reset revokes applicable sessions and requires verified recovery/reenrollment.
 - **Data touched:** Managed factor records, reset evidence and session revocation metadata.
-- **Acceptance criteria:** Direct privileged mutation fails with valid password session but missing assurance; reset requires verified authorized process and produces no silent fallback; secrets/recovery material never stored in project docs.
+- **Acceptance criteria:** Direct privileged mutation fails without current password and subsequent current verified phone-MFA; primary SMS OTP, participant verification, stale/TOTP factor and generic AAL2 cannot bypass. Trusted adapter explicitly selects SMS because managed AMR does not identify its delivery channel. Reset requires verified authorized process and produces no silent fallback; credentials/recovery material never stored in project docs.
 - **English/Arabic:** Staff enrollment/recovery bilingual; assessment workflow remains English-only after entry.
-- **Accessibility:** Manual setup-code alternative to QR, keyboard entry and screen-reader instructions without exposing factor secrets in logs.
+- **Accessibility:** Labelled SMS code input, keyboard/paste/autofill and Arabic digit handling, screen-reader instructions/status, clear delivery failure and retry; no camera/QR requirement. Do not expose codes in logs/traces/storage.
 - **Security/RLS:** Check assurance server/database layer; forbid self-escalation/reset bypass and stale assurance after reset.
-- **Audit/email:** Audit enrollment/reset/revocation without factor secret; approved English security notification only.
-- **Automated tests:** No-MFA API/DB denial, factor reset invalidation, unauthorized reset and reenrollment.
-- **Manual UAT:** Enroll on real authenticator; simulate lost factor via approved test recovery process.
+- **Audit/email:** Audit enrollment/challenge/verification/reset/revocation without code, password or phone number; approved English security notification only. SMS authentication uses approved provider/channel settings after its release gate.
+- **Automated tests:** Missing password/MFA, out-of-order proof, wrong/stale factor, old/reused/replaced codes, participant no-MFA verification boundaries, provider/audit failure, factor reset invalidation and unauthorized reset at API/DB.
+- **Manual UAT:** Test password then SMS on named test phones in an isolated approved managed-Auth environment; verify actual SMS delivery, accessible retry, lost/changed phone and approved test recovery process.
 - **Release gate:** M4 and all privileged production access.
 - **Owner type:** Security/authentication engineer.
-- **TBD blocked:** Synthetic integration no; approved recovery custodians/procedure DR-CFG-11.
+- **TBD blocked:** Synthetic integration no; SMS provider/sender/budget/expiry/resend/abuse, privacy/location and approved recovery custodians/procedure DR-CFG-09/10/11. Live staff access stays closed.
 
 <a id="bl-auth-06"></a>
 
@@ -147,12 +147,12 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Status:** Planned.
 - **Purpose:** Let participants correct permitted information while sensitive identity changes receive verification.
 - **Scope:** Owner-only profile form with pathway-conditional fields; verified-support request entry for email change/deletion, replacement-email reverification and retention assessment handoff.
-- **Exclusions:** National ID, universal licence/phone requirements, immediate destructive self-delete, creating a general helpdesk.
+- **Exclusions:** National ID, universal licence requirements, phone use beyond ORG-013's authentication purpose, immediate destructive self-delete, creating a general helpdesk.
 - **Dependencies:** BL-AUTH-02; BL-AUTH-06; privacy request handling and DR-CFG-09.
 - **Roles:** Participant; authorized verified-support/privacy operator.
 - **States/transitions:** Permitted correction saved; sensitive request → identity verification → reviewed change/retention exception → response; email changes only after reverify.
 - **Data touched:** Minimal profile, conditional professional fields and restricted privacy/support evidence.
-- **Acceptance criteria:** Name/email minimum preserved; optional country/city/phone stay optional absent approved purpose; licence never universal for students/non-medical attendees; deletion does not destroy required financial/audit records blindly.
+- **Acceptance criteria:** Name/email and ORG-013's verified authentication phone preserved; country/city optional, no unrelated phone use/sharing without approval; licence never universal for students/non-medical attendees; replacement phone requires its approved verification/recovery process; deletion does not destroy required financial/audit records blindly.
 - **English/Arabic:** Bilingual labels/instructions/errors; original personal/institution names preserved.
 - **Accessibility:** Field purpose/required status clear, error summary, autocomplete and keyboard recovery.
 - **Security/RLS:** Owner-only update allowlist; no editable role/email verification fields; recent authentication for sensitive operations.

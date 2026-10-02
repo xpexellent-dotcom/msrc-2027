@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { AUTHENTICATION_POLICY } from "@/config/authentication-policy";
 import { SESSION_POLICY } from "@/config/session-policy";
 import { evaluateSessionPolicy, type SessionEvidence } from "@/lib/auth/session-policy.server";
 
@@ -8,12 +9,12 @@ function evidence(overrides: Partial<SessionEvidence> = {}): SessionEvidence {
   return {
     actorId: "synthetic-actor", sessionUserId: "synthetic-actor", sessionId: "synthetic-session",
     managedSessionExists: true, sessionCreatedAtMs: now - 60_000, lastActivityAtMs: now - 60_000,
-    tokenExpiresAtMs: now + hour, managedNotAfterMs: null, accountActive: true,
+    tokenExpiresAtMs: now + hour, managedNotAfterMs: null, accountActive: true, emailVerified: true, phoneVerified: true,
     individuallyIdentified: true, revokedAtMs: null, actorRevokedBeforeMs: null,
     tokenAssurance: "aal2", managedAssurance: "aal2", factorId: "synthetic-factor",
-    factorUserId: "synthetic-actor", factorVerified: true, factorCreatedAtMs: now - 120_000,
-    factorUpdatedAtMs: now - 120_000, totpAuthenticatedAtMs: now - 30_000,
-    authenticatedAtMs: now - 30_000, ...overrides,
+    factorUserId: "synthetic-actor", factorVerified: true, factorType: "phone", factorCreatedAtMs: now - 120_000,
+    factorUpdatedAtMs: now - 120_000, phoneMfaAuthenticatedAtMs: now - 30_000,
+    passwordAuthenticatedAtMs: now - 60_000, authenticatedAtMs: now - 30_000, ...overrides,
   };
 }
 
@@ -26,7 +27,7 @@ describe("AUTH-05 confirmed session limits and closed readiness", () => {
 
   it.each([0, 24 * hour, 71 * hour, 72 * hour - 1])("allows participant lifetime %d ms", (age) => {
     const current = evidence({ sessionCreatedAtMs: now - age, lastActivityAtMs: now - age,
-      tokenAssurance: "aal1", managedAssurance: "aal1" });
+      tokenAssurance: "aal1", managedAssurance: "aal1", passwordAuthenticatedAtMs: now - age });
     expect(evaluateSessionPolicy(SESSION_POLICY, current, now)).toMatchObject({
       sessionPolicySatisfied: true, absoluteExpiresAtMs: now - age + 72 * hour,
       idleExpiresAtMs: null, operationalAccessReady: false, privilegedAccessReady: false,
@@ -75,12 +76,19 @@ describe("AUTH-04/05 server evidence denial and recovery", () => {
     [{ tokenAssurance: "aal1" }, "mfa_required"],
     [{ managedAssurance: "aal1" }, "mfa_required"],
     [{ factorId: null }, "mfa_required"],
+    [{ factorType: "totp" }, "mfa_required"],
+    [{ factorType: null }, "mfa_required"],
+    [{ passwordAuthenticatedAtMs: null }, "password_auth_required"],
+    [{ passwordAuthenticatedAtMs: now + 1 }, "password_auth_required"],
+    [{ passwordAuthenticatedAtMs: now - 120_000 }, "password_auth_required"],
+    [{ passwordAuthenticatedAtMs: now - 10_000 }, "mfa_required"],
+    [{ emailVerified: false }, "account_verification_required"],
     [{ factorVerified: false }, "mfa_required"],
     [{ factorUserId: "other" }, "mfa_required"],
     [{ factorUpdatedAtMs: now - 10_000 }, "mfa_required"],
     [{ factorCreatedAtMs: null }, "mfa_required"],
-    [{ totpAuthenticatedAtMs: now + 1 }, "mfa_required"],
-    [{ totpAuthenticatedAtMs: null }, "mfa_required"],
+    [{ phoneMfaAuthenticatedAtMs: now + 1 }, "mfa_required"],
+    [{ phoneMfaAuthenticatedAtMs: null }, "mfa_required"],
     [{ lastActivityAtMs: now + 1 }, "invalid_evidence"],
     [{ lastActivityAtMs: now - 120_000 }, "invalid_evidence"],
     [{ sessionCreatedAtMs: now + 1 }, "invalid_evidence"],
@@ -91,13 +99,43 @@ describe("AUTH-04/05 server evidence denial and recovery", () => {
       operationalAccessReady: false, privilegedAccessReady: false });
   });
 
-  it("denies stale AAL2 even on a participant path", () => {
-    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ factorVerified: false }), now).reason).toBe("mfa_required");
+  it("participants require no MFA after both current account verifications and password login", () => {
+    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ factorVerified: false, factorId: null, factorType: null,
+      factorUserId: null, factorCreatedAtMs: null, factorUpdatedAtMs: null, phoneMfaAuthenticatedAtMs: null,
+      tokenAssurance: "aal1", managedAssurance: "aal1" }), now)).toMatchObject({ sessionPolicySatisfied: true, mfaValid: false });
+  });
+
+  it.each([{ emailVerified: false }, { phoneVerified: false }, { emailVerified: false, phoneVerified: false }])(
+    "participants require both current account verifications %j", (changed) => {
+      expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ ...changed, tokenAssurance: "aal1",
+        managedAssurance: "aal1", factorType: null, factorId: null }), now).reason).toBe("account_verification_required");
+    });
+
+  it("staff phone MFA is separate from participant account phone verification", () => {
+    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ phoneVerified: false }), now, { privileged: true }))
+      .toMatchObject({ sessionPolicySatisfied: true, passwordValid: true, mfaValid: true });
+  });
+
+  it("generic AAL2 and primary SMS evidence cannot replace either password or phone MFA", () => {
+    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ passwordAuthenticatedAtMs: null,
+      phoneMfaAuthenticatedAtMs: null }), now, { privileged: true }).reason).toBe("password_auth_required");
+    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ phoneMfaAuthenticatedAtMs: null }), now,
+      { privileged: true }).reason).toBe("mfa_required");
+  });
+
+  it("records organizer choices while every live SMS/recovery setting remains unresolved", () => {
+    expect(AUTHENTICATION_POLICY).toMatchObject({ primaryLogin: "email_password",
+      participant: { emailVerificationRequired: true, phoneVerificationRequired: true, mfaRequired: false },
+      staff: { primaryPasswordRequired: true, secondFactor: "sms", managedFactorType: "phone" },
+      sms: { provider: null, sender: null, budgetApproved: false, liveReady: false },
+      recovery: { approver: null, operator: null, verifiedResetProcedure: null } });
+    expect(Object.entries(AUTHENTICATION_POLICY.sms).filter(([key]) => !["budgetApproved", "liveReady"].includes(key))
+      .every(([, value]) => value === null)).toBe(true);
   });
 
   it("uses whole-second provider AMR precision without rejecting same-second verification", () => {
     expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ factorUpdatedAtMs: now - 29_990,
-      totpAuthenticatedAtMs: now - 30_000 }), now, { privileged: true }).sessionPolicySatisfied).toBe(true);
+      phoneMfaAuthenticatedAtMs: now - 30_000 }), now, { privileged: true }).sessionPolicySatisfied).toBe(true);
   });
 
   it("new login after suspension cutoff recovers, original token cannot", () => {
@@ -105,7 +143,7 @@ describe("AUTH-04/05 server evidence denial and recovery", () => {
     expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ actorRevokedBeforeMs: cutoff }), now).reason).toBe("session_revoked");
     expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ actorRevokedBeforeMs: cutoff,
       sessionCreatedAtMs: now - 10_000, lastActivityAtMs: now - 10_000,
-      totpAuthenticatedAtMs: now - 5_000 }), now, { privileged: true }).sessionPolicySatisfied).toBe(true);
+      passwordAuthenticatedAtMs: now - 10_000, phoneMfaAuthenticatedAtMs: now - 5_000 }), now, { privileged: true }).sessionPolicySatisfied).toBe(true);
   });
 
   it("keeps sensitive actions closed while recent-auth age is unresolved", () => {

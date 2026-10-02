@@ -58,8 +58,8 @@ function fixture(operation: Operation = "review.packet.read", role: Role = "abst
   };
   return {
     actor: {
-      id: principal.userId, state: "active", emailVerified: true, individuallyIdentified: true,
-      session: { id: principal.sessionId, active: true, assurance: "aal2", factor: "totp" },
+      id: principal.userId, state: "active", emailVerified: true, phoneVerified: true, individuallyIdentified: true,
+      session: { id: principal.sessionId, active: true, assurance: "aal2", factor: "sms", passwordVerified: true },
     },
     resource,
     grants: [{ actorId: principal.userId, editionId: resource.editionId, role, state: "active", scope: { kind: "resource", resourceId: resource.id } }],
@@ -166,6 +166,15 @@ describe("current identity, assurance and revocation (ROL-12, SEC-01/02)", () =>
       : state === "sessionRevoked" ? { ...actor, session: { ...actor.session, active: false } }
         : { ...actor, emailVerified: false };
     expectDenied(await decision({ ...current, actor: changed }));
+  });
+
+  it("requires participant phone verification while keeping participant MFA optional", async () => {
+    const current = fixture("participant.record.read", "participant");
+    expectDenied(await decision({ ...current, actor: { ...current.actor!, phoneVerified: false } }, "participant.record.read"));
+    expectDenied(await decision({ ...current, actor: { ...current.actor!, session: { ...current.actor!.session,
+      passwordVerified: false } } }, "participant.record.read"));
+    expect(await decision({ ...current, actor: { ...current.actor!, session: { ...current.actor!.session,
+      assurance: "aal1", factor: null } } }, "participant.record.read")).toMatchObject({ allowed: true });
   });
 
   it("rejects a grant belonging to another actor or edition", async () => {

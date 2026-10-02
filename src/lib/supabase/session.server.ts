@@ -13,6 +13,9 @@ export type PersistedSessionContext = Readonly<{
   sessionPolicySatisfied: boolean;
   reason: SessionDenialReason | null;
   mfaValid: boolean;
+  passwordValid: boolean;
+  emailVerified: boolean;
+  phoneVerified: boolean;
   timing: Readonly<{ startedAtMs: number; lastActivityAtMs: number; absoluteExpiresAtMs: number;
     idleExpiresAtMs: number | null; authenticatedAtMs: number | null }>;
   policy: SessionPolicy;
@@ -34,22 +37,24 @@ function parseTimestamp(value: unknown): number | null {
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 const reasons: readonly SessionDenialReason[] = ["session_revoked", "account_suspended", "absolute_expired",
-  "idle_expired", "individual_identity_required", "mfa_required"];
+  "idle_expired", "individual_identity_required", "mfa_required", "account_verification_required", "password_auth_required"];
 
 /** Exact own metadata contract; unknown fields, readiness, policy drift or identity fail closed. */
 export function parsePersistedSessionContext(value: unknown, userId: string, editionId: string): PersistedSessionContext | null {
   if (!uuid.test(userId) || !editionId || editionId.trim() !== editionId
     || !exact(value, ["schemaVersion", "editionId", "principal", "privileged", "sessionPolicySatisfied", "reason",
-      "mfaValid", "timing", "policy", "operationalAccessReady", "privilegedAccessReady"])
+      "mfaValid", "passwordValid", "emailVerified", "phoneVerified", "timing", "policy", "operationalAccessReady", "privilegedAccessReady"])
     || value.schemaVersion !== 1 || value.editionId !== editionId
     || value.operationalAccessReady !== false || value.privilegedAccessReady !== false
     || !exact(value.principal, ["userId", "sessionId"]) || value.principal.userId !== userId
     || typeof value.principal.sessionId !== "string" || !uuid.test(value.principal.sessionId)
     || typeof value.privileged !== "boolean" || typeof value.sessionPolicySatisfied !== "boolean"
     || typeof value.mfaValid !== "boolean"
+    || typeof value.passwordValid !== "boolean" || typeof value.emailVerified !== "boolean" || typeof value.phoneVerified !== "boolean"
     || (value.reason !== null && (typeof value.reason !== "string" || !reasons.includes(value.reason as SessionDenialReason)))
     || value.sessionPolicySatisfied !== (value.reason === null)
     || (value.privileged && value.sessionPolicySatisfied && !value.mfaValid)
+    || (value.sessionPolicySatisfied && (!value.emailVerified || !value.passwordValid || (!value.privileged && !value.phoneVerified)))
     || !exact(value.policy, Object.keys(SESSION_POLICY))
     || !Object.entries(SESSION_POLICY).every(([key, maximum]) => {
       const configured = (value.policy as Record<string, unknown>)[key];
@@ -73,7 +78,8 @@ export function parsePersistedSessionContext(value: unknown, userId: string, edi
   return Object.freeze({ schemaVersion: 1, editionId,
     principal: Object.freeze({ userId, sessionId: value.principal.sessionId }),
     privileged: value.privileged, sessionPolicySatisfied: value.sessionPolicySatisfied,
-    reason: value.reason as SessionDenialReason | null, mfaValid: value.mfaValid,
+    reason: value.reason as SessionDenialReason | null, mfaValid: value.mfaValid, passwordValid: value.passwordValid,
+    emailVerified: value.emailVerified, phoneVerified: value.phoneVerified,
     timing: Object.freeze({ startedAtMs, lastActivityAtMs, absoluteExpiresAtMs, idleExpiresAtMs, authenticatedAtMs }),
     policy, operationalAccessReady: false, privilegedAccessReady: false });
 }

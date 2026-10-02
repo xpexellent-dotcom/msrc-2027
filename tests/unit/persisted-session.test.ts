@@ -11,7 +11,7 @@ const editionId = "synthetic-session-2027";
 const started = Date.UTC(2026, 9, 2, 12);
 function fixture() {
   return { schemaVersion: 1, editionId, principal: { userId, sessionId }, privileged: true,
-    sessionPolicySatisfied: true, reason: null as string | null, mfaValid: true,
+    sessionPolicySatisfied: true, reason: null as string | null, mfaValid: true, passwordValid: true, emailVerified: true, phoneVerified: true,
     timing: { startedAt: new Date(started).toISOString(), lastActivityAt: new Date(started + 60_000).toISOString(),
       absoluteExpiresAt: new Date(started + 28_800_000).toISOString(),
       idleExpiresAt: new Date(started + 60_000 + 1_800_000).toISOString(),
@@ -40,10 +40,20 @@ describe("AUTH-05 exact own-session parser", () => {
     { schemaVersion: 2 }, { editionId: "other" }, { principal: { userId: sessionId, sessionId } },
     { principal: { userId, sessionId: "bad" } }, { operationalAccessReady: true }, { privilegedAccessReady: true },
     { email: "private@example.invalid" }, { reason: "provider-secret-detail" }, { reason: "idle_expired" },
-    { mfaValid: false }, { policy: { ...SESSION_POLICY, participantAbsoluteSeconds: 259201 } },
+    { mfaValid: false }, { passwordValid: false }, { emailVerified: false }, { phoneVerified: "verified" }, { policy: { ...SESSION_POLICY, participantAbsoluteSeconds: 259201 } },
     { policy: { ...SESSION_POLICY, recentAuthMaxAgeSeconds: 1 } },
   ])("rejects untrusted altered result %j", (changed) => {
     expect(parsePersistedSessionContext({ ...fixture(), ...changed }, userId, editionId)).toBeNull();
+  });
+  it("accepts participant AAL1 policy metadata with both verifications and no MFA", () => {
+    const value = fixture(); value.privileged = false; value.mfaValid = false;
+    value.timing.absoluteExpiresAt = new Date(started + 259_200_000).toISOString();
+    (value.timing as { idleExpiresAt: string | null }).idleExpiresAt = null;
+    expect(parsePersistedSessionContext(value, userId, editionId)?.sessionPolicySatisfied).toBe(true);
+    value.phoneVerified = false;
+    expect(parsePersistedSessionContext(value, userId, editionId)).toBeNull();
+    value.reason = "account_verification_required"; value.sessionPolicySatisfied = false;
+    expect(parsePersistedSessionContext(value, userId, editionId)?.reason).toBe("account_verification_required");
   });
   it.each(["not-a-date", "2026-10-02", "2026-10-02T12:00:00"]) ("rejects malformed time %s", (startedAt) => {
     const value = fixture(); value.timing.startedAt = startedAt;
