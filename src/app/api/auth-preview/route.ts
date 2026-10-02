@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const COOKIE = "msrc-synthetic-session";
 const safeHeaders = { "Cache-Control": "private, no-store, max-age=0", "X-Robots-Tag": "noindex, nofollow, noarchive" };
-const simpleActions = new Set(["enroll", "challenge", "status", "refresh", "protected", "logout", "suspend", "simulate-factor-reset", "request-reset", "reauthenticate"]);
+const simpleActions = new Set(["enroll", "challenge", "challenge-email", "status", "refresh", "protected", "logout", "suspend", "simulate-factor-reset", "request-reset", "reauthenticate"]);
 
 function response(result: PreviewResult, status = result.state === "ok" ? 200 : result.state === "unavailable" ? 503 : 403) {
   const { token, ...safe } = result;
@@ -24,7 +24,7 @@ function parseAction(value: unknown): PreviewAction | null {
   if (input.action === "start" && keys === "action,kind" && typeof input.kind === "string" && ["staff", "participant"].includes(input.kind)) {
     return { type: "start", kind: input.kind as "staff" | "participant" };
   }
-  if (input.action === "verify" && keys === "action,code" && typeof input.code === "string" && /^\d{6}$/.test(input.code)) return { type: "verify", code: input.code };
+  if ((input.action === "verify" || input.action === "verify-email") && keys === "action,code" && typeof input.code === "string" && /^\d{6}$/.test(input.code)) return { type: input.action, code: input.code };
   if (keys === "action" && typeof input.action === "string" && simpleActions.has(input.action)) return { type: input.action } as PreviewAction;
   return null;
 }

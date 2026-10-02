@@ -1,23 +1,26 @@
 import "server-only";
 
 import { randomBytes, randomUUID } from "node:crypto";
-import QRCode from "qrcode";
 import { SESSION_POLICY, type SessionPolicy } from "@/config/session-policy";
 import { evaluateSessionPolicy, type SessionEvidence } from "@/lib/auth/session-policy.server";
 import { isAuthPreviewAllowed } from "@/lib/auth-preview.server";
-import { createTotpSecret, totpSetupUri, verifyTotp } from "./totp.server";
+import { createSyntheticCodeKey, issueSyntheticCode, matchesSyntheticCode } from "./sms-test.server";
 import type { PreviewAction, PreviewCode, PreviewKind, PreviewResult, PreviewView } from "./mfa-contract";
 
-type Factor = { id: string; secret: string; createdAt: number; updatedAt: number; verified: boolean; consumedCounter: number | null };
+type Factor = { id: string; createdAt: number; updatedAt: number; verified: boolean };
+type Challenge = { hash: string; expiresAt: number };
 type Session = {
   actorId: string; id: string; kind: PreviewKind; startedAt: number; lastActivityAt: number;
   revokedAt: number | null; suspended: boolean; assurance: "aal1" | "aal2";
-  authenticatedAt: number; mfaAuthenticatedAt: number | null; factor: Factor | null;
-  challengeExpiresAt: number | null; failureCount: number; blockedUntil: number | null;
+  authenticatedAt: number; passwordAuthenticatedAt: number; mfaAuthenticatedAt: number | null;
+  emailVerified: boolean; phoneVerified: boolean; factor: Factor | null;
+  smsChallenge: Challenge | null; emailChallenge: Challenge | null;
+  codeKey: string; issuedHashes: string[];
+  failureCount: { sms: number; email: number }; blockedUntil: { sms: number | null; email: number | null };
 };
 
 export type PreviewAudit = Readonly<{
-  event: "session.started" | "mfa.enrollment_started" | "mfa.challenge_started" | "mfa.verified" | "mfa.rejected" | "session.logged_out" | "account.suspension_simulated" | "factor.reset_revocation_simulated" | "factor.reset_denied" | "session.reauthenticated";
+  event: "session.started" | "mfa.enrollment_started" | "mfa.challenge_started" | "mfa.verified" | "verification.email_challenge_started" | "verification.phone_challenge_started" | "verification.email_verified" | "verification.phone_verified" | "verification.rejected" | "session.logged_out" | "account.suspension_simulated" | "factor.reset_revocation_simulated" | "factor.reset_denied" | "session.reauthenticated";
   actorId: string; sessionId: string; at: number; outcome: "allowed" | "denied";
 }>;
 
@@ -26,28 +29,26 @@ type Options = Readonly<{
   now?: () => number;
   policy?: SessionPolicy;
   audit?: (event: PreviewAudit) => void | Promise<void>;
-  qr?: (uri: string) => Promise<string>;
 }>;
 
-// Abuse/transport bounds for this ephemeral synthetic lab, not approved production policy.
+// Abuse/transport bounds for this ephemeral lab, not approved production settings.
 const MAX_SESSIONS = 128;
 const CHALLENGE_LIFETIME_MS = 2 * 60 * 1000;
 const FAILURE_COOLDOWN_MS = 60 * 1000;
 const MAX_FAILURES = 5;
 
-/** No provider, database, email, real staff identity, grant or operational mutation. */
+/** No password collection, managed account, actual email/SMS, provider, grant or domain mutation. */
 export function createSyntheticAuthPreview(options: Options = {}) {
   const sessions = new Map<string, Session>();
   const auditEvents: PreviewAudit[] = [];
   const policy = options.policy ?? SESSION_POLICY;
   const enabled = options.enabled ?? isAuthPreviewAllowed;
   const now = options.now ?? Date.now;
-  const qr = options.qr ?? ((uri) => QRCode.toDataURL(uri, { errorCorrectionLevel: "M", margin: 4, width: 280 }));
   const audit = options.audit ?? ((event: PreviewAudit) => {
     auditEvents.push(Object.freeze(event));
     if (auditEvents.length > 512) auditEvents.shift();
   });
-  // Queue the whole lab: async QR/audit must not admit concurrent verification or replay.
+  // Audit and OTP verification serialize: concurrency cannot consume a challenge twice.
   let queue: Promise<void> = Promise.resolve();
 
   function evidence(session: Session): SessionEvidence {
@@ -58,12 +59,14 @@ export function createSyntheticAuthPreview(options: Options = {}) {
       lastActivityAtMs: session.lastActivityAt,
       tokenExpiresAtMs: session.startedAt + (session.kind === "staff" ? policy.privilegedAbsoluteSeconds : policy.participantAbsoluteSeconds) * 1000,
       managedNotAfterMs: null, accountActive: !session.suspended, individuallyIdentified: session.kind === "staff",
+      emailVerified: session.emailVerified, phoneVerified: session.phoneVerified,
       revokedAtMs: session.revokedAt, actorRevokedBeforeMs: null,
       tokenAssurance: session.assurance, managedAssurance: session.assurance,
       factorId: factor?.id ?? null, factorUserId: factor ? session.actorId : null,
-      factorVerified: factor?.verified ?? false,
+      factorType: factor ? "phone" : null, factorVerified: factor?.verified ?? false,
       factorCreatedAtMs: factor?.createdAt ?? null, factorUpdatedAtMs: factor?.updatedAt ?? null,
-      totpAuthenticatedAtMs: session.mfaAuthenticatedAt, authenticatedAtMs: session.authenticatedAt,
+      passwordAuthenticatedAtMs: session.passwordAuthenticatedAt,
+      phoneMfaAuthenticatedAtMs: session.mfaAuthenticatedAt, authenticatedAtMs: session.authenticatedAt,
     };
   }
 
@@ -75,11 +78,15 @@ export function createSyntheticAuthPreview(options: Options = {}) {
       status: session.revokedAt !== null || session.suspended ? "revoked" : expired ? "expired" : "active",
       factor: session.factor ? session.factor.verified ? "verified" : "pending" : "none",
       challengeRequired: session.kind === "staff" && !!session.factor?.verified && !result.mfaValid,
-      challengePending: session.challengeExpiresAt !== null && session.challengeExpiresAt > at,
+      challengePending: !!session.smsChallenge && session.smsChallenge.expiresAt > at,
+      emailChallengePending: !!session.emailChallenge && session.emailChallenge.expiresAt > at,
+      passwordVerified: session.passwordAuthenticatedAt >= session.startedAt && session.passwordAuthenticatedAt <= at,
+      emailVerified: session.emailVerified, phoneVerified: session.phoneVerified,
+      verificationComplete: session.emailVerified && session.phoneVerified,
       startedAt: session.startedAt, lastActivityAt: session.lastActivityAt,
       absoluteExpiresAt: session.startedAt + (session.kind === "staff" ? policy.privilegedAbsoluteSeconds : policy.participantAbsoluteSeconds) * 1000,
       idleExpiresAt: result.idleExpiresAtMs,
-      previewAccessAllowed: session.kind === "staff" && result.sessionPolicySatisfied,
+      previewAccessAllowed: result.sessionPolicySatisfied,
       operationalAccessReady: false, privilegedAccessReady: false,
     };
   }
@@ -92,7 +99,10 @@ export function createSyntheticAuthPreview(options: Options = {}) {
     return {
       actorId: randomUUID(), id: randomUUID(), kind, startedAt: at, lastActivityAt: at,
       revokedAt: null, suspended: false, assurance: "aal1", authenticatedAt: at,
-      mfaAuthenticatedAt: null, factor: null, challengeExpiresAt: null, failureCount: 0, blockedUntil: null,
+      passwordAuthenticatedAt: at, mfaAuthenticatedAt: null,
+      emailVerified: kind === "staff", phoneVerified: false,
+      factor: null, smsChallenge: null, emailChallenge: null, codeKey: createSyntheticCodeKey(),
+      issuedHashes: [], failureCount: { sms: 0, email: 0 }, blockedUntil: { sms: null, email: null },
     };
   }
 
@@ -104,10 +114,7 @@ export function createSyntheticAuthPreview(options: Options = {}) {
     try {
       if (action.type === "start") {
         if (!["staff", "participant"].includes(action.kind)) return { state: "denied", code: "invalid_action" };
-        // Free only expired/revoked records; never evict another active actor to admit a new one.
-        for (const [key, item] of sessions) {
-          if (view(item, at).status !== "active") sessions.delete(key);
-        }
+        for (const [key, item] of sessions) if (view(item, at).status !== "active") sessions.delete(key);
         if (sessions.size >= MAX_SESSIONS && !existing) return { state: "unavailable", code: "unavailable" };
         const created = newSession(action.kind, at);
         await record(created, at, "session.started");
@@ -129,21 +136,22 @@ export function createSyntheticAuthPreview(options: Options = {}) {
         next.revokedAt = at;
         next.assurance = "aal1";
         next.mfaAuthenticatedAt = null;
-        next.challengeExpiresAt = null;
+        next.smsChallenge = null;
+        next.emailChallenge = null;
         if (action.type === "suspend") next.suspended = true;
-        if (action.type === "simulate-factor-reset") next.factor = null;
-        const event = action.type === "logout" ? "session.logged_out" : action.type === "suspend" ? "account.suspension_simulated" : "factor.reset_revocation_simulated";
-        await record(next, at, event);
+        if (action.type === "simulate-factor-reset") { next.factor = null; next.phoneVerified = false; }
+        await record(next, at, action.type === "logout" ? "session.logged_out" : action.type === "suspend" ? "account.suspension_simulated" : "factor.reset_revocation_simulated");
         sessions.set(token!, next);
         return { state: "ok", code: action.type === "logout" ? "logged_out" : action.type === "suspend" ? "suspended" : "factor_reset_revoked", view: view(next, at) };
       }
       if (action.type === "reauthenticate") {
         if (currentView.status === "revoked") return denied("session_revoked");
-        const next = { ...newSession(existing.kind, at), actorId: existing.actorId, factor: existing.factor ? structuredClone(existing.factor) : null };
+        const next = { ...newSession(existing.kind, at), actorId: existing.actorId,
+          factor: existing.factor ? structuredClone(existing.factor) : null,
+          emailVerified: existing.emailVerified, phoneVerified: existing.phoneVerified,
+          codeKey: existing.codeKey, issuedHashes: [...existing.issuedHashes],
+          failureCount: { ...existing.failureCount }, blockedUntil: { ...existing.blockedUntil } };
         await record(next, at, "session.reauthenticated");
-        // Genuine synthetic first-factor reauthentication creates a new session. Refresh never does.
-        // Remove the old cookie mapping entirely: an obsolete token cannot retain authority
-        // or accumulate factor-bearing records under repeated synthetic reauthentication.
         sessions.delete(token!);
         const nextToken = randomBytes(32).toString("base64url");
         sessions.set(nextToken, next);
@@ -153,70 +161,81 @@ export function createSyntheticAuthPreview(options: Options = {}) {
       if (currentView.status === "expired") return denied("session_expired");
       if (action.type === "refresh") return { state: "ok", code: "refreshed", view: currentView };
       const next = structuredClone(existing);
-      if (action.type === "enroll") {
-        if (next.kind !== "staff") return denied("invalid_action");
-        if (next.factor) return denied("factor_already_enrolled");
-        const secret = createTotpSecret();
-        const uri = totpSetupUri(secret, `Staff ${next.actorId.slice(0, 8)}`);
-        const qrDataUrl = await qr(uri);
-        if (!qrDataUrl.startsWith("data:image/png;base64,")) throw new Error("QR unavailable");
-        next.factor = { id: randomUUID(), secret, createdAt: at, updatedAt: at, verified: false, consumedCounter: null };
-        next.challengeExpiresAt = at + CHALLENGE_LIFETIME_MS;
+      if (action.type === "enroll" || action.type === "challenge" || action.type === "challenge-email") {
+        const email = action.type === "challenge-email";
+        const channel = email ? "email" : "sms";
+        if (email && next.kind !== "participant") return denied("invalid_action");
+        if (action.type === "enroll" && next.kind !== "staff") return denied("invalid_action");
+        if (action.type === "enroll" && next.factor) return denied("factor_already_enrolled");
+        if (next.kind === "staff" && !currentView.passwordVerified) return denied("password_auth_required");
+        if (action.type === "challenge" && next.kind === "staff" && !next.factor) return denied("mfa_required");
+        if (next.blockedUntil[channel] !== null && at < next.blockedUntil[channel]) return denied("retry_limited");
+        if (action.type === "enroll") next.factor = { id: randomUUID(), createdAt: at, updatedAt: at, verified: false };
+        const issued = issueSyntheticCode(next.codeKey, next.issuedHashes);
+        const challenge = { hash: issued.hash, expiresAt: at + CHALLENGE_LIFETIME_MS };
+        next.issuedHashes.push(issued.hash);
+        if (email) next.emailChallenge = challenge; else next.smsChallenge = challenge;
         next.lastActivityAt = at;
-        await record(next, at, "mfa.enrollment_started");
+        const event = email ? "verification.email_challenge_started" : action.type === "enroll" ? "mfa.enrollment_started"
+          : next.kind === "staff" ? "mfa.challenge_started" : "verification.phone_challenge_started";
+        await record(next, at, event);
         sessions.set(token!, next);
-        return { state: "ok", code: "enrolled", view: { ...view(next, at), enrollment: { secret, uri, qrDataUrl } } };
+        return { state: "ok", code: email ? "email_challenge_created" : action.type === "enroll" ? "enrolled" : "challenge_created",
+          view: { ...view(next, at), testMessage: { channel: email ? "email" : "sms", code: issued.code,
+            destination: email ? "Synthetic email ••••@example.invalid" : "Synthetic phone •••• 0000",
+            delivery: "test-only", expiresAt: challenge.expiresAt } } };
       }
-      if (action.type === "challenge") {
-        if (!next.factor || next.kind !== "staff") return denied("mfa_required");
-        if (next.blockedUntil !== null && at < next.blockedUntil) return denied("retry_limited");
-        next.challengeExpiresAt = at + CHALLENGE_LIFETIME_MS;
-        next.lastActivityAt = at;
-        await record(next, at, "mfa.challenge_started");
-        sessions.set(token!, next);
-        return { state: "ok", code: "challenge_created", view: view(next, at) };
-      }
-      if (action.type === "verify") {
-        if (!next.factor || next.kind !== "staff") return denied("mfa_required");
-        if (next.blockedUntil !== null && at < next.blockedUntil) return denied("retry_limited");
-        if (next.challengeExpiresAt === null) return denied("challenge_required");
-        if (at >= next.challengeExpiresAt) return denied("challenge_expired");
-        if (next.blockedUntil !== null) { next.failureCount = 0; next.blockedUntil = null; }
-        const consumedCounter = verifyTotp(next.factor.secret, action.code, at, next.factor.consumedCounter);
-        if (consumedCounter === null) {
-          next.failureCount += 1;
-          if (next.failureCount >= MAX_FAILURES) next.blockedUntil = at + FAILURE_COOLDOWN_MS;
-          await record(next, at, "mfa.rejected", "denied");
+      if (action.type === "verify" || action.type === "verify-email") {
+        const email = action.type === "verify-email";
+        const channel = email ? "email" : "sms";
+        if (email && next.kind !== "participant") return denied("invalid_action");
+        if (!email && next.kind === "staff" && !next.factor) return denied("mfa_required");
+        if (next.kind === "staff" && !currentView.passwordVerified) return denied("password_auth_required");
+        if (next.blockedUntil[channel] !== null && at < next.blockedUntil[channel]) return denied("retry_limited");
+        const challenge = email ? next.emailChallenge : next.smsChallenge;
+        if (!challenge) return denied("challenge_required");
+        if (at >= challenge.expiresAt) return denied("challenge_expired");
+        if (next.blockedUntil[channel] !== null) { next.failureCount[channel] = 0; next.blockedUntil[channel] = null; }
+        if (!matchesSyntheticCode(next.codeKey, challenge.hash, action.code)) {
+          next.failureCount[channel] += 1;
+          if (next.failureCount[channel] >= MAX_FAILURES) next.blockedUntil[channel] = at + FAILURE_COOLDOWN_MS;
+          await record(next, at, "verification.rejected", "denied");
           sessions.set(token!, next);
-          return { state: "denied", code: next.blockedUntil !== null ? "retry_limited" : "invalid_code", view: view(next, at) };
+          return { state: "denied", code: next.blockedUntil[channel] !== null ? "retry_limited" : "invalid_code", view: view(next, at) };
         }
-        next.factor.consumedCounter = consumedCounter;
-        next.factor.verified = true;
-        next.assurance = "aal2";
-        next.mfaAuthenticatedAt = at;
+        if (email) { next.emailVerified = true; next.emailChallenge = null; }
+        else {
+          next.phoneVerified = true;
+          next.smsChallenge = null;
+          if (next.kind === "staff") {
+            next.factor!.verified = true;
+            next.assurance = "aal2";
+            next.mfaAuthenticatedAt = at;
+            next.authenticatedAt = at;
+          }
+        }
         next.lastActivityAt = at;
-        next.failureCount = 0;
-        next.blockedUntil = null;
-        next.challengeExpiresAt = null;
-        await record(next, at, "mfa.verified");
+        next.failureCount[channel] = 0;
+        next.blockedUntil[channel] = null;
+        await record(next, at, email ? "verification.email_verified" : next.kind === "staff" ? "mfa.verified" : "verification.phone_verified");
         sessions.set(token!, next);
-        return { state: "ok", code: "verified", view: view(next, at) };
+        return { state: "ok", code: email ? "email_verified" : next.kind === "staff" ? "verified" : "phone_verified", view: view(next, at) };
       }
       if (action.type === "protected") {
-        // This is only a synthetic assurance probe, with no actual privileged operation.
-        if (next.kind !== "staff" || !currentView.previewAccessAllowed) return denied("mfa_required");
+        // Own synthetic verification/assurance probe only; never a domain operation/grant.
+        if (!currentView.previewAccessAllowed) return denied(next.kind === "staff" ? "mfa_required" : "account_verification_required");
         next.lastActivityAt = at;
         sessions.set(token!, next);
         return { state: "ok", code: "protected_allowed", view: view(next, at) };
       }
       return denied("invalid_action");
     } catch {
-      // A provider/QR/audit outage never leaves an existing privileged synthetic session usable.
       if (existing) {
         existing.revokedAt = at;
         existing.assurance = "aal1";
         existing.mfaAuthenticatedAt = null;
-        existing.challengeExpiresAt = null;
+        existing.smsChallenge = null;
+        existing.emailChallenge = null;
       }
       return { state: "unavailable", code: "unavailable", ...(existing ? { view: view(existing, at) } : {}) };
     }
@@ -228,7 +247,6 @@ export function createSyntheticAuthPreview(options: Options = {}) {
       queue = result.then(() => {}, () => {});
       return result;
     },
-    /** Tests inspect safe event fields only; this buffer is not a durable production audit. */
     auditSnapshot(): readonly PreviewAudit[] { return auditEvents.map((event) => ({ ...event })); },
   });
 }

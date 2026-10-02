@@ -71,12 +71,14 @@ export interface CurrentActor {
   readonly id: string;
   readonly state: "active" | "suspended";
   readonly emailVerified: boolean;
+  readonly phoneVerified: boolean;
   readonly individuallyIdentified: boolean;
   readonly session: {
     readonly id: string;
     readonly active: boolean;
     readonly assurance: "aal1" | "aal2";
-    readonly factor: "totp" | null;
+    readonly factor: "sms" | null;
+    readonly passwordVerified: boolean;
   };
 }
 

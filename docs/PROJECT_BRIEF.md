@@ -45,7 +45,7 @@ These remain delivery scope even when released at different times. Staging does 
 
 ## Deliberate scope exclusions
 
-Public attendee lists; public abstracts/research search; full-site search; attendee networking/messaging; sponsor self-service accounts; personal schedule building; native mobile apps; automatic team matching; university SSO; SMS/WhatsApp/push integrations. National IDs are excluded. Third-party video embeds and public gallery download buttons are excluded. Dark mode is outside committed scope. [S1 SCP-05, AUTH-06, MED-01/04, DSN-02]
+Public attendee lists; public abstracts/research search; full-site search; attendee networking/messaging; sponsor self-service accounts; personal schedule building; native mobile apps; automatic team matching; university SSO; WhatsApp/push integrations and SMS outside authentication. ORG-013 (3 October 2026) permits participant phone verification and staff/admin password → SMS OTP; participants require email and phone verification without MFA. Primary login remains managed email/password. Live SMS settings and privacy/recovery approvals remain unresolved; only synthetic delivery is implemented. National IDs are excluded. Third-party video embeds and public gallery download buttons are excluded. Dark mode is outside committed scope. [S1 SCP-05, AUTH-01/04/06, MED-01/04, DSN-02; ORG-013]
 
 Program filters, read-only My Bookings, restricted dashboard search, and single-certificate verification remain in scope and must not be removed by those exclusions.
 

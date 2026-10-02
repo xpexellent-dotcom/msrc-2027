@@ -29,10 +29,10 @@ select throws_ok($$update msrc_sessions.policy set participant_absolute_seconds=
 select throws_ok($$update msrc_sessions.policy set privileged_idle_seconds=1801$$,'23514',null,'Staff idle cannot exceed 30 minutes');
 select throws_ok($$update msrc_sessions.policy set privileged_absolute_seconds=28801$$,'23514',null,'Staff absolute cannot exceed 8 hours');
 
-insert into auth.users(id,email,email_confirmed_at,created_at,updated_at,is_anonymous) values
- ('71000000-0000-4000-8000-000000000001','session-participant@example.invalid',now(),now(),now(),false),
- ('71000000-0000-4000-8000-000000000002','session-staff@example.invalid',now(),now(),now(),false),
- ('71000000-0000-4000-8000-000000000003','session-other@example.invalid',now(),now(),now(),false);
+insert into auth.users(id,email,email_confirmed_at,phone,phone_confirmed_at,created_at,updated_at,is_anonymous) values
+ ('71000000-0000-4000-8000-000000000001','session-participant@example.invalid',now(),'+15550007101',now(),now(),now(),false),
+ ('71000000-0000-4000-8000-000000000002','session-staff@example.invalid',now(),'+15550007102',now(),now(),now(),false),
+ ('71000000-0000-4000-8000-000000000003','session-other@example.invalid',now(),'+15550007103',now(),now(),now(),false);
 insert into msrc_authorization.edition_config(edition_key) values('synthetic-session-2027'),('synthetic-session-other');
 insert into msrc_authorization.account_access(actor_id,state,individually_identified) values
  ('71000000-0000-4000-8000-000000000001','active',true),
@@ -41,8 +41,8 @@ insert into msrc_authorization.account_access(actor_id,state,individually_identi
 insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason) values
  ('71000000-0000-4000-8000-000000000001','synthetic-session-2027','participant','edition','Synthetic session test'),
  ('71000000-0000-4000-8000-000000000002','synthetic-session-2027','superAdmin','edition','Synthetic session test');
-insert into auth.mfa_factors(id,user_id,factor_type,status,created_at,updated_at) values
- ('73000000-0000-4000-8000-000000000002','71000000-0000-4000-8000-000000000002','totp','verified',now()-interval '5 minutes',now()-interval '5 minutes');
+insert into auth.mfa_factors(id,user_id,factor_type,status,phone,created_at,updated_at) values
+ ('73000000-0000-4000-8000-000000000002','71000000-0000-4000-8000-000000000002','phone','verified','+15550007302',now()-interval '5 minutes',now()-interval '5 minutes');
 insert into auth.sessions(id,user_id,created_at,updated_at,aal,factor_id) values
  ('72000000-0000-4000-8000-000000000001','71000000-0000-4000-8000-000000000001',now()-interval '71 hours',now(),'aal1',null),
  ('72000000-0000-4000-8000-000000000002','71000000-0000-4000-8000-000000000002',now()-interval '1 minute',now(),'aal2','73000000-0000-4000-8000-000000000002'),
@@ -54,12 +54,14 @@ insert into auth.sessions(id,user_id,created_at,updated_at,aal,factor_id) values
 
 create function pg_temp.session_claims(actor text default '71000000-0000-4000-8000-000000000001',
   sid text default '72000000-0000-4000-8000-000000000001',aal text default 'aal1',
-  totp_age interval default interval '30 seconds') returns void language plpgsql as $$
+  mfa_age interval default interval '30 seconds') returns void language plpgsql as $$
 begin
   perform set_config('request.jwt.claims',jsonb_build_object('sub',actor,'role','authenticated','session_id',sid,
     'aal',aal,'exp',extract(epoch from now()+interval '1 hour'),
-    'amr',case when aal='aal2' then jsonb_build_array(jsonb_build_object('method','totp',
-      'timestamp',floor(extract(epoch from now()-totp_age)))) else '[]'::jsonb end)::text,true);
+    'amr',jsonb_build_array(jsonb_build_object('method','password','timestamp',
+      (select floor(extract(epoch from created_at)) from auth.sessions where id::text=sid)))
+      || case when aal='aal2' then jsonb_build_array(jsonb_build_object('method','mfa/phone',
+      'timestamp',floor(extract(epoch from now()-mfa_age)))) else '[]'::jsonb end)::text,true);
 end; $$;
 
 set local role anon;
@@ -93,6 +95,34 @@ select is((select started_at from msrc_sessions.session_state where session_id='
  (select created_at from auth.sessions where id='72000000-0000-4000-8000-000000000001'),'Activity never restarts absolute origin');
 select ok((select last_activity_at>started_at from msrc_sessions.session_state where session_id='72000000-0000-4000-8000-000000000001'),'Only application activity advances idle evidence');
 
+-- Participants use verified account email/phone with password login at AAL1; no factor.
+do $$begin perform pg_temp.session_claims(); end$$;
+update auth.users set phone_confirmed_at=null where id='71000000-0000-4000-8000-000000000001';
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','account_verification_required','Participant missing current phone verification is denied');
+select is(public.msrc_access_context('synthetic-session-2027'),null::jsonb,'Older context RPC also denies unverified participant phone');
+reset role;
+update auth.users set phone_confirmed_at=now(),email_confirmed_at=null where id='71000000-0000-4000-8000-000000000001';
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','account_verification_required','Participant missing current email verification is denied');
+reset role;
+update auth.users set email_confirmed_at=now(),phone='' where id='71000000-0000-4000-8000-000000000001';
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','account_verification_required','Empty current phone cannot inherit verification');
+reset role;
+update auth.users set phone='+15550007101' where id='71000000-0000-4000-8000-000000000001';
+do $$begin perform set_config('request.jwt.claims',jsonb_set(current_setting('request.jwt.claims')::jsonb,
+ '{amr}','[{"method":"otp"}]'::jsonb)::text,true); end$$;
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','password_auth_required','Primary OTP does not replace participant email/password login');
+reset role;
+do $$begin perform pg_temp.session_claims(); end$$;
+set local role authenticated;
+select ok(public.msrc_session_context('synthetic-session-2027') @>
+ '{"sessionPolicySatisfied":true,"mfaValid":false,"passwordValid":true,"emailVerified":true,"phoneVerified":true}'::jsonb,
+ 'Participant verified email/phone and password login needs no MFA factor');
+reset role;
+
 do $$begin perform pg_temp.session_claims(sid=>'72000000-0000-4000-8000-000000000003'); end$$;
 set local role authenticated;
 select is(public.msrc_session_context('synthetic-session-2027')->>'reason','absolute_expired','Participant equality at 72 hours expires');
@@ -113,7 +143,7 @@ reset role;
 do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2'); end$$;
 set local role authenticated;
 select ok(public.msrc_session_context('synthetic-session-2027') @> '{"sessionPolicySatisfied":true,"mfaValid":true,"privileged":true}'::jsonb,
- 'Individually identified staff with current verified session TOTP passes closed policy');
+ 'Individually identified staff with current verified session phone MFA passes closed policy');
 select ok(public.msrc_session_context('synthetic-session-other') @> '{"sessionPolicySatisfied":true,"mfaValid":true,"privileged":true}'::jsonb,
  'Another configured edition cannot downgrade current staff session classification');
 select is(extract(epoch from ((public.msrc_session_context('synthetic-session-other')#>>'{timing,absoluteExpiresAt}')::timestamptz
@@ -123,16 +153,51 @@ select is(extract(epoch from ((public.msrc_session_context('synthetic-session-ot
  -(public.msrc_session_context('synthetic-session-other')#>>'{timing,lastActivityAt}')::timestamptz)),
  1800::numeric,'Staff idle stays 30 minutes in an edition without staff grants');
 reset role;
+-- Neither an approved-looking AAL2 nor primary SMS/TOTP can stand in for password + phone MFA.
+do $$begin perform set_config('request.jwt.claims',jsonb_set(current_setting('request.jwt.claims')::jsonb,
+ '{amr}',jsonb_build_array(jsonb_build_object('method','mfa/phone','timestamp',floor(extract(epoch from now())))))::text,true); end$$;
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','password_auth_required','Phone MFA without same-session password proof is denied');
+select is(public.msrc_access_context('synthetic-session-2027'),null::jsonb,'Historical RPC override rejects phone MFA without password');
+reset role;
+do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2');
+ perform set_config('request.jwt.claims',replace(current_setting('request.jwt.claims'),'mfa/phone','phone'),true); end$$;
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','Primary phone AMR is not a second factor');
+reset role;
+do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2');
+ perform set_config('request.jwt.claims',replace(current_setting('request.jwt.claims'),'mfa/phone','totp'),true); end$$;
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','TOTP AMR cannot satisfy approved SMS staff policy');
+reset role;
+do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2'); end$$;
+do $$begin perform set_config('request.jwt.claims',jsonb_set(current_setting('request.jwt.claims')::jsonb,
+ '{amr,0,timestamp}',to_jsonb(floor(extract(epoch from now()-interval '10 minutes'))))::text,true); end$$;
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','password_auth_required','Password proof from before the managed session cannot establish primary login');
+reset role;
+do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2');
+ perform set_config('request.jwt.claims',jsonb_set(current_setting('request.jwt.claims')::jsonb,
+ '{amr,0,timestamp}',to_jsonb(floor(extract(epoch from now()+interval '1 hour'))))::text,true); end$$;
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','password_auth_required','Future password proof cannot establish primary login');
+reset role;
+do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2'); end$$;
+update auth.mfa_factors set factor_type='totp' where id='73000000-0000-4000-8000-000000000002';
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','Actual TOTP factor cannot satisfy approved phone MFA even with phone AMR');
+reset role;
+update auth.mfa_factors set factor_type='phone' where id='73000000-0000-4000-8000-000000000002';
 update auth.sessions set updated_at=now(),refreshed_at=now() where id='72000000-0000-4000-8000-000000000002';
 select is((select last_activity_at=started_at from msrc_sessions.session_state where session_id='72000000-0000-4000-8000-000000000002'),true,'Staff token refresh is not idle activity');
 do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal1'); end$$;
 set local role authenticated;
 select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','Staff AAL1 lacks required MFA');
-select is(public.msrc_session_context('synthetic-session-other')->>'reason','mfa_required','Another configured edition cannot bypass staff TOTP');
+select is(public.msrc_session_context('synthetic-session-other')->>'reason','mfa_required','Another configured edition cannot bypass staff phone MFA');
 reset role;
 do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2',interval '10 minutes'); end$$;
 set local role authenticated;
-select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','TOTP proof predating factor/session is stale');
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','phone MFA proof predating factor/session is stale');
 reset role;
 do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2'); end$$;
 update auth.mfa_factors set status='unverified',updated_at=now() where id='73000000-0000-4000-8000-000000000002';

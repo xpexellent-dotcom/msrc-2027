@@ -187,7 +187,7 @@ begin
       join auth.mfa_factors f on f.id=s.factor_id and f.user_id=a.actor_id
       join auth.users u on u.id=a.actor_id
       where a.actor_id=performer_actor_id and a.state='active' and a.individually_identified
-        and s.aal::text='aal2' and f.factor_type::text='totp' and f.status::text='verified'
+        and s.aal::text='aal2' and f.factor_type::text='phone' and f.status::text='verified'
         and s.created_at > statement_timestamp()-interval '8 hours'
         and (s.not_after is null or s.not_after > statement_timestamp())
         and u.deleted_at is null and not u.is_anonymous
@@ -211,8 +211,8 @@ begin
 end; $$;
 
 -- Internal self-bound checker. Caller cannot supply identity, origin, activity timestamp,
--- policy or assurance. Public wrappers choose whether a successful application action
--- counts as activity; context reads and provider refresh never do.
+-- policy or assurance. Only a future trusted domain action may record activity;
+-- public observations and provider refresh never do.
 create function msrc_sessions.own_context(edition_key text,record_activity boolean) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -225,9 +225,14 @@ declare
   policy_row msrc_sessions.policy%rowtype;
   account_row msrc_authorization.account_access%rowtype;
   factor_row auth.mfa_factors%rowtype;
+  user_row auth.users%rowtype;
   privileged boolean := false;
   mfa_valid boolean := false;
-  totp_at timestamptz;
+  password_valid boolean := false;
+  email_verified boolean := false;
+  phone_verified boolean := false;
+  password_at timestamptz;
+  phone_mfa_at timestamptz;
   authenticated_at timestamptz;
   cutoff timestamptz;
   reason text;
@@ -250,10 +255,13 @@ begin
   select s.* into managed from auth.sessions s join auth.users u on u.id=s.user_id
     where s.id=sid and s.user_id=caller_id and s.created_at <= observed_at
       and (s.not_after is null or s.not_after > observed_at)
-      and u.deleted_at is null and u.email_confirmed_at is not null and u.email is not null and btrim(u.email) <> ''
+      and u.deleted_at is null
       and not u.is_anonymous and (u.banned_until is null or u.banned_until <= observed_at)
     for share of s,u;
   if not found then return null; end if;
+  select u.* into user_row from auth.users u where u.id=caller_id;
+  email_verified := user_row.email_confirmed_at is not null and coalesce(btrim(user_row.email),'') <> '';
+  phone_verified := user_row.phone_confirmed_at is not null and coalesce(btrim(user_row.phone),'') <> '';
   select p.* into policy_row from msrc_sessions.policy p where p.singleton;
   if not found then return null; end if;
   -- A caller-controlled edition selector cannot downgrade the session's staff limits.
@@ -269,24 +277,35 @@ begin
   absolute_end := state_row.started_at + make_interval(secs => case when privileged
     then policy_row.privileged_absolute_seconds else policy_row.participant_absolute_seconds end);
   if privileged then idle_end := state_row.last_activity_at + make_interval(secs => policy_row.privileged_idle_seconds); end if;
-  select max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='totp'),
-    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method' in ('password','totp'))
-    into totp_at,authenticated_at
+  -- Signed provider AMR must prove password primary login in THIS managed session.
+  -- Generic AAL2, primary phone/OTP and TOTP do not establish approved staff assurance.
+  -- mfa/phone proves phone MFA; the trusted adapter fixes channel=sms. AMR alone
+  -- cannot distinguish SMS from WhatsApp; SMS-only provider configuration is a release gate.
+  select max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='password'),
+    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='mfa/phone'),
+    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method' in ('password','mfa/phone'))
+    into password_at,phone_mfa_at,authenticated_at
     from jsonb_array_elements(case when jsonb_typeof(claims->'amr')='array' then claims->'amr' else '[]'::jsonb end) a(item)
     where jsonb_typeof(a.item->'timestamp')='number';
+  password_valid := coalesce(floor(extract(epoch from password_at)) >= floor(extract(epoch from managed.created_at))
+    and password_at <= observed_at,false);
   if managed.factor_id is not null then
     select f.* into factor_row from auth.mfa_factors f where f.id=managed.factor_id and f.user_id=caller_id for share;
   end if;
-  mfa_valid := coalesce(claims->>'aal'='aal2' and managed.aal::text='aal2'
-    and factor_row.factor_type::text='totp' and factor_row.status::text='verified'
-    and floor(extract(epoch from totp_at)) >= floor(extract(epoch from greatest(factor_row.created_at,factor_row.updated_at,managed.created_at)))
-    and totp_at <= observed_at,false);
+  mfa_valid := coalesce(password_valid and claims->>'aal'='aal2' and managed.aal::text='aal2'
+    and factor_row.factor_type::text='phone' and factor_row.status::text='verified'
+    and coalesce(btrim(factor_row.phone),'') <> ''
+    and floor(extract(epoch from phone_mfa_at)) >= floor(extract(epoch from greatest(
+      factor_row.created_at,factor_row.updated_at,managed.created_at,password_at)))
+    and phone_mfa_at <= observed_at,false);
   if state_row.revoked_at is not null or managed.created_at <= cutoff then reason := 'session_revoked';
   elsif account_row.state <> 'active' then reason := 'account_suspended';
   elsif observed_at >= absolute_end then reason := 'absolute_expired';
   elsif privileged and observed_at >= idle_end then reason := 'idle_expired';
+  elsif not email_verified or (not privileged and not phone_verified) then reason := 'account_verification_required';
+  elsif not password_valid then reason := 'password_auth_required';
   elsif privileged and not account_row.individually_identified then reason := 'individual_identity_required';
-  elsif (privileged or claims->>'aal'='aal2') and not mfa_valid then reason := 'mfa_required';
+  elsif privileged and not mfa_valid then reason := 'mfa_required';
   elsif coalesce(claims->>'aal','aal1') not in ('aal1','aal2') then return null;
   end if;
   if reason in ('absolute_expired','idle_expired') and state_row.revoked_at is null then
@@ -299,6 +318,7 @@ begin
   return jsonb_build_object('schemaVersion',1,'editionId',edition_key,
     'principal',jsonb_build_object('userId',caller_id,'sessionId',sid),'privileged',privileged,
     'sessionPolicySatisfied',reason is null,'reason',reason,'mfaValid',mfa_valid,
+    'passwordValid',password_valid,'emailVerified',email_verified,'phoneVerified',phone_verified,
     'timing',jsonb_build_object('startedAt',state_row.started_at,'lastActivityAt',state_row.last_activity_at,
       'absoluteExpiresAt',absolute_end,'idleExpiresAt',idle_end,'authenticatedAt',authenticated_at),
     'policy',jsonb_build_object('participantAbsoluteSeconds',policy_row.participant_absolute_seconds,
@@ -337,4 +357,55 @@ alter function public.msrc_session_logout(text) owner to postgres;
 revoke all on all functions in schema msrc_sessions from public, anon, authenticated, service_role;
 revoke all on function public.msrc_session_context(text),public.msrc_session_activity(text),public.msrc_session_logout(text) from public, anon, authenticated, service_role;
 grant execute on function public.msrc_session_context(text),public.msrc_session_activity(text),public.msrc_session_logout(text) to authenticated;
+-- Current organizer assurance supersedes the earlier TOTP-only primitive. The deployed
+-- migration snapshot is preserved; this replacement exists only in the review-only change.
+create or replace function public.msrc_access_context(edition_key text) returns jsonb
+language plpgsql volatile security definer set search_path = '' as $$
+declare
+  context jsonb;
+  caller_id uuid;
+  caller_session_id uuid;
+  account_row msrc_authorization.account_access%rowtype;
+  own_grants jsonb := '[]'::jsonb;
+  mfa_valid boolean;
+begin
+  context := msrc_sessions.own_context(edition_key,false);
+  if context is null or not (context->>'passwordValid')::boolean then return null; end if;
+  -- Password-only staff metadata is available for future closed enrollment screens.
+  -- Failed AAL2 or a lifecycle/verification denial cannot become a usable identity context.
+  if context->>'reason' is not null and not (context->>'reason'='mfa_required'
+    and coalesce(auth.jwt()->>'aal','aal1')='aal1') then return null; end if;
+  caller_id := (context#>>'{principal,userId}')::uuid;
+  caller_session_id := (context#>>'{principal,sessionId}')::uuid;
+  mfa_valid := (context->>'mfaValid')::boolean;
+  select a.* into account_row from msrc_authorization.account_access a where a.actor_id=caller_id;
+  if not found or account_row.state <> 'active' then return null; end if;
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'actorId',g.actor_id,'editionId',g.edition_key,'role',g.role_name,'state','active',
+    'scope',case g.scope_kind
+      when 'edition' then jsonb_build_object('kind','edition')
+      when 'track' then jsonb_build_object('kind','track','track',g.track,'trackId',g.scope_target)
+      when 'assignment' then jsonb_build_object('kind','assignment','assignmentId',g.scope_target)
+      when 'function' then jsonb_build_object('kind','function','functionId',g.scope_target)
+      when 'resource' then jsonb_build_object('kind','resource','resourceId',g.scope_target)
+    end
+  ) order by g.id),'[]'::jsonb) into own_grants from msrc_authorization.role_grants g
+  where g.actor_id=caller_id and g.edition_key=msrc_access_context.edition_key and g.state='active';
+  return jsonb_build_object('schemaVersion',1,'editionId',edition_key,
+    'principal',jsonb_build_object('userId',caller_id,'sessionId',caller_session_id),
+    'actor',jsonb_build_object('id',caller_id,'state',account_row.state,
+      'emailVerified',(context->>'emailVerified')::boolean,
+      'phoneVerified',(context->>'phoneVerified')::boolean,
+      'individuallyIdentified',account_row.individually_identified,
+      'session',jsonb_build_object('id',caller_session_id,'active',false,'passwordVerified',true,
+        'assurance',case when mfa_valid then 'aal2' else 'aal1' end,
+        'factor',case when mfa_valid then 'sms' else null end)),
+    'grants',own_grants,'operationalAccessReady',false,'privilegedAccessReady',false);
+exception when invalid_text_representation or numeric_value_out_of_range or datetime_field_overflow then return null;
+end; $$;
+alter function public.msrc_access_context(text) owner to postgres;
+revoke all on function public.msrc_access_context(text) from public,anon,authenticated,service_role;
+grant execute on function public.msrc_access_context(text) to authenticated;
+comment on function public.msrc_access_context(text) is
+  'Self-only current session metadata: password primary; verified email and phone for participants; current phone MFA for staff. Adapter channel is SMS; provider channel restriction is a release gate. Session active/readiness FALSE.';
 notify pgrst,'reload schema';

@@ -19,7 +19,7 @@ This package contains documentation, source snapshots, and prompts. It does not 
 - Research: 300 body words; ongoing work allowed; two finalized applications per PI per edition; no supervisor requirement until a research award winner is selected; confidential stage-one evidence is restricted to Super Admins.
 - Hackathon: solo and preformed teams, maximum five team members, two specified tracks, no automatic team matching. Preserve unresolved solo quota and membership policies.
 - Ordinary full conference certificate: both day check-ins plus general survey. No one-day certificate. Workshop certificate has its own booking/check-in/completion/survey requirements. Feedback answers must remain unlinked to participant completion evidence.
-- Email-only platform communications. No national IDs, public attendee directory, public abstract search/directory, sponsor portal, personal schedule builder, full-site search, university SSO, SMS, WhatsApp integration, or push notifications.
+- Platform notifications remain email-only. ORG-013 (3 October 2026) permits SMS only for participant phone verification and staff/admin password → SMS OTP authentication. Participants verify email and phone without MFA. SMS provider/sender/budget/operating settings and recovery remain approval gates; use synthetic delivery until approved. No national IDs, public attendee directory, public abstract search/directory, sponsor portal, personal schedule builder, full-site search, university SSO, WhatsApp integration, or push notifications.
 - Advisory assessment cannot publish outcomes. It remains disabled until its provider, data handling, evaluation, and operating configuration are approved.
 
 ## Implementation

@@ -57,7 +57,7 @@ export async function authorize(
     if (!current?.actor || current.actor.id !== principal.userId || current.actor.state !== "active") return denied("inactiveActor");
     const actor = current.actor;
     if (actor.session.id !== principal.sessionId || actor.session.active !== true) return denied("inactiveSession");
-    if (actor.emailVerified !== true) return denied("unverifiedActor");
+    if (actor.emailVerified !== true || actor.session.passwordVerified !== true) return denied("unverifiedActor");
     const resource = current.resource;
     if (!resource || resource.id !== request.resourceId || !validId(resource.editionId) || resource.kind !== rule.kind) return denied("notAuthorized");
     const relatedAssignments = current.assignments.filter(assignment => assignmentMatches(assignment, principal, resource));
@@ -70,7 +70,8 @@ export async function authorize(
       (!rule.scopes || rule.scopes.includes(grant.scope.kind)) && scopeMatches(grant, resource, assignments));
 
     for (const grant of grants) {
-      if (grant.role !== "participant" && (actor.individuallyIdentified !== true || actor.session.assurance !== "aal2" || actor.session.factor !== "totp")) continue;
+      if (grant.role === "participant" && actor.phoneVerified !== true) continue;
+      if (grant.role !== "participant" && (actor.individuallyIdentified !== true || actor.session.assurance !== "aal2" || actor.session.factor !== "sms")) continue;
       const own = resource.ownerId === actor.id;
       const originalInput = ["reviewPacket", "eventMaterial", "presentationFile"].includes(resource.kind);
       const selfReview = resource.subjectOwnerId === actor.id || resource.associatedActorIds.includes(actor.id) || (originalInput && own);

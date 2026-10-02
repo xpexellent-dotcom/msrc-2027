@@ -36,8 +36,12 @@ or retention duration is inferred. CFG-09/10/11 gates and the new
   an active grant may become irreversibly revoked. Changing identity or scope requires a
   replacement grant. Grants across editions remain separate.
 - Existing tokens cannot preserve access after account suspension, grant revocation,
-  session removal or TOTP factor removal. Trusted JWT assurance is checked against current
-  managed database evidence; email verification is not privileged MFA.
+  session removal or current factor removal. The historical deployed migration used TOTP;
+  ORG-013's review-only session migration replaces assurance helpers with password then
+  verified phone MFA. Trusted `password`/`mfa/phone` AMR is checked against current managed
+  factor/session evidence. The trusted challenge adapter selects SMS; AMR does not identify
+  the delivery channel. Participants require both managed email/phone confirmations without
+  MFA; participant verification is not privileged assurance. No hosted migration is applied.
 - Operational access remains explicitly closed in this context. AUTH-05's configurable
   absolute/idle/recent-authentication enforcement, logout/recovery, MFA lifecycle and
   human UAT must land before staff activation. Token refresh is not user activity.

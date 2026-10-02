@@ -35,8 +35,16 @@ describe("closed authentication transport", () => {
   it.each(foreignOrigins)("rejects foreign/missing Origin %j", async (headers) => {
     expect((await POST(request(undefined, headers))).status).toBe(403); expect(execute).not.toHaveBeenCalled();
   });
-  it.each([null, [], {}, { action: "start", kind: "superAdmin" }, { action: "start", kind: ["staff"] }, { action: "status", actorId: "another" }, { action: "verify", code: "12345" }, { action: "verify", code: "123456", timestamp: 0 }, "{broken", "x".repeat(513)])("rejects malformed or overposted action %j", async (body) => {
+  it.each([null, [], {}, { action: "start", kind: "superAdmin" }, { action: "start", kind: ["staff"] }, { action: "status", actorId: "another" }, { action: "verify", code: "12345" }, { action: "verify-email", code: "123456", phone: "+15550000000" }, { action: "start", kind: "staff", password: "synthetic-untrusted" }, { action: "verify", code: "123456", timestamp: 0 }, "{broken", "x".repeat(513)])("rejects malformed or overposted action %j", async (body) => {
     expect((await POST(request(body))).status).toBe(400); expect(execute).not.toHaveBeenCalled();
+  });
+  it.each(["verify", "verify-email"] as const)("accepts exact %s code action without caller identity, password or destination", async (action) => {
+    await POST(request({ action, code: "123456" }));
+    expect(execute).toHaveBeenCalledExactlyOnceWith(null, { type: action, code: "123456" });
+  });
+  it("accepts a synthetic email challenge through the same local-only boundary", async () => {
+    await POST(request({ action: "challenge-email" }));
+    expect(execute).toHaveBeenCalledExactlyOnceWith(null, { type: "challenge-email" });
   });
   it("rejects non-JSON", async () => {
     expect((await POST(request({ action: "status" }, { "content-type": "text/plain" }))).status).toBe(400);

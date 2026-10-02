@@ -49,8 +49,8 @@ The source selects providers and intended ownership; it does not create accounts
 | Participation pathways | Separate registration, abstracts, hackathon, 3MT and workshop states linked to one account. Co-authors are not attendees automatically. | SCP-03, REG-01/08 |
 | Admission | Every registration manual approval, including full discounts. Default approve before financial completion; confirm/ticket only when both exist. | REG-02/03, PAY-03 |
 | Workshop dependency | Manual approval and payment/valid discount, plus confirmed conference registration before confirming workshop. | WKS-02 |
-| Email verification | Six-digit numeric code; managed email/password. No university SSO. | AUTH-01/02 |
-| Privileged access | Individual accounts, authenticator-app MFA and data/API enforcement, no role assumption from interface visibility. | AUTH-04, ROL-01/12 |
+| Account verification | Managed email/password; participants verify email and phone without MFA (ORG-013). Email codes six-digit numeric; live SMS settings unresolved. No university SSO. | AUTH-01/02/06 |
+| Privileged access | Individual accounts, password then SMS phone-MFA (ORG-013) and data/API enforcement, no role assumption from interface visibility. Live provider/recovery gates stay closed. | AUTH-04, ROL-01/12 |
 | Interface language | English-default bilingual public/participant/non-review organizer UI and Arabic RTL. | LOC-01/03 |
 | Scientific language | Scientific/project text English-only, LTR scientific fields in Arabic UI. Reviewer/judge assessment English-only. | LOC-02/03 |
 | Email language/channel | All platform transactional messages English-only and email-only. | LOC-03, EML-01 |
@@ -77,7 +77,7 @@ The source selects providers and intended ownership; it does not create accounts
 
 | Conflict / ambiguity | Source evidence | Governing behavior until resolved | Who decides / dependent gate |
 | --- | --- | --- | --- |
-| National ID and phone | S2 5.1 requests national ID and phone in profiles. S1 AUTH-06/PRV-03 exclude ID and make phone conditional; HAC-10 and CFG-13 explicitly flag conflict. | Keep national ID excluded and phone optional/conditional. Add neither silently; any future change requires explicit purpose/access/retention approval. | Hackathon + privacy/technical owners; production hackathon profile collection. |
+| National ID and phone | S2 5.1 requests national ID and phone in profiles. S1 AUTH-06/PRV-03 exclude ID and make phone conditional; HAC-10 and CFG-13 explicitly flag conflict. ORG-013 approves verified phone for authentication. | National ID stays excluded. Phone is required for the approved account-verification/SMS authentication purpose; unrelated hackathon use/sharing and privacy/access/retention approval remain unresolved. | Hackathon + privacy/technical owners; production profile collection and unrelated phone use. |
 | WhatsApp group | S2 6.1 mentions online orientation with WhatsApp group. S1 EML-01 confirms email-only platform and HAC-10 flags discrepancy. | No WhatsApp integration/automated notifications or automatic phone sharing. Decide separately whether an optional external organizer-run group exists. | Hackathon + operations/privacy owners; participant onboarding. |
 | Solo finalist quota | S2 4.3 states eight teams per track, sixteen teams total; C3 also permits solo competition. | Do not assume extra solo spaces or sixteen people. One project per solo/team consuming an entry is only S1 HAC-07 proposal, not approved. | Hackathon lead; ranking/selection publication. |
 | Eligibility | S2 3.1 broad university student/intern sentence remains labelled Options, even though international eligibility and no-healthcare-member answers are clear. | Preserve answered choices, withhold final broad eligibility rule until approved. | Hackathon lead; application opening. |
@@ -124,7 +124,7 @@ These are source defaults and service objectives, not measured production perfor
 
 | IDs | DEFAULT / objective |
 | --- | --- |
-| AUTH-02 | OTP ten minutes; resend cooldown 60 seconds; <=3 issued/email/15 minutes; <=5 failed attempts/code. |
+| AUTH-02 | Email OTP ten minutes; resend cooldown 60 seconds; <=3 issued/email/15 minutes; <=5 failed attempts/code. ORG-013 SMS expiry/resend/attempt/rate/provider/sender/budget remain TBD; email defaults do not approve SMS settings. |
 | AUTH-03 | Additional challenge/cooldown after five failed password attempts/15 minutes, no permanent lock. |
 | AUTH-05 | ORG-012 supersedes participant 24h default: confirmed absolute maximum 72h from original session creation, never restarted by refresh. Privileged idle 30min/absolute 8h remain. Recent-auth age and warning lead TBD; dependent actions closed. |
 | AUTH-08 | Remove abandoned unverified accounts after seven days only if no required record prevents cleanup. |
@@ -1052,6 +1052,8 @@ sensitive actions stay closed.
 
 ## ENG-011 — Closed local staff security foundations, 2 October 2026
 
+Historical TOTP implementation decision; ORG-013 supersedes its factor/UI choice. Local-only, synthetic-data, audit and closed release boundaries continue to apply.
+
 Authority: bounded BL-AUTH-05/06 task; AUTH-04/05, ROL-12, SEC-01/06, LOC-01, ERR-01.
 The local synthetic TOTP lab uses temporary individually scoped identities, server-held
 keys and challenge/replay controls. QR/manual setup show a fresh synthetic key during
@@ -1066,3 +1068,36 @@ remains false. Privileged activity must be server-observed, with expiry checked 
 idle evidence changes; refresh/context reads are never activity. No domain AuthorityReader,
 feature RLS, signup, CMS, operational workflow, email provider or production authorization
 is added. Verification/rollback/release gates are recorded in the feature note and PROGRESS.
+
+## ORG-013 — Participant verification and staff SMS authentication, 3 October 2026
+
+Authority: explicit organizer instruction in this conversation on 3 October 2026:
+participants do not need MFA; verify accounts via email verification and phone verification;
+staff/admins use password then SMS OTP. This overrides v0.5 AUTH-04's TOTP requirement,
+AUTH-06's optional-phone baseline and the authentication part of SCP-05/EML-01's SMS
+exclusion. Preserve `sources/Development_Specification_v0.5.txt` and dated TOTP receipts.
+
+- Primary sign-in remains managed email/password. Participants require both current
+  managed email and phone verification, stay AAL1 and acquire no staff authority from either.
+- Staff/admins require current password proof followed by a verified phone MFA challenge,
+  AAL2 and current scoped grants. Primary phone OTP, participant verification, email code,
+  old TOTP and generic AAL2 are insufficient. Offboarding/factor change/reset still revoke.
+- SMS is limited to authentication. Operational/security notices remain English-only email;
+  WhatsApp/push and other SMS communications remain excluded. Supabase `mfa/phone` AMR
+  proves the phone factor, not its delivery channel: trusted challenge code must explicitly
+  select SMS, and approved provider configuration/UAT must verify SMS-only delivery.
+- SMS provider/sender/budget, expiry/resend/attempt/account/IP controls, verified phone
+  change/loss/reset process and recovery approver/operator remain TBD. Email OTP defaults
+  do not approve SMS controls. Recent-auth maximum age and timeout-warning lead stay null.
+  Phone authentication purpose is approved; privacy/retention/data-location documentation,
+  production plan/region and operational release approvals remain separate gates.
+- The closed local preview simulates successful password entry without collecting a real
+  password. Its ephemeral test inbox displays generated email/SMS codes only when issued;
+  no real delivery/account/invitation/grant/reset is performed. Live provider and both
+  readiness flags remain false. No participant signup or operational workflow is added.
+- ORG-012's participant 72h and privileged 30min idle/8h absolute limits remain; refreshing
+  a token never changes the original absolute origin. New hosted migrations remain review-only.
+
+The organizer reported the previous preview worked. This is bounded feedback on the
+previous TOTP preview, not proof of the new SMS flow, real delivery, screen-reader review,
+managed-factor lifecycle or release approval. Updated evidence belongs in PROGRESS.

@@ -53,7 +53,7 @@ src/
   content/                   existing typed public draft copy
   features/
     content/                 reserved
-    auth/                    local synthetic TOTP lab and disabled managed-provider contract
+    auth/                    local synthetic email/SMS lab and disabled phone-MFA provider contract
     registration/            reserved
     payments/                reserved
     submissions/             reserved
@@ -111,10 +111,12 @@ not evidence that any later feature is implemented, tested or approved for relea
 
 BL-AUTH-01 adds a [closed persisted context](features/persisted-authorization.md): private
 account-access, scoped grant and audit metadata, plus a self-only current managed-session/
-TOTP lookup. Its verified server adapter returns no resource facts, scientific assignments
+assurance lookup. The deployed historical migration used TOTP; ORG-013's review-only
+override requires password then verified phone MFA for staff and email+phone verification
+without MFA for participants. Its verified server adapter returns no resource facts, scientific assignments
 or operational authorization. Both readiness flags and session activation stay false.
 The [staff security foundations](features/staff-security-foundations.md) add a review-only
-database policy context and local synthetic TOTP lab. AUTH-05 uses ORG-012's participant
+database policy context and local synthetic email/SMS lab. AUTH-05 uses ORG-012's participant
 72h maximum and privileged 30min idle/8h absolute; refresh never restarts origin.
 Approved staff recovery and live lifecycle enforcement remain gates. The BL-SEC-01 domain
 `AuthorityReader` is still pending feature-specific protected resource integration.
@@ -159,6 +161,13 @@ Define a provider-independent adapter contract after reviewing the real KAU inte
 ### Email and jobs
 
 Use durable persisted jobs with deduplication keys, bounded retries, delivery status, and authorized replay. Keep console/test-recipient mode in local/staging work. Transactional messages are English-only. Queued, provider-accepted, delivered, and failed states must be distinct. [EML-01 to EML-05]
+
+ORG-013 adds authentication-only SMS. Participants verify email and phone without MFA;
+staff use password followed by phone-MFA explicitly challenged with SMS. Supabase
+`mfa/phone` AMR does not encode the delivery channel: the trusted provider adapter and
+approved managed configuration must preserve SMS-only transport. Live SMS provider,
+sender, budget, expiry/resend/abuse settings and phone-loss/change recovery remain TBD.
+The local preview's ephemeral test inbox performs no actual email or SMS delivery.
 
 ### Advisory assessment
 

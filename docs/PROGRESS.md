@@ -2,6 +2,63 @@
 
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
+## 3 October 2026 — ORG-013 participant verification and staff SMS policy
+
+Explicit organizer override: participants require email+phone verification without MFA;
+staff/admins use password then SMS OTP. Managed email/password remains primary sign-in.
+ORG-013 supersedes current TOTP/optional-phone/no-SMS authentication requirements only;
+the v0.5 source and dated earlier TOTP receipts below stay preserved. SMS outside
+authentication, WhatsApp/push and other operational communications remain excluded.
+The requester reported the earlier preview worked; new SMS/managed-provider/human
+accessibility UAT is separate and remains unverified.
+
+Fresh GitHub main is `59d82a6099166631722a8340db494fbb7506c430` (merged PR20);
+PR19 remains open/draft/unmerged. Reused its isolated `staff-mfa-sessions` worktree/
+`codex/staff-mfa-sessions` branch and merged current main (merge `0d7d727`), preserving
+both auth and chapter-bar progress entries. Original main checkout's uncommitted
+docs/reviews and the previous authorization worktree remain untouched.
+Fresh main [CI37068248924](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37068248924)
+reports success at59d82a6; this is a receipt check, not a new broad main runtime audit.
+
+Current closed lab: simulated successful password step, separate participant email/SMS
+verification with AAL1/no factor, and staff phone enrollment/challenge/verification with
+SMS/AAL2. Ephemeral generated codes return only in the send response; server-held keyed
+hashes, single-use/replacement/expiry, bounded retries, serialized verification/audit and
+sanitized failure recovery. EN/AR/RTL, keyboard, Arabic digits, transient locale/retry
+input and test inboxes replace QR/manual authenticator setup. No real password/phone
+collection, delivery, account, invitation, grant or reset. Unused QR dependencies removed.
+
+Authentication configuration records approved policy with live SMS provider/sender/budget/
+expiry/resend/attempt/account/IP settings and recovery still unset. Server/database
+assurance requires current password then exact managed `mfa/phone` proof and a current
+verified phone factor. Participant email/phone confirmation grants no staff MFA. Trusted
+adapter chooses SMS explicitly; AMR does not prove the delivery channel. Pending session
+migration overrides the historical own-context RPC without changing/reapplying deployed
+`20261002173712`. New `20261002193800` remains REVIEW ONLY. Participant72h and staff30min
+idle/8h absolute remain; refresh never changes origin, staff cannot downgrade by edition.
+All15 operational flags and both readiness flags remain false. No hosted mutation.
+
+Verification checkpoint: `pnpm install --frozen-lockfile` PASS; `pnpm check` PASS with
+lint/types/1073 units and42-page production build after review fixes. Full public browser
+suite `pnpm test:e2e`:300 PASS/3 existing explicit skips; dedicated SMS browser initially
+36 PASS, then expanded to48 for participant messages and periodic expiry/revocation
+announcements. Final48-case execution and isolated CI database checks are pending.
+Review also fixed reauthentication clearing code-attempt cooldowns; three new regressions
+PASS. Independent SQL/TS/source review found no actionable issue; it executed no DB tests.
+`git diff --check` PASS. Fresh production auth-lab page/API404 and health200 confirm the
+existing production boundary; no production deployment changed. Local Docker/SQL is
+intentionally NOT TESTED. Human screen-reader/device, actual SMS delivery,
+managed cookie/refresh, lost/changed phone recovery and production configuration UAT
+remain NOT TESTED/BLOCKED. Earlier successful PR19 TOTP CI is not proof of this override.
+
+Remaining release inputs: SMS provider/sender/budget/operating controls; verified
+phone-loss/change/reset procedure and recovery approver/operator; recent-auth age and
+warning lead; privacy/retention/location; live security-email provider/sender; production
+plan/region/operational approvals; two intended administrators. Login addresses remain
+private. Next smallest task is approved isolated managed password→SMS integration/UAT.
+Rollback: stop local lab/clear opt-in to discard ephemeral state; revert application changes
+if needed. No production SQL rollback is needed because the new migration is unhosted.
+Details and manual review steps: [feature note](features/staff-security-foundations.md).
 ## 3 October 2026 — QA pass: Arabic visitors at the root, Event search data, sitemap x-default
 
 Live sweep of www.msrc2027.com after PR 27: all 20 public pages (EN/AR) at 1280 px Chromium, Pixel 7 Chromium and iPhone 13 WebKit return 200 with one h1, the right `lang`, no console errors, failed requests, broken images, unnamed controls or horizontal overflow; axe (WCAG 2.2 AA + best practice) reports no violations; all 24 linked URLs return 200. Security headers, the apex and `.vercel.app` 308s, robots and sitemap are as ORG-013 set them. Changed:
