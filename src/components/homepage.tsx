@@ -6,6 +6,7 @@ import { Link } from "@/components/ui/link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SectionJourney } from "@/components/section-journey";
+import { ChapterTitles } from "@/components/chapter-titles";
 import { ConferenceCountdown } from "@/components/conference-countdown";
 import { Reveal } from "@/components/ui/reveal";
 import { ResearchVisual } from "@/components/research-visual";
@@ -63,15 +64,16 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
       </Container>
     </section>
     <SectionJourney locale={locale} />
+    <ChapterTitles />
     <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
       <Container><Reveal className="intro-grid" stagger>
-        <div><SectionHeading eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" /></div>
+        <div><SectionHeading chapter eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" /></div>
         <div className="intro-body"><p className="intro-statement">{narrative.community}</p><p>{narrative.organizer}</p><div className="intro-visual"><FlowLines /><ResearchVisual className="intro-research-mark" /><span aria-hidden="true" className="visual-edition">05</span></div></div>
       </Reveal></Container>
     </section>
     <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
       <Container>
-        <Reveal className="section-introduction"><SectionHeading eyebrow={copy.pathwaysEyebrow} title={copy.pathwaysTitle} id="pathways-title" /></Reveal>
+        <Reveal className="section-introduction"><SectionHeading chapter eyebrow={copy.pathwaysEyebrow} title={copy.pathwaysTitle} id="pathways-title" /></Reveal>
         <Reveal className="pathway-list" stagger>{copy.pathways.map((pathway, index) => <article className="pathway-row" key={pathway.category}>
           <div className="pathway-card-top"><span className="pathway-number">{formatIndex(index + 1, locale)}</span><ResearchVisual variant={index} className="pathway-visual" /></div>
           <div className="pathway-title"><p>{pathway.category}</p><h3>{pathway.title}</h3></div>
@@ -84,7 +86,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
     <section id="program" tabIndex={-1} className="editorial-section program-section" aria-labelledby="program-title">
       <FlowLines className="program-flow" />
       <Container><Reveal className="program-grid" stagger>
-        <div><SectionHeading eyebrow={copy.programEyebrow} title={copy.programTitle} id="program-title" inverse /><ButtonLink className="program-link" href={`/${locale}/program`} variant="gold">{narrative.programmeLink}<Arrow /></ButtonLink></div>
+        <div><SectionHeading chapter eyebrow={copy.programEyebrow} title={copy.programTitle} id="program-title" inverse /><ButtonLink className="program-link" href={`/${locale}/program`} variant="gold">{narrative.programmeLink}<Arrow /></ButtonLink></div>
         <div className="program-list"><p className="program-pending">{narrative.programmeStatus}</p>{copy.programRows.map((row, index) => <article className="program-row" key={row.format}>
           <div className="program-row-top"><span>{row.format}</span><span aria-hidden="true">{formatIndex(index + 1, locale)}</span></div><h3>{row.title}</h3><p>{row.description}</p>
         </article>)}<p className="program-note">{narrative.programmeNote}</p></div>
@@ -93,20 +95,20 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
     <section id="speakers" tabIndex={-1} className="editorial-section speakers-section" aria-labelledby="speakers-title">
       <Container><Reveal className="speakers-editorial" stagger>
         <div className="speaker-identity-art" aria-hidden="true"><FlowLines /><span dir="ltr">MSRC<br/>2027</span><p>{narrative.portraitLabel}</p></div>
-        <div><SectionHeading eyebrow={narrative.speakersEyebrow} title={narrative.speakersTitle} id="speakers-title" /><p className="announcement-state"><span aria-hidden="true" />{narrative.speakersPending}</p><Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link></div>
+        <div><SectionHeading chapter eyebrow={narrative.speakersEyebrow} title={narrative.speakersTitle} id="speakers-title" /><p className="announcement-state"><span aria-hidden="true" />{narrative.speakersPending}</p><Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link></div>
       </Reveal></Container>
     </section>
     <section id="legacy" tabIndex={-1} className="editorial-section legacy-section" aria-labelledby="legacy-title">
       <Container><Reveal className="legacy-grid" stagger>
-        <div className="legacy-copy"><SectionHeading eyebrow={copy.legacyEyebrow} title={copy.legacyTitle} id="legacy-title" inverse /><p className="legacy-film-note">{narrative.legacyCaption}</p><div className="legacy-links"><CinematicFilmLink locale={locale}>{narrative.filmLink}<Arrow /></CinematicFilmLink></div></div>
+        <div className="legacy-copy"><SectionHeading chapter eyebrow={copy.legacyEyebrow} title={copy.legacyTitle} id="legacy-title" inverse /><p className="legacy-film-note">{narrative.legacyCaption}</p><div className="legacy-links"><CinematicFilmLink locale={locale}>{narrative.filmLink}<Arrow /></CinematicFilmLink></div></div>
         <div className="legacy-art" aria-hidden="true"><FlowLines /><div className="legacy-art-years" dir="ltr"><span>2026</span><span>2027</span></div><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
       </Reveal></Container>
     </section>
     <section id="partners" tabIndex={-1} className="editorial-section partners-section" aria-labelledby="partners-title">
-      <Container><Reveal className="partners-grid" stagger><SectionHeading eyebrow={narrative.partnersEyebrow} title={narrative.partnersTitle} id="partners-title" /><p className="announcement-state"><span aria-hidden="true" />{narrative.partnersPending}</p></Reveal></Container>
+      <Container><Reveal className="partners-grid" stagger><SectionHeading chapter eyebrow={narrative.partnersEyebrow} title={narrative.partnersTitle} id="partners-title" /><p className="announcement-state"><span aria-hidden="true" />{narrative.partnersPending}</p></Reveal></Container>
     </section>
     <section id="faq" tabIndex={-1} className="editorial-section faq-section" aria-labelledby="practical-title">
-      <Container><div className="faq-grid"><Reveal><SectionHeading eyebrow={narrative.practicalEyebrow} title={narrative.practicalTitle} id="practical-title" /><Link className="date-band-link" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link></Reveal><div className="faq-list" aria-label={narrative.faqLabel}>{narrative.faq.map((faq) => <details className="faq-item" key={faq.question}><summary>{faq.question}<span aria-hidden="true">+</span></summary><p>{faq.answer}</p></details>)}</div></div></Container>
+      <Container><div className="faq-grid"><Reveal><SectionHeading chapter eyebrow={narrative.practicalEyebrow} title={narrative.practicalTitle} id="practical-title" /><Link className="date-band-link" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link></Reveal><div className="faq-list" aria-label={narrative.faqLabel}>{narrative.faq.map((faq) => <details className="faq-item" key={faq.question}><summary>{faq.question}<span aria-hidden="true">+</span></summary><p>{faq.answer}</p></details>)}</div></div></Container>
     </section>
     <section className="closing-section" aria-labelledby="closing-title">
       <FlowLines />

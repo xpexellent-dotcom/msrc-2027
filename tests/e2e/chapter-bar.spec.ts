@@ -1,47 +1,23 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-// ORG-009: below 1100px the chapter index is one swipeable row that sticks under the floating
-// header, as the desktop bar does. A highlight glides to the current chapter; one tap jumps.
+// From 1100px the chapter index is a bar that sticks under the floating header. Below that it
+// is not shown (ORG-010): phones announce each chapter with its title (chapter-titles.spec.ts).
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} chapter bar follows the reader and jumps in one tap`, async ({ page }) => {
+  test(`${locale} chapter bar follows the reader and jumps in one click`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "Phones have no chapter bar.");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}`);
-    // The live countdown marks hydration; the highlight is placed by the client.
-    await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before");
+    await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before", { timeout: 15_000 });
     const bar = page.locator(".section-journey");
-    const geometry = () => page.evaluate(() => {
-      const row = document.querySelector(".section-journey-links")!;
-      const box = document.querySelector(".section-journey")!.getBoundingClientRect();
-      const active = row.querySelector('a[aria-current="location"]');
-      const activeBox = active?.getBoundingClientRect();
-      const highlight = document.querySelector(".section-journey-indicator")!.getBoundingClientRect();
-      return {
-        top: box.top, bottom: box.bottom, headerBottom: document.querySelector(".site-header")!.getBoundingClientRect().bottom,
-        rows: new Set([...row.querySelectorAll(":scope > a")].map((link) => Math.round(link.getBoundingClientRect().top))).size,
-        active: active?.getAttribute("href") ?? null,
-        highlighted: activeBox ? Math.abs(highlight.left - activeBox.left) < 2 && Math.abs(highlight.width - activeBox.width) < 2 : false,
-        inView: activeBox ? activeBox.left >= box.left - 1 && activeBox.right <= box.right + 1 : false,
-      };
-    });
+    const current = () => page.evaluate(() => document.querySelector('.section-journey-links a[aria-current="location"]')?.getAttribute("href") ?? null);
 
-    if ((page.viewportSize()?.width ?? 0) >= 1100) {
-      await expect(page.locator(".section-journey-indicator")).toBeHidden();
-      await page.evaluate(() => document.getElementById("participate")!.scrollIntoView({ block: "start" }));
-      await expect(bar).toBeInViewport();
-      return;
-    }
-
-    expect((await geometry()).rows).toBe(1);
     await page.evaluate(() => document.getElementById("participate")!.scrollIntoView({ block: "start" }));
-    await expect(bar).toHaveAttribute("data-stuck", "true");
-    await expect.poll(async () => {
-      const now = await geometry();
-      return now.active === "#participate" && now.highlighted && now.inView && now.top >= now.headerBottom && now.top - now.headerBottom < 20;
-    }).toBe(true);
+    await expect(bar).toBeInViewport();
+    await expect.poll(current).toBe("#participate");
     expect((await new AxeBuilder({ page }).include(".section-journey").withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
 
-    // One tap; the highlight goes straight to the destination, not through each chapter between.
+    // One click; the underline goes straight to the destination, not through each chapter between.
     await page.evaluate(() => {
       const seen: string[] = [];
       Object.assign(window, { chapterTrail: seen });
@@ -53,16 +29,16 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#legacy")).toBeFocused();
     await page.waitForTimeout(1600);
     expect(await page.evaluate(() => [...new Set((window as unknown as { chapterTrail: string[] }).chapterTrail)])).toEqual(["#participate", "#legacy"]);
-    const arrived = await geometry();
-    expect(arrived.active).toBe("#legacy");
-    expect(arrived.highlighted && arrived.inView).toBe(true);
-    // The chapter's opening line lands below the bar, not under it.
-    expect(await page.evaluate(() => document.querySelector("#legacy .eyebrow")!.getBoundingClientRect().top
-      - document.querySelector(".section-journey")!.getBoundingClientRect().bottom)).toBeGreaterThan(8);
+    await expect(bar).toBeInViewport();
+    expect(await current()).toBe("#legacy");
+
+    // Tablets have neither the bar nor the phone title transition.
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await expect(bar).toBeHidden();
   });
 }
 
-// Every chip's number matches its section's eyebrow: before the Partners chip, "Plan your
+// Every chapter's number matches its section's eyebrow: before the Partners chapter, "Plan your
 // visit" was 06 in the bar but "07 / Plan your visit" on the page.
 for (const locale of ["en", "ar"] as const) {
   test(`${locale} chapter numbers match the section eyebrows`, async ({ page }) => {

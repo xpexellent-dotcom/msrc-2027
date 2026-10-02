@@ -58,7 +58,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("main")).toBeFocused();
   });
 
-  test(`${locale} explicit section navigation glides and slides without controlling ordinary scrolling`, async ({ page }) => {
+  test(`${locale} explicit section navigation glides and slides without controlling ordinary scrolling`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
     await page.goto(`/${locale}`);
@@ -119,7 +120,8 @@ for (const locale of ["en", "ar"] as const) {
     expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -16 : 16}px)`);
   });
 
-  test(`${locale} an anchor followed by a page visit retains the hash and query on Back`, async ({ page }) => {
+  test(`${locale} an anchor followed by a page visit retains the hash and query on Back`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
     await page.goto(`/${locale}?view=motion`);
@@ -138,7 +140,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#program")).toBeInViewport();
   });
 
-  test(`${locale} language navigation preserves query, hash, destination focus and directional slide`, async ({ page }) => {
+  test(`${locale} language navigation preserves query, hash, destination focus and directional slide`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
     const targetLocale = locale === "en" ? "ar" : "en";
@@ -159,7 +162,8 @@ for (const locale of ["en", "ar"] as const) {
     expect(slide?.duration).toBe(400);
   });
 
-  test(`${locale} reduced motion keeps navigation direct and removes button travel`, async ({ page }) => {
+  test(`${locale} reduced motion keeps navigation direct and removes button travel`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await observeNavigation(page);
     await page.goto(`/${locale}`);
