@@ -217,8 +217,8 @@ create function msrc_sessions.own_context(edition_key text,record_activity boole
 language plpgsql security definer set search_path = '' as $$
 declare
   observed_at timestamptz := statement_timestamp();
-  claims jsonb := auth.jwt();
-  caller_id uuid := auth.uid();
+  claims jsonb;
+  caller_id uuid;
   sid uuid;
   managed auth.sessions%rowtype;
   state_row msrc_sessions.session_state%rowtype;
@@ -234,6 +234,8 @@ declare
   absolute_end timestamptz;
   idle_end timestamptz;
 begin
+  claims := auth.jwt();
+  caller_id := auth.uid();
   if caller_id is null or edition_key is null or edition_key <> btrim(edition_key)
     or char_length(edition_key) not between 1 and 128
     or not exists(select 1 from msrc_authorization.edition_config e where e.edition_key=own_context.edition_key)
@@ -254,8 +256,10 @@ begin
   if not found then return null; end if;
   select p.* into policy_row from msrc_sessions.policy p where p.singleton;
   if not found then return null; end if;
+  -- A caller-controlled edition selector cannot downgrade the session's staff limits.
+  -- Domain authorization/grant projections still remain edition-scoped elsewhere.
   privileged := exists(select 1 from msrc_authorization.role_grants g where g.actor_id=caller_id
-    and g.state='active' and g.edition_key=own_context.edition_key and g.role_name <> 'participant');
+    and g.state='active' and g.role_name <> 'participant');
   insert into msrc_sessions.session_state(session_id,actor_id,started_at,last_activity_at)
   values(sid,caller_id,managed.created_at,managed.created_at) on conflict(session_id) do nothing;
   select s.* into state_row from msrc_sessions.session_state s where s.session_id=sid for update;

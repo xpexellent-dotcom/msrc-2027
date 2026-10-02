@@ -3,12 +3,12 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: "staff-security.spec.ts",
-  outputDir: "test-results/auth",
+  outputDir: "test-auth-results",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
   workers: process.env.CI ? 1 : 2,
-  reporter: [["list"], ["html", { outputFolder: "playwright-report/auth", open: "never" }]],
+  reporter: [["list"], ["html", { outputFolder: "playwright-auth-report", open: "never" }]],
   use: { baseURL: "http://127.0.0.1:3211", trace: "off", screenshot: "off" },
   projects: [
     { name: "auth-desktop", use: { ...devices["Desktop Chrome"] } },

@@ -33,7 +33,7 @@ insert into auth.users(id,email,email_confirmed_at,created_at,updated_at,is_anon
  ('71000000-0000-4000-8000-000000000001','session-participant@example.invalid',now(),now(),now(),false),
  ('71000000-0000-4000-8000-000000000002','session-staff@example.invalid',now(),now(),now(),false),
  ('71000000-0000-4000-8000-000000000003','session-other@example.invalid',now(),now(),now(),false);
-insert into msrc_authorization.edition_config(edition_key) values('synthetic-session-2027');
+insert into msrc_authorization.edition_config(edition_key) values('synthetic-session-2027'),('synthetic-session-other');
 insert into msrc_authorization.account_access(actor_id,state,individually_identified) values
  ('71000000-0000-4000-8000-000000000001','active',true),
  ('71000000-0000-4000-8000-000000000002','active',true),
@@ -114,12 +114,21 @@ do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002'
 set local role authenticated;
 select ok(public.msrc_session_context('synthetic-session-2027') @> '{"sessionPolicySatisfied":true,"mfaValid":true,"privileged":true}'::jsonb,
  'Individually identified staff with current verified session TOTP passes closed policy');
+select ok(public.msrc_session_context('synthetic-session-other') @> '{"sessionPolicySatisfied":true,"mfaValid":true,"privileged":true}'::jsonb,
+ 'Another configured edition cannot downgrade current staff session classification');
+select is(extract(epoch from ((public.msrc_session_context('synthetic-session-other')#>>'{timing,absoluteExpiresAt}')::timestamptz
+ -(public.msrc_session_context('synthetic-session-other')#>>'{timing,startedAt}')::timestamptz)),
+ 28800::numeric,'Staff absolute stays 8 hours in an edition without staff grants');
+select is(extract(epoch from ((public.msrc_session_context('synthetic-session-other')#>>'{timing,idleExpiresAt}')::timestamptz
+ -(public.msrc_session_context('synthetic-session-other')#>>'{timing,lastActivityAt}')::timestamptz)),
+ 1800::numeric,'Staff idle stays 30 minutes in an edition without staff grants');
 reset role;
 update auth.sessions set updated_at=now(),refreshed_at=now() where id='72000000-0000-4000-8000-000000000002';
 select is((select last_activity_at=started_at from msrc_sessions.session_state where session_id='72000000-0000-4000-8000-000000000002'),true,'Staff token refresh is not idle activity');
 do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal1'); end$$;
 set local role authenticated;
 select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','Staff AAL1 lacks required MFA');
+select is(public.msrc_session_context('synthetic-session-other')->>'reason','mfa_required','Another configured edition cannot bypass staff TOTP');
 reset role;
 do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2',interval '10 minutes'); end$$;
 set local role authenticated;
@@ -144,6 +153,11 @@ select throws_ok($$select msrc_sessions.revoke_actor_sessions('71000000-0000-400
 select throws_ok($$select msrc_sessions.revoke_actor_sessions('71000000-0000-4000-8000-000000000001',
  '71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','security')$$,
  '55000','Consequential session maintenance is closed.','Unresolved recent-auth policy and readiness keep consequential maintenance closed');
+delete from auth.mfa_factors where id='73000000-0000-4000-8000-000000000002';
+set local role authenticated;
+select is(coalesce((public.msrc_session_context('synthetic-session-2027')->>'sessionPolicySatisfied')::boolean,false),
+ false,'Removed factor immediately invalidates old staff AAL2');
+reset role;
 
 do $$begin perform pg_temp.session_claims(sid=>'72000000-0000-4000-8000-000000000002'); end$$;
 set local role authenticated;
@@ -152,6 +166,11 @@ reset role;
 do $$begin perform pg_temp.session_claims(sid=>'malformed'); end$$;
 set local role authenticated;
 select is(public.msrc_session_context('synthetic-session-2027'),null::jsonb,'Malformed session fails closed');
+reset role;
+do $$begin perform pg_temp.session_claims(); perform set_config('request.jwt.claims',
+ jsonb_set(current_setting('request.jwt.claims')::jsonb,'{sub}','"malformed-user"'::jsonb)::text,true); end$$;
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-session-2027'),null::jsonb,'Malformed managed subject fails closed without leaking a SQL exception');
 reset role;
 
 do $$begin perform pg_temp.session_claims(); end$$;
