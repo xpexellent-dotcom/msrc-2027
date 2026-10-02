@@ -882,3 +882,20 @@ v0.5 and earlier source snapshots stay unchanged.
   Web Analytics and Speed Insights enabled, firewall bot protection off (a challenge would
   also stop link previews and automated QA). Plan-dependent options are listed in PROGRESS.
 - Affected IDs: INF-01/02/08, PRV-03/07, NFR-02/03, CFG-10.
+
+## ORG-009 — Chapter navigation on phones and tablets, 2 October 2026
+
+- Status: CONFIRMED explicit requester instruction in the current chat, with an iPhone
+  screenshot of the homepage chapter index. On phones the second navigation bar "isn't
+  convenient": on desktop it follows the reader, but on a phone "when you scroll it's kinda
+  just gone". The requester suggested a sidebar, leaving the form open.
+- Below 1100px the in-flow chapter index (ORG-006) stays where it is. Once it has scrolled
+  away, a floating pill at the bottom of the screen shows the current chapter (for example
+  "02 Participation") and opens all six chapters in a side panel. The panel is a modal
+  dialog from the inline end (right in English, left in Arabic) with the same native anchors.
+  Choosing a chapter closes the panel, glides there through the existing explicit-navigation
+  helper and moves focus to it. Esc, the close button or a tap outside returns focus to the
+  pill. The pill leaves with the last chapter, while the film view or the main menu is open,
+  and in print. At 1100px and above nothing changes: the sticky index remains.
+- Reduced motion: no slide or fade, and the scroll jumps (DESIGN_GUIDE).
+- Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-02.
