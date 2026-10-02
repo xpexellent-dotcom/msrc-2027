@@ -2,6 +2,18 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
+## 2 October 2026 — Chapter navigation follows the reader on phones (ORG-009)
+
+The requester sent an iPhone screenshot: below 1100px the homepage chapter index (a 2×3 grid on phones) sits in the page and scrolls away, so it was out of reach while reading; desktop keeps it sticky. A floating pill now appears once the index has left the screen. It shows the current chapter and opens the six chapters in a side panel, a modal `<dialog>` from the inline end, mirrored in Arabic. `SectionJourney` owns both, reusing its current-chapter tracking and the `Link`/`activateNavigation` path. The new styles live in `src/styles/chapter-dock.css`.
+
+- The pill is hidden at the top, inside the index, at the footer, during the film view and the main menu, and in print. At 1100px and above it never renders.
+- The panel opens focused on its title, so it is announced by name with no ring on the close button. Tab reaches the close button and the links.
+- Choosing a chapter closes the panel, updates the URL, glides there (jumps with reduced motion) and focuses the section; the heading lands 138–140 px clear of the floating header on a phone.
+- Esc, the close button or the backdrop returns focus to the pill. Safari does not focus buttons on tap, so this is done explicitly.
+- WebKit truncated the pill label under an ellipsis rule; the labels are short, so it was dropped.
+
+Verification: `tests/e2e/chapter-dock.spec.ts` passes in Chromium desktop and mobile and in WebKit desktop and iPhone, EN/AR (8/8). It covers the pill state, panel side and focus, axe on the open panel, Esc focus return, chapter arrival and header clearance, and leaving at the footer.
+
 ## 2 October 2026 — PRs 13/14 verified live; permission checks fail closed; paragraph wrapping
 
 PR 14 (carrying PR 13) was merged by the requester at 17:29 UTC as `2ae066f`; the production deployment completed at 17:30 UTC. Live checks against www.msrc2027.com:
