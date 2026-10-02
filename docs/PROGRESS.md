@@ -2,6 +2,17 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
+## 2 October 2026 — PRs 13/14 verified live; permission checks fail closed
+
+PR 14 (carrying PR 13) was merged by the requester at 17:29 UTC as `2ae066f`; the production deployment completed at 17:30 UTC. Live checks against www.msrc2027.com:
+
+- Uncached routes (`/en/media`, `/ar/program`, `/api/health`) answer via `bom1::bom1`; before the release they crossed to `bom1::iad1`.
+- Hero film and posters carry `max-age=2592000, stale-while-revalidate=86400` (was `max-age=0, must-revalidate`).
+- Analytics and Speed Insights scripts load on production. An automated browser sent no beacon and no write request. A signed-in desktop Chrome visit to `/ar` sent the pageview (200), and the Vercel dashboard (Production) then showed 1 visitor, Saudi Arabia, desktop, on `/ar`.
+- `/ar/media`: 1ch measures 0.556em (0.5em before), and first-load desktop CLS is 0.018 (0.206 on production before the release).
+
+Permission evaluator (BL-SEC-01, ENG-009): `switch (rule.check)` had no `default`, so a check kind added to the contract without a matching case would have fallen through to "allowed". A `default` branch now fails type-checking (`never`) and denies at runtime. To confirm, a temporary extra check kind in `contract.ts` made `tsc` fail with TS2322 at the new branch; it was then reverted. The 440 contract unit cases pass unchanged; the eight existing kinds behave as before.
+
 ## 2 October 2026 — Arabic webfont: a steady `ch`, no layout jump
 
 First visits to Arabic pages jumped when Noto Sans Arabic arrived: desktop CLS 0.208 on `/ar/media`, 0.065 on `/ar/dates-venue` and 0.011 on `/ar`, against 0.002 on English pages. The cause was the `ch` unit, not the letter shapes. The Arabic subset has no "0" glyph, so once it loaded as the first available font, browsers measured 1ch as 0.5em instead of the fallback's 0.556em (Arial's zero). Every `ch`-based measure (37 `max-inline-size`/`max-width` rules) narrowed by a tenth after first paint. Headings authored as two lines with `\n` («ملتقى / العقول الفضولية.», «كن جزءًا / من الفصل القادم.», «لحظات نعود إليها. / وأفكار تبقى معنا.») then broke again into three or four lines.

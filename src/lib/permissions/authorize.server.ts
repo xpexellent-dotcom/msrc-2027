@@ -100,6 +100,13 @@ export async function authorize(
           if (operation === "evidence.original.download" && resource.approved !== true) continue;
           if (rule.audit && !operation.endsWith(".read") && !operation.endsWith(".download") && resource.editable !== true) continue;
           break;
+        default: {
+          // A check kind added to the contract without a case here fails type-checking, and
+          // denies at runtime instead of falling through to "allowed".
+          const unhandled: never = rule.check;
+          void unhandled;
+          continue;
+        }
       }
       return { allowed: true, operation, projection: rule.projection, auditRequirement: rule.audit };
     }
