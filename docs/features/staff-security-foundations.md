@@ -65,6 +65,8 @@ checks fixed origin, current account and session existence/revocation, token exp
 managed not-after, individual identity and current verified TOTP assurance. Equality at
 a limit expires. Suspended/offboarded or factor-removed sessions cannot preserve authority
 with a previously issued token. Sensitive policy checks deny with recent-auth age unset.
+Any active staff grant selects the privileged limits across editions; selecting another
+configured edition cannot downgrade a staff session to participant policy.
 
 The additive private `msrc_sessions` schema holds approved policy, immutable session
 origin/server activity, revocation cutoffs and append-only safe audit references. Forced
@@ -81,6 +83,11 @@ are attribution foundations; they do not establish a verified live human operato
 Executed commands, exact CI/Preview receipts and failures are recorded in PROGRESS.
 Local SQL tests are intentionally unrun: no Docker requirement on this computer.
 Database migrations, pgTAP and Data API checks run solely in isolated GitHub CI.
+Actual parallel database connections test expired-session activity and suspension races.
+Their write fixtures require GitHub Actions, the exact isolated project/container and
+validated loopback settings; rows disappear with the disposable stack. Private forced-RLS
+tables intentionally have no client policies. The narrow authenticated SECURITY DEFINER
+RPC advisory remains a reviewed exception, with fixed search path and own-session checks.
 Automated browser traces/screenshots are disabled while secrets could be visible; visual
 evidence masks setup key, QR and entered code. Human screen-reader and real authenticator
 UAT are separate release gates, and synthetic success is not production readiness.

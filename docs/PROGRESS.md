@@ -31,15 +31,28 @@ maintenance/reset stays closed with unresolved recent-auth/recovery and false re
 No staff account/grant/real factor/email or operational module is activated.
 
 Dependencies added and pinned: qrcode1.5.4 and @types/qrcode1.5.6; lockfile committed.
-Node24.21.0/pnpm11.19.0 verified. `pnpm install --frozen-lockfile` PASS. Initial
-typecheck/build exposed test-helper/RPC typing errors, corrected. First `pnpm check`
-PASS: lint, types,1016 unit cases,42-page production build. Initial browser execution
+Node 24.21.0/pnpm 11.19.0 verified. `pnpm install --frozen-lockfile` PASS. Initial
+typecheck/build exposed test-helper/RPC typing errors, corrected. `pnpm check` PASS:
+lint, types, 1049 unit cases and 42-page production build. Initial browser execution
 was BLOCKED by missing pinned Chromium v1243; `pnpm exec playwright install chromium`
-PASS, suites rerun. Final source checks, browser/isolated SQL/CI/Preview receipts are
-pending at this checkpoint; no unrun check is claimed passed. Local Docker/SQL remains
-intentionally NOT TESTED; synthetic SQL runs only in GitHub CI.
+PASS. Dedicated auth browser suite: 27/27 PASS across desktop/tablet/mobile, both
+languages, real generated TOTP, retry, keyboard and axe. Six masked visual captures
+were inspected. Full local public suite: 294 PASS, 3 explicit skips, 2 failures in
+existing film/countdown timing checks; `playwright test --last-failed` rerun: 2/2 PASS.
+The complete final CI browser result remains pending at this checkpoint.
 
-The linked checklist has confirmed organizer decisions updated at sequence20; feature
+Initial PR [CI 37057118623](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37057118623)
+database job PASS: four pgTAP files / 239 assertions, 14 Data API integration tests,
+database lint/advisors and generated public types. The additional two actual concurrent
+expiry/suspension tests and any-edition staff-policy regression await final isolated CI.
+Local Docker/SQL is intentionally NOT TESTED; synthetic SQL runs only in GitHub CI.
+Vercel Preview deployment 6816943384 at b2ee0dc reports success. Runtime inspection is
+BLOCKED by Vercel login protection and connector authorization (403); no bypass opened.
+Local EN/AR preview on 127.0.0.1:3220 returned 200. Existing production lab page/API
+returned 404; production was not redeployed by this task.
+
+Scoped draft [PR 19](https://github.com/xpexellent-dotcom/msrc-2027/pull/19) is attached
+for review. The linked checklist has confirmed organizer decisions updated; feature
 completion remains partial. [Feature note](features/staff-security-foundations.md)
 records files/migration, local run instructions, UAT/configuration and rollback.
 All15 workflow flags and operational/privileged readiness remain false. Human real-app

@@ -50,6 +50,8 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            playwright-auth-report/
+            test-auth-results/
           if-no-files-found: ignore
           retention-days: 7
 
