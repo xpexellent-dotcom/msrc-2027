@@ -799,9 +799,12 @@ v0.5 and earlier source snapshots stay unchanged.
   compliance. The Privacy page must describe both services before it is published.
 - Speed Insights reports field p75 LCP, CLS and INP per route: the evidence NFR-02 asks for
   (public-page LCP ≤ 2.5 s at p75).
-- Functions run in `dxb1` (Dubai) instead of the default `iad1` (Washington, D.C.), set in
-  `vercel.json`. From the Mumbai edge, uncached pages (programme, media, 404s, health) took
-  0.42–0.48 s to first byte, against about 0.21 s for CDN-cached pages. No public function
+- Functions run in `bom1` (Mumbai) instead of the default `iad1` (Washington, D.C.), set in
+  `vercel.json`. Requests from the organizer's connection in Saudi Arabia enter Vercel at
+  the Mumbai edge, and uncached pages (programme, media, 404s, health) then crossed to `iad1`:
+  0.42–0.48 s to first byte, against about 0.21 s for CDN-cached pages. `dxb1` (Dubai)
+  appears in the dashboard, but a deployment with it failed with "Invalid region" on this
+  plan. No public function
   reads Supabase or personal data. This is a latency setting, not a production
   data-location approval (INF-02, CFG-10): review it together with the Supabase region
   (`ap-northeast-1` today) before any personal-data workflow opens.
