@@ -802,6 +802,38 @@ v0.5 and earlier source snapshots stay unchanged.
   behavior, verification limits and rollback. BL-AUTH-01/05 must integrate current persisted
   grants/managed identity/TOTP before M4 staff or CMS activation.
 
+## ENG-010 — Closed persisted authorization foundation, 2 October 2026
+
+- Authority: requester asks to review the feature checklist, continue its next actions and
+  deploy the reviewed application schema/permissions, asking about uncertain choices.
+  This authorizes the bounded additive hosted migration; it does not open product workflows.
+- Reviewed BL-SEC-01 PR15 at exact head `e297c86` was merged as `7ce3112` after its final
+  application and isolated database CI passed. Original checkout changes are preserved
+  in place; implementation continues in the attached managed worktree.
+- Adopt private persisted edition/account-access/scoped-grant/audit metadata and a minimal
+  own-context RPC. Its narrow definer boundary is needed to inspect private managed Auth
+  session/factor records; fixed search path and authenticated-only execution are required.
+  No browser/service-role table maintenance, user-metadata roles or initial grants.
+- Verify bearer identity through managed `getUser` each call, then validate fresh own RPC
+  context. No complete domain AuthorityReader, resource ownership, reviewer identities,
+  profile fields, assignments or operational records are exposed or inferred.
+- Context operational/privileged readiness and session activation remain false. AUTH-05
+  session limits/recent authentication and AUTH-04 enrollment/recovery must be implemented
+  and tested before staff activation. No timeout is invented; refresh is not user activity.
+- Existing selected Supabase project `ecemjggwlzqpjcwmchrl` is verified empty before this
+  change. Environment classification and exactly three named Super Admins were requested;
+  CFG-09/10/11 production/privacy/custody gates remain open. No account, email, secret,
+  paid resource, synthetic hosted record or workflow activation is authorized here.
+- Apply only the reviewed application migration, not the earlier local foundation fixture
+  or seed. Current database/CI receipts and deployment state are recorded in PROGRESS and
+  the [feature note](features/persisted-authorization.md).
+- Deployed after source review and exact-source full CI: hosted version20261002173712,
+  four private forced-RLS tables, authenticated-only minimized own-context RPC, zero rows.
+  Real anonymous API denial passed. Aligned the migration filename to provider history
+  without changing its reviewed SQL. Hosted 0029 definer warning is an intentional bounded
+  exception, independently reviewed against current official guidance; retain and re-review
+  before staff activation. No RLS/table grant is widened to silence it.
+
 ## ORG-008 — Visitor analytics, Speed Insights and hosting efficiency, 2 October 2026
 
 - Status: CONFIRMED explicit requester instruction in the current chat. The requester sent a
