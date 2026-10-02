@@ -13,7 +13,8 @@ const edition = "synthetic-concurrency-2027";
 const lockMarker = 20272742;
 
 function query(sql: string): Promise<string> {
-  if (!isolatedCi || process.env.NEXT_PUBLIC_SUPABASE_TARGET !== "local"
+  const target = process.env.NEXT_PUBLIC_SUPABASE_TARGET;
+  if (!isolatedCi || (target && target !== "local")
     || !resolveLocalSupabaseConfig({ url: process.env.NEXT_PUBLIC_SUPABASE_URL,
       publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY })
     || !/^project_id = "msrc2027-local"$/m.test(readFileSync("supabase/config.toml", "utf8")))
