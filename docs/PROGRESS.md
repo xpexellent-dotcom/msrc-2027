@@ -168,29 +168,30 @@ Requirements: AUTH-04/05, ROL-12, SEC-01/02/06, LOC-01, ACC-01, ERR-01.
 New isolated managed worktree `staff-mfa-sessions` on `codex/staff-mfa-sessions`
 starts at remote main `eb4c5a005e84a5626e0d6e5bbf01115087810aaf`. Original main
 checkout's uncommitted docs/reviews and previous authorization worktree are preserved.
-Fresh main [CI37053006357](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37053006357)
+Fresh main [CI 37053006357](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37053006357)
 reports success; GitHub Vercel status reports successful deployment. These receipts
-supersede the supplied main14a58fb handoff for the starting Git state.
+supersede the supplied main 14a58fb handoff for the starting Git state. Remote main
+was rechecked at finish and remains eb4c5a0; this branch is not merged.
 
 ORG-010 designates `ecemjggwlzqpjcwmchrl` Production; ORG-011 records first intended
 Super Admin and two TBD, withholding login addresses; ORG-012 replaces participant
-24h with confirmed72h absolute maximum while preserving the original v0.5 snapshot.
-Privileged30min idle/8h absolute, recent-auth age/warning null and recovery/privacy/
+24h with confirmed 72h absolute maximum while preserving the original v0.5 snapshot.
+Privileged 30min idle/8h absolute, recent-auth age/warning null and recovery/privacy/
 security-email gates are recorded in current requirements and typed configuration.
-Fresh read-only hosted history still has only20261002173712; aggregate accounts,
-editions, access accounts, grants and grant audit rows are all0. No hosted mutation.
+Fresh read-only hosted history still has only 20261002173712; aggregate accounts,
+editions, access accounts, grants and grant audit rows are all 0. No hosted mutation.
 
 Implemented local-only bilingual/RTL synthetic TOTP QR/manual enrollment/challenge,
 failure/retry, assurance and session revocation scenarios. Server-generated keys and
 opaque HttpOnly synthetic cookie, strict Origin/512-byte exact JSON actions, no-store,
-deployment404 and disabled managed MFA contract. Approved session policy/evaluator and
-review-only migration20261002193800 add private session evidence, immutable origin,
+deployment 404 and disabled managed MFA contract. Approved session policy/evaluator and
+review-only migration 20261002193800 add private session evidence, immutable origin,
 revocation cutoffs and safe append-only audit. Public heartbeat does not touch idle;
 private activity awaits successful authorized domain transactions. Consequential
 maintenance/reset stays closed with unresolved recent-auth/recovery and false readiness.
 No staff account/grant/real factor/email or operational module is activated.
 
-Dependencies added and pinned: qrcode1.5.4 and @types/qrcode1.5.6; lockfile committed.
+Dependencies added and pinned: qrcode 1.5.4 and @types/qrcode 1.5.6; lockfile committed.
 Node 24.21.0/pnpm 11.19.0 verified. `pnpm install --frozen-lockfile` PASS. Initial
 typecheck/build exposed test-helper/RPC typing errors, corrected. `pnpm check` PASS:
 lint, types, 1049 unit cases and 42-page production build. Initial browser execution
@@ -199,23 +200,35 @@ PASS. Dedicated auth browser suite: 27/27 PASS across desktop/tablet/mobile, bot
 languages, real generated TOTP, retry, keyboard and axe. Six masked visual captures
 were inspected. Full local public suite: 294 PASS, 3 explicit skips, 2 failures in
 existing film/countdown timing checks; `playwright test --last-failed` rerun: 2/2 PASS.
-The complete final CI browser result remains pending at this checkpoint.
-
-Initial PR [CI 37057118623](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37057118623)
-database job PASS: four pgTAP files / 239 assertions, 14 Data API integration tests,
-database lint/advisors and generated public types. The additional two actual concurrent
-expiry/suspension tests and any-edition staff-policy regression await final isolated CI.
+Complete implementation-source [PR CI 37058469415](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37058469415)
+and [push CI 37058461928](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37058461928)
+at ff9d1d981f7d995f9b6f7a7c304a88796fed8963 both PASS. Actual application/database logs
+inspected: lint, typecheck, 1049 unit cases, 42-page build, 296 public browser PASS /
+3 explicit skips, 27 auth browser PASS, four pgTAP files / 245 assertions, three Data API
+integration files / 16 PASS. Two integrations execute simultaneous expiry and locked
+suspension attempts using actual parallel database connections; neither restores activity
+or duplicates revocation evidence. Staff policy cannot downgrade across configured editions;
+factor deletion/stale assurance, unauthorized reset and malformed subject fail closed.
+`pnpm db:lint`, local security advisors (No issues found), generated types/strict compile
+and stack stop PASS. Earlier CI exposed a test-fixture guard incorrectly requiring an
+explicit local target; it stopped before writes. Corrected to accept the validated local
+default while preserving GitHub Actions, loopback, exact project/container restrictions.
+Its two concurrency cases then executed and passed. Fixtures survive only in the disposable
+CI runner's Docker volume until runner teardown. Final documentation-only commit receives
+its own automatic CI/Preview checks; see PR 19 for the latest exact-head receipts.
 Local Docker/SQL is intentionally NOT TESTED; synthetic SQL runs only in GitHub CI.
-Vercel Preview deployment 6816943384 at b2ee0dc reports success. Runtime inspection is
+Vercel Preview deployment 6817194861 at ff9d1d9 reports success:
+https://msrc-2027-3thiijfj4-msrc2027.vercel.app. Runtime inspection is
 BLOCKED by Vercel login protection and connector authorization (403); no bypass opened.
 Local EN/AR preview on 127.0.0.1:3220 returned 200. Existing production lab page/API
-returned 404; production was not redeployed by this task.
+returned 404; `/api/health` returned 200/static-foundation/workflows closed.
+Production was not redeployed by this task.
 
 Scoped draft [PR 19](https://github.com/xpexellent-dotcom/msrc-2027/pull/19) is attached
 for review. The linked checklist has confirmed organizer decisions updated; feature
 completion remains partial. [Feature note](features/staff-security-foundations.md)
 records files/migration, local run instructions, UAT/configuration and rollback.
-All15 workflow flags and operational/privileged readiness remain false. Human real-app
+All 15 workflow flags and operational/privileged readiness remain false. Human real-app
 MFA, screen-reader/device review, live provider exchange, saved-draft recovery and
 production data/region/recovery approvals remain open. Next smallest task is approval
 of recovery/recent-auth settings and isolated managed Auth UAT, before domain/CMS access.

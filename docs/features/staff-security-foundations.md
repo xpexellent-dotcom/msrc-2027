@@ -24,6 +24,11 @@ environment variable `MSRC_AUTH_PREVIEW=synthetic`, clear `VERCEL_ENV` and run `
 Next binds to 127.0.0.1. Open `/en/staff-security-preview` or `/ar/staff-security-preview`.
 Do not configure a hosted database for the lab; its ephemeral service has no provider client.
 
+The persistent local review server is available at
+`http://127.0.0.1:3220/en/staff-security-preview` and
+`http://127.0.0.1:3220/ar/staff-security-preview` while its process remains running.
+This local review address is separate from the automated browser server on port 3211.
+
 Start a synthetic staff session, enroll its fresh QR/manual key in a test authenticator,
 enter the six-digit code, and exercise the synthetic assurance probe. Genuine app code
 verification, single-use counters, bounded challenge attempts and serialized concurrent
@@ -78,6 +83,18 @@ operational authorization are returned. Security
 audit failure rolls back database transitions. Named references in maintenance evidence
 are attribution foundations; they do not establish a verified live human operator.
 
+## Changed-files map
+
+| Area | Changed files | Purpose |
+| --- | --- | --- |
+| MFA service, provider and QR | `src/features/auth/mfa-contract.ts`, `mfa-provider.server.ts`, `preview.server.ts`, `totp.server.ts` | Typed closed contract, injectable managed-provider foundation, ephemeral synthetic lab, genuine TOTP and local QR generation. |
+| Bilingual preview and API transport | `src/app/[locale]/(auth)/staff-security-preview/page.tsx`; `src/app/api/auth-preview/route.ts`; `src/lib/auth-preview.server.ts`; `src/features/auth/staff-security-copy.ts`, `staff-security-preview.tsx`; `src/styles/staff-security-preview.css` | Local-only route/API guards, bounded same-origin transport, EN/AR setup, failure/retry, assurance and session instructions. |
+| Session policy and managed adapter | `src/config/session-policy.ts`; `src/lib/auth/session-policy.server.ts`; `src/lib/supabase/session.server.ts` | Confirmed 72-hour participant cap, privileged idle/absolute limits, fail-closed policy evaluation and fresh own-session evidence. |
+| Review-only migration and SQL tests | `supabase/migrations/20261002193800_staff_mfa_session_foundations.sql`; `supabase/tests/database/session_foundations.test.sql` | Private policy/session/revocation/audit foundations and actual-schema permission/lifecycle assertions. No hosted application during this task. |
+| Browser, unit and isolated CI tests | `tests/e2e/staff-security.spec.ts`, `auth-preview-unavailable.spec.ts`; `tests/unit/auth-preview*.test.ts`, `mfa-provider.test.ts`, `persisted-session.test.ts`, `session-policy.test.ts`, `totp.test.ts`; `tests/integration/session-concurrency.test.ts`, `session-denial.test.ts`; `.github/workflows/ci.yml`; `playwright.auth.config.ts`, `playwright.config.ts` | TOTP/UI/closed-route checks, failure and policy boundaries, isolated database concurrency/denial, and separate browser configurations without credential-bearing traces. |
+| Supporting configuration and dependencies | `.env.example`, `.gitignore`, `eslint.config.mjs`, `package.json`, `pnpm-lock.yaml` | Explicit local opt-in, ignored review artifacts, check configuration, pinned QR dependency and reproducible installation. |
+| Current requirements and handoff | `docs/PROJECT_BRIEF.md`, `REQUIREMENTS.md`, `ARCHITECTURE.md`, `DECISIONS.md`, `PROGRESS.md`; `docs/backlog/06-authentication.md`, `DECISION_REQUIRED.md`; `docs/features/persisted-authorization.md`, `staff-security-foundations.md` | Organizer decisions, superseding session requirements, remaining release gates, scoped feature contract and observed receipts. The original v0.5 source snapshot is preserved. |
+
 ## Verification, UAT and configuration
 
 Executed commands, exact CI/Preview receipts and failures are recorded in PROGRESS.
@@ -85,12 +102,34 @@ Local SQL tests are intentionally unrun: no Docker requirement on this computer.
 Database migrations, pgTAP and Data API checks run solely in isolated GitHub CI.
 Actual parallel database connections test expired-session activity and suspension races.
 Their write fixtures require GitHub Actions, the exact isolated project/container and
-validated loopback settings; rows disappear with the disposable stack. Private forced-RLS
+validated loopback settings; rows disappear at disposable CI runner teardown. Private forced-RLS
 tables intentionally have no client policies. The narrow authenticated SECURITY DEFINER
 RPC advisory remains a reviewed exception, with fixed search path and own-session checks.
 Automated browser traces/screenshots are disabled while secrets could be visible; visual
 evidence masks setup key, QR and entered code. Human screen-reader and real authenticator
 UAT are separate release gates, and synthetic success is not production readiness.
+
+Executed local automated evidence includes 27/27 synthetic authentication browser tests
+across English/Arabic and desktop/tablet/mobile, followed by six focused keyboard/axe reruns.
+The six masked setup screenshots were inspected for responsive layout and RTL parity.
+These checks use computed genuine TOTP codes against synthetic factors; they are not
+human authenticator or screen-reader UAT. Final-source application and isolated database
+CI receipts are recorded separately in PROGRESS.
+
+Human UAT is **NOT TESTED**. Review the local synthetic preview with a disposable test
+authenticator account and complete the following before claiming this gate passed:
+
+- [ ] Enroll once by scanning QR and separately by entering the manual key in a real test authenticator app; verify each with the app's current code.
+- [ ] Review English/Arabic with keyboard and a screen reader: focus, labels, announcements, RTL layout, LTR key/code entry and preserved input on an in-app language change.
+- [ ] Try invalid and stale codes, an expired challenge and a recoverable request failure; verify clear retry instructions and retained valid input.
+- [ ] Refresh a participant session and confirm its original absolute deadline is unchanged; check staff idle/absolute expiry and recovery instructions.
+- [ ] Exercise logout, simulated suspension and simulated factor-reset revocation; confirm denial, then start a fresh synthetic identity and reenroll a test factor. This does not approve a live reset procedure.
+- [ ] Restart the local process and confirm previous synthetic identities, sessions and factors disappear; start again without retaining setup material.
+
+Live managed-provider enrollment, cookie/refresh exchange, real factor-loss recovery,
+staff activation and security-email delivery remain **BLOCKED** by the release decisions
+and environment approvals below. No human UAT or live-provider result is inferred from
+automated synthetic or isolated CI success.
 
 Remaining decisions: recovery approver/operator/verified reset procedure, recent-auth
 maximum age, timeout-warning lead, privacy/retention/location, live security-email
