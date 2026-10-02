@@ -2,6 +2,21 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
+## 2 October 2026 — PRs 13/14 verified live; permission checks fail closed; paragraph wrapping
+
+PR 14 (carrying PR 13) was merged by the requester at 17:29 UTC as `2ae066f`; the production deployment completed at 17:30 UTC. Live checks against www.msrc2027.com:
+
+- Uncached routes (`/en/media`, `/ar/program`, `/api/health`) answer via `bom1::bom1`; before the release they crossed to `bom1::iad1`.
+- Hero film and posters carry `max-age=2592000, stale-while-revalidate=86400` (was `max-age=0, must-revalidate`).
+- Analytics and Speed Insights scripts load on production. An automated browser sent no beacon and no write request. A signed-in desktop Chrome visit to `/ar` sent the pageview (200), and the Vercel dashboard (Production) then showed 1 visitor, Saudi Arabia, desktop, on `/ar`.
+- `/ar/media`: 1ch measures 0.556em (0.5em before), and first-load desktop CLS is 0.018 (0.206 on production before the release).
+
+Permission evaluator (BL-SEC-01, ENG-009): `switch (rule.check)` had no `default`, so a check kind added to the contract without a matching case would have fallen through to "allowed". A `default` branch now fails type-checking (`never`) and denies at runtime. To confirm, a temporary extra check kind in `contract.ts` made `tsc` fail with TS2322 at the new branch; it was then reverted. The 440 contract unit cases pass unchanged; the eight existing kinds behave as before.
+
+Paragraph wrapping: on the live site 41 of 490 multi-word paragraphs and list items (desktop and phone, EN/AR, 12 pages each) ended with one word alone on the last line, among them «بحثية.» in a Submissions paragraph on phones. `p, li { text-wrap: pretty; }` beside the existing heading `balance` rule leaves 4, all English. Browsers without support keep greedy wrapping. An e2e check confirms the computed style where supported.
+
+Flaky test: CI for this PR failed once in `cinematic-film.spec.ts` ("ar browser Forward reopens the film…"): expected scroll 4155, received 4102; the twin run passed. The test captured its origin before clicking, while the `#legacy` scroll can still glide with motion allowed and actionability can scroll before the click. Replaying it with 6× CPU throttling, the page moved 88–141 px between that capture and the real click, and the app restored exactly the click-time position in 12 of 12 runs. The test now captures the activation position as its participation-chapter twin does. The Forward tests passed 60/60 with 10 workers, and the whole film spec passed (27, 1 skipped).
+
 ## 2 October 2026 — Closed persisted authorization and reviewed deployment
 
 Scope: requester authorizes checklist review, the next recommended engineering actions
