@@ -92,29 +92,33 @@ test("versioned hero media may be cached by the browser for 30 days", async ({ r
   expect((await request.head("/en")).headers()["cache-control"]).not.toContain("2592000");
 });
 
-// The Arabic face loaded only after first paint (it was never preloaded), so Arabic headings
-// re-wrapped when it swapped in: desktop CLS 0.2 on /ar/media under a slow connection.
-test("Arabic pages preload the Arabic webfont and render with it; English pages never fetch it", async ({ page, request }) => {
-  const fonts: string[] = [];
-  page.on("request", (fontRequest) => { if (fontRequest.resourceType() === "font") fonts.push(fontRequest.url()); });
-  for (const path of ["/ar", "/ar/media"]) {
+// The Arabic subset has no "0". While its face covered the space, 1ch fell to 0.5em once it
+// loaded, so ch-based measures narrowed after first paint (CLS 0.2 on /ar/media) and headings
+// authored as two lines broke into four. 1ch must come from the fallback before and after.
+test("the Arabic webfont leaves 1ch unchanged, so authored two-line headings stay two lines", async ({ page }) => {
+  for (const path of ["/ar/media", "/ar/program", "/ar/registration"]) {
     await page.goto(path);
-    const preload = page.locator('head link[rel="preload"][as="font"][href*="noto-sans-arabic"]');
-    await expect(preload, path).toHaveCount(1);
-    // Fonts are fetched in CORS mode; React writes crossorigin="" (anonymous) to match.
-    await expect(preload).toHaveAttribute("crossorigin", /^(anonymous)?$/);
-    expect(await page.evaluate(async () => {
+    const result = await page.evaluate(async () => {
       await document.fonts.ready;
-      return document.fonts.check('600 32px "MSRC Noto Sans Arabic"', "المؤتمر") && getComputedStyle(document.querySelector("h1")!).fontFamily.includes("MSRC Noto Sans Arabic");
-    }), path).toBe(true);
+      const heading = document.querySelector("h1")!;
+      const probe = document.createElement("span");
+      probe.style.cssText = "display:inline-block;inline-size:10ch;block-size:0";
+      heading.append(probe);
+      const chInEm = probe.getBoundingClientRect().width / 10 / parseFloat(getComputedStyle(heading).fontSize);
+      probe.remove();
+      const range = document.createRange();
+      range.selectNodeContents(heading);
+      return {
+        arabicFaceLoaded: [...document.fonts].some((face) => face.status === "loaded" && /arabic/i.test(face.family)),
+        chInEm,
+        lines: new Set([...range.getClientRects()].filter((rect) => rect.width > 1).map((rect) => Math.round(rect.top))).size,
+        authoredLines: heading.textContent!.split("\n").length,
+      };
+    });
+    expect(result.arabicFaceLoaded, path).toBe(true);
+    expect(result.chInEm, path).toBeGreaterThan(0.52);
+    if ((page.viewportSize()?.width ?? 0) >= 1024) expect(result.lines, path).toBe(result.authoredLines);
   }
-  const fontFile = await page.locator('head link[rel="preload"][as="font"][href*="noto-sans-arabic"]').getAttribute("href");
-  expect((await request.head(fontFile!)).headers()["cache-control"]).toBe("public, max-age=31536000, immutable");
-
-  fonts.length = 0;
-  await page.goto("/en", { waitUntil: "networkidle" });
-  await expect(page.locator('link[rel="preload"][href*="arabic"]')).toHaveCount(0);
-  expect(fonts.filter((url) => /arabic/i.test(url))).toEqual([]);
 });
 
 // The clock counts whole days to 00:00 Riyadh on Day 1 (2027-01-26T21:00Z); each instant sits

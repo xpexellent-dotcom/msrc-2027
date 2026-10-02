@@ -1,36 +1,28 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { arabicFontFile } from "@/lib/arabic-font";
 
-// The served Arabic face must stay the pinned package's file: a dependency bump without a new
-// public copy (and name) would leave a stale font cached for a year as immutable.
-describe("self-hosted Arabic font", () => {
-  const packageDirectory = "node_modules/@fontsource-variable/noto-sans-arabic";
-  const { version } = JSON.parse(readFileSync(`${packageDirectory}/package.json`, "utf8")) as { version: string };
-
-  it("is named for the installed package version", () => {
-    expect(arabicFontFile).toBe(`/fonts/noto-sans-arabic-arabic-wght-${version}.woff2`);
+// next/font only runs inside Next's compiler, so the declaration is read as source text.
+// The Arabic subset has no "0": if its face covered the space, it would become the first
+// available font once loaded and turn 1ch into 0.5em, narrowing every ch measure after first paint.
+describe("Arabic webfont range", () => {
+  const source = readFileSync("src/lib/fonts.ts", "utf8");
+  const declaration = source.slice(source.indexOf("export const arabicFont"));
+  const value = /prop: "unicode-range", value: "([^"]+)"/.exec(declaration)?.[1] ?? "";
+  const ranges = value.split(",").map((range) => {
+    const [start, end = start] = range.trim().replace(/^U\+/i, "").split("-");
+    return [parseInt(start, 16), parseInt(end, 16)] as const;
   });
+  const covers = (codePoint: number) => ranges.some(([start, end]) => start <= codePoint && codePoint <= end);
 
-  it("is byte-identical to the package's Arabic subset", () => {
-    expect(readFileSync(`public${arabicFontFile}`).equals(readFileSync(`${packageDirectory}/files/noto-sans-arabic-arabic-wght-normal.woff2`))).toBe(true);
-  });
-
-  it("is declared in the stylesheet at the same address", () => {
-    expect(readFileSync("src/styles/fonts.css", "utf8")).toContain(`url("${arabicFontFile}")`);
-  });
-
-  // The file has no "0": if it covered the space it would become the first available font and
-  // turn 1ch into 0.5em once loaded, narrowing every ch measure after first paint.
-  it("does not draw the space, so 1ch keeps one width before and after it loads", () => {
-    const css = readFileSync("src/styles/fonts.css", "utf8");
-    const face = css.slice(css.indexOf('font-family: "MSRC Noto Sans Arabic";'));
-    const ranges = face.slice(face.indexOf("unicode-range:") + 14, face.indexOf(";", face.indexOf("unicode-range:"))).split(",").map((range) => {
-      const [start, end = start] = range.trim().replace(/^U\+/i, "").split("-");
-      return [parseInt(start, 16), parseInt(end, 16)];
-    });
+  it("is declared on the Arabic face", () => {
     expect(ranges.length).toBeGreaterThan(5);
-    expect(ranges.filter(([start, end]) => start <= 0x20 && 0x20 <= end)).toEqual([]);
-    expect(ranges.some(([start, end]) => start <= 0x0627 && 0x0627 <= end)).toBe(true);
+  });
+
+  it("covers Arabic letters, Arabic-Indic digits and the Arabic comma", () => {
+    for (const character of ["ا", "ي", "٠", "٩", "،", "؟"]) expect(covers(character.codePointAt(0)!), character).toBe(true);
+  });
+
+  it("leaves the space and Latin digits to the fallback, so 1ch never changes", () => {
+    for (const character of [" ", "0", "a", "."]) expect(covers(character.codePointAt(0)!), JSON.stringify(character)).toBe(false);
   });
 });

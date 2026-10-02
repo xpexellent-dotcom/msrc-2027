@@ -2,21 +2,23 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
-## 2 October 2026 — Arabic webfont: preloaded, and a steady `ch`
+## 2 October 2026 — Arabic webfont: a steady `ch`, no layout jump
 
-First visits to Arabic pages jumped when Noto Sans Arabic arrived: desktop CLS 0.208 on `/ar/media`, 0.065 on `/ar/dates-venue` and 0.011 on `/ar`, against 0.002 on English pages. The cause was the `ch` unit, not the letter shapes. The Arabic subset has no "0" glyph, so once it loaded as the first available font, browsers measured 1ch as 0.5em instead of Arial's 0.556em. Every `ch`-based measure (37 `max-inline-size`/`max-width` rules) narrowed by a tenth after first paint. Headings authored as two lines with `\n` («ملتقى\nالعقول الفضولية.», «كن جزءًا\nمن الفصل القادم.», «لحظات نعود إليها.\nوأفكار تبقى معنا.») then broke again into three or four lines.
+First visits to Arabic pages jumped when Noto Sans Arabic arrived: desktop CLS 0.208 on `/ar/media`, 0.065 on `/ar/dates-venue` and 0.011 on `/ar`, against 0.002 on English pages. The cause was the `ch` unit, not the letter shapes. The Arabic subset has no "0" glyph, so once it loaded as the first available font, browsers measured 1ch as 0.5em instead of the fallback's 0.556em (Arial's zero). Every `ch`-based measure (37 `max-inline-size`/`max-width` rules) narrowed by a tenth after first paint. Headings authored as two lines with `\n` («ملتقى / العقول الفضولية.», «كن جزءًا / من الفصل القادم.», «لحظات نعود إليها. / وأفكار تبقى معنا.») then broke again into three or four lines.
 
-| Change | Evidence |
-|---|---|
-| The same pinned OFL file is served from `public/fonts/noto-sans-arabic-arabic-wght-5.3.0.woff2` (licence beside it) and declared in `src/styles/fonts.css`, so the Arabic layout preloads it; English pages neither preload nor request it | `/ar` HTML carries the preload; `/en` has none; an e2e test checks both, and that Arabic headings render with the face |
-| Its `unicode-range` leaves out the space, so Arial stays the first available font and 1ch never changes | A unit test fails if the range covers U+0020 (checked by adding it). The file draws no other Latin character; Arabic spaces become 0.278em instead of 0.26em |
-| The font file is cached for a year (`immutable`); its name carries the package version, and a unit test checks the copy is byte-identical to the installed package | Header checked by the e2e test |
+Change: one `declarations` entry gives the `next/font` Arabic face fontsource's Arabic-subset `unicode-range`, which leaves out the space. The fallback face then stays the first available font and 1ch never changes. The file draws no Latin character except the space, so Arabic spaces become 0.278em instead of 0.26em. A unit test fails if the range covers the space, a Latin digit or a letter. An e2e test checks that 1ch stays above 0.52em after the font loads, and that the three headings keep their authored two lines on desktop.
 
-Layout shift on first load (local production build): unthrottled desktop `/ar/media` 0.208 → 0.002, `/ar/dates-venue` 0.065 → 0.002, `/ar` 0.011 → 0.002. Slow 4G with 4× CPU: desktop `/ar/media` 0.199 → 0.019, `/ar/dates-venue` 0.068 → 0.006, phone `/ar` 0.020 → 0.003. English unchanged (0.0005).
+Layout shift on first load (local production build, median of 5): unthrottled desktop `/ar/media` 0.208 → 0.002, `/ar/dates-venue` 0.065 → 0.002, `/ar` 0.011 → 0.002. Slow 4G (1.6 Mbps, 150 ms) with 4× CPU: desktop `/ar/media` 0.199 → 0.018, `/ar/dates-venue` 0.068 → 0.006, phone `/ar` 0.020 → 0.003. English unchanged.
+
+Not adopted: preloading the Arabic font on Arabic pages only (served from `public/`, since `next/font` exposes no URL). With the range fix in place it gave no CLS benefit under throttling and delayed LCP by 160–300 ms, because the 166 KB font competed with the hero poster.
 
 Visible effect: Arabic measures now always use the width visitors saw before the font loaded. On desktop, 8 of 12 Arabic pages re-wrap, mostly to fewer lines; the three headings above show their authored two lines, as in English. On phones, 2 of 12 change: the home lead fits one line, and one Submissions paragraph wraps to three lines because of the wider spaces. No clipped text at 320 px or 1280 px, and no horizontal scroll at 320 or 375 px on any Arabic page.
 
-Verification: ESLint, `tsc` PASS; Vitest 309/309; build PASS; Playwright Chromium full suite exit 0; WebKit desktop and iPhone `qa-regressions` 24/24.
+Verification: ESLint and `tsc` PASS; Vitest 308/308; build PASS (the generated face carries the range); Playwright Chromium desktop/tablet/mobile 288 passed, 3 skipped; WebKit desktop and iPhone `qa-regressions` 24/24. Against production the new e2e test fails as expected: 1ch measures exactly 0.5em.
+
+Also checked live after PR 12: 24 pages crawled with no broken link or anchor; axe finds no violations on `/en`, `/ar`, `/en/dates-venue` and `/ar/media` at 390 and 1280 px; the centred Step inside cue keeps at least 14.3:1 over every sampled film frame (4.5:1 needed).
+
+Live LCP on a throttled phone (Slow 4G, 4× CPU) for reference: `/en` 2.6 s and `/ar` 3.0 s (the hero poster, already `fetchpriority=high`), About and Media about 1.9 s (the heading). NFR-02 asks for 2.5 s at p75 on agreed hardware and network; Speed Insights (ORG-008) will report the field values.
 
 ## 2 October 2026 — Visitor analytics, Speed Insights and hosting efficiency (ORG-008)
 
