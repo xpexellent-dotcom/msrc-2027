@@ -788,8 +788,9 @@ v0.5 and earlier source snapshots stay unchanged.
   analytics configuration that INF-01 requires.
 - Vercel Web Analytics (`@vercel/analytics` 2.0.1) and Speed Insights
   (`@vercel/speed-insights` 2.0.0) load on Vercel deployments only (`VERCEL` set); local
-  and CI builds render neither, because the `/_vercel/*` scripts exist only on Vercel. Both
-  are cookieless and same-origin. Before anything is sent, the page address loses its query
+  and CI builds render neither, because only Vercel serves their scripts (from
+  project-specific same-origin paths). Both are cookieless and send their beacons to the
+  site's own origin. Before anything is sent, the page address loses its query
   string and fragment (PRV-03), and automated browsers (`navigator.webdriver`) send nothing,
   so test runs against a deployment neither count as visits nor make write requests.
 - Data flow (PRV-07): Vercel receives the page path and route pattern, referrer, country,

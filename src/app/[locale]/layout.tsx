@@ -43,7 +43,7 @@ export default async function LocaleLayout({
     <html lang={locale} dir={direction(locale)} className={`${headingFont.variable} ${bodyFont.variable} ${arabicFont.variable} ${displayFont.variable}`}>
       <body>
         <SiteShell locale={locale}>{children}</SiteShell>
-        {/* ORG-008: Vercel serves the /_vercel scripts; elsewhere (local, CI) they would 404. */}
+        {/* ORG-008: only Vercel serves these scripts; elsewhere (local, CI) they would 404. */}
         {process.env.VERCEL ? <VercelObservability /> : null}
       </body>
     </html>

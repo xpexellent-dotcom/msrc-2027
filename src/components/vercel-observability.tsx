@@ -6,7 +6,7 @@ import { prepareObservabilityEvent } from "@/lib/vercel-observability";
 
 const beforeSend = <Event extends { url: string }>(event: Event) => prepareObservabilityEvent(event, navigator.webdriver);
 
-/** ORG-008: cookieless visitor counts and real-user Core Web Vitals, from Vercel's own origin paths. */
+/** ORG-008: cookieless visitor counts and real-user Core Web Vitals, sent to the site's own origin. */
 export function VercelObservability() {
   return (
     <>

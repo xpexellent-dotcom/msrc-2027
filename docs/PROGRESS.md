@@ -15,6 +15,8 @@ PR 12 (the 1 October QA pass and ORG-007) was merged by the requester at 14:11 U
 
 Verification (Node 24.21.0): ESLint zero-warning, `next typegen` and `tsc` PASS; Vitest 305/305; `next build` PASS with and without `VERCEL=1` (40 pages, the same static and dynamic routes); Playwright Chromium desktop/tablet/mobile 286 passed, 3 skipped (duplicate tablet cases).
 
+On the PR 13 preview, in a signed-in desktop Chrome: both scripts load with 200 from project-specific same-origin paths (Vercel sets them; `/_vercel/*` is only the fallback), and the pageview beacon returns 200. A client navigation to `/ar/program?day=2&email=…#session` sent the address `/ar/program`, without query, fragment or email. `/ar/media`, `/en/program` and `/api/health` answered via `bom1::bom1`, and `/media/` files carry the 30-day header.
+
 Vercel settings reviewed in the dashboard and left as they were: Fluid compute on; Node.js 24.x (matches `engines`); Prioritize Production Builds on; Vercel Authentication protects previews; source maps protected; Web Analytics and Speed Insights enabled; firewall bot protection off and AI crawlers allowed (a challenge would also stop link previews and automated QA). The Hobby plan allows one function region.
 
 Worth considering with the requester (not changed):
