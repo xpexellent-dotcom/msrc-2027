@@ -47,7 +47,24 @@ navigation that correctly restored the still-active real synthetic server sessio
 only corrected to restart from the displayed terminal state; final48/48 PASS (37.2s).
 Auth error-context files contained test source only; credential-bearing automatic aria
 snapshots/traces/screenshots are disabled, and explicit captures mask inbox/code fields.
-Isolated CI database and new-head CI/Preview checks remain pending.
+All12 masked EN/AR staff/participant captures across desktop/tablet/mobile were inspected;
+forms/RTL/overflow checks passed. A fixed-header position in some full-page screenshots is
+a capture artifact, not certification of human screen-reader/device UAT.
+
+Actual isolated database [PR CI37073654880](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37073654880)
+job111058834913 at3f1c5ad PASS: `pnpm db:reset` LOCAL only, `pnpm db:lint` no schema
+errors, `pnpm db:test` four files/260 assertions PASS, security-advisor check PASS,
+public schema generated-types strict compile PASS, `pnpm db:integration` three files/16
+tests PASS (including two actual parallel lifecycle tests), stack stop PASS. Logs were
+decoded and inspected. Earlier database job111057383943 at3c2f362 also passed260/16;
+SQL/application source is identical, only a browser fixture/progress entry changed.
+Final documentation-only commit receives its own automatic application/database CI and
+Preview checks; latest exact-head receipts are recorded on PR19 and the linked checklist.
+Vercel Preview6819754422 at3f1c5ad reports success:
+https://msrc-2027-hstb8t987-msrc2027.vercel.app. Authenticated Vercel runtime inspection
+remains BLOCKED by protection/connector access. This lab intentionally rejects every
+Vercel environment; local synthetic review is available instead. Rebuilt EN/AR preview
+on127.0.0.1:3220 each returned200. No deployment protection bypass was opened.
 Review also fixed reauthentication clearing code-attempt cooldowns; three new regressions
 PASS. Independent SQL/TS/source review found no actionable issue; it executed no DB tests.
 `git diff --check` PASS. Fresh production auth-lab page/API404 and health200 confirm the

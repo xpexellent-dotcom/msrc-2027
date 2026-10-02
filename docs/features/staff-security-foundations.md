@@ -109,6 +109,14 @@ Fixtures require GitHub Actions, validated loopback and the exact isolated proje
 they disappear at disposable runner teardown. Private forced-RLS tables intentionally have
 no client policies. SECURITY DEFINER own-context RPCs remain a reviewed advisory exception.
 
+Current local evidence: lint/types/1073 unit cases/42-page build PASS; public browser300
+PASS/3 existing skips; SMS browser48/48 PASS and12 masked EN/AR staff/participant captures
+inspected across desktop/tablet/mobile. Isolated source3f1c5ad database CI actually passes
+260 SQL assertions and16 integrations including two concurrent lifecycle cases; database
+lint/advisors/generated-type compile/shutdown PASS. A test-only terminal-state scenario
+failure was corrected and rerun; source review alone is distinguished from these executed
+checks. Latest documentation-head CI/Preview receipts live on PR19 and the checklist.
+
 Human screen-reader/device and managed-provider UAT remain **NOT TESTED**. Before release:
 
 - [ ] Review EN/AR with keyboard and screen reader: focus/announcements, RTL, code paste/autofill, Arabic digits, locale change and input retained after recoverable transport failure.
