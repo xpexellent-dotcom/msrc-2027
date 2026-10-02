@@ -81,6 +81,46 @@ test("print shows the content in black without screen furniture", async ({ page 
   }
 });
 
+// ORG-008: the versioned film and posters were served with max-age=0, so every repeat visit
+// revalidated them before the hero could play. Pages themselves keep their default caching.
+test("versioned hero media may be cached by the browser for 30 days", async ({ request }) => {
+  for (const file of ["hero-desktop-v1.mp4", "hero-mobile-v1.mp4", "poster-desktop-v1.jpg", "poster-mobile-v1.jpg"]) {
+    const response = await request.head(`/media/msrc2026/${file}`);
+    expect(response.status(), file).toBe(200);
+    expect(response.headers()["cache-control"], file).toBe("public, max-age=2592000, stale-while-revalidate=86400");
+  }
+  expect((await request.head("/en")).headers()["cache-control"]).not.toContain("2592000");
+});
+
+// The Arabic subset has no "0". While its face covered the space, 1ch fell to 0.5em once it
+// loaded, so ch-based measures narrowed after first paint (CLS 0.2 on /ar/media) and headings
+// authored as two lines broke into four. 1ch must come from the fallback before and after.
+test("the Arabic webfont leaves 1ch unchanged, so authored two-line headings stay two lines", async ({ page }) => {
+  for (const path of ["/ar/media", "/ar/program", "/ar/registration"]) {
+    await page.goto(path);
+    const result = await page.evaluate(async () => {
+      await document.fonts.ready;
+      const heading = document.querySelector("h1")!;
+      const probe = document.createElement("span");
+      probe.style.cssText = "display:inline-block;inline-size:10ch;block-size:0";
+      heading.append(probe);
+      const chInEm = probe.getBoundingClientRect().width / 10 / parseFloat(getComputedStyle(heading).fontSize);
+      probe.remove();
+      const range = document.createRange();
+      range.selectNodeContents(heading);
+      return {
+        arabicFaceLoaded: [...document.fonts].some((face) => face.status === "loaded" && /arabic/i.test(face.family)),
+        chInEm,
+        lines: new Set([...range.getClientRects()].filter((rect) => rect.width > 1).map((rect) => Math.round(rect.top))).size,
+        authoredLines: heading.textContent!.split("\n").length,
+      };
+    });
+    expect(result.arabicFaceLoaded, path).toBe(true);
+    expect(result.chInEm, path).toBeGreaterThan(0.52);
+    if ((page.viewportSize()?.width ?? 0) >= 1024) expect(result.lines, path).toBe(result.authoredLines);
+  }
+});
+
 // The clock counts whole days to 00:00 Riyadh on Day 1 (2027-01-26T21:00Z); each instant sits
 // half a day before a boundary. Plural categories alone gave «٠ يومًا» and «١٠٠ يومًا».
 for (const [instant, days, unit] of [

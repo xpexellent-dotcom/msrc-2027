@@ -2,6 +2,24 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
+## 2 October 2026 — Arabic webfont: a steady `ch`, no layout jump
+
+First visits to Arabic pages jumped when Noto Sans Arabic arrived: desktop CLS 0.208 on `/ar/media`, 0.065 on `/ar/dates-venue` and 0.011 on `/ar`, against 0.002 on English pages. The cause was the `ch` unit, not the letter shapes. The Arabic subset has no "0" glyph, so once it loaded as the first available font, browsers measured 1ch as 0.5em instead of the fallback's 0.556em (Arial's zero). Every `ch`-based measure (37 `max-inline-size`/`max-width` rules) narrowed by a tenth after first paint. Headings authored as two lines with `\n` («ملتقى / العقول الفضولية.», «كن جزءًا / من الفصل القادم.», «لحظات نعود إليها. / وأفكار تبقى معنا.») then broke again into three or four lines.
+
+Change: one `declarations` entry gives the `next/font` Arabic face fontsource's Arabic-subset `unicode-range`, which leaves out the space. The fallback face then stays the first available font and 1ch never changes. The file draws no Latin character except the space, so Arabic spaces become 0.278em instead of 0.26em. A unit test fails if the range covers the space, a Latin digit or a letter. An e2e test checks that 1ch stays above 0.52em after the font loads, and that the three headings keep their authored two lines on desktop.
+
+Layout shift on first load (local production build, median of 5): unthrottled desktop `/ar/media` 0.208 → 0.002, `/ar/dates-venue` 0.065 → 0.002, `/ar` 0.011 → 0.002. Slow 4G (1.6 Mbps, 150 ms) with 4× CPU: desktop `/ar/media` 0.199 → 0.018, `/ar/dates-venue` 0.068 → 0.006, phone `/ar` 0.020 → 0.003. English unchanged.
+
+Not adopted: preloading the Arabic font on Arabic pages only (served from `public/`, since `next/font` exposes no URL). With the range fix in place it gave no CLS benefit under throttling and delayed LCP by 160–300 ms, because the 166 KB font competed with the hero poster.
+
+Visible effect: Arabic measures now always use the width visitors saw before the font loaded. On desktop, 8 of 12 Arabic pages re-wrap, mostly to fewer lines; the three headings above show their authored two lines, as in English. On phones, 2 of 12 change: the home lead fits one line, and one Submissions paragraph wraps to three lines because of the wider spaces. No clipped text at 320 px or 1280 px, and no horizontal scroll at 320 or 375 px on any Arabic page.
+
+Verification: ESLint and `tsc` PASS; Vitest 308/308; build PASS (the generated face carries the range); Playwright Chromium desktop/tablet/mobile 288 passed, 3 skipped; WebKit desktop and iPhone `qa-regressions` 24/24. Against production the new e2e test fails as expected: 1ch measures exactly 0.5em.
+
+Also checked live after PR 12: 24 pages crawled with no broken link or anchor; axe finds no violations on `/en`, `/ar`, `/en/dates-venue` and `/ar/media` at 390 and 1280 px; the centred Step inside cue keeps at least 14.3:1 over every sampled film frame (4.5:1 needed).
+
+Live LCP on a throttled phone (Slow 4G, 4× CPU) for reference: `/en` 2.6 s and `/ar` 3.0 s (the hero poster, already `fetchpriority=high`), About and Media about 1.9 s (the heading). NFR-02 asks for 2.5 s at p75 on agreed hardware and network; Speed Insights (ORG-008) will report the field values.
+
 ## 2 October 2026 — BL-SEC-01 authorization contract
 
 - Requester authorized the next bounded engineering PR: 13-role/scope/current-authority
@@ -61,6 +79,32 @@ identity, persisted grants, TOTP, per-feature RLS and actual Storage access stil
 Next smallest PR: BL-AUTH-01 current persisted grant/identity integration, followed by
 BL-AUTH-05 privileged TOTP enrollment/recovery before CMS/staff activation. M3 legal/brand
 content and affected-phone Safari diagnosis remain independent follow-ups.
+
+## 2 October 2026 — Visitor analytics, Speed Insights and hosting efficiency (ORG-008)
+
+PR 12 (the 1 October QA pass and ORG-007) was merged by the requester at 14:11 UTC as `017220e`. Live check: the hero caption is gone in both locales; the Step inside cue is 0 px off centre on desktop and phone; with motion allowed it glides (scroll samples 0→103→641→815→880→900 px) and focuses the dates band, with reduced motion it jumps; on phones the band stops 72 px below the top, clear of the header.
+
+| Change | Why | Evidence |
+|---|---|---|
+| Vercel Web Analytics and Speed Insights, on the production deployment only | Requested; both were already enabled in the dashboard and waiting for the packages | A `VERCEL=1` build injects `/_vercel/insights/script.js` and `/_vercel/speed-insights/script.js` once per page, reports route patterns (`/[locale]/media`) and registers the `beforeSend` hooks before any event. A normal build contains neither, so CI and local runs make no `/_vercel` requests |
+| Addresses sent without query string or fragment; only public information pages counted; automated browsers send nothing | PRV-03; tests against deployments must not count as visits or make write requests | Six unit cases. With `navigator.webdriver` the probe recorded no non-GET request |
+| Functions in `bom1` (Mumbai) instead of `iad1` (Washington, D.C.) | Requests from Saudi Arabia enter at the Mumbai edge; uncached pages then crossed to `iad1` and took 0.42–0.48 s to first byte versus about 0.21 s for cached pages | Live before: `/en/media`, `/ar/media`, `/en/program`, `/api/health` answered via `bom1::iad1`. `dxb1` (Dubai) is listed in the dashboard, but the first preview with it failed: "Invalid region" |
+| Film and posters cached by browsers for 30 days | They were served `max-age=0, must-revalidate`, so every visit revalidated 2.8 MB before the hero could play | An e2e test checks all four files; pages keep their own caching |
+
+Verification (Node 24.21.0): ESLint zero-warning, `next typegen` and `tsc` PASS; Vitest 305/305; `next build` PASS with and without `VERCEL=1` (40 pages, the same static and dynamic routes); Playwright Chromium desktop/tablet/mobile 286 passed, 3 skipped (duplicate tablet cases).
+
+On the PR 13 preview, in a signed-in desktop Chrome: both scripts load with 200 from project-specific same-origin paths (Vercel sets them; `/_vercel/*` is only the fallback), and the pageview beacon returns 200. A client navigation to `/ar/program?day=2&email=…#session` sent the address `/ar/program`, without query, fragment or email. `/ar/media`, `/en/program` and `/api/health` answered via `bom1::bom1`, and `/media/` files carry the 30-day header. Afterwards, following ChatGPT's analytics review, collection was limited to the production deployment and to public information pages (`countedSections`); previews no longer load the scripts, so this preview evidence predates that change.
+
+Vercel settings reviewed in the dashboard and left as they were: Fluid compute on; Node.js 24.x (matches `engines`); Prioritize Production Builds on; Vercel Authentication protects previews; source maps protected; Web Analytics and Speed Insights enabled; firewall bot protection off and AI crawlers allowed (a challenge would also stop link previews and automated QA). The Hobby plan allows one function region.
+
+Worth considering with the requester (not changed):
+- **Deployment Checks:** hold each production deployment until GitHub's "Foundation checks" pass, so a broken merge never reaches the public site. Production then updates about 8 minutes after a merge.
+- **At the Pro upgrade:** Skew Protection (visitors with an open tab keep working across deploys), concurrent builds (two agents push branches), Spend Management alerts, longer log and analytics retention, custom analytics events (for example film plays), password-protected previews if outside reviewers need access.
+- **Uptime alerts (INF-08):** an external monitor on `/api/health` with email alerts to named owners, such as Checkly from the Vercel Marketplace. This needs the organizers' own account.
+- **Launch-time firewall:** consider Bot Protection in log mode first, and decide whether AI crawlers may read the public site.
+- **Hobby allowances:** usage for 2 September–2 October was 1.02 GB fast data transfer, 20K CDN requests, 1.7K function invocations and 2 h 8 min build CPU, far inside the plan. Analytics and Speed Insights events count against monthly allowances too; check the Usage page as registration and the event approach.
+
+Known issue measured in this pass: on a first visit, the Arabic webfont (166 KB, `preload: false`) swapped in after first paint and re-wrapped Arabic headings (desktop CLS 0.21 on `/ar/media`). Fixed in the section above.
 
 ## 1 October 2026 — QA pass: Arabic typography and wording, counted numbers, a test race
 
