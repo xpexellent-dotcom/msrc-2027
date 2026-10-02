@@ -2,6 +2,69 @@
 
 **Snapshot: 2 October 2026. Update this file after each development task.**
 
+## 2 October 2026 — Closed persisted authorization and reviewed deployment
+
+Scope: requester authorizes checklist review, the next recommended engineering actions
+and deployment of reviewed application schema/permissions. Read current source/backlog,
+reviewed BL-SEC-01 PR15 at exact head `e297c86`, and merged it as `7ce3112` after the
+final-head application/database CI had passed. The connector could read PR15 but its
+ready-transition lacked integration permission; the already authorized Git Credential
+Manager credential completed the transition and guarded merge. No credential was printed.
+
+Implementing the smallest BL-AUTH-01 slice: private edition/account-access/scoped-grant/
+audit metadata, a self-only current managed-session/TOTP RPC and a server-only bearer
+identity/context adapter. No initial edition, account, grant or audit row; no participant
+profile, domain schema, Storage bucket, invitation, email, staff UI, CMS or workflow opening.
+The returned context has `session.active:false`, `operationalAccessReady:false` and
+`privilegedAccessReady:false`; it cannot activate the earlier authorization evaluator.
+Full domain AuthorityReader integration and AUTH-04/05 lifecycle enforcement remain later.
+
+Fresh hosted preflight: selected project `msrc / ecemjggwlzqpjcwmchrl` has zero Auth users,
+application tables/private authorization schemas and migration history. Asked whether this
+project is development/staging or reserved for production, and for the three named Super
+Admins. No answer is inferred; live data/staff activation stays closed under CFG-09/10/11.
+Reviewed empty additive schema work creates no operational authority or participant data.
+
+Initial checks: `pnpm typecheck` first found a nested parser narrowing error, corrected;
+rerun PASS. `pnpm lint`, existing 739 unit tests and `pnpm build` (40 pages) PASS before
+the new identity tests were added. Actual-schema SQL and final complete checks are pending;
+hosted migration NOT YET APPLIED at this point. ENG-010 and the
+[feature note](features/persisted-authorization.md) define acceptance and rollback.
+
+The checklist was updated/read back at sequence14: PR15 reviewed/merged and BL-AUTH-01
+in progress; no deployed schema or staff activation is claimed. Original checkout's
+uncommitted documentation remains untouched; implementation uses the attached managed
+authorization worktree on `codex/persisted-authorization`.
+
+Next: run final application/actual-schema CI, adversarially review the migration, deploy
+only the approved empty application migration, verify hosted ACL/RLS/anonymous denial
+and record receipts. Do not upload the earlier synthetic foundation migration/seed.
+
+Final local application verification: `pnpm check` PASS (lint, types,859 unit tests,
+40-page production build). New coverage:103 identity/context cases and17 hosted-probe
+cases. `pnpm test:e2e tests/e2e/closed-workflows.spec.ts tests/e2e/public-shell.spec.ts`
+PASS:43 Chromium desktop/tablet/mobile cases including EN/AR/keyboard/axe/reduced motion.
+Added66 actual-migration pgTAP assertions, including independent ACL/RLS, own-context,
+current managed user/session/TOTP, grants/scopes/history and transactional audit failure.
+`pnpm exec supabase test db supabase/tests/database/persisted_authorization.test.sql`
+was attempted and BLOCKED by ECONNREFUSED at127.0.0.1:54322 (no local engine).
+No hosted fixture was used. Database lint now includes public and private schema functions;
+CLI help confirmed the comma-separated `--schema` argument. CI runtime result pending.
+
+Read-only hosted role preflight confirmed `current_user` and `session_user` both postgres,
+and zero managed accounts/public application tables. Independent security review found no
+blocking issue in the closed migration/app boundary; real staff activation, named-human
+maintenance attribution, account-status audits, full AUTH-05 lifecycle and actual MFA UAT
+remain explicit follow-ups. TOTP factor name/status maintenance updates `updated_at`; the
+current timestamp check conservatively requires fresh challenge evidence after those
+changes. It does not replace future audited reset/recovery and session revocation.
+
+Checklist factual refresh at sequence15: PR13 is still open/conflicted at632ed46, but its
+latest CI37037534134/37037529901 and Preview6813734225 passed. Its Mumbai code and stale
+Dubai wording/privacy review remain a separate PR13 follow-up. Fresh main7ce3112 CI
+37038741543 passed and Production6813936431 succeeded. Live health returns200/no-store/
+closed; full Vercel settings/complete live UAT are not claimed. No PR13 changes here.
+
 ## 2 October 2026 — BL-SEC-01 authorization contract
 
 - Requester authorized the next bounded engineering PR: 13-role/scope/current-authority
