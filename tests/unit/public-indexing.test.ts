@@ -59,3 +59,13 @@ describe("public indexing", () => {
     expect(await config.redirects!()).toContainEqual({ source: `/:locale(en|ar)/${alias}`, destination: `/:locale/${page}`, permanent: true });
   });
 });
+
+// BL-PUB-06/08: unapproved Contact, Privacy and Terms drafts stay out of search on production too.
+describe("draft legal pages", () => {
+  it("are noindex and absent from the production sitemap", async () => {
+    const { sitemap } = await load("production");
+    const { draftPageMetadata } = await import("@/components/legal-page");
+    expect(draftPageMetadata("en", "/privacy", "Privacy", "Draft").robots).toEqual({ index: false, follow: true });
+    expect(sitemap().some((entry) => /\/(contact|privacy|terms)$/.test(entry.url))).toBe(false);
+  });
+});

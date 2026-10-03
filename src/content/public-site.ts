@@ -23,9 +23,9 @@ export const publicSitemap = [
   { id: "gallery", path: "/past-editions", label: { en: "Media & past editions", ar: "الوسائط والنسخ السابقة" }, previewHref: "/media" },
   { id: "announcements", path: "/announcements", label: { en: "Announcements", ar: "الإعلانات" }, previewHref: null },
   { id: "faq", path: "/faq", label: { en: "FAQ", ar: "الأسئلة الشائعة" }, previewHref: "/#faq" },
-  { id: "contact", path: "/contact", label: { en: "Contact", ar: "التواصل" }, previewHref: null },
-  { id: "privacy", path: "/privacy", label: { en: "Privacy", ar: "الخصوصية" }, previewHref: null },
-  { id: "terms", path: "/terms", label: { en: "Terms", ar: "الشروط" }, previewHref: null },
+  { id: "contact", path: "/contact", label: { en: "Contact", ar: "التواصل" }, previewHref: "/contact" },
+  { id: "privacy", path: "/privacy", label: { en: "Privacy", ar: "الخصوصية" }, previewHref: "/privacy" },
+  { id: "terms", path: "/terms", label: { en: "Terms", ar: "الشروط" }, previewHref: "/terms" },
 ] as const satisfies readonly PublicPage[];
 
 export const homepageAssets = {

@@ -1,5 +1,32 @@
 # Progress and session handover
 
+## 3 October 2026 — Closed draft Contact, Privacy and Terms pages (BL-PUB-06/08)
+
+Built `/en|ar/contact`, `/privacy` and `/terms` from the owner-approval draft, following the
+Dates & venue pattern (`src/content/legal.ts`, `src/components/legal-page.tsx`,
+`src/styles/legal.css`). See ENG-015. Privacy/Terms say "Draft, not in effect"; Contact lists the
+six SUP-01 categories with no form and no printed address. All three are noindex and absent from
+the sitemap; footer "Soon" pills for Contact/Privacy/Terms are now links.
+
+Checks (local, Node 22 against the repo's Node 24 engine pin):
+- `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm test` PASS (35 files, 1406 tests);
+  `pnpm build` PASS (contact/privacy/terms prerendered in both locales).
+- Playwright with the preinstalled Chromium 1194 (`launchOptions.executablePath`, temporary
+  local config not committed): new `legal-pages.spec.ts` plus public-shell and qa-regressions,
+  79/79 PASS across desktop/tablet/mobile. Full suite: 304 passed, 21 skipped, 32 failed; the
+  same 32 film/video tests (cinematic-film, public-media, premium-interface) also fail on
+  unchanged main in this container, so they are an environment codec limitation, not this change.
+  GitHub CI remains the reference run.
+
+NOT TESTED: human visual/Arabic review, screen readers. BLOCKED: approved controller, legal
+bases, processors/locations, retention, privacy contact, seller/prices/refunds, conduct,
+liability/law wording, contact recipients/sender and an Arabic legal-equivalence approver
+(19 owner questions in the draft doc). REL-01 legal/contact gate stays open.
+
+Next: owners answer the draft's questions; then replace pending sentences with approved
+versions, add the version id, list the pages in `publicRoutes`, and start the SUP-02 form
+behind its own gate.
+
 ## 4 October 2026 — PR25 rebased onto main including PR28
 
 Rebased `codex/email-authenticator-no-sms` from cf1b60a onto current main

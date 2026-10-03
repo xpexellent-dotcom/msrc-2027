@@ -1405,3 +1405,22 @@ and the authentication Playwright configuration, pushing and marking ready for r
 - Ready for review is not merge/release approval. All operational/readiness gates remain
   false; no deployment, hosted migration/reset/fixture, live account/grant/reset or test
   email is performed. Current execution receipts belong in PROGRESS and the PR.
+
+## ENG-015 — Closed draft Contact, Privacy and Terms scaffolds, 3 October 2026
+
+Authority: the organizer reviewed the owner-approval draft (Claude Doc linked from the PR)
+and asked for the pages to be built ("Go ahead"). No owner wording, controller, legal basis,
+location, retention, price, refund or recipient decision was given; DR-CFG-02/09/10/11 stay open.
+
+- `/[locale]/contact`, `/[locale]/privacy` and `/[locale]/terms` render bilingual closed
+  scaffolds. Privacy and Terms carry a "Draft, not in effect" notice and a "Version: draft,
+  no effective date" line; unknown values are stated as pending, never guessed.
+- Contact lists the six SUP-01 categories only. The SUP-01 inbox addresses are form routing,
+  so they are not printed; no form, input or delivery exists until BL-PUB-06's gate passes.
+- Drafts are `noindex, follow` on production and stay out of `publicRoutes`/the sitemap, so
+  search never presents unapproved wording as policy. Add them to `publicRoutes` and drop
+  `draftPageMetadata` when an approved version is published.
+- The footer entries are now real links; the three sections join `countedSections` (ORG-008).
+- The only processing described as current fact is the cookieless Vercel analytics (ORG-008).
+  The Mumbai function region is not stated on the page until the data-flow map is approved.
+- REL-01's "working contact/privacy/terms" gate is not met by these drafts.

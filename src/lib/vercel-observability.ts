@@ -3,7 +3,7 @@
 // browsers are left out: test runs against a deployment neither count as visits nor send data.
 
 /** The public information pages in app/[locale]/(preview); one slug segment only under program/speakers. */
-export const countedSections = ["about", "dates-venue", "program", "programme", "speakers", "workshops", "participate", "participation", "registration", "submissions", "hackathon", "3mt", "media"] as const;
+export const countedSections = ["about", "dates-venue", "program", "programme", "speakers", "workshops", "participate", "participation", "registration", "submissions", "hackathon", "3mt", "media", "contact", "privacy", "terms"] as const;
 
 /**
  * Only public information pages are counted. Future account, review and organizer areas,

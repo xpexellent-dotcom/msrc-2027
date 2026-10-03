@@ -125,7 +125,7 @@ its unresolved-date/media status. The full public sitemap is still incomplete.
 
 ## BL-PUB-06 — Implement categorized email-only Contact support
 - **Source IDs:** SUP-01, SUP-02, SUP-03, EML-01, EML-04, PRV-03, ACC-01.
-- **Status:** Planned; live delivery closed.
+- **Status:** Closed bilingual scaffold implemented (ENG-015: categories only, no form, noindex); form and live delivery closed.
 - **Purpose:** Route visitor questions to the approved main inbox without creating a helpdesk product.
 - **Scope:** Category/name/email/related-reference/message form, server validation, accessible anti-spam, fixed tested category recipients and validated Reply-To through the email outbox.
 - **Exclusions:** Arbitrary recipient input, general inquiry ticket/status database, confidential manuscript echo, phone messaging.
@@ -171,7 +171,7 @@ its unresolved-date/media status. The full public sitemap is still incomplete.
 
 ## BL-PUB-08 — Render approved Privacy and Terms versions
 - **Source IDs:** SCP-02, PRV-01, PRV-02, PRV-08, PAY-08, MED-02.
-- **Status:** Planned; legal/controller text not approved.
+- **Status:** Draft bilingual scaffolds implemented (ENG-015: "Draft, not in effect", noindex, no version id); legal/controller text not approved.
 - **Purpose:** Let people read applicable notices before providing data or buying participation.
 - **Scope:** Read-only versioned bilingual Privacy/Terms routes, approved contact route and photography notice; expose version identifier for later consent records.
 - **Exclusions:** Inventing legal bases/controller/retention obligations, legal certification or default publicity consent.
