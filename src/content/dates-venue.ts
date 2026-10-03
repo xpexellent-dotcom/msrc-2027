@@ -14,6 +14,7 @@ type DatesVenueCopy = {
   day1: string;
   day2: string;
   datesPending: string;
+  addToCalendar: string;
   locationEyebrow: string;
   locationTitle: string;
   locationBody: string;
@@ -49,6 +50,7 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     day1: "Day 1",
     day2: "Day 2",
     datesPending: "Conference dates awaiting confirmation",
+    addToCalendar: "Add to calendar",
     locationEyebrow: "01 / The location",
     locationTitle: "Where we'll meet.",
     locationBody: "King Abdulaziz University. Jeddah, Saudi Arabia.",
@@ -79,6 +81,7 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     day1: "اليوم الأول",
     day2: "اليوم الثاني",
     datesPending: "مواعيد المؤتمر بانتظار التأكيد",
+    addToCalendar: "أضف إلى التقويم",
     locationEyebrow: "٠١ / المكان",
     locationTitle: "حيث نلتقي.",
     locationBody: "جامعة الملك عبدالعزيز. جدة، المملكة العربية السعودية.",
