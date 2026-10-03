@@ -1260,3 +1260,11 @@ credential/setup blocker without establishing why it was rejected. Stop retries 
 the mailbox manager verifies account settings and a fresh dedicated credential is
 entered through the hidden local test-only store. Preserve earlier records; no live
 staff access or production email configuration is approved.
+
+The organizer then reported the replacement stored. Its single bounded AUTH-only
+probe also returned535; no follow-on email was attempted. A read-only comparison
+confirmed it is a different credential. Retain both encrypted local credentials and
+all five attempt records. Sender readiness remains blocked pending mailbox-manager
+account/security status checks; another rotation or retry is not the next step without
+that evidence. Standing isolated-test authorization and every production/release gate
+remain unchanged. This result does not approve a weaker login flow or another provider.

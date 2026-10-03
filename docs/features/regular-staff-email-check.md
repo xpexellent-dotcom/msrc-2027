@@ -134,8 +134,15 @@ Three bounded sends failed/unconfirmed (third:SMTP530). Credential-free TCP587,
 SMTP greeting, STARTTLS and TLS1.2/default certificate checks passed. A separate verified-
 TLS AUTH-only probe returned **535 / credentials-rejected**, without submitting email.
 The current stored credential is rejected; the underlying account/configuration reason
-is not established. Stop retries until the mailbox manager checks Google2-Step/account
-settings and a fresh dedicated credential is entered through the hidden local prompt.
+is not established. A fresh dedicated credential was requested through the hidden local
+prompt while retaining the original.
+The replacement was subsequently stored and its bounded AUTH-only probe also
+returned 535; no follow-on test email was attempted. A read-only comparison confirmed
+it differs from the original. Both credentials and all five records are retained with
+private ACLs. Next obtain mailbox-manager account/security status checks before more
+network attempts; do not rotate/retry blindly. The replacement wrapper passed 77
+targeted synthetic checks in both PowerShell versions, including no send on denied
+or uncertain AUTH. This does not change application assurance or production readiness.
 Preserve all earlier credential/attempt records; no secrets or provider text are logged.
 Executed commands and final56/79/89 synthetic diagnostic counts are in PROGRESS; they
 are distinct from actual delivery. Sender diagnosis does not prove a managed staff

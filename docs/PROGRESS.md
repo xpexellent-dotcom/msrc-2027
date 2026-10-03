@@ -2,6 +2,34 @@
 
 ## 3 October 2026 — Isolated email readiness tests
 
+Replacement continuation: the organizer reported the replacement credential stored.
+Executed `Store-ReplacementEmailTestCredential.ps1 -Status`: exit0, readable locally;
+no network. Prepared ignored `Test-ReplacementEmailReadiness.ps1`, preserving both
+credentials and all earlier attempt records. Its fixed new AUTH marker reserves one
+probe; a separate fixed send marker can be used only after exact AUTH235 success in
+the same invocation with the same replacement SecureString. Default invocation is
+preparation only. Independent review and 77 targeted synthetic checks PASS in both
+PowerShell 7.6.5 and Windows PowerShell 5.1; root independently reran 77 in PowerShell 7.
+Coverage includes rejection/malformed/uncertain replies, no premature send, existing
+markers/replay, callback failures/redaction, same secret and synthetic-record preservation.
+
+Executed `Test-ReplacementEmailReadiness.ps1 -RunAuthorizedReplacementTest` once:
+exit 1, **replacement AUTH 535**, no test email attempted. Retain the replacement AUTH
+record; do not retry either rejected credential. A read-only SecureString comparison,
+validated by 4 synthetic checks, confirmed the replacement differs from the original;
+no password, ciphertext or digest was emitted. Safe presence/private-ACL checks confirm
+both credentials, all four historical records and the replacement AUTH record remain;
+no replacement email-send marker exists. Source re-review found no likely framing,
+account-selection or storage defect. This proves Gmail rejected two different stored
+credentials, not the reason for rejection. Requested mailbox-manager status checks:
+current 2-Step Verification, exact-account replacement entry, any subsequent normal
+Google-password change and any blocked sign-in/security alert. Google documents that
+app passwords require 2-Step Verification and account-password changes revoke them:
+https://support.google.com/accounts/answer/185833?hl=en . No more network attempts
+pending that information. SMTP acceptance/inbox delivery remain BLOCKED, with no
+production/app/CI credential or readiness changes. Prior docs-only branch e09f8e9
+CI37133281956 and 37133278422 were freshly verified SUCCESS before this continuation.
+
 The organizer selected a Gmail mailbox and reported its manager can help. A dedicated
 app password was manually stored outside Git using Windows-user encryption and private
 ACLs. Safe status confirmed it is readable locally; no credential was printed or added
@@ -63,9 +91,9 @@ No additional network retries with the rejected credential.
 Prepared ignored `Store-ReplacementEmailTestCredential.ps1`: hidden manual input,
 fixed separate replacement filename, Windows-user encryption/private ACLs, no overwrite
 of the original credential or any marker, no network. Its38 synthetic checks PASS in
-both runtimes; root independently reran PowerShell7. Safe replacement Status reports
-absent. Actual replacement entry/credential validation remains NOT TESTED/pending human
-input; never request a credential through chat, command arguments or CI variables.
+both runtimes; root independently reran PowerShell7. Safe replacement Status reported
+absent at that point; the continuation above records actual entry and rejection.
+Never request a credential through chat, command arguments or CI variables.
 
 Production Auth/SMTP, hosted migrations, DNS, roles/grants and all operational/readiness
 flags are unchanged. No application code changed; application/build/database/browser
@@ -75,9 +103,9 @@ Local helper/credential/attempt files remain excluded from Git. No hosted rollba
 needed; preserve the attempt marker to prevent a repeat, and let the mailbox manager
 revoke the dedicated credential if the test setup is retired.
 
-Next smallest task: the mailbox manager confirms Google2-Step Verification remains on
-and supplies a fresh dedicated app password through a hidden local replacement prompt.
-Preserve the original credential/attempt receipts; revalidate only after replacement.
+Next smallest task: resolve the replacement AUTH 535 using mailbox-manager account
+status checks above. Preserve both credentials and all attempt receipts; do not rotate
+or retry blindly. Replacement entry is complete, but Gmail authentication is rejected.
 Small isolated self-recipient test emails are authorized without repeated approval;
 production delivery, privacy/location, recovery and human login/cookie UAT remain gates.
 Prepare isolated managed staff login/email delivery/cookie tests after sender readiness;
