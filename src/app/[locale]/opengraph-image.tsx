@@ -23,7 +23,7 @@ export default function OpenGraphImage() {
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 24, letterSpacing: 3, color: "#DCCFF0" }}>
           <span>KING ABDULAZIZ UNIVERSITY · JEDDAH</span>
-          <span style={{ color: "#C9A24A" }}>WEBSITE PREVIEW</span>
+          <span style={{ color: "#C9A24A", letterSpacing: 1 }}>msrc2027.com</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", alignItems: "flex-end" }}>
