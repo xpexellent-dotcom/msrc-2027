@@ -141,12 +141,17 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
       language plpgsql security invoker set search_path='' as $$
       declare actor uuid := (event->'user'->>'id')::uuid;
       begin
-        if current_user <> 'supabase_auth_admin' or actor not in ('${participant}','${staff}','${other}')
+        -- GoTrue v2.197.0 omits sms_type for primary phone changes. Permit that
+        -- shape only for fixed actors whose managed new_phone is this exact input.
+        if current_user <> 'supabase_auth_admin' or actor is null or actor not in ('${participant}','${staff}','${other}')
           or coalesce(event->'sms'->>'otp','') !~ '^[0-9]{6}$'
           or coalesce(event->'sms'->>'phone','') <> (case actor
             when '${participant}'::uuid then '${phones[participant].slice(1)}'
             when '${staff}'::uuid then '${phones[staff].slice(1)}' else '${phones[other].slice(1)}' end)
-          or coalesce(event->'sms'->>'sms_type','') not in ('mfa','phone_change') then
+          or not (coalesce(event->'sms'->>'sms_type','')='mfa' or (
+            coalesce(event->'sms'->>'sms_type','') in ('','phone_change')
+            and actor in ('${participant}','${other}')
+            and coalesce(event->'user'->>'new_phone','')=event->'sms'->>'phone')) then
           raise exception 'Disposable fixture SMS rejected.';
         end if;
         if (select reject_send from msrc_ci_auth.controls where singleton) then
