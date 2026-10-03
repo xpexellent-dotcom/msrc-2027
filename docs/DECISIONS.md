@@ -1238,11 +1238,11 @@ automatic retry, production Auth/SMTP changes or operational opening. This super
 no-real-email restriction solely for isolated testing; it does not approve a production
 provider, recurring delivery, participant communications or staff login release.
 The credential remains locally encrypted outside Git; no Supabase development-email
-fallback or credentials in CI. The attempt failed or could not confirm acceptance;
+fallback or credentials in CI. The initial attempt failed or could not confirm acceptance;
 credential-free SMTP connection/TLS checks passed. Retain the one-attempt marker and
-retain bounded per-attempt guards and diagnose failures before repeat delivery. Inbox receipt
-and full managed login/cookie/delivery UAT remain unresolved; see PROGRESS.
-The organizer reports no test message received and confirms the credential was
+retain bounded per-attempt guards and diagnose failures before repeat delivery. At that stage,
+Inbox receipt and full managed login/cookie/delivery UAT were unresolved; see PROGRESS.
+The organizer reported no test message received and confirmed the credential was
 created under the intended sender account.
 
 The organizer subsequently stated, "Allow test emails whenever no need to ask."
@@ -1251,22 +1251,23 @@ selected self-recipient inbox without repeating send-approval questions. It does
 approve production authentication, live staff/participant communications, new recipients,
 account/grant activation, hosted migrations or operational release. Preserve attempt
 receipts, avoid blind retries and keep credentials outside Git. The second approved
-attempt returned a generic SMTP general failure; sender readiness remains unverified.
+attempt returned a generic SMTP general failure; sender readiness was then unverified.
 The third bounded PowerShell7 diagnostic returned SMTP530; this is an authentication
 or STARTTLS prerequisite error, not proof that the password itself is incorrect.
 An AUTH-only verified-TLS diagnostic then returned535: the stored sender credential
-was not accepted. No email was submitted in that probe. This identifies the current
-credential/setup blocker without establishing why it was rejected. Stop retries until
-the mailbox manager verifies account settings and a fresh dedicated credential is
-entered through the hidden local test-only store. Preserve earlier records; no live
+was not accepted for the selected username. No email was submitted in that probe.
+This identified the then-current username/credential/setup blocker without establishing
+why it was rejected. Retries stopped pending mailbox-manager account checks and a
+fresh dedicated credential entered through the hidden local test-only store.
+Preserve earlier records; no live
 staff access or production email configuration is approved.
 
 The organizer then reported the replacement stored. Its single bounded AUTH-only
 probe also returned535; no follow-on email was attempted. A read-only comparison
 confirmed it is a different credential. Retain both encrypted local credentials and
-all five attempt records. Sender readiness remains blocked pending mailbox-manager
-account/security status checks; another rotation or retry is not the next step without
-that evidence. Standing isolated-test authorization and every production/release gate
+all five attempt records. Sender readiness was then blocked pending mailbox-manager
+account/security status checks; another rotation or retry required that evidence.
+Standing isolated-test authorization and every production/release gate
 remain unchanged. This result does not approve a weaker login flow or another provider.
 
 The organizer subsequently confirmed Google2-Step is on and requested another try.
