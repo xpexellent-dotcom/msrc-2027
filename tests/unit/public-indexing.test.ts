@@ -22,7 +22,9 @@ describe("public indexing", () => {
     const urls = sitemap().map((entry) => entry.url);
     expect(urls).toContain("https://www.msrc2027.com/en");
     expect(urls).toContain("https://www.msrc2027.com/ar/program");
-    expect(urls.some((url) => /registration|submissions|admin/.test(url))).toBe(false);
+    expect(urls).toContain("https://www.msrc2027.com/en/contact");
+    expect(urls).toContain("https://www.msrc2027.com/ar/contact");
+    expect(urls.some((url) => /registration|submissions|admin|privacy|terms/.test(url))).toBe(false);
     expect(sitemap().find((entry) => entry.url.endsWith("/ar/about"))?.alternates?.languages).toEqual({
       en: "https://www.msrc2027.com/en/about", ar: "https://www.msrc2027.com/ar/about", "x-default": "https://www.msrc2027.com/en/about",
     });

@@ -22,6 +22,72 @@ Executed locally (Node 25.6.0, repository binaries; pnpm not on PATH):
 NOT TESTED: opening the file in desktop Microsoft Excel, Google Sheets or LibreOffice.
 Pending organizer review: Arabic instruction wording and the `/media/speakers/` portrait path.
 
+## 4 October 2026 — BL-PUB-06 Contact and BL-PUB-08 policy drafts
+
+Fresh GitHub reads confirm PR25 merged into main 7361164a1277ba442744845450c14134e64a6293
+and PR2/19 closed. Created the attached `contact-privacy-terms` worktree and branch
+`codex/contact-privacy-terms` from that main; a second fetch still matches it. Original
+checkout documentation edits and untracked files remain untouched.
+
+- Contact now renders in EN/AR with the five requested visitor fields, nine ordered
+  topic/tag mappings, accessible native disabled controls and mailto contact@msrc2027.com.
+  Planned no-reply@msrc2027.com sender and validated Reply-To/derived subject are fixed
+  configuration, with no provider or secrets. `/api/contact` rejects every standard
+  method with 503 CONTACT_CLOSED before reading a request; no receiving, sending,
+  storing, queueing or logging of form details. Server-only validation and a hidden
+  honeypot are independent synthetic foundations, not active collection/spam protection.
+- Privacy/Terms latest and `2026-10-04-draft` routes are bilingual, read-only, noindex,
+  outside the sitemap and existing observability allowlist, with real 404s for unknown
+  versions/locales. Organizer facts and every unapproved placeholder are visibly
+  distinguished; there is no effective legal date or consent/terms acceptance UI.
+- Footer links replace the three Soon chips. Registration stays closed and states
+  that the event is photographed/recorded in EN/AR. ORG-021–026 record the organizer's
+  fixed routing, Research Principles Club responsibility, retention, data requests,
+  named wording/request owners, current analytics description and explicit publicity
+  exclusion supersession. The notice-only publication decision is recorded without
+  claiming a lawful basis; final Emad/institutional/privacy review remains pending.
+- Updated relevant requirements, backlog/DR-CFG-09, three issue-index rows and
+  [feature boundaries/rollback](features/contact-privacy-terms.md). Existing authentication,
+  permissions/session policies, all 15 workflows/readiness, SQL and source snapshots
+  are unchanged. No migration or provider/DNS/production change, real email or local
+  Docker/database fixture work is performed.
+
+Executed locally with bundled Node 24.19.0 and pnpm 11.19.0 (CI retains Node 24.21.0):
+
+- `pnpm install --frozen-lockfile`: PASS; no dependency/lockfile changes.
+- `pnpm check`: PASS — lint, route type generation/TypeScript, 1,562 unit tests across
+  38 files and optimized production build with 53 generated pages. Earlier attempts
+  found obsolete implemented-route and exact photography-copy expectations; corrected
+  the test expectations and reran the complete command successfully.
+- `pnpm exec playwright test`: initially 360 PASS, 21 existing explicit skips and nine
+  failures from the same fieldset matcher assumption across the three viewports.
+  Native fieldset closure was present; Playwright's disabled matcher applies to
+  controls. Corrected fieldset checks to assert its native disabled attribute while
+  retaining every input/button disabled and empty FormData/no-write assertion.
+- `pnpm exec playwright test tests/e2e/contact.spec.ts`: PASS — all 27 corrected cases,
+  16.3 seconds. The initial full run's remaining browser checks passed, including all
+  18 new Privacy/Terms version/navigation/404/axe cases. Final clean full-suite and
+  unchanged auth/database regressions are to be confirmed in this draft PR's CI;
+  no local database or auth suite is claimed as run in this task.
+- Cached agent-browser 0.38.2: EN Contact, AR Privacy/Contact and home render, no
+  observed browser errors/overlay; desktop/390px RTL screenshots inspected. New
+  browser tests cover 320px/enlarged text, keyboard, no-JS closure, EN/AR, no writes/
+  storage, footer links and axe. Unknown static-version denials emit Next's internal
+  NoFallbackError diagnostic while returning the asserted 404; no draft content leaks.
+- Scoped lint after the browser matcher correction, `git diff --check`, distinct
+  ORG IDs and CSV schema/preservation validation: PASS. CSV still has 165 unique rows
+  and nine columns; only BL-PUB-06/08 and DR-CFG-09 changed.
+
+NOT TESTED / release gates: real-human EN/AR/screen-reader/device/legal UAT; provider
+delivery/bounce/retry tests; effective Privacy/Terms wording and translation approval;
+lawful identifiable-publication review; actual processor/log/location/transfer inventory;
+certificate two-year clock start, inbox/other retention and cleanup/restore handling;
+live Contact abuse/CSRF/retention configuration. User-reported forwarding/filter tests
+are separate evidence. The next smallest task is Emad's final EN/AR Privacy/Terms
+wording/review with the responsible privacy/institutional owner; live Contact opening
+requires an approved provider and a separate bounded delivery/control task. Rollback
+is code/route/footer only, with no inquiry data or hosted migration to reverse.
+
 ## 4 October 2026 — PR25 rebased onto main including PR28
 
 Rebased `codex/email-authenticator-no-sms` from cf1b60a onto current main

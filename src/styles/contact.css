@@ -1,0 +1,32 @@
+/* BL-PUB-06: bilingual public Contact, with delivery closed. */
+.contact-hero { background: var(--color-surface-lilac); }
+.contact-hero-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(2.5rem, 6vw, 6rem); align-items: center; padding-block: clamp(2.5rem, 5vw, 5rem); }
+.contact-hero h1 { margin-block: 1.3rem 1.5rem; color: var(--color-purple); font-family: var(--font-display); font-size: clamp(2.8rem, 5.2vw, 5rem); font-weight: 600; line-height: 1.18; letter-spacing: -.045em; }
+.contact-lead { max-inline-size: 48ch; font-size: var(--text-lead); line-height: 1.85; }
+.contact-email { min-inline-size: 0; border-block-start: 2px solid var(--color-purple); padding-block: 1.5rem; }
+.contact-email h2 { margin-block-end: .75rem; color: var(--color-purple); font-size: 1.15rem; font-weight: 600; }
+.contact-email p { color: var(--color-muted); }
+.contact-email-link { display: inline-flex; align-items: center; min-block-size: var(--touch-target); max-inline-size: 100%; color: var(--color-purple); font-weight: 500; overflow-wrap: anywhere; }
+.contact-form { margin-block-start: 2rem; }
+.contact-closed-note { padding-block: 1.4rem; padding-inline: 1.5rem; border-inline-start: 3px solid var(--color-purple); background: var(--color-info-surface); color: var(--color-ink); }
+.contact-closed-note h3 { margin-block-end: .5rem; color: var(--color-purple); font-size: 1.1rem; font-weight: 600; line-height: 1.6; }
+.contact-closed-note p { font-size: .95rem; line-height: 1.85; }
+.contact-closed-note p + p { margin-block-start: .65rem; }
+.contact-required-hint { margin-block: 1.8rem 1.25rem; color: var(--color-muted); font-size: .875rem; }
+.contact-fields { min-inline-size: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin: 0; padding: 0; border: 0; }
+.contact-field-wide { grid-column: 1 / -1; min-inline-size: 0; }
+.contact-fields .field { min-inline-size: 0; }
+.contact-fields .field-input { inline-size: 100%; }
+.contact-fields .field-input:disabled { opacity: 1; }
+.contact-message { display: block; min-block-size: 10rem; resize: vertical; }
+.contact-form > .button { margin-block-start: 1.8rem; }
+[lang="ar"] .contact-hero h1 { letter-spacing: 0; line-height: 1.55; font-size: clamp(2.5rem, 4.7vw, 4.5rem); }
+[lang="ar"] .contact-email h2 { line-height: 1.7; }
+@media (max-width: 800px) {
+  .contact-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .contact-email { max-inline-size: 36rem; }
+}
+@media (max-width: 600px) {
+  .contact-fields { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+  .contact-closed-note { padding-inline: 1rem; }
+}

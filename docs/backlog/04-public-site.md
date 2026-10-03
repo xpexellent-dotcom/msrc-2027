@@ -125,24 +125,24 @@ its unresolved-date/media status. The full public sitemap is still incomplete.
 
 ## BL-PUB-06 — Implement categorized email-only Contact support
 - **Source IDs:** SUP-01, SUP-02, SUP-03, EML-01, EML-04, PRV-03, ACC-01.
-- **Status:** Planned; live delivery closed.
+- **Status:** Partial — closed EN/AR foundation implemented; live delivery closed (ORG-021).
 - **Purpose:** Route visitor questions to the approved main inbox without creating a helpdesk product.
-- **Scope:** Category/name/email/related-reference/message form, server validation, accessible anti-spam, fixed tested category recipients and validated Reply-To through the email outbox.
+- **Scope:** Topic/name/email/optional related-reference/message form, independent server validation, accessible honeypot without CAPTCHA and nine fixed topic tags to contact@msrc2027.com. Planned sender no-reply@msrc2027.com; subject tag plus derived short summary; validated Reply-To. No outbox/provider in this closed slice.
 - **Exclusions:** Arbitrary recipient input, general inquiry ticket/status database, confidential manuscript echo, phone messaging.
 - **Dependencies:** BL-FND-05; BL-SEC-01; approved recipient/sender configuration DR-CFG-10/11.
 - **Roles:** Visitor; authorized shared-inbox personnel.
-- **States/transitions:** Validated inquiry → queued delivery → delivery/failure handling; success text reports queue acceptance accurately.
-- **Data touched:** Minimum transient inquiry/job data under approved retention; no general helpdesk record.
-- **Acceptance criteria:** Exact SUP-01 category routes are configuration-verified; malicious headers/recipient injection denied; shared inbox labels are not presented as committee access controls; consumer email domains accepted.
+- **States/transitions:** Current disabled form → mailto alternative; every API method rejects CONTACT_CLOSED before reading the body. Future validated inquiry → queued delivery → failure/retry requires a separate opening task.
+- **Data touched:** None received, sent or stored by the closed form/API. Future transient delivery data requires approved retention; no general helpdesk record.
+- **Acceptance criteria:** ORG-021 supersedes source Gmail routes with exact ordered topics/tags; fixed sender/recipient and validated Reply-To tested; malicious headers/recipient injection denied; shared inbox labels are not committee access controls; consumer domains accepted. Forwarding/filter success is organizer-reported, not freshly tested by this application.
 - **English/Arabic:** Bilingual form/errors/status; outgoing operational emails English-only, preserving original user message.
-- **Accessibility:** Label/error association, keyboard anti-bot alternative, status announcement and input preservation.
-- **Security/RLS:** Rate limits, CSRF where applicable, output/header validation and minimal staff access to jobs.
-- **Audit/email:** Restricted delivery metadata without sensitive message in ordinary logs; test adapter until sender approved.
-- **Automated tests:** Category allowlist, injection/spam, retry/deduplication and unavailable-provider outcomes.
-- **Manual UAT:** Send allowlisted tests to every approved category and confirm inbox routing/access.
+- **Accessibility:** Native disabled fieldset, associated closure explanation, visible labels, keyboard-accessible mailto, RTL, no-JS closure and responsive/axe checks. No challenge interrupts disabled inputs.
+- **Security/RLS:** Server-only validator covers allowlist/header/control/duplicate-field abuse; closed API reads no request data. No schema/storage changes. Live rate limits, CSRF/origin handling and minimal job access remain gates.
+- **Audit/email:** No delivery jobs, logging of visitor details, provider, secrets or real email. Future restricted delivery metadata/retention requires review.
+- **Automated tests:** Topic/tag order, validation/injection/honeypot, unread-body concurrency, method denials, EN/AR/keyboard/no-JS/axe, no client writes/storage and footer links. Delivery/retry tests deferred until a provider is approved.
+- **Manual UAT:** Review local closed pages; future authorized allowlisted delivery tests must confirm all nine tags, inbox access and failure behavior. No live sending authorized by this task.
 - **Release gate:** REL-01 contact route plus privacy/email setup before public collection.
 - **Owner type:** Full-stack engineer with support owner.
-- **TBD blocked:** Console implementation no; live sender, routing tests and retention DR-CFG-09/10/11.
+- **TBD blocked:** Closed foundation no; live provider/abuse controls/retention/delivery UAT DR-CFG-09/10/11. See [feature note](../features/contact-privacy-terms.md).
 
 <a id="bl-pub-07"></a>
 
@@ -171,24 +171,24 @@ its unresolved-date/media status. The full public sitemap is still incomplete.
 
 ## BL-PUB-08 — Render approved Privacy and Terms versions
 - **Source IDs:** SCP-02, PRV-01, PRV-02, PRV-08, PAY-08, MED-02.
-- **Status:** Planned; legal/controller text not approved.
+- **Status:** Partial — labeled versioned EN/AR drafts implemented; final Emad wording and legal release evidence pending (ORG-022–026).
 - **Purpose:** Let people read applicable notices before providing data or buying participation.
-- **Scope:** Read-only versioned bilingual Privacy/Terms routes, approved contact route and photography notice; expose version identifier for later consent records.
-- **Exclusions:** Inventing legal bases/controller/retention obligations, legal certification or default publicity consent.
+- **Scope:** Read-only latest and dated bilingual Privacy/Terms routes, organizer responsibility/retention/request facts, KAU policy links and registration photography notice. Version 2026-10-04-draft has no effective date and grants no consent/collection permission.
+- **Exclusions:** Inventing legal bases/obligations or legal certification. ORG-025 expressly supersedes the former "no default publicity consent" exclusion with the organizer's notice-only product decision; lawful publication and final wording remain gates, not implied approvals.
 - **Dependencies:** BL-SEC privacy-policy issues; DR-CFG-09; payment terms DR-CFG-02; BL-CMS-02.
 - **Roles:** Visitor; privacy owner; authorized publisher.
-- **States/transitions:** Draft legal text → approved effective version → superseded retained version.
+- **States/transitions:** Clearly labeled, unindexed organizer-decision draft → Emad/institutional review → approved effective version → superseded retained version. Only the first state is implemented.
 - **Data touched:** Notice/terms versions and publication evidence; no consent collection in this slice.
-- **Acceptance criteria:** No placeholder policy permits live collection; necessary processing and optional publicity/announcements distinguished; approved seller/refund terms included before taking money.
+- **Acceptance criteria:** Every unapproved section is a placeholder. No draft permits live collection/payment/publication. Photography fact is shown; notice alone is not asserted as a lawful basis. Optional announcement preferences preserved. Terms remains a placeholder until Emad supplies wording; seller/refund approval still precedes payment.
 - **English/Arabic:** Approved equivalents in both languages; no machine translation treated as legal approval.
 - **Accessibility:** Headings, anchors and readable plain text; mobile/zoom and long Arabic paragraphs checked.
-- **Security/RLS:** Only approved public policy versions exposed; edits restricted and audited.
-- **Audit/email:** Publication/version changes audited; downstream re-consent/notification only under approved policy.
-- **Automated tests:** Required version/contact fields, draft denial and language routing.
+- **Security/RLS:** Authorized drafts are explicitly labeled and noindex, excluded from the sitemap/analytics; unknown versions/locales denied. Read-only source content, no CMS edits/consent records/storage/schema changes.
+- **Audit/email:** Dated decision/source history versions this preview; no production policy activation, notification or consent collection.
+- **Automated tests:** Version/contact/placeholder parity, production draft noindex, unknown-version/locales 404, EN/AR/footer/anchors/axe/responsive behavior, no mutation or browser storage.
 - **Manual UAT:** Privacy/finance owners verify actual processing/collection behavior matches notices.
 - **Release gate:** REL-01 public legal/contact gate and before production collection/payment.
 - **Owner type:** Content engineer with institutional privacy/legal owner.
-- **TBD blocked:** Final copy yes — DR-CFG-09/02; layout and unpublished state unblocked.
+- **TBD blocked:** Final Emad wording/translation and institutional/privacy/processing/location/media-basis evidence DR-CFG-09/02; certificate retention clock start and other retention settings still pending. Closed draft foundation unblocked; see [feature note](../features/contact-privacy-terms.md).
 
 <a id="bl-pub-09"></a>
 

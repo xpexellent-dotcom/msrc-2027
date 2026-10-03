@@ -124,6 +124,7 @@ export const experienceCopy: Record<Locale, ExperienceCopy> = {
         { title: "A wider community", body: "General attendance is open to students, faculty, healthcare professionals and other interested attendees, including international participants. Competition eligibility is separate." },
         { title: "Approval comes first", body: "Every registration requires organizer approval, including registrations with a full discount. Email verification and a registration request do not confirm admission." },
         { title: "Your place, confirmed", body: "Admission is confirmed after organizer approval and completed payment or a valid full discount. A ticket follows confirmation." },
+        { title: "Photography and recording", body: "The conference will be photographed and recorded." },
       ], stepsTitle: "How registration will work", steps: ["Verify your account by email", "Request attendance", "Receive organizer approval", "Complete payment or an eligible full discount", "Receive your confirmed registration and ticket"], pendingTitle: "A little planning, a clearer visit", pendingBody: "27–28 January 2027 · Jeddah. The venue, registration window and prices are to be announced." },
       submissions: { ...englishPages.submissions, closed: "Research submissions are not open yet", closedBody: "The submission window and final instructions will be published before applications open.", detailsTitle: "Prepare your abstract", details: [
         { title: "Completed or ongoing", body: "Completed studies and work in progress are eligible. Describe your actual results or current progress." },
@@ -156,6 +157,7 @@ export const experienceCopy: Record<Locale, ExperienceCopy> = {
         { title: "مجتمع أوسع", body: "الحضور العام متاح للطلاب وأعضاء هيئة التدريس والممارسين الصحيين وغيرهم من المهتمين، بمن فيهم المشاركون الدوليون. أهلية المسابقات مستقلة." },
         { title: "الموافقة أولًا", body: "كل طلب تسجيل يحتاج إلى موافقة المنظمين، حتى مع الخصم الكامل. التحقق من البريد الإلكتروني أو إرسال الطلب لا يؤكد القبول." },
         { title: "تأكيد مقعدك", body: "يتأكد القبول بعد موافقة المنظمين وإتمام الدفع أو اعتماد خصم كامل صالح. تُصدر التذكرة بعد تأكيد التسجيل." },
+        { title: "التصوير والتسجيل", body: "سيُصوَّر المؤتمر وتُسجَّل فعالياته." },
       ], stepsTitle: "كيف سيتم التسجيل", steps: ["تحقّق من حسابك عبر البريد الإلكتروني", "قدّم طلب الحضور", "احصل على موافقة المنظمين", "أتمّ الدفع أو استخدم خصمًا كاملًا مستحقًا", "استلم تأكيد التسجيل والتذكرة"], pendingTitle: "خطّط لزيارتك", pendingBody: "٢٧–٢٨ يناير ٢٠٢٧ · جدة. سيُعلن المقر وفترة التسجيل والأسعار لاحقًا." },
       submissions: { ...arabicPages.submissions, closed: "لم يُفتح تقديم الأبحاث بعد", closedBody: "ستُنشر فترة التقديم والإرشادات النهائية قبل فتح الطلبات.", detailsTitle: "جهّز ملخصك البحثي", details: [
         { title: "مكتمل أو جارٍ", body: "الأبحاث المكتملة والجارية مؤهلة. صف نتائجك الفعلية أو التقدم الحالي للعمل." },
