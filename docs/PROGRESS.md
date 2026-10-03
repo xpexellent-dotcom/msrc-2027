@@ -2,6 +2,41 @@
 
 ## 3 October 2026 — Isolated email readiness tests
 
+Current result: **isolated SMTP authentication, acceptance and inbox delivery PASS**.
+The organizer confirmed Google 2-Step Verification is on and requested another try.
+Executed `Test-ReplacementEmailReadiness.ps1 -RunAuthorizedSecondReplacementTest`
+once: exit 1, AUTH 535, no email attempted. This fixed extra attempt preserved all five
+earlier records. Its 63 synthetic checks and the existing 77 wrapper checks passed in
+both PowerShell versions; root independently reran 63. A malformed singleton-array
+receipt is denied. Actual broad-ACL fixture mutation was blocked by Windows privilege
+requirements; the prior-receipt ACL failure gate was tested by explicit injection.
+
+Read-only inspection of the already-open Google Security page confirmed 2-Step is ON
+and found that its account address differs from the earlier organizer-supplied address
+used by every failed test. Flagged this conflict before changing the selected account.
+The organizer explicitly confirmed the corrected sender/self-recipient for isolated
+tests. Kept address details and credentials out of Git; changed only ignored local
+helpers to carry that exact account through native AUTH, SMTP credentials and From/To.
+Preserved old defaults/records for historical tests; new fixed corrected-account markers
+prevent replay. Exact AUTH 235 in the same invocation remains required before sending.
+Corrected-account 23, AUTH89, readiness56, first-wrapper77 and second-wrapper63 synthetic
+checks PASS in both runtimes; root independently reran 23 before the real corrected test.
+One synthetic test-directory bootstrap race failed initially; its rerun passed after
+directory creation. This was fixture setup, not evidence of a transport/helper failure.
+
+Executed `Test-ReplacementEmailReadiness.ps1 -RunConfirmedCorrectedAccountTest` once:
+exit 0, verified-TLS **AUTH 235** followed by **SMTP accepted** the unchanged English
+readiness message. Read-only Gmail Primary Inbox observation showed the exact subject
+and complete reviewed body at 20:00 Riyadh on 3 October 2026. No additional email was
+sent. Both credentials and all eight attempt records retain private ACLs. This verifies
+the replacement credential with the corrected account; earlier 535 results established
+rejection of the earlier username/credential pair, not invalidity of the password alone.
+Production Auth/SMTP/provider configuration, app runtime, CI secrets, migrations,
+roles/grants and all operational/readiness flags remain unchanged. Staff OTP/cookie
+integration, recovery, participant delivery and real-human login/accessibility UAT remain
+NOT TESTED. Last tracked head 7b7b48e CI37135487400 and 37135484961 freshly verified PASS;
+application/build/database/browser suites were not rerun locally for this diagnostic.
+
 Replacement continuation: the organizer reported the replacement credential stored.
 Executed `Store-ReplacementEmailTestCredential.ps1 -Status`: exit0, readable locally;
 no network. Prepared ignored `Test-ReplacementEmailReadiness.ps1`, preserving both
@@ -25,8 +60,8 @@ credentials, not the reason for rejection. Requested mailbox-manager status chec
 current 2-Step Verification, exact-account replacement entry, any subsequent normal
 Google-password change and any blocked sign-in/security alert. Google documents that
 app passwords require 2-Step Verification and account-password changes revoke them:
-https://support.google.com/accounts/answer/185833?hl=en . No more network attempts
-pending that information. SMTP acceptance/inbox delivery remain BLOCKED, with no
+https://support.google.com/accounts/answer/185833?hl=en . At that stage network attempts
+stopped pending that information. SMTP acceptance/inbox delivery were BLOCKED, with no
 production/app/CI credential or readiness changes. Prior docs-only branch e09f8e9
 CI37133281956 and 37133278422 were freshly verified SUCCESS before this continuation.
 
@@ -103,9 +138,11 @@ Local helper/credential/attempt files remain excluded from Git. No hosted rollba
 needed; preserve the attempt marker to prevent a repeat, and let the mailbox manager
 revoke the dedicated credential if the test setup is retired.
 
-Next smallest task: resolve the replacement AUTH 535 using mailbox-manager account
-status checks above. Preserve both credentials and all attempt receipts; do not rotate
-or retry blindly. Replacement entry is complete, but Gmail authentication is rejected.
+Next smallest task: prepare the isolated staff password/email-check delivery and cookie
+slice using synthetic identities, retaining exact-user/session/current-email/password/
+grant assurance and the approved abuse/session controls. Test-inbox readiness is now
+verified; production provider/configuration approval and live access remain separate.
+Preserve both credentials and all attempt receipts; no further readiness retry is needed.
 Small isolated self-recipient test emails are authorized without repeated approval;
 production delivery, privacy/location, recovery and human login/cookie UAT remain gates.
 Prepare isolated managed staff login/email delivery/cookie tests after sender readiness;

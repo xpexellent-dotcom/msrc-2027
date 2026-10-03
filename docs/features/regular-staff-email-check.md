@@ -127,26 +127,25 @@ ORG-016 retires Super Admin/participant SMS delivery and newest-SMS-challenge re
 
 ## Isolated sender diagnostic — 3 October 2026
 
+Current result: isolated verified-TLS AUTH 235, SMTP acceptance and exact reviewed
+message observed in Primary Inbox PASS after an account-address correction explicitly
+confirmed by the organizer. Read-only Google Security inspection verified 2-Step ON.
+The earlier 535 results rejected the earlier username/credential pair; the replacement
+is valid for the corrected account in this test. No password change was needed.
+Both local credentials and all eight attempt records are retained with private ACLs.
+Targeted corrected-account 23 and existing AUTH89/readiness56/wrapper77/retry63 synthetic
+checks passed in both PowerShell versions. Keep selected address details outside Git.
+This completes sender readiness for the isolated test; staff OTP/cookie integration and
+human login/accessibility UAT remain untested. Production email configuration and all
+existing release gates are unchanged. Commands and history follow in PROGRESS.
+
 Standing organizer approval covers small isolated test emails from/to the selected
 Gmail inbox without repeated send-approval questions. Local credentials use Windows-user
 encryption/private ACLs outside Git; fixed atomic attempt markers prevent blind repeats.
-Three bounded sends failed/unconfirmed (third:SMTP530). Credential-free TCP587,
-SMTP greeting, STARTTLS and TLS1.2/default certificate checks passed. A separate verified-
-TLS AUTH-only probe returned **535 / credentials-rejected**, without submitting email.
-The current stored credential is rejected; the underlying account/configuration reason
-is not established. A fresh dedicated credential was requested through the hidden local
-prompt while retaining the original.
-The replacement was subsequently stored and its bounded AUTH-only probe also
-returned 535; no follow-on test email was attempted. A read-only comparison confirmed
-it differs from the original. Both credentials and all five records are retained with
-private ACLs. Next obtain mailbox-manager account/security status checks before more
-network attempts; do not rotate/retry blindly. The replacement wrapper passed 77
-targeted synthetic checks in both PowerShell versions, including no send on denied
-or uncertain AUTH. This does not change application assurance or production readiness.
 Preserve all earlier credential/attempt records; no secrets or provider text are logged.
-Executed commands and final56/79/89 synthetic diagnostic counts are in PROGRESS; they
-are distinct from actual delivery. Sender diagnosis does not prove a managed staff
-login/email/cookie flow, native participant email verification or production readiness.
+Executed commands, earlier failures and synthetic diagnostic counts are in PROGRESS.
+Sender readiness does not prove a managed staff login/email/cookie flow, native
+participant email verification, recovery or production readiness.
 No production mail adapter, SMTP configuration, readiness flag or Auth setting was
 activated. Do not repeat approval questions for authorized isolated test mail. Existing security,
 recovery, privacy/location, recent-auth, warning-lead and human UAT gates remain open.

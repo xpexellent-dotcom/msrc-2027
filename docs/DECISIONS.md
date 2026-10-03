@@ -1268,3 +1268,14 @@ all five attempt records. Sender readiness remains blocked pending mailbox-manag
 account/security status checks; another rotation or retry is not the next step without
 that evidence. Standing isolated-test authorization and every production/release gate
 remain unchanged. This result does not approve a weaker login flow or another provider.
+
+The organizer subsequently confirmed Google2-Step is on and requested another try.
+One further bounded AUTH-only attempt returned535 without a send. Read-only browser
+inspection verified2-Step ON and revealed that the signed-in account address differs
+from the earlier selected test address. The organizer explicitly chose the corrected
+sender/self-recipient for isolated tests. A fixed corrected-account test then returned
+AUTH235, SMTP acceptance and observed Primary Inbox delivery of the reviewed English
+message. Earlier rejection referred to the submitted username/credential pair; do not
+describe the replacement password itself as invalid. Preserve both local credentials
+and all eight records. The standing test authorization follows the corrected mailbox;
+it still does not approve production email, staff login release or other recipients.
