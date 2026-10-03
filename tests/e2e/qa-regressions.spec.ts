@@ -222,3 +222,26 @@ test("the wordmark's accessible name starts with its visible words", async ({ pa
     await expect(page.getByRole("banner").getByRole("link", { name }), locale).toHaveCount(1);
   }
 });
+
+// Before Noto Sans Arabic arrived, Arabic fell back to Arial, whose Arabic is about 25% narrower,
+// so the /ar/participate lead grew from one line to two at the swap (CLS 0.096). The fallback face
+// uses Tahoma, so this only applies where Tahoma is installed (Windows, macOS).
+test("Arabic text keeps its wrap when the Arabic webfont arrives", async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 915 });
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  await page.route("**/*noto_sans_arabic*", async (route) => { await held; await route.continue(); });
+  await page.goto("/ar/participate", { waitUntil: "domcontentloaded" });
+  const hasTahoma = await page.evaluate(() => document.fonts.check('16px "MSRC Arabic Fallback"', "ا") && (() => {
+    const c = document.createElement("canvas").getContext("2d")!;
+    c.font = "40px Tahoma, monospace"; const a = c.measureText("ابتثج").width;
+    c.font = "40px monospace"; return a !== c.measureText("ابتثج").width;
+  })());
+  test.skip(!hasTahoma, "Tahoma is not installed, so the fallback face is skipped");
+  const lead = page.locator(".experience-lead").first();
+  const before = await lead.evaluate((element) => element.getBoundingClientRect().height);
+  release();
+  await page.waitForFunction(() => document.fonts.check('16px "arabicFont"', "ا") && document.fonts.status === "loaded");
+  await page.waitForTimeout(200);
+  expect(await lead.evaluate((element) => element.getBoundingClientRect().height)).toBe(before);
+});
