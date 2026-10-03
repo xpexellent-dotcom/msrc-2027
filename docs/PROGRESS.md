@@ -2,6 +2,31 @@
 
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
+## 3 October 2026 — Scroll-linked homepage motion and a larger opening headline (ORG-012)
+
+After ORG-011 the requester found that phone titles arrive "immediately" in place, so the intended feel was lost. They asked for smooth transitions and fade-ins on phone and desktop, pointing to faithibiza.com (Lenis/GSAP scrubbed reveals), armor-bd.com (headings that light up word by word) and dibiconference.com (fade-ups). They also asked for a clear, large opening headline.
+
+- `ScrollScenes` (`src/components/scroll-scenes.tsx`) replaces `ChapterTitles`. On each animation frame it writes changed values only:
+  - `--scene` / `--scene-eased` on each chapter stage;
+  - `--leave` on the hero.
+- `src/styles/scroll-scenes.css` replaces `chapter-titles.css` and turns those values into transform and opacity.
+- Titles rise into place while their words light up in reading order, scrubbed by scroll, so scrolling up reverses them exactly. They have no pins, holds, timers, replay state or added height.
+- `SectionHeading chapter` again renders numbered word spans (`--i`, `--n`) with an `aria-label`. ORG-011's copy, header docking and 2.3–3.1rem phone titles are kept.
+- `Reveal`: content still below the screen at hydration waits, then fades up over 1 s with a 90 ms cascade. Its children animate, so the `.reveal` element itself never hides.
+- Hero: 700 weight and about 51px on a 390px phone (was 600, 37px), up to 8rem on desktop. Its lines rise out of a fold on load; the hero drifts and fades as the first screen scrolls away, and the film zooms 8%. Skipped in the film view.
+- Fixed in testing:
+  - Off-screen dimmed titles failed axe contrast, so a title wholly below the screen stays as rendered.
+  - Desktop growth widened 791px tablets to 804px, so growth applies from 1100px only and stages clip sideways.
+- Tests:
+  - `chapter-titles.spec.ts` was rewritten for every chapter in EN/AR on desktop and phone. It checks that a title is lowered and dim on entry, in place and lit at the reading line, and identical on scrolling back. It also checks unchanged page height and width, one-phrase names, direct `#legacy` entry, reduced motion, the hero size and fade, and the content fade-up.
+  - `premium-interface` now expects the 1 s fade-up.
+
+Verification:
+- ESLint, `next build` and Vitest 888/888 PASS.
+- Full Chromium run: 310 passed, 21 skipped, 6 failed. The 6 were axe contrast on dimmed off-screen titles and the tablet overflow; both are fixed above.
+- After the fixes, 137/137 passed across `design-system`, `public-shell`, `chapter-titles`, `premium-interface`, `qa-regressions` and `brand-motion` (8 skipped by design).
+- WebKit desktop and iPhone: 97 passed, 7 failed. All 7 are known harness limits on this PC: an iPhone full-page screenshot over 32,767px after axe passed, Tab focus, and the synthetic video fixture. The new specs pass.
+
 ## 3 October 2026 — Mobile homepage scroll and design refinement (ORG-011)
 
 Requester authorized improvements to Claude's latest mobile design, up/down scrolling

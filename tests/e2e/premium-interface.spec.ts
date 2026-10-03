@@ -122,7 +122,8 @@ for (const locale of ["en", "ar"] as const) {
     for (let index = 1; index < styles.length; index++) {
       expect(styles[index].delay).toBeGreaterThan(styles[index - 1].delay);
     }
-    expect(styles.every((style) => style.duration === "0.4s")).toBe(true);
+    // ORG-012: content that waited below the screen fades up over 1 s.
+    expect(styles.every((style) => style.duration === "1s")).toBe(true);
     await expect.poll(() => rows.evaluateAll((elements) => elements.every((element) => {
       const transform = getComputedStyle(element).transform;
       const atRest = transform === "none" || new DOMMatrixReadOnly(transform).isIdentity;

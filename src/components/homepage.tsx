@@ -6,7 +6,7 @@ import { Link } from "@/components/ui/link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SectionJourney } from "@/components/section-journey";
-import { ChapterTitles } from "@/components/chapter-titles";
+import { ScrollScenes } from "@/components/scroll-scenes";
 import { ConferenceCountdown } from "@/components/conference-countdown";
 import { Reveal } from "@/components/ui/reveal";
 import { ResearchVisual } from "@/components/research-visual";
@@ -64,7 +64,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
       </Container>
     </section>
     <SectionJourney locale={locale} />
-    <ChapterTitles />
+    <ScrollScenes />
     <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
       <Container><Reveal className="intro-grid" stagger>
         <div><SectionHeading chapter eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" /></div>

@@ -964,3 +964,31 @@ v0.5 and earlier source snapshots stay unchanged.
   approval is authorized or implied by this presentation task.
 - Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-01/03, CMS-04.
 - Evidence and rollback: [mobile homepage refinement](features/mobile-homepage-polish.md).
+
+## ORG-012 — Scroll-linked homepage motion and a larger opening headline, 3 October 2026
+
+- Status: CONFIRMED requester instruction in the current chat, after ORG-011 went live: the
+  phone titles now arrive "immediately" in place, which "doesn't really give that feel". The
+  requester gave creative freedom over phone and desktop to add smooth transitions and fade-ins
+  while scrolling, referenced faithibiza.com, armor-bd.com and dibiconference.com, and asked
+  that the opening headline over the film stand out, clear and large.
+- Chapter titles follow the reader's scroll on every width. As a title's stage travels from
+  the bottom edge to the upper reading line (about half a screen), the heading rises about
+  3.4rem into place. On desktop it also settles from 107% size. Its words light up in reading
+  order, each lifting slightly, and the gold rule draws. The state is a pure function of scroll
+  position: scrolling back reverses it, and nothing pins, replays or adds scroll distance.
+  This supersedes ORG-011's once-only 650 ms phone arrival. ORG-011's copy and header remain.
+- A title wholly below the screen keeps its rendered state, so automated contrast checks and
+  off-screen text never read as faint. Titles never widen the page: they grow only from
+  1100px, and stages clip sideways.
+- Content held below the screen at hydration fades up the first time it scrolls in: 1 s, up
+  2.2rem, with a 90 ms cascade. Content already on screen keeps the 400 ms settle. Nothing is
+  hidden without JavaScript, an observer, or with reduced motion. Chapter titles are left to
+  their scroll scene.
+- Opening: the headline is 700 weight. It is 2.9–4.6rem on phones (about 51px at 390px) and
+  up to 8rem on desktop; Arabic is 2.5–3.9rem and up to 6.4rem. A soft shadow lifts it off the
+  film. Its lines rise out of a fold on load, followed by the lead, facts and actions. While
+  the first screen scrolls away, the headline drifts up and fades and the film eases 8% closer.
+  None of this runs in the film view.
+- Reduced motion removes all of it; print shows the static page.
+- Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-01/03.

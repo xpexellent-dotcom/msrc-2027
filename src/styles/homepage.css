@@ -2,11 +2,12 @@
 .conference-hero { position: relative; isolation: isolate; overflow: hidden; background: var(--color-ink); color: var(--color-ivory); }
 .hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; min-block-size: calc(100svh - 34px); }
 .hero-layout { display: flex; align-items: end; flex: 1; padding-block: clamp(11rem, 23vh, 16rem) 3.5rem; }
-.hero-editorial { max-inline-size: 960px; min-inline-size: 0; animation: entrance var(--motion-reveal) var(--motion-easing); }
+.hero-editorial { max-inline-size: 1080px; min-inline-size: 0; }
 .hero-topline { display: flex; gap: .7rem; align-items: center; margin: 0 0 1.7rem; color: var(--color-ivory); font-size: .78rem; font-weight: 500; }
 .hero-topline::before { content: ''; inline-size: 28px; block-size: 2px; background: var(--color-gold); }
 :lang(en) .hero-topline { text-transform: uppercase; letter-spacing: .16em; }
-.hero-editorial h1 { margin: 0; font-family: var(--font-heading); font-size: clamp(3.4rem, 6.9vw, 6.65rem); line-height: 1.06; font-weight: 600; letter-spacing: -.06em; }
+/* ORG-012: the opening headline is the loudest thing on the page: large, heavy, lifted off the film. */
+.hero-editorial h1 { margin: 0; font-family: var(--font-heading); font-size: clamp(3.8rem, 7.8vw, 8rem); line-height: 1; font-weight: 700; letter-spacing: -.055em; text-shadow: 0 2px 30px #1f193073; }
 .hero-editorial h1 > span { display: block; }
 .hero-editorial h1 > span:last-child { color: var(--color-lilac); }
 .hero-lead { margin-block: 1.6rem .8rem; max-inline-size: 45ch; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.8; text-wrap: pretty; }
@@ -128,7 +129,7 @@
 .closing-date { color: var(--color-purple); font-size: .8rem; margin-block-end: 1.1rem; }
 .closing-grid h2 { color: var(--color-purple); font-family: var(--font-heading); font-size: clamp(3rem, 5.5vw, 5rem); letter-spacing: -.05em; line-height: 1.1; font-weight: 700; }
 .closing-grid p:last-child { color: var(--color-purple); margin-block-start: 1rem; font-size: .95rem; }
-[lang="ar"] .hero-editorial h1 { font-size: clamp(2.7rem, 5.6vw, 5.5rem); line-height: 1.55; letter-spacing: 0; }
+[lang="ar"] .hero-editorial h1 { font-size: clamp(3rem, 6.4vw, 6.4rem); line-height: 1.45; letter-spacing: 0; }
 [lang="ar"] .homepage-journey .section-heading h2, [lang="ar"] .closing-grid h2 { line-height: 1.5; letter-spacing: 0; }
 [lang="ar"] .pathway-title h3, [lang="ar"] .program-row h3 { line-height: 1.6; letter-spacing: 0; }
 [lang="ar"] .date-band-statement { letter-spacing: 0; line-height: 1.65; }
@@ -147,7 +148,7 @@
   .hero-content { min-block-size: calc(100svh - 30px); }
   .hero-layout { padding-block: 10rem 2.5rem; }
   .hero-topline { font-size: .66rem; margin-block-end: 1.4rem; letter-spacing: .09em !important; }
-  .hero-editorial h1 { font-size: clamp(2.65rem, 9.6vw, 4.15rem); letter-spacing: -.06em; }
+  .hero-editorial h1 { font-size: clamp(2.9rem, 13vw, 4.6rem); line-height: 1.02; letter-spacing: -.055em; }
   .hero-lead { font-size: .95rem; max-inline-size: 34ch; margin-block-start: 1.2rem; }
   .hero-location { font-size: .76rem; gap: .4rem; max-inline-size: 33ch; }
   /* Stacked on phones: when the line wrapped, its "·" dangled at the end of the first line. */
@@ -177,9 +178,9 @@
   .speaker-identity-art { max-inline-size: 380px; aspect-ratio: 5/4; }.speaker-identity-art > span { font-size: 4rem; }
   .legacy-art { min-block-size: 360px; padding: 1.5rem; }.faq-item summary { padding-block: 1.3rem; }
   .closing-grid { justify-items: start; gap: 1.8rem; }
-  [lang="ar"] .hero-editorial h1 { font-size: clamp(2.25rem, 7.8vw, 3.5rem); }
+  [lang="ar"] .hero-editorial h1 { font-size: clamp(2.5rem, 10.6vw, 3.9rem); line-height: 1.45; }
   /* Arabic script reads smaller than Latin at the same size; about 10px was hard to read. */
   [lang="ar"] .hero-topline, [lang="ar"] .hero-caption { font-size: .75rem; }
 }
 @media (max-width: 379px) { .pathway-list { grid-template-columns: minmax(0, 1fr); }.hero-caption { margin-inline-start: 0; }.hero-media-controls { margin-inline-start: auto; }.date-band .countdown-clock { gap: .5rem; }.date-band .countdown-number { font-size: 3.4rem; } }
-@media (prefers-reduced-motion: reduce) { .hero-editorial { animation: none; }.faq-item summary > span { transition: none; }.hero-scroll { transition: none; }.scroll-line::after { animation: none; transform: none; block-size: 100%; } }
+@media (prefers-reduced-motion: reduce) {.faq-item summary > span { transition: none; }.hero-scroll { transition: none; }.scroll-line::after { animation: none; transform: none; block-size: 100%; } }
