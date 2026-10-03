@@ -137,8 +137,8 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
         if current_user <> 'supabase_auth_admin' or actor not in ('${participant}','${staff}','${other}')
           or coalesce(event->'sms'->>'otp','') !~ '^[0-9]{6}$'
           or coalesce(event->'sms'->>'phone','') <> case actor
-            when '${participant}'::uuid then '${phones[participant]}'
-            when '${staff}'::uuid then '${phones[staff]}' else '${phones[other]}' end
+            when '${participant}'::uuid then '${phones[participant].slice(1)}'
+            when '${staff}'::uuid then '${phones[staff].slice(1)}' else '${phones[other].slice(1)}' end
           or coalesce(event->'sms'->>'sms_type','') not in ('mfa','phone_change') then
           raise exception 'Disposable fixture SMS rejected.';
         end if;
