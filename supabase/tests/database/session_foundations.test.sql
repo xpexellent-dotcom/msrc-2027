@@ -55,7 +55,7 @@ insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,u
   select gen_random_uuid(),s.id,'password',s.created_at,s.created_at from auth.sessions s
   where s.user_id='71000000-0000-4000-8000-000000000002';
 insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
-  select gen_random_uuid(),s.id,'mfa/totp',date_trunc('second',now()-interval '30 seconds')+interval '100 milliseconds',
+  select gen_random_uuid(),s.id,'totp',date_trunc('second',now()-interval '30 seconds')+interval '100 milliseconds',
     date_trunc('second',now()-interval '30 seconds')+interval '100 milliseconds' from auth.sessions s
   where s.user_id='71000000-0000-4000-8000-000000000002';
 
@@ -67,7 +67,7 @@ begin
     'aal',aal,'exp',extract(epoch from now()+interval '1 hour'),
     'amr',jsonb_build_array(jsonb_build_object('method','password','timestamp',
       (select floor(extract(epoch from created_at)) from auth.sessions where id::text=sid)))
-      || case when aal='aal2' then jsonb_build_array(jsonb_build_object('method','mfa/totp',
+      || case when aal='aal2' then jsonb_build_array(jsonb_build_object('method','totp',
       'timestamp',floor(extract(epoch from now()-mfa_age)))) else '[]'::jsonb end)::text,true);
 end; $$;
 
@@ -175,12 +175,12 @@ select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_
   'A same-second factor mutation invalidates earlier native TOTP proof despite matching JWT seconds');
 reset role;
 update auth.mfa_factors set updated_at=now()-interval '5 minutes' where id='73000000-0000-4000-8000-000000000002';
-delete from auth.mfa_amr_claims where session_id='72000000-0000-4000-8000-000000000002' and authentication_method='mfa/totp';
+delete from auth.mfa_amr_claims where session_id='72000000-0000-4000-8000-000000000002' and authentication_method='totp';
 set local role authenticated;
 select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','Signed TOTP AMR without native exact-session proof is denied');
 reset role;
 insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
-  values(gen_random_uuid(),'72000000-0000-4000-8000-000000000002','mfa/totp',
+  values(gen_random_uuid(),'72000000-0000-4000-8000-000000000002','totp',
     date_trunc('second',now()-interval '30 seconds')+interval '100 milliseconds',
     date_trunc('second',now()-interval '30 seconds')+interval '100 milliseconds');
 delete from auth.mfa_amr_claims where session_id='72000000-0000-4000-8000-000000000002' and authentication_method='password';
@@ -199,21 +199,21 @@ select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_
 select is(public.msrc_second_step_satisfied(),false,'Generic AAL2 cannot pass the future restrictive RLS predicate');
 reset role;
 do $$begin perform set_config('request.jwt.claims',jsonb_set(current_setting('request.jwt.claims')::jsonb,
- '{amr}',jsonb_build_array(jsonb_build_object('method','mfa/totp','timestamp',floor(extract(epoch from now())))))::text,true); end$$;
+ '{amr}',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from now())))))::text,true); end$$;
 set local role authenticated;
 select is(public.msrc_session_context('synthetic-session-2027')->>'reason','password_auth_required','TOTP MFA without same-session password proof is denied');
 select is(public.msrc_access_context('synthetic-session-2027'),null::jsonb,'Historical RPC override rejects TOTP MFA without password');
 reset role;
 do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2');
- perform set_config('request.jwt.claims',replace(current_setting('request.jwt.claims'),'mfa/totp','mfa/phone'),true); end$$;
+ perform set_config('request.jwt.claims',replace(current_setting('request.jwt.claims'),'totp','mfa/phone'),true); end$$;
 set local role authenticated;
 select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','Phone MFA AMR cannot satisfy Super Admin TOTP');
 select is(public.msrc_second_step_satisfied(),false,'Phone MFA cannot satisfy the self-only authentication predicate');
 reset role;
 do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2');
- perform set_config('request.jwt.claims',replace(current_setting('request.jwt.claims'),'mfa/totp','totp'),true); end$$;
+ perform set_config('request.jwt.claims',replace(current_setting('request.jwt.claims'),'totp','mfa/totp'),true); end$$;
 set local role authenticated;
-select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','Generic TOTP AMR is not managed mfa/totp provenance');
+select is(public.msrc_session_context('synthetic-session-2027')->>'reason','mfa_required','Noncanonical mfa/totp AMR cannot establish current managed TOTP assurance');
 reset role;
 do $$begin perform pg_temp.session_claims('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000002','aal2');
  perform set_config('request.jwt.claims',jsonb_set(current_setting('request.jwt.claims')::jsonb,

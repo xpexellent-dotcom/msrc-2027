@@ -32,8 +32,20 @@ Branch Git deployment remains disabled; local preview only.
 
 Executed local so far: lint PASS; typecheck PASS; unit1301/28files PASS after fixing a
 retired phone action in the participant test helper; production build42pages PASS.
-Public browser300 PASS/3 existing skips. Dedicated browser, isolated CI SQL/native Auth and final responsive visual review are
-pending verification below; no local Docker/database runtime is run.
+Public browser300 PASS/3 existing skips; revised auth browser69 PASS. Local EN/AR
+preview3220 and health200, correct RTL, no phone inputs/overflow/page errors at1440,
+791 and390px; transient setup disappears on reload. QR/key/code captures are masked.
+No local Docker/database runtime is run.
+
+PR25 is the new draft against current unmerged PR19. Initial isolated CI37120098412
+atcf4963e passed lint/types/units/build and393 SQL assertions, database lint/advisors/
+generated public types, but44/46 integrations passed: two genuine positive TOTP cases
+failed because the draft used noncanonical AMR method mfa/totp. Pinned GoTruev2.197.0
+uses totp. Corrected only current override/positive fixtures/SDK assertions, retaining
+full-precision ordering; managed runtime rerun is pending. This is a correction, not a
+timestamp tolerance or reduced assurance policy. Historical migrations remain unchanged.
+One visual diagnostic timeout printed a synthetic setup key; restarted the lab to revoke
+all synthetic sessions and wrapped diagnostics to withhold sensitive browser errors.
 
 TOTP provider behavior is distinct from email single-use: a still-valid native TOTP
 time-step code can verify a distinct unused challenge; consumed-challenge replay denies.

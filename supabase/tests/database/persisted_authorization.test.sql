@@ -51,7 +51,7 @@ insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,u
   select gen_random_uuid(),s.id,'password',s.created_at,s.created_at from auth.sessions s
   where s.id='40000000-0000-4000-8000-000000000002';
 insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
-  values(gen_random_uuid(),'40000000-0000-4000-8000-000000000002','mfa/totp',
+  values(gen_random_uuid(),'40000000-0000-4000-8000-000000000002','totp',
     date_trunc('second',now()-interval '3 minutes')+interval '100 milliseconds',
     date_trunc('second',now()-interval '3 minutes')+interval '100 milliseconds');
 insert into msrc_authorization.edition_config(edition_key) values ('synthetic-2027'), ('synthetic-2026');
@@ -180,7 +180,7 @@ select ok(not exists(select 1 from jsonb_array_elements(public.msrc_access_conte
 reset role;
 
 do $$begin perform pg_temp.claims('30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','aal2',
- jsonb_build_array(jsonb_build_object('method','mfa/totp','timestamp',floor(extract(epoch from now()-interval '3 minutes'))))); end$$;
+ jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from now()-interval '3 minutes'))))); end$$;
 set local role authenticated;
 select ok(public.msrc_access_context('synthetic-2027') @>
  '{"actor":{"session":{"active":false,"assurance":"aal2","factor":"totp"}},"privilegedAccessReady":false}'::jsonb,
@@ -202,7 +202,7 @@ select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Factor updat
 reset role;
 update auth.mfa_factors set updated_at=now()-interval '5 minutes' where id='50000000-0000-4000-8000-000000000002';
 do $$begin perform pg_temp.claims('30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','aal2',
- '[{"method":"mfa/totp","timestamp":"not-numeric"}]'::jsonb); end$$;
+ '[{"method":"totp","timestamp":"not-numeric"}]'::jsonb); end$$;
 set local role authenticated;
 select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Nonnumeric AMR timestamp does not establish TOTP MFA');
 reset role;

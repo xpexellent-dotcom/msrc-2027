@@ -79,13 +79,13 @@ begin
     then policy_row.privileged_absolute_seconds else policy_row.participant_absolute_seconds end);
   if privileged then idle_end := state_row.last_activity_at + make_interval(secs => policy_row.privileged_idle_seconds); end if;
   -- Signed provider AMR must prove password primary login in THIS managed session.
-  -- Super Admin assurance requires password followed by managed mfa/totp in THIS
+  -- Super Admin assurance requires password followed by managed totp in THIS
   -- session, tied to the current verified authenticator-app factor. Generic AAL2,
   -- phone MFA and primary OTP are insufficient. Ordinary staff use private email
   -- receipts; participants require only current verified email and password.
   select max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='password'),
-    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='mfa/totp'),
-    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method' in ('password','mfa/totp'))
+    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='totp'),
+    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method' in ('password','totp'))
     into password_at,totp_mfa_at,authenticated_at
     from jsonb_array_elements(case when jsonb_typeof(claims->'amr')='array' then claims->'amr' else '[]'::jsonb end) a(item)
     where jsonb_typeof(a.item->'timestamp')='number';
@@ -104,7 +104,7 @@ begin
   -- Native managed evidence retains sub-second precision unavailable in signed AMR.
   -- The session/factor locks bind these observations to the same current session.
   select max(a.updated_at::timestamptz) filter(where a.authentication_method='password'),
-    max(a.updated_at::timestamptz) filter(where a.authentication_method='mfa/totp')
+    max(a.updated_at::timestamptz) filter(where a.authentication_method='totp')
     into native_password_at,native_totp_at
     from auth.mfa_amr_claims a where a.session_id=sid;
   -- A current-factor lock can wait too; expiry must use the clock after that wait.

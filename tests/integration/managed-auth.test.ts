@@ -159,7 +159,7 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
     const after = await context(participantLogin.session);
     const token = claims(participantLogin.session);
     check(after.sessionPolicySatisfied && after.emailVerified && !after.privileged
-      && !after.mfaValid && token.aal === "aal1" && !token.amr.some((proof) => proof.method.startsWith("mfa/")),
+      && !after.mfaValid && token.aal === "aal1" && !token.amr.some((proof) => proof.method === "totp" || proof.method.startsWith("mfa/")),
     "email-only participant remains nonprivileged AAL1 without MFA");
     check((await query(`select (coalesce(phone,'')='' and phone_confirmed_at is null)::text from auth.users where id='${participant}';`)) === "true",
       "participant has no phone fixture or verification");
@@ -192,7 +192,11 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
     staffLogin.session = await current(staffLogin.sdk);
     const token = claims(staffLogin.session);
     const primary = token.amr.find((proof) => proof.method === "password");
-    const secondary = token.amr.find((proof) => proof.method === "mfa/totp");
+    // GoTrue v2.197.0 TOTPSignIn.String() is "totp" in both signed AMR and
+    // native mfa_amr_claims, unlike the distinct "mfa/phone" naming convention.
+    const secondary = token.amr.find((proof) => proof.method === "totp");
+    check(Boolean(secondary) && !token.amr.some((proof) => proof.method === "mfa/totp"),
+      "genuine signed TOTP method matches the provider's canonical contract");
     const after = await context(staffLogin.session);
     check(primary && secondary && secondary.timestamp >= primary.timestamp && token.aal === "aal2"
       && after.mfaValid && after.passwordValid && after.sessionPolicySatisfied, "current password and TOTP MFA assurance");

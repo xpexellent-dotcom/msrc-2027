@@ -149,7 +149,7 @@ returns boolean language sql stable security invoker set search_path = '' as $$
         and case when required.tier='super_admin' then (
           s.assurance = 'aal2' and s.method = 'totp'
           and auth.jwt()->>'aal' = 'aal2'
-          and auth.jwt()->'amr' @> '[{"method":"password"},{"method":"mfa/totp"}]'::jsonb
+          and auth.jwt()->'amr' @> '[{"method":"password"},{"method":"totp"}]'::jsonb
         ) when required.tier='staff' then s.staff_email_verified and s.method='email_check'
         else true end
     ) from required;
@@ -369,7 +369,7 @@ select throws_ok($$select * from authorization_contract_test.sanitized_review$$,
 select throws_ok($$select * from authorization_contract_test.read_review('review-one')$$, '42501', 'permission denied for function read_review', 'Anonymous RPC requests are denied');
 reset role;
 
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000014","session_id":"20000000-0000-4000-8000-000000000014","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/totp"}],"user_metadata":{"role":"superAdmin"},"app_metadata":{"role":"superAdmin"}}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000014","session_id":"20000000-0000-4000-8000-000000000014","aal":"aal2","amr":[{"method":"password"},{"method":"totp"}],"user_metadata":{"role":"superAdmin"},"app_metadata":{"role":"superAdmin"}}';
 set local role authenticated;
 select is((select count(*) from authorization_contract_test.owned_records), 0::bigint, 'Authentication and forged role metadata do not grant owner access');
 select is((select count(*) from authorization_contract_test.private_metadata), 0::bigint, 'Even stale app/JWT role claims cannot grant original access');
@@ -551,7 +551,7 @@ set local role authenticated;
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('sponsor-one'::text)$$, 'Sponsorship/PR receives only its permitted inquiry purpose');
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Sponsorship access never implies scientific access');
 reset role;
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000013","session_id":"20000000-0000-4000-8000-000000000013","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000013","session_id":"20000000-0000-4000-8000-000000000013","aal":"aal2","amr":[{"method":"password"},{"method":"totp"}]}';
 set local role authenticated;
 select results_eq($$select id from authorization_contract_test.private_metadata$$, $$values ('original-one'::text)$$, 'Scoped MFA Super Admin receives cleared original evidence only');
 select results_eq($$select id from authorization_contract_test.purpose_records$$, $$values ('grant-one'::text)$$, 'Super Admin has explicit role administration purpose, not all duties');
@@ -598,7 +598,7 @@ set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","s
 set local role authenticated;
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Another actor session ID cannot satisfy current identity');
 reset role;
-set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","session_id":"20000000-0000-4000-8000-000000000001","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/totp"}]}';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","session_id":"20000000-0000-4000-8000-000000000001","aal":"aal2","amr":[{"method":"password"},{"method":"totp"}]}';
 insert into authorization_contract_test.role_grants(user_id, role_name, edition_id, track, track_id)
 values ('10000000-0000-4000-8000-000000000001', 'abstractReviewer', 'synthetic-2027', 'research', 'research-alpha');
 insert into authorization_contract_test.assignments(id, user_id, resource_id, edition_id, track, track_id, kind)

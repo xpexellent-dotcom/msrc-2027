@@ -154,7 +154,7 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
     const token = claims(active.session);
     check(after.authenticationTier === "staff" && after.sessionPolicySatisfied && after.staffEmailValid
       && after.passwordValid && !after.mfaValid && token.aal === "aal1"
-      && !token.amr.some((proof) => proof.method.startsWith("mfa/")), "email check grants no managed AAL2");
+      && !token.amr.some((proof) => proof.method === "totp" || proof.method.startsWith("mfa/")), "email check grants no managed AAL2");
     check(!after.operationalAccessReady && !after.privilegedAccessReady, "verified regular staff workflows stay closed");
     const second = await active.sdk.rpc("msrc_second_step_satisfied");
     check(!second.error && second.data === true, "own narrow second-step context");
