@@ -11,7 +11,7 @@ ORG-016 now requires Super Admin password plus authenticator TOTP; participants 
 email/password and verified email only, without phone collection/verification or MFA. Any active Super Admin
 grant across editions selects the stronger requirement. Role scope, ownership,
 assignment checks, participant 72h absolute and staff 30min idle/8h absolute are preserved.
-All operational flags and readiness stay false; no accounts or live grants are created.
+All operational flags and readiness stay false; no live accounts or grants are created.
 
 Before edits, the code/draft required SMS/AAL2 for every staff role. Supabase email OTP
 is a passwordless primary sign-in method, not native MFA; this implementation never
@@ -157,7 +157,9 @@ Current executed commands/results and exact CI receipts are in PROGRESS. The sui
 covers password-only server/API/DB denial; incorrect/expired/reused/replaced codes;
 resend/account/IP and attempt controls; exact user/session binding; refresh/new login;
 revocation/email/grant changes; delivery/audit failure; and ORG-016 email-only participant/authenticator Super Admin policy. Managed API tests use synthetic identities, no-delivery hooks and
-the actual GoTrue image recorded by CI; no SMS hook/provider/phone fixtures are installed. Accelerated clock fixtures are identified.
+the actual GoTrue image recorded by CI; no SMS provider, delivery hook or phone-enrollment
+flow is installed. A rejected phone-factor SQL fixture proves it cannot satisfy the
+Super Admin authenticator policy. Accelerated clock fixtures are identified.
 Local SQL is NOT TESTED; executed isolated delivery and managed HTTP/cookie results
 are recorded separately in PROGRESS. Human inbox possession/login, devices/screen readers,
 actual object-storage policies and recovery UAT remain NOT TESTED/BLOCKED. Storage is
@@ -176,7 +178,20 @@ Manual review can use the local synthetic lab without contacting a provider:
    simulations and confirm previous access is denied.
 4. Select participant and Super Admin modes to confirm their existing verification
    and authenticator-MFA steps. This checks the lab only; named-human device, screen-reader,
-   actual inbox delivery/cookie and recovery rehearsals remain unperformed gates.
+   inbox possession with managed login/cookies and recovery rehearsals remain unperformed gates.
+
+For the optional private Windows email test, open the running inbox-mode preview at
+`http://127.0.0.1:3221/en/staff-security-preview` (or `/ar/staff-security-preview`).
+Choose regular staff, **Simulate staff password sign-in**, then **Send an isolated
+test email code**. Check Inbox and Spam in the confirmed self-recipient mailbox for
+the English subject **MSRC 2027 isolated staff sign-in code** and enter its six digits
+in the preview within five minutes. Do not paste the code into chat. The preview
+shows no code; delivery failure/expiry has accessible retry/resend guidance. Request
+a fresh code for manual testing because the earlier automated code has expired.
+Respect persistent cooldown/send reservations; do not reset them to force a retry.
+This uses a simulated password/session with real test email. CI separately proves
+managed password/database/cookies with no delivery; neither proves the combined
+managed-login/real-inbox/human flow. Production authentication stays closed.
 
 Recent-auth age, warning lead, privacy/retention/location, named recovery people,
 verified recovery procedure, production plan/region and release approvals remain open.

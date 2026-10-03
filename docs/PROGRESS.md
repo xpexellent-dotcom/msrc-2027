@@ -44,30 +44,31 @@ overflow, no page errors and no displayed email code. No email was sent by this 
 Its database job passed migration lint,393 SQL assertions, advisors and type generation,
 then native integration56 PASS/7 FAIL. Existing46 native cases passed. The new cases
 exposed a read-only Data API/RLS issue, a Fetch Host-header test normalization issue and
-an expiry fixture correctly rejected by the immutable-origin guard. These are being
-corrected before claiming the new managed cookie suite passes.
+an expiry fixture correctly rejected by the immutable-origin guard. The corrections
+and subsequently verified results follow; this first run did not pass integration.
 
 Correction: additive review migration20261003180734 separates stable read-only
 observation/own-role projection from the unchanged volatile POST initialization RPC.
 `msrc_second_step_satisfied` and new `msrc_read_access_context` share the calling
 statement snapshot for role plus receipt checks. Private observers preserve current
 native password/email revision/grant fingerprint/TOTP precision/lifecycle and clocks;
-missing initialized state denies. Independent review found no remaining security issue.
+missing initialized state denies. Independent static review found no additional concrete
+blocker in this SQL slice; runtime verification followed in CI.
 Added112 SQL assertions for readonly positive/denied reads, policy/receipt/factor
 parity, permissions and unchanged session/receipt/audit state. One existing staff fixture
 now explicitly calls the trusted initializer before expecting direct-read success.
 Native HTTP tests use literal Host headers, age expiry fixtures before first observation
 and add direct stale-bearer GET denial after suspension, email/grant changes and new login.
-The corrected database suite awaits disposable CI; it has not run on this computer.
+The corrected database suite was then exercised in disposable CI, not on this computer.
 First corrected head2ce2e09 CI37144279613 reset passed, then strict database lint
 rejected seven STABLE/VOLATILE clock-sampling warnings in the new read observers.
 SQL assertions, advisors/types and native integration were skipped on that run.
-The timing model is being corrected; warnings are not silently waived.
+The timing model was corrected without waiving warnings.
 Pure observers now use one genuine statement-admission timestamp alongside their
 MVCC snapshot. A read admitted before expiry may finish afterward; later statements
 deny even within the same transaction. This changes no deadline or session activity.
 Existing locked server/write/consume expiry checks still use actual time after waits.
-The strict lint gate is retained. Delayed-boundary regression evidence follows in CI.
+The strict lint gate is retained. The delayed-boundary regression passed in CI below.
 Atb0f7bf1 CI37145213167, migration reset and strict lint passed. SQL stopped during
 new-fixture preparation because two synthetic actors were assigned the same changed
 email, correctly rejected by native uniqueness. Existing393 assertions passed; the
@@ -78,7 +79,19 @@ generation PASS. Native integration62 PASS/1 FAIL: simultaneous-session direct-r
 positive expected an owned row for its actor, but the resource fixture seeded only
 actor0. Expanding this synthetic resource fixture to existing actors and asserting
 positive direct reads before revocation makes those negative regressions meaningful.
-No authorization/policy relaxation is needed. The corrected native suite awaits CI.
+No authorization/policy relaxation was needed.
+
+At90a098c [CI37146079001](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37146079001)
+database job111270233050 PASS: reset, strict migration lint,505 SQL assertions across
+six files, security advisors, public type generation and63 native integration tests
+across six files against actual GoTruev2.197.0. All18 existing synthetic actors have
+owned protected rows, so logout, partial native logout failure, suspension, changed
+email and grant revocation prove successful direct reads before denied reads afterward.
+Simultaneous sessions prove verified1/password-only0; new login requires fresh proof.
+Application job111270233209 also PASS: lint/types,1378 units,42-page production build,
+300 public browser tests with3 existing skips and75 auth browser tests. Completed
+application/database logs were inspected; the full code-head CI passed.
+The CI server cookie lab remains separate from the actual local SMTP test below.
 
 Executed the ignored local single-flow driver once at20:58 Riyadh on3October2026:
 one English synthetic staff-code email was accepted by Gmail SMTP. The driver uses
@@ -163,13 +176,16 @@ Executed `Test-ReplacementEmailReadiness.ps1 -RunConfirmedCorrectedAccountTest` 
 exit 0, verified-TLS **AUTH 235** followed by **SMTP accepted** the unchanged English
 readiness message. Read-only Gmail Primary Inbox observation showed the exact subject
 and complete reviewed body at 20:00 Riyadh on 3 October 2026. No additional email was
-sent. Both credentials and all eight attempt records retain private ACLs. This verifies
+sent during that readiness diagnostic. Both credentials and all eight attempt records
+retain private ACLs. This verifies
 the replacement credential with the corrected account; earlier 535 results established
 rejection of the earlier username/credential pair, not invalidity of the password alone.
 Production Auth/SMTP/provider configuration, app runtime, CI secrets, migrations,
-roles/grants and all operational/readiness flags remain unchanged. Staff OTP/cookie
-integration, recovery, participant delivery and real-human login/accessibility UAT remain
-NOT TESTED. Last tracked head 7b7b48e CI37135487400 and 37135484961 freshly verified PASS;
+roles/grants and all operational/readiness flags remained unchanged at this diagnostic
+stage. Staff OTP/cookie integration, recovery, participant delivery and human login/
+accessibility UAT were then NOT TESTED; current separately executed SMTP/native-CI
+results are above. The combined managed-login/real-inbox/human flow remains NOT TESTED.
+That diagnostic head 7b7b48e CI37135487400 and 37135484961 was freshly verified PASS;
 application/build/database/browser suites were not rerun locally for this diagnostic.
 
 Replacement continuation: the organizer reported the replacement credential stored.
