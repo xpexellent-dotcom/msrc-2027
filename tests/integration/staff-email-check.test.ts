@@ -328,9 +328,12 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
   it("rejects primary managed phone OTP as either password proof or the custom staff email check", async () => {
     const id = actors[11];
     const phone = "+966500000911";
-    await query(`update auth.users set phone='${phone}',phone_confirmed_at=now() where id='${id}';
+    // GoTrue v2.197.0 validatePhone canonicalizes stored numbers without '+'.
+    // SDK input remains standard E.164; the fixed test_otp key uses this form.
+    const canonicalPhone = phone.slice(1);
+    await query(`update auth.users set phone='${canonicalPhone}',phone_confirmed_at=now() where id='${id}';
       insert into auth.identities(id,provider_id,user_id,identity_data,provider,created_at,updated_at)
-      values(gen_random_uuid(),'${id}','${id}',jsonb_build_object('sub','${id}','phone','${phone}','phone_verified',true),
+      values(gen_random_uuid(),'${id}','${id}',jsonb_build_object('sub','${id}','phone','${canonicalPhone}','phone_verified',true),
         'phone',now(),now());`);
     const sdk = client();
     const request = await sdk.auth.signInWithOtp({ phone, options: { shouldCreateUser: false } });
