@@ -52,14 +52,41 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const [scrolled, setScrolled] = useState(false);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => revealPageNavigation(pathname), [pathname]);
 
   useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 24);
+    let docked = window.scrollY > 48;
+    const update = () => {
+      // A small return-to-top zone prevents toolbar bounce from toggling the card.
+      if (window.scrollY > 48) docked = true;
+      else if (window.scrollY < 8) docked = false;
+      setScrolled(docked);
+    };
     update();
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
+  }, []);
+
+  useEffect(() => {
+    const card = headerRef.current?.querySelector<HTMLElement>(".site-header-inner");
+    const banner = document.querySelector<HTMLElement>(".preview-banner");
+    if (!card) return;
+    const root = document.documentElement;
+    const measure = () => {
+      root.style.setProperty("--site-header-height", `${card.offsetHeight}px`);
+      root.style.setProperty("--site-header-rest-top", `${(banner?.offsetHeight ?? 34) + 12}px`);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(card);
+    if (banner) observer.observe(banner);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--site-header-height");
+      root.style.removeProperty("--site-header-rest-top");
+    };
   }, []);
 
   useEffect(() => {
@@ -83,7 +110,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   }, [menuOpen]);
 
   return (
-    <header className="site-header" data-scrolled={scrolled} data-home={pathname === `/${locale}`} data-menu-open={menuOpen}>
+    <header ref={headerRef} className="site-header" data-scrolled={scrolled} data-home={pathname === `/${locale}`} data-menu-open={menuOpen}>
       <Container className="site-header-inner">
         <Link className="wordmark" href={`/${locale}`} aria-label={copy.home} onClick={() => setMenuOpen(false)}>
           <span className="wordmark-name" dir="ltr" lang="en">MSRC<span className="wordmark-year">2027</span></span>

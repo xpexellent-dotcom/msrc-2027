@@ -1,19 +1,11 @@
-/* ORG-010: below 1100px there is no chapter bar. On phones each chapter title arrives big and
-   centred, holds while the reader scrolls, then settles into place; chapter-titles.tsx stages
-   it. A staged title pins in its stage, whose runway gives the hold room. */
+/* ORG-011: a centered title arrival, with no sticky holds or added scroll distance. */
 @media (max-width: 1099px) { .section-journey { display: none; } }
 @media (max-width: 700px) {
-  /* Clipped rather than hidden, so the window stays the scroller a pinned title sticks to. */
-  .program-section { overflow: clip; }
-  /* Nothing staged may widen the page: a phone would zoom out to fit it. */
-  .chapter-stage[data-chapter] { overflow-x: clip; }
-  .chapter-stage[data-chapter]::after { content: ""; display: block; block-size: var(--chapter-runway); }
-  .chapter-stage[data-chapter] > .section-heading { position: sticky; inset-block-start: var(--chapter-pin); }
-  .chapter-stage[data-chapter] .eyebrow { inline-size: fit-content; }
-  .chapter-stage[data-chapter] .title-word { display: inline-block; transform-origin: 0 0; }
+  .chapter-stage { overflow-x: clip; }
+  .chapter-stage > .section-heading { inline-size: fit-content; max-inline-size: 100%; transform-origin: center top; }
+  .chapter-stage .eyebrow { inline-size: fit-content; }
+  .homepage-journey .chapter-stage h2 { font-size: clamp(2.3rem, 9vw, 3.1rem); line-height: 1.12; }
+  html[lang="ar"] .homepage-journey .chapter-stage h2 { font-size: clamp(2.05rem, 8vw, 2.8rem); line-height: 1.5; }
 }
-@media print {
-  .chapter-stage::after { content: none !important; }
-  .chapter-stage > .section-heading { position: static !important; }
-  .chapter-stage .eyebrow, .chapter-stage .title-word { translate: none !important; scale: none !important; }
-}
+@media (prefers-reduced-motion: reduce) { .chapter-stage > .section-heading { transform: none !important; } }
+@media print { .chapter-stage > .section-heading { transform: none !important; } }

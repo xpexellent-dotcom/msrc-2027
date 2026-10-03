@@ -2,6 +2,33 @@
 
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
+## 3 October 2026 — Mobile homepage scroll and design refinement (ORG-011)
+
+Requester authorized improvements to Claude's latest mobile design, up/down scrolling
+fixes and heading wording. Implementation starts from remote main c10b2c5 in the attached
+`mobile-homepage-polish` worktree; the original checkout's local documentation is preserved.
+
+- Reproduced at 390×844, normal motion: scrolling up 72 px left the settled programme
+  heading stationary; seven persistent title runways added 1,506 px after copy shortening.
+- Headings now enter as a complete centered phrase, with modest bounded scale and no
+  sticky hold or extra layout height. Completed/started motion does not replay on reversal,
+  resize or preference changes. Fast flicks and fragments arrive in the natural layout.
+- Shorter equivalent EN/AR titles; restrained phone header/menu styling, docking hysteresis
+  and actual-height menu/anchor clearance. Phone chapter bar remains removed.
+- Final Node 24 `pnpm check` PASS: lint/types/build and 888/888 unit tests. Production
+  Chromium affected suite: 149 PASS/29 intentional SKIP/1 browser load failure; that
+  exact film case passed 3/3 isolated repeats. WebKit desktop/iPhone: 68 PASS/18 SKIP,
+  with two test keyboard-policy assumptions corrected; six iPhone navigation cases
+  then passed 6/6. All new chapter motion/zoom cases passed in both engines.
+- Final focused Chromium mobile rerun under Node 24: 18/18 PASS after the test correction.
+- Inspected EN/AR phone/desktop frames and measured ten layouts at 320–1280 px with
+  no document overflow. Full failure/rerun evidence is retained in the feature note.
+- Scope: public presentation only (DSN-01/02, ACC-01, LOC-01/03, CMS-04). No infrastructure,
+  database, media-approval or operational release gate changes. Live publication pending.
+
+Evidence, known limits and rollback: [feature note](features/mobile-homepage-polish.md).
+Next: review the finished design on an actual phone, then publish the reviewed change.
+
 ## 3 October 2026 — Chapter titles replace the phone chapter bar (ORG-010)
 
 PR 20 went live and the requester rejected the phone chapter bar. They asked for each section's title to arrive "big and centered", then shrink to its own size and settle back into place, smoothly.
