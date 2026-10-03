@@ -163,7 +163,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("iframe, a[download]")).toHaveCount(0);
   });
 
-  test(`${locale} cinema returns to the watching position after navigation through the participation chapter`, async ({ page }) => {
+  test(`${locale} cinema returns to the watching position after navigation through the participation chapter`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
     await page.goto(`/${locale}?view=chapters`);
     await page.locator(".section-journey a[href='#participate']").click();
     await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=chapters#participate$`));

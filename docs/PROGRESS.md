@@ -1,6 +1,31 @@
 # Progress and session handover
 
-**Snapshot: 2 October 2026. Update this file after each development task.**
+**Snapshot: 3 October 2026. Update this file after each development task.**
+
+## 3 October 2026 — Chapter titles replace the phone chapter bar (ORG-010)
+
+PR 20 went live and the requester rejected the phone chapter bar. They asked for each section's title to arrive "big and centered", then shrink to its own size and settle back into place, smoothly.
+
+- Below 1100px the chapter bar is gone (`src/styles/chapter-titles.css`; `chapter-bar.css` is deleted). `SectionJourney` keeps only its desktop job: the current chapter and the one-click underline.
+- Phones (≤700px, one-column sections): `ChapterTitles` (`src/components/chapter-titles.tsx`) stages each chapter title while it is still below the screen. `SectionHeading chapter` wraps the heading in a stage and renders one span per word.
+  - Measuring: the title is laid out large in a hidden copy, centred and rewrapped only within its own line breaks, up to 1.8× and fitting 80% of the screen below the header.
+  - Pinning: the heading is `sticky` in its stage. A runway gives the hold room and keeps the section's content clear of the large title. It is 155–438 px per chapter on 375×667, 390×844 and 430×932 phones, EN and AR, which makes the phone page about 1,900–2,200 px longer at 390×844.
+- The settle (WAAPI on `translate`/`scale`, 1.2 s) has three beats: shrink while centred, slide across, drop into the lines. Because the large layout keeps each line's words together, no two words cross. Scrolling through the hold can only hurry it: it completes by 85% of the runway.
+- Text is never hidden; it is only enlarged. Titles stay as rendered without JavaScript, with reduced motion, from 701px, and for chapters on screen or above at load. Staging waits for `document.fonts.ready`. Only a new width re-stages; the iPhone toolbar changes only the height.
+- Fixed during tuning:
+  - Words collided mid-flight when the large layout rewrapped freely.
+  - The centred eyebrow (a full-width flex row) widened the Arabic page, so the phone layout viewport grew to 895px and every later chapter was measured off-screen. Stages now clip horizontal overflow and the eyebrow fits its content.
+  - A reveal animation could move a heading onto its pin after scrolling stopped; a 250 ms re-check runs while a staged title is on screen.
+- Static layout is unchanged. With reduced motion, every heading's box, text width and section height matches production on a 390 px phone and at 1280 px, EN and AR. On phones the page is 96 px shorter, without the bar.
+- Tests:
+  - `tests/e2e/chapter-titles.spec.ts` (new) checks each of the seven chapters, EN/AR. Rising: large, centred, inside its stage, page not widened. Pinned: it settles to its own size, at the start edge, with its own line breaks. It also covers the hurry, staging only below the screen, the reduced-motion/wide-screen fallback, one-phrase accessible names and axe.
+  - `chapter-bar.spec.ts` is now desktop-only and checks that tablets show no bar.
+  - The four `brand-motion` and one `cinematic-film` cases that click the bar skip on phones.
+
+Verification:
+- ESLint (repo) and `tsc` PASS; `next build` PASS; Vitest 888/888.
+- Full Playwright Chromium run: 295 passed, 21 skipped, and 1 failure. The failure was a load flake: hydration took over 5 s in `qa-regressions` "Step inside" (mobile). It passed 16/16 on its own, and the hydration waits in my specs now allow 15 s.
+- After the last tweaks, a rebuild ran the affected specs (`chapter-titles`, `chapter-bar`, `qa-regressions`, `brand-motion`, `premium-interface`, `cinematic-film`): Chromium 107 passed, 19 skipped (by design). WebKit desktop and iPhone ran `chapter-titles`, `chapter-bar`, `qa-regressions` and `premium-interface`: 60 passed, 8 skipped (by design). All eight chapter-title cases ran on the iPhone profile.
 
 ## 2 October 2026 — Phone chapter bar redesigned after requester review (ORG-009, PR 20)
 

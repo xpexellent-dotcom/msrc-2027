@@ -30,8 +30,9 @@ for (const [motion, glides] of [["no-preference", true], ["reduce", false]] as c
     test(`${locale} Step inside is centred and ${glides ? "glides" : "jumps"} to the dates band (${motion})`, async ({ page, browserName }) => {
       await page.emulateMedia({ reducedMotion: motion });
       await page.goto(`/${locale}`);
-      // Before hydration a click is a plain fragment jump; the live countdown marks hydration.
-      await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before");
+      // Before hydration a click is a plain fragment jump; the live countdown marks hydration,
+      // which took over 5 s once on a loaded local run.
+      await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before", { timeout: 15_000 });
       await expect(page.locator(".conference-hero .hero-caption")).toHaveCount(0);
       const cue = page.locator(".hero-scroll");
       await expect(cue).toHaveAttribute("href", "#essentials");

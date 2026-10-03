@@ -908,4 +908,35 @@ v0.5 and earlier source snapshots stay unchanged.
   section 06 ("Shared purpose", partners) had no chip. The bar now has seven chips on every
   width, adding 06 Partners / «الشركاء». Every chip's number matches its section eyebrow; the
   desktop grid has seven columns, and the partners section takes focus like the others.
+- Superseded below 1100px by ORG-010 (3 October 2026): the requester rejected the phone bar
+  once it was live. The seven-chapter bar and its numbering remain from 1100px.
+- Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-02.
+
+## ORG-010 — Chapter titles replace the phone chapter bar, 3 October 2026
+
+- Status: CONFIRMED explicit requester instruction in the current chat, after PR 20 went
+  live: "I hate the navigation bar on phone." Instead, on reaching each section its title
+  should be "big and centered", then "smoothly shrinked to original size and placed back",
+  with creative freedom over the look and feel, and it "should be smooth".
+- Below 1100px the chapter bar is not shown. From 1100px it is unchanged (ORG-009).
+- Phones (up to 700px, where every section is one column): each of the seven chapter titles
+  is staged while it is still below the screen. It rises big and centred under its eyebrow,
+  in its section's own colours: up to 1.8 times its size, rewrapped only within its own line
+  breaks. It then pins in the middle of the screen while the reader scrolls, and settles. It
+  shrinks to its own size while still centred, and its words slide across and drop into their
+  lines, so no two words cross. The section's content rises to meet it. Each staged chapter
+  adds a hold of about 150–440 px of scroll, depending on the phone and language.
+- Timing: the settle takes 1.2 s from pinning. Scrolling through the hold can only hurry it,
+  so it is complete before the content reaches the title. It plays once per chapter per visit.
+- Text is enlarged, never hidden. Titles stay as rendered without JavaScript, with reduced
+  motion, from 701px (two-column sections on tablets, the bar on desktop) and for chapters
+  already on screen or above when the page loads, for example after a link to `#legacy`.
+- Each title keeps one accessible name: an `aria-label` equal to its text, with the moving
+  word spans `aria-hidden`.
+- Engineering choice: `src/components/chapter-titles.tsx` measures each title in its final
+  font and a hidden centred copy, then animates only `translate` and `scale` (WAAPI). The
+  pinned title is `position: sticky` within its stage. Staged stages clip horizontal
+  overflow: in Arabic a centred, full-width eyebrow widened the page, and a phone zooms out to
+  fit a wider page. `.program-section` uses `overflow: clip` on phones so that the window
+  stays the scroller the pinned title sticks to.
 - Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-02.
