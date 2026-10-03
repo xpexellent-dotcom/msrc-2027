@@ -60,6 +60,26 @@ Own-context RPCs expose this separate check, never an active operational identit
 `msrc_second_step_satisfied()` provides a self-only current authentication predicate
 for restrictive RLS alongside role/scope/ownership and readiness. It is not a grant.
 The isolated SQL fixture proves owner policy alone cannot bypass the added check.
+The managed-cookie continuation exposed that PostgREST GET/HEAD uses a read-only
+transaction: the earlier predicate's locking context could deny even a completed
+staff session. Additive review migration
+`20261003180734_readonly_authentication_context.sql` provides read-only observation
+without creating state, extending activity, marking expiry or writing audit. Missing
+initialized state denies. The trusted read-write context retains original initialization
+and serialized mutation behavior. Role/ownership and current assurance must share
+one statement snapshot; stable `public.msrc_read_access_context(text)` and
+`public.msrc_second_step_satisfied()` are the RLS integration contract. Keep volatile
+`public.msrc_access_context(text)` for the existing POST initialization/metadata path;
+do not place that locking initializer inside a read policy.
+Revocation committed after a statement begins affects subsequent statements, as with
+normal database snapshots. This does not reduce current password, receipt, email,
+grant, native factor/session, revocation or timing checks. See the
+[PostgREST transaction contract](https://postgrest.org/en/stable/references/transactions.html).
+The authenticated self-read projection retains the intentional SECURITY DEFINER
+review exception: fixed empty search path, qualified private objects, own current
+identity/session, authenticated-only execution and false readiness. Private observer
+helpers have no client/service-role execution. Record advisor findings; do not hide
+them by granting private-table access. This new projection is not deployed.
 No live domain table/bucket/action is opened. Storage is disabled in this foundation;
 actual object-policy integration remains a future feature gate, not inferred from a
 disabled-route denial. Future domain features must install and test their restrictive
@@ -189,6 +209,7 @@ recovery, privacy/location, recent-auth, warning-lead and human UAT gates remain
 | Policy and authorization | `src/config/authentication-policy.ts`, `src/lib/auth/session-policy.server.ts`, permission contracts/parsers/authorization and managed session adapter |
 | Synthetic UI/API | Auth preview service, copy/components, `src/app/api/auth-preview/route.ts` |
 | Current database amendment | `supabase/migrations/20261003110812_authenticator_super_admin_policy.sql` overrides current participant/Super Admin assurance; the earlier email/session review migrations remain unchanged. Database fixtures exercise the unchanged staff receipt and current authenticator predicate |
+| Read-only assurance correction | `supabase/migrations/20261003180734_readonly_authentication_context.sql`; private snapshot observers and stable read projection for ordinary Data API RLS reads; prior migration snapshots preserved |
 | Managed test harness | `scripts/prepare-ci-managed-auth.ts`, `src/features/auth/managed-staff-lab.server.ts`, managed-auth/email/cookie integration tests, unit/browser coverage and CI database-lint schema list |
 | Review/deployment boundary | `vercel.json` branch deployment guard; current authentication requirements, decisions, progress and boundary notes |
 

@@ -274,6 +274,8 @@ select is(public.msrc_staff_email_consume('81000000-0000-4000-8000-000000000002'
 reset role;
 do $$begin perform pg_temp.email_claims('81000000-0000-4000-8000-000000000002','82000000-0000-4000-8000-000000000002'); end$$;
 set local role authenticated;
+-- Trusted context initialization precedes pure direct-read policy evaluation.
+do $$begin perform public.msrc_session_context('synthetic-email-2027'); end$$;
 select is(public.msrc_second_step_satisfied(),true,'Second staff current proof passes');
 reset role;
 insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)

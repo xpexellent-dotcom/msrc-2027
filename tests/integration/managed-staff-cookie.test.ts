@@ -1,7 +1,7 @@
 import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { createServer, type Server } from "node:http";
+import { createServer, request as httpRequest, type Server } from "node:http";
 import { createClient, type Session } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, it } from "vitest";
 import { createManagedStaffLab, isManagedStaffLabBoundary, MANAGED_STAFF_LAB_COOKIE,
@@ -23,6 +23,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 let deliverFails = false;
 let contextFails = false;
 let logoutFails = false;
+let originFixture: { actorId: string; elapsed: "31 minutes" | "9 hours"; reason: string | null } | null = null;
 let server: Server;
 let origin = "";
 let lab: ReturnType<typeof createManagedStaffLab>;
@@ -41,14 +42,18 @@ function query(sql: string): Promise<string> {
   boundary();
   return new Promise((resolve, reject) => {
     const child = spawn("docker", ["exec", "-i", "supabase_db_msrc2027-local", "psql", "-X", "-q",
-      "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
+      "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
     let output = "";
+    let sqlState = "unknown";
     const timeout = setTimeout(() => { child.kill(); reject(new Error("Disposable cookie SQL timed out.")); }, 10_000);
     child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
-    child.stderr.on("data", () => {});
+    child.stderr.on("data", (chunk: Buffer) => {
+      const state = chunk.toString().match(/(?:ERROR|FATAL):\s+([0-9A-Z]{5})(?:\s|$)/)?.[1];
+      if (state) sqlState = state;
+    });
     child.on("error", () => { clearTimeout(timeout); reject(new Error("Disposable cookie SQL could not start.")); });
     child.on("close", (code) => { clearTimeout(timeout);
-      if (code === 0) resolve(output.trim()); else reject(new Error("Disposable cookie SQL failed; sensitive diagnostics withheld.")); });
+      if (code === 0) resolve(output.trim()); else reject(new Error(`Disposable cookie SQL failed (SQLSTATE ${sqlState}); sensitive diagnostics withheld.`)); });
     child.stdin.on("error", () => {});
     child.stdin.end(sql);
   });
@@ -63,6 +68,20 @@ function client() {
     if (native && actors.includes(native.user.id)) nativeSessions.set(native.user.id, native);
   });
   if (logoutFails) sdk.auth.signOut = async () => { throw new Error("Synthetic private provider failure."); };
+  if (originFixture) {
+    const signIn = sdk.auth.signInWithPassword.bind(sdk.auth);
+    sdk.auth.signInWithPassword = async (credentials) => {
+      const result = await signIn(credentials);
+      const clock = originFixture;
+      if (clock && !result.error && result.data.session && result.data.user?.id === clock.actorId) {
+        // ONLY disposable fixture: age the genuine native origin before the lab's
+        // first observation. The immutable application state guard remains intact.
+        await query(`update auth.sessions set created_at=clock_timestamp()-interval '${clock.elapsed}'
+          where id='${sid(result.data.session)}';`);
+      }
+      return result;
+    };
+  }
   return sdk;
 }
 function native(id: string): Session {
@@ -85,6 +104,38 @@ async function request(action: string, credential?: string, extra: Record<string
 async function get(path: "status" | "protected", credential?: string, headers: Record<string, string> = {}) {
   return observed(await fetch(`${origin}${MANAGED_STAFF_LAB_PATH}/${path}`, {
     headers: { ...(credential ? { Cookie: credential } : {}), ...headers }, signal: AbortSignal.timeout(12_000) }));
+}
+async function literalRequest(action: string, credential: string, headers: Record<string, string>) {
+  // Fetch normalizes/ignores hostile Host in this Node version. Native HTTP sends
+  // the literal wire headers required to exercise the server's trust boundary.
+  const endpoint = new URL(origin);
+  const text = JSON.stringify({ action });
+  const response = await new Promise<Response>((resolve, reject) => {
+    const call = httpRequest({ hostname: "127.0.0.1", port: endpoint.port, path: MANAGED_STAFF_LAB_PATH, method: "POST",
+      headers: { Host: endpoint.host, "Content-Type": "application/json", "Content-Length": Buffer.byteLength(text),
+        Origin: origin, Cookie: credential, ...headers } }, (message) => {
+      const chunks: Buffer[] = [];
+      let bytes = 0;
+      message.on("data", (chunk: Buffer) => {
+        bytes += chunk.length;
+        if (bytes > 8192) { message.destroy(); reject(new Error("Managed lab response exceeded its test bound.")); }
+        else chunks.push(chunk);
+      });
+      message.on("error", () => reject(new Error("Managed lab HTTP response failed; diagnostics withheld.")));
+      message.on("end", () => {
+        const responseHeaders = new Headers();
+        for (const [name, value] of Object.entries(message.headers)) {
+          if (Array.isArray(value)) for (const item of value) responseHeaders.append(name, item);
+          else if (value !== undefined) responseHeaders.set(name, value);
+        }
+        resolve(new Response(Buffer.concat(chunks), { status: message.statusCode, headers: responseHeaders }));
+      });
+    });
+    call.on("error", () => reject(new Error("Managed lab HTTP request failed; diagnostics withheld.")));
+    call.setTimeout(12_000, () => call.destroy());
+    call.end(text);
+  });
+  return observed(response);
 }
 async function observed(response: Response) {
   const body: unknown = await response.json();
@@ -127,8 +178,10 @@ async function directResource(session: Session) {
     headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, Authorization: `Bearer ${session.access_token}` },
     signal: AbortSignal.timeout(5000),
   });
-  check(response.ok, "direct Data API fixture request");
   const rows: unknown = await response.json();
+  const errorCode = rows && typeof rows === "object" && "code" in rows && typeof rows.code === "string"
+    && /^(?:[0-9A-Z]{5}|PGRST\d{3})$/.test(rows.code) ? rows.code : "unknown";
+  check(response.ok, `direct Data API fixture request (HTTP ${response.status}, SQL/PGRST ${errorCode})`);
   check(Array.isArray(rows), "Data API fixture row contract");
   return rows;
 }
@@ -175,7 +228,7 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
       grant select on public.msrc_ci_staff_cookie_resource to authenticated;
       create policy cookie_owner on public.msrc_ci_staff_cookie_resource for select to authenticated
         using(actor_id=(select auth.uid()) and exists(select 1 from jsonb_array_elements(
-          (select public.msrc_access_context('${edition}'))->'grants') g where g->>'role'='contentMediaEditor'));
+          (select public.msrc_read_access_context('${edition}'))->'grants') g where g->>'role'='contentMediaEditor'));
       create policy cookie_second_step on public.msrc_ci_staff_cookie_resource as restrictive for select to authenticated
         using((select public.msrc_second_step_satisfied()));
       insert into public.msrc_ci_staff_cookie_resource values('${actors[0]}','Synthetic private cookie resource');
@@ -201,7 +254,12 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
     check(address && typeof address === "object", "loopback HTTP listener");
     origin = `http://127.0.0.1:${address.port}`;
     lab = createManagedStaffLab({ origin, editionKey: edition, allowedEmails: actors.map(email), client, store, secret,
-      context: (token, scope) => contextFails ? Promise.resolve({ state: "unavailable" }) : readVerifiedSessionContext(token, scope),
+      context: async (token, scope) => {
+        if (contextFails) return { state: "unavailable" };
+        const result = await readVerifiedSessionContext(token, scope);
+        if (originFixture && result.state === "verified") originFixture.reason = result.context.reason;
+        return result;
+      },
       deliver: async (message) => {
         check(actors.map(email).includes(message.recipient) && message.language === "en"
           && message.subject === "MSRC 2027 staff sign-in code", "current verified synthetic English-only recipient");
@@ -248,8 +306,10 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
     const rejectedHeaders: Record<string, string>[] = [{ Origin: "https://foreign.invalid" }, { Origin: "" }, { "Sec-Fetch-Site": "cross-site" },
       { Host: "localhost:9999" }, { "X-Forwarded-For": "127.0.0.1" }, { "X-Forwarded-Host": origin.slice(7) },
       { "X-Forwarded-Proto": "http" }, { Forwarded: "for=127.0.0.1" }, { Authorization: "Bearer invalid" }];
+    const pending = await login(actors[17]);
     for (const headers of rejectedHeaders) {
-      check((await request("issue", active, {}, headers)).status === 403, "origin/host/header spoof denied");
+      const result = await literalRequest("issue", pending, headers);
+      check(result.status === 403, `origin/host/header spoof denied (HTTP ${result.status}, header ${Object.keys(headers)[0]})`);
     }
     check(inbox.size === 0 && (await get("protected", active)).status === 200, "CSRF cannot replace codes or log out owner");
   });
@@ -268,6 +328,8 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
     check((await request("verify", first, { code })).status === 200, "foreign session does not consume owner proof");
     check((await get("protected", first)).status === 200 && (await get("protected", second)).status === 403,
       "verification is neither account-wide nor a cookie UI flag");
+    check((await directResource(firstNative)).length === 1 && (await directResource(native(actors[1]))).length === 0,
+      "direct reads enforce the same exact native session receipt as opaque cookies");
   });
 
   it("preserves native origin, idle deadline and receipt through refresh without resetting cookie lifetime", async () => {
@@ -283,6 +345,8 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
     const fresh = await login(actors[0]);
     check((await get("protected", fresh)).status === 403 && (await get("protected", active)).status === 200,
       "new password session needs fresh email check; existing receipt stays exact-session");
+    check((await directResource(native(actors[0]))).length === 0,
+      "new password login cannot reuse old email proof through direct Data API");
     check((await request("issue", fresh)).body.code === "RETRY_LIMITED", "fresh login cannot reset account resend bound");
   });
 
@@ -372,35 +436,41 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
 
   it("denies cookie access and refresh after account suspension and refuses restoration of old proof", async () => {
     const credential = await verified(actors[7]);
+    const oldNative = native(actors[7]);
     await query(`update msrc_authorization.account_access set state='suspended' where actor_id='${actors[7]}';`);
     check((await get("protected", credential)).status === 403 && (await request("refresh", credential)).status === 403, "suspended exact session denied");
+    check((await directResource(oldNative)).length === 0, "suspended account cannot read with its signed old bearer");
     await query(`update msrc_authorization.account_access set state='active' where actor_id='${actors[7]}';`);
     check((await get("protected", credential)).status === 403, "reactivation cannot revive pre-suspension session");
+    check((await directResource(oldNative)).length === 0, "reactivation cannot restore old proof through direct Data API");
   });
 
   it("invalidates cookie assurance after verified-email and ordinary role changes", async () => {
     const changedEmail = await verified(actors[8]);
+    const emailNative = native(actors[8]);
     await query(`update auth.users set email='cookie-changed@example.invalid',email_confirmed_at=clock_timestamp() where id='${actors[8]}';`);
     check((await get("protected", changedEmail)).status === 403, "old receipt cannot approve a changed verified destination");
+    check((await directResource(emailNative)).length === 0, "changed verified email invalidates old bearer proof in RLS");
     const changedRole = await verified(actors[9]);
+    const roleNative = native(actors[9]);
     await query(`update msrc_authorization.role_grants set state='revoked',revoked_at=clock_timestamp(),
       revocation_reason='Disposable cookie revocation' where actor_id='${actors[9]}' and edition_key='${edition}';`);
     check((await get("protected", changedRole)).status === 403 && (await request("issue", changedRole)).status === 403,
       "loss of staff role cannot become staff lab access");
+    check((await directResource(roleNative)).length === 0, "revoked ordinary grant denies direct read under old bearer");
   });
 
-  it("denies idle and absolute expiry after explicit accelerated native/session clock fixtures", async () => {
+  it("refuses cookie issuance for idle and absolute expiry after pre-observation native-clock fixtures", async () => {
     for (const [id, interval, reason] of [[actors[10], "31 minutes", "idle_expired"], [actors[11], "9 hours", "absolute_expired"]] as const) {
-      const credential = await verified(id);
-      const own = native(id);
-      const sessionId = sid(own);
-      await query(`update auth.sessions set created_at=clock_timestamp()-interval '${interval}' where id='${sessionId}';
-        update msrc_sessions.session_state set started_at=(select created_at from auth.sessions where id='${sessionId}'),
-          last_activity_at=(select created_at from auth.sessions where id='${sessionId}') where session_id='${sessionId}';`);
-      const expired = await readVerifiedSessionContext(own.access_token, edition);
-      check(expired.state === "verified" && expired.context.reason === reason, "database enforces accelerated expiry boundary");
-      check((await get("protected", credential)).status === 403 && (await request("refresh", credential)).status === 403,
-        "cookie/native-origin binding and current expiry deny both read and refresh");
+      originFixture = { actorId: id, elapsed: interval, reason: null };
+      try {
+        const response = await request("login", undefined, { email: email(id), password });
+        check(response.status === 403 && !response.setCookie && originFixture.reason === reason,
+          "actual native expiry is evaluated before any opaque cookie is issued");
+        const own = native(id);
+        const refresh = await client().auth.refreshSession({ refresh_token: own.refresh_token });
+        check(Boolean(refresh.error) && !refresh.data.session, "denied aged native login is signed out and cannot refresh");
+      } finally { originFixture = null; }
     }
   });
 

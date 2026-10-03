@@ -5,7 +5,8 @@
 Continued the organizer-authorized next slice on `codex/email-authenticator-no-sms`
 from2593345, preserving original checkout edits/untracked work. Fresh remote main is
 111292c; no unrelated public changes were merged into this stacked draft. PR25 remains
-draft against PR19. No migration, dependency or production configuration was changed.
+draft against PR19. No dependency or production configuration was changed. New schema
+changes remain review-only and are exercised only on disposable GitHub runners.
 
 Added optional Windows loopback staff test delivery with a private local helper,
 existing encrypted replacement credential and the confirmed self-recipient outside Git.
@@ -28,10 +29,51 @@ No production Next login/API/action or server session store is enabled by this f
 
 Executed locally: `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm test`1378/30files PASS;
 `pnpm build`42pages PASS.23 new managed-lab boundary/factory units are included.
-Windows helper pure validation/quota/template/gate checks41 PASS in PowerShell5.1 and7.
+Windows helper pure validation/quota/template/gate checks41 PASS and private fixture
+runtime checks118 PASS in each of PowerShell5.1 and7. Runtime coverage uses fake SMTP,
+private synthetic encrypted fixtures, persistent reservations, restart/send limits,
+competing processes, forced termination, ACL/junction rejection and unchanged original
+credential/attempt metadata. No real credential values were read by fixture tests.
 Database/native integration checks are NOT RUN locally; no Docker is required or used.
-Browser checks, private-fixture helper runtime tests and the bounded real test send are
-recorded below after execution. New native HTTP integration evidence awaits scoped CI.
+Auth browser suite75 PASS locally. Public browser run299 PASS/1 FAIL/3 existing skips;
+the one Arabic mobile cinematic case passed its targeted rerun. CI37142177606 app job
+passed lint/types/unit/build,300 public browser tests (3 existing skips) and75 auth
+browser tests at00d1037. The loopback inbox-mode preview was also inspected after
+simulated password login in EN/AR at1440/791/390px: correct direction, no horizontal
+overflow, no page errors and no displayed email code. No email was sent by this check.
+Its database job passed migration lint,393 SQL assertions, advisors and type generation,
+then native integration56 PASS/7 FAIL. Existing46 native cases passed. The new cases
+exposed a read-only Data API/RLS issue, a Fetch Host-header test normalization issue and
+an expiry fixture correctly rejected by the immutable-origin guard. These are being
+corrected before claiming the new managed cookie suite passes.
+
+Correction: additive review migration20261003180734 separates stable read-only
+observation/own-role projection from the unchanged volatile POST initialization RPC.
+`msrc_second_step_satisfied` and new `msrc_read_access_context` share the calling
+statement snapshot for role plus receipt checks. Private observers preserve current
+native password/email revision/grant fingerprint/TOTP precision/lifecycle and clocks;
+missing initialized state denies. Independent review found no remaining security issue.
+Added109 SQL assertions for readonly positive/denied reads, policy/receipt/factor
+parity, permissions and unchanged session/receipt/audit state. One existing staff fixture
+now explicitly calls the trusted initializer before expecting direct-read success.
+Native HTTP tests use literal Host headers, age expiry fixtures before first observation
+and add direct stale-bearer GET denial after suspension, email/grant changes and new login.
+The corrected database suite awaits disposable CI; it has not run on this computer.
+
+Executed the ignored local single-flow driver once at20:58 Riyadh on3October2026:
+one English synthetic staff-code email was accepted by Gmail SMTP. The driver uses
+simulated password/session evidence and the actual private sender helper, with the code
+held only in memory. It proved API/UI code suppression, exact synthetic session binding,
+wrong/reused/new-login denial, unchanged refresh origin and logout revocation; it does
+not prove inbox possession. Human receipt of this new code message remains unconfirmed.
+Loopback inbox/code-entry preview: http://127.0.0.1:3221/en/staff-security-preview
+(Arabic under /ar). The automatically exercised code has expired; request a fresh code
+for manual preview. Persistent local reservations remain; do not reset them to retry.
+
+Automatic approval review rejected recursive cleanup of nine older private synthetic
+helper-test folders after a Windows5.1 junction cleanup failure. They remain in place.
+The corrected harness successfully cleaned all fixtures from its final runs. Original
+credentials and eight earlier email-readiness attempt records were preserved.
 
 All15 workflows and operational/privileged readiness remain false. No merge/deploy,
 hosted migration/reset/fixture, real account/invitation/grant/reset, paid resource,

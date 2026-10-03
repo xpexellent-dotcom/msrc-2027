@@ -1307,8 +1307,20 @@ staff accounts, other recipients, production SMTP or managed Auth changes.
 - Storage is disabled on the disposable stack. Its unavailable route cannot prove
   private-object authorization. Real domain storage policies and human inbox/login,
   screen-reader/device, recovery and outage UAT remain release gates.
+- Native cookie CI exposed an existing read-only RLS incompatibility: GET/HEAD cannot
+  call a locking/mutating context. The additive review-only migration
+  `20261003180734_readonly_authentication_context.sql` preserves all assurance rules
+  while separating pure statement-snapshot observation from trusted initialization
+  and mutation. Stable role projection and authentication predicates share the same
+  snapshot (`msrc_read_access_context` and `msrc_second_step_satisfied`). Missing
+  initialized history denies; reads cannot touch idle/absolute clocks. The existing
+  volatile `msrc_access_context` stays the POST initializer, not an RLS read helper.
+  Existing write RPC semantics and historical migrations remain unchanged. Read
+  snapshots observe revocations committed before the statement; subsequent statements
+  observe later revocations. This is not permission or workflow activation.
 
-No new migration, dependency, hosted fixture/reset, deployment, merge, paid service,
-recovery action or production readiness change is authorized or performed by this slice.
+The new migration is review-only and tested exclusively in disposable CI. No dependency,
+hosted migration/fixture/reset, deployment, merge, paid service, recovery action or
+production readiness change is performed by this slice.
 Recent-auth age, warning lead, named distinct recovery custodians/procedure and
 privacy/retention/location remain unresolved. Executed evidence belongs in PROGRESS.
