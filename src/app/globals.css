@@ -34,7 +34,6 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 .message-page { min-height: 58vh; padding-block: 5rem; }
 .message-page h1 { margin-block: 1rem; color: var(--color-purple); font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.25; max-width: 800px; }
 .message-page > p { max-width: 580px; }
-.action-link { display: inline-flex; align-items: center; min-height: 44px; margin-block-start: 1.5rem; padding: .7rem 1.1rem; border: 0; border-radius: 4px; background: var(--color-purple); color: var(--color-ivory); }
-.message-actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: baseline; }
+.message-actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-block-start: 1.5rem; }
 .text-link { text-decoration: underline; text-underline-offset: 4px; padding-block: .7rem; }
 .loading-line { width: min(300px, 80%); height: 5px; margin-block-start: 1rem; background: var(--color-lilac); }

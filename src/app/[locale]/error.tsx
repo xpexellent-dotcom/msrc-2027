@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { defaultLocale, dictionaries, isLocale } from "@/lib/i18n";
 
 export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
@@ -13,7 +14,7 @@ export default function ErrorPage({ reset }: { error: Error & { digest?: string 
       <h1>{copy.errorTitle}</h1>
       <p>{copy.errorDescription}</p>
       <div className="message-actions">
-        <button className="action-link" onClick={reset}>{copy.retry}</button>
+        <Button onClick={reset}>{copy.retry}</Button>
         <Link className="text-link" href={`/${locale}`}>{copy.home}</Link>
       </div>
     </section>

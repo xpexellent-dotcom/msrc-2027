@@ -1,5 +1,19 @@
 /* DSN-02 / CFG-12 / ENG-007: organizer-selected M2 implementation baseline.
    Semantic state values are local engineering defaults, not organizer decisions. */
+/* Arabic text before Noto Sans Arabic arrives. Tahoma's Arabic is close to Noto's width (Arial's is
+   about 25% narrower); size-adjust and the metric overrides match Noto's average advance and line
+   box, so lines keep their wrap and height at the swap. Arabic code points only, so Latin text and
+   1ch are untouched. Where Tahoma is not installed the face is skipped. */
+@font-face {
+  font-family: "MSRC Arabic Fallback";
+  src: local("Tahoma");
+  size-adjust: 107%;
+  ascent-override: 128.4%;
+  descent-override: 69%;
+  line-gap-override: 0%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
 :root {
   --color-purple: #3b1e6d;
   --color-gold: #c9a24a;
@@ -31,7 +45,7 @@
   --font-display: var(--font-manrope), var(--font-dm-sans), Arial, sans-serif;
   --font-body: var(--font-inter), Arial, sans-serif;
   --font-interface: var(--font-body);
-  --font-arabic: var(--font-noto-arabic), Tahoma, Arial, sans-serif;
+  --font-arabic: var(--font-noto-arabic), "MSRC Arabic Fallback", Tahoma, Arial, sans-serif;
   --text-caption: 0.875rem;
   --text-body: 1rem;
   --text-lead: clamp(1.0625rem, 1.4vw, 1.1875rem);
@@ -88,7 +102,7 @@
 }
 
 [lang="ar"] {
-  --font-display: var(--font-noto-arabic), Tahoma, Arial, sans-serif;
+  --font-display: var(--font-arabic);
   --font-interface: var(--font-arabic);
   --font-heading: var(--font-arabic);
   --font-body: var(--font-arabic);

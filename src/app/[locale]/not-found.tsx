@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
+import { ButtonLink } from "@/components/ui/button";
 import { defaultLocale, dictionaries, isLocale } from "@/lib/i18n";
 
 export default function NotFound() {
@@ -10,10 +10,13 @@ export default function NotFound() {
   const copy = dictionaries[locale];
   return (
     <section className="message-page site-container">
-      <p className="eyebrow" dir="ltr">{locale === "ar" ? "٤٠٤" : "404"}</p>
+      {/* No dir override: an LTR block would pin the Arabic eyebrow to the wrong edge. */}
+      <p className="eyebrow">{locale === "ar" ? "٤٠٤" : "404"}</p>
       <h1>{copy.notFoundTitle}</h1>
       <p>{copy.notFoundDescription}</p>
-      <Link className="action-link" href={`/${locale}`}>{copy.home}</Link>
+      <div className="message-actions">
+        <ButtonLink href={`/${locale}`}>{copy.home}</ButtonLink>
+      </div>
     </section>
   );
 }
