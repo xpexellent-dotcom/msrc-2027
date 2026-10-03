@@ -18,7 +18,7 @@ Akram Awan is the project requester and has identified his role in conversation 
 | Event dates | Day 1: 27 January 2027; Day 2: 28 January 2027 | Confirmed by the project requester in the current chat on 1 October 2026; see ORG-001 in DECISIONS |
 | Venue and schedule | Venue, rooms, doors/session start times and workflow windows remain unset | Remaining CFG-01 and track-specific gates; date confirmation does not approve these values |
 | Ownership | MSRC/RPClub organizational accounts with institutional authorization, O1 | Selected model; custodians/authorization evidence pending |
-| Hosting and data | Managed Vercel plus managed Supabase | Project ecemjggwlzqpjcwmchrl designated Production by ORG-010; production plan/region/privacy/operational approvals unresolved; synthetic data isolated |
+| Hosting and data | Managed Vercel plus managed Supabase | Project ecemjggwlzqpjcwmchrl designated Production by ORG-017; production plan/region/privacy/operational approvals unresolved; synthetic data isolated |
 | Payments | Authorized KAU arrangement, P1 | Selected route; actual interface and finance rules pending |
 | Main product reference | Development Specification v0.5 | Current live source reviewed on 29 September 2026 |
 | Build status | Next.js foundation, bilingual public pages and closed persisted authority implemented | Current receipts in PROGRESS; BL-AUTH-05/06 add a local synthetic preview and review-only session migration; live staff/operational access stays closed |

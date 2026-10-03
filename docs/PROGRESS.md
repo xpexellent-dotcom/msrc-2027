@@ -1,5 +1,57 @@
 # Progress and session handover
 
+## 4 October 2026 — PR25 rebased onto main including PR28
+
+Rebased `codex/email-authenticator-no-sms` from cf1b60a onto current main
+1cac8754cac41c49228f5074271fda22f16581a4 (PR28 included), replaying the complete
+31-commit authentication stack. A local backup branch retains the previous head:
+`codex/email-authenticator-no-sms-pre-main-20261004`. The force push uses an explicit
+lease on the previously observed remote head; PR25 is retargeted to main for review.
+
+Resolved DECISIONS and PROGRESS conflicts by retaining both public-site and auth
+records. All 39 main progress entries remain, including the PR28 QA entry and the
+authentication closeout. Main's public ORG-010–013 IDs are preserved; colliding auth
+records now use ORG-017–020 with dated aliases. Current references and the obsolete
+BL-AUTH-02/03/05/06 issue-index descriptions are reconciled. Historical progress,
+source snapshots and all migration SQL remain unchanged.
+
+Retained main's Arabic-first root redirect, indexing, canonical-domain/alias redirects,
+structured data, calendar, manifest and public motion changes. CI still runs branch
+checks through pull requests and push checks only on main, with the authentication
+browser step and disposable managed database tests. Authentication branch Git
+deployments remain disabled. No new application behavior or migration is introduced.
+
+Executed locally on the combined tree (bundled Node 24.19.0, pnpm 11.19.0; CI keeps
+the repository's Node 24.21.0 pin):
+
+- `pnpm check`: PASS — lint, route type generation/TypeScript, 1405 unit tests across
+  35 files, optimized production build with 43 generated pages.
+- `pnpm exec playwright test --config playwright.auth.config.ts`: PASS — 75 tests,
+  47.1 seconds; English/Arabic desktop/tablet/mobile, keyboard/accessibility, email
+  failures/retry/session binding, authenticator setup/replay, revocation and immutable
+  72-hour participant expiry. No delivery or hosted identity is used.
+- `git diff --check`: PASS. Auth code/SQL/tests match the pre-rebase branch; selected
+  public feature paths match main. Original source snapshots are unchanged.
+- CSV validation: PASS — 165 unique issue records, nine columns; no duplicate canonical
+  decision identifiers remain. Original checkout edits/untracked files are preserved.
+
+New-head combined application/database CI is verified separately in the PR/checklist
+before merge. No local database/Docker, hosted migration/reset/seed, production Auth,
+deployment, real email/account/grant/reset or additional recovery rehearsal is performed.
+Human UAT, actual Storage policies, production email/cookie/session-store custody,
+recent-auth/warning timing, recovery and privacy/location approvals remain release gates.
+
+PR supersession: PR2 head9e018ae is already an ancestor of main with zero unique
+commits. PR19's only commit absent from the pre-rebase PR25 was the PR22 merge commit,
+whose tree equals an included commit5977eb7; no unique implementation is lost. Recommend
+closing PR19 after PR25 merges and is verified; PR2 is safe to close now. Neither is
+closed in this task. Next development item remains BL-PUB-06 Contact + BL-PUB-08
+Privacy/Terms, starting with truthful bilingual closed scaffolds pending approved facts.
+
+Rollback: restore the local backup branch/history if needed before integration. No hosted
+rollback is needed. Earlier receipt counts below describe their original heads, not this
+rebased tree; the latest CI/checklist/PR identify the current review head.
+
 ## 3 October 2026 — Authentication foundation closeout
 
 The organizer reported that the isolated preview works, confirmed Super Admin

@@ -8,6 +8,24 @@ Supporting source: **S2 Hackathon Draft**, modified 2026-09-29 11:09:52 UTC / 14
 
 Planning companion: [Decision Required backlog](backlog/DECISION_REQUIRED.md) maps every CFG-01–CFG-13 packet to actionable questions and affected release gates. Creating that backlog resolved no organizer decision and changed no confirmed choice, default, source snapshot or production configuration.
 
+## Decision identifier reconciliation — 4 October 2026
+
+Parallel public-site and authentication branches reused ORG-010 through ORG-013.
+Integration preserves main's public identifiers and assigns new canonical identifiers
+to the four authentication records below. This changes references only, not organizer
+instructions, dates, policy values or release approvals.
+
+| Former authentication label | Canonical identifier | Record |
+|---|---|---|
+| ORG-010 | ORG-017 | Production Supabase designation, 2 October 2026 |
+| ORG-011 | ORG-018 | Intended website Super Admins, 2 October 2026 |
+| ORG-012 | ORG-019 | Participant 72-hour absolute maximum, 2 October 2026 |
+| ORG-013 | ORG-020 | Historical participant-phone/staff-SMS decision, 3 October 2026; superseded by ORG-016 |
+
+Dated progress/source/migration receipts retain their former labels and are interpreted
+by topic and date using this table. Current authentication requirements use the new
+identifiers. ORG-014, ORG-015 and ORG-016 remain unchanged.
+
 ## 1. How to interpret status
 
 | Status | Meaning |
@@ -77,7 +95,7 @@ The source selects providers and intended ownership; it does not create accounts
 
 | Conflict / ambiguity | Source evidence | Governing behavior until resolved | Who decides / dependent gate |
 | --- | --- | --- | --- |
-| National ID and phone | S2 5.1 requests national ID/phone; S1 excludes ID and makes phone conditional. ORG-016 supersedes ORG-013 authentication phone requirements. | National ID stays excluded. No authentication phone collection/verification or SMS; unrelated optional domain purposes remain separately gated. | Hackathon + privacy/technical owners; production profile collection and unrelated phone use. |
+| National ID and phone | S2 5.1 requests national ID/phone; S1 excludes ID and makes phone conditional. ORG-016 supersedes ORG-020 authentication phone requirements. | National ID stays excluded. No authentication phone collection/verification or SMS; unrelated optional domain purposes remain separately gated. | Hackathon + privacy/technical owners; production profile collection and unrelated phone use. |
 | WhatsApp group | S2 6.1 mentions online orientation with WhatsApp group. S1 EML-01 confirms email-only platform and HAC-10 flags discrepancy. | No WhatsApp integration/automated notifications or automatic phone sharing. Decide separately whether an optional external organizer-run group exists. | Hackathon + operations/privacy owners; participant onboarding. |
 | Solo finalist quota | S2 4.3 states eight teams per track, sixteen teams total; C3 also permits solo competition. | Do not assume extra solo spaces or sixteen people. One project per solo/team consuming an entry is only S1 HAC-07 proposal, not approved. | Hackathon lead; ranking/selection publication. |
 | Eligibility | S2 3.1 broad university student/intern sentence remains labelled Options, even though international eligibility and no-healthcare-member answers are clear. | Preserve answered choices, withhold final broad eligibility rule until approved. | Hackathon lead; application opening. |
@@ -126,7 +144,7 @@ These are source defaults and service objectives, not measured production perfor
 | --- | --- |
 | AUTH-02 | Participant email verification source defaults remain ten minutes, resend60s, <=3/email/15min, <=5 failures/code. ORG-015 carries approved staff email controls: six digits/5min, resend60s,3/account/15min,10/rolling24h,20/IP/hour,5 failures/15min cooldown,newest only. ORG-016 retires all SMS delivery/provider/budget/control requirements; these email controls remain. Native TOTP protocol/lab bounds are not an approved production abuse policy. |
 | AUTH-03 | Additional challenge/cooldown after five failed password attempts/15 minutes, no permanent lock. |
-| AUTH-05 | ORG-012 supersedes participant 24h default: confirmed absolute maximum 72h from original session creation, never restarted by refresh. Privileged idle 30min/absolute 8h remain. Recent-auth age and warning lead TBD; dependent actions closed. |
+| AUTH-05 | ORG-019 supersedes participant 24h default: confirmed absolute maximum 72h from original session creation, never restarted by refresh. Privileged idle 30min/absolute 8h remain. Recent-auth age and warning lead TBD; dependent actions closed. |
 | AUTH-08 | Remove abandoned unverified accounts after seven days only if no required record prevents cleanup. |
 | ABS-04 | Whitespace tokens with letter/digit; no-space hyphenated term one word; shared client/server implementation. |
 | ABS-07 | Withdrawn finalized research entries continue counting within two-per-PI cap unless logged exception. |
@@ -1017,7 +1035,7 @@ v0.5 and earlier source snapshots stay unchanged.
   approve content, brand or operations; those remain under REL-01/CFG-12. Google Search
   Console registration is the requester's step.
 - Affected IDs: SCP-01, DSN-01, LOC-01/03, INF-04/06, REL-01.
-## ORG-010 — Production Supabase designation, 2 October 2026
+## ORG-017 — Production Supabase designation, 2 October 2026
 
 Authority: explicit organizer instruction in this conversation on 2 October 2026.
 Project `ecemjggwlzqpjcwmchrl` is Production. This resolves the environment classification
@@ -1027,7 +1045,7 @@ Production plan, region/data location, privacy/retention and operational approva
 unresolved. New migrations are review-only; no hosted reset, seed, historical migration push
 or repeat of deployed `20261002173712_persisted_authorization.sql`. INF-04, CFG-09/10/11.
 
-## ORG-011 — Intended website Super Admins, 2 October 2026
+## ORG-018 — Intended website Super Admins, 2 October 2026
 
 Authority: explicit organizer instruction in this conversation on 2 October 2026.
 Akram Awan is the first intended website Super Admin; second and third remain TBD.
@@ -1039,7 +1057,7 @@ administrators, verified appointment/MFA and offboarding evidence remain require
 privacy/retention/location and live security-email provider/sender remain TBD. Console/test
 email only; this slice sends no real security notification.
 
-## ORG-012 — Participant absolute session maximum, 2 October 2026
+## ORG-019 — Participant absolute session maximum, 2 October 2026
 
 Authority: explicit organizer instruction in this conversation on 2 October 2026.
 AUTH-05 participant absolute maximum becomes 72 hours from original session creation,
@@ -1052,7 +1070,7 @@ sensitive actions stay closed.
 
 ## ENG-011 — Closed local staff security foundations, 2 October 2026
 
-Historical TOTP implementation decision; ORG-013 temporarily superseded its factor/UI choice. ORG-016 restores Super Admin authenticator TOTP while regular staff retain ORG-015 email checking. Local-only, synthetic-data, audit and closed release boundaries continue to apply.
+Historical TOTP implementation decision; ORG-020 temporarily superseded its factor/UI choice. ORG-016 restores Super Admin authenticator TOTP while regular staff retain ORG-015 email checking. Local-only, synthetic-data, audit and closed release boundaries continue to apply.
 
 Authority: bounded BL-AUTH-05/06 task; AUTH-04/05, ROL-12, SEC-01/06, LOC-01, ERR-01.
 The local synthetic TOTP lab uses temporary individually scoped identities, server-held
@@ -1069,7 +1087,7 @@ idle evidence changes; refresh/context reads are never activity. No domain Autho
 feature RLS, signup, CMS, operational workflow, email provider or production authorization
 is added. Verification/rollback/release gates are recorded in the feature note and PROGRESS.
 
-## ORG-013 — Participant verification and staff SMS authentication, 3 October 2026
+## ORG-020 — Participant verification and staff SMS authentication, 3 October 2026
 
 **Historical decision:** ORG-016 supersedes every phone/SMS authentication requirement below. ORG-015 regular-staff email controls and the distinct-person/in-person recovery safeguards remain current; no SMS provider, sender or budget is required now.
 
@@ -1097,7 +1115,7 @@ exclusion. Preserve `sources/Development_Specification_v0.5.txt` and dated TOTP 
   password. Its ephemeral test inbox displays generated email/SMS codes only when issued;
   no real delivery/account/invitation/grant/reset is performed. Live provider and both
   readiness flags remain false. No participant signup or operational workflow is added.
-- ORG-012's participant 72h and privileged 30min idle/8h absolute limits remain; refreshing
+- ORG-019's participant 72h and privileged 30min idle/8h absolute limits remain; refreshing
   a token never changes the original absolute origin. New hosted migrations remain review-only.
 
 The organizer reported the previous preview worked. This is bounded feedback on the
@@ -1154,8 +1172,8 @@ bounded requester feedback, separate from real SMS delivery and real-human UAT.
 Authority: the organizer's explicit narrow amendment in this conversation. Replace
 SMS OTP for **regular staff only** with password followed by a fresh code delivered
 to the account's current verified email from trusted managed records. Super Admins
-retain ORG-013's password/SMS phone MFA; participants retain email/password plus
-email and phone verification without MFA. Roles/grants, ORG-012's participant 72h
+retain ORG-020's password/SMS phone MFA; participants retain email/password plus
+email and phone verification without MFA. Roles/grants, ORG-019's participant 72h
 and privileged 30min idle/8h absolute limits, and all operational gates are unchanged.
 
 Conflicts flagged before implementation: current code/draft documents treated every
@@ -1365,3 +1383,25 @@ Privacy/Terms. Build truthful bilingual closed scaffolds while controller/contac
 service-processing/location/retention facts and final copy approval remain pending.
 This is separate from review/merge of PR19/25 and unresolved authentication release
 approvals. No merge, deployment or production authentication change is authorized.
+
+## ENG-014 — Rebase the closed authentication foundations onto main, 4 October 2026
+
+Authority: the organizer requests rebasing `codex/email-authenticator-no-sms` (PR25)
+onto current main including PR28, retaining both PROGRESS entries, running `pnpm check`
+and the authentication Playwright configuration, pushing and marking ready for review.
+
+- Rebase the complete authentication stack onto main 1cac875, preserve both public and
+  authentication progress/decision records, and target PR25 directly at main. Preserve
+  current public motion, indexing, locale redirects, structured data and calendar.
+- Retain main's push-to-main-only CI trigger together with the auth browser and disposable
+  managed database checks. Both authentication branch deployment-disable entries remain.
+- Resolve parallel decision-ID collisions as documented at the start of this register;
+  no organizer policy is changed. Correct the current issue index's obsolete phone/SMS
+  descriptions, preserving source snapshots, historical receipts and migration contents.
+- PR25 contains PR19's implementation with the explicit later email/TOTP amendments.
+  PR19 has no unique implementation requiring a separate merge; recommend closing it as
+  superseded after PR25 is merged and verified. PR2's complete head is already an ancestor
+  of main and can be closed now. This task reports those findings without closing either PR.
+- Ready for review is not merge/release approval. All operational/readiness gates remain
+  false; no deployment, hosted migration/reset/fixture, live account/grant/reset or test
+  email is performed. Current execution receipts belong in PROGRESS and the PR.

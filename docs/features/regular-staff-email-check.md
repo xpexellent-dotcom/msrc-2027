@@ -1,7 +1,8 @@
 # BL-AUTH-05/06 — Regular staff email-check amendment
 
 ORG-015, 3 October 2026. AUTH-04/05, ROL-12, SEC-01/06, LOC-01, ACC-01, ERR-01.
-This is a narrow amendment to the unmerged PR19 foundation. The original v0.5 source,
+PR25 includes the preceding PR19 foundation and this amendment, rebased onto current
+main for one combined review. The original v0.5 source,
 deployed authorization migration and preceding session migration remain unchanged.
 
 ## Current flow and conflicts
@@ -239,7 +240,7 @@ Live staff access, every operational workflow and all readiness stay closed.
 
 Next checklist development item: BL-PUB-06 Contact and BL-PUB-08 Privacy/Terms, starting
 with truthful bilingual closed scaffolds until controller/contact and approved legal
-processing/location/retention facts are available. Stacked PR19/25 review is separate.
+processing/location/retention facts are available. Rebased PR25 review against main is separate.
 
 ## Changed areas and execution boundary
 

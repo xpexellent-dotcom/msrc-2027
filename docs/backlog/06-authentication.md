@@ -123,7 +123,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Source IDs:** AUTH-05, ROL-12, SEC-06, ERR-01.
 - **Status:** Partial — configurable server/database development foundations and expiry/revocation coverage implemented and verified; migrations review-only, no live activation or saved-draft module. See [feature note](../features/staff-security-foundations.md) and PROGRESS.
 - **Purpose:** Expire or revoke access predictably without losing already saved work.
-- **Scope:** ORG-012 participant absolute maximum 72h; privileged idle 30min and absolute 8h. Refresh never restarts absolute origin. Recent-auth age/warning lead TBD; dependent sensitive actions closed. Logout/suspension/recovery/factor-reset invalidation foundations; draft recovery belongs to its later workflow.
+- **Scope:** ORG-019 participant absolute maximum 72h; privileged idle 30min and absolute 8h. Refresh never restarts absolute origin. Recent-auth age/warning lead TBD; dependent sensitive actions closed. Logout/suspension/recovery/factor-reset invalidation foundations; draft recovery belongs to its later workflow.
 - **Exclusions:** Client timer as authority, unsaved input promised durable, arbitrary permanent session extension.
 - **Dependencies:** Managed identity; BL-AUTH-01; BL-FND-06; BL-AUTH-05 for assurance invalidation tests.
 - **Roles:** Participant; privileged staff; suspension administrator.

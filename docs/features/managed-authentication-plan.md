@@ -35,8 +35,8 @@ Recovery preserves suspension/revocation first, in-person identity/appointment r
 
 Recent-auth age, warning lead, privacy/retention/location, production plan/region and release remain unresolved. The organizer-reported local preview result is partial human feedback; the exact device/locale/accessibility extent was not specified. Managed CI cookies and local test email are separately verified. Their combined native-login/real-inbox/human flow, screen readers, actual private storage and genuine recovery UAT remain NOT TESTED. Keep live staff access closed.
 
-The closed authentication foundations are implemented and reviewable in PR25 stacked
-on PR19; current executed receipts are in PROGRESS. The organizer requested finishing
+The closed authentication foundations are implemented in PR25, now rebased onto current
+main for review; current executed receipts are in PROGRESS. The organizer requested finishing
 these foundations without an additional synthetic recovery rehearsal. Recovery stays
 a Super Admin responsibility with the existing distinct-person/in-person safeguards;
 names, exact evidence/procedure and recent-auth age remain gates.

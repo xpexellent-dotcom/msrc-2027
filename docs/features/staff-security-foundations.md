@@ -67,4 +67,4 @@ constraint do not authorize a live recovery API.
 
 Next checklist development item: BL-PUB-06 Contact and BL-PUB-08 Privacy/Terms, with
 truthful bilingual closed scaffolds while approved controller/contact and legal copy
-remain pending. Review of stacked PR19/25 is separate from production release.
+remain pending. Review of rebased PR25 against main is separate from production release.
