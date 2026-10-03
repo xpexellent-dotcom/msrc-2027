@@ -30,11 +30,12 @@ mutation. Expiry resamples after factor-lock waits. Prior migrations unchanged; 
 apply, reset/seed, production Auth, real messages/accounts/invites/grants/resets or spending.
 Branch Git deployment remains disabled; local preview only.
 
-Executed local so far: lint PASS; typecheck PASS; unit1301/28files PASS after fixing a
+Executed local: lint PASS; typecheck PASS; unit1301/28files PASS after fixing a
 retired phone action in the participant test helper; production build42pages PASS.
 Public browser300 PASS/3 existing skips; revised auth browser69 PASS. Local EN/AR
 preview3220 and health200, correct RTL, no phone inputs/overflow/page errors at1440,
-791 and390px; transient setup disappears on reload. QR/key/code captures are masked.
+791 and390px; transient setup disappears on reload. QR/key/code captures are masked;
+all12 responsive setup/reload captures were inspected.
 No local Docker/database runtime is run.
 
 PR25 is the new draft against current unmerged PR19. Initial isolated CI37120098412
@@ -42,7 +43,21 @@ atcf4963e passed lint/types/units/build and393 SQL assertions, database lint/adv
 generated public types, but44/46 integrations passed: two genuine positive TOTP cases
 failed because the draft used noncanonical AMR method mfa/totp. Pinned GoTruev2.197.0
 uses totp. Corrected only current override/positive fixtures/SDK assertions, retaining
-full-precision ordering; managed runtime rerun is pending. This is a correction, not a
+full-precision ordering. Corrected code6204db3 passed full
+[CI37120525547](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37120525547):
+lint/types,1301 units/28files,42-page production build,300 public+69 auth browser tests
+with3 existing public skips;393 SQL assertions/5files and46 integrations/5files
+(13 genuine managed Auth,17 staff email,10 local wrappers,4 denial,2 concurrency).
+Database lint, security advisors (no issues), generated public types and shutdown PASS.
+Completed application/database job logs inspected; actual GoTruev2.197.0.
+Executed local commands: pnpm lint, pnpm typecheck, pnpm test, pnpm build,
+pnpm test:e2e and pnpm exec playwright test --config playwright.auth.config.ts.
+The disposable unlinked loopback GitHub runner additionally ran pnpm db:reset,
+pnpm db:lint, pnpm db:test, security advisors, generated schema types and managed
+integration tests; db:reset was never run against a hosted project or this computer.
+The final receipt/documentation commit will receive its own CI check; the tested
+code receipt above identifies the source tested without asserting an unrun later head.
+This is a correction, not a
 timestamp tolerance or reduced assurance policy. Historical migrations remain unchanged.
 One visual diagnostic timeout printed a synthetic setup key; restarted the lab to revoke
 all synthetic sessions and wrapped diagnostics to withhold sensitive browser errors.

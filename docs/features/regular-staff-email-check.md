@@ -132,7 +132,7 @@ ORG-016 retires Super Admin/participant SMS delivery and newest-SMS-challenge re
 | Server email adapter | `src/features/auth/staff-email.server.ts` |
 | Policy and authorization | `src/config/authentication-policy.ts`, `src/lib/auth/session-policy.server.ts`, permission contracts/parsers/authorization and managed session adapter |
 | Synthetic UI/API | Auth preview service, copy/components, `src/app/api/auth-preview/route.ts` |
-| New database evidence | `supabase/migrations/20261002233353_regular_staff_email_check.sql`, `supabase/tests/database/regular_staff_email.test.sql`; existing permission fixture amended for the stronger staff predicate |
+| Current database amendment | `supabase/migrations/20261003110812_authenticator_super_admin_policy.sql` overrides current participant/Super Admin assurance; the earlier email/session review migrations remain unchanged. Database fixtures exercise the unchanged staff receipt and current authenticator predicate |
 | Managed test harness | `scripts/prepare-ci-managed-auth.ts`, managed-auth/email integration tests, unit/browser coverage and CI database-lint schema list |
 | Review/deployment boundary | `vercel.json` branch deployment guard; current authentication requirements, decisions, progress and boundary notes |
 
