@@ -22,6 +22,35 @@ Executed locally (Node 25.6.0, repository binaries; pnpm not on PATH):
 NOT TESTED: opening the file in desktop Microsoft Excel, Google Sheets or LibreOffice.
 Pending organizer review: Arabic instruction wording and the `/media/speakers/` portrait path.
 
+## 4 October 2026 — PR30 public policy attribution review
+
+Removed personal drafting/retention/request attributions from EN/AR Privacy/Terms,
+shared draft notices and metadata. Public requests now say "Our privacy lead responds
+within 30 days" and the equivalent Arabic role wording. ORG-027 records the amendment;
+all named responsibility records remain in DECISIONS. Photography-publication wording
+is unchanged and remains a placeholder for Emad. No policy effectiveness, retention,
+Contact/auth/session/readiness or delivery gate changes.
+
+The 20 targeted policy unit tests and scoped ESLint pass, including rendered EN/AR
+latest/dated Privacy/Terms and metadata name-exclusion coverage. Rebased onto current
+main bb63d73, which includes PR29 content intake and PR31 email runbook, preserving
+the content-intake and Contact/review entries. Original caller work is preserved.
+
+Executed on the combined revision (Node 24.19.0, pnpm 11.19.0):
+
+- `pnpm check`: PASS — lint, typecheck, 1,579 unit tests / 39 files, 53-page build.
+- `pnpm exec playwright test tests/e2e/policies.spec.ts`: PASS — 18 cases, including
+  latest/dated EN/AR, desktop/tablet/mobile, axe, keyboard, enlarged text and 404s.
+  Next logs `NoFallbackError` during invalid-route probes; asserted responses are 404
+  and valid policy pages have no observed browser errors.
+- `git diff --check`: PASS. Independent comparison confirms photography fact and
+  publication-placeholder blocks are unchanged, existing named decision records are
+  preserved, and no auth/Contact/session/readiness paths changed in the amendment.
+
+Final-head CI receipts are recorded on the updated PR; no local database, production
+configuration, real email or merge is performed by this review amendment. Real-human
+policy/legal review remains NOT TESTED and final wording remains pending.
+
 ## 4 October 2026 — BL-PUB-06 Contact and BL-PUB-08 policy drafts
 
 Fresh GitHub reads confirm PR25 merged into main 7361164a1277ba442744845450c14134e64a6293

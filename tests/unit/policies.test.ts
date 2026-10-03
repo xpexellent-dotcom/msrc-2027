@@ -3,6 +3,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { currentPolicyVersion, getPolicyDocument, isPolicyVersion, policyKinds, policyVersions } from "@/content/policies";
 import { PolicyPage } from "@/features/policies/policy-page";
+import { policyPageMetadata } from "@/features/policies/policy-metadata";
+
+// Internal accountable people remain in decision records, not public policy output.
+// First names also catch partial attribution; Arabic spelling/spacing variants
+// prevent a superficial transliteration edit from restoring the same disclosure.
+const privateOrganizerNames = /\b(?:Emad|Abdulrahman|Akram)\b|عماد|عبد\s*الرحمن|[أا]كرم/iu;
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -28,8 +34,7 @@ describe("versioned draft policies (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
       expect(arabic.sections.map(({ id, status }) => ({ id, status }))).toEqual(english.sections.map(({ id, status }) => ({ id, status })));
       expect(new Set(english.sections.map(({ id }) => id)).size).toBe(english.sections.length);
       for (const locale of ["en", "ar"] as const) {
-        const { document, labels } = getPolicyDocument(kind, locale);
-        expect(labels.approvalNotice).toMatch(locale === "en" ? /Emad Khoja/ : /عماد خوجة/);
+        const { document } = getPolicyDocument(kind, locale);
         for (const section of document.sections) {
           expect(section.paragraphs.length).toBeGreaterThan(0);
           if (section.status === "placeholder") {
@@ -46,18 +51,20 @@ describe("versioned draft policies (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
     expect(retention.paragraphs.join(" ")).toContain("one year after the conference");
     expect(retention.paragraphs.join(" ")).toContain("name, certificate number and date");
     expect(retention.paragraphs.join(" ")).toContain("two years");
-    expect(retention.paragraphs.join(" ")).toContain("Abdulrahman Ismail");
     const implementation = document.sections.find(({ id }) => id === "retention-details")!;
     expect(implementation.status).toBe("placeholder");
     expect(implementation.paragraphs.join(" ")).toContain("start of the certificate record’s two-year period");
   });
 
-  it("gives the decided data-request channel, response period, owner and localized KAU links", () => {
+  it("gives the decided data-request channel, response period, organizational owner and localized KAU links", () => {
     const english = getPolicyDocument("privacy", "en").document;
     const request = english.sections.find(({ id }) => id === "data-requests")!;
     expect(request.paragraphs.join(" ")).toContain("Privacy & data requests");
     expect(request.paragraphs.join(" ")).toContain("within 30 days");
-    expect(request.paragraphs.join(" ")).toContain("Akram Awan");
+    expect(request.paragraphs.join(" ")).toContain("Our privacy lead responds within 30 days.");
+    const arabicRequest = getPolicyDocument("privacy", "ar").document.sections.find(({ id }) => id === "data-requests")!;
+    expect(arabicRequest.paragraphs.join(" ")).toContain("يرد مسؤول الخصوصية لدينا خلال ٣٠ يومًا.");
+    expect(request.paragraphs.join(" ")).not.toMatch(privateOrganizerNames);
     expect(request.links).toContainEqual({ label: "contact@msrc2027.com", href: "mailto:contact@msrc2027.com", direction: "ltr" });
     for (const locale of ["en", "ar"] as const) {
       const responsibility = getPolicyDocument("privacy", locale).document.sections.find(({ id }) => id === "responsibility")!;
@@ -92,6 +99,15 @@ describe("versioned draft policies (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
       expect(html).not.toMatch(/<(form|input|textarea|select|iframe|video)\b/i);
       const dated = renderToStaticMarkup(createElement(PolicyPage, { locale, kind, version: currentPolicyVersion, dated: true }));
       expect(dated).toContain(`href="/${locale}/${kind}"`);
+    }
+  });
+
+  it.each(["en", "ar"] as const)("keeps internal personal names out of every public %s policy document and metadata", (locale) => {
+    for (const kind of policyKinds) for (const version of [undefined, currentPolicyVersion]) {
+      const document = renderToStaticMarkup(createElement(PolicyPage, { locale, kind, version, dated: version !== undefined }));
+      const metadata = JSON.stringify(policyPageMetadata(kind, locale, version));
+      expect(document).not.toMatch(privateOrganizerNames);
+      expect(metadata).not.toMatch(privateOrganizerNames);
     }
   });
 

@@ -43,10 +43,11 @@ routes remain outside the existing analytics/Speed Insights route allowlist.
 The snapshot records only organizer-approved facts: Research Principles Club participant-
 data responsibility; PDPL framework and localized KAU links; registration/abstract deletion
 one year after the conference; minimal certificate records retained two years;
-contact@msrc2027.com data requests with the specified topic, response within 30 days,
-Akram Awan handling requests; photography/recording; the current cookieless anonymous
-Vercel visit-analytics description. Emad Khoja writes/approves final wording and
-Abdulrahman Ismail set retention. Terms is a placeholder. No legal rights, promises,
+contact@msrc2027.com data requests with the specified topic and privacy-lead response
+within 30 days; photography/recording; the current cookieless anonymous Vercel visit-
+analytics description. ORG-027 removes personal drafting/decision attributions from
+public EN/AR text and metadata. Named internal owners remain in DECISIONS; Terms and
+photography-publication wording remain placeholders for Emad. No legal rights, promises,
 effective terms, processors, transfer safeguards or retention exceptions are invented.
 
 ORG-025 explicitly records the organizer's notice-only publicity decision and supersedes

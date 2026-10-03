@@ -1507,3 +1507,15 @@ must be reviewed before any future opening. Draft policies remain noindex and ou
 the production sitemap. Footer links reach the new routes; registration stays closed
 and adds only the confirmed photography fact. Authentication/permissions/session
 policies, all readiness flags, migrations and original v0.5 snapshots are preserved.
+
+## ORG-027 — Public policies use organizational roles, 4 October 2026
+
+Authority: explicit organizer review of PR30. Remove internal personal names and
+decision/drafting attributions from public Privacy/Terms in both EN/AR, including
+their shared draft notice and metadata. Data-request wording becomes "Our privacy
+lead responds within 30 days" and its Arabic equivalent. Preserve the contact channel,
+response period, retention decisions, draft version/status and all release gates.
+ORG-022–024 retain Emad Khoja's wording/approval responsibility, Abdulrahman Ismail's
+retention decision and Akram Awan's request-handling responsibility as internal records.
+The photography-publication section stays a placeholder for Emad; this copy amendment
+does not approve it, appoint a different owner or activate collection/delivery.
