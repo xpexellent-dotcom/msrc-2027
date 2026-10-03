@@ -19,9 +19,11 @@ for (const locale of ["en", "ar"] as const) {
 
     // One click; the underline goes straight to the destination, not through each chapter between.
     await page.evaluate(() => {
-      const seen: string[] = [];
+      const readCurrent = () => document.querySelector('.section-journey-links a[aria-current="location"]')?.getAttribute("href") ?? "";
+      // Capture the actual starting state before a fast click can beat the first interval tick.
+      const seen: string[] = [readCurrent()];
       Object.assign(window, { chapterTrail: seen });
-      const timer = setInterval(() => seen.push(document.querySelector('.section-journey-links a[aria-current="location"]')?.getAttribute("href") ?? ""), 25);
+      const timer = setInterval(() => seen.push(readCurrent()), 25);
       setTimeout(() => clearInterval(timer), 1500);
     });
     await bar.locator('a[href="#legacy"]').click();

@@ -35,8 +35,22 @@ the repository's Node 24.21.0 pin):
 - CSV validation: PASS — 165 unique issue records, nine columns; no duplicate canonical
   decision identifiers remain. Original checkout edits/untracked files are preserved.
 
-New-head combined application/database CI is verified separately in the PR/checklist
-before merge. No local database/Docker, hosted migration/reset/seed, production Auth,
+Initial rebased head23e8c5b [CI37155624615](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37155624615)
+passed lint/types/1405 units/build and the database job (505 SQL assertions, 63 native
+integration tests against GoTrue v2.197.0), but the public browser job reported
+323 passed, 1 failed and 21 explicit skips. The Arabic desktop chapter-bar test
+started an empty 25ms sampling interval; a correct immediate destination update
+could precede the first sample, omitting the already-verified starting chapter.
+Captured the actual DOM starting value before the interval, preserving the exact
+initial/destination sequence, focus/hash checks and timings. No application code
+changes. `pnpm exec playwright test tests/e2e/chapter-bar.spec.ts
+--project=chromium-desktop --grep 'chapter bar follows the reader' --repeat-each=5`:
+PASS — all 10 English/Arabic repetitions, 25.0 seconds. The first CI auth browser
+step was NOT RUN after the public-suite failure; local auth75 remains executed
+evidence. The follow-up combined application/database CI is recorded separately
+in the PR/checklist before merge.
+
+No local database/Docker, hosted migration/reset/seed, production Auth,
 deployment, real email/account/grant/reset or additional recovery rehearsal is performed.
 Human UAT, actual Storage policies, production email/cookie/session-store custody,
 recent-auth/warning timing, recovery and privacy/location approvals remain release gates.
