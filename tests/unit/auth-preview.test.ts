@@ -47,6 +47,75 @@ async function checkStaffEmail(service: Lab, token: string) {
   return code;
 }
 
+describe("isolated staff inbox and synthetic session boundary", () => {
+  function external(delivery: (message: { code: string; expiresAt: number }) => boolean | Promise<boolean>) {
+    return lab({ emailDeliveryMode: () => "isolated", emailDelivery: delivery });
+  }
+  it("delivers staff code only through the callback and returns safe expiry with no code, email or inbox", async () => {
+    let deliveredCode = "";
+    const deliver = vi.fn((message) => { deliveredCode = message.code; return true; });
+    const service = external(deliver); const token = await start(service, "staff");
+    expect((await service.execute(token, { type: "protected" })).code).toBe("staff_email_check_required");
+    const result = await service.execute(token, { type: "challenge-email" });
+    expect(deliver).toHaveBeenCalledOnce();
+    expect(Object.keys(deliver.mock.calls[0][0]).sort()).toEqual(["code", "expiresAt"]);
+    expect(result).toMatchObject({ state: "ok", view: { staffEmailDelivery: { mode: "isolated", expiresAt: at + 300_000 }, staffEmailVerified: false } });
+    expect(result.view).not.toHaveProperty("testMessage");
+    expect(JSON.stringify(result).includes(deliveredCode) || JSON.stringify(service.auditSnapshot()).includes(deliveredCode)).toBe(false);
+    expect((await service.execute(token, { type: "verify-email", code: deliveredCode })).code).toBe("staff_email_verified");
+    expect((await service.execute(token, { type: "status" })).view).toMatchObject({ assurance: "aal1", staffEmailDelivery: { mode: "isolated", expiresAt: null }, privilegedAccessReady: false });
+  });
+  it("keeps participant test inbox and Super Admin authenticator unchanged without external sends", async () => {
+    const deliver = vi.fn(() => true); const service = external(deliver);
+    const participant = await start(service, "participant"); await verifyParticipant(service, participant);
+    expect((await service.execute(participant, { type: "status" })).view).not.toHaveProperty("staffEmailDelivery");
+    const admin = await start(service); await assure(service, admin);
+    expect((await service.execute(admin, { type: "status" })).view).toMatchObject({ assurance: "aal2", factor: "verified" });
+    expect(deliver).not.toHaveBeenCalled();
+  });
+  it.each(["missing", "false", "exception"])("fails closed with %s delivery and never exposes a fallback code", async (failure) => {
+    const service = failure === "missing" ? lab({ emailDeliveryMode: () => "isolated" })
+      : external(() => { if (failure === "exception") throw new Error("private provider and code"); return false; });
+    const token = await start(service, "staff"); const result = await service.execute(token, { type: "challenge-email" });
+    expect(result.state).toBe("unavailable"); expect(result.view).not.toHaveProperty("testMessage");
+    expect(result.view).toMatchObject({ emailChallengePending: false, staffEmailVerified: false, previewAccessAllowed: false });
+    expect((await service.execute(token, { type: "protected" })).state).toBe("denied");
+  });
+  it("rejects delivered but expired proof after the transport waits", async () => {
+    let code = "";
+    const service = external((message) => { code = message.code; at = message.expiresAt; return true; });
+    const token = await start(service, "staff");
+    const result = await service.execute(token, { type: "challenge-email" });
+    expect(result).toMatchObject({ state: "unavailable", view: { emailChallengePending: false, staffEmailVerified: false } });
+    expect((await service.execute(token, { type: "verify-email", code })).code).toBe("challenge_required");
+  });
+  it("preserves limits, replacement, foreign-cookie denial, refresh origin and fresh-login checking", async () => {
+    const codes: string[] = []; const service = external((message) => { codes.push(message.code); return true; });
+    const token = await start(service, "staff"); const origin = at;
+    await service.execute(token, { type: "challenge-email" });
+    expect((await service.execute(token, { type: "challenge-email" })).code).toBe("retry_limited");
+    at += 60_000; await service.execute(token, { type: "challenge-email" });
+    expect((await service.execute(token, { type: "verify-email", code: codes[0] })).code).toBe("invalid_code");
+    const other = await start(service, "staff");
+    expect((await service.execute(other, { type: "verify-email", code: codes[1] })).code).toBe("challenge_required");
+    expect((await service.execute(token, { type: "verify-email", code: codes[1] })).code).toBe("staff_email_verified");
+    expect((await service.execute(token, { type: "verify-email", code: codes[1] })).code).toBe("challenge_required");
+    const refresh = await service.execute(token, { type: "refresh" });
+    expect(refresh.view).toMatchObject({ startedAt: origin, absoluteExpiresAt: origin + 8 * 3_600_000, staffEmailVerified: true });
+    const fresh = await reauth(service, token);
+    expect((await service.execute(token, { type: "protected" })).code).toBe("no_session");
+    expect(fresh.view).toMatchObject({ staffEmailVerified: false, emailChallengePending: false, previewAccessAllowed: false });
+    expect((await service.execute(fresh.token!, { type: "verify-email", code: codes[1] })).code).toBe("challenge_required");
+  });
+  it.each(["logout", "suspend", "simulate-email-change", "simulate-role-revocation"] as const)("revokes isolated proof on %s", async (type) => {
+    let code = ""; const service = external((message) => { code = message.code; return true; });
+    const token = await start(service, "staff"); await service.execute(token, { type: "challenge-email" });
+    await service.execute(token, { type: "verify-email", code }); await service.execute(token, { type });
+    expect((await service.execute(token, { type: "protected" })).code).toBe("session_revoked");
+    expect((await service.execute(token, { type: "status" })).view).toMatchObject({ staffEmailVerified: false, staffEmailDelivery: { expiresAt: null } });
+  });
+});
+
 describe("regular staff password plus session-bound additional email check", () => {
   it("denies password-only access even if the returned presentation state is edited", async () => {
     const service = lab();

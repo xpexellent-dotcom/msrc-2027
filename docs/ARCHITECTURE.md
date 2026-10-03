@@ -11,8 +11,8 @@
 | Web framework | Next.js App Router, TypeScript, Tailwind | Adopted for local M1 by explicit user task; ENG-001 in DECISIONS.md |
 | Package management | pnpm with committed lockfile | Adopted for local M1; exact versions and compatibility notes in ENG-001 |
 | Data environments | `ecemjggwlzqpjcwmchrl` is Production; synthetic database tests in isolated GitHub CI; local auth lab in memory | ORG-010; no hosted fixtures; new staff/session migration review-only |
-| Managed Auth tests | Genuine password/authenticator-TOTP APIs in disposable GitHub CI; private reject-email hook, no SMS configuration/hook/provider or paid hosted setup | ORG-016; live email, recovery, named custodians and human UAT remain gates |
-| Regular staff check | Password then a private user/session-bound application email receipt; no native AAL2; service-only issuance/consume and restrictive RLS predicate | ORG-015; SMTP/sender unconfigured, review-only migration, local preview and no deployment |
+| Managed Auth tests | Genuine password/authenticator-TOTP APIs and staff HTTP/cookie composition in disposable GitHub CI; private reject-email hook, no SMS configuration/hook/provider or paid hosted setup | ORG-016; executed receipts in PROGRESS; live email, recovery, named custodians and human UAT remain gates |
+| Regular staff check | Password then a private user/session-bound application email receipt; no native AAL2; service-only issuance/consume and restrictive RLS predicate. Optional Windows loopback synthetic preview can send a code to the approved test self-inbox without disclosing it in API responses | ORG-015; production SMTP/sender unconfigured, review-only migrations, local preview and no deployment |
 | Tests | Vitest, appropriate component tools, Playwright, database policy tests | Recommended tooling; verify compatibility at foundation time |
 | Email, malware scanning, advisory assessment, analytics | Provider selection and approved configuration required | Unresolved CFG-10 |
 | Versions, regions, plans, budget | Choose and record explicitly before relevant provisioning | Unresolved; no claims of Saudi hosting |
@@ -71,7 +71,7 @@ src/
     supabase/                anonymous clients; server-only verified own-context adapter
     permissions/             BL-SEC-01 typed contract/evaluator; production reader pending
     validation/              reserved
-    email/                   reserved
+    email/                   optional Windows loopback isolated staff-code test bridge; no production provider
     payments/                reserved
     jobs/                    reserved
     audit/                   reserved

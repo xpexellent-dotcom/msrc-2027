@@ -1,6 +1,14 @@
 # Email library boundary
 
-Reserve this directory for a separately authorized email slice. No sender, provider credential, real recipient or email delivery is implemented; later local testing must use console/test delivery.
+`isolated-staff-preview.server.ts` is an optional Windows loopback test bridge for the
+synthetic staff security preview. It passes one generated staff code through bounded
+stdin to an ignored local helper. The helper owns the organizer-approved self-recipient,
+private Windows-encrypted credential and persistent test-send limits. Neither address
+nor credential is committed or sent to the browser. No code is returned by the isolated
+delivery API; the default synthetic inbox remains available without this opt-in.
 
-This is an inert M1 structure placeholder. It contains no executable implementation;
-operational workflows remain closed. See the project architecture document and the relevant v0.5 release gate.
+This is not a production email adapter. Missing configuration/helper, deployment/CI,
+malformed helper output, timeout or delivery failure denies delivery without fallback
+or automatic retry. SMTP acceptance is distinct from observed inbox receipt. Production
+provider/SMTP, custody, privacy/location and release approval remain unresolved; every
+operational workflow and managed staff readiness stays closed.

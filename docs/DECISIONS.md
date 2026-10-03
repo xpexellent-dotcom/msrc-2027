@@ -1280,3 +1280,35 @@ message. Earlier rejection referred to the submitted username/credential pair; d
 describe the replacement password itself as invalid. Preserve both local credentials
 and all eight records. The standing test authorization follows the corrected mailbox;
 it still does not approve production email, staff login release or other recipients.
+
+## ENG-012 — Isolated staff email delivery and managed cookie composition, 3 October 2026
+
+The organizer continued the next bounded delivery/cookie test after isolated sender
+readiness. Existing standing test-email authorization covers small English synthetic
+staff-code messages to the confirmed self-recipient only. This does not authorize real
+staff accounts, other recipients, production SMTP or managed Auth changes.
+
+- Reuse the existing staff email receipt, policy and role enforcement. An optional
+  Windows loopback preview passes codes by bounded stdin to the private local helper;
+  it returns safe delivery mode/expiry, never a code or recipient. Missing/invalid
+  configuration, deployment/CI, delivery failure or uncertainty denies without fallback.
+  The default synthetic inbox and participant/Super Admin flows remain unchanged.
+- Test genuine managed password and staff email receipts through an actual loopback
+  HTTP listener in the disposable unlinked GitHub runner. Native tokens remain in
+  bounded server memory behind an opaque HttpOnly/SameSite cookie. Current database
+  context remains the authority before protected access and before/after refresh.
+  No production Next route, active grant or provider credential is installed.
+- Cookie lifetime follows the immutable native session origin. Refresh preserves the
+  receipt and idle/absolute clocks; new login needs a new email check. Cookie deletion
+  after failed logout is local fail-closed cleanup, not proof of native revocation.
+- HTTP lacks the Secure cookie attribute solely on the isolated loopback listener.
+  This is test transport, not an approved production session-store/cache/CSRF design.
+  Lab capacity and fixture acceleration are development bounds, not new live policy.
+- Storage is disabled on the disposable stack. Its unavailable route cannot prove
+  private-object authorization. Real domain storage policies and human inbox/login,
+  screen-reader/device, recovery and outage UAT remain release gates.
+
+No new migration, dependency, hosted fixture/reset, deployment, merge, paid service,
+recovery action or production readiness change is authorized or performed by this slice.
+Recent-auth age, warning lead, named distinct recovery custodians/procedure and
+privacy/retention/location remain unresolved. Executed evidence belongs in PROGRESS.

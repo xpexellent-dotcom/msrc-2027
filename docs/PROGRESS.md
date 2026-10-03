@@ -1,5 +1,53 @@
 # Progress and session handover
 
+## 3 October 2026 — Isolated staff code delivery and managed HTTP/cookies
+
+Continued the organizer-authorized next slice on `codex/email-authenticator-no-sms`
+from2593345, preserving original checkout edits/untracked work. Fresh remote main is
+111292c; no unrelated public changes were merged into this stacked draft. PR25 remains
+draft against PR19. No migration, dependency or production configuration was changed.
+
+Added optional Windows loopback staff test delivery with a private local helper,
+existing encrypted replacement credential and the confirmed self-recipient outside Git.
+Codes travel through bounded stdin and never appear in isolated API responses, UI
+inbox, logs or audits. Safe delivery/expiry metadata and accessible EN/AR retry/resend
+copy replace the displayed code in this mode. Invalid configuration/deployment/CI,
+helper failure/timeout or uncertain SMTP acceptance denies without fallback or retry.
+Default participant/synthetic-email and Super Admin QR/manual TOTP flows are unchanged.
+
+Added a separate CI-only managed HTTP lab and17 integration cases. It composes genuine
+password sign-in, existing private staff email receipts and current database context
+behind opaque HttpOnly/SameSite/Path-scoped cookies; native tokens remain server-only.
+Exact Host/Origin/socket IP/body bounds, no-cache responses, native session/identity/
+role binding, before/after refresh checks and unchanged absolute/idle clocks are covered.
+Logout first revokes private own-session state, then native Auth; partial native failure
+returns unavailable while local state/cookies are cleared. Password-only direct Data
+API access, replay/replacement/limits, new login, expiry, identity/grant/suspension and
+successful/partial logout denial are tested in the disposable runner only.
+No production Next login/API/action or server session store is enabled by this factory.
+
+Executed locally: `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm test`1378/30files PASS;
+`pnpm build`42pages PASS.23 new managed-lab boundary/factory units are included.
+Windows helper pure validation/quota/template/gate checks41 PASS in PowerShell5.1 and7.
+Database/native integration checks are NOT RUN locally; no Docker is required or used.
+Browser checks, private-fixture helper runtime tests and the bounded real test send are
+recorded below after execution. New native HTTP integration evidence awaits scoped CI.
+
+All15 workflows and operational/privileged readiness remain false. No merge/deploy,
+hosted migration/reset/fixture, real account/invitation/grant/reset, paid resource,
+production Auth/SMTP or credential-in-CI change. Storage is disabled in CI; unavailable
+object-route denial is not object-policy proof. Genuine managed Auth with real inbox
+possession/browser/human UAT is NOT TESTED: local SMTP uses synthetic password/session
+evidence, while native CI uses an in-memory no-delivery inbox. Production delivery,
+durable cookie/session configuration, recovery and domain resource policies remain gates.
+
+Next smallest task: human isolated inbox/code-entry plus EN/AR device/keyboard/
+screen-reader UAT and named distinct recovery custodians/procedure/rehearsal. Recent-auth
+age, warning lead, privacy/retention/location and live provider/sender/custody remain
+unresolved. Rollback: stop the lab, clear email opt-in or revert isolated review code
+without restoring superseded SMS policy; preserve private credentials/attempt history.
+No hosted rollback is needed. Current feature details: regular-staff-email-check.md.
+
 ## 3 October 2026 — Isolated email readiness tests
 
 Current result: **isolated SMTP authentication, acceptance and inbox delivery PASS**.

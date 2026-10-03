@@ -6,6 +6,7 @@ import { SESSION_POLICY, type SessionPolicy } from "@/config/session-policy";
 import { AUTHENTICATION_POLICY } from "@/config/authentication-policy";
 import { evaluateSessionPolicy, type SessionEvidence } from "@/lib/auth/session-policy.server";
 import { isAuthPreviewAllowed } from "@/lib/auth-preview.server";
+import { deliverIsolatedStaffPreview, staffPreviewEmailMode, type IsolatedStaffCode } from "@/lib/email/isolated-staff-preview.server";
 import { createSyntheticCodeKey, issueSyntheticCode, matchesSyntheticCode } from "./synthetic-email-code.server";
 import { createTotpSecret, totpSetupUri, verifyTotp } from "./totp.server";
 import type { PreviewAction, PreviewCode, PreviewKind, PreviewResult, PreviewView } from "./mfa-contract";
@@ -33,7 +34,8 @@ type Options = Readonly<{
   now?: () => number;
   policy?: SessionPolicy;
   audit?: (event: PreviewAudit) => void | Promise<void>;
-  emailDelivery?: () => boolean | Promise<boolean>;
+  emailDelivery?: (message: IsolatedStaffCode) => boolean | Promise<boolean>;
+  emailDeliveryMode?: () => "synthetic" | "isolated";
   qr?: (uri: string) => Promise<string>;
 }>;
 
@@ -43,7 +45,7 @@ const CHALLENGE_LIFETIME_MS = 2 * 60 * 1000;
 const FAILURE_COOLDOWN_MS = 60 * 1000;
 const MAX_FAILURES = 5;
 
-/** No password collection, managed account, provider, actual email, grant or domain mutation. */
+/** Simulated password/authority only; optional isolated staff mail never creates an account, grant or domain mutation. */
 export function createSyntheticAuthPreview(options: Options = {}) {
   const sessions = new Map<string, Session>();
   const auditEvents: PreviewAudit[] = [];
@@ -53,6 +55,7 @@ export function createSyntheticAuthPreview(options: Options = {}) {
   const policy = options.policy ?? SESSION_POLICY;
   const enabled = options.enabled ?? isAuthPreviewAllowed;
   const now = options.now ?? Date.now;
+  const emailDeliveryMode = options.emailDeliveryMode ?? (() => "synthetic" as const);
   const qr = options.qr ?? ((uri) => QRCode.toDataURL(uri, { errorCorrectionLevel: "M", margin: 4, width: 280 }));
   const audit = options.audit ?? ((event: PreviewAudit) => {
     auditEvents.push(Object.freeze(event));
@@ -101,6 +104,7 @@ export function createSyntheticAuthPreview(options: Options = {}) {
       absoluteExpiresAt: session.startedAt + (session.kind !== "participant" ? policy.privilegedAbsoluteSeconds : policy.participantAbsoluteSeconds) * 1000,
       idleExpiresAt: result.idleExpiresAtMs, previewAccessAllowed: result.sessionPolicySatisfied,
       operationalAccessReady: false, privilegedAccessReady: false,
+      ...(session.kind === "staff" ? { staffEmailDelivery: { mode: emailDeliveryMode(), expiresAt: session.emailChallenge?.expiresAt ?? null } } : {}),
     };
   }
 
@@ -246,16 +250,24 @@ export function createSyntheticAuthPreview(options: Options = {}) {
           expiresAt: at + (next.kind === "staff" ? emailPolicy.messageExpirySeconds * 1000 : CHALLENGE_LIFETIME_MS) };
         next.issuedHashes.push(issued.hash);
         if (next.kind !== "staff") next.lastActivityAt = at;
-        if (next.kind === "staff" && options.emailDelivery && !await options.emailDelivery()) {
-          next.emailChallenge = null; await record(next, at, "staff.email.delivery_failed", "denied");
-          sessions.set(token!, next);
-          return { state: "unavailable", code: "unavailable", view: view(next, at) };
+        const isolated = next.kind === "staff" && emailDeliveryMode() === "isolated";
+        if (next.kind === "staff") {
+          const delivered = isolated && !options.emailDelivery ? false : options.emailDelivery
+            ? await options.emailDelivery({ code: issued.code, expiresAt: next.emailChallenge.expiresAt }) : true;
+          const completedAt = now();
+          // An accepted message cannot resurrect a challenge/session that expired while delivery waited.
+          if (delivered !== true || !Number.isSafeInteger(completedAt) || completedAt < at
+            || completedAt >= next.emailChallenge.expiresAt || view(next, completedAt).status !== "active") {
+            next.emailChallenge = null; await record(next, at, "staff.email.delivery_failed", "denied");
+            sessions.set(token!, next);
+            return { state: "unavailable", code: "unavailable", view: view(next, Number.isSafeInteger(completedAt) && completedAt >= at ? completedAt : at) };
+          }
         }
         await record(next, at, next.kind === "staff" ? "staff.email.challenge_started" : "verification.email_challenge_started");
         sessions.set(token!, next);
-        return { state: "ok", code: "email_challenge_created", view: { ...view(next, at), testMessage: {
+        return { state: "ok", code: "email_challenge_created", view: { ...view(next, at), ...(!isolated ? { testMessage: {
           channel: "email", code: issued.code, destination: "Synthetic email ••••@example.invalid",
-          delivery: "test-only", expiresAt: next.emailChallenge.expiresAt } } };
+          delivery: "test-only", expiresAt: next.emailChallenge.expiresAt } } : {}) } };
       }
       if (action.type === "verify-email") {
         if (next.kind === "super_admin") return denied("invalid_action");
@@ -303,4 +315,5 @@ export function createSyntheticAuthPreview(options: Options = {}) {
   });
 }
 
-export const authPreview = createSyntheticAuthPreview();
+export const authPreview = createSyntheticAuthPreview({ emailDeliveryMode: staffPreviewEmailMode,
+  emailDelivery: (message) => staffPreviewEmailMode() === "synthetic" ? true : deliverIsolatedStaffPreview(message) });

@@ -85,16 +85,44 @@ support override, password-reset bypass or self-service address change is introd
 
 Branch `codex/email-authenticator-no-sms` disables Vercel Git deployment in `vercel.json` to
 honor this task's no-deploy instruction. No merge, production Auth change, hosted
-migration/reset/fixture, real email or SMS is performed. The new migration is executed
+migration/reset/fixture or SMS is performed. The dated isolated self-recipient email
+exception permits synthetic test-code delivery; it does not configure production email.
+The existing review migration is executed
 only in disposable GitHub CI; no Docker is required on the organizer's computer.
 
 Set server-only `MSRC_AUTH_PREVIEW=synthetic`, clear deployment environment and start
 the existing loopback lab with Node24/pnpm11.19.0. Paths `/en/staff-security-preview`
 and `/ar/staff-security-preview`; select regular staff, Super Admin or participant.
-The password step is explicitly simulated. Email codes appear only in the test inbox; Super Admin authenticator codes come from the transient QR/manual setup.
+The password step is explicitly simulated. By default email codes appear only in the
+synthetic test inbox; Super Admin authenticator codes come from the transient QR/manual setup.
 Regular staff have no native MFA enrollment or AAL2 claim. EN/AR/RTL, keyboard, paste/autofill,
 expiry/resend, delivery/retry and email/role revocation states are covered. The lab
 denies every Vercel environment, even if its opt-in flag is set. Restart clears memory.
+
+Optional Windows test delivery uses server-only `MSRC_AUTH_PREVIEW_EMAIL=isolated`
+and the privately configured `MSRC_ISOLATED_EMAIL_SELF_RECIPIENT`. The ignored local
+`Send-IsolatedStaffCode.ps1` helper owns the confirmed self-recipient, existing private
+DPAPI credential and persistent test-send reservations. Codes travel only through
+bounded stdin, never arguments, logs, API responses or the preview inbox. EN/AR copy
+directs the tester to the approved mailbox and exposes safe expiry/resend states.
+Invalid mode, absent helper/configuration, CI/deployment, timeout or uncertain delivery
+returns unavailable without a visible-code fallback or automatic retry. SMTP acceptance
+is distinct from inbox receipt. This test dependency is intentionally outside Git and
+CI; cloning the branch alone does not configure real test mail.
+
+`managed-staff-lab.server.ts` composes genuine password sign-in, the existing private
+email-check service and current database context behind an opaque HttpOnly/SameSite
+cookie on a disposable CI loopback HTTP listener. Native access/refresh tokens remain
+in bounded server memory. Host/Origin/socket IP, body/input bounds and no-cache headers
+are enforced. It denies password-only access and rechecks current user/session/role,
+receipt and immutable native timing before protected access and before/after refresh.
+A new password login needs a new check. Logout first revokes private own-session state,
+then requests native logout; native failure returns unavailable while the local cookie
+and record are removed. Successful native logout and partial native failure are distinct
+test cases. The CI factory rejects hosted/linked/deployed configuration and non-synthetic
+allowlists. It creates no production Next route, session store, permission or SMTP setting.
+Secure cookies and durable session-store/cache configuration remain production design
+and release work; HTTP without Secure is restricted to the CI loopback listener.
 
 ## Verification and remaining gates
 
@@ -103,8 +131,10 @@ covers password-only server/API/DB denial; incorrect/expired/reused/replaced cod
 resend/account/IP and attempt controls; exact user/session binding; refresh/new login;
 revocation/email/grant changes; delivery/audit failure; and ORG-016 email-only participant/authenticator Super Admin policy. Managed API tests use synthetic identities, no-delivery hooks and
 the actual GoTrue image recorded by CI; no SMS hook/provider/phone fixtures are installed. Accelerated clock fixtures are identified.
-Local SQL is NOT TESTED; real delivery, cookie exchange, human devices/screen readers,
-actual object-storage policies and recovery UAT remain NOT TESTED/BLOCKED.
+Local SQL is NOT TESTED; executed isolated delivery and managed HTTP/cookie results
+are recorded separately in PROGRESS. Human inbox possession/login, devices/screen readers,
+actual object-storage policies and recovery UAT remain NOT TESTED/BLOCKED. Storage is
+disabled in CI: an unavailable object route establishes no private-object policy proof.
 
 Manual review can use the local synthetic lab without contacting a provider:
 
@@ -135,8 +165,9 @@ is valid for the corrected account in this test. No password change was needed.
 Both local credentials and all eight attempt records are retained with private ACLs.
 Targeted corrected-account 23 and existing AUTH89/readiness56/wrapper77/retry63 synthetic
 checks passed in both PowerShell versions. Keep selected address details outside Git.
-This completes sender readiness for the isolated test; staff OTP/cookie integration and
-human login/accessibility UAT remain untested. Production email configuration and all
+This completed sender readiness for the isolated test. The subsequent isolated staff
+delivery/cookie slice is described above with current receipts in PROGRESS;
+human login/accessibility UAT remains untested. Production email configuration and all
 existing release gates are unchanged. Commands and history follow in PROGRESS.
 
 Standing organizer approval covers small isolated test emails from/to the selected
@@ -154,11 +185,11 @@ recovery, privacy/location, recent-auth, warning-lead and human UAT gates remain
 
 | Area | Review files |
 | --- | --- |
-| Server email adapter | `src/features/auth/staff-email.server.ts` |
+| Server email adapter | `src/features/auth/staff-email.server.ts`; optional Windows test bridge `src/lib/email/isolated-staff-preview.server.ts` |
 | Policy and authorization | `src/config/authentication-policy.ts`, `src/lib/auth/session-policy.server.ts`, permission contracts/parsers/authorization and managed session adapter |
 | Synthetic UI/API | Auth preview service, copy/components, `src/app/api/auth-preview/route.ts` |
 | Current database amendment | `supabase/migrations/20261003110812_authenticator_super_admin_policy.sql` overrides current participant/Super Admin assurance; the earlier email/session review migrations remain unchanged. Database fixtures exercise the unchanged staff receipt and current authenticator predicate |
-| Managed test harness | `scripts/prepare-ci-managed-auth.ts`, managed-auth/email integration tests, unit/browser coverage and CI database-lint schema list |
+| Managed test harness | `scripts/prepare-ci-managed-auth.ts`, `src/features/auth/managed-staff-lab.server.ts`, managed-auth/email/cookie integration tests, unit/browser coverage and CI database-lint schema list |
 | Review/deployment boundary | `vercel.json` branch deployment guard; current authentication requirements, decisions, progress and boundary notes |
 
 The disposable CI render enables only authenticator TOTP and a private reject-email hook, with global signup disabled. Phone/SMS provider/environment overrides are rejected. Ordinary Supabase config is unchanged and no hosted project is used. Genuine TOTP enrollment/challenge/verification keeps factor secrets in process memory and computes RFC6238 test codes without logging them.
@@ -169,7 +200,10 @@ Official [TOTP documentation](https://supabase.com/docs/guides/auth/auth-mfa/tot
 Revert code only within the isolated review environment as needed; an earlier SMS draft is superseded and must not become active policy. Stop the lab and clear its opt-in.
 No hosted rollback is needed because nothing is applied or deployed. Disposable fixtures
 disappear at teardown; never delete production audit history or push old migrations.
-Before any real regular-staff test, approve a concrete English email provider/sender,
-recipient allowlist, privacy/location and delivery configuration, then wire/test the
-disabled server adapter in an isolated environment. Keep recovery and live staff access
-closed until their separate gates pass.
+Next, complete human inbox/code-entry and EN/AR device/keyboard/screen-reader UAT in
+the isolated preview, then document named distinct recovery custodians and rehearse the
+approved revoke-first procedure. Recent-auth age and warning lead remain unset.
+Before production delivery, approve concrete English provider/sender/custody, privacy/
+location and durable session/cookie configuration. Keep recovery and live staff access
+closed until their separate gates pass. Stop the preview and clear the email opt-in to
+return to default synthetic delivery; preserve private credentials and attempt records.

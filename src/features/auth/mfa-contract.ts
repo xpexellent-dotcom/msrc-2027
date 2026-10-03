@@ -28,6 +28,8 @@ export interface PreviewView {
   readonly previewAccessAllowed: boolean;
   readonly operationalAccessReady: false;
   readonly privilegedAccessReady: false;
+  /** Safe local delivery metadata; an isolated inbox code is never returned to the client. */
+  readonly staffEmailDelivery?: Readonly<{ mode: "synthetic" | "isolated"; expiresAt: number | null }>;
   /** Synthetic email inbox only: returned by send actions; no email is sent or logged. */
   readonly testMessage?: Readonly<{ channel: "email"; code: string; destination: string; delivery: "test-only"; expiresAt: number }>;
   /** Synthetic enrollment only: returned once, never persisted in browser storage. */

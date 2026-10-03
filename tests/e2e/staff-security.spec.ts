@@ -71,6 +71,58 @@ async function setupKey(page: Page) {
 }
 for (const locale of ["en", "ar"] as const) {
   const copy = labels[locale];
+  test(`${locale} isolated staff delivery shows accessible inbox and expiry states without exposing the code`, async ({ page }) => {
+    // Presentation-only external-delivery receipt. No challenge is reserved in
+    // the shared lab, and no provider or real email is used by this test.
+    await page.clock.install();
+    const deliveredCode = "654321"; // Inert presentation oracle; never an issued code.
+    let presentationView: Record<string, unknown> | null = null;
+    await page.route("**/api/auth-preview", async (route) => {
+      const action = route.request().postDataJSON()?.action;
+      if (action === "challenge-email" && presentationView) {
+        const timestamp = Date.now();
+        presentationView = { ...presentationView, emailChallengePending: true,
+          emailResendAvailableAt: timestamp + 60_000,
+          staffEmailDelivery: { mode: "isolated", expiresAt: timestamp + 300_000 } };
+        await route.fulfill({ status: 200, contentType: "application/json",
+          body: JSON.stringify({ state: "ok", code: "email_challenge_created", view: presentationView }) });
+        return;
+      }
+      if (action === "status" && presentationView) {
+        await route.fulfill({ status: 200, contentType: "application/json",
+          body: JSON.stringify({ state: "ok", code: "status", view: presentationView }) });
+        return;
+      }
+      const upstream = await route.fetch(); const result = await upstream.json();
+      if (result.view?.kind === "staff") {
+        result.view.staffEmailDelivery = { mode: "isolated", expiresAt: result.view.staffEmailDelivery?.expiresAt ?? null };
+        delete result.view.testMessage;
+        presentationView = result.view;
+      }
+      await route.fulfill({ response: upstream, contentType: "application/json", body: JSON.stringify(result) });
+    });
+    await page.goto(`/${locale}/staff-security-preview`);
+    await page.getByRole("button", { name: copy.staffStart, exact: true }).click();
+    await expect(page.getByTestId("preview-simulation")).toHaveText(staffSecurityCopy[locale].isolatedSimulation);
+    const requestCode = page.getByRole("button", { name: staffSecurityCopy[locale].isolatedEmailChallenge, exact: true });
+    await requestCode.focus(); await page.keyboard.press("Enter");
+    const field = page.locator("#staff-email-code"); await expect(field).toBeFocused();
+    await expect(field).toHaveAttribute("autocomplete", "one-time-code"); await expect(field).toHaveAttribute("dir", "ltr");
+    await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+    await expect(page.getByTestId("synthetic-email-code")).toHaveCount(0);
+    await expect(page.getByTestId("isolated-email-delivery")).toContainText(staffSecurityCopy[locale].isolatedEmailSent);
+    expect(deliveredCode.length === 6 && !(await page.locator("body").innerText()).includes(deliveredCode)).toBe(true);
+    expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
+    const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    expect(accessibility.violations.length).toBe(0);
+    await expect(requestCode).toBeDisabled();
+    await page.clock.fastForward(60_001); await expect(requestCode).toBeEnabled();
+    await page.clock.fastForward(240_000);
+    await expect(page.getByTestId("staff-email-expired")).toHaveText(staffSecurityCopy[locale].staffEmailExpired);
+    await expect(page.getByRole("button", { name: copy.emailVerify, exact: true })).toBeDisabled();
+    await page.unroute("**/api/auth-preview");
+  });
+
   test(`${locale} regular staff password and session email check remain AAL1 and require a new check only on new login`, async ({ page }, testInfo) => {
     await page.goto(`/${locale}/staff-security-preview`);
     await page.getByRole("button", { name: copy.staffStart, exact: true }).focus();
@@ -330,6 +382,10 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} recovery stays closed, refresh preserves the participant 72-hour cap, and logout revokes access`, async ({ page }) => {
     await page.goto(`/${locale}/staff-security-preview`);
     await page.getByRole("button", { name: copy.participant, exact: true }).click();
+    // A click starts asynchronous login; wait for its server acknowledgement and
+    // cookie before observing the session through a separate API request.
+    await expect(page.getByTestId("session-state")).toHaveText(staffSecurityCopy[locale].active);
+    await expect(page.locator("#staff-session-heading")).toBeFocused();
     const before = (await api(page, "status")).view;
     expect(before.absoluteExpiresAt - before.startedAt).toBe(72 * 60 * 60 * 1_000);
     await page.getByRole("button", { name: copy.reset, exact: true }).click();

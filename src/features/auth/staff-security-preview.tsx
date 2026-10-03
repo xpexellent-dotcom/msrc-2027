@@ -80,7 +80,7 @@ function acceptResult(result: PreviewResult, action: PreviewAction["type"]) {
     responseChannel: action === "verify-email" ? "email" : action === "verify" ? "totp" : null,
     view: noSession ? null : currentView,
     enrollment: clearTotp ? null : result.view?.enrollment ?? draft.enrollment,
-    emailMessage: clearEmail ? null : message?.channel === "email" ? message : draft.emailMessage,
+    emailMessage: clearEmail || result.view?.staffEmailDelivery?.mode === "isolated" ? null : message?.channel === "email" ? message : draft.emailMessage,
     code: clearTotp ? "" : draft.code,
     emailCode: clearEmail ? "" : draft.emailCode,
   });
@@ -122,10 +122,11 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
   const staff = view?.kind === "staff";
   const superAdmin = view?.kind === "super_admin";
   const participant = view?.kind === "participant";
+  const isolatedStaffEmail = staff && view?.staffEmailDelivery?.mode === "isolated";
   const showTotpForm = live && superAdmin && view.factor !== "none" && view.assurance !== "aal2";
   const emailResendAt = staff ? view.emailResendAvailableAt : null;
   const emailResendBlocked = emailResendAt !== null && emailResendAt > now;
-  const emailCodeExpiresAt = staff ? emailMessage?.expiresAt ?? null : null;
+  const emailCodeExpiresAt = staff ? view?.staffEmailDelivery?.expiresAt ?? emailMessage?.expiresAt ?? null : null;
   const emailCodeExpired = emailCodeExpiresAt !== null && emailCodeExpiresAt <= now;
   const totpError = validation === "totp" ? text.codeValidation : responseChannel === "totp" && result?.code === "invalid_code" ? text.messages.invalid_code : undefined;
   const emailError = validation === "email" ? text.codeValidation : responseChannel === "email" && result?.code === "invalid_code" ? text.messages.invalid_code : undefined;
@@ -138,6 +139,7 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
     if (result.code === "reauthenticated" && staff) message = text.staffReauthenticated;
     if (result.state === "unavailable" && staff && responseAction === "challenge-email") message = text.staffEmailDeliveryFailed;
     if (result.code === "retry_limited" && staff) message = text.staffEmailRetryLimited;
+    if (result.code === "email_challenge_created" && isolatedStaffEmail) message = text.isolatedEmailSent;
   }
   const failed = Boolean(validation) || (Boolean(message) && result?.state !== "ok");
 
@@ -211,7 +213,7 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
         <p className="eyebrow">{text.eyebrow}</p>
         <h1>{text.title}</h1>
         <p>{text.intro}</p>
-        <p className="staff-security-simulation" data-testid="preview-simulation">{text.simulation}</p>
+        <p className="staff-security-simulation" data-testid="preview-simulation">{isolatedStaffEmail ? text.isolatedSimulation : text.simulation}</p>
         <p className="staff-security-label">{text.synthetic}</p>
       </header>
 
@@ -253,15 +255,19 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
 
           {live && staff && !view.staffEmailVerified ? <section className="staff-security-panel" aria-labelledby="staff-email-heading">
             <h2 id="staff-email-heading">{text.staffEmailTitle}</h2>
-            <p>{text.staffEmailIntro}</p>
+            <p>{isolatedStaffEmail ? text.isolatedEmailIntro : text.staffEmailIntro}</p>
             <p>{text.staffEmailScope}</p>
             <form onSubmit={(event) => verify(event, "email")} noValidate aria-labelledby="staff-email-heading" aria-busy={busy}>
               <FormField id="staff-email-code" label={text.staffEmailCodeLabel} hint={text.codeHint} error={emailError} value={emailCode} onChange={(event) => { updateDraft({ emailCode: normalizeDigits(event.target.value), result: null }); setValidation(null); }} dir="ltr" inputMode="numeric" autoComplete="one-time-code" spellCheck={false} maxLength={6} required disabled={busy} />
               {emailCodeExpired ? <p role="status" aria-live="polite" data-testid="staff-email-expired">{text.staffEmailExpired}</p> : null}
+              {isolatedStaffEmail && emailCodeExpiresAt !== null ? <div data-testid="isolated-email-delivery">
+                <p>{text.isolatedEmailSent}</p>
+                <p>{text.messageExpiry}: <time dateTime={new Date(emailCodeExpiresAt).toISOString()}>{formatExpiry(emailCodeExpiresAt, locale)}</time></p>
+              </div> : null}
               {emailResendBlocked && emailResendAt !== null ? <p data-testid="email-resend-wait">{text.emailResendWait} <time dateTime={new Date(emailResendAt).toISOString()}>{formatExpiry(emailResendAt, locale)}</time></p> : null}
               <div className="staff-security-actions">
                 <Button type="submit" disabled={busy || !view.emailChallengePending || emailCodeExpired}>{text.emailVerify}</Button>
-                <Button variant="secondary" disabled={busy || emailResendBlocked} onClick={() => void act({ type: "challenge-email" })}>{text.emailChallenge}</Button>
+                <Button variant="secondary" disabled={busy || emailResendBlocked} onClick={() => void act({ type: "challenge-email" })}>{isolatedStaffEmail ? text.isolatedEmailChallenge : text.emailChallenge}</Button>
               </div>
             </form>
           </section> : null}
