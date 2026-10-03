@@ -4,7 +4,7 @@ import { SpeakersExperience } from "@/components/conference-experiences";
 import { experienceCopy } from "@/content/conference-experiences";
 import { getPublicConferenceCatalogue } from "@/content/conference-catalogue.server";
 import { isLocale } from "@/lib/i18n";
-import { localizedPageMetadata, siteTitle } from "@/lib/metadata";
+import { conferenceDescription, localizedPageMetadata, siteTitle } from "@/lib/metadata";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -12,10 +12,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = experienceCopy[locale].pages.speakers;
+  const description = conferenceDescription(locale, copy.lead);
   return {
-    ...localizedPageMetadata(locale, "/speakers", siteTitle(copy.label), copy.lead),
+    ...localizedPageMetadata(locale, "/speakers", siteTitle(copy.label), description),
     title: siteTitle(copy.label),
-    description: copy.lead,
+    description,
   };
 }
 

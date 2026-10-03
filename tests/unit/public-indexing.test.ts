@@ -23,6 +23,9 @@ describe("public indexing", () => {
     expect(urls).toContain("https://www.msrc2027.com/en");
     expect(urls).toContain("https://www.msrc2027.com/ar/program");
     expect(urls.some((url) => /registration|submissions|admin/.test(url))).toBe(false);
+    expect(sitemap().find((entry) => entry.url.endsWith("/ar/about"))?.alternates?.languages).toEqual({
+      en: "https://www.msrc2027.com/en/about", ar: "https://www.msrc2027.com/ar/about", "x-default": "https://www.msrc2027.com/en/about",
+    });
     expect(localizedPageMetadata("en", "/about", "About", "About MSRC").robots).toEqual({ index: true, follow: true });
     const headers = (await config.headers!())[0].headers.map((header) => header.key);
     expect(headers).not.toContain("X-Robots-Tag");
@@ -37,6 +40,22 @@ describe("public indexing", () => {
     expect(robots()).toEqual({ rules: { userAgent: "*", disallow: "/" } });
     expect(localizedPageMetadata("ar", "", "MSRC", "MSRC").robots).toEqual({ index: false, follow: false });
     expect((await config.headers!())[0].headers).toContainEqual({ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" });
-    expect((await config.redirects!()).some((rule) => "has" in rule)).toBe(false);
+    expect((await config.redirects!()).some((rule) => rule.has?.some((condition) => condition.type === "host"))).toBe(false);
+  });
+
+  // The root opens Arabic only for browsers whose first language is Arabic. Next anchors `has` values.
+  it.each([
+    ["ar", "/ar"], ["ar-SA", "/ar"], ["ar-SA,ar;q=0.9,en-US;q=0.8", "/ar"], ["ar;q=1", "/ar"],
+    ["en-US,en;q=0.9,ar;q=0.8", "/en"], ["fr-FR", "/en"], ["arn-CL", "/en"], [undefined, "/en"],
+  ])("sends Accept-Language %s at the root to %s", async (language, destination) => {
+    const { config } = await load("production");
+    const rule = (await config.redirects!()).find((candidate) => candidate.source === "/" && (!candidate.has || candidate.has.every((condition) =>
+      condition.type === "header" && language !== undefined && new RegExp(`^${condition.value}$`).test(language))));
+    expect(rule).toMatchObject({ destination, permanent: false });
+  });
+
+  it.each([["programme", "program"], ["participation", "participate"]])("redirects /:locale/%s permanently to /:locale/%s", async (alias, page) => {
+    const { config } = await load("preview");
+    expect(await config.redirects!()).toContainEqual({ source: `/:locale(en|ar)/${alias}`, destination: `/:locale/${page}`, permanent: true });
   });
 });

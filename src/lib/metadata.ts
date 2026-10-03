@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { conferenceConfig } from "@/config/conference";
+import { formatConferenceDateRange } from "@/lib/conference-dates";
 import type { Locale } from "@/lib/i18n";
 
 /** Public origin for absolute metadata URLs. Previews also point shared links at the public site. */
@@ -47,4 +49,14 @@ export function localizedPageMetadata(locale: Locale, path: string, title: strin
     },
     twitter: { card: "summary_large_image", title, description, images: [image.url] },
   };
+}
+
+const descriptionCity: Record<Locale, string> = { en: ", Jeddah. ", ar: "، جدة. " };
+
+/**
+ * A page's search snippet led by the confirmed dates and city, as on the homepage and About:
+ * "27–28 January 2027, Jeddah. Practical learning alongside the scientific programme."
+ */
+export function conferenceDescription(locale: Locale, text: string): string {
+  return conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}${descriptionCity[locale]}${text}` : text;
 }

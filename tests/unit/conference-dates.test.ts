@@ -16,9 +16,11 @@ describe("date-only publication and localization (CFG-01, LOC-01/03)", () => {
   it("formats approved Gregorian days without assuming an opening time", () => {
     expect(formatConferenceDate(dates.day1, "en")).toBe("27 January 2027");
     expect(formatConferenceDate(dates.day2, "en")).toBe("28 January 2027");
-    expect(formatConferenceDateRange(dates, "en")).toMatch(/^27\D+28 January 2027$/);
+    // Matches the hand-written copy ("27–28 January 2027"), whatever ICU's range spacing.
+    expect(formatConferenceDateRange(dates, "en")).toBe("27–28 January 2027");
+    expect(formatConferenceDateRange({ day1: "2027-01-31", day2: "2027-02-01" }, "en")).toMatch(/^31 January\s–\s1 February 2027$/);
     expect(formatConferenceDate(dates.day1, "ar")).toBe("٢٧ يناير ٢٠٢٧");
-    expect(formatConferenceDateRange(dates, "ar")).toMatch(/^٢٧\D+٢٨ يناير ٢٠٢٧$/);
+    expect(formatConferenceDateRange(dates, "ar")).toBe("٢٧–٢٨ يناير ٢٠٢٧");
     expect(formatConferenceDateRange(dates, "ar")).not.toMatch(/[0-9]/);
   });
 

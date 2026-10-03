@@ -61,6 +61,8 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
                       </li>
                     ))}
                   </ol>
+                  {/* A plain file link: it downloads without JavaScript and opens in the visitor's calendar app. */}
+                  <a className="text-link dates-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{copy.addToCalendar}</a>
                 </>
               ) : <p>{copy.datesPending}</p>}
             </div>

@@ -114,3 +114,19 @@ test("Dates and Venue keyboard and language navigation preserve the section and 
   await expect(page.locator("#venue")).toBeInViewport();
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe("auto");
 });
+
+for (const [locale, label] of [["en", "Add to calendar"], ["ar", "أضف إلى التقويم"]] as const) {
+  test(`${locale} Add to calendar downloads one all-day event for the confirmed days`, async ({ page }) => {
+    await page.goto(`/${locale}/dates-venue`);
+    const link = page.locator(".dates-calendar").getByRole("link", { name: label });
+    await expect(link).toHaveAttribute("href", `/${locale}/msrc-2027.ics`);
+    const [download] = await Promise.all([page.waitForEvent("download"), link.click()]);
+    expect(download.suggestedFilename()).toBe("msrc-2027.ics");
+    const response = await page.request.get(`/${locale}/msrc-2027.ics`);
+    expect(response.headers()["content-type"]).toBe("text/calendar; charset=utf-8");
+    const body = await response.text();
+    expect(body).toContain("DTSTART;VALUE=DATE:20270127");
+    expect(body).toContain("DTEND;VALUE=DATE:20270129");
+    expect(body).not.toMatch(/T\d{6}(?!Z)/);
+  });
+}

@@ -39,8 +39,10 @@ export function formatConferenceDate(date: CalendarDate, locale: Locale): string
   return dateFormatter(locale).format(calendarEpoch(date));
 }
 
+/** "27–28 January 2027": ICU spaces a same-month en-GB range ("27 – 28"); the site's copy does not. */
 export function formatConferenceDateRange(dates: ConferenceDates, locale: Locale): string {
-  return dateFormatter(locale).formatRange(calendarEpoch(dates.day1), calendarEpoch(dates.day2));
+  return dateFormatter(locale).formatRange(calendarEpoch(dates.day1), calendarEpoch(dates.day2))
+    .replace(/(\p{Nd})\s*–\s*(\p{Nd})/u, "$1–$2");
 }
 
 export function getRiyadhCalendarDate(now: Date): CalendarDate {
