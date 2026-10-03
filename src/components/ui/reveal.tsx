@@ -18,15 +18,20 @@ function observeReveal(node: HTMLDivElement) {
         awaitingReveal.delete(entry.target);
         viewportObserver?.unobserve(entry.target);
         const target = entry.target as HTMLDivElement;
+        const waited = target.dataset.revealState === "waiting";
         target.dataset.revealState = "complete";
-        // Never hide text, including if JavaScript, media or the observer fails.
-        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) target.classList.add("reveal--seen");
+        // Content that waited below the screen fades up (ORG-012); on-screen content only settles.
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) target.classList.add(waited ? "reveal--rise" : "reveal--seen");
       }
     }, { threshold: 0.12, rootMargin: "0px 0px -4% 0px" });
   }
   awaitingReveal.add(node);
+  // Only content still below the screen once JavaScript runs is held back for its fade-up;
+  // without JavaScript or an observer nothing is ever hidden.
+  if (node.getBoundingClientRect().top > window.innerHeight) node.dataset.revealState = "waiting";
   viewportObserver.observe(node);
   return () => {
+    if (node.dataset.revealState === "waiting") delete node.dataset.revealState;
     awaitingReveal.delete(node);
     viewportObserver?.unobserve(node);
     if (!awaitingReveal.size) {
