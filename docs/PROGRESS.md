@@ -68,6 +68,11 @@ MVCC snapshot. A read admitted before expiry may finish afterward; later stateme
 deny even within the same transaction. This changes no deadline or session activity.
 Existing locked server/write/consume expiry checks still use actual time after waits.
 The strict lint gate is retained. Delayed-boundary regression evidence follows in CI.
+Atb0f7bf1 CI37145213167, migration reset and strict lint passed. SQL stopped during
+new-fixture preparation because two synthetic actors were assigned the same changed
+email, correctly rejected by native uniqueness. Existing393 assertions passed; the
+new suite emitted13 assertions before this fixture error, so no full SQL/native
+PASS is claimed for that run. Changed destinations are now unique per synthetic actor.
 
 Executed the ignored local single-flow driver once at20:58 Riyadh on3October2026:
 one English synthetic staff-code email was accepted by Gmail SMTP. The driver uses
@@ -98,6 +103,31 @@ age, warning lead, privacy/retention/location and live provider/sender/custody r
 unresolved. Rollback: stop the lab, clear email opt-in or revert isolated review code
 without restoring superseded SMS policy; preserve private credentials/attempt history.
 No hosted rollback is needed. Current feature details: regular-staff-email-check.md.
+
+Changed areas in this continuation:
+
+- Delivery: new `src/lib/email/isolated-staff-preview.server.ts`; auth preview service,
+  contract, EN/AR copy and component; `src/lib/email/README.md`.
+- Managed cookies: new `src/features/auth/managed-staff-lab.server.ts` and
+  `tests/integration/managed-staff-cookie.test.ts`.
+- Verification: new `tests/unit/isolated-staff-preview-delivery.test.ts`,
+  `tests/unit/managed-staff-lab.test.ts`, updated auth-preview units/browser cases,
+  new `supabase/tests/database/readonly_authentication.test.sql` and one explicit
+  initialization in `regular_staff_email.test.sql`.
+- Schema: additive `20261003180734_readonly_authentication_context.sql` only in this
+  continuation. Prior migrations/source snapshots preserved; nothing hosted applied.
+- Notes: ARCHITECTURE, DECISIONS, PROGRESS and regular-staff-email-check feature note.
+  Private Windows delivery/launcher/fixture helpers remain ignored outside Git/CI.
+
+Commands: application `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`,
+`pnpm test:e2e` and the auth Playwright configuration. The local public run used an
+ignored alternate-port configuration because3210 was occupied; no existing process was
+stopped. Disposable CI alone runs `pnpm db:reset`, `pnpm db:lint`, `pnpm db:test`,
+local security advisors, `pnpm db:types` and `pnpm db:integration`. The new migration was
+created with installed Supabase CLI `migration new` after reading its help. Private
+helper tests use `Test-IsolatedStaffCodeSynthetic.ps1` and
+`Test-IsolatedStaffCodeDeliverySynthetic.ps1` in both PowerShell versions; the sole
+actual code send used `Start-IsolatedStaffEmailPreview.ps1 -RunSingleFlowTest` once.
 
 ## 3 October 2026 — Isolated email readiness tests
 

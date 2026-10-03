@@ -168,7 +168,7 @@ select is(public.msrc_read_access_context('synthetic-read-2027'),public.msrc_acc
 -- Native refresh changes neither current password identity nor immutable lifetime.
 update auth.sessions set updated_at=now(),refreshed_at=now()
   where id in (select sid from read_cases where name in ('valid-staff','participant'));
-update auth.users set email='changed-readonly@example.invalid'
+update auth.users set email='changed-'||email
   where id in (select actor from read_cases where name in ('changed-email','changed-email-back'));
 update auth.users set email='readonly-changed-email-back@example.invalid'
   where id=(select actor from read_cases where name='changed-email-back');
