@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
       ...(production ? vercelHosts.map((value) => ({ source: "/:path*", has: [{ type: "host" as const, value }], destination: "https://www.msrc2027.com/:path*", permanent: true })) : []),
       { source: "/", has: [{ type: "header" as const, key: "accept-language", value: arabicFirst }], destination: "/ar", permanent: false },
       { source: "/", destination: "/en", permanent: false },
+      // British-spelling and long-form aliases are permanent, answered at the edge, and keep the query.
+      { source: "/:locale(en|ar)/programme", destination: "/:locale/program", permanent: true },
+      { source: "/:locale(en|ar)/participation", destination: "/:locale/participate", permanent: true },
     ];
   },
   async headers() {

@@ -53,4 +53,9 @@ describe("public indexing", () => {
       condition.type === "header" && language !== undefined && new RegExp(`^${condition.value}$`).test(language))));
     expect(rule).toMatchObject({ destination, permanent: false });
   });
+
+  it.each([["programme", "program"], ["participation", "participate"]])("redirects /:locale/%s permanently to /:locale/%s", async (alias, page) => {
+    const { config } = await load("preview");
+    expect(await config.redirects!()).toContainEqual({ source: `/:locale(en|ar)/${alias}`, destination: `/:locale/${page}`, permanent: true });
+  });
 });
