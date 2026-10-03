@@ -24,14 +24,20 @@ describe("isCountedPage", () => {
     expect(isCountedPage(path)).toBe(false);
   });
 
-  it("covers every public page folder, so a new public page is counted only on purpose", () => {
+  it("requires an explicit analytics decision for every new public page folder", () => {
+    // BL-PUB-06/08 keep contact and legal drafts outside analytics/Speed Insights.
+    const excluded = ["contact", "privacy", "terms"];
     const folders = readdirSync("src/app/[locale]/(preview)", { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-    const missing = folders.filter((folder) => !(countedSections as readonly string[]).includes(folder));
-    expect(missing, "New public page: add it to countedSections in src/lib/vercel-observability.ts if it may be counted").toEqual([]);
+    const missing = folders.filter((folder) => !(countedSections as readonly string[]).includes(folder) && !excluded.includes(folder));
+    expect(missing, "New public page: explicitly decide whether it may be counted").toEqual([]);
+    for (const section of excluded) expect(isCountedPage(`/en/${section}`)).toBe(false);
   });
 });
 
 describe("prepareObservabilityEvent", () => {
+  it.each(["/en/contact", "/ar/contact", "/en/privacy", "/ar/privacy/2026-10-04-draft", "/en/terms/2026-10-04-draft", "/ar/terms"])("drops contact and legal-draft events for %s", (path) => {
+    expect(prepareObservabilityEvent({ type: "pageview", url: `https://www.msrc2027.com${path}?email=private%40example.test#private` }, false)).toBeNull();
+  });
   it("keeps the event and its route, without the query string", () => {
     expect(prepareObservabilityEvent({ type: "vital", url: "https://www.msrc2027.com/ar/media?filter=video", route: "/[locale]/media" }, false))
       .toEqual({ type: "vital", url: "https://www.msrc2027.com/ar/media", route: "/[locale]/media" });

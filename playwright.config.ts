@@ -19,7 +19,7 @@ export default defineConfig({
     { name: "chromium-desktop", use: { ...devices["Desktop Chrome"] } },
     {
       name: "chromium-tablet",
-      testMatch: ["public-shell.spec.ts", "about.spec.ts", "dates-venue.spec.ts", "countdown.spec.ts"],
+      testMatch: ["public-shell.spec.ts", "about.spec.ts", "dates-venue.spec.ts", "countdown.spec.ts", "contact.spec.ts", "policies.spec.ts"],
       use: { ...devices["Desktop Chrome"], viewport: { width: 791, height: 1000 } },
     },
     { name: "chromium-mobile", use: { ...devices["Pixel 7"] } },

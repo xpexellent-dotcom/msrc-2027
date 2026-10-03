@@ -54,8 +54,8 @@ Named final owners and due dates are **unassigned unless explicitly recorded**. 
 | P1 payments | SELECTED | Existing authorized KAU collection arrangement, isolated adapter. | Responsible unit/payee/system, real integration or approved official-report reconciliation, amounts/methods/tax/refunds/references and evidence. No webhook/API assumed. | PAY-01/04/05, CFG-02 |
 | Three site Super Admins | REQUIRED | Exactly three individually named website Super Admin accounts before production. | Names, verified identity, appropriate grants/MFA/offboarding; distinct from infrastructure owners. | ROL-10/12, CFG-11 |
 | Production data locations | OPEN | No exact region selected; no assumption that managed providers are Saudi-hosted. | Full database/storage/auth/app/backups/email/model/logs flows and required approvals. Synthetic development can proceed. | INF-02, PRV-07 |
-| Legal controller | OPEN | O1 operational owner does not settle legal controller identity. | Controller/contact/legal bases/institutional evidence, processor/transfer/retention policy. | PRV-01/02, CFG-09 |
-| Email/scanning/assessment/analytics | OPEN | Separate approved configuration needed. | Provider/data terms/evaluation/quotas/secrets/budget. Analytics has no selected provider. | INF-01, CFG-10 |
+| Participant-data responsibility | ORGANIZER DECISION; release evidence OPEN | ORG-022 names the Research Principles Club responsible for participant data and Emad Khoja for final wording. O1 alone is not institutional/legal approval. | Approved wording/legal bases/institutional evidence, processor/transfer inventory and remaining retention settings. | PRV-01/02, CFG-09 |
+| Email/scanning/assessment/analytics | PARTIAL; dependent gates OPEN | ORG-008 selects Vercel public analytics/Speed Insights; ORG-021 sets Contact addresses without selecting a delivery provider. | Remaining provider/data terms/evaluation/quotas/secrets/budget and processing/location approval. | INF-01, CFG-10 |
 
 The source selects providers and intended ownership; it does not create accounts, paid plans, cloud resources, production credentials, an approved legal relationship or a functioning sender.
 
@@ -72,7 +72,7 @@ The source selects providers and intended ownership; it does not create accounts
 | Interface language | English-default bilingual public/participant/non-review organizer UI and Arabic RTL. | LOC-01/03 |
 | Scientific language | Scientific/project text English-only, LTR scientific fields in Arabic UI. Reviewer/judge assessment English-only. | LOC-02/03 |
 | Email language/channel | All platform transactional messages English-only and email-only. | LOC-03, EML-01 |
-| General support | Existing Gmail category routes and website form, no general helpdesk. Sponsors have restricted tracked inquiry records. | SUP-01/03, SPN-02 |
+| General support | ORG-021 supersedes the Gmail routes with nine tagged topics to contact@msrc2027.com. Form remains closed; no general helpdesk. Sponsors retain their separate restricted inquiry boundary. | SUP-01/03, SPN-02 |
 | Stage-one abstract | 300 body words, ordinary/case templates and ongoing studies, two finalized submissions/PI, stage-one applicable IRB + supplied similarity report only. | ABS-01/04/07/09 |
 | Research supervisor | Required ONLY after research award winner selection, not submission, acceptance, presentation allocation or nomination. | ABS-08 |
 | Review/anonymity | Assigned blinded pre-event review; event judging separate. Human scores and advisory assessment separate, committee publishes authorized outcomes. | REV-01/05/07/10, AI-01/03 |
@@ -88,7 +88,7 @@ The source selects providers and intended ownership; it does not create accounts
 | Certificate issuance | Automatic eligibility/preparation, authorized template/signature/release batch, then automated issue/email. Role/competition evidence separate. | CRT-03/04 |
 | CMS | Structured forms, fixed layout, draft/preview/publish/unpublish/recover; ordinary content can publish by authorized publisher, media requires explicit approval. | CMS-01/02 |
 | CMS prerequisite | Staff identity/permissions must exist before exposing CMS editing, even if participant registration is built later. | ROL-01/09/12, CMS-01, SEC-01/02; implementation dependency |
-| Media | Approved direct storage uploads/optimized derivatives, no third-party embeds. Permission and asset rights before publication. Optional publicity refusal does not invalidate attendance. | MED-01/03 |
+| Media | Approved direct storage uploads/optimized derivatives, no third-party embeds. ORG-025 records the organizer's registration-notice-only publicity amendment; legal basis, final publication wording and asset rights remain release gates. | MED-01/03, PRV-08 |
 | Archive/editions | Reuse code, keep annual operational databases/storage/config separate, no automatic account/submission/consent transfer. | ARC-01/02 |
 
 ## 4. Hackathon and source conflicts
@@ -1405,3 +1405,117 @@ and the authentication Playwright configuration, pushing and marking ready for r
 - Ready for review is not merge/release approval. All operational/readiness gates remain
   false; no deployment, hosted migration/reset/fixture, live account/grant/reset or test
   email is performed. Current execution receipts belong in PROGRESS and the PR.
+
+## ORG-021 — Closed Contact route and fixed email routing, 4 October 2026
+
+Authority: explicit organizer instruction in this conversation. BL-PUB-06 uses the
+following topics and subject tags, in this exact order; each routes to
+`contact@msrc2027.com`:
+
+1. General — `[MSRC General]`
+2. Registration — `[MSRC Registration]`
+3. Research & abstracts — `[MSRC Abstracts]`
+4. Workshops — `[MSRC Workshops]`
+5. Hackathon — `[MSRC Hackathon]`
+6. 3MT — `[MSRC 3MT]`
+7. Sponsors & partners — `[MSRC Sponsors]`
+8. Website & account support — `[MSRC Support]`
+9. Privacy & data requests — `[MSRC Privacy]`
+
+Planned sender: `no-reply@msrc2027.com`; Reply-To is the visitor's server-validated
+email. Subject: `<tag> <short summary>`. The summary is derived from the message,
+without adding another required visitor field. The form has topic, name, email,
+optional related reference and message; expose the recipient as a mailto link.
+The organizer reports that forwarding and Gmail tag filters were tested. This is
+user-reported evidence, not a fresh application delivery test.
+
+This supersedes v0.5 SUP-01's Gmail plus-address routes for Contact only. Preserve
+the source snapshot. Render the EN/AR form disabled, rejecting API requests before
+reading their contents: no sending, storage, provider, secrets or CAPTCHA. An email
+provider remains unapproved. Fixed planned addresses do not authorize live delivery,
+DNS/provider configuration, authentication-email changes or other workflow openings.
+
+## ORG-022 — Participant-data responsibility and policy wording, 4 October 2026
+
+Authority: explicit organizer instruction. The Research Principles Club is responsible
+for participant data. The policy follows Saudi Arabia's PDPL and links to KAU's policy:
+[English](https://kau.edu.sa/en/page/privacy-policy) and
+[Arabic](https://kau.edu.sa/ar/page/privacy-policy).
+Emad Khoja writes and approves the final wording. Terms wording is pending from Emad
+and remains a placeholder. EN/AR routes may expose clearly labeled read-only drafts
+with version `2026-10-04-draft`; this date identifies the draft, not legal effectiveness.
+Every unapproved section and translation approval remains a placeholder. Institutional
+authority, legal bases, processors, actual locations/transfers and final policy approval
+are not established by this organizer responsibility decision or links to KAU.
+
+## ORG-023 — Registration, abstract and certificate retention, 4 October 2026
+
+Authority: explicit organizer instruction; Abdulrahman Ismail set retention.
+Registrations and abstracts are deleted one year after the conference. The certificate
+record consisting of name, certificate number and date is kept for two years so
+certificates stay verifiable. This confirms those durations, not a working cleanup job.
+The certificate period's starting point, other record types, inbox/media/log/export/
+backup handling and restoration/deletion implementation remain unresolved. Do not
+invent a certificate deadline or extend this decision to unrelated data.
+
+## ORG-024 — Data requests and responsible owner, 4 October 2026
+
+Authority: explicit organizer instruction. Data requests go to `contact@msrc2027.com`
+with topic "Privacy & data requests"; response is within 30 days. Akram Awan handles
+requests. This does not grant account permissions or implement identity verification,
+deletion automation, a case database or approved request-email retention.
+
+## ORG-025 — Photography notice and publicity amendment, 4 October 2026
+
+Authority: explicit organizer instruction. The event is photographed and recorded,
+and the registration page states this clearly. Organizer decision: that notice is
+sufficient for publishing identifiable photos and recordings, with no separate consent
+step. This explicitly supersedes BL-PUB-08's "no default publicity consent" exclusion
+and the source-based assumption that optional publicity consent must be a separate
+product step. Record this product decision without adding a consent checkbox/bypass.
+
+**Conflict and release limitation:** a notice is not itself evidence of a lawful basis.
+The [official PDPL](https://misa.gov.sa/app/uploads/2025/08/PersonalDataProtectionLaw.pdf)
+includes identifiable photographs/videos in personal data and applies conditions to
+processing/disclosure (Articles 1, 5–7 and 15). Emad's final publication wording and
+institutional/privacy review of the applicable legal basis remain pending. Public
+drafts state the photography fact and label publication/legal-basis wording as a
+placeholder; they do not assert that notice legally substitutes for consent. This
+slice publishes no new identifiable media and leaves media rights/removal gates closed.
+
+## ORG-026 — Current public-site data description, 4 October 2026
+
+Authority: explicit organizer instruction. The organizer describes the current site
+as collecting no personal data except cookieless, anonymous visit analytics (Vercel).
+Public copy identifies those analytics and states that the closed website forms do
+not accept personal information. This is not an audit of all hosting/network/provider
+logs or a claim of anonymization across every processor. Existing analytics/Speed
+Insights configuration remains; Contact and draft policy routes stay excluded from
+its route allowlist. Provider processing, log retention, actual locations/transfers
+and email-inbox handling remain clearly marked placeholders pending approved wording.
+
+## ENG-015 — Contact and policy draft boundaries, 4 October 2026
+
+BL-PUB-06/08 add static bilingual pages and a permanently closed Contact handler,
+without database/storage schema, outbox, provider or production setting changes.
+Server-only validation is independently tested using synthetic values and is not
+invoked by the closed endpoint. Its defensive input bounds (name/reference 120,
+email 254, message 4000 and derived subject summary 80 characters) are implementation
+bounds, not organizer-approved live anti-spam quotas. A honeypot uses no CAPTCHA;
+live rate limits/abuse handling, CSRF/origin protection and delivery/retention approval
+must be reviewed before any future opening. Draft policies remain noindex and outside
+the production sitemap. Footer links reach the new routes; registration stays closed
+and adds only the confirmed photography fact. Authentication/permissions/session
+policies, all readiness flags, migrations and original v0.5 snapshots are preserved.
+
+## ORG-027 — Public policies use organizational roles, 4 October 2026
+
+Authority: explicit organizer review of PR30. Remove internal personal names and
+decision/drafting attributions from public Privacy/Terms in both EN/AR, including
+their shared draft notice and metadata. Data-request wording becomes "Our privacy
+lead responds within 30 days" and its Arabic equivalent. Preserve the contact channel,
+response period, retention decisions, draft version/status and all release gates.
+ORG-022–024 retain Emad Khoja's wording/approval responsibility, Abdulrahman Ismail's
+retention decision and Akram Awan's request-handling responsibility as internal records.
+The photography-publication section stays a placeholder for Emad; this copy amendment
+does not approve it, appoint a different owner or activate collection/delivery.
