@@ -62,7 +62,8 @@ from (values
   (19,'native-password-missing','staff',interval '1 minute',true),
   (20,'changed-email-back','staff',interval '1 minute',true),
   (21,'admin-signed-only','super_admin',interval '1 minute',false),
-  (22,'admin-phone','super_admin',interval '1 minute',false)
+  (22,'admin-phone','super_admin',interval '1 minute',false),
+  (23,'native-short-deadline','staff',interval '1 minute',true)
 ) item(n,name,tier,age,receipt);
 insert into auth.users(id,email,email_confirmed_at,created_at,updated_at,is_anonymous)
   select actor,'readonly-'||name||'@example.invalid',now()-interval '7 days',
@@ -201,6 +202,10 @@ create policy owner_and_role on public.synthetic_read_auth for select to authent
     where grant_row->>'role' in ('contentMediaEditor','superAdmin')));
 create policy exact_authentication on public.synthetic_read_auth as restrictive for select to authenticated
   using((select public.msrc_second_step_satisfied()));
+-- Give this distinct native session a bounded future deadline immediately before
+-- the read-only block; its proof/history were already initialized legitimately.
+update auth.sessions set not_after=clock_timestamp()+interval '5 seconds'
+  where id=(select sid from read_cases where name='native-short-deadline');
 create temporary table read_before as select
   (select jsonb_agg(to_jsonb(s) order by session_id) from msrc_sessions.session_state s) states,
   (select count(*) from msrc_sessions.security_audit) session_audits,
@@ -212,6 +217,27 @@ create temporary table read_before as select
 -- transaction. pgTAP uses only temporary test bookkeeping, permitted by PostgreSQL.
 set transaction read only;
 select is(current_setting('transaction_read_only'),'on','Normal table GET transaction mode is actually enforced');
+select pg_temp.read_claims('native-short-deadline');
+set local role authenticated;
+-- The dependency between these materialized CTEs admits before waiting and
+-- returns same-statement admission after the wait, without altering any clock.
+-- PostgreSQL may consolidate STABLE calls; no physical reevaluation is assumed.
+with admitted as materialized (
+  select public.msrc_second_step_satisfied() satisfied
+), waited as materialized (
+  select satisfied,pg_sleep(5.1) from admitted
+)
+select ok(satisfied and public.msrc_second_step_satisfied()
+  and clock_timestamp() > statement_timestamp()+interval '5 seconds',
+  'A read admitted before native expiry may complete after it using the same statement time') from waited;
+-- This MUST remain a separate client statement. Transaction-start now() would
+-- wrongly retain admission; statement_timestamp() advances even before COMMIT.
+select is(public.msrc_second_step_satisfied(),false,
+  'The next statement in the same transaction denies an elapsed native deadline');
+select is((select count(*) from public.synthetic_read_auth),0::bigint,
+  'The next normal owner/role SELECT cannot reuse earlier read admission');
+reset role;
+
 select pg_temp.read_claims('valid-staff');
 set local role authenticated;
 select is(public.msrc_second_step_satisfied(),true,'Valid exact-session email receipt works in read-only evaluation');

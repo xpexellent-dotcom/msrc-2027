@@ -53,12 +53,21 @@ observation/own-role projection from the unchanged volatile POST initialization 
 statement snapshot for role plus receipt checks. Private observers preserve current
 native password/email revision/grant fingerprint/TOTP precision/lifecycle and clocks;
 missing initialized state denies. Independent review found no remaining security issue.
-Added109 SQL assertions for readonly positive/denied reads, policy/receipt/factor
+Added112 SQL assertions for readonly positive/denied reads, policy/receipt/factor
 parity, permissions and unchanged session/receipt/audit state. One existing staff fixture
 now explicitly calls the trusted initializer before expecting direct-read success.
 Native HTTP tests use literal Host headers, age expiry fixtures before first observation
 and add direct stale-bearer GET denial after suspension, email/grant changes and new login.
 The corrected database suite awaits disposable CI; it has not run on this computer.
+First corrected head2ce2e09 CI37144279613 reset passed, then strict database lint
+rejected seven STABLE/VOLATILE clock-sampling warnings in the new read observers.
+SQL assertions, advisors/types and native integration were skipped on that run.
+The timing model is being corrected; warnings are not silently waived.
+Pure observers now use one genuine statement-admission timestamp alongside their
+MVCC snapshot. A read admitted before expiry may finish afterward; later statements
+deny even within the same transaction. This changes no deadline or session activity.
+Existing locked server/write/consume expiry checks still use actual time after waits.
+The strict lint gate is retained. Delayed-boundary regression evidence follows in CI.
 
 Executed the ignored local single-flow driver once at20:58 Riyadh on3October2026:
 one English synthetic staff-code email was accepted by Gmail SMTP. The driver uses

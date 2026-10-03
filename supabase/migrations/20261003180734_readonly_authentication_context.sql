@@ -3,13 +3,17 @@
 -- neither lock rows nor initialize/update clocks, receipts, revocations or audit.
 -- Stable private observation preserves one statement snapshot. Concurrent
 -- revocations affect the next statement; trusted mutations retain existing locks.
+-- Reads admit at statement start: a read begun before a deadline may finish after
+-- it, but the next statement denies even within the same open transaction.
+-- This never changes an origin/deadline or records activity. Existing write paths
+-- retain real-clock rechecks after locks; no production timing policy is added.
 -- Missing initialized session state denies direct reads. The existing write RPC
 -- still initializes original native history; refresh cannot restart it.
 
 create function msrc_staff_email.observe_basis(target_actor uuid,target_session uuid) returns jsonb
 language plpgsql stable security definer set search_path='' set timezone='UTC' as $$
 declare
-  observed_at timestamptz := clock_timestamp();
+  observed_at timestamptz := statement_timestamp();
   account_row msrc_authorization.account_access%rowtype;
   user_row auth.users%rowtype;
   identity_row msrc_staff_email.identity_revision%rowtype;
@@ -28,7 +32,7 @@ begin
     or exists(select 1 from msrc_authorization.role_grants g where g.actor_id=target_actor
       and g.state='active' and g.role_name='superAdmin') then return null; end if;
   select u.* into user_row from auth.users u where u.id=target_actor;
-  observed_at := clock_timestamp();
+  observed_at := statement_timestamp();
   if not found or user_row.deleted_at is not null or user_row.is_anonymous
     or (user_row.banned_until is not null and user_row.banned_until > observed_at)
     or user_row.email_confirmed_at is null or user_row.email_confirmed_at > observed_at
@@ -40,7 +44,7 @@ begin
   select p.* into policy_row from msrc_sessions.policy p where p.singleton;
   if not found then return null; end if;
   select s.* into state_row from msrc_sessions.session_state s where s.session_id=target_session;
-  observed_at := clock_timestamp();
+  observed_at := statement_timestamp();
   if session_row.created_at > observed_at
     or (session_row.not_after is not null and session_row.not_after <= observed_at)
     or observed_at >= session_row.created_at+make_interval(secs=>policy_row.privileged_absolute_seconds) then return null; end if;
@@ -73,14 +77,14 @@ begin
   return exists(select 1 from msrc_staff_email.receipts r join msrc_staff_email.challenges c on c.id=r.challenge_id
     where r.actor_id=target_actor and r.session_id=target_session and r.binding=evidence->>'binding'
       and c.actor_id=target_actor and c.session_id=target_session and c.binding=r.binding
-      and c.state='verified' and c.verified_at=r.verified_at and r.verified_at <= clock_timestamp()
+      and c.state='verified' and c.verified_at=r.verified_at and r.verified_at <= statement_timestamp()
       and r.verified_at >= (evidence->>'passwordAt')::timestamptz);
 end; $$;
 
 create function msrc_sessions.observe_context(edition_key text) returns jsonb
 language plpgsql stable security definer set search_path = '' as $$
 declare
-  observed_at timestamptz := clock_timestamp();
+  observed_at timestamptz := statement_timestamp();
   claims jsonb;
   caller_id uuid;
   sid uuid;
@@ -142,7 +146,7 @@ begin
   -- read-write context RPC initializes it before any protected direct read.
   select s.* into state_row from msrc_sessions.session_state s where s.session_id=sid;
   if not found then return null; end if;
-  observed_at := clock_timestamp();
+  observed_at := statement_timestamp();
   if managed.not_after is not null and managed.not_after <= observed_at
     or (claims->>'exp')::numeric <= extract(epoch from observed_at) then return null; end if;
   if state_row.actor_id <> caller_id or state_row.started_at <> managed.created_at
@@ -180,8 +184,9 @@ begin
     max(a.updated_at::timestamptz) filter(where a.authentication_method='totp')
     into native_password_at,native_totp_at
     from auth.mfa_amr_claims a where a.session_id=sid;
-  -- Deadline checks use the current clock after reading the native evidence.
-  observed_at := clock_timestamp();
+  -- Deadline checks use the same statement-start admission time as all evidence.
+  -- Unlike transaction_timestamp()/now(), this advances for the next statement.
+  observed_at := statement_timestamp();
   if managed.not_after is not null and managed.not_after <= observed_at
     or (claims->>'exp')::numeric <= extract(epoch from observed_at) then return null; end if;
   mfa_valid := coalesce(password_valid and claims->>'aal'='aal2' and managed.aal::text='aal2'
@@ -303,7 +308,7 @@ revoke all on function public.msrc_second_step_satisfied(),public.msrc_read_acce
   from public,anon,authenticated,service_role;
 grant execute on function public.msrc_second_step_satisfied(),public.msrc_read_access_context(text) to authenticated;
 comment on function msrc_sessions.observe_context(text) is
-  'Private read-only statement-snapshot observation of initialized current native session, strongest tier, exact password/email receipt/TOTP and lifecycle deadlines. No locks, writes, grants or activity.';
+  'Private read-only statement-snapshot and statement-start deadline admission of initialized current native session, strongest tier, exact password/email receipt/TOTP and lifecycle deadlines. Later statements recheck time; no locks, writes, grants or activity.';
 comment on function public.msrc_second_step_satisfied() is
   'Self-only read-only authentication predicate for restrictive RLS. Initialized current exact session and complete second-step policy required; no role/scope/ownership entitlement or readiness.';
 comment on function public.msrc_read_access_context(text) is

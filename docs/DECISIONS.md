@@ -1318,6 +1318,12 @@ staff accounts, other recipients, production SMTP or managed Auth changes.
   Existing write RPC semantics and historical migrations remain unchanged. Read
   snapshots observe revocations committed before the statement; subsequent statements
   observe later revocations. This is not permission or workflow activation.
+  Pure reads use statement-start admission time, not transaction-start time: a read
+  begun before expiry can finish afterward; its next statement denies even in the
+  same transaction. Reads never move origin, idle activity or absolute deadlines.
+  Existing server/write/consume paths retain actual-clock rechecks after lock waits.
+  This timing/snapshot boundary must be reviewed with future resource policies before
+  activation; no response-completion deadline guarantee is claimed.
 
 The new migration is review-only and tested exclusively in disposable CI. No dependency,
 hosted migration/fixture/reset, deployment, merge, paid service, recovery action or

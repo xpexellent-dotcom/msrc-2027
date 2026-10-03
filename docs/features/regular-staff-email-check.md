@@ -72,9 +72,16 @@ one statement snapshot; stable `public.msrc_read_access_context(text)` and
 `public.msrc_access_context(text)` for the existing POST initialization/metadata path;
 do not place that locking initializer inside a read policy.
 Revocation committed after a statement begins affects subsequent statements, as with
-normal database snapshots. This does not reduce current password, receipt, email,
-grant, native factor/session, revocation or timing checks. See the
+normal database snapshots. Pure reads evaluate deadlines at `statement_timestamp()`:
+a read admitted before expiry can finish afterward; the next statement denies, even
+within the same open transaction. This never records activity or moves a deadline.
+The unchanged locked server/write/consume paths still resample `clock_timestamp()`
+after waits. No password, receipt, email, grant, native factor/session or revocation
+proof is removed. See the
 [PostgREST transaction contract](https://postgrest.org/en/stable/references/transactions.html).
+The time/snapshot distinction follows PostgreSQL17's
+[function volatility](https://www.postgresql.org/docs/17/xfunc-volatility.html) and
+[current-time functions](https://www.postgresql.org/docs/17/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT).
 The authenticated self-read projection retains the intentional SECURITY DEFINER
 review exception: fixed empty search path, qualified private objects, own current
 identity/session, authenticated-only execution and false readiness. Private observer
