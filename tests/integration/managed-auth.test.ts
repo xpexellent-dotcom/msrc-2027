@@ -5,7 +5,8 @@ import { createClient, type Session, type SupabaseClient } from "@supabase/supab
 import { afterAll, beforeAll, describe, it } from "vitest";
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
-import { createSupabaseSmsContract } from "@/features/auth/mfa-provider.server";
+import { createSupabaseTotpContract } from "@/features/auth/mfa-provider.server";
+import { totpAt } from "@/features/auth/totp.server";
 
 // Genuine GoTrue/SDK exchanges on the disposable CI stack, not hosted delivery/UAT.
 // Generated credentials, OTPs and SDK responses never enter assertion snapshots.
@@ -17,8 +18,6 @@ const other = "a1000000-0000-4000-8000-000000000003";
 const password = randomBytes(32).toString("hex");
 const emails = { [participant]: "managed-participant@example.invalid", [staff]: "managed-staff@example.invalid",
   [other]: "managed-other@example.invalid" };
-// Syntactic Saudi numbers are fixture inputs ONLY. The hook makes no network call.
-const phones = { [participant]: "+966500000901", [staff]: "+966500000902", [other]: "+966500000903" };
 
 function check(condition: unknown, description: string): asserts condition {
   if (!condition) throw new Error(`Managed Auth assertion failed: ${description}. Sensitive diagnostics withheld.`);
@@ -33,11 +32,11 @@ function boundary(): { url: string; publishableKey: string } {
     && !existsSync("supabase/.temp/project-ref") && (!target || target === "local")
     && process.env.NEXT_PUBLIC_SUPABASE_URL === "http://127.0.0.1:54321"
     && /^project_id = "msrc2027-local"$/m.test(config)
-    && config.includes('uri = "pg-functions://postgres/msrc_ci_auth/capture_sms"')
     && config.includes('uri = "pg-functions://postgres/msrc_ci_auth/reject_email"')
-    && /\[auth\.hook\.send_sms\]\r?\nenabled = true/.test(config)
     && /\[auth\.hook\.send_email\]\r?\nenabled = true/.test(config)
-    && /\[auth\.sms\.vonage\]\r?\nenabled = true\r?\napi_key = "synthetic-unusable-api-key"\r?\napi_secret = "synthetic-unusable-api-secret"\r?\nfrom = "CI NO DELIVERY"/.test(config), "disposable runner boundary");
+    && /\[auth\.mfa\.totp\]\r?\nenroll_enabled = true\r?\nverify_enabled = true/.test(config)
+    && !/\[auth\.(sms|mfa\.phone|hook\.send_sms)(?:\.|\])/.test(config)
+    && /^enable_signup = false$/m.test(config.split("[auth]")[1]?.split("[auth.email]")[0] ?? ""), "disposable runner boundary");
   const resolved = resolveLocalSupabaseConfig({ url: process.env.NEXT_PUBLIC_SUPABASE_URL,
     publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY });
   check(resolved, "validated loopback client");
@@ -88,14 +87,6 @@ function claims(session: Session): { session_id: string; aal: string; amr: { met
   return payload;
 }
 
-async function inbox(actor: string): Promise<string> {
-  check([participant, staff, other].includes(actor), "fixed fixture inbox identity");
-  // Consume immediately: no plaintext code retention after the SDK exchange.
-  const otp = await query(`delete from msrc_ci_auth.inbox where user_id='${actor}' returning otp;`);
-  check(/^\d{6}$/.test(otp), "one ephemeral managed-generated code");
-  return otp;
-}
-
 async function context(session: Session) {
   const result = await readVerifiedSessionContext(session.access_token, edition);
   check(result.state === "verified", "fresh own session RPC");
@@ -112,6 +103,7 @@ let participantLogin: Awaited<ReturnType<typeof login>>;
 let staffLogin: Awaited<ReturnType<typeof login>>;
 let otherLogin: Awaited<ReturnType<typeof login>>;
 let factor = "";
+let secret = "";
 
 describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery GitHub CI", () => {
   beforeAll(async () => {
@@ -124,43 +116,7 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
     await query(`begin;
       create schema msrc_ci_auth;
       revoke all on schema msrc_ci_auth from public,anon,authenticated,service_role;
-      create table msrc_ci_auth.inbox(user_id uuid primary key,otp text not null check(otp ~ '^[0-9]{6}$'));
-      create table msrc_ci_auth.controls(singleton boolean primary key check(singleton),reject_send boolean not null);
-      insert into msrc_ci_auth.controls values(true,false);
-      alter table msrc_ci_auth.inbox enable row level security;
-      alter table msrc_ci_auth.inbox force row level security;
-      alter table msrc_ci_auth.controls enable row level security;
-      alter table msrc_ci_auth.controls force row level security;
-      revoke all on all tables in schema msrc_ci_auth from public,anon,authenticated,service_role;
       grant usage on schema msrc_ci_auth to supabase_auth_admin;
-      grant select,insert,update on msrc_ci_auth.inbox to supabase_auth_admin;
-      grant select on msrc_ci_auth.controls to supabase_auth_admin;
-      create policy fixture_hook on msrc_ci_auth.inbox to supabase_auth_admin using(true) with check(true);
-      create policy fixture_controls on msrc_ci_auth.controls for select to supabase_auth_admin using(true);
-      create function msrc_ci_auth.capture_sms(event jsonb) returns jsonb
-      language plpgsql security invoker set search_path='' as $$
-      declare actor uuid := (event->'user'->>'id')::uuid;
-      begin
-        -- GoTrue v2.197.0 omits sms_type for primary phone changes. Permit that
-        -- shape only for fixed actors whose managed new_phone is this exact input.
-        if current_user <> 'supabase_auth_admin' or actor is null or actor not in ('${participant}','${staff}','${other}')
-          or coalesce(event->'sms'->>'otp','') !~ '^[0-9]{6}$'
-          or coalesce(event->'sms'->>'phone','') <> (case actor
-            when '${participant}'::uuid then '${phones[participant].slice(1)}'
-            when '${staff}'::uuid then '${phones[staff].slice(1)}' else '${phones[other].slice(1)}' end)
-          or not (coalesce(event->'sms'->>'sms_type','')='mfa' or (
-            coalesce(event->'sms'->>'sms_type','') in ('','phone_change')
-            and actor in ('${participant}','${other}')
-            and coalesce(event->'user'->>'new_phone','')=event->'sms'->>'phone')) then
-          raise exception 'Disposable fixture SMS rejected.';
-        end if;
-        if (select reject_send from msrc_ci_auth.controls where singleton) then
-          return '{"error":{"http_code":503,"message":"Disposable delivery failure."}}'::jsonb;
-        end if;
-        insert into msrc_ci_auth.inbox(user_id,otp) values(actor,event->'sms'->>'otp')
-        on conflict(user_id) do update set otp=excluded.otp;
-        return '{}'::jsonb;
-      end; $$;
       create function msrc_ci_auth.reject_email(event jsonb) returns jsonb
       language sql security invoker set search_path='' as $$
         select '{"error":{"http_code":403,"message":"Disposable tests disallow email delivery."}}'::jsonb;
@@ -189,60 +145,57 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
   afterAll(async () => {
     if (ci) await query("drop schema if exists msrc_ci_auth cascade;");
     // Immutable safe session/grant audit remains in the disposable database until
-    // the workflow's always-stop step. No code table/file/artifact remains.
+    // the workflow's always-stop step. Codes and enrollment secrets stay in memory.
+    secret = "";
   });
 
-  it("keeps account signup closed and confirms current participant phone at AAL1 without MFA", async () => {
+  it("keeps signup closed and permits only password plus current verified participant email at AAL1", async () => {
     participantLogin = await login(participant);
     const before = await context(participantLogin.session);
-    check(!before.sessionPolicySatisfied && before.reason === "account_verification_required"
-      && before.emailVerified && !before.phoneVerified, "unverified participant phone denial");
+    check(before.sessionPolicySatisfied && before.emailVerified && before.passwordValid
+      && before.authenticationTier === "participant", "verified email and password participant policy");
     const blockedSignup = await client().auth.signUp({ email: "no-signup@example.invalid", password });
     check(Boolean(blockedSignup.error), "global signup remains disabled");
-    const update = await participantLogin.sdk.auth.updateUser({ phone: phones[participant] });
-    check(!update.error, "managed phone verification requested without delivery");
-    const verification = await participantLogin.sdk.auth.verifyOtp({ phone: phones[participant], token: await inbox(participant), type: "phone_change" });
-    check(!verification.error, "managed participant phone verification");
-    const verificationSession = await current(participantLogin.sdk);
-    const otpOnly = await context(verificationSession);
-    check(!otpOnly.sessionPolicySatisfied && otpOnly.reason === "password_auth_required"
-      && !otpOnly.passwordValid && !otpOnly.mfaValid, "verification OTP is not approved password proof");
-    // Managed phone-change verification issues a new OTP session. Reauthenticate
-    // with the approved primary method rather than treating it as password proof.
-    participantLogin = await login(participant);
     const after = await context(participantLogin.session);
     const token = claims(participantLogin.session);
-    check(after.sessionPolicySatisfied && after.emailVerified && after.phoneVerified && !after.privileged
-      && !after.mfaValid && token.aal === "aal1" && !token.amr.some((proof) => proof.method === "mfa/phone"),
-    "dual verified participant remains nonprivileged AAL1");
+    check(after.sessionPolicySatisfied && after.emailVerified && !after.privileged
+      && !after.mfaValid && token.aal === "aal1" && !token.amr.some((proof) => proof.method.startsWith("mfa/")),
+    "email-only participant remains nonprivileged AAL1 without MFA");
+    check((await query(`select (coalesce(phone,'')='' and phone_confirmed_at is null)::text from auth.users where id='${participant}';`)) === "true",
+      "participant has no phone fixture or verification");
     check(!after.operationalAccessReady && !after.privilegedAccessReady, "participant workflows stay closed");
   });
 
-  it("requires Super Admin password then genuine SMS phone MFA and rejects an incorrect code", async () => {
+  it("requires Super Admin password then genuine authenticator-app TOTP and rejects an incorrect code", async () => {
     staffLogin = await login(staff);
     const before = await context(staffLogin.session);
     check(before.privileged && !before.sessionPolicySatisfied && before.reason === "mfa_required", "password-only staff denial");
-    const provider = createSupabaseSmsContract(staffLogin.sdk.auth);
-    const enrollment = await provider.enroll(phones[staff]);
-    check(enrollment.state === "ok", "typed SDK phone enrollment");
+    const provider = createSupabaseTotpContract(staffLogin.sdk.auth);
+    const enrollment = await provider.enroll();
+    check(enrollment.state === "ok", "typed SDK TOTP enrollment");
     factor = enrollment.data.factorId;
+    secret = enrollment.data.secret;
+    check(new URL(enrollment.data.uri).searchParams.get("secret") === secret, "manual secret and setup URI agree without disclosure");
     // AMR timestamps have second precision. Ensure ordered proof is unambiguous.
     await new Promise((resolve) => setTimeout(resolve, 1_100));
     const challenge = await provider.challenge(factor);
-    check(challenge.state === "ok", "trusted SMS-only SDK challenge");
-    const otp = await inbox(staff);
-    const wrong = otp === "000000" ? "111111" : "000000";
+    check(challenge.state === "ok", "genuine SDK authenticator challenge");
+    const now = Date.now();
+    const otp = totpAt(secret, now);
+    const acceptedWindow = [-1, 0, 1].map((offset) => totpAt(secret, now + offset * 30_000));
+    const wrong = ["000000", "000001", "000002", "000003"].find((candidate) => !acceptedWindow.includes(candidate));
+    check(wrong, "incorrect code is outside every accepted time step");
     const invalid = await provider.verify(factor, challenge.data.challengeId, wrong);
     check(invalid.state === "denied", "wrong managed code denied");
     const verified = await provider.verify(factor, challenge.data.challengeId, otp);
-    check(verified.state === "ok", "managed phone MFA verification");
+    check(verified.state === "ok", "managed TOTP MFA verification");
     staffLogin.session = await current(staffLogin.sdk);
     const token = claims(staffLogin.session);
     const primary = token.amr.find((proof) => proof.method === "password");
-    const secondary = token.amr.find((proof) => proof.method === "mfa/phone");
+    const secondary = token.amr.find((proof) => proof.method === "mfa/totp");
     const after = await context(staffLogin.session);
     check(primary && secondary && secondary.timestamp >= primary.timestamp && token.aal === "aal2"
-      && after.mfaValid && after.passwordValid && after.sessionPolicySatisfied, "current password and phone MFA assurance");
+      && after.mfaValid && after.passwordValid && after.sessionPolicySatisfied, "current password and TOTP MFA assurance");
     check(!after.operationalAccessReady && !after.privilegedAccessReady, "staff workflows stay closed");
     const replay = await provider.verify(factor, challenge.data.challengeId, otp);
     check(replay.state === "denied", "used challenge cannot be replayed");
@@ -251,10 +204,10 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
   it("denies another staff identity challenging, verifying or unenrolling the first identity's factor", async () => {
     otherLogin = await login(other);
     await new Promise((resolve) => setTimeout(resolve, 1_100));
-    const ownedChallenge = await staffLogin.sdk.auth.mfa.challenge({ factorId: factor, channel: "sms" });
+    const ownedChallenge = await staffLogin.sdk.auth.mfa.challenge({ factorId: factor });
     check(!ownedChallenge.error && ownedChallenge.data, "genuine owner challenge for isolation check");
-    const ownerCode = await inbox(staff);
-    const challenge = await otherLogin.sdk.auth.mfa.challenge({ factorId: factor, channel: "sms" });
+    const ownerCode = totpAt(secret, Date.now());
+    const challenge = await otherLogin.sdk.auth.mfa.challenge({ factorId: factor });
     const verification = await otherLogin.sdk.auth.mfa.verify({ factorId: factor, challengeId: ownedChallenge.data.id, code: ownerCode });
     const removal = await otherLogin.sdk.auth.mfa.unenroll({ factorId: factor });
     check(Boolean(challenge.error) && Boolean(verification.error) && Boolean(removal.error), "foreign challenge, verification and factor reset denied");
@@ -263,31 +216,25 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
     staffLogin.session = await current(staffLogin.sdk);
     const denied = await context(otherLogin.session);
     check(!denied.sessionPolicySatisfied && !denied.mfaValid, "unverified staff remains denied");
-    const update = await otherLogin.sdk.auth.updateUser({ phone: phones[other] });
-    check(!update.error, "staff primary phone verification fixture");
-    const primaryOtp = await otherLogin.sdk.auth.verifyOtp({ phone: phones[other], token: await inbox(other), type: "phone_change" });
-    check(!primaryOtp.error, "primary phone code exchange without MFA");
-    const primaryOnly = await context(await current(otherLogin.sdk));
-    check(!primaryOnly.sessionPolicySatisfied && !primaryOnly.passwordValid && !primaryOnly.mfaValid,
-      "primary phone OTP never supplies password or phone MFA assurance");
   });
 
-  it("fails closed on no-delivery provider failure and recovers by a new managed challenge", async () => {
+  it("fails closed on an out-of-window authenticator code and recovers through a new managed challenge", async () => {
     const pending = await login(staff);
-    const provider = createSupabaseSmsContract(pending.sdk.auth);
-    await query("update msrc_ci_auth.controls set reject_send=true where singleton;");
+    const provider = createSupabaseTotpContract(pending.sdk.auth);
     await new Promise((resolve) => setTimeout(resolve, 1_100));
-    const failed = await provider.challenge(factor);
-    check(failed.state === "unavailable", "sanitized delivery failure");
+    const first = await provider.challenge(factor);
+    check(first.state === "ok", "stale-code managed challenge");
+    const now = Date.now();
+    const acceptedWindow = [-1, 0, 1].map((offset) => totpAt(secret, now + offset * 30_000));
+    let stale = totpAt(secret, now - 300_000);
+    for (let offset = 11; acceptedWindow.includes(stale); offset++) stale = totpAt(secret, now - offset * 30_000);
+    check((await provider.verify(factor, first.data.challengeId, stale)).state === "denied", "out-of-window code rejected");
     const denied = await context(pending.session);
-    check(!denied.sessionPolicySatisfied && denied.reason === "mfa_required"
-      && (await query(`select count(*) from msrc_ci_auth.inbox where user_id='${staff}';`)) === "0",
-    "failed delivery does not establish MFA or leave an inbox code");
-    await query("update msrc_ci_auth.controls set reject_send=false where singleton;");
+    check(!denied.sessionPolicySatisfied && denied.reason === "mfa_required", "stale code never establishes MFA");
     const retry = await provider.challenge(factor);
-    check(retry.state === "ok", "delivery recovery creates a new managed challenge");
-    const verified = await provider.verify(factor, retry.data.challengeId, await inbox(staff));
-    check(verified.state === "ok", "recovery verifies only a delivered managed code");
+    check(retry.state === "ok", "retry creates a new managed authenticator challenge");
+    const verified = await provider.verify(factor, retry.data.challengeId, totpAt(secret, Date.now()));
+    check(verified.state === "ok", "current authenticator code recovers managed verification");
     pending.session = await current(pending.sdk);
     const recovered = await context(pending.session);
     check(recovered.sessionPolicySatisfied && recovered.mfaValid
@@ -335,31 +282,90 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
 
   it("rejects an expired managed challenge without guessing codes or sending messages", async () => {
     await new Promise((resolve) => setTimeout(resolve, 1_100));
-    const response = await staffLogin.sdk.auth.mfa.challenge({ factorId: factor, channel: "sms" });
+    const response = await staffLogin.sdk.auth.mfa.challenge({ factorId: factor });
     check(!response.error && response.data, "no-delivery expiry challenge");
-    const otp = await inbox(staff);
+    const otp = totpAt(secret, Date.now());
     check(/^[0-9a-f-]{36}$/i.test(response.data.id), "fixed UUID challenge shape");
     await query(`update auth.mfa_challenges set created_at=now()-interval '10 minutes' where id='${response.data.id}';`);
     const verification = await staffLogin.sdk.auth.mfa.verify({ factorId: factor, challengeId: response.data.id, code: otp });
     check(Boolean(verification.error), "expired managed challenge denied");
   });
 
-  it("records native older unexpired challenge acceptance as a newest-only release blocker", async () => {
-    // Supabase preserves older challenges until expiry. This passes only when
-    // documenting provider behavior, not approving it for application access.
+  it("records the native time-window code behavior across distinct unexpired challenges with live gates closed", async () => {
+    // GoTrue v2.197.0 validates a time-step code against any unused, unexpired
+    // owned challenge. Only a consumed challenge is one-use; codes are not a
+    // provider-wide consumed-counter ledger. This records actual semantics.
     await new Promise((resolve) => setTimeout(resolve, 1_100));
-    const first = await staffLogin.sdk.auth.mfa.challenge({ factorId: factor, channel: "sms" });
+    const first = await staffLogin.sdk.auth.mfa.challenge({ factorId: factor });
     check(!first.error && first.data, "first managed challenge");
-    const earlierCode = await inbox(staff);
-    await new Promise((resolve) => setTimeout(resolve, 1_100));
-    const later = await staffLogin.sdk.auth.mfa.challenge({ factorId: factor, channel: "sms" });
+    const later = await staffLogin.sdk.auth.mfa.challenge({ factorId: factor });
     check(!later.error && later.data, "replacement managed challenge");
-    await inbox(staff);
-    const prior = await staffLogin.sdk.auth.mfa.verify({ factorId: factor, challengeId: first.data.id, code: earlierCode });
-    check(!prior.error, "native earlier challenge remains valid until expiry");
+    const code = totpAt(secret, Date.now());
+    const prior = await staffLogin.sdk.auth.mfa.verify({ factorId: factor, challengeId: first.data.id, code });
+    check(!prior.error, "native earlier unused challenge remains valid until expiry");
+    const repeatedCode = await staffLogin.sdk.auth.mfa.verify({ factorId: factor, challengeId: later.data.id, code });
+    check(!repeatedCode.error, "native time-step code can verify a different unused challenge");
     staffLogin.session = await current(staffLogin.sdk);
     const closed = await context(staffLogin.session);
     check(!closed.operationalAccessReady && !closed.privilegedAccessReady, "provider success cannot activate workflows");
+  });
+
+  it("rechecks managed expiry after waiting for a genuine authenticator factor lock", async () => {
+    const pending = await login(staff);
+    const provider = createSupabaseTotpContract(pending.sdk.auth);
+    await new Promise((resolve) => setTimeout(resolve, 1_100));
+    const challenge = await provider.challenge(factor);
+    check(challenge.state === "ok"
+      && (await provider.verify(factor, challenge.data.challengeId, totpAt(secret, Date.now()))).state === "ok",
+    "genuine TOTP for lock-wait expiry fixture");
+    pending.session = await current(pending.sdk);
+    const sid = claims(pending.session).session_id;
+    await query(`update auth.sessions set not_after=clock_timestamp()+interval '2 seconds' where id='${sid}';`);
+    const holding = query(`begin; select id from auth.mfa_factors where id='${factor}' for update;
+      select pg_advisory_xact_lock(2601003,71416); select pg_sleep(3); commit;`);
+    try {
+      let locked = false;
+      const until = Date.now() + 1_200;
+      while (!locked && Date.now() < until) {
+        locked = (await query("select exists(select 1 from pg_locks where locktype='advisory' and classid=2601003 and objid=71416 and granted)::text;")) === "true";
+      }
+      check(locked && (await query(`select (not_after>clock_timestamp())::text from auth.sessions where id='${sid}';`)) === "true",
+        "factor is already locked while managed session remains unexpired");
+      const observing = readVerifiedSessionContext(pending.session.access_token, edition);
+      let waiting = false;
+      const waitUntil = Date.now() + 1_200;
+      while (!waiting && Date.now() < waitUntil) {
+        waiting = (await query(`select exists(select 1 from pg_stat_activity where pid<>pg_backend_pid()
+          and wait_event_type='Lock' and query like '%msrc_session_context%')::text;`)) === "true";
+      }
+      check(waiting, "own-context RPC actually waits for the held factor lock before expiry");
+      const expired = await observing;
+      check(expired.state === "denied", "expiry after factor lock wait cannot establish session assurance");
+    } finally { await holding; }
+  });
+
+  it("denies genuine Super Admin sessions at idle and absolute limits after accelerated original-clock fixtures", async () => {
+    for (const [elapsed, expected] of [["31 minutes", "idle_expired"], ["8 hours 1 second", "absolute_expired"]] as const) {
+      const pending = await login(staff);
+      const provider = createSupabaseTotpContract(pending.sdk.auth);
+      await new Promise((resolve) => setTimeout(resolve, 1_100));
+      const challenge = await provider.challenge(factor);
+      check(challenge.state === "ok"
+        && (await provider.verify(factor, challenge.data.challengeId, totpAt(secret, Date.now()))).state === "ok",
+      "genuine TOTP before trusted session clock fixture");
+      pending.session = await current(pending.sdk);
+      const sid = claims(pending.session).session_id;
+      // ONLY disposable CI: move the genuine managed origin before the first
+      // application observation. No clock adjustment is a production action.
+      await query(`update auth.sessions set created_at=clock_timestamp()-interval '${elapsed}' where id='${sid}';`);
+      const expired = await context(pending.session);
+      check(!expired.sessionPolicySatisfied && expired.reason === expected, "privileged original-clock timeout denial");
+      const refresh = await pending.sdk.auth.refreshSession();
+      check(!refresh.error && refresh.data.session, "native refresh can exchange an application-expired token");
+      const stillExpired = await context(refresh.data.session);
+      check(!stillExpired.sessionPolicySatisfied && stillExpired.reason === "session_revoked",
+        "refresh cannot revive an expired privileged application session");
+    }
   });
 
   it("denies stale AAL2 after factor unenrollment in this disposable synthetic identity", async () => {

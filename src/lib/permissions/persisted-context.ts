@@ -52,14 +52,14 @@ export function parsePersistedAccessContext(value: unknown, userId: string, edit
 
   const sessionId = value.principal.sessionId;
   const { actor } = value;
-  if (!exact(actor, ["id", "state", "emailVerified", "phoneVerified", "individuallyIdentified", "session"]) ||
+  if (!exact(actor, ["id", "state", "emailVerified", "individuallyIdentified", "session"]) ||
     actor.id !== userId || typeof actor.state !== "string" || !["active", "suspended"].includes(actor.state) ||
-    actor.emailVerified !== true || typeof actor.phoneVerified !== "boolean" || typeof actor.individuallyIdentified !== "boolean" ||
+    actor.emailVerified !== true || typeof actor.individuallyIdentified !== "boolean" ||
     !exact(actor.session, ["id", "active", "assurance", "factor", "passwordVerified", "authenticationTier", "staffEmailVerified"]) ||
     actor.session.id !== sessionId || actor.session.active !== false ||
     typeof actor.session.assurance !== "string" || !["aal1", "aal2"].includes(actor.session.assurance) ||
-    (actor.session.factor !== null && actor.session.factor !== "sms") || actor.session.passwordVerified !== true ||
-    (actor.session.assurance === "aal2") !== (actor.session.factor === "sms") ||
+    (actor.session.factor !== null && actor.session.factor !== "totp") || actor.session.passwordVerified !== true ||
+    (actor.session.assurance === "aal2") !== (actor.session.factor === "totp") ||
     typeof actor.session.authenticationTier !== "string" ||
     !["participant", "staff", "super_admin"].includes(actor.session.authenticationTier) ||
     typeof actor.session.staffEmailVerified !== "boolean" ||
@@ -88,11 +88,11 @@ export function parsePersistedAccessContext(value: unknown, userId: string, edit
     editionId,
     principal: Object.freeze({ userId, sessionId }),
     actor: Object.freeze({
-      id: userId, state: actor.state as CurrentActor["state"], emailVerified: true, phoneVerified: actor.phoneVerified,
+      id: userId, state: actor.state as CurrentActor["state"], emailVerified: true,
       individuallyIdentified: actor.individuallyIdentified,
       session: Object.freeze({
         id: sessionId, active: false,
-        assurance: actor.session.assurance as "aal1" | "aal2", factor: actor.session.factor as "sms" | null,
+        assurance: actor.session.assurance as "aal1" | "aal2", factor: actor.session.factor as "totp" | null,
         passwordVerified: true,
         authenticationTier: actor.session.authenticationTier as CurrentActor["session"]["authenticationTier"],
         staffEmailVerified: actor.session.staffEmailVerified,

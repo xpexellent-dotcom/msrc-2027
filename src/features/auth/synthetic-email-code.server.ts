@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 
-/** Ephemeral synthetic OTPs only. No delivery, provider, database or diagnostic output. */
+/** Ephemeral synthetic email OTPs only. No delivery, provider, database or diagnostic output. */
 export function createSyntheticCodeKey(): string {
   return randomBytes(32).toString("hex");
 }

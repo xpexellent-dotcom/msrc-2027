@@ -49,8 +49,8 @@ The source selects providers and intended ownership; it does not create accounts
 | Participation pathways | Separate registration, abstracts, hackathon, 3MT and workshop states linked to one account. Co-authors are not attendees automatically. | SCP-03, REG-01/08 |
 | Admission | Every registration manual approval, including full discounts. Default approve before financial completion; confirm/ticket only when both exist. | REG-02/03, PAY-03 |
 | Workshop dependency | Manual approval and payment/valid discount, plus confirmed conference registration before confirming workshop. | WKS-02 |
-| Account verification | Managed email/password; participants verify email and phone without MFA (ORG-013). Email codes six-digit numeric; live SMS settings unresolved. No university SSO. | AUTH-01/02/06 |
-| Privileged access | Individual accounts, password then SMS phone-MFA (ORG-013) and data/API enforcement, no role assumption from interface visibility. Live provider/recovery gates stay closed. | AUTH-04, ROL-01/12 |
+| Account verification | Managed email/password and verified email; participants have no phone verification or MFA (ORG-016). Email codes six-digit numeric. No university SSO. | AUTH-01/02/06 |
+| Privileged access | Individually identified accounts; regular staff password then private exact-session application email check (ORG-015), Super Admins password then authenticator TOTP (ORG-016). Server/database/storage enforcement; no interface or metadata authority. Live email/recovery gates stay closed. | AUTH-04, ROL-01/12 |
 | Interface language | English-default bilingual public/participant/non-review organizer UI and Arabic RTL. | LOC-01/03 |
 | Scientific language | Scientific/project text English-only, LTR scientific fields in Arabic UI. Reviewer/judge assessment English-only. | LOC-02/03 |
 | Email language/channel | All platform transactional messages English-only and email-only. | LOC-03, EML-01 |
@@ -77,7 +77,7 @@ The source selects providers and intended ownership; it does not create accounts
 
 | Conflict / ambiguity | Source evidence | Governing behavior until resolved | Who decides / dependent gate |
 | --- | --- | --- | --- |
-| National ID and phone | S2 5.1 requests national ID and phone in profiles. S1 AUTH-06/PRV-03 exclude ID and make phone conditional; HAC-10 and CFG-13 explicitly flag conflict. ORG-013 approves verified phone for authentication. | National ID stays excluded. Phone is required for the approved account-verification/SMS authentication purpose; unrelated hackathon use/sharing and privacy/access/retention approval remain unresolved. | Hackathon + privacy/technical owners; production profile collection and unrelated phone use. |
+| National ID and phone | S2 5.1 requests national ID/phone; S1 excludes ID and makes phone conditional. ORG-016 supersedes ORG-013 authentication phone requirements. | National ID stays excluded. No authentication phone collection/verification or SMS; unrelated optional domain purposes remain separately gated. | Hackathon + privacy/technical owners; production profile collection and unrelated phone use. |
 | WhatsApp group | S2 6.1 mentions online orientation with WhatsApp group. S1 EML-01 confirms email-only platform and HAC-10 flags discrepancy. | No WhatsApp integration/automated notifications or automatic phone sharing. Decide separately whether an optional external organizer-run group exists. | Hackathon + operations/privacy owners; participant onboarding. |
 | Solo finalist quota | S2 4.3 states eight teams per track, sixteen teams total; C3 also permits solo competition. | Do not assume extra solo spaces or sixteen people. One project per solo/team consuming an entry is only S1 HAC-07 proposal, not approved. | Hackathon lead; ranking/selection publication. |
 | Eligibility | S2 3.1 broad university student/intern sentence remains labelled Options, even though international eligibility and no-healthcare-member answers are clear. | Preserve answered choices, withhold final broad eligibility rule until approved. | Hackathon lead; application opening. |
@@ -124,7 +124,7 @@ These are source defaults and service objectives, not measured production perfor
 
 | IDs | DEFAULT / objective |
 | --- | --- |
-| AUTH-02 | Email OTP ten minutes; resend cooldown 60 seconds; <=3 issued/email/15 minutes; <=5 failed attempts/code. ORG-014 approves SMS targets: six digits/5min, resend60s, three/phone and account/15min, ten/day each, twenty/IP/hour, five failures then15min cooldown, newest challenge only. Direct managed-path enforcement, provider registration and paid budget remain gates. |
+| AUTH-02 | Participant email verification source defaults remain ten minutes, resend60s, <=3/email/15min, <=5 failures/code. ORG-015 carries approved staff email controls: six digits/5min, resend60s,3/account/15min,10/rolling24h,20/IP/hour,5 failures/15min cooldown,newest only. ORG-016 retires all SMS delivery/provider/budget/control requirements; these email controls remain. Native TOTP protocol/lab bounds are not an approved production abuse policy. |
 | AUTH-03 | Additional challenge/cooldown after five failed password attempts/15 minutes, no permanent lock. |
 | AUTH-05 | ORG-012 supersedes participant 24h default: confirmed absolute maximum 72h from original session creation, never restarted by refresh. Privileged idle 30min/absolute 8h remain. Recent-auth age and warning lead TBD; dependent actions closed. |
 | AUTH-08 | Remove abandoned unverified accounts after seven days only if no required record prevents cleanup. |
@@ -1052,7 +1052,7 @@ sensitive actions stay closed.
 
 ## ENG-011 — Closed local staff security foundations, 2 October 2026
 
-Historical TOTP implementation decision; ORG-013 supersedes its factor/UI choice. Local-only, synthetic-data, audit and closed release boundaries continue to apply.
+Historical TOTP implementation decision; ORG-013 temporarily superseded its factor/UI choice. ORG-016 restores Super Admin authenticator TOTP while regular staff retain ORG-015 email checking. Local-only, synthetic-data, audit and closed release boundaries continue to apply.
 
 Authority: bounded BL-AUTH-05/06 task; AUTH-04/05, ROL-12, SEC-01/06, LOC-01, ERR-01.
 The local synthetic TOTP lab uses temporary individually scoped identities, server-held
@@ -1070,6 +1070,8 @@ feature RLS, signup, CMS, operational workflow, email provider or production aut
 is added. Verification/rollback/release gates are recorded in the feature note and PROGRESS.
 
 ## ORG-013 — Participant verification and staff SMS authentication, 3 October 2026
+
+**Historical decision:** ORG-016 supersedes every phone/SMS authentication requirement below. ORG-015 regular-staff email controls and the distinct-person/in-person recovery safeguards remain current; no SMS provider, sender or budget is required now.
 
 Authority: explicit organizer instruction in this conversation on 3 October 2026:
 participants do not need MFA; verify accounts via email verification and phone verification;
@@ -1103,6 +1105,8 @@ previous TOTP preview, not proof of the new SMS flow, real delivery, screen-read
 managed-factor lifecycle or release approval. Updated evidence belongs in PROGRESS.
 
 ## ORG-014 — Isolated managed-Auth testing and SMS control targets, 3 October 2026
+
+**Historical decision:** ORG-016 supersedes every phone/SMS authentication requirement below. ORG-015 regular-staff email controls and the distinct-person/in-person recovery safeguards remain current; no SMS provider, sender or budget is required now.
 
 Authority: the organizer's explicit answers in this conversation on 3 October 2026.
 
@@ -1144,6 +1148,8 @@ The organizer reported the current synthetic SMS preview works. Record this as
 bounded requester feedback, separate from real SMS delivery and real-human UAT.
 
 ## ORG-015 — Regular staff password then application email check, 3 October 2026
+
+**Historical decision:** ORG-016 supersedes every phone/SMS authentication requirement below. ORG-015 regular-staff email controls and the distinct-person/in-person recovery safeguards remain current; no SMS provider, sender or budget is required now.
 
 Authority: the organizer's explicit narrow amendment in this conversation. Replace
 SMS OTP for **regular staff only** with password followed by a fresh code delivered
@@ -1206,3 +1212,19 @@ later integrating the drafts; do not silently substitute the public title decisi
 for the environment decision. No public/auth runtime overlap was found in PR21's
 changed-file list, apart from shared decision/progress documents. This amendment
 stays stacked on unmerged PR19; no merge or public redesign is performed here.
+
+## ORG-016 — Remove authentication phone/SMS; Super Admin authenticator MFA, 3 October 2026
+
+Source: explicit organizer instruction in this chat: remove all SMS and phone number verification because no provider will be purchased; Super Admins use authenticator MFA, staff use email OTP after password; leave SMS out.
+
+- Participants use managed email/password and verified email only, with no phone collection/verification and no MFA. Public browsing stays open.
+- Regular staff retain ORG-015's fresh private exact-user/session email check after password. This is application assurance at native AAL1, not email OTP sign-in, native MFA or AAL2.
+- Super Admins require password followed by current verified authenticator TOTP at native AAL2, bound to the exact managed session/factor. QR/manual setup alternatives and accessible EN/AR/RTL instructions are required. Email receipts, phone factors or generic AAL2 do not substitute.
+- Retire SMS/provider/sender/budget registration, delivery hooks, phone fixtures and phone recovery work. Historical source snapshots, dated decisions and prior migration files remain preserved; a new additive review-only override supplies current policy.
+- Preserve all roles/scopes, strongest tier across editions, ownership/assignment, 72h participant absolute and privileged30min idle/8h absolute. Refresh never restarts origin or counts as activity. Keep every operational/readiness gate false.
+- Approved staff email limits remain unchanged. Participant email defaults remain separate. TOTP native protocol and accelerated lab bounds are test configuration, not silently approved live abuse controls.
+- Recovery keeps suspension/revocation before restoration, distinct Super Admin approver/operator and in-person identity/appointment review. Replacement authenticator setup or lost/changed email requires a verified procedure, fresh password and the appropriate check; named people, evidence/procedure/rehearsal and recent-auth remain TBD. No support bypass/reset endpoint is opened.
+- Production email provider/sender/SMTP is missing. Console/test only, English-only emails, no Supabase development email fallback. Privacy/retention/location, recent-auth age, warning lead, production release and real-human UAT remain unresolved.
+- Scope permits reversible review work, local synthetic preview and disposable GitHub CI only. No merge/deploy, hosted Auth/migration/reset, real delivery, invites/grants, recovery execution or paid resources.
+
+Conflicts flagged before edits: PR22 code/docs still required participant phone and Super Admin SMS, with active Vonage/MSRC2027/budget/hook work and SMS-only adapter. Those are superseded, rather than treated as required approvals. Current remote main8482abf contains independent public mobile changes and ORG-010/011 IDs colliding with this stacked authentication draft's Production/private-administrator records. Preserve both meanings and reconcile IDs during later integration; do not merge unrelated public changes or publish administrator addresses.

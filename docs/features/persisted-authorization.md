@@ -35,17 +35,8 @@ or retention duration is inferred. CFG-09/10/11 gates and the new
 - Account access defaults suspended and not individually identified. Grant absence denies;
   an active grant may become irreversibly revoked. Changing identity or scope requires a
   replacement grant. Grants across editions remain separate.
-- Existing tokens cannot preserve access after account suspension, grant revocation,
-  session removal or current factor removal. The historical deployed migration used TOTP;
-  ORG-013's review-only session migration originally replaced assurance helpers with
-  password then verified phone MFA. ORG-015 now adds a private user/session-bound
-  application email receipt for regular staff; Super Admins retain phone MFA and
-  cannot substitute an email receipt. Trusted `password`/`mfa/phone` AMR is checked against current managed
-  factor/session evidence. The trusted challenge adapter selects SMS; AMR does not identify
-  the delivery channel. Participants require both managed email/phone confirmations without
-  MFA; participant verification is not privileged assurance. No hosted migration is applied.
-  The [regular-staff amendment](regular-staff-email-check.md) preserves role scopes,
-  denies password-only access and never creates native AAL2 or an active grant.
+- Existing tokens cannot preserve access after account suspension, grant revocation, session removal or current factor removal. The deployed migration and earlier review-only policy snapshots are preserved. ORG-016's additive override requires email/password without phone/MFA for participants; ORG-015's private current-user/session/email/password/grant receipt for ordinary staff; and password followed by current managed authenticator TOTP for Super Admins. Phone/generic AAL2/email receipts cannot substitute for Super Admin assurance. Strongest tier applies across editions. No hosted migration is applied.
+  The [regular-staff amendment](regular-staff-email-check.md) preserves role scopes, denies password-only access and never creates native AAL2 or an active grant.
 - Operational access remains explicitly closed in this context. AUTH-05's configurable
   absolute/idle/recent-authentication enforcement, logout/recovery, MFA lifecycle and
   human UAT must land before staff activation. Token refresh is not user activity.

@@ -6,13 +6,7 @@ Confirmed choices remain confirmed: O1 organization-managed custody with institu
 
 Every decision needs source, date, accountable approver, exact wording, affected configuration/content/tests, preserved superseded text and release implications. Named owners and due dates are **unassigned**. Functional owner types below are responsibility categories, not appointments. Store confidential approval evidence in authorized restricted custody; put safe references in Git. Authoring this backlog resolves none of these decisions.
 
-ORG-013 (3 October 2026) now requires participant email+phone verification without MFA
-and staff/admin password → SMS OTP. SMS is an authentication-only exception to the
-email-only communication baseline. Before live use, DR-CFG-09/10/11 must settle SMS
-provider/sender/budget, expiry/resend/attempt/account/IP controls, privacy/location/retention,
-verified phone change/loss/reset and recovery approver/operator. Recent-auth maximum age
-and timeout-warning lead remain TBD. Synthetic test delivery is unblocked; actual SMS,
-staff activation and phone resets remain closed. Source question sets below stay verbatim.
+ORG-016 removes all authentication phone collection/verification and SMS. Participants use verified email/password without MFA, regular staff retain ORG-015 password plus private exact-session email checking, and Super Admins use authenticator TOTP. SMS provider/sender/budget approvals are retired. Live English email provider/sender, privacy/location/retention, named recovery people and verified lost-email/authenticator procedure remain gates. Recovery preserves distinct Super Admin approver/operator and in-person review; recent-auth age and warning lead stay TBD. Synthetic preview/no-delivery CI can proceed; staff activation/reset stays closed. Source question sets below remain verbatim.
 
 <a id="dr-cfg-01"></a>
 
@@ -345,7 +339,7 @@ Authoritative question set (v0.5; retained verbatim):
 - **Status:** Decision Required — open; no new organizer approval recorded.
 - **Purpose:** Obtain an evidenced decision for the five enumerated conflicts in cfg-13, recording what is confirmed versus still proposed so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
-- **Exclusions:** No national ID, phone use beyond ORG-013's approved authentication purpose, automatic WhatsApp sharing/integration, inferred solo quota, broad Options eligibility or automatic originality verdict. This issue does not itself implement or activate a workflow.
+- **Exclusions:** No national ID, authentication phone collection/verification or SMS, automatic WhatsApp sharing/integration, inferred solo quota, broad Options eligibility or automatic originality verdict. This issue does not itself implement or activate a workflow.
 - **Dependencies:** Named accountable approver; relevant source/contract/policy evidence; [current decision register](../DECISIONS.md). Coordinate related CFG packets without silently deciding them.
 - **Roles:** Hackathon lead with privacy, operations and technical owners; product engineer records the result. Named owner/approver: unassigned.
 - **States/transitions:** Open question → evidence gathered → exact decision approved and recorded; unanswered subquestions remain open and their live gates closed. These are planning statuses, not product state enums.

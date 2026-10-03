@@ -34,19 +34,26 @@ select is((select count(*) from msrc_authorization.account_access), 0::bigint, '
 select is((select count(*) from msrc_authorization.role_grants), 0::bigint, 'Migration grants no authority');
 
 -- Provider-managed structures are seeded only inside this isolated transaction.
-insert into auth.users(id,email,email_confirmed_at,phone,phone_confirmed_at,created_at,updated_at,is_anonymous)
+insert into auth.users(id,email,email_confirmed_at,created_at,updated_at,is_anonymous)
 values
- ('30000000-0000-4000-8000-000000000001','synthetic-participant@example.invalid',now()-interval '1 day','+15550003001',now(),now(),now(),false),
- ('30000000-0000-4000-8000-000000000002','synthetic-staff@example.invalid',now()-interval '1 day','+15550003002',now(),now(),now(),false),
- ('30000000-0000-4000-8000-000000000003','synthetic-default@example.invalid',now()-interval '1 day','+15550003003',now(),now(),now(),false);
-insert into auth.mfa_factors(id,user_id,factor_type,status,phone,created_at,updated_at)
+ ('30000000-0000-4000-8000-000000000001','synthetic-participant@example.invalid',now()-interval '1 day',now(),now(),false),
+ ('30000000-0000-4000-8000-000000000002','synthetic-staff@example.invalid',now()-interval '1 day',now(),now(),false),
+ ('30000000-0000-4000-8000-000000000003','synthetic-default@example.invalid',now()-interval '1 day',now(),now(),false);
+insert into auth.mfa_factors(id,user_id,factor_type,status,created_at,updated_at)
 values ('50000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002',
- 'phone','verified','+15550005002',now()-interval '5 minutes',now()-interval '5 minutes');
+ 'totp','verified',now()-interval '5 minutes',now()-interval '5 minutes');
 insert into auth.sessions(id,user_id,created_at,updated_at,aal,factor_id)
 values
  ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',now(),now(),'aal1',null),
  ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002',now()-interval '4 minutes',now(),'aal2','50000000-0000-4000-8000-000000000002'),
  ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000003',now(),now(),'aal1',null);
+insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+  select gen_random_uuid(),s.id,'password',s.created_at,s.created_at from auth.sessions s
+  where s.id='40000000-0000-4000-8000-000000000002';
+insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+  values(gen_random_uuid(),'40000000-0000-4000-8000-000000000002','mfa/totp',
+    date_trunc('second',now()-interval '3 minutes')+interval '100 milliseconds',
+    date_trunc('second',now()-interval '3 minutes')+interval '100 milliseconds');
 insert into msrc_authorization.edition_config(edition_key) values ('synthetic-2027'), ('synthetic-2026');
 insert into msrc_authorization.account_access(actor_id,state,individually_identified) values
  ('30000000-0000-4000-8000-000000000001','active',true),
@@ -173,11 +180,11 @@ select ok(not exists(select 1 from jsonb_array_elements(public.msrc_access_conte
 reset role;
 
 do $$begin perform pg_temp.claims('30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','aal2',
- jsonb_build_array(jsonb_build_object('method','mfa/phone','timestamp',floor(extract(epoch from now()-interval '3 minutes'))))); end$$;
+ jsonb_build_array(jsonb_build_object('method','mfa/totp','timestamp',floor(extract(epoch from now()-interval '3 minutes'))))); end$$;
 set local role authenticated;
 select ok(public.msrc_access_context('synthetic-2027') @>
- '{"actor":{"session":{"active":false,"assurance":"aal2","factor":"sms"}},"privilegedAccessReady":false}'::jsonb,
- 'Current verified phone MFA is observed but cannot activate privileged work');
+ '{"actor":{"session":{"active":false,"assurance":"aal2","factor":"totp"}},"privilegedAccessReady":false}'::jsonb,
+ 'Current verified TOTP MFA is observed but cannot activate privileged work');
 reset role;
 update auth.mfa_factors set status='unverified' where id='50000000-0000-4000-8000-000000000002';
 set local role authenticated;
@@ -191,18 +198,18 @@ reset role;
 update auth.sessions set aal='aal2' where id='40000000-0000-4000-8000-000000000002';
 update auth.mfa_factors set updated_at=now() where id='50000000-0000-4000-8000-000000000002';
 set local role authenticated;
-select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Factor update requires fresh phone MFA provenance');
+select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Factor update requires fresh TOTP MFA provenance');
 reset role;
 update auth.mfa_factors set updated_at=now()-interval '5 minutes' where id='50000000-0000-4000-8000-000000000002';
 do $$begin perform pg_temp.claims('30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','aal2',
- '[{"method":"mfa/phone","timestamp":"not-numeric"}]'::jsonb); end$$;
+ '[{"method":"mfa/totp","timestamp":"not-numeric"}]'::jsonb); end$$;
 set local role authenticated;
-select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Nonnumeric AMR timestamp does not establish phone MFA');
+select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Nonnumeric AMR timestamp does not establish TOTP MFA');
 reset role;
 do $$begin perform pg_temp.claims('30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','aal2',
  jsonb_build_array(jsonb_build_object('method','otp','timestamp',floor(extract(epoch from now()))))); end$$;
 set local role authenticated;
-select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Email OTP is not staff phone MFA');
+select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Email OTP is not Super Admin TOTP MFA');
 reset role;
 
 select throws_ok($$update msrc_authorization.role_grants set role_name='superAdmin'

@@ -58,10 +58,10 @@ function fixture(operation: Operation = "review.packet.read", role: Role = "abst
   };
   return {
     actor: {
-      id: principal.userId, state: "active", emailVerified: true, phoneVerified: true, individuallyIdentified: true,
+      id: principal.userId, state: "active", emailVerified: true, individuallyIdentified: true,
       session: { id: principal.sessionId, active: true,
         assurance: role === "superAdmin" ? "aal2" : "aal1",
-        factor: role === "superAdmin" ? "sms" : null, passwordVerified: true,
+        factor: role === "superAdmin" ? "totp" : null, passwordVerified: true,
         authenticationTier: role === "superAdmin" ? "super_admin" : role === "participant" ? "participant" : "staff",
         staffEmailVerified: role !== "superAdmin" && role !== "participant" },
     },
@@ -132,10 +132,10 @@ describe("current identity, assurance and revocation (ROL-12, SEC-01/02)", () =>
       expectDenied(await decision({ ...authority, actor: { ...authority.actor!,
         session: { ...authority.actor!.session, staffEmailVerified: false } } }, operation));
       expectDenied(await decision({ ...authority, actor: { ...authority.actor!, session: {
-        ...authority.actor!.session, assurance: "aal2", factor: "sms", staffEmailVerified: false } } }, operation));
+        ...authority.actor!.session, assurance: "aal2", factor: "totp", staffEmailVerified: false } } }, operation));
     });
 
-  it.each(purposes.filter(item => item.roles[0] === "superAdmin"))("requires native SMS MFA for $operation", async ({ operation, roles }) => {
+  it.each(purposes.filter(item => item.roles[0] === "superAdmin"))("requires native TOTP MFA for $operation", async ({ operation, roles }) => {
     const authority = fixture(operation, roles[0]);
     for (const session of [
       { ...authority.actor!.session, assurance: "aal1" as const },
@@ -176,7 +176,7 @@ describe("current identity, assurance and revocation (ROL-12, SEC-01/02)", () =>
     expectDenied(await decision({ ...stronger, actor: { ...stronger.actor!, session: {
       ...stronger.actor!.session, authenticationTier: "super_admin" } } }, "content.draft.manage"));
     expect(await decision({ ...stronger, actor: { ...stronger.actor!, session: {
-      ...stronger.actor!.session, authenticationTier: "super_admin", assurance: "aal2", factor: "sms",
+      ...stronger.actor!.session, authenticationTier: "super_admin", assurance: "aal2", factor: "totp",
       staffEmailVerified: false } } }, "content.draft.manage")).toMatchObject({ allowed: true });
     expect(await decision({ ...authority, grants: [...authority.grants, {
       ...stronger.grants[1], state: "revoked" } ] }, "content.draft.manage")).toMatchObject({ allowed: true });
@@ -223,9 +223,9 @@ describe("current identity, assurance and revocation (ROL-12, SEC-01/02)", () =>
     expectDenied(await decision({ ...current, actor: changed }));
   });
 
-  it("requires participant phone verification while keeping participant MFA optional", async () => {
+  it("requires participant password and verified email without phone or MFA", async () => {
     const current = fixture("participant.record.read", "participant");
-    expectDenied(await decision({ ...current, actor: { ...current.actor!, phoneVerified: false } }, "participant.record.read"));
+    expectDenied(await decision({ ...current, actor: { ...current.actor!, emailVerified: false } }, "participant.record.read"));
     expectDenied(await decision({ ...current, actor: { ...current.actor!, session: { ...current.actor!.session,
       passwordVerified: false } } }, "participant.record.read"));
     expect(await decision({ ...current, actor: { ...current.actor!, session: { ...current.actor!.session,

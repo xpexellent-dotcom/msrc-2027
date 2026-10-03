@@ -21,8 +21,8 @@ function contextFixture() {
     schemaVersion: 1, editionId,
     principal: { userId: actorId, sessionId },
     actor: {
-      id: actorId, state: "active", emailVerified: true, phoneVerified: true, individuallyIdentified: true,
-      session: { id: sessionId, active: false, assurance: "aal1", factor: null as "sms" | null, passwordVerified: true,
+      id: actorId, state: "active", emailVerified: true, individuallyIdentified: true,
+      session: { id: sessionId, active: false, assurance: "aal1", factor: null as "totp" | null, passwordVerified: true,
         authenticationTier: "staff" as "participant" | "staff" | "super_admin", staffEmailVerified: true },
     },
     grants: [{
@@ -376,7 +376,7 @@ describe("persisted metadata parser rejects authority confusion and malformed sc
   it("does not enable operational workflows when persisted Super Admin metadata is verified", async () => {
     const input = contextFixture(); input.grants[0].role = "superAdmin";
     input.actor.session.authenticationTier = "super_admin"; input.actor.session.staffEmailVerified = false;
-    input.actor.session.assurance = "aal2"; input.actor.session.factor = "sms";
+    input.actor.session.assurance = "aal2"; input.actor.session.factor = "totp";
     client.rpc.mockResolvedValue({ data: input, error: null });
     const result = await readVerifiedAccessContext(token, editionId);
     expect(result.state).toBe("verified");

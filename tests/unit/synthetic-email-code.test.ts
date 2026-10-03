@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { createSyntheticCodeKey, issueSyntheticCode, matchesSyntheticCode, syntheticCodeHash } from "@/features/auth/sms-test.server";
+import { createSyntheticCodeKey, issueSyntheticCode, matchesSyntheticCode, syntheticCodeHash } from "@/features/auth/synthetic-email-code.server";
 
-describe("synthetic SMS/email code foundation", () => {
+describe("synthetic email code foundation", () => {
   it("returns a random six-digit test code and stores a keyed hash only", () => {
     const key = createSyntheticCodeKey();
     const challenge = issueSyntheticCode(key, []);

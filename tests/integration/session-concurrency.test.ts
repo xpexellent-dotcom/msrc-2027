@@ -54,8 +54,8 @@ describe.skipIf(!isolatedCi)("AUTH-05 concurrent database lifecycle (disposable 
     // Audit/session history is intentionally immutable. These clearly synthetic rows
     // remain only in this disposable database until the CI always-stop stack step.
     await query(`begin;
-      insert into auth.users(id,email,email_confirmed_at,phone,phone_confirmed_at,created_at,updated_at,is_anonymous)
-      values('${actor}','session-concurrency@example.invalid',now(),'+15550009101',now(),now(),now(),false);
+      insert into auth.users(id,email,email_confirmed_at,created_at,updated_at,is_anonymous)
+      values('${actor}','session-concurrency@example.invalid',now(),now(),now(),false);
       insert into msrc_authorization.account_access(actor_id,state,individually_identified) values('${actor}','active',true);
       insert into msrc_authorization.edition_config(edition_key) values('${edition}');
       insert into auth.sessions(id,user_id,created_at,updated_at,aal) values

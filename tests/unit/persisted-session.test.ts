@@ -13,7 +13,7 @@ function fixture() {
   return { schemaVersion: 1, editionId, principal: { userId, sessionId }, privileged: true,
     authenticationTier: "super_admin" as "participant" | "staff" | "super_admin",
     sessionPolicySatisfied: true, reason: null as string | null, mfaValid: true, passwordValid: true, staffEmailValid: false,
-    emailVerified: true, phoneVerified: true,
+    emailVerified: true,
     timing: { startedAt: new Date(started).toISOString(), lastActivityAt: new Date(started + 60_000).toISOString(),
       absoluteExpiresAt: new Date(started + 28_800_000).toISOString(),
       idleExpiresAt: new Date(started + 60_000 + 1_800_000).toISOString(),
@@ -50,12 +50,12 @@ describe("AUTH-05 exact own-session parser", () => {
   ])("rejects untrusted altered result %j", (changed) => {
     expect(parsePersistedSessionContext({ ...fixture(), ...changed }, userId, editionId)).toBeNull();
   });
-  it("accepts participant AAL1 policy metadata with both verifications and no MFA", () => {
+  it("accepts participant AAL1 policy metadata with email verification only and no MFA", () => {
     const value = fixture(); value.privileged = false; value.mfaValid = false; value.authenticationTier = "participant";
     value.timing.absoluteExpiresAt = new Date(started + 259_200_000).toISOString();
     (value.timing as { idleExpiresAt: string | null }).idleExpiresAt = null;
     expect(parsePersistedSessionContext(value, userId, editionId)?.sessionPolicySatisfied).toBe(true);
-    value.phoneVerified = false;
+    value.emailVerified = false;
     expect(parsePersistedSessionContext(value, userId, editionId)).toBeNull();
     value.reason = "account_verification_required"; value.sessionPolicySatisfied = false;
     expect(parsePersistedSessionContext(value, userId, editionId)?.reason).toBe("account_verification_required");
@@ -71,7 +71,7 @@ describe("AUTH-05 exact own-session parser", () => {
     expect(parsePersistedSessionContext(value, userId, editionId)).toMatchObject({
       reason: "staff_email_check_required", sessionPolicySatisfied: false, staffEmailValid: false });
   });
-  it("rejects email proof used as a substitute for Super Admin SMS assurance", () => {
+  it("rejects email proof used as a substitute for Super Admin TOTP assurance", () => {
     const value = fixture(); value.mfaValid = false; value.staffEmailValid = true;
     expect(parsePersistedSessionContext(value, userId, editionId)).toBeNull();
   });

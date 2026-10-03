@@ -24,10 +24,10 @@ select is((select count(*) from msrc_staff_email.challenges),0::bigint,'Migratio
 select is((select count(*) from msrc_staff_email.receipts),0::bigint,'Migration installs no receipts');
 select is((select count(*) from msrc_staff_email.audit),0::bigint,'Migration installs no audit rows');
 
-insert into auth.users(id,email,email_confirmed_at,phone,phone_confirmed_at,created_at,updated_at,is_anonymous) values
- ('81000000-0000-4000-8000-000000000001','email-staff-one@example.invalid',now()-interval '1 day',null,null,now()-interval '1 day',now()-interval '1 day',false),
- ('81000000-0000-4000-8000-000000000002','email-staff-two@example.invalid',now()-interval '1 day',null,null,now()-interval '1 day',now()-interval '1 day',false),
- ('81000000-0000-4000-8000-000000000003','email-participant@example.invalid',now()-interval '1 day','+15550008103',now()-interval '1 day',now()-interval '1 day',now()-interval '1 day',false);
+insert into auth.users(id,email,email_confirmed_at,created_at,updated_at,is_anonymous) values
+ ('81000000-0000-4000-8000-000000000001','email-staff-one@example.invalid',now()-interval '1 day',now()-interval '1 day',now()-interval '1 day',false),
+ ('81000000-0000-4000-8000-000000000002','email-staff-two@example.invalid',now()-interval '1 day',now()-interval '1 day',now()-interval '1 day',false),
+ ('81000000-0000-4000-8000-000000000003','email-participant@example.invalid',now()-interval '1 day',now()-interval '1 day',now()-interval '1 day',false);
 insert into msrc_authorization.edition_config(edition_key) values('synthetic-email-2027'),('synthetic-email-other');
 insert into msrc_authorization.account_access(actor_id,state,individually_identified) values
  ('81000000-0000-4000-8000-000000000001','active',true),
@@ -226,7 +226,7 @@ insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_
   values('81000000-0000-4000-8000-000000000001','synthetic-email-other','superAdmin','edition','Synthetic cross-edition promotion');
 set local role authenticated;
 select is(public.msrc_session_context('synthetic-email-2027')->>'authenticationTier','super_admin','Strongest Super Admin role in another edition dominates');
-select is(public.msrc_session_context('synthetic-email-2027')->>'reason','mfa_required','Email proof cannot satisfy Super Admin SMS MFA');
+select is(public.msrc_session_context('synthetic-email-2027')->>'reason','mfa_required','Email proof cannot satisfy Super Admin authenticator-app TOTP');
 select is(public.msrc_second_step_satisfied(),false,'Cross-edition Super Admin AAL1 fails direct RLS predicate');
 reset role;
 set local role service_role;
@@ -403,7 +403,7 @@ select is((select count(*) from msrc_staff_email.identity_revision where actor_i
 do $$begin perform pg_temp.email_claims('81000000-0000-4000-8000-000000000003','82000000-0000-4000-8000-000000000003'); end$$;
 set local role authenticated;
 select ok(public.msrc_session_context('synthetic-email-2027') @> '{"authenticationTier":"participant","staffEmailValid":false,"mfaValid":false,"sessionPolicySatisfied":true}'::jsonb,
-  'Participants still require verified email and phone without an extra login step');
+  'Participants require verified email without phone or an extra login step');
 reset role;
 set local role service_role;
 select is(public.msrc_staff_email_begin('81000000-0000-4000-8000-000000000003','82000000-0000-4000-8000-000000000003',

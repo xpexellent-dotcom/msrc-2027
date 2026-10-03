@@ -1,60 +1,33 @@
 import AxeBuilder from "@axe-core/playwright";
+import { createHmac } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
+import { staffSecurityCopy } from "../../src/features/auth/staff-security-copy";
 
-// AUTH-02/04/05, ROL-12, SEC-01/06, LOC-01, ERR-01. Password sign-in is simulated;
-// codes come only from the transient synthetic inbox. No provider message is sent.
-const labels = {
-  en: {
-    start: "Simulate Super Admin password sign-in", staffStart: "Simulate staff password sign-in", participant: "Simulate participant password sign-in",
-    enroll: "Create synthetic Super Admin SMS challenge", verify: "Verify SMS code",
-    challenge: "Request a new synthetic SMS code", emailChallenge: "Request a synthetic email code",
-    emailVerify: "Verify email code", access: "Check synthetic staff access",
-    participantAccess: "Check synthetic participant verification",
-    reauthenticate: "Simulate password reauthentication", logout: "Log out synthetic session",
-    refresh: "Refresh synthetic token", reset: "Check recovery availability",
-    suspend: "Simulate suspension", factorReset: "Simulate factor-reset revocation",
-    assurance: "SMS second factor verified", participantAssurance: "MFA not required for participants",
-    staffEmailAssurance: "Email check passed for this session", staffEmailCode: "Six-digit staff email code",
-    staffEmailRequired: "Staff access requires password sign-in and a fresh email check for this session.",
-    verified: "Verified", missing: "Not verified",
-    phoneTitle: "Verify the participant phone", phoneCodeLabel: "Six-digit phone verification code",
-    phoneVerify: "Verify participant phone", phonePending: "Phone verification required",
-    emailPending: "Email verification required", complete: "Email and phone verified",
-    emailNeedsPhone: "Synthetic participant email verified. Phone verification is still required.",
-    emailBothComplete: "Synthetic participant email verified. Both account verification checks are complete.",
-    participantReauthenticated: "A new simulated password session started. Participant verification status is retained; MFA is not required.",
-    expired: "Session expired", revoked: "Session revoked",
-    error: "The code could not be verified.", noMfa: "Super Admin access requires password sign-in and a verified SMS second factor.",
-    recovery: "Recovery is closed.", unavailable: "The session check is unavailable.",
-    closed: "Live privileged access and operational workflows remain closed.",
-    accountRequired: "The participant account requires both email and phone verification.",
-  },
-  ar: {
-    start: "محاكاة دخول المشرف الأعلى بكلمة المرور", staffStart: "محاكاة دخول الفريق بكلمة المرور", participant: "محاكاة دخول المشارك بكلمة المرور",
-    enroll: "إنشاء تحقق SMS مصطنع للمشرف الأعلى", verify: "التحقق من رمز SMS",
-    challenge: "طلب رمز SMS مصطنع جديد", emailChallenge: "طلب رمز بريد مصطنع",
-    emailVerify: "التحقق من رمز البريد", access: "التحقق من وصول الفريق المصطنع",
-    participantAccess: "التحقق من حساب المشارك المصطنع",
-    reauthenticate: "محاكاة إعادة المصادقة بكلمة المرور", logout: "تسجيل الخروج من الجلسة المصطنعة",
-    refresh: "تحديث رمز الجلسة المصطنعة", reset: "التحقق من إتاحة الاستعادة",
-    suspend: "محاكاة التعليق", factorReset: "محاكاة الإلغاء بعد إعادة ضبط العامل",
-    assurance: "تم التحقق من عامل SMS الثاني", participantAssurance: "المصادقة الثنائية غير مطلوبة للمشاركين",
-    staffEmailAssurance: "اجتاز تحقق البريد لهذه الجلسة", staffEmailCode: "رمز بريد الفريق المكوّن من ستة أرقام",
-    staffEmailRequired: "يتطلب وصول الفريق الدخول بكلمة المرور وتحقق بريد جديدًا لهذه الجلسة.",
-    verified: "تم التحقق", missing: "لم يُتحقق منه",
-    phoneTitle: "التحقق من هاتف المشارك", phoneCodeLabel: "رمز التحقق من الهاتف المكوّن من ستة أرقام",
-    phoneVerify: "التحقق من هاتف المشارك", phonePending: "يلزم التحقق من الهاتف",
-    emailPending: "يلزم التحقق من البريد", complete: "تم التحقق من البريد والهاتف",
-    emailNeedsPhone: "تم التحقق من بريد المشارك المصطنع. لا يزال التحقق من الهاتف مطلوبًا.",
-    emailBothComplete: "تم التحقق من بريد المشارك المصطنع. اكتمل كلا التحققين المطلوبين للحساب.",
-    participantReauthenticated: "بدأت جلسة جديدة بمحاكاة كلمة المرور. تبقى حالة التحقق للمشارك محفوظة؛ ولا تُطلب مصادقة ثنائية.",
-    expired: "انتهت الجلسة", revoked: "أُلغيت الجلسة",
-    error: "تعذر التحقق من الرمز.", noMfa: "يتطلب وصول المشرف الأعلى الدخول بكلمة المرور والتحقق من عامل SMS الثاني.",
-    recovery: "الاستعادة مغلقة.", unavailable: "التحقق من الجلسة غير متاح.",
-    closed: "يظل الوصول الفعلي بصلاحيات مميزة ومسارات العمل التشغيلية مغلقًا.",
-    accountRequired: "يتطلب حساب المشارك التحقق من البريد والهاتف معًا.",
-  },
-} as const;
+// AUTH-02/04/05, ROL-12, SEC-01/06, LOC-01, ERR-01. Synthetic password sessions;
+// no provider messages or managed factors. App codes are derived only in Node memory.
+function labelsFor(locale: "en" | "ar") {
+  const text = staffSecurityCopy[locale];
+  return {
+    start: text.startSuperAdmin, staffStart: text.start, participant: text.participant,
+    enroll: text.enroll, verify: text.verify, challenge: text.challenge,
+    emailChallenge: text.emailChallenge, emailVerify: text.emailVerify,
+    access: text.checkAccess, participantAccess: text.checkParticipant,
+    reauthenticate: text.reauthenticate, logout: text.logout, refresh: text.refresh,
+    reset: text.recovery, suspend: text.suspend, factorReset: text.factorReset,
+    assurance: text.assured, participantAssurance: text.participantAssurance,
+    staffEmailAssurance: text.staffEmailAssured, staffEmailCode: text.staffEmailCodeLabel,
+    staffEmailRequired: text.messages.staff_email_check_required,
+    verified: text.verifiedStatus, missing: text.missing, complete: text.verificationComplete,
+    emailBothComplete: text.messages.email_verified,
+    participantReauthenticated: text.participantReauthenticated,
+    expired: text.expired, revoked: text.revoked, error: text.messages.invalid_code,
+    noMfa: text.messages.mfa_required, recovery: text.messages.recovery_unconfigured,
+    unavailable: text.messages.unavailable, closed: text.accessClosed,
+    accountRequired: text.messages.account_verification_required, manualSetup: text.manualSetup,
+    codeLabel: text.codeLabel,
+  };
+}
+const labels = { en: labelsFor("en"), ar: labelsFor("ar") };
 
 async function api(page: Page, action: string, extra: Record<string, string> = {}) {
   const response = await page.request.post("/api/auth-preview", {
@@ -62,19 +35,40 @@ async function api(page: Page, action: string, extra: Record<string, string> = {
   });
   return response.json();
 }
-
-async function inboxCode(page: Page, channel: "sms" | "email") {
+async function inboxCode(page: Page, channel: "email") {
   const output = page.getByTestId(`synthetic-${channel}-code`);
   await expect(output).toBeVisible();
   const code = (await output.textContent())?.trim() ?? "";
   expect(/^\d{6}$/.test(code)).toBe(true);
   return code;
 }
+function wrongCode(code: string) { return code === "000000" ? "000001" : "000000"; }
 
-function wrongCode(code: string) {
-  return code === "000000" ? "000001" : "000000";
+// Independent RFC 6238 SHA-1 test oracle. Nothing containing a key/code is logged.
+function appCode(secret: string, counter = Math.floor(Date.now() / 30_000)) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  const bits = [...secret].map((character) => alphabet.indexOf(character).toString(2).padStart(5, "0")).join("");
+  const key = Buffer.from(Array.from({ length: Math.floor(bits.length / 8) }, (_, index) => Number.parseInt(bits.slice(index * 8, index * 8 + 8), 2)));
+  const message = Buffer.alloc(8);
+  message.writeBigUInt64BE(BigInt(counter));
+  const hash = createHmac("sha1", key).update(message).digest();
+  const offset = hash[hash.length - 1] & 15;
+  return ((hash.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).toString().padStart(6, "0");
 }
-
+async function setupKey(page: Page) {
+  const setup = page.getByTestId("synthetic-totp-setup");
+  await expect(setup).toBeVisible();
+  const summary = setup.locator("summary");
+  if ((await setup.locator("details").getAttribute("open")) === null) {
+    await summary.focus();
+    await page.keyboard.press("Enter");
+  }
+  const output = page.getByTestId("synthetic-totp-secret");
+  await expect(output).toBeVisible();
+  const secret = (await output.textContent())?.trim() ?? "";
+  expect(/^[A-Z2-7]{32}$/.test(secret)).toBe(true);
+  return secret;
+}
 for (const locale of ["en", "ar"] as const) {
   const copy = labels[locale];
   test(`${locale} regular staff password and session email check remain AAL1 and require a new check only on new login`, async ({ page }, testInfo) => {
@@ -192,149 +186,127 @@ for (const locale of ["en", "ar"] as const) {
     }
   });
 
-  test(`${locale} Super Admin password then SMS preserves MFA, resend invalidation and single use`, async ({ page }, testInfo) => {
+  test(`${locale} Super Admin password then authenticator has QR/manual alternatives and prevents replay`, async ({ page }, testInfo) => {
     const response = await page.goto(`/${locale}/staff-security-preview`);
     expect(response?.status()).toBe(200);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
-    await expect(page.getByTestId("preview-simulation")).toContainText(locale === "en" ? "no real SMS or email is sent" : "ولا تُرسل رسائل SMS");
+    await expect(page.getByTestId("preview-simulation")).toHaveText(staffSecurityCopy[locale].simulation);
     await expect(page.locator('input[type="password"], input[type="tel"], img.staff-security-qr')).toHaveCount(0);
     await page.getByRole("button", { name: copy.start, exact: true }).click();
-    await expect(page.getByTestId("password-verification")).toHaveText(locale === "en" ? "Simulated and complete" : "مُحاكى ومكتمل");
     await page.getByRole("button", { name: copy.access, exact: true }).click();
-    await expect(page.getByTestId("auth-error")).toContainText(copy.noMfa);
-    await expect(page.getByTestId("auth-error")).toBeFocused();
-
+    await expect(page.getByTestId("auth-error")).toHaveText(copy.noMfa);
     await page.getByRole("button", { name: copy.enroll, exact: true }).click();
-    const firstCode = await inboxCode(page, "sms");
     const field = page.locator("#staff-auth-code");
     await expect(field).toBeFocused();
     await expect(field).toHaveAttribute("autocomplete", "one-time-code");
     await expect(field).toHaveAttribute("dir", "ltr");
+    await expect(page.locator("img.staff-security-qr")).toHaveAttribute("alt", staffSecurityCopy[locale].qrAlt);
+    expect((await page.locator("img.staff-security-qr").getAttribute("src"))?.startsWith("data:image/png;base64,")).toBe(true);
+    const secret = await setupKey(page);
+    await expect(page.getByTestId("synthetic-totp-secret")).toHaveAttribute("dir", "ltr");
+    await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+    await field.fill("abcdef");
+    await page.getByRole("button", { name: copy.verify, exact: true }).click();
+    await expect(page.getByTestId("auth-error")).toBeFocused();
+    const firstCounter = Math.floor(Date.now() / 30_000);
+    const firstCode = appCode(secret, firstCounter);
     await field.fill(wrongCode(firstCode));
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
-    await expect(page.getByTestId("auth-error")).toContainText(copy.error);
     await expect(field).toHaveAttribute("aria-invalid", "true");
-    await expect(page.getByTestId("auth-error")).toBeFocused();
-
+    await expect(page.getByTestId("auth-error")).toHaveText(copy.error);
     await page.getByRole("button", { name: copy.challenge, exact: true }).click();
-    await expect.poll(async () => await inboxCode(page, "sms") !== firstCode).toBe(true);
-    const replacement = await inboxCode(page, "sms");
-    await field.fill(firstCode);
-    await page.getByRole("button", { name: copy.verify, exact: true }).click();
-    await expect(page.getByTestId("auth-error")).toContainText(copy.error);
-    const localizedCode = locale === "ar" ? replacement.replace(/\d/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]) : replacement;
-    await field.fill(localizedCode);
+    const currentCode = appCode(secret, firstCounter);
+    await field.fill(locale === "ar" ? currentCode.replace(/\d/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]) : currentCode);
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
     await expect(page.getByTestId("session-assurance")).toHaveText(copy.assurance);
-    await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+    await expect(page.getByTestId("synthetic-totp-setup")).toHaveCount(0);
     await expect(field).toHaveCount(0);
-    expect((await api(page, "verify", { code: replacement })).state).toBe("denied");
-    await expect(page.getByTestId("live-access-closed")).toHaveText(copy.closed);
-
+    expect((await api(page, "verify", { code: currentCode })).state).toBe("denied");
     await page.getByRole("button", { name: copy.access, exact: true }).click();
-    await expect(page.getByTestId("auth-status")).toContainText(locale === "en" ? "synthetic staff check passed" : "اجتاز اختبار وصول الفريق المصطنع");
     await page.getByRole("button", { name: copy.reauthenticate, exact: true }).click();
     await expect(page.getByRole("button", { name: copy.verify, exact: true })).toBeDisabled();
     await expect(page.getByTestId("session-assurance")).toHaveText(copy.missing);
     await page.getByRole("button", { name: copy.challenge, exact: true }).click();
-    const freshCode = await inboxCode(page, "sms");
-    await field.fill(freshCode);
+    await field.fill(currentCode);
+    await page.getByRole("button", { name: copy.verify, exact: true }).click();
+    await expect(page.getByTestId("auth-error")).toHaveText(copy.error);
+    const nextCode = appCode(secret, firstCounter + 1);
+    await field.fill(nextCode);
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
     await expect(page.getByTestId("session-assurance")).toHaveText(copy.assurance);
     const state = await api(page, "status");
     expect(state.view.passwordVerified).toBe(true);
-    expect(state.view.phoneVerified).toBe(true);
+    expect(state.view.assurance).toBe("aal2");
     expect(state.view.previewAccessAllowed).toBe(true);
     expect(state.view.operationalAccessReady).toBe(false);
     expect(state.view.privilegedAccessReady).toBe(false);
     expect(state.view.testMessage).toBeUndefined();
-    await testInfo.attach(`${locale}-sms-assured-${testInfo.project.name}`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+    expect(state.view.enrollment).toBeUndefined();
+    expect(state.view.phoneVerified).toBeUndefined();
+    await testInfo.attach(`${locale}-totp-assured-${testInfo.project.name}`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
   });
 
-  test(`${locale} participant email and phone checks are independent and never enroll MFA`, async ({ page }, testInfo) => {
+  test(`${locale} participant email-only verification never enrolls MFA or phone`, async ({ page }, testInfo) => {
     await page.goto(`/${locale}/staff-security-preview`);
     await page.getByRole("button", { name: copy.participant, exact: true }).click();
     await expect(page.getByTestId("email-verification")).toHaveText(copy.missing);
-    await expect(page.getByTestId("phone-verification")).toHaveText(copy.missing);
+    await expect(page.getByTestId("phone-verification")).toHaveCount(0);
+    await expect(page.locator("#staff-auth-code")).toHaveCount(0);
     await expect(page.getByTestId("session-assurance")).toHaveText(copy.participantAssurance);
-    const phoneForm = page.getByRole("form", { name: copy.phoneTitle, exact: true });
-    await expect(phoneForm).toBeVisible();
-    await expect(phoneForm).toHaveAttribute("aria-describedby", "participant-phone-instructions");
-    await expect(phoneForm.getByRole("textbox", { name: copy.phoneCodeLabel, exact: true })).toBeVisible();
     await page.getByRole("button", { name: copy.participantAccess, exact: true }).click();
-    await expect(page.getByTestId("auth-error")).toContainText(copy.accountRequired);
+    await expect(page.getByTestId("auth-error")).toHaveText(copy.accountRequired);
     await page.getByRole("button", { name: copy.emailChallenge, exact: true }).click();
-    const firstEmailCode = await inboxCode(page, "email");
-    await page.getByRole("button", { name: copy.challenge, exact: true }).click();
-    const phoneCode = await inboxCode(page, "sms");
-
-    // Both channels can be pending. Reissuing email invalidates only its old credential.
+    const oldCode = await inboxCode(page, "email");
     await page.getByRole("button", { name: copy.emailChallenge, exact: true }).click();
-    await expect.poll(async () => await inboxCode(page, "email") !== firstEmailCode).toBe(true);
-    const emailCode = await inboxCode(page, "email");
-    const emailField = page.locator("#participant-email-code");
-    await emailField.fill(firstEmailCode);
+    await expect.poll(async () => await inboxCode(page, "email") !== oldCode).toBe(true);
+    const currentCode = await inboxCode(page, "email");
+    const field = page.locator("#participant-email-code");
+    await field.fill(oldCode);
     await page.getByRole("button", { name: copy.emailVerify, exact: true }).click();
-    await expect(page.getByTestId("auth-error")).toContainText(copy.error);
-    await emailField.fill(emailCode);
+    await expect(page.getByTestId("auth-error")).toHaveText(copy.error);
+    await field.fill(currentCode);
     await page.getByRole("button", { name: copy.emailVerify, exact: true }).click();
     await expect(page.getByTestId("email-verification")).toHaveText(copy.verified);
-    await expect(page.getByTestId("phone-verification")).toHaveText(copy.missing);
-    await expect(page.getByTestId("auth-status")).toHaveText(copy.emailNeedsPhone);
-    await expect(page.getByTestId("participant-verification-state")).toHaveText(copy.phonePending);
-    expect((await api(page, "protected")).state).toBe("denied");
-    expect((await api(page, "verify-email", { code: emailCode })).state).toBe("denied");
-
-    await page.locator("#staff-auth-code").fill(phoneCode);
-    await page.getByRole("button", { name: copy.phoneVerify, exact: true }).click();
-    await expect(page.getByTestId("phone-verification")).toHaveText(copy.verified);
+    await expect(page.getByTestId("participant-verification-state")).toHaveText(copy.complete);
+    await expect(page.getByTestId("auth-status")).toHaveText(copy.emailBothComplete);
     await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
-    await expect(page.getByTestId("session-assurance")).toHaveText(copy.participantAssurance);
     const state = await api(page, "status");
     expect(state.view.verificationComplete).toBe(true);
     expect(state.view.assurance).toBe("aal1");
     expect(state.view.factor).toBe("none");
     expect(state.view.operationalAccessReady).toBe(false);
     expect(state.view.privilegedAccessReady).toBe(false);
-    expect((await api(page, "enroll")).state).toBe("denied");
+    for (const action of ["enroll", "challenge", "verify"]) expect((await api(page, action, action === "verify" ? { code: currentCode } : {})).state).toBe("denied");
+    expect((await api(page, "verify-email", { code: currentCode })).state).toBe("denied");
     await page.getByRole("button", { name: copy.participantAccess, exact: true }).click();
     await expect(page.getByTestId("auth-status")).toContainText(locale === "en" ? "participant verification check passed" : "اجتاز اختبار التحقق من المشارك المصطنع");
     await testInfo.attach(`${locale}-participant-verified-${testInfo.project.name}`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
   });
 
-  test(`${locale} participant phone-first verification and reauthentication have participant-specific messages`, async ({ page }) => {
+  test(`${locale} participant reauthentication retains email verification without a phone or second factor`, async ({ page }) => {
     await page.goto(`/${locale}/staff-security-preview`);
     await page.getByRole("button", { name: copy.participant, exact: true }).click();
-    await page.getByRole("button", { name: copy.challenge, exact: true }).click();
-    const phoneCode = await inboxCode(page, "sms");
-    await page.getByRole("textbox", { name: copy.phoneCodeLabel, exact: true }).fill(phoneCode);
-    await page.getByRole("button", { name: copy.phoneVerify, exact: true }).click();
-    await expect(page.getByTestId("participant-verification-state")).toHaveText(copy.emailPending);
     await page.getByRole("button", { name: copy.emailChallenge, exact: true }).click();
-    const emailCode = await inboxCode(page, "email");
-    await page.locator("#participant-email-code").fill(emailCode);
+    const code = await inboxCode(page, "email");
+    await page.locator("#participant-email-code").fill(code);
     await page.getByRole("button", { name: copy.emailVerify, exact: true }).click();
-    await expect(page.getByTestId("auth-status")).toHaveText(copy.emailBothComplete);
-    await expect(page.getByTestId("participant-verification-state")).toHaveText(copy.complete);
     await page.getByRole("button", { name: copy.reauthenticate, exact: true }).click();
     await expect(page.getByTestId("auth-status")).toHaveText(copy.participantReauthenticated);
     await expect(page.getByTestId("participant-verification-state")).toHaveText(copy.complete);
     await expect(page.getByTestId("session-assurance")).toHaveText(copy.participantAssurance);
-    await expect(page.getByRole("button", { name: copy.phoneVerify, exact: true })).toHaveCount(0);
+    await expect(page.locator("#staff-auth-code, #participant-email-code, input[type=tel]")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: copy.factorReset, exact: true })).toHaveCount(0);
   });
 
-  test(`${locale} periodic status announces terminal session state and clears transient challenges`, async ({ page }) => {
-    // The mocked transport exercises UI announcements; server expiry is independently
-    // covered by unit/SQL policy checks. No wall-clock wait or live provider is needed.
+  test(`${locale} periodic status announces terminal session state and clears transient setup`, async ({ page }) => {
+    // Mocked transport exercises announcements; server expiry has unit/SQL coverage.
     await page.clock.install();
     await page.goto(`/${locale}/staff-security-preview`);
     for (const status of ["expired", "revoked"] as const) {
-      // Start again from the displayed terminal state. Reloading would correctly
-      // restore the still-active real lab session behind the mocked status response.
       await page.getByRole("button", { name: copy.start, exact: true }).click();
       await page.getByRole("button", { name: copy.enroll, exact: true }).click();
-      const code = await inboxCode(page, "sms");
-      await page.locator("#staff-auth-code").fill(code);
+      const secret = await setupKey(page);
+      await page.locator("#staff-auth-code").fill(appCode(secret));
       const { view } = await api(page, "status");
       await page.route("**/api/auth-preview", async (route) => {
         if (route.request().postDataJSON()?.action === "status") await route.fulfill({
@@ -349,7 +321,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(announcement).toHaveAttribute("aria-live", "polite");
       await expect(announcement).toHaveText(copy[status]);
       await expect(page.getByTestId("session-state")).toHaveText(copy[status]);
-      await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+      await expect(page.getByTestId("synthetic-totp-setup")).toHaveCount(0);
       await expect(page.locator("#staff-auth-code")).toHaveCount(0);
       await page.unroute("**/api/auth-preview");
     }
@@ -358,21 +330,18 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} recovery stays closed, refresh preserves the participant 72-hour cap, and logout revokes access`, async ({ page }) => {
     await page.goto(`/${locale}/staff-security-preview`);
     await page.getByRole("button", { name: copy.participant, exact: true }).click();
-    await expect(page.getByRole("button", { name: copy.refresh, exact: true })).toBeVisible();
     const before = (await api(page, "status")).view;
     expect(before.absoluteExpiresAt - before.startedAt).toBe(72 * 60 * 60 * 1_000);
     await page.getByRole("button", { name: copy.reset, exact: true }).click();
-    await expect(page.getByTestId("auth-error")).toContainText(copy.recovery);
+    await expect(page.getByTestId("auth-error")).toHaveText(copy.recovery);
     await expect(page.getByTestId("auth-error")).toBeFocused();
     await page.getByRole("button", { name: copy.refresh, exact: true }).click();
-    await expect(page.getByTestId("auth-status")).toContainText(locale === "en" ? "Synthetic token refreshed" : "تم تحديث رمز الجلسة المصطنعة");
     const refreshed = (await api(page, "status")).view;
     expect(refreshed.startedAt).toBe(before.startedAt);
     expect(refreshed.absoluteExpiresAt).toBe(before.absoluteExpiresAt);
     await page.getByRole("button", { name: copy.logout, exact: true }).click();
     await expect(page.getByRole("button", { name: copy.start, exact: true })).toBeVisible();
     expect((await api(page, "protected")).state).toBe("denied");
-    await expect(page.locator("#staff-auth-code")).toHaveCount(0);
     await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
   });
 
@@ -380,15 +349,20 @@ for (const locale of ["en", "ar"] as const) {
     for (const scenario of [copy.suspend, copy.factorReset]) {
       await page.goto(`/${locale}/staff-security-preview`);
       await page.getByRole("button", { name: copy.start, exact: true }).click();
+      await page.getByRole("button", { name: copy.enroll, exact: true }).click();
+      const secret = await setupKey(page);
+      await page.locator("#staff-auth-code").fill(appCode(secret));
+      await page.getByRole("button", { name: copy.verify, exact: true }).click();
+      await expect(page.getByTestId("session-assurance")).toHaveText(copy.assurance);
       await page.getByRole("button", { name: scenario, exact: true }).click();
-      await expect(page.getByTestId("session-state")).toHaveText(locale === "en" ? "Session revoked" : "أُلغيت الجلسة");
+      await expect(page.getByTestId("session-state")).toHaveText(copy.revoked);
       expect((await api(page, "protected")).state).toBe("denied");
       await expect(page.locator("#staff-auth-code")).toHaveCount(0);
-      await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+      await expect(page.getByTestId("synthetic-totp-setup")).toHaveCount(0);
     }
   });
 
-  test(`${locale} preview keyboard and automated accessibility checks cover SMS and participant errors`, async ({ page }, testInfo) => {
+  test(`${locale} keyboard and automated accessibility cover QR/manual setup and verification errors`, async ({ page }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/staff-security-preview`);
     await page.getByRole("button", { name: copy.start, exact: true }).focus();
@@ -397,19 +371,20 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByRole("button", { name: copy.enroll, exact: true }).focus();
     await page.keyboard.press("Enter");
     await expect(page.locator("#staff-auth-code")).toBeFocused();
+    await setupKey(page);
+    await page.locator("#staff-auth-code").focus();
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: copy.verify, exact: true })).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("auth-error")).toBeFocused();
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
-    // Only rule IDs/impact are attached; axe HTML could contain a test message code.
-    await testInfo.attach(`${locale}-sms-accessibility`, { body: JSON.stringify(result.violations.map(({ id, impact }) => ({ id, impact }))), contentType: "application/json" });
+    // Attach rule IDs/impact only. AXE HTML could contain the synthetic setup key.
+    await testInfo.attach(`${locale}-totp-accessibility`, { body: JSON.stringify(result.violations.map(({ id, impact }) => ({ id, impact }))), contentType: "application/json" });
     expect(result.violations.length).toBe(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
-    await testInfo.attach(`${locale}-sms-challenge-${testInfo.project.name}`, {
-      body: await page.screenshot({ fullPage: true, mask: [page.getByTestId("synthetic-inbox"), page.locator("#staff-auth-code")] }), contentType: "image/png",
+    await testInfo.attach(`${locale}-totp-setup-${testInfo.project.name}`, {
+      body: await page.screenshot({ fullPage: true, mask: [page.getByTestId("synthetic-totp-setup"), page.locator("#staff-auth-code")] }), contentType: "image/png",
     });
-
     await page.getByRole("button", { name: copy.logout, exact: true }).click();
     await page.getByRole("button", { name: copy.participant, exact: true }).click();
     await page.getByRole("button", { name: copy.emailChallenge, exact: true }).click();
@@ -422,33 +397,35 @@ for (const locale of ["en", "ar"] as const) {
     expect(participantResult.violations.length).toBe(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await testInfo.attach(`${locale}-participant-challenge-${testInfo.project.name}`, {
-      body: await page.screenshot({ fullPage: true, mask: [page.getByTestId("synthetic-inbox"), page.locator("#staff-auth-code"), page.locator("#participant-email-code")] }), contentType: "image/png",
+      body: await page.screenshot({ fullPage: true, mask: [page.getByTestId("synthetic-inbox"), page.locator("#participant-email-code")] }), contentType: "image/png",
     });
   });
 }
 
-test("locale changes and request recovery preserve the SMS draft without browser storage", async ({ page }) => {
+test("locale changes and transport retry preserve a private authenticator draft without browser storage", async ({ page }) => {
   await page.goto("/en/staff-security-preview");
   await page.getByRole("button", { name: labels.en.start, exact: true }).click();
   await page.getByRole("button", { name: labels.en.enroll, exact: true }).click();
-  const code = await inboxCode(page, "sms");
+  const secret = await setupKey(page);
+  const code = appCode(secret);
   await page.locator("#staff-auth-code").fill(code);
   await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
   await expect(page).toHaveURL(/\/ar\/staff-security-preview$/);
-  await expect.poll(async () => await inboxCode(page, "sms") === code).toBe(true);
   await expect.poll(async () => (await page.locator("#staff-auth-code").inputValue()) === code).toBe(true);
+  await expect.poll(async () => (await page.getByTestId("synthetic-totp-secret").textContent()) === secret).toBe(true);
   await page.route("**/api/auth-preview", async (route) => {
     if (route.request().postDataJSON()?.action === "verify") await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ state: "unavailable", code: "unavailable" }) });
     else await route.continue();
   });
   await page.getByRole("button", { name: labels.ar.verify, exact: true }).click();
-  await expect(page.getByTestId("auth-error")).toContainText(labels.ar.unavailable);
+  await expect(page.getByTestId("auth-error")).toHaveText(labels.ar.unavailable);
   await expect.poll(async () => (await page.locator("#staff-auth-code").inputValue()) === code).toBe(true);
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
   await page.unroute("**/api/auth-preview");
+  await page.locator("#staff-auth-code").fill(appCode(secret));
   await page.getByRole("button", { name: labels.ar.verify, exact: true }).click();
   await expect(page.getByTestId("session-assurance")).toHaveText(labels.ar.assurance);
-  await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+  await expect(page.getByTestId("synthetic-totp-setup")).toHaveCount(0);
 });
 
 test("regular staff email draft survives locale change and transport retry without granting AAL2", async ({ page }) => {
@@ -479,22 +456,18 @@ test("regular staff email draft survives locale change and transport retry witho
   await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
 });
 
-test("participant email and phone drafts survive a locale change and disappear on reload", async ({ page }) => {
+test("participant email draft survives a locale change and disappears on reload without phone fields", async ({ page }) => {
   await page.goto("/en/staff-security-preview");
   await page.getByRole("button", { name: labels.en.participant, exact: true }).click();
   await page.getByRole("button", { name: labels.en.emailChallenge, exact: true }).click();
-  const emailCode = await inboxCode(page, "email");
-  await page.locator("#participant-email-code").fill(emailCode);
-  await page.getByRole("button", { name: labels.en.challenge, exact: true }).click();
-  const smsCode = await inboxCode(page, "sms");
-  await page.locator("#staff-auth-code").fill(smsCode);
+  const code = await inboxCode(page, "email");
+  await page.locator("#participant-email-code").fill(code);
   await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
   await expect(page).toHaveURL(/\/ar\/staff-security-preview$/);
-  await expect.poll(async () => (await page.locator("#participant-email-code").inputValue()) === emailCode).toBe(true);
-  await expect.poll(async () => (await page.locator("#staff-auth-code").inputValue()) === smsCode).toBe(true);
+  await expect.poll(async () => (await page.locator("#participant-email-code").inputValue()) === code).toBe(true);
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
   await page.reload();
   await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
   await expect(page.locator("#participant-email-code")).toHaveValue("");
-  await expect(page.locator("#staff-auth-code")).toHaveValue("");
+  await expect(page.locator("#staff-auth-code, input[type=tel]")).toHaveCount(0);
 });

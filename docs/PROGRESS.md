@@ -1,5 +1,64 @@
 # Progress and session handover
 
+## 3 October 2026 — ORG-016 removes phone/SMS; Super Admin authenticator MFA
+
+Reviewed current draft PR22 at5977eb7, PR19 base3e0f8a1, existing implementation and
+ORG-013/014/015 before changes. Fresh remote main8482abf adds independent public mobile
+work; no auth runtime changes were merged here. Preserved original checkout edits,
+deployed migration20261002173712 and all earlier review migration/source snapshots.
+Flagged outdated participant-phone/Super-Admin-SMS requirements before editing.
+Recorded ORG-016; retired SMS provider/sender/budget/hook/phone recovery work.
+
+Current policy: participant managed email/password plus verified email only, no phone
+or MFA; regular staff password plus private exact-user/session email receipt at native
+AAL1; Super Admin password then current authenticator TOTP at native AAL2. Roles/scopes,
+strongest tier across editions, individual identity and all15 closed workflows/readiness
+remain unchanged. Participant72h and privileged30min idle/8h absolute retain native
+original-session origin; refresh cannot reset it or count as activity.
+
+Removed active SMS config/provider/hook/inbox/static code and phone fixtures/UI/DTO
+fields. Restored QR/manual authenticator setup and RFC6238 synthetic helper; setup is
+returned once, transient, cleared after verification/terminal/reload and never logged
+or stored in browser storage. Pinned qrcode1.5.4/@types1.5.6. Authentication emails stay
+English-only; EN/AR/RTL UI and staff email single-use/limits/failure controls preserved.
+
+New additive review-only20261003110812_authenticator_super_admin_policy.sql overrides
+current assurance/context and closed maintenance attribution. Participants need current
+verified email/password; Super Admins need signed and native exact-session password/TOTP
+proof against current factor at full native precision, denying same-second stale factor
+mutation. Expiry resamples after factor-lock waits. Prior migrations unchanged; no hosted
+apply, reset/seed, production Auth, real messages/accounts/invites/grants/resets or spending.
+Branch Git deployment remains disabled; local preview only.
+
+Executed local so far: lint PASS; typecheck PASS; unit1299/28files PASS after fixing a
+retired phone action in the participant test helper; production build42pages PASS.
+Dedicated browser, isolated CI SQL/native Auth and final responsive visual review are
+pending verification below; no local Docker/database runtime is run.
+
+TOTP provider behavior is distinct from email single-use: a still-valid native TOTP
+time-step code can verify a distinct unused challenge; consumed-challenge replay denies.
+The synthetic verifier's consumed-step guard is stricter lab behavior, not managed
+provider proof. Production TOTP abuse controls/human UAT are not silently approved.
+
+Live English SMTP/provider/sender is absent; console/test only, no development-email
+fallback. Recovery retains revoke/suspend first, in-person identity/appointment review,
+distinct Super Admin approver/operator; named people, precise lost-email/authenticator
+evidence/procedure/rehearsal remain TBD. Recent-auth age/warning lead, privacy/retention/
+location and production release remain unresolved. Human inbox/authenticator devices,
+screen readers, cookie exchange, actual Storage policies and recovery are NOT TESTED.
+Storage/CMS/operations stay closed. Inbox access may allow both password reset and
+staff email-code receipt, weaker than authenticator MFA.
+
+Current main also uses ORG-011 for a separate public decision, in addition to the already
+recorded ORG-010 collision; preserve both auth/public meanings and reconcile IDs during
+later integration without publishing intended-administrator login addresses.
+
+Rollback: stop local lab/clear flag/restart to discard synthetic memory; revert only
+isolated review code as needed, keeping latest policy and never activating the superseded
+SMS draft. No hosted rollback is needed. Next smallest task: approve concrete English
+email provider/sender and allowlisted isolated delivery/cookie configuration, then test
+delivery and session enforcement while recovery and live access remain closed.
+
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
 ## 3 October 2026 — ORG-015 narrow regular-staff email amendment
