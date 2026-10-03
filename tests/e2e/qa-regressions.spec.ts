@@ -150,3 +150,54 @@ for (const [instant, days, unit] of [
     await expect(countdown.locator(".countdown-unit")).toHaveText(unit);
   });
 }
+
+// Live QA 2026-10-03. Browsers and link unfurlers still ask for /favicon.ico; it returned the 404 page.
+test("/favicon.ico serves the MSRC icon", async ({ request }) => {
+  const response = await request.get("/favicon.ico");
+  expect(response.status()).toBe(200);
+  // next start says image/x-icon; Vercel's CDN says image/vnd.microsoft.icon.
+  expect(response.headers()["content-type"]).toMatch(/^image\/(x-icon|vnd\.microsoft\.icon)/);
+});
+
+// A phone turned sideways is ~340px tall, and the floating header covered a quarter of it while
+// reading. There it steps aside while scrolling down and returns on any scroll up or focus.
+test("a short landscape screen tucks the header away while reading down", async ({ page }) => {
+  await page.setViewportSize({ width: 844, height: 340 });
+  await page.goto("/en/about");
+  const header = page.locator(".site-header");
+  const bottom = () => header.evaluate((element) => element.getBoundingClientRect().bottom);
+  // Two frames after each step, so WebKit cannot merge a step down and a step up into one scroll event.
+  const scrollBy = (distance: number) => page.evaluate((distance) => new Promise<void>((resolve) => {
+    window.scrollBy(0, distance);
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }), distance);
+  // Scrolling in steps until it tucks also waits out hydration of the scroll listener.
+  await expect.poll(async () => { await scrollBy(250); return bottom(); }, { timeout: 15_000 }).toBeLessThanOrEqual(0);
+  await scrollBy(-200);
+  await expect.poll(bottom).toBeGreaterThan(40);
+  await scrollBy(400);
+  await expect.poll(bottom).toBeLessThanOrEqual(0);
+  await page.locator(".menu-toggle").focus();
+  await expect.poll(bottom).toBeGreaterThan(40);
+});
+
+test("a portrait phone keeps the header in view while reading down", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/about");
+  const header = page.locator(".site-header");
+  await expect.poll(async () => { await page.evaluate(() => window.scrollBy(0, 300)); return header.getAttribute("data-scrolled"); }, { timeout: 15_000 }).toBe("true");
+  await page.evaluate(() => window.scrollBy(0, 600));
+  await page.waitForTimeout(600);
+  expect(await header.evaluate((element) => element.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
+});
+
+// The edition number and the year art were the only Western digits on Arabic pages, and the intro
+// art's flow lines did not mirror, so in Arabic they ran through the edition number.
+test("homepage display art uses each language's digits and mirrors in Arabic", async ({ page }) => {
+  for (const [locale, edition, years, transform] of [["en", "05", "20262027", "none"], ["ar", "٠٥", "٢٠٢٦٢٠٢٧", "matrix(-1, 0, 0, 1, 0, 0)"]] as const) {
+    await page.goto(`/${locale}`);
+    await expect(page.locator(".visual-edition")).toHaveText(edition);
+    await expect(page.locator(".legacy-art-years")).toHaveText(years);
+    expect(await page.locator(".intro-visual > .flow-lines").evaluate((element) => getComputedStyle(element).transform), locale).toBe(transform);
+  }
+});

@@ -29,6 +29,26 @@ fixes and heading wording. Implementation starts from remote main c10b2c5 in the
 Evidence, known limits and rollback: [feature note](features/mobile-homepage-polish.md).
 Next: review the finished design on an actual phone, then publish the reviewed change.
 
+## 3 October 2026 — QA pass: landscape phones, favicon, Arabic display numerals
+
+Live sweep of www.msrc2027.com after PR 21: all 24 public pages (EN/AR) return 200 with no broken internal links; axe (WCAG 2.2 AA + best practice) reports no violations at 390 and 1280 px; no console errors, page errors or failed requests in Chromium desktop or WebKit iPhone; EN/AR pages have the same structure; content stays visible without JavaScript; security headers are intact. Fixed:
+
+| Found | Change |
+| --- | --- |
+| A phone turned sideways is ~340 px tall, and the fixed floating header covered 25–26% of it while reading (12% in portrait) | Below 500 px of height in landscape, the header is slimmer (its bottom edge sits 68 px down instead of 88) and steps aside while scrolling down. It returns on any scroll up, near the top, while the menu is open, and when focus moves into it (`site-header.tsx` `data-tucked`; `public-interface.css`). Portrait phones, tablets and desktop are unchanged; reduced motion drops the slide. Menu links are 48 px there so more fit |
+| `/favicon.ico` still returned the 404 page (the 30 September pass added `icon.svg` and `apple-icon` only); browsers, bookmarks and link unfurlers that ask for it got nothing | `src/app/favicon.ico` (16/32/48 px, rendered from `icon.svg`) |
+| On Arabic pages the intro art's edition number and the 2026→2027 year art were the only Western digits | `formatIndex(5)` gives «٠٥»; new `formatYear` gives «٢٠٢٦» / «٢٠٢٧». The MSRC 2027 wordmarks stay Latin |
+| The intro art's flow lines did not mirror in Arabic, so they ran through the edition number while the atom mark sat alone | `[dir="rtl"] .intro-visual > .flow-lines { transform: scaleX(-1) }`, the same approach as the hero scrim; EN and AR are now exact mirrors at 390 and 1280 px |
+
+Tests (`tests/e2e/qa-regressions.spec.ts`): `/favicon.ico` is served; a short landscape screen tucks and restores the header (scroll up and focus); a portrait phone keeps it in view; the display art uses each language's digits and the Arabic intro lines are mirrored. Against production before this change, the favicon, landscape and digit tests fail and the portrait test passes.
+
+Verification: ESLint (`--max-warnings=0`) and `tsc` PASS; `next build` PASS; Vitest 888/888. Rebased onto `main` with PR 23 (shared `site-header.tsx` scroll handler merged by hand; the landscape rules set `--header-top`, so PR 23's measured menu height stays correct). Full Playwright Chromium run after the rebase: 313 passed, 31 skipped (by design), 1 failed on a Windows `net::ERR_NO_BUFFER_SPACE` page load; that spec then passed 18/18 on its own. WebKit desktop/iPhone for `qa-regressions`, `mobile-navigation` and `chapter-titles`: 54 passed, 16 skipped. The new tests: Chromium desktop/mobile and WebKit desktop/iPhone, 3 repeats each, 48/48. Firefox: NOT TESTED (does not launch on this Windows host).
+
+Not changed (left for the requester):
+- `msrc-2027.vercel.app` serves a full copy of production (canonical tags point to www). Redirecting it in Vercel's Domains settings would keep shared links on www.msrc2027.com; it is also the fallback address if the iPhone certificate warning returns.
+- On a throttled phone (1.6 Mbps, 4× CPU) LCP is ~3.0 s; the 108 KB mobile poster shares the line with ~175 KB of JS and three Latin font files. A WebP/AVIF poster would help most but is a new derivative of approved media, so it needs media sign-off.
+- GitHub: PR 2 (`codex/hosted-supabase-connection`) has no commits that are not on `main`; the repository's website field still points to the vercel.app address; CI runs twice per PR commit (`push` and `pull_request` both fire).
+
 ## 3 October 2026 — Chapter titles replace the phone chapter bar (ORG-010)
 
 PR 20 went live and the requester rejected the phone chapter bar. They asked for each section's title to arrive "big and centered", then shrink to its own size and settle back into place, smoothly.

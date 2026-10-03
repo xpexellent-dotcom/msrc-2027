@@ -18,6 +18,11 @@ export function formatIndex(value: number, locale: Locale): string {
   return locale === "ar" ? padded.replace(/\d/g, (digit) => arabicIndicDigits[Number(digit)]) : padded;
 }
 
+/** A bare year (2026 / ٢٠٢٦) for display art, without the grouping separator a number format adds. */
+export function formatYear(year: number, locale: Locale): string {
+  return locale === "ar" ? String(year).replace(/\d/g, (digit) => arabicIndicDigits[Number(digit)]) : String(year);
+}
+
 /**
  * A duration: "45 min" in English; in Arabic the counted noun CLDR uses («٤٥ دقيقة»,
  * «٣ دقائق», «دقيقتان») rather than a fixed «دقيقة» after every number.
