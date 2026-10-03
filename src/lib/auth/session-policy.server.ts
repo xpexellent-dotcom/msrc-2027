@@ -15,7 +15,6 @@ export type SessionEvidence = Readonly<{
   managedNotAfterMs: number | null;
   accountActive: boolean;
   emailVerified: boolean;
-  phoneVerified: boolean;
   individuallyIdentified: boolean;
   revokedAtMs: number | null;
   actorRevokedBeforeMs: number | null;
@@ -28,7 +27,7 @@ export type SessionEvidence = Readonly<{
   factorCreatedAtMs: number | null;
   factorUpdatedAtMs: number | null;
   passwordAuthenticatedAtMs: number | null;
-  phoneMfaAuthenticatedAtMs: number | null;
+  totpMfaAuthenticatedAtMs: number | null;
   authenticatedAtMs: number | null;
   staffEmailReceipt?: Readonly<{ actorId: string; sessionId: string; verifiedAtMs: number;
     emailCurrent: boolean; passwordCurrent: boolean; grantsCurrent: boolean }> | null;
@@ -88,14 +87,14 @@ export function evaluateSessionPolicy(
     || !timestamp(evidence.tokenExpiresAtMs) || evidence.sessionCreatedAtMs > nowMs
     || evidence.lastActivityAtMs < evidence.sessionCreatedAtMs || evidence.lastActivityAtMs > nowMs
     || ![evidence.managedNotAfterMs, evidence.revokedAtMs, evidence.actorRevokedBeforeMs,
-      evidence.factorCreatedAtMs, evidence.factorUpdatedAtMs, evidence.phoneMfaAuthenticatedAtMs,
+      evidence.factorCreatedAtMs, evidence.factorUpdatedAtMs, evidence.totpMfaAuthenticatedAtMs,
       evidence.passwordAuthenticatedAtMs,
       evidence.authenticatedAtMs].every(optionalTimestamp)
     || !["aal1", "aal2"].includes(evidence.tokenAssurance)
     || !["aal1", "aal2"].includes(evidence.managedAssurance)
     || (evidence.factorType !== null && !["phone", "totp"].includes(evidence.factorType))
     || (options.authenticationTier !== undefined && !["staff", "super_admin"].includes(options.authenticationTier))
-    || ![evidence.managedSessionExists, evidence.accountActive, evidence.emailVerified, evidence.phoneVerified, evidence.individuallyIdentified,
+    || ![evidence.managedSessionExists, evidence.accountActive, evidence.emailVerified, evidence.individuallyIdentified,
       evidence.factorVerified].every((value) => typeof value === "boolean")) return result("invalid_evidence");
 
   absoluteExpiresAtMs = evidence.sessionCreatedAtMs
@@ -113,21 +112,21 @@ export function evaluateSessionPolicy(
   if (nowMs >= absoluteExpiresAtMs) return result("absolute_expired");
   if (idleExpiresAtMs !== null && nowMs >= idleExpiresAtMs) return result("idle_expired");
 
-  if (!evidence.emailVerified || (!privileged && !evidence.phoneVerified))
+  if (!evidence.emailVerified)
     return result("account_verification_required");
   passwordValid = evidence.passwordAuthenticatedAtMs !== null
-    && Math.floor(evidence.passwordAuthenticatedAtMs / 1000) >= Math.floor(evidence.sessionCreatedAtMs / 1000)
+    && evidence.passwordAuthenticatedAtMs >= evidence.sessionCreatedAtMs
     && evidence.passwordAuthenticatedAtMs <= nowMs;
   mfaValid = options.authenticationTier !== "staff" && passwordValid && evidence.tokenAssurance === "aal2" && evidence.managedAssurance === "aal2"
     && evidence.factorType === AUTHENTICATION_POLICY.superAdmin.managedFactorType
     && !!evidence.factorId && evidence.factorUserId === evidence.actorId && evidence.factorVerified
     && evidence.factorCreatedAtMs !== null && evidence.factorUpdatedAtMs !== null
-    && evidence.phoneMfaAuthenticatedAtMs !== null && evidence.passwordAuthenticatedAtMs !== null
-    // Provider AMR has whole-second precision; compare provider instants at that precision.
-    && Math.floor(evidence.phoneMfaAuthenticatedAtMs / 1000) >= Math.floor(Math.max(
+    && evidence.totpMfaAuthenticatedAtMs !== null && evidence.passwordAuthenticatedAtMs !== null
+    // Trusted native instants retain full precision; signed JWT AMR correlation belongs to the database.
+    && evidence.totpMfaAuthenticatedAtMs >= Math.max(
       evidence.factorCreatedAtMs, evidence.factorUpdatedAtMs, evidence.sessionCreatedAtMs,
-      evidence.passwordAuthenticatedAtMs) / 1000)
-    && evidence.phoneMfaAuthenticatedAtMs <= nowMs;
+      evidence.passwordAuthenticatedAtMs)
+    && evidence.totpMfaAuthenticatedAtMs <= nowMs;
   if (privileged && !evidence.individuallyIdentified) return result("individual_identity_required");
   if (!passwordValid) return result("password_auth_required");
   const receipt = evidence.staffEmailReceipt;

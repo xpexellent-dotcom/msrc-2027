@@ -9,22 +9,23 @@ import type { PreviewAction, PreviewResult, PreviewView } from "@/features/auth/
 import type { Locale } from "@/lib/i18n";
 
 type TestMessage = NonNullable<PreviewView["testMessage"]>;
+type Enrollment = NonNullable<PreviewView["enrollment"]>;
 type Draft = Readonly<{
   code: string;
   emailCode: string;
   view: PreviewView | null;
-  smsMessage: TestMessage | null;
+  enrollment: Enrollment | null;
   emailMessage: TestMessage | null;
   result: PreviewResult | null;
-  responseChannel: "sms" | "email" | null;
+  responseChannel: "totp" | "email" | null;
   responseAction: PreviewAction["type"] | null;
 }>;
-const emptyDraft: Draft = { code: "", emailCode: "", view: null, smsMessage: null, emailMessage: null, result: null, responseChannel: null, responseAction: null };
+const emptyDraft: Draft = { code: "", emailCode: "", view: null, enrollment: null, emailMessage: null, result: null, responseChannel: null, responseAction: null };
 let draft: Draft = emptyDraft;
 const listeners = new Set<() => void>();
 
 // LOC-01: transient inputs survive in-app locale changes. Passwords are never collected;
-// test codes/messages and assurance never enter browser storage, URLs or client logs.
+// test setup keys/codes/messages and assurance never enter browser storage, URLs or client logs.
 function updateDraft(next: Partial<Draft>) {
   draft = { ...draft, ...next };
   for (const listener of listeners) listener();
@@ -68,19 +69,19 @@ function acceptResult(result: PreviewResult, action: PreviewAction["type"]) {
   const cleared = ["start", "logout", "suspend", "simulate-factor-reset", "simulate-email-change", "simulate-role-revocation", "reauthenticate"].includes(action) && result.state === "ok";
   const noSession = result.code === "no_session" || result.code === "logged_out";
   const clearAll = cleared || noSession || (result.view && result.view.status !== "active");
-  const clearSms = clearAll || result.code === "verified" || result.code === "phone_verified";
+  const clearTotp = clearAll || result.code === "verified";
   const clearEmail = clearAll || result.code === "email_verified" || result.code === "staff_email_verified";
   const message = result.view?.testMessage;
-  const currentView = result.view ? { ...result.view, testMessage: undefined } : draft.view;
+  const currentView = result.view ? { ...result.view, testMessage: undefined, enrollment: undefined } : draft.view;
   updateDraft({
     // Keep test messages only in the separate transient inbox, never in status/result copies.
     result: { state: result.state, code: result.code },
     responseAction: action,
-    responseChannel: action === "verify-email" ? "email" : action === "verify" ? "sms" : null,
+    responseChannel: action === "verify-email" ? "email" : action === "verify" ? "totp" : null,
     view: noSession ? null : currentView,
-    smsMessage: clearSms ? null : message?.channel === "sms" ? message : draft.smsMessage,
+    enrollment: clearTotp ? null : result.view?.enrollment ?? draft.enrollment,
     emailMessage: clearEmail ? null : message?.channel === "email" ? message : draft.emailMessage,
-    code: clearSms ? "" : draft.code,
+    code: clearTotp ? "" : draft.code,
     emailCode: clearEmail ? "" : draft.emailCode,
   });
 }
@@ -95,9 +96,9 @@ function SyntheticMessage({ message, locale }: { message: TestMessage; locale: L
   const text = staffSecurityCopy[locale];
   return (
     <section className="staff-security-test-message" aria-labelledby={`test-message-${message.channel}`}>
-      <h3 id={`test-message-${message.channel}`}>{message.channel === "sms" ? text.smsMessage : text.emailMessage}</h3>
-      <p>{text.messageDelivery} · {message.channel === "sms" ? text.smsDestination : text.emailDestination} <bdi dir="ltr" data-testid={`synthetic-${message.channel}-destination`}>{message.destination.replace(/^Synthetic (email|phone)\s+/, "")}</bdi></p>
-      {message.channel === "email" ? <p dir="ltr" lang="en" data-testid="synthetic-email-body">Use this one-time code to complete your MSRC 2027 verification. If you did not request it, do not share or use the code.</p> : null}
+      <h3 id={`test-message-${message.channel}`}>{text.emailMessage}</h3>
+      <p>{text.messageDelivery} · {text.emailDestination} <bdi dir="ltr" data-testid={`synthetic-${message.channel}-destination`}>{message.destination.replace(/^Synthetic email\s+/, "")}</bdi></p>
+      <p dir="ltr" lang="en" data-testid="synthetic-email-body">Use this one-time code to complete your MSRC 2027 verification. If you did not request it, do not share or use the code.</p>
       <label htmlFor={`synthetic-${message.channel}-code`}>{text.messageCode}</label>
       <output id={`synthetic-${message.channel}-code`} data-testid={`synthetic-${message.channel}-code`} className="staff-security-test-code" dir="ltr" lang="en">{message.code}</output>
       <p>{text.messageExpiry}: <time dateTime={new Date(message.expiresAt).toISOString()}>{formatExpiry(message.expiresAt, locale)}</time></p>
@@ -108,10 +109,10 @@ function SyntheticMessage({ message, locale }: { message: TestMessage; locale: L
 export function StaffSecurityPreview({ locale }: { locale: Locale }) {
   const text = staffSecurityCopy[locale];
   const snapshot = useSyncExternalStore(subscribeDraft, readDraft, readServerDraft);
-  const { view, smsMessage, emailMessage, result, responseChannel, responseAction, code, emailCode } = snapshot;
+  const { view, enrollment, emailMessage, result, responseChannel, responseAction, code, emailCode } = snapshot;
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(0);
-  const [validation, setValidation] = useState<"sms" | "email" | null>(null);
+  const [validation, setValidation] = useState<"totp" | "email" | null>(null);
   const [focusRequest, setFocusRequest] = useState<{ target: "error" | "code" | "email" | "session"; sequence: number } | null>(null);
   const summary = useRef<HTMLDivElement>(null);
   const sessionHeading = useRef<HTMLHeadingElement>(null);
@@ -121,19 +122,18 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
   const staff = view?.kind === "staff";
   const superAdmin = view?.kind === "super_admin";
   const participant = view?.kind === "participant";
-  const showSmsForm = live && (superAdmin ? view.factor !== "none" && view.assurance !== "aal2" : participant && !view.phoneVerified);
+  const showTotpForm = live && superAdmin && view.factor !== "none" && view.assurance !== "aal2";
   const emailResendAt = staff ? view.emailResendAvailableAt : null;
   const emailResendBlocked = emailResendAt !== null && emailResendAt > now;
   const emailCodeExpiresAt = staff ? emailMessage?.expiresAt ?? null : null;
   const emailCodeExpired = emailCodeExpiresAt !== null && emailCodeExpiresAt <= now;
-  const smsError = validation === "sms" ? text.codeValidation : responseChannel === "sms" && result?.code === "invalid_code" ? text.messages.invalid_code : undefined;
+  const totpError = validation === "totp" ? text.codeValidation : responseChannel === "totp" && result?.code === "invalid_code" ? text.messages.invalid_code : undefined;
   const emailError = validation === "email" ? text.codeValidation : responseChannel === "email" && result?.code === "invalid_code" ? text.messages.invalid_code : undefined;
   const messageKey: StaffSecurityMessage = result && result.code in text.messages ? result.code as StaffSecurityMessage : "unavailable";
   let message: string = validation ? text.codeValidation : result && result.code !== "status" ? text.messages[messageKey] : "";
   if (!validation && result) {
     if (result.code === "status" && view && view.status !== "active") message = text[view.status];
     if (result.code === "protected_allowed" && participant) message = text.participantAllowed;
-    if (result.code === "email_verified" && !view?.phoneVerified) message = text.emailVerifiedPhonePending;
     if (result.code === "reauthenticated" && participant) message = text.participantReauthenticated;
     if (result.code === "reauthenticated" && staff) message = text.staffReauthenticated;
     if (result.state === "unavailable" && staff && responseAction === "challenge-email") message = text.staffEmailDeliveryFailed;
@@ -194,15 +194,15 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
     setFocusRequest((previous) => ({ target, sequence: (previous?.sequence ?? 0) + 1 }));
   }
 
-  function verify(event: FormEvent<HTMLFormElement>, channel: "sms" | "email") {
+  function verify(event: FormEvent<HTMLFormElement>, channel: "totp" | "email") {
     event.preventDefault();
-    const value = channel === "sms" ? code : emailCode;
+    const value = channel === "totp" ? code : emailCode;
     if (!/^\d{6}$/.test(value)) {
       setValidation(channel);
       setFocusRequest((previous) => ({ target: "error", sequence: (previous?.sequence ?? 0) + 1 }));
       return;
     }
-    void act({ type: channel === "sms" ? "verify" : "verify-email", code: value });
+    void act({ type: channel === "totp" ? "verify" : "verify-email", code: value });
   }
 
   return (
@@ -232,7 +232,6 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
                 <div><dt>{staff ? text.staffEmailLabel : superAdmin ? text.assuranceLabel : text.participantAssuranceLabel}</dt><dd data-testid="session-assurance">{staff ? view.staffEmailVerified ? text.staffEmailAssured : text.missing : superAdmin ? view.assurance === "aal2" ? text.assured : text.missing : text.participantAssurance}</dd></div>
                 {participant ? <>
                   <div><dt>{text.emailLabel}</dt><dd data-testid="email-verification">{view.emailVerified ? text.verifiedStatus : text.missing}</dd></div>
-                  <div><dt>{text.phoneLabel}</dt><dd data-testid="phone-verification">{view.phoneVerified ? text.verifiedStatus : text.missing}</dd></div>
                 </> : null}
                 <div><dt>{text.absolute}</dt><dd><time dateTime={new Date(view.absoluteExpiresAt).toISOString()} data-testid="absolute-expiry">{formatExpiry(view.absoluteExpiresAt, locale)}</time></dd></div>
                 {view.idleExpiresAt !== null ? <div><dt>{text.idle}</dt><dd><time dateTime={new Date(view.idleExpiresAt).toISOString()}>{formatExpiry(view.idleExpiresAt, locale)}</time></dd></div> : null}
@@ -246,8 +245,8 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
             </div> : null}
           </section>
 
-          {live && superAdmin && view.factor === "none" ? <section className="staff-security-panel" aria-labelledby="staff-sms-heading">
-            <h2 id="staff-sms-heading">{text.setupTitle}</h2>
+          {live && superAdmin && view.factor === "none" ? <section className="staff-security-panel" aria-labelledby="staff-totp-heading">
+            <h2 id="staff-totp-heading">{text.setupTitle}</h2>
             <p>{text.setupIntro}</p>
             <Button disabled={busy} onClick={() => void act({ type: "enroll" })}>{text.enroll}</Button>
           </section> : null}
@@ -270,7 +269,7 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
           {live && participant ? <section className="staff-security-panel" aria-labelledby="participant-verification-heading">
             <h2 id="participant-verification-heading">{text.verificationTitle}</h2>
             <p>{text.participantNote}</p>
-            <p className={view.verificationComplete ? "staff-security-confirmed" : undefined} data-testid="participant-verification-state">{view.verificationComplete ? text.verificationComplete : view.emailVerified ? text.phonePending : view.phoneVerified ? text.emailPending : text.verificationPending}</p>
+            <p className={view.verificationComplete ? "staff-security-confirmed" : undefined} data-testid="participant-verification-state">{view.verificationComplete ? text.verificationComplete : text.verificationPending}</p>
             {!view.emailVerified ? <section className="staff-security-verification-step" aria-labelledby="participant-email-heading">
               <h3 id="participant-email-heading">{text.emailTitle}</h3>
               <p>{text.emailIntro}</p>
@@ -284,23 +283,37 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
             </section> : null}
           </section> : null}
 
-          {showSmsForm ? <section className="staff-security-panel" aria-labelledby="sms-verification-heading">
-            <h2 id="sms-verification-heading">{superAdmin ? text.challengeTitle : text.phoneTitle}</h2>
-            {participant ? <p id="participant-phone-instructions">{text.phoneIntro}</p> : null}
+          {live && superAdmin && enrollment ? <section className="staff-security-panel" aria-labelledby="totp-setup-heading" data-testid="synthetic-totp-setup">
+            <h2 id="totp-setup-heading">{text.qrTitle}</h2>
+            <p>{text.qrIntro}</p>
+            {/* Safe local PNG, with a keyboard-accessible manual alternative. No provider SVG is rendered. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="staff-security-qr" src={enrollment.qrDataUrl} width={280} height={280} alt={text.qrAlt} style={{ maxWidth: "100%", height: "auto", display: "block", marginInline: "auto" }} />
+            <details>
+              <summary>{text.manualSetup}</summary>
+              <p>{text.manualInstructions}</p>
+              <label htmlFor="synthetic-totp-secret">{text.secretLabel}</label>
+              <output id="synthetic-totp-secret" data-testid="synthetic-totp-secret" className="staff-security-test-code" dir="ltr" lang="en" style={{ overflowWrap: "anywhere", fontSize: "1rem", letterSpacing: "0.05em" }}>{enrollment.secret}</output>
+            </details>
+          </section> : null}
+
+          {showTotpForm ? <section className="staff-security-panel" aria-labelledby="totp-verification-heading">
+            <h2 id="totp-verification-heading">{text.challengeTitle}</h2>
             <p>{text.challengeIntro}</p>
-            <form onSubmit={(event) => verify(event, "sms")} noValidate aria-labelledby="sms-verification-heading" aria-describedby={superAdmin ? undefined : "participant-phone-instructions"} aria-busy={busy}>
-              <FormField id="staff-auth-code" label={superAdmin ? text.codeLabel : text.phoneCodeLabel} hint={text.codeHint} error={smsError} value={code} onChange={(event) => { updateDraft({ code: normalizeDigits(event.target.value), result: null }); setValidation(null); }} dir="ltr" inputMode="numeric" autoComplete="one-time-code" spellCheck={false} maxLength={6} required disabled={busy} />
+            {!enrollment && view.factor === "pending" ? <p>{text.setupLost}</p> : null}
+            <form onSubmit={(event) => verify(event, "totp")} noValidate aria-labelledby="totp-verification-heading" aria-busy={busy}>
+              <FormField id="staff-auth-code" label={text.codeLabel} hint={text.codeHint} error={totpError} value={code} onChange={(event) => { updateDraft({ code: normalizeDigits(event.target.value), result: null }); setValidation(null); }} dir="ltr" inputMode="numeric" autoComplete="one-time-code" spellCheck={false} maxLength={6} required disabled={busy} />
               <div className="staff-security-actions">
-                <Button type="submit" disabled={busy || !view.challengePending}>{superAdmin ? text.verify : text.phoneVerify}</Button>
+                <Button type="submit" disabled={busy || !view.challengePending}>{text.verify}</Button>
                 <Button variant="secondary" disabled={busy} onClick={() => void act({ type: "challenge" })}>{text.challenge}</Button>
+                {!enrollment && view.factor === "pending" ? <Button variant="ghost" disabled={busy} onClick={() => void act({ type: "start", kind: "super_admin" })}>{text.restartSetup}</Button> : null}
               </div>
             </form>
           </section> : null}
 
-          {live && (smsMessage || emailMessage) ? <section className="staff-security-panel staff-security-inbox" aria-labelledby="synthetic-inbox-heading" data-testid="synthetic-inbox">
+          {live && emailMessage ? <section className="staff-security-panel staff-security-inbox" aria-labelledby="synthetic-inbox-heading" data-testid="synthetic-inbox">
             <h2 id="synthetic-inbox-heading">{text.inboxTitle}</h2>
             <p>{text.inboxNote}</p>
-            {smsMessage ? <SyntheticMessage message={smsMessage} locale={locale} /> : null}
             {emailMessage ? <SyntheticMessage message={emailMessage} locale={locale} /> : null}
           </section> : null}
 
@@ -336,7 +349,7 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
               {staff ? <>
                 <Button disabled={busy} variant="secondary" onClick={() => void act({ type: "simulate-email-change" })}>{text.emailChange}</Button>
                 <Button disabled={busy} variant="secondary" onClick={() => void act({ type: "simulate-role-revocation" })}>{text.roleRevocation}</Button>
-              </> : <Button disabled={busy} variant="secondary" onClick={() => void act({ type: "simulate-factor-reset" })}>{text.factorReset}</Button>}
+              </> : superAdmin ? <Button disabled={busy} variant="secondary" onClick={() => void act({ type: "simulate-factor-reset" })}>{text.factorReset}</Button> : null}
             </div>
           </section> : null}
         </aside>

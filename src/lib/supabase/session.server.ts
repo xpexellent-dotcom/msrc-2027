@@ -17,7 +17,6 @@ export type PersistedSessionContext = Readonly<{
   passwordValid: boolean;
   staffEmailValid: boolean;
   emailVerified: boolean;
-  phoneVerified: boolean;
   timing: Readonly<{ startedAtMs: number; lastActivityAtMs: number; absoluteExpiresAtMs: number;
     idleExpiresAtMs: number | null; authenticatedAtMs: number | null }>;
   policy: SessionPolicy;
@@ -45,7 +44,7 @@ const reasons: readonly SessionDenialReason[] = ["session_revoked", "account_sus
 export function parsePersistedSessionContext(value: unknown, userId: string, editionId: string): PersistedSessionContext | null {
   if (!uuid.test(userId) || !editionId || editionId.trim() !== editionId
     || !exact(value, ["schemaVersion", "editionId", "principal", "privileged", "authenticationTier", "sessionPolicySatisfied", "reason",
-      "mfaValid", "passwordValid", "staffEmailValid", "emailVerified", "phoneVerified", "timing", "policy", "operationalAccessReady", "privilegedAccessReady"])
+      "mfaValid", "passwordValid", "staffEmailValid", "emailVerified", "timing", "policy", "operationalAccessReady", "privilegedAccessReady"])
     || value.schemaVersion !== 1 || value.editionId !== editionId
     || value.operationalAccessReady !== false || value.privilegedAccessReady !== false
     || !exact(value.principal, ["userId", "sessionId"]) || value.principal.userId !== userId
@@ -54,13 +53,13 @@ export function parsePersistedSessionContext(value: unknown, userId: string, edi
     || typeof value.mfaValid !== "boolean"
     || typeof value.staffEmailValid !== "boolean" || !["participant", "staff", "super_admin"].includes(value.authenticationTier as string)
     || value.privileged !== (value.authenticationTier !== "participant")
-    || typeof value.passwordValid !== "boolean" || typeof value.emailVerified !== "boolean" || typeof value.phoneVerified !== "boolean"
+    || typeof value.passwordValid !== "boolean" || typeof value.emailVerified !== "boolean"
     || (value.reason !== null && (typeof value.reason !== "string" || !reasons.includes(value.reason as SessionDenialReason)))
     || value.sessionPolicySatisfied !== (value.reason === null)
     || (value.authenticationTier === "super_admin" && value.sessionPolicySatisfied && !value.mfaValid)
     || (value.authenticationTier === "staff" && value.sessionPolicySatisfied && !value.staffEmailValid)
     || (value.authenticationTier !== "staff" && value.staffEmailValid)
-    || (value.sessionPolicySatisfied && (!value.emailVerified || !value.passwordValid || (!value.privileged && !value.phoneVerified)))
+    || (value.sessionPolicySatisfied && (!value.emailVerified || !value.passwordValid))
     || !exact(value.policy, Object.keys(SESSION_POLICY))
     || !Object.entries(SESSION_POLICY).every(([key, maximum]) => {
       const configured = (value.policy as Record<string, unknown>)[key];
@@ -86,7 +85,7 @@ export function parsePersistedSessionContext(value: unknown, userId: string, edi
     privileged: value.privileged, authenticationTier: value.authenticationTier as PersistedSessionContext["authenticationTier"],
     sessionPolicySatisfied: value.sessionPolicySatisfied,
     reason: value.reason as SessionDenialReason | null, mfaValid: value.mfaValid, passwordValid: value.passwordValid, staffEmailValid: value.staffEmailValid,
-    emailVerified: value.emailVerified, phoneVerified: value.phoneVerified,
+    emailVerified: value.emailVerified,
     timing: Object.freeze({ startedAtMs, lastActivityAtMs, absoluteExpiresAtMs, idleExpiresAtMs, authenticatedAtMs }),
     policy, operationalAccessReady: false, privilegedAccessReady: false });
 }

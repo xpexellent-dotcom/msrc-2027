@@ -9,11 +9,11 @@ function evidence(overrides: Partial<SessionEvidence> = {}): SessionEvidence {
   return {
     actorId: "synthetic-actor", sessionUserId: "synthetic-actor", sessionId: "synthetic-session",
     managedSessionExists: true, sessionCreatedAtMs: now - 60_000, lastActivityAtMs: now - 60_000,
-    tokenExpiresAtMs: now + hour, managedNotAfterMs: null, accountActive: true, emailVerified: true, phoneVerified: true,
+    tokenExpiresAtMs: now + hour, managedNotAfterMs: null, accountActive: true, emailVerified: true,
     individuallyIdentified: true, revokedAtMs: null, actorRevokedBeforeMs: null,
     tokenAssurance: "aal2", managedAssurance: "aal2", factorId: "synthetic-factor",
-    factorUserId: "synthetic-actor", factorVerified: true, factorType: "phone", factorCreatedAtMs: now - 120_000,
-    factorUpdatedAtMs: now - 120_000, phoneMfaAuthenticatedAtMs: now - 30_000,
+    factorUserId: "synthetic-actor", factorVerified: true, factorType: "totp", factorCreatedAtMs: now - 120_000,
+    factorUpdatedAtMs: now - 120_000, totpMfaAuthenticatedAtMs: now - 30_000,
     passwordAuthenticatedAtMs: now - 60_000, authenticatedAtMs: now - 30_000, ...overrides,
   };
 }
@@ -21,7 +21,7 @@ function evidence(overrides: Partial<SessionEvidence> = {}): SessionEvidence {
 function staffEvidence(overrides: Partial<SessionEvidence> = {}): SessionEvidence {
   return evidence({ tokenAssurance: "aal1", managedAssurance: "aal1", factorId: null,
     factorUserId: null, factorVerified: false, factorType: null, factorCreatedAtMs: null,
-    factorUpdatedAtMs: null, phoneMfaAuthenticatedAtMs: null, staffEmailReceipt: {
+    factorUpdatedAtMs: null, totpMfaAuthenticatedAtMs: null, staffEmailReceipt: {
       actorId: "synthetic-actor", sessionId: "synthetic-session", verifiedAtMs: now - 30_000,
       emailCurrent: true, passwordCurrent: true, grantsCurrent: true }, ...overrides });
 }
@@ -84,7 +84,7 @@ describe("AUTH-04/05 server evidence denial and recovery", () => {
     [{ tokenAssurance: "aal1" }, "mfa_required"],
     [{ managedAssurance: "aal1" }, "mfa_required"],
     [{ factorId: null }, "mfa_required"],
-    [{ factorType: "totp" }, "mfa_required"],
+    [{ factorType: "phone" }, "mfa_required"],
     [{ factorType: null }, "mfa_required"],
     [{ passwordAuthenticatedAtMs: null }, "password_auth_required"],
     [{ passwordAuthenticatedAtMs: now + 1 }, "password_auth_required"],
@@ -95,8 +95,8 @@ describe("AUTH-04/05 server evidence denial and recovery", () => {
     [{ factorUserId: "other" }, "mfa_required"],
     [{ factorUpdatedAtMs: now - 10_000 }, "mfa_required"],
     [{ factorCreatedAtMs: null }, "mfa_required"],
-    [{ phoneMfaAuthenticatedAtMs: now + 1 }, "mfa_required"],
-    [{ phoneMfaAuthenticatedAtMs: null }, "mfa_required"],
+    [{ totpMfaAuthenticatedAtMs: now + 1 }, "mfa_required"],
+    [{ totpMfaAuthenticatedAtMs: null }, "mfa_required"],
     [{ lastActivityAtMs: now + 1 }, "invalid_evidence"],
     [{ lastActivityAtMs: now - 120_000 }, "invalid_evidence"],
     [{ sessionCreatedAtMs: now + 1 }, "invalid_evidence"],
@@ -107,59 +107,58 @@ describe("AUTH-04/05 server evidence denial and recovery", () => {
       operationalAccessReady: false, privilegedAccessReady: false });
   });
 
-  it("participants require no MFA after both current account verifications and password login", () => {
+  it("participants require no MFA after current email verification and password login", () => {
     expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ factorVerified: false, factorId: null, factorType: null,
-      factorUserId: null, factorCreatedAtMs: null, factorUpdatedAtMs: null, phoneMfaAuthenticatedAtMs: null,
+      factorUserId: null, factorCreatedAtMs: null, factorUpdatedAtMs: null, totpMfaAuthenticatedAtMs: null,
       tokenAssurance: "aal1", managedAssurance: "aal1" }), now)).toMatchObject({ sessionPolicySatisfied: true, mfaValid: false });
   });
 
-  it.each([{ emailVerified: false }, { phoneVerified: false }, { emailVerified: false, phoneVerified: false }])(
-    "participants require both current account verifications %j", (changed) => {
+  it.each([{ emailVerified: false }])(
+    "participants require current email verification %j", (changed) => {
       expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ ...changed, tokenAssurance: "aal1",
         managedAssurance: "aal1", factorType: null, factorId: null }), now).reason).toBe("account_verification_required");
     });
 
-  it("Super Admin phone MFA is separate from participant account phone verification", () => {
-    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ phoneVerified: false }), now, { privileged: true }))
+  it("Super Admin authenticator MFA has no phone verification dependency", () => {
+    expect(evaluateSessionPolicy(SESSION_POLICY, evidence(), now, { privileged: true }))
       .toMatchObject({ sessionPolicySatisfied: true, passwordValid: true, mfaValid: true });
   });
 
-  it("generic AAL2 and primary SMS evidence cannot replace either password or phone MFA", () => {
+  it("generic AAL2 cannot replace either password or current TOTP MFA", () => {
     expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ passwordAuthenticatedAtMs: null,
-      phoneMfaAuthenticatedAtMs: null }), now, { privileged: true }).reason).toBe("password_auth_required");
-    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ phoneMfaAuthenticatedAtMs: null }), now,
+      totpMfaAuthenticatedAtMs: null }), now, { privileged: true }).reason).toBe("password_auth_required");
+    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ totpMfaAuthenticatedAtMs: null }), now,
       { privileged: true }).reason).toBe("mfa_required");
   });
 
-  it("records approved SMS targets without enabling delivery, spending or recovery", () => {
+  it("records email and authenticator policy without SMS configuration or live recovery", () => {
     expect(AUTHENTICATION_POLICY).toMatchObject({ primaryLogin: "email_password",
-      participant: { emailVerificationRequired: true, phoneVerificationRequired: true, mfaRequired: false },
+      participant: { emailVerificationRequired: true, mfaRequired: false },
       staff: { primaryPasswordRequired: true, additionalCheck: "email_otp", nativeMfa: false },
-      superAdmin: { primaryPasswordRequired: true, secondFactor: "sms", managedFactorType: "phone" },
+      superAdmin: { primaryPasswordRequired: true, secondFactor: "authenticator", managedFactorType: "totp" },
       staffEmailOtp: { provider: null, sender: null, liveReady: false,
         codeLength: 6, messageExpirySeconds: 300, resendCooldownSeconds: 60,
         accountIssueLimit: 3, accountIssueWindowSeconds: 900,
         accountDailyIssueLimit: 10, dailyWindowSeconds: 86_400,
         ipIssueLimit: 20, ipIssueWindowSeconds: 3600,
         maxFailedAttemptsPerChallenge: 5, failureCooldownSeconds: 900 },
-      sms: { provider: null, sender: null, budgetApproved: false, liveReady: false,
-        shortlistedProvider: "vonage", proposedSender: "MSRC2027", contractingEntity: "RPClub",
-        controlsApproved: true, codeLength: 6, messageExpirySeconds: 300,
-        resendCooldownSeconds: 60, maxIssuedPerWindow: 3, issueWindowSeconds: 900,
-        maxFailedAttemptsPerChallenge: 5, failureCooldownSeconds: 900,
-        maxIssuedPerDay: 10, dailyWindowSeconds: 86_400,
-        phoneIssueLimit: 3, phoneIssueWindowSeconds: 900,
-        accountIssueLimit: 3, accountIssueWindowSeconds: 900,
-        ipIssueLimit: 20, ipIssueWindowSeconds: 3600, newestChallengeRequired: true,
-        firstTestDestinationCountries: ["SA"], testEnvironment: "disposable_ci" },
       recovery: { procedureTargetApproved: true, approverRole: "super_admin", operatorRole: "super_admin",
         distinctPeopleRequired: true, identityReview: "in_person", approver: null, operator: null,
         verifiedResetProcedure: null } });
+    expect(Object.hasOwn(AUTHENTICATION_POLICY, "sms")).toBe(false);
+    expect(Object.hasOwn(AUTHENTICATION_POLICY.participant, "phoneVerificationRequired")).toBe(false);
   });
 
-  it("uses whole-second provider AMR precision without rejecting same-second verification", () => {
+  it("denies a factor changed after native proof within the same second", () => {
     expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ factorUpdatedAtMs: now - 29_990,
-      phoneMfaAuthenticatedAtMs: now - 30_000 }), now, { privileged: true }).sessionPolicySatisfied).toBe(true);
+      totpMfaAuthenticatedAtMs: now - 30_000 }), now, { privileged: true }).reason).toBe("mfa_required");
+    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ factorUpdatedAtMs: now - 30_010,
+      totpMfaAuthenticatedAtMs: now - 30_000 }), now, { privileged: true }).sessionPolicySatisfied).toBe(true);
+  });
+
+  it("denies native password proof preceding session creation within the same second", () => {
+    expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ passwordAuthenticatedAtMs: now - 60_001 }), now,
+      { privileged: true }).reason).toBe("password_auth_required");
   });
 
   it("new login after suspension cutoff recovers, original token cannot", () => {
@@ -167,7 +166,7 @@ describe("AUTH-04/05 server evidence denial and recovery", () => {
     expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ actorRevokedBeforeMs: cutoff }), now).reason).toBe("session_revoked");
     expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ actorRevokedBeforeMs: cutoff,
       sessionCreatedAtMs: now - 10_000, lastActivityAtMs: now - 10_000,
-      passwordAuthenticatedAtMs: now - 10_000, phoneMfaAuthenticatedAtMs: now - 5_000 }), now, { privileged: true }).sessionPolicySatisfied).toBe(true);
+      passwordAuthenticatedAtMs: now - 10_000, totpMfaAuthenticatedAtMs: now - 5_000 }), now, { privileged: true }).sessionPolicySatisfied).toBe(true);
   });
 
   it("keeps sensitive actions closed while recent-auth age is unresolved", () => {
@@ -198,7 +197,7 @@ describe("regular-staff application email check is bound to current password ide
   const options = { authenticationTier: "staff" as const };
 
   it("allows password plus a current email receipt at native AAL1 with privileged limits", () => {
-    expect(evaluateSessionPolicy(SESSION_POLICY, staffEvidence({ phoneVerified: false }), now, options))
+    expect(evaluateSessionPolicy(SESSION_POLICY, staffEvidence(), now, options))
       .toMatchObject({ sessionPolicySatisfied: true, reason: null, passwordValid: true,
         mfaValid: false, staffEmailValid: true, absoluteExpiresAtMs: now - 60_000 + 8 * hour,
         idleExpiresAtMs: now - 60_000 + 30 * 60_000, operationalAccessReady: false, privilegedAccessReady: false });
@@ -251,7 +250,7 @@ describe("regular-staff application email check is bound to current password ide
       lastActivityAtMs: now - 1 }), now, options).reason).toBe(age < 8 * hour ? null : "absolute_expired");
   });
 
-  it("keeps Super Admin native SMS assurance independent of the custom email receipt", () => {
+  it("keeps Super Admin native TOTP assurance independent of the custom email receipt", () => {
     expect(evaluateSessionPolicy(SESSION_POLICY, staffEvidence(), now, { authenticationTier: "super_admin" }))
       .toMatchObject({ reason: "mfa_required", mfaValid: false, staffEmailValid: false });
     expect(evaluateSessionPolicy(SESSION_POLICY, evidence({ staffEmailReceipt: staffEvidence().staffEmailReceipt }), now,

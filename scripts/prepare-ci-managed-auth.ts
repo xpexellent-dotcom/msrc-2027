@@ -10,7 +10,7 @@ export function renderCiManagedAuthConfig(configuration: string, environment: Re
     || environment.SUPABASE_PROJECT_ID || environment.SUPABASE_PROJECT_REF
     || (environment.NEXT_PUBLIC_SUPABASE_TARGET && environment.NEXT_PUBLIC_SUPABASE_TARGET !== "local")
     || (environment.NEXT_PUBLIC_SUPABASE_URL && environment.NEXT_PUBLIC_SUPABASE_URL !== "http://127.0.0.1:54321")
-    || Object.keys(environment).some((name) => /^(SUPABASE_AUTH_SMS_|GOTRUE_SMS_|GOTRUE_HOOK_SEND_)/.test(name) && environment[name])
+    || Object.keys(environment).some((name) => /^(SUPABASE_AUTH_(SMS_|MFA_|HOOK_|EMAIL_SMTP_|ENABLE_SIGNUP$)|GOTRUE_(SMS_|MFA_|HOOK_|SMTP_|EXTERNAL_|DISABLE_SIGNUP$))/.test(name) && environment[name])
     || !/^project_id = "msrc2027-local"$/m.test(configuration)
     || !/^enable_signup = false$/m.test(configuration.split("[auth]")[1]?.split("[auth.email]")[0] ?? "")
     || !/\[auth.email\]\r?\nenable_signup = false(?:\r?\n|$)/.test(configuration)
@@ -21,36 +21,11 @@ export function renderCiManagedAuthConfig(configuration: string, environment: Re
   // remains FALSE. Only SQL-created synthetic identities can sign in on the runner.
   return configuration.replace(/\[auth.email\]\r?\nenable_signup = false/, "[auth.email]\nenable_signup = true") + `
 
-# CI ONLY: no live delivery credentials, real phone/email or hosted project.
-# One-second resend spacing accelerates isolated tests; it is not live approval.
-[auth.sms]
-enable_signup = true
-enable_confirmations = true
-max_frequency = "1s"
-
-[auth.sms.test_otp]
-# Primary phone verification only; MFA still uses genuine generated hook codes.
-"966500000911" = "123456"
-
-# CLI v2.118.0 resolveAuthSms forces the phone flag FALSE without a named provider,
-# even with test_otp and a SendSMS hook. These deliberately unusable values ONLY
-# satisfy that resolver; they are not vendor approval or a provider connection.
-# GoTrue v2.197.0 invokes the forced private hook with no provider fallback.
-[auth.sms.vonage]
-enabled = true
-api_key = "synthetic-unusable-api-key"
-api_secret = "synthetic-unusable-api-secret"
-from = "CI NO DELIVERY"
-
-[auth.mfa.phone]
+# CI ONLY: native authenticator factors on synthetic identities. No SMS provider,
+# phone verification, delivery credentials, real email or hosted project.
+[auth.mfa.totp]
 enroll_enabled = true
 verify_enabled = true
-otp_length = 6
-max_frequency = "1s"
-
-[auth.hook.send_sms]
-enabled = true
-uri = "pg-functions://postgres/msrc_ci_auth/capture_sms"
 
 [auth.hook.send_email]
 enabled = true

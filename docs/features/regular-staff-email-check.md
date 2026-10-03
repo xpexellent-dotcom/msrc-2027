@@ -7,8 +7,8 @@ deployed authorization migration and preceding session migration remain unchange
 ## Current flow and conflicts
 
 Regular staff use managed password sign-in followed by an application email code.
-Super Admins retain password plus SMS phone MFA; participants retain managed
-email/password and both email/phone verification without MFA. Any active Super Admin
+ORG-016 now requires Super Admin password plus authenticator TOTP; participants use managed
+email/password and verified email only, without phone collection/verification or MFA. Any active Super Admin
 grant across editions selects the stronger requirement. Role scope, ownership,
 assignment checks, participant 72h absolute and staff 30min idle/8h absolute are preserved.
 All operational flags and readiness stay false; no accounts or live grants are created.
@@ -71,7 +71,7 @@ Reuse ORG-014's approved staff control targets: six digits/five minutes, 60-seco
 resend, three/account/15 minutes, ten/account/rolling24h, twenty/IP/hour and five
 failed entries then 15-minute cooldown. Account limits survive session/email changes.
 Raw codes/IPs are never persisted or audited. Safe audit contains IDs/events/times only.
-Participant email-verification defaults and all Super Admin SMS targets remain distinct.
+Participant email-verification defaults remain distinct. ORG-016 retires all SMS targets; native TOTP/test bounds are not approved live abuse controls.
 
 No approved production SMTP/provider/sender is present. Live email delivery remains
 BLOCKED; do not rely on Supabase development email. Lost-email/address changes stay
@@ -91,8 +91,8 @@ only in disposable GitHub CI; no Docker is required on the organizer's computer.
 Set server-only `MSRC_AUTH_PREVIEW=synthetic`, clear deployment environment and start
 the existing loopback lab with Node24/pnpm11.19.0. Paths `/en/staff-security-preview`
 and `/ar/staff-security-preview`; select regular staff, Super Admin or participant.
-The password step is explicitly simulated and test codes appear only in the test inbox.
-Regular staff have no SMS enrollment or AAL2 claim. EN/AR/RTL, keyboard, paste/autofill,
+The password step is explicitly simulated. Email codes appear only in the test inbox; Super Admin authenticator codes come from the transient QR/manual setup.
+Regular staff have no native MFA enrollment or AAL2 claim. EN/AR/RTL, keyboard, paste/autofill,
 expiry/resend, delivery/retry and email/role revocation states are covered. The lab
 denies every Vercel environment, even if its opt-in flag is set. Restart clears memory.
 
@@ -101,9 +101,8 @@ denies every Vercel environment, even if its opt-in flag is set. Restart clears 
 Current executed commands/results and exact CI receipts are in PROGRESS. The suite
 covers password-only server/API/DB denial; incorrect/expired/reused/replaced codes;
 resend/account/IP and attempt controls; exact user/session binding; refresh/new login;
-revocation/email/grant changes; delivery/audit failure; and unchanged participant and
-Super Admin policy. Managed API tests use synthetic identities, no-delivery hooks and
-the actual GoTrue image recorded by CI. Accelerated clock fixtures are identified.
+revocation/email/grant changes; delivery/audit failure; and ORG-016 email-only participant/authenticator Super Admin policy. Managed API tests use synthetic identities, no-delivery hooks and
+the actual GoTrue image recorded by CI; no SMS hook/provider/phone fixtures are installed. Accelerated clock fixtures are identified.
 Local SQL is NOT TESTED; real delivery, cookie exchange, human devices/screen readers,
 actual object-storage policies and recovery UAT remain NOT TESTED/BLOCKED.
 
@@ -119,14 +118,12 @@ Manual review can use the local synthetic lab without contacting a provider:
    it needs another email check. Exercise logout, suspension and email/role-change
    simulations and confirm previous access is denied.
 4. Select participant and Super Admin modes to confirm their existing verification
-   and SMS-MFA steps. This checks the lab only; named-human device, screen-reader,
+   and authenticator-MFA steps. This checks the lab only; named-human device, screen-reader,
    actual inbox delivery/cookie and recovery rehearsals remain unperformed gates.
 
 Recent-auth age, warning lead, privacy/retention/location, named recovery people,
 verified recovery procedure, production plan/region and release approvals remain open.
-Super Admin native SMS still needs shared direct-Auth abuse controls and a trusted
-newest-challenge receipt: native older unexpired challenges remain a release blocker.
-The regular-staff email amendment does not silently resolve those separate gates.
+ORG-016 retires Super Admin/participant SMS delivery and newest-SMS-challenge release work. Super Admin TOTP requires the current exact-session native factor proof. Native TOTP accepts a still-valid time-step code across distinct unused challenges; consumed-challenge replay is separately denied. This vendor protocol behavior must be explained during human UAT, not described as single-use email code behavior.
 
 ## Changed areas and execution boundary
 
@@ -139,19 +136,12 @@ The regular-staff email amendment does not silently resolve those separate gates
 | Managed test harness | `scripts/prepare-ci-managed-auth.ts`, managed-auth/email integration tests, unit/browser coverage and CI database-lint schema list |
 | Review/deployment boundary | `vercel.json` branch deployment guard; current authentication requirements, decisions, progress and boundary notes |
 
-The disposable CLI needs a named provider block to enable its phone sign-in flag,
-even with a private SMS test hook. The CI-only Vonage values are deliberately unusable;
-they satisfy that resolver and establish no vendor connection or approval. Private
-SMS/email hooks remain mandatory, global signup stays false, and SMS/hook environment
-overrides are rejected. Ordinary Supabase configuration is unchanged. This fixture
-allows genuine participant/Super Admin regression tests without paid resources or delivery.
-Resolver behavior is documented in the pinned [CLI source](https://raw.githubusercontent.com/supabase/cli/v2.118.0/apps/cli/src/command-internal/local-config-values.ts);
-hook-only delivery branches are in the pinned [phone](https://raw.githubusercontent.com/supabase/auth/v2.197.0/internal/api/phone.go)
-and [MFA](https://raw.githubusercontent.com/supabase/auth/v2.197.0/internal/api/mfa.go) sources.
+The disposable CI render enables only authenticator TOTP and a private reject-email hook, with global signup disabled. Phone/SMS provider/environment overrides are rejected. Ordinary Supabase config is unchanged and no hosted project is used. Genuine TOTP enrollment/challenge/verification keeps factor secrets in process memory and computes RFC6238 test codes without logging them.
+Official [TOTP documentation](https://supabase.com/docs/guides/auth/auth-mfa/totp) and the pinned [managed MFA implementation](https://raw.githubusercontent.com/supabase/auth/v2.197.0/internal/api/mfa.go) describe the protocol; CI records the actual image.
 
 ## Rollback and next smallest task
 
-Revert this amendment to restore the prior draft flow; stop the lab and clear its opt-in.
+Revert code only within the isolated review environment as needed; an earlier SMS draft is superseded and must not become active policy. Stop the lab and clear its opt-in.
 No hosted rollback is needed because nothing is applied or deployed. Disposable fixtures
 disappear at teardown; never delete production audit history or push old migrations.
 Before any real regular-staff test, approve a concrete English email provider/sender,

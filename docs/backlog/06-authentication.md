@@ -31,13 +31,13 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Source IDs:** AUTH-01, AUTH-06, LOC-01, DAT-01, DAT-04, SEC-01.
 - **Status:** Planned.
 - **Purpose:** Let a participant create one account without revealing other users' account existence.
-- **Scope:** Managed email/password sign-up/sign-in, normalized unique email and name; ORG-013 requires phone for authentication, both email+phone verification and no participant MFA. Collect only approved authentication fields with approved notices; safe verified/unverified session boundary.
+- **Scope:** Managed email/password sign-up/sign-in, normalized unique email and name; ORG-016 requires verified email only, without authentication phone collection/verification or participant MFA. Collect only approved authentication fields with approved notices; safe verified/unverified session boundary.
 - **Exclusions:** University SSO, national ID, collecting every later pathway field during sign-up, operational entitlement from account creation.
 - **Dependencies:** BL-FND-01; BL-FND-02; BL-SEC-01. Sign-up/sign-in may land while all verification-dependent operations remain closed.
 - **Roles:** Visitor; participant.
 - **States/transitions:** Visitor → unverified account → verified account through verification flow; account creation is not registration.
 - **Data touched:** Managed identity, minimum participant profile and applicable notice version.
-- **Acceptance criteria:** Duplicate/normalized email handled without public enumeration; users missing either email or phone verification cannot register/pay/book/submit; both verified markers allow only separately authorized own workflows without MFA. No password or verification code enters logs. Phone change/loss requires its approved verification/recovery process.
+- **Acceptance criteria:** Duplicate/normalized email handled without public enumeration; users missing email verification cannot register/pay/book/submit; verified email permits only separately authorized own workflows without MFA. No password or verification code enters logs. Email change/loss requires its approved verification/recovery process.
 - **English/Arabic:** Bilingual forms/errors with preserved values on locale switch; original names retained.
 - **Accessibility:** Labelled password/email fields, autocomplete, accessible errors and keyboard flow.
 - **Security/RLS:** Profile ownership policies; protected session cookies and CSRF where applicable; server checks verification.
@@ -46,30 +46,30 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Manual UAT:** Sign up, retry existing address and verify unrelated account state is not exposed.
 - **Release gate:** M5; BL-AUTH-03 before verification-dependent operations; CFG-09 privacy and configured identity/email before real users.
 - **Owner type:** Authentication/full-stack engineer.
-- **TBD blocked:** Synthetic auth no; production notices/email+SMS provider/sender/budget/abuse/recovery DR-CFG-09/10/11.
+- **TBD blocked:** Synthetic auth no; production notices/email provider/sender/abuse/recovery DR-CFG-09/10/11.
 
 <a id="bl-auth-03"></a>
 
 ## BL-AUTH-03 — Implement single-use verification codes with abuse protection
 - **Source IDs:** AUTH-02, ACC-01, EML-01, SEC-01.
 - **Status:** Planned.
-- **Purpose:** Verify both email and phone possession without participant MFA, reusable codes or inaccessible challenges (ORG-013).
-- **Scope:** Separate email verification and phone SMS verification, protected-at-rest single-use codes, replacement invalidation and account/IP controls. Email defaults remain 10-minute validity, 60-second resend cooldown, three issues/email/15 minutes, five failed entries/code. ORG-014 approves SMS targets: six digits/five minutes, 60-second resend, three/phone and account/15 minutes, ten/day each, twenty/IP/hour, five failures then 15-minute cooldown; newest challenge only. Managed direct-API enforcement, provider eligibility/registration and paid budget remain gates; lab limits are separate development controls.
+- **Purpose:** Verify email possession without participant MFA, reusable codes or inaccessible challenges (ORG-016).
+- **Scope:** Participant email verification only, protected-at-rest single-use codes, replacement invalidation and account/IP controls. Source defaults remain10-minute validity,60s resend,3/email/15min,5failures/code. Managed direct-API enforcement and live email/privacy configuration remain gates; lab controls are separate development bounds.
 - **Exclusions:** New business expiry values, permanent lockout, inaccessible CAPTCHA, email verification treated as privileged MFA.
 - **Dependencies:** BL-AUTH-02; BL-FND-05; BL-SEC-01.
 - **Roles:** Unverified participant; abuse-control operator.
 - **States/transitions:** Issued → verified/expired/replaced/attempts exhausted; old code cannot reactivate.
 - **Data touched:** Protected verification credential, counters and minimal security events.
-- **Acceptance criteria:** Both independent verification markers required; neither creates privileged assurance or activates a workflow. Only newest valid code works once; concurrent verification cannot reuse it; approved resend limits apply across sessions/IP attempts without leaking account state; input survives recoverable failure.
+- **Acceptance criteria:** Current email verification required; it creates no privileged assurance or workflow activation. Only newest valid code works once; concurrent verification cannot reuse it; approved resend limits apply across sessions/IP attempts without leaking account state; input survives recoverable failure.
 - **English/Arabic:** Bilingual verification/resend/error messages; English-only email; digits and code field have stable LTR entry in RTL.
 - **Accessibility:** Paste and autofill supported, screen-reader status, keyboard anti-bot alternative and readable cooldown.
 - **Security/RLS:** Verification occurs server-side; raw codes absent from logs/client bundles and protected at rest.
-- **Audit/email:** Restricted issuance/failure metadata, never code or full phone value; console/test email and synthetic SMS only until providers/settings approved.
+- **Audit/email:** Restricted issuance/failure metadata, never code or recipient; console/test English email only until provider/settings approved.
 - **Automated tests:** Expiry boundary, rate limits, replacement, parallel single-use, paste/autofill and malformed code.
 - **Manual UAT:** Expired code, resent code, assistive technology and recovery after throttling.
 - **Release gate:** M5 verified operational access; configured email/privacy prerequisites.
 - **Owner type:** Authentication/security engineer.
-- **TBD blocked:** Email defaults already recorded; live email/SMS, phone recovery and SMS operating controls DR-CFG-09/10/11. Local synthetic verification preview in BL-AUTH-05 is not participant signup or production verification delivery.
+- **TBD blocked:** Email defaults already recorded; live email, email recovery and production abuse controls DR-CFG-09/10/11. Local synthetic verification preview in BL-AUTH-05 is not participant signup or production verification delivery.
 
 <a id="bl-auth-04"></a>
 
@@ -96,26 +96,26 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 <a id="bl-auth-05"></a>
 
-## BL-AUTH-05 — Staff email check, Super Admin SMS MFA and audited recovery
+## BL-AUTH-05 — Staff email check, Super Admin authenticator MFA and audited recovery
 - **Source IDs:** AUTH-04, ROL-12, SEC-01, SEC-06.
-- **Status:** Partial — ORG-015 adds a closed local regular-staff password/email-check preview and private database receipt; Super Admin SMS MFA and participant verification remain unchanged; receipts in PROGRESS. Live enrollment/delivery, approved factor recovery and managed-provider UAT remain closed. Participant email/phone verification is demonstrated synthetically without implementing signup. See [feature note](../features/staff-security-foundations.md).
-- **Purpose:** Require the approved additional staff check or Super Admin MFA before scoped privileged access.
-- **Scope:** ORG-015 regular staff: password then a fresh code at current trusted verified email, with private exact-user/session/email/password/grant receipt at AAL1. Super Admins retain password/SMS phone MFA. Server/database/storage gates deny password-only bypass. Approved ORG-014 staff controls carry forward for email: six digits/5min,60s resend,3/account/15min,10/rolling24h,20/IP/hour,5failures/15min cooldown,newest only. Recovery remains gated; participants' email+phone verification/no-MFA flow is unchanged. See [amendment](../features/regular-staff-email-check.md).
-- **Exclusions:** Email OTP sign-in as proof of two steps or native AAL2; email receipt substituting Super Admin MFA; TOTP fallback, primary phone OTP as privileged MFA, automatic reset on password recovery, shared factors or support override; participant signup, real delivery and hosted migration apply in this task.
-- **Dependencies:** BL-AUTH-01; managed identity; approved staff recovery procedure DR-CFG-11.
-- **Roles:** All privileged users; separately authorized factor-reset administrator.
-- **States/transitions:** Regular staff current password session → server email challenge → single-use verification/exact-session receipt at AAL1. Super Admins retain phone enrollment/challenge → SMS verified/AAL2. Missing password/check/factor, stale session/email/grants or out-of-order proof denies. New login needs a fresh check; refresh does not. Approved recovery revokes applicable sessions before verified replacement and reauthentication.
-- **Data touched:** Private hashed email challenges/session receipts, safe audit, managed Super Admin factor records and revocation metadata.
-- **Acceptance criteria:** Direct privileged access fails without current password and the strongest approved staff check; regular staff require the current private receipt, Super Admins require current phone MFA. Client flags/metadata, another session, stale email/grants, primary OTP or generic AAL2 cannot bypass. Trusted SMS adapter stays SMS-only. Recovery retains distinct Super Admin approver/operator and in-person identity/appointment review; lost-email changes need verified replacement email and fresh password/check, with exact procedure still unresolved. Inbox compromise may enable both password reset and code receipt: this is weaker than authenticator MFA. No default development email service.
-- **English/Arabic:** Staff enrollment/recovery bilingual; assessment workflow remains English-only after entry.
-- **Accessibility:** Labelled regular-staff email/Super Admin SMS code inputs, keyboard/paste/autofill and Arabic digits, screen-reader instructions/status, clear expiry/resend/delivery failure and retry; no camera/QR requirement. Do not expose codes in logs/traces/storage.
-- **Security/RLS:** Check assurance server/database layer; forbid self-escalation/reset bypass and stale assurance after reset.
-- **Audit/email:** Audit enrollment/challenge/verification/reset/revocation without code, password or phone number; approved English security notification only. SMS authentication uses approved provider/channel settings after its release gate.
-- **Automated tests:** Missing password/MFA, out-of-order proof, wrong/stale factor, old/reused/replaced codes, participant no-MFA verification boundaries, provider/audit failure, factor reset invalidation and unauthorized reset at API/DB.
-- **Manual UAT:** Test regular-staff password then email on approved isolated recipient accounts and Super Admin password then SMS on named phones; verify actual delivery, accessible retry, lost/changed email/phone and the approved recovery process. Provider/privacy/recovery gates must pass first.
-- **Release gate:** M4 and all privileged production access.
-- **Owner type:** Security/authentication engineer.
-- **TBD blocked:** ORG-014 permits disposable CI managed-API tests only, without delivery. Vonage/MSRC2027 shortlisted for RPClub pending Saudi eligibility/registration/quote and future spending approval. SMS control targets are approved; shared issuance/failed-attempt hooks and trusted newest-challenge assurance remain implementation gates. Recovery target approved: distinct Super Admin approver/operator, in-person identity review; individual appointments/evidence/rehearsal and recent-auth remain unresolved. Privacy/location and live staff access stay closed. See [decision packet](../features/managed-authentication-plan.md).
+- **Status:** Partial — closed local preview and private database foundations; current receipts in PROGRESS. ORG-016 removes phone/SMS authentication and restores Super Admin authenticator setup. No participant signup/live delivery/recovery activation. See [feature note](../features/staff-security-foundations.md).
+- **Purpose:** Require the approved staff check or Super Admin MFA before scoped privileged access.
+- **Scope:** Regular staff password then fresh code at trusted verified email/private exact-user/session/email/password/grant receipt at AAL1 (ORG-015); Super Admin password then current authenticator TOTP at AAL2 (ORG-016). Participants retain verified email/password only, no phone/MFA. Approved staff email6digits/5min,60s resend,3/account/15min,10/rolling24h,20/IP/hour,5failures/15min cooldown,newest only. Recovery remains gated.
+- **Exclusions:** Email OTP sign-in as proof of both steps/native AAL2; email receipt replacing Super Admin MFA; phone/SMS verification, automatic reset on password recovery, shared factors/support bypass, real delivery/hosted migration apply.
+- **Dependencies:** BL-AUTH-01, managed identity, approved staff recovery DR-CFG-11 and live email/privacy configuration.
+- **Roles:** Individually identified privileged users; separately authorized distinct recovery approver/operator.
+- **States/transitions:** Staff password→email challenge→single-use exact-session receipt; Super Admin password→TOTP enrollment/challenge→verified current factor/AAL2. Missing/stale/foreign/out-of-order proof denies. New login needs fresh appropriate checking; refresh does not.
+- **Data touched:** Private keyed email hashes/receipts, safe audit, managed authenticator factors and session/revocation metadata; no authentication phone fields.
+- **Acceptance criteria:** Password-only/direct API/database/storage bypass denies. Strongest tier across editions is enforced with current roles/scopes. Metadata/client flags, generic AAL2/phone/primary OTP, foreign session or stale email/grants/factor cannot substitute. Email inbox compromise may allow password reset and login-code receipt; staff checking is weaker than authenticator MFA. No development-email fallback.
+- **English/Arabic:** Bilingual staff instructions/recovery; authentication emails and assessment screens English-only.
+- **Accessibility:** Labelled LTR code input in RTL; keyboard/paste/autofill/Arabic digits, clear expiry/resend/delivery-failure/retry, screen-reader status. Super Admin QR plus keyboard manual key; no camera requirement.
+- **Security/RLS:** Current assurance server/database predicate with scoped grants/ownership/readiness; no escalation/reset bypass; no code/secret/password in logs/browser storage/audit.
+- **Audit/email:** Safe enrollment/challenge/verification/revocation events; approved English email only when configured.
+- **Automated tests:** Password-only/incorrect/expired/reused/replaced code, quotas/concurrency, stale/foreign factor/receipt, strongest roles, refresh/new login, email/role revocation, expiry/logout/suspension, failure recovery and unauthorized reset.
+- **Manual UAT:** Approved isolated staff inbox delivery and Super Admin authenticator devices, accessible QR/manual entry/retry, lost/changed email/factor and approved recovery rehearsal. Currently NOT TESTED.
+- **Release gate:** M4 privileged production access; all operational flags false.
+- **Owner type:** Authentication/security engineer.
+- **TBD blocked:** English email provider/sender/SMTP; precise lost-email/authenticator procedure/evidence, named distinct Super Admin custodians and rehearsal; recent-auth age/warning lead; privacy/retention/location and release approvals. SMS provider/sender/budget is retired. See [decision packet](../features/managed-authentication-plan.md).
 
 <a id="bl-auth-06"></a>
 
@@ -138,7 +138,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Manual UAT:** Expire an editing staff session and resume safely after reauthentication.
 - **Release gate:** Before production participant or privileged access.
 - **Owner type:** Authentication/backend engineer.
-- **TBD blocked:** Recent-auth age, warning lead, named recovery custodians/verified procedure rehearsal, privacy/retention/location and live security-email configuration remain TBD. ORG-014 approves recovery role/process targets and independent no-delivery CI managed-API tests; live activation requires provider/database enforcement and human UAT.
+- **TBD blocked:** Recent-auth age, warning lead, named recovery custodians/verified procedure rehearsal, privacy/retention/location and live security-email configuration remain TBD. ORG-016 preserves distinct-person/in-person recovery targets and disposable no-delivery managed API tests; live activation requires approved email/database enforcement and human UAT.
 
 <a id="bl-auth-07"></a>
 
@@ -147,12 +147,12 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Status:** Planned.
 - **Purpose:** Let participants correct permitted information while sensitive identity changes receive verification.
 - **Scope:** Owner-only profile form with pathway-conditional fields; verified-support request entry for email change/deletion, replacement-email reverification and retention assessment handoff.
-- **Exclusions:** National ID, universal licence requirements, phone use beyond ORG-013's authentication purpose, immediate destructive self-delete, creating a general helpdesk.
+- **Exclusions:** National ID, universal licence requirements, authentication phone collection/verification or SMS, immediate destructive self-delete, creating a general helpdesk.
 - **Dependencies:** BL-AUTH-02; BL-AUTH-06; privacy request handling and DR-CFG-09.
 - **Roles:** Participant; authorized verified-support/privacy operator.
 - **States/transitions:** Permitted correction saved; sensitive request → identity verification → reviewed change/retention exception → response; email changes only after reverify.
 - **Data touched:** Minimal profile, conditional professional fields and restricted privacy/support evidence.
-- **Acceptance criteria:** Name/email and ORG-013's verified authentication phone preserved; country/city optional, no unrelated phone use/sharing without approval; licence never universal for students/non-medical attendees; replacement phone requires its approved verification/recovery process; deletion does not destroy required financial/audit records blindly.
+- **Acceptance criteria:** Name/email preserved; no authentication phone collection/verification; country/city optional, licence never universal for students/non-medical attendees; replacement email requires its approved verification/recovery process; deletion does not destroy required financial/audit records blindly.
 - **English/Arabic:** Bilingual labels/instructions/errors; original personal/institution names preserved.
 - **Accessibility:** Field purpose/required status clear, error summary, autocomplete and keyboard recovery.
 - **Security/RLS:** Owner-only update allowlist; no editable role/email verification fields; recent authentication for sensitive operations.

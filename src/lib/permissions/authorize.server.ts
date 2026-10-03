@@ -66,7 +66,7 @@ export async function authorize(
       || (activeRoles.some(grant => grant.role === "superAdmin") && tier !== "super_admin")
       || (activeRoles.some(grant => grant.role !== "participant") && tier === "participant")) return denied("unverifiedActor");
     if (tier !== "participant" && actor.individuallyIdentified !== true) return denied("unverifiedActor");
-    if (tier === "super_admin" && (actor.session.assurance !== "aal2" || actor.session.factor !== "sms")) return denied("unverifiedActor");
+    if (tier === "super_admin" && (actor.session.assurance !== "aal2" || actor.session.factor !== "totp")) return denied("unverifiedActor");
     if (tier === "staff" && actor.session.staffEmailVerified !== true) return denied("unverifiedActor");
     const resource = current.resource;
     if (!resource || resource.id !== request.resourceId || !validId(resource.editionId) || resource.kind !== rule.kind) return denied("notAuthorized");
@@ -80,7 +80,6 @@ export async function authorize(
       (!rule.scopes || rule.scopes.includes(grant.scope.kind)) && scopeMatches(grant, resource, assignments));
 
     for (const grant of grants) {
-      if (grant.role === "participant" && actor.phoneVerified !== true) continue;
       if (grant.role === "superAdmin" && tier !== "super_admin") continue;
       if (grant.role !== "participant" && tier === "participant") continue;
       const own = resource.ownerId === actor.id;

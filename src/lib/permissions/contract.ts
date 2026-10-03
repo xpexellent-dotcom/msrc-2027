@@ -71,13 +71,12 @@ export interface CurrentActor {
   readonly id: string;
   readonly state: "active" | "suspended";
   readonly emailVerified: boolean;
-  readonly phoneVerified: boolean;
   readonly individuallyIdentified: boolean;
   readonly session: {
     readonly id: string;
     readonly active: boolean;
     readonly assurance: "aal1" | "aal2";
-    readonly factor: "sms" | null;
+    readonly factor: "totp" | null;
     readonly passwordVerified: boolean;
     /** Strongest current tier across every edition, supplied by trusted DB evidence. */
     readonly authenticationTier: "participant" | "staff" | "super_admin";

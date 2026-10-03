@@ -8,7 +8,7 @@ import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
 
 // Closed ORG-015 email check: genuine password sessions plus service-only SQL,
-// with synthetic recipients and in-memory code hashes. No managed email or SMS.
+// with synthetic recipients and in-memory code hashes. No external delivery.
 const ci = process.env.GITHUB_ACTIONS === "true";
 const edition = "synthetic-staff-email-2027";
 const actor = "b1000000-0000-4000-8000-000000000001";
@@ -154,7 +154,7 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
     const token = claims(active.session);
     check(after.authenticationTier === "staff" && after.sessionPolicySatisfied && after.staffEmailValid
       && after.passwordValid && !after.mfaValid && token.aal === "aal1"
-      && !token.amr.some((proof) => proof.method === "mfa/phone"), "email check grants no managed AAL2");
+      && !token.amr.some((proof) => proof.method.startsWith("mfa/")), "email check grants no managed AAL2");
     check(!after.operationalAccessReady && !after.privilegedAccessReady, "verified regular staff workflows stay closed");
     const second = await active.sdk.rpc("msrc_second_step_satisfied");
     check(!second.error && second.data === true, "own narrow second-step context");
@@ -292,7 +292,7 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
     const upgraded = await context(pending.session);
     check(upgraded.authenticationTier === "super_admin" && !upgraded.sessionPolicySatisfied
       && upgraded.reason === "mfa_required" && !upgraded.staffEmailValid && !upgraded.mfaValid,
-    "any active Super Admin grant requires phone MFA");
+    "any active Super Admin grant requires authenticator MFA");
     check((await begin(pending.session)).result.state === "denied", "email check cannot be issued to Super Admin tier");
   });
 
@@ -355,27 +355,25 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
     check([404, 503].includes(storage.status), "disabled Storage route unavailable; no real object authorization claimed");
   });
 
-  it("rejects primary managed phone OTP as either password proof or the custom staff email check", async () => {
+  it("denies unconfirmed managed email and requires a new staff check after trusted fixture confirmation", async () => {
     const id = actors[11];
-    const phone = "+966500000911";
-    // GoTrue v2.197.0 validatePhone canonicalizes stored numbers without '+'.
-    // SDK input remains standard E.164; the fixed test_otp key uses this form.
-    const canonicalPhone = phone.slice(1);
-    await query(`update auth.users set phone='${canonicalPhone}',phone_confirmed_at=now() where id='${id}';
-      insert into auth.identities(id,provider_id,user_id,identity_data,provider,created_at,updated_at)
-      values(gen_random_uuid(),'${id}','${id}',jsonb_build_object('sub','${id}','phone','${canonicalPhone}','phone_verified',true),
-        'phone',now(),now());`);
-    const sdk = client();
-    const request = await sdk.auth.signInWithOtp({ phone, options: { shouldCreateUser: false } });
-    const safeError = request.error && /^[a-z_]{1,64}$/.test(request.error.code ?? "") ? request.error.code : "unknown";
-    check(!request.error, `fixed primary phone test OTP request without delivery (code ${safeError}, status ${request.error?.status ?? 0})`);
-    const verified = await sdk.auth.verifyOtp({ phone, token: "123456", type: "sms" });
-    check(!verified.error && verified.data.session, "genuine primary phone OTP exchange");
-    const denied = await context(verified.data.session);
-    check(claims(verified.data.session).aal === "aal1" && !denied.passwordValid && !denied.staffEmailValid
-      && !denied.mfaValid && !denied.sessionPolicySatisfied && denied.reason === "password_auth_required",
-    "primary phone OTP cannot replace password plus application email check");
-    check((await begin(verified.data.session)).result.state === "denied", "OTP-only session cannot begin staff email check");
+    const managed = await login(id);
+    // Trusted disposable fixture transitions only, without a verification email.
+    await query(`update auth.users set email_confirmed_at=null where id='${id}';`);
+    const denied = await context(managed.session);
+    check(!denied.emailVerified && !denied.staffEmailValid && !denied.sessionPolicySatisfied
+      && denied.reason === "account_verification_required", "current unconfirmed email denies password session");
+    check((await begin(managed.session)).result.state === "denied", "unconfirmed managed email cannot receive staff check");
+    await query(`update auth.users set email_confirmed_at=clock_timestamp() where id='${id}';`);
+    const missing = await context(managed.session);
+    check(missing.emailVerified && missing.passwordValid && !missing.staffEmailValid && !missing.sessionPolicySatisfied
+      && missing.reason === "staff_email_check_required", "confirmed email does not substitute for session-bound staff check");
+    const value = await begin(managed.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok"
+      && (await consume(value)).state === "verified", "new exact-session check recovers after confirmation");
+    const accepted = await context(managed.session);
+    check(accepted.sessionPolicySatisfied && accepted.staffEmailValid && claims(managed.session).aal === "aal1"
+      && !accepted.mfaValid, "regular staff retain application email assurance without managed MFA");
   });
 
   it("composes the server adapter, genuine managed password identity and service-only database receipt without delivery", async () => {
