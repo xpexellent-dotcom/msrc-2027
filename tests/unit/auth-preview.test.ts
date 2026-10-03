@@ -476,6 +476,13 @@ describe("local synthetic password then Super Admin authenticator MFA", () => {
 });
 
 describe("participant account email verification without MFA or phone", () => {
+  it.each(["participant", "staff"] as const)("%s cannot invoke a synthetic MFA factor reset", async (kind) => {
+    const service = lab();
+    const token = await start(service, kind);
+    expect((await service.execute(token, { type: "simulate-factor-reset" })).code).toBe("invalid_action");
+    expect((await service.execute(token, { type: "status" })).view?.status).toBe("active");
+  });
+
   it("requires only verified email while preserving AAL1 and no factor", async () => {
     const service = lab();
     const token = await start(service, "participant");

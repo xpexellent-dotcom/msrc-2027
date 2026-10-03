@@ -65,7 +65,7 @@ async function setupKey(page: Page) {
   }
   const output = page.getByTestId("synthetic-totp-secret");
   await expect(output).toBeVisible();
-  const secret = (await output.textContent())?.trim() ?? "";
+  const secret = (await output.inputValue()).trim();
   expect(/^[A-Z2-7]{32}$/.test(secret)).toBe(true);
   return secret;
 }
@@ -412,7 +412,7 @@ test("locale changes and transport retry preserve a private authenticator draft 
   await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
   await expect(page).toHaveURL(/\/ar\/staff-security-preview$/);
   await expect.poll(async () => (await page.locator("#staff-auth-code").inputValue()) === code).toBe(true);
-  await expect.poll(async () => (await page.getByTestId("synthetic-totp-secret").textContent()) === secret).toBe(true);
+  await expect.poll(async () => (await page.getByTestId("synthetic-totp-secret").inputValue()) === secret).toBe(true);
   await page.route("**/api/auth-preview", async (route) => {
     if (route.request().postDataJSON()?.action === "verify") await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ state: "unavailable", code: "unavailable" }) });
     else await route.continue();

@@ -12,7 +12,7 @@ ORG-016 removes active phone/SMS configuration, collection, fixtures, provider/s
 
 ## Local synthetic preview
 
-Branch `codex/regular-staff-email` disables Vercel Git deployment. Enable server-only `MSRC_AUTH_PREVIEW=synthetic`, clear deployment and hosted-client configuration, and start on loopback. Visit `/en/staff-security-preview` or `/ar/staff-security-preview`. Every Vercel environment denies the lab even with its flag.
+Branch `codex/email-authenticator-no-sms` disables Vercel Git deployment. Enable server-only `MSRC_AUTH_PREVIEW=synthetic`, clear deployment and hosted-client configuration, and start on loopback. Visit `/en/staff-security-preview` or `/ar/staff-security-preview`. Every Vercel environment denies the lab even with its flag.
 
 Password login is simulated. Email codes appear only in an ephemeral test inbox at issuance. Super Admin enrollment returns transient QR/manual setup once; status/refresh never repeat it. Successful verification/terminal states clear setup/codes; reload loses setup and requires enrollment restart. Secrets/codes never enter logs, browser storage or audit. No real messages or accounts.
 

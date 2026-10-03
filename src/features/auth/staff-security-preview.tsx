@@ -292,8 +292,7 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
             <details>
               <summary>{text.manualSetup}</summary>
               <p>{text.manualInstructions}</p>
-              <label htmlFor="synthetic-totp-secret">{text.secretLabel}</label>
-              <output id="synthetic-totp-secret" data-testid="synthetic-totp-secret" className="staff-security-test-code" dir="ltr" lang="en" style={{ overflowWrap: "anywhere", fontSize: "1rem", letterSpacing: "0.05em" }}>{enrollment.secret}</output>
+              <FormField id="synthetic-totp-secret" data-testid="synthetic-totp-secret" label={text.secretLabel} value={enrollment.secret} readOnly dir="ltr" lang="en" autoComplete="off" spellCheck={false} onFocus={(event) => event.target.select()} />
             </details>
           </section> : null}
 

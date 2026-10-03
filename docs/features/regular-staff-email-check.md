@@ -83,7 +83,7 @@ support override, password-reset bypass or self-service address change is introd
 
 ## Review and local preview
 
-Branch `codex/regular-staff-email` disables Vercel Git deployment in `vercel.json` to
+Branch `codex/email-authenticator-no-sms` disables Vercel Git deployment in `vercel.json` to
 honor this task's no-deploy instruction. No merge, production Auth change, hosted
 migration/reset/fixture, real email or SMS is performed. The new migration is executed
 only in disposable GitHub CI; no Docker is required on the organizer's computer.

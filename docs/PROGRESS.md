@@ -2,7 +2,7 @@
 
 ## 3 October 2026 — ORG-016 removes phone/SMS; Super Admin authenticator MFA
 
-Reviewed current draft PR22 at5977eb7, PR19 base3e0f8a1, existing implementation and
+Reviewed PR22 source at5977eb7, PR19's original base3e0f8a1, existing implementation and
 ORG-013/014/015 before changes. Fresh remote main8482abf adds independent public mobile
 work; no auth runtime changes were merged here. Preserved original checkout edits,
 deployed migration20261002173712 and all earlier review migration/source snapshots.
@@ -30,9 +30,9 @@ mutation. Expiry resamples after factor-lock waits. Prior migrations unchanged; 
 apply, reset/seed, production Auth, real messages/accounts/invites/grants/resets or spending.
 Branch Git deployment remains disabled; local preview only.
 
-Executed local so far: lint PASS; typecheck PASS; unit1299/28files PASS after fixing a
+Executed local so far: lint PASS; typecheck PASS; unit1301/28files PASS after fixing a
 retired phone action in the participant test helper; production build42pages PASS.
-Dedicated browser, isolated CI SQL/native Auth and final responsive visual review are
+Public browser300 PASS/3 existing skips. Dedicated browser, isolated CI SQL/native Auth and final responsive visual review are
 pending verification below; no local Docker/database runtime is run.
 
 TOTP provider behavior is distinct from email single-use: a still-valid native TOTP
@@ -52,6 +52,13 @@ staff email-code receipt, weaker than authenticator MFA.
 Current main also uses ORG-011 for a separate public decision, in addition to the already
 recorded ORG-010 collision; preserve both auth/public meanings and reconcile IDs during
 later integration without publishing intended-administrator login addresses.
+
+Fresh GitHub status correction: PR22 had already merged into draft PR19 at10:23UTC,
+with identical source at its new base7dce160. The earlier "draft PR22" handoff was stale.
+Its historical title/body was restored after a brief mistaken amendment update.
+Created codex/email-authenticator-no-sms for a new amendment PR against PR19's current
+unmerged branch, preserving current main and both uncommitted original-checkout work
+and review history. Both authentication review branches disable Git deployment.
 
 Rollback: stop local lab/clear flag/restart to discard synthetic memory; revert only
 isolated review code as needed, keeping latest policy and never activating the superseded

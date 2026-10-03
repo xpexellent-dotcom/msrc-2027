@@ -158,6 +158,7 @@ export function createSyntheticAuthPreview(options: Options = {}) {
         return { state: "ok", code: "session_revoked", view: view(next, at) };
       }
       if (action.type === "logout" || action.type === "suspend" || action.type === "simulate-factor-reset") {
+        if (action.type === "simulate-factor-reset" && existing.kind !== "super_admin") return denied("invalid_action");
         const next = structuredClone(existing);
         next.revokedAt = at; next.assurance = "aal1"; next.mfaAuthenticatedAt = null;
         next.staffEmailReceipt = null; next.totpChallengeExpiresAt = null; next.emailChallenge = null;
