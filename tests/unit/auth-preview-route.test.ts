@@ -26,6 +26,11 @@ describe("closed authentication transport", () => {
     expect(output.headers.get("cache-control")).toContain("no-store");
     expect(execute).toHaveBeenCalledWith(null, { type: "start", kind: "staff" });
   });
+  it.each(["staff", "super_admin", "participant"] as const)("accepts the exact %s synthetic identity without role grants", async (kind) => {
+    const output = await POST(request({ action: "start", kind }));
+    expect(output.status).toBe(200);
+    expect(execute).toHaveBeenCalledExactlyOnceWith(null, { type: "start", kind });
+  });
   it.each(["production", "preview", "development"])("rejects %s without invoking synthetic or live provider", async (value) => {
     vi.stubEnv("VERCEL_ENV", value);
     expect((await POST(request())).status).toBe(404); expect(execute).not.toHaveBeenCalled();
@@ -35,7 +40,7 @@ describe("closed authentication transport", () => {
   it.each(foreignOrigins)("rejects foreign/missing Origin %j", async (headers) => {
     expect((await POST(request(undefined, headers))).status).toBe(403); expect(execute).not.toHaveBeenCalled();
   });
-  it.each([null, [], {}, { action: "start", kind: "superAdmin" }, { action: "start", kind: ["staff"] }, { action: "status", actorId: "another" }, { action: "verify", code: "12345" }, { action: "verify-email", code: "123456", phone: "+15550000000" }, { action: "start", kind: "staff", password: "synthetic-untrusted" }, { action: "verify", code: "123456", timestamp: 0 }, "{broken", "x".repeat(513)])("rejects malformed or overposted action %j", async (body) => {
+  it.each([null, [], {}, { action: "start", kind: "superAdmin" }, { action: "start", kind: ["staff"] }, { action: "status", actorId: "another" }, { action: "verify", code: "12345" }, { action: "verify-email", code: "123456", phone: "+15550000000" }, { action: "challenge-email", email: "caller@example.invalid" }, { action: "verify-email", code: "123456", staffEmailVerified: true }, { action: "verify-email", code: "123456", sessionId: "other-session" }, { action: "start", kind: "staff", password: "synthetic-untrusted" }, { action: "verify", code: "123456", timestamp: 0 }, "{broken", "x".repeat(513)])("rejects malformed or overposted action %j", async (body) => {
     expect((await POST(request(body))).status).toBe(400); expect(execute).not.toHaveBeenCalled();
   });
   it.each(["verify", "verify-email"] as const)("accepts exact %s code action without caller identity, password or destination", async (action) => {
@@ -45,6 +50,18 @@ describe("closed authentication transport", () => {
   it("accepts a synthetic email challenge through the same local-only boundary", async () => {
     await POST(request({ action: "challenge-email" }));
     expect(execute).toHaveBeenCalledExactlyOnceWith(null, { type: "challenge-email" });
+  });
+  it.each(["simulate-email-change", "simulate-role-revocation"] as const)("accepts the exact local %s control without a caller identity", async (action) => {
+    await POST(request({ action }, { cookie: "msrc-synthetic-session=opaque" }));
+    expect(execute).toHaveBeenCalledExactlyOnceWith("opaque", { type: action });
+  });
+  it("returns generic denied assurance without redirecting or mutating a cookie", async () => {
+    execute.mockResolvedValue({ state: "denied", code: "staff_email_check_required" });
+    const output = await POST(request({ action: "protected" }, { cookie: "msrc-synthetic-session=opaque" }));
+    expect(output.status).toBe(403);
+    expect(await output.json()).toEqual({ state: "denied", code: "staff_email_check_required" });
+    expect(output.headers.get("set-cookie")).toBeNull();
+    expect(output.headers.get("location")).toBeNull();
   });
   it("rejects non-JSON", async () => {
     expect((await POST(request({ action: "status" }, { "content-type": "text/plain" }))).status).toBe(400);

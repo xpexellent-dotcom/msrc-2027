@@ -8,7 +8,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Source IDs:** ROL-01, ROL-02, ROL-03, ROL-04, ROL-05, ROL-06, ROL-07, ROL-08, ROL-09, ROL-10, ROL-11, ROL-12, SEC-02, AUTH-04.
 - **Status:** Partial — closed persisted authority/context foundation deployed to the selected hosted project; actual schema CI and hosted ACL/anonymous-denial checks passed. No operational role system or staff activation. See [feature note](../features/persisted-authorization.md) and PROGRESS for receipts and AUTH-05/domain integration gates.
 - **Purpose:** Allow each staff member only the duties and assigned records authorized for them.
-- **Scope:** Individual edition/track/assignment grants, server/database permission helpers and direct-access tests; privileged operations fail closed without MFA assurance; suspension/offboarding revokes grants.
+- **Scope:** Individual edition/track/assignment grants, server/database permission helpers and direct-access tests; privileged operations fail closed without the strongest current approved staff email check or Super Admin MFA assurance; suspension/offboarding revokes grants.
 - **Exclusions:** Roles in user-editable metadata, shared staff accounts, generic admin full-data access, unrestricted scientific evidence for Scientific Administrator.
 - **Dependencies:** BL-FND-02; BL-SEC-01; managed identity integration and agreed MFA assurance contract. Land closed grant checks before MFA enrollment UI.
 - **Roles:** All thirteen source roles; exactly three named Super Admins before production.
@@ -54,7 +54,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Source IDs:** AUTH-02, ACC-01, EML-01, SEC-01.
 - **Status:** Planned.
 - **Purpose:** Verify both email and phone possession without participant MFA, reusable codes or inaccessible challenges (ORG-013).
-- **Scope:** Separate email verification and phone SMS verification, protected-at-rest single-use codes, replacement invalidation and account/IP controls. Email defaults remain 10-minute validity, 60-second resend cooldown, three issues/email/15 minutes, five failed entries/code. SMS operating values/provider/sender/budget remain TBD; lab limits do not approve live values.
+- **Scope:** Separate email verification and phone SMS verification, protected-at-rest single-use codes, replacement invalidation and account/IP controls. Email defaults remain 10-minute validity, 60-second resend cooldown, three issues/email/15 minutes, five failed entries/code. ORG-014 approves SMS targets: six digits/five minutes, 60-second resend, three/phone and account/15 minutes, ten/day each, twenty/IP/hour, five failures then 15-minute cooldown; newest challenge only. Managed direct-API enforcement, provider eligibility/registration and paid budget remain gates; lab limits are separate development controls.
 - **Exclusions:** New business expiry values, permanent lockout, inaccessible CAPTCHA, email verification treated as privileged MFA.
 - **Dependencies:** BL-AUTH-02; BL-FND-05; BL-SEC-01.
 - **Roles:** Unverified participant; abuse-control operator.
@@ -96,26 +96,26 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 <a id="bl-auth-05"></a>
 
-## BL-AUTH-05 — Add password then SMS MFA and audited factor recovery
+## BL-AUTH-05 — Staff email check, Super Admin SMS MFA and audited recovery
 - **Source IDs:** AUTH-04, ROL-12, SEC-01, SEC-06.
-- **Status:** Partial — ORG-013 supersedes TOTP with a closed local password-step/SMS phone-MFA preview and safe audit/provider contracts; receipts in PROGRESS. Live enrollment/delivery, approved factor recovery and managed-provider UAT remain closed. Participant email/phone verification is demonstrated synthetically without implementing signup. See [feature note](../features/staff-security-foundations.md).
-- **Purpose:** Require an independent second factor for every privileged operation.
-- **Scope:** Password authentication followed by SMS challenge of a verified phone MFA factor; assurance enforced through API/database authorization. Factor-loss recovery and explicit audited reset remain gated by the verified approved procedure. Participants verify email+phone without MFA.
-- **Exclusions:** TOTP fallback, email OTP or primary phone OTP as privileged MFA, automatic reset on password recovery, shared factors or unverified support override; participant signup and live SMS delivery in this foundation task.
+- **Status:** Partial — ORG-015 adds a closed local regular-staff password/email-check preview and private database receipt; Super Admin SMS MFA and participant verification remain unchanged; receipts in PROGRESS. Live enrollment/delivery, approved factor recovery and managed-provider UAT remain closed. Participant email/phone verification is demonstrated synthetically without implementing signup. See [feature note](../features/staff-security-foundations.md).
+- **Purpose:** Require the approved additional staff check or Super Admin MFA before scoped privileged access.
+- **Scope:** ORG-015 regular staff: password then a fresh code at current trusted verified email, with private exact-user/session/email/password/grant receipt at AAL1. Super Admins retain password/SMS phone MFA. Server/database/storage gates deny password-only bypass. Approved ORG-014 staff controls carry forward for email: six digits/5min,60s resend,3/account/15min,10/rolling24h,20/IP/hour,5failures/15min cooldown,newest only. Recovery remains gated; participants' email+phone verification/no-MFA flow is unchanged. See [amendment](../features/regular-staff-email-check.md).
+- **Exclusions:** Email OTP sign-in as proof of two steps or native AAL2; email receipt substituting Super Admin MFA; TOTP fallback, primary phone OTP as privileged MFA, automatic reset on password recovery, shared factors or support override; participant signup, real delivery and hosted migration apply in this task.
 - **Dependencies:** BL-AUTH-01; managed identity; approved staff recovery procedure DR-CFG-11.
 - **Roles:** All privileged users; separately authorized factor-reset administrator.
-- **States/transitions:** Current password session → phone enrollment/challenge → SMS code verified/AAL2 → assured scoped access; missing password, wrong factor, stale or out-of-order proof denies. Factor reset revokes applicable sessions and requires verified recovery/reenrollment.
-- **Data touched:** Managed factor records, reset evidence and session revocation metadata.
-- **Acceptance criteria:** Direct privileged mutation fails without current password and subsequent current verified phone-MFA; primary SMS OTP, participant verification, stale/TOTP factor and generic AAL2 cannot bypass. Trusted adapter explicitly selects SMS because managed AMR does not identify its delivery channel. Reset requires verified authorized process and produces no silent fallback; credentials/recovery material never stored in project docs.
+- **States/transitions:** Regular staff current password session → server email challenge → single-use verification/exact-session receipt at AAL1. Super Admins retain phone enrollment/challenge → SMS verified/AAL2. Missing password/check/factor, stale session/email/grants or out-of-order proof denies. New login needs a fresh check; refresh does not. Approved recovery revokes applicable sessions before verified replacement and reauthentication.
+- **Data touched:** Private hashed email challenges/session receipts, safe audit, managed Super Admin factor records and revocation metadata.
+- **Acceptance criteria:** Direct privileged access fails without current password and the strongest approved staff check; regular staff require the current private receipt, Super Admins require current phone MFA. Client flags/metadata, another session, stale email/grants, primary OTP or generic AAL2 cannot bypass. Trusted SMS adapter stays SMS-only. Recovery retains distinct Super Admin approver/operator and in-person identity/appointment review; lost-email changes need verified replacement email and fresh password/check, with exact procedure still unresolved. Inbox compromise may enable both password reset and code receipt: this is weaker than authenticator MFA. No default development email service.
 - **English/Arabic:** Staff enrollment/recovery bilingual; assessment workflow remains English-only after entry.
-- **Accessibility:** Labelled SMS code input, keyboard/paste/autofill and Arabic digit handling, screen-reader instructions/status, clear delivery failure and retry; no camera/QR requirement. Do not expose codes in logs/traces/storage.
+- **Accessibility:** Labelled regular-staff email/Super Admin SMS code inputs, keyboard/paste/autofill and Arabic digits, screen-reader instructions/status, clear expiry/resend/delivery failure and retry; no camera/QR requirement. Do not expose codes in logs/traces/storage.
 - **Security/RLS:** Check assurance server/database layer; forbid self-escalation/reset bypass and stale assurance after reset.
 - **Audit/email:** Audit enrollment/challenge/verification/reset/revocation without code, password or phone number; approved English security notification only. SMS authentication uses approved provider/channel settings after its release gate.
 - **Automated tests:** Missing password/MFA, out-of-order proof, wrong/stale factor, old/reused/replaced codes, participant no-MFA verification boundaries, provider/audit failure, factor reset invalidation and unauthorized reset at API/DB.
-- **Manual UAT:** Test password then SMS on named test phones in an isolated approved managed-Auth environment; verify actual SMS delivery, accessible retry, lost/changed phone and approved test recovery process.
+- **Manual UAT:** Test regular-staff password then email on approved isolated recipient accounts and Super Admin password then SMS on named phones; verify actual delivery, accessible retry, lost/changed email/phone and the approved recovery process. Provider/privacy/recovery gates must pass first.
 - **Release gate:** M4 and all privileged production access.
 - **Owner type:** Security/authentication engineer.
-- **TBD blocked:** Synthetic integration no; SMS provider/sender/budget/expiry/resend/abuse, privacy/location and approved recovery custodians/procedure DR-CFG-09/10/11. Live staff access stays closed.
+- **TBD blocked:** ORG-014 permits disposable CI managed-API tests only, without delivery. Vonage/MSRC2027 shortlisted for RPClub pending Saudi eligibility/registration/quote and future spending approval. SMS control targets are approved; shared issuance/failed-attempt hooks and trusted newest-challenge assurance remain implementation gates. Recovery target approved: distinct Super Admin approver/operator, in-person identity review; individual appointments/evidence/rehearsal and recent-auth remain unresolved. Privacy/location and live staff access stay closed. See [decision packet](../features/managed-authentication-plan.md).
 
 <a id="bl-auth-06"></a>
 
@@ -138,7 +138,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Manual UAT:** Expire an editing staff session and resume safely after reauthentication.
 - **Release gate:** Before production participant or privileged access.
 - **Owner type:** Authentication/backend engineer.
-- **TBD blocked:** Recent-auth age, warning lead, recovery approver/operator/verified procedure, privacy/retention/location and live security-email configuration remain TBD. Independent synthetic policy tests proceed; live activation requires provider/database enforcement and human UAT.
+- **TBD blocked:** Recent-auth age, warning lead, named recovery custodians/verified procedure rehearsal, privacy/retention/location and live security-email configuration remain TBD. ORG-014 approves recovery role/process targets and independent no-delivery CI managed-API tests; live activation requires provider/database enforcement and human UAT.
 
 <a id="bl-auth-07"></a>
 
