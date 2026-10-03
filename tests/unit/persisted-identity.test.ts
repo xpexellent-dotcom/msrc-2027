@@ -22,7 +22,8 @@ function contextFixture() {
     principal: { userId: actorId, sessionId },
     actor: {
       id: actorId, state: "active", emailVerified: true, individuallyIdentified: true,
-      session: { id: sessionId, active: false, assurance: "aal2", factor: "totp" as "totp" | null },
+      session: { id: sessionId, active: false, assurance: "aal1", factor: null as "totp" | null, passwordVerified: true,
+        authenticationTier: "staff" as "participant" | "staff" | "super_admin", staffEmailVerified: true },
     },
     grants: [{
       actorId, editionId, role: "finance", state: "active",
@@ -132,7 +133,8 @@ describe("verified bearer to persisted own-context boundary (SEC-01/02, ROL-12)"
   });
 
   it("does not elevate identity using user-editable or cached metadata role names", async () => {
-    const metadata = { role: "superAdmin", roles: ["superAdmin"], assurance: "aal2", individuallyIdentified: true };
+    const metadata = { role: "superAdmin", roles: ["superAdmin"], assurance: "aal2", individuallyIdentified: true,
+      authenticationTier: "super_admin", staffEmailVerified: true };
     client.auth.getUser.mockResolvedValue({ data: { user: { id: actorId, user_metadata: metadata, app_metadata: metadata } }, error: null });
     const current = { ...contextFixture(), grants: [] };
     client.rpc.mockResolvedValue({ data: current, error: null });
@@ -190,12 +192,10 @@ describe("verified bearer to persisted own-context boundary (SEC-01/02, ROL-12)"
     expect(client.rpc).toHaveBeenCalledTimes(2);
   });
 
-  it("reports current suspended access as closed metadata rather than caching old grants", async () => {
-    const current = contextFixture();
-    const suspended = { ...current, actor: { ...current.actor, state: "suspended", individuallyIdentified: false }, grants: [] };
-    client.rpc.mockResolvedValueOnce({ data: current, error: null }).mockResolvedValueOnce({ data: suspended, error: null });
+  it("denies the same bearer after suspension revokes the persisted context", async () => {
+    client.rpc.mockResolvedValueOnce({ data: contextFixture(), error: null }).mockResolvedValueOnce({ data: null, error: null });
     expect((await readVerifiedAccessContext(token, editionId)).state).toBe("verified");
-    expect(await readVerifiedAccessContext(token, editionId)).toEqual({ state: "verified", context: suspended });
+    expect(await readVerifiedAccessContext(token, editionId)).toEqual({ state: "denied" });
   });
 });
 
@@ -225,7 +225,10 @@ describe("persisted metadata parser rejects authority confusion and malformed sc
     "scientificAdministrator", "judgingCommittee", "facultyJudge", "registrationWorkshopAdministrator",
     "finance", "checkInStaff", "contentMediaEditor", "sponsorshipPr", "superAdmin",
   ])("accepts own current %s grant as metadata only", (role) => {
-    const parsed = parsePersistedAccessContext(setPath(["grants", "0", "role"], role), actorId, editionId);
+    const input = contextFixture(); input.grants[0].role = role;
+    input.actor.session.authenticationTier = role === "superAdmin" ? "super_admin" : role === "participant" ? "participant" : "staff";
+    input.actor.session.staffEmailVerified = input.actor.session.authenticationTier === "staff";
+    const parsed = parsePersistedAccessContext(input, actorId, editionId);
     expect(parsed?.grants[0].role).toBe(role);
     expect(parsed?.actor.session.active).toBe(false);
   });
@@ -238,13 +241,21 @@ describe("persisted metadata parser rejects authority confusion and malformed sc
     { path: ["actor", "id"], value: otherActorId },
     { path: ["actor", "state"], value: "approved" },
     { path: ["actor", "emailVerified"], value: false },
+    { path: ["actor", "phoneVerified"], value: "verified" },
+    { path: ["actor", "session", "passwordVerified"], value: false },
     { path: ["actor", "individuallyIdentified"], value: "true" },
     { path: ["actor", "session", "id"], value: otherSessionId },
     { path: ["actor", "session", "active"], value: true },
     { path: ["actor", "session", "assurance"], value: "aal3" },
+    { path: ["actor", "session", "factor"], value: "totp" },
     { path: ["actor", "session", "factor"], value: "sms" },
-    { path: ["actor", "session", "factor"], value: null },
-    { path: ["actor", "session", "assurance"], value: "aal1" },
+    { path: ["actor", "session", "assurance"], value: "aal2" },
+    { path: ["actor", "session", "authenticationTier"], value: undefined },
+    { path: ["actor", "session", "authenticationTier"], value: "administrator" },
+    { path: ["actor", "session", "authenticationTier"], value: ["staff"] },
+    { path: ["actor", "session", "authenticationTier"], value: "participant" },
+    { path: ["actor", "session", "staffEmailVerified"], value: undefined },
+    { path: ["actor", "session", "staffEmailVerified"], value: "true" },
     { path: ["grants"], value: null },
     { path: ["grants", "0", "actorId"], value: otherActorId },
     { path: ["grants", "0", "editionId"], value: "synthetic-edition-b" },
@@ -292,8 +303,40 @@ describe("persisted metadata parser rejects authority confusion and malformed sc
     input.actor.session.assurance = "aal1";
     input.actor.session.factor = null;
     const parsed = parsePersistedAccessContext(input, actorId, editionId);
-    expect(parsed?.actor.session).toEqual({ id: sessionId, active: false, assurance: "aal1", factor: null });
+    expect(parsed?.actor.session).toEqual({ id: sessionId, active: false, assurance: "aal1", factor: null,
+      passwordVerified: true, authenticationTier: "staff", staffEmailVerified: true });
     expect(parsed?.privilegedAccessReady).toBe(false);
+  });
+
+  it("can observe a missing staff email check without marking its session active", () => {
+    const input = contextFixture(); input.actor.session.staffEmailVerified = false;
+    expect(parsePersistedAccessContext(input, actorId, editionId)?.actor.session).toMatchObject({
+      authenticationTier: "staff", staffEmailVerified: false, active: false });
+  });
+
+  it("retains the strongest tier from other editions without granting unrelated authority", () => {
+    const input = contextFixture(); input.actor.session.authenticationTier = "super_admin";
+    input.actor.session.staffEmailVerified = false;
+    const result = parsePersistedAccessContext(input, actorId, editionId);
+    expect(result?.actor.session.authenticationTier).toBe("super_admin");
+    expect(result?.grants.map((grant) => grant.role)).toEqual(["finance"]);
+    expect(result?.actor.session.active).toBe(false);
+  });
+
+  it("rejects a Super Admin grant projected with the weaker staff tier", () => {
+    const input = contextFixture(); input.grants[0].role = "superAdmin";
+    expect(parsePersistedAccessContext(input, actorId, editionId)).toBeNull();
+  });
+
+  it.each(["participant", "super_admin"] as const)("rejects email-check proof attributed to the %s tier", (authenticationTier) => {
+    const input = contextFixture(); input.actor.session.authenticationTier = authenticationTier;
+    input.grants = [];
+    expect(parsePersistedAccessContext(input, actorId, editionId)).toBeNull();
+  });
+
+  it.each(["authenticationTier", "staffEmailVerified"] as const)("requires the exact new session field %s", (field) => {
+    const input = contextFixture(); delete (input.actor.session as Record<string, unknown>)[field];
+    expect(parsePersistedAccessContext(input, actorId, editionId)).toBeNull();
   });
 
   it("rejects suspended access that still carries a grant", () => {
@@ -331,7 +374,10 @@ describe("persisted metadata parser rejects authority confusion and malformed sc
   });
 
   it("does not enable operational workflows when persisted Super Admin metadata is verified", async () => {
-    client.rpc.mockResolvedValue({ data: setPath(["grants", "0", "role"], "superAdmin"), error: null });
+    const input = contextFixture(); input.grants[0].role = "superAdmin";
+    input.actor.session.authenticationTier = "super_admin"; input.actor.session.staffEmailVerified = false;
+    input.actor.session.assurance = "aal2"; input.actor.session.factor = "totp";
+    client.rpc.mockResolvedValue({ data: input, error: null });
     const result = await readVerifiedAccessContext(token, editionId);
     expect(result.state).toBe("verified");
     expect(Object.keys(workflowFlags).sort()).toEqual([...WORKFLOWS].sort());

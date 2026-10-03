@@ -27,7 +27,7 @@
     "db:integration": "vitest run --config vitest.integration.config.ts",
     "db:verify-hosted": "node --env-file-if-exists=.env.local scripts/verify-hosted-supabase.mjs",
     "db:verify-authorization-hosted": "node --env-file-if-exists=.env.local scripts/verify-hosted-authorization.mjs",
-    "db:lint": "supabase db lint --local --schema public,msrc_authorization --level warning --fail-on warning",
+    "db:lint": "supabase db lint --local --schema public,msrc_authorization,msrc_sessions,msrc_staff_email --level warning --fail-on warning",
     "db:types": "supabase gen types --local --schema public"
   },
   "dependencies": {
@@ -40,6 +40,7 @@
     "@vercel/speed-insights": "2.0.0",
     "client-only": "0.0.1",
     "next": "16.3.7",
+    "qrcode": "1.5.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "0.0.1"
@@ -49,6 +50,7 @@
     "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "24.19.0",
+    "@types/qrcode": "1.5.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "eslint": "9.39.5",

@@ -6,6 +6,8 @@ Confirmed choices remain confirmed: O1 organization-managed custody with institu
 
 Every decision needs source, date, accountable approver, exact wording, affected configuration/content/tests, preserved superseded text and release implications. Named owners and due dates are **unassigned**. Functional owner types below are responsibility categories, not appointments. Store confidential approval evidence in authorized restricted custody; put safe references in Git. Authoring this backlog resolves none of these decisions.
 
+ORG-016 removes all authentication phone collection/verification and SMS. Participants use verified email/password without MFA, regular staff retain ORG-015 password plus private exact-session email checking, and Super Admins use authenticator TOTP. SMS provider/sender/budget approvals are retired. Live English email provider/sender, privacy/location/retention, named recovery people and verified lost-email/authenticator procedure remain gates. Recovery preserves distinct Super Admin approver/operator and in-person review; recent-auth age and warning lead stay TBD. Synthetic preview/no-delivery CI can proceed; staff activation/reset stays closed. Source question sets below remain verbatim.
+
 <a id="dr-cfg-01"></a>
 
 ## DR-CFG-01 — Approve event and admission operating inputs
@@ -280,7 +282,7 @@ Authoritative question set (v0.5; retained verbatim):
 
 ## DR-CFG-11 — Confirm institutional authorization and continuing custodians
 - **Source IDs:** CFG-11, INF-03, ROL-10, ROL-12, SEC-07.
-- **Status:** Decision Required — open; no new organizer approval recorded.
+- **Status:** Decision Required — partially resolved by ORG-017/018 (formerly auth ORG-010/011, 2 October 2026): selected Supabase project designated Production; first intended website Super Admin designated privately, second/third TBD. No invitation/account/grant activation; custody, recovery and operating approvals remain open.
 - **Purpose:** Obtain an evidenced decision for authorization evidence, organization accounts, named primary/backup custodians, three website super admins and operating coverage so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
 - **Exclusions:** Do not equate website Super Admin with billing/domain custody or treat draft roster names as approved appointments. This issue does not itself implement or activate a workflow.
@@ -337,7 +339,7 @@ Authoritative question set (v0.5; retained verbatim):
 - **Status:** Decision Required — open; no new organizer approval recorded.
 - **Purpose:** Obtain an evidenced decision for the five enumerated conflicts in cfg-13, recording what is confirmed versus still proposed so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
-- **Exclusions:** No national ID, mandatory phone, automatic WhatsApp sharing/integration, inferred solo quota, broad Options eligibility or automatic originality verdict. This issue does not itself implement or activate a workflow.
+- **Exclusions:** No national ID, authentication phone collection/verification or SMS, automatic WhatsApp sharing/integration, inferred solo quota, broad Options eligibility or automatic originality verdict. This issue does not itself implement or activate a workflow.
 - **Dependencies:** Named accountable approver; relevant source/contract/policy evidence; [current decision register](../DECISIONS.md). Coordinate related CFG packets without silently deciding them.
 - **Roles:** Hackathon lead with privacy, operations and technical owners; product engineer records the result. Named owner/approver: unassigned.
 - **States/transitions:** Open question → evidence gathered → exact decision approved and recorded; unanswered subquestions remain open and their live gates closed. These are planning statuses, not product state enums.

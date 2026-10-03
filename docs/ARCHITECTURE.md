@@ -10,7 +10,10 @@
 | Ownership | Organizational MSRC/RPClub accounts with institutional authorization | Selected O1; evidence/custodians pending |
 | Web framework | Next.js App Router, TypeScript, Tailwind | Adopted for local M1 by explicit user task; ENG-001 in DECISIONS.md |
 | Package management | pnpm with committed lockfile | Adopted for local M1; exact versions and compatibility notes in ENG-001 |
-| Data environments | User-selected hosted Supabase for normal work; synthetic local Supabase for CI/optional PC tests | ENG-006; explicit target configuration and local test guards; staging/production separation remains a release gate |
+| Data environments | `ecemjggwlzqpjcwmchrl` is Production; synthetic database tests in isolated GitHub CI; local auth lab in memory | ORG-017; no hosted fixtures; new staff/session migration review-only |
+| Managed Auth tests | Genuine password/authenticator-TOTP APIs and staff HTTP/cookie composition in disposable GitHub CI; private reject-email hook, no SMS configuration/hook/provider or paid hosted setup | ORG-016; executed receipts in PROGRESS; live email, recovery, named custodians and human UAT remain gates |
+| Regular staff check | Password then a private user/session-bound application email receipt; no native AAL2; service-only issuance/consume and restrictive RLS predicate. Optional Windows loopback synthetic preview can send a code to the approved test self-inbox without disclosing it in API responses | ORG-015; production SMTP/sender unconfigured, review-only migrations, local preview and no deployment |
+| Read-only authorization | Stable current-assurance and own-role projections for Data API GET/HEAD RLS; no initialization, activity or audit writes. Trusted write RPCs retain native-origin initialization and serialized transitions | ENG-012; additive review-only correction; exact CI proof in PROGRESS; domain resource/storage gates stay closed |
 | Tests | Vitest, appropriate component tools, Playwright, database policy tests | Recommended tooling; verify compatibility at foundation time |
 | Email, malware scanning, advisory assessment, analytics | Provider selection and approved configuration required | Unresolved CFG-10 |
 | Versions, regions, plans, budget | Choose and record explicitly before relevant provisioning | Unresolved; no claims of Saudi hosting |
@@ -33,7 +36,7 @@ src/
     [locale]/
       (preview)/             existing safe public homepage/About and loading boundary
       design-system/         existing local/staging component showcase
-      (auth)/                reserved
+      (auth)/                closed loopback-only staff security lab; all deployments deny
       dashboard/             reserved
       reviewer/              reserved; future assessment screens English-only
       admin/                 reserved
@@ -53,7 +56,7 @@ src/
   content/                   existing typed public draft copy
   features/
     content/                 reserved
-    auth/                    reserved
+    auth/                    local synthetic email/authenticator lab and disabled TOTP provider contract
     registration/            reserved
     payments/                reserved
     submissions/             reserved
@@ -69,7 +72,7 @@ src/
     supabase/                anonymous clients; server-only verified own-context adapter
     permissions/             BL-SEC-01 typed contract/evaluator; production reader pending
     validation/              reserved
-    email/                   reserved
+    email/                   optional Windows loopback isolated staff-code test bridge; no production provider
     payments/                reserved
     jobs/                    reserved
     audit/                   reserved
@@ -111,10 +114,8 @@ not evidence that any later feature is implemented, tested or approved for relea
 
 BL-AUTH-01 adds a [closed persisted context](features/persisted-authorization.md): private
 account-access, scoped grant and audit metadata, plus a self-only current managed-session/
-TOTP lookup. Its verified server adapter returns no resource facts, scientific assignments
-or operational authorization. Both readiness flags and session activation stay false until
-AUTH-05 lifecycle enforcement and staff enrollment/recovery pass. The BL-SEC-01 domain
-`AuthorityReader` is still pending feature-specific protected resource integration.
+assurance lookup. The deployed historical migration used TOTP; earlier review-only SMS policy snapshots remain preserved. ORG-016's additive review override now requires password and verified email only for participants, ORG-015's private session-bound application email receipt for regular staff, and password then current authenticator TOTP for Super Admins. Its verified server adapter returns no resource facts, scientific assignments or operational authorization. Both readiness flags and session activation stay false.
+The [staff security foundations](features/staff-security-foundations.md) add review-only database policy and a local synthetic email/authenticator lab. AUTH-05 retains participant72h maximum and privileged30min idle/8h absolute; refresh never restarts origin or counts as activity. Recovery/live lifecycle and feature-specific protected-resource integration remain gates.
 
 Hosted deployment applies only reviewed application migrations; `foundation_samples` and
 the seed remain isolated development/CI fixtures. Never run an unqualified hosted reset,
@@ -156,6 +157,8 @@ Define a provider-independent adapter contract after reviewing the real KAU inte
 ### Email and jobs
 
 Use durable persisted jobs with deduplication keys, bounded retries, delivery status, and authorized replay. Keep console/test-recipient mode in local/staging work. Transactional messages are English-only. Queued, provider-accepted, delivered, and failed states must be distinct. [EML-01 to EML-05]
+
+ORG-016 removes authentication phone collection/verification and SMS. Participants require verified email/password, regular staff require the private exact-session application email check (not email OTP sign-in/native AAL2), and Super Admins require password plus managed authenticator TOTP. Current native factor/session/password proof must match; stale/phone/generic AAL2 evidence denies. There is no configured live SMTP/provider/sender or fallback development email. The local preview uses ephemeral test email messages and one-time transient QR/manual TOTP setup; no real messages are sent. English-only email and all privacy/location/recovery release gates remain.
 
 ### Advisory assessment
 

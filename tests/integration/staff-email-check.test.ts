@@ -1,0 +1,510 @@
+import { createHmac, randomBytes, randomInt, randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { createClient, type Session } from "@supabase/supabase-js";
+import { beforeAll, describe, it } from "vitest";
+import { createStaffEmailCheck, type StaffEmailStore } from "@/features/auth/staff-email.server";
+import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
+import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
+
+// Closed ORG-015 email check: genuine password sessions plus service-only SQL,
+// with synthetic recipients and in-memory code hashes. No external delivery.
+const ci = process.env.GITHUB_ACTIONS === "true";
+const edition = "synthetic-staff-email-2027";
+const actor = "b1000000-0000-4000-8000-000000000001";
+const other = "b1000000-0000-4000-8000-000000000002";
+const actors = Array.from({ length: 17 }, (_, index) => `b1000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`);
+const password = randomBytes(32).toString("hex");
+const emailFor = (id: string) => `email-check-${actors.indexOf(id) + 1}@example.invalid`;
+const hashingKey = randomBytes(32);
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const digest = (value: string) => createHmac("sha256", hashingKey).update(value).digest("hex");
+const ipHash = digest("ip:192.0.2.19");
+
+function check(condition: unknown, description: string): asserts condition {
+  if (!condition) throw new Error(`Staff email assertion failed: ${description}. Sensitive diagnostics withheld.`);
+}
+
+function boundary() {
+  check(ci && process.platform === "linux" && process.env.RUNNER_ENVIRONMENT === "github-hosted"
+    && process.env.GITHUB_REPOSITORY === "xpexellent-dotcom/msrc-2027"
+    && !process.env.SUPABASE_PROJECT_REF && !process.env.SUPABASE_PROJECT_ID
+    && !existsSync("supabase/.temp/project-ref")
+    && (!process.env.NEXT_PUBLIC_SUPABASE_TARGET || process.env.NEXT_PUBLIC_SUPABASE_TARGET === "local")
+    && process.env.NEXT_PUBLIC_SUPABASE_URL === "http://127.0.0.1:54321"
+    && /^project_id = "msrc2027-local"$/m.test(readFileSync("supabase/config.toml", "utf8")), "disposable loopback runner");
+  const config = resolveLocalSupabaseConfig({ url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY });
+  check(config, "local public client settings");
+  return config;
+}
+
+function query(sql: string): Promise<string> {
+  boundary();
+  return new Promise((resolve, reject) => {
+    const child = spawn("docker", ["exec", "-i", "supabase_db_msrc2027-local", "psql", "-X", "-q",
+      "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
+    let output = "";
+    const timeout = setTimeout(() => { child.kill(); reject(new Error("Disposable email SQL timed out.")); }, 10_000);
+    child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
+    child.stderr.on("data", () => {});
+    child.on("error", () => { clearTimeout(timeout); reject(new Error("Disposable email SQL could not start.")); });
+    child.on("close", (code) => { clearTimeout(timeout);
+      if (code === 0) resolve(output.trim()); else reject(new Error("Disposable email SQL failed; sensitive diagnostics withheld.")); });
+    child.stdin.on("error", () => {});
+    child.stdin.end(sql);
+  });
+}
+
+function client() {
+  const config = boundary();
+  return createClient(config.url, config.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(8_000) }) },
+  });
+}
+
+async function login(id = actor, credential = password) {
+  check(actors.includes(id), "fixed synthetic password identity");
+  const sdk = client();
+  const response = await sdk.auth.signInWithPassword({ email: emailFor(id), password: credential });
+  check(!response.error && response.data.session && response.data.user?.id === id, "genuine password identity");
+  return { sdk, session: response.data.session };
+}
+
+function claims(session: Session): { sub: string; session_id: string; aal: string; amr: { method: string; timestamp: number }[] } {
+  const payload = JSON.parse(Buffer.from(session.access_token.split(".")[1], "base64url").toString("utf8"));
+  check(uuid.test(payload.session_id) && actors.includes(payload.sub) && Array.isArray(payload.amr), "managed signed session shape");
+  return payload;
+}
+
+async function context(session: Session) {
+  const response = await readVerifiedSessionContext(session.access_token, edition);
+  check(response.state === "verified", "current own session context");
+  return response.context;
+}
+
+type Result = { state: string; code?: string; challengeId?: string; recipient?: string; expiresAt?: string; verifiedAt?: string };
+async function service(functionName: "msrc_staff_email_begin" | "msrc_staff_email_delivery" | "msrc_staff_email_consume", argumentsSql: string): Promise<Result> {
+  const response = await query(`begin; set local role service_role; select public.${functionName}(${argumentsSql}); commit;`);
+  const result: unknown = JSON.parse(response);
+  check(typeof result === "object" && result !== null && "state" in result && typeof result.state === "string", "sanitized service result shape");
+  return result as Result;
+}
+
+function challenge(session: Session) {
+  const id = randomUUID();
+  const payload = claims(session);
+  const sid = payload.session_id;
+  const code = String(randomInt(1_000_000)).padStart(6, "0");
+  return { actor: payload.sub, id, sid, codeHash: digest(`staff-email:${payload.sub}:${sid}:${id}:${code}`) };
+}
+
+async function begin(session: Session, value = challenge(session)) {
+  const result = await service("msrc_staff_email_begin", `'${value.actor}','${value.sid}','${value.id}','${value.codeHash}','${ipHash}'`);
+  return { ...value, result };
+}
+
+async function delivered(value: ReturnType<typeof challenge>, successful = true) {
+  return service("msrc_staff_email_delivery", `'${value.actor}','${value.sid}','${value.id}',${successful}`);
+}
+
+async function consume(value: ReturnType<typeof challenge>, hash = value.codeHash, id = value.actor, sid = value.sid) {
+  check(uuid.test(id) && uuid.test(sid) && /^[a-f0-9]{64}$/.test(hash), "fixed typed consume inputs");
+  return service("msrc_staff_email_consume", `'${id}','${sid}','${value.id}','${hash}'`);
+}
+
+let active: Awaited<ReturnType<typeof login>>;
+
+describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in disposable CI", () => {
+  beforeAll(async () => {
+    boundary();
+    await query(`begin;
+      insert into msrc_authorization.edition_config(edition_key) values('${edition}');
+      insert into msrc_authorization.edition_config(edition_key) values('${edition}-other');
+      ${actors.map((id) => `
+        insert into auth.users(id,instance_id,aud,role,email,encrypted_password,email_confirmed_at,
+          created_at,updated_at,raw_app_meta_data,raw_user_meta_data,is_anonymous,
+          confirmation_token,recovery_token,email_change_token_new,email_change)
+        values('${id}','00000000-0000-0000-0000-000000000000','authenticated','authenticated',
+          '${emailFor(id)}',extensions.crypt('${password}',extensions.gen_salt('bf')),
+          now(),now(),now(),'{"provider":"email","providers":["email"]}','{}',false,'','','','');
+        insert into auth.identities(id,provider_id,user_id,identity_data,provider,created_at,updated_at)
+        values(gen_random_uuid(),'${id}','${id}',jsonb_build_object('sub','${id}',
+          'email','${emailFor(id)}','email_verified',true),'email',now(),now());
+        insert into msrc_authorization.account_access(actor_id,state,individually_identified)
+        values('${id}','active',true);
+        insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
+        values('${id}','${edition}','contentMediaEditor','edition','Disposable staff email fixture');`).join("\n")}
+      commit;`);
+  });
+
+  it("requires a delivered single-use email check after password while preserving managed AAL1", async () => {
+    active = await login(actor);
+    const before = await context(active.session);
+    check(before.authenticationTier === "staff" && !before.sessionPolicySatisfied
+      && before.reason === "staff_email_check_required" && !before.mfaValid && !before.staffEmailValid,
+    "missing regular staff email receipt denied");
+    const value = await begin(active.session);
+    check(value.result.state === "issued" && value.result.challengeId === value.id
+      && value.result.recipient === emailFor(actor), "recipient comes from current verified managed email");
+    check((await delivered(value)).state === "ok", "isolated email delivery marked without messages");
+    check((await consume(value)).state === "verified", "correct delivered custom email check");
+    const after = await context(active.session);
+    const token = claims(active.session);
+    check(after.authenticationTier === "staff" && after.sessionPolicySatisfied && after.staffEmailValid
+      && after.passwordValid && !after.mfaValid && token.aal === "aal1"
+      && !token.amr.some((proof) => proof.method === "totp" || proof.method.startsWith("mfa/")), "email check grants no managed AAL2");
+    check(!after.operationalAccessReady && !after.privilegedAccessReady, "verified regular staff workflows stay closed");
+    const second = await active.sdk.rpc("msrc_second_step_satisfied");
+    check(!second.error && second.data === true, "own narrow second-step context");
+    check((await consume(value)).state === "denied", "custom email challenge cannot be replayed");
+  });
+
+  it("binds a challenge to the exact managed actor and session without consuming it for a foreign caller", async () => {
+    const original = await login(other);
+    const newer = await login(other);
+    const stranger = await login(actors[2]);
+    const value = await begin(original.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok", "bound email challenge issued");
+    check((await consume(value, value.codeHash, actors[2], claims(stranger.session).session_id)).state === "denied",
+      "cross-identity challenge cannot verify");
+    check((await consume(value, value.codeHash, other, claims(newer.session).session_id)).state === "denied",
+      "new session cannot consume old session challenge");
+    check((await consume(value)).state === "verified", "foreign attempts do not consume owner's code");
+    const accepted = await context(original.session);
+    const rejected = await context(newer.session);
+    check(accepted.staffEmailValid && !rejected.staffEmailValid && !rejected.sessionPolicySatisfied,
+      "receipt belongs to one exact managed session");
+  });
+
+  it("preserves the email receipt and fixed staff clocks through refresh but requires a new check after login", async () => {
+    const before = await context(active.session);
+    const sid = claims(active.session).session_id;
+    // Values stay inside the disposable database. Only equality booleans enter
+    // diagnostics: no current email, timestamp, identity, token or keyed digest.
+    const versions = async () => (await query(`select
+      encode(sha256(convert_to(coalesce(u.updated_at::text,''),'UTF8')),'hex'),
+      encode(sha256(convert_to(coalesce((select max(a.updated_at)::text from auth.mfa_amr_claims a
+        where a.session_id='${sid}' and a.authentication_method='password'),''),'UTF8')),'hex'),
+      encode(sha256(convert_to(s.created_at::text,'UTF8')),'hex'),
+      coalesce((select r.binding from msrc_staff_email.receipts r where r.session_id='${sid}'),''),
+      coalesce(msrc_staff_email.basis('${actor}','${sid}')->>'binding','')
+      from auth.users u join auth.sessions s on s.user_id=u.id and s.id='${sid}' where u.id='${actor}';`)).split("|");
+    const beforeVersions = await versions();
+    const refresh = await active.sdk.auth.refreshSession();
+    check(!refresh.error && refresh.data.session, "genuine regular staff token refresh");
+    active.session = refresh.data.session;
+    const after = await context(active.session);
+    const afterVersions = await versions();
+    check(after.staffEmailValid && after.sessionPolicySatisfied && claims(active.session).aal === "aal1"
+      && after.principal.sessionId === before.principal.sessionId
+      && after.timing.startedAtMs === before.timing.startedAtMs
+      && after.timing.lastActivityAtMs === before.timing.lastActivityAtMs
+      && after.timing.absoluteExpiresAtMs === before.timing.absoluteExpiresAtMs
+      && after.timing.idleExpiresAtMs === before.timing.idleExpiresAtMs,
+    `email receipt and clocks follow immutable managed session ${JSON.stringify({
+      receiptBefore: before.staffEmailValid, receiptAfter: after.staffEmailValid, passwordAfter: after.passwordValid,
+      userVersionSame: beforeVersions[0] === afterVersions[0], passwordVersionSame: beforeVersions[1] === afterVersions[1],
+      nativeOriginSame: beforeVersions[2] === afterVersions[2], receiptBindingSame: beforeVersions[3] === afterVersions[3],
+      currentBasisSame: beforeVersions[4] === afterVersions[4],
+      applicationOriginSame: after.timing.startedAtMs === before.timing.startedAtMs,
+      activitySame: after.timing.lastActivityAtMs === before.timing.lastActivityAtMs,
+      absoluteDeadlineSame: after.timing.absoluteExpiresAtMs === before.timing.absoluteExpiresAtMs,
+      idleDeadlineSame: after.timing.idleExpiresAtMs === before.timing.idleExpiresAtMs,
+    })}`);
+    const fresh = await login(actor);
+    const denied = await context(fresh.session);
+    check(denied.principal.sessionId !== after.principal.sessionId && !denied.staffEmailValid
+      && !denied.sessionPolicySatisfied && denied.reason === "staff_email_check_required", "new password login needs fresh email check");
+    const original = await context(active.session);
+    check(original.staffEmailValid && original.sessionPolicySatisfied, "another password login does not invalidate original exact-session receipt");
+  });
+
+  it("never creates a receipt from a pending or failed email delivery", async () => {
+    const pending = await login(actors[3]);
+    const value = await begin(pending.session);
+    check(value.result.state === "issued", "pending email challenge");
+    check((await consume(value)).state === "denied", "undelivered code denied");
+    check((await delivered(value, false)).state === "ok", "delivery failure recorded without provider payload");
+    check((await consume(value)).state === "denied", "failed delivery code denied");
+    const denied = await context(pending.session);
+    check(!denied.staffEmailValid && !denied.sessionPolicySatisfied, "delivery failure never supplies assurance");
+  });
+
+  it("enforces five failures and preserves cooldown across a new managed login", async () => {
+    const pending = await login(actors[4]);
+    const value = await begin(pending.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok", "failure-bound challenge");
+    const wrong = digest(`wrong:${randomUUID()}`);
+    for (let attempt = 0; attempt < 5; attempt++) check((await consume(value, wrong)).state === "denied", "wrong email code denied");
+    const locked = await consume(value);
+    check(locked.state === "denied" && locked.code === "retry_limited", "correct code cannot bypass failure cooldown");
+    const fresh = await login(actors[4]);
+    const retry = await begin(fresh.session);
+    check(retry.result.state === "denied" && retry.result.code === "retry_limited", "login cannot reset account abuse counter");
+  });
+
+  it("enforces resend spacing, three-per-account issuance and newest-challenge-only consumption", async () => {
+    const pending = await login(actors[5]);
+    const first = await begin(pending.session);
+    check(first.result.state === "issued" && (await delivered(first)).state === "ok", "first bounded challenge");
+    const tooSoon = await begin(pending.session);
+    check(tooSoon.result.state === "denied" && tooSoon.result.code === "retry_limited", "60-second resend cooldown");
+    // Synthetic fixture clock ONLY: move issuance into the preceding minute.
+    // No policy duration, production function or live timestamp is changed.
+    await query(`update msrc_staff_email.challenges set created_at=now()-interval '2 minutes' where id='${first.id}';`);
+    const second = await begin(pending.session);
+    check(second.result.state === "issued" && (await delivered(second)).state === "ok", "replacement issued after simulated spacing");
+    await query(`update msrc_staff_email.challenges set created_at=now()-interval '61 seconds' where id='${second.id}';`);
+    const third = await begin(pending.session);
+    check(third.result.state === "issued" && (await delivered(third)).state === "ok", "third challenge in rolling window");
+    await query(`update msrc_staff_email.challenges set created_at=now()-interval '61 seconds' where id='${third.id}';`);
+    check((await consume(first)).state === "denied" && (await consume(second)).state === "denied",
+      "superseded custom email codes denied before their original expiry");
+    check((await consume(third)).state === "verified", "only newest custom email challenge may verify");
+    const newerLogin = await login(actors[5]);
+    const fourth = await begin(newerLogin.session);
+    check(fourth.result.state === "denied" && fourth.result.code === "retry_limited", "three-per-account window survives login");
+  });
+
+  it("rejects an expired custom email challenge without a receipt or managed AAL2", async () => {
+    const pending = await login(actors[6]);
+    const value = await begin(pending.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok", "bounded-expiry email challenge");
+    // Accelerated expiry fixture ONLY, retaining expires_at > created_at.
+    await query(`update msrc_staff_email.challenges set created_at=now()-interval '20 minutes',
+      expires_at=now()-interval '10 minutes' where id='${value.id}';`);
+    const expired = await consume(value);
+    check(expired.state === "denied" && expired.code === "challenge_expired", "expired custom email code denied");
+    const denied = await context(pending.session);
+    check(!denied.staffEmailValid && !denied.sessionPolicySatisfied && claims(pending.session).aal === "aal1",
+      "expired email check creates no application receipt or managed MFA");
+  });
+
+  it("invalidates the regular staff receipt when an active Super Admin grant exists in another edition", async () => {
+    const pending = await login(actors[7]);
+    const value = await begin(pending.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok"
+      && (await consume(value)).state === "verified", "ordinary staff receipt before role upgrade");
+    await query(`insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
+      values('${actors[7]}','${edition}-other','superAdmin','edition','Disposable role upgrade fixture');`);
+    const upgraded = await context(pending.session);
+    check(upgraded.authenticationTier === "super_admin" && !upgraded.sessionPolicySatisfied
+      && upgraded.reason === "mfa_required" && !upgraded.staffEmailValid && !upgraded.mfaValid,
+    "any active Super Admin grant requires authenticator MFA");
+    check((await begin(pending.session)).result.state === "denied", "email check cannot be issued to Super Admin tier");
+  });
+
+  it("revokes email-check assurance after the current verified destination changes", async () => {
+    const pending = await login(actors[8]);
+    const value = await begin(pending.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok"
+      && (await consume(value)).state === "verified", "email-bound receipt before change");
+    await query(`update auth.users set email='changed-email-check@example.invalid',email_confirmed_at=null,updated_at=now()
+      where id='${actors[8]}';`);
+    const unverified = await context(pending.session);
+    check(!unverified.sessionPolicySatisfied && !unverified.staffEmailValid, "unverified changed destination denied");
+    await query(`update auth.users set email_confirmed_at=now(),updated_at=now() where id='${actors[8]}';`);
+    const reverified = await context(pending.session);
+    check(!reverified.sessionPolicySatisfied && !reverified.staffEmailValid, "confirmation of new destination cannot reuse old receipt");
+  });
+
+  it("invalidates a receipt after an ordinary scoped grant change", async () => {
+    const pending = await login(actors[9]);
+    const value = await begin(pending.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok"
+      && (await consume(value)).state === "verified", "grant-bound staff receipt");
+    await query(`insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
+      values('${actors[9]}','${edition}','finance','edition','Disposable changed grant fixture');`);
+    const changed = await context(pending.session);
+    check(changed.authenticationTier === "staff" && !changed.staffEmailValid && !changed.sessionPolicySatisfied,
+      "current ordinary grant fingerprint changes invalidate receipt");
+  });
+
+  it("denies authenticated direct calls to service-only RPCs and hides private email challenge tables", async () => {
+    const pending = await login(actors[10]);
+    const config = boundary();
+    const value = challenge(pending.session);
+    const binding = { actor_id: value.actor, session_id: value.sid, challenge_id: value.id };
+    for (const endpoint of [
+      { name: "msrc_staff_email_begin", args: { ...binding, code_hash: value.codeHash, ip_hash: ipHash } },
+      { name: "msrc_staff_email_delivery", args: { ...binding, delivered: false } },
+      { name: "msrc_staff_email_consume", args: { ...binding, code_hash: value.codeHash } },
+    ]) {
+      const rpc = await fetch(`${config.url}/rest/v1/rpc/${endpoint.name}`, {
+        method: "POST", headers: { apikey: config.publishableKey, Authorization: `Bearer ${pending.session.access_token}`,
+          "Content-Type": "application/json" }, body: JSON.stringify(endpoint.args), signal: AbortSignal.timeout(5_000),
+      });
+      const failure = await rpc.json();
+      check(rpc.status === 403 && failure.code === "42501", "authenticated service-only RPC permission denial");
+    }
+    for (const table of ["challenges", "receipts", "audit", "identity_revision"]) {
+      const response = await fetch(`${config.url}/rest/v1/${table}?select=*`, {
+        headers: { apikey: config.publishableKey, Authorization: `Bearer ${pending.session.access_token}`,
+          "Accept-Profile": "msrc_staff_email" }, signal: AbortSignal.timeout(5_000),
+      });
+      const hidden = await response.json();
+      check(response.status === 406 && hidden.code === "PGRST106", "private email schema is not exposed by Data API");
+    }
+    check(/\[storage\]\r?\nenabled = false/.test(readFileSync("supabase/config.toml", "utf8")), "storage remains disabled in this slice");
+    const storage = await fetch(`${config.url}/storage/v1/object/authenticated/synthetic-closed/no-object`, {
+      headers: { apikey: config.publishableKey, Authorization: `Bearer ${pending.session.access_token}` },
+      signal: AbortSignal.timeout(5_000),
+    });
+    check([404, 503].includes(storage.status), "disabled Storage route unavailable; no real object authorization claimed");
+  });
+
+  it("denies unconfirmed managed email and requires a new staff check after trusted fixture confirmation", async () => {
+    const id = actors[11];
+    const managed = await login(id);
+    // Trusted disposable fixture transitions only, without a verification email.
+    await query(`update auth.users set email_confirmed_at=null where id='${id}';`);
+    const denied = await context(managed.session);
+    check(!denied.emailVerified && !denied.staffEmailValid && !denied.sessionPolicySatisfied
+      && denied.reason === "account_verification_required", "current unconfirmed email denies password session");
+    check((await begin(managed.session)).result.state === "denied", "unconfirmed managed email cannot receive staff check");
+    await query(`update auth.users set email_confirmed_at=clock_timestamp() where id='${id}';`);
+    const missing = await context(managed.session);
+    check(missing.emailVerified && missing.passwordValid && !missing.staffEmailValid && !missing.sessionPolicySatisfied
+      && missing.reason === "staff_email_check_required", "confirmed email does not substitute for session-bound staff check");
+    const value = await begin(managed.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok"
+      && (await consume(value)).state === "verified", "new exact-session check recovers after confirmation");
+    const accepted = await context(managed.session);
+    check(accepted.sessionPolicySatisfied && accepted.staffEmailValid && claims(managed.session).aal === "aal1"
+      && !accepted.mfaValid, "regular staff retain application email assurance without managed MFA");
+  });
+
+  it("composes the server adapter, genuine managed password identity and service-only database receipt without delivery", async () => {
+    const managed = await login(actors[12]);
+    const bound = (input: { actorId: string; sessionId: string; challengeId: string }) => {
+      check(input.actorId === actors[12] && uuid.test(input.sessionId) && uuid.test(input.challengeId), "fixed adapter service binding");
+      return `'${input.actorId}','${input.sessionId}','${input.challengeId}'`;
+    };
+    const safeHash = (hash: string) => {
+      check(/^[0-9a-f]{64}$/.test(hash), "keyed adapter digest shape");
+      return `'${hash}'`;
+    };
+    const store: StaffEmailStore = {
+      begin: (input) => service("msrc_staff_email_begin", `${bound(input)},${safeHash(input.codeHash)},${safeHash(input.ipHash)}`),
+      delivery: (input) => service("msrc_staff_email_delivery", `${bound(input)},${input.delivered === true}`),
+      consume: (input) => service("msrc_staff_email_consume", `${bound(input)},${safeHash(input.codeHash)}`),
+    };
+    let inbox: string | undefined;
+    const adapter = createStaffEmailCheck({ auth: managed.sdk.auth, store, secret: randomBytes(32).toString("hex"),
+      deliver: async (message) => {
+        check(message.recipient === emailFor(actors[12]) && message.language === "en", "trusted verified English-only test destination");
+        inbox = message.text.match(/code is (\d{6})\./)?.[1];
+        check(inbox && /^\d{6}$/.test(inbox), "generated adapter code exists only in memory");
+        return true;
+      },
+    });
+    const issued = await adapter.issue(managed.session.access_token, "192.0.2.20");
+    check(issued.state === "issued" && inbox, "composed isolated issuance");
+    const code = inbox;
+    inbox = undefined;
+    const wrong = code === "000000" ? "000001" : "000000";
+    check((await adapter.verify(managed.session.access_token, issued.challengeId, wrong)).state === "denied", "adapter wrong code denied by database");
+    check((await adapter.verify(managed.session.access_token, issued.challengeId, code)).state === "verified", "generated adapter code consumed by database");
+    check((await adapter.verify(managed.session.access_token, issued.challengeId, code)).state === "denied", "adapter verified code cannot replay");
+    const accepted = await context(managed.session);
+    check(accepted.authenticationTier === "staff" && accepted.staffEmailValid && accepted.sessionPolicySatisfied
+      && claims(managed.session).aal === "aal1" && !accepted.mfaValid
+      && !accepted.operationalAccessReady && !accepted.privilegedAccessReady,
+    "complete email adapter creates only application assurance with all live gates closed");
+  });
+
+  it("serializes concurrent issuance and consumption without bypassing cooldown or creating duplicate receipts", async () => {
+    const managed = await login(actors[13]);
+    const requests = await Promise.all(Array.from({ length: 4 }, () => begin(managed.session)));
+    const issued = requests.filter((request) => request.result.state === "issued");
+    check(issued.length === 1 && requests.filter((request) => request.result.code === "retry_limited").length === 3,
+      "account row lock permits exactly one concurrent issuance within cooldown");
+    const value = issued[0];
+    check((await delivered(value)).state === "ok", "concurrent fixture challenge marked sent");
+    const attempts = await Promise.all(Array.from({ length: 4 }, () => consume(value)));
+    check(attempts.filter((result) => result.state === "verified").length === 1
+      && attempts.filter((result) => result.state === "denied").length === 3, "exactly one concurrent correct verification wins");
+    const rows = await query(`select (select count(*) from msrc_staff_email.challenges where actor_id='${actors[13]}'),
+      (select count(*) from msrc_staff_email.receipts where actor_id='${actors[13]}' and session_id='${value.sid}');`);
+    check(rows === "1|1", "one accepted challenge and one exact-session receipt survive concurrency");
+    const accepted = await context(managed.session);
+    check(accepted.staffEmailValid && accepted.sessionPolicySatisfied && claims(managed.session).aal === "aal1",
+      "winning custom email receipt supplies only regular-staff application assurance");
+  });
+
+  it("rejects a code that expires while verification waits for its account lock", async () => {
+    const managed = await login(actors[14]);
+    const value = await begin(managed.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok", "lock-wait expiry fixture sent");
+    // CI-only clock fixture. The real function must consult the current time
+    // after acquiring locks, rather than the timestamp when this call began.
+    await query(`update msrc_staff_email.challenges set created_at=clock_timestamp()-interval '30 seconds',
+      expires_at=clock_timestamp()+interval '2 seconds' where id='${value.id}';`);
+    const holding = query(`begin; select actor_id from msrc_authorization.account_access where actor_id='${actors[14]}' for update;
+      select pg_advisory_xact_lock(2601003,71415); select pg_sleep(3); commit;`);
+    try {
+      let locked = false;
+      const until = Date.now() + 1_200;
+      while (!locked && Date.now() < until) {
+        locked = (await query("select exists(select 1 from pg_locks where locktype='advisory' and classid=2601003 and objid=71415 and granted)::text;")) === "true";
+      }
+      check(locked, "separate fixture transaction already holds account lock");
+      check((await query(`select (expires_at>clock_timestamp())::text from msrc_staff_email.challenges where id='${value.id}';`)) === "true",
+        "challenge still unexpired when blocked verification begins");
+      const expired = await consume(value);
+      check(expired.state === "denied" && expired.code === "challenge_expired", "expiry is evaluated after the lock wait");
+      check((await query(`select count(*) from msrc_staff_email.receipts where actor_id='${actors[14]}';`)) === "0",
+        "a code expired during lock wait never creates a receipt");
+    } finally { await holding; }
+  });
+
+  it("invalidates prior password and email proof after a genuine managed password change and recovers through fresh login", async () => {
+    const id = actors[15];
+    const managed = await login(id);
+    const value = await begin(managed.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok"
+      && (await consume(value)).state === "verified", "password-bound email receipt before actual credential mutation");
+    const replacement = randomBytes(32).toString("hex");
+    const mutation = await managed.sdk.auth.updateUser({ password: replacement });
+    check(!mutation.error, "genuine isolated managed password update without delivery");
+    const stale = await context(managed.session);
+    check(!stale.staffEmailValid && !stale.passwordValid && !stale.sessionPolicySatisfied
+      && stale.reason === "password_auth_required", "pre-change native password AMR and email receipt cannot survive a real password mutation");
+    check((await begin(managed.session)).result.state === "denied", "old password session cannot issue another email check");
+    const fresh = await login(id, replacement);
+    const missing = await context(fresh.session);
+    check(missing.passwordValid && !missing.staffEmailValid && !missing.sessionPolicySatisfied
+      && missing.reason === "staff_email_check_required", "new password proof still needs its own second step");
+    // CI clock fixture only: a credential change does not reset the approved
+    // account cooldown; accelerate the existing reservation rather than policy.
+    await query(`update msrc_staff_email.challenges set created_at=clock_timestamp()-interval '61 seconds' where id='${value.id}';`);
+    const next = await begin(fresh.session);
+    check(next.result.state === "issued" && (await delivered(next)).state === "ok"
+      && (await consume(next)).state === "verified", "fresh password plus new exact-session email check recovers");
+    const recovered = await context(fresh.session);
+    check(recovered.staffEmailValid && recovered.passwordValid && recovered.sessionPolicySatisfied
+      && claims(fresh.session).aal === "aal1" && !recovered.mfaValid
+      && !recovered.operationalAccessReady && !recovered.privilegedAccessReady, "credential recovery remains AAL1 and all live gates closed");
+  });
+
+  it("does not revive an old receipt when an email or its confirmation timestamp changes away and back", async () => {
+    const id = actors[16];
+    const managed = await login(id);
+    const value = await begin(managed.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok"
+      && (await consume(value)).state === "verified", "initial exact-session managed email receipt");
+    // Trusted fixture transitions ONLY: no managed verification email is sent.
+    await query(`update auth.users set email='temporary-revision@example.invalid' where id='${id}';
+      update auth.users set email='${emailFor(id)}' where id='${id}';`);
+    const restored = await context(managed.session);
+    check(restored.emailVerified && restored.passwordValid && !restored.staffEmailValid
+      && !restored.sessionPolicySatisfied, "returning to the old address cannot revive previous email proof");
+    await query(`update auth.users set email_confirmed_at=null where id='${id}';
+      update auth.users set email_confirmed_at=created_at where id='${id}';`);
+    const confirmed = await context(managed.session);
+    check(confirmed.emailVerified && !confirmed.staffEmailValid && !confirmed.sessionPolicySatisfied,
+      "restored confirmation cannot revive old receipt");
+  });
+});

@@ -23,10 +23,7 @@ they are not approved production data collection or a domain schema.
 
 ## Actors and minimum projections
 
-Every permit requires current active verified account/session, matching actor/resource
-IDs and an active edition-scoped grant. All staff require an individually identified
-account and trusted AAL2 **plus TOTP** assurance. Participant permission does not require
-staff MFA, but still requires its explicit grant and own-record boundary.
+Every permit requires current active verified account/session, matching actor/resource IDs and an active edition-scoped grant. Staff must be individually identified. ORG-015 requires a private exact-session application email check after password for regular staff; ORG-016 requires password followed by current authenticator TOTP at native AAL2 for Super Admins, using the strongest tier across editions. Participant permission requires verified email/password without phone or MFA, plus its explicit grant and own-record boundary. Client flags, user metadata, generic AAL2, phone factors and foreign/stale email receipts cannot substitute.
 
 | Role | Representative allowed purpose | Mandatory boundary / exclusions |
 |---|---|---|
@@ -185,4 +182,6 @@ no wildcard trust. Reverting this PR removes only the contract/tests/docs; no ho
 rollback applies. Test SQL rolls back itself and must never be run on a linked project.
 
 Next: BL-AUTH-01 scoped persisted grants and verified identity integration, followed by
-BL-AUTH-05 TOTP enrollment/recovery before privileged activation; then protected CMS.
+BL-AUTH-05 staff password → email check and Super Admin authenticator MFA with approved email/operating/recovery configuration
+before privileged activation; then protected CMS. The review-only override preserves the
+historical deployed TOTP migration and all closed operational gates.

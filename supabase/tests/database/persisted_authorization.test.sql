@@ -45,8 +45,15 @@ values ('50000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-00000000
 insert into auth.sessions(id,user_id,created_at,updated_at,aal,factor_id)
 values
  ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',now(),now(),'aal1',null),
- ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002',now(),now(),'aal2','50000000-0000-4000-8000-000000000002'),
+ ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002',now()-interval '4 minutes',now(),'aal2','50000000-0000-4000-8000-000000000002'),
  ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000003',now(),now(),'aal1',null);
+insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+  select gen_random_uuid(),s.id,'password',s.created_at,s.created_at from auth.sessions s
+  where s.id='40000000-0000-4000-8000-000000000002';
+insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+  values(gen_random_uuid(),'40000000-0000-4000-8000-000000000002','totp',
+    date_trunc('second',now()-interval '3 minutes')+interval '100 milliseconds',
+    date_trunc('second',now()-interval '3 minutes')+interval '100 milliseconds');
 insert into msrc_authorization.edition_config(edition_key) values ('synthetic-2027'), ('synthetic-2026');
 insert into msrc_authorization.account_access(actor_id,state,individually_identified) values
  ('30000000-0000-4000-8000-000000000001','active',true),
@@ -67,7 +74,8 @@ create function pg_temp.claims(actor text default '30000000-0000-4000-8000-00000
   methods jsonb default '[]'::jsonb) returns void language plpgsql as $$
 begin
   perform set_config('request.jwt.claims', jsonb_build_object('sub',actor,'role','authenticated',
-    'session_id',sid,'aal',assurance,'amr',methods,'exp',extract(epoch from now()+interval '1 hour'))::text,true);
+    'session_id',sid,'aal',assurance,'amr',jsonb_build_array(jsonb_build_object('method','password',
+      'timestamp',(select floor(extract(epoch from created_at)) from auth.sessions where id::text=sid))) || methods,'exp',extract(epoch from now()+interval '1 hour'))::text,true);
 end; $$;
 
 select ok((select state='suspended' and not individually_identified from msrc_authorization.account_access
@@ -157,10 +165,13 @@ reset role;
 update auth.users set deleted_at=null where id='30000000-0000-4000-8000-000000000001';
 update msrc_authorization.account_access set state='suspended' where actor_id='30000000-0000-4000-8000-000000000001';
 set local role authenticated;
-select ok(public.msrc_access_context('synthetic-2027') @> '{"actor":{"state":"suspended"},"grants":[]}'::jsonb,
- 'Suspension hides current grants without trusting stale claims');
+select is(public.msrc_access_context('synthetic-2027'),null::jsonb,
+ 'Suspension revocation denies current grants without trusting stale claims');
 reset role;
 update msrc_authorization.account_access set state='active' where actor_id='30000000-0000-4000-8000-000000000001';
+insert into auth.sessions(id,user_id,created_at,updated_at,aal) values
+ ('40000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000001',statement_timestamp(),statement_timestamp(),'aal1');
+do $$begin perform pg_temp.claims(sid=>'40000000-0000-4000-8000-000000000004'); end$$;
 update auth.users set raw_user_meta_data='{"role":"superAdmin","state":"active","aal":"aal2"}',
  raw_app_meta_data='{"roles":["superAdmin"]}' where id='30000000-0000-4000-8000-000000000001';
 set local role authenticated;
@@ -173,7 +184,7 @@ do $$begin perform pg_temp.claims('30000000-0000-4000-8000-000000000002','400000
 set local role authenticated;
 select ok(public.msrc_access_context('synthetic-2027') @>
  '{"actor":{"session":{"active":false,"assurance":"aal2","factor":"totp"}},"privilegedAccessReady":false}'::jsonb,
- 'Current verified TOTP is observed but cannot activate privileged work');
+ 'Current verified TOTP MFA is observed but cannot activate privileged work');
 reset role;
 update auth.mfa_factors set status='unverified' where id='50000000-0000-4000-8000-000000000002';
 set local role authenticated;
@@ -187,18 +198,18 @@ reset role;
 update auth.sessions set aal='aal2' where id='40000000-0000-4000-8000-000000000002';
 update auth.mfa_factors set updated_at=now() where id='50000000-0000-4000-8000-000000000002';
 set local role authenticated;
-select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Factor update requires fresh TOTP provenance');
+select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Factor update requires fresh TOTP MFA provenance');
 reset role;
 update auth.mfa_factors set updated_at=now()-interval '5 minutes' where id='50000000-0000-4000-8000-000000000002';
 do $$begin perform pg_temp.claims('30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','aal2',
  '[{"method":"totp","timestamp":"not-numeric"}]'::jsonb); end$$;
 set local role authenticated;
-select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Nonnumeric AMR timestamp does not establish TOTP');
+select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Nonnumeric AMR timestamp does not establish TOTP MFA');
 reset role;
 do $$begin perform pg_temp.claims('30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','aal2',
  jsonb_build_array(jsonb_build_object('method','otp','timestamp',floor(extract(epoch from now()))))); end$$;
 set local role authenticated;
-select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Email OTP is not authenticator TOTP');
+select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Email OTP is not Super Admin TOTP MFA');
 reset role;
 
 select throws_ok($$update msrc_authorization.role_grants set role_name='superAdmin'
@@ -214,7 +225,7 @@ select is((select count(*) from msrc_authorization.grant_audit where grant_id='6
  2::bigint,'Revocation appends audit without overwriting grant creation');
 select ok((select event='grant.revoked' and reason='Synthetic revocation' from msrc_authorization.grant_audit
  where grant_id='60000000-0000-4000-8000-000000000001' and event='grant.revoked'), 'Revocation audit records its reason');
-do $$begin perform pg_temp.claims(); end$$;
+do $$begin perform pg_temp.claims(sid=>'40000000-0000-4000-8000-000000000004'); end$$;
 set local role authenticated;
 select is(jsonb_array_length(public.msrc_access_context('synthetic-2027')->'grants'),4,
  'Revocation disappears from own context immediately with unchanged claims');
@@ -267,7 +278,7 @@ select throws_ok($$insert into msrc_authorization.account_access(actor_id) value
 reset role;
 revoke usage on schema msrc_authorization from authenticated;
 revoke select,insert on msrc_authorization.account_access from authenticated;
-delete from auth.sessions where id='40000000-0000-4000-8000-000000000001';
+delete from auth.sessions where id='40000000-0000-4000-8000-000000000004';
 set local role authenticated;
 select is(public.msrc_access_context('synthetic-2027'),null::jsonb,'Removed managed session rejects a previously valid token');
 reset role;

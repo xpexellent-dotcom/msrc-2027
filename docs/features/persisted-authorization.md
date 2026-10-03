@@ -17,10 +17,12 @@ MFA enrollment/recovery, staff session activation, role editing, scientific assi
 participant profiles, domain records, uploads/buckets, CMS editing/publication, all
 operational workflows, emails, paid provisioning and production-data collection.
 
-The requester authorizes deploying the reviewed schema and permissions to the existing
-selected Supabase project. Environment classification and the three named Super Admins
-have been requested. No organizational appointment, privacy approval, production region
-or retention duration is inferred. Those decisions remain CFG-09/10/11 release gates.
+Earlier authorization deployed only the reviewed persisted-authorization schema. ORG-017
+now designates this project as Production; new migrations are review-only in this task,
+and synthetic data stays isolated. ORG-018 designates the first intended administrator;
+two remain TBD and no accounts/grants are activated. No privacy approval, production region
+or retention duration is inferred. CFG-09/10/11 gates and the new
+[staff security foundations](staff-security-foundations.md) apply.
 
 ## Actor, scope and states
 
@@ -33,9 +35,8 @@ or retention duration is inferred. Those decisions remain CFG-09/10/11 release g
 - Account access defaults suspended and not individually identified. Grant absence denies;
   an active grant may become irreversibly revoked. Changing identity or scope requires a
   replacement grant. Grants across editions remain separate.
-- Existing tokens cannot preserve access after account suspension, grant revocation,
-  session removal or TOTP factor removal. Trusted JWT assurance is checked against current
-  managed database evidence; email verification is not privileged MFA.
+- Existing tokens cannot preserve access after account suspension, grant revocation, session removal or current factor removal. The deployed migration and earlier review-only policy snapshots are preserved. ORG-016's additive override requires email/password without phone/MFA for participants; ORG-015's private current-user/session/email/password/grant receipt for ordinary staff; and password followed by current managed authenticator TOTP for Super Admins. Phone/generic AAL2/email receipts cannot substitute for Super Admin assurance. Strongest tier applies across editions. No hosted migration is applied.
+  The [regular-staff amendment](regular-staff-email-check.md) preserves role scopes, denies password-only access and never creates native AAL2 or an active grant.
 - Operational access remains explicitly closed in this context. AUTH-05's configurable
   absolute/idle/recent-authentication enforcement, logout/recovery, MFA lifecycle and
   human UAT must land before staff activation. Token refresh is not user activity.

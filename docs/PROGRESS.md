@@ -1,7 +1,715 @@
 # Progress and session handover
 
+## 4 October 2026 — PR25 rebased onto main including PR28
+
+Rebased `codex/email-authenticator-no-sms` from cf1b60a onto current main
+1cac8754cac41c49228f5074271fda22f16581a4 (PR28 included), replaying the complete
+31-commit authentication stack. A local backup branch retains the previous head:
+`codex/email-authenticator-no-sms-pre-main-20261004`. The force push uses an explicit
+lease on the previously observed remote head; PR25 is retargeted to main for review.
+
+Resolved DECISIONS and PROGRESS conflicts by retaining both public-site and auth
+records. All 39 main progress entries remain, including the PR28 QA entry and the
+authentication closeout. Main's public ORG-010–013 IDs are preserved; colliding auth
+records now use ORG-017–020 with dated aliases. Current references and the obsolete
+BL-AUTH-02/03/05/06 issue-index descriptions are reconciled. Historical progress,
+source snapshots and all migration SQL remain unchanged.
+
+Retained main's Arabic-first root redirect, indexing, canonical-domain/alias redirects,
+structured data, calendar, manifest and public motion changes. CI still runs branch
+checks through pull requests and push checks only on main, with the authentication
+browser step and disposable managed database tests. Authentication branch Git
+deployments remain disabled. No new application behavior or migration is introduced.
+
+Executed locally on the combined tree (bundled Node 24.19.0, pnpm 11.19.0; CI keeps
+the repository's Node 24.21.0 pin):
+
+- `pnpm check`: PASS — lint, route type generation/TypeScript, 1405 unit tests across
+  35 files, optimized production build with 43 generated pages.
+- `pnpm exec playwright test --config playwright.auth.config.ts`: PASS — 75 tests,
+  47.1 seconds; English/Arabic desktop/tablet/mobile, keyboard/accessibility, email
+  failures/retry/session binding, authenticator setup/replay, revocation and immutable
+  72-hour participant expiry. No delivery or hosted identity is used.
+- `git diff --check`: PASS. Auth code/SQL/tests match the pre-rebase branch; selected
+  public feature paths match main. Original source snapshots are unchanged.
+- CSV validation: PASS — 165 unique issue records, nine columns; no duplicate canonical
+  decision identifiers remain. Original checkout edits/untracked files are preserved.
+
+Initial rebased head23e8c5b [CI37155624615](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37155624615)
+passed lint/types/1405 units/build and the database job (505 SQL assertions, 63 native
+integration tests against GoTrue v2.197.0), but the public browser job reported
+323 passed, 1 failed and 21 explicit skips. The Arabic desktop chapter-bar test
+started an empty 25ms sampling interval; a correct immediate destination update
+could precede the first sample, omitting the already-verified starting chapter.
+Captured the actual DOM starting value before the interval, preserving the exact
+initial/destination sequence, focus/hash checks and timings. No application code
+changes. `pnpm exec playwright test tests/e2e/chapter-bar.spec.ts
+--project=chromium-desktop --grep 'chapter bar follows the reader' --repeat-each=5`:
+PASS — all 10 English/Arabic repetitions, 25.0 seconds. The first CI auth browser
+step was NOT RUN after the public-suite failure; local auth75 remains executed
+evidence. The follow-up combined application/database CI is recorded separately
+in the PR/checklist before merge.
+
+No local database/Docker, hosted migration/reset/seed, production Auth,
+deployment, real email/account/grant/reset or additional recovery rehearsal is performed.
+Human UAT, actual Storage policies, production email/cookie/session-store custody,
+recent-auth/warning timing, recovery and privacy/location approvals remain release gates.
+
+PR supersession: PR2 head9e018ae is already an ancestor of main with zero unique
+commits. PR19's only commit absent from the pre-rebase PR25 was the PR22 merge commit,
+whose tree equals an included commit5977eb7; no unique implementation is lost. Recommend
+closing PR19 after PR25 merges and is verified; PR2 is safe to close now. Neither is
+closed in this task. Next development item remains BL-PUB-06 Contact + BL-PUB-08
+Privacy/Terms, starting with truthful bilingual closed scaffolds pending approved facts.
+
+Rollback: restore the local backup branch/history if needed before integration. No hosted
+rollback is needed. Earlier receipt counts below describe their original heads, not this
+rebased tree; the latest CI/checklist/PR identify the current review head.
+
+## 3 October 2026 — Authentication foundation closeout
+
+The organizer reported that the isolated preview works, confirmed Super Admin
+responsibility for account recovery, and requested finishing these foundations
+without an additional recovery rehearsal. Closed BL-AUTH-05/06 development is
+implemented and verified; its production feature/release status remains Partial.
+No rehearsal source, page, API, test, link or configuration change is retained.
+Actual custodian names, exact trusted in-person identity/appointment evidence and
+the verified procedure remain unresolved; distinct-person safeguards are preserved.
+
+Continued `codex/email-authenticator-no-sms` from 5f06050; PR25 remains a draft stacked
+on unmerged PR19 at 7dce160. Fresh main 1cac875 includes unrelated public-indexing/calendar
+work, inspected by changed-file list and not merged into this auth closeout. The original
+checkout's two modified docs and five untracked paths remain unchanged.
+
+Updated eight relevant documentation/README files: DECISIONS, PROGRESS,
+backlog/06-authentication, features/managed-authentication-plan,
+features/regular-staff-email-check, features/staff-security-foundations,
+src/features/auth/README and src/app/[locale]/(auth)/README.
+No application behavior, policy value, dependency, migration or production setting
+is changed. The active phone/SMS and obsolete cookie/delivery descriptions are corrected.
+Historical sources/migrations and dated test receipts remain preserved.
+
+Documentation validation: `git diff --check` PASS; no recovery-rehearsal source,
+import, link or test configuration remains. No new runtime tests are needed for
+these documentation-only changes.
+
+Freshly inspected all four completed GitHub checks for 5f06050: push CI37146815235 and
+PR CI37146818515 both PASS. The retained implementation passed lint/types, 1378 units,
+42-page production build, 300 public + 75 auth browser tests with 3 existing skips,
+strict migration lint, 505 SQL assertions, advisors/types and 63 native integrations.
+Native/SQL execution remains isolated GitHub CI only; no local Docker/database run.
+Existing denial tests cover private maintenance/factor reset; its false-only readiness
+CHECK, postgres-only guard and denied API execution keep it closed. The future helper
+needs complete current assurance and actual recent-auth age checks before activation.
+No newly identified active bypass requires another schema change for this closeout.
+
+Organizer-reported preview success is partial human feedback, without specified
+device/locale/keyboard/screen-reader extent. Combined genuine managed/real-inbox human
+UAT, genuine recovery, actual object-storage policies and production email/custody/
+durable Secure-cookie setup remain NOT TESTED/BLOCKED. Every operational/readiness
+flag stays false; participant 72h and staff 30min idle/8h absolute/native-origin policy,
+roles, staff email checking and Super Admin authenticator policy remain unchanged.
+
+Next development item from the freshly read linked checklist (sequence 3): BL-PUB-06
+Contact and BL-PUB-08 Privacy/Terms. Start with truthful bilingual closed scaffolds;
+approved controller/contact, processing/location/retention facts and final copy are
+required before publication/data collection. This auth task does not implement them.
+PR19/25 review and live-auth configuration/release approvals remain separate.
+
+Remaining authentication decisions: recent-auth age, warning lead, named distinct
+Super Admin recovery people and exact verified procedure/evidence, privacy/retention/
+location, production plan/region/email provider/sender/custody/durable cookies, TOTP
+abuse controls and human UAT/domain database/storage policy integration.
+Rollback: revert this documentation-only closeout if needed; stop the existing local
+lab/clear its opt-in to close the preview. Preserve private credentials/send records.
+No hosted rollback is needed. No merge/deploy/send/hosted migration/reset/seed,
+real account/grant/reset, spending or new operational module is performed.
+
+## 3 October 2026 — Isolated staff code delivery and managed HTTP/cookies
+
+Continued the organizer-authorized next slice on `codex/email-authenticator-no-sms`
+from2593345, preserving original checkout edits/untracked work. Fresh remote main is
+111292c; no unrelated public changes were merged into this stacked draft. PR25 remains
+draft against PR19. No dependency or production configuration was changed. New schema
+changes remain review-only and are exercised only on disposable GitHub runners.
+
+Added optional Windows loopback staff test delivery with a private local helper,
+existing encrypted replacement credential and the confirmed self-recipient outside Git.
+Codes travel through bounded stdin and never appear in isolated API responses, UI
+inbox, logs or audits. Safe delivery/expiry metadata and accessible EN/AR retry/resend
+copy replace the displayed code in this mode. Invalid configuration/deployment/CI,
+helper failure/timeout or uncertain SMTP acceptance denies without fallback or retry.
+Default participant/synthetic-email and Super Admin QR/manual TOTP flows are unchanged.
+
+Added a separate CI-only managed HTTP lab and17 integration cases. It composes genuine
+password sign-in, existing private staff email receipts and current database context
+behind opaque HttpOnly/SameSite/Path-scoped cookies; native tokens remain server-only.
+Exact Host/Origin/socket IP/body bounds, no-cache responses, native session/identity/
+role binding, before/after refresh checks and unchanged absolute/idle clocks are covered.
+Logout first revokes private own-session state, then native Auth; partial native failure
+returns unavailable while local state/cookies are cleared. Password-only direct Data
+API access, replay/replacement/limits, new login, expiry, identity/grant/suspension and
+successful/partial logout denial are tested in the disposable runner only.
+No production Next login/API/action or server session store is enabled by this factory.
+
+Executed locally: `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm test`1378/30files PASS;
+`pnpm build`42pages PASS.23 new managed-lab boundary/factory units are included.
+Windows helper pure validation/quota/template/gate checks41 PASS and private fixture
+runtime checks118 PASS in each of PowerShell5.1 and7. Runtime coverage uses fake SMTP,
+private synthetic encrypted fixtures, persistent reservations, restart/send limits,
+competing processes, forced termination, ACL/junction rejection and unchanged original
+credential/attempt metadata. No real credential values were read by fixture tests.
+Database/native integration checks are NOT RUN locally; no Docker is required or used.
+Auth browser suite75 PASS locally. Public browser run299 PASS/1 FAIL/3 existing skips;
+the one Arabic mobile cinematic case passed its targeted rerun. CI37142177606 app job
+passed lint/types/unit/build,300 public browser tests (3 existing skips) and75 auth
+browser tests at00d1037. The loopback inbox-mode preview was also inspected after
+simulated password login in EN/AR at1440/791/390px: correct direction, no horizontal
+overflow, no page errors and no displayed email code. No email was sent by this check.
+Its database job passed migration lint,393 SQL assertions, advisors and type generation,
+then native integration56 PASS/7 FAIL. Existing46 native cases passed. The new cases
+exposed a read-only Data API/RLS issue, a Fetch Host-header test normalization issue and
+an expiry fixture correctly rejected by the immutable-origin guard. The corrections
+and subsequently verified results follow; this first run did not pass integration.
+
+Correction: additive review migration20261003180734 separates stable read-only
+observation/own-role projection from the unchanged volatile POST initialization RPC.
+`msrc_second_step_satisfied` and new `msrc_read_access_context` share the calling
+statement snapshot for role plus receipt checks. Private observers preserve current
+native password/email revision/grant fingerprint/TOTP precision/lifecycle and clocks;
+missing initialized state denies. Independent static review found no additional concrete
+blocker in this SQL slice; runtime verification followed in CI.
+Added112 SQL assertions for readonly positive/denied reads, policy/receipt/factor
+parity, permissions and unchanged session/receipt/audit state. One existing staff fixture
+now explicitly calls the trusted initializer before expecting direct-read success.
+Native HTTP tests use literal Host headers, age expiry fixtures before first observation
+and add direct stale-bearer GET denial after suspension, email/grant changes and new login.
+The corrected database suite was then exercised in disposable CI, not on this computer.
+First corrected head2ce2e09 CI37144279613 reset passed, then strict database lint
+rejected seven STABLE/VOLATILE clock-sampling warnings in the new read observers.
+SQL assertions, advisors/types and native integration were skipped on that run.
+The timing model was corrected without waiving warnings.
+Pure observers now use one genuine statement-admission timestamp alongside their
+MVCC snapshot. A read admitted before expiry may finish afterward; later statements
+deny even within the same transaction. This changes no deadline or session activity.
+Existing locked server/write/consume expiry checks still use actual time after waits.
+The strict lint gate is retained. The delayed-boundary regression passed in CI below.
+Atb0f7bf1 CI37145213167, migration reset and strict lint passed. SQL stopped during
+new-fixture preparation because two synthetic actors were assigned the same changed
+email, correctly rejected by native uniqueness. Existing393 assertions passed; the
+new suite emitted13 assertions before this fixture error, so no full SQL/native
+PASS is claimed for that run. Changed destinations are now unique per synthetic actor.
+Atf0ebbd6 CI37145706902 strict lint,505 assertions, advisors and public type
+generation PASS. Native integration62 PASS/1 FAIL: simultaneous-session direct-read
+positive expected an owned row for its actor, but the resource fixture seeded only
+actor0. Expanding this synthetic resource fixture to existing actors and asserting
+positive direct reads before revocation makes those negative regressions meaningful.
+No authorization/policy relaxation was needed.
+
+At90a098c [CI37146079001](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37146079001)
+database job111270233050 PASS: reset, strict migration lint,505 SQL assertions across
+six files, security advisors, public type generation and63 native integration tests
+across six files against actual GoTruev2.197.0. All18 existing synthetic actors have
+owned protected rows, so logout, partial native logout failure, suspension, changed
+email and grant revocation prove successful direct reads before denied reads afterward.
+Simultaneous sessions prove verified1/password-only0; new login requires fresh proof.
+Application job111270233209 also PASS: lint/types,1378 units,42-page production build,
+300 public browser tests with3 existing skips and75 auth browser tests. Completed
+application/database logs were inspected; the full code-head CI passed.
+The CI server cookie lab remains separate from the actual local SMTP test below.
+
+Executed the ignored local single-flow driver once at20:58 Riyadh on3October2026:
+one English synthetic staff-code email was accepted by Gmail SMTP. The driver uses
+simulated password/session evidence and the actual private sender helper, with the code
+held only in memory. It proved API/UI code suppression, exact synthetic session binding,
+wrong/reused/new-login denial, unchanged refresh origin and logout revocation; it does
+not prove inbox possession. Human receipt of this new code message remains unconfirmed.
+Loopback inbox/code-entry preview: http://127.0.0.1:3221/en/staff-security-preview
+(Arabic under /ar). The automatically exercised code has expired; request a fresh code
+for manual preview. Persistent local reservations remain; do not reset them to retry.
+
+Automatic approval review rejected recursive cleanup of nine older private synthetic
+helper-test folders after a Windows5.1 junction cleanup failure. They remain in place.
+The corrected harness successfully cleaned all fixtures from its final runs. Original
+credentials and eight earlier email-readiness attempt records were preserved.
+
+All15 workflows and operational/privileged readiness remain false. No merge/deploy,
+hosted migration/reset/fixture, real account/invitation/grant/reset, paid resource,
+production Auth/SMTP or credential-in-CI change. Storage is disabled in CI; unavailable
+object-route denial is not object-policy proof. Genuine managed Auth with real inbox
+possession/browser/human UAT is NOT TESTED: local SMTP uses synthetic password/session
+evidence, while native CI uses an in-memory no-delivery inbox. Production delivery,
+durable cookie/session configuration, recovery and domain resource policies remain gates.
+
+Next smallest task: human isolated inbox/code-entry plus EN/AR device/keyboard/
+screen-reader UAT and named distinct recovery custodians/procedure/rehearsal. Recent-auth
+age, warning lead, privacy/retention/location and live provider/sender/custody remain
+unresolved. Rollback: stop the lab, clear email opt-in or revert isolated review code
+without restoring superseded SMS policy; preserve private credentials/attempt history.
+No hosted rollback is needed. Current feature details: regular-staff-email-check.md.
+
+Changed areas in this continuation:
+
+- Delivery: new `src/lib/email/isolated-staff-preview.server.ts`; auth preview service,
+  contract, EN/AR copy and component; `src/lib/email/README.md`.
+- Managed cookies: new `src/features/auth/managed-staff-lab.server.ts` and
+  `tests/integration/managed-staff-cookie.test.ts`.
+- Verification: new `tests/unit/isolated-staff-preview-delivery.test.ts`,
+  `tests/unit/managed-staff-lab.test.ts`, updated auth-preview units/browser cases,
+  new `supabase/tests/database/readonly_authentication.test.sql` and one explicit
+  initialization in `regular_staff_email.test.sql`.
+- Schema: additive `20261003180734_readonly_authentication_context.sql` only in this
+  continuation. Prior migrations/source snapshots preserved; nothing hosted applied.
+- Notes: ARCHITECTURE, DECISIONS, PROGRESS and regular-staff-email-check feature note.
+  Private Windows delivery/launcher/fixture helpers remain ignored outside Git/CI.
+
+Commands: application `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`,
+`pnpm test:e2e` and the auth Playwright configuration. The local public run used an
+ignored alternate-port configuration because3210 was occupied; no existing process was
+stopped. Disposable CI alone runs `pnpm db:reset`, `pnpm db:lint`, `pnpm db:test`,
+local security advisors, `pnpm db:types` and `pnpm db:integration`. The new migration was
+created with installed Supabase CLI `migration new` after reading its help. Private
+helper tests use `Test-IsolatedStaffCodeSynthetic.ps1` and
+`Test-IsolatedStaffCodeDeliverySynthetic.ps1` in both PowerShell versions; the sole
+actual code send used `Start-IsolatedStaffEmailPreview.ps1 -RunSingleFlowTest` once.
+
+## 3 October 2026 — Isolated email readiness tests
+
+Current result: **isolated SMTP authentication, acceptance and inbox delivery PASS**.
+The organizer confirmed Google 2-Step Verification is on and requested another try.
+Executed `Test-ReplacementEmailReadiness.ps1 -RunAuthorizedSecondReplacementTest`
+once: exit 1, AUTH 535, no email attempted. This fixed extra attempt preserved all five
+earlier records. Its 63 synthetic checks and the existing 77 wrapper checks passed in
+both PowerShell versions; root independently reran 63. A malformed singleton-array
+receipt is denied. Actual broad-ACL fixture mutation was blocked by Windows privilege
+requirements; the prior-receipt ACL failure gate was tested by explicit injection.
+
+Read-only inspection of the already-open Google Security page confirmed 2-Step is ON
+and found that its account address differs from the earlier organizer-supplied address
+used by every failed test. Flagged this conflict before changing the selected account.
+The organizer explicitly confirmed the corrected sender/self-recipient for isolated
+tests. Kept address details and credentials out of Git; changed only ignored local
+helpers to carry that exact account through native AUTH, SMTP credentials and From/To.
+Preserved old defaults/records for historical tests; new fixed corrected-account markers
+prevent replay. Exact AUTH 235 in the same invocation remains required before sending.
+Corrected-account 23, AUTH89, readiness56, first-wrapper77 and second-wrapper63 synthetic
+checks PASS in both runtimes; root independently reran 23 before the real corrected test.
+One synthetic test-directory bootstrap race failed initially; its rerun passed after
+directory creation. This was fixture setup, not evidence of a transport/helper failure.
+
+Executed `Test-ReplacementEmailReadiness.ps1 -RunConfirmedCorrectedAccountTest` once:
+exit 0, verified-TLS **AUTH 235** followed by **SMTP accepted** the unchanged English
+readiness message. Read-only Gmail Primary Inbox observation showed the exact subject
+and complete reviewed body at 20:00 Riyadh on 3 October 2026. No additional email was
+sent during that readiness diagnostic. Both credentials and all eight attempt records
+retain private ACLs. This verifies
+the replacement credential with the corrected account; earlier 535 results established
+rejection of the earlier username/credential pair, not invalidity of the password alone.
+Production Auth/SMTP/provider configuration, app runtime, CI secrets, migrations,
+roles/grants and all operational/readiness flags remained unchanged at this diagnostic
+stage. Staff OTP/cookie integration, recovery, participant delivery and human login/
+accessibility UAT were then NOT TESTED; current separately executed SMTP/native-CI
+results are above. The combined managed-login/real-inbox/human flow remains NOT TESTED.
+That diagnostic head 7b7b48e CI37135487400 and 37135484961 was freshly verified PASS;
+application/build/database/browser suites were not rerun locally for this diagnostic.
+
+Replacement continuation: the organizer reported the replacement credential stored.
+Executed `Store-ReplacementEmailTestCredential.ps1 -Status`: exit0, readable locally;
+no network. Prepared ignored `Test-ReplacementEmailReadiness.ps1`, preserving both
+credentials and all earlier attempt records. Its fixed new AUTH marker reserves one
+probe; a separate fixed send marker can be used only after exact AUTH235 success in
+the same invocation with the same replacement SecureString. Default invocation is
+preparation only. Independent review and 77 targeted synthetic checks PASS in both
+PowerShell 7.6.5 and Windows PowerShell 5.1; root independently reran 77 in PowerShell 7.
+Coverage includes rejection/malformed/uncertain replies, no premature send, existing
+markers/replay, callback failures/redaction, same secret and synthetic-record preservation.
+
+Executed `Test-ReplacementEmailReadiness.ps1 -RunAuthorizedReplacementTest` once:
+exit 1, **replacement AUTH 535**, no test email attempted. Retain the replacement AUTH
+record; do not retry either rejected credential. A read-only SecureString comparison,
+validated by 4 synthetic checks, confirmed the replacement differs from the original;
+no password, ciphertext or digest was emitted. Safe presence/private-ACL checks confirm
+both credentials, all four historical records and the replacement AUTH record remain;
+no replacement email-send marker exists. Source re-review found no likely framing,
+account-selection or storage defect. This proves Gmail rejected two different stored
+credentials, not the reason for rejection. Requested mailbox-manager status checks:
+current 2-Step Verification, exact-account replacement entry, any subsequent normal
+Google-password change and any blocked sign-in/security alert. Google documents that
+app passwords require 2-Step Verification and account-password changes revoke them:
+https://support.google.com/accounts/answer/185833?hl=en . At that stage network attempts
+stopped pending that information. SMTP acceptance/inbox delivery were BLOCKED, with no
+production/app/CI credential or readiness changes. Prior docs-only branch e09f8e9
+CI37133281956 and 37133278422 were freshly verified SUCCESS before this continuation.
+
+The organizer selected a Gmail mailbox and reported its manager can help. A dedicated
+app password was manually stored outside Git using Windows-user encryption and private
+ACLs. Safe status confirmed it is readable locally; no credential was printed or added
+to application/CI configuration. The organizer then explicitly authorized exactly one
+English readiness message from/to that same mailbox, with the reviewed subject/body,
+no OTP/account data, no automatic retry and no production changes. This is a narrow
+exception to the earlier no-real-email scope, not production-provider approval.
+
+Executed ignored local `Send-OneEmailReadinessTest.ps1 -SendApprovedOneTest` once under
+Windows PowerShell 5.1: exit1, **FAIL / acceptance unconfirmed**. The private atomic
+attempt receipt records `failed-or-uncertain` and blocks further attempts. Provider
+details were withheld; the original cause was not retained. Do not claim credential
+validation, SMTP acceptance or inbox delivery, and do not automatically resend.
+The organizer subsequently reported that the message was not received after being
+asked to check Inbox/Spam, and confirmed the app password was created under the
+intended sender account. This is human feedback, not a recovered provider error.
+
+Executed credential-free `Test-SmtpConnectionOnly.ps1`: exit0, TCP587 connection,
+SMTP greeting, STARTTLS availability, TLS1.2 and default certificate validation PASS.
+It made no AUTH/MAIL/RCPT/DATA request and used no credential. These results narrow the
+connection investigation but do not establish why the approved send failed.
+The send helper's prior14 fake-delivery checks passed in both PowerShell7.6.5 and
+Windows PowerShell5.1; those are simulation evidence, not real delivery proof.
+After the failed attempt, improved the ignored diagnostic helper to retain only a
+fixed failure stage/category and bounded numeric SMTP status, and to distinguish
+SMTP acceptance from a later local receipt failure. Prepared a distinct second-test
+switch requiring separate approval and the original private failed/uncertain receipt;
+its fixed atomic marker preserves the first and prevents further repeats. Final46
+fake-delivery checks PASS in PowerShell7.6.5 and Windows PowerShell5.1, including
+approval/receipt/replay denials and sensitive-text exclusion. Root independently
+reran the Windows PowerShell5.1 suite.
+
+The organizer then granted standing authorization for isolated test emails without
+repeated questions. Interpreted within the reviewed sender/self-recipient test scope;
+no production delivery or live staff/participant communications are approved. Executed
+`Send-OneEmailReadinessTest.ps1 -SendApprovedSecondTest` once: exit1, stage`smtp-send`,
+category`smtp`, status-1 (generic failure). The second private marker is retained and
+SMTP acceptance remains unconfirmed. No blind retry; investigate the underlying
+transport/runtime/credential issue without logging provider messages or secrets.
+
+Extended safe diagnostics through generic SMTP wrappers: final56 fake checks PASS in
+both runtimes, retaining only fixed category chains and defined numeric socket codes.
+Prepared a fixed third runtime-comparison wrapper preserving both original markers:
+79 fake-only checks PASS in both runtimes; root independently reran the PowerShell7
+suite. Executed that third diagnostic once in PowerShell7.6.5: exit1, smtp-send,
+category/chain`smtp`, SMTP530, no socket error. Gmail documents530 for authentication
+required or STARTTLS required; the numeric code alone does not establish bad credentials.
+Separate connection/TLS checks passed; sender authentication remains unverified.
+Source: https://support.google.com/mail/answer/3726730?hl=en . The third marker remains.
+Executed the TLS-enforced AUTH-only diagnostic once in PowerShell7.6.5: exit1,
+**AUTH535 / credentials-rejected**. It performed no email submission. The server rejected
+the currently stored credential; this is a sender setup blocker, not proof of the reason
+(for example, revoked/incorrect credential or account configuration). AUTH marker retained.
+Source-reviewed secure ordering/certificate/cleanup/no-email guards; root independently
+ran87 fake checks before execution. Independent review found no security blocker but
+flagged deadline accuracy; fixed remaining-time/monotonic bounds and final89 fake-only
+checks PASS in both runtimes. The actual probe completed in1.4s before that repair.
+No additional network retries with the rejected credential.
+Prepared ignored `Store-ReplacementEmailTestCredential.ps1`: hidden manual input,
+fixed separate replacement filename, Windows-user encryption/private ACLs, no overwrite
+of the original credential or any marker, no network. Its38 synthetic checks PASS in
+both runtimes; root independently reran PowerShell7. Safe replacement Status reported
+absent at that point; the continuation above records actual entry and rejection.
+Never request a credential through chat, command arguments or CI variables.
+
+Production Auth/SMTP, hosted migrations, DNS, roles/grants and all operational/readiness
+flags are unchanged. No application code changed; application/build/database/browser
+suites were not rerun for this local diagnostic. Inbox receipt, real staff OTP/cookie
+exchange, authenticator/recovery human UAT and production release remain unverified.
+Local helper/credential/attempt files remain excluded from Git. No hosted rollback is
+needed; preserve the attempt marker to prevent a repeat, and let the mailbox manager
+revoke the dedicated credential if the test setup is retired.
+
+Next smallest task: prepare the isolated staff password/email-check delivery and cookie
+slice using synthetic identities, retaining exact-user/session/current-email/password/
+grant assurance and the approved abuse/session controls. Test-inbox readiness is now
+verified; production provider/configuration approval and live access remain separate.
+Preserve both credentials and all attempt receipts; no further readiness retry is needed.
+Small isolated self-recipient test emails are authorized without repeated approval;
+production delivery, privacy/location, recovery and human login/cookie UAT remain gates.
+Prepare isolated managed staff login/email delivery/cookie tests after sender readiness;
+retain all policy, recovery, privacy/location, recent-auth and warning-lead gates.
+
+## 3 October 2026 — ORG-016 removes phone/SMS; Super Admin authenticator MFA
+
+Reviewed PR22 source at5977eb7, PR19's original base3e0f8a1, existing implementation and
+ORG-013/014/015 before changes. Fresh remote main8482abf adds independent public mobile
+work; no auth runtime changes were merged here. Preserved original checkout edits,
+deployed migration20261002173712 and all earlier review migration/source snapshots.
+Flagged outdated participant-phone/Super-Admin-SMS requirements before editing.
+Recorded ORG-016; retired SMS provider/sender/budget/hook/phone recovery work.
+
+Current policy: participant managed email/password plus verified email only, no phone
+or MFA; regular staff password plus private exact-user/session email receipt at native
+AAL1; Super Admin password then current authenticator TOTP at native AAL2. Roles/scopes,
+strongest tier across editions, individual identity and all15 closed workflows/readiness
+remain unchanged. Participant72h and privileged30min idle/8h absolute retain native
+original-session origin; refresh cannot reset it or count as activity.
+
+Removed active SMS config/provider/hook/inbox/static code and phone fixtures/UI/DTO
+fields. Restored QR/manual authenticator setup and RFC6238 synthetic helper; setup is
+returned once, transient, cleared after verification/terminal/reload and never logged
+or stored in browser storage. Pinned qrcode1.5.4/@types1.5.6. Authentication emails stay
+English-only; EN/AR/RTL UI and staff email single-use/limits/failure controls preserved.
+
+New additive review-only20261003110812_authenticator_super_admin_policy.sql overrides
+current assurance/context and closed maintenance attribution. Participants need current
+verified email/password; Super Admins need signed and native exact-session password/TOTP
+proof against current factor at full native precision, denying same-second stale factor
+mutation. Expiry resamples after factor-lock waits. Prior migrations unchanged; no hosted
+apply, reset/seed, production Auth, real messages/accounts/invites/grants/resets or spending.
+Branch Git deployment remains disabled; local preview only.
+
+Executed local: lint PASS; typecheck PASS; unit1301/28files PASS after fixing a
+retired phone action in the participant test helper; production build42pages PASS.
+Public browser300 PASS/3 existing skips; revised auth browser69 PASS. Local EN/AR
+preview3220 and health200, correct RTL, no phone inputs/overflow/page errors at1440,
+791 and390px; transient setup disappears on reload. QR/key/code captures are masked;
+all12 responsive setup/reload captures were inspected.
+No local Docker/database runtime is run.
+
+PR25 is the new draft against current unmerged PR19. Initial isolated CI37120098412
+atcf4963e passed lint/types/units/build and393 SQL assertions, database lint/advisors/
+generated public types, but44/46 integrations passed: two genuine positive TOTP cases
+failed because the draft used noncanonical AMR method mfa/totp. Pinned GoTruev2.197.0
+uses totp. Corrected only current override/positive fixtures/SDK assertions, retaining
+full-precision ordering. Corrected code6204db3 passed full
+[CI37120525547](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37120525547):
+lint/types,1301 units/28files,42-page production build,300 public+69 auth browser tests
+with3 existing public skips;393 SQL assertions/5files and46 integrations/5files
+(13 genuine managed Auth,17 staff email,10 local wrappers,4 denial,2 concurrency).
+Database lint, security advisors (no issues), generated public types and shutdown PASS.
+Completed application/database job logs inspected; actual GoTruev2.197.0.
+Executed local commands: pnpm lint, pnpm typecheck, pnpm test, pnpm build,
+pnpm test:e2e and pnpm exec playwright test --config playwright.auth.config.ts.
+The disposable unlinked loopback GitHub runner additionally ran pnpm db:reset,
+pnpm db:lint, pnpm db:test, security advisors, generated schema types and managed
+integration tests; db:reset was never run against a hosted project or this computer.
+The final receipt/documentation commit will receive its own CI check; the tested
+code receipt above identifies the source tested without asserting an unrun later head.
+This is a correction, not a
+timestamp tolerance or reduced assurance policy. Historical migrations remain unchanged.
+One visual diagnostic timeout printed a synthetic setup key; restarted the lab to revoke
+all synthetic sessions and wrapped diagnostics to withhold sensitive browser errors.
+
+TOTP provider behavior is distinct from email single-use: a still-valid native TOTP
+time-step code can verify a distinct unused challenge; consumed-challenge replay denies.
+The synthetic verifier's consumed-step guard is stricter lab behavior, not managed
+provider proof. Production TOTP abuse controls/human UAT are not silently approved.
+
+Live English SMTP/provider/sender is absent; console/test only, no development-email
+fallback. Recovery retains revoke/suspend first, in-person identity/appointment review,
+distinct Super Admin approver/operator; named people, precise lost-email/authenticator
+evidence/procedure/rehearsal remain TBD. Recent-auth age/warning lead, privacy/retention/
+location and production release remain unresolved. Human inbox/authenticator devices,
+screen readers, cookie exchange, actual Storage policies and recovery are NOT TESTED.
+Storage/CMS/operations stay closed. Inbox access may allow both password reset and
+staff email-code receipt, weaker than authenticator MFA.
+
+Current main also uses ORG-011 for a separate public decision, in addition to the already
+recorded ORG-010 collision; preserve both auth/public meanings and reconcile IDs during
+later integration without publishing intended-administrator login addresses.
+
+Fresh GitHub status correction: PR22 had already merged into draft PR19 at10:23UTC,
+with identical source at its new base7dce160. The earlier "draft PR22" handoff was stale.
+Its historical title/body was restored after a brief mistaken amendment update.
+Created codex/email-authenticator-no-sms for a new amendment PR against PR19's current
+unmerged branch, preserving current main and both uncommitted original-checkout work
+and review history. Both authentication review branches disable Git deployment.
+
+Rollback: stop local lab/clear flag/restart to discard synthetic memory; revert only
+isolated review code as needed, keeping latest policy and never activating the superseded
+SMS draft. No hosted rollback is needed. Next smallest task: approve concrete English
+email provider/sender and allowlisted isolated delivery/cookie configuration, then test
+delivery and session enforcement while recovery and live access remain closed.
+
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
+## 3 October 2026 — ORG-015 narrow regular-staff email amendment
+
+Reviewed current PR19 draft, main `59d82a6`, existing code and ORG-013/014 before edits.
+During verification remote main advanced to `c10b2c5` through public-page PR21, with
+no authentication runtime overlap. Its ORG-010 identifier collides with this draft's
+Production designation; the integration note in DECISIONS preserves both meanings
+for later reconciliation. This amendment stays stacked on PR19 and does not merge main.
+Flagged the all-staff SMS/AAL2 assumption and absent approved email provider. Created
+`codex/regular-staff-email` from PR19's `3e0f8a1`, preserving pending ORG-014 tests/docs
+and original checkout's uncommitted work. Vercel Git deployment is explicitly disabled
+for this branch; review is local and disposable CI only. No merge/deploy, production
+Auth change, hosted migration/reset, invitation/live grant or real email/SMS.
+
+Regular staff now require password plus a fresh verified-email application receipt.
+Super Admin password/SMS MFA, participants' email/password plus email+phone verification
+without MFA, role/scopes, 72h participant and 30min idle/8h staff limits are preserved.
+The receipt binds exact managed user/session, current email/user/password/grant versions;
+new login needs a fresh check, refresh cannot restart the origin. Email proof is not
+Supabase MFA/AAL2; inbox compromise may allow password reset and receipt of the code.
+All operational/readiness flags stay false. See the
+[implementation, configuration, UAT and rollback note](features/regular-staff-email-check.md).
+
+New additive review-only migration `20261002233353_regular_staff_email_check.sql` adds
+four private forced-RLS evidence/revision/audit tables, narrow service RPCs and a self-only
+current-auth predicate. Prior migrations and v0.5 source are unchanged. Approved staff
+OTP limits are reused with atomic account/IP reservations, single-use/replacement,
+committed attempt counters and fail-closed delivery/audit behavior. UI remains EN/AR/RTL;
+authentication test email is English-only. No provider/sender/key/default SMTP is active.
+Managed Auth refresh exposed that generic native user.updated_at changes despite
+unchanged password/session proof. Receipts instead use a protected revision of relevant
+email/confirmation/password changes; irrelevant timestamp changes preserve verification.
+
+Checkpoint validation: `pnpm check` PASS (lint/types,1272 unit tests across27 files,
+42-page production build); auth browser69/69 PASS across desktop/tablet/mobile,
+including EN/AR keyboard/Axe/failure/retry. Twelve masked representative captures
+plus four regular-staff scroll-zero captures inspected; no horizontal overflow.
+`git diff --check` PASS. Isolated [CI37085497603](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37085497603)
+at `ae62270` executes database reset/lint,378 assertions across5 SQL files, security
+inspection (no findings), nonempty public type generation/strict compilation and44
+integrations across5 files PASS. All17 regular-email and11 native Auth cases pass,
+including refresh/new-login preservation, native password mutation, email/confirmation
+away-and-back, direct permissions and concurrency. Actual runtime:
+`public.ecr.aws/supabase/gotrue:v2.197.0`; shutdown PASS. Initial runs exposed and fixed
+the generic user-version refresh bug and three CI fixture issues (phone-provider
+resolver, internal-role impersonation and native hook message shape). No production
+permission or policy was relaxed to repair those fixtures.
+Application CI at `d9fb440` passed1269 units/300 public+69 auth browser tests with3
+existing skips and production build; current local lint/types/1272 units/build pass
+after the final wording/guard changes. Final-head application/CI receipts are recorded
+on [draft PR22](https://github.com/xpexellent-dotcom/msrc-2027/pull/22) and the linked
+checklist. Preview EN/AR and health each200, Arabic RTL verified; no GitHub deployment
+at the corrected source head. Local database is NOT TESTED (no Docker requirement).
+Real email/cookie delivery, storage-object policy integration, recovery and human UAT
+remain NOT TESTED/BLOCKED. Storage is disabled, and no operational domain policy is
+opened. SMTP/provider/sender, privacy/location, recent-auth age, warning lead, named
+recovery custodians/evidence/rehearsal and production release remain gates. Recovery
+retains distinct Super Admin approver/operator and in-person identity review.
+
+Next smallest task: approve concrete isolated English email delivery configuration and
+recipient/privacy scope, then wire/test the disabled adapter without enabling workflows.
+Super Admin SMS direct-Auth newest-challenge/abuse controls remain a separate release
+blocker. No production rollback is needed; revert the amendment and restart/stop the
+memory lab, with disposable fixtures removed by runner teardown.
+
+## 3 October 2026 — ORG-014 decisions and isolated managed Auth API tests
+
+Organizer decisions now recorded: Saudi-only first delivery test, no existing SMS
+service, RPClub contracting entity, Vonage/MSRC2027 conditional shortlist, approved
+SMS control targets and recovery target (distinct Super Admin roles, in-person
+identity review). Individual recovery custodians remain unnamed. Keep tests in
+disposable GitHub CI; no paid hosted setup or SMS spending is authorized. Recent-auth
+timing, warning lead, privacy/location and real-human UAT remain unresolved.
+Details, provider qualification questions/cost illustrations, control enforcement
+gaps and recovery sequence: [managed decision packet](features/managed-authentication-plan.md).
+
+Reused clean PR19 worktree at `3e0f8a1` on `codex/staff-mfa-sessions`; remote main
+reverified at `59d82a6`. Original checkout's uncommitted docs/reviews remain untouched.
+Typed configuration records the approved targets, separates the provider/sender
+shortlist from null active settings, and keeps spending/live/recovery gates closed.
+All operational/readiness flags remain false. Source v0.5 and both migration files
+are unchanged; no new migration, dependency, hosted resource or production mutation.
+
+Added a CI-only Auth configuration preparer, ten environment/config rejection
+checks, and genuine managed SDK/API integration coverage with synthetic identities.
+Global signup stays disabled. Phone MFA uses a private test-only SMS hook/inbox;
+email delivery is rejected. Generated codes/passwords/tokens/SQL diagnostics never
+enter test snapshots/logs/artifacts. Hook/inbox objects clean up after execution;
+all fixture state disappears with the disposable runner. The normal local Supabase
+configuration stays unchanged, and the fixture harness refuses hosted/non-loopback
+targets or a non-GitHub-hosted runner. CI records its actual GoTrue image/version.
+
+Local `pnpm check` PASS: lint/types, 1083 unit tests across26 files and42-page
+production build. Focused session-policy66/66 and CI config guard10/10 PASS.
+`git diff --check` PASS. No browser code changed; automatic CI runs the existing
+public and auth suites. Managed runtime/database execution is pending isolated CI
+at this checkpoint; no local Docker/SQL was run. Exact final source/head CI and
+protected Preview receipts are recorded on PR19 and the linked checklist.
+
+Source review found two integration differences to test: managed participant
+phone-change verification creates an OTP session, requiring a new email/password
+sign-in for password proof; native phone MFA accepts older unexpired challenges.
+Approved newest-challenge access and shared abuse limits need trusted hook/database
+evidence; UI throttling/native AAL2 alone is insufficient. Current false readiness
+keeps every operational action closed. These targets are not declared enforced.
+
+Live SMS/managed-hosted delivery, application cookie exchange, actual recovery,
+named-human devices/screen readers and UAT remain NOT TESTED/BLOCKED. Phone provider
+qualification/registration/quote and future budget remain pending. Rollback: revert
+this test/config/docs slice; disposable fixtures disappear on shutdown. No hosted
+rollback is needed. Next smallest implementation: shared managed send/failure
+controls and a trusted current-challenge assurance receipt before any live access.
+
+## 3 October 2026 — ORG-013 participant verification and staff SMS policy
+
+Explicit organizer override: participants require email+phone verification without MFA;
+staff/admins use password then SMS OTP. Managed email/password remains primary sign-in.
+ORG-013 supersedes current TOTP/optional-phone/no-SMS authentication requirements only;
+the v0.5 source and dated earlier TOTP receipts below stay preserved. SMS outside
+authentication, WhatsApp/push and other operational communications remain excluded.
+The requester reported the earlier preview worked; new SMS/managed-provider/human
+accessibility UAT is separate and remains unverified.
+
+Fresh GitHub main is `59d82a6099166631722a8340db494fbb7506c430` (merged PR20);
+PR19 remains open/draft/unmerged. Reused its isolated `staff-mfa-sessions` worktree/
+`codex/staff-mfa-sessions` branch and merged current main (merge `0d7d727`), preserving
+both auth and chapter-bar progress entries. Original main checkout's uncommitted
+docs/reviews and the previous authorization worktree remain untouched.
+Fresh main [CI37068248924](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37068248924)
+reports success at59d82a6; this is a receipt check, not a new broad main runtime audit.
+
+Current closed lab: simulated successful password step, separate participant email/SMS
+verification with AAL1/no factor, and staff phone enrollment/challenge/verification with
+SMS/AAL2. Ephemeral generated codes return only in the send response; server-held keyed
+hashes, single-use/replacement/expiry, bounded retries, serialized verification/audit and
+sanitized failure recovery. EN/AR/RTL, keyboard, Arabic digits, transient locale/retry
+input and test inboxes replace QR/manual authenticator setup. No real password/phone
+collection, delivery, account, invitation, grant or reset. Unused QR dependencies removed.
+
+Authentication configuration records approved policy with live SMS provider/sender/budget/
+expiry/resend/attempt/account/IP settings and recovery still unset. Server/database
+assurance requires current password then exact managed `mfa/phone` proof and a current
+verified phone factor. Participant email/phone confirmation grants no staff MFA. Trusted
+adapter chooses SMS explicitly; AMR does not prove the delivery channel. Pending session
+migration overrides the historical own-context RPC without changing/reapplying deployed
+`20261002173712`. New `20261002193800` remains REVIEW ONLY. Participant72h and staff30min
+idle/8h absolute remain; refresh never changes origin, staff cannot downgrade by edition.
+All15 operational flags and both readiness flags remain false. No hosted mutation.
+
+Verification checkpoint: `pnpm install --frozen-lockfile` PASS; `pnpm check` PASS with
+lint/types/1073 units and42-page production build after review fixes. Full public browser
+suite `pnpm test:e2e`:300 PASS/3 existing explicit skips; dedicated SMS browser initially
+36 PASS, then expanded to48 for participant messages and periodic expiry/revocation
+announcements. Expanded run42 PASS/6 test-fixture failures: a mock expiry was followed by
+navigation that correctly restored the still-active real synthetic server session. Test
+only corrected to restart from the displayed terminal state; final48/48 PASS (37.2s).
+Auth error-context files contained test source only; credential-bearing automatic aria
+snapshots/traces/screenshots are disabled, and explicit captures mask inbox/code fields.
+All12 masked EN/AR staff/participant captures across desktop/tablet/mobile were inspected;
+forms/RTL/overflow checks passed. A fixed-header position in some full-page screenshots is
+a capture artifact, not certification of human screen-reader/device UAT.
+
+Actual isolated database [PR CI37073654880](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37073654880)
+job111058834913 at3f1c5ad PASS: `pnpm db:reset` LOCAL only, `pnpm db:lint` no schema
+errors, `pnpm db:test` four files/260 assertions PASS, security-advisor check PASS,
+public schema generated-types strict compile PASS, `pnpm db:integration` three files/16
+tests PASS (including two actual parallel lifecycle tests), stack stop PASS. Logs were
+decoded and inspected. Earlier database job111057383943 at3c2f362 also passed260/16;
+SQL/application source is identical, only a browser fixture/progress entry changed.
+Final documentation-only commit receives its own automatic application/database CI and
+Preview checks; latest exact-head receipts are recorded on PR19 and the linked checklist.
+Vercel Preview6819754422 at3f1c5ad reports success:
+https://msrc-2027-hstb8t987-msrc2027.vercel.app. Authenticated Vercel runtime inspection
+remains BLOCKED by protection/connector access. This lab intentionally rejects every
+Vercel environment; local synthetic review is available instead. Rebuilt EN/AR preview
+on127.0.0.1:3220 each returned200. No deployment protection bypass was opened.
+Review also fixed reauthentication clearing code-attempt cooldowns; three new regressions
+PASS. Independent SQL/TS/source review found no actionable issue; it executed no DB tests.
+`git diff --check` PASS. Fresh production auth-lab page/API404 and health200 confirm the
+existing production boundary; no production deployment changed. Local Docker/SQL is
+intentionally NOT TESTED. Human screen-reader/device, actual SMS delivery,
+managed cookie/refresh, lost/changed phone recovery and production configuration UAT
+remain NOT TESTED/BLOCKED. Earlier successful PR19 TOTP CI is not proof of this override.
+
+Remaining release inputs: SMS provider/sender/budget/operating controls; verified
+phone-loss/change/reset procedure and recovery approver/operator; recent-auth age and
+warning lead; privacy/retention/location; live security-email provider/sender; production
+plan/region/operational approvals; two intended administrators. Login addresses remain
+private. Next smallest task is approved isolated managed password→SMS integration/UAT.
+Rollback: stop local lab/clear opt-in to discard ephemeral state; revert application changes
+if needed. No production SQL rollback is needed because the new migration is unhosted.
+Details and manual review steps: [feature note](features/staff-security-foundations.md).
 ## 3 October 2026 — QA pass: Arabic visitors at the root, Event search data, sitemap x-default
 
 Live sweep of www.msrc2027.com after PR 27: all 20 public pages (EN/AR) at 1280 px Chromium, Pixel 7 Chromium and iPhone 13 WebKit return 200 with one h1, the right `lang`, no console errors, failed requests, broken images, unnamed controls or horizontal overflow; axe (WCAG 2.2 AA + best practice) reports no violations; all 24 linked URLs return 200. Security headers, the apex and `.vercel.app` 308s, robots and sitemap are as ORG-013 set them. Changed:
@@ -161,6 +869,77 @@ The requester tried PR 18's floating pill and side panel on an iPhone and reject
 - Numbering: the bar called "Plan your visit" 06, while its section eyebrow reads "07 / Plan your visit", because section 06 ("Shared purpose", partners) had no chip. At the requester's choice (3 October) the bar gains 06 Partners / «الشركاء», so every chip matches its eyebrow, now asserted for EN and AR. The desktop grid takes seven columns and stays one row at 1100, 1280 and 1440 px. `#partners` gains `tabIndex={-1}` like the other chapter sections.
 
 Verification: ESLint and `tsc` PASS. `tests/e2e/chapter-bar.spec.ts` (new) passed with `brand-motion` and `cinematic-film`, which click the index right after load: Chromium 61 passed, 1 skipped; the new spec in WebKit desktop and iPhone passed 4/4. Full run: Vitest 888/888, Playwright Chromium 294 passed, 3 skipped (duplicate tablet cases), WebKit `qa-regressions` + `chapter-bar` 30/30.
+
+## 2 October 2026 — Bounded BL-AUTH-05/06 closed staff security foundations
+
+Requirements: AUTH-04/05, ROL-12, SEC-01/02/06, LOC-01, ACC-01, ERR-01.
+New isolated managed worktree `staff-mfa-sessions` on `codex/staff-mfa-sessions`
+starts at remote main `eb4c5a005e84a5626e0d6e5bbf01115087810aaf`. Original main
+checkout's uncommitted docs/reviews and previous authorization worktree are preserved.
+Fresh main [CI 37053006357](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37053006357)
+reports success; GitHub Vercel status reports successful deployment. These receipts
+supersede the supplied main 14a58fb handoff for the starting Git state. Remote main
+was rechecked at finish and remains eb4c5a0; this branch is not merged.
+
+ORG-010 designates `ecemjggwlzqpjcwmchrl` Production; ORG-011 records first intended
+Super Admin and two TBD, withholding login addresses; ORG-012 replaces participant
+24h with confirmed 72h absolute maximum while preserving the original v0.5 snapshot.
+Privileged 30min idle/8h absolute, recent-auth age/warning null and recovery/privacy/
+security-email gates are recorded in current requirements and typed configuration.
+Fresh read-only hosted history still has only 20261002173712; aggregate accounts,
+editions, access accounts, grants and grant audit rows are all 0. No hosted mutation.
+
+Implemented local-only bilingual/RTL synthetic TOTP QR/manual enrollment/challenge,
+failure/retry, assurance and session revocation scenarios. Server-generated keys and
+opaque HttpOnly synthetic cookie, strict Origin/512-byte exact JSON actions, no-store,
+deployment 404 and disabled managed MFA contract. Approved session policy/evaluator and
+review-only migration 20261002193800 add private session evidence, immutable origin,
+revocation cutoffs and safe append-only audit. Public heartbeat does not touch idle;
+private activity awaits successful authorized domain transactions. Consequential
+maintenance/reset stays closed with unresolved recent-auth/recovery and false readiness.
+No staff account/grant/real factor/email or operational module is activated.
+
+Dependencies added and pinned: qrcode 1.5.4 and @types/qrcode 1.5.6; lockfile committed.
+Node 24.21.0/pnpm 11.19.0 verified. `pnpm install --frozen-lockfile` PASS. Initial
+typecheck/build exposed test-helper/RPC typing errors, corrected. `pnpm check` PASS:
+lint, types, 1049 unit cases and 42-page production build. Initial browser execution
+was BLOCKED by missing pinned Chromium v1243; `pnpm exec playwright install chromium`
+PASS. Dedicated auth browser suite: 27/27 PASS across desktop/tablet/mobile, both
+languages, real generated TOTP, retry, keyboard and axe. Six masked visual captures
+were inspected. Full local public suite: 294 PASS, 3 explicit skips, 2 failures in
+existing film/countdown timing checks; `playwright test --last-failed` rerun: 2/2 PASS.
+Complete implementation-source [PR CI 37058469415](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37058469415)
+and [push CI 37058461928](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37058461928)
+at ff9d1d981f7d995f9b6f7a7c304a88796fed8963 both PASS. Actual application/database logs
+inspected: lint, typecheck, 1049 unit cases, 42-page build, 296 public browser PASS /
+3 explicit skips, 27 auth browser PASS, four pgTAP files / 245 assertions, three Data API
+integration files / 16 PASS. Two integrations execute simultaneous expiry and locked
+suspension attempts using actual parallel database connections; neither restores activity
+or duplicates revocation evidence. Staff policy cannot downgrade across configured editions;
+factor deletion/stale assurance, unauthorized reset and malformed subject fail closed.
+`pnpm db:lint`, local security advisors (No issues found), generated types/strict compile
+and stack stop PASS. Earlier CI exposed a test-fixture guard incorrectly requiring an
+explicit local target; it stopped before writes. Corrected to accept the validated local
+default while preserving GitHub Actions, loopback, exact project/container restrictions.
+Its two concurrency cases then executed and passed. Fixtures survive only in the disposable
+CI runner's Docker volume until runner teardown. Final documentation-only commit receives
+its own automatic CI/Preview checks; see PR 19 for the latest exact-head receipts.
+Local Docker/SQL is intentionally NOT TESTED; synthetic SQL runs only in GitHub CI.
+Vercel Preview deployment 6817194861 at ff9d1d9 reports success:
+https://msrc-2027-3thiijfj4-msrc2027.vercel.app. Runtime inspection is
+BLOCKED by Vercel login protection and connector authorization (403); no bypass opened.
+Local EN/AR preview on 127.0.0.1:3220 returned 200. Existing production lab page/API
+returned 404; `/api/health` returned 200/static-foundation/workflows closed.
+Production was not redeployed by this task.
+
+Scoped draft [PR 19](https://github.com/xpexellent-dotcom/msrc-2027/pull/19) is attached
+for review. The linked checklist has confirmed organizer decisions updated; feature
+completion remains partial. [Feature note](features/staff-security-foundations.md)
+records files/migration, local run instructions, UAT/configuration and rollback.
+All 15 workflow flags and operational/privileged readiness remain false. Human real-app
+MFA, screen-reader/device review, live provider exchange, saved-draft recovery and
+production data/region/recovery approvals remain open. Next smallest task is approval
+of recovery/recent-auth settings and isolated managed Auth UAT, before domain/CMS access.
 
 ## 2 October 2026 — Chapter navigation follows the reader on phones (ORG-009)
 

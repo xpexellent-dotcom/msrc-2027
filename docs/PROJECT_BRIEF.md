@@ -18,10 +18,10 @@ Akram Awan is the project requester and has identified his role in conversation 
 | Event dates | Day 1: 27 January 2027; Day 2: 28 January 2027 | Confirmed by the project requester in the current chat on 1 October 2026; see ORG-001 in DECISIONS |
 | Venue and schedule | Venue, rooms, doors/session start times and workflow windows remain unset | Remaining CFG-01 and track-specific gates; date confirmation does not approve these values |
 | Ownership | MSRC/RPClub organizational accounts with institutional authorization, O1 | Selected model; custodians/authorization evidence pending |
-| Hosting and data | Managed Vercel plus managed Supabase | Selected; actual projects/plans/regions/access not verified |
+| Hosting and data | Managed Vercel plus managed Supabase | Project ecemjggwlzqpjcwmchrl designated Production by ORG-017; production plan/region/privacy/operational approvals unresolved; synthetic data isolated |
 | Payments | Authorized KAU arrangement, P1 | Selected route; actual interface and finance rules pending |
 | Main product reference | Development Specification v0.5 | Current live source reviewed on 29 September 2026 |
-| Build status | Documentation handoff prepared | Application/infrastructure implementation not established by sources |
+| Build status | Next.js foundation, bilingual public pages and closed persisted authority implemented | Current receipts in PROGRESS; BL-AUTH-05/06 add a local synthetic preview and review-only session migration; live staff/operational access stays closed |
 
 ## Audiences and outcomes
 
@@ -45,7 +45,7 @@ These remain delivery scope even when released at different times. Staging does 
 
 ## Deliberate scope exclusions
 
-Public attendee lists; public abstracts/research search; full-site search; attendee networking/messaging; sponsor self-service accounts; personal schedule building; native mobile apps; automatic team matching; university SSO; SMS/WhatsApp/push integrations. National IDs are excluded. Third-party video embeds and public gallery download buttons are excluded. Dark mode is outside committed scope. [S1 SCP-05, AUTH-06, MED-01/04, DSN-02]
+Public attendee lists; public abstracts/research search; full-site search; attendee networking/messaging; sponsor self-service accounts; personal schedule building; native mobile apps; automatic team matching; university SSO; SMS/WhatsApp/push integrations. ORG-016 (3 October 2026) removes authentication phone collection and verification and retires SMS provider/sender/budget work. Participants use managed email/password and verified email without MFA. Regular staff use ORG-015 password plus a server/database enforced exact-session application email check at AAL1; Super Admins use password plus authenticator TOTP. Inbox access may allow password reset and code receipt; staff email checking is weaker than authenticator MFA. Live email provider/sender is absent; recovery, privacy/location, named custodians and UAT remain gates. National IDs are excluded. Third-party video embeds and public gallery download buttons are excluded. Dark mode is outside committed scope. [S1 SCP-05, AUTH-01/04/06, MED-01/04, DSN-02; ORG-015/016]
 
 Program filters, read-only My Bookings, restricted dashboard search, and single-certificate verification remain in scope and must not be removed by those exclusions.
 

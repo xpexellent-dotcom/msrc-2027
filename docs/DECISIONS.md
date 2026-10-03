@@ -8,6 +8,24 @@ Supporting source: **S2 Hackathon Draft**, modified 2026-09-29 11:09:52 UTC / 14
 
 Planning companion: [Decision Required backlog](backlog/DECISION_REQUIRED.md) maps every CFG-01–CFG-13 packet to actionable questions and affected release gates. Creating that backlog resolved no organizer decision and changed no confirmed choice, default, source snapshot or production configuration.
 
+## Decision identifier reconciliation — 4 October 2026
+
+Parallel public-site and authentication branches reused ORG-010 through ORG-013.
+Integration preserves main's public identifiers and assigns new canonical identifiers
+to the four authentication records below. This changes references only, not organizer
+instructions, dates, policy values or release approvals.
+
+| Former authentication label | Canonical identifier | Record |
+|---|---|---|
+| ORG-010 | ORG-017 | Production Supabase designation, 2 October 2026 |
+| ORG-011 | ORG-018 | Intended website Super Admins, 2 October 2026 |
+| ORG-012 | ORG-019 | Participant 72-hour absolute maximum, 2 October 2026 |
+| ORG-013 | ORG-020 | Historical participant-phone/staff-SMS decision, 3 October 2026; superseded by ORG-016 |
+
+Dated progress/source/migration receipts retain their former labels and are interpreted
+by topic and date using this table. Current authentication requirements use the new
+identifiers. ORG-014, ORG-015 and ORG-016 remain unchanged.
+
 ## 1. How to interpret status
 
 | Status | Meaning |
@@ -49,8 +67,8 @@ The source selects providers and intended ownership; it does not create accounts
 | Participation pathways | Separate registration, abstracts, hackathon, 3MT and workshop states linked to one account. Co-authors are not attendees automatically. | SCP-03, REG-01/08 |
 | Admission | Every registration manual approval, including full discounts. Default approve before financial completion; confirm/ticket only when both exist. | REG-02/03, PAY-03 |
 | Workshop dependency | Manual approval and payment/valid discount, plus confirmed conference registration before confirming workshop. | WKS-02 |
-| Email verification | Six-digit numeric code; managed email/password. No university SSO. | AUTH-01/02 |
-| Privileged access | Individual accounts, authenticator-app MFA and data/API enforcement, no role assumption from interface visibility. | AUTH-04, ROL-01/12 |
+| Account verification | Managed email/password and verified email; participants have no phone verification or MFA (ORG-016). Email codes six-digit numeric. No university SSO. | AUTH-01/02/06 |
+| Privileged access | Individually identified accounts; regular staff password then private exact-session application email check (ORG-015), Super Admins password then authenticator TOTP (ORG-016). Server/database/storage enforcement; no interface or metadata authority. Live email/recovery gates stay closed. | AUTH-04, ROL-01/12 |
 | Interface language | English-default bilingual public/participant/non-review organizer UI and Arabic RTL. | LOC-01/03 |
 | Scientific language | Scientific/project text English-only, LTR scientific fields in Arabic UI. Reviewer/judge assessment English-only. | LOC-02/03 |
 | Email language/channel | All platform transactional messages English-only and email-only. | LOC-03, EML-01 |
@@ -77,7 +95,7 @@ The source selects providers and intended ownership; it does not create accounts
 
 | Conflict / ambiguity | Source evidence | Governing behavior until resolved | Who decides / dependent gate |
 | --- | --- | --- | --- |
-| National ID and phone | S2 5.1 requests national ID and phone in profiles. S1 AUTH-06/PRV-03 exclude ID and make phone conditional; HAC-10 and CFG-13 explicitly flag conflict. | Keep national ID excluded and phone optional/conditional. Add neither silently; any future change requires explicit purpose/access/retention approval. | Hackathon + privacy/technical owners; production hackathon profile collection. |
+| National ID and phone | S2 5.1 requests national ID/phone; S1 excludes ID and makes phone conditional. ORG-016 supersedes ORG-020 authentication phone requirements. | National ID stays excluded. No authentication phone collection/verification or SMS; unrelated optional domain purposes remain separately gated. | Hackathon + privacy/technical owners; production profile collection and unrelated phone use. |
 | WhatsApp group | S2 6.1 mentions online orientation with WhatsApp group. S1 EML-01 confirms email-only platform and HAC-10 flags discrepancy. | No WhatsApp integration/automated notifications or automatic phone sharing. Decide separately whether an optional external organizer-run group exists. | Hackathon + operations/privacy owners; participant onboarding. |
 | Solo finalist quota | S2 4.3 states eight teams per track, sixteen teams total; C3 also permits solo competition. | Do not assume extra solo spaces or sixteen people. One project per solo/team consuming an entry is only S1 HAC-07 proposal, not approved. | Hackathon lead; ranking/selection publication. |
 | Eligibility | S2 3.1 broad university student/intern sentence remains labelled Options, even though international eligibility and no-healthcare-member answers are clear. | Preserve answered choices, withhold final broad eligibility rule until approved. | Hackathon lead; application opening. |
@@ -124,9 +142,9 @@ These are source defaults and service objectives, not measured production perfor
 
 | IDs | DEFAULT / objective |
 | --- | --- |
-| AUTH-02 | OTP ten minutes; resend cooldown 60 seconds; <=3 issued/email/15 minutes; <=5 failed attempts/code. |
+| AUTH-02 | Participant email verification source defaults remain ten minutes, resend60s, <=3/email/15min, <=5 failures/code. ORG-015 carries approved staff email controls: six digits/5min, resend60s,3/account/15min,10/rolling24h,20/IP/hour,5 failures/15min cooldown,newest only. ORG-016 retires all SMS delivery/provider/budget/control requirements; these email controls remain. Native TOTP protocol/lab bounds are not an approved production abuse policy. |
 | AUTH-03 | Additional challenge/cooldown after five failed password attempts/15 minutes, no permanent lock. |
-| AUTH-05 | Participant absolute 24h; privileged idle 30min/absolute 8h; recent auth for sensitive actions. |
+| AUTH-05 | ORG-019 supersedes participant 24h default: confirmed absolute maximum 72h from original session creation, never restarted by refresh. Privileged idle 30min/absolute 8h remain. Recent-auth age and warning lead TBD; dependent actions closed. |
 | AUTH-08 | Remove abandoned unverified accounts after seven days only if no required record prevents cleanup. |
 | ABS-04 | Whitespace tokens with letter/digit; no-space hyphenated term one word; shared client/server implementation. |
 | ABS-07 | Withdrawn finalized research entries continue counting within two-per-PI cap unless logged exception. |
@@ -1017,3 +1035,373 @@ v0.5 and earlier source snapshots stay unchanged.
   approve content, brand or operations; those remain under REL-01/CFG-12. Google Search
   Console registration is the requester's step.
 - Affected IDs: SCP-01, DSN-01, LOC-01/03, INF-04/06, REL-01.
+## ORG-017 — Production Supabase designation, 2 October 2026
+
+Authority: explicit organizer instruction in this conversation on 2 October 2026.
+Project `ecemjggwlzqpjcwmchrl` is Production. This resolves the environment classification
+question in ENG-006/010; development fixtures are prohibited there. Synthetic database tests
+use isolated GitHub CI, and the local MFA lab uses ephemeral memory with no hosted request.
+Production plan, region/data location, privacy/retention and operational approvals remain
+unresolved. New migrations are review-only; no hosted reset, seed, historical migration push
+or repeat of deployed `20261002173712_persisted_authorization.sql`. INF-04, CFG-09/10/11.
+
+## ORG-018 — Intended website Super Admins, 2 October 2026
+
+Authority: explicit organizer instruction in this conversation on 2 October 2026.
+Akram Awan is the first intended website Super Admin; second and third remain TBD.
+Login addresses are retained only in ignored local private designation material, excluded
+from repository, PR and checklist. This is designation, not activation: no invitation,
+account creation, live grant or reset is authorized. Exactly three individually identified
+administrators, verified appointment/MFA and offboarding evidence remain required
+(ROL-10/12, CFG-11). Recovery approver, operator and verified procedure remain TBD;
+privacy/retention/location and live security-email provider/sender remain TBD. Console/test
+email only; this slice sends no real security notification.
+
+## ORG-019 — Participant absolute session maximum, 2 October 2026
+
+Authority: explicit organizer instruction in this conversation on 2 October 2026.
+AUTH-05 participant absolute maximum becomes 72 hours from original session creation,
+superseding v0.5's 24-hour default in current requirements/configuration/tests. Preserve
+the source snapshot. Public browsing requires no login. Privileged idle remains 30 minutes
+and absolute remains 8 hours. Refresh, MFA challenge and activity cannot restart absolute
+lifetime. Fresh sign-in creates a new origin only after old-session denial and current
+authority checks. Recent-auth maximum age and warning lead remain unset; dependent
+sensitive actions stay closed.
+
+## ENG-011 — Closed local staff security foundations, 2 October 2026
+
+Historical TOTP implementation decision; ORG-020 temporarily superseded its factor/UI choice. ORG-016 restores Super Admin authenticator TOTP while regular staff retain ORG-015 email checking. Local-only, synthetic-data, audit and closed release boundaries continue to apply.
+
+Authority: bounded BL-AUTH-05/06 task; AUTH-04/05, ROL-12, SEC-01/06, LOC-01, ERR-01.
+The local synthetic TOTP lab uses temporary individually scoped identities, server-held
+keys and challenge/replay controls. QR/manual setup show a fresh synthetic key during
+enrollment only; credentials/codes never enter audits or browser storage.
+Routes require `MSRC_AUTH_PREVIEW=synthetic`, loopback Host and no deployment environment;
+Next binds to 127.0.0.1. All Vercel environments reject the lab. It is dynamic, private,
+no-store and excluded from indexing/production analytics. The managed-provider adapter
+is a disabled integration contract; preview never calls Production Auth. Reset requests
+fail closed pending approved recovery. Synthetic revocation scenarios reset no live factor.
+New database policy/session evidence and own-context RPC are review-only; readiness
+remains false. Privileged activity must be server-observed, with expiry checked before
+idle evidence changes; refresh/context reads are never activity. No domain AuthorityReader,
+feature RLS, signup, CMS, operational workflow, email provider or production authorization
+is added. Verification/rollback/release gates are recorded in the feature note and PROGRESS.
+
+## ORG-020 — Participant verification and staff SMS authentication, 3 October 2026
+
+**Historical decision:** ORG-016 supersedes every phone/SMS authentication requirement below. ORG-015 regular-staff email controls and the distinct-person/in-person recovery safeguards remain current; no SMS provider, sender or budget is required now.
+
+Authority: explicit organizer instruction in this conversation on 3 October 2026:
+participants do not need MFA; verify accounts via email verification and phone verification;
+staff/admins use password then SMS OTP. This overrides v0.5 AUTH-04's TOTP requirement,
+AUTH-06's optional-phone baseline and the authentication part of SCP-05/EML-01's SMS
+exclusion. Preserve `sources/Development_Specification_v0.5.txt` and dated TOTP receipts.
+
+- Primary sign-in remains managed email/password. Participants require both current
+  managed email and phone verification, stay AAL1 and acquire no staff authority from either.
+- Staff/admins require current password proof followed by a verified phone MFA challenge,
+  AAL2 and current scoped grants. Primary phone OTP, participant verification, email code,
+  old TOTP and generic AAL2 are insufficient. Offboarding/factor change/reset still revoke.
+- SMS is limited to authentication. Operational/security notices remain English-only email;
+  WhatsApp/push and other SMS communications remain excluded. Supabase `mfa/phone` AMR
+  proves the phone factor, not its delivery channel: trusted challenge code must explicitly
+  select SMS, and approved provider configuration/UAT must verify SMS-only delivery.
+- SMS provider/sender/budget, expiry/resend/attempt/account/IP controls, verified phone
+  change/loss/reset process and recovery approver/operator remain TBD. Email OTP defaults
+  do not approve SMS controls. Recent-auth maximum age and timeout-warning lead stay null.
+  Phone authentication purpose is approved; privacy/retention/data-location documentation,
+  production plan/region and operational release approvals remain separate gates.
+- The closed local preview simulates successful password entry without collecting a real
+  password. Its ephemeral test inbox displays generated email/SMS codes only when issued;
+  no real delivery/account/invitation/grant/reset is performed. Live provider and both
+  readiness flags remain false. No participant signup or operational workflow is added.
+- ORG-019's participant 72h and privileged 30min idle/8h absolute limits remain; refreshing
+  a token never changes the original absolute origin. New hosted migrations remain review-only.
+
+The organizer reported the previous preview worked. This is bounded feedback on the
+previous TOTP preview, not proof of the new SMS flow, real delivery, screen-reader review,
+managed-factor lifecycle or release approval. Updated evidence belongs in PROGRESS.
+
+## ORG-014 — Isolated managed-Auth testing and SMS control targets, 3 October 2026
+
+**Historical decision:** ORG-016 supersedes every phone/SMS authentication requirement below. ORG-015 regular-staff email controls and the distinct-person/in-person recovery safeguards remain current; no SMS provider, sender or budget is required now.
+
+Authority: the organizer's explicit answers in this conversation on 3 October 2026.
+
+- First delivery test scope: Saudi numbers only. This is not a restriction on the
+  eventual conference audience. No existing SMS service is available; RPClub is
+  the designated contracting entity. Legal/vendor registration evidence is still needed.
+- Shortlist Vonage with proposed sender `MSRC2027`, conditional on Saudi domestic
+  eligibility, registration and a later approved quotation. This does not select an
+  active provider, register a sender or authorize vendor messages or purchases.
+- Keep testing in disposable GitHub CI for now. No paid hosted test project, Pro
+  upgrade, phone-MFA add-on or SMS spend is authorized. Hosted organization/region
+  selection is deferred; no need to settle it for the no-delivery CI test slice.
+- Approved SMS control targets: six digits, five-minute expiry, 60-second resend
+  cooldown, maximum three sends per phone and account per 15 minutes, ten per day,
+  twenty per IP per hour, five failed entries then a 15-minute cooldown. Only the
+  newest challenge may authorize access. Engineering interpretation: each daily
+  cap uses a rolling 24-hour window and phone/account caps apply independently.
+  Target approval is not implementation proof. Native managed APIs must not bypass
+  these controls; all live/readiness flags stay false until enforcement passes.
+- Approved recovery target: suspend/revoke first; verify identity and staff
+  appointment; distinct approver and operator; remove old factor; require password
+  and replacement-phone SMS enrollment; audit restoration. Both recovery roles
+  are Super Admin and identity review is **in person**. Individual custodians are
+  not named by this role-level answer and remain TBD. Participant loss uses
+  verified email plus manual identity review and new-phone verification, without
+  MFA. No live reset or staff/grant activation is authorized.
+- Recent-auth maximum age, warning lead, privacy/retention/location, real-human
+  UAT, security-email delivery and production release settings remain unresolved.
+
+Managed compatibility conflict: current Supabase phone MFA documents successive
+codes remaining valid until their five-minute expiry. Its verification hook does
+not carry a challenge ID. UI/gateway-only throttling and the synthetic lab's
+replacement invalidation do not establish the approved newest-challenge/abuse
+controls on direct managed API calls. This is a release blocker requiring trusted
+hook/database evidence and dedicated integration tests, not a reason to relax the
+approved targets. See [managed test and decision packet](features/managed-authentication-plan.md).
+
+The organizer reported the current synthetic SMS preview works. Record this as
+bounded requester feedback, separate from real SMS delivery and real-human UAT.
+
+## ORG-015 — Regular staff password then application email check, 3 October 2026
+
+**Historical decision:** ORG-016 supersedes every phone/SMS authentication requirement below. ORG-015 regular-staff email controls and the distinct-person/in-person recovery safeguards remain current; no SMS provider, sender or budget is required now.
+
+Authority: the organizer's explicit narrow amendment in this conversation. Replace
+SMS OTP for **regular staff only** with password followed by a fresh code delivered
+to the account's current verified email from trusted managed records. Super Admins
+retain ORG-020's password/SMS phone MFA; participants retain email/password plus
+email and phone verification without MFA. Roles/grants, ORG-019's participant 72h
+and privileged 30min idle/8h absolute limits, and all operational gates are unchanged.
+
+Conflicts flagged before implementation: current code/draft documents treated every
+staff role as SMS/AAL2; Supabase email OTP is passwordless sign-in, not a native MFA
+factor. AUTH-04/ROL-12 now distinguish the additional regular-staff email check from
+Super Admin native MFA. Calling managed email OTP sign-in after password is not
+proof of the approved sequence. No approved live SMTP/provider/sender exists.
+
+- Use a server-generated single-use code and private database receipt bound to the
+  exact user, managed session, current verified-email/user version, password proof
+  and grant history. Fresh login requires a fresh check; refresh preserves the same
+  receipt only while current evidence and session policy remain valid. Password-only
+  access must fail at server and restrictive database/storage boundaries. This check
+  creates no grant, native factor or AAL2 and no approval in user-editable metadata.
+- Reuse approved ORG-014 staff targets for this additional email check: six digits,
+  five minutes, 60-second resend, three/account/15min, ten/account/rolling24h,
+  twenty/IP/hour, five wrong entries then 15-minute cooldown; newest challenge only.
+  Account caps survive new sessions/email changes; no phone cap applies to email
+  delivery. Participant AUTH-02 email defaults remain unchanged. This is an explicit
+  carry-forward of approved staff controls, not a new production policy selection.
+- Authentication emails stay English-only; UI instructions/errors support EN/AR/RTL,
+  accessible code entry, expiry, resend and sanitized failure/retry. Console/test
+  delivery only; do not fall back to Supabase's development email service.
+- Preserve suspension/session revocation, in-person identity/appointment review,
+  distinct Super Admin approver/operator and audit requirements. Regular-staff lost
+  email/address-change recovery must verify a replacement email and require a new
+  password session plus email check before restoration. No inbox-only support bypass,
+  live reset or address-change endpoint is authorized. Exact evidence/procedure,
+  named custodians and recent-auth timing remain unresolved; these actions stay closed.
+- Inbox compromise may permit both password reset and receipt of the login code.
+  This is weaker than authenticator-based MFA. It is the organizer-selected regular
+  staff check, not independent-factor security or permission to reduce Super Admin MFA.
+- Review-only additive migration; preserve both previous migration snapshots and v0.5.
+  Use disposable CI and a loopback synthetic preview. Do not merge, deploy, modify
+  production Auth, apply hosted migrations or send real email/SMS in this amendment.
+  `codex/regular-staff-email` has Vercel Git deployment explicitly disabled.
+
+Implementation and executed evidence: [regular staff email check](features/regular-staff-email-check.md)
+and PROGRESS. Privacy/location, recent-auth age, warning lead, human UAT, production
+configuration/release and all existing Super Admin/participant SMS gates remain open.
+
+Implementation conflict found by genuine managed refresh testing: native
+`auth.users.updated_at` changes on token refresh although email, password proof and
+session origin are unchanged. Use a private relevant-field revision for email,
+email-confirmation and password changes, rather than that generic timestamp. This
+preserves the approved fresh-check-per-login requirement and revokes stale identity
+proof without treating every token refresh as a new login.
+
+Integration note: during this task remote main advanced to `c10b2c5` (PR21 public
+chapter-title transitions). Its separate public decision also uses ORG-010. In this
+authentication draft ORG-010 explicitly means the organizer's **2 October Production
+designation** above. Preserve both decisions and reconcile their identifiers when
+later integrating the drafts; do not silently substitute the public title decision
+for the environment decision. No public/auth runtime overlap was found in PR21's
+changed-file list, apart from shared decision/progress documents. This amendment
+stays stacked on unmerged PR19; no merge or public redesign is performed here.
+
+## ORG-016 — Remove authentication phone/SMS; Super Admin authenticator MFA, 3 October 2026
+
+Source: explicit organizer instruction in this chat: remove all SMS and phone number verification because no provider will be purchased; Super Admins use authenticator MFA, staff use email OTP after password; leave SMS out.
+
+- Participants use managed email/password and verified email only, with no phone collection/verification and no MFA. Public browsing stays open.
+- Regular staff retain ORG-015's fresh private exact-user/session email check after password. This is application assurance at native AAL1, not email OTP sign-in, native MFA or AAL2.
+- Super Admins require password followed by current verified authenticator TOTP at native AAL2, bound to the exact managed session/factor. QR/manual setup alternatives and accessible EN/AR/RTL instructions are required. Email receipts, phone factors or generic AAL2 do not substitute.
+- Retire SMS/provider/sender/budget registration, delivery hooks, phone fixtures and phone recovery work. Historical source snapshots, dated decisions and prior migration files remain preserved; a new additive review-only override supplies current policy.
+- Preserve all roles/scopes, strongest tier across editions, ownership/assignment, 72h participant absolute and privileged30min idle/8h absolute. Refresh never restarts origin or counts as activity. Keep every operational/readiness gate false.
+- Approved staff email limits remain unchanged. Participant email defaults remain separate. TOTP native protocol and accelerated lab bounds are test configuration, not silently approved live abuse controls.
+- Recovery keeps suspension/revocation before restoration, distinct Super Admin approver/operator and in-person identity/appointment review. Replacement authenticator setup or lost/changed email requires a verified procedure, fresh password and the appropriate check; named people, evidence/procedure/rehearsal and recent-auth remain TBD. No support bypass/reset endpoint is opened.
+- Production email provider/sender/SMTP is missing. Console/test only, English-only emails, no Supabase development email fallback. Privacy/retention/location, recent-auth age, warning lead, production release and real-human UAT remain unresolved.
+- Scope permits reversible review work, local synthetic preview and disposable GitHub CI only. No merge/deploy, hosted Auth/migration/reset, real delivery, invites/grants, recovery execution or paid resources.
+
+Conflicts flagged before edits: PR22 code/docs still required participant phone and Super Admin SMS, with active Vonage/MSRC2027/budget/hook work and SMS-only adapter. Those are superseded, rather than treated as required approvals. Current remote main8482abf contains independent public mobile changes and ORG-010/011 IDs colliding with this stacked authentication draft's Production/private-administrator records. Preserve both meanings and reconcile IDs during later integration; do not merge unrelated public changes or publish administrator addresses.
+
+### Dated exception — Isolated email readiness tests, 3 October 2026
+
+The organizer selected a Gmail mailbox for sender and self-recipient, reported its
+manager can assist, and explicitly approved one reviewed English readiness message.
+The initial approval covered that single diagnostic attempt: no OTP/account data,
+automatic retry, production Auth/SMTP changes or operational opening. This supersedes the
+no-real-email restriction solely for isolated testing; it does not approve a production
+provider, recurring delivery, participant communications or staff login release.
+The credential remains locally encrypted outside Git; no Supabase development-email
+fallback or credentials in CI. The initial attempt failed or could not confirm acceptance;
+credential-free SMTP connection/TLS checks passed. Retain the one-attempt marker and
+retain bounded per-attempt guards and diagnose failures before repeat delivery. At that stage,
+Inbox receipt and full managed login/cookie/delivery UAT were unresolved; see PROGRESS.
+The organizer reported no test message received and confirmed the credential was
+created under the intended sender account.
+
+The organizer subsequently stated, "Allow test emails whenever no need to ask."
+Standing authorization therefore covers small isolated test emails from/to the already
+selected self-recipient inbox without repeating send-approval questions. It does not
+approve production authentication, live staff/participant communications, new recipients,
+account/grant activation, hosted migrations or operational release. Preserve attempt
+receipts, avoid blind retries and keep credentials outside Git. The second approved
+attempt returned a generic SMTP general failure; sender readiness was then unverified.
+The third bounded PowerShell7 diagnostic returned SMTP530; this is an authentication
+or STARTTLS prerequisite error, not proof that the password itself is incorrect.
+An AUTH-only verified-TLS diagnostic then returned535: the stored sender credential
+was not accepted for the selected username. No email was submitted in that probe.
+This identified the then-current username/credential/setup blocker without establishing
+why it was rejected. Retries stopped pending mailbox-manager account checks and a
+fresh dedicated credential entered through the hidden local test-only store.
+Preserve earlier records; no live
+staff access or production email configuration is approved.
+
+The organizer then reported the replacement stored. Its single bounded AUTH-only
+probe also returned535; no follow-on email was attempted. A read-only comparison
+confirmed it is a different credential. Retain both encrypted local credentials and
+all five attempt records. Sender readiness was then blocked pending mailbox-manager
+account/security status checks; another rotation or retry required that evidence.
+Standing isolated-test authorization and every production/release gate
+remain unchanged. This result does not approve a weaker login flow or another provider.
+
+The organizer subsequently confirmed Google2-Step is on and requested another try.
+One further bounded AUTH-only attempt returned535 without a send. Read-only browser
+inspection verified2-Step ON and revealed that the signed-in account address differs
+from the earlier selected test address. The organizer explicitly chose the corrected
+sender/self-recipient for isolated tests. A fixed corrected-account test then returned
+AUTH235, SMTP acceptance and observed Primary Inbox delivery of the reviewed English
+message. Earlier rejection referred to the submitted username/credential pair; do not
+describe the replacement password itself as invalid. Preserve both local credentials
+and all eight records. The standing test authorization follows the corrected mailbox;
+it still does not approve production email, staff login release or other recipients.
+
+## ENG-012 — Isolated staff email delivery and managed cookie composition, 3 October 2026
+
+The organizer continued the next bounded delivery/cookie test after isolated sender
+readiness. Existing standing test-email authorization covers small English synthetic
+staff-code messages to the confirmed self-recipient only. This does not authorize real
+staff accounts, other recipients, production SMTP or managed Auth changes.
+
+- Reuse the existing staff email receipt, policy and role enforcement. An optional
+  Windows loopback preview passes codes by bounded stdin to the private local helper;
+  it returns safe delivery mode/expiry, never a code or recipient. Missing/invalid
+  configuration, deployment/CI, delivery failure or uncertainty denies without fallback.
+  The default synthetic inbox and participant/Super Admin flows remain unchanged.
+- Test genuine managed password and staff email receipts through an actual loopback
+  HTTP listener in the disposable unlinked GitHub runner. Native tokens remain in
+  bounded server memory behind an opaque HttpOnly/SameSite cookie. Current database
+  context remains the authority before protected access and before/after refresh.
+  No production Next route, active grant or provider credential is installed.
+- Cookie lifetime follows the immutable native session origin. Refresh preserves the
+  receipt and idle/absolute clocks; new login needs a new email check. Cookie deletion
+  after failed logout is local fail-closed cleanup, not proof of native revocation.
+- HTTP lacks the Secure cookie attribute solely on the isolated loopback listener.
+  This is test transport, not an approved production session-store/cache/CSRF design.
+  Lab capacity and fixture acceleration are development bounds, not new live policy.
+- Storage is disabled on the disposable stack. Its unavailable route cannot prove
+  private-object authorization. Real domain storage policies and human inbox/login,
+  screen-reader/device, recovery and outage UAT remain release gates.
+- Native cookie CI exposed an existing read-only RLS incompatibility: GET/HEAD cannot
+  call a locking/mutating context. The additive review-only migration
+  `20261003180734_readonly_authentication_context.sql` preserves all assurance rules
+  while separating pure statement-snapshot observation from trusted initialization
+  and mutation. Stable role projection and authentication predicates share the same
+  snapshot (`msrc_read_access_context` and `msrc_second_step_satisfied`). Missing
+  initialized history denies; reads cannot touch idle/absolute clocks. The existing
+  volatile `msrc_access_context` stays the POST initializer, not an RLS read helper.
+  Existing write RPC semantics and historical migrations remain unchanged. Read
+  snapshots observe revocations committed before the statement; subsequent statements
+  observe later revocations. This is not permission or workflow activation.
+  Pure reads use statement-start admission time, not transaction-start time: a read
+  begun before expiry can finish afterward; its next statement denies even in the
+  same transaction. Reads never move origin, idle activity or absolute deadlines.
+  Existing server/write/consume paths retain actual-clock rechecks after lock waits.
+  This timing/snapshot boundary must be reviewed with future resource policies before
+  activation; no response-completion deadline guarantee is claimed.
+
+The new migration is review-only and tested exclusively in disposable CI. No dependency,
+hosted migration/fixture/reset, deployment, merge, paid service, recovery action or
+production readiness change is performed by this slice.
+Recent-auth age, warning lead, named distinct recovery custodians/procedure and
+privacy/retention/location remain unresolved. Executed evidence belongs in PROGRESS.
+
+## ENG-013 — Authentication foundation closeout, 3 October 2026
+
+The organizer reported that the isolated preview works and requested the next steps,
+then directed: finish these foundations without an additional recovery rehearsal and
+identify the next task from the linked checklist. The organizer also confirmed that
+a Super Admin manages account recovery. This identifies the responsible role; it
+does not name the two distinct approved custodians or waive the in-person safeguards.
+
+- Close the bounded BL-AUTH-05/06 development work as implemented and verified:
+  participant verified email/password without MFA, regular-staff password plus the
+  private current-session email receipt, Super Admin authenticator TOTP, preserved
+  grants/scopes and participant 72h/privileged 30min idle/8h absolute session policy.
+- Do not add a synthetic recovery page, workflow or native recovery adapter. Live
+  restoration, factor reset, identity changes and all operational/readiness gates
+  remain closed; this closeout is not a production release or approved procedure.
+- Preserve user-reported preview success as partial human feedback. Exact devices,
+  locales and accessibility tests were unspecified. Managed no-delivery CI and
+  actual local test email remain separate evidence, not combined native-login/
+  real-inbox human UAT.
+- Correct active READMEs and feature notes that still mention superseded phone/SMS
+  flows or entirely untested cookie/test-delivery work. Historical sources, dated
+  decisions, migrations and test receipts remain unchanged.
+- The dormant private maintenance helper is currently closed by postgres-only
+  invocation, denied API execution, unconditional factor-reset denial and enforced
+  false-only readiness. Before eventual activation it needs complete current
+  session/idle/cutoff/password/TOTP/grant checks and actual recent-auth age enforcement.
+  Configuring a timing value alone is insufficient. No extra migration is needed to
+  close the current path, and no live helper is connected in this task.
+
+Next checklist development item is sequence 3: BL-PUB-06 Contact and BL-PUB-08
+Privacy/Terms. Build truthful bilingual closed scaffolds while controller/contact,
+service-processing/location/retention facts and final copy approval remain pending.
+This is separate from review/merge of PR19/25 and unresolved authentication release
+approvals. No merge, deployment or production authentication change is authorized.
+
+## ENG-014 — Rebase the closed authentication foundations onto main, 4 October 2026
+
+Authority: the organizer requests rebasing `codex/email-authenticator-no-sms` (PR25)
+onto current main including PR28, retaining both PROGRESS entries, running `pnpm check`
+and the authentication Playwright configuration, pushing and marking ready for review.
+
+- Rebase the complete authentication stack onto main 1cac875, preserve both public and
+  authentication progress/decision records, and target PR25 directly at main. Preserve
+  current public motion, indexing, locale redirects, structured data and calendar.
+- Retain main's push-to-main-only CI trigger together with the auth browser and disposable
+  managed database checks. Both authentication branch deployment-disable entries remain.
+- Resolve parallel decision-ID collisions as documented at the start of this register;
+  no organizer policy is changed. Correct the current issue index's obsolete phone/SMS
+  descriptions, preserving source snapshots, historical receipts and migration contents.
+- PR25 contains PR19's implementation with the explicit later email/TOTP amendments.
+  PR19 has no unique implementation requiring a separate merge; recommend closing it as
+  superseded after PR25 is merged and verified. PR2's complete head is already an ancestor
+  of main and can be closed now. This task reports those findings without closing either PR.
+- Ready for review is not merge/release approval. All operational/readiness gates remain
+  false; no deployment, hosted migration/reset/fixture, live account/grant/reset or test
+  email is performed. Current execution receipts belong in PROGRESS and the PR.

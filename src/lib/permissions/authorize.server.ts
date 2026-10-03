@@ -57,7 +57,17 @@ export async function authorize(
     if (!current?.actor || current.actor.id !== principal.userId || current.actor.state !== "active") return denied("inactiveActor");
     const actor = current.actor;
     if (actor.session.id !== principal.sessionId || actor.session.active !== true) return denied("inactiveSession");
-    if (actor.emailVerified !== true) return denied("unverifiedActor");
+    if (actor.emailVerified !== true || actor.session.passwordVerified !== true) return denied("unverifiedActor");
+    // Apply the account's strongest current requirement before any operation's
+    // grant loop, including participant duties of staff or Super Admin identities.
+    const tier = actor.session.authenticationTier;
+    const activeRoles = current.grants.filter(grant => grant.actorId === actor.id && grant.state === "active");
+    if (!["participant", "staff", "super_admin"].includes(tier)
+      || (activeRoles.some(grant => grant.role === "superAdmin") && tier !== "super_admin")
+      || (activeRoles.some(grant => grant.role !== "participant") && tier === "participant")) return denied("unverifiedActor");
+    if (tier !== "participant" && actor.individuallyIdentified !== true) return denied("unverifiedActor");
+    if (tier === "super_admin" && (actor.session.assurance !== "aal2" || actor.session.factor !== "totp")) return denied("unverifiedActor");
+    if (tier === "staff" && actor.session.staffEmailVerified !== true) return denied("unverifiedActor");
     const resource = current.resource;
     if (!resource || resource.id !== request.resourceId || !validId(resource.editionId) || resource.kind !== rule.kind) return denied("notAuthorized");
     const relatedAssignments = current.assignments.filter(assignment => assignmentMatches(assignment, principal, resource));
@@ -70,7 +80,8 @@ export async function authorize(
       (!rule.scopes || rule.scopes.includes(grant.scope.kind)) && scopeMatches(grant, resource, assignments));
 
     for (const grant of grants) {
-      if (grant.role !== "participant" && (actor.individuallyIdentified !== true || actor.session.assurance !== "aal2" || actor.session.factor !== "totp")) continue;
+      if (grant.role === "superAdmin" && tier !== "super_admin") continue;
+      if (grant.role !== "participant" && tier === "participant") continue;
       const own = resource.ownerId === actor.id;
       const originalInput = ["reviewPacket", "eventMaterial", "presentationFile"].includes(resource.kind);
       const selfReview = resource.subjectOwnerId === actor.id || resource.associatedActorIds.includes(actor.id) || (originalInput && own);

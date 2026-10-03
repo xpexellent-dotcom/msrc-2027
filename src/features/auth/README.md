@@ -1,6 +1,10 @@
 # Authentication feature boundary
 
-Future identity and session behavior belongs here after its scoped implementation and permission tests. M1 anonymous local data wrappers are not an authentication implementation.
+This directory contains the closed synthetic authentication preview, managed
+authenticator-TOTP contract and ORG-015 regular-staff application email-check adapter.
+ORG-016 participants use email/password plus verified email without phone or MFA;
+Super Admins require password plus authenticator TOTP. Regular-staff email receipts
+are user/session-bound and do not establish native MFA or AAL2.
 
-This is an inert M1 structure placeholder. It contains no executable implementation;
-operational workflows remain closed. See the project architecture document and the relevant v0.5 release gate.
+Live adapters and every operational workflow remain disabled. See
+`docs/features/regular-staff-email-check.md` and the AUTH-04/05 release gates.
