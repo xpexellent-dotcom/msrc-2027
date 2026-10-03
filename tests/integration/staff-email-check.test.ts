@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { createClient, type Session } from "@supabase/supabase-js";
 import { beforeAll, describe, it } from "vitest";
+import { createStaffEmailCheck, type StaffEmailStore } from "@/features/auth/staff-email.server";
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
 
@@ -12,13 +13,13 @@ const ci = process.env.GITHUB_ACTIONS === "true";
 const edition = "synthetic-staff-email-2027";
 const actor = "b1000000-0000-4000-8000-000000000001";
 const other = "b1000000-0000-4000-8000-000000000002";
-const actors = Array.from({ length: 12 }, (_, index) => `b1000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`);
+const actors = Array.from({ length: 15 }, (_, index) => `b1000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`);
 const password = randomBytes(32).toString("hex");
 const emailFor = (id: string) => `email-check-${actors.indexOf(id) + 1}@example.invalid`;
 const hashingKey = randomBytes(32);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const digest = (value: string) => createHmac("sha256", hashingKey).update(value).digest("hex");
-const ipHash = digest("synthetic-ci-client-ip");
+const ipHash = digest("ip:192.0.2.19");
 
 function check(condition: unknown, description: string): asserts condition {
   if (!condition) throw new Error(`Staff email assertion failed: ${description}. Sensitive diagnostics withheld.`);
@@ -96,7 +97,7 @@ function challenge(session: Session) {
   const payload = claims(session);
   const sid = payload.session_id;
   const code = String(randomInt(1_000_000)).padStart(6, "0");
-  return { actor: payload.sub, id, sid, codeHash: digest(`${payload.sub}:${sid}:${id}:${code}`) };
+  return { actor: payload.sub, id, sid, codeHash: digest(`staff-email:${payload.sub}:${sid}:${id}:${code}`) };
 }
 
 async function begin(session: Session, value = challenge(session)) {
@@ -341,5 +342,89 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
       && !denied.mfaValid && !denied.sessionPolicySatisfied && denied.reason === "password_auth_required",
     "primary phone OTP cannot replace password plus application email check");
     check((await begin(verified.data.session)).result.state === "denied", "OTP-only session cannot begin staff email check");
+  });
+
+  it("composes the server adapter, genuine managed password identity and service-only database receipt without delivery", async () => {
+    const managed = await login(actors[12]);
+    const bound = (input: { actorId: string; sessionId: string; challengeId: string }) => {
+      check(input.actorId === actors[12] && uuid.test(input.sessionId) && uuid.test(input.challengeId), "fixed adapter service binding");
+      return `'${input.actorId}','${input.sessionId}','${input.challengeId}'`;
+    };
+    const safeHash = (hash: string) => {
+      check(/^[0-9a-f]{64}$/.test(hash), "keyed adapter digest shape");
+      return `'${hash}'`;
+    };
+    const store: StaffEmailStore = {
+      begin: (input) => service("msrc_staff_email_begin", `${bound(input)},${safeHash(input.codeHash)},${safeHash(input.ipHash)}`),
+      delivery: (input) => service("msrc_staff_email_delivery", `${bound(input)},${input.delivered === true}`),
+      consume: (input) => service("msrc_staff_email_consume", `${bound(input)},${safeHash(input.codeHash)}`),
+    };
+    let inbox: string | undefined;
+    const adapter = createStaffEmailCheck({ auth: managed.sdk.auth, store, secret: randomBytes(32).toString("hex"),
+      deliver: async (message) => {
+        check(message.recipient === emailFor(actors[12]) && message.language === "en", "trusted verified English-only test destination");
+        inbox = message.text.match(/code is (\d{6})\./)?.[1];
+        check(inbox && /^\d{6}$/.test(inbox), "generated adapter code exists only in memory");
+        return true;
+      },
+    });
+    const issued = await adapter.issue(managed.session.access_token, "192.0.2.20");
+    check(issued.state === "issued" && inbox, "composed isolated issuance");
+    const code = inbox;
+    inbox = undefined;
+    const wrong = code === "000000" ? "000001" : "000000";
+    check((await adapter.verify(managed.session.access_token, issued.challengeId, wrong)).state === "denied", "adapter wrong code denied by database");
+    check((await adapter.verify(managed.session.access_token, issued.challengeId, code)).state === "verified", "generated adapter code consumed by database");
+    check((await adapter.verify(managed.session.access_token, issued.challengeId, code)).state === "denied", "adapter verified code cannot replay");
+    const accepted = await context(managed.session);
+    check(accepted.authenticationTier === "staff" && accepted.staffEmailValid && accepted.sessionPolicySatisfied
+      && claims(managed.session).aal === "aal1" && !accepted.mfaValid
+      && !accepted.operationalAccessReady && !accepted.privilegedAccessReady,
+    "complete email adapter creates only application assurance with all live gates closed");
+  });
+
+  it("serializes concurrent issuance and consumption without bypassing cooldown or creating duplicate receipts", async () => {
+    const managed = await login(actors[13]);
+    const requests = await Promise.all(Array.from({ length: 4 }, () => begin(managed.session)));
+    const issued = requests.filter((request) => request.result.state === "issued");
+    check(issued.length === 1 && requests.filter((request) => request.result.code === "retry_limited").length === 3,
+      "account row lock permits exactly one concurrent issuance within cooldown");
+    const value = issued[0];
+    check((await delivered(value)).state === "ok", "concurrent fixture challenge marked sent");
+    const attempts = await Promise.all(Array.from({ length: 4 }, () => consume(value)));
+    check(attempts.filter((result) => result.state === "verified").length === 1
+      && attempts.filter((result) => result.state === "denied").length === 3, "exactly one concurrent correct verification wins");
+    const rows = await query(`select (select count(*) from msrc_staff_email.challenges where actor_id='${actors[13]}'),
+      (select count(*) from msrc_staff_email.receipts where actor_id='${actors[13]}' and session_id='${value.sid}');`);
+    check(rows === "1|1", "one accepted challenge and one exact-session receipt survive concurrency");
+    const accepted = await context(managed.session);
+    check(accepted.staffEmailValid && accepted.sessionPolicySatisfied && claims(managed.session).aal === "aal1",
+      "winning custom email receipt supplies only regular-staff application assurance");
+  });
+
+  it("rejects a code that expires while verification waits for its account lock", async () => {
+    const managed = await login(actors[14]);
+    const value = await begin(managed.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok", "lock-wait expiry fixture sent");
+    // CI-only clock fixture. The real function must consult the current time
+    // after acquiring locks, rather than the timestamp when this call began.
+    await query(`update msrc_staff_email.challenges set created_at=clock_timestamp()-interval '30 seconds',
+      expires_at=clock_timestamp()+interval '2 seconds' where id='${value.id}';`);
+    const holding = query(`begin; select actor_id from msrc_authorization.account_access where actor_id='${actors[14]}' for update;
+      select pg_advisory_xact_lock(2601003,71415); select pg_sleep(3); commit;`);
+    try {
+      let locked = false;
+      const until = Date.now() + 1_200;
+      while (!locked && Date.now() < until) {
+        locked = (await query("select exists(select 1 from pg_locks where locktype='advisory' and classid=2601003 and objid=71415 and granted)::text;")) === "true";
+      }
+      check(locked, "separate fixture transaction already holds account lock");
+      check((await query(`select (expires_at>clock_timestamp())::text from msrc_staff_email.challenges where id='${value.id}';`)) === "true",
+        "challenge still unexpired when blocked verification begins");
+      const expired = await consume(value);
+      check(expired.state === "denied" && expired.code === "challenge_expired", "expiry is evaluated after the lock wait");
+      check((await query(`select count(*) from msrc_staff_email.receipts where actor_id='${actors[14]}';`)) === "0",
+        "a code expired during lock wait never creates a receipt");
+    } finally { await holding; }
   });
 });
