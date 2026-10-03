@@ -1,5 +1,16 @@
 # Progress and session handover
 
+## 4 October 2026 — QA pass: 404 and error page alignment and buttons
+
+Local production-build sweep (live site unreachable from the cloud sandbox): 24 public pages, EN/AR, 1366 px and Pixel 7, no broken links, console errors (other than the Vercel analytics scripts that only exist on Vercel), axe violations, unnamed controls or horizontal overflow. Changed:
+
+| Found | Change |
+| --- | --- |
+| On the Arabic 404 the «٤٠٤» status line sat on the left edge while the heading, text and button started on the right: the paragraph carried `dir="ltr"` | The override is removed; Arabic-Indic digits need none. The line now starts on the same edge as the heading |
+| The 404 and error pages used an older square `.action-link` button, unlike the pill buttons on every other page | They use the design-system `ButtonLink`/`Button`; `.action-link` is removed and `.message-actions` carries the spacing |
+
+Tests: `public-shell.spec.ts` 404 case now checks that the Arabic status line and heading share their right edge (failed at 559 px apart before the change) and that the way home is a site button. `pnpm lint`, `pnpm typecheck`, `pnpm build` PASS; `public-shell`, `closed-workflows`, `auth-preview-unavailable` 45/45 on Chromium desktop and mobile.
+
 ## 4 October 2026 — PR25 rebased onto main including PR28
 
 Rebased `codex/email-authenticator-no-sms` from cf1b60a onto current main

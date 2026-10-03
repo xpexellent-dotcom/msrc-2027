@@ -226,4 +226,13 @@ test("unsupported locales and missing localized pages return real 404s", async (
   expect((await page.goto("/ar/missing-page"))?.status()).toBe(404);
   await expect(page.locator("html")).toHaveAttribute("lang", "ar");
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  // The status line starts on the same (right) edge as the Arabic heading, and the way home is a site button.
+  const edge = (selector: string) => page.locator(`.message-page ${selector}`).evaluate((element) => {
+    const text = document.createRange();
+    text.selectNodeContents(element);
+    return Math.round(text.getBoundingClientRect().right);
+  });
+  await expect(page.locator(".message-page .eyebrow")).toHaveText("٤٠٤");
+  expect(Math.abs((await edge(".eyebrow")) - (await edge("h1")))).toBeLessThanOrEqual(2);
+  await expect(page.locator(".message-page").getByRole("link", { name: "العودة إلى الصفحة الرئيسية" })).toHaveClass(/\bbutton\b/);
 });
