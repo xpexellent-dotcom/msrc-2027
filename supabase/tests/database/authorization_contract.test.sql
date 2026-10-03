@@ -22,8 +22,10 @@ create table authorization_contract_test.sessions (
   session_id uuid primary key,
   user_id uuid not null references authorization_contract_test.actors,
   active boolean not null default true,
-  assurance text not null default 'aal2',
-  method text not null default 'sms',
+  assurance text not null default 'aal1',
+  method text not null default 'none',
+  -- Synthetic application receipt only; native managed email proof is tested separately.
+  staff_email_verified boolean not null default false,
   password_verified boolean not null default true
 );
 create table authorization_contract_test.role_grants (
@@ -128,22 +130,30 @@ create policy related_self on authorization_contract_test.related_actors for sel
 
 create function authorization_contract_test.actor_ready(privileged boolean)
 returns boolean language sql stable security invoker set search_path = '' as $$
+  with required as (
+    select case when exists(select 1 from authorization_contract_test.role_grants g
+      where g.user_id=auth.uid() and g.state='active' and g.role_name='superAdmin') then 'super_admin'
+      when privileged or exists(select 1 from authorization_contract_test.role_grants g
+        where g.user_id=auth.uid() and g.state='active' and g.role_name<>'participant') then 'staff'
+      else 'participant' end as tier
+  )
   select auth.uid() is not null
     and exists (
       select 1 from authorization_contract_test.actors a
-      where a.user_id = auth.uid() and a.active and a.verified and (privileged or a.phone_verified)
-        and (not privileged or a.individually_identified)
+      where a.user_id = auth.uid() and a.active and a.verified and (required.tier<>'participant' or a.phone_verified)
+        and (required.tier='participant' or a.individually_identified)
     )
     and exists (
       select 1 from authorization_contract_test.sessions s
       where s.user_id = auth.uid() and s.session_id::text = auth.jwt()->>'session_id' and s.active and s.password_verified
         and auth.jwt()->'amr' @> '[{"method":"password"}]'::jsonb
-        and (not privileged or (
+        and case when required.tier='super_admin' then (
           s.assurance = 'aal2' and s.method = 'sms'
           and auth.jwt()->>'aal' = 'aal2'
           and auth.jwt()->'amr' @> '[{"method":"password"},{"method":"mfa/phone"}]'::jsonb
-        ))
-    );
+        ) when required.tier='staff' then s.staff_email_verified and s.method='email_check'
+        else true end
+    ) from required;
 $$;
 create function authorization_contract_test.has_grant(
   required_role text, required_edition text, required_track text default null,
@@ -260,9 +270,12 @@ grant execute on all functions in schema authorization_contract_test to authenti
 
 insert into authorization_contract_test.actors(user_id)
 select ('10000000-0000-4000-8000-' || lpad(n::text, 12, '0'))::uuid from generate_series(1, 15) n;
-insert into authorization_contract_test.sessions(session_id, user_id)
+insert into authorization_contract_test.sessions(session_id, user_id,assurance,method,staff_email_verified)
 select ('20000000-0000-4000-8000-' || lpad(n::text, 12, '0'))::uuid,
-       ('10000000-0000-4000-8000-' || lpad(n::text, 12, '0'))::uuid from generate_series(1, 15) n;
+       ('10000000-0000-4000-8000-' || lpad(n::text, 12, '0'))::uuid,
+       case when n=13 then 'aal2' else 'aal1' end,
+       case when n=13 then 'sms' when n between 2 and 12 then 'email_check' else 'none' end,
+       n between 2 and 12 from generate_series(1, 15) n;
 insert into authorization_contract_test.role_grants(user_id, role_name, edition_id)
 select ('10000000-0000-4000-8000-' || lpad(n::text, 12, '0'))::uuid, role_name, 'synthetic-2027'
 from (values
@@ -576,10 +589,12 @@ select is((select count(*) from authorization_contract_test.private_metadata), 0
 reset role;
 update authorization_contract_test.sessions set method = 'sms' where user_id = '10000000-0000-4000-8000-000000000013';
 
+update authorization_contract_test.sessions set staff_email_verified=false where user_id='10000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","session_id":"20000000-0000-4000-8000-000000000002","aal":"aal1","amr":[{"method":"password"}]}';
 set local role authenticated;
-select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Reviewer without trusted token MFA assurance receives no packet');
+select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Reviewer password without trusted application email check receives no packet');
 reset role;
+update authorization_contract_test.sessions set staff_email_verified=true where user_id='10000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","session_id":"20000000-0000-4000-8000-000000000001","aal":"aal2","amr":[{"method":"password"},{"method":"mfa/phone"}]}';
 set local role authenticated;
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Another actor session ID cannot satisfy current identity');

@@ -79,6 +79,9 @@ export interface CurrentActor {
     readonly assurance: "aal1" | "aal2";
     readonly factor: "sms" | null;
     readonly passwordVerified: boolean;
+    /** Strongest current tier across every edition, supplied by trusted DB evidence. */
+    readonly authenticationTier: "participant" | "staff" | "super_admin";
+    readonly staffEmailVerified: boolean;
   };
 }
 

@@ -5,8 +5,8 @@ import { expect, test, type Page } from "@playwright/test";
 // codes come only from the transient synthetic inbox. No provider message is sent.
 const labels = {
   en: {
-    start: "Simulate staff password sign-in", participant: "Simulate participant password sign-in",
-    enroll: "Create synthetic staff SMS challenge", verify: "Verify SMS code",
+    start: "Simulate Super Admin password sign-in", staffStart: "Simulate staff password sign-in", participant: "Simulate participant password sign-in",
+    enroll: "Create synthetic Super Admin SMS challenge", verify: "Verify SMS code",
     challenge: "Request a new synthetic SMS code", emailChallenge: "Request a synthetic email code",
     emailVerify: "Verify email code", access: "Check synthetic staff access",
     participantAccess: "Check synthetic participant verification",
@@ -14,6 +14,8 @@ const labels = {
     refresh: "Refresh synthetic token", reset: "Check recovery availability",
     suspend: "Simulate suspension", factorReset: "Simulate factor-reset revocation",
     assurance: "SMS second factor verified", participantAssurance: "MFA not required for participants",
+    staffEmailAssurance: "Email check passed for this session", staffEmailCode: "Six-digit staff email code",
+    staffEmailRequired: "Staff access requires password sign-in and a fresh email check for this session.",
     verified: "Verified", missing: "Not verified",
     phoneTitle: "Verify the participant phone", phoneCodeLabel: "Six-digit phone verification code",
     phoneVerify: "Verify participant phone", phonePending: "Phone verification required",
@@ -22,14 +24,14 @@ const labels = {
     emailBothComplete: "Synthetic participant email verified. Both account verification checks are complete.",
     participantReauthenticated: "A new simulated password session started. Participant verification status is retained; MFA is not required.",
     expired: "Session expired", revoked: "Session revoked",
-    error: "The code could not be verified.", noMfa: "Staff access requires password sign-in and a verified SMS second factor.",
-    recovery: "Factor recovery is closed.", unavailable: "The session check is unavailable.",
+    error: "The code could not be verified.", noMfa: "Super Admin access requires password sign-in and a verified SMS second factor.",
+    recovery: "Recovery is closed.", unavailable: "The session check is unavailable.",
     closed: "Live privileged access and operational workflows remain closed.",
     accountRequired: "The participant account requires both email and phone verification.",
   },
   ar: {
-    start: "محاكاة دخول الفريق بكلمة المرور", participant: "محاكاة دخول المشارك بكلمة المرور",
-    enroll: "إنشاء تحقق SMS مصطنع للفريق", verify: "التحقق من رمز SMS",
+    start: "محاكاة دخول المشرف الأعلى بكلمة المرور", staffStart: "محاكاة دخول الفريق بكلمة المرور", participant: "محاكاة دخول المشارك بكلمة المرور",
+    enroll: "إنشاء تحقق SMS مصطنع للمشرف الأعلى", verify: "التحقق من رمز SMS",
     challenge: "طلب رمز SMS مصطنع جديد", emailChallenge: "طلب رمز بريد مصطنع",
     emailVerify: "التحقق من رمز البريد", access: "التحقق من وصول الفريق المصطنع",
     participantAccess: "التحقق من حساب المشارك المصطنع",
@@ -37,6 +39,8 @@ const labels = {
     refresh: "تحديث رمز الجلسة المصطنعة", reset: "التحقق من إتاحة الاستعادة",
     suspend: "محاكاة التعليق", factorReset: "محاكاة الإلغاء بعد إعادة ضبط العامل",
     assurance: "تم التحقق من عامل SMS الثاني", participantAssurance: "المصادقة الثنائية غير مطلوبة للمشاركين",
+    staffEmailAssurance: "اجتاز تحقق البريد لهذه الجلسة", staffEmailCode: "رمز بريد الفريق المكوّن من ستة أرقام",
+    staffEmailRequired: "يتطلب وصول الفريق الدخول بكلمة المرور وتحقق بريد جديدًا لهذه الجلسة.",
     verified: "تم التحقق", missing: "لم يُتحقق منه",
     phoneTitle: "التحقق من هاتف المشارك", phoneCodeLabel: "رمز التحقق من الهاتف المكوّن من ستة أرقام",
     phoneVerify: "التحقق من هاتف المشارك", phonePending: "يلزم التحقق من الهاتف",
@@ -45,8 +49,8 @@ const labels = {
     emailBothComplete: "تم التحقق من بريد المشارك المصطنع. اكتمل كلا التحققين المطلوبين للحساب.",
     participantReauthenticated: "بدأت جلسة جديدة بمحاكاة كلمة المرور. تبقى حالة التحقق للمشارك محفوظة؛ ولا تُطلب مصادقة ثنائية.",
     expired: "انتهت الجلسة", revoked: "أُلغيت الجلسة",
-    error: "تعذر التحقق من الرمز.", noMfa: "يتطلب وصول الفريق الدخول بكلمة المرور والتحقق من عامل SMS الثاني.",
-    recovery: "استعادة عامل المصادقة مغلقة.", unavailable: "التحقق من الجلسة غير متاح.",
+    error: "تعذر التحقق من الرمز.", noMfa: "يتطلب وصول المشرف الأعلى الدخول بكلمة المرور والتحقق من عامل SMS الثاني.",
+    recovery: "الاستعادة مغلقة.", unavailable: "التحقق من الجلسة غير متاح.",
     closed: "يظل الوصول الفعلي بصلاحيات مميزة ومسارات العمل التشغيلية مغلقًا.",
     accountRequired: "يتطلب حساب المشارك التحقق من البريد والهاتف معًا.",
   },
@@ -73,7 +77,122 @@ function wrongCode(code: string) {
 
 for (const locale of ["en", "ar"] as const) {
   const copy = labels[locale];
-  test(`${locale} password then SMS enforces staff assurance, resend invalidation and single use`, async ({ page }, testInfo) => {
+  test(`${locale} regular staff password and session email check remain AAL1 and require a new check only on new login`, async ({ page }, testInfo) => {
+    await page.goto(`/${locale}/staff-security-preview`);
+    await page.getByRole("button", { name: copy.staffStart, exact: true }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("#staff-session-heading")).toBeFocused();
+    await expect(page.getByTestId("session-assurance")).toHaveText(copy.missing);
+    await page.getByRole("button", { name: copy.access, exact: true }).click();
+    await expect(page.getByTestId("auth-error")).toHaveText(copy.staffEmailRequired);
+    expect((await api(page, "enroll")).state).toBe("denied");
+    expect((await api(page, "challenge")).state).toBe("denied");
+    await expect(page.locator("#staff-auth-code")).toHaveCount(0);
+    await page.getByRole("button", { name: copy.emailChallenge, exact: true }).click();
+    const code = await inboxCode(page, "email");
+    const field = page.getByRole("textbox", { name: copy.staffEmailCode, exact: true });
+    await expect(field).toBeFocused();
+    await expect(field).toHaveAttribute("autocomplete", "one-time-code");
+    await expect(field).toHaveAttribute("dir", "ltr");
+    await expect(page.getByTestId("synthetic-email-body")).toHaveAttribute("lang", "en");
+    await expect(page.getByTestId("synthetic-email-body")).toHaveAttribute("dir", "ltr");
+    await expect(page.getByRole("button", { name: copy.emailChallenge, exact: true })).toBeDisabled();
+    await expect(page.getByTestId("email-resend-wait")).toBeVisible();
+    const sent = (await api(page, "status")).view;
+    expect(sent.kind).toBe("staff");
+    expect(sent.assurance).toBe("aal1");
+    expect(sent.factor).toBe("none");
+    expect(sent.staffEmailVerified).toBe(false);
+    expect(sent.absoluteExpiresAt - sent.startedAt).toBe(8 * 60 * 60 * 1_000);
+    expect(sent.idleExpiresAt - sent.lastActivityAt).toBe(30 * 60 * 1_000);
+    await field.fill(wrongCode(code));
+    await page.getByRole("button", { name: copy.emailVerify, exact: true }).click();
+    await expect(page.getByTestId("auth-error")).toBeFocused();
+    await expect(field).toHaveAttribute("aria-invalid", "true");
+    const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    expect(accessibility.violations.length).toBe(0);
+    await testInfo.attach(`${locale}-staff-email-challenge-${testInfo.project.name}`, {
+      body: await page.screenshot({ fullPage: true, mask: [page.getByTestId("synthetic-inbox"), field] }), contentType: "image/png",
+    });
+    await field.fill(locale === "ar" ? code.replace(/\d/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]) : code);
+    await page.getByRole("button", { name: copy.emailVerify, exact: true }).click();
+    await expect(page.getByTestId("session-assurance")).toHaveText(copy.staffEmailAssurance);
+    await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+    await expect(field).toHaveCount(0);
+    expect((await api(page, "verify-email", { code })).state).toBe("denied");
+    const checked = (await api(page, "status")).view;
+    expect(checked.staffEmailVerified).toBe(true);
+    expect(checked.assurance).toBe("aal1");
+    expect(checked.factor).toBe("none");
+    expect(checked.operationalAccessReady).toBe(false);
+    expect(checked.privilegedAccessReady).toBe(false);
+    await page.getByRole("button", { name: copy.refresh, exact: true }).click();
+    const refreshed = (await api(page, "status")).view;
+    expect(refreshed.staffEmailVerified).toBe(true);
+    expect(refreshed.startedAt).toBe(checked.startedAt);
+    expect(refreshed.absoluteExpiresAt).toBe(checked.absoluteExpiresAt);
+    await page.getByRole("button", { name: copy.access, exact: true }).click();
+    await expect(page.getByTestId("auth-status")).toContainText(locale === "en" ? "synthetic staff check passed" : "اجتاز اختبار وصول الفريق المصطنع");
+    await page.getByRole("button", { name: copy.reauthenticate, exact: true }).click();
+    await expect(page.getByTestId("session-assurance")).toHaveText(copy.missing);
+    await expect(page.getByTestId("auth-status")).toContainText(locale === "en" ? "fresh email check" : "تحقق بريد جديد");
+    expect((await api(page, "protected")).state).toBe("denied");
+    expect((await api(page, "verify-email", { code })).state).toBe("denied");
+  });
+
+  test(`${locale} regular staff expiry and delivery failure offer a clear retry after the resend cooldown`, async ({ page }) => {
+    // These controlled transport responses verify presentation only. Server expiry,
+    // replacement and abuse limits have independent unit/database coverage.
+    await page.clock.install();
+    await page.goto(`/${locale}/staff-security-preview`);
+    await page.getByRole("button", { name: copy.staffStart, exact: true }).click();
+    await page.getByRole("button", { name: copy.emailChallenge, exact: true }).click();
+    const code = await inboxCode(page, "email");
+    const field = page.locator("#staff-email-code");
+    await field.fill(code);
+    const { view } = await api(page, "status");
+    const resendAt = await page.evaluate(() => Date.now() + 60_000);
+    const expiredView = { ...view, emailChallengePending: false, emailResendAvailableAt: resendAt };
+    await page.route("**/api/auth-preview", async (route) => {
+      const action = route.request().postDataJSON()?.action;
+      if (action === "verify-email") await route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ state: "denied", code: "challenge_expired", view: expiredView }) });
+      else if (action === "status") await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ state: "ok", code: "status", view: expiredView }) });
+      else if (action === "challenge-email") await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ state: "unavailable", code: "unavailable" }) });
+      else await route.continue();
+    });
+    await page.getByRole("button", { name: copy.emailVerify, exact: true }).click();
+    await expect(page.getByTestId("auth-error")).toContainText(locale === "en" ? "The code expired" : "انتهت صلاحية الرمز");
+    await expect(page.getByRole("button", { name: copy.emailVerify, exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: copy.emailChallenge, exact: true })).toBeDisabled();
+    await page.clock.fastForward(60_001);
+    await expect(page.getByRole("button", { name: copy.emailChallenge, exact: true })).toBeEnabled();
+    await page.getByRole("button", { name: copy.emailChallenge, exact: true }).click();
+    await expect(page.getByTestId("auth-error")).toContainText(locale === "en" ? "The email code could not be requested" : "تعذر طلب رمز البريد");
+    await expect.poll(async () => await field.inputValue() === code).toBe(true);
+    await expect(page.getByRole("button", { name: locale === "en" ? "Retry session check" : "إعادة محاولة التحقق من الجلسة", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
+    await page.clock.fastForward(5 * 60_000 + 1);
+    await expect(page.getByTestId("staff-email-expired")).toHaveText(locale === "en" ? "This email code has expired. Request a new code to continue." : "انتهت صلاحية رمز البريد هذا. اطلب رمزًا جديدًا للمتابعة.");
+    await expect(page.getByRole("button", { name: copy.emailVerify, exact: true })).toBeDisabled();
+    await page.unroute("**/api/auth-preview");
+  });
+
+  test(`${locale} regular staff email change and role revocation close access and recovery remains unavailable`, async ({ page }) => {
+    await page.goto(`/${locale}/staff-security-preview`);
+    for (const scenario of [locale === "en" ? "Simulate verified-email change" : "محاكاة تغيير البريد الموثّق", locale === "en" ? "Simulate staff-role revocation" : "محاكاة إلغاء دور الفريق"]) {
+      await api(page, "start", { kind: "staff" });
+      await page.reload();
+      await page.getByRole("button", { name: copy.reset, exact: true }).click();
+      await expect(page.getByTestId("auth-error")).toContainText(copy.recovery);
+      await page.getByRole("button", { name: scenario, exact: true }).click();
+      await expect(page.getByTestId("session-state")).toHaveText(copy.revoked);
+      await expect(page.locator("#staff-email-code")).toHaveCount(0);
+      await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+      expect((await api(page, "protected")).state).toBe("denied");
+    }
+  });
+
+  test(`${locale} Super Admin password then SMS preserves MFA, resend invalidation and single use`, async ({ page }, testInfo) => {
     const response = await page.goto(`/${locale}/staff-security-preview`);
     expect(response?.status()).toBe(200);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
@@ -212,7 +331,7 @@ for (const locale of ["en", "ar"] as const) {
     for (const status of ["expired", "revoked"] as const) {
       // Start again from the displayed terminal state. Reloading would correctly
       // restore the still-active real lab session behind the mocked status response.
-      await page.getByRole("button", { name: /^(Simulate staff password sign-in|Start a new synthetic session|محاكاة دخول الفريق بكلمة المرور|بدء جلسة مصطنعة جديدة)$/ }).click();
+      await page.getByRole("button", { name: copy.start, exact: true }).click();
       await page.getByRole("button", { name: copy.enroll, exact: true }).click();
       const code = await inboxCode(page, "sms");
       await page.locator("#staff-auth-code").fill(code);
@@ -257,10 +376,10 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
   });
 
-  test(`${locale} revoked synthetic session cannot retain staff access`, async ({ page }) => {
+  test(`${locale} revoked synthetic session cannot retain Super Admin access`, async ({ page }) => {
     for (const scenario of [copy.suspend, copy.factorReset]) {
       await page.goto(`/${locale}/staff-security-preview`);
-      await page.getByRole("button", { name: /^(Simulate staff password sign-in|Start a new synthetic session|محاكاة دخول الفريق بكلمة المرور|بدء جلسة مصطنعة جديدة)$/ }).click();
+      await page.getByRole("button", { name: copy.start, exact: true }).click();
       await page.getByRole("button", { name: scenario, exact: true }).click();
       await expect(page.getByTestId("session-state")).toHaveText(locale === "en" ? "Session revoked" : "أُلغيت الجلسة");
       expect((await api(page, "protected")).state).toBe("denied");
@@ -329,6 +448,34 @@ test("locale changes and request recovery preserve the SMS draft without browser
   await page.unroute("**/api/auth-preview");
   await page.getByRole("button", { name: labels.ar.verify, exact: true }).click();
   await expect(page.getByTestId("session-assurance")).toHaveText(labels.ar.assurance);
+  await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+});
+
+test("regular staff email draft survives locale change and transport retry without granting AAL2", async ({ page }) => {
+  await page.goto("/en/staff-security-preview");
+  await page.getByRole("button", { name: labels.en.staffStart, exact: true }).click();
+  await page.getByRole("button", { name: labels.en.emailChallenge, exact: true }).click();
+  const code = await inboxCode(page, "email");
+  await page.locator("#staff-email-code").fill(code);
+  await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
+  await expect(page).toHaveURL(/\/ar\/staff-security-preview$/);
+  await expect.poll(async () => await page.locator("#staff-email-code").inputValue() === code).toBe(true);
+  await expect(page.getByTestId("synthetic-email-body")).toHaveAttribute("lang", "en");
+  await page.route("**/api/auth-preview", async (route) => {
+    if (route.request().postDataJSON()?.action === "verify-email") await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ state: "unavailable", code: "unavailable" }) });
+    else await route.continue();
+  });
+  await page.getByRole("button", { name: labels.ar.emailVerify, exact: true }).click();
+  await expect(page.getByTestId("auth-error")).toContainText(labels.ar.unavailable);
+  await expect.poll(async () => await page.locator("#staff-email-code").inputValue() === code).toBe(true);
+  expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
+  await page.unroute("**/api/auth-preview");
+  await page.getByRole("button", { name: labels.ar.emailVerify, exact: true }).click();
+  await expect(page.getByTestId("session-assurance")).toHaveText(labels.ar.staffEmailAssurance);
+  const { view } = await api(page, "status");
+  expect(view.assurance).toBe("aal1");
+  expect(view.factor).toBe("none");
+  expect(view.staffEmailVerified).toBe(true);
   await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
 });
 

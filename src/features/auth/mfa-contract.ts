@@ -1,11 +1,11 @@
 /** Client-safe closed preview contract. No real managed account or grant is created. */
-export type PreviewKind = "staff" | "participant";
+export type PreviewKind = "staff" | "super_admin" | "participant";
 export type PreviewAction =
   | Readonly<{ type: "start"; kind: PreviewKind }>
   | Readonly<{ type: "verify" | "verify-email"; code: string }>
-  | Readonly<{ type: "enroll" | "challenge" | "challenge-email" | "status" | "refresh" | "protected" | "logout" | "suspend" | "simulate-factor-reset" | "request-reset" | "reauthenticate" }>;
+  | Readonly<{ type: "enroll" | "challenge" | "challenge-email" | "status" | "refresh" | "protected" | "logout" | "suspend" | "simulate-factor-reset" | "simulate-email-change" | "simulate-role-revocation" | "request-reset" | "reauthenticate" }>;
 
-export type PreviewCode = "started" | "enrolled" | "challenge_created" | "email_challenge_created" | "verified" | "phone_verified" | "email_verified" | "status" | "refreshed" | "protected_allowed" | "logged_out" | "suspended" | "factor_reset_revoked" | "reauthenticated" | "no_session" | "session_revoked" | "session_expired" | "mfa_required" | "password_auth_required" | "account_verification_required" | "challenge_required" | "invalid_code" | "challenge_expired" | "retry_limited" | "recovery_unconfigured" | "unavailable" | "factor_already_enrolled" | "invalid_action";
+export type PreviewCode = "started" | "enrolled" | "challenge_created" | "email_challenge_created" | "verified" | "phone_verified" | "email_verified" | "staff_email_verified" | "staff_email_check_required" | "status" | "refreshed" | "protected_allowed" | "logged_out" | "suspended" | "factor_reset_revoked" | "reauthenticated" | "no_session" | "session_revoked" | "session_expired" | "mfa_required" | "password_auth_required" | "account_verification_required" | "challenge_required" | "invalid_code" | "challenge_expired" | "retry_limited" | "recovery_unconfigured" | "unavailable" | "factor_already_enrolled" | "invalid_action";
 
 export interface PreviewView {
   readonly synthetic: true;
@@ -17,6 +17,8 @@ export interface PreviewView {
   readonly challengePending: boolean;
   readonly emailChallengePending: boolean;
   readonly emailVerified: boolean;
+  readonly staffEmailVerified: boolean;
+  readonly emailResendAvailableAt: number | null;
   readonly phoneVerified: boolean;
   readonly passwordVerified: boolean;
   readonly verificationComplete: boolean;

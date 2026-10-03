@@ -37,11 +37,15 @@ or retention duration is inferred. CFG-09/10/11 gates and the new
   replacement grant. Grants across editions remain separate.
 - Existing tokens cannot preserve access after account suspension, grant revocation,
   session removal or current factor removal. The historical deployed migration used TOTP;
-  ORG-013's review-only session migration replaces assurance helpers with password then
-  verified phone MFA. Trusted `password`/`mfa/phone` AMR is checked against current managed
+  ORG-013's review-only session migration originally replaced assurance helpers with
+  password then verified phone MFA. ORG-015 now adds a private user/session-bound
+  application email receipt for regular staff; Super Admins retain phone MFA and
+  cannot substitute an email receipt. Trusted `password`/`mfa/phone` AMR is checked against current managed
   factor/session evidence. The trusted challenge adapter selects SMS; AMR does not identify
   the delivery channel. Participants require both managed email/phone confirmations without
   MFA; participant verification is not privileged assurance. No hosted migration is applied.
+  The [regular-staff amendment](regular-staff-email-check.md) preserves role scopes,
+  denies password-only access and never creates native AAL2 or an active grant.
 - Operational access remains explicitly closed in this context. AUTH-05's configurable
   absolute/idle/recent-authentication enforcement, logout/recovery, MFA lifecycle and
   human UAT must land before staff activation. Token refresh is not user activity.

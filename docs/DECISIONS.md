@@ -124,7 +124,7 @@ These are source defaults and service objectives, not measured production perfor
 
 | IDs | DEFAULT / objective |
 | --- | --- |
-| AUTH-02 | Email OTP ten minutes; resend cooldown 60 seconds; <=3 issued/email/15 minutes; <=5 failed attempts/code. ORG-013 SMS expiry/resend/attempt/rate/provider/sender/budget remain TBD; email defaults do not approve SMS settings. |
+| AUTH-02 | Email OTP ten minutes; resend cooldown 60 seconds; <=3 issued/email/15 minutes; <=5 failed attempts/code. ORG-014 approves SMS targets: six digits/5min, resend60s, three/phone and account/15min, ten/day each, twenty/IP/hour, five failures then15min cooldown, newest challenge only. Direct managed-path enforcement, provider registration and paid budget remain gates. |
 | AUTH-03 | Additional challenge/cooldown after five failed password attempts/15 minutes, no permanent lock. |
 | AUTH-05 | ORG-012 supersedes participant 24h default: confirmed absolute maximum 72h from original session creation, never restarted by refresh. Privileged idle 30min/absolute 8h remain. Recent-auth age and warning lead TBD; dependent actions closed. |
 | AUTH-08 | Remove abandoned unverified accounts after seven days only if no required record prevents cleanup. |
@@ -994,3 +994,92 @@ exclusion. Preserve `sources/Development_Specification_v0.5.txt` and dated TOTP 
 The organizer reported the previous preview worked. This is bounded feedback on the
 previous TOTP preview, not proof of the new SMS flow, real delivery, screen-reader review,
 managed-factor lifecycle or release approval. Updated evidence belongs in PROGRESS.
+
+## ORG-014 — Isolated managed-Auth testing and SMS control targets, 3 October 2026
+
+Authority: the organizer's explicit answers in this conversation on 3 October 2026.
+
+- First delivery test scope: Saudi numbers only. This is not a restriction on the
+  eventual conference audience. No existing SMS service is available; RPClub is
+  the designated contracting entity. Legal/vendor registration evidence is still needed.
+- Shortlist Vonage with proposed sender `MSRC2027`, conditional on Saudi domestic
+  eligibility, registration and a later approved quotation. This does not select an
+  active provider, register a sender or authorize vendor messages or purchases.
+- Keep testing in disposable GitHub CI for now. No paid hosted test project, Pro
+  upgrade, phone-MFA add-on or SMS spend is authorized. Hosted organization/region
+  selection is deferred; no need to settle it for the no-delivery CI test slice.
+- Approved SMS control targets: six digits, five-minute expiry, 60-second resend
+  cooldown, maximum three sends per phone and account per 15 minutes, ten per day,
+  twenty per IP per hour, five failed entries then a 15-minute cooldown. Only the
+  newest challenge may authorize access. Engineering interpretation: each daily
+  cap uses a rolling 24-hour window and phone/account caps apply independently.
+  Target approval is not implementation proof. Native managed APIs must not bypass
+  these controls; all live/readiness flags stay false until enforcement passes.
+- Approved recovery target: suspend/revoke first; verify identity and staff
+  appointment; distinct approver and operator; remove old factor; require password
+  and replacement-phone SMS enrollment; audit restoration. Both recovery roles
+  are Super Admin and identity review is **in person**. Individual custodians are
+  not named by this role-level answer and remain TBD. Participant loss uses
+  verified email plus manual identity review and new-phone verification, without
+  MFA. No live reset or staff/grant activation is authorized.
+- Recent-auth maximum age, warning lead, privacy/retention/location, real-human
+  UAT, security-email delivery and production release settings remain unresolved.
+
+Managed compatibility conflict: current Supabase phone MFA documents successive
+codes remaining valid until their five-minute expiry. Its verification hook does
+not carry a challenge ID. UI/gateway-only throttling and the synthetic lab's
+replacement invalidation do not establish the approved newest-challenge/abuse
+controls on direct managed API calls. This is a release blocker requiring trusted
+hook/database evidence and dedicated integration tests, not a reason to relax the
+approved targets. See [managed test and decision packet](features/managed-authentication-plan.md).
+
+The organizer reported the current synthetic SMS preview works. Record this as
+bounded requester feedback, separate from real SMS delivery and real-human UAT.
+
+## ORG-015 — Regular staff password then application email check, 3 October 2026
+
+Authority: the organizer's explicit narrow amendment in this conversation. Replace
+SMS OTP for **regular staff only** with password followed by a fresh code delivered
+to the account's current verified email from trusted managed records. Super Admins
+retain ORG-013's password/SMS phone MFA; participants retain email/password plus
+email and phone verification without MFA. Roles/grants, ORG-012's participant 72h
+and privileged 30min idle/8h absolute limits, and all operational gates are unchanged.
+
+Conflicts flagged before implementation: current code/draft documents treated every
+staff role as SMS/AAL2; Supabase email OTP is passwordless sign-in, not a native MFA
+factor. AUTH-04/ROL-12 now distinguish the additional regular-staff email check from
+Super Admin native MFA. Calling managed email OTP sign-in after password is not
+proof of the approved sequence. No approved live SMTP/provider/sender exists.
+
+- Use a server-generated single-use code and private database receipt bound to the
+  exact user, managed session, current verified-email/user version, password proof
+  and grant history. Fresh login requires a fresh check; refresh preserves the same
+  receipt only while current evidence and session policy remain valid. Password-only
+  access must fail at server and restrictive database/storage boundaries. This check
+  creates no grant, native factor or AAL2 and no approval in user-editable metadata.
+- Reuse approved ORG-014 staff targets for this additional email check: six digits,
+  five minutes, 60-second resend, three/account/15min, ten/account/rolling24h,
+  twenty/IP/hour, five wrong entries then 15-minute cooldown; newest challenge only.
+  Account caps survive new sessions/email changes; no phone cap applies to email
+  delivery. Participant AUTH-02 email defaults remain unchanged. This is an explicit
+  carry-forward of approved staff controls, not a new production policy selection.
+- Authentication emails stay English-only; UI instructions/errors support EN/AR/RTL,
+  accessible code entry, expiry, resend and sanitized failure/retry. Console/test
+  delivery only; do not fall back to Supabase's development email service.
+- Preserve suspension/session revocation, in-person identity/appointment review,
+  distinct Super Admin approver/operator and audit requirements. Regular-staff lost
+  email/address-change recovery must verify a replacement email and require a new
+  password session plus email check before restoration. No inbox-only support bypass,
+  live reset or address-change endpoint is authorized. Exact evidence/procedure,
+  named custodians and recent-auth timing remain unresolved; these actions stay closed.
+- Inbox compromise may permit both password reset and receipt of the login code.
+  This is weaker than authenticator-based MFA. It is the organizer-selected regular
+  staff check, not independent-factor security or permission to reduce Super Admin MFA.
+- Review-only additive migration; preserve both previous migration snapshots and v0.5.
+  Use disposable CI and a loopback synthetic preview. Do not merge, deploy, modify
+  production Auth, apply hosted migrations or send real email/SMS in this amendment.
+  `codex/regular-staff-email` has Vercel Git deployment explicitly disabled.
+
+Implementation and executed evidence: [regular staff email check](features/regular-staff-email-check.md)
+and PROGRESS. Privacy/location, recent-auth age, warning lead, human UAT, production
+configuration/release and all existing Super Admin/participant SMS gates remain open.

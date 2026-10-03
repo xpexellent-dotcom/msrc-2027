@@ -75,6 +75,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Bind the synthetic local stack to loopback
         run: docker network create -o com.docker.network.bridge.host_binding_ipv4=127.0.0.1 msrc2027-local
+      - name: Configure no-delivery managed Auth tests on the disposable runner only
+        run: node scripts/prepare-ci-managed-auth.ts
       - name: Start local stack without exposing generated credentials
         shell: bash
         run: |
@@ -87,6 +89,8 @@ jobs:
             printf '%s\n' 'Local Supabase startup failed. Reproduce locally and inspect output privately.'
             exit 1
           fi
+      - name: Record the actual isolated GoTrue image without environment or credentials
+        run: docker inspect --format='{{.Config.Image}}' supabase_auth_msrc2027-local
       - run: pnpm db:reset
       - run: pnpm db:lint
       - run: pnpm db:test

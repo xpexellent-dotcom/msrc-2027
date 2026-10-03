@@ -11,6 +11,8 @@
 | Web framework | Next.js App Router, TypeScript, Tailwind | Adopted for local M1 by explicit user task; ENG-001 in DECISIONS.md |
 | Package management | pnpm with committed lockfile | Adopted for local M1; exact versions and compatibility notes in ENG-001 |
 | Data environments | `ecemjggwlzqpjcwmchrl` is Production; synthetic database tests in isolated GitHub CI; local auth lab in memory | ORG-010; no hosted fixtures; new staff/session migration review-only |
+| Managed Auth tests | Genuine password/phone-MFA APIs in disposable GitHub CI with a private test SMS hook and no delivery; no paid hosted test setup | ORG-014; approved control/recovery targets still require managed-path enforcement, named custodians and UAT |
+| Regular staff check | Password then a private user/session-bound application email receipt; no native AAL2; service-only issuance/consume and restrictive RLS predicate | ORG-015; SMTP/sender unconfigured, review-only migration, local preview and no deployment |
 | Tests | Vitest, appropriate component tools, Playwright, database policy tests | Recommended tooling; verify compatibility at foundation time |
 | Email, malware scanning, advisory assessment, analytics | Provider selection and approved configuration required | Unresolved CFG-10 |
 | Versions, regions, plans, budget | Choose and record explicitly before relevant provisioning | Unresolved; no claims of Saudi hosting |
@@ -112,7 +114,9 @@ not evidence that any later feature is implemented, tested or approved for relea
 BL-AUTH-01 adds a [closed persisted context](features/persisted-authorization.md): private
 account-access, scoped grant and audit metadata, plus a self-only current managed-session/
 assurance lookup. The deployed historical migration used TOTP; ORG-013's review-only
-override requires password then verified phone MFA for staff and email+phone verification
+override originally required password then verified phone MFA for all staff. ORG-015
+now limits that native MFA requirement to Super Admins and adds a private session-bound
+application email check for regular staff; email+phone verification remains
 without MFA for participants. Its verified server adapter returns no resource facts, scientific assignments
 or operational authorization. Both readiness flags and session activation stay false.
 The [staff security foundations](features/staff-security-foundations.md) add a review-only
@@ -163,7 +167,9 @@ Define a provider-independent adapter contract after reviewing the real KAU inte
 Use durable persisted jobs with deduplication keys, bounded retries, delivery status, and authorized replay. Keep console/test-recipient mode in local/staging work. Transactional messages are English-only. Queued, provider-accepted, delivered, and failed states must be distinct. [EML-01 to EML-05]
 
 ORG-013 adds authentication-only SMS. Participants verify email and phone without MFA;
-staff use password followed by phone-MFA explicitly challenged with SMS. Supabase
+Super Admins use password followed by phone-MFA explicitly challenged with SMS. Regular
+staff instead use ORG-015's private application email check, not email OTP sign-in or
+native AAL2. Its server adapter has no configured live provider/default SMTP. Supabase
 `mfa/phone` AMR does not encode the delivery channel: the trusted provider adapter and
 approved managed configuration must preserve SMS-only transport. Live SMS provider,
 sender, budget, expiry/resend/abuse settings and phone-loss/change recovery remain TBD.
