@@ -1,5 +1,5 @@
 /* Floating navigation sits over the film, then settles into a solid scrolling surface. */
-.site-header { position: fixed; inset-inline: clamp(.75rem, 4vw, 4rem); inset-block-start: 3.1rem; z-index: 40; background: transparent; border: 0; transition: inset-block-start var(--motion-feedback) var(--motion-easing); }
+.site-header { position: fixed; inset-inline: clamp(.75rem, 4vw, 4rem); inset-block-start: 1rem; z-index: 40; background: transparent; border: 0; transition: inset-block-start var(--motion-feedback) var(--motion-easing); }
 .site-header-inner { width: 100%; max-inline-size: 1200px; min-block-size: 76px; margin-inline: auto; padding: .7rem 1.4rem; flex-wrap: wrap; gap: 1.2rem; border: 1px solid #f8f6f080; border-radius: 1rem; background: #f8f6f0f5; box-shadow: 0 8px 30px #1f193025; backdrop-filter: blur(14px); }
 .site-header[data-scrolled="true"] { inset-block-start: 1rem; }
 .site-header[data-scrolled="true"] .site-header-inner { background: var(--color-ivory); border-color: var(--color-line); }
@@ -44,7 +44,7 @@ html:has(.homepage-journey) { scroll-padding-block-start: 0; }
 .footer-directory ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (min-width: 1100px) { .section-journey { position: sticky; inset-block-start: 6.3rem; z-index: 15; padding-block: .65rem; background: #f8f6f0f5; backdrop-filter: blur(12px); }.homepage-journey > .editorial-section { scroll-margin-block-start: 11rem; } }
 @media (max-width: 1099px) {
-  .site-header { --header-top: var(--site-header-rest-top, 3.1rem); inset-block-start: var(--header-top); }
+  .site-header { --header-top: max(1rem, env(safe-area-inset-top)); inset-block-start: var(--header-top); }
   .site-header[data-scrolled="true"] { --header-top: max(.75rem, env(safe-area-inset-top)); inset-block-start: var(--header-top); }
   .header-primary-action { display: none; }
   .site-header-inner { min-block-size: 70px; }
@@ -55,7 +55,7 @@ html:has(.homepage-journey) { scroll-padding-block-start: 0; }
   .section-journey-links { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem 1.5rem; }
   .footer-directory ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 639px) { .site-header { inset-block-start: 2.6rem; inset-inline: .75rem; }.site-header-inner { padding: .6rem .9rem; min-block-size: 68px; gap: .5rem; border-radius: .8rem; }.site-header[data-scrolled="true"] { inset-block-start: .75rem; }.wordmark-name { font-size: 1.4rem; }.wordmark-year { font-size: .64rem; }.wordmark-edition { font-size: .59rem; }.language-switch { padding-inline: .5rem; }.header-actions { gap: .25rem; }.section-journey { padding-inline: 1.25rem; }.section-journey-links { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: .25rem .7rem; }.section-journey-links > .site-link { font-size: .8rem; gap: .4rem; }.chapter-number { flex-basis: 1.5rem; block-size: 1.5rem; font-size: .6rem; }.footer-directory ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 639px) { .site-header { --header-top: max(.75rem, env(safe-area-inset-top)); inset-inline: .75rem; }.site-header-inner { padding: .6rem .9rem; min-block-size: 68px; gap: .5rem; border-radius: .8rem; }.site-header[data-scrolled="true"] { inset-block-start: .75rem; }.wordmark-name { font-size: 1.4rem; }.wordmark-year { font-size: .64rem; }.wordmark-edition { font-size: .59rem; }.language-switch { padding-inline: .5rem; }.header-actions { gap: .25rem; }.section-journey { padding-inline: 1.25rem; }.section-journey-links { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: .25rem .7rem; }.section-journey-links > .site-link { font-size: .8rem; gap: .4rem; }.chapter-number { flex-basis: 1.5rem; block-size: 1.5rem; font-size: .6rem; }.footer-directory ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* A phone turned sideways leaves ~340px of height: a slimmer header that steps aside while reading down (site-header.tsx) and returns on any scroll up or focus. */
 @media (orientation: landscape) and (max-height: 500px) { .site-header { transition: inset-block-start var(--motion-feedback) var(--motion-easing), transform var(--motion-reveal) var(--motion-easing); }.site-header[data-scrolled="true"] { --header-top: .5rem; inset-block-start: var(--header-top); }.site-header[data-tucked="true"]:not(:focus-within) { transform: translateY(calc(-100% - 3rem)); }.site-header-inner { min-block-size: 56px; padding-block: .3rem; }.mobile-menu { max-block-size: calc(100dvh - var(--header-top, 3.1rem) - var(--site-header-height, 58px) - 1rem); }.mobile-menu nav a { min-block-size: 48px; font-size: 1.25rem; } }
 @media (prefers-reduced-motion: reduce) { .site-header, .chapter-number { transition: none; } }

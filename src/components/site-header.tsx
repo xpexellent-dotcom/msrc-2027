@@ -81,21 +81,18 @@ export function SiteHeader({ locale }: { locale: Locale }) {
 
   useEffect(() => {
     const card = headerRef.current?.querySelector<HTMLElement>(".site-header-inner");
-    const banner = document.querySelector<HTMLElement>(".preview-banner");
     if (!card) return;
     const root = document.documentElement;
     const measure = () => {
       root.style.setProperty("--site-header-height", `${card.offsetHeight}px`);
-      root.style.setProperty("--site-header-rest-top", `${(banner?.offsetHeight ?? 34) + 12}px`);
+
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(card);
-    if (banner) observer.observe(banner);
     return () => {
       observer.disconnect();
       root.style.removeProperty("--site-header-height");
-      root.style.removeProperty("--site-header-rest-top");
     };
   }, []);
 

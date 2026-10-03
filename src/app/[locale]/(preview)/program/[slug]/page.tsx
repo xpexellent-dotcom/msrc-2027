@@ -16,7 +16,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ...localizedPageMetadata(locale, `/program/${slug}`, siteTitle(session.title), session.description),
     title: siteTitle(session.title),
     description: session.description,
-    robots: { index: false, follow: false },
   };
 }
 

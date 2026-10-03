@@ -22,8 +22,9 @@ export async function generateMetadata({
   const copy = dictionaries[locale];
   return {
     metadataBase: new URL(siteOrigin),
-    title: `MSRC 2027 | ${copy.preview}`,
+    title: `MSRC 2027 | ${copy.title}`,
     description: `${copy.title}. ${copy.institution}. ${copy.location}.`,
+    // Pages opt in through localizedPageMetadata; everything else stays out of search.
     robots: { index: false, follow: false },
   };
 }

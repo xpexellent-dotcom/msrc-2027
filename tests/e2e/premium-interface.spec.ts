@@ -48,12 +48,13 @@ async function checkReadableSections(page: Page) {
 // revision keeps a clean cinematic opening, semantic background pause and
 // one-time enhancement readable with every fallback path.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} concise homepage retains one preview notice and decorative artwork stays out of the accessibility tree`, async ({ page }) => {
+  test(`${locale} concise homepage has no preview notice and decorative artwork stays out of the accessibility tree`, async ({ page }) => {
     await page.goto(`/${locale}`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(content[locale].title);
     await expect(page.locator(".hero-lead")).toHaveText(content[locale].lead);
-    await expect(page.getByText(content[locale].preview, { exact: true })).toHaveCount(1);
-    await expect(page.locator(".preview-banner")).toBeVisible();
+    // ORG-013: the site is public; the development-preview notice is gone.
+    await expect(page.getByText(content[locale].preview, { exact: true })).toHaveCount(0);
+    await expect(page.locator(".preview-banner")).toHaveCount(0);
     const control = page.locator(".conference-hero .hero-media-toggle");
     await expect(control).toHaveCount(1);
     await expect(control).toHaveJSProperty("tagName", "BUTTON");
@@ -67,8 +68,7 @@ for (const locale of ["en", "ar"] as const) {
     const opening = await page.locator(".conference-hero").boundingBox();
     const viewport = page.viewportSize()!;
     expect(opening?.width).toBeGreaterThanOrEqual(viewport.width - 1);
-    const previewBanner = await page.locator(".preview-banner").boundingBox();
-    expect(opening?.height).toBeGreaterThanOrEqual(viewport.height - (previewBanner?.height ?? 0) - 1);
+    expect(opening?.height).toBeGreaterThanOrEqual(viewport.height - 1);
     expect((opening?.y ?? 0) + (opening?.height ?? 0)).toBeGreaterThanOrEqual(viewport.height - 1);
     const navigation = await page.locator(".site-header-inner").boundingBox();
     expect(navigation?.x).toBeGreaterThan(0);

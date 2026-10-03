@@ -992,3 +992,28 @@ v0.5 and earlier source snapshots stay unchanged.
   None of this runs in the film view.
 - Reduced motion removes all of it; print shows the static page.
 - Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-01/03.
+
+## ORG-013 — Public search indexing, preview notice removed, one canonical domain, 3 October 2026
+
+- Status: CONFIRMED requester instruction in the current chat. Google showed "No information is
+  available for this page" for msrc2027.com because every deployment blocked crawlers. The
+  requester asked to open the site to search, remove the "Development preview" notice, and
+  re-route the other Vercel domains to the main domain.
+- Production only (`VERCEL_ENV=production`, www.msrc2027.com):
+  - `robots.txt` allows crawling and links `/sitemap.xml`. It excludes `/api/`, the design system, the local hero preview and staff, review and check-in routes.
+  - The sitemap lists the ten public information pages in EN and AR, with hreflang alternates.
+  - Pages built with `localizedPageMetadata` are `index, follow`. Registration and submissions stay noindex while closed.
+  - The global `X-Robots-Tag: noindex` header is dropped.
+- Everything not built with `localizedPageMetadata` (staff, workflow and review routes) keeps
+  the layout's noindex default. Branch previews, local runs and CI stay fully noindex and
+  disallowed.
+- `msrc-2027.vercel.app`, `msrc-2027-msrc2027.vercel.app` and
+  `msrc-2027-git-main-msrc2027.vercel.app` 308 to `https://www.msrc2027.com` with the same path
+  and query. This is an edge redirect in the production build only, so branch previews still
+  open.
+- The development-preview banner is removed. The header rests 1rem from the top (0.75rem on
+  phones), and the opening film fills the full screen height.
+- Unchanged: the footer's approval note and closed workflow states. Search visibility does not
+  approve content, brand or operations; those remain under REL-01/CFG-12. Google Search
+  Console registration is the requester's step.
+- Affected IDs: SCP-01, DSN-01, LOC-01/03, INF-04/06, REL-01.

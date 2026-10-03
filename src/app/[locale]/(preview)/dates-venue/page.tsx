@@ -23,7 +23,6 @@ export async function generateMetadata({ params }: DatesVenuePageProps): Promise
     ...localizedPageMetadata(locale, "/dates-venue", copy.metadataTitle, description),
     title: copy.metadataTitle,
     description,
-    robots: { index: false, follow: false },
   };
 }
 
