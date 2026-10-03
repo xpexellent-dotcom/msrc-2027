@@ -231,7 +231,8 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
           (select public.msrc_read_access_context('${edition}'))->'grants') g where g->>'role'='contentMediaEditor'));
       create policy cookie_second_step on public.msrc_ci_staff_cookie_resource as restrictive for select to authenticated
         using((select public.msrc_second_step_satisfied()));
-      insert into public.msrc_ci_staff_cookie_resource values('${actors[0]}','Synthetic private cookie resource');
+      insert into public.msrc_ci_staff_cookie_resource values
+        ${actors.map((id) => `('${id}','Synthetic private cookie resource')`).join(",\n")};
       notify pgrst,'reload schema';
       commit;`);
     await waitForDataApiFixture();
@@ -401,6 +402,7 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
   it("revokes native logout and clears the cookie; replay cannot refresh or read", async () => {
     const credential = await verified(actors[6]);
     const old = native(actors[6]);
+    check((await directResource(old)).length === 1, "current exact-session receipt permits own row before logout");
     const logout = await request("logout", credential);
     check(logout.status === 200 && logout.body.state === "logged_out" && logout.setCookie?.includes("Max-Age=0"), "native logout plus cookie deletion");
     check((await get("protected", credential)).status === 403 && (await request("refresh", credential)).status === 403,
@@ -413,6 +415,7 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
   it("clears local proof and reports unavailable if native logout fails after database session revocation", async () => {
     const credential = await verified(actors[16]);
     const old = native(actors[16]);
+    check((await directResource(old)).length === 1, "current receipt permits own row before partial logout");
     logoutFails = true;
     try {
       const response = await request("logout", credential);
@@ -423,6 +426,7 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
     const revoked = await readVerifiedSessionContext(old.access_token, edition);
     check(revoked.state === "verified" && revoked.context.reason === "session_revoked" && !revoked.context.sessionPolicySatisfied,
       "database state independently revokes stale bearer when provider logout fails");
+    check((await directResource(old)).length === 0, "database revocation denies direct reads despite native logout failure");
   });
 
   it("fails closed on an assurance outage and recovers without treating unconfirmed verification as access", async () => {
@@ -437,6 +441,7 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
   it("denies cookie access and refresh after account suspension and refuses restoration of old proof", async () => {
     const credential = await verified(actors[7]);
     const oldNative = native(actors[7]);
+    check((await directResource(oldNative)).length === 1, "active verified staff can read own row before suspension");
     await query(`update msrc_authorization.account_access set state='suspended' where actor_id='${actors[7]}';`);
     check((await get("protected", credential)).status === 403 && (await request("refresh", credential)).status === 403, "suspended exact session denied");
     check((await directResource(oldNative)).length === 0, "suspended account cannot read with its signed old bearer");
@@ -448,11 +453,13 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
   it("invalidates cookie assurance after verified-email and ordinary role changes", async () => {
     const changedEmail = await verified(actors[8]);
     const emailNative = native(actors[8]);
+    check((await directResource(emailNative)).length === 1, "current verified email receipt permits own row before destination change");
     await query(`update auth.users set email='cookie-changed@example.invalid',email_confirmed_at=clock_timestamp() where id='${actors[8]}';`);
     check((await get("protected", changedEmail)).status === 403, "old receipt cannot approve a changed verified destination");
     check((await directResource(emailNative)).length === 0, "changed verified email invalidates old bearer proof in RLS");
     const changedRole = await verified(actors[9]);
     const roleNative = native(actors[9]);
+    check((await directResource(roleNative)).length === 1, "current ordinary grant and receipt permit own row before revocation");
     await query(`update msrc_authorization.role_grants set state='revoked',revoked_at=clock_timestamp(),
       revocation_reason='Disposable cookie revocation' where actor_id='${actors[9]}' and edition_key='${edition}';`);
     check((await get("protected", changedRole)).status === 403 && (await request("issue", changedRole)).status === 403,

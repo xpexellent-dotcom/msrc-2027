@@ -73,6 +73,12 @@ new-fixture preparation because two synthetic actors were assigned the same chan
 email, correctly rejected by native uniqueness. Existing393 assertions passed; the
 new suite emitted13 assertions before this fixture error, so no full SQL/native
 PASS is claimed for that run. Changed destinations are now unique per synthetic actor.
+Atf0ebbd6 CI37145706902 strict lint,505 assertions, advisors and public type
+generation PASS. Native integration62 PASS/1 FAIL: simultaneous-session direct-read
+positive expected an owned row for its actor, but the resource fixture seeded only
+actor0. Expanding this synthetic resource fixture to existing actors and asserting
+positive direct reads before revocation makes those negative regressions meaningful.
+No authorization/policy relaxation is needed. The corrected native suite awaits CI.
 
 Executed the ignored local single-flow driver once at20:58 Riyadh on3October2026:
 one English synthetic staff-code email was accepted by Gmail SMTP. The driver uses
