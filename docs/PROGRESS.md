@@ -2,6 +2,28 @@
 
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
+## 3 October 2026 — Public search indexing, preview notice removed, one domain (ORG-013)
+
+Google listed msrc2027.com as "No information is available for this page": every deployment sent `robots.txt Disallow: /`, a noindex meta tag and `X-Robots-Tag: noindex`. At the requester's request:
+
+- Production only:
+  - `src/app/robots.ts` allows crawling, excludes API, staff and review routes, and links the sitemap.
+  - `src/app/sitemap.ts` (new) lists 10 public pages × EN/AR with hreflang.
+  - `localizedPageMetadata` sets `index, follow` from `indexable` (`src/lib/metadata.ts`).
+  - The noindex header in `next.config.ts` applies to non-production builds only.
+- Registration and submissions keep noindex. Unlisted routes inherit the layout's noindex.
+- `next.config.ts` 308-redirects three production `.vercel.app` hosts to www, keeping the path and query.
+- The "Development preview" banner, its styles and the header's banner offset are removed. The header rests at 1rem (0.75rem on phones) and the hero is a full 100svh. The layout's fallback title is now "MSRC 2027 | Medical Students Research Conference".
+
+Verification:
+- ESLint PASS; build PASS; Vitest 892/892, including new `tests/unit/public-indexing.test.ts` for production versus preview robots, sitemap, metadata, headers and redirects.
+- Full Chromium run: 312 passed, 4 failed. The failures were `premium-interface` still expecting the banner and a hero height that subtracted it; both fixed. The affected specs then passed 169/169 (17 skipped by design).
+- A production-mode build (`VERCEL_ENV=production`) served:
+  - `robots.txt` with `Allow` and the sitemap, and a sitemap with EN/AR alternates;
+  - `/en` as `index, follow` with no `X-Robots-Tag`, and registration as noindex;
+  - `Host: msrc-2027.vercel.app` → 308 to `https://www.msrc2027.com/ar/program?x=1`, while a branch preview host returned 200.
+- Requester next step: add www.msrc2027.com to Google Search Console and submit the sitemap.
+
 ## 3 October 2026 — Scroll-linked homepage motion and a larger opening headline (ORG-012)
 
 After ORG-011 the requester found that phone titles arrive "immediately" in place, so the intended feel was lost. They asked for smooth transitions and fade-ins on phone and desktop, pointing to faithibiza.com (Lenis/GSAP scrubbed reveals), armor-bd.com (headings that light up word by word) and dibiconference.com (fade-ups). They also asked for a clear, large opening headline.

@@ -24,7 +24,6 @@ export async function generateMetadata({ params }: AboutPageProps): Promise<Meta
     ...localizedPageMetadata(locale, "/about", copy.metadataTitle, `${datePrefix}${copy.metadataDescription}`),
     title: copy.metadataTitle,
     description: `${datePrefix}${copy.metadataDescription}`,
-    robots: { index: false, follow: false },
   };
 }
 

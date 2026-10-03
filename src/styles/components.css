@@ -15,11 +15,6 @@
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .skip-link { position: fixed; box-sizing: border-box; z-index: 100; inset-block-start: 0; transform: translateY(calc(-100% - 1rem)); inset-inline-start: 1rem; max-inline-size: calc(100vw - 2rem); white-space: normal; overflow-wrap: anywhere; padding: 0.8rem 1.2rem; background: var(--color-ivory); border: 2px solid var(--color-purple); color: var(--color-purple); font-weight: 700; }
 .skip-link:focus { inset-block-start: 0.6rem; transform: none; }
-.preview-banner { background: var(--color-purple); color: var(--color-ivory); font-size: 0.75rem; }
-.preview-banner-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; min-height: 34px; gap: .2rem 1rem; }
-.preview-label { display: inline-flex; align-items: center; gap: 0.5rem; }
-.preview-label > span { width: 4px; height: 4px; border-radius: 50%; background: var(--color-gold); }
-.preview-edition { color: var(--color-lilac); letter-spacing: 0.12em; }
 .site-header { position: relative; z-index: 20; background: var(--color-ivory); border-block-end: 1px solid var(--color-line); }
 .site-header-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; min-height: 88px; gap: 0.75rem 1.5rem; padding-block: .8rem; }
 .wordmark { display: inline-flex; flex-direction: column; justify-content: center; flex-shrink: 0; max-inline-size: 100%; min-height: 48px; color: var(--color-purple); }
@@ -134,7 +129,6 @@
 .footer-bottom a:hover { text-decoration: underline; text-underline-offset: 0.3rem; }
 
 /* Arabic glyphs read smaller than Latin at equal sizes; lift the smallest shell labels. */
-[lang="ar"] .preview-label { font-size: .76rem; }
 [lang="ar"] .wordmark-edition { font-size: .7rem; }
 [lang="ar"] .desktop-nav a { font-size: .88rem; }
 [lang="ar"] .button--small { font-size: .82rem; }
@@ -160,8 +154,6 @@
   .header-actions { gap: 0.25rem; }
   .language-switch { gap: 0.35rem; padding-inline: 0.5rem; font-size: 0.72rem; }
   .language-switch svg { width: 15px; height: 15px; }
-  .preview-banner { font-size: 0.7rem; }
-  .preview-banner-inner { min-height: 30px; }
   .button { padding-inline: 1.1rem; }
   .button .directional-arrow { display: none; }
   .site-footer { padding-block-start: 3.5rem; }

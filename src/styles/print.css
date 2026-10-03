@@ -3,7 +3,7 @@
    every printed page. Navigation, the film and the footer are screen furniture here. */
 @media print {
   *, *::before, *::after { color: #000 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; }
-  .skip-link, .preview-banner, .site-header, .mobile-menu, .section-journey, .site-footer,
+  .skip-link, .site-header, .mobile-menu, .section-journey, .site-footer,
   .hero-media, .hero-media-controls, .hero-scroll, .cinematic-ui, .cinematic-launch { display: none !important; }
   .hero-content { min-block-size: auto !important; }
   /* Clearance for the floating header, which is not printed. */

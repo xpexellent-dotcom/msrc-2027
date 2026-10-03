@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 
+// ORG-013: production is public and indexable; previews, local runs and CI stay noindex.
+const production = process.env.VERCEL_ENV === "production";
+// Vercel's own addresses for the production deployment send visitors to the real domain.
+const vercelHosts = ["msrc-2027.vercel.app", "msrc-2027-msrc2027.vercel.app", "msrc-2027-git-main-msrc2027.vercel.app"];
+
 const nextConfig: NextConfig = {
   // Preserve the handoff's existing project instructions unchanged.
   agentRules: false,
@@ -7,13 +12,16 @@ const nextConfig: NextConfig = {
   // English is the default locale (LOC-01). A config redirect is answered at the CDN edge;
   // the previous route handler made every root visit wait on a function in iad1.
   async redirects() {
-    return [{ source: "/", destination: "/en", permanent: false }];
+    return [
+      ...(production ? vercelHosts.map((value) => ({ source: "/:path*", has: [{ type: "host" as const, value }], destination: "https://www.msrc2027.com/:path*", permanent: true })) : []),
+      { source: "/", destination: "/en", permanent: false },
+    ];
   },
   async headers() {
     return [{
       source: "/:path*",
       headers: [
-        { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ...(production ? [] : [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }]),
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "no-referrer" },
         { key: "X-Frame-Options", value: "DENY" },

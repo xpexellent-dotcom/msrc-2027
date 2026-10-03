@@ -15,7 +15,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ...localizedPageMetadata(locale, "/hackathon", siteTitle(copy.label), copy.lead),
     title: siteTitle(copy.label),
     description: copy.lead,
-    robots: { index: false, follow: false },
   };
 }
 

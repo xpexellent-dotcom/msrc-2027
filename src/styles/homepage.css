@@ -1,6 +1,6 @@
 /* Public narrative: quiet brand lines, generous editorial space, real approved film. */
 .conference-hero { position: relative; isolation: isolate; overflow: hidden; background: var(--color-ink); color: var(--color-ivory); }
-.hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; min-block-size: calc(100svh - 34px); }
+.hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; min-block-size: 100svh; }
 .hero-layout { display: flex; align-items: end; flex: 1; padding-block: clamp(11rem, 23vh, 16rem) 3.5rem; }
 .hero-editorial { max-inline-size: 1080px; min-inline-size: 0; }
 .hero-topline { display: flex; gap: .7rem; align-items: center; margin: 0 0 1.7rem; color: var(--color-ivory); font-size: .78rem; font-weight: 500; }
@@ -145,7 +145,7 @@
   .faq-grid { gap: 2.5rem; }
 }
 @media (max-width: 700px) {
-  .hero-content { min-block-size: calc(100svh - 30px); }
+  .hero-content { min-block-size: 100svh; }
   .hero-layout { padding-block: 10rem 2.5rem; }
   .hero-topline { font-size: .66rem; margin-block-end: 1.4rem; letter-spacing: .09em !important; }
   .hero-editorial h1 { font-size: clamp(2.9rem, 13vw, 4.6rem); line-height: 1.02; letter-spacing: -.055em; }
