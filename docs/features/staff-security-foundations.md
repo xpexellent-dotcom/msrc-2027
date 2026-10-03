@@ -14,7 +14,12 @@ ORG-016 removes active phone/SMS configuration, collection, fixtures, provider/s
 
 Branch `codex/email-authenticator-no-sms` disables Vercel Git deployment. Enable server-only `MSRC_AUTH_PREVIEW=synthetic`, clear deployment and hosted-client configuration, and start on loopback. Visit `/en/staff-security-preview` or `/ar/staff-security-preview`. Every Vercel environment denies the lab even with its flag.
 
-Password login is simulated. Email codes appear only in an ephemeral test inbox at issuance. Super Admin enrollment returns transient QR/manual setup once; status/refresh never repeat it. Successful verification/terminal states clear setup/codes; reload loses setup and requires enrollment restart. Secrets/codes never enter logs, browser storage or audit. No real messages or accounts.
+Password login is simulated. Default email codes appear in an ephemeral test inbox at
+issuance; optional private Windows test delivery hides codes from UI/API and sends only
+to the approved self-recipient. Super Admin enrollment returns transient QR/manual setup
+once; status/refresh never repeat it. Successful verification/terminal states clear
+setup/codes; reload loses setup and requires enrollment restart. Secrets/codes never
+enter logs, browser storage or audit. No live account is created.
 
 EN/AR/RTL, keyboard, Arabic digit normalization, paste/autofill, expiry/resend/delivery-failure/retry and generic errors are required. Emails stay English-only. QR scanning is optional; manual key/instructions support keyboard users.
 
@@ -22,7 +27,11 @@ Synthetic TOTP uses RFC6238 SHA-1/6digits/30s with adjacent-step tolerance and c
 
 ## Enforcement and sessions
 
-The injected managed SDK adapter selects TOTP only; live client/routes/cookies remain unwired. Private staff email checking verifies bearer/trusted recipient, generates cryptographic single-use codes, stores only keyed hashes and binds approval to current user/session/email/password/grants. See [staff email feature](regular-staff-email-check.md).
+The injected managed SDK adapter selects TOTP only; live client/routes/cookies remain
+unwired. A separate no-delivery CI HTTP lab now verifies managed password/receipt/cookie
+composition. Private staff email checking verifies bearer/trusted recipient, generates
+cryptographic single-use codes, stores only keyed hashes and binds approval to current
+user/session/email/password/grants. See [staff email feature](regular-staff-email-check.md).
 
 Own-context RPCs omit phone fields and never activate sessions. Current native factor/session proof and the restrictive self-only `msrc_second_step_satisfied()` predicate deny password-only/stale/foreign evidence. Client metadata never grants approval. Future domain database/storage policies must test these predicates alongside grants/ownership/readiness before opening; storage stays disabled.
 
@@ -37,12 +46,25 @@ Current commands/counts/source/CI/visual receipts are in PROGRESS. Database runt
 3. Super Admin enrolls with authenticator QR/manual key; missing/wrong/stale proof denies. Verify then exercise reset/suspension/logout/expiry simulations.
 4. Refresh preserves original deadline; a new login needs a fresh appropriate check. Confirm both locales, keyboard/Arabic digits and setup/code removal after success or reload.
 
-Human devices/screen readers, cookie exchange, real delivery, actual private storage policies and approved recovery rehearsal are NOT TESTED/BLOCKED. Live SMTP/provider/sender is absent; no development-email fallback.
+The organizer reported that the isolated local email-code preview works; exact device,
+locale and accessibility scenarios were not specified. Native CI cookies and local test
+SMTP are separate evidence. Combined managed-login/real-inbox human UAT, screen readers,
+actual private storage policies and genuine recovery remain NOT TESTED/BLOCKED. Live
+SMTP/provider/sender is absent; no development-email fallback.
 
-Recovery retains revoke/suspend first, distinct Super Admin approver/operator and in-person identity/appointment review. Named people, precise lost-email/authenticator evidence/procedure/rehearsal, recent-auth, warning lead, privacy/retention/location and release remain TBD. No live reset/invitation/grant changes.
+Recovery retains revoke/suspend first, distinct Super Admin approver/operator and in-person identity/appointment review. Named people, precise verified lost-email/authenticator evidence/procedure, recent-auth, warning lead, privacy/retention/location and release remain TBD. No live reset/invitation/grant changes.
 
 ## Rollback and next task
 
 Stop the loopback lab and clear its opt-in; restart clears synthetic memory. Revert isolated review code if needed while preserving current policy; never reactivate the superseded SMS draft. No hosted rollback is needed; nothing was applied/deployed. Never delete audit history or push historical migrations.
 
-Next: approve English email provider/sender and an allowlisted isolated delivery/cookie test setup. Operational access and recovery stay closed until independent gates pass.
+The organizer requested completing these foundations without an additional synthetic
+recovery rehearsal. Development foundations are reviewable; operational access and
+genuine recovery remain closed until their independent gates pass. The dormant private
+maintenance helper needs complete current assurance and actual recent-auth age checks
+before any future activation; its current denied API access and false-only readiness
+constraint do not authorize a live recovery API.
+
+Next checklist development item: BL-PUB-06 Contact and BL-PUB-08 Privacy/Terms, with
+truthful bilingual closed scaffolds while approved controller/contact and legal copy
+remain pending. Review of stacked PR19/25 is separate from production release.

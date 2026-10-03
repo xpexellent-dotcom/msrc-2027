@@ -223,6 +223,24 @@ No production mail adapter, SMTP configuration, readiness flag or Auth setting w
 activated. Do not repeat approval questions for authorized isolated test mail. Existing security,
 recovery, privacy/location, recent-auth, warning-lead and human UAT gates remain open.
 
+## Foundation closeout and organizer feedback
+
+The organizer reported that the isolated preview works and requested finishing the
+foundations without an additional recovery rehearsal. Closed BL-AUTH-05/06 development
+is implemented and verified, with current receipts in PROGRESS; no recovery page or
+native reset adapter is added. The responsible recovery role is Super Admin, with
+the existing distinct-person/in-person safeguards. Actual names and exact trusted
+evidence/procedure remain unresolved.
+
+Record the preview result as user-reported success. The exact device/locale/keyboard/
+screen-reader extent was not supplied; combined genuine-managed-login/real-inbox human
+UAT, genuine recovery and production/storage policy approval remain separate gates.
+Live staff access, every operational workflow and all readiness stay closed.
+
+Next checklist development item: BL-PUB-06 Contact and BL-PUB-08 Privacy/Terms, starting
+with truthful bilingual closed scaffolds until controller/contact and approved legal
+processing/location/retention facts are available. Stacked PR19/25 review is separate.
+
 ## Changed areas and execution boundary
 
 | Area | Review files |

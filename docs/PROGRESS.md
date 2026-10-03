@@ -1,5 +1,64 @@
 # Progress and session handover
 
+## 3 October 2026 — Authentication foundation closeout
+
+The organizer reported that the isolated preview works, confirmed Super Admin
+responsibility for account recovery, and requested finishing these foundations
+without an additional recovery rehearsal. Closed BL-AUTH-05/06 development is
+implemented and verified; its production feature/release status remains Partial.
+No rehearsal source, page, API, test, link or configuration change is retained.
+Actual custodian names, exact trusted in-person identity/appointment evidence and
+the verified procedure remain unresolved; distinct-person safeguards are preserved.
+
+Continued `codex/email-authenticator-no-sms` from 5f06050; PR25 remains a draft stacked
+on unmerged PR19 at 7dce160. Fresh main 1cac875 includes unrelated public-indexing/calendar
+work, inspected by changed-file list and not merged into this auth closeout. The original
+checkout's two modified docs and five untracked paths remain unchanged.
+
+Updated eight relevant documentation/README files: DECISIONS, PROGRESS,
+backlog/06-authentication, features/managed-authentication-plan,
+features/regular-staff-email-check, features/staff-security-foundations,
+src/features/auth/README and src/app/[locale]/(auth)/README.
+No application behavior, policy value, dependency, migration or production setting
+is changed. The active phone/SMS and obsolete cookie/delivery descriptions are corrected.
+Historical sources/migrations and dated test receipts remain preserved.
+
+Documentation validation: `git diff --check` PASS; no recovery-rehearsal source,
+import, link or test configuration remains. No new runtime tests are needed for
+these documentation-only changes.
+
+Freshly inspected all four completed GitHub checks for 5f06050: push CI37146815235 and
+PR CI37146818515 both PASS. The retained implementation passed lint/types, 1378 units,
+42-page production build, 300 public + 75 auth browser tests with 3 existing skips,
+strict migration lint, 505 SQL assertions, advisors/types and 63 native integrations.
+Native/SQL execution remains isolated GitHub CI only; no local Docker/database run.
+Existing denial tests cover private maintenance/factor reset; its false-only readiness
+CHECK, postgres-only guard and denied API execution keep it closed. The future helper
+needs complete current assurance and actual recent-auth age checks before activation.
+No newly identified active bypass requires another schema change for this closeout.
+
+Organizer-reported preview success is partial human feedback, without specified
+device/locale/keyboard/screen-reader extent. Combined genuine managed/real-inbox human
+UAT, genuine recovery, actual object-storage policies and production email/custody/
+durable Secure-cookie setup remain NOT TESTED/BLOCKED. Every operational/readiness
+flag stays false; participant 72h and staff 30min idle/8h absolute/native-origin policy,
+roles, staff email checking and Super Admin authenticator policy remain unchanged.
+
+Next development item from the freshly read linked checklist (sequence 3): BL-PUB-06
+Contact and BL-PUB-08 Privacy/Terms. Start with truthful bilingual closed scaffolds;
+approved controller/contact, processing/location/retention facts and final copy are
+required before publication/data collection. This auth task does not implement them.
+PR19/25 review and live-auth configuration/release approvals remain separate.
+
+Remaining authentication decisions: recent-auth age, warning lead, named distinct
+Super Admin recovery people and exact verified procedure/evidence, privacy/retention/
+location, production plan/region/email provider/sender/custody/durable cookies, TOTP
+abuse controls and human UAT/domain database/storage policy integration.
+Rollback: revert this documentation-only closeout if needed; stop the existing local
+lab/clear its opt-in to close the preview. Preserve private credentials/send records.
+No hosted rollback is needed. No merge/deploy/send/hosted migration/reset/seed,
+real account/grant/reset, spending or new operational module is performed.
+
 ## 3 October 2026 — Isolated staff code delivery and managed HTTP/cookies
 
 Continued the organizer-authorized next slice on `codex/email-authenticator-no-sms`

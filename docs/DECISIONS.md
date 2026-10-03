@@ -1330,3 +1330,38 @@ hosted migration/fixture/reset, deployment, merge, paid service, recovery action
 production readiness change is performed by this slice.
 Recent-auth age, warning lead, named distinct recovery custodians/procedure and
 privacy/retention/location remain unresolved. Executed evidence belongs in PROGRESS.
+
+## ENG-013 — Authentication foundation closeout, 3 October 2026
+
+The organizer reported that the isolated preview works and requested the next steps,
+then directed: finish these foundations without an additional recovery rehearsal and
+identify the next task from the linked checklist. The organizer also confirmed that
+a Super Admin manages account recovery. This identifies the responsible role; it
+does not name the two distinct approved custodians or waive the in-person safeguards.
+
+- Close the bounded BL-AUTH-05/06 development work as implemented and verified:
+  participant verified email/password without MFA, regular-staff password plus the
+  private current-session email receipt, Super Admin authenticator TOTP, preserved
+  grants/scopes and participant 72h/privileged 30min idle/8h absolute session policy.
+- Do not add a synthetic recovery page, workflow or native recovery adapter. Live
+  restoration, factor reset, identity changes and all operational/readiness gates
+  remain closed; this closeout is not a production release or approved procedure.
+- Preserve user-reported preview success as partial human feedback. Exact devices,
+  locales and accessibility tests were unspecified. Managed no-delivery CI and
+  actual local test email remain separate evidence, not combined native-login/
+  real-inbox human UAT.
+- Correct active READMEs and feature notes that still mention superseded phone/SMS
+  flows or entirely untested cookie/test-delivery work. Historical sources, dated
+  decisions, migrations and test receipts remain unchanged.
+- The dormant private maintenance helper is currently closed by postgres-only
+  invocation, denied API execution, unconditional factor-reset denial and enforced
+  false-only readiness. Before eventual activation it needs complete current
+  session/idle/cutoff/password/TOTP/grant checks and actual recent-auth age enforcement.
+  Configuring a timing value alone is insufficient. No extra migration is needed to
+  close the current path, and no live helper is connected in this task.
+
+Next checklist development item is sequence 3: BL-PUB-06 Contact and BL-PUB-08
+Privacy/Terms. Build truthful bilingual closed scaffolds while controller/contact,
+service-processing/location/retention facts and final copy approval remain pending.
+This is separate from review/merge of PR19/25 and unresolved authentication release
+approvals. No merge, deployment or production authentication change is authorized.

@@ -98,10 +98,10 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-05 — Staff email check, Super Admin authenticator MFA and audited recovery
 - **Source IDs:** AUTH-04, ROL-12, SEC-01, SEC-06.
-- **Status:** Partial — closed local preview and private database foundations; current receipts in PROGRESS. ORG-016 removes phone/SMS authentication and restores Super Admin authenticator setup. No participant signup/live delivery/recovery activation. See [feature note](../features/staff-security-foundations.md).
+- **Status:** Partial — closed development foundations implemented and verified; current receipts in PROGRESS. ORG-016 removes phone/SMS authentication and restores Super Admin authenticator setup. Review-only migrations and production/recovery release gates remain open. No participant signup/live delivery/recovery activation. See [feature note](../features/staff-security-foundations.md).
 - **Purpose:** Require the approved staff check or Super Admin MFA before scoped privileged access.
 - **Scope:** Regular staff password then fresh code at trusted verified email/private exact-user/session/email/password/grant receipt at AAL1 (ORG-015); Super Admin password then current authenticator TOTP at AAL2 (ORG-016). Participants retain verified email/password only, no phone/MFA. Approved staff email6digits/5min,60s resend,3/account/15min,10/rolling24h,20/IP/hour,5failures/15min cooldown,newest only. Recovery remains gated.
-- **Exclusions:** Email OTP sign-in as proof of both steps/native AAL2; email receipt replacing Super Admin MFA; phone/SMS verification, automatic reset on password recovery, shared factors/support bypass, real delivery/hosted migration apply.
+- **Exclusions:** Email OTP sign-in as proof of both steps/native AAL2; email receipt replacing Super Admin MFA; phone/SMS verification, automatic reset on password recovery, shared factors/support bypass, production/general-recipient delivery or hosted migration apply. Approved isolated self-recipient test mail stays separate.
 - **Dependencies:** BL-AUTH-01, managed identity, approved staff recovery DR-CFG-11 and live email/privacy configuration.
 - **Roles:** Individually identified privileged users; separately authorized distinct recovery approver/operator.
 - **States/transitions:** Staff password→email challenge→single-use exact-session receipt; Super Admin password→TOTP enrollment/challenge→verified current factor/AAL2. Missing/stale/foreign/out-of-order proof denies. New login needs fresh appropriate checking; refresh does not.
@@ -112,16 +112,16 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Security/RLS:** Current assurance server/database predicate with scoped grants/ownership/readiness; no escalation/reset bypass; no code/secret/password in logs/browser storage/audit.
 - **Audit/email:** Safe enrollment/challenge/verification/revocation events; approved English email only when configured.
 - **Automated tests:** Password-only/incorrect/expired/reused/replaced code, quotas/concurrency, stale/foreign factor/receipt, strongest roles, refresh/new login, email/role revocation, expiry/logout/suspension, failure recovery and unauthorized reset.
-- **Manual UAT:** Approved isolated staff inbox delivery and Super Admin authenticator devices, accessible QR/manual entry/retry, lost/changed email/factor and approved recovery rehearsal. Currently NOT TESTED.
+- **Manual UAT:** Organizer reported that the isolated staff email preview works; exact device/locale/accessibility extent unspecified. Super Admin authenticator-device/QR/manual-entry UAT, combined genuine-managed-login/real-inbox UAT, screen readers and actual recovery remain NOT TESTED. No additional synthetic recovery rehearsal is included in the foundation closeout.
 - **Release gate:** M4 privileged production access; all operational flags false.
 - **Owner type:** Authentication/security engineer.
-- **TBD blocked:** English email provider/sender/SMTP; precise lost-email/authenticator procedure/evidence, named distinct Super Admin custodians and rehearsal; recent-auth age/warning lead; privacy/retention/location and release approvals. SMS provider/sender/budget is retired. See [decision packet](../features/managed-authentication-plan.md).
+- **TBD blocked:** Production English email provider/sender/SMTP; precise verified lost-email/authenticator procedure/evidence and named distinct Super Admin custodians; recent-auth age/warning lead; privacy/retention/location and release approvals. SMS provider/sender/budget is retired. See [decision packet](../features/managed-authentication-plan.md).
 
 <a id="bl-auth-06"></a>
 
 ## BL-AUTH-06 — Enforce session lifetimes and revocation with draft recovery
 - **Source IDs:** AUTH-05, ROL-12, SEC-06, ERR-01.
-- **Status:** Partial — configurable server/database policy foundations and synthetic expiry/revocation coverage; migration review-only, no live activation or saved-draft module. See [feature note](../features/staff-security-foundations.md) and PROGRESS.
+- **Status:** Partial — configurable server/database development foundations and expiry/revocation coverage implemented and verified; migrations review-only, no live activation or saved-draft module. See [feature note](../features/staff-security-foundations.md) and PROGRESS.
 - **Purpose:** Expire or revoke access predictably without losing already saved work.
 - **Scope:** ORG-012 participant absolute maximum 72h; privileged idle 30min and absolute 8h. Refresh never restarts absolute origin. Recent-auth age/warning lead TBD; dependent sensitive actions closed. Logout/suspension/recovery/factor-reset invalidation foundations; draft recovery belongs to its later workflow.
 - **Exclusions:** Client timer as authority, unsaved input promised durable, arbitrary permanent session extension.
@@ -138,7 +138,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Manual UAT:** Expire an editing staff session and resume safely after reauthentication.
 - **Release gate:** Before production participant or privileged access.
 - **Owner type:** Authentication/backend engineer.
-- **TBD blocked:** Recent-auth age, warning lead, named recovery custodians/verified procedure rehearsal, privacy/retention/location and live security-email configuration remain TBD. ORG-016 preserves distinct-person/in-person recovery targets and disposable no-delivery managed API tests; live activation requires approved email/database enforcement and human UAT.
+- **TBD blocked:** Recent-auth age, warning lead, named recovery custodians/verified procedure, privacy/retention/location and live security-email configuration remain TBD. ORG-016 preserves distinct-person/in-person recovery targets and disposable no-delivery managed API tests; live activation requires approved email/database enforcement and human UAT.
 
 <a id="bl-auth-07"></a>
 
