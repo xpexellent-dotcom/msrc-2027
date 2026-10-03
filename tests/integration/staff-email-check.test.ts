@@ -13,7 +13,7 @@ const ci = process.env.GITHUB_ACTIONS === "true";
 const edition = "synthetic-staff-email-2027";
 const actor = "b1000000-0000-4000-8000-000000000001";
 const other = "b1000000-0000-4000-8000-000000000002";
-const actors = Array.from({ length: 15 }, (_, index) => `b1000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`);
+const actors = Array.from({ length: 17 }, (_, index) => `b1000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`);
 const password = randomBytes(32).toString("hex");
 const emailFor = (id: string) => `email-check-${actors.indexOf(id) + 1}@example.invalid`;
 const hashingKey = randomBytes(32);
@@ -64,10 +64,10 @@ function client() {
   });
 }
 
-async function login(id = actor) {
+async function login(id = actor, credential = password) {
   check(actors.includes(id), "fixed synthetic password identity");
   const sdk = client();
-  const response = await sdk.auth.signInWithPassword({ email: emailFor(id), password });
+  const response = await sdk.auth.signInWithPassword({ email: emailFor(id), password: credential });
   check(!response.error && response.data.session && response.data.user?.id === id, "genuine password identity");
   return { sdk, session: response.data.session };
 }
@@ -217,6 +217,8 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
     const denied = await context(fresh.session);
     check(denied.principal.sessionId !== after.principal.sessionId && !denied.staffEmailValid
       && !denied.sessionPolicySatisfied && denied.reason === "staff_email_check_required", "new password login needs fresh email check");
+    const original = await context(active.session);
+    check(original.staffEmailValid && original.sessionPolicySatisfied, "another password login does not invalidate original exact-session receipt");
   });
 
   it("never creates a receipt from a pending or failed email delivery", async () => {
@@ -324,14 +326,20 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
     const pending = await login(actors[10]);
     const config = boundary();
     const value = challenge(pending.session);
-    const rpc = await fetch(`${config.url}/rest/v1/rpc/msrc_staff_email_begin`, {
-      method: "POST", headers: { apikey: config.publishableKey, Authorization: `Bearer ${pending.session.access_token}`,
-        "Content-Type": "application/json" }, body: JSON.stringify({ actor_id: value.actor, session_id: value.sid,
-        challenge_id: value.id, code_hash: value.codeHash, ip_hash: ipHash }), signal: AbortSignal.timeout(5_000),
-    });
-    const failure = await rpc.json();
-    check(rpc.status === 403 && failure.code === "42501", "authenticated service-only RPC permission denial");
-    for (const table of ["challenges", "receipts"]) {
+    const binding = { actor_id: value.actor, session_id: value.sid, challenge_id: value.id };
+    for (const endpoint of [
+      { name: "msrc_staff_email_begin", args: { ...binding, code_hash: value.codeHash, ip_hash: ipHash } },
+      { name: "msrc_staff_email_delivery", args: { ...binding, delivered: false } },
+      { name: "msrc_staff_email_consume", args: { ...binding, code_hash: value.codeHash } },
+    ]) {
+      const rpc = await fetch(`${config.url}/rest/v1/rpc/${endpoint.name}`, {
+        method: "POST", headers: { apikey: config.publishableKey, Authorization: `Bearer ${pending.session.access_token}`,
+          "Content-Type": "application/json" }, body: JSON.stringify(endpoint.args), signal: AbortSignal.timeout(5_000),
+      });
+      const failure = await rpc.json();
+      check(rpc.status === 403 && failure.code === "42501", "authenticated service-only RPC permission denial");
+    }
+    for (const table of ["challenges", "receipts", "audit", "identity_revision"]) {
       const response = await fetch(`${config.url}/rest/v1/${table}?select=*`, {
         headers: { apikey: config.publishableKey, Authorization: `Bearer ${pending.session.access_token}`,
           "Accept-Profile": "msrc_staff_email" }, signal: AbortSignal.timeout(5_000),
@@ -452,5 +460,53 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
       check((await query(`select count(*) from msrc_staff_email.receipts where actor_id='${actors[14]}';`)) === "0",
         "a code expired during lock wait never creates a receipt");
     } finally { await holding; }
+  });
+
+  it("invalidates prior password and email proof after a genuine managed password change and recovers through fresh login", async () => {
+    const id = actors[15];
+    const managed = await login(id);
+    const value = await begin(managed.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok"
+      && (await consume(value)).state === "verified", "password-bound email receipt before actual credential mutation");
+    const replacement = randomBytes(32).toString("hex");
+    const mutation = await managed.sdk.auth.updateUser({ password: replacement });
+    check(!mutation.error, "genuine isolated managed password update without delivery");
+    const stale = await context(managed.session);
+    check(!stale.staffEmailValid && !stale.passwordValid && !stale.sessionPolicySatisfied
+      && stale.reason === "password_auth_required", "pre-change native password AMR and email receipt cannot survive a real password mutation");
+    check((await begin(managed.session)).result.state === "denied", "old password session cannot issue another email check");
+    const fresh = await login(id, replacement);
+    const missing = await context(fresh.session);
+    check(missing.passwordValid && !missing.staffEmailValid && !missing.sessionPolicySatisfied
+      && missing.reason === "staff_email_check_required", "new password proof still needs its own second step");
+    // CI clock fixture only: a credential change does not reset the approved
+    // account cooldown; accelerate the existing reservation rather than policy.
+    await query(`update msrc_staff_email.challenges set created_at=clock_timestamp()-interval '61 seconds' where id='${value.id}';`);
+    const next = await begin(fresh.session);
+    check(next.result.state === "issued" && (await delivered(next)).state === "ok"
+      && (await consume(next)).state === "verified", "fresh password plus new exact-session email check recovers");
+    const recovered = await context(fresh.session);
+    check(recovered.staffEmailValid && recovered.passwordValid && recovered.sessionPolicySatisfied
+      && claims(fresh.session).aal === "aal1" && !recovered.mfaValid
+      && !recovered.operationalAccessReady && !recovered.privilegedAccessReady, "credential recovery remains AAL1 and all live gates closed");
+  });
+
+  it("does not revive an old receipt when an email or its confirmation timestamp changes away and back", async () => {
+    const id = actors[16];
+    const managed = await login(id);
+    const value = await begin(managed.session);
+    check(value.result.state === "issued" && (await delivered(value)).state === "ok"
+      && (await consume(value)).state === "verified", "initial exact-session managed email receipt");
+    // Trusted fixture transitions ONLY: no managed verification email is sent.
+    await query(`update auth.users set email='temporary-revision@example.invalid' where id='${id}';
+      update auth.users set email='${emailFor(id)}' where id='${id}';`);
+    const restored = await context(managed.session);
+    check(restored.emailVerified && restored.passwordValid && !restored.staffEmailValid
+      && !restored.sessionPolicySatisfied, "returning to the old address cannot revive previous email proof");
+    await query(`update auth.users set email_confirmed_at=null where id='${id}';
+      update auth.users set email_confirmed_at=created_at where id='${id}';`);
+    const confirmed = await context(managed.session);
+    check(confirmed.emailVerified && !confirmed.staffEmailValid && !confirmed.sessionPolicySatisfied,
+      "restored confirmation cannot revive old receipt");
   });
 });

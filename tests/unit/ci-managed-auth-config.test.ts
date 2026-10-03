@@ -12,7 +12,12 @@ describe("disposable managed Auth configuration boundary", () => {
     expect(generated.split("[auth]")[1].split("[auth.email]")[0]).toContain("enable_signup = false");
     expect(generated).toContain("pg-functions://postgres/msrc_ci_auth/capture_sms");
     expect(generated).toContain("pg-functions://postgres/msrc_ci_auth/reject_email");
-    expect(generated).not.toMatch(/\[auth.sms.(twilio|messagebird|vonage|textlocal)/);
+    expect(generated.match(/\[auth\.sms\.(twilio|twilio_verify|messagebird|vonage|textlocal)\]/g)).toEqual(["[auth.sms.vonage]"]);
+    expect(generated).toContain('api_key = "synthetic-unusable-api-key"');
+    expect(generated).toContain('api_secret = "synthetic-unusable-api-secret"');
+    expect(generated).toContain('from = "CI NO DELIVERY"');
+    expect(generated).toMatch(/\[auth\.hook\.send_sms\]\r?\nenabled = true/);
+    expect(generated).toMatch(/\[auth\.hook\.send_email\]\r?\nenabled = true/);
   });
   for (const [name, value] of [
     ["GITHUB_ACTIONS", "false"], ["RUNNER_ENVIRONMENT", "self-hosted"],
@@ -20,6 +25,9 @@ describe("disposable managed Auth configuration boundary", () => {
     ["SUPABASE_PROJECT_ID", "unexpected"], ["NEXT_PUBLIC_SUPABASE_TARGET", "hosted"],
     ["NEXT_PUBLIC_SUPABASE_URL", "https://ecemjggwlzqpjcwmchrl.supabase.co"],
     ["NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:9999"],
+    ["SUPABASE_AUTH_SMS_VONAGE_API_KEY", "unapproved-override"],
+    ["GOTRUE_SMS_PROVIDER", "unapproved-override"],
+    ["GOTRUE_HOOK_SEND_SMS_ENABLED", "false"],
   ]) it(`rejects ${name} outside the disposable runner boundary (${value})`, () => {
     expect(() => renderCiManagedAuthConfig(configuration, { ...runner, [name]: value })).toThrow();
   });

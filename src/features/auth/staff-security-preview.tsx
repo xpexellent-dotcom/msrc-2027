@@ -137,6 +137,7 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
     if (result.code === "reauthenticated" && participant) message = text.participantReauthenticated;
     if (result.code === "reauthenticated" && staff) message = text.staffReauthenticated;
     if (result.state === "unavailable" && staff && responseAction === "challenge-email") message = text.staffEmailDeliveryFailed;
+    if (result.code === "retry_limited" && staff) message = text.staffEmailRetryLimited;
   }
   const failed = Boolean(validation) || (Boolean(message) && result?.state !== "ok");
 

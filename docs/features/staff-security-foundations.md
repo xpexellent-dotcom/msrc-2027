@@ -48,8 +48,9 @@ its SMS code for the existing synthetic AAL2 probe.
 The inbox code appears only in that send response, never in status, URLs, audit events,
 browser storage or logs. Server memory stores keyed code hashes. Codes are random,
 single-use, invalidated on replacement, expiring and protected by serialized verification
-and bounded failed attempts. Lab limits are engineering test bounds, **not approved live
-SMS policy**. Restart discards all synthetic identities, factors, inboxes and sessions.
+and bounded failed attempts. Regular-staff email limits reuse ORG-014 targets; separate
+synthetic phone timings remain test bounds, not evidence of live SMS enforcement.
+Restart discards all synthetic identities, factors, inboxes and sessions.
 
 English/Arabic instructions, full RTL, LTR code entry, Arabic digit normalization,
 keyboard/paste/autofill, focus/status/error handling and retry support are required.
@@ -104,12 +105,12 @@ attribution references do not establish an approved live human reset operator.
 
 | Area | Files | Purpose |
 | --- | --- | --- |
-| Preview/provider/code service | `src/features/auth/mfa-contract.ts`, `mfa-provider.server.ts`, `preview.server.ts`, `sms-test.server.ts` | Separate participant verification and ordered staff SMS MFA; ephemeral hashed codes and sanitized adapter. Obsolete TOTP/QR code and dependency removed. |
+| Preview/provider/code service | `src/features/auth/mfa-contract.ts`, `mfa-provider.server.ts`, `preview.server.ts`, `sms-test.server.ts`, `staff-email.server.ts` | Separate participant verification, regular-staff password/email receipt and Super Admin SMS MFA; hashed codes and sanitized adapters. |
 | UI/transport | `src/app/[locale]/(auth)/staff-security-preview/page.tsx`; `src/app/api/auth-preview/route.ts`; `src/lib/auth-preview.server.ts`; `src/features/auth/staff-security-copy.ts`, `staff-security-preview.tsx`; `src/styles/staff-security-preview.css` | Local guarded lab, separate synthetic inboxes, EN/AR/RTL and failure/retry states. |
 | Policy/identity | `src/config/authentication-policy.ts`, `session-policy.ts`; `src/lib/auth/session-policy.server.ts`; `src/lib/supabase/session.server.ts`; `src/lib/permissions/contract.ts`, `persisted-context.ts`, `authorize.server.ts` | Approved policy with unresolved settings null; current verification/password/phone assurance and fixed origin. |
-| Review-only SQL | `supabase/migrations/20261002193800_staff_mfa_session_foundations.sql`; `supabase/tests/database/session_foundations.test.sql`, `persisted_authorization.test.sql`, `authorization_contract.test.sql` | Private policy/revocation/audit, historical helper override, real-schema permission and lifecycle assertions. |
+| Review-only SQL | `supabase/migrations/20261002193800_staff_mfa_session_foundations.sql`, `20261002233353_regular_staff_email_check.sql`; `supabase/tests/database/session_foundations.test.sql`, `persisted_authorization.test.sql`, `authorization_contract.test.sql`, `regular_staff_email.test.sql` | Existing session policy plus private email challenge/receipt/revision/audit, restrictive assurance predicate, permission and lifecycle assertions. |
 | Coverage | Auth/provider/session/identity/authorization unit tests; `tests/e2e/staff-security.spec.ts`, `auth-preview-unavailable.spec.ts`; `tests/integration/session-concurrency.test.ts`, `session-denial.test.ts`; `playwright.auth.config.ts`; `.github/workflows/ci.yml` | Ordered assurance, verification, single-use/failure/concurrency/revocation and local-only UI. Auth traces/screenshots/failure snapshots disabled to protect visible test codes. |
-| Docs/dependencies | `AGENTS.md`; current requirements, decisions, architecture, progress, auth backlog/index and feature notes; `package.json`, `pnpm-lock.yaml` | ORG-013 supersession and gates; original source snapshot preserved; unused QR dependencies removed. |
+| Docs/dependencies | `AGENTS.md`; current requirements, decisions, architecture, progress, auth backlog/index and feature notes; `package.json`, `pnpm-lock.yaml` | ORG-013/014/015 requirements and gates; original source snapshot preserved; unused QR dependencies removed in the earlier draft. |
 
 ## Verification, UAT and configuration
 

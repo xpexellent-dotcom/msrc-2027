@@ -32,14 +32,20 @@ adapter returns IDs/expiry and generic status, never a recipient, code or provid
 No live route, provider, key or default email service is configured.
 
 Review migration `20261002233353_regular_staff_email_check.sql` adds private forced-RLS
-challenge, receipt and append-only safe audit tables. API roles cannot read/write them;
+challenge, receipt, identity-revision and append-only safe audit tables. API roles cannot read/write them;
 only three narrow service RPCs reserve issuance, acknowledge test delivery and consume
 a matching hash. An undelivered/failed challenge cannot approve access. Wrong attempts
 commit their counters; audit failure rolls back verification. Transactional account/IP
 locks serialize quotas and code consumption. Replacement supersedes prior challenges.
-The receipt binds user, exact native session, current managed email/user version,
+The receipt binds user, exact native session, current managed email and protected identity revision,
 full password AMR and immutable grant history. Email/password/grant changes invalidate
 it, including change-away-and-back. New login needs a new check; token refresh does not.
+The revision changes only when managed email, email confirmation or password changes.
+It stores a counter and password-change time, never an address or password material.
+The executed managed refresh test showed that general `auth.users.updated_at` also
+changes on refresh, so that general timestamp cannot serve as an identity revision.
+Relevant password changes require a new native password authentication before a code
+can be issued. The native-user trigger does not acquire account/session/grant locks.
 Native account/session revocation, suspension, idle/absolute expiry and logout deny.
 Deadline checks observe current time after lock waits; supporting session-state and
 actor-revocation guards use the same transition clock. This preserves the existing
@@ -106,6 +112,27 @@ verified recovery procedure, production plan/region and release approvals remain
 Super Admin native SMS still needs shared direct-Auth abuse controls and a trusted
 newest-challenge receipt: native older unexpired challenges remain a release blocker.
 The regular-staff email amendment does not silently resolve those separate gates.
+
+## Changed areas and execution boundary
+
+| Area | Review files |
+| --- | --- |
+| Server email adapter | `src/features/auth/staff-email.server.ts` |
+| Policy and authorization | `src/config/authentication-policy.ts`, `src/lib/auth/session-policy.server.ts`, permission contracts/parsers/authorization and managed session adapter |
+| Synthetic UI/API | Auth preview service, copy/components, `src/app/api/auth-preview/route.ts` |
+| New database evidence | `supabase/migrations/20261002233353_regular_staff_email_check.sql`, `supabase/tests/database/regular_staff_email.test.sql`; existing permission fixture amended for the stronger staff predicate |
+| Managed test harness | `scripts/prepare-ci-managed-auth.ts`, managed-auth/email integration tests, unit/browser coverage and CI database-lint schema list |
+| Review/deployment boundary | `vercel.json` branch deployment guard; current authentication requirements, decisions, progress and boundary notes |
+
+The disposable CLI needs a named provider block to enable its phone sign-in flag,
+even with a private SMS test hook. The CI-only Vonage values are deliberately unusable;
+they satisfy that resolver and establish no vendor connection or approval. Private
+SMS/email hooks remain mandatory, global signup stays false, and SMS/hook environment
+overrides are rejected. Ordinary Supabase configuration is unchanged. This fixture
+allows genuine participant/Super Admin regression tests without paid resources or delivery.
+Resolver behavior is documented in the pinned [CLI source](https://raw.githubusercontent.com/supabase/cli/v2.118.0/apps/cli/src/command-internal/local-config-values.ts);
+hook-only delivery branches are in the pinned [phone](https://raw.githubusercontent.com/supabase/auth/v2.197.0/internal/api/phone.go)
+and [MFA](https://raw.githubusercontent.com/supabase/auth/v2.197.0/internal/api/mfa.go) sources.
 
 ## Rollback and next smallest task
 

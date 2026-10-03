@@ -10,6 +10,7 @@ export function renderCiManagedAuthConfig(configuration: string, environment: Re
     || environment.SUPABASE_PROJECT_ID || environment.SUPABASE_PROJECT_REF
     || (environment.NEXT_PUBLIC_SUPABASE_TARGET && environment.NEXT_PUBLIC_SUPABASE_TARGET !== "local")
     || (environment.NEXT_PUBLIC_SUPABASE_URL && environment.NEXT_PUBLIC_SUPABASE_URL !== "http://127.0.0.1:54321")
+    || Object.keys(environment).some((name) => /^(SUPABASE_AUTH_SMS_|GOTRUE_SMS_|GOTRUE_HOOK_SEND_)/.test(name) && environment[name])
     || !/^project_id = "msrc2027-local"$/m.test(configuration)
     || !/^enable_signup = false$/m.test(configuration.split("[auth]")[1]?.split("[auth.email]")[0] ?? "")
     || !/\[auth.email\]\r?\nenable_signup = false(?:\r?\n|$)/.test(configuration)
@@ -20,7 +21,7 @@ export function renderCiManagedAuthConfig(configuration: string, environment: Re
   // remains FALSE. Only SQL-created synthetic identities can sign in on the runner.
   return configuration.replace(/\[auth.email\]\r?\nenable_signup = false/, "[auth.email]\nenable_signup = true") + `
 
-# CI ONLY: no delivery provider, credentials, real phone/email or hosted project.
+# CI ONLY: no live delivery credentials, real phone/email or hosted project.
 # One-second resend spacing accelerates isolated tests; it is not live approval.
 [auth.sms]
 enable_signup = true
@@ -30,6 +31,16 @@ max_frequency = "1s"
 [auth.sms.test_otp]
 # Primary phone verification only; MFA still uses genuine generated hook codes.
 "966500000911" = "123456"
+
+# CLI v2.118.0 resolveAuthSms forces the phone flag FALSE without a named provider,
+# even with test_otp and a SendSMS hook. These deliberately unusable values ONLY
+# satisfy that resolver; they are not vendor approval or a provider connection.
+# GoTrue v2.197.0 invokes the forced private hook with no provider fallback.
+[auth.sms.vonage]
+enabled = true
+api_key = "synthetic-unusable-api-key"
+api_secret = "synthetic-unusable-api-secret"
+from = "CI NO DELIVERY"
 
 [auth.mfa.phone]
 enroll_enabled = true

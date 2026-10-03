@@ -1190,3 +1190,19 @@ proof of the approved sequence. No approved live SMTP/provider/sender exists.
 Implementation and executed evidence: [regular staff email check](features/regular-staff-email-check.md)
 and PROGRESS. Privacy/location, recent-auth age, warning lead, human UAT, production
 configuration/release and all existing Super Admin/participant SMS gates remain open.
+
+Implementation conflict found by genuine managed refresh testing: native
+`auth.users.updated_at` changes on token refresh although email, password proof and
+session origin are unchanged. Use a private relevant-field revision for email,
+email-confirmation and password changes, rather than that generic timestamp. This
+preserves the approved fresh-check-per-login requirement and revokes stale identity
+proof without treating every token refresh as a new login.
+
+Integration note: during this task remote main advanced to `c10b2c5` (PR21 public
+chapter-title transitions). Its separate public decision also uses ORG-010. In this
+authentication draft ORG-010 explicitly means the organizer's **2 October Production
+designation** above. Preserve both decisions and reconcile their identifiers when
+later integrating the drafts; do not silently substitute the public title decision
+for the environment decision. No public/auth runtime overlap was found in PR21's
+changed-file list, apart from shared decision/progress documents. This amendment
+stays stacked on unmerged PR19; no merge or public redesign is performed here.
