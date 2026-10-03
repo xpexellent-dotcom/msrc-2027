@@ -213,3 +213,12 @@ test("the header action arrow points along each language's reading direction", a
     expect(await arrow.evaluate((element) => getComputedStyle(element).transform), locale).toBe(transform);
   }
 });
+
+// The wordmark link was named "MSRC 2027 home" while it shows "MSRC 2027 Fifth edition", so a
+// speech user saying the visible words could miss it (WCAG 2.5.3 Label in Name).
+test("the wordmark's accessible name starts with its visible words", async ({ page }) => {
+  for (const [locale, name] of [["en", /^MSRC 2027 Fifth edition\s*, home page$/], ["ar", /^MSRC 2027 النسخة الخامسة\s*، الصفحة الرئيسية$/]] as const) {
+    await page.goto(`/${locale}`);
+    await expect(page.getByRole("banner").getByRole("link", { name }), locale).toHaveCount(1);
+  }
+});

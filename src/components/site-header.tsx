@@ -15,7 +15,7 @@ const headerCopy = {
     navigation: "Main navigation",
     menu: "Menu",
     close: "Close menu",
-    home: "MSRC 2027 home",
+    homeSuffix: ", home page",
     edition: "Fifth edition",
     registration: "Registration not open yet",
     action: "Explore MSRC",
@@ -31,7 +31,7 @@ const headerCopy = {
     navigation: "التنقل الرئيسي",
     menu: "القائمة",
     close: "إغلاق القائمة",
-    home: "الصفحة الرئيسية لمؤتمر MSRC 2027",
+    homeSuffix: "، الصفحة الرئيسية",
     edition: "النسخة الخامسة",
     registration: "لم يُفتح التسجيل بعد",
     action: "اكتشف المؤتمر",
@@ -119,9 +119,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   return (
     <header ref={headerRef} className="site-header" data-scrolled={scrolled} data-tucked={tucked && !menuOpen} data-home={pathname === `/${locale}`} data-menu-open={menuOpen}>
       <Container className="site-header-inner">
-        <Link className="wordmark" href={`/${locale}`} aria-label={copy.home} onClick={() => setMenuOpen(false)}>
-          <span className="wordmark-name" dir="ltr" lang="en">MSRC<span className="wordmark-year">2027</span></span>
+        <Link className="wordmark" href={`/${locale}`} onClick={() => setMenuOpen(false)}>
+          <span className="wordmark-name" dir="ltr" lang="en">MSRC{" "}<span className="wordmark-year">2027</span></span>
           <span className="wordmark-edition">{copy.edition}</span>
+          {/* The name starts with the visible words (WCAG 2.5.3), then says where the link goes. */}
+          <span className="sr-only">{copy.homeSuffix}</span>
         </Link>
         <nav className="desktop-nav" aria-label={copy.navigation}>
           {copy.links.map((link) => <Link key={link.href} href={`/${locale}${link.href}`} aria-current={pathname === `/${locale}${link.href}` ? "page" : undefined}>{link.label}</Link>)}
