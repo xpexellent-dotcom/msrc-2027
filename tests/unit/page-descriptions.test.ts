@@ -10,3 +10,12 @@ describe("page descriptions", () => {
       .toBe("٢٧–٢٨ يناير ٢٠٢٧، جدة. تعلّم عملي إلى جانب البرنامج العلمي.");
   });
 });
+
+describe("web app manifest", () => {
+  it("names the site and points at existing icons", async () => {
+    const { default: manifest } = await import("@/app/manifest");
+    const value = manifest();
+    expect(value).toMatchObject({ short_name: "MSRC 2027", start_url: "/", display: "browser" });
+    expect(value.icons?.map((icon) => icon.src)).toEqual(["/icon.svg", "/apple-icon"]);
+  });
+});
