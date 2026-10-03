@@ -5,15 +5,20 @@ const production = process.env.VERCEL_ENV === "production";
 // Vercel's own addresses for the production deployment send visitors to the real domain.
 const vercelHosts = ["msrc-2027.vercel.app", "msrc-2027-msrc2027.vercel.app", "msrc-2027-git-main-msrc2027.vercel.app"];
 
+// Matched against the whole Accept-Language value: "ar", "ar-SA,ar;q=0.9,en;q=0.8", "ar;q=1".
+const arabicFirst = "ar([-;,].*)?";
+
 const nextConfig: NextConfig = {
   // Preserve the handoff's existing project instructions unchanged.
   agentRules: false,
   poweredByHeader: false,
   // English is the default locale (LOC-01). A config redirect is answered at the CDN edge;
   // the previous route handler made every root visit wait on a function in iad1.
+  // A browser whose first language is Arabic opens the Arabic site; everyone else gets English.
   async redirects() {
     return [
       ...(production ? vercelHosts.map((value) => ({ source: "/:path*", has: [{ type: "host" as const, value }], destination: "https://www.msrc2027.com/:path*", permanent: true })) : []),
+      { source: "/", has: [{ type: "header" as const, key: "accept-language", value: arabicFirst }], destination: "/ar", permanent: false },
       { source: "/", destination: "/en", permanent: false },
     ];
   },

@@ -1,0 +1,43 @@
+import { conferenceConfig } from "@/config/conference";
+import { homepageCopy } from "@/content/public-site";
+import type { Locale } from "@/lib/i18n";
+import { siteOrigin } from "@/lib/metadata";
+
+/**
+ * schema.org Event for the homepage, so search results can show the conference's name, dates
+ * and city. Built only from facts the page already publishes: confirmed dates (ORG-001), the
+ * city, the organizer line and the lead. The venue stays out until conferenceConfig.venue is
+ * set, and there are no offers, times, prices or capacities.
+ */
+// The homepage's organizer line (homepage-narrative.ts), without its "Organized by" framing.
+const organizer: Record<Locale, string> = {
+  en: "Research Principles Club, Faculty of Medicine, King Abdulaziz University",
+  ar: "نادي مبادئ البحث العلمي بكلية الطب، جامعة الملك عبدالعزيز",
+};
+
+export function conferenceEventJsonLd(locale: Locale) {
+  const dates = conferenceConfig.dates;
+  if (!dates) return null;
+  const copy = homepageCopy[locale];
+  const city = { "@type": "PostalAddress", addressLocality: locale === "ar" ? "جدة" : "Jeddah", addressCountry: "SA" };
+  return {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: `MSRC 2027 | ${copy.kicker}`,
+    description: copy.lead,
+    url: `${siteOrigin}/${locale}`,
+    inLanguage: locale,
+    image: `${siteOrigin}/${locale}/opengraph-image`,
+    startDate: dates.day1,
+    endDate: dates.day2,
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: { "@type": "Place", name: conferenceConfig.venue ?? copy.city, address: city },
+    organizer: { "@type": "Organization", name: organizer[locale], url: siteOrigin },
+  };
+}
+
+/** JSON for a <script type="application/ld+json">; "<" is escaped so content cannot close the tag. */
+export function jsonLdScript(data: object): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}

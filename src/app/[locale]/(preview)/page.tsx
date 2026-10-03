@@ -6,6 +6,7 @@ import { conferenceConfig } from "@/config/conference";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { isLocale } from "@/lib/i18n";
 import { localizedPageMetadata } from "@/lib/metadata";
+import { conferenceEventJsonLd, jsonLdScript } from "@/lib/structured-data";
 
 type HomePageProps = { params: Promise<{ locale: string }> };
 
@@ -22,5 +23,11 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <HomePageContent locale={locale} />;
+  const event = conferenceEventJsonLd(locale);
+  return (
+    <>
+      {event ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(event) }} /> : null}
+      <HomePageContent locale={locale} />
+    </>
+  );
 }

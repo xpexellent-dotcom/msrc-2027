@@ -2,6 +2,22 @@
 
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
+## 3 October 2026 — QA pass: Arabic visitors at the root, Event search data, sitemap x-default
+
+Live sweep of www.msrc2027.com after PR 27: all 20 public pages (EN/AR) at 1280 px Chromium, Pixel 7 Chromium and iPhone 13 WebKit return 200 with one h1, the right `lang`, no console errors, failed requests, broken images, unnamed controls or horizontal overflow; axe (WCAG 2.2 AA + best practice) reports no violations; all 24 linked URLs return 200. Security headers, the apex and `.vercel.app` 308s, robots and sitemap are as ORG-013 set them. Changed:
+
+| Found | Change |
+| --- | --- |
+| `msrc2027.com/` sent every visitor to `/en`, including browsers set to Arabic (`Accept-Language: ar-SA,…`), although the whole public site exists in Arabic | A second edge redirect in `next.config.ts`: when the browser's first language is Arabic, `/` → `/ar` (307). Everyone else, and requests without the header, still get `/en`, so English stays the default (LOC-01). No cookie or function is involved; a visitor who switches language keeps using the `/en` or `/ar` links |
+| The homepage had no structured data, so search engines could not show the conference as an event with its dates | `src/lib/structured-data.ts`: a schema.org `Event` on `/en` and `/ar` with the name, lead, confirmed dates (ORG-001), Jeddah/SA, the organizer line and the OG image. No venue (until `conferenceConfig.venue` is set), times, prices, offers or capacities. `<` is escaped in the JSON |
+| Pages list `hreflang="x-default"` but the sitemap did not | The sitemap adds `x-default` → English for each page, matching the pages |
+
+Tests: `public-indexing.test.ts` covers eight `Accept-Language` values at the root (Arabic first → `/ar`; English first with Arabic later, French, `arn-CL` and none → `/en`) and the sitemap's alternates; new `structured-data.test.ts` checks the Event facts in both languages, the absence of unapproved fields and the script-tag escape.
+
+Verification: `pnpm check` PASS (ESLint, typegen/`tsc`, Vitest 903/903, `next build`). The local production build answered `ar-SA,ar;q=0.9,en;q=0.8` → 307 `/ar`, `en-US,en;q=0.9,ar;q=0.8` and no header → 307 `/en`, and served the Event JSON-LD on `/ar` and none on `/en/about`. Playwright `public-shell` and `qa-regressions`, Chromium desktop and mobile: 56/56. WebKit/Firefox: NOT TESTED for this change (no layout change). Rich-result eligibility in Google's Rich Results Test: NOT TESTED (needs the deployed URL).
+
+Requester note: the Arabic-first root redirect reads LOC-01's "English is the default" as the fallback. If the default must apply to every root visit regardless of browser language, remove the `accept-language` rule in `next.config.ts`.
+
 ## 3 October 2026 — Public search indexing, preview notice removed, one domain (ORG-013)
 
 Google listed msrc2027.com as "No information is available for this page": every deployment sent `robots.txt Disallow: /`, a noindex meta tag and `X-Robots-Tag: noindex`. At the requester's request:
