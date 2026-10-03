@@ -107,6 +107,21 @@ the actual GoTrue image recorded by CI. Accelerated clock fixtures are identifie
 Local SQL is NOT TESTED; real delivery, cookie exchange, human devices/screen readers,
 actual object-storage policies and recovery UAT remain NOT TESTED/BLOCKED.
 
+Manual review can use the local synthetic lab without contacting a provider:
+
+1. Select regular staff and start the simulated password login. The protected probe
+   must deny until the fresh test-inbox email code is verified; successful proof
+   remains AAL1 and every operational workflow remains closed.
+2. Try an incorrect code, immediate resend, expired/replaced/reused code and the
+   provider/audit failure simulations. Check clear recovery feedback with keyboard,
+   paste and Arabic digit entry in both locales; confirm email text stays English.
+3. Refresh and compare the original absolute deadline. Start a new login and verify
+   it needs another email check. Exercise logout, suspension and email/role-change
+   simulations and confirm previous access is denied.
+4. Select participant and Super Admin modes to confirm their existing verification
+   and SMS-MFA steps. This checks the lab only; named-human device, screen-reader,
+   actual inbox delivery/cookie and recovery rehearsals remain unperformed gates.
+
 Recent-auth age, warning lead, privacy/retention/location, named recovery people,
 verified recovery procedure, production plan/region and release approvals remain open.
 Super Admin native SMS still needs shared direct-Auth abuse controls and a trusted
