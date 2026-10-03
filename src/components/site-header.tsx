@@ -50,6 +50,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [tucked, setTucked] = useState(false);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -58,11 +59,20 @@ export function SiteHeader({ locale }: { locale: Locale }) {
 
   useEffect(() => {
     let docked = window.scrollY > 48;
+    let lastY = window.scrollY;
     const update = () => {
+      const y = window.scrollY;
       // A small return-to-top zone prevents toolbar bounce from toggling the card.
-      if (window.scrollY > 48) docked = true;
-      else if (window.scrollY < 8) docked = false;
+      if (y > 48) docked = true;
+      else if (y < 8) docked = false;
       setScrolled(docked);
+      // Direction of travel, for short landscape screens only (CSS): there the floating header
+      // would cover a quarter of the view, so it steps aside while reading down and returns on
+      // any scroll back up, near the top, or when focus moves into it.
+      if (y < 160) { setTucked(false); lastY = y; return; }
+      if (Math.abs(y - lastY) < 8) return;
+      setTucked(y > lastY);
+      lastY = y;
     };
     update();
     window.addEventListener("scroll", update, { passive: true });
@@ -110,7 +120,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   }, [menuOpen]);
 
   return (
-    <header ref={headerRef} className="site-header" data-scrolled={scrolled} data-home={pathname === `/${locale}`} data-menu-open={menuOpen}>
+    <header ref={headerRef} className="site-header" data-scrolled={scrolled} data-tucked={tucked && !menuOpen} data-home={pathname === `/${locale}`} data-menu-open={menuOpen}>
       <Container className="site-header-inner">
         <Link className="wordmark" href={`/${locale}`} aria-label={copy.home} onClick={() => setMenuOpen(false)}>
           <span className="wordmark-name" dir="ltr" lang="en">MSRC<span className="wordmark-year">2027</span></span>

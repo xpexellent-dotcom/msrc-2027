@@ -56,6 +56,8 @@
 .intro-visual { position: relative; height: 200px; overflow: hidden; margin-block-start: 2.5rem; border-block-start: 1px solid var(--color-line); color: var(--color-purple); }
 .flow-lines { display: block; inline-size: 100%; }
 .intro-visual > .flow-lines { position: absolute; inline-size: 440px; inset-inline-end: -20px; inset-block-start: -140px; }
+/* The lines are drawn left-to-right; mirror them so the Arabic layout keeps the English balance instead of running them through the edition number. */
+[dir="rtl"] .intro-visual > .flow-lines { transform: scaleX(-1); }
 .intro-research-mark { inline-size: 80px !important; position: absolute; inset-inline-start: 0; inset-block-end: 10px; }
 .visual-edition { position: absolute; inset-inline-end: 0; inset-block-end: 0; font-family: var(--font-display); font-size: 4rem; line-height: 1; letter-spacing: -.06em; }
 .research-visual { display: block; inline-size: 100%; color: var(--color-purple); }

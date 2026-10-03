@@ -14,7 +14,7 @@ import { FlowLines } from "@/components/brand/flow-lines";
 import { conferenceConfig } from "@/config/conference";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
 import { homepageNarrative } from "@/content/homepage-narrative";
-import { formatIndex, type Locale } from "@/lib/i18n";
+import { formatIndex, formatYear, type Locale } from "@/lib/i18n";
 import type { PreviewHeroVideo } from "@/lib/media-policy";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 
@@ -68,7 +68,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
     <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
       <Container><Reveal className="intro-grid" stagger>
         <div><SectionHeading chapter eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" /></div>
-        <div className="intro-body"><p className="intro-statement">{narrative.community}</p><p>{narrative.organizer}</p><div className="intro-visual"><FlowLines /><ResearchVisual className="intro-research-mark" /><span aria-hidden="true" className="visual-edition">05</span></div></div>
+        <div className="intro-body"><p className="intro-statement">{narrative.community}</p><p>{narrative.organizer}</p><div className="intro-visual"><FlowLines /><ResearchVisual className="intro-research-mark" /><span aria-hidden="true" className="visual-edition">{formatIndex(5, locale)}</span></div></div>
       </Reveal></Container>
     </section>
     <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
@@ -101,7 +101,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
     <section id="legacy" tabIndex={-1} className="editorial-section legacy-section" aria-labelledby="legacy-title">
       <Container><Reveal className="legacy-grid" stagger>
         <div className="legacy-copy"><SectionHeading chapter eyebrow={copy.legacyEyebrow} title={copy.legacyTitle} id="legacy-title" inverse /><p className="legacy-film-note">{narrative.legacyCaption}</p><div className="legacy-links"><CinematicFilmLink locale={locale}>{narrative.filmLink}<Arrow /></CinematicFilmLink></div></div>
-        <div className="legacy-art" aria-hidden="true"><FlowLines /><div className="legacy-art-years" dir="ltr"><span>2026</span><span>2027</span></div><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
+        <div className="legacy-art" aria-hidden="true"><FlowLines /><div className="legacy-art-years" dir="ltr"><span>{formatYear(2026, locale)}</span><span>{formatYear(2027, locale)}</span></div><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
       </Reveal></Container>
     </section>
     <section id="partners" tabIndex={-1} className="editorial-section partners-section" aria-labelledby="partners-title">
