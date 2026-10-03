@@ -1,5 +1,27 @@
 # Progress and session handover
 
+## 4 October 2026 — Organizer content intake workbook
+
+Added an organizer spreadsheet template (`docs/content-intake/`) for speakers, sessions and
+workshops, with a bilingual instructions sheet, Required/Optional labels, hints, one example
+row per sheet, Approved/Draft and conference-day dropdowns, and whole-number seat checks.
+`scripts/content-intake.ts` builds the template and checks a returned workbook against
+PublicSpeaker/PublicSession/PublicWorkshop, reporting problems in plain language. It adds no
+dependency (OOXML via node:zlib) and never edits the catalogue; publishing checked records stays
+a reviewed change. Footer, i18n, sitemap and contact/privacy files are unchanged.
+
+Executed locally (Node 25.6.0, repository binaries; pnpm not on PATH):
+
+- `vitest run tests/unit/content-intake.test.ts`: PASS — 15 tests.
+- `eslint . --max-warnings=0`: PASS.
+- `tsc --noEmit` and full `vitest run`: only failure is the pre-existing missing local
+  `qrcode` install (auth preview), unrelated to this change; CI installs from the lockfile.
+- Independent read/fill/save of the template with exceljs 4.4.0 (scratch only, not a
+  dependency); the saved copy is the third-party fixture the unit tests read.
+
+NOT TESTED: opening the file in desktop Microsoft Excel, Google Sheets or LibreOffice.
+Pending organizer review: Arabic instruction wording and the `/media/speakers/` portrait path.
+
 ## 4 October 2026 — PR25 rebased onto main including PR28
 
 Rebased `codex/email-authenticator-no-sms` from cf1b60a onto current main
