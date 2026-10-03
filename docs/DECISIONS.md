@@ -940,3 +940,27 @@ v0.5 and earlier source snapshots stay unchanged.
   fit a wider page. `.program-section` uses `overflow: clip` on phones so that the window
   stays the scroller the pinned title sticks to.
 - Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-02.
+
+## ORG-011 — Mobile homepage scrolling and presentation refinement, 3 October 2026
+
+- Status: CONFIRMED requester instruction to improve Claude's mobile homepage design,
+  fix up/down scrolling bugs, and refine heading wording with creative freedom.
+- Preserve ORG-010's removal of the phone chapter bar and desktop chapter navigation.
+  Replace its pinned, individually moving words and added scroll holds with one centered
+  arrival of the complete heading. The enlarged heading settles in 650 ms, fits its column,
+  and stays in normal document flow. Fast flicks and fragment arrivals settle immediately.
+  This supersedes ORG-010's 1.8× size, 1.2 s word motion and 150–440 px sticky runways.
+  Timing and the bounded 1.2× scale are reversible design choices under this request.
+- Scrolling back never pins or replays a started title. Text remains native, with natural
+  line breaks and accessible heading names. Reduced motion, no JavaScript and wider screens
+  keep the static presentation. Text/width changes refresh only eligible offscreen titles;
+  browser-toolbar height changes alone do not reset them.
+- Refine EN/AR section titles and phone menu spacing. Preserve the approved hero identity,
+  confirmed facts, chapter numbering, media provenance and honest closed action states.
+- The floating header docks after 48 px and returns at less than 8 px to avoid oscillation
+  near the former 24 px boundary. Measure actual card/banner heights for enlarged-text menu
+  bounds and mobile anchor clearance; retain native scrolling and disclosure semantics.
+- No migration, provider setting, operational opening, live publication or final brand
+  approval is authorized or implied by this presentation task.
+- Affected IDs: SCP-01, DSN-01/02, ACC-01, LOC-01/03, CMS-04.
+- Evidence and rollback: [mobile homepage refinement](features/mobile-homepage-polish.md).
