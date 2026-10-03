@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { conferenceEventJsonLd, jsonLdScript } from "@/lib/structured-data";
+import { conferenceEventJsonLd, jsonLdScript, websiteJsonLd } from "@/lib/structured-data";
 
 describe("homepage Event structured data", () => {
   it.each(["en", "ar"] as const)("publishes only the confirmed public facts in %s", (locale) => {
@@ -15,5 +15,11 @@ describe("homepage Event structured data", () => {
 
   it("cannot close its script tag", () => {
     expect(jsonLdScript({ name: "</script><script>alert(1)</script>" })).not.toContain("</");
+  });
+});
+
+describe("homepage WebSite structured data", () => {
+  it.each(["en", "ar"] as const)("names the site MSRC 2027 at the root in %s", (locale) => {
+    expect(websiteJsonLd(locale)).toMatchObject({ "@type": "WebSite", name: "MSRC 2027", url: "https://www.msrc2027.com/" });
   });
 });
