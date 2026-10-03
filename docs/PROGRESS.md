@@ -2,6 +2,118 @@
 
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
+## 3 October 2026 — ORG-015 narrow regular-staff email amendment
+
+Reviewed current PR19 draft, main `59d82a6`, existing code and ORG-013/014 before edits.
+During verification remote main advanced to `c10b2c5` through public-page PR21, with
+no authentication runtime overlap. Its ORG-010 identifier collides with this draft's
+Production designation; the integration note in DECISIONS preserves both meanings
+for later reconciliation. This amendment stays stacked on PR19 and does not merge main.
+Flagged the all-staff SMS/AAL2 assumption and absent approved email provider. Created
+`codex/regular-staff-email` from PR19's `3e0f8a1`, preserving pending ORG-014 tests/docs
+and original checkout's uncommitted work. Vercel Git deployment is explicitly disabled
+for this branch; review is local and disposable CI only. No merge/deploy, production
+Auth change, hosted migration/reset, invitation/live grant or real email/SMS.
+
+Regular staff now require password plus a fresh verified-email application receipt.
+Super Admin password/SMS MFA, participants' email/password plus email+phone verification
+without MFA, role/scopes, 72h participant and 30min idle/8h staff limits are preserved.
+The receipt binds exact managed user/session, current email/user/password/grant versions;
+new login needs a fresh check, refresh cannot restart the origin. Email proof is not
+Supabase MFA/AAL2; inbox compromise may allow password reset and receipt of the code.
+All operational/readiness flags stay false. See the
+[implementation, configuration, UAT and rollback note](features/regular-staff-email-check.md).
+
+New additive review-only migration `20261002233353_regular_staff_email_check.sql` adds
+four private forced-RLS evidence/revision/audit tables, narrow service RPCs and a self-only
+current-auth predicate. Prior migrations and v0.5 source are unchanged. Approved staff
+OTP limits are reused with atomic account/IP reservations, single-use/replacement,
+committed attempt counters and fail-closed delivery/audit behavior. UI remains EN/AR/RTL;
+authentication test email is English-only. No provider/sender/key/default SMTP is active.
+Managed Auth refresh exposed that generic native user.updated_at changes despite
+unchanged password/session proof. Receipts instead use a protected revision of relevant
+email/confirmation/password changes; irrelevant timestamp changes preserve verification.
+
+Checkpoint validation: `pnpm check` PASS (lint/types,1272 unit tests across27 files,
+42-page production build); auth browser69/69 PASS across desktop/tablet/mobile,
+including EN/AR keyboard/Axe/failure/retry. Twelve masked representative captures
+plus four regular-staff scroll-zero captures inspected; no horizontal overflow.
+`git diff --check` PASS. Isolated [CI37085497603](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37085497603)
+at `ae62270` executes database reset/lint,378 assertions across5 SQL files, security
+inspection (no findings), nonempty public type generation/strict compilation and44
+integrations across5 files PASS. All17 regular-email and11 native Auth cases pass,
+including refresh/new-login preservation, native password mutation, email/confirmation
+away-and-back, direct permissions and concurrency. Actual runtime:
+`public.ecr.aws/supabase/gotrue:v2.197.0`; shutdown PASS. Initial runs exposed and fixed
+the generic user-version refresh bug and three CI fixture issues (phone-provider
+resolver, internal-role impersonation and native hook message shape). No production
+permission or policy was relaxed to repair those fixtures.
+Application CI at `d9fb440` passed1269 units/300 public+69 auth browser tests with3
+existing skips and production build; current local lint/types/1272 units/build pass
+after the final wording/guard changes. Final-head application/CI receipts are recorded
+on [draft PR22](https://github.com/xpexellent-dotcom/msrc-2027/pull/22) and the linked
+checklist. Preview EN/AR and health each200, Arabic RTL verified; no GitHub deployment
+at the corrected source head. Local database is NOT TESTED (no Docker requirement).
+Real email/cookie delivery, storage-object policy integration, recovery and human UAT
+remain NOT TESTED/BLOCKED. Storage is disabled, and no operational domain policy is
+opened. SMTP/provider/sender, privacy/location, recent-auth age, warning lead, named
+recovery custodians/evidence/rehearsal and production release remain gates. Recovery
+retains distinct Super Admin approver/operator and in-person identity review.
+
+Next smallest task: approve concrete isolated English email delivery configuration and
+recipient/privacy scope, then wire/test the disabled adapter without enabling workflows.
+Super Admin SMS direct-Auth newest-challenge/abuse controls remain a separate release
+blocker. No production rollback is needed; revert the amendment and restart/stop the
+memory lab, with disposable fixtures removed by runner teardown.
+
+## 3 October 2026 — ORG-014 decisions and isolated managed Auth API tests
+
+Organizer decisions now recorded: Saudi-only first delivery test, no existing SMS
+service, RPClub contracting entity, Vonage/MSRC2027 conditional shortlist, approved
+SMS control targets and recovery target (distinct Super Admin roles, in-person
+identity review). Individual recovery custodians remain unnamed. Keep tests in
+disposable GitHub CI; no paid hosted setup or SMS spending is authorized. Recent-auth
+timing, warning lead, privacy/location and real-human UAT remain unresolved.
+Details, provider qualification questions/cost illustrations, control enforcement
+gaps and recovery sequence: [managed decision packet](features/managed-authentication-plan.md).
+
+Reused clean PR19 worktree at `3e0f8a1` on `codex/staff-mfa-sessions`; remote main
+reverified at `59d82a6`. Original checkout's uncommitted docs/reviews remain untouched.
+Typed configuration records the approved targets, separates the provider/sender
+shortlist from null active settings, and keeps spending/live/recovery gates closed.
+All operational/readiness flags remain false. Source v0.5 and both migration files
+are unchanged; no new migration, dependency, hosted resource or production mutation.
+
+Added a CI-only Auth configuration preparer, ten environment/config rejection
+checks, and genuine managed SDK/API integration coverage with synthetic identities.
+Global signup stays disabled. Phone MFA uses a private test-only SMS hook/inbox;
+email delivery is rejected. Generated codes/passwords/tokens/SQL diagnostics never
+enter test snapshots/logs/artifacts. Hook/inbox objects clean up after execution;
+all fixture state disappears with the disposable runner. The normal local Supabase
+configuration stays unchanged, and the fixture harness refuses hosted/non-loopback
+targets or a non-GitHub-hosted runner. CI records its actual GoTrue image/version.
+
+Local `pnpm check` PASS: lint/types, 1083 unit tests across26 files and42-page
+production build. Focused session-policy66/66 and CI config guard10/10 PASS.
+`git diff --check` PASS. No browser code changed; automatic CI runs the existing
+public and auth suites. Managed runtime/database execution is pending isolated CI
+at this checkpoint; no local Docker/SQL was run. Exact final source/head CI and
+protected Preview receipts are recorded on PR19 and the linked checklist.
+
+Source review found two integration differences to test: managed participant
+phone-change verification creates an OTP session, requiring a new email/password
+sign-in for password proof; native phone MFA accepts older unexpired challenges.
+Approved newest-challenge access and shared abuse limits need trusted hook/database
+evidence; UI throttling/native AAL2 alone is insufficient. Current false readiness
+keeps every operational action closed. These targets are not declared enforced.
+
+Live SMS/managed-hosted delivery, application cookie exchange, actual recovery,
+named-human devices/screen readers and UAT remain NOT TESTED/BLOCKED. Phone provider
+qualification/registration/quote and future budget remain pending. Rollback: revert
+this test/config/docs slice; disposable fixtures disappear on shutdown. No hosted
+rollback is needed. Next smallest implementation: shared managed send/failure
+controls and a trusted current-challenge assurance receipt before any live access.
+
 ## 3 October 2026 — ORG-013 participant verification and staff SMS policy
 
 Explicit organizer override: participants require email+phone verification without MFA;

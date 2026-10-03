@@ -55,11 +55,15 @@ export function parsePersistedAccessContext(value: unknown, userId: string, edit
   if (!exact(actor, ["id", "state", "emailVerified", "phoneVerified", "individuallyIdentified", "session"]) ||
     actor.id !== userId || typeof actor.state !== "string" || !["active", "suspended"].includes(actor.state) ||
     actor.emailVerified !== true || typeof actor.phoneVerified !== "boolean" || typeof actor.individuallyIdentified !== "boolean" ||
-    !exact(actor.session, ["id", "active", "assurance", "factor", "passwordVerified"]) ||
+    !exact(actor.session, ["id", "active", "assurance", "factor", "passwordVerified", "authenticationTier", "staffEmailVerified"]) ||
     actor.session.id !== sessionId || actor.session.active !== false ||
     typeof actor.session.assurance !== "string" || !["aal1", "aal2"].includes(actor.session.assurance) ||
     (actor.session.factor !== null && actor.session.factor !== "sms") || actor.session.passwordVerified !== true ||
     (actor.session.assurance === "aal2") !== (actor.session.factor === "sms") ||
+    typeof actor.session.authenticationTier !== "string" ||
+    !["participant", "staff", "super_admin"].includes(actor.session.authenticationTier) ||
+    typeof actor.session.staffEmailVerified !== "boolean" ||
+    (actor.session.authenticationTier !== "staff" && actor.session.staffEmailVerified !== false) ||
     !Array.isArray(value.grants) || value.grants.length > 1000 ||
     (actor.state !== "active" && value.grants.length !== 0)) return null;
 
@@ -73,6 +77,12 @@ export function parsePersistedAccessContext(value: unknown, userId: string, edit
     grants.push(Object.freeze({ actorId: userId, editionId, role: grant.role as CurrentGrant["role"], state: "active", scope }));
   }
 
+  // The trusted projection includes the strongest tier across all editions.
+  // This edition's grant list may not contain the role establishing that tier.
+  if ((grants.some((grant) => grant.role === "superAdmin") && actor.session.authenticationTier !== "super_admin") ||
+    (grants.some((grant) => grant.role !== "participant") && actor.session.authenticationTier === "participant") ||
+    (actor.session.authenticationTier !== "participant" && actor.individuallyIdentified !== true)) return null;
+
   return Object.freeze({
     schemaVersion: 1,
     editionId,
@@ -84,6 +94,8 @@ export function parsePersistedAccessContext(value: unknown, userId: string, edit
         id: sessionId, active: false,
         assurance: actor.session.assurance as "aal1" | "aal2", factor: actor.session.factor as "sms" | null,
         passwordVerified: true,
+        authenticationTier: actor.session.authenticationTier as CurrentActor["session"]["authenticationTier"],
+        staffEmailVerified: actor.session.staffEmailVerified,
       }),
     }),
     grants: Object.freeze(grants), operationalAccessReady: false, privilegedAccessReady: false,

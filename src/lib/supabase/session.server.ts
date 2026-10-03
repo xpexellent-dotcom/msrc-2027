@@ -10,10 +10,12 @@ export type PersistedSessionContext = Readonly<{
   editionId: string;
   principal: Readonly<{ userId: string; sessionId: string }>;
   privileged: boolean;
+  authenticationTier: "participant" | "staff" | "super_admin";
   sessionPolicySatisfied: boolean;
   reason: SessionDenialReason | null;
   mfaValid: boolean;
   passwordValid: boolean;
+  staffEmailValid: boolean;
   emailVerified: boolean;
   phoneVerified: boolean;
   timing: Readonly<{ startedAtMs: number; lastActivityAtMs: number; absoluteExpiresAtMs: number;
@@ -37,23 +39,27 @@ function parseTimestamp(value: unknown): number | null {
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 const reasons: readonly SessionDenialReason[] = ["session_revoked", "account_suspended", "absolute_expired",
-  "idle_expired", "individual_identity_required", "mfa_required", "account_verification_required", "password_auth_required"];
+  "idle_expired", "individual_identity_required", "mfa_required", "account_verification_required", "password_auth_required", "staff_email_check_required"];
 
 /** Exact own metadata contract; unknown fields, readiness, policy drift or identity fail closed. */
 export function parsePersistedSessionContext(value: unknown, userId: string, editionId: string): PersistedSessionContext | null {
   if (!uuid.test(userId) || !editionId || editionId.trim() !== editionId
-    || !exact(value, ["schemaVersion", "editionId", "principal", "privileged", "sessionPolicySatisfied", "reason",
-      "mfaValid", "passwordValid", "emailVerified", "phoneVerified", "timing", "policy", "operationalAccessReady", "privilegedAccessReady"])
+    || !exact(value, ["schemaVersion", "editionId", "principal", "privileged", "authenticationTier", "sessionPolicySatisfied", "reason",
+      "mfaValid", "passwordValid", "staffEmailValid", "emailVerified", "phoneVerified", "timing", "policy", "operationalAccessReady", "privilegedAccessReady"])
     || value.schemaVersion !== 1 || value.editionId !== editionId
     || value.operationalAccessReady !== false || value.privilegedAccessReady !== false
     || !exact(value.principal, ["userId", "sessionId"]) || value.principal.userId !== userId
     || typeof value.principal.sessionId !== "string" || !uuid.test(value.principal.sessionId)
     || typeof value.privileged !== "boolean" || typeof value.sessionPolicySatisfied !== "boolean"
     || typeof value.mfaValid !== "boolean"
+    || typeof value.staffEmailValid !== "boolean" || !["participant", "staff", "super_admin"].includes(value.authenticationTier as string)
+    || value.privileged !== (value.authenticationTier !== "participant")
     || typeof value.passwordValid !== "boolean" || typeof value.emailVerified !== "boolean" || typeof value.phoneVerified !== "boolean"
     || (value.reason !== null && (typeof value.reason !== "string" || !reasons.includes(value.reason as SessionDenialReason)))
     || value.sessionPolicySatisfied !== (value.reason === null)
-    || (value.privileged && value.sessionPolicySatisfied && !value.mfaValid)
+    || (value.authenticationTier === "super_admin" && value.sessionPolicySatisfied && !value.mfaValid)
+    || (value.authenticationTier === "staff" && value.sessionPolicySatisfied && !value.staffEmailValid)
+    || (value.authenticationTier !== "staff" && value.staffEmailValid)
     || (value.sessionPolicySatisfied && (!value.emailVerified || !value.passwordValid || (!value.privileged && !value.phoneVerified)))
     || !exact(value.policy, Object.keys(SESSION_POLICY))
     || !Object.entries(SESSION_POLICY).every(([key, maximum]) => {
@@ -77,8 +83,9 @@ export function parsePersistedSessionContext(value: unknown, userId: string, edi
       : value.timing.idleExpiresAt !== null)) return null;
   return Object.freeze({ schemaVersion: 1, editionId,
     principal: Object.freeze({ userId, sessionId: value.principal.sessionId }),
-    privileged: value.privileged, sessionPolicySatisfied: value.sessionPolicySatisfied,
-    reason: value.reason as SessionDenialReason | null, mfaValid: value.mfaValid, passwordValid: value.passwordValid,
+    privileged: value.privileged, authenticationTier: value.authenticationTier as PersistedSessionContext["authenticationTier"],
+    sessionPolicySatisfied: value.sessionPolicySatisfied,
+    reason: value.reason as SessionDenialReason | null, mfaValid: value.mfaValid, passwordValid: value.passwordValid, staffEmailValid: value.staffEmailValid,
     emailVerified: value.emailVerified, phoneVerified: value.phoneVerified,
     timing: Object.freeze({ startedAtMs, lastActivityAtMs, absoluteExpiresAtMs, idleExpiresAtMs, authenticatedAtMs }),
     policy, operationalAccessReady: false, privilegedAccessReady: false });
