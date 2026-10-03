@@ -17,10 +17,11 @@ pnpm dev
 ```
 
 Open [English](http://127.0.0.1:3000/en) or [Arabic](http://127.0.0.1:3000/ar).
-The root redirects to English. Stop the terminal with Ctrl+C. No `.env.local` is needed.
+The root opens Arabic when the browser's first language is Arabic and English otherwise.
+Stop the terminal with Ctrl+C. No `.env.local` is needed.
 
 The About page is available in [English](http://127.0.0.1:3000/en/about) and
-[Arabic](http://127.0.0.1:3000/ar/about), with a visible draft notice. Its source-derived
+[Arabic](http://127.0.0.1:3000/ar/about). Its source-derived
 purpose and audience descriptions still need editorial approval. The header, footer and
 homepage introduction link to it. See the [feature contract](docs/features/about.md).
 
