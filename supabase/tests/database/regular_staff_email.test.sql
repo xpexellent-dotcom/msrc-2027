@@ -7,16 +7,19 @@ select no_plan();
 select has_schema('msrc_staff_email','Application email evidence lives in a private schema');
 select is((select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
   where n.nspname='msrc_staff_email' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),
-  3::bigint,'All email evidence tables force RLS');
+  4::bigint,'All email evidence tables force RLS');
 select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role')) r(name)
   where has_schema_privilege(r.name,'msrc_staff_email','USAGE')),'API roles have no private schema access');
 select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role')) r(name)
-  cross join (values('challenges'),('receipts'),('audit')) t(name)
+  cross join (values('challenges'),('receipts'),('audit'),('identity_revision')) t(name)
   where has_table_privilege(r.name,'msrc_staff_email.'||t.name,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE')),
   'No API role has direct email evidence table grants');
 select ok(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
   cross join lateral aclexplode(p.proacl) a where n.nspname='msrc_staff_email' and a.grantee=0),
   'Private helpers have no PUBLIC execution');
+select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role')) r(name)
+  where has_function_privilege(r.name,'msrc_staff_email.identity_changed()','EXECUTE')),
+  'No API role can invoke the relevant identity transition helper');
 select is((select count(*) from msrc_staff_email.challenges),0::bigint,'Migration installs no challenge fixtures');
 select is((select count(*) from msrc_staff_email.receipts),0::bigint,'Migration installs no receipts');
 select is((select count(*) from msrc_staff_email.audit),0::bigint,'Migration installs no audit rows');
@@ -48,7 +51,9 @@ create function pg_temp.email_claims(actor text default '81000000-0000-4000-8000
 begin
   perform set_config('request.jwt.claims',jsonb_build_object('sub',actor,'role','authenticated','session_id',sid,
     'aal','aal1','exp',floor(extract(epoch from now()+interval '1 hour')),
-    'amr',jsonb_build_array(jsonb_build_object('method','password','timestamp',floor(extract(epoch from now()-interval '50 seconds')))))::text,true);
+    'amr',jsonb_build_array(jsonb_build_object('method','password','timestamp',
+      (select floor(extract(epoch from max(a.updated_at::timestamptz))) from auth.mfa_amr_claims a
+        where a.session_id::text=sid and a.authentication_method='password'))))::text,true);
 end; $$;
 create function pg_temp.email_issue(sid text default '82000000-0000-4000-8000-000000000001',
   challenge text default '83000000-0000-4000-8000-000000000001') returns jsonb language sql as $$
@@ -89,6 +94,7 @@ select is((select count(*) from public.synthetic_email_rls),0::bigint,'Direct da
 reset role;
 set local role service_role;
 select throws_ok($$select count(*) from msrc_staff_email.challenges$$,'42501',null,'Service role cannot read hashed code rows');
+select throws_ok($$select count(*) from msrc_staff_email.identity_revision$$,'42501',null,'Service role cannot read or forge the relevant identity revision');
 select is(pg_temp.email_issue()->>'recipient','email-staff-one@example.invalid','Service issue derives current verified recipient from Auth');
 select is(pg_temp.email_consume()->>'code','challenge_required','No receipt before confirmed delivery');
 select is(public.msrc_staff_email_delivery('81000000-0000-4000-8000-000000000001','82000000-0000-4000-8000-000000000001','83000000-0000-4000-8000-000000000001',true)->>'state',
@@ -145,6 +151,16 @@ update msrc_staff_email.challenges set created_at=now()-interval '25 hours',expi
 
 -- Refresh preserves the same session and user/password/grant versions.
 update auth.sessions set updated_at=now(),refreshed_at=now() where id='82000000-0000-4000-8000-000000000001';
+create temporary table synthetic_revision_before as select revision from msrc_staff_email.identity_revision
+  where actor_id='81000000-0000-4000-8000-000000000001';
+update auth.users set updated_at=clock_timestamp(),last_sign_in_at=clock_timestamp(),
+  raw_user_meta_data='{"synthetic_display":"fixture"}' where id='81000000-0000-4000-8000-000000000001';
+select is((select revision from msrc_staff_email.identity_revision where actor_id='81000000-0000-4000-8000-000000000001'),
+  (select revision from synthetic_revision_before),'Native refresh/sign-in/metadata timestamps do not rotate relevant proof');
+update auth.users set email=email,email_confirmed_at=email_confirmed_at,encrypted_password=encrypted_password
+  where id='81000000-0000-4000-8000-000000000001';
+select is((select revision from msrc_staff_email.identity_revision where actor_id='81000000-0000-4000-8000-000000000001'),
+  (select revision from synthetic_revision_before),'Updating relevant columns without changing their values preserves revision');
 set local role authenticated;
 select is(public.msrc_second_step_satisfied(),true,'Refresh metadata cannot erase or extend exact-session receipt');
 reset role;
@@ -152,7 +168,12 @@ do $$begin perform pg_temp.email_claims(sid=>'82000000-0000-4000-8000-0000000000
 set local role authenticated;
 select is(public.msrc_second_step_satisfied(),false,'A fresh password session must perform its own email check');
 reset role;
+update auth.users set updated_at=clock_timestamp(),last_sign_in_at=clock_timestamp()
+  where id='81000000-0000-4000-8000-000000000001';
 do $$begin perform pg_temp.email_claims(); end$$;
+set local role authenticated;
+select is(public.msrc_second_step_satisfied(),true,'Another session sign-in timestamp cannot revoke an existing successful session');
+reset role;
 
 -- Native profile/email version prevents change-away/back from resurrecting proof.
 update auth.users set email='changed-staff@example.invalid',updated_at=now() where id='81000000-0000-4000-8000-000000000001';
@@ -163,6 +184,8 @@ update auth.users set email='email-staff-one@example.invalid',updated_at=now()+i
 set local role authenticated;
 select is(public.msrc_second_step_satisfied(),false,'Changing email back cannot restore a prior version');
 reset role;
+select is((select revision from msrc_staff_email.identity_revision where actor_id='81000000-0000-4000-8000-000000000001'),
+  (select revision+2 from synthetic_revision_before),'Relevant revision records both email changes even when the original value is restored');
 
 -- Synthetic fixture clock changes only; ordinary API roles have no table access.
 update msrc_staff_email.challenges set created_at=now()-interval '2 minutes'
@@ -279,6 +302,100 @@ begin
   end if;
 end;
 $transition$;$$,'A delayed suspension derives its cutoff after statement start');
+
+-- Independent relevant-field/password fixture: Auth owns the managed user row,
+-- while the trigger writes only secret-free private revision metadata.
+insert into auth.users(id,email,email_confirmed_at,created_at,updated_at,is_anonymous,encrypted_password)
+  values('81000000-0000-4000-8000-000000000004','email-revision@example.invalid',now()-interval '1 day',
+    now()-interval '1 day',now(),false,'synthetic-password-version-a');
+select ok((select revision=1 and password_changed_at is null from msrc_staff_email.identity_revision
+  where actor_id='81000000-0000-4000-8000-000000000004'),'Identity insertion initializes metadata without pretending a password mutation occurred');
+insert into msrc_authorization.account_access(actor_id,state,individually_identified)
+  values('81000000-0000-4000-8000-000000000004','active',true);
+insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
+  values('81000000-0000-4000-8000-000000000004','synthetic-email-2027','contentMediaEditor','edition','Synthetic relevant revision fixture');
+insert into auth.sessions(id,user_id,created_at,updated_at,aal)
+  values('82000000-0000-4000-8000-000000000005','81000000-0000-4000-8000-000000000004',now()-interval '1 minute',now(),'aal1');
+insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+  values(gen_random_uuid(),'82000000-0000-4000-8000-000000000005','password',now()-interval '50 seconds',now()-interval '50 seconds');
+delete from msrc_staff_email.identity_revision where actor_id='81000000-0000-4000-8000-000000000004';
+set local role service_role;
+select is(public.msrc_staff_email_begin('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005',
+  '83000000-0000-4000-8000-000000000091',repeat('a',64),repeat('7',64))->>'code','ineligible','Missing relevant revision fails closed rather than accepting generic user timestamps');
+reset role;
+-- Trusted isolated fixture repair, before this actor has any custom receipt.
+insert into msrc_staff_email.identity_revision(actor_id,revision,password_changed_at)
+  values('81000000-0000-4000-8000-000000000004',1,null);
+set local role service_role;
+select is(public.msrc_staff_email_begin('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005',
+  '83000000-0000-4000-8000-000000000091',repeat('a',64),repeat('7',64))->>'state','issued','Relevant revision fixture begins with current native password');
+select is(public.msrc_staff_email_delivery('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005',
+  '83000000-0000-4000-8000-000000000091',true)->>'state','ok','Relevant revision fixture confirms synthetic delivery');
+select is(public.msrc_staff_email_consume('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005',
+  '83000000-0000-4000-8000-000000000091',repeat('a',64))->>'state','verified','Relevant revision fixture creates its first receipt');
+reset role;
+set local role supabase_auth_admin;
+select throws_ok($$select count(*) from msrc_staff_email.identity_revision$$,'42501',null,'Native Auth role cannot directly read the private revision table');
+update auth.users set email_confirmed_at=null where id='81000000-0000-4000-8000-000000000004';
+update auth.users set email_confirmed_at=now()-interval '1 day' where id='81000000-0000-4000-8000-000000000004';
+reset role;
+select is((select revision from msrc_staff_email.identity_revision where actor_id='81000000-0000-4000-8000-000000000004'),
+  3::bigint,'Native confirmation away/back increments protected revision through its scoped trigger');
+select is(msrc_staff_email.valid_receipt('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005'),
+  false,'Restoring confirmation cannot restore the prior receipt');
+update msrc_staff_email.challenges set created_at=now()-interval '2 minutes'
+  where id='83000000-0000-4000-8000-000000000091';
+set local role service_role;
+select is(public.msrc_staff_email_begin('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005',
+  '83000000-0000-4000-8000-000000000092',repeat('a',64),repeat('7',64))->>'state','issued','New confirmation revision requires a fresh bounded email check');
+select is(public.msrc_staff_email_delivery('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005',
+  '83000000-0000-4000-8000-000000000092',true)->>'state','ok','Fresh confirmation-bound fixture delivery succeeds');
+select is(public.msrc_staff_email_consume('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005',
+  '83000000-0000-4000-8000-000000000092',repeat('a',64))->>'state','verified','Fresh confirmation-bound proof recovers independently');
+reset role;
+update auth.users set encrypted_password='synthetic-password-version-b',updated_at=clock_timestamp()
+  where id='81000000-0000-4000-8000-000000000004';
+select ok((select revision=4 and password_changed_at > now() from msrc_staff_email.identity_revision
+  where actor_id='81000000-0000-4000-8000-000000000004'),'Password mutation records its serialized current clock without retaining password material');
+do $$begin perform pg_temp.email_claims('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005'); end$$;
+set local role authenticated;
+select ok(public.msrc_session_context('synthetic-email-2027') @>
+  '{"passwordValid":false,"staffEmailValid":false,"sessionPolicySatisfied":false,"reason":"password_auth_required"}'::jsonb,
+  'Managed password mutation invalidates the old password session and email receipt');
+reset role;
+set local role service_role;
+select is(public.msrc_staff_email_begin('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000005',
+  '83000000-0000-4000-8000-000000000093',repeat('a',64),repeat('7',64))->>'code','ineligible','An earlier password AMR cannot request a new email check after password mutation');
+reset role;
+insert into auth.sessions(id,user_id,created_at,updated_at,aal)
+  values('82000000-0000-4000-8000-000000000006','81000000-0000-4000-8000-000000000004',clock_timestamp(),clock_timestamp(),'aal1');
+insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+  values(gen_random_uuid(),'82000000-0000-4000-8000-000000000006','password',clock_timestamp(),clock_timestamp());
+update msrc_staff_email.challenges set created_at=now()-interval '2 minutes'
+  where id='83000000-0000-4000-8000-000000000092';
+do $$begin perform pg_temp.email_claims('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000006'); end$$;
+set local role authenticated;
+select is(public.msrc_session_context('synthetic-email-2027')->>'reason','staff_email_check_required','Fresh password after mutation requires its own email check');
+reset role;
+set local role service_role;
+select is(public.msrc_staff_email_begin('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000006',
+  '83000000-0000-4000-8000-000000000093',repeat('a',64),repeat('7',64))->>'state','issued','Fresh native password proof recovers after mutation');
+select is(public.msrc_staff_email_delivery('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000006',
+  '83000000-0000-4000-8000-000000000093',true)->>'state','ok','Fresh password-bound delivery succeeds');
+select is(public.msrc_staff_email_consume('81000000-0000-4000-8000-000000000004','82000000-0000-4000-8000-000000000006',
+  '83000000-0000-4000-8000-000000000093',repeat('a',64))->>'state','verified','Fresh password plus new exact-session email proof recovers');
+reset role;
+set local role authenticated;
+select is(public.msrc_second_step_satisfied(),true,'Recovered staff proof passes only the closed authentication predicate');
+reset role;
+select is((select array_agg(column_name::text order by ordinal_position) from information_schema.columns
+  where table_schema='msrc_staff_email' and table_name='identity_revision'),
+  array['actor_id','revision','password_changed_at']::text[],'Relevant revision schema retains no identity destinations or credential material');
+insert into auth.users(id,email,created_at,updated_at,is_anonymous)
+  values('81000000-0000-4000-8000-000000000005','revision-delete@example.invalid',now(),now(),false);
+delete from auth.users where id='81000000-0000-4000-8000-000000000005';
+select is((select count(*) from msrc_staff_email.identity_revision where actor_id='81000000-0000-4000-8000-000000000005'),
+  0::bigint,'Current revision metadata does not independently prevent native identity deletion');
 
 do $$begin perform pg_temp.email_claims('81000000-0000-4000-8000-000000000003','82000000-0000-4000-8000-000000000003'); end$$;
 set local role authenticated;

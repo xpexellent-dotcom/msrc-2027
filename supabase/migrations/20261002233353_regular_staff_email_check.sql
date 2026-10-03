@@ -4,6 +4,18 @@
 create schema msrc_staff_email;
 revoke all on schema msrc_staff_email from public, anon, authenticated, service_role;
 
+create table msrc_staff_email.identity_revision (
+  actor_id uuid primary key references auth.users(id) on delete cascade,
+  revision bigint not null check (revision > 0),
+  password_changed_at timestamptz
+);
+comment on table msrc_staff_email.identity_revision is
+  'Current relevant-field revision only; no email, password/hash, OTP or provider payload. Native refresh and metadata updates do not rotate it.';
+-- There are no pre-existing application receipts. Initialization is not a password
+-- mutation: native current-session password AMR remains mandatory for every check.
+insert into msrc_staff_email.identity_revision(actor_id,revision,password_changed_at)
+  select u.id,1,null from auth.users u;
+
 create table msrc_staff_email.challenges (
   id uuid primary key,
   actor_id uuid not null references auth.users(id) on delete restrict,
@@ -45,7 +57,7 @@ create table msrc_staff_email.audit (
 comment on table msrc_staff_email.challenges is
   'Private application check only. Keyed server HMACs, no plaintext OTP/IP or recipient; bounded synthetic delivery. No managed MFA/AAL2.';
 comment on table msrc_staff_email.receipts is
-  'Exact managed-session application proof, bound current managed email/user version/password AMR/all-edition grant state. No role or entitlement.';
+  'Exact managed-session application proof, bound current managed email/relevant identity revision/password AMR/all-edition grant state. No role or entitlement.';
 comment on table msrc_staff_email.audit is
   'Append-only safe IDs and enum events only: never email, password, OTP, hash, token, IP, payload or provider message.';
 alter table msrc_staff_email.challenges enable row level security;
@@ -54,11 +66,41 @@ alter table msrc_staff_email.receipts enable row level security;
 alter table msrc_staff_email.receipts force row level security;
 alter table msrc_staff_email.audit enable row level security;
 alter table msrc_staff_email.audit force row level security;
+alter table msrc_staff_email.identity_revision enable row level security;
+alter table msrc_staff_email.identity_revision force row level security;
 revoke all on all tables in schema msrc_staff_email from public, anon, authenticated, service_role;
 revoke all on all sequences in schema msrc_staff_email from public, anon, authenticated, service_role;
 alter default privileges in schema msrc_staff_email revoke all on tables from public, anon, authenticated, service_role;
 alter default privileges in schema msrc_staff_email revoke all on sequences from public, anon, authenticated, service_role;
 alter default privileges in schema msrc_staff_email revoke execute on functions from public, anon, authenticated, service_role;
+
+-- Auth holds its own user row before this trigger. Do not acquire account,
+-- session or grant locks here: checkers acquire account then native-user locks.
+create function msrc_staff_email.identity_changed() returns trigger
+language plpgsql security definer set search_path='' as $$
+declare password_changed boolean;
+begin
+  if tg_table_schema <> 'auth' or tg_table_name <> 'users' or tg_op not in ('INSERT','UPDATE') then
+    raise exception using errcode='55000',message='Native identity transition required.';
+  end if;
+  if tg_op='INSERT' then
+    insert into msrc_staff_email.identity_revision(actor_id,revision,password_changed_at) values(new.id,1,null);
+  elsif new.email is distinct from old.email or new.email_confirmed_at is distinct from old.email_confirmed_at
+    or new.encrypted_password is distinct from old.encrypted_password then
+    password_changed := new.encrypted_password is distinct from old.encrypted_password;
+    insert into msrc_staff_email.identity_revision as current_revision(actor_id,revision,password_changed_at)
+      values(new.id,2,case when password_changed then clock_timestamp() else null end)
+      on conflict on constraint identity_revision_pkey do update
+        set revision=current_revision.revision+1,
+          password_changed_at=case when password_changed then excluded.password_changed_at
+            else current_revision.password_changed_at end;
+  end if;
+  return new;
+end; $$;
+alter function msrc_staff_email.identity_changed() owner to postgres;
+revoke all on function msrc_staff_email.identity_changed() from public,anon,authenticated,service_role;
+create trigger staff_email_identity_revision after insert or update of email,email_confirmed_at,encrypted_password on auth.users
+for each row execute function msrc_staff_email.identity_changed();
 
 create function msrc_staff_email.audit_change() returns trigger
 language plpgsql security invoker set search_path='' as $$
@@ -106,14 +148,14 @@ create trigger staff_email_audit_no_truncate before truncate on msrc_staff_email
 for each statement execute function msrc_authorization.prevent_history_truncate();
 
 -- Trusted-current evidence only. Service RPC arguments establish no entitlement.
--- Native user updated_at is a conservative version: change-away/back cannot restore a receipt.
--- Native token refresh must preserve this version; the isolated integration suite checks it.
+-- Relevant-field revision detects change-away/back without revoking proof on native refresh.
 create function msrc_staff_email.basis(target_actor uuid,target_session uuid) returns jsonb
 language plpgsql volatile security definer set search_path='' set timezone='UTC' as $$
 declare
   observed_at timestamptz := clock_timestamp();
   account_row msrc_authorization.account_access%rowtype;
   user_row auth.users%rowtype;
+  identity_row msrc_staff_email.identity_revision%rowtype;
   session_row auth.sessions%rowtype;
   policy_row msrc_sessions.policy%rowtype;
   state_row msrc_sessions.session_state%rowtype;
@@ -134,6 +176,8 @@ begin
     or (user_row.banned_until is not null and user_row.banned_until > observed_at)
     or user_row.email_confirmed_at is null or user_row.email_confirmed_at > observed_at
     or coalesce(btrim(user_row.email),'')='' then return null; end if;
+  select r.* into identity_row from msrc_staff_email.identity_revision r where r.actor_id=target_actor;
+  if not found then return null; end if;
   select s.* into session_row from auth.sessions s where s.id=target_session and s.user_id=target_actor for share;
   if not found then return null; end if;
   select p.* into policy_row from msrc_sessions.policy p where p.singleton;
@@ -151,13 +195,14 @@ begin
   if session_row.created_at <= cutoff then return null; end if;
   select max(a.updated_at::timestamptz) into password_at from auth.mfa_amr_claims a
     where a.session_id=target_session and a.authentication_method='password';
-  if password_at is null or password_at < session_row.created_at or password_at > observed_at then return null; end if;
+  if password_at is null or password_at < session_row.created_at or password_at > observed_at
+    or (identity_row.password_changed_at is not null and password_at < identity_row.password_changed_at) then return null; end if;
   select encode(sha256(convert_to(coalesce(jsonb_agg(jsonb_build_object('id',g.id,'edition',g.edition_key,
     'role',g.role_name,'scope',g.scope_kind,'track',g.track,'target',g.scope_target,'state',g.state)
     order by g.id)::text,'[]'),'UTF8')),'hex') into grant_fingerprint
     from msrc_authorization.role_grants g where g.actor_id=target_actor;
   bound_fingerprint := encode(sha256(convert_to(jsonb_build_object('email',user_row.email,
-    'confirmed',user_row.email_confirmed_at,'userVersion',user_row.updated_at,
+    'confirmed',user_row.email_confirmed_at,'identityRevision',identity_row.revision,
     'passwordAt',password_at,'grantVersion',grant_fingerprint)::text,'UTF8')),'hex');
   return jsonb_build_object('binding',bound_fingerprint,'recipient',user_row.email,'passwordAt',password_at);
 end; $$;
@@ -404,6 +449,13 @@ begin
     where jsonb_typeof(a.item->'timestamp')='number';
   password_valid := coalesce(floor(extract(epoch from password_at)) >= floor(extract(epoch from managed.created_at))
     and password_at <= observed_at,false);
+  if authentication_tier='staff' then
+    password_valid := password_valid and exists(select 1 from msrc_staff_email.identity_revision r
+      join auth.mfa_amr_claims a on a.session_id=sid and a.authentication_method='password'
+      where r.actor_id=caller_id and a.updated_at::timestamptz >= managed.created_at
+        and a.updated_at::timestamptz <= observed_at
+        and (r.password_changed_at is null or a.updated_at::timestamptz >= r.password_changed_at));
+  end if;
   if managed.factor_id is not null then
     select f.* into factor_row from auth.mfa_factors f where f.id=managed.factor_id and f.user_id=caller_id for share;
   end if;

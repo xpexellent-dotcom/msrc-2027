@@ -34,7 +34,10 @@ function boundary(): { url: string; publishableKey: string } {
     && process.env.NEXT_PUBLIC_SUPABASE_URL === "http://127.0.0.1:54321"
     && /^project_id = "msrc2027-local"$/m.test(config)
     && config.includes('uri = "pg-functions://postgres/msrc_ci_auth/capture_sms"')
-    && config.includes('uri = "pg-functions://postgres/msrc_ci_auth/reject_email"'), "disposable runner boundary");
+    && config.includes('uri = "pg-functions://postgres/msrc_ci_auth/reject_email"')
+    && /\[auth\.hook\.send_sms\]\r?\nenabled = true/.test(config)
+    && /\[auth\.hook\.send_email\]\r?\nenabled = true/.test(config)
+    && /\[auth\.sms\.vonage\]\r?\nenabled = true\r?\napi_key = "synthetic-unusable-api-key"\r?\napi_secret = "synthetic-unusable-api-secret"\r?\nfrom = "CI NO DELIVERY"/.test(config), "disposable runner boundary");
   const resolved = resolveLocalSupabaseConfig({ url: process.env.NEXT_PUBLIC_SUPABASE_URL,
     publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY });
   check(resolved, "validated loopback client");

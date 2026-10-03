@@ -5,6 +5,10 @@
 ## 3 October 2026 — ORG-015 narrow regular-staff email amendment
 
 Reviewed current PR19 draft, main `59d82a6`, existing code and ORG-013/014 before edits.
+During verification remote main advanced to `c10b2c5` through public-page PR21, with
+no authentication runtime overlap. Its ORG-010 identifier collides with this draft's
+Production designation; the integration note in DECISIONS preserves both meanings
+for later reconciliation. This amendment stays stacked on PR19 and does not merge main.
 Flagged the all-staff SMS/AAL2 assumption and absent approved email provider. Created
 `codex/regular-staff-email` from PR19's `3e0f8a1`, preserving pending ORG-014 tests/docs
 and original checkout's uncommitted work. Vercel Git deployment is explicitly disabled
@@ -21,18 +25,26 @@ All operational/readiness flags stay false. See the
 [implementation, configuration, UAT and rollback note](features/regular-staff-email-check.md).
 
 New additive review-only migration `20261002233353_regular_staff_email_check.sql` adds
-three private forced-RLS evidence/audit tables, narrow service RPCs and a self-only
+four private forced-RLS evidence/revision/audit tables, narrow service RPCs and a self-only
 current-auth predicate. Prior migrations and v0.5 source are unchanged. Approved staff
 OTP limits are reused with atomic account/IP reservations, single-use/replacement,
 committed attempt counters and fail-closed delivery/audit behavior. UI remains EN/AR/RTL;
 authentication test email is English-only. No provider/sender/key/default SMTP is active.
+Managed Auth refresh exposed that generic native user.updated_at changes despite
+unchanged password/session proof. Receipts instead use a protected revision of relevant
+email/confirmation/password changes; irrelevant timestamp changes preserve verification.
 
-Checkpoint validation: `pnpm check` PASS (lint/types,1269 unit tests across27 files,
+Checkpoint validation: `pnpm check` PASS (lint/types,1272 unit tests across27 files,
 42-page production build); auth browser69/69 PASS across desktop/tablet/mobile,
 including EN/AR keyboard/Axe/failure/retry. Twelve masked representative captures
 plus four regular-staff scroll-zero captures inspected; no horizontal overflow.
-`git diff --check` PASS. Database/managed runtime and exact CI receipts are pending
-the initial isolated review run. Local database is NOT TESTED (no Docker requirement).
+`git diff --check` PASS. Initial isolated runs executed migrations/lint/advisors/types
+and351 SQL assertions successfully. Managed API testing exposed the generic user-version
+refresh bug and the CLI's disabled phone flag; both corrected, with added relevant-field
+and password-mutation regressions. Final combined database/managed results await the
+corrected-head run. Application CI at `d9fb440` passed1269 units/300 public+69 auth
+browser tests with3 existing skips and production build. Local database is NOT TESTED
+(no Docker requirement).
 Real email/cookie delivery, storage-object policy integration, recovery and human UAT
 remain NOT TESTED/BLOCKED. Storage is disabled, and no operational domain policy is
 opened. SMTP/provider/sender, privacy/location, recent-auth age, warning lead, named
