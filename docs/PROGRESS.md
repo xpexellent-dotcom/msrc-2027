@@ -38,13 +38,22 @@ Checkpoint validation: `pnpm check` PASS (lint/types,1272 unit tests across27 fi
 42-page production build); auth browser69/69 PASS across desktop/tablet/mobile,
 including EN/AR keyboard/Axe/failure/retry. Twelve masked representative captures
 plus four regular-staff scroll-zero captures inspected; no horizontal overflow.
-`git diff --check` PASS. Initial isolated runs executed migrations/lint/advisors/types
-and351 SQL assertions successfully. Managed API testing exposed the generic user-version
-refresh bug and the CLI's disabled phone flag; both corrected, with added relevant-field
-and password-mutation regressions. Final combined database/managed results await the
-corrected-head run. Application CI at `d9fb440` passed1269 units/300 public+69 auth
-browser tests with3 existing skips and production build. Local database is NOT TESTED
-(no Docker requirement).
+`git diff --check` PASS. Isolated [CI37085497603](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37085497603)
+at `ae62270` executes database reset/lint,378 assertions across5 SQL files, security
+inspection (no findings), nonempty public type generation/strict compilation and44
+integrations across5 files PASS. All17 regular-email and11 native Auth cases pass,
+including refresh/new-login preservation, native password mutation, email/confirmation
+away-and-back, direct permissions and concurrency. Actual runtime:
+`public.ecr.aws/supabase/gotrue:v2.197.0`; shutdown PASS. Initial runs exposed and fixed
+the generic user-version refresh bug and three CI fixture issues (phone-provider
+resolver, internal-role impersonation and native hook message shape). No production
+permission or policy was relaxed to repair those fixtures.
+Application CI at `d9fb440` passed1269 units/300 public+69 auth browser tests with3
+existing skips and production build; current local lint/types/1272 units/build pass
+after the final wording/guard changes. Final-head application/CI receipts are recorded
+on [draft PR22](https://github.com/xpexellent-dotcom/msrc-2027/pull/22) and the linked
+checklist. Preview EN/AR and health each200, Arabic RTL verified; no GitHub deployment
+at the corrected source head. Local database is NOT TESTED (no Docker requirement).
 Real email/cookie delivery, storage-object policy integration, recovery and human UAT
 remain NOT TESTED/BLOCKED. Storage is disabled, and no operational domain policy is
 opened. SMTP/provider/sender, privacy/location, recent-auth age, warning lead, named
