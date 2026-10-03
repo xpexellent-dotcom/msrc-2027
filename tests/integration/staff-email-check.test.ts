@@ -180,17 +180,39 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
 
   it("preserves the email receipt and fixed staff clocks through refresh but requires a new check after login", async () => {
     const before = await context(active.session);
+    const sid = claims(active.session).session_id;
+    // Values stay inside the disposable database. Only equality booleans enter
+    // diagnostics: no current email, timestamp, identity, token or keyed digest.
+    const versions = async () => (await query(`select
+      encode(sha256(convert_to(coalesce(u.updated_at::text,''),'UTF8')),'hex'),
+      encode(sha256(convert_to(coalesce((select max(a.updated_at)::text from auth.mfa_amr_claims a
+        where a.session_id='${sid}' and a.authentication_method='password'),''),'UTF8')),'hex'),
+      encode(sha256(convert_to(s.created_at::text,'UTF8')),'hex'),
+      coalesce((select r.binding from msrc_staff_email.receipts r where r.session_id='${sid}'),''),
+      coalesce(msrc_staff_email.basis('${actor}','${sid}')->>'binding','')
+      from auth.users u join auth.sessions s on s.user_id=u.id and s.id='${sid}' where u.id='${actor}';`)).split("|");
+    const beforeVersions = await versions();
     const refresh = await active.sdk.auth.refreshSession();
     check(!refresh.error && refresh.data.session, "genuine regular staff token refresh");
     active.session = refresh.data.session;
     const after = await context(active.session);
+    const afterVersions = await versions();
     check(after.staffEmailValid && after.sessionPolicySatisfied && claims(active.session).aal === "aal1"
       && after.principal.sessionId === before.principal.sessionId
       && after.timing.startedAtMs === before.timing.startedAtMs
       && after.timing.lastActivityAtMs === before.timing.lastActivityAtMs
       && after.timing.absoluteExpiresAtMs === before.timing.absoluteExpiresAtMs
       && after.timing.idleExpiresAtMs === before.timing.idleExpiresAtMs,
-    "email receipt and clocks follow immutable managed session");
+    `email receipt and clocks follow immutable managed session ${JSON.stringify({
+      receiptBefore: before.staffEmailValid, receiptAfter: after.staffEmailValid, passwordAfter: after.passwordValid,
+      userVersionSame: beforeVersions[0] === afterVersions[0], passwordVersionSame: beforeVersions[1] === afterVersions[1],
+      nativeOriginSame: beforeVersions[2] === afterVersions[2], receiptBindingSame: beforeVersions[3] === afterVersions[3],
+      currentBasisSame: beforeVersions[4] === afterVersions[4],
+      applicationOriginSame: after.timing.startedAtMs === before.timing.startedAtMs,
+      activitySame: after.timing.lastActivityAtMs === before.timing.lastActivityAtMs,
+      absoluteDeadlineSame: after.timing.absoluteExpiresAtMs === before.timing.absoluteExpiresAtMs,
+      idleDeadlineSame: after.timing.idleExpiresAtMs === before.timing.idleExpiresAtMs,
+    })}`);
     const fresh = await login(actor);
     const denied = await context(fresh.session);
     check(denied.principal.sessionId !== after.principal.sessionId && !denied.staffEmailValid
@@ -337,7 +359,8 @@ describe.skipIf(!ci)("ORG-015 staff email check on genuine password sessions in 
         'phone',now(),now());`);
     const sdk = client();
     const request = await sdk.auth.signInWithOtp({ phone, options: { shouldCreateUser: false } });
-    check(!request.error, "fixed primary phone test OTP request without delivery");
+    const safeError = request.error && /^[a-z_]{1,64}$/.test(request.error.code ?? "") ? request.error.code : "unknown";
+    check(!request.error, `fixed primary phone test OTP request without delivery (code ${safeError}, status ${request.error?.status ?? 0})`);
     const verified = await sdk.auth.verifyOtp({ phone, token: "123456", type: "sms" });
     check(!verified.error && verified.data.session, "genuine primary phone OTP exchange");
     const denied = await context(verified.data.session);

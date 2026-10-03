@@ -45,15 +45,19 @@ function query(sql: string): Promise<string> {
   boundary();
   return new Promise((resolve, reject) => {
     const child = spawn("docker", ["exec", "-i", "supabase_db_msrc2027-local", "psql", "-X", "-q",
-      "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
+      "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
     let output = "";
+    let sqlState = "unknown";
     const timeout = setTimeout(() => { child.kill(); reject(new Error("Isolated managed Auth SQL timed out.")); }, 10_000);
     child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
     // psql diagnostics can include input credentials. Never forward them.
-    child.stderr.on("data", () => {});
+    child.stderr.on("data", (chunk: Buffer) => {
+      const state = chunk.toString().match(/(?:ERROR|FATAL):\s+([0-9A-Z]{5})(?:\s|$)/)?.[1];
+      if (state) sqlState = state;
+    });
     child.on("error", () => { clearTimeout(timeout); reject(new Error("Isolated managed Auth SQL could not start.")); });
     child.on("close", (code) => { clearTimeout(timeout);
-      if (code === 0) resolve(output.trim()); else reject(new Error("Isolated managed Auth SQL failed; diagnostics withheld.")); });
+      if (code === 0) resolve(output.trim()); else reject(new Error(`Isolated managed Auth SQL failed (SQLSTATE ${sqlState}); sensitive diagnostics withheld.`)); });
     child.stdin.on("error", () => {});
     child.stdin.end(sql);
   });
@@ -136,9 +140,9 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
       begin
         if current_user <> 'supabase_auth_admin' or actor not in ('${participant}','${staff}','${other}')
           or coalesce(event->'sms'->>'otp','') !~ '^[0-9]{6}$'
-          or coalesce(event->'sms'->>'phone','') <> case actor
+          or coalesce(event->'sms'->>'phone','') <> (case actor
             when '${participant}'::uuid then '${phones[participant].slice(1)}'
-            when '${staff}'::uuid then '${phones[staff].slice(1)}' else '${phones[other].slice(1)}' end
+            when '${staff}'::uuid then '${phones[staff].slice(1)}' else '${phones[other].slice(1)}' end)
           or coalesce(event->'sms'->>'sms_type','') not in ('mfa','phone_change') then
           raise exception 'Disposable fixture SMS rejected.';
         end if;
