@@ -128,7 +128,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         </nav>
         <div className="header-actions">
           <Suspense fallback={<Link className="language-switch" href={pathname.replace(/^\/(en|ar)/, locale === "en" ? "/ar" : "/en")} hrefLang={locale === "en" ? "ar" : "en"}>{locale === "en" ? "العربية" : "English"}</Link>}><LanguageSwitch locale={locale} /></Suspense>
-          <ButtonLink className="header-primary-action" href={`/${locale}/participate`} size="small">{copy.action}<span aria-hidden="true">↗</span></ButtonLink>
+          <ButtonLink className="header-primary-action" href={`/${locale}/participate`} size="small">{copy.action}<span className="directional-arrow" aria-hidden="true">↗</span></ButtonLink>
           <button
             className="menu-toggle"
             type="button"

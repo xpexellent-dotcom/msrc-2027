@@ -8,8 +8,9 @@ Local production-build sweep (live site unreachable from the cloud sandbox): 24 
 | --- | --- |
 | On the Arabic 404 the «٤٠٤» status line sat on the left edge while the heading, text and button started on the right: the paragraph carried `dir="ltr"` | The override is removed; Arabic-Indic digits need none. The line now starts on the same edge as the heading |
 | The 404 and error pages used an older square `.action-link` button, unlike the pill buttons on every other page | They use the design-system `ButtonLink`/`Button`; `.action-link` is removed and `.message-actions` carries the spacing |
+| The header's "Explore MSRC" ↗ pointed up-right on Arabic pages too, against the reading direction, while every other button arrow mirrors | The arrow takes the shared `directional-arrow` class, so it mirrors in Arabic and nudges on hover like the others |
 
-Tests: `public-shell.spec.ts` 404 case now checks that the Arabic status line and heading share their right edge (failed at 559 px apart before the change) and that the way home is a site button. `pnpm lint`, `pnpm typecheck`, `pnpm build` PASS; `public-shell`, `closed-workflows`, `auth-preview-unavailable` 45/45 on Chromium desktop and mobile.
+Tests: `public-shell.spec.ts` 404 case now checks that the Arabic status line and heading share their right edge (failed at 559 px apart before the change) and that the way home is a site button. New `qa-regressions.spec.ts` case checks the header arrow is unmirrored in English and mirrored in Arabic. `pnpm lint`, `pnpm typecheck`, `pnpm build` PASS; `public-shell`, `closed-workflows`, `auth-preview-unavailable` 45/45 on Chromium desktop and mobile; `qa-regressions`, `design-system`, `premium-interface` 64/68, the 4 failures being the hero-film checks that need an H.264 codec this sandbox's Chromium lacks (they pass in CI).
 
 ## 4 October 2026 — PR25 rebased onto main including PR28
 

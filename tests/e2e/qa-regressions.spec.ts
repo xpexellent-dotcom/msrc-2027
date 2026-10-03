@@ -201,3 +201,15 @@ test("homepage display art uses each language's digits and mirrors in Arabic", a
     expect(await page.locator(".intro-visual > .flow-lines").evaluate((element) => getComputedStyle(element).transform), locale).toBe(transform);
   }
 });
+
+// The header's "Explore MSRC" arrow was a plain ↗ that pointed up-right on Arabic pages too,
+// away from the reading direction, while every other button arrow mirrors.
+test("the header action arrow points along each language's reading direction", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 900 });
+  for (const [locale, transform] of [["en", "matrix(1, 0, 0, 1, 0, 0)"], ["ar", "matrix(-1, 0, 0, 1, 0, 0)"]] as const) {
+    await page.goto(`/${locale}/about`);
+    const arrow = page.locator(".header-primary-action .directional-arrow");
+    await expect(arrow).toHaveText("↗");
+    expect(await arrow.evaluate((element) => getComputedStyle(element).transform), locale).toBe(transform);
+  }
+});
