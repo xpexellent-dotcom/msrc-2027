@@ -605,6 +605,14 @@ values ('10000000-0000-4000-8000-000000000001', 'abstractReviewer', 'synthetic-2
 insert into authorization_contract_test.assignments(id, user_id, resource_id, edition_id, track, track_id, kind)
 values ('owner-review-assignment', '10000000-0000-4000-8000-000000000001', 'review-one', 'synthetic-2027', 'research', 'research-alpha', 'review');
 set local role authenticated;
+select is((select count(*) from authorization_contract_test.owned_records), 0::bigint,
+  'Adding a reviewer role requires the stronger staff check even for participant-owned records');
+reset role;
+-- Grant promotion requires fresh synthetic application proof before assessing the separate conflict boundary.
+update authorization_contract_test.sessions set method='email_check',staff_email_verified=true
+  where user_id='10000000-0000-4000-8000-000000000001';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","session_id":"20000000-0000-4000-8000-000000000001","aal":"aal1","amr":[{"method":"password"}]}';
+set local role authenticated;
 select is((select count(*) from authorization_contract_test.review_packets), 0::bigint, 'Additive participant and reviewer grants cannot override own-work conflict');
 select results_eq($$select id from authorization_contract_test.owned_records$$, $$values ('owned-one'::text)$$, 'Own-work review denial does not remove permitted participant access');
 select is((select count(*) from authorization_contract_test.purpose_records), 0::bigint, 'Combined roles do not acquire unrelated operational purposes');
