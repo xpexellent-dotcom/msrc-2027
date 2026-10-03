@@ -12,6 +12,28 @@ Local production-build sweep (live site unreachable from the cloud sandbox): 24 
 
 Tests: `public-shell.spec.ts` 404 case now checks that the Arabic status line and heading share their right edge (failed at 559 px apart before the change) and that the way home is a site button. New `qa-regressions.spec.ts` case checks the header arrow is unmirrored in English and mirrored in Arabic. `pnpm lint`, `pnpm typecheck`, `pnpm build` PASS; `public-shell`, `closed-workflows`, `auth-preview-unavailable` 45/45 on Chromium desktop and mobile; `qa-regressions`, `design-system`, `premium-interface` 64/68, the 4 failures being the hero-film checks that need an H.264 codec this sandbox's Chromium lacks (they pass in CI).
 
+## 4 October 2026 — Organizer content intake workbook
+
+Added an organizer spreadsheet template (`docs/content-intake/`) for speakers, sessions and
+workshops, with a bilingual instructions sheet, Required/Optional labels, hints, one example
+row per sheet, Approved/Draft and conference-day dropdowns, and whole-number seat checks.
+`scripts/content-intake.ts` builds the template and checks a returned workbook against
+PublicSpeaker/PublicSession/PublicWorkshop, reporting problems in plain language. It adds no
+dependency (OOXML via node:zlib) and never edits the catalogue; publishing checked records stays
+a reviewed change. Footer, i18n, sitemap and contact/privacy files are unchanged.
+
+Executed locally (Node 25.6.0, repository binaries; pnpm not on PATH):
+
+- `vitest run tests/unit/content-intake.test.ts`: PASS — 15 tests.
+- `eslint . --max-warnings=0`: PASS.
+- `tsc --noEmit` and full `vitest run`: only failure is the pre-existing missing local
+  `qrcode` install (auth preview), unrelated to this change; CI installs from the lockfile.
+- Independent read/fill/save of the template with exceljs 4.4.0 (scratch only, not a
+  dependency); the saved copy is the third-party fixture the unit tests read.
+
+NOT TESTED: opening the file in desktop Microsoft Excel, Google Sheets or LibreOffice.
+Pending organizer review: Arabic instruction wording and the `/media/speakers/` portrait path.
+
 ## 4 October 2026 — PR25 rebased onto main including PR28
 
 Rebased `codex/email-authenticator-no-sms` from cf1b60a onto current main

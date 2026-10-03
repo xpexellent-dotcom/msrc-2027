@@ -18,6 +18,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "content:template": "node scripts/content-intake.ts template",
+    "content:check": "node scripts/content-intake.ts check",
     "db:start": "supabase start --network-id msrc2027-local",
     "db:stop": "supabase stop",
     "db:status": "supabase status",
