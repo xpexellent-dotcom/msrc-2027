@@ -1,7 +1,9 @@
 name: Foundation checks
 
 on:
+  # Branch commits are checked through their pull request; a push run as well doubled every PR run.
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
