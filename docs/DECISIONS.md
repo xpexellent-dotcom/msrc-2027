@@ -1228,3 +1228,35 @@ Source: explicit organizer instruction in this chat: remove all SMS and phone nu
 - Scope permits reversible review work, local synthetic preview and disposable GitHub CI only. No merge/deploy, hosted Auth/migration/reset, real delivery, invites/grants, recovery execution or paid resources.
 
 Conflicts flagged before edits: PR22 code/docs still required participant phone and Super Admin SMS, with active Vonage/MSRC2027/budget/hook work and SMS-only adapter. Those are superseded, rather than treated as required approvals. Current remote main8482abf contains independent public mobile changes and ORG-010/011 IDs colliding with this stacked authentication draft's Production/private-administrator records. Preserve both meanings and reconcile IDs during later integration; do not merge unrelated public changes or publish administrator addresses.
+
+### Dated exception — Isolated email readiness tests, 3 October 2026
+
+The organizer selected a Gmail mailbox for sender and self-recipient, reported its
+manager can assist, and explicitly approved one reviewed English readiness message.
+The initial approval covered that single diagnostic attempt: no OTP/account data,
+automatic retry, production Auth/SMTP changes or operational opening. This supersedes the
+no-real-email restriction solely for isolated testing; it does not approve a production
+provider, recurring delivery, participant communications or staff login release.
+The credential remains locally encrypted outside Git; no Supabase development-email
+fallback or credentials in CI. The attempt failed or could not confirm acceptance;
+credential-free SMTP connection/TLS checks passed. Retain the one-attempt marker and
+retain bounded per-attempt guards and diagnose failures before repeat delivery. Inbox receipt
+and full managed login/cookie/delivery UAT remain unresolved; see PROGRESS.
+The organizer reports no test message received and confirms the credential was
+created under the intended sender account.
+
+The organizer subsequently stated, "Allow test emails whenever no need to ask."
+Standing authorization therefore covers small isolated test emails from/to the already
+selected self-recipient inbox without repeating send-approval questions. It does not
+approve production authentication, live staff/participant communications, new recipients,
+account/grant activation, hosted migrations or operational release. Preserve attempt
+receipts, avoid blind retries and keep credentials outside Git. The second approved
+attempt returned a generic SMTP general failure; sender readiness remains unverified.
+The third bounded PowerShell7 diagnostic returned SMTP530; this is an authentication
+or STARTTLS prerequisite error, not proof that the password itself is incorrect.
+An AUTH-only verified-TLS diagnostic then returned535: the stored sender credential
+was not accepted. No email was submitted in that probe. This identifies the current
+credential/setup blocker without establishing why it was rejected. Stop retries until
+the mailbox manager verifies account settings and a fresh dedicated credential is
+entered through the hidden local test-only store. Preserve earlier records; no live
+staff access or production email configuration is approved.

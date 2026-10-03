@@ -1,5 +1,88 @@
 # Progress and session handover
 
+## 3 October 2026 — Isolated email readiness tests
+
+The organizer selected a Gmail mailbox and reported its manager can help. A dedicated
+app password was manually stored outside Git using Windows-user encryption and private
+ACLs. Safe status confirmed it is readable locally; no credential was printed or added
+to application/CI configuration. The organizer then explicitly authorized exactly one
+English readiness message from/to that same mailbox, with the reviewed subject/body,
+no OTP/account data, no automatic retry and no production changes. This is a narrow
+exception to the earlier no-real-email scope, not production-provider approval.
+
+Executed ignored local `Send-OneEmailReadinessTest.ps1 -SendApprovedOneTest` once under
+Windows PowerShell 5.1: exit1, **FAIL / acceptance unconfirmed**. The private atomic
+attempt receipt records `failed-or-uncertain` and blocks further attempts. Provider
+details were withheld; the original cause was not retained. Do not claim credential
+validation, SMTP acceptance or inbox delivery, and do not automatically resend.
+The organizer subsequently reported that the message was not received after being
+asked to check Inbox/Spam, and confirmed the app password was created under the
+intended sender account. This is human feedback, not a recovered provider error.
+
+Executed credential-free `Test-SmtpConnectionOnly.ps1`: exit0, TCP587 connection,
+SMTP greeting, STARTTLS availability, TLS1.2 and default certificate validation PASS.
+It made no AUTH/MAIL/RCPT/DATA request and used no credential. These results narrow the
+connection investigation but do not establish why the approved send failed.
+The send helper's prior14 fake-delivery checks passed in both PowerShell7.6.5 and
+Windows PowerShell5.1; those are simulation evidence, not real delivery proof.
+After the failed attempt, improved the ignored diagnostic helper to retain only a
+fixed failure stage/category and bounded numeric SMTP status, and to distinguish
+SMTP acceptance from a later local receipt failure. Prepared a distinct second-test
+switch requiring separate approval and the original private failed/uncertain receipt;
+its fixed atomic marker preserves the first and prevents further repeats. Final46
+fake-delivery checks PASS in PowerShell7.6.5 and Windows PowerShell5.1, including
+approval/receipt/replay denials and sensitive-text exclusion. Root independently
+reran the Windows PowerShell5.1 suite.
+
+The organizer then granted standing authorization for isolated test emails without
+repeated questions. Interpreted within the reviewed sender/self-recipient test scope;
+no production delivery or live staff/participant communications are approved. Executed
+`Send-OneEmailReadinessTest.ps1 -SendApprovedSecondTest` once: exit1, stage`smtp-send`,
+category`smtp`, status-1 (generic failure). The second private marker is retained and
+SMTP acceptance remains unconfirmed. No blind retry; investigate the underlying
+transport/runtime/credential issue without logging provider messages or secrets.
+
+Extended safe diagnostics through generic SMTP wrappers: final56 fake checks PASS in
+both runtimes, retaining only fixed category chains and defined numeric socket codes.
+Prepared a fixed third runtime-comparison wrapper preserving both original markers:
+79 fake-only checks PASS in both runtimes; root independently reran the PowerShell7
+suite. Executed that third diagnostic once in PowerShell7.6.5: exit1, smtp-send,
+category/chain`smtp`, SMTP530, no socket error. Gmail documents530 for authentication
+required or STARTTLS required; the numeric code alone does not establish bad credentials.
+Separate connection/TLS checks passed; sender authentication remains unverified.
+Source: https://support.google.com/mail/answer/3726730?hl=en . The third marker remains.
+Executed the TLS-enforced AUTH-only diagnostic once in PowerShell7.6.5: exit1,
+**AUTH535 / credentials-rejected**. It performed no email submission. The server rejected
+the currently stored credential; this is a sender setup blocker, not proof of the reason
+(for example, revoked/incorrect credential or account configuration). AUTH marker retained.
+Source-reviewed secure ordering/certificate/cleanup/no-email guards; root independently
+ran87 fake checks before execution. Independent review found no security blocker but
+flagged deadline accuracy; fixed remaining-time/monotonic bounds and final89 fake-only
+checks PASS in both runtimes. The actual probe completed in1.4s before that repair.
+No additional network retries with the rejected credential.
+Prepared ignored `Store-ReplacementEmailTestCredential.ps1`: hidden manual input,
+fixed separate replacement filename, Windows-user encryption/private ACLs, no overwrite
+of the original credential or any marker, no network. Its38 synthetic checks PASS in
+both runtimes; root independently reran PowerShell7. Safe replacement Status reports
+absent. Actual replacement entry/credential validation remains NOT TESTED/pending human
+input; never request a credential through chat, command arguments or CI variables.
+
+Production Auth/SMTP, hosted migrations, DNS, roles/grants and all operational/readiness
+flags are unchanged. No application code changed; application/build/database/browser
+suites were not rerun for this local diagnostic. Inbox receipt, real staff OTP/cookie
+exchange, authenticator/recovery human UAT and production release remain unverified.
+Local helper/credential/attempt files remain excluded from Git. No hosted rollback is
+needed; preserve the attempt marker to prevent a repeat, and let the mailbox manager
+revoke the dedicated credential if the test setup is retired.
+
+Next smallest task: the mailbox manager confirms Google2-Step Verification remains on
+and supplies a fresh dedicated app password through a hidden local replacement prompt.
+Preserve the original credential/attempt receipts; revalidate only after replacement.
+Small isolated self-recipient test emails are authorized without repeated approval;
+production delivery, privacy/location, recovery and human login/cookie UAT remain gates.
+Prepare isolated managed staff login/email delivery/cookie tests after sender readiness;
+retain all policy, recovery, privacy/location, recent-auth and warning-lead gates.
+
 ## 3 October 2026 — ORG-016 removes phone/SMS; Super Admin authenticator MFA
 
 Reviewed PR22 source at5977eb7, PR19's original base3e0f8a1, existing implementation and

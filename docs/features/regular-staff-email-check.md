@@ -125,6 +125,25 @@ Recent-auth age, warning lead, privacy/retention/location, named recovery people
 verified recovery procedure, production plan/region and release approvals remain open.
 ORG-016 retires Super Admin/participant SMS delivery and newest-SMS-challenge release work. Super Admin TOTP requires the current exact-session native factor proof. Native TOTP accepts a still-valid time-step code across distinct unused challenges; consumed-challenge replay is separately denied. This vendor protocol behavior must be explained during human UAT, not described as single-use email code behavior.
 
+## Isolated sender diagnostic — 3 October 2026
+
+Standing organizer approval covers small isolated test emails from/to the selected
+Gmail inbox without repeated send-approval questions. Local credentials use Windows-user
+encryption/private ACLs outside Git; fixed atomic attempt markers prevent blind repeats.
+Three bounded sends failed/unconfirmed (third:SMTP530). Credential-free TCP587,
+SMTP greeting, STARTTLS and TLS1.2/default certificate checks passed. A separate verified-
+TLS AUTH-only probe returned **535 / credentials-rejected**, without submitting email.
+The current stored credential is rejected; the underlying account/configuration reason
+is not established. Stop retries until the mailbox manager checks Google2-Step/account
+settings and a fresh dedicated credential is entered through the hidden local prompt.
+Preserve all earlier credential/attempt records; no secrets or provider text are logged.
+Executed commands and final56/79/89 synthetic diagnostic counts are in PROGRESS; they
+are distinct from actual delivery. Sender diagnosis does not prove a managed staff
+login/email/cookie flow, native participant email verification or production readiness.
+No production mail adapter, SMTP configuration, readiness flag or Auth setting was
+activated. Do not repeat approval questions for authorized isolated test mail. Existing security,
+recovery, privacy/location, recent-auth, warning-lead and human UAT gates remain open.
+
 ## Changed areas and execution boundary
 
 | Area | Review files |
