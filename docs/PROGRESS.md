@@ -75,60 +75,6 @@ Font-preload experiment, not adopted. Local production builds, Chromium with a P
 The hero headline is DM Sans, not Manrope. On English pages LCP waits for DM Sans, and the 108 KB poster's `fetchPriority="high"` makes no measurable difference. Not preloading the Latin fonts brings both languages under the 2.5 s target, but on a slow phone the English headline is first drawn in the fallback. When DM Sans arrives, “Where curiosity” goes from one line to two and the hero moves about 55 px (CLS 0.034). At 412 px the line is within 3 px of wrapping, so no fallback metric override hides it reliably. Arabic pages pay for three Latin font preloads they barely use (only the wordmark is Latin above the fold), and dropping them would cut `/ar` LCP by about 0.8–0.9 s. `next/font` preloads per layout, not per locale, so an Arabic-only change needs Latin preloads chosen per locale, for example self-hosted files with a locale-specific `<link rel="preload">`. Left for a design decision; the measurement scripts are not committed.
 
 
-## 4 October 2026 — Closed BL-AUTH-02/03/04/06 participant/08 shell
-
-The prerequisite staff CI fixes are separate [PR37](https://github.com/xpexellent-dotcom/msrc-2027/pull/37):
-180 focused browser repetitions, full 81-case staff suite and five cold concurrent
-73-case database runs passed without assertion removal, retries or longer timeouts.
-Fresh participant preflight fetched main `bc2fb87`; open PR37 is staff CI/fixture work,
-and PR38 only appends the shared PROGRESS log. Neither overlaps this implementation.
-Created isolated `codex/participant-accounts` from that main; preserved caller work.
-
-Implemented six EN/AR routes, transient value-preserving RTL forms, server-only
-default-off flag and own account/name/closed-registration shell. Private reviewed
-migration adds admission, notice receipts, HMAC single-use verification/reset codes,
-expiry/replacement/failure/IP/account/global limits, transaction-bound native credential
-operations and own admitted-session reads. Supabase manages passwords; native email
-tokens and participant MFA cannot bypass the app protocol. Existing 72-hour session
-policy, stronger roles and closed operational gates remain enforced. English branded
-Resend templates and an unapplied custom SMTP/activation plan are included.
-
-The current Privacy notice is still a draft: the approved registry stays null, so no
-real signup can run even if the server flag is set. Database defaults are false/null/
-null. No hosted migrations/settings, deployment, real user or communication occurred.
-
-- PASS: locked install (Node24.21.0/pnpm11.19.0), final `pnpm check`: lint, typecheck,
-  1,805 unit tests/42 files and 65-page production build. API review added regressions
-  for retained-name recovery, thrown logout and timing-safe acknowledgement.
-- PASS: final 36/36 flag-on synthetic presentation cases across EN/AR desktop/tablet/mobile,
-  26/26 default-off raw route/API cases, keyboard/focus, 200% text and 18 axe scans with
-  zero violations. No retries. Production default-off routes have no collection forms.
-  A held sign-in/logout locale-switch regression first failed, then passed after the
-  status effect refresh/abort fix; final build, scoped lint and TypeScript also PASS.
-- PASS: disposable CI [37220100344](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220100344)
-  at `b8d1ddc`: reset, database lint, pgTAP, security advisors, 18/18 genuine native Auth
-  cases and both browser jobs. The first native run found Admin insertion before metadata;
-  the private reservation now binds the exact actor/email at INSERT, with staged SQL coverage.
-- PASS: [37220910478](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220910478)
-  at `a554565`: both participant jobs, all 637 pgTAP assertions/8 files and 19/19 genuine
-  native cases, including real handler→SDK→Data API signup/verify/login/reset/old-session
-  denial. Only delivery is captured in memory. The response precedes account-dependent/
-  provider work via bounded Next `after`, with flag rechecks and no retries.
-- General CI [37220910506](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220910506)
-  FAIL: inherited `managed-staff-cookie` fixture `40P01` at main's old setup. PR37 fixes
-  that independently and must land before the accounts PR's general database job can
-  reliably pass. Participant-specific native/browser jobs are independent and pass.
-  Combined validation with PR37 is being recorded separately; this PR does not duplicate
-  staff code or change the staff CI workflow. Local database execution remains BLOCKED
-  by unavailable Docker and the disposable Linux/GitHub-only guard; skips are not evidence.
-- Activation requires approved Privacy wording/version, five reviewed pending auth/
-  participant migrations, native Auth/provider guards/settings, private Production
-  environment, actual shared Resend quota/forecast approval and human inbox/recovery
-  UAT. Exact steps, limits and rollback: [participant guide](features/PARTICIPANT_ACCOUNTS.md).
-
-Draft [PR39](https://github.com/xpexellent-dotcom/msrc-2027/pull/39). Next: finish final
-CI evidence and review the closed implementation; activation remains separately gated.
-
 ## 4 October 2026 — BL-PUB-06 default-off Resend Contact delivery
 
 Fresh fetch verified main `9971534` includes merged PR30 and PR32. Reused the attached
@@ -2516,3 +2462,65 @@ Next smallest task:
 ## Change log
 
 - v1.0, 29 September 2026: consolidated current sources, added durable Codex instructions, corrected CMS identity sequencing, retained unresolved source conflicts, and prepared staged development prompts. No live application or infrastructure changes.
+
+## 4 October 2026 — Closed BL-AUTH-02/03/04/06 participant/08 shell
+
+The prerequisite staff CI fixes are separate [PR37](https://github.com/xpexellent-dotcom/msrc-2027/pull/37):
+180 focused browser repetitions, full 81-case staff suite and five cold concurrent
+73-case database runs passed without assertion removal, retries or longer timeouts.
+Fresh participant preflight fetched main `bc2fb87`; open PR37 is staff CI/fixture work,
+and PR38 only appends the shared PROGRESS log. Neither overlaps this implementation.
+Created isolated `codex/participant-accounts` from that main; preserved caller work.
+
+Implemented six EN/AR routes, transient value-preserving RTL forms, server-only
+default-off flag and own account/name/closed-registration shell. Private reviewed
+migration adds admission, notice receipts, HMAC single-use verification/reset codes,
+expiry/replacement/failure/IP/account/global limits, transaction-bound native credential
+operations and own admitted-session reads. Supabase manages passwords; native email
+tokens and participant MFA cannot bypass the app protocol. Existing 72-hour session
+policy, stronger roles and closed operational gates remain enforced. English branded
+Resend templates and an unapplied custom SMTP/activation plan are included.
+
+The current Privacy notice is still a draft: the approved registry stays null, so no
+real signup can run even if the server flag is set. Database defaults are false/null/
+null. No hosted migrations/settings, deployment, real user or communication occurred.
+
+- PASS: locked install (Node24.21.0/pnpm11.19.0), final `pnpm check`: lint, typecheck,
+  1,805 unit tests/42 files and 65-page production build. API review added regressions
+  for retained-name recovery, thrown logout and timing-safe acknowledgement.
+- PASS: final 36/36 flag-on synthetic presentation cases across EN/AR desktop/tablet/mobile,
+  26/26 default-off raw route/API cases, keyboard/focus, 200% text and 18 axe scans with
+  zero violations. No retries. Production default-off routes have no collection forms.
+  A held sign-in/logout locale-switch regression first failed, then passed after the
+  status effect refresh/abort fix; final build, scoped lint and TypeScript also PASS.
+- PASS: disposable CI [37220100344](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220100344)
+  at `b8d1ddc`: reset, database lint, pgTAP, security advisors, 18/18 genuine native Auth
+  cases and both browser jobs. The first native run found Admin insertion before metadata;
+  the private reservation now binds the exact actor/email at INSERT, with staged SQL coverage.
+- PASS: [37220910478](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220910478)
+  at `a554565`: both participant jobs, all 637 pgTAP assertions/8 files and 19/19 genuine
+  native cases, including real handler→SDK→Data API signup/verify/login/reset/old-session
+  denial. Only delivery is captured in memory. The response precedes account-dependent/
+  provider work via bounded Next `after`, with flag rechecks and no retries.
+  Final code `fe5e39b` repeats the same native proof plus all 36 enabled/26 closed
+  browser cases in [37221915493](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37221915493).
+- General CI [37220910506](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220910506)
+  FAIL: inherited `managed-staff-cookie` fixture `40P01` at main's old setup. PR37 fixes
+  that independently and must land before the accounts PR's general database job can
+  reliably pass. Participant-specific native/browser jobs are independent and pass.
+  PASS combined validation [37221956183](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37221956183)
+  at `4d96b2b`: exact participant code `fe5e39b` plus PR37 `68ee9fb`; 1,805 unit tests,
+  401 public browser passes/23 intentional skips, 81 staff browser passes, 44 Contact
+  passes, 637 pgTAP assertions and all 73 concurrent integration cases. Both CI jobs
+  passed. This PR does not duplicate staff code or change the staff CI workflow.
+  Local database execution remains BLOCKED
+  by unavailable Docker and the disposable Linux/GitHub-only guard; skips are not evidence.
+- Activation requires approved Privacy wording/version, five reviewed pending auth/
+  participant migrations, native Auth/provider guards/settings, private Production
+  environment, actual shared Resend quota/forecast approval and human inbox/recovery
+  UAT. Exact steps, limits and rollback: [participant guide](features/PARTICIPANT_ACCOUNTS.md).
+
+Draft [PR39](https://github.com/xpexellent-dotcom/msrc-2027/pull/39). Main was rechecked
+at finish and remains `bc2fb87`. Appended shared records at file ends to avoid future
+log conflicts with PR37/38. Next: land PR37, refresh the accounts base and review this
+closed draft; activation remains separately gated. No hosted changes or real delivery.
