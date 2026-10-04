@@ -15,12 +15,21 @@
 | Regular staff check | Password then a private user/session-bound application email receipt; no native AAL2; service-only issuance/consume and restrictive RLS predicate. Optional Windows loopback synthetic preview can send a code to the approved test self-inbox without disclosing it in API responses | ORG-015; production SMTP/sender unconfigured, review-only migrations, local preview and no deployment |
 | Read-only authorization | Stable current-assurance and own-role projections for Data API GET/HEAD RLS; no initialization, activity or audit writes. Trusted write RPCs retain native-origin initialization and serialized transitions | ENG-012; additive review-only correction; exact CI proof in PROGRESS; domain resource/storage gates stay closed |
 | Tests | Vitest, appropriate component tools, Playwright, database policy tests | Recommended tooling; verify compatibility at foundation time |
-| Email, malware scanning, advisory assessment, analytics | Provider selection and approved configuration required | Unresolved CFG-10 |
+| Email, malware scanning, advisory assessment | Provider selection and approved configuration required; Contact sender/recipient selected without provider activation | Unresolved CFG-10; ORG-021 |
+| Public analytics/Speed Insights | Existing Production-only Vercel SDKs and sanitized route allowlist; Contact and legal drafts excluded | ORG-008/026; processing/location/final-policy review remains open |
 | Versions, regions, plans, budget | Choose and record explicitly before relevant provisioning | Unresolved; no claims of Saudi hosting |
 
 Do not substitute a new payment merchant or a third-party hosted video embed for the selected scope. Do not create paid resources simply because this document names a provider.
 
 ## Actual foundation layout and reserved boundaries
+
+BL-PUB-06/08 add read-only EN/AR Contact, Privacy and Terms pages. Contact renders a
+disabled form; `/api/contact` returns `503 CONTACT_CLOSED` before reading requests.
+Server-only validation of synthetic values remains separate from that denial path.
+No provider, outbox, persistence, database/storage migration or live workflow is added.
+Policy routes expose a labeled dated draft with no effective date; draft policies are
+excluded from indexing/sitemap and the existing observability route allowlist.
+See [feature boundaries and release gates](features/contact-privacy-terms.md).
 
 The M1 structure follows **Stage 2 — Architecture and security baseline / Establish
 the application boundaries** in the archived

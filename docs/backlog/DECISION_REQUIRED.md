@@ -228,12 +228,12 @@ Authoritative question set (v0.5; retained verbatim):
 
 ## DR-CFG-09 — Approve privacy, collection, retention and transfer policy
 - **Source IDs:** CFG-09, PRV-01, PRV-02, PRV-03, PRV-04, PRV-05, PRV-06, PRV-07, PRV-08.
-- **Status:** Decision Required — open; no new organizer approval recorded.
+- **Status:** Partial — ORG-022–026 record organizer responsibility, retention, requests, photography and current-site facts; final policy/legal release questions remain open.
 - **Purpose:** Obtain an evidenced decision for controller/purposes, actual processing, legal notices, field minimization, rights requests and retention/transfer evidence so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
 - **Exclusions:** O1 is not proof of legal controller/institutional approval. National IDs and patient-identifying records remain excluded; consent alone does not approve transfers. This issue does not itself implement or activate a workflow.
 - **Dependencies:** Named accountable approver; relevant source/contract/policy evidence; [current decision register](../DECISIONS.md). Coordinate related CFG packets without silently deciding them.
-- **Roles:** Organizational privacy owner and institutional authority; product engineer records the result. Named owner/approver: unassigned.
+- **Roles:** Research Principles Club responsible for participant data; Emad Khoja writes/approves final wording; Abdulrahman Ismail set retention; Akram Awan handles requests. Institutional/legal authority evidence remains pending; engineers record partial decisions without certifying compliance.
 - **States/transitions:** Open question → evidence gathered → exact decision approved and recorded; unanswered subquestions remain open and their live gates closed. These are planning statuses, not product state enums.
 - **Data touched:** Decision record, safe approval references, requirements, affected issue links and typed configuration specification; no production records or secrets.
 - **Acceptance criteria:** Each required subquestion has an approved exact value/policy or is explicitly still open; record source/date/approver and supersession; map changes to all data collection, media, feedback, retention and verification issues and tests. Close this packet only when its required questions are resolved; never infer approval from silence.
