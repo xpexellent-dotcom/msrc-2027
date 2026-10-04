@@ -1599,3 +1599,48 @@ Resend documents stored data in the US and 30-day email/log retention on Free/Pr
 ([Resend security](https://resend.com/security)); a sending region does not change storage
 location. These are provider facts to review, not organizer-approved privacy settings.
 The activation/rollback runbook records these limits and the remaining manual checks.
+
+## ENG-017 — Closed participant account protocol, 4 October 2026
+
+BL-AUTH-02/03/04/06 participant/08 shell follows ORG-016/019: Supabase-managed
+email/password, verified email, 72-hour original native-session deadline, no phone,
+SMS or participant MFA. Name/email/password are the only signup fields. The dashboard
+has own account state/name and closed registration; no operational action or grant.
+
+Application-owned six-digit HMAC codes use reviewed private SQL for expiry, newest
+code, single use, failed attempts, account/IP throttling, provider delivery state and
+an explicit email budget. Supabase owns all password hashing and native password
+mutations. Database admission and transaction-bound one-use operations prevent raw
+native verification/recovery tokens or participant recovery from bypassing controls
+or changing a privileged actor. Existing stronger all-edition roles still prevail.
+Server validation respects the pinned native Auth provider's 72-byte UTF-8 password
+maximum, including Arabic, before account creation or code consumption. This is provider
+compatibility rather than a new organizer password-policy decision.
+Email templates use the approved Resend sender and English text; the custom Supabase
+SMTP plan is documented without changing hosted settings.
+
+Generic issuance acknowledges before private account lookup/password hashing/provider
+work using bounded Next `after`, with shared public timestamps and readiness rechecks.
+This removes account-dependent response timing; it is one attempt, not durable delivery
+or a sent-email promise. Explicit resend/recovery remains rate-limited. Native Admin
+creation inserts before requested metadata; the authoritative reservation therefore
+binds the exact actor/email at insertion, never user-editable metadata.
+
+The server flag, database readiness, budget and approved EN/AR Privacy record are
+independent gates. The current `2026-10-04-draft` has no approval/effective date, so
+the new approved registry remains null. Synthetic notice approval exists only in
+strict loopback/disposable tests. Production and Preview remain closed. New migration
+`20261004164034_participant_accounts.sql` is review-only and has not been applied
+to hosted. [Implementation and exact activation guide](features/PARTICIPANT_ACCOUNTS.md).
+
+The preceding staff CI fixes are separate PR37. Fresh main was `bc2fb87`; PR38 changes
+only shared PROGRESS. Shared append-only logs do not constitute code/feature overlap.
+The participant workflow and native fixture are separate new files, preserving PR37's
+staff code, tests and CI files. No merge, hosted configuration, real user or email is
+authorized by this implementation task.
+
+PR39 review on 4 October 2026 sets a minimum of ten Unicode characters for participant
+sign-up, email verification and password reset. Sign-in remains compatible with existing
+shorter passwords, and the 72-byte UTF-8 maximum remains enforced. EN/AR hints and
+field errors explain the requirement. The activation guide includes the corresponding
+future managed Auth setting; this review changes no hosted settings.

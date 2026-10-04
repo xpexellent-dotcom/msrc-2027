@@ -29,7 +29,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-02 — Add managed email/password account creation and sign-in
 - **Source IDs:** AUTH-01, AUTH-06, LOC-01, DAT-01, DAT-04, SEC-01.
-- **Status:** Planned.
+- **Status:** Partial — participant managed sign-up/sign-in is implemented in closed draft PR39, with verified owner access and enumeration protection. Approved Privacy and live activation remain gated. See [participant guide](../features/PARTICIPANT_ACCOUNTS.md).
 - **Purpose:** Let a participant create one account without revealing other users' account existence.
 - **Scope:** Managed email/password sign-up/sign-in, normalized unique email and name; ORG-016 requires verified email only, without authentication phone collection/verification or participant MFA. Collect only approved authentication fields with approved notices; safe verified/unverified session boundary.
 - **Exclusions:** University SSO, national ID, collecting every later pathway field during sign-up, operational entitlement from account creation.
@@ -52,7 +52,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-03 — Implement single-use verification codes with abuse protection
 - **Source IDs:** AUTH-02, ACC-01, EML-01, SEC-01.
-- **Status:** Planned.
+- **Status:** Partial — closed participant six-digit verification, native bypass guards, expiry/replacement/replay and account/IP abuse controls are implemented in draft PR39. Live delivery and human UAT remain gated. See [participant guide](../features/PARTICIPANT_ACCOUNTS.md).
 - **Purpose:** Verify email possession without participant MFA, reusable codes or inaccessible challenges (ORG-016).
 - **Scope:** Participant email verification only, protected-at-rest single-use codes, replacement invalidation and account/IP controls. Source defaults remain10-minute validity,60s resend,3/email/15min,5failures/code. Managed direct-API enforcement and live email/privacy configuration remain gates; lab controls are separate development bounds.
 - **Exclusions:** New business expiry values, permanent lockout, inaccessible CAPTCHA, email verification treated as privileged MFA.
@@ -75,7 +75,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-04 — Add throttled password recovery and safe reset
 - **Source IDs:** AUTH-03, AUTH-05, SEC-01, EML-01, ERR-01.
-- **Status:** Planned.
+- **Status:** Partial — participant code recovery, progressive login limits and native old-session revocation are implemented in closed draft PR39; stronger staff recovery remains separate. Live email and second-device UAT remain gated. See [participant guide](../features/PARTICIPANT_ACCOUNTS.md).
 - **Purpose:** Let users recover access without exposing account existence or retaining stolen sessions.
 - **Scope:** Progressive throttling of failed password sign-in attempts using the five-failures/15-minute default; separately rate-limited generic recovery response, expiring single-use reset credential and session invalidation after recovery.
 - **Exclusions:** Permanent account lockout, support access to passwords, privileged MFA bypass via email reset.
@@ -121,7 +121,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-06 — Enforce session lifetimes and revocation with draft recovery
 - **Source IDs:** AUTH-05, ROL-12, SEC-06, ERR-01.
-- **Status:** Partial — configurable server/database development foundations and expiry/revocation coverage implemented and verified; migrations review-only, no live activation or saved-draft module. See [feature note](../features/staff-security-foundations.md) and PROGRESS.
+- **Status:** Partial — configurable staff foundations plus the participant 72-hour original-session cookie/admission and native reset/revocation are implemented and verified; migrations review-only, no live activation or saved-draft module. See [staff note](../features/staff-security-foundations.md), [participant guide](../features/PARTICIPANT_ACCOUNTS.md) and PROGRESS.
 - **Purpose:** Expire or revoke access predictably without losing already saved work.
 - **Scope:** ORG-019 participant absolute maximum 72h; privileged idle 30min and absolute 8h. Refresh never restarts absolute origin. Recent-auth age/warning lead TBD; dependent sensitive actions closed. Logout/suspension/recovery/factor-reset invalidation foundations; draft recovery belongs to its later workflow.
 - **Exclusions:** Client timer as authority, unsaved input promised durable, arbitrary permanent session extension.
@@ -167,7 +167,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-08 — Add a scoped participant dashboard shell
 - **Source IDs:** SCP-03, ROL-02, LOC-01, DAT-03, ERR-01.
-- **Status:** Planned.
+- **Status:** Partial — closed owner-only My MSRC shell shows account state/name and “Registration not open yet” in EN/AR in draft PR39. Domain read models and operational actions remain separate. See [participant guide](../features/PARTICIPANT_ACCOUNTS.md).
 - **Purpose:** Let a verified participant distinguish each independent workflow and next permitted action.
 - **Scope:** Owner-scoped dashboard sections and empty/closed/error states for registration/orders, submissions/revisions, workshop bookings/waitlists, tickets and certificates; later slices supply their read models.
 - **Exclusions:** Public participant directory, personal schedule builder, coauthor listing treated as attendance, exposing unpublished decisions or scores.

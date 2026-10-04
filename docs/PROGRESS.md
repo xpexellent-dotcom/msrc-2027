@@ -2462,3 +2462,101 @@ Next smallest task:
 ## Change log
 
 - v1.0, 29 September 2026: consolidated current sources, added durable Codex instructions, corrected CMS identity sequencing, retained unresolved source conflicts, and prepared staged development prompts. No live application or infrastructure changes.
+
+## 4 October 2026 — Closed BL-AUTH-02/03/04/06 participant/08 shell
+
+The prerequisite staff CI fixes are separate [PR37](https://github.com/xpexellent-dotcom/msrc-2027/pull/37):
+180 focused browser repetitions, full 81-case staff suite and five cold concurrent
+73-case database runs passed without assertion removal, retries or longer timeouts.
+Fresh participant preflight fetched main `bc2fb87`; open PR37 is staff CI/fixture work,
+and PR38 only appends the shared PROGRESS log. Neither overlaps this implementation.
+Created isolated `codex/participant-accounts` from that main; preserved caller work.
+
+Implemented six EN/AR routes, transient value-preserving RTL forms, server-only
+default-off flag and own account/name/closed-registration shell. Private reviewed
+migration adds admission, notice receipts, HMAC single-use verification/reset codes,
+expiry/replacement/failure/IP/account/global limits, transaction-bound native credential
+operations and own admitted-session reads. Supabase manages passwords; native email
+tokens and participant MFA cannot bypass the app protocol. Existing 72-hour session
+policy, stronger roles and closed operational gates remain enforced. English branded
+Resend templates and an unapplied custom SMTP/activation plan are included.
+
+The current Privacy notice is still a draft: the approved registry stays null, so no
+real signup can run even if the server flag is set. Database defaults are false/null/
+null. No hosted migrations/settings, deployment, real user or communication occurred.
+
+- PASS: locked install (Node24.21.0/pnpm11.19.0), final `pnpm check`: lint, typecheck,
+  1,809 unit tests/42 files and 65-page production build. API review added regressions
+  for retained-name recovery, thrown logout and timing-safe acknowledgement.
+- PASS: final 36/36 flag-on synthetic presentation cases across EN/AR desktop/tablet/mobile,
+  26/26 default-off raw route/API cases, keyboard/focus, 200% text and 18 axe scans with
+  zero violations. No retries. Production default-off routes have no collection forms.
+  A held sign-in/logout locale-switch regression first failed, then passed after the
+  status effect refresh/abort fix; final build, scoped lint and TypeScript also PASS.
+- PASS: disposable CI [37220100344](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220100344)
+  at `b8d1ddc`: reset, database lint, pgTAP, security advisors, 18/18 genuine native Auth
+  cases and both browser jobs. The first native run found Admin insertion before metadata;
+  the private reservation now binds the exact actor/email at INSERT, with staged SQL coverage.
+- PASS: [37220910478](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220910478)
+  at `a554565`: both participant jobs, all 637 pgTAP assertions/8 files and 19/19 genuine
+  native cases, including real handler→SDK→Data API signup/verify/login/reset/old-session
+  denial. Only delivery is captured in memory. The response precedes account-dependent/
+  provider work via bounded Next `after`, with flag rechecks and no retries.
+  Code `fe5e39b` repeats the same native proof plus all 36 enabled/26 closed
+  browser cases in [37221915493](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37221915493).
+- PASS: final provider validation `6e19ca6` rejects passwords above the pinned Auth
+  72-byte UTF-8 limit before signup or code consumption. All four ASCII/Arabic regressions
+  first failed, then passed; final `pnpm check` passed all 1,809 tests. Disposable native
+  job in [37224383368](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37224383368)
+  passed 637 pgTAP assertions and 19 native cases, including a real handler reset using
+  exactly 72 password bytes. Both participant CI jobs passed, repeating all 36 enabled/
+  26 closed browser cases and 18 axe scans. This final change adds validation without
+  changing UI flows. Subsequent documentation only clarifies policy/env matching and
+  appends these evidence receipts.
+- General CI [37220910506](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220910506)
+  FAIL: inherited `managed-staff-cookie` fixture `40P01` at main's old setup. PR37 fixes
+  that independently and must land before the accounts PR's general database job can
+  reliably pass. Participant-specific native/browser jobs are independent and pass.
+  PASS combined validation [37221956183](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37221956183)
+  at `4d96b2b`: exact participant code `fe5e39b` plus PR37 `68ee9fb`; 1,805 unit tests,
+  401 public browser passes/23 intentional skips, 81 staff browser passes, 44 Contact
+  passes, 637 pgTAP assertions and all 73 concurrent integration cases. Both CI jobs
+  passed. This PR does not duplicate staff code or change the staff CI workflow.
+  Local database execution remains BLOCKED
+  by unavailable Docker and the disposable Linux/GitHub-only guard; skips are not evidence.
+- Activation requires approved Privacy wording/version, five reviewed pending auth/
+  participant migrations, native Auth/provider guards/settings, private Production
+  environment, actual shared Resend quota/forecast approval and human inbox/recovery
+  UAT. Exact steps, limits and rollback: [participant guide](features/PARTICIPANT_ACCOUNTS.md).
+
+Draft [PR39](https://github.com/xpexellent-dotcom/msrc-2027/pull/39). Main was rechecked
+at finish and remains `bc2fb87`. Appended shared records at file ends to avoid future
+log conflicts with PR37/38. Next: land PR37, refresh the accounts base and review this
+closed draft; activation remains separately gated. No hosted changes or real delivery.
+
+## 5 October 2026 — PR39 password review and merged-main rebase
+
+Organizer review raises the participant password minimum to ten Unicode characters
+for sign-up, verification and reset; sign-in retains compatibility with shorter
+existing passwords. The 72-byte UTF-8 maximum stays enforced. Short-password rejection
+precedes native creation, form claims and code consumption. EN/AR hints and field
+errors state the requirement, including on verification.
+
+- PASS: all 59 participant unit cases, including nine-character ASCII/Arabic/emoji
+  rejection, ten-character acceptance, existing shorter sign-in and the retained
+  72-byte boundary. Nine short-password regressions first failed against the old rule
+  and passed after the change.
+- PASS: `pnpm check` after the review change: lint, TypeScript, 1,825 unit tests in
+  42 files and the 65-page production build. EN/AR browser coverage is expanded to
+  54 cases, preserving the existing 26 closed-route cases and axe checks.
+- Native handler tests cover reuse of the same valid code after a rejected short
+  password, exact ten-character acceptance, legacy shorter sign-in and the unchanged
+  72-byte reset boundary. Execution uses disposable CI; local Docker remains unavailable.
+- PR37 and PR38 are merged. The branch is rebased onto freshly fetched main `f106634`; their
+  staff fixture/focus fixes and shared logs are retained. Final branch/head, full
+  application/database CI and participant native/browser receipts are recorded in
+  [PR39](https://github.com/xpexellent-dotcom/msrc-2027/pull/39).
+
+This review does not change migration SQL, hosted Auth settings, Privacy approval,
+the closed flag or operational readiness. Real users, inbox delivery and activation
+remain unperformed. The activation guide records the future native minimum setting.
