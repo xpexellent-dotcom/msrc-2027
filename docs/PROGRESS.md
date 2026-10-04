@@ -49,6 +49,32 @@ Shared logs do not count as overlap under the requester's clarified rule.
   implementation overlap. Next: BL-AUTH-02/03/04/06 participant/08 shell on a new
   branch from main. No hosted changes or real email.
 
+## 4 October 2026 — Live QA after PR32–36, and a font-preload experiment
+
+Checked the live site at main `bc2fb87` from the owner's Windows PC (Node 25.6.0, Playwright 1.63 Chromium and WebKit). No code changed.
+
+- All 22 sitemap URLs (now including Contact), at 1366 px, on a Pixel 7 and on an iPhone 13 (WebKit): status 200, no console errors, no 4xx/5xx, no horizontal overflow. Axe WCAG 2.0–2.2 A/AA, plus `label-content-name-mismatch`, finds nothing, so the PR32 wordmark fix is live. The PR32 `MSRC Arabic Fallback` face is in the live CSS.
+- Privacy and Terms (EN/AR) at both sizes: no axe violations, no console errors, no overflow; they and their dated drafts are `noindex` and left out of the sitemap. Registration and Submissions are `noindex` as well.
+- Contact (EN/AR, Pixel 7), with every non-GET request blocked so nothing reached the live API. Submitting the empty form sends nothing. All four required fields are marked invalid, focus moves to Topic, and the summary alert appears. Before hydration the fieldset and button are server-rendered `disabled`, so a pre-hydration native submit cannot put the visitor's details into a GET query string. The honeypot is `hidden`, `aria-hidden` and `tabIndex=-1`.
+- A link crawl from `/en` and `/ar` reached 36 internal URLs, all 200 with no redirects. External links (KAU privacy policy EN/AR) return 200.
+- `/en/msrc-2027.ics` and `/ar/msrc-2027.ics`: `text/calendar`, served as an attachment, CRLF line endings, folded lines at most 75 octets with no UTF-8 sequence split, all-day 27–28 January (`DTEND` 29th), the same UID in both languages.
+- `pnpm audit --prod`: no known vulnerabilities. `pnpm outdated`: next and eslint-config-next 16.3.7 → 16.3.8 (patch), vitest 5.0.3 and supabase 2.119.0 available; not updated here.
+- CI: main's 14:51 UTC run failed in “Verify local-only synthetic staff security lab” and its 15:39 run passed; `codex/auth-ci-stability` is already working on this, so I left it alone.
+
+Font-preload experiment, not adopted. Local production builds, Chromium with a Pixel 7 profile, 150 ms RTT, 1.6 Mbps, 4× CPU, cache off, median of 5 loads:
+
+| Variant | /en FCP | /en LCP | /en CLS | /ar FCP | /ar LCP | /ar CLS |
+| --- | --- | --- | --- | --- | --- | --- |
+| main (Manrope, DM Sans, Inter preloaded) | 2040 | 3108 | 0.001 | 2024 | 3340 | 0.020 |
+| Manrope only preloaded | 1848 | 2736 | 0.001 | 1976 | 2544 | 0.020 |
+| DM Sans only preloaded | 1904 | 3072 | 0.001 | 1988 | 2772 | 0.020 |
+| nothing preloaded | 1804 | 2256 | 0.034 | 1888 | 2440 | 0.020 |
+| nothing preloaded, weight-aware DM Sans fallback | 1764 | 2284 | 0.034 | 1868 | 2416 | 0.020 |
+| main with the poster at default priority | 2024 | 3100 | 0.001 | 2028 | 3352 | 0.020 |
+
+The hero headline is DM Sans, not Manrope. On English pages LCP waits for DM Sans, and the 108 KB poster's `fetchPriority="high"` makes no measurable difference. Not preloading the Latin fonts brings both languages under the 2.5 s target, but on a slow phone the English headline is first drawn in the fallback. When DM Sans arrives, “Where curiosity” goes from one line to two and the hero moves about 55 px (CLS 0.034). At 412 px the line is within 3 px of wrapping, so no fallback metric override hides it reliably. Arabic pages pay for three Latin font preloads they barely use (only the wordmark is Latin above the fold), and dropping them would cut `/ar` LCP by about 0.8–0.9 s. `next/font` preloads per layout, not per locale, so an Arabic-only change needs Latin preloads chosen per locale, for example self-hosted files with a locale-specific `<link rel="preload">`. Left for a design decision; the measurement scripts are not committed.
+
+
 ## 4 October 2026 — BL-PUB-06 default-off Resend Contact delivery
 
 Fresh fetch verified main `9971534` includes merged PR30 and PR32. Reused the attached
