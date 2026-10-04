@@ -25,7 +25,10 @@ function queryDay(value?: string): "all" | ConferenceDay {
 function queryEdition(value?: string): "all" | "2026" | "2027" {
   return value === "2026" || value === "2027" ? value : "all";
 }
-function updateAddress(filters: Record<string, string>) {
+// Writes only the filters that changed, onto the current address. The rendered values lag the
+// address until React re-renders, so writing them all let a second quick change put back a
+// stale value (choosing an edition and then a kind dropped the edition).
+function updateAddress(filters: Record<string, string | undefined>) {
   const address = new URL(window.location.href);
   for (const [key, value] of Object.entries(filters)) {
     if (value === "all" || !value) address.searchParams.delete(key);
@@ -79,8 +82,7 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
   const hasActiveFilters = filtering || day !== "all";
 
   function change(values: Partial<{ day: "all" | ConferenceDay; category: string; room: string; q: string }>) {
-    const next = { day, category, room, q: query, ...values };
-    updateAddress(next);
+    updateAddress(values);
   }
   function clear() {
     document.getElementById("programme-search")?.focus();
@@ -152,7 +154,7 @@ export function MediaExperience({ locale, media, sessions }: { locale: Locale; m
   const filtering = query.trim() !== "" || kind !== "all";
   const hasActiveFilters = filtering || edition !== "all";
   function change(values: Partial<{ q: string; edition: "all" | "2026" | "2027"; kind: string }>) {
-    const next = { q: query, edition, kind, ...values }; updateAddress(next);
+    updateAddress(values);
   }
   function clear() {
     document.getElementById("media-search")?.focus();

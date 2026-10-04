@@ -245,3 +245,21 @@ test("Arabic text keeps its wrap when the Arabic webfont arrives", async ({ page
   await page.waitForTimeout(200);
   expect(await lead.evaluate((element) => element.getBoundingClientRect().height)).toBe(before);
 });
+
+// Each filter change wrote every filter from the last render, so a second change before React
+// caught up put back the old value: choosing an edition and then a kind dropped the edition.
+test("quick successive filter changes keep each other", async ({ page }) => {
+  await page.goto("/en/media");
+  await page.evaluate(() => {
+    const choose = (id: string, value: string) => {
+      const select = document.getElementById(id) as HTMLSelectElement;
+      select.value = value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    choose("media-edition", "2026");
+    choose("media-kind", "recording");
+  });
+  await expect.poll(() => new URL(page.url()).searchParams.toString()).toBe("edition=2026&kind=recording");
+  await expect(page.getByTestId("media-edition")).toHaveValue("2026");
+  await expect(page.getByTestId("media-kind")).toHaveValue("recording");
+});
