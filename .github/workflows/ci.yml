@@ -133,8 +133,6 @@ jobs:
         run: pnpm db:integration
       - name: Repeat the concurrent integration suites from five cold fixture states
         if: ${{ inputs.auth_stability }}
-        env:
-          MSRC_CI_LOCK_DIAGNOSTIC: 'true'
         shell: bash
         run: |
           for pass in 1 2 3 4 5; do

@@ -7,7 +7,6 @@ import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
 import { createSupabaseTotpContract } from "@/features/auth/mfa-provider.server";
 import { totpAt } from "@/features/auth/totp.server";
-import { readDeadlockBackends, readDeadlockContext, readDeadlockEdges, readDeadlockRelations, readEventTriggers } from "./deadlock-diagnostics";
 
 // Genuine GoTrue/SDK exchanges on the disposable CI stack, not hosted delivery/UAT.
 // Generated credentials, OTPs and SDK responses never enter assertion snapshots.
@@ -44,51 +43,25 @@ function boundary(): { url: string; publishableKey: string } {
   return resolved;
 }
 
-function query(sql: string, diagnoseDeadlock = true): Promise<string> {
+function query(sql: string): Promise<string> {
   boundary();
   return new Promise((resolve, reject) => {
     const child = spawn("docker", ["exec", "-i", "supabase_db_msrc2027-local", "psql", "-X", "-q",
-      "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=verbose", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
+      "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
     let output = "";
-    let diagnostics = "";
     let sqlState = "unknown";
     const timeout = setTimeout(() => { child.kill(); reject(new Error("Isolated managed Auth SQL timed out.")); }, 10_000);
     child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
     // psql diagnostics can include input credentials. Never forward them.
     child.stderr.on("data", (chunk: Buffer) => {
-      diagnostics = (diagnostics + chunk.toString()).slice(-65_536);
-      const state = diagnostics.match(/(?:ERROR|FATAL):\s+([0-9A-Z]{5})(?:[\s:]|$)/)?.[1];
+      const state = chunk.toString().match(/(?:ERROR|FATAL):\s+([0-9A-Z]{5})(?:\s|$)/)?.[1];
       if (state) sqlState = state;
     });
     child.on("error", () => { clearTimeout(timeout); reject(new Error("Isolated managed Auth SQL could not start.")); });
     child.on("close", (code) => { clearTimeout(timeout);
-      if (code === 0) { resolve(output.trim()); return; }
-      const failure = new Error(`Isolated managed Auth SQL failed (SQLSTATE ${sqlState}); sensitive diagnostics withheld.`);
-      if (sqlState !== "40P01" || !diagnoseDeadlock) { reject(failure); return; }
-      const edges = readDeadlockEdges(diagnostics);
-      const backend = Number(diagnostics.match(/^MSRC_DIAGNOSTIC_BACKEND ([0-9]{1,10})$/m)?.[1]) || undefined;
-      const context = readDeadlockContext(diagnostics);
-      // No input SQL or raw provider diagnostic is printed. A catalog-only query
-      // maps numeric relation OIDs; unknown relation names are withheld as well.
-      const relations = edges.filter((edge) => edge.kind === "relation").map((edge) => edge.resource);
-      const processes = edges.map((edge) => edge.process);
-      const metadata = edges.length ? query(`select c.oid,n.nspname||'.'||c.relname
-        from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace
-        where c.oid in (${relations.length ? relations.join(",") : "0"});
-        select 'backend|'||pid||'|'||usename||'|'||upper(substring(ltrim(query) from '^[a-zA-Z]+'))
-          from pg_catalog.pg_stat_activity where pid in (${processes.join(",")})
-          and usename in ('postgres','supabase_auth_admin','authenticator','supabase_admin');
-        select 'trigger|'||e.evtname||'|'||n.nspname||'.'||p.proname from pg_catalog.pg_event_trigger e
-          join pg_catalog.pg_proc p on p.oid=e.evtfoid join pg_catalog.pg_namespace n on n.oid=p.pronamespace;`, false) : Promise.resolve("");
-      void metadata.then((value) => {
-        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ backend, edges, context,
-          relations: readDeadlockRelations(value), backends: readDeadlockBackends(value), triggers: readEventTriggers(value) })}\n`);
-      }).catch(() => {
-        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ backend, edges, context })}\n`);
-      }).finally(() => reject(failure));
-    });
+      if (code === 0) resolve(output.trim()); else reject(new Error(`Isolated managed Auth SQL failed (SQLSTATE ${sqlState}); sensitive diagnostics withheld.`)); });
     child.stdin.on("error", () => {});
-    child.stdin.end(`select pg_backend_pid() as msrc_diagnostic_backend \\gset\n\\warn MSRC_DIAGNOSTIC_BACKEND :msrc_diagnostic_backend\n${sql}`);
+    child.stdin.end(sql);
   });
 }
 
@@ -141,27 +114,6 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
       && typeof reported.version === "string" && /^v?[0-9][0-9A-Za-z.+-]{0,63}$/.test(reported.version), "actual managed Auth version");
     process.stdout.write(`Isolated GoTrue version: ${reported.version}\n`);
     await query(`begin;
-      create schema msrc_ci_auth;
-      revoke all on schema msrc_ci_auth from public,anon,authenticated,service_role;
-      grant usage on schema msrc_ci_auth to supabase_auth_admin;
-      create function msrc_ci_auth.reject_email(event jsonb) returns jsonb
-      language sql security invoker set search_path='' as $$
-        select '{"error":{"http_code":403,"message":"Disposable tests disallow email delivery."}}'::jsonb;
-      $$;
-      revoke all on all functions in schema msrc_ci_auth from public,anon,authenticated,service_role;
-      grant execute on all functions in schema msrc_ci_auth to supabase_auth_admin;
-      ${process.env.MSRC_CI_LOCK_DIAGNOSTIC === "true" ? `
-      -- Disposable stress run only: preserve the actual DDL locks while the
-      -- cookie fixture acquires its actual identity/grant locks. Distinct markers
-      -- coordinate scheduling without adding a conflicting application lock.
-      select pg_advisory_xact_lock(20272741,1);
-      do $$declare until_at timestamptz:=clock_timestamp()+interval '2 seconds'; begin
-        while clock_timestamp()<until_at loop
-          exit when exists(select 1 from pg_locks where locktype='advisory'
-            and classid=20272741 and objid=2 and granted);
-          perform pg_sleep(0.01);
-        end loop;
-      end$$;` : ""}
       insert into msrc_authorization.edition_config(edition_key) values('${edition}');
       ${([participant, staff, other] as const).map((actor) => `
         insert into auth.users(id,instance_id,aud,role,email,encrypted_password,email_confirmed_at,
@@ -182,7 +134,6 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
   });
 
   afterAll(async () => {
-    if (ci) await query("drop schema if exists msrc_ci_auth cascade;");
     // Immutable safe session/grant audit remains in the disposable database until
     // the workflow's always-stop step. Codes and enrollment secrets stay in memory.
     secret = "";

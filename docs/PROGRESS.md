@@ -1,6 +1,6 @@
 # Progress and session handover
 
-## 4 October 2026 — Staff Auth CI flake investigation
+## 4 October 2026 — Staff Auth CI stability
 
 Branch `codex/auth-ci-stability` starts at freshly fetched main `bc2fb87` (PR36 merged),
 in an isolated worktree; original caller edits are preserved. No open PRs at preflight.
@@ -11,10 +11,22 @@ Shared logs do not count as overlap under the requester's clarified rule.
   zero start requests, no session, focus stayed on the button; the original heading
   focus assertion failed. Initial controls now stay disabled through hydration and
   initial status restoration. A deterministic regression holds both boundaries.
-- SEC-01/06: PR36 attempt 1 database job `111464712521` failed in managed-Auth setup
-  with SQLSTATE `40P01`. Exact lock graph is NOT YET VERIFIED; credential-safe numeric
-  graph diagnostics will identify it rather than assuming a lock cause. Raw SQL and
-  credentials are never forwarded. Existing assertions and timeouts/retries remain.
+- SEC-01/06: reproduced PR36's SQLSTATE `40P01` with controlled scheduling in
+  disposable CI. The cookie fixture held an exclusive `auth.identities` lock and
+  waited for exclusive `auth.users`; managed Auth held `auth.users` for its insert
+  and waited to insert `auth.identities`. Numeric backend attribution proves the
+  cookie fixture is the requester, rather than a native Auth background process.
+  Run `37216543432` cold pass five identifies `owner_policy` as the failed statement;
+  four preceding passes succeeded, demonstrating why repetition alone cannot fix it.
+  CLI2.118 pins Postgres17.6.1.171 and preloaded supautils3.4.3. Its CREATE POLICY
+  grant check scans the postgres allowlist in identities/users order with exclusive
+  locks retained to commit, even for an unrelated public fixture policy. See the
+  [pinned hook](https://github.com/supabase/supautils/blob/v3.4.3/src/policy_grants.c#L155),
+  [pinned allowlist](https://github.com/supabase/postgres/blob/17.6.1.171/ansible/files/postgresql_config/supautils.conf.j2#L2)
+  and [upstream fix](https://github.com/supabase/supautils/commit/42cc7f0c4b2655ee3f70a834e253e6a79c66f1d6).
+  Fixture DDL will run before concurrent integration workers, with teardown after
+  all workers. No retries, larger timeouts, assertion removal, suite serialization,
+  production schema change or dependency upgrade is needed.
 - Added opt-in `workflow_dispatch` `auth_stability`: five independent cold database
   resets with the original concurrent integration suites, and five browser repeats.
   This is fail-fast repeated verification, not retries after failure.
@@ -25,10 +37,10 @@ Shared logs do not count as overlap under the requester's clarified rule.
   exhausted that quota and was stopped without changing limits or assertions.
   Initial isolated stability run `37214660390`: PASS five cold concurrent database
   suites, each 73/73, and 60 repeated EN/AR keyboard cases. These are samples, not
-  evidence of a deadlock fix. Controlled fixture scheduling is now under diagnosis.
+  evidence of a deadlock fix. Post-fix repeated database evidence remains PENDING.
   Local managed DB execution is BLOCKED: suites intentionally require a disposable
   GitHub-hosted Linux runner; the Windows Docker daemon is also unavailable.
-- Next: verify the lock graph, apply its minimal fix, complete repeated evidence, then
+- Next: complete fixture lifecycle fix and repeated evidence, then
   start BL-AUTH-02/03/04/06 participant/08 shell. No hosted changes or real email.
 
 ## 4 October 2026 — BL-PUB-06 default-off Resend Contact delivery
