@@ -110,7 +110,9 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
   const text = staffSecurityCopy[locale];
   const snapshot = useSyncExternalStore(subscribeDraft, readDraft, readServerDraft);
   const { view, enrollment, emailMessage, result, responseChannel, responseAction, code, emailCode } = snapshot;
-  const [busy, setBusy] = useState(false);
+  // SSR controls must stay inert until hydration and the initial session restore
+  // complete; an enabled button can otherwise swallow a fast keyboard activation.
+  const [busy, setBusy] = useState(true);
   const [now, setNow] = useState(0);
   const [validation, setValidation] = useState<"totp" | "email" | null>(null);
   const [focusRequest, setFocusRequest] = useState<{ target: "error" | "code" | "email" | "session"; sequence: number } | null>(null);
@@ -151,6 +153,7 @@ export function StaffSecurityPreview({ locale }: { locale: Locale }) {
       if (!controller.signal.aborted && !actionLock.current && generation === actionGeneration.current) {
         acceptResult(response, "status");
         setNow(Date.now());
+        setBusy(false);
       }
     }
     void checkSession();

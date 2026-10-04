@@ -71,6 +71,53 @@ async function setupKey(page: Page) {
 }
 for (const locale of ["en", "ar"] as const) {
   const copy = labels[locale];
+  test(`${locale} keyboard login waits for hydration and the initial session restore`, async ({ page }) => {
+    let releaseScripts!: () => void;
+    let releaseStatus!: () => void;
+    let statusStarted!: () => void;
+    const scriptsGate = new Promise<void>((resolve) => { releaseScripts = resolve; });
+    const statusGate = new Promise<void>((resolve) => { releaseStatus = resolve; });
+    const statusRequest = new Promise<void>((resolve) => { statusStarted = resolve; });
+    let starts = 0;
+    await page.route("**/_next/static/**/*.js", async (route) => {
+      await scriptsGate;
+      await route.continue();
+    });
+    await page.route("**/api/auth-preview", async (route) => {
+      const action = route.request().postDataJSON()?.action;
+      if (action === "status") {
+        statusStarted();
+        await statusGate;
+      }
+      if (action === "start") starts += 1;
+      await route.continue();
+    });
+    try {
+      // The server-rendered controls are visible before their handlers are ready.
+      // Hold both boundaries explicitly; no timing delays or retries are needed.
+      await page.goto(`/${locale}/staff-security-preview`, { waitUntil: "domcontentloaded" });
+      const start = page.getByRole("button", { name: copy.staffStart, exact: true });
+      await expect(start).toBeVisible();
+      await expect(start).toBeDisabled();
+      releaseScripts();
+      await statusRequest;
+      await expect(start).toBeDisabled();
+      expect(starts).toBe(0);
+      releaseStatus();
+      await expect(start).toBeEnabled();
+      await start.focus();
+      await page.keyboard.press("Enter");
+      await expect(page.getByTestId("session-state")).toHaveText(staffSecurityCopy[locale].active);
+      await expect(page.locator("#staff-session-heading")).toBeFocused();
+      expect(starts).toBe(1);
+    } finally {
+      releaseScripts();
+      releaseStatus();
+      await page.unroute("**/_next/static/**/*.js");
+      await page.unroute("**/api/auth-preview");
+    }
+  });
+
   test(`${locale} isolated staff delivery shows accessible inbox and expiry states without exposing the code`, async ({ page }) => {
     // Presentation-only external-delivery receipt. No challenge is reserved in
     // the shared lab, and no provider or real email is used by this test.
@@ -125,7 +172,9 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} regular staff password and session email check remain AAL1 and require a new check only on new login`, async ({ page }, testInfo) => {
     await page.goto(`/${locale}/staff-security-preview`);
-    await page.getByRole("button", { name: copy.staffStart, exact: true }).focus();
+    const start = page.getByRole("button", { name: copy.staffStart, exact: true });
+    await expect(start).toBeEnabled();
+    await start.focus();
     await page.keyboard.press("Enter");
     await expect(page.locator("#staff-session-heading")).toBeFocused();
     await expect(page.getByTestId("session-assurance")).toHaveText(copy.missing);
@@ -421,7 +470,9 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} keyboard and automated accessibility cover QR/manual setup and verification errors`, async ({ page }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/staff-security-preview`);
-    await page.getByRole("button", { name: copy.start, exact: true }).focus();
+    const start = page.getByRole("button", { name: copy.start, exact: true });
+    await expect(start).toBeEnabled();
+    await start.focus();
     await page.keyboard.press("Enter");
     await expect(page.locator("#staff-session-heading")).toBeFocused();
     await page.getByRole("button", { name: copy.enroll, exact: true }).focus();

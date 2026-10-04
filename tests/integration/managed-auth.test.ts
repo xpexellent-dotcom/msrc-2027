@@ -114,15 +114,6 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
       && typeof reported.version === "string" && /^v?[0-9][0-9A-Za-z.+-]{0,63}$/.test(reported.version), "actual managed Auth version");
     process.stdout.write(`Isolated GoTrue version: ${reported.version}\n`);
     await query(`begin;
-      create schema msrc_ci_auth;
-      revoke all on schema msrc_ci_auth from public,anon,authenticated,service_role;
-      grant usage on schema msrc_ci_auth to supabase_auth_admin;
-      create function msrc_ci_auth.reject_email(event jsonb) returns jsonb
-      language sql security invoker set search_path='' as $$
-        select '{"error":{"http_code":403,"message":"Disposable tests disallow email delivery."}}'::jsonb;
-      $$;
-      revoke all on all functions in schema msrc_ci_auth from public,anon,authenticated,service_role;
-      grant execute on all functions in schema msrc_ci_auth to supabase_auth_admin;
       insert into msrc_authorization.edition_config(edition_key) values('${edition}');
       ${([participant, staff, other] as const).map((actor) => `
         insert into auth.users(id,instance_id,aud,role,email,encrypted_password,email_confirmed_at,
@@ -143,7 +134,6 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
   });
 
   afterAll(async () => {
-    if (ci) await query("drop schema if exists msrc_ci_auth cascade;");
     // Immutable safe session/grant audit remains in the disposable database until
     // the workflow's always-stop step. Codes and enrollment secrets stay in memory.
     secret = "";

@@ -8,11 +8,12 @@ import { createManagedStaffLab, isManagedStaffLabBoundary, MANAGED_STAFF_LAB_COO
   MANAGED_STAFF_LAB_PATH } from "@/features/auth/managed-staff-lab.server";
 import type { StaffEmailStore } from "@/features/auth/staff-email.server";
 import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
+import { STAFF_COOKIE_EDITION } from "./managed-fixtures.global-setup";
 
 // Real loopback HTTP + native Auth/private SQL. No browser/SMTP/provider credential,
 // external inbox, hosted project, real account or operational workflow is involved.
 const ci = process.env.GITHUB_ACTIONS === "true";
-const edition = "synthetic-staff-cookie-2027";
+const edition = STAFF_COOKIE_EDITION;
 const actors = Array.from({ length: 18 }, (_, index) => `c1000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`);
 const email = (id: string) => `cookie-staff-${actors.indexOf(id) + 1}@example.invalid`;
 const password = randomBytes(32).toString("hex");
@@ -221,19 +222,8 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
         values('${id}','active',true);
         ${index === 14 ? "" : `insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
         values('${id}','${edition}','${index === 15 ? "superAdmin" : "contentMediaEditor"}','edition','Disposable cookie fixture');`}`).join("\n")}
-      create table public.msrc_ci_staff_cookie_resource(actor_id uuid primary key,label text not null);
-      alter table public.msrc_ci_staff_cookie_resource enable row level security;
-      alter table public.msrc_ci_staff_cookie_resource force row level security;
-      revoke all on public.msrc_ci_staff_cookie_resource from public,anon,authenticated;
-      grant select on public.msrc_ci_staff_cookie_resource to authenticated;
-      create policy cookie_owner on public.msrc_ci_staff_cookie_resource for select to authenticated
-        using(actor_id=(select auth.uid()) and exists(select 1 from jsonb_array_elements(
-          (select public.msrc_read_access_context('${edition}'))->'grants') g where g->>'role'='contentMediaEditor'));
-      create policy cookie_second_step on public.msrc_ci_staff_cookie_resource as restrictive for select to authenticated
-        using((select public.msrc_second_step_satisfied()));
       insert into public.msrc_ci_staff_cookie_resource values
         ${actors.map((id) => `('${id}','Synthetic private cookie resource')`).join(",\n")};
-      notify pgrst,'reload schema';
       commit;`);
     await waitForDataApiFixture();
     const bound = (input: { actorId: string; sessionId: string; challengeId: string }) => {
@@ -277,7 +267,6 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
     lab?.close();
     inbox.clear(); nativeSessions.clear();
     if (server) await new Promise<void>((resolve) => server.close(() => resolve()));
-    if (ci && lab) await query("drop table if exists public.msrc_ci_staff_cookie_resource;");
   });
 
   it("denies password-only HTTP and direct Data API access, then permits one exact-session single-use email check at AAL1", async () => {

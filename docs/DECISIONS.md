@@ -1,5 +1,13 @@
 # MSRC 2027 decision and configuration register
 
+## 4 October 2026 — Auth CI stability and shared-log overlap
+
+The requester clarified that shared PROGRESS, DECISIONS and checklist append-only
+updates do not count as feature/code overlap. Fix PR25's staff focus and managed-Auth
+deadlock flakes in a separate small PR before starting participant accounts from fresh
+main. Preserve assertions and existing timeout/retry settings; use repeated fail-fast
+verification. No hosted settings, migrations, real users or email are authorized.
+
 Source baseline: 29 September 2026; evidence reconciliation updated 1 October 2026. This register records source-confirmed choices, working defaults, unresolved details and publication gates. It does not certify institutional approval, provisioning, implementation or test completion.
 
 Primary source: **S1 Development Specification v0.5**, modified 2026-09-29 11:30:21 UTC / 14:30:21 Asia/Riyadh. [Current source snapshot](../sources/Development_Specification_v0.5.txt).
