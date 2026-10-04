@@ -78,7 +78,7 @@ const policyDraft20261004: Record<Locale, PolicyCopy> = {
           id: "current-site",
           title: "The current website",
           status: "organizer-decision",
-          paragraphs: ["Public contact and participation forms are closed and do not accept or store personal information. The organizer describes current visit analytics as cookieless and anonymous, provided by Vercel."],
+          paragraphs: ["Participation forms remain closed. The Contact form accepts information only when email delivery is enabled; otherwise it stays closed.", "When Contact is available, the supplied topic, name, email, optional related reference, message and language are sent through Resend to contact@msrc2027.com for a reply. The application keeps no message copy; Supabase holds only expiring hashed anti-spam counters. Resend and the receiving inbox handle the email.", "The organizer describes current visit analytics as cookieless and anonymous, provided by Vercel. Contact is excluded from website analytics."],
         },
         {
           id: "retention",
@@ -175,7 +175,7 @@ const policyDraft20261004: Record<Locale, PolicyCopy> = {
           id: "current-site",
           title: "الموقع الحالي",
           status: "organizer-decision",
-          paragraphs: ["نماذج التواصل والمشاركة العامة مغلقة ولا تقبل أو تخزن معلومات شخصية. يصف المنظمون تحليلات الزيارات الحالية بأنها مجهولة الهوية ومن دون ملفات تعريف الارتباط، وتقدمها Vercel."],
+          paragraphs: ["تبقى نماذج المشاركة مغلقة. يقبل نموذج التواصل المعلومات فقط عند تفعيل إرسال البريد الإلكتروني؛ ويظل مغلقًا في غير ذلك.", "عند إتاحة التواصل، تُرسل البيانات المقدمة — الموضوع والاسم والبريد الإلكتروني والمرجع ذي الصلة إن وجد والرسالة واللغة — عبر Resend إلى contact@msrc2027.com للرد. لا يحتفظ التطبيق بنسخة من الرسالة؛ وتحتفظ Supabase فقط بعدّادات مؤقتة بمفاتيح مجزأة للحد من الرسائل المزعجة. تتعامل Resend وصندوق البريد المستلم مع الرسالة.", "يصف المنظمون تحليلات الزيارات الحالية بأنها مجهولة الهوية ومن دون ملفات تعريف الارتباط، وتقدمها Vercel. تُستثنى صفحة التواصل من تحليلات الموقع."],
         },
         {
           id: "retention",

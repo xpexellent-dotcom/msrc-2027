@@ -20,6 +20,16 @@
 .contact-fields .field-input:disabled { opacity: 1; }
 .contact-message { display: block; min-block-size: 10rem; resize: vertical; }
 .contact-form > .button { margin-block-start: 1.8rem; }
+.contact-delivery-intro { max-inline-size: 64ch; color: var(--color-muted); line-height: 1.85; }
+.contact-processing-note { margin-block-start: .65rem; max-inline-size: 68ch; font-size: .9rem; color: var(--color-muted); line-height: 1.85; }
+.contact-test-only { margin-block-end: 1.25rem; padding: 1rem; border-inline-start: 3px solid var(--color-purple); background: var(--color-info-surface); color: var(--color-purple); line-height: 1.85; }
+.contact-delivery-status:not(:empty) { margin-block-start: 1.25rem; padding-block: .85rem; line-height: 1.8; }
+.contact-delivery-success { color: var(--color-success); font-weight: 500; }
+.contact-delivery-note { margin-block-start: 1.25rem; padding: 1.25rem; border-inline-start: 3px solid var(--color-error); background: var(--color-error-surface); }
+.contact-delivery-note h3 { margin-block-end: .5rem; color: var(--color-error); font-size: 1.05rem; line-height: 1.65; }
+.contact-delivery-note p { line-height: 1.85; }
+.contact-delivery-note p + p { margin-block-start: .5rem; }
+.contact-duplicate-warning { margin-block-start: 1rem; padding: 1rem; background: var(--color-warning-surface); color: var(--color-warning); line-height: 1.85; }
 [lang="ar"] .contact-hero h1 { letter-spacing: 0; line-height: 1.55; font-size: clamp(2.5rem, 4.7vw, 4.5rem); }
 [lang="ar"] .contact-email h2 { line-height: 1.7; }
 @media (max-width: 800px) {

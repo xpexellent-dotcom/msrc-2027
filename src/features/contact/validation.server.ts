@@ -19,7 +19,7 @@ export type ContactValidation =
   | {
       ok: true;
       value: ValidatedContact;
-      // A validated header draft only. No provider, sending, logging or storage.
+      // Validated fixed headers; only the server delivery module can send them.
       envelope: Readonly<{ to: string; from: string; replyTo: string; subject: string }>;
     }
   | { ok: false; code: "INVALID_CONTACT"; fieldErrors: Partial<Record<ContactField, FieldError>> };
@@ -67,7 +67,7 @@ function validEmail(email: string): boolean {
     /[A-Za-z]/.test(labels.at(-1) ?? "");
 }
 
-/** Independent server validation foundation. The closed API never reads a body. */
+/** Server validation; the API still never reads a body when delivery is off. */
 export function validateContactSubmission(input: unknown): ContactValidation {
   const raw = readFields(input);
   if (!raw) return invalid();

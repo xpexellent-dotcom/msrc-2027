@@ -33,7 +33,7 @@ describe("closed Contact transport (BL-PUB-06 / PRV-03 / SEC-01)", () => {
       const fetch = vi.fn(() => { throw new Error("No delivery/network permitted"); });
       vi.stubGlobal("fetch", fetch);
       const logs = [vi.spyOn(console, "log"), vi.spyOn(console, "warn"), vi.spyOn(console, "error")];
-      const response: Response = Reflect.apply(POST, undefined, [request]);
+      const response: Response = await Reflect.apply(POST, undefined, [request]);
       expect(response.status).toBe(503);
       expect(await response.json()).toEqual({ state: "closed", code: "CONTACT_CLOSED" });
       expect(request.bodyUsed).toBe(false);
@@ -42,7 +42,7 @@ describe("closed Contact transport (BL-PUB-06 / PRV-03 / SEC-01)", () => {
     },
   );
 
-  it("has no caller or environment switch that enables the Contact operation", async () => {
+  it("ignores caller/public/obsolete flags when the server-only delivery flag is absent", async () => {
     vi.stubEnv("CONTACT_ENABLED", "true");
     vi.stubEnv("NEXT_PUBLIC_CONTACT_ENABLED", "true");
     vi.stubEnv("EMAIL_PROVIDER", "untrusted");
@@ -51,7 +51,7 @@ describe("closed Contact transport (BL-PUB-06 / PRV-03 / SEC-01)", () => {
       method: "POST", headers: { "content-type": "application/json", origin: "https://msrc2027.com" },
       body: JSON.stringify({ deliveryEnabled: true, topic: "general", to: "other@example.invalid" }),
     });
-    const response: Response = Reflect.apply(POST, undefined, [request]);
+    const response: Response = await Reflect.apply(POST, undefined, [request]);
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ state: "closed", code: "CONTACT_CLOSED" });
     expect(request.bodyUsed).toBe(false);

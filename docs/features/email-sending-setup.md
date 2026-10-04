@@ -6,11 +6,13 @@ Runbook for connecting Resend's free plan so the website can later send email **
 Requirements: AUTH-02, ORG-015, ORG-016 (email-only notifications). Authority: organizer
 request of 3 October 2026. Scope is account, DNS and secret setup only.
 
-> **What this does and does not do.** Finishing this runbook makes Resend *able* to send
-> as `msrc2027.com`. It does **not** switch on any email from the website. No code in the
-> repository sends through Resend yet, and the live email provider/sender, privacy and
-> data location remain release gates (`docs/DECISIONS.md`). Until those are approved, only
-> send test messages to your own inbox, never to participants.
+> **4 October Contact amendment:** ORG-028 records organizer-reported verified domain and
+> Production-only Sending key plus approved Contact routing. The Contact adapter is now
+> implemented but off by default. Use [Contact activation](contact-delivery.md) for the
+> reviewed counter migration, server-only configuration, privacy/abuse checks and human
+> delivery test. This setup runbook does not open authentication or approve its email
+> provider/recovery/location gates. Its DNS observations below are dated 3 October;
+> no DNS/provider/secret setting is changed by the Contact implementation task.
 
 ## Before you start
 
@@ -245,10 +247,11 @@ If the key is ever exposed (pasted in chat, committed, screenshotted): delete it
 
 ## Still open after this runbook
 
-- Approval of Resend as the live email provider, the sender address, and the data region
-  (privacy/location gate).
-- The server-side email adapter, sending limits and tests (free plan is 100 emails/day,
-  which a registration wave can exceed).
+- Contact provider/sender approved by ORG-028; provider/inbox processing, retention and
+  location review remains open. The reviewed Contact adapter/counters/tests exist but
+  require hosted application and manual activation under the linked runbook.
+- Future staff/participant delivery quotas and operational batch capacity remain separate
+  (the organizer-reported free plan is 100/day; Contact reserves at most 60/day).
 - Supabase Auth emails (sign-up verification, password reset) use their own SMTP setting;
   pointing them at Resend is a separate, gated task.
 

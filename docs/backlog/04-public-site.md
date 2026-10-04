@@ -125,24 +125,24 @@ its unresolved-date/media status. The full public sitemap is still incomplete.
 
 ## BL-PUB-06 — Implement categorized email-only Contact support
 - **Source IDs:** SUP-01, SUP-02, SUP-03, EML-01, EML-04, PRV-03, ACC-01.
-- **Status:** Partial — closed EN/AR foundation implemented; live delivery closed (ORG-021).
+- **Status:** Default-off Resend delivery implemented for review (ORG-028/029); hosted migration/configuration, processing/abuse decisions and human delivery checks precede opening.
 - **Purpose:** Route visitor questions to the approved main inbox without creating a helpdesk product.
-- **Scope:** Topic/name/email/optional related-reference/message form, independent server validation, accessible honeypot without CAPTCHA and nine fixed topic tags to contact@msrc2027.com. Planned sender no-reply@msrc2027.com; subject tag plus derived short summary; validated Reply-To. No outbox/provider in this closed slice.
+- **Scope:** Existing five-field EN/AR form, strict server validation, honeypot plus signed minimum-fill token, fixed nine tags to contact@msrc2027.com, MSRC 2027 <no-reply@msrc2027.com>, derived summary and validated Reply-To. Direct server-only Resend fetch with escaped plaintext/language; no HTML/attachments/outbox/visitor acknowledgment or automatic retry.
 - **Exclusions:** Arbitrary recipient input, general inquiry ticket/status database, confidential manuscript echo, phone messaging.
 - **Dependencies:** BL-FND-05; BL-SEC-01; approved recipient/sender configuration DR-CFG-10/11.
 - **Roles:** Visitor; authorized shared-inbox personnel.
-- **States/transitions:** Current disabled form → mailto alternative; every API method rejects CONTACT_CLOSED before reading the body. Future validated inquiry → queued delivery → failure/retry requires a separate opening task.
-- **Data touched:** None received, sent or stored by the closed form/API. Future transient delivery data requires approved retention; no general helpdesk record.
+- **States/transitions:** Flag off → exact original closed form/API and mailto. Complete approved Production configuration → validated/signed inquiry → atomic quota reservation → one provider attempt → accepted, limited or unavailable/uncertain; retry requires explicit fresh attempt. Preview remains closed.
+- **Data touched:** No inquiry content retained by app/DB/logs/analytics. Private expiring HMAC IP/email/nonce/global counters only; Resend and receiving inbox necessarily handle email and require documented processing/retention review.
 - **Acceptance criteria:** ORG-021 supersedes source Gmail routes with exact ordered topics/tags; fixed sender/recipient and validated Reply-To tested; malicious headers/recipient injection denied; shared inbox labels are not committee access controls; consumer domains accepted. Forwarding/filter success is organizer-reported, not freshly tested by this application.
 - **English/Arabic:** Bilingual form/errors/status; outgoing operational emails English-only, preserving original user message.
 - **Accessibility:** Native disabled fieldset, associated closure explanation, visible labels, keyboard-accessible mailto, RTL, no-JS closure and responsive/axe checks. No challenge interrupts disabled inputs.
-- **Security/RLS:** Server-only validator covers allowlist/header/control/duplicate-field abuse; closed API reads no request data. No schema/storage changes. Live rate limits, CSRF/origin handling and minimal job access remain gates.
-- **Audit/email:** No delivery jobs, logging of visitor details, provider, secrets or real email. Future restricted delivery metadata/retention requires review.
-- **Automated tests:** Topic/tag order, validation/injection/honeypot, unread-body concurrency, method denials, EN/AR/keyboard/no-JS/axe, no client writes/storage and footer links. Delivery/retry tests deferred until a provider is approved.
+- **Security/RLS:** Off-state API reads no request data; enabled path enforces exact origin, trusted Vercel IP, byte bounds and signed nonce/timing. Review-only forced-RLS counter schema and service-only atomic RPC deny browser access; UTC IP/email hour/day quotas and hard global 60/day, nonce reuse prevention and pg_cron expiry.
+- **Audit/email:** Application logs only outcome/topic. No stored inquiry, automatic acknowledgment or retry. Provider failure/uncertainty consumes reservation; accepted API result is not inbox-delivery proof.
+- **Automated tests:** Existing routing/validation/closed tests plus configuration/escaping/token/privacy/failure limits; enabled/closed EN/AR browsers/axe; disposable CI real RLS/concurrency/global cap/expiry/cron tests. Mock Resend only, never real CI email.
 - **Manual UAT:** Review local closed pages; future authorized allowlisted delivery tests must confirm all nine tags, inbox access and failure behavior. No live sending authorized by this task.
 - **Release gate:** REL-01 contact route plus privacy/email setup before public collection.
 - **Owner type:** Full-stack engineer with support owner.
-- **TBD blocked:** Closed foundation no; live provider/abuse controls/retention/delivery UAT DR-CFG-09/10/11. See [feature note](../features/contact-privacy-terms.md).
+- **TBD blocked:** Provider/routing approved; proposed 3/hour and 10/day per-IP/email and3-second fill time need confirmation, external provider/inbox storage interpretation/retention/location and human delivery UAT remain open. Apply only reviewed Contact migration manually; [activation runbook](../features/contact-delivery.md).
 
 <a id="bl-pub-07"></a>
 
