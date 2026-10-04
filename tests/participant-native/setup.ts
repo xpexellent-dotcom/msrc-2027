@@ -56,7 +56,7 @@ export function client(key = boundary().publishableKey): SupabaseClient {
   });
 }
 
-export async function nativeAdmin(): Promise<SupabaseClient> {
+export async function nativeCredentials(): Promise<{ url: string; publishableKey: string; secretKey: string }> {
   const { url, publishableKey } = boundary();
   check(process.arch === "x64", "pinned hosted Linux runner architecture");
   const require = createRequire(import.meta.url);
@@ -80,7 +80,11 @@ export async function nativeAdmin(): Promise<SupabaseClient> {
   check(status.API_URL === url && status.PUBLISHABLE_KEY === publishableKey && typeof status.SECRET_KEY === "string"
     && /^sb_secret_[A-Za-z0-9_-]+$/.test(status.SECRET_KEY) && !status.LINKED_PROJECT_REF,
   "generated local Admin key belongs to the exact disposable stack");
-  return client(status.SECRET_KEY);
+  return { url, publishableKey, secretKey: status.SECRET_KEY };
+}
+
+export async function nativeAdmin(): Promise<SupabaseClient> {
+  return client((await nativeCredentials()).secretKey);
 }
 
 export default async function setup() {

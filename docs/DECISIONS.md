@@ -24,6 +24,13 @@ or changing a privileged actor. Existing stronger all-edition roles still prevai
 Email templates use the approved Resend sender and English text; the custom Supabase
 SMTP plan is documented without changing hosted settings.
 
+Generic issuance acknowledges before private account lookup/password hashing/provider
+work using bounded Next `after`, with shared public timestamps and readiness rechecks.
+This removes account-dependent response timing; it is one attempt, not durable delivery
+or a sent-email promise. Explicit resend/recovery remains rate-limited. Native Admin
+creation inserts before requested metadata; the authoritative reservation therefore
+binds the exact actor/email at insertion, never user-editable metadata.
+
 The server flag, database readiness, budget and approved EN/AR Privacy record are
 independent gates. The current `2026-10-04-draft` has no approval/effective date, so
 the new approved registry remains null. Synthetic notice approval exists only in

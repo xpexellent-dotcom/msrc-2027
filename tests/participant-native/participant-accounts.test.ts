@@ -1,7 +1,13 @@
 import { createHmac, randomBytes, randomInt, randomUUID } from "node:crypto";
 import { beforeAll, afterAll, describe, it } from "vitest";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
-import { boundary, check, client, nativeAdmin, query } from "./setup";
+import { createParticipantBackend } from "@/features/participant-accounts/backend.server";
+import type { ParticipantConfig } from "@/features/participant-accounts/config.server";
+import type { ParticipantPayload, ParticipantResponse } from "@/features/participant-accounts/contracts";
+import { createParticipantHandler } from "@/features/participant-accounts/handler.server";
+import { participantNotice } from "@/features/participant-accounts/privacy.server";
+import { participantHash } from "@/features/participant-accounts/security.server";
+import { boundary, check, client, nativeAdmin, nativeCredentials, query } from "./setup";
 
 // Genuine native Admin/password/refresh APIs + private SQL on the dedicated
 // disposable runner. No SMTP, provider credential, real address or hosted data.
@@ -442,6 +448,101 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
     const expired = await context(refreshed.data.session);
     check(expired.sessionPolicySatisfied === false && expired.reason === "absolute_expired"
       && await profile(refreshed.data.session) === null, "refreshed native token cannot extend dashboard admission");
+  });
+
+  it("runs the application signup, verification, login and reset handler through genuine Auth and RPCs", async () => {
+    const credentials = await nativeCredentials();
+    const origin = "http://127.0.0.1:3216";
+    // Injected readiness exists only inside the independently guarded lab. The
+    // production resolver cannot accept this local native Auth configuration.
+    const config: ParticipantConfig = { testMode: true, securitySecret: randomBytes(32).toString("hex"),
+      supabaseUrl: credentials.url, publishableKey: credentials.publishableKey, secretKey: credentials.secretKey,
+      resendKey: "re_participant_memory_only", resendUrl: "http://127.0.0.1:3218/emails",
+      editionKey: edition, emailDailyLimit: 200, origins: [origin] };
+    const syntheticNotice = participantNotice("en", true);
+    check(syntheticNotice, "handler synthetic notice exists only in guarded tests");
+    await query(`update msrc_participant.policy set privacy_version=${text(syntheticNotice.version)} where singleton;`);
+    const mail = new Map<string, { recipient: string; code: string; purpose: string }>();
+    const backend = createParticipantBackend(config);
+    backend.deliver = async (recipient, code, purpose, challengeId) => {
+      check(recipient.endsWith("@example.invalid") && /^\d{6}$/.test(code), "only synthetic six-digit mail may enter memory capture");
+      mail.set(challengeId, { recipient, code, purpose });
+      return true;
+    };
+    let clock = Date.now();
+    const deferred: (() => Promise<void>)[] = [];
+    const handle = createParticipantHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend,
+      now: () => clock, defer: (task) => { deferred.push(task); } });
+    const get = async (cookie?: string): Promise<{ response: Response; body: ParticipantResponse }> => {
+      clock = Math.max(clock, Date.now());
+      const response = await handle(new Request(`${origin}/api/participant-accounts?locale=ar`, {
+        headers: { ...(cookie ? { Cookie: cookie } : {}), "Sec-Fetch-Site": "same-origin" } }));
+      const body = await response.json() as ParticipantResponse;
+      check(response.status === 200 && body.formToken && body.notice?.version === syntheticNotice.version,
+        "real handler GET issues a notice-matched HMAC form token");
+      return { response, body };
+    };
+    const post = async (payload: ParticipantPayload, cookie?: string) => {
+      const admission = await get(cookie);
+      clock += 2001; // Satisfy the real token's minimum age without sleeping or bypassing its HMAC.
+      const response = await handle(new Request(`${origin}/api/participant-accounts`, { method: "POST",
+        headers: { Origin: origin, "Content-Type": "application/json", "Sec-Fetch-Site": "same-origin",
+          ...(cookie ? { Cookie: cookie } : {}) },
+        body: JSON.stringify({ ...payload, website: "", formToken: admission.body.formToken }) }));
+      const body = await response.json() as ParticipantResponse;
+      // Resolve the public response before native account/code work. Only this
+      // disposable harness explicitly drains the production handler's after queue.
+      while (deferred.length) await deferred.shift()!();
+      return { response, body };
+    };
+    const value = actor();
+    try {
+      const signup = await post({ action: "signup", name: value.name, email: value.email, password });
+      check(signup.response.status === 202 && signup.body.state === "accepted" && signup.body.requestId,
+        "application signup accepts a minimum-field native account without disclosing its state");
+      const verification = mail.get(signup.body.requestId);
+      check(verification?.recipient === value.email && verification.purpose === "verify_email", "application verification email is captured only in memory");
+      const unverified = await post({ action: "signin", email: value.email, password });
+      check(unverified.response.status === 401 && unverified.body.state === "invalid_credentials", "application denies native unverified password access");
+      const duplicate = await post({ action: "signup", name: value.name, email: value.email, password });
+      check(duplicate.response.status === signup.response.status && duplicate.body.state === signup.body.state
+        && Object.keys(duplicate.body).sort().join(",") === Object.keys(signup.body).sort().join(","), "duplicate signup has the same opaque public envelope");
+      const verified = await post({ action: "verify", name: value.name, email: value.email, password,
+        requestId: signup.body.requestId, code: verification.code });
+      check(verified.response.status === 200 && verified.body.state === "verified", "actual handler proof confirms the native email and profile");
+      const signed = await post({ action: "signin", email: value.email, password });
+      const cookie = signed.response.headers.get("set-cookie")?.split(";")[0];
+      check(signed.response.status === 200 && signed.body.state === "authenticated" && cookie
+        && signed.body.profile?.name === value.name, "actual password/RPC admission produces an encrypted owner cookie");
+      const dashboard = await get(cookie);
+      check(dashboard.body.state === "authenticated" && dashboard.body.profile?.name === value.name,
+        "genuine native identity plus RPCs restore the own dashboard through Arabic GET");
+      await query(`update msrc_participant.limit_events set occurred_at=clock_timestamp()-interval '61 seconds'
+        where kind='issue_email' and subject_hash=${text(participantHash(config, "email", value.email))};`);
+      const forgot = await post({ action: "forgot", name: value.name, email: value.email }, cookie);
+      check(forgot.response.status === 202 && forgot.body.state === "accepted" && forgot.body.requestId,
+        "retained signup name does not corrupt reset issuance");
+      const resetMail = mail.get(forgot.body.requestId);
+      check(resetMail?.recipient === value.email && resetMail.purpose === "reset_password", "actual forgot handler delivers a reset proof despite retained name");
+      const missing = await post({ action: "forgot", name: value.name, email: actor().email });
+      check(missing.response.status === forgot.response.status && missing.body.state === forgot.body.state
+        && Object.keys(missing.body).sort().join(",") === Object.keys(forgot.body).sort().join(",")
+        && missing.body.requestId && !mail.has(missing.body.requestId), "existing/unknown recovery exposes identical envelopes without unknown delivery");
+      const nextPassword = randomBytes(32).toString("hex");
+      const reset = await post({ action: "reset", name: value.name, email: value.email, password: nextPassword,
+        requestId: forgot.body.requestId, code: resetMail.code }, cookie);
+      check(reset.response.status === 200 && reset.body.state === "password_reset", "full reset handler consumes proof and completes native password mutation");
+      const old = await get(cookie);
+      check(old.body.state === "ready" && old.body.profile === null, "previous encrypted cookie loses own profile access after reset");
+      const oldPassword = await post({ action: "signin", email: value.email, password });
+      check(oldPassword.response.status === 401 && oldPassword.body.state === "invalid_credentials", "old password is denied through the actual application handler");
+      const fresh = await post({ action: "signin", email: value.email, password: nextPassword });
+      check(fresh.response.status === 200 && fresh.body.state === "authenticated" && fresh.body.profile?.name === value.name,
+        "new password completes genuine application admission");
+    } finally {
+      mail.clear();
+      await query(`update msrc_participant.policy set privacy_version=${text(notice)} where singleton;`);
+    }
   });
 
   it("closes an already admitted profile when database readiness is turned off", async () => {

@@ -1,5 +1,6 @@
 import "server-only";
 import { randomInt, randomUUID } from "node:crypto";
+import { after } from "next/server";
 import { parsePersistedSessionContext } from "@/lib/supabase/session.server";
 import type { Locale } from "@/lib/i18n";
 import { createParticipantBackend, type ParticipantBackend, type NativeParticipantSession } from "./backend.server";
@@ -42,10 +43,12 @@ export function createParticipantHandler(dependencies: {
   readiness?: () => ParticipantReadiness;
   backend?: (config: ParticipantConfig) => ParticipantBackend;
   now?: () => number;
+  defer?: (work: () => Promise<void>) => void;
 } = {}) {
   const getReadiness = dependencies.readiness ?? getParticipantConfig;
   const getBackend = dependencies.backend ?? createParticipantBackend;
   const clock = dependencies.now ?? Date.now;
+  const defer = dependencies.defer ?? after;
   return async function handle(request: Request): Promise<Response> {
     // Before accessing headers/body or creating a provider client: closed means no collection or native user creation.
     const readiness = getReadiness();
@@ -62,7 +65,7 @@ export function createParticipantHandler(dependencies: {
     try { if (!await ready(config, backend)) return reply({ state: "closed" }, 503); }
     catch { return reply({ state: "unavailable" }, 503); }
     if (request.method === "HEAD") return new Response(null, { headers: privateHeaders });
-    const fresh = () => participantFormToken(config, origin, clock());
+    const fresh = () => participantFormToken(config, origin, now);
     if (request.method === "GET") {
       const localeValue = new URL(request.url).searchParams.get("locale");
       if (localeValue !== null && localeValue !== "en" && localeValue !== "ar") return reply({ state: "invalid_input" }, 400);
@@ -106,23 +109,31 @@ export function createParticipantHandler(dependencies: {
       // Recheck the mutable flag/readiness directly before any identity or delivery operation.
       if (getReadiness().state !== "ready" || !await ready(config, backend)) return respond({ state: "closed" }, 503);
       if (issuing) {
-        if (payload.action === "signup") {
-          const actorId = randomUUID(), reservationId = randomUUID();
-          const admission = await backend.rpc("msrc_participant_signup_reserve", { actor_id: actorId, reservation_id: reservationId,
-            email: payload.email!, name: payload.name!, privacy_version: participantNotice("en", config.testMode)!.version });
-          if (state(admission, "reserved")) await backend.createUser({ actorId, reservationId, email: payload.email!, name: payload.name!, password: payload.password! });
-        }
-        const purpose: ParticipantCodePurpose = payload.action === "forgot" ? "reset_password" : "verify_email";
-        const code = String(randomInt(1_000_000)).padStart(6, "0");
-        const result = record(await backend.rpc("msrc_participant_email_begin", { email: payload.email!, purpose,
-          challenge_id: challengeId, code_hash: participantHash(config, "code", purpose + ":" + challengeId + ":" + code),
-          email_hash: participantHash(config, "email", payload.email!), ip_hash: ipHash, name: payload.name || null,
-          privacy_version: purpose === "verify_email" ? participantNotice("en", config.testMode)!.version : null }));
-        if (result?.state === "issued" && result.challengeId === challengeId && result.recipient === payload.email
-          && getReadiness().state === "ready" && await ready(config, backend)) {
-          const delivered = await backend.deliver(payload.email!, code, purpose, challengeId);
-          await backend.rpc("msrc_participant_email_delivery", { challenge_id: challengeId, delivered });
-        }
+        // Identical acknowledgement precedes every account lookup, hash and email
+        // attempt. Next/Vercel keeps this bounded work alive after the response.
+        defer(async () => {
+          try {
+            if (getReadiness().state !== "ready" || !await ready(config, backend)) return;
+            if (payload.action === "signup") {
+              const actorId = randomUUID(), reservationId = randomUUID();
+              const admission = await backend.rpc("msrc_participant_signup_reserve", { actor_id: actorId, reservation_id: reservationId,
+                email: payload.email!, name: payload.name!, privacy_version: participantNotice("en", config.testMode)!.version });
+              if (state(admission, "reserved")) await backend.createUser({ actorId, reservationId, email: payload.email!, name: payload.name!, password: payload.password! });
+            }
+            const purpose: ParticipantCodePurpose = payload.action === "forgot" ? "reset_password" : "verify_email";
+            const code = String(randomInt(1_000_000)).padStart(6, "0");
+            const result = record(await backend.rpc("msrc_participant_email_begin", { email: payload.email!, purpose,
+              challenge_id: challengeId, code_hash: participantHash(config, "code", purpose + ":" + challengeId + ":" + code),
+              email_hash: participantHash(config, "email", payload.email!), ip_hash: ipHash,
+              name: purpose === "verify_email" ? payload.name || null : null,
+              privacy_version: purpose === "verify_email" ? participantNotice("en", config.testMode)!.version : null }));
+            if (result?.state === "issued" && result.challengeId === challengeId && result.recipient === payload.email
+              && getReadiness().state === "ready" && await ready(config, backend)) {
+              const delivered = await backend.deliver(payload.email!, code, purpose, challengeId);
+              await backend.rpc("msrc_participant_email_delivery", { challenge_id: challengeId, delivered });
+            }
+          } catch { /* Generic acknowledgement never promises account or delivery success. */ }
+        });
         return accepted();
       }
       if (payload.action === "verify" || payload.action === "reset") {
@@ -156,13 +167,18 @@ export function createParticipantHandler(dependencies: {
         return respond({ state: "authenticated", profile: own.profile }, 200, participantCookie(config, session, now));
       }
       if (payload.action === "logout") {
-        const native = readParticipantSession(config, request, now);
-        if (native) {
-          const revoked = await backend.rpc("msrc_session_logout", { edition_key: config.editionKey }, native.accessToken);
-          const loggedOut = await backend.logout(native.accessToken);
-          if (revoked !== true || !loggedOut) return respond({ state: "unavailable" }, 503, participantCookie(config, null, now));
+        const cleared = participantCookie(config, null, now);
+        try {
+          const native = readParticipantSession(config, request, now);
+          if (native) {
+            const revoked = await backend.rpc("msrc_session_logout", { edition_key: config.editionKey }, native.accessToken);
+            const loggedOut = await backend.logout(native.accessToken);
+            if (revoked !== true || !loggedOut) return respond({ state: "unavailable" }, 503, cleared);
+          }
+          return respond({ state: "signed_out" }, 200, cleared);
+        } catch {
+          return respond({ state: "unavailable" }, 503, cleared);
         }
-        return respond({ state: "signed_out" }, 200, participantCookie(config, null, now));
       }
       return respond({ state: "invalid_input" }, 400);
     } catch { return issuing ? accepted() : respond({ state: "unavailable" }, 503); }

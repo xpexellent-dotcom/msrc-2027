@@ -98,16 +98,28 @@ real signup can run even if the server flag is set. Database defaults are false/
 null. No hosted migrations/settings, deployment, real user or communication occurred.
 
 - PASS: locked install (Node24.21.0/pnpm11.19.0), `pnpm check`: lint, typecheck,
-  1,800 unit tests/42 files and 65-page production build.
-- PENDING: EN/AR desktop/mobile browser/axe and independent disposable managed-Auth/
-  migrations/RLS jobs. Local database checks are BLOCKED by unavailable Docker and the
-  intentional disposable Linux/GitHub-only guard; import smoke skipped native tests.
+  Initial 1,800 unit tests/42 files and 65-page production build; final API review adds
+  regression coverage for retained-name recovery, thrown logout and timing-safe acknowledgement.
+- PASS: 33/33 flag-on synthetic presentation cases across EN/AR desktop/tablet/mobile,
+  26/26 default-off raw route/API cases, keyboard/focus, 200% text and 18 axe scans with
+  zero violations. No retries. Production default-off routes have no collection forms.
+- PASS: disposable CI [37220100344](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220100344)
+  at `b8d1ddc`: reset, database lint, pgTAP, security advisors, 18/18 genuine native Auth
+  cases and both browser jobs. The first native run found Admin insertion before metadata;
+  the private reservation now binds the exact actor/email at INSERT, with staged SQL coverage.
+- PENDING: final 19-case native suite adds real handler→SDK→Data API signup/verify/login/
+  reset/old-session denial, with only delivery captured in memory. The response now precedes
+  account-dependent/provider work via bounded Next `after`, with flag rechecks and no retries.
+  Final full application check and native receipts will replace this pending status.
+  Local database execution remains BLOCKED by unavailable Docker and the intentional
+  disposable Linux/GitHub-only guard; import smoke skips are not database evidence.
 - Activation requires approved Privacy wording/version, five reviewed pending auth/
   participant migrations, native Auth/provider guards/settings, private Production
   environment, actual shared Resend quota/forecast approval and human inbox/recovery
   UAT. Exact steps, limits and rollback: [participant guide](features/PARTICIPANT_ACCOUNTS.md).
 
-Next: complete independent CI/native and browser evidence; review the closed draft PR.
+Draft [PR39](https://github.com/xpexellent-dotcom/msrc-2027/pull/39). Next: finish final
+CI evidence and review the closed implementation; activation remains separately gated.
 
 ## 4 October 2026 — BL-PUB-06 default-off Resend Contact delivery
 

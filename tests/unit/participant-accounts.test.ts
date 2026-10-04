@@ -43,12 +43,18 @@ function fixture(overrides: Partial<ParticipantBackend> = {}) {
     }), createUser: vi.fn(async () => true), updateUser: vi.fn(async () => true), login: vi.fn(async () => native),
     identity: vi.fn(async () => actorId), refresh: vi.fn(async () => native), logout: vi.fn(async () => true), deliver: vi.fn(async () => true), ...overrides,
   };
-  const handle = createParticipantHandler({ readiness: () => readiness, backend: () => backend, now: () => now });
-  const post = (action: string, extra: Record<string, unknown> = {}, headers: Record<string, string> = {}) => handle(new Request(origin + "/api/participant-accounts", {
+  const pending: Array<() => Promise<void>> = [];
+  const handle = createParticipantHandler({ readiness: () => readiness, backend: () => backend, now: () => now,
+    defer: (work) => { pending.push(work); } });
+  const post = async (action: string, extra: Record<string, unknown> = {}, headers: Record<string, string> = {}) => {
+    const response = await handle(new Request(origin + "/api/participant-accounts", {
     method: "POST", headers: { Origin: origin, "Content-Type": "application/json", ...headers },
     body: JSON.stringify({ action, formToken: participantFormToken(config, origin, now - 3000), email: "person@example.invalid", password: "Synthetic-only-password", name: "Synthetic Participant", ...extra }),
-  }));
-  return { backend, handle, post };
+    }));
+    for (const work of pending.splice(0)) await work();
+    return response;
+  };
+  return { backend, handle, post, pending };
 }
 
 describe("participant accounts closed-by-default and private server protocol", () => {
@@ -82,6 +88,30 @@ describe("participant accounts closed-by-default and private server protocol", (
       expect(response.status).toBe(202); expect(result.state).toBe("accepted"); expect(Object.keys(result).sort()).toEqual(["expiresAt", "formToken", "requestId", "resendAvailableAt", "state"]);
       expect(response.headers.get("set-cookie")).toBeNull(); expect(JSON.stringify(result)).not.toMatch(/person@|registered|actorId|recipient|SQL|password|codeValue/);
     }
+  });
+  it.each(["signup", "resend", "forgot"])("acknowledges %s before private account/provider work or timestamps can reveal eligibility", async (action) => {
+    const { handle, backend, pending } = fixture();
+    const response = await handle(new Request(origin, { method: "POST", headers: { Origin: origin, "Content-Type": "application/json" },
+      body: JSON.stringify({ action, email: "person@example.invalid", name: "Synthetic Participant", password: "Synthetic-only-password",
+        formToken: participantFormToken(config, origin, now - 3000) }) }));
+    const result = await response.json();
+    expect(response.status).toBe(202); expect(result.state).toBe("accepted"); expect(pending).toHaveLength(1);
+    expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.deliver).not.toHaveBeenCalled();
+    expect(vi.mocked(backend.rpc).mock.calls.every(([name]) => ["msrc_participant_status", "msrc_participant_form_claim"].includes(name))).toBe(true);
+    const token = JSON.parse(Buffer.from(result.formToken.split(".")[0], "base64url").toString("utf8"));
+    expect(token.issued).toBe(Date.parse(result.expiresAt) - 600_000);
+    await pending[0](); expect(backend.deliver).toHaveBeenCalledTimes(1);
+  });
+  it("omits retained signup fields when requesting password recovery", async () => {
+    const { backend, post } = fixture(); const base = backend.rpc.bind(backend);
+    backend.rpc = vi.fn(async (name, args, token) => name === "msrc_participant_email_begin"
+      && (args?.name !== null || args?.privacy_version !== null) ? { state: "denied" } : base(name, args, token));
+    const response = await post("forgot", { name: "Name retained after verification" });
+    expect(response.status).toBe(202);
+    expect(backend.deliver).toHaveBeenCalledTimes(1);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_participant_email_begin", expect.objectContaining({
+      purpose: "reset_password", name: null, privacy_version: null,
+    }));
   });
   it("denies refused code proof before managed identity mutation", async () => {
     const { backend, post } = fixture();
@@ -145,6 +175,17 @@ describe("participant accounts closed-by-default and private server protocol", (
     const cookie = participantCookie(config, { ...native, deadline: now + 72 * 3600 * 1000, origin }, now).split(";")[0];
     const response = await post("logout", {}, { Cookie: cookie });
     expect(response.status).toBe(503); expect((await response.json()).state).toBe("unavailable"); expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+  });
+  it("clears the local session when shared logout throws without reporting revocation success", async () => {
+    const { post, backend } = fixture(); const base = backend.rpc.bind(backend);
+    backend.rpc = vi.fn(async (name, args, token) => {
+      if (name === "msrc_session_logout") throw new Error("Expired access token");
+      return base(name, args, token);
+    });
+    const cookie = participantCookie(config, { ...native, deadline: now + 72 * 3600 * 1000, origin }, now).split(";")[0];
+    const response = await post("logout", {}, { Cookie: cookie });
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("unavailable");
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
   });
   it.each<Record<string, string>>([{ Origin: "https://hostile.example" }, { Host: "hostile.example", "x-forwarded-host": "127.0.0.1:3216" }, { "sec-fetch-site": "cross-site" }])("rejects cross-origin/header spoofing %j", async (headers) => {
     const { backend, post } = fixture(); expect((await post("forgot", {}, headers)).status).toBe(400); expect(backend.deliver).not.toHaveBeenCalled();

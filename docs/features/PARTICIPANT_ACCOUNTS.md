@@ -23,9 +23,29 @@ five-failures-per-code and three-emails-per-15-minute controls need a shared dat
 boundary. Codes are single-use, expire after the source-default ten minutes, and newer
 codes replace older ones; resend waits 60 seconds. Protected hashes, account/IP limits,
 delivery state and atomic consumption prevent replay across requests. Provider failures
-do not trigger an automatic resend. Supabase Admin mutations require private database
-admission; direct public signup, email OTP/recovery and unauthorized credential changes
-must remain denied. Native tokens alone do not authorize the participant profile.
+do not trigger an automatic resend.
+
+Sign-up/resend/recovery acknowledgement precedes all account-dependent work through
+Next.js `after`; existing and unknown addresses cannot be distinguished by password
+hashing or email-provider latency. Form-token and public expiry timestamps share the
+request clock. The callback rechecks readiness and performs one bounded attempt within
+the route's 60-second execution budget. This is not a durable delivery queue or a
+promise that mail was sent; interrupted/failed work requires a fresh explicit request
+under the same abuse limits. Verify the deployed post-response lifecycle during UAT.
+[Next.js `after`](https://nextjs.org/docs/app/api-reference/functions/after),
+[OWASP recovery response guidance](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html).
+
+Supabase Admin mutations require private database
+admission. Public native signup and unauthorized identity changes remain denied;
+native email OTP/recovery returns a generic response while suppressing delivery and
+redeemable credentials. Native tokens alone do not authorize the participant profile.
+
+Creation is authorized by a private, expiring reservation bound to the exact random
+actor ID, email and approved notice. Supabase Auth `v2.197.0` inserts the native user
+before applying requested Admin app metadata. An optional reservation marker can
+corroborate the private record and is stripped afterward; metadata never supplies
+authorization. The disposable native suite tests this actual ordering.
+[Pinned GoTrue creation sequence](https://github.com/supabase/auth/blob/v2.197.0/internal/api/admin.go#L455-L522).
 
 The server-only `PARTICIPANT_ACCOUNTS_ENABLED` flag defaults off. Database readiness
 also defaults false, and the approved Privacy notice registry is null. The published
@@ -38,6 +58,12 @@ The existing database/session contract enforces verified email, an active accoun
 current native session and the immutable 72-hour origin. Refresh cannot restart that
 clock. Password recovery invalidates previous sessions. Operational readiness stays
 false; staff assurance and recovery policies are separate.
+
+An already verified native owner may change their own password. That identity revision
+invalidates earlier application session receipts and outstanding codes. If the owner
+change wins a race with a pending code reset, recovery fails safely and requires a
+fresh code. An active stronger grant in any edition closes participant access and
+participant recovery.
 
 ## Requirement mapping
 
@@ -78,8 +104,11 @@ false; staff assurance and recovery policies are separate.
    custom-code database guards active. Configure the Send Email hook to the reviewed
    `msrc_participant.suppress_native_email` function while app-owned codes are used;
    its participant response suppresses native delivery and preserves generic recovery.
-   Test direct provider endpoints as well as the
-   application; frontend visibility is not an authorization control.
+   Stage Supabase Auth's Resend custom SMTP settings and English native templates as
+   detailed below, retaining the suppression hook. SMTP is then dormant for current
+   participant code delivery, which continues through the Resend API. Test direct
+   provider endpoints as well as the application; frontend visibility is not an
+   authorization control.
 5. Complete disposable migration/RLS/native-API tests and EN/AR keyboard/RTL/axe tests.
    Then run separately authorized human inbox, second-device reset/revocation,
    screen-reader and mobile UAT. API acceptance alone is not inbox delivery.
@@ -109,13 +138,16 @@ after authorized configuration changes.
 
 ## Supabase custom SMTP through Resend — plan only
 
-No hosted SMTP or Auth setting is changed by this work. The current implementation
-sends app-controlled codes through the existing Resend API. Custom SMTP is a planned
-future native-Auth delivery route and must not be enabled while it would bypass the
-application's code/recovery limits. Replace the suppression path only after equivalent
+No hosted SMTP or Auth setting is changed by this work. During the authorized staged
+activation, configure custom SMTP and its English native templates with the existing
+Resend setup while retaining the Send Email suppression hook and database token
+guards. The hook overrides native SMTP delivery, so current participant codes continue
+through the Resend API. SMTP configuration alone does not switch that delivery path.
+Replace the suppression path for future native SMTP delivery only after equivalent
 expiry, replay, failure limits, enumeration, revocation and native-endpoint tests pass.
+[Supabase Send Email hook behavior](https://supabase.com/docs/guides/auth/auth-hooks/send-email-hook#email-sending-behavior).
 
-In the selected Production project's Authentication email settings, the future owner
+In the selected Production project's Authentication email settings, the staged owner
 configuration is:
 
 | Setting | Value |
