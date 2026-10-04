@@ -20,8 +20,11 @@ export const bodyFont = localFont({
 // narrowed after first paint (CLS 0.2 on /ar/media) and two-line headings broke into three or
 // four. Its own range (fontsource's Arabic subset) leaves the space to the fallback, so 1ch
 // never changes; the file draws no other Latin character.
+// next/font's automatic fallback is Arial, whose Arabic is about 25% narrower than Noto Sans
+// Arabic, so lines rewrapped when the font arrived (CLS 0.096 on /ar/participate). tokens.css
+// supplies a closer, Arabic-only fallback instead.
 export const arabicFont = localFont({
   src: "../../node_modules/@fontsource-variable/noto-sans-arabic/files/noto-sans-arabic-arabic-wght-normal.woff2",
-  variable: "--font-noto-arabic", weight: "100 900", display: "swap", preload: false,
+  variable: "--font-noto-arabic", weight: "100 900", display: "swap", preload: false, adjustFontFallback: false,
   declarations: [{ prop: "unicode-range", value: "U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC" }],
 });

@@ -201,3 +201,65 @@ test("homepage display art uses each language's digits and mirrors in Arabic", a
     expect(await page.locator(".intro-visual > .flow-lines").evaluate((element) => getComputedStyle(element).transform), locale).toBe(transform);
   }
 });
+
+// The header's "Explore MSRC" arrow was a plain ↗ that pointed up-right on Arabic pages too,
+// away from the reading direction, while every other button arrow mirrors.
+test("the header action arrow points along each language's reading direction", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 900 });
+  for (const [locale, transform] of [["en", "matrix(1, 0, 0, 1, 0, 0)"], ["ar", "matrix(-1, 0, 0, 1, 0, 0)"]] as const) {
+    await page.goto(`/${locale}/about`);
+    const arrow = page.locator(".header-primary-action .directional-arrow");
+    await expect(arrow).toHaveText("↗");
+    expect(await arrow.evaluate((element) => getComputedStyle(element).transform), locale).toBe(transform);
+  }
+});
+
+// The wordmark link was named "MSRC 2027 home" while it shows "MSRC 2027 Fifth edition", so a
+// speech user saying the visible words could miss it (WCAG 2.5.3 Label in Name).
+test("the wordmark's accessible name starts with its visible words", async ({ page }) => {
+  for (const [locale, name] of [["en", /^MSRC 2027 Fifth edition\s*, home page$/], ["ar", /^MSRC 2027 النسخة الخامسة\s*، الصفحة الرئيسية$/]] as const) {
+    await page.goto(`/${locale}`);
+    await expect(page.getByRole("banner").getByRole("link", { name }), locale).toHaveCount(1);
+  }
+});
+
+// Before Noto Sans Arabic arrived, Arabic fell back to Arial, whose Arabic is about 25% narrower,
+// so the /ar/participate lead grew from one line to two at the swap (CLS 0.096). The fallback face
+// uses Tahoma, so this only applies where Tahoma is installed (Windows, macOS).
+test("Arabic text keeps its wrap when the Arabic webfont arrives", async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 915 });
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => { release = resolve; });
+  await page.route("**/*noto_sans_arabic*", async (route) => { await held; await route.continue(); });
+  await page.goto("/ar/participate", { waitUntil: "domcontentloaded" });
+  const hasTahoma = await page.evaluate(() => document.fonts.check('16px "MSRC Arabic Fallback"', "ا") && (() => {
+    const c = document.createElement("canvas").getContext("2d")!;
+    c.font = "40px Tahoma, monospace"; const a = c.measureText("ابتثج").width;
+    c.font = "40px monospace"; return a !== c.measureText("ابتثج").width;
+  })());
+  test.skip(!hasTahoma, "Tahoma is not installed, so the fallback face is skipped");
+  const lead = page.locator(".experience-lead").first();
+  const before = await lead.evaluate((element) => element.getBoundingClientRect().height);
+  release();
+  await page.waitForFunction(() => document.fonts.check('16px "arabicFont"', "ا") && document.fonts.status === "loaded");
+  await page.waitForTimeout(200);
+  expect(await lead.evaluate((element) => element.getBoundingClientRect().height)).toBe(before);
+});
+
+// Each filter change wrote every filter from the last render, so a second change before React
+// caught up put back the old value: choosing an edition and then a kind dropped the edition.
+test("quick successive filter changes keep each other", async ({ page }) => {
+  await page.goto("/en/media");
+  await page.evaluate(() => {
+    const choose = (id: string, value: string) => {
+      const select = document.getElementById(id) as HTMLSelectElement;
+      select.value = value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    choose("media-edition", "2026");
+    choose("media-kind", "recording");
+  });
+  await expect.poll(() => new URL(page.url()).searchParams.toString()).toBe("edition=2026&kind=recording");
+  await expect(page.getByTestId("media-edition")).toHaveValue("2026");
+  await expect(page.getByTestId("media-kind")).toHaveValue("recording");
+});
