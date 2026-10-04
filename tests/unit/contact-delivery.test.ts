@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, POST } from "@/app/api/contact/route";
 import { contactTopics } from "@/config/contact";
 import { resolveContactDeliveryConfig, type ContactDeliveryConfig } from "@/features/contact/delivery-config.server";
-import { buildContactEmail, escapeContactText, reserveContactAttempt, sendContactEmail } from "@/features/contact/delivery.server";
+import { buildContactEmail, reserveContactAttempt, sendContactEmail } from "@/features/contact/delivery.server";
 import { contactHash, createContactToken, verifyContactToken } from "@/features/contact/security.server";
 import { validateContactSubmission } from "@/features/contact/validation.server";
 import type { Locale } from "@/lib/i18n";
@@ -95,17 +95,20 @@ describe("fixed Contact email envelope and plaintext content", () => {
   it.each(contactTopics.map((topic) => [topic.id, topic.tag, topic.label.en] as const))("uses the approved topic/tag mapping for %s", (topic, tag, label) => {
     const result = buildContactEmail(validContact({ topic }), "en");
     expect(result.subject).toBe(tag + " Question about conference information");
-    expect(result.text).toContain("Topic: " + escapeContactText(label));
+    expect(result.text).toContain("Topic: " + label);
+    expect(result.text).not.toContain("&amp;");
     expect(result.to).toEqual(["contact@msrc2027.com"]);
   });
 
-  it("escapes visitor-controlled markup in plaintext and does not invent a related reference", () => {
-    const result = buildContactEmail(validContact({ name: "Synthetic <Visitor>", relatedReference: "",
-      message: "<img src='example' onerror=\"alert(1)\"> & text\nA second line" }), "en");
-    expect(result.text).toContain("Name: Synthetic &lt;Visitor&gt;");
+  it("sends visitor text as written in a text-only email and does not invent a related reference", () => {
+    const result = buildContactEmail(validContact({ name: "Sara O'Brien", relatedReference: "",
+      message: "Q&A <test> \"quoted\"\nA second line" }), "en");
+    expect(result.text).toContain("Name: Sara O'Brien");
     expect(result.text).toContain("Related reference: —");
-    expect(result.text).toContain("&lt;img src=&#39;example&#39; onerror=&quot;alert(1)&quot;&gt; &amp; text");
-    expect(result.text).not.toContain("<img");
+    expect(result.text).toContain("Q&A <test> \"quoted\"\nA second line");
+    expect(result.text).not.toMatch(/&(amp|lt|gt|quot|#39);/);
+    // Markup can only ever be shown as text: no HTML part is sent.
+    expect(result).not.toHaveProperty("html");
   });
 
   it("keeps sender and recipient fixed even if an internal envelope contains other addresses", () => {

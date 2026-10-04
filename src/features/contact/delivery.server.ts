@@ -6,10 +6,6 @@ import type { ContactDeliveryConfig } from "./delivery-config.server";
 import type { ContactValidation } from "./validation.server";
 
 type ValidContact = Extract<ContactValidation, { ok: true }>;
-export function escapeContactText(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
 
 export function buildContactEmail(contact: ValidContact, locale: Locale) {
   const topic = contactTopics.find((candidate) => candidate.id === contact.value.topic)!;
@@ -19,12 +15,14 @@ export function buildContactEmail(contact: ValidContact, locale: Locale) {
     reply_to: contact.envelope.replyTo,
     subject: contact.envelope.subject,
     // Labels are English (EML-01); visitor content and its EN/AR language are retained.
+    // Text-only email: mail clients show "<" and "&" literally, so visitor text is sent as
+    // written. HTML entities here would reach the inbox as "&amp;" and "&#39;".
     text: ["MSRC 2027 Contact", "Language: " + (locale === "en" ? "English (en)" : "Arabic (ar)"),
-      "Topic: " + escapeContactText(topic.label.en),
-      "Name: " + escapeContactText(contact.value.name),
-      "Email: " + escapeContactText(contact.value.email),
-      "Related reference: " + escapeContactText(contact.value.relatedReference ?? "—"),
-      "", "Message:", escapeContactText(contact.value.message)].join("\n"),
+      "Topic: " + topic.label.en,
+      "Name: " + contact.value.name,
+      "Email: " + contact.value.email,
+      "Related reference: " + (contact.value.relatedReference ?? "—"),
+      "", "Message:", contact.value.message].join("\n"),
   };
 }
 
