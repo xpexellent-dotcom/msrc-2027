@@ -24,7 +24,7 @@ Shared logs do not count as overlap under the requester's clarified rule.
   [pinned hook](https://github.com/supabase/supautils/blob/v3.4.3/src/policy_grants.c#L155),
   [pinned allowlist](https://github.com/supabase/postgres/blob/17.6.1.171/ansible/files/postgresql_config/supautils.conf.j2#L2)
   and [upstream fix](https://github.com/supabase/supautils/commit/42cc7f0c4b2655ee3f70a834e253e6a79c66f1d6).
-  Fixture DDL will run before concurrent integration workers, with teardown after
+  Fixture DDL now runs before concurrent integration workers, with teardown after
   all workers. No retries, larger timeouts, assertion removal, suite serialization,
   production schema change or dependency upgrade is needed.
 - Added opt-in `workflow_dispatch` `auth_stability`: five independent cold database
@@ -37,11 +37,17 @@ Shared logs do not count as overlap under the requester's clarified rule.
   exhausted that quota and was stopped without changing limits or assertions.
   Initial isolated stability run `37214660390`: PASS five cold concurrent database
   suites, each 73/73, and 60 repeated EN/AR keyboard cases. These are samples, not
-  evidence of a deadlock fix. Post-fix repeated database evidence remains PENDING.
+  evidence of a deadlock fix. Post-fix run `37216937368` at code head `6675fe9`:
+  PASS all five cold concurrent suites, 73/73 each; PASS 60 repeated EN/AR keyboard
+  cases plus lint/types/units/build. Normal PR database job `111479311913` also PASS;
+  full public/browser regression remains running when this note is recorded.
   Local managed DB execution is BLOCKED: suites intentionally require a disposable
   GitHub-hosted Linux runner; the Windows Docker daemon is also unavailable.
-- Next: complete fixture lifecycle fix and repeated evidence, then
-  start BL-AUTH-02/03/04/06 participant/08 shell. No hosted changes or real email.
+- Separate PR: [37](https://github.com/xpexellent-dotcom/msrc-2027/pull/37).
+  Participant preflight freshly fetched main remains `bc2fb87`; open PR37 is staff
+  preview/fixture lifecycle/CI only, and PR38 changes only shared PROGRESS. No account
+  implementation overlap. Next: BL-AUTH-02/03/04/06 participant/08 shell on a new
+  branch from main. No hosted changes or real email.
 
 ## 4 October 2026 — BL-PUB-06 default-off Resend Contact delivery
 
