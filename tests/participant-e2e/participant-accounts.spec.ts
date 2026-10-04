@@ -94,12 +94,18 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("participant-privacy-version")).toHaveText("synthetic-privacy-ci-v1");
     await expect(page.getByRole("link", { name: copy.privacyLink, exact: true })).toHaveAttribute("href", new RegExp(`^/${locale}/privacy`));
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
-    const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
-    expect(result.violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
+    await expect(page.getByRole("button", { name: copy.create, exact: true })).toBeEnabled();
+    await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); window.scrollTo(0, 0); });
     await mkdir(resolve("deliverables/participant-accounts"), { recursive: true });
     await page.screenshot({ path: resolve(`deliverables/participant-accounts/${locale}-${testInfo.project.name}.png`), fullPage: true, mask: [page.locator("#participant-password")] });
+    const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    expect(result.violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await expect.poll(() => page.evaluate(() => {
+      window.scrollTo(0, 0);
+      return document.querySelector(".participant-account-intro .eyebrow")!.getBoundingClientRect().top >= document.querySelector(".site-header")!.getBoundingClientRect().bottom;
+    })).toBe(true);
   });
 
   test(`${locale} verification keeps recovery input, accepts Arabic digits and focuses invalid code errors`, async ({ page }) => {
@@ -117,6 +123,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("participant-account-error")).toBeFocused();
     await expect(code).toHaveAttribute("aria-invalid", "true");
     await expect(code).toHaveValue("000000");
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
     await code.fill(locale === "ar" ? "٦٥٤٣٢١" : syntheticCode);
     await expect(code).toHaveValue(syntheticCode);
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
@@ -161,6 +168,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("participant-account-state")).toHaveText(copy.verifiedState);
     await expect(page.getByTestId("participant-registration-closed")).toHaveText(copy.registrationClosed);
     await expect(page.locator("form")).toHaveCount(0);
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
     await page.getByRole("button", { name: copy.signOut, exact: true }).click();
     await expect(page.getByTestId("participant-profile-name")).toHaveCount(0);
     await expect(page.getByTestId("participant-signin-required")).toBeVisible();
@@ -185,6 +193,7 @@ test("locale changes retain name, email, password and code in memory, while relo
   await page.getByRole("link", { name: participantCopy.ar.verify, exact: true }).click();
   await page.locator("#participant-code").fill(syntheticCode);
   await page.getByRole("link", { name: "View this page in English", exact: true }).click();
+  await expect(page).toHaveURL(/\/en\/verify-email$/);
   await expect(page.locator("#participant-code")).toHaveValue(syntheticCode);
   await expect(page.locator("#participant-password")).toHaveValue(syntheticPassword);
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
@@ -193,4 +202,13 @@ test("locale changes retain name, email, password and code in memory, while relo
   await expect(page.locator("#participant-code")).toHaveValue("");
   await expect(page.locator("#participant-password")).toHaveValue("");
   await expect(page.getByRole("button", { name: participantCopy.en.verify, exact: true })).toBeDisabled();
+  await expect(page.locator("#participant-password")).toBeEnabled();
+  await page.locator("#participant-password").fill(syntheticPassword);
+  await page.locator("#participant-code").fill(syntheticCode);
+  await page.locator(".site-header .wordmark").click();
+  await expect(page).toHaveURL(/\/en$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/en\/verify-email$/);
+  await expect(page.locator("#participant-password")).toHaveValue("");
+  await expect(page.locator("#participant-code")).toHaveValue("");
 });

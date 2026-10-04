@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { ParticipantResponse, ParticipantState } from "./contracts";
+import { participantScreens } from "./participant-copy";
 
 export type ParticipantDraft = Readonly<{
   name: string;
@@ -49,7 +50,15 @@ function subscribe(listener: () => void) {
     window.addEventListener("pagehide", clearParticipantDraft);
     watchingPageExit = true;
   }
-  return () => { listeners.delete(listener); };
+  return () => {
+    listeners.delete(listener);
+    // Also clear a soft navigation into the public site. Account and locale
+    // transitions remain in this flow, so they keep the transient draft.
+    queueMicrotask(() => {
+      const screen = window.location.pathname.split("/")[2];
+      if (listeners.size === 0 && !participantScreens.some((accountScreen) => accountScreen === screen)) clearParticipantDraft();
+    });
+  };
 }
 const snapshot = () => draft;
 const serverSnapshot = () => emptyDraft;

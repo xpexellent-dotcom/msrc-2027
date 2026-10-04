@@ -1,5 +1,5 @@
 /* BL-AUTH-02/03/04/06/08: account forms and a closed participant dashboard shell. */
-.participant-account-page { padding-block: clamp(3rem, 7vw, 5rem) var(--space-9); max-inline-size: 48rem; }
+.participant-account-page { padding-block: clamp(3rem, 7vw, 5rem) var(--space-9); padding-block-start: max(clamp(3rem, 7vw, 5rem), calc(var(--site-header-height, 88px) + 2rem - 120px)); max-inline-size: 48rem; }
 .participant-account-intro { margin-block-end: var(--space-6); }
 .participant-account-intro h1 { margin-block: var(--space-3) var(--space-4); color: var(--color-purple); font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.25; letter-spacing: -.035em; }
 .participant-account-intro > p:not(.eyebrow) { max-inline-size: 48ch; color: var(--color-muted); font-size: var(--text-lead); line-height: 1.8; }

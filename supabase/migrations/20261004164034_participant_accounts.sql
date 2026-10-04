@@ -149,14 +149,15 @@ language plpgsql security definer set search_path='' as $$
 declare admission msrc_participant.admissions%rowtype; marker text;
 begin
   marker:=new.raw_app_meta_data->>'msrcParticipantAdmission';
-  if marker is null then
-    if session_user='postgres' then return new; end if;
-    raise exception using errcode='42501',message='Participant admission required.';
-  end if;
-  if marker !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
+  if marker is not null and marker !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
     raise exception using errcode='42501',message='Participant admission required.'; end if;
-  select a.* into admission from msrc_participant.admissions a where a.id=marker::uuid for update;
+  -- GoTrue Admin creates the user BEFORE applying requested app_metadata. The
+  -- trusted server supplies its random actor UUID, pre-reserved privately. A
+  -- marker can corroborate that reservation but is never its authority.
+  select a.* into admission from msrc_participant.admissions a where a.actor_id=new.id for update;
+  if not found and marker is null and session_user='postgres' then return new; end if;
   if not found or not msrc_participant.ready() or admission.actor_id<>new.id or admission.email is distinct from new.email
+    or (marker is not null and admission.id<>marker::uuid)
     or admission.expires_at<=clock_timestamp() or admission.consumed_at is not null
     or admission.privacy_version is distinct from (select p.privacy_version from msrc_participant.policy p where p.singleton)
     or new.email_confirmed_at is not null or coalesce(new.phone,'')<>'' or coalesce(new.is_anonymous,false)
@@ -187,13 +188,25 @@ create trigger participant_native_profile after insert on auth.users for each ro
 -- including OTT rows used by native GET /verify, so suppression is not a bypass.
 create function msrc_participant.guard_native_identity() returns trigger
 language plpgsql security definer set search_path='' as $$
-declare operation msrc_participant.operations%rowtype; revision bigint; relevant boolean;
+declare operation msrc_participant.operations%rowtype; revision bigint; relevant boolean; marker text;
 begin
   if not exists(select 1 from msrc_participant.profiles p where p.actor_id=new.id) then return new; end if;
+  -- GoTrue applies requested Admin app_metadata after inserting the admitted
+  -- profile. Never retain a one-use reservation marker in native metadata.
+  marker:=new.raw_app_meta_data->>'msrcParticipantAdmission';
+  if marker is not null and not exists(select 1 from msrc_participant.admissions a
+    where a.actor_id=new.id and a.id::text=marker and a.consumed_at is not null) then
+    raise exception using errcode='42501',message='Participant admission required.'; end if;
+  new.raw_app_meta_data:=new.raw_app_meta_data-'msrcParticipantAdmission';
+  -- Native user updates first stage changes in *_change fields. Reject that
+  -- attempt before stripping credentials so no delivery provider is reached.
+  if coalesce(new.email_change,'')<>'' or coalesce(new.phone_change,'')<>'' then
+    raise exception using errcode='42501',message='Participant identity change is unavailable.'; end if;
   new.confirmation_token:=''; new.confirmation_sent_at:=null;
   new.recovery_token:=''; new.recovery_sent_at:=null;
   new.email_change_token_current:=''; new.email_change_token_new:=''; new.email_change_sent_at:=null;
   new.email_change:=''; new.email_change_confirm_status:=0;
+  new.phone_change:=''; new.phone_change_token:=''; new.phone_change_sent_at:=null;
   new.reauthentication_token:=''; new.reauthentication_sent_at:=null;
   if new.email is distinct from old.email or coalesce(new.phone,'')<>'' or new.phone_confirmed_at is not null then
     raise exception using errcode='42501',message='Participant identity change is unavailable.'; end if;
@@ -343,7 +356,10 @@ begin
     -- Resend retains the latest signup snapshot without collecting another name.
     name:=coalesce(name,(select c.name from msrc_participant.challenges c where c.actor_id=actor.id
       and c.purpose='verify_email' order by c.created_at desc limit 1),profile.name);
-    if actor.email_confirmed_at is not null or name is null or name<>btrim(name) or char_length(name) not between 1 and 120
+    -- A lost Admin-to-profile completion can leave native email confirmed while
+    -- the private profile remains pending. A FRESH proof plus owner-chosen
+    -- password repairs that handoff; native confirmation alone grants no access.
+    if profile.state<>'pending' or name is null or name<>btrim(name) or char_length(name) not between 1 and 120
       or privacy_version is distinct from (select p.privacy_version from msrc_participant.policy p where p.singleton) then return jsonb_build_object('state','denied'); end if;
   elsif actor.email_confirmed_at is null or profile.state<>'verified' or name is not null or privacy_version is not null then return jsonb_build_object('state','denied'); end if;
   if exists(select 1 from msrc_participant.challenges c where c.actor_id=actor.id and c.cooldown_until>clock_timestamp()) then return jsonb_build_object('state','denied'); end if;
@@ -401,7 +417,8 @@ begin
   if not found or challenge.state<>'sent' or challenge.recipient<>actor.email
     or not exists(select 1 from msrc_staff_email.identity_revision r where r.actor_id=actor.id and r.revision=challenge.identity_revision)
     or exists(select 1 from msrc_participant.operations o where o.actor_id=actor.id and o.state in ('pending','applied'))
-    or (purpose='verify_email' and (actor.email_confirmed_at is not null or challenge.privacy_version is distinct from (select p.privacy_version from msrc_participant.policy p where p.singleton)))
+    or (purpose='verify_email' and (not exists(select 1 from msrc_participant.profiles p where p.actor_id=actor.id and p.state='pending')
+      or challenge.privacy_version is distinct from (select p.privacy_version from msrc_participant.policy p where p.singleton)))
     or (purpose='reset_password' and (actor.email_confirmed_at is null or not exists(select 1 from msrc_participant.profiles p where p.actor_id=actor.id and p.state='verified'))) then return jsonb_build_object('state','denied'); end if;
   if observed_at>=challenge.expires_at then update msrc_participant.challenges c set state='expired' where c.id=challenge_id; return jsonb_build_object('state','denied'); end if;
   if challenge.cooldown_until>observed_at then return jsonb_build_object('state','denied'); end if;

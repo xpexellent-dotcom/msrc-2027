@@ -49,15 +49,26 @@ select throws_ok($$insert into auth.users(id,email,created_at,updated_at,is_anon
   '42501','Participant admission required.','Native unreserved account creation is rejected');
 select is(public.msrc_participant_signup_reserve('a1000000-0000-4000-8000-000000000001','a2000000-0000-4000-8000-000000000001',
   'participant-one@example.invalid','Synthetic participant','synthetic-approved-notice')->>'state','reserved','Approved synthetic signup reserves exact actor/notice');
+select throws_ok($$insert into auth.users(id,email,encrypted_password,created_at,updated_at,is_anonymous,raw_app_meta_data) values
+  ('a1000000-0000-4000-8000-000000000001','participant-one@example.invalid','synthetic-managed-fixture-hash',now(),now(),false,
+  '{"provider":"email","providers":["email"],"msrcParticipantAdmission":"a2000000-0000-4000-8000-000000000099"}')$$,
+  '42501','Participant admission required.','Forged marker cannot replace the exact private actor reservation');
+-- Genuine GoTrue Admin first inserts provider-only metadata, then applies the
+-- requested app_metadata with a later UPDATE in the same provider transaction.
 insert into auth.users(id,email,encrypted_password,created_at,updated_at,is_anonymous,raw_app_meta_data) values
   ('a1000000-0000-4000-8000-000000000001','participant-one@example.invalid','synthetic-managed-fixture-hash',now(),now(),false,
-  '{"provider":"email","providers":["email"],"msrcParticipantAdmission":"a2000000-0000-4000-8000-000000000001"}');
+  '{"provider":"email","providers":["email"]}');
 select is((select count(*) from msrc_participant.profiles where actor_id='a1000000-0000-4000-8000-000000000001'),1::bigint,
   'Native insertion atomically creates only the admitted minimal profile');
 select is((select count(*) from msrc_participant.notice_receipts where actor_id='a1000000-0000-4000-8000-000000000001'),1::bigint,
   'Admitted identity has an immutable exact-version notice receipt');
+select throws_ok($$update auth.users set raw_app_meta_data=raw_app_meta_data||'{"msrcParticipantAdmission":"forged"}'::jsonb
+  where id='a1000000-0000-4000-8000-000000000001'$$,
+  '42501','Participant admission required.','Later metadata cannot forge a reservation association');
+update auth.users set raw_app_meta_data=raw_app_meta_data||'{"msrcParticipantAdmission":"a2000000-0000-4000-8000-000000000001"}'::jsonb
+  where id='a1000000-0000-4000-8000-000000000001';
 select ok(not (select raw_app_meta_data ? 'msrcParticipantAdmission' from auth.users where id='a1000000-0000-4000-8000-000000000001'),
-  'Consumed admission marker is removed from native metadata');
+  'Late Admin metadata application cannot retain the consumed admission marker');
 select throws_ok($$update auth.users set email_confirmed_at=clock_timestamp() where id='a1000000-0000-4000-8000-000000000001'$$,
   '42501','Verified mailbox proof required.','Unverified account cannot be confirmed without a consumed code');
 select throws_ok($$insert into auth.mfa_factors(id,user_id,friendly_name,factor_type,status,secret,created_at,updated_at)
@@ -96,10 +107,23 @@ select is((select state from msrc_participant.operations where id='a4000000-0000
   'Native password mutation consumes the claimed transaction once');
 select throws_ok($$update auth.users set encrypted_password='synthetic-forbidden-second-use' where id='a1000000-0000-4000-8000-000000000001'$$,
   '42501','Current mailbox proof required.','An applied permit cannot authorize another password mutation');
-select is(public.msrc_participant_email_complete('a4000000-0000-4000-8000-000000000001',true)->>'state','completed','Only applied native identity completes verification');
+-- Simulate a lost completion after the managed identity was confirmed. Expired
+-- operations stay unusable, and a fresh mailbox proof repairs the pending shell.
+update msrc_participant.operations set created_at=statement_timestamp()-interval '2 minutes',expires_at=statement_timestamp()
+  where id='a4000000-0000-4000-8000-000000000001';
+update msrc_participant.limit_events set occurred_at=occurred_at-interval '61 seconds' where kind='issue_email';
+select is(pg_temp.participant_issue(challenge=>'a3000000-0000-4000-8000-000000000002')->>'state','issued',
+  'Fresh mailbox verification repairs a confirmed native identity with pending profile');
+select is(public.msrc_participant_email_delivery('a3000000-0000-4000-8000-000000000002',true)->>'state','ok','Repair still requires actual email delivery');
+select is(pg_temp.participant_consume(challenge=>'a3000000-0000-4000-8000-000000000002',operation=>'a4000000-0000-4000-8000-000000000002')->>'state',
+  'consumed','Fresh proof supersedes the expired applied operation');
+select is(public.msrc_participant_email_complete('a4000000-0000-4000-8000-000000000001',true)->>'state','denied',
+  'A late old completion cannot activate the pending profile');
+update auth.users set encrypted_password='synthetic-managed-fixture-repair' where id='a1000000-0000-4000-8000-000000000001';
+select is(public.msrc_participant_email_complete('a4000000-0000-4000-8000-000000000002',true)->>'state','completed','Only fresh applied native identity completes verification');
 select is((select name from msrc_participant.profiles where actor_id='a1000000-0000-4000-8000-000000000001'),'Legitimate mailbox owner',
   'Mailbox proof replaces a pre-hijacker name with the verified signup snapshot');
-select is(public.msrc_participant_email_complete('a4000000-0000-4000-8000-000000000001',true)->>'state','denied','Completion cannot replay');
+select is(public.msrc_participant_email_complete('a4000000-0000-4000-8000-000000000002',true)->>'state','denied','Completion cannot replay');
 
 update auth.users set recovery_token='native-must-not-work',recovery_sent_at=clock_timestamp(),
   confirmation_token='native-must-not-confirm',confirmation_sent_at=clock_timestamp() where id='a1000000-0000-4000-8000-000000000001';
@@ -115,6 +139,12 @@ select is(msrc_participant.suppress_native_email('{"user":{"id":"a1000000-0000-4
   'Other native email delivery remains denied');
 select throws_ok($$update auth.users set email='unapproved-new-email@example.invalid' where id='a1000000-0000-4000-8000-000000000001'$$,
   '42501','Participant identity change is unavailable.','Native email change cannot bypass the approved recovery process');
+select throws_ok($$update auth.users set email_change='unapproved-new-email@example.invalid',email_change_token_new='synthetic'
+  where id='a1000000-0000-4000-8000-000000000001'$$,
+  '42501','Participant identity change is unavailable.','Native staged email change is rejected before delivery');
+select throws_ok($$update auth.users set phone_change='15550102027',phone_change_token='synthetic'
+  where id='a1000000-0000-4000-8000-000000000001'$$,
+  '42501','Participant identity change is unavailable.','Native staged phone change is rejected before SMS delivery');
 
 -- Every private service RPC is unavailable to bearer-authenticated users.
 set local role service_role;

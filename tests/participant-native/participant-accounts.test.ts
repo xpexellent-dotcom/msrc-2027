@@ -32,6 +32,16 @@ function text(value: string) {
   check(!value.includes("'") && !value.includes("\\") && value.length <= 254, "bounded fixture SQL value");
   return `'${value}'`;
 }
+function authDiagnostic(error: unknown) {
+  if (!error || typeof error !== "object") return "";
+  const status = "status" in error && typeof error.status === "number" && Number.isInteger(error.status)
+    && error.status >= 100 && error.status <= 599 ? error.status : "withheld";
+  const allowedCodes = ["unexpected_failure", "validation_failed", "user_not_found", "email_exists", "signup_disabled",
+    "email_not_confirmed", "invalid_credentials", "hook_execution_error", "hook_timeout", "hook_payload_invalid"];
+  const code = "code" in error && typeof error.code === "string" && allowedCodes.includes(error.code) ? error.code : "withheld";
+  // Never emit provider messages, request/response bodies, addresses or credentials.
+  return ` (Auth status=${status}, code=${code})`;
+}
 async function service(name: Service, args = ""): Promise<Result> {
   const value: unknown = JSON.parse(await query(`begin; set local role service_role;
     select public.msrc_participant_${name}(${args}); commit;`));
@@ -75,7 +85,7 @@ async function create(value = actor()) {
   const response = await admin.auth.admin.createUser({ id: value.id, email: value.email, password, email_confirm: false,
     app_metadata: { msrcParticipantAdmission: reservation } });
   check(!response.error && response.data.user?.id === value.id && !response.data.user.email_confirmed_at,
-    "native Admin creates only an admitted unverified synthetic email/password identity");
+    `native Admin creates only an admitted unverified synthetic email/password identity${authDiagnostic(response.error)}`);
   return value;
 }
 function challenge(value: Actor, purpose: Purpose = "verify_email", ipHash = digest(`ip:${value.id}`)): Challenge {
@@ -213,6 +223,10 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
       && "operationalAccessReady" in result && result.operationalAccessReady === false, "own verified shell remains operationally closed");
     const mfa = await active.sdk.auth.mfa.enroll({ factorType: "totp", friendlyName: "Synthetic participant must be denied" });
     check(Boolean(mfa.error), "participants cannot enroll a native MFA factor");
+    const phone = await active.sdk.auth.updateUser({ phone: "+12025550123" });
+    check(Boolean(phone.error), "native phone change is denied before any provider could send to the fictional fixture");
+    check(await query(`select (coalesce(phone,'')='' and coalesce(phone_change,'')='' and phone_confirmed_at is null)::text
+      from auth.users where id=${text(main.id)};`) === "true", "native bypass retains no participant phone field");
   });
 
   it("denies anonymous/service RPC access, private tables and foreign profile selectors", async () => {
@@ -364,6 +378,47 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
     check(await profile(prior.session) === null && (await consume(proof)).result.state === "denied", "identity revision denies old private session receipt and code");
     const emailChange = await prior.sdk.auth.updateUser({ email: actor().email });
     check(Boolean(emailChange.error), "native email change cannot bypass this closed sensitive action");
+  });
+
+  it("denies participant access and reset after a stronger grant in another edition", async () => {
+    const value = await verified();
+    const prior = await login(value);
+    check(await profile(prior.session) !== null, "verified participant starts with an admitted owner profile");
+    await ageIssueCounters(value);
+    const grant = randomUUID();
+    const otherEdition = "synthetic-participant-stronger-tier-2027";
+    await query(`insert into msrc_authorization.edition_config(edition_key) values(${text(otherEdition)});
+      insert into msrc_authorization.role_grants(id,actor_id,edition_key,role_name,scope_kind,grant_reason)
+      values(${text(grant)},${text(value.id)},${text(otherEdition)},'superAdmin','edition','Disposable stronger-tier fixture');`);
+    try {
+      check(await profile(prior.session) === null, "strongest active tier in any edition closes the participant profile");
+      check((await issue(challenge(value, "reset_password"))).state === "denied", "participant reset issuance cannot downgrade another edition's stronger tier");
+      const reset = await admin.auth.admin.updateUserById(value.id, { password: randomBytes(32).toString("hex") });
+      check(Boolean(reset.error), "native Admin password update cannot bypass stronger-tier recovery policy");
+    } finally {
+      await query(`update msrc_authorization.role_grants set state='revoked',
+        revocation_reason='Disposable stronger-tier fixture complete' where id=${text(grant)};`);
+    }
+    check(await query(`select (state='revoked' and revoked_at is not null)::text from msrc_authorization.role_grants
+      where id=${text(grant)};`) === "true", "fixture revokes the grant through immutable authority history");
+  });
+
+  it("recovers a pending profile after a native transition succeeds but app completion fails", async () => {
+    const value = await create();
+    const proof = challenge(value);
+    check((await issue(proof)).state === "issued" && (await delivered(proof)).state === "ok", "initial recoverable proof delivered");
+    const consumed = await consume(proof);
+    check(consumed.result.state === "consumed", "initial mailbox proof consumed");
+    const updated = await admin.auth.admin.updateUserById(value.id, { email_confirm: true, password });
+    check(!updated.error && (await complete(consumed.operation, false)).state === "failed", "failed app completion preserves the pending profile");
+    const pending = await client().auth.signInWithPassword({ email: value.email, password });
+    check(!pending.error && pending.data.session, "native email confirmation alone can authenticate but grants no profile admission");
+    await context(pending.data.session);
+    check(await profile(pending.data.session) === null && (await consume(proof)).result.state === "denied", "pending profile and consumed proof remain closed");
+    await ageIssueCounters(value);
+    await verifyExisting(value);
+    const admitted = await login(value);
+    check(await profile(admitted.session) !== null, "new mailbox proof completes the profile through normal native/RPC steps");
   });
 
   it("keeps the native origin and profile admission fixed across refresh at the 72-hour boundary", async () => {
