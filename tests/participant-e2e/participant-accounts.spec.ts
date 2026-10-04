@@ -10,7 +10,8 @@ const syntheticPassword = "Synthetic Password 2027!";
 const syntheticCode = "654321";
 
 /** Presentation fixtures only: no account, database or provider message is created. */
-async function mockAccounts(page: Page, options: { initialStatusGate?: Promise<void>; statusRequested?: () => void } = {}) {
+async function mockAccounts(page: Page, options: { initialStatusGate?: Promise<void>; statusRequested?: () => void;
+  signInGate?: Promise<void>; signInRequested?: () => void; logoutGate?: Promise<void>; logoutRequested?: () => void } = {}) {
   let profile: ParticipantProfile | null = null;
   let denySignIn = true;
   let transportFailure = false;
@@ -36,9 +37,15 @@ async function mockAccounts(page: Page, options: { initialStatusGate?: Promise<v
         if (payload.code !== syntheticCode || payload.requestId !== lastRequestId) { response.state = "invalid_code"; response.fieldErrors = { code: "invalid" }; }
         else { response.state = payload.action === "verify" ? "verified" : "password_reset"; lastRequestId = null; }
       } else if (payload.action === "signin") {
+        options.signInRequested?.();
+        await options.signInGate;
         response.state = denySignIn ? "invalid_credentials" : "authenticated";
         if (!denySignIn) response.profile = profile = { name: "Synthetic Participant", accountState: "verified" };
-      } else if (payload.action === "logout") { response.state = "signed_out"; response.profile = profile = null; }
+      } else if (payload.action === "logout") {
+        options.logoutRequested?.();
+        await options.logoutGate;
+        response.state = "signed_out"; response.profile = profile = null;
+      }
     }
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(response) });
   });
@@ -211,4 +218,46 @@ test("locale changes retain name, email, password and code in memory, while relo
   await expect(page).toHaveURL(/\/en\/verify-email$/);
   await expect(page.locator("#participant-password")).toHaveValue("");
   await expect(page.locator("#participant-code")).toHaveValue("");
+});
+
+test("authentication completed after a locale change restores current owner state", async ({ page }) => {
+  let releaseSignIn!: () => void;
+  let signInRequested!: () => void;
+  let releaseLogout!: () => void;
+  let logoutRequested!: () => void;
+  const signInGate = new Promise<void>((resolve) => { releaseSignIn = resolve; });
+  const signingIn = new Promise<void>((resolve) => { signInRequested = resolve; });
+  const logoutGate = new Promise<void>((resolve) => { releaseLogout = resolve; });
+  const signingOut = new Promise<void>((resolve) => { logoutRequested = resolve; });
+  const mock = await mockAccounts(page, { signInGate, signInRequested, logoutGate, logoutRequested });
+  mock.allowSignIn();
+  try {
+    await page.goto("/en/sign-in");
+    await expect(page.locator("#participant-email")).toBeEnabled();
+    await page.locator("#participant-email").fill("synthetic@example.invalid");
+    await page.locator("#participant-password").fill(syntheticPassword);
+    await page.getByRole("button", { name: participantCopy.en.signIn, exact: true }).click();
+    await signingIn;
+    const anonymousStatus = page.waitForResponse((response) => response.url().endsWith("/api/participant-accounts") && response.request().method() === "GET");
+    await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
+    await expect(page).toHaveURL(/\/ar\/sign-in$/);
+    await anonymousStatus;
+    releaseSignIn();
+    await expect(page.getByTestId("participant-account-status")).toHaveText(participantCopy.ar.states.authenticated);
+    const dashboard = page.getByRole("link", { name: participantCopy.ar.links["my-msrc"], exact: true });
+    await expect(dashboard).toBeVisible();
+    await dashboard.click();
+    await expect(page.getByTestId("participant-profile-name")).toHaveText("Synthetic Participant");
+    await page.getByRole("button", { name: participantCopy.ar.signOut, exact: true }).click();
+    await signingOut;
+    const staleOwnerStatus = page.waitForResponse((response) => response.url().endsWith("/api/participant-accounts") && response.request().method() === "GET");
+    await page.getByRole("link", { name: "View this page in English", exact: true }).click();
+    await expect(page).toHaveURL(/\/en\/my-msrc$/);
+    await staleOwnerStatus;
+    await expect(page.getByTestId("participant-profile-name")).toHaveText("Synthetic Participant");
+    releaseLogout();
+    await expect(page.getByTestId("participant-account-status")).toHaveText(participantCopy.en.states.signed_out);
+    await expect(page.getByTestId("participant-profile-name")).toHaveCount(0);
+    await expect(page.getByTestId("participant-signin-required")).toBeVisible();
+  } finally { releaseSignIn(); releaseLogout(); }
 });

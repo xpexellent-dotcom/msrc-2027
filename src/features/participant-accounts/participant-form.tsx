@@ -22,6 +22,9 @@ function formattedTime(value: number, locale: Locale) {
 export function ParticipantAccountForm({ locale, screen, initialState }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState }) {
   const copy = participantCopy[locale];
   const draft = useParticipantDraft();
+  // A completion can land in the prior locale's unmounted form. Observe its
+  // shared outcome here, and cancel any status read from before the mutation.
+  const authenticationStatusRefresh = draft.outcome === "authenticated" || draft.outcome === "signed_out" || draft.outcome === "password_reset" ? draft.outcomeSequence : 0;
   const [availability, setAvailability] = useState<"checking" | "ready" | "closed" | "unavailable">("checking");
   const [profile, setProfile] = useState<ParticipantProfile | null>(initialState.profile);
   const [formToken, setFormToken] = useState<string | null>(null);
@@ -66,7 +69,7 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
     window.addEventListener("pageshow", recover);
     const interval = screen === "my-msrc" ? window.setInterval(() => { if (document.visibilityState === "visible") void restore(); }, 60_000) : null;
     return () => { mounted.current = false; controller.abort(); window.removeEventListener("pageshow", recover); if (interval !== null) window.clearInterval(interval); };
-  }, [screen, statusRefresh]);
+  }, [screen, statusRefresh, authenticationStatusRefresh]);
 
   useEffect(() => {
     const current = Date.now();

@@ -97,22 +97,30 @@ The current Privacy notice is still a draft: the approved registry stays null, s
 real signup can run even if the server flag is set. Database defaults are false/null/
 null. No hosted migrations/settings, deployment, real user or communication occurred.
 
-- PASS: locked install (Node24.21.0/pnpm11.19.0), `pnpm check`: lint, typecheck,
-  Initial 1,800 unit tests/42 files and 65-page production build; final API review adds
-  regression coverage for retained-name recovery, thrown logout and timing-safe acknowledgement.
-- PASS: 33/33 flag-on synthetic presentation cases across EN/AR desktop/tablet/mobile,
+- PASS: locked install (Node24.21.0/pnpm11.19.0), final `pnpm check`: lint, typecheck,
+  1,805 unit tests/42 files and 65-page production build. API review added regressions
+  for retained-name recovery, thrown logout and timing-safe acknowledgement.
+- PASS: final 36/36 flag-on synthetic presentation cases across EN/AR desktop/tablet/mobile,
   26/26 default-off raw route/API cases, keyboard/focus, 200% text and 18 axe scans with
   zero violations. No retries. Production default-off routes have no collection forms.
+  A held sign-in/logout locale-switch regression first failed, then passed after the
+  status effect refresh/abort fix; final build, scoped lint and TypeScript also PASS.
 - PASS: disposable CI [37220100344](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220100344)
   at `b8d1ddc`: reset, database lint, pgTAP, security advisors, 18/18 genuine native Auth
   cases and both browser jobs. The first native run found Admin insertion before metadata;
   the private reservation now binds the exact actor/email at INSERT, with staged SQL coverage.
-- PENDING: final 19-case native suite adds real handler→SDK→Data API signup/verify/login/
-  reset/old-session denial, with only delivery captured in memory. The response now precedes
-  account-dependent/provider work via bounded Next `after`, with flag rechecks and no retries.
-  Final full application check and native receipts will replace this pending status.
-  Local database execution remains BLOCKED by unavailable Docker and the intentional
-  disposable Linux/GitHub-only guard; import smoke skips are not database evidence.
+- PASS: [37220910478](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220910478)
+  at `a554565`: both participant jobs, all 637 pgTAP assertions/8 files and 19/19 genuine
+  native cases, including real handler→SDK→Data API signup/verify/login/reset/old-session
+  denial. Only delivery is captured in memory. The response precedes account-dependent/
+  provider work via bounded Next `after`, with flag rechecks and no retries.
+- General CI [37220910506](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220910506)
+  FAIL: inherited `managed-staff-cookie` fixture `40P01` at main's old setup. PR37 fixes
+  that independently and must land before the accounts PR's general database job can
+  reliably pass. Participant-specific native/browser jobs are independent and pass.
+  Combined validation with PR37 is being recorded separately; this PR does not duplicate
+  staff code or change the staff CI workflow. Local database execution remains BLOCKED
+  by unavailable Docker and the disposable Linux/GitHub-only guard; skips are not evidence.
 - Activation requires approved Privacy wording/version, five reviewed pending auth/
   participant migrations, native Auth/provider guards/settings, private Production
   environment, actual shared Resend quota/forecast approval and human inbox/recovery
