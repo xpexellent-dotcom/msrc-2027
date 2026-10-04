@@ -136,13 +136,13 @@ its unresolved-date/media status. The full public sitemap is still incomplete.
 - **Acceptance criteria:** ORG-021 supersedes source Gmail routes with exact ordered topics/tags; fixed sender/recipient and validated Reply-To tested; malicious headers/recipient injection denied; shared inbox labels are not committee access controls; consumer domains accepted. Forwarding/filter success is organizer-reported, not freshly tested by this application.
 - **English/Arabic:** Bilingual form/errors/status; outgoing operational emails English-only, preserving original user message.
 - **Accessibility:** Native disabled fieldset, associated closure explanation, visible labels, keyboard-accessible mailto, RTL, no-JS closure and responsive/axe checks. No challenge interrupts disabled inputs.
-- **Security/RLS:** Off-state API reads no request data; enabled path enforces exact origin, trusted Vercel IP, byte bounds and signed nonce/timing. Review-only forced-RLS counter schema and service-only atomic RPC deny browser access; UTC IP/email hour/day quotas and hard global60/day, nonce reuse prevention and pg_cron expiry.
+- **Security/RLS:** Off-state API reads no request data; enabled path enforces exact origin, trusted Vercel IP, byte bounds and signed nonce/timing. Review-only forced-RLS counter schema and service-only atomic RPC deny browser access; UTC IP/email hour/day quotas and hard global 60/day, nonce reuse prevention and pg_cron expiry.
 - **Audit/email:** Application logs only outcome/topic. No stored inquiry, automatic acknowledgment or retry. Provider failure/uncertainty consumes reservation; accepted API result is not inbox-delivery proof.
 - **Automated tests:** Existing routing/validation/closed tests plus configuration/escaping/token/privacy/failure limits; enabled/closed EN/AR browsers/axe; disposable CI real RLS/concurrency/global cap/expiry/cron tests. Mock Resend only, never real CI email.
 - **Manual UAT:** Review local closed pages; future authorized allowlisted delivery tests must confirm all nine tags, inbox access and failure behavior. No live sending authorized by this task.
 - **Release gate:** REL-01 contact route plus privacy/email setup before public collection.
 - **Owner type:** Full-stack engineer with support owner.
-- **TBD blocked:** Provider/routing approved; proposed3/hour10/day per-IP/email and3-second fill time need confirmation, external provider/inbox storage interpretation/retention/location and human delivery UAT remain open. Apply only reviewed Contact migration manually; [activation runbook](../features/contact-delivery.md).
+- **TBD blocked:** Provider/routing approved; proposed 3/hour and 10/day per-IP/email and3-second fill time need confirmation, external provider/inbox storage interpretation/retention/location and human delivery UAT remain open. Apply only reviewed Contact migration manually; [activation runbook](../features/contact-delivery.md).
 
 <a id="bl-pub-07"></a>
 

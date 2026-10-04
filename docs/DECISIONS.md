@@ -1536,7 +1536,7 @@ No automatic reply goes to the visitor. Add no provider accounts, DNS changes or
 
 This supersedes ORG-021/ENG-015's no-provider/permanently-closed implementation for
 Contact only. The default remains closed; no hosted migration, production setting,
-merge, deployment or real email is authorized in this implementation task. Staff email
+merge, production deployment or real email is authorized in this implementation task. Staff email
 delivery, grants, participant flows, authenticator MFA, session policies and all other
 operational gates are unchanged. Source specification v0.5 is preserved.
 

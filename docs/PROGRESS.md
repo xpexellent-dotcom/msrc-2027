@@ -6,11 +6,11 @@ Fresh fetch verified main `9971534` includes merged PR30 and PR32. Reused the at
 Contact worktree on new `codex/contact-resend-delivery`; preserved original caller edits
 and untracked work. ORG-028/029 record the approved Contact provider/routing, reported
 verified domain/Production-only restricted Sending key, default-off flag, counter-only
-storage and global60/day budget. No credential inspection, hosted SQL, production
-configuration, merge, deployment or real email is performed. No dependency was added.
+storage and global 60/day budget. No credential inspection, hosted SQL, production
+configuration, merge, production deployment or real email is performed. No dependency was added.
 
 Implemented direct server-only Resend fetch, fixed inbox/validated Reply-To/escaped
-plaintext with language, signed30-minute single-attempt token/minimum-fill time, strict
+plaintext with language, signed 30-minute single-attempt token/minimum-fill time, strict
 origin/Host/IP/byte validation and atomic private expiring HMAC counters. Review-only
 migration `20261004114603_contact_abuse_counters.sql` adds forced-RLS counter storage,
 service-only SECURITY INVOKER RPC and five-minute pg_cron expiry. No message database,
@@ -21,32 +21,32 @@ personal names stay excluded and all final legal/Terms/photography placeholders 
 
 Executed locally (Node24.19.0, pnpm11.19.0, Supabase CLI2.118.0):
 
-- `pnpm check`: PASS lint/types,1,750 units/41 files and53-page production build. Initial
-  fixture-only type failures were corrected. After adding16 Host regressions, full
-  `pnpm test` passes1,766 units; `tsc --noEmit`, scoped lint and `pnpm build` pass again.
-- Focused server units:187 PASS, including byte bounds, timing/signature tampering,
+- `pnpm check`: PASS lint/types, 1,750 units/41 files and 53-page production build. Initial
+  fixture-only type failures were corrected. After adding 16 Host regressions, full
+  `pnpm test` passes 1,766 units; `tsc --noEmit`, scoped lint and `pnpm build` pass again.
+- Focused server units: 187 PASS, including byte bounds, timing/signature tampering,
   origins/Host, no forwarded-header spoofing, exact routing/plaintext, quota failures,
-  nonce replay, provider timeout/no retry and privacy logging. Baseline Contact133
+  nonce replay, provider timeout/no retry and privacy logging. Baseline Contact 133
   synthetic cases remain included in the full suite.
 - `pnpm exec playwright test tests/e2e/contact.spec.ts tests/e2e/policies.spec.ts`:
  45 PASS, including EN/AR latest/dated drafts, desktop/tablet/mobile, axe/keyboard/
   enlarged text/no-JS/404. Existing Next `NoFallbackError` logs appear on deliberate
-  invalid-route probes; asserted responses are404 and valid pages show no browser errors.
+  invalid-route probes; asserted responses are 404 and valid pages show no browser errors.
 - Agent-browser inspection: Arabic enabled synthetic form renders correctly with RTL,
   visible notice and no error overlay/console errors; closed English form controls remain
   disabled; navigation to home passes. First PowerShell reference quoting failed and was
   corrected. The enabled browser run exposed Next internal-URL hostname mismatch and
   a minimum-fill notice mismatch; both were fixed with regression coverage before rerun.
-- `pnpm exec playwright test --config playwright.contact.config.ts`:42/44 PASS after
+- `pnpm exec playwright test --config playwright.contact.config.ts`: 42/44 PASS after
   origin correction; the two remaining no-JS cases found a missing fallback instruction
   despite safe disabled controls. Replaced client-component noscript with visible SSR
   fallback text, rebuilt successfully and reran `--grep 'Enabled delivery without
-  JavaScript'`:2/2 PASS. Only loopback mocks/dummy keys are used. The complete44-case
+  JavaScript'`: 2/2 PASS. Only loopback mocks/dummy keys are used. The complete 44-case
   final-head CI run and Preview receipts are recorded on the draft PR. GitHub CI also
   runs real SQL/RLS/atomic counter/cron integrations on a disposable runner; no local
   Docker is required or used.
 
-Remaining decisions: confirm proposed3/hour10/day independently for each IP/email and
+Remaining decisions: confirm proposed 3/hour and 10/day independently for each IP/email and
 3-second minimum-fill time; clarify provider/inbox retention/storage exception, privacy
 locations/transfers and final wording. Vercel flag edits require redeploy and therefore
 are not an instant runtime switch; Resend/inbox retain emails outside the application.
