@@ -18,6 +18,11 @@ Routes are `/{en|ar}/sign-up`, `sign-in`, `verify-email`, `forgot-password`,
 `reset-password` and `my-msrc`, backed by `/api/participant-accounts`.
 
 Supabase manages users, password hashing, password authentication and native sessions.
+Password validation respects the pinned native provider's 72-byte UTF-8 maximum,
+including Arabic input, before user creation or code consumption. The native handler
+suite exercises a reset at that boundary.
+[Pinned Auth password limit](https://github.com/supabase/auth/blob/v2.197.0/internal/api/password.go).
+
 The application controls six-digit verification/reset codes because the required
 five-failures-per-code and three-emails-per-15-minute controls need a shared database
 boundary. Codes are single-use, expire after the source-default ten minutes, and newer

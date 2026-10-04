@@ -528,7 +528,8 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
       check(missing.response.status === forgot.response.status && missing.body.state === forgot.body.state
         && Object.keys(missing.body).sort().join(",") === Object.keys(forgot.body).sort().join(",")
         && missing.body.requestId && !mail.has(missing.body.requestId), "existing/unknown recovery exposes identical envelopes without unknown delivery");
-      const nextPassword = randomBytes(32).toString("hex");
+      const nextPassword = randomBytes(36).toString("hex");
+      check(Buffer.byteLength(nextPassword, "utf8") === 72, "genuine handler reset uses the provider's exact password byte limit");
       const reset = await post({ action: "reset", name: value.name, email: value.email, password: nextPassword,
         requestId: forgot.body.requestId, code: resetMail.code }, cookie);
       check(reset.response.status === 200 && reset.body.state === "password_reset", "full reset handler consumes proof and completes native password mutation");

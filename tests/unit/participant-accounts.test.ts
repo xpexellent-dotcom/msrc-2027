@@ -113,6 +113,16 @@ describe("participant accounts closed-by-default and private server protocol", (
       purpose: "reset_password", name: null, privacy_version: null,
     }));
   });
+  it.each([
+    ["signup", "a".repeat(73)], ["signup", "ع".repeat(37)],
+    ["reset", "a".repeat(73)], ["reset", "ع".repeat(37)],
+  ])("rejects unsupported %s password bytes before native creation or code consumption", async (action, password) => {
+    const { backend, post } = fixture();
+    const response = await post(action, { password, code: "123456", requestId: "dc000000-0000-4000-8000-000000000001" });
+    expect(response.status).toBe(400); expect(await response.json()).toMatchObject({ state: "invalid_input", fieldErrors: { password: "too_long" } });
+    expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.updateUser).not.toHaveBeenCalled();
+    expect(vi.mocked(backend.rpc).mock.calls.every(([name]) => name === "msrc_participant_status")).toBe(true);
+  });
   it("denies refused code proof before managed identity mutation", async () => {
     const { backend, post } = fixture();
     const response = await post("verify", { code: "١٢٣٤٥٦", requestId: "dc000000-0000-4000-8000-000000000001" });

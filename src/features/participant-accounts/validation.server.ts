@@ -28,7 +28,7 @@ export function validateParticipantPayload(value: unknown): { ok: true; value: P
   }
   if (["signup", "signin", "verify", "reset"].includes(input.action)) {
     if (!input.password) errors.password = "required";
-    else if (input.password.length > 256) errors.password = "too_long";
+    else if (Buffer.byteLength(input.password, "utf8") > 72) errors.password = "too_long";
     else if (input.action !== "signin" && input.password.length < 6) errors.password = "invalid";
   }
   if (["verify", "reset"].includes(input.action)) {
