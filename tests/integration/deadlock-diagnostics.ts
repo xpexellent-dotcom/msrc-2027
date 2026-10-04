@@ -40,3 +40,29 @@ export function readDeadlockRelations(metadata: string): { oid: number; relation
     return [{ oid: Number(match[1]), relation: match[2] }];
   });
 }
+
+export function readDeadlockBackends(metadata: string): { process: number; role: string; command: string }[] {
+  return metadata.split(/\r?\n/).flatMap((line) => {
+    const match = line.trim().match(/^backend\|([0-9]{1,10})\|(postgres|supabase_auth_admin|authenticator|supabase_admin)\|(SELECT|INSERT|UPDATE|DELETE|ALTER|CREATE|DROP|LOCK|TRUNCATE|GRANT|REVOKE|COMMIT|ROLLBACK|BEGIN|SET)$/);
+    return match ? [{ process: Number(match[1]), role: match[2], command: match[3] }] : [];
+  });
+}
+
+export function readDeadlockContext(diagnostics: string): { command?: string; relation?: string; function?: string }[] {
+  return diagnostics.split(/\r?\n/).flatMap((line): { command?: string; relation?: string; function?: string }[] => {
+    const normalized = line.trim().replace(/^CONTEXT:\s+/, "");
+    const statement = normalized.match(/^SQL statement "(INSERT INTO|UPDATE|ALTER TABLE|LOCK TABLE|TRUNCATE(?: TABLE)?|SELECT \* FROM) ((?:auth|msrc_authorization|msrc_sessions|msrc_staff_email|msrc_contact|pg_catalog)\.[a-z_][a-z0-9_]*)\b/i);
+    if (statement && (applicationRelations.has(statement[2]) || /^pg_catalog\.pg_[a-z_]+$/.test(statement[2]))) {
+      return [{ command: statement[1].toUpperCase(), relation: statement[2] }];
+    }
+    const functionName = normalized.match(/^(?:PL\/pgSQL|SQL) function ((?:msrc_authorization|msrc_sessions|msrc_staff_email|msrc_contact|extensions|pg_catalog)\.[a-z_][a-z0-9_]*)\(/)?.[1];
+    return functionName ? [{ function: functionName }] : [];
+  });
+}
+
+export function readEventTriggers(metadata: string): { trigger: string; function: string }[] {
+  return metadata.split(/\r?\n/).flatMap((line) => {
+    const match = line.trim().match(/^trigger\|([a-z_][a-z0-9_]*)\|((?:extensions|supabase_functions|pg_catalog)\.[a-z_][a-z0-9_]*)$/);
+    return match ? [{ trigger: match[1], function: match[2] }] : [];
+  });
+}

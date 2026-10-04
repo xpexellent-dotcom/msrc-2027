@@ -7,7 +7,7 @@ import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
 import { createSupabaseTotpContract } from "@/features/auth/mfa-provider.server";
 import { totpAt } from "@/features/auth/totp.server";
-import { readDeadlockEdges, readDeadlockRelations } from "./deadlock-diagnostics";
+import { readDeadlockBackends, readDeadlockContext, readDeadlockEdges, readDeadlockRelations, readEventTriggers } from "./deadlock-diagnostics";
 
 // Genuine GoTrue/SDK exchanges on the disposable CI stack, not hosted delivery/UAT.
 // Generated credentials, OTPs and SDK responses never enter assertion snapshots.
@@ -66,20 +66,29 @@ function query(sql: string, diagnoseDeadlock = true): Promise<string> {
       const failure = new Error(`Isolated managed Auth SQL failed (SQLSTATE ${sqlState}); sensitive diagnostics withheld.`);
       if (sqlState !== "40P01" || !diagnoseDeadlock) { reject(failure); return; }
       const edges = readDeadlockEdges(diagnostics);
+      const backend = Number(diagnostics.match(/^MSRC_DIAGNOSTIC_BACKEND ([0-9]{1,10})$/m)?.[1]) || undefined;
+      const context = readDeadlockContext(diagnostics);
       // No input SQL or raw provider diagnostic is printed. A catalog-only query
       // maps numeric relation OIDs; unknown relation names are withheld as well.
       const relations = edges.filter((edge) => edge.kind === "relation").map((edge) => edge.resource);
-      const metadata = relations.length ? query(`select c.oid,n.nspname||'.'||c.relname
+      const processes = edges.map((edge) => edge.process);
+      const metadata = edges.length ? query(`select c.oid,n.nspname||'.'||c.relname
         from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace
-        where c.oid in (${relations.join(",")});`, false) : Promise.resolve("");
+        where c.oid in (${relations.length ? relations.join(",") : "0"});
+        select 'backend|'||pid||'|'||usename||'|'||upper(substring(ltrim(query) from '^[a-zA-Z]+'))
+          from pg_catalog.pg_stat_activity where pid in (${processes.join(",")})
+          and usename in ('postgres','supabase_auth_admin','authenticator','supabase_admin');
+        select 'trigger|'||e.evtname||'|'||n.nspname||'.'||p.proname from pg_catalog.pg_event_trigger e
+          join pg_catalog.pg_proc p on p.oid=e.evtfoid join pg_catalog.pg_namespace n on n.oid=p.pronamespace;`, false) : Promise.resolve("");
       void metadata.then((value) => {
-        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ edges, relations: readDeadlockRelations(value) })}\n`);
+        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ backend, edges, context,
+          relations: readDeadlockRelations(value), backends: readDeadlockBackends(value), triggers: readEventTriggers(value) })}\n`);
       }).catch(() => {
-        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ edges })}\n`);
+        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ backend, edges, context })}\n`);
       }).finally(() => reject(failure));
     });
     child.stdin.on("error", () => {});
-    child.stdin.end(sql);
+    child.stdin.end(`select pg_backend_pid() as msrc_diagnostic_backend \\gset\n\\warn MSRC_DIAGNOSTIC_BACKEND :msrc_diagnostic_backend\n${sql}`);
   });
 }
 

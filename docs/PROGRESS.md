@@ -19,7 +19,13 @@ Shared logs do not count as overlap under the requester's clarified rule.
   resets with the original concurrent integration suites, and five browser repeats.
   This is fail-fast repeated verification, not retries after failure.
 - PASS: Node24.21.0 frozen-lockfile install; lint; typecheck; 1,769 unit tests/42 files;
-  production build. Repeated browser and disposable Linux DB checks are in progress.
+  production build. Post-fix browser: 180/180 focused checks (ten repeats per EN/AR
+  flow and desktop/tablet/mobile), plus the full 81/81 staff suite. Fresh project
+  servers preserve the existing 20/IP/hour quota; an initial combined repetition
+  exhausted that quota and was stopped without changing limits or assertions.
+  Initial isolated stability run `37214660390`: PASS five cold concurrent database
+  suites, each 73/73, and 60 repeated EN/AR keyboard cases. These are samples, not
+  evidence of a deadlock fix. Controlled fixture scheduling is now under diagnosis.
   Local managed DB execution is BLOCKED: suites intentionally require a disposable
   GitHub-hosted Linux runner; the Windows Docker daemon is also unavailable.
 - Next: verify the lock graph, apply its minimal fix, complete repeated evidence, then

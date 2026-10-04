@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readDeadlockEdges, readDeadlockRelations } from "../integration/deadlock-diagnostics";
+import { readDeadlockBackends, readDeadlockContext, readDeadlockEdges, readDeadlockRelations, readEventTriggers } from "../integration/deadlock-diagnostics";
 
 describe("isolated PostgreSQL deadlock diagnostics", () => {
   it("retains only lock graph identifiers from verbose errors", () => {
@@ -35,6 +35,30 @@ DETAIL: email@example.invalid`)).toEqual([]);
       { oid: 345, relation: "auth.users" },
       { oid: 456, relation: "pg_catalog.pg_database" },
       { oid: 999, relation: "pg_catalog.pg_class" },
+    ]);
+  });
+
+  it("withholds SQL text and credentials while attributing native roles and fixed command heads", () => {
+    expect(readDeadlockBackends(`backend|12|postgres|INSERT
+backend|13|supabase_auth_admin|ALTER
+backend|14|person@example.invalid|SELECT
+backend|15|postgres|SELECT secret-token`)).toEqual([
+      { process: 12, role: "postgres", command: "INSERT" },
+      { process: 13, role: "supabase_auth_admin", command: "ALTER" },
+    ]);
+    expect(readDeadlockContext(`CONTEXT: SQL statement "ALTER TABLE auth.users ADD COLUMN secret_password text"
+PL/pgSQL function extensions.pgrst_ddl_watch() line 10 at SQL statement
+SQL statement "INSERT INTO auth.identities VALUES ('secret-password')"
+SQL statement "SELECT 'secret-token'"
+CONTEXT: SQL statement "UPDATE private.person_email SET email='person@example.invalid'"`)).toEqual([
+      { command: "ALTER TABLE", relation: "auth.users" },
+      { function: "extensions.pgrst_ddl_watch" },
+      { command: "INSERT INTO", relation: "auth.identities" },
+    ]);
+    expect(readEventTriggers(`trigger|pgrst_ddl_watch|extensions.pgrst_ddl_watch
+trigger|secret|private.secret_token
+trigger|name@example.invalid|extensions.function_name`)).toEqual([
+      { trigger: "pgrst_ddl_watch", function: "extensions.pgrst_ddl_watch" },
     ]);
   });
 });
