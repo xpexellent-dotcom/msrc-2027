@@ -8,6 +8,35 @@ deadlock flakes in a separate small PR before starting participant accounts from
 main. Preserve assertions and existing timeout/retry settings; use repeated fail-fast
 verification. No hosted settings, migrations, real users or email are authorized.
 
+## ENG-017 — Closed participant account protocol, 4 October 2026
+
+BL-AUTH-02/03/04/06 participant/08 shell follows ORG-016/019: Supabase-managed
+email/password, verified email, 72-hour original native-session deadline, no phone,
+SMS or participant MFA. Name/email/password are the only signup fields. The dashboard
+has own account state/name and closed registration; no operational action or grant.
+
+Application-owned six-digit HMAC codes use reviewed private SQL for expiry, newest
+code, single use, failed attempts, account/IP throttling, provider delivery state and
+an explicit email budget. Supabase owns all password hashing and native password
+mutations. Database admission and transaction-bound one-use operations prevent raw
+native verification/recovery tokens or participant recovery from bypassing controls
+or changing a privileged actor. Existing stronger all-edition roles still prevail.
+Email templates use the approved Resend sender and English text; the custom Supabase
+SMTP plan is documented without changing hosted settings.
+
+The server flag, database readiness, budget and approved EN/AR Privacy record are
+independent gates. The current `2026-10-04-draft` has no approval/effective date, so
+the new approved registry remains null. Synthetic notice approval exists only in
+strict loopback/disposable tests. Production and Preview remain closed. New migration
+`20261004164034_participant_accounts.sql` is review-only and has not been applied
+to hosted. [Implementation and exact activation guide](features/PARTICIPANT_ACCOUNTS.md).
+
+The preceding staff CI fixes are separate PR37. Fresh main was `bc2fb87`; PR38 changes
+only shared PROGRESS. Shared append-only logs do not constitute code/feature overlap.
+The participant workflow and native fixture are separate new files, preserving PR37's
+staff code, tests and CI files. No merge, hosted configuration, real user or email is
+authorized by this implementation task.
+
 Source baseline: 29 September 2026; evidence reconciliation updated 1 October 2026. This register records source-confirmed choices, working defaults, unresolved details and publication gates. It does not certify institutional approval, provisioning, implementation or test completion.
 
 Primary source: **S1 Development Specification v0.5**, modified 2026-09-29 11:30:21 UTC / 14:30:21 Asia/Riyadh. [Current source snapshot](../sources/Development_Specification_v0.5.txt).

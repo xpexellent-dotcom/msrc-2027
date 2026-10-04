@@ -1,0 +1,85 @@
+name: Participant accounts checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      cold_runs:
+        description: Independent cold migration and native-auth passes; no failure retries
+        type: choice
+        default: "1"
+        options: ["1", "3", "5"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: participant-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    name: Participant migrations, RLS and genuine native Auth
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          run_install: false
+      - name: Install locked dependencies
+        id: dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Bind the disposable stack to loopback
+        run: docker network create -o com.docker.network.bridge.host_binding_ipv4=127.0.0.1 msrc2027-local
+      - name: Configure native Auth with no delivery on the disposable runner only
+        run: node scripts/prepare-ci-managed-auth.ts
+      - name: Start without printing generated credentials
+        shell: bash
+        run: |
+          umask 077
+          startup_log="$(mktemp "${RUNNER_TEMP}/msrc-participant-start.XXXXXX")"
+          trap 'rm -f -- "$startup_log"' EXIT
+          if pnpm db:start >"$startup_log" 2>&1; then
+            printf '%s\n' 'Disposable participant stack started; credentials withheld.'
+          else
+            printf '%s\n' 'Disposable participant startup failed; credential-bearing diagnostics withheld.'
+            exit 1
+          fi
+      - name: Record the actual native Auth image
+        run: docker inspect --format='{{.Config.Image}}' supabase_auth_msrc2027-local
+      - run: pnpm db:reset
+      - run: pnpm db:lint
+      - run: pnpm db:test
+      - name: Inspect database security findings
+        run: pnpm exec supabase db advisors --local --type security --level warn --fail-on error
+      - name: Prepare only public loopback client settings
+        run: pnpm db:env
+      - name: Verify the independent participant native suite
+        run: pnpm exec vitest run --config vitest.participant.integration.config.ts
+      - name: Additional independent cold fixture passes
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.cold_runs != '1' }}
+        env:
+          COLD_RUNS: ${{ inputs.cold_runs }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$COLD_RUNS" in 3|5) ;; *) exit 1 ;; esac
+          for ((pass=2; pass<=COLD_RUNS; pass++)); do
+            printf 'Independent participant cold pass %s of %s\n' "$pass" "$COLD_RUNS"
+            pnpm db:reset
+            pnpm db:lint
+            pnpm db:test
+            pnpm exec vitest run --config vitest.participant.integration.config.ts
+          done
+      - name: Stop the disposable stack
+        if: ${{ always() && steps.dependencies.outcome == 'success' }}
+        run: pnpm db:stop

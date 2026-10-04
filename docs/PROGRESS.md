@@ -75,6 +75,40 @@ Font-preload experiment, not adopted. Local production builds, Chromium with a P
 The hero headline is DM Sans, not Manrope. On English pages LCP waits for DM Sans, and the 108 KB poster's `fetchPriority="high"` makes no measurable difference. Not preloading the Latin fonts brings both languages under the 2.5 s target, but on a slow phone the English headline is first drawn in the fallback. When DM Sans arrives, “Where curiosity” goes from one line to two and the hero moves about 55 px (CLS 0.034). At 412 px the line is within 3 px of wrapping, so no fallback metric override hides it reliably. Arabic pages pay for three Latin font preloads they barely use (only the wordmark is Latin above the fold), and dropping them would cut `/ar` LCP by about 0.8–0.9 s. `next/font` preloads per layout, not per locale, so an Arabic-only change needs Latin preloads chosen per locale, for example self-hosted files with a locale-specific `<link rel="preload">`. Left for a design decision; the measurement scripts are not committed.
 
 
+## 4 October 2026 — Closed BL-AUTH-02/03/04/06 participant/08 shell
+
+The prerequisite staff CI fixes are separate [PR37](https://github.com/xpexellent-dotcom/msrc-2027/pull/37):
+180 focused browser repetitions, full 81-case staff suite and five cold concurrent
+73-case database runs passed without assertion removal, retries or longer timeouts.
+Fresh participant preflight fetched main `bc2fb87`; open PR37 is staff CI/fixture work,
+and PR38 only appends the shared PROGRESS log. Neither overlaps this implementation.
+Created isolated `codex/participant-accounts` from that main; preserved caller work.
+
+Implemented six EN/AR routes, transient value-preserving RTL forms, server-only
+default-off flag and own account/name/closed-registration shell. Private reviewed
+migration adds admission, notice receipts, HMAC single-use verification/reset codes,
+expiry/replacement/failure/IP/account/global limits, transaction-bound native credential
+operations and own admitted-session reads. Supabase manages passwords; native email
+tokens and participant MFA cannot bypass the app protocol. Existing 72-hour session
+policy, stronger roles and closed operational gates remain enforced. English branded
+Resend templates and an unapplied custom SMTP/activation plan are included.
+
+The current Privacy notice is still a draft: the approved registry stays null, so no
+real signup can run even if the server flag is set. Database defaults are false/null/
+null. No hosted migrations/settings, deployment, real user or communication occurred.
+
+- PASS: locked install (Node24.21.0/pnpm11.19.0), `pnpm check`: lint, typecheck,
+  1,800 unit tests/42 files and 65-page production build.
+- PENDING: EN/AR desktop/mobile browser/axe and independent disposable managed-Auth/
+  migrations/RLS jobs. Local database checks are BLOCKED by unavailable Docker and the
+  intentional disposable Linux/GitHub-only guard; import smoke skipped native tests.
+- Activation requires approved Privacy wording/version, five reviewed pending auth/
+  participant migrations, native Auth/provider guards/settings, private Production
+  environment, actual shared Resend quota/forecast approval and human inbox/recovery
+  UAT. Exact steps, limits and rollback: [participant guide](features/PARTICIPANT_ACCOUNTS.md).
+
+Next: complete independent CI/native and browser evidence; review the closed draft PR.
+
 ## 4 October 2026 — BL-PUB-06 default-off Resend Contact delivery
 
 Fresh fetch verified main `9971534` includes merged PR30 and PR32. Reused the attached
