@@ -2533,3 +2533,30 @@ Draft [PR39](https://github.com/xpexellent-dotcom/msrc-2027/pull/39). Main was r
 at finish and remains `bc2fb87`. Appended shared records at file ends to avoid future
 log conflicts with PR37/38. Next: land PR37, refresh the accounts base and review this
 closed draft; activation remains separately gated. No hosted changes or real delivery.
+
+## 5 October 2026 — PR39 password review and merged-main rebase
+
+Organizer review raises the participant password minimum to ten Unicode characters
+for sign-up, verification and reset; sign-in retains compatibility with shorter
+existing passwords. The 72-byte UTF-8 maximum stays enforced. Short-password rejection
+precedes native creation, form claims and code consumption. EN/AR hints and field
+errors state the requirement, including on verification.
+
+- PASS: all 59 participant unit cases, including nine-character ASCII/Arabic/emoji
+  rejection, ten-character acceptance, existing shorter sign-in and the retained
+  72-byte boundary. Nine short-password regressions first failed against the old rule
+  and passed after the change.
+- PASS: `pnpm check` after the review change: lint, TypeScript, 1,825 unit tests in
+  42 files and the 65-page production build. EN/AR browser coverage is expanded to
+  54 cases, preserving the existing 26 closed-route cases and axe checks.
+- Native handler tests cover reuse of the same valid code after a rejected short
+  password, exact ten-character acceptance, legacy shorter sign-in and the unchanged
+  72-byte reset boundary. Execution uses disposable CI; local Docker remains unavailable.
+- PR37 and PR38 are merged. The branch is rebased onto freshly fetched main `f106634`; their
+  staff fixture/focus fixes and shared logs are retained. Final branch/head, full
+  application/database CI and participant native/browser receipts are recorded in
+  [PR39](https://github.com/xpexellent-dotcom/msrc-2027/pull/39).
+
+This review does not change migration SQL, hosted Auth settings, Privacy approval,
+the closed flag or operational readiness. Real users, inbox delivery and activation
+remain unperformed. The activation guide records the future native minimum setting.

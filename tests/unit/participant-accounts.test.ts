@@ -6,7 +6,7 @@ import type { ParticipantBackend } from "@/features/participant-accounts/backend
 import { participantCodeEmail } from "@/features/participant-accounts/email.server";
 import { nativeSessionId, participantCookie, participantFormToken, participantHash, readParticipantFormToken, readParticipantSession,
   sealParticipantSession } from "@/features/participant-accounts/security.server";
-import { normalizeParticipantCode } from "@/features/participant-accounts/validation.server";
+import { normalizeParticipantCode, validateParticipantPayload } from "@/features/participant-accounts/validation.server";
 
 const env = { PARTICIPANT_ACCOUNTS_ENABLED: "true", PARTICIPANT_ACCOUNTS_TEST_MODE: "true", PARTICIPANT_AUTH_SECURITY_SECRET: "a".repeat(64),
   PARTICIPANT_SUPABASE_URL: "http://127.0.0.1:3218", PARTICIPANT_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_participant_mock_only",
@@ -114,7 +114,29 @@ describe("participant accounts closed-by-default and private server protocol", (
     }));
   });
   it.each([
+    ...["signup", "verify", "reset"].flatMap((action) => ["a".repeat(9), "ع".repeat(9), "😀".repeat(9)].map((password) => [action, password])),
+  ])("rejects a short %s password before account creation or code consumption (%s)", async (action, password) => {
+    const { backend, post } = fixture();
+    const response = await post(action, { password, code: "123456", requestId: "dc000000-0000-4000-8000-000000000001" });
+    expect(response.status).toBe(400); expect(await response.json()).toMatchObject({ state: "invalid_input", fieldErrors: { password: "invalid" } });
+    expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.updateUser).not.toHaveBeenCalled(); expect(backend.deliver).not.toHaveBeenCalled();
+    expect(vi.mocked(backend.rpc).mock.calls.every(([name]) => name === "msrc_participant_status")).toBe(true);
+  });
+  it.each(["signup", "verify", "reset"])("accepts a ten-character %s password within the byte limit", (action) => {
+    for (const password of ["a".repeat(10), "ع".repeat(10), "😀".repeat(10), "a".repeat(72), "ع".repeat(36)]) {
+      expect(validateParticipantPayload({ action, name: "Synthetic Participant", email: "person@example.invalid", password,
+        code: "123456", requestId: "dc000000-0000-4000-8000-000000000001" }).ok).toBe(true);
+    }
+  });
+  it.each(["a".repeat(6), "a".repeat(9)])("keeps existing shorter password sign-in unchanged (%s)", async (password) => {
+    const { backend, post } = fixture();
+    const response = await post("signin", { password });
+    expect(response.status).toBe(200); expect((await response.json()).state).toBe("authenticated");
+    expect(backend.login).toHaveBeenCalledWith("person@example.invalid", password);
+  });
+  it.each([
     ["signup", "a".repeat(73)], ["signup", "ع".repeat(37)],
+    ["verify", "a".repeat(73)], ["verify", "ع".repeat(37)],
     ["reset", "a".repeat(73)], ["reset", "ع".repeat(37)],
   ])("rejects unsupported %s password bytes before native creation or code consumption", async (action, password) => {
     const { backend, post } = fixture();

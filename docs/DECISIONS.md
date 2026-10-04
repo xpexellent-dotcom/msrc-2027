@@ -1638,3 +1638,9 @@ only shared PROGRESS. Shared append-only logs do not constitute code/feature ove
 The participant workflow and native fixture are separate new files, preserving PR37's
 staff code, tests and CI files. No merge, hosted configuration, real user or email is
 authorized by this implementation task.
+
+PR39 review on 4 October 2026 sets a minimum of ten Unicode characters for participant
+sign-up, email verification and password reset. Sign-in remains compatible with existing
+shorter passwords, and the 72-byte UTF-8 maximum remains enforced. EN/AR hints and
+field errors explain the requirement. The activation guide includes the corresponding
+future managed Auth setting; this review changes no hosted settings.

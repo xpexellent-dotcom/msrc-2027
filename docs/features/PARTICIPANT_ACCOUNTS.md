@@ -18,9 +18,14 @@ Routes are `/{en|ar}/sign-up`, `sign-in`, `verify-email`, `forgot-password`,
 `reset-password` and `my-msrc`, backed by `/api/participant-accounts`.
 
 Supabase manages users, password hashing, password authentication and native sessions.
-Password validation respects the pinned native provider's 72-byte UTF-8 maximum,
-including Arabic input, before user creation or code consumption. The native handler
-suite exercises a reset at that boundary.
+The organizer's password minimum is ten Unicode codepoints for sign-up, verification
+password selection and password reset. Sign-in keeps compatibility with existing
+shorter native passwords and does not apply the new creation minimum. Every password
+request respects the pinned provider's 72-byte UTF-8 maximum, including Arabic input.
+Length validation precedes user creation and code consumption; a rejected short
+password does not burn a valid verification/reset code. The native handler suite
+checks nine-codepoint rejection, exactly ten-codepoint acceptance, shorter existing
+sign-in and a reset at the 72-byte boundary.
 [Pinned Auth password limit](https://github.com/supabase/auth/blob/v2.197.0/internal/api/password.go).
 
 The application controls six-digit verification/reset codes because the required
@@ -105,7 +110,17 @@ participant recovery.
    secret, preview delivery key, real-recipient fixture, or credential-bearing log.
 4. Confirm Supabase email/password is enabled, public self-signup remains disabled,
    email confirmation is required, phone/SMS and anonymous/social/passwordless entry
-   stay disabled, and native verification/recovery delivery is suppressed. Keep the
+   stay disabled, and native verification/recovery delivery is suppressed. During
+   activation, set Supabase Auth's minimum password length to `10` and verify its
+   creation/password-change policy against the server's ten-codepoint minimum and
+   72-byte ceiling, including Arabic input and existing shorter-password sign-in.
+   The pinned native setting supplies a secondary ten-byte UTF-8 floor; it does not
+   reproduce the Arabic/emoji character count. The application server enforces the
+   stricter ten-Unicode-codepoint rule for sign-up, verification and reset. Provider
+   configuration supplements server validation; it does not replace it.
+   No hosted password setting changes in this branch.
+   [Supabase password settings](https://supabase.com/docs/guides/auth/password-security).
+   Keep the
    custom-code database guards active. Configure the Send Email hook to the reviewed
    `msrc_participant.suppress_native_email` function while app-owned codes are used;
    its participant response suppresses native delivery and preserves generic recovery.

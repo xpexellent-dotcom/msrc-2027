@@ -451,6 +451,14 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
   });
 
   it("runs the application signup, verification, login and reset handler through genuine Auth and RPCs", async () => {
+    const shortPassword = randomBytes(3).toString("hex") + "🙂أب";
+    const minimumPassword = randomBytes(3).toString("hex") + "🙂أبج";
+    check(Array.from(shortPassword).length === 9 && Array.from(minimumPassword).length === 10,
+      "password fixtures measure Unicode codepoints rather than UTF-16 units");
+    const legacy = await verified();
+    const legacyOwner = await login(legacy);
+    const legacyChange = await legacyOwner.sdk.auth.updateUser({ password: shortPassword });
+    check(!legacyChange.error, "isolated existing native password fixture uses the unchanged provider policy");
     const credentials = await nativeCredentials();
     const origin = "http://127.0.0.1:3216";
     // Injected readiness exists only inside the independently guarded lab. The
@@ -497,20 +505,39 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
     };
     const value = actor();
     try {
-      const signup = await post({ action: "signup", name: value.name, email: value.email, password });
+      const shortSignup = await post({ action: "signup", name: value.name, email: value.email, password: shortPassword });
+      check(shortSignup.response.status === 400 && shortSignup.body.state === "invalid_input"
+        && shortSignup.body.fieldErrors?.password === "invalid" && mail.size === 0,
+        "nine-codepoint signup is rejected before native work or email delivery");
+      check(await query(`select (not exists(select 1 from auth.users where email=${text(value.email)})
+        and not exists(select 1 from msrc_participant.admissions where email=${text(value.email)})
+        and not exists(select 1 from msrc_participant.challenges where recipient=${text(value.email)}))::text;`) === "true",
+        "short signup creates no native identity, private reservation or code");
+      const signup = await post({ action: "signup", name: value.name, email: value.email, password: minimumPassword });
       check(signup.response.status === 202 && signup.body.state === "accepted" && signup.body.requestId,
-        "application signup accepts a minimum-field native account without disclosing its state");
+        "application signup accepts exactly ten codepoints without disclosing account state");
       const verification = mail.get(signup.body.requestId);
       check(verification?.recipient === value.email && verification.purpose === "verify_email", "application verification email is captured only in memory");
-      const unverified = await post({ action: "signin", email: value.email, password });
+      const unverified = await post({ action: "signin", email: value.email, password: minimumPassword });
       check(unverified.response.status === 401 && unverified.body.state === "invalid_credentials", "application denies native unverified password access");
-      const duplicate = await post({ action: "signup", name: value.name, email: value.email, password });
+      const duplicate = await post({ action: "signup", name: value.name, email: value.email, password: minimumPassword });
       check(duplicate.response.status === signup.response.status && duplicate.body.state === signup.body.state
         && Object.keys(duplicate.body).sort().join(",") === Object.keys(signup.body).sort().join(","), "duplicate signup has the same opaque public envelope");
-      const verified = await post({ action: "verify", name: value.name, email: value.email, password,
+      check(await query(`select count(*) from msrc_participant.limit_events where kind='issue_email'
+        and subject_hash=${text(participantHash(config, "email", value.email))};`) === "1",
+        "duplicate signup inside cooldown does not spend another send allowance");
+      const shortVerification = await post({ action: "verify", name: value.name, email: value.email, password: shortPassword,
         requestId: signup.body.requestId, code: verification.code });
-      check(verified.response.status === 200 && verified.body.state === "verified", "actual handler proof confirms the native email and profile");
-      const signed = await post({ action: "signin", email: value.email, password });
+      check(shortVerification.response.status === 400 && shortVerification.body.state === "invalid_input"
+        && shortVerification.body.fieldErrors?.password === "invalid", "nine-codepoint verification password is rejected");
+      check(await query(`select (c.state='sent' and c.failed_attempts=0
+        and not exists(select 1 from msrc_participant.operations o where o.challenge_id=c.id))::text
+        from msrc_participant.challenges c where c.id=${text(signup.body.requestId)};`) === "true",
+        "short verification does not consume or penalize a valid code");
+      const verificationResult = await post({ action: "verify", name: value.name, email: value.email, password: minimumPassword,
+        requestId: signup.body.requestId, code: verification.code });
+      check(verificationResult.response.status === 200 && verificationResult.body.state === "verified", "same verification code succeeds with exactly ten codepoints");
+      const signed = await post({ action: "signin", email: value.email, password: minimumPassword });
       const cookie = signed.response.headers.get("set-cookie")?.split(";")[0];
       check(signed.response.status === 200 && signed.body.state === "authenticated" && cookie
         && signed.body.profile?.name === value.name, "actual password/RPC admission produces an encrypted owner cookie");
@@ -528,18 +555,42 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
       check(missing.response.status === forgot.response.status && missing.body.state === forgot.body.state
         && Object.keys(missing.body).sort().join(",") === Object.keys(forgot.body).sort().join(",")
         && missing.body.requestId && !mail.has(missing.body.requestId), "existing/unknown recovery exposes identical envelopes without unknown delivery");
-      const nextPassword = randomBytes(36).toString("hex");
-      check(Buffer.byteLength(nextPassword, "utf8") === 72, "genuine handler reset uses the provider's exact password byte limit");
+      const shortReset = await post({ action: "reset", name: value.name, email: value.email, password: shortPassword,
+        requestId: forgot.body.requestId, code: resetMail.code }, cookie);
+      check(shortReset.response.status === 400 && shortReset.body.state === "invalid_input"
+        && shortReset.body.fieldErrors?.password === "invalid", "nine-codepoint reset password is rejected");
+      check(await query(`select (c.state='sent' and c.failed_attempts=0
+        and not exists(select 1 from msrc_participant.operations o where o.challenge_id=c.id))::text
+        from msrc_participant.challenges c where c.id=${text(forgot.body.requestId)};`) === "true",
+        "short reset does not consume or penalize a valid code");
+      const nextPassword = randomBytes(3).toString("hex") + "🙂دذر";
+      check(Array.from(nextPassword).length === 10, "reset fixture is exactly ten Unicode codepoints");
       const reset = await post({ action: "reset", name: value.name, email: value.email, password: nextPassword,
         requestId: forgot.body.requestId, code: resetMail.code }, cookie);
-      check(reset.response.status === 200 && reset.body.state === "password_reset", "full reset handler consumes proof and completes native password mutation");
+      check(reset.response.status === 200 && reset.body.state === "password_reset", "same reset code succeeds with exactly ten codepoints");
       const old = await get(cookie);
       check(old.body.state === "ready" && old.body.profile === null, "previous encrypted cookie loses own profile access after reset");
-      const oldPassword = await post({ action: "signin", email: value.email, password });
+      const oldPassword = await post({ action: "signin", email: value.email, password: minimumPassword });
       check(oldPassword.response.status === 401 && oldPassword.body.state === "invalid_credentials", "old password is denied through the actual application handler");
       const fresh = await post({ action: "signin", email: value.email, password: nextPassword });
       check(fresh.response.status === 200 && fresh.body.state === "authenticated" && fresh.body.profile?.name === value.name,
         "new password completes genuine application admission");
+      await query(`update msrc_participant.limit_events set occurred_at=clock_timestamp()-interval '61 seconds'
+        where kind='issue_email' and subject_hash=${text(participantHash(config, "email", value.email))};`);
+      const boundaryForgot = await post({ action: "forgot", email: value.email });
+      check(boundaryForgot.response.status === 202 && boundaryForgot.body.requestId, "final provider-boundary reset proof is admitted normally");
+      const boundaryMail = mail.get(boundaryForgot.body.requestId);
+      check(boundaryMail?.purpose === "reset_password", "provider-boundary reset code is held only in memory");
+      const boundaryPassword = randomBytes(36).toString("hex");
+      check(Buffer.byteLength(boundaryPassword, "utf8") === 72, "genuine handler reset retains the exact provider password byte limit");
+      const boundaryReset = await post({ action: "reset", email: value.email, password: boundaryPassword,
+        requestId: boundaryForgot.body.requestId, code: boundaryMail.code });
+      check(boundaryReset.response.status === 200 && boundaryReset.body.state === "password_reset", "72-byte reset remains compatible with genuine native Auth");
+      const boundaryLogin = await post({ action: "signin", email: value.email, password: boundaryPassword });
+      check(boundaryLogin.response.status === 200 && boundaryLogin.body.state === "authenticated", "provider-boundary password authenticates through the handler");
+      const legacyLogin = await post({ action: "signin", email: legacy.email, password: shortPassword });
+      check(legacyLogin.response.status === 200 && legacyLogin.body.state === "authenticated"
+        && legacyLogin.body.profile?.name === legacy.name, "existing shorter native password remains admissible at sign-in");
     } finally {
       mail.clear();
       await query(`update msrc_participant.policy set privacy_version=${text(notice)} where singleton;`);

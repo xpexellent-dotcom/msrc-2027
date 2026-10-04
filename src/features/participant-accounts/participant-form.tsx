@@ -91,7 +91,8 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
     const error = draft.fieldErrors?.[field];
     if (!error) return undefined;
     if (error === "required") return copy.required;
-    if (error === "too_long") return copy.tooLong;
+    if (error === "too_long") return field === "password" && screen !== "sign-in" ? copy.passwordTooLong : copy.tooLong;
+    if (field === "password" && screen !== "sign-in") return copy.invalidPassword;
     return field === "email" ? copy.invalidEmail : field === "code" ? copy.invalidCode : copy.invalidField;
   }
   function edit(field: ParticipantField, value: string) { updateParticipantDraft({ [field]: field === "code" ? normalizeParticipantCode(value) : value, outcome: null, fieldErrors: {} }); }
@@ -167,7 +168,7 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
           {needsName ? <FormField id="participant-name" name="name" label={copy.name} value={draft.name} onChange={(event) => edit("name", event.target.value)} autoComplete="name" dir="auto" error={fieldError("name")} required /> : null}
           <FormField id="participant-email" name="email" type="email" label={copy.email} value={draft.email} onChange={(event) => edit("email", event.target.value)} autoComplete={screen === "sign-in" ? "username" : "email"} dir="ltr" spellCheck={false} autoCapitalize="none" error={fieldError("email")} required />
           {needsCode ? <FormField id="participant-code" name="code" label={copy.code} hint={copy.codeHint} value={draft.code} onChange={(event) => edit("code", event.target.value)} inputMode="numeric" autoComplete="one-time-code" dir="ltr" spellCheck={false} maxLength={6} error={fieldError("code")} required /> : null}
-          {needsPassword ? <FormField id="participant-password" name="password" type="password" label={newPassword ? copy.newPassword : copy.password} hint={newPassword ? copy.passwordHint : undefined} value={draft.password} onChange={(event) => edit("password", event.target.value)} autoComplete={newPassword ? "new-password" : "current-password"} dir="ltr" error={fieldError("password")} required /> : null}
+          {needsPassword ? <FormField id="participant-password" name="password" type="password" label={newPassword ? copy.newPassword : copy.password} hint={screen !== "sign-in" ? copy.passwordHint : undefined} value={draft.password} onChange={(event) => edit("password", event.target.value)} autoComplete={newPassword ? "new-password" : "current-password"} dir="ltr" error={fieldError("password")} required /> : null}
           <div className="participant-account-trap" aria-hidden="true"><label htmlFor="participant-website">Website</label><input id="participant-website" name="website" autoComplete="off" tabIndex={-1} /></div>
         </fieldset>
         {needsCode && expiredAt !== null ? <p className="participant-account-time">{codeExpired ? copy.expired : <>{copy.expiresAt} <time dateTime={draft.expiresAt!}>{formattedTime(expiredAt, locale)}</time></>}</p> : null}
