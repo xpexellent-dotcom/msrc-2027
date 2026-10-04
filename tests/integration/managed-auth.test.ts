@@ -141,6 +141,18 @@ describe.skipIf(!ci)("AUTH-04/05 genuine managed APIs on disposable no-delivery 
       $$;
       revoke all on all functions in schema msrc_ci_auth from public,anon,authenticated,service_role;
       grant execute on all functions in schema msrc_ci_auth to supabase_auth_admin;
+      ${process.env.MSRC_CI_LOCK_DIAGNOSTIC === "true" ? `
+      -- Disposable stress run only: preserve the actual DDL locks while the
+      -- cookie fixture acquires its actual identity/grant locks. Distinct markers
+      -- coordinate scheduling without adding a conflicting application lock.
+      select pg_advisory_xact_lock(20272741,1);
+      do $$declare until_at timestamptz:=clock_timestamp()+interval '2 seconds'; begin
+        while clock_timestamp()<until_at loop
+          exit when exists(select 1 from pg_locks where locktype='advisory'
+            and classid=20272741 and objid=2 and granted);
+          perform pg_sleep(0.01);
+        end loop;
+      end$$;` : ""}
       insert into msrc_authorization.edition_config(edition_key) values('${edition}');
       ${([participant, staff, other] as const).map((actor) => `
         insert into auth.users(id,instance_id,aud,role,email,encrypted_password,email_confirmed_at,

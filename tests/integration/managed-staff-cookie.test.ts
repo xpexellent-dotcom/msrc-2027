@@ -239,6 +239,17 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
         values('${id}','active',true);
         ${index === 14 ? "" : `insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
         values('${id}','${edition}','${index === 15 ? "superAdmin" : "contentMediaEditor"}','edition','Disposable cookie fixture');`}`).join("\n")}
+      ${process.env.MSRC_CI_LOCK_DIAGNOSTIC === "true" ? `
+      -- Pair with the managed Auth fixture's DDL marker. Identity/grant rows are
+      -- held exactly as in ordinary setup; the marker keys never conflict.
+      select pg_advisory_xact_lock(20272741,2);
+      do $$declare until_at timestamptz:=clock_timestamp()+interval '2 seconds'; begin
+        while clock_timestamp()<until_at loop
+          exit when exists(select 1 from pg_locks where locktype='advisory'
+            and classid=20272741 and objid=1 and granted);
+          perform pg_sleep(0.01);
+        end loop;
+      end$$;` : ""}
       create table public.msrc_ci_staff_cookie_resource(actor_id uuid primary key,label text not null);
       alter table public.msrc_ci_staff_cookie_resource enable row level security;
       alter table public.msrc_ci_staff_cookie_resource force row level security;
