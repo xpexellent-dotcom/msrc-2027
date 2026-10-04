@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readDeadlockBackends, readDeadlockContext, readDeadlockEdges, readDeadlockRelations, readEventTriggers } from "../integration/deadlock-diagnostics";
+import { readDeadlockBackends, readDeadlockContext, readDeadlockEdges, readDeadlockPhase, readDeadlockRelations, readEventTriggers } from "../integration/deadlock-diagnostics";
 
 describe("isolated PostgreSQL deadlock diagnostics", () => {
   it("retains only lock graph identifiers from verbose errors", () => {
@@ -60,5 +60,13 @@ trigger|secret|private.secret_token
 trigger|name@example.invalid|extensions.function_name`)).toEqual([
       { trigger: "pgrst_ddl_watch", function: "extensions.pgrst_ddl_watch" },
     ]);
+  });
+
+  it("identifies only the last fixed cookie DDL phase", () => {
+    expect(readDeadlockPhase(`MSRC_DIAGNOSTIC_PHASE create_table
+MSRC_DIAGNOSTIC_PHASE grant
+MSRC_DIAGNOSTIC_PHASE owner_policy
+MSRC_DIAGNOSTIC_PHASE secret_token
+MSRC_DIAGNOSTIC_PHASE commit extra-secret`)).toBe("owner_policy");
   });
 });

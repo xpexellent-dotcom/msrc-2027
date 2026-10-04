@@ -66,3 +66,14 @@ export function readEventTriggers(metadata: string): { trigger: string; function
     return match ? [{ trigger: match[1], function: match[2] }] : [];
   });
 }
+
+export function readDeadlockPhase(diagnostics: string): string | undefined {
+  const phases = new Set(["create_table", "enable_rls", "force_rls", "revoke", "grant", "owner_policy",
+    "second_policy", "insert_resource", "notify", "commit"]);
+  let last: string | undefined;
+  for (const line of diagnostics.split(/\r?\n/)) {
+    const phase = line.match(/^MSRC_DIAGNOSTIC_PHASE ([a-z_]+)$/)?.[1];
+    if (phase && phases.has(phase)) last = phase;
+  }
+  return last;
+}

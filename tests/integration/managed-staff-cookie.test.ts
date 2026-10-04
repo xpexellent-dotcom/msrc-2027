@@ -8,7 +8,7 @@ import { createManagedStaffLab, isManagedStaffLabBoundary, MANAGED_STAFF_LAB_COO
   MANAGED_STAFF_LAB_PATH } from "@/features/auth/managed-staff-lab.server";
 import type { StaffEmailStore } from "@/features/auth/staff-email.server";
 import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
-import { readDeadlockBackends, readDeadlockContext, readDeadlockEdges, readDeadlockRelations, readEventTriggers } from "./deadlock-diagnostics";
+import { readDeadlockBackends, readDeadlockContext, readDeadlockEdges, readDeadlockPhase, readDeadlockRelations, readEventTriggers } from "./deadlock-diagnostics";
 
 // Real loopback HTTP + native Auth/private SQL. No browser/SMTP/provider credential,
 // external inbox, hosted project, real account or operational workflow is involved.
@@ -61,6 +61,7 @@ function query(sql: string, diagnoseDeadlock = true): Promise<string> {
       if (sqlState !== "40P01" || !diagnoseDeadlock) { reject(failure); return; }
       const edges = readDeadlockEdges(diagnostics);
       const backend = Number(diagnostics.match(/^MSRC_DIAGNOSTIC_BACKEND ([0-9]{1,10})$/m)?.[1]) || undefined;
+      const phase = readDeadlockPhase(diagnostics);
       const context = readDeadlockContext(diagnostics);
       // Only numeric graph edges and allowlisted catalog identifiers are printed.
       // Input SQL and raw provider diagnostics remain in test-process memory.
@@ -75,10 +76,10 @@ function query(sql: string, diagnoseDeadlock = true): Promise<string> {
         select 'trigger|'||e.evtname||'|'||n.nspname||'.'||p.proname from pg_catalog.pg_event_trigger e
           join pg_catalog.pg_proc p on p.oid=e.evtfoid join pg_catalog.pg_namespace n on n.oid=p.pronamespace;`, false) : Promise.resolve("");
       void metadata.then((value) => {
-        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ backend, edges, context,
+        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ backend, phase, edges, context,
           relations: readDeadlockRelations(value), backends: readDeadlockBackends(value), triggers: readEventTriggers(value) })}\n`);
       }).catch(() => {
-        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ backend, edges, context })}\n`);
+        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ backend, phase, edges, context })}\n`);
       }).finally(() => reject(failure));
     });
     child.stdin.on("error", () => {});
@@ -259,19 +260,29 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
           perform pg_sleep(0.01);
         end loop;
       end$$;` : ""}
+      \\warn MSRC_DIAGNOSTIC_PHASE create_table
       create table public.msrc_ci_staff_cookie_resource(actor_id uuid primary key,label text not null);
+      \\warn MSRC_DIAGNOSTIC_PHASE enable_rls
       alter table public.msrc_ci_staff_cookie_resource enable row level security;
+      \\warn MSRC_DIAGNOSTIC_PHASE force_rls
       alter table public.msrc_ci_staff_cookie_resource force row level security;
+      \\warn MSRC_DIAGNOSTIC_PHASE revoke
       revoke all on public.msrc_ci_staff_cookie_resource from public,anon,authenticated;
+      \\warn MSRC_DIAGNOSTIC_PHASE grant
       grant select on public.msrc_ci_staff_cookie_resource to authenticated;
+      \\warn MSRC_DIAGNOSTIC_PHASE owner_policy
       create policy cookie_owner on public.msrc_ci_staff_cookie_resource for select to authenticated
         using(actor_id=(select auth.uid()) and exists(select 1 from jsonb_array_elements(
           (select public.msrc_read_access_context('${edition}'))->'grants') g where g->>'role'='contentMediaEditor'));
+      \\warn MSRC_DIAGNOSTIC_PHASE second_policy
       create policy cookie_second_step on public.msrc_ci_staff_cookie_resource as restrictive for select to authenticated
         using((select public.msrc_second_step_satisfied()));
+      \\warn MSRC_DIAGNOSTIC_PHASE insert_resource
       insert into public.msrc_ci_staff_cookie_resource values
         ${actors.map((id) => `('${id}','Synthetic private cookie resource')`).join(",\n")};
+      \\warn MSRC_DIAGNOSTIC_PHASE notify
       notify pgrst,'reload schema';
+      \\warn MSRC_DIAGNOSTIC_PHASE commit
       commit;`);
     await waitForDataApiFixture();
     const bound = (input: { actorId: string; sessionId: string; challengeId: string }) => {
