@@ -6,6 +6,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      auth_stability:
+        description: 'Five fail-fast cold database passes and repeated staff keyboard checks'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -42,9 +47,19 @@ jobs:
       - name: Install test browser
         run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+        if: ${{ !inputs.auth_stability }}
       - name: Verify local-only synthetic staff security lab
+        if: ${{ !inputs.auth_stability }}
         run: pnpm exec playwright test --config playwright.auth.config.ts
+      - name: Repeat staff hydration and session keyboard assertions without retries
+        if: ${{ inputs.auth_stability }}
+        shell: bash
+        run: |
+          for project in auth-desktop auth-tablet auth-mobile; do
+            pnpm exec playwright test --config playwright.auth.config.ts --project="$project" --grep 'keyboard login waits|regular staff password and session email check' --repeat-each=5
+          done
       - name: Verify Contact on and off with loopback mocks, never email
+        if: ${{ !inputs.auth_stability }}
         run: pnpm exec playwright test --config playwright.contact.config.ts
       - name: Upload browser evidence
         if: ${{ !cancelled() }}
@@ -114,7 +129,17 @@ jobs:
       - name: Prepare local public client settings without printing credentials
         run: pnpm db:env
       - name: Verify browser and server wrappers against the local Data API
+        if: ${{ !inputs.auth_stability }}
         run: pnpm db:integration
+      - name: Repeat the concurrent integration suites from five cold fixture states
+        if: ${{ inputs.auth_stability }}
+        shell: bash
+        run: |
+          for pass in 1 2 3 4 5; do
+            printf 'Cold fixture pass %s of 5\n' "$pass"
+            pnpm db:reset
+            pnpm db:integration
+          done
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop

@@ -1,5 +1,54 @@
 # Progress and session handover
 
+## 4 October 2026 — Staff Auth CI stability
+
+Branch `codex/auth-ci-stability` starts at freshly fetched main `bc2fb87` (PR36 merged),
+in an isolated worktree; original caller edits are preserved. No open PRs at preflight.
+Shared logs do not count as overlap under the requester's clarified rule.
+
+- AUTH-04/05, LOC-01, ERR-01: reproduced the lost keyboard activation with Next client
+  scripts withheld. The enabled SSR button accepted Enter before listeners existed:
+  zero start requests, no session, focus stayed on the button; the original heading
+  focus assertion failed. Initial controls now stay disabled through hydration and
+  initial status restoration. A deterministic regression holds both boundaries.
+- SEC-01/06: reproduced PR36's SQLSTATE `40P01` with controlled scheduling in
+  disposable CI. The cookie fixture held an exclusive `auth.identities` lock and
+  waited for exclusive `auth.users`; managed Auth held `auth.users` for its insert
+  and waited to insert `auth.identities`. Numeric backend attribution proves the
+  cookie fixture is the requester, rather than a native Auth background process.
+  Run `37216543432` cold pass five identifies `owner_policy` as the failed statement;
+  four preceding passes succeeded, demonstrating why repetition alone cannot fix it.
+  CLI2.118 pins Postgres17.6.1.171 and preloaded supautils3.4.3. Its CREATE POLICY
+  grant check scans the postgres allowlist in identities/users order with exclusive
+  locks retained to commit, even for an unrelated public fixture policy. See the
+  [pinned hook](https://github.com/supabase/supautils/blob/v3.4.3/src/policy_grants.c#L155),
+  [pinned allowlist](https://github.com/supabase/postgres/blob/17.6.1.171/ansible/files/postgresql_config/supautils.conf.j2#L2)
+  and [upstream fix](https://github.com/supabase/supautils/commit/42cc7f0c4b2655ee3f70a834e253e6a79c66f1d6).
+  Fixture DDL now runs before concurrent integration workers, with teardown after
+  all workers. No retries, larger timeouts, assertion removal, suite serialization,
+  production schema change or dependency upgrade is needed.
+- Added opt-in `workflow_dispatch` `auth_stability`: five independent cold database
+  resets with the original concurrent integration suites, and five browser repeats.
+  This is fail-fast repeated verification, not retries after failure.
+- PASS: Node24.21.0 frozen-lockfile install; lint; typecheck; 1,769 unit tests/42 files;
+  production build. Post-fix browser: 180/180 focused checks (ten repeats per EN/AR
+  flow and desktop/tablet/mobile), plus the full 81/81 staff suite. Fresh project
+  servers preserve the existing 20/IP/hour quota; an initial combined repetition
+  exhausted that quota and was stopped without changing limits or assertions.
+  Initial isolated stability run `37214660390`: PASS five cold concurrent database
+  suites, each 73/73, and 60 repeated EN/AR keyboard cases. These are samples, not
+  evidence of a deadlock fix. Post-fix run `37216937368` at code head `6675fe9`:
+  PASS all five cold concurrent suites, 73/73 each; PASS 60 repeated EN/AR keyboard
+  cases plus lint/types/units/build. Normal PR database job `111479311913` also PASS;
+  full public/browser regression remains running when this note is recorded.
+  Local managed DB execution is BLOCKED: suites intentionally require a disposable
+  GitHub-hosted Linux runner; the Windows Docker daemon is also unavailable.
+- Separate PR: [37](https://github.com/xpexellent-dotcom/msrc-2027/pull/37).
+  Participant preflight freshly fetched main remains `bc2fb87`; open PR37 is staff
+  preview/fixture lifecycle/CI only, and PR38 changes only shared PROGRESS. No account
+  implementation overlap. Next: BL-AUTH-02/03/04/06 participant/08 shell on a new
+  branch from main. No hosted changes or real email.
+
 ## 4 October 2026 — Live QA after PR32–36, and a font-preload experiment
 
 Checked the live site at main `bc2fb87` from the owner's Windows PC (Node 25.6.0, Playwright 1.63 Chromium and WebKit). No code changed.
@@ -24,6 +73,7 @@ Font-preload experiment, not adopted. Local production builds, Chromium with a P
 | main with the poster at default priority | 2024 | 3100 | 0.001 | 2028 | 3352 | 0.020 |
 
 The hero headline is DM Sans, not Manrope. On English pages LCP waits for DM Sans, and the 108 KB poster's `fetchPriority="high"` makes no measurable difference. Not preloading the Latin fonts brings both languages under the 2.5 s target, but on a slow phone the English headline is first drawn in the fallback. When DM Sans arrives, “Where curiosity” goes from one line to two and the hero moves about 55 px (CLS 0.034). At 412 px the line is within 3 px of wrapping, so no fallback metric override hides it reliably. Arabic pages pay for three Latin font preloads they barely use (only the wordmark is Latin above the fold), and dropping them would cut `/ar` LCP by about 0.8–0.9 s. `next/font` preloads per layout, not per locale, so an Arabic-only change needs Latin preloads chosen per locale, for example self-hosted files with a locale-specific `<link rel="preload">`. Left for a design decision; the measurement scripts are not committed.
+
 
 ## 4 October 2026 — BL-PUB-06 default-off Resend Contact delivery
 
