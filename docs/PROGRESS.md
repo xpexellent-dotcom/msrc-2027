@@ -2486,7 +2486,7 @@ real signup can run even if the server flag is set. Database defaults are false/
 null. No hosted migrations/settings, deployment, real user or communication occurred.
 
 - PASS: locked install (Node24.21.0/pnpm11.19.0), final `pnpm check`: lint, typecheck,
-  1,805 unit tests/42 files and 65-page production build. API review added regressions
+  1,809 unit tests/42 files and 65-page production build. API review added regressions
   for retained-name recovery, thrown logout and timing-safe acknowledgement.
 - PASS: final 36/36 flag-on synthetic presentation cases across EN/AR desktop/tablet/mobile,
   26/26 default-off raw route/API cases, keyboard/focus, 200% text and 18 axe scans with
@@ -2502,8 +2502,17 @@ null. No hosted migrations/settings, deployment, real user or communication occu
   native cases, including real handler→SDK→Data API signup/verify/login/reset/old-session
   denial. Only delivery is captured in memory. The response precedes account-dependent/
   provider work via bounded Next `after`, with flag rechecks and no retries.
-  Final code `fe5e39b` repeats the same native proof plus all 36 enabled/26 closed
+  Code `fe5e39b` repeats the same native proof plus all 36 enabled/26 closed
   browser cases in [37221915493](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37221915493).
+- PASS: final provider validation `6e19ca6` rejects passwords above the pinned Auth
+  72-byte UTF-8 limit before signup or code consumption. All four ASCII/Arabic regressions
+  first failed, then passed; final `pnpm check` passed all 1,809 tests. Disposable native
+  job in [37224383368](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37224383368)
+  passed 637 pgTAP assertions and 19 native cases, including a real handler reset using
+  exactly 72 password bytes. Both participant CI jobs passed, repeating all 36 enabled/
+  26 closed browser cases and 18 axe scans. This final change adds validation without
+  changing UI flows. Subsequent documentation only clarifies policy/env matching and
+  appends these evidence receipts.
 - General CI [37220910506](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37220910506)
   FAIL: inherited `managed-staff-cookie` fixture `40P01` at main's old setup. PR37 fixes
   that independently and must land before the accounts PR's general database job can

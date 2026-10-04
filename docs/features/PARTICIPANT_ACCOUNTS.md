@@ -77,7 +77,7 @@ participant recovery.
 | BL-AUTH-02 | AUTH-01/06, DAT-01/04, SEC-01, LOC-01 | Minimum fields, managed password auth, generic duplicate handling, own profile |
 | BL-AUTH-03 | AUTH-02, ACC-01, EML-01, SEC-01 | Six-digit protected, expiring, replacement/single-use verification and abuse controls |
 | BL-AUTH-04 | AUTH-03/05, SEC-01, EML-01, ERR-01 | Generic throttled code recovery, native password update and old-session denial |
-| BL-AUTH-06 participant part | AUTH-05, SEC-06, ERR-01; ORG-019 | Server/database 72-hour absolute admission and revocation |
+| BL-AUTH-06 participant part | AUTH-05, ROL-12, SEC-06, ERR-01; ORG-019 | Server/database 72-hour absolute admission and revocation |
 | BL-AUTH-08 shell only | SCP-03, ROL-02, DAT-03, LOC-01, ERR-01 | Owner-scoped account/name/closed-registration state; no domain actions |
 
 ## Exact activation prerequisites
@@ -117,9 +117,14 @@ participant recovery.
 5. Complete disposable migration/RLS/native-API tests and EN/AR keyboard/RTL/axe tests.
    Then run separately authorized human inbox, second-device reset/revocation,
    screen-reader and mobile UAT. API acceptance alone is not inbox delivery.
-6. Set the database policy to the approved notice and approved email budget, enable
-   participant readiness and set `PARTICIPANT_ACCOUNTS_ENABLED=true` in Production with
-   a redeploy. Registration and every operational release gate remain closed.
+6. Through the reviewed database-owner release procedure, configure the singleton
+   `msrc_participant.policy` row: `privacy_version` must exactly match the approved
+   repository notice, and `email_daily_limit` must exactly match
+   `PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT` within the database range `1..100000`. This range
+   is a technical bound, not approved sending capacity. Set `enabled=true` only after
+   the preceding gates pass, then set `PARTICIPANT_ACCOUNTS_ENABLED=true` in Production
+   with a redeploy. Any budget/notice mismatch leaves the application closed.
+   Registration and every operational release gate remain closed.
 
 ### Required server environment
 
@@ -130,7 +135,7 @@ participant recovery.
 | `PARTICIPANT_SUPABASE_URL` | `https://ecemjggwlzqpjcwmchrl.supabase.co` |
 | `PARTICIPANT_SUPABASE_PUBLISHABLE_KEY` | Selected project's modern `sb_publishable_...` key |
 | `PARTICIPANT_SUPABASE_SECRET_KEY` | Private modern `sb_secret_...` key; never exposed to the browser or used as a JWT bearer |
-| `PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT` | Positive hard cap fitting actual shared quota and the approved sending forecast |
+| `PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT` | Approved hard cap fitting actual shared quota/forecast; `1..100000`, exactly matching `msrc_participant.policy.email_daily_limit` |
 | `PARTICIPANT_EDITION_KEY` | Existing intended edition identifier; no invented edition or operational window |
 | `RESEND_API_KEY` | Existing verified-domain Sending-only key, stored privately |
 

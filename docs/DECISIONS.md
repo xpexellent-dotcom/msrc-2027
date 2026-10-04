@@ -1613,6 +1613,9 @@ an explicit email budget. Supabase owns all password hashing and native password
 mutations. Database admission and transaction-bound one-use operations prevent raw
 native verification/recovery tokens or participant recovery from bypassing controls
 or changing a privileged actor. Existing stronger all-edition roles still prevail.
+Server validation respects the pinned native Auth provider's 72-byte UTF-8 password
+maximum, including Arabic, before account creation or code consumption. This is provider
+compatibility rather than a new organizer password-policy decision.
 Email templates use the approved Resend sender and English text; the custom Supabase
 SMTP plan is documented without changing hosted settings.
 
