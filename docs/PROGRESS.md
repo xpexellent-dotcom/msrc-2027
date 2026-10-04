@@ -721,6 +721,15 @@ delivery and session enforcement while recovery and live access remain closed.
 
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
+## 4 October 2026 — Contact email: send visitor text as written (follow-up to PR 34)
+
+Review of PR 34 found that the text-only contact email HTML-escaped every field. Staff would have read `Sponsors &amp; partners` and `Research &amp; abstracts` in every email on those topics, and names such as O'Brien as `O&#39;Brien`. A text-only email has no HTML part, so mail clients already show `<` and `&` literally.
+
+- `src/features/contact/delivery.server.ts`: `escapeContactText` removed; labels and visitor fields are sent as written. Validation still rejects header-breaking characters, the fixed sender, recipient and Reply-To rules are unchanged, and no `html` part is sent.
+- `tests/unit/contact-delivery.test.ts`: topic labels contain no entities; `Sara O'Brien` and `Q&A <test> "quoted"` arrive unchanged, and no `html` property exists.
+
+Verification: `pnpm check` PASS (ESLint, typegen/tsc, Vitest 1766/1766, build). `playwright.contact.config.ts` (mock provider and counters): 44/44. Delivery remains off in production.
+
 ## 3 October 2026 — ORG-015 narrow regular-staff email amendment
 
 Reviewed current PR19 draft, main `59d82a6`, existing code and ORG-013/014 before edits.
