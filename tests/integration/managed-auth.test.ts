@@ -7,6 +7,7 @@ import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
 import { createSupabaseTotpContract } from "@/features/auth/mfa-provider.server";
 import { totpAt } from "@/features/auth/totp.server";
+import { readDeadlockEdges, readDeadlockRelations } from "./deadlock-diagnostics";
 
 // Genuine GoTrue/SDK exchanges on the disposable CI stack, not hosted delivery/UAT.
 // Generated credentials, OTPs and SDK responses never enter assertion snapshots.
@@ -43,23 +44,40 @@ function boundary(): { url: string; publishableKey: string } {
   return resolved;
 }
 
-function query(sql: string): Promise<string> {
+function query(sql: string, diagnoseDeadlock = true): Promise<string> {
   boundary();
   return new Promise((resolve, reject) => {
     const child = spawn("docker", ["exec", "-i", "supabase_db_msrc2027-local", "psql", "-X", "-q",
-      "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
+      "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=verbose", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
     let output = "";
+    let diagnostics = "";
     let sqlState = "unknown";
     const timeout = setTimeout(() => { child.kill(); reject(new Error("Isolated managed Auth SQL timed out.")); }, 10_000);
     child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
     // psql diagnostics can include input credentials. Never forward them.
     child.stderr.on("data", (chunk: Buffer) => {
-      const state = chunk.toString().match(/(?:ERROR|FATAL):\s+([0-9A-Z]{5})(?:\s|$)/)?.[1];
+      diagnostics = (diagnostics + chunk.toString()).slice(-65_536);
+      const state = diagnostics.match(/(?:ERROR|FATAL):\s+([0-9A-Z]{5})(?:[\s:]|$)/)?.[1];
       if (state) sqlState = state;
     });
     child.on("error", () => { clearTimeout(timeout); reject(new Error("Isolated managed Auth SQL could not start.")); });
     child.on("close", (code) => { clearTimeout(timeout);
-      if (code === 0) resolve(output.trim()); else reject(new Error(`Isolated managed Auth SQL failed (SQLSTATE ${sqlState}); sensitive diagnostics withheld.`)); });
+      if (code === 0) { resolve(output.trim()); return; }
+      const failure = new Error(`Isolated managed Auth SQL failed (SQLSTATE ${sqlState}); sensitive diagnostics withheld.`);
+      if (sqlState !== "40P01" || !diagnoseDeadlock) { reject(failure); return; }
+      const edges = readDeadlockEdges(diagnostics);
+      // No input SQL or raw provider diagnostic is printed. A catalog-only query
+      // maps numeric relation OIDs; unknown relation names are withheld as well.
+      const relations = edges.filter((edge) => edge.kind === "relation").map((edge) => edge.resource);
+      const metadata = relations.length ? query(`select c.oid,n.nspname||'.'||c.relname
+        from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+        where c.oid in (${relations.join(",")});`, false) : Promise.resolve("");
+      void metadata.then((value) => {
+        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ edges, relations: readDeadlockRelations(value) })}\n`);
+      }).catch(() => {
+        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ edges })}\n`);
+      }).finally(() => reject(failure));
+    });
     child.stdin.on("error", () => {});
     child.stdin.end(sql);
   });

@@ -1,5 +1,30 @@
 # Progress and session handover
 
+## 4 October 2026 — Staff Auth CI flake investigation
+
+Branch `codex/auth-ci-stability` starts at freshly fetched main `bc2fb87` (PR36 merged),
+in an isolated worktree; original caller edits are preserved. No open PRs at preflight.
+Shared logs do not count as overlap under the requester's clarified rule.
+
+- AUTH-04/05, LOC-01, ERR-01: reproduced the lost keyboard activation with Next client
+  scripts withheld. The enabled SSR button accepted Enter before listeners existed:
+  zero start requests, no session, focus stayed on the button; the original heading
+  focus assertion failed. Initial controls now stay disabled through hydration and
+  initial status restoration. A deterministic regression holds both boundaries.
+- SEC-01/06: PR36 attempt 1 database job `111464712521` failed in managed-Auth setup
+  with SQLSTATE `40P01`. Exact lock graph is NOT YET VERIFIED; credential-safe numeric
+  graph diagnostics will identify it rather than assuming a lock cause. Raw SQL and
+  credentials are never forwarded. Existing assertions and timeouts/retries remain.
+- Added opt-in `workflow_dispatch` `auth_stability`: five independent cold database
+  resets with the original concurrent integration suites, and five browser repeats.
+  This is fail-fast repeated verification, not retries after failure.
+- PASS: Node24.21.0 frozen-lockfile install; lint; typecheck; 1,769 unit tests/42 files;
+  production build. Repeated browser and disposable Linux DB checks are in progress.
+  Local managed DB execution is BLOCKED: suites intentionally require a disposable
+  GitHub-hosted Linux runner; the Windows Docker daemon is also unavailable.
+- Next: verify the lock graph, apply its minimal fix, complete repeated evidence, then
+  start BL-AUTH-02/03/04/06 participant/08 shell. No hosted changes or real email.
+
 ## 4 October 2026 — BL-PUB-06 default-off Resend Contact delivery
 
 Fresh fetch verified main `9971534` includes merged PR30 and PR32. Reused the attached

@@ -8,6 +8,7 @@ import { createManagedStaffLab, isManagedStaffLabBoundary, MANAGED_STAFF_LAB_COO
   MANAGED_STAFF_LAB_PATH } from "@/features/auth/managed-staff-lab.server";
 import type { StaffEmailStore } from "@/features/auth/staff-email.server";
 import { readVerifiedSessionContext } from "@/lib/supabase/session.server";
+import { readDeadlockEdges, readDeadlockRelations } from "./deadlock-diagnostics";
 
 // Real loopback HTTP + native Auth/private SQL. No browser/SMTP/provider credential,
 // external inbox, hosted project, real account or operational workflow is involved.
@@ -38,22 +39,39 @@ function boundary() {
     configuration: readFileSync("supabase/config.toml", "utf8"), linked: existsSync("supabase/.temp/project-ref") }),
   "unlinked disposable loopback runner");
 }
-function query(sql: string): Promise<string> {
+function query(sql: string, diagnoseDeadlock = true): Promise<string> {
   boundary();
   return new Promise((resolve, reject) => {
     const child = spawn("docker", ["exec", "-i", "supabase_db_msrc2027-local", "psql", "-X", "-q",
-      "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
+      "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=verbose", "-U", "postgres", "-d", "postgres", "-At"], { stdio: ["pipe", "pipe", "pipe"] });
     let output = "";
+    let diagnostics = "";
     let sqlState = "unknown";
     const timeout = setTimeout(() => { child.kill(); reject(new Error("Disposable cookie SQL timed out.")); }, 10_000);
     child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
     child.stderr.on("data", (chunk: Buffer) => {
-      const state = chunk.toString().match(/(?:ERROR|FATAL):\s+([0-9A-Z]{5})(?:\s|$)/)?.[1];
+      diagnostics = (diagnostics + chunk.toString()).slice(-65_536);
+      const state = diagnostics.match(/(?:ERROR|FATAL):\s+([0-9A-Z]{5})(?:[\s:]|$)/)?.[1];
       if (state) sqlState = state;
     });
     child.on("error", () => { clearTimeout(timeout); reject(new Error("Disposable cookie SQL could not start.")); });
     child.on("close", (code) => { clearTimeout(timeout);
-      if (code === 0) resolve(output.trim()); else reject(new Error(`Disposable cookie SQL failed (SQLSTATE ${sqlState}); sensitive diagnostics withheld.`)); });
+      if (code === 0) { resolve(output.trim()); return; }
+      const failure = new Error(`Disposable cookie SQL failed (SQLSTATE ${sqlState}); sensitive diagnostics withheld.`);
+      if (sqlState !== "40P01" || !diagnoseDeadlock) { reject(failure); return; }
+      const edges = readDeadlockEdges(diagnostics);
+      // Only numeric graph edges and allowlisted catalog identifiers are printed.
+      // Input SQL and raw provider diagnostics remain in test-process memory.
+      const relations = edges.filter((edge) => edge.kind === "relation").map((edge) => edge.resource);
+      const metadata = relations.length ? query(`select c.oid,n.nspname||'.'||c.relname
+        from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+        where c.oid in (${relations.join(",")});`, false) : Promise.resolve("");
+      void metadata.then((value) => {
+        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ edges, relations: readDeadlockRelations(value) })}\n`);
+      }).catch(() => {
+        process.stderr.write(`Isolated SQL deadlock graph: ${JSON.stringify({ edges })}\n`);
+      }).finally(() => reject(failure));
+    });
     child.stdin.on("error", () => {});
     child.stdin.end(sql);
   });
