@@ -721,6 +721,19 @@ delivery and session enforcement while recovery and live access remain closed.
 
 **Snapshot: 3 October 2026. Update this file after each development task.**
 
+## 4 October 2026 — Contact form live in production
+
+Requester-authorized activation, following `docs/features/contact-delivery.md`:
+
+- **Hosted migration:** with explicit requester approval, Claude applied only `20261004114603_contact_abuse_counters.sql` to the Production Supabase project `msrc` (`ecemjggwlzqpjcwmchrl`) through the Supabase connector, as `postgres`. The history row the connector created under its own timestamp was renamed to `20261004114603`, so history matches the repository; no other migration was applied or recorded. Persisted authorization (`20261002173712`) remains the only earlier entry, and PR 25's staff/session migrations are still unapplied.
+- **Read-only verification (PASS):** `attempt_buckets` has RLS enabled and forced. `anon` and `authenticated` have no schema, table or RPC access, and `service_role` can execute `msrc_contact_reserve_attempt`. `pg_cron` is installed with `msrc-contact-expiry` (`*/5 * * * *`, active, owner `postgres`). There were 0 counter rows before activation.
+- **Configuration (requester, Vercel Production):** `RESEND_API_KEY` (Sending access, msrc2027.com), `CONTACT_SUPABASE_SECRET_KEY` (dedicated secret key `contact_vercel`), `CONTACT_SUPABASE_URL` and `CONTACT_SECURITY_SECRET`. First redeployed with delivery off (EN/AR closed, `503 CONTACT_CLOSED`, 26 public pages swept clean), then `CONTACT_DELIVERY_ENABLED=true` and a second redeploy. Rate and fill-time settings use the code defaults (3/hour, 10/day per IP and per email, 3 seconds), accepted by the requester.
+- **Live checks:** `GET /api/contact?locale=en` returned `ready`. EN and AR forms render enabled with 9 topics and no console errors. Human tests by the requester: the EN Registration message arrived in the conference inbox from `MSRC 2027 <no-reply@msrc2027.com>` with the `[MSRC Registration]` subject tag, the Gmail label applied, `Test O'Brien & Co` shown unescaped (PR 35) and Reply-To set to the visitor's address. The AR Sponsors & partners message arrived and was labelled correctly with readable Arabic. PASS.
+- **Subject format kept:** `<tag> <first line of the message, up to 80 characters>` (requester reviewed).
+- **Requester decisions recorded:** contact emails in the Gmail inbox are deleted one year after the conference, matching registrations. Resend's US storage and 30-day retention go to the privacy-wording owner for the final Privacy text.
+- **Rollback:** set `CONTACT_DELIVERY_ENABLED=false` (or remove it) and redeploy. For an emergency stop before the redeploy finishes, revoke the Resend key. Counters expire on their own.
+- **Still open:** final Privacy/Terms wording; staff authentication email remains a separate gate (contact uses at most 60 of Resend's 100 daily free sends); provider, bounce and pg_cron health monitoring.
+
 ## 4 October 2026 — Contact email: send visitor text as written (follow-up to PR 34)
 
 Review of PR 34 found that the text-only contact email HTML-escaped every field. Staff would have read `Sponsors &amp; partners` and `Research &amp; abstracts` in every email on those topics, and names such as O'Brien as `O&#39;Brien`. A text-only email has no HTML part, so mail clients already show `<` and `&` literally.
