@@ -1,6 +1,5 @@
-/** BL-PUB-06 / SUP-01–03. Fixed organizer routing; delivery is not approved. */
+/** BL-PUB-06 / SUP-01–03. Public routing only; delivery configuration is server-only. */
 export const contactConfig = Object.freeze({
-  deliveryEnabled: false,
   recipient: "contact@msrc2027.com",
   sender: "no-reply@msrc2027.com",
   // Engineering input bounds, not approved production rate/abuse policy.

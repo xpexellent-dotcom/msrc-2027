@@ -1519,3 +1519,75 @@ ORG-022–024 retain Emad Khoja's wording/approval responsibility, Abdulrahman I
 retention decision and Akram Awan's request-handling responsibility as internal records.
 The photography-publication section stays a placeholder for Emad; this copy amendment
 does not approve it, appoint a different owner or activate collection/delivery.
+
+## ORG-028 — Contact Resend provider and routing, 4 October 2026
+
+Authority: explicit organizer instruction. For BL-PUB-06 only, use Resend through a
+server-only direct HTTP fetch, with no added SDK. The organizer reports that
+`msrc2027.com` is verified in Resend and the Vercel Production-only `RESEND_API_KEY`
+is set with Sending access restricted to that domain. This is supplied configuration
+evidence, not a fresh credential inspection or successful application delivery test.
+
+From is `MSRC 2027 <no-reply@msrc2027.com>`; every topic goes to
+`contact@msrc2027.com`. Reply-To is the validated visitor email; subjects preserve
+ORG-021's ordered tags and derived short summary. Use plain text with escaped visitor
+input and the visitor's EN/AR language, English envelope labels, no HTML or attachments.
+No automatic reply goes to the visitor. Add no provider accounts, DNS changes or secrets.
+
+This supersedes ORG-021/ENG-015's no-provider/permanently-closed implementation for
+Contact only. The default remains closed; no hosted migration, production setting,
+merge, deployment or real email is authorized in this implementation task. Staff email
+delivery, grants, participant flows, authenticator MFA, session policies and all other
+operational gates are unchanged. Source specification v0.5 is preserved.
+
+## ORG-029 — Contact delivery switch, abuse counters and data boundary, 4 October 2026
+
+Authority: explicit organizer instruction. Require server-only
+`CONTACT_DELIVERY_ENABLED=true`; without it retain the original closed form and
+before-input API denial. Keep the honeypot and add minimum fill time, per-IP and per-email
+hour/day limits using only expiring hashed counters in the existing Supabase project,
+forced RLS and no browser access. The Contact global cap is **60 admitted attempts per
+UTC day**, preserving headroom under the organizer-reported Resend 100/day plan budget.
+Contact reservations are charged before the provider attempt; failures/uncertainty are
+not refunded. This cap does not itself reserve or enforce quotas for future staff emails.
+
+The instruction's `3/hour` and `10/day` are examples. The implementation proposes these
+for each IP/email and a 3-second minimum fill time as configurable engineering defaults;
+organizer confirmation is still requested. They are not silently recorded as approved
+production policy. No app/database/log/analytics copy of inquiry content is retained.
+Application submission logs contain only outcome (`sent`, `rejected`, `limited`) and
+allowlisted topic. Plaintext email necessarily passes through Resend and the receiving
+inbox; the instruction's literal "don't store message content anywhere" conflicts with
+that delivery/reply flow. Clarification of the intended external-storage exception and
+provider/inbox retention remains pending. Public factual copy explains conditional
+Contact processing, superseding ORG-026's no-form-collection description for Contact only.
+This is not new final legal wording or approval of processors, locations/transfers or
+inbox retention. All Privacy/Terms/publication placeholders and ORG-027 role wording remain.
+
+## ENG-016 — Contact admission, delivery and activation boundaries, 4 October 2026
+
+The Contact adapter uses exact-origin checks, Vercel's trusted IP header, bounded JSON,
+strict validation, a signed single-attempt 30-minute token and domain-separated HMAC
+hashes. A service-role-only SECURITY INVOKER RPC serializes five UTC quota buckets and
+a nonce in one transaction. It stores no email/IP plaintext or inquiry content. Forced
+RLS denies browser roles. A pg_cron job physically deletes expired counters every five
+minutes; expiry is not a claim about provider logs, database backups or instant deletion.
+The standalone migration `20261004114603_contact_abuse_counters.sql` is review-only;
+do not push historical pending migrations or apply it to hosted Production in this task.
+
+One Resend attempt has a bounded timeout and idempotency key. Provider acceptance is not
+inbox delivery. Used tokens, ambiguous outcomes and failures do not trigger automatic
+retries. UI retries require explicit fresh-attempt preparation and a separate send action.
+No outbox or inquiry history is added; durable notification/batch delivery remains future
+work. Loopback tests use hard-coded dummy credentials and intercepted services; Vercel
+Preview refuses live delivery even if mistakenly flagged on.
+
+`sb_secret_` counter access is backend-only with `apikey`, not a Bearer token. Supabase's
+secret key carries broad service_role privilege, not native per-RPC scope; isolate custody
+and call only this counter RPC from the adapter. Vercel environment changes take effect
+on a new deployment, so the requested flag is a redeploy switch, not an instantaneous
+runtime kill switch ([Vercel environment variables](https://vercel.com/docs/environment-variables)).
+Resend documents stored data in the US and 30-day email/log retention on Free/Pro/Scale
+([Resend security](https://resend.com/security)); a sending region does not change storage
+location. These are provider facts to review, not organizer-approved privacy settings.
+The activation/rollback runbook records these limits and the remaining manual checks.

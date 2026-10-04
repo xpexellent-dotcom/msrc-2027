@@ -15,7 +15,8 @@
 | Regular staff check | Password then a private user/session-bound application email receipt; no native AAL2; service-only issuance/consume and restrictive RLS predicate. Optional Windows loopback synthetic preview can send a code to the approved test self-inbox without disclosing it in API responses | ORG-015; production SMTP/sender unconfigured, review-only migrations, local preview and no deployment |
 | Read-only authorization | Stable current-assurance and own-role projections for Data API GET/HEAD RLS; no initialization, activity or audit writes. Trusted write RPCs retain native-origin initialization and serialized transitions | ENG-012; additive review-only correction; exact CI proof in PROGRESS; domain resource/storage gates stay closed |
 | Tests | Vitest, appropriate component tools, Playwright, database policy tests | Recommended tooling; verify compatibility at foundation time |
-| Email, malware scanning, advisory assessment | Provider selection and approved configuration required; Contact sender/recipient selected without provider activation | Unresolved CFG-10; ORG-021 |
+| Contact email | Direct server-only Resend fetch; default-off Production gate, fixed inbox, signed token and forced-RLS HMAC counters; reviewed migration not hosted-applied | ORG-028/029; processing/configuration/abuse/human-delivery checks in Contact runbook |
+| Authentication email, malware scanning, advisory assessment | Separate provider/configuration and release approvals remain required; Contact does not open these | Unresolved CFG-10 and auth/privacy/recovery gates |
 | Public analytics/Speed Insights | Existing Production-only Vercel SDKs and sanitized route allowlist; Contact and legal drafts excluded | ORG-008/026; processing/location/final-policy review remains open |
 | Versions, regions, plans, budget | Choose and record explicitly before relevant provisioning | Unresolved; no claims of Saudi hosting |
 
@@ -23,10 +24,14 @@ Do not substitute a new payment merchant or a third-party hosted video embed for
 
 ## Actual foundation layout and reserved boundaries
 
-BL-PUB-06/08 add read-only EN/AR Contact, Privacy and Terms pages. Contact renders a
-disabled form; `/api/contact` returns `503 CONTACT_CLOSED` before reading requests.
-Server-only validation of synthetic values remains separate from that denial path.
-No provider, outbox, persistence, database/storage migration or live workflow is added.
+BL-PUB-06/08 add EN/AR Contact and read-only Privacy/Terms drafts. Contact defaults to
+the disabled form and `/api/contact` returns `503 CONTACT_CLOSED` before reading requests.
+ORG-028/029 add an opt-in Production-only server adapter: validate a bounded same-origin
+request with signed minimum-fill token, reserve private expiring IP/email/nonce/global
+HMAC counters atomically, then attempt one fixed-recipient plaintext Resend request.
+No message persistence, outbox, automatic retry or visitor acknowledgment is added.
+The counter migration is review-only, with hosted application/configuration and human
+delivery checks outstanding. See [Contact activation](features/contact-delivery.md).
 Policy routes expose a labeled dated draft with no effective date; draft policies are
 excluded from indexing/sitemap and the existing observability route allowlist.
 See [feature boundaries and release gates](features/contact-privacy-terms.md).
@@ -165,7 +170,7 @@ Define a provider-independent adapter contract after reviewing the real KAU inte
 
 ### Email and jobs
 
-Use durable persisted jobs with deduplication keys, bounded retries, delivery status, and authorized replay. Keep console/test-recipient mode in local/staging work. Transactional messages are English-only. Queued, provider-accepted, delivered, and failed states must be distinct. [EML-01 to EML-05]
+Use durable persisted jobs with deduplication keys, bounded retries, delivery status, and authorized replay for later operational notifications. Keep console/test-recipient mode in local/staging work. Transactional messages are English-only. Queued, provider-accepted, delivered, and failed states must be distinct. The narrowly approved Contact adapter intentionally has no message outbox or automatic retry: one quota-reserved plaintext attempt, explicit uncertain-send recovery, fixed recipient and provider acceptance distinct from inbox receipt (ORG-028/029). [EML-01 to EML-05]
 
 ORG-016 removes authentication phone collection/verification and SMS. Participants require verified email/password, regular staff require the private exact-session application email check (not email OTP sign-in/native AAL2), and Super Admins require password plus managed authenticator TOTP. Current native factor/session/password proof must match; stale/phone/generic AAL2 evidence denies. There is no configured live SMTP/provider/sender or fallback development email. The local preview uses ephemeral test email messages and one-time transient QR/manual TOTP setup; no real messages are sent. English-only email and all privacy/location/recovery release gates remain.
 

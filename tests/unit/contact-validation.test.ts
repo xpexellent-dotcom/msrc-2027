@@ -34,7 +34,7 @@ describe("Contact fixed topic routing (BL-PUB-06 / SUP-01–03)", () => {
     expect(Object.isFrozen(contactTopics)).toBe(true);
     expect(Object.isFrozen(contactConfig)).toBe(true);
     expect(Object.isFrozen(contactConfig.inputBounds)).toBe(true);
-    expect(contactConfig.deliveryEnabled).toBe(false);
+    expect(contactConfig).not.toHaveProperty("deliveryEnabled");
   });
 
   it.each(mapping)("uses trusted destination and sender for %s", (topic, tag) => {

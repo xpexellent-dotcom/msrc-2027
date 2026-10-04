@@ -3,14 +3,16 @@ import { Select } from "@/components/forms/select";
 import { Button } from "@/components/ui/button";
 import { contactConfig, contactTopics } from "@/config/contact";
 import { contactCopy } from "@/features/contact/contact-copy";
+import { EnabledContactForm } from "@/features/contact/enabled-contact-form";
 import type { Locale } from "@/lib/i18n";
 
 /**
  * BL-PUB-06: a closed, server-rendered form. Disabled native controls and a
  * non-submit button also prevent browser submission when JavaScript is absent.
- * No action, browser storage, client submission code or delivery adapter exists.
+ * Without a server-issued delivery token, the original closed form is retained.
  */
-export function ContactForm({ locale }: { locale: Locale }) {
+export function ContactForm({ locale, delivery }: { locale: Locale; delivery?: { token: string; testOnly?: boolean } }) {
+  if (delivery) return <EnabledContactForm key={`${locale}:${delivery.token}`} locale={locale} token={delivery.token} testOnly={delivery.testOnly} />;
   const copy = contactCopy[locale];
   const bounds = contactConfig.inputBounds;
 
