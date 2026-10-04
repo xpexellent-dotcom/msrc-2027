@@ -32,8 +32,8 @@ attempt. A unique provider idempotency key adds defense without replaying reques
 
 All nine existing tags keep the fixed recipient `contact@msrc2027.com`. From is
 `MSRC 2027 <no-reply@msrc2027.com>`; Reply-To is the validated visitor email. Subject is
-the tag plus the short derived summary. Only an escaped `text` body is sent, with English
-labels and the visitor's EN/AR language/original content. No HTML, attachments or visitor
+the tag plus the short derived summary. Only a `text` body is sent, visitor text as written
+(no HTML part, so nothing renders), with English labels and the visitor's EN/AR language/original content. No HTML, attachments or visitor
 acknowledgment. Provider acceptance shows "Thanks, we'll reply by email"; it is not proof
 of inbox delivery. Errors retain the visitor's form in memory and offer explicit recovery.
 An uncertain send warns about possible duplicates and requires a separate fresh-attempt
