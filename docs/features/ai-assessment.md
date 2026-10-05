@@ -11,9 +11,14 @@ reviewer screens or applicant outcomes in this change.
 response validation, and official Anthropic SDK transport. The payload contains
 only title, specialty, study type, completion status and abstract body. Local
 author and institution context is used to check for identifying text and is never
-included in the provider payload. Email, telephone, author-name, institution,
-licence and IRB canaries block dispatch and return safe categories, without quoting
-the identifying text. Pattern and known-name checks are a screening aid; privacy
+included in the provider payload. Email, telephone, the submission's own author names
+and institution names from the locked snapshot, licence numbers and IRB numbers
+block dispatch and return safe categories, without quoting the identifying text.
+Generic institution words such as "university", "hospital" and "college of medicine"
+(including Arabic equivalents) are non-blocking warnings. For example, "patients
+at a tertiary hospital in Jeddah" can be assessed. Provenance records only the safe
+warning category; it contains no matched names or body excerpts.
+Pattern and known-name checks are a screening aid; privacy
 approval still requires inspection of representative residual leaks and false flags.
 
 The locked snapshot and rubric remain associated with the result. Manuscript text
@@ -30,7 +35,7 @@ AI-03 independent human draft/reveal and separate human follow-up records belong
 BL-AI-03; they are not implemented by this adapter.
 
 Provenance identifies provider, requested and serving model, prompt/rubric versions,
-locked snapshot and assessment time. Changes to the approved configuration require
+locked snapshot, assessment time and non-blocking screening warnings. Changes to the approved configuration require
 fresh matching evidence. Approval digests also bind the credential fingerprint,
 evaluated serving-model allowlist and fixed SDK/endpoint/timeout/retry/cache policy.
 Unknown serving models cannot supply an accepted score. Safe audit events omit manuscript, raw provider output,
@@ -107,7 +112,9 @@ actual model availability is claimed.
 ## Evaluation and reporting
 
 The fixed corpus under `evaluation/ai-assessment/` is artificial and contains about
-25 strong, weak, ongoing, identity-leaking, injection and malformed cases. Its rubric
+29 strong, weak, ongoing, identity-leaking, injection and malformed cases, including
+English/Arabic pairs that allow generic hospital wording and block the submission's
+own named institution. Its rubric
 is conspicuously `UNAPPROVED`. Unit tests run a mocked provider only. Reports preserve
 per-criterion model and human scores, disagreement and override fields, provenance
 and failures. Actual human scores remain absent until supplied; synthetic comparison

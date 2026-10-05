@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { authorize } from "../permissions/authorize.server.ts";
 import type { AuthorityReader, VerifiedPrincipal } from "../permissions/contract.ts";
-import type { AssessmentConfiguration, AssessmentProvider, AssessmentResult, BatchReceipt, BatchSubmission, LockedSnapshot, ManualReason, ProviderResponse } from "./contracts.ts";
+import type { AssessmentConfiguration, AssessmentProvider, AssessmentResult, BatchReceipt, BatchSubmission, LockedSnapshot, ManualReason, ProviderResponse, SanitizationWarning } from "./contracts.ts";
 import { createAnthropicProvider } from "./anthropic.server.ts";
 import { validateConfiguration } from "./configuration.server.ts";
 import { buildAssessmentRequest, buildBatchRequest, parseAssessmentMessage } from "./request.server.ts";
@@ -55,14 +55,15 @@ export function createAssessmentAdapter(dependencies: AdapterDependencies) {
       return { ...validated, actorId: principal.userId };
     } catch { return manual("invalid_configuration"); }
   }
-  function completed(response: ProviderResponse, snapshot: Pick<LockedSnapshot, "id" | "version" | "lockedAt">, ready: Ready): AssessmentResult {
+  function completed(response: ProviderResponse, snapshot: Pick<LockedSnapshot, "id" | "version" | "lockedAt">, ready: Ready, warnings: readonly SanitizationWarning[]): AssessmentResult {
     const parsed = parseAssessmentMessage(response, ready.configuration.rubric);
     if (!parsed.ok) return manual(parsed.reason);
     if (!ready.configuration.servingModelIds.includes(parsed.model)) return manual("invalid_output");
     return { state: "advisory_complete", manualReviewAllowed: true, output: parsed.output,
       provenance: Object.freeze({ provider: "anthropic", requestedModel: ready.configuration.model, model: parsed.model,
         promptVersion: ready.configuration.promptVersion, rubricVersion: ready.configuration.rubric.version,
-        snapshotId: snapshot.id, snapshotVersion: snapshot.version, snapshotLockedAt: snapshot.lockedAt, assessedAt: new Date(now()).toISOString() }) };
+        snapshotId: snapshot.id, snapshotVersion: snapshot.version, snapshotLockedAt: snapshot.lockedAt, assessedAt: new Date(now()).toISOString(),
+        sanitizationWarnings: Object.freeze([...warnings]) }) };
   }
   async function prepare(ready: Ready, count: number, snapshotIds: readonly string[], batch: boolean): Promise<Ready | ReturnType<typeof manual>> {
     try {
@@ -95,7 +96,7 @@ export function createAssessmentAdapter(dependencies: AdapterDependencies) {
       const response = await provider.assess(request);
       const current = await gate(prepared);
       if (!isReady(current)) return current;
-      const result = completed(response, metadata, current);
+      const result = completed(response, metadata, current, sanitized.warnings);
       await dependencies.audit({ event: result.state === "advisory_complete" ? "complete" : "manual_review", actorId: current.actorId,
         configurationDigest: current.digest, ...(result.state === "manual_review" ? { reason: result.reason } : {}), snapshotIds: [metadata.id], timestamp: new Date(now()).toISOString() });
       return result;
@@ -115,7 +116,7 @@ export function createAssessmentAdapter(dependencies: AdapterDependencies) {
       if (seen.has(locked.id)) return manual("invalid_snapshot");
       seen.add(locked.id);
       const customId = randomUUID(); // Never send applicant/snapshot identifiers to the provider.
-      items.push(Object.freeze({ customId, snapshot: Object.freeze({ id: locked.id, version: locked.version, lockedAt: locked.lockedAt }) }));
+      items.push(Object.freeze({ customId, snapshot: Object.freeze({ id: locked.id, version: locked.version, lockedAt: locked.lockedAt }), sanitizationWarnings: sanitized.warnings }));
       requests.push({ custom_id: customId, params: buildBatchRequest(sanitized.payload, ready.configuration.rubric, ready.configuration) });
     }
     const prepared = await prepare(ready, requests.length, [...seen], true);
@@ -150,7 +151,7 @@ export function createAssessmentAdapter(dependencies: AdapterDependencies) {
         const match = registered.items.find(entry => entry.customId === item.custom_id);
         if (!match || received.has(item.custom_id)) return allManual("batch_failed");
         received.set(item.custom_id, item.result.type === "succeeded" && item.result.message
-          ? completed(item.result.message, match.snapshot, fresh) : manual("batch_failed"));
+          ? completed(item.result.message, match.snapshot, fresh, match.sanitizationWarnings) : manual("batch_failed"));
       }
       const finalGate = await gate(fresh);
       if (!isReady(finalGate)) return allManual(finalGate.reason);

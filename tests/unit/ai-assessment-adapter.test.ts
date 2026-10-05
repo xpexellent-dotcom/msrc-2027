@@ -173,7 +173,7 @@ describe("BL-AI-01 allowlist and identity canaries", () => {
   it.each([
     ["Email person@example.invalid", "email"], ["Contact +966 (55) 123-4567", "phone"], ["Contact ٠٥٥١٢٣٤٥٦٧", "phone"],
     ["SYNTHETIC AUTHOR EXAMPLE wrote this", "author_name"], ["Synthetic   Institute Example supplied the data", "institution"],
-    ["A university hosted the study", "institution"], ["licence number SYNTHETIC-LIC-043", "licence_number"], ["IRB number IRB-SYNTHETIC-042", "irb_number"],
+    ["licence number SYNTHETIC-LIC-043", "licence_number"], ["IRB number IRB-SYNTHETIC-042", "irb_number"],
     ["IRB approval number ABC-123", "irb_number"], ["IRB approval no. ABC-123", "irb_number"],
   ])("blocks body canary %s with category only", async (body, category) => {
     const f = fixture(); const value = snapshot(); const input = { ...value, scientific: { ...(value.scientific as object), body } };
@@ -183,6 +183,43 @@ describe("BL-AI-01 allowlist and identity canaries", () => {
   });
   it.each(["title", "specialty", "studyType"])("checks identity in %s too", field => {
     const value = snapshot(); expect(sanitizeSnapshot({ ...value, scientific: { ...(value.scientific as object), [field]: "person@example.invalid" } })).toMatchObject({ ok: false, reason: "identity_leak" });
+  });
+  it.each([
+    "We conducted an entirely fictional cohort study at a tertiary hospital in Jeddah.",
+    "A university hosted this fictional study using generated records only.",
+    "أجريت دراسة خيالية في مستشفى تخصصي في جدة باستخدام سجلات اصطناعية فقط.",
+    "أجريت دراسة خيالية في الجامعة باستخدام سجلات اصطناعية فقط.",
+  ])("permits generic EN/AR setting with category-only warning: %s", async body => {
+    const value = snapshot(); const input = { ...value, scientific: { ...(value.scientific as object), body } };
+    const sanitized = sanitizeSnapshot(input);
+    expect(sanitized).toMatchObject({ ok: true, warnings: ["generic_institution_mention"] });
+    if (!sanitized.ok) throw new Error("fixture");
+    expect(Object.isFrozen(sanitized.warnings)).toBe(true);
+    expect(JSON.stringify(sanitized.warnings)).not.toContain(body);
+    const f = fixture();
+    expect(await f.adapter.assess(input)).toMatchObject({ state: "advisory_complete", provenance: { sanitizationWarnings: ["generic_institution_mention"] } });
+    const request = vi.mocked(f.provider.assess).mock.calls[0][0];
+    expect(Object.keys(JSON.parse(request.messages[0].content))).toHaveLength(5);
+    expect(JSON.stringify(request)).not.toContain("generic_institution_mention");
+  });
+  it.each([
+    ["Synthetic   Institute Example", "Synthetic Institute Example"],
+    ["Ｓｙｎｔｈｅｔｉｃ Ｉｎｓｔｉｔｕｔｅ Ｅｘａｍｐｌｅ", "Synthetic Institute Example"],
+    ["جامعة الصفصاف الاصطناعية", "جامعة الصفصاف الاصطناعية"],
+    ["جامعة\u200b  الصفصاف الاصطناعية", "جامعة الصفصاف الاصطناعية"],
+  ])("blocks the own institution after normalization: %s", async (name, ownInstitution) => {
+    const f = fixture(); const value = snapshot();
+    const input = { ...value, identity: { ...value.identity, institutions: [ownInstitution] }, scientific: { ...(value.scientific as object), body: `(${name}) supplied synthetic records.` } };
+    expect(await f.adapter.assess(input)).toMatchObject({ state: "manual_review", reason: "identity_leak", flags: ["institution"] });
+    expect(f.deps.providerFactory).not.toHaveBeenCalled(); expect(network).not.toHaveBeenCalled();
+  });
+  it.each([
+    ["hospitality", []], ["universitywide", []], ["مستشفىي", []], ["جامعةالصفصاف", []],
+    ["prefixSynthetic Institute Examplesuffix", []], ["جهةجامعة الصفصاف الاصطناعيةأخرى", []],
+  ])("uses normalized word boundaries for %s", (body, warnings) => {
+    const value = snapshot(); const input = { ...value, identity: { ...value.identity, institutions: ["Synthetic Institute Example", "جامعة الصفصاف الاصطناعية"] },
+      scientific: { ...(value.scientific as object), body } };
+    expect(sanitizeSnapshot(input)).toMatchObject({ ok: true, warnings });
   });
   it.each([null, [], { locked: false }, { ...snapshot(), lockedAt: "2026-02-31T10:00:00.000Z" }, { ...snapshot(), identity: null }])("rejects malformed snapshot %j", value => {
     expect(sanitizeSnapshot(value)).toMatchObject({ ok: false, reason: "invalid_snapshot" });
@@ -264,6 +301,15 @@ describe("AI-06 bulk dispatch and stop switch", () => {
     if (queued.state !== "queued") throw new Error("fixture");
     expect(await f.adapter.collectBatch(queued.receipt)).toMatchObject([{ state: "advisory_complete", provenance: { snapshotId: "synthetic-case-01" } },
       { state: "advisory_complete", provenance: { snapshotId: "synthetic-case-02" } }]);
+  });
+  it("retains each batch item's safe generic-setting warnings in provenance", async () => {
+    const f = fixture(); const generic = { ...snapshot(), id: "synthetic-generic", scientific: { ...(snapshot().scientific as object), body: "An entirely fictional study at a tertiary hospital in Jeddah used generated records." } };
+    const queued = await f.adapter.submitBatch([snapshot(), generic]); if (queued.state !== "queued") throw new Error("fixture");
+    expect(queued.receipt.items.map(item => item.sanitizationWarnings)).toEqual([[], ["generic_institution_mention"]]);
+    expect(await f.adapter.collectBatch(queued.receipt)).toMatchObject([
+      { state: "advisory_complete", provenance: { sanitizationWarnings: [] } },
+      { state: "advisory_complete", provenance: { snapshotId: "synthetic-generic", sanitizationWarnings: ["generic_institution_mention"] } },
+    ]);
   });
   it("blocks mixed identity-bearing batch before any request", async () => {
     const f = fixture(); const leaked = { ...snapshot(), scientific: { ...(snapshot().scientific as object), body: "person@example.invalid" } };

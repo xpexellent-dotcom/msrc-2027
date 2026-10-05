@@ -7,6 +7,7 @@ import { createMockedProvider, evaluationOutcome, manualOutcome, prepareSyntheti
 import { createEvaluationReport, type EvaluationOutcome, type HumanAssessment } from "../../evaluation/ai-assessment/report.ts";
 import { SYNTHETIC_MODEL, SYNTHETIC_RUBRIC } from "../../evaluation/ai-assessment/rubric.ts";
 import { assertLocalSyntheticConsent, runEvaluationCli, syntheticBatchPlan, type SyntheticBatchClient } from "../../scripts/ai-evaluate.ts";
+import { sanitizeSnapshot } from "../../src/lib/ai-assessment/sanitizer.server.ts";
 
 const sdkConstructor = vi.hoisted(() => vi.fn(() => { throw new Error("SDK_CONSTRUCTION_MUST_NOT_OCCUR"); }));
 vi.mock("@anthropic-ai/sdk", () => ({ default: sdkConstructor }));
@@ -54,9 +55,9 @@ async function validOutcomes(): Promise<EvaluationOutcome[]> {
 }
 
 describe("AI-01/02/04/06 synthetic corpus and mocked provider", () => {
-  it("contains 25 frozen, exclusively synthetic cases with required study/failure diversity", () => {
-    expect(SYNTHETIC_CORPUS).toHaveLength(25);
-    expect(new Set(SYNTHETIC_CORPUS.map((entry) => entry.id)).size).toBe(25);
+  it("contains 29 frozen, exclusively synthetic cases with required study/failure diversity", () => {
+    expect(SYNTHETIC_CORPUS).toHaveLength(29);
+    expect(new Set(SYNTHETIC_CORPUS.map((entry) => entry.id)).size).toBe(29);
     expect(Object.isFrozen(SYNTHETIC_CORPUS)).toBe(true);
     for (const example of SYNTHETIC_CORPUS) {
       expect(example.synthetic).toBe(true); expect(Object.isFrozen(example.snapshot)).toBe(true);
@@ -73,18 +74,43 @@ describe("AI-01/02/04/06 synthetic corpus and mocked provider", () => {
     expect(Boolean(prepared.request)).toBe(expected === "allowed");
   });
 
-  it("runs all cases against a mocked provider and never dispatches the nine denied inputs", async () => {
+  it("runs all cases against a mocked provider and never dispatches the eleven denied inputs", async () => {
     const provider = createMockedProvider();
     const assess = vi.fn(provider.assess);
     const report = await runMockedEvaluation({ assess }, { now });
-    expect(assess).toHaveBeenCalledTimes(16);
-    expect(report.summary).toMatchObject({ total: 25, completed: 10, manualReview: 15, unassessedByHuman: 25 });
+    expect(assess).toHaveBeenCalledTimes(18);
+    expect(report.summary).toMatchObject({ total: 29, completed: 12, manualReview: 17, unassessedByHuman: 29 });
     for (const row of report.rows) {
       expect(row.manualReviewAvailable).toBe(true);
       expect(row.humanAssessmentSource).toBe("UNASSESSED");
       expect(row.comparison.every((item) => item.humanIndependentScore === null && item.humanFinalScore === null && item.modelMinusHuman === null)).toBe(true);
     }
     expect(report.activationApproval).toBe("NOT_GRANTED"); expect(report.acceptanceThreshold).toBeNull();
+  });
+
+  it("allows generic EN/AR tertiary-hospital settings with a typed warning but blocks named submitter institution matches", async () => {
+    const prepared = prepareSyntheticCases({ effort: "medium", maxTokens: 1024 });
+    for (const number of [26, 27]) {
+      const generic = prepared[number - 1];
+      expect(generic.inputFailure).toBeNull(); expect(generic.request).not.toBeNull();
+      expect(generic.sanitizationWarnings).toEqual(["generic_institution_mention"]);
+    }
+    for (const number of [28, 29]) {
+      expect(prepared[number - 1].inputFailure).toBe("identity_leak");
+      expect(prepared[number - 1].request).toBeNull();
+    }
+    const report = await runMockedEvaluation(undefined, { now });
+    for (const number of [26, 27]) expect(report.rows[number - 1].provenance.sanitizationWarnings).toEqual(["generic_institution_mention"]);
+    const failed = await runMockedEvaluation({ assess: async () => { throw new Error("synthetic outage"); } }, { now });
+    expect(failed.rows[25].status).toBe("manual_review");
+    expect(failed.rows[25].provenance.sanitizationWarnings).toEqual(["generic_institution_mention"]);
+    expect(JSON.stringify(report.rows[25].provenance)).not.toContain("tertiary hospital");
+    expect(JSON.stringify(report.rows[26].provenance)).not.toContain("مستشفى");
+  });
+  it.each([[26, "a tertiary hospital in Jeddah"], [27, "مستشفى مرجعي في جدة"]] as const)("still blocks generic wording in case %s when it exactly matches local institution identity", (number, ownInstitution) => {
+    const snapshot = SYNTHETIC_CORPUS[number - 1].snapshot;
+    const sanitized = sanitizeSnapshot({ ...snapshot, identity: { authorNames: [], institutions: [ownInstitution] } });
+    expect(sanitized).toMatchObject({ ok: false, reason: "identity_leak", flags: ["institution"] });
   });
 
   it("sends only five allowlisted fields, with fixed rubric/rules in system and untrusted injections in user", () => {
@@ -165,6 +191,23 @@ describe("AI-03/04/06 comparison report with genuine human values kept separate"
     expect(() => createEvaluationReport([invalid, ...outcomes.slice(1)], SYNTHETIC_RUBRIC, options)).toThrow("invalid_evaluation_outcome");
     expect(() => createEvaluationReport(outcomes, SYNTHETIC_RUBRIC, { ...options, generatedAt: "invalid" })).toThrow("invalid_evaluation_timestamp");
   });
+  it.each([
+    { label: "unknown category containing raw text", warnings: ["raw hospital identifier"] },
+    { label: "duplicate warning", warnings: ["generic_institution_mention", "generic_institution_mention"] },
+    { label: "omitted warning", warnings: [] },
+    { label: "untyped warning object", warnings: [{ category: "generic_institution_mention", body: "raw manuscript" }] },
+  ])("rejects unsafe or altered generic-warning provenance: $label", async ({ warnings }) => {
+    const outcomes = await validOutcomes();
+    const invalid = { ...outcomes[25], provenance: { ...outcomes[25].provenance, sanitizationWarnings: warnings } } as unknown as EvaluationOutcome;
+    expect(() => createEvaluationReport([...outcomes.slice(0, 25), invalid, ...outcomes.slice(26)], SYNTHETIC_RUBRIC, { generatedAt: now(), execution: "mock" })).toThrow("invalid_evaluation_provenance");
+  });
+  it("rejects fabricated warnings and extra raw provenance fields", async () => {
+    const outcomes = await validOutcomes();
+    const fabricated = { ...outcomes[0], provenance: { ...outcomes[0].provenance, sanitizationWarnings: ["generic_institution_mention"] as const } };
+    expect(() => createEvaluationReport([fabricated, ...outcomes.slice(1)], SYNTHETIC_RUBRIC, { generatedAt: now(), execution: "mock" })).toThrow("invalid_evaluation_provenance");
+    const extra = { ...outcomes[0], provenance: { ...outcomes[0].provenance, manuscript: "secret body" } };
+    expect(() => createEvaluationReport([extra, ...outcomes.slice(1)], SYNTHETIC_RUBRIC, { generatedAt: now(), execution: "mock" })).toThrow("invalid_evaluation_provenance");
+  });
 });
 
 describe("AI-05/06 explicit local synthetic-only Batch CLI", () => {
@@ -195,6 +238,11 @@ describe("AI-05/06 explicit local synthetic-only Batch CLI", () => {
     { marker: "CI", value: "true", category: "forbidden_environment" },
     { marker: "ANTHROPIC_CUSTOM_HEADERS", value: "Authorization: synthetic-canary", category: "custom_headers_forbidden" },
   ])("real SDK factory also denies actual host $marker even when a local environment is supplied", async ({ marker, value, category }) => {
+    // Each guard must be exercised in isolation when this suite itself runs in CI.
+    for (const name of ["CI", "GITHUB_ACTIONS", "VERCEL", "VERCEL_ENV", "VERCEL_URL", "NETLIFY", "RENDER", "ANTHROPIC_CUSTOM_HEADERS"]) vi.stubEnv(name, "");
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("AI_SYNTHETIC_API_KEY", keyCanary);
+    vi.stubEnv("AI_SYNTHETIC_SPEND_LIMIT_CONFIGURED", "yes");
     vi.stubEnv(marker, value);
     const directory = await temporaryDirectory();
     await expect(runEvaluationCli(submitArgs, environment, { directory, now })).rejects.toThrow(category);
@@ -202,7 +250,7 @@ describe("AI-05/06 explicit local synthetic-only Batch CLI", () => {
   });
   it("builds only sanitized built-in requests, one-hour caching and no Batch fallback/beta fields", () => {
     const plan = syntheticBatchPlan({ effort: "medium", maxTokens: 1024 }, { budgetUsd: 10, inputPriceCeiling: 8, outputPriceCeiling: 40 });
-    expect(plan.requests).toHaveLength(16);
+    expect(plan.requests).toHaveLength(18);
     for (const request of plan.requests) {
       expect(request.params).not.toHaveProperty("fallbacks"); expect(request.params).not.toHaveProperty("betas");
       expect(request.params).not.toHaveProperty("tools");
@@ -218,7 +266,9 @@ describe("AI-05/06 explicit local synthetic-only Batch CLI", () => {
     const collected = await runEvaluationCli(["collect", "--live-synthetic", "--run-id", (submitted as { runId: string }).runId], environment, { createClient, directory, now });
     expect(collected.status).toBe("synthetic_batch_report_written"); expect(client.create).toHaveBeenCalledTimes(1);
     const report = JSON.parse(await readFile((collected as { outputPath: string }).outputPath, "utf8"));
-    expect(report.summary).toMatchObject({ total: 25, completed: 10, manualReview: 15 });
+    expect(report.summary).toMatchObject({ total: 29, completed: 12, manualReview: 17 });
+    expect(report.rows[25].provenance.sanitizationWarnings).toEqual(["generic_institution_mention"]);
+    expect(report.rows[26].provenance.sanitizationWarnings).toEqual(["generic_institution_mention"]);
     expect(JSON.stringify(collected) + receipt + JSON.stringify(report)).not.toContain(keyCanary);
   });
   it("returns a pending batch promptly without result download or submission", async () => {

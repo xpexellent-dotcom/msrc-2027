@@ -3,8 +3,13 @@
 AI-01–AI-06 / BL-AI-01. Every title, abstract, number, author and institution in
 `corpus.ts` is invented for testing. This is the only permitted corpus for the local
 runner. It accepts no manuscript file, URL, alternative dataset or arbitrary prompt.
-The 25 cases cover strong/weak studies, ongoing studies, different study designs,
-unsupported claims, six identity leaks, three injection attempts and malformed input.
+The 29 cases cover strong/weak studies, ongoing studies, different study designs,
+unsupported claims, eight identity leaks, three injection attempts and malformed input.
+Two additional EN/AR privacy canaries retain a generic tertiary-hospital setting in
+Jeddah with the typed `generic_institution_mention` warning; matching that same phrase
+to local institution identity still blocks it in unit coverage. Named fictional
+submitter hospital identities in EN/AR are also blocked by the corpus. Arabic
+canaries test privacy screening only; production scientific submissions remain English.
 Mock cases additionally simulate refusal, truncation, malformed JSON, missing criteria,
 out-of-range scores and provider failure. Identity leaks and malformed scientific input
 are screened locally and are never submitted, including in the live synthetic run.
@@ -85,7 +90,10 @@ Do not automatically rerun `submit`: the provider may already have accepted it.
 
 `report.ts` produces one row per case with input-screening expectation, outcome/failure,
 criterion ranges, model scores/rationales, human independent/final scores, differences,
-override reasons and versioned provenance. Human values initially remain `null` and
+override reasons and versioned provenance. Provenance carries only allowlisted warning
+categories, never the matching institution phrase or manuscript excerpt. The report
+rejects unknown, duplicate, missing or fabricated warnings and extra provenance fields.
+Human values initially remain `null` and
 `UNASSESSED`. Mock scores are explicitly artificial model fixtures, never human baselines.
 
 To compare a scientific lead's independently entered scores, pass `humanAssessments`

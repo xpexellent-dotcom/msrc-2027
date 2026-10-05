@@ -1,5 +1,5 @@
 /** AI-01–AI-06: wholly invented scientific examples, never participant manuscripts. */
-export const CORPUS_VERSION = "synthetic-ai-v1";
+export const CORPUS_VERSION = "synthetic-ai-v2";
 export const SYNTHETIC_TIMESTAMP = "2026-01-01T00:00:00.000Z";
 
 export type MockOutcome = "valid" | "invalid_json" | "out_of_range" | "missing_criterion" | "refusal" | "truncated" | "outage";
@@ -74,4 +74,9 @@ export const SYNTHETIC_CORPUS: readonly SyntheticCase[] = deepFreeze([
   example(23, "Synthetic empty manuscript", "simulation study", "", ["malformed_input", "empty_body"], { expectedInput: "invalid_snapshot" }),
   example(24, "Synthetic malformed completion metadata", "simulation study", "Generated example only.", ["malformed_input", "invalid_metadata"], { expectedInput: "invalid_snapshot", scientific: { title: "Synthetic invalid metadata", specialty: "Synthetic medical education", studyType: "simulation study", completionStatus: "accepted", body: "Generated example only." } }),
   example(25, "Synthetic malformed scientific shape", "simulation study", "Generated example only.", ["malformed_input", "invalid_shape"], { expectedInput: "invalid_snapshot", scientific: ["not", "scientific", "fields"] }),
+  example(26, "Synthetic generic setting in English", "simulation study", "Background: This invented study uses generated records. Methods: A fictional educational simulation describes patients at a tertiary hospital in Jeddah. Results: No real people, institution identity or clinical evidence are represented. Conclusion: Generic setting language should retain scientific context with a safe warning.", ["generic_institution", "english_setting"]),
+  // Arabic is a privacy-screening canary only; production scientific submissions remain English.
+  example(27, "Synthetic generic setting in Arabic", "simulation study", "هذه دراسة اصطناعية تصف بيانات مولدة عن مرضى في مستشفى مرجعي في جدة. لا تمثل أشخاصا أو مؤسسات حقيقية. يختبر المثال وصف مكان عام فقط.", ["generic_institution", "arabic_setting"]),
+  example(28, "Synthetic submitter institution match in English", "simulation study", "Background: All records are invented. Methods: The simulation was set at Fictional Juniper Hospital. Results: This invented institution name matches the submitter's local identity context. Conclusion: A known institution identity match must block dispatch.", ["identity_leak", "institution", "english_institution_match"], { expectedInput: "identity_leak", institutions: ["Fictional Juniper Hospital"] }),
+  example(29, "Synthetic submitter institution match in Arabic", "simulation study", "هذه دراسة اصطناعية ببيانات مولدة في مستشفى العرعر الخيالي. هذا اسم مؤسسة مخترع يطابق سياق هوية مقدم الدراسة الاصطناعي، لذلك يجب منع الإرسال.", ["identity_leak", "institution", "arabic_institution_match"], { expectedInput: "identity_leak", institutions: ["مستشفى العرعر الخيالي"] }),
 ]);

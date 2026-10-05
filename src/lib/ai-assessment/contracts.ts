@@ -12,6 +12,8 @@ export interface LockedSnapshot {
   readonly identity: { readonly authorNames: readonly string[]; readonly institutions: readonly string[] };
 }
 export type IdentityFlag = "email" | "phone" | "author_name" | "institution" | "licence_number" | "irb_number";
+/** Non-identifying setting words are review warnings, never automatic dispatch blockers. */
+export type SanitizationWarning = "generic_institution_mention";
 export interface AssessmentOutput {
   readonly criteria: readonly { readonly criterionId: string; readonly score: number; readonly rationale: string }[];
   readonly overallComment: string;
@@ -35,6 +37,7 @@ export interface Provenance {
   readonly provider: "anthropic"; readonly requestedModel: string; readonly model: string;
   readonly promptVersion: string; readonly rubricVersion: string;
   readonly snapshotId: string; readonly snapshotVersion: string; readonly snapshotLockedAt: string; readonly assessedAt: string;
+  readonly sanitizationWarnings: readonly SanitizationWarning[];
 }
 export type ManualReason = "disabled" | "invalid_configuration" | "unapproved_configuration" | "not_authorized"
   | "budget_exhausted" | "invalid_snapshot" | "identity_leak" | "provider_unavailable" | "refusal"
@@ -62,7 +65,7 @@ export interface AssessmentProvider {
 }
 export interface BatchReceipt {
   readonly batchId: string; readonly configurationDigest: string; readonly requestedAt: string;
-  readonly items: readonly { readonly customId: string; readonly snapshot: Pick<LockedSnapshot, "id" | "version" | "lockedAt"> }[];
+  readonly items: readonly { readonly customId: string; readonly snapshot: Pick<LockedSnapshot, "id" | "version" | "lockedAt">; readonly sanitizationWarnings: readonly SanitizationWarning[] }[];
 }
 export type BatchSubmission = { readonly state: "queued"; readonly manualReviewAllowed: true; readonly receipt: BatchReceipt }
   | { readonly state: "manual_review"; readonly manualReviewAllowed: true; readonly reason: ManualReason };

@@ -1,12 +1,14 @@
 import { CORPUS_VERSION, SYNTHETIC_CORPUS } from "./corpus.ts";
 import { SYNTHETIC_MODEL, SYNTHETIC_PROMPT_VERSION } from "./rubric.ts";
+import type { SanitizationWarning } from "../../src/lib/ai-assessment/contracts.ts";
+import { sanitizeSnapshot } from "../../src/lib/ai-assessment/sanitizer.server.ts";
 
 export type ReportRubric = Readonly<{ version: string; status: "UNAPPROVED" | "APPROVED"; criteria: readonly Readonly<{ id: string; label: string; min: number; max: number }>[] }>;
 export type ValidatedScores = Readonly<{ criteria: readonly Readonly<{ criterionId: string; score: number; rationale: string }>[]; overallComment: string }>;
 export type EvaluationOutcome = Readonly<{
   caseId: string; status: "completed" | "manual_review"; reason: string | null;
   output: ValidatedScores | null;
-  provenance: Readonly<{ provider: string; requestedModel: string; model: string | null; promptVersion: string; rubricVersion: string; snapshotId: string; snapshotVersion: string; timestamp: string }>;
+  provenance: Readonly<{ provider: string; requestedModel: string; model: string | null; promptVersion: string; rubricVersion: string; snapshotId: string; snapshotVersion: string; timestamp: string; sanitizationWarnings: readonly SanitizationWarning[] }>;
 }>;
 export type HumanAssessment = Readonly<{
   caseId: string; snapshotVersion: string; rubricVersion: string;
@@ -46,6 +48,12 @@ function validateOutcomes(outcomes: readonly EvaluationOutcome[], rubric: Report
       provenance.rubricVersion !== rubric.version || provenance.promptVersion !== SYNTHETIC_PROMPT_VERSION || provenance.requestedModel !== SYNTHETIC_MODEL ||
       provenance.provider !== (execution === "mock" ? "mock_anthropic" : "anthropic") || !validTimestamp(provenance.timestamp) ||
       (provenance.model !== null && !/^claude-[a-z0-9-]{1,100}$/.test(provenance.model))) throw new Error("invalid_evaluation_provenance");
+    const sanitized = sanitizeSnapshot(example.snapshot);
+    const expectedWarnings = sanitized.ok ? sanitized.warnings : [];
+    if (!Array.isArray(provenance.sanitizationWarnings) || provenance.sanitizationWarnings.some((warning) => warning !== "generic_institution_mention") ||
+      new Set(provenance.sanitizationWarnings).size !== provenance.sanitizationWarnings.length ||
+      JSON.stringify(provenance.sanitizationWarnings) !== JSON.stringify(expectedWarnings) ||
+      Object.keys(provenance).some((key) => !["provider", "requestedModel", "model", "promptVersion", "rubricVersion", "snapshotId", "snapshotVersion", "timestamp", "sanitizationWarnings"].includes(key))) throw new Error("invalid_evaluation_provenance");
     if (outcome.status === "manual_review") {
       if (outcome.output !== null || !outcome.reason || !FAILURE_CATEGORIES.has(outcome.reason)) throw new Error("invalid_evaluation_outcome");
       continue;
@@ -115,7 +123,7 @@ export function createEvaluationReport(outcomes: readonly EvaluationOutcome[], r
     };
   });
   return {
-    reportVersion: "synthetic-evaluation-report-v1", corpusVersion: CORPUS_VERSION,
+    reportVersion: "synthetic-evaluation-report-v2", corpusVersion: CORPUS_VERSION,
     generatedAt: options.generatedAt, execution: options.execution,
     syntheticOnly: true, rubricVersion: rubric.version, rubricStatus: rubric.status,
     publicationAuthority: "human_committee", activationApproval: "NOT_GRANTED",

@@ -1681,3 +1681,13 @@ CFG-03/09/10 and REL-03 govern the remaining processing and scientific gates.
 
 The activation checklist, API references, disable procedure and remaining
 BL-AI-02/03/04 integration work are in [the feature note](features/ai-assessment.md).
+
+PR #40 review clarification, 5 October 2026 (explicit requester instruction):
+identity screening blocks the submission's own author names and institution names
+from its locked snapshot, emails, phone numbers, licence numbers and IRB numbers.
+Generic institution words such as university, hospital or college of medicine,
+including Arabic equivalents, are non-blocking warnings recorded as safe categories
+in provenance. This avoids suppressing ordinary study-setting descriptions such as
+"patients at a tertiary hospital in Jeddah". EN/AR synthetic pairs verify the
+distinction. These changes do not approve real-manuscript processing or alter
+the remaining privacy, scientific evaluation and activation gates.

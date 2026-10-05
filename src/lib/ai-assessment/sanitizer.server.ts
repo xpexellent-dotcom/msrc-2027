@@ -1,5 +1,5 @@
 import "server-only";
-import type { IdentityFlag, LockedSnapshot, ScientificPayload } from "./contracts.ts";
+import type { IdentityFlag, LockedSnapshot, SanitizationWarning, ScientificPayload } from "./contracts.ts";
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 export const validReference = (value: unknown): value is string => typeof value === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,127}$/.test(value);
@@ -20,14 +20,20 @@ export function checkIdentityLeaks(text: string, identity: LockedSnapshot["ident
     return name.length >= 2 && new RegExp(`(?:^|[^\\p{L}\\p{N}])${escaped}(?=$|[^\\p{L}\\p{N}])`, "u").test(value);
   };
   if (identity.authorNames.some(contains)) flags.push("author_name");
-  if (identity.institutions.some(contains) || /\b(?:university|hospital|institution|medical college|research institute|college of medicine)\b/.test(value)
-    || /جامعة|مستشفى|كلية الطب/.test(value)) flags.push("institution");
+  if (identity.institutions.some(contains)) flags.push("institution");
   if (/\b(?:licen[cs]e|licen[cs]ure|registration|scfhs)\s*(?:(?:number|no\.?|id|reference|#)\s*){0,3}[:#-]?\s*(?=[a-z0-9/.-]{0,80}\d)[a-z0-9/.-]+/i.test(value)) flags.push("licence_number");
   if (/\b(?:irb|ethics(?: approval)?|institutional review board)\s*(?:(?:number|no\.?|id|approval|reference|#)\s*){0,3}[:#-]?\s*(?=[a-z0-9/.-]{0,80}\d)[a-z0-9/.-]+/i.test(value)) flags.push("irb_number");
   return Object.freeze(flags);
 }
 
-export function sanitizeSnapshot(snapshot: unknown): { readonly ok: true; readonly payload: ScientificPayload }
+function checkSettingWarnings(text: string): readonly SanitizationWarning[] {
+  const value = normalized(text);
+  const genericEnglish = /\b(?:universit(?:y|ies)|hospitals?|institutions?|medical colleges?|research institutes?|colleges? of medicine)\b/.test(value);
+  const genericArabic = /(?:^|[^\p{L}\p{N}])(?:ال)?(?:جامعة|جامعات|مستشفى|مستشفيات|مؤسسة|مؤسسات|كلية الطب|معهد بحوث|معهد بحثي)(?=$|[^\p{L}\p{N}])/u.test(value);
+  return Object.freeze(genericEnglish || genericArabic ? ["generic_institution_mention"] : []);
+}
+
+export function sanitizeSnapshot(snapshot: unknown): { readonly ok: true; readonly payload: ScientificPayload; readonly warnings: readonly SanitizationWarning[] }
   | { readonly ok: false; readonly reason: "invalid_snapshot" | "identity_leak"; readonly flags?: readonly IdentityFlag[] } {
   if (!isRecord(snapshot) || snapshot.locked !== true || !validReference(snapshot.id) || !validReference(snapshot.version)
     || !validTimestamp(snapshot.lockedAt) || !isRecord(snapshot.identity) || !isRecord(snapshot.scientific)) return { ok: false, reason: "invalid_snapshot" };
@@ -40,6 +46,7 @@ export function sanitizeSnapshot(snapshot: unknown): { readonly ok: true; readon
   const payload = Object.freeze({ title: fields.title, specialty: fields.specialty, studyType: fields.studyType,
     completionStatus: fields.completionStatus as ScientificPayload["completionStatus"], body: fields.body });
   // Check every transmitted text field as well as the body. Extra input fields are dropped.
-  const flags = checkIdentityLeaks(Object.values(payload).join("\n"), { authorNames, institutions });
-  return flags.length ? { ok: false, reason: "identity_leak", flags } : { ok: true, payload };
+  const transmittedText = Object.values(payload).join("\n");
+  const flags = checkIdentityLeaks(transmittedText, { authorNames, institutions });
+  return flags.length ? { ok: false, reason: "identity_leak", flags } : { ok: true, payload, warnings: checkSettingWarnings(transmittedText) };
 }

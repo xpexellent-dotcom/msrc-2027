@@ -169,12 +169,13 @@ export async function runEvaluationCli(args: readonly string[], environment: Env
   for await (const item of await client.results(receipt.batchId)) {
     if (!expected.has(item.custom_id) || received.has(item.custom_id)) throw new Error("invalid_synthetic_batch_result_scope");
     const example = SYNTHETIC_CORPUS.find((entry) => entry.id === item.custom_id)!;
-    if (item.result.type === "succeeded") received.set(example.id, evaluationOutcome(example, item.result.message, now(), "anthropic"));
-    else if (["errored", "canceled", "expired"].includes(item.result.type)) received.set(example.id, manualOutcome(example, `batch_${item.result.type}`, now(), "anthropic"));
+    const warnings = plan.prepared.find((entry) => entry.example.id === item.custom_id)!.sanitizationWarnings;
+    if (item.result.type === "succeeded") received.set(example.id, evaluationOutcome(example, item.result.message, now(), "anthropic", warnings));
+    else if (["errored", "canceled", "expired"].includes(item.result.type)) received.set(example.id, manualOutcome(example, `batch_${item.result.type}`, now(), "anthropic", warnings));
     else throw new Error("invalid_synthetic_batch_result");
   }
-  const outcomes = plan.prepared.map((item) => item.request ? received.get(item.example.id) ?? manualOutcome(item.example, "batch_missing_result", now(), "anthropic") :
-    manualOutcome(item.example, item.inputFailure!, now(), "anthropic"));
+  const outcomes = plan.prepared.map((item) => item.request ? received.get(item.example.id) ?? manualOutcome(item.example, "batch_missing_result", now(), "anthropic", item.sanitizationWarnings) :
+    manualOutcome(item.example, item.inputFailure!, now(), "anthropic", item.sanitizationWarnings));
   const report = createEvaluationReport(outcomes, SYNTHETIC_RUBRIC, { generatedAt: now(), execution: "live_synthetic_batch" });
   const outputPath = resolve(directory, `${runId}.report.json`);
   await writeFile(outputPath, JSON.stringify(report, null, 2) + "\n", { mode: 0o600 });

@@ -1,6 +1,7 @@
 import "server-only";
 import { buildAssessmentRequest, parseAssessmentMessage } from "../../src/lib/ai-assessment/request.server.ts";
 import { sanitizeSnapshot } from "../../src/lib/ai-assessment/sanitizer.server.ts";
+import type { SanitizationWarning } from "../../src/lib/ai-assessment/contracts.ts";
 import { SYNTHETIC_CORPUS, type SyntheticCase } from "./corpus.ts";
 import { SYNTHETIC_MODEL, SYNTHETIC_PROMPT_VERSION, SYNTHETIC_RUBRIC } from "./rubric.ts";
 import { createEvaluationReport, type EvaluationOutcome, type HumanAssessment } from "./report.ts";
@@ -13,20 +14,25 @@ export type SyntheticSettings = Readonly<{ maxTokens: number; effort: "low" | "m
 export function prepareSyntheticCases(settings: SyntheticSettings) {
   return SYNTHETIC_CORPUS.map((example) => {
     const sanitized = sanitizeSnapshot(example.snapshot);
-    if (!sanitized.ok) return { example, inputFailure: sanitized.reason, request: null };
+    if (!sanitized.ok) return { example, inputFailure: sanitized.reason, request: null, sanitizationWarnings: [] as readonly SanitizationWarning[] };
     const request = buildAssessmentRequest(sanitized.payload, SYNTHETIC_RUBRIC, {
       model: SYNTHETIC_MODEL, promptVersion: SYNTHETIC_PROMPT_VERSION,
       effort: settings.effort, maxTokens: settings.maxTokens,
     });
-    return { example, inputFailure: null, request };
+    return { example, inputFailure: null, request, sanitizationWarnings: sanitized.warnings };
   });
 }
 
-export function evaluationOutcome(example: SyntheticCase, message: unknown, timestamp: string, provider: "mock_anthropic" | "anthropic"): EvaluationOutcome {
+function snapshotWarnings(example: SyntheticCase): readonly SanitizationWarning[] {
+  const sanitized = sanitizeSnapshot(example.snapshot);
+  return sanitized.ok ? sanitized.warnings : [];
+}
+
+export function evaluationOutcome(example: SyntheticCase, message: unknown, timestamp: string, provider: "mock_anthropic" | "anthropic", sanitizationWarnings = snapshotWarnings(example)): EvaluationOutcome {
   const parsed = parseAssessmentMessage(message, SYNTHETIC_RUBRIC);
   const model = message && typeof message === "object" && "model" in message && typeof message.model === "string" && /^claude-[a-z0-9-]{1,100}$/.test(message.model) ? message.model : null;
-  if (parsed.ok && model !== SYNTHETIC_MODEL) return { ...manualOutcome(example, "unexpected_model", timestamp, provider), provenance: {
-    ...manualOutcome(example, "unexpected_model", timestamp, provider).provenance, model: model,
+  if (parsed.ok && model !== SYNTHETIC_MODEL) return { ...manualOutcome(example, "unexpected_model", timestamp, provider, sanitizationWarnings), provenance: {
+    ...manualOutcome(example, "unexpected_model", timestamp, provider, sanitizationWarnings).provenance, model: model,
   } };
   return {
     caseId: example.id, status: parsed.ok ? "completed" : "manual_review",
@@ -34,16 +40,16 @@ export function evaluationOutcome(example: SyntheticCase, message: unknown, time
     provenance: {
       provider, requestedModel: SYNTHETIC_MODEL, model, promptVersion: SYNTHETIC_PROMPT_VERSION,
       rubricVersion: SYNTHETIC_RUBRIC.version, snapshotId: example.snapshot.id,
-      snapshotVersion: example.snapshot.version, timestamp,
+      snapshotVersion: example.snapshot.version, timestamp, sanitizationWarnings,
     },
   };
 }
 
-export function manualOutcome(example: SyntheticCase, reason: string, timestamp: string, provider: "mock_anthropic" | "anthropic"): EvaluationOutcome {
+export function manualOutcome(example: SyntheticCase, reason: string, timestamp: string, provider: "mock_anthropic" | "anthropic", sanitizationWarnings = snapshotWarnings(example)): EvaluationOutcome {
   return {
     caseId: example.id, status: "manual_review", reason, output: null,
     provenance: { provider, requestedModel: SYNTHETIC_MODEL, model: null, promptVersion: SYNTHETIC_PROMPT_VERSION,
-      rubricVersion: SYNTHETIC_RUBRIC.version, snapshotId: example.snapshot.id, snapshotVersion: example.snapshot.version, timestamp },
+      rubricVersion: SYNTHETIC_RUBRIC.version, snapshotId: example.snapshot.id, snapshotVersion: example.snapshot.version, timestamp, sanitizationWarnings },
   };
 }
 
@@ -54,14 +60,14 @@ export async function runMockedEvaluation(provider: SyntheticProvider = createMo
   const outcomes: EvaluationOutcome[] = [];
   for (const prepared of prepareSyntheticCases({ effort: "medium", maxTokens: 1024 })) {
     if (!prepared.request) {
-      outcomes.push(manualOutcome(prepared.example, prepared.inputFailure!, now(), "mock_anthropic"));
+      outcomes.push(manualOutcome(prepared.example, prepared.inputFailure!, now(), "mock_anthropic", prepared.sanitizationWarnings));
       continue;
     }
     try {
-      outcomes.push(evaluationOutcome(prepared.example, await provider.assess(prepared.request, prepared.example), now(), "mock_anthropic"));
+      outcomes.push(evaluationOutcome(prepared.example, await provider.assess(prepared.request, prepared.example), now(), "mock_anthropic", prepared.sanitizationWarnings));
     } catch {
       // Raw SDK errors may contain credentials or manuscript data. Record category only.
-      outcomes.push(manualOutcome(prepared.example, "provider_unavailable", now(), "mock_anthropic"));
+      outcomes.push(manualOutcome(prepared.example, "provider_unavailable", now(), "mock_anthropic", prepared.sanitizationWarnings));
     }
   }
   return createEvaluationReport(outcomes, SYNTHETIC_RUBRIC, {

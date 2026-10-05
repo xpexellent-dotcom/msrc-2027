@@ -20,7 +20,7 @@ Separate approval-dependent M6 capability. Human review can open with this capab
 - **Accessibility:** Accessible disclosure and status messages; manual path remains visible without a model-dependent control.
 - **Security/RLS:** Server activation checks and privileged MFA; provider credentials never in browser/logs; restrict assessment rows to intended assignment/admin scope.
 - **Audit/email:** Audit activation/config changes and dispatch metadata without manuscript/secret logging; no applicant decision emails from adapter calls.
-- **Automated tests:** Disabled no-network assertion, identity canaries, malformed configuration, denied activation and manual-review continuity.
+- **Automated tests:** Disabled no-network assertion, locked-snapshot author/institution and contact/licence/IRB canaries, EN/AR generic institution warnings in provenance, malformed configuration, denied activation and manual-review continuity. PR #40 review narrows institution blocking to the submission's own names; generic study-setting wording is allowed (ENG-018).
 - **Manual UAT:** Inspect synthetic payload and browser bundle; disable mid-workflow and continue human review.
 - **Release gate:** Separate AI gate within REL-03: approved provider/terms/location/disclosure plus evaluation evidence.
 - **Owner type:** Full-stack/security engineer with scientific and privacy owners.

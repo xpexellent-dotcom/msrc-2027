@@ -20,13 +20,13 @@ human baselines must remain visibly distinct from committee-scored evaluation.
 | --- | --- | --- |
 | Disabled adapter makes no external request; AI-01/05 | Mock request/client spies remain untouched with the default flag, missing key/config, incomplete approval, changed evidence, unapproved rubric or rejected budget. | Approval records need an authorized storage/source before production integration. |
 | Payload contains only approved fields; AI-02 | Payload contains title, specialty, study type, completion status and abstract body only. Author/account/contact/affiliation/licence/evidence fields and identity-check context never enter either provider turn or batch metadata. Locked snapshot validation rejects malformed inputs. | Submission ownership and immutable database snapshot lookup are BL-REV prerequisites. |
-| Identifying body text is checked; AI-02 | Email, phone, supplied author-list names, institutions, licence and IRB canaries are flagged before dispatch. Rejections return safe categories, not leaked text. | Pattern/name checks are conservative screening, not proof of anonymity; privacy-approved human inspection remains necessary. |
-| Manual review does not require AI success; AI-01/06 | Disabled, configuration failure, identity warning, refusal, truncation, provider error, invalid JSON/schema/ranges, expired/cancelled batch and missing results all preserve permitted manual review and never issue an applicant decision. | No reviewer UI, outcome publisher or applicant email is added. |
+| Identifying body text is checked; AI-02 | Email, phone, the submission's own author-list and institution names from the locked snapshot, licence and IRB numbers block dispatch. Generic institution words in EN/AR are non-blocking provenance warnings. Rejections and warnings contain safe categories, not leaked text. | Pattern/name checks are screening, not proof of anonymity; privacy-approved human inspection remains necessary. |
+| Manual review does not require AI success; AI-01/06 | Disabled, configuration failure, identity leak, refusal, truncation, provider error, invalid JSON/schema/ranges, expired/cancelled batch and missing results all preserve permitted manual review and never issue an applicant decision. Generic institution warnings still allow assessment. | No reviewer UI, outcome publisher or applicant email is added. |
 | Untrusted abstracts cannot change system rules, invoke tools or publish; AI-04 | Fixed rules and rubric stay in system text; the five scientific fields are JSON data in a user turn. Injection strings cannot add roles/system messages/tools. Unexpected tool output is rejected. | Mock tests show isolation and failure handling; they cannot establish that a real model ignores every injection. |
 | Structured criterion/range output; AI-04 | Exact criterion coverage, finite in-range scores, short nonempty rationales and overall comment are validated after the stop reason. Schema-invalid output is rejected. | The API wire schema uses supported JSON Schema features; numerical/string limits are enforced locally. |
-| Provenance; AI-04 | Accepted advice records provider, requested/served model, prompt/rubric version, locked snapshot ID and assessment timestamp. Failure reports retain safe metadata without provider responses or keys. | Assessment persistence, assignment RLS and audit transactions remain BL-AI-02 integration work. |
+| Provenance; AI-04 | Accepted advice records provider, requested/served model, prompt/rubric version, locked snapshot ID, assessment timestamp and non-blocking screening categories. Failure reports retain safe metadata without provider responses or keys. Sync, Batch and evaluation reports preserve warnings. | Assessment persistence, assignment RLS and audit transactions remain BL-AI-02 integration work. |
 | Human independence; AI-03 | Report separates model and human values; unset human scores are represented as unassessed and never fabricated. No automatic decision or human-average adjustment is exposed. | Independent draft before reveal, substantive override records, API permissions and UI remain BL-AI-03. |
-| Evaluation and activation; AI-05/06 | Approximately 25 synthetic cases cover strong/weak/ongoing studies, varied study types, identity leaks, injections and malformed inputs/outputs. Reproducible mock reports include failures, provenance, human/model comparison fields and limitations. | Scientific Lead must supply human baselines, examine disagreements/overrides and explicitly judge suitability; no numerical pass threshold is invented. |
+| Evaluation and activation; AI-05/06 | 29 synthetic cases cover strong/weak/ongoing studies, varied study types, identity leaks, injections and malformed inputs/outputs, with EN/AR generic-versus-own institution pairs. Reproducible mock reports include failures, provenance, human/model comparison fields and limitations. | Scientific Lead must supply human baselines, examine disagreements/overrides and explicitly judge suitability; no numerical pass threshold is invented. |
 | Local-only real synthetic harness; AI-05/06 | No key in source, docs or outputs; explicit local opt-in/key/config required; CI blocks before SDK/network; built-in synthetic corpus only. Leak/malformed input cases do not dispatch. | Locally running it is a separate deliberate action; it never permits real abstracts or opens the website's assessment gate. |
 | Batch, caching and fallback request design | Mock SDK requests demonstrate Batch API bulk dispatch, fixed system/rubric cache markers, adaptive thinking and explicit effort. Synchronous calls carry server-side fallback and its exact beta header; stop reasons are handled before content. | Anthropic documents that server-side fallback is unavailable in Batches; batch refusals use manual review. Real cache hits are unverified. |
 
@@ -42,7 +42,8 @@ criteria through the actual adapter contract:
   fetch, SDK, factory, configuration, authority and budget calls.
 - `BL-AI-01 allowlist and identity canaries`: the five transmitted fields,
   removed account/evidence fields, safe audit metadata, all six identity
-  categories, Arabic digits, repeated IRB labels, non-body leaks, malformed
+  categories, non-blocking EN/AR generic institution wording and warning provenance,
+  Arabic digits, repeated IRB labels, non-body leaks, malformed
   snapshots, coerced scalar rejection and capture before asynchronous work.
 - `AI-04 untrusted content and structured response`: fixed system/user
   separation, no tools, supported JSON schema, adaptive effort, caching,
@@ -53,19 +54,23 @@ criteria through the actual adapter contract:
   pending/refused/invalid/missing/duplicate/unknown results, disable, correct
   stable/beta SDK calls, pinned API endpoint, key-only auth and silent logging.
 
-`tests/unit/ai-assessment-harness.test.ts` covers all 25 corpus input expectations,
+`tests/unit/ai-assessment-harness.test.ts` covers all 29 corpus input expectations,
 mock provider outcomes, human/model separation and missing baselines, versioned
 comparison validation, dedicated local key/consent/spend/budget guards, CI/hosted
 denial, unsupported arbitrary inputs, Batch request settings, unordered result
 collection, altered receipts, scope denial and mocked CI execution without a key.
+The custom-header guard test clears all hosted/CI markers to isolate that check;
+separate tests verify the real factory refuses actual CI/hosted execution.
 
 Observed during independent review:
 
 - PASS: `pnpm exec vitest run tests/unit/ai-assessment-adapter.test.ts tests/unit/ai-assessment-harness.test.ts`
-  — final focused review passed 176 tests (113 adapter and 63 harness) in two files,
-  including the real factory's actual-environment denial; no provider request.
-- PASS: `node --conditions=react-server scripts/ai-evaluate.ts mock` — 25 rows,
-  ten completed fixture outputs, 15 manual states, all 25 human baselines unassessed.
+  — final PR #40 review passed 202 tests (127 adapter and 75 harness) in two files
+  under `CI=true` and `GITHUB_ACTIONS=true`, including isolated header denial and
+  the real factory's actual-environment denial; no provider request.
+- PASS: `node --conditions=react-server scripts/ai-evaluate.ts mock` — 29 rows,
+  12 completed fixture outputs, 17 manual states, all 29 human baselines unassessed
+  and two safe generic-institution warning rows under the same CI markers.
   The ignored report contains no abstract bodies, identity canaries or key fields.
 - PASS after correction: native sanitizer probes block all six corpus identity
   canaries, reject an array completion status and reject an impossible calendar

@@ -1,5 +1,37 @@
 # Progress and session handover
 
+## 5 October 2026 — PR #40 review fixes
+
+Updated the existing `codex/bl-ai-01-synthetic` branch for the requester's two review
+findings (AI-02/04/06; ENG-018 clarification). The custom-header factory test clears
+all CI/hosted markers and sets a local test environment before checking the header
+guard. Separate coverage still refuses actual CI before SDK construction. The
+original Foundation run failed only this assertion (2,000 other unit tests passed);
+its database job and Participant accounts workflow passed.
+
+Identity screening now blocks own author and institution names from the locked
+snapshot, emails, phone numbers, licence numbers and IRB numbers. Generic EN/AR
+institution words are allowed and produce the typed `generic_institution_mention`
+warning in synchronous, Batch and evaluation provenance. No matched name or body
+excerpt is recorded in warning metadata. The versioned synthetic corpus/report
+now contains 29 cases, with EN/AR generic tertiary-hospital settings and named own
+institution canaries. Human review remains available; activation stays closed.
+
+Verification at review closeout (Node 24.21.0 / pnpm 11.19.0):
+
+- PASS: final `pnpm check` with `CI=true` and `GITHUB_ACTIONS=true` — lint, types,
+  2,027 unit tests in 44 files and the 65-page production build; exit 0.
+- PASS: final focused adapter/harness run with both CI markers — 202 tests
+  (127 adapter, 75 harness), including isolated header denial and actual CI refusal.
+- PASS: native `pnpm ai:evaluate:mock` with both CI markers — report/corpus v2,
+  29 rows: 12 validated mocked outputs, 17 manual states, 29 human-unassessed and
+  two non-blocking warning rows. No provider client is constructed.
+- PASS: diff review, safe report/client-bundle inspection and `git diff --check`.
+- Hosted CI on the review commit is checked after push; the final status and exact
+  head are recorded in PR #40. This local receipt does not claim a pending run passed.
+- NOT TESTED: real API, real abstracts, committee suitability and live activation.
+  No key, provider request, database/hosted configuration or workflow opening.
+
 ## 5 October 2026 — BL-AI-01 disabled Claude adapter and synthetic evaluation
 
 Started after listing open PRs: none. Refreshed `origin/main` at `630e195`, then
