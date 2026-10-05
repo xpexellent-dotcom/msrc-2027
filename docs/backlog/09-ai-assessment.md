@@ -1,16 +1,16 @@
 # AI assessment
 
-Separate approval-dependent M6 capability. Human review can open with this capability disabled. Assessment is advisory; it is not deterministic validation, originality checking, or a decision publisher. No provider is selected by this backlog.
+Separate approval-dependent M6 capability. Human review can open with this capability disabled. Assessment is advisory; it is not deterministic validation, originality checking, or a decision publisher. On 5 October 2026 the requester selected the Claude API (`@anthropic-ai/sdk`, `claude-opus-5-5`) for the disabled foundation and synthetic harness (ENG-018). Real-manuscript processing remains unapproved; the DeepSeek prototype is not used. [Implementation and activation notes](../features/ai-assessment.md).
 
 <a id="bl-ai-01"></a>
 
 ## BL-AI-01 — Define a disabled advisory adapter with sanitized inputs
 
 - **Source IDs:** AI-01, AI-02, AI-05, PRV-07, CFG-10.
-- **Status:** Planned; synthetic adapter only until approval.
+- **Status:** Disabled adapter and synthetic harness implemented for review; live processing and integration remain blocked by approval/dependencies. Acceptance evidence: [test matrix](../features/ai-assessment-acceptance.md).
 - **Purpose:** The platform can isolate approved scientific assessment from confidential identity/evidence and from the decision authority.
 - **Scope:** Server-only adapter contract, explicit activation gate, locked snapshot/rubric input, allowlisted scientific fields, body identity checks, provider configuration validation and synthetic implementation.
-- **Exclusions:** Live provider calls, independent reviewer uploads to external tools, author/account/contact/affiliation/licence data, IRB/similarity evidence, automatic publication.
+- **Exclusions:** Live real-manuscript calls, independent reviewer uploads to external tools, author/account/contact/affiliation/licence data, IRB/similarity evidence, automatic publication. A separate opt-in local script accepts only the fixed synthetic corpus; it is never run in CI.
 - **Dependencies:** BL-REV-01, BL-REV-02; BL-SEC-01; [DR-CFG-10](DECISION_REQUIRED.md#dr-cfg-10).
 - **Roles:** Scientific/privacy owners approve processing; authorized integration administrator configures; reviewers use approved in-platform results only.
 - **States/transitions:** Disabled remains the default; only complete approved configuration can permit live dispatch; absent/invalid configuration routes to permitted manual review.
@@ -20,7 +20,7 @@ Separate approval-dependent M6 capability. Human review can open with this capab
 - **Accessibility:** Accessible disclosure and status messages; manual path remains visible without a model-dependent control.
 - **Security/RLS:** Server activation checks and privileged MFA; provider credentials never in browser/logs; restrict assessment rows to intended assignment/admin scope.
 - **Audit/email:** Audit activation/config changes and dispatch metadata without manuscript/secret logging; no applicant decision emails from adapter calls.
-- **Automated tests:** Disabled no-network assertion, identity canaries, malformed configuration, denied activation and manual-review continuity.
+- **Automated tests:** Disabled no-network assertion, locked-snapshot author/institution and contact/licence/IRB canaries, EN/AR generic institution warnings in provenance, malformed configuration, denied activation and manual-review continuity. PR #40 review narrows institution blocking to the submission's own names; generic study-setting wording is allowed (ENG-018).
 - **Manual UAT:** Inspect synthetic payload and browser bundle; disable mid-workflow and continue human review.
 - **Release gate:** Separate AI gate within REL-03: approved provider/terms/location/disclosure plus evaluation evidence.
 - **Owner type:** Full-stack/security engineer with scientific and privacy owners.

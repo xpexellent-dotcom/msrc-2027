@@ -1644,3 +1644,50 @@ sign-up, email verification and password reset. Sign-in remains compatible with 
 shorter passwords, and the 72-byte UTF-8 maximum remains enforced. EN/AR hints and
 field errors explain the requirement. The activation guide includes the corresponding
 future managed Auth setting; this review changes no hosted settings.
+
+## ENG-018 — BL-AI-01 Claude advisory design, 5 October 2026
+
+Authority: the requester selected the Claude API, official `@anthropic-ai/sdk` and
+`claude-opus-5-5` for this disabled adapter and synthetic evaluation task. This is
+a provider design selection, not approval to process real manuscripts. The earlier
+DeepSeek prototype is not used, imported or migrated. AI-01 through AI-06, PRV-07,
+CFG-03/09/10 and REL-03 govern the remaining processing and scientific gates.
+
+- Use structured JSON output, adaptive thinking with explicit effort, no tools,
+  cached fixed system/rubric text and application validation of criterion coverage,
+  score ranges and short comments. Check `stop_reason` before reading content.
+  Pin SDK 0.131.0 and commit its lockfile; official docs and installed SDK types
+  are the API authority.
+- Individual requests opt into Anthropic server-side refusal fallback with
+  `fallbacks: "default"` and `server-side-fallback-2026-07-01`. Record the model that
+  actually serves the response. Default fallback routing is also subject to
+  scientific/privacy/budget approval; model changes require reassessment.
+- API limitation: [Anthropic explicitly excludes server-side fallback from
+  Message Batches](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback).
+  Bulk runs use Message Batches without the unsupported parameter; refusals and
+  failed items remain manual-review cases. No automatic resubmission or client retry.
+  [Raw JSON Schema numeric bounds are unsupported](https://platform.claude.com/docs/en/build-with-claude/structured-outputs);
+  describe ranges in the schema and enforce them locally before accepting a score.
+- Production remains disabled: flag, key and placeholder rubric cannot activate it.
+  Complete version-bound approval evidence, approved committee rubric, scientific-lead
+  evaluation, privacy/data-flow approval, privileged execution, audit and atomic
+  budget reservation are required. No route, persisted job, reviewer reveal or
+  outcome publisher is connected by this contract. The evaluation rubric is
+  `UNAPPROVED`; synthetic human/model values are not committee calibration.
+- A separate local CLI may send only the built-in synthetic set with an explicitly
+  supplied local key and run consent, bounded operating configuration and provider
+  account spend limit. It rejects CI and hosted execution. This task makes no live
+  model request and introduces no API key, account or hosted configuration.
+
+The activation checklist, API references, disable procedure and remaining
+BL-AI-02/03/04 integration work are in [the feature note](features/ai-assessment.md).
+
+PR #40 review clarification, 5 October 2026 (explicit requester instruction):
+identity screening blocks the submission's own author names and institution names
+from its locked snapshot, emails, phone numbers, licence numbers and IRB numbers.
+Generic institution words such as university, hospital or college of medicine,
+including Arabic equivalents, are non-blocking warnings recorded as safe categories
+in provenance. This avoids suppressing ordinary study-setting descriptions such as
+"patients at a tertiary hospital in Jeddah". EN/AR synthetic pairs verify the
+distinction. These changes do not approve real-manuscript processing or alter
+the remaining privacy, scientific evaluation and activation gates.

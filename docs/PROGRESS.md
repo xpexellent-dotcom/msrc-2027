@@ -1,5 +1,99 @@
 # Progress and session handover
 
+## 5 October 2026 — PR #40 review fixes
+
+Updated the existing `codex/bl-ai-01-synthetic` branch for the requester's two review
+findings (AI-02/04/06; ENG-018 clarification). The custom-header factory test clears
+all CI/hosted markers and sets a local test environment before checking the header
+guard. Separate coverage still refuses actual CI before SDK construction. The
+original Foundation run failed only this assertion (2,000 other unit tests passed);
+its database job and Participant accounts workflow passed.
+
+Identity screening now blocks own author and institution names from the locked
+snapshot, emails, phone numbers, licence numbers and IRB numbers. Generic EN/AR
+institution words are allowed and produce the typed `generic_institution_mention`
+warning in synchronous, Batch and evaluation provenance. No matched name or body
+excerpt is recorded in warning metadata. The versioned synthetic corpus/report
+now contains 29 cases, with EN/AR generic tertiary-hospital settings and named own
+institution canaries. Human review remains available; activation stays closed.
+
+Verification at review closeout (Node 24.21.0 / pnpm 11.19.0):
+
+- PASS: final `pnpm check` with `CI=true` and `GITHUB_ACTIONS=true` — lint, types,
+  2,027 unit tests in 44 files and the 65-page production build; exit 0.
+- PASS: final focused adapter/harness run with both CI markers — 202 tests
+  (127 adapter, 75 harness), including isolated header denial and actual CI refusal.
+- PASS: native `pnpm ai:evaluate:mock` with both CI markers — report/corpus v2,
+  29 rows: 12 validated mocked outputs, 17 manual states, 29 human-unassessed and
+  two non-blocking warning rows. No provider client is constructed.
+- PASS: diff review, safe report/client-bundle inspection and `git diff --check`.
+- Hosted CI on the review commit is checked after push; the final status and exact
+  head are recorded in PR #40. This local receipt does not claim a pending run passed.
+- NOT TESTED: real API, real abstracts, committee suitability and live activation.
+  No key, provider request, database/hosted configuration or workflow opening.
+
+## 5 October 2026 — BL-AI-01 disabled Claude adapter and synthetic evaluation
+
+Started after listing open PRs: none. Refreshed `origin/main` at `630e195`, then
+created isolated branch `codex/bl-ai-01-synthetic`. The original checkout's
+modified logs, untracked notes and output are preserved. Shared PROGRESS/DECISIONS
+updates do not count as feature overlap. Source IDs: AI-01 through AI-06, PRV-07,
+CFG-03/09/10 and REL-03; decision ENG-018.
+
+The server-only advisory contract has a default-off flag, complete version-bound
+approval requirements, allowlisted scientific payload and identity checks, fixed
+system/rubric rules with untrusted user text, no tools, strict output validation,
+stop-reason handling, safe metadata and manual-review continuity. Official SDK
+0.131.0 is pinned with the lockfile. Individual requests use server-side refusal
+fallback; Message Batches omit its unsupported parameter and preserve manual review
+for refused/failed items. No SDK automatic retries or applicant outcome operation.
+
+The fixed synthetic corpus and mocked evaluation harness cover study quality,
+ongoing/varied designs, identity leaks, injections and malformed failures. The
+placeholder rubric is `UNAPPROVED`; report model/human scores and disagreement fields
+do not fabricate committee baselines. A separate local real-API script requires
+explicit synthetic consent, a dedicated locally supplied key and bounded operating
+configuration, refuses CI/hosted execution and accepts no real-abstract input.
+
+Files: `src/lib/ai-assessment/`, `evaluation/ai-assessment/`, `scripts/ai-evaluate.ts`
+and two unit suites; package/lockfile, native TypeScript import setting, empty environment examples, backlog status,
+[feature/activation note](features/ai-assessment.md),
+[acceptance matrix](features/ai-assessment-acceptance.md), DECISIONS and this log.
+No migration, hosted configuration, key, real abstract, email or workflow opening.
+The DeepSeek prototype is not used.
+
+Executed verification uses Node 24.21.0 / pnpm 11.19.0:
+
+| Command/check | Result | Evidence/limit |
+| --- | --- | --- |
+| GitHub open-PR list; fresh main/worktree preflight | PASS | No open PRs; base `630e195`; original user work preserved. |
+| Official Anthropic docs and installed SDK source/types | PASS | Confirmed current JSON format/effort/fallback/Batch/cache shapes; documented Batch fallback incompatibility and unsupported numeric schema bounds. |
+| Exact SDK install; `pnpm install --frozen-lockfile --offline` | PASS | SDK 0.131.0 pinned; updated lockfile accepted. |
+| `pnpm audit --prod` | PASS | No known runtime dependency vulnerabilities reported at execution; not a security certification. |
+| Final `pnpm check` | PASS | Zero-warning lint, route generation/TypeScript, 2,001 unit tests in 44 files, 65-page optimized production build; exit 0. Earlier check passed 1,999 tests before two real-factory guard regressions were added. |
+| `pnpm exec vitest run tests/unit/ai-assessment-adapter.test.ts tests/unit/ai-assessment-harness.test.ts` | PASS | Final 176/176: 113 adapter and 63 harness tests. Disabled cases assert zero fetch/SDK/factory/config/authority/budget calls; permission, expiry/drift, concurrency budget, failure and stop-switch coverage. |
+| `pnpm ai:evaluate:mock`; `pnpm ai:evaluate:synthetic --help` | PASS | Native Node CLI generated 25 rows: 10 validated mocked outputs, 15 manual cases, all 25 human baselines unassessed. Ignored report excludes abstracts, identity context and keys. |
+| Native synthetic-submit command under `CI=true` with an invalid synthetic key | PASS | Expected exit 1 before dispatch, safe generic error; no provider request. Unit tests also deny actual CI/custom-header environment overrides before SDK construction. |
+| Production client-chunk inspection; `git diff --check` | PASS | No Anthropic endpoint, fallback header, AI flag or synthetic-key references in `.next/static`; no whitespace errors. |
+| Independent requirements/security review | PASS for this slice | Acceptance map finalized; all four BL-AI-01 acceptance criteria have executable coverage. No unresolved blocking finding. |
+| Real synthetic API, real abstracts, committee scoring, provider billing/cache hits | NOT TESTED | No key or live model request; mock evidence does not establish scientific suitability. |
+| Database/RLS and independent-draft/reveal UI | NOT TESTED | No schema or UI changes; BL-AI-02/03 integration remains separate. |
+| Full browser suite and hosted CI | NOT TESTED at local closeout | No public UI or route changed. Existing permission/workflow units and production build passed; draft-PR CI runs separately. |
+
+Review first reproduced missed hyphenated licence/IRB identifiers, coerced completion
+status and impossible ISO dates. Those were corrected with regression coverage.
+Successful fallback content, unsupported Batch fallback parameters, truthful serving
+model provenance and inherited SDK endpoint/log/auth/header behavior were also
+reviewed and hardened. The real SDK factory independently checks the actual hosted/CI
+environment before import, even if a caller supplies a separate environment object.
+
+Activation is still BLOCKED by the organizational account/key/budget controls,
+approved committee rubric, Scientific Lead evaluation, privacy/data-flow/disclosure
+approval and trusted authority/audit/durable-job/reviewer integrations. Human review
+does not depend on this capability. Next: committee synthetic scoring and privacy
+review, then a separately scoped BL-AI-02/03 integration. Rollback removes the
+unused adapter/tools and SDK dependency; no public UI or database rollback is needed.
+
 ## 4 October 2026 — Staff Auth CI stability
 
 Branch `codex/auth-ci-stability` starts at freshly fetched main `bc2fb87` (PR36 merged),
