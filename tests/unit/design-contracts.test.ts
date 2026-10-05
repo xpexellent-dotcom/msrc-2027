@@ -29,9 +29,9 @@ function strings(value: unknown): string[] {
 }
 
 describe("Arabic numerals (LOC-01/03)", () => {
-  it("formats sequence labels in each language's digits", () => {
-    expect([1, 4, 12].map((value) => formatIndex(value, "en"))).toEqual(["01", "04", "12"]);
-    expect([1, 4, 12].map((value) => formatIndex(value, "ar"))).toEqual(["٠١", "٠٤", "١٢"]);
+  it("formats plain sequence labels in each language's digits", () => {
+    expect([1, 4, 12].map((value) => formatIndex(value, "en"))).toEqual(["1", "4", "12"]);
+    expect([1, 4, 12].map((value) => formatIndex(value, "ar"))).toEqual(["١", "٤", "١٢"]);
   });
 
   it("keeps Arabic editorial copy on Arabic-Indic digits so mixed digit styles do not return", () => {

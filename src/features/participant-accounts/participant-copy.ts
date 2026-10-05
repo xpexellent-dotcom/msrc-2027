@@ -25,7 +25,7 @@ export const participantCopy = {
     create: "Create account", signIn: "Sign in", verify: "Verify email", requestReset: "Send reset code", reset: "Reset password", resend: "Send a new code", signOut: "Sign out", retry: "Try again",
     checking: "Checking account availability…", pending: "Please wait…",
     privacy: "Privacy notice", privacyVersion: "Notice version", privacyLink: "Read the Privacy notice",
-    privacyPending: "Account sign-up is awaiting the approved Privacy notice. Please check back when accounts open.",
+    privacyPending: "Account sign-up is awaiting the final Privacy notice. Please check back when accounts open.",
     accountState: "Account state", verifiedState: "Email verified", profileName: "Profile name",
     needSignIn: "Sign in with your verified account to view My MSRC.",
     links: { "sign-up": "Create an account", "sign-in": "Sign in", "verify-email": "Verify email", "forgot-password": "Forgot password", "reset-password": "Use a reset code", "my-msrc": "My MSRC" },
@@ -61,7 +61,7 @@ export const participantCopy = {
     create: "إنشاء حساب", signIn: "تسجيل الدخول", verify: "التحقق من البريد", requestReset: "إرسال رمز إعادة التعيين", reset: "إعادة تعيين كلمة المرور", resend: "إرسال رمز جديد", signOut: "تسجيل الخروج", retry: "المحاولة مجددًا",
     checking: "جارٍ التحقق من إتاحة الحسابات…", pending: "يرجى الانتظار…",
     privacy: "إشعار الخصوصية", privacyVersion: "إصدار الإشعار", privacyLink: "اقرأ إشعار الخصوصية",
-    privacyPending: "إنشاء الحسابات بانتظار اعتماد إشعار الخصوصية. يرجى العودة عند فتح الحسابات.",
+    privacyPending: "إنشاء الحسابات بانتظار الصياغة النهائية لإشعار الخصوصية. يرجى العودة عند فتح الحسابات.",
     accountState: "حالة الحساب", verifiedState: "تم التحقق من البريد", profileName: "الاسم في الحساب",
     needSignIn: "سجّل الدخول بحسابك الموثّق لعرض حسابك في المؤتمر.",
     links: { "sign-up": "إنشاء حساب", "sign-in": "تسجيل الدخول", "verify-email": "التحقق من البريد", "forgot-password": "نسيت كلمة المرور", "reset-password": "استخدام رمز إعادة التعيين", "my-msrc": "حسابي في MSRC" },
@@ -77,4 +77,3 @@ export const participantCopy = {
     waitUntil: "يمكنك طلب رمز جديد بعد", expiresAt: "تنتهي صلاحية الرمز عند", expired: "انتهت صلاحية هذا الرمز. اطلب رمزًا جديدًا للمتابعة.",
   },
 } as const satisfies Record<Locale, unknown>;
-

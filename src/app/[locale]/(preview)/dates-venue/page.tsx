@@ -31,6 +31,7 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
   if (!isLocale(locale)) notFound();
   const copy = datesVenueCopy[locale];
   const dates = conferenceConfig.dates;
+  const venue = conferenceConfig.venue;
 
   return (
     <>
@@ -75,11 +76,13 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
           <div>
             <SectionHeading eyebrow={copy.locationEyebrow} title={copy.locationTitle} id="venue-title" />
             <p className="dates-body">{copy.locationBody}</p>
+            {venue && <a className="text-link dates-directions-link" href={venue.directionsUrl} target="_blank" rel="noopener noreferrer" aria-label={copy.directionsLabel}>{copy.directions}<span className="directional-arrow" aria-hidden="true"> ↗</span></a>}
           </div>
           <dl className="dates-location-details">
             <div><dt>{copy.city}</dt><dd>{copy.cityValue}</dd></div>
             <div><dt>{copy.host}</dt><dd>{copy.hostValue}</dd></div>
-            <div><dt>{copy.venue}</dt><dd>{conferenceConfig.venue ?? copy.venuePending}</dd></div>
+            <div><dt>{copy.venue}</dt><dd>{venue?.name[locale] ?? copy.venuePending}</dd></div>
+            {venue && <div><dt>{copy.address}</dt><dd>{venue.address.streetAddress[locale]}{locale === "ar" ? "، جدة " : ", Jeddah "}{venue.address.postalCode}</dd></div>}
           </dl>
         </Reveal></Container>
       </section>

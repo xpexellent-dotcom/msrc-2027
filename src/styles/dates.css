@@ -1,4 +1,4 @@
-/* SCP-02 / CFG-01: confirmed date-only content, with a separate venue gate. */
+/* SCP-02 / CFG-01 / ORG-031: confirmed days and venue; schedule details stay unset. */
 .dates-hero { background: var(--color-surface-lilac); }
 .dates-hero-grid, .dates-content-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: clamp(3rem, 6vw, 7rem); }
 .dates-hero-grid { padding-block: clamp(2.5rem, 5vw, 5rem) clamp(3.5rem, 6vw, 6rem); align-items: center; }
@@ -12,6 +12,7 @@
 .dates-day-list li > span { color: var(--color-muted); font-size: .9rem; }
 .dates-day-list time { color: var(--color-purple); font-size: clamp(1.65rem, 2.6vw, 2.4rem); font-weight: 600; line-height: 1.45; text-wrap: balance; }
 .dates-calendar-link { display: inline-flex; min-block-size: 44px; align-items: center; margin-block-start: .75rem; color: var(--color-purple); font-weight: 600; }
+.dates-directions-link { display: inline-flex; align-items: center; min-block-size: 44px; margin-block-start: 1rem; color: var(--color-purple); font-weight: 600; }
 .dates-body { margin-block-start: 1.6rem; max-width: 54ch; color: var(--color-muted); line-height: 1.9; text-wrap: pretty; }
 .dates-location-details { border-block-start: 2px solid var(--color-purple); }
 .dates-location-details > div { border-block-end: 1px solid var(--color-line-strong); padding-block: 1.5rem; }

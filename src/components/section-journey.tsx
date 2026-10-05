@@ -8,7 +8,7 @@ const copy = {
   en: { label: "Explore the conference sections", title: "Inside MSRC", sections: ["The conference", "Participation", "Programme", "Speakers", "MSRC 2026", "Partners", "Plan your visit"] },
   ar: { label: "استكشف أقسام المؤتمر", title: "داخل المؤتمر", sections: ["عن المؤتمر", "المشاركة", "البرنامج", "المتحدثون", "نسخة ٢٠٢٦", "الشركاء", "خطّط لزيارتك"] },
 } as const;
-// One chapter per numbered homepage section, so the numbers match the eyebrows (06 / Shared purpose).
+// One chapter per numbered homepage section, so the numbers match the eyebrows (6 / Shared purpose).
 const destinations = ["about", "participate", "program", "speakers", "legacy", "partners", "faq"] as const;
 type Chapter = typeof destinations[number];
 

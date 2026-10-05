@@ -54,7 +54,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     hostValue: "Faculty of Medicine, King Abdulaziz University",
     organizer: "Organizing club",
     organizerValue: "Research Principles Club",
-    purposeEyebrow: "01 / Our purpose",
+    purposeEyebrow: "1 / Our purpose",
     purposeTitle: "From a first question\nto a shared understanding.",
     purposeBody:
       "Student-led. Research-focused. A space to share ideas and connect with the medical research community.",
@@ -72,7 +72,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
         body: "Explore how collaboration and innovation can respond to challenges in healthcare.",
       },
     ],
-    communityEyebrow: "02 / Our community",
+    communityEyebrow: "2 / Our community",
     communityTitle: "Different stages.\nA shared curiosity.",
     communityBody:
       "Learners, researchers and educators. Connected by an interest in medical research.",
@@ -82,7 +82,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
       "Postgraduate students",
       "Faculty and the wider research community",
     ],
-    exploreEyebrow: "03 / Explore the conference",
+    exploreEyebrow: "3 / Explore the conference",
     exploreTitle: "Find your starting point.",
     exploreBody:
       "Discover research, innovation and hands-on learning.",
@@ -108,7 +108,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
     hostValue: "كلية الطب، جامعة الملك عبدالعزيز",
     organizer: "النادي المنظّم",
     organizerValue: "نادي مبادئ البحث العلمي",
-    purposeEyebrow: "٠١ / هدفنا",
+    purposeEyebrow: "١ / هدفنا",
     purposeTitle: "من سؤال أول،\nإلى معرفة نتشاركها.",
     purposeBody:
       "مؤتمر يقوده الطلاب، ويجمعنا حول البحث العلمي لمشاركة الأفكار والتواصل مع مجتمع البحث الطبي.",
@@ -127,7 +127,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
         body: "استكشاف دور التعاون والابتكار في الاستجابة لتحديات الرعاية الصحية.",
       },
     ],
-    communityEyebrow: "٠٢ / مجتمع المؤتمر",
+    communityEyebrow: "٢ / مجتمع المؤتمر",
     communityTitle: "مراحل مختلفة،\nوفضول يجمعنا.",
     communityBody:
       "متعلّمون وباحثون وأعضاء هيئة تدريس، يجمعنا الاهتمام بالبحث الطبي.",
@@ -137,7 +137,7 @@ export const aboutCopy: Record<Locale, AboutCopy> = {
       "طلاب الدراسات العليا",
       "أعضاء هيئة التدريس ومجتمع البحث العلمي",
     ],
-    exploreEyebrow: "٠٣ / استكشف المؤتمر",
+    exploreEyebrow: "٣ / استكشف المؤتمر",
     exploreTitle: "اختر نقطة انطلاقك.",
     exploreBody:
       "اكتشف البحث والابتكار والتعلّم بالممارسة.",

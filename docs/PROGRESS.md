@@ -1,5 +1,59 @@
 # Progress and session handover
 
+## 5 October 2026 — Organizer public copy, confirmed venue and plain numbering
+
+Listed open PRs first: none. Refreshed `origin/main` at `d1c643b`, then created
+isolated branch `codex/organizer-copy-venue-numbering`. The original checkout's
+modified logs, notes and outputs are preserved. Shared PROGRESS/DECISIONS logs do
+not count as feature overlap. Explicit organizer decisions are ORG-030/031/032,
+dated 5 October with the superseded public descriptions/TBD/presentation identified.
+IDs: SCP-01/02, REG-01/02/03/05, PAY-03, WKS-02, TIM-01, CFG-01, DSN-02,
+ACC-01, LOC-01/03, CMS-04 and REL-01.
+
+Public EN/AR registration and workshop steps omit approval and discount details,
+and tie a confirmed place to its confirmation email. Manual organizer approval,
+discount support and workflow closure remain enforced by unchanged backend logic,
+states/models and enforcement tests. The shared typed venue publishes King Faisal
+Conference Center / مركز الملك فيصل للمؤتمرات, KAU, Jeddah, with the supplied
+address, accessible Maps link, metadata, Event Place/PostalAddress and calendar
+LOCATION. Session times, doors and rooms remain unannounced. Shared/source display
+indices now use 1, 2, 3 / ١، ٢، ٣ and edition art 5 / ٥; date/time formatting stays.
+
+Files and detailed evidence:
+[organizer public decisions feature note](features/organizer-public-decisions-2026-10-05.md).
+DECISIONS, PROJECT_BRIEF and REQUIREMENTS reconcile the new authority; original
+source snapshots remain historical. No package/lockfile, database, permission,
+hosted configuration, DNS, real email, workflow opening or production publication.
+
+Observed verification (Node 24.21.0 / pnpm 11.19.0):
+
+- PASS: `pnpm check` — lint, types, 2,031 tests in 45 files and 65-page build; exit 0.
+- PASS: full `pnpm test:e2e --reporter=list,html,json` — 413 passed, 23 scope/matrix
+  skips, zero failed/flaky; exit 0. Two earlier runs exposed an empty-programme test
+  assumption and an existing Contact hydration race; both were corrected in tests
+  without weakening assertions, extending timeouts or adding retries.
+- PASS: separate auth and contact Playwright configs — 81 and 44 tests respectively,
+  using local fixtures/mock providers; no real account or message operations.
+- PASS: new EN/AR public registration/workshop forbidden-word regression, including
+  collapsed FAQ answers, shared cards and metadata; email confirmation remains honest.
+- PASS: 16 affected-page axe scans, zero violations; incomplete/manual-review items
+  retained. This does not claim full WCAG certification.
+- PASS: EN/AR 320/390/791/1440px numbering/overflow matrix, existing keyboard,
+  enlarged-text, motion and scrolling coverage; 16 requested phone/desktop full-page
+  screenshots captured and visually reviewed on this application build.
+- PASS: independent scope/assertion review, agent-browser page verification and
+  `git diff --check`. Negative policy-route 404 tests pass; framework
+  `NoFallbackError` output from those requests remains in the browser server log.
+- NOT TESTED: physical devices, screen reader, external Maps routing, native database
+  fixture suites or hosted PR CI at local closeout. Evidence, reports/screenshots and
+  prior failed-run traces are retained under ignored
+  `deliverables/organizer-public-2026-10-05/` in the attached worktree.
+
+Next: organizer review of the draft PR and bilingual screenshot handoff. Times,
+rooms, prices and registration/payment readiness need their separate decisions and
+release gates. Rollback reverts this branch's public application/content/test changes;
+no database/hosted rollback is needed. Retain the explicit organizer decision record.
+
 ## 5 October 2026 — PR #40 review fixes
 
 Updated the existing `codex/bl-ai-01-synthetic` branch for the requester's two review

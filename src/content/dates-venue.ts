@@ -24,6 +24,9 @@ type DatesVenueCopy = {
   hostValue: string;
   venue: string;
   venuePending: string;
+  address: string;
+  directions: string;
+  directionsLabel: string;
   scheduleEyebrow: string;
   scheduleTitle: string;
   scheduleBody: string;
@@ -33,12 +36,12 @@ type DatesVenueCopy = {
 
 // SCP-02 / CFG-01 / TIM-01 / LOC-01 / ACC-01.
 // Approved dates come from conferenceConfig, never from translated prose.
-// Venue and doors/session times are separate unresolved values.
+// ORG-031 confirms the venue; doors/session times and rooms remain unresolved.
 export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
   en: {
     metadataTitle: "Dates & venue | MSRC 2027",
     metadataDescription:
-      "The fifth Medical Students Research Conference takes place in Jeddah. The venue and session times will be announced after confirmation.",
+      "The fifth Medical Students Research Conference takes place at King Faisal Conference Center, King Abdulaziz University, Jeddah. Session times, doors and rooms will be announced.",
     breadcrumb: "Breadcrumb",
     home: "Home",
     page: "Dates & venue",
@@ -51,7 +54,7 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     day2: "Day 2",
     datesPending: "Conference dates awaiting confirmation",
     addToCalendar: "Add to calendar",
-    locationEyebrow: "01 / The location",
+    locationEyebrow: "1 / The location",
     locationTitle: "Where we'll meet.",
     locationBody: "King Abdulaziz University. Jeddah, Saudi Arabia.",
     city: "City",
@@ -60,16 +63,19 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     hostValue: "King Abdulaziz University",
     venue: "Conference venue",
     venuePending: "Awaiting confirmation",
-    scheduleEyebrow: "02 / The next details",
+    address: "Address",
+    directions: "Get directions",
+    directionsLabel: "Get directions to King Faisal Conference Center in Google Maps (opens in a new tab)",
+    scheduleEyebrow: "2 / The next details",
     scheduleTitle: "Session times will follow.",
-    scheduleBody: "Explore the conference experience.",
+    scheduleBody: "Session times, doors and rooms will be announced. Explore the conference experience.",
     program: "Explore the programme overview",
     closed: "Registration not open yet",
   },
   ar: {
     metadataTitle: "المواعيد والمقر | MSRC 2027",
     metadataDescription:
-      "يُقام المؤتمر الخامس لأبحاث طلاب الطب في جدة. سيُعلن عن المقر ومواعيد الجلسات بعد تأكيدها.",
+      "يُقام المؤتمر الخامس لأبحاث طلاب الطب في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة. ستُعلن مواعيد الجلسات وفتح الأبواب والقاعات لاحقًا.",
     breadcrumb: "مسار التنقل",
     home: "الرئيسية",
     page: "المواعيد والمقر",
@@ -82,7 +88,7 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     day2: "اليوم الثاني",
     datesPending: "مواعيد المؤتمر بانتظار التأكيد",
     addToCalendar: "أضف إلى التقويم",
-    locationEyebrow: "٠١ / المكان",
+    locationEyebrow: "١ / المكان",
     locationTitle: "حيث نلتقي.",
     locationBody: "جامعة الملك عبدالعزيز. جدة، المملكة العربية السعودية.",
     city: "المدينة",
@@ -91,10 +97,13 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     hostValue: "جامعة الملك عبدالعزيز",
     venue: "مقر المؤتمر",
     venuePending: "بانتظار التأكيد",
-    scheduleEyebrow: "٠٢ / التفاصيل القادمة",
+    address: "العنوان",
+    directions: "الاتجاهات",
+    directionsLabel: "الاتجاهات إلى مركز الملك فيصل للمؤتمرات على خرائط Google (تُفتح في علامة تبويب جديدة)",
+    scheduleEyebrow: "٢ / التفاصيل القادمة",
     scheduleTitle: "مواعيد الجلسات تُعلَن لاحقًا.",
     // Distinct from the button below it, which already reads «اكتشف تجربة المؤتمر».
-    scheduleBody: "تعرّف إلى ما ينتظرك في المؤتمر.",
+    scheduleBody: "ستُعلن مواعيد الجلسات وفتح الأبواب والقاعات لاحقًا. تعرّف إلى ما ينتظرك في المؤتمر.",
     program: "اكتشف تجربة المؤتمر",
     closed: "لم يُفتح التسجيل بعد",
   },

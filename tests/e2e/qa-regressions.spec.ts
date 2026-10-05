@@ -194,7 +194,7 @@ test("a portrait phone keeps the header in view while reading down", async ({ pa
 // The edition number and the year art were the only Western digits on Arabic pages, and the intro
 // art's flow lines did not mirror, so in Arabic they ran through the edition number.
 test("homepage display art uses each language's digits and mirrors in Arabic", async ({ page }) => {
-  for (const [locale, edition, years, transform] of [["en", "05", "20262027", "none"], ["ar", "٠٥", "٢٠٢٦٢٠٢٧", "matrix(-1, 0, 0, 1, 0, 0)"]] as const) {
+  for (const [locale, edition, years, transform] of [["en", "5", "20262027", "none"], ["ar", "٥", "٢٠٢٦٢٠٢٧", "matrix(-1, 0, 0, 1, 0, 0)"]] as const) {
     await page.goto(`/${locale}`);
     await expect(page.locator(".visual-edition")).toHaveText(edition);
     await expect(page.locator(".legacy-art-years")).toHaveText(years);

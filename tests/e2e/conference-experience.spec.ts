@@ -50,7 +50,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await expect(page.locator("iframe, textarea, input[type=email], input[type=password], input[type=file]")).toHaveCount(0);
-      await expect(page.getByRole("main")).not.toContainText(/King Faisal Conference Center|Abdulrahman Ismail|Fatimah Al Farhah/i);
+      await expect(page.getByRole("main")).not.toContainText(/Abdulrahman Ismail|Fatimah Al Farhah/i);
       await expect(page.locator('a[href*="/admin"], a[href*="/reviewer"], a[download]')).toHaveCount(0);
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
       expect(response?.headers()["x-robots-tag"]).toContain("noindex");
@@ -287,7 +287,7 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} programme, media and participation pass automated accessibility checks`, async ({ page }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    for (const route of ["program", "media", "participate", "registration"]) {
+    for (const route of ["program", "media", "participate", "registration", "workshops"]) {
       await page.goto(`/${locale}/${route}`);
       await page.evaluate(() => document.fonts.ready);
       const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();

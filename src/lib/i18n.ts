@@ -12,10 +12,10 @@ export function direction(locale: Locale): "ltr" | "rtl" {
 
 const arabicIndicDigits = "٠١٢٣٤٥٦٧٨٩";
 
-/** Two-digit sequence labels (01 / ٠١) matching the digits used in each language's copy. */
+/** Plain sequence labels (1 / ١) matching the digits used in each language's copy. */
 export function formatIndex(value: number, locale: Locale): string {
-  const padded = String(value).padStart(2, "0");
-  return locale === "ar" ? padded.replace(/\d/g, (digit) => arabicIndicDigits[Number(digit)]) : padded;
+  const index = String(value);
+  return locale === "ar" ? index.replace(/\d/g, (digit) => arabicIndicDigits[Number(digit)]) : index;
 }
 
 /** A bare year (2026 / ٢٠٢٦) for display art, without the grouping separator a number format adds. */

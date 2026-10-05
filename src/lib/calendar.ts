@@ -5,20 +5,20 @@ import { siteOrigin } from "@/lib/metadata";
 
 /**
  * "Add to calendar" for the confirmed days (ORG-001): one all-day event over 27–28 January.
- * Date-only on purpose: no doors or session times exist yet (TIM-01), and the venue stays out
- * until conferenceConfig.venue is set. Both languages share one UID, so a calendar keeps a
- * single event whichever file is added.
+ * Date-only on purpose: no doors or session times exist yet (TIM-01). The venue is confirmed
+ * by ORG-031. Both languages share one UID, so a calendar keeps a single event whichever
+ * file is added.
  */
 const copy: Record<Locale, { summary: string; location: string; description: string }> = {
   en: {
     summary: "MSRC 2027 | The 5th Medical Students Research Conference",
     location: "Jeddah, Saudi Arabia",
-    description: "Confirmed conference days. The venue and session times will be announced.",
+    description: "Confirmed conference days and venue. Session times, doors and rooms will be announced.",
   },
   ar: {
     summary: "MSRC 2027 | المؤتمر الخامس لأبحاث طلاب الطب",
     location: "جدة، المملكة العربية السعودية",
-    description: "أيام المؤتمر المؤكدة. سيُعلن المقر ومواعيد الجلسات لاحقًا.",
+    description: "أيام المؤتمر ومقره مؤكدة. ستُعلن مواعيد الجلسات وفتح الأبواب والقاعات لاحقًا.",
   },
 };
 
@@ -53,6 +53,8 @@ export function conferenceCalendar(locale: Locale): string | null {
   const dates = conferenceConfig.dates;
   if (!dates) return null;
   const event = copy[locale];
+  const venue = conferenceConfig.venue;
+  const location = venue ? `${venue.name[locale]}, ${venue.address.streetAddress[locale]}, ${locale === "ar" ? "جدة" : venue.address.addressLocality} ${venue.address.postalCode}, ${locale === "ar" ? "المملكة العربية السعودية" : "Saudi Arabia"}` : event.location;
   const page = `${siteOrigin}/${locale}/dates-venue`;
   const lines = [
     "BEGIN:VCALENDAR",
@@ -62,12 +64,12 @@ export function conferenceCalendar(locale: Locale): string | null {
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
     "UID:msrc-2027-conference@msrc2027.com",
-    // The day the dates were confirmed (ORG-001), so every build produces the same file.
-    "DTSTAMP:20261001T000000Z",
+    // The latest confirmed event revision (ORG-031), so every build produces the same file.
+    "DTSTAMP:20261005T000000Z",
     `DTSTART;VALUE=DATE:${icsDate(dates.day1)}`,
     `DTEND;VALUE=DATE:${nextDay(dates.day2)}`,
     `SUMMARY:${text(event.summary)}`,
-    `LOCATION:${text(conferenceConfig.venue ? `${conferenceConfig.venue}, ${event.location}` : event.location)}`,
+    `LOCATION:${text(location)}`,
     `DESCRIPTION:${text(`${event.description} ${page}`)}`,
     `URL:${page}`,
     "TRANSP:TRANSPARENT",

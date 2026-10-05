@@ -2,24 +2,24 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 // SCP-02 / CFG-01 / TIM-01 / LOC-01 / ACC-01:
-// approved calendar days must not invent a venue, event time or workflow opening.
+// ORG-031 confirms the venue; event times and workflow openings stay unset.
 const copy = {
   en: {
     title: "Dates & venue | MSRC 2027", heading: "Two days in Jeddah.",
-    first: "27 January 2027", second: "28 January 2027", pending: "Awaiting confirmation",
+    first: "27 January 2027", second: "28 January 2027", venue: "King Faisal Conference Center",
     city: "Jeddah, Saudi Arabia", closed: "Registration not open yet",
     breadcrumb: "Breadcrumb", home: "Home", footer: "Dates & venue",
   },
   ar: {
     title: "المواعيد والمقر | MSRC 2027", heading: "يومان في جدة.",
-    first: "٢٧ يناير ٢٠٢٧", second: "٢٨ يناير ٢٠٢٧", pending: "بانتظار التأكيد",
+    first: "٢٧ يناير ٢٠٢٧", second: "٢٨ يناير ٢٠٢٧", venue: "مركز الملك فيصل للمؤتمرات",
     city: "جدة، المملكة العربية السعودية", closed: "لم يُفتح التسجيل بعد",
     breadcrumb: "مسار التنقل", home: "الرئيسية", footer: "المواعيد والمقر",
   },
 } as const;
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} Dates and Venue show approved days, honest pending details and accessible layout`, async ({ page }, testInfo) => {
+  test(`${locale} Dates and Venue show confirmed days and venue, pending times and accessible layout`, async ({ page }, testInfo) => {
     const errors: string[] = [];
     const writes: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -36,12 +36,19 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator('time[datetime="2027-01-28"]')).toHaveText(copy[locale].second);
     await expect(page.locator("time")).toHaveCount(2);
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].city);
-    await expect(page.locator(".dates-location-details")).toContainText(copy[locale].pending);
+    await expect(page.locator(".dates-location-details")).toContainText(copy[locale].venue);
+    await expect(page.locator(".dates-location-details")).toContainText("22254");
     await expect(page.locator(".dates-note")).toHaveCount(0);
     await expect(page.locator(".dates-closed-note")).toContainText(copy[locale].closed);
     await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
-    await expect(page.getByRole("main")).not.toContainText(/King Faisal Conference Center|مركز الملك فيصل|09:00|9:00 AM/);
-    await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"], a[href*="maps"]')).toHaveCount(0);
+    await expect(page.getByRole("main")).not.toContainText(/09:00|9:00 AM/);
+    await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"]')).toHaveCount(0);
+    const directions = page.locator('a[href*="google.com/maps"]');
+    await expect(directions).toHaveCount(1);
+    await expect(directions).toHaveAttribute("target", "_blank");
+    await expect(directions).toHaveAttribute("rel", /noopener/);
+    await expect(directions).toHaveAccessibleName(locale === "en" ? /Get directions.*King Faisal Conference Center.*new tab/i : /الاتجاهات.*مركز الملك فيصل للمؤتمرات.*علامة تبويب جديدة/);
+    expect(new URL((await directions.getAttribute("href"))!).searchParams.get("destination")).toContain("King Faisal Conference Center");
     await expect(page.locator("form, input, textarea, select, iframe, video")).toHaveCount(0);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://www.msrc2027.com/${locale}/dates-venue`);
     await expect(page.locator('link[hreflang="en"]')).toHaveAttribute("href", "https://www.msrc2027.com/en/dates-venue");
@@ -127,6 +134,9 @@ for (const [locale, label] of [["en", "Add to calendar"], ["ar", "أضف إلى 
     const body = await response.text();
     expect(body).toContain("DTSTART;VALUE=DATE:20270127");
     expect(body).toContain("DTEND;VALUE=DATE:20270129");
+    const unfolded = body.replace(/\r\n /g, "");
+    expect(unfolded).toContain(`LOCATION:${locale === "en" ? "King Faisal Conference Center" : "مركز الملك فيصل للمؤتمرات"}`);
+    expect(unfolded).toContain("22254");
     expect(body).not.toMatch(/T\d{6}(?!Z)/);
   });
 }

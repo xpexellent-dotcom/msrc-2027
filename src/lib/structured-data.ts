@@ -24,14 +24,21 @@ export function websiteJsonLd(locale: Locale) {
 /**
  * schema.org Event for the homepage, so search results can show the conference's name, dates
  * and city. Built only from facts the page already publishes: confirmed dates (ORG-001), the
- * city, the organizer line and the lead. The venue stays out until conferenceConfig.venue is
- * set, and there are no offers, times, prices or capacities.
+ * city, the organizer line and the lead. ORG-031 adds the confirmed venue and street address.
+ * There are no offers, times, prices or capacities.
  */
 export function conferenceEventJsonLd(locale: Locale) {
   const dates = conferenceConfig.dates;
   if (!dates) return null;
   const copy = homepageCopy[locale];
-  const city = { "@type": "PostalAddress", addressLocality: locale === "ar" ? "جدة" : "Jeddah", addressCountry: "SA" };
+  const venue = conferenceConfig.venue;
+  const address = venue ? {
+    "@type": "PostalAddress",
+    streetAddress: venue.address.streetAddress[locale],
+    addressLocality: venue.address.addressLocality,
+    postalCode: venue.address.postalCode,
+    addressCountry: venue.address.addressCountry,
+  } : { "@type": "PostalAddress", addressLocality: locale === "ar" ? "جدة" : "Jeddah", addressCountry: "SA" };
   return {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -44,7 +51,7 @@ export function conferenceEventJsonLd(locale: Locale) {
     endDate: dates.day2,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    location: { "@type": "Place", name: conferenceConfig.venue ?? copy.city, address: city },
+    location: { "@type": "Place", name: venue?.name[locale] ?? copy.city, address },
     organizer: { "@type": "Organization", name: organizer[locale], url: siteOrigin },
   };
 }

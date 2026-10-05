@@ -10,10 +10,16 @@ import {
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 
 describe("confirmed dates and closed business configuration (CFG-01/02/10)", () => {
-  it("records calendar days while keeping venue, prices, capacities, and regions unset", () => {
+  it("records calendar days and the venue while keeping prices, capacities, and regions unset", () => {
     expect(conferenceConfig).toMatchObject({
       dates: { day1: "2027-01-27", day2: "2027-01-28" },
-      venue: null,
+      venue: {
+        name: { en: "King Faisal Conference Center", ar: "مركز الملك فيصل للمؤتمرات" },
+        address: {
+          streetAddress: { en: "Abdullah Sulayman St, King Abdulaziz University", ar: "شارع عبدالله سليمان، جامعة الملك عبدالعزيز" },
+          addressLocality: "Jeddah", postalCode: "22254", addressCountry: "SA",
+        },
+      },
       registrationPrice: null,
       conferenceCapacity: null,
       workshopCapacity: null,
@@ -22,6 +28,14 @@ describe("confirmed dates and closed business configuration (CFG-01/02/10)", () 
     expect(conferenceConfig.dates).not.toHaveProperty("startsAt");
     expect(conferenceConfig.dates).not.toHaveProperty("endsAt");
     expect(Object.isFrozen(conferenceConfig.dates)).toBe(true);
+    expect(Object.isFrozen(conferenceConfig.venue)).toBe(true);
+    expect(Object.isFrozen(conferenceConfig.venue?.name)).toBe(true);
+    expect(Object.isFrozen(conferenceConfig.venue?.address)).toBe(true);
+    const mapsUrl = new URL(conferenceConfig.venue!.directionsUrl);
+    expect(mapsUrl.origin).toBe("https://www.google.com");
+    expect(mapsUrl.pathname).toBe("/maps/dir/");
+    expect(mapsUrl.searchParams.get("api")).toBe("1");
+    expect(mapsUrl.searchParams.get("destination")).toBe("King Faisal Conference Center, Abdullah Sulayman St, King Abdulaziz University, Jeddah 22254");
   });
 });
 

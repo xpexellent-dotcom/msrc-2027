@@ -55,9 +55,11 @@ export function localizedPageMetadata(locale: Locale, path: string, title: strin
 const descriptionCity: Record<Locale, string> = { en: ", Jeddah. ", ar: "، جدة. " };
 
 /**
- * A page's search snippet led by the confirmed dates and city, as on the homepage and About:
- * "27–28 January 2027, Jeddah. Practical learning alongside the scientific programme."
+ * A page's search snippet led by the confirmed dates, venue and city, as on the homepage:
+ * "27–28 January 2027, King Faisal Conference Center, Jeddah. Practical learning…"
  */
 export function conferenceDescription(locale: Locale, text: string): string {
-  return conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}${descriptionCity[locale]}${text}` : text;
+  const venue = conferenceConfig.venue;
+  const location = `${venue ? `${locale === "ar" ? "، " : ", "}${venue.name[locale]}` : ""}${descriptionCity[locale]}`;
+  return conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}${location}${text}` : text;
 }
