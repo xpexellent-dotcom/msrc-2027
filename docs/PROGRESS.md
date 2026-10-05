@@ -54,6 +54,11 @@ rooms, prices and registration/payment readiness need their separate decisions a
 release gates. Rollback reverts this branch's public application/content/test changes;
 no database/hosted rollback is needed. Retain the explicit organizer decision record.
 
+[Draft PR #41](https://github.com/xpexellent-dotcom/msrc-2027/pull/41) is open from
+`codex/organizer-copy-venue-numbering`. Application/test verification above applies
+to commit `0d521c9`; the subsequent closeout only records this PR link in documents.
+Hosted CI remains pending, and no merge or production publication is claimed.
+
 ## 5 October 2026 — PR #40 review fixes
 
 Updated the existing `codex/bl-ai-01-synthetic` branch for the requester's two review

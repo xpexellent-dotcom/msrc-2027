@@ -89,3 +89,8 @@ in a follow-up if rollback is necessary.
 Next: organizer review of the draft PR and bilingual screenshots. Times, rooms,
 registration/payment readiness and workflow openings need their separate approved
 inputs and release evidence.
+
+[Draft PR #41](https://github.com/xpexellent-dotcom/msrc-2027/pull/41) is open from
+`codex/organizer-copy-venue-numbering`. The application/test checks above cover
+commit `0d521c9`; the closeout change only records the PR link in documents.
+Hosted CI remains pending.
