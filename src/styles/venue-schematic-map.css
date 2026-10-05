@@ -1,0 +1,32 @@
+/* Original north-up schematic: language affects labels, never geographic orientation. */
+.venue-schematic { margin: 0; border: 1px solid var(--color-line); border-radius: var(--radius-medium); background: var(--color-ivory); overflow: hidden; }
+.venue-map-svg { display: block; inline-size: 100%; margin-inline: auto; font-family: var(--font-interface); direction: ltr; }
+.venue-map-svg--portrait { max-inline-size: 360px; }
+.venue-map-svg--landscape { display: none; }
+.venue-map-land { fill: var(--color-ivory); }
+.venue-map-sea { fill: var(--color-lilac); }
+.venue-map-coast { fill: none; stroke: var(--color-purple); stroke-width: 1; opacity: .25; }
+.venue-map-label { fill: var(--color-purple); font-size: 18px; font-weight: 500; }
+.venue-map-label--secondary { font-size: 17px; fill: var(--color-muted); paint-order: stroke; stroke: var(--color-ivory); stroke-width: 8; stroke-linejoin: round; }
+.venue-map-label--campus { font-size: 17px; }
+.venue-map-label--venue { font-weight: 700; }
+.venue-map-sea-label { fill: var(--color-purple); font-size: 15px; font-weight: 500; }
+.venue-map-north { fill: none; stroke: var(--color-purple); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.venue-map-roads { fill: none; stroke: var(--color-line-strong); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+.venue-map-rail { fill: none; stroke: var(--color-purple); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.venue-map-taxi { fill: none; stroke: var(--color-purple); stroke-width: 3; stroke-dasharray: 4 6; stroke-linecap: round; stroke-linejoin: round; }
+.venue-map-campus { fill: var(--color-lilac); stroke: var(--color-purple); stroke-width: 1; }
+.venue-map-airport, .venue-map-station { fill: var(--color-purple); stroke: var(--color-ivory); stroke-width: 2; }
+.venue-map-plane { fill: var(--color-ivory); }
+.venue-map-station-detail { fill: none; stroke: var(--color-ivory); stroke-width: 2; stroke-linecap: round; }
+.venue-map-pin { fill: var(--color-gold); stroke: var(--color-purple); stroke-width: 2; }
+.venue-map-pin-core { fill: var(--color-purple); }
+.venue-map-callout { fill: none; stroke: var(--color-purple); stroke-width: 1; }
+.venue-map-caption { border-block-start: 1px solid var(--color-line); display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.5rem; padding: 1rem; color: var(--color-muted); font-size: .875rem; }
+.venue-map-caption > strong { color: var(--color-purple); font-weight: 600; }
+.venue-map-legend { display: flex; flex-wrap: wrap; gap: .6rem 1rem; }
+.venue-map-legend > span { display: inline-flex; gap: .4rem; align-items: center; }
+.venue-map-key { display: inline-block; inline-size: 1rem; border-block-start: 3px solid var(--color-purple); }
+.venue-map-key--road { border-color: var(--color-line-strong); }
+.venue-map-key--taxi { border-block-start-style: dotted; }
+@media (min-width: 900px) { .venue-map-svg--portrait { display: none; }.venue-map-svg--landscape { display: block; max-inline-size: 880px; }.venue-map-label { font-size: 19px; }.venue-map-label--secondary, .venue-map-label--campus { font-size: 18px; } }

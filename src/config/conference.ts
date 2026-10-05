@@ -1,15 +1,23 @@
 import type { CalendarDate } from "@/lib/conference-dates";
 import type { Locale } from "@/lib/i18n";
 
+export type LocalizedVenueText = Readonly<Record<Locale, string>>;
+export type VenueTravelMode = "taxi" | "train" | "rental";
+export type VenueVisitorInfoKey = "entryGate" | "parking" | "entrances" | "accessibility" | "prayerAreas" | "food" | "wifi";
+
 export interface ConferenceVenue {
-  readonly name: Readonly<Record<Locale, string>>;
+  readonly name: LocalizedVenueText;
   readonly address: Readonly<{
-    streetAddress: Readonly<Record<Locale, string>>;
+    streetAddress: LocalizedVenueText;
     addressLocality: "Jeddah";
     postalCode: "22254";
     addressCountry: "SA";
   }>;
   readonly directionsUrl: string;
+  /** Organizer-supplied guidance only; absent details stay out of the public interface. */
+  readonly travelTimes?: Readonly<Partial<Record<VenueTravelMode, LocalizedVenueText>>>;
+  readonly atVenue?: Readonly<Partial<Record<VenueVisitorInfoKey, LocalizedVenueText>>>;
+  readonly visaInformationUrl?: string | null;
 }
 
 /** S1 CFG-01/02/07/10 and TIM-01: confirmed days are dates, not invented opening instants. */
@@ -38,6 +46,9 @@ export const conferenceConfig: ConferenceConfig = Object.freeze({
       addressCountry: "SA",
     }),
     directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=King%20Faisal%20Conference%20Center%2C%20Abdullah%20Sulayman%20St%2C%20King%20Abdulaziz%20University%2C%20Jeddah%2022254",
+    travelTimes: Object.freeze({}),
+    atVenue: Object.freeze({}),
+    visaInformationUrl: null,
   }),
   registrationPrice: null,
   conferenceCapacity: null,

@@ -6,8 +6,10 @@ import { Link } from "@/components/ui/link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Reveal } from "@/components/ui/reveal";
+import { VenueTravelDetails } from "@/components/venue-travel-details";
 import { conferenceConfig } from "@/config/conference";
 import { datesVenueCopy } from "@/content/dates-venue";
+import { venueTravelCopy } from "@/content/venue-travel";
 import { formatConferenceDate, formatConferenceDateRange } from "@/lib/conference-dates";
 import { isLocale } from "@/lib/i18n";
 import { localizedPageMetadata } from "@/lib/metadata";
@@ -86,6 +88,16 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
           </dl>
         </Reveal></Container>
       </section>
+
+      {venue ? (
+        <section id="getting-there" tabIndex={-1} className="editorial-section dates-travel" aria-labelledby="getting-there-title">
+          <Container>
+            <SectionHeading eyebrow={venueTravelCopy[locale].eyebrow} title={venueTravelCopy[locale].title} id="getting-there-title" />
+            <p className="dates-body">{venueTravelCopy[locale].intro}</p>
+            <VenueTravelDetails venue={venue} locale={locale} />
+          </Container>
+        </section>
+      ) : null}
 
       <section id="schedule" tabIndex={-1} className="editorial-section dates-schedule" aria-labelledby="schedule-title">
         <Container><Reveal className="dates-content-grid" stagger>

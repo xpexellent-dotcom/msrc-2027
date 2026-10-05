@@ -8,12 +8,14 @@ const copy = {
     title: "Dates & venue | MSRC 2027", heading: "Two days in Jeddah.",
     first: "27 January 2027", second: "28 January 2027", venue: "King Faisal Conference Center",
     city: "Jeddah, Saudi Arabia", closed: "Registration not open yet",
+    venueBody: "King Faisal Conference Center, King Abdulaziz University, Jeddah, Saudi Arabia.",
     breadcrumb: "Breadcrumb", home: "Home", footer: "Dates & venue",
   },
   ar: {
     title: "المواعيد والمقر | MSRC 2027", heading: "يومان في جدة.",
     first: "٢٧ يناير ٢٠٢٧", second: "٢٨ يناير ٢٠٢٧", venue: "مركز الملك فيصل للمؤتمرات",
     city: "جدة، المملكة العربية السعودية", closed: "لم يُفتح التسجيل بعد",
+    venueBody: "مركز الملك فيصل للمؤتمرات، جامعة الملك عبدالعزيز، جدة، المملكة العربية السعودية.",
     breadcrumb: "مسار التنقل", home: "الرئيسية", footer: "المواعيد والمقر",
   },
 } as const;
@@ -38,12 +40,13 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].city);
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].venue);
     await expect(page.locator(".dates-location-details")).toContainText("22254");
+    await expect(page.locator("#venue .dates-body")).toHaveText(copy[locale].venueBody);
     await expect(page.locator(".dates-note")).toHaveCount(0);
     await expect(page.locator(".dates-closed-note")).toContainText(copy[locale].closed);
     await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
     await expect(page.getByRole("main")).not.toContainText(/09:00|9:00 AM/);
     await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"]')).toHaveCount(0);
-    const directions = page.locator('a[href*="google.com/maps"]');
+    const directions = page.locator('.dates-directions-link');
     await expect(directions).toHaveCount(1);
     await expect(directions).toHaveAttribute("target", "_blank");
     await expect(directions).toHaveAttribute("rel", /noopener/);

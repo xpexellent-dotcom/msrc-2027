@@ -1,5 +1,50 @@
 # Progress and session handover
 
+## 5 October 2026 — PR #41 Getting there follow-up
+
+Continued the attached `codex/organizer-copy-venue-numbering` worktree from
+`f1eeb78`, preserving the original checkout's work. Draft
+[PR #41](https://github.com/xpexellent-dotcom/msrc-2027/pull/41) was inspected:
+the prior head's Foundation/Participant jobs and Vercel preview were green.
+New explicit organizer decisions ORG-033/034 are dated 5 October and identify
+the venue-sentence correction and the extension of the public page's scope.
+IDs: SCP-02, CFG-01, LOC-01/03, ACC-01, PRV-01/07, CMS-04 and REL-01.
+
+The location sentence now includes King Faisal Conference Center in EN/AR.
+Getting there adds an original self-hosted responsive SVG schematic, airport
+travel cards, encoded Google/Apple/Waze map choices and Saudi local time (UTC+3).
+Optional typed travelTimes, entry gate, parking, entrances, accessibility, prayer,
+food, Wi-Fi and official visa URL are empty and hidden, with no public placeholders.
+No embed, map key/SDK, provider fetch/prefetch, coordinates or travel estimates.
+Existing date/calendar/directions and pending session/door/room status stay.
+Backend logic, workflow flags, permissions, package versions and lockfile stay.
+
+Final local verification (Node 24.21.0 / pnpm 11.19.0):
+
+- PASS: `pnpm check` — lint, types, 2,040 units in 46 files and 65-page build; exit 0.
+- PASS: affected Dates & venue, travel, organizer-public and public-shell Playwright
+  suites — 62 passed, two duplicate matrix skips, zero failed/flaky; exit 0.
+- PASS: EN/AR provider destination encoding, all supplied/empty optional-field behavior,
+  RTL, keyboard/language flow, calendar, existing closure and reduced motion checks.
+- PASS: all-request origin monitoring from initial load through hydration, scrolling,
+  map-link focus and locale navigation — zero third-party requests in four travel runs.
+- PASS: four dedicated travel axe scans, zero violations; incomplete/manual-review
+  items retained. Four phone/desktop EN/AR screenshots captured and visually reviewed.
+- PASS: rendered SVG bounds/campus containment/pin-overlap checks, including 320px.
+  Screenshot review found and corrected the initial portrait overlap; final check and
+  affected browser suites were rerun. No test assertion, timeout or retry was weakened.
+- PASS: independent React/source/scope review, agent-browser page check and diff checks.
+- NOT TESTED locally: physical devices, screen reader, external provider routing or
+  native database fixture suites. No database/authorization change.
+
+Files/config contract and evidence are in the
+[Getting there feature note](features/venue-travel.md). Ignored screenshot/axe/log
+handoff: `deliverables/venue-travel-2026-10-05/` in this attached worktree. The exact
+pushed-head hosted check receipt is maintained in PR #41/task handoff; verify
+[PR checks](https://github.com/xpexellent-dotcom/msrc-2027/pull/41/checks) before closing
+the task. No merge, production publication, real email or hosted configuration change.
+Next: organizer review of visuals, then confirmed optional venue/visa guidance only.
+
 ## 5 October 2026 — Organizer public copy, confirmed venue and plain numbering
 
 Listed open PRs first: none. Refreshed `origin/main` at `d1c643b`, then created

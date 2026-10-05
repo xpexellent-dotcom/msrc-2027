@@ -1746,3 +1746,42 @@ Implementation and verification for ORG-030/031/032:
 [public copy, venue and numbering](features/organizer-public-decisions-2026-10-05.md).
 This task authorizes a draft PR. It does not authorize merging, production publication,
 opening workflows, DNS/paid resources or real participant communications.
+
+## ORG-033 — Full venue sentence, 5 October 2026
+
+- Status: CONFIRMED explicit organizer instruction in the PR #41 follow-up.
+- The Dates & venue location sentence is **King Faisal Conference Center, King
+  Abdulaziz University, Jeddah, Saudi Arabia.** / **مركز الملك فيصل للمؤتمرات،
+  جامعة الملك عبدالعزيز، جدة، المملكة العربية السعودية.**
+- Supersedes the incomplete institution/city-only `locationBody` left after ORG-031;
+  it does not change the confirmed venue/address or the remaining schedule TBDs.
+- IDs: SCP-02, CFG-01, LOC-01/03, CMS-04, REL-01.
+
+## ORG-034 — Getting there and optional visitor guidance, 5 October 2026
+
+- Status: CONFIRMED explicit organizer instruction in the PR #41 follow-up.
+- Add bilingual Getting there content using the existing design system and an
+  original self-hosted SVG schematic of Jeddah, labelled Map not to scale /
+  الخريطة ليست بمقياس رسم. Show JED airport, the Haramain Airport and Jeddah
+  Al-Sulaymaniyah stations, KAU and the highlighted conference venue, with main
+  roads. Include a route text alternative and correctly shaped Arabic/RTL labels;
+  keep north-up geography. No map embed, SDK/key, tracker or provider request on
+  page load. Ordinary Google Maps, Apple Maps and Waze links derive their encoded
+  destination from venue config and open a new tab only when activated.
+- Airport options: taxi/Uber/Careem directly to the venue; Haramain Airport station
+  to Jeddah Al-Sulaymaniyah then a taxi; airport car rental. No distances, travel
+  times, prices or train schedules are approved by this decision.
+- Optional typed venue config supports travelTimes and entry gate, parking,
+  entrances, accessibility, prayer areas, food and Wi-Fi guidance. Render each
+  supplied localized value only; omit empty sections/fields and all public
+  placeholders. Leave these fields empty now. The international note states
+  Saudi local time (UTC+3); the optional official Visa information URL is unset.
+- Extends ORG-031's venue presentation and supersedes the earlier Dates & venue
+  page scope that ended at venue/calendar/directions/schedule information. Existing
+  confirmed dates, venue, calendar and directions stay; session times, doors and
+  rooms remain unannounced. Operational closures and ORG-030 copy rules stay.
+- IDs: SCP-02, CFG-01, LOC-01/03, ACC-01, PRV-01/07, CMS-04, REL-01.
+
+Implementation, optional-field contract and verification:
+[Getting there feature note](features/venue-travel.md). Work remains on draft PR #41;
+this follow-up authorizes its update and CI verification, not merging or publication.

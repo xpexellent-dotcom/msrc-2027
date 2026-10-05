@@ -19,6 +19,9 @@ describe("confirmed dates and closed business configuration (CFG-01/02/10)", () 
           streetAddress: { en: "Abdullah Sulayman St, King Abdulaziz University", ar: "شارع عبدالله سليمان، جامعة الملك عبدالعزيز" },
           addressLocality: "Jeddah", postalCode: "22254", addressCountry: "SA",
         },
+        travelTimes: {},
+        atVenue: {},
+        visaInformationUrl: null,
       },
       registrationPrice: null,
       conferenceCapacity: null,
@@ -31,6 +34,11 @@ describe("confirmed dates and closed business configuration (CFG-01/02/10)", () 
     expect(Object.isFrozen(conferenceConfig.venue)).toBe(true);
     expect(Object.isFrozen(conferenceConfig.venue?.name)).toBe(true);
     expect(Object.isFrozen(conferenceConfig.venue?.address)).toBe(true);
+    expect(conferenceConfig.venue?.travelTimes).toEqual({});
+    expect(conferenceConfig.venue?.atVenue).toEqual({});
+    expect(conferenceConfig.venue?.visaInformationUrl).toBeNull();
+    expect(Object.isFrozen(conferenceConfig.venue?.travelTimes)).toBe(true);
+    expect(Object.isFrozen(conferenceConfig.venue?.atVenue)).toBe(true);
     const mapsUrl = new URL(conferenceConfig.venue!.directionsUrl);
     expect(mapsUrl.origin).toBe("https://www.google.com");
     expect(mapsUrl.pathname).toBe("/maps/dir/");
