@@ -5,7 +5,13 @@ import type { Locale } from "@/lib/i18n";
 import { venueMapLinks } from "@/lib/venue-travel";
 
 const modes = ["taxi", "train", "rental"] as const satisfies readonly VenueTravelMode[];
-const venueDetailKeys = ["entryGate", "parking", "entrances", "accessibility", "prayerAreas", "food", "wifi"] as const satisfies readonly VenueVisitorInfoKey[];
+const venueDetailKeys = ["entryGate", "ticket", "parking", "accessibility", "onSite", "wifi"] as const satisfies readonly VenueVisitorInfoKey[];
+
+function AccessibilityGuidance({ text, label, locale }: { text: string; label: string; locale: Locale }) {
+  const labelStart = text.indexOf(label);
+  if (labelStart < 0) return text;
+  return <>{text.slice(0, labelStart)}<a className="text-link" href={`/${locale}/contact`}>{label}</a>{text.slice(labelStart + label.length)}</>;
+}
 
 /** ORG-034: local schematic and ordinary links; no map SDK, embed or provider prefetch. */
 export function VenueTravelDetails({ venue, locale }: { venue: ConferenceVenue; locale: Locale }) {
@@ -14,7 +20,6 @@ export function VenueTravelDetails({ venue, locale }: { venue: ConferenceVenue; 
     const text = venue.atVenue?.[key]?.[locale]?.trim();
     return text ? [{ key, text }] : [];
   });
-  const visaUrl = venue.visaInformationUrl?.trim();
 
   return (
     <div className="venue-travel-details">
@@ -47,7 +52,7 @@ export function VenueTravelDetails({ venue, locale }: { venue: ConferenceVenue; 
         <section id="at-venue" className="venue-arrival-details" aria-labelledby="at-venue-title">
           <h3 id="at-venue-title">{copy.atVenueTitle}</h3>
           <dl>{details.map(({ key, text }) => (
-            <div key={key} data-venue-detail={key}><dt>{copy.venueDetails[key]}</dt><dd>{text}</dd></div>
+            <div key={key} data-venue-detail={key}><dt>{copy.venueDetails[key]}</dt><dd>{key === "accessibility" ? <AccessibilityGuidance text={text} label={copy.contactForm} locale={locale} /> : text}</dd></div>
           ))}</dl>
         </section>
       ) : null}
@@ -55,7 +60,7 @@ export function VenueTravelDetails({ venue, locale }: { venue: ConferenceVenue; 
       <section id="international-attendees" className="venue-international" aria-labelledby="international-title">
         <h3 id="international-title">{copy.internationalTitle}</h3>
         <p>{copy.internationalNote} <bdi dir="ltr">(UTC+3)</bdi>.</p>
-        {visaUrl ? <a className="text-link dates-directions-link venue-visa-link" href={visaUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={`${copy.visa} (${copy.newTab})`}>{copy.visa}<span className="directional-arrow" aria-hidden="true"> ↗</span></a> : null}
+        <p>{copy.visaResponsibility}</p>
       </section>
     </div>
   );

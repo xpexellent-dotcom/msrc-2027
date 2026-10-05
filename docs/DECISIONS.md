@@ -1785,3 +1785,61 @@ opening workflows, DNS/paid resources or real participant communications.
 Implementation, optional-field contract and verification:
 [Getting there feature note](features/venue-travel.md). Work remains on draft PR #41;
 this follow-up authorizes its update and CI verification, not merging or publication.
+
+## ORG-035 — Confirmed arrival, venue support and visa responsibility, 5 October 2026
+
+- Status: CONFIRMED explicit organizer instruction in the latest PR #41 follow-up.
+- Taxi/ride-hailing and car-rental cards publish **About 35–40 minutes by car from
+  King Abdulaziz International Airport** / **نحو ٣٥–٤٠ دقيقة بالسيارة من مطار
+  الملك عبدالعزيز الدولي**. This estimate does not appear on the Haramain card.
+- Publish all six supplied bilingual venue details:
+  - Entry gate: **Enter King Abdulaziz University through the Main Gate (Wing Gate).
+    There are no checks at the university gate.** / **ادخل جامعة الملك عبدالعزيز
+    من البوابة الرئيسية (بوابة الطير). لا يوجد تفتيش عند بوابة الجامعة.**
+  - Your ticket: **Your QR ticket is checked at the conference entrance. Save it
+    on your phone before you arrive.** / **يُتحقق من تذكرتك (رمز QR) عند مدخل
+    المؤتمر. احفظها على هاتفك قبل وصولك.**
+  - Parking: **Parking is available, including accessible parking spaces.** /
+    **تتوفر مواقف للسيارات، بما فيها مواقف مخصصة لذوي الإعاقة.** This does not
+    establish step-free or lift access inside the building.
+  - Accessibility support: **Need accessibility support? Our organizers on site
+    can help. You can also let us know before the event through the contact form.** /
+    **تحتاج إلى مساعدة في الوصول؟ يسعد المنظمون في الموقع بمساعدتك. ويمكنك
+    إبلاغنا مسبقًا عبر نموذج التواصل.** Link the contact-form phrase to the
+    corresponding `/en/contact` or `/ar/contact` page.
+  - On site: **Prayer areas and food are available.** / **تتوفر مصليات وأماكن للطعام.**
+  - Wi-Fi: **Wi-Fi is available but may be unreliable. Please use mobile data and
+    save your ticket offline.** / **تتوفر شبكة Wi-Fi لكنها قد تكون غير مستقرة.
+    يُنصح باستخدام بيانات الجوال وحفظ التذكرة مسبقًا.**
+- Retain Saudi local time (UTC+3). Publish **Attendees travelling from abroad are
+  responsible for their own visa. MSRC is unable to provide visa invitation letters.** /
+  **يتحمّل المشاركون القادمون من خارج المملكة مسؤولية الحصول على التأشيرة.
+  لا يستطيع المؤتمر إصدار خطابات دعوة للتأشيرة.** Remove the optional visa-link
+  field and public link entirely.
+- Supersedes ORG-034's empty travel/venue guidance, prohibition on publishing a
+  travel estimate and optional visa-link contract. Other empty optional localized
+  fields still render no placeholders. No prices, train schedules, distances or
+  additional accessibility facilities are approved. Session times, doors and rooms
+  remain unannounced; backend enforcement and workflow gates remain unchanged.
+- IDs: SCP-02, CFG-01, LOC-01/03, ACC-01, CMS-04, REL-01.
+
+## ORG-036 — Corrected Jeddah schematic and phone labels, 5 October 2026
+
+- Status: CONFIRMED explicit organizer instruction in the latest PR #41 follow-up.
+- The Haramain airport station is at JED: show one combined airport/station
+  marker, with the railway extending south to Jeddah Al-Sulaymaniyah. Remove
+  the separate station east of the airport and the intervening rail segment.
+- Place the conference-center label directly beside its highlighted pin, inside
+  or attached to the KAU campus area; no connector crosses a road. The campus
+  label remains King Abdulaziz University / جامعة الملك عبدالعزيز.
+- The only named road is Abdullah Sulayman St / شارع عبدالله سليمان, from the
+  confirmed address. Remove Prince Majid and other unverified names; other
+  main-road lines are unlabelled. This schematic shows general orientation,
+  not precise routes, distances or geography.
+- Use a simplified phone layout where needed so labels do not intersect lines
+  or each other at 320–430px in EN/AR. Keep the sea west and north up in both
+  languages; Arabic label shaping/RTL does not mirror geographic positions.
+- Supersedes ORG-034's initial map geometry/labels, separate airport-station
+  presentation and road/connector artwork. Keep the local SVG, accessible text
+  alternative, not-to-scale label and no-provider-request privacy contract.
+- IDs: SCP-02, CFG-01, LOC-01/03, ACC-01, PRV-01/07, CMS-04, REL-01.

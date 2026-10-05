@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { VenueTravelDetails } from "@/components/venue-travel-details";
 import { conferenceConfig, type ConferenceVenue } from "@/config/conference";
 import { venueMapLinks } from "@/lib/venue-travel";
+import { approvedAtVenue, approvedTravelTime, approvedVisaResponsibility } from "../fixtures/approved-venue-guidance";
 
 const venue = conferenceConfig.venue!;
 const render = (value: ConferenceVenue, locale: "en" | "ar") => renderToStaticMarkup(createElement(VenueTravelDetails, { venue: value, locale }));
@@ -32,14 +33,28 @@ describe("plain external venue map links", () => {
   });
 });
 
-describe("optional venue information stays honest", () => {
-  it.each(["en", "ar"] as const)("hides unset travel times, at-venue details and visa links in %s", (locale) => {
-    const markup = render(venue, locale);
+describe("approved and optional venue information stays honest", () => {
+  it.each(["en", "ar"] as const)("hides unset travel times and at-venue details while preserving the visa responsibility notice in %s", (locale) => {
+    const markup = render({ ...venue, travelTimes: {}, atVenue: {} }, locale);
     expect(markup).not.toContain('class="venue-travel-time"');
     expect(markup).not.toContain('id="at-venue"');
     expect(markup).not.toMatch(/class="[^"]*\bvenue-visa-link\b/);
     expect(markup).toContain('id="international-attendees"');
     expect(markup).toContain("UTC+3");
+    expect(markup).toContain(approvedVisaResponsibility[locale]);
+  });
+
+  it.each(["en", "ar"] as const)("publishes the exact approved guidance and linked contact phrase in %s", (locale) => {
+    const markup = render(venue, locale);
+    const visibleText = markup.replace(/<[^>]+>/g, "");
+    for (const value of Object.values(approvedAtVenue)) expect(visibleText).toContain(value[locale]);
+    expect(markup.match(/class="venue-travel-time"/g)).toHaveLength(2);
+    expect(visibleText.split(approvedTravelTime[locale])).toHaveLength(3);
+    expect(markup.match(/data-venue-detail="/g)).toHaveLength(6);
+    expect(markup).toContain(approvedVisaResponsibility[locale]);
+    expect(markup).not.toMatch(/class="[^"]*\bvenue-visa-link\b/);
+    expect(markup).toContain(`href="/${locale}/contact"`);
+    expect(markup).toContain(`>${locale === "en" ? "contact form" : "نموذج التواصل"}</a>`);
   });
 
   it.each(["en", "ar"] as const)("renders only supplied localized values in %s", (locale) => {
@@ -51,7 +66,6 @@ describe("optional venue information stays honest", () => {
         wifi: { en: "Synthetic Wi-Fi", ar: "شبكة لاسلكية تجريبية" },
         parking: { en: " ", ar: " " },
       },
-      visaInformationUrl: "https://example.invalid/synthetic-visa-information",
     } satisfies ConferenceVenue;
     const markup = render(configured, locale);
     expect(markup).toContain(configured.travelTimes.taxi![locale]);
@@ -62,8 +76,6 @@ describe("optional venue information stays honest", () => {
     expect(markup).not.toContain('data-venue-detail="parking"');
     expect(markup).toContain(configured.atVenue.entryGate![locale]);
     expect(markup).toContain(configured.atVenue.wifi![locale]);
-    expect(markup).toContain('href="https://example.invalid/synthetic-visa-information"');
-    expect(markup).toMatch(/class="[^"]*\bvenue-visa-link\b/);
   });
 
   it("does not substitute English values when the Arabic optional value is blank", () => {
@@ -89,24 +101,24 @@ describe("optional venue information stays honest", () => {
       atVenue: {
         entryGate: { en: "Synthetic gate guidance", ar: "إرشادات بوابة تجريبية" },
         parking: { en: "Synthetic parking guidance", ar: "إرشادات مواقف تجريبية" },
-        entrances: { en: "Synthetic entrance guidance", ar: "إرشادات مداخل تجريبية" },
+        ticket: { en: "Synthetic ticket guidance", ar: "إرشادات تذكرة تجريبية" },
         accessibility: { en: "Synthetic access guidance", ar: "إرشادات وصول تجريبية" },
-        prayerAreas: { en: "Synthetic prayer guidance", ar: "إرشادات مصليات تجريبية" },
-        food: { en: "Synthetic food guidance", ar: "إرشادات طعام تجريبية" },
+        onSite: { en: "Synthetic facilities guidance", ar: "إرشادات مرافق تجريبية" },
         wifi: { en: "Synthetic connection guidance", ar: "إرشادات شبكة تجريبية" },
       },
     } satisfies ConferenceVenue;
     const markup = render(configured, locale);
-    expect(markup.match(/data-venue-detail="/g)).toHaveLength(7);
+    expect(markup.match(/data-venue-detail="/g)).toHaveLength(6);
     expect(markup.match(/class="venue-travel-time"/g)).toHaveLength(3);
     for (const value of Object.values(configured.atVenue)) expect(markup).toContain(value[locale]);
     for (const value of Object.values(configured.travelTimes)) expect(markup).toContain(value[locale]);
   });
 
-  it("hides omitted optionals and a whitespace-only visa URL", () => {
-    const markup = render({ ...venue, travelTimes: undefined, atVenue: undefined, visaInformationUrl: " " }, "en");
+  it("hides omitted optionals and keeps the visa notice without a link", () => {
+    const markup = render({ ...venue, travelTimes: undefined, atVenue: undefined }, "en");
     expect(markup).not.toContain('class="venue-travel-time"');
     expect(markup).not.toContain('id="at-venue"');
     expect(markup).not.toMatch(/class="[^"]*\bvenue-visa-link\b/);
+    expect(markup).toContain(approvedVisaResponsibility.en);
   });
 });

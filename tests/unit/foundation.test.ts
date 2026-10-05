@@ -8,6 +8,7 @@ import {
   workflowFlags,
 } from "@/lib/workflows.server";
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
+import { approvedAtVenue, approvedTravelTime } from "../fixtures/approved-venue-guidance";
 
 describe("confirmed dates and closed business configuration (CFG-01/02/10)", () => {
   it("records calendar days and the venue while keeping prices, capacities, and regions unset", () => {
@@ -19,9 +20,8 @@ describe("confirmed dates and closed business configuration (CFG-01/02/10)", () 
           streetAddress: { en: "Abdullah Sulayman St, King Abdulaziz University", ar: "شارع عبدالله سليمان، جامعة الملك عبدالعزيز" },
           addressLocality: "Jeddah", postalCode: "22254", addressCountry: "SA",
         },
-        travelTimes: {},
-        atVenue: {},
-        visaInformationUrl: null,
+        travelTimes: { taxi: approvedTravelTime, rental: approvedTravelTime },
+        atVenue: approvedAtVenue,
       },
       registrationPrice: null,
       conferenceCapacity: null,
@@ -34,9 +34,10 @@ describe("confirmed dates and closed business configuration (CFG-01/02/10)", () 
     expect(Object.isFrozen(conferenceConfig.venue)).toBe(true);
     expect(Object.isFrozen(conferenceConfig.venue?.name)).toBe(true);
     expect(Object.isFrozen(conferenceConfig.venue?.address)).toBe(true);
-    expect(conferenceConfig.venue?.travelTimes).toEqual({});
-    expect(conferenceConfig.venue?.atVenue).toEqual({});
-    expect(conferenceConfig.venue?.visaInformationUrl).toBeNull();
+    expect(conferenceConfig.venue?.travelTimes).toEqual({ taxi: approvedTravelTime, rental: approvedTravelTime });
+    expect(conferenceConfig.venue?.travelTimes).not.toHaveProperty("train");
+    expect(conferenceConfig.venue?.atVenue).toEqual(approvedAtVenue);
+    expect(conferenceConfig.venue).not.toHaveProperty("visaInformationUrl");
     expect(Object.isFrozen(conferenceConfig.venue?.travelTimes)).toBe(true);
     expect(Object.isFrozen(conferenceConfig.venue?.atVenue)).toBe(true);
     const mapsUrl = new URL(conferenceConfig.venue!.directionsUrl);

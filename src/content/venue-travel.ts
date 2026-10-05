@@ -16,12 +16,13 @@ type VenueTravelCopy = {
   travelTime: string;
   atVenueTitle: string;
   venueDetails: Record<VenueVisitorInfoKey, string>;
+  contactForm: string;
   internationalTitle: string;
   internationalNote: string;
-  visa: string;
+  visaResponsibility: string;
 };
 
-// ORG-034 / SCP-02, LOC-01, ACC-01: supplied arrival options, no estimates or schedules.
+// ORG-034/035 / SCP-02, LOC-01, ACC-01: organizer-supplied arrival guidance.
 export const venueTravelCopy: Record<Locale, VenueTravelCopy> = {
   en: {
     eyebrow: "2 / Your arrival",
@@ -38,10 +39,11 @@ export const venueTravelCopy: Record<Locale, VenueTravelCopy> = {
     },
     travelTime: "Travel time",
     atVenueTitle: "At the venue",
-    venueDetails: { entryGate: "Entry gate", parking: "Parking", entrances: "Entrances", accessibility: "Accessibility", prayerAreas: "Prayer areas", food: "Food", wifi: "Wi-Fi" },
+    venueDetails: { entryGate: "Entry gate", ticket: "Your ticket", parking: "Parking", accessibility: "Accessibility support", onSite: "On site", wifi: "Wi-Fi" },
+    contactForm: "contact form",
     internationalTitle: "International attendees",
     internationalNote: "Conference times use Saudi local time",
-    visa: "Visa information",
+    visaResponsibility: "Attendees travelling from abroad are responsible for their own visa. MSRC is unable to provide visa invitation letters.",
   },
   ar: {
     eyebrow: "٢ / الوصول",
@@ -58,9 +60,10 @@ export const venueTravelCopy: Record<Locale, VenueTravelCopy> = {
     },
     travelTime: "مدة الرحلة",
     atVenueTitle: "في مقر المؤتمر",
-    venueDetails: { entryGate: "بوابة الدخول", parking: "مواقف السيارات", entrances: "المداخل", accessibility: "إمكانية الوصول", prayerAreas: "المصليات", food: "الطعام", wifi: "شبكة Wi-Fi" },
+    venueDetails: { entryGate: "بوابة الدخول", ticket: "تذكرتك", parking: "مواقف السيارات", accessibility: "المساعدة في الوصول", onSite: "في الموقع", wifi: "شبكة Wi-Fi" },
+    contactForm: "نموذج التواصل",
     internationalTitle: "للقادمين من خارج المملكة",
     internationalNote: "مواعيد المؤتمر بالتوقيت المحلي للمملكة العربية السعودية",
-    visa: "معلومات التأشيرة",
+    visaResponsibility: "يتحمّل المشاركون القادمون من خارج المملكة مسؤولية الحصول على التأشيرة. لا يستطيع المؤتمر إصدار خطابات دعوة للتأشيرة.",
   },
 };

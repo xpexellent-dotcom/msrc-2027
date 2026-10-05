@@ -1,5 +1,53 @@
 # Progress and session handover
 
+## 5 October 2026 — PR #41 confirmed venue details and corrected map
+
+Continued the attached `codex/organizer-copy-venue-numbering` worktree from
+`447e589`; the branch was clean and the original checkout's work is preserved.
+ORG-035/036 record the explicit organizer authority and supersede ORG-034's
+empty visitor guidance, optional visa link and initial schematic presentation.
+IDs: SCP-02, CFG-01, LOC-01/03, ACC-01, PRV-01/07, CMS-04 and REL-01.
+
+The exact EN/AR 35–40-minute car estimate appears on taxi and rental only.
+All six venue items render: Main Gate/Wing Gate, QR ticket, accessible parking,
+organizer accessibility support with localized contact link, prayer/food and Wi-Fi.
+The international note keeps UTC+3 and states attendee visa responsibility and
+that MSRC cannot provide invitation letters; the visa URL field/link is removed.
+The map combines airport/Haramain station, runs the railway south to Jeddah
+Al-Sulaymaniyah, places the venue label beside its pin in the campus area and
+names only Abdullah Sulayman St. Simplified phone labels preserve north-up,
+sea-west geography in EN/AR. Existing dates/calendar/directions and pending
+session/door/room status stay; no extra facility, route or schedule is inferred.
+
+Final local verification (Node 24.21.0 / pnpm 11.19.0):
+
+- PASS: `pnpm check` — lint, types, 2,042 units in 46 files and 65-page build; exit 0.
+- PASS: affected Dates & venue, travel, organizer-public and public-shell Playwright
+  suites — 62 passed, two duplicate matrix skips, zero failed/flaky; exit 0.
+- PASS: exact six EN/AR items, taxi/rental estimate only, visa policy without a link,
+  localized contact links, encoded map destinations and empty optional-field behavior.
+- PASS: whole-label and shaped-line bounding boxes, line-stroke intersections and
+  campus/pin containment at 320/360/390/430px EN/AR, with unmirrored SVG geography.
+  The first run caught a phone north-letter/coast intersection; the north marker
+  moved into the sea area, then the check and entire affected browser set reran.
+- PASS: four travel all-request origin checks — zero third-party requests; four
+  travel axe scans — zero violations, incomplete/manual-review items retained.
+- PASS: four EN/AR phone/desktop screenshots and browser inspection; no browser
+  errors. Independent React/source/scope and diff review pass. No retry/timeout
+  increases or weaker assertions were used.
+- NOT TESTED locally: physical devices, screen reader, actual provider routing or
+  native database fixtures; isolated hosted CI verifies the latter independently.
+
+Ignored evidence: `deliverables/venue-confirmed-2026-10-05/`, including screenshots,
+axe JSON, final check/browser reports and retained first-failure evidence.
+Exact pushed-head hosted receipts are maintained in PR #41/task handoff; verify
+[PR checks](https://github.com/xpexellent-dotcom/msrc-2027/pull/41/checks) before
+closing the task. Local passes do not establish hosted CI success.
+See the [Getting there feature note](features/venue-travel.md) for configuration,
+scope and evidence. No backend/schema/package/lockfile, hosted configuration,
+workflow opening, real communication, merge or production publication.
+Next: organizer visual review and separately confirmed session/door/room details.
+
 ## 5 October 2026 — PR #41 Getting there follow-up
 
 Continued the attached `codex/organizer-copy-venue-numbering` worktree from
