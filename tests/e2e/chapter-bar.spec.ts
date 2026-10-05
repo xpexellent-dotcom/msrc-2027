@@ -41,7 +41,7 @@ for (const locale of ["en", "ar"] as const) {
 }
 
 // Every chapter's number matches its section's eyebrow: before the Partners chapter, "Plan your
-// visit" was 06 in the bar but "07 / Plan your visit" on the page.
+// visit" had a different number in the bar and in the page eyebrow.
 for (const locale of ["en", "ar"] as const) {
   test(`${locale} chapter numbers match the section eyebrows`, async ({ page }) => {
     await page.goto(`/${locale}`);
@@ -50,6 +50,7 @@ for (const locale of ["en", "ar"] as const) {
       return { id, chip: link.querySelector(".chapter-number")!.textContent, eyebrow: (document.querySelector(`#${id} .eyebrow`)?.textContent ?? "").split("/")[0].trim() };
     }));
     expect(pairs.map((pair) => pair.id)).toEqual(["about", "participate", "program", "speakers", "legacy", "partners", "faq"]);
+    expect(pairs.map((pair) => pair.chip)).toEqual(locale === "en" ? ["1", "2", "3", "4", "5", "6", "7"] : ["١", "٢", "٣", "٤", "٥", "٦", "٧"]);
     for (const pair of pairs) expect(pair.chip, pair.id).toBe(pair.eyebrow);
   });
 }

@@ -57,7 +57,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
           <p className="eyebrow" id="event-details-title">{copy.editionLabel}</p>
           <dl id="event-details" tabIndex={-1} className="event-strip">
             <div><dt>{copy.dateLabel}</dt><dd>{dateRange}</dd></div>
-            <div><dt>{copy.venueLabel}</dt><dd>{copy.pending}</dd></div>
+            <div><dt>{copy.venueLabel}</dt><dd>{conferenceConfig.venue?.name[locale] ?? copy.pending}</dd></div>
           </dl>
         </div>
         {dates && <ConferenceCountdown dates={dates} locale={locale} dateRange={dateRange} />}

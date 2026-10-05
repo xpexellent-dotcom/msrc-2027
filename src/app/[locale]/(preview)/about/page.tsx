@@ -11,7 +11,7 @@ import { aboutCopy } from "@/content/about";
 import { conferenceConfig } from "@/config/conference";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { formatIndex, isLocale } from "@/lib/i18n";
-import { localizedPageMetadata } from "@/lib/metadata";
+import { conferenceDescription, localizedPageMetadata } from "@/lib/metadata";
 
 type AboutPageProps = { params: Promise<{ locale: string }> };
 
@@ -19,11 +19,11 @@ export async function generateMetadata({ params }: AboutPageProps): Promise<Meta
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = aboutCopy[locale];
-  const datePrefix = conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}. ` : "";
+  const description = conferenceDescription(locale, copy.metadataDescription);
   return {
-    ...localizedPageMetadata(locale, "/about", copy.metadataTitle, `${datePrefix}${copy.metadataDescription}`),
+    ...localizedPageMetadata(locale, "/about", copy.metadataTitle, description),
     title: copy.metadataTitle,
-    description: `${datePrefix}${copy.metadataDescription}`,
+    description,
   };
 }
 

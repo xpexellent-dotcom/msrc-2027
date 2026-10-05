@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { SiteShell } from "@/components/site-shell";
 import { VercelObservability } from "@/components/vercel-observability";
+import { conferenceConfig } from "@/config/conference";
 import { defaultLocale, dictionaries, direction, isLocale, locales } from "@/lib/i18n";
 import "../globals.css";
 import { arabicFont, bodyFont, displayFont, headingFont } from "@/lib/fonts";
@@ -23,7 +24,7 @@ export async function generateMetadata({
   return {
     metadataBase: new URL(siteOrigin),
     title: `MSRC 2027 | ${copy.title}`,
-    description: `${copy.title}. ${copy.institution}. ${copy.location}.`,
+    description: `${copy.title}. ${copy.institution}. ${conferenceConfig.venue ? `${conferenceConfig.venue.name[locale]}. ` : ""}${copy.location}.`,
     // Pages opt in through localizedPageMetadata; everything else stays out of search.
     robots: { index: false, follow: false },
   };

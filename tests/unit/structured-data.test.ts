@@ -7,10 +7,20 @@ describe("homepage Event structured data", () => {
     expect(event).toMatchObject({
       "@type": "Event", startDate: "2027-01-27", endDate: "2027-01-28", inLanguage: locale,
       url: `https://www.msrc2027.com/${locale}`, eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-      location: { "@type": "Place", address: { addressCountry: "SA" } },
+      location: {
+        "@type": "Place",
+        name: locale === "ar" ? "مركز الملك فيصل للمؤتمرات" : "King Faisal Conference Center",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: locale === "ar" ? "شارع عبدالله سليمان، جامعة الملك عبدالعزيز" : "Abdullah Sulayman St, King Abdulaziz University",
+          addressLocality: "Jeddah",
+          postalCode: "22254",
+          addressCountry: "SA",
+        },
+      },
     });
-    // No unapproved venue, times, prices or capacities.
-    expect(JSON.stringify(event)).not.toMatch(/offers|price|T\d\d:|maximumAttendeeCapacity|streetAddress/);
+    // ORG-031 confirms the venue, without approving times, prices or capacities.
+    expect(JSON.stringify(event)).not.toMatch(/offers|price|T\d\d:|maximumAttendeeCapacity/);
   });
 
   it("cannot close its script tag", () => {

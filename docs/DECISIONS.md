@@ -72,9 +72,11 @@ The source selects providers and intended ownership; it does not create accounts
 | Decision | Current rule | IDs / source |
 | --- | --- | --- |
 | Event dates | Day 1: 27 January 2027; Day 2: 28 January 2027. Confirmed by the project requester on 1 October 2026; date-only approval, no inferred start times or workflow windows. | SCP-01, CFG-01, TIM-01; ORG-001 below |
+| Venue | King Faisal Conference Center / مركز الملك فيصل للمؤتمرات, King Abdulaziz University, Jeddah; Abdullah Sulayman St, Jeddah 22254. Venue only; rooms/doors/session times remain unannounced. | SCP-01/02, CFG-01, TIM-01; ORG-031 |
 | Participation pathways | Separate registration, abstracts, hackathon, 3MT and workshop states linked to one account. Co-authors are not attendees automatically. | SCP-03, REG-01/08 |
 | Admission | Every registration manual approval, including full discounts. Default approve before financial completion; confirm/ticket only when both exist. | REG-02/03, PAY-03 |
 | Workshop dependency | Manual approval and payment/valid discount, plus confirmed conference registration before confirming workshop. | WKS-02 |
+| Public registration/workshop wording | Explain account/email verification, registration/payment and confirmation email without describing manual/organizer approval or discounts. Confirmation email confirms the place. Organizers tell eligible KAU students about discounts directly; backend rules above stay enforced. | REG-02/03, PAY-03, WKS-02, LOC-01/03; ORG-030 |
 | Account verification | Managed email/password and verified email; participants have no phone verification or MFA (ORG-016). Email codes six-digit numeric. No university SSO. | AUTH-01/02/06 |
 | Privileged access | Individually identified accounts; regular staff password then private exact-session application email check (ORG-015), Super Admins password then authenticator TOTP (ORG-016). Server/database/storage enforcement; no interface or metadata authority. Live email/recovery gates stay closed. | AUTH-04, ROL-01/12 |
 | Interface language | English-default bilingual public/participant/non-review organizer UI and Arabic RTL. | LOC-01/03 |
@@ -120,8 +122,8 @@ S3 is valuable conference background. Its proposals and roster drafts need confi
 
 | Older source detail | Current interpretation | Required action |
 | --- | --- | --- |
-| S3 page 15 proposes 27-28 January 2027. | The source proposal is preserved. ORG-001, the explicit user decision of 1 October 2026, now confirms those two calendar dates and supersedes their former unresolved status. | Publish confirmed dates and the labelled date countdown. Venue, start times and separate operational windows still require their own decisions. |
-| S3 page 15 lists King Faisal Conference Center / University Hospital theater as venue options. | SOURCE OPTIONS. S1 leaves venue/rooms/capacities open. | Confirm one approved venue and actual rooms/capacities/accessibility, then update content/booking/program. |
+| S3 page 15 proposes 27-28 January 2027. | The source proposal is preserved. ORG-001 confirms the two dates; ORG-031 separately confirms the venue on 5 October 2026. | Publish confirmed dates/venue and the labelled date countdown. Doors/session times and separate operational windows remain unset. |
+| S3 page 15 lists King Faisal Conference Center / University Hospital theater as venue options. | ORG-031 supersedes the venue-option-only status: King Faisal Conference Center is confirmed. Original S3 options stay historical. | Publish the approved venue/address. Actual rooms, capacities and accessibility arrangements require separate operational confirmation. |
 | S3 page 14 chart names Abdulrahman Ismail scientific leader and Fatimah Al Farhah organizational leader; S6 context identifies Akram as conference co-leader/scientific lead. | UNRESOLVED ROSTER DIFFERENCE. Draft chart and user role context do not establish final public organization or account grants. | Ask leadership to confirm names, titles, hierarchy and public roster before publishing; separately verify role grants. |
 | S2 footer references Development Specification v0.4. | HISTORICAL SOURCE POINTER. The live technical document is now v0.5 and already reconciles current S2 answers. | Use S1 v0.5 for construction and preserve S2 answered choices without treating its old footer as priority. |
 | S5 recommends framework/testing/tooling and milestone order. | RECOMMENDATIONS. S1 confirms providers and product scope, not exact frontend framework. | Record chosen framework at foundation. Move staff auth/permissions ahead of active CMS editing. |
@@ -191,11 +193,11 @@ S2 mentions Aisha for flow/schedule coordination and Reem for faculty/judges/men
 
 ### CFG-01
 
-**State: PARTIALLY RESOLVED — event dates confirmed by ORG-001; remaining inputs OPEN. Named operating owner: Unassigned. Due date: Unassigned.**
+**State: PARTIALLY RESOLVED — event dates confirmed by ORG-001 and venue by ORG-031; remaining inputs OPEN. Named operating owner: Unassigned. Due date: Unassigned.**
 
 CFG-01. Conference leadership: exact event dates/venue, general capacity, admission categories, manual approval owners, decision turnaround, payment/seat-hold deadlines, and handling of capacity-pending requests. Gate: registration opening.
 
-Current reconciliation (1 October 2026): Day 1 is **27 January 2027** and Day 2 is **28 January 2027**. The statement above remains the preserved v0.5 question set, not a claim that these dates are still undecided. Venue, rooms, capacities, admission categories, approval owners/turnaround, payment/seat-hold policy and capacity-pending handling remain open. Event/session start times and separate registration, submission, review, workshop, competition and certificate windows are not supplied by this date decision. Registration remains closed.
+Current reconciliation (5 October 2026): Day 1 is **27 January 2027** and Day 2 is **28 January 2027**. The venue is **King Faisal Conference Center / مركز الملك فيصل للمؤتمرات**, King Abdulaziz University, Jeddah, at Abdullah Sulayman St, Jeddah 22254 (ORG-031). The statement above preserves the v0.5 question set. Rooms, capacities, admission categories, approval owners/turnaround, payment/seat-hold policy and capacity-pending handling remain open. Doors/event/session times and separate registration, submission, review, workshop, competition and certificate windows are not supplied by either decision. Registration remains closed.
 
 ### CFG-02
 
@@ -1691,3 +1693,153 @@ in provenance. This avoids suppressing ordinary study-setting descriptions such 
 "patients at a tertiary hospital in Jeddah". EN/AR synthetic pairs verify the
 distinction. These changes do not approve real-manuscript processing or alter
 the remaining privacy, scientific evaluation and activation gates.
+
+## ORG-030 — Public registration and workshop wording, 5 October 2026
+
+- Status: CONFIRMED explicit organizer decision from the requester in this chat.
+- Public English and Arabic copy must not describe the registration/booking back-office
+  approval process or discounts. Organizers tell eligible KAU students about discounts
+  directly. Public steps describe account creation, email verification, registration and
+  payment, then the confirmation email and ticket. Workshop steps describe choosing a
+  workshop, booking with confirmed conference registration, then confirmation email.
+- A place is confirmed by its confirmation email; account creation, email verification,
+  requesting registration or booking does not promise a confirmed place. Use a clear
+  promise to email the visitor to confirm their place.
+- Supersedes the public descriptions introduced under ORG-005/006 and any earlier
+  public presentation of REG-02/03, PAY-03 and WKS-02 manual approval or discounts.
+  The underlying specification rules, backend transitions, approval enforcement tests
+  and discount support remain unchanged. Ethical/scientific approval requirements are
+  separate and remain accurate where applicable. Source snapshots stay historical.
+- IDs: REG-01/02/03/05, PAY-03, WKS-02, LOC-01/03, CMS-04, SCP-02, REL-01.
+
+## ORG-031 — Confirmed venue, 5 October 2026
+
+- Status: CONFIRMED explicit organizer decision from the requester in this chat.
+- Venue: **King Faisal Conference Center / مركز الملك فيصل للمؤتمرات**,
+  King Abdulaziz University, Jeddah. Address: **Abdullah Sulayman St,
+  King Abdulaziz University, Jeddah 22254**, Saudi Arabia (country code SA).
+- Publish the bilingual venue in the shared typed configuration, public key facts,
+  Dates & venue, relevant FAQs and pathway/registration copy, search/link descriptions,
+  schema.org Event Place/PostalAddress and the all-day calendar LOCATION. Add an
+  accessible EN/AR Google Maps directions link opening in a new tab.
+- Supersedes the venue-TBD portion of CFG-01, the venue-unset summary in PROJECT_BRIEF,
+  and earlier unknown-venue public copy and no-venue tests from ORG-001/004/005/006.
+  It does not change the approved 27–28 January 2027 dates or invent an opening instant.
+  Session times, doors and rooms stay to be announced; operating windows, capacities,
+  prices and workflow release gates remain unresolved. Source snapshots are unchanged.
+- IDs: SCP-01/02, CFG-01, TIM-01, LOC-01/03, CMS-04, REL-01.
+
+## ORG-032 — Plain localized numbering, 5 October 2026
+
+- Status: CONFIRMED explicit organizer decision from the requester in this chat.
+- Section eyebrows, chapters, pathway/card/programme numbers, step lists and internal
+  design-system examples use 1, 2, 3 in English and ١، ٢، ٣ in Arabic. Remove zero
+  padding at the shared formatter and hard-coded content sources. Homepage fifth-edition
+  art uses **5 / ٥**.
+- Supersedes the zero-padded working presentation in ENG-007, ORG-006/009/010/011/012
+  and earlier source/content examples. Number order, useful chapter links and RTL remain.
+  Date/time/countdown formatting and internal identifiers are unchanged; this is an
+  index display decision. Check alignment at 320px, phone, tablet and desktop in EN/AR.
+- IDs: DSN-02, ACC-01, LOC-01/03, CMS-04, SCP-02, REL-01.
+
+Implementation and verification for ORG-030/031/032:
+[public copy, venue and numbering](features/organizer-public-decisions-2026-10-05.md).
+This task authorizes a draft PR. It does not authorize merging, production publication,
+opening workflows, DNS/paid resources or real participant communications.
+
+## ORG-033 — Full venue sentence, 5 October 2026
+
+- Status: CONFIRMED explicit organizer instruction in the PR #41 follow-up.
+- The Dates & venue location sentence is **King Faisal Conference Center, King
+  Abdulaziz University, Jeddah, Saudi Arabia.** / **مركز الملك فيصل للمؤتمرات،
+  جامعة الملك عبدالعزيز، جدة، المملكة العربية السعودية.**
+- Supersedes the incomplete institution/city-only `locationBody` left after ORG-031;
+  it does not change the confirmed venue/address or the remaining schedule TBDs.
+- IDs: SCP-02, CFG-01, LOC-01/03, CMS-04, REL-01.
+
+## ORG-034 — Getting there and optional visitor guidance, 5 October 2026
+
+- Status: CONFIRMED explicit organizer instruction in the PR #41 follow-up.
+- Add bilingual Getting there content using the existing design system and an
+  original self-hosted SVG schematic of Jeddah, labelled Map not to scale /
+  الخريطة ليست بمقياس رسم. Show JED airport, the Haramain Airport and Jeddah
+  Al-Sulaymaniyah stations, KAU and the highlighted conference venue, with main
+  roads. Include a route text alternative and correctly shaped Arabic/RTL labels;
+  keep north-up geography. No map embed, SDK/key, tracker or provider request on
+  page load. Ordinary Google Maps, Apple Maps and Waze links derive their encoded
+  destination from venue config and open a new tab only when activated.
+- Airport options: taxi/Uber/Careem directly to the venue; Haramain Airport station
+  to Jeddah Al-Sulaymaniyah then a taxi; airport car rental. No distances, travel
+  times, prices or train schedules are approved by this decision.
+- Optional typed venue config supports travelTimes and entry gate, parking,
+  entrances, accessibility, prayer areas, food and Wi-Fi guidance. Render each
+  supplied localized value only; omit empty sections/fields and all public
+  placeholders. Leave these fields empty now. The international note states
+  Saudi local time (UTC+3); the optional official Visa information URL is unset.
+- Extends ORG-031's venue presentation and supersedes the earlier Dates & venue
+  page scope that ended at venue/calendar/directions/schedule information. Existing
+  confirmed dates, venue, calendar and directions stay; session times, doors and
+  rooms remain unannounced. Operational closures and ORG-030 copy rules stay.
+- IDs: SCP-02, CFG-01, LOC-01/03, ACC-01, PRV-01/07, CMS-04, REL-01.
+
+Implementation, optional-field contract and verification:
+[Getting there feature note](features/venue-travel.md). Work remains on draft PR #41;
+this follow-up authorizes its update and CI verification, not merging or publication.
+
+## ORG-035 — Confirmed arrival, venue support and visa responsibility, 5 October 2026
+
+- Status: CONFIRMED explicit organizer instruction in the latest PR #41 follow-up.
+- Taxi/ride-hailing and car-rental cards publish **About 35–40 minutes by car from
+  King Abdulaziz International Airport** / **نحو ٣٥–٤٠ دقيقة بالسيارة من مطار
+  الملك عبدالعزيز الدولي**. This estimate does not appear on the Haramain card.
+- Publish all six supplied bilingual venue details:
+  - Entry gate: **Enter King Abdulaziz University through the Main Gate (Wing Gate).
+    There are no checks at the university gate.** / **ادخل جامعة الملك عبدالعزيز
+    من البوابة الرئيسية (بوابة الطير). لا يوجد تفتيش عند بوابة الجامعة.**
+  - Your ticket: **Your QR ticket is checked at the conference entrance. Save it
+    on your phone before you arrive.** / **يُتحقق من تذكرتك (رمز QR) عند مدخل
+    المؤتمر. احفظها على هاتفك قبل وصولك.**
+  - Parking: **Parking is available, including accessible parking spaces.** /
+    **تتوفر مواقف للسيارات، بما فيها مواقف مخصصة لذوي الإعاقة.** This does not
+    establish step-free or lift access inside the building.
+  - Accessibility support: **Need accessibility support? Our organizers on site
+    can help. You can also let us know before the event through the contact form.** /
+    **تحتاج إلى مساعدة في الوصول؟ يسعد المنظمون في الموقع بمساعدتك. ويمكنك
+    إبلاغنا مسبقًا عبر نموذج التواصل.** Link the contact-form phrase to the
+    corresponding `/en/contact` or `/ar/contact` page.
+  - On site: **Prayer areas and food are available.** / **تتوفر مصليات وأماكن للطعام.**
+  - Wi-Fi: **Wi-Fi is available but may be unreliable. Please use mobile data and
+    save your ticket offline.** / **تتوفر شبكة Wi-Fi لكنها قد تكون غير مستقرة.
+    يُنصح باستخدام بيانات الجوال وحفظ التذكرة مسبقًا.**
+- Retain Saudi local time (UTC+3). Publish **Attendees travelling from abroad are
+  responsible for their own visa. MSRC is unable to provide visa invitation letters.** /
+  **يتحمّل المشاركون القادمون من خارج المملكة مسؤولية الحصول على التأشيرة.
+  لا يستطيع المؤتمر إصدار خطابات دعوة للتأشيرة.** Remove the optional visa-link
+  field and public link entirely.
+- Supersedes ORG-034's empty travel/venue guidance, prohibition on publishing a
+  travel estimate and optional visa-link contract. Other empty optional localized
+  fields still render no placeholders. No prices, train schedules, distances or
+  additional accessibility facilities are approved. Session times, doors and rooms
+  remain unannounced; backend enforcement and workflow gates remain unchanged.
+- IDs: SCP-02, CFG-01, LOC-01/03, ACC-01, CMS-04, REL-01.
+
+## ORG-036 — Corrected Jeddah schematic and phone labels, 5 October 2026
+
+- Status: CONFIRMED explicit organizer instruction in the latest PR #41 follow-up.
+- The Haramain airport station is at JED: show one combined airport/station
+  marker, with the railway extending south to Jeddah Al-Sulaymaniyah. Remove
+  the separate station east of the airport and the intervening rail segment.
+- Place the conference-center label directly beside its highlighted pin, inside
+  or attached to the KAU campus area; no connector crosses a road. The campus
+  label remains King Abdulaziz University / جامعة الملك عبدالعزيز.
+- The only named road is Abdullah Sulayman St / شارع عبدالله سليمان, from the
+  confirmed address. Remove Prince Majid and other unverified names; other
+  main-road lines are unlabelled. This schematic shows general orientation,
+  not precise routes, distances or geography.
+- Use a simplified phone layout where needed so labels do not intersect lines
+  or each other at 320–430px in EN/AR. Keep the sea west and north up in both
+  languages; Arabic label shaping/RTL does not mirror geographic positions.
+- Supersedes ORG-034's initial map geometry/labels, separate airport-station
+  presentation and road/connector artwork. Keep the local SVG, accessible text
+  alternative, not-to-scale label and no-provider-request privacy contract.
+- IDs: SCP-02, CFG-01, LOC-01/03, ACC-01, PRV-01/07, CMS-04, REL-01.

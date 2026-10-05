@@ -42,7 +42,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"], a[href*="/admin"]')).toHaveCount(0);
     await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
     await expect(page.locator(".about-identity")).toContainText(locale === "en" ? /27\D+28 January 2027/ : /٢٧\D+٢٨ يناير ٢٠٢٧/);
-    await expect(page.getByRole("main")).not.toContainText(/King Faisal Conference Center|Abdulrahman Ismail|Fatimah Al Farhah/i);
+    await expect(page.getByRole("main")).not.toContainText(/Abdulrahman Ismail|Fatimah Al Farhah/i);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     expect(response?.headers()["x-robots-tag"]).toContain("noindex");
 

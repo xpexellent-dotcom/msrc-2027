@@ -6,7 +6,7 @@ Source snapshot: 29 September 2026; current requirements reconciled through orga
 
 MUST means required behavior. DEFAULT means an adopted, configurable engineering starting value. TBD means unresolved business configuration or approval. Use [DECISIONS.md](DECISIONS.md) for every gate and conflict. Develop with synthetic data while production approval or configuration remains pending. All selected functions remain delivery scope; sequencing their releases does not remove them.
 
-The current organizer date decision, ORG-001 in [DECISIONS.md](DECISIONS.md), confirms Day 1 on **27 January 2027** and Day 2 on **28 January 2027**. It supersedes only the unresolved event-date portion of SCP-01/CFG-01. Preserve the v0.5 source snapshot; venue, rooms, capacities, opening times and individual workflow deadlines remain unresolved.
+ORG-001 in [DECISIONS.md](DECISIONS.md) confirms Day 1 on **27 January 2027** and Day 2 on **28 January 2027**. ORG-031 (5 October 2026) confirms **King Faisal Conference Center / مركز الملك فيصل للمؤتمرات**, King Abdulaziz University, Jeddah, at Abdullah Sulayman St, Jeddah 22254. These supersede only the event-date and venue TBDs in SCP-01/CFG-01. Preserve the v0.5 source snapshot; rooms, capacities, doors/session times and individual workflow deadlines remain unresolved. ORG-030 supersedes public registration/workshop approval and discount descriptions, while retaining backend enforcement.
 
 ## Navigation
 
@@ -29,7 +29,7 @@ The current organizer date decision, ORG-001 in [DECISIONS.md](DECISIONS.md), co
 
 | IDs | Required behavior |
 | --- | --- |
-| SCP-01 | Two-day MSRC conference, parallel sessions, general attendance, abstract research with oral/poster allocation, postgraduate 3MT, hackathon, workshops, keynotes, exhibitions, sponsors, post-event archives. Day 1 is 27 January 2027; Day 2 is 28 January 2027 (ORG-001). Venue, rooms and capacity remain configuration gates; no session start times are inferred. |
+| SCP-01 | Two-day MSRC conference, parallel sessions, general attendance, abstract research with oral/poster allocation, postgraduate 3MT, hackathon, workshops, keynotes, exhibitions, sponsors, post-event archives. Day 1 is 27 January 2027; Day 2 is 28 January 2027 (ORG-001), at King Faisal Conference Center, King Abdulaziz University, Jeddah (ORG-031). Rooms and capacity remain configuration gates; no session start times are inferred. |
 | SCP-02 | Home; About; Dates and Venue; Program; Speakers; Workshops; Participation and Submission Guidelines; Teams/Committees/Board; Sponsors and Sponsorship; Gallery/Past Editions; Announcements; FAQ; Contact; Privacy; Terms. Public information and workshop availability require no login. |
 | SCP-03 | Verified-user dashboard for registrations/payments, submissions/revisions, workshop bookings/waitlists, QR tickets and certificates. Registration, research, hackathon and 3MT are distinct workflows sharing one account. Co-author listing creates no registration. |
 | SCP-04, SCP-07 | Delivery scope includes manual approvals, paid/fully discounted orders, human review and advisory assessment, committee dashboards, live judging, email automation, scans, survey-based certificates, CMS, audits and reports. Certificate release can follow initial public launch; evidence/retention design must exist before collection. |
@@ -78,7 +78,7 @@ REG-01 through REG-08 define:
 2. Every request begins pending manual approval, including fully discounted users. Account verification and request submission do not confirm admission.
 3. Workflow: verified account → registration request → pending approval → organizer approval → payment due or valid zero-value order → confirmed registration → ticket.
 4. Distinct registration states: draft, pending_approval, rejected, approved_awaiting_payment, confirmed, cancelled, expired. Financial states are separate. Record actors/timestamps and reasons for exceptions, rejection, cancellation or overrides.
-5. Require configured two-day attendance declaration/terms; show dates/prices/discount/cancellation/capacity conditions. Close registration until dates, capacity, approver and financial setup are complete.
+5. Require configured two-day attendance declaration/terms; show dates/prices/cancellation/capacity conditions. ORG-030 (5 October 2026) supersedes public approval-process and discount descriptions: eligible KAU students receive discount information directly from organizers. Keep backend approval and discount enforcement unchanged. Close registration until dates, capacity, approver and financial setup are complete.
 6. Approval atomically allocates available capacity or explicit capacity-pending queue. Pending requests guarantee no seat. Approved unpaid reservations expire at configured deadline, release capacity and notify.
 7. Dashboard shows ID/state/payment action/expiry/ticket/support. No admission from pending, rejected, cancelled, expired, refunded-and-revoked or suspended entitlement.
 8. Eligible verified users may submit research before paid attendance. Presenter/team/winner attendance obligations must be published before decisions; no retrospective hidden charge.

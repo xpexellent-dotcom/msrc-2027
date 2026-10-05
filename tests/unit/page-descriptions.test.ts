@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { conferenceDescription } from "@/lib/metadata";
 
-// Search snippets for inner pages lead with the confirmed dates and city, like the homepage.
+// Search snippets lead with the confirmed dates, venue and city in each language.
 describe("page descriptions", () => {
-  it("prefixes the dates and Jeddah in each language", () => {
+  it("prefixes the confirmed dates, venue and Jeddah in each language", () => {
     expect(conferenceDescription("en", "Practical learning alongside the scientific programme."))
-      .toBe("27–28 January 2027, Jeddah. Practical learning alongside the scientific programme.");
+      .toBe("27–28 January 2027, King Faisal Conference Center, Jeddah. Practical learning alongside the scientific programme.");
     expect(conferenceDescription("ar", "تعلّم عملي إلى جانب البرنامج العلمي."))
-      .toBe("٢٧–٢٨ يناير ٢٠٢٧، جدة. تعلّم عملي إلى جانب البرنامج العلمي.");
+      .toBe("٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. تعلّم عملي إلى جانب البرنامج العلمي.");
   });
 });
 

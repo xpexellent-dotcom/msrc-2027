@@ -163,12 +163,18 @@ test("Contact keyboard and language navigation preserve the page and section", a
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
   await page.goto("/en/contact?view=preview#contact-form");
-  await page.getByRole("link", { name: "View this page in Arabic" }).focus();
+  const arabic = page.getByRole("link", { name: "View this page in Arabic" });
+  // The server cannot read fragments. Wait for the hydrated destination before
+  // exercising its keyboard handler, as the shared navigation tests do.
+  await expect(arabic).toHaveAttribute("href", "/ar/contact?view=preview#contact-form");
+  await arabic.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/ar\/contact\?view=preview#contact-form$/);
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("#contact-form")).toBeInViewport();
-  await page.getByRole("link", { name: "View this page in English" }).focus();
+  const english = page.getByRole("link", { name: "View this page in English" });
+  await expect(english).toHaveAttribute("href", "/en/contact?view=preview#contact-form");
+  await english.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/en\/contact\?view=preview#contact-form$/);
   await expect(page.locator("#contact-form")).toBeInViewport();

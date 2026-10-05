@@ -1,4 +1,4 @@
-/* SCP-02 / CFG-01: confirmed date-only content, with a separate venue gate. */
+/* SCP-02 / CFG-01 / ORG-031: confirmed days and venue; schedule details stay unset. */
 .dates-hero { background: var(--color-surface-lilac); }
 .dates-hero-grid, .dates-content-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: clamp(3rem, 6vw, 7rem); }
 .dates-hero-grid { padding-block: clamp(2.5rem, 5vw, 5rem) clamp(3.5rem, 6vw, 6rem); align-items: center; }
@@ -12,6 +12,7 @@
 .dates-day-list li > span { color: var(--color-muted); font-size: .9rem; }
 .dates-day-list time { color: var(--color-purple); font-size: clamp(1.65rem, 2.6vw, 2.4rem); font-weight: 600; line-height: 1.45; text-wrap: balance; }
 .dates-calendar-link { display: inline-flex; min-block-size: 44px; align-items: center; margin-block-start: .75rem; color: var(--color-purple); font-weight: 600; }
+.dates-directions-link { display: inline-flex; align-items: center; min-block-size: 44px; margin-block-start: 1rem; color: var(--color-purple); font-weight: 600; }
 .dates-body { margin-block-start: 1.6rem; max-width: 54ch; color: var(--color-muted); line-height: 1.9; text-wrap: pretty; }
 .dates-location-details { border-block-start: 2px solid var(--color-purple); }
 .dates-location-details > div { border-block-end: 1px solid var(--color-line-strong); padding-block: 1.5rem; }
@@ -21,16 +22,33 @@
 .dates-schedule .dates-body { margin-block-start: 0; }
 .dates-program-link { margin-block: 1.75rem 2rem; max-inline-size: 100%; }
 .dates-closed-note { border-block-start: 1px solid var(--color-line-strong); padding-block-start: 1.5rem; }
+.dates-travel { border-block-start: 1px solid var(--color-line); }
+.venue-travel-details { margin-block-start: 2.5rem; }
+.venue-map-links { display: flex; flex-wrap: wrap; gap: .85rem; margin-block-start: 1.5rem; }
+.venue-map-links .button { flex: 1 1 12rem; }
+.venue-airport, .venue-arrival-details, .venue-international { margin-block-start: clamp(2.5rem, 5vw, 4rem); }
+.venue-travel-details h3 { color: var(--color-purple); font-family: var(--font-heading); font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 600; line-height: 1.5; }
+.venue-travel-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; margin-block-start: 1.5rem; }
+.venue-travel-cards article { min-inline-size: 0; border-block-start: 3px solid var(--color-purple); border-radius: .75rem; padding: clamp(1.25rem, 2.5vw, 2rem); background: var(--color-surface-lilac); }
+.venue-travel-cards h4 { color: var(--color-purple); font-size: 1.15rem; font-weight: 600; line-height: 1.65; }
+.venue-travel-cards p, .venue-international p, .venue-arrival-details dd { margin-block-start: .85rem; color: var(--color-muted); line-height: 1.9; text-wrap: pretty; }
+.venue-travel-time { border-block-start: 1px solid var(--color-line-strong); padding-block-start: .85rem; }
+.venue-arrival-details dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-block-start: 1.5rem; }
+.venue-arrival-details dl > div { border-block-start: 1px solid var(--color-line-strong); padding-block-start: 1rem; }
+.venue-arrival-details dt { color: var(--color-purple); font-weight: 600; }
+.venue-international { border-block-start: 1px solid var(--color-line-strong); padding-block-start: 2rem; }
 [lang="ar"] .dates-hero h1 { max-width: none; font-size: clamp(2.65rem, 4.7vw, 4.6rem); line-height: 1.6; letter-spacing: 0; }
 [lang="ar"] .dates-day-list time { line-height: 1.8; }
 [lang="ar"] .dates-location-details dt { font-size: .9rem; }
 @media (max-width: 800px) {
+  .venue-travel-cards { grid-template-columns: minmax(0, 1fr); }
   .dates-hero-grid, .dates-content-grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
   .dates-hero h1 { max-width: 15ch; }
   .dates-day-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
   .dates-day-list li { border-block-end: 1px solid var(--color-line-strong); }
 }
 @media (max-width: 600px) {
+  .venue-arrival-details dl { grid-template-columns: minmax(0, 1fr); }
   .dates-hero h1 { font-size: clamp(2.75rem, 11vw, 4rem); }
   .dates-day-list { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .dates-day-list li:first-child { border-block-end: 0; }

@@ -38,10 +38,10 @@ export function DesignSystemComponents({ locale }: { locale: Locale }) {
 
   return <>
     <Section className="design-system-section" aria-labelledby="design-layout">
-      <SectionHeading id="design-layout" eyebrow={t("05 / Composition", "٠٥ / التكوين")} title={t("Space for the story", "مساحة للقصة")} />
+      <SectionHeading id="design-layout" eyebrow={t("5 / Composition", "٥ / التكوين")} title={t("Space for the story", "مساحة للقصة")} />
       <p className="design-note">{t("The page shell demonstrates Container, Header, MobileNav, Footer and LanguageSwitch. Resize to inspect the navigation disclosure; use the language control to inspect the same components in RTL.", "يعرض إطار الصفحة الحاوية والترويسة وقائمة الهاتف والتذييل ومبدّل اللغة. غيّر حجم النافذة لفحص قائمة التنقل، وبدّل اللغة لفحص المكوّنات من اليمين إلى اليسار.")}</p>
       <div className="design-controls"><Link href="#design-data">{t("Jump to table examples", "انتقل إلى أمثلة الجداول")}</Link><Link href="#design-data" disabled>{t("Unavailable link", "رابط غير متاح")}</Link></div>
-      <ContentSplit aside={<StatBlock label={t("Synthetic count", "عدد تجريبي")} value="03" description={t("A visual sample, not a conference statistic.", "نموذج بصري، وليس إحصائية للمؤتمر.")} />}>
+      <ContentSplit aside={<StatBlock label={t("Synthetic count", "عدد تجريبي")} value={t("3", "٣")} description={t("A visual sample, not a conference statistic.", "نموذج بصري، وليس إحصائية للمؤتمر.")} />}>
         <h3>{t("Editorial ContentSplit", "تقسيم تحريري للمحتوى")}</h3>
         <p>{t("A reading column and a supporting detail, separated by space. Content remains in a sensible reading order on a narrow screen.", "عمود للقراءة وتفصيل مساند تفصل بينهما مساحة. يحافظ المحتوى على ترتيب قراءة واضح في الشاشات الضيقة.")}</p>
       </ContentSplit>
@@ -49,7 +49,7 @@ export function DesignSystemComponents({ locale }: { locale: Locale }) {
     </Section>
 
     <Section className="design-system-section" aria-labelledby="design-fields">
-      <SectionHeading id="design-fields" eyebrow={t("06 / Form controls", "٠٦ / عناصر النماذج")} title={t("Clear at every step", "وضوح في كل خطوة")} description={t("Synthetic UI examples only. Nothing is submitted or uploaded. Do not enter personal information.", "أمثلة واجهة تجريبية فقط. لا يُرسل أو يُرفع أي شيء. لا تُدخل معلومات شخصية.")} />
+      <SectionHeading id="design-fields" eyebrow={t("6 / Form controls", "٦ / عناصر النماذج")} title={t("Clear at every step", "وضوح في كل خطوة")} description={t("Synthetic UI examples only. Nothing is submitted or uploaded. Do not enter personal information.", "أمثلة واجهة تجريبية فقط. لا يُرسل أو يُرفع أي شيء. لا تُدخل معلومات شخصية.")} />
       <div className="design-example-grid">
         <FormField id="m2-default" label={t("Default field", "حقل افتراضي")} hint={t("Try keyboard focus with synthetic text.", "جرّب التركيز بلوحة المفاتيح بنص تجريبي.")} placeholder={t("Synthetic example", "مثال تجريبي")} autoComplete="off" />
         <FormField id="m2-required" label={t("Required field", "حقل مطلوب")} required hint={t("Required for this UI example only.", "مطلوب لهذا المثال التجريبي فقط.")} autoComplete="off" />
@@ -86,7 +86,7 @@ export function DesignSystemComponents({ locale }: { locale: Locale }) {
     </Section>
 
     <Section className="design-system-section" aria-labelledby="design-messages">
-      <SectionHeading id="design-messages" eyebrow={t("07 / Feedback patterns", "٠٧ / أنماط الملاحظات")} title={t("Helpful, without interruption", "مساعدة دون مقاطعة")} />
+      <SectionHeading id="design-messages" eyebrow={t("7 / Feedback patterns", "٧ / أنماط الملاحظات")} title={t("Helpful, without interruption", "مساعدة دون مقاطعة")} />
       <div className="design-stack">{(["info", "success", "warning", "error"] as const).map((tone, index) => <Alert key={tone} tone={tone} title={[
         t("Information example", "مثال معلومات"), t("Success example", "مثال نجاح"), t("Warning example", "مثال تنبيه"), t("Error example", "مثال خطأ"),
       ][index]}>{t("Static synthetic message. The text explains the state without relying on colour.", "رسالة تجريبية ثابتة. يوضّح النص الحالة دون الاعتماد على اللون.")}</Alert>)}</div>
@@ -98,7 +98,7 @@ export function DesignSystemComponents({ locale }: { locale: Locale }) {
     </Section>
 
     <Section className="design-system-section" id="design-data" aria-labelledby="design-data-title">
-      <SectionHeading id="design-data-title" eyebrow={t("08 / Data display", "٠٨ / عرض البيانات")} title={t("Readable rows, clear navigation", "صفوف مقروءة وتنقل واضح")} />
+      <SectionHeading id="design-data-title" eyebrow={t("8 / Data display", "٨ / عرض البيانات")} title={t("Readable rows, clear navigation", "صفوف مقروءة وتنقل واضح")} />
       <div className="design-stack">
         <Table caption={t("Synthetic table example", "مثال جدول تجريبي")} columns={columns} rows={page === 1 ? [{id:1},{id:2}] : [{id:3}]} getRowKey={(row) => String(row.id)} {...tableMessages} scrollHint={t("Scroll within the table if needed.", "مرّر داخل الجدول عند الحاجة.")} />
         <Pagination currentPage={page} totalPages={2} onPageChange={setPage} labels={paginationLabels} />
