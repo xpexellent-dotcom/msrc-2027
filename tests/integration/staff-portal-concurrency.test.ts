@@ -5,9 +5,9 @@ import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 
 const isolatedCi = process.env.GITHUB_ACTIONS === "true";
 const edition = "synthetic-staff-portal-concurrency-2027";
-const actor = (suffix: number) => `b1000000-0000-4000-8000-00000000000${suffix}`;
-const session = (suffix: number) => `b2000000-0000-4000-8000-00000000000${suffix}`;
-const factor = (suffix: number) => `b3000000-0000-4000-8000-00000000000${suffix}`;
+const actor = (suffix: number) => `d7100000-0000-4000-8000-00000000000${suffix}`;
+const session = (suffix: number) => `d7200000-0000-4000-8000-00000000000${suffix}`;
+const factor = (suffix: number) => `d7300000-0000-4000-8000-00000000000${suffix}`;
 const marker = 202710071;
 
 function query(sql: string): Promise<string> {
@@ -19,13 +19,17 @@ function query(sql: string): Promise<string> {
   }
   return new Promise((resolve, reject) => {
     const child = spawn("docker", ["exec", "-i", "supabase_db_msrc2027-local", "psql", "-X", "-At",
-      "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"], { stdio: ["pipe", "pipe", "pipe"] });
+      "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-U", "postgres", "-d", "postgres"], { stdio: ["pipe", "pipe", "pipe"] });
     let output = "";
+    let sqlState = "unknown";
     const timeout = setTimeout(() => { child.kill(); reject(new Error("Synthetic staff concurrency query timed out.")); }, 10_000);
     child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
-    child.stderr.on("data", () => {});
+    child.stderr.on("data", (chunk: Buffer) => {
+      const state = chunk.toString().match(/(?:ERROR|FATAL):\s+([0-9A-Z]{5})(?:\s|$)/)?.[1];
+      if (state) sqlState = state;
+    });
     child.on("error", () => { clearTimeout(timeout); reject(new Error("Synthetic staff SQL could not start.")); });
-    child.on("close", (code) => { clearTimeout(timeout); if (code === 0) resolve(output); else reject(new Error("Synthetic staff SQL assertion failed; diagnostics withheld.")); });
+    child.on("close", (code) => { clearTimeout(timeout); if (code === 0) resolve(output); else reject(new Error(`Synthetic staff SQL assertion failed (SQLSTATE ${sqlState}); diagnostics withheld.`)); });
     child.stdin.on("error", () => {});
     child.stdin.end(sql);
   });

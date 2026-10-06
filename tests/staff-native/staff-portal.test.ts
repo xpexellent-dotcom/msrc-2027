@@ -8,6 +8,7 @@ import type { StaffConfig } from "@/features/staff-portal/config.server";
 import { createStaffHandler } from "@/features/staff-portal/handler.server";
 import { readStaffSession, staffFormToken } from "@/features/staff-portal/security.server";
 import { boundary, check, client, nativeAdmin, nativeCredentials, query } from "../participant-native/setup";
+import { handlerDiagnostic, nativeAuthDiagnostic } from "./diagnostic";
 
 const ci = process.env.GITHUB_ACTIONS === "true", origin = "http://127.0.0.1:3219", edition = "synthetic-staff-native-2027";
 const password = randomBytes(24).toString("hex");
@@ -35,27 +36,27 @@ async function get(actor: Person | undefined, area?: string) {
 }
 async function signIn(actor: Person) {
   const result = await post(actor, { action: "signin", email: actor.email, password });
-  check(result.status === 200, "native handler password sign-in accepted only after private admission");
+  check(result.status === 200, "native handler password sign-in accepted only after private admission" + handlerDiagnostic(result));
   check(Buffer.byteLength(actor.cookie, "utf8") < 3900, "encrypted native staff cookie fits common browser capacity"); return result.result;
 }
 async function enroll(actor: Person) {
   const setup = await post(actor, { action: "enroll-totp" });
   const enrollment = setup.result.enrollment as { secret: string; qrCode: string } | undefined;
-  check(setup.status === 200 && setup.result.state === "pending-totp" && enrollment && enrollment.qrCode.startsWith("data:image/png;base64,"), "native TOTP enrollment has local QR pixels");
+  check(setup.status === 200 && setup.result.state === "pending-totp" && enrollment && enrollment.qrCode.startsWith("data:image/png;base64,"), "native TOTP enrollment has local QR pixels" + handlerDiagnostic(setup));
   actor.secret = enrollment.secret;
   const verified = await post(actor, { action: "verify-totp", factorId: setup.result.factorId, challengeId: setup.result.challengeId,
     code: totpAt(enrollment.secret, Date.now()) });
-  check(verified.status === 200 && verified.result.state === "authenticated", "genuine native TOTP upgrades persisted strongest assurance");
+  check(verified.status === 200 && verified.result.state === "authenticated", "genuine native TOTP upgrades persisted strongest assurance" + handlerDiagnostic(verified));
 }
 async function invite(actor: Person, target: Person, roles: string[]) {
   const result = await post(actor, { action: "invite", email: target.email, roles });
-  check(result.status === 200 && result.result.state === "invited" && delivered.has(target.email), "native invitation reserves audit and captures one delivery in memory");
+  check(result.status === 200 && result.result.state === "invited" && delivered.has(target.email), "native invitation reserves audit and captures one delivery in memory" + handlerDiagnostic(result));
   return delivered.get(target.email)!;
 }
 async function accept(target: Person) {
   const invitation = delivered.get(target.email); check(invitation, "captured synthetic invitation exists");
   const result = await post(target, { action: "invite-accept", ...invitation, name: target.name, password });
-  check(result.status === 200, "native guarded invitation creates/updates the exact identity and starts its password session");
+  check(result.status === 200, "native guarded invitation creates/updates the exact identity and starts its password session" + handlerDiagnostic(result));
   const native = readStaffSession(config, request("GET", target)); check(native, "encrypted HttpOnly native session survives without client tokens"); target.id = native.actorId;
   return result.result;
 }
@@ -94,7 +95,7 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
   it("bootstraps only the first private synthetic account then requires genuine TOTP", async () => {
     await query(`select msrc_staff.bootstrap_reserve(${text(first.id)},${text(first.email)});`);
     const created = await admin.auth.admin.createUser({ id: first.id, email: first.email, password, email_confirm: true });
-    check(!created.error && created.data.user?.id === first.id, "private operator reservation binds genuine Admin account creation");
+    check(!created.error && created.data.user?.id === first.id, "private operator reservation binds genuine Admin account creation" + nativeAuthDiagnostic(created.error));
     await query(`select msrc_staff.bootstrap_first(${text(first.id)},${text(edition)},${text(first.name)});
       update msrc_staff.policy set enabled=true,email_daily_limit=200 where singleton;`);
     check((await signIn(first)).state === "enroll-totp", "first Super Admin has no access before enrollment");

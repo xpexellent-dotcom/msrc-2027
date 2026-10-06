@@ -199,13 +199,15 @@ create or replace function msrc_authorization.prevent_audit_change() returns tri
 create function msrc_staff.native_identity_guard() returns trigger
  language plpgsql security definer set search_path='' as $$
 #variable_conflict use_variable
- declare admission msrc_staff.admissions%rowtype; relevant boolean;
+ declare admission msrc_staff.admissions%rowtype; bootstrap msrc_staff.bootstrap_reservations%rowtype;relevant boolean;
  begin
  if tg_op='INSERT' then
  if exists(select 1 from msrc_staff.bootstrap_reservations b where b.actor_id=new.id and b.email=new.email
  and b.expires_at>clock_timestamp() and b.applied_at is null) and not exists(select 1 from msrc_staff.profiles)
  and not (select bootstrap_completed from msrc_staff.policy where singleton) then
- if new.email_confirmed_at is null or coalesce(new.encrypted_password,'')='' or coalesce(new.is_anonymous,false) then
+ -- GoTrue inserts before applying the requested email confirmation. The exact
+ -- private reservation authorizes creation; bootstrap_first checks completion.
+ if coalesce(new.encrypted_password,'')='' or coalesce(new.is_anonymous,false) or coalesce(new.phone,'')<>'' then
  raise exception using errcode='42501',message='Bootstrap native prerequisites required.';end if;
  update msrc_staff.bootstrap_reservations set applied_at=clock_timestamp(),native_transaction=pg_current_xact_id() where actor_id=new.id;
  return new;
@@ -214,9 +216,17 @@ create function msrc_staff.native_identity_guard() returns trigger
  if not found then return new; end if;
  relevant:=true;
  else
- select a.* into admission from msrc_staff.admissions a where a.actor_id=new.id and a.state='pending' for update;
  relevant:=new.email is distinct from old.email or new.email_confirmed_at is distinct from old.email_confirmed_at or new.encrypted_password is distinct from old.encrypted_password;
  if not relevant then return new; end if;
+ select b.* into bootstrap from msrc_staff.bootstrap_reservations b where b.actor_id=new.id and b.applied_at is not null;
+ if found and not exists(select 1 from msrc_staff.profiles p where p.actor_id=new.id) then
+ if bootstrap.native_transaction<>pg_current_xact_id() or bootstrap.expires_at<=clock_timestamp()
+ or bootstrap.email is distinct from new.email or coalesce(new.encrypted_password,'')='' or coalesce(new.is_anonymous,false)
+ or coalesce(new.phone,'')<>'' then raise exception using errcode='42501',message='Bound native bootstrap transaction required.';end if;
+ return new;end if;
+ select a.* into admission from msrc_staff.admissions a where a.actor_id=new.id and a.state in ('pending','applied') for update;
+ if found and admission.state='applied' and admission.native_transaction<>pg_current_xact_id() then
+ raise exception using errcode='42501',message='Bound native invitation transaction required.';end if;
  if not found then
  if not exists(select 1 from msrc_staff.profiles p where p.actor_id=new.id) then return new; end if;
  if new.email is not distinct from old.email and new.email_confirmed_at is not distinct from old.email_confirmed_at
@@ -228,7 +238,7 @@ create function msrc_staff.native_identity_guard() returns trigger
  end if;
  end if;
  if not msrc_staff.ready() or admission.expires_at<=clock_timestamp() or admission.email is distinct from new.email
- or new.email_confirmed_at is null or coalesce(new.encrypted_password,'')='' or coalesce(new.is_anonymous,false)
+ or (tg_op='UPDATE' and new.email_confirmed_at is null) or coalesce(new.encrypted_password,'')='' or coalesce(new.is_anonymous,false)
  or coalesce(new.phone,'')<>'' then raise exception using errcode='42501',message='Staff invitation admission required.'; end if;
  update msrc_staff.admissions set state='applied',native_transaction=pg_current_xact_id() where id=admission.id;
  return new;

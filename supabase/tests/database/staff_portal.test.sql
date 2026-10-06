@@ -107,6 +107,17 @@ select is(public.msrc_staff_identity_reveal('synthetic-portal-2027','a1000000-00
 select is(public.msrc_staff_profile('synthetic-portal-2027'),null::jsonb,'Password-only staff cannot enter portal');
 reset role;
 select is(msrc_staff.active_super_admin_count('synthetic-portal-2027'),2::bigint,'Guarded denied actions retain exactly two active Super Admins');
+-- Native invited creation can stage unconfirmed INSERT then same-transaction
+-- confirmation. Until completion no staff profile/grant is admitted.
+insert into msrc_staff.invitations(id,edition_key,email,roles,token_hash,invited_by,created_at,expires_at,delivered_at)
+ values('a4000000-0000-4000-8000-000000000003','synthetic-portal-2027','portal-staged@example.invalid',array['finance'],repeat('c',64),'a1000000-0000-4000-8000-000000000001',now(),now()+interval '72 hours',now());
+select is(public.msrc_staff_invite_consume('a4000000-0000-4000-8000-000000000003',repeat('c',64),'a5000000-0000-4000-8000-000000000003','a1000000-0000-4000-8000-000000000009','Synthetic staged invitee')->>'state','consumed','Delivered invitation reserves exact native identity');
+select lives_ok($$insert into auth.users(id,email,email_confirmed_at,encrypted_password,created_at,updated_at,is_anonymous)
+ values('a1000000-0000-4000-8000-000000000009','portal-staged@example.invalid',null,'synthetic-managed-hash',now(),now(),false)$$,'Invited native INSERT may precede email confirmation');
+select ok(not exists(select 1 from msrc_staff.profiles where actor_id='a1000000-0000-4000-8000-000000000009'),'Staged native creation does not admit a profile');
+select lives_ok($$update auth.users set email_confirmed_at=now() where id='a1000000-0000-4000-8000-000000000009'$$,'Same native invitation transaction confirms mailbox');
+select is(public.msrc_staff_invite_complete('a5000000-0000-4000-8000-000000000003',true)->>'state','completed','Only completed confirmed native identity receives invited edition roles');
+select ok(exists(select 1 from msrc_authorization.role_grants where actor_id='a1000000-0000-4000-8000-000000000009' and edition_key='synthetic-portal-2027' and role_name='finance' and state='active'),'Accepted staff roles remain edition-scoped');
 -- Every role is checked with genuine exact-session email assurance, so server
 -- denials prove the permission boundary rather than merely missing MFA.
 create temp table portal_role_matrix(role text,actor uuid,sid uuid);
