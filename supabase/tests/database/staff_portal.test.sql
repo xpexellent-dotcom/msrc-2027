@@ -96,6 +96,25 @@ select ok(exists(select 1 from msrc_staff.audit where action='set_roles' and res
 select ok(exists(select 1 from msrc_staff.audit where action='identity_reveal' and result='unavailable'),'Explicit reveal attempts are audited');
 select throws_ok($$delete from auth.mfa_factors where user_id='a1000000-0000-4000-8000-000000000001'$$,'42501',null,'Native factor deletion cannot bypass other-admin recovery');
 select throws_ok($$update auth.users set encrypted_password='changed-synthetic-hash' where id='a1000000-0000-4000-8000-000000000001'$$,'42501',null,'Native password reset cannot bypass other-admin recovery');
+select throws_ok($$update auth.users set email_change='alternate@example.invalid',email_change_token_new='synthetic'
+ where id='a1000000-0000-4000-8000-000000000001'$$,'42501',null,'Native staged email change cannot bypass staff invitation and recovery');
+select throws_ok($$update auth.users set phone_change='15550102027',phone_change_token='synthetic'
+ where id='a1000000-0000-4000-8000-000000000003'$$,'42501',null,'Native staged phone change is unavailable for ordinary staff');
+select throws_ok($$update auth.users set phone='15550102027',phone_confirmed_at=now()
+ where id='a1000000-0000-4000-8000-000000000003'$$,'42501',null,'Native phone collection and confirmation are unavailable for staff');
+select lives_ok($$update auth.users set last_sign_in_at=now(),raw_user_meta_data='{"syntheticLabel":"bookkeeping"}',
+ recovery_token='native-must-not-work',recovery_sent_at=clock_timestamp(),confirmation_token='native-must-not-work',confirmation_sent_at=clock_timestamp(),
+ reauthentication_token='native-must-not-work',reauthentication_sent_at=clock_timestamp()
+ where id='a1000000-0000-4000-8000-000000000003'$$,'Permitted native bookkeeping stays compatible while native token staging is suppressed');
+select ok((select recovery_token='' and recovery_sent_at is null and confirmation_token='' and confirmation_sent_at is null
+ and reauthentication_token='' and reauthentication_sent_at is null and last_sign_in_at is not null
+ from auth.users where id='a1000000-0000-4000-8000-000000000003'),'Ordinary staff native recovery/confirmation/reauth tokens never persist');
+insert into auth.one_time_tokens(id,user_id,token_type,token_hash,relates_to,created_at,updated_at)
+ values(gen_random_uuid(),'a1000000-0000-4000-8000-000000000003','recovery_token','native-must-not-work','portal-registration@example.invalid',now(),now());
+select is((select count(*) from auth.one_time_tokens where user_id='a1000000-0000-4000-8000-000000000003'),0::bigint,'Native staff one-time tokens cannot create an alternate proof');
+select is(msrc_participant.suppress_native_email('{"user":{"id":"a1000000-0000-4000-8000-000000000003"}}'),'{}'::jsonb,'Configured Send Email hook suppresses ordinary staff native mail');
+select is(msrc_participant.suppress_native_email('{"user":{"id":"a1000000-0000-4000-8000-000000000001"}}'),'{}'::jsonb,'Configured Send Email hook suppresses Super Admin native mail');
+select is(msrc_participant.suppress_native_email('{"user":{"id":"unsupported"}}')#>>'{error,http_code}','403','Unknown native mail input fails generically without a cast exception');
 select throws_ok($$insert into auth.mfa_factors(id,user_id,factor_type,status,created_at,updated_at)
  values(gen_random_uuid(),'a1000000-0000-4000-8000-000000000001','totp','unverified',now(),now())$$,'42501',null,'Password-only native enrollment cannot replace an existing Super Admin authenticator');
 -- Exact-session regular staff receipts are required; no metadata/JWT role spoofing.

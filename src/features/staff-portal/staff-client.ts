@@ -8,6 +8,7 @@ const empty: Draft = { email: "", password: "", name: "", code: "", invitationId
 let draft = empty;
 const listeners = new Set<() => void>();
 export function updateStaffDraft(next: Partial<typeof empty>) { draft = { ...draft, ...next }; for (const listener of listeners) listener(); }
+export function clearStaffDraft() { draft = empty; for (const listener of listeners) listener(); }
 function subscribe(listener: () => void) {
   listeners.add(listener);
   const clear = () => updateStaffDraft(empty);

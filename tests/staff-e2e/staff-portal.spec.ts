@@ -11,9 +11,10 @@ const participantId = "11000000-0000-4000-8000-000000000003", factorId = "110000
 const invitationId = "11000000-0000-4000-8000-000000000006";
 
 /** Presentation fixtures only. Native API and database permission evidence runs independently. */
-async function fixture(page: Page, initialRoles: Role[] = ["registrationWorkshopAdministrator"], authenticated = false) {
+async function fixture(page: Page, initialRoles: Role[] = ["registrationWorkshopAdministrator"], authenticated = false, options?: { acceptFallback?: boolean; logoutFailure?: boolean }) {
   let state: StaffState = authenticated ? "authenticated" : "ready", roles = initialRoles, sequence = 0;
-  const actions: StaffPayload[] = [], searches: string[] = [];
+  const actions: StaffPayload[] = [], searches: string[] = [], reads: string[] = [];
+  let failedLogout = false, releaseLogout = () => {};
   const profile = (): StaffProfile => ({ actorId, name: "Synthetic Staff", roles });
   let hasChallenge = false;
   await page.route("**/api/staff-portal**", async (route) => {
@@ -21,20 +22,25 @@ async function fixture(page: Page, initialRoles: Role[] = ["registrationWorkshop
     let response: StaffResponse = { state, profile: state === "authenticated" ? profile() : null };
     if (request.method() === "POST") {
       const payload = request.postDataJSON() as StaffPayload; actions.push(payload);
+      const failLogout = payload.action === "logout" && options?.logoutFailure && !failedLogout;
+      if (failLogout) { failedLogout = true; await new Promise<void>((resolve) => { releaseLogout = resolve; }); }
       if (payload.action === "signin") { roles = payload.email?.startsWith("super") ? ["superAdmin"] : initialRoles; state = roles.includes("superAdmin") ? "pending-totp" : "pending-email"; }
       else if (payload.action === "challenge-email") { state = "pending-email"; hasChallenge = true; }
-      else if (payload.action === "invite-accept") { roles = ["superAdmin"]; state = "enroll-totp"; }
+      else if (payload.action === "invite-accept") { roles = ["superAdmin"]; state = options?.acceptFallback ? "ready" : "enroll-totp"; }
       else if (payload.action === "enroll-totp") { state = "pending-totp"; hasChallenge = true; }
       else if (payload.action === "verify-email" || payload.action === "verify-totp") state = payload.code === "654321" ? "authenticated" : state;
-      else if (payload.action === "logout") state = "ready";
+      else if (payload.action === "logout" && !failLogout) state = "ready";
       response = { state, profile: state === "authenticated" ? profile() : null };
       if ((payload.action === "verify-email" || payload.action === "verify-totp") && payload.code !== "654321") response.state = "invalid-code";
       if (payload.action === "invite" || payload.action === "invite-resend") response.state = "invited";
       if (["roles", "suspend", "reactivate", "revoke-sessions", "reset-authenticator", "reset-account", "invite-revoke"].includes(payload.action)) response.state = "updated";
-      if (payload.action === "logout") response.state = "signed-out";
+      if (payload.action === "logout") response = { state: failLogout ? "unavailable" : "signed-out" };
+      if (payload.action === "invite-accept" && options?.acceptFallback) response = { state: "accepted" };
       if (payload.action === "reveal-identity") response = { state: "updated", identity: "SYNTHETIC1234" };
       if (payload.action === "enroll-totp") response.enrollment = { factorId, secret: "SYNTHETICSETUPONLY", qrCode: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2lAAAAABJRU5ErkJggg==" };
-    } else if (url.searchParams.has("area") && state === "authenticated") {
+    } else {
+      reads.push(url.searchParams.get("area") ?? "status");
+      if (url.searchParams.has("area") && state === "authenticated") {
       const area = url.searchParams.get("area"), search = url.searchParams.get("q") ?? "";
       searches.push(search);
       if (!staffMenu(roles).some((entry) => entry.key === area)) response = { state: "denied" };
@@ -44,13 +50,14 @@ async function fixture(page: Page, initialRoles: Role[] = ["registrationWorkshop
       ], invitations: [{ id: invitationId, email: "invited@example.invalid", roles: ["finance"], status: "pending", expiresAt: "2026-10-10T10:00:00Z" }] };
       else if (area === "participants") response = { state, profile: profile(), participants: search === "missing" ? [] : [{ actorId: participantId, name: "Synthetic Participant", email: "participant@example.invalid", status: "verified", createdAt: "2026-10-07T10:00:00Z", identityMasked: "••••••1234" }] };
       else if (area === "audit") response = { state, profile: profile(), audit: [{ id: "audit-synthetic", actorId, targetId: otherId, actorName: "Synthetic Staff", targetName: "Synthetic Other Admin", action: "invite", result: "completed", occurredAt: "2026-10-07T10:00:00Z", ...{ secret: "synthetic-secret-must-not-display", code: "synthetic-code-must-not-display", token: "synthetic-token-must-not-display" } }] };
+      }
     }
     if (state === "pending-totp") { response.factorId = factorId; response.challengeId = challengeId; }
     if (state === "pending-email" && hasChallenge) response.challengeId = challengeId;
     response.formToken = `synthetic-form-token-${++sequence}`;
     await route.fulfill({ status: response.state === "denied" ? 403 : 200, contentType: "application/json", body: JSON.stringify(response) });
   });
-  return { actions, searches };
+  return { actions, searches, reads, releaseLogout: () => releaseLogout() };
 }
 
 async function axe(page: Page) {
@@ -128,9 +135,12 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("cell", { name: auditActionLabel("invite", locale), exact: true })).toBeVisible();
     await expect(page.getByRole("cell", { name: auditResultLabel("completed", locale), exact: true })).toBeVisible();
     await expect(page.locator("body")).not.toContainText(/synthetic-(?:secret|code|token)-must-not-display/);
-    await page.getByLabel(copy.searchAudit).fill("invite");
+    await page.getByLabel(copy.searchAudit).fill(auditActionLabel("invite", locale));
     await page.getByRole("button", { name: copy.search, exact: true }).click();
     await expect.poll(() => mock.searches).toContain("invite"); await axe(page);
+    await page.getByLabel(copy.searchAudit).fill(auditResultLabel("completed", locale));
+    await page.getByRole("button", { name: copy.search, exact: true }).click();
+    await expect.poll(() => mock.searches).toContain("completed");
   });
 
   test(`${locale} invitation fragment remains private and authenticator enrollment works`, async ({ page }) => {
@@ -150,6 +160,49 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(new RegExp(`/${locale}/staff$`));
     await expect(page.getByRole("img")).toHaveCount(0);
     expect(mock.actions.find((action) => action.action === "invite-accept")).toMatchObject({ invitationId, token: "a".repeat(43) });
+    await axe(page);
+  });
+
+  test(`${locale} accepted invitation can recover when automatic sign-in is unavailable`, async ({ page }) => {
+    const copy = staffCopy[locale];
+    await fixture(page, undefined, false, { acceptFallback: true });
+    await page.goto(`/${locale}/staff/accept-invitation#invitation=${invitationId}&token=${"a".repeat(43)}`);
+    await expect(page.getByRole("button", { name: copy.next, exact: true })).toBeEnabled();
+    await page.getByLabel(copy.name).fill("Synthetic New Staff");
+    await page.getByLabel(copy.password).fill("Synthetic password only");
+    await page.getByRole("button", { name: copy.next, exact: true }).click();
+    await expect(page.getByText(copy.inviteAcceptedFallback, { exact: true })).toBeVisible();
+    await expect(page.getByText(copy.inviteMissing, { exact: true })).toHaveCount(0);
+    await expect(page.locator("form, input")).toHaveCount(0);
+    await page.getByRole("link", { name: copy.signIn, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/staff/sign-in$`));
+    await expect(page.getByLabel(copy.password)).toHaveValue("");
+    await axe(page);
+  });
+
+  test(`${locale} failed logout immediately hides private data and allows a retry`, async ({ page }) => {
+    const copy = staffCopy[locale];
+    await page.clock.install();
+    const mock = await fixture(page, ["superAdmin"], true, { logoutFailure: true });
+    await page.goto(`/${locale}/staff/people`);
+    await expect(page.getByRole("rowheader", { name: "Synthetic Other Admin other@example.invalid" })).toBeVisible();
+    await page.getByRole("button", { name: copy.signOut, exact: true }).click();
+    await expect.poll(() => mock.actions.some((action) => action.action === "logout")).toBe(true);
+    await expect(page.getByTestId("staff-name")).toHaveCount(0);
+    await expect(page.getByRole("table")).toHaveCount(0);
+    await expect(page.locator("body")).not.toContainText("other@example.invalid");
+    mock.releaseLogout();
+    const retry = page.getByRole("button", { name: copy.retrySignOut, exact: true });
+    await expect(retry).toBeEnabled();
+    await expect(page.locator('.staff-feedback[role="alert"]')).toContainText(copy.signOutFailed);
+    const readsBefore = mock.reads.length;
+    await page.clock.fastForward(61_000);
+    await expect.poll(() => mock.reads.length).toBeGreaterThan(readsBefore);
+    await expect(page.getByTestId("staff-name")).toHaveCount(0);
+    await expect(page.getByRole("table")).toHaveCount(0);
+    await retry.click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/staff/sign-in$`));
+    await expect(page.getByLabel(copy.password)).toHaveValue("");
     await axe(page);
   });
 

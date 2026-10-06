@@ -125,6 +125,46 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
     check((await get(ordinary, "participants")).status === 200, "registration role can read participants after strongest assurance");
     check((await get(ordinary, "people")).status === 403 && (await get(ordinary, "audit")).status === 403, "registration role is denied Super Admin reporting");
   });
+  it("rejects raw native email and phone staging for both staff tiers before any provider delivery", async () => {
+    for (const actor of [first, ordinary]) {
+      const active = readStaffSession(config, request("GET", actor)); check(active, "private genuine staff session available for native perimeter proof");
+      const sdk = client();
+      const bound = await sdk.auth.setSession({ access_token: active.accessToken, refresh_token: active.refreshToken });
+      check(!bound.error && bound.data.user?.id === actor.id, "native perimeter test uses the existing authenticated actor");
+      const email = await sdk.auth.updateUser({ email: person().email });
+      check(Boolean(email.error), "raw native staff email change is denied before a confirmation hook or provider" + nativeAuthDiagnostic(email.error));
+      const phone = await sdk.auth.updateUser({ phone: "+12025550123" });
+      check(Boolean(phone.error), "raw native staff phone change is denied before any SMS provider" + nativeAuthDiagnostic(phone.error));
+      check(await query(`select (email=${text(actor.email)} and coalesce(email_change,'')='' and coalesce(email_change_token_current,'')=''
+        and coalesce(email_change_token_new,'')='' and email_change_sent_at is null and coalesce(phone,'')=''
+        and coalesce(phone_change,'')='' and coalesce(phone_change_token,'')='' and phone_change_sent_at is null
+        and phone_confirmed_at is null and not exists(select 1 from auth.one_time_tokens t where t.user_id=auth.users.id))::text
+        from auth.users where id=${text(actor.id)};`) === "true", "rejected staff perimeter mutation leaves no staged identity or native proof");
+    }
+  });
+  it("suppresses raw staff recovery, magic-link and email OTP generically without retained native tokens", async () => {
+    const absent = person();
+    for (const actor of [first, ordinary]) {
+      const existing = await client().auth.resetPasswordForEmail(actor.email);
+      const missing = await client().auth.resetPasswordForEmail(absent.email);
+      check(!existing.error && !missing.error && JSON.stringify(existing.data) === JSON.stringify(missing.data),
+        "native staff recovery matches absent-account acknowledgement without delivery" + nativeAuthDiagnostic(existing.error));
+      for (const options of [{ shouldCreateUser: false }, { shouldCreateUser: false, emailRedirectTo: origin + "/en/staff/sign-in" }]) {
+        const otp = await client().auth.signInWithOtp({ email: actor.email, options });
+        check(!otp.data.session && !otp.data.user, "raw OTP or magic-link request grants no staff session");
+      }
+      const fakeRecovery = await client().auth.verifyOtp({ email: actor.email, token: "000000", type: "recovery" });
+      const fakeMagic = await client().auth.verifyOtp({ email: actor.email, token: "000000", type: "magiclink" });
+      check(Boolean(fakeRecovery.error) && !fakeRecovery.data.session && Boolean(fakeMagic.error) && !fakeMagic.data.session,
+        "suppressed native recovery and magic-link proofs cannot be redeemed");
+      check(await query(`select (coalesce(recovery_token,'')='' and recovery_sent_at is null and coalesce(confirmation_token,'')=''
+        and confirmation_sent_at is null and coalesce(reauthentication_token,'')='' and reauthentication_sent_at is null
+        and not exists(select 1 from auth.one_time_tokens t where t.user_id=auth.users.id))::text
+        from auth.users where id=${text(actor.id)};`) === "true", "staff-only native token stores and send timestamps remain empty");
+      check(await query(`select (msrc_participant.suppress_native_email(jsonb_build_object('user',jsonb_build_object('id',${text(actor.id)})))='{}'::jsonb)::text;`) === "true",
+        "configured Send Email hook suppresses the staff envelope without SMTP or external delivery");
+    }
+  });
   it("enforces minimum-two, self-demotion, self-suspension and self-reset with genuine current assurance", async () => {
     for (const input of [{ action: "roles", targetId: first.id, roles: ["finance"] }, { action: "suspend", targetId: first.id },
       { action: "reset-authenticator", targetId: first.id }, { action: "reset-account", targetId: first.id }, { action: "suspend", targetId: second.id },

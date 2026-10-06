@@ -244,6 +244,40 @@ create function msrc_staff.native_identity_guard() returns trigger
  return new;
  end$$;
 create trigger a_staff_native_identity before insert or update on auth.users for each row execute function msrc_staff.native_identity_guard();
+-- Keep native Auth bookkeeping, but close alternate native identity/recovery
+-- surfaces before an email/phone-change request can stage delivery. This guard
+-- also covers the exact reserved identity during the proven staged Admin call.
+create function msrc_staff.native_identity_owned(target_actor uuid) returns boolean
+ language sql stable security definer set search_path='' as $$
+ select exists(select 1 from msrc_staff.profiles p where p.actor_id=target_actor)
+ or exists(select 1 from msrc_staff.admissions a where a.actor_id=target_actor and a.state in ('pending','applied'))
+ or exists(select 1 from msrc_staff.bootstrap_reservations b where b.actor_id=target_actor);
+$$;
+create function msrc_staff.native_surface_guard() returns trigger
+ language plpgsql security definer set search_path='' as $$
+ begin
+ if not msrc_staff.native_identity_owned(new.id) then return new;end if;
+ if coalesce(new.email_change,'')<>'' or coalesce(new.phone_change,'')<>''
+ or coalesce(new.phone,'')<>'' or new.phone_confirmed_at is not null then
+ raise exception using errcode='42501',message='Native staff identity change is unavailable.';end if;
+ -- Application Resend invitations/session codes own delivery. The permitted
+ -- bound Admin password/confirmation transaction does not need native tokens.
+ new.confirmation_token:='';new.confirmation_sent_at:=null;
+ new.recovery_token:='';new.recovery_sent_at:=null;
+ new.email_change_token_current:='';new.email_change_token_new:='';new.email_change_sent_at:=null;
+ new.email_change:='';new.email_change_confirm_status:=0;
+ new.phone_change:='';new.phone_change_token:='';new.phone_change_sent_at:=null;
+ new.reauthentication_token:='';new.reauthentication_sent_at:=null;
+ return new;
+ end$$;
+create trigger a_staff_native_surface before insert or update on auth.users for each row execute function msrc_staff.native_surface_guard();
+create function msrc_staff.native_token_guard() returns trigger
+ language plpgsql security definer set search_path='' as $$
+ begin
+ if msrc_staff.native_identity_owned(new.user_id) then return null;end if;
+ return new;
+ end$$;
+create trigger staff_native_token_guard before insert on auth.one_time_tokens for each row execute function msrc_staff.native_token_guard();
 -- Preserve PR39 guards, while letting its participant identity be promoted only
 -- through a private invitation. The staff guard above consumes native evidence.
 create or replace function msrc_participant.admit_native_user() returns trigger
@@ -323,6 +357,19 @@ begin
   update msrc_participant.operations set transaction_id=pg_current_xact_id() where id=operation.id;
   return new;
 end$$;
+-- Retain the configured #39 Send Email hook and its explicit native Auth grant.
+-- Both admitted participants and invite-only staff suppress native mail without
+-- exposing account existence or enabling a second recovery protocol.
+create or replace function msrc_participant.suppress_native_email(event jsonb) returns jsonb
+ language plpgsql security definer set search_path='' as $$
+ declare actor text:=event#>>'{user,id}';
+ begin
+ if exists(select 1 from msrc_participant.profiles p where p.actor_id::text=actor) then return '{}'::jsonb;end if;
+ if actor~*'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
+ if msrc_staff.native_identity_owned(actor::uuid) then return '{}'::jsonb;end if;end if;
+ return jsonb_build_object('error',jsonb_build_object('http_code',403,'message','Native email delivery is unavailable.'));
+ end$$;
+comment on function msrc_participant.suppress_native_email(jsonb) is 'Reviewed managed Send Email hook for participant and invite-only staff native token guards. Suppresses native mail; application Resend owns participant/staff protocols. Never install without all reviewed guards.';
 
 create function msrc_staff.native_factor_guard() returns trigger
  language plpgsql security definer set search_path='' as $$

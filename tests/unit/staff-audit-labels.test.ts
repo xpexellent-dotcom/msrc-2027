@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { auditActionLabel, auditActions, auditResultLabel, auditResults } from "@/features/staff-portal/audit-labels";
+import { auditActionLabel, auditActions, auditResultLabel, auditResults, auditSearchQuery } from "@/features/staff-portal/audit-labels";
 
 function enumValues(path: string, column: string) {
   const source = readFileSync(new URL(`../../supabase/migrations/${path}`, import.meta.url), "utf8");
@@ -38,6 +38,16 @@ describe("LOC-03 bilingual immutable audit labels", () => {
     for (const value of ["secret=synthetic-password", "<script>alert(1)</script>", "SYNTHETIC SECRET", "a".repeat(100)]) {
       expect(auditActionLabel(value, "en")).toBe("Unknown value");
       expect(auditResultLabel(value, "ar")).toBe("قيمة غير معروفة");
+    }
+  });
+  it.each(["en", "ar"] as const)("%s visible labels map to parameterized enum filters", (locale) => {
+    for (const [code, text] of Object.entries(auditActions[locale])) expect(auditSearchQuery(`  ${text.toLocaleUpperCase(locale)}  `, locale)).toBe(code);
+    for (const [code, text] of Object.entries(auditResults[locale])) expect(auditSearchQuery(text, locale)).toBe(code);
+  });
+  it("does not reinterpret ordinary names, partial phrases, codes or arbitrary queries", () => {
+    for (const query of ["Synthetic Staff", "Synthetic Create invitation Staff", "grant.created", "invite", "مشارك مصطنع", "'; select 1; --", "name\nvalue"]) {
+      expect(auditSearchQuery(query, "en")).toBe(query);
+      expect(auditSearchQuery(query, "ar")).toBe(query);
     }
   });
 });

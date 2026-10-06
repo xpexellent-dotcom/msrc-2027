@@ -29,3 +29,13 @@ function label(value: string, locale: Locale, dictionary: Record<Locale, Record<
 }
 export function auditActionLabel(value: string, locale: Locale) { return label(value, locale, auditActions); }
 export function auditResultLabel(value: string, locale: Locale) { return label(value, locale, auditResults); }
+
+/** Exact visible labels resolve to enum filters; ordinary name/code queries stay unchanged. */
+export function auditSearchQuery(query: string, locale: Locale) {
+  const value = query.trim().toLocaleLowerCase(locale);
+  for (const dictionary of [auditActions[locale], auditResults[locale]]) {
+    const entry = Object.entries(dictionary).find(([, text]) => text.toLocaleLowerCase(locale) === value);
+    if (entry) return entry[0];
+  }
+  return query;
+}

@@ -96,7 +96,12 @@ closed; a production URL, public variable or client role cannot enable the porta
 
 Confirm native email/password authentication, email confirmation, disabled public
 signup, anonymous/social/passwordless/phone/SMS entry, and the reviewed native
-email/token suppression guards. The app owns Resend invite/code delivery. Keep
+email/token suppression guards. Configure the managed **Send Email** database
+hook to `msrc_participant.suppress_native_email(jsonb)`, whose new revision
+suppresses native mail for both participant and reserved/admitted staff identities.
+Keep its existing narrow `supabase_auth_admin` execution grant; verify that raw
+staff recovery, magic-link, OTP, email-change and phone-change requests retain
+no native tokens and reach no delivery provider. The app owns Resend invite/code delivery. Keep
 participant and operational flags false; applying the participant prerequisite
 does not approve participant activation or its pending retention cleanup. Set
 the native password minimum to the approved ten-character policy during separate

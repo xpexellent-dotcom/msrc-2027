@@ -9,10 +9,10 @@ import { Link } from "@/components/ui/link";
 import type { Locale } from "@/lib/i18n";
 import type { Role } from "@/lib/permissions/contract";
 import { staffCopy } from "./copy";
-import { auditActionLabel, auditResultLabel } from "./audit-labels";
+import { auditActionLabel, auditResultLabel, auditSearchQuery } from "./audit-labels";
 import { canRevealIdentity, STAFF_ROLES, staffMenu } from "./menu";
 import { IdentityDocument } from "./identity-document";
-import { normalizeStaffCode, requestStaff, updateStaffDraft, useStaffDraft } from "./staff-client";
+import { clearStaffDraft, normalizeStaffCode, requestStaff, updateStaffDraft, useStaffDraft } from "./staff-client";
 import type { StaffAction, StaffArea, StaffPayload, StaffPerson, StaffProfile, StaffResponse, StaffScreen } from "./ui-contract";
 
 const errors = new Set(["closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited"]);
@@ -49,11 +49,13 @@ export function StaffPortal({ locale, screen, initialProfile, testMode = false }
   const copy = staffCopy[locale], router = useRouter(), draft = useStaffDraft();
   const [view, setView] = useState<StaffResponse>({ state: initialProfile ? "authenticated" : "ready", profile: initialProfile });
   const [busy, setBusy] = useState(true), [outcome, setOutcome] = useState<string>(""), [query, setQuery] = useState("");
+  const [signOutFailure, setSignOutFailure] = useState(false);
   const inviteEmail = draft.inviteEmail, inviteRoles = draft.inviteRoles;
   const setInviteEmail = (value: string) => updateStaffDraft({ inviteEmail: value });
   const setInviteRoles = (value: Role[]) => updateStaffDraft({ inviteRoles: value });
   const lock = useRef(false), formToken = useRef<string | undefined>(undefined), feedback = useRef<HTMLDivElement>(null);
   const searchQuery = useRef("");
+  const logoutRequested = useRef(false);
   const generation = useRef(0), alive = useRef(true), area = areaFor(screen);
   const profile = view.profile ?? null, menu = profile ? staffMenu(profile.roles) : [];
   const permitted = !area || menu.some((entry) => entry.key === area);
@@ -65,13 +67,13 @@ export function StaffPortal({ locale, screen, initialProfile, testMode = false }
   const restore = useCallback(async (signal?: AbortSignal, search = "") => {
     const before = generation.current;
     let response = await requestStaff(undefined, { signal });
-    if (response.state === "authenticated" && area) response = await requestStaff(undefined, { area, query: search, signal });
+    if (!logoutRequested.current && response.state === "authenticated" && area) response = await requestStaff(undefined, { area, query: area === "audit" ? auditSearchQuery(search, locale) : search, signal });
     if (!alive.current || signal?.aborted || lock.current || before !== generation.current) return;
     formToken.current = response.formToken;
-    setView((previous) => ({ ...response, enrollment: response.state === "pending-totp" ? previous.enrollment : undefined }));
+    setView((previous) => logoutRequested.current ? { state: "ready", profile: null } : { ...response, enrollment: response.state === "pending-totp" ? previous.enrollment : undefined });
     if (errors.has(response.state)) setOutcome(response.state);
     setBusy(false);
-  }, [area]);
+  }, [area, locale]);
 
   useEffect(() => {
     alive.current = true;
@@ -95,19 +97,32 @@ export function StaffPortal({ locale, screen, initialProfile, testMode = false }
   async function act(payload: Omit<StaffPayload, "formToken">): Promise<StaffResponse> {
     if (lock.current || !formToken.current) return { state: "unavailable" };
     lock.current = true; generation.current += 1; setBusy(true); setOutcome("");
+    setSignOutFailure(false);
+    if (payload.action === "logout") {
+      logoutRequested.current = true;
+      setView({ state: "ready", profile: null });
+      clearStaffDraft();
+    }
     const response = await requestStaff({ ...payload, formToken: formToken.current });
     formToken.current = response.formToken;
     if (!alive.current) { lock.current = false; return response; }
     setOutcome(response.state);
+    if (["signin", "invite-accept"].includes(payload.action) && ["authenticated", "pending-email", "pending-totp", "enroll-totp"].includes(response.state)) logoutRequested.current = false;
     if (["signin", "invite-accept", "enroll-totp", "challenge-totp", "challenge-email", "verify-email", "verify-totp", "logout"].includes(payload.action)) {
       if (!errors.has(response.state)) setView((previous) => ({ ...response, enrollment: response.state === "pending-totp" ? response.enrollment ?? previous.enrollment : undefined }));
       if (!errors.has(response.state)) updateStaffDraft({ password: "", code: "", ...(payload.action === "invite-accept" ? { invitationId: "", token: "" } : {}) });
       if (response.enrollment) updateStaffDraft({ enrollment: response.enrollment });
       if (response.state === "authenticated" || response.state === "signed-out") updateStaffDraft({ enrollment: undefined });
       if (response.state === "authenticated") router.replace(`/${locale}/staff`);
-      if (response.state === "signed-out") { updateStaffDraft({ email: "", password: "", name: "", code: "", invitationId: "", token: "" }); router.replace(`/${locale}/staff/sign-in`); }
+      if (payload.action === "logout") {
+        setView({ state: "ready", profile: null });
+        clearStaffDraft();
+        setSignOutFailure(response.state !== "signed-out");
+        if (response.state === "signed-out") router.replace(`/${locale}/staff/sign-in`);
+      }
     }
     lock.current = false; setBusy(false);
+    if (!response.formToken) await restore();
     if (["invited", "updated"].includes(response.state) && payload.action !== "reveal-identity") await restore(undefined, query);
     return response;
   }
@@ -122,14 +137,17 @@ export function StaffPortal({ locale, screen, initialProfile, testMode = false }
     if (action === "invite-accept" && (Array.from(draft.password).length < 10 || new TextEncoder().encode(draft.password).length > 72)) { setOutcome("password"); return; }
     void act({ action, password: draft.password, ...(action === "signin" ? { email: draft.email } : { name: draft.name, invitationId: draft.invitationId, token: draft.token }) });
   }
-  const message = outcome === "identity-unavailable" ? copy.identityPending : outcome in copy.states ? copy.states[outcome as keyof typeof copy.states] : outcome in copy.errors ? copy.errors[outcome as keyof typeof copy.errors] : "";
+  const message = signOutFailure ? copy.signOutFailed : outcome === "identity-unavailable" ? copy.identityPending : outcome in copy.states ? copy.states[outcome as keyof typeof copy.states] : outcome in copy.errors ? copy.errors[outcome as keyof typeof copy.errors] : "";
+  const acceptedInvitation = screen === "accept-invitation" && view.state === "accepted" && !profile;
   const title = verification ? view.state === "pending-email" ? copy.emailStep : view.state === "enroll-totp" ? copy.enroll : copy.totpStep : screen === "accept-invitation" && !profile ? copy.accept : !profile ? copy.signIn : screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? copy.home : copy[screen];
   return <div className="staff-portal" data-testid="staff-portal" data-screen={screen}>
     <header className="staff-topbar"><span className="staff-wordmark" dir="ltr" lang="en">MSRC<span>2027</span></span><span>{copy.portal}</span><Link href={`/${language}/staff${screen === "home" ? "" : `/${screen}`}`} hrefLang={language} lang={language} dir={language === "ar" ? "rtl" : "ltr"} aria-label={copy.language}>{language === "ar" ? "العربية" : "English"}</Link></header>
     {testMode ? <p className="staff-test-note">{copy.testMode}</p> : null}
     <div className="staff-heading"><p className="eyebrow">{copy.private}</p><h1 tabIndex={-1}>{title}</h1>{profile ? <><p className="staff-name" data-testid="staff-name"><bdi>{profile.name}</bdi></p><p>{copy.roles}: {profile.roles.map((role) => copy.roleLabels[role]).join(locale === "ar" ? "، " : ", ")}</p><div className="staff-actions"><Link href={`/${locale}/staff`}>{copy.home}</Link><Button variant="secondary" size="small" disabled={busy} onClick={() => void act({ action: "logout" })}>{copy.signOut}</Button></div></> : null}</div>
     <div ref={feedback} tabIndex={-1} className={message ? "staff-feedback" : "staff-feedback staff-feedback--empty"} role={errors.has(outcome) || outcome in copy.errors ? "alert" : "status"} aria-live="polite">{busy ? copy.loading : message}</div>
-    {!profile && !verification ? <section className="staff-panel staff-auth-panel">
+    {signOutFailure ? <Button variant="secondary" disabled={busy} onClick={() => void act({ action: "logout" })}>{copy.retrySignOut}</Button> : null}
+    {acceptedInvitation ? <section className="staff-panel staff-auth-panel"><p>{copy.inviteAcceptedFallback}</p><Link href={`/${locale}/staff/sign-in`}>{copy.signIn}</Link></section> : null}
+    {!profile && !verification && !acceptedInvitation ? <section className="staff-panel staff-auth-panel">
       <p>{screen === "accept-invitation" ? copy.acceptIntro : copy.passwordIntro}</p>
       <p>{copy.inviteOnly}</p>
       {screen === "accept-invitation" && !draft.invitationId ? <p role="alert">{copy.inviteMissing}</p> : null}

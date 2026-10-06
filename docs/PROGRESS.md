@@ -3019,3 +3019,45 @@ registration identity collection/storage/reveal and exports remain future work.
   were skipped after that failure, and are not treated as passed.
 - The corrected SQL, parity and layout revision is being verified on a new exact
   PR head. Hosted migrations/settings and live bootstrap remain untouched.
+
+### Staff native and concurrency checkpoint — 51bb9b0
+
+- PASS: local `pnpm check`: lint, TypeScript, 2,193 unit cases in 51 files and
+  the production build (77 generated pages).
+- PASS: disposable staff CI [37548456654](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37548456654),
+  native job 112558016017: complete migration reset, strict schema lint,
+  765 pgTAP assertions in ten files, security advisors (no issues found), and
+  all 14 genuine handler → GoTrue v2.197.0 → SQL cases.
+- PASS: disposable foundation CI [37548456655](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37548456655),
+  database job 112558228705: the same migration/SQL checks and all 74 integration
+  cases, including simultaneous three-to-two Super Admin demotions and the
+  persisted denial audit. Earlier new fixture UUIDs collided with an existing
+  email-check fixture; unique namespaces fix the setup without changing assertions,
+  timing, or adding retries.
+- PASS: participant native regression job 112558016518 on the same source revision.
+- Real GoTrue inserts a user before applying requested email confirmation in
+  the same transaction. The new private guards now permit that staged insert
+  only for its exact reserved actor/email and transaction; confirmed-email
+  completion is still mandatory. Added isolated bootstrap/invitation SQL proofs.
+- Final review is adding direct native staff token/change denial and UI recovery
+  cases. Those changes require their own final receipts; this checkpoint does
+  not claim them passed. Local Docker remains BLOCKED, and live bootstrap,
+  hosted migration application, delivery/recovery UAT and activation remain
+  NOT TESTED and unperformed.
+
+### Staff final perimeter and UI recovery revision
+
+- PASS: local final lint, route types/TypeScript and 2,196 unit cases in 51 files.
+  Production rebuild passes with 77 generated pages.
+- PASS: final `pnpm exec playwright test --config playwright.staff.config.ts`:
+  24 executed cases, two intentional desktop skips, zero retries. EN/AR desktop
+  and mobile now additionally cover invitation acceptance without automatic login,
+  immediate private-view clearing during failed logout, no background restoration
+  of that private view, and successful logout retry. Exact displayed audit action
+  and result labels resolve to existing enum filters; ordinary searches are preserved.
+  Existing RTL/keyboard/320px/200%-text/native-scroll/axe assertions remain passing.
+- Added: narrow staff native token/change guards and Send Email suppression, with
+  direct SQL proofs and two genuine native regressions (16 native cases total).
+  Native account creation, TOTP and other-admin recovery retain the previously
+  verified private reservation/transaction path. Final disposable CI for this new
+  perimeter revision is pending; no result is inferred from the earlier 14-case pass.
