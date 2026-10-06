@@ -57,7 +57,7 @@ describe("approved policy v1.0 (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
 
   it("uses approved legal terminology and records Arabic precedence faithfully", () => {
     const privacy = JSON.stringify(getPolicyDocument("privacy", "ar").document);
-    for (const term of ["نظام حماية البيانات الشخصية", "اللائحة التنفيذية", "جهة التحكم", "الهوية الوطنية أو رقم الإقامة", "صاحب البيانات"]) expect(privacy).toContain(term);
+    for (const term of ["نظام حماية البيانات الشخصية", "ولائحته التنفيذية", "جهة التحكم", "الهوية الوطنية أو رقم الإقامة", "صاحب البيانات"]) expect(privacy).toContain(term);
     const terms = getPolicyDocument("terms", "en").document.sections.find(({ id }) => id === "governing-law")!;
     expect(JSON.stringify(terms)).toContain("the Arabic version prevails");
     expect(JSON.stringify(getPolicyDocument("terms", "ar").document.sections.find(({ id }) => id === "governing-law"))).toContain("وفي حال وجود أي اختلاف بين النسختين، يُعتد بالنسخة العربية.");

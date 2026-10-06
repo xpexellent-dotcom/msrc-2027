@@ -8,6 +8,9 @@ ORG-037–042 approve the English Privacy Policy and Terms v1.0 in
 complete formal Modern Standard Arabic translation and equivalent sections, tables
 and localized internal links. Organizers should have a native Arabic reader review
 the translation; the Arabic Terms prevail. No review completion is claimed here.
+Organizer editorial follow-up (6 October 2026): the Arabic sources and rendered
+pages consistently use «مسابقة الأطروحة في ثلاث دقائق», «ولائحته التنفيذية» and
+«الباحث الرئيسي». English, version 1.0 and effective date stay unchanged.
 
 Latest routes are `/{en|ar}/privacy` and `/{en|ar}/terms`; stable routes append
 `/v1.0`. Locale-free `/privacy`, `/terms` and their `/v1.0` aliases use the site's

@@ -1964,3 +1964,13 @@ Keep the mock adapter and financial workflows closed until the actual authorized
 confirmation/reconciliation, prices, deadlines, refunds and release evidence are
 supplied. No payment code, real charge or hosted configuration changes in this task.
 IDs: PAY-01/04/05/07/08, REG-03, CFG-02/10, REL-02.
+
+### ORG-037 Arabic editorial follow-up — 6 October 2026
+
+Explicit organizer correction: use «مسابقة الأطروحة في ثلاث دقائق» throughout
+Privacy/Terms Arabic, «ولائحته التنفيذية» instead of «واللائحة التنفيذية», and
+«الباحث الرئيسي» (inflected «للباحث الرئيسي» in the existing Terms sentence).
+Apply to both Arabic Markdown sources and rendered policy content. English wording,
+version 1.0, effective date and operational gates remain unchanged. This is an
+editorial correction within the approved version, not a new policy version.
+IDs: BL-PUB-08, PRV-01/02, LOC-01/03, CMS-04.

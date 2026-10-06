@@ -1,5 +1,43 @@
 # Progress and session handover
 
+## 6 October 2026 — Arabic policy terminology consistency
+
+Continued open [PR #42](https://github.com/xpexellent-dotcom/msrc-2027/pull/42) in the
+attached clean policy worktree from `efe4988`; current main and unrelated local
+work were preserved. Explicit organizer editorial follow-up is recorded under
+ORG-037. IDs: BL-PUB-08, PRV-01/02, LOC-01/03, CMS-04, ACC-01.
+
+Both Arabic source documents and their embedded rendered content now use
+«مسابقة الأطروحة في ثلاث دقائق» (four occurrences), «ولائحته التنفيذية» (two),
+and «الباحث الرئيسي» in the inflected sentence «للباحث الرئيسي» (one).
+No other policy wording changed. Independent byte comparison confirmed both
+embedded Arabic texts equal their Markdown sources, and English literals/source,
+metadata, version 1.0 and effective date `2026-10-06` remain unchanged. The existing
+legal-terminology assertion now follows the corrected organizer wording.
+
+Verification with Node 24.21.0 / pnpm 11.19.0:
+
+- PASS: `pnpm check` — lint/types, 2,043 unit tests/46 files, 65-page build.
+- PASS: `pnpm exec playwright test tests/e2e/policies.spec.ts` — 18/18 cases,
+  current/stable EN/AR desktop/tablet/phone pages, links, keyboard/RTL/zoom and
+  24 policy axe scans with zero violations; existing header-button contrast
+  manual-review records remain as documented in the initial publication entry.
+- PASS: `node .tools/arabic-policy-render-verify.mjs` — eight Arabic current/stable
+  phone/desktop visits, exact requested phrase counts, no stale phrases, unchanged
+  v1.0/date, targeted screenshots. Source/header layout has not changed.
+- PASS: source/diff audit — only the seven requested Arabic substitutions in each
+  source/embedded set, no doubled prefixes, English and config unchanged.
+- PASS: `git diff --check`; no account flag, hosted, migration or AI change.
+
+Ignored evidence: `deliverables/policy-v1.0/arabic-consistency-check.log`,
+`arabic-consistency-browser.log` and `arabic-consistency/verification.json` plus
+phone/desktop section captures. Existing policy browser evidence is refreshed.
+Hosted checks for the new PR head are reported separately in the PR; prior green
+receipts remain historical. Human native-reader approval, physical devices and
+live publication remain NOT TESTED. Next: review/merge the updated policy PR;
+account and AI activation stay separate. Rollback: revert this editorial commit.
+
+
 ## 6 October 2026 — Approved Privacy Policy and Terms v1.0 publication
 
 Started `codex/policy-v1-publication` from current `origin/main` at `60c5c7c`.
