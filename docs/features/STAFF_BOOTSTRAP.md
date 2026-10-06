@@ -60,5 +60,3 @@ require enrollment; they do not relax privileged assurance or make the bootstrap
 repeatable admission path. No ordinary workflow, participant export or production
 setting is activated by this procedure alone. Rollback is closure of both staff gates;
 retain immutable authority/audit history and inspect partial native operations privately.
-
-

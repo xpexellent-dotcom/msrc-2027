@@ -321,6 +321,14 @@ create function msrc_staff.native_factor_guard() returns trigger
  begin
  target:=case when tg_op='DELETE' then old.user_id else new.user_id end;
  if not exists(select 1 from msrc_staff.profiles p where p.actor_id=target) then if tg_op='DELETE' then return old;else return new;end if;end if;
+ perform pg_advisory_xact_lock(hashtextextended('staff-totp:'||target::text,0));
+ if tg_op='INSERT' and exists(select 1 from auth.mfa_factors f where f.user_id=target and f.status::text='verified') then
+ raise exception using errcode='42501',message='Authenticator replacement requires another Super Admin.';end if;
+ if tg_op='UPDATE' and old.status::text<>'verified' and new.status::text='verified'
+ and exists(select 1 from auth.mfa_factors f where f.user_id=target and f.id<>new.id and f.status::text='verified') then
+ raise exception using errcode='42501',message='Authenticator replacement requires another Super Admin.';end if;
+ if tg_op='UPDATE' and old.status::text='verified' and (to_jsonb(new)->'secret') is distinct from (to_jsonb(old)->'secret') then
+ raise exception using errcode='42501',message='Authenticator replacement requires another Super Admin.';end if;
  if tg_op='DELETE' and old.status::text='verified' and exists(select 1 from msrc_authorization.role_grants g
  where g.actor_id=target and g.state='active' and g.role_name='superAdmin')
  and not exists(select 1 from msrc_staff.admin_operations o where o.target_actor_id=target and o.state='pending'
@@ -380,7 +388,7 @@ create function public.msrc_staff_login_finish(attempt_id uuid,actor_id uuid def
  perform msrc_staff.record(null,'sign_in',actor_id,'denied',actor_id); return jsonb_build_object('state','denied'); end if;
  tier:=case when exists(select 1 from msrc_authorization.role_grants g where g.actor_id=msrc_staff_login_finish.actor_id and g.state='active' and g.role_name='superAdmin') then 'super_admin' else 'staff' end;
  update msrc_staff.login_attempts set state='admitted' where id=attempt_id;
- 
+
  perform msrc_staff.record(edition,'sign_in',actor_id,'allowed',actor_id);
  return jsonb_build_object('state','admitted','editionKey',edition,'tier',tier);
  end$$;
@@ -755,17 +763,3 @@ grant execute on function public.msrc_staff_status(),public.msrc_staff_form_clai
 grant execute on function public.msrc_staff_profile(text),public.msrc_staff_invite_begin(text,text,text[],uuid,text),public.msrc_staff_invite_revoke(text,uuid),
  public.msrc_staff_admin_change(text,uuid,text,text[],uuid),public.msrc_staff_people(text,text),public.msrc_staff_audit(text,text),public.msrc_staff_participants(text,text),public.msrc_staff_identity_reveal(text,uuid)
  to authenticated;
-
-
-
-
-
-
-
-
-
-
-
-
-
-

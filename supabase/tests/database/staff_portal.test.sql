@@ -96,6 +96,8 @@ select ok(exists(select 1 from msrc_staff.audit where action='set_roles' and res
 select ok(exists(select 1 from msrc_staff.audit where action='identity_reveal' and result='unavailable'),'Explicit reveal attempts are audited');
 select throws_ok($$delete from auth.mfa_factors where user_id='a1000000-0000-4000-8000-000000000001'$$,'42501',null,'Native factor deletion cannot bypass other-admin recovery');
 select throws_ok($$update auth.users set encrypted_password='changed-synthetic-hash' where id='a1000000-0000-4000-8000-000000000001'$$,'42501',null,'Native password reset cannot bypass other-admin recovery');
+select throws_ok($$insert into auth.mfa_factors(id,user_id,factor_type,status,created_at,updated_at)
+ values(gen_random_uuid(),'a1000000-0000-4000-8000-000000000001','totp','unverified',now(),now())$$,'42501',null,'Password-only native enrollment cannot replace an existing Super Admin authenticator');
 -- Exact-session regular staff receipts are required; no metadata/JWT role spoofing.
 do $$begin perform pg_temp.portal_claims('4');end$$;
 set local role authenticated;
@@ -172,6 +174,3 @@ select is(public.msrc_staff_profile('synthetic-portal-2027'),null::jsonb,'Portal
 reset role;
 select * from finish();
 rollback;
-
-
-

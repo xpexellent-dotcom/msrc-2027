@@ -71,5 +71,3 @@ try {
   delete process.env.SUPABASE_SECRET_KEY;
 
 }
-
-
