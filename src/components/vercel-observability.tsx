@@ -2,12 +2,15 @@
 
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { usePathname } from "next/navigation";
 import { prepareObservabilityEvent } from "@/lib/vercel-observability";
 
 const beforeSend = <Event extends { url: string }>(event: Event) => prepareObservabilityEvent(event, navigator.webdriver);
 
 /** ORG-008: cookieless visitor counts and real-user Core Web Vitals, sent to the site's own origin. */
 export function VercelObservability() {
+  const pathname = usePathname();
+  if (/^\/(en|ar)\/staff(?:\/|$)/.test(pathname)) return null;
   return (
     <>
       <Analytics beforeSend={beforeSend} />

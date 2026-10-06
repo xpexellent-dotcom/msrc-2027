@@ -60,7 +60,7 @@ Named final owners and due dates are **unassigned unless explicitly recorded**. 
 | Framework | ADOPTED FOR M1 | Next.js App Router + TypeScript + Tailwind under the explicit foundation task; versions in ENG-001 below. | Final public and operational release gates remain closed. | INF-01 |
 | Development tooling | ADOPTED FOR M1 | pnpm with lockfile, Vitest/Playwright and local Supabase fixture/policy tests; see ENG-001/005/006. | Isolated Linux database CI verified; optional Windows engine still untested. Current evidence and remaining merge-check enforcement are in PROGRESS. | INF-04/05, REL-06 |
 | P1 payments | SELECTED | Faculty of Medicine payment platform, `lms.waqf.org.sa`, under the authorized KAU collection arrangement (ORG-042); isolated adapter. | Real integration or approved official-report reconciliation, payee/finance authority, amounts/methods/tax/refunds/references and evidence. No webhook/API assumed. | PAY-01/04/05, CFG-02 |
-| Three site Super Admins | REQUIRED | Exactly three individually named website Super Admin accounts before production. | Names, verified identity, appropriate grants/MFA/offboarding; distinct from infrastructure owners. | ROL-10/12, CFG-11 |
+| Two site Super Admins | REQUIRED, ORG-043 | Two distinct designated people; at least two active accounts after restricted first-account bootstrap. Names appear only in ORG-043 below. | Privately supplied emails, verified identity, enrollment, appropriate grants/offboarding and mutual recovery UAT; distinct from infrastructure owners. | ROL-10/12, CFG-11 |
 | Production data locations | APPROVED POLICY DISCLOSURE; operational inventory OPEN | v1.0 discloses Vercel India/global network, Supabase Japan, Resend/Namecheap United States, Gmail Google data centres, Faculty payment platform Saudi Arabia and DeepSeek People's Republic of China (ORG-037/040/042). | Verify actual database/storage/auth/app/backups/email/model/log flows, processor terms and transfer safeguards before each activation. Text approval is not a fresh hosted-region inspection. | INF-02, PRV-07 |
 | Participant-data responsibility | ORGANIZER DECISION; operational release evidence OPEN | ORG-038 names the Faculty of Medicine, KAU as controller and Research Principles Club as organizer acting on its behalf; supersedes ORG-022's controller ambiguity. ORG-037 approves the v1.0 English policies. | Operational institutional evidence, processor/transfer implementation, cleanup/recovery and remaining release gates; native Arabic reader review requested. | PRV-01/02, CFG-09 |
 | Email/scanning/assessment/analytics | PARTIAL; dependent gates OPEN | ORG-008 selects Vercel public analytics/Speed Insights; ORG-021 sets Contact addresses without selecting a delivery provider. | Remaining provider/data terms/evaluation/quotas/secrets/budget and processing/location approval. | INF-01, CFG-10 |
@@ -1974,3 +1974,63 @@ Apply to both Arabic Markdown sources and rendered policy content. English wordi
 version 1.0, effective date and operational gates remain unchanged. This is an
 editorial correction within the approved version, not a new policy version.
 IDs: BL-PUB-08, PRV-01/02, LOC-01/03, CMS-04.
+
+## ORG-043 — Two distinct Super Admins, 7 October 2026
+
+Authority: explicit organizer instruction for the closed staff portal foundation.
+The two designated Super Admins are **Akram Awan** and **Abdulrahman Ismail**,
+distinct people. Their verified email addresses are supplied privately at activation.
+Record these names in this register only; do not put them in application code,
+scripts, fixtures, seed data or credentials. This supersedes the historical
+exactly-three requirement in S1 ROL-10 and the earlier third-admin TBD. Preserve
+the source snapshot. Maintain at least two active Super Admins after the initial
+bootstrap; the sole first account can enroll its authenticator and invite the
+second, with other administration restricted until the second completes enrollment.
+Nobody can remove their own Super Admin role or suspend themselves. Serialized
+database checks must protect the minimum during concurrent role/status changes.
+IDs: BL-AUTH-01/05/06, ROL-10/12, CFG-11, SEC-01/02.
+
+## ORG-044 — Invite-only staff and mutual recovery, 7 October 2026
+
+Authority: explicit organizer instruction. Staff access is invite-only; there is
+no public staff sign-up. A Super Admin chooses edition-scoped roles and sends an
+English transactional invitation through the existing Resend sender,
+`MSRC 2027 <no-reply@msrc2027.com>`. A single-use invitation expires after 72 hours;
+resending replaces the link and revocation invalidates outstanding use. After
+setting a password the invitee must complete the current strongest second step:
+session-bound email verification for regular staff, authenticator enrollment/TOTP
+for Super Admins. Every transition is audited without passwords, codes or tokens.
+
+A Super Admin's lost authenticator or account is reset by the **other** Super
+Admin, never by themselves. This supersedes the prior separate approver/operator
+TBD for this two-person procedure. Revoke access first, record the actor, target
+and reason, then complete provider reset; failed or interrupted provider work must
+remain denied and recoverable. Recovery does not bypass enrollment. Human identity
+verification and provider/inbox UAT remain activation evidence, not completed work.
+IDs: BL-AUTH-01/05/06, AUTH-04/05, EML-01, LOC-03, ADM-04/05, SEC-06.
+
+## ORG-045 — Closed staff portal and identity masking, 7 October 2026
+
+Authority: explicit organizer instruction. Build the staff portal foundation behind
+server-only `STAFF_PORTAL_ENABLED`, closed by default, with independent database
+readiness. Staff pages are unindexed, absent from public navigation and separate
+from participant sign-in. Current persisted grants and strongest authentication
+tier govern all server/database actions; menus only describe those permissions.
+Non-review organizer screens are bilingual with RTL; reviewer/faculty-judge
+assessment remains English-only.
+
+The internal participant account list is limited to Super Admins and edition-scoped
+registration/workshop administrators. Prepare the ORG-039 registration identifier
+policy/component now: masked by default as `••••••1234`, full reveal only through
+an explicit audited Super Admin action. This slice collects no identifier and
+adds no registration identifier field. No bulk export. Future registration must
+provide the protected storage/reveal implementation and satisfy its own release gate.
+
+Only persisted authorization and Contact counters are applied to hosted state
+according to the organizer's current instruction; #25 and #39 migrations remain
+pending. This task writes reviewed migrations and a bootstrap/activation procedure,
+uses synthetic records, and opens a draft PR. It does not apply hosted migrations,
+modify production settings, bootstrap live accounts, send real invitations/email,
+or activate registration, finance, review, check-in, content or exports.
+IDs: BL-AUTH-01/05/06, BL-RPT-01/03, ROL-01/07/10/12, ADM-01/02/04/05,
+PRV-03, LOC-01/03, SEC-01/02/06, REL-06.

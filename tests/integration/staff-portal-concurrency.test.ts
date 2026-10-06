@@ -1,0 +1,88 @@
+import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { beforeAll, describe, expect, it } from "vitest";
+import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
+
+const isolatedCi = process.env.GITHUB_ACTIONS === "true";
+const edition = "synthetic-staff-portal-concurrency-2027";
+const actor = (suffix: number) => `b1000000-0000-4000-8000-00000000000${suffix}`;
+const session = (suffix: number) => `b2000000-0000-4000-8000-00000000000${suffix}`;
+const factor = (suffix: number) => `b3000000-0000-4000-8000-00000000000${suffix}`;
+const marker = 202710071;
+
+function query(sql: string): Promise<string> {
+  const target = process.env.NEXT_PUBLIC_SUPABASE_TARGET;
+  if (!isolatedCi || (target && target !== "local") || !resolveLocalSupabaseConfig({
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL, publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  }) || !/^project_id = "msrc2027-local"$/m.test(readFileSync("supabase/config.toml", "utf8"))) {
+    throw new Error("Staff concurrency fixtures require disposable loopback GitHub CI.");
+  }
+  return new Promise((resolve, reject) => {
+    const child = spawn("docker", ["exec", "-i", "supabase_db_msrc2027-local", "psql", "-X", "-At",
+      "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"], { stdio: ["pipe", "pipe", "pipe"] });
+    let output = "";
+    const timeout = setTimeout(() => { child.kill(); reject(new Error("Synthetic staff concurrency query timed out.")); }, 10_000);
+    child.stdout.on("data", (chunk: Buffer) => { output += chunk.toString(); });
+    child.stderr.on("data", () => {});
+    child.on("error", () => { clearTimeout(timeout); reject(new Error("Synthetic staff SQL could not start.")); });
+    child.on("close", (code) => { clearTimeout(timeout); if (code === 0) resolve(output); else reject(new Error("Synthetic staff SQL assertion failed; diagnostics withheld.")); });
+    child.stdin.on("error", () => {});
+    child.stdin.end(sql);
+  });
+}
+function claims(): string {
+  return `select set_config('request.jwt.claims',jsonb_build_object('sub','${actor(1)}','role','authenticated',
+    'session_id','${session(1)}','aal','aal2','exp',extract(epoch from clock_timestamp()+interval '1 hour'),
+    'amr',(select jsonb_agg(jsonb_build_object('method',authentication_method,'timestamp',floor(extract(epoch from updated_at::timestamptz))))
+      from auth.mfa_amr_claims where session_id='${session(1)}'))::text,true);`;
+}
+const downgrade = (target: number, hold = false) => `begin; ${claims()}
+  ${hold ? `select pg_advisory_xact_lock(hashtextextended('staff-portal-authority',0)); select pg_advisory_xact_lock(${marker}); select pg_sleep(1);` : ""}
+  select public.msrc_staff_admin_change('${edition}','${actor(target)}','set_roles',array['finance'])->>'state'; commit;`;
+
+describe.skipIf(!isolatedCi)("Staff portal authority concurrency (disposable GitHub CI only)", () => {
+  beforeAll(async () => {
+    await query(`begin;
+      update msrc_staff.policy set enabled=true,email_daily_limit=1000;
+      insert into msrc_authorization.edition_config(edition_key) values('${edition}');
+      ${[1, 2, 3].map((suffix) => `
+      insert into auth.users(id,email,email_confirmed_at,created_at,updated_at,is_anonymous)
+        values('${actor(suffix)}','staff-concurrency-${suffix}@example.invalid',now(),now(),now(),false);
+      insert into msrc_authorization.account_access(actor_id,state,individually_identified) values('${actor(suffix)}','active',true);
+      insert into msrc_staff.profiles(actor_id,name) values('${actor(suffix)}','Synthetic concurrency staff ${suffix}');
+      insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
+        values('${actor(suffix)}','${edition}','superAdmin','edition','Synthetic concurrency fixture');
+      insert into auth.mfa_factors(id,user_id,factor_type,status,created_at,updated_at)
+        values('${factor(suffix)}','${actor(suffix)}','totp','verified',now()-interval '5 minutes',now()-interval '5 minutes');
+      insert into auth.sessions(id,user_id,created_at,updated_at,aal,factor_id)
+        values('${session(suffix)}','${actor(suffix)}',date_trunc('second',now()-interval '2 minutes'),now(),'aal2','${factor(suffix)}');
+      insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+        select gen_random_uuid(),id,'password',created_at,created_at from auth.sessions where id='${session(suffix)}';
+      insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+        values(gen_random_uuid(),'${session(suffix)}','totp',date_trunc('second',now()-interval '30 seconds'),date_trunc('second',now()-interval '30 seconds'));`).join("\n")}
+      commit;`);
+  });
+
+  it("serializes two concurrent demotions at three Super Admins and audits the denial", async () => {
+    const first = query(downgrade(2, true));
+    let locked = false;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      if ((await query(`select count(*) from pg_locks where locktype='advisory' and objid=${marker} and granted;`)).trim() === "1") {
+        locked = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    expect(locked).toBe(true);
+    const outcomes = await Promise.all([first, query(downgrade(3))]);
+    expect(outcomes[0].split("\n")).toContain("completed");
+    expect(outcomes[1].split("\n")).toContain("denied");
+    await query(`do $$begin
+      if msrc_staff.active_super_admin_count('${edition}')<>2
+      or (select count(*) from msrc_staff.audit where edition_key='${edition}' and action='set_roles' and result='completed')<>1
+      or (select count(*) from msrc_staff.audit where edition_key='${edition}' and action='set_roles' and result='denied')<>1 then
+        raise exception 'Synthetic minimum or audit concurrency assertion failed.';
+      end if;
+      end$$;`);
+  });
+});

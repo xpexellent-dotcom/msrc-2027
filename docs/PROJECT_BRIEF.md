@@ -62,7 +62,7 @@ The user wants a cinematic video homepage inspired by Slush, clear information o
 
 ## Scale assumptions
 
-Planning estimates: 15,000+ visitors, about 1,000 attendees, 300-400 abstracts, 30-40 reviewers/judges, and 3-10 administrative accounts. They are not confirmed admission limits. Exactly three named website Super Admins are required before production. The workshop estimate of 30-100 registrations and hackathon solo finalist accounting remain unresolved. Load scenarios and service objectives are defined in the source and require measurement. [S1 SCP-06, ROL-10, NFR-01 to NFR-03]
+Planning estimates: 15,000+ visitors, about 1,000 attendees, 300-400 abstracts, 30-40 reviewers/judges, and 3-10 administrative accounts. They are not confirmed admission limits. ORG-043 (7 October 2026) designates two distinct website Super Admins and requires at least two active accounts after the restricted first-account bootstrap. Names are recorded only in DECISIONS. Staff are invite-only; lost Super Admin access is reset by the other Super Admin (ORG-044). The workshop estimate of 30-100 registrations and hackathon solo finalist accounting remain unresolved. Load scenarios and service objectives are defined in the source and require measurement. [S1 SCP-06, ROL-10, NFR-01 to NFR-03; ORG-043/044]
 
 ## First deliverable to build
 

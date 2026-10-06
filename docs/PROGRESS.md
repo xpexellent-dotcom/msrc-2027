@@ -2918,3 +2918,50 @@ errors state the requirement, including on verification.
 This review does not change migration SQL, hosted Auth settings, Privacy approval,
 the closed flag or operational readiness. Real users, inbox delivery and activation
 remain unperformed. The activation guide records the future native minimum setting.
+
+## 7 October 2026 — Closed staff portal foundation
+
+Assigned scope: BL-AUTH-01, BL-AUTH-05/06 staff parts and BL-RPT-01/03 foundations;
+AUTH-04/05, ROL-01/07/10/12, ADM-01/02/04/05, LOC-01/03, SEC-01/02/06.
+Open PRs were listed before branch creation: **none**. #25 and #39 are merged into
+the fetched `main`, while their hosted migrations remain pending per the organizer.
+Shared logs were not counted as feature overlap. Started `codex/staff-portal-foundation`
+from `origin/main` `d9215d0` in a new managed worktree. Original checkout modifications
+and untracked evidence were preserved.
+
+ORG-043/044/045 record the two-person Super Admin designation, invite-only access,
+mutual recovery, closed staff boundary and future registration identifier masking.
+Names are recorded only in DECISIONS; fixtures remain synthetic. Added EN/AR private
+staff sign-in, TOTP QR/manual enrollment, session-bound staff email checks, roles-based
+home/menu, Super Admin people/invitations/audit, and the minimal internal participant
+account search. No public navigation links, indexing, analytics or exports. The
+new private database policy defaults off; operational flags remain false. Native
+identity admission is compatible with #25/#39 rather than weakening their guards.
+
+The additive migration includes explicit private ACLs/forced RLS, immutable audit,
+single-use 72-hour invitation admission, session revocation, serialized minimum-two
+and self-action guards, and audited other-admin recovery. The registration identity
+field is not added: the reusable masking/reveal component and server/database policy
+are prepared, and actual reveal returns audited unavailable until registration is
+built. Bootstrap is an inert operator script/procedure and has **not been run**.
+[Staff activation guide](features/STAFF_PORTAL.md) lists exact pending migration
+order, Production variables, bootstrap sequence, shared Resend volume, UAT and rollback.
+
+Initial combined local checks on Node 24.21.0 / pnpm 11.19.0:
+
+- PASS: `pnpm install --frozen-lockfile`; repository lockfile unchanged.
+- PASS: `pnpm check`: lint, generated route types/TypeScript, 2,136 unit tests in
+  48 files, and production build (77 generated pages).
+- PASS: `git diff --check` at this checkpoint.
+- BLOCKED locally: `docker info --format '{{.ServerVersion}}'` cannot connect to
+  the Docker daemon. Database pgTAP, migration lint and genuine native tests are
+  routed to disposable Linux CI; they are not marked passed by local skips.
+- NOT TESTED at this checkpoint: final EN/AR browser/axe and exact-head CI;
+  final receipts are appended below after execution.
+- NOT TESTED: live bootstrap, human inbox/device/recovery/screen-reader UAT,
+  real identifier storage/reveal, hosted migration application and activation.
+
+No hosted migrations, production settings, real accounts, real invitations/email,
+DNS, paid resources or operational activation were changed. Next task is review
+of the closed draft and its exact-head evidence, followed by separately authorized
+activation only after the documented gates pass.
