@@ -700,7 +700,7 @@ create function msrc_staff.bootstrap_first(actor_id uuid,edition_key text,name t
  raise exception using errcode='55000',message='First-account bootstrap prerequisites are not satisfied.';end if;
  insert into msrc_authorization.edition_config(edition_key) values(edition_key) on conflict do nothing;
  insert into msrc_staff.profiles(actor_id,name) values(actor_id,name);
- insert into msrc_authorization.account_access(actor_id,state,individually_identified) values(actor_id,'active',true) on conflict(actor_id) do update set state='active',individually_identified=true;
+ insert into msrc_authorization.account_access(actor_id,state,individually_identified) values(actor_id,'active',true) on conflict on constraint account_access_pkey do update set state='active',individually_identified=true;
  insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason) values(actor_id,edition_key,'superAdmin','edition','Named operator first-account bootstrap');
  update msrc_staff.policy set bootstrap_completed=true where singleton;
  perform msrc_staff.record(edition_key,'bootstrap',actor_id,'completed',actor_id);

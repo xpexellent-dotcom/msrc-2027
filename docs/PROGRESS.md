@@ -2999,3 +2999,23 @@ account permission or production setting was changed.
 
 Real bootstrap, inbox delivery and human recovery/device UAT remain NOT TESTED;
 registration identity collection/storage/reveal and exports remain future work.
+
+### Staff parity, narrow layout and first database execution
+
+- PASS: final combined `pnpm check` before this receipt: lint, TypeScript,
+  2,190 unit cases in 50 files and production build (77 generated pages).
+- PASS: final staff browser suite: 16 executed cases, two intentional desktop
+  skips for the mobile-only checks, zero retries. Known audit action/result labels
+  translate in EN/AR. At 320px, both locales pass native down/up scrolling,
+  independently scrolling tables, keyboard invitation, 200% text and axe.
+- The new English enlarged-text test found a real intrinsic-width overflow in
+  the role picker. Explicit shrinkable/wrapping label text and a bounded fieldset
+  fix the cause; document-width assertions are retained, with no overflow clipping.
+- PASS on disposable CI `0226620`: staff browser job in
+  [37545935691](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37545935691).
+  Database reset applied the complete migration chain successfully, but strict
+  lint FAIL found `bootstrap_first`'s parameter-shadowed `ON CONFLICT(actor_id)`.
+  Fixed with the explicit `account_access_pkey` constraint. pgTAP/native checks
+  were skipped after that failure, and are not treated as passed.
+- The corrected SQL, parity and layout revision is being verified on a new exact
+  PR head. Hosted migrations/settings and live bootstrap remain untouched.

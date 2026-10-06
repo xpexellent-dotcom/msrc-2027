@@ -23,9 +23,10 @@
 .staff-menu li:last-child { border-block-end: 0; }
 .staff-menu li > a, .staff-menu li > div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem .2rem; min-block-size: 56px; }
 .staff-badge { color: #4d385e; background: #f0eaf5; font-size: .85rem; padding: .3rem .65rem; border-radius: .5rem; white-space: nowrap; }
-.staff-role-picker { border: 1px solid #d8d2e3; border-radius: .6rem; padding: .8rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: .2rem .8rem; }
+.staff-role-picker { min-inline-size: 0; inline-size: 100%; border: 1px solid #d8d2e3; border-radius: .6rem; padding: .8rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: .2rem .8rem; }
 .staff-role-picker legend { padding-inline: .4rem; font-weight: 600; }
 .staff-role-picker label { display: flex; align-items: center; gap: .65rem; min-block-size: 44px; cursor: pointer; }
+.staff-role-picker label > span { min-inline-size: 0; overflow-wrap: anywhere; }
 .staff-role-picker input { inline-size: 1.15rem; block-size: 1.15rem; accent-color: #603a75; flex-shrink: 0; }
 .staff-table-scroll { overflow-x: auto; max-inline-size: 100%; margin-block: 1rem; }
 .staff-table-scroll table { width: 100%; border-collapse: collapse; min-inline-size: 660px; font-size: .92rem; }

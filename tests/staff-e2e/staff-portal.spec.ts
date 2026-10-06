@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { staffCopy } from "../../src/features/staff-portal/copy";
+import { auditActionLabel, auditResultLabel } from "../../src/features/staff-portal/audit-labels";
 import { staffMenu } from "../../src/features/staff-portal/menu";
 import { ROLES, type Role } from "../../src/lib/permissions/contract";
 import type { StaffPayload, StaffProfile, StaffResponse, StaffState } from "../../src/features/staff-portal/ui-contract";
@@ -42,7 +43,7 @@ async function fixture(page: Page, initialRoles: Role[] = ["registrationWorkshop
         { actorId: otherId, name: "Synthetic Other Admin", email: "other@example.invalid", roles: ["superAdmin"], status: "active", lastSignIn: null },
       ], invitations: [{ id: invitationId, email: "invited@example.invalid", roles: ["finance"], status: "pending", expiresAt: "2026-10-10T10:00:00Z" }] };
       else if (area === "participants") response = { state, profile: profile(), participants: search === "missing" ? [] : [{ actorId: participantId, name: "Synthetic Participant", email: "participant@example.invalid", status: "verified", createdAt: "2026-10-07T10:00:00Z", identityMasked: "••••••1234" }] };
-      else if (area === "audit") response = { state, profile: profile(), audit: [{ id: "audit-synthetic", actorId, targetId: otherId, actorName: "Synthetic Staff", targetName: "Synthetic Other Admin", action: "staff.invite", result: "completed", occurredAt: "2026-10-07T10:00:00Z" }] };
+      else if (area === "audit") response = { state, profile: profile(), audit: [{ id: "audit-synthetic", actorId, targetId: otherId, actorName: "Synthetic Staff", targetName: "Synthetic Other Admin", action: "invite", result: "completed", occurredAt: "2026-10-07T10:00:00Z", ...{ secret: "synthetic-secret-must-not-display", code: "synthetic-code-must-not-display", token: "synthetic-token-must-not-display" } }] };
     }
     if (state === "pending-totp") { response.factorId = factorId; response.challengeId = challengeId; }
     if (state === "pending-email" && hasChallenge) response.challengeId = challengeId;
@@ -124,10 +125,12 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("identity-value")).toHaveText("••••••1234");
     await page.getByRole("link", { name: copy.home, exact: true }).click();
     await page.getByRole("link", { name: copy.audit, exact: true }).click();
-    await expect(page.getByRole("cell", { name: "staff.invite", exact: true })).toBeVisible();
-    await page.getByLabel(copy.searchAudit).fill("staff.invite");
+    await expect(page.getByRole("cell", { name: auditActionLabel("invite", locale), exact: true })).toBeVisible();
+    await expect(page.getByRole("cell", { name: auditResultLabel("completed", locale), exact: true })).toBeVisible();
+    await expect(page.locator("body")).not.toContainText(/synthetic-(?:secret|code|token)-must-not-display/);
+    await page.getByLabel(copy.searchAudit).fill("invite");
     await page.getByRole("button", { name: copy.search, exact: true }).click();
-    await expect.poll(() => mock.searches).toContain("staff.invite"); await axe(page);
+    await expect.poll(() => mock.searches).toContain("invite"); await axe(page);
   });
 
   test(`${locale} invitation fragment remains private and authenticator enrollment works`, async ({ page }) => {
@@ -147,6 +150,53 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(new RegExp(`/${locale}/staff$`));
     await expect(page.getByRole("img")).toHaveCount(0);
     expect(mock.actions.find((action) => action.action === "invite-accept")).toMatchObject({ invitationId, token: "a".repeat(43) });
+    await axe(page);
+  });
+
+  test(`${locale} narrow staff portal supports down/up scroll, bounded tables and 200% text`, async ({ page, isMobile }) => {
+    test.skip(!isMobile, "Narrow mobile interaction coverage.");
+    const copy = staffCopy[locale];
+    await fixture(page, ["superAdmin"], true);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${locale}/staff/people`);
+    await expect(page.getByRole("rowheader", { name: "Synthetic Other Admin other@example.invalid" })).toBeVisible();
+    await page.evaluate(async () => { await document.fonts.ready; });
+    const heading = page.getByRole("heading", { level: 1 });
+    await expect(heading).toBeInViewport();
+    await page.evaluate(() => window.scrollTo({ top: 1200, behavior: "instant" }));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(1000);
+    await expect(heading).not.toBeInViewport();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(heading).toBeInViewport();
+
+    const region = page.getByRole("region", { name: copy.staff, exact: true });
+    await region.scrollIntoViewIfNeeded();
+    const tableScroll = await region.evaluate((element) => {
+      element.scrollLeft = getComputedStyle(element).direction === "rtl" ? -10000 : 10000;
+      return { scrollWidth: element.scrollWidth, clientWidth: element.clientWidth, scrollLeft: Math.abs(element.scrollLeft) };
+    });
+    expect(tableScroll.scrollWidth).toBeGreaterThan(tableScroll.clientWidth);
+    expect(tableScroll.scrollLeft).toBeGreaterThan(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    const box = await region.boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(320);
+
+    await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+    const email = page.getByRole("textbox", { name: copy.email });
+    await email.scrollIntoViewIfNeeded(); await email.focus();
+    await page.keyboard.type("mobile@example.invalid");
+    await expect(email).toHaveValue("mobile@example.invalid");
+    const finance = page.locator("#invite-roles").getByRole("checkbox", { name: copy.roleLabels.finance, exact: true });
+    await finance.scrollIntoViewIfNeeded(); await finance.focus(); await page.keyboard.press("Space");
+    await expect(finance).toBeChecked();
+    const invite = page.getByRole("button", { name: copy.inviteSend, exact: true });
+    await invite.scrollIntoViewIfNeeded(); await expect(invite).toBeInViewport();
+    await invite.focus(); await page.keyboard.press("Enter");
+    await expect(page.getByRole("status")).toContainText(copy.states.invited);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
     await axe(page);
   });
 }
