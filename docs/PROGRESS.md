@@ -3061,3 +3061,27 @@ registration identity collection/storage/reveal and exports remain future work.
   Native account creation, TOTP and other-admin recovery retain the previously
   verified private reservation/transaction path. Final disposable CI for this new
   perimeter revision is pending; no result is inferred from the earlier 14-case pass.
+
+### Staff verified implementation — c8f970a
+
+- PASS: final staff workflow [37549201780](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37549201780)
+  on `c8f970ad2cf41ef0263b8147e4cb96438a25b3f0`, both jobs successful.
+- PASS: native job 112560382432: `pnpm db:reset`, `pnpm db:lint` (no schema
+  errors), `pnpm db:test` (775 assertions, ten files), security advisors
+  (no issues found), and `pnpm exec vitest run --config vitest.staff.integration.config.ts`
+  (16 genuine cases, including direct email/phone/recovery/magic-link/OTP denial).
+  Actual isolated GoTrue image: v2.197.0. Optional additional cold passes were
+  SKIPPED, not represented as passed. All records and delivery capture are synthetic.
+- PASS: browser job 112560382596: 28 default-off cases and the 24 active staff
+  browser cases, with two intentional desktop skips, no retries and axe coverage.
+- PASS: production client bundle search for `STAFF_PORTAL_ENABLED`,
+  `STAFF_AUTH_SECURITY_SECRET`, `STAFF_SUPABASE_SECRET_KEY` and the dummy native
+  secret key found no matches in `.next/static`. Final `git diff --check` passes.
+- The broader Foundation and Participant workflows are still running at this
+  receipt; inspect the draft PR check rollup for their final results. A following
+  documentation-only receipt commit changes no implementation or tests.
+
+Draft [PR43](https://github.com/xpexellent-dotcom/msrc-2027/pull/43) remains the
+review handoff. Activation requires the documented migration, privacy, quota,
+bootstrap and human UAT gates. Live bootstrap, hosted migration application,
+production configuration changes and real email remain unperformed.
