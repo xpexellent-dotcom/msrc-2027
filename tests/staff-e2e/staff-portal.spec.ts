@@ -74,7 +74,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByRole("button", { name: copy.requestCode }).click();
     await page.getByLabel(copy.emailCode).fill("111111");
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
-    await expect(page.getByRole("alert")).toContainText(copy.states["invalid-code"]);
+    await expect(page.locator('.staff-feedback[role="alert"]')).toContainText(copy.states["invalid-code"]);
     await expect(page.getByLabel(copy.emailCode)).toHaveValue("111111");
     await page.getByLabel(copy.emailCode).fill(locale === "ar" ? "٦٥٤٣٢١" : "654321");
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
@@ -108,7 +108,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(own.getByRole("button", { name: copy.suspend, exact: true })).toHaveCount(0);
     await expect(own.getByRole("button", { name: copy.resetAuthenticator, exact: true })).toHaveCount(0);
     await expect(own.getByRole("button", { name: copy.resetAccount, exact: true })).toHaveCount(0);
-    await page.getByLabel(copy.email).fill("new@example.invalid");
+    await page.getByRole("textbox", { name: copy.email }).fill("new@example.invalid");
     await page.locator("#invite-roles").getByRole("checkbox", { name: copy.roleLabels.finance, exact: true }).check();
     await page.getByRole("button", { name: copy.inviteSend, exact: true }).click();
     await expect(page.getByRole("status")).toContainText(copy.states.invited);
@@ -127,7 +127,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("cell", { name: "staff.invite", exact: true })).toBeVisible();
     await page.getByLabel(copy.searchAudit).fill("staff.invite");
     await page.getByRole("button", { name: copy.search, exact: true }).click();
-    expect(mock.searches).toContain("staff.invite"); await axe(page);
+    await expect.poll(() => mock.searches).toContain("staff.invite"); await axe(page);
   });
 
   test(`${locale} invitation fragment remains private and authenticator enrollment works`, async ({ page }) => {

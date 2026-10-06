@@ -2965,3 +2965,37 @@ No hosted migrations, production settings, real accounts, real invitations/email
 DNS, paid resources or operational activation were changed. Next task is review
 of the closed draft and its exact-head evidence, followed by separately authorized
 activation only after the documented gates pass.
+
+### Staff draft and final local presentation receipts
+
+Draft [PR43](https://github.com/xpexellent-dotcom/msrc-2027/pull/43) is open and
+attached to this task. GitHub's connector denied PR creation (403); the existing
+authenticated Git connection successfully created the requested draft. No new
+account permission or production setting was changed.
+
+- PASS: rebuilt combined `pnpm check`: lint/types, 2,145 unit cases in 49 files
+  and the same 77-page build. Subsequent focused backend checks pass 68 cases.
+- PASS: all 28 default-off EN/AR desktop/mobile raw page/API/navigation checks.
+- PASS: `pnpm exec playwright test --config playwright.staff.config.ts`, all
+  14 EN/AR desktop/mobile synthetic presentation flows, no retries, with axe
+  scans reporting zero violations. Sign-in/invalid-code recovery, participant
+  search, role-only menus, People controls, explicit masking/reveal interaction,
+  audit search, invitation-fragment privacy and QR/manual setup are covered.
+- PASS: 16 synthetic screenshots captured; English desktop People and Arabic
+  mobile People were visually inspected. Native scroll and table regions remain
+  usable; the staff shell suppresses public navigation and the inherited header gap.
+- Initial browser failures were test locator assumptions (required markers,
+  row headings, Next's separate route announcer) and a missing wait for the actual
+  audit-search request. Assertions were corrected to the actual semantic elements
+  and awaited request completion; no retries or timeout extensions were added.
+- Review found and fixed background GETs renewing idle activity, native password-only
+  replacement-authenticator enrollment, interrupted setup cleanup and recovery
+  confirmation-time compatibility. Regression coverage retains the original
+  native session/grant/factor invariants.
+- Prepared: 14 genuine handler→managed Auth→SQL tests, the complete staff-role
+  SQL denial matrix, invitation expiry/revocation/replay, and a serialized
+  three-to-two concurrent demotion test. Only email delivery is captured in memory.
+  Execution on the exact PR head is pending disposable CI; local Docker stays BLOCKED.
+
+Real bootstrap, inbox delivery and human recovery/device UAT remain NOT TESTED;
+registration identity collection/storage/reveal and exports remain future work.
