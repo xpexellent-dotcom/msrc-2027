@@ -2,6 +2,13 @@
 
 Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. Managed identity is not a blanket data grant.
 
+ORG-037/041 (6 October 2026) approve the Privacy Policy v1.0 notice and require
+minimum age 18, passwords of at least 10 characters and never-verified account
+deletion after 30 days. Privacy publication does not open accounts. Age enforcement
+and cleanup are separate implementation/activation tasks; current password code,
+hosted migrations/settings and `PARTICIPANT_ACCOUNTS_ENABLED` remain unchanged.
+ORG-039 requires identity numbers at registration only, adding no sign-up field.
+
 <a id="bl-auth-01"></a>
 
 ## BL-AUTH-01 — Implement edition-scoped grants and privileged access enforcement
@@ -29,9 +36,9 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 
 ## BL-AUTH-02 — Add managed email/password account creation and sign-in
 - **Source IDs:** AUTH-01, AUTH-06, LOC-01, DAT-01, DAT-04, SEC-01.
-- **Status:** Partial — participant managed sign-up/sign-in is implemented in closed draft PR39, with verified owner access and enumeration protection. Approved Privacy and live activation remain gated. See [participant guide](../features/PARTICIPANT_ACCOUNTS.md).
+- **Status:** Partial — participant managed sign-up/sign-in foundation has verified owner access and enumeration protection. ORG-037 approves the v1.0 repository Privacy notice; live activation, age enforcement/cleanup and hosted release gates remain open. See [participant guide](../features/PARTICIPANT_ACCOUNTS.md).
 - **Purpose:** Let a participant create one account without revealing other users' account existence.
-- **Scope:** Managed email/password sign-up/sign-in, normalized unique email and name; ORG-016 requires verified email only, without authentication phone collection/verification or participant MFA. Collect only approved authentication fields with approved notices; safe verified/unverified session boundary.
+- **Scope:** Managed email/password sign-up/sign-in, normalized unique email and name; ORG-016 requires verified email only, without authentication phone collection/verification or participant MFA. Collect only approved authentication fields with approved notices; safe verified/unverified session boundary. Separate pre-activation work must enforce ORG-041's minimum age 18 without inventing unnecessary date-of-birth fields, and verify the existing ten-character password minimum.
 - **Exclusions:** University SSO, national ID, collecting every later pathway field during sign-up, operational entitlement from account creation.
 - **Dependencies:** BL-FND-01; BL-FND-02; BL-SEC-01. Sign-up/sign-in may land while all verification-dependent operations remain closed.
 - **Roles:** Visitor; participant.
@@ -147,7 +154,7 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Status:** Planned.
 - **Purpose:** Let participants correct permitted information while sensitive identity changes receive verification.
 - **Scope:** Owner-only profile form with pathway-conditional fields; verified-support request entry for email change/deletion, replacement-email reverification and retention assessment handoff.
-- **Exclusions:** National ID, universal licence requirements, authentication phone collection/verification or SMS, immediate destructive self-delete, creating a general helpdesk.
+- **Exclusions:** National ID in account/profile fields (ORG-039's identity requirement belongs only to registration), universal licence requirements, authentication phone collection/verification or SMS, immediate destructive self-delete, creating a general helpdesk.
 - **Dependencies:** BL-AUTH-02; BL-AUTH-06; privacy request handling and DR-CFG-09.
 - **Roles:** Participant; authorized verified-support/privacy operator.
 - **States/transitions:** Permitted correction saved; sensitive request → identity verification → reviewed change/retention exception → response; email changes only after reverify.
@@ -192,11 +199,11 @@ Staff security is needed before M4 CMS. Participant onboarding/dashboard is M5. 
 - **Source IDs:** AUTH-08, PRV-05, PRV-06, API-03.
 - **Status:** Planned.
 - **Purpose:** Reduce abandoned account data while honoring retention exceptions.
-- **Scope:** Idempotent scheduled cleanup using seven-day unverified-account default, verified/account-record recheck and restricted outcome evidence.
+- **Scope:** Idempotent scheduled cleanup using ORG-041's approved 30-day threshold for never-verified accounts, superseding AUTH-08's seven-day default; verified/account-record recheck and restricted outcome evidence. This remains backlog work, with no retention code or migration changes in the policy publication PR.
 - **Exclusions:** Deleting verified participants, cascading through retained operational records, inventing universal retention rules.
 - **Dependencies:** BL-FND-04; BL-AUTH-02; approved retention exception map DR-CFG-09.
 - **Roles:** Restricted cleanup worker; privacy operator for exceptions.
-- **States/transitions:** Unverified beyond default threshold → eligible after recheck → removed; verified/retained obligation → protected or reviewed exception.
+- **States/transitions:** Never verified for 30 days → eligible after recheck → removed; verified/retained obligation → protected or reviewed exception.
 - **Data touched:** Managed identity/minimum profile and deletion/exception evidence without secrets.
 - **Acceptance criteria:** Verification racing cleanup cannot delete a newly protected account; required retained records block deletion; retries safe and restoration procedure respects deletion evidence.
 - **English/Arabic:** Bilingual operator results where surfaced; no participant screen required for deleted abandoned account.

@@ -14,8 +14,8 @@ export const siteOrigin = "https://www.msrc2027.com";
 export const indexable = process.env.VERCEL_ENV === "production";
 
 /** Public information pages listed in the sitemap, as locale-free routes. */
-// Legal drafts have their own noindex metadata and await approved effective wording.
-export const publicRoutes = ["", "/about", "/dates-venue", "/program", "/speakers", "/participate", "/workshops", "/hackathon", "/3mt", "/media", "/contact"] as const;
+// ORG-037: approved Privacy/Terms v1.0 are public and have localized sitemap twins.
+export const publicRoutes = ["", "/about", "/dates-venue", "/program", "/speakers", "/participate", "/workshops", "/hackathon", "/3mt", "/media", "/contact", "/privacy", "/terms"] as const;
 
 const openGraphLocale: Record<Locale, string> = { en: "en_US", ar: "ar_SA" };
 

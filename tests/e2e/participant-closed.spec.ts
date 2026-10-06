@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { participantCopy, participantScreens } from "../../src/features/participant-accounts/participant-copy";
 
@@ -11,6 +12,18 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("form, input, [data-testid=participant-profile-name]")).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
+    if (screen === "sign-up") {
+      const notice = page.getByTestId("participant-privacy-notice");
+      await expect(notice).toContainText(locale === "en" ? "Privacy Policy v1.0" : "الإصدار ١.٠");
+      await expect(notice).toContainText(locale === "en" ? "Faculty of Medicine, KAU" : "كلية الطب بجامعة الملك عبدالعزيز");
+      await expect(notice.locator("a")).toHaveAttribute("href", `/${locale}/privacy/v1.0`);
+      await expect(notice).not.toContainText(/draft|awaiting|placeholder|مسودة|بانتظار/i);
+      const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+      expect(axe.violations, JSON.stringify(axe.violations, null, 2)).toEqual([]);
+      await notice.locator("a").click();
+      await expect(page).toHaveURL(new RegExp(`/${locale}/privacy/v1\\.0$`));
+      await expect(page.locator(".policy-page")).toHaveAttribute("data-policy-version", "v1.0");
+    } else await expect(page.getByTestId("participant-privacy-notice")).toHaveCount(0);
     expect(calls).toBe(0);
   });
 }

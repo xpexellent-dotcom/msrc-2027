@@ -24,7 +24,15 @@ describe("public indexing", () => {
     expect(urls).toContain("https://www.msrc2027.com/ar/program");
     expect(urls).toContain("https://www.msrc2027.com/en/contact");
     expect(urls).toContain("https://www.msrc2027.com/ar/contact");
-    expect(urls.some((url) => /registration|submissions|admin|privacy|terms/.test(url))).toBe(false);
+    expect(urls).toHaveLength(26);
+    expect(urls.some((url) => /registration|submissions|admin|draft|v1\.0/.test(url))).toBe(false);
+    for (const kind of ["privacy", "terms"]) for (const locale of ["en", "ar"]) {
+      const url = `https://www.msrc2027.com/${locale}/${kind}`;
+      expect(urls).toContain(url);
+      expect(sitemap().find((entry) => entry.url === url)?.alternates?.languages).toEqual({
+        en: `https://www.msrc2027.com/en/${kind}`, ar: `https://www.msrc2027.com/ar/${kind}`, "x-default": `https://www.msrc2027.com/en/${kind}`,
+      });
+    }
     expect(sitemap().find((entry) => entry.url.endsWith("/ar/about"))?.alternates?.languages).toEqual({
       en: "https://www.msrc2027.com/en/about", ar: "https://www.msrc2027.com/ar/about", "x-default": "https://www.msrc2027.com/en/about",
     });

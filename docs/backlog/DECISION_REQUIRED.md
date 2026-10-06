@@ -39,7 +39,7 @@ Authoritative question set (v0.5; retained verbatim):
 
 ## DR-CFG-02 — Confirm the authorized KAU collection and financial contract
 - **Source IDs:** CFG-02, PAY-01, PAY-04, PAY-05, PAY-07, PAY-08.
-- **Status:** Decision Required — open; no new organizer approval recorded.
+- **Status:** Partial — ORG-042 selects the Faculty of Medicine payment platform (`lms.waqf.org.sa`) and v1.0 supplies payment/refund wording; actual interface/confirmation/reconciliation, finance authority, amounts and remaining contract evidence stay open.
 - **Purpose:** Obtain an evidenced decision for official payee/system owner, actual confirmation evidence and complete published commercial terms so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
 - **Exclusions:** P1 is confirmed; do not choose an independent merchant, assume webhooks, choose currency/prices, or count an MSRC refund request as returned funds. This issue does not itself implement or activate a workflow.
@@ -228,12 +228,12 @@ Authoritative question set (v0.5; retained verbatim):
 
 ## DR-CFG-09 — Approve privacy, collection, retention and transfer policy
 - **Source IDs:** CFG-09, PRV-01, PRV-02, PRV-03, PRV-04, PRV-05, PRV-06, PRV-07, PRV-08.
-- **Status:** Partial — ORG-022–026 record organizer responsibility, retention, requests, photography and current-site facts; final policy/legal release questions remain open.
+- **Status:** Partial — ORG-037–042 approve v1.0 English wording, Faculty controller, registration identifiers, age/retention/language, DeepSeek China and Faculty payment platform; actual processing safeguards and release evidence remain open.
 - **Purpose:** Obtain an evidenced decision for controller/purposes, actual processing, legal notices, field minimization, rights requests and retention/transfer evidence so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
-- **Exclusions:** O1 is not proof of legal controller/institutional approval. National IDs and patient-identifying records remain excluded; consent alone does not approve transfers. This issue does not itself implement or activate a workflow.
+- **Exclusions:** O1 alone is not institutional release evidence. Patient-identifying records remain excluded. ORG-039 supersedes the national-ID exclusion for conference registration only, with strict controls and one-year deletion; no sign-up/hackathon identifier field is authorized by this policy PR. Consent alone does not approve transfers. This issue does not itself implement or activate a workflow.
 - **Dependencies:** Named accountable approver; relevant source/contract/policy evidence; [current decision register](../DECISIONS.md). Coordinate related CFG packets without silently deciding them.
-- **Roles:** Research Principles Club responsible for participant data; Emad Khoja writes/approves final wording; Abdulrahman Ismail set retention; Akram Awan handles requests. Institutional/legal authority evidence remains pending; engineers record partial decisions without certifying compliance.
+- **Roles:** Faculty of Medicine, KAU is controller; Research Principles Club organizes/handles data on its behalf (ORG-038). Emad Khoja's wording role, Abdulrahman Ismail's retention decision and Akram Awan's request role remain historical/internal records; ORG-037 supplies approved v1.0 English wording. Operational institutional evidence remains pending; engineers record decisions without certifying compliance.
 - **States/transitions:** Open question → evidence gathered → exact decision approved and recorded; unanswered subquestions remain open and their live gates closed. These are planning statuses, not product state enums.
 - **Data touched:** Decision record, safe approval references, requirements, affected issue links and typed configuration specification; no production records or secrets.
 - **Acceptance criteria:** Each required subquestion has an approved exact value/policy or is explicitly still open; record source/date/approver and supersession; map changes to all data collection, media, feedback, retention and verification issues and tests. Close this packet only when its required questions are resolved; never infer approval from silence.
@@ -251,11 +251,17 @@ Authoritative question set (v0.5; retained verbatim):
 
 > CFG-09. Organizational/privacy owner: record legal controller/contact and institutional approval evidence under the selected O1 model. Finalize field purposes, media/minor policies, notices/legal bases, processor contracts, actual locations/transfer assessment, retention exceptions, request handling, certificate-verification lifespan, and S2 metadata/log separation. Resolve the hackathon's requested national ID/phone fields against the existing minimal-profile policy before opening its form; national ID remains excluded pending an explicit decision and approved handling. Gate: production data collection.
 
+Reconciliation, 6 October 2026: the verbatim source question is historical.
+ORG-037–042 resolve the related wording/controller/registration identity/age/retention/
+provider/platform questions. Identifier implementation, native Arabic review, actual
+processor/transfer safeguards, request/cleanup/backup/restore and S2 evidence remain
+open. This does not authorize live collection or hosted activation.
+
 <a id="dr-cfg-10"></a>
 
 ## DR-CFG-10 — Approve service plans, locations and integration contracts
 - **Source IDs:** CFG-10, INF-01, INF-02, INF-06, INF-07, EML-02, AI-05, AI-06, SEC-03.
-- **Status:** Decision Required — open; no new organizer approval recorded.
+- **Status:** Partial — ORG-040 selects DeepSeek processing in the People's Republic of China and ORG-042 identifies the Faculty payment platform; actual provider terms/transfer safeguards, plans/budgets and integration/activation evidence stay open.
 - **Purpose:** Obtain an evidenced decision for provider configuration/contracts, data flows, email/scanning/assessment, recovery, quotas and operating budget so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
 - **Exclusions:** Managed Vercel/Supabase remain selected; no Saudi region, API, AI provider, scan service, file recovery target or budget is assumed. This issue does not itself implement or activate a workflow.
@@ -336,10 +342,10 @@ Authoritative question set (v0.5; retained verbatim):
 
 ## DR-CFG-13 — Reconcile the hackathon source conflicts explicitly
 - **Source IDs:** CFG-13, HAC-02, HAC-05, HAC-07, HAC-10, AUTH-06, PRV-03, EML-01.
-- **Status:** Decision Required — open; no new organizer approval recorded.
+- **Status:** Partial — ORG-039 resolves conference-registration identity verification and supersedes the blanket national-ID exclusion for that purpose only. Hackathon-specific collection, WhatsApp, solo quota, eligibility and originality questions remain open.
 - **Purpose:** Obtain an evidenced decision for the five enumerated conflicts in cfg-13, recording what is confirmed versus still proposed so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
-- **Exclusions:** No national ID, authentication phone collection/verification or SMS, automatic WhatsApp sharing/integration, inferred solo quota, broad Options eligibility or automatic originality verdict. This issue does not itself implement or activate a workflow.
+- **Exclusions:** No identifier collection in authentication/hackathon forms (ORG-039's approved national ID/Iqama/passport purpose is conference registration only), authentication phone collection/verification or SMS, automatic WhatsApp sharing/integration, inferred solo quota, broad Options eligibility or automatic originality verdict. This issue does not itself implement or activate a workflow.
 - **Dependencies:** Named accountable approver; relevant source/contract/policy evidence; [current decision register](../DECISIONS.md). Coordinate related CFG packets without silently deciding them.
 - **Roles:** Hackathon lead with privacy, operations and technical owners; product engineer records the result. Named owner/approver: unassigned.
 - **States/transitions:** Open question → evidence gathered → exact decision approved and recorded; unanswered subquestions remain open and their live gates closed. These are planning statuses, not product state enums.
@@ -358,3 +364,7 @@ Authoritative question set (v0.5; retained verbatim):
 Authoritative question set (v0.5; retained verbatim):
 
 > CFG-13. Hackathon lead with privacy/operations/technical owners. SOURCE RECONCILIATION REQUIRED: (a) requested national ID and phone/profile fields versus current exclusions/conditional fields; (b) the draft's WhatsApp group versus confirmed email-only platform communications, including whether any external group is optional; (c) whether solo projects consume the stated eight-team-per-track/sixteen-team finalist quota; (d) broader eligibility still labelled Options; (e) originality-check method and human decision process. Do not silently resolve these or activate the affected collection/communication/selection behavior. [H1, Sections 3–6]
+
+Reconciliation, 6 October 2026: ORG-039 supersedes the national-ID exclusion for
+conference registration identity verification only. It creates no hackathon-entry
+field; the remaining CFG-13 conflicts and unrelated phone-purpose decisions stay open.

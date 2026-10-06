@@ -1,133 +1,101 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { policyEffectiveDate } from "@/config/policies";
 import { currentPolicyVersion, getPolicyDocument, isPolicyVersion, policyKinds, policyVersions } from "@/content/policies";
 import { PolicyPage } from "@/features/policies/policy-page";
 import { policyPageMetadata } from "@/features/policies/policy-metadata";
+import { readApprovedPolicy } from "../policy-source";
 
-// Internal accountable people remain in decision records, not public policy output.
-// First names also catch partial attribution; Arabic spelling/spacing variants
-// prevent a superficial transliteration edit from restoring the same disclosure.
 const privateOrganizerNames = /\b(?:Emad|Abdulrahman|Akram)\b|عماد|عبد\s*الرحمن|[أا]كرم/iu;
+const unfinished = /\b(?:draft|placeholder)\b|Organizer decision|awaiting review|wording pending|مسودة|نص مؤقت|بانتظار/iu;
 
 afterEach(() => vi.unstubAllEnvs());
 
-describe("versioned draft policies (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
-  it("records an immutable dated draft without inventing an effective legal date", () => {
-    expect(currentPolicyVersion).toBe("2026-10-04-draft");
-    expect(policyVersions[currentPolicyVersion]).toMatchObject({
-      version: "2026-10-04-draft", recordedOn: "2026-10-04", status: "draft", effectiveOn: null,
-    });
+describe("approved policy v1.0 (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
+  it("uses one approved version and effective date for both documents and stable routes", () => {
+    expect(currentPolicyVersion).toBe("v1.0");
+    expect(policyEffectiveDate).toBe("2026-10-06");
+    expect(policyVersions[currentPolicyVersion]).toMatchObject({ version: "v1.0", status: "approved", effectiveOn: policyEffectiveDate });
     for (const kind of policyKinds) for (const locale of ["en", "ar"] as const) {
-      expect(getPolicyDocument(kind, locale).document).toEqual(getPolicyDocument(kind, locale, currentPolicyVersion).document);
+      const current = getPolicyDocument(kind, locale);
+      expect(current.document).toEqual(getPolicyDocument(kind, locale, currentPolicyVersion).document);
+      expect(current.effectiveOn).toBe(policyEffectiveDate);
     }
   });
 
-  it.each([undefined, null, "", "2026-10-04", "2027-final", "__proto__", "constructor", 20261004])("rejects an unrecorded version %s", (version) => {
+  it.each([undefined, null, "", "2026-10-04-draft", "2026-10-04", "2027-final", "__proto__", "constructor", 20261004])("rejects an unavailable version %s", (version) => {
     expect(isPolicyVersion(version)).toBe(false);
   });
 
-  it("preserves bilingual section identities and identifies every unfinished section", () => {
-    for (const kind of policyKinds) {
-      const english = getPolicyDocument(kind, "en").document;
-      const arabic = getPolicyDocument(kind, "ar").document;
-      expect(arabic.sections.map(({ id, status }) => ({ id, status }))).toEqual(english.sections.map(({ id, status }) => ({ id, status })));
-      expect(new Set(english.sections.map(({ id }) => id)).size).toBe(english.sections.length);
-      for (const locale of ["en", "ar"] as const) {
-        const { document } = getPolicyDocument(kind, locale);
-        for (const section of document.sections) {
-          expect(section.paragraphs.length).toBeGreaterThan(0);
-          if (section.status === "placeholder") {
-            expect(section.paragraphs.join(" ")).toMatch(locale === "en" ? /Placeholder/ : /نص مؤقت/);
-          }
-        }
-      }
-    }
+  it.each(policyKinds)("preserves every approved English %s paragraph, list item and table cell verbatim", (kind) => {
+    const source = readApprovedPolicy(kind), { document } = getPolicyDocument(kind, "en");
+    expect(document.title).toBe(source.title);
+    expect(document.lead.split("\n\n").filter(Boolean)).toEqual(source.intro);
+    expect(document.sections.map(({ title, blocks }) => ({ title, blocks }))).toEqual(source.sections);
+    expect(document.sections).toHaveLength(kind === "privacy" ? 9 : 8);
+    expect(document.sections.flatMap(({ blocks }) => blocks).filter(({ type }) => type === "table")).toHaveLength(kind === "privacy" ? 4 : 0);
   });
 
-  it("contains only the decided retention fields and leaves the certificate period anchor unresolved", () => {
-    const { document } = getPolicyDocument("privacy", "en");
-    const retention = document.sections.find(({ id }) => id === "retention")!;
-    expect(retention.paragraphs.join(" ")).toContain("one year after the conference");
-    expect(retention.paragraphs.join(" ")).toContain("name, certificate number and date");
-    expect(retention.paragraphs.join(" ")).toContain("two years");
-    const implementation = document.sections.find(({ id }) => id === "retention-details")!;
-    expect(implementation.status).toBe("placeholder");
-    expect(implementation.paragraphs.join(" ")).toContain("start of the certificate record’s two-year period");
+  it.each(policyKinds)("preserves Arabic %s section, list and table topology with localized links and numbers", (kind) => {
+    const english = getPolicyDocument(kind, "en").document, arabic = getPolicyDocument(kind, "ar").document;
+    const topology = (document: typeof english) => document.sections.map(({ id, blocks }) => ({ id, blocks: blocks.map((block) => block.type === "paragraph"
+      ? { type: block.type } : block.type === "list" ? { type: block.type, ordered: block.ordered, count: block.items.length }
+        : { type: block.type, headers: block.headers.length, rows: block.rows.map((row) => row.length) }) }));
+    expect(topology(arabic)).toEqual(topology(english));
+    expect(new Set(english.sections.map(({ id }) => id)).size).toBe(english.sections.length);
+    const text = [arabic.title, arabic.lead, ...arabic.sections.flatMap(({ title, blocks }) => [title, ...blocks.flatMap((block) => block.type === "paragraph"
+      ? [block.text] : block.type === "list" ? block.items : [...block.headers, ...block.rows.flat()])])].join(" ");
+    // Latin brand names, emails/URLs and MSRC 2027 remain readable proper names.
+    expect(text.replace(/\[[^\]]+\]\([^)]+\)/g, (link) => link.slice(1, link.indexOf("]"))).replace(/MSRC 2027|msrc2027\.com/g, "MSRC")).not.toMatch(/[0-9]/);
+    expect(text).not.toMatch(/https:\/\/www\.msrc2027\.com\/en\//);
+    const enTargets = [...JSON.stringify(english).matchAll(/https:\/\/[^\s")]+/g)].map(([target]) => target);
+    const arTargets = [...JSON.stringify(arabic).matchAll(/https:\/\/[^\s")]+/g)].map(([target]) => target);
+    expect(arTargets).toEqual(enTargets.map((target) => target.replace("/en/", "/ar/")));
+    expect(text).not.toMatch(unfinished);
   });
 
-  it("gives the decided data-request channel, response period, organizational owner and localized KAU links", () => {
-    const english = getPolicyDocument("privacy", "en").document;
-    const request = english.sections.find(({ id }) => id === "data-requests")!;
-    expect(request.paragraphs.join(" ")).toContain("Privacy & data requests");
-    expect(request.paragraphs.join(" ")).toContain("within 30 days");
-    expect(request.paragraphs.join(" ")).toContain("Our privacy lead responds within 30 days.");
-    const arabicRequest = getPolicyDocument("privacy", "ar").document.sections.find(({ id }) => id === "data-requests")!;
-    expect(arabicRequest.paragraphs.join(" ")).toContain("يرد مسؤول الخصوصية لدينا خلال ٣٠ يومًا.");
-    expect(request.paragraphs.join(" ")).not.toMatch(privateOrganizerNames);
-    expect(request.links).toContainEqual({ label: "contact@msrc2027.com", href: "mailto:contact@msrc2027.com", direction: "ltr" });
-    for (const locale of ["en", "ar"] as const) {
-      const responsibility = getPolicyDocument("privacy", locale).document.sections.find(({ id }) => id === "responsibility")!;
-      expect(responsibility.links?.[0].href).toBe(`https://kau.edu.sa/${locale}/page/privacy-policy`);
-    }
+  it("uses approved legal terminology and records Arabic precedence faithfully", () => {
+    const privacy = JSON.stringify(getPolicyDocument("privacy", "ar").document);
+    for (const term of ["نظام حماية البيانات الشخصية", "ولائحته التنفيذية", "جهة التحكم", "الهوية الوطنية أو رقم الإقامة", "صاحب البيانات"]) expect(privacy).toContain(term);
+    const terms = getPolicyDocument("terms", "en").document.sections.find(({ id }) => id === "governing-law")!;
+    expect(JSON.stringify(terms)).toContain("the Arabic version prevails");
+    expect(JSON.stringify(getPolicyDocument("terms", "ar").document.sections.find(({ id }) => id === "governing-law"))).toContain("وفي حال وجود أي اختلاف بين النسختين، يُعتد بالنسخة العربية.");
   });
 
-  it("keeps identifiable publication wording unresolved instead of claiming blanket consent", () => {
-    const { document } = getPolicyDocument("privacy", "en");
-    expect(document.sections.find(({ id }) => id === "photography")?.paragraphs.join(" ")).toContain("The event is photographed and recorded.");
-    const publication = document.sections.find(({ id }) => id === "photography-publication")!;
-    expect(publication.status).toBe("placeholder");
-    expect(publication.paragraphs.join(" ")).toContain("legal basis");
-    expect(document.sections.flatMap(({ paragraphs }) => paragraphs).join(" ")).not.toMatch(/deemed consent|consent by attending|automatically consent|notice is sufficient/i);
-  });
-
-  it("leaves Terms wholly placeholder without invented contractual clauses", () => {
-    for (const locale of ["en", "ar"] as const) {
-      const sections = getPolicyDocument("terms", locale).document.sections;
-      expect(sections.every(({ status }) => status === "placeholder")).toBe(true);
-      expect(sections).toHaveLength(1);
-      expect(sections.flatMap(({ paragraphs }) => paragraphs).join(" ")).not.toMatch(/refund|liability|jurisdiction|governing law|waive/i);
-    }
-  });
-
-  it("renders a read-only document with visible review status and a stable dated link", () => {
+  it("renders final read-only documents, semantic tables, version label and shared effective date", () => {
     for (const locale of ["en", "ar"] as const) for (const kind of policyKinds) {
       const html = renderToStaticMarkup(createElement(PolicyPage, { locale, kind }));
       expect(html).toContain(`data-policy-version="${currentPolicyVersion}"`);
       expect(html).toContain(`href="/${locale}/${kind}/${currentPolicyVersion}"`);
-      expect(html).toContain(getPolicyDocument(kind, locale).labels.status);
+      expect(html).toContain(`dateTime="${policyEffectiveDate}"`);
+      expect(html).toContain(locale === "en" ? "Version 1.0" : "الإصدار ١.٠");
+      expect(html).not.toMatch(unfinished);
       expect(html).not.toMatch(/<(form|input|textarea|select|iframe|video)\b/i);
-      const dated = renderToStaticMarkup(createElement(PolicyPage, { locale, kind, version: currentPolicyVersion, dated: true }));
-      expect(dated).toContain(`href="/${locale}/${kind}"`);
+      expect(html.match(/<table\b/g) ?? []).toHaveLength(kind === "privacy" ? 4 : 0);
+      if (kind === "privacy") expect(html).toMatch(/<th[^>]*scope="col"/);
+      const stable = renderToStaticMarkup(createElement(PolicyPage, { locale, kind, version: currentPolicyVersion, dated: true }));
+      expect(stable).toContain(`href="/${locale}/${kind}"`);
     }
   });
 
-  it.each(["en", "ar"] as const)("keeps internal personal names out of every public %s policy document and metadata", (locale) => {
+  it.each(["en", "ar"] as const)("keeps internal people out of public %s documents and metadata", (locale) => {
     for (const kind of policyKinds) for (const version of [undefined, currentPolicyVersion]) {
-      const document = renderToStaticMarkup(createElement(PolicyPage, { locale, kind, version, dated: version !== undefined }));
-      const metadata = JSON.stringify(policyPageMetadata(kind, locale, version));
-      expect(document).not.toMatch(privateOrganizerNames);
-      expect(metadata).not.toMatch(privateOrganizerNames);
+      expect(renderToStaticMarkup(createElement(PolicyPage, { locale, kind, version, dated: version !== undefined }))).not.toMatch(privateOrganizerNames);
+      expect(JSON.stringify(policyPageMetadata(kind, locale, version))).not.toMatch(privateOrganizerNames);
     }
   });
 
-  it.each(["production", "preview", "development"])("keeps both latest and dated drafts noindex in %s", async (environment) => {
-    vi.resetModules();
-    vi.stubEnv("VERCEL_ENV", environment);
+  it.each(["production", "preview", "development"])("indexes approved policies only on production (%s)", async (environment) => {
+    vi.resetModules(); vi.stubEnv("VERCEL_ENV", environment);
     const { policyPageMetadata } = await import("@/features/policies/policy-metadata");
     const { publicRoutes } = await import("@/lib/metadata");
-    expect(publicRoutes).not.toContain("/privacy");
-    expect(publicRoutes).not.toContain("/terms");
-    for (const kind of policyKinds) for (const locale of ["en", "ar"] as const) {
-      for (const version of [undefined, currentPolicyVersion]) {
-        const metadata = policyPageMetadata(kind, locale, version);
-        const suffix = version ? `/${version}` : "";
-        expect(metadata.robots).toEqual({ index: false, follow: false, noarchive: true });
-        expect(metadata.alternates).toEqual({
-          canonical: `/${locale}/${kind}${suffix}`,
-          languages: { en: `/en/${kind}${suffix}`, ar: `/ar/${kind}${suffix}`, "x-default": `/en/${kind}${suffix}` },
-        });
-      }
+    expect(publicRoutes).toContain("/privacy"); expect(publicRoutes).toContain("/terms");
+    for (const kind of policyKinds) for (const locale of ["en", "ar"] as const) for (const version of [undefined, currentPolicyVersion]) {
+      const metadata = policyPageMetadata(kind, locale, version), suffix = version ? `/${version}` : "";
+      expect(metadata.robots).toEqual({ index: environment === "production", follow: environment === "production" });
+      expect(metadata.title).toBe(`${getPolicyDocument(kind, locale).document.title} | MSRC 2027`);
+      expect(metadata.alternates).toEqual({ canonical: `/${locale}/${kind}${suffix}`, languages: { en: `/en/${kind}${suffix}`, ar: `/ar/${kind}${suffix}`, "x-default": `/en/${kind}${suffix}` } });
     }
   });
 });

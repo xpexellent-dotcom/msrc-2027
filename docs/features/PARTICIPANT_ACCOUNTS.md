@@ -3,6 +3,9 @@
 Scope: BL-AUTH-02/03/04, BL-AUTH-06 participant sessions, and BL-AUTH-08 dashboard
 shell. Current authority is ORG-016 (email/password, verified email, no authentication
 phone/SMS or participant MFA) and ORG-019 (72-hour absolute participant session).
+ORG-037–042 (6 October 2026) approve Privacy Policy v1.0, set minimum age 18 and
+never-verified account deletion after 30 days, and record registration-only identifiers,
+controller and provider decisions. Their publication does not activate accounts.
 Account creation never opens registration or any other operational workflow.
 
 ## Implemented boundary
@@ -57,12 +60,14 @@ corroborate the private record and is stripped afterward; metadata never supplie
 authorization. The disposable native suite tests this actual ordering.
 [Pinned GoTrue creation sequence](https://github.com/supabase/auth/blob/v2.197.0/internal/api/admin.go#L455-L522).
 
-The server-only `PARTICIPANT_ACCOUNTS_ENABLED` flag defaults off. Database readiness
-also defaults false, and the approved Privacy notice registry is null. The published
-`2026-10-04-draft` is a draft without an effective date; it must not be presented as
-approved or used to admit a real account. Synthetic approved-notice fixtures are
-restricted to loopback/disposable tests. Closed routes announce that accounts are
-coming soon and admit no real users.
+The server-only `PARTICIPANT_ACCOUNTS_ENABLED` flag defaults off and database readiness
+also defaults false. ORG-037 approves Privacy Policy v1.0; the repository's approved
+notice registry now references its immutable EN/AR summary/link and effective date
+`2026-10-06`. The closed sign-up screen displays that notice without a collection
+form. The retired `2026-10-04-draft` is unlinked and its routes return 404. Synthetic
+fixtures remain restricted to loopback/disposable tests. Closed routes announce that
+accounts are coming soon and admit no real users. No hosted policy row or migration
+is changed by notice publication.
 
 The existing database/session contract enforces verified email, an active account,
 current native session and the immutable 72-hour origin. Refresh cannot restart that
@@ -87,12 +92,15 @@ participant recovery.
 
 ## Exact activation prerequisites
 
-1. Approve final EN/AR Privacy wording, effective/version identifier, collection/legal
-   basis, processor/location/transfer handling, retention and support/recovery custody.
-   Add the immutable approved notice to the registry and display that exact version at
-   sign-up. A flag alone cannot approve the current draft.
-   Review the participant security-record retention/cleanup procedure before live use;
-   the current migration does not install an automatic participant cleanup job.
+1. Privacy Policy v1.0 wording/version and the repository notice are approved by
+   ORG-037; verify deployed EN/AR rendering and the matching immutable notice before
+   release, and request native Arabic reader review. Complete actual processor/location/
+   transfer safeguards, support/recovery custody and retention implementation evidence.
+   ORG-041 requires minimum age 18 and deletion after 30 days for never-verified
+   accounts; add enforcement/cleanup and meaningful boundary/race tests in separate
+   implementation work before activation. The current migration installs no automatic
+   participant cleanup job. Registration-only national ID/Iqama/passport collection is
+   separate BL-REG-01 work and adds no sign-up field. A flag alone admits no account.
 2. Review and apply the pending migrations **in this order**, using the normal reviewed
    release procedure. Do not bulk-push unrelated pending migrations:
 

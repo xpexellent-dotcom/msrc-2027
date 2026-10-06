@@ -59,10 +59,10 @@ Named final owners and due dates are **unassigned unless explicitly recorded**. 
 | Database/auth/files | SELECTED | Managed Supabase PostgreSQL, managed authentication and private storage. | Plan/region/data locations, organization access, approved RLS/storage, backup and recovery setup. | INF-01/02, SEC-02, CFG-10 |
 | Framework | ADOPTED FOR M1 | Next.js App Router + TypeScript + Tailwind under the explicit foundation task; versions in ENG-001 below. | Final public and operational release gates remain closed. | INF-01 |
 | Development tooling | ADOPTED FOR M1 | pnpm with lockfile, Vitest/Playwright and local Supabase fixture/policy tests; see ENG-001/005/006. | Isolated Linux database CI verified; optional Windows engine still untested. Current evidence and remaining merge-check enforcement are in PROGRESS. | INF-04/05, REL-06 |
-| P1 payments | SELECTED | Existing authorized KAU collection arrangement, isolated adapter. | Responsible unit/payee/system, real integration or approved official-report reconciliation, amounts/methods/tax/refunds/references and evidence. No webhook/API assumed. | PAY-01/04/05, CFG-02 |
+| P1 payments | SELECTED | Faculty of Medicine payment platform, `lms.waqf.org.sa`, under the authorized KAU collection arrangement (ORG-042); isolated adapter. | Real integration or approved official-report reconciliation, payee/finance authority, amounts/methods/tax/refunds/references and evidence. No webhook/API assumed. | PAY-01/04/05, CFG-02 |
 | Three site Super Admins | REQUIRED | Exactly three individually named website Super Admin accounts before production. | Names, verified identity, appropriate grants/MFA/offboarding; distinct from infrastructure owners. | ROL-10/12, CFG-11 |
-| Production data locations | OPEN | No exact region selected; no assumption that managed providers are Saudi-hosted. | Full database/storage/auth/app/backups/email/model/logs flows and required approvals. Synthetic development can proceed. | INF-02, PRV-07 |
-| Participant-data responsibility | ORGANIZER DECISION; release evidence OPEN | ORG-022 names the Research Principles Club responsible for participant data and Emad Khoja for final wording. O1 alone is not institutional/legal approval. | Approved wording/legal bases/institutional evidence, processor/transfer inventory and remaining retention settings. | PRV-01/02, CFG-09 |
+| Production data locations | APPROVED POLICY DISCLOSURE; operational inventory OPEN | v1.0 discloses Vercel India/global network, Supabase Japan, Resend/Namecheap United States, Gmail Google data centres, Faculty payment platform Saudi Arabia and DeepSeek People's Republic of China (ORG-037/040/042). | Verify actual database/storage/auth/app/backups/email/model/log flows, processor terms and transfer safeguards before each activation. Text approval is not a fresh hosted-region inspection. | INF-02, PRV-07 |
+| Participant-data responsibility | ORGANIZER DECISION; operational release evidence OPEN | ORG-038 names the Faculty of Medicine, KAU as controller and Research Principles Club as organizer acting on its behalf; supersedes ORG-022's controller ambiguity. ORG-037 approves the v1.0 English policies. | Operational institutional evidence, processor/transfer implementation, cleanup/recovery and remaining release gates; native Arabic reader review requested. | PRV-01/02, CFG-09 |
 | Email/scanning/assessment/analytics | PARTIAL; dependent gates OPEN | ORG-008 selects Vercel public analytics/Speed Insights; ORG-021 sets Contact addresses without selecting a delivery provider. | Remaining provider/data terms/evaluation/quotas/secrets/budget and processing/location approval. | INF-01, CFG-10 |
 
 The source selects providers and intended ownership; it does not create accounts, paid plans, cloud resources, production credentials, an approved legal relationship or a functioning sender.
@@ -98,14 +98,14 @@ The source selects providers and intended ownership; it does not create accounts
 | Certificate issuance | Automatic eligibility/preparation, authorized template/signature/release batch, then automated issue/email. Role/competition evidence separate. | CRT-03/04 |
 | CMS | Structured forms, fixed layout, draft/preview/publish/unpublish/recover; ordinary content can publish by authorized publisher, media requires explicit approval. | CMS-01/02 |
 | CMS prerequisite | Staff identity/permissions must exist before exposing CMS editing, even if participant registration is built later. | ROL-01/09/12, CMS-01, SEC-01/02; implementation dependency |
-| Media | Approved direct storage uploads/optimized derivatives, no third-party embeds. ORG-025 records the organizer's registration-notice-only publicity amendment; legal basis, final publication wording and asset rights remain release gates. | MED-01/03, PRV-08 |
+| Media | Approved direct storage uploads/optimized derivatives, no third-party embeds. ORG-025 records the organizer's registration-notice-only publicity amendment; ORG-037 approves the v1.0 wording including legitimate-interest basis and removal requests. Asset rights and operational publication/removal evidence remain release gates. | MED-01/03, PRV-08 |
 | Archive/editions | Reuse code, keep annual operational databases/storage/config separate, no automatic account/submission/consent transfer. | ARC-01/02 |
 
 ## 4. Hackathon and source conflicts
 
 | Conflict / ambiguity | Source evidence | Governing behavior until resolved | Who decides / dependent gate |
 | --- | --- | --- | --- |
-| National ID and phone | S2 5.1 requests national ID/phone; S1 excludes ID and makes phone conditional. ORG-016 supersedes ORG-020 authentication phone requirements. | National ID stays excluded. No authentication phone collection/verification or SMS; unrelated optional domain purposes remain separately gated. | Hackathon + privacy/technical owners; production profile collection and unrelated phone use. |
+| National ID and phone | S2 5.1 requests national ID/phone; S1 excludes ID and makes phone conditional. ORG-016 supersedes ORG-020 authentication phone requirements; ORG-039 supersedes the national-ID exclusion for conference registration. | Collect national ID/Iqama, or passport number for international attendees, at conference registration for identity verification only, with authorized internal attendee access, strict controls and one-year deletion. Implementation is backlog work; do not add an authentication/hackathon identifier field in this policy PR. No authentication phone collection/verification or SMS. | Registration + privacy/technical owners; identifier controls/deletion and production registration gates. |
 | WhatsApp group | S2 6.1 mentions online orientation with WhatsApp group. S1 EML-01 confirms email-only platform and HAC-10 flags discrepancy. | No WhatsApp integration/automated notifications or automatic phone sharing. Decide separately whether an optional external organizer-run group exists. | Hackathon + operations/privacy owners; participant onboarding. |
 | Solo finalist quota | S2 4.3 states eight teams per track, sixteen teams total; C3 also permits solo competition. | Do not assume extra solo spaces or sixteen people. One project per solo/team consuming an entry is only S1 HAC-07 proposal, not approved. | Hackathon lead; ranking/selection publication. |
 | Eligibility | S2 3.1 broad university student/intern sentence remains labelled Options, even though international eligibility and no-healthcare-member answers are clear. | Preserve answered choices, withhold final broad eligibility rule until approved. | Hackathon lead; application opening. |
@@ -155,14 +155,14 @@ These are source defaults and service objectives, not measured production perfor
 | AUTH-02 | Participant email verification source defaults remain ten minutes, resend60s, <=3/email/15min, <=5 failures/code. ORG-015 carries approved staff email controls: six digits/5min, resend60s,3/account/15min,10/rolling24h,20/IP/hour,5 failures/15min cooldown,newest only. ORG-016 retires all SMS delivery/provider/budget/control requirements; these email controls remain. Native TOTP protocol/lab bounds are not an approved production abuse policy. |
 | AUTH-03 | Additional challenge/cooldown after five failed password attempts/15 minutes, no permanent lock. |
 | AUTH-05 | ORG-019 supersedes participant 24h default: confirmed absolute maximum 72h from original session creation, never restarted by refresh. Privileged idle 30min/absolute 8h remain. Recent-auth age and warning lead TBD; dependent actions closed. |
-| AUTH-08 | Remove abandoned unverified accounts after seven days only if no required record prevents cleanup. |
+| AUTH-08 | ORG-041 supersedes the seven-day source default: delete never-verified accounts after 30 days; account unusable before verification. Cleanup implementation/retention-exception checks remain activation work. |
 | ABS-04 | Whitespace tokens with letter/digit; no-space hyphenated term one word; shared client/server implementation. |
 | ABS-07 | Withdrawn finalized research entries continue counting within two-per-PI cap unless logged exception. |
 | ABS-09, ABS-14 | Stage-one administrative PDFs 10 MB/file; authorized stage-two PDF/DOCX/PPTX 50 MB/file. |
 | REV-08 | Revision window 14 calendar days after request publication, exact timestamp and audited extension. |
 | AI-03 | Human independent draft assessment before revealing advisory suggestion; model excluded from human average. |
 | MED-04 | Gallery input JPEG/PNG/WebP and MP4/WebM; exact technical limits/codecs budget open. |
-| PRV-05 | Ordinary participant retention one year after conference; separate justified exceptions/verification period. |
+| PRV-05 | ORG-041/v1.0 confirm ordinary account/registration/research deletion by 28 January 2028 and minimal certificate verification until 28 January 2029; specified inbox/provider/media periods are recorded in v1.0. Cleanup/backup/restore implementation and unspecified exceptions remain separately gated. |
 | INF-07 | Ordinary recovery objective <=24h data loss/4h restore; critical database <=15min loss/1h restore, subject to plan/budget/test. File targets separate. |
 | NFR-01 | 100 active registration/submission users baseline, 1,000 public browsers stress with documented operation mix. |
 | NFR-02 | Agreed-mobile p75 LCP <=2.5s and typical internal API p95 <=1s, exclusions/test conditions recorded. |
@@ -246,6 +246,14 @@ CFG-08. Operations/certificate lead. CONFIRMED: A1 daily check-in; full conferen
 **State: OPEN REMAINING INPUTS. Named owner: Unassigned. Due date: Unassigned.**
 
 CFG-09. Organizational/privacy owner: record legal controller/contact and institutional approval evidence under the selected O1 model. Finalize field purposes, media/minor policies, notices/legal bases, processor contracts, actual locations/transfer assessment, retention exceptions, request handling, certificate-verification lifespan, and S2 metadata/log separation. Resolve the hackathon's requested national ID/phone fields against the existing minimal-profile policy before opening its form; national ID remains excluded pending an explicit decision and approved handling. Gate: production data collection.
+
+Current reconciliation (6 October 2026): ORG-037–042 supersede the related source
+TBDs: v1.0 English wording approved, Faculty controller, registration-only national
+ID/Iqama/international passport, minimum age 18, approved retention clocks, DeepSeek
+in China and Faculty payment platform. The paragraph above preserves v0.5's question
+set, not a current national-ID exclusion. Identifier controls, actual processing/
+transfer evidence, cleanup/restore, request operations and S2 separation still gate
+production collection. No account, registration or AI activation follows publication.
 
 ### CFG-10
 
@@ -1843,3 +1851,126 @@ this follow-up authorizes its update and CI verification, not merging or publica
   presentation and road/connector artwork. Keep the local SVG, accessible text
   alternative, not-to-scale label and no-provider-request privacy contract.
 - IDs: SCP-02, CFG-01, LOC-01/03, ACC-01, PRV-01/07, CMS-04, REL-01.
+
+## ORG-037 — Approve and publish Privacy Policy and Terms v1.0, 6 October 2026
+
+Authority: explicit organizer instruction in the current publication task. The
+English source documents in `docs/policies/privacy-policy-v1.0.en.md` and
+`docs/policies/terms-v1.0.en.md`, supplied by `docs/policy-text-v1` commit `48017fa`,
+are approved for exact publication. Use the label "Version 1.0" and one configured
+effective date set to the date this PR is published. Publish a complete, faithful
+formal Modern Standard Arabic translation with equivalent sections, tables and
+localized internal links. Organizers should have a native reader review the Arabic
+translation, particularly because the Arabic Terms prevail.
+
+The latest and stable v1.0 routes become final, approved and indexable, with sitemap
+EN/AR alternates. Remove public draft banners and old draft-version links; if the
+historical dated snapshot is retained it remains noindex. This supersedes ORG-022,
+ORG-026/027 and their related placeholder/unapproved-wording descriptions for these
+two policies. Keep their dated receipts and the v0.5 source unchanged as history.
+
+Approve the participant sign-up privacy notice as Privacy Policy v1.0, with short
+EN/AR summaries and a policy link. Approval of text is separate from account release:
+`PARTICIPANT_ACCOUNTS_ENABLED` stays default-off, hosted migrations and database
+readiness/activation are unchanged, and no live user or email is authorized here.
+Policy statements about future registration, retention and AI do not establish that
+those implementations exist. Commands and actual results belong in PROGRESS.
+
+IDs: SCP-02, PRV-01/02/04/05/07/08, LOC-01/03, CMS-04, AUTH-06, CFG-09/12, REL-01/06.
+
+## ORG-038 — Faculty of Medicine as data controller, 6 October 2026
+
+Authority: explicit organizer decision and approved Privacy Policy v1.0 section 1.
+The Faculty of Medicine, King Abdulaziz University is the controller of personal
+information processed for the conference. The Research Principles Club organizes
+MSRC 2027 and handles personal information on the Faculty's behalf. This supersedes
+ORG-022's earlier responsibility description where it left the controller unresolved;
+it does not appoint a new internal request handler or change infrastructure custody.
+Actual processing safeguards and operational release evidence remain separately
+required before an affected workflow opens. IDs: PRV-01/02, INF-03, CFG-09/11.
+
+## ORG-039 — Registration identity verification and internal attendee list, 6 October 2026
+
+Authority: explicit organizer decision and approved Privacy Policy sections 2, 3 and 7,
+and Terms section 3. Conference registration must collect **national ID or Iqama
+number**, or **passport number for international attendees**, for identity
+verification. Registered attendees have an internal attendee list accessible only
+to authorized organizers. There is no public attendee directory.
+
+This explicitly supersedes the "No national IDs" project rule and the exclusions in
+AUTH-06, PRV-03, HAC-10/CFG-09/13 as they apply to conference registration. It does not
+authorize identifier collection during account creation or create a separate hackathon
+field. Retain the historical source snapshot. Add the registration implementation
+requirement to BL-REG-01: strict server/database access control, encryption at rest if
+feasible, protected exports/logging, and deletion one year after the conference
+(by 28 January 2028), including controlled exports/files and backup-cycle handling.
+The current task is documentation/publication only: build no registration field,
+schema, migration, export or cleanup job, and keep registration closed.
+
+IDs: AUTH-06, REG-01/05, ROL-07/08, PRV-03/05/06, HAC-10, SEC-01/02, CFG-09/13, AT-02/17.
+
+## ORG-040 — DeepSeek provider and China processing, 6 October 2026
+
+Authority: explicit organizer decision and approved Privacy Policy v1.0 sections 4
+and 6. The selected advisory AI provider is **DeepSeek**, processing in the
+**People's Republic of China**. This supersedes ENG-018's Anthropic/Claude provider
+selection for future activation. PR #40's built adapter still targets Anthropic;
+do not change its provider code in this policy PR. Add a BL-AI-01 backlog task to
+switch the adapter to DeepSeek before activation and repeat provider-specific
+sanitization, schema/output, failure, provenance, cost and evaluation checks.
+
+Keep AI disabled. Only approved scientific content may be transmitted; author/account
+names, emails, affiliations, contact details and supporting documents are excluded,
+and suspected identifying text stays human-only. Provider terms, retention/training,
+transfer safeguards, credentials, budget, model/rubric configuration and committee
+evaluation remain independent activation gates. Human reviewers retain independent
+scores and the scientific committee alone decides outcomes. The older DeepSeek
+prototype is not adopted automatically. IDs: AI-01–06, PRV-02/03/07, CFG-03/09/10, REL-03.
+
+## ORG-041 — Age, password, unverified retention and controlling language, 6 October 2026
+
+Authority: explicit organizer decision and approved Privacy Policy v1.0 sections 7
+and 9 and Terms sections 2 and 8. Minimum age is **18** to create an account or
+participate. Passwords must have at least **10 characters**; the existing creation/
+reset codepoint minimum and provider byte limit remain unchanged in this publication
+task. An account is unusable until email verification. Accounts whose email is never
+verified are deleted after **30 days**, superseding AUTH-08's historical seven-day
+default; implement and verify that cleanup in a separate task before account
+activation. Do not change retention code or migrations here.
+
+The Terms are published in English and Arabic; if the versions differ, **the Arabic
+version prevails**. The complete Arabic translation accompanies publication and a
+native Arabic reader review is requested in the PR. Privacy v1.0 also fixes ordinary
+account/registration/research deletion by 28 January 2028, minimal certificate
+verification retention until 28 January 2029, Contact inbox deletion one year after
+the conference, Resend sent-email retention of 30 days, spam-prevention codes up to
+24 hours and published media until removed. These supersede ORG-023's related clock/
+record-type TBDs as wording decisions; cleanup, exports, backups, restoration and
+verified-request execution still need implementation evidence.
+
+IDs: AUTH-01/06/08, PRV-02/04/05/06/08, CRT-05/06, LOC-01/03, CFG-09, AT-17.
+
+## ORG-042 — Faculty of Medicine payment platform, 6 October 2026
+
+Authority: explicit organizer decision and approved Privacy Policy v1.0 sections 2
+and 6 and Terms section 4. The payment platform is the **Faculty of Medicine payment
+platform (`lms.waqf.org.sa`)**. It processes payments and issues receipts; MSRC never
+receives or stores card details. Approved refunds return through that platform to
+the original payment method and are complete only when funds have been returned.
+This resolves P1's responsible unit/platform choice, without inventing an API,
+callback, credential, payee account, settlement or reconciliation contract.
+
+Keep the mock adapter and financial workflows closed until the actual authorized
+confirmation/reconciliation, prices, deadlines, refunds and release evidence are
+supplied. No payment code, real charge or hosted configuration changes in this task.
+IDs: PAY-01/04/05/07/08, REG-03, CFG-02/10, REL-02.
+
+### ORG-037 Arabic editorial follow-up — 6 October 2026
+
+Explicit organizer correction: use «مسابقة الأطروحة في ثلاث دقائق» throughout
+Privacy/Terms Arabic, «ولائحته التنفيذية» instead of «واللائحة التنفيذية», and
+«الباحث الرئيسي» (inflected «للباحث الرئيسي» in the existing Terms sentence).
+Apply to both Arabic Markdown sources and rendered policy content. English wording,
+version 1.0, effective date and operational gates remain unchanged. This is an
+editorial correction within the approved version, not a new policy version.
+IDs: BL-PUB-08, PRV-01/02, LOC-01/03, CMS-04.

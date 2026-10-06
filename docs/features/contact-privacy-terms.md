@@ -1,4 +1,44 @@
-# Contact and policy draft foundations
+# Contact and approved policy publication
+
+## Current policy publication — 6 October 2026
+
+ORG-037–042 approve the English Privacy Policy and Terms v1.0 in
+`docs/policies/privacy-policy-v1.0.en.md` and `docs/policies/terms-v1.0.en.md`, from
+`docs/policy-text-v1` commit `48017fa`. Publish the English text exactly, with a
+complete formal Modern Standard Arabic translation and equivalent sections, tables
+and localized internal links. Organizers should have a native Arabic reader review
+the translation; the Arabic Terms prevail. No review completion is claimed here.
+Organizer editorial follow-up (6 October 2026): the Arabic sources and rendered
+pages consistently use «مسابقة الأطروحة في ثلاث دقائق», «ولائحته التنفيذية» and
+«الباحث الرئيسي». English, version 1.0 and effective date stay unchanged.
+
+Latest routes are `/{en|ar}/privacy` and `/{en|ar}/terms`; stable routes append
+`/v1.0`. Locale-free `/privacy`, `/terms` and their `/v1.0` aliases use the site's
+existing language redirect behavior. The label is "Version 1.0" and one effective
+date configuration value is `2026-10-06`, the PR publication date, formatted through
+the site's existing EN/AR date style. Keep the existing page design, native section
+navigation and tables. The retired `/2026-10-04-draft` routes return 404 and have no
+public links. Production policy metadata is indexable and sitemap entries carry
+EN/AR alternates; existing preview/local noindex protection is retained.
+
+`approvedParticipantPrivacy` references v1.0 in both languages with a short summary
+and policy link. The closed sign-up screen displays that notice without a collection
+form. `PARTICIPANT_ACCOUNTS_ENABLED`, hosted migrations, database readiness and
+activation remain unchanged. This publishes approved notices; it does not implement
+registration identifier collection, age enforcement, unverified-account cleanup,
+payments, media removal or a DeepSeek adapter. Those requirements are recorded in
+the linked backlog and decisions. AI stays disabled and the built Anthropic adapter
+must be switched before activation.
+
+Privacy identifies the Faculty of Medicine, KAU as controller and Research Principles
+Club acting on its behalf. The national ID/Iqama/international-passport requirement
+is restricted to conference registration identity verification with authorized
+internal attendee access, strict controls and one-year deletion. Actual processing,
+provider safeguards, cleanup/restore, finances, inbox/recovery UAT and operational
+release evidence remain separate gates. Exact check commands/results and screenshots
+belong in [PROGRESS](../PROGRESS.md); no check result is inferred from text approval.
+
+## Historical foundation record
 
 BL-PUB-06 / BL-PUB-08; SUP-01–03, EML-01/04, PRV-01–08, MED-03, LOC-01/03,
 ACC-01, SCP-02 and REL-01. Baseline: main 7361164, merged PR25. Organizer amendments
@@ -38,7 +78,7 @@ HMAC counters expire in Supabase. Proposed 3/hour, 10/day and 3-second fill defa
 provider/inbox processing/retention, hosted application and human inbox UAT remain opening
 checks. No real delivery or production-ready release is claimed by synthetic evidence.
 
-## Privacy and Terms
+## Original Privacy and Terms draft (superseded by v1.0)
 
 Latest routes `/{en|ar}/privacy` and `/terms` and dated routes ending
 `/2026-10-04-draft` read a typed source snapshot. Unknown versions/locales return 404.
@@ -77,10 +117,10 @@ belong in PROGRESS; full database/auth regressions run in disposable CI without 
 fixtures. Real-human bilingual/accessibility/legal review and actual provider delivery
 are not demonstrated by synthetic tests or the organizer's forwarding report.
 
-Next smallest tasks: review/apply the Contact-only migration/configuration and resolve
-its processing/abuse/human delivery checks using the linked runbook. Emad separately
-supplies/approves final EN/AR Privacy/Terms and resolves the marked processing/publication
-questions with the institutional/privacy owner. Contact provider approval does not open
+At the foundation milestone the next tasks were Contact-only migration/configuration,
+processing/abuse/human delivery checks and final policy wording. ORG-037 now supersedes
+the wording blocker; the current Contact runbook and participant activation guide
+govern their remaining operational checks. Contact or policy approval does not open
 authentication or other workflows. No role/grant/session-policy/readiness changes.
 
 Initial foundation rollback is a code/route/footer revert. For the new adapter use the

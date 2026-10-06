@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
       ...(production ? vercelHosts.map((value) => ({ source: "/:path*", has: [{ type: "host" as const, value }], destination: "https://www.msrc2027.com/:path*", permanent: true })) : []),
       { source: "/", has: [{ type: "header" as const, key: "accept-language", value: arabicFirst }], destination: "/ar", permanent: false },
       { source: "/", destination: "/en", permanent: false },
+      // ORG-037: the published short policy URLs follow the same locale preference.
+      ...["privacy", "terms"].flatMap((kind) => ["", "/v1.0"].flatMap((suffix) => [
+        { source: `/${kind}${suffix}`, has: [{ type: "header" as const, key: "accept-language", value: arabicFirst }], destination: `/ar/${kind}${suffix}`, permanent: false },
+        { source: `/${kind}${suffix}`, destination: `/en/${kind}${suffix}`, permanent: false },
+      ])),
       // British-spelling and long-form aliases are permanent, answered at the edge, and keep the query.
       { source: "/:locale(en|ar)/programme", destination: "/:locale/program", permanent: true },
       { source: "/:locale(en|ar)/participation", destination: "/:locale/participate", permanent: true },
