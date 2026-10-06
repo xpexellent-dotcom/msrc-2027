@@ -7,7 +7,7 @@ import { participantNotice } from "./privacy.server";
 import { observeParticipantPage, participantPageReady } from "./handler.server";
 
 export async function readParticipantPageState(locale: Locale): Promise<ParticipantPageState> {
-  const closed: ParticipantPageState = { enabled: false, notice: null, profile: null, sessionState: "anonymous" };
+  const closed: ParticipantPageState = { enabled: false, notice: participantNotice(locale, false), profile: null, sessionState: "anonymous" };
   const readiness = getParticipantConfig();
   if (readiness.state !== "ready") return closed;
   const current = await headers();

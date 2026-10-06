@@ -1,9 +1,15 @@
 # Disabled advisory assessment and synthetic evaluation
 
-BL-AI-01; AI-01 through AI-06, PRV-07, CFG-03/09/10, REL-03. Provider design:
-ENG-018, 5 October 2026. This foundation is advisory and disabled. The DeepSeek
-prototype is not used. There are no real abstracts, credentials, hosted changes,
-reviewer screens or applicant outcomes in this change.
+BL-AI-01; AI-01 through AI-06, PRV-07, CFG-03/09/10, REL-03. Built provider design:
+ENG-018, 5 October 2026. ORG-040 (6 October 2026) supersedes its provider choice:
+DeepSeek is selected, with processing in the People's Republic of China. PR #40's
+built transport still targets Anthropic and is unchanged in the policy publication
+PR. **Keep AI disabled and switch the adapter to DeepSeek before activation**, in a
+separate task with renewed provider-specific validation, terms/transfer, model,
+budget and committee-evaluation evidence. The older DeepSeek prototype is not
+adopted automatically. There are no real abstracts, credentials, hosted changes,
+reviewer screens or applicant outcomes in this change. Privacy Policy v1.0 supplies
+the approved bilingual applicant disclosure; it does not enable provider dispatch.
 
 ## Adapter boundary
 
@@ -73,7 +79,20 @@ Official documentation checked for this task:
 Installed SDK source/types were checked alongside these pages. No live response or
 actual model availability is claimed.
 
-## Activation requires all of the following
+## Current activation prerequisite
+
+Implement the separately scoped DeepSeek switch in BL-AI-01 first. Preserve approved
+scientific-only payloads, identity screening, human-only fallback, structured local
+validation, safe provenance, disabled defaults and server authorization. Re-run the
+provider-specific synthetic, permission/failure and committee evaluation evidence;
+approved privacy wording cannot validate the currently mismatched Anthropic transport.
+
+## Built Anthropic foundation prerequisites (provider scope superseded)
+
+The following describes the built ENG-018 contract. ORG-040 supersedes the provider,
+SDK/model, account and routing-specific choices for future activation. The switch
+task must reconcile each item with DeepSeek's actual official APIs and approved
+terms; this historical list is not permission to activate Anthropic.
 
 1. An organizational Anthropic account/workspace with verified custodians,
    model entitlement, billing owner and approved service terms. An existing account
@@ -136,6 +155,7 @@ recovery and persistence UAT belong to BL-AI-02/04.
 
 [Acceptance/test matrix](ai-assessment-acceptance.md) names the executable coverage
 and its limits. Current commands/results are in [PROGRESS](../PROGRESS.md). Next:
-committee rubric and scoring, privacy/data-flow review, then the separately scoped
+switch the disabled adapter to DeepSeek under ORG-040, then committee rubric and
+scoring, privacy/data-flow review and the separately scoped
 durable-job and reviewer integration. Rollback removes this unused module/evaluation
 tool and SDK dependency; no database migration or public UI rollback is needed.

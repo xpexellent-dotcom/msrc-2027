@@ -1,35 +1,35 @@
+import { policyEffectiveDate } from "@/config/policies";
 import type { Locale } from "@/lib/i18n";
 
 export const policyKinds = ["privacy", "terms"] as const;
 export type PolicyKind = (typeof policyKinds)[number];
-export const currentPolicyVersion = "2026-10-04-draft" as const;
+export const currentPolicyVersion = "v1.0" as const;
+
+export type PolicyBlock =
+  | { type: "paragraph"; text: string }
+  | { type: "list"; ordered: boolean; items: string[] }
+  | { type: "table"; headers: string[]; rows: string[][] };
 
 export type PolicySection = {
   id: string;
   title: string;
-  status: "organizer-decision" | "placeholder";
-  paragraphs: readonly string[];
-  links?: readonly { label: string; href: string; direction?: "ltr" }[];
+  blocks: PolicyBlock[];
 };
 
-type PolicyDocument = {
+export type PolicyDocument = {
   title: string;
   metadataDescription: string;
   lead: string;
-  sections: readonly PolicySection[];
+  sections: PolicySection[];
 };
 
-type PolicyCopy = {
+export type PolicyCopy = {
   home: string;
   breadcrumb: string;
   eyebrow: string;
-  status: string;
   version: string;
-  recorded: string;
-  recordedDate: string;
-  approvalNotice: string;
-  decisionStatus: string;
-  placeholderStatus: string;
+  versionLabel: string;
+  effective: string;
   contents: string;
   versionLink: string;
   latestLink: string;
@@ -39,216 +39,130 @@ type PolicyCopy = {
   terms: PolicyDocument;
 };
 
+const sectionIds: Record<PolicyKind, readonly string[]> = {
+  privacy: ["responsibility", "information", "processing", "advisory-ai", "photography", "providers-transfers", "retention", "rights", "security-age-changes"],
+  terms: ["about", "accounts", "registration", "payment", "submissions", "conduct-certificates", "programme-liability", "governing-law"],
+};
+
+const listItem = /^(?:- |[0-9٠-٩]+\. )(.+)$/u;
+
 /**
- * BL-PUB-08 / PRV-01/02/05/07/08 / LOC-01/03: immutable draft, not final legal copy.
- * Only explicit organizer facts dated 4 October 2026 are recorded below. Approval
- * of those facts does not approve these translations, legal bases or publication.
- * Keep this dated snapshot when a later approved version is added.
+ * The approved Markdown is embedded verbatim below so headings, paragraphs,
+ * list items and table cells retain the organizer's exact wording. Only the
+ * source version/effective-date line is replaced by the shared display config.
+ * This deliberately supports only the Markdown structures present in v1.0.
  */
-const policyDraft20261004: Record<Locale, PolicyCopy> = {
+function parsePolicyMarkdown(markdown: string, kind: PolicyKind, metadataDescription: string): PolicyDocument {
+  const lines = markdown.replace(/\r\n/g, "\n").trim().split("\n");
+  const document: PolicyDocument = {
+    title: lines[0].replace(/^# /, ""),
+    metadataDescription,
+    lead: "",
+    sections: [],
+  };
+  const introduction: string[] = [];
+  let section: PolicySection | undefined;
+  let cursor = 1;
+
+  while (cursor < lines.length) {
+    const line = lines[cursor];
+    if (!line || /^\*\*(?:Version |الإصدار )/u.test(line)) {
+      cursor += 1;
+      continue;
+    }
+    if (line.startsWith("## ")) {
+      const id = sectionIds[kind][document.sections.length];
+      if (!id) throw new Error(`Unexpected ${kind} policy section`);
+      section = { id, title: line.slice(3), blocks: [] };
+      document.sections.push(section);
+      cursor += 1;
+      continue;
+    }
+    if (line.startsWith("|")) {
+      if (!section) throw new Error("Policy table must belong to a section");
+      const cells = (row: string) => row.trim().slice(1, -1).split("|").map((cell) => cell.trim());
+      const headers = cells(line);
+      const rows: string[][] = [];
+      cursor += 2;
+      while (cursor < lines.length && lines[cursor].startsWith("|")) {
+        const row = cells(lines[cursor]);
+        if (row.length !== headers.length) throw new Error("Policy table column mismatch");
+        rows.push(row);
+        cursor += 1;
+      }
+      section.blocks.push({ type: "table", headers, rows });
+      continue;
+    }
+    if (listItem.test(line)) {
+      if (!section) throw new Error("Policy list must belong to a section");
+      const ordered = !line.startsWith("- ");
+      const items: string[] = [];
+      while (cursor < lines.length && listItem.test(lines[cursor]) && !lines[cursor].startsWith("- ") === ordered) {
+        items.push(lines[cursor].replace(listItem, "$1"));
+        cursor += 1;
+      }
+      section.blocks.push({ type: "list", ordered, items });
+      continue;
+    }
+    const paragraph: string[] = [];
+    while (cursor < lines.length && lines[cursor] && !lines[cursor].startsWith("## ") && !lines[cursor].startsWith("|") && !listItem.test(lines[cursor])) {
+      paragraph.push(lines[cursor]);
+      cursor += 1;
+    }
+    const text = paragraph.join(" ");
+    if (section) section.blocks.push({ type: "paragraph", text });
+    else introduction.push(text);
+  }
+
+  if (document.sections.length !== sectionIds[kind].length) throw new Error(`Missing ${kind} policy section`);
+  document.lead = introduction.join("\n\n");
+  return document;
+}
+
+const privacyEn = "# MSRC 2027 Privacy Policy\n\n**Version 1.0** · Effective from the date it is published on www.msrc2027.com\n\nThis Privacy Policy explains how personal information is collected, used, shared and protected for the 5th Medical Students Research Conference (MSRC 2027), held at King Faisal Conference Center, King Abdulaziz University, Jeddah, on 27–28 January 2027. It applies to www.msrc2027.com and to all conference activities, including accounts, registration, research submissions, the hackathon, the Three Minute Thesis competition, attendance and certificates.\n\nBy using the website or taking part in the conference, you acknowledge that you have read this policy.\n\n## 1. Who we are and who is responsible\n\nMSRC 2027 is organized by the Research Principles Club on behalf of the Faculty of Medicine, King Abdulaziz University (\"we\", \"us\").\n\nThe **Faculty of Medicine, King Abdulaziz University** is the controller of personal information processed for the conference. The Research Principles Club organizes the conference and handles personal information on the Faculty's behalf.\n\nWe process personal information in accordance with the Saudi Personal Data Protection Law (PDPL) and its Implementing Regulations, and in line with the [King Abdulaziz University Privacy Policy](https://kau.edu.sa/en/page/privacy-policy).\n\nFor any privacy question or request, contact us through the [contact form](https://www.msrc2027.com/en/contact) using the topic \"Privacy & data requests\", or email contact@msrc2027.com.\n\n## 2. Information we collect\n\nWe collect only the information each activity needs. Information for an activity is collected only once that activity opens.\n\n| Activity | Information collected |\n| --- | --- |\n| Visiting the website | Anonymous, cookieless visit counts and page-performance measurements. We do not use advertising or tracking cookies. |\n| Contact form | Topic, name, email address, optional reference, message and the language of the page. Your IP address and email address are also stored as short-lived, irreversibly scrambled codes to prevent spam. |\n| Participant account | Name, email address, password (stored only in hashed form) and the version of this policy you accepted. A secure session cookie keeps you signed in. |\n| Conference registration | Attendance type, institution, student or professional status, and your national ID or Iqama number (passport number for international attendees). |\n| Payment | Order details and payment reference. Payments are processed by the Faculty of Medicine's payment platform; we never receive or store card details. |\n| Research submissions | Title, specialty, study type, abstract text, authors and their affiliations, ethics approval status and supporting documents, similarity report, and reviewers' scores and comments. |\n| Hackathon and Three Minute Thesis | Participant and team member details, entry and pitch content, and judging results. |\n| Attendance and certificates | Check-in records from your QR ticket, and certificate details (name, certificate number and date). |\n| Surveys | Your answers. Survey answers are kept separate from the record that you completed the survey. |\n\nRegistered attendees are listed in an internal attendee list that only authorized organizers can access. There is no public attendee directory.\n\n## 3. How we use your information and why\n\nWe use personal information only to organize and run the conference. We do not sell personal information, and we do not use it for advertising.\n\n| Purpose | Legal basis |\n| --- | --- |\n| Responding to messages sent through the contact form | Your consent, given when you send the message |\n| Creating and managing your account | To provide the service you request, under these terms |\n| Registration, admission, tickets and payment | To provide the service you request, under these terms |\n| Verifying attendees' identity using national ID or Iqama number | To provide the service you request and to keep the event secure |\n| Reviewing research submissions and publishing accepted abstracts | Your consent, given when you submit, and the conference terms |\n| Running the hackathon and the Three Minute Thesis competition | Your consent, given when you apply, and the competition terms |\n| Checking attendance and issuing certificates | To provide the service you request |\n| Photography and recording at the event (see section 5) | Our legitimate interest in documenting and promoting the conference, with notice given before registration |\n| Surveys | Your consent; surveys are voluntary, except where completing one is a stated requirement for a certificate |\n| Website security, spam prevention and anonymous performance measurement | Our legitimate interest in operating a secure and reliable website |\n\nWhere we rely on your consent, you may withdraw it at any time. Withdrawal does not affect processing carried out before you withdrew it. If you withdraw consent needed for an activity, you may no longer be able to take part in that activity.\n\nWe send transactional emails only, such as verification codes, confirmations and important updates about activities you have joined. We do not send marketing emails.\n\n## 4. Advisory AI review of abstracts\n\nTo support our reviewers, research abstracts may be sent to an artificial intelligence (AI) service that suggests an advisory score against the conference's scoring criteria.\n\n- The AI service receives only the scientific content: title, specialty, study type, completion status and abstract text. It never receives names, email addresses, affiliations, contact details or supporting documents.\n- Abstracts are checked before sending, and any abstract that appears to contain identifying details is reviewed by people only.\n- The AI suggestion is advisory. Human reviewers score every abstract independently, and only the scientific committee decides outcomes.\n- If the AI service is unavailable, review continues without it.\n\nThe AI service is provided by DeepSeek, which processes data in the People's Republic of China. Because only the scientific content described above is sent, no names, contact details or affiliations leave our systems for this purpose.\n\n## 5. Photography and recording\n\nMSRC 2027 is photographed and video-recorded. This is stated clearly on the registration page before you register.\n\nPhotographs and recordings in which attendees can be identified may be published on the MSRC website and on the official social media accounts of MSRC and the Research Principles Club, and may be used in materials for future editions of MSRC. Published photographs and recordings remain available until they are removed.\n\nIf you would like a specific photograph or recording of you removed, contact us through the [contact form](https://www.msrc2027.com/en/contact) using the topic \"Privacy & data requests\" and tell us where it appears. We will remove it from channels we control. We cannot remove copies made or shared independently by others.\n\n## 6. Service providers and transfers outside Saudi Arabia\n\nWe use trusted service providers to operate the website and the conference. They process personal information only on our instructions and only for the purposes described in this policy.\n\n| Provider | Role | Location |\n| --- | --- | --- |\n| Vercel | Website hosting and anonymous performance measurement | India and global network |\n| Supabase | Database and account sign-in | Japan |\n| Resend | Sending website emails (stores sent emails for 30 days) | United States |\n| Namecheap | Forwarding email sent to contact@msrc2027.com | United States |\n| Google (Gmail) | The organizers' conference inbox | Google data centres |\n| Faculty of Medicine payment platform (lms.waqf.org.sa) | Processing registration payments | Saudi Arabia |\n| DeepSeek | Advisory abstract review (see section 4) | People's Republic of China |\n\nSome of these providers store or process information outside the Kingdom of Saudi Arabia. Where this happens, we take reasonable steps to ensure the information remains protected in accordance with the PDPL and its Implementing Regulations, and we limit what is shared to what each provider needs.\n\nWe do not otherwise share personal information with third parties, except where required by law or by a competent authority.\n\n## 7. How long we keep information\n\nWe keep personal information only for as long as it is needed for the purposes in this policy.\n\n| Information | Retention period |\n| --- | --- |\n| Accounts, registrations (including national ID or Iqama numbers) and research submissions | Deleted one year after the conference (by 28 January 2028) |\n| Certificate verification record (name, certificate number and date) | Two years from the conference date (until 28 January 2029), so certificates can be verified |\n| Contact messages in the organizers' inbox | Deleted one year after the conference |\n| Emails stored by our email provider (Resend) | 30 days |\n| Spam-prevention codes | Up to 24 hours |\n| Accounts whose email address is never verified | Deleted after 30 days. An account cannot be used until its email address is verified |\n| Published photographs and recordings | Until removed (see section 5) |\n\nWhen information is deleted, it is also removed from exports and files we control. Copies held in our providers' routine backups are overwritten in line with their standard backup cycles. You can ask us to delete your information earlier (see section 8).\n\n## 8. Your rights and how to make a request\n\nUnder the PDPL, you have the right to:\n\n- be informed about how your personal information is collected and used;\n- access your personal information and obtain a copy of it;\n- correct, complete or update inaccurate or incomplete information;\n- request that your personal information be destroyed when it is no longer needed; and\n- withdraw your consent where we rely on consent.\n\n**How to make a request.** Use the [contact form](https://www.msrc2027.com/en/contact) with the topic \"Privacy & data requests\", or email contact@msrc2027.com. Our privacy lead will respond within 30 days.\n\n**Verifying your identity.** To protect your information, we act on requests sent from the email address registered to your account. If we cannot confirm that a request comes from you, we may ask for additional information before acting on it.\n\n**Limits.** We may decline or limit a request where the law allows it, or where we must keep certain records, for example certificate verification records or payment records, for the periods set out in section 7. If we decline a request, we will explain why.\n\n## 9. Security, age, changes and contact\n\n**Security.** All information is sent over encrypted connections. Access to personal information is restricted so that participants can see only their own records, and organizers with elevated access must pass additional sign-in checks. Passwords are never stored in readable form.\n\n**Age.** Participants must be 18 years of age or older.\n\n**Changes to this policy.** Each version of this policy shows its version number and effective date. If we make a significant change, we will announce it on this page and notify account holders by email.\n\n**Contact.** For any question about this policy, use the [contact form](https://www.msrc2027.com/en/contact) with the topic \"Privacy & data requests\", or email contact@msrc2027.com.\n";
+const termsEn = "# MSRC 2027 Terms and Conditions\n\n**Version 1.0** · Effective from the date they are published on www.msrc2027.com\n\n## 1. About these terms\n\nThese Terms and Conditions apply to the website www.msrc2027.com and to participation in the 5th Medical Students Research Conference (MSRC 2027), held at King Faisal Conference Center, King Abdulaziz University, Jeddah, on 27–28 January 2027.\n\nMSRC 2027 is organized by the Research Principles Club on behalf of the Faculty of Medicine, King Abdulaziz University (\"we\", \"us\").\n\nBy creating an account, registering, submitting work or taking part in any conference activity, you agree to these terms and to our [Privacy Policy](https://www.msrc2027.com/en/privacy).\n\n## 2. Accounts\n\n- You must be 18 years of age or older to create an account or take part in the conference.\n- Each person may hold one account, in their own name, using an email address they control.\n- Your account becomes active only after you verify your email address.\n- Your password must be at least 10 characters. Keep it confidential; you are responsible for activity under your account.\n- Creating an account does not register you for the conference.\n- We may suspend or close an account that is used to misuse the website, impersonate another person or breach these terms.\n\n## 3. Registration and admission\n\nGeneral attendance is open to students, faculty, healthcare professionals and other interested attendees, including international participants.\n\n1. **Registration is separate from your account.** After creating and verifying an account, you must register for the conference.\n2. **Places are limited.** When all places are taken, you may join a waiting list. If a place becomes available, we will email you, and you must accept it within the time stated in that email.\n3. **Your place is confirmed by email.** Your place is confirmed only when you receive a confirmation email with your ticket. Submitting a registration does not by itself guarantee a place.\n4. **We may decline a registration**, for example when the conference is full or the information provided is incomplete. If we decline a registration, you will not be charged or will receive a full refund.\n5. **Confirm your attendance.** Before the conference, we will ask you to confirm that you are still attending. Places that are not confirmed by the stated deadline may be released to the waiting list.\n6. **Workshops** are booked separately, have limited places, and require a confirmed conference registration.\n7. **Your ticket** is personal and non-transferable, and must be presented as a QR code at the conference entrance. You must provide accurate details, including your national ID or Iqama number (or passport number for international attendees), when registering.\n8. **Competitions are separate.** Research submissions, the hackathon and the Three Minute Thesis each have their own application. Registering to attend does not enter you into them, and applying to them does not register you to attend.\n\nRegistration dates and any deadlines are published on the website before registration opens.\n\n## 4. Fees, payment, cancellation and refunds\n\n- **Fees.** Any fee for conference attendance or a workshop, what it includes, and any payment deadline are shown on the website before you pay. These details form part of these terms.\n- **Payment.** Payments are processed through the Faculty of Medicine's payment platform. This website never asks for or stores your card details. Receipts are issued by the payment platform.\n- **Payment deadline.** If a fee applies and is not paid by the stated deadline, the reserved place may be released.\n- **Cancellation by you.** You can cancel your registration or workshop booking from your account. Any refund depends on the refund terms shown before you paid.\n- **Refunds.** Approved refunds are returned through the Faculty of Medicine's payment platform to the original payment method. A refund is complete only when the payment platform has returned the funds; processing times depend on the platform and your bank.\n- **Cancellation or changes by us.** If we cancel the conference, any fees paid will be refunded in full. If we cancel a workshop you booked, we will refund its fee or, where possible, offer you a place in another workshop.\n\n## 5. Research submissions and competitions\n\n**Your declarations.** When you submit research or a competition entry, you confirm that:\n\n- the work is genuinely yours and your co-authors' or team members', and the author or team list is accurate;\n- every listed author or team member has agreed to the submission;\n- any required ethics approval is in place or accurately stated; and\n- the submission contains no information that identifies patients.\n\n**Research abstracts.** The abstract body must be in English and must not exceed 300 words. Completed studies and work in progress are both eligible. A principal investigator may have no more than two finalized applications in this edition.\n\n**Hackathon.** You may enter individually or as a pre-formed team of up to five members, with an English title and a pitch of no more than 300 words. Ideas must be new and must not have been previously pitched, awarded, funded or commercially launched.\n\n**Ownership and permission.** You keep ownership of your work and ideas. By submitting, you permit us to use your submission to conduct the review and judging, and to publish the titles, authors and abstracts of accepted submissions in the conference programme, the abstract book and MSRC's official channels.\n\n**Review and decisions.** Submissions are reviewed by the scientific committee and judging panels. An AI tool may provide reviewers with advisory suggestions, as described in the [Privacy Policy](https://www.msrc2027.com/en/privacy); it never decides outcomes. All decisions of the scientific committee and judging panels are final.\n\nDeadlines, presentation formats, awards and any further competition rules are published on the website before applications open.\n\n## 6. Conduct, photography and certificates\n\n**Conduct.** Participants must treat other attendees, speakers, volunteers and staff with respect and follow the rules of the venue and King Abdulaziz University. You must not misuse the website, for example by attempting to access other people's information or by sending unsolicited messages through the contact form. We may cancel a registration or remove a participant from the event for serious misconduct; in that case, no refund is due.\n\n**Photography and recording.** The conference is photographed and video-recorded, and photographs and recordings may be published. Details, including how to request removal, are in the [Privacy Policy](https://www.msrc2027.com/en/privacy), section 5.\n\n**Certificates.**\n\n- The conference certificate requires checking in on both conference days and completing the general survey. No certificate is issued for attending a single day.\n- Workshop certificates require a confirmed booking, check-in at the workshop, confirmation of completion and the workshop survey.\n- Certificates are issued in the name provided at registration. Please make sure it is correct.\n\n## 7. Programme changes and liability\n\n**Programme changes.** Speakers, sessions, times and rooms may change. Changes will be published on the website. Changes to the programme do not entitle participants to a refund, unless the conference itself is cancelled (see section 4).\n\n**Liability.** To the extent permitted by law:\n\n- we are not responsible for travel, accommodation, visa or other costs that participants incur to attend, including if the event is changed or cancelled;\n- we are not responsible for the loss of, or damage to, personal belongings at the venue;\n- we are not liable for any failure or delay caused by events outside our reasonable control, including severe weather, public-health measures, decisions of authorities or the venue, and technical failures; and\n- the website is provided \"as is\". We aim to keep information accurate and the website available, but we do not guarantee that it will be uninterrupted or error-free.\n\nNothing in these terms limits any liability that cannot be limited under the laws of the Kingdom of Saudi Arabia.\n\n## 8. Governing law, changes, language and contact\n\n**Governing law.** These terms are governed by the laws of the Kingdom of Saudi Arabia.\n\n**Changes to these terms.** Each version of these terms shows its version number and effective date. Your registration is governed by the version in force when you registered. If we make a significant change, we will announce it on this page and notify account holders by email.\n\n**Language.** These terms are published in English and Arabic. If there is any difference between the two versions, the Arabic version prevails.\n\n**Contact.** For any question about these terms, use the [contact form](https://www.msrc2027.com/en/contact) or email contact@msrc2027.com.\n";
+const privacyAr = "# سياسة الخصوصية لمؤتمر MSRC ٢٠٢٧\n\n**الإصدار ١.٠** · تسري من تاريخ نشرها على www.msrc2027.com\n\nتوضح سياسة الخصوصية هذه كيفية جمع البيانات الشخصية واستخدامها ومشاركتها وحمايتها لأغراض المؤتمر الخامس لأبحاث طلاب الطب (MSRC ٢٠٢٧)، الذي يُعقد في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة، يومي ٢٧–٢٨ يناير ٢٠٢٧. وتسري على www.msrc2027.com وعلى جميع أنشطة المؤتمر، بما فيها الحسابات والتسجيل وتقديم الأبحاث والهاكاثون ومسابقة أطروحة في ثلاث دقائق والحضور والشهادات.\n\nباستخدام الموقع أو المشاركة في المؤتمر، فإنك تُقر بأنك قرأت هذه السياسة.\n\n## ١. من نحن ومن المسؤول\n\nينظم مؤتمر MSRC ٢٠٢٧ نادي مبادئ البحث العلمي نيابةً عن كلية الطب بجامعة الملك عبدالعزيز (ويُشار إليهما بضمير «نحن»).\n\nتُعد **كلية الطب بجامعة الملك عبدالعزيز** جهة التحكم في البيانات الشخصية التي تُعالج لأغراض المؤتمر. ويتولى نادي مبادئ البحث العلمي تنظيم المؤتمر والتعامل مع البيانات الشخصية نيابةً عن الكلية.\n\nنعالج البيانات الشخصية وفقًا لنظام حماية البيانات الشخصية في المملكة العربية السعودية واللائحة التنفيذية، وبما يتوافق مع [سياسة الخصوصية لجامعة الملك عبدالعزيز](https://kau.edu.sa/ar/page/privacy-policy).\n\nلأي سؤال أو طلب متعلق بالخصوصية، تواصل معنا عبر [نموذج التواصل](https://www.msrc2027.com/ar/contact)، مع اختيار موضوع «الخصوصية وطلبات البيانات»، أو راسلنا على contact@msrc2027.com.\n\n## ٢. البيانات التي نجمعها\n\nنجمع فقط البيانات التي يحتاج إليها كل نشاط. ولا تُجمع بيانات أي نشاط إلا بعد فتحه.\n\n| النشاط | البيانات التي تُجمع |\n| --- | --- |\n| زيارة الموقع | أعداد الزيارات المجهولة الهوية وقياسات أداء الصفحات، من دون ملفات تعريف الارتباط. ولا نستخدم ملفات تعريف ارتباط للإعلانات أو التتبع. |\n| نموذج التواصل | الموضوع والاسم وعنوان البريد الإلكتروني والمرجع الاختياري والرسالة ولغة الصفحة. ويُخزّن أيضًا عنوان بروتوكول الإنترنت (IP) وعنوان البريد الإلكتروني في صورة رموز قصيرة الأجل لا يمكن عكس تحويلها، لمنع الرسائل المزعجة. |\n| حساب المشارك | الاسم وعنوان البريد الإلكتروني وكلمة المرور (تُخزّن فقط بصيغة مجزأة) وإصدار هذه السياسة الذي وافقت عليه. ويُبقي ملف تعريف ارتباط آمن للجلسة تسجيل دخولك قائمًا. |\n| التسجيل في المؤتمر | نوع الحضور والمؤسسة والصفة الطلابية أو المهنية ورقم الهوية الوطنية أو رقم الإقامة (رقم جواز السفر للمشاركين الدوليين). |\n| الدفع | تفاصيل الطلب ومرجع الدفع. وتُعالج المدفوعات عبر منصة الدفع التابعة لكلية الطب؛ ولا نتلقى بيانات البطاقات ولا نخزّنها مطلقًا. |\n| الأبحاث المقدمة | العنوان والتخصص ونوع الدراسة ونص الملخص والمؤلفون وانتماءاتهم المؤسسية وحالة الموافقة الأخلاقية والوثائق الداعمة وتقرير التشابه ودرجات المحكّمين وتعليقاتهم. |\n| الهاكاثون ومسابقة أطروحة في ثلاث دقائق | بيانات المشاركين وأعضاء الفرق ومحتوى المشاركات والعروض الموجزة ونتائج التحكيم. |\n| الحضور والشهادات | سجلات تسجيل الحضور باستخدام رمز QR في تذكرتك، وبيانات الشهادة (الاسم ورقم الشهادة والتاريخ). |\n| الاستبيانات | إجاباتك. وتُحفظ إجابات الاستبيان منفصلةً عن سجل إكمالك للاستبيان. |\n\nيُدرج الحاضرون المسجلون في قائمة داخلية للحضور لا يمكن الوصول إليها إلا للمنظمين المصرح لهم. ولا يوجد دليل عام للحضور.\n\n## ٣. كيفية استخدام بياناتك وأسباب ذلك\n\nنستخدم البيانات الشخصية فقط لتنظيم المؤتمر وإدارته. ولا نبيع البيانات الشخصية ولا نستخدمها للإعلانات.\n\n| الغرض | الأساس النظامي |\n| --- | --- |\n| الرد على الرسائل المرسلة عبر نموذج التواصل | موافقتك التي تمنحها عند إرسال الرسالة |\n| إنشاء حسابك وإدارته | تقديم الخدمة التي تطلبها بموجب هذه الشروط |\n| التسجيل والقبول والتذاكر والدفع | تقديم الخدمة التي تطلبها بموجب هذه الشروط |\n| التحقق من هوية الحاضرين باستخدام رقم الهوية الوطنية أو رقم الإقامة | تقديم الخدمة التي تطلبها والحفاظ على أمن الفعالية |\n| تحكيم الأبحاث المقدمة ونشر الملخصات المقبولة | موافقتك التي تمنحها عند التقديم، وشروط المؤتمر |\n| إدارة الهاكاثون ومسابقة أطروحة في ثلاث دقائق | موافقتك التي تمنحها عند تقديم طلب المشاركة، وشروط المسابقة |\n| التحقق من الحضور وإصدار الشهادات | تقديم الخدمة التي تطلبها |\n| التصوير الفوتوغرافي والتسجيل في الفعالية (انظر القسم ٥) | مصلحتنا المشروعة في توثيق المؤتمر والترويج له، مع تقديم إشعار قبل التسجيل |\n| الاستبيانات | موافقتك؛ الاستبيانات اختيارية، إلا إذا كان إكمال أحدها شرطًا معلنًا للحصول على شهادة |\n| أمن الموقع ومنع الرسائل المزعجة وقياس الأداء دون تحديد الهوية | مصلحتنا المشروعة في تشغيل موقع آمن وموثوق |\n\nعندما نعتمد على موافقتك، يجوز لك سحبها في أي وقت. ولا يؤثر سحب الموافقة في المعالجة التي جرت قبل سحبها. وإذا سحبت موافقةً لازمةً لنشاط معين، فقد لا يعود بإمكانك المشاركة في ذلك النشاط.\n\nنرسل فقط رسائل البريد الإلكتروني المتعلقة بالإجراءات، مثل رموز التحقق والتأكيدات والتحديثات المهمة بشأن الأنشطة التي انضممت إليها. ولا نرسل رسائل تسويقية.\n\n## ٤. المراجعة الاستشارية للملخصات بالذكاء الاصطناعي\n\nلدعم المحكّمين، قد تُرسل ملخصات الأبحاث إلى خدمة ذكاء اصطناعي تقترح درجةً استشاريةً وفق معايير التقييم الخاصة بالمؤتمر.\n\n- تتلقى خدمة الذكاء الاصطناعي المحتوى العلمي فقط: العنوان والتخصص ونوع الدراسة وحالة اكتمالها ونص الملخص. ولا تتلقى مطلقًا أسماءً أو عناوين بريد إلكتروني أو انتماءات مؤسسية أو بيانات تواصل أو وثائق داعمة.\n- تُفحص الملخصات قبل إرسالها، ويُراجع أي ملخص يبدو أنه يتضمن بيانات تكشف الهوية بواسطة أشخاص فقط.\n- اقتراح الذكاء الاصطناعي استشاري. ويقيّم المحكّمون البشريون كل ملخص بصورة مستقلة، وتنفرد اللجنة العلمية باتخاذ القرارات بشأن النتائج.\n- إذا لم تتوفر خدمة الذكاء الاصطناعي، تستمر المراجعة من دونها.\n\nتقدم خدمة الذكاء الاصطناعي شركة DeepSeek، التي تعالج البيانات في جمهورية الصين الشعبية. ولأن المحتوى العلمي الموضح أعلاه هو وحده الذي يُرسل، فلا تغادر أنظمتنا أي أسماء أو بيانات تواصل أو انتماءات مؤسسية لهذا الغرض.\n\n## ٥. التصوير الفوتوغرافي والتسجيل\n\nيُصوّر مؤتمر MSRC ٢٠٢٧ فوتوغرافيًا ويُسجّل بالفيديو. ويُذكر ذلك بوضوح في صفحة التسجيل قبل تسجيلك.\n\nقد تُنشر الصور والتسجيلات التي يمكن التعرف فيها على الحاضرين على موقع MSRC وعلى الحسابات الرسمية لـMSRC ونادي مبادئ البحث العلمي على وسائل التواصل الاجتماعي، وقد تُستخدم في مواد تخص دورات مستقبلية من مؤتمر MSRC. وتظل الصور والتسجيلات المنشورة متاحةً حتى إزالتها.\n\nإذا رغبت في إزالة صورة أو تسجيل معين تظهر فيه، فتواصل معنا عبر [نموذج التواصل](https://www.msrc2027.com/ar/contact)، مع اختيار موضوع «الخصوصية وطلبات البيانات»، وأخبرنا بمكان ظهوره. وسنزيله من القنوات التي نتحكم فيها. ولا يمكننا إزالة النسخ التي ينشئها أو يشاركها آخرون بصورة مستقلة.\n\n## ٦. مقدمو الخدمات ونقل البيانات خارج المملكة العربية السعودية\n\nنستعين بمقدمي خدمات موثوقين لتشغيل الموقع وإدارة المؤتمر. ولا يعالجون البيانات الشخصية إلا وفق تعليماتنا وللأغراض الموضحة في هذه السياسة فقط.\n\n| مقدم الخدمة | الدور | الموقع |\n| --- | --- | --- |\n| Vercel | استضافة الموقع وقياس الأداء دون تحديد الهوية | الهند وشبكة عالمية |\n| Supabase | قاعدة البيانات وتسجيل الدخول إلى الحسابات | اليابان |\n| Resend | إرسال رسائل البريد الإلكتروني للموقع (يحتفظ بالرسائل المرسلة لمدة ٣٠ يومًا) | الولايات المتحدة |\n| Namecheap | إعادة توجيه البريد الإلكتروني المرسل إلى contact@msrc2027.com | الولايات المتحدة |\n| Google (Gmail) | صندوق بريد المؤتمر الخاص بالمنظمين | مراكز بيانات Google |\n| منصة الدفع التابعة لكلية الطب (lms.waqf.org.sa) | معالجة مدفوعات التسجيل | المملكة العربية السعودية |\n| DeepSeek | المراجعة الاستشارية للملخصات (انظر القسم ٤) | جمهورية الصين الشعبية |\n\nيخزّن بعض هؤلاء المزودين البيانات أو يعالجونها خارج المملكة العربية السعودية. وعند حدوث ذلك، نتخذ خطوات معقولة لضمان استمرار حماية البيانات وفقًا لنظام حماية البيانات الشخصية واللائحة التنفيذية، ونقتصر في المشاركة على ما يحتاج إليه كل مقدم خدمة.\n\nولا نشارك البيانات الشخصية مع أطراف ثالثة في غير ذلك، إلا إذا اقتضى النظام أو جهة مختصة ذلك.\n\n## ٧. مدة الاحتفاظ بالبيانات\n\nنحتفظ بالبيانات الشخصية فقط للمدة اللازمة للأغراض الواردة في هذه السياسة.\n\n| البيانات | مدة الاحتفاظ |\n| --- | --- |\n| الحسابات والتسجيلات (بما فيها أرقام الهوية الوطنية أو أرقام الإقامة) والأبحاث المقدمة | تُحذف بعد سنة واحدة من المؤتمر (بحلول ٢٨ يناير ٢٠٢٨) |\n| سجل التحقق من الشهادة (الاسم ورقم الشهادة والتاريخ) | سنتان من تاريخ المؤتمر (حتى ٢٨ يناير ٢٠٢٩)، لإتاحة التحقق من الشهادات |\n| رسائل التواصل في صندوق بريد المنظمين | تُحذف بعد سنة واحدة من المؤتمر |\n| رسائل البريد الإلكتروني التي يحتفظ بها مزود البريد الإلكتروني لدينا (Resend) | ٣٠ يومًا |\n| رموز منع الرسائل المزعجة | ما يصل إلى ٢٤ ساعة |\n| الحسابات التي لا يُتحقق من عنوان بريدها الإلكتروني مطلقًا | تُحذف بعد ٣٠ يومًا. ولا يمكن استخدام الحساب حتى يُتحقق من عنوان بريده الإلكتروني |\n| الصور والتسجيلات المنشورة | حتى إزالتها (انظر القسم ٥) |\n\nعند حذف البيانات، تُزال أيضًا من نسخ البيانات المصدّرة والملفات التي نتحكم فيها. وتُستبدل النسخ الموجودة في النسخ الاحتياطية الاعتيادية لمقدمي الخدمات وفق دورات النسخ الاحتياطي القياسية لديهم. ويمكنك طلب حذف بياناتك قبل ذلك (انظر القسم ٨).\n\n## ٨. حقوقك وكيفية تقديم طلب\n\nبموجب نظام حماية البيانات الشخصية، يحق لك بصفتك صاحب البيانات:\n\n- العلم بكيفية جمع بياناتك الشخصية واستخدامها؛\n- الوصول إلى بياناتك الشخصية والحصول على نسخة منها؛\n- تصحيح البيانات غير الدقيقة أو غير المكتملة أو إكمالها أو تحديثها؛\n- طلب إتلاف بياناتك الشخصية عندما تنتفي الحاجة إليها؛\n- سحب موافقتك عندما نعتمد على الموافقة.\n\n**كيفية تقديم طلب.** استخدم [نموذج التواصل](https://www.msrc2027.com/ar/contact)، مع اختيار موضوع «الخصوصية وطلبات البيانات»، أو راسلنا على contact@msrc2027.com. وسيرد مسؤول الخصوصية لدينا خلال ٣٠ يومًا.\n\n**التحقق من هويتك.** لحماية بياناتك، نتخذ الإجراءات بشأن الطلبات المرسلة من عنوان البريد الإلكتروني المسجل في حسابك. وإذا لم نتمكن من التأكد من أن الطلب صادر منك، فقد نطلب بيانات إضافية قبل اتخاذ أي إجراء بشأنه.\n\n**القيود.** يجوز لنا رفض الطلب أو تقييده إذا أجاز النظام ذلك، أو إذا كان يتعين علينا الاحتفاظ بسجلات معينة، مثل سجلات التحقق من الشهادات أو سجلات الدفع، للمدد المحددة في القسم ٧. وإذا رفضنا طلبًا، فسنوضح السبب.\n\n## ٩. الأمن والعمر والتغييرات والتواصل\n\n**الأمن.** تُرسل جميع البيانات عبر اتصالات مشفرة. ويُقيّد الوصول إلى البيانات الشخصية بحيث لا يرى المشاركون إلا سجلاتهم الخاصة، ويتعين على المنظمين الذين يتمتعون بصلاحيات وصول موسعة اجتياز عمليات تحقق إضافية عند تسجيل الدخول. ولا تُخزّن كلمات المرور مطلقًا بصيغة مقروءة.\n\n**العمر.** يجب ألا يقل عمر المشاركين عن ١٨ عامًا.\n\n**التغييرات على هذه السياسة.** يوضح كل إصدار من هذه السياسة رقم إصداره وتاريخ سريانه. وإذا أجرينا تغييرًا جوهريًا، فسنعلنه على هذه الصفحة ونُخطر أصحاب الحسابات بالبريد الإلكتروني.\n\n**التواصل.** لأي سؤال بشأن هذه السياسة، استخدم [نموذج التواصل](https://www.msrc2027.com/ar/contact)، مع اختيار موضوع «الخصوصية وطلبات البيانات»، أو راسلنا على contact@msrc2027.com.\n";
+const termsAr = "# شروط وأحكام مؤتمر MSRC ٢٠٢٧\n\n**الإصدار ١.٠** · تسري من تاريخ نشرها على www.msrc2027.com\n\n## ١. عن هذه الشروط\n\nتسري هذه الشروط والأحكام على الموقع www.msrc2027.com وعلى المشاركة في المؤتمر الخامس لأبحاث طلاب الطب (MSRC ٢٠٢٧)، الذي يُعقد في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة، يومي ٢٧–٢٨ يناير ٢٠٢٧.\n\nينظم مؤتمر MSRC ٢٠٢٧ نادي مبادئ البحث العلمي نيابةً عن كلية الطب بجامعة الملك عبدالعزيز (ويُشار إليهما بضمير «نحن»).\n\nبإنشاء حساب أو التسجيل أو تقديم عمل أو المشاركة في أي نشاط من أنشطة المؤتمر، فإنك توافق على هذه الشروط وعلى [سياسة الخصوصية](https://www.msrc2027.com/ar/privacy) الخاصة بنا.\n\n## ٢. الحسابات\n\n- يجب ألا يقل عمرك عن ١٨ عامًا لإنشاء حساب أو المشاركة في المؤتمر.\n- يجوز لكل شخص امتلاك حساب واحد باسمه، باستخدام عنوان بريد إلكتروني يتحكم فيه.\n- لا يصبح حسابك نشطًا إلا بعد التحقق من عنوان بريدك الإلكتروني.\n- يجب ألا تقل كلمة مرورك عن ١٠ أحرف. حافظ على سريتها؛ فأنت مسؤول عن النشاط الذي يتم عبر حسابك.\n- إنشاء حساب لا يعني تسجيلك في المؤتمر.\n- يجوز لنا تعليق أو إغلاق حساب يُستخدم لإساءة استخدام الموقع أو انتحال شخصية شخص آخر أو مخالفة هذه الشروط.\n\n## ٣. التسجيل والقبول\n\nالحضور العام متاح للطلاب وأعضاء هيئة التدريس والعاملين في الرعاية الصحية وغيرهم من المهتمين، بمن فيهم المشاركون الدوليون.\n\n١. **التسجيل منفصل عن حسابك.** بعد إنشاء حساب والتحقق منه، يجب عليك التسجيل في المؤتمر.\n٢. **الأماكن محدودة.** عند شغل جميع الأماكن، يمكنك الانضمام إلى قائمة الانتظار. وإذا توفر مكان، فسنرسل إليك بريدًا إلكترونيًا، ويجب عليك قبوله خلال المدة المحددة في تلك الرسالة.\n٣. **يُؤكد مكانك بالبريد الإلكتروني.** لا يُؤكد مكانك إلا عند تلقي رسالة تأكيد عبر البريد الإلكتروني تتضمن تذكرتك. ولا يضمن تقديم طلب تسجيل وحده الحصول على مكان.\n٤. **يجوز لنا رفض طلب تسجيل**، مثلًا عند اكتمال العدد أو عدم اكتمال البيانات المقدمة. وإذا رفضنا طلب تسجيل، فلن تُحصّل منك أي رسوم، أو ستُرد إليك الرسوم كاملةً.\n٥. **أكّد حضورك.** قبل المؤتمر، سنطلب منك تأكيد أنك لا تزال تنوي الحضور. وقد تُتاح الأماكن التي لم يُؤكد حضور أصحابها بحلول الموعد المحدد للمسجلين في قائمة الانتظار.\n٦. **ورش العمل** تُحجز بصورة منفصلة، وأماكنها محدودة، وتتطلب تسجيلًا مؤكدًا في المؤتمر.\n٧. **تذكرتك** شخصية وغير قابلة للتحويل، ويجب تقديمها على هيئة رمز QR عند مدخل المؤتمر. ويجب عليك تقديم بيانات دقيقة عند التسجيل، بما فيها رقم الهوية الوطنية أو رقم الإقامة (أو رقم جواز السفر للمشاركين الدوليين).\n٨. **المسابقات منفصلة.** لكل من تقديم الأبحاث والهاكاثون ومسابقة أطروحة في ثلاث دقائق طلب مشاركة خاص به. ولا يُعد التسجيل للحضور مشاركةً في أي منها، كما لا يُعد تقديم طلب مشاركة فيها تسجيلًا للحضور.\n\nتُنشر مواعيد التسجيل وأي مواعيد نهائية على الموقع قبل فتح التسجيل.\n\n## ٤. الرسوم والدفع والإلغاء واسترداد الرسوم\n\n- **الرسوم.** تُعرض على الموقع، قبل الدفع، أي رسوم لحضور المؤتمر أو إحدى ورش العمل وما تتضمنه وأي موعد نهائي للدفع. وتُعد هذه التفاصيل جزءًا من هذه الشروط.\n- **الدفع.** تُعالج المدفوعات عبر منصة الدفع التابعة لكلية الطب. ولا يطلب هذا الموقع بيانات بطاقتك ولا يخزّنها مطلقًا. وتصدر الإيصالات عن منصة الدفع.\n- **الموعد النهائي للدفع.** إذا كانت هناك رسوم ولم تُدفع بحلول الموعد المحدد، فقد يُتاح المكان المحجوز لشخص آخر.\n- **الإلغاء من قبلك.** يمكنك إلغاء تسجيلك أو حجز ورشة العمل من حسابك. ويخضع أي استرداد للرسوم لشروط الاسترداد التي عُرضت قبل الدفع.\n- **استرداد الرسوم.** تُعاد المبالغ المعتمدة للاسترداد عبر منصة الدفع التابعة لكلية الطب إلى وسيلة الدفع الأصلية. ولا يكتمل الاسترداد إلا عندما تعيد منصة الدفع الأموال؛ وتعتمد مدة المعالجة على المنصة والبنك الذي تتعامل معه.\n- **الإلغاء أو التغييرات من قبلنا.** إذا ألغينا المؤتمر، فستُرد أي رسوم مدفوعة كاملةً. وإذا ألغينا ورشة عمل حجزتها، فسنرد رسومها أو، متى أمكن، نعرض عليك مكانًا في ورشة عمل أخرى.\n\n## ٥. الأبحاث المقدمة والمسابقات\n\n**إقراراتك.** عند تقديم بحث أو مشاركة في مسابقة، فإنك تؤكد ما يلي:\n\n- أن العمل من إعدادك وإعداد المؤلفين المشاركين أو أعضاء فريقك فعلًا، وأن قائمة المؤلفين أو أعضاء الفريق دقيقة؛\n- أن كل مؤلف أو عضو فريق مدرج قد وافق على التقديم؛\n- أن أي موافقة أخلاقية مطلوبة قد حصلت عليها أو أن حالتها مذكورة بدقة؛\n- أن المشاركة لا تتضمن أي بيانات تكشف هوية المرضى.\n\n**ملخصات الأبحاث.** يجب أن يكون متن الملخص باللغة الإنجليزية، وألا يتجاوز ٣٠٠ كلمة. وتُقبل الدراسات المكتملة والأعمال قيد التنفيذ على حد سواء. ولا يجوز للباحث الرئيس أن يكون لديه أكثر من طلبَي مشاركة نهائيين في هذه الدورة.\n\n**الهاكاثون.** يمكنك المشاركة فرديًا أو ضمن فريق مُشكّل مسبقًا لا يزيد عدد أعضائه على خمسة، بعنوان باللغة الإنجليزية وعرض موجز لا يتجاوز ٣٠٠ كلمة. ويجب أن تكون الأفكار جديدة، وألا يكون قد سبق عرضها أو حصولها على جائزة أو تمويل أو إطلاقها تجاريًا.\n\n**الملكية والإذن.** تحتفظ بملكية عملك وأفكارك. وبالتقديم، فإنك تأذن لنا باستخدام مشاركتك لإجراء المراجعة والتحكيم، وبنشر عناوين المشاركات المقبولة وأسماء مؤلفيها وملخصاتها في برنامج المؤتمر وكتاب الملخصات وقنوات MSRC الرسمية.\n\n**المراجعة والقرارات.** تتولى اللجنة العلمية ولجان التحكيم مراجعة المشاركات. وقد تقدم أداة ذكاء اصطناعي اقتراحات استشارية للمحكّمين، على النحو الموضح في [سياسة الخصوصية](https://www.msrc2027.com/ar/privacy)؛ ولا تتخذ مطلقًا قرارات بشأن النتائج. وجميع قرارات اللجنة العلمية ولجان التحكيم نهائية.\n\nتُنشر المواعيد النهائية وصيغ العروض والجوائز وأي قواعد إضافية للمسابقات على الموقع قبل فتح باب تقديم الطلبات.\n\n## ٦. السلوك والتصوير والشهادات\n\n**السلوك.** يجب على المشاركين معاملة الحاضرين الآخرين والمتحدثين والمتطوعين والموظفين باحترام، واتباع قواعد مقر الفعالية وجامعة الملك عبدالعزيز. ويُحظر إساءة استخدام الموقع، مثل محاولة الوصول إلى بيانات أشخاص آخرين أو إرسال رسائل غير مرغوب فيها عبر نموذج التواصل. ويجوز لنا إلغاء تسجيل مشارك أو إخراجه من الفعالية بسبب سوء سلوك جسيم؛ وفي هذه الحالة، لا يستحق استرداد أي رسوم.\n\n**التصوير والتسجيل.** يُصوّر المؤتمر فوتوغرافيًا ويُسجّل بالفيديو، وقد تُنشر الصور والتسجيلات. وترد التفاصيل، بما فيها كيفية طلب الإزالة، في القسم ٥ من [سياسة الخصوصية](https://www.msrc2027.com/ar/privacy).\n\n**الشهادات.**\n\n- تتطلب شهادة المؤتمر تسجيل الحضور في يومَي المؤتمر وإكمال الاستبيان العام. ولا تُصدر شهادة لمن يحضر يومًا واحدًا.\n- تتطلب شهادات ورش العمل حجزًا مؤكدًا وتسجيل الحضور في الورشة وتأكيد إكمالها وإكمال استبيان الورشة.\n- تُصدر الشهادات بالاسم المقدم عند التسجيل. ويُرجى التأكد من صحته.\n\n## ٧. تغييرات البرنامج والمسؤولية\n\n**تغييرات البرنامج.** قد يتغير المتحدثون والجلسات والأوقات والقاعات. وستُنشر التغييرات على الموقع. ولا تمنح التغييرات في البرنامج المشاركين حق استرداد الرسوم، إلا إذا أُلغي المؤتمر نفسه (انظر القسم ٤).\n\n**المسؤولية.** في الحدود التي يسمح بها النظام:\n\n- لا نتحمل المسؤولية عن تكاليف السفر أو الإقامة أو التأشيرة أو غيرها من التكاليف التي يتكبدها المشاركون للحضور، بما في ذلك عند تغيير الفعالية أو إلغائها؛\n- لا نتحمل المسؤولية عن فقدان المتعلقات الشخصية أو تلفها في مقر الفعالية؛\n- لا نتحمل المسؤولية عن أي إخفاق أو تأخير تسببه أحداث خارجة عن سيطرتنا المعقولة، بما فيها الأحوال الجوية الشديدة وتدابير الصحة العامة وقرارات السلطات أو مقر الفعالية والأعطال التقنية؛\n- يُقدم الموقع «كما هو». ونسعى إلى المحافظة على دقة البيانات وإتاحة الموقع، لكننا لا نضمن استمراره دون انقطاع أو خلوه من الأخطاء.\n\nلا تحد هذه الشروط من أي مسؤولية لا يجوز الحد منها بموجب أنظمة المملكة العربية السعودية.\n\n## ٨. النظام الواجب التطبيق والتغييرات واللغة والتواصل\n\n**النظام الواجب التطبيق.** تخضع هذه الشروط لأنظمة المملكة العربية السعودية.\n\n**التغييرات على هذه الشروط.** يوضح كل إصدار من هذه الشروط رقم إصداره وتاريخ سريانه. ويخضع تسجيلك للإصدار الساري وقت تسجيلك. وإذا أجرينا تغييرًا جوهريًا، فسنعلنه على هذه الصفحة ونُخطر أصحاب الحسابات بالبريد الإلكتروني.\n\n**اللغة.** تُنشر هذه الشروط باللغتين الإنجليزية والعربية. وفي حال وجود أي اختلاف بين النسختين، يُعتد بالنسخة العربية.\n\n**التواصل.** لأي سؤال بشأن هذه الشروط، استخدم [نموذج التواصل](https://www.msrc2027.com/ar/contact) أو راسلنا على contact@msrc2027.com.\n";
+
+const policyCopyV1: Record<Locale, PolicyCopy> = {
   en: {
     home: "Home",
     breadcrumb: "Breadcrumb",
     eyebrow: "Information & policies",
-    status: "Draft — final wording pending",
     version: "Document version",
-    recorded: "Decisions recorded",
-    recordedDate: "4 October 2026",
-    approvalNotice: "This draft records organizer decisions. The final policy and Arabic wording are awaiting review; this draft has no effective date.",
-    decisionStatus: "Organizer decision — draft wording",
-    placeholderStatus: "Placeholder — wording pending",
+    versionLabel: "Version 1.0",
+    effective: "Effective date",
     contents: "On this page",
-    versionLink: "View this dated draft",
-    latestLink: "View the current draft",
+    versionLink: "View this version",
+    latestLink: "View the current version",
     related: "Related pages",
     contact: "Contact",
-    privacy: {
-      title: "Privacy",
-      metadataDescription: "Draft organizer decisions about participant data, retention and privacy requests. Final policy wording is pending.",
-      lead: "How participant data will be handled, with the decisions and unfinished sections visible.",
-      sections: [
-        {
-          id: "responsibility",
-          title: "Who is responsible",
-          status: "organizer-decision",
-          paragraphs: ["The Research Principles Club is responsible for participant data.", "The policy framework is Saudi Arabia’s Personal Data Protection Law (PDPL)."],
-          links: [{ label: "King Abdulaziz University privacy policy", href: "https://kau.edu.sa/en/page/privacy-policy" }],
-        },
-        {
-          id: "current-site",
-          title: "The current website",
-          status: "organizer-decision",
-          paragraphs: ["Participation forms remain closed. The Contact form accepts information only when email delivery is enabled; otherwise it stays closed.", "When Contact is available, the supplied topic, name, email, optional related reference, message and language are sent through Resend to contact@msrc2027.com for a reply. The application keeps no message copy; Supabase holds only expiring hashed anti-spam counters. Resend and the receiving inbox handle the email.", "The organizer describes current visit analytics as cookieless and anonymous, provided by Vercel. Contact is excluded from website analytics."],
-        },
-        {
-          id: "retention",
-          title: "Retention decisions",
-          status: "organizer-decision",
-          paragraphs: ["Registrations and abstracts are deleted one year after the conference.", "The certificate verification record — name, certificate number and date — is kept for two years so certificates can remain verifiable."],
-        },
-        {
-          id: "data-requests",
-          title: "Privacy & data requests",
-          status: "organizer-decision",
-          paragraphs: ["Email contact@msrc2027.com with the topic “Privacy & data requests”. Our privacy lead responds within 30 days."],
-          links: [{ label: "contact@msrc2027.com", href: "mailto:contact@msrc2027.com", direction: "ltr" }],
-        },
-        {
-          id: "photography",
-          title: "Photography & recording",
-          status: "organizer-decision",
-          paragraphs: ["The event is photographed and recorded. The registration page states this clearly."],
-        },
-        {
-          id: "photography-publication",
-          title: "Publishing photographs & recordings",
-          status: "placeholder",
-          paragraphs: ["Placeholder — final wording and publication review pending. The legal basis for publishing identifiable photographs and recordings has not been finalized in this draft."],
-        },
-        {
-          id: "processing",
-          title: "Data use & legal bases",
-          status: "placeholder",
-          paragraphs: ["Placeholder — final wording is pending for account and participation data, authorship, payments, reviews, advisory assessment, attendance, certificates and surveys. Purposes, legal bases and institutional approvals still need review before these workflows open."],
-        },
-        {
-          id: "providers-locations",
-          title: "Service providers & data locations",
-          status: "placeholder",
-          paragraphs: ["Placeholder — service-provider processing, logging, data locations and any transfers await documented review and final wording."],
-        },
-        {
-          id: "retention-details",
-          title: "Retention implementation",
-          status: "placeholder",
-          paragraphs: ["Placeholder — the start of the certificate record’s two-year period, any other retention rules, and deletion across files, exports, logs and backups still need final wording and implementation review."],
-        },
-        {
-          id: "request-process",
-          title: "Request handling & rights",
-          status: "placeholder",
-          paragraphs: ["Placeholder — the verified request procedure, applicable rights, exceptions and removal process await final wording and approval."],
-        },
-      ],
-    },
-    terms: {
-      title: "Terms",
-      metadataDescription: "Placeholder for MSRC 2027 Terms. Final wording is pending.",
-      lead: "The Terms have not been approved. This page reserves a versioned place for the final wording.",
-      sections: [{
-        id: "terms-wording",
-        title: "Terms wording",
-        status: "placeholder",
-        paragraphs: ["Placeholder — final Terms wording and approval are pending."],
-      }],
-    },
+    privacy: parsePolicyMarkdown(privacyEn, "privacy", "How MSRC 2027 collects, uses, shares and protects personal information, including your rights and privacy requests."),
+    terms: parsePolicyMarkdown(termsEn, "terms", "MSRC 2027 Terms and Conditions for accounts, registration, payment, submissions, attendance and certificates."),
   },
   ar: {
     home: "الرئيسية",
     breadcrumb: "مسار التنقل",
     eyebrow: "المعلومات والسياسات",
-    status: "مسودة — بانتظار الصياغة النهائية",
     version: "إصدار الوثيقة",
-    recorded: "تاريخ تسجيل القرارات",
-    recordedDate: "٤ أكتوبر ٢٠٢٦",
-    approvalNotice: "تسجل هذه المسودة قرارات المنظمين. السياسة النهائية والصياغة العربية بانتظار المراجعة؛ وليس لهذه المسودة تاريخ سريان.",
-    decisionStatus: "قرار تنظيمي — صياغة مسودة",
-    placeholderStatus: "نص مؤقت — بانتظار الصياغة",
+    versionLabel: "الإصدار ١.٠",
+    effective: "تاريخ السريان",
     contents: "في هذه الصفحة",
-    versionLink: "عرض هذه المسودة المؤرخة",
-    latestLink: "عرض المسودة الحالية",
+    versionLink: "عرض هذا الإصدار",
+    latestLink: "عرض الإصدار الحالي",
     related: "صفحات ذات صلة",
     contact: "تواصل معنا",
-    privacy: {
-      title: "الخصوصية",
-      metadataDescription: "مسودة لقرارات المنظمين بشأن بيانات المشاركين والاحتفاظ بها وطلبات الخصوصية. الصياغة النهائية للسياسة بانتظار الاعتماد.",
-      lead: "كيفية التعامل مع بيانات المشاركين، مع توضيح القرارات والأقسام التي لم تكتمل بعد.",
-      sections: [
-        {
-          id: "responsibility",
-          title: "الجهة المسؤولة",
-          status: "organizer-decision",
-          paragraphs: ["نادي مبادئ البحث العلمي هو المسؤول عن بيانات المشاركين.", "الإطار الذي تتبعه السياسة هو نظام حماية البيانات الشخصية في المملكة العربية السعودية."],
-          links: [{ label: "سياسة الخصوصية لجامعة الملك عبدالعزيز", href: "https://kau.edu.sa/ar/page/privacy-policy" }],
-        },
-        {
-          id: "current-site",
-          title: "الموقع الحالي",
-          status: "organizer-decision",
-          paragraphs: ["تبقى نماذج المشاركة مغلقة. يقبل نموذج التواصل المعلومات فقط عند تفعيل إرسال البريد الإلكتروني؛ ويظل مغلقًا في غير ذلك.", "عند إتاحة التواصل، تُرسل البيانات المقدمة — الموضوع والاسم والبريد الإلكتروني والمرجع ذي الصلة إن وجد والرسالة واللغة — عبر Resend إلى contact@msrc2027.com للرد. لا يحتفظ التطبيق بنسخة من الرسالة؛ وتحتفظ Supabase فقط بعدّادات مؤقتة بمفاتيح مجزأة للحد من الرسائل المزعجة. تتعامل Resend وصندوق البريد المستلم مع الرسالة.", "يصف المنظمون تحليلات الزيارات الحالية بأنها مجهولة الهوية ومن دون ملفات تعريف الارتباط، وتقدمها Vercel. تُستثنى صفحة التواصل من تحليلات الموقع."],
-        },
-        {
-          id: "retention",
-          title: "قرارات الاحتفاظ بالبيانات",
-          status: "organizer-decision",
-          paragraphs: ["تُحذف بيانات التسجيل والملخصات البحثية بعد سنة من المؤتمر.", "يُحتفظ بسجل التحقق من الشهادة — الاسم ورقم الشهادة والتاريخ — لمدة سنتين لإتاحة التحقق من الشهادات."],
-        },
-        {
-          id: "data-requests",
-          title: "الخصوصية وطلبات البيانات",
-          status: "organizer-decision",
-          paragraphs: ["راسل contact@msrc2027.com مع اختيار موضوع «الخصوصية وطلبات البيانات». يرد مسؤول الخصوصية لدينا خلال ٣٠ يومًا."],
-          links: [{ label: "contact@msrc2027.com", href: "mailto:contact@msrc2027.com", direction: "ltr" }],
-        },
-        {
-          id: "photography",
-          title: "التصوير والتسجيل",
-          status: "organizer-decision",
-          paragraphs: ["يُصوَّر المؤتمر وتُسجَّل فعالياته. توضح صفحة التسجيل ذلك بوضوح."],
-        },
-        {
-          id: "photography-publication",
-          title: "نشر الصور والتسجيلات",
-          status: "placeholder",
-          paragraphs: ["نص مؤقت — الصياغة النهائية ومراجعة النشر بانتظار الاعتماد. لم يُستكمل في هذه المسودة الأساس النظامي لنشر الصور والتسجيلات التي يمكن التعرف فيها على الأشخاص."],
-        },
-        {
-          id: "processing",
-          title: "استخدام البيانات والأسس النظامية",
-          status: "placeholder",
-          paragraphs: ["نص مؤقت — الصياغة النهائية لبيانات الحسابات والمشاركة والتأليف والمدفوعات والمراجعات والتقييم الاستشاري والحضور والشهادات والاستبيانات بانتظار الاعتماد. تحتاج الأغراض والأسس النظامية والموافقات المؤسسية إلى المراجعة قبل فتح هذه الإجراءات."],
-        },
-        {
-          id: "providers-locations",
-          title: "مقدمو الخدمات ومواقع البيانات",
-          status: "placeholder",
-          paragraphs: ["نص مؤقت — معالجة مقدمي الخدمات للبيانات والسجلات ومواقع البيانات وأي نقل لها بانتظار المراجعة الموثقة والصياغة النهائية."],
-        },
-        {
-          id: "retention-details",
-          title: "تنفيذ مدد الاحتفاظ",
-          status: "placeholder",
-          paragraphs: ["نص مؤقت — بداية مدة السنتين لسجل الشهادة وأي مدد أخرى للاحتفاظ والحذف من الملفات والصادرات والسجلات والنسخ الاحتياطية تحتاج إلى صياغة نهائية ومراجعة التنفيذ."],
-        },
-        {
-          id: "request-process",
-          title: "إجراءات الطلبات والحقوق",
-          status: "placeholder",
-          paragraphs: ["نص مؤقت — إجراءات التحقق من الطلبات والحقوق المنطبقة والاستثناءات وإجراءات الإزالة بانتظار الصياغة النهائية والاعتماد."],
-        },
-      ],
-    },
-    terms: {
-      title: "الشروط",
-      metadataDescription: "نص مؤقت لشروط مؤتمر MSRC 2027. الصياغة النهائية بانتظار الاعتماد.",
-      lead: "لم تُعتمد الشروط بعد. تتيح هذه الصفحة مكانًا محدد الإصدار للصياغة النهائية.",
-      sections: [{
-        id: "terms-wording",
-        title: "صياغة الشروط",
-        status: "placeholder",
-        paragraphs: ["نص مؤقت — الصياغة النهائية للشروط واعتمادها بانتظار المراجعة."],
-      }],
-    },
+    privacy: parsePolicyMarkdown(privacyAr, "privacy", "كيفية جمع مؤتمر MSRC ٢٠٢٧ للبيانات الشخصية واستخدامها ومشاركتها وحمايتها، بما فيها حقوقك وطلبات الخصوصية."),
+    terms: parsePolicyMarkdown(termsAr, "terms", "شروط وأحكام مؤتمر MSRC ٢٠٢٧ بشأن الحسابات والتسجيل والدفع والمشاركات والحضور والشهادات."),
   },
 };
 
 export const policyVersions = {
   [currentPolicyVersion]: {
     version: currentPolicyVersion,
-    recordedOn: "2026-10-04",
-    status: "draft",
-    effectiveOn: null,
-    copy: policyDraft20261004,
+    status: "approved",
+    effectiveOn: policyEffectiveDate,
+    copy: policyCopyV1,
   },
 } as const;
 

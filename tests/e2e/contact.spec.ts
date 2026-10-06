@@ -98,6 +98,10 @@ for (const locale of ["en", "ar"] as const) {
     await expect(footerLink).toHaveAttribute("href", `/${locale}/contact`);
     await footerLink.click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/contact$`));
+    // Client navigation updates the URL before streamed route metadata/content
+    // are committed. Assert the destination is ready before scanning it.
+    await expect(page).toHaveTitle(copy[locale].title);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy[locale].heading);
     await page.evaluate(() => document.fonts.ready);
     const accessibility = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])

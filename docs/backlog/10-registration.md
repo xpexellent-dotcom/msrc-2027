@@ -6,21 +6,21 @@ M7; REL-02. Account verification, manual approval, financial completion and admi
 
 ## BL-REG-01 — Submit a registration request with published conditions
 
-- **Source IDs:** REG-01, REG-02, REG-04, REG-05, AUTH-01, PRV-02, DAT-03, TIM-01, API-01
+- **Source IDs:** REG-01, REG-02, REG-04, REG-05, AUTH-01, AUTH-06, PRV-02, PRV-03, PRV-05, PRV-06, DAT-03, TIM-01, API-01
 - **Status:** Planned; production closed.
 - **Purpose:** A verified participant requests attendance while understanding that a request does not confirm admission.
-- **Scope:** Registration migration, owner-scoped draft/request service and bilingual form; record configured two-day declaration and applicable terms version; server gate incomplete event/admission/finance configuration.
-- **Exclusions:** Automatic admission, charging, competition eligibility, compulsory publicity consent and national IDs.
+- **Scope:** Registration migration, owner-scoped draft/request service and bilingual form; record configured two-day declaration and applicable terms version; server gate incomplete event/admission/finance configuration. ORG-039 requires national ID or Iqama number, or passport number for international attendees, at registration for identity verification. Add strict access controls, encryption at rest if feasible and deletion one year after conference (by 28 January 2028). This is future implementation work; the policy-publication PR adds no field/schema/migration.
+- **Exclusions:** Automatic admission, charging, competition eligibility, identifier collection at account creation and a public attendee directory. ORG-039 supersedes the national-ID exclusion for registration; ORG-025 replaces a separate publicity-consent product step with the approved registration notice.
 - **Dependencies:** BL-FND-01; participant verified-account slice; privacy notice/version contract; [DR-CFG-01](DECISION_REQUIRED.md#dr-cfg-01), [DR-CFG-02](DECISION_REQUIRED.md#dr-cfg-02).
 - **Roles:** Participant; Registration/Workshop Administrator reads scoped requests.
 - **States/transitions:** `draft` → `pending_approval`; no transition to `confirmed` on verification or form submission.
-- **Data touched:** Registration, attendance declaration, terms acceptance, edition configuration; account referenced separately.
+- **Data touched:** Registration, identity-verification number, internal attendee list, attendance declaration, terms acceptance, edition configuration; account referenced separately. Minimize access/logs/exports and never expose identifiers in public URLs, analytics or ordinary emails.
 - **Acceptance criteria:** Server rejects unverified users and incomplete live settings; shows approved dates, prices, discount/cancellation rules and capacity before submission; retries create one request with a clear pending result.
 - **English/Arabic:** Full translated labels, instructions and RTL; preserve entered data during locale change.
 - **Accessibility:** Keyboard completion, explicit required labels, error summary/focus, readable conditions and non-color status.
-- **Security/RLS:** Own drafts only; deny cross-account/edition reads and direct writes to approval/financial fields.
+- **Security/RLS:** Own drafts only; deny cross-account/edition reads and direct writes to approval/financial fields. Internal attendee/identity access only for individually authorized organizers by duty; deny reviewer, finance, media and scanner overreach. Assess feasible at-rest encryption and key custody without weakening RLS.
 - **Audit/email:** Record submission actor/time and terms version; queue English receipt after commit with dashboard fallback; no sensitive form echo.
-- **Automated tests:** Verified/unverified, closed configuration, request retry, forged owner/state and locale preservation.
+- **Automated tests:** Verified/unverified, closed configuration, request retry, forged owner/state and locale preservation; identifier validation and denied unrelated organizer/public access; no identifier leakage in logs/exports/URLs/analytics; one-year deletion boundary, controlled exports/files, backup-cycle and restore-suppression evidence.
 - **Manual UAT:** Submit synthetic requests in both locales; inspect admission warning and terms evidence.
 - **Release gate:** REL-02, REL-06; privacy approval before production collection.
 - **Owner type:** Full-stack engineer with registration lead and privacy reviewer.

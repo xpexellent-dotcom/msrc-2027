@@ -1,6 +1,6 @@
 # Payment
 
-M7; REL-02. P1, the authorized KAU arrangement, is selected. The actual interface and official confirmation/reconciliation process are unresolved. Every implementation starts with synthetic transactions and a mock adapter; no API or webhook is assumed.
+M7; REL-02. P1, the authorized KAU arrangement, is selected. ORG-042 (6 October 2026) identifies the Faculty of Medicine payment platform, `lms.waqf.org.sa`, as the payment/receipt/refund platform. The actual interface and official confirmation/reconciliation process remain unresolved. Every implementation starts with synthetic transactions and a mock adapter; no API or webhook is assumed. Policy publication changes no payment code or live workflow.
 
 <a id="bl-pay-01"></a>
 

@@ -2,6 +2,13 @@
 
 These issues establish reusable controls; each feature PR must apply and test them to its own records. A completed control is not approval to collect production data. Source: [Development Specification v0.5](../../sources/Development_Specification_v0.5.txt). Named owners and approval dates remain unassigned.
 
+Current organizer reconciliation: ORG-037–042 (6 October 2026) approve Privacy/Terms
+v1.0, Faculty controller, registration-only national ID/Iqama/international passport,
+DeepSeek in China, minimum age 18 and the stated retention clocks. These supersede
+related source exclusions/TBDs without modifying v0.5. Identifier fields, cleanup,
+DeepSeek transport and operational request/removal safeguards remain backlog work;
+accounts, AI and registration stay closed. Native Arabic reader review is requested.
+
 <a id="bl-sec-01"></a>
 
 ## BL-SEC-01 — Define the server and RLS authorization contract
@@ -103,15 +110,15 @@ These issues establish reusable controls; each feature PR must apply and test th
 ## BL-SEC-05 — Version privacy notices and separate consent purposes
 
 - **Source IDs:** PRV-01, PRV-02, PRV-03, PRV-08, MED-02, MED-03, DAT-01, AT-15.
-- **Status:** Planned; public draft text is not a finalized privacy notice.
-- **Purpose:** Record what a person agreed to without making optional publicity a condition of attendance.
-- **Scope:** Versioned notice/terms references and consent-purpose ledger; approved bilingual notice rendering; distinct publicity and optional-announcement choices with withdrawal evidence.
-- **Exclusions:** Inventing legal controller, legal basis or minor policy; requiring national ID; implementing the separate gallery publication workflow.
+- **Status:** Partial — v1.0 policies and participant notice approved by ORG-037; consent/request evidence implementation and operational release remain separately gated.
+- **Purpose:** Record the applicable policy/terms and distinct optional processing purposes, while honoring the approved registration photography notice and removal rights.
+- **Scope:** Versioned notice/terms references and consent-purpose ledger; approved bilingual v1.0 notice rendering; optional-announcement choices and withdrawal evidence. ORG-025/037 use a clear registration photography notice and approved publication/removal wording without a separate publicity-consent checkbox.
+- **Exclusions:** Inventing controller, legal basis or minor policy beyond approved v1.0; identifier collection during sign-up or consent acknowledgement (registration-only under ORG-039); implementing the separate gallery publication workflow.
 - **Dependencies:** BL-SEC-01; authentication identity; CMS controlled publication; approved privacy content.
 - **Roles:** Participant; authorized privacy owner; Content/Media Editor sees only necessary permission outcomes.
 - **States/transitions:** Notice version published → acknowledgement recorded; optional permission granted/declined → withdrawn; attendance remains governed by its own states.
 - **Data touched:** Notice/terms versions, purpose, subject where applicable, permission wording, timestamps and supporting evidence.
-- **Acceptance criteria:** No unresolved bracket text reaches public notice; publicity refusal does not reject registration; account deletion and publicity withdrawal remain distinct; bystander/minor consent is not inferred from another attendee.
+- **Acceptance criteria:** Exact English and complete faithful Arabic v1.0 rendering, stable accepted versions and no public draft/placeholder text; optional announcements never condition registration; account deletion and media removal remain distinct; minor/bystander permission is not inferred from another attendee. Published notice alone opens no account or registration.
 - **English/Arabic:** Reviewed equivalent public notices and controls; preserve language and exact accepted version.
 - **Accessibility:** Separate clearly labeled choices, no precondition ambiguity, keyboard and screen-reader confirmation.
 - **Security/RLS:** Participants access their own evidence; editors receive minimal publication eligibility; consent text cannot inject markup.
@@ -120,7 +127,7 @@ These issues establish reusable controls; each feature PR must apply and test th
 - **Manual UAT:** Privacy/content reviewers compare both language versions and trace no-photo/removal instructions.
 - **Release gate:** REL-01 notices; production collection gate PRV-01/02.
 - **Owner type:** Privacy owner with full-stack/content engineers.
-- **TBD blocked:** Production publication requires [DR-CFG-09](DECISION_REQUIRED.md#dr-cfg-09) and media assets/policy in [DR-CFG-12](DECISION_REQUIRED.md#dr-cfg-12); synthetic ledger work unblocked.
+- **TBD blocked:** v1.0 publication/notice approval resolved by ORG-037; native Arabic reader review requested. Actual consent/request operations, media asset rights and processing safeguards remain [DR-CFG-09](DECISION_REQUIRED.md#dr-cfg-09)/[DR-CFG-12](DECISION_REQUIRED.md#dr-cfg-12); synthetic ledger work unblocked.
 
 <a id="bl-sec-06"></a>
 
@@ -130,7 +137,7 @@ These issues establish reusable controls; each feature PR must apply and test th
 - **Status:** Planned.
 - **Purpose:** Give people a verified access/correction/deletion or consent-withdrawal route with accountable handling.
 - **Scope:** Restricted privacy-request record and operator workflow for receipt, identity verification, scoped decision, execution evidence and response; exercise a synthetic access request first.
-- **Exclusions:** General support helpdesk; instant destructive account deletion; national-ID collection for verification; unrestricted participant exports.
+- **Exclusions:** General support helpdesk; instant destructive account deletion; routine national-ID collection for privacy-request verification (ORG-039's identifier requirement belongs to conference registration only); unrestricted participant exports.
 - **Dependencies:** BL-SEC-01; BL-SEC-05; support contact route; approved request/retention handling.
 - **Roles:** Requesting participant; designated privacy handler with explicitly authorized access; Super Admin for personal-data export authority.
 - **States/transitions:** Received → verification pending/verified → approved, partially fulfilled or declined with reason → actions recorded → response sent; vocabulary to be finalized in feature note.
@@ -154,12 +161,12 @@ These issues establish reusable controls; each feature PR must apply and test th
 - **Status:** Planned.
 - **Purpose:** Make deletion scope reviewable before any cleanup removes records.
 - **Scope:** Data-class retention catalog with purpose, fields, owner, trigger, duration and exceptions; dry-run plan across database, private objects, exports, media derivatives and logs.
-- **Exclusions:** Executing deletion; treating the one-year ordinary participant default as universal; inventing certificate verification lifespan or financial retention.
+- **Exclusions:** Executing deletion; treating ordinary participant retention as universal; inventing financial/audit retention beyond approved v1.0. ORG-041 resolves the certificate verification clock and specified record periods, without implementing deletion jobs.
 - **Dependencies:** BL-SEC-01; approved privacy retention decisions; domain record inventories; conference-end configuration.
 - **Roles:** Privacy owner; technical operator; domain custodian; Super Admin for restricted review.
 - **States/transitions:** Candidate records → retention eligible/exception restricted/unresolved blocked; dry run changes no participant data.
 - **Data touched:** Retention policy versions, minimal candidate references, approved exceptions, backup-expiry inventory.
-- **Acceptance criteria:** Ordinary participant one-year default remains labeled; unverified seven-day cleanup respects obligations; each exception has approved fields/purpose/duration/owner; no missing date is guessed.
+- **Acceptance criteria:** Inventory follows v1.0: account/registration including identifiers/research deletion by 28 January 2028; minimal certificate record until 28 January 2029; inbox one year after conference, Resend 30 days, spam codes up to 24 hours, never-verified accounts 30 days and published media until removed. Each exception has approved fields/purpose/duration/owner; no missing date is guessed. Controlled exports/files, backup overwrite and restore suppression are mapped and tested before cleanup activation.
 - **English/Arabic:** Bilingual operator explanations; policy identifiers stable across locales.
 - **Accessibility:** Candidate tables have headings and meaningful status text, not color-only classifications.
 - **Security/RLS:** Candidate reports are restricted and minimize personal data; no public export path.

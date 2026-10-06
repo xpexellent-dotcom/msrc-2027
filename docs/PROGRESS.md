@@ -1,5 +1,79 @@
 # Progress and session handover
 
+## 6 October 2026 — Approved Privacy Policy and Terms v1.0 publication
+
+Started `codex/policy-v1-publication` from current `origin/main` at `60c5c7c`.
+GitHub open-PR listing returned no open PRs before implementation; shared logs are
+not feature overlap. Used an isolated managed worktree, preserving the original
+checkout's local changes. Cherry-picked organizer source commit `48017fa` from
+`docs/policy-text-v1` as `113b697`; the two English source files are unchanged.
+Authority and supersession: ORG-037–042. IDs: BL-PUB-08, PRV-01–08, AUTH-01/06/08,
+REG-01/05, AI-01–06, PAY-01/04/05, LOC-01/03, ACC-01, CMS-04, CFG-09/10/12, REL-01/06.
+
+Published exact English wording with complete formal Modern Standard Arabic source
+and equivalent section/list/table structure and localized links. The only source
+header adaptation is displaying the requested version label and actual effective
+date from `src/config/policies.ts`: `2026-10-06`, formatted using the existing EN/AR
+Gregorian date style. Current and stable `/{en|ar}/{privacy|terms}/v1.0` pages share
+approved content; short `/privacy`, `/terms` and `/v1.0` aliases select the site's
+locale preference. Existing design and native section navigation remain; semantic
+row/column table headers and LTR-isolated domains/emails support Arabic reading.
+No public draft banners/placeholders/review notices remain. Retired dated-draft
+URLs return 404. Production pages are indexable with sitemap/hreflang; preview/local
+noindex protection remains.
+
+`approvedParticipantPrivacy` now contains EN/AR v1.0 summaries and stable policy
+links. Closed sign-up shows the summary/link without fields or provider requests.
+Account flags, hosted migrations/settings, database readiness and activation steps
+are unchanged. Faculty of Medicine, KAU controller/RPClub agency, registration-only
+identity numbers/internal list, DeepSeek China, minimum age 18, password minimum 10,
+never-verified deletion after 30 days, Arabic precedence and Faculty payment platform
+are recorded in DECISIONS and related requirements/backlog. Registration identifier
+controls/encryption if feasible/deletion, age enforcement/cleanup and the switch from
+PR #40's disabled Anthropic adapter are separate tasks. No field, migration, payment,
+AI transport, real message, hosted configuration, merge or production deployment.
+
+Executed locally with Node 24.21.0 / pnpm 11.19.0:
+
+| Check | Result and observed evidence |
+| --- | --- |
+| `pnpm install --frozen-lockfile` | PASS; pinned lockfile unchanged. |
+| Final `pnpm check` | PASS; zero-warning lint, route types/tsc, 2,043 unit tests in 46 files, 65-page build. |
+| `pnpm exec playwright test tests/e2e/policies.spec.ts tests/e2e/participant-closed.spec.ts tests/e2e/contact.spec.ts tests/e2e/public-shell.spec.ts tests/e2e/closed-workflows.spec.ts` | PASS; final 114/114, no failed/skipped/retried cases. Exact rendered EN paragraphs/lists/cells, AR structure/links, versions/dates, native keyboard/locale/hash navigation, 320px/200% text, closed accounts and APIs. |
+| `pnpm exec playwright test --config playwright.participant.config.ts` | PASS; 54/54 synthetic desktop/tablet/mobile presentation and recovery cases; no real account/email/provider. |
+| Policy/sign-up axe | PASS; 24 current/stable EN/AR desktop/tablet/phone policy scans and four closed sign-up scans had zero violations. Manual-review items retained; not a full human accessibility audit. |
+| EN/AR phone/desktop screenshot review | PASS; heroes, complete tables and source clauses inspected. Date precedes the Privacy introduction; Arabic payment-domain punctuation isolated correctly. Table-only captures hide floating navigation overlays for unobscured evidence. |
+| `VERCEL_ENV=production pnpm build` then local `node .tools/policy-production-verify.mjs` | PASS; eight policy routes HTTP 200 with index/follow, no X-Robots noindex, correct canonical/hreflang and shared date. Sitemap contains four localized policy entries, retired drafts 404, sign-up notice v1.0/no form, account API 503 closed/no cookie. |
+| Official KAU EN/AR privacy link GETs | PASS; both HTTP 200. All internal policy links checked HTTP 200 by browser suite. |
+| Source/scope/docs checks | PASS; four embedded Markdown strings match source files, exact EN body comparisons, original English source unchanged; no package/lockfile/Supabase/AI/workflow-flag diff; 156 relative doc file targets resolve (anchors not checked), 165 unique issue rows and unchanged 212 source-coverage rows. |
+
+The first affected browser run passed 114/114. After the date-placement adjustment,
+a second run passed 113/114 and caught a Contact test route-readiness race: URL
+arrival preceded streamed title metadata, so axe scanned an empty title. Trace
+proved the timing; added exact destination title/H1 assertions before axe and kept
+all rules/assertions. Focused EN/AR desktop/tablet/mobile repeat passed 18/18, then
+the final full affected set passed 114/114 after the Arabic bidi/evidence corrections.
+No retry, sleep, timeout increase or weakened assertion. Existing Next NoFallbackError
+server logs occur on deliberate invalid-route probes; asserted responses are 404 and
+valid policy pages report no browser errors. Failure trace and diagnosis are retained.
+
+Ignored local evidence: `deliverables/policy-v1.0/` (check/browser logs, 24 axe JSON,
+full-page/hero/table EN/AR screenshots, retained Contact failure and production
+verification JSON); normal Playwright reports contain the attached evidence.
+Hosted CI is verified separately on the exact pushed PR head and reported in the PR
+checks/task handoff; these local passes do not infer hosted success.
+
+NOT TESTED: native Arabic reader/editorial approval, physical phones, screen reader,
+Safari/Firefox, real inbox/processor/payment/data-deletion execution and hosted
+workflow activation. Organizers should have a native Arabic reader review both
+translations because Arabic Terms prevail; this publication task does not certify
+that review. Next: merge/release the reviewed policy PR, then separately implement
+approved registration identifier safeguards, age/30-day cleanup and DeepSeek switch
+before opening their corresponding workflows. Rollback: revert this publication
+commit; leave account/AI flags and hosted readiness unchanged. Feature handoff:
+[Contact and policy publication](features/contact-privacy-terms.md).
+
+
 ## 5 October 2026 — PR #41 confirmed venue details and corrected map
 
 Continued the attached `codex/organizer-copy-venue-numbering` worktree from

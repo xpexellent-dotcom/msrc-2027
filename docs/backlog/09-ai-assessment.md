@@ -1,15 +1,15 @@
 # AI assessment
 
-Separate approval-dependent M6 capability. Human review can open with this capability disabled. Assessment is advisory; it is not deterministic validation, originality checking, or a decision publisher. On 5 October 2026 the requester selected the Claude API (`@anthropic-ai/sdk`, `claude-opus-5-5`) for the disabled foundation and synthetic harness (ENG-018). Real-manuscript processing remains unapproved; the DeepSeek prototype is not used. [Implementation and activation notes](../features/ai-assessment.md).
+Separate approval-dependent M6 capability. Human review can open with this capability disabled. Assessment is advisory; it is not deterministic validation, originality checking, or a decision publisher. ORG-040 (6 October 2026) selects DeepSeek, processing in the People's Republic of China, superseding ENG-018's Claude provider choice. PR #40's built `@anthropic-ai/sdk`/`claude-opus-5-5` adapter remains unchanged in the policy-publication PR. Switch it to DeepSeek in separate work before activation; keep AI disabled. The historical DeepSeek prototype is not adopted automatically. [Implementation and activation notes](../features/ai-assessment.md).
 
 <a id="bl-ai-01"></a>
 
 ## BL-AI-01 — Define a disabled advisory adapter with sanitized inputs
 
 - **Source IDs:** AI-01, AI-02, AI-05, PRV-07, CFG-10.
-- **Status:** Disabled adapter and synthetic harness implemented for review; live processing and integration remain blocked by approval/dependencies. Acceptance evidence: [test matrix](../features/ai-assessment-acceptance.md).
+- **Status:** Disabled Anthropic adapter and synthetic harness implemented; DeepSeek switch required by ORG-040 before activation. Live processing/integration remain blocked. Existing evidence is specific to the built adapter: [test matrix](../features/ai-assessment-acceptance.md).
 - **Purpose:** The platform can isolate approved scientific assessment from confidential identity/evidence and from the decision authority.
-- **Scope:** Server-only adapter contract, explicit activation gate, locked snapshot/rubric input, allowlisted scientific fields, body identity checks, provider configuration validation and synthetic implementation.
+- **Scope:** Server-only adapter contract, explicit activation gate, locked snapshot/rubric input, allowlisted scientific fields, body identity checks, provider configuration validation and synthetic implementation. Backlog task: switch the transport/configuration/provenance to DeepSeek under ORG-040, preserving disabled defaults and all confidentiality/manual-review controls; verify actual official APIs, terms/retention/training, China transfer safeguards, model/rubric/budget settings and repeat provider-specific synthetic/evaluation checks before activation. No provider code changes in the policy PR.
 - **Exclusions:** Live real-manuscript calls, independent reviewer uploads to external tools, author/account/contact/affiliation/licence data, IRB/similarity evidence, automatic publication. A separate opt-in local script accepts only the fixed synthetic corpus; it is never run in CI.
 - **Dependencies:** BL-REV-01, BL-REV-02; BL-SEC-01; [DR-CFG-10](DECISION_REQUIRED.md#dr-cfg-10).
 - **Roles:** Scientific/privacy owners approve processing; authorized integration administrator configures; reviewers use approved in-platform results only.

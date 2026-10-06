@@ -171,24 +171,24 @@ its unresolved-date/media status. The full public sitemap is still incomplete.
 
 ## BL-PUB-08 — Render approved Privacy and Terms versions
 - **Source IDs:** SCP-02, PRV-01, PRV-02, PRV-08, PAY-08, MED-02.
-- **Status:** Partial — labeled versioned EN/AR drafts implemented; final Emad wording and legal release evidence pending (ORG-022–026).
+- **Status:** Approved v1.0 English source and complete EN/AR publication slice under ORG-037; actual verification receipts belong in PROGRESS. Native Arabic reader review is requested; operational collection/payment release remains separately gated.
 - **Purpose:** Let people read applicable notices before providing data or buying participation.
-- **Scope:** Read-only latest and dated bilingual Privacy/Terms routes, organizer responsibility/retention/request facts, KAU policy links and registration photography notice. Version 2026-10-04-draft has no effective date and grants no consent/collection permission.
-- **Exclusions:** Inventing legal bases/obligations or legal certification. ORG-025 expressly supersedes the former "no default publicity consent" exclusion with the organizer's notice-only product decision; lawful publication and final wording remain gates, not implied approvals.
+- **Scope:** Exact organizer-approved English Privacy/Terms v1.0 source and faithful formal Arabic translation, shared effective date `2026-10-06`, existing section navigation/tables/design, latest and stable `/v1.0` URLs. Production metadata/sitemap include both locales with hreflang; preview/local noindex protections remain. Retired dated draft routes are unlinked and return 404. Approve the EN/AR participant Privacy v1.0 summary/link while keeping accounts closed.
+- **Exclusions:** Rewording approved English, inventing obligations or legal certification, registration identifier fields, operational account/auth activation, retention/provider/payment implementation, hosted migrations or workflow opening. The required approved privacy registry, notice summary/link and closed sign-up display are included. ORG-025's notice-only product decision and ORG-037's approved photography wording do not authorize unreviewed media assets.
 - **Dependencies:** BL-SEC privacy-policy issues; DR-CFG-09; payment terms DR-CFG-02; BL-CMS-02.
 - **Roles:** Visitor; privacy owner; authorized publisher.
-- **States/transitions:** Clearly labeled, unindexed organizer-decision draft → Emad/institutional review → approved effective version → superseded retained version. Only the first state is implemented.
+- **States/transitions:** Organizer-approved v1.0 source → exact EN/complete AR publication and approved notice → future superseded retained version. Historical draft is retired; approval of text never activates a collection workflow.
 - **Data touched:** Notice/terms versions and publication evidence; no consent collection in this slice.
-- **Acceptance criteria:** Every unapproved section is a placeholder. No draft permits live collection/payment/publication. Photography fact is shown; notice alone is not asserted as a lawful basis. Optional announcement preferences preserved. Terms remains a placeholder until Emad supplies wording; seller/refund approval still precedes payment.
-- **English/Arabic:** Approved equivalents in both languages; no machine translation treated as legal approval.
+- **Acceptance criteria:** Every approved section, paragraph, list/table and link renders; no public draft/placeholder/review notice remains. The two policies show "Version 1.0" and the shared effective date, are indexable in production and have bilingual sitemap alternates. Sign-up references Privacy v1.0 with accounts closed; unknown/retired versions return 404. No registration/account/AI/payment activation or hosted change.
+- **English/Arabic:** Complete formal Modern Standard Arabic translation with equivalent structure/tables/localized links and consistent legal terms. Arabic Terms prevail; organizers should have a native reader review the translation. Exact approved English remains unchanged.
 - **Accessibility:** Headings, anchors and readable plain text; mobile/zoom and long Arabic paragraphs checked.
-- **Security/RLS:** Authorized drafts are explicitly labeled and noindex, excluded from the sitemap/analytics; unknown versions/locales denied. Read-only source content, no CMS edits/consent records/storage/schema changes.
-- **Audit/email:** Dated decision/source history versions this preview; no production policy activation, notification or consent collection.
-- **Automated tests:** Version/contact/placeholder parity, production draft noindex, unknown-version/locales 404, EN/AR/footer/anchors/axe/responsive behavior, no mutation or browser storage.
+- **Security/RLS:** Read-only policies and approved notice do not bypass server/database readiness. Unknown/retired versions/locales denied; existing analytics route allowlist is unchanged. No CMS edits/consent records/storage/schema changes.
+- **Audit/email:** Dated decision/source history records approval and version; no policy email, real participant communication or consent collection in this slice.
+- **Automated tests:** Exact English source coverage and complete Arabic sections/tables/links, version/effective-date/notice, production indexing/sitemap alternates and preview noindex, retired/unknown-version/locales 404, EN/AR/footer/anchors/axe/phone/desktop behavior and default-off account API/routes.
 - **Manual UAT:** Privacy/finance owners verify actual processing/collection behavior matches notices.
 - **Release gate:** REL-01 public legal/contact gate and before production collection/payment.
 - **Owner type:** Content engineer with institutional privacy/legal owner.
-- **TBD blocked:** Final Emad wording/translation and institutional/privacy/processing/location/media-basis evidence DR-CFG-09/02; certificate retention clock start and other retention settings still pending. Closed draft foundation unblocked; see [feature note](../features/contact-privacy-terms.md).
+- **TBD blocked:** English approval/version/controller/identified retention clocks resolved by ORG-037–042. Native Arabic reader review is requested; actual processing/transfer/retention/restore, media rights/removal and payment/activation evidence remain DR-CFG-09/02 gates. See [feature note](../features/contact-privacy-terms.md).
 
 <a id="bl-pub-09"></a>
 

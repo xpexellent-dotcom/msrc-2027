@@ -4,6 +4,7 @@ import { resolveParticipantConfig } from "@/features/participant-accounts/config
 import { createParticipantHandler } from "@/features/participant-accounts/handler.server";
 import type { ParticipantBackend } from "@/features/participant-accounts/backend.server";
 import { participantCodeEmail } from "@/features/participant-accounts/email.server";
+import { approvedParticipantPrivacy, participantNotice } from "@/features/participant-accounts/privacy.server";
 import { nativeSessionId, participantCookie, participantFormToken, participantHash, readParticipantFormToken, readParticipantSession,
   sealParticipantSession } from "@/features/participant-accounts/security.server";
 import { normalizeParticipantCode, validateParticipantPayload } from "@/features/participant-accounts/validation.server";
@@ -70,8 +71,17 @@ describe("participant accounts closed-by-default and private server protocol", (
     { PARTICIPANT_SUPABASE_SECRET_KEY: "sb_secret_real" }, { RESEND_API_KEY: "re_real" }, { PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT: "100" }])("refuses hybrid test/hosted config %j", (change) => {
     expect(resolveParticipantConfig({ ...env, ...change }).state).toBe("unavailable");
   });
-  it("cannot approve the current draft by turning on production environment flags", () => {
-    expect(resolveParticipantConfig({ ...env, VERCEL: "1", VERCEL_ENV: "production", PARTICIPANT_ACCOUNTS_TEST_MODE: "false" }).state).toBe("closed");
+  it("registers approved v1.0 notices without enabling accounts or admitting synthetic provider settings in production", () => {
+    for (const locale of ["en", "ar"] as const) {
+      const notice = participantNotice(locale, false);
+      expect(notice).toEqual(approvedParticipantPrivacy?.[locale]);
+      expect(notice).toMatchObject({ version: "v1.0", url: `/${locale}/privacy/v1.0` });
+      expect(notice?.summary.length).toBeGreaterThan(30);
+      expect(notice?.summary).not.toMatch(/draft|placeholder|awaiting|مسودة|بانتظار/i);
+      expect(participantNotice(locale, true)).toMatchObject({ version: "synthetic-privacy-ci-v1", url: `/${locale}/privacy` });
+    }
+    expect(resolveParticipantConfig({ ...env, PARTICIPANT_ACCOUNTS_ENABLED: undefined }).state).toBe("closed");
+    expect(resolveParticipantConfig({ ...env, VERCEL: "1", VERCEL_ENV: "production", PARTICIPANT_ACCOUNTS_TEST_MODE: "false" }).state).toBe("unavailable");
   });
   it.each(["new", "duplicate", "unknown", "quota", "native-error", "delivery-error", "database-error"])("signup/reset response never reveals private %s", async (outcome) => {
     const { backend, post } = fixture();
