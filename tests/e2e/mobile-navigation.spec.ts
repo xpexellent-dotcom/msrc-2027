@@ -74,6 +74,37 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
+  // Live QA 2026-10-08: tabbing past the open panel focused links hidden under it, and a press
+  // on the page left it covering the content.
+  test(`${locale} mobile menu closes when focus or a press moves past the header`, async ({ page, isMobile, browserName }) => {
+    test.skip(!isMobile, "Mobile disclosure navigation only.");
+    test.skip(browserName === "webkit", "WebKit's default keyboard policy tabs to controls, skipping links.");
+    await page.goto(`/${locale}/about`);
+    const toggle = page.locator(".menu-toggle");
+    const menu = page.locator(".mobile-menu");
+    // Hydrated once the toggle responds (the countdown helper is homepage-only).
+    await expect(async () => {
+      await toggle.click();
+      await expect(menu).toBeVisible({ timeout: 500 });
+    }).toPass();
+    const links = menu.getByRole("link");
+    await links.last().focus();
+    await page.keyboard.press("Tab");
+    await expect(menu).toHaveCount(0);
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(await page.evaluate(() => document.querySelector(".site-header")!.contains(document.activeElement))).toBe(false);
+    await toggle.click();
+    await expect(menu).toBeVisible();
+    // The page gutter, below the panel: no control there.
+    await page.mouse.click(4, page.viewportSize()!.height - 10);
+    await expect(menu).toHaveCount(0);
+    await expect(page).toHaveURL(new RegExp(`/${locale}/about$`));
+    await toggle.click();
+    await expect(menu).toBeVisible();
+    await links.first().focus();
+    await expect(menu).toBeVisible();
+  });
+
   test(`${locale} narrow enlarged mobile menu fits the viewport and reaches its last destination`, async ({ page, isMobile }) => {
     test.skip(!isMobile, "Mobile disclosure navigation only.");
     await page.emulateMedia({ reducedMotion: "reduce" });
