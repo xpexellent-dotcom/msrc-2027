@@ -1,5 +1,31 @@
 # Progress and session handover
 
+## 8 October 2026 — Authorized password-release resumption prepared
+
+ORG-048 explicitly resumes the reviewed release without migration/bootstrap replay.
+The application remains reviewed main `2f677bedd9e1773508286cc5d8db79780801cc37`;
+draft PR #45 stays separate. A new account-only attempt namespace binds all mutable
+release/closure/handoff records and hashes the complete reviewed operator/verifier
+source chain. The already-committed nine-version history is preserved. Gate-only
+compare-and-set and database-first same-operation closure use the reviewed native
+transaction protocol; only owned pending build states may wait for readiness.
+
+Private input handling now requires explicit named fields, rejects ambiguous
+labels/legacy lines and preserves exact password bytes. Provider checks require
+no staff password. Pure tests PASS: 66 parser, 17 namespace/binding and 42 readiness
+(125 total). Focused shared-sign-in/menu/authorization contract tests PASS761 in
+six files: one EN/AR route, live database roles and server permission checks,
+existing assurance selection, no public signup/role picker or password trimming.
+Other real staff identities remain absent; role coverage is synthetic/native CI.
+
+Named private validation found missing fields/ambiguous legacy format. Values
+were withheld, account-only ACL passed, and the owner was asked to correct the
+existing private file. Hosted preflight/flags/deployment/human rotation/new-password
+TOTP remain PENDING. No new hosted action, migration replay, bootstrap, account,
+factor reset, password change or real email has occurred in this resumption.
+See [the resumption execution record](features/STAFF_PASSWORD_RELEASE_RESUMPTION.md)
+for reviewed steps, remaining checks, source-review boundaries and failure handling.
+
 ## 8 October 2026 — Owner-change migration verified; first release stopped and closed
 
 The organizer clarified that the privately updated value is a requested account

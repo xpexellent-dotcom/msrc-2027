@@ -2094,3 +2094,27 @@ idle / eight-hour absolute session policy. The additional migration and new
 password-change flow are not part of the six completed setup receipts. Account
 password change is NOT APPLIED until the reviewed flow is activated and the
 owner completes it privately. IDs: BL-AUTH-01/05/06, AUTH-03/04/05, SEC-01/02/06.
+
+## ORG-048 — Resume the reviewed owner password-change release, 8 October 2026
+
+The organizer explicitly authorizes completing the release with the corrected
+readiness check under the existing restricted setup authority. Do not replay
+migrations or bootstrap. Use a new attempt, preserve the stopped first attempt,
+verify the already-committed migration and current closed state, then enable only
+the reviewed password-change gates and verify the owned serving deployment.
+
+The owner privately confirms the currently working password and their retained
+authenticator, chooses a fresh replacement, and verifies a new-password/TOTP
+sign-in. Preserve the authenticator, audit the committed change and revoke old
+sessions. Do not substitute another-admin lost-access recovery or infer a password
+from a label, a database password or an unlabelled line. Private input fields must
+be explicitly named; preserve literal password bytes without silent trimming,
+quote removal or normalization. No password or TOTP value is requested in chat.
+
+All invited staff use the same EN/AR sign-in. Current persisted database roles
+select the applicable assurance, menu and server-enforced permissions: Super
+Admins receive their authorized tools and other staff their assigned tools.
+Preserve the two-admin/self-protection/recovery safeguards, the restricted
+single-admin pairing state, and closed unrelated workflows. No additional account
+or real email is authorized by this resumption. IDs: BL-AUTH-01/05/06,
+BL-RPT-01/03, ROL-01/07/10/12, SEC-01/02/06, LOC-01/03.
