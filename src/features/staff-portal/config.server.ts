@@ -3,7 +3,7 @@ import "server-only";
 export interface StaffConfig {
   testMode: boolean; securitySecret: string; supabaseUrl: string; publishableKey: string;
   secretKey: string; resendKey: string; resendUrl: string; editionKey: string;
-  emailDailyLimit: number; origins: readonly string[];
+  emailDailyLimit: number; origins: readonly string[]; passwordChangeEnabled: boolean;
 }
 export type StaffReadiness = { state: "closed" | "unavailable" } | { state: "ready"; config: StaffConfig };
 
@@ -30,6 +30,7 @@ export function resolveStaffConfig(env: Readonly<Record<string, string | undefin
   }
   return { state: "ready", config: Object.freeze({ testMode, securitySecret: securitySecret!, supabaseUrl: supabaseUrl!,
     publishableKey: publishableKey!, secretKey: secretKey!, resendKey: resendKey!, editionKey: editionKey!, emailDailyLimit: Number(limit),
+    passwordChangeEnabled: env.STAFF_PASSWORD_CHANGE_ENABLED === "true",
     resendUrl: testMode ? "http://127.0.0.1:3220/emails" : "https://api.resend.com/emails",
     origins: Object.freeze(testMode ? ["http://127.0.0.1:3219"] : ["https://msrc2027.com", "https://www.msrc2027.com"]) }) };
 }

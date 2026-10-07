@@ -5,18 +5,24 @@ import { auditActionLabel, auditActions, auditResultLabel, auditResults, auditSe
 function enumValues(path: string, column: string) {
   const source = readFileSync(new URL(`../../supabase/migrations/${path}`, import.meta.url), "utf8");
   const sql = path === "20261006224926_staff_portal_foundation.sql" ? source.slice(source.indexOf("create table msrc_staff.audit")) : source;
-  const enumText = sql.match(new RegExp(`${column} text not null check\\s*\\(\\s*${column} in \\(([^)]+)\\)`))?.[1];
+  const enumText = (sql.match(new RegExp(`${column} text not null check\\s*\\(\\s*${column} in \\(([^)]+)\\)`))
+    ?? sql.match(new RegExp(`check\\s*\\(\\s*${column} in \\(([^)]+)\\)`)))?.[1];
   expect(enumText, path).toBeTruthy();
   return [...enumText!.matchAll(/'([^']+)'/g)].map((match) => match[1]);
 }
 
 describe("LOC-03 bilingual immutable audit labels", () => {
   const actions = [
-    ...enumValues("20261006224926_staff_portal_foundation.sql", "action"),
+    ...enumValues("20261007195540_staff_password_change.sql", "action"),
     ...enumValues("20261002173712_persisted_authorization.sql", "event"),
     ...enumValues("20261002193800_staff_mfa_session_foundations.sql", "event"),
     ...enumValues("20261002233353_regular_staff_email_check.sql", "event"),
   ];
+  it("adds ordinary owner password change without dropping existing audited actions", () => {
+    expect(enumValues("20261007195540_staff_password_change.sql", "action").sort()).toEqual([
+      ...enumValues("20261006224926_staff_portal_foundation.sql", "action"), "password_change",
+    ].sort());
+  });
   it("covers every current SQL action and result enum in both languages", () => {
     expect(Object.keys(auditActions.en).sort()).toEqual(actions.sort());
     expect(Object.keys(auditActions.ar).sort()).toEqual(Object.keys(auditActions.en).sort());

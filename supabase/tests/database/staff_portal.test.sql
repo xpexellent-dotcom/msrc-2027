@@ -5,7 +5,7 @@ set local search_path=public,extensions;
 select no_plan();
 select has_schema('msrc_staff','Portal state is isolated in a private schema');
 select is((select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='msrc_staff'
- and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),9::bigint,'Every private portal table enables and forces RLS');
+ and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),10::bigint,'Every private portal table enables and forces RLS');
 select is((select count(*) from pg_policies where schemaname='msrc_staff'),0::bigint,'No client policy exposes staff tables');
 select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role')) r(name) where has_schema_privilege(r.name,'msrc_staff','USAGE')),'No API role can use the private schema');
 select ok(not (public.msrc_staff_status()->>'enabled')::boolean,'Database portal starts closed');
