@@ -1,6 +1,6 @@
 # Progress and session handover
 
-## 7 October 2026 — Restricted staff resumption READY/live-verified; human password/TOTP input pending
+## 7 October 2026 — First-admin sign-in/TOTP verified; updated private credential reconciliation pending
 
 ORG-046's persistent restricted setup authorization remains in effect. All six
 reviewed hosted migrations genuinely committed and were verified individually;
@@ -82,8 +82,8 @@ a successful human sign-in.
 
 Historical sanitized diagnosis: five native Auth logs during 18:11–18:24 UTC all returned
 400 `invalid_credentials`, with no database/permission/hook errors reported.
-A private in-memory bcrypt 5.0.0 comparison passed at 18:23:39.170 UTC: the current
-saved staff email/password match the stored account. No values/hashes were
+A private in-memory bcrypt 5.0.0 comparison passed at 18:23:39.170 UTC: the staff
+email/password saved at that historical checkpoint matched the stored account. No values/hashes were
 displayed, no Auth session was created and no reset was performed by that check.
 This does not establish what was entered in the failed human attempt.
 
@@ -114,19 +114,55 @@ application source, project/org/repository/owner and apex/www binding. At
 sign-in/noindex checks, three anonymous privileged denials, 16 participant/
 operational closed checks and public navigation/robots staff exclusion.
 
-Fresh read-only native baseline PASSED at 18:47:06.987 UTC: one user/profile/
+Historical pre-enrollment native snapshot PASSED at 18:47:06.987 UTC: one user/profile/
 account/grant and one active Super Admin; factors, sessions, invitations, recovery
 holds, admissions, participant profiles, staff email challenges and native OTP
 all zero; cap 36/day and pairing false. Both current staff gates are true for
 restricted onboarding of this existing single admin. Participant/generic readiness
 stays false. Blank English browser refreshed for private handoff; human password/
-TOTP input requested at 18:47 UTC remains PENDING — NOT TESTED.
+TOTP input requested at 18:47 UTC was PENDING — NOT TESTED at that snapshot.
 
 Independent operator-helper review caught the separate existing 20 form-events/
 IP/hour ceiling and added a conservative pre-enable guard. Receipt checks require
 strict booleans; counters were never reset/bypassed. No application/migration/
 product code changed in this round. Native credentials and anonymous checks do
 not complete human browser/TOTP or wider paired-admin acceptance.
+
+CURRENT COMPLETION: the person reports completed own-device authenticator
+enrollment and that staff sign-in works. This is manual human-reported completion.
+Independent reviewed read-only native SQL PASSED at 18:58:37.866 UTC:
+
+- One user/profile/account/grant and one active individually identified Super Admin.
+- Verified TOTP factors 1, unverified 0, other factor types 0.
+- Native staff/password/native-bound TOTP AAL2/live-observed strongest-assurance
+  session counts each 1, describing the same completed flow. Current native
+  authentication time matches last sign-in and profile last sign-in is recorded.
+- Audited sign-in allowed, TOTP enrollment/challenge/verification completed each 1.
+- Pairing false; staff gate true/cap 36; recovery/invitations/admissions/participant
+  profiles/staff email challenges/native OTP all 0; participant/generic readiness false.
+
+This proof inspected the person's completed flow without creating/entering
+authenticator material. Actual signed-home DOM is NOT OBSERVED because the
+person's staff tab is outside controlled browser inventory; no automated
+signed-home DOM pass is claimed. Other-admin recovery, real inbox, paired-admin/
+wider staff UAT, live axe and Arabic native-reader acceptance remain NOT COMPLETED.
+Existing synthetic/CI checks are separate. Private credential/identity values are
+not recorded, and no second account/invitation or operational workflow is opened.
+Post-completion live receipt PASSED at 19:03:47.271 UTC:
+`first-admin-onboarding-resume-1-after-human-live`, on the same serving deployment,
+with two EN/AR SSR/noindex checks, three anonymous privileged denials, 16 participant/
+operational closed checks and no public staff navigation/robots exclusion PASS.
+Its explicit `strongAssuranceVerifiedByThisProbe=false` keeps anonymous HTTP proof
+separate from the human report/read-only native strongest-assurance proof at
+18:58:37.866 UTC. Fresh private-input ACL boolean PASSED for current-Windows-account
+access only, with values/location withheld. At 19:06:15.068 UTC, reviewed read-only
+bcrypt validation of the newly saved private password returned STOP: email matches
+the account, password does not. No value/hash was displayed and no session,
+mutation, reset or email resulted. Earlier matching receipts remain historical.
+The completed human/native sign-in evidence remains valid; further credential-
+dependent operator steps are stopped pending the exact working private input.
+The person was asked to reconcile the saved password privately. Editing an input
+file does not update the hosted account, and no self-reset/bootstrap replay is authorized.
 
 On failure with a known ended enabling transaction, immediately close native
 `msrc_staff.policy.enabled`, keep/set `STAFF_PORTAL_ENABLED=false` and redeploy as

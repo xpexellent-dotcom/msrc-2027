@@ -6,8 +6,12 @@ bootstrap are COMPLETED AND VERIFIED; bootstrap occurred with both staff gates
 closed. After the reported input failures, verified closure and a successful
 direct native credential test, reviewed restricted resumption is now READY and
 its live boundaries have PASSED. Both staff gates are true for the existing single
-admin with pairing false. Fresh native baseline has zero sessions/factors/invites/
-recovery holds. Human password/TOTP input is PENDING and NOT TESTED.
+admin with pairing false. The person reports completed sign-in/own-device
+authenticator enrollment; independent read-only native verification PASSED at
+18:58:37.866 UTC with one verified TOTP factor and one bound AAL2 staff session.
+Signed-home DOM was not observed through the controlled browser inventory.
+The subsequently updated private credential does not match the account;
+credential-dependent operator steps are STOPPED pending private reconciliation.
 Participant and other operational gates remain closed.**
 
 Scope: BL-AUTH-01/05/06, BL-RPT-01/03, ROL-10/12, AUTH-04/05, SEC-01/02/06,
@@ -35,7 +39,7 @@ identity values, authenticator seeds, codes, cookies or raw provider diagnostics
 | Production application revision at this checkpoint | Merged `main` `bbb790f1c70d4f770ddc221a3cde8f6f01edbab2`; distinct from the reviewed operator revision |
 | Historical restricted Production deployment | `dpl_F2261YzD9AnzeoH3syXL9vANggtC`, verified READY at 18:06:31.656 UTC with the exact application SHA and source/org/repository/project/owner-team binding; apex and www aliases verified |
 | Historical failure closure | Native `msrc_staff.policy.enabled=false` verified first; Production `STAFF_PORTAL_ENABLED=false` verified second. False-flag deployment `dpl_84xySREwUbFjn3HdN7jojavpuqfe` READY at 18:22:06.082 UTC, exact application SHA/owner/project/apex/www verified; fresh live closure 19/19 PASS at 18:24:29.004 UTC. |
-| Current restricted resumption | `dpl_3fLCso6cBALW2RiCQdKBJXZyfhSP` READY/current serving Production at 18:45:50.502 UTC, exact application SHA/project/org/repository/owner/apex/www verified. Restricted staff gates true; participant/generic readiness false; human input PENDING. |
+| Current restricted resumption | `dpl_3fLCso6cBALW2RiCQdKBJXZyfhSP` READY/current serving Production at 18:45:50.502 UTC, exact application SHA/project/org/repository/owner/apex/www verified. Restricted staff gates true; participant/generic readiness false; first-admin manual completion reported and independently native-verified. |
 | Review | [Draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45); not a claim that its application revision is deployed |
 | Database target | The designated Supabase Production project in ORG-017; target/native identity independently verified by the operator |
 | Previously applied files | `20261002173712_persisted_authorization.sql` and `20261004114603_contact_abuse_counters.sql`; both SKIPPED for this sequence, preserved without reapplication |
@@ -223,17 +227,17 @@ readiness and anonymous boundaries do not prove human Auth.
   the later resumption checkpoint below.
   Only the person may enroll their own authenticator and provide its current code;
   no elapsed time or unanswered prompt is treated as completion.
-- [ ] **PENDING — NOT TESTED:** The person enrolls their own authenticator from the private QR
+- [ ] **HISTORICAL PENDING SNAPSHOT:** Before completion, the person needed to enroll their own authenticator from the private QR
   screen and supplies their own current code. Record password/TOTP outcome without
   seed, code, password, session or identity details.
-- [ ] **PENDING:** Verify restricted first-admin admission and strongest assurance,
+- [ ] **HISTORICAL PENDING SNAPSHOT:** Verify restricted first-admin admission and strongest assurance,
   server/database role checks, revocation and idle/absolute policy. Do not claim
   peer recovery availability, completed pairing or wider acceptance with one admin.
 
 ### Historical input failure, verified closure and native credential diagnosis
 
-The person reported that password sign-in failed. Human browser password sign-in
-is not recorded as passed and authenticator TOTP remains NOT TESTED. Sanitized native
+The person reported that password sign-in failed. At that historical checkpoint,
+human browser password sign-in had not passed and authenticator TOTP was NOT TESTED. Sanitized native
 diagnosis and credential-input clarification are recorded below; no cause is
 assumed from the reported UI failure and no credentials or raw provider
 diagnostics are reproduced here.
@@ -252,8 +256,8 @@ diagnostics are reproduced here.
   HTTP 400 `invalid_credentials`; no database, permission or hook errors were
   reported. This is the observed rejection category, not proof of what the person
   entered.
-- **PASS, 18:23:39.170 UTC:** private in-memory bcrypt 5.0.0 comparison proves the
-  currently saved staff email/password match the stored account. No values or
+- **HISTORICAL PASS, 18:23:39.170 UTC:** private in-memory bcrypt 5.0.0 comparison proved the
+  staff email/password saved at that checkpoint matched the stored account. No values or
   hashes were displayed; the comparison created no Auth session and performed no
   reset. It does not establish successful human password sign-in.
 - **CLARIFIED:** the person tried several passwords, including the database
@@ -277,7 +281,7 @@ diagnostics are reproduced here.
   Persistent ORG-046 authority does not permit bypassing checks or treating pending
   human browser/TOTP verification as complete.
 
-### Current outcome — restricted resumption verified; human input PENDING
+### Resumption and pre-enrollment snapshots
 
 | Receipt | UTC, 2026-10-07 | Actual result |
 | --- | --- | --- |
@@ -285,20 +289,65 @@ diagnostics are reproduced here.
 | Resumption deployment creation | 18:44:41.732 | Fresh deployment `dpl_3fLCso6cBALW2RiCQdKBJXZyfhSP` created. |
 | Resumption deployment readiness | 18:45:50.502 | **PASS:** READY and current serving Production; exact `bbb790f1` application source, project/org/repository/owner and apex/www verified. |
 | `first-admin-onboarding-resume-1-live` | 18:46:02.033 | **PASS:** two EN/AR staff sign-in/noindex checks, three anonymous privileged denials, 16 participant/operational closed checks, public navigation without staff links and robots exclusion. |
-| Fresh read-only native baseline | 18:47:06.987 | **PASS:** one user/profile/account/grant and one active Super Admin; factors/sessions/invitations/recovery holds/admissions/participant profiles/staff email challenges/native OTP all zero. Staff cap 36/day and pairing false. |
+| Pre-enrollment read-only native baseline | 18:47:06.987 | **HISTORICAL SNAPSHOT PASS:** one user/profile/account/grant and one active Super Admin; factors/sessions/invitations/recovery holds/admissions/participant profiles/staff email challenges/native OTP all zero. Staff cap 36/day and pairing false. |
 
 Both staff gates are currently true only for restricted onboarding of the existing
 single admin; participant and generic readiness remain false. The English browser
 was refreshed with blank inputs for the private handoff. Human password/TOTP input
-was requested at 18:47 UTC and remains **PENDING — NOT TESTED**. Neither native
+was requested at 18:47 UTC and was **PENDING — NOT TESTED at that snapshot**. Neither native
 credential diagnosis nor anonymous boundary checks establish a completed human
 browser/TOTP flow or paired-admin acceptance.
 
 Independent operator-helper review identified a separate existing ceiling of
 20 form events per IP/hour and added a conservative pre-enable guard. Receipt
 checks require strict booleans; no counters were reset or bypassed. No application,
-migration or other product code changed in this round. Only actual later human
-evidence can complete the pending verification.
+migration or other product code changed in this round. The later human report and
+independent native completion proof are recorded next.
+
+### Current completion — manual human report and independent native PASS
+
+The person reports completed own-device enrollment and that staff sign-in works.
+This is **manual human-reported completion**. At 18:58:37.866 UTC, reviewed
+read-only native SQL independently verified the completed flow; it did not create
+or enter authenticator material.
+
+| Native evidence | Observed result |
+| --- | --- |
+| Identity/authority | One user/profile/account/grant and one active individually identified Super Admin. |
+| Authenticators | Verified TOTP factors 1; unverified factors 0; other factor types 0. |
+| Session/assurance | Native staff sessions 1; native password sessions 1; native-bound TOTP AAL2 sessions 1; live observed strongest-assurance sessions 1. These counts describe the same completed staff flow, not four separate sessions. |
+| Native sign-in binding | Current native authentication time matches last sign-in; profile last sign-in recorded, both true. |
+| Audited steps | Sign-in allowed 1; TOTP enrollment completed 1; TOTP challenge completed 1; TOTP verification completed 1. |
+| Closed scope | Pairing false; staff gate true/cap 36; recovery/invitations/admissions/participant profiles/staff email challenges/native OTP all 0. Participant and generic readiness false. |
+
+- [x] **PASS — manual report:** First-person password sign-in and own-device
+  authenticator enrollment/verification completed.
+- [x] **PASS — independent read-only native evidence, 18:58:37.866 UTC:** One current
+  password-plus-native-TOTP AAL2 staff session, audited completion and recorded sign-in.
+- **NOT OBSERVED:** Actual signed-home DOM; the person's staff tab is outside the
+  controlled browser inventory. No automated signed-home DOM pass is claimed.
+- **NOT COMPLETED:** Other-admin recovery, real inbox, paired-admin/wider staff
+  UAT, live axe and Arabic native-reader acceptance. Existing synthetic/CI tests
+  remain separate evidence and do not complete these gates.
+
+- **PASS, 19:03:47.271 UTC:** source-reviewed read-only post-completion live receipt
+  `first-admin-onboarding-resume-1-after-human-live` on the same serving deployment:
+  two EN/AR SSR/noindex checks, three anonymous privileged denials, 16 participant/
+  operational closed checks, public navigation without staff links and robots
+  exclusion. `strongAssuranceVerifiedByThisProbe=false`: this anonymous probe does
+  not establish strongest assurance; that comes from the separate human report
+  and read-only native proof at 18:58:37.866 UTC.
+- **PASS:** fresh private-input ACL boolean confirms access only for the current
+  Windows account; values and private location withheld.
+- **STOP, 19:06:15.068 UTC:** independently reviewed read-only bcrypt comparison
+  of the newly saved private input confirms the email matches but password does
+  not. Values/hashes remain withheld; no Auth session, mutation, reset or email
+  was created. Safe receipt: `current-private-account-password-validation`.
+  The previous matching receipts remain historical. Completed human/native
+  sign-in evidence remains valid, but further credential-dependent operator
+  work awaits the exact working private input. The person was asked to reconcile
+  it privately; editing an input file does not update the hosted account. Do not
+  reset the account or repurpose bootstrap to resolve this input mismatch.
 
 The [activation checklist](STAFF_ACTIVATION_CHECKLIST.md) and
 [staff foundation](STAFF_PORTAL.md) retain the wider release/UAT requirements.
@@ -359,5 +408,6 @@ server/database authority. Do not widen access or weaken guards to clear an advi
    audit/history. Recheck guards, RLS, explicit grants, mail suppression and closure
    before resuming the existing authorized sequence.
 
-This checkpoint does not claim Production sign-in/TOTP, other-admin recovery,
-real-inbox, axe, Arabic native-reader or operational UAT has passed.
+This checkpoint records first-admin manual sign-in/TOTP completion and independent
+native proof. It does not complete other-admin recovery, real-inbox, paired-admin,
+live axe, Arabic native-reader or operational UAT.
