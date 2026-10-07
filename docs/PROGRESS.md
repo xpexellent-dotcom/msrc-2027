@@ -1,5 +1,65 @@
 # Progress and session handover
 
+## 7 October 2026 — Private backup and restore proof; restricted setup continues
+
+ORG-046 execution authorization persists. The corrected private database password
+now authenticates as native `current_user=session_user=postgres`, with BYPASSRLS,
+on the approved project's IPv4 session pooler. Direct IPv6 is unreachable from
+this machine; no TLS check was disabled. The frontend certificate and hostname
+are verified with `sslmode=verify-full`. `pg_stat_ssl` separately reports that the
+pooler-to-database hop is not TLS; this is not claimed as end-to-end encryption.
+
+- PASS (16:49:39 UTC): protected full PostgreSQL custom archive and password-free
+  role backup, outside the repository and restricted to the current Windows
+  account. Original archive hashes remain unchanged. The actual Free project
+  still reports no managed backup; this locally held logical backup is not PITR
+  or a provider-settings/credential backup.
+- PASS: full restore into matching Supabase PostgreSQL `17.6.1.171`, network `none`,
+  no published ports, native Unix socket only. The source owner/UTF8/ICU `en-US`
+  locale is reproduced. Password-free roles, membership grantors/options and
+  bootstrap role identity are preserved. No application/Auth account is created.
+- PASS: all 17 catalog sections, all 47 dumped-table application/native data
+  comparisons, four sequence definitions and non-runtime values, 49 extension
+  member-function owner/ACL checks, immutable guards, forced RLS, effective API
+  grants, original migration rows, Contact job/configuration and data match.
+  Standard dump extension-owner/initial-ACL limitations were resolved on the
+  disposable clone by exact-version precreation and captured source ACL replay;
+  the unchanged archive and its supplemental restore manifest are retained.
+- PASS: the archive's 881 cron history rows match the live source prefix through
+  the archived run ID. Only newer scheduled cron history and `runid_seq` are
+  dated runtime deltas. Production scheduling/history was not changed, and clone
+  history was not overwritten to force equality. See
+  [the restore receipt and procedure](features/STAFF_BACKUP_RESTORE.md).
+- PASS: Supabase Auth management and Vercel project/environment read requests
+  accept the privately saved tokens. Current Production is still merged main
+  `bbb790f1c70d4f770ddc221a3cde8f6f01edbab2`. Both account flags are absent;
+  the existing sensitive Resend key is configured but cannot be decrypted through
+  the supported read API. No secret value was displayed or added to logs/source.
+- PASS: reviewed bootstrap transport extension accepts only the actual approved
+  session pooler/project username/5432 or matching direct target. Native identity
+  is checked on every SQL connection; ambient libpq routing/options and unrelated
+  secrets are excluded. Independent review passed after the allowlist fix.
+  `vitest` ran 128 tests across bootstrap/staff/MFA suites, including 41 focused
+  bootstrap cases; scoped ESLint, `tsc --noEmit`, inert invocation and whitespace
+  checks passed. Draft PR/exact-head CI receipt follows separately.
+- PENDING: six-stage compatibility rehearsal on this restored clone, exact-head
+  code CI, supplied private display-name input and read-capable Resend credential
+  for actual quota/domain verification. No staff cap is inferred from a sample.
+
+Production at this checkpoint: the same two applied migrations; all six pending
+files, settings changes, first-account bootstrap and human TOTP remain
+NOT EXECUTED/NOT TESTED. No invitation, email, paid resource or extra account.
+The earlier password-placeholder/transport failures are resolved without changing
+Production credentials, access policy or flags.
+
+Continue within the existing authorization after the remaining prerequisites
+pass. Retain the private restore evidence; do not run blanket database push,
+reset, seed or a replay against hosted native data. Current rollback requires no
+hosted action because none was changed. For any later committed stage, keep both
+staff gates closed and preserve audit/history; use a reviewed forward correction
+or the documented restore/reconciliation plan, never a post-commit `ROLLBACK` or
+manual weakening of guards.
+
 ## 7 October 2026 — Authorized Production staff setup: preflight blocked before migration 1
 
 The organizer explicitly authorized the six pending migrations, staff-only

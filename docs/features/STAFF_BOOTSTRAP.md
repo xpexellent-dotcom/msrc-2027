@@ -21,8 +21,22 @@ key can perform bootstrap. Do not run this script from CI or application request
    `STAFF_BOOTSTRAP_DATABASE_URL` (native postgres connection),
    `STAFF_BOOTSTRAP_APPROVED_PROJECT_REF` (the separately approved project), `SUPABASE_URL`, and
    `SUPABASE_SECRET_KEY` (modern server secret). The script requires HTTPS Auth and
-   the matching direct `db.<approved-ref>.supabase.co` database host, with TLS and a
-   ten-second connection deadline; verify the intended project privately before running. The display name and email
+   a matching native database target: either direct `db.<approved-ref>.supabase.co`
+   with username `postgres`, or the independently verified shared **session** pooler
+   `aws-0-ap-northeast-1.pooler.supabase.com:5432` with username
+   `postgres.<approved-ref>`. Both require database `postgres`; transaction port
+   6543, other hosts/roles/regions and URI queries/fragments are rejected. The pooler
+   host is the actual Connect-dialog endpoint, never derived from a region guess.
+   The SQL child receives only necessary OS execution variables and explicit
+   validated PostgreSQL settings. Ambient libpq host-address/service/options and
+   application/bootstrap secrets are not inherited; only the database password
+   goes to that child in its environment. TLS encryption and a ten-second
+   connection deadline remain mandatory; if the operator supplies `PGSSLROOTCERT`,
+   the script uses that certificate with `verify-full` rather than downgrading TLS.
+   Before each private SQL operation, that same native connection must prove
+   `current_user=session_user=postgres` and `current_database()=postgres`; a caller
+   role label cannot substitute for this check. SQL/provider output stays withheld.
+   Verify the intended project privately before running. The display name and email
    are runtime inputs and are never copied into source or fixtures.
 3. Run `node scripts/bootstrap-first-staff.ts --execute-bootstrap` from the reviewed
    revision. The operator SQL first reserves the exact random actor UUID/email for
