@@ -1,5 +1,65 @@
 # Progress and session handover
 
+## 7 October 2026 — Migration 1 disposable rehearsal after PR #44 merge
+
+The organizer authorized a disposable-only rehearsal after their merge of
+[PR #44](https://github.com/xpexellent-dotcom/msrc-2027/pull/44). GitHub confirms
+merge at 13:59:16 UTC into `bbb790f1c70d4f770ddc221a3cde8f6f01edbab2`.
+Open PR preflight found none; created `codex/staff-migration-one-rehearsal` from
+that freshly fetched main, preserving the original checkout's work.
+IDs: BL-AUTH-05/06, AUTH-04/05, ROL-12, SEC-01/02/06, REL-06.
+
+PASS: [disposable run 37636073539](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37636073539)
+and [job 112842535255](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37636073539/job/112842535255)
+on exact source `f34fe416fa452138ef83a89e22f7d9129bf1cf5a`, completed 14:23 UTC.
+The [rehearsal receipt](features/STAFF_MIGRATION_01_REHEARSAL.md) records results,
+sanitized artifact, precise commands/scope, limits and production prerequisites.
+
+The opt-in manual workflow stages unchanged configuration with no application
+migrations and an empty seed. It skips both broader suites that create synthetic
+users. Native empty Auth/Postgres initialize on a loopback disposable Ubuntu
+runner; the harness reproduces only already-applied persisted authorization and
+independent Contact, then rehearses pending migration 1. It uses a fixed local
+Docker Unix socket and in-container PostgreSQL socket, never a hosted URL/key,
+linked CLI operation or account/authentication flow request. Native initialization
+and health traffic is infrastructure only. No account, edition or role is created.
+
+PASS: 25 distinct packet queries, 50 read-only packet executions including
+rollback/replay comparisons, and 228 assertions. Native PostgreSQL 17.6 image
+`17.6.1.171`, native GoTrue `v2.197.0`, CLI 2.118.0. Source hashes match the reviewed
+blobs; all 21 native column types and helper returns are compatible. Four forced
+RLS tables, eight private/four public functions, nine enabled triggers, six
+indexes, twenty constraints and effective private/public ACL matrix match M1.
+One closed policy row retains 259,200s participant absolute, 1,800s privileged
+idle, 28,800s absolute, false readiness and NULL recency/warning. No flag update.
+
+PASS: injected complete-file failure `22012` restores every preflight result;
+replay rejects with `42P06` and preserves every postcheck. Exact DDL PID/start
+receipts and ended-backend queries precede reconciliation. Local history records
+only the two baseline versions and M1, after commit/catalog proof. Independent
+Contact metadata/empty counters and authority records are preserved. Eight native
+identity/session/factor/token tables stay empty at five checkpoints; application
+session/revocation/audit tables stay empty; later schemas and sample stay absent.
+
+PASS: cleanup proves DB/Auth containers and DB volume absent, removes its own
+network and confirms source/staged config unchanged. Artifact 11488462226 and job
+logs were read; downloaded safe receipts independently reproduce comparisons.
+Focused ESLint, TypeScript, YAML/shell syntax, guard refusal on Windows, exact
+hashes, whitespace and independent technical/privacy reviews PASS.
+Local Windows DB execution is BLOCKED by the observed missing Docker daemon pipe
+and absence of a WSL distribution; the database result is Linux CI evidence.
+
+Production remains untouched: no hosted SQL (including reads), settings/flags,
+bootstrap, users, account/authentication flow requests or real email. All 21 production operator packet
+and 56 activation checkboxes remain PENDING. Fresh target/ledger/native-version
+compatibility, native postgres/TLS/custody, backup/restore, DDL deadlines/backend
+outcome tracing and explicit single-file production authorization remain required.
+Hosted CLI history repair, ambiguous/dangling commits, real interruption,
+production load/locking and user-dependent session/TOTP/recovery behavior are
+NOT TESTED by this no-account M1 rehearsal. Later migrations
+and activation remain excluded. The rehearsal/report branch is unmerged; no
+additional PR or full-suite run was opened for this no-user task.
+
 ## 7 October 2026 — Documentation PR and migration 1 execution packet
 
 Opened [draft PR #44](https://github.com/xpexellent-dotcom/msrc-2027/pull/44)
