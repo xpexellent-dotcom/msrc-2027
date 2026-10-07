@@ -3152,3 +3152,26 @@ failed reset. The badge is presentation only; database state enforces denial.
   failure, expiry/interruption, fresh/refreshed denial, pending native TOTP proof
   denial and superseded native invitation admission. SQL and concurrency execution
   on the pushed revision is pending CI; local Docker remains BLOCKED.
+
+### Recovery follow-up first disposable execution — 2dc2626
+
+- PASS: native job 112759705037 in
+  [37611545081](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37611545081):
+  all 17 genuine native cases, including real factor deletion before password
+  failure, durable pending/failed/expired denial, valid native TOTP proof denied
+  without AAL2/AMR elevation, queued superseded admission denied, and other-admin
+  restoration. Actual GoTrue v2.197.0; strict migration lint clean, 818 SQL
+  assertions in eleven files pass, and security advisors report no issues.
+- FAIL: browser job on that source: 28 closed checks pass; 25 enabled cases pass,
+  four intentional desktop skips, one Arabic desktop invitation case scans axe
+  before the replacement page's streamed document title commits. Wait for the
+  actual home screen and final title before axe; retain the document-title rule,
+  zero retries and existing timeout. Both new mobile action matrices pass in CI.
+- FAIL: Foundation integration job 112759705105: 74 of 75 cases pass. Its new
+  recovery test combines dependent mutation calls and a profile assertion in one
+  SQL expression, allowing the subquery to observe the earlier statement snapshot.
+  The pgTAP sequential transition proofs pass. Separate the dependent statements
+  and retain every state/CAS assertion; do not alter production enforcement,
+  concurrency timing, retries or timeout.
+- The two test synchronization corrections require a new exact-revision CI run.
+  No hosted settings/migrations, live bootstrap or real email have been performed.

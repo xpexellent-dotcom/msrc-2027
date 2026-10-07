@@ -11,7 +11,7 @@ const factor = (suffix: number) => `d7300000-0000-4000-8000-00000000000${suffix}
 const marker = 202710071;
 const recoveryMarker = 202710072;
 
-function query(sql: string): Promise<string> {
+function query(sql: string, stage: "fixture" | "recovery-reservation" | "recovery-observation" | "recovery-partial-failure" | "recovery-retry" = "fixture"): Promise<string> {
   const target = process.env.NEXT_PUBLIC_SUPABASE_TARGET;
   if (!isolatedCi || (target && target !== "local") || !resolveLocalSupabaseConfig({
     url: process.env.NEXT_PUBLIC_SUPABASE_URL, publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
@@ -30,7 +30,7 @@ function query(sql: string): Promise<string> {
       if (state) sqlState = state;
     });
     child.on("error", () => { clearTimeout(timeout); reject(new Error("Synthetic staff SQL could not start.")); });
-    child.on("close", (code) => { clearTimeout(timeout); if (code === 0) resolve(output); else reject(new Error(`Synthetic staff SQL assertion failed (SQLSTATE ${sqlState}); diagnostics withheld.`)); });
+    child.on("close", (code) => { clearTimeout(timeout); if (code === 0) resolve(output); else reject(new Error(`Synthetic staff SQL assertion failed at ${stage} (SQLSTATE ${sqlState}); diagnostics withheld.`)); });
     child.stdin.on("error", () => {});
     child.stdin.end(sql);
   });
@@ -97,7 +97,7 @@ describe.skipIf(!isolatedCi)("Staff portal authority concurrency (disposable Git
     const reservation = query(`begin; ${claims()}
       do $$begin if public.msrc_staff_admin_change('${edition}','${actor(3)}','reset_account','{}','${operation}')->>'state'<>'reserved'
         then raise exception 'Synthetic recovery reservation failed.';end if;end$$;
-      select pg_advisory_xact_lock(${recoveryMarker}); select pg_sleep(1); commit;`);
+      select pg_advisory_xact_lock(${recoveryMarker}); select pg_sleep(1); commit;`, "recovery-reservation");
     let locked = false;
     for (let attempt = 0; attempt < 10; attempt++) {
       if ((await query(`select count(*) from pg_locks where locktype='advisory' and objid=${recoveryMarker} and granted;`)).trim() === "1") {
@@ -108,7 +108,7 @@ describe.skipIf(!isolatedCi)("Staff portal authority concurrency (disposable Git
     }
     expect(locked).toBe(true);
     const observation = query(`begin; ${claims(3)}
-      select coalesce(public.msrc_session_context('${edition}')::text,'DENIED'); commit;`);
+      select coalesce(public.msrc_session_context('${edition}')::text,'DENIED'); commit;`, "recovery-observation");
     const results = await Promise.all([reservation, observation]);
     expect(results[1].split("\n")).toContain("DENIED");
     await query(`delete from auth.mfa_factors where user_id='${actor(3)}';
@@ -123,13 +123,16 @@ describe.skipIf(!isolatedCi)("Staff portal authority concurrency (disposable Git
           values(gen_random_uuid(),'${actor(3)}','totp','unverified',now(),now());
         raise exception 'Synthetic self enrollment must remain denied.';
       exception when insufficient_privilege then null;end;
-      end$$;`);
+      end$$;`, "recovery-partial-failure");
     await query(`begin; ${claims()}
-      do $$begin
-      if public.msrc_staff_admin_change('${edition}','${actor(3)}','reset_account','{}','${retry}')->>'state'<>'reserved'
-        or public.msrc_staff_admin_complete('${operation}',true)->>'state'<>'denied'
-        or not exists(select 1 from msrc_staff.profiles where actor_id='${actor(3)}' and recovery_state='pending' and recovery_operation='${retry}') then
+      do $$declare reserved_state text;late_state text;latest_hold boolean;begin
+      -- Mutations and their resulting-state read need distinct SQL snapshots;
+      -- an OR expression can initialize its subquery before calling mutations.
+      reserved_state:=public.msrc_staff_admin_change('${edition}','${actor(3)}','reset_account','{}','${retry}')->>'state';
+      late_state:=public.msrc_staff_admin_complete('${operation}',true)->>'state';
+      select exists(select 1 from msrc_staff.profiles where actor_id='${actor(3)}' and recovery_state='pending' and recovery_operation='${retry}') into latest_hold;
+      if reserved_state<>'reserved' or late_state<>'denied' or not latest_hold then
         raise exception 'Synthetic retry must retain the latest operation hold.';end if;
-      end$$; commit;`);
+      end$$; commit;`, "recovery-retry");
   });
 });

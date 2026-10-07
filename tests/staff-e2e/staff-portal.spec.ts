@@ -159,6 +159,11 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/staff$`));
     await expect(page.getByRole("img")).toHaveCount(0);
+    // The URL changes before Next commits the new route and streamed metadata.
+    // Audit the completed staff-home document, retaining the document-title rule.
+    await expect(page.getByTestId("staff-portal")).toHaveAttribute("data-screen", "home");
+    await expect(page.getByRole("navigation", { name: copy.menu })).toBeVisible();
+    await expect(page).toHaveTitle("MSRC 2027 | Staff portal");
     expect(mock.actions.find((action) => action.action === "invite-accept")).toMatchObject({ invitationId, token: "a".repeat(43) });
     await axe(page);
   });
