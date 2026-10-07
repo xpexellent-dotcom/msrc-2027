@@ -20,6 +20,11 @@ async function ready(config: StaffConfig, backend: StaffBackend): Promise<boolea
   const value = record(await backend.rpc("msrc_staff_status"));
   return value?.enabled === true && value.emailDailyLimit === config.emailDailyLimit;
 }
+async function passwordChangeReady(config: StaffConfig, backend: StaffBackend): Promise<boolean> {
+  if (!config.passwordChangeEnabled) return false;
+  const value = record(await backend.rpc("msrc_staff_status"));
+  return value?.enabled === true && value.emailDailyLimit === config.emailDailyLimit && value.passwordChangeEnabled === true;
+}
 export interface StaffProfile { actorId: string; name: string; roles: Role[] }
 async function context(config: StaffConfig, backend: StaffBackend, session: NativeStaffSession, now: number) {
   if (await backend.identity(session.accessToken) !== session.actorId) return null;
@@ -97,6 +102,7 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
     const respond = (body: Record<string, unknown>, status = 200, cookie?: string) => reply({ ...body, formToken: staffFormToken(config, origin, now) }, status, cookie);
     let session = readStaffSession(config, request, now);
     let changed = false;
+    let passwordAttempted = false;
     async function current() {
       if (!session) return null;
       if (nativeTokenNeedsRefresh(session.accessToken, now)) {
@@ -112,7 +118,8 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
       if (!session || !observed) return { state: "ready", profile: null };
       if (observed.sessionPolicySatisfied) {
         const own = await profile(config, backend, session, observed);
-        return own ? { state: "authenticated", profile: own } : { state: "denied", profile: null };
+        return own ? { state: "authenticated", profile: own, passwordChangeAvailable: await passwordChangeReady(config, backend) }
+          : { state: "denied", profile: null };
       }
       return { state: observed.authenticationTier === "staff" ? "pending-email" : session.factorId ? "pending-totp" : "enroll-totp",
         profile: null, challengeId: session.challengeId, factorId: session.factorId, expiresAt: session.challengeExpiresAt };
@@ -151,12 +158,13 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         if (!data || data.state === "denied") return respond({ state: "denied" }, 403);
         if (area === "people") {
           const people = safeRows(data.staff, "staff"), invitations = safeRows(data.invitations, "invitations");
-          return people && invitations ? respond({ state: "authenticated", profile: own, people, invitations }, 200, changed ? staffCookie(config, session, now) : undefined) : respond({ state: "unavailable" }, 503);
+          return people && invitations ? respond({ state: "authenticated", profile: own, people, invitations, passwordChangeAvailable: await passwordChangeReady(config, backend) }, 200, changed ? staffCookie(config, session, now) : undefined) : respond({ state: "unavailable" }, 503);
         }
         const rows = safeRows(data.rows, area as "audit" | "participants");
-        return rows ? respond({ state: "authenticated", profile: own, [area]: rows }, 200, changed ? staffCookie(config, session, now) : undefined) : respond({ state: "unavailable" }, 503);
+        return rows ? respond({ state: "authenticated", profile: own, [area]: rows, passwordChangeAvailable: await passwordChangeReady(config, backend) }, 200, changed ? staffCookie(config, session, now) : undefined) : respond({ state: "unavailable" }, 503);
       }
       const payload = validateStaffPayload(await readStaffJson(request));
+      if (payload?.action === "password-change" && !await passwordChangeReady(config, backend)) return respond({ state: "denied" }, 403);
       const ip = staffIp(config, request);
       const nonce = payload && readStaffFormToken(config, payload.formToken, origin, now);
       if (!payload || !ip || !nonce || payload.website || config.testMode && payload.email && !payload.email.endsWith("@example.invalid")) return respond({ state: "invalid-input" }, 400);
@@ -203,7 +211,36 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         } return respond({ state: "signed-out" }, 200, clear); } catch { return respond({ state: "unavailable" }, 503, clear); }
       }
       const observed = await current();
-      if (!session || !observed) return respond({ state: "denied" }, 403, staffCookie(config, null, now));
+      if (!session || !observed) return respond({ state: payload.action === "password-change" ? "reauthentication-required" : "denied" }, 403, staffCookie(config, null, now));
+      if (payload.action === "password-change") {
+        if (observed.authenticationTier !== "super_admin") return respond({ state: "denied" }, 403);
+        if (!observed.sessionPolicySatisfied || !observed.mfaValid
+          || observed.timing.startedAtMs <= now - 120_000 || observed.timing.startedAtMs > now
+          || observed.timing.authenticatedAtMs === null || observed.timing.authenticatedAtMs <= now - 120_000
+          || observed.timing.authenticatedAtMs > now) return respond({ state: "reauthentication-required" }, 403, staffCookie(config, null, now));
+        const operationId = randomUUID();
+        const reserved = record(await backend.rpc("msrc_staff_password_change_begin", {
+          edition_key: config.editionKey, operation_id: operationId,
+        }, session.accessToken));
+        if (reserved?.state === "denied") return respond({ state: "reauthentication-required" }, 403, staffCookie(config, null, now));
+        if (!reserved || Object.keys(reserved).sort().join(",") !== "actorId,operationId,sessionId,state"
+          || reserved.state !== "reserved" || reserved.operationId !== operationId || reserved.actorId !== session.actorId
+          || reserved.sessionId !== session.sessionId) return respond({ state: "denied" }, 403);
+        let updated = false, completed: Record<string, unknown> | null = null;
+        try {
+          if (await stillReady() && await passwordChangeReady(config, backend)) {
+            passwordAttempted = true;
+            updated = await backend.changeOwnPassword(session, operationId, payload.password!);
+          }
+        } catch { /* Provider ambiguity never acknowledges a password change. */ }
+        finally { completed = record(await backend.rpc("msrc_staff_password_change_result", { operation_id: operationId })); }
+        const verified = updated && passwordAttempted && completed
+          && Object.keys(completed).sort().join(",") === "actorId,operationId,sessionId,state"
+          && completed.state === "completed" && completed.operationId === operationId
+          && completed.actorId === session.actorId && completed.sessionId === session.sessionId;
+        return respond({ state: verified ? "password-changed" : "unavailable" }, verified ? 200 : 503,
+          passwordAttempted ? staffCookie(config, null, now) : undefined);
+      }
       if (["challenge-email", "verify-email"].includes(payload.action)) {
         if (observed.authenticationTier !== "staff") return respond({ state: "denied" }, 403);
         if (payload.action === "challenge-email") {
@@ -293,12 +330,17 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         if (!delivered) return respond({ state: "unavailable" }, 503);
       }
       return respond({ state: "updated" });
-    } catch { return respond({ state: "unavailable" }, 503); }
+    } catch { return respond({ state: "unavailable" }, 503, passwordAttempted ? staffCookie(config, null, now) : undefined); }
   };
 }
 export const handleStaffRequest = createStaffHandler();
 export async function staffPageReady(config: StaffConfig): Promise<boolean> {
   try { return await ready(config, createStaffBackend(config)); } catch { return false; }
+}
+/** Separate default-off server and database gate; contains no identity or activity read. */
+export async function staffPasswordChangeReady(config: StaffConfig): Promise<boolean> {
+  if (!config.passwordChangeEnabled) return false;
+  try { return await passwordChangeReady(config, createStaffBackend(config)); } catch { return false; }
 }
 /** Server rendering observes only. Token refresh stays in the API so it can update the cookie. */
 export async function observeStaffPage(request: Request, config: StaffConfig): Promise<StaffProfile | null> {

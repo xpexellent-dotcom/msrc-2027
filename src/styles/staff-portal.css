@@ -10,6 +10,8 @@
 .staff-name { font-size: 1.25rem; font-weight: 600; }
 .staff-panel, .staff-menu { background: #fff; border: 1px solid #d8d2e3; border-radius: 1rem; padding: clamp(1rem, 3vw, 2rem); margin-block: 1.25rem; min-inline-size: 0; }
 .staff-auth-panel { max-inline-size: 40rem; }
+.staff-portal[data-screen="security"] { padding-inline: clamp(16px, 4vw, 48px); }
+.staff-password-panel { padding: clamp(16px, 3vw, 32px); }
 .staff-panel h2, .staff-menu h2 { margin-block-start: 0; font-size: 1.45rem; }
 .staff-panel form { display: grid; gap: 1.2rem; }
 .staff-panel .field-input { inline-size: 100%; }

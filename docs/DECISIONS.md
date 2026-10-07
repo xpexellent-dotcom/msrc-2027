@@ -2043,3 +2043,24 @@ modify production settings, bootstrap live accounts, send real invitations/email
 or activate registration, finance, review, check-in, content or exports.
 IDs: BL-AUTH-01/05/06, BL-RPT-01/03, ROL-01/07/10/12, ADM-01/02/04/05,
 PRV-03, LOC-01/03, SEC-01/02/06, REL-06.
+
+## ORG-047 — Requested authenticated account password change, 7 October 2026
+
+Source: the organizer clarified, "i intended an account password change", after
+successful own-device staff password/TOTP sign-in and after a private comparison
+showed the newly saved password was not the hosted account password.
+
+The new private value is the requested replacement password. Editing the private
+input file does not change the account. Prepare an authenticated owner password
+change that retains the verified authenticator, audits the action and revokes
+existing sessions. This request does not authorize a lost-access self-reset,
+authenticator reset, bootstrap replay or another account. ORG-044's other-admin
+recovery, self-protection and two-admin safeguards continue to apply.
+
+Implementation uses a separate reviewed additive migration and default-off server
+and database gates. Its short fresh-authentication and admission windows are
+engineering safeguards for this operation, not changes to the existing 30-minute
+idle / eight-hour absolute session policy. The additional migration and new
+password-change flow are not part of the six completed setup receipts. Account
+password change is NOT APPLIED until the reviewed flow is activated and the
+owner completes it privately. IDs: BL-AUTH-01/05/06, AUTH-03/04/05, SEC-01/02/06.
