@@ -1,8 +1,10 @@
 # First staff Super Admin operator procedure
 
-BL-AUTH-01, BL-AUTH-05/06 staff, ROL-10/12. This procedure is documented and has
-**NOT BEEN RUN**. Real identities belong only in DECISIONS and operator-supplied
-private inputs. The script is inert unless `--execute-bootstrap` is supplied.
+BL-AUTH-01, BL-AUTH-05/06 staff, ROL-10/12. The one-time bootstrap completed under
+ORG-046 on 7 October 2026; see the [dated execution record](STAFF_SETUP_EXECUTION.md).
+Do not repeat it or clear its reservations, audit or completion guard. Real
+identities belong only in DECISIONS and operator-supplied private inputs. The
+script is inert unless `--execute-bootstrap` is supplied.
 
 Prerequisites: reviewed pending migrations through the staff portal foundation;
 independent activation/privacy/email/recovery/UAT approvals; native PostgreSQL
