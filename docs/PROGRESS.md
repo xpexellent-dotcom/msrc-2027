@@ -1,5 +1,102 @@
 # Progress and session handover
 
+## 7 October 2026 — Authorized Production staff setup: preflight blocked before migration 1
+
+The organizer explicitly authorized the six pending migrations, staff-only
+configuration and only their first Super Admin bootstrap/restricted onboarding,
+without repeated manual execution approvals. Scope and continuing authorization
+are recorded in ORG-046. Participant/other workflows and the two-admin safeguards
+remain intact. No other account or invitation is authorized without actual inputs.
+
+Freshly fetched main remains `bbb790f1c70d4f770ddc221a3cde8f6f01edbab2`.
+Open PR preflight found none; `codex/staff-production-setup` starts from that main.
+All three merged-main push workflows are SUCCESS at that exact head: staff
+37632935182, participant 37632935416 and foundation 37632935279. No application,
+SQL, test or configuration source changes were needed by independent bootstrap/
+interface/database review. This entry records prerequisites, not completed setup.
+
+Observed read-only Production checks, 15:04–15:33 UTC on 7 October:
+
+- PASS: designated Supabase project `ecemjggwlzqpjcwmchrl` is ACTIVE_HEALTHY in
+  `ap-northeast-1`/Tokyo, matching the published location disclosure; native
+  PostgreSQL 17.6 image release `17.6.1.171`, matching the M1 disposable rehearsal.
+- PASS: `current_user=session_user=postgres`, native postgres BYPASSRLS true
+  (superuser false), required Auth SELECT/UPDATE/REFERENCES rights true; all 21
+  native columns and helper return types match the reviewed M1 assumptions.
+- PASS: only `20261002173712` persisted authorization and `20261004114603`
+  Contact are recorded. Pending schemas absent; users, sessions, factors,
+  authority accounts, grants and audit are all zero. Four existing authority
+  tables remain postgres-owned with enabled/forced RLS and no API private rights.
+  Contact counters are zero and its five-minute expiry job remains active.
+- PASS: all six pending SQL files match merged-main bytes and reviewed hashes.
+  No file/statement/guard was modified and no synthetic seed was applied.
+- REVIEWED: security advisor reports five INFO no-client-policy findings for
+  intentionally private forced-RLS tables and one known authenticated own-context
+  [SECURITY DEFINER warning (0029)](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
+  The [no-policy information (0008)](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)
+  describes intentional client denial. No grants/RLS were widened to silence it.
+- BLOCKED: the Supabase organization is Free and its authenticated project
+  overview explicitly reports **Last backup: No backups**. No manual backup or
+  successful restoration evidence/private backup destination has been supplied.
+  No paid upgrade was purchased and no unsupported substitute was called a backup.
+- INPUTS PARTIAL: the organizer-provided private file now contains an email and
+  a password that satisfy the syntax/ten-character/72-byte checks. Values were
+  never printed or copied to the repository. Native postgres connection and
+  modern server/management credential references remain absent. A private
+  backup destination/reference was requested and remains outstanding.
+- NOT READY: `psql` is absent from the operator PATH; installing a trusted local
+  runtime is a routine remedy within the authorization, not another approval gate.
+  The reviewed bootstrap
+  accepts only the matching direct native postgres TLS host, not a pooler/browser
+  key. Do not attempt native identity creation before this operator path works.
+- ACCESS PARTIAL: the Vercel connector returns 403 for the designated scope and
+  no authenticated local CLI is available. The existing authenticated browser
+  reaches the correct MSRC Hobby project and reads variable-name metadata without
+  revealing secrets: no staff/participant enable flag or staff test mode; Resend
+  entries exist. The connector failure does not establish loss of browser access
+  or inherently require another Vercel credential; the authenticated browser may
+  supply that management path. No browser settings or credentials were changed.
+- PASS: seven fresh live GET checks at 15:33 UTC: EN/AR staff sign-in pages are
+  404; staff and participant APIs under both language headers return exactly
+  closed-state 503 responses without Set-Cookie; health returns 200 with
+  `workflows="closed"`. The corrected probe uses the repository's actual API
+  paths; no sign-in, enrollment or mutation request was sent.
+
+Stopped before migration 1 on the actual failed backup check and missing private
+operator inputs. **In Production, all six migrations, staff configuration/
+enablement, bootstrap, sign-in and TOTP remain NOT EXECUTED/NOT TESTED.** The
+completed disposable rehearsal is separate evidence. Hosted activity consists only
+of the metadata/count reads above; no DDL/history write, settings/flag change,
+account/factor/session creation, email or paid-resource operation occurred.
+The authorization persists when these inputs/checks are resolved.
+
+Independent documentation/security review and `git diff --check` PASS. The new
+entries contain no actual identity or credential values. Only DECISIONS and
+PROGRESS changed; functional tests were not rerun for these documentation-only
+changes. Existing exact-head CI and the completed disposable rehearsal remain
+separate evidence, not proof of hosted backup, configuration or human TOTP.
+
+Resume by establishing a private supported backup and disposable restore proof,
+native TLS/operator access and Supabase Admin credentials, plus a working service
+management path. Reuse authenticated management access where available; do not
+ask for fresh credentials or execution approval unless actually necessary.
+Recheck target/ledger/definitions immediately before each single-file operation;
+apply only the ordered reviewed six, inspect metadata/ACL/closed-policy and
+preservation after each, then align only that original version. Do not use blanket
+push/reset/seeds. Native hook/password/TOTP settings and staff values follow all
+six verified guards. Keep both staff gates false for the sole bootstrap; only
+then open its restricted onboarding. First-admin TOTP requires their own device;
+do not generate a replacement identity or another administrator to bypass inputs.
+
+Rollback for this stopped attempt: **nothing to undo**. For later authorized
+execution, stop on the first error/unknown commit, establish the original backend
+outcome before retry/history repair, retain committed schema/immutable history
+and use reviewed forward correction or the verified backup/reconciliation plan.
+If onboarding fails, close `msrc_staff.policy.enabled` immediately, set the server
+staff flag false and redeploy; retain stable secrets, authority/audit, revocation
+cutoffs and any partial native account/factor evidence. Do not drop guards,
+erase users/history, waive the two-admin rule or self-reset to repair a failure.
+
 ## 7 October 2026 — Documentation PR and migration 1 execution packet
 
 Opened [draft PR #44](https://github.com/xpexellent-dotcom/msrc-2027/pull/44)
