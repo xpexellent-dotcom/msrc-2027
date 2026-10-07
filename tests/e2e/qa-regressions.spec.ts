@@ -306,3 +306,32 @@ test("forced colours still show the selected programme day and the current chapt
   expect(await keepsFill('.section-journey-links a[aria-current="location"] .chapter-number')).toBe(true);
   expect(await keepsFill('.section-journey-links a:not([aria-current]) .chapter-number')).toBe(false);
 });
+
+// Live QA 2026-10-08. On desktop the homepage zeroes scroll-padding for its chapter jumps, so
+// tabbing scrolled controls (an Arabic FAQ question) under the sticky chapter bar.
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} desktop homepage keeps keyboard focus clear of the sticky header and chapter bar`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "The chapter bar is sticky only on wide screens.");
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${locale}`);
+    await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before");
+    const covered: string[] = [];
+    for (let step = 0; step < 60; step++) {
+      await page.keyboard.press("Tab");
+      const state = await page.evaluate(() => {
+        const element = document.activeElement as HTMLElement | null;
+        if (!element || !element.closest(".homepage-journey") || element.closest(".section-journey")) return element?.closest("footer") ? "done" : null;
+        const box = element.getBoundingClientRect();
+        const overlaps = (selector: string) => {
+          const cover = document.querySelector(selector)!.getBoundingClientRect();
+          return box.top < cover.bottom - 1 && box.bottom > cover.top + 1;
+        };
+        return box.height > 0 && (overlaps(".section-journey") || overlaps(".site-header-inner")) ? `${element.tagName}: ${element.textContent?.trim().slice(0, 30)}` : null;
+      });
+      if (state === "done") break;
+      if (state) covered.push(state);
+    }
+    expect(covered).toEqual([]);
+  });
+}

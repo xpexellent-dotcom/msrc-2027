@@ -18,6 +18,9 @@ a local `next build && next start` of the same commit.
   so tabbing focused links hidden under the panel (WCAG 2.4.11).
 - FIXED: forced colours (Windows contrast themes) hid the selected programme day
   and current homepage chapter; both now use Highlight system colours.
+- FIXED: on desktop the homepage's zero scroll-padding let keyboard focus land
+  under the sticky header/chapter bar (an Arabic FAQ question); journey controls now
+  carry their own focus scroll-margin, leaving chapter jumps unchanged.
 - FIXED: contact copy "organising" → "organizing" (site/spec use -ize); dropped
   one stray serial comma in the homepage programme note.
 - Each fix has a regression test confirmed to fail on `main`. Full public browser
