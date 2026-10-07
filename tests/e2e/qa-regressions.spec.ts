@@ -151,6 +151,26 @@ for (const [instant, days, unit] of [
   });
 }
 
+// Live QA 2026-10-08. When the days and the clock no longer fit side by side, the clock wrapped
+// under the days but kept its inline divider, a stray rule beside the hours (Arabic at most widths).
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} homepage countdown divider only separates side-by-side days and clock`, async ({ page }) => {
+    await page.clock.install({ time: new Date("2026-10-07T09:00:00Z") });
+    for (const width of [320, 375, 414, 768, 1024, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(`/${locale}`);
+      const layout = await page.locator(".date-band .countdown-clock").evaluate((clock) => {
+        const days = clock.querySelector(".countdown-remaining")!.getBoundingClientRect();
+        const time = clock.querySelector<HTMLElement>(".countdown-time")!;
+        const timeBox = time.getBoundingClientRect();
+        return { stacked: timeBox.top >= days.bottom - 1, divider: parseFloat(getComputedStyle(time).borderInlineStartWidth), fits: time.scrollWidth <= time.clientWidth + 1 };
+      });
+      expect(layout.fits, `${width}px`).toBe(true);
+      expect(layout.divider > 0, `${width}px`).toBe(!layout.stacked);
+    }
+  });
+}
+
 // Live QA 2026-10-03. Browsers and link unfurlers still ask for /favicon.ico; it returned the 404 page.
 test("/favicon.ico serves the MSRC icon", async ({ request }) => {
   const response = await request.get("/favicon.ico");
