@@ -2918,3 +2918,290 @@ errors state the requirement, including on verification.
 This review does not change migration SQL, hosted Auth settings, Privacy approval,
 the closed flag or operational readiness. Real users, inbox delivery and activation
 remain unperformed. The activation guide records the future native minimum setting.
+
+## 7 October 2026 — Closed staff portal foundation
+
+Assigned scope: BL-AUTH-01, BL-AUTH-05/06 staff parts and BL-RPT-01/03 foundations;
+AUTH-04/05, ROL-01/07/10/12, ADM-01/02/04/05, LOC-01/03, SEC-01/02/06.
+Open PRs were listed before branch creation: **none**. #25 and #39 are merged into
+the fetched `main`, while their hosted migrations remain pending per the organizer.
+Shared logs were not counted as feature overlap. Started `codex/staff-portal-foundation`
+from `origin/main` `d9215d0` in a new managed worktree. Original checkout modifications
+and untracked evidence were preserved.
+
+ORG-043/044/045 record the two-person Super Admin designation, invite-only access,
+mutual recovery, closed staff boundary and future registration identifier masking.
+Names are recorded only in DECISIONS; fixtures remain synthetic. Added EN/AR private
+staff sign-in, TOTP QR/manual enrollment, session-bound staff email checks, roles-based
+home/menu, Super Admin people/invitations/audit, and the minimal internal participant
+account search. No public navigation links, indexing, analytics or exports. The
+new private database policy defaults off; operational flags remain false. Native
+identity admission is compatible with #25/#39 rather than weakening their guards.
+
+The additive migration includes explicit private ACLs/forced RLS, immutable audit,
+single-use 72-hour invitation admission, session revocation, serialized minimum-two
+and self-action guards, and audited other-admin recovery. The registration identity
+field is not added: the reusable masking/reveal component and server/database policy
+are prepared, and actual reveal returns audited unavailable until registration is
+built. Bootstrap is an inert operator script/procedure and has **not been run**.
+[Staff activation guide](features/STAFF_PORTAL.md) lists exact pending migration
+order, Production variables, bootstrap sequence, shared Resend volume, UAT and rollback.
+
+Initial combined local checks on Node 24.21.0 / pnpm 11.19.0:
+
+- PASS: `pnpm install --frozen-lockfile`; repository lockfile unchanged.
+- PASS: `pnpm check`: lint, generated route types/TypeScript, 2,136 unit tests in
+  48 files, and production build (77 generated pages).
+- PASS: `git diff --check` at this checkpoint.
+- BLOCKED locally: `docker info --format '{{.ServerVersion}}'` cannot connect to
+  the Docker daemon. Database pgTAP, migration lint and genuine native tests are
+  routed to disposable Linux CI; they are not marked passed by local skips.
+- NOT TESTED at this checkpoint: final EN/AR browser/axe and exact-head CI;
+  final receipts are appended below after execution.
+- NOT TESTED: live bootstrap, human inbox/device/recovery/screen-reader UAT,
+  real identifier storage/reveal, hosted migration application and activation.
+
+No hosted migrations, production settings, real accounts, real invitations/email,
+DNS, paid resources or operational activation were changed. Next task is review
+of the closed draft and its exact-head evidence, followed by separately authorized
+activation only after the documented gates pass.
+
+### Staff draft and final local presentation receipts
+
+Draft [PR43](https://github.com/xpexellent-dotcom/msrc-2027/pull/43) is open and
+attached to this task. GitHub's connector denied PR creation (403); the existing
+authenticated Git connection successfully created the requested draft. No new
+account permission or production setting was changed.
+
+- PASS: rebuilt combined `pnpm check`: lint/types, 2,145 unit cases in 49 files
+  and the same 77-page build. Subsequent focused backend checks pass 68 cases.
+- PASS: all 28 default-off EN/AR desktop/mobile raw page/API/navigation checks.
+- PASS: `pnpm exec playwright test --config playwright.staff.config.ts`, all
+  14 EN/AR desktop/mobile synthetic presentation flows, no retries, with axe
+  scans reporting zero violations. Sign-in/invalid-code recovery, participant
+  search, role-only menus, People controls, explicit masking/reveal interaction,
+  audit search, invitation-fragment privacy and QR/manual setup are covered.
+- PASS: 16 synthetic screenshots captured; English desktop People and Arabic
+  mobile People were visually inspected. Native scroll and table regions remain
+  usable; the staff shell suppresses public navigation and the inherited header gap.
+- Initial browser failures were test locator assumptions (required markers,
+  row headings, Next's separate route announcer) and a missing wait for the actual
+  audit-search request. Assertions were corrected to the actual semantic elements
+  and awaited request completion; no retries or timeout extensions were added.
+- Review found and fixed background GETs renewing idle activity, native password-only
+  replacement-authenticator enrollment, interrupted setup cleanup and recovery
+  confirmation-time compatibility. Regression coverage retains the original
+  native session/grant/factor invariants.
+- Prepared: 14 genuine handler→managed Auth→SQL tests, the complete staff-role
+  SQL denial matrix, invitation expiry/revocation/replay, and a serialized
+  three-to-two concurrent demotion test. Only email delivery is captured in memory.
+  Execution on the exact PR head is pending disposable CI; local Docker stays BLOCKED.
+
+Real bootstrap, inbox delivery and human recovery/device UAT remain NOT TESTED;
+registration identity collection/storage/reveal and exports remain future work.
+
+### Staff parity, narrow layout and first database execution
+
+- PASS: final combined `pnpm check` before this receipt: lint, TypeScript,
+  2,190 unit cases in 50 files and production build (77 generated pages).
+- PASS: final staff browser suite: 16 executed cases, two intentional desktop
+  skips for the mobile-only checks, zero retries. Known audit action/result labels
+  translate in EN/AR. At 320px, both locales pass native down/up scrolling,
+  independently scrolling tables, keyboard invitation, 200% text and axe.
+- The new English enlarged-text test found a real intrinsic-width overflow in
+  the role picker. Explicit shrinkable/wrapping label text and a bounded fieldset
+  fix the cause; document-width assertions are retained, with no overflow clipping.
+- PASS on disposable CI `0226620`: staff browser job in
+  [37545935691](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37545935691).
+  Database reset applied the complete migration chain successfully, but strict
+  lint FAIL found `bootstrap_first`'s parameter-shadowed `ON CONFLICT(actor_id)`.
+  Fixed with the explicit `account_access_pkey` constraint. pgTAP/native checks
+  were skipped after that failure, and are not treated as passed.
+- The corrected SQL, parity and layout revision is being verified on a new exact
+  PR head. Hosted migrations/settings and live bootstrap remain untouched.
+
+### Staff native and concurrency checkpoint — 51bb9b0
+
+- PASS: local `pnpm check`: lint, TypeScript, 2,193 unit cases in 51 files and
+  the production build (77 generated pages).
+- PASS: disposable staff CI [37548456654](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37548456654),
+  native job 112558016017: complete migration reset, strict schema lint,
+  765 pgTAP assertions in ten files, security advisors (no issues found), and
+  all 14 genuine handler → GoTrue v2.197.0 → SQL cases.
+- PASS: disposable foundation CI [37548456655](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37548456655),
+  database job 112558228705: the same migration/SQL checks and all 74 integration
+  cases, including simultaneous three-to-two Super Admin demotions and the
+  persisted denial audit. Earlier new fixture UUIDs collided with an existing
+  email-check fixture; unique namespaces fix the setup without changing assertions,
+  timing, or adding retries.
+- PASS: participant native regression job 112558016518 on the same source revision.
+- Real GoTrue inserts a user before applying requested email confirmation in
+  the same transaction. The new private guards now permit that staged insert
+  only for its exact reserved actor/email and transaction; confirmed-email
+  completion is still mandatory. Added isolated bootstrap/invitation SQL proofs.
+- Final review is adding direct native staff token/change denial and UI recovery
+  cases. Those changes require their own final receipts; this checkpoint does
+  not claim them passed. Local Docker remains BLOCKED, and live bootstrap,
+  hosted migration application, delivery/recovery UAT and activation remain
+  NOT TESTED and unperformed.
+
+### Staff final perimeter and UI recovery revision
+
+- PASS: local final lint, route types/TypeScript and 2,196 unit cases in 51 files.
+  Production rebuild passes with 77 generated pages.
+- PASS: final `pnpm exec playwright test --config playwright.staff.config.ts`:
+  24 executed cases, two intentional desktop skips, zero retries. EN/AR desktop
+  and mobile now additionally cover invitation acceptance without automatic login,
+  immediate private-view clearing during failed logout, no background restoration
+  of that private view, and successful logout retry. Exact displayed audit action
+  and result labels resolve to existing enum filters; ordinary searches are preserved.
+  Existing RTL/keyboard/320px/200%-text/native-scroll/axe assertions remain passing.
+- Added: narrow staff native token/change guards and Send Email suppression, with
+  direct SQL proofs and two genuine native regressions (16 native cases total).
+  Native account creation, TOTP and other-admin recovery retain the previously
+  verified private reservation/transaction path. Final disposable CI for this new
+  perimeter revision is pending; no result is inferred from the earlier 14-case pass.
+
+### Staff verified implementation — c8f970a
+
+- PASS: final staff workflow [37549201780](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37549201780)
+  on `c8f970ad2cf41ef0263b8147e4cb96438a25b3f0`, both jobs successful.
+- PASS: native job 112560382432: `pnpm db:reset`, `pnpm db:lint` (no schema
+  errors), `pnpm db:test` (775 assertions, ten files), security advisors
+  (no issues found), and `pnpm exec vitest run --config vitest.staff.integration.config.ts`
+  (16 genuine cases, including direct email/phone/recovery/magic-link/OTP denial).
+  Actual isolated GoTrue image: v2.197.0. Optional additional cold passes were
+  SKIPPED, not represented as passed. All records and delivery capture are synthetic.
+- PASS: browser job 112560382596: 28 default-off cases and the 24 active staff
+  browser cases, with two intentional desktop skips, no retries and axe coverage.
+- PASS: production client bundle search for `STAFF_PORTAL_ENABLED`,
+  `STAFF_AUTH_SECURITY_SECRET`, `STAFF_SUPABASE_SECRET_KEY` and the dummy native
+  secret key found no matches in `.next/static`. Final `git diff --check` passes.
+- The broader Foundation and Participant workflows are still running at this
+  receipt; inspect the draft PR check rollup for their final results. A following
+  documentation-only receipt commit changes no implementation or tests.
+
+Draft [PR43](https://github.com/xpexellent-dotcom/msrc-2027/pull/43) remains the
+review handoff. Activation requires the documented migration, privacy, quota,
+bootstrap and human UAT gates. Live bootstrap, hosted migration application,
+production configuration changes and real email remain unperformed.
+
+### PR43 follow-up — persistent recovery denial and mobile table actions
+
+7 October 2026; BL-AUTH-05/06, AUTH-04/05, ROL-10/12, ADM-04/05, LOC-01/03.
+PR43 remains draft. The organizer explicitly requires persistent database denial
+during pending, failed or interrupted recovery, including committed authenticator
+deletion followed by failed password rotation. All release flags stay closed.
+
+The review-only staff migration now stores a durable private recovery hold before
+provider work. Session/access contexts, staff admission and email checks, staff
+RPCs, and native authenticator enrollment/verification deny while held. Provider
+window expiry, fresh password sessions, refresh, reactivation and role edits do
+not release it. A failed account reset cannot be downgraded to a factor-only reset.
+Completion compares the latest operation under the existing authority/account
+locks; stale callbacks and superseded invitation admissions cannot release a newer
+hold. Successful full account reset stays held until its exact linked invitation
+completes native password setting; fresh authenticator enrollment is still required.
+The independently authorized successful factor-only path remains available.
+
+Prepared genuine native coverage deletes the actual verified factor before injecting
+only password-provider failure, then checks fresh portal login, raw native sessions,
+refresh, enrollment, interruption, expiry and other-admin recovery. Raw native
+password identity verification alone grants no session/access context or staff
+authority while held. Added direct SQL durability/retry/CAS proofs and an account
+lock concurrency regression. Existing historical migrations and provider timeouts,
+rate limits and retry settings are preserved.
+
+Mobile testing found the opened role editor exceeded its horizontal table region
+in EN and AR. Its width and padding now follow the region width without clipping.
+New action coverage exercises role changes and failures/retry, suspend/reactivate,
+session revocation, minimum-two denial, other-admin reset/failure/retry, no self-reset,
+and invitation resend/revoke, with keyboard/bounds/axe checks at 320px and 200% text.
+People rows show a sanitized translated recovery-state badge and refresh after
+failed reset. The badge is presentation only; database state enforces denial.
+
+- PASS at this checkpoint: focused backend/projection/diagnostic tests (82 cases),
+  scoped lint, TypeScript and `git diff --check`.
+- BLOCKED locally: Docker cannot connect to `npipe:////./pipe/docker_engine`.
+  Genuine native, pgTAP and database concurrency execution use disposable Linux CI.
+- Pending: final combined local/browser checks and the new exact-head CI receipts.
+- NOT TESTED/unperformed: hosted migration application, production settings,
+  live bootstrap, real email and human recovery/inbox/device UAT.
+
+### Recovery follow-up local verification
+
+- PASS: `pnpm check`: lint, generated route types/TypeScript, 2,207 unit cases
+  in 51 files and production build (77 generated pages).
+- PASS: final `pnpm exec playwright test --config playwright.staff.config.ts`:
+  26 active cases, four intentional desktop skips, zero retries. The new mobile
+  action matrix runs in EN/AR at normal and 200% text, with actual field/button
+  bounds, keyboard actions, native horizontal/down/up scrolling and axe.
+- PASS: twelve new synthetic mobile action/role-choice screenshots captured;
+  representative EN/AR enlarged-text role choices and Arabic action controls
+  were visually inspected. Narrow row checkboxes/labels now stack for readable
+  captions; existing whole-page width assertions remain intact.
+- The first mobile matrix run's final scroll assertion assumed the heading was
+  visible at document position zero under 200% text. The translated banner/topbar
+  legitimately push it lower. The final test scrolls natively to the actual heading
+  and retains heading-in-viewport and reverse-scroll assertions; it passes without
+  retries or longer timeouts.
+- PASS: static normalized-body comparison of four private function overrides
+  against #25: unchanged except recovery hold checks. Earlier migration files and
+  session policy values/signatures/ACLs remain unchanged.
+- Prepared: 17 genuine native cases, including real factor deletion before password
+  failure, expiry/interruption, fresh/refreshed denial, pending native TOTP proof
+  denial and superseded native invitation admission. SQL and concurrency execution
+  on the pushed revision is pending CI; local Docker remains BLOCKED.
+
+### Recovery follow-up first disposable execution — 2dc2626
+
+- PASS: native job 112759705037 in
+  [37611545081](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37611545081):
+  all 17 genuine native cases, including real factor deletion before password
+  failure, durable pending/failed/expired denial, valid native TOTP proof denied
+  without AAL2/AMR elevation, queued superseded admission denied, and other-admin
+  restoration. Actual GoTrue v2.197.0; strict migration lint clean, 818 SQL
+  assertions in eleven files pass, and security advisors report no issues.
+- FAIL: browser job on that source: 28 closed checks pass; 25 enabled cases pass,
+  four intentional desktop skips, one Arabic desktop invitation case scans axe
+  before the replacement page's streamed document title commits. Wait for the
+  actual home screen and final title before axe; retain the document-title rule,
+  zero retries and existing timeout. Both new mobile action matrices pass in CI.
+- FAIL: Foundation integration job 112759705105: 74 of 75 cases pass. Its new
+  recovery test combines dependent mutation calls and a profile assertion in one
+  SQL expression, allowing the subquery to observe the earlier statement snapshot.
+  The pgTAP sequential transition proofs pass. Separate the dependent statements
+  and retain every state/CAS assertion; do not alter production enforcement,
+  concurrency timing, retries or timeout.
+- The two test synchronization corrections require a new exact-revision CI run.
+  No hosted settings/migrations, live bootstrap or real email have been performed.
+
+### Recovery follow-up verified implementation — cdc921e
+
+- PASS: [Staff CI 37612823110](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37612823110)
+  on `cdc921e5fcbe4ff3cb9ec04041f20a0368a8397c`, both jobs successful.
+  Native job 112763949912 verifies all 17 genuine cases on GoTrue v2.197.0:
+  committed factor deletion/password failure, pending/failed/interrupted/expired
+  holds, fresh and refreshed authorization/enrollment denial, valid pre-existing
+  factor proof denied without AAL2/AMR elevation, stale queued native admission,
+  and successful other-admin recovery. Strict lint is clean; 818 SQL assertions
+  in eleven files pass; security advisors report no issues.
+- PASS: staff browser job 112763949518: 28 default-off cases and 26 enabled
+  cases, four intentional desktop skips, zero retries. Both mobile action matrices
+  pass at normal/200% text with EN/AR, keyboard, bounded controls, native scrolling
+  and axe. The final-home/document-title synchronization correction passes.
+- PASS: [Foundation database job 112764505594](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37612823115/job/112764505594):
+  migration reset, strict lint, the same 818 SQL assertions, clean advisors and all
+  75 integration cases across eight files. Both concurrent staff-authority cases
+  pass. The sequential retry/CAS correction passes without changing enforcement,
+  assertions, timing or retry settings. Optional five cold fixture repetitions
+  were SKIPPED by this workflow condition, not represented as passed.
+- PASS: local combined lint/types/2,207-unit/build checks and final 26-case staff
+  presentation suite recorded above. Local database execution remains BLOCKED.
+- Broader application and Participant regressions are still running at this dated
+  receipt; the draft PR check rollup records their final results. This following
+  commit changes only these receipts; implementation and tests are unchanged.
+
+PR43 remains draft for review. Release flags are closed; hosted migrations,
+production settings, live bootstrap and real email remain untouched. Human inbox,
+device and mutual-recovery UAT remain separate activation gates.

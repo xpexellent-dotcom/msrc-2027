@@ -20,7 +20,7 @@ describe("isCountedPage", () => {
     expect(isCountedPage(path)).toBe(true);
   });
 
-  it.each(["/", "/fr/about", "/en/design-system", "/en/hero-preview", "/en/account", "/ar/review/123", "/en/organizer", "/api/health", "/en/about/extra", "/en/media/clip", "/en/program/a/b"])("skips %s", (path) => {
+  it.each(["/", "/fr/about", "/en/design-system", "/en/hero-preview", "/en/account", "/ar/review/123", "/en/organizer", "/api/health", "/en/about/extra", "/en/media/clip", "/en/program/a/b", "/en/staff", "/ar/staff/people", "/en/staff/accept-invitation"])("skips %s", (path) => {
     expect(isCountedPage(path)).toBe(false);
   });
 

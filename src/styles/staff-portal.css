@@ -1,0 +1,56 @@
+#main-content.staff-main { padding-block-start: 0; }
+.staff-portal { max-inline-size: 1200px; margin-inline: auto; padding: 1.2rem clamp(1rem, 4vw, 3rem) 3rem; color: var(--color-ink, #1c1430); }
+.staff-topbar { display: flex; align-items: center; gap: 1rem; border-block-end: 1px solid #d8d2e3; padding-block: 1rem 1.5rem; }
+.staff-topbar > a { margin-inline-start: auto; min-block-size: 44px; display: inline-flex; align-items: center; }
+.staff-wordmark { font-family: var(--font-heading), sans-serif; font-size: 1.15rem; font-weight: 700; letter-spacing: -.04em; }
+.staff-wordmark > span { color: #6d4286; margin-inline-start: .15rem; }
+.staff-heading { padding-block: 2.5rem 1rem; }
+.staff-heading h1 { font-size: clamp(1.9rem, 5vw, 3.25rem); line-height: 1.25; margin-block: .5rem 1rem; }
+.staff-heading p { max-inline-size: 68ch; }
+.staff-name { font-size: 1.25rem; font-weight: 600; }
+.staff-panel, .staff-menu { background: #fff; border: 1px solid #d8d2e3; border-radius: 1rem; padding: clamp(1rem, 3vw, 2rem); margin-block: 1.25rem; min-inline-size: 0; }
+.staff-auth-panel { max-inline-size: 40rem; }
+.staff-panel h2, .staff-menu h2 { margin-block-start: 0; font-size: 1.45rem; }
+.staff-panel form { display: grid; gap: 1.2rem; }
+.staff-panel .field-input { inline-size: 100%; }
+.staff-panel form > .button { justify-self: start; }
+.staff-actions { display: flex; gap: .7rem; flex-wrap: wrap; align-items: center; margin-block: .6rem; }
+.staff-actions > .site-link { min-block-size: 44px; display: inline-flex; align-items: center; }
+.staff-feedback { border-inline-start: 4px solid #603a75; padding: 1rem; background: #f0eaf5; margin-block: 1rem; min-block-size: 3.5rem; }
+.staff-feedback--empty { border: 0; background: transparent; padding: 0; min-block-size: 1rem; }
+.staff-menu ul, .staff-invitations { list-style: none; padding: 0; margin: 0; }
+.staff-menu li { border-block-end: 1px solid #e5e0eb; }
+.staff-menu li:last-child { border-block-end: 0; }
+.staff-menu li > a, .staff-menu li > div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem .2rem; min-block-size: 56px; }
+.staff-badge { color: #4d385e; background: #f0eaf5; font-size: .85rem; padding: .3rem .65rem; border-radius: .5rem; white-space: nowrap; }
+.staff-role-picker { min-inline-size: 0; inline-size: 100%; border: 1px solid #d8d2e3; border-radius: .6rem; padding: .8rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: .2rem .8rem; }
+.staff-role-picker legend { padding-inline: .4rem; font-weight: 600; }
+.staff-role-picker label { display: flex; align-items: center; gap: .65rem; min-block-size: 44px; cursor: pointer; }
+.staff-role-picker label > span { min-inline-size: 0; overflow-wrap: anywhere; }
+.staff-role-picker input { inline-size: 1.15rem; block-size: 1.15rem; accent-color: #603a75; flex-shrink: 0; }
+.staff-table-scroll { overflow-x: auto; max-inline-size: 100%; margin-block: 1rem; container-type: inline-size; --staff-cell-padding: min(.85rem, 16px); --staff-action-width: calc(100cqi - var(--staff-cell-padding) * 2); }
+.staff-table-scroll table { width: 100%; border-collapse: collapse; min-inline-size: 660px; font-size: .92rem; }
+.staff-table-scroll th, .staff-table-scroll td { padding: .85rem var(--staff-cell-padding); text-align: start; vertical-align: top; border-block-end: 1px solid #e5e0eb; max-inline-size: 24rem; overflow-wrap: anywhere; }
+.staff-table-scroll thead th { background: #f6f2f8; font-weight: 600; }
+.staff-email { display: block; font-weight: 400; font-size: .85rem; margin-block-start: .25rem; }
+.staff-person-actions { min-inline-size: 0; inline-size: min(11rem, var(--staff-action-width)); max-inline-size: min(24rem, var(--staff-action-width)); }
+.staff-person-actions summary, .staff-enrollment summary { cursor: pointer; min-block-size: 44px; padding-block: .4rem; }
+.staff-person-actions[open] { inline-size: min(22rem, var(--staff-action-width)); }
+.staff-person-actions .staff-role-picker { padding: .4rem; }
+.staff-person-actions .button { padding-inline: min(1rem, 12px); }
+.staff-recovery-state { display: block; color: #603a75; font-size: .85rem; margin-block-start: .4rem; }
+.staff-invitations li { display: grid; gap: .5rem; padding-block: 1rem; border-block-end: 1px solid #e5e0eb; overflow-wrap: anywhere; }
+.staff-search { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.staff-search .field { min-inline-size: 0; }
+.staff-search .button { margin-block-end: .1rem; }
+.staff-identity { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.staff-muted { color: #544c60; }
+.staff-enrollment { padding-block: 1rem; }
+.staff-enrollment img { display: block; max-inline-size: 100%; block-size: auto; border: 1px solid #d8d2e3; }
+.staff-enrollment code { display: block; overflow-wrap: anywhere; padding: .8rem; background: #f6f2f8; }
+.staff-policy { margin-block-start: 2.5rem; padding-block-start: 1rem; border-block-start: 1px solid #d8d2e3; font-size: .9rem; color: #544c60; max-inline-size: 78ch; }
+.staff-test-note { padding: .7rem 1rem; background: #f0eaf5; border-radius: .5rem; font-size: .9rem; }
+.staff-portal :focus-visible { outline: 3px solid #603a75; outline-offset: 3px; }
+@container (max-width: 360px) { .staff-person-actions .staff-role-picker { padding: .2rem; } .staff-person-actions .staff-role-picker label { flex-direction: column; align-items: stretch; gap: .25rem; } }
+@media (max-width: 600px) { .staff-topbar { gap: .7rem; flex-wrap: wrap; } .staff-search { grid-template-columns: 1fr; } .staff-heading { padding-block-start: 1.5rem; } .staff-actions > .button { max-inline-size: 100%; white-space: normal; text-align: center; } }
+@media (prefers-reduced-motion: reduce) { .staff-portal *, .staff-portal *::before, .staff-portal *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }

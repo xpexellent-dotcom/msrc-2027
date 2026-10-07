@@ -8,6 +8,7 @@ test-auth-results/
 playwright-auth-report/
 test-contact-results/
 playwright-contact-report/
+playwright-staff-report/
 *.tsbuildinfo
 .env*
 !.env.example
