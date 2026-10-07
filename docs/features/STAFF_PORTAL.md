@@ -67,12 +67,18 @@ passwords, native tokens, invitation digests, codes and provider payloads.
 
 ## Activation procedure — document only; not executed
 
+Use the [operator activation checklist](STAFF_ACTIVATION_CHECKLIST.md) for an
+individual action and evidence requirement for every migration and release gate.
+PR #43 is merged; merged application code does not apply hosted migrations or
+authorize opening either staff gate. The 7 October read-only verification receipts
+are recorded in [PROGRESS](../PROGRESS.md).
+
 Do not use a blanket hosted `db reset`, seed or migration push. A named operator
 must inspect actual migration history, backups, the current exact SQL revisions
 and native Auth guards before applying only the reviewed missing migrations.
-The organizer reports only persisted authorization and Contact counters applied
-today. The order below respects dependencies; application merge is separate from
-hosted migration application.
+Read-only hosted history on 7 October confirms only persisted authorization and
+Contact counters applied. The order below respects dependencies; application merge
+is separate from hosted migration application.
 
 | Order | Migration | State in this task |
 | --- | --- | --- |
@@ -83,7 +89,7 @@ hosted migration application.
 | 4 (#25) | `20261003180734_readonly_authentication_context.sql` | Pending; readonly access evidence |
 | Existing | `20261004114603_contact_abuse_counters.sql` | Already applied per organizer; independent, do not reapply |
 | 5 (#39) | `20261004164034_participant_accounts.sql` | Pending; prerequisite identity/admission compatibility; accounts stay closed |
-| 6 | `20261006224926_staff_portal_foundation.sql` | New review-only private staff foundation; policy defaults false |
+| 6 (#43) | `20261006224926_staff_portal_foundation.sql` | Pending after code merge; private staff policy defaults false |
 
 `20260929143136_foundation_samples.sql` is a synthetic development fixture;
 do not deploy its sample data to Production. Reconcile hosted history explicitly

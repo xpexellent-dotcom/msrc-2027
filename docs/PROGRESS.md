@@ -1,5 +1,99 @@
 # Progress and session handover
 
+## 7 October 2026 — Merged staff foundation, live closure and activation checklist
+
+Scope: BL-AUTH-01, BL-AUTH-05/06 staff, BL-RPT-01/03; ORG-043/044/045.
+Read-only verification and operator documentation only. No open PRs were found
+before creating `codex/staff-activation-checklist` from freshly fetched
+`origin/main`; the original checkout's local work remains preserved.
+
+GitHub confirms [PR #43](https://github.com/xpexellent-dotcom/msrc-2027/pull/43)
+merged at 12:35 UTC on 7 October, producing
+`2a991d2a13fa9b0b7f04877d2001ad95f134f136`. This supersedes the earlier dated draft
+status receipts. Code, migrations, scripts, tests and workflow files match the
+verified final PR revision `315c2b8`; `git diff 315c2b8 origin/main -- src supabase
+scripts tests .github` produces no changes.
+
+Vercel's read-only deployment inspection confirms the live domain serves that
+exact `main` commit: Production deployment `dpl_GbXLZzMsnb1eZTHtVcLXtJvRJDyY`,
+READY, with `msrc2027.com` and `www.msrc2027.com` aliases. An encrypted environment
+metadata listing, without decrypting values, contains no `STAFF_*` variables and
+no participant enable flag. The server gate is therefore unset and closed.
+
+Observed live results at 12:42–12:43 UTC / 15:42–15:43 Asia/Riyadh:
+
+- PASS: `node .tools/verify-live-staff-closure.mjs` — 82 HTTP probes. Twelve EN/AR
+  staff paths return 404 with no forms and noindex metadata. Nine staff API GET
+  probes and all 18 action branches under each locale return 503 with exactly
+  `{"state":"closed"}`, no Set-Cookie, private/no-store caching and noindex headers.
+  HEAD/OPTIONS/PUT/PATCH/DELETE also fail closed. Action probes supply only an
+  action label, no identity, password, code, target or delivery address; closure is
+  checked before them and the deployed handler closes before provider construction.
+- PASS: the same HTTP receipt covers four synthetic Auth-preview GET/POST denials
+  (404), all fifteen generic operational API GET denials (503 WORKFLOW_CLOSED),
+  and robots exclusions for `/*/staff` and `/api/`.
+- PASS: real Chromium desktop and Pixel 7 browser visits — all 24 staff cases
+  (six routes × two locales × two viewports) follow apex 308 to the same www path
+  and return 404. No forms, private data, staff menu, staff links or public
+  header/footer are rendered. EN is `lang=en` / LTR; AR is `lang=ar` / RTL with
+  localized Arabic 404 content. Four public-home visits return 200 with no staff
+  links. Staff responses have private/no-store caching, no-referrer and noindex
+  metadata. Console errors are the expected 404 resource responses only.
+- PASS: 28 ignored browser screenshots and sanitized HTTP/browser receipts saved
+  under `test-results/staff-live-evidence/`; EN/AR desktop/mobile sign-in captures
+  were visually reviewed. Authenticated live screens and live axe were NOT TESTED.
+- PASS: read-only hosted migration ledger contains only
+  `20261002173712_persisted_authorization.sql` and
+  `20261004114603_contact_abuse_counters.sql`. A catalog-only SELECT confirms
+  `msrc_staff`, `msrc_sessions` and `msrc_participant` schemas remain absent.
+  None of the six pending #25/#39/#43 migrations was applied.
+
+PASS: all three GitHub push-to-main workflows and all six check runs on the exact
+merged SHA above have completed successfully; Vercel's commit status also passes.
+Actual completed job logs establish:
+
+- [Staff CI 37622051762](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37622051762):
+  native job 112794463061 passes all 17 genuine cases and 818 SQL assertions;
+  browser job 112794462590 passes 28 default-off and 26 enabled EN/AR cases,
+  with four intentional desktop skips. Persistent partial-failure/interrupted
+  recovery, fresh login/enrollment denial and other-admin restoration are covered.
+- [Foundation CI 37622051990](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37622051990):
+  database job 112794462630 passes 818 SQL assertions in eleven files and all
+  75 integration cases in eight files. Application job 112794462516 passes
+  lint/types, 2,207 units in 51 files, production build, 443 site-wide browser
+  cases (25 intentional skips), 81 legacy staff cases and 44 Contact mock cases.
+- [Participant CI 37622051702](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37622051702):
+  native job 112794460388 passes 19 genuine cases and 818 SQL assertions;
+  browser job 112794460258 passes 26 default-off and 54 enabled synthetic cases.
+- All three database jobs report strict lint and security advisors clean; the
+  actual native image is `public.ecr.aws/supabase/gotrue:v2.197.0`. These are
+  disposable Linux results, not hosted migration or managed-project UAT.
+  Optional hydration repetitions/five cold integration passes were SKIPPED.
+  No CI rerun or workflow dispatch was issued by this verification.
+
+Prepared [the activation checklist](features/STAFF_ACTIVATION_CHECKLIST.md), with
+all nine repository migration files listed separately: one development-only
+fixture excluded, two applied migrations to skip, and six missing migrations in
+dependency order. It includes individual migration evidence, Production-only
+variables, native Auth guards/hook, private first/second account onboarding,
+durable recovery rehearsal, shared email budget, UAT and closure rollback.
+Every operational checkbox remains pending; this document is not activation
+authorization. The feature guide links to it and distinguishes code merge from
+hosted application. No organizer decision or policy value changed.
+
+PASS: independent source review, `node .tools/verify-staff-activation-docs.mjs`
+and `git diff --check`: nine migration entries with the exact six/two/one
+dispositions, 56 unchecked operational items, 22 resolving checklist file links
+and no copied designated identities. Changes are limited to these three
+documentation files; application code, migrations, tests and settings are unchanged.
+
+NOT PERFORMED: hosted migration application, production settings or flags changes,
+live bootstrap, account/factor/reset/grant changes, real emails, DNS or paid
+resource changes. Human inbox/device/screen-reader/mutual-recovery UAT, approved
+combined email forecast, recent-auth/warning timing and privacy/retention release
+evidence remain gates. The next task is separately authorized operator rehearsal
+and gate sign-off; staff, participants and operational access remain closed.
+
 ## 6 October 2026 — Arabic policy terminology consistency
 
 Continued open [PR #42](https://github.com/xpexellent-dotcom/msrc-2027/pull/42) in the
