@@ -344,10 +344,13 @@ or enter authenticator material.
   not. Values/hashes remain withheld; no Auth session, mutation, reset or email
   was created. Safe receipt: `current-private-account-password-validation`.
   The previous matching receipts remain historical. Completed human/native
-  sign-in evidence remains valid, but further credential-dependent operator
-  work awaits the exact working private input. The person was asked to reconcile
-  it privately; editing an input file does not update the hosted account. Do not
-  reset the account or repurpose bootstrap to resolve this input mismatch.
+  sign-in evidence remains valid. The person subsequently clarified that the new
+  private value is an intended account password change. It has NOT BEEN APPLIED.
+  Existing native guards deny ordinary owner password updates and permit only
+  invitation admission or other-admin recovery. A separate authenticated owner
+  change flow is being prepared for review, with fresh password/TOTP proof,
+  retained authenticator, audit and session revocation. No self-recovery reset,
+  bootstrap replay, new hosted migration, additional account or email resulted.
 
 The [activation checklist](STAFF_ACTIVATION_CHECKLIST.md) and
 [staff foundation](STAFF_PORTAL.md) retain the wider release/UAT requirements.

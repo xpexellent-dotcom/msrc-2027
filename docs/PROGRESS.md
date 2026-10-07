@@ -1,6 +1,6 @@
 # Progress and session handover
 
-## 7 October 2026 — First-admin sign-in/TOTP verified; updated private credential reconciliation pending
+## 7 October 2026 — First-admin sign-in/TOTP verified; requested account password change not yet applied
 
 ORG-046's persistent restricted setup authorization remains in effect. All six
 reviewed hosted migrations genuinely committed and were verified individually;
@@ -159,10 +159,15 @@ access only, with values/location withheld. At 19:06:15.068 UTC, reviewed read-o
 bcrypt validation of the newly saved private password returned STOP: email matches
 the account, password does not. No value/hash was displayed and no session,
 mutation, reset or email resulted. Earlier matching receipts remain historical.
-The completed human/native sign-in evidence remains valid; further credential-
-dependent operator steps are stopped pending the exact working private input.
-The person was asked to reconcile the saved password privately. Editing an input
-file does not update the hosted account, and no self-reset/bootstrap replay is authorized.
+The completed human/native sign-in evidence remains valid. The person clarified
+that the newly saved password is an intended account password change, rather than
+the working password. That change has NOT BEEN APPLIED. The existing native guard
+permits invitation admission and other-admin recovery only; it rejects ordinary
+own-password changes even from a valid TOTP session. A separate reviewed
+authenticated password-change flow is being prepared on a branch from current
+main. It must retain the working authenticator, require fresh owner password/TOTP
+proof, audit the change and revoke sessions. No self-recovery reset, bootstrap
+replay, new account, email or additional hosted migration has occurred.
 
 On failure with a known ended enabling transaction, immediately close native
 `msrc_staff.policy.enabled`, keep/set `STAFF_PORTAL_ENABLED=false` and redeploy as
@@ -181,11 +186,16 @@ Earlier checkpoints below are historical. This entry supersedes their pending/
 blocked state only for the actual completed stages above; remaining human and
 wider release gates are not implicitly passed.
 
-Documentation validation at this checkpoint PASSED: 97 relative links across the
-five changed records, six migration SHA-256 receipts, private-value screening and
-whitespace checks. New documentation-revision CI results are recorded in
-[draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45); the earlier
-`06443f5` CI pass above does not certify a later revision.
+Documentation validation at the completion checkpoint PASSED: 97 relative links
+across the five changed records, six migration SHA-256 receipts, private-value
+screening and whitespace checks. Exact revision
+`3c0398995aff0e83990da6e290fddfff1033ab63` PASSED all six CI jobs and Vercel,
+verified at 19:30:43 UTC: [foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37672452948),
+[staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37672452980),
+[participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37672452993).
+This later clarification entry requires its own checks; those receipts do not
+certify an untested later revision. [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45)
+remains draft.
 
 ## 7 October 2026 — Private backup and restore proof; restricted setup continues
 
