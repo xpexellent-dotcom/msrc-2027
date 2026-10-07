@@ -8,8 +8,9 @@ in [draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45), whose
 latest clarification head `db2b1896b9eb919b003937063d7f1ba0df7b9270` has all six CI
 jobs PASS and Vercel SUCCESS. This change starts from merged main
 `bbb790f1c70d4f770ddc221a3cde8f6f01edbab2` on `codex/staff-password-change`.
-Open-PR preflight found only #45; shared records are the only intentional
-documentation overlap, and its bootstrap/test files remain untouched here.
+Open-PR preflight found only #45. Its bootstrap/operator files remain untouched;
+the existing staff browser test now shares its five-line route-readiness fix,
+required by the observed CI failure below. Shared records also overlap.
 
 ORG-047 and [the owner-change guide](features/STAFF_PASSWORD_CHANGE.md) distinguish
 an authenticated password change from lost-access recovery. Added EN/AR/RTL
@@ -60,8 +61,18 @@ Local observed validation:
   Independent review then aligned the database's explicit native session-origin
   freshness with the server and added two regression assertions. These older
   receipts do not certify that later correction.
-- INITIAL POST-CORRECTION CHECKPOINT: exact-head CI is PENDING, including actual
-  native Auth and participant regression. Latest per-head results are in
+- PASS at corrected head `40bf6e285028421cbb2408025f5846d89576fd05`:
+  staff native Auth 26 cases, 906 SQL assertions/12 files, 75 foundation
+  integrations/8 files, 19 participant native Auth cases, strict lint/advisors
+  and Vercel. Its staff browser job failed one existing English desktop
+  failed-logout axe check: the destination title was missing at scan time;
+  default-off 32 passed and new password suites were skipped after that failure.
+  Added the already reviewed #45 route/heading/title readiness assertions before
+  the scan, preserving the document-title axe rule and all prior assertions.
+  No retry, increased timeout or production code change is used for this fix.
+  The corrected existing suite passed locally: 26 cases and four intentional
+  desktop skips, including EN/AR failed-logout and mobile table action checks.
+- POST-BROWSER-CORRECTION CHECKPOINT: new exact-head CI is PENDING. Latest results are in
   [draft PR #46](https://github.com/xpexellent-dotcom/msrc-2027/pull/46).
   Production owner password change remains NOT APPLIED; no new hosted migration,
   setting, flag, account, email, bootstrap or password mutation occurred.

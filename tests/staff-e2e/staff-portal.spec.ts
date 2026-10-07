@@ -208,6 +208,11 @@ for (const locale of ["en", "ar"] as const) {
     await retry.click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/staff/sign-in$`));
     await expect(page.getByLabel(copy.password)).toHaveValue("");
+    // Logout clears the form before Next finishes the destination route and metadata.
+    // Scan the completed sign-in document, retaining the document-title rule.
+    await expect(page.getByTestId("staff-portal")).toHaveAttribute("data-screen", "sign-in");
+    await expect(page.getByRole("heading", { name: copy.signIn, exact: true })).toBeVisible();
+    await expect(page).toHaveTitle("MSRC 2027 | Staff portal");
     await axe(page);
   });
 
