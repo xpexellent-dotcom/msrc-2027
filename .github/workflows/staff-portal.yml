@@ -6,6 +6,10 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      migration_one_rehearsal:
+        description: Rehearse only migration 1 with empty native Auth; no accounts or delivery
+        type: boolean
+        default: false
       cold_runs:
         description: Independent cold migration and native-auth passes; no failure retries
         type: choice
@@ -22,6 +26,7 @@ concurrency:
 jobs:
   browser:
     name: Closed staff routes and synthetic EN/AR browser checks
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.migration_one_rehearsal }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -58,6 +63,7 @@ jobs:
           retention-days: 7
   native:
     name: Staff migrations, RLS and genuine native Auth
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.migration_one_rehearsal }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -119,3 +125,117 @@ jobs:
       - name: Stop the disposable stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop
+  migration-one:
+    name: Migration 1 only — empty native Auth and packet verification
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.migration_one_rehearsal }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          run_install: false
+      - name: Install locked dependencies
+        id: dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Stage unchanged configuration without application migrations or fixtures
+        id: stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_REPOSITORY" = "xpexellent-dotcom/msrc-2027"
+          test "$RUNNER_ENVIRONMENT" = "github-hosted"
+          test "$(pnpm exec supabase --version)" = "2.118.0"
+          node --input-type=module -e 'if (Object.entries(process.env).some(([name, value]) => value && /^(SUPABASE_|GOTRUE_|STAFF_|NEXT_PUBLIC_SUPABASE_|PARTICIPANT_ACCOUNTS_ENABLED$|CONTACT_DELIVERY_ENABLED$|RESEND_)/.test(name))) { throw new Error("Rehearsal refuses external configuration or credentials."); }'
+          staging_dir="$(mktemp -d "${RUNNER_TEMP}/msrc-migration-one.XXXXXX")"
+          evidence_dir="$(mktemp -d "${RUNNER_TEMP}/msrc-migration-one-evidence.XXXXXX")"
+          mkdir -p -- "$staging_dir/supabase/migrations"
+          cp -- supabase/config.toml "$staging_dir/supabase/config.toml"
+          : > "$staging_dir/supabase/seed.sql"
+          cmp -s -- supabase/config.toml "$staging_dir/supabase/config.toml"
+          test ! -e "$staging_dir/supabase/.temp/project-ref"
+          printf 'workdir=%s\n' "$staging_dir" >> "$GITHUB_OUTPUT"
+          printf 'evidence=%s\n' "$evidence_dir" >> "$GITHUB_OUTPUT"
+      - name: Require a fresh disposable stack and bind its network to loopback
+        id: network
+        shell: bash
+        run: |
+          set -euo pipefail
+          if docker container inspect supabase_db_msrc2027-local >/dev/null 2>&1 \
+            || docker volume inspect supabase_db_msrc2027-local >/dev/null 2>&1; then
+            printf '%s\n' 'Rehearsal requires an empty disposable runner.'
+            exit 1
+          fi
+          docker network create -o com.docker.network.bridge.host_binding_ipv4=127.0.0.1 msrc2027-local
+      - name: Initialize native schemas without settings changes or credential output
+        env:
+          MSRC_REHEARSAL_WORKDIR: ${{ steps.stage.outputs.workdir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          startup_log="$(mktemp "${RUNNER_TEMP}/msrc-migration-one-start.XXXXXX")"
+          trap 'rm -f -- "$startup_log"' EXIT
+          if pnpm exec supabase --workdir "$MSRC_REHEARSAL_WORKDIR" start \
+            --network-id msrc2027-local \
+            --exclude realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor \
+            >"$startup_log" 2>&1; then
+            printf '%s\n' 'Empty disposable native stack initialized; credentials withheld.'
+          else
+            printf '%s\n' 'Disposable initialization failed; credential-bearing diagnostics withheld.'
+            exit 1
+          fi
+      - name: Rehearse the exact baseline, migration 1 and read-only packet queries
+        env:
+          MSRC_REHEARSAL_WORKDIR: ${{ steps.stage.outputs.workdir }}
+          MSRC_REHEARSAL_EVIDENCE: ${{ steps.stage.outputs.evidence }}
+        run: node scripts/rehearse-staff-migration-one.ts --workdir "$MSRC_REHEARSAL_WORKDIR" --evidence "$MSRC_REHEARSAL_EVIDENCE"
+      - name: Upload sanitized migration-only evidence
+        if: ${{ !cancelled() && steps.stage.outcome == 'success' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: staff-migration-one-rehearsal
+          path: ${{ steps.stage.outputs.evidence }}
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Dispose only the staged local stack and its data volumes
+        if: ${{ always() && steps.dependencies.outcome == 'success' && steps.stage.outcome == 'success' && steps.network.outcome == 'success' }}
+        env:
+          MSRC_REHEARSAL_WORKDIR: ${{ steps.stage.outputs.workdir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cleanup_log="$(mktemp "${RUNNER_TEMP}/msrc-migration-one-stop.XXXXXX")"
+          trap 'rm -f -- "$cleanup_log"' EXIT
+          if pnpm exec supabase --workdir "$MSRC_REHEARSAL_WORKDIR" stop --no-backup >"$cleanup_log" 2>&1; then
+            printf '%s\n' 'Disposable local stack and volumes removed.'
+          else
+            printf '%s\n' 'Disposable cleanup failed; credential-bearing diagnostics withheld.'
+            exit 1
+          fi
+          for container_name in supabase_db_msrc2027-local supabase_auth_msrc2027-local; do
+            if docker container inspect "$container_name" >/dev/null 2>&1; then
+              printf '%s\n' 'Disposable container remains after cleanup.'
+              exit 1
+            fi
+          done
+          if docker volume inspect supabase_db_msrc2027-local >/dev/null 2>&1; then
+            printf '%s\n' 'Disposable database volume remains after cleanup.'
+            exit 1
+          fi
+          cmp -s -- supabase/config.toml "$MSRC_REHEARSAL_WORKDIR/supabase/config.toml"
+          git diff --exit-code -- supabase/config.toml
+          if docker network inspect msrc2027-local >/dev/null 2>&1; then
+            docker network rm msrc2027-local
+          fi
+          printf '%s\n' 'Cleanup absence and unchanged configuration verified.'
