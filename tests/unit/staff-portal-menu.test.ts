@@ -20,6 +20,7 @@ describe("BL-AUTH-01 and BL-RPT-01/03 navigation projection", () => {
       for (const entry of STAFF_MENU) expect(staffCopy[locale].areas[entry.key]).toBeTruthy();
       for (const role of ROLES) expect(staffCopy[locale].roleLabels[role]).toBeTruthy();
       expect(Object.keys(staffCopy[locale].states)).toEqual(Object.keys(staffCopy.en.states));
+      expect(Object.keys(staffCopy[locale].recoveryStates)).toEqual(["none", "pending", "failed", "awaiting_invitation"]);
     }
   });
   it("projects only the final four identifier characters and never short identifiers", () => {

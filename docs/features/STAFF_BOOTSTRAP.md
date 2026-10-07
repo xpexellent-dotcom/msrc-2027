@@ -52,7 +52,13 @@ key can perform bootstrap. Do not run this script from CI or application request
    self-reset, self-demotion and self-suspension are denied and audited. Authenticator
    reset revokes every target session before native factor removal. Account reset also
    rotates the password and sends a fresh single-use invitation. Partial provider
-   failures keep sessions revoked and require an inspected, audited new operation.
+   failures keep a durable database recovery hold, even after the provider reservation
+   expires. The target cannot use a fresh password session to enroll a replacement
+   authenticator or regain staff authority. The other administrator must retry the
+   same required mode; an incomplete full account reset cannot be replaced with a
+   factor-only reset. Completed full recovery remains held until the latest linked
+   invitation finishes native password setting, followed by fresh TOTP enrollment.
+   Earlier callbacks or revoked/expired invitation links cannot release the hold.
 
 The safeguard protects at least two active Super Admin accounts and grants against demotion or
 suspension. The one-account bootstrap and approved other-admin recovery temporarily

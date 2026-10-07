@@ -28,14 +28,17 @@
 .staff-role-picker label { display: flex; align-items: center; gap: .65rem; min-block-size: 44px; cursor: pointer; }
 .staff-role-picker label > span { min-inline-size: 0; overflow-wrap: anywhere; }
 .staff-role-picker input { inline-size: 1.15rem; block-size: 1.15rem; accent-color: #603a75; flex-shrink: 0; }
-.staff-table-scroll { overflow-x: auto; max-inline-size: 100%; margin-block: 1rem; }
+.staff-table-scroll { overflow-x: auto; max-inline-size: 100%; margin-block: 1rem; container-type: inline-size; --staff-cell-padding: min(.85rem, 16px); --staff-action-width: calc(100cqi - var(--staff-cell-padding) * 2); }
 .staff-table-scroll table { width: 100%; border-collapse: collapse; min-inline-size: 660px; font-size: .92rem; }
-.staff-table-scroll th, .staff-table-scroll td { padding: .85rem; text-align: start; vertical-align: top; border-block-end: 1px solid #e5e0eb; max-inline-size: 24rem; overflow-wrap: anywhere; }
+.staff-table-scroll th, .staff-table-scroll td { padding: .85rem var(--staff-cell-padding); text-align: start; vertical-align: top; border-block-end: 1px solid #e5e0eb; max-inline-size: 24rem; overflow-wrap: anywhere; }
 .staff-table-scroll thead th { background: #f6f2f8; font-weight: 600; }
 .staff-email { display: block; font-weight: 400; font-size: .85rem; margin-block-start: .25rem; }
-.staff-person-actions { min-inline-size: 11rem; max-inline-size: 24rem; }
+.staff-person-actions { min-inline-size: 0; inline-size: min(11rem, var(--staff-action-width)); max-inline-size: min(24rem, var(--staff-action-width)); }
 .staff-person-actions summary, .staff-enrollment summary { cursor: pointer; min-block-size: 44px; padding-block: .4rem; }
-.staff-person-actions[open] { min-inline-size: 22rem; }
+.staff-person-actions[open] { inline-size: min(22rem, var(--staff-action-width)); }
+.staff-person-actions .staff-role-picker { padding: .4rem; }
+.staff-person-actions .button { padding-inline: min(1rem, 12px); }
+.staff-recovery-state { display: block; color: #603a75; font-size: .85rem; margin-block-start: .4rem; }
 .staff-invitations li { display: grid; gap: .5rem; padding-block: 1rem; border-block-end: 1px solid #e5e0eb; overflow-wrap: anywhere; }
 .staff-search { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
 .staff-search .field { min-inline-size: 0; }
@@ -48,5 +51,6 @@
 .staff-policy { margin-block-start: 2.5rem; padding-block-start: 1rem; border-block-start: 1px solid #d8d2e3; font-size: .9rem; color: #544c60; max-inline-size: 78ch; }
 .staff-test-note { padding: .7rem 1rem; background: #f0eaf5; border-radius: .5rem; font-size: .9rem; }
 .staff-portal :focus-visible { outline: 3px solid #603a75; outline-offset: 3px; }
+@container (max-width: 360px) { .staff-person-actions .staff-role-picker { padding: .2rem; } .staff-person-actions .staff-role-picker label { flex-direction: column; align-items: stretch; gap: .25rem; } }
 @media (max-width: 600px) { .staff-topbar { gap: .7rem; flex-wrap: wrap; } .staff-search { grid-template-columns: 1fr; } .staff-heading { padding-block-start: 1.5rem; } .staff-actions > .button { max-inline-size: 100%; white-space: normal; text-align: center; } }
 @media (prefers-reduced-motion: reduce) { .staff-portal *, .staff-portal *::before, .staff-portal *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }

@@ -168,6 +168,25 @@ describe("second steps and safe privileged projections", () => {
       ? { rows: [{ id: invitationId, action: "invite", result: "ok", token: "secret" }] } : original(args[0], args[1], args[2]));
     const response = await handler()(request("GET", undefined, cookie(), "?area=audit")); expect(response.status).toBe(503); expect(await response.text()).not.toContain("secret");
   });
+  it.each(["none", "pending", "failed", "awaiting_invitation"])("allows People recovery display state %s without making it authority", async (recoveryState) => {
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_people"
+      ? { staff: [{ actorId: invitationId, name: "Synthetic Held Staff", email: "held@example.invalid", roles: ["superAdmin"], status: "active", lastSignIn: null, recoveryState }], invitations: [] }
+      : original(args[0], args[1], args[2]));
+    const response = await handler()(request("GET", undefined, cookie(), "?area=people")); expect(response.status).toBe(200);
+    const result = await response.json(); expect(result.people[0].recoveryState).toBe(recoveryState); expect(result.profile.actorId).toBe(actorId);
+  });
+  it.each(["completed", "", null, "unknown"])("rejects unrecognized People recovery state %s", async (recoveryState) => {
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_people"
+      ? { staff: [{ actorId: invitationId, name: "Synthetic", email: "held@example.invalid", roles: ["superAdmin"], status: "active", lastSignIn: null, recoveryState }], invitations: [] }
+      : original(args[0], args[1], args[2]));
+    expect((await handler()(request("GET", undefined, cookie(), "?area=people"))).status).toBe(503);
+  });
+  it("rejects a secret alongside the accepted People recovery display state", async () => {
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_people"
+      ? { staff: [{ actorId: invitationId, name: "Synthetic", email: "held@example.invalid", roles: ["superAdmin"], status: "active", lastSignIn: null, recoveryState: "failed", password: "private-proof" }], invitations: [] }
+      : original(args[0], args[1], args[2]));
+    const response = await handler()(request("GET", undefined, cookie(), "?area=people")); expect(response.status).toBe(503); expect(await response.text()).not.toContain("private-proof");
+  });
   it.each(["1234567890", "••••••1234extra", "1234", "•••••1234"])("rejects an unmasked identifier projection %s", async (identityMasked) => {
     const original = backend.rpc; backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_participants"
       ? { rows: [{ actorId: invitationId, name: "Synthetic", email: "participant@example.invalid", status: "verified", createdAt: new Date(now).toISOString(), identityMasked }] }
@@ -214,6 +233,28 @@ describe("invitation protocol and account recovery", () => {
   it("denies password rotation without a DB-admitted recovery operation", async () => {
     expect((await handler()(request("POST", { action: "reset-account", targetId: invitationId }, cookie()))).status).toBe(403);
     expect(backend.updateUser).not.toHaveBeenCalled();
+  });
+  it("does not acknowledge or invite recovery after factor deletion succeeds but password rotation fails", async () => {
+    const original = backend.rpc;
+    backend.rpc = vi.fn(async (name, args, accessToken) => name === "msrc_staff_admin_change"
+      ? { state: "reserved", operationId: args?.operation_id }
+      : name === "msrc_staff_admin_operation" ? { state: "reserved", actorId: invitationId, email: "held@example.invalid", roles: ["superAdmin"], factorIds: [factorId] }
+      : name === "msrc_staff_admin_complete" ? { state: "denied" } : original(name, args, accessToken));
+    vi.mocked(backend.updateUser).mockResolvedValue(false);
+    const response = await handler()(request("POST", { action: "reset-account", targetId: invitationId }, cookie()));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("unavailable");
+    expect(backend.resetFactors).toHaveBeenCalledTimes(1); expect(backend.updateUser).toHaveBeenCalledTimes(1);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_admin_complete", expect.objectContaining({ succeeded: false }));
+    expect(backend.invite).not.toHaveBeenCalled();
+  });
+  it("rechecks current database denial when a recovery hold races an admitted password exchange", async () => {
+    const original = backend.rpc;
+    backend.rpc = vi.fn(async (name, args, accessToken) => name === "msrc_session_context" ? null : original(name, args, accessToken));
+    const response = await handler()(request("POST", { action: "signin", email: "held@example.invalid", password: "unchanged" }));
+    expect(response.status).toBe(401); expect((await response.json()).state).toBe("invalid-credentials");
+    expect(backend.factors).not.toHaveBeenCalled(); expect(backend.logout).toHaveBeenCalledWith(native.accessToken);
+    const enrollment = await handler()(request("POST", { action: "enroll-totp" }, cookie()));
+    expect(enrollment.status).toBe(403); expect(backend.enroll).not.toHaveBeenCalled();
   });
   it("accepts ten Unicode codepoints and preserves legacy sign-in minimum", () => {
     const base = { action: "invite-accept", formToken: "token", name: "Synthetic", invitationId, token: "a".repeat(43) };

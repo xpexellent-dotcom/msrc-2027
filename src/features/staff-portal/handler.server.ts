@@ -39,7 +39,7 @@ async function profile(config: StaffConfig, backend: StaffBackend, session: Nati
     ? { actorId: session.actorId, name: value.name, roles: value.roles as Role[] } : null;
 }
 const fields = {
-  staff: ["actorId", "name", "email", "roles", "status", "lastSignIn"],
+  staff: ["actorId", "name", "email", "roles", "status", "lastSignIn", "recoveryState"],
   invitations: ["id", "email", "roles", "status", "expiresAt"],
   audit: ["id", "actorId", "targetId", "action", "result", "occurredAt", "actorName", "targetName", "details"],
   participants: ["actorId", "name", "email", "status", "createdAt", "identityMasked"],
@@ -55,6 +55,8 @@ function safeRows(value: unknown, kind: keyof typeof fields): Record<string, unk
         : entry !== null && typeof entry !== "string")) return null;
     if (kind === "participants" && row.identityMasked !== null && row.identityMasked !== undefined
       && (typeof row.identityMasked !== "string" || !/^•{6}(?:[\p{L}\p{N}]{4})?$/u.test(row.identityMasked))) return null;
+    if (kind === "staff" && Object.hasOwn(row, "recoveryState")
+      && !["none", "pending", "failed", "awaiting_invitation"].includes(row.recoveryState as string)) return null;
     rows.push({ ...row });
   }
   return rows;

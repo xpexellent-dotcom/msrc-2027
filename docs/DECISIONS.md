@@ -2009,6 +2009,15 @@ remain denied and recoverable. Recovery does not bypass enrollment. Human identi
 verification and provider/inbox UAT remain activation evidence, not completed work.
 IDs: BL-AUTH-01/05/06, AUTH-04/05, EML-01, LOC-03, ADM-04/05, SEC-06.
 
+7 October 2026 follow-up: recovery denial must persist in the database while
+recovery is pending, failed or interrupted. Expiring the provider-operation window
+must not restore access. If authenticator deletion succeeds but password reset
+fails, fresh password login and authenticator enrollment remain denied until the
+other Super Admin completes the authorized recovery. Verify this partial failure
+with genuine synthetic native Auth, and verify mobile staff table actions. Keep
+PR43 draft, all release flags closed, and hosted migrations/settings, live
+bootstrap and real email unperformed.
+
 ## ORG-045 — Closed staff portal and identity masking, 7 October 2026
 
 Authority: explicit organizer instruction. Build the staff portal foundation behind

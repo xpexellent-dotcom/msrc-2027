@@ -9,6 +9,7 @@ const actor = (suffix: number) => `d7100000-0000-4000-8000-00000000000${suffix}`
 const session = (suffix: number) => `d7200000-0000-4000-8000-00000000000${suffix}`;
 const factor = (suffix: number) => `d7300000-0000-4000-8000-00000000000${suffix}`;
 const marker = 202710071;
+const recoveryMarker = 202710072;
 
 function query(sql: string): Promise<string> {
   const target = process.env.NEXT_PUBLIC_SUPABASE_TARGET;
@@ -34,11 +35,11 @@ function query(sql: string): Promise<string> {
     child.stdin.end(sql);
   });
 }
-function claims(): string {
-  return `select set_config('request.jwt.claims',jsonb_build_object('sub','${actor(1)}','role','authenticated',
-    'session_id','${session(1)}','aal','aal2','exp',extract(epoch from clock_timestamp()+interval '1 hour'),
+function claims(suffix = 1): string {
+  return `select set_config('request.jwt.claims',jsonb_build_object('sub','${actor(suffix)}','role','authenticated',
+    'session_id','${session(suffix)}','aal','aal2','exp',extract(epoch from clock_timestamp()+interval '1 hour'),
     'amr',(select jsonb_agg(jsonb_build_object('method',authentication_method,'timestamp',floor(extract(epoch from updated_at::timestamptz))))
-      from auth.mfa_amr_claims where session_id='${session(1)}'))::text,true);`;
+      from auth.mfa_amr_claims where session_id='${session(suffix)}'))::text,true);`;
 }
 const downgrade = (target: number, hold = false) => `begin; ${claims()}
   ${hold ? `select pg_advisory_xact_lock(hashtextextended('staff-portal-authority',0)); select pg_advisory_xact_lock(${marker}); select pg_sleep(1);` : ""}
@@ -50,8 +51,8 @@ describe.skipIf(!isolatedCi)("Staff portal authority concurrency (disposable Git
       update msrc_staff.policy set enabled=true,email_daily_limit=1000;
       insert into msrc_authorization.edition_config(edition_key) values('${edition}');
       ${[1, 2, 3].map((suffix) => `
-      insert into auth.users(id,email,email_confirmed_at,created_at,updated_at,is_anonymous)
-        values('${actor(suffix)}','staff-concurrency-${suffix}@example.invalid',now(),now(),now(),false);
+      insert into auth.users(id,email,email_confirmed_at,encrypted_password,created_at,updated_at,is_anonymous)
+        values('${actor(suffix)}','staff-concurrency-${suffix}@example.invalid',now(),'synthetic-original-password',now(),now(),false);
       insert into msrc_authorization.account_access(actor_id,state,individually_identified) values('${actor(suffix)}','active',true);
       insert into msrc_staff.profiles(actor_id,name) values('${actor(suffix)}','Synthetic concurrency staff ${suffix}');
       insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
@@ -88,5 +89,47 @@ describe.skipIf(!isolatedCi)("Staff portal authority concurrency (disposable Git
         raise exception 'Synthetic minimum or audit concurrency assertion failed.';
       end if;
       end$$;`);
+  });
+
+  it("a committed recovery hold wins a waiting privileged context and survives partial failure and expiry", async () => {
+    const operation = "d7400000-0000-4000-8000-000000000003";
+    const retry = "d7400000-0000-4000-8000-000000000004";
+    const reservation = query(`begin; ${claims()}
+      do $$begin if public.msrc_staff_admin_change('${edition}','${actor(3)}','reset_account','{}','${operation}')->>'state'<>'reserved'
+        then raise exception 'Synthetic recovery reservation failed.';end if;end$$;
+      select pg_advisory_xact_lock(${recoveryMarker}); select pg_sleep(1); commit;`);
+    let locked = false;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      if ((await query(`select count(*) from pg_locks where locktype='advisory' and objid=${recoveryMarker} and granted;`)).trim() === "1") {
+        locked = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    expect(locked).toBe(true);
+    const observation = query(`begin; ${claims(3)}
+      select coalesce(public.msrc_session_context('${edition}')::text,'DENIED'); commit;`);
+    const results = await Promise.all([reservation, observation]);
+    expect(results[1].split("\n")).toContain("DENIED");
+    await query(`delete from auth.mfa_factors where user_id='${actor(3)}';
+      select public.msrc_staff_admin_complete('${operation}',false);
+      update msrc_staff.admin_operations set expires_at=clock_timestamp()-interval '1 minute' where id='${operation}';
+      do $$begin
+      if not exists(select 1 from msrc_staff.profiles where actor_id='${actor(3)}' and recovery_state='failed')
+        or (select encrypted_password from auth.users where id='${actor(3)}')<>'synthetic-original-password' then
+        raise exception 'Synthetic partial failure must preserve recovery denial.';end if;
+      begin
+        insert into auth.mfa_factors(id,user_id,factor_type,status,created_at,updated_at)
+          values(gen_random_uuid(),'${actor(3)}','totp','unverified',now(),now());
+        raise exception 'Synthetic self enrollment must remain denied.';
+      exception when insufficient_privilege then null;end;
+      end$$;`);
+    await query(`begin; ${claims()}
+      do $$begin
+      if public.msrc_staff_admin_change('${edition}','${actor(3)}','reset_account','{}','${retry}')->>'state'<>'reserved'
+        or public.msrc_staff_admin_complete('${operation}',true)->>'state'<>'denied'
+        or not exists(select 1 from msrc_staff.profiles where actor_id='${actor(3)}' and recovery_state='pending' and recovery_operation='${retry}') then
+        raise exception 'Synthetic retry must retain the latest operation hold.';end if;
+      end$$; commit;`);
   });
 });

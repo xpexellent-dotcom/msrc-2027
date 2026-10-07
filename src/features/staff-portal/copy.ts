@@ -4,6 +4,7 @@ import type { StaffMenuKey } from "./menu";
 
 export const staffCopy = {
   en: {
+    recoveryStates: { none: "", pending: "Recovery pending", failed: "Recovery incomplete. Retry the original reset.", awaiting_invitation: "Recovery invitation pending" },
     inviteAcceptedFallback: "Your password is saved. Sign in to complete your staff verification.", signOutFailed: "Sign-out could not be completed. Private information is hidden here. Try signing out again.", retrySignOut: "Try signing out again",
     timeZone: "Times shown in Asia/Riyadh (UTC+3).", resultLimit: "Showing up to 50 results. Refine your search to find more.", searchPeople: "Search staff by name or email",
     portal: "Staff portal", private: "MSRC 2027 · Internal access", signIn: "Staff sign-in", inviteOnly: "Staff access is by invitation only.",
@@ -20,6 +21,7 @@ export const staffCopy = {
     roleLabels: { participant: "Participant", abstractReviewer: "Abstract reviewer", hackathonReviewer: "Hackathon reviewer", threeMinuteThesisReviewer: "3MT reviewer", scientificAdministrator: "Scientific administrator", judgingCommittee: "Judging committee", facultyJudge: "Faculty judge", registrationWorkshopAdministrator: "Registration / workshop administrator", finance: "Finance", checkInStaff: "Check-in staff", contentMediaEditor: "Content / media editor", sponsorshipPr: "Sponsorship / PR", superAdmin: "Super Admin" },
   },
   ar: {
+    recoveryStates: { none: "", pending: "الاستعادة قيد الانتظار", failed: "لم تكتمل الاستعادة. أعد محاولة إجراء إعادة الضبط الأصلي.", awaiting_invitation: "دعوة الاستعادة قيد الانتظار" },
     inviteAcceptedFallback: "حُفظت كلمة مرورك. سجّل الدخول لإكمال التحقق المطلوب للفريق.", signOutFailed: "تعذّر إكمال تسجيل الخروج. أُخفيت المعلومات الخاصة هنا. حاول تسجيل الخروج مجددًا.", retrySignOut: "محاولة تسجيل الخروج مجددًا",
     timeZone: "الأوقات بتوقيت الرياض (UTC+3).", resultLimit: "تُعرض حتى ٥٠ نتيجة. حدّد بحثك للوصول إلى نتائج أخرى.", searchPeople: "البحث عن أعضاء الفريق بالاسم أو البريد",
     portal: "بوابة الفريق", private: "MSRC 2027 · وصول داخلي", signIn: "تسجيل دخول الفريق", inviteOnly: "الوصول لأعضاء الفريق بدعوة فقط.",

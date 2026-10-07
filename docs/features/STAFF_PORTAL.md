@@ -46,7 +46,23 @@ claim registration encryption/storage/retention has been built.
 The minimum-two and self-protection controls run in the database, with serialized
 role/status mutations. Recovery revokes sessions before native provider work;
 only another Super Admin can reset a Super Admin's authenticator or account.
-Provider failures preserve denial and an audit result. Audit projections exclude
+Recovery commits a private persistent hold before calling the provider. The hold
+denies portal password admission, current and readonly session/authority contexts,
+staff email assurance and native authenticator enrollment/verification. A native
+password may still prove identity; it cannot grant staff access. Failure, an
+interrupted callback, token refresh, role maintenance, account reactivation, or
+expiry of the five-minute provider reservation never releases the hold.
+
+The other Super Admin can retry the same recovery mode with a new operation.
+An incomplete account reset cannot be downgraded to a factor-only reset while
+the old password may remain valid. A successful factor-only reset allows fresh
+authenticator enrollment. A successful full account reset stays held until the
+current operation's fresh single-use invitation completes native password setting;
+failed delivery, invitation revocation/expiry and older completion callbacks keep
+access denied. The current operation pointer is checked under the serialized
+authority/account locks. Recovery does not suspend accounts or reduce the active
+Super Admin minimum. Expired interrupted operations receive a terminal audit when
+the other administrator authorizes a retry. Provider failures preserve an audit result. Audit projections exclude
 passwords, native tokens, invitation digests, codes and provider payloads.
 
 ## Activation procedure — document only; not executed

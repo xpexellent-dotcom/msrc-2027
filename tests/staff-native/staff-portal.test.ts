@@ -6,7 +6,7 @@ import { totpAt } from "@/features/auth/totp.server";
 import { createStaffBackend, type StaffBackend } from "@/features/staff-portal/backend.server";
 import type { StaffConfig } from "@/features/staff-portal/config.server";
 import { createStaffHandler } from "@/features/staff-portal/handler.server";
-import { readStaffSession, staffFormToken } from "@/features/staff-portal/security.server";
+import { nativeSessionId, readStaffSession, staffFormToken, staffHash } from "@/features/staff-portal/security.server";
 import { boundary, check, client, nativeAdmin, nativeCredentials, query } from "../participant-native/setup";
 import { handlerDiagnostic, nativeAuthDiagnostic } from "./diagnostic";
 
@@ -60,6 +60,33 @@ async function accept(target: Person) {
   const native = readStaffSession(config, request("GET", target)); check(native, "encrypted HttpOnly native session survives without client tokens"); target.id = native.actorId;
   return result.result;
 }
+async function assertRecoveryDenied(actor: Person) {
+  const portal = await post(actor, { action: "signin", email: actor.email, password });
+  check(portal.status === 401 && portal.result.state === "invalid-credentials", "recovery hold denies fresh password portal admission" + handlerDiagnostic(portal));
+  check((await post(actor, { action: "enroll-totp" })).status === 403, "held actor cannot enroll from a new browser password attempt");
+  const sdk = client();
+  const signed = await sdk.auth.signInWithPassword({ email: actor.email, password });
+  check(!signed.error && signed.data.session, "known unchanged password authenticates identity while persistent database authorization remains denied" + nativeAuthDiagnostic(signed.error));
+  const nativeEnroll = await sdk.auth.mfa.enroll({ factorType: "totp", friendlyName: "Synthetic held enrollment must deny" });
+  check(Boolean(nativeEnroll.error) && !nativeEnroll.data, "raw native Auth cannot self-enroll a held Super Admin" + nativeAuthDiagnostic(nativeEnroll.error));
+  const direct = await sdk.rpc("msrc_staff_profile", { edition_key: edition });
+  check(!direct.error && direct.data === null, "raw native password JWT cannot bypass the current recovery hold");
+  for (const name of ["msrc_session_context", "msrc_session_activity", "msrc_access_context"]) {
+    const observed = await sdk.rpc(name, { edition_key: edition });
+    check(!observed.error && observed.data === null, "fresh native password session has no session or access authority during recovery");
+  }
+  const refreshed = await sdk.auth.refreshSession({ refresh_token: signed.data.session.refresh_token });
+  check(!refreshed.error && refreshed.data.session, "genuine native refresh supplies a fresh signed session for denial proof" + nativeAuthDiagnostic(refreshed.error));
+  const refreshEnroll = await sdk.auth.mfa.enroll({ factorType: "totp", friendlyName: "Synthetic held refresh enrollment must deny" });
+  check(Boolean(refreshEnroll.error) && !refreshEnroll.data, "refreshed native session cannot release a durable recovery hold");
+  const refreshedProfile = await sdk.rpc("msrc_staff_profile", { edition_key: edition });
+  check(!refreshedProfile.error && refreshedProfile.data === null, "refresh cannot restore staff authority during held recovery");
+  for (const name of ["msrc_session_context", "msrc_session_activity", "msrc_access_context"]) {
+    const observed = await sdk.rpc(name, { edition_key: edition });
+    check(!observed.error && observed.data === null, "refreshed native password session still has no session or access authority during recovery");
+  }
+  check(await query(`select count(*) from auth.mfa_factors where user_id=${text(actor.id)};`) === "0", "denied fresh and refreshed enrollment creates no native factor");
+}
 
 describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to SQL", () => {
   beforeAll(async () => {
@@ -81,7 +108,8 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
   beforeEach(async () => {
     // Distinct fixture phases represent different request windows. Keep the real
     // per-request form claim/nonce limits enforced; do not pollute later phases.
-    await query("update msrc_staff.limit_events set occurred_at=clock_timestamp()-interval '61 minutes' where kind='form';");
+    await query(`update msrc_staff.limit_events set occurred_at=clock_timestamp()-interval '61 minutes' where kind='form';
+      update msrc_staff.login_attempts set created_at=clock_timestamp()-interval '61 minutes';`);
   });
 
   it("begins with both independent gates closed and no direct native signup", async () => {
@@ -196,11 +224,16 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
     check((await get(first, "people")).status === 403, "revocation rejects prior native TOTP cookie immediately");
     check((await signIn(first)).state === "enroll-totp", "recovered account password requires fresh enrollment"); await enroll(first);
   });
-  it("fails recovery closed on native provider failure, then restores another Super Admin account through a fresh invitation", async () => {
-    const failing = createStaffHandler({ readiness: () => ({ state: "ready", config }), backend: () => ({ ...backend, resetFactors: async () => false }) });
+  it("keeps recovery denied after genuine factor deletion and failed password rotation until the other Super Admin succeeds", async () => {
+    check(await query(`select count(*) from auth.mfa_factors where user_id=${text(first.id)} and status::text='verified';`) === "1", "recovery failure fixture starts with a genuinely verified authenticator");
+    const failing = createStaffHandler({ readiness: () => ({ state: "ready", config }), backend: () => ({ ...backend, updateUser: async () => false }) });
     const failed = await failing(request("POST", second, { action: "reset-account", targetId: first.id }));
     check(failed.status === 503, "native provider failure is not acknowledged as successful recovery");
+    check(await query(`select count(*) from auth.mfa_factors where user_id=${text(first.id)};`) === "0", "factor deletion genuinely committed before the injected password-provider failure");
     check(await query(`select count(*) from msrc_staff.admin_operations where target_actor_id=${text(first.id)} and action='reset_account' and state='failed';`) === "1", "failed recovery is terminal and audited");
+    await assertRecoveryDenied(first);
+    await query(`update msrc_staff.admin_operations set expires_at=clock_timestamp()-interval '1 minute' where target_actor_id=${text(first.id)} and action='reset_account' and state='failed';`);
+    await assertRecoveryDenied(first);
     const reset = await post(second, { action: "reset-account", targetId: first.id });
     check(reset.result.state === "updated" && delivered.has(first.email), "other verified Super Admin rotates the account password/factors and sends captured recovery invitation");
     check((await get(first, "people")).status === 403, "pre-reset native session is immediately revoked");
@@ -209,6 +242,66 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
     check((await accept(first)).state === "enroll-totp", "single-use recovery link restores supplied password only with fresh authenticator enrollment");
     await enroll(first);
     check((await get(first, "people")).status === 200 && await query(`select msrc_staff.active_super_admin_count(${text(edition)});`) === "2", "recovered account regains access only after native TOTP and keeps two active Super Admins");
+  });
+  it("keeps an interrupted and expired recovery denied until another Super Admin completes a new recovery", async () => {
+    const performer = readStaffSession(config, request("GET", second)); check(performer, "other Super Admin strongest session is privately available");
+    check(first.secret, "synthetic target retains its currently verified authenticator secret only in test memory");
+    const beforeHold = client();
+    const initialPassword = await beforeHold.auth.signInWithPassword({ email: first.email, password });
+    check(!initialPassword.error && initialPassword.data.session, "native pre-hold identity creates a genuine factor challenge without verification");
+    const currentFactors = await beforeHold.auth.mfa.listFactors();
+    check(!currentFactors.error && currentFactors.data.totp.length === 1, "target still owns its one genuinely verified authenticator before recovery");
+    const verifiedFactor = currentFactors.data.totp[0].id;
+    const challenge = await beforeHold.auth.mfa.challenge({ factorId: verifiedFactor });
+    check(!challenge.error && challenge.data, "genuine unverified challenge is created before the hold because native challenge updates the factor row");
+    const operationId = randomUUID();
+    const reserved = await backend.rpc("msrc_staff_admin_change", { edition_key: edition, target_actor: first.id, action: "reset_account", operation_id: operationId }, performer.accessToken) as Result;
+    check(reserved.state === "reserved" && reserved.operationId === operationId, "other Super Admin reserves the genuine interrupted recovery");
+    const operation = await backend.rpc("msrc_staff_admin_operation", { operation_id: operationId }) as Result;
+    check(operation.state === "reserved" && Array.isArray(operation.factorIds), "private native operation returns only the reserved target factors");
+    const verifying = client();
+    const passwordDuringHold = await verifying.auth.signInWithPassword({ email: first.email, password });
+    check(!passwordDuringHold.error && passwordDuringHold.data.session, "fresh native password session authenticates identity after the recovery hold begins");
+    // v2.197.0 accepts one adjacent 30-second step. A next-step code is valid
+    // and distinct from the preceding enrollment; this proof cannot pass only
+    // because a used code was replayed or because a deleted factor was missing.
+    const heldVerification = await verifying.auth.mfa.verify({ factorId: verifiedFactor, challengeId: challenge.data.id,
+      code: totpAt(first.secret, Date.now() + 30_000) });
+    check(heldVerification.error?.status === 500 && !heldVerification.data,
+      "valid native verification of an existing factor is rejected by the database hold" + nativeAuthDiagnostic(heldVerification.error));
+    const heldSession = nativeSessionId(passwordDuringHold.data.session.access_token); check(heldSession, "fresh held native session identifier is verified in memory");
+    check(await query(`select (s.aal::text='aal1' and not exists(select 1 from auth.mfa_amr_claims a
+      where a.session_id=s.id and a.authentication_method='totp'))::text from auth.sessions s where s.id=${text(heldSession)};`) === "true",
+      "blocked native TOTP verification persists neither elevated assurance nor TOTP AMR");
+    check(await backend.resetFactors(first.id, operation.factorIds as string[]), "actual native factors are deleted before the simulated worker interruption");
+    check(await query(`select count(*) from auth.mfa_factors where user_id=${text(first.id)};`) === "0", "interrupted recovery leaves the verified factor genuinely absent");
+    await assertRecoveryDenied(first);
+    await query(`update msrc_staff.admin_operations set expires_at=clock_timestamp()-interval '1 minute' where id=${text(operationId)};`);
+    await assertRecoveryDenied(first);
+    const reset = await post(second, { action: "reset-account", targetId: first.id });
+    check(reset.result.state === "updated", "other Super Admin can retry the expired interrupted operation with current assurance");
+    const stale = await backend.rpc("msrc_staff_admin_complete", { operation_id: operationId, succeeded: true }) as Result;
+    check(stale.state === "denied", "completion of a superseded interrupted operation cannot replace the latest recovery decision");
+    check(await query(`select recovery_state from msrc_staff.profiles where actor_id=${text(first.id)};`) === "awaiting_invitation",
+      "stale completion cannot release the newer account recovery before its invitation is accepted");
+    const queued = delivered.get(first.email); check(queued, "current recovery invitation is captured privately");
+    const queuedAdmission = randomUUID();
+    const consumed = await backend.rpc("msrc_staff_invite_consume", { invite_id: queued.invitationId,
+      token_hash: staffHash(config, "invitation", queued.invitationId + ":" + queued.token), operation_id: queuedAdmission,
+      actor_id: randomUUID(), name: first.name }) as Result;
+    check(consumed.state === "consumed" && consumed.actorId === first.id && consumed.reservationId === queuedAdmission,
+      "queued old invitation has a genuine consumed admission before its native credential write");
+    const superseding = await post(second, { action: "reset-account", targetId: first.id });
+    check(superseding.result.state === "updated", "other Super Admin can supersede a queued credential write with a new recovery");
+    check(!await backend.updateUser(first.id, randomBytes(24).toString("hex"), true),
+      "actual native Admin rejects the queued old admission after recovery has been superseded");
+    const queuedCompletion = await backend.rpc("msrc_staff_invite_complete", { operation_id: queuedAdmission, succeeded: true }) as Result;
+    check(queuedCompletion.state === "denied", "stale consumed admission cannot clear the newer recovery hold");
+    check(await query(`select recovery_state from msrc_staff.profiles where actor_id=${text(first.id)};`) === "awaiting_invitation",
+      "native failure and stale admission completion preserve the latest invitation requirement");
+    check((await accept(first)).state === "enroll-totp", "new authorized recovery invitation releases enrollment only after consumed mailbox and password evidence");
+    await enroll(first);
+    check((await get(first, "people")).status === 200, "successful second-admin recovery restores protected access");
   });
   it("denies concurrent expiry/revocation invitation reuse before native credential changes", async () => {
     const target = person(); const old = await invite(first, target, ["finance"]);

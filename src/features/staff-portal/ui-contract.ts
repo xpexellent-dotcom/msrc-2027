@@ -3,7 +3,7 @@ import type { Role } from "@/lib/permissions/contract";
 export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants";
 export type StaffArea = "people" | "audit" | "participants";
 export type StaffProfile = { actorId: string; name: string; roles: Role[] };
-export type StaffPerson = { actorId: string; name: string; email: string; roles: Role[]; status: "active" | "suspended"; lastSignIn: string | null };
+export type StaffPerson = { actorId: string; name: string; email: string; roles: Role[]; status: "active" | "suspended"; lastSignIn: string | null; recoveryState?: "none" | "pending" | "failed" | "awaiting_invitation" };
 export type StaffInvitation = { id: string; email: string; roles: Role[]; status: "pending" | "accepted" | "revoked" | "expired"; expiresAt: string };
 export type StaffAuditRow = { id: string; actorId: string | null; actorName?: string | null; action: string; targetId: string | null; targetName?: string | null; occurredAt: string; result: string };
 export type StaffParticipant = { actorId: string; name: string; email: string; status: "unverified" | "verified" | "suspended"; createdAt: string; identityMasked?: string | null };

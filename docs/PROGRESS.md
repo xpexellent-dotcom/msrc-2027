@@ -3085,3 +3085,70 @@ Draft [PR43](https://github.com/xpexellent-dotcom/msrc-2027/pull/43) remains the
 review handoff. Activation requires the documented migration, privacy, quota,
 bootstrap and human UAT gates. Live bootstrap, hosted migration application,
 production configuration changes and real email remain unperformed.
+
+### PR43 follow-up — persistent recovery denial and mobile table actions
+
+7 October 2026; BL-AUTH-05/06, AUTH-04/05, ROL-10/12, ADM-04/05, LOC-01/03.
+PR43 remains draft. The organizer explicitly requires persistent database denial
+during pending, failed or interrupted recovery, including committed authenticator
+deletion followed by failed password rotation. All release flags stay closed.
+
+The review-only staff migration now stores a durable private recovery hold before
+provider work. Session/access contexts, staff admission and email checks, staff
+RPCs, and native authenticator enrollment/verification deny while held. Provider
+window expiry, fresh password sessions, refresh, reactivation and role edits do
+not release it. A failed account reset cannot be downgraded to a factor-only reset.
+Completion compares the latest operation under the existing authority/account
+locks; stale callbacks and superseded invitation admissions cannot release a newer
+hold. Successful full account reset stays held until its exact linked invitation
+completes native password setting; fresh authenticator enrollment is still required.
+The independently authorized successful factor-only path remains available.
+
+Prepared genuine native coverage deletes the actual verified factor before injecting
+only password-provider failure, then checks fresh portal login, raw native sessions,
+refresh, enrollment, interruption, expiry and other-admin recovery. Raw native
+password identity verification alone grants no session/access context or staff
+authority while held. Added direct SQL durability/retry/CAS proofs and an account
+lock concurrency regression. Existing historical migrations and provider timeouts,
+rate limits and retry settings are preserved.
+
+Mobile testing found the opened role editor exceeded its horizontal table region
+in EN and AR. Its width and padding now follow the region width without clipping.
+New action coverage exercises role changes and failures/retry, suspend/reactivate,
+session revocation, minimum-two denial, other-admin reset/failure/retry, no self-reset,
+and invitation resend/revoke, with keyboard/bounds/axe checks at 320px and 200% text.
+People rows show a sanitized translated recovery-state badge and refresh after
+failed reset. The badge is presentation only; database state enforces denial.
+
+- PASS at this checkpoint: focused backend/projection/diagnostic tests (82 cases),
+  scoped lint, TypeScript and `git diff --check`.
+- BLOCKED locally: Docker cannot connect to `npipe:////./pipe/docker_engine`.
+  Genuine native, pgTAP and database concurrency execution use disposable Linux CI.
+- Pending: final combined local/browser checks and the new exact-head CI receipts.
+- NOT TESTED/unperformed: hosted migration application, production settings,
+  live bootstrap, real email and human recovery/inbox/device UAT.
+
+### Recovery follow-up local verification
+
+- PASS: `pnpm check`: lint, generated route types/TypeScript, 2,207 unit cases
+  in 51 files and production build (77 generated pages).
+- PASS: final `pnpm exec playwright test --config playwright.staff.config.ts`:
+  26 active cases, four intentional desktop skips, zero retries. The new mobile
+  action matrix runs in EN/AR at normal and 200% text, with actual field/button
+  bounds, keyboard actions, native horizontal/down/up scrolling and axe.
+- PASS: twelve new synthetic mobile action/role-choice screenshots captured;
+  representative EN/AR enlarged-text role choices and Arabic action controls
+  were visually inspected. Narrow row checkboxes/labels now stack for readable
+  captions; existing whole-page width assertions remain intact.
+- The first mobile matrix run's final scroll assertion assumed the heading was
+  visible at document position zero under 200% text. The translated banner/topbar
+  legitimately push it lower. The final test scrolls natively to the actual heading
+  and retains heading-in-viewport and reverse-scroll assertions; it passes without
+  retries or longer timeouts.
+- PASS: static normalized-body comparison of four private function overrides
+  against #25: unchanged except recovery hold checks. Earlier migration files and
+  session policy values/signatures/ACLs remain unchanged.
+- Prepared: 17 genuine native cases, including real factor deletion before password
+  failure, expiry/interruption, fresh/refreshed denial, pending native TOTP proof
+  denial and superseded native invitation admission. SQL and concurrency execution
+  on the pushed revision is pending CI; local Docker remains BLOCKED.

@@ -20,7 +20,14 @@ create table msrc_staff.profiles (
  actor_id uuid primary key references auth.users(id) on delete restrict,
  name text not null check(char_length(btrim(name)) between 1 and 200),
  created_at timestamptz not null default clock_timestamp(),
- last_sign_in_at timestamptz
+ last_sign_in_at timestamptz,
+ recovery_state text not null default 'none' check(recovery_state in ('none','pending','failed','awaiting_invitation')),
+ recovery_action text check(recovery_action in ('reset_authenticator','reset_account')),
+ recovery_operation uuid,
+ constraint staff_recovery_state_valid check(
+ (recovery_state='none' and recovery_action is null and recovery_operation is null)
+ or (recovery_state<>'none' and recovery_action is not null and recovery_operation is not null)
+ )
 );
 create table msrc_staff.invitations (
  id uuid primary key,edition_key text not null references msrc_authorization.edition_config(edition_key),
@@ -56,6 +63,7 @@ create table msrc_staff.admin_operations (
  check(performer_actor_id<>target_actor_id)
 );
 alter table msrc_staff.invitations add constraint staff_invite_recovery_fk foreign key(recovery_operation) references msrc_staff.admin_operations(id);
+alter table msrc_staff.profiles add constraint staff_profile_recovery_fk foreign key(recovery_operation) references msrc_staff.admin_operations(id);
 create unique index staff_reset_one_pending on msrc_staff.admin_operations(target_actor_id) where state='pending';
 create table msrc_staff.limit_events (
  id uuid primary key default gen_random_uuid(),kind text not null check(kind in ('form','login','invite')),
@@ -93,6 +101,13 @@ revoke all on all tables in schema msrc_staff from public,anon,authenticated,ser
 revoke all on all sequences in schema msrc_staff from public,anon,authenticated,service_role;
 create function msrc_staff.ready() returns boolean language sql stable security definer set search_path='' as $$
  select coalesce((select enabled and email_daily_limit is not null from msrc_staff.policy where singleton),false);
+$$;
+-- A recovery hold is durable authority, not a session cutoff or a five-minute
+-- provider reservation. Expiry, refresh, role changes and reactivation cannot
+-- release it; only the current other-admin recovery transition may do so.
+create function msrc_staff.recovery_blocked(target_actor uuid) returns boolean
+ language sql stable security definer set search_path='' as $$
+ select exists(select 1 from msrc_staff.profiles p where p.actor_id=target_actor and p.recovery_state<>'none');
 $$;
 create function msrc_staff.roles_valid(roles text[]) returns boolean language sql immutable set search_path='' as $$
  select coalesce(cardinality(roles) between 1 and 12 and not exists(select 1 from unnest(roles) r where r is null or r not in
@@ -134,7 +149,7 @@ create function msrc_staff.authorize(edition text,required_roles text[] default 
 #variable_conflict use_variable
  declare context jsonb;
  begin
- if not msrc_staff.ready() or auth.uid() is null or not exists(select 1 from msrc_staff.profiles where actor_id=auth.uid()) then return null; end if;
+ if not msrc_staff.ready() or auth.uid() is null or msrc_staff.recovery_blocked(auth.uid()) or not exists(select 1 from msrc_staff.profiles where actor_id=auth.uid()) then return null; end if;
  if not exists(select 1 from msrc_authorization.role_grants g where g.actor_id=auth.uid() and g.edition_key=edition
  and g.state='active' and g.role_name<>'participant'
  and (required_roles is null or (g.role_name=any(required_roles) and g.scope_kind='edition'))) then return null; end if;
@@ -230,13 +245,20 @@ create function msrc_staff.native_identity_guard() returns trigger
  if not found then
  if not exists(select 1 from msrc_staff.profiles p where p.actor_id=new.id) then return new; end if;
  if new.email is not distinct from old.email and new.email_confirmed_at is not distinct from old.email_confirmed_at
- and exists(select 1 from msrc_staff.admin_operations o where o.target_actor_id=new.id and o.action='reset_account'
- and o.state='pending' and o.expires_at>clock_timestamp()) then
+ and exists(select 1 from msrc_staff.admin_operations o join msrc_staff.profiles p on p.actor_id=o.target_actor_id
+ where o.target_actor_id=new.id and o.action='reset_account' and o.state='pending' and o.expires_at>clock_timestamp()
+ and p.recovery_operation=o.id and p.recovery_state='pending') then
  update msrc_staff.admin_operations set credential_applied=true,native_transaction=pg_current_xact_id() where target_actor_id=new.id and action='reset_account' and state='pending';
  return new; end if;
  raise exception using errcode='42501',message='Staff identity recovery requires another Super Admin.';
  end if;
  end if;
+ if msrc_staff.recovery_blocked(new.id) and not exists(select 1 from msrc_staff.profiles p
+ join msrc_staff.invitations i on i.id=admission.invitation_id
+ join msrc_staff.admin_operations o on o.id=i.recovery_operation
+ where p.actor_id=new.id and p.recovery_state='awaiting_invitation' and p.recovery_action='reset_account'
+ and p.recovery_operation=i.recovery_operation and o.state='completed' and i.state='claiming') then
+ raise exception using errcode='42501',message='Current approved recovery invitation required.';end if;
  if not msrc_staff.ready() or admission.expires_at<=clock_timestamp() or admission.email is distinct from new.email
  or (tg_op='UPDATE' and new.email_confirmed_at is null) or coalesce(new.encrypted_password,'')='' or coalesce(new.is_anonymous,false)
  or coalesce(new.phone,'')<>'' then raise exception using errcode='42501',message='Staff invitation admission required.'; end if;
@@ -374,11 +396,16 @@ comment on function msrc_participant.suppress_native_email(jsonb) is 'Reviewed m
 create function msrc_staff.native_factor_guard() returns trigger
  language plpgsql security definer set search_path='' as $$
 #variable_conflict use_variable
- declare target uuid;
+ declare target uuid;recovery_held boolean;
  begin
  target:=case when tg_op='DELETE' then old.user_id else new.user_id end;
  if not exists(select 1 from msrc_staff.profiles p where p.actor_id=target) then if tg_op='DELETE' then return old;else return new;end if;end if;
  perform pg_advisory_xact_lock(hashtextextended('staff-totp:'||target::text,0));
+ -- A fresh SPI read after the native factor/advisory wait observes a committed
+ -- hold. Do not acquire account locks from Auth's factor-first transaction.
+ select exists(select 1 from msrc_staff.profiles p where p.actor_id=target and p.recovery_state<>'none') into recovery_held;
+ if tg_op<>'DELETE' and recovery_held then
+ raise exception using errcode='42501',message='Staff recovery requires completion by another Super Admin.';end if;
  if tg_op='INSERT' and exists(select 1 from auth.mfa_factors f where f.user_id=target and f.status::text='verified') then
  raise exception using errcode='42501',message='Authenticator replacement requires another Super Admin.';end if;
  if tg_op='UPDATE' and old.status::text<>'verified' and new.status::text='verified'
@@ -388,8 +415,9 @@ create function msrc_staff.native_factor_guard() returns trigger
  raise exception using errcode='42501',message='Authenticator replacement requires another Super Admin.';end if;
  if tg_op='DELETE' and old.status::text='verified' and exists(select 1 from msrc_authorization.role_grants g
  where g.actor_id=target and g.state='active' and g.role_name='superAdmin')
- and not exists(select 1 from msrc_staff.admin_operations o where o.target_actor_id=target and o.state='pending'
- and o.expires_at>clock_timestamp()) then raise exception using errcode='42501',message='Authenticator reset requires another Super Admin.'; end if;
+ and not exists(select 1 from msrc_staff.admin_operations o join msrc_staff.profiles p on p.actor_id=o.target_actor_id
+ where o.target_actor_id=target and o.state='pending' and o.expires_at>clock_timestamp()
+ and p.recovery_operation=o.id and p.recovery_state='pending') then raise exception using errcode='42501',message='Authenticator reset requires another Super Admin.'; end if;
  if tg_op<>'DELETE' and (new.factor_type::text<>'totp' or not exists(select 1 from msrc_authorization.role_grants g
  where g.actor_id=target and g.state='active' and g.role_name='superAdmin')) then
  raise exception using errcode='42501',message='Only Super Admin authenticator enrollment is available.'; end if;
@@ -397,6 +425,18 @@ create function msrc_staff.native_factor_guard() returns trigger
  return new;
  end$$;
 create trigger staff_native_factor_guard before insert or update or delete on auth.mfa_factors for each row execute function msrc_staff.native_factor_guard();
+-- Re-verifying an already verified factor can emit TOTP AMR without updating
+-- mfa_factors. Deny that proof while held, while retaining ordinary native
+-- password identity and avoiding account locks in Auth's transaction.
+create function msrc_staff.native_totp_claim_guard() returns trigger
+ language plpgsql security definer set search_path='' as $$
+ begin
+ if new.authentication_method='totp' and exists(select 1 from auth.sessions s
+ join msrc_staff.profiles p on p.actor_id=s.user_id where s.id=new.session_id and p.recovery_state<>'none') then
+ raise exception using errcode='42501',message='Staff recovery requires completion by another Super Admin.';end if;
+ return new;
+ end$$;
+create trigger staff_native_totp_claim_guard before insert or update on auth.mfa_amr_claims for each row execute function msrc_staff.native_totp_claim_guard();
 create function public.msrc_staff_status() returns jsonb language sql stable security definer set search_path='' as $$
  select jsonb_build_object('enabled',enabled,'emailDailyLimit',email_daily_limit) from msrc_staff.policy where singleton;
 $$;
@@ -431,7 +471,7 @@ create function public.msrc_staff_login_finish(attempt_id uuid,actor_id uuid def
  select a.* into attempt from msrc_staff.login_attempts a where a.id=attempt_id for update;
  if not found or attempt.state<>'pending' or attempt.created_at<=clock_timestamp()-interval '5 minutes' or not msrc_staff.ready() then return jsonb_build_object('state','denied'); end if;
  if actor_id is not null then perform 1 from msrc_authorization.account_access a where a.actor_id=msrc_staff_login_finish.actor_id and a.state='active' and a.individually_identified for update; end if;
- if not found or not exists(select 1 from msrc_staff.profiles p join auth.users u on u.id=p.actor_id
+ if not found or msrc_staff.recovery_blocked(actor_id) or not exists(select 1 from msrc_staff.profiles p join auth.users u on u.id=p.actor_id
  join auth.sessions s on s.user_id=u.id and s.id=msrc_staff_login_finish.session_id
  join auth.mfa_amr_claims m on m.session_id=s.id and m.authentication_method='password'
  where p.actor_id=msrc_staff_login_finish.actor_id and u.email_confirmed_at is not null and u.deleted_at is null and not u.is_anonymous
@@ -453,7 +493,7 @@ create function public.msrc_staff_auth_event(actor_id uuid,session_id uuid,event
  language plpgsql security definer set search_path='' as $$
 #variable_conflict use_variable
  begin
- if not msrc_staff.ready() or event not in ('totp_enroll','totp_challenge','totp_verify') or result not in ('allowed','denied','failed','completed')
+ if not msrc_staff.ready() or msrc_staff.recovery_blocked(actor_id) or event not in ('totp_enroll','totp_challenge','totp_verify') or result not in ('allowed','denied','failed','completed')
  or not exists(select 1 from msrc_staff.profiles p join msrc_authorization.account_access a using(actor_id)
  join auth.sessions s on s.user_id=p.actor_id join auth.mfa_amr_claims m on m.session_id=s.id
  where p.actor_id=msrc_staff_auth_event.actor_id and s.id=msrc_staff_auth_event.session_id and a.state='active'
@@ -491,12 +531,16 @@ create function public.msrc_staff_invite_begin(edition_key text,email text,roles
  perform pg_advisory_xact_lock(hashtextextended('staff-portal-authority',0));
  perform pg_advisory_xact_lock(hashtextextended('staff-email-volume',0));
  context:=msrc_staff.authorize(edition_key,array['superAdmin']);
- select o.id into recovery from msrc_staff.admin_operations o join auth.users u on u.id=o.target_actor_id where u.email=email and o.performer_actor_id=performer and o.edition_key=edition_key and o.action='reset_account' and o.state='completed' and o.expires_at>clock_timestamp() order by o.expires_at desc limit 1;
- if recovery is null then select i.recovery_operation into recovery from msrc_staff.invitations i where i.email=email and i.invited_by=performer and i.edition_key=edition_key and i.state='pending' and i.recovery_operation is not null order by i.created_at desc limit 1;end if;
+ select o.id into recovery from msrc_staff.admin_operations o join auth.users u on u.id=o.target_actor_id
+ join msrc_staff.profiles p on p.actor_id=u.id and p.recovery_operation=o.id
+ where u.email=email and o.edition_key=edition_key and o.action='reset_account' and o.state='completed'
+ and p.recovery_state='awaiting_invitation' and o.target_actor_id<>performer;
  if context is null or (not (select bootstrap_pairing_completed from msrc_staff.policy where singleton) and msrc_staff.enrolled_super_admin_count(edition_key)<2 and roles is distinct from array['superAdmin']) or not msrc_staff.roles_valid(roles) or email is null or lower(btrim(email))<>email
  or char_length(email) not between 3 and 254 or token_hash is null or token_hash!~'^[a-f0-9]{64}$' or invite_id is null then
  perform msrc_staff.record(edition_key,'invite',invite_id,'denied');return jsonb_build_object('state','denied');end if;
  if exists(select 1 from auth.users u where u.email=msrc_staff_invite_begin.email and u.id=performer)
+ or exists(select 1 from auth.users u join msrc_staff.profiles p on p.actor_id=u.id
+ where u.email=msrc_staff_invite_begin.email and p.recovery_state<>'none' and recovery is null)
  or exists(select 1 from auth.users u join msrc_authorization.role_grants g on g.actor_id=u.id
  where u.email=msrc_staff_invite_begin.email and g.role_name='superAdmin' and g.state='active' and recovery is null)
  or exists(select 1 from msrc_staff.invitations i where i.email=msrc_staff_invite_begin.email and i.state='claiming')
@@ -540,6 +584,11 @@ create function public.msrc_staff_invite_consume(invite_id uuid,token_hash text,
  perform msrc_staff.record(invitation.edition_key,'invite_consume',invite_id,'denied',null);return jsonb_build_object('state','denied');end if;
  select u.id into target from auth.users u where u.email=invitation.email and u.deleted_at is null;
  existing:=target is not null;target:=coalesce(target,actor_id);
+ if msrc_staff.recovery_blocked(target) and not exists(select 1 from msrc_staff.profiles p
+ join msrc_staff.admin_operations o on o.id=p.recovery_operation
+ where p.actor_id=target and p.recovery_state='awaiting_invitation' and p.recovery_action='reset_account'
+ and p.recovery_operation=invitation.recovery_operation and o.state='completed') then
+ perform msrc_staff.record(invitation.edition_key,'invite_consume',invite_id,'denied',target);return jsonb_build_object('state','denied');end if;
  if exists(select 1 from msrc_staff.admissions a where a.actor_id=target and a.state in ('pending','applied'))
  or exists(select 1 from msrc_participant.operations o where o.actor_id=target and o.state in ('pending','applied') and o.expires_at>clock_timestamp()) then
  perform msrc_staff.record(invitation.edition_key,'invite_consume',invite_id,'denied',target);return jsonb_build_object('state','denied');end if;
@@ -561,7 +610,11 @@ create function public.msrc_staff_invite_complete(operation_id uuid,succeeded bo
  select a.* into admission from msrc_staff.admissions a where a.id=operation_id for update;
  select i.* into invitation from msrc_staff.invitations i where i.id=admission.invitation_id for update;
  if not msrc_staff.ready() or admission.state not in ('pending','applied') or invitation.state<>'claiming' then return jsonb_build_object('state','denied');end if;
- if not succeeded or admission.state<>'applied' or admission.expires_at<=clock_timestamp() or invitation.expires_at<=clock_timestamp() or not exists(select 1 from auth.users u
+ if not succeeded or admission.state<>'applied' or admission.expires_at<=clock_timestamp() or invitation.expires_at<=clock_timestamp()
+ or (msrc_staff.recovery_blocked(admission.actor_id) and not exists(select 1 from msrc_staff.profiles p
+ join msrc_staff.admin_operations o on o.id=p.recovery_operation where p.actor_id=admission.actor_id
+ and p.recovery_state='awaiting_invitation' and p.recovery_action='reset_account'
+ and p.recovery_operation=invitation.recovery_operation and o.state='completed')) or not exists(select 1 from auth.users u
  where u.id=admission.actor_id and u.email=admission.email and u.email_confirmed_at is not null and coalesce(u.encrypted_password,'')<>'') then
  update msrc_staff.admissions set state='failed' where id=operation_id;update msrc_staff.invitations set state='revoked' where id=invitation.id;
  perform msrc_staff.record(invitation.edition_key,'invite_complete',admission.actor_id,'failed',admission.actor_id);return jsonb_build_object('state','denied');end if;
@@ -573,6 +626,8 @@ create function public.msrc_staff_invite_complete(operation_id uuid,succeeded bo
  values(admission.actor_id,invitation.edition_key,r,'edition','Staff invitation accepted') on conflict do nothing;
  end loop;
  perform msrc_staff.revoke(admission.actor_id,invitation.invited_by);
+ update msrc_staff.profiles set recovery_state='none',recovery_action=null,recovery_operation=null
+ where actor_id=admission.actor_id and recovery_state='awaiting_invitation' and recovery_operation=invitation.recovery_operation;
  update msrc_staff.admissions set state='completed' where id=operation_id;
  update msrc_staff.invitations set state='accepted',accepted_by=admission.actor_id where id=invitation.id;
  perform msrc_staff.record(invitation.edition_key,'invite_complete',admission.actor_id,'completed',admission.actor_id);
@@ -605,7 +660,7 @@ create trigger a_staff_sa_account_minimum before update on msrc_authorization.ac
 create function public.msrc_staff_admin_change(edition_key text,target_actor uuid,action text,roles text[] default '{}',operation_id uuid default null) returns jsonb
  language plpgsql security definer set search_path='' as $$
 #variable_conflict use_variable
- declare context jsonb;performer uuid:=auth.uid(); target_super boolean;count_active bigint;edition text;r text;before_roles jsonb;before_state text;
+ declare context jsonb;performer uuid:=auth.uid(); target_super boolean;count_active bigint;edition text;r text;before_roles jsonb;before_state text;previous_operation msrc_staff.admin_operations%rowtype;
  begin
  perform pg_advisory_xact_lock(hashtextextended('staff-portal-authority',0));
  context:=msrc_staff.authorize(edition_key,array['superAdmin']);
@@ -639,10 +694,22 @@ create function public.msrc_staff_admin_change(edition_key text,target_actor uui
  elsif action='reactivate' then update msrc_authorization.account_access set state='active' where actor_id=target_actor;
  elsif action='revoke_sessions' then perform msrc_staff.revoke(target_actor,performer);
  else
+ if exists(select 1 from msrc_staff.profiles p where p.actor_id=target_actor and p.recovery_state<>'none'
+ and p.recovery_action='reset_account') and action<>'reset_account' then
+ perform msrc_staff.record(edition_key,action,target_actor,'denied');return jsonb_build_object('state','denied');end if;
  if operation_id is null or exists(select 1 from msrc_staff.admin_operations o where o.target_actor_id=target_actor and o.state='pending' and o.expires_at>clock_timestamp()) then
  perform msrc_staff.record(edition_key,action,target_actor,'denied');return jsonb_build_object('state','denied');end if;
- update msrc_staff.admin_operations set state='failed' where target_actor_id=target_actor and state='pending';
+ for previous_operation in select o.* from msrc_staff.admin_operations o where o.target_actor_id=target_actor and o.state='pending' for update loop
+ update msrc_staff.admin_operations set state='failed' where id=previous_operation.id;
+ perform msrc_staff.record(previous_operation.edition_key,'admin_complete',target_actor,'failed',previous_operation.performer_actor_id);
+ end loop;
  insert into msrc_staff.admin_operations(id,performer_actor_id,target_actor_id,edition_key,action) values(operation_id,performer,target_actor,edition_key,action);
+ update msrc_staff.profiles set recovery_state='pending',recovery_action=action,recovery_operation=operation_id where actor_id=target_actor;
+ -- Invalidate earlier admission work while retaining immutable operation/audit
+ -- history. A delayed older callback cannot reserve or release the new hold.
+ update msrc_staff.invitations i set state='revoked' where i.state in ('pending','claiming')
+ and exists(select 1 from auth.users u where u.id=target_actor and u.email=i.email);
+ update msrc_staff.admissions set state='failed' where actor_id=target_actor and state in ('pending','applied');
  perform msrc_staff.revoke(target_actor,performer,'factor_reset');
  insert into msrc_staff.audit(edition_key,action,target_id,result,actor_id,details) values(edition_key,action,target_actor,'reserved',performer,jsonb_build_object('reason','other_super_admin_requested'));return jsonb_build_object('state','reserved','operationId',operation_id);
  end if;
@@ -665,11 +732,26 @@ create function public.msrc_staff_admin_complete(operation_id uuid,succeeded boo
 #variable_conflict use_variable
  declare operation msrc_staff.admin_operations%rowtype;
  begin
+ perform pg_advisory_xact_lock(hashtextextended('staff-portal-authority',0));
+ select o.* into operation from msrc_staff.admin_operations o where o.id=operation_id;
+ if not found then return jsonb_build_object('state','denied');end if;
+ perform 1 from msrc_authorization.account_access a where a.actor_id=operation.target_actor_id for update;
  select o.* into operation from msrc_staff.admin_operations o where o.id=operation_id for update;
  if not msrc_staff.ready() or not found or operation.state<>'pending' then return jsonb_build_object('state','denied');end if;
+ if not exists(select 1 from msrc_staff.profiles p where p.actor_id=operation.target_actor_id
+ and p.recovery_operation=operation.id and p.recovery_state='pending') then
+ perform msrc_staff.record(operation.edition_key,'admin_complete',operation.target_actor_id,'denied',operation.performer_actor_id);
+ return jsonb_build_object('state','denied');end if;
  succeeded:=coalesce(succeeded,false) and operation.expires_at>clock_timestamp() and (operation.action<>'reset_account' or operation.credential_applied)
  and not exists(select 1 from auth.mfa_factors f where f.user_id=operation.target_actor_id and f.factor_type::text='totp');
  update msrc_staff.admin_operations set state=case when succeeded then 'completed' else 'failed' end where id=operation_id;
+ if succeeded and operation.action='reset_authenticator' then
+ update msrc_staff.profiles set recovery_state='none',recovery_action=null,recovery_operation=null
+ where actor_id=operation.target_actor_id and recovery_operation=operation.id and recovery_state='pending';
+ else
+ update msrc_staff.profiles set recovery_state=case when succeeded then 'awaiting_invitation' else 'failed' end
+ where actor_id=operation.target_actor_id and recovery_operation=operation.id and recovery_state='pending';
+ end if;
  perform msrc_staff.record(operation.edition_key,'admin_complete',operation.target_actor_id,case when succeeded then 'completed' else 'failed' end,operation.performer_actor_id);
  return jsonb_build_object('state',case when succeeded then 'completed' else 'denied' end);
  end$$;
@@ -680,7 +762,7 @@ create function public.msrc_staff_people(edition_key text,search text default ''
  begin
  if msrc_staff.authorize(edition_key,array['superAdmin'],false) is null then perform msrc_staff.record(edition_key,'people_read',null,'denied');return null;end if;
  if char_length(search)>200 then return null;end if;
- select coalesce(jsonb_agg(to_jsonb(q)),'[]') into rows from (select p.actor_id as "actorId",p.name,u.email,a.state as status,p.last_sign_in_at as "lastSignIn",
+ select coalesce(jsonb_agg(to_jsonb(q)),'[]') into rows from (select p.actor_id as "actorId",p.name,u.email,a.state as status,p.last_sign_in_at as "lastSignIn",p.recovery_state as "recoveryState",
  (select coalesce(jsonb_agg(distinct g.role_name),'[]') from msrc_authorization.role_grants g where g.actor_id=p.actor_id and g.edition_key=msrc_staff_people.edition_key and g.state='active' and g.role_name<>'participant') as roles
  from msrc_staff.profiles p join auth.users u on u.id=p.actor_id join msrc_authorization.account_access a on a.actor_id=p.actor_id
  where exists(select 1 from msrc_authorization.role_grants g where g.actor_id=p.actor_id and g.edition_key=msrc_staff_people.edition_key and g.role_name<>'participant')
@@ -804,6 +886,432 @@ begin
   insert into msrc_staff_email.challenges(id,actor_id,session_id,binding,code_hash,ip_hash,created_at,expires_at)
     values(challenge_id,actor_id,session_id,evidence->>'binding',code_hash,ip_hash,observed_at,expires_at);
   return jsonb_build_object('state','issued','challengeId',challenge_id,'recipient',evidence->>'recipient','expiresAt',expires_at);
+end; $$;
+-- Preserve the installed #25 session policy and readonly snapshot semantics.
+-- Only durable staff recovery denial is added: write paths recheck after the
+-- account lock; stable read paths keep their statement-snapshot contract.
+-- No prior reviewed migration, approved lifetime, assurance or ACL is changed.
+create or replace function msrc_sessions.own_context(edition_key text,record_activity boolean) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  observed_at timestamptz := clock_timestamp();
+  claims jsonb;
+  caller_id uuid;
+  sid uuid;
+  managed auth.sessions%rowtype;
+  state_row msrc_sessions.session_state%rowtype;
+  policy_row msrc_sessions.policy%rowtype;
+  account_row msrc_authorization.account_access%rowtype;
+  factor_row auth.mfa_factors%rowtype;
+  user_row auth.users%rowtype;
+  privileged boolean := false;
+  mfa_valid boolean := false;
+  staff_email_valid boolean := false;
+  authentication_tier text := 'participant';
+  password_valid boolean := false;
+  email_verified boolean := false;
+  password_at timestamptz;
+  totp_mfa_at timestamptz;
+  native_password_at timestamptz;
+  native_totp_at timestamptz;
+  authenticated_at timestamptz;
+  cutoff timestamptz;
+  reason text;
+  absolute_end timestamptz;
+  idle_end timestamptz;
+begin
+  if msrc_staff.recovery_blocked(auth.uid()) then return null;end if;
+  claims := auth.jwt();
+  caller_id := auth.uid();
+  if caller_id is null or edition_key is null or edition_key <> btrim(edition_key)
+    or char_length(edition_key) not between 1 and 128
+    or not exists(select 1 from msrc_authorization.edition_config e where e.edition_key=own_context.edition_key)
+    or jsonb_typeof(claims->'exp') is distinct from 'number'
+    or (claims->>'exp')::numeric <= extract(epoch from observed_at)
+    or (claims->>'session_id') is null
+    or (claims->>'session_id') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    or (claims->>'sub')::uuid is distinct from caller_id then return null; end if;
+  sid := (claims->>'session_id')::uuid;
+  select a.* into account_row from msrc_authorization.account_access a where a.actor_id=caller_id for update;
+  if msrc_staff.recovery_blocked(auth.uid()) then return null;end if;
+  if not found then return null; end if;
+  select s.* into managed from auth.sessions s join auth.users u on u.id=s.user_id
+    where s.id=sid and s.user_id=caller_id and s.created_at <= observed_at
+      and (s.not_after is null or s.not_after > observed_at)
+      and u.deleted_at is null
+      and not u.is_anonymous and (u.banned_until is null or u.banned_until <= observed_at)
+    for share of s,u;
+  if not found then return null; end if;
+  select u.* into user_row from auth.users u where u.id=caller_id;
+  email_verified := user_row.email_confirmed_at is not null and coalesce(btrim(user_row.email),'') <> '';
+  select p.* into policy_row from msrc_sessions.policy p where p.singleton;
+  if not found then return null; end if;
+  -- A caller-controlled edition selector cannot downgrade the session's staff limits.
+  -- Domain authorization/grant projections still remain edition-scoped elsewhere.
+  privileged := exists(select 1 from msrc_authorization.role_grants g where g.actor_id=caller_id
+    and g.state='active' and g.role_name <> 'participant');
+  authentication_tier := case when exists(select 1 from msrc_authorization.role_grants g
+    where g.actor_id=caller_id and g.state='active' and g.role_name='superAdmin') then 'super_admin'
+    when privileged then 'staff' else 'participant' end;
+  if authentication_tier='staff' then staff_email_valid := msrc_staff_email.valid_receipt(caller_id,sid); end if;
+  insert into msrc_sessions.session_state(session_id,actor_id,started_at,last_activity_at)
+  values(sid,caller_id,managed.created_at,managed.created_at) on conflict(session_id) do nothing;
+  select s.* into state_row from msrc_sessions.session_state s where s.session_id=sid for update;
+  observed_at := clock_timestamp();
+  if managed.not_after is not null and managed.not_after <= observed_at
+    or (claims->>'exp')::numeric <= extract(epoch from observed_at) then return null; end if;
+  if state_row.actor_id <> caller_id or state_row.started_at <> managed.created_at
+    or state_row.last_activity_at > observed_at then return null; end if;
+  select r.revoked_before into cutoff from msrc_sessions.actor_revocations r where r.actor_id=caller_id;
+  absolute_end := state_row.started_at + make_interval(secs => case when privileged
+    then policy_row.privileged_absolute_seconds else policy_row.participant_absolute_seconds end);
+  if privileged then idle_end := state_row.last_activity_at + make_interval(secs => policy_row.privileged_idle_seconds); end if;
+  -- Signed provider AMR must prove password primary login in THIS managed session.
+  -- Super Admin assurance requires password followed by managed totp in THIS
+  -- session, tied to the current verified authenticator-app factor. Generic AAL2,
+  -- phone MFA and primary OTP are insufficient. Ordinary staff use private email
+  -- receipts; participants require only current verified email and password.
+  select max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='password'),
+    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='totp'),
+    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method' in ('password','totp'))
+    into password_at,totp_mfa_at,authenticated_at
+    from jsonb_array_elements(case when jsonb_typeof(claims->'amr')='array' then claims->'amr' else '[]'::jsonb end) a(item)
+    where jsonb_typeof(a.item->'timestamp')='number';
+  password_valid := coalesce(floor(extract(epoch from password_at)) >= floor(extract(epoch from managed.created_at))
+    and password_at <= observed_at,false);
+  if authentication_tier='staff' then
+    password_valid := password_valid and exists(select 1 from msrc_staff_email.identity_revision r
+      join auth.mfa_amr_claims a on a.session_id=sid and a.authentication_method='password'
+      where r.actor_id=caller_id and a.updated_at::timestamptz >= managed.created_at
+        and a.updated_at::timestamptz <= observed_at
+        and (r.password_changed_at is null or a.updated_at::timestamptz >= r.password_changed_at));
+  end if;
+  if managed.factor_id is not null then
+    select f.* into factor_row from auth.mfa_factors f where f.id=managed.factor_id and f.user_id=caller_id for share;
+  end if;
+  -- Native managed evidence retains sub-second precision unavailable in signed AMR.
+  -- The session/factor locks bind these observations to the same current session.
+  select max(a.updated_at::timestamptz) filter(where a.authentication_method='password'),
+    max(a.updated_at::timestamptz) filter(where a.authentication_method='totp')
+    into native_password_at,native_totp_at
+    from auth.mfa_amr_claims a where a.session_id=sid;
+  -- A current-factor lock can wait too; expiry must use the clock after that wait.
+  observed_at := clock_timestamp();
+  if managed.not_after is not null and managed.not_after <= observed_at
+    or (claims->>'exp')::numeric <= extract(epoch from observed_at) then return null; end if;
+  mfa_valid := coalesce(password_valid and claims->>'aal'='aal2' and managed.aal::text='aal2'
+    and factor_row.factor_type::text='totp' and factor_row.status::text='verified'
+    and native_password_at is not null and native_totp_at is not null
+    and native_password_at >= managed.created_at and native_password_at <= observed_at
+    and floor(extract(epoch from password_at)) = floor(extract(epoch from native_password_at))
+    and floor(extract(epoch from totp_mfa_at)) = floor(extract(epoch from native_totp_at))
+    and native_totp_at >= greatest(factor_row.created_at,factor_row.updated_at,managed.created_at,native_password_at)
+    and native_totp_at <= observed_at
+    and floor(extract(epoch from totp_mfa_at)) >= floor(extract(epoch from greatest(
+      factor_row.created_at,factor_row.updated_at,managed.created_at,password_at)))
+    and totp_mfa_at <= observed_at,false);
+  if state_row.revoked_at is not null or managed.created_at <= cutoff then reason := 'session_revoked';
+  elsif account_row.state <> 'active' then reason := 'account_suspended';
+  elsif observed_at >= absolute_end then reason := 'absolute_expired';
+  elsif privileged and observed_at >= idle_end then reason := 'idle_expired';
+  elsif not email_verified then reason := 'account_verification_required';
+  elsif not password_valid then reason := 'password_auth_required';
+  elsif privileged and not account_row.individually_identified then reason := 'individual_identity_required';
+  elsif authentication_tier='super_admin' and not mfa_valid then reason := 'mfa_required';
+  elsif authentication_tier='staff' and not staff_email_valid then reason := 'staff_email_check_required';
+  elsif coalesce(claims->>'aal','aal1') not in ('aal1','aal2') then return null;
+  end if;
+  if reason in ('absolute_expired','idle_expired') and state_row.revoked_at is null then
+    update msrc_sessions.session_state set revoked_at=observed_at,revocation_cause='policy_expired' where session_id=sid;
+  elsif reason is null and record_activity then
+    update msrc_sessions.session_state set last_activity_at=observed_at where session_id=sid;
+    state_row.last_activity_at := observed_at;
+    if privileged then idle_end := observed_at + make_interval(secs => policy_row.privileged_idle_seconds); end if;
+  end if;
+  if staff_email_valid then
+    select greatest(authenticated_at,r.verified_at) into authenticated_at
+      from msrc_staff_email.receipts r where r.session_id=sid and r.actor_id=caller_id;
+  end if;
+  return jsonb_build_object('schemaVersion',1,'editionId',edition_key,
+    'principal',jsonb_build_object('userId',caller_id,'sessionId',sid),'privileged',privileged,
+    'sessionPolicySatisfied',reason is null,'reason',reason,'mfaValid',mfa_valid,
+    'authenticationTier',authentication_tier,'staffEmailValid',staff_email_valid,
+    'passwordValid',password_valid,'emailVerified',email_verified,
+    'timing',jsonb_build_object('startedAt',state_row.started_at,'lastActivityAt',state_row.last_activity_at,
+      'absoluteExpiresAt',absolute_end,'idleExpiresAt',idle_end,'authenticatedAt',authenticated_at),
+    'policy',jsonb_build_object('participantAbsoluteSeconds',policy_row.participant_absolute_seconds,
+      'privilegedIdleSeconds',policy_row.privileged_idle_seconds,'privilegedAbsoluteSeconds',policy_row.privileged_absolute_seconds,
+      'recentAuthMaxAgeSeconds',policy_row.recent_auth_max_age_seconds,'warningLeadSeconds',policy_row.warning_lead_seconds),
+    'operationalAccessReady',false,'privilegedAccessReady',false);
+exception when invalid_text_representation or numeric_value_out_of_range or datetime_field_overflow then return null;
+end; $$;
+
+create or replace function msrc_sessions.observe_context(edition_key text) returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+declare
+  observed_at timestamptz := statement_timestamp();
+  claims jsonb;
+  caller_id uuid;
+  sid uuid;
+  managed auth.sessions%rowtype;
+  state_row msrc_sessions.session_state%rowtype;
+  policy_row msrc_sessions.policy%rowtype;
+  account_row msrc_authorization.account_access%rowtype;
+  factor_row auth.mfa_factors%rowtype;
+  user_row auth.users%rowtype;
+  privileged boolean := false;
+  mfa_valid boolean := false;
+  staff_email_valid boolean := false;
+  authentication_tier text := 'participant';
+  password_valid boolean := false;
+  email_verified boolean := false;
+  password_at timestamptz;
+  totp_mfa_at timestamptz;
+  native_password_at timestamptz;
+  native_totp_at timestamptz;
+  authenticated_at timestamptz;
+  cutoff timestamptz;
+  reason text;
+  absolute_end timestamptz;
+  idle_end timestamptz;
+begin
+  if msrc_staff.recovery_blocked(auth.uid()) then return null;end if;
+  claims := auth.jwt();
+  caller_id := auth.uid();
+  if caller_id is null or edition_key is null or edition_key <> btrim(edition_key)
+    or char_length(edition_key) not between 1 and 128
+    or not exists(select 1 from msrc_authorization.edition_config e where e.edition_key=observe_context.edition_key)
+    or jsonb_typeof(claims->'exp') is distinct from 'number'
+    or (claims->>'exp')::numeric <= extract(epoch from observed_at)
+    or (claims->>'session_id') is null
+    or (claims->>'session_id') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    or (claims->>'sub')::uuid is distinct from caller_id then return null; end if;
+  sid := (claims->>'session_id')::uuid;
+  select a.* into account_row from msrc_authorization.account_access a where a.actor_id=caller_id;
+  if not found then return null; end if;
+  select s.* into managed from auth.sessions s join auth.users u on u.id=s.user_id
+    where s.id=sid and s.user_id=caller_id and s.created_at <= observed_at
+      and (s.not_after is null or s.not_after > observed_at)
+      and u.deleted_at is null
+      and not u.is_anonymous and (u.banned_until is null or u.banned_until <= observed_at)
+   ;
+  if not found then return null; end if;
+  select u.* into user_row from auth.users u where u.id=caller_id;
+  email_verified := user_row.email_confirmed_at is not null and coalesce(btrim(user_row.email),'') <> '';
+  select p.* into policy_row from msrc_sessions.policy p where p.singleton;
+  if not found then return null; end if;
+  -- A caller-controlled edition selector cannot downgrade the session's staff limits.
+  -- Domain authorization/grant projections still remain edition-scoped elsewhere.
+  privileged := exists(select 1 from msrc_authorization.role_grants g where g.actor_id=caller_id
+    and g.state='active' and g.role_name <> 'participant');
+  authentication_tier := case when exists(select 1 from msrc_authorization.role_grants g
+    where g.actor_id=caller_id and g.state='active' and g.role_name='superAdmin') then 'super_admin'
+    when privileged then 'staff' else 'participant' end;
+  if authentication_tier='staff' then staff_email_valid := msrc_staff_email.observe_valid_receipt(caller_id,sid); end if;
+  -- Observation cannot create native-origin or activity history. The trusted
+  -- read-write context RPC initializes it before any protected direct read.
+  select s.* into state_row from msrc_sessions.session_state s where s.session_id=sid;
+  if not found then return null; end if;
+  observed_at := statement_timestamp();
+  if managed.not_after is not null and managed.not_after <= observed_at
+    or (claims->>'exp')::numeric <= extract(epoch from observed_at) then return null; end if;
+  if state_row.actor_id <> caller_id or state_row.started_at <> managed.created_at
+    or state_row.last_activity_at > observed_at then return null; end if;
+  select r.revoked_before into cutoff from msrc_sessions.actor_revocations r where r.actor_id=caller_id;
+  absolute_end := state_row.started_at + make_interval(secs => case when privileged
+    then policy_row.privileged_absolute_seconds else policy_row.participant_absolute_seconds end);
+  if privileged then idle_end := state_row.last_activity_at + make_interval(secs => policy_row.privileged_idle_seconds); end if;
+  -- Signed provider AMR must prove password primary login in THIS managed session.
+  -- Super Admin assurance requires password followed by managed totp in THIS
+  -- session, tied to the current verified authenticator-app factor. Generic AAL2,
+  -- phone MFA and primary OTP are insufficient. Ordinary staff use private email
+  -- receipts; participants require only current verified email and password.
+  select max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='password'),
+    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method'='totp'),
+    max(to_timestamp((a.item->>'timestamp')::double precision)) filter(where a.item->>'method' in ('password','totp'))
+    into password_at,totp_mfa_at,authenticated_at
+    from jsonb_array_elements(case when jsonb_typeof(claims->'amr')='array' then claims->'amr' else '[]'::jsonb end) a(item)
+    where jsonb_typeof(a.item->'timestamp')='number';
+  password_valid := coalesce(floor(extract(epoch from password_at)) >= floor(extract(epoch from managed.created_at))
+    and password_at <= observed_at,false);
+  if authentication_tier='staff' then
+    password_valid := password_valid and exists(select 1 from msrc_staff_email.identity_revision r
+      join auth.mfa_amr_claims a on a.session_id=sid and a.authentication_method='password'
+      where r.actor_id=caller_id and a.updated_at::timestamptz >= managed.created_at
+        and a.updated_at::timestamptz <= observed_at
+        and (r.password_changed_at is null or a.updated_at::timestamptz >= r.password_changed_at));
+  end if;
+  if managed.factor_id is not null then
+    select f.* into factor_row from auth.mfa_factors f where f.id=managed.factor_id and f.user_id=caller_id;
+  end if;
+  -- Native managed evidence retains sub-second precision unavailable in signed AMR.
+  -- STABLE observation uses one statement snapshot for the same current session.
+  select max(a.updated_at::timestamptz) filter(where a.authentication_method='password'),
+    max(a.updated_at::timestamptz) filter(where a.authentication_method='totp')
+    into native_password_at,native_totp_at
+    from auth.mfa_amr_claims a where a.session_id=sid;
+  -- Deadline checks use the same statement-start admission time as all evidence.
+  -- Unlike transaction_timestamp()/now(), this advances for the next statement.
+  observed_at := statement_timestamp();
+  if managed.not_after is not null and managed.not_after <= observed_at
+    or (claims->>'exp')::numeric <= extract(epoch from observed_at) then return null; end if;
+  mfa_valid := coalesce(password_valid and claims->>'aal'='aal2' and managed.aal::text='aal2'
+    and factor_row.factor_type::text='totp' and factor_row.status::text='verified'
+    and native_password_at is not null and native_totp_at is not null
+    and native_password_at >= managed.created_at and native_password_at <= observed_at
+    and floor(extract(epoch from password_at)) = floor(extract(epoch from native_password_at))
+    and floor(extract(epoch from totp_mfa_at)) = floor(extract(epoch from native_totp_at))
+    and native_totp_at >= greatest(factor_row.created_at,factor_row.updated_at,managed.created_at,native_password_at)
+    and native_totp_at <= observed_at
+    and floor(extract(epoch from totp_mfa_at)) >= floor(extract(epoch from greatest(
+      factor_row.created_at,factor_row.updated_at,managed.created_at,password_at)))
+    and totp_mfa_at <= observed_at,false);
+  if state_row.revoked_at is not null or managed.created_at <= cutoff then reason := 'session_revoked';
+  elsif account_row.state <> 'active' then reason := 'account_suspended';
+  elsif observed_at >= absolute_end then reason := 'absolute_expired';
+  elsif privileged and observed_at >= idle_end then reason := 'idle_expired';
+  elsif not email_verified then reason := 'account_verification_required';
+  elsif not password_valid then reason := 'password_auth_required';
+  elsif privileged and not account_row.individually_identified then reason := 'individual_identity_required';
+  elsif authentication_tier='super_admin' and not mfa_valid then reason := 'mfa_required';
+  elsif authentication_tier='staff' and not staff_email_valid then reason := 'staff_email_check_required';
+  elsif coalesce(claims->>'aal','aal1') not in ('aal1','aal2') then return null;
+  end if;
+  if staff_email_valid then
+    select greatest(authenticated_at,r.verified_at) into authenticated_at
+      from msrc_staff_email.receipts r where r.session_id=sid and r.actor_id=caller_id;
+  end if;
+  return jsonb_build_object('schemaVersion',1,'editionId',edition_key,
+    'principal',jsonb_build_object('userId',caller_id,'sessionId',sid),'privileged',privileged,
+    'sessionPolicySatisfied',reason is null,'reason',reason,'mfaValid',mfa_valid,
+    'authenticationTier',authentication_tier,'staffEmailValid',staff_email_valid,
+    'passwordValid',password_valid,'emailVerified',email_verified,
+    'timing',jsonb_build_object('startedAt',state_row.started_at,'lastActivityAt',state_row.last_activity_at,
+      'absoluteExpiresAt',absolute_end,'idleExpiresAt',idle_end,'authenticatedAt',authenticated_at),
+    'policy',jsonb_build_object('participantAbsoluteSeconds',policy_row.participant_absolute_seconds,
+      'privilegedIdleSeconds',policy_row.privileged_idle_seconds,'privilegedAbsoluteSeconds',policy_row.privileged_absolute_seconds,
+      'recentAuthMaxAgeSeconds',policy_row.recent_auth_max_age_seconds,'warningLeadSeconds',policy_row.warning_lead_seconds),
+    'operationalAccessReady',false,'privilegedAccessReady',false);
+exception when invalid_text_representation or numeric_value_out_of_range or datetime_field_overflow then return null;
+end; $$;
+
+create or replace function msrc_staff_email.basis(target_actor uuid,target_session uuid) returns jsonb
+language plpgsql volatile security definer set search_path='' set timezone='UTC' as $$
+declare
+  observed_at timestamptz := clock_timestamp();
+  account_row msrc_authorization.account_access%rowtype;
+  user_row auth.users%rowtype;
+  identity_row msrc_staff_email.identity_revision%rowtype;
+  session_row auth.sessions%rowtype;
+  policy_row msrc_sessions.policy%rowtype;
+  state_row msrc_sessions.session_state%rowtype;
+  password_at timestamptz;
+  grant_fingerprint text;
+  bound_fingerprint text;
+  cutoff timestamptz;
+begin
+  if msrc_staff.recovery_blocked(target_actor) then return null;end if;
+  select a.* into account_row from msrc_authorization.account_access a where a.actor_id=target_actor for update;
+  if msrc_staff.recovery_blocked(target_actor) then return null;end if;
+  if not found or account_row.state <> 'active' or not account_row.individually_identified then return null; end if;
+  if not exists(select 1 from msrc_authorization.role_grants g where g.actor_id=target_actor
+      and g.state='active' and g.role_name <> 'participant')
+    or exists(select 1 from msrc_authorization.role_grants g where g.actor_id=target_actor
+      and g.state='active' and g.role_name='superAdmin') then return null; end if;
+  select u.* into user_row from auth.users u where u.id=target_actor for share;
+  observed_at := clock_timestamp();
+  if not found or user_row.deleted_at is not null or user_row.is_anonymous
+    or (user_row.banned_until is not null and user_row.banned_until > observed_at)
+    or user_row.email_confirmed_at is null or user_row.email_confirmed_at > observed_at
+    or coalesce(btrim(user_row.email),'')='' then return null; end if;
+  select r.* into identity_row from msrc_staff_email.identity_revision r where r.actor_id=target_actor;
+  if not found then return null; end if;
+  select s.* into session_row from auth.sessions s where s.id=target_session and s.user_id=target_actor for share;
+  if not found then return null; end if;
+  select p.* into policy_row from msrc_sessions.policy p where p.singleton;
+  if not found then return null; end if;
+  select s.* into state_row from msrc_sessions.session_state s where s.session_id=target_session for share;
+  observed_at := clock_timestamp();
+  if session_row.created_at > observed_at
+    or (session_row.not_after is not null and session_row.not_after <= observed_at)
+    or observed_at >= session_row.created_at+make_interval(secs=>policy_row.privileged_absolute_seconds) then return null; end if;
+  if found and (state_row.actor_id <> target_actor or state_row.started_at <> session_row.created_at
+      or state_row.revoked_at is not null or state_row.last_activity_at > observed_at) then return null; end if;
+  if observed_at >= coalesce(state_row.last_activity_at,session_row.created_at)
+    +make_interval(secs=>policy_row.privileged_idle_seconds) then return null; end if;
+  select r.revoked_before into cutoff from msrc_sessions.actor_revocations r where r.actor_id=target_actor;
+  if session_row.created_at <= cutoff then return null; end if;
+  select max(a.updated_at::timestamptz) into password_at from auth.mfa_amr_claims a
+    where a.session_id=target_session and a.authentication_method='password';
+  if password_at is null or password_at < session_row.created_at or password_at > observed_at
+    or (identity_row.password_changed_at is not null and password_at < identity_row.password_changed_at) then return null; end if;
+  select encode(sha256(convert_to(coalesce(jsonb_agg(jsonb_build_object('id',g.id,'edition',g.edition_key,
+    'role',g.role_name,'scope',g.scope_kind,'track',g.track,'target',g.scope_target,'state',g.state)
+    order by g.id)::text,'[]'),'UTF8')),'hex') into grant_fingerprint
+    from msrc_authorization.role_grants g where g.actor_id=target_actor;
+  bound_fingerprint := encode(sha256(convert_to(jsonb_build_object('email',user_row.email,
+    'confirmed',user_row.email_confirmed_at,'identityRevision',identity_row.revision,
+    'passwordAt',password_at,'grantVersion',grant_fingerprint)::text,'UTF8')),'hex');
+  return jsonb_build_object('binding',bound_fingerprint,'recipient',user_row.email,'passwordAt',password_at);
+end; $$;
+
+create or replace function msrc_staff_email.observe_basis(target_actor uuid,target_session uuid) returns jsonb
+language plpgsql stable security definer set search_path='' set timezone='UTC' as $$
+declare
+  observed_at timestamptz := statement_timestamp();
+  account_row msrc_authorization.account_access%rowtype;
+  user_row auth.users%rowtype;
+  identity_row msrc_staff_email.identity_revision%rowtype;
+  session_row auth.sessions%rowtype;
+  policy_row msrc_sessions.policy%rowtype;
+  state_row msrc_sessions.session_state%rowtype;
+  password_at timestamptz;
+  grant_fingerprint text;
+  bound_fingerprint text;
+  cutoff timestamptz;
+begin
+  if msrc_staff.recovery_blocked(target_actor) then return null;end if;
+  select a.* into account_row from msrc_authorization.account_access a where a.actor_id=target_actor;
+  if not found or account_row.state <> 'active' or not account_row.individually_identified then return null; end if;
+  if not exists(select 1 from msrc_authorization.role_grants g where g.actor_id=target_actor
+      and g.state='active' and g.role_name <> 'participant')
+    or exists(select 1 from msrc_authorization.role_grants g where g.actor_id=target_actor
+      and g.state='active' and g.role_name='superAdmin') then return null; end if;
+  select u.* into user_row from auth.users u where u.id=target_actor;
+  observed_at := statement_timestamp();
+  if not found or user_row.deleted_at is not null or user_row.is_anonymous
+    or (user_row.banned_until is not null and user_row.banned_until > observed_at)
+    or user_row.email_confirmed_at is null or user_row.email_confirmed_at > observed_at
+    or coalesce(btrim(user_row.email),'')='' then return null; end if;
+  select r.* into identity_row from msrc_staff_email.identity_revision r where r.actor_id=target_actor;
+  if not found then return null; end if;
+  select s.* into session_row from auth.sessions s where s.id=target_session and s.user_id=target_actor;
+  if not found then return null; end if;
+  select p.* into policy_row from msrc_sessions.policy p where p.singleton;
+  if not found then return null; end if;
+  select s.* into state_row from msrc_sessions.session_state s where s.session_id=target_session;
+  observed_at := statement_timestamp();
+  if session_row.created_at > observed_at
+    or (session_row.not_after is not null and session_row.not_after <= observed_at)
+    or observed_at >= session_row.created_at+make_interval(secs=>policy_row.privileged_absolute_seconds) then return null; end if;
+  if found and (state_row.actor_id <> target_actor or state_row.started_at <> session_row.created_at
+      or state_row.revoked_at is not null or state_row.last_activity_at > observed_at) then return null; end if;
+  if observed_at >= coalesce(state_row.last_activity_at,session_row.created_at)
+    +make_interval(secs=>policy_row.privileged_idle_seconds) then return null; end if;
+  select r.revoked_before into cutoff from msrc_sessions.actor_revocations r where r.actor_id=target_actor;
+  if session_row.created_at <= cutoff then return null; end if;
+  select max(a.updated_at::timestamptz) into password_at from auth.mfa_amr_claims a
+    where a.session_id=target_session and a.authentication_method='password';
+  if password_at is null or password_at < session_row.created_at or password_at > observed_at
+    or (identity_row.password_changed_at is not null and password_at < identity_row.password_changed_at) then return null; end if;
+  select encode(sha256(convert_to(coalesce(jsonb_agg(jsonb_build_object('id',g.id,'edition',g.edition_key,
+    'role',g.role_name,'scope',g.scope_kind,'track',g.track,'target',g.scope_target,'state',g.state)
+    order by g.id)::text,'[]'),'UTF8')),'hex') into grant_fingerprint
+    from msrc_authorization.role_grants g where g.actor_id=target_actor;
+  bound_fingerprint := encode(sha256(convert_to(jsonb_build_object('email',user_row.email,
+    'confirmed',user_row.email_confirmed_at,'identityRevision',identity_row.revision,
+    'passwordAt',password_at,'grantVersion',grant_fingerprint)::text,'UTF8')),'hex');
+  return jsonb_build_object('binding',bound_fingerprint,'recipient',user_row.email,'passwordAt',password_at);
 end; $$;
 revoke all on all functions in schema msrc_staff from public,anon,authenticated,service_role;
 revoke all on function public.msrc_staff_status(),public.msrc_staff_form_claim(text,text),public.msrc_staff_login_begin(uuid,text,text),
