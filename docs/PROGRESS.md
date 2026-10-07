@@ -1,5 +1,46 @@
 # Progress and session handover
 
+## 8 October 2026 — Owner-change migration verified; first release stopped and closed
+
+The organizer clarified that the privately updated value is a requested account
+password change. [PR #46](https://github.com/xpexellent-dotcom/msrc-2027/pull/46)
+is merged at main `2f677bedd9e1773508286cc5d8db79780801cc37`; all seven
+substantive merged-main CI jobs passed in Foundation 37688971744, Staff
+37688971725 and Participant 37688971851. [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45)
+remains draft. Its operator/setup work is separate from the deployed main source.
+
+Fresh protected post-enrollment backup/restore, exact migration rollback,
+actual operator rollback, and policy-only gate enable/close rehearsals passed.
+The additional `20261007195540_staff_password_change.sql` committed and passed
+same-transaction plus fresh catalog/data/history verification at 22:08:30.753 UTC
+on 7 October. All eight earlier immutable history rows and existing native/app
+data were preserved; history now contains nine original versions. No older file,
+fixture, bootstrap or account was replayed.
+
+The first owner-feature release STOPPED during readiness verification: its helper
+treated the normal pending Vercel status from its own intentional build as a
+failed prerequisite. No owner handoff or password change occurred. Verified
+closure committed the new database boolean false first and only the new server
+flag false second. The pinned closed deployment is READY/current Production;
+fresh EN/AR Security404, anonymous staff denials, participant and all15
+operational API closure checks passed at 22:14:29.953 UTC. Existing EN/AR staff
+sign-in remains200/noindex/private with blank controls; navigation and robots
+exclusion passed at 22:16:19.283 UTC. These anonymous checks do not establish a
+current human password/TOTP session. The disposable clone was removed and all
+protected backup/failed/successful evidence retained.
+
+The account password remains unchanged. Normal own-device current-password/
+TOTP rotation and new-password/TOTP verification are NOT PERFORMED. No second
+account, self-reset, authenticator reset, real email or operational opening
+occurred. See [the stopped execution record](features/STAFF_PASSWORD_RELEASE_EXECUTION.md)
+for each migration, exact receipts, preserved failures, remaining release checks
+and database-first rollback. Resumption requires a new reviewed attempt after
+the readiness correction passes; never replay the committed migration or the
+closed first release. The private helper correction now has independent source
+review PASS and 42 synthetic readiness regressions PASS. It has not been used to
+resume Production. Activation is stopped at the failed first release, with both
+new gates false. Existing standing authorization remains in effect.
+
 ## 7 October 2026 — First-admin sign-in/TOTP verified; requested account password change not yet applied
 
 ORG-046's persistent restricted setup authorization remains in effect. All six
