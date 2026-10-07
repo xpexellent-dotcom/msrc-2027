@@ -283,3 +283,26 @@ test("quick successive filter changes keep each other", async ({ page }) => {
   await expect(page.getByTestId("media-edition")).toHaveValue("2026");
   await expect(page.getByTestId("media-kind")).toHaveValue("recording");
 });
+
+// Live QA 2026-10-08. Forced colours (Windows contrast themes) drop author fills, which were the
+// only sign of the selected programme day and of the current homepage chapter.
+test("forced colours still show the selected programme day and the current chapter", async ({ page, isMobile }) => {
+  await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
+  // Computed colours report author values even where forced colours repaint them, so check that
+  // the selected state opts out of forcing and paints with a system colour.
+  const keepsFill = (selector: string) => page.locator(selector).first().evaluate((element) => {
+    const style = getComputedStyle(element);
+    return style.forcedColorAdjust === "none" && style.backgroundColor !== "rgba(0, 0, 0, 0)";
+  });
+  await page.goto("/en/program");
+  const day1 = page.getByTestId("program-day-day1");
+  await expect(async () => { await day1.click(); await expect(day1).toHaveAttribute("aria-pressed", "true", { timeout: 500 }); }).toPass();
+  expect(await keepsFill('[data-testid="program-day-day1"]')).toBe(true);
+  expect(await keepsFill('[data-testid="program-day-all"]')).toBe(false);
+  if (isMobile) return;
+  await page.goto("/en");
+  await page.locator(".section-journey-links a").nth(2).click();
+  await expect(page.locator('.section-journey-links a[aria-current="location"]')).toHaveCount(1);
+  expect(await keepsFill('.section-journey-links a[aria-current="location"] .chapter-number')).toBe(true);
+  expect(await keepsFill('.section-journey-links a:not([aria-current]) .chapter-number')).toBe(false);
+});

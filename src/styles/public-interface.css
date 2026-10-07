@@ -68,4 +68,7 @@ html:has(.homepage-journey) { scroll-padding-block-start: 0; }
   .mobile-menu { padding-block-end: 1rem; border-end-start-radius: 1rem; border-end-end-radius: 1rem; }
   .mobile-menu nav a { font-size: 1.25rem; min-block-size: 60px; padding-block: .7rem; }
 }
-@media (forced-colors: active) { .site-header-inner { border-color: ButtonText; }.mobile-menu { border-color: ButtonText; } }
+@media (forced-colors: active) { .site-header-inner { border-color: ButtonText; }.mobile-menu { border-color: ButtonText; }
+  /* The current chapter was marked by fills that forced colours remove. */
+  .section-journey-links > a[aria-current="location"] .chapter-number { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight; }
+  .section-journey-links > a[aria-current="location"]::after { forced-color-adjust: none; background: Highlight; } }
