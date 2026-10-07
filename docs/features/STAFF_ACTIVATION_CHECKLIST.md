@@ -93,6 +93,12 @@ fixture is DO NOT APPLY. Reconcile any drift before proceeding.
 
 ### Apply and prove each individual file
 
+For **pending migration 1 only**, review the
+[single-migration execution packet](STAFF_MIGRATION_01_PACKET.md). Its prerequisites,
+catalog checks, exact file hash and failure handling describe a future operator
+step; the packet and this checklist have not been executed. It stops after that
+one migration and its evidence, with all release flags off.
+
 - [ ] **PENDING:** Keep `STAFF_PORTAL_ENABLED` unset/false and, once present,
   `msrc_staff.policy.enabled=false` throughout schema preparation. Keep participant
   readiness and unrelated workflow gates closed. Confirm actual backup coverage

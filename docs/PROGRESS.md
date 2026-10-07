@@ -1,5 +1,60 @@
 # Progress and session handover
 
+## 7 October 2026 — Documentation PR and migration 1 execution packet
+
+Opened [draft PR #44](https://github.com/xpexellent-dotcom/msrc-2027/pull/44)
+from `codex/staff-activation-checklist` at requested commit
+`9dfeea0522796626b0c9523c0bc647a5e7a5b450`, against current `main`
+`2a991d2a13fa9b0b7f04877d2001ad95f134f136`. Open PR preflight found none.
+GitHub confirms the initial diff is documentation only: PROGRESS, the staff guide
+and activation checklist. The existing original checkout's work remains preserved.
+
+Prepared [the migration 1 execution packet](features/STAFF_MIGRATION_01_PACKET.md)
+for only `20261002193800_staff_mfa_session_foundations.sql`; the activation
+checklist links to it. IDs: BL-AUTH-05/06, AUTH-04/05, ROL-12, SEC-01/02/06.
+The immutable SQL at the requested revision has Git blob
+`b16421c5e729c225716b87352de3aba6ead2e0ba`, 27,028 bytes, and SHA-256
+`ca8571443fe0390f25772f3fbd6014ac17e959eb79f70c2067b143ddcabd8108`.
+Committed and working-file bytes match; no migration was edited or generated.
+
+The packet covers prerequisite/target/backup/compatibility review, catalog-only
+pre/post checks, future one-file transaction and exact-version history alignment,
+safe evidence and failure/unknown-commit handling. Every execution step remains
+PENDING. It explicitly stops before migration 2, settings, onboarding or activation.
+The 12:42–12:43 UTC hosted/live receipts below are dated prior evidence; this
+preparation does not refresh them or execute the future preflight queries.
+
+Static review distinguishes migration 1's intermediate historical phone/SMS
+assurance from the final ORG-015/016 staff email/TOTP policy supplied later. Both
+generic readiness flags remain constrained false; recency/warning values remain
+NULL. No phone/SMS setup or interim login is authorized. The migration creates
+four private forced-RLS tables, eight private functions and three new authenticated
+RPCs, replaces access context and adds nine triggers. It creates no native Auth
+table trigger or email hook. Own-context/logout RPC calls can write audit/session
+state; they are excluded from read-only verification. Future referenced Auth-user
+deletion and account-suspension effects are documented without altering safeguards.
+
+PASS: independent technical/documentation review, exact hash/blob/byte comparison,
+all nine migration inventory entries, 23 checklist and nine packet local links,
+the 4-table/8-private-function/4-public-function/9-trigger inventory, and
+`git diff --check`. The two SQL snippet blocks were inspected as catalog/count
+SELECTs without execution; their runtime verification remains NOT RUN. All 56
+activation and 21 packet operator checkboxes remain unchecked. The final prepared
+diff contains four Markdown documentation files only: PROGRESS, staff guide,
+activation checklist and execution packet.
+
+Review clarified that schema-local default ACLs cannot remove global/default
+PUBLIC execution; current private functions have explicit revocation. The packet
+checks both ACL scopes and requires identifying the actual DDL backend before
+execution, so unknown outcomes cannot be inferred from another connection's PID
+or catalog absence. The historical migration is unchanged.
+
+No hosted or local SQL, migration, history repair, native Auth request,
+flags/settings change, bootstrap, real email or manual CI dispatch is performed.
+Ordinary PR checks use the existing disposable synthetic workflows; their status
+is separate from operator execution or hosted approval. No fresh database or
+browser run is claimed for this documentation preparation.
+
 ## 7 October 2026 — Merged staff foundation, live closure and activation checklist
 
 Scope: BL-AUTH-01, BL-AUTH-05/06 staff, BL-RPT-01/03; ORG-043/044/045.
