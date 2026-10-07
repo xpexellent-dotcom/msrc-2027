@@ -72,7 +72,20 @@ Local observed validation:
   No retry, increased timeout or production code change is used for this fix.
   The corrected existing suite passed locally: 26 cases and four intentional
   desktop skips, including EN/AR failed-logout and mobile table action checks.
-- POST-BROWSER-CORRECTION CHECKPOINT: new exact-head CI is PENDING. Latest results are in
+- PASS at browser-corrected head `8b0a0ab5306851681c1178696ee6a1da843b8780`:
+  all staff and participant browser/native jobs plus foundation database and
+  Vercel. Staff browser: 32 default-off, 26 existing (four intentional skips),
+  26 owner-change (two intentional skips), six server-off and six database-off.
+  Participant browser: 26 closed and 54 enabled synthetic cases. The foundation
+  application also passed lint/types, 2,252 units, build (79 pages), 447 public
+  browser cases (25 intentional skips), 81 staff-lab cases and 44 Contact cases.
+  Its job was CANCELLED during artifact upload after all tests passed; GitHub's
+  annotation explicitly reports the existing 20-minute execution limit.
+  The serialized browser suites took 10.8, 1.6 and four minutes, in addition to
+  dependency/build/browser setup. Moved the unchanged independent Contact command
+  and evidence upload into its own 20-minute job. Existing limits, assertions,
+  zero retries and auth-stability skip semantics remain; no test was weakened.
+- POST-CI-PARTITION CHECKPOINT (8 October): new exact-head CI is PENDING. Latest results are in
   [draft PR #46](https://github.com/xpexellent-dotcom/msrc-2027/pull/46).
   Production owner password change remains NOT APPLIED; no new hosted migration,
   setting, flag, account, email, bootstrap or password mutation occurred.
