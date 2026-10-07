@@ -84,7 +84,8 @@ begin
   max(x.updated_at::timestamptz) filter(where x.authentication_method='totp') into password_at,totp_at
   from auth.mfa_amr_claims x where x.session_id=target_session;
  observed_at:=clock_timestamp();
- if password_at is null or totp_at is null or password_at<s.created_at
+ if s.created_at<observed_at-interval '2 minutes' or s.created_at>observed_at
+  or password_at is null or totp_at is null or password_at<s.created_at
   or password_at<observed_at-interval '2 minutes' or password_at>observed_at
   or totp_at<greatest(password_at,f.created_at,f.updated_at,s.created_at)
   or totp_at<observed_at-interval '2 minutes' or totp_at>observed_at

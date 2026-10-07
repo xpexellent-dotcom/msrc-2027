@@ -20,7 +20,7 @@ select ok(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pron
 update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 insert into msrc_authorization.edition_config(edition_key) values('synthetic-own-password'),('synthetic-own-other');
 do $$declare n integer; actor uuid;sid uuid;factor uuid;begin
- for n in 1..14 loop
+ for n in 1..15 loop
   actor:=('f5100000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid;
   sid:=('f5200000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid;
   factor:=('f5300000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid;
@@ -230,6 +230,15 @@ delete from auth.mfa_amr_claims where session_id='f5200000-0000-4000-8000-000000
 select pg_temp.owner_claims(8);
 set local role authenticated;
 select is(public.msrc_staff_password_change_begin('synthetic-own-password','f5400000-0000-4000-8000-000000000018')->>'state','denied','Password without actual same-session TOTP is denied');
+reset role;
+-- A newer password/TOTP claim in an old session may satisfy the general session
+-- policy. This sensitive operation independently requires a new native origin.
+update auth.sessions set created_at=date_trunc('second',now()-interval '3 minutes')
+ where id='f5200000-0000-4000-8000-000000000015';
+select pg_temp.owner_claims(15);
+set local role authenticated;
+select is(public.msrc_staff_profile('synthetic-own-password')->'session'->>'sessionPolicySatisfied','true','Old session with recent native password/TOTP evidence still satisfies general staff policy');
+select is(public.msrc_staff_password_change_begin('synthetic-own-password','f5400000-0000-4000-8000-000000000015')->>'state','denied','Recent AMR cannot substitute for a fresh native session origin');
 reset role;
 select is((select bootstrap_pairing_completed from msrc_staff.policy where singleton),false,'Own password change does not satisfy or bypass initial pairing');
 select is((select count(*) from msrc_staff.audit where action='password_change' and result='completed'),3::bigint,'Only exactly completed native operations produce success audits');
