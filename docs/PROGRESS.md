@@ -3175,3 +3175,33 @@ failed reset. The badge is presentation only; database state enforces denial.
   concurrency timing, retries or timeout.
 - The two test synchronization corrections require a new exact-revision CI run.
   No hosted settings/migrations, live bootstrap or real email have been performed.
+
+### Recovery follow-up verified implementation — cdc921e
+
+- PASS: [Staff CI 37612823110](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37612823110)
+  on `cdc921e5fcbe4ff3cb9ec04041f20a0368a8397c`, both jobs successful.
+  Native job 112763949912 verifies all 17 genuine cases on GoTrue v2.197.0:
+  committed factor deletion/password failure, pending/failed/interrupted/expired
+  holds, fresh and refreshed authorization/enrollment denial, valid pre-existing
+  factor proof denied without AAL2/AMR elevation, stale queued native admission,
+  and successful other-admin recovery. Strict lint is clean; 818 SQL assertions
+  in eleven files pass; security advisors report no issues.
+- PASS: staff browser job 112763949518: 28 default-off cases and 26 enabled
+  cases, four intentional desktop skips, zero retries. Both mobile action matrices
+  pass at normal/200% text with EN/AR, keyboard, bounded controls, native scrolling
+  and axe. The final-home/document-title synchronization correction passes.
+- PASS: [Foundation database job 112764505594](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37612823115/job/112764505594):
+  migration reset, strict lint, the same 818 SQL assertions, clean advisors and all
+  75 integration cases across eight files. Both concurrent staff-authority cases
+  pass. The sequential retry/CAS correction passes without changing enforcement,
+  assertions, timing or retry settings. Optional five cold fixture repetitions
+  were SKIPPED by this workflow condition, not represented as passed.
+- PASS: local combined lint/types/2,207-unit/build checks and final 26-case staff
+  presentation suite recorded above. Local database execution remains BLOCKED.
+- Broader application and Participant regressions are still running at this dated
+  receipt; the draft PR check rollup records their final results. This following
+  commit changes only these receipts; implementation and tests are unchanged.
+
+PR43 remains draft for review. Release flags are closed; hosted migrations,
+production settings, live bootstrap and real email remain untouched. Human inbox,
+device and mutual-recovery UAT remain separate activation gates.
