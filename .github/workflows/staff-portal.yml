@@ -45,6 +45,16 @@ jobs:
         run: pnpm exec playwright test tests/e2e/staff-portal-closed.spec.ts --project=chromium-desktop --project=chromium-mobile
       - name: Verify synthetic flag-on forms, keyboard, locale preservation and axe
         run: pnpm exec playwright test --config playwright.staff.config.ts
+      - name: Verify synthetic owner password change, EN/AR, mobile and axe
+        run: pnpm exec playwright test --config playwright.staff-password.config.ts
+      - name: Verify independent server password-change gate stays closed
+        env:
+          STAFF_PASSWORD_UI_GATE: server-closed
+        run: pnpm exec playwright test --config playwright.staff-password.config.ts
+      - name: Verify independent database password-change gate stays closed
+        env:
+          STAFF_PASSWORD_UI_GATE: database-closed
+        run: pnpm exec playwright test --config playwright.staff-password.config.ts
       - name: Upload synthetic browser evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -54,6 +64,9 @@ jobs:
             test-results/
             playwright-report/
             playwright-staff-report/
+            playwright-staff-password-report/
+            .tools/staff-password-evidence/
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
   native:

@@ -10,12 +10,13 @@ import type { Locale } from "@/lib/i18n";
 import type { Role } from "@/lib/permissions/contract";
 import { staffCopy } from "./copy";
 import { auditActionLabel, auditResultLabel, auditSearchQuery } from "./audit-labels";
-import { canRevealIdentity, STAFF_ROLES, staffMenu } from "./menu";
+import { canChangeOwnPassword, canRevealIdentity, STAFF_ROLES, staffMenu } from "./menu";
 import { IdentityDocument } from "./identity-document";
+import { PasswordChangeForm } from "./password-change-form";
 import { clearStaffDraft, normalizeStaffCode, requestStaff, updateStaffDraft, useStaffDraft } from "./staff-client";
 import type { StaffAction, StaffArea, StaffPayload, StaffPerson, StaffProfile, StaffResponse, StaffScreen } from "./ui-contract";
 
-const errors = new Set(["closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited"]);
+const errors = new Set(["closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required"]);
 function areaFor(screen: StaffScreen): StaffArea | undefined { return screen === "people" || screen === "audit" || screen === "participants" ? screen : undefined; }
 function date(value: string | null, locale: Locale, fallback: string) {
   const parsed = value ? Date.parse(value) : NaN;
@@ -45,11 +46,12 @@ function PersonActions({ locale, person, actorId, busy, act }: { locale: Locale;
   </details>;
 }
 
-export function StaffPortal({ locale, screen, initialProfile, testMode = false }: { locale: Locale; screen: StaffScreen; initialProfile: StaffProfile | null; testMode?: boolean }) {
+export function StaffPortal({ locale, screen, initialProfile, initialPasswordChangeAvailable = false, testMode = false }: { locale: Locale; screen: StaffScreen; initialProfile: StaffProfile | null; initialPasswordChangeAvailable?: boolean; testMode?: boolean }) {
   const copy = staffCopy[locale], router = useRouter(), draft = useStaffDraft();
   const [view, setView] = useState<StaffResponse>({ state: initialProfile ? "authenticated" : "ready", profile: initialProfile });
   const [busy, setBusy] = useState(true), [outcome, setOutcome] = useState<string>(""), [query, setQuery] = useState("");
   const [signOutFailure, setSignOutFailure] = useState(false);
+  const [passwordChangeRequested, setPasswordChangeRequested] = useState(false);
   const inviteEmail = draft.inviteEmail, inviteRoles = draft.inviteRoles;
   const setInviteEmail = (value: string) => updateStaffDraft({ inviteEmail: value });
   const setInviteRoles = (value: Role[]) => updateStaffDraft({ inviteRoles: value });
@@ -57,8 +59,9 @@ export function StaffPortal({ locale, screen, initialProfile, testMode = false }
   const searchQuery = useRef("");
   const logoutRequested = useRef(false);
   const generation = useRef(0), alive = useRef(true), area = areaFor(screen);
-  const profile = view.profile ?? null, menu = profile ? staffMenu(profile.roles) : [];
-  const permitted = !area || menu.some((entry) => entry.key === area);
+  const passwordChangeAvailable = view.passwordChangeAvailable ?? initialPasswordChangeAvailable;
+  const profile = view.profile ?? null, menu = profile ? staffMenu(profile.roles, { passwordChangeAvailable }) : [];
+  const permitted = screen === "security" ? passwordChangeAvailable && !!profile && canChangeOwnPassword(profile.roles) : !area || menu.some((entry) => entry.key === area);
   const enrollment = view.enrollment ?? draft.enrollment;
   const verification = view.state === "pending-email" || view.state === "pending-totp" || view.state === "enroll-totp";
   const language = locale === "en" ? "ar" : "en";
@@ -103,10 +106,16 @@ export function StaffPortal({ locale, screen, initialProfile, testMode = false }
       setView({ state: "ready", profile: null });
       clearStaffDraft();
     }
+    if (payload.action === "password-change") setPasswordChangeRequested(true);
     const response = await requestStaff({ ...payload, formToken: formToken.current });
     formToken.current = response.formToken;
     if (!alive.current) { lock.current = false; return response; }
     setOutcome(response.state);
+    if (payload.action === "password-change" && ["password-changed", "reauthentication-required", "unavailable"].includes(response.state)) {
+      logoutRequested.current = true;
+      setView({ state: "ready", profile: null });
+      clearStaffDraft();
+    }
     if (["signin", "invite-accept"].includes(payload.action) && ["authenticated", "pending-email", "pending-totp", "enroll-totp"].includes(response.state)) logoutRequested.current = false;
     if (["signin", "invite-accept", "enroll-totp", "challenge-totp", "challenge-email", "verify-email", "verify-totp", "logout"].includes(payload.action)) {
       if (!errors.has(response.state)) setView((previous) => ({ ...response, enrollment: response.state === "pending-totp" ? response.enrollment ?? previous.enrollment : undefined }));
@@ -138,9 +147,10 @@ export function StaffPortal({ locale, screen, initialProfile, testMode = false }
     if (action === "invite-accept" && (Array.from(draft.password).length < 10 || new TextEncoder().encode(draft.password).length > 72)) { setOutcome("password"); return; }
     void act({ action, password: draft.password, ...(action === "signin" ? { email: draft.email } : { name: draft.name, invitationId: draft.invitationId, token: draft.token }) });
   }
-  const message = signOutFailure ? copy.signOutFailed : outcome === "identity-unavailable" ? copy.identityPending : outcome in copy.states ? copy.states[outcome as keyof typeof copy.states] : outcome in copy.errors ? copy.errors[outcome as keyof typeof copy.errors] : "";
+  const passwordReentry = screen === "security" && passwordChangeRequested && ["password-changed", "reauthentication-required", "unavailable"].includes(outcome);
+  const message = signOutFailure ? copy.signOutFailed : passwordReentry && outcome === "unavailable" ? copy.passwordChangeUnknown : outcome === "identity-unavailable" ? copy.identityPending : outcome in copy.states ? copy.states[outcome as keyof typeof copy.states] : outcome in copy.errors ? copy.errors[outcome as keyof typeof copy.errors] : "";
   const acceptedInvitation = screen === "accept-invitation" && view.state === "accepted" && !profile;
-  const title = verification ? view.state === "pending-email" ? copy.emailStep : view.state === "enroll-totp" ? copy.enroll : copy.totpStep : screen === "accept-invitation" && !profile ? copy.accept : !profile ? copy.signIn : screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? copy.home : copy[screen];
+  const title = passwordReentry ? copy.security : verification ? view.state === "pending-email" ? copy.emailStep : view.state === "enroll-totp" ? copy.enroll : copy.totpStep : screen === "accept-invitation" && !profile ? copy.accept : !profile ? copy.signIn : screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? copy.home : copy[screen];
   return <div className="staff-portal" data-testid="staff-portal" data-screen={screen}>
     <header className="staff-topbar"><span className="staff-wordmark" dir="ltr" lang="en">MSRC<span>2027</span></span><span>{copy.portal}</span><Link href={`/${language}/staff${screen === "home" ? "" : `/${screen}`}`} hrefLang={language} lang={language} dir={language === "ar" ? "rtl" : "ltr"} aria-label={copy.language}>{language === "ar" ? "العربية" : "English"}</Link></header>
     {testMode ? <p className="staff-test-note">{copy.testMode}</p> : null}
@@ -148,7 +158,8 @@ export function StaffPortal({ locale, screen, initialProfile, testMode = false }
     <div ref={feedback} tabIndex={-1} className={message ? "staff-feedback" : "staff-feedback staff-feedback--empty"} role={errors.has(outcome) || outcome in copy.errors ? "alert" : "status"} aria-live="polite">{busy ? copy.loading : message}</div>
     {signOutFailure ? <Button variant="secondary" disabled={busy} onClick={() => void act({ action: "logout" })}>{copy.retrySignOut}</Button> : null}
     {acceptedInvitation ? <section className="staff-panel staff-auth-panel"><p>{copy.inviteAcceptedFallback}</p><Link href={`/${locale}/staff/sign-in`}>{copy.signIn}</Link></section> : null}
-    {!profile && !verification && !acceptedInvitation ? <section className="staff-panel staff-auth-panel">
+    {passwordReentry ? <section className="staff-panel staff-auth-panel"><Link href={`/${locale}/staff/sign-in`}>{copy.signInAgain}</Link></section> : null}
+    {!profile && !verification && !acceptedInvitation && !passwordReentry ? <section className="staff-panel staff-auth-panel">
       <p>{screen === "accept-invitation" ? copy.acceptIntro : copy.passwordIntro}</p>
       <p>{copy.inviteOnly}</p>
       {screen === "accept-invitation" && !draft.invitationId ? <p role="alert">{copy.inviteMissing}</p> : null}
@@ -169,7 +180,8 @@ export function StaffPortal({ locale, screen, initialProfile, testMode = false }
       </>}
     </section> : null}
     {profile && !permitted ? <p role="alert">{copy.states.denied}</p> : null}
-    {profile && permitted && (!area || screen === "sign-in") ? <nav aria-label={copy.menu} className="staff-menu"><h2>{copy.menu}</h2><ul>{menu.map((item) => <li key={item.key}>{item.built ? <Link href={`/${locale}/staff/${item.key}`}>{copy.areas[item.key]}</Link> : <div lang={item.englishOnly ? "en" : undefined} dir={item.englishOnly ? "ltr" : undefined}><span>{item.englishOnly ? staffCopy.en.areas[item.key] : copy.areas[item.key]}</span><span className="staff-badge">{item.englishOnly ? staffCopy.en.soon : copy.soon}</span></div>}</li>)}</ul>{!menu.length ? <p>{copy.noAreas}</p> : null}</nav> : null}
+    {profile && permitted && screen !== "security" && (!area || screen === "sign-in") ? <nav aria-label={copy.menu} className="staff-menu"><h2>{copy.menu}</h2><ul>{menu.map((item) => <li key={item.key}>{item.built ? <Link href={`/${locale}/staff/${item.key}`}>{copy.areas[item.key]}</Link> : <div lang={item.englishOnly ? "en" : undefined} dir={item.englishOnly ? "ltr" : undefined}><span>{item.englishOnly ? staffCopy.en.areas[item.key] : copy.areas[item.key]}</span><span className="staff-badge">{item.englishOnly ? staffCopy.en.soon : copy.soon}</span></div>}</li>)}</ul>{!menu.length ? <p>{copy.noAreas}</p> : null}</nav> : null}
+    {profile && permitted && screen === "security" ? <PasswordChangeForm locale={locale} busy={busy} act={act} /> : null}
     {profile && permitted && screen === "people" ? <>
       <section className="staff-panel" aria-labelledby="staff-invite-heading"><h2 id="staff-invite-heading">{copy.invite}</h2><p>{copy.inviteHint}</p><form onSubmit={(event) => { event.preventDefault(); if (!inviteRoles.length || !inviteEmail) { setOutcome("required"); return; } void act({ action: "invite", email: inviteEmail, roles: inviteRoles }); }} aria-busy={busy}>
         <FormField id="staff-invite-email" type="email" label={copy.email} value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} dir="ltr" required maxLength={254} disabled={busy} /><RolePicker locale={locale} roles={inviteRoles} onChange={setInviteRoles} disabled={busy} id="invite-roles" /><Button type="submit" disabled={busy}>{copy.inviteSend}</Button>

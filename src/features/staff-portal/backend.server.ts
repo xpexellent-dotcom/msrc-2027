@@ -11,6 +11,7 @@ export interface StaffBackend {
   rpc(name: string, args?: Record<string, unknown>, accessToken?: string): Promise<unknown>;
   createUser(input: { actorId: string; reservationId: string; email: string; name: string; password: string }): Promise<boolean>;
   updateUser(actorId: string, password: string, confirmEmail?: boolean): Promise<boolean>;
+  changeOwnPassword(session: NativeStaffSession, operationId: string, password: string): Promise<boolean>;
   login(email: string, password: string): Promise<NativeStaffSession | null>;
   identity(accessToken: string): Promise<string | null>;
   refresh(refreshToken: string): Promise<NativeStaffSession | null>;
@@ -72,6 +73,15 @@ export function createStaffBackend(config: StaffConfig): StaffBackend {
     async updateUser(actorId, password, confirmEmail = false) {
       const response = await client(config.secretKey).auth.admin.updateUserById(actorId, { password, ...(confirmEmail ? { email_confirm: true } : {}) });
       return !response.error && response.data.user?.id === actorId;
+    },
+    async changeOwnPassword(session, operationId, password) {
+      // This protected marker is one-use native transaction evidence, never a
+      // role claim. The database strips it and denies commit without the exact
+      // fresh self-operation. GoTrue merges the other existing app metadata.
+      const response = await client(config.secretKey).auth.admin.updateUserById(session.actorId, {
+        password, app_metadata: { msrcStaffPasswordChange: operationId },
+      });
+      return !response.error && response.data.user?.id === session.actorId;
     },
     async login(email, password) {
       if (config.testMode && !email.endsWith("@example.invalid")) return null;

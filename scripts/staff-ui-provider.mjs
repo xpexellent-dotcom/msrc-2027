@@ -11,7 +11,7 @@ const server = http.createServer(async (request, response) => {
   if (request.method !== "POST" || url.pathname !== "/rest/v1/rpc/msrc_staff_status"
     || request.headers.apikey !== "sb_secret_staff_mock_only") { response.writeHead(404).end(); return; }
   for await (const chunk of request) { if (chunk.length > 8192) { response.writeHead(413).end(); return; } }
-  response.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end('{"enabled":true,"emailDailyLimit":40}');
+  response.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify({ enabled: true, emailDailyLimit: 40, passwordChangeEnabled: process.env.STAFF_PASSWORD_UI_PROVIDER_ENABLED === "true" }));
 });
 server.listen(3220, "127.0.0.1");
 for (const signal of ["SIGTERM", "SIGINT"]) process.on(signal, () => server.close());

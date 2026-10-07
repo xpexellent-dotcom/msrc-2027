@@ -34,11 +34,20 @@ async function get(actor: Person | undefined, area?: string) {
   const response = await handle(request("GET", actor, undefined, area ? "?area=" + area : ""));
   return { status: response.status, result: await response.json() as Result };
 }
-async function signIn(actor: Person) {
-  const result = await post(actor, { action: "signin", email: actor.email, password });
+async function signIn(actor: Person, suppliedPassword = password) {
+  const result = await post(actor, { action: "signin", email: actor.email, password: suppliedPassword });
   check(result.status === 200, "native handler password sign-in accepted only after private admission" + handlerDiagnostic(result));
   check(Buffer.byteLength(actor.cookie, "utf8") < 3900, "encrypted native staff cookie fits common browser capacity"); return result.result;
 }
+async function authenticateExisting(actor: Person, suppliedPassword = password) {
+  check(actor.secret, "existing synthetic authenticator secret stays only in test memory");
+  const signed = await signIn(actor, suppliedPassword);
+  check(signed.state === "pending-totp", "retained authenticator is challenged without reenrollment");
+  const checked = await post(actor, { action: "verify-totp", factorId: signed.factorId, challengeId: signed.challengeId,
+    code: totpAt(actor.secret, Date.now()) });
+  check(checked.status === 200 && checked.result.state === "authenticated", "new password session proves the existing authenticator" + handlerDiagnostic(checked));
+}
+function passwordInput(value: string) { return { action: "password-change", password: value, passwordConfirmation: value }; }
 async function enroll(actor: Person) {
   const setup = await post(actor, { action: "enroll-totp" });
   const enrollment = setup.result.enrollment as { secret: string; qrCode: string } | undefined;
@@ -92,7 +101,7 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
   beforeAll(async () => {
     boundary(); admin = await nativeAdmin();
     config = { ...await nativeCredentials(), testMode: true, supabaseUrl: boundary().url, securitySecret: randomBytes(32).toString("hex"),
-      resendKey: "re_staff_mock_only", resendUrl: "http://127.0.0.1:3220/emails", origins: [origin], editionKey: edition, emailDailyLimit: 200 };
+      resendKey: "re_staff_mock_only", resendUrl: "http://127.0.0.1:3220/emails", origins: [origin], editionKey: edition, emailDailyLimit: 200, passwordChangeEnabled: true };
     const real = createStaffBackend(config);
     const checkEmail = createStaffEmailCheck({ auth: client().auth, secret: config.securitySecret,
       store: { begin: (input) => real.rpc("msrc_staff_email_begin", { actor_id: input.actorId, session_id: input.sessionId, challenge_id: input.challengeId, code_hash: input.codeHash, ip_hash: input.ipHash }),
@@ -104,7 +113,7 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
       invite: async (email, invitationId, token) => { check(email.endsWith("@example.invalid"), "synthetic-only invitation envelope"); delivered.set(email, { invitationId, token }); return true; } };
     handle = createStaffHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend });
   });
-  afterAll(async () => { if (ci) await query("update msrc_staff.policy set enabled=false,email_daily_limit=null where singleton;"); });
+  afterAll(async () => { if (ci) await query("update msrc_staff.policy set enabled=false,email_daily_limit=null,password_change_enabled=false where singleton;"); });
   beforeEach(async () => {
     // Distinct fixture phases represent different request windows. Keep the real
     // per-request form claim/nonce limits enforced; do not pollute later phases.
@@ -137,6 +146,113 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
     await enroll(first);
     check(await query(`select count(*) from auth.mfa_factors where user_id=${text(first.id)};`) === "1", "only the new genuinely verified native factor remains");
   });
+  it("keeps the independent password-change gates closed without changing ordinary staff access", async () => {
+    const status = await backend.rpc("msrc_staff_status") as Result;
+    check(status.passwordChangeEnabled === false, "reviewed migration defaults password change closed separately from staff portal");
+    check((await post(first, passwordInput(randomBytes(24).toString("hex")))).status === 403, "closed database gate denies the new action");
+    check((await get(first, "people")).status === 200, "closed password feature does not close the existing staff area");
+    await query("update msrc_staff.policy set password_change_enabled=true where singleton;");
+    const serverClosed = createStaffHandler({ readiness: () => ({ state: "ready", config: { ...config, passwordChangeEnabled: false } }), backend: () => backend });
+    check((await serverClosed(request("POST", first, passwordInput(randomBytes(24).toString("hex"))))).status === 403,
+      "independent server flag denies even when database password gate is open");
+    check(await query(`select count(*) from msrc_staff.password_changes where actor_id=${text(first.id)};`) === "0", "closed gates reserve no credential work");
+  });
+  it("changes the first owner's password atomically while preserving TOTP and revoking every prior native session", async () => {
+    check(await query(`select (not bootstrap_pairing_completed and msrc_staff.active_super_admin_count(${text(edition)})=1)::text from msrc_staff.policy where singleton;`) === "true",
+      "ordinary owner rotation is exercised before a second Super Admin exists");
+    const active = readStaffSession(config, request("GET", first)); check(active, "fresh owner strongest session is available privately");
+    const previous: Person = { ...first };
+    const other = await client().auth.signInWithPassword({ email: first.email, password });
+    check(!other.error && other.data.session, "a second real password session supplies all-session revocation evidence");
+    const factor = await query(`select id::text from auth.mfa_factors where user_id=${text(first.id)} and status::text='verified';`);
+    const nextPassword = randomBytes(24).toString("hex");
+    const changed = await post(first, passwordInput(nextPassword));
+    check(changed.status === 200 && changed.result.state === "password-changed", "genuine Admin storage plus same-transaction marker completes the owner operation" + handlerDiagnostic(changed));
+    check(readStaffSession(config, request("GET", first)) === null, "completed rotation clears the HttpOnly portal cookie");
+    check(await query(`select count(*) from auth.sessions where user_id=${text(first.id)};`) === "0", "native password change deletes all real old sessions");
+    check((await get(previous, "people")).status === 403 && await backend.refresh(active.refreshToken) === null,
+      "old signed cookie and refresh token cannot retain authority after password rotation");
+    const oldPassword = await client().auth.signInWithPassword({ email: first.email, password });
+    check(Boolean(oldPassword.error) && !oldPassword.data.session, "the previous password no longer authenticates identity");
+    check(await query(`select (count(*)=1 and bool_and(id=${text(factor)}::uuid and status::text='verified'))::text from auth.mfa_factors where user_id=${text(first.id)};`) === "true",
+      "the exact verified authenticator is retained without deletion or reenrollment");
+    check(await query(`select (raw_app_meta_data=jsonb_build_object('provider','email','providers',jsonb_build_array('email')) and not raw_app_meta_data?'msrcStaffPasswordChange')::text from auth.users where id=${text(first.id)};`) === "true",
+      "native transaction preserves provider metadata and never persists the marker");
+    check(await query("select count(*) from auth.audit_log_entries where payload::text like '%msrcStaffPasswordChange%';") === "0",
+      "transient protected marker does not enter native audit payloads");
+    check(await query(`select count(*) from msrc_staff.audit where action='password_change' and actor_id=${text(first.id)} and target_id=${text(first.id)} and result='completed';`) === "1",
+      "actual irreversible password commit has an immutable owner audit");
+    await authenticateExisting(first, nextPassword);
+    const restored = await post(first, passwordInput(password));
+    check(restored.result.state === "password-changed", "synthetic fixture restores its original password through the same guarded owner action");
+    await authenticateExisting(first);
+    check(await query(`select (recovery_state='none' and not exists(select 1 from msrc_staff.invitations))::text from msrc_staff.profiles where actor_id=${text(first.id)};`) === "true",
+      "ordinary rotation creates neither peer-recovery hold nor invitation or account");
+  });
+  it("rolls back unmarked and cross-session native writes before consuming the owner's reservation", async () => {
+    const other: Person = { ...first, cookie: "" }; await authenticateExisting(other); await authenticateExisting(first);
+    const active = readStaffSession(config, request("GET", first)), unrelated = readStaffSession(config, request("GET", other));
+    check(active && unrelated && active.sessionId !== unrelated.sessionId, "two genuine strongest sessions exist for cross-session denial");
+    const operationId = randomUUID();
+    const reserved = await backend.rpc("msrc_staff_password_change_begin", { edition_key: edition, operation_id: operationId }, active.accessToken) as Result;
+    check(reserved.state === "reserved" && reserved.sessionId === active.sessionId, "reservation binds only the current strongest native session");
+    const unmarked = await admin.auth.admin.updateUserById(first.id, { password: randomBytes(24).toString("hex") });
+    check(Boolean(unmarked.error), "real native password storage without protected marker fails its deferred commit" + nativeAuthDiagnostic(unmarked.error));
+    const sdk = client(); const bound = await sdk.auth.setSession({ access_token: unrelated.accessToken, refresh_token: unrelated.refreshToken });
+    check(!bound.error, "different real AAL2 session is bound for native bypass attempt");
+    const raw = await sdk.auth.updateUser({ password: randomBytes(24).toString("hex") });
+    check(Boolean(raw.error), "different raw AAL2 session cannot consume the pending owner reservation" + nativeAuthDiagnostic(raw.error));
+    const spoofed = await sdk.auth.updateUser({ password: randomBytes(24).toString("hex"), app_metadata: { msrcStaffPasswordChange: operationId } } as never);
+    check(Boolean(spoofed.error), "authenticated native user cannot inject protected app metadata" + nativeAuthDiagnostic(spoofed.error));
+    check(await query(`select state from msrc_staff.password_changes where id=${text(operationId)};`) === "pending", "native transaction failures roll back staging and retain only the original reservation");
+    const result = await backend.rpc("msrc_staff_password_change_result", { operation_id: operationId }) as Result;
+    check(result.state === "denied" && await query(`select state from msrc_staff.password_changes where id=${text(operationId)};`) === "failed",
+      "service reconciliation terminalizes rolled-back credential work");
+    check(!await backend.changeOwnPassword(active, operationId, randomBytes(24).toString("hex")), "failed reservation cannot be replayed through the real dedicated native path");
+    check((await get(first, "people")).status === 200, "rolled-back native password attempts do not erase the working password or TOTP authority");
+  });
+  it("serializes two concurrent begins for the same owner and denies operation replay", async () => {
+    const active = readStaffSession(config, request("GET", first)); check(active, "current native strongest owner session remains available");
+    const operations = [randomUUID(), randomUUID()];
+    const attempts = await Promise.all(operations.map(operation_id => backend.rpc("msrc_staff_password_change_begin", { edition_key: edition, operation_id }, active.accessToken))) as Result[];
+    check(attempts.filter(value => value.state === "reserved").length === 1 && attempts.filter(value => value.state === "denied").length === 1,
+      "genuine parallel native-backed RPCs reserve exactly one current owner operation");
+    check(await query(`select count(*) from msrc_staff.password_changes where actor_id=${text(first.id)} and state='pending';`) === "1", "database uniqueness and account locks preserve one pending operation");
+    const index = attempts.findIndex(value => value.state === "reserved");
+    const ended = await backend.rpc("msrc_staff_password_change_result", { operation_id: operations[index] }) as Result;
+    check(ended.state === "denied", "unused concurrent winner is terminalized without a password write");
+    const replay = await backend.rpc("msrc_staff_password_change_begin", { edition_key: edition, operation_id: operations[index] }, active.accessToken) as Result;
+    check(replay.state === "denied", "terminal operation id is never reusable");
+  });
+  it("denies an expired operation with real native provider storage and unchanged credentials", async () => {
+    const active = readStaffSession(config, request("GET", first)); check(active, "current native strongest proof exists for isolated expired-operation fixture");
+    const genuine = randomUUID(), expired = randomUUID();
+    const reserved = await backend.rpc("msrc_staff_password_change_begin", { edition_key: edition, operation_id: genuine }, active.accessToken) as Result;
+    check(reserved.state === "reserved", "private expired fixture copies a genuinely admitted operation");
+    await backend.rpc("msrc_staff_password_change_result", { operation_id: genuine });
+    // Only the disposable operator copies the actual binding into an expired
+    // reservation. No native user, session clock, claims or live limits change.
+    await query(`with moment as (select clock_timestamp() as observed) insert into msrc_staff.password_changes(id,actor_id,session_id,edition_key,factor_id,factor_updated_at,identity_revision,password_at,totp_at,created_at,expires_at)
+      select ${text(expired)}::uuid,actor_id,session_id,edition_key,factor_id,factor_updated_at,identity_revision,password_at,totp_at,
+      observed-interval '3 minutes',observed-interval '1 minute' from msrc_staff.password_changes cross join moment where id=${text(genuine)};`);
+    check(!await backend.changeOwnPassword(active, expired, randomBytes(24).toString("hex")), "real native storage denies an expired reservation before commit");
+    check((await backend.rpc("msrc_staff_password_change_result", { operation_id: expired }) as Result).state === "denied", "expired native failure becomes terminal");
+    check((await get(first, "people")).status === 200, "expired credential capability preserves the existing current account and authenticator");
+  });
+  it("keeps a genuinely committed change with a lost response unavailable and requires fresh password plus retained TOTP", async () => {
+    const nextPassword = randomBytes(24).toString("hex");
+    const uncertain = createStaffHandler({ readiness: () => ({ state: "ready", config }), backend: () => ({ ...backend,
+      changeOwnPassword: async (session, operationId, next) => { check(await backend.changeOwnPassword(session, operationId, next), "actual native commit precedes the injected response loss"); throw new Error("Synthetic response lost after commit"); } }) });
+    const response = await uncertain(request("POST", first, passwordInput(nextPassword)));
+    check(response.status === 503 && (await response.json() as Result).state === "unavailable", "lost native response never claims success even though the audit records the real commit");
+    check(response.headers.get("set-cookie")?.includes("Max-Age=0"), "unknown outcome clears the portal cookie"); first.cookie = "";
+    check(await query(`select count(*) from msrc_staff.password_changes where actor_id=${text(first.id)} and state='completed';`) === "3", "service reconciliation retains the actual native completion after response loss");
+    const old = await client().auth.signInWithPassword({ email: first.email, password });
+    check(Boolean(old.error), "actual post-timeout credential state rejects the old password");
+    await authenticateExisting(first, nextPassword);
+    check((await post(first, passwordInput(password))).result.state === "password-changed", "fresh known password and same authenticator allow a new independent owner change");
+    await authenticateExisting(first);
+  });
   it("permits the first Super Admin to invite only the second during bootstrap", async () => {
     check((await post(first, { action: "invite", email: ordinary.email, roles: ["finance"] })).status === 403, "bootstrap cannot invite an ordinary role before the second verified Super Admin");
     await invite(first, second, ["superAdmin"]);
@@ -152,6 +268,36 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
     const verified = await post(ordinary, { action: "verify-email", code: emailCode }); check(verified.result.state === "authenticated", "database receipt authorizes the exact native staff session");
     check((await get(ordinary, "participants")).status === 200, "registration role can read participants after strongest assurance");
     check((await get(ordinary, "people")).status === 403 && (await get(ordinary, "audit")).status === 403, "registration role is denied Super Admin reporting");
+  });
+  it("denies ordinary staff password rotation and rejects another actor field before native work", async () => {
+    check((await post(ordinary, passwordInput(randomBytes(24).toString("hex")))).status === 403, "regular staff email assurance is not Super Admin password-change authority");
+    const active = readStaffSession(config, request("GET", ordinary)); check(active, "ordinary genuine native session is privately available");
+    const direct = await backend.rpc("msrc_staff_password_change_begin", { edition_key: edition, operation_id: randomUUID() }, active.accessToken) as Result;
+    check(direct.state === "denied", "native authenticated RPC cannot reserve this capability for a regular staff role");
+    check((await post(first, { ...passwordInput(randomBytes(24).toString("hex")), targetId: second.id })).status === 400,
+      "owner action has no accepted target selector for another account");
+    check(await query(`select count(*) from msrc_staff.password_changes where actor_id=${text(ordinary.id)};`) === "0", "denied regular staff creates no credential reservation");
+  });
+  it("requires reauthentication for an old password origin without altering genuine native clocks", async () => {
+    const stale = createStaffHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => Date.now() + 121_000 });
+    const response = await stale(request("POST", first, passwordInput(randomBytes(24).toString("hex"))));
+    check(response.status === 403 && (await response.json() as Result).state === "reauthentication-required",
+      "the normal current native session must be freshly authenticated within two minutes for rotation");
+    check(response.headers.get("set-cookie")?.includes("Max-Age=0"), "stale proof clears the browser cookie for deliberate fresh sign-in");
+    // Only the handler clock advances. Native session/AMR/factor records remain
+    // genuine; exact database two-minute freshness cases are covered by pgTAP.
+    check((await get(first, "people")).status === 200, "fresh native lifecycle itself is not rewound or fabricated by the stale-clock probe");
+  });
+  it("terminalizes a provider rejection and keeps the working password and authenticator", async () => {
+    const unavailable = createStaffHandler({ readiness: () => ({ state: "ready", config }), backend: () => ({ ...backend, changeOwnPassword: async () => false }) });
+    const response = await unavailable(request("POST", first, passwordInput(randomBytes(24).toString("hex"))));
+    check(response.status === 503 && (await response.json() as Result).state === "unavailable", "no provider mutation is acknowledged on definite failure");
+    check(response.headers.get("set-cookie")?.includes("Max-Age=0"), "attempted provider rejection clears the HttpOnly browser session"); first.cookie = "";
+    check(await query(`select count(*) from msrc_staff.password_changes where actor_id=${text(first.id)} and state in ('pending','applying','confirmed');`) === "0",
+      "real service reconciliation leaves no reusable password capability after provider rejection");
+    await authenticateExisting(first);
+    check((await get(first, "people")).status === 200 && await query(`select recovery_state from msrc_staff.profiles where actor_id=${text(first.id)};`) === "none",
+      "definite failed rotation preserves current known-password/TOTP access and never becomes self recovery");
   });
   it("rejects raw native email and phone staging for both staff tiers before any provider delivery", async () => {
     for (const actor of [first, ordinary]) {
