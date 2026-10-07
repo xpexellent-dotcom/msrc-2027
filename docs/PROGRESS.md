@@ -18,8 +18,8 @@ pooler-to-database hop is not TLS; this is not claimed as end-to-end encryption.
   no published ports, native Unix socket only. The source owner/UTF8/ICU `en-US`
   locale is reproduced. Password-free roles, membership grantors/options and
   bootstrap role identity are preserved. No application/Auth account is created.
-- PASS: all 17 catalog sections, all 47 dumped-table application/native data
-  comparisons, four sequence definitions and non-runtime values, 49 extension
+- PASS: all 17 catalog sections, 47 dumped tables inventoried, all application/native data
+  compared, four sequence definitions and non-runtime values, 49 extension
   member-function owner/ACL checks, immutable guards, forced RLS, effective API
   grants, original migration rows, Contact job/configuration and data match.
   Standard dump extension-owner/initial-ACL limitations were resolved on the
@@ -42,9 +42,42 @@ pooler-to-database hop is not TLS; this is not claimed as end-to-end encryption.
   `vitest` ran 128 tests across bootstrap/staff/MFA suites, including 41 focused
   bootstrap cases; scoped ESLint, `tsc --noEmit`, inert invocation and whitespace
   checks passed. Draft PR/exact-head CI receipt follows separately.
-- PENDING: six-stage compatibility rehearsal on this restored clone, exact-head
-  code CI, supplied private display-name input and read-capable Resend credential
-  for actual quota/domain verification. No staff cap is inferred from a sample.
+- PASS (16:59:02 UTC): all six unchanged reviewed files executed sequentially on
+  the restored **offline** clone as native postgres, with original-version local
+  ledger entries and individual postchecks: 674, 939, 939, 994, 1,609 and 2,337
+  assertions (7,492 total). Final inventory is 32 private tables, 92 MSRC functions,
+  41 authored triggers and eight history entries. Every staged policy stays
+  closed; native identities and application records stay empty. One checker
+  originally compared JSON OID string `"10"` to a number; its type check was fixed,
+  the already committed local stage was reverified without replay, then stages
+  2–6 proceeded. This is catalog/data compatibility proof, not human Auth UAT.
+- PASS (17:03:21 UTC): five real offline native bootstrap-guard cases. Correct
+  postgres/current/session/database admits; wrong session user, a role label
+  spoof, wrong database and wrong current role all stop with SQLSTATE 42501 before
+  the subsequent statement. No mutation/account/email was used for these checks.
+- PASS: private display-name syntax and normalized designated-person/given-name
+  match. The input remains private and its actual identity values are not logged.
+  Auth management/Vercel tokens are accepted. Hosted native Auth health reports
+  GoTrue v2.197.0, matching the genuinely tested version. Fresh 17:06:32 UTC EN/AR
+  staff and staff/participant API GET probes remain closed.
+- PASS: the organizer's signed-in Resend dashboard was read without sending or
+  changing settings. Free transactional plan: 0/100 daily used, 3/3,000 monthly,
+  team rate limit ten requests/second, approved sender domain Verified, paid
+  overage disabled. ORG-046's within-current-quota authority selects staff 36/day
+  alongside Contact 60/day: 96/day and at most 2,976 over 31 days. First-admin
+  TOTP uses zero transactional emails; other accounts/consumers stay out of scope.
+  The same cap must be used server-side and in the staff database. No read-only
+  Resend key is required; the authenticated dashboard supplies this evidence.
+- CI FAIL / RESOLVING: draft [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45)
+  was created at `5e18365` through existing Git authorization after the connector
+  reported insufficient write access. All three database/native jobs passed.
+  Staff browser job 112910509071/run 37655941732 passed 25, skipped four and failed
+  one desktop logout axe audit: the destination title streamed after axe started.
+  Trace timing confirms this incomplete navigation barrier. The test-only fix
+  waits for sign-in screen, localized heading and exact title before unchanged
+  axe rules; EN/AR desktop/mobile targeted cases pass 4/4, scoped lint/whitespace
+  pass. No retry, timeout or security assertion was weakened. Hosted setup stopped
+  before migration 1; independent review and exact-head CI rerun follow.
 
 Production at this checkpoint: the same two applied migrations; all six pending
 files, settings changes, first-account bootstrap and human TOTP remain
