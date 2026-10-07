@@ -1,5 +1,154 @@
 # Progress and session handover
 
+## 7 October 2026 — Documentation PR and migration 1 execution packet
+
+Opened [draft PR #44](https://github.com/xpexellent-dotcom/msrc-2027/pull/44)
+from `codex/staff-activation-checklist` at requested commit
+`9dfeea0522796626b0c9523c0bc647a5e7a5b450`, against current `main`
+`2a991d2a13fa9b0b7f04877d2001ad95f134f136`. Open PR preflight found none.
+GitHub confirms the initial diff is documentation only: PROGRESS, the staff guide
+and activation checklist. The existing original checkout's work remains preserved.
+
+Prepared [the migration 1 execution packet](features/STAFF_MIGRATION_01_PACKET.md)
+for only `20261002193800_staff_mfa_session_foundations.sql`; the activation
+checklist links to it. IDs: BL-AUTH-05/06, AUTH-04/05, ROL-12, SEC-01/02/06.
+The immutable SQL at the requested revision has Git blob
+`b16421c5e729c225716b87352de3aba6ead2e0ba`, 27,028 bytes, and SHA-256
+`ca8571443fe0390f25772f3fbd6014ac17e959eb79f70c2067b143ddcabd8108`.
+Committed and working-file bytes match; no migration was edited or generated.
+
+The packet covers prerequisite/target/backup/compatibility review, catalog-only
+pre/post checks, future one-file transaction and exact-version history alignment,
+safe evidence and failure/unknown-commit handling. Every execution step remains
+PENDING. It explicitly stops before migration 2, settings, onboarding or activation.
+The 12:42–12:43 UTC hosted/live receipts below are dated prior evidence; this
+preparation does not refresh them or execute the future preflight queries.
+
+Static review distinguishes migration 1's intermediate historical phone/SMS
+assurance from the final ORG-015/016 staff email/TOTP policy supplied later. Both
+generic readiness flags remain constrained false; recency/warning values remain
+NULL. No phone/SMS setup or interim login is authorized. The migration creates
+four private forced-RLS tables, eight private functions and three new authenticated
+RPCs, replaces access context and adds nine triggers. It creates no native Auth
+table trigger or email hook. Own-context/logout RPC calls can write audit/session
+state; they are excluded from read-only verification. Future referenced Auth-user
+deletion and account-suspension effects are documented without altering safeguards.
+
+PASS: independent technical/documentation review, exact hash/blob/byte comparison,
+all nine migration inventory entries, 23 checklist and nine packet local links,
+the 4-table/8-private-function/4-public-function/9-trigger inventory, and
+`git diff --check`. The two SQL snippet blocks were inspected as catalog/count
+SELECTs without execution; their runtime verification remains NOT RUN. All 56
+activation and 21 packet operator checkboxes remain unchecked. The final prepared
+diff contains four Markdown documentation files only: PROGRESS, staff guide,
+activation checklist and execution packet.
+
+Review clarified that schema-local default ACLs cannot remove global/default
+PUBLIC execution; current private functions have explicit revocation. The packet
+checks both ACL scopes and requires identifying the actual DDL backend before
+execution, so unknown outcomes cannot be inferred from another connection's PID
+or catalog absence. The historical migration is unchanged.
+
+No hosted or local SQL, migration, history repair, native Auth request,
+flags/settings change, bootstrap, real email or manual CI dispatch is performed.
+Ordinary PR checks use the existing disposable synthetic workflows; their status
+is separate from operator execution or hosted approval. No fresh database or
+browser run is claimed for this documentation preparation.
+
+## 7 October 2026 — Merged staff foundation, live closure and activation checklist
+
+Scope: BL-AUTH-01, BL-AUTH-05/06 staff, BL-RPT-01/03; ORG-043/044/045.
+Read-only verification and operator documentation only. No open PRs were found
+before creating `codex/staff-activation-checklist` from freshly fetched
+`origin/main`; the original checkout's local work remains preserved.
+
+GitHub confirms [PR #43](https://github.com/xpexellent-dotcom/msrc-2027/pull/43)
+merged at 12:35 UTC on 7 October, producing
+`2a991d2a13fa9b0b7f04877d2001ad95f134f136`. This supersedes the earlier dated draft
+status receipts. Code, migrations, scripts, tests and workflow files match the
+verified final PR revision `315c2b8`; `git diff 315c2b8 origin/main -- src supabase
+scripts tests .github` produces no changes.
+
+Vercel's read-only deployment inspection confirms the live domain serves that
+exact `main` commit: Production deployment `dpl_GbXLZzMsnb1eZTHtVcLXtJvRJDyY`,
+READY, with `msrc2027.com` and `www.msrc2027.com` aliases. An encrypted environment
+metadata listing, without decrypting values, contains no `STAFF_*` variables and
+no participant enable flag. The server gate is therefore unset and closed.
+
+Observed live results at 12:42–12:43 UTC / 15:42–15:43 Asia/Riyadh:
+
+- PASS: `node .tools/verify-live-staff-closure.mjs` — 82 HTTP probes. Twelve EN/AR
+  staff paths return 404 with no forms and noindex metadata. Nine staff API GET
+  probes and all 18 action branches under each locale return 503 with exactly
+  `{"state":"closed"}`, no Set-Cookie, private/no-store caching and noindex headers.
+  HEAD/OPTIONS/PUT/PATCH/DELETE also fail closed. Action probes supply only an
+  action label, no identity, password, code, target or delivery address; closure is
+  checked before them and the deployed handler closes before provider construction.
+- PASS: the same HTTP receipt covers four synthetic Auth-preview GET/POST denials
+  (404), all fifteen generic operational API GET denials (503 WORKFLOW_CLOSED),
+  and robots exclusions for `/*/staff` and `/api/`.
+- PASS: real Chromium desktop and Pixel 7 browser visits — all 24 staff cases
+  (six routes × two locales × two viewports) follow apex 308 to the same www path
+  and return 404. No forms, private data, staff menu, staff links or public
+  header/footer are rendered. EN is `lang=en` / LTR; AR is `lang=ar` / RTL with
+  localized Arabic 404 content. Four public-home visits return 200 with no staff
+  links. Staff responses have private/no-store caching, no-referrer and noindex
+  metadata. Console errors are the expected 404 resource responses only.
+- PASS: 28 ignored browser screenshots and sanitized HTTP/browser receipts saved
+  under `test-results/staff-live-evidence/`; EN/AR desktop/mobile sign-in captures
+  were visually reviewed. Authenticated live screens and live axe were NOT TESTED.
+- PASS: read-only hosted migration ledger contains only
+  `20261002173712_persisted_authorization.sql` and
+  `20261004114603_contact_abuse_counters.sql`. A catalog-only SELECT confirms
+  `msrc_staff`, `msrc_sessions` and `msrc_participant` schemas remain absent.
+  None of the six pending #25/#39/#43 migrations was applied.
+
+PASS: all three GitHub push-to-main workflows and all six check runs on the exact
+merged SHA above have completed successfully; Vercel's commit status also passes.
+Actual completed job logs establish:
+
+- [Staff CI 37622051762](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37622051762):
+  native job 112794463061 passes all 17 genuine cases and 818 SQL assertions;
+  browser job 112794462590 passes 28 default-off and 26 enabled EN/AR cases,
+  with four intentional desktop skips. Persistent partial-failure/interrupted
+  recovery, fresh login/enrollment denial and other-admin restoration are covered.
+- [Foundation CI 37622051990](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37622051990):
+  database job 112794462630 passes 818 SQL assertions in eleven files and all
+  75 integration cases in eight files. Application job 112794462516 passes
+  lint/types, 2,207 units in 51 files, production build, 443 site-wide browser
+  cases (25 intentional skips), 81 legacy staff cases and 44 Contact mock cases.
+- [Participant CI 37622051702](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37622051702):
+  native job 112794460388 passes 19 genuine cases and 818 SQL assertions;
+  browser job 112794460258 passes 26 default-off and 54 enabled synthetic cases.
+- All three database jobs report strict lint and security advisors clean; the
+  actual native image is `public.ecr.aws/supabase/gotrue:v2.197.0`. These are
+  disposable Linux results, not hosted migration or managed-project UAT.
+  Optional hydration repetitions/five cold integration passes were SKIPPED.
+  No CI rerun or workflow dispatch was issued by this verification.
+
+Prepared [the activation checklist](features/STAFF_ACTIVATION_CHECKLIST.md), with
+all nine repository migration files listed separately: one development-only
+fixture excluded, two applied migrations to skip, and six missing migrations in
+dependency order. It includes individual migration evidence, Production-only
+variables, native Auth guards/hook, private first/second account onboarding,
+durable recovery rehearsal, shared email budget, UAT and closure rollback.
+Every operational checkbox remains pending; this document is not activation
+authorization. The feature guide links to it and distinguishes code merge from
+hosted application. No organizer decision or policy value changed.
+
+PASS: independent source review, `node .tools/verify-staff-activation-docs.mjs`
+and `git diff --check`: nine migration entries with the exact six/two/one
+dispositions, 56 unchecked operational items, 22 resolving checklist file links
+and no copied designated identities. Changes are limited to these three
+documentation files; application code, migrations, tests and settings are unchanged.
+
+NOT PERFORMED: hosted migration application, production settings or flags changes,
+live bootstrap, account/factor/reset/grant changes, real emails, DNS or paid
+resource changes. Human inbox/device/screen-reader/mutual-recovery UAT, approved
+combined email forecast, recent-auth/warning timing and privacy/retention release
+evidence remain gates. The next task is separately authorized operator rehearsal
+and gate sign-off; staff, participants and operational access remain closed.
+
 ## 6 October 2026 — Arabic policy terminology consistency
 
 Continued open [PR #42](https://github.com/xpexellent-dotcom/msrc-2027/pull/42) in the
