@@ -2044,6 +2044,36 @@ or activate registration, finance, review, check-in, content or exports.
 IDs: BL-AUTH-01/05/06, BL-RPT-01/03, ROL-01/07/10/12, ADM-01/02/04/05,
 PRV-03, LOC-01/03, SEC-01/02/06, REL-06.
 
+## ORG-046 — Authorized restricted first-admin Production setup, 7 October 2026
+
+Authority: explicit organizer instruction in the current chat. Complete the staff
+setup without repeated manual execution approvals: verify actual Production
+prerequisites; apply the six reviewed pending migrations sequentially with
+verification after each; configure staff-only Production settings; bootstrap only
+the organizer as the first Super Admin from privately supplied credentials;
+enable restricted onboarding and verify password sign-in/authenticator TOTP.
+
+This supersedes earlier no-hosted-execution/no-settings/no-bootstrap scope for
+this specifically authorized setup. It authorizes no other account until the
+organizer provides its actual identity inputs. Preserve the initial bootstrap
+exception, minimum-two/self-protection and durable recovery safeguards. Keep
+participant and every other operational workflow closed. Complete review/tests
+for any code changes and record outcomes and rollback/reconciliation instructions.
+
+Stop on failed checks, missing private inputs, unapproved costs or unresolved
+policy decisions. Approval to execute is persistent; a technical prerequisite
+failure is not a reason to request the same approval again or bypass its check.
+Email demand is "as many as needed"; this does not authorize buying a plan,
+unbounded spend or bypassing actual provider quotas. Configure a positive matching
+staff cap within verified existing limits for the authorized scope.
+
+The designated people remain in ORG-043 only. Email/password/operator/key inputs
+stay in the organizer's private channel, never in this register or source.
+First-admin TOTP does not create a second account or establish other-admin
+recovery availability; pairing and wider staff acceptance await supplied inputs.
+IDs: BL-AUTH-01/05/06, BL-RPT-01/03, ROL-10/12, AUTH-04/05, SEC-01/02/06,
+INF-02/03, CFG-10/11, REL-06.
+
 ## ORG-047 — Requested authenticated account password change, 7 October 2026
 
 Source: the organizer clarified, "i intended an account password change", after
@@ -2064,3 +2094,27 @@ idle / eight-hour absolute session policy. The additional migration and new
 password-change flow are not part of the six completed setup receipts. Account
 password change is NOT APPLIED until the reviewed flow is activated and the
 owner completes it privately. IDs: BL-AUTH-01/05/06, AUTH-03/04/05, SEC-01/02/06.
+
+## ORG-048 — Resume the reviewed owner password-change release, 8 October 2026
+
+The organizer explicitly authorizes completing the release with the corrected
+readiness check under the existing restricted setup authority. Do not replay
+migrations or bootstrap. Use a new attempt, preserve the stopped first attempt,
+verify the already-committed migration and current closed state, then enable only
+the reviewed password-change gates and verify the owned serving deployment.
+
+The owner privately confirms the currently working password and their retained
+authenticator, chooses a fresh replacement, and verifies a new-password/TOTP
+sign-in. Preserve the authenticator, audit the committed change and revoke old
+sessions. Do not substitute another-admin lost-access recovery or infer a password
+from a label, a database password or an unlabelled line. Private input fields must
+be explicitly named; preserve literal password bytes without silent trimming,
+quote removal or normalization. No password or TOTP value is requested in chat.
+
+All invited staff use the same EN/AR sign-in. Current persisted database roles
+select the applicable assurance, menu and server-enforced permissions: Super
+Admins receive their authorized tools and other staff their assigned tools.
+Preserve the two-admin/self-protection/recovery safeguards, the restricted
+single-admin pairing state, and closed unrelated workflows. No additional account
+or real email is authorized by this resumption. IDs: BL-AUTH-01/05/06,
+BL-RPT-01/03, ROL-01/07/10/12, SEC-01/02/06, LOC-01/03.

@@ -67,6 +67,12 @@ passwords, native tokens, invitation digests, codes and provider payloads.
 
 ## Activation procedure — document only; not executed
 
+This section retains the original preparation checkpoint. The later
+[ORG-046 authorization](../DECISIONS.md#org-046--authorized-restricted-first-admin-production-setup-7-october-2026)
+and [execution record](STAFF_SETUP_EXECUTION.md) supersede its pending state only
+for actions actually performed and verified. Wider paired-admin and operational
+release requirements remain outstanding.
+
 Use the [operator activation checklist](STAFF_ACTIVATION_CHECKLIST.md) for an
 individual action and evidence requirement for every migration and release gate.
 PR #43 is merged; merged application code does not apply hosted migrations or

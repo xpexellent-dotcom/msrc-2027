@@ -2,8 +2,10 @@
 
 8 October 2026. BL-AUTH-01, BL-RPT-01/03; LOC-01/03, ACC-01.
 
-Status: **local implementation and review PASS; copy NOT YET RELEASED to
-Production**. This presentation change starts from merged main
+Status: **released in Production; merged-main CI and anonymous boundaries PASS**.
+[PR #49](https://github.com/xpexellent-dotcom/msrc-2027/pull/49) merged at
+`13f4e102e68dfe8b689877c649cea9eac2b550d1`, with the exact reviewed tree.
+This presentation change started from merged main
 `2f677bedd9e1773508286cc5d8db79780801cc37` on `codex/staff-portal-copy`.
 The branch subsequently reconciles merged main
 `fbddf28ea68cea2370cf4704a6b8029566cb007c`; the public QA changes left staff
@@ -81,8 +83,20 @@ in an ignored local evidence directory, outside source control.
 
 These checks do not certify live axe, native Arabic-reader approval, provider
 behavior or operational UAT. The local commands above were scoped; broader
-exact-head staff/native CI results are recorded in PR checks. Merge and deployment
-of this copy remain pending.
+exact-head staff/native CI results are recorded in PR checks. All seven substantive
+merged-main jobs and Vercel passed:
+[Foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37782200113),
+[Staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37782200146),
+[Participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37782200189).
+The owned current Production deployment `dpl_DsnvQmSTaRLUtEuC8XVpYWh1Wt6T`
+passed exact source/project/team, READY and apex/www alias checks at
+13:21:48.129 UTC. Staff portal is enabled; the password-change server flag is
+false and the participant flag is absent/default false. A separate fresh
+27-request anonymous GET probe passed at 13:29:43.648 UTC: EN/AR sign-in remains
+private/noindex/RTL, Security is unavailable, privileged APIs deny anonymous
+access and participant/all 15 operational APIs remain closed. Deployment
+readback and HTTP boundary evidence are separate. No production setting changed
+during this copy release.
 
 The separate operator record in [draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45)
 holds the personal password-change evidence. Its captured 8 October
@@ -92,4 +106,6 @@ revocation and fresh password/TOTP session confirmed. The earlier frozen verifie
 STOP at `11:41:54.513 UTC` remains preserved. Both password-change gates are now
 false; existing staff sign-in remains available for the restricted single owner.
 Pairing remains false, and participant/other operational workflows remain closed.
-This copy task performs no hosted action or additional password verification.
+The copy release performs no migration, bootstrap, Auth mutation, account creation,
+email send or additional password verification. The original local checkpoint
+remains in PROGRESS as historical evidence.
