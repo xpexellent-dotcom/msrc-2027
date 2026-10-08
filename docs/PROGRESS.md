@@ -1,5 +1,31 @@
 # Progress and session handover
 
+## 8 October 2026 — Public filter hydration fix prepared; not deployed
+
+Programme and Media filters now remain disabled until client hydration commits,
+including their search, clear and day controls. Initial deep-link selections and
+the existing query-delta merge remain intact. Workshops has no query controls
+and is unchanged. Scope: PRG-01, MED-01/04, CMS-04, LOC-01/03 and ACC-01.
+
+The retained [Foundation mobile failure](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37807214814/job/113414512943)
+at `f7bc82c884529f51a55af082c3797c993dbfdb31` showed a correct combined URL
+while both selectors remained unfiltered. An interaction before the router's
+history synchronization was ready is a trace-supported inference; its exact
+effect timing was not recorded. The original trace/context/screenshot remain
+retained. No assertion, timeout or retry was weakened.
+
+On `codex/public-filter-hydration`, based on main `b1c3763`: 14 focused unit
+tests PASS, scoped lint PASS, TypeScript/79-page production build PASS, and all
+30 targeted desktop/mobile browser cases PASS with zero skips/retries. These
+include eight held-JavaScript EN/AR regressions, the two original synchronous
+rapid-change cases, and catalogue/history/locale/keyboard/axe checks.
+Independent source review and whitespace checks PASS.
+
+This isolated fix is prepared for draft review, unmerged and not deployed. Full-suite CI
+and live verification are NOT TESTED for this change. Participant age/retention
+work stays on its separate branch; no flags, database, providers, accounts or
+emails were changed. See [the evidence and commands](features/catalogue-filter-hydration.md).
+
 ## 8 October 2026 — Staff wording live; password change verified and closed
 
 [PR #49](https://github.com/xpexellent-dotcom/msrc-2027/pull/49) is merged at
