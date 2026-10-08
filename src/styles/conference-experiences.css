@@ -202,3 +202,8 @@
   .programme-days button, .conference-speaker-portrait img { transition: none; }
   .programme-days button:active, .conference-speaker-card-link:hover img { transform: none; }
 }
+/* Forced colours drop the purple fill, which was the only sign of the selected day. */
+@media (forced-colors: active) {
+  .programme-days button { border: 1px solid transparent; }
+  .programme-days button[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight; }
+}

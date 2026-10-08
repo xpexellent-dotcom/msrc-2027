@@ -104,14 +104,23 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         toggleRef.current?.focus();
       }
     }
+    // The open panel covers the top of the page: once focus or a press moves past the header,
+    // the next controls would sit hidden under it (WCAG 2.4.11), so the disclosure closes.
+    function onOutside(event: Event) {
+      if (event.target instanceof Node && !headerRef.current?.contains(event.target)) setMenuOpen(false);
+    }
     const desktop = window.matchMedia("(min-width: 1100px)");
     function onViewportChange() {
       if (desktop.matches) setMenuOpen(false);
     }
     document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("focusin", onOutside);
+    document.addEventListener("pointerdown", onOutside);
     desktop.addEventListener("change", onViewportChange);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("focusin", onOutside);
+      document.removeEventListener("pointerdown", onOutside);
       desktop.removeEventListener("change", onViewportChange);
     };
   }, [menuOpen]);
