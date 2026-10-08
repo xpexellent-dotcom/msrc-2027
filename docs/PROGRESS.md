@@ -1,5 +1,44 @@
 # Progress and session handover
 
+## 8 October 2026 — Staff wording live; password change verified and closed
+
+[PR #49](https://github.com/xpexellent-dotcom/msrc-2027/pull/49) is merged at
+main `13f4e102e68dfe8b689877c649cea9eac2b550d1`, with the exact reviewed tree.
+EN/AR headers show assigned roles and a concise description of available tools;
+the requested policy paragraphs are removed and invitation wording is simplified.
+Server/database permissions, session expiry, recovery and two-admin safeguards
+are unchanged. The earlier local wording checkpoint below is historical.
+
+All seven substantive merged-main CI jobs and Vercel PASS:
+[Foundation 37782200113](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37782200113),
+[Staff 37782200146](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37782200146),
+[Participant 37782200189](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37782200189).
+The owned current Production deployment `dpl_DsnvQmSTaRLUtEuC8XVpYWh1Wt6T`
+passed exact source/project/team, READY and apex/www alias checks at
+13:21:48.129 UTC (read-only proof `37c787f7-314a-449b-9c7d-0a11e69220d5`).
+Staff portal remains enabled; the password-change server flag is false, and
+the participant flag is absent/default false. The password-change database gate
+was separately verified false after closure; pairing remains restricted.
+
+A fresh 27-request anonymous GET probe passed at 13:29:43.648 UTC
+(`768e6d24-8ede-4f56-b521-df7fe3d07fba`): EN/AR sign-in200/private/noindex/RTL,
+Security404, anonymous privileged APIs403, participant and all 15 operational
+APIs503, no public staff links and robots exclusion. This HTTP probe does not bind
+the serving source; the independent owned-deployment readback above does.
+Synthetic mobile/axe checks passed; signed-home DOM/live axe remain NOT TESTED.
+
+The completed personal password change, retained authenticator and old-session
+revocation were independently verified at the earlier 12:01:51.918 UTC capture;
+that session's freshness is not asserted indefinitely. Both password-change
+gates remain closed. No additional account, email, migration/bootstrap replay or
+Production setting change occurred during this wording release. Draft
+[PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45) remains open and
+unmerged, reconciles this main source and retains the operator/rollback record.
+Its preceding head `37a06ecb99f568b435c563a133128a96b912bf6f` passed all seven
+substantive CI jobs; current draft-head CI is recorded in PR checks.
+See [the wording note](features/STAFF_PORTAL_WORDING.md) and
+[the password resumption record](features/STAFF_PASSWORD_RELEASE_RESUMPTION.md).
+
 ## 8 October 2026 — Owner password/TOTP verified; password feature closed
 
 The owner reported completing the private change and new-password/TOTP sign-in.
@@ -140,6 +179,56 @@ progress record conflicted; both histories are preserved. The public merge chang
 no staff authorization, server or migration source. The earlier owned closure
 record remains attributed to its observed reviewed `2f677b...` deployment; current
 post-public-merge serving metadata is verified separately.
+## 8 October 2026 — Staff portal wording reviewed locally; copy release pending
+
+Historical local checkpoint, superseded by the live release evidence above.
+
+Scope: BL-AUTH-01, BL-RPT-01/03; LOC-01/03, ACC-01. Presentation-only work on
+`codex/staff-portal-copy`, starting from merged main
+`2f677bedd9e1773508286cc5d8db79780801cc37`. The
+[wording note](features/STAFF_PORTAL_WORDING.md) records the exact commands,
+role projection and evidence limits.
+
+Signed-in headers show **Your roles** / **أدوارك** and a short localized action
+sentence derived from existing built `staffMenu` entries. Future areas stay in
+the permitted coming-soon menu and are omitted from current actions. Own password
+change is mentioned only when its existing availability projection permits it.
+Anonymous, pending-verification and empty-role views show neither new element.
+Invitation text now says “Invitation links expire after 72 hours and can be used
+once.” with matching Arabic. Removed the four requested visible timezone,
+session, peer-recovery and minimum-two/self-protection explanation blocks and
+unused keys. All actual policies, timestamp formatting, reviewer English/LTR,
+permission rules, APIs and database enforcement remain unchanged; no shared CSS
+or runtime configuration changed.
+
+Observed local PASS: 61 focused unit cases in two files; scoped lint; TypeScript
+and production build (79 pages); six synthetic browser cases with two intentional
+desktop skips and zero retries; EN/AR 320px/200% text, bounded document width,
+native down/up scroll, keyboard focus and retained axe rules. Independent source
+review and root EN/AR role-guidance screenshot review PASS. Initial test-owned
+scroll timing/heading-position failures remain in ignored traces; corrected
+assertions use the actual enlarged heading position, without retries, increased
+timeouts, CSS edits or weaker accessibility checks. Six ignored screenshots are
+synthetic local evidence only. Broader exact-head CI results are recorded in PR
+checks; live axe and native Arabic-reader review remain NOT TESTED. Copy is **NOT YET IN PRODUCTION**; merge and
+deployment remain pending.
+
+Separate current operator checkpoint, recorded in
+[draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45): the captured
+8 October `12:01:51.918 UTC` native result was independently reviewed by the
+operator and database reviewer and confirms the committed personal password
+change, retained verified factor, old-session revocation and a fresh valid
+password/TOTP session. The frozen `11:41:54.513 UTC` verifier STOP is preserved.
+Both password-change gates are currently false; existing staff sign-in works for
+the restricted single owner, pairing remains false, and participant/other
+operational workflows remain closed. This copy task performs no new hosted
+action. Detailed operator history stays in #45; older entries below remain
+dated historical development receipts.
+
+Reconciled merged main `fbddf28ea68cea2370cf4704a6b8029566cb007c` after the
+public-site QA merge. Only the shared progress record conflicted; both records
+are retained. Staff permissions and interface source were unchanged upstream.
+Exact-head CI on the reconciled branch is recorded in PR checks.
 
 ## 8 October 2026 — Public-site QA pass (Claude, PR #47)
 

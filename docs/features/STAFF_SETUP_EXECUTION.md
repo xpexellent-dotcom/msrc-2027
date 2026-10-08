@@ -1,14 +1,17 @@
 # Restricted staff Production setup — execution record
 
 **Latest checkpoint, 8 October:** the original six setup migrations and first
-account remain completed. The organizer clarified the private password mismatch
-as a request for normal account rotation. Additional migration
+account remain completed. Additional migration
 `20261007195540_staff_password_change.sql` is committed and verified, bringing
-history to nine original versions. Its first release stopped at the pending-build
-readiness check and was closed database-first; the closed serving deployment and
-fresh live boundaries passed. Existing restricted staff sign-in remains enabled;
-the requested account password is unchanged. Current results and rollback are in
-[the separate owner-change execution record](STAFF_PASSWORD_RELEASE_EXECUTION.md).
+history to nine original versions. After the preserved first-release stop, the
+owner completed the authorized password rotation. Separate read-only evidence
+captured at 12:01:51.918 UTC verified the committed change, retained verified
+authenticator, old-session revocation and a fresh password/TOTP session. The
+frozen completion-verifier STOP is preserved. Both password-change gates are
+closed; existing restricted staff sign-in remains enabled. The later wording
+release is live at main `13f4e102e68dfe8b689877c649cea9eac2b550d1`, with merged-main
+CI, owned deployment and fresh anonymous boundaries PASS. Current results and
+rollback are in [the resumption record](STAFF_PASSWORD_RELEASE_RESUMPTION.md).
 The checkpoint below preserves the earlier setup history.**
 
 **7 October 2026 checkpoint: all six migrations COMMITTED AND VERIFIED; history

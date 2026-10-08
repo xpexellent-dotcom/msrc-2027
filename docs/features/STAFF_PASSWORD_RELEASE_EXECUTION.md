@@ -1,9 +1,14 @@
 # Owner password-change release — stopped execution record
 
-**8 October 2026 local checkpoint: the additional migration committed and passed
+**Historical first-attempt checkpoint, 8 October 2026: the additional migration committed and passed
 verification. The first release attempt stopped during deployment verification;
 only the new password-change feature was closed. Closure and the serving closed
 deployment passed verification. The account password is unchanged.**
+
+That statement describes the stopped first attempt. The later authorized change,
+retained authenticator, session revocation and closed feature are recorded in
+[the resumption record](STAFF_PASSWORD_RELEASE_RESUMPTION.md); the original
+failure facts and receipts below remain unchanged.
 
 ORG-046 remains the standing restricted setup authority. The organizer's latest
 clarification makes the new private value a requested replacement password, not

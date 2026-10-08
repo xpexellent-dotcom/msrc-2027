@@ -17,7 +17,7 @@ occurred.**
 
 ## Reviewed source and private input contract
 
-The application remains merged main
+The password-release resumption used merged main
 `2f677bedd9e1773508286cc5d8db79780801cc37` from
 [PR #46](https://github.com/xpexellent-dotcom/msrc-2027/pull/46).
 [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45) remains draft and
@@ -44,8 +44,9 @@ input consumption. No production execution is implied by these source checks.
 
 The operator/setup record at draft PR #45 head
 `6c140284fb7797590b276518ddfb53a6aa48f1e9` separately has all seven substantive
-CI jobs and Vercel PASS. The serving application source remains the reviewed
-merged-main revision above; the operator record is not a different deployed app.
+CI jobs and Vercel PASS. That resumption's serving application used the reviewed
+merged-main revision above; later presentation releases are recorded separately
+below. The operator record is not a different deployed app.
 
 ## Execution sequence and evidence
 
@@ -180,3 +181,34 @@ staff/server/authorization/migration changes. This branch reconciles that source
 while preserving both progress histories. The `2f677b...` closure record remains
 historical evidence at its observed time; current serving deployment metadata is
 verified in a separate record without reopening a gate.
+
+### Later wording release and current serving source
+
+[PR #49](https://github.com/xpexellent-dotcom/msrc-2027/pull/49) subsequently
+merged the requested EN/AR presentation changes at
+`13f4e102e68dfe8b689877c649cea9eac2b550d1`. All seven substantive merged-main
+CI jobs and Vercel passed. The owned READY/current Production
+deployment `dpl_DsnvQmSTaRLUtEuC8XVpYWh1Wt6T`, exact source/project/team and
+apex/www aliases passed read-only verification at 13:21:48.129 UTC
+(`37c787f7-314a-449b-9c7d-0a11e69220d5`). Staff portal is enabled; the
+password-change server flag is false and the participant flag is absent/default
+false. The database password-change gate remains closed from the separate
+closure verification; this provider readback makes no new database-state claim.
+
+Fresh anonymous boundaries passed all 27 GET requests at 13:29:43.648 UTC
+(`768e6d24-8ede-4f56-b521-df7fe3d07fba`), with EN/AR sign-in/private/noindex/RTL,
+Security404, privileged denial and participant/all 15 operational APIs closed.
+The HTTP probe does not bind serving source; that binding comes from the separate
+owned-deployment proof. These observations do not extend the earlier captured
+session's freshness. Signed-home DOM/live axe remain NOT TESTED. No password
+operation, Auth mutation, migration/bootstrap replay, setting change, extra
+account or real email occurred during the copy release. PR #45 remains draft,
+open and unmerged. See [the wording note](STAFF_PORTAL_WORDING.md) for synthetic
+mobile/axe coverage and presentation-only rollback: revert PR #49 through review
+and redeploy the reviewed source; preserve all security gates and audit records.
+
+The initial post-merge PR #49 reconciliation check STOPPED after the merge had
+committed. Its failed predicate was not captured. Independent subsequent local
+Git and public API readbacks confirmed the merge SHA, parents and exact reviewed
+tree; no second merge was attempted. That STOP remains preserved rather than
+assigned an unproved cause.
