@@ -3,7 +3,7 @@
 import type { ParticipantField, ParticipantPayload, ParticipantResponse, ParticipantState } from "./contracts";
 
 const responseStates = new Set<ParticipantState>(["closed", "ready", "accepted", "authenticated", "verified", "password_reset", "signed_out", "invalid_input", "invalid_credentials", "invalid_code", "limited", "unavailable"]);
-const fields: ParticipantField[] = ["name", "email", "password", "code"];
+const fields: ParticipantField[] = ["name", "email", "password", "code", "ageConfirmed"];
 
 function parseResponse(value: unknown): ParticipantResponse {
   if (!value || typeof value !== "object" || Array.isArray(value)) return { state: "unavailable" };
