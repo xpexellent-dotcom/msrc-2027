@@ -237,3 +237,27 @@ section names MSRC 2026. Files, crops, encoding and rights scope are unchanged.
 ORG-008 (2 October 2026) lets browsers cache everything under `public/media/` for 30 days.
 Never overwrite a published file: ship a corrected cut or poster under a new versioned name
 (`-v2`) and update the reference, or returning visitors may see the old file for a month.
+
+## 10. Approved homepage stills — 8 October 2026 (ORG-046)
+
+The requester approved eight MSRC 2026 photos from the MSRC26 Drive folder for the
+homepage. They were selected from the files the connected Drive account could reach
+(about 70 of several hundred), after viewing 23. Photographer folders: Majed (Day 1 and
+Day 2) and Habibah.
+
+| Public derivative | Source file | Use | Crop note |
+|---|---|---|---|
+| `about-community-v1.jpg` | IMG_9864.HEIC | Conference introduction | Light top trim |
+| `pathway-attend-v1.jpg` | IMG_9812.HEIC | Attend card | Lower audience/stage only; speaker screens excluded |
+| `pathway-research-v1.jpg` | IMG_9914.HEIC | Research card | Presenter and audience |
+| `pathway-workshops-v1.jpg` | IMG_9846.HEIC | Workshops card | Full frame |
+| `auditorium-v1.jpg` | IMG_9977.HEIC | Full-width photo break | Light top trim |
+| `legacy-panel-v1.jpg` | IMG_3906.HEIC | Behind decorative year art (`alt=""`) | Panel only; names/portraits on screens excluded |
+| `moment-competition-v1.jpg` | IMG_9866.JPG | "Competitions" moment | Full frame |
+| `moment-break-v1.jpg` | IMG_9984.HEIC | "Between sessions" moment | Full frame |
+
+Derivatives are re-encoded JPEG (quality 80, at most 2400 px wide) with no EXIF, GPS or
+XMP metadata, and are served through Next.js image optimization. A unit test fails if
+EXIF reappears or a description is missing. Originals and the selection board remain
+private. Not approved: other collection photos, posed VIP/backdrop shots, photobooth
+portraits, the award-ceremony slide, and any use outside the homepage.

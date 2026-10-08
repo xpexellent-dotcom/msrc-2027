@@ -191,14 +191,15 @@ test("a portrait phone keeps the header in view while reading down", async ({ pa
   expect(await header.evaluate((element) => element.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
 });
 
-// The edition number and the year art were the only Western digits on Arabic pages, and the intro
-// art's flow lines did not mirror, so in Arabic they ran through the edition number.
-test("homepage display art uses each language's digits and mirrors in Arabic", async ({ page }) => {
-  for (const [locale, edition, years, transform] of [["en", "5", "20262027", "none"], ["ar", "٥", "٢٠٢٦٢٠٢٧", "matrix(-1, 0, 0, 1, 0, 0)"]] as const) {
+// The edition number and the year art were the only Western digits on Arabic pages.
+// ORG-046 replaced the intro line art with an approved MSRC 2026 photo that keeps the edition number.
+test("homepage display art uses each language's digits and localized photo text", async ({ page }) => {
+  for (const [locale, edition, years, caption] of [["en", "5", "20262027", "MSRC 2026"], ["ar", "٥", "٢٠٢٦٢٠٢٧", "نسخة ٢٠٢٦"]] as const) {
     await page.goto(`/${locale}`);
     await expect(page.locator(".visual-edition")).toHaveText(edition);
     await expect(page.locator(".legacy-art-years")).toHaveText(years);
-    expect(await page.locator(".intro-visual > .flow-lines").evaluate((element) => getComputedStyle(element).transform), locale).toBe(transform);
+    await expect(page.locator(".intro-visual > figcaption")).toHaveText(caption);
+    expect(await page.locator(".intro-visual > img").getAttribute("alt"), locale).toMatch(locale === "en" ? /MSRC 2026/ : /٢٠٢٦/);
   }
 });
 

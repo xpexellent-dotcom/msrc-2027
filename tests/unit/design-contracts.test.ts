@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { isDesignPreviewAllowed } from "@/lib/preview.server";
 import { homepageAssets, homepageCopy, publicSitemap } from "@/content/public-site";
@@ -58,6 +59,25 @@ describe("public content publication boundaries (SCP-02, CFG-12, MED-01)", () =>
     expect(homepageAssets.heroVideo.src).toBe("/media/msrc2026/hero-desktop-v1.mp4");
     expect(homepageAssets.heroVideo.mobileSrc).toBe("/media/msrc2026/hero-mobile-v1.mp4");
     expect(homepageAssets).toMatchObject({ finalLogo: null, sponsors: [], gallery: [] });
+  });
+});
+
+describe("approved MSRC 2026 homepage stills (ORG-046, MED-01/04, PRV-03)", () => {
+  it("serves versioned metadata-free derivatives with bilingual descriptions", () => {
+    const photos = Object.entries(homepageAssets.photos);
+    expect(photos).toHaveLength(8);
+    for (const [name, photo] of photos) {
+      expect(photo.src, name).toMatch(/^\/media\/msrc2026\/[a-z-]+-v\d+\.jpg$/);
+      const bytes = readFileSync(`public${photo.src}`);
+      // Phone originals carry EXIF with GPS; public derivatives must carry none.
+      expect(bytes.includes(Buffer.from("Exif")), name).toBe(false);
+      if (name === "panel") {
+        expect(photo.alt).toEqual({ en: "", ar: "" }); // Behind decorative year art.
+      } else {
+        expect(photo.alt.en, name).toMatch(/MSRC 2026/);
+        expect(photo.alt.ar, name).toMatch(/[\u0600-\u06ff]/);
+      }
+    }
   });
 });
 

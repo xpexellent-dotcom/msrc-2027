@@ -54,13 +54,13 @@
 .intro-body p { font-size: .9rem; line-height: 1.85; color: var(--color-muted); max-inline-size: 51ch; }
 .intro-body .intro-statement { color: var(--color-ink); font-size: clamp(1.1rem, 1.55vw, 1.35rem); margin-block-end: 1.3rem; line-height: 1.7; }
 .intro-link { margin-block-start: 2rem; }
-.intro-visual { position: relative; height: 200px; overflow: hidden; margin-block-start: 2.5rem; border-block-start: 1px solid var(--color-line); color: var(--color-purple); }
+/* ORG-046: approved MSRC 2026 stills carry the page between the film and the closing. */
+.homepage-journey :is(.intro-visual, .pathway-media, .photo-break, .legacy-art, .legacy-moment-photo) > img { object-fit: cover; }
+.intro-visual { position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 3 / 2; margin: 2.5rem 0 0; border-radius: .75rem; background: var(--color-surface-lilac); color: var(--color-ivory); }
+.intro-visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #1f193000 55%, #1f1930b3 100%); }
+.intro-visual > figcaption { position: absolute; z-index: 1; inset-inline-start: 1.2rem; inset-block-end: 1.1rem; font-size: .72rem; letter-spacing: .08em; }
 .flow-lines { display: block; inline-size: 100%; }
-.intro-visual > .flow-lines { position: absolute; inline-size: 440px; inset-inline-end: -20px; inset-block-start: -140px; }
-/* The lines are drawn left-to-right; mirror them so the Arabic layout keeps the English balance instead of running them through the edition number. */
-[dir="rtl"] .intro-visual > .flow-lines { transform: scaleX(-1); }
-.intro-research-mark { inline-size: 80px !important; position: absolute; inset-inline-start: 0; inset-block-end: 10px; }
-.visual-edition { position: absolute; inset-inline-end: 0; inset-block-end: 0; font-family: var(--font-display); font-size: 4rem; line-height: 1; letter-spacing: -.06em; }
+.visual-edition { position: absolute; z-index: 1; inset-inline-end: 1.1rem; inset-block-end: .6rem; font-family: var(--font-display); font-size: 4rem; line-height: 1; letter-spacing: -.06em; }
 .research-visual { display: block; inline-size: 100%; color: var(--color-purple); }
 .visual-outline { stroke: currentColor; stroke-width: 1.2; }.visual-guide { stroke: currentColor; stroke-width: .6; opacity: .25; }.visual-core { fill: currentColor; }.visual-gold { fill: var(--color-gold); }
 .pathways-section { background: var(--color-ivory); border-block-start: 1px solid var(--color-line); }
@@ -68,9 +68,12 @@
 .section-introduction > p { color: var(--color-muted); font-size: .95rem; line-height: 1.8; max-inline-size: 34ch; }
 .pathway-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 .pathway-row { display: flex; flex-direction: column; align-items: stretch; min-inline-size: 0; padding: 1.6rem 1.4rem; border: 1px solid var(--color-line); background: var(--color-white); border-radius: .5rem; }
-.pathway-card-top { display: flex; justify-content: space-between; align-items: start; margin-block-end: 1.6rem; }
-.pathway-number { font-size: .75rem; color: var(--color-muted); }
-.pathway-visual { inline-size: 64px; block-size: 64px; }
+/* The photo bleeds to the card edges; the hackathon (no approved photo) keeps its line art on lilac. */
+.pathway-media { position: relative; overflow: hidden; display: grid; place-items: center; aspect-ratio: 4 / 3; margin: -1.6rem -1.4rem 1.5rem; border-radius: .5rem .5rem 0 0; background: var(--color-surface-lilac); }
+.pathway-media > img { transition: transform 600ms var(--motion-easing); }
+.pathway-row:hover .pathway-media > img, .pathway-row:focus-within .pathway-media > img { transform: scale(1.04); }
+.pathway-number { position: absolute; inset-block-start: .8rem; inset-inline-start: .8rem; display: grid; place-items: center; min-inline-size: 2rem; block-size: 2rem; border-radius: 1rem; background: var(--color-ivory); color: var(--color-purple); font-size: .75rem; font-weight: 600; }
+.pathway-visual { inline-size: 96px; block-size: 96px; }
 .pathway-title > p { color: var(--color-purple); font-size: .72rem; margin-block-end: .8rem; font-weight: 600; }
 :lang(en) .pathway-title > p { text-transform: uppercase; letter-spacing: .12em; }
 .pathway-title h3 { margin: 0; color: var(--color-purple); font-family: var(--font-heading); font-size: 1.4rem; font-weight: 600; letter-spacing: -.035em; line-height: 1.25; }
@@ -80,6 +83,9 @@
 .pathway-card-bottom > a { justify-content: center; inline-size: 44px; border: 1px solid var(--color-line); border-radius: 50%; color: var(--color-purple); }
 .pathway-card-bottom > a:hover, .pathway-card-bottom > a:focus-visible { background: var(--color-lilac); }
 .pathways-extra { gap: .8rem; font-size: .83rem; color: var(--color-purple); margin-block-start: 1.5rem; }
+.photo-break { position: relative; margin: 0; block-size: clamp(300px, 46vw, 640px); background: var(--color-ink); color: var(--color-ivory); }
+.photo-break::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #1f193000 60%, #1f1930a6 100%); }
+.photo-break > figcaption { position: absolute; z-index: 1; inset-inline: 0; inset-block-end: 1.4rem; font-size: .75rem; letter-spacing: .08em; }
 .program-section { position: relative; isolation: isolate; overflow: hidden; background: var(--color-purple); color: var(--color-ivory); }
 .program-flow { position: absolute; z-index: -1; color: var(--color-lilac); opacity: .18; inline-size: 800px; inset-inline-start: -400px; inset-block-end: -460px; }
 .program-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(3rem, 7vw, 7rem); }
@@ -107,11 +113,17 @@
 .legacy-copy > .legacy-film-note { font-size: .78rem; }
 .legacy-links { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.8rem; margin-block-start: 2rem; }
 .legacy-links > a:not(.button) { font-size: .83rem; }
-.legacy-art { position: relative; isolation: isolate; overflow: hidden; min-block-size: 440px; background: var(--color-purple); color: var(--color-ivory); padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; container-type: inline-size; }
-.legacy-art > .flow-lines { position: absolute; z-index: -1; inset-inline-start: -15%; inset-block-start: 0; inline-size: 125%; color: var(--color-lilac); opacity: .6; }
+.legacy-art { position: relative; isolation: isolate; overflow: hidden; min-block-size: 440px; border-radius: .75rem; background: var(--color-purple); color: var(--color-ivory); padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; container-type: inline-size; }
+.legacy-art > img { z-index: -2; }
+.legacy-art::before { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(160deg, #3b1e6deb 0%, #3b1e6d99 45%, #1f1930d9 100%); }
 .legacy-art-years { display: flex; flex-direction: column; font-family: var(--font-display); font-size: clamp(3rem, 25cqi, 8rem); font-weight: 400; letter-spacing: -.065em; line-height: 1.03; }
 .legacy-art-years > span:last-child { align-self: flex-end; color: var(--color-gold); }
 .legacy-art-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; font-size: .72rem; padding-block-start: 1rem; border-block-start: 1px solid #dccff040; }
+.legacy-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-block-start: clamp(3rem, 6vw, 5rem); }
+.legacy-moments > figure { margin: 0; }
+.legacy-moment-photo { position: relative; overflow: hidden; aspect-ratio: 16 / 10; border-radius: .75rem; background: var(--color-purple); }
+.legacy-moments figcaption { display: flex; gap: .8rem; margin-block-start: .9rem; color: var(--color-ivory); font-size: .85rem; }
+.legacy-moments figcaption > span { color: var(--color-gold); }
 .partners-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem; align-items: center; }
 .partners-section { border-block-end: 1px solid var(--color-line); }
 .faq-section { background: var(--color-surface-warm); }
@@ -134,7 +146,7 @@
 [lang="ar"] .pathway-title h3, [lang="ar"] .program-row h3 { line-height: 1.6; letter-spacing: 0; }
 [lang="ar"] .date-band-statement { letter-spacing: 0; line-height: 1.65; }
 /* Tracking pulls Arabic letters apart (visible in WebKit, so on every iPhone). */
-[lang="ar"] .hero-topline, [lang="ar"] .hero-caption { letter-spacing: 0 !important; }
+[lang="ar"] .hero-topline, [lang="ar"] .hero-caption, [lang="ar"] .intro-visual > figcaption, [lang="ar"] .photo-break > figcaption { letter-spacing: 0 !important; }
 @keyframes entrance { from { transform: translateY(12px); } to { transform: none; } }
 @media (max-width: 1099px) {
   /* Keep two columns when readable, and reflow to one as text is enlarged. */
@@ -170,10 +182,11 @@
   .date-band .countdown-clock { gap: 1rem; }.date-band .countdown-number { font-size: 4rem; }
   .date-band .countdown-time-number { font-size: clamp(1.5rem, 6vw, 2.2rem); }
   .intro-grid, .section-introduction, .program-grid, .speakers-editorial, .legacy-grid, .partners-grid, .faq-grid, .closing-grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
-  .intro-body { padding-block-start: 0; }.intro-visual { height: 170px; }
+  .intro-body { padding-block-start: 0; }.visual-edition { font-size: 3rem; }
   .section-introduction { margin-block-end: 2rem; gap: 1.5rem; }
   .pathway-row { padding: 1.2rem; }.pathway-title h3 { font-size: 1.23rem; }.pathway-description { font-size: .79rem; }
-  .pathway-card-top { margin-block-end: 1.2rem; }.pathway-visual { inline-size: 48px; block-size: 48px; }
+  .pathway-media { margin: -1.2rem -1.2rem 1.2rem; }.pathway-visual { inline-size: 72px; block-size: 72px; }
+  .legacy-moments { grid-template-columns: minmax(0, 1fr); }
   .pathway-card-bottom > a { inline-size: 44px; }.pathway-card-bottom > a svg.directional-arrow { display: block; }
   .speaker-identity-art { max-inline-size: 380px; aspect-ratio: 5/4; }.speaker-identity-art > span { font-size: 4rem; }
   .legacy-art { min-block-size: 360px; padding: 1.5rem; }.faq-item summary { padding-block: 1.3rem; }
@@ -182,5 +195,7 @@
   /* Arabic script reads smaller than Latin at the same size; about 10px was hard to read. */
   [lang="ar"] .hero-topline, [lang="ar"] .hero-caption { font-size: .75rem; }
 }
-@media (max-width: 379px) { .pathway-list { grid-template-columns: minmax(0, 1fr); }.hero-caption { margin-inline-start: 0; }.hero-media-controls { margin-inline-start: auto; }.date-band .countdown-clock { gap: .5rem; }.date-band .countdown-number { font-size: 3.4rem; } }
-@media (prefers-reduced-motion: reduce) {.faq-item summary > span { transition: none; }.hero-scroll { transition: none; }.scroll-line::after { animation: none; transform: none; block-size: 100%; } }
+/* With photos, two cards side by side left about four words per line on phones. */
+@media (max-width: 640px) { .pathway-list { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 379px) {.hero-caption { margin-inline-start: 0; }.hero-media-controls { margin-inline-start: auto; }.date-band .countdown-clock { gap: .5rem; }.date-band .countdown-number { font-size: 3.4rem; } }
+@media (prefers-reduced-motion: reduce) {.pathway-media > img { transition: none; }.pathway-row:hover .pathway-media > img, .pathway-row:focus-within .pathway-media > img { transform: none; }.faq-item summary > span { transition: none; }.hero-scroll { transition: none; }.scroll-line::after { animation: none; transform: none; block-size: 100%; } }

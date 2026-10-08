@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { HeroMedia } from "@/components/hero-media";
 import { CinematicFilm, CinematicFilmLink } from "@/components/cinematic-film";
 import { Container } from "@/components/ui/container";
@@ -19,6 +20,8 @@ import type { PreviewHeroVideo } from "@/lib/media-policy";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 
 export type HomepageMediaPreview = { video: PreviewHeroVideo; poster: string; caption: string };
+// ORG-046: approved MSRC 2026 stills; the hackathon keeps its line art (no approved photo).
+const pathwayPhotos = [homepageAssets.photos.attend, homepageAssets.photos.research, homepageAssets.photos.workshops, null] as const;
 const Arrow = () => <svg className="directional-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 
 export function HomePageContent({ locale, media }: { locale: Locale; media?: HomepageMediaPreview }) {
@@ -68,14 +71,14 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
     <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
       <Container><Reveal className="intro-grid" stagger>
         <div><SectionHeading chapter eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" /></div>
-        <div className="intro-body"><p className="intro-statement">{narrative.community}</p><p>{narrative.organizer}</p><div className="intro-visual"><FlowLines /><ResearchVisual className="intro-research-mark" /><span aria-hidden="true" className="visual-edition">{formatIndex(5, locale)}</span></div></div>
+        <div className="intro-body"><p className="intro-statement">{narrative.community}</p><p>{narrative.organizer}</p><figure className="intro-visual"><Image src={homepageAssets.photos.community.src} alt={homepageAssets.photos.community.alt[locale]} fill sizes="(max-width: 700px) 92vw, 45vw" /><figcaption>{narrative.photoEdition}</figcaption><span aria-hidden="true" className="visual-edition">{formatIndex(5, locale)}</span></figure></div>
       </Reveal></Container>
     </section>
     <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
       <Container>
         <Reveal className="section-introduction"><SectionHeading chapter eyebrow={copy.pathwaysEyebrow} title={copy.pathwaysTitle} id="pathways-title" /></Reveal>
         <Reveal className="pathway-list" stagger>{copy.pathways.map((pathway, index) => <article className="pathway-row" key={pathway.category}>
-          <div className="pathway-card-top"><span className="pathway-number">{formatIndex(index + 1, locale)}</span><ResearchVisual variant={index} className="pathway-visual" /></div>
+          <div className="pathway-media">{pathwayPhotos[index] ? <Image src={pathwayPhotos[index].src} alt={pathwayPhotos[index].alt[locale]} fill sizes="(max-width: 640px) 92vw, (max-width: 1099px) 46vw, 24vw" /> : <ResearchVisual variant={index} className="pathway-visual" />}<span className="pathway-number">{formatIndex(index + 1, locale)}</span></div>
           <div className="pathway-title"><p>{pathway.category}</p><h3>{pathway.title}</h3></div>
           <p className="pathway-description">{pathway.description}</p>
           <div className="pathway-card-bottom"><StatusBadge tone="neutral">{copy.closed}</StatusBadge><Link href={`/${locale}${pathway.href}`} aria-label={`${narrative.pathwayLink}: ${pathway.category}`}><Arrow /></Link></div>
@@ -83,6 +86,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
         <Link className="pathways-extra" href={`/${locale}/participate#three-minute-thesis`}>{narrative.threeMinute}<Arrow /></Link>
       </Container>
     </section>
+    <figure className="photo-break"><Image src={homepageAssets.photos.auditorium.src} alt={homepageAssets.photos.auditorium.alt[locale]} fill sizes="100vw" /><figcaption><Container>{narrative.photoEdition}</Container></figcaption></figure>
     <section id="program" tabIndex={-1} className="editorial-section program-section" aria-labelledby="program-title">
       <FlowLines className="program-flow" />
       <Container><Reveal className="program-grid" stagger>
@@ -101,8 +105,10 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
     <section id="legacy" tabIndex={-1} className="editorial-section legacy-section" aria-labelledby="legacy-title">
       <Container><Reveal className="legacy-grid" stagger>
         <div className="legacy-copy"><SectionHeading chapter eyebrow={copy.legacyEyebrow} title={copy.legacyTitle} id="legacy-title" inverse /><p className="legacy-film-note">{narrative.legacyCaption}</p><div className="legacy-links"><CinematicFilmLink locale={locale}>{narrative.filmLink}<Arrow /></CinematicFilmLink></div></div>
-        <div className="legacy-art" aria-hidden="true"><FlowLines /><div className="legacy-art-years" dir="ltr"><span>{formatYear(2026, locale)}</span><span>{formatYear(2027, locale)}</span></div><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
-      </Reveal></Container>
+        <div className="legacy-art" aria-hidden="true"><Image src={homepageAssets.photos.panel.src} alt="" fill sizes="(max-width: 700px) 92vw, 45vw" /><div className="legacy-art-years" dir="ltr"><span>{formatYear(2026, locale)}</span><span>{formatYear(2027, locale)}</span></div><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
+      </Reveal>
+      <Reveal className="legacy-moments" stagger>{[{ photo: homepageAssets.photos.competition, caption: narrative.competitionCaption }, { photo: homepageAssets.photos.break, caption: narrative.breakCaption }].map(({ photo, caption }) => <figure key={photo.src}><div className="legacy-moment-photo"><Image src={photo.src} alt={photo.alt[locale]} fill sizes="(max-width: 700px) 92vw, 45vw" /></div><figcaption><span>{narrative.photoEdition}</span>{caption}</figcaption></figure>)}</Reveal>
+      </Container>
     </section>
     <section id="partners" tabIndex={-1} className="editorial-section partners-section" aria-labelledby="partners-title">
       <Container><Reveal className="partners-grid" stagger><SectionHeading chapter eyebrow={narrative.partnersEyebrow} title={narrative.partnersTitle} id="partners-title" /><p className="announcement-state"><span aria-hidden="true" />{narrative.partnersPending}</p></Reveal></Container>

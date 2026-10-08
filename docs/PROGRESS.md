@@ -1,5 +1,37 @@
 # Progress and session handover
 
+## 8 October 2026 — Approved MSRC 2026 photos on the homepage (ORG-046)
+
+Design review found the homepage bland after the opening film: about 6,000 px of ivory
+sections, line art and announcement placeholders. The requester approved eight MSRC 2026
+photos from the MSRC26 Drive folder (ORG-046). They now appear in the introduction, the
+Attend/Research/Workshops cards, a full-width auditorium break, behind the
+previous-edition year art, and as two captioned moments. The quiz photo is captioned
+as a competition. The hackathon card keeps line art. Pathway cards stack below 640 px.
+Copy and alt text are bilingual; every photo is labelled MSRC 2026.
+
+Media: cropped, metadata-free `-v1` derivatives in `public/media/msrc2026/` (about
+1.2 MB total before Next image optimization); originals stay private. The connected
+Drive account could reach only about 70 of the collection's photos, so other
+photographers' work was not reviewed. IDs: MED-01/02/04, DSN-01, PRV-03, LOC-01/03.
+
+Checks (local production build, Node 22 against the repo's Node 24 engine):
+- PASS: `pnpm lint`, `pnpm typecheck`, `pnpm test` (51 files, 2,208 tests, including
+  the new photo contract: versioned path, no EXIF, bilingual alt text), `pnpm build`.
+- PASS: axe WCAG 2.2 AA + best-practice on `/en` and `/ar` at 1440, 390 and 320 px;
+  no horizontal overflow; all photos load.
+- Playwright (qa-regressions, organizer-public-decisions, public-shell, public-media,
+  premium-interface): 113 passed, 4 skipped, 14 failed. All 14 are hero-film playback
+  tests that fail identically on unmodified `main` here, because the container's
+  Chromium build cannot play the MP4 film. NOT TESTED here: film playback, and the
+  updated premium-interface photo assertions in a full run (checked by a standalone
+  script instead). CI should confirm both.
+- Visual: EN/AR desktop and phone screenshots reviewed.
+
+Next: review the deployed preview; source an approved hackathon photo; then the
+remaining design review items (compact placeholders, header action label, Dates & venue
+in navigation).
+
 ## 7 October 2026 — Documentation PR and migration 1 execution packet
 
 Opened [draft PR #44](https://github.com/xpexellent-dotcom/msrc-2027/pull/44)

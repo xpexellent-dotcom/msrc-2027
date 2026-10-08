@@ -2043,3 +2043,26 @@ modify production settings, bootstrap live accounts, send real invitations/email
 or activate registration, finance, review, check-in, content or exports.
 IDs: BL-AUTH-01/05/06, BL-RPT-01/03, ROL-01/07/10/12, ADM-01/02/04/05,
 PRV-03, LOC-01/03, SEC-01/02/06, REL-06.
+
+## ORG-046 — Approved MSRC 2026 homepage stills, 8 October 2026
+
+Authority: explicit project-requester approval in the current conversation. After
+reviewing a labelled selection board, the requester approved all eight proposed MSRC 2026
+photos from the MSRC26 Drive collection for homepage use. They noted that the quiz photo
+(IMG_9866) shows a competition, so it is captioned "Competitions" and is not used for
+the research or hackathon pathway. No approved hackathon photo exists; that card keeps
+its line art.
+
+Placement: community (IMG_9864) in the conference introduction; Attend (IMG_9812),
+Research (IMG_9914) and Workshops (IMG_9846) pathway cards; full-width auditorium break
+(IMG_9977); decorative background behind the previous-edition year art (IMG_3906); and
+two previous-edition moments (IMG_9866, IMG_9984). IMG_9812 and IMG_3906 are cropped so
+on-screen names and portraits of 2026 speakers are excluded; nothing implies they are
+2027 speakers. Each photo is labelled MSRC 2026 / نسخة ٢٠٢٦.
+
+Scope: homepage only. Public files are cropped, re-encoded derivatives with no EXIF/GPS
+metadata, served under versioned `-v1` names. Originals stay in the private Drive
+collection. This approval does not open a gallery, approve other photos from the
+collection, or approve reuse in speaker, sponsor or programme contexts. A removal request
+is handled by replacing the derivative and its reference. IDs: MED-01/02/04, DSN-01,
+PRV-03, LOC-01/03, CFG-12.
