@@ -311,8 +311,11 @@ create function public.msrc_participant_login_finish(attempt_id uuid,actor_id uu
 end$$;
 alter function msrc_participant.observe_profile(text) rename to legacy_observe_profile;
 create function msrc_participant.observe_profile(edition_key text) returns jsonb
- language sql stable security definer set search_path='' as $$
- select case when msrc_participant.age_proven(auth.uid()) then msrc_participant.legacy_observe_profile(edition_key) else null end;
+ language plpgsql stable security definer set search_path='' as $$begin
+ if not msrc_participant.age_proven(auth.uid()) then return null;end if;
+ return msrc_participant.legacy_observe_profile(edition_key);
+ exception when invalid_text_representation then return null;
+ end;
 $$;
 create or replace function public.msrc_participant_profile(edition_key text) returns jsonb
  language sql stable security definer set search_path='' as $$select msrc_participant.observe_profile(edition_key);$$;
@@ -343,10 +346,14 @@ create or replace function msrc_sessions.own_context(edition_key text,record_act
  language plpgsql security definer set search_path='' as $$begin
  if not msrc_participant.context_admitted(auth.uid()) then return null;end if;
  return msrc_sessions.age_legacy_own_context(edition_key,record_activity);
+ exception when invalid_text_representation then return null;
 end$$;
 create or replace function msrc_sessions.observe_context(edition_key text) returns jsonb
- language sql stable security definer set search_path='' as $$
- select case when msrc_participant.context_admitted(auth.uid()) then msrc_sessions.age_legacy_observe_context(edition_key) else null end;
+ language plpgsql stable security definer set search_path='' as $$begin
+ if not msrc_participant.context_admitted(auth.uid()) then return null;end if;
+ return msrc_sessions.age_legacy_observe_context(edition_key);
+ exception when invalid_text_representation then return null;
+ end;
 $$;
 create or replace function public.msrc_session_context(edition_key text) returns jsonb
  language sql security definer set search_path='' as $$select msrc_sessions.own_context(edition_key,false);$$;

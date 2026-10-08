@@ -28,7 +28,7 @@ header/form-readiness assumptions; corrected code/barriers retain all assertions
 zero retries and unchanged timeouts. Sanitized synthetic traces/screenshots remain
 ignored local evidence; configured skips are not passes.
 
-Added 83 pgTAP assertions, five real-Postgres concurrency cases and native Auth
+Added 89 pgTAP assertions, five real-Postgres concurrency cases and native Auth
 age/cleanup cases. Source review/lint/types/whitespace PASS; SQL/native execution
 is NOT TESTED locally because no disposable Docker database is available here.
 The draft PR's isolated Linux CI must verify them before claiming PASS. Hosted
@@ -54,7 +54,7 @@ post-lint SQL/native checks were not reached. The optional ownership probe now
 uses an exact catalog check and a literal parameter-bound read when Storage
 exists. Eight additional rollback-only SQL assertions cover absent Storage,
 UUID/text owners and fail-closed rollback for an unknown provider shape. They
-are included in the 83 new assertions above and remain NOT RUN until fresh CI.
+were included in that revision's 83 new assertions and remain pending complete CI.
 No provider schema, hosted configuration or timeout was changed.
 
 Third head `b23370e66ca2e5e8bb9b5cd48b81d1866d8b40df` also stopped at strict
@@ -64,6 +64,16 @@ jobs did not reach SQL/native execution. The narrow correction uses the exact
 `to_regclass('storage.objects')` catalog result as its qualified relation; the
 actor UUID remains bound through `USING`, all ownership and unknown-shape checks
 remain, and strict lint/assertions/timeouts are unchanged. Fresh CI is required.
+
+Fourth head `7d9e2dbe927231179f3b3014d4c9f9041085461f` passed native-stack reset
+and strict database lint. SQL tests then FAILED on two actual causes: the new
+historical challenge fixture evaluated `clock_timestamp()` twice, violating its
+exact ten-minute expiry constraint; the new context wrappers evaluated a malformed
+subject before the original UUID failure handler. The fixture now uses one
+statement timestamp, and the three wrappers return NULL for invalid UUID syntax.
+Six direct malformed-subject assertions raise the new-file total to 89. Existing
+session assertions, timeouts, rate limits and native fixtures are unchanged;
+complete SQL, concurrency and native execution still require fresh CI.
 
 Fresh merged-main staff verification and completed rerun are recorded separately
 in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).

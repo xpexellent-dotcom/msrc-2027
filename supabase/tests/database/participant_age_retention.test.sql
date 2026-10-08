@@ -73,7 +73,7 @@ select throws_ok($$delete from msrc_participant.profiles where actor_id=pg_temp.
 -- extending a production admission/subject clock or bypassing verification.
 insert into msrc_participant.challenges(id,actor_id,purpose,recipient,identity_revision,code_hash,email_hash,ip_hash,name,privacy_version,created_at,expires_at,state)
  values('c9300000-0000-4000-8000-000000000001',pg_temp.age_actor(1),'verify_email',pg_temp.age_email(1),1,repeat('a',64),repeat('b',64),repeat('c',64),'Synthetic adult','synthetic-age-notice',
-  clock_timestamp()-interval '2 days',clock_timestamp()-interval '2 days'+interval '10 minutes','sent');
+  statement_timestamp()-interval '2 days',statement_timestamp()-interval '2 days'+interval '10 minutes','sent');
 create temporary table receipt_snapshot as select to_jsonb(n) value from msrc_participant.notice_receipts n where actor_id=pg_temp.age_actor(1);
 create temporary table audit_snapshot as select to_jsonb(a) value from msrc_participant.audit a where actor_id=pg_temp.age_actor(1);
 insert into auth.audit_log_entries(id,payload,created_at,ip_address) values('c9400000-0000-4000-8000-000000000001',
@@ -216,5 +216,12 @@ select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','1','The sa
 update msrc_participant.retention_policy set enabled=false;
 select ok(not msrc_participant.ready(),'Independent cleanup closure closes database admission too');
 select is(msrc_participant.cleanup_unverified(100,false)->>'state','closed','Closing cleanup does not mutate held identities');
+select set_config('request.jwt.claims','{"sub":"malformed-user","role":"authenticated","session_id":"c9600000-0000-4000-8000-000000000001"}',true);
+select is(public.msrc_session_context('synthetic-age-retention-2027'),null::jsonb,'Malformed native subject cannot produce a session context or exception');
+select is(public.msrc_session_activity('synthetic-age-retention-2027'),null::jsonb,'Malformed native subject cannot produce an activity context');
+select is(public.msrc_access_context('synthetic-age-retention-2027'),null::jsonb,'Malformed native subject cannot bypass the persisted authority perimeter');
+select is(public.msrc_read_access_context('synthetic-age-retention-2027'),null::jsonb,'Malformed native subject cannot produce read authorization');
+select is(msrc_sessions.observe_context('synthetic-age-retention-2027'),null::jsonb,'The private stable observer keeps fail-closed UUID parsing');
+select is(public.msrc_participant_profile('synthetic-age-retention-2027'),null::jsonb,'Malformed native subject cannot reveal a participant profile');
 select * from finish();
 rollback;
