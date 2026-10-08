@@ -2,7 +2,7 @@
 .policy-hero { background: var(--color-surface-lilac); padding-block-end: clamp(2.5rem, 5vw, 4rem); }
 .policy-hero-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 5rem); padding-block: clamp(2rem, 4vw, 3.75rem); align-items: end; }
 .policy-hero h1 { color: var(--color-purple); font-family: var(--font-display); font-size: clamp(2.75rem, 5.5vw, 5rem); line-height: 1.2; letter-spacing: -.035em; margin-block: 1.1rem 1.5rem; }
-.policy-lead { max-inline-size: 48ch; font-size: var(--text-lead); line-height: 1.85; text-wrap: pretty; }
+.policy-lead { max-inline-size: 48ch; font-size: var(--text-lead); line-height: 1.85; text-wrap: pretty; overflow-wrap: anywhere; }
 .policy-lead + .policy-lead { margin-block-start: 1rem; }
 .policy-version-details { border-block-start: 2px solid var(--color-purple); }
 .policy-version-details > div { border-block-end: 1px solid var(--color-line-strong); padding-block: 1.15rem; }

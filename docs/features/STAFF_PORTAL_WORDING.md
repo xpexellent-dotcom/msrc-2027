@@ -5,6 +5,9 @@
 Status: **local implementation and review PASS; copy NOT YET RELEASED to
 Production**. This presentation change starts from merged main
 `2f677bedd9e1773508286cc5d8db79780801cc37` on `codex/staff-portal-copy`.
+The branch subsequently reconciles merged main
+`fbddf28ea68cea2370cf4704a6b8029566cb007c`; the public QA changes left staff
+source and permissions untouched, and both shared progress records are preserved.
 
 ## What staff see
 
