@@ -21,6 +21,8 @@ a local `next build && next start` of the same commit.
 - FIXED: on desktop the homepage's zero scroll-padding let keyboard focus land
   under the sticky header/chapter bar (an Arabic FAQ question); journey controls now
   carry their own focus scroll-margin, leaving chapter jumps unchanged.
+- FIXED: Privacy Policy lead overflowed sideways at 320px with 200% text (unbroken
+  www.msrc2027.com); the lead now wraps anywhere, and the policy test checks both together.
 - FIXED: contact copy "organising" → "organizing" (site/spec use -ize); dropped
   one stray serial comma in the homepage programme note.
 - Each fix has a regression test confirmed to fail on `main`. Full public browser
