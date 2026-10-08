@@ -80,8 +80,9 @@ in an ignored local evidence directory, outside source control.
 ## Release and evidence limits
 
 These checks do not certify live axe, native Arabic-reader approval, provider
-behavior or operational UAT. The unchanged full staff/native suites were not
-rerun for this copy-only task. Merge and deployment of this copy remain pending.
+behavior or operational UAT. The local commands above were scoped; broader
+exact-head staff/native CI results are recorded in PR checks. Merge and deployment
+of this copy remain pending.
 
 The separate operator record in [draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45)
 holds the personal password-change evidence. Its captured 8 October

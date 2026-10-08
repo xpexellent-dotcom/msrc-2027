@@ -28,8 +28,8 @@ review and root EN/AR role-guidance screenshot review PASS. Initial test-owned
 scroll timing/heading-position failures remain in ignored traces; corrected
 assertions use the actual enlarged heading position, without retries, increased
 timeouts, CSS edits or weaker accessibility checks. Six ignored screenshots are
-synthetic local evidence only. Full staff/native suites, live axe and native
-Arabic-reader review were not rerun. Copy is **NOT YET IN PRODUCTION**; merge and
+synthetic local evidence only. Broader exact-head CI results are recorded in PR
+checks; live axe and native Arabic-reader review remain NOT TESTED. Copy is **NOT YET IN PRODUCTION**; merge and
 deployment remain pending.
 
 Separate current operator checkpoint, recorded in
@@ -47,7 +47,7 @@ dated historical development receipts.
 Reconciled merged main `fbddf28ea68cea2370cf4704a6b8029566cb007c` after the
 public-site QA merge. Only the shared progress record conflicted; both records
 are retained. Staff permissions and interface source were unchanged upstream.
-Exact-head CI on the reconciled branch is pending.
+Exact-head CI on the reconciled branch is recorded in PR checks.
 
 ## 8 October 2026 — Public-site QA pass (Claude, PR #47)
 
