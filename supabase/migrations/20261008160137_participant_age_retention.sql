@@ -477,7 +477,7 @@ $$;
 
 create function msrc_participant.retained_reason(target_actor uuid) returns text
  language plpgsql volatile security definer set search_path='' as $$
- declare native_email text;storage_owned boolean;
+ declare native_email text;storage_owned boolean;storage_relation regclass;
  begin
  select u.email into native_email from auth.users u where u.id=target_actor;
  if msrc_participant.unknown_erasure_reference() then return 'unreviewed_foreign_key';end if;
@@ -501,9 +501,10 @@ create function msrc_participant.retained_reason(target_actor uuid) returns text
   or exists(select 1 from auth.identities i where i.user_id=target_actor and i.provider<>'email') then return 'native_identity';end if;
  -- Storage is deliberately absent from minimal native-Auth CI stacks. When
  -- installed, its actual owner/owner_id records remain a mandatory hold. This
- -- literal bound read avoids adding or changing optional provider schemas.
- if to_regclass('storage.objects') is not null then
-  execute 'select exists(select 1 from storage.objects o where o.owner=$1 or o.owner_id=$1::text)'
+ -- catalog-bound read avoids adding or changing optional provider schemas.
+ storage_relation:=to_regclass('storage.objects');
+ if storage_relation is not null then
+  execute format('select exists(select 1 from %s o where o.owner=$1 or o.owner_id=$1::text)',storage_relation)
    into storage_owned using target_actor;
   if storage_owned then return 'storage_owner';end if;
  end if;

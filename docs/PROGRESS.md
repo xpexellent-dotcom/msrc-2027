@@ -57,6 +57,14 @@ UUID/text owners and fail-closed rollback for an unknown provider shape. They
 are included in the 83 new assertions above and remain NOT RUN until fresh CI.
 No provider schema, hosted configuration or timeout was changed.
 
+Third head `b23370e66ca2e5e8bb9b5cd48b81d1866d8b40df` also stopped at strict
+lint: the checker preplanned the constant Storage SQL text despite its runtime
+catalog guard (SQLSTATE 42P01). Foundation job 113442565095 and sibling native
+jobs did not reach SQL/native execution. The narrow correction uses the exact
+`to_regclass('storage.objects')` catalog result as its qualified relation; the
+actor UUID remains bound through `USING`, all ownership and unknown-shape checks
+remain, and strict lint/assertions/timeouts are unchanged. Fresh CI is required.
+
 Fresh merged-main staff verification and completed rerun are recorded separately
 in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).
 Its public filter CI failure is preserved: correct URL but stale rendered filters
