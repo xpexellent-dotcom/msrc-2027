@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
@@ -18,6 +18,12 @@ import { conferenceConfig } from "@/config/conference";
 import { formatIndex, formatMinutes, formatResultCount, type Locale } from "@/lib/i18n";
 
 export type CatalogueQuery = { q?: string; day?: string; category?: string; room?: string; edition?: string; kind?: string };
+
+// Keep native controls inert until the client commits hydration. An early change
+// must not write history before the router can reflect it in useSearchParams.
+const subscribeHydration = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
 
 function queryDay(value?: string): "all" | ConferenceDay {
   return value === "day1" || value === "day2" ? value : "all";
@@ -69,6 +75,7 @@ function ExploreBand({ locale, title, href, label }: { locale: Locale; title: st
 
 export function ProgrammeExperience({ locale, sessions: approvedSessions, speakers }: { locale: Locale; sessions: readonly PublicSession[]; speakers: readonly PublicSpeaker[]; initialQuery?: CatalogueQuery }) {
   const copy = experienceCopy[locale];
+  const hydrated = useSyncExternalStore(subscribeHydration, clientSnapshot, serverSnapshot);
   const addressQuery = useSearchParams();
   const day = queryDay(addressQuery.get("day") ?? undefined);
   const category = addressQuery.get("category") ?? "all";
@@ -82,6 +89,7 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
   const hasActiveFilters = filtering || day !== "all";
 
   function change(values: Partial<{ day: "all" | ConferenceDay; category: string; room: string; q: string }>) {
+    if (!hydrated) return;
     updateAddress(values);
   }
   function clear() {
@@ -94,15 +102,15 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
     <section className="experience-catalogue" aria-label={copy.pages.program.label}>
       <Container>
         <div className="programme-toolbar"><div className="programme-days" role="group" aria-label={copy.conferenceDays}>
-          {(["all", "day1", "day2"] as const).map((value) => <button type="button" data-testid={`program-day-${value}`} key={value} aria-pressed={day === value} onClick={() => change({ day: value })}>{value === "all" ? copy.allDays : copy[value]}</button>)}
+          {(["all", "day1", "day2"] as const).map((value) => <button type="button" data-testid={`program-day-${value}`} key={value} aria-pressed={day === value} disabled={!hydrated} onClick={() => change({ day: value })}>{value === "all" ? copy.allDays : copy[value]}</button>)}
         </div><p className="experience-timezone">{copy.timezone}</p></div>
         <div className="experience-filters">
-          <label className="experience-search" htmlFor="programme-search">{copy.searchSessions}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="programme-search" data-testid="program-search" type="search" value={query} onChange={(event) => change({ q: event.target.value })} placeholder={copy.searchSessionsPlaceholder} /></span></label>
-          <label htmlFor="programme-category">{copy.category}<select id="programme-category" data-testid="program-category" value={category} onChange={(event) => change({ category: event.target.value })} disabled={categories.length === 0} aria-describedby={categories.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allFormats}</option>{categories.map((item) => <option value={item.id} key={item.id}>{item.label[locale]}</option>)}</select></label>
-          <label htmlFor="programme-room">{copy.room}<select id="programme-room" data-testid="program-room" value={room} onChange={(event) => change({ room: event.target.value })} disabled={rooms.length === 0} aria-describedby={rooms.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allRooms}</option>{rooms.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <label className="experience-search" htmlFor="programme-search">{copy.searchSessions}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="programme-search" data-testid="program-search" type="search" value={query} disabled={!hydrated} onChange={(event) => change({ q: event.target.value })} placeholder={copy.searchSessionsPlaceholder} /></span></label>
+          <label htmlFor="programme-category">{copy.category}<select id="programme-category" data-testid="program-category" value={category} onChange={(event) => change({ category: event.target.value })} disabled={!hydrated || categories.length === 0} aria-describedby={categories.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allFormats}</option>{categories.map((item) => <option value={item.id} key={item.id}>{item.label[locale]}</option>)}</select></label>
+          <label htmlFor="programme-room">{copy.room}<select id="programme-room" data-testid="program-room" value={room} onChange={(event) => change({ room: event.target.value })} disabled={!hydrated || rooms.length === 0} aria-describedby={rooms.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allRooms}</option>{rooms.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
         </div>
         {categories.length === 0 || rooms.length === 0 ? <p id="programme-filter-note" className="experience-filter-note">{copy.filterNote}</p> : null}
-        <div className={`experience-result-bar${!sessions.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!sessions.length ? "sr-only" : undefined} role="status" aria-live="polite">{sessions.length ? formatResultCount(sessions.length, locale) : filtering ? copy.noResults : copy.programPending}</p>{hasActiveFilters ? <Button variant="ghost" size="small" data-testid="program-clear" onClick={clear}>{copy.clear}</Button> : null}</div>
+        <div className={`experience-result-bar${!sessions.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!sessions.length ? "sr-only" : undefined} role="status" aria-live="polite">{sessions.length ? formatResultCount(sessions.length, locale) : filtering ? copy.noResults : copy.programPending}</p>{hasActiveFilters ? <Button variant="ghost" size="small" data-testid="program-clear" disabled={!hydrated} onClick={clear}>{copy.clear}</Button> : null}</div>
         {sessions.length ? <div className="programme-results">{(["day1", "day2"] as const).map((value) => {
           const rows = sessions.filter((session) => session.day === value);
           return rows.length ? <section key={value} aria-labelledby={`programme-${value}-heading`}><h2 id={`programme-${value}-heading`} className="programme-day-heading">{copy[value]}</h2>{rows.map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}</section> : null;
@@ -146,6 +154,7 @@ export function SpeakerCard({ locale, speaker }: { locale: Locale; speaker: Publ
 
 export function MediaExperience({ locale, media, sessions }: { locale: Locale; media: readonly PublicMedia[]; sessions: readonly PublicSession[]; initialQuery?: CatalogueQuery }) {
   const copy = experienceCopy[locale];
+  const hydrated = useSyncExternalStore(subscribeHydration, clientSnapshot, serverSnapshot);
   const addressQuery = useSearchParams();
   const query = addressQuery.get("q") ?? "";
   const edition = queryEdition(addressQuery.get("edition") ?? undefined);
@@ -154,6 +163,7 @@ export function MediaExperience({ locale, media, sessions }: { locale: Locale; m
   const filtering = query.trim() !== "" || kind !== "all";
   const hasActiveFilters = filtering || edition !== "all";
   function change(values: Partial<{ q: string; edition: "all" | "2026" | "2027"; kind: string }>) {
+    if (!hydrated) return;
     updateAddress(values);
   }
   function clear() {
@@ -163,11 +173,11 @@ export function MediaExperience({ locale, media, sessions }: { locale: Locale; m
   const editionText = edition === "all" ? copy.mediaPendingBody : copy.selectedMediaPending.replace("{edition}", new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { numberingSystem: locale === "ar" ? "arab" : "latn", useGrouping: false }).format(Number(edition)));
   return <><ExperienceIntro locale={locale} page="media" /><section className="experience-catalogue" data-testid="media-catalogue"><Container>
     <div className="experience-filters">
-      <label className="experience-search" htmlFor="media-search">{copy.searchMedia}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="media-search" data-testid="media-search" type="search" value={query} placeholder={copy.searchMediaPlaceholder} onChange={(event) => change({ q: event.target.value })} /></span></label>
-      <label htmlFor="media-edition">{copy.edition}<select id="media-edition" data-testid="media-edition" value={edition} onChange={(event) => change({ edition: queryEdition(event.target.value) })}><option value="all">{copy.allEditions}</option><option value="2026">MSRC 2026</option><option value="2027">MSRC 2027</option></select></label>
-      <label htmlFor="media-kind">{copy.mediaKind}<select id="media-kind" data-testid="media-kind" value={kind} onChange={(event) => change({ kind: event.target.value })}><option value="all">{copy.allMedia}</option><option value="recording">{copy.recordings}</option><option value="highlight">{copy.highlights}</option><option value="photograph">{copy.photographs}</option></select></label>
+      <label className="experience-search" htmlFor="media-search">{copy.searchMedia}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="media-search" data-testid="media-search" type="search" value={query} disabled={!hydrated} placeholder={copy.searchMediaPlaceholder} onChange={(event) => change({ q: event.target.value })} /></span></label>
+      <label htmlFor="media-edition">{copy.edition}<select id="media-edition" data-testid="media-edition" value={edition} disabled={!hydrated} onChange={(event) => change({ edition: queryEdition(event.target.value) })}><option value="all">{copy.allEditions}</option><option value="2026">MSRC 2026</option><option value="2027">MSRC 2027</option></select></label>
+      <label htmlFor="media-kind">{copy.mediaKind}<select id="media-kind" data-testid="media-kind" value={kind} disabled={!hydrated} onChange={(event) => change({ kind: event.target.value })}><option value="all">{copy.allMedia}</option><option value="recording">{copy.recordings}</option><option value="highlight">{copy.highlights}</option><option value="photograph">{copy.photographs}</option></select></label>
     </div>
-    <div className={`experience-result-bar${!records.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!records.length ? "sr-only" : undefined} role="status" aria-live="polite">{records.length ? formatResultCount(records.length, locale) : filtering ? copy.noResults : copy.mediaPending}</p>{hasActiveFilters ? <Button variant="ghost" size="small" data-testid="media-clear" onClick={clear}>{copy.clear}</Button> : null}</div>
+    <div className={`experience-result-bar${!records.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!records.length ? "sr-only" : undefined} role="status" aria-live="polite">{records.length ? formatResultCount(records.length, locale) : filtering ? copy.noResults : copy.mediaPending}</p>{hasActiveFilters ? <Button variant="ghost" size="small" data-testid="media-clear" disabled={!hydrated} onClick={clear}>{copy.clear}</Button> : null}</div>
     {records.length ? <div className="conference-media-grid">{records.map((record) => <MediaCard locale={locale} record={record} session={published(sessions).find((session) => session.slug === record.sessionSlug)} key={record.slug} />)}</div> : <EmptyCatalogue testId="media-empty" title={filtering ? copy.noResults : copy.mediaPending} body={filtering ? copy.noResultsBody : editionText} />}
     <p className="experience-access-note" data-testid="media-access-note">{copy.accessNote}</p>
   </Container></section><ExploreBand locale={locale} title={copy.previousTitle} href="/#film" label={copy.previousLink} /></>;

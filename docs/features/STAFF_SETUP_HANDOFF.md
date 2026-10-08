@@ -2,7 +2,33 @@
 
 8 October 2026. BL-AUTH-01/05/06, BL-RPT-01/03; ORG-043/044/046–048.
 
-## Current release
+## Current reconciliation after #51 and #52
+
+The organizer merged [PR #51](https://github.com/xpexellent-dotcom/msrc-2027/pull/51)
+at `4952e5a4c27c718ecb07b6a78f8d79f21f515588`, then
+[PR #52](https://github.com/xpexellent-dotcom/msrc-2027/pull/52) at current main
+`12bcc5d9c3611281c3f13c03e207cc82ad076d09`. The latter includes the reviewed
+`4eb38b39490090961c2ebb137b550f52ce7f3d06`, whose seven substantive CI jobs,
+Vercel and Preview Comments passed. The screenshot-reviewed filter source and
+original assertions are retained. The main application/SQL/test/CI tree matches
+that tested head; this handoff reconciliation changes documentation only.
+
+#50 incorporates current main and preserves both journals and all failed
+receipts. Fresh exact-head checks must pass before its organizer merge. Final
+merged-main CI and owned current Production/alias proof, plus live EN/AR blank
+staff sign-in, Programme/Media filter and closed API checks, remain pending that
+merge. No authenticated staff DOM or new password/TOTP operation is requested.
+Participant collection and cleanup remain closed; the new migration and a
+cleanup scheduler have not been installed by this task.
+
+All checkpoints below retain their original captured facts. In particular,
+`b1c3763`, proofs `7100a053...`/`2b3ecf58...`, `e236832`, `2c73fff` and `e90fac54`
+are earlier observations. Their uses of current/draft/unmerged refer to those
+checkpoints; they do not assert the current serving deployment or session.
+Original STOP/403, cancelled browser and failed filter/age receipts are not
+reclassified or replaced by later successes.
+
+## Captured release after #45
 
 [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45) was merged by the
 organizer at 15:52:30 UTC. Its reviewed head was
@@ -138,6 +164,31 @@ substantive CI jobs, Vercel and Preview Comments at exact head
 and lab 81. The original assertions remain; no retries or timeout increases were
 added. That fix is not merged or deployed. These draft results are separate from
 merged-main CI and the current live boundaries.
+
+## Remaining participant-launch prerequisites
+
+1. Review the sole pending `20261008160137_participant_age_retention.sql` against
+   actual hosted state and the existing migration ledger. Establish a fresh
+   backup and isolated restore proof before a separately authorized application.
+   Do not replay the nine earlier migrations or bootstrap; resolve any legacy
+   accounts without age proof without fabricating a declaration.
+2. Approve retention exceptions and native/provider-log handling. Establish the
+   restricted cleanup operator, scheduler, monitoring and failure procedure.
+   No scheduler is installed here. Keep current deletion and ever-verified
+   records separately from database backups; test their reconciliation on restore
+   so erased accounts cannot return and verified accounts cannot be erased.
+3. Verify managed Auth/hook boundaries, approved EN/AR notices and native Arabic
+   review, privacy/provider/location requirements, support and recovery ownership,
+   email credentials and the shared volume cap. Pass controlled inbox, recovery,
+   mobile/keyboard/screen-reader and human UAT; synthetic CI is separate evidence.
+4. After those operating gates pass, verify a bounded dry-run, then separately
+   authorize cleanup and participant database/server enablement with exact
+   serving-deployment and live checks. Participant collection cannot open while
+   cleanup is disabled. Staff pairing, password change, registration and all
+   other operational gates remain separate.
+
+See [the detailed participant guide](PARTICIPANT_AGE_RETENTION.md). No hosted,
+account, password, email or cleanup operation is performed by this handoff.
 
 ## Rollback and custody
 

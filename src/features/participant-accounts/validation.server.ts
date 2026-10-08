@@ -9,11 +9,14 @@ export function normalizeParticipantCode(value: string): string {
 export function validateParticipantPayload(value: unknown): { ok: true; value: ParticipantPayload } | { ok: false; fieldErrors?: ParticipantResponse["fieldErrors"] } {
   if (!value || typeof value !== "object" || Array.isArray(value)) return { ok: false };
   const record = value as Record<string, unknown>;
-  const allowed = ["action", "name", "email", "password", "code", "requestId", "formToken", "website"];
+  const allowed = ["action", "name", "email", "password", "code", "requestId", "formToken", "website", "ageConfirmed"];
   if (Object.keys(record).some((key) => !allowed.includes(key)) || !PARTICIPANT_ACTIONS.includes(record.action as never)
-    || Object.entries(record).some(([, entry]) => typeof entry !== "string")) return { ok: false };
+    || Object.entries(record).some(([key, entry]) => key !== "ageConfirmed" && typeof entry !== "string")) return { ok: false };
   const input = { ...record } as unknown as ParticipantPayload;
   const errors: Partial<Record<ParticipantField, "required" | "invalid" | "too_long">> = {};
+  // ORG-041: this is a declaration, not verified age or an additional identity field.
+  // Never coerce strings/numbers or carry a signup declaration into another action.
+  if (input.action !== "signup" && Object.hasOwn(record, "ageConfirmed")) return { ok: false, fieldErrors: { ageConfirmed: "invalid" } };
   if (input.action !== "logout") {
     input.email = input.email?.trim().toLowerCase();
     if (!input.email) errors.email = "required";
@@ -21,6 +24,8 @@ export function validateParticipantPayload(value: unknown): { ok: true; value: P
     else if (!/^[^\s@<>\r\n]+@[^\s@<>\r\n]+\.[^\s@<>\r\n]+$/.test(input.email)) errors.email = "invalid";
   }
   if (input.action === "signup") {
+    if (!Object.hasOwn(record, "ageConfirmed") || record.ageConfirmed === false) errors.ageConfirmed = "required";
+    else if (record.ageConfirmed !== true) errors.ageConfirmed = "invalid";
     input.name = input.name?.trim();
     if (!input.name) errors.name = "required";
     else if (input.name.length > 120) errors.name = "too_long";

@@ -1,5 +1,53 @@
 # Progress and session handover
 
+## 8 October 2026 — Staff handoff reconciled after organizer merges
+
+GitHub confirms #51 and #52 are merged. Current main is
+`12bcc5d9c3611281c3f13c03e207cc82ad076d09`, the organizer's #52 merge of reviewed
+`4eb38b39490090961c2ebb137b550f52ce7f3d06`; #51 merged earlier at `4952e5a4`.
+#50 now includes this main. Only PROGRESS conflicted; both complete journals
+were retained, with zero missing nonblank parent lines. The handoff, original
+cancelled browser receipt, public-filter failure and nine failed age/retention
+head archives remain preserved. No application, migration, CI or test source
+differs from current main in this documentation reconciliation.
+
+#52's exact reconciled head passed all seven substantive CI jobs, Vercel and
+Preview Comments: [Foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37836502517),
+[Staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37836502543),
+[Participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37836502534).
+Observed results: 2,383 units/59 files, lint/types, 79-page build, public
+465/29 configured skips, lab 81, Contact 44, participant 26 closed +62 enabled/
+four intentional skips, staff 32 closed +32 enabled/six skips, password 26/two
+skips and both six-case gate suites. Each disposable database job passed
+1,023 SQL assertions/13 files, including 117 age/retention cases; integrations
+80/80 including five concurrency cases; native participant 25/staff 26.
+All four browser artifacts, lint/advisors, helper cleanup and teardown passed.
+Optional cold repetitions were skipped, not counted as passes.
+
+The earlier #50 `e236832` documentation CI also passed. Fresh exact-head checks
+are required for this reconciliation before #50 is marked ready for organizer
+merge. Final main CI, owned serving source/aliases and live EN/AR sign-in,
+Programme/Media filters and closed API verification follow that human merge.
+The b1 release/7100 provider/2b3 HTTP and earlier draft states below are dated
+historical captures, not current serving-source or signed-session assertions.
+
+Participant launch still requires the reviewed sole new migration and fresh
+backup/restore proof; approved retention exceptions and provider-log handling;
+a restricted, monitored cleanup schedule with deletion/verified-status records
+kept separately from backups and reconciled on restore; provider/privacy/notice/
+email-volume checks; human inbox, recovery and EN/AR mobile UAT. Admission must
+stay closed until cleanup is operational and both database/server release gates
+are independently authorized and verified. Do not replay the nine older
+migrations or bootstrap. No hosted migration, scheduler, setting, account,
+password, invitation or email action occurs in this task. See
+[the current handoff](features/STAFF_SETUP_HANDOFF.md) and
+[participant launch gates](features/PARTICIPANT_AGE_RETENTION.md).
+Final reconciliation documentation checks PASS: independent factual/privacy/
+rollback review, 91 relative links with zero missing targets, parent-journal
+preservation, added-line privacy scan and `git diff --check`. Functional local
+suites were not repeated for this documentation-only delta; fresh isolated CI
+checks this exact reconciliation before readiness is reported.
+
 ## 8 October 2026 — Final restricted staff setup handoff
 
 [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45) is merged at
@@ -97,6 +145,196 @@ cancelled receipt is preserved separately from attempt 2. PR #45 remains draft,
 open and unmerged. The final exact-head rollup has all seven substantive CI
 checks, Vercel and Preview Comments SUCCESS. This entry is recorded locally and
 the final result is in the PR body; no commit/push triggers any additional CI jobs.
+## 8 October 2026 — PR #52 reconciled for organizer merge
+
+The organizer reviewed #52's screenshots and requested #52 be prepared for their
+merge before the staff handoff. Fresh GitHub inspection found #51 already merged
+at `4952e5a4c27c718ecb07b6a78f8d79f21f515588`, from its reviewed `2c73fff` head.
+That actual state supersedes the planned merge order. #52 now incorporates this
+main; its only conflict was PROGRESS, resolved by retaining both histories.
+All nonblank journal lines from both parents remain. The filter implementation
+and assertions are identical to screenshot-reviewed `e90fac54`.
+
+Reconciled-tree `npx --yes pnpm@11.19.0 check` PASS: lint, types, 2,383 unit cases
+in 59 files and the 79-page build. The existing focused Playwright command in
+[the filter note](features/catalogue-filter-hydration.md) passed all 30 EN/AR
+desktop/mobile hydration, deep-link, rapid-change, history, keyboard and axe cases
+in 39.7 seconds, with no skips/retries or changed assertions/timeouts.
+Independent source/history review and `git diff --check` PASS. Fresh exact-head
+CI is still required before marking #52 ready; earlier green heads are historical.
+
+#50's `e236832` documentation head passed its seven substantive CI jobs; that
+does not resolve its conflict with current main. Reconcile it after the organizer
+merges #52, preserving the handoff and failed receipts. #51 needs no further PR
+merge. Final merged-main/owned live verification follows the remaining merges.
+Participants and cleanup remain off; no hosted migration, scheduler, production
+setting, account, password or email operation occurs in this task.
+
+## 8 October 2026 — Public filter hydration fix prepared; not deployed
+
+Programme and Media filters now remain disabled until client hydration commits,
+including their search, clear and day controls. Initial deep-link selections and
+the existing query-delta merge remain intact. Workshops has no query controls
+and is unchanged. Scope: PRG-01, MED-01/04, CMS-04, LOC-01/03 and ACC-01.
+
+The retained [Foundation mobile failure](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37807214814/job/113414512943)
+at `f7bc82c884529f51a55af082c3797c993dbfdb31` showed a correct combined URL
+while both selectors remained unfiltered. An interaction before the router's
+history synchronization was ready is a trace-supported inference; its exact
+effect timing was not recorded. The original trace/context/screenshot remain
+retained. No assertion, timeout or retry was weakened.
+
+On `codex/public-filter-hydration`, based on main `b1c3763`: 14 focused unit
+tests PASS, scoped lint PASS, TypeScript/79-page production build PASS, and all
+30 targeted desktop/mobile browser cases PASS with zero skips/retries. These
+include eight held-JavaScript EN/AR regressions, the two original synchronous
+rapid-change cases, and catalogue/history/locale/keyboard/axe checks.
+Independent source review and whitespace checks PASS.
+
+This isolated fix is prepared for draft review, unmerged and not deployed. Full-suite CI
+and live verification are NOT TESTED for this change. Participant age/retention
+work stays on its separate branch; no flags, database, providers, accounts or
+emails were changed. See [the evidence and commands](features/catalogue-filter-hydration.md).
+## 8 October 2026 — Closed participant age and retention foundation prepared
+
+Scope: BL-AUTH-02/09; AUTH-01/06/08, PRV-05/06, LOC-01/03 and ACC-01 under
+ORG-041. A separate branch from merged main `b1c3763a...` adds an explicit 18+
+signup declaration without DOB collection, strict server/private admission proof,
+immutable native creation/ever-verification and a 30-day never-verified deadline.
+It is self-declaration, not independently verified age. Old/malformed capability
+fields or disabled cleanup close requests before personal input or native/mail work.
+
+The reviewed native-only worker is independently disabled and dry-run by default,
+with no scheduler. It serializes/rechecks verification, protects staff/invitations/
+retained/security/storage/unknown-FK records, erases eligible account PII atomically,
+preserves immutable application snapshots and minimal native audit/tombstone
+evidence, and requires current ledger reconciliation before restored access.
+The sole new migration is `20261008160137_participant_age_retention.sql`, generated
+by pinned CLI 2.118.0 and **NOT APPLIED to hosted state**. Earlier versions and
+bootstrap are not replayed. No live setting, account, password or email changed.
+
+Observed local `pnpm check` PASS: lint, types, 2,358 unit tests/57 files and the
+79-page build. UI focused 21 units PASS; full synthetic browser 62 PASS/4 configured
+desktop/tablet skips plus 26 default-off PASS; subsequent narrow wording/layout
+polish passed both EN/AR 320px/200% mobile cases, complete age-label visibility,
+native down/up scroll, keyboard Space/Tab and axe after a fresh build. Initial
+new-case failures exposed the client error allowlist omission and test-owned
+header/form-readiness assumptions; corrected code/barriers retain all assertions,
+zero retries and unchanged timeouts. Sanitized synthetic traces/screenshots remain
+ignored local evidence; configured skips are not passes.
+
+Added 117 pgTAP assertions, five real-Postgres concurrency cases and native Auth
+age/cleanup cases. Source review/lint/types/whitespace PASS; SQL/native execution
+is NOT TESTED locally because no disposable Docker database is available here.
+The draft PR's isolated Linux CI must verify them before claiming PASS. Hosted
+participant accounts and every operational workflow remain closed. Actual
+scheduler/exception/log/restore/inbox/UAT operating prerequisites are separate.
+See [the age/retention guide](features/PARTICIPANT_AGE_RETENTION.md).
+
+Draft [PR #51](https://github.com/xpexellent-dotcom/msrc-2027/pull/51) first CI at
+`1e9b727920545004a7139f8f5e60c0a50fca0e95` applied the migrations successfully
+in all three disposable stacks, then strict database lint FAILED with SQLSTATE
+42702 for ambiguous email references in two RPC wrappers and the retention-hold
+function. The original runs/receipts remain retained. The revised migration
+qualifies the two arguments and renames the local variable; policies, locking,
+assertions and prior migrations are unchanged. SQL/native tests after the failed
+lint were not reached. The revised source still requires fresh disposable CI;
+no hosted SQL or job rerun was performed.
+
+At revised head `ae374727f7b4c718fa2f216522ac714793fd39ce`, fresh migrations
+again applied, but strict lint FAILED with SQLSTATE 42P01 because the intentionally
+Storage-excluded native stacks have no `storage.objects`. Foundation job
+113438523695 and the sibling native failures remain separate failed receipts;
+post-lint SQL/native checks were not reached. The optional ownership probe now
+uses an exact catalog check and a literal parameter-bound read when Storage
+exists. Eight additional rollback-only SQL assertions cover absent Storage,
+UUID/text owners and fail-closed rollback for an unknown provider shape. They
+were included in that revision's 83 new assertions and remain pending complete CI.
+No provider schema, hosted configuration or timeout was changed.
+
+Third head `b23370e66ca2e5e8bb9b5cd48b81d1866d8b40df` also stopped at strict
+lint: the checker preplanned the constant Storage SQL text despite its runtime
+catalog guard (SQLSTATE 42P01). Foundation job 113442565095 and sibling native
+jobs did not reach SQL/native execution. The narrow correction uses the exact
+`to_regclass('storage.objects')` catalog result as its qualified relation; the
+actor UUID remains bound through `USING`, all ownership and unknown-shape checks
+remain, and strict lint/assertions/timeouts are unchanged. Fresh CI is required.
+
+Fourth head `7d9e2dbe927231179f3b3014d4c9f9041085461f` passed native-stack reset
+and strict database lint. SQL tests then FAILED on two actual causes: the new
+historical challenge fixture evaluated `clock_timestamp()` twice, violating its
+exact ten-minute expiry constraint; the new context wrappers evaluated a malformed
+subject before the original UUID failure handler. The fixture now uses one
+statement timestamp, and the three wrappers return NULL for invalid UUID syntax.
+Six direct malformed-subject assertions raise the new-file total to 89. Existing
+session assertions, timeouts, rate limits and native fixtures are unchanged;
+complete SQL, concurrency and native execution still require fresh CI.
+
+Fifth head `5c29332ff4ebdec7c596b1a0a74decc7a0375444` passed reset and strict
+lint; SQL execution exposed the conservative FK guard missing four current
+GoTrue 2.197 relationships (including a misspelled passkey table), so ordinary
+accounts were held instead of erased. Its future-record fixture also attempted
+an unsupported temporary-to-permanent FK. The pinned native migrations confirm
+the four exact `user_id` relationships; their actual credential/challenge/SCIM/
+recovery rows now remain explicit native-identity holds. The fixture uses a
+regular rollback-only relation. Eighteen new assertions cover native inventory,
+an ordinary account's null hold reason and all four real native retained kinds,
+raising this file to 107. Unknown incoming FK/shape checks remain fail closed.
+The failed runs are retained; full SQL/native/concurrency PASS is still pending.
+
+Sixth head `f64292a1a651df15974be0bd2cc9c10bfcef813a` passed reset and strict
+lint. SQL execution then exposed two further failures: a retained-security fixture
+inserted directly into the append-only audit, and service-actor redaction removed
+its role label before the final native-deletion ownership recheck. The fixture now
+creates that audit through the existing native-session/lifecycle trigger. The
+redacted service attribution uses a derived JSON boolean backed by the exact
+current cleanup transaction or linked completed erasure tombstone; a provider
+marker alone never supplies authority. Five assertions cover forged markers,
+successful-job SQLSTATE, exact boolean parsing and service/personal attribution.
+Two further invariants preserve a byte-identical no-op update and a canonical
+late audit replay only through the private tombstone proof. The new file has
+114 assertions. Final deletion rechecks, immutable-audit guards,
+failure rollback and operating gates remain; complete execution is still pending.
+
+Seventh head `82efe7c7f6f7e9f9040af5e55881061dc77a16ce` passed reset and strict
+lint. All 83 new SQL assertions reached before the optional provider fixture
+passed, including atomic erasure, private-bound attribution and immutable audits.
+The next fixture's `CREATE TABLE storage.objects` correctly failed with SQLSTATE
+42501: native `postgres` has Storage usage rather than provider-schema creation
+authority. A disposable-only fixed native-owner fixture helper now performs the
+three synthetic DDL phases inside the existing rollback transaction, verifies
+exact ownership/marker/shape and grants only the test table's required access.
+The helper is removed before advisors/native tests; no production schema grant,
+provider activation or migration change supplies test authority. The remaining
+31 SQL assertions and native/concurrency checks are still pending complete CI.
+Three additional checks deny every API role private-helper schema/execute access
+and reject an unknown DDL operation. The new SQL file now has 117 assertions.
+
+At `fd4ca4d5dc6272d1d2d713d061d61f4658352802`, disposable CI passed strict
+lint, all 1,023 SQL assertions/13 files (117 new age/retention cases), private
+fixture installation/removal, clean advisors and all 80 integrations/9 files,
+including five real cleanup concurrency cases. Optional cold repetition was
+SKIPPED, not counted as a pass. Native staff Auth passed 26/26 on GoTrue2.197.0.
+Participant native Auth passed 24/25; the remaining test stopped with SQLSTATE
+42883 when its query supplied JSON to a JSONB-only helper. Erasure checks before
+that query passed. The one-line explicit test cast is independently reviewed;
+all assertions and migration bytes are unchanged. The failed native receipt is
+retained; a fresh exact-head run must prove the final case. No hosted operation
+or job rerun occurred. The earlier failure checkpoints above remain historical.
+
+At `f7a6565df6308e084066509b09d2550b7de1143a`, SQL1023, integration80 and
+native staff26 passed again. Participant native remained24/25: its corrected
+JSONB call exposed a second test-expression error, SQLSTATE42804, because the
+text cast bound before `NOT`. Explicit parentheses now cast the full boolean;
+remaining native query casts were checked. This is a test-only correction,
+with unchanged assertions/migration/helper bytes. The failed receipt is retained,
+and a fresh exact-head native run is still required. No hosted change or rerun.
+
+Fresh merged-main staff verification and completed rerun are recorded separately
+in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).
+Its public filter CI failure is preserved: correct URL but stale rendered filters
+during a very early interaction. An isolated public hydration fix is being prepared;
+no public-source change is mixed into this participant branch.
 
 ## 8 October 2026 — Staff wording live; password change verified and closed
 

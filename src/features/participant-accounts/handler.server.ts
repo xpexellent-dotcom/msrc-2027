@@ -21,7 +21,11 @@ function reply(body: ParticipantResponse, status = 200, cookie?: string): Respon
 }
 async function ready(config: ParticipantConfig, backend: ParticipantBackend): Promise<boolean> {
   const result = record(await backend.rpc("msrc_participant_status"));
-  return result?.enabled === true && result.privacyVersion === participantNotice("en", config.testMode)?.version
+  // Installed controls and the independent cleanup activation are both required.
+  // An older hosted schema cannot become ready from an application flag alone.
+  return result?.enabled === true && result.ageEnforcementReady === true && result.retentionEnforcementReady === true
+    && result.cleanupEnabled === true
+    && result.privacyVersion === participantNotice("en", config.testMode)?.version
     && result.emailDailyLimit === config.emailDailyLimit;
 }
 async function ownProfile(config: ParticipantConfig, backend: ParticipantBackend, native: NativeParticipantSession, now: number) {
@@ -117,7 +121,8 @@ export function createParticipantHandler(dependencies: {
             if (payload.action === "signup") {
               const actorId = randomUUID(), reservationId = randomUUID();
               const admission = await backend.rpc("msrc_participant_signup_reserve", { actor_id: actorId, reservation_id: reservationId,
-                email: payload.email!, name: payload.name!, privacy_version: participantNotice("en", config.testMode)!.version });
+                email: payload.email!, name: payload.name!, privacy_version: participantNotice("en", config.testMode)!.version,
+                age_confirmed: payload.ageConfirmed === true });
               if (state(admission, "reserved")) await backend.createUser({ actorId, reservationId, email: payload.email!, name: payload.name!, password: payload.password! });
             }
             const purpose: ParticipantCodePurpose = payload.action === "forgot" ? "reset_password" : "verify_email";

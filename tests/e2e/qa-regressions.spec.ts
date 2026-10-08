@@ -270,6 +270,8 @@ test("Arabic text keeps its wrap when the Arabic webfont arrives", async ({ page
 // caught up put back the old value: choosing an edition and then a kind dropped the edition.
 test("quick successive filter changes keep each other", async ({ page }) => {
   await page.goto("/en/media");
+  await expect(page.getByTestId("media-edition")).toBeEnabled();
+  await expect(page.getByTestId("media-kind")).toBeEnabled();
   await page.evaluate(() => {
     const choose = (id: string, value: string) => {
       const select = document.getElementById(id) as HTMLSelectElement;

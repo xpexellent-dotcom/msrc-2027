@@ -10,7 +10,12 @@ Account creation never opens registration or any other operational workflow.
 
 ## Implemented boundary
 
-Sign-up collects name, normalized email and password only. Existing and unknown
+Sign-up collects name, normalized email and password, plus a required signup-only
+18+ self-declaration. No date of birth or extra identity field is collected.
+The server and private native admission require strict boolean `true`; this is
+not independently verified age. See [age and retention](PARTICIPANT_AGE_RETENTION.md)
+for durable proof, the 30-day deadline and the independently disabled cleanup gate.
+Existing and unknown
 addresses receive the same public sign-up/recovery response. The account profile is
 private and owner-scoped; the dashboard shows account state, profile name and
 “Registration not open yet”. English and Arabic forms retain values during locale
@@ -97,12 +102,14 @@ participant recovery.
    release, and request native Arabic reader review. Complete actual processor/location/
    transfer safeguards, support/recovery custody and retention implementation evidence.
    ORG-041 requires minimum age 18 and deletion after 30 days for never-verified
-   accounts; add enforcement/cleanup and meaningful boundary/race tests in separate
-   implementation work before activation. The current migration installs no automatic
-   participant cleanup job. Registration-only national ID/Iqama/passport collection is
+   accounts. The separate closed age/retention foundation implements their controls;
+   review its disposable boundary/race results and operating gates before activation.
+   No active participant cleanup job or schedule is installed. Registration-only national ID/Iqama/passport collection is
    separate BL-REG-01 work and adds no sign-up field. A flag alone admits no account.
-2. Review and apply the pending migrations **in this order**, using the normal reviewed
-   release procedure. Do not bulk-push unrelated pending migrations:
+2. Reconcile actual hosted history through the normal reviewed release procedure.
+   The staff setup execution record already lists nine applied versions, including
+   the older five below. They are historical prerequisites, **not pending files to
+   replay**. Never bulk-push unrelated migrations:
 
    - `20261002193800_staff_mfa_session_foundations.sql`
    - `20261002233353_regular_staff_email_check.sql`
@@ -110,9 +117,16 @@ participant recovery.
    - `20261003180734_readonly_authentication_context.sql`
    - `20261004164034_participant_accounts.sql`
 
-   The persisted-authorization and Contact migrations were separately verified on hosted
-   state. Recheck migration history, ACL/forced-RLS, false operational readiness and
-   native Auth guards before release. This branch applies nothing to hosted Supabase.
+   The persisted-authorization, Contact, staff foundation and owner-password-change
+   versions are also in [the recorded execution ledger](STAFF_PASSWORD_RELEASE_EXECUTION.md).
+   The sole new reviewed file for this slice is separately pending:
+
+   - `20261008160137_participant_age_retention.sql`
+
+   Verify migration history, ACL/forced-RLS, false operational readiness, the false
+   cleanup switch, native guards and restore-ledger reconciliation before release.
+   This branch applies nothing to hosted Supabase. Missing age/retention capability
+   fields or disabled cleanup close the application even if its server flag is set.
 3. Configure Production-only private application credentials and approved email budget;
    keep the participant flag false while verifying configuration. No `NEXT_PUBLIC_`
    secret, preview delivery key, real-recipient fixture, or credential-bearing log.
@@ -140,7 +154,10 @@ participant recovery.
 5. Complete disposable migration/RLS/native-API tests and EN/AR keyboard/RTL/axe tests.
    Then run separately authorized human inbox, second-device reset/revocation,
    screen-reader and mobile UAT. API acceptance alone is not inbox delivery.
-6. Through the reviewed database-owner release procedure, configure the singleton
+6. First complete the independent retention scheduler/monitoring/custody and
+   restore-suppression prerequisites in [the age/retention guide](PARTICIPANT_AGE_RETENTION.md).
+   Enable its cleanup switch only through a separately authorized operator task.
+   Then, through the reviewed database-owner release procedure, configure the singleton
    `msrc_participant.policy` row: `privacy_version` must exactly match the approved
    repository notice, and `email_daily_limit` must exactly match
    `PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT` within the database range `1..100000`. This range

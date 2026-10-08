@@ -7,19 +7,19 @@ select no_plan();
 select has_schema('msrc_participant','Participant security evidence is private');
 select is((select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
   where n.nspname='msrc_participant' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),
-  10::bigint,'Every participant table forces RLS');
+  16::bigint,'Every participant table forces RLS');
 select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role')) r(name)
   where has_schema_privilege(r.name,'msrc_participant','USAGE')),'API roles have no private-schema access');
 select ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
   cross join (values('anon'),('authenticated'),('service_role')) r(name)
   where n.nspname='msrc_participant' and c.relkind='r' and has_table_privilege(r.name,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE')),
   'No API role can read or forge participant records');
-select is(public.msrc_participant_status(),'{"enabled":false,"privacyVersion":null,"emailDailyLimit":null}'::jsonb,
+select is(public.msrc_participant_status(),'{"enabled":false,"privacyVersion":null,"emailDailyLimit":null,"ageEnforcementReady":true,"retentionEnforcementReady":true,"cleanupEnabled":false}'::jsonb,
   'Migration defaults are closed, with no approved notice or email budget');
 select is((select count(*) from msrc_participant.profiles),0::bigint,'No participant identity is seeded');
 select is(public.msrc_participant_form_claim(repeat('a',64),repeat('b',64))->>'state','denied','Closed gate rejects POST admission');
 select is(public.msrc_participant_signup_reserve('a1000000-0000-4000-8000-000000000001','a2000000-0000-4000-8000-000000000001',
-  'participant-one@example.invalid','Synthetic participant','synthetic-approved-notice')->>'state','denied','Closed gate rejects signup reservation');
+  'participant-one@example.invalid','Synthetic participant','synthetic-approved-notice',true)->>'state','denied','Closed gate rejects signup reservation');
 set local role anon;
 select throws_ok($$select public.msrc_participant_status()$$,'42501',null,'Anonymous cannot inspect private release configuration');
 select throws_ok($$select public.msrc_participant_profile('synthetic-participant-2027')$$,'42501',null,'Anonymous cannot request a profile');
@@ -33,6 +33,7 @@ reset role;
 update msrc_participant.policy set enabled=true,privacy_version='synthetic-approved-notice';
 select is(public.msrc_participant_form_claim(repeat('a',64),repeat('b',64))->>'state','denied','Enabled flag alone cannot bypass missing budget');
 update msrc_participant.policy set email_daily_limit=100;
+update msrc_participant.retention_policy set enabled=true;
 select is(public.msrc_participant_form_claim(repeat('a',64),repeat('b',64))->>'state','claimed','Configured gate admits one valid nonce');
 select is(public.msrc_participant_form_claim(repeat('a',64),repeat('c',64))->>'state','denied','Nonce cannot replay from another IP');
 do $$begin
@@ -48,7 +49,7 @@ select throws_ok($$insert into auth.users(id,email,created_at,updated_at,is_anon
     '{"msrcParticipantAdmission":"a2000000-0000-4000-8000-000000000099"}')$$,
   '42501','Participant admission required.','Native unreserved account creation is rejected');
 select is(public.msrc_participant_signup_reserve('a1000000-0000-4000-8000-000000000001','a2000000-0000-4000-8000-000000000001',
-  'participant-one@example.invalid','Synthetic participant','synthetic-approved-notice')->>'state','reserved','Approved synthetic signup reserves exact actor/notice');
+  'participant-one@example.invalid','Synthetic participant','synthetic-approved-notice',true)->>'state','reserved','Approved synthetic signup reserves exact actor/notice');
 select throws_ok($$insert into auth.users(id,email,encrypted_password,created_at,updated_at,is_anonymous,raw_app_meta_data) values
   ('a1000000-0000-4000-8000-000000000001','participant-one@example.invalid','synthetic-managed-fixture-hash',now(),now(),false,
   '{"provider":"email","providers":["email"],"msrcParticipantAdmission":"a2000000-0000-4000-8000-000000000099"}')$$,
