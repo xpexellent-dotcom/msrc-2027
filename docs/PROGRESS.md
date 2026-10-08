@@ -28,7 +28,7 @@ header/form-readiness assumptions; corrected code/barriers retain all assertions
 zero retries and unchanged timeouts. Sanitized synthetic traces/screenshots remain
 ignored local evidence; configured skips are not passes.
 
-Added 75 pgTAP assertions, five real-Postgres concurrency cases and native Auth
+Added 83 pgTAP assertions, five real-Postgres concurrency cases and native Auth
 age/cleanup cases. Source review/lint/types/whitespace PASS; SQL/native execution
 is NOT TESTED locally because no disposable Docker database is available here.
 The draft PR's isolated Linux CI must verify them before claiming PASS. Hosted
@@ -45,6 +45,17 @@ qualifies the two arguments and renames the local variable; policies, locking,
 assertions and prior migrations are unchanged. SQL/native tests after the failed
 lint were not reached. The revised source still requires fresh disposable CI;
 no hosted SQL or job rerun was performed.
+
+At revised head `ae374727f7b4c718fa2f216522ac714793fd39ce`, fresh migrations
+again applied, but strict lint FAILED with SQLSTATE 42P01 because the intentionally
+Storage-excluded native stacks have no `storage.objects`. Foundation job
+113438523695 and the sibling native failures remain separate failed receipts;
+post-lint SQL/native checks were not reached. The optional ownership probe now
+uses an exact catalog check and a literal parameter-bound read when Storage
+exists. Eight additional rollback-only SQL assertions cover absent Storage,
+UUID/text owners and fail-closed rollback for an unknown provider shape. They
+are included in the 83 new assertions above and remain NOT RUN until fresh CI.
+No provider schema, hosted configuration or timeout was changed.
 
 Fresh merged-main staff verification and completed rerun are recorded separately
 in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).

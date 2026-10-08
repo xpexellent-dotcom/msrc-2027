@@ -191,6 +191,28 @@ select is(msrc_participant.retained_reason(pg_temp.age_actor(11)),'native_securi
 select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','Explicit, role, session, native-security and mixed-actor holds retain every identity');
 select ok((select count(*)=5 from auth.users where id in(pg_temp.age_actor(7),pg_temp.age_actor(8),pg_temp.age_actor(9),pg_temp.age_actor(10),pg_temp.age_actor(11))),
  'All retained accounts still exist');
+
+-- These jobs intentionally exclude native Storage initialization. Its optional
+-- relation is recreated only as a rollback-only synthetic provider fixture;
+-- the worker itself never creates/transfers/deletes Storage objects.
+select ok(to_regclass('storage.objects') is null,'An Auth-only native stack needs no Storage schema to evaluate cleanup');
+create schema if not exists storage;
+create table storage.objects(id uuid primary key,owner uuid,owner_id text);
+select pg_temp.age_fixture(12,interval '31 days');
+insert into storage.objects values('c9500000-0000-4000-8000-000000000012',pg_temp.age_actor(12),null);
+select is(msrc_participant.retained_reason(pg_temp.age_actor(12)),'storage_owner','The installed Storage owner UUID holds the account');
+select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','An owned object prevents native user deletion');
+update storage.objects set owner=null,owner_id=pg_temp.age_actor(12)::text;
+select is(msrc_participant.retained_reason(pg_temp.age_actor(12)),'storage_owner','The current Storage text owner_id also holds the account');
+alter table storage.objects drop column owner;
+select throws_ok($$select msrc_participant.cleanup_unverified(100,false)$$,'42703',null,
+ 'An unreviewed Storage shape aborts cleanup rather than bypassing the ownership rule');
+select ok(exists(select 1 from auth.users where id=pg_temp.age_actor(12)) and exists(select 1 from msrc_participant.profiles where actor_id=pg_temp.age_actor(12))
+ and not exists(select 1 from msrc_participant.subject_refs where actor_id=pg_temp.age_actor(12) and erased_at is not null),
+ 'Unknown-provider-shape failure rolls back without any account erasure');
+drop table storage.objects;
+select is(msrc_participant.retained_reason(pg_temp.age_actor(12)),null::text,'Absent optional Storage cannot own objects');
+select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','1','The same original unverified actor is eligible after the synthetic optional relation is removed');
 update msrc_participant.retention_policy set enabled=false;
 select ok(not msrc_participant.ready(),'Independent cleanup closure closes database admission too');
 select is(msrc_participant.cleanup_unverified(100,false)->>'state','closed','Closing cleanup does not mutate held identities');

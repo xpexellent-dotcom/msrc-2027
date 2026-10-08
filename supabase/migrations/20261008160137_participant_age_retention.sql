@@ -477,7 +477,7 @@ $$;
 
 create function msrc_participant.retained_reason(target_actor uuid) returns text
  language plpgsql volatile security definer set search_path='' as $$
- declare native_email text;
+ declare native_email text;storage_owned boolean;
  begin
  select u.email into native_email from auth.users u where u.id=target_actor;
  if msrc_participant.unknown_erasure_reference() then return 'unreviewed_foreign_key';end if;
@@ -499,7 +499,14 @@ create function msrc_participant.retained_reason(target_actor uuid) returns text
   or exists(select 1 from msrc_staff_email.audit a where a.actor_id=target_actor) then return 'security_history';end if;
  if exists(select 1 from auth.mfa_factors f where f.user_id=target_actor)
   or exists(select 1 from auth.identities i where i.user_id=target_actor and i.provider<>'email') then return 'native_identity';end if;
- if exists(select 1 from storage.objects o where o.owner=target_actor or o.owner_id=target_actor::text) then return 'storage_owner';end if;
+ -- Storage is deliberately absent from minimal native-Auth CI stacks. When
+ -- installed, its actual owner/owner_id records remain a mandatory hold. This
+ -- literal bound read avoids adding or changing optional provider schemas.
+ if to_regclass('storage.objects') is not null then
+  execute 'select exists(select 1 from storage.objects o where o.owner=$1 or o.owner_id=$1::text)'
+   into storage_owned using target_actor;
+  if storage_owned then return 'storage_owner';end if;
+ end if;
  if exists(select 1 from auth.audit_log_entries a where msrc_participant.native_audit_mentions(a.payload::jsonb,target_actor,native_email)
   and (coalesce(a.payload->>'action','') not in('user_signedup','user_confirmation_requested','user_repeated_signup')
    or not msrc_participant.native_audit_owned(a.payload::jsonb,target_actor))) then return 'native_security_history';end if;
