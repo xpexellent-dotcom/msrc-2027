@@ -1,5 +1,22 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-019 — Closed participant age declaration and retention enforcement, 8 October 2026
+
+Implementation interpretation of existing ORG-041 and BL-AUTH-02/09, not a new
+organizer eligibility or personal-data policy. Signup requires an explicit 18+
+declaration, bound to an immutable private admission proof; no unnecessary date
+of birth or numeric age is collected, and the declaration is not verified age.
+Server/database/native paths deny missing or malformed proof. The original native
+account clock controls the 30-day deadline and ever-verification is monotone.
+
+The restricted cleanup foundation is dry-run by default and independently disabled,
+with no active scheduler. It preserves immutable application evidence, protects
+staff/invitations/security/retained obligations and records minimal erasure/hold
+outcomes. Unexpected references or unclassified native audit histories fail
+safely. Activation still requires reviewed exception/scheduling/provider-log
+handling and out-of-band deletion/ever-verification ledger restore proof. This
+closed implementation applies no hosted migration or setting and sends no email.
+
 ## 4 October 2026 — Auth CI stability and shared-log overlap
 
 The requester clarified that shared PROGRESS, DECISIONS and checklist append-only

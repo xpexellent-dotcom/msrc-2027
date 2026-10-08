@@ -1,5 +1,22 @@
 # Programme and Media filter hydration
 
+## Current reconciliation, 8 October 2026
+
+The organizer reviewed PR #52's screenshots. GitHub inspection found PR #51
+already merged at main `4952e5a4c27c718ecb07b6a78f8d79f21f515588`; this branch
+now includes that exact main. Only PROGRESS conflicted, and both histories were
+retained. The filter source and assertions are unchanged from reviewed `e90fac54`.
+The original failed receipt and all participant failure archives remain preserved.
+
+Reconciled local `npx --yes pnpm@11.19.0 check` PASS: lint, types, 2,383 units/59
+files and 79-page build. The same focused Playwright command below passed all
+30 cases in 39.7 seconds, zero skips/retries, including the original rapid-change
+assertions. Fresh combined-head CI must pass before organizer merge; no merge,
+production settings, hosted SQL, scheduler, account, password or email action
+was performed. Participant collection/cleanup remain closed.
+
+## Original implementation checkpoint
+
 Scope: PRG-01, MED-01/04, CMS-04, LOC-01/03 and ACC-01. This is a public
 interface bugfix on `codex/public-filter-hydration`, based on main
 `b1c3763a062f12fa2ae419b2645dd48b34eb17a7`. It is not merged or deployed.
