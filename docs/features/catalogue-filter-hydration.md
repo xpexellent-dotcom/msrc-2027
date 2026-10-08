@@ -1,6 +1,16 @@
 # Programme and Media filter hydration
 
-## Current reconciliation, 8 October 2026
+## Current merged-source status, 8 October 2026
+
+The organizer merged PR #52 into `12bcc5d9c3611281c3f13c03e207cc82ad076d09`,
+including the already-merged PR #51. Reviewed `4eb38b3` passed all seven CI jobs,
+Vercel and Preview Comments: 2,383 units/59 files, 79-page build, public 465 with
+29 configured skips and lab 81; all browser artifacts uploaded. Its filter source
+is unchanged from the screenshot-reviewed version. Original failed receipts are
+preserved. Final exact merged-main/owned-live filter verification follows the
+staff handoff merge; no live result is inferred from a successful preview.
+
+## Pre-merge reconciliation checkpoint, 8 October 2026
 
 The organizer reviewed PR #52's screenshots. GitHub inspection found PR #51
 already merged at main `4952e5a4c27c718ecb07b6a78f8d79f21f515588`; this branch

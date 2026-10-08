@@ -3,9 +3,14 @@
 AUTH-01/06/08, PRV-02/04/05/06/08, SEC-01/02/06, LOC-01/03, ACC-01;
 BL-AUTH-02/09. Authority: ORG-041 and approved Privacy/Terms v1.0.
 
-Status: implementation/review in progress. No hosted migration, cleanup schedule,
-participant activation, production setting, real account or email is authorized
-by this PR. Observed final checks are recorded in PROGRESS and PR checks.
+Status: source merged through PR #51 at `4952e5a4`, now included in main
+`12bcc5d9` after PR #52. The reviewed source passed 117 new SQL cases, all five
+cleanup concurrency cases and 25 genuine native participant Auth cases, with
+EN/AR synthetic browser coverage. Those are disposable/synthetic checks, not
+production activation. No hosted migration, cleanup schedule, participant
+activation, production setting, real account or email is authorized by this
+foundation. Final serving-source/live checks follow the handoff merge. Observed
+results and historical failures remain in PROGRESS and the PR receipts.
 
 ## Minimum age
 

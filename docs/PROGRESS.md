@@ -1,5 +1,150 @@
 # Progress and session handover
 
+## 8 October 2026 — Staff handoff reconciled after organizer merges
+
+GitHub confirms #51 and #52 are merged. Current main is
+`12bcc5d9c3611281c3f13c03e207cc82ad076d09`, the organizer's #52 merge of reviewed
+`4eb38b39490090961c2ebb137b550f52ce7f3d06`; #51 merged earlier at `4952e5a4`.
+#50 now includes this main. Only PROGRESS conflicted; both complete journals
+were retained, with zero missing nonblank parent lines. The handoff, original
+cancelled browser receipt, public-filter failure and nine failed age/retention
+head archives remain preserved. No application, migration, CI or test source
+differs from current main in this documentation reconciliation.
+
+#52's exact reconciled head passed all seven substantive CI jobs, Vercel and
+Preview Comments: [Foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37836502517),
+[Staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37836502543),
+[Participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37836502534).
+Observed results: 2,383 units/59 files, lint/types, 79-page build, public
+465/29 configured skips, lab 81, Contact 44, participant 26 closed +62 enabled/
+four intentional skips, staff 32 closed +32 enabled/six skips, password 26/two
+skips and both six-case gate suites. Each disposable database job passed
+1,023 SQL assertions/13 files, including 117 age/retention cases; integrations
+80/80 including five concurrency cases; native participant 25/staff 26.
+All four browser artifacts, lint/advisors, helper cleanup and teardown passed.
+Optional cold repetitions were skipped, not counted as passes.
+
+The earlier #50 `e236832` documentation CI also passed. Fresh exact-head checks
+are required for this reconciliation before #50 is marked ready for organizer
+merge. Final main CI, owned serving source/aliases and live EN/AR sign-in,
+Programme/Media filters and closed API verification follow that human merge.
+The b1 release/7100 provider/2b3 HTTP and earlier draft states below are dated
+historical captures, not current serving-source or signed-session assertions.
+
+Participant launch still requires the reviewed sole new migration and fresh
+backup/restore proof; approved retention exceptions and provider-log handling;
+a restricted, monitored cleanup schedule with deletion/verified-status records
+kept separately from backups and reconciled on restore; provider/privacy/notice/
+email-volume checks; human inbox, recovery and EN/AR mobile UAT. Admission must
+stay closed until cleanup is operational and both database/server release gates
+are independently authorized and verified. Do not replay the nine older
+migrations or bootstrap. No hosted migration, scheduler, setting, account,
+password, invitation or email action occurs in this task. See
+[the current handoff](features/STAFF_SETUP_HANDOFF.md) and
+[participant launch gates](features/PARTICIPANT_AGE_RETENTION.md).
+Final reconciliation documentation checks PASS: independent factual/privacy/
+rollback review, 91 relative links with zero missing targets, parent-journal
+preservation, added-line privacy scan and `git diff --check`. Functional local
+suites were not repeated for this documentation-only delta; fresh isolated CI
+checks this exact reconciliation before readiness is reported.
+
+## 8 October 2026 — Final restricted staff setup handoff
+
+[PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45) is merged at
+`b1c3763a062f12fa2ae419b2645dd48b34eb17a7`. All seven substantive merged-main
+CI jobs and Vercel PASS: [Foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314161),
+[Staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314351),
+[Participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314206).
+No Preview Comments check was observed on main. Fresh main passed2,312 units,
+public457/29 skips, lab81, Contact44, staff32 closed+32 enabled/6 skips,
+password26/2 skips, independent gates6+6, participant26 closed+54 enabled,
+native staff26/participant19, SQL906/12files per database job and75 integration
+cases. All four browser uploads and all three disposable-stack teardowns passed.
+Configured skips/optional repetition are not passes.
+
+Read-only serving proof at 18:55:29.647 UTC confirms owned current Production
+`dpl_FpfqUAg2VRaJc49TQQ6w413DA5Bf`, exact merged source and apex/www aliases.
+Staff portal true, password-change server flag false, participant flag absent/
+default false. Fresh 27 anonymous GETs at 18:44:13.588 UTC passed EN/AR/private/
+noindex/RTL, Security 404, privileged 403, participant/all 15 operational APIs 503,
+robots/public-navigation exclusion. Source binding and HTTP evidence are separate.
+The intervening provider STOP and HTTP 403 receipts are preserved; after the
+organizer updated the private token, the final seven-GET provider read passed.
+No hosted SQL, settings, migration/bootstrap replay, password/account operation
+or real email occurred in this handoff.
+
+The authorized pre-merge browser-only rerun passed26+54 tests, zero failures/
+skips, with desktop/tablet/mobile/EN/AR/keyboard/axe and successful evidence
+upload. Original timeout, partial results and immutable receipt/log hashes are
+preserved; native/other successful jobs were not rerun. The record below remains
+historical, including its then-draft PR state and locally recorded status.
+
+Restricted first-admin setup and owner password/TOTP/revocation facts are
+complete at their captured times; pairing/second-admin inputs, mutual recovery
+UAT and controlled signed-home/live-axe checks remain separate gates. Password
+changes and all participant/operational workflows remain closed. Separate draft
+[PR #51](https://github.com/xpexellent-dotcom/msrc-2027/pull/51) prepares the
+18+ declaration and default-off 30-day never-verified cleanup. All seven
+substantive CI jobs, Vercel and Preview Comments passed at exact head
+`2c73fff30bf4d3ca6bc225489134b19f05aa9bea`: 2,375 units/58 files, lint/types,
+79-page build, public 457/29 configured skips, lab 81, Contact 44, participant
+26 closed +62 enabled/4 intentional skips, staff browser regressions, native
+participant 25/staff 26, SQL 1,023/13 files per database job including 117 new
+cases, and 80 integrations including five cleanup concurrency cases. All four
+browser uploads and disposable teardown passed; optional cold repetitions were
+skipped. It applies no hosted migration, schedules no cleanup and activates no
+accounts.
+
+The first handoff-documentation head `f7bc82c...` failed one existing public-filter
+assertion (456 passed/29 configured skips; lab not reached). Its original receipt
+and trace are preserved and were not rerun. Separate draft
+[PR #52](https://github.com/xpexellent-dotcom/msrc-2027/pull/52) prevents early
+filter interactions during hydration with existing assertions intact; all seven
+CI jobs, Vercel and Preview
+Comments passed at `e90fac54f2c8b70bee1f8c67e1d5ec0f693ee252`, including public
+465/29 configured skips and lab 81. Neither draft is merged or deployed. Draft
+checks are separate from successful merged-main CI and live access verification.
+See [the final handoff](features/STAFF_SETUP_HANDOFF.md) for exact receipts,
+remaining gates, custody and rollback instructions.
+Final documentation checks PASS: independent factual/privacy/rollback review,
+83 relative links across the four handoff documents, added-line privacy scan
+and `git diff --check`. This final documentation update makes no application or
+migration change; its automatic CI is a separate checkpoint.
+
+## 8 October 2026 — Participant browser-only CI rerun PASS
+
+Historical pre-merge checkpoint, superseded by the final handoff above.
+
+The organizer authorized investigating the slow downloads and rerunning only the
+incomplete participant browser job. The tested source remains draft PR #45 head
+`d1fca260fcdf466b0a9ad1b69387a0ddfb4c8bfd`; no application, assertion, workflow,
+timeout, test retry, live setting, password, account or database change occurred.
+
+The original attempt remains CANCELLED with its explicit 15-minute timeout
+annotation, full logs and immutable receipt. Ubuntu APT's 21.5 MB batch took
+11m01s at 32.5 kB/s; the 7,472 kB `fonts-wqy-zenhei` interval accounted for
+8m24s. Browser CDN downloads took about six seconds; same-head sibling installs
+took 22–26s. The logs do not identify whether mirror congestion or the runner's
+network path caused the slow transfer. Original log SHA-256:
+`3be211b9ec2419c4dd0d05f61959bc2ded6244dcd79e03201c2143c44be2ca9d`.
+
+The one job-only request was accepted at 15:26:03.688 UTC.
+[Attempt 2 job 113391919266](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37786524299/job/113391919266)
+finished SUCCESS at 15:35:00 UTC in 8m17s: **26 closed-route + 54 synthetic enabled
+tests PASS**, zero failures/skips. Enabled coverage includes 18 desktop, 18 tablet
+and 18 mobile cases, with EN/AR, keyboard, locale and axe assertions unchanged.
+Dependency installation took 20s; the same APT batch fetched in one second at
+37.5 MB/s. Browser artifact `11560707402` uploaded (247,035 bytes).
+Final log SHA-256:
+`9224c672d11ae5f386abe07b8a3fd812f01e9875a1177cb4d7db3c321b5167de`.
+
+GitHub reused the original native result's 21 steps, runner identity and
+13:42:49–13:45:25 UTC timestamps under a carried-forward result ID; no database
+job executed again. Foundation and Staff stayed on attempt 1. The original
+cancelled receipt is preserved separately from attempt 2. PR #45 remains draft,
+open and unmerged. The final exact-head rollup has all seven substantive CI
+checks, Vercel and Preview Comments SUCCESS. This entry is recorded locally and
+the final result is in the PR body; no commit/push triggers any additional CI jobs.
 ## 8 October 2026 — PR #52 reconciled for organizer merge
 
 The organizer reviewed #52's screenshots and requested #52 be prepared for their
