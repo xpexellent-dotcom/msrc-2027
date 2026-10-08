@@ -25,9 +25,13 @@ a local `next build && next start` of the same commit.
   www.msrc2027.com); the lead now wraps anywhere, and the policy test checks both together.
 - FIXED: contact copy "organising" → "organizing" (site/spec use -ize); dropped
   one stray serial comma in the homepage programme note.
-- Each fix has a regression test confirmed to fail on `main`. Full public browser
-  suite locally: 422 passed, 0 failed, 27 skipped (sandbox Chromium cannot decode
-  the hero MP4, so video-playback cases are NOT TESTED here; CI covers them).
+- Each fix has a regression test confirmed to fail on `main`. CORRECTION (8 October):
+  the local public browser suite was first reported as 0 failed; the summary was misread.
+  Rerun on merged `main` `fbddf28`: 424 passed, 33 failed, 29 skipped. All 33 failures
+  are hero/cinema/media video-playback cases: the sandbox Chromium reports no H.264
+  support (`canPlayType` empty), so the MP4 never plays (environmental, NOT TESTED
+  locally). PASS in GitHub CI: Foundation, Staff portal and Participant accounts
+  workflows on every PR #47 head and on merged `main` `fbddf28`.
 - Noted, unchanged by design: searching the unannounced programme shows "No
   matching results" (pinned by existing tests); `/EN/...` paths are case-sensitive 404s.
 
