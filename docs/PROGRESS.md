@@ -1,5 +1,55 @@
 # Progress and session handover
 
+## 8 October 2026 — PR #52 reconciled for organizer merge
+
+The organizer reviewed #52's screenshots and requested #52 be prepared for their
+merge before the staff handoff. Fresh GitHub inspection found #51 already merged
+at `4952e5a4c27c718ecb07b6a78f8d79f21f515588`, from its reviewed `2c73fff` head.
+That actual state supersedes the planned merge order. #52 now incorporates this
+main; its only conflict was PROGRESS, resolved by retaining both histories.
+All nonblank journal lines from both parents remain. The filter implementation
+and assertions are identical to screenshot-reviewed `e90fac54`.
+
+Reconciled-tree `npx --yes pnpm@11.19.0 check` PASS: lint, types, 2,383 unit cases
+in 59 files and the 79-page build. The existing focused Playwright command in
+[the filter note](features/catalogue-filter-hydration.md) passed all 30 EN/AR
+desktop/mobile hydration, deep-link, rapid-change, history, keyboard and axe cases
+in 39.7 seconds, with no skips/retries or changed assertions/timeouts.
+Independent source/history review and `git diff --check` PASS. Fresh exact-head
+CI is still required before marking #52 ready; earlier green heads are historical.
+
+#50's `e236832` documentation head passed its seven substantive CI jobs; that
+does not resolve its conflict with current main. Reconcile it after the organizer
+merges #52, preserving the handoff and failed receipts. #51 needs no further PR
+merge. Final merged-main/owned live verification follows the remaining merges.
+Participants and cleanup remain off; no hosted migration, scheduler, production
+setting, account, password or email operation occurs in this task.
+
+## 8 October 2026 — Public filter hydration fix prepared; not deployed
+
+Programme and Media filters now remain disabled until client hydration commits,
+including their search, clear and day controls. Initial deep-link selections and
+the existing query-delta merge remain intact. Workshops has no query controls
+and is unchanged. Scope: PRG-01, MED-01/04, CMS-04, LOC-01/03 and ACC-01.
+
+The retained [Foundation mobile failure](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37807214814/job/113414512943)
+at `f7bc82c884529f51a55af082c3797c993dbfdb31` showed a correct combined URL
+while both selectors remained unfiltered. An interaction before the router's
+history synchronization was ready is a trace-supported inference; its exact
+effect timing was not recorded. The original trace/context/screenshot remain
+retained. No assertion, timeout or retry was weakened.
+
+On `codex/public-filter-hydration`, based on main `b1c3763`: 14 focused unit
+tests PASS, scoped lint PASS, TypeScript/79-page production build PASS, and all
+30 targeted desktop/mobile browser cases PASS with zero skips/retries. These
+include eight held-JavaScript EN/AR regressions, the two original synchronous
+rapid-change cases, and catalogue/history/locale/keyboard/axe checks.
+Independent source review and whitespace checks PASS.
+
+This isolated fix is prepared for draft review, unmerged and not deployed. Full-suite CI
+and live verification are NOT TESTED for this change. Participant age/retention
+work stays on its separate branch; no flags, database, providers, accounts or
+emails were changed. See [the evidence and commands](features/catalogue-filter-hydration.md).
 ## 8 October 2026 — Closed participant age and retention foundation prepared
 
 Scope: BL-AUTH-02/09; AUTH-01/06/08, PRV-05/06, LOC-01/03 and ACC-01 under
