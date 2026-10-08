@@ -127,6 +127,14 @@ all assertions and migration bytes are unchanged. The failed native receipt is
 retained; a fresh exact-head run must prove the final case. No hosted operation
 or job rerun occurred. The earlier failure checkpoints above remain historical.
 
+At `f7a6565df6308e084066509b09d2550b7de1143a`, SQL1023, integration80 and
+native staff26 passed again. Participant native remained24/25: its corrected
+JSONB call exposed a second test-expression error, SQLSTATE42804, because the
+text cast bound before `NOT`. Explicit parentheses now cast the full boolean;
+remaining native query casts were checked. This is a test-only correction,
+with unchanged assertions/migration/helper bytes. The failed receipt is retained,
+and a fresh exact-head native run is still required. No hosted change or rerun.
+
 Fresh merged-main staff verification and completed rerun are recorded separately
 in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).
 Its public filter CI failure is preserved: correct URL but stale rendered filters

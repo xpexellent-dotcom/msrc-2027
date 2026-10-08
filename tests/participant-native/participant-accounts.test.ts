@@ -733,10 +733,10 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
       and not exists(select 1 from msrc_participant.operations where actor_id=${text(value.id)})
       and not exists(select 1 from msrc_participant.session_receipts where actor_id=${text(value.id)}))::text;`) === "true",
     "native and private name/email/code/profile records are erased together");
-    check(await query(`select not exists(select 1 from auth.audit_log_entries a
+    check(await query(`select (not exists(select 1 from auth.audit_log_entries a
       where msrc_participant.native_audit_mentions(a.payload::jsonb,${text(value.id)},${text(value.email)})
         and (strpos(a.payload::text,${text(value.email)})>0 or strpos(a.payload::text,${text(value.name)})>0
-          or coalesce(a.ip_address,'')<>''))::text;`) === "true",
+          or coalesce(a.ip_address,'')<>'')))::text;`) === "true",
     "native database audit retains only opaque action references without the erased name, email or IP");
     check(await query(`select to_jsonb(r)::text from msrc_participant.notice_receipts r where r.actor_id=${text(value.id)};`) === consentBefore,
       "immutable consent evidence is byte-identical after account erasure");
