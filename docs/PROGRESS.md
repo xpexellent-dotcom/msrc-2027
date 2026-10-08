@@ -1,14 +1,16 @@
 # Progress and session handover
 
-## 8 October 2026 — Authorized password-release resumption prepared
+## 8 October 2026 — Resumed password release READY; owner rotation pending
 
 ORG-048 explicitly resumes the reviewed release without migration/bootstrap replay.
 The application remains reviewed main `2f677bedd9e1773508286cc5d8db79780801cc37`;
 draft PR #45 stays separate. A new account-only attempt namespace binds all mutable
 release/closure/handoff records and hashes the complete reviewed operator/verifier
-source chain. The already-committed nine-version history is preserved. Gate-only
+source chain, now initialized and frozen. The already-committed nine-version
+history is preserved. Gate-only
 compare-and-set and database-first same-operation closure use the reviewed native
-transaction protocol; only owned pending build states may wait for readiness.
+transaction protocol; verified owned build/status progress waits without claiming
+release READY.
 
 Private input handling now requires explicit named fields, rejects ambiguous
 labels/legacy lines and preserves exact password bytes. Provider checks require
@@ -18,15 +20,36 @@ six files: one EN/AR route, live database roles and server permission checks,
 existing assurance selection, no public signup/role picker or password trimming.
 Other real staff identities remain absent; role coverage is synthetic/native CI.
 
-Named private validation found missing fields/ambiguous legacy format. Values
-were withheld, account-only ACL passed, and the owner was asked to correct the
-existing private file. Hosted preflight/flags/deployment/human rotation/new-password
-TOTP remain PENDING. No new hosted action, migration replay, bootstrap, account,
-factor reset, password change or real email has occurred in this resumption.
+Historical named-input validation stopped for missing fields/ambiguous legacy
+format; values were withheld. Corrected canonical inputs and account-only ACL
+validation now PASS. Actual completion times below are UTC on 8 October:
+
+| Stage | Completed UTC | Observed result |
+| --- | --- | --- |
+| Fresh hosted preflight | 01:36:58.477 | PASS for the new reviewed attempt. |
+| Gate-only database enable | 01:39:27.070 | COMMITTED AND VERIFIED; only the existing new boolean changed, with no DDL/history replay/INSERT, bootstrap, account or email. |
+| Production server flag / pinned deployment created | 01:40:22.733 | Flag enabled; `dpl_GMjimH6Y9HcLuWiqCvTPiwwNtaEx` created at reviewed main `2f677bedd9e1773508286cc5d8db79780801cc37`. |
+| Owned serving deployment | 01:42:51.210 | READY, exact source/owned project/team, all seven main CI checks and apex/www aliases verified. |
+| GET-only live boundaries | 01:46:41.963 | 44/44 PASS: EN/AR/noindex/robots/public navigation, anonymous denials, participant/all 15 operational APIs closed and GoTrue `v2.197.0`. |
+| Bound private owner handoff | 01:49:14.148 | Handoff bound to the new attempt and READY deployment; human response PENDING. |
+
+Draft PR #45 head `6c140284fb7797590b276518ddfb53a6aa48f1e9` separately has all
+seven substantive CI jobs plus Vercel PASS. Both password-change gates are now
+enabled for the existing single Super Admin with the retained verified
+authenticator; pairing stays false and unrelated workflows remain closed.
+Human current-password/TOTP, fresh replacement and new-password/TOTP with the
+same authenticator are PENDING. No account-password change or resulting
+old-session revocation is claimed; native completion, signed-home DOM and live
+axe remain uncompleted. No migration/bootstrap replay, other account, factor
+reset or real email occurred.
 See [the resumption execution record](features/STAFF_PASSWORD_RELEASE_RESUMPTION.md)
 for reviewed steps, remaining checks, source-review boundaries and failure handling.
 
 ## 8 October 2026 — Owner-change migration verified; first release stopped and closed
+
+Historical first-release checkpoint. Its then-current closed gates and deployment
+are superseded by the reviewed resumption above; the failed attempt and all its
+receipts remain preserved.
 
 The organizer clarified that the privately updated value is a requested account
 password change. [PR #46](https://github.com/xpexellent-dotcom/msrc-2027/pull/46)
