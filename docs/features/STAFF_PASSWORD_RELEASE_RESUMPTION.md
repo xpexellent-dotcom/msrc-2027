@@ -173,3 +173,10 @@ password changes requires a new reviewed attempt with corrected retention
 verification; the completed password change, migration and bootstrap must not be
 replayed. Signed-home DOM and live axe remain NOT TESTED. No other account,
 authenticator reset, real email or unrelated operational opening occurred.
+
+Merged main subsequently advanced to
+`fbddf28ea68cea2370cf4704a6b8029566cb007c` through public-site QA only, with no
+staff/server/authorization/migration changes. This branch reconciles that source
+while preserving both progress histories. The `2f677b...` closure record remains
+historical evidence at its observed time; current serving deployment metadata is
+verified in a separate record without reopening a gate.

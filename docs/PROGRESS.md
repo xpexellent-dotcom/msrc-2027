@@ -134,6 +134,46 @@ new gates false. Existing standing authorization remains in effect.
 Historical development checkpoint before the additional hosted migration and stopped release recorded above. Pending and not-applied statements below describe that earlier checkpoint.
 
 
+The branch also reconciles merged main
+`fbddf28ea68cea2370cf4704a6b8029566cb007c` after public-site QA. Only the shared
+progress record conflicted; both histories are preserved. The public merge changed
+no staff authorization, server or migration source. The earlier owned closure
+record remains attributed to its observed reviewed `2f677b...` deployment; current
+post-public-merge serving metadata is verified separately.
+
+## 8 October 2026 — Public-site QA pass (Claude, PR #47)
+
+Independent QA of the public website on merged `main` `2f677be`, in
+[draft PR #47](https://github.com/xpexellent-dotcom/msrc-2027/pull/47). Public
+styling/copy only; no staff, auth, migration, provider or workflow change. The
+live domain was not reachable from the session's network, so checks ran against
+a local `next build && next start` of the same commit.
+
+- PASS: 22 public routes × EN/AR × 1440px/375px: axe WCAG 2.2 AA 0 violations,
+  no overflow, broken images/links, console errors or failed sub-requests.
+  Local LCP 120–390 ms, CLS ≤ 0.03; inner pages ~320–360 KB.
+- FIXED: homepage countdown kept its inline divider when the clock wrapped under
+  the days (Arabic at most phone/tablet widths, English at 320px/tablet). A
+  container query now stacks it deliberately; days unit start-aligned.
+- FIXED: open mobile menu stayed open when focus or a tap moved past the header,
+  so tabbing focused links hidden under the panel (WCAG 2.4.11).
+- FIXED: forced colours (Windows contrast themes) hid the selected programme day
+  and current homepage chapter; both now use Highlight system colours.
+- FIXED: on desktop the homepage's zero scroll-padding let keyboard focus land
+  under the sticky header/chapter bar (an Arabic FAQ question); journey controls now
+  carry their own focus scroll-margin, leaving chapter jumps unchanged.
+- FIXED: Privacy Policy lead overflowed sideways at 320px with 200% text (unbroken
+  www.msrc2027.com); the lead now wraps anywhere, and the policy test checks both together.
+- FIXED: contact copy "organising" → "organizing" (site/spec use -ize); dropped
+  one stray serial comma in the homepage programme note.
+- Each fix has a regression test confirmed to fail on `main`. Full public browser
+  suite locally: 422 passed, 0 failed, 27 skipped (sandbox Chromium cannot decode
+  the hero MP4, so video-playback cases are NOT TESTED here; CI covers them).
+- Noted, unchanged by design: searching the unannounced programme shows "No
+  matching results" (pinned by existing tests); `/EN/...` paths are case-sensitive 404s.
+
+## 7 October 2026 — Authenticated owner password change prepared; Production password unchanged
+
 The organizer clarified that the new privately saved value is an intended account
 password change. Completed restricted first-admin password/TOTP setup is recorded
 in [draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45), whose
