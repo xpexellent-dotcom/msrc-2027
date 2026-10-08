@@ -1,5 +1,79 @@
 # Progress and session handover
 
+## 8 October 2026 — Final restricted staff setup handoff
+
+[PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45) is merged at
+`b1c3763a062f12fa2ae419b2645dd48b34eb17a7`. All seven substantive merged-main
+CI jobs and Vercel PASS: [Foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314161),
+[Staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314351),
+[Participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314206).
+No Preview Comments check was observed on main. Fresh main passed2,312 units,
+public457/29 skips, lab81, Contact44, staff32 closed+32 enabled/6 skips,
+password26/2 skips, independent gates6+6, participant26 closed+54 enabled,
+native staff26/participant19, SQL906/12files per database job and75 integration
+cases. All four browser uploads and all three disposable-stack teardowns passed.
+Configured skips/optional repetition are not passes.
+
+Read-only serving proof at16:01:00.416 UTC confirms owned current Production
+`dpl_FpfqUAg2VRaJc49TQQ6w413DA5Bf`, exact merged source and apex/www aliases.
+Staff portal true, password-change server flag false, participant flag absent/
+default false. Fresh27 anonymous GETs at15:57:32.544 UTC passed EN/AR/private/
+noindex/RTL, Security404, privileged403, participant/all15 operational APIs503,
+robots/public-navigation exclusion. Source binding and HTTP evidence are separate.
+No hosted SQL, settings, migration/bootstrap replay, password/account operation
+or real email occurred in this handoff.
+
+The authorized pre-merge browser-only rerun passed26+54 tests, zero failures/
+skips, with desktop/tablet/mobile/EN/AR/keyboard/axe and successful evidence
+upload. Original timeout, partial results and immutable receipt/log hashes are
+preserved; native/other successful jobs were not rerun. The record below remains
+historical, including its then-draft PR state and locally recorded status.
+
+Restricted first-admin setup and owner password/TOTP/revocation facts are
+complete at their captured times; pairing/second-admin inputs, mutual recovery
+UAT and controlled signed-home/live-axe checks remain separate gates. Password
+changes and all participant/operational workflows remain closed. A separate
+closed branch is implementing age18 declaration and30-day never-verified cleanup;
+its reviewed PR is pending. It does not apply a hosted migration, schedule cleanup
+or activate accounts.
+See [the final handoff](features/STAFF_SETUP_HANDOFF.md) for exact receipts,
+remaining gates, custody and rollback instructions.
+
+## 8 October 2026 — Participant browser-only CI rerun PASS
+
+Historical pre-merge checkpoint, superseded by the final handoff above.
+
+The organizer authorized investigating the slow downloads and rerunning only the
+incomplete participant browser job. The tested source remains draft PR #45 head
+`d1fca260fcdf466b0a9ad1b69387a0ddfb4c8bfd`; no application, assertion, workflow,
+timeout, test retry, live setting, password, account or database change occurred.
+
+The original attempt remains CANCELLED with its explicit 15-minute timeout
+annotation, full logs and immutable receipt. Ubuntu APT's 21.5 MB batch took
+11m01s at 32.5 kB/s; the 7,472 kB `fonts-wqy-zenhei` interval accounted for
+8m24s. Browser CDN downloads took about six seconds; same-head sibling installs
+took 22–26s. The logs do not identify whether mirror congestion or the runner's
+network path caused the slow transfer. Original log SHA-256:
+`3be211b9ec2419c4dd0d05f61959bc2ded6244dcd79e03201c2143c44be2ca9d`.
+
+The one job-only request was accepted at 15:26:03.688 UTC.
+[Attempt 2 job 113391919266](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37786524299/job/113391919266)
+finished SUCCESS at 15:35:00 UTC in 8m17s: **26 closed-route + 54 synthetic enabled
+tests PASS**, zero failures/skips. Enabled coverage includes 18 desktop, 18 tablet
+and 18 mobile cases, with EN/AR, keyboard, locale and axe assertions unchanged.
+Dependency installation took 20s; the same APT batch fetched in one second at
+37.5 MB/s. Browser artifact `11560707402` uploaded (247,035 bytes).
+Final log SHA-256:
+`9224c672d11ae5f386abe07b8a3fd812f01e9875a1177cb4d7db3c321b5167de`.
+
+GitHub reused the original native result's 21 steps, runner identity and
+13:42:49–13:45:25 UTC timestamps under a carried-forward result ID; no database
+job executed again. Foundation and Staff stayed on attempt 1. The original
+cancelled receipt is preserved separately from attempt 2. PR #45 remains draft,
+open and unmerged. The final exact-head rollup has all seven substantive CI
+checks, Vercel and Preview Comments SUCCESS. This entry is recorded locally and
+the final result is in the PR body; no commit/push triggers any additional CI jobs.
+
 ## 8 October 2026 — Staff wording live; password change verified and closed
 
 [PR #49](https://github.com/xpexellent-dotcom/msrc-2027/pull/49) is merged at

@@ -1,5 +1,9 @@
 # Owner password-change release — authorized resumption
 
+Historical execution record. Current merged-main/PR state, the completed CI rerun
+and fresh live readbacks are in [the final staff handoff](STAFF_SETUP_HANDOFF.md).
+The captured password/TOTP facts and failed receipts below are preserved.
+
 ORG-046/047/048; BL-AUTH-01/05/06, BL-RPT-01/03, SEC-01/02/06.
 
 The organizer authorizes finishing the reviewed release on 8 October 2026. The

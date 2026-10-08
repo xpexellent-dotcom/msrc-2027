@@ -1,6 +1,11 @@
 # Restricted staff Production setup — execution record
 
-**Latest checkpoint, 8 October:** the original six setup migrations and first
+**Latest checkpoint:** [the final staff handoff](STAFF_SETUP_HANDOFF.md) records
+merged PR #45/main, fresh CI and live boundaries, the completed browser-only
+rerun and unchanged closed participant/password gates. The entries below are
+dated execution history.
+
+**Earlier checkpoint, 8 October:** the original six setup migrations and first
 account remain completed. Additional migration
 `20261007195540_staff_password_change.sql` is committed and verified, bringing
 history to nine original versions. After the preserved first-release stop, the
