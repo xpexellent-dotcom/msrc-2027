@@ -28,7 +28,7 @@ header/form-readiness assumptions; corrected code/barriers retain all assertions
 zero retries and unchanged timeouts. Sanitized synthetic traces/screenshots remain
 ignored local evidence; configured skips are not passes.
 
-Added 107 pgTAP assertions, five real-Postgres concurrency cases and native Auth
+Added 114 pgTAP assertions, five real-Postgres concurrency cases and native Auth
 age/cleanup cases. Source review/lint/types/whitespace PASS; SQL/native execution
 is NOT TESTED locally because no disposable Docker database is available here.
 The draft PR's isolated Linux CI must verify them before claiming PASS. Hosted
@@ -86,6 +86,20 @@ regular rollback-only relation. Eighteen new assertions cover native inventory,
 an ordinary account's null hold reason and all four real native retained kinds,
 raising this file to 107. Unknown incoming FK/shape checks remain fail closed.
 The failed runs are retained; full SQL/native/concurrency PASS is still pending.
+
+Sixth head `f64292a1a651df15974be0bd2cc9c10bfcef813a` passed reset and strict
+lint. SQL execution then exposed two further failures: a retained-security fixture
+inserted directly into the append-only audit, and service-actor redaction removed
+its role label before the final native-deletion ownership recheck. The fixture now
+creates that audit through the existing native-session/lifecycle trigger. The
+redacted service attribution uses a derived JSON boolean backed by the exact
+current cleanup transaction or linked completed erasure tombstone; a provider
+marker alone never supplies authority. Five assertions cover forged markers,
+successful-job SQLSTATE, exact boolean parsing and service/personal attribution.
+Two further invariants preserve a byte-identical no-op update and a canonical
+late audit replay only through the private tombstone proof. The new file has
+114 assertions. Final deletion rechecks, immutable-audit guards,
+failure rollback and operating gates remain; complete execution is still pending.
 
 Fresh merged-main staff verification and completed rerun are recorded separately
 in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).

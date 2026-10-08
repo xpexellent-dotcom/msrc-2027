@@ -424,19 +424,32 @@ $$;
 create function msrc_participant.erased_native_audit(payload jsonb,target_actor uuid) returns jsonb
  language sql immutable set search_path='' as $$
  select jsonb_build_object('actor_id',payload->'actor_id','action',payload->'action','log_type',payload->'log_type',
-  'traits',jsonb_build_object('user_id',target_actor),'account_erased',true);
+  'traits',jsonb_build_object('user_id',target_actor),'account_erased',true,
+  'actor_service_role',coalesce(payload->>'actor_id'='00000000-0000-0000-0000-000000000000' and
+   (payload->>'actor_username'='service_role' or (payload->'account_erased'='true'::jsonb and payload->'actor_service_role'='true'::jsonb
+    and payload->'traits'=jsonb_build_object('user_id',target_actor) and not payload ?|array['actor_username','actor_name','actor_via_sso'])),false));
 $$;
 create function msrc_participant.native_audit_owned(payload jsonb,target_actor uuid) returns boolean
- language sql immutable set search_path='' as $$
+ language sql volatile security definer set search_path='' as $$
  -- Pinned GoTrue2.197 requireAdmin constructs a zero-ID service actor whose
  -- username is the actual service role. An identified other actor is retained,
  -- never redacted as if its personal/security evidence belonged to this subject.
+ -- After personal labels are removed, a derived service bit is accepted only
+ -- with exact private active-transaction or completed-tombstone evidence. The
+ -- provider payload/bit alone grants no erasure authority.
  select case when jsonb_typeof(payload) is distinct from 'object'
   or (payload->'traits' is not null and payload->'traits'<>'null'::jsonb and jsonb_typeof(payload->'traits')<>'object') then false else
  coalesce((payload->>'actor_id'=target_actor::text or
-  (payload->>'actor_id'='00000000-0000-0000-0000-000000000000' and payload->>'actor_username'='service_role'))
+  (payload->>'actor_id'='00000000-0000-0000-0000-000000000000' and (payload->>'actor_username'='service_role'
+   or (payload->'account_erased'='true'::jsonb and payload->'actor_service_role'='true'::jsonb
+    and not payload ?|array['actor_username','actor_name','actor_via_sso']
+    and payload->'traits'=jsonb_build_object('user_id',target_actor)
+    and (msrc_participant.cleanup_authorized(target_actor) or exists(
+     select 1 from msrc_participant.subject_refs s join msrc_participant.cleanup_jobs j on j.id=s.erase_job and j.actor_id=s.actor_id
+     where s.actor_id=target_actor and s.erased_at is not null and j.state='completed' and j.completed_at is not null
+      and j.native_created_at=s.native_created_at))))))
   and (payload#>>'{traits,user_id}' is null or payload#>>'{traits,user_id}'=target_actor::text)
-  and not exists(select 1 from jsonb_object_keys(payload) k where k not in('actor_id','actor_via_sso','actor_username','actor_name','action','log_type','traits','account_erased'))
+  and not exists(select 1 from jsonb_object_keys(payload) k where k not in('actor_id','actor_via_sso','actor_username','actor_name','action','log_type','traits','account_erased','actor_service_role'))
   and not exists(select 1 from jsonb_object_keys(coalesce(nullif(payload->'traits','null'::jsonb),'{}')) k where k not in('user_id','user_email','user_phone','provider')),false) end;
 $$;
 -- A provider audit INSERT begun before erasure must finish before the worker,
@@ -445,9 +458,11 @@ create function msrc_participant.guard_native_audit_erasure() returns trigger
  language plpgsql security definer set search_path='' as $$
  declare target_text text;target uuid;
  begin
- if tg_op='UPDATE' and coalesce((old.payload::jsonb->>'account_erased')='true',false)
-  and to_jsonb(new) is distinct from to_jsonb(old) then
-  raise exception using errcode='55000',message='Erased native audit cannot regain personal data.';end if;
+ if tg_op='UPDATE' and coalesce((old.payload::jsonb->>'account_erased')='true',false) then
+  if to_jsonb(new) is distinct from to_jsonb(old) then
+   raise exception using errcode='55000',message='Erased native audit cannot regain personal data.';end if;
+  return new;
+ end if;
  target_text:=coalesce(new.payload#>>'{traits,user_id}',new.payload->>'actor_id');
  if target_text !~*'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then return new;end if;
  target:=target_text::uuid;

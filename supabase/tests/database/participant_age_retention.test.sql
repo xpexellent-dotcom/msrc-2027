@@ -81,11 +81,16 @@ create temporary table audit_snapshot as select to_jsonb(a) value from msrc_part
 insert into auth.audit_log_entries(id,payload,created_at,ip_address) values('c9400000-0000-4000-8000-000000000001',
  jsonb_build_object('actor_id','00000000-0000-0000-0000-000000000000','actor_username','service_role','action','user_signedup','log_type','team',
   'traits',jsonb_build_object('user_id',pg_temp.age_actor(1),'user_email',pg_temp.age_email(1),'user_phone','','provider','email')),clock_timestamp(),'192.0.2.1');
+select ok(not msrc_participant.native_audit_owned(jsonb_build_object('actor_id','00000000-0000-0000-0000-000000000000',
+ 'action','user_signedup','log_type','team','traits',jsonb_build_object('user_id',pg_temp.age_actor(1)),
+ 'account_erased',true,'actor_service_role',true),pg_temp.age_actor(1)), 'A forged redaction/service marker without a private cleanup proof is denied');
 select is(msrc_participant.cleanup_unverified()->>'eligible','1','Dry-run finds the eligible original account');
 select is(msrc_participant.cleanup_unverified()->>'deleted','0','Default dry-run never erases an identity');
 select ok(exists(select 1 from auth.users where id=pg_temp.age_actor(1)),'Dry-run leaves the native identity');
 select is((select count(*) from msrc_participant.cleanup_jobs),0::bigint,'Dry-run leaves no erasure job');
 select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','1','Explicit enabled worker atomically erases the eligible account');
+select is((select coalesce(sqlstate,'none') from msrc_participant.cleanup_jobs where actor_id=pg_temp.age_actor(1)),'none',
+ 'Successful atomic erasure has no bounded SQLSTATE failure');
 select ok(not exists(select 1 from auth.users where id=pg_temp.age_actor(1)) and not exists(select 1 from auth.identities where user_id=pg_temp.age_actor(1))
  and not exists(select 1 from msrc_participant.profiles where actor_id=pg_temp.age_actor(1)) and not exists(select 1 from msrc_participant.admissions where actor_id=pg_temp.age_actor(1))
  and not exists(select 1 from msrc_participant.challenges where actor_id=pg_temp.age_actor(1)) and not exists(select 1 from msrc_participant.operations where actor_id=pg_temp.age_actor(1)),
@@ -101,12 +106,28 @@ select is((select count(*) from msrc_participant.retention_audit where actor_id=
 select ok((select payload::jsonb ? 'account_erased' and not (payload::jsonb ?|array['actor_username','actor_name'])
  and payload::jsonb#>>'{traits,user_email}' is null and ip_address='' from auth.audit_log_entries where id='c9400000-0000-4000-8000-000000000001'),
  'Native lifecycle audit keeps UUID/action/time without the erased email/name/IP');
+select ok((select msrc_participant.native_audit_owned(payload::jsonb,pg_temp.age_actor(1)) from auth.audit_log_entries
+ where id='c9400000-0000-4000-8000-000000000001'), 'A redacted service actor remains attributable through the completed private tombstone');
+select ok(not (select msrc_participant.native_audit_owned(jsonb_set(payload::jsonb,'{actor_service_role}','"true"'::jsonb),pg_temp.age_actor(1))
+ from auth.audit_log_entries where id='c9400000-0000-4000-8000-000000000001'), 'String truthiness cannot substitute for the exact derived JSON boolean');
+create temporary table erased_audit_snapshot as select to_jsonb(a) value,md5(a.payload::text) payload_md5 from auth.audit_log_entries a where id='c9400000-0000-4000-8000-000000000001';
+update auth.audit_log_entries set payload=payload where id='c9400000-0000-4000-8000-000000000001';
+select ok((select to_jsonb(a)=(select value from erased_audit_snapshot) and md5(a.payload::text)=(select payload_md5 from erased_audit_snapshot)
+ and msrc_participant.native_audit_owned(a.payload::jsonb,pg_temp.age_actor(1))
+ from auth.audit_log_entries a where id='c9400000-0000-4000-8000-000000000001'), 'A no-op erased-audit update preserves row values, payload bytes and service attribution');
 select throws_ok($$update auth.audit_log_entries set payload=payload::jsonb||'{"actor_username":"restored@example.invalid"}'
  where id='c9400000-0000-4000-8000-000000000001'$$,'55000',null,'A late native audit update cannot restore account PII');
 insert into auth.audit_log_entries(id,payload,created_at,ip_address) values('c9400000-0000-4000-8000-000000000002',
  jsonb_build_object('actor_id',pg_temp.age_actor(1),'actor_username',pg_temp.age_email(1),'action','user_confirmation_requested','log_type','user'),clock_timestamp(),'192.0.2.1');
 select ok((select payload::jsonb ? 'account_erased' and not(payload::jsonb ? 'actor_username') and ip_address='' from auth.audit_log_entries where id='c9400000-0000-4000-8000-000000000002'),
  'A late audit insert cannot recreate erased personal data');
+select ok((select msrc_participant.native_audit_owned(payload::jsonb,pg_temp.age_actor(1)) from auth.audit_log_entries
+ where id='c9400000-0000-4000-8000-000000000002'), 'The personal actor UUID remains attributable after its labels are erased');
+insert into auth.audit_log_entries(id,payload,created_at,ip_address)
+ select 'c9400000-0000-4000-8000-000000000003',payload,statement_timestamp(),'192.0.2.1'
+ from auth.audit_log_entries where id='c9400000-0000-4000-8000-000000000001';
+select ok((select payload::jsonb->'actor_service_role'='true'::jsonb and ip_address='' and msrc_participant.native_audit_owned(payload::jsonb,pg_temp.age_actor(1))
+ from auth.audit_log_entries where id='c9400000-0000-4000-8000-000000000003'), 'Canonical late native-audit replay preserves attribution only after the private tombstone proof');
 select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','Worker replay performs no second erasure');
 select is(public.msrc_participant_signup_reserve(pg_temp.age_actor(1),gen_random_uuid(),pg_temp.age_email(1),'Synthetic adult','synthetic-age-notice',true)->>'state',
  'denied','An erased actor cannot be reserved again');
@@ -180,7 +201,10 @@ select is(msrc_participant.retained_reason(pg_temp.age_actor(8)),'authority_hist
 update msrc_authorization.role_grants set state='revoked',revocation_reason='Synthetic retention' where actor_id=pg_temp.age_actor(8);
 select is(msrc_participant.retained_reason(pg_temp.age_actor(8)),'authority_history','Revoking a role cannot erase immutable operational history');
 select pg_temp.age_fixture(9,interval '31 days');
-insert into msrc_sessions.security_audit(actor_id,event,performed_by_db_role) values(pg_temp.age_actor(9),'session.observed','postgres');
+insert into auth.sessions(id,user_id,created_at,updated_at,aal)
+ values('c9600000-0000-4000-8000-000000000009',pg_temp.age_actor(9),statement_timestamp(),statement_timestamp(),'aal1');
+insert into msrc_sessions.session_state(session_id,actor_id,started_at,last_activity_at)
+ select id,user_id,created_at,created_at from auth.sessions where id='c9600000-0000-4000-8000-000000000009';
 select is(msrc_participant.retained_reason(pg_temp.age_actor(9)),'security_history','Retained session security evidence excludes deletion');
 select pg_temp.age_fixture(10,interval '31 days');
 insert into auth.audit_log_entries(id,payload,created_at,ip_address) values(gen_random_uuid(),
