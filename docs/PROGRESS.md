@@ -1,6 +1,45 @@
 # Progress and session handover
 
+## 8 October 2026 — Owner password/TOTP verified; password feature closed
+
+The owner reported completing the private change and new-password/TOTP sign-in.
+The frozen completion verifier STOPPED at 11:41:54.513 UTC: its retained-factor
+predicate required an unchanged historical `updated_at`. Pinned GoTrue
+`v2.197.0` updates this timestamp during an ordinary authenticator challenge.
+The original STOP is preserved; no password change, migration or bootstrap was
+retried. Database-first closure passed at 11:42:30.376 UTC, and the exact owned
+closed serving deployment `dpl_4rWinUKT5XVaRM16hu22Q9DJqytZ` passed READY/alias
+verification at 11:44:15.946 UTC. Both password-change gates remain false.
+
+Separate reviewed read-only evidence captured at 12:01:51.918 UTC confirms one
+completed operation after the original handoff, reserved/completed audit records,
+the exact identity-revision increment, the same single verified TOTP factor ID,
+unchanged edition role, original/all old native-session absence and application
+session revocation, and one fresh native password/TOTP AAL2 session with a matching
+live application session inside the existing 30-minute/eight-hour limits.
+The factor timestamp advanced after one verified challenge, as the pinned provider
+source allows. This evidence does not reclassify the original STOP or compare the
+requested password, plaintext authenticator seed, signed JWT or private browser DOM.
+
+Fresh closure evidence at 12:03:11.275 UTC passed all 27 anonymous GET requests:
+EN/AR sign-in remains private/noindex with RTL, Security is unavailable, public
+navigation/robots exclude staff, anonymous privileged APIs deny access, and
+participant/all 15 operational APIs remain closed. A separate initial probe's
+incorrect locale expectation for Next's neutral global 404 is retained; the
+reviewed correction still requires strict locale/RTL on actual sign-in pages and
+all privacy/denial checks. Its 22 pure regressions passed. One account and verified
+authenticator remain; pairing stays restricted, with no recovery, extra account,
+invitation or real email. Signed-home DOM/live axe remain NOT TESTED.
+
+Draft PR #45's preceding runtime-record head `21365ed5949c943a5da731eb862e017785ced7b0`
+passed all seven substantive CI jobs, Vercel and Preview Comments. The restricted
+staff setup remains available; reopening password changes requires a new reviewed
+attempt with corrected retention semantics. The completed owner change must not
+be replayed. See [the resumption record](features/STAFF_PASSWORD_RELEASE_RESUMPTION.md).
+
 ## 8 October 2026 — Resumed password release READY; owner rotation pending
+
+Historical readiness checkpoint, superseded by the completion/closure evidence above.
 
 ORG-048 explicitly resumes the reviewed release without migration/bootstrap replay.
 The application remains reviewed main `2f677bedd9e1773508286cc5d8db79780801cc37`;

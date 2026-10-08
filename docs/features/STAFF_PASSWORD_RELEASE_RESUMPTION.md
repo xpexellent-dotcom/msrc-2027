@@ -8,11 +8,12 @@ historical checkpoint. Its additional migration is already committed; neither
 that migration nor any earlier migration or bootstrap is replayed. This record
 will distinguish each observed resumption stage from preparation and human UAT.
 
-**Current checkpoint, 8 October: the new gate-only release is READY and its
-anonymous live boundaries passed. The private owner handoff is bound to this
-attempt. Human password rotation, new-password/TOTP sign-in and independent
-native completion verification remain PENDING; these release checks do not prove
-an account-password change or old-session revocation.**
+**Current checkpoint, 8 October: separate read-only post-closure evidence confirms
+the committed owner password change, retained verified authenticator identity,
+old-session revocation and a fresh password/TOTP application session. The frozen
+completion-verifier STOP remains preserved. Both password-change gates are closed;
+restricted staff sign-in remains available. No second change or automatic reopening
+occurred.**
 
 ## Reviewed source and private input contract
 
@@ -100,8 +101,29 @@ now initialized and frozen; the stopped first release retains its own records.
 | Production server flag and pinned deployment | 01:40:22.733 | New server flag enabled; deployment `dpl_GMjimH6Y9HcLuWiqCvTPiwwNtaEx` created at reviewed source `2f677bedd9e1773508286cc5d8db79780801cc37`. Creation alone is not serving readiness. |
 | Owned serving deployment | 01:42:51.210 | READY verified at the exact reviewed application source, with all seven main CI checks, owned project/team and apex/www aliases. |
 | GET-only live boundary checks | 01:46:41.963 | PASS, 44/44: anonymous EN/AR sign-in/Security, noindex/private responses, robots/public navigation exclusion, anonymous privileged denials, participant and all 15 operational APIs closed, and native GoTrue `v2.197.0`. No Auth login or password change is proved by this probe. |
-| Bound private owner handoff | 01:49:14.148 | Handoff bound to this attempt and READY deployment. The human question is pending: current-password/TOTP, fresh replacement with confirmation, then new-password/TOTP using the same retained authenticator. |
-| Human rotation and native completion proof | PENDING | No account-password change or resulting old-session revocation is claimed. Human completion, fresh native assurance, signed-home DOM and live axe remain separate uncompleted checks. |
+| Bound private owner handoff | 01:49:14.148 | Handoff bound to this attempt and READY deployment. The owner subsequently reported completion. |
+| Frozen completion verifier | 11:41:54.513 | STOP preserved; the historical factor-timestamp equality was too strict after a normal TOTP challenge. Its nonzero child result was discarded, so the original receipt alone cannot identify the failed predicate. |
+| Same-operation database-first closure | 11:42:30.376 | PASS; both new password-change gates false, original transaction ended and all other settings retained. |
+| Owned closed serving deployment | 11:44:15.946 | READY/aliases PASS at `dpl_4rWinUKT5XVaRM16hu22Q9DJqytZ`, exact reviewed main. |
+| Separate post-closure native evidence | 12:01:51.918 | CAPTURED and independently reviewed: committed/audited operation, exact revision, same verified factor identity, all old sessions revoked/absent and a fresh native/app password/TOTP session within existing limits. No password or seed value read/compared; original STOP unchanged. |
+| Fresh GET-only closure | 12:03:11.275 | PASS, 27 anonymous requests: Security unavailable, EN/AR sign-in/private/noindex/RTL intact, privileged denials, participant and all 15 operational APIs closed. |
+
+The stopped verifier compared the factor's current `updated_at` with the reservation's
+historical snapshot. GoTrue's [factor challenge](https://raw.githubusercontent.com/supabase/auth/v2.197.0/internal/models/factor.go)
+uses `UpdateOnly`, whose [storage implementation](https://raw.githubusercontent.com/supabase/auth/v2.197.0/internal/storage/dial.go)
+automatically updates that timestamp. The separate diagnostic keeps the failed
+historical equality visible and verifies retained identity/creation chronology,
+verified TOTP status, current-factor native AMR and actual application lifecycle
+independently. It makes no plaintext-seed equality or private-DOM claim. Frozen
+sources and failed receipts are unchanged.
+
+An initial closed GET probe expected locale attributes on Security's global
+not-found document. Next may emit the exact neutral `__next_error__` document
+without those attributes when the root layout is bypassed. That STOP is retained.
+The separately reviewed correction accepts that precise neutral 404 or a correctly
+localized document, still requires no staff UI/form/input and private/noindex
+responses, and keeps strict EN/AR/RTL on the actual sign-in. Syntax and 22 pure
+regressions passed before the successful fresh probe.
 
 ## Failure handling and rollback
 
@@ -139,16 +161,15 @@ bind admission to the configured edition rather than choosing an older grant.
 
 ## Current checkpoint
 
-The earlier missing-field/format check is historical and has been corrected.
-Canonical input/ACL validation, fresh preflight, committed gate-only enable,
-Production server flag, pinned serving READY deployment, 44 anonymous live
-boundary checks and bound private handoff have passed as recorded above. Both
-password-change gates are now enabled for the existing single Super Admin;
-one verified authenticator is retained and pairing remains false.
+The owner reported completing the change and new-password/TOTP sign-in. Separate
+post-closure read-only evidence confirms those committed/current-session facts,
+the retained verified authenticator identity and old-session revocation. The
+frozen verifier remains STOPPED; its failed record is not overwritten or relabelled.
 
-Human current-password/TOTP entry, fresh replacement, new-password/TOTP sign-in
-and the subsequent bound read-only native completion projection are **PENDING**.
-No password-change completion, old-session revocation, controlled signed-home
-DOM or live-axe pass is inferred from the release receipts. No migration/bootstrap
-replay, other account, factor reset, real email or unrelated operational opening
-occurred. Participant and all other operational workflows remain closed.
+Both password-change gates are false and the owned closed serving deployment and
+fresh anonymous boundaries passed. Existing restricted staff sign-in remains
+available for the single identified Super Admin, with pairing false. Reopening
+password changes requires a new reviewed attempt with corrected retention
+verification; the completed password change, migration and bootstrap must not be
+replayed. Signed-home DOM and live axe remain NOT TESTED. No other account,
+authenticator reset, real email or unrelated operational opening occurred.
