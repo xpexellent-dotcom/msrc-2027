@@ -36,6 +36,16 @@ participant accounts and every operational workflow remain closed. Actual
 scheduler/exception/log/restore/inbox/UAT operating prerequisites are separate.
 See [the age/retention guide](features/PARTICIPANT_AGE_RETENTION.md).
 
+Draft [PR #51](https://github.com/xpexellent-dotcom/msrc-2027/pull/51) first CI at
+`1e9b727920545004a7139f8f5e60c0a50fca0e95` applied the migrations successfully
+in all three disposable stacks, then strict database lint FAILED with SQLSTATE
+42702 for ambiguous email references in two RPC wrappers and the retention-hold
+function. The original runs/receipts remain retained. The revised migration
+qualifies the two arguments and renames the local variable; policies, locking,
+assertions and prior migrations are unchanged. SQL/native tests after the failed
+lint were not reached. The revised source still requires fresh disposable CI;
+no hosted SQL or job rerun was performed.
+
 Fresh merged-main staff verification and completed rerun are recorded separately
 in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).
 Its public filter CI failure is preserved: correct URL but stale rendered filters

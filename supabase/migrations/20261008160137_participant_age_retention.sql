@@ -286,7 +286,7 @@ create function public.msrc_participant_email_begin(email text,purpose text,chal
  returns jsonb language plpgsql security definer set search_path='' as $$
  declare actor uuid;
  begin
- select u.id into actor from auth.users u where u.email=email for update;
+ select u.id into actor from auth.users u where u.email=msrc_participant_email_begin.email for update;
  if actor is not null and (not msrc_participant.age_proven(actor) or not msrc_participant.within_verification_window(actor)) then
   return jsonb_build_object('state','denied');end if;
  return msrc_participant.legacy_email_begin(email,purpose,challenge_id,code_hash,email_hash,ip_hash,name,privacy_version);
@@ -297,7 +297,7 @@ create function public.msrc_participant_email_consume(email text,purpose text,ch
  returns jsonb language plpgsql security definer set search_path='' as $$
  declare actor uuid;
  begin
- select u.id into actor from auth.users u where u.email=email for update;
+ select u.id into actor from auth.users u where u.email=msrc_participant_email_consume.email for update;
  if actor is not null and (not msrc_participant.age_proven(actor) or not msrc_participant.within_verification_window(actor)) then
   return jsonb_build_object('state','denied');end if;
  return msrc_participant.legacy_email_consume(email,purpose,challenge_id,code_hash,operation_id,ip_hash);
@@ -477,17 +477,17 @@ $$;
 
 create function msrc_participant.retained_reason(target_actor uuid) returns text
  language plpgsql volatile security definer set search_path='' as $$
- declare email text;
+ declare native_email text;
  begin
- select u.email into email from auth.users u where u.id=target_actor;
+ select u.email into native_email from auth.users u where u.id=target_actor;
  if msrc_participant.unknown_erasure_reference() then return 'unreviewed_foreign_key';end if;
  if exists(select 1 from msrc_participant.retention_holds h where h.actor_id=target_actor and h.released_at is null) then return 'explicit_hold';end if;
  if exists(select 1 from msrc_authorization.role_grants g where g.actor_id=target_actor) then return 'authority_history';end if;
  if exists(select 1 from msrc_authorization.account_access a where a.actor_id=target_actor and (a.individually_identified or a.state<>'active')) then return 'retained_account';end if;
  if exists(select 1 from msrc_staff.profiles p where p.actor_id=target_actor)
-  or exists(select 1 from msrc_staff.bootstrap_reservations b where b.actor_id=target_actor or b.email=email)
-  or exists(select 1 from msrc_staff.invitations i where i.email=email or i.accepted_by=target_actor or i.invited_by=target_actor)
-  or exists(select 1 from msrc_staff.admissions a where a.actor_id=target_actor or a.email=email)
+  or exists(select 1 from msrc_staff.bootstrap_reservations b where b.actor_id=target_actor or b.email=native_email)
+  or exists(select 1 from msrc_staff.invitations i where i.email=native_email or i.accepted_by=target_actor or i.invited_by=target_actor)
+  or exists(select 1 from msrc_staff.admissions a where a.actor_id=target_actor or a.email=native_email)
   or exists(select 1 from msrc_staff.admin_operations o where o.target_actor_id=target_actor or o.performer_actor_id=target_actor)
   or exists(select 1 from msrc_staff.password_changes o where o.actor_id=target_actor)
   or exists(select 1 from msrc_staff.audit a where a.actor_id=target_actor or a.target_id=target_actor) then return 'staff_history';end if;
@@ -500,7 +500,7 @@ create function msrc_participant.retained_reason(target_actor uuid) returns text
  if exists(select 1 from auth.mfa_factors f where f.user_id=target_actor)
   or exists(select 1 from auth.identities i where i.user_id=target_actor and i.provider<>'email') then return 'native_identity';end if;
  if exists(select 1 from storage.objects o where o.owner=target_actor or o.owner_id=target_actor::text) then return 'storage_owner';end if;
- if exists(select 1 from auth.audit_log_entries a where msrc_participant.native_audit_mentions(a.payload::jsonb,target_actor,email)
+ if exists(select 1 from auth.audit_log_entries a where msrc_participant.native_audit_mentions(a.payload::jsonb,target_actor,native_email)
   and (coalesce(a.payload->>'action','') not in('user_signedup','user_confirmation_requested','user_repeated_signup')
    or not msrc_participant.native_audit_owned(a.payload::jsonb,target_actor))) then return 'native_security_history';end if;
  return null;
