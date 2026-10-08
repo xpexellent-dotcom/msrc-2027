@@ -1,5 +1,47 @@
 # Progress and session handover
 
+## 8 October 2026 — Closed participant age and retention foundation prepared
+
+Scope: BL-AUTH-02/09; AUTH-01/06/08, PRV-05/06, LOC-01/03 and ACC-01 under
+ORG-041. A separate branch from merged main `b1c3763a...` adds an explicit 18+
+signup declaration without DOB collection, strict server/private admission proof,
+immutable native creation/ever-verification and a 30-day never-verified deadline.
+It is self-declaration, not independently verified age. Old/malformed capability
+fields or disabled cleanup close requests before personal input or native/mail work.
+
+The reviewed native-only worker is independently disabled and dry-run by default,
+with no scheduler. It serializes/rechecks verification, protects staff/invitations/
+retained/security/storage/unknown-FK records, erases eligible account PII atomically,
+preserves immutable application snapshots and minimal native audit/tombstone
+evidence, and requires current ledger reconciliation before restored access.
+The sole new migration is `20261008160137_participant_age_retention.sql`, generated
+by pinned CLI 2.118.0 and **NOT APPLIED to hosted state**. Earlier versions and
+bootstrap are not replayed. No live setting, account, password or email changed.
+
+Observed local `pnpm check` PASS: lint, types, 2,358 unit tests/57 files and the
+79-page build. UI focused 21 units PASS; full synthetic browser 62 PASS/4 configured
+desktop/tablet skips plus 26 default-off PASS; subsequent narrow wording/layout
+polish passed both EN/AR 320px/200% mobile cases, complete age-label visibility,
+native down/up scroll, keyboard Space/Tab and axe after a fresh build. Initial
+new-case failures exposed the client error allowlist omission and test-owned
+header/form-readiness assumptions; corrected code/barriers retain all assertions,
+zero retries and unchanged timeouts. Sanitized synthetic traces/screenshots remain
+ignored local evidence; configured skips are not passes.
+
+Added 75 pgTAP assertions, five real-Postgres concurrency cases and native Auth
+age/cleanup cases. Source review/lint/types/whitespace PASS; SQL/native execution
+is NOT TESTED locally because no disposable Docker database is available here.
+The draft PR's isolated Linux CI must verify them before claiming PASS. Hosted
+participant accounts and every operational workflow remain closed. Actual
+scheduler/exception/log/restore/inbox/UAT operating prerequisites are separate.
+See [the age/retention guide](features/PARTICIPANT_AGE_RETENTION.md).
+
+Fresh merged-main staff verification and completed rerun are recorded separately
+in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).
+Its public filter CI failure is preserved: correct URL but stale rendered filters
+during a very early interaction. An isolated public hydration fix is being prepared;
+no public-source change is mixed into this participant branch.
+
 ## 8 October 2026 — Staff wording live; password change verified and closed
 
 [PR #49](https://github.com/xpexellent-dotcom/msrc-2027/pull/49) is merged at

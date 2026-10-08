@@ -7,6 +7,8 @@
 .participant-account-card h2 { margin-block: 0 var(--space-4); color: var(--color-purple); font-size: 1.35rem; line-height: 1.55; }
 .participant-account-fields { display: grid; gap: var(--space-5); border: 0; padding: 0; margin: 0; min-inline-size: 0; }
 .participant-account-fields .field-input { inline-size: 100%; }
+.participant-age-confirmation .choice-label { align-items: flex-start; flex-wrap: wrap; }
+.participant-age-confirmation .choice-label > span { flex: 1 1 12rem; }
 .participant-account-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block-start: var(--space-5); }
 .participant-account-actions .button { white-space: normal; text-align: center; }
 .participant-account-notice { margin-block-end: var(--space-6); padding: var(--space-4); background: var(--color-info-surface); border-inline-start: 3px solid var(--color-purple); }

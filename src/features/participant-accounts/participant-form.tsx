@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FormField } from "@/components/forms/form-field";
+import { Checkbox } from "@/components/forms/checkbox";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import type { Locale } from "@/lib/i18n";
@@ -10,7 +11,7 @@ import { participantCopy, type ParticipantScreen } from "./participant-copy";
 import { requestAccount } from "./participant-client";
 import { beginParticipantAction, finishParticipantAction, normalizeParticipantCode, updateParticipantDraft, useParticipantDraft } from "./participant-draft";
 
-const fields: ParticipantField[] = ["name", "email", "password", "code"];
+const fields: ParticipantField[] = ["name", "email", "password", "code", "ageConfirmed"];
 const failedStates = new Set<ParticipantState>(["invalid_input", "invalid_credentials", "invalid_code", "limited", "unavailable", "closed"]);
 const minimumFillMs = 2_000;
 
@@ -50,7 +51,7 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
   const disabled = availability !== "ready" || !formToken || draft.pending || waiting;
   const frozen = availability !== "ready" || !formToken || draft.pending;
   const errorState = draft.outcome && failedStates.has(draft.outcome) ? draft.outcome : null;
-  const activeFields = fields.filter((field) => field === "email" || (field === "name" && needsName) || (field === "password" && needsPassword) || (field === "code" && needsCode));
+  const activeFields = fields.filter((field) => field === "email" || (field === "name" && needsName) || (field === "password" && needsPassword) || (field === "code" && needsCode) || (field === "ageConfirmed" && needsName));
 
   useEffect(() => {
     mounted.current = true;
@@ -63,6 +64,7 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
       setFormToken(result.formToken ?? null);
       setTokenUsableAt(result.formToken ? receivedAt + minimumFillMs : null);
       setNow(receivedAt);
+      if (result.state === "closed") updateParticipantDraft({ ageConfirmed: false });
     }
     void restore();
     const recover = (event: PageTransitionEvent) => { if (event.persisted) void restore(); };
@@ -90,12 +92,13 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
   function fieldError(field: ParticipantField) {
     const error = draft.fieldErrors?.[field];
     if (!error) return undefined;
+    if (field === "ageConfirmed") return copy.ageRequired;
     if (error === "required") return copy.required;
     if (error === "too_long") return field === "password" && screen !== "sign-in" ? copy.passwordTooLong : copy.tooLong;
     if (field === "password" && screen !== "sign-in") return copy.invalidPassword;
     return field === "email" ? copy.invalidEmail : field === "code" ? copy.invalidCode : copy.invalidField;
   }
-  function edit(field: ParticipantField, value: string) { updateParticipantDraft({ [field]: field === "code" ? normalizeParticipantCode(value) : value, outcome: null, fieldErrors: {} }); }
+  function edit(field: Exclude<ParticipantField, "ageConfirmed">, value: string) { updateParticipantDraft({ [field]: field === "code" ? normalizeParticipantCode(value) : value, outcome: null, fieldErrors: {} }); }
 
   async function handleAction(action: ParticipantAction, validate = true) {
     if (disabled) return;
@@ -105,6 +108,7 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
       const errors: ParticipantResponse["fieldErrors"] = {};
       const validatedFields: ParticipantField[] = action === "forgot" ? ["email"] : action === "resend" ? ["email", "password"] : activeFields;
       for (const field of validatedFields) {
+        if (field === "ageConfirmed") { if (draft.ageConfirmed !== true) errors.ageConfirmed = "required"; continue; }
         const value = draft[field];
         if (!value || (field !== "password" && !value.trim())) errors[field] = "required";
         else if (field === "code" && !/^\d{6}$/.test(value)) errors[field] = "invalid";
@@ -115,12 +119,13 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
     const website = form.current?.elements.namedItem("website");
     const payload: ParticipantPayload = { action, formToken: formToken!, website: website instanceof HTMLInputElement ? website.value : "" };
     if (action !== "logout") Object.assign(payload, { name: draft.name, email: draft.email, password: draft.password, code: draft.code, requestId: draft.requestId ?? undefined });
+    if (action === "signup") payload.ageConfirmed = draft.ageConfirmed;
     const { response, receivedAt } = await requestAccount(payload);
     const clearing = ["authenticated", "verified", "password_reset", "signed_out", "closed"].includes(response.state);
     const applied = finishParticipantAction(generation, {
       outcome: response.state, fieldErrors: response.fieldErrors ?? {},
       ...(response.state === "accepted" ? { code: "", requestId: response.requestId ?? null, expiresAt: response.expiresAt ?? null, resendAvailableAt: response.resendAvailableAt ?? null, purpose: action === "forgot" ? "recovery" : "verification" } : {}),
-      ...(clearing ? { password: "", code: "", requestId: null, expiresAt: null, resendAvailableAt: null } : {}),
+      ...(clearing ? { password: "", code: "", ageConfirmed: false, requestId: null, expiresAt: null, resendAvailableAt: null } : {}),
       ...(response.state === "signed_out" || response.state === "closed" ? { name: "", email: "" } : {}),
     });
     if (!applied || !mounted.current) return;
@@ -169,6 +174,7 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
           <FormField id="participant-email" name="email" type="email" label={copy.email} value={draft.email} onChange={(event) => edit("email", event.target.value)} autoComplete={screen === "sign-in" ? "username" : "email"} dir="ltr" spellCheck={false} autoCapitalize="none" error={fieldError("email")} required />
           {needsCode ? <FormField id="participant-code" name="code" label={copy.code} hint={copy.codeHint} value={draft.code} onChange={(event) => edit("code", event.target.value)} inputMode="numeric" autoComplete="one-time-code" dir="ltr" spellCheck={false} maxLength={6} error={fieldError("code")} required /> : null}
           {needsPassword ? <FormField id="participant-password" name="password" type="password" label={newPassword ? copy.newPassword : copy.password} hint={screen !== "sign-in" ? copy.passwordHint : undefined} value={draft.password} onChange={(event) => edit("password", event.target.value)} autoComplete={newPassword ? "new-password" : "current-password"} dir="ltr" error={fieldError("password")} required /> : null}
+          {needsName ? <div className="participant-age-confirmation"><Checkbox id="participant-ageConfirmed" name="ageConfirmed" label={copy.ageConfirmed} checked={draft.ageConfirmed} onChange={(event) => updateParticipantDraft({ ageConfirmed: event.target.checked, outcome: null, fieldErrors: {} })} error={fieldError("ageConfirmed")} style={{ alignSelf: "flex-start" }} required /></div> : null}
           <div className="participant-account-trap" aria-hidden="true"><label htmlFor="participant-website">Website</label><input id="participant-website" name="website" autoComplete="off" tabIndex={-1} /></div>
         </fieldset>
         {needsCode && expiredAt !== null ? <p className="participant-account-time">{codeExpired ? copy.expired : <>{copy.expiresAt} <time dateTime={draft.expiresAt!}>{formattedTime(expiredAt, locale)}</time></>}</p> : null}

@@ -15,6 +15,7 @@ async function mockAccounts(page: Page, options: { initialStatusGate?: Promise<v
   let profile: ParticipantProfile | null = null;
   let denySignIn = true;
   let transportFailure = false;
+  let rejectAge = false;
   let calls = 0;
   let lastRequestId: string | null = null;
   await page.route("**/api/participant-accounts", async (route) => {
@@ -27,10 +28,12 @@ async function mockAccounts(page: Page, options: { initialStatusGate?: Promise<v
       const payload = route.request().postDataJSON() as ParticipantPayload;
       expect(payload.formToken?.startsWith("synthetic-form-")).toBe(true);
       expect(payload.website).toBe("");
+      if (payload.action !== "signup") expect(payload.ageConfirmed).toBeUndefined();
       const password = payload.password ?? "";
       const passwordError = ["signup", "verify", "reset"].includes(payload.action)
         ? Buffer.byteLength(password, "utf8") > 72 ? "too_long" : Array.from(password).length < 10 ? "invalid" : null : null;
-      if (passwordError) { response.state = "invalid_input"; response.fieldErrors = { password: passwordError }; }
+      if (payload.action === "signup" && (payload.ageConfirmed !== true || rejectAge)) { response.state = "invalid_input"; response.fieldErrors = { ageConfirmed: "required" }; }
+      else if (passwordError) { response.state = "invalid_input"; response.fieldErrors = { password: passwordError }; }
       else if (transportFailure) { response.state = "unavailable"; }
       else if (payload.action === "signup" || payload.action === "forgot" || payload.action === "resend") {
         response.state = "accepted";
@@ -53,14 +56,15 @@ async function mockAccounts(page: Page, options: { initialStatusGate?: Promise<v
     }
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(response) });
   });
-  return { allowSignIn: () => { denySignIn = false; }, failTransport: (value: boolean) => { transportFailure = value; }, expireSession: () => { profile = null; }, calls: () => calls };
+  return { allowSignIn: () => { denySignIn = false; }, failTransport: (value: boolean) => { transportFailure = value; }, rejectAge: (value: boolean) => { rejectAge = value; }, expireSession: () => { profile = null; }, calls: () => calls };
 }
 
-async function fillSignup(page: Page, name = "Synthetic Participant") {
+async function fillSignup(page: Page, name = "Synthetic Participant", ageConfirmed = true) {
   await expect(page.locator("#participant-name")).toBeEnabled();
   await page.locator("#participant-name").fill(name);
   await page.locator("#participant-email").fill("synthetic@example.invalid");
   await page.locator("#participant-password").fill(syntheticPassword);
+  await page.locator("#participant-ageConfirmed").setChecked(ageConfirmed);
 }
 
 for (const locale of ["en", "ar"] as const) {
@@ -92,13 +96,14 @@ for (const locale of ["en", "ar"] as const) {
     } finally { releaseScripts(); releaseStatus(); }
   });
 
-  test(`${locale} sign-up has only three fields, a versioned notice, RTL and accessible responsive layout`, async ({ page }, testInfo) => {
+  test(`${locale} sign-up has three identity fields and one age declaration, a versioned notice, RTL and accessible responsive layout`, async ({ page }, testInfo) => {
     await mockAccounts(page);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/sign-up`);
     await fillSignup(page, "مشارك مصطنع");
-    await expect(page.locator('form input:not([name="website"])')).toHaveCount(3);
-    await expect(page.locator('input[type="tel"], input[type="checkbox"]')).toHaveCount(0);
+    await expect(page.locator('form input:not([name="website"]):not([type="checkbox"])')).toHaveCount(3);
+    await expect(page.locator('input[type="checkbox"]')).toHaveCount(1);
+    await expect(page.locator('input[type="tel"], input[type="date"], input[name="dob"], input[name="dateOfBirth"]')).toHaveCount(0);
     await expect(page.locator("#participant-name")).toHaveAttribute("autocomplete", "name");
     await expect(page.locator("#participant-email")).toHaveAttribute("autocomplete", "email");
     await expect(page.locator("#participant-password")).toHaveAttribute("autocomplete", "new-password");
@@ -117,6 +122,76 @@ for (const locale of ["en", "ar"] as const) {
       window.scrollTo(0, 0);
       return document.querySelector(".participant-account-intro .eyebrow")!.getBoundingClientRect().top >= document.querySelector(".site-header")!.getBoundingClientRect().bottom;
     })).toBe(true);
+  });
+
+  test(`${locale} sign-up requires an explicit age declaration and presents server rejection accessibly`, async ({ page }) => {
+    const mock = await mockAccounts(page);
+    await page.goto(`/${locale}/sign-up`);
+    await fillSignup(page, "Synthetic Participant", false);
+    const confirmation = page.getByRole("checkbox", { name: copy.ageConfirmed, exact: true });
+    const create = page.getByRole("button", { name: copy.create, exact: true });
+    await expect(confirmation).not.toBeChecked();
+    await expect(confirmation).toHaveAttribute("required", "");
+    await create.click();
+    const summary = page.getByTestId("participant-account-error");
+    await expect(summary).toBeFocused();
+    await expect(page.locator("#participant-ageConfirmed-error")).toHaveText(`!${copy.ageRequired}`);
+    await expect(confirmation).toHaveAttribute("aria-invalid", "true");
+    await expect(confirmation).toHaveAttribute("aria-describedby", "participant-ageConfirmed-error");
+    expect(mock.calls()).toBe(0);
+    await summary.locator('a[href="#participant-ageConfirmed"]').focus(); await page.keyboard.press("Enter");
+    await expect(confirmation).toBeFocused(); await page.keyboard.press("Space");
+    await expect(confirmation).toBeChecked();
+    await expect(page.locator("#participant-ageConfirmed-error")).toHaveCount(0);
+    mock.rejectAge(true); await create.click();
+    await expect(summary).toBeFocused();
+    await expect(confirmation).toBeChecked();
+    await expect(page.locator("#participant-ageConfirmed-error")).toContainText(copy.ageRequired);
+    await expect(page).toHaveTitle(`MSRC 2027 | ${copy.titles["sign-up"]}`);
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
+    mock.rejectAge(false); await create.click();
+    await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
+    expect(mock.calls()).toBe(2);
+  });
+
+  test(`${locale} mobile age declaration keeps enlarged layout, keyboard and native scrolling`, async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.includes("mobile"), "320px enlarged layout is covered by the mobile project.");
+    await mockAccounts(page); await page.setViewportSize({ width: 320, height: 720 });
+    await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto(`/${locale}/sign-up`);
+    await fillSignup(page, "Synthetic Participant", false);
+    await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
+    await page.evaluate(async () => { await document.fonts.ready; });
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--site-header-height").trim() === `${(document.querySelector(".site-header-inner") as HTMLElement).offsetHeight}px`)).toBe(true);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    const heading = page.getByRole("heading", { name: copy.titles["sign-up"], exact: true });
+    const headingPosition = await heading.evaluate((element) => Math.round(element.getBoundingClientRect().top + window.scrollY));
+    const headerBottom = await page.locator(".site-header").evaluate((element) => Math.ceil(element.getBoundingClientRect().bottom));
+    const position = Math.max(0, headingPosition - headerBottom - 16);
+    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), position);
+    await expect(heading).toBeInViewport();
+    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), position + 1200);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(position + 1000);
+    await expect(heading).not.toBeInViewport();
+    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), position);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(position);
+    await expect(heading).toBeInViewport();
+    await expect.poll(() => page.evaluate(() => Math.floor(document.querySelector(".participant-account-intro h1")!.getBoundingClientRect().top - document.querySelector(".site-header")!.getBoundingClientRect().bottom))).toBeGreaterThanOrEqual(0);
+    const confirmation = page.getByRole("checkbox", { name: copy.ageConfirmed, exact: true });
+    const create = page.getByRole("button", { name: copy.create, exact: true });
+    await expect(create).toBeEnabled();
+    await confirmation.focus(); await page.keyboard.press("Space"); await expect(confirmation).toBeChecked();
+    const instruction = page.locator('label[for="participant-ageConfirmed"] > span');
+    await expect.poll(() => instruction.evaluate((element) => Math.floor(element.getBoundingClientRect().top - document.querySelector(".site-header")!.getBoundingClientRect().bottom))).toBeGreaterThanOrEqual(0);
+    await expect.poll(() => instruction.evaluate((element) => Math.floor(window.innerHeight - element.getBoundingClientRect().bottom))).toBeGreaterThanOrEqual(0);
+    await page.keyboard.press("Tab"); await expect(create).toBeFocused();
+    await expect(page).toHaveTitle(`MSRC 2027 | ${copy.titles["sign-up"]}`);
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
+    await confirmation.focus();
+    await expect.poll(() => instruction.evaluate((element) => Math.floor(element.getBoundingClientRect().top - document.querySelector(".site-header")!.getBoundingClientRect().bottom))).toBeGreaterThanOrEqual(0);
+    await mkdir(resolve(".tools/participant-age-evidence"), { recursive: true });
+    await page.screenshot({ path: resolve(`.tools/participant-age-evidence/${locale}-320-200-age.png`), mask: [page.locator("#participant-password")] });
   });
 
   test(`${locale} verification keeps recovery input, accepts Arabic digits and focuses invalid code errors`, async ({ page }) => {
@@ -140,6 +215,9 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
     await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.verified);
     await expect(page.locator("#participant-password, #participant-code")).toHaveCount(0);
+    await page.getByRole("link", { name: copy.signIn, exact: true }).first().click();
+    await page.locator(".participant-account-navigation").getByRole("link", { name: copy.links["sign-up"], exact: true }).click();
+    await expect(page.locator("#participant-ageConfirmed")).not.toBeChecked();
   });
 
   test(`${locale} generic recovery completes a code reset and removes the password`, async ({ page }) => {
@@ -258,6 +336,7 @@ test("locale changes retain name, email, password and code in memory, while relo
   await expect(page.locator("#participant-name")).toHaveValue("مشارك مصطنع");
   await expect(page.locator("#participant-email")).toHaveValue("synthetic@example.invalid");
   await expect(page.locator("#participant-password")).toHaveValue(syntheticPassword);
+  await expect(page.locator("#participant-ageConfirmed")).toBeChecked();
   mock.failTransport(true);
   await page.getByRole("button", { name: participantCopy.ar.create, exact: true }).click();
   await expect(page.getByTestId("participant-account-error")).toBeFocused();
