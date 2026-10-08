@@ -71,8 +71,8 @@ describe("approved MSRC 2026 homepage stills (ORG-046, MED-01/04, PRV-03)", () =
       const bytes = readFileSync(`public${photo.src}`);
       // Phone originals carry EXIF with GPS; public derivatives must carry none.
       expect(bytes.includes(Buffer.from("Exif")), name).toBe(false);
-      if (name === "panel") {
-        expect(photo.alt).toEqual({ en: "", ar: "" }); // Behind decorative year art.
+      if (name === "panel" || name === "break") {
+        expect(photo.alt).toEqual({ en: "", ar: "" }); // Backdrops behind year art and the closing heading.
       } else {
         expect(photo.alt.en, name).toMatch(/MSRC 2026/);
         expect(photo.alt.ar, name).toMatch(/[\u0600-\u06ff]/);

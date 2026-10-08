@@ -1,5 +1,28 @@
 # Progress and session handover
 
+## 8 October 2026 — Homepage section rhythm and gold figures (design review item 2)
+
+Builds on ORG-046 in [PR #53](https://github.com/xpexellent-dotcom/msrc-2027/pull/53).
+Order now: film (dark), dates/countdown and introduction (ivory), **new purple "at a
+glance" band with large gold figures** (5th edition, 2 days, 5 ways to take part, drawn
+from the edition, confirmed dates and `participationPaths`), path cards (ivory),
+auditorium photo, programme (purple), speakers (ivory), MSRC 2026 (dark, one wide
+competition photo), partners and FAQ (light), **dark full-bleed closing** with the break
+photo, then the footer. Large gold is limited to the figures band and the legacy "2027".
+
+Checks (local production build, Node 22):
+- PASS: lint, typecheck, `pnpm test` (51 files, 2,208), build.
+- PASS: axe WCAG 2.2 AA + best-practice, EN/AR at 1440/390/320 px, three repeated runs;
+  no overflow, including at 200% text on a 412 px phone (fixed during this work: figure
+  labels now wrap below the number).
+- Playwright qa-regressions/organizer-public-decisions/public-shell: 82 passed, 4 skipped,
+  1 failed (media-page quick filter test on mobile, which also fails on unmodified `main`
+  here). The new figures assertion passes in EN and AR. The 14 hero-film playback tests
+  still cannot run in this container (see the entry below).
+- Note: with the page scrolled to the bottom, the fixed header can sit over the closing
+  action at one Arabic desktop position. That is general fixed-header behaviour; axe at
+  the top of the page is clean.
+
 ## 8 October 2026 — Approved MSRC 2026 photos on the homepage (ORG-046)
 
 Design review found the homepage bland after the opening film: about 6,000 px of ivory

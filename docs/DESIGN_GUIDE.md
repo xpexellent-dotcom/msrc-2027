@@ -274,3 +274,18 @@ hackathon card keeps line art until an approved photo exists. Pathway cards stac
 row below 640 px. Photo hover zoom is removed under reduced motion. Every photo is labelled
 as MSRC 2026; never present it as 2027 content. Sources and crops are in
 [MEDIA_REGISTER.md](MEDIA_REGISTER.md#10-approved-homepage-stills--8-october-2026-org-046).
+
+## 17. Section rhythm and gold moments — 8 October 2026
+
+At the requester's direction, the homepage alternates deliberately instead of running five
+ivory sections in a row. Ivory carries reading sections. Full-width photos act as breaks.
+A deep purple "at a glance" band after the introduction shows large gold figures: the
+fifth edition, two days, and five ways to take part. They come from the edition, the
+confirmed dates and the published participation list; never add estimates, capacities or
+attendance numbers there. The closing is dark, with the MSRC 2026 break photo under an ink
+scrim, ivory text and a gold action, and runs straight into the ink footer.
+
+Large gold is limited to two moments per page: the figures band and the previous-edition
+"2027". Elsewhere gold stays on actions and short rules. On phones the figures stack as
+number-and-label rows, and the label wraps below the number at enlarged text sizes.
+The previous-edition section now shows a single wide competition photo.

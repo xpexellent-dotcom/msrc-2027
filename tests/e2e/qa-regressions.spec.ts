@@ -194,8 +194,10 @@ test("a portrait phone keeps the header in view while reading down", async ({ pa
 // The edition number and the year art were the only Western digits on Arabic pages.
 // ORG-046 replaced the intro line art with an approved MSRC 2026 photo that keeps the edition number.
 test("homepage display art uses each language's digits and localized photo text", async ({ page }) => {
-  for (const [locale, edition, years, caption] of [["en", "5", "20262027", "MSRC 2026"], ["ar", "٥", "٢٠٢٦٢٠٢٧", "نسخة ٢٠٢٦"]] as const) {
+  for (const [locale, edition, years, caption, figures] of [["en", "5", "20262027", "MSRC 2026", ["5th", "2", "5"]], ["ar", "٥", "٢٠٢٦٢٠٢٧", "نسخة ٢٠٢٦", ["٥", "٢", "٥"]]] as const) {
     await page.goto(`/${locale}`);
+    // The gold figures band shows only confirmed facts: fifth edition, two days, five published pathways.
+    await expect(page.locator(".figure-value")).toHaveText([...figures]);
     await expect(page.locator(".visual-edition")).toHaveText(edition);
     await expect(page.locator(".legacy-art-years")).toHaveText(years);
     await expect(page.locator(".intro-visual > figcaption")).toHaveText(caption);

@@ -48,7 +48,8 @@ export const homepageAssets = {
     auditorium: { src: "/media/msrc2026/auditorium-v1.jpg", alt: { en: "The main auditorium filled with attendees at MSRC 2026", ar: "القاعة الرئيسية ممتلئة بالحضور في نسخة ٢٠٢٦" } },
     panel: { src: "/media/msrc2026/legacy-panel-v1.jpg", alt: { en: "", ar: "" } },
     competition: { src: "/media/msrc2026/moment-competition-v1.jpg", alt: { en: "Students presenting a clinical question during a competition at MSRC 2026", ar: "طالبات يعرضن سؤالًا سريريًا خلال مسابقة في نسخة ٢٠٢٦" } },
-    break: { src: "/media/msrc2026/moment-break-v1.jpg", alt: { en: "Attendees talking during a break between sessions at MSRC 2026", ar: "حضور يتبادلون الحديث خلال استراحة بين الجلسات في نسخة ٢٠٢٦" } },
+    // Full-bleed backdrop behind the closing heading, so it is decorative.
+    break: { src: "/media/msrc2026/moment-break-v1.jpg", alt: { en: "", ar: "" } },
   },
   finalLogo: null,
   sponsors: [],

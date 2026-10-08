@@ -2055,8 +2055,9 @@ its line art.
 
 Placement: community (IMG_9864) in the conference introduction; Attend (IMG_9812),
 Research (IMG_9914) and Workshops (IMG_9846) pathway cards; full-width auditorium break
-(IMG_9977); decorative background behind the previous-edition year art (IMG_3906); and
-two previous-edition moments (IMG_9866, IMG_9984). IMG_9812 and IMG_3906 are cropped so
+(IMG_9977); decorative background behind the previous-edition year art (IMG_3906); the
+"Competitions" previous-edition moment (IMG_9866); and the full-bleed backdrop of the dark
+closing section (IMG_9984, moved there by the section-rhythm refinement in DESIGN_GUIDE §17). IMG_9812 and IMG_3906 are cropped so
 on-screen names and portraits of 2026 speakers are excluded; nothing implies they are
 2027 speakers. Each photo is labelled MSRC 2026 / نسخة ٢٠٢٦.
 

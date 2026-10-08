@@ -15,6 +15,7 @@ import { FlowLines } from "@/components/brand/flow-lines";
 import { conferenceConfig } from "@/config/conference";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
 import { homepageNarrative } from "@/content/homepage-narrative";
+import { participationPaths } from "@/content/conference-experiences";
 import { formatIndex, formatYear, type Locale } from "@/lib/i18n";
 import type { PreviewHeroVideo } from "@/lib/media-policy";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
@@ -29,6 +30,13 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
   const narrative = homepageNarrative[locale];
   const dates = conferenceConfig.dates;
   const dateRange = dates ? formatConferenceDateRange(dates, locale) : copy.pending;
+  // Large gold figures come only from confirmed configuration and the published pathway list.
+  const figures = [
+    // conferenceConfig.edition is the year (2027); the edition number is fifth, as in the intro art.
+    { key: "edition", value: 5, suffix: narrative.editionSuffix, label: narrative.figureLabels.edition },
+    ...(dates ? [{ key: "days", value: 2, suffix: "", label: narrative.figureLabels.days }] : []),
+    { key: "ways", value: participationPaths.length, suffix: "", label: narrative.figureLabels.ways },
+  ];
   return <div className="homepage-journey">
     <section id="top" tabIndex={-1} className="conference-hero" aria-labelledby="hero-title">
       <HeroMedia locale={locale} video={media?.video ?? homepageAssets.heroVideo} posterSrc={media?.poster ?? homepageAssets.heroPoster} allowPreview={Boolean(media)} playbackPolicy="respect-preferences" controlsMode="video">
@@ -74,6 +82,15 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
         <div className="intro-body"><p className="intro-statement">{narrative.community}</p><p>{narrative.organizer}</p><figure className="intro-visual"><Image src={homepageAssets.photos.community.src} alt={homepageAssets.photos.community.alt[locale]} fill sizes="(max-width: 700px) 92vw, 45vw" /><figcaption>{narrative.photoEdition}</figcaption><span aria-hidden="true" className="visual-edition">{formatIndex(5, locale)}</span></figure></div>
       </Reveal></Container>
     </section>
+    <section className="figures-band" aria-labelledby="figures-title">
+      <Container>
+        <h2 id="figures-title" className="figures-title">{narrative.figuresTitle}</h2>
+        <Reveal className="figures-list" stagger>{figures.map((figure) => <p className="figure" key={figure.key}>
+          <span className="figure-value">{formatIndex(figure.value, locale)}{figure.suffix ? <sup>{figure.suffix}</sup> : null}</span>
+          <span className="figure-label">{figure.label}</span>
+        </p>)}</Reveal>
+      </Container>
+    </section>
     <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
       <Container>
         <Reveal className="section-introduction"><SectionHeading chapter eyebrow={copy.pathwaysEyebrow} title={copy.pathwaysTitle} id="pathways-title" /></Reveal>
@@ -107,7 +124,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
         <div className="legacy-copy"><SectionHeading chapter eyebrow={copy.legacyEyebrow} title={copy.legacyTitle} id="legacy-title" inverse /><p className="legacy-film-note">{narrative.legacyCaption}</p><div className="legacy-links"><CinematicFilmLink locale={locale}>{narrative.filmLink}<Arrow /></CinematicFilmLink></div></div>
         <div className="legacy-art" aria-hidden="true"><Image src={homepageAssets.photos.panel.src} alt="" fill sizes="(max-width: 700px) 92vw, 45vw" /><div className="legacy-art-years" dir="ltr"><span>{formatYear(2026, locale)}</span><span>{formatYear(2027, locale)}</span></div><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
       </Reveal>
-      <Reveal className="legacy-moments" stagger>{[{ photo: homepageAssets.photos.competition, caption: narrative.competitionCaption }, { photo: homepageAssets.photos.break, caption: narrative.breakCaption }].map(({ photo, caption }) => <figure key={photo.src}><div className="legacy-moment-photo"><Image src={photo.src} alt={photo.alt[locale]} fill sizes="(max-width: 700px) 92vw, 45vw" /></div><figcaption><span>{narrative.photoEdition}</span>{caption}</figcaption></figure>)}</Reveal>
+      <Reveal className="legacy-moments" stagger><figure><div className="legacy-moment-photo"><Image src={homepageAssets.photos.competition.src} alt={homepageAssets.photos.competition.alt[locale]} fill sizes="(max-width: 700px) 92vw, 90vw" /></div><figcaption><span>{narrative.photoEdition}</span>{narrative.competitionCaption}</figcaption></figure></Reveal>
       </Container>
     </section>
     <section id="partners" tabIndex={-1} className="editorial-section partners-section" aria-labelledby="partners-title">
@@ -117,8 +134,9 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
       <Container><div className="faq-grid"><Reveal><SectionHeading chapter eyebrow={narrative.practicalEyebrow} title={narrative.practicalTitle} id="practical-title" /><Link className="date-band-link" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link></Reveal><div className="faq-list" aria-label={narrative.faqLabel}>{narrative.faq.map((faq) => <details className="faq-item" key={faq.question}><summary>{faq.question}<span aria-hidden="true">+</span></summary><p>{faq.answer}</p></details>)}</div></div></Container>
     </section>
     <section className="closing-section" aria-labelledby="closing-title">
-      <FlowLines />
-      <Container><Reveal className="closing-grid" stagger><div><p className="closing-date">{dateRange} · {copy.city}</p><h2 id="closing-title">{copy.endingTitle}</h2></div><ButtonLink href={`/${locale}/participate`}>{narrative.endingAction}<Arrow /></ButtonLink></Reveal></Container>
+      {/* ORG-046: a full-bleed MSRC 2026 break photo under a dark scrim; decorative behind the heading. */}
+      <div className="closing-photo" aria-hidden="true"><Image src={homepageAssets.photos.break.src} alt="" fill sizes="100vw" /></div>
+      <Container><Reveal className="closing-grid" stagger><div><p className="closing-date">{dateRange} · {copy.city}</p><h2 id="closing-title">{copy.endingTitle}</h2></div><ButtonLink href={`/${locale}/participate`} variant="gold">{narrative.endingAction}<Arrow /></ButtonLink></Reveal></Container>
     </section>
   </div>;
 }

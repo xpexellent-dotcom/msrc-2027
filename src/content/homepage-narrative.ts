@@ -23,7 +23,9 @@ export const homepageNarrative = {
       { question: "Will session recordings be available?", answer: "The media library will list approved recordings when their publication and access arrangements are confirmed. The homepage film shows the previous MSRC 2026 edition." },
     ],
     endingAction: "Explore participation", endingNote: "Bring a question. Leave with a new possibility.",
-    photoEdition: "MSRC 2026", competitionCaption: "Competitions", breakCaption: "Between sessions",
+    photoEdition: "MSRC 2026", competitionCaption: "Competitions",
+    figuresTitle: "MSRC 2027 at a glance", editionSuffix: "th",
+    figureLabels: { edition: "Edition of the Medical Students Research Conference", days: "Days at King Faisal Conference Center, Jeddah", ways: "Ways to take part, from attending to the Three Minute Thesis" },
   },
   ar: {
     identity: "MSRC 2027", programmeAction: "استكشف البرنامج", participationAction: "طرق المشاركة",
@@ -46,7 +48,9 @@ export const homepageNarrative = {
       { question: "هل ستتوفر تسجيلات الجلسات؟", answer: "ستعرض مكتبة الوسائط التسجيلات المعتمدة بعد تأكيد ترتيبات نشرها والوصول إليها. فيلم الصفحة الرئيسية يعرض نسخة المؤتمر السابقة في عام ٢٠٢٦." },
     ],
     endingAction: "استكشف طرق المشاركة", endingNote: "ابدأ بسؤال. واكتشف إمكانات جديدة.",
-    photoEdition: "نسخة ٢٠٢٦", competitionCaption: "المسابقات", breakCaption: "بين الجلسات",
+    photoEdition: "نسخة ٢٠٢٦", competitionCaption: "المسابقات",
+    figuresTitle: "المؤتمر في لمحة", editionSuffix: "",
+    figureLabels: { edition: "النسخة الخامسة من مؤتمر أبحاث طلاب الطب", days: "يومان في مركز الملك فيصل للمؤتمرات بجدة", ways: "طرق للمشاركة، من الحضور إلى الأطروحة في ثلاث دقائق" },
   },
 } satisfies Record<Locale, {
   identity: string; programmeAction: string; participationAction: string; scroll: string; dateNote: string;
@@ -57,5 +61,6 @@ export const homepageNarrative = {
   partnersBody: string; partnersPending: string; practicalEyebrow: string; practicalTitle: string;
   datesLink: string; faqLabel: string; faq: readonly { question: string; answer: string }[];
   endingAction: string; endingNote: string;
-  photoEdition: string; competitionCaption: string; breakCaption: string;
+  photoEdition: string; competitionCaption: string;
+  figuresTitle: string; editionSuffix: string; figureLabels: { edition: string; days: string; ways: string };
 }>;

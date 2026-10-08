@@ -254,7 +254,7 @@ Day 2) and Habibah.
 | `auditorium-v1.jpg` | IMG_9977.HEIC | Full-width photo break | Light top trim |
 | `legacy-panel-v1.jpg` | IMG_3906.HEIC | Behind decorative year art (`alt=""`) | Panel only; names/portraits on screens excluded |
 | `moment-competition-v1.jpg` | IMG_9866.JPG | "Competitions" moment | Full frame |
-| `moment-break-v1.jpg` | IMG_9984.HEIC | "Between sessions" moment | Full frame |
+| `moment-break-v1.jpg` | IMG_9984.HEIC | Full-bleed backdrop behind the closing heading (`alt=""`, dark scrim) | Full frame |
 
 Derivatives are re-encoded JPEG (quality 80, at most 2400 px wide) with no EXIF, GPS or
 XMP metadata, and are served through Next.js image optimization. A unit test fails if
