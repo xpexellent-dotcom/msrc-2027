@@ -107,7 +107,13 @@ jobs:
         run: docker inspect --format='{{.Config.Image}}' supabase_auth_msrc2027-local
       - run: pnpm db:reset
       - run: pnpm db:lint
+      - name: Install the private disposable Storage test helper
+        id: storage_fixture
+        run: node scripts/ci-storage-fixture.ts --install
       - run: pnpm db:test
+      - name: Remove the private Storage helper before advisors and native tests
+        if: ${{ always() && (steps.storage_fixture.outcome == 'success' || steps.storage_fixture.outcome == 'failure') }}
+        run: node scripts/ci-storage-fixture.ts --cleanup
       - name: Inspect database security findings
         run: pnpm exec supabase db advisors --local --type security --level warn --fail-on error
       - name: Prepare only public loopback client settings
@@ -126,9 +132,14 @@ jobs:
             printf 'Independent staff cold pass %s of %s\n' "$pass" "$COLD_RUNS"
             pnpm db:reset
             pnpm db:lint
+            node scripts/ci-storage-fixture.ts --install
             pnpm db:test
+            node scripts/ci-storage-fixture.ts --cleanup
             pnpm exec vitest run --config vitest.staff.integration.config.ts
           done
+      - name: Verify disposable Storage fixture cleanup after any cold pass
+        if: ${{ always() && (steps.storage_fixture.outcome == 'success' || steps.storage_fixture.outcome == 'failure') }}
+        run: node scripts/ci-storage-fixture.ts --cleanup
       - name: Stop the disposable stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop

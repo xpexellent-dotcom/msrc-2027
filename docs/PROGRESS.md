@@ -28,7 +28,7 @@ header/form-readiness assumptions; corrected code/barriers retain all assertions
 zero retries and unchanged timeouts. Sanitized synthetic traces/screenshots remain
 ignored local evidence; configured skips are not passes.
 
-Added 114 pgTAP assertions, five real-Postgres concurrency cases and native Auth
+Added 117 pgTAP assertions, five real-Postgres concurrency cases and native Auth
 age/cleanup cases. Source review/lint/types/whitespace PASS; SQL/native execution
 is NOT TESTED locally because no disposable Docker database is available here.
 The draft PR's isolated Linux CI must verify them before claiming PASS. Hosted
@@ -100,6 +100,20 @@ Two further invariants preserve a byte-identical no-op update and a canonical
 late audit replay only through the private tombstone proof. The new file has
 114 assertions. Final deletion rechecks, immutable-audit guards,
 failure rollback and operating gates remain; complete execution is still pending.
+
+Seventh head `82efe7c7f6f7e9f9040af5e55881061dc77a16ce` passed reset and strict
+lint. All 83 new SQL assertions reached before the optional provider fixture
+passed, including atomic erasure, private-bound attribution and immutable audits.
+The next fixture's `CREATE TABLE storage.objects` correctly failed with SQLSTATE
+42501: native `postgres` has Storage usage rather than provider-schema creation
+authority. A disposable-only fixed native-owner fixture helper now performs the
+three synthetic DDL phases inside the existing rollback transaction, verifies
+exact ownership/marker/shape and grants only the test table's required access.
+The helper is removed before advisors/native tests; no production schema grant,
+provider activation or migration change supplies test authority. The remaining
+31 SQL assertions and native/concurrency checks are still pending complete CI.
+Three additional checks deny every API role private-helper schema/execute access
+and reject an unknown DDL operation. The new SQL file now has 117 assertions.
 
 Fresh merged-main staff verification and completed rerun are recorded separately
 in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).

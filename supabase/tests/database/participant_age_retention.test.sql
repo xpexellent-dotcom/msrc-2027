@@ -223,21 +223,25 @@ select ok((select count(*)=5 from auth.users where id in(pg_temp.age_actor(7),pg
 -- relation is recreated only as a rollback-only synthetic provider fixture;
 -- the worker itself never creates/transfers/deletes Storage objects.
 select ok(to_regclass('storage.objects') is null,'An Auth-only native stack needs no Storage schema to evaluate cleanup');
-create schema if not exists storage;
-create table storage.objects(id uuid primary key,owner uuid,owner_id text);
+select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role'),('supabase_auth_admin')) r(name)
+ where has_schema_privilege(r.name,'msrc_ci_storage','USAGE')), 'No public/app/native API role can enter the privileged CI fixture schema');
+select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role'),('supabase_auth_admin')) r(name)
+ where has_function_privilege(r.name,'msrc_ci_storage.fixture(text)','EXECUTE')), 'No API role can execute the privileged CI owner fixture');
+select throws_ok($$select msrc_ci_storage.fixture('unapproved-operation')$$,'22023',null,'Unknown fixture operations cannot reach provider DDL');
+select msrc_ci_storage.fixture('create');
 select pg_temp.age_fixture(12,interval '31 days');
 insert into storage.objects values('c9500000-0000-4000-8000-000000000012',pg_temp.age_actor(12),null);
 select is(msrc_participant.retained_reason(pg_temp.age_actor(12)),'storage_owner','The installed Storage owner UUID holds the account');
 select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','An owned object prevents native user deletion');
 update storage.objects set owner=null,owner_id=pg_temp.age_actor(12)::text;
 select is(msrc_participant.retained_reason(pg_temp.age_actor(12)),'storage_owner','The current Storage text owner_id also holds the account');
-alter table storage.objects drop column owner;
+select msrc_ci_storage.fixture('drop_owner');
 select throws_ok($$select msrc_participant.cleanup_unverified(100,false)$$,'42703',null,
  'An unreviewed Storage shape aborts cleanup rather than bypassing the ownership rule');
 select ok(exists(select 1 from auth.users where id=pg_temp.age_actor(12)) and exists(select 1 from msrc_participant.profiles where actor_id=pg_temp.age_actor(12))
  and not exists(select 1 from msrc_participant.subject_refs where actor_id=pg_temp.age_actor(12) and erased_at is not null),
  'Unknown-provider-shape failure rolls back without any account erasure');
-drop table storage.objects;
+select msrc_ci_storage.fixture('drop');
 select is(msrc_participant.retained_reason(pg_temp.age_actor(12)),null::text,'Absent optional Storage cannot own objects');
 select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','1','The same original unverified actor is eligible after the synthetic optional relation is removed');
 
