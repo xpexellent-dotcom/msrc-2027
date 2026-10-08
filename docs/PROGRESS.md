@@ -28,7 +28,7 @@ header/form-readiness assumptions; corrected code/barriers retain all assertions
 zero retries and unchanged timeouts. Sanitized synthetic traces/screenshots remain
 ignored local evidence; configured skips are not passes.
 
-Added 89 pgTAP assertions, five real-Postgres concurrency cases and native Auth
+Added 107 pgTAP assertions, five real-Postgres concurrency cases and native Auth
 age/cleanup cases. Source review/lint/types/whitespace PASS; SQL/native execution
 is NOT TESTED locally because no disposable Docker database is available here.
 The draft PR's isolated Linux CI must verify them before claiming PASS. Hosted
@@ -74,6 +74,18 @@ statement timestamp, and the three wrappers return NULL for invalid UUID syntax.
 Six direct malformed-subject assertions raise the new-file total to 89. Existing
 session assertions, timeouts, rate limits and native fixtures are unchanged;
 complete SQL, concurrency and native execution still require fresh CI.
+
+Fifth head `5c29332ff4ebdec7c596b1a0a74decc7a0375444` passed reset and strict
+lint; SQL execution exposed the conservative FK guard missing four current
+GoTrue 2.197 relationships (including a misspelled passkey table), so ordinary
+accounts were held instead of erased. Its future-record fixture also attempted
+an unsupported temporary-to-permanent FK. The pinned native migrations confirm
+the four exact `user_id` relationships; their actual credential/challenge/SCIM/
+recovery rows now remain explicit native-identity holds. The fixture uses a
+regular rollback-only relation. Eighteen new assertions cover native inventory,
+an ordinary account's null hold reason and all four real native retained kinds,
+raising this file to 107. Unknown incoming FK/shape checks remain fail closed.
+The failed runs are retained; full SQL/native/concurrency PASS is still pending.
 
 Fresh merged-main staff verification and completed rerun are recorded separately
 in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).

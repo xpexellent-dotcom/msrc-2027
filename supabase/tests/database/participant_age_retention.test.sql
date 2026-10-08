@@ -19,6 +19,7 @@ select is(msrc_participant.cleanup_unverified(),'{"state":"closed","scanned":0,"
  'Cleanup is closed, aggregate-only and dry-run by default');
 select is((select enabled from msrc_participant.retention_policy),false,'No cleanup activation is seeded');
 select is((select unverified_days from msrc_participant.retention_policy),30,'The approved original-account retention clock is thirty days');
+select ok(not msrc_participant.unknown_erasure_reference(),'Pinned native/app incoming FK inventory is completely reviewed before cleanup');
 select is((select count(*) from cron.job where command like '%cleanup_unverified%'),0::bigint,'The migration installs no active or inactive cron job');
 select throws_ok($$select msrc_participant.cleanup_unverified(1001,false)$$,'22023',null,'Oversized batches are rejected');
 select throws_ok($$select msrc_participant.cleanup_unverified(0,false)$$,'22023',null,'Zero batches are rejected');
@@ -48,6 +49,7 @@ declare actor uuid:=pg_temp.age_actor(n);admission uuid:=pg_temp.age_admission(n
  return actor;
 end$$;
 select pg_temp.age_fixture(1,interval '31 days');
+select is(msrc_participant.retained_reason(pg_temp.age_actor(1)),null::text,'An ordinary pending native account has no retained-record exception');
 select ok(msrc_participant.age_proven(pg_temp.age_actor(1)),'The native profile has a private timestamped strict-true proof');
 select ok((select p.age_admission_id=a.id and p.age_attested_at=r.age_attested_at and r.age_confirmed and a.age_confirmed
  from msrc_participant.profiles p join msrc_participant.admissions a on a.actor_id=p.actor_id join msrc_participant.proof_refs r on r.id=a.id
@@ -120,12 +122,13 @@ select throws_ok($$delete from msrc_participant.retention_audit where actor_id=p
 -- A populated unknown CASCADE FK must hold rather than silently delete a future
 -- operational record. Removing the synthetic table allows the reviewed worker.
 select pg_temp.age_fixture(2,interval '31 days');
-create temporary table future_operational_record(id integer primary key,actor uuid references auth.users(id) on delete cascade);
-insert into future_operational_record values(1,pg_temp.age_actor(2));
+create schema retention_fixture;
+create table retention_fixture.future_operational_record(id integer primary key,actor uuid references auth.users(id) on delete cascade);
+insert into retention_fixture.future_operational_record values(1,pg_temp.age_actor(2));
 select is(msrc_participant.retained_reason(pg_temp.age_actor(2)),'unreviewed_foreign_key','Unknown cascading references fail closed before erasure');
 select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','Unknown cascades cannot delete/unlink operational records');
-select is((select count(*) from future_operational_record),1::bigint,'The future operational row is retained');
-drop table future_operational_record;
+select is((select count(*) from retention_fixture.future_operational_record),1::bigint,'The future operational row is retained');
+drop table retention_fixture.future_operational_record;
 alter table msrc_participant.challenges add column future_retained_actor uuid references auth.users(id) on delete cascade;
 select ok(msrc_participant.unknown_erasure_reference(),'A new FK column inside an otherwise known table also needs review');
 select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','Known table names cannot bypass retention for new cascading relationships');
@@ -213,6 +216,54 @@ select ok(exists(select 1 from auth.users where id=pg_temp.age_actor(12)) and ex
 drop table storage.objects;
 select is(msrc_participant.retained_reason(pg_temp.age_actor(12)),null::text,'Absent optional Storage cannot own objects');
 select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','1','The same original unverified actor is eligible after the synthetic optional relation is removed');
+
+-- These are real pinned native tables, not an empty-table allowlist exemption.
+-- Any target-owned passkey/provisioning/recovery row must remain attached even
+-- when the provider FK would otherwise CASCADE or SET NULL on native deletion.
+select pg_temp.age_fixture(13,interval '31 days');
+insert into auth.webauthn_credentials(id,user_id,credential_id,public_key) values
+ ('c9700000-0000-4000-8000-000000000013',pg_temp.age_actor(13),decode('cafe0013','hex'),decode('cafe1013','hex'));
+select ok(msrc_participant.retained_native_identity(pg_temp.age_actor(13)),'A target-owned native passkey credential is a retained identity');
+select is(msrc_participant.retained_reason(pg_temp.age_actor(13)),'native_identity','Passkey credentials hold unverified cleanup');
+select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','Native passkey CASCADE cannot erase the owning account');
+select ok(exists(select 1 from auth.users where id=pg_temp.age_actor(13)) and exists(select 1 from auth.webauthn_credentials
+ where id='c9700000-0000-4000-8000-000000000013' and user_id=pg_temp.age_actor(13)), 'The passkey record and account remain attached');
+
+select pg_temp.age_fixture(14,interval '31 days');
+insert into auth.webauthn_challenges(id,user_id,challenge_type,session_data,expires_at) values
+ ('c9700000-0000-4000-8000-000000000014',pg_temp.age_actor(14),'registration','{"synthetic":true}',statement_timestamp()+interval '1 minute');
+select ok(msrc_participant.retained_native_identity(pg_temp.age_actor(14)),'A target-owned native passkey challenge is retained');
+select is(msrc_participant.retained_reason(pg_temp.age_actor(14)),'native_identity','Passkey challenges hold unverified cleanup');
+select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','Native challenge CASCADE cannot erase the owning account');
+select ok(exists(select 1 from auth.users where id=pg_temp.age_actor(14)) and exists(select 1 from auth.webauthn_challenges
+ where id='c9700000-0000-4000-8000-000000000014' and user_id=pg_temp.age_actor(14)), 'The native challenge record and account remain attached');
+
+select pg_temp.age_fixture(15,interval '31 days');
+insert into auth.sso_providers(id,resource_id,created_at,updated_at,disabled) values
+ ('c9700000-0000-4000-8000-000000000015','synthetic-retention-scim',statement_timestamp(),statement_timestamp(),true);
+insert into auth.scim_users(id,sso_provider_id,user_id,resource) values
+ ('c9800000-0000-4000-8000-000000000015','c9700000-0000-4000-8000-000000000015',pg_temp.age_actor(15),'{"userName":"synthetic-retention-scim","active":false}');
+select ok(msrc_participant.retained_native_identity(pg_temp.age_actor(15)),'A target-owned native provisioning document is retained');
+select is(msrc_participant.retained_reason(pg_temp.age_actor(15)),'native_identity','Inactive provisioning references still hold cleanup');
+select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','Native provisioning SET NULL cannot unlink retained operational identity');
+select ok(exists(select 1 from auth.users where id=pg_temp.age_actor(15)) and exists(select 1 from auth.scim_users
+ where id='c9800000-0000-4000-8000-000000000015' and user_id=pg_temp.age_actor(15)), 'The provisioning document and account remain attached');
+
+-- Historical native maintenance observed only after these initial rows exist;
+-- no immutable origin/profile/age proof is changed and no native guard disabled.
+insert into auth.users(id,email,encrypted_password,created_at,updated_at,is_anonymous) values
+ (pg_temp.age_actor(16),pg_temp.age_email(16),'synthetic-historical-hash',statement_timestamp()-interval '31 days',statement_timestamp(),false);
+insert into auth.mfa_factors(id,user_id,factor_type,status,created_at,updated_at) values
+ ('c9700000-0000-4000-8000-000000000016',pg_temp.age_actor(16),'totp','verified',statement_timestamp(),statement_timestamp());
+insert into auth.mfa_recovery_code_sets(id,user_id,mfa_factor_id) values
+ ('c9800000-0000-4000-8000-000000000016',pg_temp.age_actor(16),'c9700000-0000-4000-8000-000000000016');
+insert into msrc_participant.profiles(actor_id,name,privacy_version,state) values
+ (pg_temp.age_actor(16),'Synthetic historical native recovery','synthetic-age-notice','pending');
+select ok(msrc_participant.retained_native_identity(pg_temp.age_actor(16)),'The native recovery set is independently detected as retained identity');
+select is(msrc_participant.retained_reason(pg_temp.age_actor(16)),'native_identity','Historical native factor/recovery data remains a cleanup hold');
+select is(msrc_participant.cleanup_unverified(100,false)->>'deleted','0','Native recovery-code CASCADE cannot erase the owning account');
+select ok(exists(select 1 from auth.users where id=pg_temp.age_actor(16)) and exists(select 1 from auth.mfa_recovery_code_sets
+ where id='c9800000-0000-4000-8000-000000000016' and user_id=pg_temp.age_actor(16)), 'The recovery-set record and account remain attached');
 update msrc_participant.retention_policy set enabled=false;
 select ok(not msrc_participant.ready(),'Independent cleanup closure closes database admission too');
 select is(msrc_participant.cleanup_unverified(100,false)->>'state','closed','Closing cleanup does not mutate held identities');

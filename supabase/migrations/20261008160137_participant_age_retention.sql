@@ -475,13 +475,30 @@ create function msrc_participant.unknown_erasure_reference() returns boolean
    and (select a.attname from pg_attribute a where a.attrelid=c.confrelid and a.attnum=c.confkey[1])=
     case when c.confrelid='auth.users'::regclass then 'id' else 'actor_id' end
    and ((c.confrelid='auth.users'::regclass and (
-   (n.nspname='auth' and t.relname in('identities','mfa_factors','sessions','refresh_tokens','one_time_tokens','flow_state','oauth_authorizations','oauth_consents','web_authn_credentials'))
+   (n.nspname='auth' and t.relname in('identities','mfa_factors','sessions','refresh_tokens','one_time_tokens','flow_state','oauth_authorizations','oauth_consents',
+    'webauthn_credentials','webauthn_challenges','scim_users','mfa_recovery_code_sets'))
    or (n.nspname,t.relname) in(('msrc_authorization','account_access'),('msrc_participant','profiles'),('msrc_staff','profiles'),('msrc_staff','password_changes'),
     ('msrc_sessions','session_state'),('msrc_sessions','actor_revocations'),('msrc_staff_email','identity_revision'),('msrc_staff_email','challenges'),('msrc_staff_email','receipts'))))
    or (c.confrelid='msrc_participant.profiles'::regclass and n.nspname='msrc_participant' and t.relname in('challenges','operations','session_receipts'))
    or (c.confrelid='msrc_authorization.account_access'::regclass and n.nspname='msrc_authorization' and t.relname='role_grants'))));
 $$;
 
+create function msrc_participant.retained_native_identity(target_actor uuid) returns boolean
+ language plpgsql volatile security definer set search_path='' as $$
+ declare native_name text;native_relation regclass;retained boolean;
+ begin
+ -- Exact pinned GoTrue2.197 lifecycle references. Their existence alone is not
+ -- an erasure hold, but any target-owned credential/challenge/SCIM/recovery row
+ -- is retained; CASCADE or SET NULL must never erase/unlink that security data.
+ foreach native_name in array array['auth.webauthn_credentials','auth.webauthn_challenges','auth.scim_users','auth.mfa_recovery_code_sets'] loop
+  native_relation:=to_regclass(native_name);
+  if native_relation is not null then
+   execute format('select exists(select 1 from %s n where n.user_id=$1)',native_relation) into retained using target_actor;
+   if retained then return true;end if;
+  end if;
+ end loop;
+ return false;
+end$$;
 create function msrc_participant.retained_reason(target_actor uuid) returns text
  language plpgsql volatile security definer set search_path='' as $$
  declare native_email text;storage_owned boolean;storage_relation regclass;
@@ -505,7 +522,8 @@ create function msrc_participant.retained_reason(target_actor uuid) returns text
   or exists(select 1 from msrc_staff_email.receipts r where r.actor_id=target_actor)
   or exists(select 1 from msrc_staff_email.audit a where a.actor_id=target_actor) then return 'security_history';end if;
  if exists(select 1 from auth.mfa_factors f where f.user_id=target_actor)
-  or exists(select 1 from auth.identities i where i.user_id=target_actor and i.provider<>'email') then return 'native_identity';end if;
+  or exists(select 1 from auth.identities i where i.user_id=target_actor and i.provider<>'email')
+  or msrc_participant.retained_native_identity(target_actor) then return 'native_identity';end if;
  -- Storage is deliberately absent from minimal native-Auth CI stacks. When
  -- installed, its actual owner/owner_id records remain a mandatory hold. This
  -- catalog-bound read avoids adding or changing optional provider schemas.
