@@ -115,6 +115,18 @@ provider activation or migration change supplies test authority. The remaining
 Three additional checks deny every API role private-helper schema/execute access
 and reject an unknown DDL operation. The new SQL file now has 117 assertions.
 
+At `fd4ca4d5dc6272d1d2d713d061d61f4658352802`, disposable CI passed strict
+lint, all 1,023 SQL assertions/13 files (117 new age/retention cases), private
+fixture installation/removal, clean advisors and all 80 integrations/9 files,
+including five real cleanup concurrency cases. Optional cold repetition was
+SKIPPED, not counted as a pass. Native staff Auth passed 26/26 on GoTrue2.197.0.
+Participant native Auth passed 24/25; the remaining test stopped with SQLSTATE
+42883 when its query supplied JSON to a JSONB-only helper. Erasure checks before
+that query passed. The one-line explicit test cast is independently reviewed;
+all assertions and migration bytes are unchanged. The failed native receipt is
+retained; a fresh exact-head run must prove the final case. No hosted operation
+or job rerun occurred. The earlier failure checkpoints above remain historical.
+
 Fresh merged-main staff verification and completed rerun are recorded separately
 in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).
 Its public filter CI failure is preserved: correct URL but stale rendered filters
