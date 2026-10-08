@@ -38,7 +38,7 @@ export const homepageAssets = {
     poster: "/media/msrc2026/poster-desktop-v1.jpg",
     mobilePoster: "/media/msrc2026/poster-mobile-v1.jpg",
   },
-  // ORG-046: organizer-approved MSRC 2026 stills. Cropped, metadata-free derivatives;
+  // ORG-049: organizer-approved MSRC 2026 stills. Cropped, metadata-free derivatives;
   // Drive originals stay private. Crops exclude on-screen names of 2026 speakers.
   photos: {
     community: { src: "/media/msrc2026/about-community-v1.jpg", alt: { en: "Medical students in white coats following a session at MSRC 2026", ar: "طلاب طب بمعاطف بيضاء يتابعون جلسة في نسخة ٢٠٢٦" } },

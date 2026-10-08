@@ -238,7 +238,7 @@ ORG-008 (2 October 2026) lets browsers cache everything under `public/media/` fo
 Never overwrite a published file: ship a corrected cut or poster under a new versioned name
 (`-v2`) and update the reference, or returning visitors may see the old file for a month.
 
-## 10. Approved homepage stills — 8 October 2026 (ORG-046)
+## 10. Approved homepage stills — 8 October 2026 (ORG-049)
 
 The requester approved eight MSRC 2026 photos from the MSRC26 Drive folder for the
 homepage. They were selected from the files the connected Drive account could reach

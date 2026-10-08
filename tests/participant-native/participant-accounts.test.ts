@@ -82,7 +82,7 @@ async function context(session: Session) {
 }
 async function reserve(value: Actor) {
   const reservation = randomUUID();
-  const result = await service("signup_reserve", `${text(value.id)},${text(reservation)},${text(value.email)},${text(value.name)},${text(notice)}`);
+  const result = await service("signup_reserve", `${text(value.id)},${text(reservation)},${text(value.email)},${text(value.name)},${text(notice)},true`);
   check(result.state === "reserved" && result.actorId === value.id && result.reservationId === reservation, "private notice-matched reservation");
   return reservation;
 }
@@ -94,11 +94,66 @@ async function create(value = actor()) {
     `native Admin creates only an admitted unverified synthetic email/password identity${authDiagnostic(response.error)}`);
   return value;
 }
+async function createAged(ageMs = 31 * 86_400_000) {
+  boundary();
+  const value = actor(), reservation = await reserve(value);
+  const originalCreatedAt = new Date(Date.now() - ageMs).toISOString();
+  // Only the independently guarded, unlinked CI stack gets this exact-actor
+  // BEFORE INSERT fixture. GoTrue still creates the identity; the production
+  // subject clock observes its original aged timestamp once and is never edited.
+  await query(`begin;
+    create table msrc_ci_auth.participant_age_fixture(actor_id uuid primary key,email text not null,native_created_at timestamptz not null);
+    revoke all on msrc_ci_auth.participant_age_fixture from public,anon,authenticated,service_role,supabase_auth_admin;
+    insert into msrc_ci_auth.participant_age_fixture values(${text(value.id)},${text(value.email)},${text(originalCreatedAt)});
+    create function msrc_ci_auth.participant_age_fixture_insert() returns trigger
+      language plpgsql security definer set search_path='' as $$
+      declare original timestamptz; begin
+        delete from msrc_ci_auth.participant_age_fixture f where f.actor_id=new.id and f.email=new.email
+          and f.email like '%@example.invalid' returning f.native_created_at into original;
+        if found then new.created_at:=original; end if;
+        return new;
+      end$$;
+    revoke all on function msrc_ci_auth.participant_age_fixture_insert() from public,anon,authenticated,service_role,supabase_auth_admin;
+    create trigger ci_participant_native_origin before insert on auth.users for each row
+      execute function msrc_ci_auth.participant_age_fixture_insert();
+    commit;`);
+  try {
+    const response = await admin.auth.admin.createUser({ id: value.id, email: value.email, password, email_confirm: false,
+      app_metadata: { msrcParticipantAdmission: reservation } });
+    check(!response.error && response.data.user?.id === value.id && !response.data.user.email_confirmed_at,
+      `GoTrue creates only the exact privately admitted aged synthetic identity${authDiagnostic(response.error)}`);
+    check(await query(`select (s.native_created_at=u.created_at and u.created_at=${text(originalCreatedAt)}::timestamptz
+      and not exists(select 1 from msrc_ci_auth.participant_age_fixture))::text
+      from auth.users u join msrc_participant.subject_refs s on s.actor_id=u.id where u.id=${text(value.id)};`) === "true",
+    "one-use CI origin is observed unchanged in the immutable subject clock");
+    return value;
+  } finally {
+    await query(`begin; drop trigger if exists ci_participant_native_origin on auth.users;
+      drop function if exists msrc_ci_auth.participant_age_fixture_insert();
+      drop table if exists msrc_ci_auth.participant_age_fixture; commit;`);
+  }
+}
 function challenge(value: Actor, purpose: Purpose = "verify_email", ipHash = digest(`ip:${value.id}`)): Challenge {
   const id = randomUUID();
   const code = String(randomInt(1_000_000)).padStart(6, "0");
   check(/^\d{6}$/.test(code), "six-digit generated code retained only in memory");
   return { id, actor: value, purpose, ipHash, hash: digest(`${purpose}:${value.email}:${id}:${code}`) };
+}
+async function historicalChallenge(value: Actor) {
+  boundary();
+  const proof = challenge(value);
+  // An expired historical private-code fixture accompanies a real native aged
+  // identity. It never issues mail, admits verification or edits its subject clock.
+  await query(`insert into msrc_participant.challenges(id,actor_id,purpose,recipient,identity_revision,code_hash,email_hash,ip_hash,
+      name,privacy_version,created_at,expires_at,state)
+    select ${text(proof.id)},${text(value.id)},'verify_email',${text(value.email)},r.revision,${text(proof.hash)},
+      ${text(digest(`email:${value.email}`))},${text(proof.ipHash)},${text(value.name)},${text(notice)},
+      s.native_created_at+interval '29 days',s.native_created_at+interval '29 days 10 minutes','expired'
+    from msrc_participant.subject_refs s join msrc_staff_email.identity_revision r on r.actor_id=s.actor_id
+    where s.actor_id=${text(value.id)};`);
+  check(await query(`select count(*) from msrc_participant.challenges where id=${text(proof.id)} and state='expired';`) === "1",
+    "historical private code fixture is expired before any cleanup invocation");
+  return proof;
 }
 async function issue(value: Challenge) {
   return service("email_begin", `${text(value.actor.email)},${text(value.purpose)},${text(value.id)},${text(value.hash)},
@@ -144,6 +199,18 @@ async function ageIssueCounters(value: Actor) {
   await query(`update msrc_participant.limit_events set occurred_at=clock_timestamp()-interval '61 seconds'
     where kind='issue_email' and subject_hash=${text(digest(`email:${value.email}`))};`);
 }
+async function cleanup(batchSize = 100, dryRun = true): Promise<Result> {
+  boundary();
+  const result: unknown = JSON.parse(await query(`select msrc_participant.cleanup_unverified(${batchSize},${dryRun});`));
+  check(result && typeof result === "object" && !Array.isArray(result), "native-only cleanup returns a bounded aggregate object");
+  const value = result as Result;
+  check(Object.keys(value).sort().join(",") === "deleted,eligible,failed,held,scanned,state"
+    && ["closed", "preview", "completed"].includes(value.state)
+    && ["scanned", "eligible", "deleted", "held", "failed"].every((key) => typeof value[key] === "number"
+      && Number.isInteger(value[key]) && Number(value[key]) >= 0),
+  "cleanup returns counts and fixed enums without identities, provider payloads or account data");
+  return value;
+}
 
 describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundaries in disposable CI", () => {
   beforeAll(async () => {
@@ -152,23 +219,63 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
     await query(`insert into msrc_authorization.edition_config(edition_key) values(${text(edition)});`);
   });
   afterAll(async () => {
-    if (ci) await query("update msrc_participant.policy set enabled=false,privacy_version=null,email_daily_limit=null where singleton;");
+    if (ci) await query("update msrc_participant.policy set enabled=false,privacy_version=null,email_daily_limit=null where singleton; update msrc_participant.retention_policy set enabled=false where singleton;");
     // Native identities, immutable receipts and audit vanish with the disposable stack.
   });
 
   it("starts closed with no approved notice and denies admission before enabling a synthetic fixture", async () => {
     const status = await service("status");
-    check(status.enabled === false && status.privacyVersion === null && status.emailDailyLimit === null, "migration defaults are closed and unapproved");
+    check(status.enabled === false && status.privacyVersion === null && status.emailDailyLimit === null
+      && status.ageEnforcementReady === true && status.retentionEnforcementReady === true && status.cleanupEnabled === false,
+    "installed age/retention controls do not enable accounts, notices, email or cleanup");
+    check((await cleanup(100, false)).state === "closed", "independent default-off cleanup gate performs no deletion");
+    let serviceDenied = false;
+    try { await query("begin; set local role service_role; select msrc_participant.cleanup_unverified(100,false); commit;"); }
+    catch (error) {
+      check(error instanceof Error && error.message.includes("SQLSTATE 42501"), "service cleanup denial has only the expected safe SQLSTATE");
+      serviceDenied = true;
+    }
+    check(serviceDenied, "application service credentials cannot execute the native operator-only cleanup worker");
     const value = actor();
-    check((await service("signup_reserve", `${text(value.id)},${text(randomUUID())},${text(value.email)},${text(value.name)},${text(notice)}`)).state === "denied",
+    check((await service("signup_reserve", `${text(value.id)},${text(randomUUID())},${text(value.email)},${text(value.name)},${text(notice)},true`)).state === "denied",
       "closed database accepts no account reservation");
     const bypass = await admin.auth.admin.createUser({ id: value.id, email: value.email, password, email_confirm: true });
     check(Boolean(bypass.error) && !bypass.data.user, "native Admin creation cannot bypass participant admission");
-    await query(`update msrc_participant.policy set enabled=true,privacy_version=${text(notice)},email_daily_limit=200 where singleton;`);
+    await query(`update msrc_participant.policy set enabled=true,privacy_version=${text(notice)},email_daily_limit=200 where singleton;
+      update msrc_participant.retention_policy set enabled=true where singleton;`);
+  });
+
+  it("denies absent or false age declarations and native metadata claims without a private attested admission", async () => {
+    const value = actor();
+    for (const age of ["false", "null"]) {
+      check((await service("signup_reserve", `${text(value.id)},${text(randomUUID())},${text(value.email)},${text(value.name)},${text(notice)},${age}`)).state === "denied",
+        "private admission requires an explicit true declaration, without coercion");
+    }
+    const oldSignature = await admin.rpc("msrc_participant_signup_reserve", {
+      actor_id: value.id, reservation_id: randomUUID(), email: value.email, name: value.name, privacy_version: notice,
+    });
+    check(Boolean(oldSignature.error) || oldSignature.data?.state === "denied", "legacy five-argument admission cannot silently attest age");
+    const bypass = await admin.auth.admin.createUser({ id: value.id, email: value.email, password, email_confirm: false,
+      user_metadata: { ageConfirmed: true }, app_metadata: { ageConfirmed: true } });
+    check(Boolean(bypass.error) && !bypass.data.user, "user-editable and native app metadata cannot authorize account creation");
+    check(await query(`select (not exists(select 1 from auth.users where id=${text(value.id)})
+      and not exists(select 1 from msrc_participant.admissions where actor_id=${text(value.id)})
+      and not exists(select 1 from msrc_participant.profiles where actor_id=${text(value.id)}))::text;`) === "true",
+    "rejected declarations and metadata leave no identity, reservation or profile");
   });
 
   it("creates only the minimum unverified identity and denies native confirmation without code proof", async () => {
     main = await create();
+    check(await query(`select (a.age_confirmed is true and r.kind='admission' and r.age_confirmed is true
+      and r.actor_id=p.actor_id and r.id=a.id and p.age_admission_id=a.id
+      and r.age_attested_at is not null and p.age_attested_at=r.age_attested_at)::text
+      from msrc_participant.profiles p join msrc_participant.admissions a on a.id=p.age_admission_id
+      join msrc_participant.proof_refs r on r.id=a.id where p.actor_id=${text(main.id)};`) === "true",
+    "native profile creation retains the exact timestamped private declaration without inventing verified age");
+    const identity = await admin.auth.admin.getUserById(main.id);
+    check(!identity.error && identity.data.user && !("ageConfirmed" in identity.data.user.app_metadata)
+      && !("ageConfirmed" in identity.data.user.user_metadata) && !("msrcParticipantAdmission" in identity.data.user.app_metadata),
+    "native public metadata contains neither age authority nor consumed reservation marker");
     const denied = await client().auth.signInWithPassword({ email: main.email, password });
     check(Boolean(denied.error) && !denied.data.session, "unverified native password login returns no session");
     const confirmation = await admin.auth.admin.updateUserById(main.id, { email_confirm: true, password });
@@ -505,7 +612,17 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
     };
     const value = actor();
     try {
-      const shortSignup = await post({ action: "signup", name: value.name, email: value.email, password: shortPassword });
+      for (const ageConfirmed of [undefined, false]) {
+        const rejectedAge = await post({ action: "signup", name: value.name, email: value.email, password: minimumPassword, ageConfirmed });
+        check(rejectedAge.response.status === 400 && rejectedAge.body.state === "invalid_input"
+          && rejectedAge.body.fieldErrors?.ageConfirmed === "required" && mail.size === 0,
+        "missing or false age declaration cannot create identity or send verification mail");
+        check(await query(`select (not exists(select 1 from auth.users where email=${text(value.email)})
+          and not exists(select 1 from msrc_participant.admissions where email=${text(value.email)})
+          and not exists(select 1 from msrc_participant.challenges where recipient=${text(value.email)}))::text;`) === "true",
+        "rejected age proof leaves native identity, admission and code tables unchanged");
+      }
+      const shortSignup = await post({ action: "signup", name: value.name, email: value.email, password: shortPassword, ageConfirmed: true });
       check(shortSignup.response.status === 400 && shortSignup.body.state === "invalid_input"
         && shortSignup.body.fieldErrors?.password === "invalid" && mail.size === 0,
         "nine-codepoint signup is rejected before native work or email delivery");
@@ -513,14 +630,14 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
         and not exists(select 1 from msrc_participant.admissions where email=${text(value.email)})
         and not exists(select 1 from msrc_participant.challenges where recipient=${text(value.email)}))::text;`) === "true",
         "short signup creates no native identity, private reservation or code");
-      const signup = await post({ action: "signup", name: value.name, email: value.email, password: minimumPassword });
+      const signup = await post({ action: "signup", name: value.name, email: value.email, password: minimumPassword, ageConfirmed: true });
       check(signup.response.status === 202 && signup.body.state === "accepted" && signup.body.requestId,
         "application signup accepts exactly ten codepoints without disclosing account state");
       const verification = mail.get(signup.body.requestId);
       check(verification?.recipient === value.email && verification.purpose === "verify_email", "application verification email is captured only in memory");
       const unverified = await post({ action: "signin", email: value.email, password: minimumPassword });
       check(unverified.response.status === 401 && unverified.body.state === "invalid_credentials", "application denies native unverified password access");
-      const duplicate = await post({ action: "signup", name: value.name, email: value.email, password: minimumPassword });
+      const duplicate = await post({ action: "signup", name: value.name, email: value.email, password: minimumPassword, ageConfirmed: true });
       check(duplicate.response.status === signup.response.status && duplicate.body.state === signup.body.state
         && Object.keys(duplicate.body).sort().join(",") === Object.keys(signup.body).sort().join(","), "duplicate signup has the same opaque public envelope");
       check(await query(`select count(*) from msrc_participant.limit_events where kind='issue_email'
@@ -595,6 +712,143 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
       mail.clear();
       await query(`update msrc_participant.policy set privacy_version=${text(notice)} where singleton;`);
     }
+  });
+
+  it("previews and atomically erases an aged never-verified native account without changing immutable consent", async () => {
+    const value = await createAged();
+    check((await issue(challenge(value))).state === "denied", "an already-expired account cannot issue another verification code");
+    const proof = await historicalChallenge(value);
+    const consentBefore = await query(`select to_jsonb(r)::text from msrc_participant.notice_receipts r where r.actor_id=${text(value.id)};`);
+    const preview = await cleanup();
+    check(preview.state === "preview" && preview.eligible === 1 && preview.deleted === 0 && preview.failed === 0,
+      "default dry-run counts an eligible aged account and performs no deletion");
+    check(await query(`select exists(select 1 from auth.users where id=${text(value.id)})::text;`) === "true", "dry-run retains the genuine native identity");
+    const erased = await cleanup(100, false);
+    check(erased.state === "completed" && erased.deleted === 1 && erased.failed === 0, "explicit native-only cleanup commits eligible identity erasure");
+    check(await query(`select (not exists(select 1 from auth.users where id=${text(value.id)})
+      and not exists(select 1 from auth.identities where user_id=${text(value.id)})
+      and not exists(select 1 from msrc_participant.profiles where actor_id=${text(value.id)})
+      and not exists(select 1 from msrc_participant.admissions where actor_id=${text(value.id)})
+      and not exists(select 1 from msrc_participant.challenges where actor_id=${text(value.id)})
+      and not exists(select 1 from msrc_participant.operations where actor_id=${text(value.id)})
+      and not exists(select 1 from msrc_participant.session_receipts where actor_id=${text(value.id)}))::text;`) === "true",
+    "native and private name/email/code/profile records are erased together");
+    check(await query(`select (not exists(select 1 from auth.audit_log_entries a
+      where msrc_participant.native_audit_mentions(a.payload::jsonb,${text(value.id)},${text(value.email)})
+        and (strpos(a.payload::text,${text(value.email)})>0 or strpos(a.payload::text,${text(value.name)})>0
+          or coalesce(a.ip_address,'')<>'')))::text;`) === "true",
+    "native database audit retains only opaque action references without the erased name, email or IP");
+    check(await query(`select to_jsonb(r)::text from msrc_participant.notice_receipts r where r.actor_id=${text(value.id)};`) === consentBefore,
+      "immutable consent evidence is byte-identical after account erasure");
+    const lookup = await admin.auth.admin.getUserById(value.id);
+    check(Boolean(lookup.error) && !lookup.data.user, "real native Admin can no longer retrieve the erased account");
+    check((await consume(proof)).result.state === "denied", "erased mailbox proof cannot recreate or verify the account");
+    const replay = await cleanup(100, false);
+    check(replay.state === "completed" && replay.deleted === 0 && replay.failed === 0, "a new explicit cleanup invocation does not delete the same identity twice");
+  });
+
+  it("retains recent native identities and preserves completed or interrupted verification", async () => {
+    const recent = await createAged(29 * 86_400_000);
+    const verifiedOld = await verifyExisting(await createAged(29 * 86_400_000));
+    const interrupted = await createAged(29 * 86_400_000);
+    const proof = challenge(interrupted);
+    check((await issue(proof)).state === "issued" && (await delivered(proof)).state === "ok", "interrupted verification starts with a genuine mailbox proof");
+    const consumed = await consume(proof);
+    check(consumed.result.state === "consumed", "interrupted verification consumes only its current code");
+    const confirmed = await admin.auth.admin.updateUserById(interrupted.id, { email_confirm: true, password });
+    check(!confirmed.error && confirmed.data.user?.email_confirmed_at, "native verification commits before application completion is interrupted");
+    check(await query(`select bool_and(s.ever_verified and u.email_confirmed_at is not null)::text
+      from msrc_participant.subject_refs s join auth.users u on u.id=s.actor_id
+      where s.actor_id in(${text(verifiedOld.id)},${text(interrupted.id)});`) === "true",
+    "real native confirmation records ever-verified status before private application completion");
+    const result = await cleanup(100, false);
+    check(result.state === "completed" && result.deleted === 0 && result.failed === 0,
+      "cleanup does not delete recent, completed or native-confirmed pending identities");
+    for (const retained of [recent, verifiedOld, interrupted]) {
+      const lookup = await admin.auth.admin.getUserById(retained.id);
+      check(!lookup.error && lookup.data.user?.id === retained.id, "genuine native retained identity is still present");
+    }
+    check((await complete(consumed.operation)).state === "completed", "cleanup cannot corrupt the interrupted verification completion");
+  });
+
+  it("rolls back every account-erasure step on a native delete failure and reports the failed item", async () => {
+    const value = await createAged();
+    const proof = await historicalChallenge(value);
+    const consent = await query(`select to_jsonb(r)::text from msrc_participant.notice_receipts r where r.actor_id=${text(value.id)};`);
+    // A scoped disposable constraint failure occurs after the worker starts
+    // real native erasure. It cannot affect another identity or a hosted target.
+    boundary();
+    await query(`begin;
+      create function msrc_ci_auth.participant_cleanup_failure() returns trigger
+        language plpgsql security definer set search_path='' as $$ begin
+          if old.id=${text(value.id)}::uuid and old.email=${text(value.email)} then
+            raise exception using errcode='42501',message='Synthetic cleanup rollback fixture';
+          end if; return old;
+        end$$;
+      revoke all on function msrc_ci_auth.participant_cleanup_failure() from public,anon,authenticated,service_role,supabase_auth_admin;
+      create trigger ci_participant_cleanup_failure before delete on auth.users for each row
+        execute function msrc_ci_auth.participant_cleanup_failure(); commit;`);
+    try {
+      const result = await cleanup(100, false);
+      check(result.state === "completed" && result.deleted === 0 && result.failed === 1, "failed native erasure is counted without claiming deletion");
+      check(await query(`select (exists(select 1 from auth.users where id=${text(value.id)} and email=${text(value.email)})
+        and exists(select 1 from msrc_participant.profiles where actor_id=${text(value.id)} and name=${text(value.name)})
+        and exists(select 1 from msrc_participant.admissions where actor_id=${text(value.id)} and email=${text(value.email)})
+        and exists(select 1 from msrc_participant.challenges where id=${text(proof.id)} and recipient=${text(value.email)}))::text;`) === "true",
+      "native identity and all private name/email/code records survive the rolled-back item");
+      check(await query(`select to_jsonb(r)::text from msrc_participant.notice_receipts r where r.actor_id=${text(value.id)};`) === consent,
+        "constraint failure cannot modify immutable consent evidence");
+    } finally {
+      await query(`begin; drop trigger if exists ci_participant_cleanup_failure on auth.users;
+        drop function if exists msrc_ci_auth.participant_cleanup_failure(); commit;`);
+    }
+    const explicitRetry = await cleanup(100, false);
+    check(explicitRetry.state === "completed" && explicitRetry.deleted === 1 && explicitRetry.failed === 0,
+      "a separate explicit invocation can erase the eligible account after the constraint failure is resolved");
+  });
+
+  it("serializes concurrent native cleanup workers and records one committed erasure without identity resurrection", async () => {
+    const value = await createAged();
+    const consent = await query(`select to_jsonb(r)::text from msrc_participant.notice_receipts r where r.actor_id=${text(value.id)};`);
+    const results = await Promise.all([cleanup(100, false), cleanup(100, false)]);
+    check(results.every((result) => result.state === "completed" && result.failed === 0)
+      && results.reduce((sum, result) => sum + Number(result.deleted), 0) === 1,
+    "simultaneous operator workers commit exactly one deletion and no failed item");
+    check(await query(`select (not exists(select 1 from auth.users where id=${text(value.id)})
+      and (select count(*) from msrc_participant.cleanup_jobs where actor_id=${text(value.id)} and state='completed')=1
+      and (select count(*) from msrc_participant.retention_audit where actor_id=${text(value.id)} and event='account.erased')=1)::text;`) === "true",
+    "one durable job and immutable erasure event attest the single native deletion");
+    check(await query(`select to_jsonb(r)::text from msrc_participant.notice_receipts r where r.actor_id=${text(value.id)};`) === consent,
+      "concurrent erasure leaves the original immutable consent snapshot intact");
+    check((await service("signup_reserve", `${text(value.id)},${text(randomUUID())},${text(value.email)},${text(value.name)},${text(notice)},true`)).state === "denied",
+      "erasure tombstone denies re-admission of the original actor identifier");
+    const restored = await admin.auth.admin.createUser({ id: value.id, email: value.email, password, email_confirm: false,
+      app_metadata: { ageConfirmed: true } });
+    check(Boolean(restored.error) && !restored.data.user, "native metadata cannot resurrect the erased subject");
+  });
+
+  it("holds a genuine aged identity when an unreviewed cascading operational reference exists", async () => {
+    const value = await createAged();
+    boundary();
+    await query(`begin;
+      create table msrc_ci_auth.participant_retained_extension(actor_id uuid primary key references auth.users(id) on delete cascade,
+        retained_marker text not null);
+      revoke all on msrc_ci_auth.participant_retained_extension from public,anon,authenticated,service_role,supabase_auth_admin;
+      insert into msrc_ci_auth.participant_retained_extension values(${text(value.id)},'synthetic-retained-reference'); commit;`);
+    try {
+      const result = await cleanup(100, false);
+      check(result.state === "completed" && result.deleted === 0 && result.held === 1 && result.failed === 0,
+        "an unreviewed cascade is an explicit hold rather than silent operational-record erasure");
+      check(await query(`select (exists(select 1 from auth.users where id=${text(value.id)})
+        and exists(select 1 from msrc_ci_auth.participant_retained_extension where actor_id=${text(value.id)}
+          and retained_marker='synthetic-retained-reference'))::text;`) === "true",
+      "both native identity and its retained reference remain intact");
+    } finally {
+      await query("drop table if exists msrc_ci_auth.participant_retained_extension;");
+    }
+    const cleared = await cleanup(100, false);
+    check(cleared.state === "completed" && cleared.deleted === 1 && cleared.failed === 0,
+      "a separately authorized invocation can proceed after the synthetic retained reference is removed");
   });
 
   it("closes an already admitted profile when database readiness is turned off", async () => {

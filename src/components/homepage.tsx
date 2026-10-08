@@ -21,7 +21,7 @@ import type { PreviewHeroVideo } from "@/lib/media-policy";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 
 export type HomepageMediaPreview = { video: PreviewHeroVideo; poster: string; caption: string };
-// ORG-046: approved MSRC 2026 stills; the hackathon keeps its line art (no approved photo).
+// ORG-049: approved MSRC 2026 stills; the hackathon keeps its line art (no approved photo).
 const pathwayPhotos = [homepageAssets.photos.attend, homepageAssets.photos.research, homepageAssets.photos.workshops, null] as const;
 const Arrow = () => <svg className="directional-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 
@@ -134,7 +134,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
       <Container><div className="faq-grid"><Reveal><SectionHeading chapter eyebrow={narrative.practicalEyebrow} title={narrative.practicalTitle} id="practical-title" /><Link className="date-band-link" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link></Reveal><div className="faq-list" aria-label={narrative.faqLabel}>{narrative.faq.map((faq) => <details className="faq-item" key={faq.question}><summary>{faq.question}<span aria-hidden="true">+</span></summary><p>{faq.answer}</p></details>)}</div></div></Container>
     </section>
     <section className="closing-section" aria-labelledby="closing-title">
-      {/* ORG-046: a full-bleed MSRC 2026 break photo under a dark scrim; decorative behind the heading. */}
+      {/* ORG-049: a full-bleed MSRC 2026 break photo under a dark scrim; decorative behind the heading. */}
       <div className="closing-photo" aria-hidden="true"><Image src={homepageAssets.photos.break.src} alt="" fill sizes="100vw" /></div>
       <Container><Reveal className="closing-grid" stagger><div><p className="closing-date">{dateRange} · {copy.city}</p><h2 id="closing-title">{copy.endingTitle}</h2></div><ButtonLink href={`/${locale}/participate`} variant="gold">{narrative.endingAction}<Arrow /></ButtonLink></Reveal></Container>
     </section>

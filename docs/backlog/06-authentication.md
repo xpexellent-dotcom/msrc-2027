@@ -36,7 +36,7 @@ ORG-039 requires identity numbers at registration only, adding no sign-up field.
 
 ## BL-AUTH-02 — Add managed email/password account creation and sign-in
 - **Source IDs:** AUTH-01, AUTH-06, LOC-01, DAT-01, DAT-04, SEC-01.
-- **Status:** Partial — participant managed sign-up/sign-in foundation has verified owner access and enumeration protection. ORG-037 approves the v1.0 repository Privacy notice; live activation, age enforcement/cleanup and hosted release gates remain open. See [participant guide](../features/PARTICIPANT_ACCOUNTS.md).
+- **Status:** Partial — participant managed sign-up/sign-in foundation has verified owner access and enumeration protection. ORG-037 approves the v1.0 repository Privacy notice. A separate closed foundation adds the required 18+ declaration and 30-day retention controls; final synthetic/native checks and hosted operating/activation gates remain separate. See [participant guide](../features/PARTICIPANT_ACCOUNTS.md) and [age/retention](../features/PARTICIPANT_AGE_RETENTION.md).
 - **Purpose:** Let a participant create one account without revealing other users' account existence.
 - **Scope:** Managed email/password sign-up/sign-in, normalized unique email and name; ORG-016 requires verified email only, without authentication phone collection/verification or participant MFA. Collect only approved authentication fields with approved notices; safe verified/unverified session boundary. Separate pre-activation work must enforce ORG-041's minimum age 18 without inventing unnecessary date-of-birth fields, and verify the existing ten-character password minimum.
 - **Exclusions:** University SSO, national ID, collecting every later pathway field during sign-up, operational entitlement from account creation.
@@ -197,7 +197,7 @@ ORG-039 requires identity numbers at registration only, adding no sign-up field.
 
 ## BL-AUTH-09 — Clean abandoned unverified accounts without harming retained records
 - **Source IDs:** AUTH-08, PRV-05, PRV-06, API-03.
-- **Status:** Planned.
+- **Status:** Closed implementation/review in progress — independently disabled native worker, 30-day original clock, verification/retention protection, atomic erasure and restore suppression. No hosted migration, schedule or activation. See [age/retention](../features/PARTICIPANT_AGE_RETENTION.md).
 - **Purpose:** Reduce abandoned account data while honoring retention exceptions.
 - **Scope:** Idempotent scheduled cleanup using ORG-041's approved 30-day threshold for never-verified accounts, superseding AUTH-08's seven-day default; verified/account-record recheck and restricted outcome evidence. This remains backlog work, with no retention code or migration changes in the policy publication PR.
 - **Exclusions:** Deleting verified participants, cascading through retained operational records, inventing universal retention rules.

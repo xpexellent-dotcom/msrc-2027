@@ -2,7 +2,7 @@
 
 ## 8 October 2026 — Homepage section rhythm and gold figures (design review item 2)
 
-Builds on ORG-046 in [PR #53](https://github.com/xpexellent-dotcom/msrc-2027/pull/53).
+Builds on ORG-049 in [PR #53](https://github.com/xpexellent-dotcom/msrc-2027/pull/53).
 Order now: film (dark), dates/countdown and introduction (ivory), **new purple "at a
 glance" band with large gold figures** (5th edition, 2 days, 5 ways to take part, drawn
 from the edition, confirmed dates and `participationPaths`), path cards (ivory),
@@ -23,11 +23,11 @@ Checks (local production build, Node 22):
   action at one Arabic desktop position. That is general fixed-header behaviour; axe at
   the top of the page is clean.
 
-## 8 October 2026 — Approved MSRC 2026 photos on the homepage (ORG-046)
+## 8 October 2026 — Approved MSRC 2026 photos on the homepage (ORG-049)
 
 Design review found the homepage bland after the opening film: about 6,000 px of ivory
 sections, line art and announcement placeholders. The requester approved eight MSRC 2026
-photos from the MSRC26 Drive folder (ORG-046). They now appear in the introduction, the
+photos from the MSRC26 Drive folder (ORG-049). They now appear in the introduction, the
 Attend/Research/Workshops cards, a full-width auditorium break, behind the
 previous-edition year art, and as two captioned moments. The quiz photo is captioned
 as a competition. The hackathon card keeps line art. Pathway cards stack below 640 px.
@@ -54,6 +54,1089 @@ Checks (local production build, Node 22 against the repo's Node 24 engine):
 Next: review the deployed preview; source an approved hackathon photo; then the
 remaining design review items (compact placeholders, header action label, Dates & venue
 in navigation).
+## 8 October 2026 — Staff handoff reconciled after organizer merges
+
+GitHub confirms #51 and #52 are merged. Current main is
+`12bcc5d9c3611281c3f13c03e207cc82ad076d09`, the organizer's #52 merge of reviewed
+`4eb38b39490090961c2ebb137b550f52ce7f3d06`; #51 merged earlier at `4952e5a4`.
+#50 now includes this main. Only PROGRESS conflicted; both complete journals
+were retained, with zero missing nonblank parent lines. The handoff, original
+cancelled browser receipt, public-filter failure and nine failed age/retention
+head archives remain preserved. No application, migration, CI or test source
+differs from current main in this documentation reconciliation.
+
+#52's exact reconciled head passed all seven substantive CI jobs, Vercel and
+Preview Comments: [Foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37836502517),
+[Staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37836502543),
+[Participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37836502534).
+Observed results: 2,383 units/59 files, lint/types, 79-page build, public
+465/29 configured skips, lab 81, Contact 44, participant 26 closed +62 enabled/
+four intentional skips, staff 32 closed +32 enabled/six skips, password 26/two
+skips and both six-case gate suites. Each disposable database job passed
+1,023 SQL assertions/13 files, including 117 age/retention cases; integrations
+80/80 including five concurrency cases; native participant 25/staff 26.
+All four browser artifacts, lint/advisors, helper cleanup and teardown passed.
+Optional cold repetitions were skipped, not counted as passes.
+
+The earlier #50 `e236832` documentation CI also passed. Fresh exact-head checks
+are required for this reconciliation before #50 is marked ready for organizer
+merge. Final main CI, owned serving source/aliases and live EN/AR sign-in,
+Programme/Media filters and closed API verification follow that human merge.
+The b1 release/7100 provider/2b3 HTTP and earlier draft states below are dated
+historical captures, not current serving-source or signed-session assertions.
+
+Participant launch still requires the reviewed sole new migration and fresh
+backup/restore proof; approved retention exceptions and provider-log handling;
+a restricted, monitored cleanup schedule with deletion/verified-status records
+kept separately from backups and reconciled on restore; provider/privacy/notice/
+email-volume checks; human inbox, recovery and EN/AR mobile UAT. Admission must
+stay closed until cleanup is operational and both database/server release gates
+are independently authorized and verified. Do not replay the nine older
+migrations or bootstrap. No hosted migration, scheduler, setting, account,
+password, invitation or email action occurs in this task. See
+[the current handoff](features/STAFF_SETUP_HANDOFF.md) and
+[participant launch gates](features/PARTICIPANT_AGE_RETENTION.md).
+Final reconciliation documentation checks PASS: independent factual/privacy/
+rollback review, 91 relative links with zero missing targets, parent-journal
+preservation, added-line privacy scan and `git diff --check`. Functional local
+suites were not repeated for this documentation-only delta; fresh isolated CI
+checks this exact reconciliation before readiness is reported.
+
+## 8 October 2026 — Final restricted staff setup handoff
+
+[PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45) is merged at
+`b1c3763a062f12fa2ae419b2645dd48b34eb17a7`. All seven substantive merged-main
+CI jobs and Vercel PASS: [Foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314161),
+[Staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314351),
+[Participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314206).
+No Preview Comments check was observed on main. Fresh main passed2,312 units,
+public457/29 skips, lab81, Contact44, staff32 closed+32 enabled/6 skips,
+password26/2 skips, independent gates6+6, participant26 closed+54 enabled,
+native staff26/participant19, SQL906/12files per database job and75 integration
+cases. All four browser uploads and all three disposable-stack teardowns passed.
+Configured skips/optional repetition are not passes.
+
+Read-only serving proof at 18:55:29.647 UTC confirms owned current Production
+`dpl_FpfqUAg2VRaJc49TQQ6w413DA5Bf`, exact merged source and apex/www aliases.
+Staff portal true, password-change server flag false, participant flag absent/
+default false. Fresh 27 anonymous GETs at 18:44:13.588 UTC passed EN/AR/private/
+noindex/RTL, Security 404, privileged 403, participant/all 15 operational APIs 503,
+robots/public-navigation exclusion. Source binding and HTTP evidence are separate.
+The intervening provider STOP and HTTP 403 receipts are preserved; after the
+organizer updated the private token, the final seven-GET provider read passed.
+No hosted SQL, settings, migration/bootstrap replay, password/account operation
+or real email occurred in this handoff.
+
+The authorized pre-merge browser-only rerun passed26+54 tests, zero failures/
+skips, with desktop/tablet/mobile/EN/AR/keyboard/axe and successful evidence
+upload. Original timeout, partial results and immutable receipt/log hashes are
+preserved; native/other successful jobs were not rerun. The record below remains
+historical, including its then-draft PR state and locally recorded status.
+
+Restricted first-admin setup and owner password/TOTP/revocation facts are
+complete at their captured times; pairing/second-admin inputs, mutual recovery
+UAT and controlled signed-home/live-axe checks remain separate gates. Password
+changes and all participant/operational workflows remain closed. Separate draft
+[PR #51](https://github.com/xpexellent-dotcom/msrc-2027/pull/51) prepares the
+18+ declaration and default-off 30-day never-verified cleanup. All seven
+substantive CI jobs, Vercel and Preview Comments passed at exact head
+`2c73fff30bf4d3ca6bc225489134b19f05aa9bea`: 2,375 units/58 files, lint/types,
+79-page build, public 457/29 configured skips, lab 81, Contact 44, participant
+26 closed +62 enabled/4 intentional skips, staff browser regressions, native
+participant 25/staff 26, SQL 1,023/13 files per database job including 117 new
+cases, and 80 integrations including five cleanup concurrency cases. All four
+browser uploads and disposable teardown passed; optional cold repetitions were
+skipped. It applies no hosted migration, schedules no cleanup and activates no
+accounts.
+
+The first handoff-documentation head `f7bc82c...` failed one existing public-filter
+assertion (456 passed/29 configured skips; lab not reached). Its original receipt
+and trace are preserved and were not rerun. Separate draft
+[PR #52](https://github.com/xpexellent-dotcom/msrc-2027/pull/52) prevents early
+filter interactions during hydration with existing assertions intact; all seven
+CI jobs, Vercel and Preview
+Comments passed at `e90fac54f2c8b70bee1f8c67e1d5ec0f693ee252`, including public
+465/29 configured skips and lab 81. Neither draft is merged or deployed. Draft
+checks are separate from successful merged-main CI and live access verification.
+See [the final handoff](features/STAFF_SETUP_HANDOFF.md) for exact receipts,
+remaining gates, custody and rollback instructions.
+Final documentation checks PASS: independent factual/privacy/rollback review,
+83 relative links across the four handoff documents, added-line privacy scan
+and `git diff --check`. This final documentation update makes no application or
+migration change; its automatic CI is a separate checkpoint.
+
+## 8 October 2026 — Participant browser-only CI rerun PASS
+
+Historical pre-merge checkpoint, superseded by the final handoff above.
+
+The organizer authorized investigating the slow downloads and rerunning only the
+incomplete participant browser job. The tested source remains draft PR #45 head
+`d1fca260fcdf466b0a9ad1b69387a0ddfb4c8bfd`; no application, assertion, workflow,
+timeout, test retry, live setting, password, account or database change occurred.
+
+The original attempt remains CANCELLED with its explicit 15-minute timeout
+annotation, full logs and immutable receipt. Ubuntu APT's 21.5 MB batch took
+11m01s at 32.5 kB/s; the 7,472 kB `fonts-wqy-zenhei` interval accounted for
+8m24s. Browser CDN downloads took about six seconds; same-head sibling installs
+took 22–26s. The logs do not identify whether mirror congestion or the runner's
+network path caused the slow transfer. Original log SHA-256:
+`3be211b9ec2419c4dd0d05f61959bc2ded6244dcd79e03201c2143c44be2ca9d`.
+
+The one job-only request was accepted at 15:26:03.688 UTC.
+[Attempt 2 job 113391919266](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37786524299/job/113391919266)
+finished SUCCESS at 15:35:00 UTC in 8m17s: **26 closed-route + 54 synthetic enabled
+tests PASS**, zero failures/skips. Enabled coverage includes 18 desktop, 18 tablet
+and 18 mobile cases, with EN/AR, keyboard, locale and axe assertions unchanged.
+Dependency installation took 20s; the same APT batch fetched in one second at
+37.5 MB/s. Browser artifact `11560707402` uploaded (247,035 bytes).
+Final log SHA-256:
+`9224c672d11ae5f386abe07b8a3fd812f01e9875a1177cb4d7db3c321b5167de`.
+
+GitHub reused the original native result's 21 steps, runner identity and
+13:42:49–13:45:25 UTC timestamps under a carried-forward result ID; no database
+job executed again. Foundation and Staff stayed on attempt 1. The original
+cancelled receipt is preserved separately from attempt 2. PR #45 remains draft,
+open and unmerged. The final exact-head rollup has all seven substantive CI
+checks, Vercel and Preview Comments SUCCESS. This entry is recorded locally and
+the final result is in the PR body; no commit/push triggers any additional CI jobs.
+## 8 October 2026 — PR #52 reconciled for organizer merge
+
+The organizer reviewed #52's screenshots and requested #52 be prepared for their
+merge before the staff handoff. Fresh GitHub inspection found #51 already merged
+at `4952e5a4c27c718ecb07b6a78f8d79f21f515588`, from its reviewed `2c73fff` head.
+That actual state supersedes the planned merge order. #52 now incorporates this
+main; its only conflict was PROGRESS, resolved by retaining both histories.
+All nonblank journal lines from both parents remain. The filter implementation
+and assertions are identical to screenshot-reviewed `e90fac54`.
+
+Reconciled-tree `npx --yes pnpm@11.19.0 check` PASS: lint, types, 2,383 unit cases
+in 59 files and the 79-page build. The existing focused Playwright command in
+[the filter note](features/catalogue-filter-hydration.md) passed all 30 EN/AR
+desktop/mobile hydration, deep-link, rapid-change, history, keyboard and axe cases
+in 39.7 seconds, with no skips/retries or changed assertions/timeouts.
+Independent source/history review and `git diff --check` PASS. Fresh exact-head
+CI is still required before marking #52 ready; earlier green heads are historical.
+
+#50's `e236832` documentation head passed its seven substantive CI jobs; that
+does not resolve its conflict with current main. Reconcile it after the organizer
+merges #52, preserving the handoff and failed receipts. #51 needs no further PR
+merge. Final merged-main/owned live verification follows the remaining merges.
+Participants and cleanup remain off; no hosted migration, scheduler, production
+setting, account, password or email operation occurs in this task.
+
+## 8 October 2026 — Public filter hydration fix prepared; not deployed
+
+Programme and Media filters now remain disabled until client hydration commits,
+including their search, clear and day controls. Initial deep-link selections and
+the existing query-delta merge remain intact. Workshops has no query controls
+and is unchanged. Scope: PRG-01, MED-01/04, CMS-04, LOC-01/03 and ACC-01.
+
+The retained [Foundation mobile failure](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37807214814/job/113414512943)
+at `f7bc82c884529f51a55af082c3797c993dbfdb31` showed a correct combined URL
+while both selectors remained unfiltered. An interaction before the router's
+history synchronization was ready is a trace-supported inference; its exact
+effect timing was not recorded. The original trace/context/screenshot remain
+retained. No assertion, timeout or retry was weakened.
+
+On `codex/public-filter-hydration`, based on main `b1c3763`: 14 focused unit
+tests PASS, scoped lint PASS, TypeScript/79-page production build PASS, and all
+30 targeted desktop/mobile browser cases PASS with zero skips/retries. These
+include eight held-JavaScript EN/AR regressions, the two original synchronous
+rapid-change cases, and catalogue/history/locale/keyboard/axe checks.
+Independent source review and whitespace checks PASS.
+
+This isolated fix is prepared for draft review, unmerged and not deployed. Full-suite CI
+and live verification are NOT TESTED for this change. Participant age/retention
+work stays on its separate branch; no flags, database, providers, accounts or
+emails were changed. See [the evidence and commands](features/catalogue-filter-hydration.md).
+## 8 October 2026 — Closed participant age and retention foundation prepared
+
+Scope: BL-AUTH-02/09; AUTH-01/06/08, PRV-05/06, LOC-01/03 and ACC-01 under
+ORG-041. A separate branch from merged main `b1c3763a...` adds an explicit 18+
+signup declaration without DOB collection, strict server/private admission proof,
+immutable native creation/ever-verification and a 30-day never-verified deadline.
+It is self-declaration, not independently verified age. Old/malformed capability
+fields or disabled cleanup close requests before personal input or native/mail work.
+
+The reviewed native-only worker is independently disabled and dry-run by default,
+with no scheduler. It serializes/rechecks verification, protects staff/invitations/
+retained/security/storage/unknown-FK records, erases eligible account PII atomically,
+preserves immutable application snapshots and minimal native audit/tombstone
+evidence, and requires current ledger reconciliation before restored access.
+The sole new migration is `20261008160137_participant_age_retention.sql`, generated
+by pinned CLI 2.118.0 and **NOT APPLIED to hosted state**. Earlier versions and
+bootstrap are not replayed. No live setting, account, password or email changed.
+
+Observed local `pnpm check` PASS: lint, types, 2,358 unit tests/57 files and the
+79-page build. UI focused 21 units PASS; full synthetic browser 62 PASS/4 configured
+desktop/tablet skips plus 26 default-off PASS; subsequent narrow wording/layout
+polish passed both EN/AR 320px/200% mobile cases, complete age-label visibility,
+native down/up scroll, keyboard Space/Tab and axe after a fresh build. Initial
+new-case failures exposed the client error allowlist omission and test-owned
+header/form-readiness assumptions; corrected code/barriers retain all assertions,
+zero retries and unchanged timeouts. Sanitized synthetic traces/screenshots remain
+ignored local evidence; configured skips are not passes.
+
+Added 117 pgTAP assertions, five real-Postgres concurrency cases and native Auth
+age/cleanup cases. Source review/lint/types/whitespace PASS; SQL/native execution
+is NOT TESTED locally because no disposable Docker database is available here.
+The draft PR's isolated Linux CI must verify them before claiming PASS. Hosted
+participant accounts and every operational workflow remain closed. Actual
+scheduler/exception/log/restore/inbox/UAT operating prerequisites are separate.
+See [the age/retention guide](features/PARTICIPANT_AGE_RETENTION.md).
+
+Draft [PR #51](https://github.com/xpexellent-dotcom/msrc-2027/pull/51) first CI at
+`1e9b727920545004a7139f8f5e60c0a50fca0e95` applied the migrations successfully
+in all three disposable stacks, then strict database lint FAILED with SQLSTATE
+42702 for ambiguous email references in two RPC wrappers and the retention-hold
+function. The original runs/receipts remain retained. The revised migration
+qualifies the two arguments and renames the local variable; policies, locking,
+assertions and prior migrations are unchanged. SQL/native tests after the failed
+lint were not reached. The revised source still requires fresh disposable CI;
+no hosted SQL or job rerun was performed.
+
+At revised head `ae374727f7b4c718fa2f216522ac714793fd39ce`, fresh migrations
+again applied, but strict lint FAILED with SQLSTATE 42P01 because the intentionally
+Storage-excluded native stacks have no `storage.objects`. Foundation job
+113438523695 and the sibling native failures remain separate failed receipts;
+post-lint SQL/native checks were not reached. The optional ownership probe now
+uses an exact catalog check and a literal parameter-bound read when Storage
+exists. Eight additional rollback-only SQL assertions cover absent Storage,
+UUID/text owners and fail-closed rollback for an unknown provider shape. They
+were included in that revision's 83 new assertions and remain pending complete CI.
+No provider schema, hosted configuration or timeout was changed.
+
+Third head `b23370e66ca2e5e8bb9b5cd48b81d1866d8b40df` also stopped at strict
+lint: the checker preplanned the constant Storage SQL text despite its runtime
+catalog guard (SQLSTATE 42P01). Foundation job 113442565095 and sibling native
+jobs did not reach SQL/native execution. The narrow correction uses the exact
+`to_regclass('storage.objects')` catalog result as its qualified relation; the
+actor UUID remains bound through `USING`, all ownership and unknown-shape checks
+remain, and strict lint/assertions/timeouts are unchanged. Fresh CI is required.
+
+Fourth head `7d9e2dbe927231179f3b3014d4c9f9041085461f` passed native-stack reset
+and strict database lint. SQL tests then FAILED on two actual causes: the new
+historical challenge fixture evaluated `clock_timestamp()` twice, violating its
+exact ten-minute expiry constraint; the new context wrappers evaluated a malformed
+subject before the original UUID failure handler. The fixture now uses one
+statement timestamp, and the three wrappers return NULL for invalid UUID syntax.
+Six direct malformed-subject assertions raise the new-file total to 89. Existing
+session assertions, timeouts, rate limits and native fixtures are unchanged;
+complete SQL, concurrency and native execution still require fresh CI.
+
+Fifth head `5c29332ff4ebdec7c596b1a0a74decc7a0375444` passed reset and strict
+lint; SQL execution exposed the conservative FK guard missing four current
+GoTrue 2.197 relationships (including a misspelled passkey table), so ordinary
+accounts were held instead of erased. Its future-record fixture also attempted
+an unsupported temporary-to-permanent FK. The pinned native migrations confirm
+the four exact `user_id` relationships; their actual credential/challenge/SCIM/
+recovery rows now remain explicit native-identity holds. The fixture uses a
+regular rollback-only relation. Eighteen new assertions cover native inventory,
+an ordinary account's null hold reason and all four real native retained kinds,
+raising this file to 107. Unknown incoming FK/shape checks remain fail closed.
+The failed runs are retained; full SQL/native/concurrency PASS is still pending.
+
+Sixth head `f64292a1a651df15974be0bd2cc9c10bfcef813a` passed reset and strict
+lint. SQL execution then exposed two further failures: a retained-security fixture
+inserted directly into the append-only audit, and service-actor redaction removed
+its role label before the final native-deletion ownership recheck. The fixture now
+creates that audit through the existing native-session/lifecycle trigger. The
+redacted service attribution uses a derived JSON boolean backed by the exact
+current cleanup transaction or linked completed erasure tombstone; a provider
+marker alone never supplies authority. Five assertions cover forged markers,
+successful-job SQLSTATE, exact boolean parsing and service/personal attribution.
+Two further invariants preserve a byte-identical no-op update and a canonical
+late audit replay only through the private tombstone proof. The new file has
+114 assertions. Final deletion rechecks, immutable-audit guards,
+failure rollback and operating gates remain; complete execution is still pending.
+
+Seventh head `82efe7c7f6f7e9f9040af5e55881061dc77a16ce` passed reset and strict
+lint. All 83 new SQL assertions reached before the optional provider fixture
+passed, including atomic erasure, private-bound attribution and immutable audits.
+The next fixture's `CREATE TABLE storage.objects` correctly failed with SQLSTATE
+42501: native `postgres` has Storage usage rather than provider-schema creation
+authority. A disposable-only fixed native-owner fixture helper now performs the
+three synthetic DDL phases inside the existing rollback transaction, verifies
+exact ownership/marker/shape and grants only the test table's required access.
+The helper is removed before advisors/native tests; no production schema grant,
+provider activation or migration change supplies test authority. The remaining
+31 SQL assertions and native/concurrency checks are still pending complete CI.
+Three additional checks deny every API role private-helper schema/execute access
+and reject an unknown DDL operation. The new SQL file now has 117 assertions.
+
+At `fd4ca4d5dc6272d1d2d713d061d61f4658352802`, disposable CI passed strict
+lint, all 1,023 SQL assertions/13 files (117 new age/retention cases), private
+fixture installation/removal, clean advisors and all 80 integrations/9 files,
+including five real cleanup concurrency cases. Optional cold repetition was
+SKIPPED, not counted as a pass. Native staff Auth passed 26/26 on GoTrue2.197.0.
+Participant native Auth passed 24/25; the remaining test stopped with SQLSTATE
+42883 when its query supplied JSON to a JSONB-only helper. Erasure checks before
+that query passed. The one-line explicit test cast is independently reviewed;
+all assertions and migration bytes are unchanged. The failed native receipt is
+retained; a fresh exact-head run must prove the final case. No hosted operation
+or job rerun occurred. The earlier failure checkpoints above remain historical.
+
+At `f7a6565df6308e084066509b09d2550b7de1143a`, SQL1023, integration80 and
+native staff26 passed again. Participant native remained24/25: its corrected
+JSONB call exposed a second test-expression error, SQLSTATE42804, because the
+text cast bound before `NOT`. Explicit parentheses now cast the full boolean;
+remaining native query casts were checked. This is a test-only correction,
+with unchanged assertions/migration/helper bytes. The failed receipt is retained,
+and a fresh exact-head native run is still required. No hosted change or rerun.
+
+Fresh merged-main staff verification and completed rerun are recorded separately
+in documentation-only [PR #50](https://github.com/xpexellent-dotcom/msrc-2027/pull/50).
+Its public filter CI failure is preserved: correct URL but stale rendered filters
+during a very early interaction. An isolated public hydration fix is being prepared;
+no public-source change is mixed into this participant branch.
+
+## 8 October 2026 — Staff wording live; password change verified and closed
+
+[PR #49](https://github.com/xpexellent-dotcom/msrc-2027/pull/49) is merged at
+main `13f4e102e68dfe8b689877c649cea9eac2b550d1`, with the exact reviewed tree.
+EN/AR headers show assigned roles and a concise description of available tools;
+the requested policy paragraphs are removed and invitation wording is simplified.
+Server/database permissions, session expiry, recovery and two-admin safeguards
+are unchanged. The earlier local wording checkpoint below is historical.
+
+All seven substantive merged-main CI jobs and Vercel PASS:
+[Foundation 37782200113](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37782200113),
+[Staff 37782200146](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37782200146),
+[Participant 37782200189](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37782200189).
+The owned current Production deployment `dpl_DsnvQmSTaRLUtEuC8XVpYWh1Wt6T`
+passed exact source/project/team, READY and apex/www alias checks at
+13:21:48.129 UTC (read-only proof `37c787f7-314a-449b-9c7d-0a11e69220d5`).
+Staff portal remains enabled; the password-change server flag is false, and
+the participant flag is absent/default false. The password-change database gate
+was separately verified false after closure; pairing remains restricted.
+
+A fresh 27-request anonymous GET probe passed at 13:29:43.648 UTC
+(`768e6d24-8ede-4f56-b521-df7fe3d07fba`): EN/AR sign-in200/private/noindex/RTL,
+Security404, anonymous privileged APIs403, participant and all 15 operational
+APIs503, no public staff links and robots exclusion. This HTTP probe does not bind
+the serving source; the independent owned-deployment readback above does.
+Synthetic mobile/axe checks passed; signed-home DOM/live axe remain NOT TESTED.
+
+The completed personal password change, retained authenticator and old-session
+revocation were independently verified at the earlier 12:01:51.918 UTC capture;
+that session's freshness is not asserted indefinitely. Both password-change
+gates remain closed. No additional account, email, migration/bootstrap replay or
+Production setting change occurred during this wording release. Draft
+[PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45) remains open and
+unmerged, reconciles this main source and retains the operator/rollback record.
+Its preceding head `37a06ecb99f568b435c563a133128a96b912bf6f` passed all seven
+substantive CI jobs; current draft-head CI is recorded in PR checks.
+See [the wording note](features/STAFF_PORTAL_WORDING.md) and
+[the password resumption record](features/STAFF_PASSWORD_RELEASE_RESUMPTION.md).
+
+## 8 October 2026 — Owner password/TOTP verified; password feature closed
+
+The owner reported completing the private change and new-password/TOTP sign-in.
+The frozen completion verifier STOPPED at 11:41:54.513 UTC: its retained-factor
+predicate required an unchanged historical `updated_at`. Pinned GoTrue
+`v2.197.0` updates this timestamp during an ordinary authenticator challenge.
+The original STOP is preserved; no password change, migration or bootstrap was
+retried. Database-first closure passed at 11:42:30.376 UTC, and the exact owned
+closed serving deployment `dpl_4rWinUKT5XVaRM16hu22Q9DJqytZ` passed READY/alias
+verification at 11:44:15.946 UTC. Both password-change gates remain false.
+
+Separate reviewed read-only evidence captured at 12:01:51.918 UTC confirms one
+completed operation after the original handoff, reserved/completed audit records,
+the exact identity-revision increment, the same single verified TOTP factor ID,
+unchanged edition role, original/all old native-session absence and application
+session revocation, and one fresh native password/TOTP AAL2 session with a matching
+live application session inside the existing 30-minute/eight-hour limits.
+The factor timestamp advanced after one verified challenge, as the pinned provider
+source allows. This evidence does not reclassify the original STOP or compare the
+requested password, plaintext authenticator seed, signed JWT or private browser DOM.
+
+Fresh closure evidence at 12:03:11.275 UTC passed all 27 anonymous GET requests:
+EN/AR sign-in remains private/noindex with RTL, Security is unavailable, public
+navigation/robots exclude staff, anonymous privileged APIs deny access, and
+participant/all 15 operational APIs remain closed. A separate initial probe's
+incorrect locale expectation for Next's neutral global 404 is retained; the
+reviewed correction still requires strict locale/RTL on actual sign-in pages and
+all privacy/denial checks. Its 22 pure regressions passed. One account and verified
+authenticator remain; pairing stays restricted, with no recovery, extra account,
+invitation or real email. Signed-home DOM/live axe remain NOT TESTED.
+
+Draft PR #45's preceding runtime-record head `21365ed5949c943a5da731eb862e017785ced7b0`
+passed all seven substantive CI jobs, Vercel and Preview Comments. The restricted
+staff setup remains available; reopening password changes requires a new reviewed
+attempt with corrected retention semantics. The completed owner change must not
+be replayed. See [the resumption record](features/STAFF_PASSWORD_RELEASE_RESUMPTION.md).
+
+## 8 October 2026 — Resumed password release READY; owner rotation pending
+
+Historical readiness checkpoint, superseded by the completion/closure evidence above.
+
+ORG-048 explicitly resumes the reviewed release without migration/bootstrap replay.
+The application remains reviewed main `2f677bedd9e1773508286cc5d8db79780801cc37`;
+draft PR #45 stays separate. A new account-only attempt namespace binds all mutable
+release/closure/handoff records and hashes the complete reviewed operator/verifier
+source chain, now initialized and frozen. The already-committed nine-version
+history is preserved. Gate-only
+compare-and-set and database-first same-operation closure use the reviewed native
+transaction protocol; verified owned build/status progress waits without claiming
+release READY.
+
+Private input handling now requires explicit named fields, rejects ambiguous
+labels/legacy lines and preserves exact password bytes. Provider checks require
+no staff password. Pure tests PASS: 66 parser, 17 namespace/binding and 42 readiness
+(125 total). Focused shared-sign-in/menu/authorization contract tests PASS761 in
+six files: one EN/AR route, live database roles and server permission checks,
+existing assurance selection, no public signup/role picker or password trimming.
+Other real staff identities remain absent; role coverage is synthetic/native CI.
+
+Historical named-input validation stopped for missing fields/ambiguous legacy
+format; values were withheld. Corrected canonical inputs and account-only ACL
+validation now PASS. Actual completion times below are UTC on 8 October:
+
+| Stage | Completed UTC | Observed result |
+| --- | --- | --- |
+| Fresh hosted preflight | 01:36:58.477 | PASS for the new reviewed attempt. |
+| Gate-only database enable | 01:39:27.070 | COMMITTED AND VERIFIED; only the existing new boolean changed, with no DDL/history replay/INSERT, bootstrap, account or email. |
+| Production server flag / pinned deployment created | 01:40:22.733 | Flag enabled; `dpl_GMjimH6Y9HcLuWiqCvTPiwwNtaEx` created at reviewed main `2f677bedd9e1773508286cc5d8db79780801cc37`. |
+| Owned serving deployment | 01:42:51.210 | READY, exact source/owned project/team, all seven main CI checks and apex/www aliases verified. |
+| GET-only live boundaries | 01:46:41.963 | 44/44 PASS: EN/AR/noindex/robots/public navigation, anonymous denials, participant/all 15 operational APIs closed and GoTrue `v2.197.0`. |
+| Bound private owner handoff | 01:49:14.148 | Handoff bound to the new attempt and READY deployment; human response PENDING. |
+
+Draft PR #45 head `6c140284fb7797590b276518ddfb53a6aa48f1e9` separately has all
+seven substantive CI jobs plus Vercel PASS. Both password-change gates are now
+enabled for the existing single Super Admin with the retained verified
+authenticator; pairing stays false and unrelated workflows remain closed.
+Human current-password/TOTP, fresh replacement and new-password/TOTP with the
+same authenticator are PENDING. No account-password change or resulting
+old-session revocation is claimed; native completion, signed-home DOM and live
+axe remain uncompleted. No migration/bootstrap replay, other account, factor
+reset or real email occurred.
+See [the resumption execution record](features/STAFF_PASSWORD_RELEASE_RESUMPTION.md)
+for reviewed steps, remaining checks, source-review boundaries and failure handling.
+
+## 8 October 2026 — Owner-change migration verified; first release stopped and closed
+
+Historical first-release checkpoint. Its then-current closed gates and deployment
+are superseded by the reviewed resumption above; the failed attempt and all its
+receipts remain preserved.
+
+The organizer clarified that the privately updated value is a requested account
+password change. [PR #46](https://github.com/xpexellent-dotcom/msrc-2027/pull/46)
+is merged at main `2f677bedd9e1773508286cc5d8db79780801cc37`; all seven
+substantive merged-main CI jobs passed in Foundation 37688971744, Staff
+37688971725 and Participant 37688971851. [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45)
+remains draft. Its operator/setup work is separate from the deployed main source.
+
+Fresh protected post-enrollment backup/restore, exact migration rollback,
+actual operator rollback, and policy-only gate enable/close rehearsals passed.
+The additional `20261007195540_staff_password_change.sql` committed and passed
+same-transaction plus fresh catalog/data/history verification at 22:08:30.753 UTC
+on 7 October. All eight earlier immutable history rows and existing native/app
+data were preserved; history now contains nine original versions. No older file,
+fixture, bootstrap or account was replayed.
+
+The first owner-feature release STOPPED during readiness verification: its helper
+treated the normal pending Vercel status from its own intentional build as a
+failed prerequisite. No owner handoff or password change occurred. Verified
+closure committed the new database boolean false first and only the new server
+flag false second. The pinned closed deployment is READY/current Production;
+fresh EN/AR Security404, anonymous staff denials, participant and all15
+operational API closure checks passed at 22:14:29.953 UTC. Existing EN/AR staff
+sign-in remains200/noindex/private with blank controls; navigation and robots
+exclusion passed at 22:16:19.283 UTC. These anonymous checks do not establish a
+current human password/TOTP session. The disposable clone was removed and all
+protected backup/failed/successful evidence retained.
+
+The account password remains unchanged. Normal own-device current-password/
+TOTP rotation and new-password/TOTP verification are NOT PERFORMED. No second
+account, self-reset, authenticator reset, real email or operational opening
+occurred. See [the stopped execution record](features/STAFF_PASSWORD_RELEASE_EXECUTION.md)
+for each migration, exact receipts, preserved failures, remaining release checks
+and database-first rollback. Resumption requires a new reviewed attempt after
+the readiness correction passes; never replay the committed migration or the
+closed first release. The private helper correction now has independent source
+review PASS and 42 synthetic readiness regressions PASS. It has not been used to
+resume Production. Activation is stopped at the failed first release, with both
+new gates false. Existing standing authorization remains in effect.
+
+## 7 October 2026 — Historical development: authenticated owner password change prepared
+
+Historical development checkpoint before the additional hosted migration and stopped release recorded above. Pending and not-applied statements below describe that earlier checkpoint.
+
+
+The branch also reconciles merged main
+`fbddf28ea68cea2370cf4704a6b8029566cb007c` after public-site QA. Only the shared
+progress record conflicted; both histories are preserved. The public merge changed
+no staff authorization, server or migration source. The earlier owned closure
+record remains attributed to its observed reviewed `2f677b...` deployment; current
+post-public-merge serving metadata is verified separately.
+## 8 October 2026 — Staff portal wording reviewed locally; copy release pending
+
+Historical local checkpoint, superseded by the live release evidence above.
+
+Scope: BL-AUTH-01, BL-RPT-01/03; LOC-01/03, ACC-01. Presentation-only work on
+`codex/staff-portal-copy`, starting from merged main
+`2f677bedd9e1773508286cc5d8db79780801cc37`. The
+[wording note](features/STAFF_PORTAL_WORDING.md) records the exact commands,
+role projection and evidence limits.
+
+Signed-in headers show **Your roles** / **أدوارك** and a short localized action
+sentence derived from existing built `staffMenu` entries. Future areas stay in
+the permitted coming-soon menu and are omitted from current actions. Own password
+change is mentioned only when its existing availability projection permits it.
+Anonymous, pending-verification and empty-role views show neither new element.
+Invitation text now says “Invitation links expire after 72 hours and can be used
+once.” with matching Arabic. Removed the four requested visible timezone,
+session, peer-recovery and minimum-two/self-protection explanation blocks and
+unused keys. All actual policies, timestamp formatting, reviewer English/LTR,
+permission rules, APIs and database enforcement remain unchanged; no shared CSS
+or runtime configuration changed.
+
+Observed local PASS: 61 focused unit cases in two files; scoped lint; TypeScript
+and production build (79 pages); six synthetic browser cases with two intentional
+desktop skips and zero retries; EN/AR 320px/200% text, bounded document width,
+native down/up scroll, keyboard focus and retained axe rules. Independent source
+review and root EN/AR role-guidance screenshot review PASS. Initial test-owned
+scroll timing/heading-position failures remain in ignored traces; corrected
+assertions use the actual enlarged heading position, without retries, increased
+timeouts, CSS edits or weaker accessibility checks. Six ignored screenshots are
+synthetic local evidence only. Broader exact-head CI results are recorded in PR
+checks; live axe and native Arabic-reader review remain NOT TESTED. Copy is **NOT YET IN PRODUCTION**; merge and
+deployment remain pending.
+
+Separate current operator checkpoint, recorded in
+[draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45): the captured
+8 October `12:01:51.918 UTC` native result was independently reviewed by the
+operator and database reviewer and confirms the committed personal password
+change, retained verified factor, old-session revocation and a fresh valid
+password/TOTP session. The frozen `11:41:54.513 UTC` verifier STOP is preserved.
+Both password-change gates are currently false; existing staff sign-in works for
+the restricted single owner, pairing remains false, and participant/other
+operational workflows remain closed. This copy task performs no new hosted
+action. Detailed operator history stays in #45; older entries below remain
+dated historical development receipts.
+
+Reconciled merged main `fbddf28ea68cea2370cf4704a6b8029566cb007c` after the
+public-site QA merge. Only the shared progress record conflicted; both records
+are retained. Staff permissions and interface source were unchanged upstream.
+Exact-head CI on the reconciled branch is recorded in PR checks.
+
+## 8 October 2026 — Public-site QA pass (Claude, PR #47)
+
+Independent QA of the public website on merged `main` `2f677be`, in
+[draft PR #47](https://github.com/xpexellent-dotcom/msrc-2027/pull/47). Public
+styling/copy only; no staff, auth, migration, provider or workflow change. The
+live domain was not reachable from the session's network, so checks ran against
+a local `next build && next start` of the same commit.
+
+- PASS: 22 public routes × EN/AR × 1440px/375px: axe WCAG 2.2 AA 0 violations,
+  no overflow, broken images/links, console errors or failed sub-requests.
+  Local LCP 120–390 ms, CLS ≤ 0.03; inner pages ~320–360 KB.
+- FIXED: homepage countdown kept its inline divider when the clock wrapped under
+  the days (Arabic at most phone/tablet widths, English at 320px/tablet). A
+  container query now stacks it deliberately; days unit start-aligned.
+- FIXED: open mobile menu stayed open when focus or a tap moved past the header,
+  so tabbing focused links hidden under the panel (WCAG 2.4.11).
+- FIXED: forced colours (Windows contrast themes) hid the selected programme day
+  and current homepage chapter; both now use Highlight system colours.
+- FIXED: on desktop the homepage's zero scroll-padding let keyboard focus land
+  under the sticky header/chapter bar (an Arabic FAQ question); journey controls now
+  carry their own focus scroll-margin, leaving chapter jumps unchanged.
+- FIXED: Privacy Policy lead overflowed sideways at 320px with 200% text (unbroken
+  www.msrc2027.com); the lead now wraps anywhere, and the policy test checks both together.
+- FIXED: contact copy "organising" → "organizing" (site/spec use -ize); dropped
+  one stray serial comma in the homepage programme note.
+- Each fix has a regression test confirmed to fail on `main`. CORRECTION (8 October):
+  the local public browser suite was first reported as 0 failed; the summary was misread.
+  Rerun on merged `main` `fbddf28`: 424 passed, 33 failed, 29 skipped. All 33 failures
+  are hero/cinema/media video-playback cases: the sandbox Chromium reports no H.264
+  support (`canPlayType` empty), so the MP4 never plays (environmental, NOT TESTED
+  locally). PASS in GitHub CI: Foundation, Staff portal and Participant accounts
+  workflows on every PR #47 head and on merged `main` `fbddf28`.
+- Noted, unchanged by design: searching the unannounced programme shows "No
+  matching results" (pinned by existing tests); `/EN/...` paths are case-sensitive 404s.
+
+## 7 October 2026 — Authenticated owner password change prepared; Production password unchanged
+
+The organizer clarified that the new privately saved value is an intended account
+password change. Completed restricted first-admin password/TOTP setup is recorded
+in [draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45), whose
+latest clarification head `db2b1896b9eb919b003937063d7f1ba0df7b9270` has all six CI
+jobs PASS and Vercel SUCCESS. This change starts from merged main
+`bbb790f1c70d4f770ddc221a3cde8f6f01edbab2` on `codex/staff-password-change`.
+Open-PR preflight found only #45. Its bootstrap/operator files remain untouched;
+the existing staff browser test now shares its five-line route-readiness fix,
+required by the observed CI failure below. Shared records also overlap.
+
+ORG-047 and [the owner-change guide](features/STAFF_PASSWORD_CHANGE.md) distinguish
+an authenticated password change from lost-access recovery. Added EN/AR/RTL
+`/[locale]/staff/security` for Super Admins only, with transient password and
+confirmation inputs. The new server-only `STAFF_PASSWORD_CHANGE_ENABLED` and
+database `password_change_enabled` both default false, independently of existing
+staff readiness. A fresh owner password/TOTP session, current role/factor/account,
+same-session reservation and protected native-transaction confirmation are
+required. Committed changes preserve the verified authenticator, consume the
+operation, audit it, revoke old native/application sessions and require fresh
+sign-in. Two-admin/self-protection and persistent peer-recovery holds remain.
+
+Additional review-only migration:
+`20261007195540_staff_password_change.sql`, generated by pinned CLI 2.118.0.
+SHA-256 `9cbc7ee07ad8902f6e829dc9d3ac4865e62bba1632a3068cf559736ef9041924`.
+One new forced-RLS private table/index, four triggers, four private functions,
+two narrowly granted RPCs, three existing function replacements, one false
+policy column and audit enum extension. Existing applied SQL files are unchanged.
+Its [separate execution packet](features/STAFF_PASSWORD_MIGRATION_PACKET.md)
+lists prerequisites, exact catalog checks, fresh post-bootstrap backup/restore,
+unknown-transaction handling and database-first feature closure.
+
+Local observed validation:
+
+- PASS: whole-project lint, route/type generation and TypeScript; final 2,252
+  units in 52 files; Production build (79 pages). These runs use locked dependencies.
+- PASS: new EN/AR browser suite 26/28 with two intentional desktop skips; six
+  independent server-off and six database-off cases; generic staff-off 32/32;
+  unchanged existing staff suite 26/30 with four intentional skips.
+- PASS: keyboard, native up/down scroll, 320px/200% text, RTL and axe assertions.
+  Eight synthetic screenshots were regenerated in an ignored directory after
+  default Playwright output cleanup; root inspected EN/AR control screenshots.
+  This is synthetic browser evidence, not live account/device UAT.
+- PASS: isolated network-none/no-port Supabase PostgreSQL 17.6.1.171 clone,
+  88 new and 639 applicable existing SQL assertions, each rolled back. Both
+  execution-packet blocks (10 SELECTs each) passed before/after transactional DDL.
+  Strict PL/pgSQL lint passed after installing its extension only in that clone;
+  no role privilege was changed. Three older local SQL files are BLOCKED by the
+  intentionally absent synthetic sample table; fresh CI must verify them.
+- PASS: independent backend/database source review, marker/privacy checks and
+  whitespace. Pinned native Admin password-before-metadata order requires a
+  deferred constraint; missing/wrong/stale/unmarked operations cannot commit.
+- HISTORICAL PASS: initial implementation `02142bde5966c75ca0ccb92ac31633c6a4c3bc17`
+  passed [genuine native Auth](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37680522480/job/112995059007)
+  (26 cases, GoTrue `v2.197.0`) and [foundation database](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37680521853/job/112995056619)
+  (904 assertions/12 SQL files and 75 integrations/8 files), strict lint/advisors.
+  Thus the three older fixture-dependent files passed on a fresh CI stack.
+  Independent review then aligned the database's explicit native session-origin
+  freshness with the server and added two regression assertions. These older
+  receipts do not certify that later correction.
+- PASS at corrected head `40bf6e285028421cbb2408025f5846d89576fd05`:
+  staff native Auth 26 cases, 906 SQL assertions/12 files, 75 foundation
+  integrations/8 files, 19 participant native Auth cases, strict lint/advisors
+  and Vercel. Its staff browser job failed one existing English desktop
+  failed-logout axe check: the destination title was missing at scan time;
+  default-off 32 passed and new password suites were skipped after that failure.
+  Added the already reviewed #45 route/heading/title readiness assertions before
+  the scan, preserving the document-title axe rule and all prior assertions.
+  No retry, increased timeout or production code change is used for this fix.
+  The corrected existing suite passed locally: 26 cases and four intentional
+  desktop skips, including EN/AR failed-logout and mobile table action checks.
+- PASS at browser-corrected head `8b0a0ab5306851681c1178696ee6a1da843b8780`:
+  all staff and participant browser/native jobs plus foundation database and
+  Vercel. Staff browser: 32 default-off, 26 existing (four intentional skips),
+  26 owner-change (two intentional skips), six server-off and six database-off.
+  Participant browser: 26 closed and 54 enabled synthetic cases. The foundation
+  application also passed lint/types, 2,252 units, build (79 pages), 447 public
+  browser cases (25 intentional skips), 81 staff-lab cases and 44 Contact cases.
+  Its job was CANCELLED during artifact upload after all tests passed; GitHub's
+  annotation explicitly reports the existing 20-minute execution limit.
+  The serialized browser suites took 10.8, 1.6 and four minutes, in addition to
+  dependency/build/browser setup. Moved the unchanged independent Contact command
+  and evidence upload into its own 20-minute job. Existing limits, assertions,
+  zero retries and auth-stability skip semantics remain; no test was weakened.
+- HISTORICAL POST-CI-PARTITION CHECKPOINT (8 October): exact-head CI was PENDING at that checkpoint. Latest results are in
+  [draft PR #46](https://github.com/xpexellent-dotcom/msrc-2027/pull/46).
+  Production owner password change remains NOT APPLIED; no new hosted migration,
+  setting, flag, account, email, bootstrap or password mutation occurred.
+
+The original six hosted migration receipts do not certify this additional
+migration. Existing restricted staff access remains as previously authorized;
+participant and operational workflows remain closed. Continue through reviewed
+exact-head checks and the separate owner-change release gates before private
+human completion. Never resolve the mismatch by self-reset or bootstrap replay.
+
+## 7 October 2026 — First-admin sign-in/TOTP verified; requested account password change not yet applied
+
+ORG-046's persistent restricted setup authorization remains in effect. All six
+reviewed hosted migrations genuinely committed and were verified individually;
+history now contains eight original versions. The original persisted-authority
+and Contact files were preserved/skipped, and the synthetic fixture was excluded.
+The exact files, SHA-256 values, sanitized receipt labels and closure/rollback
+procedure are in [the execution record](features/STAFF_SETUP_EXECUTION.md).
+
+| Stage | Completed UTC, 2026-10-07 | Checks before/after ledger | History rows | Fresh live closure GETs |
+| --- | --- | --- | ---: | --- |
+| 1 | 17:35:06.547 | 675 / 675 PASS | 3 | 19/19 PASS |
+| 2 | 17:37:13.819 | 940 / 940 PASS | 4 | 19/19 PASS |
+| 3 | 17:37:56.931 | 940 / 940 PASS | 5 | 19/19 PASS |
+| 4 | 17:40:16.049 | 995 / 995 PASS | 6 | 19/19 PASS |
+| 5 | 17:41:54.220 | 1,610 / 1,610 PASS | 7 | 19/19 PASS |
+| 6 | 17:45:32.098 | 2,338 / 2,338 PASS | 8 | 19/19 PASS |
+
+Totals are 7,498 completed checks per pass and 14,996 across both passes, not
+unique assertions. Final schema, explicit grants and native/application data
+checks passed against the exact offline stages, retaining the dated cron-runtime
+exception without rewriting history/scheduling. These are database/closure
+receipts, not human password/TOTP, recovery, inbox or axe UAT.
+
+- PASS, 17:34:59 UTC: exact operator/source head
+  `06443f59532a011d4414d3360c413053e32463ae` has all six substantive CI checks plus
+  Vercel SUCCESS: [foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37657520910),
+  [staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37657521041) and
+  [participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37657521102).
+  [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45) remains draft.
+  Production application is separately still merged main
+  `bbb790f1c70d4f770ddc221a3cde8f6f01edbab2`; restricted deployment evidence is below.
+- PASS, 17:48:03.386 UTC: 15 selected staff-only native Auth settings PATCHed and
+  verified by readback. Critical alternative admission/provider/notification flags
+  remained disabled; final native schema/grants/data checks passed.
+- PASS, 17:49:08.924 UTC: seven Production-only staff variables configured and
+  verified by readback. Participant/test flags remain absent and existing Resend
+  metadata is unchanged. Matching staff server/database cap is 36/day alongside
+  unchanged Contact 60/day; both staff gates were closed at this checkpoint.
+- PASS, 17:50:10.218 UTC: exactly one privately identified active Super Admin
+  bootstrapped in the expected edition with immutable audit, while both staff
+  gates were closed. At bootstrap completion there was no other user, invitation,
+  native factor or session; pairing was false. Identity/credential values stay private.
+- HISTORICAL START, 18:05:18.598 UTC: restricted first-admin onboarding under ORG-046.
+  Native staff gate and Production server flag were enabled for the existing
+  single account; pairing remains false and participant/all other operational
+  gates remain off. This is not a password/TOTP pass.
+- HISTORICAL PASS: restricted deployment created at 18:05:27.667 UTC, initially BUILDING
+  while the previous serving deployment remained closed. At 18:06:31.656 UTC,
+  `dpl_F2261YzD9AnzeoH3syXL9vANggtC` was verified READY at exact app SHA
+  `bbb790f1c70d4f770ddc221a3cde8f6f01edbab2`, with correct source/org/repository/
+  project/owner-team binding and apex/www aliases. Safe receipt labels are
+  `first-admin-onboarding-attempt`, `first-admin-deployment-created` and
+  `first-admin-deployment-ready`.
+- HISTORICAL PASS, 18:11:58.682 UTC, `first-admin-live-onboarding`: both EN/AR staff sign-in
+  SSR pages returned 200 with localized headings/controls, correct lang/dir,
+  noindex and no response cookie. Three anonymous People/Audit/Participants GETs
+  returned 403 with exact denied responses and no private data. Participant plus
+  15 operational APIs passed 16/16 exact closed-JSON/503/no-store/no-cookie checks.
+  Both public locales have no staff links; robots disallows `/*/staff`.
+  Actual browser observation confirms blank English inputs ready and Arabic
+  localized heading/RTL/inputs ready. No axe, native-reader or human Auth pass is
+  claimed by these observations.
+- REVIEWED: final native advisors report 32 INFO
+  [0008 private RLS/no-policy findings](https://github.com/supabase/splinter/blob/main/docs/0008_rls_enabled_no_policy.md)
+  and 15 WARN
+  [0029 authenticated security-definer execution findings](https://github.com/supabase/splinter/blob/main/docs/0029_authenticated_security_definer_function_executable.md)
+  for guarded RPCs. Findings remain recorded; no ACL/RLS was widened to silence them.
+
+HISTORICAL STOP: the person reported password sign-in failure. The exact original
+onboarding transaction was proven ended; native staff `enabled=false` was then
+written/verified first, and Production `STAFF_PORTAL_ENABLED=false` was
+written/verified second. At 18:22:06.082 UTC, false-flag deployment
+`dpl_84xySREwUbFjn3HdN7jojavpuqfe` was verified READY at exact app revision
+`bbb790f1c70d4f770ddc221a3cde8f6f01edbab2`, with owner/project and apex/www
+aliases verified. Fresh live closure passed 19/19 at 18:24:29.004 UTC, safe receipt
+`post-sign-in-failure-live-closure`. Both staff gates were false at this checkpoint. Previous
+restricted READY/anonymous-boundary passes are historical and do not establish
+a successful human sign-in.
+
+Historical sanitized diagnosis: five native Auth logs during 18:11–18:24 UTC all returned
+400 `invalid_credentials`, with no database/permission/hook errors reported.
+A private in-memory bcrypt 5.0.0 comparison passed at 18:23:39.170 UTC: the staff
+email/password saved at that historical checkpoint matched the stored account. No values/hashes were
+displayed, no Auth session was created and no reset was performed by that check.
+This does not establish what was entered in the failed human attempt.
+
+The person clarified trying several passwords, including the database password;
+the exact failed inputs remain unknown. At 18:35:46.666 UTC, one direct native
+Supabase password attempt using the exact saved staff credentials PASSED HTTP 200.
+The temporary test session was immediately logged out with local scope; native
+readback verified zero sessions, one user, zero factors/invitations, false pairing,
+zero recovery holds and participant/staff access closed. This establishes that
+the saved account credentials work; it does not establish browser password/TOTP
+or human-entry success. No values, tokens or sessions were displayed.
+
+The login rate window naturally expired at 18:31:30.451242 UTC before this one
+attempt; no counters were cleared/reset/bypassed. Preserve the single account,
+immutable audits/history and zero factors/invitations/recovery holds with pairing
+false. Continue only authorized first-person onboarding after the actual checks
+pass; do not create/invite a second person without actual inputs. An unanswered
+prompt or elapsed time is not completion.
+Participant/all other operational workflows, wider paired-admin administration
+and exports remain closed. No real email, extra account or paid resource occurred.
+
+CURRENT RESUMPTION PASS: deliberately reviewed `first-admin-onboarding-resume-1`
+began at 18:44:33.572 UTC. Fresh deployment
+`dpl_3fLCso6cBALW2RiCQdKBJXZyfhSP` was created at 18:44:41.732 UTC and verified
+READY/current serving Production at 18:45:50.502 UTC, with exact `bbb790f1`
+application source, project/org/repository/owner and apex/www binding. At
+18:46:02.033 UTC, `first-admin-onboarding-resume-1-live` PASSED: two EN/AR staff
+sign-in/noindex checks, three anonymous privileged denials, 16 participant/
+operational closed checks and public navigation/robots staff exclusion.
+
+Historical pre-enrollment native snapshot PASSED at 18:47:06.987 UTC: one user/profile/
+account/grant and one active Super Admin; factors, sessions, invitations, recovery
+holds, admissions, participant profiles, staff email challenges and native OTP
+all zero; cap 36/day and pairing false. Both current staff gates are true for
+restricted onboarding of this existing single admin. Participant/generic readiness
+stays false. Blank English browser refreshed for private handoff; human password/
+TOTP input requested at 18:47 UTC was PENDING — NOT TESTED at that snapshot.
+
+Independent operator-helper review caught the separate existing 20 form-events/
+IP/hour ceiling and added a conservative pre-enable guard. Receipt checks require
+strict booleans; counters were never reset/bypassed. No application/migration/
+product code changed in this round. Native credentials and anonymous checks do
+not complete human browser/TOTP or wider paired-admin acceptance.
+
+CURRENT COMPLETION: the person reports completed own-device authenticator
+enrollment and that staff sign-in works. This is manual human-reported completion.
+Independent reviewed read-only native SQL PASSED at 18:58:37.866 UTC:
+
+- One user/profile/account/grant and one active individually identified Super Admin.
+- Verified TOTP factors 1, unverified 0, other factor types 0.
+- Native staff/password/native-bound TOTP AAL2/live-observed strongest-assurance
+  session counts each 1, describing the same completed flow. Current native
+  authentication time matches last sign-in and profile last sign-in is recorded.
+- Audited sign-in allowed, TOTP enrollment/challenge/verification completed each 1.
+- Pairing false; staff gate true/cap 36; recovery/invitations/admissions/participant
+  profiles/staff email challenges/native OTP all 0; participant/generic readiness false.
+
+This proof inspected the person's completed flow without creating/entering
+authenticator material. Actual signed-home DOM is NOT OBSERVED because the
+person's staff tab is outside controlled browser inventory; no automated
+signed-home DOM pass is claimed. Other-admin recovery, real inbox, paired-admin/
+wider staff UAT, live axe and Arabic native-reader acceptance remain NOT COMPLETED.
+Existing synthetic/CI checks are separate. Private credential/identity values are
+not recorded, and no second account/invitation or operational workflow is opened.
+Post-completion live receipt PASSED at 19:03:47.271 UTC:
+`first-admin-onboarding-resume-1-after-human-live`, on the same serving deployment,
+with two EN/AR SSR/noindex checks, three anonymous privileged denials, 16 participant/
+operational closed checks and no public staff navigation/robots exclusion PASS.
+Its explicit `strongAssuranceVerifiedByThisProbe=false` keeps anonymous HTTP proof
+separate from the human report/read-only native strongest-assurance proof at
+18:58:37.866 UTC. Fresh private-input ACL boolean PASSED for current-Windows-account
+access only, with values/location withheld. At 19:06:15.068 UTC, reviewed read-only
+bcrypt validation of the newly saved private password returned STOP: email matches
+the account, password does not. No value/hash was displayed and no session,
+mutation, reset or email resulted. Earlier matching receipts remain historical.
+The completed human/native sign-in evidence remains valid. The person clarified
+that the newly saved password is an intended account password change, rather than
+the working password. That change has NOT BEEN APPLIED. The existing native guard
+permits invitation admission and other-admin recovery only; it rejects ordinary
+own-password changes even from a valid TOTP session. A separate reviewed
+authenticated password-change flow is being prepared on a branch from current
+main. It must retain the working authenticator, require fresh owner password/TOTP
+proof, audit the change and revoke sessions. No self-recovery reset, bootstrap
+replay, new account, email or additional hosted migration has occurred.
+
+On failure with a known ended enabling transaction, immediately close native
+`msrc_staff.policy.enabled`, keep/set `STAFF_PORTAL_ENABLED=false` and redeploy as
+needed, then verify current/stale requests deny. For an uncertain original
+enabling transaction, first prove the exact original attempt/backend ended using
+the private attempt marker/PID/backend-start/transaction-start at full microsecond
+precision; missing marker means STOP. Then verify persistent native false, so a
+late original commit cannot reopen it; later deployment completion still denies
+through that native gate. Preserve native guards/mail suppression, immutable audit/authority/
+migration history, reservations, revocation and recovery holds. A new ROLLBACK does
+not undo committed DDL; reconcile the original backend's unknown transaction
+outcome before any replay or ledger repair. Use reviewed forward correction or
+the [backup/restore reconciliation plan](features/STAFF_BACKUP_RESTORE.md).
+
+Earlier checkpoints below are historical. This entry supersedes their pending/
+blocked state only for the actual completed stages above; remaining human and
+wider release gates are not implicitly passed.
+
+Documentation validation at the completion checkpoint PASSED: 97 relative links
+across the five changed records, six migration SHA-256 receipts, private-value
+screening and whitespace checks. Exact revision
+`3c0398995aff0e83990da6e290fddfff1033ab63` PASSED all six CI jobs and Vercel,
+verified at 19:30:43 UTC: [foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37672452948),
+[staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37672452980),
+[participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37672452993).
+This later clarification entry requires its own checks; those receipts do not
+certify an untested later revision. [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45)
+remains draft.
+
+## 7 October 2026 — Private backup and restore proof; restricted setup continues
+
+ORG-046 execution authorization persists. The corrected private database password
+now authenticates as native `current_user=session_user=postgres`, with BYPASSRLS,
+on the approved project's IPv4 session pooler. Direct IPv6 is unreachable from
+this machine; no TLS check was disabled. The frontend certificate and hostname
+are verified with `sslmode=verify-full`. `pg_stat_ssl` separately reports that the
+pooler-to-database hop is not TLS; this is not claimed as end-to-end encryption.
+
+- PASS (16:49:39 UTC): protected full PostgreSQL custom archive and password-free
+  role backup, outside the repository and restricted to the current Windows
+  account. Original archive hashes remain unchanged. The actual Free project
+  still reports no managed backup; this locally held logical backup is not PITR
+  or a provider-settings/credential backup.
+- PASS: full restore into matching Supabase PostgreSQL `17.6.1.171`, network `none`,
+  no published ports, native Unix socket only. The source owner/UTF8/ICU `en-US`
+  locale is reproduced. Password-free roles, membership grantors/options and
+  bootstrap role identity are preserved. No application/Auth account is created.
+- PASS: all 17 catalog sections, 47 dumped tables inventoried, all application/native data
+  compared, four sequence definitions and non-runtime values, 49 extension
+  member-function owner/ACL checks, immutable guards, forced RLS, effective API
+  grants, original migration rows, Contact job/configuration and data match.
+  Standard dump extension-owner/initial-ACL limitations were resolved on the
+  disposable clone by exact-version precreation and captured source ACL replay;
+  the unchanged archive and its supplemental restore manifest are retained.
+- PASS: the archive's 881 cron history rows match the live source prefix through
+  the archived run ID. Only newer scheduled cron history and `runid_seq` are
+  dated runtime deltas. Production scheduling/history was not changed, and clone
+  history was not overwritten to force equality. See
+  [the restore receipt and procedure](features/STAFF_BACKUP_RESTORE.md).
+- PASS: Supabase Auth management and Vercel project/environment read requests
+  accept the privately saved tokens. Current Production is still merged main
+  `bbb790f1c70d4f770ddc221a3cde8f6f01edbab2`. Both account flags are absent;
+  the existing sensitive Resend key is configured but cannot be decrypted through
+  the supported read API. No secret value was displayed or added to logs/source.
+- PASS: reviewed bootstrap transport extension accepts only the actual approved
+  session pooler/project username/5432 or matching direct target. Native identity
+  is checked on every SQL connection; ambient libpq routing/options and unrelated
+  secrets are excluded. Independent review passed after the allowlist fix.
+  `vitest` ran 128 tests across bootstrap/staff/MFA suites, including 41 focused
+  bootstrap cases; scoped ESLint, `tsc --noEmit`, inert invocation and whitespace
+  checks passed. Draft PR/exact-head CI receipt follows separately.
+- PASS (16:59:02 UTC): all six unchanged reviewed files executed sequentially on
+  the restored **offline** clone as native postgres, with original-version local
+  ledger entries and individual postchecks: 674, 939, 939, 994, 1,609 and 2,337
+  assertions (7,492 total). Final inventory is 32 private tables, 92 MSRC functions,
+  41 authored triggers and eight history entries. Every staged policy stays
+  closed; native identities and application records stay empty. One checker
+  originally compared JSON OID string `"10"` to a number; its type check was fixed,
+  the already committed local stage was reverified without replay, then stages
+  2–6 proceeded. This is catalog/data compatibility proof, not human Auth UAT.
+- PASS (17:03:21 UTC): five real offline native bootstrap-guard cases. Correct
+  postgres/current/session/database admits; wrong session user, a role label
+  spoof, wrong database and wrong current role all stop with SQLSTATE 42501 before
+  the subsequent statement. No mutation/account/email was used for these checks.
+- PASS: private display-name syntax and normalized designated-person/given-name
+  match. The input remains private and its actual identity values are not logged.
+  Auth management/Vercel tokens are accepted. Hosted native Auth health reports
+  GoTrue v2.197.0, matching the genuinely tested version. Fresh 17:06:32 UTC EN/AR
+  staff and staff/participant API GET probes remain closed.
+- PASS: the organizer's signed-in Resend dashboard was read without sending or
+  changing settings. Free transactional plan: 0/100 daily used, 3/3,000 monthly,
+  team rate limit ten requests/second, approved sender domain Verified, paid
+  overage disabled. ORG-046's within-current-quota authority selects staff 36/day
+  alongside Contact 60/day: 96/day and at most 2,976 over 31 days. First-admin
+  TOTP uses zero transactional emails; other accounts/consumers stay out of scope.
+  The same cap must be used server-side and in the staff database. No read-only
+  Resend key is required; the authenticated dashboard supplies this evidence.
+- CI FAIL / RESOLVING: draft [PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45)
+  was created at `5e18365` through existing Git authorization after the connector
+  reported insufficient write access. All three database/native jobs passed.
+  Staff browser job 112910509071/run 37655941732 passed 25, skipped four and failed
+  one desktop logout axe audit: the destination title streamed after axe started.
+  Trace timing confirms this incomplete navigation barrier. The test-only fix
+  waits for sign-in screen, localized heading and exact title before unchanged
+  axe rules; EN/AR desktop/mobile targeted cases pass 4/4, scoped lint/whitespace
+  pass. No retry, timeout or security assertion was weakened. Hosted setup stopped
+  before migration 1; independent review and exact-head CI rerun follow.
+
+Production at this checkpoint: the same two applied migrations; all six pending
+files, settings changes, first-account bootstrap and human TOTP remain
+NOT EXECUTED/NOT TESTED. No invitation, email, paid resource or extra account.
+The earlier password-placeholder/transport failures are resolved without changing
+Production credentials, access policy or flags.
+
+Continue within the existing authorization after the remaining prerequisites
+pass. Retain the private restore evidence; do not run blanket database push,
+reset, seed or a replay against hosted native data. Current rollback requires no
+hosted action because none was changed. For any later committed stage, keep both
+staff gates closed and preserve audit/history; use a reviewed forward correction
+or the documented restore/reconciliation plan, never a post-commit `ROLLBACK` or
+manual weakening of guards.
+
+## 7 October 2026 — Authorized Production staff setup: preflight blocked before migration 1
+
+The organizer explicitly authorized the six pending migrations, staff-only
+configuration and only their first Super Admin bootstrap/restricted onboarding,
+without repeated manual execution approvals. Scope and continuing authorization
+are recorded in ORG-046. Participant/other workflows and the two-admin safeguards
+remain intact. No other account or invitation is authorized without actual inputs.
+
+Freshly fetched main remains `bbb790f1c70d4f770ddc221a3cde8f6f01edbab2`.
+Open PR preflight found none; `codex/staff-production-setup` starts from that main.
+All three merged-main push workflows are SUCCESS at that exact head: staff
+37632935182, participant 37632935416 and foundation 37632935279. No application,
+SQL, test or configuration source changes were needed by independent bootstrap/
+interface/database review. This entry records prerequisites, not completed setup.
+
+Observed read-only Production checks, 15:04–15:33 UTC on 7 October:
+
+- PASS: designated Supabase project `ecemjggwlzqpjcwmchrl` is ACTIVE_HEALTHY in
+  `ap-northeast-1`/Tokyo, matching the published location disclosure; native
+  PostgreSQL 17.6 image release `17.6.1.171`, matching the M1 disposable rehearsal.
+- PASS: `current_user=session_user=postgres`, native postgres BYPASSRLS true
+  (superuser false), required Auth SELECT/UPDATE/REFERENCES rights true; all 21
+  native columns and helper return types match the reviewed M1 assumptions.
+- PASS: only `20261002173712` persisted authorization and `20261004114603`
+  Contact are recorded. Pending schemas absent; users, sessions, factors,
+  authority accounts, grants and audit are all zero. Four existing authority
+  tables remain postgres-owned with enabled/forced RLS and no API private rights.
+  Contact counters are zero and its five-minute expiry job remains active.
+- PASS: all six pending SQL files match merged-main bytes and reviewed hashes.
+  No file/statement/guard was modified and no synthetic seed was applied.
+- REVIEWED: security advisor reports five INFO no-client-policy findings for
+  intentionally private forced-RLS tables and one known authenticated own-context
+  [SECURITY DEFINER warning (0029)](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
+  The [no-policy information (0008)](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)
+  describes intentional client denial. No grants/RLS were widened to silence it.
+- BLOCKED: the Supabase organization is Free and its authenticated project
+  overview explicitly reports **Last backup: No backups**. No manual backup or
+  successful restoration evidence/private backup destination has been supplied.
+  No paid upgrade was purchased and no unsupported substitute was called a backup.
+- INPUTS PARTIAL: the organizer-provided private file now contains an email and
+  a password that satisfy the syntax/ten-character/72-byte checks. Values were
+  never printed or copied to the repository. Native postgres connection and
+  modern server/management credential references remain absent. A private
+  backup destination/reference was requested and remains outstanding.
+- NOT READY: `psql` is absent from the operator PATH; installing a trusted local
+  runtime is a routine remedy within the authorization, not another approval gate.
+  The reviewed bootstrap
+  accepts only the matching direct native postgres TLS host, not a pooler/browser
+  key. Do not attempt native identity creation before this operator path works.
+- ACCESS PARTIAL: the Vercel connector returns 403 for the designated scope and
+  no authenticated local CLI is available. The existing authenticated browser
+  reaches the correct MSRC Hobby project and reads variable-name metadata without
+  revealing secrets: no staff/participant enable flag or staff test mode; Resend
+  entries exist. The connector failure does not establish loss of browser access
+  or inherently require another Vercel credential; the authenticated browser may
+  supply that management path. No browser settings or credentials were changed.
+- PASS: seven fresh live GET checks at 15:33 UTC: EN/AR staff sign-in pages are
+  404; staff and participant APIs under both language headers return exactly
+  closed-state 503 responses without Set-Cookie; health returns 200 with
+  `workflows="closed"`. The corrected probe uses the repository's actual API
+  paths; no sign-in, enrollment or mutation request was sent.
+
+Stopped before migration 1 on the actual failed backup check and missing private
+operator inputs. **In Production, all six migrations, staff configuration/
+enablement, bootstrap, sign-in and TOTP remain NOT EXECUTED/NOT TESTED.** The
+completed disposable rehearsal is separate evidence. Hosted activity consists only
+of the metadata/count reads above; no DDL/history write, settings/flag change,
+account/factor/session creation, email or paid-resource operation occurred.
+The authorization persists when these inputs/checks are resolved.
+
+Independent documentation/security review and `git diff --check` PASS. The new
+entries contain no actual identity or credential values. Only DECISIONS and
+PROGRESS changed; functional tests were not rerun for these documentation-only
+changes. Existing exact-head CI and the completed disposable rehearsal remain
+separate evidence, not proof of hosted backup, configuration or human TOTP.
+
+Resume by establishing a private supported backup and disposable restore proof,
+native TLS/operator access and Supabase Admin credentials, plus a working service
+management path. Reuse authenticated management access where available; do not
+ask for fresh credentials or execution approval unless actually necessary.
+Recheck target/ledger/definitions immediately before each single-file operation;
+apply only the ordered reviewed six, inspect metadata/ACL/closed-policy and
+preservation after each, then align only that original version. Do not use blanket
+push/reset/seeds. Native hook/password/TOTP settings and staff values follow all
+six verified guards. Keep both staff gates false for the sole bootstrap; only
+then open its restricted onboarding. First-admin TOTP requires their own device;
+do not generate a replacement identity or another administrator to bypass inputs.
+
+Rollback for this stopped attempt: **nothing to undo**. For later authorized
+execution, stop on the first error/unknown commit, establish the original backend
+outcome before retry/history repair, retain committed schema/immutable history
+and use reviewed forward correction or the verified backup/reconciliation plan.
+If onboarding fails, close `msrc_staff.policy.enabled` immediately, set the server
+staff flag false and redeploy; retain stable secrets, authority/audit, revocation
+cutoffs and any partial native account/factor evidence. Do not drop guards,
+erase users/history, waive the two-admin rule or self-reset to repair a failure.
 
 ## 7 October 2026 — Documentation PR and migration 1 execution packet
 

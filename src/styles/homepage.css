@@ -38,8 +38,8 @@
 .event-strip dd { font-size: .84rem; margin: 0; overflow-wrap: anywhere; }
 .date-band-link { gap: .8rem; margin-block-start: 1rem; color: var(--color-purple); font-size: .82rem; }
 .date-band .conference-countdown { display: grid; grid-template-columns: 1fr; max-inline-size: none; background: var(--color-surface-lilac); border: 1px solid var(--color-line); border-radius: 1rem; padding: 1.3rem 1.7rem; }
-.date-band .countdown-clock { display: flex; flex-wrap: wrap; align-items: center; gap: 1.4rem; margin: .8rem 0; }
-.date-band .countdown-remaining { flex-direction: column; gap: 0; flex-shrink: 0; border: 0; padding: 0 1.4rem 0 0; }
+.date-band .countdown-clock { display: flex; flex-wrap: nowrap; align-items: center; gap: 1.4rem; margin: .8rem 0; }
+.date-band .countdown-remaining { flex-direction: column; align-items: flex-start; gap: 0; flex-shrink: 0; border: 0; padding: 0 1.4rem 0 0; }
 [dir="rtl"] .date-band .countdown-remaining { padding: 0 0 0 1.4rem; }
 .date-band .countdown-number { font-size: clamp(3.8rem, 6vw, 5.8rem); line-height: 1; }
 .date-band .countdown-unit { font-size: .8rem; }
@@ -47,6 +47,18 @@
 .date-band .countdown-time-number { font-size: clamp(1.4rem, 2.4vw, 2.3rem); }
 .date-band .countdown-time-part + .countdown-time-part { border: 0; padding: 0; }
 .date-band .countdown-dates { padding-block-start: .7rem; font-size: .75rem; }
+/* Too narrow for days beside the clock (wider Arabic numerals need more room): stack them
+   explicitly. A wrapped row kept its inline divider, which then separated nothing. */
+@container (max-width: 18rem) {
+  .date-band .countdown-clock { flex-direction: column; align-items: stretch; gap: .9rem; }
+  .date-band .countdown-remaining { padding: 0; }
+  .date-band .countdown-time { flex-basis: auto; border-inline-start: 0; padding-inline-start: 0; padding-block-start: .9rem; border-block-start: 1px solid var(--color-line); }
+}
+@container (max-width: 22.5rem) {
+  [lang="ar"] .date-band .countdown-clock { flex-direction: column; align-items: stretch; gap: .9rem; }
+  [lang="ar"] .date-band .countdown-remaining { padding: 0; }
+  [lang="ar"] .date-band .countdown-time { flex-basis: auto; border-inline-start: 0; padding-inline-start: 0; padding-block-start: .9rem; border-block-start: 1px solid var(--color-line); }
+}
 .editorial-section { padding-block: var(--section-space); scroll-margin-block-start: 7rem; }
 .intro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(3rem, 8vw, 8rem); align-items: start; }
 .homepage-journey .section-heading h2 { font-family: var(--font-heading); font-weight: 700; font-size: clamp(2.55rem, 4.4vw, 4rem); letter-spacing: -.05em; line-height: 1.12; }
@@ -54,7 +66,7 @@
 .intro-body p { font-size: .9rem; line-height: 1.85; color: var(--color-muted); max-inline-size: 51ch; }
 .intro-body .intro-statement { color: var(--color-ink); font-size: clamp(1.1rem, 1.55vw, 1.35rem); margin-block-end: 1.3rem; line-height: 1.7; }
 .intro-link { margin-block-start: 2rem; }
-/* ORG-046: approved MSRC 2026 stills carry the page between the film and the closing. */
+/* ORG-049: approved MSRC 2026 stills carry the page between the film and the closing. */
 .homepage-journey :is(.intro-visual, .pathway-media, .photo-break, .legacy-art, .legacy-moment-photo, .closing-photo) > img { object-fit: cover; }
 .intro-visual { position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 3 / 2; margin: 2.5rem 0 0; border-radius: .75rem; background: var(--color-surface-lilac); color: var(--color-ivory); }
 .intro-visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #1f193000 55%, #1f1930b3 100%); }

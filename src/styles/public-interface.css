@@ -42,7 +42,10 @@ html:has(.homepage-journey) { scroll-padding-block-start: 0; }
 .experience-pathway h2 { font-family: var(--font-heading); font-weight: 600; }
 .experience-intro h1, .about-hero-copy h1, .dates-hero h1 { font-weight: 700; }
 .footer-directory ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (min-width: 1100px) { .section-journey { position: sticky; inset-block-start: 6.3rem; z-index: 15; padding-block: .65rem; background: #f8f6f0f5; backdrop-filter: blur(12px); }.homepage-journey > .editorial-section { scroll-margin-block-start: 11rem; } }
+@media (min-width: 1100px) { .section-journey { position: sticky; inset-block-start: 6.3rem; z-index: 15; padding-block: .65rem; background: #f8f6f0f5; backdrop-filter: blur(12px); }.homepage-journey > .editorial-section { scroll-margin-block-start: 11rem; }
+  /* The homepage zeroes scroll-padding for its chapter jumps, so keyboard focus scrolled
+     controls under the floating header and this sticky bar (WCAG 2.4.11). */
+  .homepage-journey :is(a, button, summary, input, select, textarea, [tabindex]) { scroll-margin-block-start: 11rem; } }
 @media (max-width: 1099px) {
   .site-header { --header-top: max(1rem, env(safe-area-inset-top)); inset-block-start: var(--header-top); }
   .site-header[data-scrolled="true"] { --header-top: max(.75rem, env(safe-area-inset-top)); inset-block-start: var(--header-top); }
@@ -68,4 +71,7 @@ html:has(.homepage-journey) { scroll-padding-block-start: 0; }
   .mobile-menu { padding-block-end: 1rem; border-end-start-radius: 1rem; border-end-end-radius: 1rem; }
   .mobile-menu nav a { font-size: 1.25rem; min-block-size: 60px; padding-block: .7rem; }
 }
-@media (forced-colors: active) { .site-header-inner { border-color: ButtonText; }.mobile-menu { border-color: ButtonText; } }
+@media (forced-colors: active) { .site-header-inner { border-color: ButtonText; }.mobile-menu { border-color: ButtonText; }
+  /* The current chapter was marked by fills that forced colours remove. */
+  .section-journey-links > a[aria-current="location"] .chapter-number { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight; }
+  .section-journey-links > a[aria-current="location"]::after { forced-color-adjust: none; background: Highlight; } }

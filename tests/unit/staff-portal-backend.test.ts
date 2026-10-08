@@ -15,7 +15,7 @@ const now = Date.parse("2026-10-07T00:00:00Z");
 const env = { STAFF_PORTAL_ENABLED: "true", STAFF_PORTAL_TEST_MODE: "true", STAFF_AUTH_SECURITY_SECRET: "b".repeat(64),
   STAFF_SUPABASE_URL: "http://127.0.0.1:3220", STAFF_SUPABASE_SECRET_KEY: "sb_secret_staff_mock_only",
   STAFF_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_staff_mock_only", RESEND_API_KEY: "re_staff_mock_only",
-  STAFF_EDITION_KEY: "synthetic-staff-2027", STAFF_AUTH_EMAIL_DAILY_LIMIT: "40" };
+  STAFF_EDITION_KEY: "synthetic-staff-2027", STAFF_AUTH_EMAIL_DAILY_LIMIT: "40", STAFF_PASSWORD_CHANGE_ENABLED: "true" };
 const config = (resolveStaffConfig(env) as { state: "ready"; config: StaffConfig }).config;
 function token(exp = now + 3_600_000) { return "header." + Buffer.from(JSON.stringify({ session_id: sessionId, exp: exp / 1000 })).toString("base64url") + ".signature"; }
 const native: NativeStaffSession = { actorId, sessionId, accessToken: token(), refreshToken: "synthetic-refresh" };
@@ -39,7 +39,7 @@ beforeEach(() => {
   readiness = { state: "ready", config }; current = persisted();
   backend = {
     rpc: vi.fn(async (name) => {
-      if (name === "msrc_staff_status") return { enabled: true, emailDailyLimit: 40 };
+      if (name === "msrc_staff_status") return { enabled: true, emailDailyLimit: 40, passwordChangeEnabled: true };
       if (name === "msrc_staff_form_claim") return { state: "claimed" };
       if (name === "msrc_session_context") return current;
       if (name === "msrc_staff_profile") return { schemaVersion: 1, actorId, name: "Synthetic Staff", roles: ["superAdmin"], session: current };
@@ -48,7 +48,7 @@ beforeEach(() => {
       if (name === "msrc_session_logout") return true;
       return { state: "completed" };
     }),
-    createUser: vi.fn(async () => true), updateUser: vi.fn(async () => true), login: vi.fn(async () => native), identity: vi.fn(async () => actorId),
+    createUser: vi.fn(async () => true), updateUser: vi.fn(async () => true), changeOwnPassword: vi.fn(async () => true), login: vi.fn(async () => native), identity: vi.fn(async () => actorId),
     refresh: vi.fn(async () => native), logout: vi.fn(async () => true), emailIssue: vi.fn(async () => ({ state: "issued" as const, challengeId, expiresAt: new Date(now + 300_000).toISOString() })),
     emailVerify: vi.fn(async () => ({ state: "verified" as const })), factors: vi.fn(async () => [factorId]),
     enroll: vi.fn(async () => ({ factorId, secret: "JBSWY3DPEHPK3PXP", uri: "otpauth://totp/MSRC?secret=JBSWY3DPEHPK3PXP" })),
@@ -270,5 +270,134 @@ describe("invitation protocol and account recovery", () => {
     expect(readStaffSession(config, request("GET", undefined, cookie() + "; " + cookie()), now)).toBeNull();
     expect(readStaffSession(config, request("GET", undefined, "msrc-participant-test=" + sealed), now)).toBeNull();
     expect(readStaffSession(config, request("GET", undefined, cookie()), now + 8 * 3_600_000)).toBeNull();
+  });
+});
+
+describe("own password change with current strongest proof", () => {
+  const input = { action: "password-change", password: "SyntheticNewPassword!", passwordConfirmation: "SyntheticNewPassword!" };
+  function admitted(resultOverride?: Record<string, unknown>, reservationOverride?: Record<string, unknown>) {
+    const original = backend.rpc; let operationId: unknown;
+    backend.rpc = vi.fn(async (name, args, accessToken) => {
+      if (name === "msrc_staff_password_change_begin") {
+        operationId = args?.operation_id;
+        return { state: "reserved", operationId, actorId, sessionId, ...reservationOverride };
+      }
+      if (name === "msrc_staff_password_change_result") return { state: "completed", operationId, actorId, sessionId, ...resultOverride };
+      return original(name, args, accessToken);
+    });
+  }
+  it.each([undefined, "false", "TRUE", "1"])("defaults the separate server gate closed for %s", (flag) => {
+    const resolved = resolveStaffConfig({ ...env, STAFF_PASSWORD_CHANGE_ENABLED: flag });
+    expect(resolved.state).toBe("ready");
+    if (resolved.state === "ready") expect(resolved.config.passwordChangeEnabled).toBe(false);
+  });
+  it("keeps ordinary staff sign-in usable while the new server gate is closed", async () => {
+    readiness = { state: "ready", config: { ...config, passwordChangeEnabled: false } };
+    expect((await handler()(request("POST", { action: "signin", email: "staff@example.invalid", password: "legacy" }))).status).toBe(200);
+    const result = await handler()(request("POST", input, cookie()));
+    expect(result.status).toBe(403); expect((await result.json()).state).toBe("denied");
+    expect(backend.changeOwnPassword).not.toHaveBeenCalled();
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name.startsWith("msrc_staff_password_change"))).toBe(false);
+  });
+  it("denies the independent closed database gate before form claim or native work", async () => {
+    const original = backend.rpc; backend.rpc = vi.fn(async (name, args, accessToken) => name === "msrc_staff_status"
+      ? { enabled: true, emailDailyLimit: 40, passwordChangeEnabled: false } : original(name, args, accessToken));
+    expect((await handler()(request("POST", input, cookie()))).status).toBe(403);
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_form_claim", expect.anything());
+    expect(backend.changeOwnPassword).not.toHaveBeenCalled();
+  });
+  it("requires exact confirmation and ten Unicode codepoints without target or metadata fields", () => {
+    const base = { ...input, formToken: "synthetic-form" };
+    for (const value of [{ ...base, passwordConfirmation: "different" }, { ...base, targetId: invitationId },
+      { ...base, email: "staff@example.invalid" }, { ...base, roles: ["superAdmin"] }, { ...base, app_metadata: { msrcStaffPasswordChange: invitationId } },
+      { ...base, password: "😀".repeat(9), passwordConfirmation: "😀".repeat(9) }, { ...base, password: "a".repeat(73), passwordConfirmation: "a".repeat(73) }]) {
+      expect(validateStaffPayload(value)).toBeNull();
+    }
+    expect(validateStaffPayload({ ...base, password: "😀".repeat(10), passwordConfirmation: "😀".repeat(10) })).not.toBeNull();
+    expect(validateStaffPayload({ ...base, password: "a".repeat(72), passwordConfirmation: "a".repeat(72) })).not.toBeNull();
+    expect(validateStaffPayload({ action: "signin", formToken: "token", email: "staff@example.invalid", password: "legacy", passwordConfirmation: "legacy" })).toBeNull();
+  });
+  it("rejects invalid confirmation before reservation or mutation", async () => {
+    expect((await handler()(request("POST", { ...input, passwordConfirmation: "wrong" }, cookie()))).status).toBe(400);
+    expect(backend.changeOwnPassword).not.toHaveBeenCalled();
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name.startsWith("msrc_staff_password_change"))).toBe(false);
+  });
+  it("denies a regular staff tier even with its completed email assurance", async () => {
+    current = persisted("staff");
+    expect((await handler()(request("POST", input, cookie()))).status).toBe(403);
+    expect(backend.changeOwnPassword).not.toHaveBeenCalled();
+  });
+  it("requires password plus TOTP, never password-only admission", async () => {
+    current = persisted("super_admin", "mfa_required");
+    const response = await handler()(request("POST", input, cookie()));
+    expect((await response.json()).state).toBe("reauthentication-required");
+    expect(backend.changeOwnPassword).not.toHaveBeenCalled();
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+  });
+  it.each([120_000, 121_000])("requires a new password session when its native origin is %ims old", async (age) => {
+    current.timing.startedAt = new Date(now - age).toISOString(); current.timing.absoluteExpiresAt = new Date(now - age + 8 * 3_600_000).toISOString();
+    const response = await handler()(request("POST", input, cookie({ deadline: Date.parse(current.timing.absoluteExpiresAt) })));
+    expect((await response.json()).state).toBe("reauthentication-required");
+    expect(backend.changeOwnPassword).not.toHaveBeenCalled();
+  });
+  it("checks session policy and a current database reservation before native rotation", async () => {
+    admitted();
+    const response = await handler()(request("POST", input, cookie()));
+    expect(response.status).toBe(200); expect((await response.json()).state).toBe("password-changed");
+    expect(backend.changeOwnPassword).toHaveBeenCalledWith(expect.objectContaining({ actorId, sessionId }), expect.any(String), input.password);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_password_change_begin", { edition_key: config.editionKey, operation_id: expect.any(String) }, native.accessToken);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_password_change_result", { operation_id: expect.any(String) });
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(backend.updateUser).not.toHaveBeenCalled(); expect(backend.resetFactors).not.toHaveBeenCalled(); expect(backend.invite).not.toHaveBeenCalled();
+  });
+  it.each([{ actorId: invitationId }, { sessionId: invitationId }, { operationId: invitationId }, { token: "untrusted" }])("rejects an unbound reservation %j", async (override) => {
+    admitted(undefined, override);
+    expect((await handler()(request("POST", input, cookie()))).status).toBe(403);
+    expect(backend.changeOwnPassword).not.toHaveBeenCalled();
+  });
+  it("honors current database reauthentication denial without native mutation", async () => {
+    const original = backend.rpc; backend.rpc = vi.fn(async (name, args, accessToken) => name === "msrc_staff_password_change_begin"
+      ? { state: "denied" } : original(name, args, accessToken));
+    expect((await (await handler()(request("POST", input, cookie()))).json()).state).toBe("reauthentication-required");
+    expect(backend.changeOwnPassword).not.toHaveBeenCalled();
+  });
+  it.each([{ state: "denied" }, { state: "pending" }, { actorId: invitationId }, { sessionId: invitationId }, { secret: "must-not-project" }])("does not trust provider success without exact committed proof %j", async (override) => {
+    admitted(override);
+    const response = await handler()(request("POST", input, cookie()));
+    expect(response.status).toBe(503); const result = await response.json(); expect(result.state).toBe("unavailable");
+    expect(Object.keys(result).sort()).toEqual(["formToken", "state"]);
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+  });
+  it("keeps a lost provider response unavailable even when native completion is recorded", async () => {
+    admitted(); vi.mocked(backend.changeOwnPassword).mockRejectedValue(new Error("synthetic timeout"));
+    const response = await handler()(request("POST", input, cookie()));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("unavailable");
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_password_change_result", { operation_id: expect.any(String) });
+  });
+  it("terminalizes provider rejection and clears the cookie without pretending success", async () => {
+    admitted({ state: "denied" }); vi.mocked(backend.changeOwnPassword).mockResolvedValue(false);
+    const response = await handler()(request("POST", input, cookie()));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("unavailable");
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_password_change_result", { operation_id: expect.any(String) });
+  });
+  it("clears the cookie when the post-attempt proof request fails", async () => {
+    admitted(); const original = backend.rpc; backend.rpc = vi.fn(async (name, args, accessToken) => {
+      if (name === "msrc_staff_password_change_result") throw new Error("synthetic proof unavailable");
+      return original(name, args, accessToken);
+    });
+    const response = await handler()(request("POST", input, cookie()));
+    expect(response.status).toBe(503); expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+  });
+  it("rechecks closure immediately before changing the native password", async () => {
+    admitted(); const original = backend.rpc; backend.rpc = vi.fn(async (name, args, accessToken) => {
+      const result = await original(name, args, accessToken);
+      if (name === "msrc_staff_password_change_begin") readiness = { state: "closed" };
+      return result;
+    });
+    const response = await handler()(request("POST", input, cookie()));
+    expect(response.status).toBe(503); expect(backend.changeOwnPassword).not.toHaveBeenCalled();
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_password_change_result", { operation_id: expect.any(String) });
   });
 });

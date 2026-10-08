@@ -45,6 +45,16 @@ jobs:
         run: pnpm exec playwright test tests/e2e/staff-portal-closed.spec.ts --project=chromium-desktop --project=chromium-mobile
       - name: Verify synthetic flag-on forms, keyboard, locale preservation and axe
         run: pnpm exec playwright test --config playwright.staff.config.ts
+      - name: Verify synthetic owner password change, EN/AR, mobile and axe
+        run: pnpm exec playwright test --config playwright.staff-password.config.ts
+      - name: Verify independent server password-change gate stays closed
+        env:
+          STAFF_PASSWORD_UI_GATE: server-closed
+        run: pnpm exec playwright test --config playwright.staff-password.config.ts
+      - name: Verify independent database password-change gate stays closed
+        env:
+          STAFF_PASSWORD_UI_GATE: database-closed
+        run: pnpm exec playwright test --config playwright.staff-password.config.ts
       - name: Upload synthetic browser evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -54,6 +64,9 @@ jobs:
             test-results/
             playwright-report/
             playwright-staff-report/
+            playwright-staff-password-report/
+            .tools/staff-password-evidence/
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
   native:
@@ -94,7 +107,13 @@ jobs:
         run: docker inspect --format='{{.Config.Image}}' supabase_auth_msrc2027-local
       - run: pnpm db:reset
       - run: pnpm db:lint
+      - name: Install the private disposable Storage test helper
+        id: storage_fixture
+        run: node scripts/ci-storage-fixture.ts --install
       - run: pnpm db:test
+      - name: Remove the private Storage helper before advisors and native tests
+        if: ${{ always() && (steps.storage_fixture.outcome == 'success' || steps.storage_fixture.outcome == 'failure') }}
+        run: node scripts/ci-storage-fixture.ts --cleanup
       - name: Inspect database security findings
         run: pnpm exec supabase db advisors --local --type security --level warn --fail-on error
       - name: Prepare only public loopback client settings
@@ -113,9 +132,14 @@ jobs:
             printf 'Independent staff cold pass %s of %s\n' "$pass" "$COLD_RUNS"
             pnpm db:reset
             pnpm db:lint
+            node scripts/ci-storage-fixture.ts --install
             pnpm db:test
+            node scripts/ci-storage-fixture.ts --cleanup
             pnpm exec vitest run --config vitest.staff.integration.config.ts
           done
+      - name: Verify disposable Storage fixture cleanup after any cold pass
+        if: ${{ always() && (steps.storage_fixture.outcome == 'success' || steps.storage_fixture.outcome == 'failure') }}
+        run: node scripts/ci-storage-fixture.ts --cleanup
       - name: Stop the disposable stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop

@@ -121,6 +121,9 @@ for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "term
       await page.evaluate(() => { document.documentElement.style.fontSize = ""; });
       await page.setViewportSize({ width: 320, height: 850 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+      // Both at once (live QA 2026-10-08): the lead's unbroken www.msrc2027.com pushed the page sideways.
+      await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
     }
     expect(errors).toEqual([]); expect(writes).toEqual([]);
   });

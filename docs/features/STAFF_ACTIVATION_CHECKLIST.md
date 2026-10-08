@@ -1,5 +1,11 @@
 # Staff portal activation checklist — preparation only
 
+The checklist below retains its original preparation checkpoint. The later
+[ORG-046 authorization](../DECISIONS.md#org-046--authorized-restricted-first-admin-production-setup-7-october-2026)
+and [dated execution record](STAFF_SETUP_EXECUTION.md) report the actual six-file
+hosted sequence, staff-only settings and first-person bootstrap/onboarding.
+They do not complete the wider paired-admin or operational release gates here.
+
 BL-AUTH-01, BL-AUTH-05/06 staff parts, BL-RPT-01/03; AUTH-04/05,
 ROL-01/07/10/12, ADM-01/02/04/05, LOC-01/03, SEC-01/02/06, REL-06.
 

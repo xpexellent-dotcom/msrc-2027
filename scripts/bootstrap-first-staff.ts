@@ -4,6 +4,8 @@
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
+import { assertBootstrapOperatorIdentity, bootstrapOperatorStatement, bootstrapSqlEnvironment,
+  validateBootstrapTarget } from "./bootstrap-staff-validation.ts";
 
 const execute = process.argv.includes("--execute-bootstrap");
 if (!execute) {
@@ -19,33 +21,40 @@ const email = required("STAFF_BOOTSTRAP_EMAIL").trim().toLowerCase();
 const name = required("STAFF_BOOTSTRAP_DISPLAY_NAME").trim();
 const edition = required("STAFF_BOOTSTRAP_EDITION_KEY");
 const password = required("STAFF_BOOTSTRAP_PASSWORD");
-const database = new URL(required("STAFF_BOOTSTRAP_DATABASE_URL"));
-if (database.protocol !== "postgresql:" && database.protocol !== "postgres:") throw new Error("Native PostgreSQL operator connection is required.");
-if (decodeURIComponent(database.username) !== "postgres") throw new Error("Bootstrap must use the separately approved native postgres operator account.");
 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || name.length < 1 || name.length > 200 || edition.length < 1 || edition.length > 128) throw new Error("Operator identity or edition input is invalid.");
 if (Array.from(password).length < 10 || Buffer.byteLength(password, "utf8") > 72) throw new Error("Supply a privately generated password of at least ten characters and at most 72 UTF-8 bytes.");
 function literal(value: string): string { return `'${value.replaceAll("'", "''")}'`; }
+const approvedRef = required("STAFF_BOOTSTRAP_APPROVED_PROJECT_REF");
+const key = required("SUPABASE_SECRET_KEY");
+const target = validateBootstrapTarget({ approvedRef, secretKey: key, authUrl: required("SUPABASE_URL"),
+  databaseUrl: required("STAFF_BOOTSTRAP_DATABASE_URL") });
+const sqlEnvironment = bootstrapSqlEnvironment(target, process.env, process.env.PGSSLROOTCERT);
 async function sql(statement: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    // Credentials stay in child environment. SQL stdout/stderr is deliberately withheld.
-    const command = spawn("psql", ["-X", "-q", "-v", "ON_ERROR_STOP=1"], {
-      env: { ...process.env, PGHOST: database.hostname, PGPORT: database.port || "5432",
-        PGDATABASE: database.pathname.slice(1) || "postgres", PGUSER: decodeURIComponent(database.username),
-        PGPASSWORD: decodeURIComponent(database.password), PGSSLMODE: "require", PGCONNECT_TIMEOUT: "10" },
-      stdio: ["pipe", "ignore", "ignore"],
+    // Only the fixed operator identity receipt is consumed. No SQL output is printed.
+    const command = spawn("psql", ["-X", "-q", "-At", "-v", "ON_ERROR_STOP=1"], {
+      // Next adds NODE_ENV to ProcessEnv; the native child deliberately uses only this allowlist.
+      env: sqlEnvironment as NodeJS.ProcessEnv,
+      stdio: ["pipe", "pipe", "ignore"],
     });
+    let receipt = "";
+    command.stdout.setEncoding("utf8");
+    command.stdout.on("data", (value: string) => { receipt += value; });
     command.on("error", () => reject(new Error("Operator SQL could not start.")));
-    command.on("exit", (code) => code === 0 ? resolve() : reject(new Error("Operator SQL did not complete; inspect the private database audit before retrying.")));
+    command.on("close", (code) => {
+      if (code !== 0) { reject(new Error("Operator SQL did not complete; inspect the private database audit before retrying.")); return; }
+      try {
+        const line = receipt.split(/\r?\n/).find((value) => value.startsWith("{"));
+        assertBootstrapOperatorIdentity(line ? JSON.parse(line) : null);
+        resolve();
+      } catch { reject(new Error("Native postgres operator identity could not be verified.")); }
+    });
     command.stdin.on("error", () => {});
-    command.stdin.end(statement);
+    command.stdin.end(bootstrapOperatorStatement(statement));
   });
 }
-const approvedRef = required("STAFF_BOOTSTRAP_APPROVED_PROJECT_REF");
-const authUrl = new URL(required("SUPABASE_URL"));
-const key = required("SUPABASE_SECRET_KEY");
-if (!/^[a-z0-9]{20}$/.test(approvedRef) || authUrl.origin !== `https://${approvedRef}.supabase.co` || authUrl.pathname !== "/" || authUrl.search || authUrl.hash || database.hostname !== `db.${approvedRef}.supabase.co` || !key.startsWith("sb_secret_")) throw new Error("Bootstrap requires the explicitly approved matching managed Auth and direct database target, with a modern server secret key.");
 const actorId = randomUUID();
-const sdk = createClient(authUrl.origin, key, {
+const sdk = createClient(target.authOrigin, key, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   global: { fetch: (input, init) => {
     const headers = new Headers(init?.headers);

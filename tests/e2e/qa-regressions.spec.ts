@@ -151,6 +151,26 @@ for (const [instant, days, unit] of [
   });
 }
 
+// Live QA 2026-10-08. When the days and the clock no longer fit side by side, the clock wrapped
+// under the days but kept its inline divider, a stray rule beside the hours (Arabic at most widths).
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} homepage countdown divider only separates side-by-side days and clock`, async ({ page }) => {
+    await page.clock.install({ time: new Date("2026-10-07T09:00:00Z") });
+    for (const width of [320, 375, 414, 768, 1024, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(`/${locale}`);
+      const layout = await page.locator(".date-band .countdown-clock").evaluate((clock) => {
+        const days = clock.querySelector(".countdown-remaining")!.getBoundingClientRect();
+        const time = clock.querySelector<HTMLElement>(".countdown-time")!;
+        const timeBox = time.getBoundingClientRect();
+        return { stacked: timeBox.top >= days.bottom - 1, divider: parseFloat(getComputedStyle(time).borderInlineStartWidth), fits: time.scrollWidth <= time.clientWidth + 1 };
+      });
+      expect(layout.fits, `${width}px`).toBe(true);
+      expect(layout.divider > 0, `${width}px`).toBe(!layout.stacked);
+    }
+  });
+}
+
 // Live QA 2026-10-03. Browsers and link unfurlers still ask for /favicon.ico; it returned the 404 page.
 test("/favicon.ico serves the MSRC icon", async ({ request }) => {
   const response = await request.get("/favicon.ico");
@@ -192,7 +212,7 @@ test("a portrait phone keeps the header in view while reading down", async ({ pa
 });
 
 // The edition number and the year art were the only Western digits on Arabic pages.
-// ORG-046 replaced the intro line art with an approved MSRC 2026 photo that keeps the edition number.
+// ORG-049 replaced the intro line art with an approved MSRC 2026 photo that keeps the edition number.
 test("homepage display art uses each language's digits and localized photo text", async ({ page }) => {
   for (const [locale, edition, years, caption, figures] of [["en", "5", "20262027", "MSRC 2026", ["5th", "2", "5"]], ["ar", "٥", "٢٠٢٦٢٠٢٧", "نسخة ٢٠٢٦", ["٥", "٢", "٥"]]] as const) {
     await page.goto(`/${locale}`);
@@ -253,6 +273,8 @@ test("Arabic text keeps its wrap when the Arabic webfont arrives", async ({ page
 // caught up put back the old value: choosing an edition and then a kind dropped the edition.
 test("quick successive filter changes keep each other", async ({ page }) => {
   await page.goto("/en/media");
+  await expect(page.getByTestId("media-edition")).toBeEnabled();
+  await expect(page.getByTestId("media-kind")).toBeEnabled();
   await page.evaluate(() => {
     const choose = (id: string, value: string) => {
       const select = document.getElementById(id) as HTMLSelectElement;
@@ -266,3 +288,55 @@ test("quick successive filter changes keep each other", async ({ page }) => {
   await expect(page.getByTestId("media-edition")).toHaveValue("2026");
   await expect(page.getByTestId("media-kind")).toHaveValue("recording");
 });
+
+// Live QA 2026-10-08. Forced colours (Windows contrast themes) drop author fills, which were the
+// only sign of the selected programme day and of the current homepage chapter.
+test("forced colours still show the selected programme day and the current chapter", async ({ page, isMobile }) => {
+  await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
+  // Computed colours report author values even where forced colours repaint them, so check that
+  // the selected state opts out of forcing and paints with a system colour.
+  const keepsFill = (selector: string) => page.locator(selector).first().evaluate((element) => {
+    const style = getComputedStyle(element);
+    return style.forcedColorAdjust === "none" && style.backgroundColor !== "rgba(0, 0, 0, 0)";
+  });
+  await page.goto("/en/program");
+  const day1 = page.getByTestId("program-day-day1");
+  await expect(async () => { await day1.click(); await expect(day1).toHaveAttribute("aria-pressed", "true", { timeout: 500 }); }).toPass();
+  expect(await keepsFill('[data-testid="program-day-day1"]')).toBe(true);
+  expect(await keepsFill('[data-testid="program-day-all"]')).toBe(false);
+  if (isMobile) return;
+  await page.goto("/en");
+  await page.locator(".section-journey-links a").nth(2).click();
+  await expect(page.locator('.section-journey-links a[aria-current="location"]')).toHaveCount(1);
+  expect(await keepsFill('.section-journey-links a[aria-current="location"] .chapter-number')).toBe(true);
+  expect(await keepsFill('.section-journey-links a:not([aria-current]) .chapter-number')).toBe(false);
+});
+
+// Live QA 2026-10-08. On desktop the homepage zeroes scroll-padding for its chapter jumps, so
+// tabbing scrolled controls (an Arabic FAQ question) under the sticky chapter bar.
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} desktop homepage keeps keyboard focus clear of the sticky header and chapter bar`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "The chapter bar is sticky only on wide screens.");
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${locale}`);
+    await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before");
+    const covered: string[] = [];
+    for (let step = 0; step < 60; step++) {
+      await page.keyboard.press("Tab");
+      const state = await page.evaluate(() => {
+        const element = document.activeElement as HTMLElement | null;
+        if (!element || !element.closest(".homepage-journey") || element.closest(".section-journey")) return element?.closest("footer") ? "done" : null;
+        const box = element.getBoundingClientRect();
+        const overlaps = (selector: string) => {
+          const cover = document.querySelector(selector)!.getBoundingClientRect();
+          return box.top < cover.bottom - 1 && box.bottom > cover.top + 1;
+        };
+        return box.height > 0 && (overlaps(".section-journey") || overlaps(".site-header-inner")) ? `${element.tagName}: ${element.textContent?.trim().slice(0, 30)}` : null;
+      });
+      if (state === "done") break;
+      if (state) covered.push(state);
+    }
+    expect(covered).toEqual([]);
+  });
+}

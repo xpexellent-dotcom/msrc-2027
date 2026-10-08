@@ -8,7 +8,7 @@ export const homepageNarrative = {
     organizer: "Organized by the Research Principles Club, Faculty of Medicine, King Abdulaziz University.",
     community: "Medical students, researchers, clinicians and academic faculty. Together to share research, learn practical skills and develop ideas that can improve healthcare.",
     pathwayLink: "Explore this pathway", threeMinute: "Postgraduate researcher? Explore the Three Minute Thesis pathway.",
-    programmeLink: "Browse the programme", programmeStatus: "Programme to be announced", programmeNote: "Session times, rooms, and speakers will appear here when confirmed.",
+    programmeLink: "Browse the programme", programmeStatus: "Programme to be announced", programmeNote: "Session times, rooms and speakers will appear here when confirmed.",
     speakersEyebrow: "4 / People & perspectives", speakersTitle: "Meet the\nspeakers.",
     speakersBody: "Meet the researchers, clinicians, and educators joining MSRC 2027. The speaker lineup will be announced here.",
     speakersPending: "Speaker lineup to be announced", speakersLink: "Meet the speakers", portraitLabel: "MSRC / PERSPECTIVES",

@@ -264,7 +264,7 @@ Sans at600/700 weights, with Noto Sans Arabic/RTL parity. Reduce repeated prose 
 actions while retaining useful facts, distinct journeys and honest closed states.
 Latest checks, publication and rollback: [refinement note](features/cinematic-release-refinements.md).
 
-## 16. Photography through the homepage — ORG-046
+## 16. Photography through the homepage — ORG-049
 
 Approved MSRC 2026 stills now carry the page after the opening film: a photo frame with
 the edition number in the introduction, photos bleeding to the top of the Attend, Research
@@ -273,7 +273,7 @@ photo behind the previous-edition year art, and two captioned moments below it. 
 hackathon card keeps line art until an approved photo exists. Pathway cards stack one per
 row below 640 px. Photo hover zoom is removed under reduced motion. Every photo is labelled
 as MSRC 2026; never present it as 2027 content. Sources and crops are in
-[MEDIA_REGISTER.md](MEDIA_REGISTER.md#10-approved-homepage-stills--8-october-2026-org-046).
+[MEDIA_REGISTER.md](MEDIA_REGISTER.md#10-approved-homepage-stills--8-october-2026-org-049).
 
 ## 17. Section rhythm and gold moments — 8 October 2026
 

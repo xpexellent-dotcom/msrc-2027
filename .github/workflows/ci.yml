@@ -58,9 +58,6 @@ jobs:
           for project in auth-desktop auth-tablet auth-mobile; do
             pnpm exec playwright test --config playwright.auth.config.ts --project="$project" --grep 'keyboard login waits|regular staff password and session email check' --repeat-each=5
           done
-      - name: Verify Contact on and off with loopback mocks, never email
-        if: ${{ !inputs.auth_stability }}
-        run: pnpm exec playwright test --config playwright.contact.config.ts
       - name: Upload browser evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -71,6 +68,43 @@ jobs:
             test-results/
             playwright-auth-report/
             test-auth-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  contact:
+    name: Contact enabled/closed synthetic browser checks
+    if: ${{ !inputs.auth_stability }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    # Keep this independent suite outside the public/staff browser job's budget.
+    # The same tests and limits run against loopback mocks; no real mail or secrets.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          run_install: false
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Install test browser
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify Contact on and off with loopback mocks, never email
+        run: pnpm exec playwright test --config playwright.contact.config.ts
+      - name: Upload synthetic Contact browser evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: contact-delivery-browser-results
+          path: |
             playwright-contact-report/
             test-contact-results/
           if-no-files-found: ignore
@@ -114,7 +148,13 @@ jobs:
         run: docker inspect --format='{{.Config.Image}}' supabase_auth_msrc2027-local
       - run: pnpm db:reset
       - run: pnpm db:lint
+      - name: Install the private disposable Storage test helper
+        id: storage_fixture
+        run: node scripts/ci-storage-fixture.ts --install
       - run: pnpm db:test
+      - name: Remove the private Storage helper before advisors and native tests
+        if: ${{ always() && (steps.storage_fixture.outcome == 'success' || steps.storage_fixture.outcome == 'failure') }}
+        run: node scripts/ci-storage-fixture.ts --cleanup
       - name: Inspect local database security findings
         run: pnpm exec supabase db advisors --local --type security --level warn --fail-on error
       - name: Generate the public synthetic schema types for review

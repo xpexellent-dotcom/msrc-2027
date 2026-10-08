@@ -30,7 +30,8 @@ function fixture(overrides: Partial<ParticipantBackend> = {}) {
   const claimed = new Set<string>();
   const backend: ParticipantBackend = {
     rpc: vi.fn(async (name, args) => {
-      if (name === "msrc_participant_status") return { enabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
+      if (name === "msrc_participant_status") return { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true,
+        cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
       if (name === "msrc_participant_form_claim") { const hash = String(args?.nonce_hash); if (claimed.has(hash)) return { state: "denied" }; claimed.add(hash); return { state: "claimed" }; }
       if (name === "msrc_participant_signup_reserve") return { state: "reserved" };
       if (name === "msrc_participant_email_begin") return { state: "issued", challengeId: args?.challenge_id, recipient: args?.email };
@@ -50,7 +51,8 @@ function fixture(overrides: Partial<ParticipantBackend> = {}) {
   const post = async (action: string, extra: Record<string, unknown> = {}, headers: Record<string, string> = {}) => {
     const response = await handle(new Request(origin + "/api/participant-accounts", {
     method: "POST", headers: { Origin: origin, "Content-Type": "application/json", ...headers },
-    body: JSON.stringify({ action, formToken: participantFormToken(config, origin, now - 3000), email: "person@example.invalid", password: "Synthetic-only-password", name: "Synthetic Participant", ...extra }),
+    body: JSON.stringify({ action, formToken: participantFormToken(config, origin, now - 3000), email: "person@example.invalid", password: "Synthetic-only-password", name: "Synthetic Participant",
+      ...(action === "signup" ? { ageConfirmed: true } : {}), ...extra }),
     }));
     for (const work of pending.splice(0)) await work();
     return response;
@@ -103,7 +105,7 @@ describe("participant accounts closed-by-default and private server protocol", (
     const { handle, backend, pending } = fixture();
     const response = await handle(new Request(origin, { method: "POST", headers: { Origin: origin, "Content-Type": "application/json" },
       body: JSON.stringify({ action, email: "person@example.invalid", name: "Synthetic Participant", password: "Synthetic-only-password",
-        formToken: participantFormToken(config, origin, now - 3000) }) }));
+        ...(action === "signup" ? { ageConfirmed: true } : {}), formToken: participantFormToken(config, origin, now - 3000) }) }));
     const result = await response.json();
     expect(response.status).toBe(202); expect(result.state).toBe("accepted"); expect(pending).toHaveLength(1);
     expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.deliver).not.toHaveBeenCalled();
@@ -135,7 +137,7 @@ describe("participant accounts closed-by-default and private server protocol", (
   it.each(["signup", "verify", "reset"])("accepts a ten-character %s password within the byte limit", (action) => {
     for (const password of ["a".repeat(10), "ع".repeat(10), "😀".repeat(10), "a".repeat(72), "ع".repeat(36)]) {
       expect(validateParticipantPayload({ action, name: "Synthetic Participant", email: "person@example.invalid", password,
-        code: "123456", requestId: "dc000000-0000-4000-8000-000000000001" }).ok).toBe(true);
+        ...(action === "signup" ? { ageConfirmed: true } : {}), code: "123456", requestId: "dc000000-0000-4000-8000-000000000001" }).ok).toBe(true);
     }
   });
   it.each(["a".repeat(6), "a".repeat(9)])("keeps existing shorter password sign-in unchanged (%s)", async (password) => {
@@ -198,6 +200,63 @@ describe("participant accounts closed-by-default and private server protocol", (
     backend.rpc = vi.fn(async () => ({ enabled: false, privacyVersion: null, emailDailyLimit: null }));
     const response = await post("signup"); expect(response.status).toBe(503); expect((await response.json()).state).toBe("closed");
     expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.deliver).not.toHaveBeenCalled();
+  });
+  it.each([undefined, false, "true", "false", 1, 0, null, {}, []])("rejects signup age declaration %j before account, code or delivery work", async (ageConfirmed) => {
+    const { backend, post, pending } = fixture();
+    const response = await post("signup", { ageConfirmed });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ state: "invalid_input", fieldErrors: { ageConfirmed: expect.any(String) } });
+    expect(pending).toHaveLength(0); expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.deliver).not.toHaveBeenCalled();
+    expect(vi.mocked(backend.rpc).mock.calls.every(([name]) => name === "msrc_participant_status")).toBe(true);
+  });
+  it.each(["signin", "verify", "resend", "forgot", "reset", "logout"])("rejects a carried signup age declaration on %s", async (action) => {
+    const { backend, post } = fixture();
+    const response = await post(action, { ageConfirmed: true, code: "123456", requestId: "dc000000-0000-4000-8000-000000000001" });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ state: "invalid_input", fieldErrors: { ageConfirmed: "invalid" } });
+    expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.login).not.toHaveBeenCalled();
+    expect(backend.updateUser).not.toHaveBeenCalled(); expect(backend.deliver).not.toHaveBeenCalled();
+    expect(vi.mocked(backend.rpc).mock.calls.every(([name]) => name === "msrc_participant_status")).toBe(true);
+  });
+  it("binds an explicit age declaration to the private admission without changing password bytes or native metadata", async () => {
+    const { backend, post } = fixture(); const password = "  Synthetic-only-password  ";
+    const response = await post("signup", { ageConfirmed: true, password });
+    expect(response.status).toBe(202);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_participant_signup_reserve", {
+      actor_id: expect.any(String), reservation_id: expect.any(String), email: "person@example.invalid", name: "Synthetic Participant",
+      privacy_version: "synthetic-privacy-ci-v1", age_confirmed: true,
+    });
+    expect(backend.createUser).toHaveBeenCalledWith({ actorId: expect.any(String), reservationId: expect.any(String),
+      email: "person@example.invalid", name: "Synthetic Participant", password });
+  });
+  it.each(["dateOfBirth", "birthDate", "age", "nationalId"])("does not collect the unapproved identity field %s", async (field) => {
+    const { backend, post } = fixture(); const response = await post("signup", { [field]: "synthetic-unapproved" });
+    expect(response.status).toBe(400); expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.deliver).not.toHaveBeenCalled();
+  });
+  it.each([
+    ["ageEnforcementReady", undefined], ["ageEnforcementReady", false], ["ageEnforcementReady", "true"],
+    ["retentionEnforcementReady", undefined], ["retentionEnforcementReady", false], ["retentionEnforcementReady", "true"],
+    ["cleanupEnabled", undefined], ["cleanupEnabled", false], ["cleanupEnabled", "true"],
+  ])("fails closed before reading signup input when installed capability %s is %j", async (field, value) => {
+    const { backend, handle } = fixture(); const base = backend.rpc.bind(backend);
+    backend.rpc = vi.fn(async (name, args, token) => name === "msrc_participant_status"
+      ? { ...await base(name, args, token) as Record<string, unknown>, [field]: value } : base(name, args, token));
+    const request = new Request(origin, { method: "POST", headers: { Origin: origin }, body: "not JSON" });
+    const read = vi.spyOn(request, "text"); const response = await handle(request);
+    expect(response.status).toBe(503); expect(await response.json()).toEqual({ state: "closed" }); expect(read).not.toHaveBeenCalled();
+    expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.deliver).not.toHaveBeenCalled();
+  });
+  it("rechecks schema readiness after acknowledgement before any deferred identity or email work", async () => {
+    const { backend, handle, pending } = fixture();
+    const response = await handle(new Request(origin, { method: "POST", headers: { Origin: origin, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "signup", email: "person@example.invalid", name: "Synthetic Participant", password: "Synthetic-only-password",
+        ageConfirmed: true, formToken: participantFormToken(config, origin, now - 3000) }) }));
+    expect(response.status).toBe(202); expect(pending).toHaveLength(1);
+    const base = backend.rpc.bind(backend);
+    backend.rpc = vi.fn(async (name, args, token) => name === "msrc_participant_status"
+      ? { ...await base(name, args, token) as Record<string, unknown>, retentionEnforcementReady: false } : base(name, args, token));
+    await pending[0](); expect(backend.createUser).not.toHaveBeenCalled(); expect(backend.deliver).not.toHaveBeenCalled();
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_participant_signup_reserve", expect.anything());
   });
   it("refreshes only the original actor/session and never restarts its 72-hour deadline", async () => {
     const old = { ...native, accessToken: "synthetic." + Buffer.from(JSON.stringify({ session_id: sessionId, exp: Math.floor(now / 1000) - 1 })).toString("base64url") + ".synthetic" };

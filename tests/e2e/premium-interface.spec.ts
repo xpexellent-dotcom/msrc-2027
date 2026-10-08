@@ -78,7 +78,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.getByText(note, { exact: true })).toHaveCount(0);
     }
 
-    // ORG-046: approved MSRC 2026 photos replaced most line art; the hackathon card keeps it.
+    // ORG-049: approved MSRC 2026 photos replaced most line art; the hackathon card keeps it.
     const artwork = page.locator("svg.research-visual");
     expect(await artwork.count()).toBeGreaterThanOrEqual(1);
     for (const visual of await artwork.all()) {

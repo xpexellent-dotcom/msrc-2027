@@ -62,7 +62,7 @@ describe("public content publication boundaries (SCP-02, CFG-12, MED-01)", () =>
   });
 });
 
-describe("approved MSRC 2026 homepage stills (ORG-046, MED-01/04, PRV-03)", () => {
+describe("approved MSRC 2026 homepage stills (ORG-049, MED-01/04, PRV-03)", () => {
   it("serves versioned metadata-free derivatives with bilingual descriptions", () => {
     const photos = Object.entries(homepageAssets.photos);
     expect(photos).toHaveLength(8);

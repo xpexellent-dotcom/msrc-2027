@@ -2,9 +2,10 @@ import { PERMISSION_RULES, ROLES, type Operation, type Role } from "@/lib/permis
 import type { StaffArea } from "./ui-contract";
 
 export const STAFF_ROLES = ROLES.filter((role) => role !== "participant");
-export type StaffMenuKey = StaffArea | "registration" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship";
-type MenuDefinition = { key: StaffMenuKey; operation: Operation; built: boolean; englishOnly?: boolean };
+export type StaffMenuKey = StaffArea | "security" | "registration" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship";
+type MenuDefinition = { key: StaffMenuKey; built: boolean; englishOnly?: boolean } & ({ operation: Operation; ownAccount?: never } | { key: "security"; ownAccount: true; operation?: never });
 export const STAFF_MENU: readonly MenuDefinition[] = [
+  { key: "security", ownAccount: true, built: true },
   { key: "people", operation: "security.grant.manage", built: true },
   { key: "audit", operation: "security.audit.read", built: true },
   { key: "participants", operation: "operations.registration.manage", built: true },
@@ -20,10 +21,13 @@ export const STAFF_MENU: readonly MenuDefinition[] = [
 ];
 
 /** Navigation projection only. APIs and RLS independently recheck current scoped grants. */
-export function staffMenu(roles: readonly Role[]) {
-  return STAFF_MENU.filter((item) => PERMISSION_RULES[item.operation].roles.some((role) => roles.includes(role))
+export function staffMenu(roles: readonly Role[], options: { passwordChangeAvailable?: boolean } = {}) {
+  return STAFF_MENU.filter((item) => item.ownAccount ? options.passwordChangeAvailable === true && canChangeOwnPassword(roles) : PERMISSION_RULES[item.operation].roles.some((role) => roles.includes(role))
     || (item.key === "participants" && roles.includes("superAdmin")));
 }
+
+/** Own-account navigation only; password mutation rechecks the native owner and fresh proof. */
+export function canChangeOwnPassword(roles: readonly Role[]): boolean { return roles.includes("superAdmin"); }
 
 /** Future registration identifiers must reach the client masked, never as raw values. */
 export function maskIdentity(value: string | null | undefined): string | null {
