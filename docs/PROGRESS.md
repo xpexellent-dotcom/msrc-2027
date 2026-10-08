@@ -1,5 +1,54 @@
 # Progress and session handover
 
+## 8 October 2026 — Staff portal wording reviewed locally; copy release pending
+
+Scope: BL-AUTH-01, BL-RPT-01/03; LOC-01/03, ACC-01. Presentation-only work on
+`codex/staff-portal-copy`, starting from merged main
+`2f677bedd9e1773508286cc5d8db79780801cc37`. The
+[wording note](features/STAFF_PORTAL_WORDING.md) records the exact commands,
+role projection and evidence limits.
+
+Signed-in headers show **Your roles** / **أدوارك** and a short localized action
+sentence derived from existing built `staffMenu` entries. Future areas stay in
+the permitted coming-soon menu and are omitted from current actions. Own password
+change is mentioned only when its existing availability projection permits it.
+Anonymous, pending-verification and empty-role views show neither new element.
+Invitation text now says “Invitation links expire after 72 hours and can be used
+once.” with matching Arabic. Removed the four requested visible timezone,
+session, peer-recovery and minimum-two/self-protection explanation blocks and
+unused keys. All actual policies, timestamp formatting, reviewer English/LTR,
+permission rules, APIs and database enforcement remain unchanged; no shared CSS
+or runtime configuration changed.
+
+Observed local PASS: 61 focused unit cases in two files; scoped lint; TypeScript
+and production build (79 pages); six synthetic browser cases with two intentional
+desktop skips and zero retries; EN/AR 320px/200% text, bounded document width,
+native down/up scroll, keyboard focus and retained axe rules. Independent source
+review and root EN/AR role-guidance screenshot review PASS. Initial test-owned
+scroll timing/heading-position failures remain in ignored traces; corrected
+assertions use the actual enlarged heading position, without retries, increased
+timeouts, CSS edits or weaker accessibility checks. Six ignored screenshots are
+synthetic local evidence only. Broader exact-head CI results are recorded in PR
+checks; live axe and native Arabic-reader review remain NOT TESTED. Copy is **NOT YET IN PRODUCTION**; merge and
+deployment remain pending.
+
+Separate current operator checkpoint, recorded in
+[draft PR #45](https://github.com/xpexellent-dotcom/msrc-2027/pull/45): the captured
+8 October `12:01:51.918 UTC` native result was independently reviewed by the
+operator and database reviewer and confirms the committed personal password
+change, retained verified factor, old-session revocation and a fresh valid
+password/TOTP session. The frozen `11:41:54.513 UTC` verifier STOP is preserved.
+Both password-change gates are currently false; existing staff sign-in works for
+the restricted single owner, pairing remains false, and participant/other
+operational workflows remain closed. This copy task performs no new hosted
+action. Detailed operator history stays in #45; older entries below remain
+dated historical development receipts.
+
+Reconciled merged main `fbddf28ea68cea2370cf4704a6b8029566cb007c` after the
+public-site QA merge. Only the shared progress record conflicted; both records
+are retained. Staff permissions and interface source were unchanged upstream.
+Exact-head CI on the reconciled branch is recorded in PR checks.
+
 ## 8 October 2026 — Public-site QA pass (Claude, PR #47)
 
 Independent QA of the public website on merged `main` `2f677be`, in
