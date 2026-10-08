@@ -15,15 +15,23 @@ this verification/handoff task.
 | Check | Observed result |
 | --- | --- |
 | Merged-main CI | PASS: all seven substantive jobs and Vercel SUCCESS on exact main. [Foundation 37804314161](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314161), [Staff 37804314351](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314351), [Participant 37804314206](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37804314206). No Preview Comments check was observed on main. |
-| Owned serving deployment | PASS at 16:01:00.416 UTC: `dpl_FpfqUAg2VRaJc49TQQ6w413DA5Bf` is READY/current Production at exact merged main, owned project/team/repository and apex/www aliases. Read-only proof `a892485f-b987-4158-9a6a-d1e7ca1e9680`. |
+| Owned serving deployment | PASS at 18:55:29.647 UTC: `dpl_FpfqUAg2VRaJc49TQQ6w413DA5Bf` is READY/current Production at exact merged main, owned project/team/repository and apex/www aliases. Read-only proof `7100a053-de20-4a3a-b975-c9749e53d212`, seven GET requests. |
 | Server gates | Staff portal true; password-change false; participant flag absent/default false. No environment variable changed. |
-| Anonymous live boundaries | PASS at 15:57:32.544 UTC, proof `83dfbb40-5b04-4bc0-bd78-8e98db4e9f64`: 27 GET requests, EN/AR staff sign-in200/private/noindex/RTL, Security404, staff privileged APIs403, participant and all 15 operational APIs503, robots exclusion and no public staff navigation links. |
+| Anonymous live boundaries | PASS at 18:44:13.588 UTC, proof `2b3ecf58-d182-4ed0-b2ae-473106dd8d67`: 27 GET requests, EN/AR staff sign-in 200/private/noindex/RTL, Security 404, staff privileged APIs 403, participant and all 15 operational APIs 503, robots exclusion and no public staff navigation links. |
 | Database/account operations | NOT RUN in this task. The immutable nine-version setup/owner-change history and database-first feature closure remain the separately recorded historical evidence. |
 
 Serving-source ownership comes from the provider readback, independently of the
 anonymous HTTP probe. This task does not inspect signed-in DOM, cookies, JWTs,
 passwords, TOTP seeds/codes, or certify live axe/native Arabic-reader approval.
 All provider/HTTP probes were read-only; no real email was sent.
+
+The earlier successful provider capture at 16:01:00.416 UTC remains historical.
+A subsequent source-binding refresh STOPPED at 18:44:05.356 UTC before gate reads
+(proof `96acaaca-7b1f-42b8-887c-4a339a36aa17`); a separate bounded GET at
+18:48:37.741 UTC confirmed HTTP 403 (proof
+`6f51435c-bc8e-430e-88c2-1a53609dfce3`). The organizer updated the private token,
+then the final read above passed. Original STOP/403 receipts remain unchanged;
+no automatic retry, closure, Auth attempt or setting operation occurred.
 
 The fresh main runs passed 2,312 unit cases/54 files; public 457 with 29 configured
 skips; synthetic security lab 81; Contact 44; staff 32 closed, 32 enabled/copy with 6
@@ -88,11 +96,48 @@ peer recovery, two-admin/self-protection, or auditing safeguards.
   reopening requires a new reviewed attempt with corrected factor-retention
   verification. Never replay the completed change, migrations or bootstrap.
 - Participants and all unrelated operational workflows remain closed. Age 18
-  enforcement and never-verified 30-day cleanup are being implemented in a
-  separate closed branch; its reviewed PR is pending. That work is not activation
-  or clearance for live delivery.
+  enforcement and never-verified 30-day cleanup are prepared in separate draft
+  [PR #51](https://github.com/xpexellent-dotcom/msrc-2027/pull/51). All seven
+  substantive CI jobs, Vercel and Preview Comments passed at exact head
+  `2c73fff30bf4d3ca6bc225489134b19f05aa9bea`. That work is not merged, activated
+  or cleared for live delivery.
 - Signed-home controlled DOM, live axe, own-device cross-role/mutual-recovery UAT
   and native Arabic-reader approval are not established by these anonymous probes.
+
+## Separate closed participant foundation
+
+PR #51 enforces an explicit 18+ declaration in EN/AR before account/email work,
+bound to private database admission proof. It collects no date of birth and does
+not independently verify age. A separate default-off database-operator worker
+erases only eligible never-verified accounts at least 30 days old; no scheduler is
+installed. Hosted admission remains closed. Its sole new migration
+`20261008160137_participant_age_retention.sql` has not been applied to production.
+
+Exact-head [Foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37826449390),
+[Participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37826449469)
+and [Staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37826449461)
+runs passed 2,375 units/58 files, lint/types and a 79-page build; public 457 with
+29 configured skips; lab 81; Contact 44; participant 26 closed +62 enabled cases
+with four intentional skips; staff 32 closed +32 enabled/six skips, password-change
+26/two skips and both six-case independent gate suites; native participant 25/staff
+26. Each database job passed 1,023 SQL assertions/13 files, including
+117 new age/retention cases, clean lint/advisors and disposable teardown.
+Foundation integrations passed 80/80, including five cleanup concurrency cases.
+All four browser artifacts uploaded. Optional cold repetitions were skipped,
+not counted as passes. Prior failures remain preserved outside the repository.
+
+The first documentation head `f7bc82c884529f51a55af082c3797c993dbfdb31` failed
+one existing public-filter assertion in
+[Foundation 37807214814](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/37807214814)
+(456 passed, 29 configured skips; lab not reached). Its receipt, trace and
+screenshot remain preserved; that head is not reported green or rerun.
+The separate hydration fix in draft
+[PR #52](https://github.com/xpexellent-dotcom/msrc-2027/pull/52) passed all seven
+substantive CI jobs, Vercel and Preview Comments at exact head
+`e90fac54f2c8b70bee1f8c67e1d5ec0f693ee252`: public 465 with 29 configured skips
+and lab 81. The original assertions remain; no retries or timeout increases were
+added. That fix is not merged or deployed. These draft results are separate from
+merged-main CI and the current live boundaries.
 
 ## Rollback and custody
 

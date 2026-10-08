@@ -14,12 +14,14 @@ native staff26/participant19, SQL906/12files per database job and75 integration
 cases. All four browser uploads and all three disposable-stack teardowns passed.
 Configured skips/optional repetition are not passes.
 
-Read-only serving proof at16:01:00.416 UTC confirms owned current Production
+Read-only serving proof at 18:55:29.647 UTC confirms owned current Production
 `dpl_FpfqUAg2VRaJc49TQQ6w413DA5Bf`, exact merged source and apex/www aliases.
 Staff portal true, password-change server flag false, participant flag absent/
-default false. Fresh27 anonymous GETs at15:57:32.544 UTC passed EN/AR/private/
-noindex/RTL, Security404, privileged403, participant/all15 operational APIs503,
+default false. Fresh 27 anonymous GETs at 18:44:13.588 UTC passed EN/AR/private/
+noindex/RTL, Security 404, privileged 403, participant/all 15 operational APIs 503,
 robots/public-navigation exclusion. Source binding and HTTP evidence are separate.
+The intervening provider STOP and HTTP 403 receipts are preserved; after the
+organizer updated the private token, the final seven-GET provider read passed.
 No hosted SQL, settings, migration/bootstrap replay, password/account operation
 or real email occurred in this handoff.
 
@@ -32,12 +34,34 @@ historical, including its then-draft PR state and locally recorded status.
 Restricted first-admin setup and owner password/TOTP/revocation facts are
 complete at their captured times; pairing/second-admin inputs, mutual recovery
 UAT and controlled signed-home/live-axe checks remain separate gates. Password
-changes and all participant/operational workflows remain closed. A separate
-closed branch is implementing age18 declaration and30-day never-verified cleanup;
-its reviewed PR is pending. It does not apply a hosted migration, schedule cleanup
-or activate accounts.
+changes and all participant/operational workflows remain closed. Separate draft
+[PR #51](https://github.com/xpexellent-dotcom/msrc-2027/pull/51) prepares the
+18+ declaration and default-off 30-day never-verified cleanup. All seven
+substantive CI jobs, Vercel and Preview Comments passed at exact head
+`2c73fff30bf4d3ca6bc225489134b19f05aa9bea`: 2,375 units/58 files, lint/types,
+79-page build, public 457/29 configured skips, lab 81, Contact 44, participant
+26 closed +62 enabled/4 intentional skips, staff browser regressions, native
+participant 25/staff 26, SQL 1,023/13 files per database job including 117 new
+cases, and 80 integrations including five cleanup concurrency cases. All four
+browser uploads and disposable teardown passed; optional cold repetitions were
+skipped. It applies no hosted migration, schedules no cleanup and activates no
+accounts.
+
+The first handoff-documentation head `f7bc82c...` failed one existing public-filter
+assertion (456 passed/29 configured skips; lab not reached). Its original receipt
+and trace are preserved and were not rerun. Separate draft
+[PR #52](https://github.com/xpexellent-dotcom/msrc-2027/pull/52) prevents early
+filter interactions during hydration with existing assertions intact; all seven
+CI jobs, Vercel and Preview
+Comments passed at `e90fac54f2c8b70bee1f8c67e1d5ec0f693ee252`, including public
+465/29 configured skips and lab 81. Neither draft is merged or deployed. Draft
+checks are separate from successful merged-main CI and live access verification.
 See [the final handoff](features/STAFF_SETUP_HANDOFF.md) for exact receipts,
 remaining gates, custody and rollback instructions.
+Final documentation checks PASS: independent factual/privacy/rollback review,
+83 relative links across the four handoff documents, added-line privacy scan
+and `git diff --check`. This final documentation update makes no application or
+migration change; its automatic CI is a separate checkpoint.
 
 ## 8 October 2026 — Participant browser-only CI rerun PASS
 
