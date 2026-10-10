@@ -279,13 +279,28 @@ as MSRC 2026; never present it as 2027 content. Sources and crops are in
 
 At the requester's direction, the homepage alternates deliberately instead of running five
 ivory sections in a row. Ivory carries reading sections. Full-width photos act as breaks.
-A deep purple "at a glance" band after the introduction shows large gold figures: the
-fifth edition, two days, and five ways to take part. They come from the edition, the
-confirmed dates and the published participation list; never add estimates, capacities or
-attendance numbers there. The closing is dark, with the MSRC 2026 break photo under an ink
+A deep purple "at a glance" band after the introduction shows large gold facts (updated in
+section 18). They come from the confirmed dates, the published participation list and the
+confirmed venue; never add estimates, capacities or attendance numbers there. The closing is dark, with the MSRC 2026 break photo under an ink
 scrim, ivory text and a gold action, and runs straight into the ink footer.
 
 Large gold is limited to two moments per page: the figures band and the previous-edition
 "2027". Elsewhere gold stays on actions and short rules. On phones the figures stack as
 number-and-label rows, and the label wraps below the number at enlarged text sizes.
 The previous-edition section now shows a single wide competition photo.
+
+## 18. Typographic moments — 10 October 2026
+
+The small "5" in the corner of the introduction photo is now a deliberate feature. The
+approved MSRC 2026 students photo runs full container width (21:9, 4:3 on phones) below the
+introduction text, under a directional ink scrim. A huge solid ivory "5" sits over it, with
+"th edition" / "النسخة الخامسة" beside it. It is ivory, not gold, so large gold stays on the
+two moments in section 17. An outline stroke was tried and dropped: it exposed the variable
+font's overlapping contours. The numeral is decorative (`aria-hidden`); the hero kicker
+states the fifth edition.
+
+The facts band now reads **2** days (with the confirmed dates) · **5** ways to take part ·
+**Jeddah** (with the confirmed venue and university), in Arabic-Indic digits and "جدة" in
+Arabic. There are five ways, not four, because the participation page lists five pathways.
+Each figure is a size container, and display type is capped by its column (`cqi`), so
+enlarged text or narrow columns shrink it rather than causing sideways scrolling.

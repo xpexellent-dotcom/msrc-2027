@@ -24,8 +24,8 @@ export const homepageNarrative = {
     ],
     endingAction: "Explore participation", endingNote: "Bring a question. Leave with a new possibility.",
     photoEdition: "MSRC 2026", competitionCaption: "Competitions",
-    figuresTitle: "MSRC 2027 at a glance", editionSuffix: "th",
-    figureLabels: { edition: "Edition of the Medical Students Research Conference", days: "Days at King Faisal Conference Center, Jeddah", ways: "Ways to take part, from attending to the Three Minute Thesis" },
+    figuresTitle: "MSRC 2027 at a glance", editionMarkLabel: "th edition", cityName: "Jeddah",
+    figureLabels: { days: "Days", ways: "Ways to take part, from attending to the Three Minute Thesis" },
   },
   ar: {
     identity: "MSRC 2027", programmeAction: "استكشف البرنامج", participationAction: "طرق المشاركة",
@@ -49,8 +49,8 @@ export const homepageNarrative = {
     ],
     endingAction: "استكشف طرق المشاركة", endingNote: "ابدأ بسؤال. واكتشف إمكانات جديدة.",
     photoEdition: "نسخة ٢٠٢٦", competitionCaption: "المسابقات",
-    figuresTitle: "المؤتمر في لمحة", editionSuffix: "",
-    figureLabels: { edition: "النسخة الخامسة من مؤتمر أبحاث طلاب الطب", days: "يومان في مركز الملك فيصل للمؤتمرات بجدة", ways: "طرق للمشاركة، من الحضور إلى الأطروحة في ثلاث دقائق" },
+    figuresTitle: "المؤتمر في لمحة", editionMarkLabel: "النسخة الخامسة", cityName: "جدة",
+    figureLabels: { days: "يوما المؤتمر", ways: "طرق للمشاركة، من الحضور إلى الأطروحة في ثلاث دقائق" },
   },
 } satisfies Record<Locale, {
   identity: string; programmeAction: string; participationAction: string; scroll: string; dateNote: string;
@@ -62,5 +62,5 @@ export const homepageNarrative = {
   datesLink: string; faqLabel: string; faq: readonly { question: string; answer: string }[];
   endingAction: string; endingNote: string;
   photoEdition: string; competitionCaption: string;
-  figuresTitle: string; editionSuffix: string; figureLabels: { edition: string; days: string; ways: string };
+  figuresTitle: string; editionMarkLabel: string; cityName: string; figureLabels: { days: string; ways: string };
 }>;

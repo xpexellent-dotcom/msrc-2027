@@ -1,5 +1,25 @@
 # Progress and session handover
 
+## 10 October 2026 — Homepage typographic moments (design review item 3)
+
+Builds on ORG-049 and the section rhythm in [PR #53](https://github.com/xpexellent-dotcom/msrc-2027/pull/53).
+The intro photo is now a full-width edition feature with a huge solid ivory "5" and
+"th edition" (an outline was dropped after it showed font contour artifacts). The purple facts
+band reads 2 days · 5 ways to take part · Jeddah, from the confirmed dates, the published
+participation list and the confirmed venue; there are no estimates. Large gold remains limited
+to that band and the legacy "2027". See DESIGN_GUIDE section 18.
+
+Checks (local production build, Node 22):
+- PASS: lint, typecheck, `pnpm test` (59 files, 2,384), build.
+- PASS: axe WCAG 2.2 AA + best-practice, EN/AR at 1440/390/320 px.
+- PASS: no horizontal overflow at 320/412/791/1100/1440 px, EN/AR, at 100% and 200% text.
+  The first build overflowed at 200% text (tablet 950 > 791 px, phone 364 > 320 px); figures
+  are now capped by their own column width.
+- Playwright (qa-regressions, organizer-public-decisions, public-shell, public-media,
+  premium-interface, catalogue-hydration, mobile-navigation): 137 passed, 14 skipped,
+  14 failed. All 14 are the hero-film playback tests this container cannot run; CI ran them
+  green on the previous head.
+
 ## 8 October 2026 — Homepage section rhythm and gold figures (design review item 2)
 
 Builds on ORG-049 in [PR #53](https://github.com/xpexellent-dotcom/msrc-2027/pull/53).

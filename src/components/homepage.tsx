@@ -30,12 +30,13 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
   const narrative = homepageNarrative[locale];
   const dates = conferenceConfig.dates;
   const dateRange = dates ? formatConferenceDateRange(dates, locale) : copy.pending;
-  // Large gold figures come only from confirmed configuration and the published pathway list.
+  // Large gold facts come only from confirmed configuration and the published pathway list;
+  // never estimates, capacities or attendance. The fifth edition has its own feature above.
+  const venue = conferenceConfig.venue?.name[locale];
   const figures = [
-    // conferenceConfig.edition is the year (2027); the edition number is fifth, as in the intro art.
-    { key: "edition", value: 5, suffix: narrative.editionSuffix, label: narrative.figureLabels.edition },
-    ...(dates ? [{ key: "days", value: 2, suffix: "", label: narrative.figureLabels.days }] : []),
-    { key: "ways", value: participationPaths.length, suffix: "", label: narrative.figureLabels.ways },
+    ...(dates ? [{ key: "days", value: formatIndex(2, locale), word: false, label: `${narrative.figureLabels.days} · ${dateRange}` }] : []),
+    { key: "ways", value: formatIndex(participationPaths.length, locale), word: false, label: narrative.figureLabels.ways },
+    ...(venue ? [{ key: "city", value: narrative.cityName, word: true, label: `${venue}, ${copy.institution}` }] : []),
   ];
   return <div className="homepage-journey">
     <section id="top" tabIndex={-1} className="conference-hero" aria-labelledby="hero-title">
@@ -79,14 +80,18 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
     <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
       <Container><Reveal className="intro-grid" stagger>
         <div><SectionHeading chapter eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" /></div>
-        <div className="intro-body"><p className="intro-statement">{narrative.community}</p><p>{narrative.organizer}</p><figure className="intro-visual"><Image src={homepageAssets.photos.community.src} alt={homepageAssets.photos.community.alt[locale]} fill sizes="(max-width: 700px) 92vw, 45vw" /><figcaption>{narrative.photoEdition}</figcaption><span aria-hidden="true" className="visual-edition">{formatIndex(5, locale)}</span></figure></div>
-      </Reveal></Container>
+        <div className="intro-body"><p className="intro-statement">{narrative.community}</p><p>{narrative.organizer}</p></div>
+      </Reveal>
+      {/* Design review item 3: the edition number as a deliberate typographic moment over an approved photo.
+          The kicker already states the fifth edition, so the display type is decorative. */}
+      <figure className="intro-visual"><Image src={homepageAssets.photos.community.src} alt={homepageAssets.photos.community.alt[locale]} fill sizes="(max-width: 1440px) 92vw, 1280px" /><figcaption>{narrative.photoEdition}</figcaption><span className="edition-mark" aria-hidden="true"><span className="visual-edition">{formatIndex(5, locale)}</span><span className="visual-edition-label">{narrative.editionMarkLabel}</span></span></figure>
+      </Container>
     </section>
     <section className="figures-band" aria-labelledby="figures-title">
       <Container>
         <h2 id="figures-title" className="figures-title">{narrative.figuresTitle}</h2>
         <Reveal className="figures-list" stagger>{figures.map((figure) => <p className="figure" key={figure.key}>
-          <span className="figure-value">{formatIndex(figure.value, locale)}{figure.suffix ? <sup>{figure.suffix}</sup> : null}</span>
+          <span className={figure.word ? "figure-value figure-value--word" : "figure-value"}>{figure.value}</span>
           <span className="figure-label">{figure.label}</span>
         </p>)}</Reveal>
       </Container>
