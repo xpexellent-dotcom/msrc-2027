@@ -263,3 +263,44 @@ Participation uses warm ivory with white cards. Public headings use the supplied
 Sans at600/700 weights, with Noto Sans Arabic/RTL parity. Reduce repeated prose and
 actions while retaining useful facts, distinct journeys and honest closed states.
 Latest checks, publication and rollback: [refinement note](features/cinematic-release-refinements.md).
+
+## 16. Photography through the homepage — ORG-049
+
+Approved MSRC 2026 stills now carry the page after the opening film: a photo frame with
+the edition number in the introduction, photos bleeding to the top of the Attend, Research
+and Workshops cards, a full-width auditorium break before the programme, a tinted panel
+photo behind the previous-edition year art, and two captioned moments below it. The
+hackathon card keeps line art until an approved photo exists. Pathway cards stack one per
+row below 640 px. Photo hover zoom is removed under reduced motion. Every photo is labelled
+as MSRC 2026; never present it as 2027 content. Sources and crops are in
+[MEDIA_REGISTER.md](MEDIA_REGISTER.md#10-approved-homepage-stills--8-october-2026-org-049).
+
+## 17. Section rhythm and gold moments — 8 October 2026
+
+At the requester's direction, the homepage alternates deliberately instead of running five
+ivory sections in a row. Ivory carries reading sections. Full-width photos act as breaks.
+A deep purple "at a glance" band after the introduction shows large gold facts (updated in
+section 18). They come from the confirmed dates, the published participation list and the
+confirmed venue; never add estimates, capacities or attendance numbers there. The closing is dark, with the MSRC 2026 break photo under an ink
+scrim, ivory text and a gold action, and runs straight into the ink footer.
+
+Large gold is limited to two moments per page: the figures band and the previous-edition
+"2027". Elsewhere gold stays on actions and short rules. On phones the figures stack as
+number-and-label rows, and the label wraps below the number at enlarged text sizes.
+The previous-edition section now shows a single wide competition photo.
+
+## 18. Typographic moments — 10 October 2026
+
+The small "5" in the corner of the introduction photo is now a deliberate feature. The
+approved MSRC 2026 students photo runs full container width (21:9, 4:3 on phones) below the
+introduction text, under a directional ink scrim. A huge solid ivory "5" sits over it, with
+"th edition" / "النسخة الخامسة" beside it. It is ivory, not gold, so large gold stays on the
+two moments in section 17. An outline stroke was tried and dropped: it exposed the variable
+font's overlapping contours. The numeral is decorative (`aria-hidden`); the hero kicker
+states the fifth edition.
+
+The facts band now reads **2** days (with the confirmed dates) · **5** ways to take part ·
+**Jeddah** (with the confirmed venue and university), in Arabic-Indic digits and "جدة" in
+Arabic. There are five ways, not four, because the participation page lists five pathways.
+Each figure is a size container, and display type is capped by its column (`cqi`), so
+enlarged text or narrow columns shrink it rather than causing sideways scrolling.

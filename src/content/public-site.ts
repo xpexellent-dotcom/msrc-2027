@@ -38,6 +38,19 @@ export const homepageAssets = {
     poster: "/media/msrc2026/poster-desktop-v1.jpg",
     mobilePoster: "/media/msrc2026/poster-mobile-v1.jpg",
   },
+  // ORG-049: organizer-approved MSRC 2026 stills. Cropped, metadata-free derivatives;
+  // Drive originals stay private. Crops exclude on-screen names of 2026 speakers.
+  photos: {
+    community: { src: "/media/msrc2026/about-community-v1.jpg", alt: { en: "Medical students in white coats following a session at MSRC 2026", ar: "طلاب طب بمعاطف بيضاء يتابعون جلسة في نسخة ٢٠٢٦" } },
+    attend: { src: "/media/msrc2026/pathway-attend-v1.jpg", alt: { en: "The audience in the main auditorium during a stage conversation at MSRC 2026", ar: "الحضور في القاعة الرئيسية خلال حوار على المنصة في نسخة ٢٠٢٦" } },
+    research: { src: "/media/msrc2026/pathway-research-v1.jpg", alt: { en: "A presenter speaking on stage at MSRC 2026", ar: "متحدث على المنصة في نسخة ٢٠٢٦" } },
+    workshops: { src: "/media/msrc2026/pathway-workshops-v1.jpg", alt: { en: "Students talking together in a small interactive session at MSRC 2026", ar: "طلاب يتناقشون في جلسة تفاعلية صغيرة في نسخة ٢٠٢٦" } },
+    auditorium: { src: "/media/msrc2026/auditorium-v1.jpg", alt: { en: "The main auditorium filled with attendees at MSRC 2026", ar: "القاعة الرئيسية ممتلئة بالحضور في نسخة ٢٠٢٦" } },
+    panel: { src: "/media/msrc2026/legacy-panel-v1.jpg", alt: { en: "", ar: "" } },
+    competition: { src: "/media/msrc2026/moment-competition-v1.jpg", alt: { en: "Students presenting a clinical question during a competition at MSRC 2026", ar: "طالبات يعرضن سؤالًا سريريًا خلال مسابقة في نسخة ٢٠٢٦" } },
+    // Full-bleed backdrop behind the closing heading, so it is decorative.
+    break: { src: "/media/msrc2026/moment-break-v1.jpg", alt: { en: "", ar: "" } },
+  },
   finalLogo: null,
   sponsors: [],
   gallery: [],

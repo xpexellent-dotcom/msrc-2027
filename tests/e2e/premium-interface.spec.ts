@@ -78,15 +78,21 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.getByText(note, { exact: true })).toHaveCount(0);
     }
 
+    // ORG-049: approved MSRC 2026 photos replaced most line art; the hackathon card keeps it.
     const artwork = page.locator("svg.research-visual");
-    expect(await artwork.count()).toBeGreaterThanOrEqual(3);
+    expect(await artwork.count()).toBeGreaterThanOrEqual(1);
     for (const visual of await artwork.all()) {
       await expect(visual).toHaveAttribute("aria-hidden", "true");
       await expect(visual).toHaveAttribute("focusable", "false");
       await expect(visual).not.toHaveAttribute("tabindex", "0");
     }
     await page.locator("#about").scrollIntoViewIfNeeded();
-    await expect(page.locator("#about svg.research-visual")).toBeVisible();
+    await expect(page.locator("#about .intro-visual > img")).toBeVisible();
+    // Informative photos are described; the one behind the decorative year art is not.
+    for (const photo of await page.locator("main img:not(.hero-media-poster)").all()) {
+      const decorative = await photo.evaluate((element) => Boolean(element.closest("[aria-hidden='true']")));
+      expect(((await photo.getAttribute("alt")) ?? "").length > 0).toBe(!decorative);
+    }
   });
 
   test(`${locale} pathway content reveals in sequence once and stays settled after scrolling away and back`, async ({ page }) => {
