@@ -42,13 +42,21 @@ function resetPoint(event: PointerEvent<HTMLAnchorElement>) {
 function positionPointDetail(point: HTMLAnchorElement) {
   const tip = point.querySelector<HTMLElement>(".venue-journey-point-detail");
   const atlas = point.closest<HTMLElement>(".venue-journey-atlas");
-  if (!tip || !atlas || window.innerWidth < 1200) return;
+  const journey = atlas?.closest<HTMLElement>(".venue-arrival-journey");
+  if (!tip || !atlas || window.innerWidth < 1200 || journey?.dataset.readingFlow === "true") return;
   const frame = atlas.getBoundingClientRect();
   const box = point.getBoundingClientRect();
   const top = Math.max(frame.top + 16, 96);
   const bottom = Math.min(frame.bottom, window.innerHeight) - 16;
-  const left = Math.max(frame.left, 0) + 16;
-  const right = Math.min(frame.right, window.innerWidth) - 16;
+  let left = Math.max(frame.left, 0) + 16;
+  let right = Math.min(frame.right, window.innerWidth) - 16;
+  // Keep context in the reserved map column, outside the foreground's
+  // painting and selection area. Arabic changes reading flow, not geography.
+  const reading = journey?.querySelector<HTMLElement>(".venue-journey-reading")?.getBoundingClientRect();
+  if (reading) {
+    if (document.documentElement.dir === "rtl") right = Math.min(right, reading.left - 16);
+    else left = Math.max(left, reading.right + 16);
+  }
   const priorDisplay = tip.style.display;
   const priorVisibility = tip.style.visibility;
   tip.style.visibility = "hidden";
@@ -72,6 +80,9 @@ function positionPointDetail(point: HTMLAnchorElement) {
   const y = Math.max(top, Math.min(wantedTop, bottom - size.height));
   const center = box.left + box.width / 2;
   const x = Math.max(left, Math.min(center - size.width / 2, right - size.width));
+  // A side-clamped panel still needs a continuous corridor from its pin.
+  tip.style.setProperty("--point-bridge-left", `${Math.min(0, center - x) / scale}px`);
+  tip.style.setProperty("--point-bridge-right", `${Math.min(0, x + size.width - center) / scale}px`);
   tip.style.bottom = "auto";
   tip.style.top = `${(y - box.top) / scale}px`;
   tip.style.left = `calc(50% + ${(x + size.width / 2 - center) / scale}px)`;

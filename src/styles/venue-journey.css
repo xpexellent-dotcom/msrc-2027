@@ -13,7 +13,7 @@
 .venue-journey-point-light { inline-size: .65rem; block-size: .65rem; flex: 0 0 .65rem; border-radius: 50%; background: #eddaaf; box-shadow: 0 0 14px rgb(237 218 175 / 65%); }
 .venue-arrival-journey .venue-journey-point:focus-visible { transition: none; background: #4c355f; }
 .venue-journey-point-detail { display: none; position: absolute; left: 50%; bottom: calc(100% + 16px); inline-size: 20rem; max-inline-size: calc(100vw - 3rem); padding: 1.25rem; border: 1px solid rgb(237 218 175 / 50%); border-radius: 16px; background: #30223e; color: var(--journey-ink); transform: translateX(-50%); text-align: start; white-space: normal; font-size: 1rem; font-weight: 400; line-height: 1.7; pointer-events: auto; }
-.venue-journey-point-detail::after { content: ""; position: absolute; inset-inline: 0; inset-block-start: 100%; block-size: 20px; }
+.venue-journey-point-detail::after { content: ""; position: absolute; left: var(--point-bridge-left,0px); right: var(--point-bridge-right,0px); inset-block-start: 100%; block-size: 20px; }
 .venue-journey-point[data-tip-side="below"] .venue-journey-point-detail::after { inset-block-start: auto; inset-block-end: 100%; }
 .venue-journey-point-detail > :is(strong,span) { display: block; }
 .venue-journey-point-detail strong { font-weight: 650; margin-block-end: .6rem; }
@@ -129,6 +129,11 @@
   .venue-journey-options summary:hover { color: #fff2d5; }
 }
 @media (min-width: 1200px) and (min-height: 641px) {
+  /* Transparent reading space must not intercept the geographic pins.
+     Real text stays selectable and native controls keep their hit regions. */
+  .venue-arrival-journey:not([data-reading-flow="true"]) .venue-journey-reading { max-inline-size: min(38rem,calc(100% - 20rem)); pointer-events: none; }
+  .venue-arrival-journey:not([data-reading-flow="true"]) .venue-journey-reading :is(h2,h3,p,dt,dd,a,summary) { pointer-events: auto; }
+  .venue-arrival-journey:not([data-reading-flow="true"]) .venue-journey-title { inline-size: fit-content; }
   .venue-arrival-journey:not([data-reading-flow="true"]) .venue-journey-point:not([data-tooltip-dismissed="true"]):focus-visible .venue-journey-point-detail { display: block; }
   @media (hover: hover) and (pointer: fine) {
     .venue-arrival-journey:not([data-reading-flow="true"]) .venue-journey-point:not([data-tooltip-dismissed="true"]):hover .venue-journey-point-detail { display: block; }

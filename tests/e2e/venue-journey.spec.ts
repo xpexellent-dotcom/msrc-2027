@@ -250,7 +250,7 @@ for (const locale of ["en", "ar"] as const) {
       expect(pin!.y).toBeGreaterThanOrEqual(100);
       expect(pin!.y).toBeLessThan(180);
       await expect(point).toHaveAttribute("data-point-visible", "true");
-      await point.hover();
+      await page.mouse.move(pin!.x + pin!.width / 2, pin!.y + pin!.height / 2);
       await expect(point).toHaveAttribute("data-tip-side", "below");
       await expect(tooltip).toBeVisible();
       const popup = await tooltip.boundingBox();
@@ -258,6 +258,12 @@ for (const locale of ["en", "ar"] as const) {
       expect(popup!.y).toBeGreaterThanOrEqual(pin!.y + pin!.height);
       expect(popup!.x + popup!.width).toBeLessThanOrEqual(width);
       expect(popup!.y + popup!.height).toBeLessThanOrEqual(900);
+      const reading = await page.locator("#journey-airport .venue-journey-reading").boundingBox();
+      if (locale === "en") expect(popup!.x).toBeGreaterThanOrEqual(reading!.x + reading!.width + 15);
+      else expect(popup!.x + popup!.width).toBeLessThanOrEqual(reading!.x - 15);
+      const entryX = Math.max(popup!.x + 8, Math.min(pin!.x + pin!.width / 2, popup!.x + popup!.width - 8));
+      await page.mouse.move(entryX, popup!.y + 8, { steps: 12 });
+      await expect(tooltip).toBeVisible();
       await tooltip.hover();
       await expect(tooltip).toBeVisible();
       await page.screenshot({

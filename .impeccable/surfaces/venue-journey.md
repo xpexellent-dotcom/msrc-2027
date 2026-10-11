@@ -47,7 +47,8 @@ authored per photograph. Fine grain is a local (.045) overlay.
 The journey uses a sticky (100svh) atlas behind three ordinary document sections:
 airport, city connection and conference arrival. Each desktop chapter has a
 (110svh) minimum and content-driven height, with (6–10rem) vertical padding.
-A narrow sticky chapter index accompanies a reading column capped at (38rem);
+A narrow sticky chapter index accompanies a reading column capped at (38rem),
+reserving (20rem) of its available column width for geographic context;
 lead and note text use a (44ch) measure. Transport uses native disclosures and
 fine separators; address and configured visitor details use two columns. The
 campus map, external directions and international-attendee guidance follow in
@@ -70,7 +71,10 @@ feedback. Index, continuation and map-point destinations are ordinary anchors.
 
 Map pins retain their visible size while the map scales. Visible pins provide
 fine-pointer hover and keyboard-focus context; Escape dismisses that context.
-Panels are clamped to the atlas viewport and can scroll vertically when needed.
+Panels are clamped to the atlas viewport and the free map area beside the
+reading rectangle, so foreground text cannot paint over their content. They
+flip below near the upper edge and can scroll vertically when needed. Blank
+reading space passes through pointer events; actual text stays selectable.
 Points outside the current camera view leave the focus order. Touch activation
 follows the corresponding chapter anchor. Transport disclosures start open and
 support native keyboard/tap toggling; fine-pointer hover can reopen them.
@@ -94,8 +98,9 @@ chapter content still contains the practical information.
 At (800px) and below, the opening becomes a single column without a viewport
 minimum. The four photographs become a native horizontal rail: (84%) item width,
 (4:3) ratio, proximity snapping, no stagger, visible Previous/Next controls and
-one-photo advancement. Keyboard and reduced-motion rail controls move immediately;
-pointer controls use native smooth scrolling. Swipe browsing remains available.
+one-photo advancement. Pointer and keyboard arrows use consistent native smooth
+retargeting; reduced-motion controls move immediately. Swipe browsing remains
+available. The other site rails retain their existing keyboard behavior.
 
 Arabic mirrors reading composition and shade direction, never geography. The
 map plane stays LTR and north-up in both locales; point text adopts the locale's

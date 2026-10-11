@@ -61,3 +61,47 @@ Keep existing geographic/provider/config/privacy assertions; update only changed
 composition expectations. Run local lint/types/units/build, focused browser checks
 and required hosted checks. Deliver a review PR and preview, with hardware phone
 limits and any unresolved checks stated; do not merge this PR.
+
+## Observed local verification
+
+- Integrated main PR 58 (`1f1c558`), retaining its phone grid changes and both
+  progress records. `pnpm check` passed lint, types, 2,399 units in 61 files
+  and an 81-page build: `.tools/venue-journey-integrated-check.log`.
+- Full focused runs retained their failure evidence: 96/2/5, 97/2/4 and
+  100/2/1 (pass/skip/fail, 103 cases). Further confirmation stayed limited to
+  the failed interactions and existing rail regressions rather than rescanning.
+- Popup positioning now measures the border box, flips/clamps to the viewport
+  and keeps a real hover bridge. It shares the camera's exact 1200px boundary.
+  The inherited intro contrast uses the existing muted token.
+- A native smooth-scroll delta survived switching to instant during keyboard
+  gallery reversal. Item controls now use consistent native smooth retargeting;
+  reduced motion stays instant, and the default rails keep their behavior.
+- Genuine upper-edge pointer checks exposed transparent reading space masking
+  a geographic pin. Cinematic whitespace now passes pointer events through;
+  actual text remains selectable and native links/disclosures remain usable.
+  The final CSS builds: `.tools/venue-journey-pointer-build.log`.
+- Hit-region targeted browser run: **16 passed, zero failures/skips**, one worker,
+  zero retries. It proves EN/AR gallery and keyboard reversal, true below-flip
+  popups at 1200/1300px, complete bounds, hover persistence, Escape/focus/Enter,
+  phone anchors and unchanged speakers/media controls. Receipt:
+  `.tools/venue-journey-hit-region-final.log`; four edge proof images and the
+  desktop/phone/RTL captures are under `.impeccable/review/venue-journey/`.
+- The visual review then caught reading text painting over an otherwise in-bounds
+  English panel. Cinematic copy now reserves 20rem for map context, and panels
+  clamp outside the reading rectangle on the correct EN/AR side. **32/32 cases
+  passed**, all 24 Venue tests plus eight unchanged rails, including exact
+  non-overlap, 200% text, short/reduced/no-JS reading and native disclosures.
+  Receipt: `.tools/venue-journey-map-column-browser.log`.
+- Independent final disposition is **ship**, scoped to both original findings.
+  All four 1200/1300px EN/AR screenshots show complete panel text. The invisible
+  hover bridge also extends to the pin center after horizontal clamping;
+  **4/4 final popup cases pass** with an actual 12-step diagonal mouse approach,
+  all previous bounds/non-overlap/Escape assertions and mobile anchors retained.
+  Receipt: `.tools/venue-journey-bridge-browser.log`.
+- Final source `pnpm check` also passes lint, types, 2,399/61 unit coverage and
+  the 81-page build: `.tools/venue-journey-final-check.log`. Hosted checks and
+  the owned exact-head Preview will be verified after the review PR is opened.
+- The single detector returned 49 advisories and no primary findings before
+  the final interaction corrections. No second detector or global token change.
+  Physical iOS/Android hardware, screen-reader use and performance lab metrics
+  are **NOT TESTED**. These checks do not prove publication or operational launch.

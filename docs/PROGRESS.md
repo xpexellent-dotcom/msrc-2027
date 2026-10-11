@@ -21,21 +21,50 @@
   anchors, two geographic information pins and native transport disclosures.
   North-up geography remains physical in Arabic; phone, short-viewport,
   enlarged-text, reduced-motion and no-JS paths retain natural reading.
-- **PASS (local before final integration):** `pnpm check`: lint, types,
+- Integrated main `1f1c558` (PR 58) without changing its phone team/footer/
+  sponsor grids. Preserved both progress entries and the prior release receipt.
+- **PASS (integrated local):** `pnpm check`: lint, types,
   **2,399 unit tests / 61 files**, and an **81-page production build**.
-  Receipt: `.tools/venue-journey-check-final.log`.
+  Final source receipt: `.tools/venue-journey-final-check.log`; earlier integrated
+  and correction receipts remain preserved under `.tools/`.
 - One Impeccable detector completed with **49 advisories and no primary
   findings**. It ran before the final interaction corrections; it is not an
   all-source clean bill. Existing global palette/type/radius choices stay.
 - Focused browser runs preserved the actual progression: **96 pass / 2 skip /
   5 fail**, then **97 / 2 / 4**, then **100 / 2 / 1** across 103 cases. Fixed
-  popup clipping/hover bridging and enlarged airport/disclosure text; the last
-  remaining gallery reversal and exact-1200px popup placement are receiving
-  targeted confirmation. Original failure logs remain under `.tools/`.
+  popup clipping/hover bridging and enlarged airport/disclosure text. Targeted
+  confirmation initially found one real transparent reading-region obstruction
+  near the top-edge pin; that failure and its native-pointer reproduction are
+  retained. Original failure logs remain under `.tools/`.
+- **PASS (hit-region confirmation): 16/16, zero failures/skips, one worker and
+  zero retries**, covering EN/AR gallery reversal, keyboard access, actual
+  below-side tooltip flips at 1200/1300px, bounds/hover persistence/Escape,
+  mobile anchors and unchanged speakers/media rails. Receipt:
+  `.tools/venue-journey-hit-region-final.log`. Native smooth arrow retargeting
+  fixes stale compositor deltas; reduced motion remains instant. Only the
+  cinematic transparent wrapper passes through pointer events; actual text
+  stays selectable and native links/disclosures keep their hit regions.
+- **PASS (map-column confirmation): 32/32, zero failures/skips**, all 24 Venue
+  journey cases plus eight unchanged rails. It includes 200% text, short phone,
+  reduced motion, no-JS, disclosures, native progress and exact popup separation
+  from the reading rectangle in both languages at 1200/1300px. Receipt:
+  `.tools/venue-journey-map-column-browser.log`. The reading column reserves
+  20rem for context and popups stay in that map space. The invisible bridge
+  extends horizontally to its pin center after clamping.
+- **PASS (final continuous pointer confirmation): 4/4**, zero failures/skips,
+  one worker, zero retries. Actual 12-step diagonal mouse approach preserves
+  each EN/AR popup at 1200/1300px; below flip, complete bounds, reading separation,
+  Escape/focus/Enter and mobile anchors also pass. Receipt:
+  `.tools/venue-journey-bridge-browser.log`. No repeat of the passed 32-case
+  layout/default-rail set was needed for the invisible bridge correction.
 - Independent finish review found low-contrast inherited intro text and a
   top-edge popup issue. The intro uses the existing muted token; the popup
-  flips and clamps to usable viewport bounds. Final disposition, integration,
-  hosted checks and PR/Preview receipts will be recorded after confirmation.
+  flips and clamps to usable viewport bounds. Fresh EN/AR gallery, map and phone
+  captures plus four actual upper-edge popup proofs are saved in
+  `.impeccable/review/venue-journey/`. Independent final disposition: **ship**,
+  scoped to the two original contrast/popup findings; all four corrected edge
+  images show complete panel text beside the foreground. Hosted PR/Preview
+  receipts will be recorded after confirmation.
   Physical iOS/Android hardware remains NOT TESTED; emulation is separate.
 
 ## 12 October 2026 — Mobile QA pass: phone grid density (Claude)
