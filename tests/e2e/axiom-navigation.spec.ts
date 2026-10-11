@@ -7,7 +7,7 @@ async function settle(page: Page) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} thin desktop header slides outward and zooms, then returns on upward scroll, approach and focus`, async ({ page, isMobile }) => {
+  test(`${locale} seamless desktop header returns on upward scroll and keyboard focus, never pointer approach`, async ({ page, isMobile }) => {
     test.skip(isMobile, "Fine-pointer desktop behavior.");
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -21,6 +21,15 @@ for (const locale of ["en", "ar"] as const) {
     const initialAction = (await action.boundingBox())!;
     const direction = locale === "en" ? 1 : -1;
     expect((await header.locator(".site-header-inner").boundingBox())!.height).toBeLessThanOrEqual(68);
+    const glass = header.locator(".header-glass");
+    await expect(glass).toHaveCount(1);
+    // A continuous material must not be assembled from clipped paint layers
+    // whose independently rasterized center edges can leave a visible seam.
+    expect(await glass.evaluate((element) => [element, ...element.querySelectorAll("*")]
+      .map((layer) => getComputedStyle(layer).clipPath).filter((clip) => clip !== "none"))).toEqual([]);
+    const capsule = (await glass.boundingBox())!;
+    const navigation = (await header.locator(".site-header-inner").boundingBox())!;
+    expect(Math.abs(capsule.width - navigation.width)).toBeLessThanOrEqual(1);
     await page.mouse.move(600, 600);
     await page.evaluate(() => window.scrollTo({ top: 1400, behavior: "instant" }));
     await expect(header).toHaveAttribute("data-compact", "true");
@@ -35,17 +44,27 @@ for (const locale of ["en", "ar"] as const) {
     expect((await logo.boundingBox())!.width).toBeGreaterThan(initialLogo.width);
     expect(await page.evaluate(() => !!document.elementFromPoint(720, 50)?.closest(".axiom-header")), "the empty center does not trap page input").toBe(false);
 
-    await page.evaluate(() => window.scrollTo({ top: 1250, behavior: "instant" }));
+    await page.mouse.move(600, 8);
+    await expect(header).toHaveAttribute("data-compact", "true");
+    await logo.hover();
+    await expect(header).toHaveAttribute("data-compact", "true");
+    await expect(middle).toHaveCSS("opacity", "0");
+
+    await page.mouse.move(600, 600);
+    await page.mouse.wheel(0, -150);
     await expect(header).toHaveAttribute("data-compact", "false");
     await expect(middle).toHaveCSS("filter", "blur(0px)");
     await expect.poll(async () => Math.abs((await logo.boundingBox())!.x - initialLogo.x)).toBeLessThan(1);
-    await page.evaluate(() => window.scrollTo({ top: 1400, behavior: "instant" }));
-    await expect(header).toHaveAttribute("data-compact", "true");
 
-    await page.mouse.move(600, 8);
+    // Reversing a fresh outward movement must settle back to the same capsule,
+    // without waiting for the previous transition to finish or queuing it.
+    await page.mouse.wheel(0, 180);
+    await expect(header).toHaveAttribute("data-compact", "true");
+    await page.mouse.wheel(0, -120);
     await expect(header).toHaveAttribute("data-compact", "false");
     await expect(middle).toHaveCSS("opacity", "1");
-    await page.mouse.move(600, 600);
+    await expect.poll(async () => Math.abs((await logo.boundingBox())!.x - initialLogo.x)).toBeLessThan(1);
+    await page.mouse.wheel(0, 180);
     await expect(header).toHaveAttribute("data-compact", "true");
     await header.locator(".wordmark").focus();
     await page.keyboard.press("Tab");
@@ -54,7 +73,42 @@ for (const locale of ["en", "ar"] as const) {
     await expect(middle).toHaveCSS("transition-duration", "0s");
   });
 
-  test(`${locale} compact Participate navigation stays open through the gap and every option, then closes on a real exit`, async ({ page, isMobile }) => {
+  test(`${locale} keyboard-expanded navigation keeps its target when switching to a pointer click`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "Fine-pointer desktop modality handoff.");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}`);
+    await settle(page);
+    const header = page.locator(".axiom-header");
+    const program = header.locator(`.desktop-nav > .header-nav-item > a[href="/${locale}/program"]`);
+    const speakers = header.locator(`.desktop-nav > .header-nav-item > a[href="/${locale}/speakers"]`);
+    await page.mouse.move(700, 650);
+    await page.evaluate(() => window.scrollTo({ top: 1400, behavior: "instant" }));
+    await expect(header).toHaveAttribute("data-compact", "true");
+    await header.locator(".wordmark").focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Tab");
+    await expect(program).toBeFocused();
+    await expect(header).toHaveAttribute("data-compact", "false");
+    await expect(header.locator(".header-middle")).toHaveCSS("opacity", "1");
+
+    const box = (await speakers.boundingBox())!;
+    const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    await page.mouse.move(point.x, point.y);
+    await page.mouse.down();
+    await expect(speakers).toBeFocused();
+    // Switching input methods must not compact the bar between press and release.
+    await expect(header).toHaveAttribute("data-compact", "false");
+    expect(await speakers.evaluate((element, position) =>
+      element.contains(document.elementFromPoint(position.x, position.y)), point),
+    "the pressed link remains the pointer target until release").toBe(true);
+    await page.mouse.up();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/speakers$`));
+    await expect(page.getByRole("main")).toBeFocused();
+  });
+
+  test(`${locale} Participate navigation revealed by upward scroll stays open through the gap and every option`, async ({ page, isMobile }) => {
     test.skip(isMobile, "Fine-pointer dropdown travel.");
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -68,13 +122,13 @@ for (const locale of ["en", "ar"] as const) {
     await page.mouse.move(700, 650);
     await page.evaluate(() => window.scrollTo({ top: 1400, behavior: "instant" }));
     await expect(header).toHaveAttribute("data-compact", "true");
-    await page.mouse.move(700, 8);
+    await page.mouse.wheel(0, -150);
     await expect(header).toHaveAttribute("data-compact", "false");
     await expect(header.locator(".header-middle")).toHaveCSS("opacity", "1");
 
     for (let visit = 0; visit < 2; visit++) {
       if (visit) {
-        await page.mouse.move(700, 8);
+        await page.mouse.wheel(0, -150);
         await expect(header).toHaveAttribute("data-compact", "false");
         await expect(header.locator(".header-middle")).toHaveCSS("opacity", "1");
       }
@@ -102,6 +156,8 @@ for (const locale of ["en", "ar"] as const) {
       if (visit === 0) {
         await page.mouse.move(700, 650, { steps: 8 });
         await expect(toggle).toHaveAttribute("aria-expanded", "false");
+        await expect(header).toHaveAttribute("data-compact", "false");
+        await page.mouse.wheel(0, 150);
         await expect(header).toHaveAttribute("data-compact", "true");
       }
     }

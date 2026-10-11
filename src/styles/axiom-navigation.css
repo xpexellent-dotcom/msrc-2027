@@ -1,11 +1,12 @@
-/* ENG-025 / DSN-01, ACC-01, LOC-01/03: the centered capsule opens outward into reading controls.
+/* ENG-028 / DSN-01, ACC-01, LOC-01/03: one continuous glass capsule, scroll-driven outward motion.
    Scoped last in the public cascade; operational interfaces retain their own shell. */
 .axiom-header {
   --header-ease: cubic-bezier(.32, .72, 0, 1);
-  --header-travel-duration: 280ms;
+  --header-travel-ease: cubic-bezier(.76, 0, .24, 1);
+  --header-travel-duration: 520ms;
   --header-inset: 20px;
   --header-travel: max(12px, calc((100vw - 1200px) / 2 - 12px));
-  --header-highlight: #f4e7c8;
+  --header-highlight: #fff4d6;
   --focus-ring: var(--header-highlight);
   container: navigation / inline-size;
   position: fixed; inset-block-start: var(--header-inset); inset-inline: 0;
@@ -18,38 +19,32 @@
   display: flex; flex-wrap: nowrap; gap: .6rem; padding: .5rem;
   pointer-events: auto;
 }
-.axiom-header .header-glass { position: absolute; inset: 0; z-index: -1; border-radius: 999px; pointer-events: none; }
-.axiom-header .header-glass::before {
-  content: ''; position: absolute; inset: 0; border-radius: inherit;
+.axiom-header .header-glass {
+  position: absolute; inset: 0; z-index: -1; overflow: hidden;
+  border-radius: 999px; pointer-events: none;
+  background: linear-gradient(115deg, rgb(62 38 95 / .72), rgb(29 18 48 / .77) 58%, rgb(68 45 100 / .74));
   backdrop-filter: blur(24px) saturate(1.2);
-  transition: opacity 220ms var(--header-ease);
-}
-.axiom-header .header-glass-half {
-  position: absolute; inset: 0; overflow: hidden; border-radius: 999px;
-  background: linear-gradient(115deg, rgb(62 38 95 / .8), rgb(29 18 48 / .86) 58%, rgb(68 45 100 / .82));
   border: 1px solid rgb(255 255 255 / .42);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / .2), 0 10px 30px rgb(20 10 36 / .14);
   transform-origin: center;
-  transition: transform var(--header-travel-duration) var(--header-ease), opacity 220ms var(--header-ease), filter 220ms var(--header-ease);
+  transition: transform var(--header-travel-duration) var(--header-travel-ease), opacity 220ms var(--header-ease);
 }
-.axiom-header .header-glass-half::after {
-  content: ""; position: absolute; inset: 0; opacity: .08;
+.axiom-header .header-glass::after {
+  content: ""; position: absolute; inset: 0; opacity: .025;
   background: url('/media/msrc-demo/film-grain.jpg') repeat; background-size: 256px;
   mix-blend-mode: screen; pointer-events: none;
 }
-.axiom-header .header-glass-start { clip-path: inset(-40px 50% -40px -40px); }
-.axiom-header .header-glass-end { clip-path: inset(-40px -40px -40px 50%); }
 .axiom-header .wordmark {
   position: relative; isolation: isolate; padding: .45rem .75rem;
   min-block-size: 48px; color: var(--color-ivory); text-decoration: none;
   pointer-events: auto; flex-shrink: 0; justify-content: center;
-  transition: transform var(--header-travel-duration) var(--header-ease);
+  transition: transform var(--header-travel-duration) var(--header-travel-ease);
 }
 .axiom-header .wordmark::before {
   content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 999px;
-  background: linear-gradient(125deg, rgb(62 38 95 / .82), rgb(29 18 48 / .86)); backdrop-filter: blur(24px); opacity: 0;
+  background: linear-gradient(125deg, rgb(62 38 95 / .74), rgb(29 18 48 / .77)); backdrop-filter: blur(24px); opacity: 0;
   border: 1px solid rgb(255 255 255 / .36); box-shadow: inset 0 1px 0 rgb(255 255 255 / .12), 0 8px 24px rgb(25 13 43 / .15);
-  transform: scale(.96); transition: opacity 220ms var(--header-ease), transform var(--header-travel-duration) var(--header-ease);
+  transform: scale(.96); transition: opacity 220ms var(--header-ease), transform var(--header-travel-duration) var(--header-travel-ease);
 }
 .axiom-header .wordmark-name { font-size: 1.5rem; letter-spacing: -.04em; }
 .axiom-header .wordmark-year { color: var(--header-highlight); font-size: .9rem; }
@@ -57,10 +52,10 @@
   display: flex; align-items: center; justify-content: center; flex: 1;
   min-inline-size: 0; gap: .4rem; opacity: 1; filter: blur(0);
   transform-origin: center;
-  transition: opacity 220ms var(--header-ease), transform var(--header-travel-duration) var(--header-ease), filter 220ms var(--header-ease);
+  transition: opacity 220ms var(--header-ease), transform var(--header-travel-duration) var(--header-travel-ease), filter 220ms var(--header-ease);
 }
 .axiom-header .desktop-nav { flex: 1; justify-content: center; flex-wrap: nowrap; gap: .1rem; }
-.axiom-header .header-nav-item { position: relative; display: flex; align-items: center; transition: transform var(--header-travel-duration) var(--header-ease); }
+.axiom-header .header-nav-item { position: relative; display: flex; align-items: center; transition: transform var(--header-travel-duration) var(--header-travel-ease); }
 .axiom-header .header-nav-item:nth-child(-n + 3) { --nav-exit-x: -22px; }
 .axiom-header .header-nav-item:nth-child(n + 5) { --nav-exit-x: 22px; }
 .axiom-header .desktop-nav a {
@@ -98,7 +93,7 @@
 .axiom-header .header-dropdown a::after { content: none; }
 .axiom-header .header-dropdown a svg { inline-size: 16px; block-size: 16px; flex-shrink: 0; transform: scaleX(var(--motion-inline-direction)); }
 .axiom-header .language-switch { color: var(--color-ivory); font-size: 1rem; padding-inline: .5rem; }
-.axiom-header .header-actions { flex-shrink: 0; flex-wrap: nowrap; gap: .5rem; transition: transform var(--header-travel-duration) var(--header-ease); }
+.axiom-header .header-actions { flex-shrink: 0; flex-wrap: nowrap; gap: .5rem; transition: transform var(--header-travel-duration) var(--header-travel-ease); }
 .axiom-header .header-primary-action.button {
   display: inline-flex; min-block-size: 48px; padding-inline: 1.15rem; border-radius: 999px;
   font-size: 1rem; color: var(--color-ink); pointer-events: auto;
@@ -117,28 +112,23 @@
    keyboard and assistive navigation never wait for a fade before finding a link. */
 @media (min-width: 1200px) and (hover: hover) and (pointer: fine) {
   .axiom-header[data-compact="true"] .site-header-inner { pointer-events: none; }
-  .axiom-header[data-compact="true"] .header-glass-half { opacity: 0; filter: blur(3px); }
-  .axiom-header[data-compact="true"] .header-glass::before { opacity: 0; }
-  .axiom-header[data-compact="true"] .header-glass-start { transform: translateX(calc(-1 * var(--header-travel))) scale(1.06, .92); }
-  .axiom-header[data-compact="true"] .header-glass-end { transform: translateX(var(--header-travel)) scale(1.06, .92); }
+  .axiom-header[data-compact="true"] .header-glass { opacity: 0; transform: scale(1.06, .96); }
   .axiom-header[data-compact="true"] .wordmark { transform: translateX(calc(-1 * var(--header-travel) * var(--motion-inline-direction))) scale(1.025); }
   .axiom-header[data-compact="true"] .header-actions { transform: translateX(calc(var(--header-travel) * var(--motion-inline-direction))) scale(1.015); }
   .axiom-header[data-compact="true"] .wordmark::before { opacity: 1; transform: none; }
   .axiom-header[data-compact="true"] .header-middle { opacity: 0; transform: translateY(-8px) scale(.96); filter: blur(7px); pointer-events: none; }
   .axiom-header[data-compact="true"] .header-nav-item { transform: translateX(calc(var(--nav-exit-x, 0px) * var(--motion-inline-direction))); }
   .axiom-header[data-compact="true"] .header-dropdown { visibility: hidden; pointer-events: none; }
-  .axiom-header:focus-within .site-header-inner { pointer-events: auto; }
-  .axiom-header:focus-within .header-glass-half { opacity: 1; transform: none; filter: none; }
-  .axiom-header:focus-within .header-glass::before { opacity: 1; }
-  .axiom-header:focus-within .wordmark::before { opacity: 0; }
-  .axiom-header:focus-within :is(.wordmark, .header-actions, .header-nav-item) { transform: none; }
-  .axiom-header:focus-within .header-middle { opacity: 1; transform: none; filter: none; pointer-events: auto; }
+  .axiom-header:has(:focus-visible) .site-header-inner { pointer-events: auto; }
+  .axiom-header:has(:focus-visible) .header-glass { opacity: 1; transform: none; }
+  .axiom-header:has(:focus-visible) .wordmark::before { opacity: 0; }
+  .axiom-header:has(:focus-visible) :is(.wordmark, .header-actions, .header-nav-item) { transform: none; }
+  .axiom-header:has(:focus-visible) .header-middle { opacity: 1; transform: none; filter: none; pointer-events: auto; }
 }
-.axiom-header[data-keyboard="true"] :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass-half),
-.axiom-header[data-keyboard="true"] .wordmark::before,
-.axiom-header[data-keyboard="true"] .header-glass::before { transition: none; }
+.axiom-header[data-keyboard="true"] :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass),
+.axiom-header[data-keyboard="true"] .wordmark::before { transition: none; }
 @media (hover: hover) and (pointer: fine) {
-  .axiom-header :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle):hover { background: rgb(220 207 240 / .12); color: var(--color-ivory); }
+  .axiom-header :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle):hover { background: rgb(220 207 240 / .04); color: #fff; }
   .axiom-header .header-dropdown a:hover { background: var(--color-info-surface); color: var(--color-purple); }
 }
 @media (min-width: 1200px) and (max-width: 1320px) {
@@ -182,15 +172,15 @@
   .axiom-header .wordmark-name { font-size: 1.55rem; }
 }
 @container navigation (width < 20rem) {
-  .axiom-header .header-glass, .axiom-header .header-glass-half { border-radius: 16px; }
+  .axiom-header .header-glass { border-radius: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .axiom-header *, .axiom-header *::before, .axiom-header *::after { transition: none !important; animation: none !important; }
   .axiom-header[data-compact="true"] .header-middle { filter: none; }
 }
 @media (forced-colors: active) {
-  .axiom-header .header-glass-half, .axiom-header .wordmark::before { background: Canvas; border: 1px solid CanvasText; }
+  .axiom-header .header-glass, .axiom-header .wordmark::before { background: Canvas; border: 1px solid CanvasText; }
   .axiom-header :is(.wordmark, .wordmark-year, .wordmark-edition, .desktop-nav a, .header-dropdown-toggle, .language-switch, .menu-toggle) { color: LinkText; }
-  .axiom-header .header-glass-half::after { display: none; }
+  .axiom-header .header-glass::after { display: none; }
   .axiom-header .header-dropdown, .axiom-header .mobile-menu { border: 1px solid CanvasText; background: Canvas; }
 }

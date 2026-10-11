@@ -5,6 +5,18 @@ into the live version on 11 October 2026. This approval covers the demonstrated
 public design, selected event photographs and city derivative. It does not open
 registration, accounts, payments, submissions, bookings or other operations.
 
+## Published result — 11 October 2026
+
+[PR #54](https://github.com/xpexellent-dotcom/msrc-2027/pull/54) published the approved
+design at main SHA `66a504af6410ab161a3dbc01602a28b75b9e10a0`. Its tree matches
+tested head `31429ab59e310de2def06ea824ecea027a71d812`: all ten hosted CI jobs passed,
+including 607 public browser passes and 33 intentional skips across 640 cases.
+The owned Production deployment was READY at that source with both public domains;
+91 live read-only checks passed. EN/AR desktop/mobile visual verification confirmed
+the public layout and navigation. The final ENG-027 entry in `docs/PROGRESS.md`
+contains timestamps, workflow links and receipt locations; preparation entries
+below are historical and do not replace the final evidence.
+
 ## Runtime audit
 
 - The historical `(preview)` route-group name does not restrict public pages.

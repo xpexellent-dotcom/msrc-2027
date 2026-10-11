@@ -48,7 +48,6 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const [animateMenu, setAnimateMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [readingDown, setReadingDown] = useState(false);
-  const [pointerNear, setPointerNear] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
   const [keyboard, setKeyboard] = useState(false);
   const [canCompact, setCanCompact] = useState(false);
@@ -61,7 +60,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     if (dropdownCloseRef.current !== null) clearTimeout(dropdownCloseRef.current);
     dropdownCloseRef.current = null;
   }, []);
-  const compact = canCompact && scrolled && readingDown && !pointerNear && !focusWithin && !menuOpen && !openDropdown;
+  const compact = canCompact && scrolled && readingDown && !focusWithin && !menuOpen && !openDropdown;
 
   useEffect(() => revealPageNavigation(pathname), [pathname]);
   useEffect(() => cancelDropdownClose, [cancelDropdownClose]);
@@ -69,7 +68,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   useEffect(() => {
     let docked = window.scrollY > 48;
     let lastY = window.scrollY;
+    let frame: number | null = null;
     const update = () => {
+      frame = null;
       const y = window.scrollY;
       if (y > 48) docked = true;
       else if (y < 8) docked = false;
@@ -79,32 +80,23 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       setReadingDown(y > lastY);
       lastY = y;
     };
+    const onScroll = () => { if (frame === null) frame = requestAnimationFrame(update); };
     const desktop = window.matchMedia("(min-width: 1200px) and (hover: hover) and (pointer: fine)");
     const viewport = () => setCanCompact(desktop.matches && window.innerWidth >= 75 * parseFloat(getComputedStyle(document.documentElement).fontSize));
-    // The entire top edge is an approach zone, including the gap between islands.
-    // A touch pointer never drives hover behavior.
-    const approach = (event: PointerEvent) => {
-      if (event.pointerType === "touch" || !desktop.matches) return;
-      const masthead = headerRef.current?.querySelector<HTMLElement>(".site-header-inner");
-      const withinHeader = event.target instanceof Node && Boolean(headerRef.current?.contains(event.target));
-      setPointerNear(withinHeader || event.clientY <= (masthead?.getBoundingClientRect().bottom ?? 110) + 16);
-    };
     const leave = () => {
-      setPointerNear(false);
       cancelDropdownClose();
       if (!headerRef.current?.querySelector(":focus-visible")) setOpenDropdown(null);
     };
     update(); viewport();
-    window.addEventListener("scroll", update, { passive: true });
-    document.addEventListener("pointermove", approach, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     document.documentElement.addEventListener("pointerleave", leave);
     desktop.addEventListener("change", viewport);
     window.addEventListener("resize", viewport);
     const textSize = new MutationObserver(viewport);
     textSize.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
     return () => {
-      window.removeEventListener("scroll", update);
-      document.removeEventListener("pointermove", approach);
+      window.removeEventListener("scroll", onScroll);
+      if (frame !== null) cancelAnimationFrame(frame);
       document.documentElement.removeEventListener("pointerleave", leave);
       desktop.removeEventListener("change", viewport);
       window.removeEventListener("resize", viewport);
@@ -163,14 +155,17 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   return (
     <header ref={headerRef} className="site-header axiom-header" data-scrolled={scrolled} data-tucked="false"
       data-compact={compact} data-home={pathname === `/${locale}`} data-menu-open={menuOpen} data-keyboard={keyboard}
-      onPointerDownCapture={() => setKeyboard(false)} onKeyDownCapture={() => setKeyboard(true)}
-      onFocusCapture={(event) => { setFocusWithin(true); if (event.target.matches(":focus-visible")) setKeyboard(true); }}
+      onPointerDownCapture={() => setKeyboard(false)}
+      onKeyDownCapture={() => { setKeyboard(true); setFocusWithin(true); }}
+      onFocusCapture={(event) => {
+        const visibleFocus = event.target.matches(":focus-visible");
+        // Keep an existing keyboard focus session open during a mouse handoff;
+        // moving the target before pointerup would swallow the user's click.
+        if (visibleFocus) { setFocusWithin(true); setKeyboard(true); }
+      }}
       onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocusWithin(false); }}>
       <Container className="site-header-inner">
-        <span className="header-glass" aria-hidden="true">
-          <span className="header-glass-half header-glass-start" />
-          <span className="header-glass-half header-glass-end" />
-        </span>
+        <span className="header-glass" aria-hidden="true" />
         {/* A native anchor intentionally reloads home, even when already on home. */}
         <a className="wordmark" href={`/${locale}`}>
           <span className="wordmark-name" dir="ltr" lang="en">MSRC <span className="wordmark-year">2027</span></span>

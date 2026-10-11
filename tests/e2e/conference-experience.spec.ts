@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { languageLink } from "./helpers/header-navigation";
+import { languageLink, revealDesktopHeader } from "./helpers/header-navigation";
 
 // SCP-02/03/05, PRG-01, WKS-01/02, LOC-01/02/03, MED-01/02/04,
 // CMS-03/04, ACC-01: public information remains distinct from operational
@@ -46,8 +46,7 @@ async function followPublicDestination(page: Page, href: string) {
     await page.locator(".mobile-menu").locator(`a[href="${href}"]`).click();
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
   } else {
-    await page.locator(".axiom-header .wordmark").hover();
-    await expect(page.locator(".axiom-header")).toHaveAttribute("data-compact", "false");
+    await revealDesktopHeader(page);
     await page.locator(".desktop-nav").locator(`a[href="${href}"]`).click();
   }
 }
