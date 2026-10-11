@@ -24,6 +24,13 @@ async function settleCamera(page: Page) {
   })).toBeLessThan(.02);
 }
 
+async function sceneScrollOffsets(page: Page) {
+  return page.locator(".venue-journey-atlas").evaluate((element) => ({
+    document: { x: window.scrollX, y: window.scrollY },
+    atlas: { x: element.scrollLeft, y: element.scrollTop },
+  }));
+}
+
 async function expectReadable(page: Page) {
   const geometry = await page.evaluate(() => {
     const width = document.documentElement.clientWidth;
@@ -200,10 +207,14 @@ for (const locale of ["en", "ar"] as const) {
         await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue#journey-${chapter}$`));
         await expect(page.locator(`#journey-${chapter}`)).toBeFocused();
       } else {
+        await page.evaluate(() => document.fonts.ready);
         await readChapter(page, chapter);
+        await settleCamera(page);
         await expect(point).toHaveAttribute("data-point-visible", "true");
         await expect(point).toBeInViewport();
-        await point.hover();
+        const scrollOffsets = await sceneScrollOffsets(page);
+        const pin = await point.boundingBox();
+        await page.mouse.move(pin!.x + pin!.width / 2, pin!.y + pin!.height / 2);
         await expect(tooltip).toBeVisible();
         await expect(tooltip).toContainText(locale === "en" ? pointName === "airport" ? "King Abdulaziz International Airport" : "Abdullah Sulayman" : pointName === "airport" ? "مطار الملك عبدالعزيز الدولي" : "عبدالله سليمان");
         const box = await tooltip.boundingBox();
@@ -212,13 +223,14 @@ for (const locale of ["en", "ar"] as const) {
         expect(box!.x + box!.width).toBeLessThanOrEqual(1440);
         expect(box!.y + box!.height).toBeLessThanOrEqual(900);
         // Cross the real gap on the pin-facing side, including a flipped popup.
-        const pin = await point.boundingBox();
         const bridgeX = Math.max(box!.x + 1, Math.min(pin!.x + pin!.width / 2, box!.x + box!.width - 1));
         const bridgeY = box!.y < pin!.y ? box!.y + box!.height + 8 : box!.y - 8;
         await page.mouse.move(bridgeX, bridgeY);
         await expect(tooltip).toBeVisible();
-        await tooltip.hover();
+        const entryX = Math.max(box!.x + 8, Math.min(bridgeX, box!.x + box!.width - 8));
+        await page.mouse.move(entryX, box!.y + box!.height / 2, { steps: 12 });
         await expect(tooltip).toBeVisible();
+        expect(await sceneScrollOffsets(page)).toEqual(scrollOffsets);
         await page.keyboard.press("Escape");
         await expect(tooltip).toBeHidden();
         await page.mouse.move(0, 0);

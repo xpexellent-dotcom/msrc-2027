@@ -101,6 +101,15 @@ limits and any unresolved checks stated; do not merge this PR.
 - Final source `pnpm check` also passes lint, types, 2,399/61 unit coverage and
   the 81-page build: `.tools/venue-journey-final-check.log`. Hosted checks and
   the owned exact-head Preview will be verified after the review PR is opened.
+- Initial hosted head `51c2d148` passed nine substantive jobs and failed one
+  public tooltip case (638 pass / 41 skip / 1 fail across 680 public cases).
+  The trace proves locator hover programmatically scrolled the document and
+  hidden atlas, moving the camera while popup geometry was sampled. The regular
+  phase now waits for fonts/camera settlement and uses measured native pointer
+  movement, with new unchanged document/atlas scroll-offset assertions. All
+  original bounds/gap/persistence/Escape/focus/Enter assertions, retries and
+  timeouts remain. **4/4 popup and 2/2 camera confirmations pass locally**;
+  application source is unchanged. New exact-head CI precedes final handoff.
 - The single detector returned 49 advisories and no primary findings before
   the final interaction corrections. No second detector or global token change.
   Physical iOS/Android hardware, screen-reader use and performance lab metrics

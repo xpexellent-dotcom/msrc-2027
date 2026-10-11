@@ -66,6 +66,23 @@
   images show complete panel text beside the foreground. Hosted PR/Preview
   receipts will be recorded after confirmation.
   Physical iOS/Android hardware remains NOT TESTED; emulation is separate.
+- Opened and attached review [PR 59](https://github.com/xpexellent-dotcom/msrc-2027/pull/59)
+  at `51c2d14825c7c993f45492713c785130b717d7f4`, base `1f1c558`. Owned Preview
+  `dpl_K7BVYQv7ntEx3kihArREBeU7TwGN` is READY at that source, confirmed through
+  authenticated deployment API/CLI. Browser inspection confirms all four photos,
+  native chapter progression, 390px EN, 320px AR, direct language switch and no
+  narrow RTL overflow. Captures: `hosted-*.jpg`; receipt: `venue-preview-receipt.json`.
+- Initial hosted revision: **9/10 substantive jobs passed**; public shard 2 failed
+  one tooltip driver sequence (638 public pass / 41 skip / 1 fail, 680 total).
+  Trace shows locator hover programmatically scrolled document 906→1248 and
+  hidden atlas 0→92, changing the camera before sampling the hover gap. A native
+  pointer/settlement test correction is confirmed without changing app source,
+  assertions, retry count or timeout: **4/4 popup and 2/2 desktop camera cases
+  pass**, and document/atlas scroll offsets remain unchanged across actual mouse
+  hover. Receipts: `venue-journey-ci-hover-popup.log` and `-ci-hover-camera.log`.
+  Full initial hosted receipt and trace:
+  `.tools/venue-hosted-checks-initial.json` and `venue-hosted-failure-51c2d1/`.
+  A new exact-head hosted confirmation will follow the test-only correction.
 
 ## 12 October 2026 — Mobile QA pass: phone grid density (Claude)
 
