@@ -79,7 +79,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} mobile menu closes when focus or a press moves past the header`, async ({ page, isMobile, browserName }) => {
     test.skip(!isMobile, "Mobile disclosure navigation only.");
     test.skip(browserName === "webkit", "WebKit's default keyboard policy tabs to controls, skipping links.");
-    await page.goto(`/${locale}/about`);
+    await page.goto(`/${locale}/participate`);
     const toggle = page.locator(".menu-toggle");
     const menu = page.locator(".mobile-menu");
     // Hydrated once the toggle responds (the countdown helper is homepage-only).
@@ -98,7 +98,7 @@ for (const locale of ["en", "ar"] as const) {
     // The page gutter, below the panel: no control there.
     await page.mouse.click(4, page.viewportSize()!.height - 10);
     await expect(menu).toHaveCount(0);
-    await expect(page).toHaveURL(new RegExp(`/${locale}/about$`));
+    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
     await toggle.click();
     await expect(menu).toBeVisible();
     await links.first().focus();
@@ -121,7 +121,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(menuBox!.y).toBeGreaterThanOrEqual(0);
     expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(641);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
-    const last = menu.getByRole("link").last();
+    const last = menu.locator("nav").getByRole("link").last();
     const href = await last.getAttribute("href");
     await last.scrollIntoViewIfNeeded();
     await expect(last).toBeInViewport();

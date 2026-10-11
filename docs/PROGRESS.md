@@ -1,5 +1,412 @@
 # Progress and session handover
 
+## 11 October 2026 — Approved design publication, ENG-027
+
+- Requester explicitly approved the completed demo and authorized bringing it
+  live. ENG-027 records publication authority while keeping operational gates
+  and the illustrative CME/roster qualifications unchanged.
+- Verified clean integration base: design HEAD and freshly fetched origin/main
+  both `340e36df20f601c3fa05c4aa82d8f256df7471bc`. Existing Production is READY at
+  that SHA, project `prj_R1XVydvYu17VPSTM3lNb1trWw9u9`, team
+  `team_8DBVOTW6s9ihVkUP69COuwG8`, Git production branch `main`, with
+  `www.msrc2027.com` and `msrc2027.com` aliases. No merge conflict or newer main
+  changes were discarded. The unrelated open draft PR #53 is not part of this release.
+- Reviewed route/media gating, full design diff and media selection. Approved
+  public pages already render without preview flags; protected preview routes
+  continue returning not-found in Production. No config/API/auth/database,
+  payment/delivery, dependency or approved legal-copy mutation was introduced.
+- Selected 26 new public derivative assets (8,543,976 bytes); ten superseded
+  derivatives, original downloads and visual receipts remain local. Removed the
+  unused portrait-data property rather than shipping unused photographs. No
+  selected image/video URL changed. Media approval and independent licensing
+  evidence remain distinct in `approved-assets-release-audit.md`.
+- **PASS:** `pnpm check`: lint, types, **2,390 unit tests / 60 files** and production
+  build (81 pages), `.tools/approved-publication-check.log`. Five new production
+  boundary tests render the actual EN/AR homepage without preview flags, preserve
+  preview-route denial and verify selected derivative presence. Targeted lane:
+  80 tests / five files passed. Staged whitespace check passed after removing two
+  trailing blank lines from new historical notes.
+- Vercel connector inspection returned a team-scope 403. The documented CLI
+  fallback authenticated successfully and confirmed the same explicit project,
+  team, branch and production deployment; no hosting configuration was changed.
+- Release source is prepared for pull-request CI. Remote CI, merge, deployment
+  and post-publication route/media/closed-workflow checks are still **PENDING** at
+  this receipt. Follow the final release evidence before claiming the site live.
+
+## 11 October 2026 — Track index and community cards, ENG-026
+
+- Completed the focused audit/plan in `docs/reviews/track-community-refinement.md`
+  before UI changes. Continued the existing design worktree and accepted demo.
+- Added five native anchor links to the sticky pathway introduction. A passive,
+  frame-coalesced listener highlights the card being read in either direction;
+  selected underline/arrow and `aria-current` supplement color. Keyboard actions
+  move focus to the corresponding card. Small or oversized layouts use normal
+  flow, with full EN/AR parity and preference-aware feedback.
+- Restricted heading gradients to selected keywords. Ordinary words use ink on
+  pale surfaces and ivory on dark photographs. Preserved the current linework,
+  lilac highlights and photo crops without adding motion or media controls.
+- Community figures now use translucent plum panels and authored line icons;
+  2,257 Visitors is larger. The requested Total visitors / Visitors / Research
+  abstracts submitted labels retain their 2023–2026 and MSRC 2026 scopes. ENG-026
+  records the organizer's new wording separately from the older PDF terminology.
+- **PASS:** `pnpm lint`, `pnpm typecheck` and `pnpm build` (81 pages), recorded in
+  `.tools/tracks-lint.log`, `tracks-types.log` and `tracks-build.log`. New client
+  behavior retains listener/observer/frame cleanup without a new dependency.
+- Initial scoped browser run: **42 passed / 2 failed / 8 intentional skips**,
+  one worker, no retries, `.tools/tracks-browser.log`. Both failures revealed that
+  an enlarged header moved the anchor landing below the fixed reading threshold.
+  The threshold now uses computed scroll margin/padding; assertions were retained.
+  Failed screenshots, traces and report remain in `.tools/tracks-first`.
+- **PASS:** correction lint and production build,
+  `.tools/tracks-correction-lint.log` and `tracks-correction-build.log`.
+  **PASS:** all eight applicable track browser checks, with four intentional
+  duplicate-project skips, `.tools/tracks-confirmation.log`. Covers down/up
+  scrolling, sticky position, URL stability, keyboard focus, mobile anchors and
+  320px doubled-text EN/AR. Earlier scoped checks passed count-up/reduced-motion,
+  280px doubled-text statistics, page accessibility and public-copy boundaries.
+- One batched visual pass opened 34 EN/AR desktop/mobile captures. It found an
+  inherited underline on inactive index links; a local specificity correction
+  preserves the underline only on the active/hovered label. Six focused captures
+  confirm the correction and narrow anchor state. All capture widths match their
+  viewports; the initial four page-error collections are empty. Receipts live in
+  `.impeccable/review/tracks` and `docs/reviews/track-community-finish.md`.
+- Single scoped detector: **1 primary warning / 39 advisories** (25 color,
+  13 type, 1 radius), `detector.json`. The gradient-text warning remains an
+  intentional, explicitly requested keyword treatment. No second scan ran.
+- DESIGN.md, schema-v2 sidecar and homepage surface brief reflect ENG-026; JSON
+  parsing passed. The original checkout, prior changes and older receipts remain.
+  The complete unit suite was **NOT RUN** for this focused UI refinement; no
+  claim is made about a new full-suite run. Physical Safari/Firefox, human Arabic
+  and screen-reader approval remain separate verification work.
+- Final demo served at http://127.0.0.1:3211/en and /ar; the existing browser tab
+  was refreshed and retained for review. No publication, push, merge, workflow
+  opening, database/hosting/settings change or participant message. Next: requester
+  reviews the updated pathway navigation, keyword emphasis and community cards.
+
+## 11 October 2026 — Fluid public experience, ENG-025
+
+- Continued the accepted local demo after the audit and priorities in
+  `docs/reviews/fluid-refinement-brief.md`, using Emil and Impeccable. Preserved
+  MSRC identity, EN/AR parity, native scrolling, approved rules and closed workflows.
+- Fixed Participate pointer travel across the trigger, visual gap and all five
+  options. The open menu prevents compaction; cancelable leave handling, keyboard
+  focus, Escape and true exit remain coherent. Reversible 280ms movement and a
+  shared background blur plane give the translucent, grainy capsule a continuous
+  finish. Our Team follows Venue in both languages.
+- Added requested gradient headings, selected lilac highlights, scientific contour
+  artwork, benefit pictograms and the exact Majed IMG_9804 community photograph.
+  Short decorative motion settles once, respects reduced motion and adds no pause
+  controls. FAQ and Jeddah footage meet through a soft gradient.
+- Reworked five participation pages around photographic headers, visual essential
+  cards and useful resources. Added native horizontal workshop placeholders;
+  refined Speakers, Sponsors, Our Team, Venue and Contact. Ticket/brochure actions
+  remain unavailable until approved destinations/assets exist. No workflow opened.
+- Exact requested Attend IMG_9744 and Speakers IMG_9801 photographs are installed;
+  source hashes, dimensions and original-source details are recorded in
+  `docs/media/fluid-refinement-assets.md`. Existing Manar IMG_2560 serves Abstract
+  submission and Workshops. No public photography disclaimers were added.
+- The organizer explicitly authorized 7 CME as a visual placeholder. It remains
+  visibly and accessibly illustrative; confirmed hours and structured facts remain
+  unchanged. ENG-025 records this distinction in `docs/DECISIONS.md`.
+- **PASS:** `pnpm check`: lint, TypeScript, 2,385 unit tests / 59 files and production
+  build (81 pages), `.tools/fluid-check.log`. Following the bounded correction,
+  targeted ESLint and another production build passed,
+  `.tools/fluid-correction-build.log`. The full unit suite was not repeated for
+  the semantic role, shared blur plane and narrow-screen padding corrections.
+- Initial scoped browser run: **161 passed / 5 failed / 14 intentional skips**,
+  one worker, zero retries, `.tools/fluid-browser.log`. Four failures exposed the
+  CME artwork's missing image role; one exposed Contact notice overflow at 320px
+  with doubled text. Fixed their causes. Initial receipts remain in
+  `.tools/fluid-first`; failed evidence has not been replaced by the confirmation.
+- **PASS:** focused final browser confirmation **55 passed / 8 intentional skips**,
+  one worker, zero retries, `.tools/fluid-confirmation.log`. Includes the previously
+  failing accessibility and Contact reflow cases, Participate pointer/keyboard
+  behavior, bilingual navigation order and closed public behavior.
+- **PASS:** 56 initial desktop/mobile EN/AR captures and eight focused correction
+  captures, with no document overflow or initial page errors. Metadata and images
+  are in `.impeccable/review/fluid`. The independent review opened all captures;
+  its single blocking visual finding, a midpoint seam in the glass header, was
+  resolved and scored clear in `docs/reviews/fluid-finish-review.md`.
+- One detector scan returned **1 primary warning / 64 advisories** (41 color,
+  22 type, 1 radius), `.impeccable/review/fluid/detector.json`. Gradient text is an
+  explicit requester preference; the warning is retained. No second scan ran.
+- DESIGN.md, version-2 sidecar, homepage surface brief, feature notes, decision and
+  media provenance are updated; the sidecar parses as JSON. React review retained
+  isolated client behavior, cleanup and static fallbacks without new dependencies.
+- The final production build is served locally at http://127.0.0.1:3211/en and /ar
+  for requester review. This is a local design demo, not publication or approval
+  to open operational workflows. Original checkout and previous receipts remain.
+- Final `git diff --check` passed (line-ending normalization warnings only).
+  The existing review tab was refreshed and retained; its rendered navigation
+  confirms Venue followed by Our Team, with the requested homepage content.
+- No push, merge, hosting/DNS/database/settings change or participant communication.
+  Physical Safari/Firefox, native-reader Arabic, human screen-reader approval,
+  measured performance and public media reuse clearance remain **NOT TESTED** or
+  separate release gates. Next: requester reviews the updated local demo.
+
+## 11 October 2026 — Premium surface refinement, ENG-024
+
+- Built on the accepted ENG-023 local demo after an audit and prioritized plan
+  in `docs/reviews/premium-refinement-brief.md`. Preserved source authority,
+  bilingual routes, native scrolling, MSRC identity and closed workflows.
+- Six pale illuminated benefits, framed historical numbers and selected keyword
+  accents improve hierarchy. Speaker contours run once for at most 4.5 seconds,
+  then settle. No new pause control is added; reduced-motion/offscreen/hidden-tab
+  behavior remains supported and anonymous portrait placeholders are preserved.
+- Navigation now physically slides and scales outward with brief blur; the thin
+  capsule has gradient glass, grain and a white highlight. Champagne invitations
+  add short highlight, glow and press feedback with existing destinations intact.
+- Program and Venue use real blurred, tinted photographic headers. Light date
+  panels link to each Program day. Venue facts, icons, directions and spacing are
+  refined; an attributed, self-hosted geographic map replaces the schematic.
+- Installed the three precisely requested Drive photographs. Build an idea is
+  physically left-cropped in EN/AR; responsive image selection now supplies an
+  adequately sized bitmap for the tall crop. A new silent city derivative removes
+  the top-right 4K badge while preserving source timing, speed and blur. Originals
+  remain. Provenance, hashes and decode evidence are in the media manifest.
+- **PASS:** `pnpm check`: lint, TypeScript, 2,385 unit tests/59 files and production
+  build (81 pages), `.tools/premium-check.log`. Final image/layout corrections
+  subsequently passed targeted ESLint and another production build,
+  `.tools/premium-final-build.log`; the full unit suite was not repeated for CSS
+  spacing, physical image anchoring and responsive image-size corrections.
+- Initial scoped browser run: **140 passed / 1 failed / 8 intentional skips**,
+  one worker, no retries, `.tools/premium-browser.log`. The failure exposed a long
+  venue label overflowing at 320px with doubled text; wrapping fixes the cause.
+  Complete initial failure receipts remain in `.tools/premium-first`.
+- **PASS:** focused Venue/editorial confirmation **51 passed / 2 intentional
+  skips**, zero failures/retries, `.tools/premium-confirmation.log`. Includes the
+  previously failing reflow, date routing, geographic map, accessibility,
+  reduced-motion, count-up and one-pass speaker-background cases.
+- **PASS:** final framing/caption checks **4 passed**, EN/AR at 1440px and 390px,
+  `.tools/premium-framing-confirmation.log`. Measured text glyphs clear the arrow;
+  both locale crops retain the physical left, exclude the rightmost subject and
+  decode a bitmap at least 960px wide. No horizontal document overflow.
+- Independent Impeccable review opened 30 initial and 20 correction captures.
+  Restored dark speaker portraits and Venue spacing; its remaining caption/crop
+  findings were resolved by the final measured checks above. The original visual
+  verdict and later implementation evidence are kept separately in
+  `docs/reviews/premium-finish-review.md`; no extra visual-review cycle was run.
+- Scoped detector: **0 primary findings / 38 advisories** (21 color, 17 type),
+  preserved in `.impeccable/review/premium/detector*.json`. One initially incorrect
+  target path was corrected with a separate scan of only the missing Venue files.
+  React review retained isolated clients, cleaned-up observers and static fallbacks.
+- DESIGN.md, version-2 sidecar, surface brief, ENG-024 decision, feature notes and
+  media/map provenance are current. The final production build is served locally
+  at http://127.0.0.1:3211/en and /ar for requester review. The existing review tab
+  was refreshed and retained as a deliverable. Final `git diff --check` passed
+  (line-ending normalization warnings only); the sidecar parses as JSON.
+- Original checkout and prior receipts remain intact. No push, merge, publication,
+  hosting/DNS/database/settings change, workflow opening or participant message.
+  Physical Safari/Firefox, native-reader Arabic and human screen-reader approval,
+  measured performance and public media reuse clearance remain **NOT TESTED** or
+  separate release gates. Next: requester reviews this local demo.
+
+## 11 October 2026 — Editorial motion revision, ENG-023
+
+- Completed the new audit and prioritized plan before source changes. The request
+  replaces conflicting ENG-022 choices while keeping the MSRC identity, approved
+  product facts, bilingual public routes and closed operational destinations.
+- Thin seven-link capsule navigation with blur/contraction and scroll/pointer/focus
+  recovery; Program has no dropdown, Contact is added, About is removed and the
+  action reads Reserve your seat. Five Participate destinations remain reachable.
+- Native held-film/paper overlap, fine raster grain, spacious six-part benefits
+  with a pausable scientific artwork, anonymous speaker/team portraits, a real
+  venue photograph and revised history gallery. Homepage sponsorship is removed;
+  the Sponsors page has a large Become a sponsor action.
+- PDF-derived numbers: 4,007+ attendances across four editions (not unique people),
+  2,257 visitors and 83 research projects in 2026. One-time animated counts keep
+  stable accessible values. CME hours remain pending confirmation.
+- The user-supplied Drive video resolves the initial YouTube 403: source 0–23s,
+  2.8× speed, gentle blur, silent 8.2s/1600×900 loop with a matching poster. Media
+  decode/fast-start checks pass; 22 rasters have provenance with zero missing.
+- **PASS:** full lint, TypeScript, 2,385 unit tests/59 files and 81-page production
+  build on the final application source (`.tools/editorial-release-check.log`). The initial obsolete metadata failure
+  remains preserved in `.tools/editorial-check.log`.
+- First scoped browser run: **273 passed / 44 failed / 21 intentional skips**,
+  one worker, zero retries (`.tools/editorial-browser.log`). The repeated failures
+  exposed the hero wrapper being inert in cinema, non-holding sticky padding,
+  breadcrumb contrast, narrow Media wrapping and Arabic card tracking; all were
+  corrected. Changed clip paths and chapter-title sampling were updated in tests
+  without weakening playback, accessibility, focus or reversal assertions.
+- First confirmation: **170 passed / 1 failed / 11 intentional skips**
+  (`.tools/editorial-confirmation.log`). The remaining tall-phone opener issue
+  is resolved by measuring the hero and holding its bottom edge only after its
+  final controls become reachable. No-JavaScript, missing ResizeObserver and
+  reduced-motion fallbacks remain static. Both runs' complete failure evidence
+  is retained in `.tools/editorial-first` and `.tools/editorial-second`.
+- Second confirmation: **93 passed / 2 failed / 3 intentional skips**
+  (`.tools/editorial-final-confirmation.log`). New hero geometry, fallback and
+  cinema focus checks passed. The two remaining phone cue tests automatically
+  centered the link behind the rising sheet. The test helper now scrolls to the
+  hero's final row, asserts its full viewport visibility and real pointer hit,
+  then clicks normally, retaining all focus/history/destination assertions.
+  This run's complete failure evidence is retained in `.tools/editorial-third`.
+- **PASS:** final pointer/navigation confirmation **32 passed, zero failures or
+  retries**, EN/AR desktop and phone (`.tools/editorial-pointer-confirmation.log`).
+  Both previously failing cases passed, along with all changed helper callers,
+  native scrolling, reduced motion, cinema return position, focus and history.
+  This is a focused confirmation, not a second full-suite pass claim. Targeted
+  test-file lint passed with zero warnings after the helper correction.
+- **PASS:** 11 measured EN/AR desktop/phone captures with no horizontal overflow
+  or page errors, plus nine actual viewport chapter captures. The independent
+  Impeccable reviewer found two shared-interior fixes: contain team captions within
+  their rows and make current-page breadcrumbs visible on ivory. Both are patched
+  and verified in replacement captures. The reviewer returned **ship** for these
+  two scored corrections; this is a scoped visual verdict, not user approval.
+- DESIGN.md, PRODUCT.md, the version-2 sidecar, surface brief, ENG-023 decision,
+  media manifest and feature note are current. The scoped detector reports no
+  primary findings and 65 advisories (63 type-ramp, two header-color values),
+  preserved rather than represented as a clean scan. React review retains isolated
+  client behavior, cleaned-up observers/listeners and static preference fallbacks.
+- Final local demo is running and open in the app at http://127.0.0.1:3211/en;
+  the same final build serves /ar. The marked review tab remains available.
+  Final `git diff --check` passed; only Git line-ending normalization warnings
+  were printed, with no whitespace errors.
+- Original checkout preserved; uncommitted local demo remains on
+  `codex/msrc-design-engineering`. No push, merge, hosting, media-registry promotion,
+  workflow opening, database/settings/DNS change or participant communication.
+  Public reuse clearance for the supplied city source is a separate release gate.
+- Physical Safari/Firefox, native-reader Arabic approval, human screen-reader UAT
+  and measured performance are **NOT TESTED**. Next: requester reviews the local
+  demo at http://127.0.0.1:3211/en or /ar; production remains a separate gated task.
+  IDs: DSN-01/02, CFG-12, ACC-01, LOC-01/03, MED-01/02/03/04, PRV-03.
+  [Feature/evidence](features/editorial-motion-demo.md);
+  [audit and plan](reviews/editorial-motion-revision-brief.md);
+  [visual review](reviews/editorial-finish-review.md).
+
+## 11 October 2026 — Axiom-inspired cinematic demo, ENG-022
+
+- Completed the requester's pinned Axiom revision after the documented audit and
+  prioritized plan. The previous ENG-021 composition below is historical. Preserved
+  MSRC purple/gold/ivory, approved facts/legal copy, EN/AR parity and closed workflows.
+- Fullscreen film and margin-aligned display title, lower-corner countdown, one
+  separating/re-expanding header, Programme day links and all five Participate
+  routes. Our Team replaces Media in the header; native logo navigation reloads home.
+- Added the pausable Brand strip, sticky photographic pathways, visual programme,
+  native speaker/archive rails, illustrative sponsor tiers, improved FAQ and a
+  preference-aware accelerated Jeddah Corniche closing. Shared public interiors
+  now use the same type, spacing and controls. Speaker/team placeholders are
+  explicitly authorized and labeled; no roster or sponsor confirmation is claimed.
+- Real 2026 archive images and licensed city footage have recorded provenance and
+  local-demo scope. All 16 raster assets carry metadata; final hashes and the
+  limits of JPEG comparisons are recorded. No dependency or operational changes.
+- **PASS:** lint, TypeScript, 2,383 unit tests / 59 files and production build with
+  83 static pages (.tools/axiom-final-source-check.log). **PASS:** final production
+  rebuild after scoped About/menu text wrapping (.tools/axiom-review-build.log).
+- Full browser run: **560 passed / 7 failed / 21 intentional skips**, one worker,
+  zero retries. Failed receipts are preserved in .tools/axiom-fourth. The real
+  280px/200% About/menu overflow was fixed; no-JavaScript tests now wait for DOM
+  content rather than unrelated offscreen images, and venue tests reopen the menu
+  after map focus dismisses it. All content/accessibility invariants remain.
+- **PASS:** final affected-file confirmation **71 passed / 4 intentional skips**,
+  zero failures (.tools/axiom-final-confirmation.log); all seven previously failed
+  cases passed. This is a focused confirmation, not a second full-suite claim.
+  Earlier 14-case regression confirmation also passed, including real Jeddah
+  playback/pause, motion/data-saving fallbacks, extreme reflow and forced colors.
+- **PASS:** 11 final EN/AR desktop/mobile captures, zero width overflow/page errors,
+  plus rendered archive-contrast evidence. The independent Impeccable reviewer
+  resolved all four scored corrections and returned scoped **ship**. Initial
+  review is preserved. DESIGN.md and its version-2 sidecar reflect the new system.
+  Detector advisories against the superseded design record are documented, not
+  misreported as a clean scan. Final git diff whitespace check passed.
+- Local review links: http://127.0.0.1:3211/en and http://127.0.0.1:3211/ar.
+  The app's automatic URL check blocked reopening its stale error-page tab;
+  direct links and saved screenshot are supplied. The server remains running.
+- Original checkout/user changes preserved; work remains uncommitted on
+  codex/msrc-design-engineering. No push, merge, hosted deployment, production
+  media promotion, database/DNS/settings change, workflow opening or communication.
+- Physical-device Safari/Firefox, native-reader Arabic approval, human screen-reader
+  UAT and measured performance are **NOT TESTED**. Next: requester reviews this
+  local design demo; production release remains a separate gated task.
+  IDs: DSN-01/02, CFG-12, ACC-01, LOC-01/03, MED-01/02/03/04, PRV-03.
+  [Demo/evidence](features/axiom-inspired-demo.md);
+  [audit and prioritized plan](reviews/axiom-inspired-demo-brief.md);
+  [independent review](reviews/axiom-finish-review.md).
+
+## 11 October 2026 — Full public visual overhaul and approval demo
+
+- Combined the preceding audit/refinements with the requester's expanded creative
+  brief. The original audit and expanded prioritized plan preceded source changes.
+  ENG-021 records the local-demo scope; MSRC's purple/gold/ivory identity, approved
+  facts and media, EN/AR parity and closed workflows remain intact.
+- Rebuilt the public composition around large Manrope headings, an ivory ruled
+  masthead, gold event rail, editorial participation rows, coherent programme and
+  interior surfaces, and a grouped dark footer. Calmed decorative motion while
+  retaining native scrolling, keyboard behavior, reduced motion and film controls.
+- **PASS:** final-source `npx --yes pnpm@11.19.0 check` using portable Node24.21.0:
+  zero-warning lint, TypeScript, **2,383 unit tests / 59 files**, production build
+  **79 pages**. Receipt: `design-overhaul-review-demo-check.log`. `git diff --check`
+  passed. No application code changed after this build.
+- **PASS:** seven final EN/AR desktop/phone homepage/programme captures opened and
+  reviewed; captured document/client widths match and console-error arrays are empty.
+  Static captures intentionally use the reduced-motion poster. Independent finish
+  review cleared all three scored corrections with `disposition: ship`, scoped to
+  those fixes; no visible regression was found. User approval remains pending.
+- **PASS:** changed-target Impeccable detector has zero findings; two raster assets
+  have provenance and no missing metadata. JPEG comparisons excluding COM comments
+  prove no other bytes changed. Videos and approved content are unchanged.
+- Recorded the implemented public system in root `DESIGN.md` and the version-2
+  `.impeccable/design.json` companion with nine component previews. JSON parsing and
+  sampled token/source consistency checks passed. Demo status and staff exclusions
+  are explicit; the historical design guide links to the demo's scoped override.
+- **PASS:** final full public browser suite, **505 passed / 29 intentional skips**,
+  zero failures, one worker, zero retries (7.5m). Command:
+  `npx --yes pnpm@11.19.0 test:e2e --workers=1`; receipt:
+  `design-overhaul-e2e-final.log`. All assertions remained intact.
+  Earlier runs and failed receipts remain preserved: 490/15/29,
+  504/1/29, then 504/1/29 (passed/failed/skipped). Layout/contrast failures were fixed.
+  The third run's sole failure was an essential script load with
+  `net::ERR_NO_BUFFER_SPACE`, not the tested filter navigation; it left controls
+  correctly waiting for hydration. Serial execution reduced local contention
+  without adding retries or changing application behavior.
+- Preview routes: `http://127.0.0.1:3211/en` and `/ar`. The demo is local to this
+  computer and pending requester approval. Uncommitted work is in the attached
+  `codex/msrc-design-engineering` worktree, preserving the original checkout.
+  No dependency, backend, database, DNS, hosted setting, communication, workflow
+  activation or production deployment change.
+- Physical-device Safari/Firefox, human screen-reader review, native-reader approval
+  and measured performance are **NOT TESTED**. Next: requester reviews the demo,
+  then any release follows separately with its remaining UAT/release gates.
+  Requirements: DSN-01/02, ACC-01, LOC-01/02/03, PRG-01, MED-01/04, REL-01.
+  [Demo and evidence](features/public-visual-demo.md);
+  [expanded plan](reviews/visual-overhaul-brief.md);
+  [finish review](reviews/visual-overhaul-finish-review.md);
+  [implemented public design system](../DESIGN.md).
+
+## 11 October 2026 — Public design engineering audit and refinements
+
+- Completed the requested Emil Kowalski/Impeccable audit and prioritized plan before
+  editing. The audit's old source snapshot was reconciled with current main
+  `340e36df20f601c3fa05c4aa82d8f256df7471bc`; implementation uses an isolated worktree,
+  preserving newer confirmed venue, Contact/Privacy/Terms and organizer decisions.
+- Implemented A01–A08: inverse focus, reliable hero background hit areas, visible mobile
+  current-page state, readable compact cards/controls, removal of the fixed page-width
+  floor, early pending programme status and independent film recovery centering.
+  Routine pointer menu/arrival/reveal motion is shorter; keyboard arrival is immediate,
+  interruption/reduced-motion handling is explicit, and touch avoids decorative hover.
+  Existing ORG-012 title/hero scenes and current header behavior remain. ENG-020 records
+  the exact values without inventing organizer or release approval.
+- **PASS:** `npx --yes pnpm@11.19.0 check` with portable Node24.21.0: zero-warning lint,
+  route types/TypeScript, **2,383 unit tests / 59 files**, production build generating
+  **79 pages** (`design-check.log`). Scoped catalogue/readability ESLint and scoped
+  `git diff --check` also passed. These are fresh local checks, distinct from historical CI.
+- **PASS:** final lint/build after the wrapping correction; full public browser suite
+  **505 passed / 29 intentional skips**, zero failures, retries 0 (`design-e2e-final.log`).
+  The first run's one enlarged-text overflow was traced to an unbreakable card word;
+  fixed with natural word wrapping, retaining the assertion and failure receipts.
+  EN/AR desktop/phone and Arabic tablet visual checks passed for inspected views;
+  classic-scrollbar client/scroll widths both measured 305px at a 320px viewport.
+  English/Arabic programme screenshots are saved in the feature note. Impeccable's
+  seven existing semantic notice-border warnings are triaged there. Physical devices,
+  Safari/Firefox, human screen readers and measured performance are **NOT TESTED**.
+- No dependency, database/migration, hosted setting, DNS, real communication, workflow
+  opening or production deployment change. Uncommitted changes are on
+  `codex/msrc-design-engineering` in the attached worktree. Next: review the bounded
+  delta and complete physical-device/assistive-technology UAT before release. Requirements: DSN-01/02,
+  ACC-01, LOC-01/02/03, PRG-01, MED-01/04, REL-01. Full scope and evidence:
+  [feature note](features/design-engineering-refinements.md);
+  [audit and plan](reviews/design-engineering-audit-2026-10-11.md).
+
 ## 8 October 2026 — Staff handoff reconciled after organizer merges
 
 GitHub confirms #51 and #52 are merged. Current main is

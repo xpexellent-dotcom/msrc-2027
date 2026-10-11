@@ -63,12 +63,13 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} confirmed dates remain readable without JavaScript`, async ({ browser, baseURL }) => {
     const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
     const page = await context.newPage();
-    await page.goto(`/${locale}`);
+    // The server-rendered date fallback does not depend on offscreen gallery image loading.
+    await page.goto(`/${locale}`, { waitUntil: "domcontentloaded" });
     const countdown = page.locator('[data-countdown="dates"]');
     await expect(countdown).toBeVisible();
     await expect(countdown).toContainText(locale === "ar" ? /٢٧.*٢٨ يناير ٢٠٢٧/ : /27.*28 January 2027/);
     await expect(countdown.locator(".countdown-number")).toHaveCount(0);
-    for (const path of ["about", "dates-venue"]) {
+    for (const path of ["participate", "dates-venue"]) {
       expect((await page.goto(`/${locale}/${path}`))?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await expect(page.getByRole("main")).toContainText(locale === "ar" ? /٢٧.*يناير ٢٠٢٧/ : /27.*January 2027/);

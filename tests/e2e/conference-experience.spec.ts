@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { languageLink } from "./helpers/header-navigation";
 
 // SCP-02/03/05, PRG-01, WKS-01/02, LOC-01/02/03, MED-01/02/04,
 // CMS-03/04, ACC-01: public information remains distinct from operational
@@ -12,20 +13,41 @@ const routes = [
 const journeys = ["registration", "submissions", "hackathon", "workshops", "3mt"] as const;
 
 async function expectNoHorizontalOverflow(page: Page) {
-  const widths = await page.evaluate(() => ({
-    content: document.documentElement.scrollWidth,
-    viewport: document.documentElement.clientWidth,
-  }));
-  expect(widths.content).toBeLessThanOrEqual(widths.viewport);
+  const widths = await page.evaluate(() => {
+    const viewport = document.documentElement.clientWidth;
+    const content = document.documentElement.scrollWidth;
+    return {
+      content, viewport, route: location.pathname, rootFont: getComputedStyle(document.documentElement).fontSize,
+      // Native rails intentionally contain offscreen cards. Report escaping page
+      // controls/containers instead, so a failed reflow assertion identifies its cause.
+      offenders: content <= viewport ? [] : [...document.querySelectorAll<HTMLElement>("main *, .site-header-inner, .wordmark, .menu-toggle")]
+        .filter((element) => !element.closest(".rail-track") && element.getClientRects().length)
+        .map((element) => {
+          const box = element.getBoundingClientRect();
+          return { selector: element.id ? `#${element.id}` : `${element.tagName.toLowerCase()}.${String(element.className).trim().replace(/\s+/g, ".")}`,
+            left: box.left, right: box.right, width: box.width, scrollWidth: element.scrollWidth, clientWidth: element.clientWidth };
+        })
+        .filter((element) => element.left < -1 || element.right > viewport + 1 || element.scrollWidth > element.clientWidth + 1)
+        .slice(0, 20),
+    };
+  });
+  expect(widths.content, JSON.stringify(widths, null, 2)).toBeLessThanOrEqual(widths.viewport);
 }
 
-async function followHeaderDestination(page: Page, href: string) {
+async function followPublicDestination(page: Page, href: string) {
+  if (href.endsWith("/media")) {
+    // Media remains a real footer destination after Our Team replaced it in the header.
+    await page.getByRole("contentinfo").locator(`a[href="${href}"]`).click();
+    return;
+  }
   const toggle = page.locator(".menu-toggle");
   if (await toggle.isVisible()) {
     await toggle.click();
     await page.locator(".mobile-menu").locator(`a[href="${href}"]`).click();
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
   } else {
+    await page.locator(".axiom-header .wordmark").hover();
+    await expect(page.locator(".axiom-header")).toHaveAttribute("data-compact", "false");
     await page.locator(".desktop-nav").locator(`a[href="${href}"]`).click();
   }
 }
@@ -125,12 +147,12 @@ for (const locale of ["en", "ar"] as const) {
     expect(new URL(page.url()).searchParams.get("day")).toBe("day2");
     expect(new URL(page.url()).searchParams.get("q")).toBe("unmatched scientific session");
     const otherLocale = locale === "en" ? "ar" : "en";
-    await page.getByRole("link", { name: otherLocale === "ar" ? "View this page in Arabic" : "View this page in English" }).click();
+    await (await languageLink(page, otherLocale === "ar" ? "View this page in Arabic" : "View this page in English")).click();
     await expect(page).toHaveURL(new RegExp(`/${otherLocale}/program(?:\\?|$)`));
     await expect(page.locator("html")).toHaveAttribute("lang", otherLocale);
     await expect(page.getByTestId("program-search")).toHaveValue("unmatched scientific session");
     await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
-    await page.getByRole("link", { name: locale === "ar" ? "View this page in Arabic" : "View this page in English" }).click();
+    await (await languageLink(page, locale === "ar" ? "View this page in Arabic" : "View this page in English")).click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/program(?:\\?|$)`));
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(search).toHaveValue("unmatched scientific session");
@@ -164,7 +186,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(new URL(page.url()).searchParams.get("edition")).toBe("2026");
     expect(new URL(page.url()).searchParams.get("q")).toBe("a recording that does not exist");
     const otherLocale = locale === "en" ? "ar" : "en";
-    await page.getByRole("link", { name: otherLocale === "ar" ? "View this page in Arabic" : "View this page in English" }).click();
+    await (await languageLink(page, otherLocale === "ar" ? "View this page in Arabic" : "View this page in English")).click();
     await expect(page.getByTestId("media-search")).toHaveValue("a recording that does not exist");
     await expect(page.getByTestId("media-edition")).toHaveValue("2026");
     await expect(page.getByTestId("media-catalogue").locator("video, iframe, audio, .conference-media-card")).toHaveCount(0);
@@ -182,7 +204,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByTestId("program-day-day2").click();
     await page.getByTestId("program-search").fill("selected programme query");
     expect(new URL(page.url()).searchParams.get("q")).toBe("selected programme query");
-    await followHeaderDestination(page, `/${locale}/program`);
+    await followPublicDestination(page, `/${locale}/program`);
     await expect(page).toHaveURL(new RegExp(`/${locale}/program$`));
     await expect(page.getByTestId("program-search")).toHaveValue("");
     await expect(page.getByTestId("program-day-all")).toHaveAttribute("aria-pressed", "true");
@@ -195,7 +217,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByTestId("media-kind").selectOption("recording");
     await page.getByTestId("media-search").fill("selected media query");
     expect(new URL(page.url()).searchParams.get("q")).toBe("selected media query");
-    await followHeaderDestination(page, `/${locale}/media`);
+    await followPublicDestination(page, `/${locale}/media`);
     await expect(page).toHaveURL(new RegExp(`/${locale}/media$`));
     await expect(page.getByTestId("media-search")).toHaveValue("");
     await expect(page.getByTestId("media-edition")).toHaveValue("all");
@@ -216,7 +238,7 @@ for (const locale of ["en", "ar"] as const) {
         await page.getByTestId("media-kind").selectOption("recording");
         await page.getByTestId("media-search").fill("speaker & topic");
       }
-      const language = page.getByRole("link", { name: otherLocale === "ar" ? "View this page in Arabic" : "View this page in English" });
+      const language = await languageLink(page, otherLocale === "ar" ? "View this page in Arabic" : "View this page in English");
       await expect.poll(async () => {
         const href = await language.getAttribute("href");
         if (!href) return null;
@@ -273,10 +295,13 @@ for (const locale of ["en", "ar"] as const) {
     }
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
-    await page.locator(`a[href="/${locale}/participate#three-minute-thesis"]`).click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/participate#three-minute-thesis$`));
+    await page.locator(`.pathway-card a[href="/${locale}/3mt"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/3mt$`));
+    await expect(page.getByTestId("journey-closed")).toBeVisible();
+    await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);
+    // Existing shared participation fragments still lead to the real thesis section.
+    await page.goto(`/${locale}/participate#three-minute-thesis`);
     const thesis = page.locator("#three-minute-thesis");
-    await expect(thesis).toBeFocused();
     await expect(thesis).toBeInViewport();
     await thesis.getByRole("heading").getByRole("link").click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/3mt$`));
@@ -319,7 +344,7 @@ test("floating mobile navigation supports keyboard dismissal, current page and l
     await expect(menu).toHaveCount(0);
     await expect(toggle).toBeFocused();
     const nextLocale = locale === "en" ? "ar" : "en";
-    const language = page.getByRole("link", { name: nextLocale === "ar" ? "View this page in Arabic" : "View this page in English" });
+    const language = await languageLink(page, nextLocale === "ar" ? "View this page in Arabic" : "View this page in English");
     await language.focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(new RegExp(`/${nextLocale}/program\\?view=review#main-content$`));

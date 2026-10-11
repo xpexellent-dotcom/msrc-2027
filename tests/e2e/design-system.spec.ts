@@ -1,3 +1,4 @@
+import { languageLink } from "./helpers/header-navigation";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -54,7 +55,7 @@ for (const locale of ["en", "ar"] as const) {
     await example.selectOption("research-question");
     const scientificTitle = await title.inputValue();
     expect(scientificTitle).toMatch(/synthetic/i);
-    await page.getByRole("link", { name: locale === "ar" ? "View this page in English" : "View this page in Arabic" }).click();
+    await (await languageLink(page, locale === "ar" ? "View this page in English" : "View this page in Arabic")).click();
     const nextLocale = locale === "ar" ? "en" : "ar";
     await expect(page).toHaveURL(new RegExp(`/${nextLocale}/design-system$`));
     await expect(example).toHaveValue("research-question");
@@ -84,16 +85,14 @@ test("disabled and loading demonstrations cannot trigger operations", async ({ p
   }
   await page.goto("/en");
   const action = page.locator(".header-primary-action");
-  await expect(action).toHaveAttribute("href", "/en/participate");
+  await expect(action).toHaveAttribute("href", "/en/registration");
   if (await action.isVisible()) await action.click();
   else {
     await page.locator(".menu-toggle").click();
-    await page.locator(".mobile-menu").locator('a[href="/en/participate"]').click();
+    await page.locator(".mobile-menu").locator('a[href="/en/registration"]').click();
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
   }
-  await expect(page).toHaveURL(/\/en\/participate$/);
-  await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);
-  await page.getByRole("main").locator('a[href="/en/registration"]').first().click();
+  await expect(page).toHaveURL(/\/en\/registration$/);
   await expect(page.getByTestId("journey-closed")).toBeVisible();
   await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);
   expect(writes).toEqual([]);

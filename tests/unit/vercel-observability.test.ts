@@ -16,17 +16,18 @@ describe("pageAddress", () => {
 
 // Only public information pages are counted; anything else, including future private areas, is not.
 describe("isCountedPage", () => {
-  it.each(["/en", "/ar/", "/en/about", "/ar/dates-venue", "/en/media", "/ar/program/opening-keynote", "/en/speakers/a-speaker"])("counts %s", (path) => {
+  it.each(["/en", "/ar/", "/en/participate", "/ar/dates-venue", "/en/media", "/ar/program/opening-keynote", "/en/speakers/a-speaker"])("counts %s", (path) => {
     expect(isCountedPage(path)).toBe(true);
   });
 
-  it.each(["/", "/fr/about", "/en/design-system", "/en/hero-preview", "/en/account", "/ar/review/123", "/en/organizer", "/api/health", "/en/about/extra", "/en/media/clip", "/en/program/a/b", "/en/staff", "/ar/staff/people", "/en/staff/accept-invitation"])("skips %s", (path) => {
+  it.each(["/", "/fr/about", "/en/about", "/ar/about", "/en/design-system", "/en/hero-preview", "/en/account", "/ar/review/123", "/en/organizer", "/api/health", "/en/about/extra", "/en/media/clip", "/en/program/a/b", "/en/staff", "/ar/staff/people", "/en/staff/accept-invitation"])("skips %s", (path) => {
     expect(isCountedPage(path)).toBe(false);
   });
 
   it("requires an explicit analytics decision for every new public page folder", () => {
     // BL-PUB-06/08 keep contact and legal drafts outside analytics/Speed Insights.
-    const excluded = ["contact", "privacy", "terms"];
+    // ENG-022: illustrative Team/Sponsors pages stay outside analytics for this demo.
+    const excluded = ["contact", "privacy", "terms", "team", "sponsors"];
     const folders = readdirSync("src/app/[locale]/(preview)", { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
     const missing = folders.filter((folder) => !(countedSections as readonly string[]).includes(folder) && !excluded.includes(folder));
     expect(missing, "New public page: explicitly decide whether it may be counted").toEqual([]);

@@ -69,7 +69,7 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     scheduleEyebrow: "3 / The next details",
     scheduleTitle: "Session times will follow.",
     scheduleBody: "Session times, doors and rooms will be announced. Explore the conference experience.",
-    program: "Explore the programme overview",
+    program: "Explore the program overview",
     closed: "Registration not open yet",
   },
   ar: {

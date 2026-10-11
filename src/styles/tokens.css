@@ -80,6 +80,7 @@
   --motion-feedback: 180ms;
   --motion-reveal: 400ms;
   --motion-easing: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --motion-enter-easing: cubic-bezier(0.23, 1, 0.32, 1);
   --motion-slide-easing: cubic-bezier(0.22, 0.68, 0.3, 1);
   --motion-inline-direction: 1;
   --motion-fill-start: -101%;
@@ -116,3 +117,8 @@
   --font-body: var(--font-inter), Arial, sans-serif;
   --leading-heading: 1.13;
 }
+
+/* The approval demo changes the public identity; restricted staff screens keep
+   their established interface typography and control geometry. */
+html:has(.site-header) { --radius-medium: .25rem; }
+html[lang="en"]:has(.site-header) { --font-heading: var(--font-manrope), var(--font-dm-sans), Arial, sans-serif; }

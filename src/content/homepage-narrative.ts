@@ -3,12 +3,12 @@ import type { Locale } from "@/lib/i18n";
 // SCP-01/02, PRG-01, MED-01/04, CFG-12. Proposed copy; no invented programme or roster.
 export const homepageNarrative = {
   en: {
-    identity: "MSRC 2027", programmeAction: "Explore the programme", participationAction: "Ways to participate",
+    identity: "MSRC 2027", programmeAction: "Explore the program", participationAction: "Ways to participate",
     scroll: "Step inside", dateNote: "Two days in Jeddah. A new chapter in student research.",
     organizer: "Organized by the Research Principles Club, Faculty of Medicine, King Abdulaziz University.",
     community: "Medical students, researchers, clinicians and academic faculty. Together to share research, learn practical skills and develop ideas that can improve healthcare.",
     pathwayLink: "Explore this pathway", threeMinute: "Postgraduate researcher? Explore the Three Minute Thesis pathway.",
-    programmeLink: "Browse the programme", programmeStatus: "Programme to be announced", programmeNote: "Session times, rooms and speakers will appear here when confirmed.",
+    programmeLink: "Browse the program", programmeStatus: "Program to be announced", programmeNote: "Session times, rooms and speakers will appear here when confirmed.",
     speakersEyebrow: "4 / People & perspectives", speakersTitle: "Meet the\nspeakers.",
     speakersBody: "Meet the researchers, clinicians, and educators joining MSRC 2027. The speaker lineup will be announced here.",
     speakersPending: "Speaker lineup to be announced", speakersLink: "Meet the speakers", portraitLabel: "MSRC / PERSPECTIVES",

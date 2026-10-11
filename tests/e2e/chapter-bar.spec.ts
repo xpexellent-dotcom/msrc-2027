@@ -1,56 +1,60 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { prepareHeroCue } from "./helpers/hero-navigation";
 
-// From 1100px the chapter index is a bar that sticks under the floating header. Below that it
-// is not shown (ORG-010): phones announce each chapter with its title (chapter-titles.spec.ts).
+// The Axiom demo replaces the chapter bar with the shared masthead and a native hero cue.
+// Keep the destination, focus, history and readable section hierarchy covered on every device.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} chapter bar follows the reader and jumps in one click`, async ({ page, isMobile }) => {
-    test.skip(isMobile, "Phones have no chapter bar.");
+  test(`${locale} the hero cue reaches practical details while ordinary scrolling stays native`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}`);
-    await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before", { timeout: 15_000 });
-    const bar = page.locator(".section-journey");
-    const current = () => page.evaluate(() => document.querySelector('.section-journey-links a[aria-current="location"]')?.getAttribute("href") ?? null);
+    await expect(page.locator(".section-journey")).toHaveCount(0);
+    const cue = await prepareHeroCue(page);
+    await expect(cue).toBeVisible();
+    expect((await cue.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    await cue.click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}#essentials$`));
+    const details = page.locator("#essentials");
+    await expect(details).toBeFocused();
+    await expect(details).toBeInViewport();
+    await expect(details.locator("dt")).toHaveCount(2);
+    await expect(details.locator("dd").first()).toHaveText(/2027|٢٠٢٧/);
+    expect((await new AxeBuilder({ page }).include("#essentials")
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
+    const position = await page.evaluate(() => window.scrollY);
+    await page.keyboard.press("PageDown");
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(position);
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(`/${locale}$`));
+    await expect(page.locator("#hero-title")).toBeVisible();
 
-    await page.evaluate(() => document.getElementById("participate")!.scrollIntoView({ block: "start" }));
-    await expect(bar).toBeInViewport();
-    await expect.poll(current).toBe("#participate");
-    expect((await new AxeBuilder({ page }).include(".section-journey").withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
-
-    // One click; the underline goes straight to the destination, not through each chapter between.
-    await page.evaluate(() => {
-      const readCurrent = () => document.querySelector('.section-journey-links a[aria-current="location"]')?.getAttribute("href") ?? "";
-      // Capture the actual starting state before a fast click can beat the first interval tick.
-      const seen: string[] = [readCurrent()];
-      Object.assign(window, { chapterTrail: seen });
-      const timer = setInterval(() => seen.push(readCurrent()), 25);
-      setTimeout(() => clearInterval(timer), 1500);
-    });
-    await bar.locator('a[href="#legacy"]').click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}#legacy$`));
-    await expect(page.locator("#legacy")).toBeFocused();
-    await page.waitForTimeout(1600);
-    expect(await page.evaluate(() => [...new Set((window as unknown as { chapterTrail: string[] }).chapterTrail)])).toEqual(["#participate", "#legacy"]);
-    await expect(bar).toBeInViewport();
-    expect(await current()).toBe("#legacy");
-
-    // Tablets have neither the bar nor the phone title transition.
     await page.setViewportSize({ width: 820, height: 1180 });
-    await expect(bar).toBeHidden();
+    await expect(page.locator(".section-journey")).toHaveCount(0);
   });
-}
 
-// Every chapter's number matches its section's eyebrow: before the Partners chapter, "Plan your
-// visit" had a different number in the bar and in the page eyebrow.
-for (const locale of ["en", "ar"] as const) {
-  test(`${locale} chapter numbers match the section eyebrows`, async ({ page }) => {
+  test(`${locale} homepage sections retain ordered headings and five distinct participation destinations`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
-    const pairs = await page.locator(".section-journey-links > a").evaluateAll((links) => links.map((link) => {
-      const id = link.getAttribute("href")!.slice(1);
-      return { id, chip: link.querySelector(".chapter-number")!.textContent, eyebrow: (document.querySelector(`#${id} .eyebrow`)?.textContent ?? "").split("/")[0].trim() };
-    }));
-    expect(pairs.map((pair) => pair.id)).toEqual(["about", "participate", "program", "speakers", "legacy", "partners", "faq"]);
-    expect(pairs.map((pair) => pair.chip)).toEqual(locale === "en" ? ["1", "2", "3", "4", "5", "6", "7"] : ["١", "٢", "٣", "٤", "٥", "٦", "٧"]);
-    for (const pair of pairs) expect(pair.chip, pair.id).toBe(pair.eyebrow);
+    const ids = ["participate", "program", "speakers", "legacy", "venue", "faq"];
+    await expect(page.locator(".section-journey, .homepage-journey .chapter-number")).toHaveCount(0);
+    const sections = page.locator(ids.map((id) => `section#${id}`).join(", "));
+    expect(await sections.evaluateAll((elements) => elements.map((element) => element.id))).toEqual(ids);
+    for (const id of ids) {
+      const section = page.locator(`section#${id}`);
+      const heading = section.getByRole("heading", { level: 2 });
+      await expect(heading).toHaveCount(1);
+      await expect(heading).toBeVisible();
+      await expect(heading).toHaveAccessibleName(/\S+/);
+      await expect(heading).toHaveAttribute("id", /\S+/);
+      await expect(section).toHaveAttribute("aria-labelledby", (await heading.getAttribute("id"))!);
+    }
+    const pathways = page.locator(".pathway-card .pathway-action");
+    await expect(pathways).toHaveCount(5);
+    expect(await pathways.evaluateAll((links) => links.map((link) => link.getAttribute("href"))))
+      .toEqual(["registration", "submissions", "workshops", "hackathon", "3mt"].map((path) => `/${locale}/${path}`));
+    await expect(page.locator(".pathways-archive-note")).toHaveCount(0);
+    await expect(page.locator(".hero-countdown [data-countdown]")).toHaveCount(1);
+    await expect(page.locator("#essentials [data-countdown]")).toHaveCount(0);
   });
 }

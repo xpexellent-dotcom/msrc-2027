@@ -1,20 +1,30 @@
+import Image from "next/image";
 import { HeroMedia } from "@/components/hero-media";
+import { HeroScrollStage } from "@/components/hero-scroll-stage";
 import { CinematicFilm, CinematicFilmLink } from "@/components/cinematic-film";
 import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { SectionJourney } from "@/components/section-journey";
 import { ScrollScenes } from "@/components/scroll-scenes";
 import { ConferenceCountdown } from "@/components/conference-countdown";
 import { Reveal } from "@/components/ui/reveal";
-import { ResearchVisual } from "@/components/research-visual";
-import { FlowLines } from "@/components/brand/flow-lines";
+import { HorizontalRail } from "@/components/horizontal-rail";
+import { ClosingCity } from "@/components/closing-city";
+import { PortraitPlaceholder } from "@/components/portrait-placeholder";
+import { ResearchArtwork } from "@/components/research-artwork";
+import { HistoryNumbers } from "@/components/history-numbers";
+import { SpeakerAtmosphere } from "@/components/speaker-atmosphere";
+import { AmbientArtwork } from "@/components/ambient-artwork";
+import { BenefitArtwork } from "@/components/benefit-artwork";
+import { PathwayTrackNav } from "@/components/pathway-track-nav";
+import { conferenceExpectations } from "@/content/conference-expectations";
 import { conferenceConfig } from "@/config/conference";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
 import { homepageNarrative } from "@/content/homepage-narrative";
-import { formatIndex, formatYear, type Locale } from "@/lib/i18n";
+import { cinematicCopy, demoImages } from "@/content/cinematic-demo";
+import type { Locale } from "@/lib/i18n";
 import type { PreviewHeroVideo } from "@/lib/media-policy";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 
@@ -24,95 +34,133 @@ const Arrow = () => <svg className="directional-arrow" aria-hidden="true" focusa
 export function HomePageContent({ locale, media }: { locale: Locale; media?: HomepageMediaPreview }) {
   const copy = homepageCopy[locale];
   const narrative = homepageNarrative[locale];
+  const demo = cinematicCopy[locale];
+  const expectations = conferenceExpectations[locale];
   const dates = conferenceConfig.dates;
   const dateRange = dates ? formatConferenceDateRange(dates, locale) : copy.pending;
-  return <div className="homepage-journey">
+  const pathways = [...copy.pathways, demo.threeMinute];
+
+  return <div className="homepage-journey cinematic-home editorial-motion-home">
+    <HeroScrollStage>
     <section id="top" tabIndex={-1} className="conference-hero" aria-labelledby="hero-title">
       <HeroMedia locale={locale} video={media?.video ?? homepageAssets.heroVideo} posterSrc={media?.poster ?? homepageAssets.heroPoster} allowPreview={Boolean(media)} playbackPolicy="respect-preferences" controlsMode="video">
         <Container className="hero-content">
-          <div className="hero-layout">
-            <div className="hero-editorial">
-              <p className="hero-topline"><span>{copy.kicker}</span></p>
-              <h1 id="hero-title"><span>{copy.title[0]}</span>{" "}<span>{copy.title[1]}</span></h1>
+          <div className="hero-layout"><div className="hero-editorial">
+            <h1 id="hero-title"><span>{copy.title[0]}</span>{" "}<span>{copy.title[1]}</span></h1>
+            <p className="hero-conference-name">{copy.kicker}</p>
+          </div></div>
+          <div className="hero-bottom-grid">
+            <div className="hero-introduction">
               <p className="hero-lead">{copy.lead}</p>
               <p className="hero-location"><span>{dateRange}</span><span aria-hidden="true">·</span><span>{copy.city}</span></p>
               <div className="hero-actions">
-                <ButtonLink href={`/${locale}/program`} variant="gold">{narrative.programmeAction}<Arrow /></ButtonLink>
-                <Link className="hero-secondary" href={`/${locale}/participate`}>{narrative.participationAction}<Arrow /></Link>
+                <ButtonLink href={`/${locale}/registration`} variant="gold">{demo.join}<Arrow /></ButtonLink>
+                <Link className="hero-secondary" href={`/${locale}/program`}>{narrative.programmeAction}<Arrow /></Link>
               </div>
             </div>
+            {dates && <div className="hero-countdown"><ConferenceCountdown dates={dates} locale={locale} dateRange={dateRange} /></div>}
           </div>
           <div className="hero-bottom">
-            {/* ORG-007: one centred cue that glides to the next section; reduced motion jumps. */}
             <Link href="#essentials" className="hero-scroll">{narrative.scroll}<span className="scroll-line" aria-hidden="true" /></Link>
-            {media?.caption ? <span className="hero-caption">{media.caption}</span> : null}
           </div>
         </Container>
       </HeroMedia>
       <CinematicFilm locale={locale} />
     </section>
-    <section id="essentials" tabIndex={-1} className="date-band" aria-labelledby="event-details-title">
-      <Container className="date-band-inner">
-        <div>
-          <p className="eyebrow" id="event-details-title">{copy.editionLabel}</p>
-          <dl id="event-details" tabIndex={-1} className="event-strip">
-            <div><dt>{copy.dateLabel}</dt><dd>{dateRange}</dd></div>
-            <div><dt>{copy.venueLabel}</dt><dd>{conferenceConfig.venue?.name[locale] ?? copy.pending}</dd></div>
-          </dl>
-        </div>
-        {dates && <ConferenceCountdown dates={dates} locale={locale} dateRange={dateRange} />}
-      </Container>
+    </HeroScrollStage>
+    <div className="homepage-content-sheet">
+    <section id="essentials" tabIndex={-1} className="date-band" aria-label={copy.editionLabel}>
+      <Container className="date-band-inner"><dl id="event-details" tabIndex={-1} className="event-strip">
+        <div><dt>{copy.dateLabel}</dt><dd>{dateRange}</dd></div>
+        <div><dt>{copy.venueLabel}</dt><dd>{conferenceConfig.venue?.name[locale] ?? copy.pending}</dd></div>
+      </dl></Container>
     </section>
-    <SectionJourney locale={locale} />
     <ScrollScenes />
-    <section id="about" tabIndex={-1} className="editorial-section intro-section" aria-labelledby="about-title">
-      <Container><Reveal className="intro-grid" stagger>
-        <div><SectionHeading chapter eyebrow={copy.aboutEyebrow} title={copy.aboutTitle} id="about-title" /></div>
-        <div className="intro-body"><p className="intro-statement">{narrative.community}</p><p>{narrative.organizer}</p><div className="intro-visual"><FlowLines /><ResearchVisual className="intro-research-mark" /><span aria-hidden="true" className="visual-edition">{formatIndex(5, locale)}</span></div></div>
-      </Reveal></Container>
-    </section>
+
     <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
-      <Container>
-        <Reveal className="section-introduction"><SectionHeading chapter eyebrow={copy.pathwaysEyebrow} title={copy.pathwaysTitle} id="pathways-title" /></Reveal>
-        <Reveal className="pathway-list" stagger>{copy.pathways.map((pathway, index) => <article className="pathway-row" key={pathway.category}>
-          <div className="pathway-card-top"><span className="pathway-number">{formatIndex(index + 1, locale)}</span><ResearchVisual variant={index} className="pathway-visual" /></div>
-          <div className="pathway-title"><p>{pathway.category}</p><h3>{pathway.title}</h3></div>
-          <p className="pathway-description">{pathway.description}</p>
-          <div className="pathway-card-bottom"><StatusBadge tone="neutral">{copy.closed}</StatusBadge><Link href={`/${locale}${pathway.href}`} aria-label={`${narrative.pathwayLink}: ${pathway.category}`}><Arrow /></Link></div>
-        </article>)}</Reveal>
-        <Link className="pathways-extra" href={`/${locale}/participate#three-minute-thesis`}>{narrative.threeMinute}<Arrow /></Link>
+      <AmbientArtwork variant="paths" />
+      <Container className="pathways-layout">
+        <div className="pathways-introduction">
+          <SectionHeading chapter title={copy.pathwaysTitle} accents={locale === "ar" ? ["مسارك.", "مسارك"] : ["path.", "path"]} id="pathways-title" />
+          <p>{copy.pathwaysBody}</p>
+          <PathwayTrackNav locale={locale} tracks={pathways.map((pathway) => ({ id: `pathway-${pathway.href.slice(1)}`, label: pathway.href === "/3mt" ? "3MT" : pathway.category }))} />
+          <Link className="editorial-action" href={`/${locale}/participate`}>{demo.pathwaysLink}<Arrow /></Link>
+        </div>
+        <div className="pathway-list">{pathways.map((pathway, index) => <article className="pathway-card" key={pathway.href} data-pathway={pathway.href} id={`pathway-${pathway.href.slice(1)}`} tabIndex={-1}>
+          <div className="pathway-photo"><Image src={demoImages.pathways[index]} alt="" fill sizes="(max-width: 760px) 960px, (max-width: 1400px) 100vw, 1450px" /></div>
+          <div className="pathway-card-body">
+            <h3>{pathway.title}</h3>
+            <div className="pathway-category"><span>{pathway.category}</span><StatusBadge tone="neutral">{copy.closed}</StatusBadge></div>
+            <p className="pathway-description">{pathway.description}</p>
+            <Link className="pathway-action" href={`/${locale}${pathway.href}`} aria-label={`${narrative.pathwayLink}: ${pathway.category}`}><Arrow /></Link>
+          </div>
+        </article>)}</div>
       </Container>
     </section>
+
     <section id="program" tabIndex={-1} className="editorial-section program-section" aria-labelledby="program-title">
-      <FlowLines className="program-flow" />
-      <Container><Reveal className="program-grid" stagger>
-        <div><SectionHeading chapter eyebrow={copy.programEyebrow} title={copy.programTitle} id="program-title" inverse /><ButtonLink className="program-link" href={`/${locale}/program`} variant="gold">{narrative.programmeLink}<Arrow /></ButtonLink></div>
-        <div className="program-list"><p className="program-pending">{narrative.programmeStatus}</p>{copy.programRows.map((row, index) => <article className="program-row" key={row.format}>
-          <div className="program-row-top"><span>{row.format}</span><span aria-hidden="true">{formatIndex(index + 1, locale)}</span></div><h3>{row.title}</h3><p>{row.description}</p>
-        </article>)}<p className="program-note">{narrative.programmeNote}</p></div>
-      </Reveal></Container>
+      <AmbientArtwork variant="benefits" />
+      <Container>
+        <Reveal className="program-opening" stagger>
+          <SectionHeading chapter title={expectations.title} accents={locale === "ar" ? ["بفضولك.", "إمكاناتك."] : ["curiosity.", "possibility."]} id="program-title" />
+          <div><p>{expectations.introduction}</p><Link className="editorial-action" href={`/${locale}/program`}>{expectations.link}<Arrow /></Link></div>
+        </Reveal>
+        <div className="expectations-layout">
+          <ResearchArtwork locale={locale} />
+          <div className="program-experiences">{expectations.benefits.map((benefit, index) => <article className="benefit-card" key={benefit.title}><BenefitArtwork index={index} locale={locale} /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.body}</p></div></article>)}</div>
+        </div>
+      </Container>
     </section>
+
     <section id="speakers" tabIndex={-1} className="editorial-section speakers-section" aria-labelledby="speakers-title">
-      <Container><Reveal className="speakers-editorial" stagger>
-        <div className="speaker-identity-art" aria-hidden="true"><FlowLines /><span dir="ltr">MSRC<br/>2027</span><p>{narrative.portraitLabel}</p></div>
-        <div><SectionHeading chapter eyebrow={narrative.speakersEyebrow} title={narrative.speakersTitle} id="speakers-title" /><p className="announcement-state"><span aria-hidden="true" />{narrative.speakersPending}</p><Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link></div>
-      </Reveal></Container>
+      <SpeakerAtmosphere />
+      <Container>
+        <Reveal className="section-topline" stagger><SectionHeading chapter title={narrative.speakersTitle} accents={locale === "ar" ? ["المتحدثين.", "المتحدثين"] : ["speakers.", "speakers"]} id="speakers-title" /><Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link></Reveal>
+        <p className="section-intro-text">{narrative.speakersBody}</p>
+        <HorizontalRail className="speaker-rail" locale={locale} label={demo.speakerRail}>
+          {[0, 1, 2, 3].map((index) => <article className="speaker-preview-card" key={index}>
+            <div className="speaker-preview-portrait"><PortraitPlaceholder variant={index} /></div>
+            <div className="speaker-preview-content"><h3>{demo.speakerTitle}</h3><p>{demo.speakerPending}</p><Link className="speaker-preview-link" href={`/${locale}/speakers`} aria-label={narrative.speakersLink}><Arrow /></Link></div>
+          </article>)}
+        </HorizontalRail>
+      </Container>
     </section>
+
     <section id="legacy" tabIndex={-1} className="editorial-section legacy-section" aria-labelledby="legacy-title">
-      <Container><Reveal className="legacy-grid" stagger>
-        <div className="legacy-copy"><SectionHeading chapter eyebrow={copy.legacyEyebrow} title={copy.legacyTitle} id="legacy-title" inverse /><p className="legacy-film-note">{narrative.legacyCaption}</p><div className="legacy-links"><CinematicFilmLink locale={locale}>{narrative.filmLink}<Arrow /></CinematicFilmLink></div></div>
-        <div className="legacy-art" aria-hidden="true"><FlowLines /><div className="legacy-art-years" dir="ltr"><span>{formatYear(2026, locale)}</span><span>{formatYear(2027, locale)}</span></div><div className="legacy-art-caption"><span>MSRC</span><span>{copy.legacyArtLabel}</span></div></div>
-      </Reveal></Container>
+      <div className="community-image" aria-hidden="true"><Image src="/media/msrc-demo/community-majed-9804.jpg" alt="" fill sizes="(max-width: 800px) 100vw, 60vw" /></div>
+      <Container>
+        <Reveal className="section-topline" stagger><SectionHeading chapter title={expectations.historyTitle} accents={locale === "ar" ? ["ينمو.", "يجمعنا."] : ["community.", "ambition."]} id="legacy-title" inverse /><Link className="editorial-action" href={`/${locale}/media`}>{expectations.legacyLink}<Arrow /></Link></Reveal>
+        <p className="legacy-film-note">{expectations.historyBody}</p>
+        <HistoryNumbers locale={locale} />
+        <HorizontalRail className="gallery-rail" locale={locale} label={demo.galleryRail}>
+          {demoImages.gallery.map((photo) => <figure className="gallery-card" key={photo.src}>
+            <div className="gallery-photo"><Image src={photo.src} alt={photo.alt[locale]} fill sizes="(max-width: 600px) 84vw, (max-width: 1100px) 62vw, 44vw" /></div>
+            <figcaption><span>{photo.caption[locale]}</span></figcaption>
+          </figure>)}
+        </HorizontalRail>
+        <div className="legacy-links"><CinematicFilmLink locale={locale}>{narrative.filmLink}<Arrow /></CinematicFilmLink></div>
+      </Container>
     </section>
-    <section id="partners" tabIndex={-1} className="editorial-section partners-section" aria-labelledby="partners-title">
-      <Container><Reveal className="partners-grid" stagger><SectionHeading chapter eyebrow={narrative.partnersEyebrow} title={narrative.partnersTitle} id="partners-title" /><p className="announcement-state"><span aria-hidden="true" />{narrative.partnersPending}</p></Reveal></Container>
+
+    <section id="venue" tabIndex={-1} className="editorial-section home-venue-section" aria-labelledby="home-venue-title">
+      <Container>
+        <Reveal className="home-venue-opening" stagger><SectionHeading chapter title={expectations.venueTitle} accents={locale === "ar" ? ["جديدة."] : ["perspectives."]} id="home-venue-title" /><div><h3>{expectations.venueName}</h3><p>{expectations.venueBody}</p><Link className="editorial-action" href={`/${locale}/dates-venue`}>{expectations.venueLink}<Arrow /></Link></div></Reveal>
+        <figure className="home-venue-photo"><Image src="/media/msrc-demo/king-faisal-venue.jpg" alt={expectations.venueAlt} fill sizes="(max-width: 800px) 94vw, 90vw" /><figcaption>{expectations.venueLocation}</figcaption></figure>
+      </Container>
     </section>
+
     <section id="faq" tabIndex={-1} className="editorial-section faq-section" aria-labelledby="practical-title">
-      <Container><div className="faq-grid"><Reveal><SectionHeading chapter eyebrow={narrative.practicalEyebrow} title={narrative.practicalTitle} id="practical-title" /><Link className="date-band-link" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link></Reveal><div className="faq-list" aria-label={narrative.faqLabel}>{narrative.faq.map((faq) => <details className="faq-item" key={faq.question}><summary>{faq.question}<span aria-hidden="true">+</span></summary><p>{faq.answer}</p></details>)}</div></div></Container>
+      <Container><div className="faq-grid">
+        <Reveal className="faq-introduction"><SectionHeading chapter title={narrative.practicalTitle} id="practical-title" /><div className="faq-utility-links"><Link className="editorial-action" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link><Link className="editorial-action" href={`/${locale}/contact`}>{demo.contact}<Arrow /></Link></div></Reveal>
+        <div className="faq-list" aria-label={narrative.faqLabel}>{narrative.faq.map((faq) => <details className="faq-item" key={faq.question}>
+          <summary><span>{faq.question}</span><span className="faq-icon-circle"><svg className="faq-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5v14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg></span></summary><p>{faq.answer}</p>
+        </details>)}</div>
+      </div></Container>
     </section>
-    <section className="closing-section" aria-labelledby="closing-title">
-      <FlowLines />
-      <Container><Reveal className="closing-grid" stagger><div><p className="closing-date">{dateRange} · {copy.city}</p><h2 id="closing-title">{copy.endingTitle}</h2></div><ButtonLink href={`/${locale}/participate`}>{narrative.endingAction}<Arrow /></ButtonLink></Reveal></Container>
-    </section>
+
+    <ClosingCity locale={locale} video={demoImages.closing.video} poster={demoImages.closing.poster}>
+      <Container><Reveal className="closing-grid" stagger><div><h2 id="closing-title">{copy.endingTitle}</h2><p className="closing-date">{dateRange} · {copy.city}</p></div><ButtonLink href={`/${locale}/registration`} variant="gold">{demo.join}<Arrow /></ButtonLink></Reveal></Container>
+    </ClosingCity>
+    </div>
   </div>;
 }

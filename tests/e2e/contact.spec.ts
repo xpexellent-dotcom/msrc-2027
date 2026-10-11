@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { languageLink } from "./helpers/header-navigation";
 
 // BL-PUB-06 / SUP-01–03 / LOC-01 / ACC-01: the form renders, but delivery
 // remains closed. Mapping and server validation have independent unit coverage.
@@ -137,22 +138,26 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(new RegExp(`/${locale}$`));
   });
 
-  test(`${locale} registration stays closed and clearly shows the photography notice`, async ({ page }) => {
+  test(`${locale} registration stays closed with useful preparation and unavailable ticket actions`, async ({ page }) => {
     const notice = locale === "en"
-      ? { heading: "Photography and recording", body: "The conference will be photographed and recorded.", closed: "Registration is not open yet" }
-      : { heading: "التصوير والتسجيل", body: "سيُصوَّر المؤتمر وتُسجَّل فعالياته.", closed: "لم يُفتح التسجيل بعد" };
+      ? { heading: "Make time for both days", body: "The full conference certificate requires both day check-ins and the general survey. Workshop certificates have their own completion requirements.", closed: "Registration is not open yet" }
+      : { heading: "خصص وقتًا لكلا اليومين", body: "تتطلب شهادة حضور المؤتمر كاملًا تسجيل الحضور في اليومين وإكمال الاستبيان العام. لشهادات ورش العمل متطلبات إتمام مستقلة.", closed: "لم يُفتح التسجيل بعد" };
     const writes: string[] = [];
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
     const response = await page.goto(`/${locale}/registration`);
     expect(response?.status()).toBe(200);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByTestId("journey-closed")).toContainText(notice.closed);
-    const photography = page.locator(".journey-guidelines-list article").filter({
+    const preparation = page.locator(".journey-guidelines-list article").filter({
       has: page.getByRole("heading", { level: 3, name: notice.heading, exact: true }),
     });
-    await expect(photography).toHaveCount(1);
-    await expect(photography.getByRole("heading", { level: 3 })).toBeVisible();
-    await expect(photography.locator("p")).toHaveText(notice.body);
+    await expect(preparation).toHaveCount(1);
+    await expect(preparation.getByRole("heading", { level: 3 })).toBeVisible();
+    await expect(preparation.locator("p")).toHaveText(notice.body);
+    await expect(page.getByTestId("ticket-unavailable")).toBeDisabled();
+    await expect(page.getByTestId("brochure-unavailable")).toBeDisabled();
+    await expect(page.locator("#ticket-unavailable-note")).toContainText(locale === "en" ? "confirmed by email" : "البريد الإلكتروني");
+    await expect(page.locator(".journey-steps")).toHaveCount(0);
     await expect(page.locator("main form, main input, main textarea, main select, main button[type=submit]")).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     expect(writes).toEqual([]);
@@ -167,7 +172,7 @@ test("Contact keyboard and language navigation preserve the page and section", a
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
   await page.goto("/en/contact?view=preview#contact-form");
-  const arabic = page.getByRole("link", { name: "View this page in Arabic" });
+  const arabic = await languageLink(page, "View this page in Arabic");
   // The server cannot read fragments. Wait for the hydrated destination before
   // exercising its keyboard handler, as the shared navigation tests do.
   await expect(arabic).toHaveAttribute("href", "/ar/contact?view=preview#contact-form");
@@ -176,7 +181,7 @@ test("Contact keyboard and language navigation preserve the page and section", a
   await expect(page).toHaveURL(/\/ar\/contact\?view=preview#contact-form$/);
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("#contact-form")).toBeInViewport();
-  const english = page.getByRole("link", { name: "View this page in English" });
+  const english = await languageLink(page, "View this page in English");
   await expect(english).toHaveAttribute("href", "/en/contact?view=preview#contact-form");
   await english.focus();
   await page.keyboard.press("Enter");

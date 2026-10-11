@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 // Check the visitor-facing journey, including collapsed FAQ answers and metadata.
 const backOfficeTerms = /approval|approve|discount|موافقة|خصم/i;
 const paddedIndex = /^(?:0[1-9]|٠[١-٩])(?:\s|\/|$)/;
-const pages = ["", "about", "dates-venue", "program", "speakers", "media", "participate", "registration", "submissions", "hackathon", "workshops", "3mt", "contact", "privacy", "terms"];
+const pages = ["", "dates-venue", "program", "speakers", "team", "sponsors", "media", "participate", "registration", "submissions", "hackathon", "workshops", "3mt", "contact", "privacy", "terms"];
 const screenshotPages = ["", "dates-venue", "registration", "workshops"];
 
 for (const locale of ["en", "ar"] as const) {
@@ -19,7 +19,7 @@ for (const locale of ["en", "ar"] as const) {
         const descriptions = await page.locator('meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("content") ?? ""));
         expect(descriptions.join(" "), route).not.toMatch(backOfficeTerms);
       }
-      const paths = page.locator('.pathway-row, .experience-pathway').filter({ has: page.locator('a[href$="/registration"], a[href$="/workshops"]') });
+      const paths = page.locator('.pathway-card, .experience-pathway').filter({ has: page.locator('a[href$="/registration"], a[href$="/workshops"]') });
       const faqs = page.locator('.faq-item').filter({ hasText: locale === "en" ? /registration|workshop/i : /التسجيل|ورشة|ورش/ });
       const relevantCopy = paths.or(faqs);
       if (!route || route === "participate") await expect(paths).toHaveCount(2);
@@ -29,11 +29,13 @@ for (const locale of ["en", "ar"] as const) {
       }
     }
     await page.goto(`/${locale}/registration`);
-    await expect(page.locator(".journey-steps li")).toHaveCount(4);
+    await expect(page.locator(".journey-steps li")).toHaveCount(0);
+    await expect(page.locator(".fluid-requirement-card")).toHaveCount(4);
     await expect(page.locator(".journey-guidelines")).toContainText(locale === "en" ? /email.*confirm|confirm.*email/i : /رسالة.*تأكيد|بريد.*تأكيد|تأكيد.*بريد/);
     await page.goto(`/${locale}/workshops`);
-    await expect(page.locator(".journey-steps li")).toHaveCount(3);
-    await expect(page.locator(".journey-steps")).toContainText(locale === "en" ? /confirmed conference registration/i : /تأكيد تسجيلك في المؤتمر/);
+    await expect(page.locator(".journey-steps li")).toHaveCount(0);
+    await expect(page.locator(".fluid-requirement-card")).toHaveCount(4);
+    await expect(page.locator(".journey-guidelines")).toContainText(locale === "en" ? /confirmed conference registration/i : /تأكيد تسجيلك في المؤتمر/);
   });
 
   test(`${locale} affected pages retain accessible layouts and review screenshots`, async ({ page }, testInfo) => {
@@ -42,7 +44,7 @@ for (const locale of ["en", "ar"] as const) {
       await page.goto(`/${locale}${route ? `/${route}` : ""}`);
       await page.evaluate(() => document.fonts.ready);
       if (!route) {
-        await expect(page.locator(".visual-edition")).toHaveText(locale === "en" ? "5" : "٥");
+        await expect(page.locator(".pathway-card")).toHaveCount(5);
         await expect(page.locator(".event-strip")).toContainText(locale === "en" ? "King Faisal Conference Center" : "مركز الملك فيصل للمؤتمرات");
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
@@ -62,15 +64,17 @@ for (const locale of ["en", "ar"] as const) {
         await page.goto(`/${locale}${route ? `/${route}` : ""}`);
         await page.evaluate(() => document.fonts.ready);
         expect(await page.evaluate(() => document.documentElement.scrollWidth), `${route} at ${width}`).toBeLessThanOrEqual(width);
-        const numbers = page.locator('.eyebrow, .visual-edition, .chapter-number, .experience-pathway-number, .pathway-number, .program-row-top > span:last-child, .journey-guidelines-list > article > span, .journey-steps li > span');
+        const indices = page.locator('.eyebrow, .experience-pathway-number, .journey-guidelines-list > article > span, .journey-steps li > span');
+        const numbers = indices.or(page.locator('.countdown-number, .countdown-time-number'));
         if (route === "program") {
           // The unpublished catalogue has no rows; homepage programme overview
           // rows above are the rendered numbering surface at this stage.
           await expect(page.locator(".conference-session-row")).toHaveCount(0);
-        } else {
+        } else if (!["registration", "workshops"].includes(route)) {
           expect(await numbers.count(), `${route} numbered content`).toBeGreaterThan(0);
         }
-        for (const text of await numbers.allTextContents()) expect(text.trim(), route).not.toMatch(paddedIndex);
+        // Section indices are unpadded; hours, minutes and seconds intentionally use two digits.
+        for (const text of await indices.allTextContents()) expect(text.trim(), route).not.toMatch(paddedIndex);
         const clipped = await numbers.evaluateAll((elements) => elements.some((element) => {
           if (!element.getClientRects().length) return false;
           const range = document.createRange(); range.selectNodeContents(element);

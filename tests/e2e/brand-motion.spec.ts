@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { languageLink } from "./helpers/header-navigation";
+import { clickHeroCue, prepareHeroCue } from "./helpers/hero-navigation";
 
 declare global {
   interface Window {
@@ -36,6 +38,7 @@ async function headerNavigation(page: Page) {
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
     return page.locator(".mobile-menu nav");
   }
+  await page.locator(".wordmark").focus();
   return page.locator(".desktop-nav");
 }
 
@@ -58,29 +61,23 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("main")).toBeFocused();
   });
 
-  test(`${locale} explicit section navigation glides and slides without controlling ordinary scrolling`, async ({ page, isMobile }) => {
-    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
+  test(`${locale} the hero anchor glides and slides without controlling ordinary scrolling`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
     await page.goto(`/${locale}`);
-    const journey = page.locator(".section-journey");
-    const links = journey.getByRole("link");
-    for (const link of await links.all()) {
-      expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(44);
-    }
-    await expect(journey.getByRole("button")).toHaveCount(0);
+    const cue = await prepareHeroCue(page);
+    expect((await cue.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    await expect(page.locator(".section-journey")).toHaveCount(0);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
-    const program = journey.locator('a[href="#program"]');
-    await program.focus();
-    await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(new RegExp(`/${locale}#program$`));
-    await expect(page.locator("#program")).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "program")?.behavior)).toBe("smooth");
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "program")?.duration)).toBe(400);
-    const slide = await page.evaluate(() => window.navigationEvidence.slides.find((entry) => entry.id === "program"));
-    expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -16 : 16}px)`);
+    await cue.click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}#essentials$`));
+    await expect(page.locator("#essentials")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "essentials")?.behavior)).toBe("smooth");
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "essentials")?.duration)).toBe(220);
+    const slide = await page.evaluate(() => window.navigationEvidence.slides.find((entry) => entry.id === "essentials"));
+    expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -8 : 8}px)`);
     expect(slide?.frames[1].transform).toBe("translateX(0)");
-    await expect.poll(() => page.locator("#program").evaluate((element) =>
+    await expect.poll(() => page.locator("#essentials").evaluate((element) =>
       Math.round(element.getBoundingClientRect().top) - parseFloat(getComputedStyle(element).scrollMarginBlockStart),
     )).toBeLessThanOrEqual(1);
     const position = await page.evaluate(() => window.scrollY);
@@ -94,10 +91,10 @@ for (const locale of ["en", "ar"] as const) {
     await observeNavigation(page);
     await page.goto(`/${locale}`);
     const navigation = await headerNavigation(page);
-    await navigation.locator(`a[href="/${locale}/about"]`).click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/about$`));
+    await navigation.locator(`a[href="/${locale}/participate"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
     await expect(page.getByRole("main")).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "about-introduction")?.duration)).toBe(400);
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.at(-1)?.duration)).toBe(220);
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
     await page.goBack();
     await expect(page).toHaveURL(new RegExp(`/${locale}$`));
@@ -107,7 +104,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} dedicated programme navigation focuses the actual page and closes the mobile menu`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
-    await page.goto(`/${locale}/about`);
+    await page.goto(`/${locale}/participate`);
     const navigation = await headerNavigation(page);
     await expect(navigation.locator(".directional-arrow")).toHaveCount(0);
     await navigation.locator(`a[href="/${locale}/program"]`).click();
@@ -115,55 +112,53 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("main")).toBeFocused();
     await expect(page.getByTestId("program-empty")).toBeVisible();
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.at(-1)?.duration)).toBe(400);
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.at(-1)?.duration)).toBe(220);
     const slide = await page.evaluate(() => window.navigationEvidence.slides.at(-1));
-    expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -16 : 16}px)`);
+    expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -8 : 8}px)`);
   });
 
-  test(`${locale} an anchor followed by a page visit retains the hash and query on Back`, async ({ page, isMobile }) => {
-    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
+  test(`${locale} an anchor followed by a page visit retains the hash and query on Back`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
     await page.goto(`/${locale}?view=motion`);
-    await page.locator('.section-journey a[href="#program"]').click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#program$`));
-    await expect(page.locator("#program")).toBeFocused();
-    await expect.poll(() => page.locator("#program").evaluate((element) =>
+    await clickHeroCue(page);
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#essentials$`));
+    await expect(page.locator("#essentials")).toBeFocused();
+    await expect.poll(() => page.locator("#essentials").evaluate((element) =>
       Math.round(element.getBoundingClientRect().top) - parseFloat(getComputedStyle(element).scrollMarginBlockStart),
     )).toBeLessThanOrEqual(1);
     const navigation = await headerNavigation(page);
-    await navigation.locator(`a[href="/${locale}/about"]`).click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/about$`));
+    await navigation.locator(`a[href="/${locale}/participate"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
     await expect(page.getByRole("main")).toBeFocused();
     await page.goBack();
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#program$`));
-    await expect(page.locator("#program")).toBeInViewport();
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#essentials$`));
+    await expect(page.locator("#essentials")).toBeInViewport();
   });
 
-  test(`${locale} language navigation preserves query, hash, destination focus and directional slide`, async ({ page, isMobile }) => {
-    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
+  test(`${locale} language navigation preserves query, hash, destination focus and directional slide`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
     const targetLocale = locale === "en" ? "ar" : "en";
     await page.goto(`/${locale}?view=motion`);
-    await page.locator('.section-journey a[href="#program"]').click();
-    await expect(page.locator("#program")).toBeFocused();
+    await clickHeroCue(page);
+    await expect(page.locator("#essentials")).toBeFocused();
     await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(1);
-    const language = page.getByRole("link", { name: locale === "en" ? "View this page in Arabic" : "View this page in English" });
-    await expect(language).toHaveAttribute("href", `/${targetLocale}?view=motion#program`);
+    await page.locator(".wordmark").focus();
+    const language = await languageLink(page, locale === "en" ? "View this page in Arabic" : "View this page in English");
+    await expect(language).toHaveAttribute("href", `/${targetLocale}?view=motion#essentials`);
     await language.click();
-    await expect(page).toHaveURL(new RegExp(`/${targetLocale}\\?view=motion#program$`));
+    await expect(page).toHaveURL(new RegExp(`/${targetLocale}\\?view=motion#essentials$`));
     await expect(page.locator("html")).toHaveAttribute("dir", targetLocale === "ar" ? "rtl" : "ltr");
-    await expect(page.locator("#program")).toBeFocused();
+    await expect(page.locator("#essentials")).toBeFocused();
     await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(2);
     const slide = await page.evaluate(() => window.navigationEvidence.slides.at(-1));
-    expect(slide?.id).toBe("program");
-    expect(slide?.frames[0].transform).toBe(`translateX(${targetLocale === "ar" ? -16 : 16}px)`);
-    expect(slide?.duration).toBe(400);
+    expect(slide?.id).toBe("essentials");
+    expect(slide?.frames[0].transform).toBe(`translateX(${targetLocale === "ar" ? -8 : 8}px)`);
+    expect(slide?.duration).toBe(220);
   });
 
-  test(`${locale} reduced motion keeps navigation direct and removes button travel`, async ({ page, isMobile }) => {
-    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
+  test(`${locale} reduced motion keeps navigation direct and removes button travel`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await observeNavigation(page);
     await page.goto(`/${locale}`);
@@ -172,9 +167,9 @@ for (const locale of ["en", "ar"] as const) {
     await button.hover();
     expect(await button.evaluate((element) => getComputedStyle(element).transform)).toBe("none");
     expect(await button.evaluate((element) => getComputedStyle(element, "::before").transitionDuration)).toBe("0s");
-    await page.locator('.section-journey a[href="#program"]').click();
-    await expect(page.locator("#program")).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "program")?.behavior)).toBe("instant");
+    await clickHeroCue(page);
+    await expect(page.locator("#essentials")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "essentials")?.behavior)).toBe("instant");
     expect(await page.evaluate(() => window.navigationEvidence.slides)).toEqual([]);
   });
 }

@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { clickHeroCue } from "./helpers/hero-navigation";
 
 // DSN-01/02, ACC-01, LOC-01/03, MED-01/02/04: the cinema view reuses
 // the exact approved homepage film. It is not a new public media catalogue,
@@ -15,6 +16,8 @@ async function expectCinemaView(page: Page) {
   await expect(page.locator("#hero-title")).toBeHidden();
   await expect(page.locator(".site-header")).toBeHidden();
   await expect(page.locator(".hero-content")).toHaveJSProperty("inert", true);
+  await expect(page.locator(".hero-scroll-stage")).toHaveJSProperty("inert", false);
+  await expect(page.locator(".homepage-content-sheet")).toHaveJSProperty("inert", true);
   const close = page.getByTestId("cinematic-close");
   await expect(close).toBeVisible();
   await expect(close).toBeFocused();
@@ -49,7 +52,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     if (testInfo.project.name === "chromium-mobile") await page.setViewportSize({ width: 320, height: 850 });
     await page.goto(`/${locale}?view=cinema#legacy`);
-    const watch = page.getByTestId("watch-opening-film");
+    const watch = page.locator("#legacy").getByTestId("watch-opening-film");
     const video = page.locator(".conference-hero video");
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
     const player = await video.elementHandle();
@@ -92,10 +95,13 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator("#hero-title")).toBeVisible();
       await expect(page.locator(".site-header")).toBeVisible();
       await expect(page.locator(".hero-content")).toHaveJSProperty("inert", false);
+      await expect(page.locator(".homepage-content-sheet")).toHaveJSProperty("inert", false);
       await expect.poll(() => page.evaluate(() => window.scrollY)).toBeCloseTo(origin.scroll, 0);
       expect(await player!.evaluate((element) => element.isConnected)).toBe(true);
     }
-    expect([...new Set(requests)]).toEqual([source]);
+    // The separate closing scene may load near its viewport; the cinema still reuses only its approved film.
+    expect([...new Set(requests.filter((path) => path.startsWith(mediaRoot)))]).toEqual([source]);
+    expect(requests.every((path) => path === source || path === "/media/msrc-demo/jeddah-opening-cropped.mp4")).toBe(true);
     expect(source).toMatch(new RegExp(`^${mediaRoot}hero-(desktop|mobile)-v1\\.mp4$`));
     await expect(page.locator("iframe, a[download]")).toHaveCount(0);
     expect(errors).toEqual([]);
@@ -113,7 +119,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
     await expect(page.locator(".conference-hero video")).toHaveCount(0);
     expect(requests).toEqual([]);
-    const watch = page.getByTestId("watch-opening-film");
+    const watch = page.locator("#legacy").getByTestId("watch-opening-film");
     await watch.scrollIntoViewIfNeeded();
     await watch.click();
     await expectCinemaView(page);
@@ -163,13 +169,12 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("iframe, a[download]")).toHaveCount(0);
   });
 
-  test(`${locale} cinema returns to the watching position after navigation through the participation chapter`, async ({ page, isMobile }) => {
-    test.skip(isMobile, "Phones have no chapter bar; their chapter titles are covered in chapter-titles.spec.ts (ORG-010).");
+  test(`${locale} cinema returns to the watching position after using the hero anchor`, async ({ page }) => {
     await page.goto(`/${locale}?view=chapters`);
-    await page.locator(".section-journey a[href='#participate']").click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=chapters#participate$`));
-    await expect(page.locator("#participate")).toBeFocused();
-    const watch = page.getByTestId("watch-opening-film");
+    await clickHeroCue(page);
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=chapters#essentials$`));
+    await expect(page.locator("#essentials")).toBeFocused();
+    const watch = page.locator("#legacy").getByTestId("watch-opening-film");
     await watch.scrollIntoViewIfNeeded();
     await watch.focus();
     // Browser actionability can scroll the button before dispatching its click.
@@ -201,12 +206,12 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} browser Forward reopens the film and keeps the original watching position for its next close`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}?view=forward#legacy`);
-    const watch = page.getByTestId("watch-opening-film");
+    const watch = page.locator("#legacy").getByTestId("watch-opening-film");
     await watch.scrollIntoViewIfNeeded();
     await watch.focus();
     // With motion allowed the #legacy scroll can still be gliding here, and actionability can
     // scroll before the click: on a slow runner the page moved 88–141 px after an early capture.
-    // Capture the actual activation position, as the participation-chapter test does.
+    // Capture the actual activation position, as the hero-anchor test does.
     await watch.evaluate((element) => {
       element.addEventListener("click", () => {
         element.setAttribute("data-test-watch-origin", JSON.stringify({ url: location.href, scroll: window.scrollY }));
@@ -278,7 +283,7 @@ test("cinema respects the visitor's paused background state after a deliberate v
   await page.keyboard.press("Space");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
   const retainedVideo = await video.elementHandle();
-  const watch = page.getByTestId("watch-opening-film");
+  const watch = page.locator("#legacy").getByTestId("watch-opening-film");
   await watch.scrollIntoViewIfNeeded();
   await watch.click();
   await expectCinemaView(page);

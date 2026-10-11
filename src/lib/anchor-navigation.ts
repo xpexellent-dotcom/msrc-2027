@@ -1,6 +1,6 @@
 import type { MouseEvent } from "react";
 
-type PageNavigation = { pathname: string; hash: string; requestedAt: number };
+type PageNavigation = { pathname: string; hash: string; requestedAt: number; animate: boolean };
 let pendingPageNavigation: PageNavigation | undefined;
 let cancelAnchorArrival: (() => void) | undefined;
 const activeSlides = new WeakMap<HTMLElement, Animation>();
@@ -33,18 +33,37 @@ function focusDestination(target: HTMLElement) {
   target.focus({ preventScroll: true });
 }
 
+/** Explicit destinations are ready to read; their ordinary reveals must not compete with navigation. */
+function settleDestinationReveals(target: HTMLElement) {
+  const content = target.id === "main-content" ? target.querySelector<HTMLElement>(".site-container") ?? target : target;
+  const reveals = [...content.querySelectorAll<HTMLElement>(".reveal")];
+  if (content.matches(".reveal")) reveals.push(content);
+  for (const reveal of reveals) {
+    reveal.dataset.revealState = "complete";
+    reveal.classList.remove("reveal--rise", "reveal--seen");
+  }
+}
+
 /** Text stays fully visible; only explicit navigation receives this short reveal. */
 function slideDestination(target: HTMLElement) {
   const content = target.querySelector<HTMLElement>(".site-container") ?? target;
-  activeSlides.get(content)?.cancel();
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches || typeof content.animate !== "function") return;
+  const previous = activeSlides.get(content);
+  const currentTransform = previous ? getComputedStyle(content).transform : undefined;
+  previous?.cancel();
+  const motion = matchMedia("(prefers-reduced-motion: reduce)");
+  if (motion.matches || typeof content.animate !== "function") return;
   const direction = getComputedStyle(target).direction === "rtl" ? -1 : 1;
   const slide = content.animate([
-    { transform: `translateX(${16 * direction}px)` },
+    { transform: currentTransform ?? `translateX(${8 * direction}px)` },
     { transform: "translateX(0)" },
-  ], { duration: 400, easing: "cubic-bezier(0.22, 0.68, 0.3, 1)" });
+  ], { duration: 220, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
   activeSlides.set(content, slide);
-  const clearSlide = () => { if (activeSlides.get(content) === slide) activeSlides.delete(content); };
+  const preferenceChanged = () => { if (motion.matches) slide.cancel(); };
+  const clearSlide = () => {
+    motion.removeEventListener("change", preferenceChanged);
+    if (activeSlides.get(content) === slide) activeSlides.delete(content);
+  };
+  motion.addEventListener("change", preferenceChanged);
   slide.addEventListener("finish", clearSlide, { once: true });
   slide.addEventListener("cancel", clearSlide, { once: true });
   return () => { slide.cancel(); clearSlide(); };
@@ -75,11 +94,13 @@ export function activateNavigation(event: MouseEvent<HTMLAnchorElement>, replace
   if (anchor.hasAttribute("download") || (anchor.target && anchor.target !== "_self")) return;
   const destination = new URL(anchor.href);
   if (destination.origin !== location.origin) return;
+  // Keyboard and assistive activation have no pointer click count; focus must arrive immediately.
+  const animate = event.detail !== 0;
 
   if (destination.pathname !== location.pathname) {
     cancelAnchorArrival?.();
     cancelAnchorArrival = undefined;
-    pendingPageNavigation = { pathname: destination.pathname, hash: destination.hash, requestedAt: Date.now() };
+    pendingPageNavigation = { pathname: destination.pathname, hash: destination.hash, requestedAt: Date.now(), animate };
     return; // Next.js retains route loading, history, and normal browser navigation.
   }
   if (!destination.hash || destination.search !== location.search) return;
@@ -87,13 +108,14 @@ export function activateNavigation(event: MouseEvent<HTMLAnchorElement>, replace
   if (!target) return;
   event.preventDefault();
   commitFragment(destination.hash, replace);
+  settleDestinationReveals(target);
   focusDestination(target);
   cancelAnchorArrival?.();
   // The mobile disclosure can finish closing before its height affects the destination.
   const frame = requestAnimationFrame(() => {
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const cancelReveal = revealOnArrival(target);
-    target.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" });
+    const shouldAnimate = animate && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const cancelReveal = shouldAnimate ? revealOnArrival(target) : undefined;
+    target.scrollIntoView({ behavior: shouldAnimate ? "smooth" : "instant", block: "start" });
     cancelAnchorArrival = cancelReveal;
   });
   cancelAnchorArrival = () => cancelAnimationFrame(frame);
@@ -117,14 +139,15 @@ export function revealPageNavigation(pathname: string) {
     commitFragment(navigation.hash, true);
     const target = destinationElement(navigation.hash);
     if (!target) return;
+    settleDestinationReveals(target);
     focusDestination(target);
     if (navigation.hash) {
-      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const shouldAnimate = navigation.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches;
       cancelAnchorArrival?.();
-      cancelArrival = revealOnArrival(target);
+      cancelArrival = shouldAnimate ? revealOnArrival(target) : undefined;
       cancelAnchorArrival = cancelArrival;
-      target.scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" });
-    } else {
+      target.scrollIntoView({ behavior: shouldAnimate ? "smooth" : "instant", block: "start" });
+    } else if (navigation.animate) {
       cancelArrival = slideDestination(target);
     }
   });

@@ -1,106 +1,53 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator } from "@playwright/test";
 import { approvedAtVenue, approvedTravelTime, approvedVisaResponsibility } from "../fixtures/approved-venue-guidance";
+import { languageLink } from "./helpers/header-navigation";
 
 // Static travel guidance must not load an external map, invent travel times or
 // publish unset on-site information. Provider pages open only on activation.
 const destination = "King Faisal Conference Center, Abdullah Sulayman St, King Abdulaziz University, Jeddah 22254";
 
 async function expectMapLabelsReadable(map: Locator) {
-  const layout = await map.evaluate((element) => {
-    const svg = element as SVGSVGElement;
+  await map.scrollIntoViewIfNeeded();
+  await expect(map).toBeVisible();
+  const layout = await map.evaluate(async (element) => {
+    const image = element as HTMLImageElement;
+    await image.decode();
+    const content = await (await fetch(image.currentSrc)).text();
+    const svg = new DOMParser().parseFromString(content, "image/svg+xml").documentElement as unknown as SVGSVGElement;
+    // Render the actual local map offscreen to measure every baked label. This
+    // preserves label collision/clipping coverage after the schematic replacement.
+    svg.style.cssText = "position:fixed;left:-10000px;top:0;visibility:hidden";
+    document.body.appendChild(svg);
     const viewBox = svg.viewBox.baseVal;
-    const bounds = (graphic: SVGGraphicsElement) => {
-      const { x, y, width, height } = graphic.getBBox();
-      return { x, y, width, height };
-    };
-    // Measure each shaped line separately: a multiline label's empty space
-    // between lines is not a glyph and must not mask genuine line collisions.
-    const labels = Array.from(svg.querySelectorAll("text")).flatMap((label, group) => {
-      const lines = Array.from(label.querySelectorAll("tspan"));
-      return (lines.length ? lines : [label]).map((line) => ({ text: line.textContent, box: bounds(line), group }));
+    const labels = Array.from(svg.querySelectorAll("text")).map((label) => {
+      const box = label.getBBox();
+      const matrix = label.getCTM()!;
+      const first = new DOMPoint(box.x, box.y).matrixTransform(matrix);
+      const last = new DOMPoint(box.x + box.width, box.y + box.height).matrixTransform(matrix);
+      return { text: label.textContent, left: first.x, top: first.y, right: last.x, bottom: last.y };
     });
-    const outside = labels.flatMap(({ text, box }) => {
-      const fits = box.x >= viewBox.x - 1 && box.y >= viewBox.y - 1
-        && box.x + box.width <= viewBox.x + viewBox.width + 1
-        && box.y + box.height <= viewBox.y + viewBox.height + 1;
-      return fits ? [] : [{ text, box }];
-    });
-    const intersects = (a: typeof labels[number]["box"], b: typeof a) => a.x < b.x + b.width && a.x + a.width > b.x
-      && a.y < b.y + b.height && a.y + a.height > b.y;
-    const groups = Array.from(svg.querySelectorAll("text")).map((label) => ({ text: label.textContent, box: bounds(label) }));
-    const overlappingGroups = groups.flatMap((label, index) => groups.slice(index + 1)
-      .filter((other) => intersects(label.box, other.box))
-      .map((other) => ({ first: label.text, second: other.text, firstBox: label.box, secondBox: other.box })));
-    const overlappingLabels = labels.flatMap((label, index) => labels.slice(index + 1)
-      // Font cell extents can overlap adjacent lines of the same shaped text
-      // block; check collisions between independent labels.
-      .filter((other) => other.group !== label.group && intersects(label.box, other.box))
-      .map((other) => ({ first: label.text, second: other.text, firstBox: label.box, secondBox: other.box })));
-    const segmentIntersectsBox = (from: DOMPoint, to: DOMPoint, box: typeof labels[number]["box"], padding: number) => {
-      // Liang–Barsky clipping checks the entire segment, including diagonal
-      // crossings whose endpoints are both outside the text's rectangle.
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
-      const p = [-dx, dx, -dy, dy];
-      const q = [from.x - box.x + padding, box.x + box.width + padding - from.x,
-        from.y - box.y + padding, box.y + box.height + padding - from.y];
-      let enter = 0;
-      let leave = 1;
-      for (let edge = 0; edge < 4; edge++) {
-        if (p[edge] === 0) {
-          if (q[edge] < 0) return false;
-        } else {
-          const ratio = q[edge] / p[edge];
-          if (p[edge] < 0) enter = Math.max(enter, ratio);
-          else leave = Math.min(leave, ratio);
-          if (enter > leave) return false;
-        }
-      }
-      return true;
-    };
-    const paths = Array.from(svg.querySelectorAll<SVGPathElement>(".venue-map-coast, .venue-map-north, .venue-map-roads path, .venue-map-rail, .venue-map-taxi"));
-    const crossedLabels = paths.flatMap((path) => {
-      const length = path.getTotalLength();
-      const stepCount = Math.max(1, Math.ceil(length));
-      const points = Array.from({ length: stepCount + 1 }, (_, index) => path.getPointAtLength(length * index / stepCount));
-      const padding = Number.parseFloat(getComputedStyle(path).strokeWidth) / 2;
-      return labels.filter(({ box }) => points.slice(1).some((point, index) => {
-        const previous = points[index];
-        // A path may contain separate M subpaths. Never invent a connecting
-        // segment across a discontinuity in its measured arc length.
-        const continuous = Math.hypot(point.x - previous.x, point.y - previous.y) <= length / stepCount + .001;
-        return continuous && segmentIntersectsBox(previous, point, box, padding);
-      }))
-        .map(({ text, box }) => ({ text, box, path: path.getAttribute("class") || path.parentElement?.getAttribute("class") }));
-    });
-    const campusText = svg.querySelector(".venue-map-label--campus") as SVGGraphicsElement | null;
-    const campus = svg.querySelector(".venue-map-campus") as SVGGraphicsElement | null;
-    const pin = svg.querySelector('[data-map-landmark="venue"]') as SVGGraphicsElement | null;
-    if (!campusText || !campus || !pin) return { outside, overlappingGroups, overlappingLabels, crossedLabels, hasCampusElements: false };
-    const textBox = bounds(campusText);
-    const campusBox = bounds(campus);
-    const pinBox = bounds(pin);
-    const campusFits = textBox.x >= campusBox.x - 1 && textBox.y >= campusBox.y - 1
-      && textBox.x + textBox.width <= campusBox.x + campusBox.width + 1
-      && textBox.y + textBox.height <= campusBox.y + campusBox.height + 1;
-    const intersectsPin = textBox.x < pinBox.x + pinBox.width && textBox.x + textBox.width > pinBox.x
-      && textBox.y < pinBox.y + pinBox.height && textBox.y + textBox.height > pinBox.y;
-    const pinFits = pinBox.x >= campusBox.x - 1 && pinBox.y >= campusBox.y - 1
-      && pinBox.x + pinBox.width <= campusBox.x + campusBox.width + 1
-      && pinBox.y + pinBox.height <= campusBox.y + campusBox.height + 1;
-    return { outside, overlappingGroups, overlappingLabels, crossedLabels, hasCampusElements: true, campusFits, pinFits, intersectsPin, textBox, campusBox, pinBox };
+    const outside = labels.filter(box => box.left < -1 || box.top < -1 || box.right > viewBox.width + 1 || box.bottom > viewBox.height + 1);
+    const overlapping = labels.flatMap((label, index) => labels.slice(index + 1).filter(other => label.left < other.right && label.right > other.left && label.top < other.bottom && label.bottom > other.top).map(other => [label.text, other.text]));
+    const result = { outside, overlapping, paths: svg.querySelectorAll("path").length,
+      projection: svg.dataset.mapProjection, scale: svg.dataset.metresPerPixel,
+      latitude: svg.dataset.venueLat, longitude: svg.dataset.venueLon,
+      source: svg.querySelector("metadata")?.textContent, naturalWidth: image.naturalWidth,
+      sourceIsLocal: new URL(image.currentSrc).origin === window.location.origin };
+    svg.remove();
+    return result;
   });
-  expect(layout.outside, JSON.stringify(layout, null, 2)).toEqual([]);
-  expect(layout.overlappingGroups, JSON.stringify(layout, null, 2)).toEqual([]);
-  expect(layout.overlappingLabels, JSON.stringify(layout, null, 2)).toEqual([]);
-  expect(layout.crossedLabels, JSON.stringify(layout, null, 2)).toEqual([]);
-  expect(layout.hasCampusElements).toBe(true);
-  expect(layout.campusFits, JSON.stringify(layout, null, 2)).toBe(true);
-  expect(layout.pinFits, JSON.stringify(layout, null, 2)).toBe(true);
-  expect(layout.intersectsPin, JSON.stringify(layout, null, 2)).toBe(false);
+  expect(layout.outside, JSON.stringify(layout)).toEqual([]);
+  expect(layout.overlapping, JSON.stringify(layout)).toEqual([]);
+  expect(layout.paths).toBeGreaterThan(100);
+  expect(layout.projection).toBe("local-equirectangular");
+  expect(layout.scale).toBe("2.5");
+  expect(layout.latitude).toBe("21.492891");
+  expect(layout.longitude).toBe("39.241681");
+  expect(layout.source).toContain("OpenStreetMap contributors");
+  expect(layout.naturalWidth).toBeGreaterThanOrEqual(500);
+  expect(layout.sourceIsLocal).toBe(true);
 }
-
 for (const locale of ["en", "ar"] as const) {
   test(`${locale} venue travel guidance is localized, accessible and private until a map link is opened`, async ({ page, baseURL }, testInfo) => {
     const thirdPartyRequests: string[] = [];
@@ -114,25 +61,19 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await page.evaluate(() => document.fonts.ready);
     const otherLocale = locale === "en" ? "ar" : "en";
-    const language = page.getByRole("link", { name: locale === "en" ? "View this page in Arabic" : "View this page in English" });
+    const language = await languageLink(page, locale === "en" ? "View this page in Arabic" : "View this page in English");
     // A fragment-bearing href is an observable hydration readiness condition.
     await expect(language).toHaveAttribute("href", `/${otherLocale}/dates-venue?view=travel#venue`);
 
     const map = page.getByRole("main").getByRole("img");
     await expect(map).toHaveCount(1);
-    await expect(map).toHaveAttribute("direction", "ltr");
+    await expect(map).toHaveAttribute("dir", "ltr");
     // Arabic page flow must preserve the map's geographic east/west orientation.
-    expect(await map.evaluate((element) => (element as SVGSVGElement).getScreenCTM()!.a)).toBeGreaterThan(0);
+    expect(await map.evaluate((element) => getComputedStyle(element).transform)).toBe("none");
     await expect(map).toHaveAccessibleName(locale === "en" ? /King Faisal Conference Center/ : /مركز الملك فيصل للمؤتمرات/);
-    await expect(map).toHaveAccessibleDescription(locale === "en"
-      ? /King Abdulaziz International Airport.*Haramain.*Jeddah Al-Sulaymaniyah.*King Faisal Conference Center/
-      : /مطار الملك عبدالعزيز الدولي.*محطة المطار.*محطة جدة السليمانية.*مركز الملك فيصل للمؤتمرات/);
-    await expect(page.locator(".venue-map-caption strong")).toHaveText(locale === "en" ? "Map not to scale" : "الخريطة ليست بمقياس رسم");
+    await expect(map).toHaveAccessibleDescription(locale === "en" ? /Campus streets.*current driving directions/ : /شوارع الحرم الجامعي.*اتجاهات القيادة/);
+    await expect(page.getByTestId("venue-geographic-map").getByRole("link")).toHaveAttribute("href", "https://www.openstreetmap.org/copyright");
     await expectMapLabelsReadable(map);
-    await expect(map.locator('[data-map-landmark="airport"]')).toHaveCount(1);
-    await expect(map.locator('[data-map-landmark="airport"]')).toHaveAttribute("data-includes-station", "true");
-    await expect(page.locator('[data-map-landmark="airport-station"]')).toHaveCount(0);
-    await expect(page.getByTestId("venue-schematic-map")).not.toContainText(/Prince Majid|الأمير ماجد/i);
     if (testInfo.project.name === "chromium-mobile") {
       const originalViewport = page.viewportSize()!;
       for (const width of [320, 360, 390, 430]) {
@@ -212,7 +153,9 @@ for (const locale of ["en", "ar"] as const) {
     await testInfo.attach(`${locale}-venue-travel-${testInfo.project.name}`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
 
     // Exercise a local page transition after hydration and full-page reading.
-    await language.focus();
+    // Reading and focusing the map closes the phone menu; reveal its language link again.
+    const transitionLanguage = await languageLink(page, locale === "en" ? "View this page in Arabic" : "View this page in English");
+    await transitionLanguage.focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(new RegExp(`/${otherLocale}/dates-venue\\?view=travel#venue$`));
     await expect(page.locator("html")).toHaveAttribute("dir", otherLocale === "ar" ? "rtl" : "ltr");

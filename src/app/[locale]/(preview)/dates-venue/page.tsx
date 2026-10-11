@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
@@ -7,10 +8,12 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Reveal } from "@/components/ui/reveal";
 import { VenueTravelDetails } from "@/components/venue-travel-details";
+import { ConferenceDayLinks } from "@/components/conference-day-links";
+import { VenueIcon } from "@/components/venue-icon";
 import { conferenceConfig } from "@/config/conference";
 import { datesVenueCopy } from "@/content/dates-venue";
 import { venueTravelCopy } from "@/content/venue-travel";
-import { formatConferenceDate, formatConferenceDateRange } from "@/lib/conference-dates";
+import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { isLocale } from "@/lib/i18n";
 import { localizedPageMetadata } from "@/lib/metadata";
 
@@ -37,7 +40,8 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
 
   return (
     <>
-      <section className="dates-hero" aria-labelledby="dates-page-title">
+      <section className="dates-hero premium-photo-hero" aria-labelledby="dates-page-title">
+        <div className="premium-hero-image" aria-hidden="true"><Image src="/media/msrc-demo/king-faisal-venue.jpg" alt="" fill sizes="100vw" priority /></div>
         <Container>
           <nav aria-label={copy.breadcrumb} className="about-breadcrumb">
             <ol>
@@ -47,23 +51,15 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
           </nav>
           <div className="dates-hero-grid">
             <div>
-              <p className="eyebrow"><span className="eyebrow-rule" aria-hidden="true" />{copy.eyebrow}</p>
-              <h1 id="dates-page-title">{copy.title}</h1>
+              <h1 id="dates-page-title">{locale === "en" ? <>Two days in <span className="premium-title-accent">Jeddah.</span></> : <>يومان في <span className="premium-title-accent">جدة.</span></>}</h1>
               <p className="dates-lead">{copy.lead}</p>
             </div>
             <div className="dates-calendar" aria-labelledby="confirmed-days-title">
               <h2 id="confirmed-days-title" className="sr-only">{copy.datesHeading}</h2>
               {dates ? (
                 <>
-                  <StatusBadge tone="success">{copy.confirmed}</StatusBadge>
-                  <ol className="dates-day-list">
-                    {[{ label: copy.day1, date: dates.day1 }, { label: copy.day2, date: dates.day2 }].map((day) => (
-                      <li key={day.date}>
-                        <span>{day.label}</span>
-                        <time dateTime={day.date}>{formatConferenceDate(day.date, locale)}</time>
-                      </li>
-                    ))}
-                  </ol>
+                  <p className="dates-calendar-label"><VenueIcon name="calendar" />{copy.confirmed}</p>
+                  <ConferenceDayLinks locale={locale} />
                   {/* A plain file link: it downloads without JavaScript and opens in the visitor's calendar app. */}
                   <a className="text-link dates-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{copy.addToCalendar}</a>
                 </>
@@ -76,15 +72,15 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
       <section id="venue" tabIndex={-1} className="editorial-section dates-location" aria-labelledby="venue-title">
         <Container><Reveal className="dates-content-grid" stagger>
           <div>
-            <SectionHeading eyebrow={copy.locationEyebrow} title={copy.locationTitle} id="venue-title" />
+            <SectionHeading title={copy.locationTitle} id="venue-title" />
             <p className="dates-body">{copy.locationBody}</p>
-            {venue && <a className="text-link dates-directions-link" href={venue.directionsUrl} target="_blank" rel="noopener noreferrer" aria-label={copy.directionsLabel}>{copy.directions}<span className="directional-arrow" aria-hidden="true"> ↗</span></a>}
+            {venue && <a className="button button--primary dates-directions-link" href={venue.directionsUrl} target="_blank" rel="noopener noreferrer" aria-label={copy.directionsLabel}>{copy.directions}<VenueIcon name="arrow" /></a>}
           </div>
           <dl className="dates-location-details">
-            <div><dt>{copy.city}</dt><dd>{copy.cityValue}</dd></div>
-            <div><dt>{copy.host}</dt><dd>{copy.hostValue}</dd></div>
-            <div><dt>{copy.venue}</dt><dd>{venue?.name[locale] ?? copy.venuePending}</dd></div>
-            {venue && <div><dt>{copy.address}</dt><dd>{venue.address.streetAddress[locale]}{locale === "ar" ? "، جدة " : ", Jeddah "}{venue.address.postalCode}</dd></div>}
+            <div><dt><VenueIcon name="city" />{copy.city}</dt><dd>{copy.cityValue}</dd></div>
+            <div><dt><VenueIcon name="host" />{copy.host}</dt><dd>{copy.hostValue}</dd></div>
+            <div><dt><VenueIcon name="venue" />{copy.venue}</dt><dd>{venue?.name[locale] ?? copy.venuePending}</dd></div>
+            {venue && <div><dt><VenueIcon name="address" />{copy.address}</dt><dd>{venue.address.streetAddress[locale]}{locale === "ar" ? "، جدة " : ", Jeddah "}{venue.address.postalCode}</dd></div>}
           </dl>
         </Reveal></Container>
       </section>
@@ -92,7 +88,7 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
       {venue ? (
         <section id="getting-there" tabIndex={-1} className="editorial-section dates-travel" aria-labelledby="getting-there-title">
           <Container>
-            <SectionHeading eyebrow={venueTravelCopy[locale].eyebrow} title={venueTravelCopy[locale].title} id="getting-there-title" />
+            <SectionHeading title={venueTravelCopy[locale].title} id="getting-there-title" />
             <p className="dates-body">{venueTravelCopy[locale].intro}</p>
             <VenueTravelDetails venue={venue} locale={locale} />
           </Container>
@@ -101,7 +97,7 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
 
       <section id="schedule" tabIndex={-1} className="editorial-section dates-schedule" aria-labelledby="schedule-title">
         <Container><Reveal className="dates-content-grid" stagger>
-          <SectionHeading eyebrow={copy.scheduleEyebrow} title={copy.scheduleTitle} id="schedule-title" />
+          <SectionHeading title={copy.scheduleTitle} id="schedule-title" />
           <div>
             <p className="dates-body">{copy.scheduleBody}</p>
             <ButtonLink href={`/${locale}/#program`} className="dates-program-link" variant="secondary">{copy.program}</ButtonLink>

@@ -116,7 +116,12 @@ export function CinematicFilm({ locale }: { locale: Locale }) {
     hero.setAttribute("aria-modal", "true");
     hero.setAttribute("aria-labelledby", "cinematic-title");
     hero.setAttribute("aria-describedby", "cinematic-instructions");
-    const background = [...Array.from(document.body.children).filter((element): element is HTMLElement => element instanceof HTMLElement && !["MAIN", "SCRIPT", "STYLE"].includes(element.tagName)), ...document.querySelectorAll<HTMLElement>(".homepage-journey > :not(.conference-hero), .conference-hero .hero-content")];
+    // The film may sit inside a sticky scrolling stage. Never inert its ancestor:
+    // descendants of an inert element cannot receive focus, including Close.
+    const background = [
+      ...Array.from(document.body.children).filter((element): element is HTMLElement => element instanceof HTMLElement && !["MAIN", "SCRIPT", "STYLE"].includes(element.tagName)),
+      ...document.querySelectorAll<HTMLElement>(".homepage-journey > *, .conference-hero .hero-content"),
+    ].filter((element) => !element.contains(hero));
     const priorInert = background.map((element) => element.inert);
     background.forEach((element) => { element.inert = true; });
     closeRef.current?.focus({ preventScroll: true });

@@ -15,18 +15,18 @@ export const indexable = process.env.VERCEL_ENV === "production";
 
 /** Public information pages listed in the sitemap, as locale-free routes. */
 // ORG-037: approved Privacy/Terms v1.0 are public and have localized sitemap twins.
-export const publicRoutes = ["", "/about", "/dates-venue", "/program", "/speakers", "/participate", "/workshops", "/hackathon", "/3mt", "/media", "/contact", "/privacy", "/terms"] as const;
+export const publicRoutes = ["", "/dates-venue", "/program", "/speakers", "/team", "/sponsors", "/participate", "/workshops", "/hackathon", "/3mt", "/media", "/contact", "/privacy", "/terms"] as const;
 
 const openGraphLocale: Record<Locale, string> = { en: "en_US", ar: "ar_SA" };
 
-/** "Programme | MSRC 2027": a bare page label is ambiguous in tabs, bookmarks and link cards. */
+/** "Program | MSRC 2027": a bare page label is ambiguous in tabs, bookmarks and link cards. */
 export function siteTitle(page: string): string {
   return `${page} | MSRC 2027`;
 }
 
 /**
  * Canonical, hreflang and link-preview metadata for one localized page.
- * `path` is the locale-free route ("" for home, "/about"). Indexed on production only.
+ * `path` is the locale-free route ("" for home, "/participate"). Indexed on production only.
  */
 export function localizedPageMetadata(locale: Locale, path: string, title: string, description: string): Metadata {
   const other: Locale = locale === "ar" ? "en" : "ar";

@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { experienceCopy } from "../../src/content/conference-experiences";
+import { languageLink } from "./helpers/header-navigation";
 
 async function assertFilters(page: Page, route: "program" | "media") {
   if (route === "media") {
@@ -60,10 +61,10 @@ for (const locale of ["en", "ar"] as const) for (const route of ["media", "progr
         await expect(page.getByTestId("program-room")).toBeDisabled();
       }
       await assertFilters(page, route);
-      await page.goto(`/${locale}/about`); await page.goBack();
+      await page.goto(`/${locale}/participate`); await page.goBack();
       await expect(search).toBeEnabled(); await assertFilters(page, route);
       const other = locale === "en" ? "ar" : "en";
-      await page.getByRole("link", { name: other === "ar" ? "View this page in Arabic" : "View this page in English", exact: true }).click();
+      await (await languageLink(page, other === "ar" ? "View this page in Arabic" : "View this page in English")).click();
       await expect(page).toHaveURL(new RegExp(`/${other}/${route}\\?`));
       await expect(page.locator("html")).toHaveAttribute("lang", other);
       await expect(page.locator("html")).toHaveAttribute("dir", other === "ar" ? "rtl" : "ltr");

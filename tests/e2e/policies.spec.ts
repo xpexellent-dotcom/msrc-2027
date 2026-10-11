@@ -3,6 +3,7 @@ import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { readApprovedPolicy, visibleMarkdown, type SourceBlock } from "../policy-source";
+import { languageLink } from "./helpers/header-navigation";
 
 const version = "v1.0", effectiveDate = "2026-10-06";
 const titles = { en: { privacy: "MSRC 2027 Privacy Policy", terms: "MSRC 2027 Terms and Conditions" }, ar: { privacy: "سياسة الخصوصية لمؤتمر MSRC ٢٠٢٧", terms: "شروط وأحكام مؤتمر MSRC ٢٠٢٧" } } as const;
@@ -137,10 +138,10 @@ test("policy versions survive keyboard language and native section navigation", 
   await page.keyboard.press("Enter"); await expect(page.getByRole("main")).toBeFocused();
   await page.locator('.policy-contents a[href="#rights"]').focus(); await page.keyboard.press("Enter");
   await expect(page.locator("#rights")).toBeFocused(); await expect(page.locator("#rights")).toBeInViewport();
-  await page.getByRole("link", { name: "View this page in Arabic" }).focus(); await page.keyboard.press("Enter");
+  await (await languageLink(page, "View this page in Arabic")).focus(); await page.keyboard.press("Enter");
   await expect(page).toHaveURL(new RegExp(`/ar/privacy/${version}\\?view=review#rights$`));
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl"); await expect(page.locator("#rights")).toBeInViewport();
-  await page.getByRole("link", { name: "View this page in English" }).focus(); await page.keyboard.press("Enter");
+  await (await languageLink(page, "View this page in English")).focus(); await page.keyboard.press("Enter");
   await expect(page).toHaveURL(new RegExp(`/en/privacy/${version}\\?view=review#rights$`));
   await expect(page.locator("#rights")).toBeInViewport();
   await page.locator(".policy-version-link").click(); await expect(page).toHaveURL(/\/en\/privacy$/);

@@ -1,55 +1,60 @@
-/* SCP-02 / CFG-01 / ORG-031: confirmed days and venue; schedule details stay unset. */
-.dates-hero { background: var(--color-surface-lilac); }
-.dates-hero-grid, .dates-content-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: clamp(3rem, 6vw, 7rem); }
-.dates-hero-grid { padding-block: clamp(2.5rem, 5vw, 5rem) clamp(3.5rem, 6vw, 6rem); align-items: center; }
-.dates-hero h1 { margin-block: 1.3rem 1.75rem; max-width: 11ch; color: var(--color-purple); font-weight: 600; font-size: clamp(3rem, 5.2vw, 5.2rem); line-height: 1.12; letter-spacing: -.045em; }
-.dates-lead { max-width: 49ch; font-size: var(--text-lead); line-height: 1.85; text-wrap: pretty; }
-.dates-calendar { min-inline-size: 0; border-block-start: 3px solid var(--color-gold); padding: clamp(1rem, 3vw, 2rem); background: var(--color-ivory); border-radius: 1rem; }
-.dates-hero h1, .dates-content-grid .section-heading h2 { font-family: var(--font-display); }
+/* Confirmed dates and venue, presented as a practical congress guide. */
+.dates-hero { --focus-ring: var(--color-ivory); padding-block: 1.5rem clamp(3rem, 6vw, 6rem); background: var(--color-purple); color: var(--color-ivory); }
+.dates-hero-grid, .dates-content-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; gap: clamp(2.5rem, 6vw, 7rem); }
+.dates-hero-grid { padding-block-start: clamp(2.5rem, 5vw, 5rem); align-items: center; }
+.dates-hero h1 { margin: 0 0 1.75rem; max-inline-size: 12ch; color: var(--color-ivory); font-family: var(--font-display); font-weight: 600; font-size: clamp(3rem, 6.5vw, 6rem); line-height: 1.07; letter-spacing: -.04em; }
+.dates-lead { max-inline-size: 52ch; color: var(--color-lilac); font-size: var(--text-lead); line-height: 1.85; text-wrap: pretty; }
+.dates-calendar { --focus-ring: var(--color-purple); min-inline-size: 0; padding: clamp(1.3rem, 3vw, 2.5rem); background: var(--color-gold); color: var(--color-ink); }
+.dates-content-grid .section-heading h2, .dates-travel .section-heading h2 { font-family: var(--font-display); font-weight: 600; margin-block-start: 0; }
 .dates-day-list { list-style: none; margin-block-start: 1.5rem; }
-.dates-day-list li { display: flex; flex-direction: column; gap: .7rem; padding-block: 1.4rem; border-block-start: 1px solid var(--color-line-strong); }
-.dates-day-list li:last-child { border-block-end: 1px solid var(--color-line-strong); }
-.dates-day-list li > span { color: var(--color-muted); font-size: .9rem; }
-.dates-day-list time { color: var(--color-purple); font-size: clamp(1.65rem, 2.6vw, 2.4rem); font-weight: 600; line-height: 1.45; text-wrap: balance; }
-.dates-calendar-link { display: inline-flex; min-block-size: 44px; align-items: center; margin-block-start: .75rem; color: var(--color-purple); font-weight: 600; }
-.dates-directions-link { display: inline-flex; align-items: center; min-block-size: 44px; margin-block-start: 1rem; color: var(--color-purple); font-weight: 600; }
-.dates-body { margin-block-start: 1.6rem; max-width: 54ch; color: var(--color-muted); line-height: 1.9; text-wrap: pretty; }
-.dates-location-details { border-block-start: 2px solid var(--color-purple); }
-.dates-location-details > div { border-block-end: 1px solid var(--color-line-strong); padding-block: 1.5rem; }
-.dates-location-details dt { color: var(--color-muted); font-size: .85rem; margin-block-end: .65rem; }
-.dates-location-details dd { color: var(--color-purple); font-weight: 500; font-size: 1.1rem; line-height: 1.8; }
-.dates-schedule { background: var(--color-surface-lilac); }
+.dates-day-list li { display: flex; flex-direction: column; gap: .75rem; padding-block: 1.3rem; border-block-start: 1px solid var(--color-purple); }
+.dates-day-list li:last-child { border-block-end: 1px solid var(--color-purple); }
+.dates-day-list li > span { color: var(--color-ink); font-size: .875rem; }
+.dates-day-list time { color: var(--color-purple); font-family: var(--font-display); font-size: clamp(1.7rem, 2.6vw, 2.5rem); font-weight: 600; line-height: 1.3; text-wrap: balance; overflow-wrap: anywhere; }
+.dates-calendar-link, .dates-directions-link { display: inline-flex; min-block-size: 44px; align-items: center; margin-block-start: 1rem; color: var(--color-purple); font-weight: 600; }
+.dates-body { margin-block-start: 1.6rem; max-inline-size: 62ch; color: var(--color-muted); font-size: 1.05rem; line-height: 1.85; text-wrap: pretty; }
+.dates-location { background: var(--color-white); }
+.dates-location-details { border-block-start: 1px solid var(--color-purple); }
+.dates-location-details > div { border-block-end: 1px solid var(--color-line); padding-block: 1.35rem; }
+.dates-location-details dt { color: var(--color-muted); font-size: .875rem; margin-block-end: .65rem; }
+.dates-location-details dd { color: var(--color-purple); font-size: 1.125rem; font-weight: 500; line-height: 1.7; }
+.dates-schedule { border-block-start: 1px solid var(--color-line); background: var(--color-surface-warm); }
 .dates-schedule .dates-body { margin-block-start: 0; }
 .dates-program-link { margin-block: 1.75rem 2rem; max-inline-size: 100%; }
 .dates-closed-note { border-block-start: 1px solid var(--color-line-strong); padding-block-start: 1.5rem; }
 .dates-travel { border-block-start: 1px solid var(--color-line); }
-.venue-travel-details { margin-block-start: 2.5rem; }
-.venue-map-links { display: flex; flex-wrap: wrap; gap: .85rem; margin-block-start: 1.5rem; }
+.venue-travel-details { margin-block-start: 3rem; }
+.venue-map-links { display: flex; flex-wrap: wrap; gap: 1rem; margin-block-start: 1.5rem; }
 .venue-map-links .button { flex: 1 1 12rem; }
-.venue-airport, .venue-arrival-details, .venue-international { margin-block-start: clamp(2.5rem, 5vw, 4rem); }
-.venue-travel-details h3 { color: var(--color-purple); font-family: var(--font-heading); font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 600; line-height: 1.5; }
-.venue-travel-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; margin-block-start: 1.5rem; }
-.venue-travel-cards article { min-inline-size: 0; border-block-start: 3px solid var(--color-purple); border-radius: .75rem; padding: clamp(1.25rem, 2.5vw, 2rem); background: var(--color-surface-lilac); }
-.venue-travel-cards h4 { color: var(--color-purple); font-size: 1.15rem; font-weight: 600; line-height: 1.65; }
-.venue-travel-cards p, .venue-international p, .venue-arrival-details dd { margin-block-start: .85rem; color: var(--color-muted); line-height: 1.9; text-wrap: pretty; }
-.venue-travel-time { border-block-start: 1px solid var(--color-line-strong); padding-block-start: .85rem; }
-.venue-arrival-details dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-block-start: 1.5rem; }
+.venue-airport, .venue-arrival-details, .venue-international { margin-block-start: clamp(3rem, 6vw, 6rem); }
+.venue-travel-details h3 { color: var(--color-purple); font-family: var(--font-display); font-size: clamp(1.75rem, 3vw, 2.75rem); font-weight: 600; line-height: 1.3; letter-spacing: -.025em; }
+.venue-travel-cards { display: grid; gap: 0; margin-block-start: 2rem; }
+.venue-travel-cards article { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 2rem; min-inline-size: 0; border-block-start: 1px solid var(--color-line-strong); padding-block: 1.75rem; }
+.venue-travel-cards article:last-child { border-block-end: 1px solid var(--color-line-strong); }
+.venue-travel-cards h4 { color: var(--color-purple); font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; line-height: 1.5; }
+.venue-travel-cards p, .venue-international p, .venue-arrival-details dd { color: var(--color-muted); line-height: 1.85; text-wrap: pretty; }
+.venue-travel-time { font-size: .95rem; }
+.venue-arrival-details dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 3rem; margin-block-start: 2rem; }
 .venue-arrival-details dl > div { border-block-start: 1px solid var(--color-line-strong); padding-block-start: 1rem; }
-.venue-arrival-details dt { color: var(--color-purple); font-weight: 600; }
+.venue-arrival-details dt { color: var(--color-purple); font-weight: 600; margin-block-end: .8rem; }
 .venue-international { border-block-start: 1px solid var(--color-line-strong); padding-block-start: 2rem; }
-[lang="ar"] .dates-hero h1 { max-width: none; font-size: clamp(2.65rem, 4.7vw, 4.6rem); line-height: 1.6; letter-spacing: 0; }
-[lang="ar"] .dates-day-list time { line-height: 1.8; }
-[lang="ar"] .dates-location-details dt { font-size: .9rem; }
+.venue-international p { margin-block-start: 1.2rem; max-inline-size: 68ch; }
+[lang="ar"] .dates-hero h1 { max-inline-size: none; font-size: clamp(2.6rem, 5.3vw, 5rem); line-height: 1.5; letter-spacing: 0; }
+[lang="ar"] .dates-day-list time { line-height: 1.6; }
+[lang="ar"] .venue-travel-details h3 { line-height: 1.5; letter-spacing: 0; }
 @media (max-width: 800px) {
-  .venue-travel-cards { grid-template-columns: minmax(0, 1fr); }
   .dates-hero-grid, .dates-content-grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
-  .dates-hero h1 { max-width: 15ch; }
   .dates-day-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
-  .dates-day-list li { border-block-end: 1px solid var(--color-line-strong); }
+  .dates-day-list li { border-block-end: 1px solid var(--color-purple); }
+  .venue-travel-cards article { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 1rem 2rem; }
+  .venue-travel-time { grid-column: 2; }
 }
 @media (max-width: 600px) {
-  .venue-arrival-details dl { grid-template-columns: minmax(0, 1fr); }
-  .dates-hero h1 { font-size: clamp(2.75rem, 11vw, 4rem); }
-  .dates-day-list { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .dates-hero h1 { font-size: clamp(2.5rem, 10vw, 3.5rem); }
+  .dates-hero-grid { padding-block-start: 2rem; }
+  .dates-day-list, .venue-arrival-details dl, .venue-travel-cards article { grid-template-columns: minmax(0, 1fr); }
+  .dates-day-list { gap: 0; }
   .dates-day-list li:first-child { border-block-end: 0; }
+  .venue-travel-time { grid-column: auto; }
+  [lang="ar"] .dates-hero h1 { font-size: clamp(2.2rem, 9vw, 3.2rem); }
 }

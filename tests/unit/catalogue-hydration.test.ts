@@ -12,6 +12,13 @@ const session: PublicSession = {
   speakerSlugs: [], objectives: [], recordingSlug: null,
 };
 function controls(html: string) { return html.match(/<(?:input|select|button)\b[^>]*>/g) ?? []; }
+// The archive gallery has its own navigation. The hydration boundary belongs to
+// catalogue filters, whose early interactions can otherwise overwrite the URL.
+function mediaControls(html: string) {
+  const catalogue = html.match(/<section\b[^>]*data-testid="media-catalogue"[^>]*>([\s\S]*?)<\/section>/)?.[1];
+  expect(catalogue).toBeDefined();
+  return controls(catalogue ?? "");
+}
 
 describe("public catalogue server hydration boundary", () => {
   beforeEach(() => { address.query = new URLSearchParams(); });
@@ -24,14 +31,14 @@ describe("public catalogue server hydration boundary", () => {
   });
   it.each(["en", "ar"] as const)("%s media filters stay disabled in server HTML", (locale) => {
     const html = renderToStaticMarkup(createElement(MediaExperience, { locale, media: [], sessions: [] }));
-    expect(controls(html)).toHaveLength(3);
-    expect(controls(html).every((control) => control.includes('disabled=""'))).toBe(true);
+    expect(mediaControls(html)).toHaveLength(3);
+    expect(mediaControls(html).every((control) => control.includes('disabled=""'))).toBe(true);
   });
   it.each(["en", "ar"] as const)("%s media deep-link selections are preserved while clear/search controls remain inert", (locale) => {
     address.query = new URLSearchParams("edition=2026&kind=recording&q=synthetic");
     const html = renderToStaticMarkup(createElement(MediaExperience, { locale, media: [], sessions: [] }));
-    expect(controls(html)).toHaveLength(4);
-    expect(controls(html).every((control) => control.includes('disabled=""'))).toBe(true);
+    expect(mediaControls(html)).toHaveLength(4);
+    expect(mediaControls(html).every((control) => control.includes('disabled=""'))).toBe(true);
     expect(html).toContain('value="2026" selected=""');
     expect(html).toContain('value="recording" selected=""');
     expect(html).toContain('value="synthetic"');
