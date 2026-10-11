@@ -1,5 +1,29 @@
 # Progress and session handover
 
+## 11 October 2026 — Live QA pass and footer organizer credit (Claude)
+
+- Live QA of `www.msrc2027.com` after the ENG-027 publication. Crawled all 39
+  public routes (EN/AR, policies, `.ics`): every route 200, unique titles,
+  descriptions and canonicals, correct `lang`/`dir`, one `h1`, hreflang and Event
+  JSON-LD present; unknown routes 404; robots, sitemap and security headers intact.
+- **PASS:** Playwright + axe (WCAG 2.0/2.1 A/AA) over 16 public pages × EN/AR ×
+  390px/1440px: no violations, horizontal overflow, broken images, failed
+  requests or console errors (only the expected 404 on the not-found probe).
+  Keyboard: skip link, visible focus on the first 40 stops, mobile menu closes
+  when focus leaves the header. Throttled (~1.6 Mbps,
+  150 ms) LCP 0.72–0.96 s, CLS ≤ 0.045; hero video already yields to
+  reduced-motion/Save-Data/slow connections.
+- **Fixed:** ENG-027 removed the only rendering of the approved organizer line
+  (`homepageNarrative.organizer`), leaving no public credit for the Research
+  Principles Club / Faculty of Medicine, KAU (ORG-038). The footer now shows the
+  existing approved EN/AR sentence on every public page; no new copy was written.
+  Regression test: `tests/unit/footer-organizer.test.ts`.
+- **PASS (local, Node 24):** lint, `tsc --noEmit`, **2,392 unit tests / 61 files**,
+  production build (81 pages), axe sweep against the local build. Visual check of
+  the footer at 390/1280px in EN/AR.
+- Suggested, not changed (design-contract scope): the footer's "Take part" group
+  lists Workshops but not Attend, Research, Hackathon or 3MT.
+
 ## 11 October 2026 — Approved design publication, ENG-027
 
 - Requester explicitly approved the completed demo and authorized bringing it
