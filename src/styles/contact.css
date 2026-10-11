@@ -1,42 +1,47 @@
-/* BL-PUB-06: bilingual public Contact, with delivery closed. */
-.contact-hero { background: var(--color-surface-lilac); }
-.contact-hero-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(2.5rem, 6vw, 6rem); align-items: center; padding-block: clamp(2.5rem, 5vw, 5rem); }
-.contact-hero h1 { margin-block: 1.3rem 1.5rem; color: var(--color-purple); font-family: var(--font-display); font-size: clamp(2.8rem, 5.2vw, 5rem); font-weight: 600; line-height: 1.18; letter-spacing: -.045em; }
-.contact-lead { max-inline-size: 48ch; font-size: var(--text-lead); line-height: 1.85; }
-.contact-email { min-inline-size: 0; border-block-start: 2px solid var(--color-purple); padding-block: 1.5rem; }
-.contact-email h2 { margin-block-end: .75rem; color: var(--color-purple); font-size: 1.15rem; font-weight: 600; }
-.contact-email p { color: var(--color-muted); }
-.contact-email-link { display: inline-flex; align-items: center; min-block-size: var(--touch-target); max-inline-size: 100%; color: var(--color-purple); font-weight: 500; overflow-wrap: anywhere; }
-.contact-form { margin-block-start: 2rem; }
-.contact-closed-note { padding-block: 1.4rem; padding-inline: 1.5rem; border-inline-start: 3px solid var(--color-purple); background: var(--color-info-surface); color: var(--color-ink); }
-.contact-closed-note h3 { margin-block-end: .5rem; color: var(--color-purple); font-size: 1.1rem; font-weight: 600; line-height: 1.6; }
-.contact-closed-note p { font-size: .95rem; line-height: 1.85; }
-.contact-closed-note p + p { margin-block-start: .65rem; }
+/* Contact: a clear service entrance and a focused, accessible form surface. */
+.contact-hero { --focus-ring: var(--color-ivory); padding-block: 1.5rem clamp(3rem, 6vw, 6rem); background: var(--color-purple); color: var(--color-ivory); }
+.contact-hero-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(2.5rem, 7vw, 7rem); align-items: end; padding-block-start: clamp(2.5rem, 5vw, 5rem); }
+.contact-hero h1 { margin: 0 0 1.75rem; color: var(--color-ivory); font-family: var(--font-display); font-size: clamp(3rem, 6.5vw, 6rem); font-weight: 600; line-height: 1.07; letter-spacing: -.04em; }
+.contact-lead { max-inline-size: 54ch; color: var(--color-lilac); font-size: var(--text-lead); line-height: 1.85; }
+.contact-email { min-inline-size: 0; border-block-start: 1px solid var(--color-gold); padding-block-start: 1.5rem; }
+.contact-email h2 { margin-block-end: .75rem; color: var(--color-ivory); font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
+.contact-email p { color: var(--color-lilac); line-height: 1.8; }
+.contact-email-link { display: inline-flex; align-items: center; min-block-size: var(--touch-target); max-inline-size: 100%; margin-block-start: .75rem; color: var(--color-ivory); font-size: 1.05rem; font-weight: 500; overflow-wrap: anywhere; }
+.contact-form-section { background: var(--color-white); }
+.contact-form-layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.5fr); align-items: start; gap: clamp(2.5rem, 6vw, 6rem); }
+.contact-form-layout > .section-heading h2 { margin-block-start: 0; font-family: var(--font-display); font-weight: 600; }
+.contact-form { min-inline-size: 0; }
+.contact-closed-note { padding: 1.5rem; border: 1px solid var(--color-line); background: var(--color-surface-warm); color: var(--color-ink); }
+.contact-closed-note h3 { margin-block-end: .6rem; color: var(--color-purple); font-size: 1.15rem; font-weight: 600; line-height: 1.6; }
+.contact-closed-note p { font-size: 1rem; line-height: 1.85; }
+.contact-closed-note p + p { margin-block-start: .75rem; }
 .contact-required-hint { margin-block: 1.8rem 1.25rem; color: var(--color-muted); font-size: .875rem; }
 .contact-fields { min-inline-size: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin: 0; padding: 0; border: 0; }
 .contact-field-wide { grid-column: 1 / -1; min-inline-size: 0; }
 .contact-fields .field { min-inline-size: 0; }
-.contact-fields .field-input { inline-size: 100%; }
-.contact-fields .field-input:disabled { opacity: 1; }
-.contact-message { display: block; min-block-size: 10rem; resize: vertical; }
-.contact-form > .button { margin-block-start: 1.8rem; }
-.contact-delivery-intro { max-inline-size: 64ch; color: var(--color-muted); line-height: 1.85; }
-.contact-processing-note { margin-block-start: .65rem; max-inline-size: 68ch; font-size: .9rem; color: var(--color-muted); line-height: 1.85; }
-.contact-test-only { margin-block-end: 1.25rem; padding: 1rem; border-inline-start: 3px solid var(--color-purple); background: var(--color-info-surface); color: var(--color-purple); line-height: 1.85; }
+.contact-fields .field-input { inline-size: 100%; background: var(--color-ivory); }
+.contact-fields .field-input:disabled { opacity: 1; background: var(--color-disabled-surface); }
+.contact-message { display: block; min-block-size: 12rem; resize: vertical; }
+.contact-form > .button { margin-block-start: 2rem; }
+.contact-delivery-intro { max-inline-size: 65ch; color: var(--color-muted); font-size: 1rem; line-height: 1.85; }
+.contact-processing-note { margin-block-start: .75rem; max-inline-size: 68ch; font-size: .95rem; color: var(--color-muted); line-height: 1.85; }
+.contact-test-only { margin-block-end: 1.25rem; padding: 1rem; border: 1px solid var(--color-purple); background: var(--color-info-surface); color: var(--color-purple); line-height: 1.85; }
 .contact-delivery-status:not(:empty) { margin-block-start: 1.25rem; padding-block: .85rem; line-height: 1.8; }
 .contact-delivery-success { color: var(--color-success); font-weight: 500; }
-.contact-delivery-note { margin-block-start: 1.25rem; padding: 1.25rem; border-inline-start: 3px solid var(--color-error); background: var(--color-error-surface); }
+.contact-delivery-note { margin-block-start: 1.25rem; padding: 1.25rem; border: 1px solid var(--color-error); background: var(--color-error-surface); }
 .contact-delivery-note h3 { margin-block-end: .5rem; color: var(--color-error); font-size: 1.05rem; line-height: 1.65; }
 .contact-delivery-note p { line-height: 1.85; }
 .contact-delivery-note p + p { margin-block-start: .5rem; }
 .contact-duplicate-warning { margin-block-start: 1rem; padding: 1rem; background: var(--color-warning-surface); color: var(--color-warning); line-height: 1.85; }
-[lang="ar"] .contact-hero h1 { letter-spacing: 0; line-height: 1.55; font-size: clamp(2.5rem, 4.7vw, 4.5rem); }
-[lang="ar"] .contact-email h2 { line-height: 1.7; }
+[lang="ar"] .contact-hero h1 { letter-spacing: 0; line-height: 1.5; font-size: clamp(2.6rem, 5.3vw, 5rem); }
+[lang="ar"] .contact-email h2 { line-height: 1.6; }
 @media (max-width: 800px) {
-  .contact-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .contact-hero-grid, .contact-form-layout { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
   .contact-email { max-inline-size: 36rem; }
 }
 @media (max-width: 600px) {
+  .contact-hero h1 { font-size: clamp(2.5rem, 10vw, 3.5rem); }
   .contact-fields { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
-  .contact-closed-note { padding-inline: 1rem; }
+  .contact-closed-note { padding: 1rem; }
+  [lang="ar"] .contact-hero h1 { font-size: clamp(2.2rem, 9vw, 3.2rem); }
 }

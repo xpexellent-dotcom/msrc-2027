@@ -18,6 +18,7 @@ function observeReveal(node: HTMLDivElement) {
         awaitingReveal.delete(entry.target);
         viewportObserver?.unobserve(entry.target);
         const target = entry.target as HTMLDivElement;
+        if (target.dataset.revealState === "complete") continue;
         const waited = target.dataset.revealState === "waiting";
         target.dataset.revealState = "complete";
         // Content that waited below the screen fades up (ORG-012); on-screen content only settles.

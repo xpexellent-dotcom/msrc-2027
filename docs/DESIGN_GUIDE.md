@@ -1,5 +1,13 @@
 # MSRC 2027 website design guide
 
+**11 October Axiom-inspired approval demo:** The requester authorized a broader
+cinematic public visual overhaul under ENG-022, superseding ENG-021's composition.
+The implemented demo system is recorded in [DESIGN.md](../DESIGN.md), with
+[current scope and evidence](features/axiom-inspired-demo.md).
+Its public typography, composition and motion refinements supersede the corresponding
+working defaults below for this local demo only. This historical M2 baseline remains
+preserved; final brand and production-release approval have not been inferred.
+
 Original design snapshot: 30 September 2026; current approval reconciled 1 October 2026. ENG-007 records M2 implementation approval for the specified palette, fonts and motion. ORG-002's reviewed 18.7-second MSRC2026 homepage cut and responsive stills were published and verified. ORG-003 changes public playback and navigation as recorded in section 12. Final logos, other media, full bilingual content and institutional brand/REL-01 approval remain open under S1 CFG-12. Other component tokens are configurable engineering defaults.
 
 Primary references: [Development Specification v0.5](../sources/Development_Specification_v0.5.txt), section 15 and CFG-12 (S1); [Website Brand Guide](../sources/MSRC27_Website_Brand_Guide.pdf), pages 1-2 (S4); prior development pack (S5); visible project conversation (S6); original [MSRC27 brand reference sheet in Canva](https://www.canva.com/d/zrujOnVYUtutnfB), with [text snapshot](../sources/MSRC27_Brand_Reference_Canva.txt) (S8).

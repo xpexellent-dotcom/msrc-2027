@@ -1,0 +1,713 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T15:51:17.857Z",
+  "title": "Design System: MSRC 2027 Public Website",
+  "extensions": {
+    "colorMeta": {
+      "purple": {
+        "role": "primary",
+        "displayName": "Congress Purple",
+        "tonalRamp": [
+          "oklch(15% 0.1290 295.00)",
+          "oklch(27% 0.1290 295.00)",
+          "oklch(38% 0.1290 295.00)",
+          "oklch(50% 0.1290 295.00)",
+          "oklch(61% 0.1290 295.00)",
+          "oklch(73% 0.1290 295.00)",
+          "oklch(84% 0.1290 295.00)",
+          "oklch(95% 0.1290 295.00)"
+        ]
+      },
+      "purple-hover": {
+        "role": "primary",
+        "displayName": "Congress Purple Hover",
+        "tonalRamp": [
+          "oklch(15% 0.1352 296.35)",
+          "oklch(27% 0.1352 296.35)",
+          "oklch(38% 0.1352 296.35)",
+          "oklch(50% 0.1352 296.35)",
+          "oklch(61% 0.1352 296.35)",
+          "oklch(73% 0.1352 296.35)",
+          "oklch(84% 0.1352 296.35)",
+          "oklch(95% 0.1352 296.35)"
+        ]
+      },
+      "gold": {
+        "role": "secondary",
+        "displayName": "Conference Gold",
+        "tonalRamp": [
+          "oklch(15% 0.1154 85.19)",
+          "oklch(27% 0.1154 85.19)",
+          "oklch(38% 0.1154 85.19)",
+          "oklch(50% 0.1154 85.19)",
+          "oklch(61% 0.1154 85.19)",
+          "oklch(73% 0.1154 85.19)",
+          "oklch(84% 0.1154 85.19)",
+          "oklch(95% 0.1154 85.19)"
+        ]
+      },
+      "gold-hover": {
+        "role": "secondary",
+        "displayName": "Conference Gold Hover",
+        "tonalRamp": [
+          "oklch(15% 0.1055 87.27)",
+          "oklch(27% 0.1055 87.27)",
+          "oklch(38% 0.1055 87.27)",
+          "oklch(50% 0.1055 87.27)",
+          "oklch(61% 0.1055 87.27)",
+          "oklch(73% 0.1055 87.27)",
+          "oklch(84% 0.1055 87.27)",
+          "oklch(95% 0.1055 87.27)"
+        ]
+      },
+      "ivory": {
+        "role": "neutral",
+        "displayName": "Ivory",
+        "tonalRamp": [
+          "oklch(15% 0.0082 91.48)",
+          "oklch(27% 0.0082 91.48)",
+          "oklch(38% 0.0082 91.48)",
+          "oklch(50% 0.0082 91.48)",
+          "oklch(61% 0.0082 91.48)",
+          "oklch(73% 0.0082 91.48)",
+          "oklch(84% 0.0082 91.48)",
+          "oklch(95% 0.0082 91.48)"
+        ]
+      },
+      "lilac": {
+        "role": "secondary",
+        "displayName": "Lilac",
+        "tonalRamp": [
+          "oklch(15% 0.0470 303.31)",
+          "oklch(27% 0.0470 303.31)",
+          "oklch(38% 0.0470 303.31)",
+          "oklch(50% 0.0470 303.31)",
+          "oklch(61% 0.0470 303.31)",
+          "oklch(73% 0.0470 303.31)",
+          "oklch(84% 0.0470 303.31)",
+          "oklch(95% 0.0470 303.31)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0440 294.75)",
+          "oklch(27% 0.0440 294.75)",
+          "oklch(38% 0.0440 294.75)",
+          "oklch(50% 0.0440 294.75)",
+          "oklch(61% 0.0440 294.75)",
+          "oklch(73% 0.0440 294.75)",
+          "oklch(84% 0.0440 294.75)",
+          "oklch(95% 0.0440 294.75)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(27% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(50% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(73% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.0348 304.58)",
+          "oklch(27% 0.0348 304.58)",
+          "oklch(38% 0.0348 304.58)",
+          "oklch(50% 0.0348 304.58)",
+          "oklch(61% 0.0348 304.58)",
+          "oklch(73% 0.0348 304.58)",
+          "oklch(84% 0.0348 304.58)",
+          "oklch(95% 0.0348 304.58)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "tonalRamp": [
+          "oklch(15% 0.0192 309.77)",
+          "oklch(27% 0.0192 309.77)",
+          "oklch(38% 0.0192 309.77)",
+          "oklch(50% 0.0192 309.77)",
+          "oklch(61% 0.0192 309.77)",
+          "oklch(73% 0.0192 309.77)",
+          "oklch(84% 0.0192 309.77)",
+          "oklch(95% 0.0192 309.77)"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Strong Line",
+        "tonalRamp": [
+          "oklch(15% 0.0429 308.49)",
+          "oklch(27% 0.0429 308.49)",
+          "oklch(38% 0.0429 308.49)",
+          "oklch(50% 0.0429 308.49)",
+          "oklch(61% 0.0429 308.49)",
+          "oklch(73% 0.0429 308.49)",
+          "oklch(84% 0.0429 308.49)",
+          "oklch(95% 0.0429 308.49)"
+        ]
+      },
+      "inverse-line": {
+        "role": "neutral",
+        "displayName": "Inverse Line",
+        "tonalRamp": [
+          "oklch(15% 0.0470 303.31)",
+          "oklch(27% 0.0470 303.31)",
+          "oklch(38% 0.0470 303.31)",
+          "oklch(50% 0.0470 303.31)",
+          "oklch(61% 0.0470 303.31)",
+          "oklch(73% 0.0470 303.31)",
+          "oklch(84% 0.0470 303.31)",
+          "oklch(95% 0.0470 303.31)"
+        ]
+      },
+      "surface-lilac": {
+        "role": "neutral",
+        "displayName": "Lilac Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0131 310.53)",
+          "oklch(27% 0.0131 310.53)",
+          "oklch(38% 0.0131 310.53)",
+          "oklch(50% 0.0131 310.53)",
+          "oklch(61% 0.0131 310.53)",
+          "oklch(73% 0.0131 310.53)",
+          "oklch(84% 0.0131 310.53)",
+          "oklch(95% 0.0131 310.53)"
+        ]
+      },
+      "surface-warm": {
+        "role": "neutral",
+        "displayName": "Warm Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0156 86.43)",
+          "oklch(27% 0.0156 86.43)",
+          "oklch(38% 0.0156 86.43)",
+          "oklch(50% 0.0156 86.43)",
+          "oklch(61% 0.0156 86.43)",
+          "oklch(73% 0.0156 86.43)",
+          "oklch(84% 0.0156 86.43)",
+          "oklch(95% 0.0156 86.43)"
+        ]
+      },
+      "info-surface": {
+        "role": "neutral",
+        "displayName": "Information Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0243 306.95)",
+          "oklch(27% 0.0243 306.95)",
+          "oklch(38% 0.0243 306.95)",
+          "oklch(50% 0.0243 306.95)",
+          "oklch(61% 0.0243 306.95)",
+          "oklch(73% 0.0243 306.95)",
+          "oklch(84% 0.0243 306.95)",
+          "oklch(95% 0.0243 306.95)"
+        ]
+      },
+      "disabled": {
+        "role": "neutral",
+        "displayName": "Disabled",
+        "tonalRamp": [
+          "oklch(15% 0.0295 303.00)",
+          "oklch(27% 0.0295 303.00)",
+          "oklch(38% 0.0295 303.00)",
+          "oklch(50% 0.0295 303.00)",
+          "oklch(61% 0.0295 303.00)",
+          "oklch(73% 0.0295 303.00)",
+          "oklch(84% 0.0295 303.00)",
+          "oklch(95% 0.0295 303.00)"
+        ]
+      },
+      "disabled-surface": {
+        "role": "neutral",
+        "displayName": "Disabled Surface",
+        "tonalRamp": [
+          "oklch(15% 0.0132 310.52)",
+          "oklch(27% 0.0132 310.52)",
+          "oklch(38% 0.0132 310.52)",
+          "oklch(50% 0.0132 310.52)",
+          "oklch(61% 0.0132 310.52)",
+          "oklch(73% 0.0132 310.52)",
+          "oklch(84% 0.0132 310.52)",
+          "oklch(95% 0.0132 310.52)"
+        ]
+      },
+      "error": {
+        "role": "neutral",
+        "displayName": "Error",
+        "tonalRamp": [
+          "oklch(15% 0.1544 20.12)",
+          "oklch(27% 0.1544 20.12)",
+          "oklch(38% 0.1544 20.12)",
+          "oklch(50% 0.1544 20.12)",
+          "oklch(61% 0.1544 20.12)",
+          "oklch(73% 0.1544 20.12)",
+          "oklch(84% 0.1544 20.12)",
+          "oklch(95% 0.1544 20.12)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Cinematic display",
+        "purpose": "Homepage opener in solid ivory. Responsive and short-viewport overrides are recorded in DESIGN.md."
+      },
+      "headline": {
+        "displayName": "Public chapter headline",
+        "purpose": "ENG-026 solid ink or ivory ordinary words with selected weight-750 gradient keywords and pale lilac highlights; replaces ENG-025 all-over heading gradients."
+      },
+      "interior-display": {
+        "displayName": "Interior display",
+        "purpose": "Public page heroes outside the homepage."
+      },
+      "title": {
+        "displayName": "Photographic title",
+        "purpose": "Five pathway photographic cards."
+      },
+      "body": {
+        "displayName": "Reading text",
+        "purpose": "Base Inter reading text; public leads use the larger role."
+      },
+      "lead": {
+        "displayName": "Public lead",
+        "purpose": "Interior supporting text within 49ch."
+      },
+      "label": {
+        "displayName": "Interface label",
+        "purpose": "Readable control and factual metadata; not decorative eyebrows."
+      },
+      "arabic-display": {
+        "displayName": "Arabic cinematic display",
+        "purpose": "Independent Noto Sans Arabic metrics and zero tracking."
+      },
+      "arabic-headline": {
+        "displayName": "Arabic chapter headline",
+        "purpose": "Independent current chapter scale with zero tracking and 1.48 line height."
+      },
+      "benefit-title": {
+        "displayName": "Benefit title",
+        "purpose": "Bold title within a tactile reading article; Arabic uses zero tracking and a 1.6 line box."
+      },
+      "photo-hero-title": {
+        "displayName": "Photographic hero title",
+        "purpose": "Bold solid ivory photographic headers; only the final phrase of a multi-phrase heading carries the inverse gradient. One-phrase titles remain solid. Participation uses weight 750 and independent Arabic metrics."
+      },
+      "public-gold-label": {
+        "displayName": "Champagne invitation label",
+        "purpose": "Public gold variant only; weight 700 in the heading family, zero Arabic tracking."
+      }
+    },
+    "shadows": [
+      {
+        "name": "floating-masthead",
+        "value": "inset 0 1px 0 rgb(255 255 255 / .2), 0 10px 30px rgb(20 10 36 / .14)",
+        "purpose": "Grain-glass navigation edge and soft offset separation."
+      },
+      {
+        "name": "navigation-menu",
+        "value": "0 14px 38px rgb(20 10 36 / .2)",
+        "purpose": "Dropdown and mobile navigation panel depth."
+      },
+      {
+        "name": "dialog",
+        "value": "0 16px 48px #1f193033",
+        "purpose": "Retained shared dialog primitive."
+      },
+      {
+        "name": "toast",
+        "value": "0 6px 24px #1f19301f",
+        "purpose": "Retained shared transient feedback primitive."
+      },
+      {
+        "name": "champagne-rest",
+        "value": "inset 0 1px 0 rgb(255 255 255 / .52), 0 5px 16px rgb(48 29 61 / .12)",
+        "purpose": "Public invitation material at rest."
+      },
+      {
+        "name": "champagne-hover",
+        "value": "inset 0 1px 0 rgb(255 255 255 / .75), 0 9px 24px rgb(191 152 67 / .28)",
+        "purpose": "Warm offset response to a fine pointer."
+      },
+      {
+        "name": "date-panel-response",
+        "value": "0 12px 45px rgb(220 207 240 / .35)",
+        "purpose": "Light conference-day panel on hover or focus within."
+      }
+    ],
+    "motion": [
+      {
+        "name": "feedback",
+        "value": "180ms cubic-bezier(0.2, 0.7, 0.3, 1)",
+        "purpose": "Shared control feedback, with reduced-motion suppression."
+      },
+      {
+        "name": "reveal",
+        "value": "400ms cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "One-time progressive reveal with 12px travel; no-JavaScript and reduced-motion content remain readable."
+      },
+      {
+        "name": "action-fill",
+        "value": "180ms cubic-bezier(0.22, 0.68, 0.3, 1)",
+        "purpose": "Shared non-champagne button fill from the reading edge; RTL reverses direction."
+      },
+      {
+        "name": "navigation-geometry",
+        "value": "280ms cubic-bezier(.32, .72, 0, 1)",
+        "purpose": "Reversible outward travel and split plate zoom. Open dropdown and pointer containment prevent compaction; keyboard recovery is immediate."
+      },
+      {
+        "name": "navigation-middle",
+        "value": "220ms cubic-bezier(.32, .72, 0, 1)",
+        "purpose": "Coordinated middle opacity with 8px rise and .96 scale. Keyboard restoration is synchronous."
+      },
+      {
+        "name": "navigation-dropdown",
+        "value": "180ms cubic-bezier(.32, .72, 0, 1)",
+        "purpose": "Origin-aware dropdown feedback with a 140ms cancelable pointer-leave allowance and a real gap bridge; Program remains a direct link."
+      },
+      {
+        "name": "photographic-hover",
+        "value": "750ms–900ms cubic-bezier(.22, .68, .3, 1)",
+        "purpose": "Current pathway (750ms) and gallery (900ms) scale treatments. Anonymous portraits do not use photo hover effects."
+      },
+      {
+        "name": "faq-icon",
+        "value": "220ms cubic-bezier(.23, 1, .32, 1)",
+        "purpose": "Native disclosure plus changes to the open state."
+      },
+      {
+        "name": "hero-line",
+        "value": "700ms cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "One-time title entrance with 80ms second-line delay; disabled for reduced motion."
+      },
+      {
+        "name": "navigation-blur",
+        "value": "220ms cubic-bezier(.32, .72, 0, 1)",
+        "purpose": "Brief plate/middle blur during outward transition; background glass is 24px blur and .80-.86 alpha. Reduced motion suppresses middle blur."
+      },
+      {
+        "name": "research-drift",
+        "value": "18s ease-in-out infinite alternate",
+        "purpose": "Small decorative artwork drift; runs only while visible, the document is visible, motion is allowed and visitor pause is false."
+      },
+      {
+        "name": "history-count",
+        "value": "1400ms",
+        "purpose": "One-shot quartic ease-out from observed entry. Accessible final text remains constant; reduced motion shows final values immediately."
+      },
+      {
+        "name": "history-count-focus",
+        "value": "500ms cubic-bezier(.22, 1, .36, 1)",
+        "purpose": "Brief 5px blur and 8px rise into focus; disabled for reduced motion."
+      },
+      {
+        "name": "paper-sheet",
+        "value": "native sticky scrolling",
+        "purpose": "65svh native overlap, 35svh below 800px; reduced motion uses static normal document flow."
+      },
+      {
+        "name": "champagne-highlight",
+        "value": "240ms cubic-bezier(.23, 1, .32, 1)",
+        "purpose": "Interruptible highlight sweep; immediate for keyboard focus."
+      },
+      {
+        "name": "champagne-press",
+        "value": "120ms cubic-bezier(.23, 1, .32, 1)",
+        "purpose": "Subtle .975 press scale; reduced motion removes travel."
+      },
+      {
+        "name": "benefit-panel",
+        "value": "260ms cubic-bezier(.23, 1, .32, 1)",
+        "purpose": "3px pointer lift, pictogram response and separate 240ms inset light. Articles remain non-interactive reading surfaces."
+      },
+      {
+        "name": "speaker-contour-entrance",
+        "value": "4.5s orbit / 4.2s echo, once",
+        "purpose": "One brief decorative entrance, permanently settled after 4.5s; unseen motion pauses, reduced motion is static, no new pause control."
+      },
+      {
+        "name": "photo-hero-hover",
+        "value": "700ms cubic-bezier(.23, 1, .32, 1)",
+        "purpose": "Photographic public header scale 1.015 to 1.045 beneath stationary text and 5px blur."
+      },
+      {
+        "name": "conference-day-link",
+        "value": "180ms cubic-bezier(.23, 1, .32, 1)",
+        "purpose": "Hover and press on actual matching-day Program destinations; focus and reduced motion are immediate."
+      },
+      {
+        "name": "ambient-artwork-settle",
+        "value": "4.2s ribbon / 3.8s orbit, once",
+        "purpose": "Brief arrival of exact curve/ellipse linework on paths, benefits and people surfaces. Reduced motion is static; no added pause control."
+      },
+      {
+        "name": "participation-card-response",
+        "value": "240ms cubic-bezier(.23, 1, .32, 1)",
+        "purpose": "3px pointer lift on reading cards with a separate 220ms shadow response; focusable resources retain immediate keyboard feedback."
+      },
+      {
+        "name": "pathway-index-color",
+        "value": "180ms ease",
+        "purpose": "Native scroll changes the current track's color and arrow opacity. Underline and aria-current communicate location independently of color; keyboard and reduced motion are immediate."
+      },
+      {
+        "name": "pathway-index-marker",
+        "value": "220ms cubic-bezier(.23,1,.32,1)",
+        "purpose": "A 4px directional arrow resolves beside the current pathway. Native anchor links and scrolling remain intact; RTL mirrors the arrow."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow-team-and-footer",
+        "value": "390px"
+      },
+      {
+        "name": "narrow-history-and-venue",
+        "value": "400px"
+      },
+      {
+        "name": "phone-home",
+        "value": "540px"
+      },
+      {
+        "name": "public-interiors",
+        "value": "700px"
+      },
+      {
+        "name": "homepage-single-column",
+        "value": "800px"
+      },
+      {
+        "name": "interior-grid",
+        "value": "1000px"
+      },
+      {
+        "name": "desktop-retreat",
+        "value": "1200px"
+      },
+      {
+        "name": "compact-desktop-spacing",
+        "value": "1320px"
+      },
+      {
+        "name": "navigation-menu-container",
+        "value": "75rem"
+      },
+      {
+        "name": "navigation-action-container",
+        "value": "35rem"
+      },
+      {
+        "name": "short-desktop-height",
+        "value": "850px"
+      },
+      {
+        "name": "venue-facts-and-geographic-map",
+        "value": "650px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Shared public pill action; homepage and header apply their documented larger sizing.",
+      "html": "<button type=\"button\" class=\"ds-button\">Explore pathways<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M5 19 19 5M5 5h14v14\"/></svg></button>",
+      "css": ".ds-button{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;justify-content:center;align-items:center;gap:.75rem;min-inline-size:0;max-inline-size:100%;min-height:50px;padding:.85rem 1.5rem;border:1px solid transparent;border-radius:var(--radius-pill,999px);font-family:var(--font-interface,Inter,Arial,sans-serif);font-size:.9rem;line-height:1.5;font-weight:600;text-align:center;text-decoration:none;overflow-wrap:anywhere;cursor:pointer;box-shadow:none;transition:color 180ms cubic-bezier(.2,.7,.3,1),border-color 180ms cubic-bezier(.2,.7,.3,1),transform 180ms cubic-bezier(.2,.7,.3,1)}.ds-button::before{content:\"\";position:absolute;z-index:-1;inset:0;background:var(--ds-fill);transform:translateX(var(--motion-fill-start,-101%));transition:transform 180ms cubic-bezier(.22,.68,.3,1)}.ds-button svg{inline-size:1rem;block-size:1rem;flex-shrink:0;transform:scaleX(var(--motion-inline-direction,1))}.ds-button:focus-visible{outline:3px solid var(--focus-ring,var(--color-purple,#3b1e6d));outline-offset:4px}.ds-button:active:not(:disabled){transform:scale(.98)}.ds-button:active:not(:disabled)::before{transform:translateX(0)}.ds-button:disabled{background:var(--color-disabled-surface,#e8e3ec);color:var(--color-disabled,#655e70);cursor:not-allowed;transform:none;border-color:transparent}.ds-button:disabled::before{display:none}@media(hover:hover) and (pointer:fine){.ds-button:hover:not(:disabled){transform:translateY(-1px)}.ds-button:hover:not(:disabled)::before{transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.ds-button,.ds-button::before{transition:none;transform:none!important}}.ds-button{--ds-fill:var(--color-purple-hover,#4b2c80);background:var(--color-purple,#3b1e6d);color:var(--color-ivory,#f8f6f0)}"
+    },
+    {
+      "name": "Champagne invitation",
+      "kind": "button",
+      "refersTo": "public-gold-action",
+      "description": "Public gold material with a warm highlight and restrained offset glow; its destination remains closed registration information.",
+      "html": "<a class=\"ds-champagne\" href=\"/en/registration\">Reserve your seat<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M5 19 19 5M5 5h14v14\"/></svg></a>",
+      "css": ".ds-champagne{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:.75rem;min-block-size:50px;padding:.85rem 1.5rem;border:1px solid #f2e3bc;border-radius:999px;background:linear-gradient(120deg,#ead9ac 0%,#d6b76e 55%,#e5cc94 100%);color:#281f32;font-family:var(--font-heading,Manrope,Arial,sans-serif);font-weight:700;letter-spacing:-.01em;text-decoration:none;box-shadow:inset 0 1px 0 rgb(255 255 255 / .52),0 5px 16px rgb(48 29 61 / .12);transition:transform 160ms cubic-bezier(.23,1,.32,1),box-shadow 220ms ease,border-color 220ms ease}.ds-champagne::before{content:\"\";position:absolute;z-index:-1;inset:0;background:linear-gradient(105deg,rgb(255 247 222 / .55),rgb(255 244 213 / .1) 60%,transparent);opacity:0;transform:translateX(-22%);transition:transform 240ms cubic-bezier(.23,1,.32,1),opacity 180ms ease;pointer-events:none}.ds-champagne svg{inline-size:18px;block-size:18px}.ds-champagne:dir(rtl){letter-spacing:0}.ds-champagne:dir(rtl) svg{transform:scaleX(-1)}.ds-champagne:dir(rtl)::before{transform:translateX(22%)}.ds-champagne:focus-visible{outline:3px solid var(--color-purple,#3b1e6d);outline-offset:4px;transition:none}.ds-champagne:focus-visible::before{opacity:1;transform:none;transition:none}.ds-champagne:active{transform:scale(.975);transition-duration:120ms}@media(hover:hover) and (pointer:fine){.ds-champagne:hover{transform:translateY(-2px);border-color:#fff2d0;box-shadow:inset 0 1px 0 rgb(255 255 255 / .75),0 9px 24px rgb(191 152 67 / .28)}.ds-champagne:hover::before{opacity:1;transform:none}.ds-champagne:active{transform:scale(.975)}}@media(prefers-reduced-motion:reduce){.ds-champagne,.ds-champagne::before{transition:none!important}.ds-champagne:is(:hover,:active){transform:none}}@media(forced-colors:active){.ds-champagne{background:ButtonFace;color:ButtonText;border-color:ButtonText;box-shadow:none}.ds-champagne::before{display:none}}"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Shared public pill action; homepage and header apply their documented larger sizing.",
+      "html": "<button type=\"button\" class=\"ds-button\">View programme<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M5 19 19 5M5 5h14v14\"/></svg></button>",
+      "css": ".ds-button{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;justify-content:center;align-items:center;gap:.75rem;min-inline-size:0;max-inline-size:100%;min-height:50px;padding:.85rem 1.5rem;border:1px solid transparent;border-radius:var(--radius-pill,999px);font-family:var(--font-interface,Inter,Arial,sans-serif);font-size:.9rem;line-height:1.5;font-weight:600;text-align:center;text-decoration:none;overflow-wrap:anywhere;cursor:pointer;box-shadow:none;transition:color 180ms cubic-bezier(.2,.7,.3,1),border-color 180ms cubic-bezier(.2,.7,.3,1),transform 180ms cubic-bezier(.2,.7,.3,1)}.ds-button::before{content:\"\";position:absolute;z-index:-1;inset:0;background:var(--ds-fill);transform:translateX(var(--motion-fill-start,-101%));transition:transform 180ms cubic-bezier(.22,.68,.3,1)}.ds-button svg{inline-size:1rem;block-size:1rem;flex-shrink:0;transform:scaleX(var(--motion-inline-direction,1))}.ds-button:focus-visible{outline:3px solid var(--focus-ring,var(--color-purple,#3b1e6d));outline-offset:4px}.ds-button:active:not(:disabled){transform:scale(.98)}.ds-button:active:not(:disabled)::before{transform:translateX(0)}.ds-button:disabled{background:var(--color-disabled-surface,#e8e3ec);color:var(--color-disabled,#655e70);cursor:not-allowed;transform:none;border-color:transparent}.ds-button:disabled::before{display:none}@media(hover:hover) and (pointer:fine){.ds-button:hover:not(:disabled){transform:translateY(-1px)}.ds-button:hover:not(:disabled)::before{transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.ds-button,.ds-button::before{transition:none;transform:none!important}}.ds-button{--ds-fill:var(--color-lilac,#dccff0);background:transparent;color:var(--color-purple,#3b1e6d);border-color:var(--color-line-strong,#91839e)}@media(hover:hover) and (pointer:fine){.ds-button:hover:not(:disabled){border-color:var(--color-purple,#3b1e6d)}}"
+    },
+    {
+      "name": "Ghost action",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Shared public pill action; homepage and header apply their documented larger sizing.",
+      "html": "<button type=\"button\" class=\"ds-button\">Find out more<svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M5 19 19 5M5 5h14v14\"/></svg></button>",
+      "css": ".ds-button{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;justify-content:center;align-items:center;gap:.75rem;min-inline-size:0;max-inline-size:100%;min-height:50px;padding:.85rem 1.5rem;border:1px solid transparent;border-radius:var(--radius-pill,999px);font-family:var(--font-interface,Inter,Arial,sans-serif);font-size:.9rem;line-height:1.5;font-weight:600;text-align:center;text-decoration:none;overflow-wrap:anywhere;cursor:pointer;box-shadow:none;transition:color 180ms cubic-bezier(.2,.7,.3,1),border-color 180ms cubic-bezier(.2,.7,.3,1),transform 180ms cubic-bezier(.2,.7,.3,1)}.ds-button::before{content:\"\";position:absolute;z-index:-1;inset:0;background:var(--ds-fill);transform:translateX(var(--motion-fill-start,-101%));transition:transform 180ms cubic-bezier(.22,.68,.3,1)}.ds-button svg{inline-size:1rem;block-size:1rem;flex-shrink:0;transform:scaleX(var(--motion-inline-direction,1))}.ds-button:focus-visible{outline:3px solid var(--focus-ring,var(--color-purple,#3b1e6d));outline-offset:4px}.ds-button:active:not(:disabled){transform:scale(.98)}.ds-button:active:not(:disabled)::before{transform:translateX(0)}.ds-button:disabled{background:var(--color-disabled-surface,#e8e3ec);color:var(--color-disabled,#655e70);cursor:not-allowed;transform:none;border-color:transparent}.ds-button:disabled::before{display:none}@media(hover:hover) and (pointer:fine){.ds-button:hover:not(:disabled){transform:translateY(-1px)}.ds-button:hover:not(:disabled)::before{transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.ds-button,.ds-button::before{transition:none;transform:none!important}}.ds-button{--ds-fill:var(--color-info-surface,#ebe3f4);background:transparent;color:var(--color-purple,#3b1e6d)}"
+    },
+    {
+      "name": "Public contact field",
+      "kind": "input",
+      "refersTo": "field-public-contact",
+      "description": "Rounded public field with a visible label, error and disabled treatments.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Your name</span><input class=\"ds-field-input\" type=\"text\" placeholder=\"Enter your name\"></label>",
+      "css": ".ds-field{display:grid;gap:.45rem;min-inline-size:0;font-family:var(--font-interface,Inter,Arial,sans-serif)}.ds-field-label{color:var(--color-ink,#1f1930);font-size:1rem;font-weight:600}.ds-field-input{min-inline-size:0;min-block-size:56px;padding:.75rem .85rem;border:1px solid var(--color-line-strong,#91839e);border-radius:12px;background:var(--color-white,#fff);color:var(--color-ink,#1f1930);font:1rem/1.5 var(--font-interface,Inter,Arial,sans-serif);transition:border-color 180ms,box-shadow 180ms}.ds-field-input::placeholder{color:var(--color-muted,#645b70);opacity:1}.ds-field-input:hover:not(:disabled){border-color:var(--color-purple,#3b1e6d)}.ds-field-input:focus-visible{outline:3px solid var(--focus-ring,var(--color-purple,#3b1e6d));outline-offset:3px;border-color:var(--color-purple,#3b1e6d)}.ds-field-input:disabled{background:var(--color-disabled-surface,#e8e3ec);color:var(--color-disabled,#655e70);border-color:var(--color-line,#d9d2df);cursor:not-allowed}.ds-field-input[readonly]{background:var(--color-ivory,#f8f6f0)}.ds-field-input[aria-invalid=true]{border-color:var(--color-error,#a02935);box-shadow:inset 3px 0 0 var(--color-error,#a02935)}.ds-field-input:dir(rtl)[aria-invalid=true]{box-shadow:inset -3px 0 0 var(--color-error,#a02935)}@media(prefers-reduced-motion:reduce){.ds-field-input{transition:none}}"
+    },
+    {
+      "name": "Neutral availability",
+      "kind": "chip",
+      "refersTo": "status-neutral",
+      "description": "Semantic availability only; a static status is not a filter or an action.",
+      "html": "<span class=\"ds-status\"><span class=\"ds-status-dot\" aria-hidden=\"true\"></span>Not open yet</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;gap:.45rem;padding:.3rem .7rem;border:1px solid transparent;border-radius:var(--radius-pill,999px);font-family:var(--font-interface,Inter,Arial,sans-serif);font-size:.75rem;font-weight:500;line-height:1.7;background:var(--color-disabled-surface,#e8e3ec);color:var(--color-disabled,#655e70)}.ds-status-dot{inline-size:5px;block-size:5px;border-radius:50%;background:currentColor;flex-shrink:0}"
+    },
+    {
+      "name": "Outward glass navigation",
+      "kind": "nav",
+      "refersTo": "glass-navigation",
+      "description": "Translucent purple glass with a 24px blur and accessible champagne accent. Live navigation preserves dropdown pointer travel, keyboard access and reversible outward movement; this standalone preview shows expanded chrome.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Example public navigation\"><a class=\"ds-wordmark\" href=\"#home\" aria-label=\"MSRC 2027, home\"><span dir=\"ltr\">MSRC <span class=\"ds-year\">2027</span></span></a><div class=\"ds-nav-middle\"><details class=\"ds-dropdown\"><summary>Participate <svg aria-hidden=\"true\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"m4 6 4 4 4-4\"/></svg></summary><div class=\"ds-menu\"><a href=\"#attend\">Attend</a><a href=\"#research\">Research</a><a href=\"#workshops\">Workshops</a><a href=\"#hackathon\">Hackathon</a><a href=\"#3mt\">3MT</a></div></details><a class=\"ds-nav-link\" href=\"#program\">Program</a><a class=\"ds-nav-link\" href=\"#speakers\">Speakers</a><a class=\"ds-nav-link\" href=\"#sponsors\">Sponsors</a><a class=\"ds-nav-link\" href=\"#venue\">Venue</a><a class=\"ds-nav-link\" href=\"#team\">Our Team</a><a class=\"ds-nav-link\" href=\"#contact\">Contact</a></div><a class=\"ds-reserve\" href=\"#registration\">Reserve your seat</a></nav>",
+      "css": ".ds-nav{position:relative;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;min-block-size:64px;max-inline-size:1200px;padding:.5rem;border-radius:999px;background:linear-gradient(115deg,rgb(62 38 95 / .8),rgb(29 18 48 / .86) 58%,rgb(68 45 100 / .82));border:1px solid rgb(255 255 255 / .42);backdrop-filter:blur(24px) saturate(1.2);box-shadow:inset 0 1px 0 rgb(255 255 255 / .2),0 10px 30px rgb(20 10 36 / .14);color:var(--color-ivory,#f8f6f0);font-family:var(--font-interface,Inter,Arial,sans-serif)}.ds-wordmark{display:inline-flex;align-items:center;min-block-size:48px;padding:.45rem .75rem;color:inherit;text-decoration:none;font-family:var(--font-display,Manrope,Arial,sans-serif);font-size:1.5rem;letter-spacing:-.04em;font-weight:800;flex-shrink:0}.ds-year{font-size:.9rem;letter-spacing:0;font-weight:600;color:#f4e7c8}.ds-nav-middle{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.1rem;flex:1;min-inline-size:0;transition:opacity 220ms cubic-bezier(.32,.72,0,1),transform 280ms cubic-bezier(.32,.72,0,1),filter 220ms cubic-bezier(.32,.72,0,1)}.ds-dropdown{position:relative}.ds-dropdown summary,.ds-nav-link{display:flex;align-items:center;gap:.4rem;min-block-size:44px;padding-inline:.5rem;border-radius:8px;font-size:1rem;font-weight:500;list-style:none;cursor:pointer;color:inherit;text-decoration:none}.ds-dropdown summary::-webkit-details-marker{display:none}.ds-dropdown summary svg{inline-size:16px;block-size:16px;transition:transform 190ms cubic-bezier(.32,.72,0,1)}.ds-dropdown[open] summary svg{transform:rotate(180deg)}.ds-menu{position:absolute;z-index:2;inset-block-start:calc(100% + 12px);inset-inline-start:0;min-inline-size:220px;max-inline-size:min(340px,80vw);padding:.6rem;border-radius:14px;background:var(--color-ivory,#f8f6f0);box-shadow:0 14px 38px rgb(20 10 36 / .2)}.ds-menu a{display:flex;align-items:center;min-block-size:48px;padding:.65rem .8rem;border-radius:8px;color:var(--color-purple,#3b1e6d);text-decoration:none;font-size:1rem}.ds-reserve{display:inline-flex;align-items:center;justify-content:center;min-block-size:48px;padding-inline:1.15rem;border-radius:999px;background:#ead9ac;color:var(--color-ink,#1f1930);font-size:1rem;font-weight:600;text-decoration:none}.ds-nav :is(a,summary):focus-visible{outline:3px solid #f4e7c8;outline-offset:3px}.ds-menu a:focus-visible{outline-color:var(--color-purple,#3b1e6d)}.ds-reserve:focus-visible{outline-color:var(--color-ivory,#f8f6f0)}.ds-reserve:active{transform:scale(.98)}@media(hover:hover) and (pointer:fine){.ds-dropdown summary:hover,.ds-nav-link:hover{background:rgb(220 207 240 / .12)}.ds-menu a:hover{background:var(--color-info-surface,#ebe3f4)}.ds-reserve:hover{background:var(--color-gold-hover,#d6b566)}}@media(prefers-reduced-motion:reduce){.ds-dropdown summary svg,.ds-nav-middle{transition:none}.ds-reserve:active{transform:none}}.ds-reserve{background:linear-gradient(120deg,#ead9ac,#d6b76e 55%,#e5cc94);color:#281f32;font-family:var(--font-heading,Manrope,Arial,sans-serif);font-weight:700;box-shadow:inset 0 1px 0 rgb(255 255 255 / .52),0 5px 16px rgb(48 29 61 / .12);transition:transform 160ms cubic-bezier(.23,1,.32,1),box-shadow 220ms ease}.ds-reserve:focus-visible{transition:none}@media(hover:hover) and (pointer:fine){.ds-reserve:hover{background:linear-gradient(120deg,#f2e4c2,#ddc184 55%,#ead7ac);box-shadow:0 9px 24px rgb(191 152 67 / .28)}}@media(prefers-reduced-motion:reduce){.ds-reserve{transition:none}}"
+    },
+    {
+      "name": "Anonymous forthcoming portrait",
+      "kind": "card",
+      "refersTo": "anonymous-portrait",
+      "description": "CSS head and shoulders with an MSRC monogram. A pending name establishes neither a real identity nor roster capacity.",
+      "html": "<article class=\"ds-team-card\"><div class=\"ds-portrait\" aria-hidden=\"true\"><span class=\"ds-portrait-mark\" lang=\"en\" dir=\"ltr\">MSRC<span>2027</span></span><span class=\"ds-portrait-head\"></span><span class=\"ds-portrait-shoulders\"></span><span class=\"ds-portrait-frame\"></span></div><div class=\"ds-team-copy\"><h3>Name to be announced</h3></div></article>",
+      "css": ".ds-team-card{max-inline-size:22rem;font-family:var(--font-interface,Inter,Arial,sans-serif);min-inline-size:0}.ds-portrait{position:relative;isolation:isolate;overflow:hidden;inline-size:100%;min-block-size:18rem;aspect-ratio:4/5;border-radius:16px;color:var(--color-lilac,#dccff0);background:var(--color-purple,#3b1e6d)}.ds-portrait-mark{position:absolute;z-index:1;inset-block-start:1.75rem;inset-inline-start:1.75rem;display:flex;flex-direction:column;gap:.3rem;font-family:var(--font-display,Manrope,Arial,sans-serif);font-size:1.4rem;font-weight:500;line-height:1.1;letter-spacing:-.03em}.ds-portrait-mark>span{font-size:.6em;letter-spacing:.05em}.ds-portrait-head{position:absolute;inset-block-start:23%;inset-inline-start:33%;inline-size:34%;aspect-ratio:1;border-radius:50%;background:currentColor;opacity:.22}.ds-portrait-shoulders{position:absolute;inset-block-start:53%;inset-inline-start:12%;inline-size:76%;aspect-ratio:1.1;border-radius:50% 50% 0 0;background:currentColor;opacity:.17}.ds-portrait-frame{position:absolute;inset:1.25rem;border:1px solid currentColor;opacity:.12;border-radius:8px}.ds-team-copy{padding-block-start:1.5rem}.ds-team-copy h3{margin-block:.6rem;color:var(--color-purple,#3b1e6d);font-family:var(--font-display,Manrope,Arial,sans-serif);font-size:clamp(1.5rem,2.1vw,1.9rem);font-weight:500;line-height:1.3;letter-spacing:-.025em;text-wrap:balance}.ds-team-copy:dir(rtl) h3{letter-spacing:0;line-height:1.5}"
+    },
+    {
+      "name": "Rail direction control",
+      "kind": "button",
+      "refersTo": "rail-control",
+      "description": "Circular control with disabled endpoints and mirrored RTL direction; actual movement remains native scrolling.",
+      "html": "<button class=\"ds-rail-control\" type=\"button\" aria-label=\"Next\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M4 12h16m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button>",
+      "css": ".ds-rail-control{display:grid;place-items:center;inline-size:52px;block-size:52px;flex-shrink:0;padding:0;border:1px solid var(--color-line-strong,#91839e);border-radius:50%;background:transparent;color:var(--color-purple,#3b1e6d);cursor:pointer;transition:background-color 180ms,color 180ms,transform 150ms}.ds-rail-control svg{inline-size:24px;block-size:24px}.ds-rail-control:dir(rtl) svg{transform:scaleX(-1)}.ds-rail-control:disabled{opacity:.42;cursor:default}.ds-rail-control:focus-visible{outline:3px solid var(--focus-ring,var(--color-purple,#3b1e6d));outline-offset:4px}.ds-rail-control:active:not(:disabled){transform:scale(.96)}@media(hover:hover) and (pointer:fine){.ds-rail-control:hover:not(:disabled){background:var(--color-purple,#3b1e6d);color:var(--color-ivory,#f8f6f0)}}@media(prefers-reduced-motion:reduce){.ds-rail-control{transition:none;transform:none!important}}"
+    },
+    {
+      "name": "Native FAQ disclosure",
+      "kind": "custom",
+      "refersTo": "faq-summary",
+      "description": "Ruled native disclosure with a circular plus, ordinary answer text and no motion dependency.",
+      "html": "<details class=\"ds-faq\"><summary>How can I explore participation?<span class=\"ds-faq-circle\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M12 5v14M5 12h14\"/></svg></span></summary><p>Explore the five pathways and their published information. Each pathway retains its current availability state.</p></details>",
+      "css": ".ds-faq{border-block:1px solid var(--color-line-strong,#91839e);font-family:var(--font-interface,Inter,Arial,sans-serif);transition:background-color 200ms}.ds-faq summary{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;min-inline-size:0;padding:1.8rem .5rem;cursor:pointer;list-style:none;font-family:var(--font-heading,Manrope,Arial,sans-serif);font-size:clamp(1.2rem,1.8vw,1.6rem);font-weight:500;line-height:1.5;color:var(--color-purple,#3b1e6d);overflow-wrap:anywhere}.ds-faq summary::-webkit-details-marker{display:none}.ds-faq summary:focus-visible{outline:3px solid var(--focus-ring,var(--color-purple,#3b1e6d));outline-offset:4px}.ds-faq-circle{display:grid;place-items:center;inline-size:44px;block-size:44px;flex-shrink:0;border:1px solid var(--color-line-strong,#91839e);border-radius:50%;color:var(--color-purple,#3b1e6d);transition:background-color 200ms,color 200ms}.ds-faq-circle svg{inline-size:22px;block-size:22px;transition:transform 220ms cubic-bezier(.23,1,.32,1)}.ds-faq[open] .ds-faq-circle{background:var(--color-purple,#3b1e6d);color:var(--color-ivory,#f8f6f0);border-color:var(--color-purple,#3b1e6d)}.ds-faq[open] svg{transform:rotate(45deg)}.ds-faq p{max-inline-size:62ch;font-size:1.1rem;margin:0;padding:0 4.5rem 2rem .5rem;line-height:1.9;color:var(--color-ink,#1f1930);overflow-wrap:anywhere}.ds-faq:dir(rtl) p{padding-inline: .5rem 4.5rem}@media(hover:hover) and (pointer:fine){.ds-faq:hover{background:var(--color-surface-lilac,#efeaf3)}}@media(max-width:540px){.ds-faq summary{font-size:1.2rem;gap:.75rem}.ds-faq p,.ds-faq:dir(rtl) p{padding-inline:.5rem;font-size:1rem}}@media(prefers-reduced-motion:reduce){.ds-faq,.ds-faq-circle,.ds-faq-circle svg{transition:none}.ds-faq-circle svg{transform:none!important}}"
+    },
+    {
+      "name": "Tactile benefit article",
+      "kind": "card",
+      "refersTo": "benefit-card",
+      "description": "Bold reading article paired with a gradient pictogram. The separate CME treatment is illustrative only; neither card implies an open workflow.",
+      "html": "<article class=\"ds-benefit\"><svg class=\"ds-benefit-icon\" viewBox=\"0 0 90 90\" fill=\"none\" aria-hidden=\"true\"><defs><linearGradient id=\"benefit-gradient\" x1=\"10\" y1=\"12\" x2=\"80\" y2=\"80\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#a181c4\"/><stop offset=\".5\" stop-color=\"#633b91\"/><stop offset=\"1\" stop-color=\"#c9a24a\"/></linearGradient></defs><g stroke=\"url(#benefit-gradient)\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m37 15 17 11-13 20-17-11 13-20Zm-4 17-6 10m17-2 6 4M22 69h44M44 70V60M58 34a19 19 0 0 1-5 37M28 54h22\"/><circle cx=\"57\" cy=\"32\" r=\"5\"/></g></svg><div><h3>Research, in the room.</h3><p>Present your work, hear new perspectives and take part in the conversations that move an idea forward.</p></div></article>",
+      "css": ".ds-benefit{position:relative;isolation:isolate;overflow:hidden;max-inline-size:44rem;padding:clamp(1.4rem,2.5vw,2.5rem);border:1px solid rgb(59 30 109 / .15);border-radius:16px;background:linear-gradient(135deg,rgb(255 255 255 / .94),rgb(248 246 250 / .8));transition:transform 260ms cubic-bezier(.23,1,.32,1),border-color 220ms ease}.ds-benefit::before{content:\"\";position:absolute;z-index:-1;inset:0;opacity:0;background:radial-gradient(ellipse at 85% 5%,rgb(186 157 228 / .28),transparent 70%);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .9);transition:opacity 240ms ease;pointer-events:none}.ds-benefit h3{margin:0 0 .9rem;color:var(--color-purple,#3b1e6d);font-family:var(--font-heading,Manrope,Arial,sans-serif);font-size:clamp(1.5rem,2.05vw,2.05rem);font-weight:750;line-height:1.3;letter-spacing:-.025em}.ds-benefit p{margin:0;color:var(--color-ink,#1f1930);font-family:var(--font-interface,Inter,Arial,sans-serif);font-size:1.125rem;line-height:1.75}.ds-benefit:dir(rtl) h3{letter-spacing:0;line-height:1.6}@media(hover:hover) and (pointer:fine){.ds-benefit:hover{transform:translateY(-3px);border-color:rgb(108 72 157 / .45)}.ds-benefit:hover::before{opacity:1}}@media(prefers-reduced-motion:reduce){.ds-benefit,.ds-benefit::before{transition:none}.ds-benefit:hover{transform:none}} .ds-benefit{display:grid;grid-template-columns:4.5rem minmax(0,1fr);gap:1.5rem;align-items:start}.ds-benefit-icon{inline-size:4.5rem;block-size:4.5rem;filter:drop-shadow(0 8px 12px rgb(91 49 135 / .12))}@media(max-width:420px){.ds-benefit{grid-template-columns:minmax(0,1fr)}.ds-benefit-icon{inline-size:3.25rem;block-size:3.25rem}}"
+    },
+    {
+      "name": "Community figures in glass",
+      "kind": "card",
+      "refersTo": "history-panel",
+      "description": "Edition-scoped number-first cards: 4,007+ Total visitors (2023–2026), larger 2,257 Visitors and 83 Research abstracts submitted (MSRC 2026). The organizer requested these labels; the total is summed attendance, not unique people. Static preview shows final values.",
+      "html": "<dl class=\"ds-history\"><div><dt><svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"20\" cy=\"20\" r=\"15\"/><path d=\"M5 20h30M20 5c5 4.5 7.5 9.5 7.5 15S25 30.5 20 35c-5-4.5-7.5-9.5-7.5-15S15 9.5 20 5Z\"/></svg>Total visitors<span>2023–2026</span></dt><dd>4,007+</dd></div><div class=\"ds-visitors\"><dt><svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"20\" cy=\"12\" r=\"5\"/><path d=\"M10.5 33v-4a9.5 9.5 0 0 1 19 0v4H10.5ZM7 10.5a4.5 4.5 0 0 0 0 9M33 10.5a4.5 4.5 0 0 1 0 9M6.5 24A7.5 7.5 0 0 0 2 31v2h4M33.5 24A7.5 7.5 0 0 1 38 31v2h-4\"/></svg>Visitors<span>MSRC 2026</span></dt><dd>2,257</dd></div><div><dt><svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 4h14l7 7v23a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2ZM26 4v7h7M16 18h11M16 24h11M16 30h6M5 12v20\"/></svg>Research abstracts submitted<span>MSRC 2026</span></dt><dd>83</dd></div></dl>",
+      "css": ".ds-history{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.18fr) minmax(0,1fr);gap:1.25rem;margin:0;padding:1.25rem;background:var(--color-ink,#1f1930);font-family:var(--font-interface,Inter,Arial,sans-serif)}.ds-history>div{container-type:inline-size;position:relative;display:flex;flex-direction:column-reverse;justify-content:space-between;min-inline-size:0;min-block-size:21rem;padding:clamp(1.5rem,2.5vw,2.5rem);border:1px solid rgb(220 207 240 / .3);border-radius:16px;background:linear-gradient(145deg,rgb(74 54 98 / .56),rgb(31 25 48 / .68));backdrop-filter:blur(16px)}.ds-history>.ds-visitors{background:linear-gradient(145deg,rgb(111 80 141 / .66),rgb(47 32 69 / .7));border-color:rgb(239 220 181 / .66)}.ds-history svg{position:absolute;inset-block-start:1.5rem;inset-inline-end:1.5rem;inline-size:2.5rem;block-size:2.5rem;color:#dccff0}.ds-history dt{color:#f8f6f0;font-size:1.125rem;font-weight:600;line-height:1.5;overflow-wrap:anywhere}.ds-history dt>span{display:block;margin-block-start:.6rem;color:#dccff0;font-size:1rem;font-weight:400}.ds-history dd{margin:3.5rem 0 1.5rem;color:#f8f6f0;font-family:var(--font-heading,Manrope,Arial,sans-serif);font-size:clamp(2.5rem,22cqi,5rem);font-weight:600;line-height:1.08;letter-spacing:-.035em;font-variant-numeric:tabular-nums}.ds-visitors dd{color:#f0dfb6;font-size:clamp(3rem,27cqi,6rem);font-weight:650}.ds-visitors svg{color:#eddaaf}@media(max-width:800px){.ds-history{grid-template-columns:minmax(0,1fr)}.ds-history>div{min-block-size:16.5rem;padding:24px}.ds-history dd{font-size:clamp(1.25rem,22cqi,4.5rem)}.ds-visitors dd{font-size:clamp(1.5rem,27cqi,5.5rem)}}@media(forced-colors:active){.ds-history,.ds-history>div,.ds-history>.ds-visitors{background:Canvas;border-color:CanvasText;backdrop-filter:none}.ds-history :is(dt,dd,svg,span){color:CanvasText}}"
+    },
+    {
+      "name": "Conference day links",
+      "kind": "card",
+      "refersTo": "conference-day-panel",
+      "description": "White/gray date panel linking the two configured dates to their corresponding Program view.",
+      "html": "<div class=\"ds-days\"><a href=\"/en/program?day=day1\"><span>Day 1</span><time datetime=\"2027-01-27\">27 January 2027</time></a><a href=\"/en/program?day=day2\"><span>Day 2</span><time datetime=\"2027-01-28\">28 January 2027</time></a></div>",
+      "css": ".ds-days{position:relative;isolation:isolate;max-inline-size:32rem;padding:clamp(1.4rem,3vw,2.5rem);border:1px solid rgb(255 255 255 / .78);border-radius:16px;background:linear-gradient(125deg,#fff,#f1eef4);color:var(--color-purple,#3b1e6d);font-family:var(--font-interface,Inter,Arial,sans-serif)}.ds-days::after{content:\"\";position:absolute;z-index:-1;inset:0;border-radius:inherit;box-shadow:0 12px 45px rgb(220 207 240 / .35);opacity:0;transition:opacity 220ms ease;pointer-events:none}.ds-days>a{display:flex;flex-direction:column;gap:.55rem;padding:1.15rem .5rem;color:inherit;text-decoration:none;border-radius:12px;transition:background-color 180ms ease,transform 180ms cubic-bezier(.23,1,.32,1)}.ds-days>a+a{border-block-start:1px solid var(--color-line,#d9d2df)}.ds-days span{font-size:1.0625rem;font-weight:600;line-height:1.5}.ds-days time{font-size:clamp(1.7rem,2.5vw,2.35rem);font-weight:650;letter-spacing:-.025em;line-height:1.3}.ds-days a:focus-visible{outline:3px solid var(--color-purple,#3b1e6d);outline-offset:3px;transition:none;background:white}.ds-days:focus-within::after{opacity:1}.ds-days a:active{transform:scale(.985)}.ds-days:dir(rtl) time{letter-spacing:0;line-height:1.5}@media(hover:hover) and (pointer:fine){.ds-days:hover::after{opacity:1}.ds-days a:hover{background:white;transform:translateY(-2px)}}@media(prefers-reduced-motion:reduce){.ds-days a,.ds-days::after{transition:none}.ds-days a:is(:hover,:active){transform:none}}"
+    },
+    {
+      "name": "Speaker contour atmosphere",
+      "kind": "custom",
+      "description": "Static settled geometry preview. The live speaker section runs a single 4.5s decorative entrance with visibility and reduced-motion handling, then stays still.",
+      "html": "<section class=\"ds-atmosphere\"><svg aria-hidden=\"true\" viewBox=\"0 0 720 360\" fill=\"none\"><g transform=\"rotate(-28 550 150)\"><ellipse cx=\"550\" cy=\"150\" rx=\"185\" ry=\"70\"/><ellipse cx=\"550\" cy=\"150\" rx=\"225\" ry=\"95\"/><ellipse cx=\"550\" cy=\"150\" rx=\"265\" ry=\"120\"/><ellipse cx=\"550\" cy=\"150\" rx=\"305\" ry=\"145\"/></g></svg><h2>Meet the <strong>speakers.</strong></h2><p>Names to be announced.</p></section>",
+      "css": ".ds-atmosphere{position:relative;isolation:isolate;overflow:hidden;padding:3rem 2rem;background:linear-gradient(135deg,#f8f6f0 12%,#ede6f5 66%,#e4d9f0);color:var(--color-ink,#1f1930)}.ds-atmosphere svg{position:absolute;z-index:-1;inset:0;inline-size:100%;block-size:100%;stroke:rgb(95 59 142 / .24);stroke-width:1;pointer-events:none}.ds-atmosphere h2{margin:0;font-family:var(--font-heading,Manrope,Arial,sans-serif);font-size:clamp(2rem,4vw,4rem);font-weight:550;line-height:1.15;letter-spacing:-.035em}.ds-atmosphere strong{color:var(--color-purple,#3b1e6d);font-weight:750}.ds-atmosphere p{font-family:var(--font-interface,Inter,Arial,sans-serif);font-size:1.125rem;line-height:1.75}.ds-atmosphere:dir(rtl) h2{letter-spacing:0;line-height:1.5}@media(forced-colors:active){.ds-atmosphere svg{display:none}}"
+    },
+    {
+      "name": "Selective keyword emphasis",
+      "kind": "custom",
+      "description": "Solid ink ordinary words with a gradient only on the selected keyword. Dark fields use ivory ordinary words and an inverse keyword material. This supersedes ENG-025 all-over gradient headings.",
+      "html": "<section class=\"ds-fluid-title\"><h2>Choose your <strong>path.</strong></h2><p>Find the way you want to take part.</p></section>",
+      "css": ".ds-fluid-title{padding:2rem;background:var(--color-ivory,#f8f6f0);color:var(--color-ink,#1f1930)}.ds-fluid-title h2{font-family:var(--font-heading,Manrope,Arial,sans-serif);font-size:clamp(3rem,5.6vw,5.8rem);font-weight:550;line-height:1.12;letter-spacing:-.035em;margin:0;color:var(--color-ink,#1f1930)}.ds-fluid-title strong{position:relative;isolation:isolate;font-weight:750;background:linear-gradient(115deg,#28163f 8%,#57317e 53%,#7b4e99 92%);background-clip:text;-webkit-text-fill-color:transparent}.ds-fluid-title strong::after{content:\"\";position:absolute;z-index:-1;inset-inline:-.025em;inset-block-end:.025em;block-size:.26em;border-radius:.05em;background:rgb(193 163 228 / .25)}.ds-fluid-title p{font:1.125rem/1.75 var(--font-interface,Inter,Arial,sans-serif);max-inline-size:45ch}.ds-fluid-title:dir(rtl) h2{letter-spacing:0;line-height:1.5}@media(forced-colors:active){.ds-fluid-title h2,.ds-fluid-title strong{background:none;-webkit-text-fill-color:CanvasText}.ds-fluid-title strong::after{display:none}}"
+    },
+    {
+      "name": "Illustrative CME artwork",
+      "kind": "custom",
+      "description": "The organizer selected 7 as a visual placeholder only. Visible and accessible labeling explicitly preserve unconfirmed hours.",
+      "html": "<div class=\"ds-cme\" aria-label=\"7 CME hours: illustrative only, hours unconfirmed\"><span class=\"ds-cme-number\" aria-hidden=\"true\">7</span><span class=\"ds-cme-label\" aria-hidden=\"true\">CME</span><span class=\"ds-cme-note\" aria-hidden=\"true\">Illustrative</span></div>",
+      "css": ".ds-cme{display:flex;flex-direction:column;align-items:center;inline-size:fit-content;padding:1.5rem;background:var(--color-ivory,#f8f6f0);color:var(--color-purple,#3b1e6d);line-height:1}.ds-cme-number{font-family:var(--font-display,Manrope,Arial,sans-serif);font-size:4.8rem;font-weight:750;letter-spacing:-.04em;background:linear-gradient(115deg,#28163f 8%,#57317e 53%,#7b4e99 92%);background-clip:text;-webkit-text-fill-color:transparent}.ds-cme-label{font:750 1.125rem var(--font-interface,Inter,Arial,sans-serif);letter-spacing:.08em;margin-block-start:.15rem}.ds-cme-note{font:.75rem/1.5 var(--font-interface,Inter,Arial,sans-serif);margin-block-start:.6rem;color:var(--color-muted,#645b70)}@media(forced-colors:active){.ds-cme-number{background:none;-webkit-text-fill-color:CanvasText}}"
+    },
+    {
+      "name": "Unavailable program resource",
+      "kind": "card",
+      "description": "A requested practical action remains visibly unavailable until the approved brochure exists. No fabricated download target.",
+      "html": "<article class=\"ds-resource\"><button type=\"button\" disabled>Download the program brochure</button><p>The brochure will be available when the program is published.</p></article>",
+      "css": ".ds-resource{max-inline-size:34rem;padding:1.75rem;border-radius:14px;background:#f8f6fa;color:#574765;font-family:var(--font-interface,Inter,Arial,sans-serif)}.ds-resource button{display:block;padding:0;border:0;min-block-size:44px;background:none;color:inherit;font-family:inherit;font-size:1.25rem;font-weight:650;line-height:1.5;text-align:start}.ds-resource p{font-size:1rem;line-height:1.7;color:#62526f;margin:.25rem 0 0}"
+    },
+    {
+      "name": "Pathway reading index",
+      "kind": "custom",
+      "description": "Five native in-page links. Live scrolling selects the card at the 45% reading line, with purple weight, underline, arrow and aria-current. This static preview selects Research; the live index becomes normal flow on phones or when it cannot fit the viewport.",
+      "html": "<nav class=\"ds-track-index\" aria-label=\"Example participation tracks\"><a href=\"#pathway-registration\">Attend</a><a href=\"#pathway-submissions\" aria-current=\"location\">Research <svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M4 12h15m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a><a href=\"#pathway-workshops\">Workshops</a><a href=\"#pathway-hackathon\">Hackathon</a><a href=\"#pathway-3mt\">3MT</a></nav>",
+      "css": ".ds-track-index{display:grid;gap:.1rem;padding:1.5rem;background:var(--color-ivory,#f8f6f0);font-family:var(--font-interface,Inter,Arial,sans-serif)}.ds-track-index a{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-block-size:46px;max-inline-size:24rem;color:#71677f;font-size:clamp(1.125rem,1.85vw,1.625rem);font-weight:550;line-height:1.4;letter-spacing:-.025em;text-decoration:none;transition:color 180ms ease}.ds-track-index [aria-current]{color:#3b1e6d;font-weight:700;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.23em}.ds-track-index a:focus-visible{outline:2px solid #3b1e6d;outline-offset:5px;transition:none}.ds-track-index:dir(rtl) a{letter-spacing:0;line-height:1.65}.ds-track-index svg{inline-size:1.4rem;block-size:1.4rem;flex-shrink:0}.ds-track-index:dir(rtl) svg{transform:scaleX(-1)}@media(prefers-reduced-motion:reduce){.ds-track-index a{transition:none}}@media(forced-colors:active){.ds-track-index{background:Canvas}.ds-track-index a{color:LinkText}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cinematic Congress",
+    "overview": "**LOCAL APPROVAL DEMO — pending user approval. This is not final brand approval or a production release.** ENG-026 refines the accepted fluid experience. A five-track reading index follows native scrolling beside the photographic pathways. The latest request supersedes ENG-025's all-over heading gradients: ordinary heading words are solid ink on light surfaces and ivory on dark surfaces; selected keywords carry the gradient and lilac highlight. Community figures use translucent plum cards, meaningful icons and a larger 2,257 visitor figure. The expansive imagery, rising paper surface, coherent glass navigation and photograph-led participation pages remain. Restricted staff and authentication interfaces retain their established design.\n\nIvory, purple and ink carry the story. Manrope combines generous headline scale with carefully placed heavier words and controlled gradient color; Inter carries the reading text. A champagne material gives invitations a warm, responsive highlight. Fine raster grain, scientific contour linework and brief settling entrances provide atmosphere without moving reading text. Real community photography blends into adjoining sections. Arabic keeps independent Noto Sans Arabic metrics and mirrored RTL composition.\n\nNative scrolling, keyboard access, preference-aware motion and truthful pending names remain integral. This document records implemented choices; browser evidence, human approval and production release status belong in the task receipts.",
+    "keyCharacteristics": [
+      "Real conference and venue imagery with provenance; anonymous forthcoming portraits.",
+      "Solid display typography with selective gradient keywords, lilac highlights and independent Arabic metrics.",
+      "A scroll-aware five-track reading index and edition-scoped glass community cards.",
+      "Smooth rectangular information panels, champagne pill actions and fine luminous navigation edges.",
+      "A translucent glass capsule whose logo and invitation travel outward while dropdown travel remains reliable.",
+      "Native layered scrolling, brief artistic entrances, photographic fades and stable accessible counter values.",
+      "Concise participation cards, practical next actions, geographic arrival context and closed workflow destinations."
+    ],
+    "rules": [
+      {
+        "name": "The Readable Overlay Rule",
+        "body": "Keep dark scrims under photographic copy, opaque caption surfaces over animation, and adequate contrast throughout a material's lightest state.",
+        "section": "colors"
+      },
+      {
+        "name": "The Bilingual Metrics Rule",
+        "body": "Arabic uses zero tracking, independent line boxes and equivalent content. Benefit titles use line height (1.6); photographic headings and dates use (1.5). Mirror layout and directional icons, never geography or the Latin wordmark.",
+        "section": "typography"
+      },
+      {
+        "name": "The Native Movement Rule",
+        "body": "Keep native scrolling and visible rail controls. Keyboard and reduced-motion navigation never wait for animated travel. Motion must not intercept the wheel or hide content.",
+        "section": "layout"
+      },
+      {
+        "name": "The Selective Depth Rule",
+        "body": "Use each material in its established role, with distinct rest and interaction states. No global glow is implied.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** preserve the MSRC base identity and distinguish component materials from approved brand tokens.",
+      "**Do** clarify hierarchy with selective weight/color and generous reading space.",
+      "**Do** ground dates, names, history and availability in configuration and evidence.",
+      "**Do** preserve RTL, Arabic metrics, visible focus, native scrolling and reduced motion.",
+      "**Do** keep background animation brief and reading surfaces stable.",
+      "**Do** retain photograph, footage, artwork and geographic provenance.",
+      "**Do** keep this public refinement out of operational shells."
+    ],
+    "donts": [
+      "**Don't** call the local demo final brand approval or a production release.",
+      "**Don't** invent identities, affiliations, capacity, accreditation, eligibility or reuse clearance.",
+      "**Don't** turn reading panels into false controls or delay keyboard recovery.",
+      "**Don't** apply decorative gradients to ordinary reading copy, mirror geography or fabricate routes.",
+      "**Don't** present the illustrative 7 CME graphic, unannounced workshops or unavailable resources as approved event facts.",
+      "**Don't** spread glow to every surface or promote champagne into an unapproved global palette."
+    ]
+  }
+}

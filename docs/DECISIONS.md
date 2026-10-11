@@ -1,5 +1,228 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-027 — Publish the approved design, 11 October 2026
+
+The requester explicitly approves the ENG-026 demo and instructs: "I approve of
+the Demo, bring it into the live version." This authorizes publishing the approved
+public design and selected assets through the existing GitHub/Vercel release
+pipeline, including the release merge after required checks pass. It supersedes
+the earlier local-demo-only scope for these changes.
+
+Preserve the accepted EN/AR visuals, placeholder rosters and illustrative CME
+qualification. Registration, submissions, accounts, payment, staff, email delivery
+and other operational gates are unaffected. Approval to publish design is not
+approval to open workflows, change settings or provision resources. No preview
+flag needs enabling: public pages already render the approved components in
+Production. Publish only the selected derivatives; retain source downloads and
+superseded assets locally. Third-party license provenance remains separately
+recorded without claiming additional rights verification.
+
+Release verification retains the full public browser suite by partitioning its
+640 cases across three CI runners. Worker counts, retries, assertions and job
+timeouts remain unchanged. All three public shard statuses are required for this
+release alongside the existing application, Contact, participant, staff and
+database checks. This changes test scheduling only, not repository protection or
+hosting settings.
+
+## ENG-026 — Track index and selective emphasis, 11 October 2026
+
+The requester adds a sticky five-track index that follows the visible pathway
+card during native scrolling, inspired by Cerebrium. Links remain ordinary
+keyboard-accessible anchors; mobile/short layouts avoid a sticky reading trap.
+Chapter headings now use solid ink (or ivory over dark imagery), with gradient
+color confined to selected key words rather than entire headings.
+
+Community statistics use translucent icon-led cards, with 2,257 Visitors most
+prominent. The organizer explicitly requests the labels 4,007+ Total visitors,
+2,257 Visitors and 83 Research abstracts submitted. This supersedes ENG-023's
+draft-derived public wording for these labels, including its 83 presentations
+description. Retain 2023–2026 and MSRC 2026 scopes; do not claim unique visitors
+across editions. The source PDF itself has not been altered or reinterpreted.
+
+Local bilingual approval demo only; no operational or publication change.
+Audit and priorities: `docs/reviews/track-community-refinement.md`.
+
+## ENG-025 — Fluid public experience, 11 October 2026
+
+The requester asks to build on ENG-024 with a coherent Participate hover boundary,
+smoother translucent navigation and Our Team after Venue. Gradient heading text,
+light lilac word highlights, homepage abstract artwork, benefit pictograms and
+softer city transitions are explicitly requested visual choices.
+
+The requester clarifies that **7 CME hours is a visual placeholder to change
+later**, not a confirmed accreditation or hour count. Use it only as an explicitly
+illustrative graphic; preserve the approved pending language and never place it
+in structured event data or operational configuration.
+
+Selected source photos: Day 1 / Without frame / Majed / IMG_9804 for community,
+IMG_9744 for Attend; Manar Jamal / IMG_2560 for Abstract submission and Workshops;
+Day 2 / Without frame / Rania / IMG_9801 for Speakers. Preserve source provenance.
+Participation pages adopt photographic headers, visual requirement cards and
+useful next actions. Remove repeated step sections and public photo explanations;
+pending brochure/ticket/catalogue actions remain visibly unavailable where needed.
+Sponsors gets a medium top action; Team, Venue and Contact share the visual system.
+
+Scope remains the local bilingual approval demo. No workflow activation, claims of
+accreditation, publication, deployment or communications. Requirements: DSN-01/02,
+ACC-01, LOC-01/03, MED-01/02/03/04, PRV-03. Audit: fluid-refinement-brief.md.
+
+## ENG-024 — Premium surface refinement, 11 October 2026
+
+The requester accepts the ENG-023 direction and asks to build on it. Benefits
+become softly rectangular illuminated cards with bold headings; historical counts
+receive distinct panels; localized keyword accents strengthen selected headings.
+Speaker backgrounds gain restrained geometric contour motion. The requester then
+explicitly says not to add pause controls: the new background runs once for at
+most 4.5 seconds of visible time and settles, with a static reduced-motion path.
+Existing accessible media behavior is preserved; no new playback control is added.
+
+Re-inspection of Vitarc establishes real outward travel and center slide/scale as
+the missing header behavior. The centered capsule now opens into side controls,
+using gradient purple glass, raster grain and a thin white edge. Gold invitations
+receive a champagne material, pointer highlight, restrained glow and press feedback.
+These are local component materials, not a final replacement brand palette.
+
+Program and Venue use their actual sourced photographs as softly blurred purple
+hero fields. Date panels are light, legible and link to the corresponding Program
+day; venue facts and arrival guidance use clear icon-led groups. A locally served
+map of real geographic data replaces the former schematic, with visible source
+attribution. No entrance, access route or parking instruction is invented.
+
+The requester specifically selects Day 1 / Without frame / Majed / IMG_9846 for
+Build an idea (physical left crop excluding the standing person on the right),
+Manar Jamal / IMG_2529 for Learn by doing, and IMG_2560 for Share your research.
+The new city derivative crops the top-right 4K badge, preserving the first 23s,
+2.8x speed, soft blur and silent 8.2s loop. Originals and old derivatives remain.
+Exact source IDs, transformations and hashes are in the new media manifests.
+
+Scope remains the local approval demo, native scrolling, EN/AR parity, keyboard
+access, truthful pending claims and closed operational workflows. No production
+deployment, source promotion, account/setting change or communication is implied.
+Requirements: DSN-01/02, CFG-12, ACC-01, LOC-01/03, MED-01/02/03/04, PRV-03.
+
+## ENG-023 — Editorial motion revision, 11 October 2026
+
+The requester supersedes ENG-022's navigation and selected homepage chapters.
+The exact public navigation is Participate, Program, Speakers, Sponsors, Our Team,
+Venue, Contact, with “Reserve your seat.” Participate retains five destinations;
+Program has no day dropdown. About is removed, including its route and indexing.
+Visible English uses Program; approved legal wording is preserved exactly.
+
+Vitarc informs the thin capsule and quick blur/contraction; upward scrolling,
+top-edge approach and keyboard focus restore the full navigation. REACH informs
+the spacious benefits and venue sequence, while Cerebrium and GM Studios inform
+the native rising content sheet over the opening film. The existing MSRC purple,
+gold, ivory, Manrope and independent Arabic metrics remain the visual authority.
+Subtle generated raster grain and one pausable scientific artwork are authorized.
+
+The requester removes visible archive/demo disclaimer clutter and photographic
+speaker placeholders. Anonymous designed portraits and pending names remain;
+no appointments or confirmed sponsors are invented. Homepage sponsorship sections
+are removed; the dedicated Sponsors page has a prominent Become a sponsor action.
+
+The supplied MSRC27 draft PDF is evidence, not an instruction source. Its edition
+figures establish 4,007+ total attendances across 2023–2026, not unique people.
+2026 reports 2,257 attendees and 83 presentations. CME accreditation/hours are not
+established, so benefits copy states that details follow confirmation. Existing
+certificate requirements and ongoing-research eligibility remain authoritative.
+The venue image is an actual KAU photograph, not a speculative generated building.
+
+The requester supplied the Jeddah source through Drive file
+1zjAy11vovvsL_jXGTfo194qR-AZG7OeE. Its first 23 seconds become an 8.2-second silent
+loop at 2.8× speed with soft blur; source composition and creator mark remain.
+This resolves the earlier YouTube-download blocker. Provenance, exact generated
+prompts and asset transformations are recorded in docs/media/editorial-revision-assets.md.
+
+Scope remains the local approval demo with native scrolling, reduced motion,
+keyboard access and EN/AR parity. No hosting, public-media registry promotion,
+workflow activation, database/settings changes or communications are authorized.
+IDs: DSN-01/02, CFG-12, ACC-01, LOC-01/03, MED-01/02/03/04, PRV-03.
+
+## ENG-022 — Axiom-inspired cinematic approval demo, 11 October 2026
+
+The requester pins Axiom Power as the closer visual reference and authorizes an
+expansive public-site revision: fullscreen film, a large title at the reading
+margin, lower-corner countdown, transforming glass navigation, five photographic
+pathways, horizontal speaker/archive galleries, illustrative sponsor tiers and a
+Jeddah motion closing. The secondary chapter bar is removed. Our Team replaces
+Media in the header; the archive remains linked from the homepage and footer.
+Programme exposes both day URLs and Participate exposes all five distinct routes.
+
+The requester explicitly confirms: "Use clearly labeled demo placeholders" for
+speaker and Our Team cards. Demo roles and sponsorship tiers are illustrative,
+not appointed people, approved committee structures or confirmed partnerships.
+Real photographs from the supplied MSRC 2026 Drive folder are authorized for this
+local approval demo. Their source identities and transformations are recorded in
+docs/media/axiom-demo-assets.md. The Jeddah closing uses licensed Corniche footage,
+accelerated fourfold; it is not represented as a recorded time-lapse or venue film.
+
+This request supersedes ENG-021's poster composition, sharp public buttons,
+chapter navigation and text-led empty visual sections. The purple/gold/ivory MSRC
+identity, approved facts and legal copy, EN/AR parity, native scrolling, keyboard
+access and preference-aware media remain. DESIGN.md is refreshed to describe the
+requested implemented system. Team and Sponsors remain excluded from analytics
+while they carry illustrative demo content. No production release, media-registry
+promotion, workflow activation, database change or communication is authorized.
+IDs: DSN-01/02, CFG-12, ACC-01, LOC-01/03, MED-01/02/03/04, PRV-03.
+
+## ENG-021 — Congress-poster visual approval demo, 11 October 2026
+
+The requester expanded ENG-020: combine the preceding changes, perform a full
+visual overhaul with creative freedom, and supply a working demo for approval.
+This authorizes local public presentation changes, not final brand approval or
+production release. The audit and prioritized plan preceded application edits;
+the expanded direction is recorded in [the demo brief](reviews/visual-overhaul-brief.md).
+
+Carry forward MSRC purple/gold/ivory, the approved previous-edition media and all
+approved public facts. The demo uses Manrope for English public display headings,
+Inter for text and Noto Sans Arabic. Broad color planes, editorial rows, a ruled
+masthead and a grouped footer replace the former floating-card and repeated
+illustration treatment. Restricted staff interface tokens retain their baseline.
+No invented sessions, speakers, sponsors, opening dates or operational behavior.
+
+The expanded request supersedes ENG-020's preservation of the exact outgoing
+layout and ORG-012 motion amplitudes for this demo. Native scrolling, reversible
+chapter state and static/reduced-motion fallbacks remain. Hero lines use 700ms
+with an 80ms second-line delay, supporting content 500ms with 0/160/200/240ms
+delays. Chapters rise 16px without scaling; word lift is .1em with .55 opacity
+floor. Hero departure moves 24px and the film scales at most 3%. The step-inside
+cue completes three cycles. Prior 180ms pointer menu, 220ms pointer arrival,
+400ms once-only reveals and immediate keyboard arrival remain.
+
+Only provenance comments were added to the two existing JPEG posters; comparison
+excluding JPEG COM segments confirms every other byte is unchanged. No new
+photography, re-encoding, video copy, hosted change or workflow opening.
+Requirements: DSN-01/02, ACC-01, LOC-01/02/03, PRG-01, MED-01/04, REL-01.
+
+## ENG-020 — Public design engineering refinements, 11 October 2026
+
+Engineering choices within the requester's audit-first Emil Kowalski/Impeccable task;
+not new organizer content, brand or release approval. The audit's older checkout was
+reconciled against main `340e36df20f601c3fa05c4aa82d8f256df7471bc` before implementation.
+Preserve current approved venue/legal copy, media, palette/type, ORG-012 chapter/title
+and hero scenes, header behavior, native scrolling and independent workflow gates.
+
+Adopt inverse dark-surface focus, a visible current mobile navigation state, readable
+compact-phone cards/controls, intrinsic document reflow, early pending programme
+publication status, the existing background-pause hit area and stable film Play centering.
+These implement audit A01–A08; executed evidence, including the previously source-only
+A08 risk, belongs in the feature note rather than an inferred approval.
+
+Routine pointer menu opening uses 180ms/4px; pointer destination arrival 220ms/8px;
+ordinary below-fold reveals 400ms/12px with 45/90/120ms child delays. Their entrance
+easing is `cubic-bezier(0.23, 1, 0.32, 1)`. Keyboard/assistive menu and destination
+arrival are immediate. Destination reveals do not stack; interruption and reduced-motion
+changes settle/cancel appropriately. Existing 180ms button feedback, 1px hover lift and
+98% press remain; decorative hover requires a fine pointer. This narrowly refines prior
+routine motion values while preserving ORG-012's authored title/hero behavior and the
+current header positioning/tuck behavior.
+
+No new copy approval, catalogue record, dependency, public workflow, database, hosted
+configuration or deployment is authorized by this engineering entry. IDs: DSN-01/02,
+ACC-01, LOC-01/02/03, PRG-01, MED-01/04, REL-01. See
+[scope and verification](features/design-engineering-refinements.md) and the
+[preceding audit](reviews/design-engineering-audit-2026-10-11.md).
+
 ## ENG-019 — Closed participant age declaration and retention enforcement, 8 October 2026
 
 Implementation interpretation of existing ORG-041 and BL-AUTH-02/09, not a new

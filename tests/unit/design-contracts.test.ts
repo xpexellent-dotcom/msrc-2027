@@ -1,20 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 import { isDesignPreviewAllowed } from "@/lib/preview.server";
 import { homepageAssets, homepageCopy, publicSitemap } from "@/content/public-site";
-import { aboutCopy } from "@/content/about";
 import { formatIndex } from "@/lib/i18n";
 import { localizedPageMetadata } from "@/lib/metadata";
 import { hasApprovedVideo } from "@/lib/media-policy";
 
 describe("localized link metadata (LOC-01, CMS-04)", () => {
   it("pairs each page with its other-language twin and a locale-specific preview image", () => {
-    const metadata = localizedPageMetadata("ar", "/about", "عن المؤتمر", "وصف");
+    const metadata = localizedPageMetadata("ar", "/participate", "المشاركة", "وصف");
     expect(metadata.alternates).toEqual({
-      canonical: "/ar/about",
-      languages: { en: "/en/about", ar: "/ar/about", "x-default": "/en/about" },
+      canonical: "/ar/participate",
+      languages: { en: "/en/participate", ar: "/ar/participate", "x-default": "/en/participate" },
     });
     expect(metadata.openGraph).toMatchObject({
-      url: "/ar/about", locale: "ar_SA", alternateLocale: "en_US",
+      url: "/ar/participate", locale: "ar_SA", alternateLocale: "en_US",
       images: [{ url: "/ar/opengraph-image", width: 1200, height: 630 }],
     });
     expect(metadata.twitter).toMatchObject({ card: "summary_large_image", images: ["/ar/opengraph-image"] });
@@ -35,7 +34,7 @@ describe("Arabic numerals (LOC-01/03)", () => {
   });
 
   it("keeps Arabic editorial copy on Arabic-Indic digits so mixed digit styles do not return", () => {
-    const arabic = [...strings(homepageCopy.ar), ...strings(aboutCopy.ar)]
+    const arabic = strings(homepageCopy.ar)
       .map((text) => text.replace(/MSRC 2027/g, ""));
     expect(arabic.filter((text) => /[0-9]/.test(text))).toEqual([]);
   });
@@ -44,14 +43,14 @@ describe("Arabic numerals (LOC-01/03)", () => {
 describe("public content publication boundaries (SCP-02, CFG-12, MED-01)", () => {
   it("retains every required bilingual public destination without inventing assets", () => {
     expect(publicSitemap.map((page) => page.id).sort()).toEqual([
-      "home", "about", "dates", "program", "speakers", "workshops", "participation", "teams",
+      "home", "dates", "program", "speakers", "workshops", "participation", "teams",
       "sponsors", "gallery", "announcements", "faq", "contact", "privacy", "terms",
     ].sort());
     expect(new Set(publicSitemap.map((page) => page.path)).size).toBe(publicSitemap.length);
     for (const page of publicSitemap) {
       expect(page.label.en.trim().length).toBeGreaterThan(0);
       expect(page.label.ar).toMatch(/[\u0600-\u06ff]/);
-      const implemented = ["/", "/about", "/dates-venue", "/program", "/speakers", "/workshops", "/participate", "/media", "/contact", "/privacy", "/terms"];
+      const implemented = ["/", "/dates-venue", "/program", "/speakers", "/team", "/sponsors", "/workshops", "/participate", "/media", "/contact", "/privacy", "/terms"];
       expect(page.previewHref === null || implemented.includes(page.previewHref) || page.previewHref.startsWith("/#")).toBe(true);
     }
     expect(hasApprovedVideo(homepageAssets.heroVideo)).toBe(true);

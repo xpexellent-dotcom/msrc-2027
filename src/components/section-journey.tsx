@@ -5,16 +5,16 @@ import { Link } from "@/components/ui/link";
 import { formatIndex, type Locale } from "@/lib/i18n";
 
 const copy = {
-  en: { label: "Explore the conference sections", title: "Inside MSRC", sections: ["The conference", "Participation", "Programme", "Speakers", "MSRC 2026", "Partners", "Plan your visit"] },
+  en: { label: "Explore the conference sections", title: "Inside MSRC", sections: ["The conference", "Participation", "Program", "Speakers", "MSRC 2026", "Partners", "Plan your visit"] },
   ar: { label: "استكشف أقسام المؤتمر", title: "داخل المؤتمر", sections: ["عن المؤتمر", "المشاركة", "البرنامج", "المتحدثون", "نسخة ٢٠٢٦", "الشركاء", "خطّط لزيارتك"] },
 } as const;
-// One chapter per numbered homepage section, so the numbers match the eyebrows (6 / Shared purpose).
+// One chapter per homepage section, preserving the visible reading sequence.
 const destinations = ["about", "participate", "program", "speakers", "legacy", "partners", "faq"] as const;
 type Chapter = typeof destinations[number];
 
 /**
  * Native anchors and an informational current chapter; scrolling remains browser-owned.
- * From 1100px the index is a bar that sticks under the floating header. Below that it is not
+ * From 1100px the index is a bar that sticks under the masthead. Below that it is not
  * shown: on phones each chapter announces itself with its title instead (ORG-010).
  * A clicked chapter takes the underline at once, rather than passing through every chapter between.
  */
@@ -23,6 +23,20 @@ export function SectionJourney({ locale }: { locale: Locale }) {
   const [current, setCurrent] = useState<Chapter | null>(null);
   const nav = useRef<HTMLElement>(null);
   const arriving = useRef<{ id: Chapter; until: number } | null>(null);
+
+  useEffect(() => {
+    const rail = nav.current;
+    if (!rail) return;
+    const root = document.documentElement;
+    const measure = () => root.style.setProperty("--section-journey-height", `${rail.offsetHeight}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(rail);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--section-journey-height");
+    };
+  }, []);
 
   useEffect(() => {
     let frame = 0;
@@ -54,7 +68,7 @@ export function SectionJourney({ locale }: { locale: Locale }) {
   return (
     <nav className="section-journey" aria-label={text.label} ref={nav}>
       <div className="section-journey-inner">
-        <p className="section-journey-title"><span aria-hidden="true" />{text.title}</p>
+        <p className="section-journey-title sr-only">{text.title}</p>
         <div className="section-journey-links">
           {destinations.map((id, index) => <Link key={id} href={`#${id}`} aria-current={current === id ? "location" : undefined} onClick={() => {
             arriving.current = { id, until: performance.now() + 1500 };

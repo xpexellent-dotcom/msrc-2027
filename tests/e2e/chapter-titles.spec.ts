@@ -2,8 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 
 // ORG-012: chapter titles follow the reader's scroll on phones and desktop. Their state is a
 // function of scroll position alone, so scrolling up and down can never strand a title, and
-// nothing pins or adds scroll distance.
-const chapters = ["about", "participate", "program", "speakers", "legacy", "partners", "faq"] as const;
+// titles never pin or add scroll distance. The film's separate sticky stage is covered by editorial-motion.spec.ts.
+const chapters = ["participate", "program", "speakers", "legacy", "venue", "faq"] as const;
 
 async function hydrated(page: Page) {
   await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before", { timeout: 15_000 });
@@ -39,8 +39,9 @@ for (const locale of ["en", "ar"] as const) {
     for (const id of chapters) {
       const start = await title(page, id);
       expect(start.position, id).toBe("static");
-      // Just entering at the bottom edge: lowered and dim.
-      await scrollTo(page, start.stageTop - height * .9);
+      // Sample just inside the 97% entry boundary. The new, longer benefits title
+      // begins its first word earlier than the former short title at 90% height.
+      await scrollTo(page, start.stageTop - height * .94);
       const entering = await title(page, id);
       expect(entering.lift, id).toBeGreaterThan(10);
       expect(Math.max(...entering.opacities), id).toBeLessThan(.6);
@@ -50,7 +51,7 @@ for (const locale of ["en", "ar"] as const) {
       expect(Math.abs(read.lift), id).toBeLessThan(.5);
       expect(Math.min(...read.opacities), id).toBe(1);
       // Back up: the same state as on the way down, with no replay or hold.
-      await scrollTo(page, start.stageTop - height * .9);
+      await scrollTo(page, start.stageTop - height * .94);
       const again = await title(page, id);
       expect(again.lift, id).toBeCloseTo(entering.lift, 0);
       expect(again.stageTop, id).toBeCloseTo(start.stageTop, 0);
@@ -91,9 +92,12 @@ test("the opening headline is large and leaves with the scroll", async ({ page }
   await page.goto("/en");
   await hydrated(page);
   const headline = page.locator(".hero-editorial h1");
-  const size = await headline.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
-  expect(size).toBeGreaterThanOrEqual(page.viewportSize()!.width < 700 ? 46 : 80);
-  expect(await headline.evaluate((element) => getComputedStyle(element).fontWeight)).toBe("700");
+  const sizeInRem = await headline.evaluate((element) =>
+    parseFloat(getComputedStyle(element).fontSize) / parseFloat(getComputedStyle(document.documentElement).fontSize));
+  const mobileTypography = page.viewportSize()!.width <= 700;
+  expect(sizeInRem).toBeGreaterThanOrEqual((mobileTypography ? 2.8 : 4) - .01);
+  expect(sizeInRem).toBeLessThanOrEqual((mobileTypography ? 5.5 : 8.75) + .01);
+  expect(await headline.evaluate((element) => getComputedStyle(element).fontWeight)).toBe("500");
   const layout = page.locator(".conference-hero .hero-layout");
   await expect.poll(() => layout.evaluate((element) => Number(getComputedStyle(element).opacity))).toBe(1);
   await scrollTo(page, page.viewportSize()!.height * .5);
@@ -106,9 +110,9 @@ test("content below the screen fades up once when it scrolls in", async ({ page 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/en");
   await hydrated(page);
-  const pathways = page.locator(".pathway-list");
-  await expect(pathways).toHaveAttribute("data-reveal-state", "waiting");
-  await pathways.scrollIntoViewIfNeeded();
-  await expect(pathways).toHaveClass(/reveal--rise/);
-  await expect.poll(() => pathways.locator(":scope > article").evaluateAll((rows) => rows.every((row) => Number(getComputedStyle(row).opacity) === 1))).toBe(true);
+  const introduction = page.locator(".program-opening");
+  await expect(introduction).toHaveAttribute("data-reveal-state", "waiting");
+  await introduction.scrollIntoViewIfNeeded();
+  await expect(introduction).toHaveClass(/reveal--rise/);
+  await expect.poll(() => introduction.locator(":scope > div").last().evaluate((body) => Number(getComputedStyle(body).opacity))).toBe(1);
 });

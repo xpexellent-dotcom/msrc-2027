@@ -24,19 +24,20 @@ describe("public indexing", () => {
     expect(urls).toContain("https://www.msrc2027.com/ar/program");
     expect(urls).toContain("https://www.msrc2027.com/en/contact");
     expect(urls).toContain("https://www.msrc2027.com/ar/contact");
-    expect(urls).toHaveLength(26);
+    expect(urls).toHaveLength(28);
+    expect(urls.some((url) => url.endsWith("/about"))).toBe(false);
     expect(urls.some((url) => /registration|submissions|admin|draft|v1\.0/.test(url))).toBe(false);
-    for (const kind of ["privacy", "terms"]) for (const locale of ["en", "ar"]) {
+    for (const kind of ["privacy", "terms", "team", "sponsors"]) for (const locale of ["en", "ar"]) {
       const url = `https://www.msrc2027.com/${locale}/${kind}`;
       expect(urls).toContain(url);
       expect(sitemap().find((entry) => entry.url === url)?.alternates?.languages).toEqual({
         en: `https://www.msrc2027.com/en/${kind}`, ar: `https://www.msrc2027.com/ar/${kind}`, "x-default": `https://www.msrc2027.com/en/${kind}`,
       });
     }
-    expect(sitemap().find((entry) => entry.url.endsWith("/ar/about"))?.alternates?.languages).toEqual({
-      en: "https://www.msrc2027.com/en/about", ar: "https://www.msrc2027.com/ar/about", "x-default": "https://www.msrc2027.com/en/about",
+    expect(sitemap().find((entry) => entry.url.endsWith("/ar/participate"))?.alternates?.languages).toEqual({
+      en: "https://www.msrc2027.com/en/participate", ar: "https://www.msrc2027.com/ar/participate", "x-default": "https://www.msrc2027.com/en/participate",
     });
-    expect(localizedPageMetadata("en", "/about", "About", "About MSRC").robots).toEqual({ index: true, follow: true });
+    expect(localizedPageMetadata("en", "/participate", "Participate", "Participate in MSRC").robots).toEqual({ index: true, follow: true });
     const headers = (await config.headers!())[0].headers.map((header) => header.key);
     expect(headers).not.toContain("X-Robots-Tag");
     const redirects = await config.redirects!();

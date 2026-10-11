@@ -3,25 +3,16 @@
    and --leave (0 → 1 over the first screen) on the hero. Scroll-linked rules live under
    html[data-scenes="on"], set only with JavaScript and without reduced motion. */
 @media (max-width: 1099px) { .section-journey { display: none; } }
-@media (max-width: 700px) {
-  .homepage-journey .chapter-stage h2 { font-size: clamp(2.3rem, 9vw, 3.1rem); line-height: 1.12; }
-  html[lang="ar"] .homepage-journey .chapter-stage h2 { font-size: clamp(2.05rem, 8vw, 2.8rem); line-height: 1.5; }
-}
-
-/* Chapter titles rise into place, a touch larger at first on wide screens; their words light
-   up in reading order and the gold rule draws. Scrolling back reverses all of it. */
-/* The rising title never widens the page; only desktop columns leave room to grow it. */
-.chapter-stage { --scene-grow: 0; overflow-x: clip; }
-@media (min-width: 1100px) { .chapter-stage { --scene-grow: .07; } }
+/* A restrained rise and reading-order illumination retain the reversible chapter cue.
+   Type no longer scales, so the editorial grid stays stable while reading. */
+.chapter-stage { overflow-x: clip; }
 html[data-scenes="on"] .chapter-stage > .section-heading {
-  transform: translateY(calc((1 - var(--scene-eased, 1)) * 3.4rem)) scale(calc(1 + (1 - var(--scene-eased, 1)) * var(--scene-grow)));
-  transform-origin: left bottom;
+  transform: translateY(calc((1 - var(--scene-eased, 1)) * 1rem));
 }
-html[data-scenes="on"][dir="rtl"] .chapter-stage > .section-heading { transform-origin: right bottom; }
 /* --lit runs 0 → 1 for each word in turn; a word rises a little as it lights. */
 html[data-scenes="on"] .chapter-stage .title-word {
   --lit: clamp(0, var(--scene, 1) * (var(--n, 1) + 2) - var(--i, 0) - 1, 1);
-  display: inline-block; opacity: calc(.13 + .87 * var(--lit)); transform: translateY(calc((1 - var(--lit)) * .45em));
+  display: inline-block; opacity: calc(.55 + .45 * var(--lit)); transform: translateY(calc((1 - var(--lit)) * .1em));
 }
 html[data-scenes="on"] .chapter-stage .eyebrow { opacity: clamp(.15, var(--scene, 1) * 2.4, 1); }
 html[data-scenes="on"] .chapter-stage .eyebrow-rule { transform: scaleX(clamp(0, var(--scene, 1) * 1.8 - .2, 1)); transform-origin: left center; }
@@ -29,31 +20,32 @@ html[data-scenes="on"][dir="rtl"] .chapter-stage .eyebrow-rule { transform-origi
 
 /* Content fades up the first time it scrolls in, in a short cascade (reveal.tsx). The chapter
    title is left to its scroll scene. */
-.reveal[data-reveal-state="waiting"] > :not(.chapter-stage, :has(.chapter-stage)) { opacity: 0; transform: translateY(2.2rem); }
-.reveal--rise > :not(.chapter-stage, :has(.chapter-stage)) { animation: reveal-rise 1s cubic-bezier(.16, 1, .3, 1) both; }
-.reveal--rise[data-reveal-stagger="true"] > :nth-child(2) { animation-delay: 90ms; }
-.reveal--rise[data-reveal-stagger="true"] > :nth-child(3) { animation-delay: 180ms; }
-.reveal--rise[data-reveal-stagger="true"] > :nth-child(n + 4) { animation-delay: 260ms; }
-@keyframes reveal-rise { from { opacity: 0; transform: translateY(2.2rem); } to { opacity: 1; transform: none; } }
+.reveal[data-reveal-state="waiting"] > :not(.chapter-stage, :has(.chapter-stage)) { opacity: 0; transform: translateY(var(--motion-reveal-distance)); }
+.reveal--rise > :not(.chapter-stage, :has(.chapter-stage)) { animation: reveal-rise var(--motion-reveal) var(--motion-enter-easing) both; }
+.reveal--rise[data-reveal-stagger="true"] > :nth-child(2) { animation-delay: 45ms; }
+.reveal--rise[data-reveal-stagger="true"] > :nth-child(3) { animation-delay: 90ms; }
+.reveal--rise[data-reveal-stagger="true"] > :nth-child(n + 4) { animation-delay: 120ms; }
+@keyframes reveal-rise { from { opacity: 0; transform: translateY(var(--motion-reveal-distance)); } to { opacity: 1; transform: none; } }
 
 /* The opening: the headline's lines rise out of a fold, then the rest follows. */
-.hero-editorial h1 > span { animation: hero-line 1.15s cubic-bezier(.16, 1, .3, 1) both; }
-.hero-editorial h1 > span:last-child { animation-delay: .13s; }
-.hero-topline, .hero-lead, .hero-location, .hero-actions { animation: hero-follow .9s cubic-bezier(.16, 1, .3, 1) both; }
-.hero-topline { animation-delay: .05s; }
-.hero-lead { animation-delay: .38s; }
-.hero-location { animation-delay: .48s; }
-.hero-actions { animation-delay: .58s; }
-@keyframes hero-line { from { opacity: 0; transform: translateY(.42em); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(-25% -10% -25% -10%); } }
-@keyframes hero-follow { from { opacity: 0; transform: translateY(1rem); } to { opacity: 1; transform: none; } }
+.hero-editorial h1 > span { animation: hero-line 700ms var(--motion-enter-easing) both; }
+.hero-editorial h1 > span:last-child { animation-delay: 80ms; }
+.hero-conference-name, .hero-lead, .hero-location, .hero-actions { animation: hero-follow 500ms var(--motion-enter-easing) both; }
+.hero-conference-name { animation-delay: 0ms; }
+.hero-lead { animation-delay: 160ms; }
+.hero-location { animation-delay: 200ms; }
+.hero-actions { animation-delay: 240ms; }
+@keyframes hero-line { from { opacity: 0; transform: translateY(.2em); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(-25% -10% -25% -10%); } }
+@keyframes hero-follow { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* Leaving the opening, the headline drifts up and fades while the film eases closer. */
-html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero .hero-layout { transform: translateY(calc(var(--leave, 0) * -4.5rem)); opacity: calc(1 - var(--leave, 0) * .85); }
+html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero .hero-layout { transform: translateY(calc(var(--leave, 0) * -1.5rem)); opacity: calc(1 - var(--leave, 0) * .85); }
 html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero .hero-bottom { opacity: calc(1 - var(--leave, 0) * 1.4); }
-html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero :is(.hero-media-poster, .hero-media-video) { transform: scale(calc(1 + var(--leave, 0) * .08)); }
+html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero :is(.hero-media-poster, .hero-media-video) { transform: scale(calc(1 + var(--leave, 0) * .03)); }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-editorial h1 > span, .hero-topline, .hero-lead, .hero-location, .hero-actions, .reveal--rise > * { animation: none; }
+  .hero-editorial h1 > span, .hero-conference-name, .hero-lead, .hero-location, .hero-actions, .reveal--rise > * { animation: none; }
+  .reveal[data-reveal-state="waiting"] > :not(.chapter-stage, :has(.chapter-stage)) { opacity: 1; transform: none; }
 }
 @media print {
   .chapter-stage > .section-heading, .chapter-stage .eyebrow-rule, .conference-hero .hero-layout { transform: none !important; }

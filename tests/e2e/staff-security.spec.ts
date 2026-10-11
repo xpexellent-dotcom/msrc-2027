@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { createHmac } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { staffSecurityCopy } from "../../src/features/auth/staff-security-copy";
+import { languageLink } from "./helpers/header-navigation";
 
 // AUTH-02/04/05, ROL-12, SEC-01/06, LOC-01, ERR-01. Synthetic password sessions;
 // no provider messages or managed factors. App codes are derived only in Node memory.
@@ -516,7 +517,7 @@ test("locale changes and transport retry preserve a private authenticator draft 
   const secret = await setupKey(page);
   const code = appCode(secret);
   await page.locator("#staff-auth-code").fill(code);
-  await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
+  await (await languageLink(page, "View this page in Arabic")).click();
   await expect(page).toHaveURL(/\/ar\/staff-security-preview$/);
   await expect.poll(async () => (await page.locator("#staff-auth-code").inputValue()) === code).toBe(true);
   await expect.poll(async () => (await page.getByTestId("synthetic-totp-secret").inputValue()) === secret).toBe(true);
@@ -541,7 +542,7 @@ test("regular staff email draft survives locale change and transport retry witho
   await page.getByRole("button", { name: labels.en.emailChallenge, exact: true }).click();
   const code = await inboxCode(page, "email");
   await page.locator("#staff-email-code").fill(code);
-  await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
+  await (await languageLink(page, "View this page in Arabic")).click();
   await expect(page).toHaveURL(/\/ar\/staff-security-preview$/);
   await expect.poll(async () => await page.locator("#staff-email-code").inputValue() === code).toBe(true);
   await expect(page.getByTestId("synthetic-email-body")).toHaveAttribute("lang", "en");
@@ -569,7 +570,7 @@ test("participant email draft survives a locale change and disappears on reload 
   await page.getByRole("button", { name: labels.en.emailChallenge, exact: true }).click();
   const code = await inboxCode(page, "email");
   await page.locator("#participant-email-code").fill(code);
-  await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
+  await (await languageLink(page, "View this page in Arabic")).click();
   await expect(page).toHaveURL(/\/ar\/staff-security-preview$/);
   await expect.poll(async () => (await page.locator("#participant-email-code").inputValue()) === code).toBe(true);
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);

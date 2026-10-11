@@ -1,0 +1,94 @@
+/* ENG-026: edition-scoped numbers over the existing community photograph. */
+.history-numbers.history-numbers--glass {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.18fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: stretch;
+}
+.history-numbers--glass > div {
+  min-block-size: 21rem;
+  padding: clamp(1.5rem, 2.5vw, 2.5rem);
+  background: linear-gradient(145deg, rgb(74 54 98 / .56), rgb(31 25 48 / .68));
+  border-color: rgb(220 207 240 / .3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.history-numbers--glass > .history-total {
+  background: linear-gradient(145deg, rgb(74 54 98 / .56), rgb(31 25 48 / .68));
+  border-color: rgb(220 207 240 / .3);
+}
+.history-numbers--glass > .history-visitors {
+  background: linear-gradient(145deg, rgb(111 80 141 / .66), rgb(47 32 69 / .7));
+  border-color: rgb(239 220 181 / .66);
+}
+.history-numbers--glass > div::after {
+  background: radial-gradient(ellipse at 85% 0%, rgb(220 207 240 / .12), transparent 65%);
+}
+.history-numbers--glass .history-icon {
+  position: absolute;
+  inset-block-start: 1.5rem;
+  inset-inline-end: 1.5rem;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  color: var(--color-lilac);
+}
+.history-numbers--glass .history-visitors .history-icon { color: #eddaaf; }
+.history-numbers--glass dd { margin-block: 3.5rem 1.5rem; }
+.history-numbers--glass .history-count,
+.history-numbers--glass .history-total .history-count {
+  color: var(--color-ivory);
+  font-size: clamp(2.5rem, 22cqi, 5rem);
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -.035em;
+}
+.history-numbers--glass .history-visitors .history-count {
+  color: #f0dfb6;
+  font-size: clamp(3rem, 27cqi, 6rem);
+  font-weight: 650;
+}
+.history-numbers--glass dt {
+  margin-block-start: 0;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--color-ivory);
+}
+.history-numbers--glass dt > span {
+  margin-block-start: .6rem;
+  color: var(--color-lilac);
+  font-size: 1rem;
+  font-weight: 400;
+}
+@media (max-width: 1000px) {
+  .history-numbers--glass > div { padding: 1.5rem; min-block-size: 19rem; }
+}
+@media (max-width: 800px) {
+  .history-numbers.history-numbers--glass { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .history-numbers--glass > div { min-block-size: 16.5rem; padding: 24px; }
+  .history-numbers--glass > .history-total { grid-column: auto; }
+  .history-numbers--glass dd { margin-block: 2.5rem 1.5rem; }
+  .history-numbers--glass .history-count,
+  .history-numbers--glass .history-total .history-count { font-size: clamp(1.25rem, 22cqi, 4.5rem); }
+  .history-numbers--glass .history-visitors .history-count { font-size: clamp(1.5rem, 27cqi, 5.5rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .history-numbers--glass > div::after { transition: none; }
+}
+@media (forced-colors: active) {
+  .history-numbers--glass > div,
+  .history-numbers--glass > .history-total,
+  .history-numbers--glass > .history-visitors { background: Canvas; border-color: CanvasText; backdrop-filter: none; }
+  .history-numbers--glass :is(.history-count, .history-icon, dt, dt > span),
+  .history-numbers--glass .history-total .history-count,
+  .history-numbers--glass .history-visitors :is(.history-count, .history-icon) { color: CanvasText; }
+}
+@media print {
+  .history-numbers--glass > div,
+  .history-numbers--glass > .history-total,
+  .history-numbers--glass > .history-visitors { background: none; border-color: #777; backdrop-filter: none; min-block-size: 0; padding: 1rem; }
+  .history-numbers--glass dd { margin-block: 0 1rem; }
+  .history-numbers--glass .history-icon { display: none; }
+  .history-numbers--glass :is(.history-count, dt, dt > span),
+  .history-numbers--glass .history-total .history-count,
+  .history-numbers--glass .history-visitors .history-count { color: black; }
+}

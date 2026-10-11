@@ -1,3 +1,4 @@
+import { languageLink } from "./helpers/header-navigation";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -40,7 +41,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(page.locator("form, input, textarea, select")).toHaveCount(0);
     await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"], a[href*="/admin"]')).toHaveCount(0);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/registration`);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     expect(response?.headers()["x-robots-tag"]).toContain("noindex");
     // ORG-001/002: explicit date and montage approval does not open operations.
@@ -84,14 +85,16 @@ for (const locale of ["en", "ar"] as const) {
       await page.evaluate(() => { document.documentElement.style.fontSize = ""; });
       await page.setViewportSize({ width: 320, height: 850 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
-      const clippedYears = await page.locator(".legacy-art-years span").evaluateAll((spans) => spans.some((span) => {
-        const artwork = span.closest(".legacy-art")!.getBoundingClientRect();
+      const captions = page.locator(".gallery-card figcaption");
+      expect(await captions.count()).toBeGreaterThan(0);
+      const clippedCaptions = await captions.evaluateAll((spans) => spans.some((span) => {
+        const artwork = span.closest(".gallery-card")!.getBoundingClientRect();
         const range = document.createRange();
         range.selectNodeContents(span);
         const text = range.getBoundingClientRect();
         return text.left < artwork.left || text.right > artwork.right;
       }));
-      expect(clippedYears).toBe(false);
+      expect(clippedCaptions).toBe(false);
       await testInfo.attach(`${locale}-small-phone-entrance`, {
         body: await page.screenshot(),
         contentType: "image/png",
@@ -116,7 +119,7 @@ test("shared links carry a working preview image and language alternates", async
 });
 
 test("public pages pass axe best-practice rules, including landmark coverage", async ({ page }) => {
-  for (const path of ["/en", "/ar", "/en/about", "/ar/about", "/en/dates-venue", "/ar/dates-venue"]) {
+  for (const path of ["/en", "/ar", "/en/participate", "/ar/participate", "/en/dates-venue", "/ar/dates-venue"]) {
     await page.goto(path);
     const results = await new AxeBuilder({ page }).withTags(["best-practice"]).analyze();
     expect(results.violations.map((violation) => `${path} ${violation.id}`)).toEqual([]);
@@ -124,7 +127,7 @@ test("public pages pass axe best-practice rules, including landmark coverage", a
 });
 
 test("public pages send baseline security headers", async ({ request }) => {
-  for (const path of ["/en", "/ar/about", "/ar/missing-page"]) {
+  for (const path of ["/en", "/ar/participate", "/ar/missing-page"]) {
     const headers = (await request.get(path)).headers();
     expect(headers["x-content-type-options"]).toBe("nosniff");
     expect(headers["x-frame-options"]).toBe("DENY");
@@ -155,12 +158,12 @@ test("keyboard access reaches content and changes language without losing locati
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
 
-  const arabic = page.getByRole("link", { name: "View this page in Arabic" });
+  const arabic = await languageLink(page, "View this page in Arabic");
   await arabic.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/ar\?view=preview#main-content$/);
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  const english = page.getByRole("link", { name: "View this page in English" });
+  const english = await languageLink(page, "View this page in English");
   await english.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/en\?view=preview#main-content$/);
@@ -171,7 +174,7 @@ test("responsive navigation is keyboard usable in both languages", async ({ page
     await page.goto(`/${locale}`);
     const toggle = page.locator(".menu-toggle");
     const menu = page.locator(".mobile-menu");
-    if ((page.viewportSize()?.width ?? 1280) >= 1100) {
+    if ((page.viewportSize()?.width ?? 1280) >= 1200) {
       await expect(toggle).toBeHidden();
       await expect(page.locator(".desktop-nav")).toBeVisible();
       await expect(menu).toHaveCount(0);
@@ -196,7 +199,7 @@ test("responsive navigation is keyboard usable in both languages", async ({ page
     await page.keyboard.press("Tab");
     await page.keyboard.press("Enter");
     await expect(menu).toHaveCount(0);
-    await expect(page).toHaveURL(new RegExp(`/${locale}/about$`));
+    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }
 });
@@ -216,7 +219,7 @@ test("reduced-motion preference keeps native page navigation usable", async ({ p
   await page.getByRole("main").focus();
   await page.keyboard.press("PageDown");
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-  await page.getByRole("link", { name: "View this page in English" }).click();
+  await (await languageLink(page, "View this page in English")).click();
   await expect(page).toHaveURL(/\/en$/);
 });
 

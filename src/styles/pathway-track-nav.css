@@ -1,0 +1,59 @@
+/* ENG-026: a native-scroll reading index for the five participation paths. */
+.pathways-introduction .section-heading h2 {
+  font-size: clamp(2.75rem, 4.4vw, 4.4rem);
+  line-height: 1.08;
+}
+.pathways-introduction > p { font-size: 1.0625rem; line-height: 1.65; margin-block: 1.35rem 1.4rem; max-inline-size: 30ch; }
+.pathways-introduction { inset-block-start: calc(var(--site-header-height, 6rem) + 1.5rem); }
+.pathways-introduction[data-track-overflow='true'] { position: static; }
+.pathways-introduction > .editorial-action { margin-block-start: 1.5rem; }
+.pathway-track-nav ul { display: grid; gap: .1rem; margin: 0; padding: 0; list-style: none; }
+.pathway-track-nav li { min-inline-size: 0; max-inline-size: 100%; }
+.pathway-track-nav .site-link.pathway-track-link { text-decoration: none; }
+.pathway-track-link {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  min-block-size: 46px; max-inline-size: 24rem; padding-block: .28rem;
+  color: #71677f; font-size: clamp(1.125rem, 1.85vw, 1.625rem); font-weight: 550;
+  line-height: 1.4; letter-spacing: -.025em; text-decoration: none;
+  transition: color 180ms ease;
+}
+.pathway-track-label { min-inline-size: 0; overflow-wrap: anywhere; text-decoration-thickness: 1px; text-underline-offset: .23em; }
+.pathway-track-marker { inline-size: 1.4rem; block-size: 1.4rem; flex: 0 0 auto; opacity: 0; transform: translateX(-4px); transition: opacity 180ms ease, transform 220ms cubic-bezier(.23,1,.32,1); }
+.pathway-track-link[aria-current='location'] { color: var(--color-purple); font-weight: 700; }
+.pathway-track-link[aria-current='location'] .pathway-track-label { text-decoration-line: underline; }
+.pathway-track-link[aria-current='location'] .pathway-track-marker { opacity: 1; transform: none; }
+.pathway-track-link:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 5px; border-radius: 3px; }
+.pathway-track-nav:focus-within .pathway-track-link,
+.pathway-track-nav:focus-within .pathway-track-marker { transition: none; }
+.pathway-track-link:active { transform: scale(.985); transform-origin: left center; }
+.pathway-card[id] { scroll-margin-block-start: calc(var(--site-header-height, 6rem) + 1.5rem); }
+.pathway-card[id]:focus-visible { outline: 3px solid var(--color-purple); outline-offset: 5px; }
+[dir='rtl'] .pathway-track-marker { transform: scaleX(-1) translateX(-4px); }
+[dir='rtl'] .pathway-track-link:active { transform-origin: right center; }
+[dir='rtl'] .pathway-track-link[aria-current='location'] .pathway-track-marker { transform: scaleX(-1); }
+[lang='ar'] .pathway-track-link { letter-spacing: 0; line-height: 1.65; }
+[lang='ar'] .pathways-introduction .section-heading h2 { line-height: 1.35; }
+@media (hover: hover) and (pointer: fine) {
+  .pathway-track-link:hover { color: var(--color-purple); }
+  .pathway-track-link:hover .pathway-track-label { text-decoration-line: underline; }
+}
+@media (max-width: 800px) {
+  .pathways-introduction { position: static; }
+  .pathway-track-nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
+  .pathway-track-link { font-size: 1.125rem; gap: .5rem; letter-spacing: -.015em; }
+  .pathway-track-marker { inline-size: 1rem; block-size: 1rem; }
+  .pathways-introduction > p { max-inline-size: 44ch; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pathway-track-link, .pathway-track-marker { transition: none; }
+  .pathway-track-link:active { transform: none; }
+}
+@media (forced-colors: active) {
+  .pathway-track-link { color: LinkText; }
+  .pathway-track-link[aria-current='location'] { color: LinkText; }
+  .pathway-track-link:focus-visible, .pathway-card[id]:focus-visible { outline-color: Highlight; }
+}
+@media print {
+  .pathways-introduction { position: static; }
+  .pathway-track-nav { display: none; }
+}

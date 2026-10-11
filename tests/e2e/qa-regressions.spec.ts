@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { prepareHeroCue } from "./helpers/hero-navigation";
 
 // Regressions found in live QA (2026-10-01). Kept separate from feature specs.
 
 // Letter-spacing pulls joined Arabic letters apart in WebKit, so on every iPhone browser:
 // the hero kicker, caption and film provenance were tracked at 0.06–0.1em.
 test("Arabic words are never letter-spaced", async ({ page }) => {
-  for (const path of ["/ar", "/ar/about", "/ar/dates-venue", "/ar/program", "/ar/participate", "/ar/media"]) {
+  for (const path of ["/ar", "/ar/speakers", "/ar/dates-venue", "/ar/program", "/ar/participate", "/ar/media"]) {
     await page.goto(path);
     const spaced = await page.evaluate(() => {
       const found: string[] = [];
@@ -23,35 +24,36 @@ test("Arabic words are never letter-spaced", async ({ page }) => {
   }
 });
 
-// ORG-007: one centred "Step inside" cue without the MSRC2026 caption. It glides to the dates
+// Axiom revision: one reading-edge "Step inside" cue without the MSRC2026 caption. It glides to the dates
 // band when motion is allowed and jumps under reduced motion; the band clears the header.
 for (const [motion, glides] of [["no-preference", true], ["reduce", false]] as const) {
   for (const locale of ["en", "ar"] as const) {
-    test(`${locale} Step inside is centred and ${glides ? "glides" : "jumps"} to the dates band (${motion})`, async ({ page, browserName }) => {
+    test(`${locale} Step inside follows the reading edge and ${glides ? "glides" : "jumps"} to the dates band (${motion})`, async ({ page, browserName }) => {
       await page.emulateMedia({ reducedMotion: motion });
       await page.goto(`/${locale}`);
       // Before hydration a click is a plain fragment jump; the live countdown marks hydration,
       // which took over 5 s once on a loaded local run.
       await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before", { timeout: 15_000 });
       await expect(page.locator(".conference-hero .hero-caption")).toHaveCount(0);
-      const cue = page.locator(".hero-scroll");
+      const cue = await prepareHeroCue(page);
       await expect(cue).toHaveAttribute("href", "#essentials");
       expect(await cue.evaluate((element) => {
         const box = element.getBoundingClientRect();
         const row = element.closest(".hero-bottom")!.getBoundingClientRect();
-        return Math.abs(box.left + box.width / 2 - (row.left + row.width / 2));
+        return Math.abs(document.documentElement.dir === "rtl" ? box.right - row.right : box.left - row.left);
       })).toBeLessThanOrEqual(1);
       expect(await page.locator(".scroll-line").evaluate((line) => getComputedStyle(line, "::after").animationName)).toBe(glides ? "scroll-cue" : "none");
 
-      // Sample the scroll position while the activation's scroll runs. The element is clicked
-      // in the page: Playwright's own pre-click scrolling would add positions of its own.
+      // The cue is already fully visible and hit-tested above the sheet. Record
+      // the native pointer activation from this actual reading position.
+      const startingPosition = await page.evaluate(() => window.scrollY);
       await page.evaluate(() => {
         const positions: number[] = [];
         Object.assign(window, { scrollSamples: positions });
         const timer = setInterval(() => positions.push(window.scrollY), 10);
         setTimeout(() => clearInterval(timer), 1500);
       });
-      await cue.evaluate((element) => (element as HTMLElement).click());
+      await cue.click();
       await expect(page).toHaveURL(new RegExp(`/${locale}#essentials$`));
       await expect(page.locator("#essentials")).toBeFocused();
       await page.waitForTimeout(1600);
@@ -60,8 +62,8 @@ for (const [motion, glides] of [["no-preference", true], ["reduce", false]] as c
       expect(settled).toBeGreaterThan(0);
       // Headless WebKit advances a smooth scroll on this page in one or two coarse steps; a jump
       // is still asserted there, the glide only where frames are rendered (Chromium, CI).
-      if (!(glides && browserName === "webkit")) expect(positions.some((y) => y > 0 && y < settled - 1), positions.join(",")).toBe(glides);
-      expect(await page.evaluate(() => document.querySelector("#event-details-title")!.getBoundingClientRect().top
+      if (!(glides && browserName === "webkit")) expect(positions.some((y) => y > startingPosition + 1 && y < settled - 1), positions.join(",")).toBe(glides);
+      expect(await page.evaluate(() => document.querySelector("#event-details")!.getBoundingClientRect().top
         - document.querySelector(".site-header")!.getBoundingClientRect().bottom)).toBeGreaterThan(0);
     });
   }
@@ -113,7 +115,9 @@ test("the Arabic webfont leaves 1ch unchanged, so authored two-line headings sta
         arabicFaceLoaded: [...document.fonts].some((face) => face.status === "loaded" && /arabic/i.test(face.family)),
         chInEm,
         lines: new Set([...range.getClientRects()].filter((rect) => rect.width > 1).map((rect) => Math.round(rect.top))).size,
-        authoredLines: heading.textContent!.split("\n").length,
+        // Keyword spans now express the authored break with <br>; textContent
+        // omits that break. Preserve the exact authored-versus-rendered check.
+        authoredLines: heading.textContent!.split("\n").length + heading.querySelectorAll("br").length,
       };
     });
     expect(result.arabicFaceLoaded, path).toBe(true);
@@ -151,22 +155,32 @@ for (const [instant, days, unit] of [
   });
 }
 
-// Live QA 2026-10-08. When the days and the clock no longer fit side by side, the clock wrapped
-// under the days but kept its inline divider, a stray rule beside the hours (Arabic at most widths).
+// The hero clock has one top rule and separators between time units. Its days and time
+// may stack or sit side by side; both layouts must retain readable, unclipped content.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} homepage countdown divider only separates side-by-side days and clock`, async ({ page }) => {
+  test(`${locale} homepage countdown stays readable when days and clock reflow`, async ({ page }) => {
     await page.clock.install({ time: new Date("2026-10-07T09:00:00Z") });
     for (const width of [320, 375, 414, 768, 1024, 1280]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/${locale}`);
-      const layout = await page.locator(".date-band .countdown-clock").evaluate((clock) => {
+      const layout = await page.locator(".hero-countdown .countdown-clock").evaluate((clock) => {
         const days = clock.querySelector(".countdown-remaining")!.getBoundingClientRect();
         const time = clock.querySelector<HTMLElement>(".countdown-time")!;
         const timeBox = time.getBoundingClientRect();
-        return { stacked: timeBox.top >= days.bottom - 1, divider: parseFloat(getComputedStyle(time).borderInlineStartWidth), fits: time.scrollWidth <= time.clientWidth + 1 };
+        const clippedText = Array.from(clock.querySelectorAll(".countdown-number, .countdown-unit, .countdown-time-number, .countdown-time-label")).some((element) => {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          return Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
+        });
+        return {
+          fits: time.scrollWidth <= time.clientWidth + 1 && clock.scrollWidth <= clock.clientWidth + 1,
+          separated: timeBox.top >= days.bottom - 1 || timeBox.bottom <= days.top + 1 || timeBox.left >= days.right - 1 || timeBox.right <= days.left + 1,
+          clippedText,
+        };
       });
       expect(layout.fits, `${width}px`).toBe(true);
-      expect(layout.divider > 0, `${width}px`).toBe(!layout.stacked);
+      expect(layout.separated, `${width}px days and time overlap`).toBe(true);
+      expect(layout.clippedText, `${width}px countdown text`).toBe(false);
     }
   });
 }
@@ -179,31 +193,26 @@ test("/favicon.ico serves the MSRC icon", async ({ request }) => {
   expect(response.headers()["content-type"]).toMatch(/^image\/(x-icon|vnd\.microsoft\.icon)/);
 });
 
-// A phone turned sideways is ~340px tall, and the floating header covered a quarter of it while
-// reading. There it steps aside while scrolling down and returns on any scroll up or focus.
-test("a short landscape screen tucks the header away while reading down", async ({ page }) => {
+// The mobile header remains explicit, including short landscape screens.
+test("a short landscape screen retains an accessible Menu during down and up scrolling", async ({ page }) => {
   await page.setViewportSize({ width: 844, height: 340 });
-  await page.goto("/en/about");
-  const header = page.locator(".site-header");
-  const bottom = () => header.evaluate((element) => element.getBoundingClientRect().bottom);
-  // Two frames after each step, so WebKit cannot merge a step down and a step up into one scroll event.
-  const scrollBy = (distance: number) => page.evaluate((distance) => new Promise<void>((resolve) => {
-    window.scrollBy(0, distance);
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-  }), distance);
-  // Scrolling in steps until it tucks also waits out hydration of the scroll listener.
-  await expect.poll(async () => { await scrollBy(250); return bottom(); }, { timeout: 15_000 }).toBeLessThanOrEqual(0);
-  await scrollBy(-200);
-  await expect.poll(bottom).toBeGreaterThan(40);
-  await scrollBy(400);
-  await expect.poll(bottom).toBeLessThanOrEqual(0);
-  await page.locator(".menu-toggle").focus();
-  await expect.poll(bottom).toBeGreaterThan(40);
+  await page.goto("/en/participate");
+  const toggle = page.locator(".menu-toggle");
+  for (const top of [400, 900, 500, 0]) {
+    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), top);
+    await expect(toggle).toBeInViewport();
+    await toggle.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".mobile-menu")).toBeVisible();
+    const menuBox = await page.locator(".mobile-menu").boundingBox();
+    expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(340);
+    await page.keyboard.press("Escape");
+    await expect(toggle).toBeFocused();
+  }
 });
-
 test("a portrait phone keeps the header in view while reading down", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/en/about");
+  await page.goto("/en/participate");
   const header = page.locator(".site-header");
   await expect.poll(async () => { await page.evaluate(() => window.scrollBy(0, 300)); return header.getAttribute("data-scrolled"); }, { timeout: 15_000 }).toBe("true");
   await page.evaluate(() => window.scrollBy(0, 600));
@@ -211,25 +220,34 @@ test("a portrait phone keeps the header in view while reading down", async ({ pa
   expect(await header.evaluate((element) => element.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
 });
 
-// The edition number and the year art were the only Western digits on Arabic pages, and the intro
-// art's flow lines did not mirror, so in Arabic they ran through the edition number.
-test("homepage display art uses each language's digits and mirrors in Arabic", async ({ page }) => {
-  for (const [locale, edition, years, transform] of [["en", "5", "20262027", "none"], ["ar", "٥", "٢٠٢٦٢٠٢٧", "matrix(-1, 0, 0, 1, 0, 0)"]] as const) {
+// Earlier editions share a gallery: each photograph keeps a meaningful caption
+// and accessible description without repeating archive disclaimers on every card.
+test("homepage gallery captions describe the previous editions in each language", async ({ page }) => {
+  for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
-    await expect(page.locator(".visual-edition")).toHaveText(edition);
-    await expect(page.locator(".legacy-art-years")).toHaveText(years);
-    expect(await page.locator(".intro-visual > .flow-lines").evaluate((element) => getComputedStyle(element).transform), locale).toBe(transform);
+    const captions = page.locator(".gallery-card figcaption > span");
+    await expect(captions).toHaveCount(8);
+    for (const caption of await captions.all()) {
+      await expect(caption).toHaveText(/\S+/);
+      await expect(caption).not.toHaveText(locale === "en" ? "MSRC 2026" : "مؤتمر ٢٠٢٦");
+    }
+    await expect(page.locator(".gallery-rail [role='region']")).toHaveAccessibleName(locale === "en" ? "MSRC previous editions photograph gallery" : "معرض صور النسخ السابقة للمؤتمر");
+    for (const photograph of await page.locator(".gallery-card img").all()) {
+      await expect(photograph).toHaveAttribute("alt", /\S+/);
+    }
+    await expect(page.locator(".hero-edition-art, .visual-edition, .legacy-art-years")).toHaveCount(0);
   }
 });
-
-// The header's "Explore MSRC" arrow was a plain ↗ that pointed up-right on Arabic pages too,
+// The header's "Join MSRC" arrow was a plain ↗ that pointed up-right on Arabic pages too,
 // away from the reading direction, while every other button arrow mirrors.
 test("the header action arrow points along each language's reading direction", async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 900 });
   for (const [locale, transform] of [["en", "matrix(1, 0, 0, 1, 0, 0)"], ["ar", "matrix(-1, 0, 0, 1, 0, 0)"]] as const) {
-    await page.goto(`/${locale}/about`);
-    const arrow = page.locator(".header-primary-action .directional-arrow");
-    await expect(arrow).toHaveText("↗");
+    await page.goto(`/${locale}/participate`);
+    const arrow = page.locator(".header-primary-action svg.directional-arrow");
+    await expect(arrow).toHaveCount(1);
+    await expect(arrow).toHaveAttribute("aria-hidden", "true");
+    await expect(arrow.locator("path")).toHaveAttribute("d", /\S+/);
     expect(await arrow.evaluate((element) => getComputedStyle(element).transform), locale).toBe(transform);
   }
 });
@@ -286,12 +304,9 @@ test("quick successive filter changes keep each other", async ({ page }) => {
   await expect(page.getByTestId("media-kind")).toHaveValue("recording");
 });
 
-// Live QA 2026-10-08. Forced colours (Windows contrast themes) drop author fills, which were the
-// only sign of the selected programme day and of the current homepage chapter.
-test("forced colours still show the selected programme day and the current chapter", async ({ page, isMobile }) => {
+// Contrast themes must retain selected programme days and a visible keyboard path.
+test("forced colours retain programme selection and keyboard navigation", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
-  // Computed colours report author values even where forced colours repaint them, so check that
-  // the selected state opts out of forcing and paints with a system colour.
   const keepsFill = (selector: string) => page.locator(selector).first().evaluate((element) => {
     const style = getComputedStyle(element);
     return style.forcedColorAdjust === "none" && style.backgroundColor !== "rgba(0, 0, 0, 0)";
@@ -301,35 +316,44 @@ test("forced colours still show the selected programme day and the current chapt
   await expect(async () => { await day1.click(); await expect(day1).toHaveAttribute("aria-pressed", "true", { timeout: 500 }); }).toPass();
   expect(await keepsFill('[data-testid="program-day-day1"]')).toBe(true);
   expect(await keepsFill('[data-testid="program-day-all"]')).toBe(false);
-  if (isMobile) return;
-  await page.goto("/en");
-  await page.locator(".section-journey-links a").nth(2).click();
-  await expect(page.locator('.section-journey-links a[aria-current="location"]')).toHaveCount(1);
-  expect(await keepsFill('.section-journey-links a[aria-current="location"] .chapter-number')).toBe(true);
-  expect(await keepsFill('.section-journey-links a:not([aria-current]) .chapter-number')).toBe(false);
+  // Establish keyboard modality after the pointer selection so :focus-visible is exercised.
+  await page.keyboard.press("Tab");
+  const toggle = page.locator(".menu-toggle");
+  if (await toggle.isVisible()) {
+    await toggle.focus();
+    await page.keyboard.press("Enter");
+  }
+  const navigation = page.locator(await toggle.isVisible() ? ".mobile-menu nav" : ".desktop-nav");
+  const current = navigation.locator('a[href="/en/program"]');
+  await expect(current).toHaveAttribute("aria-current", "page");
+  await current.focus();
+  await expect(current).toBeFocused();
+  expect(await current.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return style.outlineStyle !== "none" && parseFloat(style.outlineWidth) >= 2;
+  })).toBe(true);
 });
-
 // Live QA 2026-10-08. On desktop the homepage zeroes scroll-padding for its chapter jumps, so
 // tabbing scrolled controls (an Arabic FAQ question) under the sticky chapter bar.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} desktop homepage keeps keyboard focus clear of the sticky header and chapter bar`, async ({ page, isMobile }) => {
-    test.skip(isMobile, "The chapter bar is sticky only on wide screens.");
+  test(`${locale} desktop homepage keeps keyboard focus clear of the floating header`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "The desktop keyboard traversal runs once per locale.");
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before");
     const covered: string[] = [];
-    for (let step = 0; step < 60; step++) {
+    for (let step = 0; step < 100; step++) {
       await page.keyboard.press("Tab");
       const state = await page.evaluate(() => {
         const element = document.activeElement as HTMLElement | null;
-        if (!element || !element.closest(".homepage-journey") || element.closest(".section-journey")) return element?.closest("footer") ? "done" : null;
+        if (!element || !element.closest(".homepage-journey")) return element?.closest("footer") ? "done" : null;
         const box = element.getBoundingClientRect();
         const overlaps = (selector: string) => {
           const cover = document.querySelector(selector)!.getBoundingClientRect();
           return box.top < cover.bottom - 1 && box.bottom > cover.top + 1;
         };
-        return box.height > 0 && (overlaps(".section-journey") || overlaps(".site-header-inner")) ? `${element.tagName}: ${element.textContent?.trim().slice(0, 30)}` : null;
+        return box.height > 0 && overlaps(".site-header-inner") ? `${element.tagName}: ${element.textContent?.trim().slice(0, 30)}` : null;
       });
       if (state === "done") break;
       if (state) covered.push(state);

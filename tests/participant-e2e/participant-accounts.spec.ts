@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import type { ParticipantPayload, ParticipantProfile, ParticipantResponse } from "../../src/features/participant-accounts/contracts";
 import { participantCopy } from "../../src/features/participant-accounts/participant-copy";
+import { languageLink } from "../e2e/helpers/header-navigation";
 
 const syntheticPassword = "Synthetic Password 2027!";
 const syntheticCode = "654321";
@@ -161,7 +162,8 @@ for (const locale of ["en", "ar"] as const) {
     await fillSignup(page, "Synthetic Participant", false);
     await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
     await page.evaluate(async () => { await document.fonts.ready; });
-    await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--site-header-height").trim() === `${(document.querySelector(".site-header-inner") as HTMLElement).offsetHeight}px`)).toBe(true);
+    // The floating masthead reserves its viewport bottom, including its top inset.
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--site-header-height").trim() === `${Math.ceil(document.querySelector(".site-header-inner")!.getBoundingClientRect().bottom)}px`)).toBe(true);
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
@@ -331,7 +333,7 @@ test("locale changes retain name, email, password and code in memory, while relo
   const mock = await mockAccounts(page);
   await page.goto("/en/sign-up");
   await fillSignup(page, "مشارك مصطنع");
-  await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
+  await (await languageLink(page, "View this page in Arabic")).click();
   await expect(page).toHaveURL(/\/ar\/sign-up$/);
   await expect(page.locator("#participant-name")).toHaveValue("مشارك مصطنع");
   await expect(page.locator("#participant-email")).toHaveValue("synthetic@example.invalid");
@@ -345,7 +347,7 @@ test("locale changes retain name, email, password and code in memory, while relo
   await page.getByRole("button", { name: participantCopy.ar.create, exact: true }).click();
   await page.getByRole("link", { name: participantCopy.ar.verify, exact: true }).click();
   await page.locator("#participant-code").fill(syntheticCode);
-  await page.getByRole("link", { name: "View this page in English", exact: true }).click();
+  await (await languageLink(page, "View this page in English")).click();
   await expect(page).toHaveURL(/\/en\/verify-email$/);
   await expect(page.locator("#participant-code")).toHaveValue(syntheticCode);
   await expect(page.locator("#participant-password")).toHaveValue(syntheticPassword);
@@ -385,7 +387,7 @@ test("authentication completed after a locale change restores current owner stat
     await page.getByRole("button", { name: participantCopy.en.signIn, exact: true }).click();
     await signingIn;
     const anonymousStatus = page.waitForResponse((response) => response.url().endsWith("/api/participant-accounts") && response.request().method() === "GET");
-    await page.getByRole("link", { name: "View this page in Arabic", exact: true }).click();
+    await (await languageLink(page, "View this page in Arabic")).click();
     await expect(page).toHaveURL(/\/ar\/sign-in$/);
     await anonymousStatus;
     releaseSignIn();
@@ -397,7 +399,7 @@ test("authentication completed after a locale change restores current owner stat
     await page.getByRole("button", { name: participantCopy.ar.signOut, exact: true }).click();
     await signingOut;
     const staleOwnerStatus = page.waitForResponse((response) => response.url().endsWith("/api/participant-accounts") && response.request().method() === "GET");
-    await page.getByRole("link", { name: "View this page in English", exact: true }).click();
+    await (await languageLink(page, "View this page in English")).click();
     await expect(page).toHaveURL(/\/en\/my-msrc$/);
     await staleOwnerStatus;
     await expect(page.getByTestId("participant-profile-name")).toHaveText("Synthetic Participant");

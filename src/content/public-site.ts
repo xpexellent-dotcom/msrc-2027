@@ -12,14 +12,13 @@ export type PublicPage = Readonly<{
 /** S1 SCP-02: full future public sitemap; it does not claim empty pages exist. */
 export const publicSitemap = [
   { id: "home", path: "/", label: { en: "Home", ar: "الرئيسية" }, previewHref: "/" },
-  { id: "about", path: "/about", label: { en: "About", ar: "عن المؤتمر" }, previewHref: "/about" },
   { id: "dates", path: "/dates-venue", label: { en: "Dates & venue", ar: "المواعيد والمقر" }, previewHref: "/dates-venue" },
-  { id: "program", path: "/program", label: { en: "Programme", ar: "البرنامج" }, previewHref: "/program" },
+  { id: "program", path: "/program", label: { en: "Program", ar: "البرنامج" }, previewHref: "/program" },
   { id: "speakers", path: "/speakers", label: { en: "Speakers", ar: "المتحدثون" }, previewHref: "/speakers" },
   { id: "workshops", path: "/workshops", label: { en: "Workshops", ar: "ورش العمل" }, previewHref: "/workshops" },
   { id: "participation", path: "/participation", label: { en: "Participation & submission guidelines", ar: "المشاركة وإرشادات التقديم" }, previewHref: "/participate" },
-  { id: "teams", path: "/teams", label: { en: "Teams, committees & board", ar: "الفرق واللجان والمجلس" }, previewHref: null },
-  { id: "sponsors", path: "/sponsors", label: { en: "Sponsors & sponsorship", ar: "الرعاة والرعاية" }, previewHref: null },
+  { id: "teams", path: "/team", label: { en: "Our Team", ar: "فريقنا" }, previewHref: "/team" },
+  { id: "sponsors", path: "/sponsors", label: { en: "Sponsors", ar: "الرعاة" }, previewHref: "/sponsors" },
   { id: "gallery", path: "/past-editions", label: { en: "Media & past editions", ar: "الوسائط والنسخ السابقة" }, previewHref: "/media" },
   { id: "announcements", path: "/announcements", label: { en: "Announcements", ar: "الإعلانات" }, previewHref: null },
   { id: "faq", path: "/faq", label: { en: "FAQ", ar: "الأسئلة الشائعة" }, previewHref: "/#faq" },

@@ -57,7 +57,6 @@ export function PolicyPage({ kind, locale, version, dated = false }: {
           </nav>
           <div className="policy-hero-grid">
             <div>
-              <p className="eyebrow"><span className="eyebrow-rule" aria-hidden="true" />{labels.eyebrow}</p>
               <h1 id="policy-page-title">{document.title}</h1>
             </div>
             <dl className="policy-version-details">

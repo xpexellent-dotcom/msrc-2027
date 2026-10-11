@@ -7,6 +7,8 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { contactConfig } from "@/config/contact";
 import { contactCopy } from "@/features/contact/contact-copy";
 import { ContactForm } from "@/features/contact/contact-form";
+import { AmbientArtwork } from "@/components/ambient-artwork";
+import { VenueIcon } from "@/components/venue-icon";
 import { getContactDeliveryConfig } from "@/features/contact/delivery-config.server";
 import { getContactPageDelivery } from "@/features/contact/security.server";
 import { isLocale } from "@/lib/i18n";
@@ -37,7 +39,8 @@ export default async function ContactPage({ params }: ContactPageProps) {
 
   return (
     <>
-      <section className="contact-hero" aria-labelledby="contact-page-title">
+      <section className="contact-hero fluid-art-surface" aria-labelledby="contact-page-title">
+        <AmbientArtwork variant="people" />
         <Container>
           <nav aria-label={copy.breadcrumb} className="about-breadcrumb">
             <ol>
@@ -47,12 +50,11 @@ export default async function ContactPage({ params }: ContactPageProps) {
           </nav>
           <div className="contact-hero-grid">
             <div>
-              <p className="eyebrow"><span className="eyebrow-rule" aria-hidden="true" />{copy.eyebrow}</p>
               <h1 id="contact-page-title">{copy.title}</h1>
               <p className="contact-lead">{copy.lead}</p>
             </div>
             <aside className="contact-email" aria-labelledby="contact-email-title">
-              <h2 id="contact-email-title">{copy.emailHeading}</h2>
+              <h2 id="contact-email-title"><VenueIcon name="arrow" />{copy.emailHeading}</h2>
               <p>{copy.emailBody}</p>
               <a className="text-link contact-email-link" href={`mailto:${contactConfig.recipient}`} dir="ltr" lang="en">{contactConfig.recipient}</a>
             </aside>
@@ -60,8 +62,8 @@ export default async function ContactPage({ params }: ContactPageProps) {
         </Container>
       </section>
       <section id="contact-form" tabIndex={-1} className="editorial-section contact-form-section" aria-labelledby="contact-form-title">
-        <Container narrow>
-          <SectionHeading title={copy.formHeading} id="contact-form-title" />
+        <Container className="contact-form-layout">
+          <div className="contact-form-introduction"><SectionHeading title={copy.formHeading} id="contact-form-title" /><p>{locale === "en" ? "Find a quick answer, or get in touch with the conference team." : "اعثر على إجابة سريعة، أو تواصل مع فريق المؤتمر."}</p><Link className="editorial-action" href={`/${locale}#faq`}>{locale === "en" ? "Frequently asked questions" : "الأسئلة الشائعة"}</Link></div>
           <ContactForm locale={locale} delivery={delivery} />
         </Container>
       </section>

@@ -7,6 +7,7 @@ const footerCopy = {
     description: "The fifth Medical Students Research Conference.",
     institution: "King Abdulaziz University · Jeddah",
     navigation: "Explore the conference",
+    groups: ["The conference", "Take part", "Information"],
     designSystem: "Design system preview",
     soon: "Soon",
   },
@@ -14,10 +15,17 @@ const footerCopy = {
     description: "المؤتمر الخامس لأبحاث طلاب الطب.",
     institution: "جامعة الملك عبدالعزيز · جدة",
     navigation: "استكشف المؤتمر",
+    groups: ["المؤتمر", "المشاركة", "معلومات"],
     designSystem: "معاينة نظام التصميم",
     soon: "قريبًا",
   },
 } as const;
+
+const directoryGroups = [
+  ["home", "dates", "program", "speakers", "teams"],
+  ["workshops", "participation", "sponsors", "gallery"],
+  ["announcements", "faq", "contact", "privacy", "terms"],
+] as const;
 
 export function Footer({locale, showDesignSystem = false}: {locale: Locale; showDesignSystem?: boolean}) {
   const footer = footerCopy[locale];
@@ -27,24 +35,30 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
           <div className="footer-top">
             <div className="footer-brand">
               <span className="footer-identity" dir="ltr" lang="en">MSRC<span>2027</span></span>
-              <p>{footer.description}</p>
-              <p className="footer-institution">{footer.institution}</p>
+              <div className="footer-brand-copy">
+                <p>{footer.description}</p>
+                <p className="footer-institution">{footer.institution}</p>
+              </div>
             </div>
-            <div className="footer-directory">
-              <h2>{footer.navigation}</h2>
-              <ul>
-                {publicSitemap.map((page) => (
-                  <li key={page.id}>
-                    {page.previewHref ? (
-                      <Link href={`/${locale}${page.previewHref === "/" ? "" : page.previewHref.replace(/^\/#/, "#")}`}>{page.label[locale]}</Link>
-                    ) : (
-                      // DECISIONS: unpublished entries are labelled non-links, visibly as well as for assistive tech.
-                      <span className="footer-unpublished" role="link" aria-disabled="true">{page.label[locale]} <span className="footer-soon">{footer.soon}</span></span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <nav className="footer-directory" aria-label={footer.navigation}>
+              {directoryGroups.map((ids, index) => (
+                <div className="footer-directory-group" key={footer.groups[index]}>
+                  <h2>{footer.groups[index]}</h2>
+                  <ul>
+                    {ids.map((id) => publicSitemap.find((page) => page.id === id)!).map((page) => (
+                      <li key={page.id}>
+                        {page.previewHref ? (
+                          <Link href={`/${locale}${page.previewHref === "/" ? "" : page.previewHref.replace(/^\/#/, "#")}`}>{page.label[locale]}</Link>
+                        ) : (
+                          // DECISIONS: unpublished entries stay visibly and semantically disabled.
+                          <span className="footer-unpublished" role="link" aria-disabled="true">{page.label[locale]} <span className="footer-soon">{footer.soon}</span></span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </nav>
           </div>
           <div className="footer-bottom">
             <p dir="ltr" lang="en">MSRC / 2027</p>

@@ -1,4 +1,5 @@
-import { VenueSchematicMap } from "@/components/venue-schematic-map";
+import { VenueGeographicMap } from "@/components/venue-geographic-map";
+import { VenueIcon } from "@/components/venue-icon";
 import type { ConferenceVenue, VenueTravelMode, VenueVisitorInfoKey } from "@/config/conference";
 import { venueTravelCopy } from "@/content/venue-travel";
 import type { Locale } from "@/lib/i18n";
@@ -13,7 +14,7 @@ function AccessibilityGuidance({ text, label, locale }: { text: string; label: s
   return <>{text.slice(0, labelStart)}<a className="text-link" href={`/${locale}/contact`}>{label}</a>{text.slice(labelStart + label.length)}</>;
 }
 
-/** ORG-034: local schematic and ordinary links; no map SDK, embed or provider prefetch. */
+/** Local geographic map and ordinary links; no map SDK, embed or provider prefetch. */
 export function VenueTravelDetails({ venue, locale }: { venue: ConferenceVenue; locale: Locale }) {
   const copy = venueTravelCopy[locale];
   const details = venueDetailKeys.flatMap((key) => {
@@ -23,7 +24,7 @@ export function VenueTravelDetails({ venue, locale }: { venue: ConferenceVenue; 
 
   return (
     <div className="venue-travel-details">
-      <VenueSchematicMap locale={locale} />
+      <VenueGeographicMap locale={locale} />
       <nav className="venue-map-links" aria-label={copy.mapLinksLabel}>
         {venueMapLinks(venue).map(({ provider, href }) => (
           <a key={provider} className="button button--secondary" href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={`${copy.openMap} ${venue.name[locale]} ${copy.inProvider} ${copy.providers[provider]} (${copy.newTab})`}>
@@ -39,7 +40,7 @@ export function VenueTravelDetails({ venue, locale }: { venue: ConferenceVenue; 
             const travelTime = venue.travelTimes?.[mode]?.[locale]?.trim();
             return (
               <article key={mode} data-travel-mode={mode}>
-                <h4>{copy.modes[mode].title}</h4>
+                <h4><VenueIcon name={mode} />{copy.modes[mode].title}</h4>
                 <p>{copy.modes[mode].body}</p>
                 {travelTime ? <p className="venue-travel-time"><strong>{copy.travelTime}: </strong>{travelTime}</p> : null}
               </article>
@@ -52,13 +53,13 @@ export function VenueTravelDetails({ venue, locale }: { venue: ConferenceVenue; 
         <section id="at-venue" className="venue-arrival-details" aria-labelledby="at-venue-title">
           <h3 id="at-venue-title">{copy.atVenueTitle}</h3>
           <dl>{details.map(({ key, text }) => (
-            <div key={key} data-venue-detail={key}><dt>{copy.venueDetails[key]}</dt><dd>{key === "accessibility" ? <AccessibilityGuidance text={text} label={copy.contactForm} locale={locale} /> : text}</dd></div>
+            <div key={key} data-venue-detail={key}><dt><VenueIcon name={key} />{copy.venueDetails[key]}</dt><dd>{key === "accessibility" ? <AccessibilityGuidance text={text} label={copy.contactForm} locale={locale} /> : text}</dd></div>
           ))}</dl>
         </section>
       ) : null}
 
       <section id="international-attendees" className="venue-international" aria-labelledby="international-title">
-        <h3 id="international-title">{copy.internationalTitle}</h3>
+        <h3 id="international-title"><VenueIcon name="globe" />{copy.internationalTitle}</h3>
         <p>{copy.internationalNote} <bdi dir="ltr">(UTC+3)</bdi>.</p>
         <p>{copy.visaResponsibility}</p>
       </section>

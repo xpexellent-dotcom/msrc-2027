@@ -1,3 +1,4 @@
+import { languageLink } from "./helpers/header-navigation";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -19,6 +20,27 @@ const copy = {
     breadcrumb: "مسار التنقل", home: "الرئيسية", footer: "المواعيد والمقر",
   },
 } as const;
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} venue and program date links select the corresponding conference day`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${locale}/dates-venue`);
+    for (const day of ["day1", "day2"] as const) {
+      const dateLink = page.locator(`.dates-calendar a[href="/${locale}/program?day=${day}"]`);
+      await expect(dateLink).toHaveCount(1);
+      await expect(dateLink.locator("time")).toHaveAttribute("datetime", day === "day1" ? "2027-01-27" : "2027-01-28");
+    }
+    await page.locator(`.dates-calendar a[href="/${locale}/program?day=day2"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day2$`));
+    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+    await page.locator(`.program-date-panel a[href="/${locale}/program?day=day1"]`).focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day1$`));
+    await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(".premium-hero-image img")).toHaveCount(1);
+    expect(await page.locator(".premium-hero-image img").evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0s");
+  });
+}
 
 for (const locale of ["en", "ar"] as const) {
   test(`${locale} Dates and Venue show confirmed days and venue, pending times and accessible layout`, async ({ page }, testInfo) => {
@@ -43,7 +65,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#venue .dates-body")).toHaveText(copy[locale].venueBody);
     await expect(page.locator(".dates-note")).toHaveCount(0);
     await expect(page.locator(".dates-closed-note")).toContainText(copy[locale].closed);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/registration`);
     await expect(page.getByRole("main")).not.toContainText(/09:00|9:00 AM/);
     await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"]')).toHaveCount(0);
     const directions = page.locator('.dates-directions-link');
@@ -111,13 +133,13 @@ test("Dates and Venue keyboard and language navigation preserve the section and 
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
   await page.goto("/en/dates-venue?view=planning#venue");
-  const arabic = page.getByRole("link", { name: "View this page in Arabic" });
+  const arabic = await languageLink(page, "View this page in Arabic");
   await arabic.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/ar\/dates-venue\?view=planning#venue$/);
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("#venue")).toBeInViewport();
-  const english = page.getByRole("link", { name: "View this page in English" });
+  const english = await languageLink(page, "View this page in English");
   await english.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/en\/dates-venue\?view=planning#venue$/);

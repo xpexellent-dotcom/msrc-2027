@@ -1,15 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
-declare global {
-  interface Window {
-    premiumRevealStarts: { title: string; transform: string; startedAt: number }[];
-  }
-}
-
 const content = {
   en: {
     title: "Where curiosity becomes discovery.",
     lead: "Medical students. Shared ideas. New discoveries.",
+    benefitsTitle: "Come with curiosity. Leave with possibility.",
     preview: "Development preview",
     removedNotes: [
       "Inside the preview", "Illustrative format · Not a schedule",
@@ -21,6 +16,7 @@ const content = {
   ar: {
     title: "حيث يتحوّل الفضول إلى اكتشاف.",
     lead: "طلاب طب. أفكار نتشاركها. واكتشافات جديدة.",
+    benefitsTitle: "ابدأ بفضولك. واكتشف إمكاناتك.",
     preview: "معاينة قيد التطوير",
     removedNotes: [
       "جولة في المعاينة", "تصوّر توضيحي · ليس جدولًا معتمدًا",
@@ -31,11 +27,13 @@ const content = {
 } as const;
 
 async function checkReadableSections(page: Page) {
-  for (const id of ["about", "participate", "program", "legacy"]) {
+  for (const id of ["participate", "program", "legacy", "venue"]) {
     const section = page.locator(`#${id}`);
     await section.scrollIntoViewIfNeeded();
     await expect(section.getByRole("heading", { level: 2 })).toBeVisible();
-    expect(await section.locator(".reveal").evaluateAll((elements) => elements.every((element) => {
+    // Ambient artwork is deliberately translucent and aria-hidden; this guard
+    // protects readable content rather than prescribing decorative opacity.
+    expect(await section.locator('.reveal:not([aria-hidden="true"])').evaluateAll((elements) => elements.every((element) => {
       const style = getComputedStyle(element);
       return style.visibility === "visible" && style.display !== "none" && Number(style.opacity) === 1;
     }))).toBe(true);
@@ -48,7 +46,7 @@ async function checkReadableSections(page: Page) {
 // revision keeps a clean cinematic opening, semantic background pause and
 // one-time enhancement readable with every fallback path.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} concise homepage has no preview notice and decorative artwork stays out of the accessibility tree`, async ({ page }) => {
+  test(`${locale} cinematic homepage has a hero countdown, floating navigation and decorative photographs`, async ({ page }) => {
     await page.goto(`/${locale}`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(content[locale].title);
     await expect(page.locator(".hero-lead")).toHaveText(content[locale].lead);
@@ -61,89 +59,66 @@ for (const locale of ["en", "ar"] as const) {
     await expect(control).toBeEmpty();
     await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
     await expect(page.locator(".footer-directory-note, .program-sample-label, .hero-media-status")).toHaveCount(0);
-    await expect(page.locator(".conference-hero [data-countdown]")).toHaveCount(0);
-    await expect(page.locator(".date-band [data-countdown]")).toHaveCount(1);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
+    await expect(page.locator(".conference-hero [data-countdown]")).toHaveCount(1);
+    await expect(page.locator(".date-band [data-countdown]")).toHaveCount(0);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/registration`);
     await expect(page.locator(".hero-actions a")).toHaveCount(2);
     const opening = await page.locator(".conference-hero").boundingBox();
-    const viewport = page.viewportSize()!;
+    const viewport = await page.evaluate(() => ({ width: document.documentElement.clientWidth, height: window.innerHeight }));
     expect(opening?.width).toBeGreaterThanOrEqual(viewport.width - 1);
     expect(opening?.height).toBeGreaterThanOrEqual(viewport.height - 1);
     expect((opening?.y ?? 0) + (opening?.height ?? 0)).toBeGreaterThanOrEqual(viewport.height - 1);
+    const masthead = await page.locator(".site-header").boundingBox();
+    expect(masthead).not.toBeNull();
+    expect(Math.abs(masthead!.x)).toBeLessThanOrEqual(1);
+    expect(masthead!.y).toBeGreaterThanOrEqual(12);
+    expect(masthead!.y).toBeLessThanOrEqual(24);
+    expect(Math.abs(masthead!.width - viewport.width)).toBeLessThanOrEqual(1);
     const navigation = await page.locator(".site-header-inner").boundingBox();
-    expect(navigation?.x).toBeGreaterThan(0);
-    expect((navigation?.x ?? 0) + (navigation?.width ?? viewport.width)).toBeLessThan(viewport.width);
-    expect(navigation?.y).toBeGreaterThan(0);
+    expect(navigation).not.toBeNull();
+    expect(navigation!.x).toBeGreaterThanOrEqual(12);
+    expect(navigation!.x + navigation!.width).toBeLessThanOrEqual(viewport.width + 1);
+    expect(navigation!.y).toBeGreaterThanOrEqual(masthead!.y);
+    expect(navigation!.y + navigation!.height).toBeLessThanOrEqual(masthead!.y + masthead!.height + 1);
     for (const note of content[locale].removedNotes) {
       await expect(page.getByText(note, { exact: true })).toHaveCount(0);
     }
 
-    const artwork = page.locator("svg.research-visual");
-    expect(await artwork.count()).toBeGreaterThanOrEqual(3);
-    for (const visual of await artwork.all()) {
-      await expect(visual).toHaveAttribute("aria-hidden", "true");
-      await expect(visual).toHaveAttribute("focusable", "false");
+    const photographs = page.locator(".pathway-photo img");
+    await expect(photographs).toHaveCount(5);
+    for (const visual of await photographs.all()) {
+      await expect(visual).toHaveAttribute("alt", "");
       await expect(visual).not.toHaveAttribute("tabindex", "0");
     }
-    await page.locator("#about").scrollIntoViewIfNeeded();
-    await expect(page.locator("#about svg.research-visual")).toBeVisible();
+    await expect(page.locator(".homepage-journey svg.flow-lines")).toHaveCount(0);
+    await page.locator("#program").scrollIntoViewIfNeeded();
+    const benefitsHeading = page.locator("#program").getByRole("heading", { level: 2 });
+    await expect(benefitsHeading).toHaveText(content[locale].benefitsTitle);
+    await expect(benefitsHeading).toBeVisible();
   });
 
-  test(`${locale} pathway content reveals in sequence once and stays settled after scrolling away and back`, async ({ page }) => {
+  test(`${locale} five photographic pathways remain readable during down and up scrolling`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.addInitScript(() => {
-      window.premiumRevealStarts = [];
-      document.addEventListener("animationstart", (event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLElement) || !target.matches(".pathway-list > article")) return;
-        window.premiumRevealStarts.push({
-          title: target.querySelector("h3")?.textContent ?? "",
-          transform: getComputedStyle(target).transform,
-          startedAt: performance.now(),
-        });
-      }, true);
-    });
     await page.goto(`/${locale}`);
-    const pathways = page.locator(".pathway-list");
-    const rows = pathways.locator(":scope > article");
-    await expect(rows).toHaveCount(4);
-    const titles = await rows.locator("h3").allTextContents();
-    await pathways.scrollIntoViewIfNeeded();
-    await expect.poll(() => page.evaluate(() => window.premiumRevealStarts.length)).toBe(4);
-    const starts = await page.evaluate(() => window.premiumRevealStarts);
-    expect(starts.map((entry) => entry.title)).toEqual(titles);
-    expect(starts[0].transform).not.toBe("none");
-    expect(await page.evaluate((transform) => new DOMMatrixReadOnly(transform).isIdentity, starts[0].transform)).toBe(false);
-    const styles = await rows.evaluateAll((elements) => elements.map((element) => ({
-      delay: parseFloat(getComputedStyle(element).animationDelay),
-      duration: getComputedStyle(element).animationDuration,
-    })));
-    expect(styles[0].delay).toBe(0);
-    for (let index = 1; index < styles.length; index++) {
-      expect(styles[index].delay).toBeGreaterThan(styles[index - 1].delay);
+    const cards = page.locator(".pathway-list > .pathway-card");
+    await expect(cards).toHaveCount(5);
+    expect(await cards.locator(".pathway-action").evaluateAll((links) => links.map((link) => new URL((link as HTMLAnchorElement).href).pathname)))
+      .toEqual(["registration", "submissions", "workshops", "hackathon", "3mt"].map((path) => `/${locale}/${path}`));
+    for (const card of await cards.all()) {
+      await card.scrollIntoViewIfNeeded();
+      await expect(card.getByRole("heading", { level: 3 })).toBeVisible();
+      await expect(card.locator(".pathway-action")).toBeInViewport();
+      await expect(card.locator(".status-badge")).toContainText(locale === "en" ? /not open/i : /لم.*يفتح|لم.*يُفتح|غير متاح|لم يبدأ/);
+      expect(await card.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
     }
-    // ORG-012: content that waited below the screen fades up over 1 s.
-    expect(styles.every((style) => style.duration === "1s")).toBe(true);
-    await expect.poll(() => rows.evaluateAll((elements) => elements.every((element) => {
-      const transform = getComputedStyle(element).transform;
-      const atRest = transform === "none" || new DOMMatrixReadOnly(transform).isIdentity;
-      return atRest && element.getAnimations().every((animation) => animation.playState === "finished");
-    }))).toBe(true);
-
     await page.locator("#top").scrollIntoViewIfNeeded();
-    await pathways.scrollIntoViewIfNeeded();
-    await page.evaluate(() => new Promise<void>((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-    }));
-    expect(await page.evaluate(() => window.premiumRevealStarts.length)).toBe(4);
-    expect(await rows.evaluateAll((elements) => elements.every((element) => {
-      const transform = getComputedStyle(element).transform;
-      return (transform === "none" || new DOMMatrixReadOnly(transform).isIdentity) &&
-        element.getAnimations().every((animation) => animation.playState === "finished");
+    await cards.first().scrollIntoViewIfNeeded();
+    await expect(cards.first().getByRole("heading")).toBeVisible();
+    expect(await cards.evaluateAll((elements) => elements.every((element) => {
+      const style = getComputedStyle(element);
+      return style.opacity === "1" && style.visibility === "visible";
     }))).toBe(true);
-    await expect(rows.first().getByRole("heading")).toBeVisible();
   });
-
   test(`${locale} content stays readable without JavaScript or IntersectionObserver`, async ({ browser, page, baseURL }) => {
     for (const javaScriptEnabled of [false, true]) {
       const context = await browser.newContext({
@@ -154,10 +129,15 @@ for (const locale of ["en", "ar"] as const) {
         if (javaScriptEnabled) await fallbackPage.addInitScript(() => {
           Object.defineProperty(window, "IntersectionObserver", { configurable: true, value: undefined });
         });
-        await fallbackPage.goto(`/${locale}`);
+        // This checks the readable document and its visible media. The full load
+        // event can wait for offscreen native-lazy carousel images in no-JS mobile contexts.
+        await fallbackPage.goto(`/${locale}`, { waitUntil: "domcontentloaded" });
         await expect(fallbackPage.getByRole("heading", { level: 1 })).toHaveText(content[locale].title);
         await expect(fallbackPage.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
         await checkReadableSections(fallbackPage);
+        const visibleArchiveImage = fallbackPage.locator("#legacy .gallery-photo img").first();
+        await expect(visibleArchiveImage).toBeVisible();
+        await expect.poll(() => visibleArchiveImage.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
       } finally {
         await context.close();
       }
@@ -168,12 +148,21 @@ for (const locale of ["en", "ar"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await checkReadableSections(page);
-    for (const selector of ["#about .reveal", ".pathway-row", ".program-grid > div", ".legacy-grid > div"]) {
+    for (const selector of ['#program .reveal:not([aria-hidden="true"])', ".pathway-card", ".program-experiences > article", ".gallery-card"]) {
+      expect(await page.locator(selector).count(), selector).toBeGreaterThan(0);
       expect(await page.locator(selector).evaluateAll((elements) => elements.every((element) => {
         const style = getComputedStyle(element);
         return style.animationName === "none" && style.transform === "none" && style.transitionDuration === "0s";
       }))).toBe(true);
     }
+    // The decorative composition may have a static rotation, but must never
+    // travel or animate when the visitor requests reduced motion.
+    const artwork = page.locator(".ambient-art, .ambient-art *");
+    expect(await artwork.count()).toBeGreaterThan(0);
+    expect(await artwork.evaluateAll((elements) => elements.every((element) => {
+      const style = getComputedStyle(element);
+      return style.animationName === "none" && style.transitionDuration === "0s";
+    }))).toBe(true);
   });
 }
 
