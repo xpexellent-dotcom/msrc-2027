@@ -2,12 +2,14 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { VenueTravelDetails } from "@/components/venue-travel-details";
+import { VenueArrivalJourney } from "@/components/venue-arrival-journey";
 import { conferenceConfig, type ConferenceVenue } from "@/config/conference";
 import { venueMapLinks } from "@/lib/venue-travel";
 import { approvedAtVenue, approvedTravelTime, approvedVisaResponsibility } from "../fixtures/approved-venue-guidance";
 
 const venue = conferenceConfig.venue!;
 const render = (value: ConferenceVenue, locale: "en" | "ar") => renderToStaticMarkup(createElement(VenueTravelDetails, { venue: value, locale }));
+const renderJourney = (value: ConferenceVenue, locale: "en" | "ar") => renderToStaticMarkup(createElement(VenueArrivalJourney, { venue: value, locale }));
 
 describe("plain external venue map links", () => {
   it("encodes venue text as one destination parameter without inventing coordinates", () => {
@@ -120,5 +122,58 @@ describe("approved and optional venue information stays honest", () => {
     expect(markup).not.toContain('id="at-venue"');
     expect(markup).not.toMatch(/class="[^"]*\bvenue-visa-link\b/);
     expect(markup).toContain(approvedVisaResponsibility.en);
+  });
+});
+
+describe("arrival journey preserves approved guidance and optional configuration", () => {
+  it.each(["en", "ar"] as const)("server-renders every approved detail and native transport option in %s", (locale) => {
+    const markup = renderJourney(venue, locale);
+    const visibleText = markup.replace(/<[^>]+>/g, "");
+    for (const value of Object.values(approvedAtVenue)) expect(visibleText).toContain(value[locale]);
+    expect(markup.match(/data-travel-mode="/g)).toHaveLength(3);
+    expect(markup.match(/<details open=""/g)).toHaveLength(3);
+    expect(markup.match(/class="venue-travel-time"/g)).toHaveLength(2);
+    expect(visibleText.split(approvedTravelTime[locale])).toHaveLength(3);
+    expect(markup.match(/data-venue-detail="/g)).toHaveLength(6);
+    expect(visibleText).toContain(approvedVisaResponsibility[locale]);
+    expect(markup).toContain(`href="/${locale}/contact"`);
+    expect(markup).not.toContain("<iframe");
+  });
+
+  it.each(["en", "ar"] as const)("omits unset travel and on-site claims while retaining the public arrival sequence in %s", (locale) => {
+    const markup = renderJourney({ ...venue, travelTimes: undefined, atVenue: undefined }, locale);
+    expect(markup).not.toContain('class="venue-travel-time"');
+    expect(markup).not.toContain('id="at-venue"');
+    expect(markup.match(/data-journey-chapter="/g)).toHaveLength(3);
+    expect(markup).toContain('id="international-attendees"');
+    expect(markup).toContain("UTC+3");
+    expect(markup).toContain(approvedVisaResponsibility[locale]);
+    expect(markup).not.toMatch(/class="[^"]*\bvenue-visa-link\b/);
+  });
+
+  it.each(["en", "ar"] as const)("shows only supplied optional guidance in %s", (locale) => {
+    const configured: ConferenceVenue = {
+      ...venue,
+      travelTimes: { train: { en: "Synthetic train guidance", ar: "إرشادات قطار تجريبية" }, taxi: { en: " ", ar: " " } },
+      atVenue: { wifi: { en: "Synthetic Wi-Fi guidance", ar: "إرشادات شبكة تجريبية" }, parking: { en: " ", ar: " " } },
+    };
+    const markup = renderJourney(configured, locale);
+    expect(markup.match(/class="venue-travel-time"/g)).toHaveLength(1);
+    expect(markup).toContain(configured.travelTimes!.train![locale]);
+    expect(markup.match(/data-venue-detail="/g)).toHaveLength(1);
+    expect(markup).toContain('data-venue-detail="wifi"');
+    expect(markup).toContain(configured.atVenue!.wifi![locale]);
+    expect(markup).not.toContain('data-venue-detail="parking"');
+  });
+
+  it("does not fill missing Arabic optionals with English claims", () => {
+    const markup = renderJourney({
+      ...venue,
+      travelTimes: { taxi: { en: "Synthetic English duration", ar: " " } },
+      atVenue: { entryGate: { en: "Synthetic English gate", ar: " " } },
+    }, "ar");
+    expect(markup).not.toContain("Synthetic English");
+    expect(markup).not.toContain('class="venue-travel-time"');
+    expect(markup).not.toContain('id="at-venue"');
   });
 });

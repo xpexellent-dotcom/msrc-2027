@@ -1,0 +1,154 @@
+/* ENG-030. A geographic arrival overview; camera motion never moves reading text. */
+.venue-arrival-journey { --journey-plum: #191222; --journey-ink: #f8f6f0; --journey-muted: #ded2e8; --focus-ring: #eddaaf; position: relative; isolation: isolate; background: var(--journey-plum); color: var(--journey-ink); }
+.venue-journey-world { position: relative; isolation: isolate; }
+.venue-journey-atlas { position: sticky; inset-block-start: 0; block-size: 100svh; margin-block-end: -100svh; overflow: hidden; pointer-events: none; z-index: 0; background: var(--journey-plum); }
+.venue-journey-camera { position: absolute; left: 80%; top: 50%; inline-size: 1400px; block-size: 1700px; transform-origin: center; transform: translate(-50%,-50%) scale(.45); transition: transform 480ms cubic-bezier(.23,1,.32,1); direction: ltr; }
+[dir="rtl"] .venue-journey-camera { left: 20%; }
+.venue-journey-camera > img { display: block; inline-size: 1400px; block-size: 1700px; max-inline-size: none; }
+.venue-journey-atlas-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgb(25 18 34 / 96%), rgb(25 18 34 / 83%) 38%, rgb(25 18 34 / 15%) 80%), linear-gradient(180deg, rgb(25 18 34 / 38%), transparent 20%, transparent 76%, rgb(25 18 34 / 80%)); }
+[dir="rtl"] .venue-journey-atlas-shade { background: linear-gradient(270deg, rgb(25 18 34 / 96%), rgb(25 18 34 / 83%) 38%, rgb(25 18 34 / 15%) 80%), linear-gradient(180deg, rgb(25 18 34 / 38%), transparent 20%, transparent 76%, rgb(25 18 34 / 80%)); }
+.venue-arrival-journey .venue-journey-point.site-link { position: absolute; z-index: 2; display: flex; align-items: center; gap: .7rem; min-block-size: 48px; padding: .6rem 1rem; border: 1px solid rgb(237 218 175 / 68%); border-radius: 999px; background: #30223e; color: #fff2d5; font-size: 1rem; font-weight: 650; line-height: 1.5; white-space: nowrap; text-decoration: none; transform: translate(-50%,-50%) scale(2.22222); transition: transform 480ms cubic-bezier(.23,1,.32,1), background-color 180ms ease, border-color 180ms ease; pointer-events: auto; }
+.venue-journey-point--airport { left: 581px; top: 366px; }
+.venue-journey-point--arrival { left: 1008px; top: 1366px; }
+.venue-journey-point-light { inline-size: .65rem; block-size: .65rem; flex: 0 0 .65rem; border-radius: 50%; background: #eddaaf; box-shadow: 0 0 14px rgb(237 218 175 / 65%); }
+.venue-arrival-journey .venue-journey-point:focus-visible { transition: none; background: #4c355f; }
+.venue-journey-point-detail { display: none; position: absolute; left: 50%; bottom: calc(100% + 16px); inline-size: 20rem; max-inline-size: calc(100vw - 3rem); padding: 1.25rem; border: 1px solid rgb(237 218 175 / 50%); border-radius: 16px; background: #30223e; color: var(--journey-ink); transform: translateX(-50%); text-align: start; white-space: normal; font-size: 1rem; font-weight: 400; line-height: 1.7; pointer-events: auto; }
+.venue-journey-point-detail::after { content: ""; position: absolute; inset-inline: 0; inset-block-start: 100%; block-size: 20px; }
+.venue-journey-point[data-tip-side="below"] .venue-journey-point-detail::after { inset-block-start: auto; inset-block-end: 100%; }
+.venue-journey-point-detail > :is(strong,span) { display: block; }
+.venue-journey-point-detail strong { font-weight: 650; margin-block-end: .6rem; }
+.venue-journey-point-detail .venue-journey-point-action { color: #fff2d5; font-weight: 600; margin-block-start: 1rem; }
+.venue-journey-map-caption { position: absolute; z-index: 3; inset-inline-end: clamp(1.5rem,4vw,4rem); inset-block-end: 1.5rem; max-inline-size: 28rem; text-align: end; color: var(--journey-muted); font-size: .8125rem; line-height: 1.65; pointer-events: auto; }
+.venue-journey-map-caption p { margin: 0 0 .35rem; }
+.venue-journey-map-caption a { color: inherit; padding-block: .4rem; text-underline-offset: .25em; }
+.venue-journey-north { position: absolute; inset-inline-end: clamp(1.5rem,4vw,4rem); inset-block-start: calc(var(--site-header-height,5rem) + 2rem); display: grid; justify-items: center; gap: .2rem; color: #eddaaf; font-size: .8125rem; }
+.venue-journey-north svg { inline-size: 20px; block-size: 28px; }
+.venue-journey-body.site-container { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(8rem,.45fr) minmax(0,2fr); align-items: start; gap: clamp(1.75rem,4vw,4rem); pointer-events: none; }
+.venue-journey-index, .venue-journey-reading { pointer-events: auto; }
+.venue-journey-index { position: sticky; inset-block-start: calc(var(--site-header-height,5rem) + 3rem); padding-block: 1rem; margin-block-start: clamp(8rem,20svh,13rem); }
+.venue-journey-index ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; }
+.venue-journey-index li { margin: 0; padding: 0; }
+.venue-arrival-journey .venue-journey-index .site-link { display: grid; grid-template-columns: .7rem minmax(0,1fr) 20px; align-items: center; gap: .75rem; min-block-size: 48px; color: #bcb0c7; font-size: 1rem; line-height: 1.55; text-decoration: none; padding-block: .5rem; transition: color 180ms ease; }
+.venue-journey-index .site-link[aria-current="location"] { color: #fff2d5; font-weight: 650; }
+.venue-journey-index .venue-icon { inline-size: 20px; block-size: 20px; opacity: 0; }
+.venue-journey-index .site-link[aria-current="location"] .venue-icon { opacity: 1; }
+.venue-journey-index-dot { position: relative; inline-size: .55rem; block-size: .55rem; border: 1px solid currentColor; border-radius: 50%; }
+.venue-journey-index-dot::after { content: ""; position: absolute; inset: -5px; border: 1px solid transparent; border-radius: 50%; }
+.venue-journey-index .site-link[aria-current="location"] .venue-journey-index-dot { background: currentColor; }
+.venue-journey-index .site-link[aria-current="location"] .venue-journey-index-dot::after { border-color: rgb(237 218 175 / 35%); }
+.venue-journey-index .site-link:focus-visible { transition: none; color: #fff2d5; }
+.venue-journey-chapters { min-inline-size: 0; }
+.venue-journey-chapter { display: flex; align-items: center; min-block-size: 110svh; padding-block: clamp(6rem,15svh,10rem); scroll-margin-block-start: calc(var(--site-header-height,5rem) + 1.5rem); min-inline-size: 0; }
+.venue-journey-reading { inline-size: 100%; max-inline-size: 38rem; min-inline-size: 0; }
+.venue-journey-title { margin: 0 0 2rem; font-family: var(--font-display); font-size: clamp(3rem,5.3vw,5.3rem); line-height: 1.12; letter-spacing: -.035em; font-weight: 650; color: var(--journey-ink); text-wrap: balance; }
+.venue-journey-title > span { display: block; color: #eddaaf; }
+.venue-journey-place-name { margin: 0 0 1.4rem; max-inline-size: 100%; overflow-wrap: anywhere; color: var(--journey-ink); font-family: var(--font-display); font-size: clamp(1.5rem,2.2vw,2rem); line-height: 1.5; font-weight: 600; text-wrap: balance; }
+.venue-journey-lead { margin: 0 0 1.5rem; font-size: clamp(1.125rem,1.5vw,1.3rem); line-height: 1.85; max-inline-size: 44ch; color: var(--journey-muted); }
+.venue-journey-note { padding-block: 1.25rem; border-block-start: 1px solid rgb(220 207 240 / 25%); color: var(--journey-muted); font-size: 1rem; line-height: 1.8; margin: 2rem 0 1rem; max-inline-size: 44ch; }
+.venue-journey-continue.site-link { display: inline-flex; align-items: center; gap: 1.5rem; min-block-size: 48px; color: #fff2d5; font-size: 1.125rem; font-weight: 600; text-underline-offset: .3em; }
+.venue-arrival-journey .venue-travel-cards { display: block; margin-block-start: 2.5rem; }
+.venue-arrival-journey .venue-travel-cards article, .venue-arrival-journey .venue-travel-cards article:last-child { display: block; background: none; border: 0; border-block-start: 1px solid rgb(220 207 240 / 30%); border-radius: 0; padding: 0; }
+.venue-journey-options details { padding-block: .3rem 1.25rem; }
+.venue-journey-options summary { list-style: none; cursor: pointer; color: var(--journey-ink); min-block-size: 64px; }
+.venue-journey-options summary::-webkit-details-marker { display: none; }
+.venue-journey-options summary h3 { display: grid; grid-template-columns: 30px minmax(0,1fr) 24px; align-items: center; gap: 1rem; margin: 0; padding-block: 1rem; color: inherit; font-size: clamp(1.35rem,1.7vw,1.65rem); line-height: 1.5; font-weight: 650; letter-spacing: -.02em; }
+.venue-journey-options summary .venue-icon { inline-size: 30px; block-size: 30px; color: #eddaaf; }
+.venue-journey-disclosure-mark { inline-size: 20px; block-size: 20px; justify-self: center; color: #eddaaf; }
+.venue-journey-options details[open] .venue-journey-disclosure-mark path { transform: rotate(45deg); transform-origin: center; transform-box: view-box; }
+.venue-arrival-journey .venue-travel-cards p { margin: .15rem 0 1rem; max-inline-size: 50ch; font-size: 1rem; line-height: 1.85; color: var(--journey-muted); }
+.venue-arrival-journey .venue-travel-cards .venue-travel-time { color: #fff2d5; padding: 0; margin: 0; font-size: .95rem; }
+.venue-journey-options summary:focus-visible { outline-offset: 4px; }
+.venue-arrival-journey .venue-journey-location.dates-body { color: var(--journey-ink); font-size: 1.125rem; line-height: 1.85; margin: 2rem 0; }
+.venue-arrival-journey .venue-journey-address.dates-location-details { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.5rem; margin: 0; }
+.venue-arrival-journey .venue-journey-address > div { border: 0; border-block-start: 1px solid rgb(220 207 240 / 25%); border-radius: 0; background: none; padding: 1rem 0 0; min-inline-size: 0; }
+.venue-journey-address > div::after { display: none; }
+.venue-arrival-journey .venue-journey-address dt { display: flex; align-items: center; gap: .65rem; color: #eddaaf; font-size: .95rem; line-height: 1.6; margin: 0 0 .75rem; }
+.venue-arrival-journey .venue-journey-address dt .venue-icon { color: inherit; inline-size: 24px; block-size: 24px; }
+.venue-arrival-journey .venue-journey-address dd { color: var(--journey-ink); font-size: 1rem; line-height: 1.8; margin: 0; }
+.venue-journey-arrival-details.venue-arrival-details { margin-block-start: 3rem; }
+.venue-journey-arrival-details > h3 { margin: 0 0 1.5rem; color: var(--journey-ink); font-family: var(--font-display); font-size: 1.65rem; line-height: 1.5; font-weight: 650; }
+.venue-journey-arrival-details dl { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.5rem; margin: 0; }
+.venue-arrival-journey .venue-journey-arrival-details dl > div { border: 0; border-block-start: 1px solid rgb(220 207 240 / 25%); border-radius: 0; background: none; padding: 1rem 0 0; }
+.venue-journey-arrival-details dt { display: flex; align-items: center; gap: .7rem; margin: 0 0 .65rem; color: #eddaaf; font-size: 1.0625rem; font-weight: 600; }
+.venue-journey-arrival-details dd { color: var(--journey-muted); margin: 0; font-size: 1rem; line-height: 1.8; }
+.venue-journey-arrival-details .text-link { color: #fff2d5; }
+.venue-journey-orientation { position: relative; z-index: 2; padding-block: clamp(4rem,8vw,7rem); background: var(--color-ivory); color: var(--color-ink); --focus-ring: var(--color-purple); }
+.venue-journey-orientation > .site-container > h2 { margin: 0 0 1.5rem; font-size: clamp(2.5rem,4vw,4rem); font-weight: 650; letter-spacing: -.03em; line-height: 1.2; }
+.venue-journey-orientation > .site-container > p { margin: 0 0 2.5rem; color: var(--color-muted); font-size: 1.125rem; line-height: 1.85; max-inline-size: 58ch; }
+.venue-journey-orientation .venue-map-links { margin-block-start: 1.5rem; }
+.venue-journey-orientation .dates-directions-link { color: var(--color-purple); margin-block-start: 0; min-block-size: 52px; }
+.venue-journey-orientation .venue-international h3 { display: flex; align-items: center; gap: 1rem; color: var(--color-purple); font-size: 1.75rem; font-weight: 650; }
+.venue-journey-orientation .venue-international p { font-size: 1rem; line-height: 1.85; color: var(--color-muted); }
+[lang="ar"] :is(.venue-journey-title,.venue-journey-place-name,.venue-journey-options summary h3,.venue-journey-arrival-details h3,.venue-journey-orientation h2) { line-height: 1.5; letter-spacing: 0; }
+.venue-arrival-journey[data-keyboard="true"] :is(.venue-journey-camera,.venue-journey-point,.venue-journey-index .site-link) { transition: none; }
+
+/* Flow mode also handles enlarged type where a pinned reading structure would not fit. */
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-atlas { position: relative; block-size: min(34rem,65svh); margin-block-end: 0; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-camera { left: 50%; top: 50%; transform-origin: center; transform: translate(-50%,-50%) scale(.22); transition: none; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-point.site-link { transform: translate(-50%,-50%) scale(4.54545); transition: none; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-atlas-shade { background: linear-gradient(180deg,rgb(25 18 34 / 10%),rgb(25 18 34 / 10%) 60%,var(--journey-plum)); }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-body.site-container { display: block; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-index { position: relative; inset-block-start: auto; margin-block-start: 0; padding-block: 1.5rem; border-block-end: 1px solid rgb(220 207 240 / 25%); }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-index ol { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-index .venue-icon { display: none; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-index .site-link { grid-template-columns: .7rem minmax(0,1fr); }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-chapter { min-block-size: 0; padding-block: 4rem; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-chapter + .venue-journey-chapter { border-block-start: 1px solid rgb(220 207 240 / 25%); }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-reading { max-inline-size: none; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-title { font-size: clamp(2.5rem,7.5vw,4rem); }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-map-caption { max-inline-size: 22rem; font-size: .75rem; inset-inline: 1.5rem; text-align: start; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-north { inset-block-start: 1.5rem; }
+@media (max-width: 1199px), (max-height: 640px) {
+  .venue-journey-atlas { position: relative; block-size: min(34rem,65svh); margin-block-end: 0; }
+  .venue-journey-camera, [dir="rtl"] .venue-journey-camera { left: 50%; top: 50%; transform-origin: center; transform: translate(-50%,-50%) scale(.22); transition: none; }
+  .venue-arrival-journey .venue-journey-point.site-link { transform: translate(-50%,-50%) scale(4.54545); transition: none; }
+  .venue-journey-atlas-shade, [dir="rtl"] .venue-journey-atlas-shade { background: linear-gradient(180deg,rgb(25 18 34 / 10%),rgb(25 18 34 / 10%) 60%,var(--journey-plum)); }
+  .venue-journey-body.site-container { display: block; }
+  .venue-journey-index { position: relative; inset-block-start: auto; margin-block-start: 0; padding-block: 1.5rem; border-block-end: 1px solid rgb(220 207 240 / 25%); }
+  .venue-journey-index ol { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+  .venue-journey-index .venue-icon { display: none; }
+  .venue-journey-index .site-link { grid-template-columns: .7rem minmax(0,1fr); }
+  .venue-journey-chapter { min-block-size: 0; padding-block: 4rem; }
+  .venue-journey-chapter + .venue-journey-chapter { border-block-start: 1px solid rgb(220 207 240 / 25%); }
+  .venue-journey-reading { max-inline-size: none; }
+  .venue-journey-title { font-size: clamp(2.5rem,7.5vw,4rem); }
+  .venue-journey-map-caption { max-inline-size: 22rem; font-size: .75rem; inset-inline: 1.5rem; text-align: start; }
+  .venue-journey-north { inset-block-start: 1.5rem; }
+}
+@media (max-width: 650px) {
+  .venue-arrival-journey :is(.venue-journey-address.dates-location-details,.venue-journey-arrival-details dl) { grid-template-columns: minmax(0,1fr); }
+  .venue-journey-options summary h3 { grid-template-columns: 24px minmax(0,1fr) 20px; gap: .75rem; font-size: 1.25rem; }
+  .venue-journey-options summary .venue-icon { inline-size: 24px; block-size: 24px; }
+  .venue-arrival-journey .venue-journey-point.site-link { padding: .45rem .7rem; font-size: .875rem; gap: .5rem; }
+  .venue-journey-index ol { gap: .3rem 1rem; }
+  .venue-journey-index .site-link { font-size: .875rem; gap: .5rem; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .venue-journey-point:hover { background: #4c355f; border-color: #fff2d5; }
+  .venue-journey-index .site-link:hover { color: #fff2d5; }
+  .venue-journey-options summary:hover { color: #fff2d5; }
+}
+@media (min-width: 1200px) and (min-height: 641px) {
+  .venue-arrival-journey:not([data-reading-flow="true"]) .venue-journey-point:not([data-tooltip-dismissed="true"]):focus-visible .venue-journey-point-detail { display: block; }
+  @media (hover: hover) and (pointer: fine) {
+    .venue-arrival-journey:not([data-reading-flow="true"]) .venue-journey-point:not([data-tooltip-dismissed="true"]):hover .venue-journey-point-detail { display: block; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .venue-journey-camera, [dir="rtl"] .venue-journey-camera { transition: none; }
+  .venue-arrival-journey .venue-journey-point.site-link, .venue-arrival-journey .venue-journey-index .site-link { transition: none; }
+}
+@media (forced-colors: active) {
+  .venue-journey-atlas { display: none; }
+  .venue-arrival-journey, .venue-journey-orientation { background: Canvas; color: CanvasText; }
+  .venue-arrival-journey :is(h2,h3,p,dt,dd,a,.venue-icon,.venue-journey-title > span) { color: CanvasText; }
+  .venue-journey-index-dot { border-color: CanvasText; }
+}
+@media print {
+  .venue-journey-atlas, .venue-journey-index { display: none; }
+  .venue-journey-body.site-container { display: block; }
+  .venue-arrival-journey, .venue-journey-orientation { background: #fff; color: #000; }
+  .venue-journey-chapter { min-block-size: 0; padding-block: 2rem; }
+  .venue-journey-reading { max-inline-size: none; }
+  .venue-arrival-journey :is(h2,h3,p,dt,dd,a,.venue-journey-title > span) { color: #000; }
+}

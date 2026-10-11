@@ -1,6 +1,76 @@
 # Progress and session handover
 
+## 12 October 2026 — Venue arrival journey review PR, ENG-030
+
+- Started separate `codex/venue-journey` branch from current main
+  `522667418ed445b5749d5dc0f9c3710f8bc4b6af`, retaining prior local release
+  receipts and unused assets. Scope is a new review PR, not merge/publication.
+- Read the project baseline, requirements, current Venue source and brand;
+  inspected Whiteout and the map reference live. Focused audit and pinned
+  direction precede UI edits: `docs/reviews/venue-journey.md`.
+- Hero uses relevant arrival copy and four user-selected local photographs in a
+  purple-tinted architectural gallery. Exact source, original/derivative hashes,
+  processing and visual asset checks: `docs/media/venue-journey-photos.md` and JSON.
+- Real OSM city geometry supports the full-screen arrival map. No copied stock
+  artwork, invented street grid, map SDK or third-party visitor request. Source,
+  projection and repeatable renderer are recorded in `venue-journey-map.md`.
+- Existing approved location, travel choices/times, visitor details, visa note,
+  provider links and campus map remain the content authority. Registration,
+  accounts, workflows and operational settings are unchanged.
+- Implemented native-scroll chapters, a persistent chapter index, keyboard/tap
+  anchors, two geographic information pins and native transport disclosures.
+  North-up geography remains physical in Arabic; phone, short-viewport,
+  enlarged-text, reduced-motion and no-JS paths retain natural reading.
+- **PASS (local before final integration):** `pnpm check`: lint, types,
+  **2,399 unit tests / 61 files**, and an **81-page production build**.
+  Receipt: `.tools/venue-journey-check-final.log`.
+- One Impeccable detector completed with **49 advisories and no primary
+  findings**. It ran before the final interaction corrections; it is not an
+  all-source clean bill. Existing global palette/type/radius choices stay.
+- Focused browser runs preserved the actual progression: **96 pass / 2 skip /
+  5 fail**, then **97 / 2 / 4**, then **100 / 2 / 1** across 103 cases. Fixed
+  popup clipping/hover bridging and enlarged airport/disclosure text; the last
+  remaining gallery reversal and exact-1200px popup placement are receiving
+  targeted confirmation. Original failure logs remain under `.tools/`.
+- Independent finish review found low-contrast inherited intro text and a
+  top-edge popup issue. The intro uses the existing muted token; the popup
+  flips and clamps to usable viewport bounds. Final disposition, integration,
+  hosted checks and PR/Preview receipts will be recorded after confirmation.
+  Physical iOS/Android hardware remains NOT TESTED; emulation is separate.
+
 ## 11 October 2026 — Phone experience and venue presentation, ENG-029
+
+### Published and verified
+
+- PR 57 merged after all ten hosted jobs, all three workflows and Vercel passed
+  at exact head `967990fdf83fb6c50c8d72b945a187097374ff21`. Public browsers:
+  **615 passed / 41 intentional skips / 656 cases**; units: **2,392 / 61 files**;
+  synthetic auth: **81 passed**. Contact, participant, staff and isolated database
+  checks passed. Exact-head receipt: `.tools/phone-hosted-checks.json`; the first
+  failed run remains separately preserved in `.tools/phone-hosted-checks-initial.json`.
+- Production merge `522667418ed445b5749d5dc0f9c3710f8bc4b6af` has an identical
+  file tree to the tested head. Owned deployment `dpl_APwvnrkyBkxNjbrnSxogQrGn9Rck`
+  was **READY** at 20:26:56 UTC with both `msrc2027.com` and `www.msrc2027.com`
+  aliases. Proof: `.tools/phone-production-after.json`.
+- **PASS:** 92/92 live GET/HEAD checks, zero failures at 20:27:45 UTC. Receipt:
+  `.tools/phone-live-receipt.json`; log: `.tools/phone-live-verification.log`.
+  EN/AR pages, localized design markers, room photo, all 27 media assets,
+  redirects, indexing and Jeddah range streaming passed. All 15 workflow APIs
+  remain 503/WORKFLOW_CLOSED and participant accounts remain closed.
+  Contact/staff readiness matches the baseline; this does not prove delivery
+  or authenticated staff access. No forms or participant communications were sent.
+- **PASS:** live 390px English and 320px Arabic inspection shows a direct 48px
+  globe, clipped skip link, hidden phone track index, natural hero flow, aligned
+  wrapped benefit headings and no horizontal overflow. The globe changes to
+  Arabic directly. Live Venue shows the supplied auditorium photo without the
+  duplicate calendar; Program shows a 400×310px glass group at desktop and a
+  clear 335px panel on phone, both confirmed dates and the local calendar link.
+  Screenshots: `.impeccable/review/phone-venue/live-*.jpg`.
+- Physical iOS/Android hardware, browser-chrome, momentum and safe-area feel
+  remain **NOT TESTED**. Browser emulation is not physical-device evidence.
+  No operational gate, database, hosting setting, account or communication change.
+
+### Implementation and pre-publication evidence
 
 - Audited the existing phone hero (994px tall, 295px sticky hold at 390×844),
   buried language link, skip-link focus treatment, benefit reflow and oversized
@@ -54,7 +124,8 @@
   database, hosting-setting, account or communication change.
 - Source release base: `4dfc15b6756c7ee3ee5f42d079a3d60be58fcaae`.
   Prior post-publication receipts and unused local assets are preserved.
-  Hosted release checks and actual Production verification are pending.
+  Hosted release checks and actual Production verification were pending at this
+  implementation checkpoint; the final release evidence is recorded above.
 
 - Incorporated main's organizer-credit restoration at
   `b27b822619c8747eece43457fcbd3cf2a2dad8a1` without changing its footer or
@@ -71,7 +142,8 @@
   across desktop/tablet/mobile EN/AR,35.5s, one worker and zero retries;
   `.tools/phone-venue-stale-tests.log`. Scoped lint and whitespace passed. No
   application source changed in this correction. Initial hosted proof retained
-  in `.tools/phone-hosted-checks-initial.json`; final exact-head run pending.
+  in `.tools/phone-hosted-checks-initial.json`; the replacement exact-head run
+  subsequently passed all required checks, as recorded above.
 
 ## 11 October 2026 — Seamless scroll-driven header, ENG-028
 

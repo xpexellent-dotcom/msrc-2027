@@ -1,5 +1,19 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-030 — Venue arrival journey, 12 October 2026
+
+The requester explicitly asks for a new review PR revamping Venue into a
+full-screen, native-scroll journey from airport through Jeddah to the venue,
+with interactive information points and four supplied purple-tinted photographs.
+Whiteout and the supplied city-map artwork are composition references, not
+reusable assets or approval of their implementation. Preserve the published
+brand, EN/AR, phone reading, reduced motion, approved travel guidance and accurate
+geography. No invented route, pickup, fare, gate or transport claim.
+
+This request authorizes building and opening the PR; it does not request merging
+or publishing the new Venue experience. Operational gates remain unchanged.
+Audit and direction: `docs/reviews/venue-journey.md`.
+
 ## ENG-029 — Phone adaptation and venue presentation, 11 October 2026
 
 The requester asks for direct globe language access on phones, removal of the

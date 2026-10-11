@@ -1,0 +1,102 @@
+[
+  {
+    "id": "01",
+    "sourceUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9SwhnyOd8Eyy8Q0VKt3_3nOG5X9i8-L_alluUjIj-MGPWwP6n3_8LBHlfacd6pa4yD_p_aHdqO1VD-sFz3X-ril-cSkfgJUnlq0JJfXofxFWN1vof3kdIt78dMrxYJYI3b_mng0=w203-h270-k-no",
+    "requestedUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9SwhnyOd8Eyy8Q0VKt3_3nOG5X9i8-L_alluUjIj-MGPWwP6n3_8LBHlfacd6pa4yD_p_aHdqO1VD-sFz3X-ril-cSkfgJUnlq0JJfXofxFWN1vof3kdIt78dMrxYJYI3b_mng0=s0",
+    "finalUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9SwhnyOd8Eyy8Q0VKt3_3nOG5X9i8-L_alluUjIj-MGPWwP6n3_8LBHlfacd6pa4yD_p_aHdqO1VD-sFz3X-ril-cSkfgJUnlq0JJfXofxFWN1vof3kdIt78dMrxYJYI3b_mng0=s0",
+    "retrievedAt": "2026-10-11T21:05:54.568Z",
+    "httpStatus": 200,
+    "responseContentType": "image/jpeg",
+    "original": {
+      "file": "source-01.jpg",
+      "format": "jpeg",
+      "width": 3024,
+      "height": 4032,
+      "bytes": 3368484,
+      "sha256": "62677883fdadc719ca500f51e5067a85b8d0c308769a394fe3ab69518376c214"
+    },
+    "derivative": {
+      "file": "venue-journey-01.jpg",
+      "width": 1650,
+      "height": 2200,
+      "bytes": 1152445,
+      "sha256": "186b19c3408d93752904f514c83a31a4179bc280ada9a60abf0c158d8696a4d2",
+      "provenanceComment": "MSRC 2027 | Venue journey selection | User-selected Google Maps photograph 01 | Source: https://lh3.googleusercontent.com/gps-cs-s/ANWiy9SwhnyOd8Eyy8Q0VKt3_3nOG5X9i8-L_alluUjIj-MGPWwP6n3_8LBHlfacd6pa4yD_p_aHdqO1VD-sFz3X-ril-cSkfgJUnlq0JJfXofxFWN1vof3kdIt78dMrxYJYI3b_mng0=w203-h270-k-no | Retrieved 2026-10-11 | Optimized JPEG; no AI alteration | User selection does not establish broader license or creator consent"
+    }
+  },
+  {
+    "id": "02",
+    "sourceUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QcZLE0rBG_rDfZ2I3V1j77I6MMzFRO2_iz2IF30tb8JVJo1ySj1Yw2qZjrGJq-iIQMYX3vCWZxQJwH5lCz03roKizjWdQvS0TbcSyRsHzyDhipgCmhecmK5XhWIEzgjxwCuo7m=w203-h152-k-no",
+    "requestedUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QcZLE0rBG_rDfZ2I3V1j77I6MMzFRO2_iz2IF30tb8JVJo1ySj1Yw2qZjrGJq-iIQMYX3vCWZxQJwH5lCz03roKizjWdQvS0TbcSyRsHzyDhipgCmhecmK5XhWIEzgjxwCuo7m=s0",
+    "finalUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QcZLE0rBG_rDfZ2I3V1j77I6MMzFRO2_iz2IF30tb8JVJo1ySj1Yw2qZjrGJq-iIQMYX3vCWZxQJwH5lCz03roKizjWdQvS0TbcSyRsHzyDhipgCmhecmK5XhWIEzgjxwCuo7m=s0",
+    "retrievedAt": "2026-10-11T21:05:54.669Z",
+    "httpStatus": 200,
+    "responseContentType": "image/jpeg",
+    "original": {
+      "file": "source-02.jpg",
+      "format": "jpeg",
+      "width": 5712,
+      "height": 4284,
+      "bytes": 6430880,
+      "sha256": "f63d1df16a67417a3895ad251ab1a76d7adb8205f0e45f7a9d81c845b10baebc"
+    },
+    "derivative": {
+      "file": "venue-journey-02.jpg",
+      "width": 2200,
+      "height": 1650,
+      "bytes": 817184,
+      "sha256": "cf6ccaa3af72845354bfe20b5063d101a5b86ebd2baa603b5480adca5d81457e",
+      "provenanceComment": "MSRC 2027 | Venue journey selection | User-selected Google Maps photograph 02 | Source: https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QcZLE0rBG_rDfZ2I3V1j77I6MMzFRO2_iz2IF30tb8JVJo1ySj1Yw2qZjrGJq-iIQMYX3vCWZxQJwH5lCz03roKizjWdQvS0TbcSyRsHzyDhipgCmhecmK5XhWIEzgjxwCuo7m=w203-h152-k-no | Retrieved 2026-10-11 | Optimized JPEG; no AI alteration | User selection does not establish broader license or creator consent"
+    }
+  },
+  {
+    "id": "03",
+    "sourceUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QZX-ti0KjTvELAsSmIMU72joW5IPfyFqnfaSg1lgz7qw9eWgK7IhQhI-e8RaNdY3UbgPhxC4Ee7IacT1PMw1tjbzCGdw-2HSORy68IHRP9pPFbJG1IOsXBt6kw1cN8_ECwVVMThg=w203-h152-k-no",
+    "requestedUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QZX-ti0KjTvELAsSmIMU72joW5IPfyFqnfaSg1lgz7qw9eWgK7IhQhI-e8RaNdY3UbgPhxC4Ee7IacT1PMw1tjbzCGdw-2HSORy68IHRP9pPFbJG1IOsXBt6kw1cN8_ECwVVMThg=s0",
+    "finalUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QZX-ti0KjTvELAsSmIMU72joW5IPfyFqnfaSg1lgz7qw9eWgK7IhQhI-e8RaNdY3UbgPhxC4Ee7IacT1PMw1tjbzCGdw-2HSORy68IHRP9pPFbJG1IOsXBt6kw1cN8_ECwVVMThg=s0",
+    "retrievedAt": "2026-10-11T21:05:54.214Z",
+    "httpStatus": 200,
+    "responseContentType": "image/jpeg",
+    "original": {
+      "file": "source-03.jpg",
+      "format": "jpeg",
+      "width": 3968,
+      "height": 2976,
+      "bytes": 4212011,
+      "sha256": "52cd8fe734d3f57cc277f23cdff25fbfc7264a12f6bb73cbb482084873488244"
+    },
+    "derivative": {
+      "file": "venue-journey-03.jpg",
+      "width": 2200,
+      "height": 1650,
+      "bytes": 1228556,
+      "sha256": "49b46749cb91007b1c98bd1c96de328120d8340899ec64be593d38eeddb36069",
+      "provenanceComment": "MSRC 2027 | Venue journey selection | User-selected Google Maps photograph 03 | Source: https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QZX-ti0KjTvELAsSmIMU72joW5IPfyFqnfaSg1lgz7qw9eWgK7IhQhI-e8RaNdY3UbgPhxC4Ee7IacT1PMw1tjbzCGdw-2HSORy68IHRP9pPFbJG1IOsXBt6kw1cN8_ECwVVMThg=w203-h152-k-no | Retrieved 2026-10-11 | Optimized JPEG; no AI alteration | User selection does not establish broader license or creator consent"
+    }
+  },
+  {
+    "id": "04",
+    "sourceUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9RHCugKOaTFyNjZm8KIQ4cTJ8l5XvY6H1CXfno23-ILdU6Aelg5qWqsyVnAsZ88rkb5SpbgMkQUvwXHd7hkFXTauGuUb8xrN4IWMVnndVLWfLzIilCoVUiBljPvA0J5bpbyK-mYIA=w203-h270-k-no",
+    "requestedUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9RHCugKOaTFyNjZm8KIQ4cTJ8l5XvY6H1CXfno23-ILdU6Aelg5qWqsyVnAsZ88rkb5SpbgMkQUvwXHd7hkFXTauGuUb8xrN4IWMVnndVLWfLzIilCoVUiBljPvA0J5bpbyK-mYIA=s0",
+    "finalUrl": "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9RHCugKOaTFyNjZm8KIQ4cTJ8l5XvY6H1CXfno23-ILdU6Aelg5qWqsyVnAsZ88rkb5SpbgMkQUvwXHd7hkFXTauGuUb8xrN4IWMVnndVLWfLzIilCoVUiBljPvA0J5bpbyK-mYIA=s0",
+    "retrievedAt": "2026-10-11T21:05:54.972Z",
+    "httpStatus": 200,
+    "responseContentType": "image/jpeg",
+    "original": {
+      "file": "source-04.jpg",
+      "format": "jpeg",
+      "width": 4284,
+      "height": 5712,
+      "bytes": 3712232,
+      "sha256": "8b8f1c4382ded7b293a5d84c3f2d906c560ce2fd103b8108e61f507f98b9bcdb"
+    },
+    "derivative": {
+      "file": "venue-journey-04.jpg",
+      "width": 1650,
+      "height": 2200,
+      "bytes": 760465,
+      "sha256": "059cd01c74278a7bebee504b63a7a890c5bc88df373081a451f38cd8f6673fd3",
+      "provenanceComment": "MSRC 2027 | Venue journey selection | User-selected Google Maps photograph 04 | Source: https://lh3.googleusercontent.com/gps-cs-s/ANWiy9RHCugKOaTFyNjZm8KIQ4cTJ8l5XvY6H1CXfno23-ILdU6Aelg5qWqsyVnAsZ88rkb5SpbgMkQUvwXHd7hkFXTauGuUb8xrN4IWMVnndVLWfLzIilCoVUiBljPvA0J5bpbyK-mYIA=w203-h270-k-no | Retrieved 2026-10-11 | Optimized JPEG; no AI alteration | User selection does not establish broader license or creator consent"
+    }
+  }
+]

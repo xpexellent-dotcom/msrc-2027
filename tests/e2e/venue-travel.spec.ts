@@ -67,10 +67,10 @@ for (const locale of ["en", "ar"] as const) {
 
     const map = page.getByTestId("venue-geographic-map").getByRole("img");
     await expect(map).toHaveCount(1);
-    const room = page.locator(".venue-room-frame").getByRole("img");
-    await expect(room).toHaveCount(1);
-    await expect(room).toHaveAccessibleName(locale === "en" ? /auditorium.*King Faisal Conference Center/ : /قاعة مركز الملك فيصل للمؤتمرات/);
-    await expect.poll(() => room.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    const photos = page.locator(".venue-photo-gallery").getByRole("img");
+    await expect(photos).toHaveCount(4);
+    for (const photo of await photos.all()) await expect(photo).toHaveAccessibleName(/\S/);
+    await expect.poll(() => photos.first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await expect(map).toHaveAttribute("dir", "ltr");
     // Arabic page flow must preserve the map's geographic east/west orientation.
     expect(await map.evaluate((element) => getComputedStyle(element).transform)).toBe("none");
@@ -157,7 +157,7 @@ for (const locale of ["en", "ar"] as const) {
     await testInfo.attach(`${locale}-venue-travel-${testInfo.project.name}`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
 
     // Exercise a local page transition after hydration and full-page reading.
-    // Reading and focusing the map closes the phone menu; reveal its language link again.
+    // Reading and focusing the map leaves the current fragment intact for language activation.
     const transitionLanguage = await languageLink(page, locale === "en" ? "View this page in Arabic" : "View this page in English");
     await transitionLanguage.focus();
     await page.keyboard.press("Enter");
