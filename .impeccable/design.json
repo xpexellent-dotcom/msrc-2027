@@ -260,7 +260,7 @@
     "typographyMeta": {
       "display": {
         "displayName": "Cinematic display",
-        "purpose": "Homepage opener in solid ivory. Responsive and short-viewport overrides are recorded in DESIGN.md."
+        "purpose": "ENG-029 homepage opener: weight-600 Manrope with static ivory/lilac/champagne gradient; Arabic uses weight-700 Noto. Native phone flow preserves readable title opacity."
       },
       "headline": {
         "displayName": "Public chapter headline",
@@ -397,8 +397,8 @@
       },
       {
         "name": "research-drift",
-        "value": "18s ease-in-out infinite alternate",
-        "purpose": "Small decorative artwork drift; runs only while visible, the document is visible, motion is allowed and visitor pause is false."
+        "value": "4.5s cubic-bezier(.23,1,.32,1) both",
+        "purpose": "One decorative settling entrance, paused while unseen or document hidden, permanently settled after completion. Reduced motion is static; no pause control or focus stop."
       },
       {
         "name": "history-count",
@@ -653,7 +653,7 @@
     {
       "name": "Pathway reading index",
       "kind": "custom",
-      "description": "Five native in-page links. Live scrolling selects the card at the 45% reading line, with purple weight, underline, arrow and aria-current. This static preview selects Research; the live index becomes normal flow on phones or when it cannot fit the viewport.",
+      "description": "Five native desktop in-page links. Live scrolling selects the card at the 45% reading line, with purple weight, underline, arrow and aria-current. This static preview selects Research; ENG-029 hides the index at 800px and below, where the five cards provide the routes directly.",
       "html": "<nav class=\"ds-track-index\" aria-label=\"Example participation tracks\"><a href=\"#pathway-registration\">Attend</a><a href=\"#pathway-submissions\" aria-current=\"location\">Research <svg aria-hidden=\"true\" focusable=\"false\" viewBox=\"0 0 24 24\" fill=\"none\"><path d=\"M4 12h15m-6-6 6 6-6 6\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a><a href=\"#pathway-workshops\">Workshops</a><a href=\"#pathway-hackathon\">Hackathon</a><a href=\"#pathway-3mt\">3MT</a></nav>",
       "css": ".ds-track-index{display:grid;gap:.1rem;padding:1.5rem;background:var(--color-ivory,#f8f6f0);font-family:var(--font-interface,Inter,Arial,sans-serif)}.ds-track-index a{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-block-size:46px;max-inline-size:24rem;color:#71677f;font-size:clamp(1.125rem,1.85vw,1.625rem);font-weight:550;line-height:1.4;letter-spacing:-.025em;text-decoration:none;transition:color 180ms ease}.ds-track-index [aria-current]{color:#3b1e6d;font-weight:700;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.23em}.ds-track-index a:focus-visible{outline:2px solid #3b1e6d;outline-offset:5px;transition:none}.ds-track-index:dir(rtl) a{letter-spacing:0;line-height:1.65}.ds-track-index svg{inline-size:1.4rem;block-size:1.4rem;flex-shrink:0}.ds-track-index:dir(rtl) svg{transform:scaleX(-1)}@media(prefers-reduced-motion:reduce){.ds-track-index a{transition:none}}@media(forced-colors:active){.ds-track-index{background:Canvas}.ds-track-index a{color:LinkText}}"
     }

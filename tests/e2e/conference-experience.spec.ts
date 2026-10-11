@@ -72,7 +72,16 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await expect(page.locator("iframe, textarea, input[type=email], input[type=password], input[type=file]")).toHaveCount(0);
       await expect(page.getByRole("main")).not.toContainText(/Abdulrahman Ismail|Fatimah Al Farhah/i);
-      await expect(page.locator('a[href*="/admin"], a[href*="/reviewer"], a[download]')).toHaveCount(0);
+      await expect(page.locator('a[href*="/admin"], a[href*="/reviewer"]')).toHaveCount(0);
+      // Program exposes only the confirmed all-day calendar file. Unpublished
+      // brochures, scientific records and other downloads remain unavailable.
+      if (route === "program") {
+        await expect(page.locator("a[download]")).toHaveCount(1);
+        await expect(page.locator("a[download]")).toHaveAttribute("href", `/${locale}/msrc-2027.ics`);
+        await expect(page.locator("a[download]")).toHaveAttribute("download", "msrc-2027.ics");
+      } else {
+        await expect(page.locator("a[download]")).toHaveCount(0);
+      }
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
       expect(response?.headers()["x-robots-tag"]).toContain("noindex");
       await expectNoHorizontalOverflow(page);

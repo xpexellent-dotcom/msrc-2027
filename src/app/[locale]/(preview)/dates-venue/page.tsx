@@ -8,7 +8,6 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Reveal } from "@/components/ui/reveal";
 import { VenueTravelDetails } from "@/components/venue-travel-details";
-import { ConferenceDayLinks } from "@/components/conference-day-links";
 import { VenueIcon } from "@/components/venue-icon";
 import { conferenceConfig } from "@/config/conference";
 import { datesVenueCopy } from "@/content/dates-venue";
@@ -35,7 +34,6 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = datesVenueCopy[locale];
-  const dates = conferenceConfig.dates;
   const venue = conferenceConfig.venue;
 
   return (
@@ -54,17 +52,9 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
               <h1 id="dates-page-title">{locale === "en" ? <>Two days in <span className="premium-title-accent">Jeddah.</span></> : <>يومان في <span className="premium-title-accent">جدة.</span></>}</h1>
               <p className="dates-lead">{copy.lead}</p>
             </div>
-            <div className="dates-calendar" aria-labelledby="confirmed-days-title">
-              <h2 id="confirmed-days-title" className="sr-only">{copy.datesHeading}</h2>
-              {dates ? (
-                <>
-                  <p className="dates-calendar-label"><VenueIcon name="calendar" />{copy.confirmed}</p>
-                  <ConferenceDayLinks locale={locale} />
-                  {/* A plain file link: it downloads without JavaScript and opens in the visitor's calendar app. */}
-                  <a className="text-link dates-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{copy.addToCalendar}</a>
-                </>
-              ) : <p>{copy.datesPending}</p>}
-            </div>
+            <figure className="venue-room-frame">
+              <Image src="/media/msrc-demo/king-faisal-room.jpg" alt={copy.roomPhotoAlt} fill sizes="(max-width: 650px) 90vw, (max-width: 1000px) 640px, 544px" priority />
+            </figure>
           </div>
         </Container>
       </section>

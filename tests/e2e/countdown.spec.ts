@@ -69,10 +69,17 @@ for (const locale of ["en", "ar"] as const) {
     await expect(countdown).toBeVisible();
     await expect(countdown).toContainText(locale === "ar" ? /٢٧.*٢٨ يناير ٢٠٢٧/ : /27.*28 January 2027/);
     await expect(countdown.locator(".countdown-number")).toHaveCount(0);
-    for (const path of ["participate", "dates-venue"]) {
+    for (const path of ["participate", "program", "dates-venue"]) {
       expect((await page.goto(`/${locale}/${path}`))?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-      await expect(page.getByRole("main")).toContainText(locale === "ar" ? /٢٧.*يناير ٢٠٢٧/ : /27.*January 2027/);
+      if (path === "dates-venue") {
+        // Venue now focuses on the actual room and arrival information; the
+        // confirmed calendar remains server-rendered on Program instead.
+        await expect(page.getByRole("main").locator(".dates-calendar, time")).toHaveCount(0);
+        await expect(page.locator(".venue-room-frame img")).toBeVisible();
+      } else {
+        await expect(page.getByRole("main")).toContainText(locale === "ar" ? /٢٧.*يناير ٢٠٢٧/ : /27.*January 2027/);
+      }
     }
     await context.close();
   });

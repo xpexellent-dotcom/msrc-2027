@@ -1,5 +1,19 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-029 — Phone adaptation and venue presentation, 11 October 2026
+
+The requester asks for direct globe language access on phones, removal of the
+floating skip-content artifact while preserving keyboard access, natural mobile
+hero progression, no redundant phone pathway index, aligned benefit icons/copy,
+and a static gradient main hero title. The Program date panel becomes smaller
+with approximately 15–20% transparency. The venue hero replaces its duplicate
+dates box with the supplied actual conference-room photograph and a light tint;
+date/day/calendar access remains on Program. Apply EN/AR and enlarged-text parity.
+This is a continuation of the already approved public design publication scope,
+without operational activation, new factual claims or hosting settings.
+
+Audit and priorities: `docs/reviews/phone-venue-refinement.md`.
+
 ## ENG-028 — Seamless, scroll-driven navigation, 11 October 2026
 
 Following approved live publication, the requester reports a center seam in the

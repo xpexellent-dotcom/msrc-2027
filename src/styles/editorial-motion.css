@@ -26,12 +26,11 @@ body:has(.axiom-header)::after {
 .expectations-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(2rem,6vw,7rem); align-items: start; margin-block-start: clamp(3rem,6vw,6rem); }
 .expectations-layout > * { min-inline-size: 0; }
 .research-artwork { position: sticky; inset-block-start: calc(var(--site-header-height,5rem) + 2rem); overflow: hidden; isolation: isolate; border-radius: 16px; aspect-ratio: .95; background: var(--color-ivory); }
-.research-artwork-image { position: absolute; inset: -3%; animation: research-drift 18s ease-in-out infinite alternate; animation-play-state: paused; }
+.research-artwork-image { position: absolute; inset: -3%; animation: research-drift 4.5s cubic-bezier(.23,1,.32,1) both; animation-play-state: paused; }
 .research-artwork[data-running='true'] .research-artwork-image { animation-play-state: running; }
+.research-artwork[data-settled='true'] .research-artwork-image { animation: none; transform: translate3d(1%,-1%,0) scale(1.04) rotate(.5deg); }
 .research-artwork-image img { object-fit: cover; object-position: 55% center; }
-@keyframes research-drift { from { transform: translate3d(-1%,1%,0) scale(1.02) rotate(-1deg); } to { transform: translate3d(1%,-1%,0) scale(1.06) rotate(1deg); } }
-.artwork-control { position: absolute; inset-block-end: 1rem; inset-inline-end: 1rem; display: grid; place-items: center; inline-size: 48px; block-size: 48px; border: 1px solid var(--color-line-strong); border-radius: 50%; background: var(--color-ivory); color: var(--color-purple); cursor: pointer; }
-.artwork-control svg { inline-size: 20px; block-size: 20px; }
+@keyframes research-drift { from { transform: translate3d(-1%,1%,0) scale(1.02) rotate(-.5deg); } to { transform: translate3d(1%,-1%,0) scale(1.04) rotate(.5deg); } }
 .editorial-motion-home .program-experiences { display: grid; grid-template-columns: minmax(0,1fr); gap: 0; margin: 0; border: 0; }
 .editorial-motion-home .program-experiences > article { padding-block: 1.9rem; border: 0; border-block-end: 1px solid var(--color-line-strong); background: transparent; }
 .editorial-motion-home .program-experiences > article:first-child { padding-block-start: 0; }
@@ -60,7 +59,13 @@ body:has(.axiom-header)::after {
 [lang='ar'] .editorial-motion-home .program-experiences h3 { line-height: 1.65; }
 html[data-cinematic='true'] .editorial-motion-home .hero-scroll-stage > .conference-hero { position: fixed; inset-block-start: 0; }
 @media (max-width: 800px) {
-  .hero-scroll-stage, .homepage-content-sheet { --hero-hold: 35svh; }
+  /* Phones read the opening in normal flow: no extra hold distance while the
+     browser chrome and momentum are moving. Desktop retains the film overlap. */
+  .hero-scroll-stage, .homepage-content-sheet { --hero-hold: 0px; }
+  html:not([data-cinematic='true']) .editorial-motion-home .hero-scroll-stage[data-hold-ready='true'] > .conference-hero { position: relative; inset-block-start: auto; }
+  .hero-scroll-stage[data-hold-ready='true'] + .homepage-content-sheet { margin-block-start: -1rem; }
+  .editorial-motion-home .hero-content { padding-block-start: max(8rem, calc(var(--site-header-height, 5rem) + 2rem)); padding-block-end: 2rem; }
+  .hero-conference-name { margin-block: 1rem 1.5rem; }
   .homepage-content-sheet { border-radius: 24px 24px 0 0; }
   .editorial-motion-home .date-band { border-radius: 24px 24px 0 0; }
   .editorial-motion-home .program-opening, .expectations-layout, .home-venue-opening { grid-template-columns: minmax(0,1fr); }
@@ -82,6 +87,7 @@ html[data-cinematic='true'] .editorial-motion-home .hero-scroll-stage > .confere
 @media (prefers-reduced-motion: reduce) {
   .hero-scroll-stage, .homepage-content-sheet { --hero-hold: 0px; }
   .editorial-motion-home .hero-scroll-stage[data-hold-ready='true'] > .conference-hero { position: relative; inset-block-start: auto; }
+  .hero-scroll-stage[data-hold-ready='true'] + .homepage-content-sheet { margin-block-start: 0; }
   .research-artwork-image, .history-count[data-counting='true'] { animation: none; transform: none; filter: none; }
 }
 @media (forced-colors: active) { body:has(.axiom-header)::after { display: none; } }

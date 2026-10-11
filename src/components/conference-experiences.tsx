@@ -14,6 +14,7 @@ import { HorizontalRail } from "@/components/horizontal-rail";
 import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { ConferenceDayLinks } from "@/components/conference-day-links";
 import { AmbientArtwork } from "@/components/ambient-artwork";
+import { datesVenueCopy } from "@/content/dates-venue";
 import {
   experienceCopy, filterMedia, filterSessions, participationPaths, published,
   type ConferenceDay, type ExperiencePageId, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
@@ -72,7 +73,7 @@ export function ExperienceIntro({ locale, page, announcement, children }: { loca
       <nav aria-label={copy.breadcrumb} className="experience-breadcrumb"><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
       <div className="experience-intro-grid">
         <div><h1 id="experience-title">{lines.map((line, index) => <span key={line} className={index === lines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{line}</span>)}</h1>{announcement ? <p className="experience-publication-status">{announcement}</p> : null}<p className="experience-lead">{intro.lead}</p>{children ? <div className="fluid-journey-hero-actions">{children}</div> : null}</div>
-        <div className="experience-intro-art">{page === "program" ? <div className="program-date-panel"><ConferenceDayLinks locale={locale} /><p>{copy.location}</p></div> : <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div>}</div>
+        <div className="experience-intro-art">{page === "program" ? <div className="program-date-panel" role="group" aria-label={datesVenueCopy[locale].datesHeading}><ConferenceDayLinks locale={locale} /><p className="program-date-location">{copy.location}</p>{conferenceConfig.dates ? <a className="text-link program-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{datesVenueCopy[locale].addToCalendar}</a> : null}</div> : <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div>}</div>
       </div>
     </Container>
   </section>;

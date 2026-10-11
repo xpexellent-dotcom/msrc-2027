@@ -22,15 +22,20 @@ const copy = {
 } as const;
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} venue and program date links select the corresponding conference day`, async ({ page }) => {
+  test(`${locale} venue shows the room and Program date links select the corresponding conference day`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/dates-venue`);
+    await expect(page.locator(".dates-calendar")).toHaveCount(0);
+    const room = page.locator(".venue-room-frame img");
+    await expect(room).toHaveAttribute("alt", locale === "en" ? "The auditorium at King Faisal Conference Center" : "قاعة مركز الملك فيصل للمؤتمرات");
+    await expect.poll(() => room.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    await page.goto(`/${locale}/program`);
     for (const day of ["day1", "day2"] as const) {
-      const dateLink = page.locator(`.dates-calendar a[href="/${locale}/program?day=${day}"]`);
+      const dateLink = page.locator(`.program-date-panel a[href="/${locale}/program?day=${day}"]`);
       await expect(dateLink).toHaveCount(1);
       await expect(dateLink.locator("time")).toHaveAttribute("datetime", day === "day1" ? "2027-01-27" : "2027-01-28");
     }
-    await page.locator(`.dates-calendar a[href="/${locale}/program?day=day2"]`).click();
+    await page.locator(`.program-date-panel a[href="/${locale}/program?day=day2"]`).click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day2$`));
     await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
     await page.locator(`.program-date-panel a[href="/${locale}/program?day=day1"]`).focus();
@@ -43,7 +48,7 @@ for (const locale of ["en", "ar"] as const) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} Dates and Venue show confirmed days and venue, pending times and accessible layout`, async ({ page }, testInfo) => {
+  test(`${locale} Venue shows its room and practical information with pending times and accessible layout`, async ({ page }, testInfo) => {
     const errors: string[] = [];
     const writes: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -56,9 +61,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy[locale].heading);
-    await expect(page.locator('time[datetime="2027-01-27"]')).toHaveText(copy[locale].first);
-    await expect(page.locator('time[datetime="2027-01-28"]')).toHaveText(copy[locale].second);
-    await expect(page.locator("time")).toHaveCount(2);
+    await expect(page.getByRole("main").locator("time, .dates-calendar")).toHaveCount(0);
+    await expect(page.locator(".venue-room-frame img")).toHaveCount(1);
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].city);
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].venue);
     await expect(page.locator(".dates-location-details")).toContainText("22254");
@@ -149,8 +153,11 @@ test("Dates and Venue keyboard and language navigation preserve the section and 
 
 for (const [locale, label] of [["en", "Add to calendar"], ["ar", "أضف إلى التقويم"]] as const) {
   test(`${locale} Add to calendar downloads one all-day event for the confirmed days`, async ({ page }) => {
-    await page.goto(`/${locale}/dates-venue`);
-    const link = page.locator(".dates-calendar").getByRole("link", { name: label });
+    await page.goto(`/${locale}/program`);
+    await expect(page.locator('time[datetime="2027-01-27"]')).toHaveText(copy[locale].first);
+    await expect(page.locator('time[datetime="2027-01-28"]')).toHaveText(copy[locale].second);
+    await expect(page.locator(".program-date-panel time")).toHaveCount(2);
+    const link = page.locator(".program-date-panel").getByRole("link", { name: label });
     await expect(link).toHaveAttribute("href", `/${locale}/msrc-2027.ics`);
     const [download] = await Promise.all([page.waitForEvent("download"), link.click()]);
     expect(download.suggestedFilename()).toBe("msrc-2027.ics");

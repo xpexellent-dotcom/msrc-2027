@@ -65,8 +65,12 @@ for (const locale of ["en", "ar"] as const) {
     // A fragment-bearing href is an observable hydration readiness condition.
     await expect(language).toHaveAttribute("href", `/${otherLocale}/dates-venue?view=travel#venue`);
 
-    const map = page.getByRole("main").getByRole("img");
+    const map = page.getByTestId("venue-geographic-map").getByRole("img");
     await expect(map).toHaveCount(1);
+    const room = page.locator(".venue-room-frame").getByRole("img");
+    await expect(room).toHaveCount(1);
+    await expect(room).toHaveAccessibleName(locale === "en" ? /auditorium.*King Faisal Conference Center/ : /قاعة مركز الملك فيصل للمؤتمرات/);
+    await expect.poll(() => room.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await expect(map).toHaveAttribute("dir", "ltr");
     // Arabic page flow must preserve the map's geographic east/west orientation.
     expect(await map.evaluate((element) => getComputedStyle(element).transform)).toBe("none");

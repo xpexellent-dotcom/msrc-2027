@@ -69,7 +69,7 @@
   --space-10: 8rem;
   --section-space: clamp(4.5rem, 8vw, 8rem);
   --container-width: 1280px;
-  --container-gutter: clamp(1.25rem, 4.7vw, 5rem);
+  --container-gutter: max(clamp(1.25rem, 4.7vw, 5rem), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   --radius-small: 0.2rem;
   --radius-medium: 0.55rem;
   --radius-pill: 999px;

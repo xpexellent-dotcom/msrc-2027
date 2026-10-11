@@ -18,6 +18,7 @@ type DatesVenueCopy = {
   locationEyebrow: string;
   locationTitle: string;
   locationBody: string;
+  roomPhotoAlt: string;
   city: string;
   cityValue: string;
   host: string;
@@ -57,6 +58,7 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     locationEyebrow: "1 / The location",
     locationTitle: "Where we'll meet.",
     locationBody: "King Faisal Conference Center, King Abdulaziz University, Jeddah, Saudi Arabia.",
+    roomPhotoAlt: "The auditorium at King Faisal Conference Center",
     city: "City",
     cityValue: "Jeddah, Saudi Arabia",
     host: "Host institution",
@@ -91,6 +93,7 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
     locationEyebrow: "١ / المكان",
     locationTitle: "حيث نلتقي.",
     locationBody: "مركز الملك فيصل للمؤتمرات، جامعة الملك عبدالعزيز، جدة، المملكة العربية السعودية.",
+    roomPhotoAlt: "قاعة مركز الملك فيصل للمؤتمرات",
     city: "المدينة",
     cityValue: "جدة، المملكة العربية السعودية",
     host: "الجهة المستضيفة",

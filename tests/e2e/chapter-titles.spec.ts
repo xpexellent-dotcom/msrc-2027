@@ -87,7 +87,7 @@ for (const locale of ["en", "ar"] as const) {
   });
 }
 
-test("the opening headline is large and leaves with the scroll", async ({ page }) => {
+test("the opening headline is large, keeps phone text readable and leaves with desktop scroll", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/en");
   await hydrated(page);
@@ -97,11 +97,13 @@ test("the opening headline is large and leaves with the scroll", async ({ page }
   const mobileTypography = page.viewportSize()!.width <= 700;
   expect(sizeInRem).toBeGreaterThanOrEqual((mobileTypography ? 2.8 : 4) - .01);
   expect(sizeInRem).toBeLessThanOrEqual((mobileTypography ? 5.5 : 8.75) + .01);
-  expect(await headline.evaluate((element) => getComputedStyle(element).fontWeight)).toBe("500");
+  expect(await headline.evaluate((element) => getComputedStyle(element).fontWeight)).toBe("600");
   const layout = page.locator(".conference-hero .hero-layout");
   await expect.poll(() => layout.evaluate((element) => Number(getComputedStyle(element).opacity))).toBe(1);
   await scrollTo(page, page.viewportSize()!.height * .5);
-  expect(await layout.evaluate((element) => Number(getComputedStyle(element).opacity))).toBeLessThan(.8);
+  const leavingOpacity = await layout.evaluate((element) => Number(getComputedStyle(element).opacity));
+  if (page.viewportSize()!.width <= 800) expect(leavingOpacity).toBe(1);
+  else expect(leavingOpacity).toBeLessThan(.8);
   await scrollTo(page, 0);
   expect(await layout.evaluate((element) => Number(getComputedStyle(element).opacity))).toBe(1);
 });

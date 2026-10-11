@@ -1,5 +1,5 @@
 /* Axiom-inspired MSRC: cinematic scale, photographic chapters and native movement. */
-html:has(.site-header) { --container-width: 1600px; --container-gutter: clamp(1.25rem, 3.2vw, 4rem); }
+html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clamp(1.25rem, 3.2vw, 4rem), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); }
 .cinematic-home { background: var(--color-ivory); }
 .cinematic-home .site-container { min-inline-size: 0; }
 .cinematic-home :is(p, dt, dd, a, button) { overflow-wrap: anywhere; }

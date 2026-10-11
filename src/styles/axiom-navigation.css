@@ -4,7 +4,8 @@
   --header-ease: cubic-bezier(.32, .72, 0, 1);
   --header-travel-ease: cubic-bezier(.76, 0, .24, 1);
   --header-travel-duration: 520ms;
-  --header-inset: 20px;
+  --header-inset: max(20px, calc(env(safe-area-inset-top, 0px) + 8px));
+  --header-side-inset: max(20px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   --header-travel: max(12px, calc((100vw - 1200px) / 2 - 12px));
   --header-highlight: #fff4d6;
   --focus-ring: var(--header-highlight);
@@ -14,7 +15,7 @@
   pointer-events: none; transform: none; transition: none;
 }
 .axiom-header .site-header-inner {
-  position: relative; isolation: isolate; inline-size: calc(100% - var(--header-inset) * 2);
+  position: relative; isolation: isolate; inline-size: calc(100% - var(--header-side-inset) * 2);
   max-inline-size: 1200px; min-block-size: 64px; min-height: 0;
   display: flex; flex-wrap: nowrap; gap: .6rem; padding: .5rem;
   pointer-events: auto;
@@ -93,6 +94,8 @@
 .axiom-header .header-dropdown a::after { content: none; }
 .axiom-header .header-dropdown a svg { inline-size: 16px; block-size: 16px; flex-shrink: 0; transform: scaleX(var(--motion-inline-direction)); }
 .axiom-header .language-switch { color: var(--color-ivory); font-size: 1rem; padding-inline: .5rem; }
+.axiom-header .header-mobile-language { display: none; }
+.axiom-header :is(.language-switch, .menu-toggle, .header-dropdown-toggle) { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
 .axiom-header .header-actions { flex-shrink: 0; flex-wrap: nowrap; gap: .5rem; transition: transform var(--header-travel-duration) var(--header-travel-ease); }
 .axiom-header .header-primary-action.button {
   display: inline-flex; min-block-size: 48px; padding-inline: 1.15rem; border-radius: 999px;
@@ -145,12 +148,20 @@
   .axiom-header .header-middle { display: none; }
   .axiom-header .wordmark { min-block-size: 48px; padding-inline: .5rem; min-inline-size: 0; }
   .axiom-header .header-actions { margin-inline-start: auto; }
+  .axiom-header .header-mobile-language { display: block; }
+  .axiom-header .header-mobile-language .language-switch {
+    display: grid; place-items: center; inline-size: 48px; block-size: 48px; min-block-size: 48px;
+    padding: 0; border: 1px solid rgb(220 207 240 / .45); border-radius: 999px; background: transparent;
+    transition: transform 120ms var(--header-ease), background-color 120ms var(--header-ease);
+  }
+  .axiom-header .header-mobile-language .language-switch svg { display: block; inline-size: 22px; block-size: 22px; }
+  .axiom-header .header-mobile-language .language-switch:active { background: rgb(220 207 240 / .15); transform: scale(.96); }
   .axiom-header .menu-toggle { display: flex; align-items: center; justify-content: center; }
   .axiom-header .mobile-menu {
     display: block;
-    inline-size: calc(100% - var(--header-inset) * 2); margin: .5rem auto 0;
-    max-block-size: calc(100dvh - var(--site-header-height, 84px) - 20px);
-    border: 0; border-radius: 16px; padding-block: .75rem 1.25rem;
+    inline-size: calc(100% - var(--header-side-inset) * 2); margin: .5rem auto 0;
+    max-block-size: calc(100dvh - var(--site-header-height, 84px) - 20px - env(safe-area-inset-bottom, 0px));
+    border: 0; border-radius: 16px; padding-block: .75rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
     pointer-events: auto; background: var(--color-ivory); color: var(--color-purple);
     scrollbar-color: var(--color-purple) var(--color-info-surface);
     box-shadow: 0 14px 38px rgb(20 10 36 / .2);
@@ -170,9 +181,21 @@
 @container navigation (width < 35rem) {
   .axiom-header .header-primary-action.button { display: none; }
   .axiom-header .wordmark-name { font-size: 1.55rem; }
+  .axiom-header .menu-toggle { inline-size: 48px; min-inline-size: 48px; block-size: 48px; padding: 0; }
+  .axiom-header .menu-toggle > span { display: none; }
 }
 @container navigation (width < 20rem) {
   .axiom-header .header-glass { border-radius: 16px; }
+}
+@media (max-width: 559px) {
+  .axiom-header { --header-side-inset: max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); }
+}
+/* Legacy shared hover fills must not stick after a finger releases a control. */
+@media (hover: none), (pointer: coarse) {
+  .axiom-header .menu-toggle:not([aria-expanded="true"]):hover { background: transparent; color: var(--color-ivory); }
+  .axiom-header .menu-toggle:not([aria-expanded="true"]):active { background: rgb(220 207 240 / .15); transform: scale(.96); }
+  .axiom-header .mobile-menu nav a:hover { background: transparent; }
+  .axiom-header .mobile-menu nav a:active { background: var(--color-info-surface); }
 }
 @media (prefers-reduced-motion: reduce) {
   .axiom-header *, .axiom-header *::before, .axiom-header *::after { transition: none !important; animation: none !important; }

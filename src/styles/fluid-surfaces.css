@@ -3,7 +3,11 @@
   --fluid-title: linear-gradient(115deg, #28163f 8%, #57317e 53%, #7b4e99 92%);
   --fluid-title-inverse: linear-gradient(115deg, #fff 12%, #e9daf8 58%, #eddaaf 98%);
 }
+/* impeccable-disable-next-line gradient-text -- ENG-029 explicitly requests the pale hero gradient; other headings retain selective accents. */
 @supports (background-clip: text) {
+  .hero-editorial h1 > span {
+    background: var(--fluid-title-inverse); background-clip: text; -webkit-text-fill-color: transparent;
+  }
   .editorial-motion-home .section-heading .title-word--accent {
     background: var(--fluid-title); background-clip: text; -webkit-text-fill-color: transparent;
   }
@@ -12,6 +16,8 @@
     background: var(--fluid-title-inverse); background-clip: text; -webkit-text-fill-color: transparent;
   }
 }
+.hero-editorial h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.035em; }
+[lang='ar'] .hero-editorial h1 { letter-spacing: 0; font-weight: 700; }
 .people-page-heading h1,
 .dates-content-grid .section-heading h2,
 .dates-travel .section-heading h2,
@@ -56,7 +62,7 @@
 .benefit-cme { display: flex; flex-direction: column; align-items: center; color: var(--color-purple); line-height: 1; }
 .benefit-cme-number { font-family: var(--font-display); font-size: 4.8rem; font-weight: 750; letter-spacing: -.04em; background: var(--fluid-title); background-clip: text; -webkit-text-fill-color: transparent; }
 .benefit-cme-label { font-size: 1.125rem; font-weight: 750; letter-spacing: .08em; margin-block-start: .15rem; }
-.benefit-cme-note { font-size: .75rem; line-height: 1.5; margin-block-start: .6rem; color: var(--color-muted); overflow-wrap: anywhere; text-align: center; }
+.benefit-cme-note { inline-size: max-content; white-space: nowrap; font-size: .75rem; line-height: 1.5; margin-block-start: .6rem; color: var(--color-muted); text-align: center; }
 
 .editorial-motion-home .legacy-section { position: relative; isolation: isolate; overflow: clip; padding-block-end: clamp(7rem,12vw,12rem); }
 .legacy-section > .site-container { position: relative; z-index: 1; }
@@ -108,7 +114,11 @@
   .contact-hero-grid, .contact-form-layout { grid-template-columns: minmax(0,1fr); }
   .community-image { inline-size: 100%; block-size: 42rem; }
   .community-image::after, [dir='rtl'] .community-image::after { background: linear-gradient(180deg,rgb(59 30 109 / .84),rgb(59 30 109 / .76) 35%,var(--color-ink)); }
-  .editorial-motion-home .program-experiences > .benefit-card { grid-template-columns: 3.25rem minmax(0,1fr); gap: 1rem; padding: 1.4rem 1.2rem; }
+  .editorial-motion-home .program-experiences > .benefit-card { grid-template-columns: 3.25rem minmax(0,1fr); align-items: center; gap: 1rem; padding: 1.4rem 1.2rem; }
+  .benefit-copy { display: contents; }
+  .editorial-motion-home .benefit-copy h3 { grid-column: 2; grid-row: 1; margin: 0; font-size: clamp(1.35rem, 5.8vw, 1.65rem); line-height: 1.35; text-wrap: pretty; }
+  .editorial-motion-home .benefit-copy p { grid-column: 1 / -1; grid-row: 2; max-inline-size: none; font-size: 1rem; line-height: 1.75; }
+  .benefit-card > :is(.benefit-artwork, .benefit-cme) { grid-column: 1; grid-row: 1; align-self: center; margin: 0; }
   .benefit-artwork { inline-size: 3.25rem; block-size: 3.25rem; }
   .benefit-cme-number { font-size: 3.75rem; }
   .benefit-cme-label { font-size: .95rem; }
@@ -116,8 +126,12 @@
   .people-page-heading > div { max-inline-size: 55ch; }
 }
 @media (max-width: 420px) {
-  .editorial-motion-home .program-experiences > .benefit-card { grid-template-columns: minmax(0,1fr); }
-  .benefit-cme { inline-size: fit-content; }
+  .editorial-motion-home .program-experiences > .benefit-card { grid-template-columns: 3rem minmax(0,1fr); gap: .9rem .75rem; padding: 1.25rem 1rem; }
+  .benefit-artwork { inline-size: 3rem; block-size: 3rem; }
+  .benefit-cme { inline-size: 3rem; }
+  .benefit-cme-number { font-size: 3.5rem; }
+  .benefit-cme-label { font-size: .875rem; }
+  .benefit-cme-note { font-size: .75rem; margin-block-start: .35rem; }
   .contact-form { padding: 16px; }
   .contact-form .contact-closed-note { padding: 16px; }
 }

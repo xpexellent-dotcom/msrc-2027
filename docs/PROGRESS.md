@@ -1,6 +1,107 @@
 # Progress and session handover
 
+## 11 October 2026 — Phone experience and venue presentation, ENG-029
+
+- Audited the existing phone hero (994px tall, 295px sticky hold at 390×844),
+  buried language link, skip-link focus treatment, benefit reflow and oversized
+  date panel before editing; plan in `docs/reviews/phone-venue-refinement.md`.
+- Added direct 48px globe access, narrow icon-only Menu, keyboard-visible clipped
+  bypass, safe-area viewport/header/menu/content insets and touch feedback.
+  Desktop scroll-only restoration and dropdown/keyboard behavior remain.
+- Phone hero uses native document flow with no hold travel or exit fade, and a
+  shallow rounded sheet overlap. Five cards provide direct participation paths
+  without a redundant phone index. Benefit icons align beside wrapped headings,
+  and descriptions span the full card. The main hero has the explicitly requested
+  pale gradient and weight 600 (Arabic 700); other chapters keep selective emphasis.
+- Venue hero shows the exact supplied 1280×960 auditorium photo with thin tint,
+  accurate responsive image sizes and local delivery. Removed duplicate venue
+  dates; Program retains both confirmed day links and calendar download inside
+  a 400px-max, roughly 310px-tall panel with 80–85% white/lilac glass. Asset receipt:
+  `docs/media/phone-venue-assets.md`. No map embed or external image request added.
+- The prior visible artwork pause control was removed in line with earlier
+  explicit steering: decorative motion now settles once in 4.5s, pauses while
+  unseen/hidden and stays settled on re-entry. Reduced motion is static.
+- **PASS:** full `pnpm check` after functional changes: lint, types,
+  **2,390 units /60 files**, production build (**81 pages**),
+  `.tools/phone-venue-check-final.log`. Last CSS-only notch-inset refinements
+  retain exact existing clamp values atenv=0 and were source-reviewed and
+  rebuilt successfully, `.tools/phone-venue-final-css-build.log`.
+- Initial six-file browser run:125 passed/22 intentional skips/six failures.
+  Four stale public-route assertions rejected the now valid local ICS download;
+  two text-range checks detected the newly added clipped screen-reader H2.
+  Visible Program headings fit; the hidden H2 became a named semantic date group.
+  The original clipping checks remain unchanged. Download checks allow exactly
+  one config-driven local ICS on Program and reject all others/privileged links.
+- **PASS confirmation:** **131 passed /22 intentional skips /153 cases**,
+  4.3m, one worker, zero retries, `.tools/phone-venue-browser-final.log`.
+  Includes EN/AR desktop/mobile, relevant tablet cases, direct globe/query/hash,
+  open-menu locale return, touch/keyboard bypass, all nine public routes at
+  320/791/1440px with 200% text, date/day/ICS, native hero movement, benefit
+  alignment, finite artwork/re-entry, reduced motion and automated accessibility.
+- One batched desktop/phone visual review found a wrapped CME qualifier; fixed
+  in the consolidated correction batch. Final bounded confirmation at 1441,
+  390 and 320px shows clear Program glass, unbroken illustrative label, aligned
+  EN/AR cards, no visible pause control and no page overflow. Screenshots:
+  `.impeccable/review/phone-venue/`. No further polish loop planned.
+- One Impeccable source scan returned one primary gradient-text warning and
+  **91 advisories** (26 palette,63 type,2 radii across scanned incumbent files).
+  The gradient is explicitly requested by the organizer; documented that narrow
+  exception with an inline waiver. Original scan/exit 2 retained in
+  `.tools/phone-venue-detector.json`; no second scan or unrelated restyling.
+- Independent React/performance/accessibility review found no material blocker.
+  Physical iOS/Android hardware, browser-chrome/momentum/safe-area feel are
+  **NOT TESTED**; browser emulation is not hardware evidence. No operational,
+  database, hosting-setting, account or communication change.
+- Source release base: `4dfc15b6756c7ee3ee5f42d079a3d60be58fcaae`.
+  Prior post-publication receipts and unused local assets are preserved.
+  Hosted release checks and actual Production verification are pending.
+
+- Incorporated main's organizer-credit restoration at
+  `b27b822619c8747eece43457fcbd3cf2a2dad8a1` without changing its footer or
+  unit checks. Integrated `pnpm check` **PASS: 2,392 units /61 files**, lint,
+  types and81-page build, `.tools/phone-venue-integrated-check.log`.
+- First PR57 hosted head `4ffc8093b43dd87aaf07477b766487d1d21d3312`:
+  seven jobs passed; three public shards failed on ten stale venue expectations.
+  One expected dates on the now intentionally date-free venue page; another
+  treated every main image as the single geographic map. Preserve the SSR date
+  assertions on Program, assert Venue remains200 with room imagery/no duplicate
+  calendar, and scope geographic assertions to the map while separately checking
+  the auditorium image. Accuracy, privacy, axe and keyboard assertions remain.
+- **PASS:** updated `countdown.spec.ts` and `venue-travel.spec.ts`,22/22 cases
+  across desktop/tablet/mobile EN/AR,35.5s, one worker and zero retries;
+  `.tools/phone-venue-stale-tests.log`. Scoped lint and whitespace passed. No
+  application source changed in this correction. Initial hosted proof retained
+  in `.tools/phone-hosted-checks-initial.json`; final exact-head run pending.
+
 ## 11 October 2026 — Seamless scroll-driven header, ENG-028
+
+### Published and verified
+
+- PR 55 merged after all ten hosted jobs, all three workflows and Vercel passed
+  at exact head `a049d4c414ce9bb8b9c7eb5155022bb224054f79`. Public browsers:
+  **609 passed / 35 intentional skips / 644 cases**. Units: **2,390 passed**;
+  synthetic auth browser: **81 passed**; participant default-off: **26 passed**;
+  participant synthetic: **62 passed / four intentional skips**. Receipt:
+  `.tools/header-hosted-checks.json`; the failed first run remains separately
+  preserved in `.tools/header-hosted-checks-initial.json`.
+- Production merge `4dfc15b6756c7ee3ee5f42d079a3d60be58fcaae` has an identical
+  file tree to that tested head. Owned deployment
+  `dpl_4VtsSUXGFxwQhjRUyrqnH1Kai2bL` was **READY** with both `msrc 2027.com`
+  and `www.msrc 2027.com` aliases at 19:09:02 UTC. Proof:
+  `.tools/header-production-after.json`; prior source proof retained separately.
+- **PASS:** 91/91 live GET/HEAD checks, zero failures at 19:09:51 UTC, receipt
+  `.tools/header-live-receipt.json`. Public EN/AR routes, media, redirects and
+  indexing passed. All 15 workflow APIs remain 503/WORKFLOW_CLOSED, participant
+  accounts remain closed, and Contact/staff readiness matches the prior baseline.
+- **PASS:** live browser inspection confirms one uninterrupted glass surface,
+  the new .72/.77/.74 tint, downward compaction and upward restoration in EN/AR;
+  Arabic mobile menu opens with no page overflow. Live screenshot evidence:
+  `.impeccable/review/header-refinement/live-en-light-1441.jpg` and
+  `live-ar-mobile-390.jpg`. Preview/test servers stopped; user-facing browser
+  shows the actual live site. No operational gate, database, hosting-setting,
+  form or participant communication changes were made.
+
+### Implementation and pre-publication evidence
 
 - Audited the reported seam and Vitarc reference before editing. Two translucent
   50%-clipped paint layers created an avoidable center boundary. Replaced them

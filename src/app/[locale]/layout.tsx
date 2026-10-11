@@ -7,7 +7,7 @@ import "../globals.css";
 import { arabicFont, bodyFont, displayFont, headingFont } from "@/lib/fonts";
 import { siteOrigin } from "@/lib/metadata";
 
-export const viewport: Viewport = { themeColor: "#F8F6F0" };
+export const viewport: Viewport = { themeColor: "#F8F6F0", viewportFit: "cover", interactiveWidget: "resizes-content" };
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

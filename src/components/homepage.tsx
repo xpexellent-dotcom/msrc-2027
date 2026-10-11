@@ -106,7 +106,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
           <div><p>{expectations.introduction}</p><Link className="editorial-action" href={`/${locale}/program`}>{expectations.link}<Arrow /></Link></div>
         </Reveal>
         <div className="expectations-layout">
-          <ResearchArtwork locale={locale} />
+          <ResearchArtwork />
           <div className="program-experiences">{expectations.benefits.map((benefit, index) => <article className="benefit-card" key={benefit.title}><BenefitArtwork index={index} locale={locale} /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.body}</p></div></article>)}</div>
         </div>
       </Container>

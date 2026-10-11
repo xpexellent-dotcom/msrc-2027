@@ -213,7 +213,7 @@ for (const locale of ["en", "ar"] as const) {
       await page.locator(".menu-toggle").click();
       for (const href of expected) await expect(page.locator(`.mobile-nav-children a[href="/${locale}${href}"]`)).toBeVisible();
       await expect(page.locator(`.mobile-menu a[href="/${locale}/team"]`)).toBeVisible();
-      await expect(page.locator(".mobile-menu .language-switch")).toBeVisible();
+      await expect(page.locator(".header-mobile-language .language-switch")).toBeVisible();
       await page.keyboard.press("Escape");
       await expect(page.locator(".menu-toggle")).toBeFocused();
     } else {
@@ -235,6 +235,65 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page).toHaveURL(new RegExp(`/${locale}$`));
       await expect.poll(() => page.evaluate(() => performance.timeOrigin)).toBeGreaterThan(previousOrigin);
     }
+  });
+
+  test(`${locale} phone globe changes language directly while preserving the current query and fragment`, async ({ page, isMobile }) => {
+    test.skip(!isMobile, "Direct touch language control.");
+    await page.goto(`/${locale}/program?day=day2&view=phone#main-content`);
+    await settle(page);
+    const nextLocale = locale === "en" ? "ar" : "en";
+    const language = page.getByRole("link", { name: nextLocale === "ar" ? "View this page in Arabic" : "View this page in English", exact: true });
+    await expect(language).toHaveCount(1);
+    await expect(language).toBeInViewport();
+    await expect(language.locator("svg")).toBeVisible();
+    const target = await language.boundingBox();
+    expect(target!.width).toBeGreaterThanOrEqual(48);
+    expect(target!.height).toBeGreaterThanOrEqual(48);
+    await expect(page.locator(".menu-toggle")).toHaveAttribute("aria-expanded", "false");
+    await language.tap();
+    await expect(page).toHaveURL(new RegExp(`/${nextLocale}/program\\?day=day2&view=phone#main-content$`));
+    await expect(page.locator("html")).toHaveAttribute("dir", nextLocale === "ar" ? "rtl" : "ltr");
+    await expect(page.locator(".mobile-menu")).toHaveCount(0);
+    await expect(page.locator("meta[name='viewport']")).toHaveAttribute("content", /viewport-fit=cover/);
+
+    // Switching while the disclosure is open must not leave its overlay on the translated page.
+    await page.locator(".menu-toggle").tap();
+    await expect(page.locator(".mobile-menu")).toBeVisible();
+    const backLanguage = page.getByRole("link", { name: locale === "ar" ? "View this page in Arabic" : "View this page in English", exact: true });
+    await expect(backLanguage).toHaveCount(1);
+    await backLanguage.tap();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day2&view=phone#main-content$`));
+    await expect(page.locator(".mobile-menu")).toHaveCount(0);
+    await expect(page.locator(".menu-toggle")).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test(`${locale} touch scrolling keeps the bypass hidden while keyboard navigation reveals and activates it`, async ({ page, isMobile }) => {
+    test.skip(!isMobile, "Touch and keyboard bypass regression.");
+    await page.goto(`/${locale}`);
+    await settle(page);
+    await page.touchscreen.tap(180, 220);
+    const skip = page.locator(".skip-link");
+    // Simulate the lingering non-keyboard focus some touch browsers retain.
+    await skip.evaluate((element: HTMLAnchorElement) => element.focus({ preventScroll: true }));
+    await expect(skip).toBeFocused();
+    expect(await skip.evaluate((element) => element.matches(":focus-visible"))).toBe(false);
+    await page.mouse.wheel(0, 900);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    const concealed = await skip.boundingBox();
+    expect(concealed!.width).toBeLessThanOrEqual(1);
+    expect(concealed!.height).toBeLessThanOrEqual(1);
+    await expect(skip).not.toBeInViewport();
+
+    await page.goto(`/${locale}/participate?input=keyboard`);
+    await page.keyboard.press("Tab");
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
+    const visible = await skip.boundingBox();
+    expect(visible!.width).toBeGreaterThan(80);
+    expect(visible!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("main")).toBeFocused();
+    await expect(skip).not.toBeInViewport();
   });
 
   test(`${locale} reduced motion settles the navigation and enlarged phone menu fits`, async ({ page, isMobile }) => {
