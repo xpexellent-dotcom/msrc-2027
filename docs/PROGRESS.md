@@ -56,6 +56,23 @@
   Prior post-publication receipts and unused local assets are preserved.
   Hosted release checks and actual Production verification are pending.
 
+- Incorporated main's organizer-credit restoration at
+  `b27b822619c8747eece43457fcbd3cf2a2dad8a1` without changing its footer or
+  unit checks. Integrated `pnpm check` **PASS: 2,392 units /61 files**, lint,
+  types and81-page build, `.tools/phone-venue-integrated-check.log`.
+- First PR57 hosted head `4ffc8093b43dd87aaf07477b766487d1d21d3312`:
+  seven jobs passed; three public shards failed on ten stale venue expectations.
+  One expected dates on the now intentionally date-free venue page; another
+  treated every main image as the single geographic map. Preserve the SSR date
+  assertions on Program, assert Venue remains200 with room imagery/no duplicate
+  calendar, and scope geographic assertions to the map while separately checking
+  the auditorium image. Accuracy, privacy, axe and keyboard assertions remain.
+- **PASS:** updated `countdown.spec.ts` and `venue-travel.spec.ts`,22/22 cases
+  across desktop/tablet/mobile EN/AR,35.5s, one worker and zero retries;
+  `.tools/phone-venue-stale-tests.log`. Scoped lint and whitespace passed. No
+  application source changed in this correction. Initial hosted proof retained
+  in `.tools/phone-hosted-checks-initial.json`; final exact-head run pending.
+
 ## 11 October 2026 — Seamless scroll-driven header, ENG-028
 
 ### Published and verified
