@@ -39,6 +39,7 @@
 }
 @media (max-width: 800px) {
   .pathways-introduction { position: static; }
+  .pathway-track-nav { display: none; }
   .pathway-track-nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
   .pathway-track-link { font-size: 1.125rem; gap: .5rem; letter-spacing: -.015em; }
   .pathway-track-marker { inline-size: 1rem; block-size: 1rem; }

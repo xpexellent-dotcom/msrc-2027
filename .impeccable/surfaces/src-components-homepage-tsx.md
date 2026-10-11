@@ -127,3 +127,12 @@ ENG-028 refines the published header: one continuous glass surface, roughly 10%
 less tint, 520ms cubic-bezier(.76,0,.24,1) corner travel, upward-scroll-only pointer
 restoration and immediate keyboard-visible focus recovery. Top-edge/wordmark
 hover no longer restores the capsule. See header-glass-refinement.md for evidence.
+
+ENG-029 adapts phones: a direct 48px globe in the header, keyboard-only visible
+bypass, native hero flow with no extra hold or exit fade, and no redundant phone
+track index. Benefit icons sit beside wrapped headings while body copy spans the
+card. The main hero explicitly uses a static pale gradient and weight 600 (Arabic
+700); other chapter words retain selective emphasis. Decorative sculpture motion
+settles once in 4.5s with no visible controls. Venue shows the supplied auditorium
+photo; Program retains the smaller 80–85% glass dates/calendar group. Evidence:
+phone-venue-refinement.md and phone-venue-assets.md. Hardware touch UAT is separate.

@@ -29,9 +29,19 @@ for (const locale of ["en", "ar"] as const) {
     expect(await page.locator(".pathway-track-link[aria-current='location'] .pathway-track-label").evaluate((label) => getComputedStyle(label).textDecorationLine)).toContain("underline");
   });
 
-  test(`${locale} track anchors move keyboard focus directly to the requested card`, async ({ page }) => {
+  test(`${locale} desktop track anchors and phone card links support keyboard navigation`, async ({ page, isMobile }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
+    if (isMobile) {
+      await expect(page.locator(".pathway-track-nav")).toBeHidden();
+      const action = page.locator("#pathway-hackathon .pathway-action");
+      await action.focus();
+      await expect(action).toBeInViewport();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(new RegExp(`/${locale}/hackathon$`));
+      await expect(page.getByRole("main")).toBeFocused();
+      return;
+    }
     const target = page.locator(".pathway-track-link[href='#pathway-hackathon']");
     await target.focus();
     await page.keyboard.press("Enter");
@@ -43,7 +53,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#pathway-hackathon .pathway-action")).toHaveAttribute("href", `/${locale}/hackathon`);
   });
 
-  test(`${locale} narrow doubled-text index stays in normal flow and preserves all five links`, async ({ page }, testInfo) => {
+  test(`${locale} narrow doubled-text cards preserve all five paths without a redundant index`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "Explicit narrow reflow matrix runs once per locale.");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 320, height: 600 });
@@ -51,16 +61,19 @@ for (const locale of ["en", "ar"] as const) {
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
     await page.evaluate(() => document.fonts.ready);
     await expect(page.locator(".pathways-introduction")).toHaveCSS("position", "static");
-    await expect(page.locator(".pathway-track-link")).toHaveCount(5);
-    const outside = await page.locator(".pathway-track-label").evaluateAll((labels) => labels.some((label) => {
+    await expect(page.locator(".pathway-track-nav")).toBeHidden();
+    await expect(page.locator(".pathway-list .pathway-action")).toHaveCount(5);
+    const outside = await page.locator(".pathway-card h3").evaluateAll((labels) => labels.some((label) => {
       const range = document.createRange(); range.selectNodeContents(label);
       return Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
     }));
     expect(outside).toBe(false);
-    const target = page.locator(".pathway-track-link[href='#pathway-3mt']");
-    await target.focus();
-    await page.keyboard.press("Enter");
-    await expect(page.locator("#pathway-3mt")).toBeFocused();
-    await expect(target).toHaveAttribute("aria-current", "location");
+    for (const route of routes) {
+      const target = page.locator(`#pathway-${route} .pathway-action`);
+      await expect(target).toHaveAttribute("href", `/${locale}/${route}`);
+      await target.focus();
+      await expect(target).toBeFocused();
+      await expect(target).toBeInViewport();
+    }
   });
 }

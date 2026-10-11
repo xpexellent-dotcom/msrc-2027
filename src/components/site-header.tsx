@@ -4,7 +4,7 @@ import { Link } from "@/components/ui/link";
 import { MobileNav, type NavigationLink } from "@/components/mobile-nav";
 import { usePathname } from "next/navigation";
 import { Suspense, useCallback, useEffect, useId, useRef, useState } from "react";
-import { LanguageSwitch } from "@/components/language-switch";
+import { LanguageSwitch, LanguageSwitchFallback } from "@/components/language-switch";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import type { Locale } from "@/lib/i18n";
@@ -219,10 +219,13 @@ export function SiteHeader({ locale }: { locale: Locale }) {
               </div>;
             })}
           </nav>
-          <Suspense fallback={<a className="language-switch" href={pathname.replace(/^\/(en|ar)/, locale === "en" ? "/ar" : "/en")} hrefLang={locale === "en" ? "ar" : "en"}>{locale === "en" ? "العربية" : "English"}</a>}><LanguageSwitch locale={locale} /></Suspense>
+          <Suspense fallback={<LanguageSwitchFallback locale={locale} pathname={pathname} />}><LanguageSwitch locale={locale} /></Suspense>
         </div>
         <div className="header-actions">
           <ButtonLink className="header-primary-action" href={`/${locale}/registration`} variant="gold" size="small">{copy.action}<svg className="directional-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 19 19 5M5 5h14v14" /></svg></ButtonLink>
+          <div className="header-mobile-language" onClick={onNavigate}>
+            <Suspense fallback={<LanguageSwitchFallback locale={locale} pathname={pathname} iconOnly />}><LanguageSwitch locale={locale} iconOnly /></Suspense>
+          </div>
           <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls={menuId}
             aria-label={menuOpen ? copy.close : copy.menu} ref={toggleRef}
             onClick={(event) => { setAnimateMenu(event.detail !== 0); setMenuOpen((open) => !open); }}>

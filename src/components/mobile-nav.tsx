@@ -2,8 +2,6 @@
 
 import { Link } from "@/components/ui/link";
 import { Container } from "@/components/ui/container";
-import { Suspense } from "react";
-import { LanguageSwitch } from "@/components/language-switch";
 import { ButtonLink } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
 
@@ -24,8 +22,6 @@ export function MobileNav({ id, label, links, pathname, locale, status, action, 
         onClick={onNavigate}>{child.label}</Link>)}</div> : null}
     </div>)}</nav>
     <ButtonLink className="mobile-reserve-action" href={`/${locale}/registration`} variant="gold" onClick={onNavigate}>{action}</ButtonLink>
-    <div className="mobile-menu-bottom"><p className="mobile-menu-status">{status}</p>
-      <Suspense fallback={<a className="language-switch" href={pathname.replace(/^\/(en|ar)/, locale === "en" ? "/ar" : "/en")}>{locale === "en" ? "العربية" : "English"}</a>}><LanguageSwitch locale={locale} /></Suspense>
-    </div>
+    <div className="mobile-menu-bottom"><p className="mobile-menu-status">{status}</p></div>
   </Container></div>;
 }

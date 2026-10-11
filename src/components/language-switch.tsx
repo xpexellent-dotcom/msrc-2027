@@ -13,7 +13,29 @@ function subscribeHash(onChange: () => void) {
 const getHash = () => window.location.hash;
 const getServerHash = () => "";
 
-export function LanguageSwitch({ locale }: { locale: Locale }) {
+function LanguageLabel({ targetLocale, iconOnly }: { targetLocale: Locale; iconOnly: boolean }) {
+  return <>
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18" />
+    </svg>
+    <span className={iconOnly ? "sr-only" : undefined}>{targetLocale === "ar" ? "العربية" : "English"}</span>
+  </>;
+}
+
+export function LanguageSwitchFallback({ locale, pathname, iconOnly = false }: {
+  locale: Locale; pathname: string; iconOnly?: boolean;
+}) {
+  const targetLocale = locale === "en" ? "ar" : "en";
+  return <a className={`language-switch${iconOnly ? " language-switch--icon" : ""}`}
+    href={localizePathname(pathname, targetLocale)} hrefLang={targetLocale} lang={targetLocale}
+    dir={targetLocale === "ar" ? "rtl" : "ltr"}
+    aria-label={locale === "en" ? "View this page in Arabic" : "View this page in English"}>
+    <LanguageLabel targetLocale={targetLocale} iconOnly={iconOnly} />
+  </a>;
+}
+
+export function LanguageSwitch({ locale, iconOnly = false }: { locale: Locale; iconOnly?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const query = useSearchParams().toString();
@@ -23,7 +45,7 @@ export function LanguageSwitch({ locale }: { locale: Locale }) {
 
   return (
     <a
-      className="language-switch"
+      className={`language-switch${iconOnly ? " language-switch--icon" : ""}`}
       href={`${targetPath}${query ? `?${query}` : ""}${hash}`}
       hrefLang={targetLocale}
       lang={targetLocale}
@@ -45,11 +67,7 @@ export function LanguageSwitch({ locale }: { locale: Locale }) {
         }
       }}
     >
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18" />
-      </svg>
-      {targetLocale === "ar" ? "العربية" : "English"}
+      <LanguageLabel targetLocale={targetLocale} iconOnly={iconOnly} />
     </a>
   );
 }

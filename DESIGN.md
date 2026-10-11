@@ -24,7 +24,7 @@ typography:
   display:
     fontFamily: "Manrope, DM Sans, Arial, sans-serif"
     fontSize: "clamp(4rem, 7.8vw, 8.75rem)"
-    fontWeight: 500
+    fontWeight: 600
     lineHeight: 1.04
     letterSpacing: "-0.04em"
   headline:
@@ -250,7 +250,7 @@ The keyword material on light surfaces is `linear-gradient(115deg, #28163f 8%, #
 
 **Display:** Manrope, with DM Sans and Arial fallbacks. **Body:** Inter with Arial. **Arabic:** Noto Sans Arabic, measured MSRC Arabic Fallback, Tahoma and Arial. The MSRC wordmark and scientific English content remain LTR.
 
-- **Display:** the existing oversized two-line film opener remains medium weight, solid ivory and reading-edge aligned. Its scale is a surface choice, not a universal heading size.
+- **Display:** ENG-029 gives the film opener Manrope at weight 600 with a static ivory/lilac/champagne gradient. Arabic remains Noto at weight 700 and zero tracking. The large reading-edge title stays solid-text fallback in forced colors and print; this explicit hero exception does not extend gradient color to all chapter words.
 - **Homepage chapters:** solid ink at weight (550), with selected weight-(750) keywords carrying the purple gradient and shallow lilac highlights. History uses ivory ordinary words with inverse-gradient keywords. This latest requested treatment supersedes ENG-025's all-over gradient lettering.
 - **Photographic interior headers:** bold ivory titles, with the final phrase accented only when the heading has multiple phrases. One-phrase titles remain solid. The participation hero uses weight (750) and line height (1.08); shared people/contact/venue titles use weight (700). Light people-page headings use ink. Arabic keeps zero tracking and larger line boxes.
 - **Benefits:** weight (750), `clamp(1.5rem, 2.05vw, 2.05rem)`, line height (1.3), and open prose beneath.
@@ -266,11 +266,11 @@ Phone opener sizes remain English `clamp(2.8rem, 11.2vw, 4rem)` and Arabic `clam
 
 Public content caps at (1600px), with fluid reading-edge gutters; narrow prose caps at (860px). Homepage chapters retain generous cinematic spacing. Five photographic pathways and the benefits artwork hold adjacent context on wide screens and return to normal flow at (800px).
 
-The hero has a (100svh) minimum, not a fixed content height. Native sticky staging provides (65svh) of paper overlap, reduced to (35svh) at (800px). A taller opener first scrolls until its bottom controls are reachable, then a measured negative offset holds that edge. Missing JavaScript or ResizeObserver leaves normal flow; reduced motion removes the hold and overlap.
+The hero has a (100svh) minimum, not a fixed content height. Desktop native sticky staging provides (65svh) of paper overlap. At 800px and below, ENG-029 uses normal document flow with no added hold travel or scroll-faded hero text; the following rounded sheet overlaps by 1rem. A taller desktop opener first exposes its bottom controls, then holds that edge. Missing JavaScript or ResizeObserver leaves normal flow; reduced motion removes hold and overlap.
 
 Navigation is a (64px) minimum-height capsule, (1200px) maximum width, with (20px) outer inset. Corner travel is `max(12px, (100vw - 1200px) / 2 - 12px)`: a wide display sees actual outward movement rather than a fixed nudge. Only transforms animate; shell layout width stays fixed. The rem-based menu switch is below (75rem), including text enlargement; fine-pointer compact behavior begins at (1200px). Below (35rem), Reserve your seat remains in the menu rather than crowding the top line. No second chapter navigation.
 
-Benefits are spaced rectangular panels alongside the artwork, with a (4.5rem) pictogram column that shrinks to (3.25rem) on phones and stacks below (420px). History uses three translucent panels with the middle 2,257 visitor figure emphasized; the desktop columns have a (1 / 1.18 / 1) ratio. The cropped community image occupies the reading-opposite portion of the wide section; phones retain the atmosphere with single-column panels below (800px). Tiny viewports use container-relative counter sizing. Native speaker/archive/workshop rails retain visible direction controls and contained scrolling. Team grids retain their four/two/one-column changes.
+Benefits are spaced rectangular panels alongside the artwork, with a 4.5rem desktop pictogram column. Phones use a 3–3.25rem icon beside the centered, wrapped heading; the description spans both columns. The desktop five-track index is hidden at 800px and below, where five photographic cards provide direct paths. History retains three translucent panels with the middle 2,257 visitor figure emphasized and a 1/1.18/1 desktop ratio. The community image, native rails and four/two/one-column team grids retain their responsive behavior.
 
 Participation requirements and resource groups use two columns, becoming one below (650px). Photographic hero content becomes one column at (1000px). Information is consolidated into one card set; useful next actions follow without repeating the process. Contact pairs its heading with email context, then a separate introduction/form grid; both stack at (800px). The sponsor invitation is a medium action near the title, not a second oversized section.
 
@@ -315,7 +315,7 @@ Upward scroll restores the bar; top-edge and logo hover never do. Keyboard-visib
 
 ### Benefit and history panels
 
-Six benefit articles have bold headers, open prose, a light surface, thin purple boundary and authored gradient pictograms. Fine-pointer hover lifts (3px) over (260ms), with a (240ms) inset glow; icons respond subtly within the same duration. These remain reading articles, not false links or extra tab stops. The requester clarified that the large **7 / CME** graphic is **illustrative only**: visible localized labeling and accessible text state that hours are unconfirmed, while factual copy retains pending accreditation. The existing adjacent sculpture retains its small (18s) drift, existing control and static preference fallback.
+Six benefit articles have bold headers, open prose, a light surface, thin purple boundary and authored gradient pictograms. Fine-pointer hover lifts 3px over 260ms with a 240ms inset glow. These remain reading articles, not false links or extra tab stops. The large **7 / CME** graphic remains **illustrative only**, with localized visual and accessible qualification and pending factual copy. ENG-029 changes the decorative sculpture to one 4.5s settling entrance, pauses it when unseen, retains its final position on re-entry and renders statically for reduced motion. It adds no focus stop or visible pause control.
 
 Choose your path and benefits use restrained curve/orbit artwork over lilac fields. The new artwork settles once over (4.2s) for its ribbon and (3.8s) for its orbit; reduced motion is static and no new pause control is added. Decorative geometry never replaces content or occupies the focus order.
 

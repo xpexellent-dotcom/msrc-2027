@@ -38,10 +38,13 @@ html[data-scenes="on"][dir="rtl"] .chapter-stage .eyebrow-rule { transform-origi
 @keyframes hero-line { from { opacity: 0; transform: translateY(.2em); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(-25% -10% -25% -10%); } }
 @keyframes hero-follow { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-/* Leaving the opening, the headline drifts up and fades while the film eases closer. */
+/* Desktop's held film has an exit scene. Phone text remains readable throughout
+   its normal flow instead of fading before the reader reaches the last control. */
+@media (min-width: 801px) {
 html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero .hero-layout { transform: translateY(calc(var(--leave, 0) * -1.5rem)); opacity: calc(1 - var(--leave, 0) * .85); }
 html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero .hero-bottom { opacity: calc(1 - var(--leave, 0) * 1.4); }
 html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero :is(.hero-media-poster, .hero-media-video) { transform: scale(calc(1 + var(--leave, 0) * .03)); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .hero-editorial h1 > span, .hero-conference-name, .hero-lead, .hero-location, .hero-actions, .reveal--rise > * { animation: none; }

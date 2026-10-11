@@ -29,12 +29,31 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#speakers h2")).toHaveAccessibleName(locale === "ar" ? "تعرّف إلى المتحدثين." : "Meet the speakers.");
   });
 
-  test(`${locale} the content sheet covers the held film through native scrolling`, async ({ page }) => {
+  test(`${locale} the content sheet follows native phone flow and covers the held desktop film`, async ({ page, isMobile }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}`);
     await page.evaluate(() => document.fonts.ready);
     const hero = page.locator(".hero-scroll-stage > .conference-hero");
     const sheet = page.locator(".homepage-content-sheet");
+    if (isMobile) {
+      await expect(hero).toHaveCSS("position", "relative");
+      expect(await page.locator(".hero-scroll-stage").evaluate((element) => parseFloat(getComputedStyle(element, "::after").height))).toBe(0);
+      const initialHero = (await hero.boundingBox())!;
+      const initialSheet = (await sheet.boundingBox())!;
+      expect(initialSheet.y).toBeCloseTo(initialHero.y + initialHero.height - 16, 0);
+      await page.mouse.wheel(0, 240);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(240);
+      expect((await hero.boundingBox())!.y).toBeCloseTo(initialHero.y - 240, 0);
+      await expect(page.locator(".hero-layout")).toHaveCSS("opacity", "1");
+      await expect(page.locator(".hero-bottom")).toHaveCSS("opacity", "1");
+      await page.mouse.wheel(0, -240);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+      expect((await hero.boundingBox())!.y).toBeCloseTo(initialHero.y, 0);
+      expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await expect(sheet).toHaveCSS("margin-top", "0px");
+      return;
+    }
     await expect(hero).toHaveCSS("position", "sticky");
     const initialHero = (await hero.boundingBox())!;
     const initialSheet = (await sheet.boundingBox())!;
@@ -64,6 +83,30 @@ for (const locale of ["en", "ar"] as const) {
     await expect(hero).toHaveCSS("position", "relative");
     expect(await page.locator(".hero-scroll-stage").evaluate((element) => parseFloat(getComputedStyle(element, "::after").height))).toBe(0);
     await expect(sheet).toHaveCSS("margin-top", "0px");
+  });
+
+  test(`${locale} phone benefit icons align beside readable titles and full-width copy`, async ({ page, isMobile }) => {
+    test.skip(!isMobile, "Phone composition; desktop layout is covered separately.");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto(`/${locale}`);
+      await page.evaluate(() => document.fonts.ready);
+      await expect(page.getByRole("navigation", { name: locale === "ar" ? "مسارات المشاركة" : "Participation tracks" })).toHaveCount(0);
+      await expect(page.locator(".pathway-list > article")).toHaveCount(5);
+      const cards = page.locator(".benefit-card");
+      await expect(cards).toHaveCount(6);
+      for (const card of await cards.all()) {
+        const icon = (await card.locator(":scope > :is(.benefit-artwork, .benefit-cme)").boundingBox())!;
+        const title = (await card.locator("h3").boundingBox())!;
+        const body = (await card.locator("p").boundingBox())!;
+        expect(Math.abs(icon.y + icon.height / 2 - title.y - title.height / 2)).toBeLessThan(2);
+        expect(body.width).toBeGreaterThan(title.width + 40);
+        expect(body.y).toBeGreaterThanOrEqual(Math.max(icon.y + icon.height, title.y + title.height));
+        expect(await card.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    }
   });
 
   test(`${locale} historical attendance counts once while its accessible value stays final`, async ({ page }) => {
@@ -103,7 +146,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".history-total dt")).toContainText(locale === "ar" ? "إجمالي الزوار" : "Total visitors");
   });
 
-  test(`${locale} scientific artwork pauses from the keyboard and settles on reduced motion`, async ({ page }) => {
+  test(`${locale} scientific artwork settles once without controls and respects reduced motion`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}`);
     const artwork = page.locator(".research-artwork");
@@ -111,17 +154,15 @@ for (const locale of ["en", "ar"] as const) {
     await artwork.scrollIntoViewIfNeeded();
     await expect(artwork).toHaveAttribute("data-running", "true");
     await expect(image).toHaveCSS("animation-play-state", "running");
-    const control = artwork.getByRole("button");
-    await expect(control).toHaveAccessibleName(locale === "ar" ? "إيقاف الحركة" : "Pause animation");
-    await control.focus();
-    await page.keyboard.press("Enter");
-    await expect(control).toHaveAttribute("aria-pressed", "true");
-    await expect(control).toHaveAccessibleName(locale === "ar" ? "تشغيل الحركة" : "Play animation");
+    await expect(artwork.locator("button")).toHaveCount(0);
+    await expect(artwork).toHaveAttribute("data-settled", "true", { timeout: 6000 });
     await expect(artwork).toHaveAttribute("data-running", "false");
-    await expect(image).toHaveCSS("animation-play-state", "paused");
-    await page.keyboard.press("Enter");
-    await expect(control).toHaveAttribute("aria-pressed", "false");
-    await expect(artwork).toHaveAttribute("data-running", "true");
+    const finalTransform = await image.evaluate((element) => getComputedStyle(element).transform);
+    await page.locator("#faq").scrollIntoViewIfNeeded();
+    await artwork.scrollIntoViewIfNeeded();
+    await expect(artwork).toHaveAttribute("data-running", "false");
+    await expect(image).toHaveCSS("animation-name", "none");
+    await expect(image).toHaveCSS("transform", finalTransform);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(artwork).toHaveAttribute("data-running", "false");
     await expect(artwork.getByRole("button")).toHaveCount(0);
