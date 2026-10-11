@@ -215,8 +215,13 @@ html[lang="ar"] :is(.experience-intro h1, .about-hero-copy h1, .contact-hero h1,
   .team-grid { gap: 2rem 1.25rem; }
   .team-portrait { min-block-size: 14rem; }
   .team-card-copy h3 { font-size: 1.45rem; }
-  .sponsor-brand-grid, .sponsor-tier--gold .sponsor-brand-grid { grid-template-columns: minmax(0, 1fr); }
-  .sponsor-tier--platinum .sponsor-brand, .sponsor-brand { min-block-size: 13rem; }
+  /* Phones keep the desktop tier hierarchy (one, two, three across) at smaller sizes. */
+  .sponsor-brand-grid { gap: .75rem; }
+  .sponsor-tier--platinum .sponsor-brand { min-block-size: 13rem; }
+  .sponsor-tier--gold .sponsor-brand { min-block-size: 9rem; padding: 1.5rem 1rem; }
+  .sponsor-tier--silver .sponsor-brand { min-block-size: 6.5rem; padding: 1rem .5rem; }
+  .sponsor-tier--gold .sponsor-brand-word { font-size: 2rem; }
+  .sponsor-tier--silver .sponsor-brand-word { font-size: 1.375rem; }
   .sponsor-tier-heading { align-items: start; flex-direction: column; gap: .75rem; }
   .footer-directory { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 2rem; }
 }

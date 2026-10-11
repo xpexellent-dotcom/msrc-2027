@@ -1,6 +1,6 @@
 # Progress and session handover
 
-## 12 October 2026 — Mobile QA pass: two-column phone grids (Claude)
+## 12 October 2026 — Mobile QA pass: phone grid density (Claude)
 
 - Mobile audit of live www.msrc2027.com after ENG-029 at 320, 390 and 844×390
   landscape, EN/AR, 16 public routes: no text under 12px, no form control under
@@ -13,6 +13,10 @@
   card type/padding and footer rows (44px targets kept). Measured at 390px:
   Our Team page 6,709 → 3,427px; footer 1,561 → 1,093px on every page. 320px
   keeps one column with a shorter footer. No content changed.
+- **Fixed:** Sponsors collapsed all three tiers to one full-width column on
+  phones, erasing the desktop Platinum/Gold/Silver hierarchy (1/2/3 across).
+  Phones now keep 1/2/3 across with smaller tiles; page height at 390px
+  4,428 → 3,097px (EN) and 4,340 → 2,996px (AR). Placeholders unchanged.
 - **PASS (local):** 61 unit files / 2,392 tests; production build; browser specs
   349 passed / 38 intentional skips across premium-interface, public-shell,
   m2-components, conference-experience, axiom-experiences/navigation,
