@@ -17,7 +17,7 @@ html:has(.axiom-header) .button.button--gold:not(:disabled):not([aria-disabled="
   transform: translateX(calc(-22% * var(--motion-inline-direction)));
   transition: transform 240ms var(--action-ease), opacity 180ms ease;
 }
-html[lang="ar"]:has(.axiom-header) .button.button--gold { letter-spacing: 0; }
+html[lang="ar"]:has(.axiom-header) .button.button--gold:not(:disabled):not([aria-disabled="true"]) { letter-spacing: 0; }
 html:has(.axiom-header) .button.button--gold:focus-visible {
   transition: none;
   outline-offset: 4px;

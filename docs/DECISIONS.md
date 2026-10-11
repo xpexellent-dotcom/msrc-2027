@@ -17,6 +17,13 @@ Production. Publish only the selected derivatives; retain source downloads and
 superseded assets locally. Third-party license provenance remains separately
 recorded without claiming additional rights verification.
 
+Release verification retains the full public browser suite by partitioning its
+640 cases across three CI runners. Worker counts, retries, assertions and job
+timeouts remain unchanged. All three public shard statuses are required for this
+release alongside the existing application, Contact, participant, staff and
+database checks. This changes test scheduling only, not repository protection or
+hosting settings.
+
 ## ENG-026 — Track index and selective emphasis, 11 October 2026
 
 The requester adds a sticky five-track index that follows the visible pathway

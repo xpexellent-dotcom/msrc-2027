@@ -89,7 +89,7 @@ test("disabled and loading demonstrations cannot trigger operations", async ({ p
   if (await action.isVisible()) await action.click();
   else {
     await page.locator(".menu-toggle").click();
-    await page.locator(".mobile-menu").locator('a[href="/en/registration"]').click();
+    await page.locator(".mobile-menu").getByRole("link", { name: "Reserve your seat", exact: true }).click();
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
   }
   await expect(page).toHaveURL(/\/en\/registration$/);

@@ -115,7 +115,9 @@ test("the Arabic webfont leaves 1ch unchanged, so authored two-line headings sta
         arabicFaceLoaded: [...document.fonts].some((face) => face.status === "loaded" && /arabic/i.test(face.family)),
         chInEm,
         lines: new Set([...range.getClientRects()].filter((rect) => rect.width > 1).map((rect) => Math.round(rect.top))).size,
-        authoredLines: heading.textContent!.split("\n").length,
+        // Keyword spans now express the authored break with <br>; textContent
+        // omits that break. Preserve the exact authored-versus-rendered check.
+        authoredLines: heading.textContent!.split("\n").length + heading.querySelectorAll("br").length,
       };
     });
     expect(result.arabicFaceLoaded, path).toBe(true);

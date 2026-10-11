@@ -32,6 +32,59 @@
 - Release source is prepared for pull-request CI. Remote CI, merge, deployment
   and post-publication route/media/closed-workflow checks are still **PENDING** at
   this receipt. Follow the final release evidence before claiming the site live.
+- Release PR: https://github.com/xpexellent-dotcom/msrc-2027/pull/54, initial head
+  `ebaee13f48f95e247b3f5e8ca9eb74b079d316d7`. Vercel Preview is READY at that head.
+  GitHub's delayed PR event began after manual dispatch; redundant manual runs
+  were cancelled after the equivalent PR runs appeared. They are not failures or
+  substitute success evidence. The connector's PR-create permission was limited;
+  the repository's existing authenticated Git connection created the release PR.
+- Initial hosted participant browser run: **FAIL**, 54 passed / 8 failed /
+  4 intentional skips. Six failures used the old direct language-link location;
+  two compared the old header height instead of the floating masthead's occupied
+  viewport bottom. Updated those test interactions to the shared responsive
+  navigation helper and the current geometry contract, preserving all security,
+  locale, draft and visibility assertions. Targeted checks then exposed an
+  enlarged Arabic declaration focus issue; its correction and observed results
+  are recorded with the final release checks.
+- Staff locale tests had the same stale direct-link assumption: migrated three
+  interactions to the shared helper. **PASS:** all nine targeted cases across
+  desktop/tablet/mobile, `.tools/release-staff-locale-browser.log`.
+- Public browser workload now totals 640 cases and was still running at over
+  18 minutes in the original sequential application job, before its staff suite.
+  Split the unchanged public cases into three independent jobs. **PASS:** YAML
+  validation and exact test identity partition, 214 + 213 + 213 = 640, without
+  omissions, duplicates, longer timeouts or retries. Hosted shard results remain
+  pending at this pre-publication receipt.
+- Fresh pre-release GET baseline: participant accounts 503/closed; Contact
+  200/ready; anonymous staff 200/ready with profile null. Publication must preserve
+  these existing states. Contact readiness is not email-delivery proof. No
+  messages, credentials, form submissions or settings changes were made.
+- **PASS:** participant correction, eight applicable browser checks and four
+  intentional project skips, `.tools/approved-participant-focus-confirmation.log`.
+  The age checkbox now brings its full associated declaration into view on focus
+  using nearest native scrolling; no account state, validation or release gate
+  changed. Both locales at 320px/200% retain keyboard, label and axe checks.
+- Original Foundation run reached its 20-minute limit before completing the
+  public suite and before its staff tests; do not report it as passed. Its log
+  exposed additional outdated assumptions: decorative translucent artwork was
+  treated as readable content, deliberate `<br>` breaks were omitted from the
+  authored-line count, and the mobile registration selector matched both Attend
+  and Reserve your seat. Updated those contracts without removing their content,
+  motion, typography or closed-operation assertions. Corrected a real specificity
+  conflict so Arabic gold buttons retain zero letter spacing.
+- One original English hero-pointer case timed out. The same unchanged case
+  passed in a focused run and three independent repeated reproductions; no retry
+  or timeout was added and no cause is inferred. The fresh hosted shard must pass
+  this unchanged assertion before release.
+- **PASS:** refreshed `pnpm check`, lint/types/2,390 unit tests/production build,
+  `.tools/approved-release-correction-check.log`. **PASS:** six EN/AR desktop/mobile
+  hero interaction and disabled-operation checks, including the corrected mobile
+  Reserve your seat selector, `.tools/approved-public-media-confirmation.log`.
+- **PASS:** complete premium-interface and QA-regression files across configured
+  desktop/mobile projects, 68 passed / two intentional mobile skips, no retries,
+  `.tools/release-public-regressions.log`. Includes both locales, no JavaScript,
+  no observer, reduced motion, Arabic spacing/font metrics, print and forced
+  colors. The corrected source is ready for a fresh exact-head hosted run.
 
 ## 11 October 2026 — Track index and community cards, ENG-026
 

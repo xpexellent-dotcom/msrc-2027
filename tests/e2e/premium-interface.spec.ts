@@ -31,7 +31,9 @@ async function checkReadableSections(page: Page) {
     const section = page.locator(`#${id}`);
     await section.scrollIntoViewIfNeeded();
     await expect(section.getByRole("heading", { level: 2 })).toBeVisible();
-    expect(await section.locator(".reveal").evaluateAll((elements) => elements.every((element) => {
+    // Ambient artwork is deliberately translucent and aria-hidden; this guard
+    // protects readable content rather than prescribing decorative opacity.
+    expect(await section.locator('.reveal:not([aria-hidden="true"])').evaluateAll((elements) => elements.every((element) => {
       const style = getComputedStyle(element);
       return style.visibility === "visible" && style.display !== "none" && Number(style.opacity) === 1;
     }))).toBe(true);
@@ -146,13 +148,21 @@ for (const locale of ["en", "ar"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await checkReadableSections(page);
-    for (const selector of ["#program .reveal", ".pathway-card", ".program-experiences > article", ".gallery-card"]) {
+    for (const selector of ['#program .reveal:not([aria-hidden="true"])', ".pathway-card", ".program-experiences > article", ".gallery-card"]) {
       expect(await page.locator(selector).count(), selector).toBeGreaterThan(0);
       expect(await page.locator(selector).evaluateAll((elements) => elements.every((element) => {
         const style = getComputedStyle(element);
         return style.animationName === "none" && style.transform === "none" && style.transitionDuration === "0s";
       }))).toBe(true);
     }
+    // The decorative composition may have a static rotation, but must never
+    // travel or animate when the visitor requests reduced motion.
+    const artwork = page.locator(".ambient-art, .ambient-art *");
+    expect(await artwork.count()).toBeGreaterThan(0);
+    expect(await artwork.evaluateAll((elements) => elements.every((element) => {
+      const style = getComputedStyle(element);
+      return style.animationName === "none" && style.transitionDuration === "0s";
+    }))).toBe(true);
   });
 }
 
