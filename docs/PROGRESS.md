@@ -34,6 +34,24 @@
   material. JSON parsing and whitespace checks passed. Source release base is
   `66a504af6410ab161a3dbc01602a28b75b9e10a0`; prior local publication receipts and
   unused local media are preserved. Remote CI/publication pending at this entry.
+- First PR55 hosted run at `b135298` exposed stale test navigation and render
+  timing: a hidden desktop link was clicked without upward scroll; shared
+  language restoration sampled scroll state before it settled; an anchor test
+  read its exact call list before the scheduled frame. Reproduced the private
+  authenticator failure locally. Corrected only tests: await resting scroll
+  frames, exercise native upward wheel and assert its movement, reuse that
+  helper, and poll the unchanged exact anchor-call assertion. No retries,
+  timeout increases or application/security changes.
+- **PASS after those corrections:** lint and types; public navigation/conference
+  **54 passed / ten intentional skips** (2.0m), synthetic private locale drafts
+  **9 passed** across desktop/tablet/mobile, brand/history/anchor **12 passed**
+  across EN/AR desktop/mobile, participant locale/owner **2 passed**. One worker,
+  zero retries throughout. Logs: `.tools/header-helper-public-final.log`,
+  `.tools/header-auth-helper-final.log`,
+  `.tools/approved-header-brand-m2-confirmation.log`,
+  `.tools/header-participant-helper-confirmation.log`. Participant's first local
+  attempt could not launch the browser from an absent override cache; corrected
+  that prerequisite and retained its separate launch-failure log.
 
 ## 11 October 2026 — Approved design publication, ENG-027
 
