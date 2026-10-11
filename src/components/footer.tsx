@@ -1,5 +1,6 @@
 import { Link } from "@/components/ui/link";
 import { Container } from "@/components/ui/container";
+import { homepageNarrative } from "@/content/homepage-narrative";
 import { publicSitemap } from "@/content/public-site";
 import type { Locale } from "@/lib/i18n";
 const footerCopy = {
@@ -62,6 +63,8 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
           </div>
           <div className="footer-bottom">
             <p dir="ltr" lang="en">MSRC / 2027</p>
+            {/* ORG-038: the Research Principles Club organizes on behalf of the Faculty of Medicine, KAU. */}
+            <p className="footer-organizer">{homepageNarrative[locale].organizer}</p>
             {showDesignSystem ? <Link href={`/${locale}/design-system`}>{footer.designSystem}</Link> : null}
           </div>
         </Container>
