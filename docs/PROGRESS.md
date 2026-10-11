@@ -1,5 +1,29 @@
 # Progress and session handover
 
+## 12 October 2026 — Mobile QA pass: phone grid density (Claude)
+
+- Mobile audit of live www.msrc2027.com after ENG-029 at 320, 390 and 844×390
+  landscape, EN/AR, 16 public routes: no text under 12px, no form control under
+  16px (no iOS focus zoom), no oversized images, no visible clipped text; only
+  short footer words (FAQ, Our Team, Sponsors) fall under 44px wide at 48px tall.
+- **Fixed:** a `max-width: 390px` rule collapsed the existing two-column team and
+  footer grids to one column at exactly the width of current iPhones (and all
+  360–390px Androids), so phones never saw the 700px two-column step. The
+  single-column fallback now starts below 360px, and a 480px step tightens team
+  card type/padding and footer rows (44px targets kept). Measured at 390px:
+  Our Team page 6,709 → 3,427px; footer 1,561 → 1,093px on every page. 320px
+  keeps one column with a shorter footer. No content changed.
+- **Fixed:** Sponsors collapsed all three tiers to one full-width column on
+  phones, erasing the desktop Platinum/Gold/Silver hierarchy (1/2/3 across).
+  Phones now keep 1/2/3 across with smaller tiles; page height at 390px
+  4,428 → 3,097px (EN) and 4,340 → 2,996px (AR). Placeholders unchanged.
+- **PASS (local):** 61 unit files / 2,392 tests; production build; browser specs
+  349 passed / 38 intentional skips across premium-interface, public-shell,
+  m2-components, conference-experience, axiom-experiences/navigation,
+  design-readability, fluid-journeys, mobile-navigation, organizer decisions,
+  qa-regressions, contact, policies, dates-venue, venue-travel, pathway-track-nav
+  and editorial-motion. Visual check at 320/360/390px in EN/AR.
+
 ## 11 October 2026 — Phone experience and venue presentation, ENG-029
 
 - Audited the existing phone hero (994px tall, 295px sticky hold at 390×844),
