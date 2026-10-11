@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { languageLink } from "./helpers/header-navigation";
+import { languageLink, revealDesktopHeader } from "./helpers/header-navigation";
 import { clickHeroCue, prepareHeroCue } from "./helpers/hero-navigation";
 
 declare global {
@@ -38,7 +38,7 @@ async function headerNavigation(page: Page) {
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
     return page.locator(".mobile-menu nav");
   }
-  await page.locator(".wordmark").focus();
+  await revealDesktopHeader(page);
   return page.locator(".desktop-nav");
 }
 
@@ -144,7 +144,6 @@ for (const locale of ["en", "ar"] as const) {
     await clickHeroCue(page);
     await expect(page.locator("#essentials")).toBeFocused();
     await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(1);
-    await page.locator(".wordmark").focus();
     const language = await languageLink(page, locale === "en" ? "View this page in Arabic" : "View this page in English");
     await expect(language).toHaveAttribute("href", `/${targetLocale}?view=motion#essentials`);
     await language.click();
