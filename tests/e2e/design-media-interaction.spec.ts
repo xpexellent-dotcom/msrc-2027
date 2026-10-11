@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { prepareHeroCue } from "./helpers/hero-navigation";
 
 // MED-01/02, ACC-01, LOC-01/03: exercise the previously intercepted central
 // film surface, not just the uncovered eight-pixel gutter.
@@ -47,7 +48,17 @@ for (const locale of ["en", "ar"] as const) {
       expect(await page.evaluate(() => window.getSelection()?.toString().trim().length)).toBeGreaterThan(0);
       expect(await video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
     }
-    await page.locator(".hero-actions a").first().click();
+    // Read the tall sticky hero through its final row before activating its CTA.
+    // Generic centering can scroll its covering content sheet over the pinned link.
+    if (!isMobile) await prepareHeroCue(page);
+    const action = page.locator(".hero-actions a").first();
+    await expect(action).toBeInViewport({ ratio: 1 });
+    await expect.poll(() => action.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+      return hit !== null && element.contains(hit);
+    }), { message: "The visible registration link receives a real pointer hit." }).toBe(true);
+    await action.click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/registration$`));
   });
 

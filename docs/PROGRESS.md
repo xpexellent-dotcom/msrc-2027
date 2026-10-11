@@ -85,6 +85,21 @@
   `.tools/release-public-regressions.log`. Includes both locales, no JavaScript,
   no observer, reduced motion, Arabic spacing/font metrics, print and forced
   colors. The corrected source is ready for a fresh exact-head hosted run.
+- Hosted revision `40d5ea149ad139275220d5f638c0a5958bae6b2c`: nine of ten CI
+  jobs passed. Participant and Staff workflows passed in full. Foundation run
+  `38158938680` passed application, database, Contact and public shards two/three;
+  shard one had 205 passed, eight intentional skips and one hero CTA failure.
+  Its trace shows automatic locator centering raising the content sheet over
+  the sticky hero's visible registration link. Video, text selection and the
+  corresponding mobile interactions passed.
+- Reused the existing native hero reading-position helper before the desktop
+  CTA action. Added full-viewport and real pointer-target assertions, then kept
+  the ordinary click and destination check. No application animation, timeout,
+  retry or mobile scroll behavior changed. Independent viewport probes at
+  720/650/600/560px confirmed ordinary clicks in the hero's safe reading range.
+  **PASS:** scoped ESLint and six EN/AR desktop/mobile interaction checks,
+  `.tools/approved-final-hero-check.log`. A fresh exact-head hosted run is required
+  before merge; the failed source is not being released.
 
 ## 11 October 2026 — Track index and community cards, ENG-026
 
