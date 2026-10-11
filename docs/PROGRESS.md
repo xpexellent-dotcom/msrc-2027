@@ -1,6 +1,101 @@
 # Progress and session handover
 
+## 11 October 2026 — Seamless scroll-driven header, ENG-028
+
+- Audited the reported seam and Vitarc reference before editing. Two translucent
+  50%-clipped paint layers created an avoidable center boundary. Replaced them
+  with one continuous gradient/border/backdrop/grain surface. Existing accepted
+  page composition, media and copy remain unchanged.
+- Removed document-wide pointer proximity reopening. Upward native scrolling
+  restores the capsule; top-edge and wordmark hover do nothing. Keyboard-visible
+  focus restores it immediately. Existing Participate gap forgiveness, all five
+  destinations, mobile menu, RTL and reduced-motion behavior remain intact.
+- Coordinated outward/reverse transforms use interruptible 520ms motion with
+  cubic-bezier(.76,0,.24,1), compared with Vitarc's observed 700ms movement.
+  Frame-coalesced passive scrolling avoids redundant updates. Glass tint is
+  approximately 10% lighter; adjusted grain/accent retain modeled text contrast.
+- **PASS:** `pnpm check`: lint, types, 2,390 unit cases / 60 files and production
+  build (81 generated pages), `.tools/header-refinement-check.log`.
+- **PASS:** `axiom-navigation.spec.ts` and `conference-experience.spec.ts`, one
+  worker and zero retries: **54 passed / ten intentional skips**, 1.8 minutes.
+  Includes actual wheel reversal, no hover reopen, restored geometry, physical
+  dropdown hit targets, keyboard/Escape, mobile text enlargement, localization,
+  public-route interactions and accessibility. Shared navigation helpers now
+  restore the header by upward scrolling. Final log: `.tools/header-refinement-browser-final.log`.
+- Independent review caught a keyboard-to-pointer press/release regression; the focus session now stays open until focus leaves the header. Two added EN/AR regressions pass. The full local check and focused browser suite were rerun after this fix.
+- **PASS:** one batched visual review at 1441px and 390px, EN/AR, covering pale
+  content and dark film. No center join or page overflow observed. Screenshots:
+  `.impeccable/review/header-refinement/`. No corrective visual loop was needed.
+- Single Impeccable detector pass: **zero primary issues / nine advisories**
+  (six component-material colors, three existing responsive type sizes), exit 0.
+  Intentional glass palette is documented in the review/design contract.
+  `.tools/header-refinement-detector.json`; no second scan.
+- DESIGN.md, design sidecar and homepage brief record the new interaction and
+  material. JSON parsing and whitespace checks passed. Source release base is
+  `66a504af6410ab161a3dbc01602a28b75b9e10a0`; prior local publication receipts and
+  unused local media are preserved. Remote CI/publication pending at this entry.
+- First PR55 hosted run at `b135298` exposed stale test navigation and render
+  timing: a hidden desktop link was clicked without upward scroll; shared
+  language restoration sampled scroll state before it settled; an anchor test
+  read its exact call list before the scheduled frame. Reproduced the private
+  authenticator failure locally. Corrected only tests: await resting scroll
+  frames, exercise native upward wheel and assert its movement, reuse that
+  helper, and poll the unchanged exact anchor-call assertion. No retries,
+  timeout increases or application/security changes.
+- **PASS after those corrections:** lint and types; public navigation/conference
+  **54 passed / ten intentional skips** (2.0m), synthetic private locale drafts
+  **9 passed** across desktop/tablet/mobile, brand/history/anchor **12 passed**
+  across EN/AR desktop/mobile, participant locale/owner **2 passed**. One worker,
+  zero retries throughout. Logs: `.tools/header-helper-public-final.log`,
+  `.tools/header-auth-helper-final.log`,
+  `.tools/approved-header-brand-m2-confirmation.log`,
+  `.tools/header-participant-helper-confirmation.log`. Participant's first local
+  attempt could not launch the browser from an absent override cache; corrected
+  that prerequisite and retained its separate launch-failure log.
+
 ## 11 October 2026 — Approved design publication, ENG-027
+
+### Published and verified
+
+- **LIVE:** [MSRC 2027](https://www.msrc2027.com/en), with Arabic at `/ar`.
+  [PR #54](https://github.com/xpexellent-dotcom/msrc-2027/pull/54) was authorized
+  and squash-merged as `66a504af6410ab161a3dbc01602a28b75b9e10a0`. A fetched
+  Git tree comparison confirms it is identical to tested release head
+  `31429ab59e310de2def06ea824ecea027a71d812`.
+- **PASS:** all ten exact-head CI jobs and all three workflows before merge:
+  [Foundation](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/38160130087),
+  [Participant](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/38160130078),
+  [Staff](https://github.com/xpexellent-dotcom/msrc-2027/actions/runs/38160130076).
+  The three public shards total **607 passed / 33 intentional skips**, covering
+  all 640 cases with zero retries. `.tools/approved-ci-31429ab.json` retains
+  job IDs, exact source and shard log paths. Duplicate post-merge runs are not
+  substituted for this completed exact-tree pre-merge evidence.
+- **PASS:** owned Vercel Production target `dpl_FCKktERW8ixq9MMGexmwJpozaBsH`
+  was READY at the merge SHA with both `www.msrc2027.com` and `msrc2027.com`
+  aliases at **17:44:45 UTC**. `.tools/approved-production-after.json` records
+  project, team, source and alias proof. Existing Git deployment integration
+  published the merge; no hosting, DNS, environment or database setting changed.
+- **PASS:** **91 live GET/HEAD checks / zero failures**, completed **17:45:35 UTC**.
+  Includes 32 localized public pages, approved homepage markers, all 26 selected
+  assets, Jeddah video byte-range delivery, removed/private routes, legacy Program
+  redirects, indexing and all 15 closed workflow responses. Contact remains
+  200/ready; anonymous staff remains 200/ready with profile null; participant
+  accounts remain 503/closed. No form, credentials, message or payment was sent.
+  Receipts: `.tools/approved-live-receipt.json` and `approved-live-verification.log`.
+- **PASS:** real-domain visual inspection in EN/AR at desktop and 390px mobile:
+  no horizontal document overflow, working mobile menu/language navigation,
+  keyboard expansion/Escape for Participate, native track anchor focus and
+  active highlight updates while scrolling. The opening film plays; no browser
+  console errors were observed. Screenshots and the browser receipt are under
+  `.impeccable/review/live/`. Browser viewport was restored and the live English
+  homepage retained for the requester.
+- This completes approved public-design publication. Pending roster, workshop,
+  brochure and accreditation content retains its qualifications. Real participant
+  workflow activation, physical-device/screen-reader UAT and email delivery were
+  **NOT TESTED** or authorized by this design release. Next work is the organizer's
+  content confirmation and separate operational release gates.
+
+### Preparation and diagnosis history
 
 - Requester explicitly approved the completed demo and authorized bringing it
   live. ENG-027 records publication authority while keeping operational gates

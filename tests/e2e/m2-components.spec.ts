@@ -213,10 +213,11 @@ for (const locale of ["en", "ar"] as const) {
       await expect(destination).toBeFocused();
       await expect(page.locator("html")).toHaveCSS("scroll-behavior", "auto");
     }
-    const calls = await page.evaluate(() => (window as unknown as {
+    // Focus and the hash commit synchronously; scrolling runs on the next frame
+    // so a closing navigation disclosure can settle before its destination.
+    await expect.poll(() => page.evaluate(() => (window as unknown as {
       __m2AnchorScrollCalls: { behavior: ScrollBehavior; block: ScrollLogicalPosition }[];
-    }).__m2AnchorScrollCalls);
-    expect(calls).toEqual([
+    }).__m2AnchorScrollCalls)).toEqual([
       { behavior: "smooth", block: "start" },
       { behavior: "instant", block: "start" },
     ]);

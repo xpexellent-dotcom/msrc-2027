@@ -1,5 +1,18 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-028 — Seamless, scroll-driven navigation, 11 October 2026
+
+Following approved live publication, the requester reports a center seam in the
+header and requests a continuous material, approximately 10–15% more transparent
+glass, smoother Vitarc-inspired movement, and no reopening from top-edge or logo
+hover. Upward scrolling restores the expanded desktop bar. This supersedes the
+pointer-approach restoration in ENG-023/024/025. Keyboard-visible focus remains an
+immediate accessible recovery; the mobile menu and expanded Participate dropdown
+retain their existing behavior. Scope is a refinement of the published design,
+with no change to public claims, media, operational gates or hosting settings.
+
+Audit and prioritized plan: `docs/reviews/header-glass-refinement.md`.
+
 ## ENG-027 — Publish the approved design, 11 October 2026
 
 The requester explicitly approves the ENG-026 demo and instructs: "I approve of

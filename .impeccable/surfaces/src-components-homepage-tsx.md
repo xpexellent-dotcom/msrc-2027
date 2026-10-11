@@ -122,3 +122,8 @@ reference-site product claims and implementation do not transfer.
 Implementation truth is recorded in `DESIGN.md` and `.impeccable/design.json`.
 Asset provenance remains in the editorial, premium and fluid media receipts. Local
 review approval, hosted publication and media reuse clearance are separate.
+
+ENG-028 refines the published header: one continuous glass surface, roughly 10%
+less tint, 520ms cubic-bezier(.76,0,.24,1) corner travel, upward-scroll-only pointer
+restoration and immediate keyboard-visible focus recovery. Top-edge/wordmark
+hover no longer restores the capsule. See header-glass-refinement.md for evidence.
