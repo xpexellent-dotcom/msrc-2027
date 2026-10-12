@@ -387,8 +387,8 @@ async function recordEntryRelease(page: Page) {
   });
 }
 
-async function expectOneEntryRelease(page: Page, expected = { historyEntries: 1, totalReleases: 1 }) {
-  const receipt = await page.evaluate(() => {
+async function finishEntryRecording(page: Page) {
+  return page.evaluate(() => {
     const receipt = (window as unknown as { venueEntryReceipt: EntryReceipt }).venueEntryReceipt;
     receipt.observer.disconnect();
     receipt.stopInputRecording();
@@ -400,6 +400,10 @@ async function expectOneEntryRelease(page: Page, expected = { historyEntries: 1,
         return { selector, properties: properties.map(({ name }) => ({ name, value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) })) };
       }) };
   });
+}
+
+async function expectOneEntryRelease(page: Page, expected = { historyEntries: 1, totalReleases: 1 }) {
+  const receipt = await finishEntryRecording(page);
   const releases = receipt.changes.filter(change => change.state === "releasing");
   expect(releases, JSON.stringify(receipt)).toHaveLength(1);
   const completion = receipt.changes.find(change => change.state === "completed");
@@ -864,6 +868,78 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(`${approach.url}#journey-airport`);
   });
 
+  test(`${locale} entrance follows preceding header reflow without changing earned progress`, async ({ page, isMobile }, testInfo) => {
+    if (!isMobile) await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}/dates-venue?view=header-reflow`);
+    await page.evaluate(() => document.fonts.ready);
+    const portal = page.locator(".venue-entry-portal");
+    const stage = page.locator(".venue-gallery-stage");
+    const photoHeader = page.locator(".venue-photo-header");
+    await expect(portal).toHaveAttribute("data-entry-ready", "true");
+    await expect(portal).toHaveAttribute("data-entry-state", "approaching");
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+    const before = await naturalEntrySnapshot(page);
+    const stageHeight = await stage.evaluate(element => element.getBoundingClientRect().height);
+    const headerPadding = await photoHeader.evaluate(element => Number.parseFloat(getComputedStyle(element).paddingBottom));
+
+    // Font swaps can rewrap the preceding header while the stage's own size
+    // remains unchanged. Model that exact layout change independently of fonts.
+    await photoHeader.evaluate((element, padding) => { (element as HTMLElement).style.paddingBottom = `${padding + 31}px`; }, headerPadding);
+    const shifted = await naturalEntrySnapshot(page);
+    expect(Math.abs(shifted.boundary - before.boundary - 31)).toBeLessThanOrEqual(1);
+    expect(await stage.evaluate(element => element.getBoundingClientRect().height)).toBe(stageHeight);
+    await testInfo.attach(`${locale}-preceding-header-reflow`, {
+      body: JSON.stringify({ before, shifted, stageHeight }, null, 2), contentType: "application/json",
+    });
+    await expect.poll(() => stage.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      const header = document.querySelector(".site-header");
+      if (!header) throw new Error("Expected the shared header for the entrance boundary");
+      const actual = scrollY + ((element as HTMLElement).dataset.entryFrame === "overview"
+        ? box.top - header.getBoundingClientRect().bottom - 16 : box.bottom - innerHeight);
+      return Math.abs(Number.parseFloat((element as HTMLElement).style.getPropertyValue("--venue-entry-boundary")) - actual);
+    })).toBeLessThanOrEqual(1);
+
+    let approach = await naturalEntrySnapshot(page);
+    // Start at the fresh header and reach the hold through real native input.
+    // On phones, retain an on-screen final drag rather than prealigning it.
+    for (let step = 0; isMobile && step < 10 && approach.remaining > 480; step++) {
+      const previous = approach.y;
+      await entryInput(page, true, 240);
+      await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(previous + 40);
+      approach = await naturalEntrySnapshot(page);
+    }
+    await entryInput(page, isMobile, approach.remaining + 80);
+    await expect(portal).toHaveAttribute("data-entry-state", "charging");
+    await expect.poll(() => entryCharge(page)).toBeGreaterThan(0);
+    const held = await naturalEntrySnapshot(page);
+    expect(Math.abs(held.y - held.boundary)).toBeLessThanOrEqual(1);
+    expect(held.charge).toBeLessThan(1);
+    await expect(page).toHaveURL(before.url);
+
+    // A second upstream reflow during charging must keep the current overview
+    // aligned while retaining only the progress earned through native input.
+    await photoHeader.evaluate((element, padding) => { (element as HTMLElement).style.paddingBottom = `${padding + 62}px`; }, headerPadding);
+    await expect.poll(async () => {
+      const current = await naturalEntrySnapshot(page);
+      return Math.abs(current.y - current.boundary);
+    }).toBeLessThanOrEqual(1);
+    const reflowedHold = await naturalEntrySnapshot(page);
+    expect(Math.abs(reflowedHold.boundary - held.boundary - 31)).toBeLessThanOrEqual(1);
+    expect(await stage.evaluate(element => element.getBoundingClientRect().height)).toBe(stageHeight);
+    expect(reflowedHold.charge).toBe(held.charge);
+    await expect(portal).toHaveAttribute("data-entry-state", "charging");
+    await testInfo.attach(`${locale}-charged-header-reflow`, {
+      body: JSON.stringify({ held, reflowedHold }, null, 2), contentType: "application/json",
+    });
+    await recordEntryRelease(page);
+    await completeEntryWithScroll(page, isMobile);
+    await expectAirportEntry(page);
+    await expectOneEntryRelease(page);
+    await expect(page).toHaveURL(`${before.url}#journey-airport`);
+  });
+
   test(`${locale} charged entry persists between inputs, reverses and releases native scrolling once`, async ({ page, isMobile }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}/dates-venue?view=charged-entry`);
@@ -1046,6 +1122,7 @@ for (const locale of ["en", "ar"] as const) {
       const originalURL = page.url();
       const historyLength = await page.evaluate(() => history.length);
       const begin = page.locator(".venue-journey-invitation .venue-hero-action");
+      await recordEntryRelease(page);
       if (activation === "wheel") {
         await entryInput(page, false, 900);
         expect(await page.evaluate(() => document.activeElement?.closest("a,button,input,select,textarea,summary,[contenteditable=true]")?.tagName ?? null)).toBeNull();
@@ -1058,12 +1135,19 @@ for (const locale of ["en", "ar"] as const) {
       }
       await expect(portal).toHaveAttribute("data-entry-state", "releasing");
       await page.keyboard.press(key);
-      await expect(portal).toHaveAttribute("data-entry-state", "completed");
+      if (key !== "End") await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThanOrEqual(1);
+      else await expect.poll(() => page.evaluate(() => Math.abs(document.documentElement.scrollHeight - innerHeight - scrollY))).toBeLessThanOrEqual(1);
+      // Returning above the opening rearms the entrance after native Home;
+      // waiting for that actual displacement avoids racing its scroll event.
+      await expect(portal).toHaveAttribute("data-entry-state", key === "End" ? "completed" : "approaching");
       await expect(page.locator("[data-venue-entry-placeholder]")).toHaveCount(0);
       expect(await page.getByTestId("venue-arrival-journey").evaluate(element => (element as HTMLElement).inert)).toBe(false);
       await expect(page.getByTestId("venue-arrival-journey")).not.toHaveCSS("position", "fixed");
-      if (key !== "End") await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThanOrEqual(1);
-      else await expect.poll(() => page.evaluate(() => Math.abs(document.documentElement.scrollHeight - innerHeight - scrollY))).toBeLessThanOrEqual(1);
+      const receipt = await finishEntryRecording(page);
+      expect(receipt.changes.filter(change => change.state === "releasing")).toHaveLength(1);
+      expect(receipt.restoredStyles).toEqual(receipt.priorStyles);
+      await expect(portal).toHaveAttribute("data-entry-releases", "1");
+      await expect(portal).toHaveAttribute("aria-busy", "false");
       await expect(page).toHaveURL(`${originalURL}#journey-airport`);
       expect(await page.evaluate(() => history.length)).toBe(historyLength + 1);
       expect(await entryCharge(page)).toBe(0);

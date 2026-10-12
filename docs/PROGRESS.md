@@ -1,6 +1,16 @@
 # Progress and session handover
 
-## 12 October 2026 — Reliable fast Venue input, ENG-038
+## 12 October 2026 — Venue entrance layout correction, ENG-038
+
+- Corrected upstream-layout follow-up: observe the shared intro layout alongside
+  the overview, so header reflow updates its absolute boundary. PASS lint/types,
+  2,401 units/61 files and 81-page build; focused browser six passes/two intentional
+  phone keyboard skips, zero failures/retries, covering all four deterministic
+  header-shift cases and terminal navigation. Impeccable detector has no findings.
+  Receipts: `.tools/venue-layout-resilience-check.log`,
+  `.tools/venue-layout-focused.log`, `.tools/venue-layout-resilience-design-detect.json`.
+  Full affected suite and follow-up exact-head CI/Preview/Production/public checks
+  are PENDING; existing PR65 final-verification failures remain recorded below.
 
 - The organizer identifies ordinary desktop wheel/trackpad use as the remaining
   entrance problem. Actual public PR64 source 47c1505 reproduces both causes:
@@ -39,11 +49,70 @@
  16 intentional skips, zero failures/retries across97 cases, including the new
   native fast-input/reentry/perceptibility cases and desktop/tablet/phone EN/AR
   accessibility, controls, privacy and no-JS regressions. Log:
-  `.tools/venue-input-resilience-broad.log`. Scoped WebKit checks are running;
-  final visual review, exact-head CI/owned Preview and any guarded publication
-  with owned Production/public verification are PENDING. Current live source
-  remains 47c1505. Publication authorization persists only for this public UI.
-  Physical Safari/Android and real screen readers remain NOT TESTED.
+  `.tools/venue-input-resilience-broad.log`. Supported WebKit phone 10 / desktop 6
+  cases PASS, zero retries. Four attempted CDP-only phone cases cannot execute
+  in WebKit and remain NOT TESTED there; their capability failures are preserved.
+- PASS native slow 12px EN/AR probe: partial charge 0.317 stays through pause,
+  reversal reduces it to 0.292, and completion lands precisely at Airport with
+  native continuation. Receipt: `.tools/venue-input-slow-final.json`.
+  PASS bounded local CUA desktop fast-entry and Arabic-phone visual review;
+  screenshots: `.impeccable/review/venue-input-resilience/`. Viewport reset.
+- PR65 reviewed head `5847ffa0c43ef62d50295827ad7d933240caddb9` is merged as
+  `f07fea733864a83e866b624a6f89824df1154853`. PASS all three exact-head PR
+  workflows, ten substantive jobs, eleven actual checks and Vercel status.
+  Public: 671 passes / 57 intentional skips / zero failures; lint/types, 2,401 units
+  in 61 files, 81 generated pages / 81 smoke; Contact 44, participant 88 + 4 skips,
+  staff 102 + 8 skips; disposable SQL 1,023 assertions / 13 files with clean advisors.
+  Guarded merge and independent reviewed/merged tree proof both agree on
+  `27c169b50775a7d487e7200b1cdd30cb70c29869`. Receipts:
+  `.tools/venue-input-complete-5847ffa-2026-10-12T20-10-55-673Z.json`,
+  `.tools/venue-input-merge.json`,
+  `.tools/venue-input-main-f07fea7-2026-10-12T20-16-04-431Z.json`.
+- PASS owned exact-head READY Preview `dpl_4Zid3q2E98HGUZsG6rsQQmiHkAdM`
+  with protected EN/AR HTTP 200. Owned READY Production
+  `dpl_avrZLkeoXi78JUTwHsNNYzpvFtKf` is source Git/main at the exact merge,
+  expected project/team and both www.msrc2027.com/msrc2027.com aliases.
+  PASS: 97/97 actual public GET/HEAD checks, zero failures. Receipts:
+  `.tools/venue-input-preview-http.json`,
+  `.tools/venue-input-production-after-2026-10-12T20-16-54-518Z.json`,
+  `.tools/venue-input-live-http.json`.
+- FAIL final actual-public browser verification: 79 passes / 16 intentional skips /
+  two failures, zero retries across 97 cases. Both failures are Arabic-phone hold
+  alignment: fresh natural touch differs from the independently measured gate by
+  30.546875px, and persistent/reverse charge differs by 31px. These are application
+  geometry failures, not fixture synchronization. Preserve
+  `.tools/venue-input-live-browser.log` and
+  `.tools/venue-input-live-browser-results/` with screenshots, contexts and traces.
+- FAIL independent push/main CI at the published merge: nine of ten substantive
+  jobs pass; public shard 2 fails the Arabic-desktop Home/End interruption check
+  because the controller is approaching where completed is expected. Public
+  totals: 670 passes / 57 intentional skips / one failure across 728 cases.
+  The test lane confirms that native Control+Home correctly rearms approaching
+  after returning above the overview. Its correction waits for the native edge,
+  then asserts Home approaching / End completed while retaining alignment,
+  release-count, history and cleanup checks. This test-contract correction has
+  no final new-source verification yet. Receipts:
+  `.tools/venue-input-main-failure-f07fea7-2026-10-12T20-28-16-428Z.json`,
+  `.tools/venue-input-main-failed-totals-f07fea7-2026-10-12T20-28-16-573Z.json`.
+- Root-cause confirmation from the test lane: the authored gate stays at 1161.05px
+  while an independent measurement becomes 1130.453px after the preceding Arabic
+  header changes height; the overview's own size is unchanged. Observing only the
+  overview misses that upstream reflow. Four deterministic EN/AR desktop/phone
+  public regressions FAIL, zero retries, after a 31px preceding-header-only change
+  leaves the overview size unchanged and its cached gate stale. Preserve
+  `.tools/venue-header-reflow-public-before.log` and
+  `.tools/venue-header-reflow-public-before-results/`. The separate loaded-font
+  control `.tools/venue-live-ar-boundary-diagnostic.json` has matching 1130.45px /
+  1130.453125px gates; it does not reproduce the original late-layout race.
+  Root's narrow correction observes the parent hero layout and remeasures the
+  absolute gate on `codex/venue-entry-layout-resilience`; the regression retains
+  independent 1px alignment assertions during approach and partial charge.
+  Corrected-source checks, a follow-up PR, exact-head CI, owned serving proof and
+  fresh public verification are PENDING. Published source remains f07fea7; its
+  successful PR/Production/HTTP receipts do not establish full final verification.
+  Final actual-public visual confirmation is PENDING. Physical Safari/Android and
+  real screen readers remain NOT TESTED. Preserve all earlier passes and failures.
+  No operational settings, data, flags, accounts or communications changed.
   Audit: `docs/reviews/venue-input-resilience.md`.
 
 ## 12 October 2026 — Cinematic Venue entrance published, ENG-037

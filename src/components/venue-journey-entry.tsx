@@ -371,6 +371,10 @@ export function VenueJourneyEntry({ locale }: { locale: Locale }) {
     const visibility = () => { if (document.hidden) { forgetIntent(); if (state === "releasing") settle(false); } };
     const pointer = () => { if (state !== "releasing") forgetIntent(); };
     const size = new ResizeObserver(resize); size.observe(stage);
+    // A header reflow moves the stage without changing its own size. Observe
+    // their shared layout so the document-space gate stays current as fonts load.
+    const overview = stage.closest<HTMLElement>(".venue-gallery-hero");
+    if (overview) size.observe(overview);
     const textSize = new MutationObserver(resize);
     textSize.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
     stage.dataset.entryBoundary = "true";
