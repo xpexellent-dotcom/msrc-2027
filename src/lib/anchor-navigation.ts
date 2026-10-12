@@ -12,7 +12,7 @@ function destinationElement(hash: string): HTMLElement | null {
 }
 
 /** Keep client-only fragments separate from Next's cached route canonical URL. */
-function commitFragment(hash: string, replace: boolean) {
+export function commitFragment(hash: string, replace: boolean) {
   if (location.hash === hash) return;
   const address = new URL(location.href);
   const previousURL = address.href;
@@ -24,7 +24,7 @@ function commitFragment(hash: string, replace: boolean) {
   window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL: previousURL, newURL: address.href }));
 }
 
-function focusDestination(target: HTMLElement) {
+export function focusDestination(target: HTMLElement) {
   const temporaryFocus = !target.hasAttribute("tabindex") && !target.matches("a[href],button,input,select,textarea");
   if (temporaryFocus) {
     target.setAttribute("tabindex", "-1");

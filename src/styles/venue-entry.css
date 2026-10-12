@@ -1,0 +1,11 @@
+/* One user-requested hold/charge/release at the complete overview frame. */
+.venue-gallery-stage[data-entry-boundary] .venue-stage-layout { transition: filter 180ms var(--motion-enter-easing); }
+.venue-entry-portal { --venue-entry-charge: 0; }
+.venue-entry-glow, .venue-entry-veil { position: fixed; z-index: 30; pointer-events: none; opacity: 0; }
+.venue-entry-glow { inset-inline: -10%; inset-block-end: -1px; block-size: clamp(10rem,32svh,22rem); transform-origin: bottom center; background: radial-gradient(ellipse at 50% 105%,rgb(237 218 175 / 88%),rgb(220 207 240 / 65%) 30%,rgb(124 77 168 / 24%) 55%,transparent 76%); filter: blur(12px); transform: translateY(18%); transition: opacity 140ms var(--motion-enter-easing),transform 180ms var(--motion-enter-easing); }
+.venue-entry-veil { inset: 0; background: #cfc0de; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: opacity 160ms var(--motion-enter-easing); }
+.venue-entry-glow[data-entry-state="burst"],.venue-entry-veil[data-entry-state="burst"] { transition: none; }
+@media (prefers-reduced-motion: reduce), (forced-colors: active), print {
+  .venue-entry-glow,.venue-entry-veil { display: none; }
+  .venue-gallery-stage[data-entry-boundary] .venue-stage-layout { filter: none !important; transition: none; }
+}

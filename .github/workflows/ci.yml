@@ -45,7 +45,9 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - name: Install test browser
-        run: pnpm exec playwright install --with-deps chromium
+        run: |
+          bash scripts/prepare-ci-browser-archive.sh
+          pnpm exec playwright install --with-deps chromium
       - name: Verify local-only synthetic staff security lab
         if: ${{ !inputs.auth_stability }}
         run: pnpm exec playwright test --config playwright.auth.config.ts
@@ -98,7 +100,9 @@ jobs:
         run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: Install test browser
-        run: pnpm exec playwright install --with-deps chromium
+        run: |
+          bash scripts/prepare-ci-browser-archive.sh
+          pnpm exec playwright install --with-deps chromium
       - name: Verify public pages and interactions
         run: pnpm test:e2e --shard=${{ matrix.shard }}/3
       - name: Upload public browser evidence
@@ -137,7 +141,9 @@ jobs:
         run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: Install test browser
-        run: pnpm exec playwright install --with-deps chromium
+        run: |
+          bash scripts/prepare-ci-browser-archive.sh
+          pnpm exec playwright install --with-deps chromium
       - name: Verify Contact on and off with loopback mocks, never email
         run: pnpm exec playwright test --config playwright.contact.config.ts
       - name: Upload synthetic Contact browser evidence

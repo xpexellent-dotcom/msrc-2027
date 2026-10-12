@@ -1,5 +1,74 @@
 # Progress and session handover
 
+## 12 October 2026 — Browser archive setup correction, ENG-036
+
+- PR63 initial dd432fc: owned READY Preview and nine substantive jobs PASS.
+  Public shard2 CANCELLED after20minutes before tests during stalled HTTP Azure
+  mirror retrieval. Its tests/upload are skipped; complete release gate stays held.
+- Preserve the cancelled setup log and incomplete totals in `.tools/venue-side-*`.
+  Root corrects the actual mirror-list URI with a guarded Ubuntu24.04 x64 runner
+  helper, leaving keys/suites/tests/retries/time limits and product source intact.
+- PASS Bash syntax/whitespace and independent source review. New exact-head CI
+  and owned deployment proof are pending; no automatic rerun or hosted settings.
+  Detailed evidence: `docs/reviews/venue-overview-side-reading.md`.
+
+## 12 October 2026 — Overview hold and side reading, ENG-035
+
+- Organizer requests the complete overview hold, stronger bounded glow/blur,
+  precise Airport release, leading-side vertically centered smaller text and
+  earlier chapter fades; explicitly authorizes live publication after verification.
+- Reusing codex/venue-gallery-charge and its unpublished7f5bfbc local commit.
+  Fresh main/owned READY Production agree on81efe6c; no hosted mutation yet.
+- Preserve unrelated dirty review receipts and unused media. No facts, providers,
+  operational gates or hosting settings change. EN/AR, map accessibility and native
+  fallback safeguards remain. Review: `docs/reviews/venue-overview-side-reading.md`.
+- Current-source checks and exact-head release evidence pending. Physical devices
+  and screen readers NOT TESTED.
+- PASS final pinned11.19.0 complete check: lint/types,2,401 units/61 files,
+  81-page build. PASS scoped Chromium63 cases with two intentional desktop-only
+  mobile skips; PASS WebKit phone10/10, zero retries. Meaningful hold/landing,
+  side/vertical geometry, early fade-in/out and retained accessibility/mobile
+  regressions pass. One batched visual round is clean; no further source changes.
+- Source is frozen for the explicitly authorized publication. Exact-head CI,
+  owned Preview, guarded merge, serving Production/source and actual live checks
+  are pending. Receipts: `.tools/venue-side-*`; detailed review linked above.
+
+## 12 October 2026 — Venue collage and charged entrance, ENG-034
+
+- User approved Program-matched header proportions, four overlapping venue
+  photos, relocated map/compact practical guidance and a hold/charge/burst
+  entrance. Final correction: Begin stays centered, with blur joining the glow.
+  Narrow scrolling exception and all accessible/native bypasses recorded in
+  ENG-034; approved factual/media/operational boundaries remain unchanged.
+- Implemented header/light-stage lane and root entrance integration; duplicated
+  international/footer removed while legacy #schedule is retained on resources.
+  One-shot measured boundary gate, direct anchor fallback and glow/blur cleanup.
+  Full gesture/accessibility and visual checks pending before requested commit.
+- Initial environment check could not run: bundled pnpm11.25.0 differs from
+  pinned11.19.0. Exact11.19.0 selected locally through npm exec; no manifest,
+  lockfile, global tooling or engine requirement changed. Header scoped lint passes.
+  Review: `docs/reviews/venue-gallery-charge.md`. Physical devices NOT TESTED.
+
+- PASS final local verification: exact pnpm11.19.0 lint/types,2,401 units/61
+  files,81-page build; all61 EN/AR Chromium desktop/tablet/phone and10 WebKit phone
+  cases, zero retries. Full SSR checks follow guidance relocation, preserving
+  exact visa/UTC+3 copy once. Initial WebKit tap lost query through ordinary
+  navigation despite a ready controller; one recorder did not reproduce its
+  callback cause. The intrinsic same-document Begin href fixes native fallback;
+  strict query/focus/no-JS/charge assertions remain.
+- Source review fixes pointer/history interruption and puts effects in body
+  portals; near-boundary touch approach is covered. Native scrolling after
+  release, readable alternatives and fixed44px map targets pass. Batched desktop/
+  Arabic phone visuals and final Airport landing confirmation pass. Receipts:
+  .tools/venue-charge-check-final.log, venue-charge-browser-final.log and
+  venue-charge-webkit-final.log; failures/recorder retained separately.
+  Screenshots: .impeccable/review/venue-gallery-charge/.
+- Ready for requested local commit on codex/venue-gallery-charge. No push/PR,
+  merge, live deployment, activation, settings/data/DNS or communications run
+  in this task. Physical iPhone Safari/Android and real screen readers remain
+  NOT TESTED. Next task: human/physical-device review and a hosted release with
+  fresh current-head evidence when requested.
+
 ## 12 October 2026 — Cinematic Venue hierarchy and journey, ENG-033
 
 - Audit before edits: restore photographic hierarchy, lighten/thin the shared
@@ -29,6 +98,34 @@
   `.tools/venue-cinematic-hover-fixed.log`, `venue-cinematic-hover-check.log`,
   `venue-cinematic-rtl-hover-diagnostic.json`. Fresh corrected-head CI required.
   Review: `docs/reviews/venue-cinematic-refinement.md`.
+
+- **COMPLETE — verified live publication, 12 October 2026:**
+  [PR 62](https://github.com/xpexellent-dotcom/msrc-2027/pull/62) reviewed head
+  `972ff2669edab4086405d7ae8f1c39c91a25c5de` passed all three workflows,
+  ten substantive jobs, eleven checks and Vercel. Public CI: 639 passes /
+  41 intentional skips / zero failures. Owned exact-head Preview was READY;
+  bounded desktop/Arabic mobile visual review and final eight WebKit phone
+  cases passed, zero retries. Final read-only source review found no blocker.
+- Authorized squash merge: `81efe6c76c45e61c581444f3dab83a81caf77a09`.
+  Its tree equals the reviewed head, `91cbcf68205cbe5705bf739c5eb442e7730f80a9`.
+  Owned Production `dpl_BVQVaNswVUb422uZC4H5WnL6JxyM` is READY at the
+  merge on both `www.msrc2027.com` and `msrc2027.com`; metadata and `gitSource`
+  agree with main and the merge. Confirmed 12 October 2026 11:28:54 UTC.
+- **PASS:** GET/HEAD-only live verification 97/97. Actual live scoped EN/AR
+  desktop/tablet/phone browser suite: 73 passes /12 intentional applicable-device
+  skips / zero failures / zero retries. Includes native scrolling/reversal,
+  centered entry/readability, hover bridges, touch points, zoom/reset, stationary
+  targets, gallery, keyboard, no-JS, reduced motion, enlarged/short layouts and
+  accessibility/privacy checks. Public screenshots: `live-header.png` and
+  `live-journey.png` in `.impeccable/review/venue-cinematic/`.
+- Final receipts: `.tools/venue-cinematic-hosted-972ff26-final.json`,
+  `venue-cinematic-ci-totals-972ff26.json`, `venue-cinematic-merge.json`,
+  `venue-cinematic-source-equivalence.json`, `venue-cinematic-production-after.json`,
+  `venue-cinematic-live-receipt.json`, `venue-cinematic-live-browser.log`.
+  Receipts are appended locally to preserve the tested/released source. Physical
+  iPhone Safari, physical Android and real screen readers remain NOT TESTED;
+  emulation is not hardware UAT. No operational flags/settings/data, migrations,
+  DNS or communications changed. Next validation is real-device/human review.
 
 ## 12 October 2026 — Compact venue opening and phone map, ENG-032
 

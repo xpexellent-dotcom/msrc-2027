@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { VenueTravelDetails } from "@/components/venue-travel-details";
 import { VenueArrivalJourney } from "@/components/venue-arrival-journey";
+import DatesVenuePage from "@/app/[locale]/(preview)/dates-venue/page";
 import { conferenceConfig, type ConferenceVenue } from "@/config/conference";
 import { venueMapLinks } from "@/lib/venue-travel";
 import { approvedAtVenue, approvedTravelTime, approvedVisaResponsibility } from "../fixtures/approved-venue-guidance";
@@ -136,7 +137,6 @@ describe("arrival journey preserves approved guidance and optional configuration
     expect(markup.match(/class="venue-travel-time"/g)).toHaveLength(2);
     expect(visibleText.split(approvedTravelTime[locale])).toHaveLength(3);
     expect(markup.match(/data-venue-detail="/g)).toHaveLength(6);
-    expect(visibleText).toContain(approvedVisaResponsibility[locale]);
     expect(markup).toContain(`href="/${locale}/contact"`);
     expect(markup).not.toContain("<iframe");
   });
@@ -146,9 +146,7 @@ describe("arrival journey preserves approved guidance and optional configuration
     expect(markup).not.toContain('class="venue-travel-time"');
     expect(markup).not.toContain('id="at-venue"');
     expect(markup.match(/data-journey-chapter="/g)).toHaveLength(3);
-    expect(markup).toContain('id="international-attendees"');
-    expect(markup).toContain("UTC+3");
-    expect(markup).toContain(approvedVisaResponsibility[locale]);
+    expect(markup).not.toContain('id="international-attendees"');
     expect(markup).not.toMatch(/class="[^"]*\bvenue-visa-link\b/);
   });
 
@@ -176,5 +174,22 @@ describe("arrival journey preserves approved guidance and optional configuration
     expect(markup).not.toContain("Synthetic English");
     expect(markup).not.toContain('class="venue-travel-time"');
     expect(markup).not.toContain('id="at-venue"');
+  });
+});
+
+describe("full Venue page preserves international guidance once before the journey", () => {
+  it.each(["en", "ar"] as const)("server-renders the approved visa responsibility and time zone in %s", async (locale) => {
+    const markup = renderToStaticMarkup(await DatesVenuePage({ params: Promise.resolve({ locale }) }));
+    const visibleText = markup.replace(/<[^>]+>/g, "");
+    expect(markup.match(/id="international-attendees"/g)).toHaveLength(1);
+    expect(visibleText.split(approvedVisaResponsibility[locale])).toHaveLength(2);
+    expect(markup).toContain("UTC+3");
+    const international = markup.indexOf('id="international-attendees"');
+    expect(international).toBeGreaterThan(markup.indexOf('class="venue-stage-guidance"'));
+    expect(international).toBeLessThan(markup.indexOf('data-testid="venue-arrival-journey"'));
+    expect(markup).not.toMatch(/class="[^"]*\bvenue-visa-link\b/);
+    expect(markup).not.toContain("<iframe");
+    expect(markup).toContain(`href="/${locale}/program"`);
+    expect(markup).toContain(`href="/${locale}#faq"`);
   });
 });
