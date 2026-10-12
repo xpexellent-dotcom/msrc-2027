@@ -107,7 +107,8 @@ for (const locale of ["en", "ar"] as const) {
     for (const width of [320, 791, 1440]) {
       await page.setViewportSize({ width, height: width === 320 ? 850 : 1000 });
       for (const route of routes) {
-        await page.goto(`/${locale}/${route}`);
+        // Decorative fill images do not determine layout; readiness depends on the document and fonts.
+        await page.goto(`/${locale}/${route}`, { waitUntil: "domcontentloaded" });
         await page.evaluate(() => document.fonts.ready);
         await expectNoHorizontalOverflow(page);
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

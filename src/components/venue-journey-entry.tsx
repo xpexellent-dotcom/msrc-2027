@@ -36,6 +36,14 @@ export function VenueJourneyEntry({ locale }: { locale: Locale }) {
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const colors = matchMedia("(forced-colors: active)");
     const previousFilter = content.style.filter;
+    const overview = stage.closest<HTMLElement>(".venue-gallery-hero");
+    const previousAnchor = overview?.style.getPropertyValue("overflow-anchor") ?? "";
+    const previousAnchorPriority = overview?.style.getPropertyPriority("overflow-anchor") ?? "";
+    const restoreAnchoring = () => {
+      if (!overview) return;
+      if (previousAnchor) overview.style.setProperty("overflow-anchor", previousAnchor, previousAnchorPriority);
+      else overview.style.removeProperty("overflow-anchor");
+    };
     let state: EntryState = location.hash.startsWith("#journey-") ? "completed" : "approaching";
     let charge = 0;
     let renderedCharge = 0;
@@ -91,6 +99,10 @@ export function VenueJourneyEntry({ locale }: { locale: Locale }) {
     const forgetIntent = () => { scrollIntent = undefined; wheelTailUntil = wheelTailDeadline = 0; };
     const setState = (next: EntryState) => {
       state = next;
+      // The controller owns held composition. Browser anchor compensation is
+      // layout correction, not earned wheel/touch distance before resize delivery.
+      if (next === "charging") overview?.style.setProperty("overflow-anchor", "none", "important");
+      else restoreAnchoring();
       element.dataset.entryState = next;
       glow.dataset.entryState = next;
       veil.dataset.entryState = next;
@@ -373,7 +385,6 @@ export function VenueJourneyEntry({ locale }: { locale: Locale }) {
     const size = new ResizeObserver(resize); size.observe(stage);
     // A header reflow moves the stage without changing its own size. Observe
     // their shared layout so the document-space gate stays current as fonts load.
-    const overview = stage.closest<HTMLElement>(".venue-gallery-hero");
     if (overview) size.observe(overview);
     const textSize = new MutationObserver(resize);
     textSize.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
@@ -396,7 +407,7 @@ export function VenueJourneyEntry({ locale }: { locale: Locale }) {
     return () => {
       enter.current = () => false;
       cancelAnimationFrame(frame); clearTimeout(drainTimer);
-      scene?.restore(); clearVisuals(); size.disconnect(); textSize.disconnect();
+      scene?.restore(); clearVisuals(); restoreAnchoring(); size.disconnect(); textSize.disconnect();
       window.removeEventListener("wheel", wheel);
       window.removeEventListener("touchstart", touchStart); window.removeEventListener("touchmove", touchMove);
       window.removeEventListener("touchend", touchEnd); window.removeEventListener("touchcancel", touchEnd);

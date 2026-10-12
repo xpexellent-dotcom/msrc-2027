@@ -273,6 +273,26 @@ async function entryCharge(page: Page) {
   return page.locator(".venue-entry-portal").evaluate((element) => Number(getComputedStyle(element).getPropertyValue("--venue-entry-charge")));
 }
 
+async function nativeAnchoring(page: Page) {
+  return page.locator(".venue-gallery-hero").evaluate(element => ({
+    supported: CSS.supports("overflow-anchor", "none"),
+    value: (element as HTMLElement).style.getPropertyValue("overflow-anchor"),
+    priority: (element as HTMLElement).style.getPropertyPriority("overflow-anchor"),
+    computed: getComputedStyle(element).getPropertyValue("overflow-anchor"),
+  }));
+}
+
+async function expectHeldAnchoring(page: Page) {
+  const current = await nativeAnchoring(page);
+  // The strict progress and geometry assertions apply in every engine;
+  // this native anchoring property contract applies where supported.
+  if (current.supported) expect(current.computed).toBe("none");
+}
+
+async function expectRestoredAnchoring(page: Page, previous: Awaited<ReturnType<typeof nativeAnchoring>>) {
+  await expect.poll(() => nativeAnchoring(page)).toEqual(previous);
+}
+
 async function recordEntryRelease(page: Page) {
   await page.evaluate(() => {
     const portal = document.querySelector<HTMLElement>(".venue-entry-portal");
@@ -878,6 +898,7 @@ for (const locale of ["en", "ar"] as const) {
     const photoHeader = page.locator(".venue-photo-header");
     await expect(portal).toHaveAttribute("data-entry-ready", "true");
     await expect(portal).toHaveAttribute("data-entry-state", "approaching");
+    const priorAnchoring = await nativeAnchoring(page);
     expect(await page.evaluate(() => scrollY)).toBe(0);
     const before = await naturalEntrySnapshot(page);
     const stageHeight = await stage.evaluate(element => element.getBoundingClientRect().height);
@@ -920,6 +941,10 @@ for (const locale of ["en", "ar"] as const) {
 
     // A second upstream reflow during charging must keep the current overview
     // aligned while retaining only the progress earned through native input.
+    // Allow the browser's immediate-scroll anchoring suppression to expire;
+    // the preceding gesture remains recent, but no new input earns progress.
+    await gestureFrame(200);
+    expect(await entryCharge(page)).toBe(held.charge);
     await photoHeader.evaluate((element, padding) => { (element as HTMLElement).style.paddingBottom = `${padding + 62}px`; }, headerPadding);
     await expect.poll(async () => {
       const current = await naturalEntrySnapshot(page);
@@ -930,6 +955,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(await stage.evaluate(element => element.getBoundingClientRect().height)).toBe(stageHeight);
     expect(reflowedHold.charge).toBe(held.charge);
     await expect(portal).toHaveAttribute("data-entry-state", "charging");
+    await expectHeldAnchoring(page);
     await testInfo.attach(`${locale}-charged-header-reflow`, {
       body: JSON.stringify({ held, reflowedHold }, null, 2), contentType: "application/json",
     });
@@ -937,6 +963,7 @@ for (const locale of ["en", "ar"] as const) {
     await completeEntryWithScroll(page, isMobile);
     await expectAirportEntry(page);
     await expectOneEntryRelease(page);
+    await expectRestoredAnchoring(page, priorAnchoring);
     await expect(page).toHaveURL(`${before.url}#journey-airport`);
   });
 
@@ -949,6 +976,7 @@ for (const locale of ["en", "ar"] as const) {
     const enteredURL = `${originalURL}#journey-airport`;
     await expect(portal).toHaveCount(1);
     await expect(portal).toHaveAttribute("data-entry-state", "approaching");
+    const priorAnchoring = await nativeAnchoring(page);
     const glow = page.locator(".venue-entry-glow");
     const veil = page.locator(".venue-entry-veil");
     for (const effect of [glow, veil]) {
@@ -982,6 +1010,7 @@ for (const locale of ["en", "ar"] as const) {
     await entryInput(page, isMobile, 80, async () => {
       await expect(portal).toHaveAttribute("data-entry-state", "charging");
       await expect.poll(() => entryCharge(page)).toBeGreaterThan(0);
+      await expectHeldAnchoring(page);
       partialCharge = await entryCharge(page);
       expect(partialCharge).toBeLessThan(1);
       await expect.poll(() => glow.evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThan(0);
@@ -1002,11 +1031,13 @@ for (const locale of ["en", "ar"] as const) {
     await expect(portal).toHaveAttribute("data-entry-state", "charging");
     expect(Math.abs(await page.evaluate(() => window.scrollY) - boundary)).toBeLessThanOrEqual(1);
     await retreatFromEntry(page, isMobile, boundary);
+    await expectRestoredAnchoring(page, priorAnchoring);
     await expect(page).toHaveURL(originalURL);
 
     const readyBoundary = await alignEntryBoundary(page);
     await entryInput(page, isMobile, 40);
     await expect(portal).toHaveAttribute("data-entry-state", "charging");
+    await expectHeldAnchoring(page);
     const persistentCharge = await entryCharge(page);
     expect(persistentCharge).toBeGreaterThan(0);
     await gestureFrame(1000);
@@ -1034,6 +1065,7 @@ for (const locale of ["en", "ar"] as const) {
       await page.mouse.wheel(0, 180);
     }
     await expectAirportEntry(page);
+    await expectRestoredAnchoring(page, priorAnchoring);
     const receipt = await expectOneEntryRelease(page);
     await testInfo.attach(`${locale}-entry-native-event-phases`, {
       body: JSON.stringify({ changes: receipt.changes, inputs: receipt.inputs }, null, 2), contentType: "application/json",
@@ -1083,8 +1115,10 @@ for (const locale of ["en", "ar"] as const) {
     await expect(portal).toHaveAttribute("data-entry-ready", "true");
     const originalURL = page.url();
     const boundary = await alignEntryBoundary(page);
+    const priorAnchoring = await nativeAnchoring(page);
     await entryInput(page, isMobile, 120);
     await expect(portal).toHaveAttribute("data-entry-state", "charging");
+    await expectHeldAnchoring(page);
     const charge = await entryCharge(page);
     expect(charge).toBeGreaterThan(0);
     expect(charge).toBeLessThan(1);
@@ -1098,6 +1132,7 @@ for (const locale of ["en", "ar"] as const) {
     // it still owns focus; they do not invoke a private animation function.
     await page.keyboard.press("Enter");
     await expect(portal).toHaveAttribute("data-entry-state", "releasing");
+    await expectRestoredAnchoring(page, priorAnchoring);
     await page.keyboard.press("Enter");
     await expect(portal).toHaveAttribute("data-entry-state", "releasing");
     await expectAirportEntry(page);
@@ -1105,6 +1140,85 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(`${originalURL}#journey-airport`);
     await expect(page.locator("#journey-airport")).toBeFocused();
     await expectReadable(page);
+  });
+
+  test(`${locale} held entrance restores authored anchoring after reversal, Escape, Begin and client navigation`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "This authored-style cleanup case uses desktop document keys and a client link; phone charge and reversal are covered separately.");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    // Supply a real prior inline override before hydration, rather than changing
+    // it after the entrance has captured the page's authored baseline.
+    await page.addInitScript(() => {
+      const seed = () => {
+        const overview = document.querySelector<HTMLElement>(".venue-gallery-hero");
+        if (!overview) return false;
+        overview.style.setProperty("overflow-anchor", "auto", "important");
+        return true;
+      };
+      if (!seed()) {
+        const observer = new MutationObserver(() => { if (seed()) observer.disconnect(); });
+        observer.observe(document, { childList: true, subtree: true });
+      }
+    });
+    for (const exit of ["reverse", "Escape", "Begin", "navigate"] as const) {
+      await page.goto(`/${locale}/dates-venue?view=anchor-${exit.toLowerCase()}`);
+      await page.evaluate(() => document.fonts.ready);
+      const portal = page.locator(".venue-entry-portal");
+      await expect(portal).toHaveAttribute("data-entry-ready", "true");
+      const previous = await nativeAnchoring(page);
+      if (previous.supported) {
+        expect(previous.value).toBe("auto");
+        expect(previous.priority).toBe("important");
+      }
+      const originalURL = page.url();
+      const boundary = await alignEntryBoundary(page);
+      await entryInput(page, false, 80);
+      await expect(portal).toHaveAttribute("data-entry-state", "charging");
+      await expectHeldAnchoring(page);
+      expect(await entryCharge(page)).toBeGreaterThan(0);
+      expect(await entryCharge(page)).toBeLessThan(1);
+      expect(Math.abs(await page.evaluate(() => scrollY) - boundary)).toBeLessThanOrEqual(1);
+      if (exit === "reverse") {
+        await retreatFromEntry(page, false, boundary);
+        await expectRestoredAnchoring(page, previous);
+        await expect(page).toHaveURL(originalURL);
+      } else if (exit === "Escape") {
+        await page.keyboard.press("Escape");
+        await expect(portal).toHaveAttribute("data-entry-state", "approaching");
+        expect(await entryCharge(page)).toBe(0);
+        await expectRestoredAnchoring(page, previous);
+        await expect(page).toHaveURL(originalURL);
+      } else if (exit === "Begin") {
+        await recordEntryRelease(page);
+        await page.locator(".venue-journey-invitation .venue-hero-action").focus();
+        await page.keyboard.press("Enter");
+        await expect(portal).toHaveAttribute("data-entry-state", "releasing");
+        await expectRestoredAnchoring(page, previous);
+        await expectAirportEntry(page);
+        await expectOneEntryRelease(page);
+        await expect(page).toHaveURL(`${originalURL}#journey-airport`);
+      } else {
+        // Retaining the element across a real client navigation verifies effect
+        // cleanup on unmount; a full document reload cannot satisfy this check.
+        await page.evaluate(() => {
+          const overview = document.querySelector<HTMLElement>(".venue-gallery-hero");
+          if (!overview) throw new Error("Expected the held overview before client navigation");
+          (window as unknown as { venueDetachedOverview: HTMLElement }).venueDetachedOverview = overview;
+        });
+        const program = page.locator(`.venue-stage-resources a[href="/${locale}/program"]`);
+        await expect(program).toBeInViewport();
+        await program.click();
+        await expect(page).toHaveURL(new RegExp(`/${locale}/program$`));
+        // Route commit and DOM detachment can precede React's passive cleanup.
+        await expect.poll(() => page.evaluate(() => {
+          const overview = (window as unknown as { venueDetachedOverview?: HTMLElement }).venueDetachedOverview;
+          if (!overview) throw new Error("Expected the original overview retained through client navigation");
+          return { connected: overview.isConnected, value: overview.style.getPropertyValue("overflow-anchor"),
+            priority: overview.style.getPropertyPriority("overflow-anchor") };
+        })).toEqual({ connected: false, value: previous.value, priority: previous.priority });
+        await expect(page.locator(".venue-entry-portal, .venue-entry-glow, .venue-entry-veil")).toHaveCount(0);
+      }
+    }
   });
 
   test(`${locale} document Home and End restore native flow when interrupting the reveal`, async ({ page, isMobile, browserName }) => {
@@ -1119,6 +1233,7 @@ for (const locale of ["en", "ar"] as const) {
       const portal = page.locator(".venue-entry-portal");
       await expect(portal).toHaveAttribute("data-entry-ready", "true");
       await alignEntryBoundary(page);
+      const priorAnchoring = await nativeAnchoring(page);
       const originalURL = page.url();
       const historyLength = await page.evaluate(() => history.length);
       const begin = page.locator(".venue-journey-invitation .venue-hero-action");
@@ -1140,6 +1255,7 @@ for (const locale of ["en", "ar"] as const) {
       // Returning above the opening rearms the entrance after native Home;
       // waiting for that actual displacement avoids racing its scroll event.
       await expect(portal).toHaveAttribute("data-entry-state", key === "End" ? "completed" : "approaching");
+      await expectRestoredAnchoring(page, priorAnchoring);
       await expect(page.locator("[data-venue-entry-placeholder]")).toHaveCount(0);
       expect(await page.getByTestId("venue-arrival-journey").evaluate(element => (element as HTMLElement).inert)).toBe(false);
       await expect(page.getByTestId("venue-arrival-journey")).not.toHaveCSS("position", "fixed");

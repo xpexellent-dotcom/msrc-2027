@@ -2,12 +2,88 @@
 
 ## Current input resilience follow-up — ENG-038, 12 October 2026
 
+13 October follow-up: current public source remains PR66/64fa6b7. Source review
+identifies scroll-anchor compensation being credited as input before parent
+ResizeObserver delivery during partial charge. On
+`codex/venue-layout-charge-accounting`, the shared hero now owns
+`overflow-anchor: none !important` only while charging; every exit and effect
+cleanup restore the prior inline value/priority. Parent observation and genuine
+native displacement accounting remain unchanged. Restoration/quiet-reflow tests
+are added; the old Windows baseline passes two cases and is not a new failure
+reproducer. Original Linux main failures remain primary evidence. New-source
+lint/types, 2,401-unit/61-file and 81-page build checks PASS. Focused entrance
+checks PASS 16 cases with four intentional phone keyboard skips, zero retries;
+`.tools/venue-boundary-check.log` and `.tools/venue-boundary-focused.log`.
+Final affected local Chromium checks PASS: 87 passes / 18 intentional skips /
+zero failures or retries across 105 cases; `.tools/venue-boundary-broad.log`.
+PR67 reviewed head `3dc37fc139230b33452a45248cb82639be50f8db` is frozen against
+base `64fa6b7d085634410a7c40ffc906a0770a9816aa`. Owned READY exact-head Preview
+`dpl_35GgyENKhwnFefY11g966kSWbeoo` passes protected EN/AR GET 200;
+`.tools/venue-boundary-preview-http.json`. The complete prior 3dc37fc hosted gate
+PASS: three workflows / ten jobs / eleven checks / real Vercel status, with
+public 677 passes / 59 skips / zero failures across 736 cases;
+`.tools/venue-charge-complete-3dc37fc-2026-10-12T21-43-51-060Z.json`.
+Scoped WebKit phone PASS ten of ten. Preserve the original desktop FAIL with
+nine passes / one Arabic detached authored-style restoration failure
+at `tests/e2e/venue-journey.spec.ts:1218` (`none !important` read where prior
+`auto !important` is expected). The instrumented diagnostic confirms detachment at
+1452ms followed by exact restoration/ownership cleanup at 1490ms, stable for 60
+frames: a test-readiness race in this flow, not a persistent leak. The test lane
+uses standard `expect.poll` for the same exact detached tuple, with no increased
+timeout, retry or tolerance. Corrected cleanup checks PASS Chromium two / WebKit
+two, and confirmed scoped WebKit desktop PASS ten of ten, zero retries in 44.6s;
+`.tools/venue-boundary-cleanup-chromium-focused.log`,
+`.tools/venue-boundary-cleanup-webkit-focused.log`,
+`.tools/venue-boundary-webkit-desktop-confirmed.log`. Exact-fixture ESLint and
+TypeScript noEmit checks PASS. Original failure/diagnostic logs:
+`.tools/venue-boundary-webkit-phone.log`, `.tools/venue-boundary-webkit-desktop.log`
+and `.tools/venue-boundary-webkit-cleanup-diagnostic.json`. Application code remains
+frozen at 3dc37fc; the forthcoming test-only commit needs fresh CI/Preview proof.
+Root has not merged PR67 or changed public source 64fa6b7;
+corrective release/new-source public/visual verification are PENDING.
+PR: https://github.com/xpexellent-dotcom/msrc-2027/pull/67.
+The separate matrix readiness change waits for DOMContentLoaded plus
+the same fonts/layout assertions; its two EN/AR focused cases PASS with routes,
+widths, screenshots and the 30-second budget intact. The self-hosted image optimizer
+stall is not claimed fixed. Audit: `docs/reviews/venue-input-resilience.md`.
+
 The corrected layout observation also watches the shared intro, catching header
 reflow that moves the overview without resizing it. Its complete lint/types,
 2,401-unit/61-file and 81-page build check passes. Six focused browser cases pass
 with two intentional phone keyboard skips, retaining all exact alignment,
-single-release, history and cleanup assertions. Full affected browser and hosted
-follow-up verification are pending; the preceding PR65 failure receipts remain.
+single-release, history and cleanup assertions. The final 101-case corrected-source
+Chromium run passes 85 cases with 16 intentional skips, zero failures or retries;
+`.tools/venue-layout-broad.log`. PR66 reviewed head
+`af9c63d043e73df6967b3f2d94e55a57cbb9dbfa`, base
+`f07fea733864a83e866b624a6f89824df1154853`, is frozen; the application fix is
+four lines observing the parent layout. Owned READY exact-head Preview
+`dpl_HE5Q1azEYfxXxpgVfz6Tuo8aaprz` passes protected EN/AR GET 200;
+`.tools/venue-layout-preview-http.json`. Current supported WebKit desktop eight /
+phone ten checks PASS, zero retries; CDP-only phone input remains NOT TESTED in
+WebKit. Local corrected Arabic-phone visual review passes with matching authored /
+independent gates (1151.67px / 1151.671875px), and the viewport is reset.
+
+PR66 is guarded-merged as `64fa6b7d085634410a7c40ffc906a0770a9816aa`, with
+equal reviewed/merged tree `d91731951117a4b038af56f2b2c8ff59ecf5c797`.
+All three exact-head workflows, ten substantive jobs, eleven actual checks and
+Vercel status PASS; public totals: 675 passes / 57 intentional skips / zero failures
+across 732 cases. Owned READY Production `dpl_6sFGkiyKNeya7vdqD3jeyTNs3ZXz`
+serves Git/main at that exact merge on both public aliases; independent source
+proof agrees and 97/97 actual-public GET/HEAD checks pass. The final 101-case
+actual-public browser suite passes 85 cases / 16 intentional skips with zero
+failures or retries; `.tools/venue-layout-live-browser.log`. Final live CUA desktop
+hold/reversal/single release/native continuation and Arabic-phone Begin/map visual
+review pass, with viewport reset; `.impeccable/review/venue-input-resilience/live-final-*`.
+
+Independent push/main CI FAILS: eight of ten jobs pass, with public totals of
+671 passes / 57 skips / four failures. Shard 1's EN/AR responsive matrix waits for
+decorative image optimization after HTML 200; shard 3's EN/AR phone Venue reflow
+test reports a charge change after the 31px header mutation. The latter is a
+Venue-specific failure; the charge-only anchoring correction above awaits
+new-source verification.
+Public serving/Venue passes do not establish full main CI or overall release
+verification. All earlier PR65 failures remain preserved.
+PR: https://github.com/xpexellent-dotcom/msrc-2027/pull/66.
 
 The organizer's fast desktop report exposed bypassed or undercharged entry.
 The published correction preserves full normalized earned effort, recovers eligible
@@ -20,7 +96,7 @@ gestures stay responsive; a genuine return above the gate rearms entry. Existing
 map/scene geometry, approved facts, EN/AR/RTL, controls and direct accessibility
 paths remain authoritative.
 
-Full local lint/types, 2,401 units/61 files and 81-page build PASS, along with 81
+Earlier PR65 local lint/types, 2,401 units/61 files and 81-page build PASS, along with 81
 affected Chromium cases/16 intentional skips and supported WebKit phone 10/desktop 6.
 Four CDP-only phone paths are NOT TESTED in WebKit. Native slow 12px EN/AR probes
 and local desktop-fast/Arabic-phone visual review pass; viewport reset.
@@ -43,9 +119,10 @@ Home/End interruption failure in public shard 2; public totals are 670 passes /
 57 skips / one failure. Native Control+Home legitimately rearms approaching after
 returning above the opening; the test lane now waits for the document edge and
 asserts Home approaching / End completed with the existing cleanup/history checks.
-Corrected-source checks,
-follow-up PR/release verification and final actual-public visual confirmation are
-PENDING; current published source remains f07fea7. Authority applies only to public
+Corrected-source local checks, PR66 CI/Preview, merge, Production and public HTTP
+checks pass as recorded above; current published source is 64fa6b7. Its current
+actual-public browser and CUA visual checks pass; independent main CI fails with
+diagnosis pending as recorded above. Authority applies only to public
 UI; operational workflows/settings/data remain untouched. Physical devices and
 screen readers remain NOT TESTED. Audit and retained failure evidence:
 `docs/reviews/venue-input-resilience.md`. IDs: SCP-02, DSN-01/02, ACC-01,
