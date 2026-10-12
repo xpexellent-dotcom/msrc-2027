@@ -20,7 +20,13 @@
   reduced/enlarged/short and privacy checks. No retries or weaker assertions.
   Final source build/check receipt: `.tools/venue-hero-release-check.log`;
   browser receipts: `venue-hero-chromium-release.log`, `venue-hero-webkit-release.log`.
-  Hosted evidence pending; public workflows unchanged.
+  First hosted head `6d0aafd` passed nine jobs; public shard 3 measured enlarged
+  text before the observer restored reading flow. Preserved CI trace confirms
+  `data-reading-flow=false`. Added the observable flow-readiness assertion before
+  the unchanged width check; no retries or tolerance changes. New-head hosted
+  evidence pending; public workflows unchanged.
+  Correction: PASS scoped lint and six EN/AR desktop/tablet/phone layout checks,
+  zero retries, `.tools/venue-hero-font-readiness.log`.
   Review: `docs/reviews/venue-hero-phone-refinement.md`.
 
 ## 12 October 2026 — Mobile venue exploration and publication, ENG-031

@@ -67,6 +67,22 @@ Receipts: `.tools/venue-hero-release-check.log`, `venue-hero-chromium-release.lo
 (49/49), `venue-hero-webkit-release.log` (8/8). Original failures remain preserved.
 No physical-device pass is claimed. Hosted release evidence is pending.
 
+## First hosted attempt — preserved failure
+
+PR 61 head `6d0aafd8e879b291069d49d300f7aba67f36b61e` reached owned READY
+Preview and passed nine substantive release jobs. Public browser shard 3 failed
+the English 200% text assertion (324px content / 320px viewport). Its preserved
+trace shows `data-reading-flow=false` at that immediate measurement, after the
+font mutation. The Dates fixture now explicitly waits for the font observer's
+natural-flow state before the same strict width assertion, matching the Journey
+fixture's verified readiness condition. No retry, larger timeout or tolerance
+change. New-head release checks are required; the failed attempt is not a pass.
+
+Correction validation: PASS scoped ESLint and all six EN/AR Dates layout cases
+across desktop, tablet and phone, zero retries. Receipt:
+`.tools/venue-hero-font-readiness.log`. Application code is unchanged by this
+test readiness correction; new-head CI still must pass before publication.
+
 Subsequent diagnostics caught a 1rem anchor inset counted twice with global
 scroll padding, and continuous compact camera travel moved the current Airport
 pin into controls. Corrected anchor clearance; compact framing holds the current

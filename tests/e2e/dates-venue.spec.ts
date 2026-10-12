@@ -116,6 +116,9 @@ for (const locale of ["en", "ar"] as const) {
       await assertReadable();
     }
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+    // The font-change observer restores natural reading flow on the next frame.
+    // Verify that adaptation before measuring the resulting enlarged layout.
+    await expect(page.getByTestId("venue-arrival-journey")).toHaveAttribute("data-reading-flow", "true");
     await assertReadable();
     await page.evaluate(() => { document.documentElement.style.fontSize = ""; });
 
