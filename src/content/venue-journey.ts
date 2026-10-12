@@ -16,8 +16,6 @@ type VenueJourneyCopy = {
   cityBody: string;
   arrivalTitle: readonly [string, string];
   arrivalBody: string;
-  orientationTitle: string;
-  orientationBody: string;
   airportPin: string;
   venuePin: string;
   pointAction: string;
@@ -49,8 +47,6 @@ export const venueJourneyCopy: Record<Locale, VenueJourneyCopy> = {
     cityBody: "Compare travel options.",
     arrivalTitle: ["You’ve arrived", "at MSRC."],
     arrivalBody: "Save your QR ticket before you arrive.",
-    orientationTitle: "The final approach.",
-    orientationBody: "Open your map app for current directions.",
     airportPin: "Airport",
     venuePin: "MSRC",
     pointAction: "View arrival details",
@@ -79,8 +75,6 @@ export const venueJourneyCopy: Record<Locale, VenueJourneyCopy> = {
     cityBody: "قارن وسائل النقل.",
     arrivalTitle: ["وجهتك،", "المؤتمر."],
     arrivalBody: "احفظ تذكرتك برمز QR قبل وصولك.",
-    orientationTitle: "الخطوة الأخيرة.",
-    orientationBody: "افتح تطبيق الخرائط للحصول على الاتجاهات الحالية.",
     airportPin: "المطار",
     venuePin: "المؤتمر",
     pointAction: "اعرض تفاصيل الوصول",

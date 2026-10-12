@@ -65,7 +65,10 @@ for (const locale of ["en", "ar"] as const) {
     // A fragment-bearing href is an observable hydration readiness condition.
     await expect(language).toHaveAttribute("href", `/${otherLocale}/dates-venue?view=travel#venue`);
 
-    const map = page.getByTestId("venue-geographic-map").getByRole("img");
+    const mapCard = page.getByTestId("venue-geographic-map");
+    await expect(mapCard).toHaveCount(1);
+    await expect(page.locator(".venue-gallery-hero").getByTestId("venue-geographic-map")).toHaveCount(1);
+    const map = mapCard.getByRole("img");
     await expect(map).toHaveCount(1);
     const photos = page.locator(".venue-photo-gallery").getByRole("img");
     await expect(photos).toHaveCount(4);
@@ -84,17 +87,20 @@ for (const locale of ["en", "ar"] as const) {
         await page.setViewportSize({ width, height: originalViewport.height });
         await page.evaluate(() => document.fonts.ready);
         await expectMapLabelsReadable(map);
+        await expect(map).toHaveCSS("object-fit", "contain");
+        expect(await map.evaluate((image: HTMLImageElement) => image.currentSrc)).toContain(`venue-map-${locale}-landscape.svg`);
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
       }
       await page.setViewportSize(originalViewport);
     }
     const mapLinks = page.locator(".venue-map-links a");
-    await expect(mapLinks).toHaveCount(3);
+    await expect(mapLinks).toHaveCount(2);
+    await expect(page.getByRole("link", { name: /Waze/i })).toHaveCount(0);
+    await expect(page.locator('a[href*="waze.com"]')).toHaveCount(0);
     const urls = await mapLinks.evaluateAll((anchors) => anchors.map((anchor) => (anchor as HTMLAnchorElement).href));
     const expected = [
       { origin: "https://www.google.com", path: "/maps/dir/", parameter: "destination" },
       { origin: "https://maps.apple.com", path: "/directions", parameter: "destination" },
-      { origin: "https://waze.com", path: "/ul", parameter: "q" },
     ];
     for (const [index, link] of urls.entries()) {
       const url = new URL(link);

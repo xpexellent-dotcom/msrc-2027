@@ -6,11 +6,15 @@ import { Link } from "@/components/ui/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { VenuePhotoGallery } from "@/components/venue-photo-gallery";
 import { VenueArrivalJourney } from "@/components/venue-arrival-journey";
+import { VenueGeographicMap } from "@/components/venue-geographic-map";
+import { VenueIcon } from "@/components/venue-icon";
 import { conferenceConfig } from "@/config/conference";
 import { datesVenueCopy } from "@/content/dates-venue";
+import { venueTravelCopy } from "@/content/venue-travel";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { isLocale } from "@/lib/i18n";
 import { localizedPageMetadata } from "@/lib/metadata";
+import { venueMapLinks } from "@/lib/venue-travel";
 
 type DatesVenuePageProps = { params: Promise<{ locale: string }> };
 
@@ -31,6 +35,7 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
   if (!isLocale(locale)) notFound();
   const copy = datesVenueCopy[locale];
   const venue = conferenceConfig.venue;
+  const travel = venueTravelCopy[locale];
 
   return (
     <>
@@ -51,6 +56,12 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M12 4v16m-6-6 6 6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </Link>}
             </div>
+            {venue && <div id="venue-orientation" tabIndex={-1} className="venue-hero-map">
+              <VenueGeographicMap locale={locale} variant="hero" />
+              <nav className="venue-map-links" aria-label={travel.mapLinksLabel}>
+                {venueMapLinks(venue).map(({ provider, href }) => <a key={provider} tabIndex={0} className={`button button--secondary${provider === "google" ? " dates-directions-link" : ""}`} href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={provider === "google" ? copy.directionsLabel : `${travel.openMap} ${venue.name[locale]} ${travel.inProvider} ${travel.providers[provider]} (${travel.newTab})`}>{travel.providers[provider]}<VenueIcon name="arrow" /></a>)}
+              </nav>
+            </div>}
             <VenuePhotoGallery locale={locale} />
           </div>
         </Container>

@@ -69,3 +69,14 @@ Reset and Close regression checks hold Space and require native active-state,
 rendered-frame 44px bounds before releasing, as well as retaining every rest-state
 and native-touch assertion. Keyboard and reduced motion respond immediately.
 The original 3-pass/1-fail live receipt remains preserved, not called a pass.
+
+Final correction: PR 60 head 43f28ee passed all three workflows, ten jobs,
+eleven checks and Vercel (639 public passes / 41 intentional skips / zero retries).
+Protected Preview automation is BLOCKED at Vercel Authentication; existing
+authenticated CUA review confirms 44px steady regions without access-setting
+changes. Merge 32e8e03 has an identical source tree. Owned READY Production
+dpl_9WQMiuzrpgor6sjdu21CNbi5soRn serves both public aliases at that merge.
+Final public verification: 97/97 read-only checks and 4/4 EN/AR phone interaction
+cases PASS, including held-button geometry. Final live screenshot is preserved.
+Physical devices/WebKit/real screen readers remain NOT TESTED. This receipt is
+appended locally and in the PR description, retaining the immutable released head.

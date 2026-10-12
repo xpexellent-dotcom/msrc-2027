@@ -14,16 +14,17 @@ const copy = {
 };
 
 /** Self-hosted OSM geometry; geographic orientation is identical in both languages. */
-export function VenueGeographicMap({ locale }: { locale: Locale }) {
+export function VenueGeographicMap({ locale, variant = "default" }: { locale: Locale; variant?: "default" | "hero" }) {
   const text = copy[locale];
-  return <figure className="venue-geographic-map" data-testid="venue-geographic-map">
+  const hero = variant === "hero";
+  return <figure className={`venue-geographic-map${hero ? " venue-geographic-map--hero" : ""}`} data-testid="venue-geographic-map">
     <picture>
-      <source media="(max-width: 650px)" srcSet={`/media/msrc-demo/venue-map-${locale}-portrait.svg`} />
+      {!hero && <source media="(max-width: 650px)" srcSet={`/media/msrc-demo/venue-map-${locale}-portrait.svg`} />}
       {/* A local, already optimized SVG map; next/image does not optimize SVG assets. */}
-      <img src={`/media/msrc-demo/venue-map-${locale}-landscape.svg`} width="1200" height="650" alt={text.alt} aria-describedby="venue-geographic-description" loading="lazy" decoding="async" dir="ltr" />
+      <img src={`/media/msrc-demo/venue-map-${locale}-landscape.svg`} width="1200" height="650" alt={text.alt} aria-describedby="venue-geographic-description" loading={hero ? "eager" : "lazy"} decoding="async" dir="ltr" />
     </picture>
     <figcaption className="venue-geographic-caption">
-      <div><strong>{text.title}</strong><p id="venue-geographic-description">{text.description}</p></div>
+      <div><strong>{text.title}</strong><p id="venue-geographic-description" className={hero ? "sr-only" : undefined}>{text.description}</p></div>
       <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">© OpenStreetMap contributors</a>
     </figcaption>
   </figure>;

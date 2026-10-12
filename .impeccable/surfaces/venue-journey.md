@@ -21,8 +21,8 @@ Keep the cinematic congress identity: Manrope display, Inter reading text,
 independent Noto Sans Arabic metrics, ivory ground, purple photographic tint,
 warm invitation accents, fine raster grain and native navigation. Existing
 global tokens, header and public actions remain the authority. The gallery uses
-the established (16px) photo corners and stationary captions; the final campus
-orientation returns to the familiar ivory reading surface.
+the established (16px) photo corners and stationary captions; campus orientation
+shares the familiar ivory opening with the single photo carousel.
 
 The dark journey adds local plum (#191222), lilac reading text (#ded2e8) and pale
 champagne (#eddaaf), with opaque plum (#30223e) point details. These are component
@@ -38,11 +38,11 @@ accepted brand, with no replacement identity or global design-token change.
 
 ## Layout and geometry
 
-The ivory opening has a (100svh) minimum, generous top clearance and a two-column
-(.9fr / 1.1fr) composition. A short introduction and arrival anchor sit beside a
-two-by-two gallery. Photos have a near-square (1.03) ratio and alternating
-(-.75rem / 1.75rem) vertical offsets; crops and purple-to-plum caption scrims are
-authored per photograph. Fine grain is a local (.045) overlay.
+The ivory opening has a (100svh) desktop minimum and generous top clearance.
+Three columns (.85fr / 1.1fr / .85fr) hold a short introduction, the existing
+landscape campus map with two directions actions, and one photo carousel card.
+Crops and purple-to-plum caption scrims remain authored per photograph.
+Fine grain is a local (.045) overlay.
 
 The journey uses a sticky (100svh) atlas behind three ordinary document sections:
 airport, city connection and conference arrival. Each desktop chapter has a
@@ -51,8 +51,9 @@ A narrow sticky chapter index accompanies a reading column capped at (38rem),
 reserving (20rem) of its available column width for geographic context;
 lead and note text use a (44ch) measure. Transport uses native disclosures and
 fine separators; address and configured visitor details use two columns. The
-campus map, external directions and international-attendee guidance follow in
-an ivory section, then the existing Program link and closed schedule status.
+international-attendee guidance follows in an ivory disclosure section, then
+the existing Program link and closed schedule status. Campus orientation and
+external directions are in the opening; no lower map or date panel is repeated.
 
 The local city atlas has a fixed geographic image space (1400 × 1700). Camera
 references are airport (581, 366), a city composition (800, 850), then venue
@@ -98,7 +99,7 @@ moving reading text, perpetual decoration or additional pause control is added.
 ## Responsive and bilingual conventions
 
 Below (1200px), or at viewport heights of (640px) or less, use a compact map of
-`clamp(14rem, 38svh, 24rem)` sticky below the header. Three chapter controls remain
+`clamp(11rem, calc(34svh - 4rem), 16rem)` sticky below the header. Three chapter controls remain
 directly beneath it, with native content scrolling below. Camera calculations use
 the atlas height, so taps and framing work on phones. The layout reserves this
 space before hydration, including direct chapter URLs. At root fonts above
@@ -108,12 +109,19 @@ At (650px) and below, address and visitor details become one column. Hover-only
 context is omitted in compact layouts; the bounded tap sheet provides the same
 information. Manual exploration introduces no drag or wheel interception.
 
-At (800px) and below, the opening becomes a single column without a viewport
-minimum. The four photographs become a native horizontal rail: (84%) item width,
-(4:3) ratio, proximity snapping, no stagger, visible Previous/Next controls and
-one-photo advancement. Pointer and keyboard arrows use consistent native smooth
-retargeting; reduced-motion controls move immediately. Swipe browsing remains
-available. The other site rails retain their existing keyboard behavior.
+ENG-032 puts the landscape campus map into the opening at every width. Desktop
+uses three columns; tablet has an intro above two media columns; phones become
+one column without a viewport minimum. Four photos occupy one native carousel
+card at every width: 100% item width, mandatory snap, 8:5 desktop / 4:3 phone,
+visible 44px Previous/Next arrows. Keyboard and reduced-motion changes are instant;
+pointer changes retain native smooth scrolling. Swipe remains available without JS.
+
+The compact pinned frame reserves measured chapter-control height and uses
+horizontal 44px map controls. Its upper scrim blurs passing text only while pinned.
+Reading flow has a 15rem minimum and no sticky frame. Reduced motion uses immediate
+chapter framing on normal phones and a fitted static overview in reading flow.
+Pins outside the map or intersecting credits/controls leave the focus order.
+Google and Apple remain explicit outbound actions; Waze is removed.
 
 Arabic mirrors reading composition and shade direction, never geography. The
 map plane stays LTR and north-up in both locales; point text adopts the locale's

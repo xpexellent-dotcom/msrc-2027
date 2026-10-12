@@ -1,5 +1,34 @@
 # Progress and session handover
 
+## 12 October 2026 — Compact venue opening and phone map, ENG-032
+
+- Implemented: campus map and Google/Apple directions in the opening, one
+  four-photo carousel at every width, no Waze/final-approach/different-light text.
+- Phone map/control frame reduced to approximately one third of normal portrait
+  screens. Horizontal stationary 44px controls, uniform chapter links, measured
+  anchor clearance and pin/credit collision exclusion. A locally blurred scrim
+  covers only passing content above the pinned frame; Safari visual viewport
+  resize triggers remeasurement. Short/enlarged layouts remain natural flow.
+- Source audit found thin reduced-motion/short maps could obscure points;
+  immediate chapter framing and a fitted static overview resolve that cause.
+  No-JS swipe test initially timed out awaiting a disabled document's animation
+  frame; the harness now spaces native input outside the page, with assertions
+  and zero retries retained. Physical iPhone Safari remains NOT TESTED here.
+- Local final validation: PASS lint/types, 2,399 unit tests / 61 files, 81-page
+  build and all 49 scoped EN/AR desktop/tablet/phone browser checks, zero retries.
+  WebKit phone verification: PASS 8/8 EN/AR layout, points, keyboard providers,
+  reduced/enlarged/short and privacy checks. No retries or weaker assertions.
+  Final source build/check receipt: `.tools/venue-hero-release-check.log`;
+  browser receipts: `venue-hero-chromium-release.log`, `venue-hero-webkit-release.log`.
+  First hosted head `6d0aafd` passed nine jobs; public shard 3 measured enlarged
+  text before the observer restored reading flow. Preserved CI trace confirms
+  `data-reading-flow=false`. Added the observable flow-readiness assertion before
+  the unchanged width check; no retries or tolerance changes. New-head hosted
+  evidence pending; public workflows unchanged.
+  Correction: PASS scoped lint and six EN/AR desktop/tablet/phone layout checks,
+  zero retries, `.tools/venue-hero-font-readiness.log`.
+  Review: `docs/reviews/venue-hero-phone-refinement.md`.
+
 ## 12 October 2026 — Mobile venue exploration and publication, ENG-031
 
 - Release PR 59 passed all three workflows, ten substantive jobs, eleven checks
@@ -18,6 +47,22 @@
 - Correction local validation: **PASS** `pnpm check` (2,399 units / 61 files,
   81-page build) and all **12** selected EN/AR desktop/phone interaction cases,
   including held-target geometry, short/enlarged/reduced states and panel focus.
+- **COMPLETE — final publication:** PR 60 head
+  `43f28ee63bb06a8cc9ea7342536f59b8c7905f19` passed all three workflows, ten jobs,
+  eleven checks and Vercel, again 639 public passes / 41 intentional skips.
+  Owned Preview is READY; unauthenticated automation reached Vercel Authentication
+  (BLOCKED), while existing authenticated CUA inspection verifies fixed 44px bounds.
+- Authorized PR 60 merge: `32e8e03528e031a9c40148856de3ab830d74b52f`, whose tree
+  equals the checked head. Owned Production `dpl_9WQMiuzrpgor6sjdu21CNbi5soRn`
+  is READY at this SHA with both public aliases. **PASS:** final read-only live
+  verification 97/97; actual public EN/AR phone interactions 4/4, including
+  native scroll/reversal, zoom/reset, held Reset/Close bounds, focus and sheet
+  lifecycle. No retries. Screenshot: `live-final-phone.png` in the review folder.
+  Final receipts: `.tools/venue-control-production-after.json`,
+  `venue-control-live-final.json`, `venue-control-hosted-checks-43f28ee.json`.
+  These dated final receipts are appended locally to keep the tested/released
+  source immutable. Physical phones, WebKit and real screen readers remain
+  NOT TESTED; operational settings/data/flags and communications remain unchanged.
 
 - User explicitly authorizes live publication after improving phone exploration
   and shortening content; this supersedes ENG-030's review-only boundary.
