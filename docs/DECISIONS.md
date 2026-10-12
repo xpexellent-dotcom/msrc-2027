@@ -1,5 +1,30 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-033 — Cinematic Venue hierarchy and journey, 12 October 2026
+
+The requester restores an image-backed Venue header using the already published
+`king-faisal-venue.jpg`, purple blur/tint, and Program's display typography with
+selected gradient keywords. The campus map and one four-photo card move to a
+balanced light stage with existing artistic linework and a centered Begin action.
+Native scrolling earns one expanding map/light transition into the desktop
+journey; centered chapter copy fades in/out as it passes. Arrival essentials
+remain readable when opened. International guidance is a centered bottom
+disclosure, followed by the Program action at the logical end and the footer.
+The header is slightly longer/thinner, with about 11% lower base opacity, a fine
+white rim and restrained gold/white material accents. ENG-028 scroll-up recovery
+and ENG-032 phone map/target bounds remain authoritative.
+
+This supersedes ENG-032's three-column ivory title composition and ENG-030's
+left-aligned desktop reading column. Phones keep the compact interactive map;
+short/enlarged, keyboard, reduced-motion, no-JS, forced-colors and print reading
+paths remain accessible. No scroll interception, flashing effect, moving reading
+text, perpetual animation or pause widget. Existing approved media/geography and
+travel facts remain unchanged. ENG-031's public publication authorization persists
+for this continuing refinement, subject to current-head/owned Production evidence.
+No operational activation, hosted settings, database or communications authorized.
+Requirements: SCP-02, DSN-01/02, ACC-01, LOC-01/02/03, MED-01/04, PRV-03.
+Audit and receipts: `docs/reviews/venue-cinematic-refinement.md`.
+
 ## ENG-032 — Compact venue opening and phone map, 12 October 2026
 
 The requester brings the existing campus map into the opening beside one

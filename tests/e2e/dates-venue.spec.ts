@@ -30,6 +30,16 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("venue-geographic-map")).toHaveCount(1);
     await expect(photos.first()).toHaveAttribute("alt", /\S/);
     await expect.poll(() => photos.first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    const begin = page.locator(".venue-gallery-stage .venue-hero-action");
+    await expect(begin).toHaveCount(1);
+    await expect(begin).toHaveAttribute("href", `/${locale}/dates-venue#journey-airport`);
+    await begin.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue#journey-airport$`));
+    await expect(page.locator("#journey-airport")).toBeFocused();
+    await expect(page.locator('.venue-journey-index a[href="#journey-airport"]')).toHaveAttribute("aria-current", "location");
+    await expect(page.locator("#journey-airport").getByRole("heading").first()).toBeInViewport();
+    await expect(page.locator("#journey-airport .venue-journey-reading")).toHaveCSS("opacity", "1");
     await page.goto(`/${locale}/program`);
     for (const day of ["day1", "day2"] as const) {
       const dateLink = page.locator(`.program-date-panel a[href="/${locale}/program?day=${day}"]`);
@@ -68,6 +78,27 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy[locale].heading);
+    const photoHeader = page.locator(".venue-photo-header.premium-photo-hero");
+    await expect(photoHeader).toHaveCount(1);
+    await expect(photoHeader.locator("h1 .premium-title-accent")).toHaveCount(1);
+    const heroImage = photoHeader.locator(".premium-hero-image img");
+    await expect(heroImage).toHaveCount(1);
+    await expect(heroImage).toHaveAttribute("alt", "");
+    await expect.poll(() => heroImage.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    expect(await heroImage.evaluate((image: HTMLImageElement) => new URL(image.currentSrc).origin === location.origin)).toBe(true);
+    expect(await heroImage.getAttribute("src")).toContain("king-faisal-venue.jpg");
+    const stage = page.locator(".venue-gallery-stage");
+    await expect(stage.getByTestId("venue-geographic-map")).toHaveCount(1);
+    await expect(stage.locator(".venue-photo-gallery")).toHaveCount(1);
+    const begin = stage.locator(".venue-hero-action");
+    await expect(begin).toHaveCount(1);
+    const centeredBegin = await begin.evaluate((element) => {
+      const button = element.getBoundingClientRect();
+      const stage = element.closest(".venue-gallery-stage")!.getBoundingClientRect();
+      return { offset: Math.abs(button.left + button.width / 2 - stage.left - stage.width / 2), height: button.height };
+    });
+    expect(centeredBegin.offset).toBeLessThanOrEqual(1);
+    expect(centeredBegin.height).toBeGreaterThanOrEqual(44);
     await expect(page.getByRole("main").locator("time, .dates-calendar")).toHaveCount(0);
     await expect(page.locator(".venue-photo-gallery img")).toHaveCount(4);
     await expect(page.getByRole("heading", { name: locale === "en" ? "The final approach." : "الخطوة الأخيرة.", exact: true })).toHaveCount(0);
@@ -77,8 +108,12 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].venue);
     await expect(page.locator(".dates-location-details")).toContainText("22254");
     await expect(page.locator(".dates-note")).toHaveCount(0);
-    await expect(page.locator(".dates-closed-note")).toContainText(copy[locale].closed);
+    // Closed registration is communicated on its dedicated destination rather
+    // than repeated in the shortened Venue footer.
     await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/registration`);
+    await expect(page.locator("#schedule .dates-body")).toHaveText(locale === "en"
+      ? "Session times, doors and rooms will be announced."
+      : "ستُعلن مواعيد الجلسات وفتح الأبواب والقاعات لاحقًا.");
     await expect(page.getByRole("main")).not.toContainText(/09:00|9:00 AM/);
     await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"]')).toHaveCount(0);
     const directions = page.locator('.dates-directions-link');

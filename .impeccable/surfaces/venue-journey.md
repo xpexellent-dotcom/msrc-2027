@@ -7,6 +7,20 @@ related_targets: ["src/components/venue-arrival-journey.tsx", "src/components/ve
 
 # Venue journey
 
+ENG-033 updates this existing world: Program-matched purple-blurred photographic
+header, selected inverse-gradient keyword, then a two-column ivory map/gallery
+stage and centered Begin action. The published king-faisal-venue.jpg is the header
+asset. Existing abstract linework settles once behind the stage. Desktop journey
+copy is centered over the full-viewport geographic background; native viewport
+progress fades it at the edges, with keyboard/focus/open essentials restoring
+opacity1. A bounded gold/lilac entry light expands and clears as the map reaches
+the viewport top; reduced motion/reading flow omit it. International guidance is
+a centered bottom disclosure and the Program action finishes at the logical end.
+This supersedes the three-column opening, solid keyword and left reading geometry
+described below. EN/AR, phone compact map budget, 44px controls, privacy, native
+scrolling and source facts remain pinned. Direction/receipts:
+`docs/reviews/venue-cinematic-refinement.md`. No replacement visual world.
+
 Mode: Experience. Extend the established MSRC world; its colors, fonts, actions,
 navigation, factual content and accessibility remain authoritative. The user's
 pinned composition is a four-photo purple gallery and a full-screen geographic

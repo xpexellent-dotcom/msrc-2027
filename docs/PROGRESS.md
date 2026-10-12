@@ -1,5 +1,27 @@
 # Progress and session handover
 
+## 12 October 2026 — Cinematic Venue hierarchy and journey, ENG-033
+
+- Audit before edits: restore photographic hierarchy, lighten/thin the shared
+  navigation, center the journey's reading, and compose a balanced map/gallery
+  light stage. Existing published asset/facts, RTL, native scrolling, the compact
+  phone map and closed operations are preserved. Continued live publication
+  authority is recorded in ENG-033; fresh release evidence is required.
+- Implemented: Program-matched photo header, two-column map/gallery stage,
+  artistic linework that settles, centered Begin action, one scroll-driven
+  expanding light/map entry, centered reversible chapter fades, readable opened
+  essentials, centered international disclosure and logical-end Program action.
+  Navigation is 1240px / 60px with a finer rim, about 11% lower base opacity and
+  stationary purple/gold/white material accents.
+- Initial lint found an effect cleanup referencing the live decorative ref.
+  Capture the actual node inside that effect for cleanup; no rule suppressed.
+  Final source check: PASS lint/types, 2,399 unit tests /61 files and 81-page build,
+  `.tools/venue-cinematic-release-check.log`. Initial/second browser failures and
+  exact root-cause corrections are preserved in the review. Final browser/hosted
+  checks are pending, not represented as passes. User's unrelated phone-review
+  receipts and unused media remain unstaged.
+  Review: `docs/reviews/venue-cinematic-refinement.md`.
+
 ## 12 October 2026 — Compact venue opening and phone map, ENG-032
 
 - Implemented: campus map and Google/Apple directions in the opening, one
@@ -28,6 +50,28 @@
   Correction: PASS scoped lint and six EN/AR desktop/tablet/phone layout checks,
   zero retries, `.tools/venue-hero-font-readiness.log`.
   Review: `docs/reviews/venue-hero-phone-refinement.md`.
+
+- **COMPLETE — final publication, 12 October 2026 02:14 UTC:**
+  [PR 61](https://github.com/xpexellent-dotcom/msrc-2027/pull/61) reviewed head
+  `daf3dc447efa3e87ef39044c61214ae3d603b4c5` passed all three workflows,
+  ten substantive jobs, eleven checks and Vercel. Public CI: 639 passes /
+  41 intentional skips / zero failures. Owned exact-head Preview was READY;
+  authenticated desktop and EN/AR phone inspection passed.
+- Authorized squash merge: `ae55950f992180e0f643704c5d9127a4fdbb644a`.
+  Its source tree equals the reviewed head, `6ed82bd4467a15a74b06a5c576030c112430f689`.
+  Owned Production `dpl_5B8DrZPwmkq4szRrzuPhqDRdb3Qg` is READY at that
+  merge, on both `www.msrc2027.com` and `msrc2027.com`.
+- **PASS:** final GET/HEAD-only public verification 97/97; all 49 scoped
+  browser checks on the actual live site, EN/AR desktop/tablet/phone, zero retries.
+  Live native phone tap opens bounded map details; desktop opening shows campus
+  map beside a single photo card. Screenshots: `live-desktop.png` and
+  `live-phone.png` in `.impeccable/review/venue-hero-phone/`.
+  Receipts: `.tools/venue-hero-hosted-daf3dc4-final.json`,
+  `venue-hero-ci-totals-daf3dc4.json`, `venue-hero-production-after.json`,
+  `venue-hero-live-final.json`, `venue-hero-live-browser.log`.
+- Final receipts are appended locally to preserve the released source. Physical
+  iPhone Safari, physical Android and real screen readers remain NOT TESTED.
+  No operational flags/settings/data, migrations, DNS or communications changed.
 
 ## 12 October 2026 — Mobile venue exploration and publication, ENG-031
 

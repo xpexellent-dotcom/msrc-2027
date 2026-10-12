@@ -1,21 +1,19 @@
-.venue-gallery-hero {
+.venue-gallery-hero { background: var(--color-ivory); margin-block-start: calc(-1 * var(--site-header-height,81px)); }
+.venue-photo-header {
   position: relative;
   isolation: isolate;
-  min-block-size: 100svh;
+  min-block-size: 72svh;
   display: flex;
   align-items: center;
-  padding-block: clamp(8rem, 13vh, 11rem) 5rem;
+  padding-block: calc(var(--site-header-height,81px) + clamp(6rem, 10vw, 9rem)) clamp(4rem, 7vw, 7rem);
   overflow: clip;
-  background: var(--color-ivory);
+  color: var(--color-ivory);
+  --focus-ring: var(--color-lilac);
 }
-.venue-gallery-hero::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: radial-gradient(ellipse at 85% 55%, #dccff075, transparent 64%);
-}
-.venue-gallery-hero::after {
+.venue-gallery-stage { position: relative; isolation: isolate; padding-block: clamp(3.5rem,6vw,6rem) clamp(4rem,7vw,7rem); overflow: clip; background: radial-gradient(ellipse at 20% 20%,rgb(220 207 240 / 42%),transparent 60%),var(--color-ivory); }
+.venue-gallery-stage > .site-container { position: relative; z-index: 1; }
+.venue-gallery-stage .ambient-art { opacity: .65; }
+.venue-gallery-stage::after {
   content: "";
   position: absolute;
   z-index: -1;
@@ -24,13 +22,14 @@
   background: url("/media/msrc-demo/film-grain.jpg") repeat;
   pointer-events: none;
 }
-.venue-gallery-hero .about-breadcrumb { color: var(--color-muted); margin-block: 0 2.5rem; }
-.venue-hero-composition { display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1.1fr) minmax(0,.85fr); align-items: center; gap: clamp(1.5rem, 2.5vw, 2.5rem); }
-.venue-hero-intro { padding-block: 2rem; min-inline-size: 0; }
-.venue-hero-intro h1 { margin: 0; max-inline-size: 9ch; font-size: clamp(3rem, 4.75vw, 5rem); font-weight: 650; letter-spacing: -.035em; line-height: 1.08; color: var(--color-ink); }
-.venue-hero-intro h1 span { display: block; color: var(--color-purple); }
-.venue-hero-intro > p { color: var(--color-muted); max-inline-size: 34ch; margin-block: 2rem; font-size: clamp(1.125rem, 1.6vw, 1.4rem); line-height: 1.65; }
-.venue-hero-action { display: flex; align-items: center; gap: 1.2rem; inline-size: fit-content; min-block-size: 48px; color: var(--color-purple); font-size: 1.125rem; text-underline-offset: .35em; }
+.venue-photo-header .about-breadcrumb { color: var(--color-ivory); margin-block: 0 2.5rem; }
+.venue-photo-header .about-breadcrumb [aria-current] { color: var(--color-ivory); }
+.venue-hero-composition { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,1fr); align-items: center; gap: clamp(2rem, 4vw, 4rem); max-inline-size: 78rem; margin-inline: auto; }
+.venue-hero-intro { min-inline-size: 0; }
+.venue-photo-header .venue-hero-intro h1 { margin: 0; font-family: var(--font-display); font-size: clamp(3.4rem,7.1vw,6rem); font-weight: 700; letter-spacing: -.035em; line-height: 1.12; color: var(--color-ivory); text-wrap: balance; }
+.venue-hero-intro > p { max-inline-size: 42ch; margin-block: 1.75rem 0; font-size: clamp(1.125rem, 1.6vw, 1.4rem); line-height: 1.7; }
+.venue-journey-invitation { display: flex; justify-content: center; margin-block-start: clamp(3rem,5vw,5rem); }
+.venue-hero-action.button { gap: 1.2rem; min-block-size: 56px; padding: 1rem 1.75rem; font-size: 1.125rem; font-weight: 700; text-decoration: none; }
 .venue-hero-action svg { inline-size: 1.5rem; block-size: 1.5rem; transition: transform var(--motion-feedback) var(--motion-enter-easing); }
 .venue-hero-map { min-inline-size: 0; scroll-margin-block-start: 1.5rem; }
 .venue-hero-map .venue-geographic-map img { aspect-ratio: 12 / 6.5; object-fit: contain; }
@@ -55,43 +54,37 @@
 .venue-gallery-photo--04 img { object-position: 50% 58%; }
 .venue-gallery-photo::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, #3b1e6d24 0%, #3b1e6d40 50%, #20132dc7 100%); }
 .venue-gallery-photo figcaption { position: absolute; inset-inline: 1.25rem; inset-block-end: 1.2rem; z-index: 2; color: var(--color-ivory); font-weight: 600; font-size: 1rem; line-height: 1.45; }
-.venue-gallery-footer { padding-block: clamp(4rem, 8vw, 7rem); background: var(--color-ivory); }
-.venue-gallery-footer-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 3rem; }
-.venue-gallery-footer h2 { margin: 0; font-size: clamp(2.4rem, 5vw, 4.5rem); line-height: 1.14; font-weight: 650; letter-spacing: -.025em; max-inline-size: 13ch; }
-.venue-gallery-footer p { margin-block: 0 1.5rem; font-size: 1.15rem; max-inline-size: 45ch; }
-.venue-gallery-footer .dates-closed-note { margin-block-start: 1.5rem; }
-[dir="rtl"] .venue-hero-intro h1 { max-inline-size: 10ch; font-weight: 700; letter-spacing: 0; line-height: 1.4; }
-[dir="rtl"] .venue-gallery-footer h2 { letter-spacing: 0; line-height: 1.45; }
+.venue-gallery-footer { padding-block: 1.5rem clamp(3rem,5vw,5rem); background: var(--color-ivory); }
+.venue-gallery-footer-grid { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+.venue-gallery-footer p { margin: 0; font-size: 1rem; line-height: 1.7; max-inline-size: 45ch; color: var(--color-muted); }
+.venue-gallery-footer .dates-program-link { flex-shrink: 0; }
+[dir="rtl"] .venue-photo-header .venue-hero-intro h1 { font-size: clamp(3rem,6vw,5.3rem); font-weight: 700; letter-spacing: 0; line-height: 1.5; }
 @media (hover: hover) and (pointer: fine) {
   .venue-gallery-photo:hover img { transform: scale(1.045); }
   .venue-hero-action:hover svg { transform: translateY(3px); }
 }
-@media (min-width: 801px) and (max-width: 1199px) {
-  .venue-hero-composition { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .venue-hero-intro { grid-column: 1 / -1; }
-  .venue-hero-intro h1 { max-inline-size: none; }
-  .venue-hero-intro h1 span { display: inline; }
-}
 @media (max-width: 800px) {
-  .venue-gallery-hero { min-block-size: 0; padding-block: 8rem 4rem; }
-  .venue-gallery-hero .about-breadcrumb { margin-block-end: 1.5rem; }
+  .venue-photo-header { min-block-size: 0; padding-block: calc(var(--site-header-height,81px) + 4rem) 4.5rem; }
+  .venue-photo-header .about-breadcrumb { margin-block-end: 2rem; }
+  .venue-gallery-stage { padding-block: 3rem 4rem; }
   .venue-hero-composition { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
   .venue-hero-intro { padding: 0; }
-  .venue-hero-intro h1 { font-size: clamp(3rem, 11vw, 4.75rem); max-inline-size: 12ch; }
-  .venue-hero-intro > p { margin-block: 1.5rem 1rem; }
+  .venue-photo-header .venue-hero-intro h1 { font-size: clamp(2.8rem,10.8vw,4.5rem); }
+  [dir="rtl"] .venue-photo-header .venue-hero-intro h1 { font-size: clamp(2.5rem,9vw,3.8rem); }
   .venue-gallery-photo { aspect-ratio: 4 / 3; }
-  .venue-gallery-footer-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
-  .venue-gallery-footer h2 { max-inline-size: 18ch; }
+  .venue-gallery-footer-grid { flex-wrap: wrap; gap: 1.5rem; }
+  .venue-gallery-footer .dates-program-link { margin-inline-start: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   .venue-gallery-photo img, .venue-hero-action svg { transition: none; transform: none !important; }
 }
 @media (forced-colors: active) {
-  .venue-gallery-photo::after, .venue-gallery-hero::before, .venue-gallery-hero::after { display: none; }
+  .venue-gallery-photo::after, .venue-gallery-stage::after { display: none; }
   .venue-gallery-photo figcaption { color: CanvasText; background: Canvas; }
 }
 @media print {
-  .venue-gallery-hero { min-block-size: 0; padding-block: 1rem; }
+  .venue-gallery-hero { margin-block-start: 0; }
+  .venue-photo-header, .venue-gallery-stage { min-block-size: 0; padding-block: 1rem; }
   .venue-photo-gallery .rail-tools { display: none; }
   .venue-photo-gallery .rail-track { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; overflow: visible; }
   .venue-gallery-photo { border-radius: var(--radius-panel, 16px); }

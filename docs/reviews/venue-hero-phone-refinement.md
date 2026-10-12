@@ -94,3 +94,42 @@ one-card assertion now passes in four no-JS cases. Original failures preserved.
 NOT TESTED: physical iPhone Safari toolbar/safe-area behavior, physical Android
 and real screen readers. The organizer's screenshots establish the original
 hardware defects; browser emulation does not establish a physical-device pass.
+
+## Final publication receipt — 12 October 2026, 02:14 UTC
+
+[PR 61](https://github.com/xpexellent-dotcom/msrc-2027/pull/61) final reviewed
+head `daf3dc447efa3e87ef39044c61214ae3d603b4c5`: PASS all three workflows,
+ten substantive jobs, eleven checks and Vercel. Public browser CI totals:
+639 passed / 41 intentional skips / zero failures / 680 cases. Foundation:
+2,399 units / 61 files, 81-page build and 81 route smoke checks. Contact: 44.
+Participants: 88 passed / four skipped. Staff: 102 passed / eight skipped.
+All three disposable SQL executions: 1,023 assertions / 13 files, clean schema
+and advisors. These are CI database receipts, not local or hosted database changes.
+
+Owned Preview `dpl_4S5zJntYC5XGWiBwrMPm1UjiGzzC` was READY at the exact
+reviewed head. Existing authenticated CUA inspection passed desktop and EN/AR
+phone opening/details. No Deployment Protection settings changed.
+
+Authorized squash merge: `ae55950f992180e0f643704c5d9127a4fdbb644a`.
+Reviewed head and merged main share source tree
+`6ed82bd4467a15a74b06a5c576030c112430f689`.
+Owned Production `dpl_5B8DrZPwmkq4szRrzuPhqDRdb3Qg` is READY at that merge;
+metadata and gitSource agree, owner/project identities match, and both public
+aliases point to it. Checked 02:08:02 UTC. No source edits followed the merge.
+
+Final actual public verification: PASS 97/97 read-only GET/HEAD checks, including
+hero map/no removed copy/no Waze, public assets and closed operational boundaries.
+PASS all 49 scoped Chromium live desktop/tablet/phone browser cases in EN/AR,
+zero retries, covering native gallery input, chapter scrolling/reversal, point
+details, fixed controls, keyboard, privacy, reduced/enlarged/short layouts and
+no-JS. Final CUA visual review confirms the desktop opening and a native phone
+point tap; screenshots saved as `live-desktop.png` and `live-phone.png` under
+`.impeccable/review/venue-hero-phone/`. Temporary viewport override reset.
+
+Receipts: `.tools/venue-hero-hosted-daf3dc4-final.json`,
+`venue-hero-ci-totals-daf3dc4.json`, `venue-hero-preview-daf3dc4.json`,
+`venue-hero-production-after.json`, `venue-hero-live-final.json`,
+`venue-hero-live-browser.log`. Earlier failures remain preserved and are not
+represented as passes. Final receipt append is local only to preserve the
+tested/released source. Physical-device/Safari toolbar and real screen-reader
+UAT remain NOT TESTED; there are no outstanding code/release failures.

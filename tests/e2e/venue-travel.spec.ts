@@ -136,6 +136,7 @@ for (const locale of ["en", "ar"] as const) {
     await arrivalDetails.locator("summary").focus();
     await page.keyboard.press("Enter");
     await expect(arrivalDetails).toHaveAttribute("open", "");
+    await expect(page.locator("#journey-arrival .venue-journey-reading")).toHaveCSS("opacity", "1");
     for (const [key, value] of Object.entries(approvedAtVenue)) {
       await expect(page.locator(`#at-venue [data-venue-detail="${key}"] dd`)).toHaveText(value[locale]);
     }
@@ -149,6 +150,13 @@ for (const locale of ["en", "ar"] as const) {
     await expect(internationalDetails).toHaveAttribute("open", "");
     await expect(page.locator("#international-attendees")).toContainText(/UTC\+3/);
     await expect(page.locator("#international-attendees")).toContainText(approvedVisaResponsibility[locale]);
+    await expect(internationalDetails.locator("p")).toHaveCount(2);
+    for (const paragraph of await internationalDetails.locator("p").all()) await expect(paragraph).toBeVisible();
+    const internationalSummary = internationalDetails.locator("summary");
+    const internationalTarget = (await internationalSummary.boundingBox())!;
+    expect(internationalTarget.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press("Enter");
+    await expect(internationalDetails).not.toHaveAttribute("open", "");
     await expect(page.locator("iframe")).toHaveCount(0);
     await expect(page.locator('link[rel="prefetch"][href^="https://"], link[rel="preconnect"][href*="google"], link[rel="preconnect"][href*="apple"], link[rel="preconnect"][href*="waze"], link[rel="dns-prefetch"][href*="google"], link[rel="dns-prefetch"][href*="apple"], link[rel="dns-prefetch"][href*="waze"]')).toHaveCount(0);
 

@@ -97,6 +97,7 @@ function positionPointDetail(point: HTMLAnchorElement) {
 export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: ConferenceVenue }) {
   const root = useRef<HTMLElement>(null);
   const plane = useRef<HTMLDivElement>(null);
+  const entryLight = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const enhanced = useSyncExternalStore(subscribeToHydration, hydrated, serverHydrated);
   const [selectedPoint, setSelectedPoint] = useState<MapPoint | null>(null);
@@ -147,6 +148,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
   useEffect(() => {
     const element = root.current;
     const map = plane.current;
+    const light = entryLight.current;
     if (!element || !map) return;
     const chapters = venueJourneyIds.map(id => element.querySelector<HTMLElement>(`#${id}`));
     const points = [...map.querySelectorAll<HTMLElement>(".venue-journey-point")];
@@ -175,6 +177,12 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       const indexHeight = element.querySelector<HTMLElement>(".venue-journey-index")?.offsetHeight ?? 0;
       element.style.setProperty("--venue-index-height", `${indexHeight}px`);
       const mapBottom = compact && !readingFlow ? atlas.getBoundingClientRect().bottom + indexHeight : 0;
+      const entry = clamp((viewport - atlasBox.top) / viewport);
+      const entryEase = 1 - Math.pow(1 - entry, 4);
+      if (light) {
+        light.style.opacity = motion.matches || readingFlow ? "0" : String(Math.pow(Math.sin(entry * Math.PI), 6) * .36);
+        light.style.transform = motion.matches ? "none" : `scale(${.8 + entryEase * .65})`;
+      }
       const line = compact && !readingFlow ? Math.min(viewport - 32, mapBottom + (viewport - mapBottom) * .45)
         : Math.max(viewport * .45, Math.min(viewport - 24, anchorInset + scrollPadding + 1));
       const boxes = chapters.map(chapter => chapter?.getBoundingClientRect());
@@ -184,7 +192,19 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         if (current >= 0 && selected.current) { selected.current = null; setSelectedPoint(null); }
         current = next; setActive(next);
       }
-      chapters.forEach((chapter, index) => { if (chapter) chapter.dataset.chapterActive = String(index === next); });
+      chapters.forEach((chapter, index) => {
+        if (!chapter) return;
+        chapter.dataset.chapterActive = String(index === next);
+        const reading = chapter.querySelector<HTMLElement>(".venue-journey-reading");
+        if (!reading) return;
+        const bounds = reading.getBoundingClientRect();
+        const top = compact && !readingFlow ? mapBottom : headerHeight + 16;
+        const fadeBand = Math.min(120, Math.max(48, (viewport - top) * .25));
+        const visibility = clamp((bounds.bottom - top) / fadeBand) * clamp((viewport - bounds.top) / fadeBand);
+        // Default/no-JS content is visible. Focus, keyboard, open essentials,
+        // enlarged text and reduced motion restore full reading opacity in CSS.
+        reading.style.setProperty("--venue-copy-opacity", motion.matches || readingFlow ? "1" : visibility.toFixed(3));
+      });
 
       {
         const following = Math.min(next + 1, cameraStops.length - 1);
@@ -211,10 +231,27 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         const y = chosen?.y ?? (overview ? 850 : mix(first.y, last.y, amount));
         const scale = Math.max(.05, overview
           ? Math.min(atlas.clientWidth / 1400 * .86, compact ? Math.max(0, lower - upper - pointHeight - 12) / 1000 : atlas.clientHeight / 1700 * .86) * zoom.current
-          : Math.max(atlas.clientWidth / 1400, atlas.clientHeight / 1700) * (chosen?.zoom ?? mix(first.zoom, last.zoom, amount)) * zoom.current);
-        const targetX = atlas.clientWidth * (compact || overview ? .5 : locale === "ar" ? .22 : .78);
+          : Math.max(atlas.clientWidth / 1400, atlas.clientHeight / 1700) * (chosen?.zoom ?? mix(first.zoom, last.zoom, amount)) * zoom.current * (motion.matches || readingFlow ? 1 : .84 + entryEase * .16));
+        let targetX = atlas.clientWidth * (compact || overview ? .5 : locale === "ar" ? .20 : .80);
+        const foreground = chapters[next]?.querySelector<HTMLElement>(".venue-journey-reading")?.getBoundingClientRect();
+        const currentPoint = next === 0 ? points[0] : next === 2 ? points[1] : undefined;
+        if (!compact && !readingFlow && !overview && foreground && currentPoint) {
+          // Camera travel must leave the active pin and its hover corridor in
+          // the real side column, outside the centered foreground's hit area.
+          const pinX = targetX + (first.x - x) * scale;
+          const clearance = currentPoint.offsetWidth / 2 + 24;
+          if (locale === "ar") targetX -= Math.max(0, pinX - (foreground.left - atlasBox.left - clearance));
+          else targetX += Math.max(0, foreground.right - atlasBox.left + clearance - pinX);
+        }
         // Keep the focal stop between controls and attribution on thin maps.
-        const targetY = compact ? (upper + lower) / 2 : atlas.clientHeight * .48;
+        let targetY = compact ? (upper + lower) / 2 : atlas.clientHeight * .48;
+        if (!compact && !readingFlow && !overview && currentPoint) {
+          // The desktop atlas extends beneath the fixed header. Retain a clear
+          // active marker while its chapter is read, rather than advertising a
+          // point at the atlas edge that the header physically covers.
+          const pinY = targetY + (first.y - y) * scale;
+          targetY += Math.max(0, headerHeight + 24 - atlasBox.top + currentPoint.offsetHeight / 2 - pinY);
+        }
         map.style.left = "0px"; map.style.top = "0px"; map.style.transformOrigin = "0 0";
         map.style.transform = `translate3d(${targetX - x * scale}px,${targetY - y * scale}px,0) scale(${scale})`;
         points.forEach(point => {
@@ -276,6 +313,8 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       points.forEach(point => { point.style.removeProperty("transform"); point.inert = false; point.tabIndex = 0; point.removeAttribute("aria-hidden"); delete point.dataset.pointVisible; });
       delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned;
       element.style.removeProperty("--venue-index-height");
+      chapters.forEach(chapter => chapter?.querySelector<HTMLElement>(".venue-journey-reading")?.style.removeProperty("--venue-copy-opacity"));
+      light?.style.removeProperty("opacity"); light?.style.removeProperty("transform");
     };
   }, [locale]);
 
@@ -311,6 +350,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
           {renderPoint("airport")}{renderPoint("arrival")}
         </div>
         <div className="venue-journey-atlas-shade" aria-hidden="true" />
+        <div ref={entryLight} className="venue-journey-entry-light" aria-hidden="true" />
         <div className="venue-journey-map-caption"><p>{journey.mapNote}</p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">© OpenStreetMap contributors</a></div>
         <span className="venue-journey-north" aria-label={journey.north}><svg viewBox="0 0 20 28" aria-hidden="true"><path d="M10 1 2 20l8-4 8 4L10 1Z" fill="currentColor" /></svg><span>{locale === "ar" ? "ش" : "N"}</span></span>
         <div className="venue-map-controls" role="group" aria-label={journey.exploreMap}>
