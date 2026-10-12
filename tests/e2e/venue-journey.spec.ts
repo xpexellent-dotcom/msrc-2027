@@ -10,7 +10,10 @@ const mapLabels = {
   ar: { zoomIn: "تكبير الخريطة", zoomOut: "تصغير الخريطة", reset: "إعادة ضبط الخريطة", close: "أغلق تفاصيل الخريطة" },
 } as const;
 type EntrySceneStyles = { selector: string; properties: { name: string; value: string; priority: string }[] }[];
-type EntryReceipt = { changes: { state: string; at: number }[]; observer: MutationObserver; historyLength: number; sceneStyles: EntrySceneStyles };
+type EntrySceneSnapshot = { position: string; inert: boolean; translateY: number; placeholders: { hidden: string | null; height: number }[]; opacity: number; viewportHeight: number; blur: number };
+type EntryInputStart = { type: "wheel" | "touchmove"; at: number; delta: number; trusted: boolean; cancelable: boolean; beforeState: string; beforeY: number; beforeHistory: number; beforeReleases: number };
+type EntryInputObservation = EntryInputStart & { afterState: string; afterY: number; afterHistory: number; afterReleases: number; prevented: boolean; scene: EntrySceneSnapshot | null };
+type EntryReceipt = { changes: { state: string; at: number }[]; observer: MutationObserver; historyLength: number; sceneStyles: EntrySceneStyles; inputs: EntryInputObservation[]; stopInputRecording(): void };
 
 async function scrollPosition(rail: Locator) {
   return rail.evaluate((element) => Math.abs(element.scrollLeft));
@@ -289,8 +292,62 @@ async function recordEntryRelease(page: Page) {
       if (changes.at(-1)?.state !== state) changes.push({ state, at: performance.now() });
     });
     observer.observe(portal, { attributes: true, attributeFilter: ["data-entry-state"] });
+    const inputs: EntryInputObservation[] = [];
+    const pending = new WeakMap<Event, EntryInputStart>();
+    let previousTouchY: number | undefined;
+    const touchStart = (event: TouchEvent) => { previousTouchY = event.touches.length === 1 ? event.touches[0].clientY : undefined; };
+    const touchEnd = () => { previousTouchY = undefined; };
+    const captureInput = (event: WheelEvent | TouchEvent) => {
+      let delta: number;
+      if (event.type === "wheel") delta = (event as WheelEvent).deltaY;
+      else {
+        const point = (event as TouchEvent).touches[0];
+        if (!point) return;
+        delta = previousTouchY === undefined ? 0 : previousTouchY - point.clientY;
+        previousTouchY = point.clientY;
+      }
+      if (portal.dataset.entryState !== "releasing" || delta <= 0) return;
+      pending.set(event, { type: event.type as "wheel" | "touchmove", at: performance.now(), delta,
+        trusted: event.isTrusted, cancelable: event.cancelable, beforeState: portal.dataset.entryState,
+        beforeY: scrollY, beforeHistory: history.length, beforeReleases: Number(portal.dataset.entryReleases ?? "0") });
+    };
+    const afterInput = (event: WheelEvent | TouchEvent) => {
+      const before = pending.get(event);
+      if (!before) return;
+      const journey = document.querySelector<HTMLElement>(".venue-arrival-journey");
+      const reading = document.querySelector("#journey-airport .venue-journey-reading");
+      const layout = document.querySelector(".venue-stage-layout");
+      const placeholders = [...document.querySelectorAll("[data-venue-entry-placeholder]")];
+      inputs.push({ ...before, afterState: portal.dataset.entryState ?? "", afterY: scrollY,
+        afterHistory: history.length, afterReleases: Number(portal.dataset.entryReleases ?? "0"), prevented: event.defaultPrevented,
+        scene: journey && reading && layout ? { position: getComputedStyle(journey).position, inert: journey.inert,
+          translateY: new DOMMatrix(getComputedStyle(journey).transform).f,
+          placeholders: placeholders.map(element => ({ hidden: element.getAttribute("aria-hidden"), height: element.getBoundingClientRect().height })),
+          opacity: Number(getComputedStyle(reading).opacity), viewportHeight: innerHeight,
+          blur: Number.parseFloat(getComputedStyle(layout).filter.match(/blur\(([^)]+)\)/)?.[1] ?? "0") } : null });
+      pending.delete(event);
+    };
+    // Capture sees the real input before the controller; the later window
+    // listener sees whether that same trusted event was actually consumed.
+    // The controller is already hydrated before this recorder is installed.
+    window.addEventListener("touchstart", touchStart, { capture: true, passive: true });
+    window.addEventListener("touchend", touchEnd, { capture: true, passive: true });
+    window.addEventListener("touchcancel", touchEnd, { capture: true, passive: true });
+    for (const type of ["wheel", "touchmove"] as const) {
+      window.addEventListener(type, captureInput, { capture: true, passive: true });
+      window.addEventListener(type, afterInput, { passive: true });
+    }
+    const stopInputRecording = () => {
+      window.removeEventListener("touchstart", touchStart, { capture: true });
+      window.removeEventListener("touchend", touchEnd, { capture: true });
+      window.removeEventListener("touchcancel", touchEnd, { capture: true });
+      for (const type of ["wheel", "touchmove"] as const) {
+        window.removeEventListener(type, captureInput, { capture: true });
+        window.removeEventListener(type, afterInput);
+      }
+    };
     (window as unknown as { venueEntryReceipt: EntryReceipt })
-      .venueEntryReceipt = { changes, observer, historyLength: history.length, sceneStyles };
+      .venueEntryReceipt = { changes, observer, historyLength: history.length, sceneStyles, inputs, stopInputRecording };
   });
 }
 
@@ -298,7 +355,8 @@ async function expectOneEntryRelease(page: Page) {
   const receipt = await page.evaluate(() => {
     const receipt = (window as unknown as { venueEntryReceipt: EntryReceipt }).venueEntryReceipt;
     receipt.observer.disconnect();
-    return { changes: receipt.changes, addedHistoryEntries: history.length - receipt.historyLength,
+    receipt.stopInputRecording();
+    return { changes: receipt.changes, addedHistoryEntries: history.length - receipt.historyLength, inputs: receipt.inputs,
       priorStyles: receipt.sceneStyles, restoredStyles: receipt.sceneStyles.map(({ selector, properties }) => {
         const element = document.querySelector<HTMLElement>(selector);
         if (!element) throw new Error(`Expected ${selector} after the entrance reveal`);
@@ -317,23 +375,11 @@ async function expectOneEntryRelease(page: Page) {
   await expect(page.locator("[data-venue-entry-placeholder]")).toHaveCount(0);
   expect(await page.getByTestId("venue-arrival-journey").evaluate(element => (element as HTMLElement).inert)).toBe(false);
   await expect(page.locator(".venue-entry-portal")).toHaveAttribute("aria-busy", "false");
+  await expect(page.locator(".venue-entry-portal")).toHaveAttribute("data-entry-releases", "1");
+  return receipt;
 }
 
-async function expectEntryRevealScene(page: Page) {
-  // Capture one actual animation frame together. Serial protocol queries could
-  // span the entire short reveal and describe unrelated points in its timeline.
-  const scene = await page.evaluate(() => {
-    const journey = document.querySelector<HTMLElement>(".venue-arrival-journey");
-    const reading = document.querySelector("#journey-airport .venue-journey-reading");
-    const layout = document.querySelector(".venue-stage-layout");
-    const placeholders = [...document.querySelectorAll("[data-venue-entry-placeholder]")];
-    if (!journey || !reading || !layout) throw new Error("Expected the real Venue entrance scene during its reveal");
-    return { position: getComputedStyle(journey).position, inert: journey.inert,
-      translateY: new DOMMatrix(getComputedStyle(journey).transform).f,
-      placeholders: placeholders.map(element => ({ hidden: element.getAttribute("aria-hidden"), height: element.getBoundingClientRect().height })),
-      opacity: Number(getComputedStyle(reading).opacity), viewportHeight: innerHeight,
-      blur: Number.parseFloat(getComputedStyle(layout).filter.match(/blur\(([^)]+)\)/)?.[1] ?? "0") };
-  });
+function expectEntryRevealScene(scene: EntrySceneSnapshot) {
   expect(scene.position).toBe("fixed");
   expect(scene.inert).toBe(true);
   expect(scene.translateY).toBeGreaterThan(0);
@@ -343,6 +389,28 @@ async function expectEntryRevealScene(page: Page) {
   expect(scene.opacity).toBeGreaterThanOrEqual(.95);
   expect(scene.blur).toBeGreaterThan(0);
   expect(scene.blur).toBeLessThanOrEqual(6);
+}
+
+function expectBlockedReleaseInput(inputs: EntryInputObservation[], type: EntryInputObservation["type"], boundary: number) {
+  const residual = inputs.filter(input => input.type === type);
+  expect(residual.length, JSON.stringify(inputs)).toBeGreaterThanOrEqual(1);
+  for (const input of residual) {
+    expect(input.trusted).toBe(true);
+    expect(input.cancelable).toBe(true);
+    expect(input.delta).toBeGreaterThan(0);
+    expect(input.beforeState).toBe("releasing");
+    expect(input.afterState).toBe("releasing");
+    expect(input.prevented).toBe(true);
+    expect(input.afterY).toBe(input.beforeY);
+    expect(input.afterHistory).toBe(input.beforeHistory);
+    expect(input.afterReleases).toBe(input.beforeReleases);
+  }
+  const liveScenes = residual.filter(input => input.scene && input.scene.translateY > 0 && input.scene.blur > 0);
+  expect(liveScenes.length, JSON.stringify(residual)).toBeGreaterThanOrEqual(1);
+  for (const input of liveScenes) {
+    expectEntryRevealScene(input.scene!);
+    expect(Math.abs(input.beforeY - boundary)).toBeLessThanOrEqual(1);
+  }
 }
 
 async function retreatFromEntry(page: Page, isMobile: boolean, boundary: number) {
@@ -593,7 +661,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(`${approach.url}#journey-airport`);
   });
 
-  test(`${locale} charged entry persists between inputs, reverses and releases native scrolling once`, async ({ page, isMobile }) => {
+  test(`${locale} charged entry persists between inputs, reverses and releases native scrolling once`, async ({ page, isMobile }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}/dates-venue?view=charged-entry`);
     await page.evaluate(() => document.fonts.ready);
@@ -679,11 +747,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(Math.abs(await page.evaluate(() => window.scrollY) - readyBoundary)).toBeLessThanOrEqual(1);
     await expect(page).toHaveURL(originalURL);
     await recordEntryRelease(page);
-    if (isMobile) await entryInput(page, true, 360, async () => {
-      await expect(portal).toHaveAttribute("data-entry-state", "releasing");
-      await expectEntryRevealScene(page);
-      expect(Math.abs(await page.evaluate(() => window.scrollY) - readyBoundary)).toBeLessThanOrEqual(1);
-    });
+    if (isMobile) await entryInput(page, true, 360);
     else for (let step = 0; step < 6; step++) {
       const prior = await entryCharge(page);
       await entryInput(page, false, 900);
@@ -693,20 +757,23 @@ for (const locale of ["en", "ar"] as const) {
         expect(Math.abs(await page.evaluate(() => window.scrollY) - readyBoundary)).toBeLessThanOrEqual(1);
       }
     }
-    // Residual downward input during the reveal cannot move the destination,
-    // trigger another release or escape directly into the next chapter.
-    if (isMobile) await entryInput(page, true, 180, async () => {
-      await expect(portal).toHaveAttribute("data-entry-state", "releasing");
-      expect(Math.abs(await page.evaluate(() => window.scrollY) - readyBoundary)).toBeLessThanOrEqual(1);
-    }, 2);
-    else {
-      await expect(portal).toHaveAttribute("data-entry-state", "releasing");
-      await entryInput(page, false, 180);
-      await expect(portal).toHaveAttribute("data-entry-state", "releasing");
-      await expectEntryRevealScene(page);
+    // The phone's final touch samples follow the threshold in the same native
+    // gesture. Observe those real dispatch phases, rather than spending the
+    // short reveal starting another protocol session and polling afterward.
+    // A wheel follows the first rendered release frame at the existing pointer;
+    // this is a frame boundary, not an arbitrary elapsed-time delay.
+    if (!isMobile) {
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      await page.mouse.wheel(0, 180);
     }
     await expectAirportEntry(page);
-    await expectOneEntryRelease(page);
+    const receipt = await expectOneEntryRelease(page);
+    await testInfo.attach(`${locale}-entry-native-event-phases`, {
+      body: JSON.stringify({ changes: receipt.changes, inputs: receipt.inputs }, null, 2), contentType: "application/json",
+    });
+    // Residual input must be cancelled in its actual releasing event, preserve
+    // the held scene and history, and never trigger a second release.
+    expectBlockedReleaseInput(receipt.inputs, isMobile ? "touchmove" : "wheel", readyBoundary);
     await expect(page).toHaveURL(enteredURL);
     await expect(glow).toHaveCSS("opacity", "0");
     await expect(veil).toHaveCSS("opacity", "0");

@@ -39,6 +39,15 @@
   failure: an independent native baseline proves that Windows shortcut is
   unsupported there, so only Chromium tests it; plain Home/End remain strict
   in both engines. New exact-head CI/Preview and live release are still pending.
+- Hosted5815ce4: nine jobs pass; public662 pass/49 intentional skips/one Arabic
+  phone timing failure, so publication stays held. Exact trace confirms the
+  real scene and held position before protocol turnover outlasts the release.
+  Replace later phase polling with actual native event capture/bubble receipts;
+  preserve gesture blocking,850ms duration, one release/history, exact landing,
+  native continuation and cleanup. Application source is unchanged. PASS
+  lint/types, targeted12+4 skips and final event-frame4/4, zero retries. New
+  exact-head CI/owned Preview and live checks remain pending. Failed evidence
+  is retained under `.tools/venue-scroll-5815-failed-*`.
 
 ## 12 October 2026 — Venue update published, ENG-034/035/036
 

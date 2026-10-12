@@ -123,3 +123,30 @@ WebKit does not implement that shortcut:1548→1548, followed by plain Home→0
 Ctrl+Home in Chromium; no browser shortcut polyfill, retry or timeout extension.
 The14+4 focused reruns pass. Prior broader73-case and phone10-case receipts remain
 dated baseline checks; the new head still requires its own complete hosted CI.
+
+## Hosted timing failure and event-boundary correction
+
+PR64 at5815ce4 must not publish: nine jobs succeeded but Arabic phone charged
+entry failed a late residual-input assertion. Public totals:662 passed,49
+intentional skips,one failure across712 cases. Lint/types,2,401 units,81-page
+build/81 smoke, Contact44, participant88+4 skips and staff102+8 skips passed;
+each disposable SQL job passed1,023 assertions in13 files with clean advisors.
+Preserve the failed run38282679486/job114923492174 and artifact11763115076.
+
+The exact CI trace proves the live release/scene/held-position checks passed.
+After stationary touch completion, touchEnd and protocol-session turnover, the
+next residual callback arrived688ms after an already-active release observation,
+past its finish. This establishes a test synchronization defect; no application
+failure is established. Evidence: `.tools/venue-scroll-5815-failed-trace-timing-20261012-173200.json`.
+
+The test now records actual trusted wheel/touchmove capture and bubble phases.
+It requires post-threshold initiating-gesture input to be cancelled while the
+release is actually active, with unchanged position/history/release count and a
+readable real scene. Phone samples remain in the original gesture; a wheel
+follows one rendered animation frame. Remove time-racy later phase polling.
+Retain850ms motion, >=800ms observed release, one history/release, exact native
+Airport alignment, native continuation and full owned-style cleanup. No source,
+suite, retry or timeout change. PASS lint/types and targeted12 cases/four
+intentional skips, then final event-frame4/4, zero retries. Receipts:
+`.tools/venue-scroll-event-phase-browser.log`, `.tools/venue-scroll-event-frame-confirmed.log`.
+The new test-only head still requires fresh CI and owned deployment proof.
