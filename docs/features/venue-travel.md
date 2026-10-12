@@ -2,8 +2,15 @@
 
 ## Current input resilience follow-up — ENG-038, 12 October 2026
 
-Ordinary fast desktop input still bypasses or undercharges the published entrance.
-The scoped correction preserves full normalized earned effort, recovers eligible
+The corrected layout observation also watches the shared intro, catching header
+reflow that moves the overview without resizing it. Its complete lint/types,
+2,401-unit/61-file and 81-page build check passes. Six focused browser cases pass
+with two intentional phone keyboard skips, retaining all exact alignment,
+single-release, history and cleanup assertions. Full affected browser and hosted
+follow-up verification are pending; the preceding PR65 failure receipts remain.
+
+The organizer's fast desktop report exposed bypassed or undercharged entry.
+The published correction preserves full normalized earned effort, recovers eligible
 native crossings from actual scroll movement, excludes owned clamps and flushes
 pending movement before consuming another packet. Reverse input carries remaining
 upward distance naturally. The held overview displays earned glow before the same
@@ -13,12 +20,34 @@ gestures stay responsive; a genuine return above the gate rearms entry. Existing
 map/scene geometry, approved facts, EN/AR/RTL, controls and direct accessibility
 paths remain authoritative.
 
-Full local lint/types, 2,401 units/61 files and 81-page build PASS. Affected local
-browser checks are RUNNING/PENDING; final visual/CI/Preview and guarded publication
-with owned Production/live verification remain PENDING. The published source is
-still PR64's merge 47c1505. Existing publication authority applies only to public UI;
-operational workflows/settings/data remain untouched. Physical devices and screen
-readers are NOT TESTED. Audit and retained failure evidence:
+Full local lint/types, 2,401 units/61 files and 81-page build PASS, along with 81
+affected Chromium cases/16 intentional skips and supported WebKit phone 10/desktop 6.
+Four CDP-only phone paths are NOT TESTED in WebKit. Native slow 12px EN/AR probes
+and local desktop-fast/Arabic-phone visual review pass; viewport reset.
+PR65 reviewed head `5847ffa0c43ef62d50295827ad7d933240caddb9` is merged as
+`f07fea733864a83e866b624a6f89824df1154853`, with equal reviewed/merged trees.
+All three PR workflows, ten jobs, eleven actual checks and Vercel pass; public
+CI totals: 671 passes/57 intentional skips/zero failures. Owned exact-head Preview
+is READY. Owned READY Production `dpl_avrZLkeoXi78JUTwHsNNYzpvFtKf` serves
+Git/main at the exact merge on both public aliases; 97 public GET/HEAD checks pass.
+Final verification FAILS despite those valid publication receipts: the actual-public
+browser run finishes with 79 passes / 16 intentional skips / two Arabic-phone held-gate
+failures, zero retries. The preceding Arabic header reflows after initialization;
+the overview keeps the same size but moves, leaving its cached gate about 31px stale.
+Four deterministic EN/AR desktop/phone public regressions reproduce the 31px stale
+gate after a preceding-header-only mutation, zero retries. The narrow local
+correction observes the parent hero layout and adds upstream-reflow coverage with
+independent 1px alignment assertions. Independent
+push/main CI also FAILS: nine of ten jobs pass, with a separate Arabic-desktop
+Home/End interruption failure in public shard 2; public totals are 670 passes /
+57 skips / one failure. Native Control+Home legitimately rearms approaching after
+returning above the opening; the test lane now waits for the document edge and
+asserts Home approaching / End completed with the existing cleanup/history checks.
+Corrected-source checks,
+follow-up PR/release verification and final actual-public visual confirmation are
+PENDING; current published source remains f07fea7. Authority applies only to public
+UI; operational workflows/settings/data remain untouched. Physical devices and
+screen readers remain NOT TESTED. Audit and retained failure evidence:
 `docs/reviews/venue-input-resilience.md`. IDs: SCP-02, DSN-01/02, ACC-01,
 LOC-01/02/03, MED-01/04, PRV-03, REL-06.
 
