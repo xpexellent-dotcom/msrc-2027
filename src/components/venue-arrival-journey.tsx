@@ -10,6 +10,8 @@ import { datesVenueCopy } from "@/content/dates-venue";
 import { venueTravelCopy } from "@/content/venue-travel";
 import { venueJourneyCopy, venueJourneyIds, venueJourneySteps } from "@/content/venue-journey";
 import type { Locale } from "@/lib/i18n";
+import { createJourneyStepper } from "@/lib/journey-stepper";
+import { venueEntryGate, venueEntryRequest } from "@/lib/venue-entry-scene";
 
 const modes = ["taxi", "train", "rental"] as const satisfies readonly VenueTravelMode[];
 const detailKeys = ["entryGate", "ticket", "parking", "accessibility", "onSite", "wifi"] as const satisfies readonly VenueVisitorInfoKey[];
@@ -157,9 +159,29 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     const chapters = venueJourneyIds.map(id => element.querySelector<HTMLElement>(`#${id}`));
     const points = [...map.querySelectorAll<HTMLElement>(".venue-journey-point")];
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const colors = window.matchMedia("(forced-colors: active)");
     let frame = 0;
     let current = -1;
     let readingFlow = false;
+    const chapterAnchors = () => {
+      const padding = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0;
+      return chapters.flatMap(chapter => {
+        if (!chapter) return [];
+        const margin = Number.parseFloat(getComputedStyle(chapter).scrollMarginBlockStart) || 0;
+        return [window.scrollY + chapter.getBoundingClientRect().top - margin - padding];
+      });
+    };
+    /** 0 at the airport's resting position, 2 at arrival, fractional between. */
+    const journeyPosition = () => {
+      const anchors = chapterAnchors();
+      const y = window.scrollY;
+      const last = anchors.length - 1;
+      if (last <= 0 || y <= anchors[0]) return 0;
+      if (y >= anchors[last]) return last;
+      let index = 0;
+      while (index < last - 1 && y >= anchors[index + 1]) index++;
+      return index + clamp((y - anchors[index]) / Math.max(1, anchors[index + 1] - anchors[index]));
+    };
     const update = () => {
       frame = 0;
       const viewport = window.innerHeight;
@@ -168,8 +190,6 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       readingFlow = font > 24 || viewport <= 480;
       element.dataset.mapCompact = String(compact);
       element.dataset.readingFlow = String(readingFlow);
-      const anchorInset = chapters[0] ? Number.parseFloat(getComputedStyle(chapters[0]).scrollMarginBlockStart) || 0 : 0;
-      const scrollPadding = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0;
       const atlas = map.parentElement!;
       const atlasBox = atlas.getBoundingClientRect();
       const headerHeight = Number.parseFloat(getComputedStyle(element).getPropertyValue("--site-header-height")) || 80;
@@ -181,11 +201,10 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       const indexHeight = element.querySelector<HTMLElement>(".venue-journey-index")?.offsetHeight ?? 0;
       element.style.setProperty("--venue-index-height", `${indexHeight}px`);
       const mapBottom = compact && !readingFlow ? atlas.getBoundingClientRect().bottom + indexHeight : 0;
-      const line = compact && !readingFlow ? Math.min(viewport - 32, mapBottom + (viewport - mapBottom) * .45)
-        : Math.max(viewport * .45, Math.min(viewport - 24, anchorInset + scrollPadding + 1));
-      const boxes = chapters.map(chapter => chapter?.getBoundingClientRect());
-      let next = 0;
-      boxes.forEach((box, index) => { if (box && box.top <= line) next = index; });
+      // Progress is measured between the chapters' own resting positions, so
+      // the camera sits exactly on each place whenever its chapter is at rest.
+      const position = journeyPosition();
+      const next = Math.round(position);
       if (next !== current) {
         if (current >= 0 && selected.current) { selected.current = null; setSelectedPoint(null); }
         current = next; setActive(next);
@@ -214,15 +233,11 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       });
 
       {
-        const following = Math.min(next + 1, cameraStops.length - 1);
-        const start = boxes[next]?.top ?? line;
-        const end = boxes[following]?.top ?? start;
-        const progress = following === next ? 0 : clamp((line - start) / Math.max(1, end - start));
-        // Hold a phone stop while its guidance is read; travel near the chapter
-        // boundary so its tappable pin does not drift into the thin toolbar.
-        const travelProgress = compact ? clamp((progress - .75) / .25) : progress;
-        const amount = motion.matches ? 0 : travelProgress * travelProgress * (3 - 2 * travelProgress);
-        const first = cameraStops[next];
+        // The stepper already eases each move; the camera follows it linearly.
+        const from = motion.matches ? next : Math.min(Math.floor(position), cameraStops.length - 1);
+        const following = Math.min(from + 1, cameraStops.length - 1);
+        const amount = motion.matches ? 0 : position - from;
+        const first = cameraStops[from];
         const last = cameraStops[following];
         const chosen = selected.current ? cameraStops[selected.current === "airport" ? 0 : 2] : null;
         const overview = motion.matches && !chosen && (!compact || readingFlow);
@@ -247,7 +262,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         } else element.style.removeProperty("--venue-reading-edge");
         const currentPoint = selected.current ? points[selected.current === "airport" ? 0 : 1]
           : next === 0 ? points[0] : next === 2 ? points[1] : undefined;
-        const focalStop = chosen ?? first;
+        const focalStop = chosen ?? cameraStops[next];
         if (!compact && !readingFlow && !overview && foreground && currentPoint) {
           // Camera travel must leave the active pin and its hover corridor in
           // the real map column, outside the side foreground's hit area.
@@ -286,6 +301,30 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       element.dataset.journeyReady = "true";
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const entryStage = () => document.querySelector<HTMLElement>(".venue-gallery-stage[data-entry-boundary]");
+    // Stops: the venue overview (when present), then each chapter's resting position.
+    const stepper = createJourneyStepper({
+      enabled: () => element.dataset.journeyReady === "true" && !readingFlow && !motion.matches && !colors.matches
+        && (window.visualViewport?.scale ?? 1) <= 1.01,
+      stops: () => {
+        const stage = entryStage();
+        return stage ? [venueEntryGate(stage).y, ...chapterAnchors()] : chapterAnchors();
+      },
+      overflow: index => {
+        const reading = chapters[index - (entryStage() ? 1 : 0)]?.querySelector<HTMLElement>(".venue-journey-reading");
+        return reading ? reading.getBoundingClientRect().bottom - (window.innerHeight - 24) : 0;
+      },
+      // Entering from the overview keeps the existing light-and-reveal scene.
+      transition: (from, to) => {
+        if (from !== 0 || to !== 1 || !entryStage()) return;
+        let done = () => {};
+        const settled = new Promise<void>(resolve => { done = resolve; });
+        const request = new CustomEvent(venueEntryRequest, { cancelable: true, detail: { done: () => done() } });
+        window.dispatchEvent(request);
+        return request.defaultPrevented ? settled : undefined;
+      },
+      onMoving: moving => { element.dataset.journeyMoving = String(moving); },
+    });
     refresh.current = schedule;
     const keyboard = (event: KeyboardEvent) => {
       element.dataset.keyboard = "true";
@@ -317,6 +356,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     motion.addEventListener("change", schedule);
     update();
     return () => {
+      stepper.destroy();
       refresh.current = () => {};
       cancelAnimationFrame(frame); size?.disconnect(); textSize.disconnect();
       window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule);
@@ -326,7 +366,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       motion.removeEventListener("change", schedule);
       map.style.removeProperty("transform"); map.style.removeProperty("left"); map.style.removeProperty("top"); map.style.removeProperty("transform-origin");
       points.forEach(point => { point.style.removeProperty("transform"); point.inert = false; point.tabIndex = 0; point.removeAttribute("aria-hidden"); delete point.dataset.pointVisible; });
-      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned;
+      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned; delete element.dataset.journeyMoving;
       element.style.removeProperty("--venue-index-height");
       element.style.removeProperty("--venue-reading-edge");
       chapters.forEach(chapter => chapter?.querySelector<HTMLElement>(".venue-journey-reading")?.style.removeProperty("--venue-copy-opacity"));

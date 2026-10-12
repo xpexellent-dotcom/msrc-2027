@@ -1,5 +1,23 @@
 # Progress and session handover
 
+## 12 October 2026 — One gesture per Venue journey stop, ENG-038
+
+- Organizer request: the journey must work for fast and slow scrolling, move one
+  map point per scroll, and feel smooth. Root cause: the native-scrolling rule
+  (DSN-01) kept the journey distance-based, so fast wheels overshot the 480px
+  entrance charge and each 110svh chapter needed several scrolls.
+- Replaced the charge/hold with `createJourneyStepper`: gesture-based wheel,
+  trackpad, touch and keyboard stepping between overview/Airport/Getting
+  there/Venue, eased tween, camera locked to stop progress. The entry reveal is
+  requested by the stepper or Begin.
+- Removed obsolete charge/native-chapter e2e cases; adapted three that relied on
+  wheel distances. Added `venue-journey-stepper.spec.ts` (fast flick, notch,
+  trackpad inertia, keyboard, phone swipe, frame-by-frame smoothness; EN/AR).
+- PASS: lint, typecheck, 2,401 unit tests, production build, 230 venue-related
+  e2e tests across desktop/tablet/mobile (34 skipped by design). Stepper spec
+  repeated 3x with no flakes. NOT TESTED: real iOS Safari momentum, physical
+  Mac trackpad (simulated inertia only).
+
 ## 12 October 2026 — Correct the cinematic Venue entrance, ENG-037
 
 - User reports that the published entrance does not hold. Fresh live native

@@ -1,5 +1,31 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-038 — One gesture, one Venue journey stop, 12 October 2026
+
+The organizer reports that the Venue journey only works when scrolled in a
+specific way, that fast scrolling breaks it, that each map point takes several
+scrolls, and that movement is not smooth. This explicit organizer decision
+supersedes ENG-037's 480px charge/hold and the "native journey scrolling" part
+of DSN-01 for this one page section only.
+
+The journey now has four stops: the venue overview, Airport, Getting there and
+Venue. One deliberate gesture moves exactly one stop in either direction:
+a wheel flick of any speed, a single notch, a trackpad swipe with inertia, a
+phone swipe, or ArrowUp/ArrowDown/PageUp/PageDown/Space. Gestures are separated
+by a 170ms quiet gap (or a rising trackpad delta); input during a move, the rest
+of the gesture that started it, and input within 220ms of arrival are consumed so
+they cannot carry on as native scrolling. Moves are a 620–1100ms ease-in-out
+tween, and the map camera follows stop-to-stop progress so it rests exactly on
+each place. Overview -> Airport keeps the ENG-037 light-and-reveal scene; the
+centered Begin action is unchanged.
+
+Scrolling stays native above the overview and below Venue. A fast native fling
+that crosses the overview or Venue is caught at that stop. Content taller than
+the reading area is revealed before advancing. Reduced motion, forced colors,
+enlarged text, zoom, inner scrollers, form fields and modified keys keep native
+behavior. Implementation: `src/lib/journey-stepper.ts`; coverage:
+`tests/e2e/venue-journey-stepper.spec.ts`.
+
 ## ENG-037 — Reliable scroll-powered Venue entrance, 12 October 2026
 
 The organizer reports that normal scrolling bypasses the published overview

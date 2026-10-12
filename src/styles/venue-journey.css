@@ -242,3 +242,5 @@
   .venue-arrival-journey details::details-content { content-visibility: visible; display: block; }
   .venue-arrival-journey :is(h2,h3,p,dt,dd,a,.venue-journey-title > span) { color: #000; }
 }
+/* The stepper drives the camera every frame; a CSS transition would only lag it. */
+.venue-arrival-journey[data-journey-moving="true"] :is(.venue-journey-camera,.venue-journey-point.site-link) { transition: none; }
