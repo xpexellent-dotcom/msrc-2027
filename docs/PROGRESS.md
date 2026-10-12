@@ -1,5 +1,84 @@
 # Progress and session handover
 
+## 12 October 2026 — Correct the cinematic Venue entrance, ENG-037
+
+- User reports that the published entrance does not hold. Fresh live native
+  scrolling reproduces the defect: a fast approach skips the late-armed trigger
+  and falsely marks entry complete. Four fresh EN/AR wheel/touch regressions FAIL
+  on the prior build. The previous green checks did not cover this approach;
+  their publication receipts remain historical evidence, not proof of this fix.
+- Implement one approaching/charging/releasing/completed controller. Predict
+  wheel crossings before overshoot; own single-finger vertical gestures from
+  their first move only in the bounded approach. Cap spikes, retain scroll-only
+  charge across pauses and reduce it on reverse input. No global overflow lock.
+- The shared scroll/button release lasts850ms: opposing clipped layers reveal
+  the actual journey, with restrained map parallax, heading reveal and transient
+  blur. Preserve flow with a temporary spacer, synchronize document scroll and
+  existing map/fades before restoring the final Airport composition, then drain
+  initiating input briefly. Native journey scrolling and readable direct
+  reduced-motion/no-JS/enlarged/short-layout paths remain.
+- PASS intermediate pinned check: lint/types,2,401 units/61 files and81-page
+  build. Fresh crossing/button/duplicate/landing cases pass. Preserved intermediate
+  regression failures identify outdated charge-blur/bypass assertions and a
+  simulated phone gesture that outlasts the850ms timeline. Assertions now follow
+  the explicit latest contract and inspect the actual live transition in time;
+  duration, hold, landing, one-release/history and cleanup checks remain.
+- PASS final complete check: lint/types,2,401 units/61 files and81-page build.
+  PASS affected Chromium73 cases, eight intentional skips, zero failures/retries.
+  Fresh approaches, persistent/reverse charge, bounded flicks, partial/duplicate
+  activation,850ms real-section reveal, owned-style cleanup, precise Airport and
+  native post-entry/Home/End scrolling are covered. PASS WebKit phone10/10,
+  zero retries. Exact-head CI/Preview and owned Production/public verification
+  PENDING. Live publication remains explicitly
+  authorized. No facts, dependencies, assets, hosted settings, database/workflow
+  gates or communications change. Physical devices and screen readers NOT TESTED.
+  Audit: `docs/reviews/venue-scroll-entry.md`; receipts: `.tools/venue-scroll-*`.
+- Final keyboard review corrects Home/End when Begin retains focus. Another
+  full check passes; focused Chromium14 + two intentional mobile skips and
+  WebKit4/4 pass with zero retries. Preserve the optional WebKit Ctrl+Home
+  failure: an independent native baseline proves that Windows shortcut is
+  unsupported there, so only Chromium tests it; plain Home/End remain strict
+  in both engines. New exact-head CI/Preview and live release are still pending.
+- Hosted5815ce4: nine jobs pass; public662 pass/49 intentional skips/one Arabic
+  phone timing failure, so publication stays held. Exact trace confirms the
+  real scene and held position before protocol turnover outlasts the release.
+  Replace later phase polling with actual native event capture/bubble receipts;
+  preserve gesture blocking,850ms duration, one release/history, exact landing,
+  native continuation and cleanup. Application source is unchanged. PASS
+  lint/types, targeted12+4 skips and final event-frame4/4, zero retries. New
+  exact-head CI/owned Preview and live checks remain pending. Failed evidence
+  is retained under `.tools/venue-scroll-5815-failed-*`.
+
+## 12 October 2026 — Venue update published, ENG-034/035/036
+
+- PR63 reviewed head80b5c2ce4449a5ddfa9bcf8472fe0341f4ea8637 is merged as
+  79d0679d2eb59c0583658d4a5fda827fb781448a. Fresh main matches; reviewed and
+  merged trees both ddc6f6d336ccee61e81694353384b7910f6dd2d5.
+- PASS exact-head PR CI and independent push/main CI: three workflows, ten jobs
+  and ten actual Actions checks, attempt1. Public653 pass/43 intentional skips/
+  zero failures;2,401 units/61 files;81-page build and81 smoke; Contact44,
+  participant88+4 skips, staff102+8 skips; each disposable SQL run1,023 assertions
+  in13 files with clean schema/advisors. Local Docker/database remains unavailable.
+- GitHub's Vercel comment/commit signals were absent. Fresh direct owned READY
+  Preview proof and protected EN/AR HTTP200 replace only that redundant report;
+  no signal was forged or counted green. All substantive guards remain. Single
+  ordinary merge rechecks Preview first, then PR/main immediately before PUT.
+- Automatic Production did not appear in the bounded source lookup. A single
+  explicitly authorized existing-project build uses remote main+exact79d source,
+  target production, no local workspace upload or settings/flags. READY deployment
+  dpl_EScbq98CCVAB7zTpaF8kXxSo6ZnD matches owned project/team and both public
+  aliases. Metadata/GitSource/main agree on79d.
+- PASS actual public97 GET/HEAD checks and scoped Chromium63/65 cases, two
+  intentional desktop-only skips on phones, zero retries. Final live desktop
+  held-frame/release and phone/side-copy screenshots are saved under
+  `.impeccable/review/venue-overview-side-reading/`; public Venue tab retained and
+  viewport restored. Physical Safari/Android and screen readers NOT TESTED.
+- Final receipts: `.tools/venue-side-production-final.json`,
+  `.tools/venue-side-live-receipt.json`, `.tools/venue-side-live-browser.log`,
+  `.tools/venue-side-main-79d-*` and detailed review below. These post-release notes
+  are local supplemental receipts; the verified deployed source remains frozen.
+  Unrelated dirty reviews/media remain preserved. No required UI work remains.
+
 ## 12 October 2026 — Browser archive setup correction, ENG-036
 
 - PR63 initial dd432fc: owned READY Preview and nine substantive jobs PASS.

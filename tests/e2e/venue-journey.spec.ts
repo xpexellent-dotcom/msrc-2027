@@ -9,6 +9,11 @@ const mapLabels = {
   en: { zoomIn: "Zoom in", zoomOut: "Zoom out", reset: "Reset map", close: "Close map details" },
   ar: { zoomIn: "تكبير الخريطة", zoomOut: "تصغير الخريطة", reset: "إعادة ضبط الخريطة", close: "أغلق تفاصيل الخريطة" },
 } as const;
+type EntrySceneStyles = { selector: string; properties: { name: string; value: string; priority: string }[] }[];
+type EntrySceneSnapshot = { position: string; inert: boolean; translateY: number; placeholders: { hidden: string | null; height: number }[]; opacity: number; viewportHeight: number; blur: number };
+type EntryInputStart = { type: "wheel" | "touchmove"; at: number; delta: number; trusted: boolean; cancelable: boolean; beforeState: string; beforeY: number; beforeHistory: number; beforeReleases: number };
+type EntryInputObservation = EntryInputStart & { afterState: string; afterY: number; afterHistory: number; afterReleases: number; prevented: boolean; scene: EntrySceneSnapshot | null };
+type EntryReceipt = { changes: { state: string; at: number }[]; observer: MutationObserver; historyLength: number; sceneStyles: EntrySceneStyles; inputs: EntryInputObservation[]; stopInputRecording(): void };
 
 async function scrollPosition(rail: Locator) {
   return rail.evaluate((element) => Math.abs(element.scrollLeft));
@@ -266,7 +271,189 @@ async function entryCharge(page: Page) {
   return page.locator(".venue-entry-portal").evaluate((element) => Number(getComputedStyle(element).getPropertyValue("--venue-entry-charge")));
 }
 
-async function entryInput(page: Page, isMobile: boolean, distance: number, whileHeld?: () => Promise<void>) {
+async function recordEntryRelease(page: Page) {
+  await page.evaluate(() => {
+    const portal = document.querySelector<HTMLElement>(".venue-entry-portal");
+    if (!portal) throw new Error("Expected the hydrated Venue entrance to record its release");
+    const changes = [{ state: portal.dataset.entryState ?? "", at: performance.now() }];
+    const sceneStyles = [
+      { selector: ".venue-arrival-journey", names: ["position", "left", "right", "top", "bottom", "width", "height", "min-height", "max-height", "overflow", "overflow-x", "overflow-y", "z-index", "transform", "filter", "will-change", "transition", "transition-property", "transition-duration", "transition-timing-function", "transition-delay", "transition-behavior"] },
+      { selector: ".venue-journey-world", names: ["transform", "will-change", "transition", "transition-property", "transition-duration", "transition-timing-function", "transition-delay", "transition-behavior"] },
+      { selector: ".venue-journey-frame", names: ["transform", "will-change", "transition", "transition-property", "transition-duration", "transition-timing-function", "transition-delay", "transition-behavior"] },
+      { selector: "#journey-airport .venue-journey-title", names: ["transform", "opacity", "will-change", "transition", "transition-property", "transition-duration", "transition-timing-function", "transition-delay", "transition-behavior"] },
+      { selector: "#journey-airport .venue-journey-reading", names: ["opacity", "transition", "transition-property", "transition-duration", "transition-timing-function", "transition-delay", "transition-behavior"] },
+    ].map(({ selector, names }) => {
+      const element = document.querySelector<HTMLElement>(selector);
+      if (!element) throw new Error(`Expected ${selector} before the entrance reveal`);
+      return { selector, properties: names.map(name => ({ name, value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) })) };
+    });
+    const observer = new MutationObserver(() => {
+      const state = portal.dataset.entryState ?? "";
+      if (changes.at(-1)?.state !== state) changes.push({ state, at: performance.now() });
+    });
+    observer.observe(portal, { attributes: true, attributeFilter: ["data-entry-state"] });
+    const inputs: EntryInputObservation[] = [];
+    const pending = new WeakMap<Event, EntryInputStart>();
+    let previousTouchY: number | undefined;
+    const touchStart = (event: TouchEvent) => { previousTouchY = event.touches.length === 1 ? event.touches[0].clientY : undefined; };
+    const touchEnd = () => { previousTouchY = undefined; };
+    const captureInput = (event: WheelEvent | TouchEvent) => {
+      let delta: number;
+      if (event.type === "wheel") delta = (event as WheelEvent).deltaY;
+      else {
+        const point = (event as TouchEvent).touches[0];
+        if (!point) return;
+        delta = previousTouchY === undefined ? 0 : previousTouchY - point.clientY;
+        previousTouchY = point.clientY;
+      }
+      if (portal.dataset.entryState !== "releasing" || delta <= 0) return;
+      pending.set(event, { type: event.type as "wheel" | "touchmove", at: performance.now(), delta,
+        trusted: event.isTrusted, cancelable: event.cancelable, beforeState: portal.dataset.entryState,
+        beforeY: scrollY, beforeHistory: history.length, beforeReleases: Number(portal.dataset.entryReleases ?? "0") });
+    };
+    const afterInput = (event: WheelEvent | TouchEvent) => {
+      const before = pending.get(event);
+      if (!before) return;
+      const journey = document.querySelector<HTMLElement>(".venue-arrival-journey");
+      const reading = document.querySelector("#journey-airport .venue-journey-reading");
+      const layout = document.querySelector(".venue-stage-layout");
+      const placeholders = [...document.querySelectorAll("[data-venue-entry-placeholder]")];
+      inputs.push({ ...before, afterState: portal.dataset.entryState ?? "", afterY: scrollY,
+        afterHistory: history.length, afterReleases: Number(portal.dataset.entryReleases ?? "0"), prevented: event.defaultPrevented,
+        scene: journey && reading && layout ? { position: getComputedStyle(journey).position, inert: journey.inert,
+          translateY: new DOMMatrix(getComputedStyle(journey).transform).f,
+          placeholders: placeholders.map(element => ({ hidden: element.getAttribute("aria-hidden"), height: element.getBoundingClientRect().height })),
+          opacity: Number(getComputedStyle(reading).opacity), viewportHeight: innerHeight,
+          blur: Number.parseFloat(getComputedStyle(layout).filter.match(/blur\(([^)]+)\)/)?.[1] ?? "0") } : null });
+      pending.delete(event);
+    };
+    // Capture sees the real input before the controller; the later window
+    // listener sees whether that same trusted event was actually consumed.
+    // The controller is already hydrated before this recorder is installed.
+    window.addEventListener("touchstart", touchStart, { capture: true, passive: true });
+    window.addEventListener("touchend", touchEnd, { capture: true, passive: true });
+    window.addEventListener("touchcancel", touchEnd, { capture: true, passive: true });
+    for (const type of ["wheel", "touchmove"] as const) {
+      window.addEventListener(type, captureInput, { capture: true, passive: true });
+      window.addEventListener(type, afterInput, { passive: true });
+    }
+    const stopInputRecording = () => {
+      window.removeEventListener("touchstart", touchStart, { capture: true });
+      window.removeEventListener("touchend", touchEnd, { capture: true });
+      window.removeEventListener("touchcancel", touchEnd, { capture: true });
+      for (const type of ["wheel", "touchmove"] as const) {
+        window.removeEventListener(type, captureInput, { capture: true });
+        window.removeEventListener(type, afterInput);
+      }
+    };
+    (window as unknown as { venueEntryReceipt: EntryReceipt })
+      .venueEntryReceipt = { changes, observer, historyLength: history.length, sceneStyles, inputs, stopInputRecording };
+  });
+}
+
+async function expectOneEntryRelease(page: Page) {
+  const receipt = await page.evaluate(() => {
+    const receipt = (window as unknown as { venueEntryReceipt: EntryReceipt }).venueEntryReceipt;
+    receipt.observer.disconnect();
+    receipt.stopInputRecording();
+    return { changes: receipt.changes, addedHistoryEntries: history.length - receipt.historyLength, inputs: receipt.inputs,
+      priorStyles: receipt.sceneStyles, restoredStyles: receipt.sceneStyles.map(({ selector, properties }) => {
+        const element = document.querySelector<HTMLElement>(selector);
+        if (!element) throw new Error(`Expected ${selector} after the entrance reveal`);
+        return { selector, properties: properties.map(({ name }) => ({ name, value: element.style.getPropertyValue(name), priority: element.style.getPropertyPriority(name) })) };
+      }) };
+  });
+  const releases = receipt.changes.filter(change => change.state === "releasing");
+  expect(releases, JSON.stringify(receipt)).toHaveLength(1);
+  const completion = receipt.changes.find(change => change.state === "completed");
+  expect(completion, JSON.stringify(receipt)).toBeDefined();
+  // A deliberate reveal remains visible through its authored 850ms, then
+  // completes after draining residual input. A brief jump is not equivalent.
+  expect(completion!.at - releases[0].at).toBeGreaterThanOrEqual(800);
+  expect(receipt.addedHistoryEntries).toBe(1);
+  expect(receipt.restoredStyles).toEqual(receipt.priorStyles);
+  await expect(page.locator("[data-venue-entry-placeholder]")).toHaveCount(0);
+  expect(await page.getByTestId("venue-arrival-journey").evaluate(element => (element as HTMLElement).inert)).toBe(false);
+  await expect(page.locator(".venue-entry-portal")).toHaveAttribute("aria-busy", "false");
+  await expect(page.locator(".venue-entry-portal")).toHaveAttribute("data-entry-releases", "1");
+  return receipt;
+}
+
+function expectEntryRevealScene(scene: EntrySceneSnapshot) {
+  expect(scene.position).toBe("fixed");
+  expect(scene.inert).toBe(true);
+  expect(scene.translateY).toBeGreaterThan(0);
+  expect(scene.placeholders).toHaveLength(1);
+  expect(scene.placeholders[0].hidden).toBe("true");
+  expect(scene.placeholders[0].height).toBeGreaterThan(scene.viewportHeight);
+  expect(scene.opacity).toBeGreaterThanOrEqual(.95);
+  expect(scene.blur).toBeGreaterThan(0);
+  expect(scene.blur).toBeLessThanOrEqual(6);
+}
+
+function expectBlockedReleaseInput(inputs: EntryInputObservation[], type: EntryInputObservation["type"], boundary: number) {
+  const residual = inputs.filter(input => input.type === type);
+  expect(residual.length, JSON.stringify(inputs)).toBeGreaterThanOrEqual(1);
+  for (const input of residual) {
+    expect(input.trusted).toBe(true);
+    expect(input.cancelable).toBe(true);
+    expect(input.delta).toBeGreaterThan(0);
+    expect(input.beforeState).toBe("releasing");
+    expect(input.afterState).toBe("releasing");
+    expect(input.prevented).toBe(true);
+    expect(input.afterY).toBe(input.beforeY);
+    expect(input.afterHistory).toBe(input.beforeHistory);
+    expect(input.afterReleases).toBe(input.beforeReleases);
+  }
+  const liveScenes = residual.filter(input => input.scene && input.scene.translateY > 0 && input.scene.blur > 0);
+  expect(liveScenes.length, JSON.stringify(residual)).toBeGreaterThanOrEqual(1);
+  for (const input of liveScenes) {
+    expectEntryRevealScene(input.scene!);
+    expect(Math.abs(input.beforeY - boundary)).toBeLessThanOrEqual(1);
+  }
+}
+
+async function retreatFromEntry(page: Page, isMobile: boolean, boundary: number) {
+  await entryInput(page, isMobile, -180);
+  await expect.poll(() => entryCharge(page)).toBe(0);
+  await expect(page.locator(".venue-entry-portal")).toHaveAttribute("data-entry-state", "approaching");
+  // Once charge is empty, a separate deliberate upward gesture must pass
+  // straight through to the document rather than leave a permanent hold.
+  await entryInput(page, isMobile, -180);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(boundary - 40);
+}
+
+async function completeEntryWithScroll(page: Page, isMobile: boolean) {
+  if (isMobile) {
+    const approach = await naturalEntrySnapshot(page);
+    const distance = Math.max(0, approach.remaining) + 360;
+    await entryInput(page, true, distance, undefined, Math.max(8, Math.ceil(distance / 60)));
+  } else {
+    // A finite extreme delta may reach the overview but cannot erase buildup.
+    // Six separate movements deliberately finish a 480px / 80px-capped charge.
+    for (let step = 0; step < 6; step++) await entryInput(page, false, 900);
+  }
+}
+
+async function naturalEntrySnapshot(page: Page) {
+  return page.evaluate(() => {
+    const stage = document.querySelector<HTMLElement>(".venue-gallery-stage");
+    const portal = document.querySelector<HTMLElement>(".venue-entry-portal");
+    const header = document.querySelector(".site-header");
+    const glow = document.querySelector(".venue-entry-glow");
+    if (!stage || !portal || !header || !glow) throw new Error("Expected the hydrated Venue entrance for the natural-input snapshot");
+    const box = stage.getBoundingClientRect();
+    const boundary = scrollY + (stage.dataset.entryFrame === "overview"
+      ? box.top - header.getBoundingClientRect().bottom - 16 : box.bottom - innerHeight);
+    return { url: location.href, y: scrollY, viewport: { width: innerWidth, height: innerHeight },
+      frame: stage.dataset.entryFrame, boundary, remaining: boundary - scrollY,
+      state: portal.dataset.entryState, ready: portal.dataset.entryReady,
+      charge: Number(getComputedStyle(portal).getPropertyValue("--venue-entry-charge")),
+      glow: Number(getComputedStyle(glow).opacity) };
+  });
+}
+
+async function entryInput(page: Page, isMobile: boolean, distance: number, whileHeld?: () => Promise<void>, samples = 8) {
   const viewport = page.viewportSize()!;
   // Use the stage's outer gutter so a link or disclosure never owns the input.
   const x = viewport.width * .98;
@@ -280,8 +467,8 @@ async function entryInput(page: Page, isMobile: boolean, distance: number, while
   const client = await page.context().newCDPSession(page);
   try {
     await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y: startY }] });
-    for (let step = 1; step <= 8; step++) {
-      await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: startY - distance * step / 8 }] });
+    for (let step = 1; step <= samples; step++) {
+      await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: startY - distance * step / samples }] });
       await gestureFrame(16);
     }
     await whileHeld?.();
@@ -298,7 +485,7 @@ async function expectAirportEntry(page: Page) {
   await expect(airport.getByRole("heading").first()).toBeInViewport();
   await expect(page.locator('.venue-journey-index a[href="#journey-airport"]')).toHaveAttribute("aria-current", "location");
   await expect.poll(() => airport.locator(".venue-journey-reading").evaluate((element) => Number(getComputedStyle(element).opacity))).toBeGreaterThanOrEqual(.9);
-  await expect(page.locator(".venue-entry-portal")).toHaveAttribute("data-entry-state", "complete");
+  await expect(page.locator(".venue-entry-portal")).toHaveAttribute("data-entry-state", "completed");
   await expect.poll(() => entryCharge(page)).toBe(0);
   // The charged transition must land at the same real position as the native
   // destination anchor, rather than merely somewhere with the heading visible.
@@ -399,7 +586,82 @@ async function expectReadable(page: Page) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} charged journey entry holds only downward input and releases native scrolling`, async ({ page, isMobile }) => {
+  test(`${locale} fresh natural wheel scrolling catches a large crossing input`, async ({ page, isMobile }, testInfo) => {
+    test.skip(isMobile, "This case uses a physical wheel; the separate natural-touch case covers phones.");
+    for (const viewport of [{ width: 738, height: 923 }, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(viewport);
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      await page.goto(`/${locale}/dates-venue?view=natural-wheel`);
+      await page.evaluate(() => document.fonts.ready);
+      const portal = page.locator(".venue-entry-portal");
+      await expect(portal).toHaveAttribute("data-entry-ready", "true");
+      await expect(portal).toHaveAttribute("data-entry-state", "approaching");
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+      const before = await naturalEntrySnapshot(page);
+      expect(before.remaining).toBeGreaterThan(0);
+      // One finite wheel movement starts on the header screen and crosses the
+      // overview. No programmatic scrolling arms or positions the gate first.
+      await entryInput(page, false, before.remaining + 120);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+      const after = await naturalEntrySnapshot(page);
+      await testInfo.attach(`${locale}-natural-wheel-${viewport.width}`, {
+        body: JSON.stringify({ before, after }, null, 2), contentType: "application/json",
+      });
+      await expect(portal).toHaveAttribute("data-entry-state", "charging");
+      expect(Math.abs(after.y - before.boundary)).toBeLessThanOrEqual(1);
+      await expect.poll(() => entryCharge(page)).toBeGreaterThan(0);
+      expect(await entryCharge(page)).toBeLessThan(1);
+      await expect.poll(() => page.locator(".venue-entry-glow").evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThan(0);
+      await expect(page).toHaveURL(before.url);
+      if (after.frame === "overview") await expectOverviewFrame(page);
+      await retreatFromEntry(page, false, before.boundary);
+      await completeEntryWithScroll(page, false);
+      await expectAirportEntry(page);
+      await expect(page).toHaveURL(`${before.url}#journey-airport`);
+    }
+  });
+
+  test(`${locale} fresh natural touch scrolling charges from a gesture begun outside the short approach`, async ({ page, isMobile }, testInfo) => {
+    test.skip(!isMobile, "This case requires native phone touch input.");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}/dates-venue?view=natural-touch`);
+    await page.evaluate(() => document.fonts.ready);
+    const portal = page.locator(".venue-entry-portal");
+    await expect(portal).toHaveAttribute("data-entry-ready", "true");
+    await expect(portal).toHaveAttribute("data-entry-state", "approaching");
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    let approach = await naturalEntrySnapshot(page);
+    const nativeApproach = [approach];
+    // Read from the top through ordinary repeated swipes. Geometry is observed
+    // to stop before the final gesture; it is never changed through evaluate.
+    for (let step = 0; step < 10 && approach.remaining > 480; step++) {
+      const previous = approach.y;
+      await entryInput(page, true, 240);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(previous + 40);
+      approach = await naturalEntrySnapshot(page);
+      nativeApproach.push(approach);
+    }
+    expect(approach.remaining).toBeGreaterThan(160);
+    expect(approach.remaining).toBeLessThanOrEqual(480);
+    await entryInput(page, true, approach.remaining + 80, async () => {
+      const held = await naturalEntrySnapshot(page);
+      await testInfo.attach(`${locale}-natural-touch-approach`, {
+        body: JSON.stringify({ nativeApproach, held }, null, 2), contentType: "application/json",
+      });
+      await expect(portal).toHaveAttribute("data-entry-state", "charging");
+      expect(Math.abs(held.y - approach.boundary)).toBeLessThanOrEqual(1);
+      await expect.poll(() => entryCharge(page)).toBeGreaterThan(0);
+      expect(await entryCharge(page)).toBeLessThan(1);
+      await expect.poll(() => page.locator(".venue-entry-glow").evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThan(0);
+      await expect(page).toHaveURL(approach.url);
+    });
+    await retreatFromEntry(page, true, approach.boundary);
+    await completeEntryWithScroll(page, true);
+    await expectAirportEntry(page);
+    await expect(page).toHaveURL(`${approach.url}#journey-airport`);
+  });
+
+  test(`${locale} charged entry persists between inputs, reverses and releases native scrolling once`, async ({ page, isMobile }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}/dates-venue?view=charged-entry`);
     await page.evaluate(() => document.fonts.ready);
@@ -407,7 +669,7 @@ for (const locale of ["en", "ar"] as const) {
     const originalURL = page.url();
     const enteredURL = `${originalURL}#journey-airport`;
     await expect(portal).toHaveCount(1);
-    await expect(portal).toHaveAttribute("data-entry-state", /^(idle|ready)$/);
+    await expect(portal).toHaveAttribute("data-entry-state", "approaching");
     const glow = page.locator(".venue-entry-glow");
     const veil = page.locator(".venue-entry-veil");
     for (const effect of [glow, veil]) {
@@ -428,10 +690,7 @@ for (const locale of ["en", "ar"] as const) {
         await expect.poll(() => page.locator(".venue-gallery-stage").evaluate(element => Math.abs(element.getBoundingClientRect().bottom - window.innerHeight))).toBeLessThanOrEqual(1);
         await expect(page).toHaveURL(originalURL);
       });
-      await entryInput(page, true, -120);
-      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(approach + 100 - 40);
-      await expect(portal).toHaveAttribute("data-entry-state", /^(idle|ready)$/);
-      await expect.poll(() => entryCharge(page)).toBe(0);
+      await retreatFromEntry(page, true, approach + 100);
     }
     const boundary = await alignEntryBoundary(page);
     if (await page.locator(".venue-gallery-stage").getAttribute("data-entry-frame") === "overview") {
@@ -440,63 +699,81 @@ for (const locale of ["en", "ar"] as const) {
       await expect(veil).toHaveCSS("opacity", "0");
       await expect(readingLayout).toHaveCSS("filter", normalFilter);
     }
+    if (isMobile) {
+      // Two unusually large moves are one fast flick, not enough deliberate
+      // input to skip the visible buildup and fire the entire entrance.
+      await entryInput(page, true, 400, undefined, 2);
+      await expect(portal).toHaveAttribute("data-entry-state", "charging");
+      expect(await entryCharge(page)).toBeGreaterThan(0);
+      expect(await entryCharge(page)).toBeLessThan(1);
+      expect(Math.abs(await page.evaluate(() => window.scrollY) - boundary)).toBeLessThanOrEqual(1);
+      await expect(page).toHaveURL(originalURL);
+      await retreatFromEntry(page, true, boundary);
+      await alignEntryBoundary(page);
+    }
     let partialCharge = 0;
-    await entryInput(page, isMobile, 40, async () => {
+    await entryInput(page, isMobile, 120, async () => {
       await expect(portal).toHaveAttribute("data-entry-state", "charging");
       await expect.poll(() => entryCharge(page)).toBeGreaterThan(0);
       partialCharge = await entryCharge(page);
       expect(partialCharge).toBeLessThan(1);
       await expect.poll(() => glow.evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThan(0);
       const blur = await readingLayout.evaluate(element => Number.parseFloat(getComputedStyle(element).filter.match(/blur\(([^)]+)\)/)?.[1] ?? "0"));
-      expect(blur).toBeGreaterThan(0);
-      expect(blur).toBeLessThanOrEqual(20);
+      expect(blur).toBe(0);
       expect(Math.abs(await page.evaluate(() => window.scrollY) - boundary)).toBeLessThanOrEqual(1);
       expect(await page.evaluate(() => [document.documentElement, document.body].some(element => getComputedStyle(element).overflowY === "hidden"))).toBe(false);
       await expect(page).toHaveURL(originalURL);
     });
-    await entryInput(page, isMobile, -120);
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(boundary - 40);
+    // A quiet pause must neither charge by time nor decay the held overview.
+    await gestureFrame(1000);
+    await expect(portal).toHaveAttribute("data-entry-state", "charging");
+    expect(await entryCharge(page)).toBe(partialCharge);
+    expect(Math.abs(await page.evaluate(() => window.scrollY) - boundary)).toBeLessThanOrEqual(1);
+    await entryInput(page, isMobile, -40);
     await expect.poll(() => entryCharge(page)).toBeLessThan(partialCharge);
-    await expect(portal).toHaveAttribute("data-entry-state", /^(idle|ready)$/);
+    expect(await entryCharge(page)).toBeGreaterThan(0);
+    await expect(portal).toHaveAttribute("data-entry-state", "charging");
+    expect(Math.abs(await page.evaluate(() => window.scrollY) - boundary)).toBeLessThanOrEqual(1);
+    await retreatFromEntry(page, isMobile, boundary);
     await expect(page).toHaveURL(originalURL);
 
     const readyBoundary = await alignEntryBoundary(page);
     await entryInput(page, isMobile, 40);
-    // A released/paused partial gesture must clear its tension without entering
-    // the journey or locking the document, even when no reverse input follows.
-    await expect(portal).toHaveAttribute("data-entry-state", /^(idle|ready)$/);
-    await expect.poll(() => entryCharge(page)).toBe(0);
+    await expect(portal).toHaveAttribute("data-entry-state", "charging");
+    const persistentCharge = await entryCharge(page);
+    expect(persistentCharge).toBeGreaterThan(0);
+    await gestureFrame(1000);
+    expect(await entryCharge(page)).toBe(persistentCharge);
     expect(Math.abs(await page.evaluate(() => window.scrollY) - readyBoundary)).toBeLessThanOrEqual(1);
-    await expect(readingLayout).toHaveCSS("filter", normalFilter);
     await expect(page).toHaveURL(originalURL);
-    await page.evaluate(() => {
-      const portal = document.querySelector<HTMLElement>(".venue-entry-portal")!;
-      const states = [portal.dataset.entryState ?? ""];
-      const observer = new MutationObserver(records => {
-        for (const record of records) if (record.oldValue && states.at(-1) !== record.oldValue) states.push(record.oldValue);
-        const state = portal.dataset.entryState ?? "";
-        if (states.at(-1) !== state) states.push(state);
-      });
-      observer.observe(portal, { attributes: true, attributeFilter: ["data-entry-state"], attributeOldValue: true });
-      (window as unknown as { venueEntryReceipt: { states: string[]; observer: MutationObserver } }).venueEntryReceipt = { states, observer };
-    });
-    if (isMobile) await entryInput(page, true, 320);
-    else for (let step = 0; step < 4; step++) {
+    await recordEntryRelease(page);
+    if (isMobile) await entryInput(page, true, 360);
+    else for (let step = 0; step < 6; step++) {
       const prior = await entryCharge(page);
       await entryInput(page, false, 900);
-      if (step < 3) {
+      if (step < 5) {
         await expect(portal).toHaveAttribute("data-entry-state", "charging");
         await expect.poll(() => entryCharge(page)).toBeGreaterThan(prior);
         expect(Math.abs(await page.evaluate(() => window.scrollY) - readyBoundary)).toBeLessThanOrEqual(1);
       }
     }
+    // The phone's final touch samples follow the threshold in the same native
+    // gesture. Observe those real dispatch phases, rather than spending the
+    // short reveal starting another protocol session and polling afterward.
+    // A wheel follows the first rendered release frame at the existing pointer;
+    // this is a frame boundary, not an arbitrary elapsed-time delay.
+    if (!isMobile) {
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      await page.mouse.wheel(0, 180);
+    }
     await expectAirportEntry(page);
-    const states = await page.evaluate(() => {
-      const receipt = (window as unknown as { venueEntryReceipt: { states: string[]; observer: MutationObserver } }).venueEntryReceipt;
-      receipt.observer.disconnect();
-      return receipt.states;
+    const receipt = await expectOneEntryRelease(page);
+    await testInfo.attach(`${locale}-entry-native-event-phases`, {
+      body: JSON.stringify({ changes: receipt.changes, inputs: receipt.inputs }, null, 2), contentType: "application/json",
     });
-    expect(states.filter(state => state === "burst")).toHaveLength(1);
+    // Residual input must be cancelled in its actual releasing event, preserve
+    // the held scene and history, and never trigger a second release.
+    expectBlockedReleaseInput(receipt.inputs, isMobile ? "touchmove" : "wheel", readyBoundary);
     await expect(page).toHaveURL(enteredURL);
     await expect(glow).toHaveCSS("opacity", "0");
     await expect(veil).toHaveCSS("opacity", "0");
@@ -507,7 +784,7 @@ for (const locale of ["en", "ar"] as const) {
     const afterDown = await page.evaluate(() => window.scrollY);
     if (isMobile) await swipeMapVertically(page, "up"); else await page.mouse.wheel(0, -180);
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(afterDown - 40);
-    await expect(portal).toHaveAttribute("data-entry-state", "complete");
+    await expect(portal).toHaveAttribute("data-entry-state", "completed");
     await expect(page).toHaveURL(enteredURL);
   });
 
@@ -515,15 +792,92 @@ for (const locale of ["en", "ar"] as const) {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}/dates-venue?view=begin`);
     await page.evaluate(() => document.fonts.ready);
+    const portal = page.locator(".venue-entry-portal");
+    await expect(portal).toHaveAttribute("data-entry-ready", "true");
     const begin = page.locator(".venue-journey-invitation .venue-hero-action");
     await expect(begin).toHaveAttribute("href", "#journey-airport");
     await begin.scrollIntoViewIfNeeded();
     await expectButtonBounds(page, begin);
+    await recordEntryRelease(page);
     if (isMobile) await begin.tap(); else await begin.click();
+    await expect(portal).toHaveAttribute("data-entry-state", "releasing");
     await expectAirportEntry(page);
+    await expectOneEntryRelease(page);
     await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue\\?view=begin#journey-airport$`));
     await expect(page.locator("#journey-airport")).toBeFocused();
     await expectReadable(page);
+  });
+
+  test(`${locale} Begin uses the same reveal from partial charge and ignores duplicate activation`, async ({ page, isMobile }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}/dates-venue?view=partial-begin`);
+    await page.evaluate(() => document.fonts.ready);
+    const portal = page.locator(".venue-entry-portal");
+    await expect(portal).toHaveAttribute("data-entry-ready", "true");
+    const originalURL = page.url();
+    const boundary = await alignEntryBoundary(page);
+    await entryInput(page, isMobile, 120);
+    await expect(portal).toHaveAttribute("data-entry-state", "charging");
+    const charge = await entryCharge(page);
+    expect(charge).toBeGreaterThan(0);
+    expect(charge).toBeLessThan(1);
+    expect(Math.abs(await page.evaluate(() => window.scrollY) - boundary)).toBeLessThanOrEqual(1);
+    const begin = page.locator(".venue-journey-invitation .venue-hero-action");
+    await expectButtonBounds(page, begin);
+    await begin.focus();
+    expect(await entryCharge(page)).toBe(charge);
+    await recordEntryRelease(page);
+    // Real keyboard activations exercise the same public button twice while
+    // it still owns focus; they do not invoke a private animation function.
+    await page.keyboard.press("Enter");
+    await expect(portal).toHaveAttribute("data-entry-state", "releasing");
+    await page.keyboard.press("Enter");
+    await expect(portal).toHaveAttribute("data-entry-state", "releasing");
+    await expectAirportEntry(page);
+    await expectOneEntryRelease(page);
+    await expect(page).toHaveURL(`${originalURL}#journey-airport`);
+    await expect(page.locator("#journey-airport")).toBeFocused();
+    await expectReadable(page);
+  });
+
+  test(`${locale} document Home and End restore native flow when interrupting the reveal`, async ({ page, isMobile, browserName }) => {
+    test.skip(isMobile, "These terminal keys exercise desktop document navigation; native touch reversal is covered separately.");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    // This Windows shortcut is not WebKit's native document-navigation command.
+    const keys = browserName === "chromium" ? ["Home", "End", "Control+Home"] as const : ["Home", "End"] as const;
+    for (const activation of ["wheel", "keyboard"] as const) for (const key of keys) {
+      await page.goto(`/${locale}/dates-venue?view=entry-${activation}-${key.toLowerCase()}`);
+      await page.evaluate(() => document.fonts.ready);
+      const portal = page.locator(".venue-entry-portal");
+      await expect(portal).toHaveAttribute("data-entry-ready", "true");
+      await alignEntryBoundary(page);
+      const originalURL = page.url();
+      const historyLength = await page.evaluate(() => history.length);
+      const begin = page.locator(".venue-journey-invitation .venue-hero-action");
+      if (activation === "wheel") {
+        for (let step = 0; step < 6; step++) await entryInput(page, false, 900);
+        expect(await page.evaluate(() => document.activeElement?.closest("a,button,input,select,textarea,summary,[contenteditable=true]")?.tagName ?? null)).toBeNull();
+      } else {
+        await begin.focus();
+        await page.keyboard.press("Enter");
+        // Begin retains focus until the reveal finishes. Its anchor must not
+        // capture terminal keys whose native purpose is document navigation.
+        await expect(begin).toBeFocused();
+      }
+      await expect(portal).toHaveAttribute("data-entry-state", "releasing");
+      await page.keyboard.press(key);
+      await expect(portal).toHaveAttribute("data-entry-state", "completed");
+      await expect(page.locator("[data-venue-entry-placeholder]")).toHaveCount(0);
+      expect(await page.getByTestId("venue-arrival-journey").evaluate(element => (element as HTMLElement).inert)).toBe(false);
+      await expect(page.getByTestId("venue-arrival-journey")).not.toHaveCSS("position", "fixed");
+      if (key !== "End") await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThanOrEqual(1);
+      else await expect.poll(() => page.evaluate(() => Math.abs(document.documentElement.scrollHeight - innerHeight - scrollY))).toBeLessThanOrEqual(1);
+      await expect(page).toHaveURL(`${originalURL}#journey-airport`);
+      expect(await page.evaluate(() => history.length)).toBe(historyLength + 1);
+      expect(await entryCharge(page)).toBe(0);
+      await expectReadable(page);
+    }
   });
 
   test(`${locale} complete overview and side reading retain hierarchy with earlier reversible fades`, async ({ page, isMobile }) => {
@@ -605,7 +959,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(originalURL);
   });
 
-  test(`${locale} keyboard, reduced motion and enlarged reading bypass the entry hold`, async ({ page, isMobile }) => {
+  test(`${locale} keyboard Begin shares the reveal while reduced and enlarged reading bypass the hold`, async ({ page, isMobile }) => {
     for (const mode of ["keyboard", "reduced", "short", "enlarged"] as const) {
       await page.emulateMedia({ reducedMotion: mode === "reduced" ? "reduce" : "no-preference" });
       await page.setViewportSize({ width: 390, height: mode === "short" ? 480 : 844 });
@@ -616,21 +970,25 @@ for (const locale of ["en", "ar"] as const) {
         await expect(page.getByTestId("venue-arrival-journey")).toHaveAttribute("data-reading-flow", "true");
       }
       const portal = page.locator(".venue-entry-portal");
-      await expect(portal).toHaveAttribute("data-entry-state", mode === "keyboard" ? /^(idle|ready)$/ : "complete");
+      await expect(portal).toHaveAttribute("data-entry-state", "approaching");
+      await expect(portal).toHaveAttribute("data-entry-ready", String(mode === "keyboard"));
       const begin = page.locator(".venue-journey-invitation .venue-hero-action");
       if (mode === "keyboard") {
         await begin.focus();
+        await recordEntryRelease(page);
         await page.keyboard.press("Enter");
+        await expect(portal).toHaveAttribute("data-entry-state", "releasing");
       } else {
         const boundary = await alignEntryBoundary(page);
         await entryInput(page, isMobile, 120);
         await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(boundary + 40);
-        await expect(portal).not.toHaveAttribute("data-entry-state", /^(charging|burst)$/);
+        await expect(portal).not.toHaveAttribute("data-entry-state", /^(charging|releasing)$/);
         expect(await entryCharge(page)).toBe(0);
         await begin.scrollIntoViewIfNeeded();
         if (isMobile) await begin.tap(); else await begin.click();
       }
       await expectAirportEntry(page);
+      if (mode === "keyboard") await expectOneEntryRelease(page);
       await expect(page.locator("#journey-airport")).toBeFocused();
       if (mode !== "keyboard") await expect(page.locator("#journey-airport .venue-journey-reading")).toHaveCSS("opacity", "1");
       await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue\\?view=entry-${mode}#journey-airport$`));

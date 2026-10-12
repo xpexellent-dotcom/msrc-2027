@@ -1,5 +1,30 @@
 # Getting there — 5 October 2026
 
+## Current Venue entrance correction — ENG-037, 12 October 2026
+
+The latest organizer instruction replaces the unreliable approach gate with a
+scroll-powered hold, persistent charge and one 850ms reveal of the real Journey.
+The centered Begin action uses the same scene; reduced-motion and short/enlarged
+reading retain direct entry. Wheel input is observed before approach. A touch
+gesture may own the bounded final approach only when its first move is deliberate,
+single-finger, cancelable and begun within two viewports of the measured gate.
+Pauses do not add or remove charge; reversal reduces it. The incoming section's
+flow placeholder, temporary pinning, heading reveal and restrained atlas parallax
+restore before the exact native Airport landing. Normal journey scrolling,
+map controls, disclosures, EN/AR/RTL, keyboard escapes and pinch zoom remain.
+
+This changes the public entrance interaction only. The current self-hosted campus
+and city geometry, attribution, selected venue photographs, Google/Apple outbound
+actions, approved travel/arrival guidance and closed operational workflows remain.
+No provider request, dependency, operational flag or new public fact is added.
+ENG-035's publication authority continues, subject to fresh source, CI, owned
+deployment and live evidence. Audit and pending/final checks are recorded in
+`docs/reviews/venue-scroll-entry.md`; no current release claim is made here.
+IDs: SCP-02, DSN-01/02, ACC-01, LOC-01/02/03, MED-01/04, PRV-03, REL-06.
+
+The original 5 October implementation and dated verification below are preserved
+as history; later decisions supersede its static schematic and Waze presentation.
+
 PR #41 follow-ups; organizer decisions ORG-033–036. IDs: SCP-02, CFG-01,
 LOC-01/03, ACC-01, PRV-01/07, CMS-04 and REL-01. This public information slice
 does not alter registration, booking, approval, discount or payment logic.
