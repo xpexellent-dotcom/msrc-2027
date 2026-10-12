@@ -57,3 +57,15 @@ Observed local results on 12 October:
 
 Hosted CI, owned Preview, merge and owned Production/live results are separate
 release evidence; this local receipt does not claim them complete.
+
+## Publication and pressed-target correction
+
+PR 59 passed all three workflows at b17011a (639 public passes / 41 intentional
+skips) and was published as 45facf1. Owned Production and both aliases matched;
+97 read-only live checks passed. The live phone run found one transient geometry
+failure: press feedback scaled a 44px button to 43.45px during release. Correct
+that behavior by scaling only its SVG, keeping the button's hit region fixed.
+Reset and Close regression checks hold Space and require native active-state,
+rendered-frame 44px bounds before releasing, as well as retaining every rest-state
+and native-touch assertion. Keyboard and reduced motion respond immediately.
+The original 3-pass/1-fail live receipt remains preserved, not called a pass.

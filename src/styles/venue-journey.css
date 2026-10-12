@@ -90,10 +90,10 @@
 .venue-international details[open] summary h3::after { content: "−"; }
 .venue-map-controls { display: none; position: absolute; inset-inline-end: clamp(1.5rem,4vw,4rem); inset-block-start: calc(var(--site-header-height,5rem) + 6rem); gap: .4rem; pointer-events: auto; z-index: 4; }
 [data-journey-ready="true"] .venue-map-controls { display: grid; }
-.venue-map-controls button, .venue-map-detail-close { display: grid; place-items: center; inline-size: 44px; block-size: 44px; border: 1px solid rgb(237 218 175 / 45%); border-radius: 12px; background: #30223e; color: #fff2d5; cursor: pointer; transition: background-color 180ms ease-out, transform 100ms ease-out; }
+.venue-map-controls button, .venue-map-detail-close { display: grid; place-items: center; inline-size: 44px; block-size: 44px; border: 1px solid rgb(237 218 175 / 45%); border-radius: 12px; background: #30223e; color: #fff2d5; cursor: pointer; transition: background-color 180ms ease-out; }
 .venue-map-controls button:disabled { opacity: .45; cursor: default; }
-.venue-map-controls button:not(:disabled):active, .venue-map-detail-close:active { transform: scale(.96); }
-.venue-map-controls svg, .venue-map-detail-close svg { inline-size: 20px; block-size: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.venue-map-controls button:not(:disabled):active svg, .venue-map-detail-close:active svg { transform: scale(.9); }
+.venue-map-controls svg, .venue-map-detail-close svg { inline-size: 20px; block-size: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: transform 100ms ease-out; }
 .venue-map-detail { position: fixed; z-index: 20; inset-inline-end: clamp(1.5rem,4vw,4rem); inset-block-end: max(1.5rem,env(safe-area-inset-bottom)); inline-size: min(24rem,calc(100vw - 3rem)); max-block-size: min(46svh,32rem); overflow-y: auto; overscroll-behavior: contain; padding: 1.5rem; border: 1px solid rgb(237 218 175 / 45%); border-radius: 18px; background: #30223e; color: var(--journey-ink); box-shadow: 0 12px 40px rgb(0 0 0 / 24%); animation: venue-detail-enter 180ms ease-out both; }
 .venue-map-detail[hidden] { display: none; }
 .venue-map-detail-close { float: inline-end; margin-inline-start: .75rem; margin-block-end: .75rem; }
@@ -175,6 +175,7 @@
 [data-reading-flow="true"] .venue-map-controls { inset-block-start: 1rem; }
 [data-reading-flow="true"] .venue-journey-reading { opacity: 1 !important; transition: none; }
 [data-keyboard="true"] :is(.venue-journey-reading,.venue-map-detail) { opacity: 1 !important; transition: none; animation: none; }
+[data-keyboard="true"] :is(.venue-map-controls button,.venue-map-controls svg,.venue-map-detail-close,.venue-map-detail-close svg) { transition: none; }
 @media (max-width: 1199px), (max-height: 640px) {
   /* Reserve the same space before hydration, including direct chapter URLs. */
   .venue-journey-frame { position: sticky; inset-block-start: var(--site-header-height,5rem); block-size: auto; margin-block-end: 0; z-index: 3; }
@@ -206,7 +207,7 @@
   .venue-journey-camera, [dir="rtl"] .venue-journey-camera { transition: none; }
   .venue-arrival-journey .venue-journey-point.site-link, .venue-arrival-journey .venue-journey-index .site-link { transition: none; }
   .venue-arrival-journey .venue-journey-reading { opacity: 1 !important; transition: none; }
-  .venue-map-detail, .venue-map-controls button, .venue-map-detail-close { animation: none; transition: none; }
+  .venue-map-detail, .venue-map-controls button, .venue-map-controls svg, .venue-map-detail-close, .venue-map-detail-close svg { animation: none; transition: none; }
 }
 @media (forced-colors: active) {
   .venue-journey-atlas { display: none; }

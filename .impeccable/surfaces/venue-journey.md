@@ -82,8 +82,10 @@ reading space passes through pointer events; actual text stays selectable.
 Points outside the current camera view leave the focus order. Transport,
 arrival-essentials and international guidance use initially closed native
 disclosures; transport supports fine-pointer hover as an enhancement.
-Zoom in, zoom out and reset are 44px controls. They change framing, never the
-page's native scroll. Inactive chapters gently fade to (.7) opacity over (200ms)
+Zoom in, zoom out and reset are 44px controls. Press feedback scales only the SVG
+icon (.9 / 100ms), preserving the clickable region; keyboard/reduced motion respond
+immediately. They change framing, never the page's native scroll. Inactive
+chapters gently fade to (.7) opacity over (200ms)
 while remaining readable; focus, keyboard use and reduced motion restore opacity.
 
 Gallery hover scales only the image to (1.045) over (600ms). Keyboard camera,
