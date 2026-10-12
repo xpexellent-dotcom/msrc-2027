@@ -7,6 +7,16 @@ related_targets: ["src/components/venue-arrival-journey.tsx", "src/components/ve
 
 # Venue journey
 
+ENG-034 supersedes ENG-033's opening and entry below: match Program's content-height
+header with four overlapping purple venue photos (native swipe on phones); light
+stage shows venue introduction, campus map and compact international/FAQ/Program
+guidance. Begin remains centered. The requester explicitly approves a boundary-only
+hold/charge/burst with bottom glow and bounded blur, then native Airport journey.
+Keyboard/reduced/enlarged/short/no-JS/uncancelable touch enter directly, upward input
+releases, and the gate is one-shot. No body lock or global gesture interception.
+Repeated lower guidance/footer and the old passive entry light are removed.
+Scope/guardrails and observed evidence: `docs/reviews/venue-gallery-charge.md`.
+
 ENG-033 updates this existing world: Program-matched purple-blurred photographic
 header, selected inverse-gradient keyword, then a two-column ivory map/gallery
 stage and centered Begin action. The published king-faisal-venue.jpg is the header

@@ -72,6 +72,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(map).toHaveCount(1);
     const photos = page.locator(".venue-photo-gallery").getByRole("img");
     await expect(photos).toHaveCount(4);
+    await expect(page.locator(".venue-photo-header .venue-header-collage")).toHaveCount(1);
+    await expect(page.locator("#international-attendees")).toHaveCount(1);
+    await expect(page.locator(".venue-stage-guidance #international-attendees")).toHaveCount(1);
     for (const photo of await photos.all()) await expect(photo).toHaveAccessibleName(/\S/);
     await expect.poll(() => photos.first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await expect(map).toHaveAttribute("dir", "ltr");

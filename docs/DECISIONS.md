@@ -1,5 +1,33 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-034 — Venue collage and charged entrance, 12 October 2026
+
+The requester approves the annotated layout and explicitly corrects ENG-033's
+entrance: the opening holds at its lower boundary while continued downward input
+builds bottom-origin glow and blur, then releases quickly to the Airport chapter.
+The final correction keeps Begin your journey centered; its pointer action uses
+the same release. Match Program's content-driven header proportions, typography
+and selective gradient keyword. Four existing venue photographs overlap in the
+header, gently zooming and coming forward on hover; phones use native swipe cards.
+The light stage contains a large venue introduction, relocated campus map and
+compact international/FAQ/Program guidance. Remove repeated lower content.
+
+This is an explicit narrow exception to DSN-01's normal wheel/touch scrolling and
+ENG-033's no-interception choice, not permission for whole-site scroll locking.
+Only downward input at the measured opening boundary may be consumed. Successful
+entry is one-shot for a visit; reversed gestures, keyboard, reduced motion,
+short/enlarged layouts, non-cancelable touch, pinch, native controls, inner scroll
+containers and no-JS retain direct/native navigation. Normal scrolling resumes
+within the journey. No body overflow lock, global touch-action override, flashing,
+perpetual animation, pause control or new motion dependency. Effects and listeners
+must clear on interruption/unmount. Existing facts, EN/AR, north-up geography,
+local attribution, explicit provider links and operational closure remain pinned.
+
+The requester asks to commit this approved refinement after verification.
+No operational activation, database/settings/DNS or communications are authorized.
+Requirements: SCP-02, DSN-01/02, ACC-01, LOC-01/02/03, MED-01/04, PRV-03.
+Audit and evidence: `docs/reviews/venue-gallery-charge.md`.
+
 ## ENG-033 — Cinematic Venue hierarchy and journey, 12 October 2026
 
 The requester restores an image-backed Venue header using the already published

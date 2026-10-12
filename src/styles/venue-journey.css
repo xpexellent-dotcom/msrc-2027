@@ -1,4 +1,4 @@
-/* ENG-033. Full-map arrival, centered reading and one native-scroll entry. */
+/* Full-map arrival, centered reading; the entry is owned by venue-entry.css. */
 .venue-arrival-journey { --journey-plum: #191222; --journey-ink: #f8f6f0; --journey-muted: #ded2e8; --venue-map-height: clamp(11rem,calc(34svh - 4rem),16rem); --focus-ring: #eddaaf; position: relative; isolation: isolate; background: var(--journey-plum); color: var(--journey-ink); }
 .venue-journey-world { position: relative; isolation: isolate; }
 .venue-journey-frame { position: sticky; inset-block-start: 0; block-size: 100svh; margin-block-end: -100svh; pointer-events: none; z-index: 0; }
@@ -8,7 +8,6 @@
 [dir="rtl"] .venue-journey-camera { left: 20%; }
 .venue-journey-camera > img { display: block; inline-size: 1400px; block-size: 1700px; max-inline-size: none; }
 .venue-journey-atlas-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg,transparent calc(50% - 22rem),rgb(25 18 34 / 94%) calc(50% - 17rem),rgb(25 18 34 / 94%) calc(50% + 17rem),transparent calc(50% + 22rem)),linear-gradient(180deg,rgb(25 18 34 / 38%),transparent 20%,transparent 76%,rgb(25 18 34 / 80%)); }
-.venue-journey-entry-light { position: absolute; inset: -15%; z-index: 1; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at 50% 50%,rgb(237 218 175 / 65%),rgb(220 207 240 / 30%) 30%,transparent 62%); }
 .venue-arrival-journey .venue-journey-point.site-link { position: absolute; z-index: 2; display: flex; align-items: center; gap: .7rem; min-block-size: 48px; padding: .6rem 1rem; border: 1px solid rgb(237 218 175 / 68%); border-radius: 999px; background: #30223e; color: #fff2d5; font-size: 1rem; font-weight: 650; line-height: 1.5; white-space: nowrap; text-decoration: none; transform: translate(-50%,-50%) scale(2.22222); transition: transform 480ms cubic-bezier(.23,1,.32,1), background-color 180ms ease, border-color 180ms ease; pointer-events: auto; }
 .venue-journey-point--airport { left: 581px; top: 366px; }
 .venue-journey-point--arrival { left: 1008px; top: 1366px; }
@@ -213,14 +212,12 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .venue-journey-entry-light { display: none; }
   .venue-journey-camera, [dir="rtl"] .venue-journey-camera { transition: none; }
   .venue-arrival-journey .venue-journey-point.site-link, .venue-arrival-journey .venue-journey-index .site-link { transition: none; }
   .venue-arrival-journey .venue-journey-reading { opacity: 1 !important; transition: none; }
   .venue-map-detail, .venue-map-controls button, .venue-map-controls svg, .venue-map-detail-close, .venue-map-detail-close svg { animation: none; transition: none; }
 }
 @media (forced-colors: active) {
-  .venue-journey-entry-light { display: none; }
   .venue-arrival-journey .venue-journey-frame::before { display: none; }
   .venue-journey-atlas { display: none; }
   .venue-arrival-journey .venue-journey-frame { position: relative; block-size: auto; margin-block-end: 0; }
@@ -232,7 +229,6 @@
   .venue-map-detail { background: Canvas; color: CanvasText; }
 }
 @media print {
-  .venue-journey-entry-light { display: none; }
   .venue-journey-frame, .venue-map-detail { display: none; }
   .venue-journey-body.site-container { display: block; }
   .venue-arrival-journey, .venue-journey-orientation { background: #fff; color: #000; }

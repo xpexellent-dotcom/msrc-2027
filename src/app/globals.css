@@ -30,6 +30,7 @@
 @import "../styles/venue-program-refinement.css";
 @import "../styles/venue-gallery.css";
 @import "../styles/venue-journey.css";
+@import "../styles/venue-entry.css";
 @import "../styles/print.css";
 
 html { scroll-behavior: auto; scroll-padding-block-start: 6rem; }
