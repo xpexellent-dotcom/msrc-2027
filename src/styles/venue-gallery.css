@@ -38,6 +38,11 @@
 .venue-stage-resources .button { justify-content: space-between; gap: .65rem; min-block-size: 48px; padding: .75rem 1rem; font-size: 1rem; }
 .venue-stage-resources .venue-icon { inline-size: 20px; block-size: 20px; flex: 0 0 20px; }
 .venue-journey-invitation { display: flex; justify-content: center; margin-block-start: clamp(3rem,5vw,5rem); }
+@media (min-width: 1200px) and (min-height: 641px) {
+  .venue-gallery-stage { --venue-frame-padding: clamp(2rem,4.5svh,4rem); min-block-size: calc(100svh - var(--site-header-height,80px) - 1rem); padding-block: var(--venue-frame-padding); }
+  .venue-gallery-stage > .site-container { display: flex; flex-direction: column; justify-content: space-between; min-block-size: calc(100svh - var(--site-header-height,80px) - 1rem - var(--venue-frame-padding) * 2); }
+  .venue-journey-invitation { margin-block-start: clamp(2rem,4.5svh,3rem); }
+}
 .venue-hero-action.button { gap: 1.2rem; min-block-size: 56px; padding: 1rem 1.75rem; font-size: 1.125rem; font-weight: 700; text-decoration: none; }
 .venue-hero-action svg { inline-size: 1.5rem; block-size: 1.5rem; transition: transform var(--motion-feedback) var(--motion-enter-easing); }
 .venue-hero-map { min-inline-size: 0; scroll-margin-block-start: 1.5rem; }

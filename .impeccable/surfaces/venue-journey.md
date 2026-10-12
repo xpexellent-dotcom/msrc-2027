@@ -7,6 +7,20 @@ related_targets: ["src/components/venue-arrival-journey.tsx", "src/components/ve
 
 # Venue journey
 
+ENG-035 refines ENG-034's entrance and supersedes the centered journey copy below.
+Hold the complete desktop overview under the shared header, with its centered
+Begin action visible. The frame expands naturally for tall/expanded reading, and
+phone content reaches its end before charge. Continue downward input to strengthen
+the bounded bottom glow/blur, then release once to the precise Airport anchor.
+The journey reading block is vertically centered on the leading side, capped at
+32rem with a4.5rem heading cap; Arabic mirrors that column, never the map. Its
+scrim and camera reserves follow the actual reading rectangle. Earlier top exits
+and lower entries exchange copy; compact native anchors stay fully readable.
+Focus/keyboard/open disclosures/reduced motion restore opacity1. Existing geometry,
+44px controls and all entrance escape/native fallbacks remain. The organizer
+authorizes publication after current-source/exact-head checks and owned Production
+verification. Direction/evidence: `docs/reviews/venue-overview-side-reading.md`.
+
 ENG-034 supersedes ENG-033's opening and entry below: match Program's content-height
 header with four overlapping purple venue photos (native swipe on phones); light
 stage shows venue introduction, campus map and compact international/FAQ/Program

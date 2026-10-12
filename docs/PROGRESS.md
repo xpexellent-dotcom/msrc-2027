@@ -1,5 +1,26 @@
 # Progress and session handover
 
+## 12 October 2026 — Overview hold and side reading, ENG-035
+
+- Organizer requests the complete overview hold, stronger bounded glow/blur,
+  precise Airport release, leading-side vertically centered smaller text and
+  earlier chapter fades; explicitly authorizes live publication after verification.
+- Reusing codex/venue-gallery-charge and its unpublished7f5bfbc local commit.
+  Fresh main/owned READY Production agree on81efe6c; no hosted mutation yet.
+- Preserve unrelated dirty review receipts and unused media. No facts, providers,
+  operational gates or hosting settings change. EN/AR, map accessibility and native
+  fallback safeguards remain. Review: `docs/reviews/venue-overview-side-reading.md`.
+- Current-source checks and exact-head release evidence pending. Physical devices
+  and screen readers NOT TESTED.
+- PASS final pinned11.19.0 complete check: lint/types,2,401 units/61 files,
+  81-page build. PASS scoped Chromium63 cases with two intentional desktop-only
+  mobile skips; PASS WebKit phone10/10, zero retries. Meaningful hold/landing,
+  side/vertical geometry, early fade-in/out and retained accessibility/mobile
+  regressions pass. One batched visual round is clean; no further source changes.
+- Source is frozen for the explicitly authorized publication. Exact-head CI,
+  owned Preview, guarded merge, serving Production/source and actual live checks
+  are pending. Receipts: `.tools/venue-side-*`; detailed review linked above.
+
 ## 12 October 2026 — Venue collage and charged entrance, ENG-034
 
 - User approved Program-matched header proportions, four overlapping venue

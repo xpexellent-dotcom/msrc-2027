@@ -197,8 +197,17 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         if (!reading) return;
         const bounds = reading.getBoundingClientRect();
         const top = compact && !readingFlow ? mapBottom : headerHeight + 16;
-        const fadeBand = Math.min(120, Math.max(48, (viewport - top) * .25));
-        const visibility = clamp((bounds.bottom - top) / fadeBand) * clamp((viewport - bounds.top) / fadeBand);
+        const available = Math.max(1, viewport - top);
+        // Start the exit before the heading reaches the header, with enough
+        // central reading space for longer Arabic copy. Arriving text starts
+        // revealing just below the viewport instead of waiting for its edge.
+        const centeredTop = top + (available - bounds.height) / 2;
+        const desktopExitBand = Math.min(140, Math.max(56, available * .2), Math.max(40, centeredTop - top - 24));
+        // A long compact chapter can start just 2.5rem below the pinned map.
+        // Keep that native anchor fully readable before it enters the map edge.
+        const exitBand = compact ? Math.min(32, desktopExitBand) : desktopExitBand;
+        const entryBand = Math.min(160, Math.max(80, available * .25));
+        const visibility = clamp((bounds.top - top - 8) / exitBand) * clamp((viewport + 96 - bounds.top) / (entryBand + 96));
         // Default/no-JS content is visible. Focus, keyboard, open essentials,
         // enlarged text and reduced motion restore full reading opacity in CSS.
         reading.style.setProperty("--venue-copy-opacity", motion.matches || readingFlow ? "1" : visibility.toFixed(3));
@@ -230,13 +239,19 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         const scale = Math.max(.05, overview
           ? Math.min(atlas.clientWidth / 1400 * .86, compact ? Math.max(0, lower - upper - pointHeight - 12) / 1000 : atlas.clientHeight / 1700 * .86) * zoom.current
           : Math.max(atlas.clientWidth / 1400, atlas.clientHeight / 1700) * (chosen?.zoom ?? mix(first.zoom, last.zoom, amount)) * zoom.current);
-        let targetX = atlas.clientWidth * (compact || overview ? .5 : locale === "ar" ? .20 : .80);
+        let targetX = atlas.clientWidth * (compact || overview ? .5 : locale === "ar" ? .27 : .73);
         const foreground = chapters[next]?.querySelector<HTMLElement>(".venue-journey-reading")?.getBoundingClientRect();
-        const currentPoint = next === 0 ? points[0] : next === 2 ? points[1] : undefined;
+        if (!compact && !readingFlow && foreground) {
+          const readingEdge = locale === "ar" ? atlasBox.right - foreground.left : foreground.right - atlasBox.left;
+          element.style.setProperty("--venue-reading-edge", `${readingEdge}px`);
+        } else element.style.removeProperty("--venue-reading-edge");
+        const currentPoint = selected.current ? points[selected.current === "airport" ? 0 : 1]
+          : next === 0 ? points[0] : next === 2 ? points[1] : undefined;
+        const focalStop = chosen ?? first;
         if (!compact && !readingFlow && !overview && foreground && currentPoint) {
           // Camera travel must leave the active pin and its hover corridor in
-          // the real side column, outside the centered foreground's hit area.
-          const pinX = targetX + (first.x - x) * scale;
+          // the real map column, outside the side foreground's hit area.
+          const pinX = targetX + (focalStop.x - x) * scale;
           const clearance = currentPoint.offsetWidth / 2 + 24;
           const minimum = locale === "ar" ? (controls?.right ?? atlasBox.left) - atlasBox.left + clearance : foreground.right - atlasBox.left + clearance;
           const maximum = locale === "ar" ? foreground.left - atlasBox.left - clearance : (controls?.left ?? atlasBox.right) - atlasBox.left - clearance;
@@ -248,7 +263,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
           // The desktop atlas extends beneath the fixed header. Retain a clear
           // active marker while its chapter is read, rather than advertising a
           // point at the atlas edge that the header physically covers.
-          const pinY = targetY + (first.y - y) * scale;
+          const pinY = targetY + (focalStop.y - y) * scale;
           targetY += Math.max(0, headerHeight + 24 - atlasBox.top + currentPoint.offsetHeight / 2 - pinY);
         }
         map.style.left = "0px"; map.style.top = "0px"; map.style.transformOrigin = "0 0";
@@ -313,6 +328,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       points.forEach(point => { point.style.removeProperty("transform"); point.inert = false; point.tabIndex = 0; point.removeAttribute("aria-hidden"); delete point.dataset.pointVisible; });
       delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned;
       element.style.removeProperty("--venue-index-height");
+      element.style.removeProperty("--venue-reading-edge");
       chapters.forEach(chapter => chapter?.querySelector<HTMLElement>(".venue-journey-reading")?.style.removeProperty("--venue-copy-opacity"));
     };
   }, [locale]);

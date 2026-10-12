@@ -1,5 +1,27 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-035 — Hold the Venue overview and restore side reading, 12 October 2026
+
+The organizer clarifies the authored entrance: hold the complete opening overview
+frame while continued downward input strengthens the bottom light and controlled
+blur; release once into Airport. The Begin action stays centered. On ordinary
+desktop viewports the complete overview fits below the shared header; tall,
+expanded, phone and enlarged reading layouts retain their natural content approach.
+The existing bounded input, reverse/keyboard/focus escape, reduced-motion and
+no-JS safeguards remain. Native scrolling resumes after the one entrance.
+
+Journey copy is vertically centered in a leading side column, left aligned in
+English and mirrored in Arabic. Reduce heading size and exchange text earlier
+with softer fades, preserving readable keyboard/focus and reduced-motion views.
+Keep the map exposed and its north-up geometry, interactive controls, attribution
+and self-hosted privacy boundaries. No new venue, travel, hours or operational facts.
+
+The organizer explicitly requests publication after these changes and verification.
+This authorizes the reviewed UI release, not hosted settings, migrations, new
+accounts, operational flags or participant communications. ENG-034's unpublished
+local implementation is included. IDs: SCP-02, DSN-01/02, ACC-01, LOC-01/02/03,
+MED-01/04, PRV-03. Evidence: `docs/reviews/venue-overview-side-reading.md`.
+
 ## ENG-034 — Venue collage and charged entrance, 12 October 2026
 
 The requester approves the annotated layout and explicitly corrects ENG-033's

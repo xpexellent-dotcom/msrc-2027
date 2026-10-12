@@ -43,7 +43,17 @@ export function VenueJourneyEntry({ locale }: { locale: Locale }) {
     const allowed = () => !motion.matches && !colors.matches && innerHeight > 480
       && Number.parseFloat(getComputedStyle(document.documentElement).fontSize) <= 24
       && (window.visualViewport?.scale ?? 1) <= 1.01;
-    const boundary = () => Math.max(0, scrollY + stage.getBoundingClientRect().bottom - innerHeight);
+    const boundary = () => {
+      const bounds = stage.getBoundingClientRect();
+      const clearance = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 96;
+      // Hold the authored overview, not an arbitrary lower section edge. Tall
+      // reading layouts still reach their end naturally before the entrance.
+      const fits = innerWidth >= 1200 && innerHeight >= 641 && bounds.height + clearance <= innerHeight + 1;
+      const position = Math.max(0, scrollY + (fits ? bounds.top - clearance : bounds.bottom - innerHeight));
+      stage.dataset.entryFrame = fits ? "overview" : "continuation";
+      stage.style.setProperty("--venue-entry-boundary", position.toFixed(2));
+      return position;
+    };
     const paint = (next: EntryState, value = 0) => {
       state = next; charge = clamp(value);
       element.dataset.entryState = next;
@@ -90,7 +100,7 @@ export function VenueJourneyEntry({ locale }: { locale: Locale }) {
         scrollTo({ top: from + (to - from) * eased, behavior: "instant" });
         glow.style.opacity = String((1 - progress) * .8);
         glow.style.transform = `translateY(0) scaleY(${1.35 + eased * 2.1})`;
-        veil.style.opacity = String(Math.sin(progress * Math.PI) * .22);
+        veil.style.opacity = String(Math.sin(progress * Math.PI) * .3);
         content.style.filter = `blur(${(2 + Math.sin(progress * Math.PI) * 4).toFixed(2)}px)`;
         if (progress < 1) frame = requestAnimationFrame(step);
         else {
@@ -231,7 +241,8 @@ export function VenueJourneyEntry({ locale }: { locale: Locale }) {
       document.removeEventListener("focusin", focus); document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("popstate", leave); window.removeEventListener("hashchange", leave);
       motion.removeEventListener("change", resize); colors.removeEventListener("change", resize);
-      delete stage.dataset.entryBoundary; delete element.dataset.entryReady;
+      delete stage.dataset.entryBoundary; delete stage.dataset.entryFrame; delete element.dataset.entryReady;
+      stage.style.removeProperty("--venue-entry-boundary");
       content.style.filter = previousFilter;
     };
   }, [mounted]);

@@ -214,14 +214,52 @@ async function swipeMapVertically(page: Page, direction: "down" | "up" = "down")
 async function alignEntryBoundary(page: Page, approach = 0) {
   const stage = page.locator(".venue-gallery-stage");
   await expect(stage).toHaveAttribute("data-entry-boundary", "true");
-  await stage.evaluate((element, approach) => window.scrollBy({
-    top: element.getBoundingClientRect().bottom - window.innerHeight - approach, behavior: "instant",
-  }), approach);
+  await expect(stage).toHaveAttribute("data-entry-frame", /^(overview|continuation)$/);
+  await stage.evaluate((element, approach) => {
+    const box = element.getBoundingClientRect();
+    const header = document.querySelector(".site-header")!.getBoundingClientRect();
+    const distance = (element as HTMLElement).dataset.entryFrame === "overview"
+      ? box.top - header.bottom - 16 : box.bottom - window.innerHeight;
+    window.scrollBy({ top: distance - approach, behavior: "instant" });
+  }, approach);
   // Let the actual document scroll event arm the boundary before delivering
   // input; geometric alignment alone can precede that event's delivery.
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
-  await expect.poll(() => stage.evaluate((element, approach) => Math.abs(element.getBoundingClientRect().bottom - window.innerHeight - approach), approach)).toBeLessThanOrEqual(1);
+  await expect.poll(() => stage.evaluate((element, approach) => {
+    const box = element.getBoundingClientRect();
+    const header = document.querySelector(".site-header")!.getBoundingClientRect();
+    const distance = (element as HTMLElement).dataset.entryFrame === "overview"
+      ? box.top - header.bottom - 16 : box.bottom - window.innerHeight;
+    return Math.abs(distance - approach);
+  }, approach)).toBeLessThanOrEqual(1);
   return page.evaluate(() => window.scrollY);
+}
+
+async function expectOverviewFrame(page: Page) {
+  const stage = page.locator(".venue-gallery-stage");
+  await expect(stage).toHaveAttribute("data-entry-frame", "overview");
+  const viewport = page.viewportSize()!;
+  const headerBottom = await page.locator(".site-header").evaluate(element => element.getBoundingClientRect().bottom);
+  for (const selector of [".venue-stage-intro", "#venue-orientation", ".venue-stage-guidance", ".venue-hero-action"]) {
+    const content = stage.locator(selector);
+    await expect(content).toBeVisible();
+    const box = (await content.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+    expect(box.y).toBeGreaterThanOrEqual(headerBottom + 8);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height - 8);
+  }
+  for (const link of await stage.locator(".venue-map-links a, .venue-stage-resources a, .venue-hero-action").all()) await expectButtonBounds(page, link);
+  await expectButtonBounds(page, stage.locator("#international-attendees summary"));
+  const columns = await stage.locator(".venue-stage-layout > *").evaluateAll(elements => elements.map(element => {
+    const box = element.getBoundingClientRect();
+    return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+  }));
+  expect(columns).toHaveLength(3);
+  for (let index = 0; index < columns.length; index++) for (const other of columns.slice(index + 1)) {
+    const column = columns[index];
+    expect(column.left < other.right && column.right > other.left && column.top < other.bottom && column.bottom > other.top).toBe(false);
+  }
 }
 
 async function entryCharge(page: Page) {
@@ -262,6 +300,12 @@ async function expectAirportEntry(page: Page) {
   await expect.poll(() => airport.locator(".venue-journey-reading").evaluate((element) => Number(getComputedStyle(element).opacity))).toBeGreaterThanOrEqual(.9);
   await expect(page.locator(".venue-entry-portal")).toHaveAttribute("data-entry-state", "complete");
   await expect.poll(() => entryCharge(page)).toBe(0);
+  // The charged transition must land at the same real position as the native
+  // destination anchor, rather than merely somewhere with the heading visible.
+  const settledY = await page.evaluate(() => window.scrollY);
+  await airport.evaluate(element => element.scrollIntoView({ block: "start", behavior: "instant" }));
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+  expect(Math.abs(await page.evaluate(() => window.scrollY) - settledY)).toBeLessThanOrEqual(1);
   expect(await page.evaluate(() => window.scrollX)).toBe(0);
 }
 
@@ -390,6 +434,12 @@ for (const locale of ["en", "ar"] as const) {
       await expect.poll(() => entryCharge(page)).toBe(0);
     }
     const boundary = await alignEntryBoundary(page);
+    if (await page.locator(".venue-gallery-stage").getAttribute("data-entry-frame") === "overview") {
+      await expectOverviewFrame(page);
+      await expect(glow).toHaveCSS("opacity", "0");
+      await expect(veil).toHaveCSS("opacity", "0");
+      await expect(readingLayout).toHaveCSS("filter", normalFilter);
+    }
     let partialCharge = 0;
     await entryInput(page, isMobile, 40, async () => {
       await expect(portal).toHaveAttribute("data-entry-state", "charging");
@@ -474,6 +524,85 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue\\?view=begin#journey-airport$`));
     await expect(page.locator("#journey-airport")).toBeFocused();
     await expectReadable(page);
+  });
+
+  test(`${locale} complete overview and side reading retain hierarchy with earlier reversible fades`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "The complete overview and side-column geometry apply to desktop; compact reading is covered separately.");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}/dates-venue?view=side-reading`);
+    await page.evaluate(() => document.fonts.ready);
+    await alignEntryBoundary(page);
+    await expectOverviewFrame(page);
+    await expect(page.locator(".venue-entry-glow")).toHaveCSS("opacity", "0");
+    const originalURL = page.url();
+    const heroSize = await page.locator("h1").evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
+    for (const chapter of chapters) {
+      const section = page.locator(`#journey-${chapter}`);
+      await section.evaluate(element => element.scrollIntoView({ block: "start", behavior: "instant" }));
+      await expect(page.locator(`.venue-journey-index a[href="#journey-${chapter}"]`)).toHaveAttribute("aria-current", "location");
+      await settleCamera(page);
+      const copy = section.locator(".venue-journey-reading");
+      await expect.poll(() => copy.evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThanOrEqual(.9);
+      const geometry = await copy.evaluate(element => {
+        const box = element.getBoundingClientRect();
+        const section = element.closest(".venue-journey-chapter");
+        const indexElement = document.querySelector(".venue-journey-index");
+        const title = element.querySelector(".venue-journey-title");
+        if (!section || !indexElement || !title) throw new Error("Expected a journey chapter, index and title for the reading geometry check");
+        const bounds = section.getBoundingClientRect();
+        const chapterStyle = getComputedStyle(section);
+        const index = indexElement.getBoundingClientRect();
+        return { left: box.left, right: box.right, width: box.width, centerX: (box.left + box.right) / 2,
+          centerY: (box.top + box.bottom) / 2,
+          contentCenterY: (bounds.top + Number.parseFloat(chapterStyle.paddingTop) + bounds.bottom - Number.parseFloat(chapterStyle.paddingBottom)) / 2,
+          index: { left: index.left, right: index.right }, textAlign: getComputedStyle(element).textAlign,
+          titleSize: Number.parseFloat(getComputedStyle(title).fontSize) };
+      });
+      expect(geometry.width).toBeLessThan(1440 * .4);
+      expect(Math.abs(geometry.centerY - geometry.contentCenterY)).toBeLessThanOrEqual(1);
+      expect(geometry.titleSize).toBeLessThan(heroSize);
+      expect(geometry.titleSize).toBeGreaterThanOrEqual(32);
+      if (locale === "en") {
+        expect(geometry.centerX).toBeLessThan(720);
+        expect(geometry.left).toBeGreaterThanOrEqual(geometry.index.right + 16);
+        expect(["start", "left"]).toContain(geometry.textAlign);
+      } else {
+        expect(geometry.centerX).toBeGreaterThan(720);
+        expect(geometry.right).toBeLessThanOrEqual(geometry.index.left - 16);
+        expect(["start", "right"]).toContain(geometry.textAlign);
+      }
+      await expectReadable(page);
+      await expect(page).toHaveURL(originalURL);
+    }
+    const airport = page.locator("#journey-airport");
+    await airport.evaluate(element => element.scrollIntoView({ block: "start", behavior: "instant" }));
+    await settleCamera(page);
+    const title = airport.locator(".venue-journey-title");
+    const copy = airport.locator(".venue-journey-reading");
+    const originalTop = (await title.boundingBox())!.y;
+    const headerBottom = await page.locator(".site-header").evaluate(element => element.getBoundingClientRect().bottom);
+    const distance = originalTop - headerBottom - 24;
+    expect(distance).toBeGreaterThan(0);
+    await page.mouse.move(1440 * .98, 450);
+    await page.mouse.wheel(0, distance);
+    await expect.poll(async () => Math.abs((await title.boundingBox())!.y - headerBottom - 24)).toBeLessThanOrEqual(1);
+    const fading = (await copy.boundingBox())!;
+    expect(fading.y).toBeGreaterThan(headerBottom);
+    expect(fading.y + fading.height).toBeLessThan(900);
+    await expect.poll(() => copy.evaluate(element => Number(getComputedStyle(element).opacity))).toBeLessThan(.9);
+    await page.mouse.wheel(0, -distance);
+    await expect.poll(async () => Math.abs((await title.boundingBox())!.y - originalTop)).toBeLessThanOrEqual(1);
+    await expect.poll(() => copy.evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThanOrEqual(.9);
+    const incoming = page.locator("#journey-city .venue-journey-reading");
+    const incomingTitle = incoming.locator(".venue-journey-title");
+    const incomingDistance = (await incomingTitle.boundingBox())!.y - 900 + 24;
+    expect(incomingDistance).toBeGreaterThan(0);
+    await page.mouse.wheel(0, incomingDistance);
+    await expect.poll(async () => Math.abs((await incomingTitle.boundingBox())!.y - 900 + 24)).toBeLessThanOrEqual(1);
+    await expect.poll(() => incoming.evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThan(.25);
+    await expect.poll(() => incoming.evaluate(element => Number(getComputedStyle(element).opacity))).toBeLessThan(.9);
+    await expect(page).toHaveURL(originalURL);
   });
 
   test(`${locale} keyboard, reduced motion and enlarged reading bypass the entry hold`, async ({ page, isMobile }) => {
@@ -630,6 +759,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(journey.locator('a[aria-current="location"]')).toHaveCount(1);
       await settleCamera(page);
       const currentCopy = page.locator(`#journey-${chapter} .venue-journey-reading`);
+      expect(locale === "en" ? ["start", "left"] : ["start", "right"]).toContain(await currentCopy.evaluate(element => getComputedStyle(element).textAlign));
       await expect.poll(() => currentCopy.evaluate((element) => Number(getComputedStyle(element).opacity))).toBeGreaterThanOrEqual(.9);
       if (chapter !== "airport") {
         await expect.poll(() => page.locator("#journey-airport .venue-journey-reading").evaluate((element) => Number(getComputedStyle(element).opacity))).toBeLessThan(.9);
