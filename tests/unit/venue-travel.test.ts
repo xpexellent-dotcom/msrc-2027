@@ -20,11 +20,10 @@ describe("plain external venue map links", () => {
     };
     const expected = "Synthetic Hall & Pavilion #1 / مثال, Synthetic St?redirect=https://example.invalid, Jeddah 22254";
     const links = venueMapLinks(synthetic);
-    expect(links.map(({ provider }) => provider)).toEqual(["google", "apple", "waze"]);
-    for (const { provider, href } of links) {
+    expect(links.map(({ provider }) => provider)).toEqual(["google", "apple"]);
+    for (const { href } of links) {
       const url = new URL(href);
-      const parameter = provider === "waze" ? "q" : "destination";
-      expect(url.searchParams.get(parameter)).toBe(expected);
+      expect(url.searchParams.get("destination")).toBe(expected);
       expect(url.hash).toBe("");
       expect(url.searchParams.has("redirect")).toBe(false);
       expect(url.searchParams.has("ll")).toBe(false);

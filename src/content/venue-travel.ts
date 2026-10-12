@@ -29,7 +29,7 @@ export const venueTravelCopy: Record<Locale, VenueTravelCopy> = {
     title: "Getting there.",
     intro: "Arriving in Jeddah? Find the conference at King Abdulaziz University.",
     mapLinksLabel: "Open the venue in your preferred map app",
-    providers: { google: "Google Maps", apple: "Apple Maps", waze: "Waze" },
+    providers: { google: "Google Maps", apple: "Apple Maps" },
     openMap: "Open", inProvider: "in", newTab: "opens in a new tab",
     airportTitle: "From the airport",
     modes: {
@@ -50,7 +50,7 @@ export const venueTravelCopy: Record<Locale, VenueTravelCopy> = {
     title: "الوصول إلى المؤتمر.",
     intro: "قادم إلى جدة؟ نلتقي في جامعة الملك عبدالعزيز.",
     mapLinksLabel: "افتح موقع المؤتمر في تطبيق الخرائط الذي تفضله",
-    providers: { google: "خرائط Google", apple: "خرائط Apple", waze: "Waze" },
+    providers: { google: "خرائط Google", apple: "خرائط Apple" },
     openMap: "اعرض", inProvider: "على", newTab: "تُفتح في علامة تبويب جديدة",
     airportTitle: "من المطار",
     modes: {

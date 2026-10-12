@@ -1,5 +1,25 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-032 — Compact venue opening and phone map, 12 October 2026
+
+The requester brings the existing campus map into the opening beside one
+scrollable photo card, removes Waze and the final-approach/different-light
+captions, and asks for a thinner phone map and blurred passing content above it.
+ENG-031's explicit publication authority continues for this refinement after
+current-head checks and owned live verification. Google Maps and Apple Maps
+remain explicit visitor actions; the existing self-hosted geometry, attribution,
+approved travel facts and closed operational gates remain authoritative.
+
+The normal pinned phone frame targets roughly one third of the viewport,
+including chapter controls. Short/enlarged reading layouts remain unpinned with
+enough space for controls and information points. Reduced motion uses immediate
+chapter framing on normal phones and a static fitted overview in reading flow.
+The opening preserves #venue-orientation for existing directions/bookmarks.
+All-width gallery controls use immediate keyboard changes and native smooth
+pointer scrolling, superseding ENG-030's local smooth-keyboard exception.
+Requirements: SCP-02, DSN-01/02, ACC-01, LOC-01/02/03, MED-01/04, PRV-03.
+Audit and evidence: `docs/reviews/venue-hero-phone-refinement.md`.
+
 ## ENG-031 — Mobile venue exploration and publication, 12 October 2026
 
 The requester supersedes ENG-030's review-only boundary and explicitly asks to

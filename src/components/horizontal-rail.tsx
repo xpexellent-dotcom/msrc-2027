@@ -44,9 +44,8 @@ export function HorizontalRail({ children, label, locale, className = "", stepBy
         : stops.slice().reverse().find(stop => stop < position - 2) ?? 0;
       const offset = Math.min(target, element.scrollWidth - element.clientWidth);
       element.scrollTo({ left: rtl ? -offset : offset,
-        // Keep a single native scroll mode so a new arrow activation can
-        // retarget an in-flight compositor animation without a stale delta.
-        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+        // Keyboard changes are immediate; pointer changes use native motion.
+        behavior: keyboard || matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
       return;
     }
     element.scrollBy({ left: direction * (locale === "ar" ? -1 : 1) * element.clientWidth * .82,

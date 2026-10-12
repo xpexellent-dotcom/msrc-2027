@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { setTimeout as gestureFrame } from "node:timers/promises";
 
 // ENG-030 / DSN-01, ACC-01, LOC-01/03, MED-01/04, PRV-03:
 // exercise native reading and information discovery, not animation declarations.
@@ -11,6 +12,44 @@ const mapLabels = {
 
 async function scrollPosition(rail: Locator) {
   return rail.evaluate((element) => Math.abs(element.scrollLeft));
+}
+
+async function expectOneGalleryCard(rail: Locator, expected: number) {
+  await expect.poll(() => rail.evaluate((element) => {
+    const viewport = element.getBoundingClientRect();
+    return [...element.children].flatMap((item, index) => {
+      const box = item.getBoundingClientRect();
+      const visible = Math.max(0, Math.min(viewport.right, box.right) - Math.max(viewport.left, box.left));
+      return visible > 1 ? [{ index, fillsFrame: visible / viewport.width > .99 }] : [];
+    });
+  })).toEqual([{ index: expected, fillsFrame: true }]);
+}
+
+async function swipeGalleryHorizontally(page: Page, rail: Locator, locale: "en" | "ar") {
+  const box = (await rail.boundingBox())!;
+  const before = { rail: await scrollPosition(rail), document: await page.evaluate(() => window.scrollY) };
+  const client = await page.context().newCDPSession(page);
+  const start = box.x + box.width * (locale === "ar" ? .1 : .9);
+  const direction = locale === "ar" ? 1 : -1;
+  const y = box.y + box.height * .5;
+  try {
+    await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: start, y }] });
+    for (let step = 1; step <= 8; step++) {
+      await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: start + direction * box.width * .8 * step / 8, y }] });
+      // Native gestures need realistic input cadence even in the no-JavaScript
+      // context, whose document cannot deliver requestAnimationFrame callbacks.
+      await gestureFrame(16);
+    }
+    // Model a deliberate drag that stops before lift. CDP acknowledges moves
+    // before the compositor consumes them; a stationary terminal sample lets
+    // native scroll-snap receive the completed drag rather than a queued flick.
+    await gestureFrame(100);
+    await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: start + direction * box.width * .8, y }] });
+    await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect.poll(() => scrollPosition(rail)).toBeGreaterThan(before.rail + 44);
+    expect(await page.evaluate(() => window.scrollY)).toBe(before.document);
+    expect(await page.evaluate(() => window.scrollX)).toBe(0);
+  } finally { await client.detach(); }
 }
 
 async function readChapter(page: Page, chapter: typeof chapters[number]) {
@@ -59,6 +98,42 @@ async function expectControlBounds(page: Page, controls: Locator) {
   for (const button of await controls.getByRole("button").all()) {
     await expectButtonBounds(page, button);
   }
+}
+
+async function expectPinClearOfMapFurniture(page: Page, point: Locator) {
+  const pin = (await point.boundingBox())!;
+  for (const furniture of await page.locator(".venue-map-controls button, .venue-journey-map-caption").all()) {
+    const box = (await furniture.boundingBox())!;
+    const overlaps = pin.x < box.x + box.width && pin.x + pin.width > box.x
+      && pin.y < box.y + box.height && pin.y + pin.height > box.y;
+    expect(overlaps, JSON.stringify({ pin, furniture: await furniture.getAttribute("class"), box })).toBe(false);
+  }
+}
+
+async function expectThinCompactFrame(page: Page) {
+  const journey = page.getByTestId("venue-arrival-journey");
+  await expect(journey).toHaveAttribute("data-map-compact", "true");
+  await expect(journey).toHaveAttribute("data-reading-flow", "false");
+  await expect(journey).toHaveAttribute("data-frame-pinned", "true");
+  const frame = page.locator(".venue-journey-frame");
+  const box = (await frame.boundingBox())!;
+  const viewport = page.viewportSize()!;
+  expect(box.height).toBeLessThanOrEqual(viewport.height * .36);
+  const headerBottom = await page.locator(".site-header").evaluate((element) => element.getBoundingClientRect().bottom);
+  expect(box.y).toBeGreaterThanOrEqual(headerBottom - 1);
+  expect(box.y + box.height).toBeLessThan(viewport.height);
+  const scrim = await frame.evaluate((element) => {
+    const style = getComputedStyle(element, "::before");
+    return { opacity: style.opacity, backdropFilter: style.backdropFilter || style.getPropertyValue("-webkit-backdrop-filter"), pointerEvents: style.pointerEvents };
+  });
+  expect(scrim.backdropFilter).toMatch(/blur\(/);
+  expect(scrim.opacity).toBe("1");
+  expect(scrim.pointerEvents).toBe("none");
+  const chapterLinks = journey.locator(".venue-journey-index a");
+  const heights = await chapterLinks.evaluateAll((links) => links.map((link) => link.getBoundingClientRect().height));
+  expect(new Set(heights).size).toBe(1);
+  for (const link of await chapterLinks.all()) await expectButtonBounds(page, link);
+  await expectControlBounds(page, page.locator(".venue-map-controls"));
 }
 
 async function activateWithPressedBounds(page: Page, button: Locator) {
@@ -152,7 +227,7 @@ async function inspectPointPanel(page: Page, point: Locator, pointName: "airport
   await expect(panel).toBeVisible();
   await expect(panel.getByRole("heading")).toBeFocused();
   if (pointName === "arrival") {
-    const afterScroll = await page.locator("#venue-orientation").evaluate((element) => {
+    const afterScroll = await page.locator("#international-attendees").evaluate((element) => {
       element.scrollIntoView({ block: "start", behavior: "instant" });
       return { x: window.scrollX, y: window.scrollY };
     });
@@ -175,6 +250,12 @@ async function inspectPointPanel(page: Page, point: Locator, pointName: "airport
   await expect(panel).toBeHidden();
   await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue#${destination}$`));
   await expect(page.locator(`#${destination}`)).toBeFocused();
+  // Fragment/focus commits precede the queued native scroll. Verify actual
+  // arrival before beginning another chapter's independent scrolling action.
+  if (pointName === "airport") {
+    await expect(page.locator('.venue-journey-index a[href="#journey-city"]')).toHaveAttribute("aria-current", "location");
+    await expect(page.locator("#journey-city").getByRole("heading").first()).toBeInViewport();
+  } else await expect(page.locator("#venue-orientation")).toBeInViewport();
 }
 
 async function expectReadable(page: Page) {
@@ -214,27 +295,30 @@ for (const locale of ["en", "ar"] as const) {
     for (const photo of await photos.all()) await expect(photo).toHaveAccessibleName(/\S/);
     await rail.scrollIntoViewIfNeeded();
 
-    if (isMobile) {
-      const next = gallery.getByRole("button", { name: locale === "ar" ? "التالي" : "Next", exact: true });
-      const previous = gallery.getByRole("button", { name: locale === "ar" ? "السابق" : "Previous", exact: true });
-      await expect(previous).toBeDisabled();
-      await next.tap();
-      await expect.poll(() => scrollPosition(rail)).toBeGreaterThan(0);
-      await expect(previous).toBeEnabled();
-      await previous.focus();
-      await expect(previous).toBeFocused();
-      await page.keyboard.press("Enter");
-      await expect.poll(() => scrollPosition(rail)).toBeLessThan(2);
-    }
-    for (const photo of await photos.all()) {
-      await photo.scrollIntoViewIfNeeded();
+    const next = gallery.getByRole("button", { name: locale === "ar" ? "التالي" : "Next", exact: true });
+    const previous = gallery.getByRole("button", { name: locale === "ar" ? "السابق" : "Previous", exact: true });
+    await expect(previous).toBeDisabled();
+    await expectOneGalleryCard(rail, 0);
+    await expectControlBounds(page, gallery.locator(".rail-buttons"));
+    if (isMobile) await swipeGalleryHorizontally(page, rail, locale); else await next.click();
+    await expect.poll(() => scrollPosition(rail)).toBeGreaterThan(0);
+    await expectOneGalleryCard(rail, 1);
+    await expect(previous).toBeEnabled();
+    await previous.focus();
+    await expect(previous).toBeFocused();
+    await page.keyboard.press("Enter");
+    // Keyboard navigation must select the frame immediately, without a smooth
+    // scroll still showing the previous photo after activation returns.
+    expect(await scrollPosition(rail)).toBeLessThan(2);
+    await expectOneGalleryCard(rail, 0);
+    for (const [index, photo] of (await photos.all()).entries()) {
+      if (index) { if (isMobile) await next.tap(); else await next.click(); }
+      await expectOneGalleryCard(rail, index);
       await expect.poll(() => photo.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
       expect(await photo.evaluate((image: HTMLImageElement) => new URL(image.currentSrc).origin === location.origin)).toBe(true);
     }
-    if (isMobile) {
-      await expect(photos.last()).toBeInViewport();
-      await expect(gallery.getByRole("button", { name: locale === "ar" ? "التالي" : "Next", exact: true })).toBeDisabled();
-    }
+    await expect(photos.last()).toBeInViewport();
+    await expect(next).toBeDisabled();
   });
 
   test(`${locale} native scrolling follows the arrival chapters and reverses without rewriting the URL`, async ({ page, isMobile }) => {
@@ -247,6 +331,16 @@ for (const locale of ["en", "ar"] as const) {
     await expect(journey.locator("[data-journey-chapter]")).toHaveCount(3);
     const originalURL = page.url();
     if (isMobile) {
+      const originalViewport = page.viewportSize()!;
+      await expect(journey).toHaveAttribute("data-frame-pinned", "false");
+      expect(await journey.locator(".venue-journey-frame").evaluate((element) => getComputedStyle(element, "::before").opacity)).toBe("0");
+      for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 720 }]) {
+        await page.setViewportSize(viewport);
+        await readChapter(page, "airport");
+        await settleCamera(page);
+        await expectThinCompactFrame(page);
+      }
+      await page.setViewportSize(originalViewport);
       await expect(journey).toHaveAttribute("data-map-compact", "true");
       await expect(journey).toHaveAttribute("data-reading-flow", "false");
       await readChapter(page, "airport");
@@ -321,6 +415,9 @@ for (const locale of ["en", "ar"] as const) {
     }
     await page.setViewportSize({ width: 320, height: 640 });
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+    // The resize can briefly enable compact mode before the font mutation's
+    // observer restores reading flow; measure the resulting enlarged layout.
+    await expect(journey).toHaveAttribute("data-reading-flow", "true");
     await expectReadable(page);
     for (const chapter of chapters) {
       await readChapter(page, chapter);
@@ -332,6 +429,24 @@ for (const locale of ["en", "ar"] as const) {
     await settleCamera(page);
     await zoomAndReset(page, locale, isMobile);
     await expectReadable(page);
+    if (isMobile) {
+      // Reduced motion on a normal phone must preserve tappable stop framing;
+      // the full overview is reserved for desktop and short/enlarged flow above.
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(`/${locale}/dates-venue`);
+      await page.evaluate(() => document.fonts.ready);
+      await expect(journey).toHaveAttribute("data-reading-flow", "false");
+      for (const chapter of ["airport", "arrival"] as const) {
+        await readChapter(page, chapter);
+        await settleCamera(page);
+        const point = journey.locator(`[data-map-point="${chapter}"]`);
+        await expect(point).toHaveAttribute("data-point-visible", "true");
+        await expect(point).toBeInViewport();
+        await expectPinClearOfMapFurniture(page, point);
+        expect(await camera.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0s");
+        await inspectPointPanel(page, point, chapter, locale, true);
+      }
+    }
   });
 
   test(`${locale} transport guidance responds to keyboard, touch and deliberate hover`, async ({ page, isMobile }) => {
@@ -391,6 +506,7 @@ for (const locale of ["en", "ar"] as const) {
         await settleCamera(page);
         await expect(point).toHaveAttribute("data-point-visible", "true");
         await expect(tooltip).toBeHidden();
+        await expectPinClearOfMapFurniture(page, point);
       } else {
         await page.evaluate(() => document.fonts.ready);
         await readChapter(page, chapter);
@@ -472,10 +588,18 @@ for (const locale of ["en", "ar"] as const) {
   });
 
   test(`${locale} arrival chapters and transport disclosures remain usable without JavaScript`, async ({ browser, baseURL }) => {
-    const context = await browser.newContext({ baseURL, javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+    const context = await browser.newContext({ baseURL, javaScriptEnabled: false, hasTouch: true, viewport: { width: 390, height: 844 } });
     try {
       const page = await context.newPage();
       expect((await page.goto(`/${locale}/dates-venue`, { waitUntil: "domcontentloaded" }))?.status()).toBe(200);
+      const gallery = page.locator(".venue-photo-gallery");
+      const galleryRail = gallery.getByRole("region", { name: galleryLabel[locale], exact: true });
+      await expect(gallery.getByRole("img")).toHaveCount(4);
+      await galleryRail.scrollIntoViewIfNeeded();
+      await expectOneGalleryCard(galleryRail, 0);
+      await swipeGalleryHorizontally(page, galleryRail, locale);
+      await expectOneGalleryCard(galleryRail, 1);
+      await expect(page.locator(".venue-gallery-hero").getByTestId("venue-geographic-map")).toHaveCount(1);
       const journey = page.getByTestId("venue-arrival-journey");
       await expect(journey.locator("[data-journey-chapter]")).toHaveCount(3);
       const travel = journey.locator('[data-travel-mode="taxi"] details');

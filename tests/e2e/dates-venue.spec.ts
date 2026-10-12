@@ -26,6 +26,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".dates-calendar")).toHaveCount(0);
     const photos = page.locator(".venue-photo-gallery img");
     await expect(photos).toHaveCount(4);
+    await expect(page.locator(".venue-gallery-hero").getByTestId("venue-geographic-map")).toHaveCount(1);
+    await expect(page.getByTestId("venue-geographic-map")).toHaveCount(1);
     await expect(photos.first()).toHaveAttribute("alt", /\S/);
     await expect.poll(() => photos.first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await page.goto(`/${locale}/program`);
@@ -47,11 +49,17 @@ for (const locale of ["en", "ar"] as const) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} Venue shows its gallery and practical information with pending times and accessible layout`, async ({ page }, testInfo) => {
+  test(`${locale} Venue shows its gallery and practical information with pending times and accessible layout`, async ({ page, browserName }, testInfo) => {
     const errors: string[] = [];
     const writes: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+    page.on("console", (message) => {
+      if (message.type() !== "error") return;
+      // WebKit explicitly ignores this supported Chromium viewport hint.
+      // Retain every application error and every other platform message.
+      if (browserName === "webkit" && message.text() === 'Viewport argument key "interactive-widget" not recognized and ignored.') return;
+      errors.push(message.text());
+    });
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
 
     const response = await page.goto(`/${locale}/dates-venue`);
@@ -62,6 +70,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy[locale].heading);
     await expect(page.getByRole("main").locator("time, .dates-calendar")).toHaveCount(0);
     await expect(page.locator(".venue-photo-gallery img")).toHaveCount(4);
+    await expect(page.getByRole("heading", { name: locale === "en" ? "The final approach." : "الخطوة الأخيرة.", exact: true })).toHaveCount(0);
+    await expect(page.locator(".venue-photo-gallery")).not.toContainText(locale === "en" ? "A different light" : "في ضوء مختلف");
+    await expect(page.locator(".venue-gallery-hero #venue-orientation").getByTestId("venue-geographic-map")).toHaveCount(1);
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].host);
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].venue);
     await expect(page.locator(".dates-location-details")).toContainText("22254");

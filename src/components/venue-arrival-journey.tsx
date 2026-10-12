@@ -4,14 +4,12 @@ import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } 
 import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
-import { VenueGeographicMap } from "@/components/venue-geographic-map";
 import { VenueIcon } from "@/components/venue-icon";
 import type { ConferenceVenue, VenueTravelMode, VenueVisitorInfoKey } from "@/config/conference";
 import { datesVenueCopy } from "@/content/dates-venue";
 import { venueTravelCopy } from "@/content/venue-travel";
 import { venueJourneyCopy, venueJourneyIds, venueJourneySteps } from "@/content/venue-journey";
 import type { Locale } from "@/lib/i18n";
-import { venueMapLinks } from "@/lib/venue-travel";
 
 const modes = ["taxi", "train", "rental"] as const satisfies readonly VenueTravelMode[];
 const detailKeys = ["entryGate", "ticket", "parking", "accessibility", "onSite", "wifi"] as const satisfies readonly VenueVisitorInfoKey[];
@@ -170,10 +168,12 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       const atlasBox = atlas.getBoundingClientRect();
       const headerHeight = Number.parseFloat(getComputedStyle(element).getPropertyValue("--site-header-height")) || 80;
       const worldBottom = atlas.closest<HTMLElement>(".venue-journey-world")?.getBoundingClientRect().bottom ?? atlasBox.bottom;
+      element.dataset.framePinned = String(compact && !readingFlow && Math.abs(atlasBox.top - headerHeight) < 2 && worldBottom > headerHeight + atlas.offsetHeight);
       if (selected.current && (worldBottom <= Math.max(headerHeight + 32, viewport * .35) || atlasBox.top >= viewport)) {
         selected.current = null; setSelectedPoint(null);
       }
       const indexHeight = element.querySelector<HTMLElement>(".venue-journey-index")?.offsetHeight ?? 0;
+      element.style.setProperty("--venue-index-height", `${indexHeight}px`);
       const mapBottom = compact && !readingFlow ? atlas.getBoundingClientRect().bottom + indexHeight : 0;
       const line = compact && !readingFlow ? Math.min(viewport - 32, mapBottom + (viewport - mapBottom) * .45)
         : Math.max(viewport * .45, Math.min(viewport - 24, anchorInset + scrollPadding + 1));
@@ -191,18 +191,30 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         const start = boxes[next]?.top ?? line;
         const end = boxes[following]?.top ?? start;
         const progress = following === next ? 0 : clamp((line - start) / Math.max(1, end - start));
-        const amount = progress * progress * (3 - 2 * progress);
+        // Hold a phone stop while its guidance is read; travel near the chapter
+        // boundary so its tappable pin does not drift into the thin toolbar.
+        const travelProgress = compact ? clamp((progress - .75) / .25) : progress;
+        const amount = motion.matches ? 0 : travelProgress * travelProgress * (3 - 2 * travelProgress);
         const first = cameraStops[next];
         const last = cameraStops[following];
         const chosen = selected.current ? cameraStops[selected.current === "airport" ? 0 : 2] : null;
-        const overview = motion.matches && !chosen;
+        const overview = motion.matches && !chosen && (!compact || readingFlow);
+        const credits = atlas.querySelector<HTMLElement>(".venue-journey-map-caption")?.getBoundingClientRect();
+        const controls = atlas.querySelector<HTMLElement>(".venue-map-controls")?.getBoundingClientRect();
+        const north = atlas.querySelector<HTMLElement>(".venue-journey-north")?.getBoundingClientRect();
+        // The north indicator occupies a side corner, not the full focal band.
+        // Its actual rectangle is still excluded from each pin below.
+        const upper = (controls?.bottom ?? atlasBox.top) - atlasBox.top;
+        const lower = (credits?.top ?? atlasBox.bottom) - atlasBox.top;
+        const pointHeight = Math.max(...points.map(point => point.offsetHeight));
         const x = chosen?.x ?? (overview ? 780 : mix(first.x, last.x, amount));
         const y = chosen?.y ?? (overview ? 850 : mix(first.y, last.y, amount));
         const scale = Math.max(.05, overview
-          ? Math.min(atlas.clientWidth / 1400, atlas.clientHeight / 1700) * .86 * zoom.current
+          ? Math.min(atlas.clientWidth / 1400 * .86, compact ? Math.max(0, lower - upper - pointHeight - 12) / 1000 : atlas.clientHeight / 1700 * .86) * zoom.current
           : Math.max(atlas.clientWidth / 1400, atlas.clientHeight / 1700) * (chosen?.zoom ?? mix(first.zoom, last.zoom, amount)) * zoom.current);
         const targetX = atlas.clientWidth * (compact || overview ? .5 : locale === "ar" ? .22 : .78);
-        const targetY = atlas.clientHeight * (compact ? .43 : .48);
+        // Keep the focal stop between controls and attribution on thin maps.
+        const targetY = compact ? (upper + lower) / 2 : atlas.clientHeight * .48;
         map.style.left = "0px"; map.style.top = "0px"; map.style.transformOrigin = "0 0";
         map.style.transform = `translate3d(${targetX - x * scale}px,${targetY - y * scale}px,0) scale(${scale})`;
         points.forEach(point => {
@@ -210,7 +222,9 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
           const stop = point.dataset.mapPoint === "airport" ? cameraStops[0] : cameraStops[2];
           const px = targetX + (stop.x - x) * scale;
           const py = targetY + (stop.y - y) * scale;
-          const visible = px - point.offsetWidth / 2 >= 0 && px + point.offsetWidth / 2 <= atlas.clientWidth && py - point.offsetHeight / 2 >= 0 && py + point.offsetHeight / 2 <= atlas.clientHeight;
+          const bounds = { left: atlasBox.left + px - point.offsetWidth / 2, right: atlasBox.left + px + point.offsetWidth / 2, top: atlasBox.top + py - point.offsetHeight / 2, bottom: atlasBox.top + py + point.offsetHeight / 2 };
+          const blocked = compact && [credits, controls, north].some(box => box && bounds.left < box.right + 4 && bounds.right > box.left - 4 && bounds.top < box.bottom + 4 && bounds.bottom > box.top - 4);
+          const visible = !blocked && bounds.left >= atlasBox.left && bounds.right <= atlasBox.right && bounds.top >= atlasBox.top && bounds.bottom <= atlasBox.bottom;
           point.inert = !visible; point.tabIndex = visible ? 0 : -1;
           if (visible) point.removeAttribute("aria-hidden"); else point.setAttribute("aria-hidden", "true");
           point.dataset.pointVisible = String(visible);
@@ -244,6 +258,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     textSize.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
+    window.visualViewport?.addEventListener("resize", schedule);
     window.addEventListener("keydown", keyboard, { capture: true });
     window.addEventListener("pointerdown", pointer, { passive: true, capture: true });
     window.addEventListener("wheel", wheel, { passive: true });
@@ -253,12 +268,14 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       refresh.current = () => {};
       cancelAnimationFrame(frame); size?.disconnect(); textSize.disconnect();
       window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule);
+      window.visualViewport?.removeEventListener("resize", schedule);
       window.removeEventListener("keydown", keyboard, { capture: true });
       window.removeEventListener("pointerdown", pointer, { capture: true }); window.removeEventListener("wheel", wheel);
       motion.removeEventListener("change", schedule);
       map.style.removeProperty("transform"); map.style.removeProperty("left"); map.style.removeProperty("top"); map.style.removeProperty("transform-origin");
       points.forEach(point => { point.style.removeProperty("transform"); point.inert = false; point.tabIndex = 0; point.removeAttribute("aria-hidden"); delete point.dataset.pointVisible; });
-      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard;
+      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned;
+      element.style.removeProperty("--venue-index-height");
     };
   }, [locale]);
 
@@ -340,11 +357,8 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         {selectedPoint ? <><h3 tabIndex={-1}>{selectedPoint === "airport" ? journey.airportName : venue.name[locale]}</h3><p>{selectedPoint === "airport" ? journey.airportNote : `${venue.address.streetAddress[locale]}${locale === "ar" ? "، جدة " : ", Jeddah "}${venue.address.postalCode}`}</p><Link href={selectedPoint === "airport" ? "#journey-city" : "#venue-orientation"} onClick={() => closePoint()}>{selectedPoint === "airport" ? journey.continue : place.directions}<VenueIcon name="arrow" /></Link></> : null}
       </aside>
     </div>
-    <section id="venue-orientation" className="venue-journey-orientation" aria-labelledby="venue-orientation-title"><Container>
-      <h2 id="venue-orientation-title">{journey.orientationTitle}</h2>
-      <VenueGeographicMap locale={locale} />
-      <nav className="venue-map-links" aria-label={travel.mapLinksLabel}>{venueMapLinks(venue).map(({ provider, href }) => <a key={provider} className={`button button--secondary${provider === "google" ? " dates-directions-link" : ""}`} href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={provider === "google" ? place.directionsLabel : `${travel.openMap} ${venue.name[locale]} ${travel.inProvider} ${travel.providers[provider]} (${travel.newTab})`}>{provider === "google" ? place.directions : travel.providers[provider]}<VenueIcon name="arrow" /></a>)}</nav>
+    <div className="venue-journey-orientation"><Container>
       <section id="international-attendees" className="venue-international" aria-labelledby="international-title"><details><summary><h3 id="international-title"><VenueIcon name="globe" />{travel.internationalTitle}</h3></summary><p>{travel.internationalNote} <bdi dir="ltr">(UTC+3)</bdi>.</p><p>{travel.visaResponsibility}</p></details></section>
-    </Container></section>
+    </Container></div>
   </section>;
 }
