@@ -85,3 +85,50 @@ then owned Production source/alias proof and actual public-site verification.
 - PASS Git Bash syntax check and git diff --check. Independent final helper/source
   review finds no material defect. Genuine Ubuntu execution awaits new-head CI.
   No automatic rerun, retry, merge or hosted configuration change was performed.
+
+## Published release receipts
+
+- Corrected reviewed head80b5c2ce4449a5ddfa9bcf8472fe0341f4ea8637: all three
+  exact-head PR workflows, ten jobs and ten actual Actions checks PASS, attempt1.
+  Public653 pass/43 intentional skips/zero failures/696 cases; core2,401 units/
+  61 files,81-page build and81 smoke; Contact44; participant88+4 skips;
+  staff102+8 skips; each disposable SQL run1,023 assertions/13 files, clean
+  schema/advisors. All seven browser jobs prove canonical HTTPS retrieval,
+  zero HTTP Azure requests, successful installation and executed tests. No retries.
+- Owned READY Preview dpl_CWi1zGG7CrJ8TPHcAhdrSCQp7F5z matches the expected
+  project/team/branch/repository and exact80b5 metadata/GitSource. Protected EN/AR
+  page GETs are200 with Venue markers. Connector access returned403; the first
+  CLI fallback was not confirmed due Windows batch query splitting. It was not
+  retried blindly; subsequent known-deployment inspection established source proof.
+  Preview is Git-sourced; its precise creation trigger is not established.
+- Vercel's GitHub comment/commit signals were absent, so eleven green checks are
+  NOT claimed. A separate guarded helper freshly inspects the owned READY Preview
+  twice and retains all workflow/job/actual-check guards and rejection of reported
+  bad statuses. Preview inspection precedes the final fresh PR/main pair. No status
+  is forged and no server protection/settings are changed.
+- Single ordinary head-guarded PR63 squash merge is79d0679d2eb59c0583658d4a5fda827fb781448a.
+  Fresh main matches; reviewed and merged trees equal ddc6f6d336ccee61e81694353384b7910f6dd2d5.
+- Expected-source automatic Production was absent in bounded lookups. A single
+  source-pinned existing-project Production API request uses main+79d and existing
+  settings. Direct Node CLI invocation preserves query arguments; no dirty local
+  files are uploaded. Deployment dpl_EScbq98CCVAB7zTpaF8kXxSo6ZnD is READY,
+  matches expected owner/project/repo/main and79d metadata/GitSource, and both
+  msrc2027.com / www.msrc2027.com appear in target and deployment alias lists.
+- Independent push/main CI at79d also PASS: all three workflows, ten jobs and
+  ten actual Actions checks, with the same complete numeric suite totals.
+- Actual public runtime:97 GET/HEAD checks PASS; scoped Chromium63 PASS, two
+  intentional desktop-only phone skips, zero retries. This covers the published
+  hold/charge/exact landing, side/vertical text and early fades, native phone
+  gestures/anchors, no-JS, focus/keyboard/reduced/enlarged/RTL, fixed controls,
+  map/disclosure/privacy/axe, public media and unchanged closed boundaries.
+- Final public visual confirmation reproduces the stationary overview at96px
+  below the header, charging then one release to Airport with full side opacity.
+  Screenshots live-desktop-airport.png and live-phone-airport.png are in the task
+  review directory. Public tab retained, temporary viewport reset and reloaded at
+  the native anchor. Physical devices/screen readers remain NOT TESTED.
+
+Detailed receipts: `.tools/venue-side-80b5-evidence-complete.json`,
+`.tools/venue-side-direct-preview-status.json`, `.tools/venue-side-merge-receipt.json`,
+`.tools/venue-side-production-final.json`, `.tools/venue-side-live-receipt.json`,
+`.tools/venue-side-live-browser.log`, `.tools/venue-side-main-79d-*`.
+Post-release receipt updates are local, leaving the deployed source frozen.

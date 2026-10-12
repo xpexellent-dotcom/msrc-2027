@@ -1,5 +1,39 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-037 — Reliable scroll-powered Venue entrance, 12 October 2026
+
+The organizer reports that normal scrolling bypasses the published overview
+hold, glow and release. Fresh-page EN/AR wheel and touch reproductions confirm
+that large approach gestures can cross the late listener band and falsely mark
+the entrance complete without displaying charge. Existing boundary-aligned tests
+did not establish a reliable approach from the top of the page.
+
+The latest explicit cinematic instruction supersedes the old automatic 800ms
+charge decay, 2.4-second escape, 540ms jump and 160px-only touch approach. Charge
+is accumulated only from deliberate scroll input; pauses preserve it and reverse
+input reduces it. Hold the measured overview, then use one 850ms layered reveal
+of the real incoming Journey, with a flow placeholder, restrained map parallax,
+heading reveal, bottom light and bounded blur. Restore normal document geometry
+and land precisely at Airport. Begin your journey stays centered and invokes the
+same reveal, including deliberate keyboard activation; reduced motion remains
+direct. These values describe the approved implementation contract, not travel
+or operational facts.
+
+Wheel observation begins before the first approach gesture. Touch ownership is
+decided on the first move of a single-finger gesture begun within the measured
+approach band, bounded to two viewports before the entrance. Outside that band
+and after the completed entrance, scrolling remains native. Preserve pinch zoom,
+horizontal gestures, inner scrollers, native controls, keyboard/focus access,
+Escape/Tab/Home/End, short/enlarged reading, no-JS and forced-color alternatives.
+Never seize an already native, non-cancelable pan or lock body overflow. Restore
+temporary styles, flow, effects and listeners on completion or interruption.
+
+ENG-035's explicit publication authorization persists for this continuing public
+UI correction after verification. No dependency, provider, approved fact, hosted
+setting, database, operational flag, account or communication change is authorized.
+IDs: SCP-02, DSN-01/02, ACC-01, LOC-01/02/03, MED-01/04, PRV-03, REL-06.
+Audit and current evidence: `docs/reviews/venue-scroll-entry.md`.
+
 ## ENG-036 — Correct the stalled CI browser archive, 12 October 2026
 
 PR63's initial head dd432fc passed nine substantive jobs. Public shard2 exhausted
