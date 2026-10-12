@@ -28,6 +28,8 @@
 @import "../styles/pathway-track-nav.css";
 @import "../styles/community-numbers.css";
 @import "../styles/venue-program-refinement.css";
+@import "../styles/venue-gallery.css";
+@import "../styles/venue-journey.css";
 @import "../styles/print.css";
 
 html { scroll-behavior: auto; scroll-padding-block-start: 6rem; }

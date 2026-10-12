@@ -4,8 +4,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
 
 /** Native scrolling remains the primary interaction; arrows are an additional affordance. */
-export function HorizontalRail({ children, label, locale, className = "" }: {
-  children: ReactNode; label: string; locale: Locale; className?: string;
+export function HorizontalRail({ children, label, locale, className = "", stepByItem = false }: {
+  children: ReactNode; label: string; locale: Locale; className?: string; stepByItem?: boolean;
 }) {
   const rail = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: true, end: false });
@@ -28,6 +28,27 @@ export function HorizontalRail({ children, label, locale, className = "" }: {
   const move = (direction: number, keyboard: boolean) => {
     const element = rail.current;
     if (!element) return;
+    if (stepByItem) {
+      // Snap items can differ from a viewport increment; use their real edges.
+      const position = Math.abs(element.scrollLeft);
+      const rtl = locale === "ar";
+      const first = element.firstElementChild as HTMLElement | null;
+      const stops = Array.from(element.children).map((child) => {
+        const item = child as HTMLElement;
+        // Layout offsets stay stable while the compositor advances a smooth
+        // scroll; mixing scrollLeft with animated rectangles can drift a frame.
+        return Math.max(0, rtl ? (first?.offsetLeft ?? 0) - item.offsetLeft : item.offsetLeft - (first?.offsetLeft ?? 0));
+      });
+      const target = direction > 0
+        ? stops.find(stop => stop > position + 2) ?? element.scrollWidth
+        : stops.slice().reverse().find(stop => stop < position - 2) ?? 0;
+      const offset = Math.min(target, element.scrollWidth - element.clientWidth);
+      element.scrollTo({ left: rtl ? -offset : offset,
+        // Keep a single native scroll mode so a new arrow activation can
+        // retarget an in-flight compositor animation without a stale delta.
+        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      return;
+    }
     element.scrollBy({ left: direction * (locale === "ar" ? -1 : 1) * element.clientWidth * .82,
       behavior: keyboard || matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   };

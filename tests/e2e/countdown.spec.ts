@@ -73,10 +73,11 @@ for (const locale of ["en", "ar"] as const) {
       expect((await page.goto(`/${locale}/${path}`))?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       if (path === "dates-venue") {
-        // Venue now focuses on the actual room and arrival information; the
+        // Venue focuses on four views and arrival information; the
         // confirmed calendar remains server-rendered on Program instead.
         await expect(page.getByRole("main").locator(".dates-calendar, time")).toHaveCount(0);
-        await expect(page.locator(".venue-room-frame img")).toBeVisible();
+        await expect(page.locator(".venue-photo-gallery img")).toHaveCount(4);
+        await expect(page.locator(".venue-photo-gallery img").first()).toBeVisible();
       } else {
         await expect(page.getByRole("main")).toContainText(locale === "ar" ? /٢٧.*يناير ٢٠٢٧/ : /27.*January 2027/);
       }

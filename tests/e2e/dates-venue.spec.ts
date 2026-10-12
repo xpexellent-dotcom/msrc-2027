@@ -6,29 +6,28 @@ import { expect, test } from "@playwright/test";
 // ORG-031 confirms the venue; event times and workflow openings stay unset.
 const copy = {
   en: {
-    title: "Dates & venue | MSRC 2027", heading: "Two days in Jeddah.",
+    title: "Dates & venue | MSRC 2027", heading: "Your way to MSRC.",
     first: "27 January 2027", second: "28 January 2027", venue: "King Faisal Conference Center",
-    city: "Jeddah, Saudi Arabia", closed: "Registration not open yet",
-    venueBody: "King Faisal Conference Center, King Abdulaziz University, Jeddah, Saudi Arabia.",
+    host: "King Abdulaziz University", closed: "Registration not open yet",
     breadcrumb: "Breadcrumb", home: "Home", footer: "Dates & venue",
   },
   ar: {
-    title: "المواعيد والمقر | MSRC 2027", heading: "يومان في جدة.",
+    title: "المواعيد والمقر | MSRC 2027", heading: "طريقك إلى المؤتمر.",
     first: "٢٧ يناير ٢٠٢٧", second: "٢٨ يناير ٢٠٢٧", venue: "مركز الملك فيصل للمؤتمرات",
-    city: "جدة، المملكة العربية السعودية", closed: "لم يُفتح التسجيل بعد",
-    venueBody: "مركز الملك فيصل للمؤتمرات، جامعة الملك عبدالعزيز، جدة، المملكة العربية السعودية.",
+    host: "جامعة الملك عبدالعزيز", closed: "لم يُفتح التسجيل بعد",
     breadcrumb: "مسار التنقل", home: "الرئيسية", footer: "المواعيد والمقر",
   },
 } as const;
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} venue shows the room and Program date links select the corresponding conference day`, async ({ page }) => {
+  test(`${locale} venue introduces four views and Program date links select the corresponding conference day`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/dates-venue`);
     await expect(page.locator(".dates-calendar")).toHaveCount(0);
-    const room = page.locator(".venue-room-frame img");
-    await expect(room).toHaveAttribute("alt", locale === "en" ? "The auditorium at King Faisal Conference Center" : "قاعة مركز الملك فيصل للمؤتمرات");
-    await expect.poll(() => room.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    const photos = page.locator(".venue-photo-gallery img");
+    await expect(photos).toHaveCount(4);
+    await expect(photos.first()).toHaveAttribute("alt", /\S/);
+    await expect.poll(() => photos.first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
     await page.goto(`/${locale}/program`);
     for (const day of ["day1", "day2"] as const) {
       const dateLink = page.locator(`.program-date-panel a[href="/${locale}/program?day=${day}"]`);
@@ -48,7 +47,7 @@ for (const locale of ["en", "ar"] as const) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} Venue shows its room and practical information with pending times and accessible layout`, async ({ page }, testInfo) => {
+  test(`${locale} Venue shows its gallery and practical information with pending times and accessible layout`, async ({ page }, testInfo) => {
     const errors: string[] = [];
     const writes: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -62,11 +61,10 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy[locale].heading);
     await expect(page.getByRole("main").locator("time, .dates-calendar")).toHaveCount(0);
-    await expect(page.locator(".venue-room-frame img")).toHaveCount(1);
-    await expect(page.locator(".dates-location-details")).toContainText(copy[locale].city);
+    await expect(page.locator(".venue-photo-gallery img")).toHaveCount(4);
+    await expect(page.locator(".dates-location-details")).toContainText(copy[locale].host);
     await expect(page.locator(".dates-location-details")).toContainText(copy[locale].venue);
     await expect(page.locator(".dates-location-details")).toContainText("22254");
-    await expect(page.locator("#venue .dates-body")).toHaveText(copy[locale].venueBody);
     await expect(page.locator(".dates-note")).toHaveCount(0);
     await expect(page.locator(".dates-closed-note")).toContainText(copy[locale].closed);
     await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/registration`);
@@ -117,9 +115,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(footerDates).toHaveAttribute("href", `/${locale}/dates-venue`);
     await footerDates.click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue$`));
-    await page.getByRole("main").locator('a[href$="#program"]').click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/?#program$`));
-    await expect(page.locator("#program")).toBeInViewport();
+    await page.getByRole("main").locator('.dates-program-link').click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/program$`));
+    await expect(page.getByTestId("program-empty")).toBeVisible();
     expect(errors).toEqual([]);
     expect(writes).toEqual([]);
     if (locale === "en") expect((await page.request.get("/fr/dates-venue")).status()).toBe(404);
