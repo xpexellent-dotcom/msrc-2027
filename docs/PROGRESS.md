@@ -1,6 +1,45 @@
 # Progress and session handover
 
-## 12 October 2026 — Venue entrance layout correction, ENG-038
+## 13 October 2026 — Charge-only anchoring and matrix readiness follow-up, ENG-038
+
+- PASS complete new-source check: lint/types, 2,401 units/61 files and 81-page
+  build; `.tools/venue-boundary-check.log`. PASS focused entrance checks: 16
+  passed/four intentional phone keyboard skips/zero failures or retries;
+  `.tools/venue-boundary-focused.log`. Matrix EN/AR two cases passed separately
+  on the previous serving build; `.tools/venue-boundary-matrix.log`.
+  Impeccable mechanical detector has no findings. Source/tests are frozen for
+  full affected browser, exact-head CI/Preview and corrective release checks.
+- Current public source remains PR66 merge 64fa6b7. Its actual-public Venue suite,
+  CUA visual review and serving-source checks pass their recorded scenarios, while
+  independent main CI still fails as preserved below. No full release PASS is
+  claimed. Root is implementing the follow-up on
+  `codex/venue-layout-charge-accounting`, starting from that exact main source.
+- The phone reflow charge defect is an accounting race: a browser scroll-anchor
+  adjustment for the 31px header shift can dispatch scroll before the parent
+  ResizeObserver updates the gate. Recent touch intent makes the controller count
+  that layout correction as about 31/300 earned charge. The narrow fix owns
+  `overflow-anchor: none !important` on the shared hero only while charging,
+  preserving and restoring its exact prior inline value/priority on every state
+  exit and effect cleanup. Parent observation, genuine native displacement
+  accounting, thresholds and the approved scene remain unchanged.
+- Restoration coverage and a 200ms quiet reflow pause are being added. The old
+  Windows/3211 baseline passes both EN/AR phone cases;
+  `.tools/venue-boundary-charge-before.log` is NOT a new red reproducer. The
+  original Linux main trace remains the failure proof. New-source full checks,
+  focused/broad native-input/restoration checks, exact-head CI, Preview, guarded
+  release and fresh owned Production/public verification are PENDING.
+- The responsive matrix now waits for DOMContentLoaded, then the same font
+  readiness and layout assertions. Routes, widths, screenshots and the 30-second
+  test budget remain unchanged. PASS focused EN/AR matrix: two cases;
+  `.tools/venue-boundary-matrix.log`. Hosted trace evidence:
+  `.tools/venue-layout-main-matrix-trace-64fa-20261012-211254.json`.
+  A separate Production optimized 828px gallery JPEG request returns HTTP 200,
+  37,860 bytes in 911ms; that does not establish a fix for the self-hosted optimizer
+  stall. No retry, longer timeout, media replacement or weaker layout assertion
+  is added. Existing receipts and physical-device/real-screen-reader NOT TESTED
+  limits remain. No source/test/Git/hosted action is performed by this doc lane.
+
+## 12 October 2026 — Venue entrance layout correction published, ENG-038
 
 - Corrected upstream-layout follow-up: observe the shared intro layout alongside
   the overview, so header reflow updates its absolute boundary. PASS lint/types,
@@ -9,8 +48,64 @@
   header-shift cases and terminal navigation. Impeccable detector has no findings.
   Receipts: `.tools/venue-layout-resilience-check.log`,
   `.tools/venue-layout-focused.log`, `.tools/venue-layout-resilience-design-detect.json`.
-  Full affected suite and follow-up exact-head CI/Preview/Production/public checks
-  are PENDING; existing PR65 final-verification failures remain recorded below.
+  PASS final corrected-source Chromium suite: 85 passes / 16 intentional skips /
+  zero failures or retries across 101 cases; `.tools/venue-layout-broad.log`.
+  PR66 reviewed head `af9c63d043e73df6967b3f2d94e55a57cbb9dbfa` is frozen on
+  `codex/venue-entry-layout-resilience`, base
+  `f07fea733864a83e866b624a6f89824df1154853`. The application correction is four
+  lines observing the parent layout. Owned READY exact-head Preview
+  `dpl_HE5Q1azEYfxXxpgVfz6Tuo8aaprz` passes protected EN/AR GET 200 with the
+  expected entry/map/control markers; `.tools/venue-layout-preview-http.json`.
+- PASS current supported WebKit: desktop eight / phone ten cases, zero retries;
+  `.tools/venue-layout-webkit-desktop.log`, `.tools/venue-layout-webkit-phone.log`.
+  CDP-only phone native-input paths remain unsupported and NOT TESTED in WebKit.
+  PASS local corrected Arabic-phone visual check: authored gate 1151.67px matches
+  independently measured 1151.671875px; viewport reset. Screenshot:
+  `.impeccable/review/venue-input-resilience/local-corrected-phone-ar.png`.
+- PASS all three PR66 exact-head workflows, ten substantive jobs, eleven actual
+  checks and Vercel status. Public totals: 675 passes / 57 intentional skips /
+  zero failures across 732 cases. Lint/types, 2,401 units / 61 files, 81 pages /
+  81 smoke; Contact 44, participant 88 + 4 skips, staff 102 + 8 skips; each
+  disposable SQL job 1,023 assertions / 13 files with clean advisors. Receipt:
+  `.tools/venue-layout-complete-af9c63d-2026-10-12T20-53-11-970Z.json`.
+  PR66 is guarded-merged as `64fa6b7d085634410a7c40ffc906a0770a9816aa`;
+  reviewed/merged tree `d91731951117a4b038af56f2b2c8ff59ecf5c797` matches, with
+  prior main f07fea7 retained as the merge parent. Receipts:
+  `.tools/venue-layout-merge.json`,
+  `.tools/venue-layout-main-64fa6b7-2026-10-12T20-56-18-785Z.json`.
+  PR: https://github.com/xpexellent-dotcom/msrc-2027/pull/66.
+- PASS owned READY Production `dpl_6sFGkiyKNeya7vdqD3jeyTNs3ZXz`: Git/main
+  source exactly 64fa6b7, expected project/team and both public aliases. Initial
+  root proof and independent inspection agree:
+  `.tools/venue-scroll-layout-production-first.json`,
+  `.tools/venue-layout-production-after-2026-10-12T20-56-43-869Z.json`.
+  PASS 97/97 actual-public GET/HEAD checks, zero failures, with expected and
+  independently verified serving SHA equal; `.tools/venue-layout-live-http.json`.
+  PASS final actual-public browser suite: 85 passes / 16 intentional skips /
+  zero failures or retries across 101 cases; `.tools/venue-layout-live-browser.log`.
+- PASS final actual-public CUA visual review at serving source 64fa6b7. Native
+  desktop holds Y591 with charge 0.389; reversal lowers it to 0.164 at the same
+  position. One release reaches Airport Y1311/top -0.09375px; native continuation
+  reaches Y1419 with the release count still one. Arabic-phone authored 1151.67px
+  gate matches actual 1151.671875px; shared Begin lands at Airport Y1911 with
+  readable compact-map composition. Receipts and screenshots:
+  `.impeccable/review/venue-input-resilience/live-final-*`; viewport reset.
+- FAIL independent push/main CI at 64fa6b7: eight of ten substantive jobs pass;
+  public totals are 671 passes / 57 intentional skips / four failures across 732
+  cases. Shard 1's EN/AR responsive matrix waits on decorative image optimization
+  after HTML 200 during load navigation; hosted trace inspection distinguishes
+  that wait from aggregate matrix duration. Shard 3 has separate EN/AR phone Venue
+  reflow charge-preservation failures: expected 0.263 / 0.262, received 0.366 /
+  0.363 after the 31px header mutation. Those failures are Venue-specific; their
+  charge-only anchoring correction and new-source verification are pending in the
+  13 October follow-up above. Receipts:
+  `.tools/venue-layout-main-failure-64fa6b7-2026-10-12T21-04-55-430Z.json`,
+  `.tools/venue-layout-main-shard3-failure-64fa6b7-2026-10-12T21-10-30-821Z.json`,
+  `.tools/venue-layout-main-failed-totals-64fa6b7-2026-10-12T21-10-30-888Z.json`.
+  The published source and actual-public Venue passes are verified, but full main
+  CI and overall release verification are not PASS. No source/test changes were
+  made after freeze. Earlier PR65 failures remain preserved below; physical
+  devices and real screen readers are NOT TESTED.
 
 - The organizer identifies ordinary desktop wheel/trackpad use as the remaining
   entrance problem. Actual public PR64 source 47c1505 reproduces both causes:
@@ -90,8 +185,8 @@
   The test lane confirms that native Control+Home correctly rearms approaching
   after returning above the overview. Its correction waits for the native edge,
   then asserts Home approaching / End completed while retaining alignment,
-  release-count, history and cleanup checks. This test-contract correction has
-  no final new-source verification yet. Receipts:
+  release-count, history and cleanup checks. The corrected focused/full local
+  passes are recorded above; the failed main receipt remains preserved. Receipts:
   `.tools/venue-input-main-failure-f07fea7-2026-10-12T20-28-16-428Z.json`,
   `.tools/venue-input-main-failed-totals-f07fea7-2026-10-12T20-28-16-573Z.json`.
 - Root-cause confirmation from the test lane: the authored gate stays at 1161.05px
@@ -107,11 +202,13 @@
   Root's narrow correction observes the parent hero layout and remeasures the
   absolute gate on `codex/venue-entry-layout-resilience`; the regression retains
   independent 1px alignment assertions during approach and partial charge.
-  Corrected-source checks, a follow-up PR, exact-head CI, owned serving proof and
-  fresh public verification are PENDING. Published source remains f07fea7; its
-  successful PR/Production/HTTP receipts do not establish full final verification.
-  Final actual-public visual confirmation is PENDING. Physical Safari/Android and
-  real screen readers remain NOT TESTED. Preserve all earlier passes and failures.
+  Corrected-source local checks, PR66 CI/Preview, guarded merge, owned Production
+  and fresh public HTTP checks pass above. Current serving source is 64fa6b7;
+  actual-public browser and final CUA visual checks pass; independent main CI
+  fails as recorded above, with diagnosis pending. PR65's earlier
+  successful PR/Production/HTTP receipts did not establish full final verification.
+  Physical Safari/Android and real screen readers remain NOT TESTED. Preserve all
+  earlier passes and failures; do not claim full overall release verification.
   No operational settings, data, flags, accounts or communications changed.
   Audit: `docs/reviews/venue-input-resilience.md`.
 
