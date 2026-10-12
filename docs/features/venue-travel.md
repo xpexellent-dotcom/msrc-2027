@@ -14,8 +14,35 @@ reproducer. Original Linux main failures remain primary evidence. New-source
 lint/types, 2,401-unit/61-file and 81-page build checks PASS. Focused entrance
 checks PASS 16 cases with four intentional phone keyboard skips, zero retries;
 `.tools/venue-boundary-check.log` and `.tools/venue-boundary-focused.log`.
-Full affected browser, exact-head CI/Preview and corrective release/public
-verification are PENDING. The separate matrix readiness change waits for DOMContentLoaded plus
+Final affected local Chromium checks PASS: 87 passes / 18 intentional skips /
+zero failures or retries across 105 cases; `.tools/venue-boundary-broad.log`.
+PR67 reviewed head `3dc37fc139230b33452a45248cb82639be50f8db` is frozen against
+base `64fa6b7d085634410a7c40ffc906a0770a9816aa`. Owned READY exact-head Preview
+`dpl_35GgyENKhwnFefY11g966kSWbeoo` passes protected EN/AR GET 200;
+`.tools/venue-boundary-preview-http.json`. The complete prior 3dc37fc hosted gate
+PASS: three workflows / ten jobs / eleven checks / real Vercel status, with
+public 677 passes / 59 skips / zero failures across 736 cases;
+`.tools/venue-charge-complete-3dc37fc-2026-10-12T21-43-51-060Z.json`.
+Scoped WebKit phone PASS ten of ten. Preserve the original desktop FAIL with
+nine passes / one Arabic detached authored-style restoration failure
+at `tests/e2e/venue-journey.spec.ts:1218` (`none !important` read where prior
+`auto !important` is expected). The instrumented diagnostic confirms detachment at
+1452ms followed by exact restoration/ownership cleanup at 1490ms, stable for 60
+frames: a test-readiness race in this flow, not a persistent leak. The test lane
+uses standard `expect.poll` for the same exact detached tuple, with no increased
+timeout, retry or tolerance. Corrected cleanup checks PASS Chromium two / WebKit
+two, and confirmed scoped WebKit desktop PASS ten of ten, zero retries in 44.6s;
+`.tools/venue-boundary-cleanup-chromium-focused.log`,
+`.tools/venue-boundary-cleanup-webkit-focused.log`,
+`.tools/venue-boundary-webkit-desktop-confirmed.log`. Exact-fixture ESLint and
+TypeScript noEmit checks PASS. Original failure/diagnostic logs:
+`.tools/venue-boundary-webkit-phone.log`, `.tools/venue-boundary-webkit-desktop.log`
+and `.tools/venue-boundary-webkit-cleanup-diagnostic.json`. Application code remains
+frozen at 3dc37fc; the forthcoming test-only commit needs fresh CI/Preview proof.
+Root has not merged PR67 or changed public source 64fa6b7;
+corrective release/new-source public/visual verification are PENDING.
+PR: https://github.com/xpexellent-dotcom/msrc-2027/pull/67.
+The separate matrix readiness change waits for DOMContentLoaded plus
 the same fonts/layout assertions; its two EN/AR focused cases PASS with routes,
 widths, screenshots and the 30-second budget intact. The self-hosted image optimizer
 stall is not claimed fixed. Audit: `docs/reviews/venue-input-resilience.md`.

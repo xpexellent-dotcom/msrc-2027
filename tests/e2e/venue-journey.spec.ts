@@ -1209,13 +1209,13 @@ for (const locale of ["en", "ar"] as const) {
         await expect(program).toBeInViewport();
         await program.click();
         await expect(page).toHaveURL(new RegExp(`/${locale}/program$`));
-        const detached = await page.evaluate(() => {
+        // Route commit and DOM detachment can precede React's passive cleanup.
+        await expect.poll(() => page.evaluate(() => {
           const overview = (window as unknown as { venueDetachedOverview?: HTMLElement }).venueDetachedOverview;
           if (!overview) throw new Error("Expected the original overview retained through client navigation");
           return { connected: overview.isConnected, value: overview.style.getPropertyValue("overflow-anchor"),
             priority: overview.style.getPropertyPriority("overflow-anchor") };
-        });
-        expect(detached).toEqual({ connected: false, value: previous.value, priority: previous.priority });
+        })).toEqual({ connected: false, value: previous.value, priority: previous.priority });
         await expect(page.locator(".venue-entry-portal, .venue-entry-glow, .venue-entry-veil")).toHaveCount(0);
       }
     }

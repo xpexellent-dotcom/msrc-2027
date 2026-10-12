@@ -7,8 +7,45 @@
   passed/four intentional phone keyboard skips/zero failures or retries;
   `.tools/venue-boundary-focused.log`. Matrix EN/AR two cases passed separately
   on the previous serving build; `.tools/venue-boundary-matrix.log`.
-  Impeccable mechanical detector has no findings. Source/tests are frozen for
-  full affected browser, exact-head CI/Preview and corrective release checks.
+  Impeccable mechanical detector has no findings:
+  `.tools/venue-boundary-design-detect.json`. PASS final affected local Chromium
+  suite: 87 passes / 18 intentional skips / zero failures or retries across 105
+  cases; `.tools/venue-boundary-broad.log`.
+  PR67 reviewed head `3dc37fc139230b33452a45248cb82639be50f8db` is frozen on
+  `codex/venue-layout-charge-accounting`, base
+  `64fa6b7d085634410a7c40ffc906a0770a9816aa`.
+  Owned READY exact-head Preview `dpl_35GgyENKhwnFefY11g966kSWbeoo` passes
+  protected EN/AR GET 200 with expected entry/map/control markers;
+  `.tools/venue-boundary-preview-http.json`. PASS the complete prior 3dc37fc
+  hosted gate: three workflows / ten substantive jobs / eleven actual checks /
+  real Vercel status; public 677 passes / 59 intentional skips / zero failures
+  across 736 cases. Receipt:
+  `.tools/venue-charge-complete-3dc37fc-2026-10-12T21-43-51-060Z.json`.
+  Supported WebKit phone PASS ten of ten. Preserve the original desktop attempt's
+  nine passes / one failure. The Arabic
+  authored-style restoration case reads a detached hero with `none !important`
+  where prior `auto !important` is expected at
+  `tests/e2e/venue-journey.spec.ts:1218`. Preserve
+  `.tools/venue-boundary-webkit-phone.log`,
+  `.tools/venue-boundary-webkit-desktop.log` and its result/trace directory.
+  The instrumented Arabic WebKit diagnostic confirms a test-readiness race:
+  detachment and zero portal/glow/veil counts occur at 1452ms; exact prior
+  `auto !important` restoration and ownership cleanup occur at 1490ms, then remain
+  stable for 60 rendered frames. This observed flow has no persistent style leak.
+  Preserve `.tools/venue-boundary-webkit-cleanup-diagnostic.json`, its log and trace.
+  The test lane changes only the immediate detached tuple read to `expect.poll`
+  with the same exact tuple; no timeout increase, retries or tolerance. PASS
+  corrected focused cleanup: Chromium two / WebKit two cases;
+  `.tools/venue-boundary-cleanup-chromium-focused.log`,
+  `.tools/venue-boundary-cleanup-webkit-focused.log`. PASS confirmed supported
+  WebKit desktop ten of ten, zero retries in 44.6s;
+  `.tools/venue-boundary-webkit-desktop-confirmed.log` and retained results.
+  Root's exact-fixture ESLint and TypeScript noEmit checks PASS. Application code
+  remains frozen at 3dc37fc and PR67 is unmerged; the forthcoming test-only commit
+  requires fresh exact-head CI and Preview proof rather than carrying old receipts.
+  Guarded merge, new-source Production/public
+  and visual verification remain PENDING. Root has not merged or changed serving
+  source 64fa6b7. PR: https://github.com/xpexellent-dotcom/msrc-2027/pull/67.
 - Current public source remains PR66 merge 64fa6b7. Its actual-public Venue suite,
   CUA visual review and serving-source checks pass their recorded scenarios, while
   independent main CI still fails as preserved below. No full release PASS is
@@ -25,9 +62,11 @@
 - Restoration coverage and a 200ms quiet reflow pause are being added. The old
   Windows/3211 baseline passes both EN/AR phone cases;
   `.tools/venue-boundary-charge-before.log` is NOT a new red reproducer. The
-  original Linux main trace remains the failure proof. New-source full checks,
-  focused/broad native-input/restoration checks, exact-head CI, Preview, guarded
-  release and fresh owned Production/public verification are PENDING.
+  original Linux main trace remains the failure proof. The new-source complete,
+  focused/full Chromium, phone WebKit and Preview checks pass above; desktop
+  WebKit's original restoration read remains a failed receipt; its corrected
+  focused and complete scoped checks pass. The fixture-only new-head CI/Preview,
+  guarded release and fresh owned Production/public/visual checks are PENDING.
 - The responsive matrix now waits for DOMContentLoaded, then the same font
   readiness and layout assertions. Routes, widths, screenshots and the 30-second
   test budget remain unchanged. PASS focused EN/AR matrix: two cases;
