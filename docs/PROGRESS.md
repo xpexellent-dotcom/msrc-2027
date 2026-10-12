@@ -1,6 +1,52 @@
 # Progress and session handover
 
-## 12 October 2026 — Correct the cinematic Venue entrance, ENG-037
+## 12 October 2026 — Reliable fast Venue input, ENG-038
+
+- The organizer identifies ordinary desktop wheel/trackpad use as the remaining
+  entrance problem. Actual public PR64 source 47c1505 reproduces both causes:
+  one large wheel earns only about 0.167 charge and does not enter; a 4000px
+  native fling at speed 10000 yields 14 trusted non-cancelable packets and passes
+  the gate in approaching state. Four new EN/AR public regressions FAIL, zero
+  retries. Preserve `.tools/venue-input-public-before.log` and
+  `.tools/venue-input-public-before-results/`; do not replace earlier PR64 receipts.
+- The scoped controller now preserves full normalized earned distance against
+  the existing 480/300px thresholds. Reverse input carries its unused remainder
+  above the gate. Recent eligible intent plus actual document movement recovers
+  native crossings; owned-scroll baselines and a pending-movement flush separate
+  earned motion from clamps. The real held frame displays the earned glow target
+  before the unchanged 850ms scene. No time-generated charge or flow spacer added
+  to the overview; the existing incoming-section placeholder remains.
+- Positive non-cancelable tail handling ends after 120ms quiet, a fresh cancelable
+  gesture or reversal, and never exceeds 350ms after visual finish. A genuine
+  return above gate-128 rearms the entrance; anchors/history/pointer/keyboard
+  escapes, horizontal/pinch and visibility changes clear stale intent. Geometry
+  fingerprints distinguish initial/benign observer delivery from actual resize.
+  Existing scene geometry, native controls, EN/AR/RTL and direct accessibility
+  paths remain. No dependency, provider, asset, fact or operational setting changes.
+- Preserve the stable-source ten-pass/eight-skip/two-failure attempt: strict
+  perceptibility checks captured only one held glow frame under a loaded clock.
+  Add at least140ms from first positive glow and three preceding held frames
+  before release; keep the strict captured-frame assertions. A following
+  11-pass/eight-skip/one-failure check confirms fast-input/frame paths but exposes
+  a stale native-retreat fixture predicate. The saved trace proves the first
+  reverse gesture already moves above the gate; wait for the second gesture's
+  actual additional displacement before exact alignment. The four focused
+  charged-entry confirmations pass, zero retries; original failure traces remain.
+- PASS final complete local check: lint/types, 2,401 units in 61 files and 81-page
+  build; `.tools/venue-input-resilience-bridge-check.log`. Final test-only
+  synchronization adjustments also pass scoped lint/types. Application source is
+  frozen for verification. PASS final local affected Chromium suite:81 passed,
+ 16 intentional skips, zero failures/retries across97 cases, including the new
+  native fast-input/reentry/perceptibility cases and desktop/tablet/phone EN/AR
+  accessibility, controls, privacy and no-JS regressions. Log:
+  `.tools/venue-input-resilience-broad.log`. Scoped WebKit checks are running;
+  final visual review, exact-head CI/owned Preview and any guarded publication
+  with owned Production/public verification are PENDING. Current live source
+  remains 47c1505. Publication authorization persists only for this public UI.
+  Physical Safari/Android and real screen readers remain NOT TESTED.
+  Audit: `docs/reviews/venue-input-resilience.md`.
+
+## 12 October 2026 — Cinematic Venue entrance published, ENG-037
 
 - User reports that the published entrance does not hold. Fresh live native
   scrolling reproduces the defect: a fast approach skips the late-armed trigger
@@ -48,6 +94,45 @@
   lint/types, targeted12+4 skips and final event-frame4/4, zero retries. New
   exact-head CI/owned Preview and live checks remain pending. Failed evidence
   is retained under `.tools/venue-scroll-5815-failed-*`.
+- New verified release supersedes the earlier pending/failed attempts above.
+  PR64 reviewed head `2bd6f128fd96b810ab972e3b19e44447c93212c9` is merged as
+  `47c1505b019daf1dcefa6fafa05d9e481e5ff8e3`. PASS all three exact-head PR
+  workflows, ten substantive jobs and ten actual Actions checks, attempt1.
+  Public: 663 passes / 49 intentional skips / zero failures; 2,401 units / 61 files,
+  81-page build / 81 smoke; Contact 44, participant 88 + 4 skips, staff 102 + 8 skips;
+  each disposable SQL job: 1,023 assertions / 13 files with clean schema/advisors.
+  Receipt: `.tools/venue-scroll-complete-2bd6f12-2026-10-12T17-57-16-481Z.json`.
+- PASS owned READY exact-head Preview `dpl_Eu26mgij16pC3eUwrf7VUob8MiNb` and
+  protected EN/AR HTTP 200 with Venue markers. A single guarded merge records
+  the reviewed head and base after fresh owned Preview/PR identity checks.
+  Receipts: `.tools/venue-scroll-2bd-preview-http.json`,
+  `.tools/venue-scroll-2bd-merge.json`.
+- PASS owned READY Production `dpl_3WU9wQFKfxe54Gde8PbygaYtgMKZ`: source Git,
+  main, exact merge 47c1505, expected project/team and both
+  www.msrc2027.com/msrc2027.com aliases. PASS: 97/97 actual public GET/HEAD
+  checks, zero failures. Receipts:
+  `.tools/venue-scroll-merged-production-first.json`,
+  `.tools/venue-scroll-live-receipt.json`. These verify publication and public
+  HTTP behavior; they do not substitute for the running live browser suite.
+- PASS actual-public affected browser suite: 73 passed, eight intentional skips,
+  zero failures/retries across 81 cases. PASS native live visual review: the fresh
+  approach holds at y644; charge advances to 0.667 then reverses to 0.500 without
+  moving the page; one release lands at Airport y1544/top0.015625px, with no spacer,
+  then native scrolling advances to1904 without reentry. Arabic412x839 Begin and
+  interactive map details remain readable with no horizontal overflow. Browser
+  viewport override reset; live tab retained. Receipts:
+  `.tools/venue-scroll-live-browser.log`,
+  `.impeccable/review/venue-scroll-entry/live-native-review.json` and `live-*.png`.
+- PASS independent merged/main CI: all three push workflows, ten jobs and ten
+  real checks, attempt1, at47c1505; public663+49 intentional skips/zero failures.
+  Core/unit/build/smoke, Contact, participant, staff and disposable SQL totals
+  agree with reviewed-head CI. Fresh owned Production/current target and both
+  aliases still match that merge. Final joined receipt:
+  `.tools/venue-scroll-release-final-47c1505-2026-10-12T18-12-06-170Z.json`.
+  Physical iPhone Safari, Android and real screen readers remain NOT TESTED.
+  The reviewed deployed source remains frozen; these are local supplemental
+  publication receipts. No hosted settings, database, flags or communications
+  changed as part of this UI release.
 
 ## 12 October 2026 — Venue update published, ENG-034/035/036
 

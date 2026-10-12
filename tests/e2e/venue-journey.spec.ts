@@ -13,7 +13,9 @@ type EntrySceneStyles = { selector: string; properties: { name: string; value: s
 type EntrySceneSnapshot = { position: string; inert: boolean; translateY: number; placeholders: { hidden: string | null; height: number }[]; opacity: number; viewportHeight: number; blur: number };
 type EntryInputStart = { type: "wheel" | "touchmove"; at: number; delta: number; trusted: boolean; cancelable: boolean; beforeState: string; beforeY: number; beforeHistory: number; beforeReleases: number };
 type EntryInputObservation = EntryInputStart & { afterState: string; afterY: number; afterHistory: number; afterReleases: number; prevented: boolean; scene: EntrySceneSnapshot | null };
-type EntryReceipt = { changes: { state: string; at: number }[]; observer: MutationObserver; historyLength: number; sceneStyles: EntrySceneStyles; inputs: EntryInputObservation[]; stopInputRecording(): void };
+type EntryNativeInput = { type: "wheel" | "touchmove"; at: number; delta: number; trusted: boolean; cancelable: boolean; state: string; y: number; afterState?: string; afterY?: number; prevented?: boolean };
+type EntryChargeFrame = { at: number; y: number; charge: number; glow: number; frame: string; headerBottom: number; viewportHeight: number; viewportWidth: number; boxes: { selector: string; left: number; right: number; top: number; bottom: number }[] };
+type EntryReceipt = { changes: { state: string; at: number }[]; observer: MutationObserver; historyLength: number; sceneStyles: EntrySceneStyles; inputs: EntryInputObservation[]; nativeInputs: EntryNativeInput[]; chargeFrames: EntryChargeFrame[]; stopInputRecording(): void };
 
 async function scrollPosition(rail: Locator) {
   return rail.evaluate((element) => Math.abs(element.scrollLeft));
@@ -293,6 +295,30 @@ async function recordEntryRelease(page: Page) {
     });
     observer.observe(portal, { attributes: true, attributeFilter: ["data-entry-state"] });
     const inputs: EntryInputObservation[] = [];
+    const nativeInputs: EntryNativeInput[] = [];
+    const nativePending = new WeakMap<Event, EntryNativeInput>();
+    const chargeFrames: EntryChargeFrame[] = [];
+    let chargeFrame = 0;
+    const observeCharge = () => {
+      const stage = document.querySelector<HTMLElement>(".venue-gallery-stage");
+      const header = document.querySelector(".site-header");
+      const glow = document.querySelector(".venue-entry-glow");
+      if (portal.dataset.entryState === "charging" && stage && header && glow) {
+        const opacity = Number(getComputedStyle(glow).opacity);
+        if (opacity > 0) chargeFrames.push({ at: performance.now(), y: scrollY,
+          charge: Number(getComputedStyle(portal).getPropertyValue("--venue-entry-charge")), glow: opacity,
+          frame: stage.dataset.entryFrame ?? "", headerBottom: header.getBoundingClientRect().bottom,
+          viewportHeight: innerHeight, viewportWidth: innerWidth,
+          boxes: [".venue-stage-intro", "#venue-orientation", ".venue-stage-guidance", ".venue-hero-action"].map(selector => {
+            const element = stage.querySelector(selector);
+            if (!element) throw new Error(`Expected ${selector} in the charged overview`);
+            const box = element.getBoundingClientRect();
+            return { selector, left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+          }) });
+      }
+      chargeFrame = requestAnimationFrame(observeCharge);
+    };
+    chargeFrame = requestAnimationFrame(observeCharge);
     const pending = new WeakMap<Event, EntryInputStart>();
     let previousTouchY: number | undefined;
     const touchStart = (event: TouchEvent) => { previousTouchY = event.touches.length === 1 ? event.touches[0].clientY : undefined; };
@@ -306,12 +332,21 @@ async function recordEntryRelease(page: Page) {
         delta = previousTouchY === undefined ? 0 : previousTouchY - point.clientY;
         previousTouchY = point.clientY;
       }
+      const native = { type: event.type as "wheel" | "touchmove", at: performance.now(), delta,
+        trusted: event.isTrusted, cancelable: event.cancelable, state: portal.dataset.entryState ?? "", y: scrollY };
+      nativeInputs.push(native); nativePending.set(event, native);
       if (portal.dataset.entryState !== "releasing" || delta <= 0) return;
       pending.set(event, { type: event.type as "wheel" | "touchmove", at: performance.now(), delta,
         trusted: event.isTrusted, cancelable: event.cancelable, beforeState: portal.dataset.entryState,
         beforeY: scrollY, beforeHistory: history.length, beforeReleases: Number(portal.dataset.entryReleases ?? "0") });
     };
     const afterInput = (event: WheelEvent | TouchEvent) => {
+      const native = nativePending.get(event);
+      if (native) {
+        native.afterState = portal.dataset.entryState ?? "";
+        native.afterY = scrollY; native.prevented = event.defaultPrevented;
+        nativePending.delete(event);
+      }
       const before = pending.get(event);
       if (!before) return;
       const journey = document.querySelector<HTMLElement>(".venue-arrival-journey");
@@ -338,6 +373,7 @@ async function recordEntryRelease(page: Page) {
       window.addEventListener(type, afterInput, { passive: true });
     }
     const stopInputRecording = () => {
+      cancelAnimationFrame(chargeFrame);
       window.removeEventListener("touchstart", touchStart, { capture: true });
       window.removeEventListener("touchend", touchEnd, { capture: true });
       window.removeEventListener("touchcancel", touchEnd, { capture: true });
@@ -347,16 +383,17 @@ async function recordEntryRelease(page: Page) {
       }
     };
     (window as unknown as { venueEntryReceipt: EntryReceipt })
-      .venueEntryReceipt = { changes, observer, historyLength: history.length, sceneStyles, inputs, stopInputRecording };
+      .venueEntryReceipt = { changes, observer, historyLength: history.length, sceneStyles, inputs, nativeInputs, chargeFrames, stopInputRecording };
   });
 }
 
-async function expectOneEntryRelease(page: Page) {
+async function expectOneEntryRelease(page: Page, expected = { historyEntries: 1, totalReleases: 1 }) {
   const receipt = await page.evaluate(() => {
     const receipt = (window as unknown as { venueEntryReceipt: EntryReceipt }).venueEntryReceipt;
     receipt.observer.disconnect();
     receipt.stopInputRecording();
     return { changes: receipt.changes, addedHistoryEntries: history.length - receipt.historyLength, inputs: receipt.inputs,
+      nativeInputs: receipt.nativeInputs, chargeFrames: receipt.chargeFrames,
       priorStyles: receipt.sceneStyles, restoredStyles: receipt.sceneStyles.map(({ selector, properties }) => {
         const element = document.querySelector<HTMLElement>(selector);
         if (!element) throw new Error(`Expected ${selector} after the entrance reveal`);
@@ -370,12 +407,12 @@ async function expectOneEntryRelease(page: Page) {
   // A deliberate reveal remains visible through its authored 850ms, then
   // completes after draining residual input. A brief jump is not equivalent.
   expect(completion!.at - releases[0].at).toBeGreaterThanOrEqual(800);
-  expect(receipt.addedHistoryEntries).toBe(1);
+  expect(receipt.addedHistoryEntries).toBe(expected.historyEntries);
   expect(receipt.restoredStyles).toEqual(receipt.priorStyles);
   await expect(page.locator("[data-venue-entry-placeholder]")).toHaveCount(0);
   expect(await page.getByTestId("venue-arrival-journey").evaluate(element => (element as HTMLElement).inert)).toBe(false);
   await expect(page.locator(".venue-entry-portal")).toHaveAttribute("aria-busy", "false");
-  await expect(page.locator(".venue-entry-portal")).toHaveAttribute("data-entry-releases", "1");
+  await expect(page.locator(".venue-entry-portal")).toHaveAttribute("data-entry-releases", String(expected.totalReleases));
   return receipt;
 }
 
@@ -413,13 +450,52 @@ function expectBlockedReleaseInput(inputs: EntryInputObservation[], type: EntryI
   }
 }
 
+function expectChargedOverviewFrames(frames: EntryChargeFrame[], boundary: number) {
+  expect(frames.length, JSON.stringify(frames)).toBeGreaterThanOrEqual(2);
+  expect(frames.at(-1)!.at - frames[0].at).toBeGreaterThan(0);
+  for (const frame of frames) {
+    expect(frame.frame).toBe("overview");
+    expect(frame.charge).toBeGreaterThan(0);
+    expect(frame.glow).toBeGreaterThan(0);
+    expect(Math.abs(frame.y - boundary)).toBeLessThanOrEqual(1);
+    for (const box of frame.boxes) {
+      expect(box.left).toBeGreaterThanOrEqual(0);
+      expect(box.right).toBeLessThanOrEqual(frame.viewportWidth);
+      expect(box.top).toBeGreaterThanOrEqual(frame.headerBottom + 8);
+      expect(box.bottom).toBeLessThanOrEqual(frame.viewportHeight - 8);
+    }
+  }
+}
+
+function expectCompactChargeFrames(frames: EntryChargeFrame[], boundary: number) {
+  expect(frames.length, JSON.stringify(frames)).toBeGreaterThanOrEqual(2);
+  expect(frames.at(-1)!.at - frames[0].at).toBeGreaterThan(0);
+  for (const frame of frames) {
+    expect(frame.frame).toBe("continuation");
+    expect(frame.charge).toBeGreaterThan(0);
+    expect(frame.glow).toBeGreaterThan(0);
+    expect(Math.abs(frame.y - boundary)).toBeLessThanOrEqual(1);
+    const begin = frame.boxes.find(box => box.selector === ".venue-hero-action")!;
+    expect(begin.left).toBeGreaterThanOrEqual(0);
+    expect(begin.right).toBeLessThanOrEqual(frame.viewportWidth);
+    expect(begin.top).toBeGreaterThanOrEqual(frame.headerBottom + 8);
+    expect(begin.bottom).toBeLessThanOrEqual(frame.viewportHeight - 8);
+  }
+}
+
 async function retreatFromEntry(page: Page, isMobile: boolean, boundary: number) {
   await entryInput(page, isMobile, -180);
   await expect.poll(() => entryCharge(page)).toBe(0);
   await expect(page.locator(".venue-entry-portal")).toHaveAttribute("data-entry-state", "approaching");
   // Once charge is empty, a separate deliberate upward gesture must pass
   // straight through to the document rather than leave a permanent hold.
+  const beforeRetreat = await page.evaluate(() => window.scrollY);
   await entryInput(page, isMobile, -180);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(beforeRetreat - 40);
+  // A wheel returns before its compositor movement necessarily finishes. Wait
+  // for this packet's actual180px displacement before positioning a new scene;
+  // the first reverse may already satisfy the older gate-relative predicate.
+  if (!isMobile) await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(Math.max(0, beforeRetreat - 180));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(boundary - 40);
 }
 
@@ -429,9 +505,10 @@ async function completeEntryWithScroll(page: Page, isMobile: boolean) {
     const distance = Math.max(0, approach.remaining) + 360;
     await entryInput(page, true, distance, undefined, Math.max(8, Math.ceil(distance / 60)));
   } else {
-    // A finite extreme delta may reach the overview but cannot erase buildup.
-    // Six separate movements deliberately finish a 480px / 80px-capped charge.
-    for (let step = 0; step < 6; step++) await entryInput(page, false, 900);
+    const approach = await naturalEntrySnapshot(page);
+    // Earned travel counts even when a coarse wheel reports it in one packet;
+    // the entrance still renders its buildup before the authored reveal.
+    await entryInput(page, false, Math.max(0, approach.remaining) + 900);
   }
 }
 
@@ -586,6 +663,132 @@ async function expectReadable(page: Page) {
 }
 
 for (const locale of ["en", "ar"] as const) {
+  for (const input of ["single large wheel", "native noncancelable mouse fling"] as const) {
+    test(`${locale} fresh ${input} earns a visible overview and one precise entrance`, async ({ page, isMobile, browserName }, testInfo) => {
+      test.skip(isMobile || browserName !== "chromium", "This case exercises Chromium's native desktop wheel input; phone gestures have separate coverage.");
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      await page.goto(`/${locale}/dates-venue?view=fast-${input === "single large wheel" ? "wheel" : "fling"}`);
+      await page.evaluate(() => document.fonts.ready);
+      const portal = page.locator(".venue-entry-portal");
+      await expect(portal).toHaveAttribute("data-entry-ready", "true");
+      expect(await page.evaluate(() => scrollY)).toBe(0);
+      const before = await naturalEntrySnapshot(page);
+      expect(before.remaining).toBeGreaterThan(0);
+      await recordEntryRelease(page);
+      if (input === "single large wheel") {
+        await page.mouse.move(720, 450);
+        await page.mouse.wheel(0, before.remaining + 2000);
+      } else {
+        const client = await page.context().newCDPSession(page);
+        try {
+          // Browser-generated scrolling includes trusted noncancelable wheel
+          // events. It never calls an app function or prepositions the gate.
+          await client.send("Input.synthesizeScrollGesture", {
+            x: 720, y: 450, yDistance: -4000, speed: 10000,
+            gestureSourceType: "mouse", preventFling: false,
+          });
+        } finally { await client.detach(); }
+      }
+      await testInfo.attach(`${locale}-fast-input-before-landing`, {
+        body: JSON.stringify({ before, after: await naturalEntrySnapshot(page), inputs: await page.evaluate(() => (window as unknown as { venueEntryReceipt: EntryReceipt }).venueEntryReceipt.nativeInputs) }, null, 2),
+        contentType: "application/json",
+      });
+      await expectAirportEntry(page);
+      const receipt = await expectOneEntryRelease(page);
+      await testInfo.attach(`${locale}-fast-input-complete-receipt`, { body: JSON.stringify(receipt, null, 2), contentType: "application/json" });
+      expect(receipt.nativeInputs.some(event => event.trusted && event.delta > 0)).toBe(true);
+      if (input === "native noncancelable mouse fling") expect(receipt.nativeInputs.some(event => event.trusted && !event.cancelable && event.delta > 0)).toBe(true);
+      expectChargedOverviewFrames(receipt.chargeFrames, before.boundary);
+      await expect(page).toHaveURL(`${before.url}#journey-airport`);
+      const landed = await page.evaluate(() => scrollY);
+      await page.mouse.wheel(0, 180);
+      await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(landed + 40);
+      await expect(portal).toHaveAttribute("data-entry-state", "completed");
+      await expect(portal).toHaveAttribute("data-entry-releases", "1");
+      await expectReadable(page);
+    });
+  }
+
+  test(`${locale} fresh coarse phone travel earns one perceptible entrance`, async ({ page, isMobile, browserName }, testInfo) => {
+    test.skip(!isMobile || browserName !== "chromium", "This case uses native Chromium phone touch input; other engines retain keyboard and touch-target checks.");
+    await page.setViewportSize({ width: 412, height: 839 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}/dates-venue?view=coarse-phone`);
+    await page.evaluate(() => document.fonts.ready);
+    const portal = page.locator(".venue-entry-portal");
+    await expect(portal).toHaveAttribute("data-entry-ready", "true");
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+    const before = await naturalEntrySnapshot(page);
+    await recordEntryRelease(page);
+    let approach = before;
+    for (let step = 0; step < 10 && approach.remaining > 400; step++) {
+      const prior = approach.y;
+      await entryInput(page, true, 240);
+      await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(prior + 40);
+      approach = await naturalEntrySnapshot(page);
+    }
+    expect(approach.remaining).toBeGreaterThan(0);
+    expect(approach.remaining).toBeLessThanOrEqual(400);
+    const distance = approach.remaining + 360;
+    expect(distance).toBeLessThan(839 - 24);
+    // Three coarse moves carry the same earned travel as many tiny packets.
+    // The gesture starts naturally before the boundary and stays on-screen.
+    await entryInput(page, true, distance, undefined, 3);
+    await testInfo.attach(`${locale}-coarse-phone-before-landing`, {
+      body: JSON.stringify({ before, approach, after: await naturalEntrySnapshot(page), inputs: await page.evaluate(() => (window as unknown as { venueEntryReceipt: EntryReceipt }).venueEntryReceipt.nativeInputs) }, null, 2),
+      contentType: "application/json",
+    });
+    await expectAirportEntry(page);
+    const receipt = await expectOneEntryRelease(page);
+    await testInfo.attach(`${locale}-coarse-phone-complete-receipt`, { body: JSON.stringify(receipt, null, 2), contentType: "application/json" });
+    expect(receipt.nativeInputs.some(input => input.type === "touchmove" && input.trusted && input.delta > 100)).toBe(true);
+    expectCompactChargeFrames(receipt.chargeFrames, before.boundary);
+    await expect(page).toHaveURL(`${before.url}#journey-airport`);
+    const landed = await page.evaluate(() => scrollY);
+    await swipeMapVertically(page);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(landed + 40);
+    await expect(portal).toHaveAttribute("data-entry-releases", "1");
+    await expectReadable(page);
+  });
+
+  test(`${locale} a genuine native return above the overview permits one new entrance`, async ({ page, isMobile, browserName }, testInfo) => {
+    test.skip(isMobile || browserName !== "chromium", "Native desktop reentry is distinct from compact swipe reversal coverage.");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}/dates-venue?view=native-reentry`);
+    await page.evaluate(() => document.fonts.ready);
+    const portal = page.locator(".venue-entry-portal");
+    await expect(portal).toHaveAttribute("data-entry-ready", "true");
+    const before = await naturalEntrySnapshot(page);
+    expect(before.y).toBe(0);
+    await recordEntryRelease(page);
+    await page.mouse.move(720, 450);
+    // Full earned effort completes in two coarse packets from the header.
+    // Extra packets after the 850ms reveal are intentional native continuation.
+    for (let step = 0; step < 2; step++) await page.mouse.wheel(0, 900);
+    await expectAirportEntry(page);
+    await expectOneEntryRelease(page);
+    const enteredURL = page.url();
+    const landed = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, -(landed - before.boundary + 180));
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(before.boundary - 128);
+    await testInfo.attach(`${locale}-native-return-before-reentry`, { body: JSON.stringify(await naturalEntrySnapshot(page), null, 2), contentType: "application/json" });
+    await expect(portal).toHaveAttribute("data-entry-state", "approaching");
+    expect(await entryCharge(page)).toBe(0);
+    await expect(page).toHaveURL(enteredURL);
+    const returned = await naturalEntrySnapshot(page);
+    await recordEntryRelease(page);
+    await page.mouse.wheel(0, returned.remaining + 2000);
+    await expectAirportEntry(page);
+    // A native scroll never removed the existing fragment. Replaying the same
+    // destination creates a second reveal without duplicating browser history.
+    const receipt = await expectOneEntryRelease(page, { historyEntries: 0, totalReleases: 2 });
+    await testInfo.attach(`${locale}-native-reentry-complete-receipt`, { body: JSON.stringify(receipt, null, 2), contentType: "application/json" });
+    expectChargedOverviewFrames(receipt.chargeFrames, before.boundary);
+    await expect(page).toHaveURL(enteredURL);
+  });
+
   test(`${locale} fresh natural wheel scrolling catches a large crossing input`, async ({ page, isMobile }, testInfo) => {
     test.skip(isMobile, "This case uses a physical wheel; the separate natural-touch case covers phones.");
     for (const viewport of [{ width: 738, height: 923 }, { width: 1440, height: 900 }]) {
@@ -699,20 +902,8 @@ for (const locale of ["en", "ar"] as const) {
       await expect(veil).toHaveCSS("opacity", "0");
       await expect(readingLayout).toHaveCSS("filter", normalFilter);
     }
-    if (isMobile) {
-      // Two unusually large moves are one fast flick, not enough deliberate
-      // input to skip the visible buildup and fire the entire entrance.
-      await entryInput(page, true, 400, undefined, 2);
-      await expect(portal).toHaveAttribute("data-entry-state", "charging");
-      expect(await entryCharge(page)).toBeGreaterThan(0);
-      expect(await entryCharge(page)).toBeLessThan(1);
-      expect(Math.abs(await page.evaluate(() => window.scrollY) - boundary)).toBeLessThanOrEqual(1);
-      await expect(page).toHaveURL(originalURL);
-      await retreatFromEntry(page, true, boundary);
-      await alignEntryBoundary(page);
-    }
     let partialCharge = 0;
-    await entryInput(page, isMobile, 120, async () => {
+    await entryInput(page, isMobile, 80, async () => {
       await expect(portal).toHaveAttribute("data-entry-state", "charging");
       await expect.poll(() => entryCharge(page)).toBeGreaterThan(0);
       partialCharge = await entryCharge(page);
@@ -747,23 +938,23 @@ for (const locale of ["en", "ar"] as const) {
     expect(Math.abs(await page.evaluate(() => window.scrollY) - readyBoundary)).toBeLessThanOrEqual(1);
     await expect(page).toHaveURL(originalURL);
     await recordEntryRelease(page);
-    if (isMobile) await entryInput(page, true, 360);
+    if (isMobile) await entryInput(page, true, 520, undefined, 24);
     else for (let step = 0; step < 6; step++) {
       const prior = await entryCharge(page);
-      await entryInput(page, false, 900);
+      await entryInput(page, false, 80);
       if (step < 5) {
         await expect(portal).toHaveAttribute("data-entry-state", "charging");
         await expect.poll(() => entryCharge(page)).toBeGreaterThan(prior);
         expect(Math.abs(await page.evaluate(() => window.scrollY) - readyBoundary)).toBeLessThanOrEqual(1);
       }
     }
-    // The phone's final touch samples follow the threshold in the same native
-    // gesture. Observe those real dispatch phases, rather than spending the
-    // short reveal starting another protocol session and polling afterward.
-    // A wheel follows the first rendered release frame at the existing pointer;
-    // this is a frame boundary, not an arbitrary elapsed-time delay.
+    // The continuous phone gesture includes real samples after earned glow
+    // catchup and release begin. The recorder determines their actual phase.
+    // A desktop wheel waits for that same public phase and a rendered frame,
+    // so its residual event never assumes the threshold packet begins release.
     if (!isMobile) {
-      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      await expect(portal).toHaveAttribute("data-entry-state", "releasing");
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
       await page.mouse.wheel(0, 180);
     }
     await expectAirportEntry(page);
@@ -856,7 +1047,7 @@ for (const locale of ["en", "ar"] as const) {
       const historyLength = await page.evaluate(() => history.length);
       const begin = page.locator(".venue-journey-invitation .venue-hero-action");
       if (activation === "wheel") {
-        for (let step = 0; step < 6; step++) await entryInput(page, false, 900);
+        await entryInput(page, false, 900);
         expect(await page.evaluate(() => document.activeElement?.closest("a,button,input,select,textarea,summary,[contenteditable=true]")?.tagName ?? null)).toBeNull();
       } else {
         await begin.focus();

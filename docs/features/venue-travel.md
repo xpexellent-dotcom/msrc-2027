@@ -1,6 +1,28 @@
 # Getting there — 5 October 2026
 
-## Current Venue entrance correction — ENG-037, 12 October 2026
+## Current input resilience follow-up — ENG-038, 12 October 2026
+
+Ordinary fast desktop input still bypasses or undercharges the published entrance.
+The scoped correction preserves full normalized earned effort, recovers eligible
+native crossings from actual scroll movement, excludes owned clamps and flushes
+pending movement before consuming another packet. Reverse input carries remaining
+upward distance naturally. The held overview displays earned glow before the same
+850ms real-Journey reveal; no extra overview scroll range or new dependency is added.
+A bounded positive wheel tail protects the exact landing while reversal/fresh
+gestures stay responsive; a genuine return above the gate rearms entry. Existing
+map/scene geometry, approved facts, EN/AR/RTL, controls and direct accessibility
+paths remain authoritative.
+
+Full local lint/types, 2,401 units/61 files and 81-page build PASS. Affected local
+browser checks are RUNNING/PENDING; final visual/CI/Preview and guarded publication
+with owned Production/live verification remain PENDING. The published source is
+still PR64's merge 47c1505. Existing publication authority applies only to public UI;
+operational workflows/settings/data remain untouched. Physical devices and screen
+readers are NOT TESTED. Audit and retained failure evidence:
+`docs/reviews/venue-input-resilience.md`. IDs: SCP-02, DSN-01/02, ACC-01,
+LOC-01/02/03, MED-01/04, PRV-03, REL-06.
+
+## Published Venue entrance correction — ENG-037, 12 October 2026
 
 The latest organizer instruction replaces the unreliable approach gate with a
 scroll-powered hold, persistent charge and one 850ms reveal of the real Journey.
@@ -17,9 +39,22 @@ This changes the public entrance interaction only. The current self-hosted campu
 and city geometry, attribution, selected venue photographs, Google/Apple outbound
 actions, approved travel/arrival guidance and closed operational workflows remain.
 No provider request, dependency, operational flag or new public fact is added.
-ENG-035's publication authority continues, subject to fresh source, CI, owned
-deployment and live evidence. Audit and pending/final checks are recorded in
-`docs/reviews/venue-scroll-entry.md`; no current release claim is made here.
+Published through PR64: reviewed head
+`2bd6f128fd96b810ab972e3b19e44447c93212c9` merged as
+`47c1505b019daf1dcefa6fafa05d9e481e5ff8e3`. All three exact-head PR workflows,
+ten substantive jobs and ten actual checks pass. Owned READY Preview and
+protected EN/AR HTTP 200 match that reviewed source. Owned READY Production
+`dpl_3WU9wQFKfxe54Gde8PbygaYtgMKZ` serves the exact merge from Git/main on
+both public aliases; 97 actual public GET/HEAD checks pass. The actual-public
+affected browser suite passes 73 cases with eight intentional skips, zero failures
+and zero retries. Independent merged/main CI passes all three workflows, ten jobs
+and ten real checks. Native live desktop visual review confirms the stationary
+hold, reversible glow, one precise Airport landing and native continuation;
+Arabic phone emulation confirms the compact map and readable interactive details.
+The viewport override was reset. Physical Safari/Android and real screen readers
+remain NOT TESTED. The published source remains frozen; supplemental final receipts
+do not alter it or open operational workflows.
+Audit, preserved failures and receipts: `docs/reviews/venue-scroll-entry.md`.
 IDs: SCP-02, DSN-01/02, ACC-01, LOC-01/02/03, MED-01/04, PRV-03, REL-06.
 
 The original 5 October implementation and dated verification below are preserved
