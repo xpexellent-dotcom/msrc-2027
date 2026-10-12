@@ -101,3 +101,23 @@ Final source check: PASS lint/types, 2,399 units /61 files, 81-page production
 build. Receipt `.tools/venue-cinematic-release-check.log`. Native-input diagnostic:
 `.tools/venue-cinematic-touch-diagnostic.json`. Final Chromium/WebKit and exact-head
 CI/Preview/Production evidence pending; no final release claim at this revision.
+
+Candidate `7cafbca`: broader local73-case scope had72 passes /12 intentional
+skips /one Arabic desktop near-top hover failure. Phone Zoom and all normal/
+reduced/enlarged/short/native/no-JS cases passed. Sequential installed WebKit:
+PASS8/8 English/Arabic phone checks, zero retries, receipt
+`.tools/venue-cinematic-webkit-confirmed.log`.
+
+The RTL diagnostic proves the remaining obstruction: Airport at
+(28.59,104,97.78,48), popup at (16,169,314,133.16), pointer x77.484 reaches
+y177 and hits Zoom-in at (52,176,44,44), closing the tooltip. The reading block
+starts at x346 and does not intercept. Exact native/event/geometry receipt:
+`.tools/venue-cinematic-rtl-hover-diagnostic.json`. The source now reserves the
+controls column for both the active marker and popup, preserving geographic
+camera space, header clearance and all unchanged hover-gap/flip/100–180px tests.
+Points physically covered by map furniture or the header leave the focus order.
+
+Final correction: PASS all12 EN/AR desktop Journey cases, zero retries;
+`.tools/venue-cinematic-hover-fixed.log`. PASS full lint/types/2,399 units/61 files/
+81-page build, `.tools/venue-cinematic-hover-check.log`. No further source/test
+edits planned. Corrected-head hosted evidence and final visual confirmation pending.

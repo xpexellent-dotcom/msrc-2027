@@ -20,6 +20,14 @@
   exact root-cause corrections are preserved in the review. Final browser/hosted
   checks are pending, not represented as passes. User's unrelated phone-review
   receipts and unused media remain unstaged.
+- Broader local run at `7cafbca`: 72 pass /12 intentional skips /one Arabic
+  desktop hover failure; WebKit phone8/8 passes. The recorded RTL path crossed
+  the Zoom button at (77.484,177). Pin and popup now reserve the controls column
+  as well as the actual centered reading area. All twelve final EN/AR desktop
+  Journey regressions pass, including unchanged near-top flip/hover-bridge bounds;
+  new source check again passes lint/types/2,399 units/81 pages. Receipts:
+  `.tools/venue-cinematic-hover-fixed.log`, `venue-cinematic-hover-check.log`,
+  `venue-cinematic-rtl-hover-diagnostic.json`. Fresh corrected-head CI required.
   Review: `docs/reviews/venue-cinematic-refinement.md`.
 
 ## 12 October 2026 — Compact venue opening and phone map, ENG-032

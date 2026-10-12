@@ -59,6 +59,12 @@ function positionPointDetail(point: HTMLAnchorElement) {
     if (document.documentElement.dir === "rtl") right = Math.min(right, reading.left - 16);
     else left = Math.max(left, reading.right + 16);
   }
+  const controls = atlas.querySelector<HTMLElement>(".venue-map-controls")?.getBoundingClientRect();
+  if (controls) {
+    // A pointer must reach the popup without crossing a higher map control.
+    if (document.documentElement.dir === "rtl") left = Math.max(left, controls.right + 16);
+    else right = Math.min(right, controls.left - 16);
+  }
   const priorDisplay = tip.style.display;
   const priorVisibility = tip.style.visibility;
   tip.style.visibility = "hidden";
@@ -240,8 +246,9 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
           // the real side column, outside the centered foreground's hit area.
           const pinX = targetX + (first.x - x) * scale;
           const clearance = currentPoint.offsetWidth / 2 + 24;
-          if (locale === "ar") targetX -= Math.max(0, pinX - (foreground.left - atlasBox.left - clearance));
-          else targetX += Math.max(0, foreground.right - atlasBox.left + clearance - pinX);
+          const minimum = locale === "ar" ? (controls?.right ?? atlasBox.left) - atlasBox.left + clearance : foreground.right - atlasBox.left + clearance;
+          const maximum = locale === "ar" ? foreground.left - atlasBox.left - clearance : (controls?.left ?? atlasBox.right) - atlasBox.left - clearance;
+          targetX += Math.min(maximum, Math.max(minimum, pinX)) - pinX;
         }
         // Keep the focal stop between controls and attribution on thin maps.
         let targetY = compact ? (upper + lower) / 2 : atlas.clientHeight * .48;
@@ -260,7 +267,8 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
           const px = targetX + (stop.x - x) * scale;
           const py = targetY + (stop.y - y) * scale;
           const bounds = { left: atlasBox.left + px - point.offsetWidth / 2, right: atlasBox.left + px + point.offsetWidth / 2, top: atlasBox.top + py - point.offsetHeight / 2, bottom: atlasBox.top + py + point.offsetHeight / 2 };
-          const blocked = compact && [credits, controls, north].some(box => box && bounds.left < box.right + 4 && bounds.right > box.left - 4 && bounds.top < box.bottom + 4 && bounds.bottom > box.top - 4);
+          const blocked = [credits, controls, north].some(box => box && bounds.left < box.right + 4 && bounds.right > box.left - 4 && bounds.top < box.bottom + 4 && bounds.bottom > box.top - 4)
+            || (!compact && bounds.top < headerHeight + 8);
           const visible = !blocked && bounds.left >= atlasBox.left && bounds.right <= atlasBox.right && bounds.top >= atlasBox.top && bounds.bottom <= atlasBox.bottom;
           point.inert = !visible; point.tabIndex = visible ? 0 : -1;
           if (visible) point.removeAttribute("aria-hidden"); else point.setAttribute("aria-hidden", "true");
