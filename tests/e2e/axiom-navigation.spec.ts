@@ -36,9 +36,20 @@ for (const locale of ["en", "ar"] as const) {
     await expect(middle).toHaveCSS("opacity", "0");
     await expect(middle).toHaveCSS("filter", "blur(7px)");
     expect(await middle.evaluate((element) => getComputedStyle(element).transform)).not.toBe("none");
-    // The visible controls travel to the corners, rather than disappearing in place.
-    await expect.poll(async () => (initialLogo.x - (await logo.boundingBox())!.x) * direction).toBeGreaterThan(90);
-    await expect.poll(async () => ((await action.boundingBox())!.x - initialAction.x) * direction).toBeGreaterThan(90);
+    // The wider capsule needs less travel, but both controls must still move outward
+    // and settle inside the viewport's corner margin without shrinking their targets.
+    await expect.poll(() => logo.evaluate((element) => element.getAnimations().some((animation) => animation.playState === "running"))).toBe(false);
+    const compactLogo = (await logo.boundingBox())!;
+    const compactAction = (await action.boundingBox())!;
+    expect((initialLogo.x - compactLogo.x) * direction).toBeGreaterThan(0);
+    expect((compactAction.x - initialAction.x) * direction).toBeGreaterThan(0);
+    const viewportWidth = page.viewportSize()!.width;
+    const logoEdge = locale === "en" ? compactLogo.x : viewportWidth - compactLogo.x - compactLogo.width;
+    const actionEdge = locale === "en" ? viewportWidth - compactAction.x - compactAction.width : compactAction.x;
+    for (const edge of [logoEdge, actionEdge]) {
+      expect(edge).toBeGreaterThanOrEqual(12);
+      expect(edge).toBeLessThanOrEqual(24);
+    }
     await expect(logo).toBeInViewport();
     await expect(action).toBeInViewport();
     expect((await logo.boundingBox())!.width).toBeGreaterThan(initialLogo.width);

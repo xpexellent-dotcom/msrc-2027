@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { AmbientArtwork } from "@/components/ambient-artwork";
 import { VenuePhotoGallery } from "@/components/venue-photo-gallery";
 import { VenueArrivalJourney } from "@/components/venue-arrival-journey";
 import { VenueGeographicMap } from "@/components/venue-geographic-map";
@@ -40,6 +41,8 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
   return (
     <>
       <section className="venue-gallery-hero" aria-labelledby="dates-page-title">
+        <div className="venue-photo-header premium-photo-hero">
+          <div className="premium-hero-image" aria-hidden="true"><Image src="/media/msrc-demo/king-faisal-venue.jpg" alt="" fill priority sizes="100vw" /></div>
         <Container>
           <nav aria-label={copy.breadcrumb} className="about-breadcrumb">
             <ol>
@@ -47,15 +50,16 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
               <li><span aria-hidden="true">/</span><span aria-current="page">{copy.page}</span></li>
             </ol>
           </nav>
-          <div className="venue-hero-composition">
             <div className="venue-hero-intro">
-              <h1 id="dates-page-title">{locale === "en" ? <>Your way <span>to MSRC.</span></> : <>طريقك <span>إلى المؤتمر.</span></>}</h1>
+              <h1 id="dates-page-title">{locale === "en" ? <><span>Your way</span><br /> <span className="premium-title-accent">to MSRC.</span></> : <><span>طريقك</span><br /> <span className="premium-title-accent">إلى المؤتمر.</span></>}</h1>
               <p className="dates-lead">{copy.lead}</p>
-              {venue && <Link href={`/${locale}/dates-venue#journey-airport`} className="venue-hero-action">
-                {locale === "ar" ? "ابدأ رحلتك" : "Begin your journey"}
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M12 4v16m-6-6 6 6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </Link>}
             </div>
+        </Container>
+        </div>
+        <div className="venue-gallery-stage">
+          <AmbientArtwork variant="paths" />
+          <Container>
+          <div className="venue-hero-composition">
             {venue && <div id="venue-orientation" tabIndex={-1} className="venue-hero-map">
               <VenueGeographicMap locale={locale} variant="hero" />
               <nav className="venue-map-links" aria-label={travel.mapLinksLabel}>
@@ -64,21 +68,20 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
             </div>}
             <VenuePhotoGallery locale={locale} />
           </div>
-        </Container>
+          {venue && <div className="venue-journey-invitation"><ButtonLink href={`/${locale}/dates-venue#journey-airport`} className="venue-hero-action" variant="gold">
+            {locale === "ar" ? "ابدأ رحلتك" : "Begin your journey"}
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="M12 4v16m-6-6 6 6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </ButtonLink></div>}
+          </Container>
+        </div>
       </section>
 
       {venue && <VenueArrivalJourney locale={locale} venue={venue} />}
 
-      <section id="schedule" tabIndex={-1} className="venue-gallery-footer" aria-labelledby="schedule-title">
+      <section id="schedule" tabIndex={-1} className="venue-gallery-footer" aria-label={copy.scheduleTitle}>
         <Container><div className="venue-gallery-footer-grid">
-          <h2 id="schedule-title">{copy.scheduleTitle}</h2>
-          <div>
             <p className="dates-body">{copy.scheduleBody}</p>
             <ButtonLink href={`/${locale}/program`} className="dates-program-link" variant="secondary">{copy.program}</ButtonLink>
-            <div className="dates-closed-note">
-              <StatusBadge tone="neutral">{copy.closed}</StatusBadge>
-            </div>
-          </div>
         </div></Container>
       </section>
     </>
