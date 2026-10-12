@@ -101,8 +101,9 @@ listeners. There is no animation loop left running at rest.
 | First targeted browser attempt | PARTIAL: 12 passed, four intentional skips, eight failed | `.tools/venue-scroll-entry-browser.log`; original failures and traces retained |
 | Following targeted browser attempt | PARTIAL: 18 passed, four intentional skips, two phone charged-entry failures | `.tools/venue-scroll-entry-browser-fixed.log`; fresh wheel/touch approaches and Begin/duplicate/landing paths pass, but the complete targeted set is not green |
 | Final entrance and affected Chromium regressions | PASS: 73 passed, eight intentional skips, zero failures/retries | `.tools/venue-scroll-entry-browser-final.log`; all three affected files across desktop/tablet/phone, including the corrected phone timing checks and native Home/End interruption |
-| Final full local check | PASS: lint/types, 2,401 units/61 files and81-page build | `.tools/venue-scroll-entry-check-final.log`; final controller/scene source, with scoped lint of the frozen tests also passing |
+| Full local check and focused-keyboard follow-up | PASS: lint/types, 2,401 units/61 files and81-page build | `.tools/venue-scroll-entry-check-final.log`, then `.tools/venue-scroll-keyboard-check-final.log` after the final focused-anchor interruption correction |
 | Scoped WebKit phone checks | PASS: 10/10, zero retries | `.tools/venue-scroll-entry-webkit-final.log`; EN/AR Begin, accessible content, compact map points, anchors and reduced motion; physical hardware remains NOT TESTED |
+| Final focused keyboard/Begin regression | PASS: Chromium14 + two desktop-only phone skips; WebKit4/4, zero retries | `.tools/venue-scroll-keyboard-browser-confirmed.log`, `.tools/venue-scroll-keyboard-webkit-confirmed.log`; document and focused Begin support Home/End, with Chromium's native Ctrl+Home shortcut |
 | Final visual confirmation, owned Preview and exact-head CI | PENDING | No current hosted pass is claimed |
 | Guarded merge, owned Production identity and actual live verification | PENDING | Existing live baseline remains separate from this correction |
 | Physical iPhone Safari, Android and real screen readers | NOT TESTED | Synthesized Chromium touch and browser emulation are not hardware evidence |
@@ -111,3 +112,14 @@ No assertion is represented as passed without its observed result. The original
 failure receipts remain available; no retry or longer timeout is used to turn
 incomplete evidence into a pass. Final receipts must state the actual reviewed
 source and serving deployment before publication is reported complete.
+
+Final keyboard review found that a focused Begin anchor was treated as owning
+Home/End even though these keys navigate the document. The final guard exempts
+editable/inner scrolling controls, while restoring flow before the browser's
+document command. The first optional WebKit desktop run passed Begin and ordinary
+Home/End but failed Windows Ctrl+Home. A completed-scene native baseline proves
+WebKit does not implement that shortcut:1548→1548, followed by plain Home→0
+(`.tools/venue-native-wk-keys.jsonl`). Keep Home/End strict in both engines and
+Ctrl+Home in Chromium; no browser shortcut polyfill, retry or timeout extension.
+The14+4 focused reruns pass. Prior broader73-case and phone10-case receipts remain
+dated baseline checks; the new head still requires its own complete hosted CI.

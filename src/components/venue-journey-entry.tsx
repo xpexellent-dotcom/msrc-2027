@@ -220,7 +220,7 @@ export function VenueJourneyEntry({ locale }: { locale: Locale }) {
     };
     const touchEnd = () => { touch = undefined; };
     const keyboard = (event: KeyboardEvent) => {
-      if ((event.key === "Home" || event.key === "End") && !hasOwnInput(event.target, 1, true)) {
+      if ((event.key === "Home" || event.key === "End") && !hasOwnInput(event.target, event.key === "Home" ? -1 : 1)) {
         if (state === "releasing") settle(false); else if (state === "charging") setCharge(0);
         return;
       }

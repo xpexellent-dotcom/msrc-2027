@@ -773,27 +773,38 @@ for (const locale of ["en", "ar"] as const) {
     await expectReadable(page);
   });
 
-  test(`${locale} document Home and End restore native flow when interrupting the reveal`, async ({ page, isMobile }) => {
+  test(`${locale} document Home and End restore native flow when interrupting the reveal`, async ({ page, isMobile, browserName }) => {
     test.skip(isMobile, "These terminal keys exercise desktop document navigation; native touch reversal is covered separately.");
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    for (const key of ["Home", "End"] as const) {
-      await page.goto(`/${locale}/dates-venue?view=entry-${key.toLowerCase()}`);
+    // This Windows shortcut is not WebKit's native document-navigation command.
+    const keys = browserName === "chromium" ? ["Home", "End", "Control+Home"] as const : ["Home", "End"] as const;
+    for (const activation of ["wheel", "keyboard"] as const) for (const key of keys) {
+      await page.goto(`/${locale}/dates-venue?view=entry-${activation}-${key.toLowerCase()}`);
       await page.evaluate(() => document.fonts.ready);
       const portal = page.locator(".venue-entry-portal");
       await expect(portal).toHaveAttribute("data-entry-ready", "true");
       await alignEntryBoundary(page);
       const originalURL = page.url();
       const historyLength = await page.evaluate(() => history.length);
-      for (let step = 0; step < 6; step++) await entryInput(page, false, 900);
+      const begin = page.locator(".venue-journey-invitation .venue-hero-action");
+      if (activation === "wheel") {
+        for (let step = 0; step < 6; step++) await entryInput(page, false, 900);
+        expect(await page.evaluate(() => document.activeElement?.closest("a,button,input,select,textarea,summary,[contenteditable=true]")?.tagName ?? null)).toBeNull();
+      } else {
+        await begin.focus();
+        await page.keyboard.press("Enter");
+        // Begin retains focus until the reveal finishes. Its anchor must not
+        // capture terminal keys whose native purpose is document navigation.
+        await expect(begin).toBeFocused();
+      }
       await expect(portal).toHaveAttribute("data-entry-state", "releasing");
-      expect(await page.evaluate(() => document.activeElement?.closest("a,button,input,select,textarea,summary,[contenteditable=true]")?.tagName ?? null)).toBeNull();
       await page.keyboard.press(key);
       await expect(portal).toHaveAttribute("data-entry-state", "completed");
       await expect(page.locator("[data-venue-entry-placeholder]")).toHaveCount(0);
       expect(await page.getByTestId("venue-arrival-journey").evaluate(element => (element as HTMLElement).inert)).toBe(false);
       await expect(page.getByTestId("venue-arrival-journey")).not.toHaveCSS("position", "fixed");
-      if (key === "Home") await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThanOrEqual(1);
+      if (key !== "End") await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThanOrEqual(1);
       else await expect.poll(() => page.evaluate(() => Math.abs(document.documentElement.scrollHeight - innerHeight - scrollY))).toBeLessThanOrEqual(1);
       await expect(page).toHaveURL(`${originalURL}#journey-airport`);
       expect(await page.evaluate(() => history.length)).toBe(historyLength + 1);

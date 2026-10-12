@@ -33,6 +33,12 @@
   authorized. No facts, dependencies, assets, hosted settings, database/workflow
   gates or communications change. Physical devices and screen readers NOT TESTED.
   Audit: `docs/reviews/venue-scroll-entry.md`; receipts: `.tools/venue-scroll-*`.
+- Final keyboard review corrects Home/End when Begin retains focus. Another
+  full check passes; focused Chromium14 + two intentional mobile skips and
+  WebKit4/4 pass with zero retries. Preserve the optional WebKit Ctrl+Home
+  failure: an independent native baseline proves that Windows shortcut is
+  unsupported there, so only Chromium tests it; plain Home/End remain strict
+  in both engines. New exact-head CI/Preview and live release are still pending.
 
 ## 12 October 2026 — Venue update published, ENG-034/035/036
 
