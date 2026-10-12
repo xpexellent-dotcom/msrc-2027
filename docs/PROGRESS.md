@@ -2,6 +2,23 @@
 
 ## 12 October 2026 — Mobile venue exploration and publication, ENG-031
 
+- Release PR 59 passed all three workflows, ten substantive jobs, eleven checks
+  and Vercel at `b17011ae94d89126f9b24f0bfe3f823a6e59a169`; public browser totals
+  639 pass / 41 intentional skips / 680 cases. Owned exact-head Preview was READY.
+  Authorized squash merge: `45facf1f29ee9b4ada8c7e725ae20fe5df459154`.
+- Owned Production `dpl_8SYLJVnHeyKi7f2E7M4GuLw3ohvM` is READY at that merge,
+  on both public aliases. Source tree equals the reviewed PR head. Live read-only
+  verification: **97 pass / zero failures**; workflows/accounts remain closed.
+- Initial live phone interaction check: **three pass / one failure**. The failed
+  Arabic geometry assertion measured 43.45px during a 44px button's press-scale
+  transition. Fix the cause: animate the icon inside each map/close button, keeping
+  the clickable region stationary at 44px. Keyboard/reduced motion stay immediate.
+  A small follow-up PR will preserve and test target bounds while held as well as
+  at rest. Original live failure trace remains preserved; no weakened tolerance.
+- Correction local validation: **PASS** `pnpm check` (2,399 units / 61 files,
+  81-page build) and all **12** selected EN/AR desktop/phone interaction cases,
+  including held-target geometry, short/enlarged/reduced states and panel focus.
+
 - User explicitly authorizes live publication after improving phone exploration
   and shortening content; this supersedes ENG-030's review-only boundary.
   Audit and implementation receipt: `docs/reviews/venue-mobile-exploration.md`.

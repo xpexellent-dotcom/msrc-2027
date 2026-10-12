@@ -43,18 +43,32 @@ async function cameraScale(page: Page) {
   return page.getByTestId("venue-journey-camera").evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a);
 }
 
-async function expectControlBounds(page: Page, controls: Locator) {
+async function expectButtonBounds(page: Page, button: Locator) {
   const viewport = page.viewportSize()!;
+  const box = await button.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeGreaterThanOrEqual(44);
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
+}
+
+async function expectControlBounds(page: Page, controls: Locator) {
   for (const button of await controls.getByRole("button").all()) {
-    const box = await button.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.width).toBeGreaterThanOrEqual(44);
-    expect(box!.height).toBeGreaterThanOrEqual(44);
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.y).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
-    expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
+    await expectButtonBounds(page, button);
   }
+}
+
+async function activateWithPressedBounds(page: Page, button: Locator) {
+  await button.focus();
+  try {
+    await page.keyboard.down("Space");
+    await expect.poll(() => button.evaluate((element) => element.matches(":active"))).toBe(true);
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+    await expectButtonBounds(page, button);
+  } finally { await page.keyboard.up("Space"); }
 }
 
 async function zoomAndReset(page: Page, locale: keyof typeof mapLabels, isMobile: boolean) {
@@ -74,8 +88,7 @@ async function zoomAndReset(page: Page, locale: keyof typeof mapLabels, isMobile
   await page.keyboard.press("Enter");
   await expect.poll(() => cameraScale(page)).toBeLessThan(initial);
   const reset = controls.getByRole("button", { name: labels.reset, exact: true });
-  await reset.focus();
-  await page.keyboard.press("Enter");
+  await activateWithPressedBounds(page, reset);
   await expect.poll(() => cameraScale(page)).toBeCloseTo(initial, 3);
   await settleCamera(page);
   await expectControlBounds(page, controls);
@@ -125,8 +138,7 @@ async function inspectPointPanel(page: Page, point: Locator, pointName: "airport
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
   await expectControlBounds(page, panel);
   const close = panel.getByRole("button", { name: mapLabels[locale].close, exact: true });
-  await close.focus();
-  await page.keyboard.press("Enter");
+  await activateWithPressedBounds(page, close);
   await expect(panel).toBeHidden();
   await expect(point).toHaveAttribute("aria-expanded", "false");
   await expect(point).toBeFocused();
