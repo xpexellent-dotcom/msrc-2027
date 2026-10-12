@@ -1,5 +1,17 @@
 # Progress and session handover
 
+## 12 October 2026 — Browser archive setup correction, ENG-036
+
+- PR63 initial dd432fc: owned READY Preview and nine substantive jobs PASS.
+  Public shard2 CANCELLED after20minutes before tests during stalled HTTP Azure
+  mirror retrieval. Its tests/upload are skipped; complete release gate stays held.
+- Preserve the cancelled setup log and incomplete totals in `.tools/venue-side-*`.
+  Root corrects the actual mirror-list URI with a guarded Ubuntu24.04 x64 runner
+  helper, leaving keys/suites/tests/retries/time limits and product source intact.
+- PASS Bash syntax/whitespace and independent source review. New exact-head CI
+  and owned deployment proof are pending; no automatic rerun or hosted settings.
+  Detailed evidence: `docs/reviews/venue-overview-side-reading.md`.
+
 ## 12 October 2026 — Overview hold and side reading, ENG-035
 
 - Organizer requests the complete overview hold, stronger bounded glow/blur,

@@ -62,3 +62,26 @@ reduced-motion, enlarged text and no-JS alternatives remain.
 
 Current-source publication awaits exact-head CI, owned Preview and guarded merge,
 then owned Production source/alias proof and actual public-site verification.
+
+## Initial hosted check and bounded setup correction — ENG-036
+
+- PR63 initial reviewed head: dd432fc061307b596cd0fc79feb08977333c6698,
+  base/main81efe6c76c45e61c581444f3dab83a81caf77a09. Owned READY Preview
+  dpl_29LpSuLyFzZaD5dJjePchBzw4yrz matches the expected project/team/head.
+- Initial exact-head CI is INCOMPLETE: nine jobs pass; public shard2 is cancelled
+  after20minutes at browser installation. Its test and evidence-upload steps are
+  skipped. Public shards1+3:432 passes/32 intentional skips/zero assertions failed.
+  This is neither a complete public-suite pass nor a design/test assertion failure.
+- Root cause: APT's mirror+file:/etc/apt/apt-mirrors.txt configuration repeatedly
+  uses the failing HTTP Azure archive despite successful canonical HTTPS metadata.
+  Sanitized proof: `.tools/venue-side-install-cancelled-dd432fc.json`;
+  incomplete totals: `.tools/venue-side-ci-totals-dd432fc-initial.json`.
+- [GitHub's current runner-image configuration](https://raw.githubusercontent.com/actions/runner-images/main/images/ubuntu/scripts/build/configure-apt-sources.sh)
+  confirms the mirror-list URI and priorities. The runner-only helper changes that
+  exact URI/direct Azure URI in known Ubuntu source files to canonical HTTPS.
+  [Ubuntu's archive verification](https://documentation.ubuntu.com/security/software-integrity/archive-verification/)
+  remains intact; [Playwright's dependency installation](https://playwright.dev/docs/ci),
+  test commands, assertions, retries, time limits and workflow permissions remain.
+- PASS Git Bash syntax check and git diff --check. Independent final helper/source
+  review finds no material defect. Genuine Ubuntu execution awaits new-head CI.
+  No automatic rerun, retry, merge or hosted configuration change was performed.

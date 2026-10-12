@@ -1,5 +1,22 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-036 — Correct the stalled CI browser archive, 12 October 2026
+
+PR63's initial head dd432fc passed nine substantive jobs. Public shard2 exhausted
+its20-minute budget during Playwright's APT dependency setup; its application tests
+never started. Preserved logs prove the runner's file mirror list repeatedly
+selected HTTP Azure, while canonical Ubuntu HTTPS InRelease requests succeeded.
+
+Before the unchanged browser installation, a helper restricted to GitHub Ubuntu
+24.04 x64 rewrites only the exact Ubuntu mirror-list/direct Azure URI in the two
+known Ubuntu source files to the canonical HTTPS archive. Preserve suites,
+components, signing keys, package validation, permissions, all tests, zero retries
+and time limits. Do not modify third-party sources, cloud-init, hosted settings or
+application code. This is the smallest source correction needed to complete the
+already authorized release, not an automatic rerun of an uncertain failure.
+Use a new exact-head CI attempt; retain the stopped attempt as incomplete evidence.
+IDs: REL-06. Evidence: `docs/reviews/venue-overview-side-reading.md`.
+
 ## ENG-035 — Hold the Venue overview and restore side reading, 12 October 2026
 
 The organizer clarifies the authored entrance: hold the complete opening overview
