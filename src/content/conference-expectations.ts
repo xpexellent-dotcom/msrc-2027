@@ -5,7 +5,7 @@ export const conferenceExpectations = {
   en: {
     title: "Come with curiosity.\nLeave with possibility.",
     introduction: "Two days to share what you know, explore what comes next, and find the people who will help you get there.",
-    link: "Explore the Program",
+    link: "Explore the program",
     benefits: [
       { title: "Research, in the room.", body: "Present your work, hear new perspectives and take part in the conversations that move an idea forward." },
       { title: "Experience you can build on.", body: "Develop practical research and communication skills through workshops, discussions and hands-on learning." },

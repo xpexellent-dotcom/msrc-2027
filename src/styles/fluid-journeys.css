@@ -65,7 +65,8 @@
 @media (max-width: 1000px) {
   .fluid-journey-hero:not(.experience-intro--program) .experience-intro-grid { grid-template-columns: minmax(0, 1fr); }
   .fluid-journey-hero .experience-location { max-inline-size: 38rem; }
-  .journey-guidelines-list .fluid-requirement-card { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  /* Mirrors the base selector (with :last-child) so the final card stacks like the others. */
+  .journey-guidelines-list :is(.fluid-requirement-card, .fluid-requirement-card:last-child) { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 }
 @media (max-width: 650px) {
   .fluid-requirement-grid, .fluid-resource-grid { grid-template-columns: minmax(0, 1fr); }

@@ -1,5 +1,30 @@
 # Progress and session handover
 
+## 12 October 2026 — Production QA pass and phone polish
+
+- Audited live www.msrc2027.com (28 sitemap URLs + registration/submissions, EN/AR,
+  1440px and 375px): every page 200, one h1, canonical/hreflang/OG present, zero axe
+  WCAG 2.2 AA violations across 64 combinations, no horizontal overflow, broken
+  images or console errors. Vercel runtime errors (7 days): none. Security headers,
+  308 apex-to-www redirect, ICS, sitemap/robots, menu focus return and program
+  deep links verified. Arabic text scan found only expected Latin (Esc, Wi-Fi).
+- Fixed: on phones the first home benefit card and the last pathway requirement
+  card (workshops, hackathon, 3MT, registration, submissions) kept desktop padding
+  or the side-by-side layout because base `:first-child`/`:last-child` selectors
+  outranked the phone rules. Hero date/city now stack below 540px so the separator
+  no longer dangles. Removed doubled top spacing before International attendees.
+  Shortened the media search placeholder (EN/AR) so it fits a 320px field. Casing
+  of "Explore the program" matched elsewhere. README no longer documents the
+  removed About page.
+- Local validation: PASS lint/types, 2,399 unit tests / 61 files, build; full
+  public browser suite 640 pass / 39 skipped / 1 fail before the final copy/card
+  edits; targeted re-run of seven affected specs on the final build 178 pass / 12
+  skipped. The failure is the pre-existing intermittent EN desktop media-rail
+  keyboard test (4/5 pass on repeat; 6/6 manual production checks return to 0).
+- Not changed (recommendations): Arabic link-preview image is English-only by
+  design (no Arabic TTF for the image renderer); CSP has no script-src yet; 51
+  merged remote branches could be pruned. Physical iPhone Safari NOT TESTED.
+
 ## 12 October 2026 — Compact venue opening and phone map, ENG-032
 
 - Implemented: campus map and Google/Apple directions in the opening, one

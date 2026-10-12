@@ -267,6 +267,9 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
   .hero-bottom-grid { margin-block-start: 1rem; }
   .hero-introduction { max-inline-size: 100%; }
   .hero-lead { font-size: 1rem; }
+  /* Stack date and city so the separator never dangles at the end of the first line. */
+  .hero-location { flex-direction: column; }
+  .hero-location > [aria-hidden="true"] { display: none; }
   .hero-actions { gap: .5rem 1rem; margin-block-start: 1.25rem; }
   .hero-countdown .countdown-clock { display: block; }
   .hero-countdown .countdown-remaining { flex-wrap: nowrap; }

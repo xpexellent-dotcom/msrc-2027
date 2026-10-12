@@ -2,7 +2,7 @@
 
 **Development handoff v1.0 | Prepared 29 September 2026 | Event timezone: Asia/Riyadh**
 
-This folder contains the M1 foundation, the M2 shared design system and the bilingual public site (home, About, Dates & venue, Programme, Participate with its pathway pages, Speakers and Media) alongside the original handoff. English/Arabic pages run without credentials or a database. Confirmed dates are 27–28 January 2027 (ORG-001); venue and operational workflows remain unset or closed. The user approved the reviewed MSRC2026 homepage montage (ORG-002) and authorized pushing/publishing; current deployment evidence is in [PROGRESS](docs/PROGRESS.md). Final institutional brand and full bilingual draft-copy approval remain separate.
+This folder contains the M1 foundation, the M2 shared design system and the bilingual public site (home, Dates & venue, Program, Participate with its pathway pages, Speakers, Sponsors, Our Team, Media, Contact, Privacy and Terms) alongside the original handoff. English/Arabic pages run without credentials or a database. Confirmed dates are 27–28 January 2027 (ORG-001); venue and operational workflows remain unset or closed. The user approved the reviewed MSRC2026 homepage montage (ORG-002) and authorized pushing/publishing; current deployment evidence is in [PROGRESS](docs/PROGRESS.md). Final institutional brand and full bilingual draft-copy approval remain separate.
 
 ## Run locally
 
@@ -19,11 +19,6 @@ pnpm dev
 Open [English](http://127.0.0.1:3000/en) or [Arabic](http://127.0.0.1:3000/ar).
 The root opens Arabic when the browser's first language is Arabic and English otherwise.
 Stop the terminal with Ctrl+C. No `.env.local` is needed.
-
-The About page is available in [English](http://127.0.0.1:3000/en/about) and
-[Arabic](http://127.0.0.1:3000/ar/about). Its source-derived
-purpose and audience descriptions still need editorial approval. The header, footer and
-homepage introduction link to it. See the [feature contract](docs/features/about.md).
 
 Review the component states at [English design system](http://127.0.0.1:3000/en/design-system)
 or [Arabic design system](http://127.0.0.1:3000/ar/design-system). These routes are enabled
@@ -234,7 +229,7 @@ commands actually executed, acceptance results and remaining host/CI setup.
 
 Use the hosted connection for normal development; Docker restart/setup is optional unless
 you want to run fixture tests on this PC. CI retains those tests on GitHub's Linux runner.
-Next, review and approve the existing homepage/About copy and Arabic translations.
+Next, review and approve the existing homepage copy and Arabic translations.
 The exact content/asset request list is in
 [design-system feature notes](docs/features/design-system.md) and the
 [media register](docs/MEDIA_REGISTER.md). Keep all workflow flags closed.

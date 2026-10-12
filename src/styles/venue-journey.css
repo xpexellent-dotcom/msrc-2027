@@ -85,6 +85,8 @@
 .venue-journey-orientation .dates-directions-link { color: var(--color-purple); margin-block-start: 0; min-block-size: 52px; }
 .venue-journey-orientation .venue-international h3 { display: flex; align-items: center; gap: 1rem; color: var(--color-purple); font-size: 1.75rem; font-weight: 650; }
 .venue-journey-orientation .venue-international p { font-size: 1rem; line-height: 1.85; color: var(--color-muted); }
+/* The band supplies its own padding; the stacked-section margin from dates.css would double it. */
+.venue-journey-orientation .venue-international { margin-block-start: 0; }
 .venue-international summary { list-style: none; cursor: pointer; min-block-size: 48px; }
 .venue-international summary h3 { margin-block: 0; padding-block: 1rem; }
 .venue-international summary h3::after { content: "+"; margin-inline-start: auto; font-size: 1.5rem; }

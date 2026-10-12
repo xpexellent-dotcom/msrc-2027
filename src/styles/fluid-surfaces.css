@@ -114,7 +114,8 @@
   .contact-hero-grid, .contact-form-layout { grid-template-columns: minmax(0,1fr); }
   .community-image { inline-size: 100%; block-size: 42rem; }
   .community-image::after, [dir='rtl'] .community-image::after { background: linear-gradient(180deg,rgb(59 30 109 / .84),rgb(59 30 109 / .76) 35%,var(--color-ink)); }
-  .editorial-motion-home .program-experiences > .benefit-card { grid-template-columns: 3.25rem minmax(0,1fr); align-items: center; gap: 1rem; padding: 1.4rem 1.2rem; }
+  /* Includes :first-child to outrank the base rule in premium-home.css, which otherwise keeps card one on desktop padding. */
+  .editorial-motion-home .program-experiences > :is(.benefit-card, .benefit-card:first-child) { grid-template-columns: 3.25rem minmax(0,1fr); align-items: center; gap: 1rem; padding: 1.4rem 1.2rem; }
   .benefit-copy { display: contents; }
   .editorial-motion-home .benefit-copy h3 { grid-column: 2; grid-row: 1; margin: 0; font-size: clamp(1.35rem, 5.8vw, 1.65rem); line-height: 1.35; text-wrap: pretty; }
   .editorial-motion-home .benefit-copy p { grid-column: 1 / -1; grid-row: 2; max-inline-size: none; font-size: 1rem; line-height: 1.75; }
@@ -126,7 +127,7 @@
   .people-page-heading > div { max-inline-size: 55ch; }
 }
 @media (max-width: 420px) {
-  .editorial-motion-home .program-experiences > .benefit-card { grid-template-columns: 3rem minmax(0,1fr); gap: .9rem .75rem; padding: 1.25rem 1rem; }
+  .editorial-motion-home .program-experiences > :is(.benefit-card, .benefit-card:first-child) { grid-template-columns: 3rem minmax(0,1fr); gap: .9rem .75rem; padding: 1.25rem 1rem; }
   .benefit-artwork { inline-size: 3rem; block-size: 3rem; }
   .benefit-cme { inline-size: 3rem; }
   .benefit-cme-number { font-size: 3.5rem; }
