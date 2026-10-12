@@ -4,6 +4,10 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 // exercise native reading and information discovery, not animation declarations.
 const chapters = ["airport", "city", "arrival"] as const;
 const galleryLabel = { en: "Views of King Faisal Conference Center", ar: "صور مركز الملك فيصل للمؤتمرات" };
+const mapLabels = {
+  en: { zoomIn: "Zoom in", zoomOut: "Zoom out", reset: "Reset map", close: "Close map details" },
+  ar: { zoomIn: "تكبير الخريطة", zoomOut: "تصغير الخريطة", reset: "إعادة ضبط الخريطة", close: "أغلق تفاصيل الخريطة" },
+} as const;
 
 async function scrollPosition(rail: Locator) {
   return rail.evaluate((element) => Math.abs(element.scrollLeft));
@@ -12,7 +16,11 @@ async function scrollPosition(rail: Locator) {
 async function readChapter(page: Page, chapter: typeof chapters[number]) {
   const section = page.locator(`[data-journey-chapter="${chapter}"]`);
   const heading = section.getByRole("heading").first();
-  await heading.evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
+  const journey = page.getByTestId("venue-arrival-journey");
+  const compact = await journey.getAttribute("data-map-compact") === "true";
+  const flowing = await journey.getAttribute("data-reading-flow") === "true";
+  if (compact && !flowing) await section.evaluate((element) => element.scrollIntoView({ block: "start", behavior: "instant" }));
+  else await heading.evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
   await expect(heading).toBeInViewport();
 }
 
@@ -29,6 +37,132 @@ async function sceneScrollOffsets(page: Page) {
     document: { x: window.scrollX, y: window.scrollY },
     atlas: { x: element.scrollLeft, y: element.scrollTop },
   }));
+}
+
+async function cameraScale(page: Page) {
+  return page.getByTestId("venue-journey-camera").evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a);
+}
+
+async function expectControlBounds(page: Page, controls: Locator) {
+  const viewport = page.viewportSize()!;
+  for (const button of await controls.getByRole("button").all()) {
+    const box = await button.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
+  }
+}
+
+async function zoomAndReset(page: Page, locale: keyof typeof mapLabels, isMobile: boolean) {
+  const controls = page.locator(".venue-map-controls");
+  await expect(controls).toBeVisible();
+  const labels = mapLabels[locale];
+  const initial = await cameraScale(page);
+  const zoomIn = controls.getByRole("button", { name: labels.zoomIn, exact: true });
+  await expect(zoomIn).toBeEnabled();
+  if (isMobile) await zoomIn.tap(); else { await zoomIn.focus(); await page.keyboard.press("Enter"); }
+  await expect.poll(() => cameraScale(page)).toBeGreaterThan(initial);
+  await settleCamera(page);
+  const zoomOut = controls.getByRole("button", { name: labels.zoomOut, exact: true });
+  await zoomOut.focus();
+  await page.keyboard.press("Enter");
+  await zoomOut.focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => cameraScale(page)).toBeLessThan(initial);
+  const reset = controls.getByRole("button", { name: labels.reset, exact: true });
+  await reset.focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(() => cameraScale(page)).toBeCloseTo(initial, 3);
+  await settleCamera(page);
+  await expectControlBounds(page, controls);
+}
+
+async function swipeMapVertically(page: Page, direction: "down" | "up" = "down") {
+  const box = (await page.locator(".venue-journey-atlas").boundingBox())!;
+  const before = await page.evaluate(() => window.scrollY);
+  const client = await page.context().newCDPSession(page);
+  const x = box.x + box.width * .7;
+  const startY = box.y + box.height * (direction === "down" ? .8 : .2);
+  const distance = Math.min(160, box.height * .5);
+  try {
+    await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y: startY }] });
+    for (let step = 1; step <= 8; step++) {
+      const y = startY + (direction === "down" ? -1 : 1) * distance * step / 8;
+      await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y }] });
+      await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+    }
+    await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    if (direction === "down") await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 40);
+    else await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(before - 40);
+    expect(await page.evaluate(() => window.scrollX)).toBe(0);
+  } finally { await client.detach(); }
+}
+
+async function inspectPointPanel(page: Page, point: Locator, pointName: "airport" | "arrival", locale: keyof typeof mapLabels, isMobile: boolean) {
+  const panel = page.getByTestId("venue-map-detail");
+  const originalURL = page.url();
+  await expect(point).toHaveAttribute("role", "button");
+  await expect(point).toHaveAttribute("aria-controls", "venue-map-detail");
+  await expect(point).toHaveAttribute("aria-expanded", "false");
+  if (isMobile) await point.tap(); else { await point.focus(); await page.keyboard.press("Enter"); }
+  await expect(point).toHaveAttribute("aria-expanded", "true");
+  await expect(panel).toBeVisible();
+  await expect(panel).not.toHaveAttribute("aria-modal", "true");
+  await expect(panel.getByRole("heading")).toHaveText(locale === "en"
+    ? pointName === "airport" ? "King Abdulaziz International Airport" : "King Faisal Conference Center"
+    : pointName === "airport" ? "مطار الملك عبدالعزيز الدولي" : "مركز الملك فيصل للمؤتمرات");
+  if (!isMobile) await expect(panel.getByRole("heading")).toBeFocused();
+  await expect(page).toHaveURL(originalURL);
+  const viewport = page.viewportSize()!;
+  const box = (await panel.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.y).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+  await expectControlBounds(page, panel);
+  const close = panel.getByRole("button", { name: mapLabels[locale].close, exact: true });
+  await close.focus();
+  await page.keyboard.press("Enter");
+  await expect(panel).toBeHidden();
+  await expect(point).toHaveAttribute("aria-expanded", "false");
+  await expect(point).toBeFocused();
+  await page.keyboard.press("Space");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("heading")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+  await expect(point).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("heading")).toBeFocused();
+  if (pointName === "arrival") {
+    const afterScroll = await page.locator("#venue-orientation").evaluate((element) => {
+      element.scrollIntoView({ block: "start", behavior: "instant" });
+      return { x: window.scrollX, y: window.scrollY };
+    });
+    await expect(panel).toBeHidden();
+    await expect(point).not.toBeFocused();
+    expect(await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }))).toEqual(afterScroll);
+    await expect(page).toHaveURL(originalURL);
+    await readChapter(page, "arrival");
+    await settleCamera(page);
+    await point.focus();
+    await page.keyboard.press("Enter");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByRole("heading")).toBeFocused();
+  }
+  const destination = pointName === "airport" ? "journey-city" : "venue-orientation";
+  const action = panel.getByRole("link");
+  await expect(action).toHaveAttribute("href", `#${destination}`);
+  await action.focus();
+  await page.keyboard.press("Enter");
+  await expect(panel).toBeHidden();
+  await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue#${destination}$`));
+  await expect(page.locator(`#${destination}`)).toBeFocused();
 }
 
 async function expectReadable(page: Page) {
@@ -94,50 +228,79 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} native scrolling follows the arrival chapters and reverses without rewriting the URL`, async ({ page, isMobile }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}/dates-venue?view=journey`);
+    await page.evaluate(() => document.fonts.ready);
     const journey = page.getByTestId("venue-arrival-journey");
     const camera = page.getByTestId("venue-journey-camera");
+    await expect(journey).toHaveAttribute("data-journey-ready", "true");
     await expect(journey.locator("[data-journey-chapter]")).toHaveCount(3);
     const originalURL = page.url();
+    if (isMobile) {
+      await expect(journey).toHaveAttribute("data-map-compact", "true");
+      await expect(journey).toHaveAttribute("data-reading-flow", "false");
+      await readChapter(page, "airport");
+      await settleCamera(page);
+      const atlas = (await journey.locator(".venue-journey-atlas").boundingBox())!;
+      const headerBottom = await page.locator(".site-header").evaluate((element) => element.getBoundingClientRect().bottom);
+      expect(atlas.y).toBeGreaterThanOrEqual(headerBottom - 1);
+      expect(atlas.y + atlas.height).toBeLessThan(page.viewportSize()!.height);
+      await swipeMapVertically(page);
+      await expect(page).toHaveURL(originalURL);
+    }
     const positions: string[] = [];
     for (const chapter of chapters) {
       await readChapter(page, chapter);
       const current = journey.locator(`a[href="#journey-${chapter}"][aria-current="location"]`);
       await expect(current).toHaveCount(1);
       await expect(journey.locator('a[aria-current="location"]')).toHaveCount(1);
+      await settleCamera(page);
+      await expect(camera).toHaveAttribute("dir", "ltr");
       const matrix = await camera.evaluate((element) => {
         const transform = new DOMMatrixReadOnly(getComputedStyle(element).transform);
-        return { x: transform.a, y: transform.d };
+        return { x: transform.a, y: transform.d, b: transform.b, c: transform.c };
       });
       expect(matrix.x).toBeGreaterThan(0);
       expect(matrix.y).toBeGreaterThan(0);
-      if (!isMobile && positions.length) {
+      expect(matrix.b).toBe(0);
+      expect(matrix.c).toBe(0);
+      if (positions.length) {
         await expect.poll(() => camera.evaluate((element) => getComputedStyle(element).transform)).not.toBe(positions[0]);
       }
       positions.push(await camera.evaluate((element) => getComputedStyle(element).transform));
       await expect(page).toHaveURL(originalURL);
     }
-    if (!isMobile) expect(new Set(positions).size).toBeGreaterThan(1);
+    expect(new Set(positions).size).toBeGreaterThan(1);
     const before = await page.evaluate(() => window.scrollY);
-    await page.mouse.move((page.viewportSize()?.width ?? 1280) * .75, 120);
-    await page.mouse.wheel(0, -240);
+    if (isMobile) await swipeMapVertically(page, "up");
+    else {
+      await page.mouse.move((page.viewportSize()?.width ?? 1280) * .75, 120);
+      await page.mouse.wheel(0, -240);
+    }
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(before);
     for (const chapter of [...chapters].reverse()) {
       await readChapter(page, chapter);
       await expect(journey.locator(`a[href="#journey-${chapter}"][aria-current="location"]`)).toHaveCount(1);
+      await settleCamera(page);
       await expect(page).toHaveURL(originalURL);
+    }
+    if (isMobile) {
+      await zoomAndReset(page, locale, true);
+      await expect(page).toHaveURL(originalURL);
+      await expectReadable(page);
     }
   });
 
-  test(`${locale} chapter anchors, short phone reading and reduced motion retain every arrival option`, async ({ page }) => {
+  test(`${locale} chapter anchors, short phone reading and reduced motion retain every arrival option`, async ({ page, isMobile }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 390, height: 480 });
     await page.goto(`/${locale}/dates-venue?view=arrival`);
     await page.evaluate(() => document.fonts.ready);
     const journey = page.getByTestId("venue-arrival-journey");
     const camera = page.getByTestId("venue-journey-camera");
+    await expect(journey).toHaveAttribute("data-journey-ready", "true");
+    await settleCamera(page);
     const initialTransform = await camera.evaluate((element) => getComputedStyle(element).transform);
     for (const chapter of chapters) {
-      const anchor = journey.locator(`a[href="#journey-${chapter}"]`).first();
+      const anchor = journey.locator(`.venue-journey-index a[href="#journey-${chapter}"]`);
       await anchor.focus();
       await page.keyboard.press("Enter");
       await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue\\?view=arrival#journey-${chapter}$`));
@@ -153,6 +316,10 @@ for (const locale of ["en", "ar"] as const) {
     }
     await expect(journey.locator("[data-travel-mode]")).toHaveCount(3);
     await expect(journey.locator("[data-venue-detail]")).toHaveCount(6);
+    await journey.locator(".venue-journey-atlas").scrollIntoViewIfNeeded();
+    await settleCamera(page);
+    await zoomAndReset(page, locale, isMobile);
+    await expectReadable(page);
   });
 
   test(`${locale} transport guidance responds to keyboard, touch and deliberate hover`, async ({ page, isMobile }) => {
@@ -160,10 +327,14 @@ for (const locale of ["en", "ar"] as const) {
     await readChapter(page, "city");
     const details = page.locator('[data-travel-mode="taxi"] details');
     const summary = details.locator("summary");
-    await expect(details).toHaveAttribute("open", "");
+    await expect(details).not.toHaveAttribute("open", "");
+    await expect(details.locator("p").first()).toBeHidden();
     const target = await summary.boundingBox();
     expect(target!.height).toBeGreaterThanOrEqual(44);
     if (isMobile) {
+      await summary.tap();
+      await expect(details).toHaveAttribute("open", "");
+      await expect(details.locator("p").first()).toBeVisible();
       await summary.tap();
       await expect(details).not.toHaveAttribute("open", "");
       await expect(details.locator("p").first()).toBeHidden();
@@ -172,6 +343,8 @@ for (const locale of ["en", "ar"] as const) {
     } else {
       await page.mouse.move(0, 0);
       await summary.focus();
+      await page.keyboard.press("Enter");
+      await expect(details).toHaveAttribute("open", "");
       await page.keyboard.press("Enter");
       await expect(details).not.toHaveAttribute("open", "");
       await summary.hover();
@@ -200,12 +373,12 @@ for (const locale of ["en", "ar"] as const) {
       await expect(point).toHaveAttribute("href", `#journey-${chapter}`);
       await expect(point).toHaveAttribute("aria-describedby", tooltipId);
       if (isMobile) {
-        // The compact map remains a real native link, without a floating reading obstruction.
-        await journey.locator(".venue-journey-atlas").scrollIntoViewIfNeeded();
+        // Touch selects actual information; it must not silently jump to a chapter.
+        await expect(journey).toHaveAttribute("data-map-compact", "true");
+        await readChapter(page, chapter);
+        await settleCamera(page);
+        await expect(point).toHaveAttribute("data-point-visible", "true");
         await expect(tooltip).toBeHidden();
-        await point.tap();
-        await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue#journey-${chapter}$`));
-        await expect(page.locator(`#journey-${chapter}`)).toBeFocused();
       } else {
         await page.evaluate(() => document.fonts.ready);
         await readChapter(page, chapter);
@@ -240,10 +413,8 @@ for (const locale of ["en", "ar"] as const) {
         await page.keyboard.press("Escape");
         await expect(tooltip).toBeHidden();
         await expect(point).toBeFocused();
-        await page.keyboard.press("Enter");
-        await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue#journey-${chapter}$`));
-        await expect(page.locator(`#journey-${chapter}`)).toBeFocused();
       }
+      await inspectPointPanel(page, point, pointName, locale, isMobile);
     }
     if (!isMobile) for (const width of [1300, 1200]) {
       // Reach a settled near-top point, including the exact cinematic breakpoint.
@@ -297,10 +468,12 @@ for (const locale of ["en", "ar"] as const) {
       await expect(journey.locator("[data-journey-chapter]")).toHaveCount(3);
       const travel = journey.locator('[data-travel-mode="taxi"] details');
       const summary = travel.locator("summary");
-      await expect(travel).toHaveAttribute("open", "");
-      await summary.click();
       await expect(travel).not.toHaveAttribute("open", "");
+      await summary.click();
+      await expect(travel).toHaveAttribute("open", "");
       await summary.focus();
+      await page.keyboard.press("Enter");
+      await expect(travel).not.toHaveAttribute("open", "");
       await page.keyboard.press("Enter");
       await expect(travel).toHaveAttribute("open", "");
       await expect(travel.locator("p").first()).toBeVisible();
@@ -308,8 +481,20 @@ for (const locale of ["en", "ar"] as const) {
       await city.click();
       await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue#journey-city$`));
       await expect(page.locator("#journey-city")).toBeInViewport();
+      const essentials = page.locator("#at-venue details");
+      await expect(essentials).not.toHaveAttribute("open", "");
+      await essentials.locator("summary").click();
+      await expect(essentials).toHaveAttribute("open", "");
       await expect(page.locator("#at-venue [data-venue-detail]")).toHaveCount(6);
+      for (const item of await page.locator("#at-venue [data-venue-detail] dd").all()) await expect(item).toBeVisible();
+      await page.locator("#international-attendees summary").click();
       await expect(page.locator("#international-attendees")).toContainText("UTC+3");
+      await expect(page.getByTestId("venue-map-detail")).toBeHidden();
+      for (const [point, chapter] of [["airport", "airport"], ["arrival", "arrival"]] as const) {
+        const anchor = journey.locator(`[data-map-point="${point}"]`);
+        await expect(anchor).toHaveAttribute("href", `#journey-${chapter}`);
+        await expect(anchor).not.toHaveAttribute("role", "button");
+      }
       await expectReadable(page);
     } finally { await context.close(); }
   });

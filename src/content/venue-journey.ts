@@ -23,50 +23,77 @@ type VenueJourneyCopy = {
   pointAction: string;
   mapNote: string;
   north: string;
+  exploreMap: string;
+  mapHelp: string;
+  zoomIn: string;
+  zoomOut: string;
+  resetMap: string;
+  closeDetails: string;
+  arrivalEssentials: string;
+  viewDetails: string;
+  hideDetails: string;
 };
 
 /** Arrival sequence, not a surveyed driving route or terminal pickup instruction. */
 export const venueJourneyCopy: Record<Locale, VenueJourneyCopy> = {
   en: {
-    label: "Your journey to MSRC",
+    label: "Arrival journey",
     navigation: "Arrival journey chapters",
-    steps: ["At the airport", "Through Jeddah", "At the conference"],
-    airportTitle: ["Touch down in", "Jeddah."],
+    steps: ["Airport", "Getting there", "Venue"],
+    airportTitle: ["Start at", "the airport."],
     airportName: "King Abdulaziz International Airport",
-    airportBody: "Arriving by air? Start here, then choose your connection to King Faisal Conference Center.",
-    airportNote: "Follow your airline and the airport’s information for terminal and pickup details.",
+    airportBody: "Connect by taxi, train or rental car.",
+    airportNote: "Check terminal and pickup details with your airline and the airport.",
     continue: "Choose your connection",
-    cityTitle: ["Find your way", "through Jeddah."],
-    cityBody: "Choose the connection that works for you. Your map app can guide the final part of your journey.",
-    arrivalTitle: ["Your next stop:", "MSRC."],
-    arrivalBody: "Find the conference, save your ticket and arrive ready for the conversation.",
-    orientationTitle: "Find the conference.",
-    orientationBody: "Explore the campus streets, then open your preferred map app for current directions.",
+    cityTitle: ["Choose your", "connection."],
+    cityBody: "Compare travel options.",
+    arrivalTitle: ["You’ve arrived", "at MSRC."],
+    arrivalBody: "Save your QR ticket before you arrive.",
+    orientationTitle: "The final approach.",
+    orientationBody: "Open your map app for current directions.",
     airportPin: "Airport",
     venuePin: "MSRC",
-    pointAction: "View arrival information",
-    mapNote: "Geographic arrival overview. Use your map app for current directions.",
+    pointAction: "View arrival details",
+    mapNote: "Arrival overview, not a driving route.",
     north: "North",
+    exploreMap: "Explore the map",
+    mapHelp: "Tap a stop to explore",
+    zoomIn: "Zoom in",
+    zoomOut: "Zoom out",
+    resetMap: "Reset map",
+    closeDetails: "Close map details",
+    arrivalEssentials: "Arrival essentials",
+    viewDetails: "View details",
+    hideDetails: "Hide details",
   },
   ar: {
-    label: "رحلتك إلى المؤتمر",
+    label: "رحلة الوصول",
     navigation: "مراحل الوصول إلى المؤتمر",
-    steps: ["في المطار", "عبر جدة", "في المؤتمر"],
-    airportTitle: ["بداية رحلتك،", "في جدة."],
+    steps: ["المطار", "الوصول", "المقر"],
+    airportTitle: ["بداية الرحلة،", "في المطار."],
     airportName: "مطار الملك عبدالعزيز الدولي",
-    airportBody: "قادم بالطائرة؟ ابدأ من هنا، ثم اختر وسيلة الوصول إلى مركز الملك فيصل للمؤتمرات.",
-    airportNote: "تابع معلومات شركة الطيران والمطار لمعرفة تفاصيل الصالة ومكان الركوب.",
+    airportBody: "اختر سيارة أجرة أو قطارًا أو سيارة مستأجرة.",
+    airportNote: "تحقّق من تفاصيل الصالة ومكان الركوب لدى شركة الطيران والمطار.",
     continue: "اختر وسيلة الوصول",
-    cityTitle: ["اختر طريقك", "عبر جدة."],
-    cityBody: "اختر وسيلة النقل المناسبة لك. يمكن لتطبيق الخرائط إرشادك في الجزء الأخير من رحلتك.",
-    arrivalTitle: ["محطتك التالية:", "المؤتمر."],
-    arrivalBody: "اعرف موقع المؤتمر، واحفظ تذكرتك، واستعد للحوار.",
-    orientationTitle: "اعرف موقع المؤتمر.",
-    orientationBody: "تعرّف إلى الشوارع المحيطة بالمؤتمر، ثم افتح تطبيق الخرائط الذي تفضله للحصول على الاتجاهات الحالية.",
+    cityTitle: ["اختر", "وسيلة الوصول."],
+    cityBody: "قارن وسائل النقل.",
+    arrivalTitle: ["وجهتك،", "المؤتمر."],
+    arrivalBody: "احفظ تذكرتك برمز QR قبل وصولك.",
+    orientationTitle: "الخطوة الأخيرة.",
+    orientationBody: "افتح تطبيق الخرائط للحصول على الاتجاهات الحالية.",
     airportPin: "المطار",
     venuePin: "المؤتمر",
-    pointAction: "اعرض معلومات الوصول",
-    mapNote: "نظرة جغرافية عامة للوصول. استخدم تطبيق الخرائط للحصول على الاتجاهات الحالية.",
+    pointAction: "اعرض تفاصيل الوصول",
+    mapNote: "نظرة عامة للوصول، وليست مسارًا للقيادة.",
     north: "الشمال",
+    exploreMap: "استكشف الخريطة",
+    mapHelp: "اضغط على محطة لاستكشافها",
+    zoomIn: "تكبير الخريطة",
+    zoomOut: "تصغير الخريطة",
+    resetMap: "إعادة ضبط الخريطة",
+    closeDetails: "أغلق تفاصيل الخريطة",
+    arrivalEssentials: "أساسيات الوصول",
+    viewDetails: "اعرض التفاصيل",
+    hideDetails: "أخفِ التفاصيل",
   },
 };

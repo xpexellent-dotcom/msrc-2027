@@ -1,5 +1,18 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-031 — Mobile venue exploration and publication, 12 October 2026
+
+The requester supersedes ENG-030's review-only boundary and explicitly asks to
+publish the improved Venue page. Prioritize a genuinely interactive phone map:
+native scroll camera, tap details and visible zoom/reset controls. Preserve the
+accepted desktop gallery and geographic identity. Reduce repetitive EN/AR prose
+and use native progressive disclosures for travel and arrival guidance. Gentle
+chapter fades may support progression; keyboard, reduced motion, enlarged text,
+no-JS and print remain readable. No new travel, gate, timing or workflow claims.
+Update PR 59, verify its final head, then merge and verify owned Production and
+the actual live page. This authorizes public UI publication, not operational
+activation, hosting settings, accounts, migrations or communications.
+
 ## ENG-030 — Venue arrival journey, 12 October 2026
 
 The requester explicitly asks for a new review PR revamping Venue into a

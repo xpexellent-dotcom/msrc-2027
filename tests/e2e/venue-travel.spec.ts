@@ -125,12 +125,22 @@ for (const locale of ["en", "ar"] as const) {
     }
     await expect(page.locator('[data-travel-mode="train"] .venue-travel-time')).toHaveCount(0);
     await expect(page.locator("#at-venue [data-venue-detail]")).toHaveCount(6);
+    const arrivalDetails = page.locator("#at-venue details");
+    await expect(arrivalDetails).not.toHaveAttribute("open", "");
+    await arrivalDetails.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(arrivalDetails).toHaveAttribute("open", "");
     for (const [key, value] of Object.entries(approvedAtVenue)) {
       await expect(page.locator(`#at-venue [data-venue-detail="${key}"] dd`)).toHaveText(value[locale]);
     }
     const contact = page.locator('[data-venue-detail="accessibility"]').getByRole("link", { name: locale === "en" ? "contact form" : "نموذج التواصل", exact: true });
     await expect(contact).toHaveAttribute("href", `/${locale}/contact`);
     await expect(page.locator(".venue-visa-link, #international-attendees a")).toHaveCount(0);
+    const internationalDetails = page.locator("#international-attendees details");
+    await expect(internationalDetails).not.toHaveAttribute("open", "");
+    await internationalDetails.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(internationalDetails).toHaveAttribute("open", "");
     await expect(page.locator("#international-attendees")).toContainText(/UTC\+3/);
     await expect(page.locator("#international-attendees")).toContainText(approvedVisaResponsibility[locale]);
     await expect(page.locator("iframe")).toHaveCount(0);

@@ -131,7 +131,9 @@ describe("arrival journey preserves approved guidance and optional configuration
     const visibleText = markup.replace(/<[^>]+>/g, "");
     for (const value of Object.values(approvedAtVenue)) expect(visibleText).toContain(value[locale]);
     expect(markup.match(/data-travel-mode="/g)).toHaveLength(3);
-    expect(markup.match(/<details open=""/g)).toHaveLength(3);
+    expect(markup.match(/<details name="venue-transport"/g)).toHaveLength(3);
+    expect(markup).toContain('class="venue-arrival-disclosure"');
+    expect(markup).not.toMatch(/<details[^>]*\sopen\b/);
     expect(markup.match(/class="venue-travel-time"/g)).toHaveLength(2);
     expect(visibleText.split(approvedTravelTime[locale])).toHaveLength(3);
     expect(markup.match(/data-venue-detail="/g)).toHaveLength(6);

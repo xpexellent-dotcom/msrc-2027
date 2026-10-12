@@ -110,6 +110,19 @@ limits and any unresolved checks stated; do not merge this PR.
   original bounds/gap/persistence/Escape/focus/Enter assertions, retries and
   timeouts remain. **4/4 popup and 2/2 camera confirmations pass locally**;
   application source is unchanged. New exact-head CI precedes final handoff.
+- Final head `ee1f21357a284b2d2c3274c9df5b9ebdb4672763`: **all three workflows,
+  ten substantive jobs, eleven checks and Vercel pass**. Public browsers:
+  **639/41/0** (pass/intentional skip/fail), 680 cases; units 2,399/61 files;
+  build 81 pages. Remaining synthetic auth/contact/participant/staff/database
+  coverage also passes. Initial failure and final receipts remain separate.
+- Owned Preview `dpl_EFsNJNRTuu4yiXRYerKYVGrea69R` is READY at the same head,
+  project/team/source proven by API/CLI. Final hosted desktop/390px EN/320px AR
+  inspection confirms native camera/anchors, all four photos, direct language
+  switching and no narrow RTL overflow. `hosted-*.jpg` captures and
+  `.tools/venue-hosted-checks-ee1f213-final.json` preserve the evidence. PR 59 is
+  OPEN/UNMERGED; final receipts are recorded locally and in its body without
+  changing the tested commit. Hardware/screen-reader/performance lab and actual
+  production publication remain outside this verification.
 - The single detector returned 49 advisories and no primary findings before
   the final interaction corrections. No second detector or global token change.
   Physical iOS/Android hardware, screen-reader use and performance lab metrics

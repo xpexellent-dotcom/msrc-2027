@@ -12,8 +12,8 @@ navigation, factual content and accessibility remain authoritative. The user's
 pinned composition is a four-photo purple gallery and a full-screen geographic
 arrival journey from airport to city travel to venue. Build directly in code.
 Direction contract, exact write scope and bounded verification:
-`docs/reviews/venue-journey.md`. Deliver a separate PR and preview for review;
-this task does not authorize merge or production publication.
+`docs/reviews/venue-journey.md` and `docs/reviews/venue-mobile-exploration.md`.
+ENG-031 authorizes publication after final-head checks and hosted verification.
 
 ## Brand fit and local extension
 
@@ -67,7 +67,11 @@ normally sits at (45%) of the viewport and respects the anchor/header clearance.
 Camera travel uses smooth interpolation and a (480ms) transform transition with
 `cubic-bezier(.23,1,.32,1)`; foreground copy stays still. The active chapter uses
 `aria-current="location"`, a filled dot, weight and arrow, with (180ms) color
-feedback. Index, continuation and map-point destinations are ordinary anchors.
+feedback. Index and continuation destinations are ordinary anchors. Hydrated map
+points open bounded, nonmodal detail sheets; without JavaScript they remain
+ordinary chapter anchors. Explicit keyboard activation focuses the sheet heading;
+Close/Escape restores the trigger or current chapter. Sheets close when a chapter
+changes or the atlas leaves view without taking focus on passive scrolling.
 
 Map pins retain their visible size while the map scales. Visible pins provide
 fine-pointer hover and keyboard-focus context; Escape dismisses that context.
@@ -75,25 +79,32 @@ Panels are clamped to the atlas viewport and the free map area beside the
 reading rectangle, so foreground text cannot paint over their content. They
 flip below near the upper edge and can scroll vertically when needed. Blank
 reading space passes through pointer events; actual text stays selectable.
-Points outside the current camera view leave the focus order. Touch activation
-follows the corresponding chapter anchor. Transport disclosures start open and
-support native keyboard/tap toggling; fine-pointer hover can reopen them.
+Points outside the current camera view leave the focus order. Transport,
+arrival-essentials and international guidance use initially closed native
+disclosures; transport supports fine-pointer hover as an enhancement.
+Zoom in, zoom out and reset are 44px controls. They change framing, never the
+page's native scroll. Inactive chapters gently fade to (.7) opacity over (200ms)
+while remaining readable; focus, keyboard use and reduced motion restore opacity.
 
 Gallery hover scales only the image to (1.045) over (600ms). Keyboard camera,
-point and index response removes transition delay. Reduced motion keeps the map
-at its static CSS view and removes pin/index/photo/arrow transitions. Server
-rendered chapters, initially open travel details, photographs and ordinary
+point and index response removes transition delay. Reduced motion keeps a
+static overview and permits immediate deliberate zoom/point exploration.
+Server-rendered chapters, native disclosures, photographs and ordinary
 anchors remain available without JavaScript. No wheel interception, autoplay,
 moving reading text, perpetual decoration or additional pause control is added.
 
 ## Responsive and bilingual conventions
 
-Below (1200px), at viewport heights of (640px) or less, or when the measured root
-font exceeds (24px), use natural reading flow. The atlas becomes an overview of
-`min(34rem, 65svh)`, the index wraps in normal flow, camera motion stops and
-chapters lose their viewport minimum. At (650px) and below, address and visitor
-details become one column. Hover-only context is omitted in flow layouts;
-chapter content still contains the practical information.
+Below (1200px), or at viewport heights of (640px) or less, use a compact map of
+`clamp(14rem, 38svh, 24rem)` sticky below the header. Three chapter controls remain
+directly beneath it, with native content scrolling below. Camera calculations use
+the atlas height, so taps and framing work on phones. The layout reserves this
+space before hydration, including direct chapter URLs. At root fonts above
+(24px), or heights of (480px) or less, the map/index return to natural flow and
+chapters lose viewport minimums. Map controls and tapped details remain usable.
+At (650px) and below, address and visitor details become one column. Hover-only
+context is omitted in compact layouts; the bounded tap sheet provides the same
+information. Manual exploration introduces no drag or wheel interception.
 
 At (800px) and below, the opening becomes a single column without a viewport
 minimum. The four photographs become a native horizontal rail: (84%) item width,
@@ -122,5 +133,5 @@ Requirements: SCP-02, DSN-01/02, ACC-01, LOC-01/02/03, MED-01/04, PRV-03.
 This note records implemented conventions from source. Browser, geography,
 accessibility, physical-device, build and hosted-check results belong in the
 review receipts and PROGRESS.md; this note makes no final-check or release claim.
-Deliver the separate review PR and preview. Merge, production publication and
-operational activation remain outside ENG-030's authorization.
+ENG-031 supersedes ENG-030's review-only boundary for public UI publication.
+Operational activation remains outside this task's authorization.

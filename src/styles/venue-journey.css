@@ -1,7 +1,8 @@
 /* ENG-030. A geographic arrival overview; camera motion never moves reading text. */
-.venue-arrival-journey { --journey-plum: #191222; --journey-ink: #f8f6f0; --journey-muted: #ded2e8; --focus-ring: #eddaaf; position: relative; isolation: isolate; background: var(--journey-plum); color: var(--journey-ink); }
+.venue-arrival-journey { --journey-plum: #191222; --journey-ink: #f8f6f0; --journey-muted: #ded2e8; --venue-map-height: clamp(14rem,38svh,24rem); --focus-ring: #eddaaf; position: relative; isolation: isolate; background: var(--journey-plum); color: var(--journey-ink); }
 .venue-journey-world { position: relative; isolation: isolate; }
-.venue-journey-atlas { position: sticky; inset-block-start: 0; block-size: 100svh; margin-block-end: -100svh; overflow: hidden; pointer-events: none; z-index: 0; background: var(--journey-plum); }
+.venue-journey-frame { position: sticky; inset-block-start: 0; block-size: 100svh; margin-block-end: -100svh; pointer-events: none; z-index: 0; }
+.venue-journey-atlas { position: relative; block-size: 100svh; overflow: hidden; pointer-events: none; background: var(--journey-plum); }
 .venue-journey-camera { position: absolute; left: 80%; top: 50%; inline-size: 1400px; block-size: 1700px; transform-origin: center; transform: translate(-50%,-50%) scale(.45); transition: transform 480ms cubic-bezier(.23,1,.32,1); direction: ltr; }
 [dir="rtl"] .venue-journey-camera { left: 20%; }
 .venue-journey-camera > img { display: block; inline-size: 1400px; block-size: 1700px; max-inline-size: none; }
@@ -25,7 +26,7 @@
 .venue-journey-north svg { inline-size: 20px; block-size: 28px; }
 .venue-journey-body.site-container { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(8rem,.45fr) minmax(0,2fr); align-items: start; gap: clamp(1.75rem,4vw,4rem); pointer-events: none; }
 .venue-journey-index, .venue-journey-reading { pointer-events: auto; }
-.venue-journey-index { position: sticky; inset-block-start: calc(var(--site-header-height,5rem) + 3rem); padding-block: 1rem; margin-block-start: clamp(8rem,20svh,13rem); }
+.venue-journey-index { position: absolute; inset-block-start: clamp(8rem,20svh,13rem); inset-inline-start: max(var(--container-gutter),calc((100% - var(--container-width))/2)); inline-size: clamp(8rem,14vw,14rem); padding-block: 1rem; }
 .venue-journey-index ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; }
 .venue-journey-index li { margin: 0; padding: 0; }
 .venue-arrival-journey .venue-journey-index .site-link { display: grid; grid-template-columns: .7rem minmax(0,1fr) 20px; align-items: center; gap: .75rem; min-block-size: 48px; color: #bcb0c7; font-size: 1rem; line-height: 1.55; text-decoration: none; padding-block: .5rem; transition: color 180ms ease; }
@@ -37,7 +38,7 @@
 .venue-journey-index .site-link[aria-current="location"] .venue-journey-index-dot { background: currentColor; }
 .venue-journey-index .site-link[aria-current="location"] .venue-journey-index-dot::after { border-color: rgb(237 218 175 / 35%); }
 .venue-journey-index .site-link:focus-visible { transition: none; color: #fff2d5; }
-.venue-journey-chapters { min-inline-size: 0; }
+.venue-journey-chapters { min-inline-size: 0; grid-column: 2; }
 .venue-journey-chapter { display: flex; align-items: center; min-block-size: 110svh; padding-block: clamp(6rem,15svh,10rem); scroll-margin-block-start: calc(var(--site-header-height,5rem) + 1.5rem); min-inline-size: 0; }
 .venue-journey-reading { inline-size: 100%; max-inline-size: 38rem; min-inline-size: 0; }
 .venue-journey-title { margin: 0 0 2rem; font-family: var(--font-display); font-size: clamp(3rem,5.3vw,5.3rem); line-height: 1.12; letter-spacing: -.035em; font-weight: 650; color: var(--journey-ink); text-wrap: balance; }
@@ -66,7 +67,11 @@
 .venue-arrival-journey .venue-journey-address dt .venue-icon { color: inherit; inline-size: 24px; block-size: 24px; }
 .venue-arrival-journey .venue-journey-address dd { color: var(--journey-ink); font-size: 1rem; line-height: 1.8; margin: 0; }
 .venue-journey-arrival-details.venue-arrival-details { margin-block-start: 3rem; }
-.venue-journey-arrival-details > h3 { margin: 0 0 1.5rem; color: var(--journey-ink); font-family: var(--font-display); font-size: 1.65rem; line-height: 1.5; font-weight: 650; }
+.venue-arrival-disclosure summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-block-size: 64px; padding-block: 1rem; border-block-start: 1px solid rgb(220 207 240 / 30%); cursor: pointer; list-style: none; }
+.venue-arrival-disclosure summary::-webkit-details-marker, .venue-international summary::-webkit-details-marker { display: none; }
+.venue-arrival-disclosure h3 { margin: 0; color: var(--journey-ink); font-family: var(--font-display); font-size: 1.45rem; line-height: 1.5; font-weight: 650; }
+.venue-arrival-disclosure .venue-journey-disclosure-mark { flex: 0 0 20px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.venue-arrival-disclosure[open] .venue-journey-disclosure-mark { transform: rotate(45deg); }
 .venue-journey-arrival-details dl { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.5rem; margin: 0; }
 .venue-arrival-journey .venue-journey-arrival-details dl > div { border: 0; border-block-start: 1px solid rgb(220 207 240 / 25%); border-radius: 0; background: none; padding: 1rem 0 0; }
 .venue-journey-arrival-details dt { display: flex; align-items: center; gap: .7rem; margin: 0 0 .65rem; color: #eddaaf; font-size: 1.0625rem; font-weight: 600; }
@@ -79,11 +84,33 @@
 .venue-journey-orientation .dates-directions-link { color: var(--color-purple); margin-block-start: 0; min-block-size: 52px; }
 .venue-journey-orientation .venue-international h3 { display: flex; align-items: center; gap: 1rem; color: var(--color-purple); font-size: 1.75rem; font-weight: 650; }
 .venue-journey-orientation .venue-international p { font-size: 1rem; line-height: 1.85; color: var(--color-muted); }
+.venue-international summary { list-style: none; cursor: pointer; min-block-size: 48px; }
+.venue-international summary h3 { margin-block: 0; padding-block: 1rem; }
+.venue-international summary h3::after { content: "+"; margin-inline-start: auto; font-size: 1.5rem; }
+.venue-international details[open] summary h3::after { content: "−"; }
+.venue-map-controls { display: none; position: absolute; inset-inline-end: clamp(1.5rem,4vw,4rem); inset-block-start: calc(var(--site-header-height,5rem) + 6rem); gap: .4rem; pointer-events: auto; z-index: 4; }
+[data-journey-ready="true"] .venue-map-controls { display: grid; }
+.venue-map-controls button, .venue-map-detail-close { display: grid; place-items: center; inline-size: 44px; block-size: 44px; border: 1px solid rgb(237 218 175 / 45%); border-radius: 12px; background: #30223e; color: #fff2d5; cursor: pointer; transition: background-color 180ms ease-out, transform 100ms ease-out; }
+.venue-map-controls button:disabled { opacity: .45; cursor: default; }
+.venue-map-controls button:not(:disabled):active, .venue-map-detail-close:active { transform: scale(.96); }
+.venue-map-controls svg, .venue-map-detail-close svg { inline-size: 20px; block-size: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.venue-map-detail { position: fixed; z-index: 20; inset-inline-end: clamp(1.5rem,4vw,4rem); inset-block-end: max(1.5rem,env(safe-area-inset-bottom)); inline-size: min(24rem,calc(100vw - 3rem)); max-block-size: min(46svh,32rem); overflow-y: auto; overscroll-behavior: contain; padding: 1.5rem; border: 1px solid rgb(237 218 175 / 45%); border-radius: 18px; background: #30223e; color: var(--journey-ink); box-shadow: 0 12px 40px rgb(0 0 0 / 24%); animation: venue-detail-enter 180ms ease-out both; }
+.venue-map-detail[hidden] { display: none; }
+.venue-map-detail-close { float: inline-end; margin-inline-start: .75rem; margin-block-end: .75rem; }
+.venue-map-detail h3 { font-size: 1.3rem; line-height: 1.5; font-weight: 650; margin: 0 0 .75rem; }
+.venue-map-detail p { font-size: 1rem; line-height: 1.7; margin: 0 0 1rem; color: var(--journey-muted); }
+.venue-map-detail .site-link { display: inline-flex; align-items: center; gap: 1rem; min-block-size: 48px; color: #fff2d5; text-underline-offset: .25em; }
+[data-point-details-open="true"] .venue-journey-point-detail { display: none !important; }
+[data-journey-ready="true"] .venue-journey-reading { transition: opacity 200ms ease-out; }
+[data-journey-ready="true"] [data-chapter-active="false"] .venue-journey-reading { opacity: .7; }
+[data-journey-ready="true"] .venue-journey-reading:focus-within { opacity: 1; }
+@keyframes venue-detail-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 [lang="ar"] :is(.venue-journey-title,.venue-journey-place-name,.venue-journey-options summary h3,.venue-journey-arrival-details h3,.venue-journey-orientation h2) { line-height: 1.5; letter-spacing: 0; }
 .venue-arrival-journey[data-keyboard="true"] :is(.venue-journey-camera,.venue-journey-point,.venue-journey-index .site-link) { transition: none; }
 
 /* Flow mode also handles enlarged type where a pinned reading structure would not fit. */
 .venue-arrival-journey[data-reading-flow="true"] .venue-journey-atlas { position: relative; block-size: min(34rem,65svh); margin-block-end: 0; }
+.venue-arrival-journey[data-reading-flow="true"] .venue-journey-frame { position: relative; block-size: auto; margin-block-end: 0; }
 .venue-arrival-journey[data-reading-flow="true"] .venue-journey-camera { left: 50%; top: 50%; transform-origin: center; transform: translate(-50%,-50%) scale(.22); transition: none; }
 .venue-arrival-journey[data-reading-flow="true"] .venue-journey-point.site-link { transform: translate(-50%,-50%) scale(4.54545); transition: none; }
 .venue-arrival-journey[data-reading-flow="true"] .venue-journey-atlas-shade { background: linear-gradient(180deg,rgb(25 18 34 / 10%),rgb(25 18 34 / 10%) 60%,var(--journey-plum)); }
@@ -123,10 +150,46 @@
   .venue-journey-index ol { gap: .3rem 1rem; }
   .venue-journey-index .site-link { font-size: .875rem; gap: .5rem; }
 }
+/* The enhanced phone map remains visible above the native scrolling chapters.
+   The preceding flow rules are a readable no-JavaScript fallback. */
+[data-map-compact="true"][data-reading-flow="false"] .venue-journey-frame { position: sticky; inset-block-start: var(--site-header-height,5rem); block-size: auto; margin-block-end: 0; z-index: 3; }
+[data-map-compact="true"][data-reading-flow="false"] .venue-journey-atlas { position: relative; inset-block-start: auto; block-size: var(--venue-map-height); margin-block-end: 0; z-index: 0; }
+[data-map-compact="true"] .venue-journey-atlas-shade { background: linear-gradient(180deg,rgb(25 18 34 / 8%),transparent 50%,rgb(25 18 34 / 64%)); }
+[data-map-compact="true"] .venue-journey-body.site-container { display: block; }
+[data-map-compact="true"] .venue-journey-index { position: relative; inset: auto; inline-size: min(calc(100% - var(--container-gutter)*2),var(--container-width)); margin-inline: auto; margin-block-start: 0; padding: .5rem 0; background: var(--journey-plum); z-index: 2; }
+[data-map-compact="true"] .venue-journey-index ol { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .35rem; }
+[data-map-compact="true"] .venue-journey-index .site-link { display: flex; justify-content: center; gap: .55rem; min-block-size: 48px; padding: .45rem .4rem; border: 1px solid rgb(220 207 240 / 18%); border-radius: 12px; font-size: .9375rem; line-height: 1.5; text-align: center; }
+[data-map-compact="true"] .venue-journey-index .site-link[aria-current="location"] { background: #30223e; border-color: rgb(237 218 175 / 52%); }
+[data-map-compact="true"] .venue-journey-index :is(.venue-icon,.venue-journey-index-dot) { display: none; }
+[data-map-compact="true"][data-reading-flow="false"] .venue-journey-chapter { min-block-size: 58svh; padding-block: 2.5rem 4rem; align-items: flex-start; scroll-margin-block-start: calc(var(--venue-map-height) + 3.5rem); }
+[data-map-compact="true"] .venue-journey-reading { max-inline-size: 42rem; }
+[data-map-compact="true"] .venue-journey-title { font-size: clamp(2rem,7vw,3rem); margin-block-end: 1.25rem; }
+[data-map-compact="true"] .venue-journey-place-name { font-size: 1.25rem; margin-block-end: 1rem; }
+[data-map-compact="true"] .venue-journey-note { margin-block: 1.25rem .5rem; padding-block: 1rem; }
+[data-map-compact="true"] .venue-travel-cards { margin-block-start: 1rem; }
+[data-map-compact="true"] .venue-journey-north { inset-block-start: 1rem; inset-inline-end: 1rem; }
+[data-map-compact="true"] .venue-map-controls { inset-block-start: 1rem; inset-inline-start: 1rem; inset-inline-end: auto; }
+[data-map-compact="true"] .venue-journey-map-caption { inset-inline: 1rem; inset-block-end: .75rem; font-size: .75rem; max-inline-size: none; text-align: end; }
+[data-map-compact="true"] .venue-journey-map-caption p { margin-block-end: 0; }
+[data-map-compact="true"] .venue-map-detail { inset-inline: 1rem; inline-size: auto; inset-block-end: max(1rem,env(safe-area-inset-bottom)); padding: 1.25rem; }
+[data-reading-flow="true"] .venue-map-controls { inset-block-start: 1rem; }
+[data-reading-flow="true"] .venue-journey-reading { opacity: 1 !important; transition: none; }
+[data-keyboard="true"] :is(.venue-journey-reading,.venue-map-detail) { opacity: 1 !important; transition: none; animation: none; }
+@media (max-width: 1199px), (max-height: 640px) {
+  /* Reserve the same space before hydration, including direct chapter URLs. */
+  .venue-journey-frame { position: sticky; inset-block-start: var(--site-header-height,5rem); block-size: auto; margin-block-end: 0; z-index: 3; }
+  .venue-journey-atlas { position: relative; inset-block-start: auto; block-size: var(--venue-map-height); z-index: 0; }
+  .venue-journey-index { position: relative; inset: auto; inline-size: min(calc(100% - var(--container-gutter)*2),var(--container-width)); margin-inline: auto; padding: .5rem 0; background: var(--journey-plum); z-index: 2; }
+  .venue-journey-index ol { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .35rem; }
+  .venue-journey-index .site-link { display: flex; justify-content: center; min-block-size: 48px; padding: .45rem .4rem; border: 1px solid rgb(220 207 240 / 18%); border-radius: 12px; text-align: center; }
+  .venue-journey-index-dot { display: none; }
+  .venue-journey-chapter { min-block-size: 58svh; padding-block: 2.5rem 4rem; align-items: flex-start; scroll-margin-block-start: calc(var(--venue-map-height) + 3.5rem); }
+}
 @media (hover: hover) and (pointer: fine) {
   .venue-journey-point:hover { background: #4c355f; border-color: #fff2d5; }
   .venue-journey-index .site-link:hover { color: #fff2d5; }
   .venue-journey-options summary:hover { color: #fff2d5; }
+  .venue-map-controls button:not(:disabled):hover, .venue-map-detail-close:hover { background: #4c355f; }
 }
 @media (min-width: 1200px) and (min-height: 641px) {
   /* Transparent reading space must not intercept the geographic pins.
@@ -142,18 +205,25 @@
 @media (prefers-reduced-motion: reduce) {
   .venue-journey-camera, [dir="rtl"] .venue-journey-camera { transition: none; }
   .venue-arrival-journey .venue-journey-point.site-link, .venue-arrival-journey .venue-journey-index .site-link { transition: none; }
+  .venue-arrival-journey .venue-journey-reading { opacity: 1 !important; transition: none; }
+  .venue-map-detail, .venue-map-controls button, .venue-map-detail-close { animation: none; transition: none; }
 }
 @media (forced-colors: active) {
   .venue-journey-atlas { display: none; }
+  .venue-arrival-journey .venue-journey-frame { position: relative; block-size: auto; margin-block-end: 0; }
+  .venue-arrival-journey .venue-journey-index { position: relative; inset: auto; margin-inline: var(--container-gutter); inline-size: auto; }
   .venue-arrival-journey, .venue-journey-orientation { background: Canvas; color: CanvasText; }
   .venue-arrival-journey :is(h2,h3,p,dt,dd,a,.venue-icon,.venue-journey-title > span) { color: CanvasText; }
   .venue-journey-index-dot { border-color: CanvasText; }
+  .venue-arrival-journey .venue-journey-reading { opacity: 1 !important; }
+  .venue-map-detail { background: Canvas; color: CanvasText; }
 }
 @media print {
-  .venue-journey-atlas, .venue-journey-index { display: none; }
+  .venue-journey-frame, .venue-map-detail { display: none; }
   .venue-journey-body.site-container { display: block; }
   .venue-arrival-journey, .venue-journey-orientation { background: #fff; color: #000; }
   .venue-journey-chapter { min-block-size: 0; padding-block: 2rem; }
-  .venue-journey-reading { max-inline-size: none; }
+  .venue-arrival-journey .venue-journey-reading { max-inline-size: none !important; opacity: 1 !important; }
+  .venue-arrival-journey details::details-content { content-visibility: visible; display: block; }
   .venue-arrival-journey :is(h2,h3,p,dt,dd,a,.venue-journey-title > span) { color: #000; }
 }

@@ -1,5 +1,35 @@
 # Progress and session handover
 
+## 12 October 2026 — Mobile venue exploration and publication, ENG-031
+
+- User explicitly authorizes live publication after improving phone exploration
+  and shortening content; this supersedes ENG-030's review-only boundary.
+  Audit and implementation receipt: `docs/reviews/venue-mobile-exploration.md`.
+- Phone map now follows native scrolling, offers tap details and 44px zoom/reset
+  controls, and keeps its three chapter buttons in one sticky frame. The unified
+  frame prevents the bottom-edge map attribution from covering a chapter target.
+  Keyboard activation focuses details; Close/Escape restores focus. Sheets close
+  when the journey leaves view without taking focus during passive scrolling.
+- Shortened EN/AR chapter/travel copy by about one third. Removed duplicated
+  location prose and city/host fact boxes; formal venue/address remains. Transport,
+  arrival essentials and international guidance use native closed disclosures.
+  Gentle readable chapter fades are immediate for keyboard/reduced motion.
+- **PASS:** `pnpm check` (lint, types, 2,399 units / 61 files, 81-page build).
+  Focused browser command using `.tools/venue-journey-browser.config.ts`:
+  Venue journey, Dates/Venue and venue-travel files, **49 pass / zero failures**.
+  Covers EN/AR, phone touch in both directions, map zoom/reset, panel focus and
+  lifecycle, desktop hover, 200%/short/reduced/no-JS, axe and external-provider
+  privacy/approved facts. Initial **38 pass / 11 fail** receipts remain under
+  `.tools/venue-mobile-initial-results/`; no retries or weakened assertions.
+- One scoped Impeccable detector: **62 advisories / zero primary findings**.
+  Advisories concern existing/local palette and type values documented in the
+  surface brief; no global token or ignore changes. Four batched CUA captures at
+  `.impeccable/review/venue-mobile/` reviewed independently: SHIP for this scope.
+- **NOT TESTED:** physical phones, WebKit and screen-reader hardware/software.
+  Exact-head hosted checks, owned Preview, merge and Production/live verification
+  follow this local receipt. Operational flags, hosted settings and data remain
+  unchanged; local Docker/database execution remains unavailable.
+
 ## 12 October 2026 — Venue arrival journey review PR, ENG-030
 
 - Started separate `codex/venue-journey` branch from current main
@@ -82,7 +112,25 @@
   hover. Receipts: `venue-journey-ci-hover-popup.log` and `-ci-hover-camera.log`.
   Full initial hosted receipt and trace:
   `.tools/venue-hosted-checks-initial.json` and `venue-hosted-failure-51c2d1/`.
-  A new exact-head hosted confirmation will follow the test-only correction.
+  Test-only correction head: `ee1f21357a284b2d2c3274c9df5b9ebdb4672763`.
+- **PASS (final hosted, 23:04:34 UTC 11 October / 12 October local):** all three
+  workflows, ten substantive jobs, eleven checks and Vercel succeeded at that
+  exact head. Public browsers: **639 pass / 41 intentional skips / 680 cases**,
+  zero failures. Units: **2,399 / 61 files**; build: **81 pages**; synthetic auth
+  81, Contact 44, participant 88/4 skips, staff 102/8 skips. Each disposable
+  database job: 1,023 SQL assertions / 13 files; integrations 80/9 files;
+  participant/staff native checks 25/26. Optional cold/repeated runs are SKIPPED
+  by normal PR conditions. Final receipts: `.tools/venue-hosted-checks.json`,
+  `venue-hosted-checks-ee1f213-final.json`, `venue-hosted-totals.json`.
+- Owned exact-head Preview `dpl_EFsNJNRTuu4yiXRYerKYVGrea69R` is READY:
+  https://msrc-2027-krjszd5sn-msrc2027.vercel.app/en/dates-venue. Confirmed project,
+  owner/team, preview target, branch and SHA through API/CLI. Browser verification
+  confirms desktop chapters and anchors, native phone gallery with all four
+  images, 390px EN / 320px AR, direct language switch and no narrow overflow.
+  Fresh `hosted-*.jpg` captures and `venue-preview-receipt-ee1f213.json` preserve
+  proof. PR remains **OPEN/UNMERGED**; no production promotion or operational
+  activation. Final hosted receipts are appended locally and in the PR body,
+  keeping the tested source head immutable. Physical phones remain NOT TESTED.
 
 ## 12 October 2026 — Mobile QA pass: phone grid density (Claude)
 
