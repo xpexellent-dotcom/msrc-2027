@@ -86,7 +86,7 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
     return previous < 0 ? undefined : { y: stops[previous], index: previous, from: at };
   };
 
-  const finish = (id: number, index?: number) => {
+  const finish = (id: number, index?: number, heavy = false) => {
     if (id !== token) return;
     frame = 0;
     moving = false;
@@ -94,6 +94,12 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
     lastY = heldY = scrollY;
     options.onMoving?.(false);
     if (index !== undefined) options.onArrive?.(index);
+    // A bespoke transition (the entrance reveal) ends in a burst of layout and
+    // rendering. On a slow device that delays the queued tail of the same
+    // gesture, so restart the window once that work has been painted.
+    if (heavy) requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (id === token && !moving) settledAt = performance.now();
+    }));
   };
 
   const cancel = () => {
@@ -108,7 +114,7 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
     moving = true;
     options.onMoving?.(true);
     const custom = target.index !== undefined && target.from !== undefined ? options.transition?.(target.from, target.index) : undefined;
-    if (custom) { custom.then(() => finish(id, target.index), () => finish(id, target.index)); return; }
+    if (custom) { custom.then(() => finish(id, target.index, true), () => finish(id, target.index, true)); return; }
     const start = scrollY;
     const distance = target.y - start;
     if (Math.abs(distance) < 1) { finish(id, target.index); return; }
