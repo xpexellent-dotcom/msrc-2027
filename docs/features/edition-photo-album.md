@@ -132,6 +132,32 @@ Next: pass new-head hosted checks, merge PR70 and verify the matching Production
 deployment, bilingual image layout and silent videos. Earlier CI receipts apply
 only to the heads they record.
 
+## Native-wheel fixture correction during final CI
+
+Corrected visual head `6da08c9` reached a matching Ready Preview and passed nine
+of ten hosted jobs. Public results were 680 passed, 55 intentional skips and
+one failure in the existing EN Venue fast-wheel case; photo tests passed.
+The failure trace showed sequential native-wheel command gaps of 333–559ms,
+which turned the intended continuous flick into separate gestures across the
+170ms boundary. Stop coordinates stayed [595, 1280, 2072, 2864]. Receipts,
+failed logs and trace are retained under `.tools/pr70-corrected-6da08c9-*`.
+
+A local 6× CPU diagnostic confirmed a real 192.7ms WheelEvent timestamp gap
+from the serial helper, although that diagnostic did not itself skip a stop.
+Queuing the same fourteen native calls preserved all 1680 delta and trusted
+browser input, with at most 0.2ms gaps. The queued diagnostic also exposed the
+fixture starting its quiet wait before the product's existing two-frame
+heavy-arrival reset. The helper now observes that paint boundary before its
+unchanged 250ms wait. Application code, gesture windows, timeouts, retries and
+every expected-stop assertion remain unchanged.
+
+PASS confirmed queued diagnostic: all four stops. PASS complete stepper browser
+suite: 30 passed, ten intentional skips, no failures/retries in 1.8 minutes.
+Fresh typecheck and independent fixture review passed. Evidence:
+`.tools/stepper-wheel-diagnostic-confirmed.json`,
+`.tools/stepper-correction-browser.log`, `.tools/edition-fixture-typecheck.log`.
+New-head CI and Production remain pending; prior passes are not relabeled.
+
 ## Asset receipt
 
 The table below records the downloaded inventory and optimized derivatives.

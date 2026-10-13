@@ -1,5 +1,26 @@
 # Progress and session handover
 
+## 13 October 2026 — Correct the native-wheel test input before release
+
+- Corrected photo head `6da08c9` passed nine hosted jobs and the matching Ready
+  Preview; public browser totals were 680 passed, 55 skipped and one failure in
+  the existing Venue fast-wheel test. All photo checks passed. The CI trace
+  showed sequential wheel command gaps of 333–559ms, above the journey's 170ms
+  gesture boundary; stop geometry stayed unchanged. Failed logs and trace are
+  preserved under `.tools/pr70-corrected-6da08c9-*`.
+- Fixed only the test fixture: queue its fourteen native wheel calls together
+  and observe the existing two-frame heavy-arrival paint boundary before its
+  unchanged 250ms pause. No application change, weaker assertion, longer timeout
+  or retry. Native-event instrumentation under 6× CPU throttling confirmed all
+  four stops, trusted input, total delta 1680, and at most 0.2ms event gaps.
+- PASS complete stepper browser suite: 30 passed, ten intentional skips, zero
+  failures/retries (1.8m); fresh typecheck and independent fixture review PASS.
+  Evidence: `.tools/stepper-correction-browser.log`,
+  `.tools/stepper-wheel-diagnostic-confirmed.json` and
+  `.tools/edition-fixture-typecheck.log`. Prior corrected application build and
+  139 affected-browser results remain applicable to the unchanged app source.
+  New-head CI, merge and matching Production proof are PENDING at this commit.
+
 ## 13 October 2026 — Organizer correction before PR70 merge, ENG-040
 
 - The organizer rejected separated mobile image/copy cards. Restore full-image
