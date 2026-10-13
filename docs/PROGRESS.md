@@ -1,5 +1,36 @@
 # Progress and session handover
 
+## 13 October 2026 — Public-site QA sweep (production `df758b7`)
+
+- Scope: current production deployment `dpl_7d339LFNGgSoFagz62UPdmqnrYS9`
+  (`main` at `df758b7`) and a local production-mode build. Every sitemap page plus
+  registration, submissions, account, versioned policy and 404 routes in EN/AR at
+  1440px, Pixel 7 and 320px: status, console/page errors, failed requests, axe
+  WCAG 2.2 AA, horizontal overflow, broken images, duplicate IDs, unnamed controls,
+  one `h1`, description/canonical, `lang`/`dir`, and every internal link.
+- PASS: zero axe violations, zero overflow (also at 200% text on six key pages),
+  zero broken internal links or images, correct RTL. Keyboard focus visible on
+  every stop; mobile menu Escape restores focus; language switch keeps path and
+  hash. Live `robots.txt`, `noindex` on account screens, security headers, OG
+  images, manifest and `.ics` correct. Vercel runtime errors (7 days): none.
+  GitHub: all three workflows green on `df758b7`; no open PRs or issues.
+- Reviewed, unchanged: English hackathon track names on Arabic pages already
+  carry `lang="en" dir="ltr"` (HAC-02); the homepage "7 CME · Illustrative" graphic
+  is the organizer-selected placeholder recorded in DECISIONS.
+- Fixed: closed account screens titled "MSRC 2027 | Welcome back" / "Create your
+  account" while showing "Accounts are coming soon"; titles now follow the closed
+  state (`participantPageTitle`). The four identical placeholder speaker cards
+  each added a "Meet the speakers" tab/screen-reader stop; their arrows are now
+  pointer-only, leaving the section action as the single keyboard route.
+- PASS after the fixes: lint, TypeScript, 2,402 unit cases, production build,
+  `git diff --check`; Chromium desktop/tablet/mobile run of participant-closed,
+  qa-regressions, premium-media-framing, editorial-motion, public-shell,
+  mobile-navigation and mobile-menu-panel: 161 passed / 26 intentional skips /
+  zero failures or retries (local Chromium 141 via `executablePath`).
+- NOT TESTED: `kau.edu.sa` privacy links (DNS unavailable from this environment).
+  BLOCKED locally: video playback specs; the container's open-source Chromium
+  cannot decode H.264. CI with Chrome remains the receipt for those.
+
 ## 13 October 2026 — Compact mobile menu, ENG-041
 
 - Audited current `origin/main` at `3550d27` against the organizer's phone

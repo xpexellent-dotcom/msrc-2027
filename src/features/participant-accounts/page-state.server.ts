@@ -3,8 +3,18 @@ import { headers } from "next/headers";
 import type { Locale } from "@/lib/i18n";
 import type { ParticipantPageState } from "./contracts";
 import { getParticipantConfig } from "./config.server";
+import { participantCopy, type ParticipantScreen } from "./participant-copy";
 import { participantNotice } from "./privacy.server";
 import { observeParticipantPage, participantPageReady } from "./handler.server";
+
+/**
+ * Tab title for a participant screen. While account configuration is closed (production today) it
+ * matches the visible "coming soon" heading. Reads env only, so metadata adds no provider request.
+ */
+export function participantPageTitle(locale: Locale, screen: ParticipantScreen): string {
+  const copy = participantCopy[locale];
+  return `MSRC 2027 | ${getParticipantConfig().state === "ready" ? copy.titles[screen] : copy.comingSoon}`;
+}
 
 export async function readParticipantPageState(locale: Locale): Promise<ParticipantPageState> {
   const closed: ParticipantPageState = { enabled: false, notice: participantNotice(locale, false), profile: null, sessionState: "anonymous" };

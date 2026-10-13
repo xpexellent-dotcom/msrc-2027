@@ -8,6 +8,8 @@ for (const locale of ["en", "ar"] as const) {
     page.on("request", (request) => { if (request.url().includes("/api/participant-accounts")) calls += 1; });
     await page.goto(`/${locale}/${screen}`);
     await expect(page.getByRole("heading", { name: participantCopy[locale].comingSoon, exact: true })).toBeVisible();
+    // The tab title matches the closed page instead of promising a sign-in or sign-up form.
+    await expect(page).toHaveTitle(`MSRC 2027 | ${participantCopy[locale].comingSoon}`);
     await expect(page.getByTestId("participant-accounts-closed")).toContainText(participantCopy[locale].registrationClosed);
     await expect(page.locator("form, input, [data-testid=participant-profile-name]")).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");

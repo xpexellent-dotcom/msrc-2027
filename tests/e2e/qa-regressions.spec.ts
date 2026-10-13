@@ -361,3 +361,18 @@ for (const locale of ["en", "ar"] as const) {
     expect(covered).toEqual([]);
   });
 }
+
+// Live QA (2026-10-13): the four identical placeholder speaker cards each added a separate
+// "Meet the speakers" tab stop to the same page. The section action is the one keyboard route.
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} placeholder speaker cards add no duplicate keyboard stops`, async ({ page }) => {
+    await page.goto(`/${locale}`);
+    const name = locale === "ar" ? "تعرّف إلى المتحدثين" : "Meet the speakers";
+    await expect(page.locator("#speakers").getByRole("link", { name, exact: true })).toHaveCount(1);
+    await expect(page.locator(".speaker-preview-link")).toHaveCount(4);
+    for (const link of await page.locator(".speaker-preview-link").all()) {
+      await expect(link).toHaveAttribute("tabindex", "-1");
+      await expect(link).toHaveAttribute("href", `/${locale}/speakers`);
+    }
+  });
+}
