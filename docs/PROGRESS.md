@@ -1,5 +1,30 @@
 # Progress and session handover
 
+## 13 October 2026 — Organizer correction before PR70 merge, ENG-040
+
+- The organizer rejected separated mobile image/copy cards. Restore full-image
+  Choose your path cards with a strong dark bottom gradient and overlaid copy;
+  remove years from these cards and other homepage backgrounds. Gallery photos
+  retain bottom-right years and use consistent frame proportions with deliberate
+  subject framing. The previous natural-height gallery choice is superseded.
+- Previous head `f82a89d804da553ad6f03c8b6d9e968a8384ec8d` passed all three
+  workflows, ten substantive jobs, eleven check runs and Vercel Preview. Public
+  browser shards: 681 passed, 55 intentional skips, no failures or retries.
+  This remains evidence for that head only; it does not verify the correction.
+- No merge occurred before the correction. The existing instruction to remove
+  audio, verify, push and merge remains active.
+- PASS corrected design: EN/AR at 390/900/1440px; all five pathway frames match,
+  cover the full card and retain the main subjects above overlaid copy. Gallery
+  frames are all 16:9, with focal points reviewed across all 17 album and six
+  homepage images. Years occur only in galleries. No page errors or overflow.
+  Initial width/face-clearance failures were corrected, with failed receipts
+  retained. Final evidence: `.tools/photo-layout-review-v2/results.json`.
+- PASS fresh `pnpm check`: lint, types, 2,402 unit tests, 81-page optimized build.
+  PASS 139 affected Chromium browser tests, five existing intentional skips,
+  no failures/retries, in 2.4 minutes. Logs: `.tools/edition-corrected-check.log`
+  and `.tools/edition-corrected-browser.log`. New-head hosted CI, merge and
+  matching Production verification remain PENDING at this commit.
+
 ## 13 October 2026 — Silent album clips and authorized release, ENG-040
 
 - The organizer explicitly requested audio removal, verification, push and merge.

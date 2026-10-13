@@ -21,16 +21,22 @@ The retrieved inventory contains 18 PNG photos and four MP4 clips:
 
 The new album replaces the previous hard-coded six-photo rail and uses the
 existing approved catalogue and URL filters. Visitors scroll through 2026, 2025,
-2024, then 2023; photos retain natural dimensions instead of being forced into
-uniform crops. English and Arabic titles/alternative descriptions identify
+2024, then 2023; photo frames use a consistent 16:9 ratio and deliberate focal
+points, following the organizer's pre-merge correction. This wide frame retains
+the edge panelists in the supplied stage photos. Videos retain their complete
+original composition within the same frame. English and Arabic descriptions identify
 visible activity without inferring people's identities or 2027 roles.
 Year labels stay physically bottom-right, including RTL, and use the organizer's
 requested digits. They are rendered inside the photo frame, so they remain
 legible at small screen widths.
 
 The dedicated Build photo appears on the homepage only. Homepage highlights use
-six supplied photos from the four years. Pathway framing preserves visible faces
-and separates photo and copy on small screens; the 3MT speaker is retained.
+six supplied photos from the four years. Pathway cards keep full-image framing
+with overlaid text and a strong dark bottom gradient, including on small screens;
+the 3MT speaker is retained. Years appear only in gallery photos, not on pathway
+cards or other homepage backgrounds. All pathway cards use consistent proportions
+at each viewport size; the six homepage gallery images also use 16:9. The initial separate mobile photo/copy implementation was
+rejected before merge and is superseded by this correction.
 The existing opening film and its playback policy are unchanged.
 
 Delivery: metadata-stripped WebP derivatives preserve image aspect ratios and
@@ -48,7 +54,7 @@ Implementation is isolated on `codex/edition-photo-update`; unrelated work in
 the original checkout is preserved. Operational flows and service configuration
 are unchanged.
 
-## Verification
+## Initial draft verification (before organizer design correction)
 
 | Check | Observed result |
 | --- | --- |
@@ -89,8 +95,42 @@ are pending before the authorized merge. Prior
 verification above describes the first draft; it is not silently relabeled as
 fresh release proof.
 
-Next: pass current-head checks, merge PR70, and verify the matching production
-deployment, bilingual image layout and silent videos.
+The silent-video head `f82a89d804da553ad6f03c8b6d9e968a8384ec8d` subsequently
+passed all three workflows, ten substantive jobs, eleven check runs and Vercel
+Preview. Public browsers: 681 passed, 55 intentional skips, no failures/retries.
+Receipt: `.tools/pr70-final-ci-f82a89d804da553ad6f03c8b6d9e968a8384ec8d.json`.
+The organizer then corrected the visual brief before any merge. That prior pass
+does not verify the new full-image cards or uniform gallery proportions.
+
+## Corrected full-image cards and consistent gallery frames
+
+PASS visual review in EN/AR at 390, 900 and 1440 CSS px: all five pathway cards
+have matching frames, edge-to-edge photographs and overlaid copy above a strong
+dark bottom gradient. The 3MT speaker's face stays above the heading; the Build
+crop retains the two central discussion participants. A narrow portrait cover
+necessarily excludes some outer scene edges. The album's 17 photos and six
+homepage gallery photos use consistent 16:9 frames and shared per-photo focal
+positions; all primary subjects, including the four wide-panel faces, were
+visually checked. Only gallery photos show years. No overflow or page errors.
+
+Initial checks caught an aspect-ratio automatic minimum-width overflow and a
+3MT heading/face collision. Explicit card inline sizing and moving the 3MT crop
+up corrected the causes. Failed evidence remains under
+`.tools/pathway-correction-results` and
+`.tools/photo-layout-review-v2/initial-overflow-results.json`. Final screenshots
+and geometry: `.tools/photo-layout-review-v2/results.json`. No retries were added.
+
+PASS fresh `pnpm check`: lint, types, 2,402 units in 61 files and an 81-page
+optimized build. PASS affected production-build browser suites: 139 passed,
+five existing intentional skips, no failures/retries, 2.4 minutes. Logs:
+`.tools/edition-corrected-check.log` and `.tools/edition-corrected-browser.log`.
+Independent source/React review and `git diff --check` passed. The previously
+verified silent delivery files are unchanged. Physical devices, other browser
+engines and real assistive technology remain NOT TESTED.
+
+Next: pass new-head hosted checks, merge PR70 and verify the matching Production
+deployment, bilingual image layout and silent videos. Earlier CI receipts apply
+only to the heads they record.
 
 ## Asset receipt
 

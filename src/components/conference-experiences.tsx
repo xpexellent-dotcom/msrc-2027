@@ -234,9 +234,9 @@ export function MediaCard({ locale, record, session }: { locale: Locale; record:
     ? new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { style: "unit", unit: "second", unitDisplay: "long", maximumFractionDigits: 1 }).format(record.durationSeconds)
     : formatMinutes(Math.ceil(record.durationSeconds / 60), locale) : null;
   return <article className="conference-media-card" data-media-kind={record.kind}>
-    <div className={`conference-media-player${isPhoto ? " conference-media-player--photo" : ""}`} style={!isPhoto && record.width && record.height ? { aspectRatio: `${record.width} / ${record.height}` } : undefined}>
+    <div className={`conference-media-player${isPhoto ? " conference-media-player--photo" : ""}`}>
       {record.access === "public" ? record.kind === "photograph" ? <>
-        <Image src={record.asset} alt={description} width={record.width ?? 1600} height={record.height ?? 1067} sizes="(max-width: 600px) 90vw, 45vw" />
+        <Image src={record.asset} alt={description} fill style={{ objectPosition: record.objectPosition ?? "50% 50%" }} sizes="(max-width: 600px) 90vw, 45vw" />
         <span className="conference-media-year" dir="ltr">{record.edition}</span>
       </> : <video controls playsInline preload="none" poster={record.poster ?? undefined} src={record.asset} aria-label={title}>{record.captions?.map((caption, index) => <track key={caption.src} kind="captions" src={caption.src} srcLang={caption.language} label={caption.label} default={index === 0} />)}</video> : <div className="conference-media-unavailable"><ResearchVisual variant={2} /><p>{record.access === "restricted" ? copy.recordingRestricted : copy.recordingPending}</p></div>}
     </div>

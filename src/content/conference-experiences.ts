@@ -22,8 +22,9 @@ type MediaBase = Readonly<{
   edition: MediaEdition; kind: "recording" | "highlight" | "photograph";
   /** Archive captions are bilingual; scientific recording titles remain English. */
   titleAr?: string; descriptionAr?: string;
-  /** Actual derivative dimensions preserve the complete photograph at every viewport. */
+  /** Source dimensions and reviewed focal position for consistent archive frames. */
   width?: number; height?: number;
+  objectPosition?: string;
   topic: string; speakerNames: readonly string[]; durationSeconds: number | null;
   sessionSlug: string | null;
 }>;

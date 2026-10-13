@@ -2,6 +2,15 @@
 
 ## ENG-040 — Edition photos and responsive album, 13 October 2026
 
+Design correction before merge: keep Choose your path cards as full-image cards
+on mobile, with copy over a strong dark bottom gradient. Do not place copy in a
+separate footer or show years on these cards or other homepage backgrounds.
+Years belong only to gallery photos. Use consistent image-frame proportions
+within the path cards and within the galleries, with individual focal points
+that retain the important subjects. This supersedes the initial natural-height
+album and separated mobile photo/copy implementation. Verify the corrected
+design before completing the already-authorized push and merge.
+
 Follow-up authorization on the same date: remove audio from the four newly
 supplied album clips, verify, push and merge the update. Deliver video-only
 H.264 copies under new `-silent-v2.mp4` URLs and remove the audio-bearing public
@@ -16,12 +25,11 @@ The dedicated “Build on an idea (2026)” photo is homepage-only; the remainin
 17 photos and four clips form the archive. This explicit asset/placement request
 supersedes older pending-selection status for these files only.
 
-Preserve the original scene and supplied filename year. Use natural photo
-proportions in the album and responsive homepage framing instead of forcing
-all images through a centered portrait crop. Labels use the requested digits
-and physical bottom-right placement in both EN and AR. Keep historical content
-distinct from unannounced 2027 people/programme. No public download controls or
-third-party embeds; no operational opening, hosted change or automatic merge.
+Preserve the original scene and supplied filename year. Keep original files'
+dimensions and apply subject-aware framing in the interface. Gallery labels use
+the requested digits and physical bottom-right placement in both EN and AR.
+Keep historical content distinct from unannounced 2027 people/programme.
+No public download controls, third-party embeds or operational opening.
 
 This records requester selection, not an independent institutional rights audit.
 Inventory, derivative identity, implementation and observed verification are in

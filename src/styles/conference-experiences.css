@@ -71,8 +71,7 @@
 .conference-media-card { min-inline-size: 0; }
 .conference-media-player { position: relative; overflow: hidden; aspect-ratio: 16 / 9; background: var(--color-purple); }
 .conference-media-player > video { display: block; inline-size: 100%; block-size: 100%; object-fit: contain; }
-.conference-media-player--photo { aspect-ratio: auto; }
-.conference-media-player--photo > img { display: block; inline-size: 100%; block-size: auto; object-fit: contain; }
+.conference-media-player--photo > img { object-fit: cover; }
 /* Edition marks stay at the physical right edge in both interface languages. */
 .conference-media-year { position: absolute; right: .75rem; bottom: .75rem; padding: .25rem .65rem; border-radius: 6px; background: var(--color-ink); color: var(--color-ivory); font-family: var(--font-interface); font-size: 1rem; font-weight: 600; line-height: 1.4; font-variant-numeric: tabular-nums; }
 .conference-media-unavailable { display: grid; place-items: center; block-size: 100%; color: var(--color-ivory); }

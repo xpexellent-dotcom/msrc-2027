@@ -12,6 +12,17 @@ const routes = [
 ] as const;
 const journeys = ["registration", "submissions", "hackathon", "workshops", "3mt"] as const;
 
+// Independently inspected source-coordinate bounds around faces and the lectern.
+// These catch a clipped edge panelist or speaker even when every frame is uniform.
+const archiveSubjects: Record<string, { left: number; right: number; top: number; bottom: number }> = {
+  "/media/editions/2025/photo-4.webp": { left: .13, right: .935, top: .30, bottom: .62 },
+  "/media/editions/2025/photo-3.webp": { left: .08, right: .81, top: .32, bottom: .65 },
+  "/media/editions/2024/photo-1.webp": { left: .56, right: .75, top: .43, bottom: .86 },
+  "/media/editions/2023/photo-2.webp": { left: .03, right: .60, top: .055, bottom: .56 },
+  "/media/editions/2026/photo-9.webp": { left: .06, right: .86, top: .36, bottom: .62 },
+  "/media/editions/2026/photo-6.webp": { left: .22, right: .77, top: .52, bottom: .83 },
+};
+
 async function expectNoHorizontalOverflow(page: Page) {
   const widths = await page.evaluate(() => {
     const viewport = document.documentElement.clientWidth;
@@ -217,7 +228,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(writes).toEqual([]);
   });
 
-  test(`${locale} archive starts with 2026 and preserves every photo with its year inside the bottom right`, async ({ page }, testInfo) => {
+  test(`${locale} archive starts with 2026 and keeps subjects in uniform frames with years inside the bottom right`, async ({ page }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/media`);
     const groups = page.locator(".conference-media-edition");
@@ -242,8 +253,19 @@ for (const locale of ["en", "ar"] as const) {
         const imageBox = image.getBoundingClientRect();
         const frameBox = element.getBoundingClientRect();
         const yearBox = year.getBoundingClientRect();
+        const aspect = image.naturalWidth / image.naturalHeight;
+        const coveredWidth = Math.max(imageBox.width, imageBox.height * aspect);
+        const coveredHeight = coveredWidth / aspect;
+        const [x, y] = getComputedStyle(image).objectPosition.split(" ").map(parseFloat);
+        const contentLeft = imageBox.left + (imageBox.width - coveredWidth) * x / 100;
+        const contentTop = imageBox.top + (imageBox.height - coveredHeight) * y / 100;
+        const imageUrl = new URL(image.currentSrc);
         return {
-          sourceRatio: image.naturalWidth / image.naturalHeight,
+          source: imageUrl.searchParams.get("url") ?? imageUrl.pathname,
+          visibleSourceLeft: (frameBox.left - contentLeft) / coveredWidth,
+          visibleSourceRight: (frameBox.right - contentLeft) / coveredWidth,
+          visibleSourceTop: (frameBox.top - contentTop) / coveredHeight,
+          visibleSourceBottom: (frameBox.bottom - contentTop) / coveredHeight,
           renderedRatio: imageBox.width / imageBox.height,
           imageWidth: imageBox.width, frameWidth: frameBox.width,
           imageHeight: imageBox.height, frameHeight: frameBox.height,
@@ -256,13 +278,18 @@ for (const locale of ["en", "ar"] as const) {
         };
       });
       expect(frame.imageAlt).not.toBe("");
-      // Entire source framing must survive both mobile and desktop layout;
-      // a cover crop, height constraint or zoom would fail these assertions.
-      expect(frame.renderedRatio).toBeCloseTo(frame.sourceRatio, 2);
+      expect(frame.renderedRatio).toBeCloseTo(16 / 9, 2);
       expect(frame.imageWidth).toBeCloseTo(frame.frameWidth, 0);
       expect(frame.imageHeight).toBeCloseTo(frame.frameHeight, 0);
-      expect(frame.fit).toBe("contain");
+      expect(frame.fit).toBe("cover");
       expect(frame.transform).toBe("none");
+      const subject = archiveSubjects[frame.source];
+      if (subject) {
+        expect(frame.visibleSourceLeft, frame.source).toBeLessThan(subject.left);
+        expect(frame.visibleSourceRight, frame.source).toBeGreaterThan(subject.right);
+        expect(frame.visibleSourceTop, frame.source).toBeLessThan(subject.top);
+        expect(frame.visibleSourceBottom, frame.source).toBeGreaterThan(subject.bottom);
+      }
       expect(frame.year).toBe(frame.edition);
       expect(frame.year).toMatch(/^202[3-6]$/);
       expect(frame.rightInset).toBeGreaterThan(0);
@@ -291,6 +318,27 @@ for (const locale of ["en", "ar"] as const) {
       await expect(video).toHaveAttribute("controls", "");
       await expect(video).toHaveAttribute("preload", "none");
       await expect(video).not.toHaveAttribute("autoplay");
+    }
+
+    await page.goto(`/${locale}`);
+    const gallery = page.locator(".gallery-photo");
+    await expect(gallery).toHaveCount(6);
+    // Edition marks belong to gallery photos, never homepage pathway or scenery photos.
+    await expect(page.locator(".home-photo-edition")).toHaveCount(6);
+    for (const photo of await gallery.all()) {
+      await photo.scrollIntoViewIfNeeded();
+      const image = photo.locator("img");
+      await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
+      const geometry = await photo.evaluate((element) => {
+        const frame = element.getBoundingClientRect();
+        const year = element.querySelector(".home-photo-edition")!.getBoundingClientRect();
+        return { ratio: frame.width / frame.height, right: frame.right - year.right, bottom: frame.bottom - year.bottom };
+      });
+      expect(geometry.ratio).toBeCloseTo(16 / 9, 2);
+      expect(geometry.right).toBeGreaterThan(0);
+      expect(geometry.right).toBeLessThan(20);
+      expect(geometry.bottom).toBeGreaterThan(0);
+      expect(geometry.bottom).toBeLessThan(20);
     }
   });
 

@@ -1,4 +1,5 @@
 import type { PublicMedia } from "@/content/conference-experiences";
+import { editionPhotoFocus } from "@/content/edition-photo-framing";
 
 // MED-01–04 / LOC-01 / ARC-01. Organizer-selected Drive collection, 13 October 2026.
 // Years follow the supplied filenames; historical photographs do not announce 2027 participants.
@@ -8,6 +9,7 @@ function photo(edition: 2023 | 2024 | 2025 | 2026, number: number, width: number
   return {
     slug: `msrc-${edition}-photo-${number}`, publication: "approved", access: "public",
     edition, kind: "photograph", title, titleAr, description, descriptionAr, width, height,
+    objectPosition: editionPhotoFocus[`${edition}-${number}`],
     asset: `/media/editions/${edition}/photo-${number}.webp`, poster: null,
     topic: "", speakerNames: [], durationSeconds: null, sessionSlug: null,
   };
