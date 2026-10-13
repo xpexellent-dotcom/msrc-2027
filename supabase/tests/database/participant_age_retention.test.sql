@@ -5,7 +5,7 @@ set local search_path=public,extensions;
 select no_plan();
 
 select is((select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
- where n.nspname='msrc_participant' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),16::bigint,'All participant tables force RLS');
+ where n.nspname='msrc_participant' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),18::bigint,'All participant tables, including the private scheduler and ledger, force RLS');
 select ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
  cross join (values('anon'),('authenticated'),('service_role'),('supabase_auth_admin')) r(name)
  where n.nspname='msrc_participant' and c.relkind='r' and has_table_privilege(r.name,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE')),
@@ -20,7 +20,8 @@ select is(msrc_participant.cleanup_unverified(),'{"state":"closed","scanned":0,"
 select is((select enabled from msrc_participant.retention_policy),false,'No cleanup activation is seeded');
 select is((select unverified_days from msrc_participant.retention_policy),30,'The approved original-account retention clock is thirty days');
 select ok(not msrc_participant.unknown_erasure_reference(),'Pinned native/app incoming FK inventory is completely reviewed before cleanup');
-select is((select count(*) from cron.job where command like '%cleanup_unverified%'),0::bigint,'The migration installs no active or inactive cron job');
+select is((select count(*) from cron.job where jobname='msrc-participant-unverified-cleanup' and username='postgres'
+ and command like '%run_cleanup_job()%'),1::bigint,'The follow-up scheduler installs one private postgres wrapper while the independent retention gate stays closed');
 select throws_ok($$select msrc_participant.cleanup_unverified(1001,false)$$,'22023',null,'Oversized batches are rejected');
 select throws_ok($$select msrc_participant.cleanup_unverified(0,false)$$,'22023',null,'Zero batches are rejected');
 select throws_ok($$select msrc_participant.cleanup_unverified(1,null)$$,'22023',null,'A missing dry-run choice cannot delete');

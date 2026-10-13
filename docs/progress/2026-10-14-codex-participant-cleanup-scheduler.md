@@ -1,0 +1,8 @@
+# 14 October 2026 — Participant cleanup launch readiness (ships closed)
+
+- Started from main `f496401ef4e64a95ae344720a9683fced1430d7d`; no open PRs at Step 0. Used an isolated worktree and preserved the original dirty handoff checkout.
+- Added one independent scheduler/housekeeping/health/minimal export-ledger migration after the unchanged `20261008160137` migration, plus rollback-only synthetic SQL tests and the activation runbook/read-only pre-apply probe. IDs: AUTH-08, PRV-04/05/08, SEC-02/06, INF-05, REL-06.
+- PASS local frozen installation, lint, types, 2,402 unit tests and 81-page build. Local SQL is BLOCKED: Docker Desktop Linux daemon pipe absent. Full-chain migration/RLS/native Auth and all other exact-head CI receipts are recorded in the draft PR body after execution.
+- Initial head `bd7196f` passed all three disposable migration/RLS/native jobs; Foundation applied the new migration and passed 1,124 SQL assertions. Added an actual read-only probe execution/fingerprint test before final-head CI; current-head receipts remain in the PR body.
+- Head `d3c8a16` exposed a test packaging failure: the CLI mounts only `supabase/tests`, so the external probe include was absent. Moved the canonical SQL into the mounted support tree and preserved a thin operator entry file; kept assertions and failed receipts. Final corrected-head CI is recorded in the PR body.
+- Retention and participant policies remain false by default. No hosted access/apply, flags, Vercel variables, paid upgrade, public UI/copy or real delivery changed. Candidate defaults, external ledger custody/export/replay and privacy/provider/UAT decisions require later owner approval. Owner merges.
