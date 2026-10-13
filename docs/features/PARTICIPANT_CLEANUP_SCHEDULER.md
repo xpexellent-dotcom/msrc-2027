@@ -94,7 +94,11 @@ approve actual shared email quotas, native rate limits and the human UAT window.
 
 ## Validation and release boundary
 
-The new rollback-only SQL suite covers scheduled ownership/settings, closed and
+The new SQL checks also execute the actual read-only pre-apply script on the
+already-migrated disposable chain and compare catalog, gate, ledger, cron and
+aggregate account-count fingerprints before and after. Its nine-version/absence
+checks correctly fail on that newer chain; this does not claim a hosted pre-apply
+PASS. The rollback-only SQL suite covers scheduled ownership/settings, closed and
 enabled cleanup, dry run, protected subjects, failure rollback, exact purge
 boundaries, minimal immutable export receipts, aggregate health and actual API
 role denials. Existing participant catalogue assertions include the two new
