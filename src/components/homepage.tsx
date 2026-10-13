@@ -120,7 +120,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
         <HorizontalRail className="speaker-rail" locale={locale} label={demo.speakerRail}>
           {[0, 1, 2, 3].map((index) => <article className="speaker-preview-card" key={index}>
             <div className="speaker-preview-portrait"><PortraitPlaceholder variant={index} /></div>
-            <div className="speaker-preview-content"><h3>{demo.speakerTitle}</h3><p>{demo.speakerPending}</p><Link className="speaker-preview-link" href={`/${locale}/speakers`} aria-label={narrative.speakersLink}><Arrow /></Link></div>
+            <div className="speaker-preview-content"><h3>{demo.speakerTitle}</h3><p>{demo.speakerPending}</p>{/* Pointer shortcut only: the section's "Meet the speakers" link already reaches this page, so the four identical placeholder cards add no keyboard or screen-reader stops. */}<Link className="speaker-preview-link" href={`/${locale}/speakers`} tabIndex={-1} aria-hidden="true"><Arrow /></Link></div>
           </article>)}
         </HorizontalRail>
       </Container>
