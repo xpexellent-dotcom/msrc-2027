@@ -308,8 +308,11 @@ connection mechanism; never paste its password/URL into the command or evidence.
 
 ### Age migration read-only pre-apply probe
 
-The exact executable SQL is
+The operator entry file is
 [`scripts/sql/participant-age-retention-pre-apply.sql`](../../scripts/sql/participant-age-retention-pre-apply.sql).
+It includes the single [canonical read-only SQL](../../supabase/tests/support/participant-age-retention-pre-apply.psql),
+which is also executed inside the CLI's mounted `supabase/tests` tree. The
+`.psql` helper is not collected as a standalone pgTAP test.
 In an existing protected psql session from the repository root:
 
 ```psql

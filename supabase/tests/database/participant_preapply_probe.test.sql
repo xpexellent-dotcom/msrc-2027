@@ -29,7 +29,7 @@ SELECT md5(jsonb_build_object(
 
 -- \ir resolves from this test file's directory. Suppress its twelve PASS/FAIL
 -- rows because pg_prove expects only TAP on stdout. Its errors still stop psql.
-\ir ../../../scripts/sql/participant-age-retention-pre-apply.sql
+\ir ../support/participant-age-retention-pre-apply.psql
 
 SELECT md5(jsonb_build_object(
  'versions',(SELECT jsonb_agg(version::text ORDER BY version::text) FROM supabase_migrations.schema_migrations),
