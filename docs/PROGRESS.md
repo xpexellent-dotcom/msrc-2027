@@ -1,5 +1,36 @@
 # Progress and session handover
 
+## 12 October 2026 — One gesture per Venue journey stop, ENG-039
+
+- Organizer request: the journey must work for fast and slow scrolling, move one
+  map point per scroll, and feel smooth. Root cause: the native-scrolling rule
+  (DSN-01) kept the journey distance-based, so fast wheels overshot the 480px
+  entrance charge and each 110svh chapter needed several scrolls.
+- Replaced the charge/hold with `createJourneyStepper`: gesture-based wheel,
+  trackpad, touch and keyboard stepping between overview/Airport/Getting
+  there/Venue, eased tween, camera locked to stop progress. The entry reveal is
+  requested by the stepper or Begin.
+- Removed obsolete charge/native-chapter e2e cases; adapted three that relied on
+  wheel distances. Added `venue-journey-stepper.spec.ts` (fast flick, notch,
+  trackpad inertia, keyboard, phone swipe, frame-by-frame smoothness; EN/AR).
+- PASS: lint, typecheck, 2,401 unit tests, production build, 230 venue-related
+  e2e tests across desktop/tablet/mobile (34 skipped by design). Stepper spec
+  repeated 3x with no flakes. NOT TESTED: real iOS Safari momentum, physical
+  Mac trackpad (simulated inertia only).
+- 13 October: merged Codex ENG-038 (origin/main) keeping the stepper; adopted its
+  latched-tail hold and anchoring guard. Added arrival thread, chapter crossfade,
+  pin fading, phone spacing and FAQ fix. PASS: lint, typecheck, 2,401 units,
+  build, 238 venue-related e2e (34 skipped by design), EN/AR desktop/phone
+  screenshots reviewed at every stop and mid-move.
+- Performance: production desktop moves measured 37-39fps in software rendering.
+  Trace showed ~65ms/frame raster: thread redraws re-rasterized the shared city
+  map layer, and the header backdrop blur re-blurred the moving map. Isolated
+  the map image and thread on their own layers, composite the camera during
+  moves, replaced the thread filter with a soft stroke, swapped the header blur
+  for opaque glass while the journey is in view, and moved per-frame layout reads
+  ahead of writes with cached sizes. Now 55-60fps desktop and 60fps phone at 4x
+  CPU throttle (headless, worst case). PASS: lint, types, 2,401 units, 238 e2e.
+
 ## 13 October 2026 — Charge-only anchoring and matrix readiness follow-up, ENG-038
 
 - PASS complete new-source check: lint/types, 2,401 units/61 files and 81-page

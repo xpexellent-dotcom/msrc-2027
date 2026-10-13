@@ -1,5 +1,42 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-039 — One gesture, one Venue journey stop, 12 October 2026
+
+The organizer reports that the Venue journey only works when scrolled in a
+specific way, that fast scrolling breaks it, that each map point takes several
+scrolls, and that movement is not smooth. This explicit organizer decision
+supersedes the ENG-037 and ENG-038 charge/hold entrance and the "native journey scrolling" part
+of DSN-01 for this one page section only.
+
+The journey now has four stops: the venue overview, Airport, Getting there and
+Venue. One deliberate gesture moves exactly one stop in either direction:
+a wheel flick of any speed, a single notch, a trackpad swipe with inertia, a
+phone swipe, or ArrowUp/ArrowDown/PageUp/PageDown/Space. Gestures are separated
+by a 170ms quiet gap (or a rising trackpad delta); input during a move, the rest
+of the gesture that started it, and input within 220ms of arrival are consumed so
+they cannot carry on as native scrolling. Moves are a 620–1100ms ease-in-out
+tween, and the map camera follows stop-to-stop progress so it rests exactly on
+each place. Overview -> Airport keeps the ENG-037 light-and-reveal scene; the
+centered Begin action is unchanged.
+
+Scrolling stays native above the overview and below Venue. A fast native fling
+that crosses the overview or Venue is caught at that stop. Content taller than
+the reading area is revealed before advancing. Reduced motion, forced colors,
+enlarged text, zoom, inner scrollers, form fields and modified keys keep native
+behavior. Implementation: `src/lib/journey-stepper.ts`; coverage:
+`tests/e2e/venue-journey-stepper.spec.ts`.
+
+13 October 2026 refinement, merged with the ENG-038 audit: an abstract gold
+arrival thread (a smooth curve, never a road route, consistent with the existing
+"not a driving route" note) draws from Airport to Venue with a travelling marker
+as the journey advances. Chapters crossfade near the reading centre (55% eased
+offset, fully faded by mid-move) instead of leaving an empty band; faded chapters
+stay in the accessibility tree but take no pointer input, and visible keyboard
+focus restores ordinary flow. Pins fade beneath map controls. Phones start each
+chapter just below the pinned map. From ENG-038: a non-cancelable (latched)
+wheel tail is held at the arrived stop, and scroll anchoring is disabled while
+the stepper moves. Fixed the stretched FAQ link on the phone overview.
+
 ## ENG-038 — Venue input resilience, 12 October 2026
 
 The organizer clarifies that the remaining failure occurs with ordinary fast

@@ -19,7 +19,7 @@ Build a cinematic, clear conference website for The 5th Medical Students Researc
 | Decision | Status | Source |
 |---|---|---|
 | Video-led homepage, clear conference hierarchy, clean transitions and responsive buttons | REQUIRED | S1 DSN-01 |
-| Native wheel, touch and keyboard scrolling | REQUIRED | S1 DSN-01 |
+| Native wheel, touch and keyboard scrolling (exception: the Venue journey steps one stop per gesture, ENG-039) | REQUIRED | S1 DSN-01; ENG-039 |
 | Muted decorative video, poster, pause control, reduced-motion behavior and low-bandwidth alternative | REQUIRED | S1 DSN-01 |
 | English default and full Arabic RTL in the applicable interfaces | REQUIRED | S1 LOC-01/03 |
 | Scientific/project content in English/LTR inside either interface language; reviewer/judge assessment screens in English | REQUIRED | S1 LOC-02/03 |

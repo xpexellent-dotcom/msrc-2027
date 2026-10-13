@@ -136,3 +136,15 @@ export function createVenueEntryScene(journey: HTMLElement, target: HTMLElement,
     },
   };
 }
+
+/** The resting scroll position for the complete venue overview before entry. */
+export function venueEntryGate(stage: HTMLElement) {
+  const bounds = stage.getBoundingClientRect();
+  const clearance = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 96;
+  const fits = innerWidth >= 1200 && innerHeight >= 641 && bounds.height + clearance <= innerHeight + 1;
+  return { y: Math.max(0, scrollY + (fits ? bounds.top - clearance : bounds.bottom - innerHeight)), fits };
+}
+
+/** Dispatched by the journey stepper; the entrance resolves `done` once flow is restored. */
+export const venueEntryRequest = "venue-journey:enter";
+export type VenueEntryRequest = CustomEvent<{ done: () => void }>;

@@ -35,12 +35,13 @@
 .venue-stage-guidance .venue-international h3 .venue-icon { flex: 0 0 20px; inline-size: 20px; block-size: 20px; color: var(--color-purple); }
 .venue-stage-guidance .venue-international p { margin: .75rem 0 0; font-size: 1rem; line-height: 1.7; color: var(--color-muted); }
 .venue-stage-resources { display: grid; gap: .75rem; margin-block-start: 1.5rem; }
-.venue-stage-resources .button { justify-content: space-between; gap: .65rem; min-block-size: 48px; padding: .75rem 1rem; font-size: 1rem; }
+.venue-stage-resources .button { margin-block: 0; align-self: start; justify-content: space-between; gap: .65rem; min-block-size: 48px; padding: .75rem 1rem; font-size: 1rem; }
 .venue-stage-resources .venue-icon { inline-size: 20px; block-size: 20px; flex: 0 0 20px; }
 .venue-journey-invitation { display: flex; justify-content: center; margin-block-start: clamp(3rem,5vw,5rem); }
 @media (min-width: 1200px) and (min-height: 641px) {
-  .venue-gallery-stage { --venue-frame-padding: clamp(2rem,4.5svh,4rem); min-block-size: calc(100svh - var(--site-header-height,80px) - 1rem); padding-block: var(--venue-frame-padding); }
-  .venue-gallery-stage > .site-container { display: flex; flex-direction: column; justify-content: space-between; min-block-size: calc(100svh - var(--site-header-height,80px) - 1rem - var(--venue-frame-padding) * 2); }
+  /* The overview sizes to its content; forcing a full-height frame left an
+     empty band above Begin on tall screens. */
+  .venue-gallery-stage { --venue-frame-padding: clamp(2rem,4.5svh,4rem); padding-block: var(--venue-frame-padding); }
   .venue-journey-invitation { margin-block-start: clamp(2rem,4.5svh,3rem); }
 }
 .venue-hero-action.button { gap: 1.2rem; min-block-size: 56px; padding: 1rem 1.75rem; font-size: 1.125rem; font-weight: 700; text-decoration: none; }

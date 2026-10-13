@@ -25,7 +25,7 @@ This package contains documentation, source snapshots, and prompts. It does not 
 
 ## Implementation
 
-- Use the working design defaults in `docs/DESIGN_GUIDE.md` while final brand approval is pending. Keep native scrolling, reduced-motion support, accessible video controls, keyboard access, and Arabic layouts.
+- Use the working design defaults in `docs/DESIGN_GUIDE.md` while final brand approval is pending. Keep native scrolling (one exception: the Venue journey moves one stop per gesture via `src/lib/journey-stepper.ts`, ENG-039 — do not revert it to distance-based scrolling), reduced-motion support, accessible video controls, keyboard access, and Arabic layouts.
 - Enforce authorization server-side and at the database/storage layer. Use explicit grants and RLS, assignment/ownership checks, private files and individually identified privileged users. ORG-015 requires the additional session-bound email check for regular staff and preserves separate Super Admin MFA. Never use user-editable metadata for authorization.
 - Keep secrets server-side and out of documents, source control, logs, public environment variables, and client bundles.
 - Validate mutations on the server. Use immutable submission/decision snapshots, transactional scarce-seat allocation, idempotency, audit records, and durable jobs where required.
