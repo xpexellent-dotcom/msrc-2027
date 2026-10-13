@@ -30,6 +30,11 @@
   for opaque glass while the journey is in view, and moved per-frame layout reads
   ahead of writes with cached sizes. Now 55-60fps desktop and 60fps phone at 4x
   CPU throttle (headless, worst case). PASS: lint, types, 2,401 units, 238 e2e.
+- 13 October (phone review): native touch scrolling with continuous journey
+  transitions, overview-to-journey fog handover and horizon, feathered reveal,
+  focus-frame fix. PASS: lint, types, 2,401 units, build, 246 venue-related e2e
+  (34 skipped by design); EN/AR desktop and phone screenshots reviewed. Desktop
+  frame rate unchanged by the new visuals (A/B within run-to-run noise).
 
 ## 13 October 2026 — Charge-only anchoring and matrix readiness follow-up, ENG-038
 

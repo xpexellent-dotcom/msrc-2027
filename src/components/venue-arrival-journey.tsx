@@ -201,6 +201,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     const setVar = (node: HTMLElement, name: string, value: string) => { if (node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value); };
     const readings = chapters.map(chapter => chapter?.querySelector<HTMLElement>(".venue-journey-reading") ?? null);
     const indexNav = element.querySelector<HTMLElement>(".venue-journey-index");
+    const overviewStage = document.querySelector<HTMLElement>(".venue-gallery-stage");
     const atlas = map.parentElement!;
     const world = atlas.closest<HTMLElement>(".venue-journey-world");
     const credits = atlas.querySelector<HTMLElement>(".venue-journey-map-caption");
@@ -237,6 +238,9 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       const controls = controlGroup?.getBoundingClientRect();
       const north = northMark?.getBoundingClientRect();
       const chapterTops = chapters.map(chapter => chapter?.getBoundingClientRect().top);
+      const journeyTop = element.getBoundingClientRect().top;
+      // Phones read in ordinary flow, so their fades need the live text bounds.
+      const readingBoxes = compact ? readings.map(reading => reading?.getBoundingClientRect()) : [];
       // Progress is measured between the chapters' own resting positions, so
       // the camera sits exactly on each place whenever its chapter is at rest.
       const anchors = chapterTops.flatMap((top, index) => top === undefined ? [] : [scrollTop + top - sizes.margins[index] - sizes.padding]);
@@ -249,6 +253,19 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       // ---- Write phase. ----
       const mapBottom = compact && !readingFlow ? atlasBox.bottom + sizes.index : 0;
       setData(element, "inView", String(atlasBox.top < viewport && worldBottom > 0));
+      // How far the journey has risen over the viewport. Below the overview it
+      // reads as a dim horizon; its controls arrive only once it takes over,
+      // while the light overview above melts away.
+      const entered = clamp((viewport - journeyTop) / Math.max(1, viewport));
+      const ease = (value: number) => { const t = clamp(value); return t * t * (3 - 2 * t); };
+      const presence = motion.matches ? 1 : ease((entered - .6) / .35);
+      setVar(element, "--journey-ui", presence.toFixed(3));
+      const mapLight = motion.matches ? 1 : .4 + .6 * ease((entered - .3) / .6);
+      setVar(element, "--journey-map", mapLight.toFixed(3));
+      // A fully lit map needs no dimming layer at all.
+      setData(element, "journeyLit", String(mapLight > .999));
+      setData(element, "journeyUi", presence > .5 ? "shown" : "hidden");
+      if (overviewStage) setVar(overviewStage, "--venue-overview-presence", (motion.matches ? 1 : 1 - ease((entered - .5) / .45)).toFixed(3));
       setData(element, "framePinned", String(compact && !readingFlow && Math.abs(atlasBox.top - headerHeight) < 2 && worldBottom > headerHeight + atlasHeight));
       if (selected.current && (worldBottom <= Math.max(headerHeight + 32, viewport * .35) || atlasBox.top >= viewport)) {
         selected.current = null; setSelectedPoint(null);
@@ -270,10 +287,24 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
           delete reading.dataset.copyHidden;
           return;
         }
+        if (compact) {
+          // Phones scroll natively: text moves 1:1 with the finger and only
+          // fades as it slides beneath the pinned map or rises into view.
+          const box = readingBoxes[index];
+          reading.style.removeProperty("--venue-copy-shift");
+          if (!box) return;
+          const leaving = clamp((box.bottom - mapBottom - 24) / Math.min(220, box.height * .6 + 1));
+          const arriving = clamp((viewport - box.top) / 160);
+          const visible = leaving * arriving;
+          const faded = visible * visible * (3 - 2 * visible);
+          setVar(reading, "--venue-copy-opacity", faded.toFixed(3));
+          setData(reading, "copyHidden", String(faded < .02));
+          return;
+        }
         // Chapters crossfade near the reading centre instead of scrolling a
         // full chapter apart: each eases 55% of the way back toward its rest
         // and is fully faded by the halfway point of the move.
-        const top = compact ? mapBottom : headerHeight + 16;
+        const top = headerHeight + 16;
         let delta = scrollTop - anchors[index];
         // Content taller than the reading area is read in place before it fades.
         if (delta > 0) delta = Math.max(0, delta - Math.max(0, sizes.readings[index] - (viewport - top - 24)));
@@ -438,7 +469,9 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       motion.removeEventListener("change", remeasure);
       map.style.removeProperty("transform"); map.style.removeProperty("left"); map.style.removeProperty("top"); map.style.removeProperty("transform-origin");
       points.forEach(point => { point.style.removeProperty("transform"); point.inert = false; point.tabIndex = 0; point.removeAttribute("aria-hidden"); delete point.dataset.pointVisible; });
-      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned; delete element.dataset.journeyMoving; delete element.dataset.travelling; delete element.dataset.inView;
+      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned; delete element.dataset.journeyMoving; delete element.dataset.travelling; delete element.dataset.inView; delete element.dataset.journeyUi; delete element.dataset.journeyLit;
+      element.style.removeProperty("--journey-ui"); element.style.removeProperty("--journey-map");
+      overviewStage?.style.removeProperty("--venue-overview-presence");
       map.style.removeProperty("--venue-camera-scale");
       element.style.removeProperty("--venue-index-height");
       element.style.removeProperty("--venue-reading-edge");

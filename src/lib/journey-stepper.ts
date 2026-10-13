@@ -1,8 +1,9 @@
 /**
- * One deliberate gesture moves exactly one journey stop, whatever the input
- * speed. Wheel spins, trackpad inertia, swipes and held keys are measured as
+ * One deliberate wheel or key gesture moves exactly one journey stop, whatever the input
+ * speed. Wheel spins, trackpad inertia and held keys are measured as
  * gestures, not distances, so a fast flick and a slow notch land in the same
- * place. Outside the stops the page keeps ordinary native scrolling.
+ * place. Touch keeps native scrolling everywhere, as do all inputs outside
+ * the stops; the journey animates continuously with the scroll position.
  */
 export type JourneyStepper = { go(index: number): void; destroy(): void };
 
@@ -25,7 +26,6 @@ const tolerance = 3;
 // continuous wheel spins emit events far more often than this.
 const quietGap = 170;
 const settleWindow = 220;
-const swipeDistance = 36;
 const easeInOutCubic = (t: number) => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
@@ -54,7 +54,6 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
   let settledAt = -Infinity;
   let holdUntil = 0;
   let heldY = 0;
-  let touch: { x: number; y: number; decided: boolean; target?: Target; fired: boolean } | undefined;
 
   const docked = (stops: number[]) => stops.findIndex(stop => Math.abs(stop - scrollY) <= tolerance);
 
@@ -164,29 +163,6 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
     travel(target);
   };
 
-  const touchStart = (event: TouchEvent) => {
-    touch = undefined;
-    if (event.touches.length !== 1) return;
-    const point = event.touches[0];
-    touch = { x: point.clientX, y: point.clientY, decided: false, fired: false };
-  };
-  const touchMove = (event: TouchEvent) => {
-    if (!touch) return;
-    if (event.touches.length !== 1) { touch = undefined; return; }
-    const point = event.touches[0];
-    const delta = touch.y - point.clientY;
-    if (!touch.decided) {
-      if (moving) { if (event.cancelable) event.preventDefault(); return; }
-      if (Math.abs(delta) < 8 && Math.abs(touch.x - point.clientX) < 8) return;
-      touch.decided = true;
-      const direction = delta > 0 ? 1 : -1;
-      touch.target = Math.abs(touch.x - point.clientX) > Math.abs(delta) || ownsInput(event.target, direction) ? undefined : plan(direction);
-      if (!touch.target) { nativeInputAt = performance.now(); touch = undefined; return; }
-    }
-    if (event.cancelable) event.preventDefault();
-    if (!touch.fired && Math.abs(delta) >= swipeDistance) { touch.fired = true; travel(touch.target!); }
-  };
-  const touchEnd = () => { touch = undefined; nativeInputAt = performance.now(); };
 
   const keyboard = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
@@ -228,10 +204,6 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
   const visibility = () => { if (document.hidden && frame) complete(); };
 
   addEventListener("wheel", wheel, { passive: false });
-  addEventListener("touchstart", touchStart, { passive: true });
-  addEventListener("touchmove", touchMove, { passive: false });
-  addEventListener("touchend", touchEnd, { passive: true });
-  addEventListener("touchcancel", touchEnd, { passive: true });
   addEventListener("keydown", keyboard);
   addEventListener("scroll", scroll, { passive: true });
   addEventListener("popstate", navigate);
@@ -250,10 +222,6 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
       cancelAnimationFrame(frame);
       if (moving) options.onMoving?.(false);
       removeEventListener("wheel", wheel);
-      removeEventListener("touchstart", touchStart);
-      removeEventListener("touchmove", touchMove);
-      removeEventListener("touchend", touchEnd);
-      removeEventListener("touchcancel", touchEnd);
       removeEventListener("keydown", keyboard);
       removeEventListener("scroll", scroll);
       removeEventListener("popstate", navigate);

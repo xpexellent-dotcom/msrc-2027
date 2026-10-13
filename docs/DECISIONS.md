@@ -37,6 +37,16 @@ chapter just below the pinned map. From ENG-038: a non-cancelable (latched)
 wheel tail is held at the arrived stop, and scroll anchoring is disabled while
 the stepper moves. Fixed the stretched FAQ link on the phone overview.
 
+13 October 2026, organizer phone review: touch keeps fully native scrolling
+(no automatic slide on swipe); the map camera, thread and traveller follow the
+scroll position continuously, and phone chapter text moves 1:1 with edge fades
+beneath the pinned map. Mouse wheel and keys keep one-stop stepping on desktop.
+The overview and journey hand over through an eased fog matched to the
+overview's rendered tone; below the overview the map is a dim horizon and the
+journey controls, pins and thread arrive only once it covers the screen, while
+the overview content fades. The Begin reveal feathers its rising edge. Section
+targets no longer draw a focus frame after chapter links.
+
 ## ENG-038 — Venue input resilience, 12 October 2026
 
 The organizer clarifies that the remaining failure occurs with ordinary fast

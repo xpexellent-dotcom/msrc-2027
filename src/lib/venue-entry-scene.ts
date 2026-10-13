@@ -55,7 +55,7 @@ export function createVenueEntryScene(journey: HTMLElement, target: HTMLElement,
   const restoreRoot = ownStyles(journey, [
     "position", "left", "right", "top", "bottom", "width", "height",
     "min-height", "max-height", "overflow", "z-index", "transform", "filter",
-    "will-change", "transition",
+    "will-change", "transition", "mask-image", "-webkit-mask-image",
   ]);
   const restoreWorld = world ? ownStyles(world, ["transform", "will-change", "transition"]) : undefined;
   const restoreFrame = frame ? ownStyles(frame, ["transform", "will-change", "transition"]) : undefined;
@@ -87,6 +87,11 @@ export function createVenueEntryScene(journey: HTMLElement, target: HTMLElement,
   journey.style.overflow = "clip";
   journey.style.zIndex = "29";
   journey.style.willChange = "transform,filter";
+  // Feather the rising edge so the journey emerges from the overview rather
+  // than sliding over it as a hard-edged panel.
+  const feather = "linear-gradient(180deg,transparent 0,#000 clamp(8rem,24svh,15rem))";
+  journey.style.setProperty("mask-image", feather);
+  journey.style.setProperty("-webkit-mask-image", feather);
   journey.style.transition = "none";
   if (reading) {
     reading.style.opacity = "1";

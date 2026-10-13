@@ -270,7 +270,6 @@ html:has(.venue-arrival-journey[data-journey-moving="true"]) { overflow-anchor: 
 /* Phones: each stop starts its reading just below the pinned map. */
 [data-map-compact="true"][data-reading-flow="false"] .venue-journey-chapter { align-items: flex-start; padding-block: 1.75rem 3rem; }
 /* A pin passing beneath the controls, attribution or header fades out. */
-.venue-arrival-journey .venue-journey-point[data-point-visible="false"] { opacity: 0; }
 /* Chapters crossfade in place on phones, so no divider floats between them. */
 [data-map-compact="true"][data-reading-flow="false"][data-journey-ready="true"] .venue-journey-chapter + .venue-journey-chapter { border-block-start: 0; }
 /* Paint isolation: the redrawn thread must never force the large city map to
@@ -280,3 +279,38 @@ html:has(.venue-arrival-journey[data-journey-moving="true"]) { overflow-anchor: 
    moving map every frame; an opaque glass of the same tone replaces it. */
 html:has(.venue-arrival-journey[data-in-view="true"]) .axiom-header .header-glass,
 html:has(.venue-arrival-journey[data-in-view="true"]) .axiom-header .wordmark::before { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: rgb(24 12 40 / .9); }
+
+/* ---- Overview → journey handover ---- */
+/* The light overview melts into the journey instead of meeting it at a hard
+   edge: a fog of the overview's ivory rises off the journey's top edge. */
+/* The overview renders its ivory through its own film grain; match that tone
+   (the page-wide grain then applies to both sides equally). */
+.venue-arrival-journey { --venue-handover: rgb(244 241 235); }
+.venue-arrival-journey::before { content: ""; position: absolute; z-index: 5; inset-inline: 0; inset-block-start: -1px; block-size: clamp(12rem,42svh,26rem); pointer-events: none;
+  background: linear-gradient(180deg,var(--venue-handover) 0%,var(--venue-handover) 10%,color-mix(in srgb,var(--venue-handover) 93%,transparent) 22%,color-mix(in srgb,var(--venue-handover) 80%,transparent) 34%,color-mix(in srgb,var(--venue-handover) 62%,transparent) 46%,color-mix(in srgb,var(--venue-handover) 43%,transparent) 58%,color-mix(in srgb,var(--venue-handover) 26%,transparent) 70%,color-mix(in srgb,var(--venue-handover) 12%,transparent) 82%,color-mix(in srgb,var(--venue-handover) 4%,transparent) 92%,transparent 100%); }
+/* Below the overview the map is a dim horizon; it brightens as it takes over. */
+.venue-journey-atlas::after { content: ""; position: absolute; inset: 0; background: var(--journey-plum); opacity: calc(1 - var(--journey-map,1)); pointer-events: none; }
+/* Journey controls arrive only once the journey covers the screen. */
+.venue-arrival-journey :is(.venue-journey-index,.venue-map-controls,.venue-journey-north,.venue-journey-map-caption,.venue-journey-thread),
+.venue-arrival-journey .venue-journey-point.site-link { opacity: var(--journey-ui,1); }
+.venue-arrival-journey[data-journey-ui="hidden"] :is(.venue-journey-index,.venue-map-controls,.venue-journey-map-caption,.venue-journey-point) { pointer-events: none; }
+.venue-arrival-journey[data-journey-ui="hidden"] :is(.venue-journey-index,.venue-map-controls,.venue-journey-map-caption):focus-within { opacity: 1; pointer-events: auto; }
+.venue-arrival-journey .venue-journey-point.site-link[data-point-visible="false"] { opacity: 0; }
+/* The overview's own content fades as the journey rises over it. */
+.venue-gallery-stage > .site-container { opacity: var(--venue-overview-presence,1); }
+.venue-gallery-stage > .site-container:focus-within { opacity: 1; }
+
+/* Section targets receive programmatic focus for assistive technology after a
+   chapter link; they are not controls and must not draw a focus frame. */
+.venue-arrival-journey :is(.venue-journey-chapter,.venue-journey-reading)[tabindex="-1"]:focus,
+#venue-orientation:focus, #international-attendees:focus, #schedule:focus { outline: none; }
+
+@media (prefers-reduced-motion: reduce), (forced-colors: active), print {
+  .venue-arrival-journey::before, .venue-journey-atlas::after { display: none; }
+}
+/* On phones the map pins just below the header, so a shorter fog clears it
+   by the time the chapter tabs arrive. */
+@media (max-width: 1199px), (max-height: 640px) {
+  .venue-arrival-journey::before { block-size: clamp(7rem,20svh,11rem); }
+}
+.venue-arrival-journey[data-journey-lit="true"] .venue-journey-atlas::after { display: none; }
