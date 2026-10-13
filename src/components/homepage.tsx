@@ -87,7 +87,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
           <Link className="editorial-action" href={`/${locale}/participate`}>{demo.pathwaysLink}<Arrow /></Link>
         </div>
         <div className="pathway-list">{pathways.map((pathway, index) => <article className="pathway-card" key={pathway.href} data-pathway={pathway.href} id={`pathway-${pathway.href.slice(1)}`} tabIndex={-1}>
-          <div className="pathway-photo"><Image src={demoImages.pathways[index]} alt="" fill sizes="(max-width: 760px) 960px, (max-width: 1400px) 100vw, 1450px" /></div>
+          <div className="pathway-photo"><Image src={demoImages.pathways[index]} alt="" fill sizes="(max-width: 800px) 100vw, (max-width: 1400px) 60vw, 850px" /><span className="home-photo-edition" dir="ltr">2026</span></div>
           <div className="pathway-card-body">
             <h3>{pathway.title}</h3>
             <div className="pathway-category"><span>{pathway.category}</span><StatusBadge tone="neutral">{copy.closed}</StatusBadge></div>
@@ -127,14 +127,14 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
     </section>
 
     <section id="legacy" tabIndex={-1} className="editorial-section legacy-section" aria-labelledby="legacy-title">
-      <div className="community-image" aria-hidden="true"><Image src="/media/msrc-demo/community-majed-9804.jpg" alt="" fill sizes="(max-width: 800px) 100vw, 60vw" /></div>
+      <div className="community-image" aria-hidden="true"><Image src="/media/msrc-demo/community-majed-9804.jpg" alt="" fill sizes="(max-width: 800px) 100vw, 60vw" /><span className="home-photo-edition" dir="ltr">2026</span></div>
       <Container>
         <Reveal className="section-topline" stagger><SectionHeading chapter title={expectations.historyTitle} accents={locale === "ar" ? ["ينمو.", "يجمعنا."] : ["community.", "ambition."]} id="legacy-title" inverse /><Link className="editorial-action" href={`/${locale}/media`}>{expectations.legacyLink}<Arrow /></Link></Reveal>
         <p className="legacy-film-note">{expectations.historyBody}</p>
         <HistoryNumbers locale={locale} />
         <HorizontalRail className="gallery-rail" locale={locale} label={demo.galleryRail}>
           {demoImages.gallery.map((photo) => <figure className="gallery-card" key={photo.src}>
-            <div className="gallery-photo"><Image src={photo.src} alt={photo.alt[locale]} fill sizes="(max-width: 600px) 84vw, (max-width: 1100px) 62vw, 44vw" /></div>
+            <div className="gallery-photo" style={{ aspectRatio: `${photo.width} / ${photo.height}` }}><Image src={photo.src} alt={photo.alt[locale]} fill sizes="(max-width: 600px) 84vw, (max-width: 1100px) 62vw, 44vw" /><span className="home-photo-edition" dir="ltr">{photo.edition}</span></div>
             <figcaption><span>{photo.caption[locale]}</span></figcaption>
           </figure>)}
         </HorizontalRail>

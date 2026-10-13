@@ -1,5 +1,26 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-040 — Edition photos and responsive album, 13 October 2026
+
+The organizer supplied a specific 22-file 2023–2026 Drive folder and requested
+homepage/album use, subject-centered desktop/mobile framing, four-digit year
+labels at the bottom-right inside each photo, and album order 2026 → 2023.
+The dedicated “Build on an idea (2026)” photo is homepage-only; the remaining
+17 photos and four clips form the archive. This explicit asset/placement request
+supersedes older pending-selection status for these files only.
+
+Preserve the original scene and supplied filename year. Use natural photo
+proportions in the album and responsive homepage framing instead of forcing
+all images through a centered portrait crop. Labels use the requested digits
+and physical bottom-right placement in both EN and AR. Keep historical content
+distinct from unannounced 2027 people/programme. No public download controls or
+third-party embeds; no operational opening, hosted change or automatic merge.
+
+This records requester selection, not an independent institutional rights audit.
+Inventory, derivative identity, implementation and observed verification are in
+[the feature note](features/edition-photo-album.md). Requirements: MED-01–04,
+ARC-01, CMS-04, LOC-01/03, ACC-01 and DSN-01/02.
+
 ## ENG-039 — One gesture, one Venue journey stop, 12 October 2026
 
 The organizer reports that the Venue journey only works when scrolled in a

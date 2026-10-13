@@ -94,9 +94,16 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
 .pathways-introduction > .pathways-archive-note { font-size: 1rem; max-inline-size: 32ch; margin-block-start: 4rem; color: var(--color-muted); }
 .pathway-list { display: grid; gap: clamp(2rem, 4vw, 4rem); min-inline-size: 0; }
 .pathway-card { position: relative; overflow: hidden; border-radius: 16px; background: var(--color-ink); color: var(--color-ivory); min-block-size: 36rem; display: flex; align-items: end; isolation: isolate; }
-.pathway-photo { position: absolute; inset: 0; z-index: -2; }
-.pathway-photo img { object-fit: cover; transition: transform 750ms cubic-bezier(.22,.68,.3,1); }
-.pathway-card::before { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg, #1f193000 10%, #1f193048 42%, #130e20f5 100%); }
+.pathway-photo { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.pathway-photo img { object-fit: cover; object-position: var(--pathway-focus, 50% 50%); }
+.pathway-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #1f193000 10%, #1f193048 42%, #130e20f5 100%); }
+.pathway-card[data-pathway='/registration'] { --pathway-focus: 70% 50%; }
+.pathway-card[data-pathway='/submissions'] { --pathway-focus: 45% 48%; }
+.pathway-card[data-pathway='/workshops'] { --pathway-focus: 46% 48%; }
+.pathway-card[data-pathway='/hackathon'] { --pathway-focus: 55% 38%; }
+.pathway-card[data-pathway='/3mt'] { --pathway-focus: 0% 50%; }
+.home-photo-edition { position: absolute; right: .75rem; bottom: .75rem; z-index: 2; padding: .25rem .6rem; border-radius: 4px; background: rgb(31 25 48 / .9); color: var(--color-ivory); font-family: var(--font-interface); font-size: .875rem; font-weight: 650; line-height: 1.5; font-variant-numeric: tabular-nums; pointer-events: none; }
+.pathway-photo .home-photo-edition { bottom: .45rem; right: .6rem; font-size: .75rem; padding-block: .1rem; }
 .pathway-card-body { position: relative; inline-size: 100%; min-inline-size: 0; padding: clamp(1.5rem, 3vw, 3rem); }
 .pathway-category { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; font-size: 1.1rem; margin-block: 1.25rem; margin-inline: 0; }
 .pathway-category > :first-child { background: #1f1930d9; padding: .4rem .85rem; border-radius: 999px; }
@@ -194,10 +201,8 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
 .city-control svg { inline-size: 22px; block-size: 22px; }
 
 @media (hover:hover) and (pointer:fine) {
-  .pathway-card:hover .pathway-photo img, .pathway-card:focus-within .pathway-photo img { transform: scale(1.045); }
   .pathway-action:hover, .speaker-preview-link:hover { background: var(--color-gold); color: var(--color-ink); border-color: var(--color-gold); transform: rotate(-10deg); }
   .speaker-preview-card:hover > img, .speaker-preview-card:focus-within > img, .speaker-preview-card:hover .speaker-preview-portrait img { transform: scale(1.055); filter: saturate(1.05) brightness(1.12); }
-  .gallery-card:hover img { transform: scale(1.06); }
   .program-cinema:hover > img { transform: scale(1.035); }
   .rail-buttons button:hover:not(:disabled) { background: var(--color-purple); color: var(--color-ivory); }
   .legacy-section .rail-buttons button:hover:not(:disabled) { background: var(--color-gold); color: var(--color-ink); }
@@ -249,7 +254,13 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
   .intro-grid, .pathways-layout, .program-opening, .faq-grid { grid-template-columns: minmax(0,1fr); }
   .pathways-introduction, .faq-introduction { position: static; }
   .pathways-introduction > .archive-note { margin-block-start: 1.5rem; max-inline-size: 50ch; }
-  .pathway-card { min-block-size: 38rem; }
+  .pathway-card { min-block-size: 0; display: block; }
+  .pathway-photo { position: relative; inset: auto; aspect-ratio: 4 / 3; z-index: 0; }
+  .pathway-photo::after { display: none; }
+  .pathway-photo .home-photo-edition { bottom: .75rem; right: .75rem; font-size: .875rem; padding-block: .25rem; }
+  /* The speaker occupies the left quarter of this source. Frame that portion
+     in physical coordinates for both locales, without covering him with copy. */
+  .pathway-card[data-pathway='/3mt'] .pathway-photo img { left: 0 !important; right: auto !important; width: 190% !important; max-width: none; object-position: 0% 40%; }
   .date-band-inner { align-items: start; flex-direction: column; }
   .event-strip { flex-wrap: wrap; gap: 2rem; }
   .program-experiences { gap: 1.5rem; }
@@ -282,7 +293,6 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
   .event-strip dd { font-size: 1.15rem; }
   .intro-grid { gap: 2rem; }
   .intro-statement { font-size: 1.65rem; }
-  .pathway-card { min-block-size: 34rem; }
   .pathway-card-body { padding: 1.5rem; }
   .pathway-card h3 { font-size: clamp(1.9rem,8vw,2.7rem); }
   .pathway-card-body > p { padding-inline-end: 0; font-size: 1rem; margin-block-end: 4.25rem; }

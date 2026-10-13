@@ -93,7 +93,10 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/speakers`);
     await expect(page.locator(".conference-speaker-card")).toHaveCount(0);
     await page.goto(`/${locale}/media`);
-    await expect(page.getByTestId("media-catalogue").locator("video, iframe, audio, .conference-media-card")).toHaveCount(0);
+    await expect(page.getByTestId("media-catalogue").locator(".conference-media-card")).toHaveCount(21);
+    await expect(page.getByTestId("media-catalogue").locator("iframe, audio")).toHaveCount(0);
+    await page.getByTestId("media-edition").selectOption("2027");
+    await expect(page.getByTestId("media-catalogue").locator("video, .conference-media-card")).toHaveCount(0);
     expect(errors).toEqual([]);
     expect(writes).toEqual([]);
   });
@@ -175,7 +178,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator('a[href*="/program/"]')).toHaveCount(0);
   });
 
-  test(`${locale} media filters distinguish editions without inventing a playable recording`, async ({ page }) => {
+  test(`${locale} media filters distinguish the supplied archive from unpublished 2027 recordings`, async ({ page }) => {
     const writes: string[] = [];
     page.on("request", (request) => {
       if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url());
@@ -188,7 +191,13 @@ for (const locale of ["en", "ar"] as const) {
     await edition.selectOption("2027");
     await expect(page.getByTestId("media-empty")).toContainText(locale === "en" ? /2027/ : /٢٠٢٧/);
     await edition.selectOption("2026");
-    await expect(page.getByTestId("media-empty")).toContainText(locale === "en" ? /2026/ : /٢٠٢٦/);
+    await expect(page.locator(".conference-media-card")).toHaveCount(13);
+    await expect(page.locator(".conference-media-card[data-media-kind=photograph]")).toHaveCount(9);
+    await expect(page.locator(".conference-media-card video")).toHaveCount(4);
+    await page.getByTestId("media-kind").selectOption("recording");
+    await expect(page.locator(".conference-media-card")).toHaveCount(0);
+    await expect(page.getByTestId("media-empty")).toContainText(locale === "en" ? /no.*match/i : /مطابق/);
+    await page.getByTestId("media-kind").selectOption("all");
     const search = page.getByTestId("media-search");
     await search.fill("a recording that does not exist");
     await expect(page.getByTestId("media-empty")).toContainText(locale === "en" ? /no.*match/i : /مطابق/);
@@ -204,7 +213,85 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("media-search")).toHaveValue("");
     await expect(page.getByTestId("media-edition")).toHaveValue("all");
     await expect(page.getByTestId("media-kind")).toHaveValue("all");
+    await expect(page.locator(".conference-media-card")).toHaveCount(21);
     expect(writes).toEqual([]);
+  });
+
+  test(`${locale} archive starts with 2026 and preserves every photo with its year inside the bottom right`, async ({ page }, testInfo) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${locale}/media`);
+    const groups = page.locator(".conference-media-edition");
+    await expect(groups).toHaveCount(4);
+    expect(await groups.evaluateAll((sections) => sections.map((section) => section.getAttribute("data-edition"))))
+      .toEqual(["2026", "2025", "2024", "2023"]);
+    for (const [year, count] of [["2026", 13], ["2025", 4], ["2024", 2], ["2023", 2]] as const) {
+      const group = page.locator(`.conference-media-edition[data-edition="${year}"]`);
+      await expect(group.getByRole("heading", { level: 2 })).toHaveText(`MSRC ${year}`);
+      await expect(group.locator(".conference-media-card")).toHaveCount(count);
+    }
+
+    const photos = page.locator(".conference-media-player--photo");
+    await expect(photos).toHaveCount(17);
+    for (const photo of await photos.all()) {
+      await photo.scrollIntoViewIfNeeded();
+      const picture = photo.locator("img");
+      await expect.poll(() => picture.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+      const frame = await photo.evaluate((element) => {
+        const image = element.querySelector("img")!;
+        const year = element.querySelector(".conference-media-year")!;
+        const imageBox = image.getBoundingClientRect();
+        const frameBox = element.getBoundingClientRect();
+        const yearBox = year.getBoundingClientRect();
+        return {
+          sourceRatio: image.naturalWidth / image.naturalHeight,
+          renderedRatio: imageBox.width / imageBox.height,
+          imageWidth: imageBox.width, frameWidth: frameBox.width,
+          imageHeight: imageBox.height, frameHeight: frameBox.height,
+          fit: getComputedStyle(image).objectFit, transform: getComputedStyle(image).transform,
+          year: year.textContent, edition: element.closest("[data-edition]")!.getAttribute("data-edition"),
+          rightInset: imageBox.right - yearBox.right, bottomInset: imageBox.bottom - yearBox.bottom,
+          rightHalf: yearBox.left > imageBox.left + imageBox.width / 2,
+          bottomHalf: yearBox.top > imageBox.top + imageBox.height / 2,
+          imageAlt: image.alt,
+        };
+      });
+      expect(frame.imageAlt).not.toBe("");
+      // Entire source framing must survive both mobile and desktop layout;
+      // a cover crop, height constraint or zoom would fail these assertions.
+      expect(frame.renderedRatio).toBeCloseTo(frame.sourceRatio, 2);
+      expect(frame.imageWidth).toBeCloseTo(frame.frameWidth, 0);
+      expect(frame.imageHeight).toBeCloseTo(frame.frameHeight, 0);
+      expect(frame.fit).toBe("contain");
+      expect(frame.transform).toBe("none");
+      expect(frame.year).toBe(frame.edition);
+      expect(frame.year).toMatch(/^202[3-6]$/);
+      expect(frame.rightInset).toBeGreaterThan(0);
+      expect(frame.bottomInset).toBeGreaterThan(0);
+      expect(frame.rightHalf).toBe(true);
+      expect(frame.bottomHalf).toBe(true);
+    }
+    await expectNoHorizontalOverflow(page);
+    await testInfo.attach(`${locale}-archive-last-edition`, { body: await groups.last().screenshot(), contentType: "image/png" });
+
+    const edition = page.getByTestId("media-edition");
+    const kind = page.getByTestId("media-kind");
+    await kind.selectOption("photograph");
+    await expect(page.locator(".conference-media-card")).toHaveCount(17);
+    for (const [year, count] of [["2026", 9], ["2025", 4], ["2024", 2], ["2023", 2]] as const) {
+      await edition.selectOption(year);
+      await expect(page.locator(".conference-media-card")).toHaveCount(count);
+      await expect(page.locator(".conference-media-year")).toHaveText(Array.from({ length: count }, () => year));
+    }
+    await page.getByTestId("media-clear").click();
+    await kind.selectOption("highlight");
+    await expect(page.locator(".conference-media-card")).toHaveCount(4);
+    const videos = page.locator(".conference-media-card video");
+    await expect(videos).toHaveCount(4);
+    for (const video of await videos.all()) {
+      await expect(video).toHaveAttribute("controls", "");
+      await expect(video).toHaveAttribute("preload", "none");
+      await expect(video).not.toHaveAttribute("autoplay");
+    }
   });
 
   test(`${locale} same-route programme and media navigation clears selected filters`, async ({ page }) => {
@@ -231,7 +318,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("media-search")).toHaveValue("");
     await expect(page.getByTestId("media-edition")).toHaveValue("all");
     await expect(page.getByTestId("media-kind")).toHaveValue("all");
-    await expect(page.getByTestId("media-empty")).not.toContainText(locale === "en" ? /no.*match/i : /مطابق/);
+    await expect(page.getByTestId("media-empty")).toHaveCount(0);
+    await expect(page.locator(".conference-media-card")).toHaveCount(21);
   });
 
   test(`${locale} rendered language links preserve current filters and fragment when followed in a new tab`, async ({ page }) => {

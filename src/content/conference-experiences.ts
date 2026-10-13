@@ -15,9 +15,15 @@ export type PublicSpeaker = Readonly<{
   institution: string; biography: string; portrait: string | null;
   portraitAlt: LocalizedText; professionalLinks: readonly Readonly<{ label: string; href: string }>[];
 }>;
+export type MediaEdition = 2023 | 2024 | 2025 | 2026 | 2027;
+export type MediaEditionFilter = "all" | `${MediaEdition}`;
 type MediaBase = Readonly<{
   slug: string; publication: "approved" | "draft"; title: string; description: string;
-  edition: 2026 | 2027; kind: "recording" | "highlight" | "photograph";
+  edition: MediaEdition; kind: "recording" | "highlight" | "photograph";
+  /** Archive captions are bilingual; scientific recording titles remain English. */
+  titleAr?: string; descriptionAr?: string;
+  /** Actual derivative dimensions preserve the complete photograph at every viewport. */
+  width?: number; height?: number;
   topic: string; speakerNames: readonly string[]; durationSeconds: number | null;
   sessionSlug: string | null;
 }>;
@@ -50,14 +56,14 @@ export function filterSessions(records: readonly PublicSession[], filters: {
 }
 
 export function filterMedia(records: readonly PublicMedia[], filters: {
-  edition: "all" | "2026" | "2027"; kind: string; query: string;
+  edition: MediaEditionFilter; kind: string; query: string;
 }): PublicMedia[] {
   const query = filters.query.trim().toLocaleLowerCase();
   return published(records).filter((record) =>
     (filters.edition === "all" || String(record.edition) === filters.edition) &&
     (filters.kind === "all" || record.kind === filters.kind) &&
-    (!query || `${record.title} ${record.topic} ${record.speakerNames.join(" ")}`.toLocaleLowerCase().includes(query)),
-  );
+    (!query || `${record.title} ${record.titleAr ?? ""} ${record.description} ${record.descriptionAr ?? ""} ${record.topic} ${record.speakerNames.join(" ")}`.toLocaleLowerCase().includes(query)),
+  ).sort((a, b) => b.edition - a.edition);
 }
 
 export type ExperiencePageId = "program" | "speakers" | "media" | "participate" | "registration" | "submissions" | "hackathon" | "workshops" | "threeMinuteThesis";

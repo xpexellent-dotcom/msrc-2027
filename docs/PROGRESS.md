@@ -1,5 +1,31 @@
 # Progress and session handover
 
+## 13 October 2026 — Edition photo update and responsive album, ENG-040
+
+- Reconciled fresh main `3550d27` into isolated `codex/edition-photo-update`;
+  the older checkout's local work is preserved.
+- Retrieved all 22 organizer-selected Drive files: 17 photos and four clips in
+  the album, plus the dedicated 2026 Build on an idea homepage photograph.
+  Supplied filename years are authoritative. Added optimized derivatives,
+  bilingual descriptions, bottom-right numeric year labels, and descending
+  2026/2025/2024/2023 sections with existing URL filters.
+- Album photographs preserve full natural proportions. Homepage mobile photo
+  space is separated from copy; the 3MT speaker stays visible and the new Build
+  photo replaces the old forced zoom. Six supplied homepage highlights retain
+  their natural composition and correct years.
+- PASS `pnpm check`: lint, types, 2,402 units/61 files, 81-page production build.
+  PASS focused browser suites: 62 passed/two existing duplicate matrix skips,
+  zero failures or retries. PASS six EN/AR visual runs at 390/900/1440px,
+  all four actual video decodes, and diff check. Independent source review found
+  no actionable implementation blocker. Detailed receipts and scope:
+  [edition photo feature note](features/edition-photo-album.md).
+- Original video audio is preserved; human speech/caption review, physical
+  devices, screen readers and non-Chromium engines remain NOT TESTED. Hosted
+  CI/Preview and live publication are PENDING. No merge, operational activation,
+  database, service configuration or participant communication changed.
+- Next: review the draft change and audio, then authorized publication with
+  current hosted and live evidence.
+
 ## 12 October 2026 — One gesture per Venue journey stop, ENG-039
 
 - Organizer request: the journey must work for fast and slow scrolling, move one

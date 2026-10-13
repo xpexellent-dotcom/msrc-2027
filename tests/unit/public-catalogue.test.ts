@@ -47,6 +47,17 @@ const media: PublicMedia[] = [
 ];
 
 describe("public media catalogue (MED-01/04, CMS-04)", () => {
+  it("orders archive editions newest first and combines older-edition filters with Arabic captions", () => {
+    const archive: PublicMedia[] = ([2023, 2025, 2024, 2026] as const).map((edition) => ({
+      ...mediaBase, slug: `synthetic-photo-${edition}`, edition,
+      kind: "photograph", titleAr: "نقاش بحثي", descriptionAr: "عرض على المسرح", access: "public", asset: "/synthetic-test-only.webp", poster: null,
+    }));
+    const before = [...archive];
+    expect(filterMedia(archive, { edition: "all", kind: "all", query: "" }).map((record) => record.edition)).toEqual([2026, 2025, 2024, 2023]);
+    expect(filterMedia(archive, { edition: "2024", kind: "photograph", query: "  المسرح  " }).map((record) => record.slug)).toEqual(["synthetic-photo-2024"]);
+    expect(filterMedia(archive, { edition: "2023", kind: "recording", query: "" })).toEqual([]);
+    expect(archive).toEqual(before);
+  });
   it("combines edition, kind and speaker/topic queries without exposing unapproved recordings", () => {
     expect(filterMedia(media, { edition: "2027", kind: "recording", query: "  SYNTHETIC SPEAKER " }).map((record) => record.slug)).toEqual(["synthetic-recording", "synthetic-pending", "synthetic-restricted"]);
     expect(filterMedia(media, { edition: "2026", kind: "highlight", query: "evidence" }).map((record) => record.slug)).toEqual(["synthetic-previous"]);

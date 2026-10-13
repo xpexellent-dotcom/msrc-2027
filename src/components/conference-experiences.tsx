@@ -17,7 +17,7 @@ import { AmbientArtwork } from "@/components/ambient-artwork";
 import { datesVenueCopy } from "@/content/dates-venue";
 import {
   experienceCopy, filterMedia, filterSessions, participationPaths, published,
-  type ConferenceDay, type ExperiencePageId, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
+  type ConferenceDay, type ExperiencePageId, type MediaEditionFilter, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
 } from "@/content/conference-experiences";
 import { conferenceConfig } from "@/config/conference";
 import { formatIndex, formatMinutes, formatResultCount, type Locale } from "@/lib/i18n";
@@ -33,8 +33,8 @@ const serverSnapshot = () => false;
 function queryDay(value?: string): "all" | ConferenceDay {
   return value === "day1" || value === "day2" ? value : "all";
 }
-function queryEdition(value?: string): "all" | "2026" | "2027" {
-  return value === "2026" || value === "2027" ? value : "all";
+function queryEdition(value?: string): MediaEditionFilter {
+  return value === "2023" || value === "2024" || value === "2025" || value === "2026" || value === "2027" ? value : "all";
 }
 // Writes only the filters that changed, onto the current address. The rendered values lag the
 // address until React re-renders, so writing them all let a second quick change put back a
@@ -197,9 +197,10 @@ export function MediaExperience({ locale, media, sessions }: { locale: Locale; m
   const edition = queryEdition(addressQuery.get("edition") ?? undefined);
   const kind = addressQuery.get("kind") ?? "all";
   const records = filterMedia(media, { query, edition, kind });
+  const editions = [...new Set(records.map((record) => record.edition))];
   const filtering = query.trim() !== "" || kind !== "all";
   const hasActiveFilters = filtering || edition !== "all";
-  function change(values: Partial<{ q: string; edition: "all" | "2026" | "2027"; kind: string }>) {
+  function change(values: Partial<{ q: string; edition: MediaEditionFilter; kind: string }>) {
     if (!hydrated) return;
     updateAddress(values);
   }
@@ -211,52 +212,42 @@ export function MediaExperience({ locale, media, sessions }: { locale: Locale; m
   return <><ExperienceIntro locale={locale} page="media" /><section className="experience-catalogue" data-testid="media-catalogue"><Container>
     <div className="experience-filters">
       <label className="experience-search" htmlFor="media-search">{copy.searchMedia}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="media-search" data-testid="media-search" type="search" value={query} disabled={!hydrated} placeholder={copy.searchMediaPlaceholder} onChange={(event) => change({ q: event.target.value })} /></span></label>
-      <label htmlFor="media-edition">{copy.edition}<select id="media-edition" data-testid="media-edition" value={edition} disabled={!hydrated} onChange={(event) => change({ edition: queryEdition(event.target.value) })}><option value="all">{copy.allEditions}</option><option value="2026">MSRC 2026</option><option value="2027">MSRC 2027</option></select></label>
+      <label htmlFor="media-edition">{copy.edition}<select id="media-edition" data-testid="media-edition" value={edition} disabled={!hydrated} onChange={(event) => change({ edition: queryEdition(event.target.value) })}><option value="all">{copy.allEditions}</option>{[2026, 2025, 2024, 2023, 2027].map((year) => <option value={year} key={year}>MSRC {year}</option>)}</select></label>
       <label htmlFor="media-kind">{copy.mediaKind}<select id="media-kind" data-testid="media-kind" value={kind} disabled={!hydrated} onChange={(event) => change({ kind: event.target.value })}><option value="all">{copy.allMedia}</option><option value="recording">{copy.recordings}</option><option value="highlight">{copy.highlights}</option><option value="photograph">{copy.photographs}</option></select></label>
     </div>
     <div className={`experience-result-bar${!records.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!records.length ? "sr-only" : undefined} role="status" aria-live="polite">{records.length ? formatResultCount(records.length, locale) : filtering ? copy.noResults : copy.mediaPending}</p>{hasActiveFilters ? <Button variant="ghost" size="small" data-testid="media-clear" disabled={!hydrated} onClick={clear}>{copy.clear}</Button> : null}</div>
-    {records.length ? <div className="conference-media-grid">{records.map((record) => <MediaCard locale={locale} record={record} session={published(sessions).find((session) => session.slug === record.sessionSlug)} key={record.slug} />)}</div> : <EmptyCatalogue testId="media-empty" title={filtering ? copy.noResults : copy.mediaPending} body={filtering ? copy.noResultsBody : editionText} />}
+    {records.length ? <div className="conference-media-albums">{editions.map((year) => <section className="conference-media-edition" data-edition={year} aria-labelledby={`media-edition-${year}`} key={year}>
+      <h2 id={`media-edition-${year}`} dir="ltr">MSRC {year}</h2>
+      <div className="conference-media-grid">{records.filter((record) => record.edition === year).map((record) => <MediaCard locale={locale} record={record} session={published(sessions).find((session) => session.slug === record.sessionSlug)} key={record.slug} />)}</div>
+    </section>)}</div> : <EmptyCatalogue testId="media-empty" title={filtering ? copy.noResults : copy.mediaPending} body={filtering ? copy.noResultsBody : editionText} />}
     <p className="experience-access-note" data-testid="media-access-note">{copy.accessNote}</p>
-  </Container></section><MediaArchivePreview locale={locale} /><ExploreBand locale={locale} title={copy.previousTitle} href="/#film" label={copy.previousLink} /></>;
-}
-
-function MediaArchivePreview({ locale }: { locale: Locale }) {
-  const copy = locale === "ar" ? {
-    title: "من MSRC ٢٠٢٦.",
-    body: "على المسرح وبين الجلسات، تفتح الأفكار بابًا لحوارات جديدة. عُد إلى لحظات جمعت مجتمع MSRC.",
-    label: "معرض صور MSRC ٢٠٢٦",
-    images: [
-      ["gallery-stage.jpg", "مقدمان على مسرح MSRC ٢٠٢٦"],
-      ["attend-audience.jpg", "الحضور في قاعة MSRC ٢٠٢٦"],
-      ["gallery-presentation.jpg", "عرض على مسرح MSRC ٢٠٢٦"],
-      ["gallery-awards.jpg", "لحظة تكريم في MSRC ٢٠٢٦"],
-      ["gallery-community.jpg", "لقاء في بهو MSRC ٢٠٢٦"],
-      ["gallery-msrc2026.jpg", "من مساحة التصوير في MSRC ٢٠٢٦"],
-    ],
-  } : {
-    title: "From MSRC 2026.",
-    body: "On stage and between sessions, ideas become conversations. Revisit the moments that brought our community together.",
-    label: "MSRC 2026 photo gallery",
-    images: [
-      ["gallery-stage.jpg", "Two presenters on the MSRC 2026 stage"],
-      ["attend-audience.jpg", "The audience at MSRC 2026"],
-      ["gallery-presentation.jpg", "A presentation on the MSRC 2026 stage"],
-      ["gallery-awards.jpg", "An award presentation at MSRC 2026"],
-      ["gallery-community.jpg", "A moment together in the MSRC 2026 foyer"],
-      ["gallery-msrc2026.jpg", "The MSRC 2026 photo area"],
-    ],
-  };
-  return <section className="interior-archive-gallery" aria-labelledby="interior-archive-title"><Container>
-    <div className="interior-archive-heading"><h2 id="interior-archive-title">{copy.title}</h2><p>{copy.body}</p></div>
-    <HorizontalRail locale={locale} label={copy.label}>
-      {copy.images.map(([file, caption]) => <figure className="interior-archive-card" key={file}><Image src={`/media/msrc-demo/${file}`} alt={caption} width={1800} height={1200} sizes="(max-width: 700px) 86vw, 45vw" /><figcaption>{caption}</figcaption></figure>)}
-    </HorizontalRail>
-  </Container></section>;
+  </Container></section><ExploreBand locale={locale} title={copy.previousTitle} href="/#film" label={copy.previousLink} /></>;
 }
 
 export function MediaCard({ locale, record, session }: { locale: Locale; record: PublicMedia; session?: PublicSession }) {
   const copy = experienceCopy[locale];
-  return <article className="conference-media-card"><div className="conference-media-player">{record.access === "public" ? record.kind === "photograph" ? <Image src={record.asset} alt={record.description} fill sizes="(max-width: 600px) 90vw, 45vw" /> : <video controls playsInline preload="none" poster={record.poster ?? undefined} src={record.asset} aria-label={record.title}>{record.captions?.map((caption, index) => <track key={caption.src} kind="captions" src={caption.src} srcLang={caption.language} label={caption.label} default={index === 0} />)}</video> : <div className="conference-media-unavailable"><ResearchVisual variant={2} /><p>{record.access === "restricted" ? copy.recordingRestricted : copy.recordingPending}</p></div>}</div><div className="conference-media-copy"><p className="eyebrow">MSRC {record.edition}{record.durationSeconds ? ` · ${formatMinutes(Math.ceil(record.durationSeconds / 60), locale)}` : ""}</p><h2 lang="en" dir="ltr">{record.title}</h2>{record.speakerNames.length ? <p dir="ltr">{record.speakerNames.join(" · ")}</p> : null}{record.topic ? <p lang="en" dir="ltr">{record.topic}</p> : null}{session && session.publication === "approved" && session.slug === record.sessionSlug && record.edition === 2027 ? <Link href={`/${locale}/program/${session.slug}`}>{copy.sessionDetails}<Arrow /></Link> : null}</div></article>;
+  const isPhoto = record.kind === "photograph" && record.access === "public";
+  const title = locale === "ar" && record.titleAr ? record.titleAr : record.title;
+  const description = locale === "ar" && record.descriptionAr ? record.descriptionAr : record.description;
+  const captionLocale = locale === "ar" && record.titleAr ? "ar" : "en";
+  const duration = record.durationSeconds ? record.durationSeconds < 60
+    ? new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { style: "unit", unit: "second", unitDisplay: "long", maximumFractionDigits: 1 }).format(record.durationSeconds)
+    : formatMinutes(Math.ceil(record.durationSeconds / 60), locale) : null;
+  return <article className="conference-media-card" data-media-kind={record.kind}>
+    <div className={`conference-media-player${isPhoto ? " conference-media-player--photo" : ""}`} style={!isPhoto && record.width && record.height ? { aspectRatio: `${record.width} / ${record.height}` } : undefined}>
+      {record.access === "public" ? record.kind === "photograph" ? <>
+        <Image src={record.asset} alt={description} width={record.width ?? 1600} height={record.height ?? 1067} sizes="(max-width: 600px) 90vw, 45vw" />
+        <span className="conference-media-year" dir="ltr">{record.edition}</span>
+      </> : <video controls playsInline preload="none" poster={record.poster ?? undefined} src={record.asset} aria-label={title}>{record.captions?.map((caption, index) => <track key={caption.src} kind="captions" src={caption.src} srcLang={caption.language} label={caption.label} default={index === 0} />)}</video> : <div className="conference-media-unavailable"><ResearchVisual variant={2} /><p>{record.access === "restricted" ? copy.recordingRestricted : copy.recordingPending}</p></div>}
+    </div>
+    <div className="conference-media-copy">
+      <h3 lang={captionLocale} dir={captionLocale === "ar" ? "rtl" : "ltr"}>{title}</h3>
+      {!isPhoto ? <p><bdi>MSRC {record.edition}</bdi>{duration ? ` · ${duration}` : ""}</p> : null}
+      {record.speakerNames.length ? <p dir="ltr">{record.speakerNames.join(" · ")}</p> : null}
+      {record.topic ? <p lang="en" dir="ltr">{record.topic}</p> : null}
+      {session && session.publication === "approved" && session.slug === record.sessionSlug && record.edition === 2027 ? <Link href={`/${locale}/program/${session.slug}`}>{copy.sessionDetails}<Arrow /></Link> : null}
+    </div>
+  </article>;
 }
 
 export function ParticipateExperience({ locale }: { locale: Locale }) {
