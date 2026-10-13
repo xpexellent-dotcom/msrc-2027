@@ -226,7 +226,7 @@ test("homepage gallery captions describe the previous editions in each language"
   for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
     const captions = page.locator(".gallery-card figcaption > span");
-    await expect(captions).toHaveCount(8);
+    await expect(captions).toHaveCount(6);
     for (const caption of await captions.all()) {
       await expect(caption).toHaveText(/\S+/);
       await expect(caption).not.toHaveText(locale === "en" ? "MSRC 2026" : "مؤتمر ٢٠٢٦");

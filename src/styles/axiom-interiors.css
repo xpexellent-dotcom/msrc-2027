@@ -48,8 +48,7 @@
 .conference-speaker-portrait, .conference-media-player { border-radius: 16px; }
 .conference-speaker-copy { padding-block: 1.7rem; }
 .conference-speaker-copy h2 { font-size: 1.8rem; font-weight: 500; }
-.conference-speaker-copy p, .conference-media-copy > p, .conference-media-copy .eyebrow { font-size: 1rem; }
-.conference-media-copy h2 { font-size: clamp(1.8rem, 2.8vw, 2.5rem); font-weight: 500; }
+.conference-speaker-copy p, .conference-media-copy > p { font-size: 1rem; }
 .conference-media-grid { gap: 3rem 2rem; }
 .experience-pathway { padding-block: clamp(2.5rem, 5vw, 4rem); }
 .experience-pathway h2 { font-size: clamp(2.2rem, 3.6vw, 3.5rem); font-weight: 500; }
@@ -78,15 +77,6 @@
 .programme-archive-panel > img { display: block; inline-size: 100%; block-size: clamp(19rem, 35vw, 35rem); object-fit: cover; object-position: center 38%; }
 .programme-archive-panel > figcaption { padding: 1.25rem var(--container-gutter); color: var(--color-lilac); font-size: 1rem; line-height: 1.6; }
 .speaker-page-preview { padding-block: 1rem 2rem; }
-.interior-archive-gallery { --focus-ring: var(--color-ivory); padding-block: clamp(4.5rem, 8vw, 8rem); background: var(--color-ink); color: var(--color-ivory); }
-.interior-archive-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 5rem); align-items: end; }
-.interior-archive-heading h2 { margin: 0; font-family: var(--font-display); font-size: clamp(2.6rem, 5vw, 4.5rem); font-weight: 500; line-height: 1.15; letter-spacing: -.035em; }
-.interior-archive-heading p { max-inline-size: 55ch; color: var(--color-lilac); font-size: 1.1875rem; line-height: 1.75; overflow-wrap: anywhere; }
-.interior-archive-gallery .rail-tools > p { color: var(--color-lilac); }
-.interior-archive-gallery .rail-buttons button { color: var(--color-ivory); border-color: var(--color-inverse-line); }
-.interior-archive-card { margin: 0; flex: 0 0 min(45vw, 43rem); min-inline-size: 0; }
-.interior-archive-card img { inline-size: 100%; aspect-ratio: 3 / 2; block-size: auto; object-fit: cover; border-radius: 16px; }
-.interior-archive-card figcaption { margin-block-start: 1.25rem; font-size: 1.0625rem; color: var(--color-lilac); line-height: 1.7; }
 
 /* Reading pages use the same scale without changing approved public or legal wording. */
 .about-hero-grid, .contact-hero-grid, .dates-hero-grid, .policy-hero-grid { padding-block-start: clamp(2rem, 4vw, 4rem); }
@@ -191,7 +181,6 @@
 
 html[lang="ar"] :is(.experience-intro h1, .about-hero-copy h1, .contact-hero h1, .dates-hero h1, .policy-hero h1, .people-page-heading h1) { font-size: clamp(3rem, 6vw, 5.3rem); font-weight: 500; line-height: 1.5; letter-spacing: 0; }
 [lang="ar"] :is(.team-group > h2, .team-card-copy h3, .people-next h2, .sponsor-tier-heading h2) { line-height: 1.5; letter-spacing: 0; }
-[lang="ar"] .interior-archive-heading h2 { letter-spacing: 0; line-height: 1.5; }
 
 @media (max-width: 1000px) {
   .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -209,8 +198,6 @@ html[lang="ar"] :is(.experience-intro h1, .about-hero-copy h1, .contact-hero h1,
   .programme-days { border-radius: 16px; }
   .programme-days button { border-radius: 12px; text-align: center; }
   .people-next > .site-container { flex-direction: column; align-items: start; }
-  .interior-archive-heading { grid-template-columns: minmax(0, 1fr); }
-  .interior-archive-card { flex-basis: 86vw; }
   .programme-archive-panel > img { block-size: auto; aspect-ratio: 3 / 2; }
   .team-grid { gap: 2rem 1.25rem; }
   .team-portrait { min-block-size: 14rem; }

@@ -1,39 +1,73 @@
 import { expect, test } from "@playwright/test";
 
-// ENG-024: preserve the explicitly requested physical crop across RTL and LTR,
+// Keep the selected subjects inside the actual visible bitmap, across RTL/LTR,
 // and reserve real caption space beside the speaker action on narrow screens.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} selected photograph stays left-framed and speaker captions clear their action`, async ({ page }, testInfo) => {
+  test(`${locale} selected photographs preserve their subjects and captions clear their action`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width: testInfo.project.name === "chromium-mobile" ? 390 : 1440, height: 960 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await page.evaluate(() => document.fonts.ready);
-    const photo = page.locator("[data-pathway='/hackathon'] .pathway-photo img");
-    await photo.scrollIntoViewIfNeeded();
-    const framing = await photo.evaluate(async (element: HTMLImageElement) => {
-      await element.decode();
-      const bitmap = await createImageBitmap(await (await fetch(element.currentSrc)).blob());
-      const bitmapWidth = bitmap.width;
-      const aspect = bitmap.width / bitmap.height;
-      bitmap.close();
-      const image = element.getBoundingClientRect();
-      const frame = element.parentElement!.getBoundingClientRect();
-      const coveredWidth = Math.max(image.width, image.height * aspect);
-      const position = parseFloat(getComputedStyle(element).objectPosition) || 0;
-      const contentLeft = image.left + (image.width - coveredWidth) * position / 100;
-      return {
-        bitmapWidth,
-        imageLeft: image.left,
-        frameLeft: frame.left,
-        visibleSourceStart: (frame.left - contentLeft) / coveredWidth,
-        visibleSourceEnd: (frame.right - contentLeft) / coveredWidth,
-      };
-    });
-    expect(framing.bitmapWidth, "request a bitmap suited to the tall cover crop").toBeGreaterThanOrEqual(960);
-    expect(framing.imageLeft).toBeCloseTo(framing.frameLeft, 0);
-    expect(framing.visibleSourceStart).toBeLessThan(.15);
-    // The specifically excluded standing attendee begins around 78% of source.
-    expect(framing.visibleSourceEnd).toBeLessThan(.71);
+    const framing = [];
+    for (const subject of [
+      { pathway: "/hackathon", src: "build-on-an-idea.webp", left: .33, right: .56, top: .01, bottom: .40 },
+      { pathway: "/3mt", src: "three-minute-talk.jpg", left: .18, right: .28, top: .30, bottom: .47 },
+    ]) {
+      const card = page.locator(`[data-pathway='${subject.pathway}']`);
+      const photo = card.locator(".pathway-photo img");
+      await expect(photo).toHaveAttribute("src", new RegExp(subject.src.replaceAll(".", "\\.")));
+      await photo.scrollIntoViewIfNeeded();
+      const crop = await photo.evaluate(async (element: HTMLImageElement) => {
+        await element.decode();
+        const bitmap = await createImageBitmap(await (await fetch(element.currentSrc)).blob());
+        const aspect = bitmap.width / bitmap.height;
+        bitmap.close();
+        const image = element.getBoundingClientRect();
+        const frame = element.parentElement!.getBoundingClientRect();
+        const coveredWidth = Math.max(image.width, image.height * aspect);
+        const coveredHeight = coveredWidth / aspect;
+        const [x, y] = getComputedStyle(element).objectPosition.split(" ").map(parseFloat);
+        const contentLeft = image.left + (image.width - coveredWidth) * x / 100;
+        const contentTop = image.top + (image.height - coveredHeight) * y / 100;
+        return {
+          visibleSourceStart: (frame.left - contentLeft) / coveredWidth,
+          visibleSourceEnd: (frame.right - contentLeft) / coveredWidth,
+          visibleSourceTop: (frame.top - contentTop) / coveredHeight,
+          visibleSourceBottom: (frame.bottom - contentTop) / coveredHeight,
+          frameBottom: frame.bottom,
+          contentTop,
+          coveredHeight,
+        };
+      });
+      // Source-coordinate bounds were checked against the original photographs.
+      // They describe the two main discussion participants and the speaker's
+      // face. A portrait cover necessarily crops the wide scene's outer edges.
+      expect(crop.visibleSourceStart).toBeLessThan(subject.left);
+      expect(crop.visibleSourceEnd).toBeGreaterThan(subject.right);
+      expect(crop.visibleSourceTop).toBeLessThanOrEqual(subject.top);
+      expect(crop.visibleSourceBottom).toBeGreaterThan(subject.bottom);
+      await expect(card.locator(".home-photo-edition")).toHaveCount(0);
+      const frame = await card.locator(".pathway-photo").boundingBox();
+      const cardBounds = await card.boundingBox();
+      const body = await card.locator(".pathway-card-body").boundingBox();
+      expect(frame!.x).toBeCloseTo(cardBounds!.x, 0);
+      expect(frame!.y).toBeCloseTo(cardBounds!.y, 0);
+      expect(frame!.width).toBeCloseTo(cardBounds!.width, 0);
+      expect(frame!.height).toBeCloseTo(cardBounds!.height, 0);
+      expect(body!.y).toBeLessThan(crop.frameBottom);
+      expect(body!.y + body!.height).toBeLessThanOrEqual(crop.frameBottom + 1);
+      if (subject.pathway === "/3mt") {
+        const heading = await card.locator("h3").boundingBox();
+        expect(heading!.y, "the overlaid heading stays below the speaker's face").toBeGreaterThan(crop.contentTop + crop.coveredHeight * subject.bottom);
+      }
+      framing.push({ subject, crop });
+    }
+    const ratios = await page.locator(".pathway-card").evaluateAll((cards) => cards.map(card => {
+      const bounds = card.getBoundingClientRect();
+      return bounds.width / bounds.height;
+    }));
+    expect(ratios).toHaveLength(5);
+    expect(Math.max(...ratios) - Math.min(...ratios), "all pathway photographs share one frame ratio").toBeLessThan(.002);
 
     const card = page.locator(".speaker-preview-card").first();
     await card.scrollIntoViewIfNeeded();

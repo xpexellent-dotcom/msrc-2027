@@ -1,21 +1,20 @@
 import type { Locale } from "@/lib/i18n";
+import { editionPhotoFocus } from "@/content/edition-photo-framing";
 
 // Organizer-approved public design (11 October 2026). Keep stable asset URLs from
 // the review; provenance and original source boundaries remain in docs/media/.
 const photo = (file: string) => `/media/msrc-demo/${file}`;
 
 export const demoImages = {
-  pathways: [photo("attend-audience.jpg"), photo("share-research-manar-2560.jpg"), photo("learn-doing-manar-2529.jpg"), photo("build-idea-majed-9846.jpg"), photo("three-minute-talk.jpg")],
+  pathways: [photo("attend-audience.jpg"), photo("share-research-manar-2560.jpg"), photo("learn-doing-manar-2529.jpg"), "/media/editions/2026/build-on-an-idea.webp", photo("three-minute-talk.jpg")],
   programme: photo("programme-panel.jpg"),
   gallery: [
-    { src: photo("archive-2023-posters.jpg"), alt: { en: "Research posters and conversations at the first MSRC edition.", ar: "ملصقات بحثية وحوارات في النسخة الأولى من المؤتمر." }, caption: { en: "Where the conversation began.", ar: "هنا بدأ الحوار." } },
-    { src: photo("archive-2024-talk.jpg"), alt: { en: "A scientific presentation at MSRC 2024.", ar: "عرض علمي في مؤتمر ٢٠٢٤." }, caption: { en: "New perspectives, shared.", ar: "وجهات نظر جديدة نتشاركها." } },
-    { src: photo("archive-2025-conversation.jpg"), alt: { en: "A research discussion at MSRC 2025.", ar: "نقاش بحثي في مؤتمر ٢٠٢٥." }, caption: { en: "Ideas become conversations.", ar: "أفكار تفتح باب الحوار." } },
-    { src: photo("gallery-community.jpg"), alt: { en: "Four people standing together in the event foyer.", ar: "أربعة أشخاص يقفون معًا في بهو الفعالية." }, caption: { en: "A community in conversation.", ar: "مجتمع يجمعه الحوار." } },
-    { src: photo("gallery-stage.jpg"), alt: { en: "Two presenters at the lectern on the MSRC 2026 stage.", ar: "متحدثان عند المنصة في مؤتمر ٢٠٢٦." }, caption: { en: "Ideas take the stage.", ar: "أفكار على المنصّة." } },
-    { src: photo("gallery-presentation.jpg"), alt: { en: "A presenter speaking on the MSRC 2026 stage.", ar: "متحدثة تلقي عرضًا على منصة مؤتمر ٢٠٢٦." }, caption: { en: "Research, shared.", ar: "أبحاث نتشاركها." } },
-    { src: photo("gallery-awards.jpg"), alt: { en: "An award presentation on the MSRC 2026 stage.", ar: "تسليم جائزة على منصة مؤتمر ٢٠٢٦." }, caption: { en: "A moment to celebrate.", ar: "لحظة نحتفي بها." } },
-    { src: photo("gallery-msrc2026.jpg"), alt: { en: "MSRC 2026 lettering in front of the event photo backdrop.", ar: "حروف اسم المؤتمر أمام خلفية التصوير لنسخة ٢٠٢٦." }, caption: { en: "The previous chapter.", ar: "الفصل السابق." } },
+    { src: "/media/editions/2026/photo-9.webp", edition: 2026, width: 1663, height: 1111, objectPosition: editionPhotoFocus["2026-9"], alt: { en: "Four people holding an award and certificate on the MSRC 2026 stage.", ar: "أربعة أشخاص يحملون جائزة وشهادة على منصة مؤتمر ٢٠٢٦." }, caption: { en: "A moment to celebrate.", ar: "لحظة نحتفي بها." } },
+    { src: "/media/editions/2026/photo-4.webp", edition: 2026, width: 1733, height: 1014, objectPosition: editionPhotoFocus["2026-4"], alt: { en: "A researcher discussing a digital poster with attendees at MSRC 2026.", ar: "باحث يناقش ملصقًا رقميًا مع الحضور في مؤتمر ٢٠٢٦." }, caption: { en: "Research, shared.", ar: "أبحاث نتشاركها." } },
+    { src: "/media/editions/2026/photo-6.webp", edition: 2026, width: 1977, height: 1109, objectPosition: editionPhotoFocus["2026-6"], alt: { en: "Four speakers in a seated discussion on the MSRC 2026 stage.", ar: "أربعة متحدثين في نقاش على منصة مؤتمر ٢٠٢٦." }, caption: { en: "A community in conversation.", ar: "مجتمع يجمعه الحوار." } },
+    { src: "/media/editions/2025/photo-3.webp", edition: 2025, width: 743, height: 582, objectPosition: editionPhotoFocus["2025-3"], alt: { en: "Three people discussing a digital research poster at MSRC 2025.", ar: "ثلاثة أشخاص يناقشون ملصقًا بحثيًا رقميًا في مؤتمر ٢٠٢٥." }, caption: { en: "Ideas become conversations.", ar: "أفكار تفتح باب الحوار." } },
+    { src: "/media/editions/2024/photo-1.webp", edition: 2024, width: 1173, height: 1026, objectPosition: editionPhotoFocus["2024-1"], alt: { en: "A speaker presenting from a lectern at MSRC 2024.", ar: "متحدث يقدم عرضًا من المنصة في مؤتمر ٢٠٢٤." }, caption: { en: "New perspectives, shared.", ar: "وجهات نظر جديدة نتشاركها." } },
+    { src: "/media/editions/2023/photo-2.webp", edition: 2023, width: 753, height: 633, objectPosition: editionPhotoFocus["2023-2"], alt: { en: "A researcher discussing a printed poster with an attendee at MSRC 2023.", ar: "باحثة تناقش ملصقًا مطبوعًا مع أحد الحضور في مؤتمر ٢٠٢٣." }, caption: { en: "Where the conversation began.", ar: "هنا بدأ الحوار." } },
   ],
   closing: { video: photo("jeddah-opening-cropped.mp4"), poster: photo("jeddah-opening-cropped-poster.jpg") },
 } as const;

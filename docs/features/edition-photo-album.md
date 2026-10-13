@@ -1,0 +1,189 @@
+# Edition photos and album — 13 October 2026
+
+Requirements: MED-01–04, ARC-01, CMS-04, LOC-01/03, ACC-01, DSN-01/02.
+
+The organizer supplied a specific 22-item Drive collection and requested its use
+on the homepage and in the album, subject-aware desktop/mobile framing,
+bottom-right four-digit year labels inside photos, and newest-first browsing.
+This records that explicit selection and placement instruction; no additional
+institutional approval is inferred. Filenames supply the year.
+
+Source folder: [selected 2023–2026 media](https://drive.google.com/drive/folders/1Pr_wEJ1_s6tKYPslnflwNzJyVBnF-d9S).
+The retrieved inventory contains 18 PNG photos and four MP4 clips:
+
+| Placement / edition | Photos | Videos |
+| --- | ---: | ---: |
+| 2026 album | 9 | 4 |
+| 2025 album | 4 | 0 |
+| 2024 album | 2 | 0 |
+| 2023 album | 2 | 0 |
+| Homepage Build on an idea, 2026 | 1 | 0 |
+
+The new album replaces the previous hard-coded six-photo rail and uses the
+existing approved catalogue and URL filters. Visitors scroll through 2026, 2025,
+2024, then 2023; photo frames use a consistent 16:9 ratio and deliberate focal
+points, following the organizer's pre-merge correction. This wide frame retains
+the edge panelists in the supplied stage photos. Videos retain their complete
+original composition within the same frame. English and Arabic descriptions identify
+visible activity without inferring people's identities or 2027 roles.
+Year labels stay physically bottom-right, including RTL, and use the organizer's
+requested digits. They are rendered inside the photo frame, so they remain
+legible at small screen widths.
+
+The dedicated Build photo appears on the homepage only. Homepage highlights use
+six supplied photos from the four years. Pathway cards keep full-image framing
+with overlaid text and a strong dark bottom gradient, including on small screens;
+the 3MT speaker is retained. Years appear only in gallery photos, not on pathway
+cards or other homepage backgrounds. All pathway cards use consistent proportions
+at each viewport size; the six homepage gallery images also use 16:9. The initial separate mobile photo/copy implementation was
+rejected before merge and is superseded by this correction.
+The existing opening film and its playback policy are unchanged.
+
+Delivery: metadata-stripped WebP derivatives preserve image aspect ratios and
+do not enlarge sources. At the organizer's follow-up request, four H.264 clips
+retain their original video stream with all audio tracks removed. They use MP4
+fast-start and new `-silent-v2.mp4` filenames, with the same WebP posters. The
+earlier audio-bearing public files are removed. All new files use new paths
+under `public/media/editions/`, respecting the existing media-cache policy.
+Originals remain ignored in `.tools/edition-photo-sources`, outside public
+delivery; no Drive original, organization, or sharing permission was changed.
+No image generation or alteration of depicted people was used.
+
+Fresh source base: `3550d271a93588b7bf6d315eaa17dc04297cd5a3`.
+Implementation is isolated on `codex/edition-photo-update`; unrelated work in
+the original checkout is preserved. Operational flows and service configuration
+are unchanged.
+
+## Initial draft verification (before organizer design correction)
+
+| Check | Observed result |
+| --- | --- |
+| `pnpm check` using Node 24.21.0 / pnpm 11.19.0 | PASS: lint, route/TypeScript checks, 2,402 unit tests in 61 files, optimized 81-page build. `.tools/edition-final-check.log`. |
+| Focused Playwright suites | PASS: 62 passed, two existing duplicate matrix skips, zero failures/retries in 1.1 minutes. `conference-experience.spec.ts`, `axiom-experiences.spec.ts`, `premium-media-framing.spec.ts`; `.tools/edition-browser.log`. |
+| Album content, filters, keyboard, accessibility | PASS in local Chromium: 21 records/17 photos/four videos, year order and 9/4/2/2 photo counts, full source aspect, bottom-right labels, older-edition and kind filters, EN/AR navigation, reduced motion, axe checks, no participant writes. |
+| Visual review | PASS: screenshots for EN/AR at 390, 900 and 1440 CSS px; Build and 3MT crops, all edition sections and homepage highlights. Inspected original photo contact sheet, video posters, rendered crop sheet, desktop album sheet and Arabic mobile album. No horizontal overflow or page errors in six runs. `.tools/edition-visual/results.json`. |
+| Actual video decoding | PASS: all four H.264/AAC clips decode/play in Chromium at 390px, report 1764×1174 and supplied durations, and pause without a media error. `.tools/edition-video-playback.json`. |
+| Source/code review | PASS: independent archive and React-pattern review, targeted lint, `git diff --check`. |
+| Physical iOS/Android, Safari/WebKit/Firefox, real screen readers | NOT TESTED. Emulated Chromium is not physical-device evidence. |
+| Spoken audio/caption review | Superseded by the organizer's request to remove audio. The four delivery files now contain only a video stream; no transcript is fabricated. |
+| Hosted CI, preview deployment, production | PENDING / NOT TESTED. No merge or live deployment performed. |
+
+The initial source check passed before final homepage edits; the complete check
+above was rerun after those edits. Dependency installation initially found the
+host's unsupported pnpm/Node versions; commands were corrected to the repository's
+locked pnpm 11.19.0 and portable Node 24.21.0, with no lockfile change.
+
+## Authorized silent-video release follow-up
+
+The organizer explicitly requested audio removal, verification, push and merge.
+PASS: all four new files contain exactly one H.264 video stream and no audio
+stream. Source and output compressed-video SHA-256 hashes are identical;
+dimensions and durations are retained. `.tools/edition-silent-receipt.json`
+records the probe and packet hashes. PASS fresh lint/types, 2,402 units/build;
+139 affected Chromium browser cases (five existing skips), no failures/retries;
+and actual playback of every silent file with the browser mute property off.
+Logs: `.tools/edition-silent-check.log`, `.tools/edition-silent-browser.log`,
+`.tools/edition-silent-video-playback.json`.
+
+The first PR70 hosted run found six stale assertions (zero album video players,
+eight homepage gallery captions). Fixed to the new four manual silent clips and
+six curated photos while retaining the meaningful no-iframe, no-autoplay,
+caption/alt and motion assertions. Original failed job logs are preserved as
+`.tools/pr70-initial-115346066292.log`, `.tools/pr70-initial-115346066499.log`
+and `.tools/pr70-initial-115346066557.log`. Fresh exact-head hosted checks
+are pending before the authorized merge. Prior
+verification above describes the first draft; it is not silently relabeled as
+fresh release proof.
+
+The silent-video head `f82a89d804da553ad6f03c8b6d9e968a8384ec8d` subsequently
+passed all three workflows, ten substantive jobs, eleven check runs and Vercel
+Preview. Public browsers: 681 passed, 55 intentional skips, no failures/retries.
+Receipt: `.tools/pr70-final-ci-f82a89d804da553ad6f03c8b6d9e968a8384ec8d.json`.
+The organizer then corrected the visual brief before any merge. That prior pass
+does not verify the new full-image cards or uniform gallery proportions.
+
+## Corrected full-image cards and consistent gallery frames
+
+PASS visual review in EN/AR at 390, 900 and 1440 CSS px: all five pathway cards
+have matching frames, edge-to-edge photographs and overlaid copy above a strong
+dark bottom gradient. The 3MT speaker's face stays above the heading; the Build
+crop retains the two central discussion participants. A narrow portrait cover
+necessarily excludes some outer scene edges. The album's 17 photos and six
+homepage gallery photos use consistent 16:9 frames and shared per-photo focal
+positions; all primary subjects, including the four wide-panel faces, were
+visually checked. Only gallery photos show years. No overflow or page errors.
+
+Initial checks caught an aspect-ratio automatic minimum-width overflow and a
+3MT heading/face collision. Explicit card inline sizing and moving the 3MT crop
+up corrected the causes. Failed evidence remains under
+`.tools/pathway-correction-results` and
+`.tools/photo-layout-review-v2/initial-overflow-results.json`. Final screenshots
+and geometry: `.tools/photo-layout-review-v2/results.json`. No retries were added.
+
+PASS fresh `pnpm check`: lint, types, 2,402 units in 61 files and an 81-page
+optimized build. PASS affected production-build browser suites: 139 passed,
+five existing intentional skips, no failures/retries, 2.4 minutes. Logs:
+`.tools/edition-corrected-check.log` and `.tools/edition-corrected-browser.log`.
+Independent source/React review and `git diff --check` passed. The previously
+verified silent delivery files are unchanged. Physical devices, other browser
+engines and real assistive technology remain NOT TESTED.
+
+Next: pass new-head hosted checks, merge PR70 and verify the matching Production
+deployment, bilingual image layout and silent videos. Earlier CI receipts apply
+only to the heads they record.
+
+## Native-wheel fixture correction during final CI
+
+Corrected visual head `6da08c9` reached a matching Ready Preview and passed nine
+of ten hosted jobs. Public results were 680 passed, 55 intentional skips and
+one failure in the existing EN Venue fast-wheel case; photo tests passed.
+The failure trace showed sequential native-wheel command gaps of 333–559ms,
+which turned the intended continuous flick into separate gestures across the
+170ms boundary. Stop coordinates stayed [595, 1280, 2072, 2864]. Receipts,
+failed logs and trace are retained under `.tools/pr70-corrected-6da08c9-*`.
+
+A local 6× CPU diagnostic confirmed a real 192.7ms WheelEvent timestamp gap
+from the serial helper, although that diagnostic did not itself skip a stop.
+Queuing the same fourteen native calls preserved all 1680 delta and trusted
+browser input, with at most 0.2ms gaps. The queued diagnostic also exposed the
+fixture starting its quiet wait before the product's existing two-frame
+heavy-arrival reset. The helper now observes that paint boundary before its
+unchanged 250ms wait. Application code, gesture windows, timeouts, retries and
+every expected-stop assertion remain unchanged.
+
+PASS confirmed queued diagnostic: all four stops. PASS complete stepper browser
+suite: 30 passed, ten intentional skips, no failures/retries in 1.8 minutes.
+Fresh typecheck and independent fixture review passed. Evidence:
+`.tools/stepper-wheel-diagnostic-confirmed.json`,
+`.tools/stepper-correction-browser.log`, `.tools/edition-fixture-typecheck.log`.
+New-head CI and Production remain pending; prior passes are not relabeled.
+
+## Asset receipt
+
+The table below records the downloaded inventory and optimized derivatives.
+Hashes establish file identity, not an independent rights audit.
+
+| Supplied name | Delivered path | Dimensions | Bytes | SHA-256 |
+| --- | --- | --- | ---: | --- |
+| 2026 video 3.mp4 | `public/media/editions/2026/video-3-silent-v2.mp4` | 1764×1174 | 2875046 | `30a94109d13e88efe4756537a553c452ed4237bddc7b2cf141d41e12f6bc6f02` |
+| 2026 video 2.mp4 | `public/media/editions/2026/video-2-silent-v2.mp4` | 1764×1174 | 3170800 | `7e010e7dc0c5ff5ee21e8b40e8ac84a37a6ab9b5d251f328e60ea4337a5fcf52` |
+| 2026 video 4.mp4 | `public/media/editions/2026/video-4-silent-v2.mp4` | 1764×1174 | 1935236 | `ad0aaecdfa1c6fca67b74573789cbbd2d5831bbb6b1cd2bcfc5051c0927c7c7d` |
+| 2026 video 1.mp4 | `public/media/editions/2026/video-1-silent-v2.mp4` | 1764×1174 | 4382688 | `65efd0f83d454f896c5f1e662024219de4138a61203229da3f09a6427e36b02e` |
+| 2025 4.png | `public/media/editions/2025/photo-4.webp` | 1153×573 | 75570 | `e134501de4cfd31480be29e06e7e4079e2363565b46506fbb186db8f7c68c995` |
+| 2024 2.png | `public/media/editions/2024/photo-2.webp` | 1333×820 | 77736 | `18587917fd70c6374419aee997fa3337c6bac2d4b4f8f4e0869236ab2ec5c6e4` |
+| 2023 2.png | `public/media/editions/2023/photo-2.webp` | 753×633 | 47300 | `2841f76e996c93a0055abc5596a782e00fe48e7182fd6504d047da7c356f0d06` |
+| 2026 9.png | `public/media/editions/2026/photo-9.webp` | 1663×1111 | 206964 | `d3e0829e009c5b4796e80fc40ca0fa54db01b3bb7c70427a27a97a92c94839b7` |
+| 2026 8.png | `public/media/editions/2026/photo-8.webp` | 1505×969 | 116896 | `7043bc65285a1f46dcd3bde6a8a30d9ac1affd4fed82f6e1f163bce1bc20a1a9` |
+| 2026 7.png | `public/media/editions/2026/photo-7.webp` | 1646×1092 | 93518 | `8a66f3472c9caea2b6537e73ea46e48ca4c5c1e52871e81b61a297e6c1acbb0a` |
+| 2026 6.png | `public/media/editions/2026/photo-6.webp` | 1977×1109 | 201420 | `28bd1ba1ff3b257234c448b97e3fef0dd0af1bb68ee427d4a5168a33eaba064d` |
+| 2026 5.png | `public/media/editions/2026/photo-5.webp` | 1535×1012 | 149176 | `a832152208fce534a992ca90ef174f73a060873b83aa5b762097efc428457c33` |
+| 2026 4.png | `public/media/editions/2026/photo-4.webp` | 1733×1014 | 121898 | `3f1b3f07dad1446a1db858936ab7b4b08a977638b53776ea9815b45aeceada1b` |
+| Build on an idea (2026).png | `public/media/editions/2026/build-on-an-idea.webp` | 1293×849 | 136816 | `90532bdedac1d620e89709bbc0efdfb0c421c720460a61df3c93053605c2cb47` |
+| 2026 3.png | `public/media/editions/2026/photo-3.webp` | 1485×1109 | 164820 | `8f84d6940396a30f5f3a5b4c7ad7cf6088d7582b0e80de2b712604213d1ede13` |
+| 2026 2.png | `public/media/editions/2026/photo-2.webp` | 1675×1109 | 140182 | `c6b050872d0ca59264f0ce5e11133551878552e86c163b7c9b61acf84c623427` |
+| 2026.png | `public/media/editions/2026/photo-1.webp` | 1673×1106 | 131368 | `a48a738a90aa19c05203910fbec2c90d5fe14cefa8ceea5f6d1f294c17fa83bc` |
+| 2025 3.png | `public/media/editions/2025/photo-3.webp` | 743×582 | 35674 | `62311665edc14895d0b8d5081177723e80f6efae3d894c012be219ff9abe72c1` |
+| 2025 2.png | `public/media/editions/2025/photo-2.webp` | 1236×668 | 73298 | `e51cc984e459231a85363666e081add014f48051c9b64a78a637908585ed65b6` |
+| 2025 1.png | `public/media/editions/2025/photo-1.webp` | 1346×904 | 144064 | `7856da3c0b6f3666f6c12413fcfbc1bdfe7250d4a76857bc44b7bc0429ce3418` |
+| 2024.png | `public/media/editions/2024/photo-1.webp` | 1173×1026 | 75276 | `880cf1471ead9fc8e73116e8676750a4978aed249e85d3962c45def7916d238f` |
+| 2023.png | `public/media/editions/2023/photo-1.webp` | 1424×874 | 145458 | `4fc8ad33d34382b3e266b8b46a159a07a2b348e472ccd1fd2d3c2f237c04458b` |

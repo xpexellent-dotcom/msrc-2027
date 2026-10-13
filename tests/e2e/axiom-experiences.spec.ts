@@ -7,11 +7,11 @@ for (const locale of ["en", "ar"] as const) {
   const nextName = locale === "ar" ? "التالي" : "Next";
   const previousName = locale === "ar" ? "السابق" : "Previous";
 
-  for (const route of ["speakers", "media"] as const) {
+  for (const route of ["speakers"] as const) {
     test(`${locale} ${route} rail supports keyboard controls and native scrolling`, async ({ page }) => {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await page.goto(`/${locale}/${route}`);
-      const gallery = page.locator(route === "speakers" ? ".speaker-page-preview" : ".interior-archive-gallery");
+      const gallery = page.locator(".speaker-page-preview");
       const track = gallery.getByRole("region");
       const next = gallery.getByRole("button", { name: nextName, exact: true });
       const previous = gallery.getByRole("button", { name: previousName, exact: true });
@@ -46,6 +46,24 @@ for (const locale of ["en", "ar"] as const) {
       }
     });
   }
+
+  test(`${locale} media archive keeps native vertical navigation through previous editions`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${locale}/media`);
+    const firstEdition = page.locator('.conference-media-edition[data-edition="2026"]');
+    const lastEdition = page.locator('.conference-media-edition[data-edition="2023"]');
+    await firstEdition.getByRole("heading", { level: 2 }).scrollIntoViewIfNeeded();
+    const start = await page.evaluate(() => window.scrollY);
+    await page.keyboard.press("PageDown");
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(start + 100);
+    await page.keyboard.press("End");
+    await expect.poll(() => page.evaluate(() => Math.abs(window.scrollY + window.innerHeight - document.documentElement.scrollHeight))).toBeLessThan(2);
+    expect(await lastEdition.evaluate((element) => element.getBoundingClientRect().bottom)).toBeLessThanOrEqual(await page.evaluate(() => window.innerHeight));
+    await page.keyboard.press("Home");
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
+    await expect(page.getByRole("heading", { level: 1 })).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  });
 
   test(`${locale} homepage omits sponsor sections and photographic speaker placeholders`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });

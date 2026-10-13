@@ -22,6 +22,9 @@ async function settled(page: Page) {
     moving: document.querySelector<HTMLElement>(".venue-arrival-journey")?.dataset.journeyMoving === "true",
     releasing: document.querySelector<HTMLElement>(".venue-entry-portal")?.dataset.entryState === "releasing",
   })), { timeout: 4000 }).toEqual({ moving: false, releasing: false });
+  // The entrance restarts its settling window after two rendered frames.
+  // Observe that paint boundary before the existing trailing-inertia pause.
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   // Let any trailing inertia arrive and be consumed before measuring.
   await pause(250);
   return page.evaluate(() => Math.round(scrollY));
@@ -41,8 +44,9 @@ async function openAtOverview(page: Page, locale: "en" | "ar") {
 }
 
 async function fastSpin(page: Page, direction: 1 | -1) {
-  // A hard flick of the wheel: many notches with no pause between them.
-  for (let notch = 0; notch < 14; notch++) await page.mouse.wheel(0, direction * 120);
+  // Queue one native burst without waiting for each browser acknowledgement:
+  // slow rendering can otherwise turn the fixture into separate wheel gestures.
+  await Promise.all(Array.from({ length: 14 }, () => page.mouse.wheel(0, direction * 120)));
 }
 
 async function trackpadSwipe(page: Page, direction: 1 | -1) {

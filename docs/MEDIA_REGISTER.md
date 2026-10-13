@@ -1,5 +1,20 @@
 # MSRC 2027 media register
 
+## 13 October 2026 — Selected edition photo/album update
+
+The requester supplied and selected [this 22-file folder](https://drive.google.com/drive/folders/1Pr_wEJ1_s6tKYPslnflwNzJyVBnF-d9S)
+for the homepage and album. ENG-040 records the authorized placement and framing.
+It contains 17 archive photos (2026: 9, 2025: 4, 2024: 2, 2023: 2), four 2026
+videos, and one dedicated 2026 “Build on an idea” homepage photo. Earlier
+pending-selection language below remains historical and does not override this
+specific new selection.
+
+All delivered files use new paths under `public/media/editions/`; originals
+remain private/ignored. Read [the inventory and verification receipt](features/edition-photo-album.md)
+for source mapping, hashes, responsive placement and current publication status.
+The year is taken from each supplied filename, without inferring edition
+numbering, identities or 2027 attendance. No Drive permission changed.
+
 Original snapshot: 29 September 2026; current asset approval reconciled 1 October 2026. Sources: S1 Development Specification v0.5 section 15 and CFG-12; S3 Main File PDF; S4 generated brand guide; S6 visible project conversation; S7 connected Drive metadata inventory; S8 original Canva brand reference sheet; ORG-002 in DECISIONS.
 
 The supplied media folder is readable through the connected Drive integration. Its original listing was inspected without downloading or viewing individual assets. On 1 October 2026, the user separately supplied and reviewed one montage, then approved the current 18.7-second cut, desktop/mobile crops and still fallbacks for public homepage use (ORG-002). This set was published and verified; other folder and gallery selections remain unapproved. ORG-003 subsequently changes the public autoplay preference policy without changing the approved files.
