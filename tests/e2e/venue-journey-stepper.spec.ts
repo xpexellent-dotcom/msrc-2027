@@ -154,3 +154,25 @@ for (const locale of ["en", "ar"] as const) {
     expect(new Set(moving.map(sample => sample.camera)).size).toBe(moving.length);
   });
 }
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} the arrival thread draws with progress and only the current chapter reads at rest`, async ({ page }) => {
+    await openAtOverview(page, locale);
+    const all = await stops(page);
+    const read = () => page.evaluate(() => ({
+      offset: Number.parseFloat(getComputedStyle(document.querySelector(".venue-journey-thread-trail")!).strokeDashoffset),
+      visible: [...document.querySelectorAll<HTMLElement>(".venue-journey-reading")].map(reading => reading.dataset.copyHidden !== "true"),
+    }));
+    for (const [index, expected] of [[1, 1], [2, .5], [3, 0]] as const) {
+      await page.evaluate(top => scrollTo({ top, behavior: "instant" }), all[index]);
+      await expect.poll(async () => (await read()).offset).toBeCloseTo(expected, 1);
+      expect((await read()).visible).toEqual([0, 1, 2].map(chapter => chapter === index - 1));
+    }
+  });
+
+  test(`${locale} the overview resource links share one height`, async ({ page }) => {
+    await page.goto(`/${locale}/dates-venue`);
+    const heights = await page.locator(".venue-stage-resources > *").evaluateAll(links => links.map(link => link.getBoundingClientRect().height));
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(2);
+  });
+}

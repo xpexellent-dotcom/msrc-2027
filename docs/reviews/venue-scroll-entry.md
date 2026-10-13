@@ -3,7 +3,7 @@
 Scope: correct the public EN/AR Venue entrance that normal approach scrolling
 bypasses. Preserve the accepted visual composition, approved information,
 self-hosted maps/media, north-up geography, explicit Google/Apple actions and
-closed operational workflows. Current published baseline is PR63's merge
+closed operational workflows. The starting published baseline was PR63's merge
 `79d0679d2eb59c0583658d4a5fda827fb781448a`, reviewed source
 `80b5c2ce4449a5ddfa9bcf8472fe0341f4ea8637`. ENG-035's explicit publication
 authority continues after new verification; it authorizes no hosted settings,
@@ -104,8 +104,10 @@ listeners. There is no animation loop left running at rest.
 | Full local check and focused-keyboard follow-up | PASS: lint/types, 2,401 units/61 files and81-page build | `.tools/venue-scroll-entry-check-final.log`, then `.tools/venue-scroll-keyboard-check-final.log` after the final focused-anchor interruption correction |
 | Scoped WebKit phone checks | PASS: 10/10, zero retries | `.tools/venue-scroll-entry-webkit-final.log`; EN/AR Begin, accessible content, compact map points, anchors and reduced motion; physical hardware remains NOT TESTED |
 | Final focused keyboard/Begin regression | PASS: Chromium14 + two desktop-only phone skips; WebKit4/4, zero retries | `.tools/venue-scroll-keyboard-browser-confirmed.log`, `.tools/venue-scroll-keyboard-webkit-confirmed.log`; document and focused Begin support Home/End, with Chromium's native Ctrl+Home shortcut |
-| Final visual confirmation, owned Preview and exact-head CI | PENDING | No current hosted pass is claimed |
-| Guarded merge, owned Production identity and actual live verification | PENDING | Existing live baseline remains separate from this correction |
+| Final exact-head PR CI and owned Preview | PASS at reviewed head 2bd6f12 | Three attempt-1 workflows, ten substantive jobs and ten actual Actions checks; owned READY Preview and protected EN/AR HTTP 200 |
+| Guarded merge and owned Production identity | PASS: PR64 merged as 47c1505; owned READY Production serves that exact merge | `.tools/venue-scroll-2bd-merge.json`, `.tools/venue-scroll-merged-production-first.json`; both public aliases verified |
+| Actual public HTTP verification | PASS: 97/97 GET/HEAD checks, zero failures | `.tools/venue-scroll-live-receipt.json`; independently verified serving SHA equals the merge |
+| Current 81-case live browser run, push/main CI and final visual confirmation | PASS: 73 browser cases/eight intentional skips, zero failures/retries; three main workflows/ten jobs/ten checks; native live visual review | `.tools/venue-scroll-live-browser.log`, final joined47c1505 receipt and `.impeccable/review/venue-scroll-entry/live-*` |
 | Physical iPhone Safari, Android and real screen readers | NOT TESTED | Synthesized Chromium touch and browser emulation are not hardware evidence |
 
 No assertion is represented as passed without its observed result. The original
@@ -150,3 +152,74 @@ suite, retry or timeout change. PASS lint/types and targeted12 cases/four
 intentional skips, then final event-frame4/4, zero retries. Receipts:
 `.tools/venue-scroll-event-phase-browser.log`, `.tools/venue-scroll-event-frame-confirmed.log`.
 The new test-only head still requires fresh CI and owned deployment proof.
+
+## Verified publication receipts — 12 October 2026
+
+The correction is published through
+[PR64](https://github.com/xpexellent-dotcom/msrc-2027/pull/64). Reviewed head
+`2bd6f128fd96b810ab972e3b19e44447c93212c9` passes all three latest exact-head
+PR workflows, ten substantive jobs and ten actual Actions checks, attempt1.
+Public totals are 663 passes / 49 intentional skips / zero failures across 712 cases.
+Core lint/types, 2,401 units in 61 files, 81 generated pages and 81 smoke checks pass.
+Synthetic Contact 44, participant 88 + 4 skips and staff 102 + 8 skips pass. Each of the
+three disposable SQL jobs passes 1,023 assertions in 13 files with clean schema and
+advisor checks; this is CI evidence, not new hosted database execution.
+Complete receipt:
+`.tools/venue-scroll-complete-2bd6f12-2026-10-12T17-57-16-481Z.json`.
+
+Owned READY Preview `dpl_Eu26mgij16pC3eUwrf7VUob8MiNb` matches the expected
+project/team, repository, branch and exact reviewed source. Protected EN/AR GETs
+return 200 with entrance/collage/stage/Journey/control markers:
+`.tools/venue-scroll-2bd-preview-http.json`. Fresh owned Preview and PR/base
+identity precede the single guarded merge. GitHub confirms actual merge
+`47c1505b019daf1dcefa6fafa05d9e481e5ff8e3` in
+`.tools/venue-scroll-2bd-merge.json`.
+
+Owned READY Production `dpl_3WU9wQFKfxe54Gde8PbygaYtgMKZ` is source Git,
+GitSource/main at that exact merge, expected project
+`prj_R1XVydvYu17VPSTM3lNb1trWw9u9` and team
+`team_8DBVOTW6s9ihVkUP69COuwG8`. Both www.msrc2027.com and msrc2027.com
+resolve to this serving deployment. Production identity receipt:
+`.tools/venue-scroll-merged-production-first.json` (17:59:17 UTC).
+Actual public verification then passes 97/97 read-only GET/HEAD checks, zero
+failures, with expected and independently verified serving SHA equal to the
+merge: `.tools/venue-scroll-live-receipt.json` (18:00:19 UTC).
+
+The actual-public affected Chromium suite passes 73 cases with eight intentional
+skips and zero failures or retries across 81 cases:
+`.tools/venue-scroll-live-browser.log`. This includes fresh EN/AR native wheel and
+touch approaches, persistent/reversible charge, residual input during release,
+partial-charge/duplicate Begin activation, keyboard interruption, precise native
+landing, restored flow, reduced motion, responsive controls, accessible map points
+and no-JavaScript paths. It runs against the verified public serving source above.
+
+Native in-app browser visual review at 1440 x 900 begins at document position zero.
+A four-page wheel input holds the complete overview at scroll position 644.
+Additional input raises charge to 0.667 without changing that position; upward
+input reduces it to 0.500. The threshold starts one release while position remains
+644, then lands at position 1,544 with Airport top 0.015625px, completed state,
+one release and zero temporary placeholders. A subsequent deliberate native input
+advances to 1,904 without reentry. The captured overview is sharp and readable;
+the side reading and map retain their final composition.
+
+Arabic phone visual review at 412 x 839 confirms Begin starts that same release
+once, lands below the compact map with no horizontal overflow, and leaves the
+Airport detail control visibly readable and dismissible. These are browser
+emulation receipts, not hardware UAT. Screenshots and observed positions:
+`.impeccable/review/venue-scroll-entry/live-native-review.json` and `live-*.png`.
+The temporary viewport override was reset and the actual public Venue tab retained.
+
+Independent push/main CI passes all three workflows, ten substantive jobs and ten
+actual checks, attempt1, at exact merge47c1505. Public totals are 663 passes,
+49 intentional skips and zero failures across 712 cases. Core lint/types,
+2,401 units/61 files,81-page build/81 smoke, Contact44, participant88+4 skips,
+staff102+8 skips and each SQL1,023 assertions/13 files with clean advisors also pass.
+Final reconciliation verifies merged/current main, the equal reviewed/merged tree
+`b7a9a4eb6adc56129957571a3ee9d53edecf31ef`, owned serving target/both aliases and
+actual-public results:
+`.tools/venue-scroll-release-final-47c1505-2026-10-12T18-12-06-170Z.json`.
+
+The previous failed attempts and dated interim passes remain intact. Physical
+iPhone Safari, Android and real screen readers remain NOT TESTED. Publication
+proof does not imply operational activation or hardware UAT. These final local
+documentation receipts leave the verified published application/tests unchanged.

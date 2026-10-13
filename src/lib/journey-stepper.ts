@@ -52,6 +52,8 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
   let lastY = scrollY;
   let complete = () => {};
   let settledAt = -Infinity;
+  let holdUntil = 0;
+  let heldY = 0;
   let touch: { x: number; y: number; decided: boolean; target?: Target; fired: boolean } | undefined;
 
   const docked = (stops: number[]) => stops.findIndex(stop => Math.abs(stop - scrollY) <= tolerance);
@@ -90,7 +92,7 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
     frame = 0;
     moving = false;
     settledAt = performance.now();
-    lastY = scrollY;
+    lastY = heldY = scrollY;
     options.onMoving?.(false);
     if (index !== undefined) options.onArrive?.(index);
   };
@@ -146,13 +148,18 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
     // is consumed so it cannot carry on as native scrolling.
     if (moving || gestureUsed || settling) {
       if (event.cancelable) event.preventDefault();
+      // Once Chrome has latched a gesture as native, its remaining packets
+      // cannot be cancelled; hold the arrived stop until that tail goes quiet.
+      else if (!moving) holdUntil = Math.min(performance.now() + quietGap, settledAt + 700);
       gestureUsed = true;
       return;
     }
     if (ownsInput(event.target, delta)) return;
     const target = plan(delta > 0 ? 1 : -1);
-    if (!target || !event.cancelable) { nativeInputAt = performance.now(); return; }
-    event.preventDefault();
+    if (!target) { nativeInputAt = performance.now(); return; }
+    // A non-cancelable packet still moves one stop; the tween overrides the
+    // native movement frame by frame, and the hold absorbs what follows.
+    if (event.cancelable) event.preventDefault();
     gestureUsed = true;
     travel(target);
   };
@@ -199,6 +206,10 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
 
   const scroll = () => {
     if (moving) return;
+    if (performance.now() < holdUntil && Math.abs(scrollY - heldY) > 1) {
+      scrollTo({ top: heldY, behavior: "instant" });
+      return;
+    }
     const y = scrollY;
     const previous = lastY;
     lastY = y;
@@ -212,7 +223,8 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
     else if (previous > stops[last] + tolerance && y < stops[last] - tolerance) travel({ y: stops[last], index: last });
   };
 
-  const navigate = () => cancel();
+  const navigate = () => { holdUntil = 0; cancel(); };
+  const pointer = () => { holdUntil = 0; };
   const visibility = () => { if (document.hidden && frame) complete(); };
 
   addEventListener("wheel", wheel, { passive: false });
@@ -223,6 +235,7 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
   addEventListener("keydown", keyboard);
   addEventListener("scroll", scroll, { passive: true });
   addEventListener("popstate", navigate);
+  addEventListener("pointerdown", pointer, { passive: true });
   document.addEventListener("visibilitychange", visibility);
 
   return {
@@ -244,6 +257,7 @@ export function createJourneyStepper(options: StepperOptions): JourneyStepper {
       removeEventListener("keydown", keyboard);
       removeEventListener("scroll", scroll);
       removeEventListener("popstate", navigate);
+      removeEventListener("pointerdown", pointer);
       document.removeEventListener("visibilitychange", visibility);
     },
   };

@@ -575,30 +575,40 @@ for (const locale of ["en", "ar"] as const) {
     await settleCamera(page);
     const title = airport.locator(".venue-journey-title");
     const copy = airport.locator(".venue-journey-reading");
+    // The crossfade updates on the next frame after an instant jump.
+    await expect.poll(() => copy.evaluate(element => element.style.getPropertyValue("--venue-copy-shift"))).toBe("0.0px");
+    await expect.poll(() => copy.evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThan(.99);
     const originalTop = (await title.boundingBox())!.y;
     const headerBottom = await page.locator(".site-header").evaluate(element => element.getBoundingClientRect().bottom);
-    const distance = originalTop - headerBottom - 24;
-    expect(distance).toBeGreaterThan(0);
+    const span = await page.evaluate(() => {
+      const [first, second] = [...document.querySelectorAll(".venue-journey-chapter")].map(chapter => chapter.getBoundingClientRect().top);
+      return second - first;
+    });
+    const opacity = (reading: Locator) => reading.evaluate(element => Number(getComputedStyle(element).opacity));
     // Fades are measured between stops, where only scrollbar or anchor
     // movement rests; wheel gestures travel stop to stop.
     const scrollBy = (top: number) => page.evaluate(by => window.scrollBy({ top: by, behavior: "instant" }), top);
-    await scrollBy(distance);
-    await expect.poll(async () => Math.abs((await title.boundingBox())!.y - headerBottom - 24)).toBeLessThanOrEqual(1);
+    // A quarter of the way on, the airport copy eases out near the centre:
+    // still readable in view and moving less than the page does.
+    await scrollBy(span * .25);
+    await expect.poll(() => opacity(copy)).toBeCloseTo(.5, 1);
+    const moved = originalTop - (await title.boundingBox())!.y;
+    expect(moved).toBeGreaterThan(0);
+    expect(moved).toBeLessThan(span * .25 * .6);
     const fading = (await copy.boundingBox())!;
     expect(fading.y).toBeGreaterThan(headerBottom);
     expect(fading.y + fading.height).toBeLessThan(900);
-    await expect.poll(() => copy.evaluate(element => Number(getComputedStyle(element).opacity))).toBeLessThan(.9);
-    await scrollBy(-distance);
+    await scrollBy(-span * .25);
     await expect.poll(async () => Math.abs((await title.boundingBox())!.y - originalTop)).toBeLessThanOrEqual(1);
-    await expect.poll(() => copy.evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThanOrEqual(.9);
+    await expect.poll(() => opacity(copy)).toBeGreaterThanOrEqual(.9);
+    // Three quarters on, the incoming copy is arriving in view, part faded.
     const incoming = page.locator("#journey-city .venue-journey-reading");
-    const incomingTitle = incoming.locator(".venue-journey-title");
-    const incomingDistance = (await incomingTitle.boundingBox())!.y - 900 + 24;
-    expect(incomingDistance).toBeGreaterThan(0);
-    await scrollBy(incomingDistance);
-    await expect.poll(async () => Math.abs((await incomingTitle.boundingBox())!.y - 900 + 24)).toBeLessThanOrEqual(1);
-    await expect.poll(() => incoming.evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThan(.25);
-    await expect.poll(() => incoming.evaluate(element => Number(getComputedStyle(element).opacity))).toBeLessThan(.9);
+    await scrollBy(span * .75);
+    await expect.poll(() => opacity(incoming)).toBeCloseTo(.5, 1);
+    await expect.poll(() => opacity(copy)).toBeLessThan(.05);
+    const arriving = (await incoming.boundingBox())!;
+    expect(arriving.y).toBeGreaterThan(headerBottom);
+    expect(arriving.y).toBeLessThan(900);
     await expect(page).toHaveURL(originalURL);
   });
 

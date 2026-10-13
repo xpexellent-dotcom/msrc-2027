@@ -1,11 +1,11 @@
 # MSRC 2027 decision and configuration register
 
-## ENG-038 — One gesture, one Venue journey stop, 12 October 2026
+## ENG-039 — One gesture, one Venue journey stop, 12 October 2026
 
 The organizer reports that the Venue journey only works when scrolled in a
 specific way, that fast scrolling breaks it, that each map point takes several
 scrolls, and that movement is not smooth. This explicit organizer decision
-supersedes ENG-037's 480px charge/hold and the "native journey scrolling" part
+supersedes the ENG-037 and ENG-038 charge/hold entrance and the "native journey scrolling" part
 of DSN-01 for this one page section only.
 
 The journey now has four stops: the venue overview, Airport, Getting there and
@@ -25,6 +25,53 @@ the reading area is revealed before advancing. Reduced motion, forced colors,
 enlarged text, zoom, inner scrollers, form fields and modified keys keep native
 behavior. Implementation: `src/lib/journey-stepper.ts`; coverage:
 `tests/e2e/venue-journey-stepper.spec.ts`.
+
+13 October 2026 refinement, merged with the ENG-038 audit: an abstract gold
+arrival thread (a smooth curve, never a road route, consistent with the existing
+"not a driving route" note) draws from Airport to Venue with a travelling marker
+as the journey advances. Chapters crossfade near the reading centre (55% eased
+offset, fully faded by mid-move) instead of leaving an empty band; faded chapters
+stay in the accessibility tree but take no pointer input, and visible keyboard
+focus restores ordinary flow. Pins fade beneath map controls. Phones start each
+chapter just below the pinned map. From ENG-038: a non-cancelable (latched)
+wheel tail is held at the arrived stop, and scroll anchoring is disabled while
+the stepper moves. Fixed the stretched FAQ link on the phone overview.
+
+## ENG-038 — Venue input resilience, 12 October 2026
+
+The organizer clarifies that the remaining failure occurs with ordinary fast
+desktop wheel/trackpad scrolling and that the entrance must not require a
+particular input technique. Read-only tests against the published PR64 source
+confirm the gap: one large wheel packet retains only about one sixth of its
+earned charge, while a trusted non-cancelable fling can pass the gate without
+entering. Earlier green checks remain valid for their tested scenarios; they do
+not establish these newly reproduced paths.
+
+Preserve the approved overview, centered Begin action, persistent/reversible
+charge and 850ms real-section reveal. Credit full normalized scroll distance
+against the existing 480px wheel/300px touch thresholds; supersede per-packet
+effort loss. Smooth the visible earned target before release, displaying positive
+glow for at least140ms and three held frames before the automatic scene. These
+are visual feedback safeguards; they never add effort without scrolling. Recover a measured
+native crossing only within a recent eligible input session, excluding owned
+scroll writes and flushing pending native movement before another clamp. Reverse
+effort drains charge and carries any remainder into ordinary upward scrolling.
+Rearm only after a genuine return at least 128px above the overview gate.
+
+Keep the final positive non-cancelable wheel tail bounded: 120ms quiet/new
+cancelable/reverse-input exit, with an absolute ceiling 350ms after visual finish.
+Explicit navigation, pointer manipulation, keyboard escapes, horizontal intent,
+pinch and visibility changes clear stale intent. Benign observer delivery must
+not shorten the reveal. Preserve native controls/inner scrolling, EN/AR/RTL,
+reduced motion, short/enlarged reading, no-JS and precise native Airport landing.
+No whole-site scroll lock, new dependency, provider, media or factual claim.
+
+ENG-035's publication authorization continues for this public UI correction
+after current-source checks, exact-head CI and owned serving/live verification.
+Existing live source remains PR64's merge until that release is verified. No
+hosted settings, database, operational flags, accounts or communications are
+authorized. IDs: SCP-02, DSN-01/02, ACC-01, LOC-01/02/03, MED-01/04, PRV-03, REL-06.
+Audit and receipts: `docs/reviews/venue-input-resilience.md`.
 
 ## ENG-037 — Reliable scroll-powered Venue entrance, 12 October 2026
 

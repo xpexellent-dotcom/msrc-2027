@@ -18,6 +18,10 @@ const detailKeys = ["entryGate", "ticket", "parking", "accessibility", "onSite",
 // These are image-space camera references, not driving instructions. The middle
 // point is a camera composition only; it is deliberately not a place marker.
 const cameraStops = [{ x: 581, y: 366, zoom: 1.12 }, { x: 800, y: 850, zoom: 1.02 }, { x: 1008, y: 1366, zoom: 1.55 }] as const;
+const pagingKeys = new Set(["ArrowDown", "ArrowUp", "PageDown", "PageUp", " ", "Home", "End"]);
+// An abstract arrival thread through the camera stops. It is deliberately a
+// smooth curve, never a road-following route.
+const threadPath = "M581 366C622 560 708 742 800 850S978 1158 1008 1366";
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 const mix = (first: number, last: number, amount: number) => first + (last - first) * amount;
 const subscribeToHydration = () => () => {};
@@ -160,6 +164,12 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     const points = [...map.querySelectorAll<HTMLElement>(".venue-journey-point")];
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const colors = window.matchMedia("(forced-colors: active)");
+    const trail = map.querySelector<SVGPathElement>(".venue-journey-thread-trail");
+    const trailLength = trail?.getTotalLength() ?? 0;
+    const travellers = [[".venue-journey-traveller-halo", 14], [".venue-journey-traveller", 5]].flatMap(([selector, size]) => {
+      const dot = map.querySelector<SVGCircleElement>(selector as string);
+      return dot ? [[dot, size as number] as const] : [];
+    });
     let frame = 0;
     let current = -1;
     let readingFlow = false;
@@ -172,8 +182,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       });
     };
     /** 0 at the airport's resting position, 2 at arrival, fractional between. */
-    const journeyPosition = () => {
-      const anchors = chapterAnchors();
+    const journeyPosition = (anchors: number[]) => {
       const y = window.scrollY;
       const last = anchors.length - 1;
       if (last <= 0 || y <= anchors[0]) return 0;
@@ -203,8 +212,11 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       const mapBottom = compact && !readingFlow ? atlas.getBoundingClientRect().bottom + indexHeight : 0;
       // Progress is measured between the chapters' own resting positions, so
       // the camera sits exactly on each place whenever its chapter is at rest.
-      const position = journeyPosition();
+      const anchors = chapterAnchors();
+      const position = journeyPosition(anchors);
       const next = Math.round(position);
+      // Keyboard (Tab) reading keeps ordinary flow so every link stays reachable.
+      const choreograph = !motion.matches && !readingFlow && element.dataset.keyboard !== "true";
       if (next !== current) {
         if (current >= 0 && selected.current) { selected.current = null; setSelectedPoint(null); }
         current = next; setActive(next);
@@ -214,22 +226,28 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         chapter.dataset.chapterActive = String(index === next);
         const reading = chapter.querySelector<HTMLElement>(".venue-journey-reading");
         if (!reading) return;
-        const bounds = reading.getBoundingClientRect();
-        const top = compact && !readingFlow ? mapBottom : headerHeight + 16;
-        const available = Math.max(1, viewport - top);
-        // Start the exit before the heading reaches the header, with enough
-        // central reading space for longer Arabic copy. Arriving text starts
-        // revealing just below the viewport instead of waiting for its edge.
-        const centeredTop = top + (available - bounds.height) / 2;
-        const desktopExitBand = Math.min(140, Math.max(56, available * .2), Math.max(40, centeredTop - top - 24));
-        // A long compact chapter can start just 2.5rem below the pinned map.
-        // Keep that native anchor fully readable before it enters the map edge.
-        const exitBand = compact ? Math.min(32, desktopExitBand) : desktopExitBand;
-        const entryBand = Math.min(160, Math.max(80, available * .25));
-        const visibility = clamp((bounds.top - top - 8) / exitBand) * clamp((viewport + 96 - bounds.top) / (entryBand + 96));
-        // Default/no-JS content is visible. Focus, keyboard, open essentials,
-        // enlarged text and reduced motion restore full reading opacity in CSS.
-        reading.style.setProperty("--venue-copy-opacity", motion.matches || readingFlow ? "1" : visibility.toFixed(3));
+        if (!choreograph || anchors.length !== chapters.length) {
+          reading.style.setProperty("--venue-copy-opacity", "1");
+          reading.style.removeProperty("--venue-copy-shift");
+          delete reading.dataset.copyHidden;
+          return;
+        }
+        // Chapters crossfade near the reading centre instead of scrolling a
+        // full chapter apart: each eases 55% of the way back toward its rest
+        // and is fully faded by the halfway point of the move.
+        const top = compact ? mapBottom : headerHeight + 16;
+        let delta = window.scrollY - anchors[index];
+        // Content taller than the reading area is read in place before it fades.
+        if (delta > 0) delta = Math.max(0, delta - Math.max(0, reading.offsetHeight - (viewport - top - 24)));
+        // Before the first and after the last stop the page scrolls normally.
+        if ((index === 0 && delta < 0) || (index === anchors.length - 1 && delta > 0)) delta = 0;
+        const span = Math.max(1, delta >= 0 ? (anchors[index + 1] ?? Infinity) - anchors[index] : anchors[index] - anchors[index - 1]);
+        const fade = 1 - clamp(Math.abs(delta) / span / .5);
+        const opacity = fade * fade * (3 - 2 * fade);
+        const shift = Math.sign(delta) * Math.min(Math.abs(delta), span) * .55;
+        reading.style.setProperty("--venue-copy-shift", `${shift.toFixed(1)}px`);
+        reading.style.setProperty("--venue-copy-opacity", opacity.toFixed(3));
+        reading.dataset.copyHidden = String(opacity < .02);
       });
 
       {
@@ -283,6 +301,19 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         }
         map.style.left = "0px"; map.style.top = "0px"; map.style.transformOrigin = "0 0";
         map.style.transform = `translate3d(${targetX - x * scale}px,${targetY - y * scale}px,0) scale(${scale})`;
+        // Strokes and the traveller keep a constant on-screen size at any zoom.
+        map.style.setProperty("--venue-camera-scale", scale.toFixed(4));
+        if (trail) {
+          const travelled = (motion.matches ? next : position) / (cameraStops.length - 1);
+          trail.style.strokeDashoffset = (1 - travelled).toFixed(4);
+          const point = trail.getPointAtLength(travelled * trailLength);
+          travellers.forEach(([dot, size]) => {
+            dot.setAttribute("cx", point.x.toFixed(1));
+            dot.setAttribute("cy", point.y.toFixed(1));
+            dot.setAttribute("r", (size / scale).toFixed(2));
+          });
+          element.dataset.travelling = String(travelled > .01 && travelled < .99);
+        }
         points.forEach(point => {
           point.style.transform = `translate(-50%,-50%) scale(${1 / scale})`;
           const stop = point.dataset.mapPoint === "airport" ? cameraStops[0] : cameraStops[2];
@@ -327,7 +358,8 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     });
     refresh.current = schedule;
     const keyboard = (event: KeyboardEvent) => {
-      element.dataset.keyboard = "true";
+      // Paging keys travel between stops; they are not focus navigation.
+      if (!pagingKeys.has(event.key)) element.dataset.keyboard = "true";
       if (event.key === "Escape") points.forEach(point => {
         if (point.matches(":hover") || point.contains(document.activeElement)) point.dataset.tooltipDismissed = "true";
       });
@@ -366,10 +398,16 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       motion.removeEventListener("change", schedule);
       map.style.removeProperty("transform"); map.style.removeProperty("left"); map.style.removeProperty("top"); map.style.removeProperty("transform-origin");
       points.forEach(point => { point.style.removeProperty("transform"); point.inert = false; point.tabIndex = 0; point.removeAttribute("aria-hidden"); delete point.dataset.pointVisible; });
-      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned; delete element.dataset.journeyMoving;
+      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned; delete element.dataset.journeyMoving; delete element.dataset.travelling;
+      map.style.removeProperty("--venue-camera-scale");
       element.style.removeProperty("--venue-index-height");
       element.style.removeProperty("--venue-reading-edge");
-      chapters.forEach(chapter => chapter?.querySelector<HTMLElement>(".venue-journey-reading")?.style.removeProperty("--venue-copy-opacity"));
+      chapters.forEach(chapter => {
+        const reading = chapter?.querySelector<HTMLElement>(".venue-journey-reading");
+        reading?.style.removeProperty("--venue-copy-opacity");
+        reading?.style.removeProperty("--venue-copy-shift");
+        if (reading) delete reading.dataset.copyHidden;
+      });
     };
   }, [locale]);
 
@@ -402,6 +440,12 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
           });
         }}>
           <Image src="/media/msrc-demo/venue-journey-city.svg" width={1400} height={1700} alt="" unoptimized loading="lazy" draggable={false} />
+          <svg className="venue-journey-thread" viewBox="0 0 1400 1700" width={1400} height={1700} aria-hidden="true" focusable="false">
+            <path className="venue-journey-thread-base" d={threadPath} />
+            <path className="venue-journey-thread-trail" d={threadPath} pathLength={1} />
+            <circle className="venue-journey-traveller-halo" cx={581} cy={366} r={1} />
+            <circle className="venue-journey-traveller" cx={581} cy={366} r={1} />
+          </svg>
           {renderPoint("airport")}{renderPoint("arrival")}
         </div>
         <div className="venue-journey-atlas-shade" aria-hidden="true" />
