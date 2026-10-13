@@ -45,6 +45,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const copy = headerCopy[locale];
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuClosing, setMenuClosing] = useState(false);
   const [animateMenu, setAnimateMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [readingDown, setReadingDown] = useState(false);
@@ -56,6 +57,23 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const toggleRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const dropdownCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const menuCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelMenuClose = useCallback(() => {
+    if (menuCloseRef.current !== null) clearTimeout(menuCloseRef.current);
+    menuCloseRef.current = null;
+  }, []);
+  const finishMenuClose = useCallback(() => {
+    cancelMenuClose();
+    setMenuClosing(false);
+  }, [cancelMenuClose]);
+  const closeMenu = useCallback((animate = false) => {
+    cancelMenuClose();
+    const closing = menuOpen && animate && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setMenuOpen(false);
+    setMenuClosing(closing);
+    // A canceled transition, preference change, or older browser must still dismiss.
+    if (closing) menuCloseRef.current = setTimeout(finishMenuClose, 220);
+  }, [menuOpen, cancelMenuClose, finishMenuClose]);
   const cancelDropdownClose = useCallback(() => {
     if (dropdownCloseRef.current !== null) clearTimeout(dropdownCloseRef.current);
     dropdownCloseRef.current = null;
@@ -64,6 +82,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
 
   useEffect(() => revealPageNavigation(pathname), [pathname]);
   useEffect(() => cancelDropdownClose, [cancelDropdownClose]);
+  useEffect(() => cancelMenuClose, [cancelMenuClose]);
 
   useEffect(() => {
     let docked = window.scrollY > 48;
@@ -117,11 +136,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   }, []);
 
   useEffect(() => {
-    if (!menuOpen && !openDropdown) return;
+    if (!menuOpen && !menuClosing && !openDropdown) return;
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       cancelDropdownClose();
-      if (menuOpen) { setMenuOpen(false); toggleRef.current?.focus(); }
+      if (menuOpen || menuClosing) { closeMenu(); toggleRef.current?.focus(); }
       if (openDropdown) {
         headerRef.current?.querySelector<HTMLButtonElement>(`[data-dropdown-toggle="${openDropdown}"]`)?.focus();
         setOpenDropdown(null);
@@ -130,11 +149,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     function onOutside(event: Event) {
       if (event.target instanceof Node && !headerRef.current?.contains(event.target)) {
         cancelDropdownClose();
-        setMenuOpen(false); setOpenDropdown(null);
+        closeMenu(event.type === "pointerdown"); setOpenDropdown(null);
       }
     }
     const desktop = window.matchMedia("(min-width: 1200px)");
-    const viewport = () => { cancelDropdownClose(); setMenuOpen(false); setOpenDropdown(null); };
+    const viewport = () => { cancelDropdownClose(); closeMenu(); setOpenDropdown(null); };
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("focusin", onOutside);
     document.addEventListener("pointerdown", onOutside);
@@ -145,9 +164,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       document.removeEventListener("pointerdown", onOutside);
       desktop.removeEventListener("change", viewport);
     };
-  }, [menuOpen, openDropdown, cancelDropdownClose]);
+  }, [menuOpen, menuClosing, openDropdown, cancelDropdownClose, closeMenu]);
 
-  const onNavigate = () => { cancelDropdownClose(); setMenuOpen(false); setOpenDropdown(null); };
+  const onNavigate = () => { cancelDropdownClose(); closeMenu(); setOpenDropdown(null); };
   const links: NavigationLink[] = copy.links.map((link) => ({ ...link, href: `/${locale}${link.href}`,
     children: "children" in link ? link.children?.map((child) => ({ ...child, href: `/${locale}${child.href}` })) : undefined,
   }));
@@ -228,13 +247,21 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           </div>
           <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls={menuId}
             aria-label={menuOpen ? copy.close : copy.menu} ref={toggleRef}
-            onClick={(event) => { setAnimateMenu(event.detail !== 0); setMenuOpen((open) => !open); }}>
-            <span>{copy.menu}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d={menuOpen ? "M5 5l14 14M5 19L19 5" : "M4 8h16M4 16h16"} /></svg>
+            onClick={(event) => {
+              const animate = event.detail !== 0;
+              setAnimateMenu(animate);
+              if (menuOpen) closeMenu(animate);
+              else { cancelMenuClose(); setMenuClosing(false); setMenuOpen(true); }
+            }}>
+            <span>{copy.menu}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+              <path className="menu-toggle-line-top" d="M4 8h16" /><path className="menu-toggle-line-bottom" d="M4 16h16" />
+            </svg>
           </button>
         </div>
       </Container>
-      {menuOpen ? <MobileNav id={menuId} label={copy.navigation} links={links} locale={locale}
-        pathname={pathname} status={copy.registration} action={copy.action} animate={animateMenu} onNavigate={onNavigate} /> : null}
+      {menuOpen || menuClosing ? <MobileNav id={menuId} label={copy.navigation} links={links} locale={locale}
+        pathname={pathname} status={copy.registration} action={copy.action} animate={animateMenu} closing={menuClosing}
+        onExited={finishMenuClose} onNavigate={onNavigate} /> : null}
     </header>
   );
 }

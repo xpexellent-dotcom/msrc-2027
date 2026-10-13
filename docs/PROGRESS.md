@@ -1,5 +1,33 @@
 # Progress and session handover
 
+## 13 October 2026 — Compact mobile menu, ENG-041
+
+- Audited current `origin/main` at `3550d27` against the organizer's phone
+  screenshot. Preserved the older dirty handoff checkout and used an attached
+  managed worktree for this slice.
+- Registration/status now lead a compact physical-right panel, with 44px rows,
+  paired participation destinations, interruptible panel/text transitions and
+  menu-toggle press/icon feedback. Native Tab, outside dismissal, Escape focus,
+  enlarged-screen scrolling and reduced motion remain supported.
+- PASS lint/types and 81-page production build. New focused Chromium suite:
+  ten passes. First broader run: 94 passes / 20 intentional skips / one 280px
+  doubled-text overflow failure; root cause fixed and original evidence retained.
+  Final corrected Chromium suite: 105 passes / 30 intentional skips / zero
+  failures or retries. WebKit phone: 16 passes / two native-Tab-policy skips /
+  zero failures or retries. Final EN/AR desktop/phone and 280px / 200% visual
+  confirmation: zero header axe violations, page errors or enlarged overflow.
+  Final lint and `git diff --check` pass.
+- Evidence and limitations: [mobile menu note](features/mobile-menu-panel.md).
+  Physical-phone/assistive-tech UAT and production release remain unperformed.
+- PR #71 update: integrated `main` at `865131d` (PR #70 edition photos/media).
+  Both source histories are preserved. Only documentation conflicted; retained
+  both records and renumbered this pending menu slice to ENG-041 because main
+  already uses ENG-040 for edition photos. PASS after integration: lint/types,
+  seven catalogue units, 81-page build; Chromium 105 passes / 30 intentional
+  skips and WebKit phone 16 passes / two native-Tab-policy skips, with zero
+  failures or retries. Menu implementation is identical to `269d385`; merged
+  media source matches main. Conflict-marker and diff-whitespace checks pass.
+
 ## 13 October 2026 — Correct the native-wheel test input before release
 
 - Corrected photo head `6da08c9` passed nine hosted jobs and the matching Ready

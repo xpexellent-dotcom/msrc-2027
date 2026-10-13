@@ -1,5 +1,21 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-041 — Compact mobile menu and immediate registration access, 13 October 2026
+
+Authority: the organizer's current phone screenshot and explicit refinement
+request. Move the existing registration action/status above navigation; make the
+dropdown smaller and align it with the physical right header edge in EN/AR.
+Retain RTL content, all existing public destinations and the closed registration
+state. Add short panel/text transitions and toggle press/icon feedback, with
+immediate keyboard/reduced-motion behavior and native scrolling on constrained
+screens. This supersedes ENG-028's preservation of the old mobile menu layout
+only. Existing desktop navigation and operational release gates are unaffected.
+
+Audit, implementation and observed evidence:
+[mobile menu note](features/mobile-menu-panel.md). IDs: DSN-01/02, ACC-01,
+LOC-01/03, REL-01. This request authorizes the scoped reversible implementation;
+production merge/deployment remains a separate release action.
+
 ## ENG-040 — Edition photos and responsive album, 13 October 2026
 
 Design correction before merge: keep Choose your path cards as full-image cards
