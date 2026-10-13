@@ -132,7 +132,8 @@
   .venue-stage-layout { grid-template-columns: minmax(0,1fr); gap: 2.5rem; }
   .venue-stage-intro h2 { max-inline-size: 18ch; font-size: clamp(2.5rem,8vw,3.3rem); }
   .venue-stage-guidance .venue-international { max-inline-size: 45ch; }
-  .venue-stage-resources { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  /* One full-width action per row keeps every label on one line at equal size. */
+  .venue-stage-resources { grid-template-columns: minmax(0,1fr); }
   .venue-hero-intro { padding: 0; }
   .venue-gallery-photo { aspect-ratio: 4 / 3; }
   .venue-header-collage .venue-collage-photo { aspect-ratio: 4 / 3; }

@@ -35,6 +35,10 @@
   focus-frame fix. PASS: lint, types, 2,401 units, build, 246 venue-related e2e
   (34 skipped by design); EN/AR desktop and phone screenshots reviewed. Desktop
   frame rate unchanged by the new visuals (A/B within run-to-run noise).
+- 13 October (organizer request): arrival essentials start open; overview
+  actions are one full-width row each on phones; new "Venue essentials" action
+  lands on the opened essentials (resting position, unaffected by crossfade).
+  PASS: lint, types, 2,401 units, build, 250 venue-related e2e.
 
 ## 13 October 2026 — Charge-only anchoring and matrix readiness follow-up, ENG-038
 

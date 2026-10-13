@@ -135,8 +135,11 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator('[data-travel-mode="train"] .venue-travel-time')).toHaveCount(0);
     await expect(page.locator("#at-venue [data-venue-detail]")).toHaveCount(6);
     const arrivalDetails = page.locator("#at-venue details");
-    await expect(arrivalDetails).not.toHaveAttribute("open", "");
+    // Arrival essentials start open; the keyboard still collapses and reopens them.
+    await expect(arrivalDetails).toHaveAttribute("open", "");
     await arrivalDetails.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(arrivalDetails).not.toHaveAttribute("open", "");
     await page.keyboard.press("Enter");
     await expect(arrivalDetails).toHaveAttribute("open", "");
     await expect(page.locator("#journey-arrival .venue-journey-reading")).toHaveCSS("opacity", "1");

@@ -10,6 +10,7 @@ import { datesVenueCopy } from "@/content/dates-venue";
 import { venueTravelCopy } from "@/content/venue-travel";
 import { venueJourneyCopy, venueJourneyIds, venueJourneySteps } from "@/content/venue-journey";
 import type { Locale } from "@/lib/i18n";
+import { commitFragment, focusDestination } from "@/lib/anchor-navigation";
 import { createJourneyStepper } from "@/lib/journey-stepper";
 import { venueEntryGate, venueEntryRequest } from "@/lib/venue-entry-scene";
 
@@ -148,6 +149,33 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     setZoomLevel(zoom.current);
     closePoint();
   };
+
+  useEffect(() => {
+    // "Venue essentials" always lands on open guidance, even if it was collapsed.
+    const open = () => root.current?.querySelector<HTMLDetailsElement>(".venue-arrival-disclosure")?.setAttribute("open", "");
+    const fromHash = () => { if (location.hash === "#at-venue") open(); };
+    const fromClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element) || !event.target.closest('a[href$="#at-venue"]')) return;
+      open();
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = document.getElementById("at-venue");
+      const reading = target?.closest<HTMLElement>(".venue-journey-reading");
+      if (!target) return;
+      // The crossfade offsets chapters that are away from rest, so a native
+      // anchor jump would aim at the displaced position. Aim at the resting one.
+      event.preventDefault();
+      const shift = Number.parseFloat(reading?.style.getPropertyValue("--venue-copy-shift") ?? "") || 0;
+      const padding = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0;
+      const top = window.scrollY + target.getBoundingClientRect().top - shift - padding;
+      commitFragment("#at-venue", false);
+      focusDestination(target);
+      window.scrollTo({ top, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches || event.detail === 0 ? "instant" : "smooth" });
+    };
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    document.addEventListener("click", fromClick, { capture: true });
+    return () => { window.removeEventListener("hashchange", fromHash); document.removeEventListener("click", fromClick, { capture: true }); };
+  }, []);
 
   useEffect(() => {
     if (selectedPoint && focusDetails.current) {
@@ -559,7 +587,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
               <JourneyTitle id="journey-arrival-title" phrases={journey.arrivalTitle} />
               <dl className="dates-location-details venue-journey-address"><div><dt><VenueIcon name="venue" />{place.venue}</dt><dd>{venue.name[locale]}</dd></div><div><dt><VenueIcon name="address" />{place.address}</dt><dd>{venue.address.streetAddress[locale]}{locale === "ar" ? "، جدة " : ", Jeddah "}{venue.address.postalCode}</dd></div></dl>
               <Link href="#venue-orientation" className="venue-journey-continue">{place.directions}<VenueIcon name="arrow" /></Link>
-              {details.length ? <section id="at-venue" className="venue-arrival-details venue-journey-arrival-details" aria-labelledby="at-venue-title"><details className="venue-arrival-disclosure"><summary><h3 id="at-venue-title">{journey.arrivalEssentials}</h3><svg className="venue-journey-disclosure-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" /></svg></summary><dl>{details.map(({ key, text }) => <div key={key} data-venue-detail={key}><dt><VenueIcon name={key} />{travel.venueDetails[key]}</dt><dd>{key === "accessibility" ? <AccessibilityGuidance text={text} label={travel.contactForm} locale={locale} /> : text}</dd></div>)}</dl></details></section> : null}
+              {details.length ? <section id="at-venue" className="venue-arrival-details venue-journey-arrival-details" aria-labelledby="at-venue-title"><details className="venue-arrival-disclosure" open><summary><h3 id="at-venue-title">{journey.arrivalEssentials}</h3><svg className="venue-journey-disclosure-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" /></svg></summary><dl>{details.map(({ key, text }) => <div key={key} data-venue-detail={key}><dt><VenueIcon name={key} />{travel.venueDetails[key]}</dt><dd>{key === "accessibility" ? <AccessibilityGuidance text={text} label={travel.contactForm} locale={locale} /> : text}</dd></div>)}</dl></details></section> : null}
             </div>
           </section>
         </div>

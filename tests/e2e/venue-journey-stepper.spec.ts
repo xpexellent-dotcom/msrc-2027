@@ -182,7 +182,7 @@ for (const locale of ["en", "ar"] as const) {
     for (const [index, expected] of [[1, 1], [2, .5], [3, 0]] as const) {
       await page.evaluate(top => scrollTo({ top, behavior: "instant" }), all[index]);
       await expect.poll(async () => (await read()).offset).toBeCloseTo(expected, 1);
-      expect((await read()).visible).toEqual([0, 1, 2].map(chapter => chapter === index - 1));
+      await expect.poll(async () => (await read()).visible).toEqual([0, 1, 2].map(chapter => chapter === index - 1));
     }
   });
 
@@ -215,5 +215,22 @@ for (const locale of ["en", "ar"] as const) {
     if (isMobile) await tab.tap(); else await tab.click();
     await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("journey-arrival");
     expect(await page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle)).toBe("none");
+  });
+}
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} Venue essentials opens the arrival essentials and lands on them`, async ({ page, isMobile }) => {
+    await page.goto(`/${locale}/dates-venue`);
+    await expect(page.getByTestId("venue-arrival-journey")).toHaveAttribute("data-journey-ready", "true");
+    const disclosure = page.locator(".venue-arrival-disclosure");
+    await expect(disclosure).toHaveAttribute("open", "");
+    // Collapsed by the reader, the button still lands on open guidance.
+    await disclosure.evaluate(element => { (element as HTMLDetailsElement).open = false; });
+    const button = page.locator(".venue-stage-resources").getByRole("link", { name: locale === "ar" ? "أساسيات المقر" : "Venue essentials" });
+    if (isMobile) await button.tap(); else await button.click();
+    await expect(disclosure).toHaveAttribute("open", "");
+    await expect(page).toHaveURL(/#at-venue$/);
+    await expect.poll(() => page.locator("#at-venue").evaluate(element => Math.round(element.getBoundingClientRect().top)), { timeout: 5000 }).toBeLessThan(160);
+    await expect(page.locator("#at-venue-title")).toBeInViewport();
   });
 }

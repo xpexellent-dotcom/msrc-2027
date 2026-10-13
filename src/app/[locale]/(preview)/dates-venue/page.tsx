@@ -84,6 +84,7 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
               <nav id="schedule" tabIndex={-1} className="venue-stage-resources" aria-label={locale === "ar" ? "خطّط لحضورك" : "Plan your visit"}>
                 <ButtonLink href={`/${locale}#faq`} variant="secondary">{locale === "ar" ? "الأسئلة الشائعة" : "FAQ"}<VenueIcon name="arrow" /></ButtonLink>
                 <ButtonLink href={`/${locale}/program`} variant="secondary" className="dates-program-link">{copy.program}<VenueIcon name="arrow" /></ButtonLink>
+                {venue && <ButtonLink href="#at-venue" variant="secondary">{locale === "ar" ? "أساسيات المقر" : "Venue essentials"}<VenueIcon name="arrow" /></ButtonLink>}
               </nav>
             </aside>
           </div>

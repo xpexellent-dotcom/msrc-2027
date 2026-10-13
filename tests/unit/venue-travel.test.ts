@@ -133,7 +133,9 @@ describe("arrival journey preserves approved guidance and optional configuration
     expect(markup.match(/data-travel-mode="/g)).toHaveLength(3);
     expect(markup.match(/<details name="venue-transport"/g)).toHaveLength(3);
     expect(markup).toContain('class="venue-arrival-disclosure"');
-    expect(markup).not.toMatch(/<details[^>]*\sopen\b/);
+    // Transport options start closed; arrival essentials start open by organizer request.
+    expect(markup).not.toMatch(/<details(?![^>]*venue-arrival-disclosure)[^>]*\sopen\b/);
+    expect(markup).toMatch(/<details[^>]*venue-arrival-disclosure[^>]*\sopen\b/);
     expect(markup.match(/class="venue-travel-time"/g)).toHaveLength(2);
     expect(visibleText.split(approvedTravelTime[locale])).toHaveLength(3);
     expect(markup.match(/data-venue-detail="/g)).toHaveLength(6);
