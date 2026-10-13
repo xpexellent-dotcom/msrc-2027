@@ -82,6 +82,12 @@ database's own older tombstones is insufficient. No restore is performed here.
 
 ## Independent release gates
 
+The follow-on [scheduler foundation](PARTICIPANT_CLEANUP_SCHEDULER.md) and
+[activation runbook](PARTICIPANT_ACTIVATION_RUNBOOK.md) now describe the separate
+review-only scheduler migration and external ledger operating gates. The
+`20261008160137` migration itself remains unchanged and installs no scheduler;
+neither migration is applied to hosted by this source task.
+
 The application requires installed age/retention capability fields and actual
 cleanup activation from its database readiness response. Missing fields in the
 older hosted schema, malformed values or `cleanupEnabled=false` close requests
