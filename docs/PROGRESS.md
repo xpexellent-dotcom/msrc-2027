@@ -1,5 +1,25 @@
 # Progress and session handover
 
+## 13 October 2026 — Compact mobile menu, ENG-040
+
+- Audited current `origin/main` at `3550d27` against the organizer's phone
+  screenshot. Preserved the older dirty handoff checkout and used an attached
+  managed worktree for this slice.
+- Registration/status now lead a compact physical-right panel, with 44px rows,
+  paired participation destinations, interruptible panel/text transitions and
+  menu-toggle press/icon feedback. Native Tab, outside dismissal, Escape focus,
+  enlarged-screen scrolling and reduced motion remain supported.
+- PASS lint/types and 81-page production build. New focused Chromium suite:
+  ten passes. First broader run: 94 passes / 20 intentional skips / one 280px
+  doubled-text overflow failure; root cause fixed and original evidence retained.
+  Final corrected Chromium suite: 105 passes / 30 intentional skips / zero
+  failures or retries. WebKit phone: 16 passes / two native-Tab-policy skips /
+  zero failures or retries. Final EN/AR desktop/phone and 280px / 200% visual
+  confirmation: zero header axe violations, page errors or enlarged overflow.
+  Final lint and `git diff --check` pass.
+- Evidence and limitations: [mobile menu note](features/mobile-menu-panel.md).
+  Physical-phone/assistive-tech UAT and production release remain unperformed.
+
 ## 12 October 2026 — One gesture per Venue journey stop, ENG-039
 
 - Organizer request: the journey must work for fast and slow scrolling, move one

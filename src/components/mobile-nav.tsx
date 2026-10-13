@@ -8,11 +8,19 @@ import type { Locale } from "@/lib/i18n";
 export type NavigationLink = { href: string; label: string; children?: readonly { href: string; label: string }[] };
 
 /** A disclosure navigation, not a modal: native Tab order stays intact. */
-export function MobileNav({ id, label, links, pathname, locale, status, action, animate, onNavigate }: {
+export function MobileNav({ id, label, links, pathname, locale, status, action, animate, closing, onExited, onNavigate }: {
   id: string; label: string; links: readonly NavigationLink[]; locale: Locale;
-  pathname: string; status: string; action: string; animate: boolean; onNavigate: () => void;
+  pathname: string; status: string; action: string; animate: boolean; closing: boolean;
+  onExited: () => void; onNavigate: () => void;
 }) {
-  return <div id={id} className="mobile-menu" data-animate={animate}><Container>
+  return <div id={id} className="mobile-menu" data-animate={animate} data-closing={closing}
+    inert={closing} aria-hidden={closing || undefined} onTransitionEnd={(event) => {
+      if (closing && event.target === event.currentTarget && event.propertyName === "opacity") onExited();
+    }}><Container>
+    <div className="mobile-menu-registration">
+      <ButtonLink className="mobile-reserve-action" href={`/${locale}/registration`} variant="gold" onClick={onNavigate}>{action}</ButtonLink>
+      <p className="mobile-menu-status">{status}</p>
+    </div>
     <nav aria-label={label}>{links.map((link) => <div className="mobile-nav-group" key={link.href}><Link href={link.href}
       aria-current={pathname === link.href ? "page" : undefined} onClick={() => {
         onNavigate();
@@ -21,7 +29,5 @@ export function MobileNav({ id, label, links, pathname, locale, status, action, 
       {link.children ? <div className="mobile-nav-children">{link.children.map((child) => <Link key={child.href} href={child.href}
         onClick={onNavigate}>{child.label}</Link>)}</div> : null}
     </div>)}</nav>
-    <ButtonLink className="mobile-reserve-action" href={`/${locale}/registration`} variant="gold" onClick={onNavigate}>{action}</ButtonLink>
-    <div className="mobile-menu-bottom"><p className="mobile-menu-status">{status}</p></div>
   </Container></div>;
 }
