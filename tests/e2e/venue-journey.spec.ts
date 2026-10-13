@@ -959,8 +959,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue#journey-city$`));
       await expect(page.locator("#journey-city")).toBeInViewport();
       const essentials = page.locator("#at-venue details");
-      await expect(essentials).not.toHaveAttribute("open", "");
-      await essentials.locator("summary").click();
+      // Arrival essentials start open, without JavaScript too.
       await expect(essentials).toHaveAttribute("open", "");
       await expect(page.locator("#at-venue [data-venue-detail]")).toHaveCount(6);
       for (const item of await page.locator("#at-venue [data-venue-detail] dd").all()) await expect(item).toBeVisible();

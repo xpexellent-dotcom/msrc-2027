@@ -1,7 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { setTimeout as pause } from "node:timers/promises";
 
-// One deliberate gesture moves exactly one journey stop, whatever its speed:
+// One deliberate wheel or key gesture moves exactly one journey stop, whatever
+// its speed; touch keeps native scrolling with a continuously following map:
 // overview -> airport -> getting there -> venue, then ordinary scrolling.
 const stopNames = ["overview", "airport", "city", "arrival"] as const;
 
@@ -109,15 +110,29 @@ for (const locale of ["en", "ar"] as const) {
     }
   });
 
-  test(`${locale} one swipe moves one stop on a phone`, async ({ page, isMobile }) => {
+  test(`${locale} phone swipes scroll natively while the journey follows continuously`, async ({ page, isMobile }) => {
     test.skip(!isMobile, "Touch swipes are a phone interaction.");
     await openAtOverview(page, locale);
-    const visited = [];
-    for (let gesture = 0; gesture < 4; gesture++) { await swipe(page, 1); visited.push(await stopAt(page)); }
-    expect(visited).toEqual(["overview", "airport", "city", "arrival"]);
-    const back = [];
-    for (let gesture = 0; gesture < 3; gesture++) { await swipe(page, -1); back.push(await stopAt(page)); }
-    expect(back).toEqual(["city", "airport", "overview"]);
+    const all = await stops(page);
+    await page.evaluate(top => scrollTo({ top, behavior: "instant" }), all[1]);
+    await settled(page);
+    const read = () => page.evaluate(() => ({
+      y: scrollY,
+      camera: document.querySelector<HTMLElement>(".venue-journey-camera")!.style.transform,
+      thread: Number.parseFloat(getComputedStyle(document.querySelector(".venue-journey-thread-trail")!).strokeDashoffset),
+      moving: document.querySelector<HTMLElement>(".venue-arrival-journey")!.dataset.journeyMoving === "true",
+    }));
+    const before = await read();
+    await swipe(page, 1);
+    // No automatic slide: the page rests where the finger and momentum left it.
+    await expect.poll(async () => (await read()).y, { timeout: 4000 }).toBeGreaterThan(before.y + 40);
+    await pause(900);
+    const after = await read();
+    expect(after.moving).toBe(false);
+    expect(all.some(stop => Math.abs(stop - after.y) <= 3 && stop !== all[1])).toBe(false);
+    // The camera and arrival thread advance with the scroll position.
+    expect(after.camera).not.toBe(before.camera);
+    expect(after.thread).toBeLessThan(before.thread);
   });
 
   test(`${locale} a move eases continuously and the camera follows every frame`, async ({ page, isMobile }) => {
@@ -167,7 +182,7 @@ for (const locale of ["en", "ar"] as const) {
     for (const [index, expected] of [[1, 1], [2, .5], [3, 0]] as const) {
       await page.evaluate(top => scrollTo({ top, behavior: "instant" }), all[index]);
       await expect.poll(async () => (await read()).offset).toBeCloseTo(expected, 1);
-      expect((await read()).visible).toEqual([0, 1, 2].map(chapter => chapter === index - 1));
+      await expect.poll(async () => (await read()).visible).toEqual([0, 1, 2].map(chapter => chapter === index - 1));
     }
   });
 
@@ -175,5 +190,47 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/dates-venue`);
     const heights = await page.locator(".venue-stage-resources > *").evaluateAll(links => links.map(link => link.getBoundingClientRect().height));
     expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(2);
+  });
+}
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} the overview shows a quiet horizon; journey controls arrive with the journey`, async ({ page }) => {
+    await openAtOverview(page, locale);
+    const all = await stops(page);
+    const journey = page.getByTestId("venue-arrival-journey");
+    await page.evaluate(top => scrollTo({ top, behavior: "instant" }), all[0]);
+    await expect(journey).toHaveAttribute("data-journey-ui", "hidden");
+    expect(await page.locator(".venue-journey-index").evaluate(element => Number(getComputedStyle(element).opacity))).toBeLessThan(.05);
+    await page.evaluate(top => scrollTo({ top, behavior: "instant" }), all[1]);
+    await expect(journey).toHaveAttribute("data-journey-ui", "shown");
+    await expect.poll(() => page.locator(".venue-journey-index").evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThan(.95);
+  });
+
+  test(`${locale} chapter links never leave a focus frame around the chapter`, async ({ page, isMobile }) => {
+    await openAtOverview(page, locale);
+    const all = await stops(page);
+    await page.evaluate(top => scrollTo({ top, behavior: "instant" }), all[1]);
+    await settled(page);
+    const tab = page.locator(".venue-journey-index a").nth(2);
+    if (isMobile) await tab.tap(); else await tab.click();
+    await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("journey-arrival");
+    expect(await page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle)).toBe("none");
+  });
+}
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} Venue essentials opens the arrival essentials and lands on them`, async ({ page, isMobile }) => {
+    await page.goto(`/${locale}/dates-venue`);
+    await expect(page.getByTestId("venue-arrival-journey")).toHaveAttribute("data-journey-ready", "true");
+    const disclosure = page.locator(".venue-arrival-disclosure");
+    await expect(disclosure).toHaveAttribute("open", "");
+    // Collapsed by the reader, the button still lands on open guidance.
+    await disclosure.evaluate(element => { (element as HTMLDetailsElement).open = false; });
+    const button = page.locator(".venue-stage-resources").getByRole("link", { name: locale === "ar" ? "أساسيات المقر" : "Venue essentials" });
+    if (isMobile) await button.tap(); else await button.click();
+    await expect(disclosure).toHaveAttribute("open", "");
+    await expect(page).toHaveURL(/#at-venue$/);
+    await expect.poll(() => page.locator("#at-venue").evaluate(element => Math.round(element.getBoundingClientRect().top)), { timeout: 5000 }).toBeLessThan(160);
+    await expect(page.locator("#at-venue-title")).toBeInViewport();
   });
 }

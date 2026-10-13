@@ -10,6 +10,7 @@ import { datesVenueCopy } from "@/content/dates-venue";
 import { venueTravelCopy } from "@/content/venue-travel";
 import { venueJourneyCopy, venueJourneyIds, venueJourneySteps } from "@/content/venue-journey";
 import type { Locale } from "@/lib/i18n";
+import { commitFragment, focusDestination } from "@/lib/anchor-navigation";
 import { createJourneyStepper } from "@/lib/journey-stepper";
 import { venueEntryGate, venueEntryRequest } from "@/lib/venue-entry-scene";
 
@@ -150,6 +151,33 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
   };
 
   useEffect(() => {
+    // "Venue essentials" always lands on open guidance, even if it was collapsed.
+    const open = () => root.current?.querySelector<HTMLDetailsElement>(".venue-arrival-disclosure")?.setAttribute("open", "");
+    const fromHash = () => { if (location.hash === "#at-venue") open(); };
+    const fromClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element) || !event.target.closest('a[href$="#at-venue"]')) return;
+      open();
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = document.getElementById("at-venue");
+      const reading = target?.closest<HTMLElement>(".venue-journey-reading");
+      if (!target) return;
+      // The crossfade offsets chapters that are away from rest, so a native
+      // anchor jump would aim at the displaced position. Aim at the resting one.
+      event.preventDefault();
+      const shift = Number.parseFloat(reading?.style.getPropertyValue("--venue-copy-shift") ?? "") || 0;
+      const padding = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0;
+      const top = window.scrollY + target.getBoundingClientRect().top - shift - padding;
+      commitFragment("#at-venue", false);
+      focusDestination(target);
+      window.scrollTo({ top, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches || event.detail === 0 ? "instant" : "smooth" });
+    };
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    document.addEventListener("click", fromClick, { capture: true });
+    return () => { window.removeEventListener("hashchange", fromHash); document.removeEventListener("click", fromClick, { capture: true }); };
+  }, []);
+
+  useEffect(() => {
     if (selectedPoint && focusDetails.current) {
       root.current?.querySelector<HTMLElement>("#venue-map-detail h3")?.focus({ preventScroll: true });
       focusDetails.current = false;
@@ -201,6 +229,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     const setVar = (node: HTMLElement, name: string, value: string) => { if (node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value); };
     const readings = chapters.map(chapter => chapter?.querySelector<HTMLElement>(".venue-journey-reading") ?? null);
     const indexNav = element.querySelector<HTMLElement>(".venue-journey-index");
+    const overviewStage = document.querySelector<HTMLElement>(".venue-gallery-stage");
     const atlas = map.parentElement!;
     const world = atlas.closest<HTMLElement>(".venue-journey-world");
     const credits = atlas.querySelector<HTMLElement>(".venue-journey-map-caption");
@@ -237,6 +266,9 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       const controls = controlGroup?.getBoundingClientRect();
       const north = northMark?.getBoundingClientRect();
       const chapterTops = chapters.map(chapter => chapter?.getBoundingClientRect().top);
+      const journeyTop = element.getBoundingClientRect().top;
+      // Phones read in ordinary flow, so their fades need the live text bounds.
+      const readingBoxes = compact ? readings.map(reading => reading?.getBoundingClientRect()) : [];
       // Progress is measured between the chapters' own resting positions, so
       // the camera sits exactly on each place whenever its chapter is at rest.
       const anchors = chapterTops.flatMap((top, index) => top === undefined ? [] : [scrollTop + top - sizes.margins[index] - sizes.padding]);
@@ -249,6 +281,19 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       // ---- Write phase. ----
       const mapBottom = compact && !readingFlow ? atlasBox.bottom + sizes.index : 0;
       setData(element, "inView", String(atlasBox.top < viewport && worldBottom > 0));
+      // How far the journey has risen over the viewport. Below the overview it
+      // reads as a dim horizon; its controls arrive only once it takes over,
+      // while the light overview above melts away.
+      const entered = clamp((viewport - journeyTop) / Math.max(1, viewport));
+      const ease = (value: number) => { const t = clamp(value); return t * t * (3 - 2 * t); };
+      const presence = motion.matches ? 1 : ease((entered - .6) / .35);
+      setVar(element, "--journey-ui", presence.toFixed(3));
+      const mapLight = motion.matches ? 1 : .4 + .6 * ease((entered - .3) / .6);
+      setVar(element, "--journey-map", mapLight.toFixed(3));
+      // A fully lit map needs no dimming layer at all.
+      setData(element, "journeyLit", String(mapLight > .999));
+      setData(element, "journeyUi", presence > .5 ? "shown" : "hidden");
+      if (overviewStage) setVar(overviewStage, "--venue-overview-presence", (motion.matches ? 1 : 1 - ease((entered - .5) / .45)).toFixed(3));
       setData(element, "framePinned", String(compact && !readingFlow && Math.abs(atlasBox.top - headerHeight) < 2 && worldBottom > headerHeight + atlasHeight));
       if (selected.current && (worldBottom <= Math.max(headerHeight + 32, viewport * .35) || atlasBox.top >= viewport)) {
         selected.current = null; setSelectedPoint(null);
@@ -270,10 +315,24 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
           delete reading.dataset.copyHidden;
           return;
         }
+        if (compact) {
+          // Phones scroll natively: text moves 1:1 with the finger and only
+          // fades as it slides beneath the pinned map or rises into view.
+          const box = readingBoxes[index];
+          reading.style.removeProperty("--venue-copy-shift");
+          if (!box) return;
+          const leaving = clamp((box.bottom - mapBottom - 24) / Math.min(220, box.height * .6 + 1));
+          const arriving = clamp((viewport - box.top) / 160);
+          const visible = leaving * arriving;
+          const faded = visible * visible * (3 - 2 * visible);
+          setVar(reading, "--venue-copy-opacity", faded.toFixed(3));
+          setData(reading, "copyHidden", String(faded < .02));
+          return;
+        }
         // Chapters crossfade near the reading centre instead of scrolling a
         // full chapter apart: each eases 55% of the way back toward its rest
         // and is fully faded by the halfway point of the move.
-        const top = compact ? mapBottom : headerHeight + 16;
+        const top = headerHeight + 16;
         let delta = scrollTop - anchors[index];
         // Content taller than the reading area is read in place before it fades.
         if (delta > 0) delta = Math.max(0, delta - Math.max(0, sizes.readings[index] - (viewport - top - 24)));
@@ -438,7 +497,9 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       motion.removeEventListener("change", remeasure);
       map.style.removeProperty("transform"); map.style.removeProperty("left"); map.style.removeProperty("top"); map.style.removeProperty("transform-origin");
       points.forEach(point => { point.style.removeProperty("transform"); point.inert = false; point.tabIndex = 0; point.removeAttribute("aria-hidden"); delete point.dataset.pointVisible; });
-      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned; delete element.dataset.journeyMoving; delete element.dataset.travelling; delete element.dataset.inView;
+      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned; delete element.dataset.journeyMoving; delete element.dataset.travelling; delete element.dataset.inView; delete element.dataset.journeyUi; delete element.dataset.journeyLit;
+      element.style.removeProperty("--journey-ui"); element.style.removeProperty("--journey-map");
+      overviewStage?.style.removeProperty("--venue-overview-presence");
       map.style.removeProperty("--venue-camera-scale");
       element.style.removeProperty("--venue-index-height");
       element.style.removeProperty("--venue-reading-edge");
@@ -526,7 +587,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
               <JourneyTitle id="journey-arrival-title" phrases={journey.arrivalTitle} />
               <dl className="dates-location-details venue-journey-address"><div><dt><VenueIcon name="venue" />{place.venue}</dt><dd>{venue.name[locale]}</dd></div><div><dt><VenueIcon name="address" />{place.address}</dt><dd>{venue.address.streetAddress[locale]}{locale === "ar" ? "، جدة " : ", Jeddah "}{venue.address.postalCode}</dd></div></dl>
               <Link href="#venue-orientation" className="venue-journey-continue">{place.directions}<VenueIcon name="arrow" /></Link>
-              {details.length ? <section id="at-venue" className="venue-arrival-details venue-journey-arrival-details" aria-labelledby="at-venue-title"><details className="venue-arrival-disclosure"><summary><h3 id="at-venue-title">{journey.arrivalEssentials}</h3><svg className="venue-journey-disclosure-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" /></svg></summary><dl>{details.map(({ key, text }) => <div key={key} data-venue-detail={key}><dt><VenueIcon name={key} />{travel.venueDetails[key]}</dt><dd>{key === "accessibility" ? <AccessibilityGuidance text={text} label={travel.contactForm} locale={locale} /> : text}</dd></div>)}</dl></details></section> : null}
+              {details.length ? <section id="at-venue" className="venue-arrival-details venue-journey-arrival-details" aria-labelledby="at-venue-title"><details className="venue-arrival-disclosure" open><summary><h3 id="at-venue-title">{journey.arrivalEssentials}</h3><svg className="venue-journey-disclosure-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16" /></svg></summary><dl>{details.map(({ key, text }) => <div key={key} data-venue-detail={key}><dt><VenueIcon name={key} />{travel.venueDetails[key]}</dt><dd>{key === "accessibility" ? <AccessibilityGuidance text={text} label={travel.contactForm} locale={locale} /> : text}</dd></div>)}</dl></details></section> : null}
             </div>
           </section>
         </div>
