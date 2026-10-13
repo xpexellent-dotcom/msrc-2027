@@ -1,4 +1,4 @@
-# Compact mobile menu — ENG-040
+# Compact mobile menu — ENG-041
 
 The organizer's 13 October 2026 phone screenshot shows the registration action
 below the complete navigation, with the menu filling almost the whole viewport.
@@ -100,3 +100,30 @@ actual successful package commands used the project's pinned 11.19.0.
 No public claim, registration availability, hosted setting, database, media
 approval or communication behavior changes. Next: review the branch and its
 preview, then perform the normal release and a physical-phone check.
+
+## PR #71 update from main — 13 October 2026
+
+Integrated `main` at `865131d` (PR #70's edition photo/media update) into the
+existing menu branch without rewriting its history. The navigation files and
+package lockfile were unchanged on main. Only the top entries in DECISIONS and
+PROGRESS conflicted; retained both histories and renamed this pending slice
+ENG-041 because the merged edition-photo slice now occupies ENG-040.
+
+Post-integration verification:
+
+- PASS lint, typecheck, seven `public-catalogue.test.ts` unit tests and the
+  81-page production build.
+- PASS the same Chromium suite above: 105 passed / 30 intentional skips /
+  zero failures or retries; `.tools/mobile-menu-main-update-chromium.log`.
+- PASS the same WebKit phone suite: 16 passed / two native-Tab-policy skips /
+  zero failures or retries; `.tools/mobile-menu-main-update-webkit.log`.
+  This run uses an independent task server on port 3214; the Chromium run
+  uses the repository's standard port 3210. Build receipt:
+  `.tools/mobile-menu-main-update-build.log`.
+- PASS conflict-marker and diff-whitespace checks. The three menu implementation
+  files are identical to `269d385`, while the merged homepage, experience-card
+  and edition-media source matches main.
+
+The original local receipts above apply to the pre-update head and remain
+preserved. No merge into main or production release is performed by this branch
+update. Fresh hosted checks will run on the pushed combined head.

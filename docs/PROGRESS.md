@@ -1,6 +1,6 @@
 # Progress and session handover
 
-## 13 October 2026 — Compact mobile menu, ENG-040
+## 13 October 2026 — Compact mobile menu, ENG-041
 
 - Audited current `origin/main` at `3550d27` against the organizer's phone
   screenshot. Preserved the older dirty handoff checkout and used an attached
@@ -19,6 +19,109 @@
   Final lint and `git diff --check` pass.
 - Evidence and limitations: [mobile menu note](features/mobile-menu-panel.md).
   Physical-phone/assistive-tech UAT and production release remain unperformed.
+- PR #71 update: integrated `main` at `865131d` (PR #70 edition photos/media).
+  Both source histories are preserved. Only documentation conflicted; retained
+  both records and renumbered this pending menu slice to ENG-041 because main
+  already uses ENG-040 for edition photos. PASS after integration: lint/types,
+  seven catalogue units, 81-page build; Chromium 105 passes / 30 intentional
+  skips and WebKit phone 16 passes / two native-Tab-policy skips, with zero
+  failures or retries. Menu implementation is identical to `269d385`; merged
+  media source matches main. Conflict-marker and diff-whitespace checks pass.
+
+## 13 October 2026 — Correct the native-wheel test input before release
+
+- Corrected photo head `6da08c9` passed nine hosted jobs and the matching Ready
+  Preview; public browser totals were 680 passed, 55 skipped and one failure in
+  the existing Venue fast-wheel test. All photo checks passed. The CI trace
+  showed sequential wheel command gaps of 333–559ms, above the journey's 170ms
+  gesture boundary; stop geometry stayed unchanged. Failed logs and trace are
+  preserved under `.tools/pr70-corrected-6da08c9-*`.
+- Fixed only the test fixture: queue its fourteen native wheel calls together
+  and observe the existing two-frame heavy-arrival paint boundary before its
+  unchanged 250ms pause. No application change, weaker assertion, longer timeout
+  or retry. Native-event instrumentation under 6× CPU throttling confirmed all
+  four stops, trusted input, total delta 1680, and at most 0.2ms event gaps.
+- PASS complete stepper browser suite: 30 passed, ten intentional skips, zero
+  failures/retries (1.8m); fresh typecheck and independent fixture review PASS.
+  Evidence: `.tools/stepper-correction-browser.log`,
+  `.tools/stepper-wheel-diagnostic-confirmed.json` and
+  `.tools/edition-fixture-typecheck.log`. Prior corrected application build and
+  139 affected-browser results remain applicable to the unchanged app source.
+  New-head CI, merge and matching Production proof are PENDING at this commit.
+
+## 13 October 2026 — Organizer correction before PR70 merge, ENG-040
+
+- The organizer rejected separated mobile image/copy cards. Restore full-image
+  Choose your path cards with a strong dark bottom gradient and overlaid copy;
+  remove years from these cards and other homepage backgrounds. Gallery photos
+  retain bottom-right years and use consistent frame proportions with deliberate
+  subject framing. The previous natural-height gallery choice is superseded.
+- Previous head `f82a89d804da553ad6f03c8b6d9e968a8384ec8d` passed all three
+  workflows, ten substantive jobs, eleven check runs and Vercel Preview. Public
+  browser shards: 681 passed, 55 intentional skips, no failures or retries.
+  This remains evidence for that head only; it does not verify the correction.
+- No merge occurred before the correction. The existing instruction to remove
+  audio, verify, push and merge remains active.
+- PASS corrected design: EN/AR at 390/900/1440px; all five pathway frames match,
+  cover the full card and retain the main subjects above overlaid copy. Gallery
+  frames are all 16:9, with focal points reviewed across all 17 album and six
+  homepage images. Years occur only in galleries. No page errors or overflow.
+  Initial width/face-clearance failures were corrected, with failed receipts
+  retained. Final evidence: `.tools/photo-layout-review-v2/results.json`.
+- PASS fresh `pnpm check`: lint, types, 2,402 unit tests, 81-page optimized build.
+  PASS 139 affected Chromium browser tests, five existing intentional skips,
+  no failures/retries, in 2.4 minutes. Logs: `.tools/edition-corrected-check.log`
+  and `.tools/edition-corrected-browser.log`. New-head hosted CI, merge and
+  matching Production verification remain PENDING at this commit.
+
+## 13 October 2026 — Silent album clips and authorized release, ENG-040
+
+- The organizer explicitly requested audio removal, verification, push and merge.
+  Removed every audio track from the four selected album clips; new
+  `-silent-v2.mp4` URLs avoid stale cached audio. Removed the earlier audio-bearing
+  public files while preserving ignored originals.
+- PASS file probes: exactly one H.264 video stream in each delivered clip, no
+  audio, original dimensions/duration and identical compressed-video SHA-256.
+  Evidence: `.tools/edition-silent-receipt.json`.
+- PASS fresh `pnpm check`: lint/types, 2,402 unit tests and optimized build.
+  PASS expanded affected browser suites: 139 passed/five intentional duplicate
+  or device-specific skips, zero failures/retries. All four silent clips decode
+  and play with the browser mute property off, preserving original dimensions
+  and durations. Logs: `.tools/edition-silent-check.log`,
+  `.tools/edition-silent-browser.log`, `.tools/edition-silent-video-playback.json`.
+- Initial PR70 CI at `897bac8` found six failed stale assertions across public
+  shards: zero album videos and eight homepage photos. Corrected the expectations
+  to four manual silent players and six curated photos, retaining no-iframe,
+  no-autoplay, caption/alt and motion assertions. Preserved original failed logs.
+- Exact new-head hosted verification, merge and production proof are PENDING.
+  Earlier draft evidence below is retained as history. PR:
+  https://github.com/xpexellent-dotcom/msrc-2027/pull/70.
+
+## 13 October 2026 — Edition photo update and responsive album, ENG-040
+
+- Reconciled fresh main `3550d27` into isolated `codex/edition-photo-update`;
+  the older checkout's local work is preserved.
+- Retrieved all 22 organizer-selected Drive files: 17 photos and four clips in
+  the album, plus the dedicated 2026 Build on an idea homepage photograph.
+  Supplied filename years are authoritative. Added optimized derivatives,
+  bilingual descriptions, bottom-right numeric year labels, and descending
+  2026/2025/2024/2023 sections with existing URL filters.
+- Album photographs preserve full natural proportions. Homepage mobile photo
+  space is separated from copy; the 3MT speaker stays visible and the new Build
+  photo replaces the old forced zoom. Six supplied homepage highlights retain
+  their natural composition and correct years.
+- PASS `pnpm check`: lint, types, 2,402 units/61 files, 81-page production build.
+  PASS focused browser suites: 62 passed/two existing duplicate matrix skips,
+  zero failures or retries. PASS six EN/AR visual runs at 390/900/1440px,
+  all four actual video decodes, and diff check. Independent source review found
+  no actionable implementation blocker. Detailed receipts and scope:
+  [edition photo feature note](features/edition-photo-album.md).
+- Original video audio is preserved; human speech/caption review, physical
+  devices, screen readers and non-Chromium engines remain NOT TESTED. Hosted
+  CI/Preview and live publication are PENDING. No merge, operational activation,
+  database, service configuration or participant communication changed.
+- Next: review the draft change and audio, then authorized publication with
+  current hosted and live evidence.
 
 ## 12 October 2026 — One gesture per Venue journey stop, ENG-039
 

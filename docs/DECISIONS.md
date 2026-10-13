@@ -1,6 +1,6 @@
 # MSRC 2027 decision and configuration register
 
-## ENG-040 — Compact mobile menu and immediate registration access, 13 October 2026
+## ENG-041 — Compact mobile menu and immediate registration access, 13 October 2026
 
 Authority: the organizer's current phone screenshot and explicit refinement
 request. Move the existing registration action/status above navigation; make the
@@ -15,6 +15,42 @@ Audit, implementation and observed evidence:
 [mobile menu note](features/mobile-menu-panel.md). IDs: DSN-01/02, ACC-01,
 LOC-01/03, REL-01. This request authorizes the scoped reversible implementation;
 production merge/deployment remains a separate release action.
+
+## ENG-040 — Edition photos and responsive album, 13 October 2026
+
+Design correction before merge: keep Choose your path cards as full-image cards
+on mobile, with copy over a strong dark bottom gradient. Do not place copy in a
+separate footer or show years on these cards or other homepage backgrounds.
+Years belong only to gallery photos. Use consistent image-frame proportions
+within the path cards and within the galleries, with individual focal points
+that retain the important subjects. This supersedes the initial natural-height
+album and separated mobile photo/copy implementation. Verify the corrected
+design before completing the already-authorized push and merge.
+
+Follow-up authorization on the same date: remove audio from the four newly
+supplied album clips, verify, push and merge the update. Deliver video-only
+H.264 copies under new `-silent-v2.mp4` URLs and remove the audio-bearing public
+copies. Preserve frame data, duration, dimensions and posters. This supersedes
+the initial retained-audio/draft-only status for PR70 and authorizes its merge
+after verification; it does not open operational workflows.
+
+The organizer supplied a specific 22-file 2023–2026 Drive folder and requested
+homepage/album use, subject-centered desktop/mobile framing, four-digit year
+labels at the bottom-right inside each photo, and album order 2026 → 2023.
+The dedicated “Build on an idea (2026)” photo is homepage-only; the remaining
+17 photos and four clips form the archive. This explicit asset/placement request
+supersedes older pending-selection status for these files only.
+
+Preserve the original scene and supplied filename year. Keep original files'
+dimensions and apply subject-aware framing in the interface. Gallery labels use
+the requested digits and physical bottom-right placement in both EN and AR.
+Keep historical content distinct from unannounced 2027 people/programme.
+No public download controls, third-party embeds or operational opening.
+
+This records requester selection, not an independent institutional rights audit.
+Inventory, derivative identity, implementation and observed verification are in
+[the feature note](features/edition-photo-album.md). Requirements: MED-01–04,
+ARC-01, CMS-04, LOC-01/03, ACC-01 and DSN-01/02.
 
 ## ENG-039 — One gesture, one Venue journey stop, 12 October 2026
 
