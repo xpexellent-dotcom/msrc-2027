@@ -250,12 +250,16 @@
 .venue-arrival-journey[data-journey-moving="true"] :is(.venue-journey-camera,.venue-journey-point.site-link,.venue-journey-reading) { transition: none; }
 /* Scroll anchoring must not nudge the document while the stepper owns it. */
 html:has(.venue-arrival-journey[data-journey-moving="true"]) { overflow-anchor: none; }
+/* Move the map as one composited layer; it redraws sharp once at rest. */
+.venue-arrival-journey[data-journey-moving="true"] .venue-journey-camera { will-change: transform; }
 
 /* Arrival thread: an abstract curve that draws itself as the journey advances. */
 .venue-journey-thread { position: absolute; inset: 0; inline-size: 1400px; block-size: 1700px; overflow: visible; pointer-events: none; }
 .venue-journey-thread path { fill: none; stroke-linecap: round; }
 .venue-journey-thread-base { stroke: rgb(237 218 175 / 30%); stroke-width: calc(2px / var(--venue-camera-scale,1)); stroke-dasharray: 0 calc(10px / var(--venue-camera-scale,1)); }
-.venue-journey-thread-trail { stroke: #eddaaf; stroke-width: calc(3px / var(--venue-camera-scale,1)); stroke-dasharray: 1 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 calc(6px / var(--venue-camera-scale,1)) rgb(237 218 175 / 70%)); }
+.venue-journey-thread-trail { stroke: #eddaaf; stroke-width: calc(3px / var(--venue-camera-scale,1)); stroke-dasharray: 1 1; stroke-dashoffset: 1; }
+/* A soft wide stroke gives the glow without a per-frame filter. */
+.venue-journey-thread-glow { stroke: rgb(237 218 175 / 22%); stroke-width: calc(10px / var(--venue-camera-scale,1)); stroke-dasharray: 1 1; stroke-dashoffset: 1; }
 .venue-journey-traveller { fill: #fff2d5; }
 .venue-journey-traveller-halo { fill: rgb(237 218 175 / 22%); opacity: 0; transition: opacity 240ms ease-out; }
 [data-travelling="true"] .venue-journey-traveller-halo { opacity: 1; animation: venue-traveller-pulse 1.6s ease-in-out infinite; }
@@ -269,3 +273,10 @@ html:has(.venue-arrival-journey[data-journey-moving="true"]) { overflow-anchor: 
 .venue-arrival-journey .venue-journey-point[data-point-visible="false"] { opacity: 0; }
 /* Chapters crossfade in place on phones, so no divider floats between them. */
 [data-map-compact="true"][data-reading-flow="false"][data-journey-ready="true"] .venue-journey-chapter + .venue-journey-chapter { border-block-start: 0; }
+/* Paint isolation: the redrawn thread must never force the large city map to
+   re-rasterize, so each sits on its own compositor layer. */
+.venue-journey-camera > img, .venue-journey-thread { will-change: transform; }
+/* Over the dark journey a live header blur is nearly invisible but re-blurs the
+   moving map every frame; an opaque glass of the same tone replaces it. */
+html:has(.venue-arrival-journey[data-in-view="true"]) .axiom-header .header-glass,
+html:has(.venue-arrival-journey[data-in-view="true"]) .axiom-header .wordmark::before { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: rgb(24 12 40 / .9); }

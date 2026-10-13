@@ -165,6 +165,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const colors = window.matchMedia("(forced-colors: active)");
     const trail = map.querySelector<SVGPathElement>(".venue-journey-thread-trail");
+    const trailGlow = map.querySelector<SVGPathElement>(".venue-journey-thread-glow");
     const trailLength = trail?.getTotalLength() ?? 0;
     const travellers = [[".venue-journey-traveller-halo", 14], [".venue-journey-traveller", 5]].flatMap(([selector, size]) => {
       const dot = map.querySelector<SVGCircleElement>(selector as string);
@@ -191,30 +192,67 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       while (index < last - 1 && y >= anchors[index + 1]) index++;
       return index + clamp((y - anchors[index]) / Math.max(1, anchors[index + 1] - anchors[index]));
     };
+    // Sizes that never change while scrolling are measured only after a resize,
+    // font or content change. Each frame then reads geometry before writing,
+    // so the browser never has to lay the page out twice in one frame.
+    let dirty = true;
+    const sizes = { font: 16, header: 80, padding: 0, index: 0, margins: [] as number[], readings: [] as number[], points: [] as { width: number; height: number }[] };
+    const setData = (node: HTMLElement, key: string, value: string) => { if (node.dataset[key] !== value) node.dataset[key] = value; };
+    const setVar = (node: HTMLElement, name: string, value: string) => { if (node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value); };
+    const readings = chapters.map(chapter => chapter?.querySelector<HTMLElement>(".venue-journey-reading") ?? null);
+    const indexNav = element.querySelector<HTMLElement>(".venue-journey-index");
+    const atlas = map.parentElement!;
+    const world = atlas.closest<HTMLElement>(".venue-journey-world");
+    const credits = atlas.querySelector<HTMLElement>(".venue-journey-map-caption");
+    const controlGroup = atlas.querySelector<HTMLElement>(".venue-map-controls");
+    const northMark = atlas.querySelector<HTMLElement>(".venue-journey-north");
+    const measureSizes = () => {
+      dirty = false;
+      sizes.font = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const compact = window.innerWidth < 1200 || window.innerHeight <= 640;
+      readingFlow = sizes.font > 24 || window.innerHeight <= 480;
+      setData(element, "mapCompact", String(compact));
+      setData(element, "readingFlow", String(readingFlow));
+      sizes.header = Number.parseFloat(getComputedStyle(element).getPropertyValue("--site-header-height")) || 80;
+      sizes.padding = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0;
+      sizes.margins = chapters.map(chapter => chapter ? Number.parseFloat(getComputedStyle(chapter).scrollMarginBlockStart) || 0 : 0);
+      sizes.index = indexNav?.offsetHeight ?? 0;
+      setVar(element, "--venue-index-height", `${sizes.index}px`);
+      sizes.readings = readings.map(reading => reading?.offsetHeight ?? 0);
+      sizes.points = points.map(point => ({ width: point.offsetWidth, height: point.offsetHeight }));
+    };
     const update = () => {
       frame = 0;
+      if (dirty) measureSizes();
+      // ---- Read phase: geometry only, no writes. ----
       const viewport = window.innerHeight;
-      const font = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const compact = window.innerWidth < 1200 || viewport <= 640;
-      readingFlow = font > 24 || viewport <= 480;
-      element.dataset.mapCompact = String(compact);
-      element.dataset.readingFlow = String(readingFlow);
-      const atlas = map.parentElement!;
+      const scrollTop = window.scrollY;
+      const compact = element.dataset.mapCompact === "true";
+      const headerHeight = sizes.header;
       const atlasBox = atlas.getBoundingClientRect();
-      const headerHeight = Number.parseFloat(getComputedStyle(element).getPropertyValue("--site-header-height")) || 80;
-      const worldBottom = atlas.closest<HTMLElement>(".venue-journey-world")?.getBoundingClientRect().bottom ?? atlasBox.bottom;
-      element.dataset.framePinned = String(compact && !readingFlow && Math.abs(atlasBox.top - headerHeight) < 2 && worldBottom > headerHeight + atlas.offsetHeight);
+      const worldBottom = world?.getBoundingClientRect().bottom ?? atlasBox.bottom;
+      const atlasWidth = atlas.clientWidth;
+      const atlasHeight = atlas.clientHeight;
+      const creditsBox = credits?.getBoundingClientRect();
+      const controls = controlGroup?.getBoundingClientRect();
+      const north = northMark?.getBoundingClientRect();
+      const chapterTops = chapters.map(chapter => chapter?.getBoundingClientRect().top);
+      // Progress is measured between the chapters' own resting positions, so
+      // the camera sits exactly on each place whenever its chapter is at rest.
+      const anchors = chapterTops.flatMap((top, index) => top === undefined ? [] : [scrollTop + top - sizes.margins[index] - sizes.padding]);
+      const position = journeyPosition(anchors);
+      const next = Math.round(position);
+      // Horizontal reading bounds are unaffected by the vertical crossfade.
+      const foreground = readings[next]?.getBoundingClientRect();
+      const hovered = points.map(point => point.matches(":hover") || point.matches(":focus-visible"));
+
+      // ---- Write phase. ----
+      const mapBottom = compact && !readingFlow ? atlasBox.bottom + sizes.index : 0;
+      setData(element, "inView", String(atlasBox.top < viewport && worldBottom > 0));
+      setData(element, "framePinned", String(compact && !readingFlow && Math.abs(atlasBox.top - headerHeight) < 2 && worldBottom > headerHeight + atlasHeight));
       if (selected.current && (worldBottom <= Math.max(headerHeight + 32, viewport * .35) || atlasBox.top >= viewport)) {
         selected.current = null; setSelectedPoint(null);
       }
-      const indexHeight = element.querySelector<HTMLElement>(".venue-journey-index")?.offsetHeight ?? 0;
-      element.style.setProperty("--venue-index-height", `${indexHeight}px`);
-      const mapBottom = compact && !readingFlow ? atlas.getBoundingClientRect().bottom + indexHeight : 0;
-      // Progress is measured between the chapters' own resting positions, so
-      // the camera sits exactly on each place whenever its chapter is at rest.
-      const anchors = chapterAnchors();
-      const position = journeyPosition(anchors);
-      const next = Math.round(position);
       // Keyboard (Tab) reading keeps ordinary flow so every link stays reachable.
       const choreograph = !motion.matches && !readingFlow && element.dataset.keyboard !== "true";
       if (next !== current) {
@@ -223,11 +261,11 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       }
       chapters.forEach((chapter, index) => {
         if (!chapter) return;
-        chapter.dataset.chapterActive = String(index === next);
-        const reading = chapter.querySelector<HTMLElement>(".venue-journey-reading");
+        setData(chapter, "chapterActive", String(index === next));
+        const reading = readings[index];
         if (!reading) return;
         if (!choreograph || anchors.length !== chapters.length) {
-          reading.style.setProperty("--venue-copy-opacity", "1");
+          setVar(reading, "--venue-copy-opacity", "1");
           reading.style.removeProperty("--venue-copy-shift");
           delete reading.dataset.copyHidden;
           return;
@@ -236,18 +274,18 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         // full chapter apart: each eases 55% of the way back toward its rest
         // and is fully faded by the halfway point of the move.
         const top = compact ? mapBottom : headerHeight + 16;
-        let delta = window.scrollY - anchors[index];
+        let delta = scrollTop - anchors[index];
         // Content taller than the reading area is read in place before it fades.
-        if (delta > 0) delta = Math.max(0, delta - Math.max(0, reading.offsetHeight - (viewport - top - 24)));
+        if (delta > 0) delta = Math.max(0, delta - Math.max(0, sizes.readings[index] - (viewport - top - 24)));
         // Before the first and after the last stop the page scrolls normally.
         if ((index === 0 && delta < 0) || (index === anchors.length - 1 && delta > 0)) delta = 0;
         const span = Math.max(1, delta >= 0 ? (anchors[index + 1] ?? Infinity) - anchors[index] : anchors[index] - anchors[index - 1]);
         const fade = 1 - clamp(Math.abs(delta) / span / .5);
         const opacity = fade * fade * (3 - 2 * fade);
         const shift = Math.sign(delta) * Math.min(Math.abs(delta), span) * .55;
-        reading.style.setProperty("--venue-copy-shift", `${shift.toFixed(1)}px`);
-        reading.style.setProperty("--venue-copy-opacity", opacity.toFixed(3));
-        reading.dataset.copyHidden = String(opacity < .02);
+        setVar(reading, "--venue-copy-shift", `${shift.toFixed(1)}px`);
+        setVar(reading, "--venue-copy-opacity", opacity.toFixed(3));
+        setData(reading, "copyHidden", String(opacity < .02));
       });
 
       {
@@ -259,79 +297,80 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
         const last = cameraStops[following];
         const chosen = selected.current ? cameraStops[selected.current === "airport" ? 0 : 2] : null;
         const overview = motion.matches && !chosen && (!compact || readingFlow);
-        const credits = atlas.querySelector<HTMLElement>(".venue-journey-map-caption")?.getBoundingClientRect();
-        const controls = atlas.querySelector<HTMLElement>(".venue-map-controls")?.getBoundingClientRect();
-        const north = atlas.querySelector<HTMLElement>(".venue-journey-north")?.getBoundingClientRect();
         // The north indicator occupies a side corner, not the full focal band.
         // Its actual rectangle is still excluded from each pin below.
         const upper = (controls?.bottom ?? atlasBox.top) - atlasBox.top;
-        const lower = (credits?.top ?? atlasBox.bottom) - atlasBox.top;
-        const pointHeight = Math.max(...points.map(point => point.offsetHeight));
+        const lower = (creditsBox?.top ?? atlasBox.bottom) - atlasBox.top;
+        const pointHeight = Math.max(0, ...sizes.points.map(point => point.height));
         const x = chosen?.x ?? (overview ? 780 : mix(first.x, last.x, amount));
         const y = chosen?.y ?? (overview ? 850 : mix(first.y, last.y, amount));
         const scale = Math.max(.05, overview
-          ? Math.min(atlas.clientWidth / 1400 * .86, compact ? Math.max(0, lower - upper - pointHeight - 12) / 1000 : atlas.clientHeight / 1700 * .86) * zoom.current
-          : Math.max(atlas.clientWidth / 1400, atlas.clientHeight / 1700) * (chosen?.zoom ?? mix(first.zoom, last.zoom, amount)) * zoom.current);
-        let targetX = atlas.clientWidth * (compact || overview ? .5 : locale === "ar" ? .27 : .73);
-        const foreground = chapters[next]?.querySelector<HTMLElement>(".venue-journey-reading")?.getBoundingClientRect();
+          ? Math.min(atlasWidth / 1400 * .86, compact ? Math.max(0, lower - upper - pointHeight - 12) / 1000 : atlasHeight / 1700 * .86) * zoom.current
+          : Math.max(atlasWidth / 1400, atlasHeight / 1700) * (chosen?.zoom ?? mix(first.zoom, last.zoom, amount)) * zoom.current);
+        let targetX = atlasWidth * (compact || overview ? .5 : locale === "ar" ? .27 : .73);
         if (!compact && !readingFlow && foreground) {
           const readingEdge = locale === "ar" ? atlasBox.right - foreground.left : foreground.right - atlasBox.left;
-          element.style.setProperty("--venue-reading-edge", `${readingEdge}px`);
+          setVar(element, "--venue-reading-edge", `${readingEdge.toFixed(1)}px`);
         } else element.style.removeProperty("--venue-reading-edge");
-        const currentPoint = selected.current ? points[selected.current === "airport" ? 0 : 1]
-          : next === 0 ? points[0] : next === 2 ? points[1] : undefined;
+        const currentIndex = selected.current ? (selected.current === "airport" ? 0 : 1) : next === 0 ? 0 : next === 2 ? 1 : -1;
+        const currentSize = sizes.points[currentIndex];
         const focalStop = chosen ?? cameraStops[next];
-        if (!compact && !readingFlow && !overview && foreground && currentPoint) {
+        if (!compact && !readingFlow && !overview && foreground && currentSize) {
           // Camera travel must leave the active pin and its hover corridor in
           // the real map column, outside the side foreground's hit area.
           const pinX = targetX + (focalStop.x - x) * scale;
-          const clearance = currentPoint.offsetWidth / 2 + 24;
+          const clearance = currentSize.width / 2 + 24;
           const minimum = locale === "ar" ? (controls?.right ?? atlasBox.left) - atlasBox.left + clearance : foreground.right - atlasBox.left + clearance;
           const maximum = locale === "ar" ? foreground.left - atlasBox.left - clearance : (controls?.left ?? atlasBox.right) - atlasBox.left - clearance;
           targetX += Math.min(maximum, Math.max(minimum, pinX)) - pinX;
         }
         // Keep the focal stop between controls and attribution on thin maps.
-        let targetY = compact ? (upper + lower) / 2 : atlas.clientHeight * .48;
-        if (!compact && !readingFlow && !overview && currentPoint) {
+        let targetY = compact ? (upper + lower) / 2 : atlasHeight * .48;
+        if (!compact && !readingFlow && !overview && currentSize) {
           // The desktop atlas extends beneath the fixed header. Retain a clear
           // active marker while its chapter is read, rather than advertising a
           // point at the atlas edge that the header physically covers.
           const pinY = targetY + (focalStop.y - y) * scale;
-          targetY += Math.max(0, headerHeight + 24 - atlasBox.top + currentPoint.offsetHeight / 2 - pinY);
+          targetY += Math.max(0, headerHeight + 24 - atlasBox.top + currentSize.height / 2 - pinY);
         }
         map.style.left = "0px"; map.style.top = "0px"; map.style.transformOrigin = "0 0";
-        map.style.transform = `translate3d(${targetX - x * scale}px,${targetY - y * scale}px,0) scale(${scale})`;
+        map.style.transform = `translate3d(${(targetX - x * scale).toFixed(2)}px,${(targetY - y * scale).toFixed(2)}px,0) scale(${scale.toFixed(5)})`;
         // Strokes and the traveller keep a constant on-screen size at any zoom.
-        map.style.setProperty("--venue-camera-scale", scale.toFixed(4));
+        setVar(map, "--venue-camera-scale", scale.toFixed(4));
         if (trail) {
           const travelled = (motion.matches ? next : position) / (cameraStops.length - 1);
           trail.style.strokeDashoffset = (1 - travelled).toFixed(4);
+          if (trailGlow) trailGlow.style.strokeDashoffset = trail.style.strokeDashoffset;
           const point = trail.getPointAtLength(travelled * trailLength);
           travellers.forEach(([dot, size]) => {
             dot.setAttribute("cx", point.x.toFixed(1));
             dot.setAttribute("cy", point.y.toFixed(1));
             dot.setAttribute("r", (size / scale).toFixed(2));
           });
-          element.dataset.travelling = String(travelled > .01 && travelled < .99);
+          setData(element, "travelling", String(travelled > .01 && travelled < .99));
         }
-        points.forEach(point => {
-          point.style.transform = `translate(-50%,-50%) scale(${1 / scale})`;
+        points.forEach((point, index) => {
+          point.style.transform = `translate(-50%,-50%) scale(${(1 / scale).toFixed(5)})`;
+          const { width, height } = sizes.points[index] ?? { width: 0, height: 0 };
           const stop = point.dataset.mapPoint === "airport" ? cameraStops[0] : cameraStops[2];
           const px = targetX + (stop.x - x) * scale;
           const py = targetY + (stop.y - y) * scale;
-          const bounds = { left: atlasBox.left + px - point.offsetWidth / 2, right: atlasBox.left + px + point.offsetWidth / 2, top: atlasBox.top + py - point.offsetHeight / 2, bottom: atlasBox.top + py + point.offsetHeight / 2 };
-          const blocked = [credits, controls, north].some(box => box && bounds.left < box.right + 4 && bounds.right > box.left - 4 && bounds.top < box.bottom + 4 && bounds.bottom > box.top - 4)
+          const bounds = { left: atlasBox.left + px - width / 2, right: atlasBox.left + px + width / 2, top: atlasBox.top + py - height / 2, bottom: atlasBox.top + py + height / 2 };
+          const blocked = [creditsBox, controls, north].some(box => box && bounds.left < box.right + 4 && bounds.right > box.left - 4 && bounds.top < box.bottom + 4 && bounds.bottom > box.top - 4)
             || (!compact && bounds.top < headerHeight + 8);
           const visible = !blocked && bounds.left >= atlasBox.left && bounds.right <= atlasBox.right && bounds.top >= atlasBox.top && bounds.bottom <= atlasBox.bottom;
-          point.inert = !visible; point.tabIndex = visible ? 0 : -1;
-          if (visible) point.removeAttribute("aria-hidden"); else point.setAttribute("aria-hidden", "true");
-          point.dataset.pointVisible = String(visible);
-          if (!compact && visible && (point.matches(":hover") || point.matches(":focus-visible"))) positionPointDetail(point as HTMLAnchorElement);
+          if (point.dataset.pointVisible !== String(visible)) {
+            point.inert = !visible; point.tabIndex = visible ? 0 : -1;
+            if (visible) point.removeAttribute("aria-hidden"); else point.setAttribute("aria-hidden", "true");
+            point.dataset.pointVisible = String(visible);
+          }
+          if (!compact && visible && hovered[index]) positionPointDetail(point as HTMLAnchorElement);
         });
       }
-      element.dataset.journeyReady = "true";
+      setData(element, "journeyReady", "true");
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const remeasure = () => { dirty = true; schedule(); };
     const entryStage = () => document.querySelector<HTMLElement>(".venue-gallery-stage[data-entry-boundary]");
     // Stops: the venue overview (when present), then each chapter's resting position.
     const stepper = createJourneyStepper({
@@ -375,30 +414,31 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
     };
     const pointer = () => { element.dataset.keyboard = "false"; };
     const wheel = () => { pointer(); schedule(); };
-    const size = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(schedule);
+    const size = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(remeasure);
     chapters.forEach(chapter => { if (chapter) size?.observe(chapter); });
-    const textSize = new MutationObserver(schedule);
+    readings.forEach(reading => { if (reading) size?.observe(reading); });
+    const textSize = new MutationObserver(remeasure);
     textSize.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
     window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
-    window.visualViewport?.addEventListener("resize", schedule);
+    window.addEventListener("resize", remeasure);
+    window.visualViewport?.addEventListener("resize", remeasure);
     window.addEventListener("keydown", keyboard, { capture: true });
     window.addEventListener("pointerdown", pointer, { passive: true, capture: true });
     window.addEventListener("wheel", wheel, { passive: true });
-    motion.addEventListener("change", schedule);
+    motion.addEventListener("change", remeasure);
     update();
     return () => {
       stepper.destroy();
       refresh.current = () => {};
       cancelAnimationFrame(frame); size?.disconnect(); textSize.disconnect();
-      window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule);
-      window.visualViewport?.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule); window.removeEventListener("resize", remeasure);
+      window.visualViewport?.removeEventListener("resize", remeasure);
       window.removeEventListener("keydown", keyboard, { capture: true });
       window.removeEventListener("pointerdown", pointer, { capture: true }); window.removeEventListener("wheel", wheel);
-      motion.removeEventListener("change", schedule);
+      motion.removeEventListener("change", remeasure);
       map.style.removeProperty("transform"); map.style.removeProperty("left"); map.style.removeProperty("top"); map.style.removeProperty("transform-origin");
       points.forEach(point => { point.style.removeProperty("transform"); point.inert = false; point.tabIndex = 0; point.removeAttribute("aria-hidden"); delete point.dataset.pointVisible; });
-      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned; delete element.dataset.journeyMoving; delete element.dataset.travelling;
+      delete element.dataset.journeyReady; delete element.dataset.readingFlow; delete element.dataset.mapCompact; delete element.dataset.keyboard; delete element.dataset.framePinned; delete element.dataset.journeyMoving; delete element.dataset.travelling; delete element.dataset.inView;
       map.style.removeProperty("--venue-camera-scale");
       element.style.removeProperty("--venue-index-height");
       element.style.removeProperty("--venue-reading-edge");
@@ -442,6 +482,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
           <Image src="/media/msrc-demo/venue-journey-city.svg" width={1400} height={1700} alt="" unoptimized loading="lazy" draggable={false} />
           <svg className="venue-journey-thread" viewBox="0 0 1400 1700" width={1400} height={1700} aria-hidden="true" focusable="false">
             <path className="venue-journey-thread-base" d={threadPath} />
+            <path className="venue-journey-thread-glow" d={threadPath} pathLength={1} />
             <path className="venue-journey-thread-trail" d={threadPath} pathLength={1} />
             <circle className="venue-journey-traveller-halo" cx={581} cy={366} r={1} />
             <circle className="venue-journey-traveller" cx={581} cy={366} r={1} />

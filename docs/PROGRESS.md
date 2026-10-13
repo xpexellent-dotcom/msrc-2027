@@ -22,6 +22,14 @@
   pin fading, phone spacing and FAQ fix. PASS: lint, typecheck, 2,401 units,
   build, 238 venue-related e2e (34 skipped by design), EN/AR desktop/phone
   screenshots reviewed at every stop and mid-move.
+- Performance: production desktop moves measured 37-39fps in software rendering.
+  Trace showed ~65ms/frame raster: thread redraws re-rasterized the shared city
+  map layer, and the header backdrop blur re-blurred the moving map. Isolated
+  the map image and thread on their own layers, composite the camera during
+  moves, replaced the thread filter with a soft stroke, swapped the header blur
+  for opaque glass while the journey is in view, and moved per-frame layout reads
+  ahead of writes with cached sizes. Now 55-60fps desktop and 60fps phone at 4x
+  CPU throttle (headless, worst case). PASS: lint, types, 2,401 units, 238 e2e.
 
 ## 13 October 2026 — Charge-only anchoring and matrix readiness follow-up, ENG-038
 
