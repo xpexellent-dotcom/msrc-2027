@@ -1,5 +1,28 @@
 # Progress and session handover
 
+## 13 October 2026 — Silent album clips and authorized release, ENG-040
+
+- The organizer explicitly requested audio removal, verification, push and merge.
+  Removed every audio track from the four selected album clips; new
+  `-silent-v2.mp4` URLs avoid stale cached audio. Removed the earlier audio-bearing
+  public files while preserving ignored originals.
+- PASS file probes: exactly one H.264 video stream in each delivered clip, no
+  audio, original dimensions/duration and identical compressed-video SHA-256.
+  Evidence: `.tools/edition-silent-receipt.json`.
+- PASS fresh `pnpm check`: lint/types, 2,402 unit tests and optimized build.
+  PASS expanded affected browser suites: 139 passed/five intentional duplicate
+  or device-specific skips, zero failures/retries. All four silent clips decode
+  and play with the browser mute property off, preserving original dimensions
+  and durations. Logs: `.tools/edition-silent-check.log`,
+  `.tools/edition-silent-browser.log`, `.tools/edition-silent-video-playback.json`.
+- Initial PR70 CI at `897bac8` found six failed stale assertions across public
+  shards: zero album videos and eight homepage photos. Corrected the expectations
+  to four manual silent players and six curated photos, retaining no-iframe,
+  no-autoplay, caption/alt and motion assertions. Preserved original failed logs.
+- Exact new-head hosted verification, merge and production proof are PENDING.
+  Earlier draft evidence below is retained as history. PR:
+  https://github.com/xpexellent-dotcom/msrc-2027/pull/70.
+
 ## 13 October 2026 — Edition photo update and responsive album, ENG-040
 
 - Reconciled fresh main `3550d27` into isolated `codex/edition-photo-update`;

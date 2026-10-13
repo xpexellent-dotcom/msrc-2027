@@ -143,7 +143,19 @@ for (const locale of ["en", "ar"] as const) {
     });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/media?view=archive`);
-    await expect(page.getByTestId("media-catalogue").locator("video, iframe")).toHaveCount(0);
+    const catalogue = page.getByTestId("media-catalogue");
+    await expect(catalogue.locator("iframe")).toHaveCount(0);
+    const archiveVideos = catalogue.locator("video");
+    await expect(archiveVideos).toHaveCount(4);
+    for (const [index, video] of (await archiveVideos.all()).entries()) {
+      await expect(video).toHaveAttribute("src", `/media/editions/2026/video-${index + 1}-silent-v2.mp4`);
+      await expect(video).toHaveAttribute("controls", "");
+      await expect(video).toHaveAttribute("preload", "none");
+      await expect(video).not.toHaveAttribute("autoplay");
+      expect(await video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+    }
+    // Displaying the archive must not fetch or start a clip without a Play action.
+    expect(requests).toEqual([]);
     const filmLink = page.getByRole("link", { name: locale === "ar" ? "شاهد الفيلم الافتتاحي" : "Watch the opening film", exact: true });
     await expect(filmLink).toHaveAttribute("href", new RegExp(`^/${locale}/?#film$`));
     await filmLink.click();

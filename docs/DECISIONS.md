@@ -2,6 +2,13 @@
 
 ## ENG-040 — Edition photos and responsive album, 13 October 2026
 
+Follow-up authorization on the same date: remove audio from the four newly
+supplied album clips, verify, push and merge the update. Deliver video-only
+H.264 copies under new `-silent-v2.mp4` URLs and remove the audio-bearing public
+copies. Preserve frame data, duration, dimensions and posters. This supersedes
+the initial retained-audio/draft-only status for PR70 and authorizes its merge
+after verification; it does not open operational workflows.
+
 The organizer supplied a specific 22-file 2023–2026 Drive folder and requested
 homepage/album use, subject-centered desktop/mobile framing, four-digit year
 labels at the bottom-right inside each photo, and album order 2026 → 2023.

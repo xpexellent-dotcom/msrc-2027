@@ -34,8 +34,10 @@ and separates photo and copy on small screens; the 3MT speaker is retained.
 The existing opening film and its playback policy are unchanged.
 
 Delivery: metadata-stripped WebP derivatives preserve image aspect ratios and
-do not enlarge sources. Four H.264/AAC clips retain their original video/audio
-streams and use MP4 fast-start, with WebP posters. All new files use new paths
+do not enlarge sources. At the organizer's follow-up request, four H.264 clips
+retain their original video stream with all audio tracks removed. They use MP4
+fast-start and new `-silent-v2.mp4` filenames, with the same WebP posters. The
+earlier audio-bearing public files are removed. All new files use new paths
 under `public/media/editions/`, respecting the existing media-cache policy.
 Originals remain ignored in `.tools/edition-photo-sources`, outside public
 delivery; no Drive original, organization, or sharing permission was changed.
@@ -57,7 +59,7 @@ are unchanged.
 | Actual video decoding | PASS: all four H.264/AAC clips decode/play in Chromium at 390px, report 1764×1174 and supplied durations, and pause without a media error. `.tools/edition-video-playback.json`. |
 | Source/code review | PASS: independent archive and React-pattern review, targeted lint, `git diff --check`. |
 | Physical iOS/Android, Safari/WebKit/Firefox, real screen readers | NOT TESTED. Emulated Chromium is not physical-device evidence. |
-| Spoken audio/caption review | NOT TESTED by a human. Original audio retained; no fabricated transcript/captions. |
+| Spoken audio/caption review | Superseded by the organizer's request to remove audio. The four delivery files now contain only a video stream; no transcript is fabricated. |
 | Hosted CI, preview deployment, production | PENDING / NOT TESTED. No merge or live deployment performed. |
 
 The initial source check passed before final homepage edits; the complete check
@@ -65,8 +67,30 @@ above was rerun after those edits. Dependency installation initially found the
 host's unsupported pnpm/Node versions; commands were corrected to the repository's
 locked pnpm 11.19.0 and portable Node 24.21.0, with no lockfile change.
 
-Next: review the draft pull request and the retained video audio, then perform
-the separately authorized merge/release and fresh hosted/live verification.
+## Authorized silent-video release follow-up
+
+The organizer explicitly requested audio removal, verification, push and merge.
+PASS: all four new files contain exactly one H.264 video stream and no audio
+stream. Source and output compressed-video SHA-256 hashes are identical;
+dimensions and durations are retained. `.tools/edition-silent-receipt.json`
+records the probe and packet hashes. PASS fresh lint/types, 2,402 units/build;
+139 affected Chromium browser cases (five existing skips), no failures/retries;
+and actual playback of every silent file with the browser mute property off.
+Logs: `.tools/edition-silent-check.log`, `.tools/edition-silent-browser.log`,
+`.tools/edition-silent-video-playback.json`.
+
+The first PR70 hosted run found six stale assertions (zero album video players,
+eight homepage gallery captions). Fixed to the new four manual silent clips and
+six curated photos while retaining the meaningful no-iframe, no-autoplay,
+caption/alt and motion assertions. Original failed job logs are preserved as
+`.tools/pr70-initial-115346066292.log`, `.tools/pr70-initial-115346066499.log`
+and `.tools/pr70-initial-115346066557.log`. Fresh exact-head hosted checks
+are pending before the authorized merge. Prior
+verification above describes the first draft; it is not silently relabeled as
+fresh release proof.
+
+Next: pass current-head checks, merge PR70, and verify the matching production
+deployment, bilingual image layout and silent videos.
 
 ## Asset receipt
 
@@ -75,10 +99,10 @@ Hashes establish file identity, not an independent rights audit.
 
 | Supplied name | Delivered path | Dimensions | Bytes | SHA-256 |
 | --- | --- | --- | ---: | --- |
-| 2026 video 3.mp4 | `public/media/editions/2026/video-3.mp4` | 1764×1174 | 2945596 | `cfc5dd31eb739d7b3953a67e0988538ab19d0f870d591090ee0740033876c0b4` |
-| 2026 video 2.mp4 | `public/media/editions/2026/video-2.mp4` | 1764×1174 | 3254182 | `8cbd746e1e917a5a21da9a482d8eb4a0f4b1ffaf4f4932c3422110432392d46f` |
-| 2026 video 4.mp4 | `public/media/editions/2026/video-4.mp4` | 1764×1174 | 1985607 | `f2a22a9f49ebf6882284a5525247e3ce3fb373ec1702b2deb69909698f2cc7ce` |
-| 2026 video 1.mp4 | `public/media/editions/2026/video-1.mp4` | 1764×1174 | 4496113 | `9b66106389f61b2b03ddce561570a7a6d46f417c8468600b40235c7041088fb1` |
+| 2026 video 3.mp4 | `public/media/editions/2026/video-3-silent-v2.mp4` | 1764×1174 | 2875046 | `30a94109d13e88efe4756537a553c452ed4237bddc7b2cf141d41e12f6bc6f02` |
+| 2026 video 2.mp4 | `public/media/editions/2026/video-2-silent-v2.mp4` | 1764×1174 | 3170800 | `7e010e7dc0c5ff5ee21e8b40e8ac84a37a6ab9b5d251f328e60ea4337a5fcf52` |
+| 2026 video 4.mp4 | `public/media/editions/2026/video-4-silent-v2.mp4` | 1764×1174 | 1935236 | `ad0aaecdfa1c6fca67b74573789cbbd2d5831bbb6b1cd2bcfc5051c0927c7c7d` |
+| 2026 video 1.mp4 | `public/media/editions/2026/video-1-silent-v2.mp4` | 1764×1174 | 4382688 | `65efd0f83d454f896c5f1e662024219de4138a61203229da3f09a6427e36b02e` |
 | 2025 4.png | `public/media/editions/2025/photo-4.webp` | 1153×573 | 75570 | `e134501de4cfd31480be29e06e7e4079e2363565b46506fbb186db8f7c68c995` |
 | 2024 2.png | `public/media/editions/2024/photo-2.webp` | 1333×820 | 77736 | `18587917fd70c6374419aee997fa3337c6bac2d4b4f8f4e0869236ab2ec5c6e4` |
 | 2023 2.png | `public/media/editions/2023/photo-2.webp` | 753×633 | 47300 | `2841f76e996c93a0055abc5596a782e00fe48e7182fd6504d047da7c356f0d06` |

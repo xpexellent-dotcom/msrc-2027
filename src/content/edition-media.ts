@@ -18,7 +18,7 @@ function video(number: number, durationSeconds: number, title: string, titleAr: 
   return {
     slug: `msrc-2026-video-${number}`, publication: "approved", access: "public",
     edition: 2026, kind: "highlight", title, titleAr, description, descriptionAr,
-    width: 1764, height: 1174, asset: `/media/editions/2026/video-${number}.mp4`,
+    width: 1764, height: 1174, asset: `/media/editions/2026/video-${number}-silent-v2.mp4`,
     poster: `/media/editions/2026/video-${number}-poster.webp`,
     topic: "", speakerNames: [], durationSeconds, sessionSlug: null,
   };
