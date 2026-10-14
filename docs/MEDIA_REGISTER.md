@@ -261,8 +261,8 @@ review PR. ENG-042 records this scoped use; unrelated galleries/speaker identiti
 and broader publication rights are not inferred.
 
 The fresh folder lists 13 files. Twelve assigned main portraits were downloaded
-again and match the reviewed originals byte for byte. The Academic Sessions
-co-leader's photograph is available but his approved display is names-only.
+again and match the reviewed originals byte for byte. The owner subsequently
+approved the Academic Sessions co-leader's photograph inside Laura's card.
 Nine main portraits remain absent and use labelled pending-photo frames.
 WebP derivatives preserve natural expressions, source backgrounds and recognizable
 faces; only EXIF orientation, bounded resizing, compression and CSS framing are

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { teamCommittees, teamCopy, type TeamPerson } from "@/content/team";
+import { teamCommittees, teamCopy, teamFounders, type TeamPerson } from "@/content/team";
 
 const people = teamCommittees.flatMap((committee) => [committee.leader, ...committee.leads]);
 const find = (id: string): TeamPerson => {
@@ -31,7 +31,7 @@ describe("organizer-supplied team content (SCP-02, CMS-04, LOC-01/03, MED-01/04)
     }
   });
 
-  it("keeps the confirmed co-leader distinct from unrelated unassigned Sheet entries", () => {
+  it("preserves the confirmed co-leader and keeps unassigned people and founders pending", () => {
     expect(find("laura-hamadi").coLeaders).toEqual([{ name: "Mohammed Almohmadi", profile: "https://www.linkedin.com/in/mohammed-almohmadi-80a5293a8", portrait: { src: "/media/team/mohammed-almohmadi.webp", width: 640, height: 800 } }]);
     expect(find("hanadi-orayf").members).toEqual([
       { name: "Fatima Alshuqayfi", arName: "فاطمه الشقيفي" },
@@ -42,6 +42,9 @@ describe("organizer-supplied team content (SCP-02, CMS-04, LOC-01/03, MED-01/04)
     expect(names).toHaveLength(25);
     expect(new Set(names).size).toBe(25);
     expect(names).not.toContain("Lama Mastour Alsulami");
+    expect(teamFounders).toEqual([]);
+    expect(teamCopy.en.foundersPending).toBe("Founders to be announced");
+    expect(teamCopy.ar.foundersPending).toBe("سيُعلن عن المؤسسين لاحقًا");
     expect(people.filter((person) => person.members?.length)).toHaveLength(1);
     expect(people.filter((person) => person.coLeaders?.length)).toHaveLength(1);
     expect(find("areen-youssef")).not.toHaveProperty("description");
@@ -71,11 +74,15 @@ describe("organizer-supplied team content (SCP-02, CMS-04, LOC-01/03, MED-01/04)
     for (const text of Object.values(teamCopy.ar)) expect(text).toMatch(/[\u0600-\u06ff]/);
   });
 
-  it("ships twelve local image assets and preserves nine honest missing portraits", () => {
-    const portraits = people.flatMap((person) => person.portrait ? [person.portrait] : []);
-    expect(portraits).toHaveLength(12);
+  it("ships thirteen local portraits including the co-leader and preserves nine honest missing main portraits", () => {
+    const mainPortraits = people.flatMap((person) => person.portrait ? [person.portrait] : []);
+    const coLeaderPortraits = people.flatMap((person) => (person.coLeaders ?? []).flatMap((coLeader) => coLeader.portrait ? [coLeader.portrait] : []));
+    const portraits = [...mainPortraits, ...coLeaderPortraits];
+    expect(mainPortraits).toHaveLength(12);
+    expect(coLeaderPortraits).toHaveLength(1);
+    expect(portraits).toHaveLength(13);
     expect(people.filter((person) => !person.portrait)).toHaveLength(9);
-    expect(new Set(portraits.map((portrait) => portrait.src)).size).toBe(12);
+    expect(new Set(portraits.map((portrait) => portrait.src)).size).toBe(13);
     for (const portrait of portraits) {
       expect(portrait.src).toMatch(/^\/media\/team\/[a-z0-9-]+\.webp$/);
       expect(portrait.width).toBeGreaterThan(0);

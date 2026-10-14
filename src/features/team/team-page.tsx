@@ -1,16 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useId, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useId, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { Dialog } from "@/components/feedback/dialog";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
 import { Reveal } from "@/components/ui/reveal";
-import { TeamSpotlight } from "@/components/team-spotlight";
+import { useCommitteeView, type CommitteeView } from "@/features/team/committee-view";
 import { teamCommittees, teamCopy, teamFounders, type TeamPerson } from "@/content/team";
 import { formatIndex, type Locale } from "@/lib/i18n";
-
-type CommitteeView = "both" | "scientific" | "organization";
 
 function ProfileLink({ person, locale }: { person: TeamPerson; locale: Locale }) {
   if (!person.profile) return null;
@@ -45,8 +43,9 @@ function Portrait({ person, locale, conferenceLeader }: { person: TeamPerson; lo
           alt={person.name}
           fill
           sizes={conferenceLeader
-            ? "(max-width: 570px) 45vw, 240px"
-            : "(max-width: 570px) 45vw, (max-width: 849px) 30vw, 25vw"}
+            ? "auto, (max-width: 570px) calc(50vw - 48px), 240px"
+            : "auto, (max-width: 570px) calc(50vw - 54px), (max-width: 849px) calc(31.2vw - 31px), min(362px, calc(23.4vw - 54px))"}
+          loading="lazy"
           style={portraitStyle}
         />
       ) : (
@@ -91,7 +90,7 @@ function PersonCard({ person, locale, conferenceLeader = false, memberDialogOpen
           <div className="msrc-team-co-leaders">
             <p className="msrc-team-subgroup-label">{copy.coLeader}</p>
             <ul>{person.coLeaders.map((coLeader) => <li key={coLeader.name} className="msrc-team-co-leader">
-              {coLeader.portrait ? <span className="msrc-team-co-leader-photo" aria-hidden="true"><Image src={coLeader.portrait.src} alt="" fill sizes="56px" /></span> : null}
+              {coLeader.portrait ? <span className="msrc-team-co-leader-photo" aria-hidden="true"><Image src={coLeader.portrait.src} alt="" fill sizes="auto, 3.5rem" loading="lazy" /></span> : null}
               <span className="msrc-team-co-leader-text"><span lang="en" dir="ltr">{coLeader.name}</span>{coLeader.profile ? <a className="msrc-team-profile" href={coLeader.profile} target="_blank" rel="noopener noreferrer" aria-label={`${copy.profileLabel}: ${coLeader.name}`}><span>{copy.profileLabel}</span></a> : null}</span>
             </li>)}</ul>
           </div>
@@ -102,7 +101,12 @@ function PersonCard({ person, locale, conferenceLeader = false, memberDialogOpen
             className="msrc-team-view-members"
             aria-haspopup="dialog"
             aria-expanded={memberDialogOpen}
-            onClick={(event) => onViewMembers(person, event.detail === 0)}
+            onClick={(event) => {
+              // Safari does not focus pointer-activated buttons by default.
+              // Give the native dialog a reliable initiating control to restore.
+              event.currentTarget.focus({ preventScroll: true });
+              onViewMembers(person, event.detail === 0);
+            }}
           >
             <span>{copy.viewTeam}</span>
             <span className="msrc-team-member-count">({formatIndex(person.members.length, locale)})</span>
@@ -134,10 +138,24 @@ function scrollMemberList(event: KeyboardEvent<HTMLUListElement>) {
 /** CMS-03, LOC-01/03, ACC-01: supplied public roster; private contact fields stay absent. */
 export function TeamPage({ locale }: { locale: Locale }) {
   const copy = teamCopy[locale];
-  const [view, setView] = useState<CommitteeView>("both");
+  const [view, setView] = useCommitteeView();
   const [memberLeader, setMemberLeader] = useState<TeamPerson | null>(null);
   const [membersOpen, setMembersOpen] = useState(false);
   const [dialogInstant, setDialogInstant] = useState(false);
+  useEffect(() => {
+    if (!membersOpen) return;
+    const root = document.documentElement;
+    const body = document.body;
+    const previous = { rootOverflow: root.style.overflow, bodyOverflow: body.style.overflow, gutter: root.style.scrollbarGutter };
+    if (window.innerWidth > root.clientWidth) root.style.scrollbarGutter = "stable";
+    root.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      root.style.overflow = previous.rootOverflow;
+      body.style.overflow = previous.bodyOverflow;
+      root.style.scrollbarGutter = previous.gutter;
+    };
+  }, [membersOpen]);
   const titleLines = copy.title.split("\n");
   const memberTitle = memberLeader
     ? locale === "ar"
@@ -204,7 +222,6 @@ export function TeamPage({ locale }: { locale: Locale }) {
         </Container>
       </section>
       <section className="msrc-team-roster" aria-label={copy.label}>
-        <TeamSpotlight />
         <Container>
           <div className="programme-toolbar msrc-team-toolbar"><div className="programme-days msrc-team-filters" role="group" aria-label={copy.committeeView}>
             {filters.map((filter) => (

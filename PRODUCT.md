@@ -92,13 +92,24 @@ background film control, deliberate cinema mode and preference-aware poster fall
 
 ## Team page scope — 14 October 2026
 
-ENG-042 supplies the public staff roster and portrait sources for `/team`,
-superseding the older anonymous-team preview direction only on that page.
-Speaker/sponsor placeholders retain their existing scope. Match the site's
-photo-header format using the supplied historical MSRC 2026 auditorium image,
-then an ivory split-committee gallery with four portraits across desktop,
-proportional conference leaders, italic source quotes and an animated names-only
-member popup. Existing tokens, self-hosted fonts, native scrolling, EN/AR interface,
-RTL and closed operational boundaries stay authoritative. Source reconciliation,
-missing photographs and provisional English member spellings are explicit in
-`docs/features/team-organization.md`. Deliver a review PR; do not merge or deploy.
+ENG-042 supplies the public staff roster and portraits for `/team`, superseding
+the older anonymous-team preview on that page. ORG-050 and later owner corrections
+retain the Program-style historical MSRC 2026 photo header, pending Founders panel,
+prominent conference leaders and equal-gap masonry in two desktop committee
+halves (four lead columns overall). English A–Z reads down each column, then
+across. Laura's co-leader Mohammed Almohmadi appears with his photo/profile after
+her details; Scientific Officer has no “Joker” suffix and quoted copy is upright.
+
+The current restrained refinement uses ivory, white cards, purple portrait borders
+and lilac pending frames. Keep quiet reveals, 2%/180ms photo hover and the native
+names-only member popup; remove drifting light, cursor glow, glass layers,
+gradient edges and card lift. The popup keeps its heading/Close outside the
+scrollable names list and temporarily locks background scrolling only while open.
+Committee selection follows the URL; local lazy portraits use automatic sizing
+with capped fallbacks. EN/AR, RTL, original photographs and closed operational
+boundaries remain authoritative. Speaker/sponsor scope is unchanged.
+
+Source reconciliation and current/historical evidence are separate in
+`docs/features/team-organization.md`; the initial 144-case receipt is from
+`93e95fc`, not current-head verification. Work remains a review PR, with hosted
+changes and operational activation outside this scope.

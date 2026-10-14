@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { languageLink } from "./helpers/header-navigation";
 
 // SCP-02, CMS-04, LOC-01/03, ACC-01, MED-01/04: approved roster content,
 // usable committee controls and an accessible member dialog on every breakpoint.
@@ -28,6 +29,65 @@ async function assertContained(page: Page, selector: string) {
 async function activate(control: Locator, isMobile: boolean) {
   if (isMobile) await control.tap();
   else await control.click();
+}
+
+async function assertCommitteeView(page: Page, view: "both" | "scientific" | "organization") {
+  const team = page.locator(".msrc-team-page");
+  await expect(team).toHaveAttribute("data-view", view);
+  await expect(team.locator(`.msrc-team-filter[data-view-choice="${view}"]`)).toHaveAttribute("aria-pressed", "true");
+  for (const committee of ["scientific", "organization"] as const) {
+    const section = team.locator(`.msrc-team-committee[data-committee="${committee}"]`);
+    if (view === "both" || view === committee) await expect(section).toBeVisible();
+    else await expect(section).toBeHidden();
+  }
+}
+
+async function addStressMembers(list: Locator, locale: "en" | "ar") {
+  await list.evaluate((element, lang) => {
+    const sample = element.querySelector("li")!;
+    for (let index = 0; index < 80; index++) {
+      const member = sample.cloneNode(true) as HTMLElement;
+      member.textContent = lang === "ar" ? `عضو تجريبي ${index} ${"اسمطويل".repeat(20)}` : `Synthetic member ${index} ${"LongName".repeat(20)}`;
+      element.append(member);
+    }
+  }, locale);
+  await expect(list.locator(".msrc-team-dialog-member")).toHaveCount(83);
+}
+
+async function imageSlot(image: Locator) {
+  return image.evaluate((element: HTMLImageElement) => {
+    const sizes = element.getAttribute("sizes") ?? "";
+    let depth = 0;
+    let start = 0;
+    const parts: string[] = [];
+    for (let index = 0; index < sizes.length; index++) {
+      if (sizes[index] === "(") depth++;
+      else if (sizes[index] === ")") depth--;
+      else if (sizes[index] === "," && depth === 0) {
+        parts.push(sizes.slice(start, index).trim());
+        start = index + 1;
+      }
+    }
+    parts.push(sizes.slice(start).trim());
+    const chosen = parts.find((part) => {
+      // Native lazy-image auto sizing uses the actual rendered slot. Resolve
+      // its explicit fallback separately for browsers that do not support auto.
+      if (part === "auto") return false;
+      const conditional = part.match(/^(\([^)]*\)(?:\s+and\s+\([^)]*\))*)\s+(.+)$/);
+      return conditional ? matchMedia(conditional[1]).matches : true;
+    }) ?? "";
+    const conditional = chosen.match(/^(\([^)]*\)(?:\s+and\s+\([^)]*\))*)\s+(.+)$/);
+    const length = conditional?.[2] ?? chosen;
+    if (!CSS.supports("width", length)) throw new Error(`Unusable image slot declaration: ${sizes}`);
+    const probe = document.createElement("div");
+    probe.style.cssText = "all:initial;position:fixed;visibility:hidden;height:1px;";
+    probe.style.width = length;
+    document.body.append(probe);
+    const slot = probe.getBoundingClientRect().width;
+    probe.remove();
+    const frame = element.closest(".msrc-team-portrait")!.getBoundingClientRect().width;
+    return { sizes, slot, frame };
+  });
 }
 
 for (const locale of ["en", "ar"] as const) {
@@ -102,6 +162,15 @@ for (const locale of ["en", "ar"] as const) {
     await expect(team.locator('[data-committee="scientific"]')).toBeVisible();
     await expect(team.locator('[data-committee="organization"]')).toBeVisible();
     await assertContained(page, ".msrc-team-page h1, .msrc-team-page h2, .msrc-team-page h3, .msrc-team-description, .msrc-team-filter");
+    await page.emulateMedia({ media: "print" });
+    const printedAccent = page.locator("#msrc-team-title > span").nth(1);
+    await expect(printedAccent).toBeVisible();
+    expect(await printedAccent.evaluate((element) => getComputedStyle(element).getPropertyValue("-webkit-text-fill-color").trim())).toMatch(/\S/);
+    expect(await printedAccent.evaluate((element) => {
+      const fill = getComputedStyle(element).getPropertyValue("-webkit-text-fill-color").trim();
+      return fill === "transparent" || /^rgba\([^)]*,\s*0(?:\.0+)?\)$/.test(fill);
+    }), "The second title line has a visible text fill when its screen gradient is removed for print").toBe(false);
+    await page.emulateMedia({ media: "screen" });
   });
 
   test(`${locale} local portraits decode in a consistent four-to-five frame and absent photos stay honest`, async ({ page }) => {
@@ -110,6 +179,13 @@ for (const locale of ["en", "ar"] as const) {
     const team = page.locator(".msrc-team-page");
     const images = team.locator(".msrc-team-portrait img");
     await expect(images).toHaveCount(12);
+    const coLeaderPhoto = team.locator(".msrc-team-co-leader-photo img");
+    await expect(coLeaderPhoto).toHaveCount(1);
+    await coLeaderPhoto.scrollIntoViewIfNeeded();
+    await expect.poll(() => coLeaderPhoto.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0 && element.naturalHeight > 0)).toBe(true);
+    await expect(coLeaderPhoto).toHaveAttribute("alt", "");
+    await expect(team.locator(".msrc-team-co-leader-photo")).toHaveAttribute("aria-hidden", "true");
+    await expect(team.locator(".msrc-team-portrait img, .msrc-team-co-leader-photo img")).toHaveCount(13);
     await expect(team.locator(".msrc-team-portrait--pending")).toHaveCount(9);
     await expect(team.locator(".msrc-team-portrait--pending img")).toHaveCount(0);
     for (const image of await images.all()) {
@@ -145,6 +221,16 @@ for (const locale of ["en", "ar"] as const) {
     await expect(dialog).toContainText(locale === "en" ? "Fatima Alshuqayfi" : "فاطمه الشقيفي");
     await expect(dialog).toContainText(locale === "en" ? "Rama Alghamdi" : "رامه الغامدي");
     await expect(dialog).toContainText(locale === "en" ? "Tamara Alsindi" : "تمارا السندي");
+    const backdropPoint = await dialog.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      return bounds.top > 4
+        ? { x: window.innerWidth / 2, y: bounds.top / 2 }
+        : { x: bounds.left / 2, y: window.innerHeight / 2 };
+    });
+    await page.mouse.move(backdropPoint.x, backdropPoint.y);
+    await page.mouse.wheel(0, 320);
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    expect(await page.evaluate(() => window.scrollY), "Backdrop wheel input cannot scroll the document beneath the popup").toBe(scrollBefore);
     for (const key of ["Shift+Tab", "Tab", "Tab", "Tab", "Shift+Tab"]) {
       await page.keyboard.press(key);
       expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
@@ -156,6 +242,11 @@ for (const locale of ["en", "ar"] as const) {
     await expect(trigger).toBeFocused();
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(Math.abs(await page.evaluate(() => window.scrollY) - scrollBefore)).toBeLessThan(2);
+
+    await page.mouse.move((page.viewportSize()?.width ?? 320) / 2, 8);
+    await page.mouse.wheel(0, -180);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(scrollBefore - 20);
+    await trigger.scrollIntoViewIfNeeded();
 
     await activate(trigger, isMobile);
     await expect(dialog).toBeVisible();
@@ -187,15 +278,7 @@ for (const locale of ["en", "ar"] as const) {
     const list = dialog.locator(".msrc-team-dialog-members");
     // Temporary DOM-only stress data tests the public layout without publishing
     // synthetic people or adding a fixture route to the application.
-    await list.evaluate((element, lang) => {
-      const sample = element.querySelector("li")!;
-      for (let index = 0; index < 80; index++) {
-        const member = sample.cloneNode(true) as HTMLElement;
-        member.textContent = lang === "ar" ? `عضو تجريبي ${index} ${"اسمطويل".repeat(20)}` : `Synthetic member ${index} ${"LongName".repeat(20)}`;
-        element.append(member);
-      }
-    }, locale);
-    await expect(list.locator(".msrc-team-dialog-member")).toHaveCount(83);
+    await addStressMembers(list, locale);
     const dialogBounds = (await dialog.boundingBox())!;
     expect(dialogBounds.x).toBeGreaterThanOrEqual(-1);
     expect(dialogBounds.y).toBeGreaterThanOrEqual(-1);
@@ -210,6 +293,123 @@ for (const locale of ["en", "ar"] as const) {
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
     await expect(trigger).toBeFocused();
+  });
+
+  test(`${locale} committee selection survives sharing, reload, language navigation and browser history`, async ({ page, isMobile }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${locale}/team?ref=team-regression&committee=organization#msrc-team-organization`);
+    await assertCommitteeView(page, "organization");
+    await activate(page.locator('.msrc-team-filter[data-view-choice="scientific"]'), isMobile);
+    await assertCommitteeView(page, "scientific");
+    await expect.poll(() => new URL(page.url()).searchParams.get("committee")).toBe("scientific");
+    expect(new URL(page.url()).searchParams.get("ref")).toBe("team-regression");
+    expect(new URL(page.url()).hash).toBe("#msrc-team-organization");
+    await page.reload();
+    await assertCommitteeView(page, "scientific");
+
+    const otherLocale = locale === "en" ? "ar" : "en";
+    const language = await languageLink(page, locale === "en" ? "View this page in Arabic" : "View this page in English");
+    const destination = new URL(page.url());
+    destination.pathname = `/${otherLocale}/team`;
+    await expect(language).toHaveAttribute("href", `${destination.pathname}${destination.search}${destination.hash}`);
+    await language.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(destination.href);
+    await expect(page.locator("html")).toHaveAttribute("dir", otherLocale === "ar" ? "rtl" : "ltr");
+    await assertCommitteeView(page, "scientific");
+    await activate(page.locator('.msrc-team-filter[data-view-choice="organization"]'), isMobile);
+    await assertCommitteeView(page, "organization");
+    await expect.poll(() => new URL(page.url()).searchParams.get("committee")).toBe("organization");
+
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/team\\?`));
+    await assertCommitteeView(page, "scientific");
+    await page.goForward();
+    await expect(page).toHaveURL(new RegExp(`/${otherLocale}/team\\?`));
+    await assertCommitteeView(page, "organization");
+    expect(new URL(page.url()).searchParams.get("ref")).toBe("team-regression");
+    expect(new URL(page.url()).hash).toBe("#msrc-team-organization");
+
+    await activate(page.locator('.msrc-team-filter[data-view-choice="both"]'), isMobile);
+    await assertCommitteeView(page, "both");
+    expect([null, "both"]).toContain(new URL(page.url()).searchParams.get("committee"));
+    await page.reload();
+    await assertCommitteeView(page, "both");
+    for (const value of ["invalid", "SCIENTIFIC", "organization%2Fprivate"]) {
+      await page.goto(`/${locale}/team?ref=team-regression&committee=${value}#msrc-team-scientific`);
+      await assertCommitteeView(page, "both");
+      expect(new URL(page.url()).searchParams.get("ref")).toBe("team-regression");
+    }
+  });
+
+  test(`${locale} a short viewport keeps the member heading and Close visible while the list scrolls`, async ({ page, isMobile }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const viewport of [{ width: 320, height: 480 }, { width: 844, height: 390 }]) {
+      await page.setViewportSize(viewport);
+      await ready(page, locale);
+      await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+      const trigger = page.locator('[data-person-id="hanadi-orayf"] .msrc-team-view-members');
+      await activate(trigger, isMobile);
+      const dialog = page.locator("dialog.msrc-team-dialog");
+      await expect(dialog).toBeVisible();
+      const heading = dialog.getByRole("heading", { level: 2 });
+      const close = dialog.locator(".feedback-dialog-heading button");
+      const list = dialog.locator(".msrc-team-dialog-members");
+      await addStressMembers(list, locale);
+      const bounds = (await dialog.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(-1);
+      expect(bounds.y).toBeGreaterThanOrEqual(-1);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width + 1);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height + 1);
+      await expect(heading).toBeInViewport({ ratio: 1 });
+      await expect(close).toBeInViewport({ ratio: 1 });
+      const headingBefore = (await heading.boundingBox())!;
+      const closeBefore = (await close.boundingBox())!;
+      for (const control of [headingBefore, closeBefore]) {
+        expect(control.x).toBeGreaterThanOrEqual(bounds.x - 1);
+        expect(control.y).toBeGreaterThanOrEqual(bounds.y - 1);
+        expect(control.x + control.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1);
+        expect(control.y + control.height).toBeLessThanOrEqual(bounds.y + bounds.height + 1);
+      }
+      expect(await list.evaluate((element) => element.clientHeight)).toBeGreaterThan(0);
+      expect(await list.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+      await list.focus();
+      await page.keyboard.press("End");
+      await expect.poll(() => list.evaluate((element) => Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop))).toBeLessThan(2);
+      await expect(heading).toBeInViewport({ ratio: 1 });
+      await expect(close).toBeInViewport({ ratio: 1 });
+      expect(Math.abs((await heading.boundingBox())!.y - headingBefore.y)).toBeLessThan(2);
+      expect(Math.abs((await close.boundingBox())!.y - closeBefore.y)).toBeLessThan(2);
+      expect(await dialog.evaluate((element) => element.scrollTop)).toBe(0);
+      await assertContained(page, ".msrc-team-dialog h2, .msrc-team-dialog button");
+      await close.focus();
+      await page.keyboard.press("Enter");
+      await expect(dialog).toBeHidden();
+      await expect(trigger).toBeFocused();
+    }
+  });
+
+  test(`${locale} portrait download sizes follow the visible cards across wide and narrow committee views`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await ready(page, locale);
+    const image = page.locator('[data-person-id="akram-awan"] .msrc-team-portrait img');
+    for (const width of [320, 791, 1280, 1920]) {
+      await page.setViewportSize({ width, height: 1000 });
+      for (const view of ["both", "scientific"] as const) {
+        await page.locator(`.msrc-team-filter[data-view-choice="${view}"]`).click();
+        await assertCommitteeView(page, view);
+        const { sizes, slot, frame } = await imageSlot(image);
+        expect(sizes).toMatch(/^auto\s*,\s*\S/);
+        await expect(image).toHaveAttribute("loading", "lazy");
+        await image.scrollIntoViewIfNeeded();
+        await expect.poll(() => image.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0 && element.naturalHeight > 0)).toBe(true);
+        const selectedSource = await image.evaluate((element: HTMLImageElement) => element.currentSrc);
+        expect(selectedSource).toMatch(/^https?:\/\//);
+        expect(new URL(selectedSource).origin).toBe(new URL(page.url()).origin);
+        expect(slot, `${width}px ${view}: source slot covers the rendered portrait`).toBeGreaterThanOrEqual(frame * .85);
+        expect(slot, `${width}px ${view}: source slot avoids an oversized download`).toBeLessThanOrEqual(frame * 1.3);
+      }
+    }
   });
 
   test(`${locale} team has no automated accessibility violations with the member dialog closed or open`, async ({ page }, testInfo) => {
@@ -245,6 +445,84 @@ test("team member dialog survives interrupted motion and changes to reduced-moti
   await expect(dialog).toBeVisible();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await dialog.locator(".feedback-dialog-heading button").click();
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test("pointer dialog dismissal retains the member content during its 160ms exit", async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await ready(page, "en");
+  const trigger = page.locator('[data-person-id="hanadi-orayf"] .msrc-team-view-members');
+  const dialog = page.locator("dialog.msrc-team-dialog");
+  await activate(trigger, isMobile);
+  await expect(dialog).toBeVisible();
+  await dialog.evaluate((element) => {
+    const probeWindow = window as typeof window & {
+      teamExitProbe?: Promise<{ durations: number[]; content: string; count: number; opacity: number }>;
+    };
+    probeWindow.teamExitProbe = new Promise((resolve) => {
+      element.addEventListener("close", () => {
+        requestAnimationFrame(() => {
+          const durations = element.getAnimations().filter((animation) => animation instanceof CSSTransition && ["opacity", "transform"].includes(animation.transitionProperty))
+            .map((animation) => Number(animation.effect?.getTiming().duration));
+          resolve({ durations, content: element.textContent ?? "", count: element.querySelectorAll(".msrc-team-dialog-member").length, opacity: Number(getComputedStyle(element).opacity) });
+        });
+      }, { once: true });
+    });
+  });
+  await activate(dialog.locator(".feedback-dialog-heading button"), isMobile);
+  const exit = await page.evaluate(async () => {
+    const probeWindow = window as typeof window & {
+      teamExitProbe?: Promise<{ durations: number[]; content: string; count: number; opacity: number }>;
+    };
+    return probeWindow.teamExitProbe!;
+  });
+  expect(exit.durations.length, "Native close keeps the visual exit animation active").toBeGreaterThan(0);
+  for (const duration of exit.durations) expect(duration).toBe(160);
+  expect(exit.opacity).toBeGreaterThan(0);
+  expect(exit.count).toBe(3);
+  expect(exit.content).toContain("Media & Design team");
+  expect(exit.content).toContain("Fatima Alshuqayfi");
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test("changing reduced-motion preference stops optional team effects while the popup remains usable", async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await ready(page, "en");
+  const team = page.locator(".msrc-team-page");
+  const trigger = team.locator('[data-person-id="hanadi-orayf"] .msrc-team-view-members');
+  await trigger.scrollIntoViewIfNeeded();
+  await trigger.hover();
+  await activate(trigger, isMobile);
+  const dialog = page.locator("dialog.msrc-team-dialog");
+  await expect(dialog).toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(dialog).toHaveCSS("transform", "none");
+  expect(await dialog.evaluate((element) => getComputedStyle(element).transitionDuration.split(",").every((duration) => Number.parseFloat(duration) === 0))).toBe(true);
+  expect(await dialog.evaluate((element) => getComputedStyle(element, "::backdrop").transitionDuration.split(",").every((duration) => Number.parseFloat(duration) === 0))).toBe(true);
+  await expect(team.locator(".team-backdrop, .team-orb, .team-spot")).toHaveCount(0);
+  expect(await team.locator(".msrc-team-roster").evaluate((element) => element.getAnimations({ subtree: true }).some((animation) => animation.playState === "running" || animation.pending))).toBe(false);
+  await dialog.locator(".feedback-dialog-heading button").focus();
+  await page.keyboard.press("Enter");
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test("member dismissal restores the initiating button when pointer activation does not focus it", async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await ready(page, "en");
+  const trigger = page.locator('[data-person-id="hanadi-orayf"] .msrc-team-view-members');
+  await trigger.scrollIntoViewIfNeeded();
+  await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
+  // Safari does not focus clicked buttons. Suppress Chromium's default focus
+  // without suppressing activation to cover that same browser behavior.
+  await trigger.evaluate((element) => element.addEventListener("mousedown", (event) => event.preventDefault(), { once: true }));
+  await activate(trigger, isMobile);
+  const dialog = page.locator("dialog.msrc-team-dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator(".feedback-dialog-heading button")).toBeFocused();
+  await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();
 });

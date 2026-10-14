@@ -2699,9 +2699,13 @@ BL-RPT-01/03, ROL-01/07/10/12, SEC-01/02/06, LOC-01/03.
 Authority: the organizer's current screenshots, roster corrections, photo-folder
 and information-Sheet links, final preview refinements and explicit request for a
 full PR. Implement the existing `/team` page with Scientific and Organization
-committees side by side, two lead portraits per committee per row, proportional
+committees side by side, two lead portrait columns per committee, proportional
 conference-leader portraits, white bordered frames, alphabetized names, quoted
-italic descriptions and a bounded animated names-only **View team** popup.
+descriptions and a bounded animated names-only **View team** popup. The later
+owner corrections on this PR select upright quotes, Scientific Officer without
+the Joker parenthetical, a Founders panel with an honest pending state, and equal
+masonry gaps with alphabetical reading down each column. Mohammed Almohmadi's
+supplied portrait and profile follow Laura's quote and profile inside her card.
 
 Abdulrahman Ismail Maqbool heads Scientific; Fatima Salem Alfrhah heads Organization.
 Akram Awan is Digital & Analytics Lead. This supersedes the older leadership
@@ -2723,6 +2727,12 @@ The latest request applies Emil design engineering and Impeccable guidance,
 matching the existing public photo-header language with the supplied MSRC 2026
 auditorium image, and short purposeful motion with instant keyboard/reduced-motion
 paths. Use local optimized media, existing brand/font tokens and native scrolling.
+The follow-up request to improve PR #76 without extra effects authorizes a quieter
+ivory gallery, clean bordered portraits, readable role typography and purposeful
+popup motion. Remove the drifting lights, cursor-following glow, decorative glass
+cards and hover lift. Persist the committee filter in the URL and keep the member
+list as the popup's sole scroller, with its title and Close control reachable on
+short screens and at enlarged text sizes. Normal page scrolling resumes on close.
 
 This authorizes scoped reversible implementation, source reconciliation, checks
 and a review PR. It does not authorize merging, production deployment, hosted

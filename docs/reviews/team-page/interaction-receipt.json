@@ -1,0 +1,636 @@
+{
+  "purpose": "Finite independent read-only behavior probe",
+  "observedDate": "2026-10-14",
+  "baseURL": "http://127.0.0.1:3224",
+  "browser": "Playwright bundled WebKit",
+  "servedState": "First refinement build before the final print-selector and reduced-motion reveal-specificity corrections",
+  "sourceEditsPerformedByReviewer": false,
+  "syntheticNames": "80 temporary DOM-only entries appended to the three actual Design member names; no source or public roster change",
+  "shortViewportCases": [
+    {
+      "locale": "en",
+      "width": 320,
+      "height": 480,
+      "rootTextSize": "200%",
+      "result": "PASS",
+      "dialog": {
+        "x": 35,
+        "y": 16,
+        "width": 250,
+        "height": 448
+      },
+      "heading": {
+        "y": 98,
+        "height": 135
+      },
+      "close": {
+        "x": 165.046875,
+        "y": 33,
+        "width": 102.953125,
+        "height": 53
+      },
+      "listClientHeight": 53,
+      "listScrollHeight": 12564,
+      "listScrollTopAfterEnd": 12511,
+      "outerDialogScrollAfterEnd": 0,
+      "pageScrollBeforeBackdropWheel": 14761,
+      "pageScrollAfterBackdropWheel": 14761,
+      "pageScrollAfterTouchClose": 14761,
+      "overflowRestoredAfterClose": true
+    },
+    {
+      "locale": "en",
+      "width": 844,
+      "height": 390,
+      "rootTextSize": "200%",
+      "result": "PASS",
+      "dialog": {
+        "x": 35,
+        "y": 16,
+        "width": 774,
+        "height": 358
+      },
+      "heading": {
+        "y": 42.3125,
+        "height": 45
+      },
+      "close": {
+        "x": 679.734375,
+        "y": 42.3125,
+        "width": 102.953125,
+        "height": 53
+      },
+      "listClientHeight": 130,
+      "listScrollHeight": 8316,
+      "listScrollTopAfterEnd": 8186,
+      "outerDialogScrollAfterEnd": 0,
+      "pageScrollBeforeBackdropWheel": 9391,
+      "pageScrollAfterBackdropWheel": 9391,
+      "pageScrollAfterTouchClose": 9391,
+      "overflowRestoredAfterClose": true
+    },
+    {
+      "locale": "ar",
+      "width": 320,
+      "height": 480,
+      "rootTextSize": "200%",
+      "result": "PASS",
+      "dialog": {
+        "x": 35,
+        "y": 16,
+        "width": 250,
+        "height": 448
+      },
+      "heading": {
+        "y": 98,
+        "height": 90
+      },
+      "close": {
+        "x": 52,
+        "y": 33,
+        "width": 89.125,
+        "height": 53
+      },
+      "listClientHeight": 98,
+      "listScrollHeight": 12411,
+      "listScrollTopAfterEnd": 12313,
+      "outerDialogScrollAfterEnd": 0,
+      "pageScrollBeforeBackdropWheel": 14475,
+      "pageScrollAfterBackdropWheel": 14475,
+      "pageScrollAfterTouchClose": 14475,
+      "overflowRestoredAfterClose": true
+    },
+    {
+      "locale": "ar",
+      "width": 844,
+      "height": 390,
+      "rootTextSize": "200%",
+      "result": "PASS",
+      "dialog": {
+        "x": 35,
+        "y": 16,
+        "width": 774,
+        "height": 358
+      },
+      "heading": {
+        "y": 42.3125,
+        "height": 45
+      },
+      "close": {
+        "x": 61.3125,
+        "y": 42.3125,
+        "width": 89.125,
+        "height": 53
+      },
+      "listClientHeight": 130,
+      "listScrollHeight": 8316,
+      "listScrollTopAfterEnd": 8186,
+      "outerDialogScrollAfterEnd": 0,
+      "pageScrollBeforeBackdropWheel": 9688,
+      "pageScrollAfterBackdropWheel": 9688,
+      "pageScrollAfterTouchClose": 9688,
+      "overflowRestoredAfterClose": true
+    }
+  ],
+  "languageNavigation": {
+    "result": "PASS",
+    "source": "/en/team?ref=webkit&committee=scientific",
+    "destination": "/ar/team?ref=webkit&committee=scientific",
+    "viewAfterNavigation": "scientific",
+    "initialImmediateSnapshotNote": "The immediate pre-hydration snapshot was both, as intentionally specified by the server snapshot; it is not classified as a failure."
+  },
+  "dynamicReducedMotion": {
+    "result": "PASS in this WebKit probe",
+    "remainingSpotlightOrOrbNodes": 0,
+    "dialogTransitionDuration": "0s",
+    "dialogTransform": "none",
+    "runningRosterAnimations": 0,
+    "limitation": "Independent Chromium probe subsequently reproduced the shared reveal-rise selector specificity defect; root applied a page-scoped correction pending the final rebuild."
+  },
+  "printBeforeFinalSelectorFix": {
+    "result": "FAIL retained intentionally",
+    "locale": "ar",
+    "firstLineTextFill": "rgb(0, 0, 0)",
+    "secondLineText": " مؤتمر MSRC.",
+    "secondLineTextFill": "rgba(0, 0, 0, 0)",
+    "secondLineBackground": "none",
+    "cause": "The shared screen selector had greater specificity than the first scoped print reset.",
+    "finalVerification": "NOT TESTED in this receipt; stronger scoped selector was applied after the served build."
+  },
+  "limitations": [
+    "No physical iPhone or screen-reader UAT",
+    "No screenshots captured in this independent probe",
+    "No production or database actions"
+  ],
+  "finalBuildConfirmation": {
+    "baseURL": "http://127.0.0.1:3224",
+    "scope": "Final print selector, dynamic reduced-motion cancellation, and query/locale state after hydration; earlier failing print receipt retained",
+    "receipts": [
+      {
+        "browser": "Chromium",
+        "coreResult": "PASS",
+        "queryAfterHydrationAndLocaleSwitch": {
+          "url": "http://127.0.0.1:3224/ar/team?ref=final-audit&committee=scientific",
+          "view": "scientific"
+        },
+        "print": [
+          {
+            "locale": "en",
+            "lines": [
+              {
+                "text": "The people",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              },
+              {
+                "text": " behind MSRC.",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              }
+            ]
+          },
+          {
+            "locale": "ar",
+            "lines": [
+              {
+                "text": "الفريق خلف",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              },
+              {
+                "text": " مؤتمر MSRC.",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              }
+            ]
+          }
+        ],
+        "dynamicReducedMotion": {
+          "media": true,
+          "decorations": 0,
+          "modalTransition": "0s",
+          "modalTransform": "none",
+          "runningAnimations": [],
+          "revealImageAnimation": [
+            "none",
+            "none",
+            "none",
+            "none",
+            "none",
+            "none"
+          ]
+        },
+        "keyboardReturnFocus": "PASS",
+        "pointerFocusObservation": {
+          "previousFocus": {
+            "tag": "BODY",
+            "class": ""
+          },
+          "triggerFocused": true,
+          "activeTag": "BUTTON",
+          "activeClass": "msrc-team-view-members"
+        }
+      },
+      {
+        "browser": "WebKit",
+        "coreResult": "PASS",
+        "queryAfterHydrationAndLocaleSwitch": {
+          "url": "http://127.0.0.1:3224/ar/team?ref=final-audit&committee=scientific",
+          "view": "scientific"
+        },
+        "print": [
+          {
+            "locale": "en",
+            "lines": [
+              {
+                "text": "The people",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              },
+              {
+                "text": " behind MSRC.",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              }
+            ]
+          },
+          {
+            "locale": "ar",
+            "lines": [
+              {
+                "text": "الفريق خلف",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              },
+              {
+                "text": " مؤتمر MSRC.",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              }
+            ]
+          }
+        ],
+        "dynamicReducedMotion": {
+          "media": true,
+          "decorations": 0,
+          "modalTransition": "0s",
+          "modalTransform": "none",
+          "runningAnimations": [],
+          "revealImageAnimation": [
+            "none",
+            "none",
+            "none",
+            "none"
+          ]
+        },
+        "keyboardReturnFocus": "PASS",
+        "pointerFocusObservation": {
+          "previousFocus": {
+            "tag": "BODY",
+            "class": ""
+          },
+          "triggerFocused": false,
+          "activeTag": "MAIN",
+          "activeClass": ""
+        }
+      }
+    ],
+    "initialFinalProbeFailure": "An added pointer-open then Escape return-focus assertion failed in WebKit; isolated native pointer-focus observation is recorded separately, without weakening existing keyboard assertions."
+  },
+  "pointerReturnFocusBeforeExplicitTriggerFocusFix": {
+    "result": "FAIL retained intentionally",
+    "browser": "WebKit",
+    "opening": "Pointer click",
+    "dismissal": "Escape",
+    "expectedFocus": "Initiating View team button",
+    "observedFocus": "MAIN element instead of initiating button",
+    "cause": "WebKit pointer button activation does not focus the button before shared Dialog captures the active element",
+    "correction": "Root added explicit trigger focus before opening; final build verification pending"
+  },
+  "finalExplicitFocusBuildConfirmation": {
+    "baseURL": "http://127.0.0.1:3224",
+    "scope": "Fresh final build including explicit initiating-control focus, stronger print selector and page-scoped reveal cancellation; all earlier failed diagnostics retained",
+    "receipts": [
+      {
+        "browser": "Chromium",
+        "result": "PASS",
+        "shortViewportCases": [
+          {
+            "locale": "en",
+            "width": 320,
+            "height": 480,
+            "textSize": "200%",
+            "result": "PASS",
+            "listClientHeight": 53,
+            "outerDialogScroll": 0,
+            "closePosition": {
+              "x": 165.046875,
+              "y": 33,
+              "w": 102.953125,
+              "h": 53,
+              "b": 86
+            },
+            "backdropWheelDelta": 0,
+            "touchCloseRestoresTriggerFocus": true,
+            "overflowRestored": {
+              "rootOverflow": "",
+              "bodyOverflow": "",
+              "windowScroll": 14759
+            }
+          },
+          {
+            "locale": "en",
+            "width": 844,
+            "height": 390,
+            "textSize": "200%",
+            "result": "PASS",
+            "listClientHeight": 130,
+            "outerDialogScroll": 0,
+            "closePosition": {
+              "x": 679.734375,
+              "y": 42.3125,
+              "w": 102.953125,
+              "h": 53,
+              "b": 95.3125
+            },
+            "backdropWheelDelta": 0,
+            "touchCloseRestoresTriggerFocus": true,
+            "overflowRestored": {
+              "rootOverflow": "",
+              "bodyOverflow": "",
+              "windowScroll": 9264
+            }
+          },
+          {
+            "locale": "ar",
+            "width": 320,
+            "height": 480,
+            "textSize": "200%",
+            "result": "PASS",
+            "listClientHeight": 98,
+            "outerDialogScroll": 0,
+            "closePosition": {
+              "x": 52,
+              "y": 33,
+              "w": 89.125,
+              "h": 53,
+              "b": 86
+            },
+            "backdropWheelDelta": 0,
+            "touchCloseRestoresTriggerFocus": true,
+            "overflowRestored": {
+              "rootOverflow": "",
+              "bodyOverflow": "",
+              "windowScroll": 14520
+            }
+          },
+          {
+            "locale": "ar",
+            "width": 844,
+            "height": 390,
+            "textSize": "200%",
+            "result": "PASS",
+            "listClientHeight": 130,
+            "outerDialogScroll": 0,
+            "closePosition": {
+              "x": 61.3125,
+              "y": 42.3125,
+              "w": 89.125,
+              "h": 53,
+              "b": 95.3125
+            },
+            "backdropWheelDelta": 0,
+            "touchCloseRestoresTriggerFocus": true,
+            "overflowRestored": {
+              "rootOverflow": "",
+              "bodyOverflow": "",
+              "windowScroll": 9324
+            }
+          }
+        ],
+        "queryState": {
+          "localeURL": "http://127.0.0.1:3224/ar/team?ref=final-audit&committee=scientific#msrc-team-organization",
+          "backURL": "http://127.0.0.1:3224/en/team?ref=final-audit&committee=scientific#msrc-team-organization",
+          "forwardURL": "http://127.0.0.1:3224/ar/team?ref=final-audit&committee=organization#msrc-team-organization",
+          "reloadView": "organization",
+          "unrelatedQueryAndHashPreserved": true
+        },
+        "print": [
+          {
+            "locale": "en",
+            "lines": [
+              {
+                "text": "The people",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              },
+              {
+                "text": " behind MSRC.",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              }
+            ]
+          },
+          {
+            "locale": "ar",
+            "lines": [
+              {
+                "text": "الفريق خلف",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              },
+              {
+                "text": " مؤتمر MSRC.",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              }
+            ]
+          }
+        ],
+        "dynamicReducedMotion": {
+          "media": true,
+          "decorations": 0,
+          "modalTransition": "0s",
+          "modalTransform": "none",
+          "runningAnimations": [],
+          "revealImageAnimation": [
+            "none",
+            "none",
+            "none",
+            "none",
+            "none",
+            "none"
+          ]
+        },
+        "pointerEscapeRestoresTriggerFocus": true
+      },
+      {
+        "browser": "WebKit",
+        "result": "PASS",
+        "shortViewportCases": [
+          {
+            "locale": "en",
+            "width": 320,
+            "height": 480,
+            "textSize": "200%",
+            "result": "PASS",
+            "listClientHeight": 53,
+            "outerDialogScroll": 0,
+            "closePosition": {
+              "x": 165.046875,
+              "y": 33,
+              "w": 102.953125,
+              "h": 53,
+              "b": 86
+            },
+            "backdropWheelDelta": 0,
+            "touchCloseRestoresTriggerFocus": true,
+            "overflowRestored": {
+              "rootOverflow": "",
+              "bodyOverflow": "",
+              "windowScroll": 14713
+            }
+          },
+          {
+            "locale": "en",
+            "width": 844,
+            "height": 390,
+            "textSize": "200%",
+            "result": "PASS",
+            "listClientHeight": 130,
+            "outerDialogScroll": 0,
+            "closePosition": {
+              "x": 679.734375,
+              "y": 42.3125,
+              "w": 102.953125,
+              "h": 53,
+              "b": 95.3125
+            },
+            "backdropWheelDelta": 0,
+            "touchCloseRestoresTriggerFocus": true,
+            "overflowRestored": {
+              "rootOverflow": "",
+              "bodyOverflow": "",
+              "windowScroll": 9391
+            }
+          },
+          {
+            "locale": "ar",
+            "width": 320,
+            "height": 480,
+            "textSize": "200%",
+            "result": "PASS",
+            "listClientHeight": 98,
+            "outerDialogScroll": 0,
+            "closePosition": {
+              "x": 52,
+              "y": 33,
+              "w": 89.125,
+              "h": 53,
+              "b": 86
+            },
+            "backdropWheelDelta": 0,
+            "touchCloseRestoresTriggerFocus": true,
+            "overflowRestored": {
+              "rootOverflow": "",
+              "bodyOverflow": "",
+              "windowScroll": 14475
+            }
+          },
+          {
+            "locale": "ar",
+            "width": 844,
+            "height": 390,
+            "textSize": "200%",
+            "result": "PASS",
+            "listClientHeight": 130,
+            "outerDialogScroll": 0,
+            "closePosition": {
+              "x": 61.3125,
+              "y": 42.3125,
+              "w": 89.125,
+              "h": 53,
+              "b": 95.3125
+            },
+            "backdropWheelDelta": 0,
+            "touchCloseRestoresTriggerFocus": true,
+            "overflowRestored": {
+              "rootOverflow": "",
+              "bodyOverflow": "",
+              "windowScroll": 9581
+            }
+          }
+        ],
+        "queryState": {
+          "localeURL": "http://127.0.0.1:3224/ar/team?ref=final-audit&committee=scientific#msrc-team-organization",
+          "backURL": "http://127.0.0.1:3224/en/team?ref=final-audit&committee=scientific#msrc-team-organization",
+          "forwardURL": "http://127.0.0.1:3224/ar/team?ref=final-audit&committee=organization#msrc-team-organization",
+          "reloadView": "organization",
+          "unrelatedQueryAndHashPreserved": true
+        },
+        "print": [
+          {
+            "locale": "en",
+            "lines": [
+              {
+                "text": "The people",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              },
+              {
+                "text": " behind MSRC.",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              }
+            ]
+          },
+          {
+            "locale": "ar",
+            "lines": [
+              {
+                "text": "الفريق خلف",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              },
+              {
+                "text": " مؤتمر MSRC.",
+                "fill": "rgb(0, 0, 0)",
+                "color": "rgb(0, 0, 0)",
+                "background": "none"
+              }
+            ]
+          }
+        ],
+        "dynamicReducedMotion": {
+          "media": true,
+          "decorations": 0,
+          "modalTransition": "0s",
+          "modalTransform": "none",
+          "runningAnimations": [],
+          "revealImageAnimation": [
+            "none",
+            "none",
+            "none",
+            "none"
+          ]
+        },
+        "pointerEscapeRestoresTriggerFocus": true
+      }
+    ]
+  }
+}

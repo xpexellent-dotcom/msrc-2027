@@ -160,6 +160,16 @@
       "height": 1123,
       "bytes": 24528,
       "sha256": "94e67d0f9f3ea94372e7b87b1dccdc43c4d7c1a1e03c1f6440f8aa2b103479d0"
+    },
+    {
+      "person": "Mohammed Almohmadi",
+      "source": "https://drive.google.com/file/d/1kjoslXRZ8yEZkULTwXUbEagSbxRbXsDt/view",
+      "asset": "/media/team/mohammed-almohmadi.webp",
+      "width": 640,
+      "height": 800,
+      "bytes": 17090,
+      "sha256": "650939abc325fa4f3c14bf3d5ca999e6f9990493ec0149d6c7fb7c7929cf7b52",
+      "verification": "Derivative verified locally during PR76 refinement. Source photograph supplied and added in the prior owner pass; original source hash not reverified in this pass."
     }
   ],
   "header": {

@@ -6150,3 +6150,58 @@ current exact-head rollup. No hosted configuration, database, authentication,
 participant workflow, scheduler, real email, merge or production release occurs.
 Next: organizer review of the PR, nine missing photos and three provisional
 English Design-member spellings. Detail: `docs/features/team-organization.md`.
+
+## ENG-042 / ORG-050 — PR #76 restrained refinement and bug fixes, 14 October 2026
+
+The current request authorizes improving the existing PR without excessive effects.
+Work resumes from the actual PR head `6cdd2ff`, preserving the later owner changes:
+Program header/filters, pending Founders panel, Mohammed Almohmadi inside Laura's
+card, upright quotes, Scientific Officer title and equal-gap column-major masonry.
+The original dirty handoff checkout remains untouched; work uses the attached
+`codex/team-organization-page` managed worktree and updates the same review PR.
+
+The gallery now uses static ivory, white cards, fine purple portrait borders,
+quieter roles and a simple co-leader separator. Remove the pointer glow, drifting
+orbs, decorative glass/gradient edges, heavy shadows and whole-card lift. Keep the
+larger conference leaders, actual photographs and a small 180ms portrait hover.
+Lazy portraits use native automatic sizing with capped responsive fallbacks.
+
+Fix the member popup's nested scrolling and clipped Close control with physical
+clamped gutters, a container-aware heading and one bounded names-list scroller.
+Lock background scrolling only while open, restoring prior styles afterward.
+Explicitly focus the initiating Team button before opening so Safari pointer/touch
+dismissal restores focus. Persist committee selection through shared URLs,
+reload, language changes and Back/Forward, retaining other query fields and hash.
+Scoped print/reduced-motion selectors fix the inherited specificity conflicts.
+
+Observed evidence (Node 24.21.0, pinned pnpm 11.19.0):
+
+- PASS: `npx --yes pnpm@11.19.0 check` — lint, route types/TypeScript,
+  2,406 unit tests / 62 files, production build / 81 static pages.
+- PASS: `npx --yes pnpm@11.19.0 test:e2e tests/e2e/team.spec.ts tests/e2e/axiom-experiences.spec.ts tests/e2e/public-shell.spec.ts tests/e2e/closed-workflows.spec.ts tests/e2e/participant-closed.spec.ts tests/e2e/staff-portal-closed.spec.ts`
+  — 181 cases across desktop/tablet/phone, no retries. New checks include filter
+  history/locale/reload, 320×480 and 844×390 at 200% text with 83 synthetic names,
+  background scroll containment/restoration, print, dynamic reduced motion,
+  image sizing, 160ms retained exit content and Safari-style nonfocusing activation.
+- PASS: independent Chromium/WebKit probes, eight EN/AR short-screen cases,
+  touch/pointer focus return, URL history, opaque printed title and dynamic motion
+  preference changes. Receipt: `docs/reviews/team-page/interaction-receipt.json`.
+- PASS: eight visual states at 1280/791/412/320px, no overflow, browser exceptions
+  or external requests. Pointer entrance 220ms; keyboard/reduced motion 0ms.
+  Refreshed desktop, phone and popup snapshots: `docs/reviews/team-page.md`.
+- PASS: locally verified co-leader derivative hash/dimensions added to the asset
+  manifest. 13 portrait assets total 605,764 bytes; nine main portraits stay pending.
+- PASS: targeted lint after adding the final focus regression; whitespace check.
+
+Preserved diagnostics: first refinement run 91 passed / 9 failed (print and dynamic
+reduced-motion selector specificity). The corrected run passed 178 cases. A finite
+WebKit probe then exposed nonfocusing pointer activation; the initiating-button
+fix and added regression are included in the final 181-case pass. No assertions
+or retries were relaxed. Logs remain in this task's ignored local review outputs;
+the independent receipt preserves the initial failures alongside final passes.
+
+Current hosted check status is in PR #76's rollup. NOT TESTED: physical hardware,
+real assistive technology and native-reader editorial approval. No merge, manual
+production release, database operation, hosted settings, accounts or communication.
+Next: organizer review of PR #76, missing photos/founder names and the three English
+member transliterations. Detail: `docs/features/team-organization.md`.

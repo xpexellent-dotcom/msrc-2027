@@ -43,18 +43,24 @@
 .msrc-team-page[data-view="both"] .msrc-team-committee + .msrc-team-committee { border-block-start: 1px solid var(--color-line); padding-block-start: 2rem; }
 
 /* The native dialog supplies modality, Escape, focus containment and focus return. */
-.feedback-dialog.msrc-team-dialog { inline-size: min(32.5rem, calc(100% - 2.75rem)); max-block-size: min(35rem, calc(100dvh - 3rem)); padding: 1.625rem; border: 1px solid var(--msrc-team-portrait-border, color-mix(in srgb, var(--color-purple) 26%, transparent)); border-radius: 1rem; background: var(--color-ivory); box-shadow: none; opacity: 0; transform: translateY(8px) scale(.97); transition: opacity 160ms var(--motion-enter-easing), transform 160ms var(--motion-enter-easing), display 160ms allow-discrete, overlay 160ms allow-discrete; overscroll-behavior: contain; }
-.feedback-dialog.msrc-team-dialog[open] { opacity: 1; transform: translateY(0) scale(1); transition-duration: 220ms; }
+.feedback-dialog.msrc-team-dialog { container: msrc-team-members / inline-size; display: none; flex-direction: column; inline-size: min(36rem, calc(100% - 32px)); max-block-size: min(35rem, calc(100dvh - 32px)); padding: clamp(16px, 3vw, 28px); border: 1px solid var(--msrc-team-portrait-border, color-mix(in srgb, var(--color-purple) 26%, transparent)); border-radius: 1rem; background: var(--color-ivory); box-shadow: none; overflow: hidden; opacity: 0; transform: translateY(8px) scale(.97); transition: opacity 160ms var(--motion-enter-easing), transform 160ms var(--motion-enter-easing), display 160ms allow-discrete, overlay 160ms allow-discrete; overscroll-behavior: contain; }
+.feedback-dialog.msrc-team-dialog[open] { display: flex; opacity: 1; transform: translateY(0) scale(1); transition-duration: 220ms; }
 .feedback-dialog.msrc-team-dialog::backdrop { background: color-mix(in srgb, var(--color-ink) 38%, transparent); opacity: 0; transition: opacity 160ms var(--motion-enter-easing), display 160ms allow-discrete, overlay 160ms allow-discrete; }
 .feedback-dialog.msrc-team-dialog[open]::backdrop { opacity: 1; transition-duration: 220ms; }
 .msrc-team-page[data-dialog-instant="true"] .msrc-team-dialog, .msrc-team-page[data-dialog-instant="true"] .msrc-team-dialog::backdrop { transition: none; }
-.msrc-team-dialog .feedback-dialog-heading { gap: 1.25rem; }
-.msrc-team-dialog .feedback-dialog-heading h2 { margin: 0; font-size: 1.5625rem; line-height: 1.3; font-weight: 600; }
-.msrc-team-dialog .feedback-dialog-description { margin-block: .5rem 1.25rem; font-size: .8125rem; line-height: 1.6; }
-.msrc-team-dialog .feedback-dialog-body { margin-block-start: 1rem; }
-.msrc-team-dialog-label { color: var(--color-muted); font-size: .8125rem; margin-block: 0 .75rem; }
-.msrc-team-dialog-members { list-style: none; margin: 0; padding: 0; max-block-size: min(20.625rem, 50dvh); overflow: auto; overscroll-behavior: contain; scrollbar-color: var(--color-line-strong) var(--color-ivory); scrollbar-width: thin; }
+.msrc-team-dialog .feedback-dialog-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; flex: none; }
+.msrc-team-dialog .feedback-dialog-heading h2 { margin: 0; font-size: clamp(1.125rem, 2.3vw, 1.5rem); line-height: 1.25; font-weight: 700; overflow-wrap: anywhere; }
+.msrc-team-dialog .feedback-dialog-heading button { min-block-size: 44px; min-inline-size: 44px; padding: 8px 12px; font-size: .875rem; line-height: 1.25; }
+.msrc-team-dialog .feedback-dialog-description { flex: none; margin-block: 8px 12px; font-size: .8125rem; line-height: 1.5; overflow-wrap: anywhere; }
+.msrc-team-dialog .feedback-dialog-body { display: flex; flex-direction: column; min-block-size: 0; margin-block-start: 12px; }
+.msrc-team-dialog-label { flex: none; color: var(--color-muted); font-size: .8125rem; margin-block: 0 8px !important; }
+.msrc-team-dialog-members { list-style: none; margin: 0; padding: 0; min-block-size: 0; overflow: auto; overscroll-behavior: contain; scrollbar-color: var(--color-line-strong) var(--color-ivory); scrollbar-width: thin; }
 .msrc-team-dialog-member { padding-block: .75rem; border-block-start: 1px solid var(--color-line); color: var(--color-ink); font-size: .9375rem; line-height: 1.6; overflow-wrap: anywhere; }
+@container msrc-team-members (max-width: 22rem) {
+  .msrc-team-dialog .feedback-dialog-heading { grid-template-columns: minmax(0, 1fr); }
+  .msrc-team-dialog .feedback-dialog-heading button { grid-row: 1; justify-self: end; }
+  .msrc-team-dialog .feedback-dialog-heading h2 { grid-row: 2; }
+}
 @starting-style {
   .feedback-dialog.msrc-team-dialog[open] { opacity: 0; transform: translateY(8px) scale(.97); }
   .feedback-dialog.msrc-team-dialog[open]::backdrop { opacity: 0; }
@@ -78,8 +84,6 @@
   /* Root text enlargement grows the minimum track, so narrow reading naturally
      becomes one column instead of clipping roles or splitting names into slivers. */
   .msrc-team-leads, .msrc-team-conference-leader { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); }
-  .msrc-team-dialog .feedback-dialog-heading h2 { font-size: 1.375rem; }
-  .feedback-dialog.msrc-team-dialog { padding: 1.375rem; }
 }
 [lang="ar"] .msrc-team-committee-title { letter-spacing: 0; line-height: 1.45; }
 @media (hover: hover) and (pointer: fine) {
@@ -94,9 +98,13 @@
   .msrc-team-portrait:hover > img { scale: calc(var(--msrc-team-image-zoom, 1) * 1.02); }
 }
 @media (prefers-reduced-motion: reduce) {
+  .msrc-team-page .reveal--rise > * { animation: none; opacity: 1; transform: none; }
   .feedback-dialog.msrc-team-dialog, .feedback-dialog.msrc-team-dialog[open], .feedback-dialog.msrc-team-dialog::backdrop, .feedback-dialog.msrc-team-dialog[open]::backdrop { transform: none; transition: none; }
 }
 @media (forced-colors: active) {
   .msrc-team-portrait, .feedback-dialog.msrc-team-dialog { border: 1px solid CanvasText; }
   .msrc-team-page[data-view="both"] .msrc-team-split::before { background: CanvasText; }
+}
+@media print {
+  .msrc-team-page .premium-photo-hero h1 .premium-title-accent:not(:only-child) { background: none; color: var(--color-ink); -webkit-text-fill-color: currentColor; }
 }
