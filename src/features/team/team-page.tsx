@@ -7,7 +7,7 @@ import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
 import { Reveal } from "@/components/ui/reveal";
 import { TeamSpotlight } from "@/components/team-spotlight";
-import { teamCommittees, teamCopy, type TeamPerson } from "@/content/team";
+import { teamCommittees, teamCopy, teamFounders, type TeamPerson } from "@/content/team";
 import { formatIndex, type Locale } from "@/lib/i18n";
 
 type CommitteeView = "both" | "scientific" | "organization";
@@ -162,7 +162,8 @@ export function TeamPage({ locale }: { locale: Locale }) {
       data-dialog-instant={dialogInstant ? "true" : undefined}
       onKeyDownCapture={() => { if (membersOpen) setDialogInstant(true); }}
     >
-      <section className="msrc-team-intro experience-intro premium-photo-hero fluid-journey-hero" aria-labelledby="msrc-team-title">
+      {/* Same header anatomy as the Program page (ExperienceIntro): photo hero, title, lead and a glass side panel. */}
+      <section className="msrc-team-intro experience-intro experience-intro--team premium-photo-hero fluid-journey-hero" aria-labelledby="msrc-team-title">
         <div className="premium-hero-image" aria-hidden="true"><Image src="/media/team/team-header.webp" alt="" fill sizes="100vw" priority /></div>
         <Container>
           <nav className="experience-breadcrumb" aria-label={copy.breadcrumb}>
@@ -171,16 +172,41 @@ export function TeamPage({ locale }: { locale: Locale }) {
               <li><span aria-hidden="true">/</span><span aria-current="page">{copy.label}</span></li>
             </ol>
           </nav>
-          <div className="msrc-team-hero">
-            <h1 id="msrc-team-title">{titleLines.map((line, index) => <span key={line} className={index === titleLines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <br /> : null}{line}</span>)}</h1>
-            <p className="experience-lead">{copy.lead}</p>
+          <div className="experience-intro-grid">
+            <div>
+              <h1 id="msrc-team-title">{titleLines.map((line, index) => <span key={line} className={index === titleLines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{line}</span>)}</h1>
+              <p className="experience-lead">{copy.lead}</p>
+            </div>
+            <div className="experience-intro-art">
+              <section className="program-date-panel msrc-team-founders" aria-labelledby="msrc-team-founders-title">
+                <h2 id="msrc-team-founders-title" className="msrc-team-founders-title">{copy.founders}</h2>
+                {teamFounders.length ? (
+                  <ul className="msrc-team-founder-list">
+                    {teamFounders.map((founder) => (
+                      <li key={founder.name} className="msrc-team-founder">
+                        <span className="msrc-team-founder-photo" aria-hidden="true">
+                          {founder.portrait
+                            ? <Image src={founder.portrait.src} alt="" fill sizes="64px" />
+                            : <span className="msrc-team-founder-initials">{founder.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("")}</span>}
+                        </span>
+                        <span className="msrc-team-founder-text">
+                          <span className="msrc-team-founder-name" lang={locale === "ar" && founder.arName ? "ar" : "en"} dir={locale === "ar" && founder.arName ? "rtl" : "ltr"}>{locale === "ar" && founder.arName ? founder.arName : founder.name}</span>
+                          {founder.role ? <span className="msrc-team-founder-role">{founder.role[locale]}</span> : null}
+                          {founder.profile ? <a className="msrc-team-profile" href={founder.profile} target="_blank" rel="noopener noreferrer" aria-label={`${copy.profileLabel}: ${founder.name}`}>{copy.profileLabel}</a> : null}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="msrc-team-founders-pending">{copy.foundersPending}</p>}
+              </section>
+            </div>
           </div>
         </Container>
       </section>
       <section className="msrc-team-roster" aria-label={copy.label}>
         <TeamSpotlight />
         <Container>
-          <div className="msrc-team-filters" role="group" aria-label={copy.committeeView}>
+          <div className="programme-toolbar msrc-team-toolbar"><div className="programme-days msrc-team-filters" role="group" aria-label={copy.committeeView}>
             {filters.map((filter) => (
               <button
                 key={filter.id}
@@ -192,7 +218,7 @@ export function TeamPage({ locale }: { locale: Locale }) {
                 onClick={() => { setView(filter.id); setMembersOpen(false); }}
               >{filter.label}</button>
             ))}
-          </div>
+          </div></div>
           <div className="msrc-team-split">
             {teamCommittees.map((committee) => (
               <section

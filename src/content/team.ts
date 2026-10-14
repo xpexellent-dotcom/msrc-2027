@@ -329,8 +329,20 @@ export const teamCommittees: readonly TeamCommittee[] = [
   }
 ];
 
+/** MSRC founders shown in the Team header panel. Empty until the organizers supply names; never invented. */
+export type TeamFounder = {
+  name: string;
+  arName?: string;
+  role?: Record<Locale, string>;
+  profile?: string;
+  portrait?: { src: string; width: number; height: number };
+};
+export const teamFounders: readonly TeamFounder[] = [];
+
 export const teamCopy = {
   "en": {
+    "founders": "Founders",
+    "foundersPending": "Founders to be announced",
     "title": "The people\nbehind MSRC.",
     "lead": "Two committees. One shared vision. Meet the team bringing MSRC 2027 together.",
     "committeeView": "Committee view",
@@ -352,6 +364,8 @@ export const teamCopy = {
     "label": "Our Team"
   },
   "ar": {
+    "founders": "المؤسسون",
+    "foundersPending": "سيُعلن عن المؤسسين لاحقًا",
     "title": "الفريق خلف\nمؤتمر MSRC.",
     "lead": "لجنتان، ورؤية واحدة. تعرّفوا على الفريق الذي يعمل على تنظيم مؤتمر MSRC 2027.",
     "committeeView": "عرض اللجان",

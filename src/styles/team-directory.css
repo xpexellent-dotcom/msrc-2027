@@ -10,18 +10,7 @@
 }
 .msrc-team-page [hidden] { display: none !important; }
 .msrc-team-page h1, .msrc-team-page h2, .msrc-team-page h3, .msrc-team-page p { margin: 0; }
-.msrc-team-page .msrc-team-intro { padding-block: clamp(1.5rem, 3vw, 2.5rem) clamp(2rem, 4vw, 3rem); }
-.msrc-team-intro .experience-breadcrumb { margin-block-end: 0; }
-.msrc-team-intro .premium-hero-image img { object-position: 50% 42%; transition: none; }
-.msrc-team-intro.premium-photo-hero:hover .premium-hero-image img { transform: scale(1.015); }
-.msrc-team-hero { display: grid; grid-template-columns: 1.6fr 1fr; gap: 2.5rem; align-items: end; padding-block-start: 2rem; }
-.msrc-team-page .msrc-team-intro h1 { max-inline-size: 12ch; font-family: var(--font-display); font-size: clamp(2.5rem, 5.4vw, 4rem); line-height: 1.08; letter-spacing: -.035em; font-weight: 700; color: var(--color-ivory); white-space: pre-line; }
-.msrc-team-hero > .experience-lead { max-inline-size: 30ch; margin-block-end: .3rem; color: var(--color-ivory); font-size: clamp(1.0625rem, 1.6vw, 1.25rem); }
 .msrc-team-roster { padding-block-start: 1.5rem; }
-.msrc-team-filters { display: flex; flex-wrap: wrap; gap: 1.75rem; border-block-end: 1px solid var(--color-line); margin-block-end: 2rem; }
-.msrc-team-filter { position: relative; border: 0; background: transparent; color: var(--color-muted); font-size: .875rem; padding: .8rem 0 1rem; min-block-size: 44px; cursor: pointer; }
-.msrc-team-filter[aria-pressed="true"] { color: var(--color-purple); font-weight: 500; }
-.msrc-team-filter[aria-pressed="true"]::after { content: ""; position: absolute; inset-inline: 0; inset-block-end: -1px; block-size: 2px; background: var(--color-purple); }
 .msrc-team-split { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
 .msrc-team-committee { min-inline-size: 0; }
 .msrc-team-committee-title { margin-block-end: 1.5rem !important; color: var(--color-purple); font-size: clamp(1.6rem, 2.3vw, 1.9rem); line-height: 1.25; font-weight: 600; letter-spacing: -.025em; }
@@ -89,22 +78,16 @@
   /* Root text enlargement grows the minimum track, so narrow reading naturally
      becomes one column instead of clipping roles or splitting names into slivers. */
   .msrc-team-leads, .msrc-team-conference-leader { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); }
-  .msrc-team-hero { display: block; padding-block-start: 1.5rem; }
-  .msrc-team-page .msrc-team-intro h1 { font-size: clamp(2.2rem, 9vw, 2.65rem); }
-  .msrc-team-hero > .experience-lead { margin-block-start: 1.125rem; max-inline-size: 34ch; font-size: 1rem; }
-  .msrc-team-filters { gap: 1.5rem; margin-block-end: 1.5rem; }
-  .msrc-team-filter { font-size: .8125rem; }
   .msrc-team-dialog .feedback-dialog-heading h2 { font-size: 1.375rem; }
   .feedback-dialog.msrc-team-dialog { padding: 1.375rem; }
 }
-[lang="ar"] .msrc-team-page .msrc-team-intro h1, [lang="ar"] .msrc-team-committee-title { letter-spacing: 0; line-height: 1.45; }
-[lang="ar"] .msrc-team-page .msrc-team-intro h1 { max-inline-size: 17ch; font-size: clamp(2.2rem, 4.8vw, 3.2rem); }
+[lang="ar"] .msrc-team-committee-title { letter-spacing: 0; line-height: 1.45; }
 @media (hover: hover) and (pointer: fine) {
-  .msrc-team-filter:hover, .msrc-team-profile:hover, .msrc-team-view-members:hover { color: var(--color-purple); }
+  .msrc-team-profile:hover, .msrc-team-view-members:hover { color: var(--color-purple); }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .msrc-team-filter, .msrc-team-view-members { transition: transform 140ms var(--motion-enter-easing), color 140ms ease; }
-  .msrc-team-filter:active:not(:focus-visible), .msrc-team-view-members:active:not(:focus-visible) { transform: scale(.98); }
+  .msrc-team-view-members { transition: transform 140ms var(--motion-enter-easing), color 140ms ease; }
+  .msrc-team-view-members:active:not(:focus-visible) { transform: scale(.98); }
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .msrc-team-portrait > img { transition: scale 180ms var(--motion-enter-easing); }
@@ -115,6 +98,5 @@
 }
 @media (forced-colors: active) {
   .msrc-team-portrait, .feedback-dialog.msrc-team-dialog { border: 1px solid CanvasText; }
-  .msrc-team-filter[aria-pressed="true"]::after { background: Highlight; }
   .msrc-team-page[data-view="both"] .msrc-team-split::before { background: CanvasText; }
 }

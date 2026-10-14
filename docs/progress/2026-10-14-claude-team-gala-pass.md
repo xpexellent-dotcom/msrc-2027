@@ -4,3 +4,4 @@
 - Mohammed Almohmadi (owner-confirmed spelling) is shown as Laura Hamadi's co-leader with his photo and LinkedIn. Photos link to LinkedIn for pointer users only. LinkedIn tracking parameters are stripped.
 - Phone: names wrap between words, the co-leader box stacks, and the filter pills wrap at 320 px and 200% text.
 - PASS: lint, types, 2,406 unit tests, production build, and 53/53 Team and people browser tests (desktop, tablet and mobile, EN and AR) including axe and 320 px/200% reflow.
+- Header now uses the Program page anatomy (photo hero, large two-line title, lead, glass side panel) with a Founders panel on the right. It reads "Founders to be announced" until `teamFounders` in `src/content/team.ts` is filled (name, optional Arabic name, role, photo, LinkedIn). Committee filters reuse the Program day-toggle style.
