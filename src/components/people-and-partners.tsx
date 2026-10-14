@@ -68,9 +68,11 @@ export function TeamExperience({ locale }: { locale: Locale }) {
             <p>{formatIndex(committee.leads.length, locale)} {team.leadsLabel}</p>
           </div>
           <ol className="team-rows">{committee.leads.map((person) => <li key={person.slug}><Reveal className="team-row">
-            <div className="team-row-lead">
-              <TeamPortrait person={person} size="lead" />
-              <TeamIdentity person={person} locale={locale} heading="h3" />
+            <div className={`team-row-lead${person.coLeads?.length ? " team-row-lead--shared" : ""}`}>
+              {[person, ...(person.coLeads ?? [])].map((member) => <div className="team-person" key={member.slug}>
+                <TeamPortrait person={member} size="lead" />
+                <TeamIdentity person={member} locale={locale} heading="h3" />
+              </div>)}
             </div>
             <div className="team-members" aria-label={`${team.members}: ${person.role[locale]}`}>
               <p className="team-members-label">{team.members}</p>

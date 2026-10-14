@@ -5,3 +5,4 @@
 - Arabic names, role labels and description translations are drafts for organizer review.
 - PASS: lint, types, 2,402 unit tests, production build; local EN/AR desktop and phone screenshots with no horizontal overflow. No flags, database or hosting changes.
 - Owner design pass: light "Midnight Gala" look. Ivory and lilac backdrop with drifting colour orbs and a pointer-following gold glow, a gold shimmer on the title accent line, glass cards with gradient edges, rows that rise in on scroll and glide on hover. Every motion stops under reduced motion. Four more self-uploaded portraits added (12 of 21 now have photos).
+- Added Mohammed Almohmadi as Academic Sessions co-lead with Laura Hamadi (shared row and members box); 13 portraits.

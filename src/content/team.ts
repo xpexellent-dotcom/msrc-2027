@@ -15,6 +15,8 @@ export type TeamPerson = {
   profile?: string;
   photo?: string;
   members?: Record<Locale, string>[];
+  /** Shares this row's role and members box. */
+  coLeads?: TeamPerson[];
 };
 
 export type TeamCommittee = { id: "scientific" | "organization"; title: Record<Locale, string>; lead: TeamPerson; leads: TeamPerson[] };
@@ -40,8 +42,10 @@ export const teamCommittees: TeamCommittee[] = [
         description: { en: "Behind every fair evaluation", ar: "خلف كل تقييم عادل" }, profile: "https://www.linkedin.com/in/reem-albeladi-8964ab347" },
       { slug: "toleen-alhindi", name: { en: "Toleen Alhindi", ar: "تولين الهندي" }, role: { en: "Awards Lead", ar: "قيادة الجوائز" },
         description: { en: "Just here to make things happen.", ar: "هنا لأحوّل الخطط إلى واقع." } },
-      { slug: "laura-hamadi", name: { en: "Laura Hamadi", ar: "لورا حمادي" }, role: { en: "Academic Sessions Lead", ar: "قيادة الجلسات العلمية" },
-        description: { en: "A shot of espresso", ar: "جرعة إسبريسو" }, profile: "https://www.linkedin.com/in/laura-h-b144913a1" },
+      { slug: "laura-hamadi", name: { en: "Laura Hamadi", ar: "لورا حمادي" }, role: { en: "Academic Sessions Co-Lead", ar: "قيادة مشتركة للجلسات العلمية" },
+        description: { en: "A shot of espresso", ar: "جرعة إسبريسو" }, profile: "https://www.linkedin.com/in/laura-h-b144913a1",
+        coLeads: [{ slug: "mohammed-almohmadi", photo: photo("mohammed-almohmadi"), name: { en: "Mohammed Almohmadi", ar: "محمد المحمدي" }, role: { en: "Academic Sessions Co-Lead", ar: "قيادة مشتركة للجلسات العلمية" },
+          description: { en: "Trying to do better than yesterday", ar: "أسعى لأكون أفضل من الأمس" }, profile: "https://www.linkedin.com/in/mohammed-almohmadi-80a5293a8" }] },
       { slug: "aishah-baothman", name: { en: "Aishah Baothman", ar: "عائشة باعثمان" }, role: { en: "Program & Flow Lead", ar: "قيادة البرنامج وسير الفعاليات" },
         description: { en: "Professional disaster coordinator", ar: "تنسيق الكوارث باحتراف" }, profile: "https://www.linkedin.com/in/aishah-baothman-3711aa319" },
       { slug: "omar-alsaggaf", photo: photo("omar-alsaggaf"), name: { en: "Omar Alsaggaf", ar: "عمر السقاف" }, role: { en: "Hackathon Lead", ar: "قيادة الهاكاثون" },

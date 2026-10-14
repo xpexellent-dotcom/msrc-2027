@@ -64,7 +64,9 @@
 .team-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(1rem, 3vw, 2.5rem); align-items: center; padding: clamp(1rem, 2vw, 1.4rem); transition: transform .6s cubic-bezier(.2, .7, .2, 1), box-shadow .6s; }
 .team-row:hover { transform: translateX(10px); box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 26px 60px -30px rgba(59, 20, 92, .45); }
 [dir="rtl"] .team-row:hover { transform: translateX(-10px); }
-.team-row-lead { position: relative; display: flex; align-items: center; gap: clamp(1rem, 2vw, 1.5rem); min-inline-size: 0; }
+.team-row-lead { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem clamp(1.25rem, 3vw, 2.5rem); min-inline-size: 0; }
+.team-person { display: flex; align-items: center; gap: clamp(1rem, 2vw, 1.5rem); min-inline-size: 0; flex: 1 1 16rem; }
+.team-row-lead--shared .team-photo--lead { inline-size: clamp(5rem, 7vw, 6.5rem); }
 .team-row-lead::before { content: ""; position: absolute; inset-inline-start: calc(-1 * clamp(1rem, 2vw, 1.4rem)); inset-block: 12%; inline-size: 3px; border-radius: 3px; background: linear-gradient(var(--color-gold), #f0cf7c); transform: scaleY(0); transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
 .team-row:hover .team-row-lead::before { transform: scaleY(1); }
 .team-members { align-self: stretch; display: flex; flex-direction: column; justify-content: center; min-inline-size: 0; padding: 1rem 1.25rem; border-radius: 16px; background: rgba(250, 244, 230, .7); border: 1px dashed rgba(186, 138, 46, .55); }

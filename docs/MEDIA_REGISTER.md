@@ -257,7 +257,7 @@ Never overwrite a published file: ship a corrected cut or poster under a new ver
 
 | Field | Record |
 |---|---|
-| Assets | `public/media/team/{abdulrahman-ismail,akram-awan,mohammad-alsayegh,omar-alsaggaf,lara-qawas,ola-altaib,majed-aljabri,sulaf-alghamdi,heba-mousa,esraa-metwalli,sara-qadi,hanadi-orayf}-v1.jpg (12)` |
+| Assets | `public/media/team/{abdulrahman-ismail,akram-awan,mohammad-alsayegh,omar-alsaggaf,lara-qawas,ola-altaib,majed-aljabri,sulaf-alghamdi,heba-mousa,esraa-metwalli,sara-qadi,hanadi-orayf,mohammed-almohmadi}-v1.jpg (13)` |
 | Source | Self-uploaded portraits in the organizer's shared team Drive folder; originals stay in Drive and are not committed |
 | Derivatives | 640×800 progressive JPEG (4:5 cover crop; Akram Awan's screenshot margin cropped out; Hanadi Orayf and Sara Qadi reframed to the head and shoulders), sRGB, quality 80, no EXIF/XMP/GPS/ICC; 17–58 KB each |
 | Purpose and consent scope | EN/AR Team page only, beside the person's own name and role; supplied by the person for this page. No other use is approved |
