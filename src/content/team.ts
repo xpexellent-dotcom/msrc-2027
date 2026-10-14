@@ -102,25 +102,29 @@ export const teamCommittees: readonly TeamCommittee[] = [
         "id": "laura-hamadi",
         "name": "Laura Hamadi",
         "role": {
-          "en": "Academic Sessions Lead",
-          "ar": "رئيسة قسم الجلسات الأكاديمية"
+          "en": "Academic Sessions Co-Lead",
+          "ar": "رئيسة مشاركة لقسم الجلسات الأكاديمية"
         },
-        "description": "a shot of espresso",
-        "profile": "https://www.linkedin.com/in/laura-h-b144913a1",
-        "coLeaders": [
-          {
-            "name": "Mohammed Almohmadi",
-            "profile": "https://www.linkedin.com/in/mohammed-almohmadi-80a5293a8",
-            "portrait": { "src": "/media/team/mohammed-almohmadi.webp", "width": 640, "height": 800 }
-          }
-        ]
+        "description": "A shot of espresso",
+        "profile": "https://www.linkedin.com/in/laura-h-b144913a1"
+      },
+      {
+        "id": "mohammed-almohmadi",
+        "name": "Mohammed Almohmadi",
+        "role": {
+          "en": "Academic Sessions Co-Lead",
+          "ar": "رئيس مشارك لقسم الجلسات الأكاديمية"
+        },
+        "description": "Trying to do better than yesterday",
+        "profile": "https://www.linkedin.com/in/mohammed-almohmadi-80a5293a8",
+        "portrait": { "src": "/media/team/mohammed-almohmadi.webp", "width": 640, "height": 800 }
       },
       {
         "id": "mohammad-alsayegh",
         "name": "Mohammad Alsayegh",
         "role": {
-          "en": "Scientific Officer (Joker)",
-          "ar": "المسؤول العلمي (الجوكر)"
+          "en": "Scientific Officer",
+          "ar": "المسؤول العلمي"
         },
         "description": "Dealing a hand, across all scientific operations",
         "portrait": {

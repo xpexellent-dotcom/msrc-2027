@@ -91,10 +91,10 @@ for (const locale of ["en", "ar"] as const) {
       await expect(main.locator("form, input, select, textarea")).toHaveCount(0);
       if (route === "team") {
         await page.evaluate(() => document.fonts.ready);
-        await expect(main.locator(".msrc-team-person")).toHaveCount(21);
+        await expect(main.locator(".msrc-team-person")).toHaveCount(22);
         await expect(main.locator(".msrc-team-conference-leader")).toHaveCount(2);
         await expect(main.locator(".msrc-team-portrait--pending")).toHaveCount(9);
-        await expect(main.locator(".msrc-team-portrait img")).toHaveCount(12);
+        await expect(main.locator(".msrc-team-portrait img")).toHaveCount(13);
         await expect(main.locator(".msrc-team-person").filter({ hasText: "Name to be announced" })).toHaveCount(0);
         for (const card of await main.locator(".msrc-team-person").all()) {
           const bounds = await card.evaluate((element) => ({

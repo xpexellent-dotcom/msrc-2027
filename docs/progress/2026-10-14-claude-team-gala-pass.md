@@ -5,3 +5,4 @@
 - Phone: names wrap between words, the co-leader box stacks, and the filter pills wrap at 320 px and 200% text.
 - PASS: lint, types, 2,406 unit tests, production build, and 53/53 Team and people browser tests (desktop, tablet and mobile, EN and AR) including axe and 320 px/200% reflow.
 - Header now uses the Program page anatomy (photo hero, large two-line title, lead, glass side panel) with a Founders panel on the right. It reads "Founders to be announced" until `teamFounders` in `src/content/team.ts` is filled (name, optional Arabic name, role, photo, LinkedIn). Committee filters reuse the Program day-toggle style.
+- Owner fix: Laura Hamadi and Mohammed Almohmadi are now equal side-by-side cards titled Academic Sessions Co-Lead (Scientific: 10 cards, so the grid has no gap). "(Joker)" is removed from the public Scientific Officer title, and Laura's quote is capitalized.

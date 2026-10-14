@@ -3,7 +3,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 
 // SCP-02, CMS-04, LOC-01/03, ACC-01, MED-01/04: approved roster content,
 // usable committee controls and an accessible member dialog on every breakpoint.
-const scientificOrder = ["aishah-baothman", "akram-awan", "amal-sayqal", "heba-mousa", "laura-hamadi", "mohammad-alsayegh", "omar-alsaggaf", "reem-albeladi", "toleen-alhindi"];
+const scientificOrder = ["aishah-baothman", "akram-awan", "amal-sayqal", "heba-mousa", "laura-hamadi", "mohammed-almohmadi", "mohammad-alsayegh", "omar-alsaggaf", "reem-albeladi", "toleen-alhindi"];
 const organizationOrder = ["areen-youssef", "esraa-metwalli", "hanadi-orayf", "lara-qawas", "majed-aljabri", "noor-faisal-alquait", "ola-altaib", "sara-qadi", "sarah-tayeb", "sulaf-alghamdi"];
 
 async function ready(page: Page, locale: "en" | "ar") {
@@ -37,9 +37,9 @@ for (const locale of ["en", "ar"] as const) {
     const team = page.locator(".msrc-team-page");
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
-    await expect(team.locator(".msrc-team-person")).toHaveCount(21);
+    await expect(team.locator(".msrc-team-person")).toHaveCount(22);
     await expect(team.locator(".msrc-team-conference-leader")).toHaveCount(2);
-    await expect(team.locator(".msrc-team-lead")).toHaveCount(19);
+    await expect(team.locator(".msrc-team-lead")).toHaveCount(20);
     for (const [committee, order] of [["scientific", scientificOrder], ["organization", organizationOrder]] as const) {
       const section = team.locator(`.msrc-team-committee[data-committee="${committee}"]`);
       await expect(section).toBeVisible();
@@ -77,7 +77,8 @@ for (const locale of ["en", "ar"] as const) {
       await expect(profile).toHaveAttribute("rel", /noopener/);
     }
     const laura = team.locator('[data-person-id="laura-hamadi"]');
-    await expect(laura.locator(".msrc-team-co-leaders")).toContainText("Mohammed Almohmadi");
+    await expect(laura.locator(".msrc-team-role")).toContainText(locale === "ar" ? "مشارك" : "Co-Lead");
+    await expect(team.locator('[data-person-id="mohammed-almohmadi"] .msrc-team-role')).toContainText(locale === "ar" ? "مشارك" : "Co-Lead");
     await expect(team.locator(".msrc-team-description")).not.toHaveCount(0);
     for (const description of await team.locator(".msrc-team-description").all()) {
       await expect(description).toHaveAttribute("lang", "en");
@@ -109,7 +110,7 @@ for (const locale of ["en", "ar"] as const) {
     await ready(page, locale);
     const team = page.locator(".msrc-team-page");
     const images = team.locator(".msrc-team-portrait img");
-    await expect(images).toHaveCount(12);
+    await expect(images).toHaveCount(13);
     await expect(team.locator(".msrc-team-portrait--pending")).toHaveCount(9);
     await expect(team.locator(".msrc-team-portrait--pending img")).toHaveCount(0);
     for (const image of await images.all()) {
