@@ -2706,7 +2706,7 @@ italic descriptions and a bounded animated names-only **View team** popup.
 Abdulrahman Ismail Maqbool heads Scientific; Fatima Salem Alfrhah heads Organization.
 Akram Awan is Digital & Analytics Lead. This supersedes the older leadership
 context in PROJECT_BRIEF and Main File for this staff roster. Laura Hamadi leads
-Academic Sessions with Mohammad Almehmadi as co-leader. Media & Design, Media
+Academic Sessions with Mohammed Almohmadi as co-leader (owner-confirmed spelling, 14 October 2026). Media & Design, Media
 Production and Evaluation are in Organization, including the mixed assignments.
 The three supplied Design member names retain exact Arabic source spelling;
 English preview transliterations remain explicit editorial review items.

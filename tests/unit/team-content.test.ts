@@ -32,7 +32,7 @@ describe("organizer-supplied team content (SCP-02, CMS-04, LOC-01/03, MED-01/04)
   });
 
   it("keeps the confirmed co-leader distinct from unrelated unassigned Sheet entries", () => {
-    expect(find("laura-hamadi").coLeaders).toEqual([{ name: "Mohammad Almehmadi" }]);
+    expect(find("laura-hamadi").coLeaders).toEqual([{ name: "Mohammed Almohmadi", profile: "https://www.linkedin.com/in/mohammed-almohmadi-80a5293a8", portrait: { src: "/media/team/mohammed-almohmadi.webp", width: 640, height: 800 } }]);
     expect(find("hanadi-orayf").members).toEqual([
       { name: "Fatima Alshuqayfi", arName: "فاطمه الشقيفي" },
       { name: "Rama Alghamdi", arName: "رامه الغامدي" },
@@ -41,7 +41,6 @@ describe("organizer-supplied team content (SCP-02, CMS-04, LOC-01/03, MED-01/04)
     const names = people.flatMap((person) => [person.name, ...(person.coLeaders ?? []).map((entry) => entry.name), ...(person.members ?? []).map((entry) => entry.name)]);
     expect(names).toHaveLength(25);
     expect(new Set(names).size).toBe(25);
-    expect(names).not.toContain("Mohammed Almohmadi");
     expect(names).not.toContain("Lama Mastour Alsulami");
     expect(people.filter((person) => person.members?.length)).toHaveLength(1);
     expect(people.filter((person) => person.coLeaders?.length)).toHaveLength(1);

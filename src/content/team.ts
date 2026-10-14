@@ -11,7 +11,7 @@ export type TeamPerson = {
   description?: string;
   profile?: string;
   portrait?: { src: string; width: number; height: number; zoom?: number; position?: string };
-  coLeaders?: readonly { name: string }[];
+  coLeaders?: readonly { name: string; profile?: string; portrait?: { src: string; width: number; height: number } }[];
   members?: readonly { name: string; arName?: string }[];
 };
 
@@ -52,7 +52,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "ar": "رئيسة قسم البرنامج وسير الفعاليات"
         },
         "description": "Professional disaster coordinator",
-        "profile": "https://www.linkedin.com/in/aishah-baothman-3711aa319?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+        "profile": "https://www.linkedin.com/in/aishah-baothman-3711aa319"
       },
       {
         "id": "akram-awan",
@@ -79,7 +79,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "ar": "رئيسة قسم مسابقة العرض في ثلاث دقائق"
         },
         "description": "Running on research and a strict 3-minute timer.",
-        "profile": "https://www.linkedin.com/in/amal-sayqal-319344144?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+        "profile": "https://www.linkedin.com/in/amal-sayqal-319344144"
       },
       {
         "id": "heba-mousa",
@@ -89,7 +89,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "ar": "رئيسة قسم الملخصات البحثية"
         },
         "description": "Reading abstracts so you don't have to",
-        "profile": "https://www.linkedin.com/in/heba-ahmed-mousa-412154380?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+        "profile": "https://www.linkedin.com/in/heba-ahmed-mousa-412154380",
         "portrait": {
           "src": "/media/team/heba-mousa.webp",
           "width": 1000,
@@ -106,10 +106,12 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "ar": "رئيسة قسم الجلسات الأكاديمية"
         },
         "description": "a shot of espresso",
-        "profile": "https://www.linkedin.com/in/laura-h-b144913a1/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BFrjQFFAwQ9SYtlClwI77Yg%3D%3D",
+        "profile": "https://www.linkedin.com/in/laura-h-b144913a1",
         "coLeaders": [
           {
-            "name": "Mohammad Almehmadi"
+            "name": "Mohammed Almohmadi",
+            "profile": "https://www.linkedin.com/in/mohammed-almohmadi-80a5293a8",
+            "portrait": { "src": "/media/team/mohammed-almohmadi.webp", "width": 640, "height": 800 }
           }
         ]
       },
@@ -135,7 +137,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "ar": "رئيس قسم الهاكاثون"
         },
         "description": "Can't hack a ton, but can Hackathon",
-        "profile": "https://www.linkedin.com/in/omar-alsaggaf-040865402?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+        "profile": "https://www.linkedin.com/in/omar-alsaggaf-040865402",
         "portrait": {
           "src": "/media/team/omar-alsaggaf.webp",
           "width": 480,
@@ -150,7 +152,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "ar": "رئيسة قسم المحكّمين وأعضاء هيئة التدريس"
         },
         "description": "Behind every fair evaluation",
-        "profile": "https://www.linkedin.com/in/reem-albeladi-8964ab347?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+        "profile": "https://www.linkedin.com/in/reem-albeladi-8964ab347"
       },
       {
         "id": "toleen-alhindi",
@@ -208,7 +210,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "ar": "رئيسة قسم الإعلام والتصميم"
         },
         "description": "Graphic design is my passion ❤️",
-        "profile": "https://www.linkedin.com/in/hanady-oraif-6684a62b9?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+        "profile": "https://www.linkedin.com/in/hanady-oraif-6684a62b9",
         "portrait": {
           "src": "/media/team/hanadi-orayf.webp",
           "width": 1000,
@@ -275,7 +277,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "en": "Ambassadors & Outreach Lead",
           "ar": "رئيسة قسم السفراء والتواصل"
         },
-        "profile": "https://www.linkedin.com/in/ola-altaib-440008278?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+        "profile": "https://www.linkedin.com/in/ola-altaib-440008278",
         "portrait": {
           "src": "/media/team/ola-altaib.webp",
           "width": 981,
@@ -290,7 +292,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "ar": "رئيسة قسم كبار الشخصيات والضيافة"
         },
         "description": "Making MSRC feel like home, one guest at a time.",
-        "profile": "https://www.linkedin.com/in/sara-qadi-542453390?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+        "profile": "https://www.linkedin.com/in/sara-qadi-542453390",
         "portrait": {
           "src": "/media/team/sara-qadi.webp",
           "width": 719,
@@ -316,7 +318,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "ar": "رئيسة قسم العمليات والقوى العاملة"
         },
         "description": "Running operations, not from them",
-        "profile": "https://www.linkedin.com/in/sulaf-alghamdi-774058219?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+        "profile": "https://www.linkedin.com/in/sulaf-alghamdi-774058219",
         "portrait": {
           "src": "/media/team/sulaf-alghamdi.webp",
           "width": 1000,

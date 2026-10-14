@@ -6,8 +6,8 @@ import { Dialog } from "@/components/feedback/dialog";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
 import { Reveal } from "@/components/ui/reveal";
+import { TeamSpotlight } from "@/components/team-spotlight";
 import { teamCommittees, teamCopy, type TeamPerson } from "@/content/team";
-import { teamQuoteFont } from "@/features/team/quote-font";
 import { formatIndex, type Locale } from "@/lib/i18n";
 
 type CommitteeView = "both" | "scientific" | "organization";
@@ -76,7 +76,9 @@ function PersonCard({ person, locale, conferenceLeader = false, memberDialogOpen
       data-person-id={person.id}
       aria-labelledby={titleId}
     >
-      <Portrait person={person} locale={locale} conferenceLeader={conferenceLeader} />
+      {person.profile
+        ? <a className="msrc-team-portrait-link" href={person.profile} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true"><Portrait person={person} locale={locale} conferenceLeader={conferenceLeader} /></a>
+        : <Portrait person={person} locale={locale} conferenceLeader={conferenceLeader} />}
       <div className="msrc-team-person-copy">
         <h3 id={titleId} lang="en" dir="ltr">{person.name}</h3>
         <p className="msrc-team-role">
@@ -86,10 +88,13 @@ function PersonCard({ person, locale, conferenceLeader = false, memberDialogOpen
         {person.coLeaders?.length ? (
           <div className="msrc-team-co-leaders">
             <p className="msrc-team-subgroup-label">{copy.coLeader}</p>
-            <ul>{person.coLeaders.map((coLeader) => <li key={coLeader.name} lang="en" dir="ltr">{coLeader.name}</li>)}</ul>
+            <ul>{person.coLeaders.map((coLeader) => <li key={coLeader.name} className="msrc-team-co-leader">
+              {coLeader.portrait ? <span className="msrc-team-co-leader-photo" aria-hidden="true"><Image src={coLeader.portrait.src} alt="" fill sizes="56px" /></span> : null}
+              <span className="msrc-team-co-leader-text"><span lang="en" dir="ltr">{coLeader.name}</span>{coLeader.profile ? <a className="msrc-team-profile" href={coLeader.profile} target="_blank" rel="noopener noreferrer" aria-label={`${copy.profileLabel}: ${coLeader.name}`}><span>{copy.profileLabel}</span></a> : null}</span>
+            </li>)}</ul>
           </div>
         ) : null}
-        {person.description ? <p className="msrc-team-description" lang="en" dir="ltr"><em>{`"${person.description}"`}</em></p> : null}
+        {person.description ? <p className="msrc-team-description" lang="en" dir="ltr">{`"${person.description}"`}</p> : null}
         <ProfileLink person={person} locale={locale} />
         {person.members?.length ? (
           <button
@@ -152,7 +157,7 @@ export function TeamPage({ locale }: { locale: Locale }) {
 
   return (
     <div
-      className={`msrc-team-page ${teamQuoteFont.variable}`}
+      className="msrc-team-page"
       data-view={view}
       data-dialog-instant={dialogInstant ? "true" : undefined}
       onKeyDownCapture={() => { if (membersOpen) setDialogInstant(true); }}
@@ -173,6 +178,7 @@ export function TeamPage({ locale }: { locale: Locale }) {
         </Container>
       </section>
       <section className="msrc-team-roster" aria-label={copy.label}>
+        <TeamSpotlight />
         <Container>
           <div className="msrc-team-filters" role="group" aria-label={copy.committeeView}>
             {filters.map((filter) => (

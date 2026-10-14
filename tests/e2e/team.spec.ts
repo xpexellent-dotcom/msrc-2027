@@ -66,7 +66,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(quote).toHaveText('"The numbers are being difficult"');
     await expect(quote).toHaveAttribute("lang", "en");
     await expect(quote).toHaveAttribute("dir", "ltr");
-    expect(await quote.evaluate((element) => getComputedStyle(element.matches("em") ? element : element.querySelector("em") ?? element).fontStyle)).toBe("italic");
+    // Owner design pass: quotes are upright, never italic.
+    expect(await quote.evaluate((element) => getComputedStyle(element).fontStyle)).toBe("normal");
+    for (const photoLink of await team.locator(".msrc-team-portrait-link").all()) await expect(photoLink).toHaveAttribute("tabindex", "-1");
     await expect(akram.locator(".msrc-team-profile")).toHaveAttribute("href", "https://www.linkedin.com/in/akram-awan-233a7b2bb/");
     for (const profile of await team.locator(".msrc-team-profile").all()) {
       const url = new URL((await profile.getAttribute("href"))!);
@@ -75,7 +77,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(profile).toHaveAttribute("rel", /noopener/);
     }
     const laura = team.locator('[data-person-id="laura-hamadi"]');
-    await expect(laura.locator(".msrc-team-co-leaders")).toContainText("Mohammad Almehmadi");
+    await expect(laura.locator(".msrc-team-co-leaders")).toContainText("Mohammed Almohmadi");
     await expect(team.locator(".msrc-team-description")).not.toHaveCount(0);
     for (const description of await team.locator(".msrc-team-description").all()) {
       await expect(description).toHaveAttribute("lang", "en");

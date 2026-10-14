@@ -15,7 +15,7 @@ activation remain separate.
 - [Header image](https://drive.google.com/file/d/1ARHfenC4-rzVE9MRyNvv-htYGg-mFIKo/view): `IMG_6652.JPG`, a photograph of the MSRC 2026 auditorium, supplied in the current request. It is decorative historical context, not a photograph of the future 2027 event.
 - Akram Awan now has the exact description **“The numbers are being difficult”** and [his supplied LinkedIn profile](https://www.linkedin.com/in/akram-awan-233a7b2bb/). Both are included.
 - Current organizer screenshots and corrections govern names, titles and committee assignments over older leadership charts and the Sheet's spelling variants. Abdulrahman Ismail Maqbool heads Scientific; Fatima Salem Alfrhah heads Organization. Media & Design, Media Production and Evaluation belong to Organization.
-- Laura Hamadi is Academic Sessions Lead, with **Mohammad Almehmadi** as names-only co-leader. This is distinct from Scientific Officer **Mohammad Alsayegh**. The latest explicit co-leader spelling takes precedence over the Sheet/photo label “Mohammed Almohmadi”.
+- Laura Hamadi is Academic Sessions Lead, with **Mohammed Almohmadi** as co-leader, shown with his supplied photo and LinkedIn inside Laura's card. The owner confirmed this spelling on 14 October 2026; it matches the Sheet and photo label. He is distinct from Scientific Officer **Mohammad Alsayegh**.
 - Hanadi Orayf's Media & Design members are the supplied names `رامه الغامدي`, `تمارا السندي`, `فاطمه الشقيفي`. The English preview transliterations **Rama Alghamdi**, **Tamara Alsindi**, **Fatima Alshuqayfi** remain editorial spellings for reviewer confirmation; the Arabic names retain the exact supplied spelling.
 - **Lama Mastour Alsulami** appears in the Sheet but has no supplied assignment. She is excluded until an assignment is confirmed. **Areen Youssef** has an assigned lead role but no Sheet row or photograph; no biography/profile is invented.
 
@@ -112,3 +112,7 @@ are retained in the task's local review outputs, not represented as green checks
 Physical devices/assistive technology, native Arabic editorial review, hosted PR
 CI and deployment are separate from this local evidence; see the PR's current
 check rollup. This task performs no production release or database operation.
+
+## Owner design pass (14 October 2026)
+
+The owner asked for a premium, lighter look with visuals behind the content and no italic type. A light gala layer (`src/styles/team-gala.css`, loaded after `team-directory.css`) adds an ivory-to-lilac background with drifting lilac, gold and violet light and a pointer-following gold glow (`src/components/team-spotlight.tsx`, pointer: fine only). It also adds glass cards with gold- or violet-led gradient edges, a gold segmented committee control, larger names, roles and quotes, upright quotes (the italic quote font is removed) and hover lift with photo zoom. Photos open the person's LinkedIn for pointer users through a `tabIndex=-1`/`aria-hidden` link; the visible LinkedIn text link stays the keyboard route. LinkedIn URLs drop tracking parameters. All motion stops under reduced motion.

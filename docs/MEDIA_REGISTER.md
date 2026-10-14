@@ -274,3 +274,5 @@ Source URLs, timestamps, sizes, original and derivative SHA-256 receipts are in
 review items are in [the Team feature note](features/team-organization.md).
 No Google/Drive embed or remote runtime image fetch is introduced. Future asset
 corrections must use new versioned paths under the existing 30-day cache rule.
+
+- 14 October 2026 (owner design pass): added `public/media/team/mohammed-almohmadi.webp`, 640×800 WebP (17 KB) from his self-uploaded portrait in the team Drive folder, with metadata stripped. It is used as the Academic Sessions co-leader thumbnail with `alt=""`, beside his visible name.
