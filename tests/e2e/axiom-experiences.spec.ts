@@ -77,7 +77,7 @@ for (const locale of ["en", "ar"] as const) {
   });
 
   for (const route of ["team", "sponsors"] as const) {
-    test(`${locale} ${route} is accessible with anonymous pending identities`, async ({ page }, testInfo) => {
+    test(`${locale} ${route} is accessible`, async ({ page }, testInfo) => {
       await page.emulateMedia({ reducedMotion: "reduce" });
       const response = await page.goto(`/${locale}/${route}`);
       expect(response?.status()).toBe(200);
@@ -91,18 +91,26 @@ for (const locale of ["en", "ar"] as const) {
       await expect(main.locator("form, input, select, textarea")).toHaveCount(0);
       if (route === "team") {
         await page.evaluate(() => document.fonts.ready);
-        await expect(main.locator(".team-card")).toHaveCount(8);
-        await expect(main.locator(".team-card .portrait-placeholder")).toHaveCount(8);
-        await expect(main.locator(".team-card img, .team-card a")).toHaveCount(0);
-        await expect(main.locator('.people-next a')).toHaveAttribute("href", `/${locale}/participate`);
-        for (const card of await main.locator(".team-card").all()) {
-          await expect(card).toContainText(locale === "ar" ? "سيُعلن الاسم لاحقًا" : "Name to be announced");
-          const bounds = await card.evaluate((element) => ({
-            card: element.getBoundingClientRect().bottom,
-            caption: element.querySelector(".team-card-copy")!.getBoundingClientRect().bottom,
-          }));
-          expect(bounds.caption, "Each name stays inside its own grid row").toBeLessThanOrEqual(bounds.card + 1);
+        // ORG-050: two conference leaders, then one row per committee lead (9 scientific, 10 organization).
+        await expect(main.locator(".team-leader")).toHaveCount(2);
+        await expect(main.locator(".team-committee--scientific .team-row")).toHaveCount(9);
+        await expect(main.locator(".team-committee--organization .team-row")).toHaveCount(10);
+        await expect(main.locator(".team-photo img")).toHaveCount(13);
+        for (const image of await main.locator(".team-photo img").all()) await expect(image).toHaveAttribute("alt", "");
+        await expect(main.locator(".team-leader--scientific")).toContainText(locale === "ar" ? "عبدالرحمن إسماعيل مقبول" : "Abdulrahman Ismail Maqbool");
+        await expect(main.locator(".team-leader--organization")).toContainText(locale === "ar" ? "فاطمة سالم الفرحة" : "Fatima Salem Alfrhah");
+        for (const link of await main.locator(".team-profile").all()) {
+          await expect(link).toHaveAttribute("href", /^https:\/\/www\.linkedin\.com\/in\/[a-z0-9-]+$/);
+          await expect(link).toHaveAttribute("rel", "noopener noreferrer");
         }
+        // Photos open the same profile for pointer users only; the text link is the single keyboard stop.
+        await expect(main.locator("a.team-photo--linked")).toHaveCount(await main.locator(".team-profile").count());
+        for (const photo of await main.locator("a.team-photo--linked").all()) await expect(photo).toHaveAttribute("tabindex", "-1");
+        await expect(main.locator('.people-next a')).toHaveAttribute("href", `/${locale}/participate`);
+        // Program-style header with the founders panel; Design members listed under Hanadi Orayf.
+        await expect(main.locator(".experience-intro--team .premium-hero-image img")).toHaveCount(1);
+        await expect(main.locator(".team-founders")).toBeVisible();
+        await expect(main.locator(".team-row", { hasText: locale === "ar" ? "هنادي" : "Hanadi Orayf" }).locator(".team-members li")).toHaveCount(3);
       } else {
         const tiers = page.getByTestId("sponsor-tiers");
         await expect(tiers.locator(".sponsor-tier")).toHaveCount(3);

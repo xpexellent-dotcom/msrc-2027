@@ -252,3 +252,15 @@ section names MSRC 2026. Files, crops, encoding and rights scope are unchanged.
 ORG-008 (2 October 2026) lets browsers cache everything under `public/media/` for 30 days.
 Never overwrite a published file: ship a corrected cut or poster under a new versioned name
 (`-v2`) and update the reference, or returning visitors may see the old file for a month.
+
+## 10. Team page portraits — 14 October 2026 (ORG-050)
+
+| Field | Record |
+|---|---|
+| Assets | `public/media/team/{abdulrahman-ismail,akram-awan,mohammad-alsayegh,omar-alsaggaf,lara-qawas,ola-altaib,majed-aljabri,sulaf-alghamdi,heba-mousa,esraa-metwalli,sara-qadi,hanadi-orayf,mohammed-almohmadi}-v1.jpg (13)` |
+| Source | Self-uploaded portraits in the organizer's shared team Drive folder; originals stay in Drive and are not committed |
+| Derivatives | 640×800 progressive JPEG (4:5 cover crop; Akram Awan's screenshot margin cropped out; Hanadi Orayf and Sara Qadi reframed to the head and shoulders), sRGB, quality 80, no EXIF/XMP/GPS/ICC; 17–58 KB each |
+| Purpose and consent scope | EN/AR Team page only, beside the person's own name and role; supplied by the person for this page. No other use is approved |
+| Accessibility | Decorative (`alt=""`) because the name is adjacent text; leads without a photo show initials |
+| Removal | "Privacy & data requests" contact topic; replace with the initials treatment and delete the derivative, or supersede with a `-v2` file |
+| Header photo (15 October 2026) | `public/media/team/team-header-v1.jpg`, 1000×563 JPEG (80 KB), re-encoded without metadata. Owner-supplied meeting-room photograph used as the decorative Team page hero (`alt=""`). The owner supplied it for this use; its original source and licence are to be confirmed by the owner. |

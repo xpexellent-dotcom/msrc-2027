@@ -2693,3 +2693,19 @@ Preserve the two-admin/self-protection/recovery safeguards, the restricted
 single-admin pairing state, and closed unrelated workflows. No additional account
 or real email is authorized by this resumption. IDs: BL-AUTH-01/05/06,
 BL-RPT-01/03, ROL-01/07/10/12, SEC-01/02/06, LOC-01/03.
+
+## ORG-050 — Team page committee roster (14 October 2026)
+
+The owner supplied the MSRC 2027 committee roster for the public Team page and chose
+layout A (one row per committee lead with a members box). Structure: two conference
+leaders (Head of Scientific: Abdulrahman Ismail Maqbool; Head of Organization: Fatima
+Salem Alfrhah), the Scientific Committee (9 leads) and the Organizing Committee (10
+leads, including the three cross-committee roles the owner placed under Organization).
+Names, roles, one-line descriptions and LinkedIn links come from the organizer roster
+sheet and team spreadsheet, which each person filled in themselves; photos come from the
+shared team Drive folder, which each person uploaded. "(Joker)" is omitted from the
+Scientific Officer title and "3TM" is corrected to 3MT. Arabic names, Arabic role
+labels (gender-neutral "قيادة …" form) and Arabic renderings of descriptions are
+drafts pending organizer review. Members per committee are pending and render as "to be
+announced". Removal or correction requests use the "Privacy & data requests" contact
+topic. ORG-049 was reserved by closed PR #53 and is not reused. IDs: CNT-01, PRV-01.
