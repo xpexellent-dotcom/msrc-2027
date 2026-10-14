@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 // DSN-01/02, ACC-01, LOC-01/03, MED-01/04: the local visual demo must
-// retain native navigation and honest pending names without photographic roster stand-ins.
+// retain native navigation, approved staff identities and honest pending speaker/sponsor content.
 for (const locale of ["en", "ar"] as const) {
   const nextName = locale === "ar" ? "التالي" : "Next";
   const previousName = locale === "ar" ? "السابق" : "Previous";
@@ -77,7 +77,7 @@ for (const locale of ["en", "ar"] as const) {
   });
 
   for (const route of ["team", "sponsors"] as const) {
-    test(`${locale} ${route} is accessible with anonymous pending identities`, async ({ page }, testInfo) => {
+    test(`${locale} ${route} is accessible with ${route === "team" ? "the supplied organizing roster" : "anonymous pending identities"}`, async ({ page }, testInfo) => {
       await page.emulateMedia({ reducedMotion: "reduce" });
       const response = await page.goto(`/${locale}/${route}`);
       expect(response?.status()).toBe(200);
@@ -91,15 +91,15 @@ for (const locale of ["en", "ar"] as const) {
       await expect(main.locator("form, input, select, textarea")).toHaveCount(0);
       if (route === "team") {
         await page.evaluate(() => document.fonts.ready);
-        await expect(main.locator(".team-card")).toHaveCount(8);
-        await expect(main.locator(".team-card .portrait-placeholder")).toHaveCount(8);
-        await expect(main.locator(".team-card img, .team-card a")).toHaveCount(0);
-        await expect(main.locator('.people-next a')).toHaveAttribute("href", `/${locale}/participate`);
-        for (const card of await main.locator(".team-card").all()) {
-          await expect(card).toContainText(locale === "ar" ? "سيُعلن الاسم لاحقًا" : "Name to be announced");
+        await expect(main.locator(".msrc-team-person")).toHaveCount(21);
+        await expect(main.locator(".msrc-team-conference-leader")).toHaveCount(2);
+        await expect(main.locator(".msrc-team-portrait--pending")).toHaveCount(9);
+        await expect(main.locator(".msrc-team-portrait img")).toHaveCount(12);
+        await expect(main.locator(".msrc-team-person").filter({ hasText: "Name to be announced" })).toHaveCount(0);
+        for (const card of await main.locator(".msrc-team-person").all()) {
           const bounds = await card.evaluate((element) => ({
             card: element.getBoundingClientRect().bottom,
-            caption: element.querySelector(".team-card-copy")!.getBoundingClientRect().bottom,
+            caption: Math.max(...Array.from(element.querySelectorAll("h3, p, a, button")).map((caption) => caption.getBoundingClientRect().bottom)),
           }));
           expect(bounds.caption, "Each name stays inside its own grid row").toBeLessThanOrEqual(bounds.card + 1);
         }

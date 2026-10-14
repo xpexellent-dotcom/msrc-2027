@@ -252,3 +252,25 @@ section names MSRC 2026. Files, crops, encoding and rights scope are unchanged.
 ORG-008 (2 October 2026) lets browsers cache everything under `public/media/` for 30 days.
 Never overwrite a published file: ship a corrected cut or poster under a new versioned name
 (`-v2`) and update the reference, or returning visitors may see the old file for a month.
+
+## 10. Organizer-supplied Team page assets — 14 October 2026
+
+The current request supplies the Team photo folder and a separate historical
+MSRC 2026 auditorium header photograph for the requested `/team` redesign and
+review PR. ENG-042 records this scoped use; unrelated galleries/speaker identities
+and broader publication rights are not inferred.
+
+The fresh folder lists 13 files. Twelve assigned main portraits were downloaded
+again and match the reviewed originals byte for byte. The Academic Sessions
+co-leader's photograph is available but his approved display is names-only.
+Nine main portraits remain absent and use labelled pending-photo frames.
+WebP derivatives preserve natural expressions, source backgrounds and recognizable
+faces; only EXIF orientation, bounded resizing, compression and CSS framing are
+applied. Earlier AI background variants from the design exploration are excluded.
+The decorative header depicts MSRC 2026, not the future conference.
+
+Source URLs, timestamps, sizes, original and derivative SHA-256 receipts are in
+[team-assets.json](media/team-assets.json). Mapping, source limits and editorial
+review items are in [the Team feature note](features/team-organization.md).
+No Google/Drive embed or remote runtime image fetch is introduced. Future asset
+corrections must use new versioned paths under the existing 30-day cache rule.

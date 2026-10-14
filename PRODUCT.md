@@ -89,3 +89,16 @@ Target WCAG2.2 AA, native scrolling, visible keyboard focus, reduced-motion supp
 44px touch targets, enlarged text and robust responsive layouts. Public interfaces
 are EN/AR with full RTL; scientific content stays English/LTR. Keep the accessible
 background film control, deliberate cinema mode and preference-aware poster fallback.
+
+## Team page scope — 14 October 2026
+
+ENG-042 supplies the public staff roster and portrait sources for `/team`,
+superseding the older anonymous-team preview direction only on that page.
+Speaker/sponsor placeholders retain their existing scope. Match the site's
+photo-header format using the supplied historical MSRC 2026 auditorium image,
+then an ivory split-committee gallery with four portraits across desktop,
+proportional conference leaders, italic source quotes and an animated names-only
+member popup. Existing tokens, self-hosted fonts, native scrolling, EN/AR interface,
+RTL and closed operational boundaries stay authoritative. Source reconciliation,
+missing photographs and provisional English member spellings are explicit in
+`docs/features/team-organization.md`. Deliver a review PR; do not merge or deploy.

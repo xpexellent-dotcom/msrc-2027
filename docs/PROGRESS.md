@@ -6098,3 +6098,55 @@ failed reset. The badge is presentation only; database state enforces denial.
 PR43 remains draft for review. Release flags are closed; hosted migrations,
 production settings, live bootstrap and real email remain untouched. Human inbox,
 device and mutual-recovery UAT remain separate activation gates.
+
+## 14 October 2026 — Team & Organization review PR (ENG-042)
+
+Built in an attached clean worktree from freshly fetched main
+`df2638eaf6b9457135b2763fef1b43183f88ccc3`, preserving the original checkout's
+uncommitted work. Replace only the existing `/team` experience with the supplied
+21-card/25-name roster, two equal committee halves, four-across desktop leads,
+proportional conference leaders, white bordered 4:5 portraits, quoted real italic
+descriptions, safe supplied profile links and a names-only animated native modal.
+The latest request applies Emil design engineering and Impeccable guidance and
+uses the supplied historical MSRC 2026 photograph in the established photo-header
+format. Scope: SCP-02, CMS-04, MED-01–04, LOC-01/03, ACC-01, DSN-01/02, REL-01.
+
+Fresh source reconciliation: `Sheet1!A1:Y40`, 22 named rows; photo folder has
+13 files, twelve assigned main portraits re-downloaded and byte-identical to the
+reviewed originals. Akram's exact new quote/profile are included. Restore
+**Scientific Officer (Joker)** from the supplied roster. Laura's names-only
+co-leader is Mohammad Almehmadi; mixed leads belong to Organization. Missing
+content is omitted; Lama has no supplied assignment. Nine portrait frames remain
+pending. Source and asset hashes are in `docs/media/team-assets.json`.
+
+- PASS: `pnpm check` using Node 24.21.0 / pnpm 11.19.0: lint, route types /
+  TypeScript, **2,406 unit cases in 62 files**, production build **81 pages**.
+- PASS after scoped corrections: `pnpm lint`, `pnpm typecheck`,
+  `pnpm exec vitest run tests/unit/team-content.test.ts` (4/4) and `pnpm build`.
+- PASS: `pnpm exec playwright test tests/e2e/team.spec.ts tests/e2e/axiom-experiences.spec.ts tests/e2e/public-shell.spec.ts tests/e2e/participant-closed.spec.ts tests/e2e/staff-portal-closed.spec.ts`:
+  **144/144**, no retries, desktop/tablet/phone. Covers supplied content, EN/AR/RTL
+  filters, twelve decoded local photos, 4:5 geometry, popup focus/Escape/backdrop
+  and touch, 320px/200% text, 83 temporary stress names, axe closed/open,
+  unchanged shell/sponsor/media behavior and closed participant/staff denial.
+- PASS: final crop-only correction preserves Majed's headroom; roster unit
+  cases/build and six EN/AR portrait decode/geometry browser cases pass again.
+- PASS: eight EN/AR gallery/popup capture states at 1280/791/412/320px: no
+  document overflow, browser errors or external requests. Measured modal pointer
+  transition 220ms; keyboard and reduced-motion transitions 0ms. Desktop/phone
+  gallery and popup screenshots visually inspected; review captures are linked
+  from `docs/reviews/team-page.md`.
+- PASS: twelve local portrait hashes match the fresh-download source manifest;
+  `git diff --check` passes. No new packages or lockfile changes.
+
+Preserve the first failed diagnostic: 126 passed / 18 failed. Actual defects were
+2.98:1 placeholder initials and long-word clipping at 320px/200% text. Fix opaque
+placeholder contrast and make narrow tracks grow into one column with enlarged
+text. Correct the test's curly quotes to the user's requested literal `""`.
+The original geometry/contrast/quotation assertions remain; final checks pass.
+
+NOT TESTED here: physical hardware/assistive technology, native-reader editorial
+approval and production deployment. Hosted checks are reported through the PR's
+current exact-head rollup. No hosted configuration, database, authentication,
+participant workflow, scheduler, real email, merge or production release occurs.
+Next: organizer review of the PR, nine missing photos and three provisional
+English Design-member spellings. Detail: `docs/features/team-organization.md`.

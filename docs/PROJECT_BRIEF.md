@@ -6,7 +6,12 @@
 
 Build the website and conference operations platform for the fifth Medical Students Research Conference at King Abdulaziz University, Jeddah. It should introduce the conference clearly, make approved participation paths easy to use, and give organizers reliable tools for scientific review and event operations. [S1 SCP-01 to SCP-07; S3]
 
-Akram Awan is the project requester and has identified his role in conversation as conference co-leader and scientific committee leader. That is project context, not a verified public committee roster. The Main File's leadership chart differs and must be reconciled before publishing people or titles. [S6; S3 p14]
+Akram Awan is the project requester. The organizer's current Team page roster
+supersedes the earlier conversational leadership context and Main File chart:
+Abdulrahman Ismail Maqbool heads Scientific, Fatima Salem Alfrhah heads Organization,
+and Akram is Digital & Analytics Lead. The supplied names, assignments and current
+source reconciliation are recorded in ENG-042 and
+[the Team page note](features/team-organization.md). [S6; S3 p14; SCP-02]
 
 ## Current facts and their status
 

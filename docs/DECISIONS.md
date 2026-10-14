@@ -2693,3 +2693,39 @@ Preserve the two-admin/self-protection/recovery safeguards, the restricted
 single-admin pairing state, and closed unrelated workflows. No additional account
 or real email is authorized by this resumption. IDs: BL-AUTH-01/05/06,
 BL-RPT-01/03, ROL-01/07/10/12, SEC-01/02/06, LOC-01/03.
+
+## ENG-042 — Supplied Team roster and editorial gallery, 14 October 2026
+
+Authority: the organizer's current screenshots, roster corrections, photo-folder
+and information-Sheet links, final preview refinements and explicit request for a
+full PR. Implement the existing `/team` page with Scientific and Organization
+committees side by side, two lead portraits per committee per row, proportional
+conference-leader portraits, white bordered frames, alphabetized names, quoted
+italic descriptions and a bounded animated names-only **View team** popup.
+
+Abdulrahman Ismail Maqbool heads Scientific; Fatima Salem Alfrhah heads Organization.
+Akram Awan is Digital & Analytics Lead. This supersedes the older leadership
+context in PROJECT_BRIEF and Main File for this staff roster. Laura Hamadi leads
+Academic Sessions with Mohammad Almehmadi as co-leader. Media & Design, Media
+Production and Evaluation are in Organization, including the mixed assignments.
+The three supplied Design member names retain exact Arabic source spelling;
+English preview transliterations remain explicit editorial review items.
+
+Recheck sources before implementation: the refreshed Sheet includes Akram's
+“The numbers are being difficult” and supplied LinkedIn profile. Preserve missing
+content honestly; no inferred committee assignment for the unassigned Sheet row,
+invented biographies or generated replacement portraits. Supplied English names
+and personal quotes have a controlled English/LTR fallback on the Arabic route;
+all interface labels, roles and controls are translated. Nine absent main photos
+retain pending-photo frames.
+
+The latest request applies Emil design engineering and Impeccable guidance,
+matching the existing public photo-header language with the supplied MSRC 2026
+auditorium image, and short purposeful motion with instant keyboard/reduced-motion
+paths. Use local optimized media, existing brand/font tokens and native scrolling.
+
+This authorizes scoped reversible implementation, source reconciliation, checks
+and a review PR. It does not authorize merging, production deployment, hosted
+settings, operational activation or communications. Detail and evidence:
+[Team page note](features/team-organization.md). IDs: SCP-02, CMS-04, MED-01–04,
+LOC-01/03, ACC-01, DSN-01/02, REL-01.
