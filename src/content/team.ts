@@ -105,7 +105,7 @@ export const teamCommittees: readonly TeamCommittee[] = [
           "en": "Academic Sessions Lead",
           "ar": "رئيسة قسم الجلسات الأكاديمية"
         },
-        "description": "a shot of espresso",
+        "description": "A shot of espresso",
         "profile": "https://www.linkedin.com/in/laura-h-b144913a1",
         "coLeaders": [
           {
@@ -119,8 +119,8 @@ export const teamCommittees: readonly TeamCommittee[] = [
         "id": "mohammad-alsayegh",
         "name": "Mohammad Alsayegh",
         "role": {
-          "en": "Scientific Officer (Joker)",
-          "ar": "المسؤول العلمي (الجوكر)"
+          "en": "Scientific Officer",
+          "ar": "المسؤول العلمي"
         },
         "description": "Dealing a hand, across all scientific operations",
         "portrait": {

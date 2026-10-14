@@ -85,6 +85,8 @@ function PersonCard({ person, locale, conferenceLeader = false, memberDialogOpen
           {person.role[locale]}
           {person.headRole ? <span className="msrc-team-head-role">{person.headRole[locale]}</span> : null}
         </p>
+        {person.description ? <p className="msrc-team-description" lang="en" dir="ltr">{`"${person.description}"`}</p> : null}
+        <ProfileLink person={person} locale={locale} />
         {person.coLeaders?.length ? (
           <div className="msrc-team-co-leaders">
             <p className="msrc-team-subgroup-label">{copy.coLeader}</p>
@@ -94,8 +96,6 @@ function PersonCard({ person, locale, conferenceLeader = false, memberDialogOpen
             </li>)}</ul>
           </div>
         ) : null}
-        {person.description ? <p className="msrc-team-description" lang="en" dir="ltr">{`"${person.description}"`}</p> : null}
-        <ProfileLink person={person} locale={locale} />
         {person.members?.length ? (
           <button
             type="button"

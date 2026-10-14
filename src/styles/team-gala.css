@@ -21,7 +21,7 @@
 .msrc-team-person { position: relative; padding: clamp(.85rem, 1.4vw, 1.1rem); border-radius: 24px; background: rgba(255, 255, 255, .72); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85), 0 18px 50px -30px rgba(59, 20, 92, .4); transition: transform .6s cubic-bezier(.2, .7, .2, 1), box-shadow .6s; }
 .msrc-team-person::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none; background: linear-gradient(140deg, rgba(212, 168, 75, .85), rgba(124, 82, 190, .25) 45%, rgba(255, 255, 255, .6)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
 .msrc-team-committee[data-committee="organization"] .msrc-team-person::before { background: linear-gradient(140deg, rgba(110, 64, 180, .85), rgba(212, 168, 75, .3) 50%, rgba(255, 255, 255, .6)); }
-.msrc-team-leads { align-items: stretch; gap: clamp(1rem, 2vw, 1.5rem); }
+.msrc-team-leads { align-items: start; gap: clamp(1rem, 2vw, 1.5rem); }
 .msrc-team-conference-leader { max-inline-size: none; padding: clamp(1rem, 2vw, 1.5rem); margin-block-end: clamp(1.25rem, 2.5vw, 2rem); border-block-end: 0; gap: clamp(1rem, 2vw, 1.75rem); }
 
 .msrc-team-portrait, .msrc-team-portrait--pending { border: 0; border-radius: 18px; background: linear-gradient(160deg, #efe6fa, #f8efdc); }

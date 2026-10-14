@@ -51,7 +51,7 @@ describe("organizer-supplied team content (SCP-02, CMS-04, LOC-01/03, MED-01/04)
   it("preserves the refreshed quote, public profile allowlist and bilingual role labels", () => {
     expect(find("akram-awan").description).toBe("The numbers are being difficult");
     expect(find("akram-awan").profile).toBe("https://www.linkedin.com/in/akram-awan-233a7b2bb/");
-    expect(find("mohammad-alsayegh").role.en).toBe("Scientific Officer (Joker)");
+    expect(find("mohammad-alsayegh").role.en).toBe("Scientific Officer");
     expect(find("amal-sayqal").role.en).toBe("3MT Lead");
     for (const person of people) {
       expect(person.name.trim()).toBe(person.name);
