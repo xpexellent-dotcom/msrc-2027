@@ -94,20 +94,19 @@ export function TeamExperience({ locale }: { locale: Locale }) {
             <h2 id={`team-${committee.id}-title`} className="team-section-title">{committee.title[locale]}</h2>
             <p>{formatIndex(committee.leads.length, locale)} {team.leadsLabel}</p>
           </div>
-          <ol className="team-rows">{committee.leads.map((person) => <li key={person.slug}><Reveal className="team-row">
+          <ol className="team-rows">{[...committee.leads].sort((first, second) => first.name[locale].localeCompare(second.name[locale], locale)).map((person) => <li key={person.slug}><Reveal className={`team-row${person.noMembers ? " team-row--wide" : ""}`}>
             <div className={`team-row-lead${person.coLeads?.length ? " team-row-lead--shared" : ""}`}>
-              {[person, ...(person.coLeads ?? [])].map((member) => <div className="team-person" key={member.slug}>
+              {[person, ...[...(person.coLeads ?? [])].sort((first, second) => first.name[locale].localeCompare(second.name[locale], locale))].map((member) => <div className="team-person" key={member.slug}>
                 <TeamPortrait person={member} size="lead" />
                 <TeamIdentity person={member} locale={locale} heading="h3" />
               </div>)}
             </div>
-            <div className="team-members" aria-label={`${team.members}: ${person.role[locale]}`}>
+            {person.noMembers ? null : <div className="team-members" aria-label={`${team.members}: ${person.role[locale]}`}>
               <p className="team-members-label">{team.members}</p>
               {person.members?.length ? <ul>{person.members.map((member) => <li key={member.en}>{member[locale]}</li>)}</ul> : <p className="team-members-pending">{team.membersPending}</p>}
-            </div>
+            </div>}
           </Reveal></li>)}</ol>
         </section>)}
-        <p className="team-removal">{team.removal} <Link href={`/${locale}/contact`}>{team.removalLink}</Link></p>
       </Container>
     </section>
     <section className="people-next"><Container><h2>{copy.nextTitle}</h2><ButtonLink href={`/${locale}/participate`} variant="gold">{copy.nextLink}<Arrow /></ButtonLink></Container></section>

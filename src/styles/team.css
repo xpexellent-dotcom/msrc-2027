@@ -8,8 +8,6 @@
 .team-orb--gold { inline-size: 34vw; block-size: 34vw; inset-block-start: 38%; inset-inline-start: -12vw; background: #f2d79a; opacity: .5; animation-duration: 32s; }
 .team-orb--violet { inline-size: 40vw; block-size: 40vw; inset-block-end: -10vw; inset-inline-end: 8vw; background: #b9a2e6; opacity: .4; animation-duration: 38s; }
 @keyframes team-drift { to { transform: translate(6vw, 8vh) scale(1.15); } }
-.team-spot { position: absolute; inset: 0; opacity: 0; transition: opacity .6s; background: radial-gradient(520px circle at var(--spot-x, 50%) var(--spot-y, 20%), rgba(212, 168, 75, .2), transparent 62%); }
-.team-backdrop[data-active="true"] .team-spot { opacity: 1; }
 .team-roster .ambient-art { opacity: .55; }
 
 .team-section-title { margin: 0; font-family: var(--font-display); font-size: clamp(2.4rem, 4.4vw, 4.2rem); font-weight: 600; line-height: 1.08; letter-spacing: -.04em; color: var(--color-purple); }
@@ -66,7 +64,6 @@
 .team-members ul { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; padding: 0; list-style: none; }
 .team-members li { padding: .35rem .85rem; border-radius: 999px; background: #fff; border: 1px solid rgba(186, 138, 46, .35); font-size: 1rem; }
 .team-members-pending { margin: 0; font-size: 1rem; color: #635870; }
-.team-removal { max-inline-size: 60ch; margin: clamp(3rem, 6vw, 5rem) 0 0; font-size: 1rem; line-height: 1.7; color: #574e62; }
 
 [lang="ar"] :is(.team-section-title, .team-name) { line-height: 1.5; letter-spacing: 0; }
 [lang="ar"] :is(.team-role, .team-members-label, .team-committee-heading p) { letter-spacing: 0; text-transform: none; }
@@ -103,3 +100,7 @@
 .team-founder-name { font-size: clamp(1.15rem, 1.6vw, 1.35rem); font-weight: 600; color: var(--color-purple); }
 .team-founder-role { font-size: .9375rem; color: #574e62; }
 .team-founder .team-profile { margin-block-start: .1rem; }
+
+/* A row without a members box: lead and co-leads share the full width. */
+.team-row--wide { grid-template-columns: minmax(0, 1fr); }
+.team-row--wide .team-row-lead { gap: 1.25rem clamp(1.5rem, 3vw, 3rem); }

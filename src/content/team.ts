@@ -15,8 +15,10 @@ export type TeamPerson = {
   profile?: string;
   photo?: string;
   members?: Record<Locale, string>[];
-  /** Shares this row's role and members box. */
+  /** Co-leads shown beside the lead in the same row. */
   coLeads?: TeamPerson[];
+  /** The row has no members box (owner decision for Academic Sessions). */
+  noMembers?: boolean;
 };
 
 /** MSRC founders for the header panel. Empty until the organizers supply them; never invented. */
@@ -47,10 +49,11 @@ export const teamCommittees: TeamCommittee[] = [
         description: { en: "Behind every fair evaluation", ar: "خلف كل تقييم عادل" }, profile: "https://www.linkedin.com/in/reem-albeladi-8964ab347" },
       { slug: "toleen-alhindi", name: { en: "Toleen Alhindi", ar: "تولين الهندي" }, role: { en: "Awards Lead", ar: "قيادة الجوائز" },
         description: { en: "Just here to make things happen.", ar: "هنا لأحوّل الخطط إلى واقع." } },
-      { slug: "laura-hamadi", name: { en: "Laura Hamadi", ar: "لورا حمادي" }, role: { en: "Academic Sessions Co-Lead", ar: "قيادة مشتركة للجلسات العلمية" },
+      { slug: "laura-hamadi", name: { en: "Laura Hamadi", ar: "لورا حمادي" }, role: { en: "Academic Sessions Lead", ar: "قيادة الجلسات العلمية" }, noMembers: true,
         description: { en: "A shot of espresso", ar: "جرعة إسبريسو" }, profile: "https://www.linkedin.com/in/laura-h-b144913a1",
         coLeads: [{ slug: "mohammed-almohmadi", photo: photo("mohammed-almohmadi"), name: { en: "Mohammed Almohmadi", ar: "محمد المحمدي" }, role: { en: "Academic Sessions Co-Lead", ar: "قيادة مشتركة للجلسات العلمية" },
-          description: { en: "Trying to do better than yesterday", ar: "أسعى لأكون أفضل من الأمس" }, profile: "https://www.linkedin.com/in/mohammed-almohmadi-80a5293a8" }] },
+          description: { en: "Trying to do better than yesterday", ar: "أسعى لأكون أفضل من الأمس" }, profile: "https://www.linkedin.com/in/mohammed-almohmadi-80a5293a8" },
+          { slug: "lama-alsulami", name: { en: "Lama Mastour Alsulami", ar: "لمى مستور السلمي" }, role: { en: "Academic Sessions Co-Lead", ar: "قيادة مشتركة للجلسات العلمية" }, profile: "https://www.linkedin.com/in/lama-mastour-alsulami-920607286" }] },
       { slug: "aishah-baothman", name: { en: "Aishah Baothman", ar: "عائشة باعثمان" }, role: { en: "Program & Flow Lead", ar: "قيادة البرنامج وسير الفعاليات" },
         description: { en: "Professional disaster coordinator", ar: "تنسيق الكوارث باحتراف" }, profile: "https://www.linkedin.com/in/aishah-baothman-3711aa319" },
       { slug: "omar-alsaggaf", photo: photo("omar-alsaggaf"), name: { en: "Omar Alsaggaf", ar: "عمر السقاف" }, role: { en: "Hackathon Lead", ar: "قيادة الهاكاثون" },
@@ -92,8 +95,8 @@ export const teamCommittees: TeamCommittee[] = [
 ];
 
 export const teamCopy = {
-  en: { leadersTitle: "Conference leaders", leadsLabel: "leads", members: "Members", membersPending: "Members to be announced", founders: "Founders", foundersPending: "Founders to be announced", profile: "LinkedIn", removal: "Listed here? To update or remove your entry, contact us with the topic \"Privacy & data requests\".", removalLink: "Contact" },
-  ar: { leadersTitle: "قيادة المؤتمر", leadsLabel: "قادة", members: "الأعضاء", membersPending: "سيُعلن عن الأعضاء لاحقًا", founders: "المؤسسون", foundersPending: "سيُعلن عن المؤسسين لاحقًا", profile: "لينكدإن", removal: "هل اسمك مدرج هنا؟ لتحديث بياناتك أو حذفها، تواصل معنا باختيار موضوع «الخصوصية وطلبات البيانات».", removalLink: "تواصل معنا" },
+  en: { leadersTitle: "Conference leaders", leadsLabel: "leads", members: "Members", membersPending: "Members to be announced", founders: "Founders", foundersPending: "Founders to be announced", profile: "LinkedIn" },
+  ar: { leadersTitle: "قيادة المؤتمر", leadsLabel: "قادة", members: "الأعضاء", membersPending: "سيُعلن عن الأعضاء لاحقًا", founders: "المؤسسون", foundersPending: "سيُعلن عن المؤسسين لاحقًا", profile: "لينكدإن" },
 } as const;
 
 export function initials(name: string) {
