@@ -4,6 +4,8 @@ import { Link } from "@/components/ui/link";
 import { SponsorTiers } from "@/components/sponsor-tiers";
 import Image from "next/image";
 import { AmbientArtwork } from "@/components/ambient-artwork";
+import { TeamSpotlight } from "@/components/team-spotlight";
+import { Reveal } from "@/components/ui/reveal";
 import { peopleAndPartnersCopy } from "@/content/people-and-partners";
 import { initials, teamCommittees, teamCopy, type TeamPerson } from "@/content/team";
 import { formatIndex, type Locale } from "@/lib/i18n";
@@ -19,7 +21,7 @@ function PeoplePageIntro({ locale, page }: { locale: Locale; page: "team" | "spo
     <section className={`people-page-intro people-page-intro--${page}`} aria-labelledby="people-page-title">
       <Container>
         <nav className="experience-breadcrumb" aria-label={copy.breadcrumb}><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
-        <div className="people-page-heading"><h1 id="people-page-title">{intro.title}</h1><div><p>{intro.lead}</p>{page === "sponsors" ? <ButtonLink className="sponsor-top-action" href={`/${locale}/contact`} variant="gold">{copy.sponsors.nextLink}<Arrow /></ButtonLink> : null}</div></div>
+        <div className="people-page-heading"><h1 id="people-page-title">{page === "team" ? intro.title.split("\n").map((line, index) => <span key={line} className={index ? "team-title-accent" : undefined}>{line}</span>) : intro.title}</h1><div><p>{intro.lead}</p>{page === "sponsors" ? <ButtonLink className="sponsor-top-action" href={`/${locale}/contact`} variant="gold">{copy.sponsors.nextLink}<Arrow /></ButtonLink> : null}</div></div>
       </Container>
     </section>
   );
@@ -50,21 +52,22 @@ export function TeamExperience({ locale }: { locale: Locale }) {
   return <>
     <PeoplePageIntro locale={locale} page="team" />
     <section className="team-roster fluid-art-surface" aria-label={copy.label}>
+      <TeamSpotlight />
       <AmbientArtwork variant="people" />
       <Container>
         <section className="team-leaders" aria-labelledby="team-leaders-title">
           <h2 id="team-leaders-title" className="team-section-title">{team.leadersTitle}</h2>
-          <div className="team-leader-grid">{teamCommittees.map((committee) => <article className={`team-leader team-leader--${committee.id}`} key={committee.id}>
+          <Reveal className="team-leader-grid" stagger>{teamCommittees.map((committee) => <article className={`team-leader team-leader--${committee.id}`} key={committee.id}>
             <TeamPortrait person={committee.lead} size="leader" />
             <TeamIdentity person={committee.lead} locale={locale} heading="h3" />
-          </article>)}</div>
+          </article>)}</Reveal>
         </section>
         {teamCommittees.map((committee) => <section className={`team-committee team-committee--${committee.id}`} key={committee.id} aria-labelledby={`team-${committee.id}-title`}>
           <div className="team-committee-heading">
             <h2 id={`team-${committee.id}-title`} className="team-section-title">{committee.title[locale]}</h2>
             <p>{formatIndex(committee.leads.length, locale)} {team.leadsLabel}</p>
           </div>
-          <ol className="team-rows">{committee.leads.map((person) => <li className="team-row" key={person.slug}>
+          <ol className="team-rows">{committee.leads.map((person) => <li key={person.slug}><Reveal className="team-row">
             <div className="team-row-lead">
               <TeamPortrait person={person} size="lead" />
               <TeamIdentity person={person} locale={locale} heading="h3" />
@@ -73,7 +76,7 @@ export function TeamExperience({ locale }: { locale: Locale }) {
               <p className="team-members-label">{team.members}</p>
               {person.members?.length ? <ul>{person.members.map((member) => <li key={member.en}>{member[locale]}</li>)}</ul> : <p className="team-members-pending">{team.membersPending}</p>}
             </div>
-          </li>)}</ol>
+          </Reveal></li>)}</ol>
         </section>)}
         <p className="team-removal">{team.removal} <Link href={`/${locale}/contact`}>{team.removalLink}</Link></p>
       </Container>

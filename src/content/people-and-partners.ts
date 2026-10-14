@@ -5,7 +5,7 @@ export const peopleAndPartnersCopy = {
     breadcrumb: "Breadcrumb",
     team: {
       label: "Our Team",
-      title: "The people behind\nthe possibilities.",
+      title: "The minds behind\nthe fifth edition.",
       lead: "A space for the people bringing MSRC together — from scientific ideas to the conference experience.",
       groupTitle: "The MSRC team.",
       person: "Name to be announced",
@@ -27,7 +27,7 @@ export const peopleAndPartnersCopy = {
     breadcrumb: "مسار التنقل",
     team: {
       label: "فريقنا",
-      title: "معًا نصنع\nمساحة للإمكانات.",
+      title: "العقول التي تصنع\nالنسخة الخامسة.",
       lead: "مساحة للتعريف بمن يجمعون مجتمع MSRC، من الأفكار العلمية إلى تجربة المؤتمر.",
       groupTitle: "فريق MSRC.",
       person: "سيُعلن الاسم لاحقًا",

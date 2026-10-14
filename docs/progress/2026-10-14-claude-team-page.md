@@ -4,3 +4,4 @@
 - Data lives in `src/content/team.ts`; styles in `src/styles/team.css`. Eight self-supplied portraits are metadata-free 640×800 derivatives (MEDIA_REGISTER §10); others show initials. Photos link to the person's LinkedIn for pointer users; the visible "LinkedIn" text link is the single keyboard stop.
 - Arabic names, role labels and description translations are drafts for organizer review.
 - PASS: lint, types, 2,402 unit tests, production build; local EN/AR desktop and phone screenshots with no horizontal overflow. No flags, database or hosting changes.
+- Owner design pass: light "Midnight Gala" look. Ivory and lilac backdrop with drifting colour orbs and a pointer-following gold glow, a gold shimmer on the title accent line, glass cards with gradient edges, rows that rise in on scroll and glide on hover. Every motion stops under reduced motion. Four more self-uploaded portraits added (12 of 21 now have photos).

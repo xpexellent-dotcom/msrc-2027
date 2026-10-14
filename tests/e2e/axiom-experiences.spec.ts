@@ -95,7 +95,7 @@ for (const locale of ["en", "ar"] as const) {
         await expect(main.locator(".team-leader")).toHaveCount(2);
         await expect(main.locator(".team-committee--scientific .team-row")).toHaveCount(9);
         await expect(main.locator(".team-committee--organization .team-row")).toHaveCount(10);
-        await expect(main.locator(".team-photo img")).toHaveCount(8);
+        await expect(main.locator(".team-photo img")).toHaveCount(12);
         for (const image of await main.locator(".team-photo img").all()) await expect(image).toHaveAttribute("alt", "");
         await expect(main.locator(".team-leader--scientific")).toContainText(locale === "ar" ? "عبدالرحمن إسماعيل مقبول" : "Abdulrahman Ismail Maqbool");
         await expect(main.locator(".team-leader--organization")).toContainText(locale === "ar" ? "فاطمة سالم الفرحة" : "Fatima Salem Alfrhah");
