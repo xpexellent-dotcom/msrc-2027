@@ -1,13 +1,5 @@
 /* ORG-050: Team page — light "Midnight Gala": ivory and lilac light, drifting colour orbs,
    a pointer-following gold glow, glass cards with gradient edges and gold accents. */
-.people-page-intro--team { position: relative; overflow: hidden; background: linear-gradient(180deg, #fbf8f2 0%, #f3edf8 100%); }
-.people-page-intro--team h1 > span { display: block; }
-.people-page-intro--team .team-title-accent {
-  background: linear-gradient(100deg, #9a6b14 0%, var(--color-gold) 30%, #f0cf7c 45%, var(--color-gold) 60%, #9a6b14 100%);
-  background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: team-shine 7s linear infinite;
-}
-@keyframes team-shine { to { background-position: -220% 0; } }
 
 .team-roster { position: relative; isolation: isolate; overflow: clip; background: linear-gradient(180deg, #f3edf8 0%, #faf6ee 45%, #f1eaf7 100%); }
 .team-backdrop { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
@@ -76,7 +68,7 @@
 .team-members-pending { margin: 0; font-size: 1rem; color: #635870; }
 .team-removal { max-inline-size: 60ch; margin: clamp(3rem, 6vw, 5rem) 0 0; font-size: 1rem; line-height: 1.7; color: #574e62; }
 
-[lang="ar"] :is(.team-section-title, .team-name, .people-page-intro--team h1) { line-height: 1.5; letter-spacing: 0; }
+[lang="ar"] :is(.team-section-title, .team-name) { line-height: 1.5; letter-spacing: 0; }
 [lang="ar"] :is(.team-role, .team-members-label, .team-committee-heading p) { letter-spacing: 0; text-transform: none; }
 
 @media (max-width: 1000px) { .team-leader-grid { grid-template-columns: minmax(0, 1fr); } }
@@ -93,8 +85,21 @@
   .team-leader .team-photo { max-inline-size: 11rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .team-orb, .people-page-intro--team .team-title-accent { animation: none; }
+  .team-orb { animation: none; }
   .team-photo img, .team-row, .team-leader, .team-row-lead::before { transition: none; }
   .team-row:hover, .team-leader:hover, [dir="rtl"] .team-row:hover, .team-row:hover .team-photo img, .team-leader:hover .team-photo img { transform: none; }
 }
-@media (forced-colors: active) { .people-page-intro--team .team-title-accent { color: CanvasText; background: none; } }
+
+/* Founders panel in the header — the same glass panel as the Program dates. */
+.team-founders-title { margin: 0 0 .9rem; font-size: 1rem; font-weight: 600; color: var(--color-purple); }
+.team-founders .team-founders-pending { margin: 0; font-size: clamp(1.3rem, 1.9vw, 1.6rem); line-height: 1.3; color: var(--color-purple); }
+.team-founder-list { display: grid; gap: .9rem; margin: 0; padding: 0; list-style: none; }
+.team-founder { display: flex; align-items: center; gap: .9rem; padding-block-end: .9rem; border-block-end: 1px solid color-mix(in srgb, var(--color-purple) 14%, transparent); }
+.team-founder:last-child { padding-block-end: 0; border-block-end: 0; }
+.team-founder-photo { position: relative; flex: none; inline-size: 3.5rem; aspect-ratio: 4 / 5; border-radius: 12px; overflow: hidden; background: linear-gradient(160deg, #efe6fa, #f8efdc); }
+.team-founder-photo img { object-fit: cover; }
+.team-founder-initials { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; color: #9a6b14; }
+.team-founder-text { display: grid; gap: .15rem; min-inline-size: 0; }
+.team-founder-name { font-size: clamp(1.15rem, 1.6vw, 1.35rem); font-weight: 600; color: var(--color-purple); }
+.team-founder-role { font-size: .9375rem; color: #574e62; }
+.team-founder .team-profile { margin-block-start: .1rem; }

@@ -6,7 +6,7 @@ export const peopleAndPartnersCopy = {
     team: {
       label: "Our Team",
       title: "The minds behind\nthe fifth edition.",
-      lead: "A space for the people bringing MSRC together — from scientific ideas to the conference experience.",
+      lead: "Two committees. One shared vision. Meet the students and researchers bringing MSRC 2027 to life.",
       groupTitle: "The MSRC team.",
       person: "Name to be announced",
       nextTitle: "A shared ambition.\nA conference for discovery.",
@@ -28,7 +28,7 @@ export const peopleAndPartnersCopy = {
     team: {
       label: "فريقنا",
       title: "العقول التي تصنع\nالنسخة الخامسة.",
-      lead: "مساحة للتعريف بمن يجمعون مجتمع MSRC، من الأفكار العلمية إلى تجربة المؤتمر.",
+      lead: "لجنتان، ورؤية واحدة. تعرّفوا على الطلاب والباحثين الذين يصنعون مؤتمر MSRC 2027.",
       groupTitle: "فريق MSRC.",
       person: "سيُعلن الاسم لاحقًا",
       nextTitle: "طموح يجمعنا.\nومؤتمر يفتح باب الاكتشاف.",

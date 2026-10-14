@@ -107,6 +107,10 @@ for (const locale of ["en", "ar"] as const) {
         await expect(main.locator("a.team-photo--linked")).toHaveCount(await main.locator(".team-profile").count());
         for (const photo of await main.locator("a.team-photo--linked").all()) await expect(photo).toHaveAttribute("tabindex", "-1");
         await expect(main.locator('.people-next a')).toHaveAttribute("href", `/${locale}/participate`);
+        // Program-style header with the founders panel; Design members listed under Hanadi Orayf.
+        await expect(main.locator(".experience-intro--team .premium-hero-image img")).toHaveCount(1);
+        await expect(main.locator(".team-founders")).toBeVisible();
+        await expect(main.locator(".team-row", { hasText: locale === "ar" ? "هنادي" : "Hanadi Orayf" }).locator(".team-members li")).toHaveCount(3);
       } else {
         const tiers = page.getByTestId("sponsor-tiers");
         await expect(tiers.locator(".sponsor-tier")).toHaveCount(3);

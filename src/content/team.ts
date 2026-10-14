@@ -19,6 +19,10 @@ export type TeamPerson = {
   coLeads?: TeamPerson[];
 };
 
+/** MSRC founders for the header panel. Empty until the organizers supply them; never invented. */
+export type TeamFounder = { slug: string; name: Record<Locale, string>; role?: Record<Locale, string>; profile?: string; photo?: string };
+export const teamFounders: TeamFounder[] = [];
+
 export type TeamCommittee = { id: "scientific" | "organization"; title: Record<Locale, string>; lead: TeamPerson; leads: TeamPerson[] };
 
 const photo = (slug: string) => `/media/team/${slug}-v1.jpg`;
@@ -35,7 +39,8 @@ export const teamCommittees: TeamCommittee[] = [
     leads: [
       { slug: "heba-mousa", photo: photo("heba-mousa"), name: { en: "Heba Mousa", ar: "هبة موسى" }, role: { en: "Abstracts Lead", ar: "قيادة الملخصات البحثية" },
         description: { en: "Reading abstracts so you don't have to", ar: "أقرأ الملخصات حتى لا تضطر أنت لذلك" }, profile: "https://www.linkedin.com/in/heba-ahmed-mousa-412154380" },
-      { slug: "akram-awan", photo: photo("akram-awan"), name: { en: "Akram Awan", ar: "أكرم عوان" }, role: { en: "Digital & Analytics Lead", ar: "قيادة الحلول الرقمية والتحليلات" } },
+      { slug: "akram-awan", photo: photo("akram-awan"), name: { en: "Akram Awan", ar: "أكرم عوان" }, role: { en: "Digital & Analytics Lead", ar: "قيادة الحلول الرقمية والتحليلات" },
+        description: { en: "The numbers are being difficult", ar: "الأرقام تعاندني" }, profile: "https://www.linkedin.com/in/akram-awan-233a7b2bb" },
       { slug: "mohammad-alsayegh", photo: photo("mohammad-alsayegh"), name: { en: "Mohammad Alsayegh", ar: "محمد الصايغ" }, role: { en: "Scientific Officer", ar: "المسؤولية العلمية" },
         description: { en: "Dealing a hand, across all scientific operations", ar: "يد عون في كل العمليات العلمية" } },
       { slug: "reem-albeladi", name: { en: "Reem Albeladi", ar: "ريم البلادي" }, role: { en: "Judges & Faculty Lead", ar: "قيادة المحكّمين وأعضاء هيئة التدريس" },
@@ -75,7 +80,8 @@ export const teamCommittees: TeamCommittee[] = [
       { slug: "sulaf-alghamdi", photo: photo("sulaf-alghamdi"), name: { en: "Sulaf Alghamdi", ar: "سلاف الغامدي" }, role: { en: "Operation & Workforce Lead", ar: "قيادة العمليات والقوى العاملة" },
         description: { en: "Running operations, not from them", ar: "أدير العمليات ولا أهرب منها" }, profile: "https://www.linkedin.com/in/sulaf-alghamdi-774058219" },
       { slug: "hanadi-orayf", photo: photo("hanadi-orayf"), name: { en: "Hanadi Orayf", ar: "هنادي عريف" }, role: { en: "Media & Design Lead", ar: "قيادة الإعلام والتصميم" },
-        description: { en: "Graphic design is my passion", ar: "التصميم الجرافيكي شغفي" }, profile: "https://www.linkedin.com/in/hanady-oraif-6684a62b9" },
+        description: { en: "Graphic design is my passion", ar: "التصميم الجرافيكي شغفي" }, profile: "https://www.linkedin.com/in/hanady-oraif-6684a62b9",
+        members: [{ en: "Fatima Alshuqayfi", ar: "فاطمه الشقيفي" }, { en: "Rama Alghamdi", ar: "رامه الغامدي" }, { en: "Tamara Alsindi", ar: "تمارا السندي" }] },
       { slug: "sarah-tayeb", name: { en: "Sarah Tayeb", ar: "سارة طيب" }, role: { en: "Décor Lead", ar: "قيادة الديكور" },
         description: { en: "Turning ideas into aesthetics.", ar: "أحوّل الأفكار إلى جمال." } },
       { slug: "areen-youssef", name: { en: "Areen Youssef", ar: "أرين يوسف" }, role: { en: "Media Production Lead", ar: "قيادة الإنتاج الإعلامي" } },
@@ -86,8 +92,8 @@ export const teamCommittees: TeamCommittee[] = [
 ];
 
 export const teamCopy = {
-  en: { leadersTitle: "Conference leaders", leadsLabel: "leads", members: "Members", membersPending: "Members to be announced", profile: "LinkedIn", removal: "Listed here? To update or remove your entry, contact us with the topic \"Privacy & data requests\".", removalLink: "Contact" },
-  ar: { leadersTitle: "قيادة المؤتمر", leadsLabel: "قادة", members: "الأعضاء", membersPending: "سيُعلن عن الأعضاء لاحقًا", profile: "لينكدإن", removal: "هل اسمك مدرج هنا؟ لتحديث بياناتك أو حذفها، تواصل معنا باختيار موضوع «الخصوصية وطلبات البيانات».", removalLink: "تواصل معنا" },
+  en: { leadersTitle: "Conference leaders", leadsLabel: "leads", members: "Members", membersPending: "Members to be announced", founders: "Founders", foundersPending: "Founders to be announced", profile: "LinkedIn", removal: "Listed here? To update or remove your entry, contact us with the topic \"Privacy & data requests\".", removalLink: "Contact" },
+  ar: { leadersTitle: "قيادة المؤتمر", leadsLabel: "قادة", members: "الأعضاء", membersPending: "سيُعلن عن الأعضاء لاحقًا", founders: "المؤسسون", foundersPending: "سيُعلن عن المؤسسين لاحقًا", profile: "لينكدإن", removal: "هل اسمك مدرج هنا؟ لتحديث بياناتك أو حذفها، تواصل معنا باختيار موضوع «الخصوصية وطلبات البيانات».", removalLink: "تواصل معنا" },
 } as const;
 
 export function initials(name: string) {

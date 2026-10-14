@@ -7,21 +7,48 @@ import { AmbientArtwork } from "@/components/ambient-artwork";
 import { TeamSpotlight } from "@/components/team-spotlight";
 import { Reveal } from "@/components/ui/reveal";
 import { peopleAndPartnersCopy } from "@/content/people-and-partners";
-import { initials, teamCommittees, teamCopy, type TeamPerson } from "@/content/team";
+import { initials, teamCommittees, teamCopy, teamFounders, type TeamPerson } from "@/content/team";
 import { formatIndex, type Locale } from "@/lib/i18n";
 
 function Arrow() {
   return <svg className="directional-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.5" /></svg>;
 }
 
-function PeoplePageIntro({ locale, page }: { locale: Locale; page: "team" | "sponsors" }) {
+function PeoplePageIntro({ locale, page }: { locale: Locale; page: "sponsors" }) {
   const copy = peopleAndPartnersCopy[locale];
   const intro = copy[page];
   return (
     <section className={`people-page-intro people-page-intro--${page}`} aria-labelledby="people-page-title">
       <Container>
         <nav className="experience-breadcrumb" aria-label={copy.breadcrumb}><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
-        <div className="people-page-heading"><h1 id="people-page-title">{page === "team" ? intro.title.split("\n").map((line, index) => <span key={line} className={index ? "team-title-accent" : undefined}>{line}</span>) : intro.title}</h1><div><p>{intro.lead}</p>{page === "sponsors" ? <ButtonLink className="sponsor-top-action" href={`/${locale}/contact`} variant="gold">{copy.sponsors.nextLink}<Arrow /></ButtonLink> : null}</div></div>
+        <div className="people-page-heading"><h1 id="people-page-title">{intro.title}</h1><div><p>{intro.lead}</p>{page === "sponsors" ? <ButtonLink className="sponsor-top-action" href={`/${locale}/contact`} variant="gold">{copy.sponsors.nextLink}<Arrow /></ButtonLink> : null}</div></div>
+      </Container>
+    </section>
+  );
+}
+
+/** Same header anatomy as the Program page (ExperienceIntro): photo hero, two-line title, lead and a glass side panel with the founders. */
+function TeamIntro({ locale }: { locale: Locale }) {
+  const copy = peopleAndPartnersCopy[locale];
+  const team = teamCopy[locale];
+  const lines = copy.team.title.split("\n");
+  return (
+    <section className="experience-intro experience-intro--team premium-photo-hero fluid-journey-hero" aria-labelledby="experience-title">
+      <div className="premium-hero-image" aria-hidden="true"><Image src="/media/team/team-header-v1.jpg" alt="" fill sizes="100vw" priority /></div>
+      <Container>
+        <nav aria-label={copy.breadcrumb} className="experience-breadcrumb"><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{copy.team.label}</span></li></ol></nav>
+        <div className="experience-intro-grid">
+          <div><h1 id="experience-title">{lines.map((line, index) => <span key={line} className={index === lines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{line}</span>)}</h1><p className="experience-lead">{copy.team.lead}</p></div>
+          <div className="experience-intro-art">
+            <section className="program-date-panel team-founders" aria-labelledby="team-founders-title">
+              <h2 id="team-founders-title" className="team-founders-title">{team.founders}</h2>
+              {teamFounders.length ? <ul className="team-founder-list">{teamFounders.map((founder) => <li key={founder.slug} className="team-founder">
+                <span className="team-founder-photo" aria-hidden="true">{founder.photo ? <Image src={founder.photo} alt="" fill sizes="56px" /> : <span className="team-founder-initials" lang="en" dir="ltr">{initials(founder.name.en)}</span>}</span>
+                <span className="team-founder-text"><span className="team-founder-name">{founder.name[locale]}</span>{founder.role ? <span className="team-founder-role">{founder.role[locale]}</span> : null}{founder.profile ? <a className="team-profile" href={founder.profile} target="_blank" rel="noopener noreferrer">{team.profile}<span className="sr-only">: {founder.name[locale]}</span></a> : null}</span>
+              </li>)}</ul> : <p className="team-founders-pending">{team.foundersPending}</p>}
+            </section>
+          </div>
+        </div>
       </Container>
     </section>
   );
@@ -50,7 +77,7 @@ export function TeamExperience({ locale }: { locale: Locale }) {
   const copy = peopleAndPartnersCopy[locale].team;
   const team = teamCopy[locale];
   return <>
-    <PeoplePageIntro locale={locale} page="team" />
+    <TeamIntro locale={locale} />
     <section className="team-roster fluid-art-surface" aria-label={copy.label}>
       <TeamSpotlight />
       <AmbientArtwork variant="people" />

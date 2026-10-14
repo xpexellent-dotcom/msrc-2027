@@ -263,3 +263,4 @@ Never overwrite a published file: ship a corrected cut or poster under a new ver
 | Purpose and consent scope | EN/AR Team page only, beside the person's own name and role; supplied by the person for this page. No other use is approved |
 | Accessibility | Decorative (`alt=""`) because the name is adjacent text; leads without a photo show initials |
 | Removal | "Privacy & data requests" contact topic; replace with the initials treatment and delete the derivative, or supersede with a `-v2` file |
+| Header photo (15 October 2026) | `public/media/team/team-header-v1.jpg`, 1000×563 JPEG (80 KB), re-encoded without metadata. Owner-supplied meeting-room photograph used as the decorative Team page hero (`alt=""`). The owner supplied it for this use; its original source and licence are to be confirmed by the owner. |
