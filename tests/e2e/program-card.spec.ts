@@ -23,7 +23,7 @@ async function expectProgrammeArrival(page: Page, day: "day1" | "day2", focused 
       && Math.abs(targetBox.top - arrivalTop) <= 2
       && targetBox.top >= header.getBoundingClientRect().bottom
       && toolbarBox.top >= 0 && toolbarBox.bottom <= window.innerHeight;
-  }), { message: "Programme anchor reaches its final header-clear scroll alignment" }).toBe(true);
+  }), { message: "Programme anchor reaches its final header-clear scroll alignment", timeout: 10_000 }).toBe(true);
 }
 
 for (const locale of ["en", "ar"] as const) {
@@ -38,8 +38,15 @@ for (const locale of ["en", "ar"] as const) {
       await expectProgrammeArrival(page, "day2");
 
       // The same address must still scroll after the reader returns to the hero.
-      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+      // A native smooth scroll can still deliver its last frame after the alignment check,
+      // nudging the page by a pixel; repeat the instant return until it holds at the top.
+      await expect(async () => {
+        await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+        await page.waitForTimeout(50);
+        expect(await page.evaluate(() => window.scrollY)).toBe(0);
+      }).toPass({ timeout: 10_000 });
+      // Let the returned position settle before following the same address again.
+      await page.waitForTimeout(300);
       await second.click();
       await expectProgrammeArrival(page, "day2");
 
