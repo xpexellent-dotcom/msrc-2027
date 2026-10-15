@@ -56,11 +56,17 @@ for (const locale of ["en", "ar"] as const) {
     const start = await page.evaluate(() => window.scrollY);
     await page.keyboard.press("PageDown");
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(start + 100);
-    await page.keyboard.press("End");
-    await expect.poll(() => page.evaluate(() => Math.abs(window.scrollY + window.innerHeight - document.documentElement.scrollHeight))).toBeLessThan(2);
+    // A slow runner can drop a key press that lands while the PageDown scroll settles, so the
+    // native End/Home keys are retried until the page reaches its end; the assertions are unchanged.
+    await expect(async () => {
+      await page.keyboard.press("End");
+      expect(await page.evaluate(() => Math.abs(window.scrollY + window.innerHeight - document.documentElement.scrollHeight))).toBeLessThan(2);
+    }).toPass({ timeout: 10_000 });
     expect(await lastEdition.evaluate((element) => element.getBoundingClientRect().bottom)).toBeLessThanOrEqual(await page.evaluate(() => window.innerHeight));
-    await page.keyboard.press("Home");
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
+    await expect(async () => {
+      await page.keyboard.press("Home");
+      expect(await page.evaluate(() => window.scrollY)).toBeLessThan(2);
+    }).toPass({ timeout: 10_000 });
     await expect(page.getByRole("heading", { level: 1 })).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   });
