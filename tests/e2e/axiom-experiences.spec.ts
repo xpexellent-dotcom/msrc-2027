@@ -101,7 +101,7 @@ for (const locale of ["en", "ar"] as const) {
         await expect(main.locator(".team-leader")).toHaveCount(2);
         await expect(main.locator(".team-committee--scientific .team-row")).toHaveCount(9);
         await expect(main.locator(".team-committee--organization .team-row")).toHaveCount(10);
-        await expect(main.locator(".team-photo img")).toHaveCount(13);
+        await expect(main.locator(".team-photo img")).toHaveCount(18);
         for (const image of await main.locator(".team-photo img").all()) await expect(image).toHaveAttribute("alt", "");
         await expect(main.locator(".team-leader--scientific")).toContainText(locale === "ar" ? "عبدالرحمن إسماعيل مقبول" : "Abdulrahman Ismail Maqbool");
         await expect(main.locator(".team-leader--organization")).toContainText(locale === "ar" ? "فاطمة سالم الفرحة" : "Fatima Salem Alfrhah");
@@ -116,6 +116,11 @@ for (const locale of ["en", "ar"] as const) {
         // Program-style header with the founders panel; Design members listed under Hanadi Orayf.
         await expect(main.locator(".experience-intro--team .premium-hero-image img")).toHaveCount(1);
         await expect(main.locator(".team-founders")).toBeVisible();
+        // Leads with a photo come first; the rest follow (owner request).
+        for (const committee of ["scientific", "organization"]) {
+          const hasPhoto = await main.locator(`.team-committee--${committee} .team-row`).evaluateAll((rows) => rows.map((row) => !!row.querySelector(".team-row-lead > .team-person:first-child .team-photo img")));
+          expect(hasPhoto).toEqual([...hasPhoto].sort((a, b) => Number(b) - Number(a)));
+        }
         await expect(main.locator(".team-row", { hasText: locale === "ar" ? "هنادي" : "Hanadi Orayf" }).locator(".team-members li")).toHaveCount(3);
       } else {
         const tiers = page.getByTestId("sponsor-tiers");
