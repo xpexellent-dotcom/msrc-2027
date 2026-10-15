@@ -1,11 +1,15 @@
-"""Normalize MSRC team portraits: white background, same face size and position.
+"""MSRC team portraits v3 (needs rembg, opencv-python-headless<5, pillow, and the YuNet model
+face_detection_yunet_2023mar.onnx from github.com/opencv/opencv_zoo saved beside this script as yunet.onnx): pure white background, tight head-and-shoulders, same eye spacing.
 
-Usage: python normalize.py <src_dir> <out_dir> [slug=x,y,w,h ...]
-Face boxes come from OpenCV's Haar detector unless an override is given.
+Faces are normalised by the distance between the eyes (more reliable than the
+detector's face box, which grows with headwear), placed at the same height, and
+cropped tight enough that every photo fills the frame with no fade.
+
+Usage: python normalize3.py <src_dir> <out_dir> [slug=eyeLx,eyeLy,eyeRx,eyeRy ...]
 """
 import os, sys, json
 from pathlib import Path
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFilter
 import numpy as np
 import cv2
 from rembg import remove, new_session
@@ -18,54 +22,42 @@ SOURCES = {
     "noor-alquait": "noor.jpg", "ola-altaib": "ola.jpg", "omar-alsaggaf": "omar.jpg",
     "reem-albeladi": "reem.jpg", "sara-qadi": "sara.jpg", "sulaf-alghamdi": "sulaf.jpg",
 }
-# Pre-crops for sources that carry screenshot margins (x, y, w, h in source pixels).
 PRECROP = {"akram-awan": (142, 140, 604, 755)}
-OUT_W, OUT_H = 640, 800
-FACE_W = float(os.environ.get("FACE_W", "0.46"))    # face width as a share of output width
-FACE_CY = float(os.environ.get("FACE_CY", "0.41"))  # face centre as a share of output height
+OUT_W, OUT_H = 800, 1000
+EYE_GAP = float(os.environ.get("EYE_GAP", "0.21"))  # distance between eye centres / output width
+EYE_Y = float(os.environ.get("EYE_Y", "0.42"))      # eye line / output height
+MAX_EYE_Y = 0.47                                     # lowest the eye line may move to avoid a gap
 
 src, out = Path(sys.argv[1]), Path(sys.argv[2])
-overrides = {}
+manual = {}
 for arg in sys.argv[3:]:
-    slug, box = arg.split("=")
-    overrides[slug] = tuple(int(v) for v in box.split(","))
+    slug, pts = arg.split("=")
+    manual[slug] = tuple(float(v) for v in pts.split(","))
 out.mkdir(parents=True, exist_ok=True)
 session = new_session("isnet-general-use")
-cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 report = {}
 
 
-def continue_body(cut, needed_bottom):
-    """Extend the torso straight down from where the body ends, smoothed so it reads as clothing."""
-    arr = np.array(cut).astype(np.float32)
-    H, W = arr.shape[:2]
-    coverage = (arr[:, :, 3] > 128).sum(axis=1)
-    rows = np.where(coverage >= 0.12 * W)[0]
-    if len(rows) == 0:
-        return cut, 0
-    body_bottom = int(rows[-1]) - 2
-    extra = max(0, needed_bottom - body_bottom)
-    if extra <= 2:
-        return cut, 0
-    band = arr[max(0, body_bottom - 12):body_bottom]
-    a = band[:, :, 3] / 255.0
-    # Silhouette: solid between the outermost opaque pixels, so gaps in the cut-out do not become stripes.
-    opaque = np.where(a.max(axis=0) > 0.5)[0]
-    alpha = np.zeros(W, np.float32)
-    if len(opaque):
-        alpha[opaque[0]:opaque[-1] + 1] = 1.0
-    alpha = cv2.GaussianBlur(alpha.reshape(1, W), (15, 1), 0).reshape(W) * 255
-    # Colour by normalised convolution: average only real clothing pixels, then blur across gaps.
-    k = max(5, int(W * 0.08) | 1)
-    num = cv2.GaussianBlur((band[:, :, :3] * a[:, :, None]).sum(axis=0).reshape(1, W, 3), (k, 1), 0).reshape(W, 3)
-    den = cv2.GaussianBlur(a.sum(axis=0).reshape(1, W), (k, 1), 0).reshape(W)
-    colour = num / np.maximum(den[:, None], 1e-3)
-    row = np.concatenate([colour, alpha[:, None]], axis=1)
-    fill = np.repeat(row[None, :, :], extra, axis=0)
-    out_arr = np.zeros((max(H, body_bottom + extra), W, 4), np.float32)
-    out_arr[:body_bottom] = arr[:body_bottom]
-    out_arr[body_bottom:body_bottom + extra] = fill
-    return Image.fromarray(np.clip(out_arr, 0, 255).astype(np.uint8), "RGBA"), extra
+yunet = cv2.FaceDetectorYN.create(str(Path(__file__).with_name("yunet.onnx")), "", (320, 320), 0.6, 0.3, 5000)
+
+
+def find_eyes(rgb):
+    # YuNet is most accurate near its training scale, so detect on a ~900 px copy.
+    h0, w0 = rgb.shape[:2]
+    k = min(1.0, 900 / max(h0, w0))
+    small = cv2.resize(rgb, (int(w0 * k), int(h0 * k)), interpolation=cv2.INTER_AREA) if k < 1 else rgb
+    bgr = np.ascontiguousarray(small[:, :, ::-1])
+    h, w = bgr.shape[:2]
+    yunet.setInputSize((w, h))
+    _, faces = yunet.detect(bgr)
+    if faces is None:
+        return None
+    f = max(faces, key=lambda r: r[2] * r[3]).copy()
+    f[:14] /= k
+    # YuNet landmarks: right eye, left eye (subject), nose, mouth corners.
+    (ax, ay), (bx, by) = (f[4], f[5]), (f[6], f[7])
+    l, r = sorted([(ax, ay), (bx, by)])
+    return (l[0], l[1], r[0], r[1], float(f[2])), "yunet"
 
 
 for slug, name in SOURCES.items():
@@ -74,40 +66,42 @@ for slug, name in SOURCES.items():
         x0, y0, w0, h0 = PRECROP[slug]
         img = img.crop((x0, y0, x0 + w0, y0 + h0))
     W, H = img.size
-    if slug in overrides:
-        x, y, w, h = overrides[slug]
+    if slug in manual:
+        lx, ly, rx, ry = manual[slug]; how = "manual"; face_w = None
     else:
-        gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
-        faces = cascade.detectMultiScale(gray, scaleFactor=1.08, minNeighbors=6, minSize=(max(40, W // 12), max(40, W // 12)))
-        if len(faces) == 0:
-            report[slug] = "NO FACE"
-            continue
-        x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
+        found = find_eyes(np.array(img))
+        if not found:
+            report[slug] = "NO FACE"; continue
+        (lx, ly, rx, ry, face_w), how = found
     cut = remove(img, session=session)
-    scale = FACE_W * OUT_W / w
-    cx, cy = x + w / 2, y + h / 2
+    alpha = np.array(cut)[:, :, 3]
+    body_rows = np.where((alpha > 128).sum(axis=1) >= 0.12 * W)[0]
+    H = int(body_rows[-1]) if len(body_rows) else H
+    gap = float(np.hypot(rx - lx, ry - ly))
+    ex, ey = (lx + rx) / 2, (ly + ry) / 2
+    scale = EYE_GAP * OUT_W / gap
+    if face_w:
+        # A turned head shortens the eye gap; average with the face width (about 2.25 eye gaps).
+        scale = float(np.sqrt(scale * (EYE_GAP * 2.25 * OUT_W / face_w)))
+    eye_y = EYE_Y
+    # Keep the frame inside the photo: lower the eye line a little, then zoom in, if needed.
+    def bottom(s, ey_frac):
+        return ey + (1 - ey_frac) * OUT_H / s
+    while bottom(scale, eye_y) > H and eye_y < MAX_EYE_Y:
+        eye_y += 0.005
+    while bottom(scale, eye_y) > H:
+        scale *= 1.01
     crop_w, crop_h = OUT_W / scale, OUT_H / scale
-    left, top = cx - crop_w / 2, cy - FACE_CY * crop_h
-    extended = 0
-    # Place the cut-out (with transparency) in the frame, then fade the bottom of the body to white.
+    left, top = ex - crop_w / 2, ey - eye_y * crop_h
     frame = Image.new("RGBA", (int(round(crop_w)), int(round(crop_h))), (255, 255, 255, 0))
     frame.paste(cut, (int(round(-left)), int(round(-top))), cut)
     frame = frame.resize((OUT_W, OUT_H), Image.LANCZOS)
-    arr = np.array(frame).astype(np.float32)
-    coverage = (arr[:, :, 3] > 128).sum(axis=1)
-    rows = np.where(coverage >= 0.10 * OUT_W)[0]
-    body_end = int(rows[-1]) if len(rows) else OUT_H
-    fade_len = 110
-    start = max(0, body_end - fade_len)
-    ramp = np.ones(OUT_H, np.float32)
-    ramp[start:body_end + 1] = np.linspace(1, 0, body_end + 1 - start) ** 1.4
-    ramp[body_end + 1:] = 0
-    arr[:, :, 3] *= ramp[:, None]
-    a = arr[:, :, 3:4] / 255.0
-    rgb = arr[:, :, :3] * a + 255 * (1 - a)
-    final = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB")
-    final.save(out / f"{slug}-v2.jpg", "JPEG", quality=82, optimize=True, progressive=True)
-    report[slug] = {"face": [int(x), int(y), int(w), int(h)], "extended_out_px": int(extended * scale)}
+    white = Image.new("RGB", frame.size, (255, 255, 255))
+    white.paste(frame, mask=frame.split()[3])
+    white = white.filter(ImageFilter.UnsharpMask(radius=1.2, percent=60, threshold=2))
+    white.save(out / f"{slug}-v3.jpg", "JPEG", quality=86, optimize=True, progressive=True)
+    report[slug] = {"how": how, "eye_gap_src": round(gap), "zoom_vs_target": round(scale / (EYE_GAP * OUT_W / gap), 2), "face_ratio": round(face_w / gap, 2) if face_w else None, "eye_y": round(eye_y, 3), "src_px_per_out_px": round(1 / scale, 2)}
 
-json.dump(report, open(out / "report.json", "w"))
-print(json.dumps({k: (v if isinstance(v, str) else v["extended_out_px"]) for k, v in report.items()}))
+json.dump(report, open(out / "report.json", "w"), indent=1)
+for k, v in report.items():
+    print(k, v)
