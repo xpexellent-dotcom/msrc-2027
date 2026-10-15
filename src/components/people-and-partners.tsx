@@ -94,7 +94,8 @@ export function TeamExperience({ locale }: { locale: Locale }) {
             <h2 id={`team-${committee.id}-title`} className="team-section-title">{committee.title[locale]}</h2>
             <p>{formatIndex(committee.leads.length, locale)} {team.leadsLabel}</p>
           </div>
-          <ol className="team-rows">{[...committee.leads].sort((first, second) => first.name[locale].localeCompare(second.name[locale], locale)).map((person) => <li key={person.slug}><Reveal className={`team-row${person.noMembers ? " team-row--wide" : ""}`}>
+          {/* Leads with a photo first, then those still awaiting one; A–Z within each group (owner request). */}
+          <ol className="team-rows">{[...committee.leads].sort((first, second) => Number(!first.photo) - Number(!second.photo) || first.name[locale].localeCompare(second.name[locale], locale)).map((person) => <li key={person.slug}><Reveal className={`team-row${person.noMembers ? " team-row--wide" : ""}`}>
             <div className={`team-row-lead${person.coLeads?.length ? " team-row-lead--shared" : ""}`}>
               {[person, ...[...(person.coLeads ?? [])].sort((first, second) => first.name[locale].localeCompare(second.name[locale], locale))].map((member) => <div className="team-person" key={member.slug}>
                 <TeamPortrait person={member} size="lead" />
