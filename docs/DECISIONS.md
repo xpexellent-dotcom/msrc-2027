@@ -1,5 +1,19 @@
 # MSRC 2027 decision and configuration register
 
+## 15 October 2026 — Programme date card refinement
+
+Authority: current requester screenshot and explicit instruction to make the
+header box smaller, improve its gradient/transparency, and scroll to the correct
+section when clicked. Apply to the programme hero date card in both languages.
+Each day selects its existing programme filter and brings the stable programme
+catalogue into view with keyboard focus and fixed-header clearance. Native and
+reduced-motion navigation remain supported. Confirmed dates, venue, programme
+publication state and calendar content are unchanged.
+
+This authorizes the scoped reversible implementation; production merge/deployment
+remains separate. Requirements: PRG-01, DSN-01/02, ACC-01, LOC-01/03.
+Audit and verification: [programme header card](features/program-header-card.md).
+
 ## ENG-041 — Compact mobile menu and immediate registration access, 13 October 2026
 
 Authority: the organizer's current phone screenshot and explicit refinement

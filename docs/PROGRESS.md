@@ -1,5 +1,37 @@
 # Progress and session handover
 
+## 15 October 2026 — Compact programme header card and day navigation
+
+- Implemented the requester's screenshot refinement on current `origin/main`
+  `4b25c12` in the attached `program-hero-card` worktree. Preserved the older,
+  dirty handoff checkout and its existing documentation/preview work.
+- Reduced the programme date card from a 400px desktop maximum to 336px, with
+  smaller type/spacing and a translucent purple gradient. At 390px the English
+  card measures 336 × 263px, previously 350 × 306px. Date links/calendar retain
+  at least 44px targets; EN/AR dates, venue and calendar content are preserved.
+- Day links now select the requested filter and scroll/focus `#programme`
+  below the measured fixed header. Repeated clicks, keyboard activation, direct
+  links and language switching retain the selected day. The stable destination
+  exists while the programme remains unannounced.
+- PASS: focused ESLint, TypeScript/81-page production build, 20 Chromium
+  desktop/tablet/mobile cases and four WebKit phone cases, without retries.
+  Ten EN/AR layout states cover 1440/791/390/320px plus 280px at 200% text:
+  no horizontal overflow, page/console errors, undersized targets or axe
+  violations. Gradient contrast needs manual review in axe; rendered-background
+  sampling across EN/AR desktop/phone default/hover/focus states gives at least
+  4.50:1 for lilac and 6.15:1 for ivory. Final screenshots were inspected.
+- Preserved the initial 13-pass/one-failure browser receipt. Its test interrupted
+  smooth scrolling before final alignment; the assertion now observes the actual
+  computed destination position. An overlapping-build diagnostic with aborted
+  CSS requests is retained separately and is not counted as product evidence.
+- NOT TESTED: physical phones, real assistive technology, hosted CI/deployment,
+  database and full regression suite. Local implementation/preview only.
+  Details, commands and limitations: [feature note](features/program-header-card.md).
+- Next: review the local preview, then release through the normal owner process.
+- PR preparation: the requester subsequently authorized commit/push and a PR.
+  Refreshed `origin/main` to `ba2ff5f`; its intervening homepage/team changes do
+  not touch this slice. Integrated that base before publishing the feature branch.
+
 ## 13 October 2026 — Public-site QA sweep (production `df758b7`)
 
 - Scope: current production deployment `dpl_7d339LFNGgSoFagz62UPdmqnrYS9`

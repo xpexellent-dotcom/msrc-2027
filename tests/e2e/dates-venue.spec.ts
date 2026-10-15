@@ -42,16 +42,16 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#journey-airport .venue-journey-reading")).toHaveCSS("opacity", "1");
     await page.goto(`/${locale}/program`);
     for (const day of ["day1", "day2"] as const) {
-      const dateLink = page.locator(`.program-date-panel a[href="/${locale}/program?day=${day}"]`);
+      const dateLink = page.locator(`.program-date-panel a[href="/${locale}/program?day=${day}#programme"]`);
       await expect(dateLink).toHaveCount(1);
       await expect(dateLink.locator("time")).toHaveAttribute("datetime", day === "day1" ? "2027-01-27" : "2027-01-28");
     }
-    await page.locator(`.program-date-panel a[href="/${locale}/program?day=day2"]`).click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day2$`));
+    await page.locator(`.program-date-panel a[href="/${locale}/program?day=day2#programme"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day2#programme$`));
     await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
-    await page.locator(`.program-date-panel a[href="/${locale}/program?day=day1"]`).focus();
+    await page.locator(`.program-date-panel a[href="/${locale}/program?day=day1#programme"]`).focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day1$`));
+    await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day1#programme$`));
     await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".premium-hero-image img")).toHaveCount(1);
     expect(await page.locator(".premium-hero-image img").evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0s");
