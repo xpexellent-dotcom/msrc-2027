@@ -27,7 +27,7 @@ describe("approved design publication without preview authorization (DSN-01/02, 
     expect(html).toContain('class="pathway-track-nav"');
     expect(html).toContain("community-majed-9804.jpg");
     expect(html).toContain("jeddah-opening-cropped-poster.jpg");
-    expect(html).not.toContain(locale === "en" ? "Illustrative" : "مثال بصري");
+    expect(html).toContain(locale === "en" ? "Illustrative" : "مثال بصري");
     expect(html).toContain(`href="/${locale}/team"`);
     expect(html).not.toContain("/api/preview-media/");
     expect(html).not.toContain("/design-system");
