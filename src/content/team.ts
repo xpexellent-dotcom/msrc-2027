@@ -27,7 +27,8 @@ export const teamFounders: TeamFounder[] = [];
 
 export type TeamCommittee = { id: "scientific" | "organization"; title: Record<Locale, string>; lead: TeamPerson; leads: TeamPerson[] };
 
-const photo = (slug: string) => `/media/team/${slug}-v1.jpg`;
+// -v2: owner request (16 October 2026) for uniform face size and pure white backgrounds.
+const photo = (slug: string) => `/media/team/${slug}-v2.jpg`;
 
 export const teamCommittees: TeamCommittee[] = [
   {
