@@ -115,7 +115,7 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
 
   return <>
     <ExperienceIntro locale={locale} page="program" announcement={confirmed.length === 0 ? copy.programPending : undefined} />
-    <section className="experience-catalogue" aria-label={copy.pages.program.label}>
+    <section id="programme" tabIndex={-1} className="experience-catalogue" aria-label={copy.pages.program.label}>
       <Container>
         <div className="programme-toolbar"><div className="programme-days" role="group" aria-label={copy.conferenceDays}>
           {(["all", "day1", "day2"] as const).map((value) => <button type="button" data-testid={`program-day-${value}`} key={value} aria-pressed={day === value} disabled={!hydrated} onClick={() => change({ day: value })}>{value === "all" ? copy.allDays : copy[value]}</button>)}
