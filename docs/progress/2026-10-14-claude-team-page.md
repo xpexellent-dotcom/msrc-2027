@@ -10,3 +10,4 @@
 - 15 October 2026 owner pass: leads sorted alphabetically per language (co-leads too); pointer glow removed (drifting colour remains); Academic Sessions row shows Laura Hamadi as Lead with co-leads Lama Mastour Alsulami and Mohammed Almohmadi and no members box; the removal note under the roster is removed at the owner's request.
 - 16 October 2026: five new portraits (Aishah Baothman, Amal Sayqal, Areen Youssef, Noor Faisal Alquait, Reem Albeladi). Rows now list leads with a photo first, then those without, A–Z within each group (owner request); conference leaders are unaffected.
 - 16 October 2026: all portraits regenerated as -v2 with uniform face size and position and pure white backgrounds (background removal plus face detection; script in scripts/media/).
+- 16 October 2026 (v3): portraits regenerated with eye-spacing normalisation (YuNet), tighter crop, no fade, light sharpening; Akram Awan now matches the others.
