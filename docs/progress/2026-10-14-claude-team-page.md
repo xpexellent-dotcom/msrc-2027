@@ -11,3 +11,4 @@
 - 16 October 2026: five new portraits (Aishah Baothman, Amal Sayqal, Areen Youssef, Noor Faisal Alquait, Reem Albeladi). Rows now list leads with a photo first, then those without, A–Z within each group (owner request); conference leaders are unaffected.
 - 16 October 2026: all portraits regenerated as -v2 with uniform face size and position and pure white backgrounds (background removal plus face detection; script in scripts/media/).
 - 16 October 2026 (v3): portraits regenerated with eye-spacing normalisation (YuNet), tighter crop, no fade, light sharpening; Akram Awan now matches the others.
+- 16 October 2026 (v4): background removal now skipped for originals already on white (fixes Akram Awan's shemagh); only three coloured backgrounds are processed.
