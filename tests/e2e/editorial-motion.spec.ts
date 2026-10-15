@@ -97,7 +97,7 @@ for (const locale of ["en", "ar"] as const) {
       const cards = page.locator(".benefit-card");
       await expect(cards).toHaveCount(6);
       for (const card of await cards.all()) {
-        const icon = (await card.locator(":scope > :is(.benefit-artwork, .benefit-cme)").boundingBox())!;
+        const icon = (await card.locator(":scope > .benefit-artwork").boundingBox())!;
         const title = (await card.locator("h3").boundingBox())!;
         const body = (await card.locator("p").boundingBox())!;
         expect(Math.abs(icon.y + icon.height / 2 - title.y - title.height / 2)).toBeLessThan(2);
@@ -191,10 +191,12 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("main #about, main #partners, main .brand-marquee, main .sponsor-tiers")).toHaveCount(0);
     await expect(page.locator(`a[href='/${locale}/about']`)).toHaveCount(0);
     await expect(page.locator(".program-experiences > article")).toHaveCount(6);
-    await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "بعد تأكيدها" : "when confirmed");
-    await expect(page.locator(".benefit-cme")).toHaveAttribute("aria-label", locale === "ar" ? /مثال بصري فقط، العدد غير مؤكد/ : /illustrative only, hours unconfirmed/);
-    await expect(page.locator(".benefit-cme-note")).toHaveText(locale === "ar" ? "مثال بصري" : "Illustrative");
-    await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "في اليومين" : "on both days");
+    // Owner decision (15 October 2026): the benefits describe joining the organizing team; no CME figure is shown.
+    await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "شهادة من العميد" : "A Dean’s certificate");
+    await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "مقاعد ورش العمل" : "workshop seats");
+    await expect(page.locator(".benefit-cme")).toHaveCount(0);
+    await expect(page.locator(".program-experiences .benefit-artwork")).toHaveCount(6);
+    await expect(page.locator("a.editorial-action", { hasText: locale === "ar" ? "تعرّف على الفريق" : "Meet the team" })).toHaveAttribute("href", `/${locale}/team`);
     await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(4);
     await expect(page.locator("#speakers .portrait-placeholder")).toHaveCount(4);
     await expect(page.locator("#speakers img, .demo-chip, .portrait-provenance, .pathways-archive-note")).toHaveCount(0);
