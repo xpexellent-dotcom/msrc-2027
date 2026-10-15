@@ -1,18 +1,21 @@
+import type { BenefitIcon } from "@/components/benefit-artwork";
 import type { Locale } from "@/lib/i18n";
 
-/** Public benefit language, not a session roster or an accreditation approval. */
+/** Public benefit language, not a session roster or an accreditation approval. The benefits
+ * describe joining the MSRC organizing team (owner decision, 15 October 2026): priority access
+ * means early registration and first pick of workshop seats. */
 export const conferenceExpectations = {
   en: {
     title: "Come with curiosity.\nLeave with possibility.",
-    introduction: "Two days to share what you know, explore what comes next, and find the people who will help you get there.",
-    link: "Explore the Program",
+    introduction: "Join the team behind MSRC 2027 and leave with experience, recognition and connections that last.",
+    link: "Meet the team",
     benefits: [
-      { title: "Research, in the room.", body: "Present your work, hear new perspectives and take part in the conversations that move an idea forward." },
-      { title: "Experience you can build on.", body: "Develop practical research and communication skills through workshops, discussions and hands-on learning." },
-      { title: "A community to grow with.", body: "Meet students, researchers and clinicians. Exchange ideas across disciplines and start your next conversation." },
-      { title: "Learning that goes further.", body: "Explore the scientific program. CME accreditation and the number of hours will be announced when confirmed." },
-      { title: "Recognition for your commitment.", body: "Earn the full conference certificate by checking in on both days and completing the general survey. Workshops have their own completion requirements." },
-      { title: "A platform for achievement.", body: "Share your research and take part in the conference competitions. Award categories and details will be announced." },
+      { icon: "practice", title: "Hands-on organizing experience.", body: "Help run a two-day medical conference, from first plans to final session." },
+      { icon: "certificate", title: "A Dean’s certificate.", body: "Your contribution, formally recognized by the Dean." },
+      { icon: "community", title: "Teamwork that lasts.", body: "Plan, coordinate and deliver with a driven team of peers." },
+      { icon: "network", title: "Network with experts.", body: "Work side by side with researchers, clinicians and speakers." },
+      { icon: "priority", title: "Priority access.", body: "Register early and get first pick of workshop seats." },
+      { icon: "research", title: "Research, in the room.", body: "Share your work and join the conversations that move ideas forward." },
     ],
     venueTitle: "A place for\nnew perspectives.",
     venueName: "King Faisal Conference Center",
@@ -24,15 +27,15 @@ export const conferenceExpectations = {
   },
   ar: {
     title: "ابدأ بفضولك.\nواكتشف إمكاناتك.",
-    introduction: "يومان لتشارك معرفتك، وتستكشف آفاقًا جديدة، وتلتقي بمن يشاركك رحلة البحث والاكتشاف.",
-    link: "استكشف البرنامج",
+    introduction: "انضم إلى الفريق الذي يصنع MSRC 2027، واخرج بخبرة وتقدير وعلاقات تدوم.",
+    link: "تعرّف على الفريق",
     benefits: [
-      { title: "بحثك في قلب الحوار.", body: "قدّم عملك، واستمع إلى وجهات نظر جديدة، وشارك في حوارات تساعد فكرتك على التطور." },
-      { title: "خبرة تبني عليها.", body: "طوّر مهارات البحث والتواصل من خلال ورش العمل والنقاش والتعلّم العملي." },
-      { title: "مجتمع تنمو معه.", body: "التقِ بالطلاب والباحثين والأطباء، وتبادل الأفكار بين التخصصات، وابدأ حوارك القادم." },
-      { title: "تعلّم يفتح آفاقًا.", body: "استكشف البرنامج العلمي. سيُعلن اعتماد ساعات التعليم الطبي المستمر وعددها بعد تأكيدها." },
-      { title: "تقدير لالتزامك.", body: "استحق شهادة المؤتمر الكاملة بتسجيل الحضور في اليومين وإكمال الاستبيان العام. ولورش العمل متطلبات إتمام مستقلة." },
-      { title: "مساحة للإنجاز.", body: "شارك بأبحاثك وانضم إلى منافسات المؤتمر. ستُعلن فئات الجوائز وتفاصيلها لاحقًا." },
+      { icon: "practice", title: "خبرة تنظيمية عملية.", body: "شارك في تنظيم مؤتمر طبي على مدى يومين، من التخطيط حتى الجلسة الأخيرة." },
+      { icon: "certificate", title: "شهادة من العميد.", body: "تقدير رسمي لإسهامك من عميد الكلية." },
+      { icon: "community", title: "مهارات عمل جماعي.", body: "خطّط ونسّق ونفّذ مع فريق طموح من زملائك." },
+      { icon: "network", title: "تواصل مع الخبراء.", body: "اعمل جنبًا إلى جنب مع باحثين وأطباء ومتحدثين." },
+      { icon: "priority", title: "أولوية الوصول.", body: "سجّل مبكرًا واحصل على أولوية اختيار مقاعد ورش العمل." },
+      { icon: "research", title: "بحثك في قلب الحوار.", body: "قدّم عملك وشارك في حوارات تدفع الأفكار إلى الأمام." },
     ],
     venueTitle: "مكان يجمع\nوجهات نظر جديدة.",
     venueName: "مركز الملك فيصل للمؤتمرات",
@@ -42,7 +45,7 @@ export const conferenceExpectations = {
     historyBody: "من الحوارات الأولى إلى آفاق جديدة تجمعنا. تضيف كل نسخة فصلًا جديدًا إلى رحلة المؤتمر.",
     attendance: "إجمالي الزوار", lastEdition: "زائرًا", research: "ملخصًا بحثيًا مقدمًا", editions: "٢٠٢٣–٢٠٢٦", historyEdition: "MSRC ٢٠٢٦", legacyLink: "استكشف النسخ السابقة",
   },
-} satisfies Record<Locale, { title: string; introduction: string; link: string; benefits: { title: string; body: string }[]; venueTitle: string; venueName: string; venueBody: string; venueLink: string; venueLocation: string; venueAlt: string; historyTitle: string; historyBody: string; attendance: string; lastEdition: string; research: string; editions: string; historyEdition: string; legacyLink: string }>;
+} satisfies Record<Locale, { title: string; introduction: string; link: string; benefits: { icon: BenefitIcon; title: string; body: string }[]; venueTitle: string; venueName: string; venueBody: string; venueLink: string; venueLocation: string; venueAlt: string; historyTitle: string; historyBody: string; attendance: string; lastEdition: string; research: string; editions: string; historyEdition: string; legacyLink: string }>;
 
 // Supplied MSRC27 draft PDF pp.5/7/9/11; summed attendances, not unique people.
 export const editionHistory = [
