@@ -1,5 +1,5 @@
 /* Compact programme dates on a translucent purple surface; ENG-029 venue frame. */
-.experience-intro--program .program-date-panel {
+:is(.experience-intro--program, .experience-intro--team) .program-date-panel {
   --focus-ring: var(--color-ivory);
   inline-size: 100%;
   max-inline-size: 21rem;
@@ -26,7 +26,7 @@
 [lang="ar"] .program-date-panel .dates-day-list time { line-height: 1.6; letter-spacing: 0; }
 
 @media (max-width: 1000px) {
-  .experience-intro--program .program-date-panel, .venue-room-frame { margin-inline-start: 0; }
+  :is(.experience-intro--program, .experience-intro--team) .program-date-panel, .venue-room-frame { margin-inline-start: 0; }
   .venue-room-frame { max-inline-size: 40rem; }
 }
 @media (max-width: 650px) {
@@ -36,13 +36,13 @@
   .program-date-panel .conference-day-link:hover { background: rgb(220 207 240 / 10%); }
 }
 @media (forced-colors: active) {
-  .experience-intro--program .program-date-panel { background: Canvas; color: CanvasText; border-color: CanvasText; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  :is(.experience-intro--program, .experience-intro--team) .program-date-panel { background: Canvas; color: CanvasText; border-color: CanvasText; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .program-date-panel :is(.conference-day-link, .conference-day-label, .dates-day-list time, .program-date-location, .program-calendar-link) { color: CanvasText; }
   .program-date-panel .conference-day-link:is(:hover, :focus-visible) { background: Canvas; }
   .venue-room-frame::after { display: none; }
 }
 @media print {
-  .experience-intro--program .program-date-panel { background: #fff; color: #000; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  :is(.experience-intro--program, .experience-intro--team) .program-date-panel { background: #fff; color: #000; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .program-date-panel :is(.conference-day-link, .conference-day-label, .dates-day-list time, .program-date-location, .program-calendar-link) { color: #000; }
   .venue-room-frame { break-inside: avoid; }
   .venue-room-frame::after { display: none; }
