@@ -1,5 +1,5 @@
-"""MSRC team portraits v3 (needs rembg, opencv-python-headless<5, pillow, and the YuNet model
-face_detection_yunet_2023mar.onnx from github.com/opencv/opencv_zoo saved beside this script as yunet.onnx): pure white background, tight head-and-shoulders, same eye spacing.
+"""MSRC team portraits (v4) (needs rembg, opencv-python-headless<5, pillow, and the YuNet model
+face_detection_yunet_2023mar.onnx from github.com/opencv/opencv_zoo saved beside this script as yunet.onnx): white background (removal only when the original is not already white), tight head-and-shoulders, same eye spacing.
 
 Faces are normalised by the distance between the eyes (more reliable than the
 detector's face box, which grows with headwear), placed at the same height, and
@@ -73,8 +73,18 @@ for slug, name in SOURCES.items():
         if not found:
             report[slug] = "NO FACE"; continue
         (lx, ly, rx, ry, face_w), how = found
-    cut = remove(img, session=session)
-    alpha = np.array(cut)[:, :, 3]
+    rgb = np.array(img)
+    t = max(4, int(min(W, H) * 0.03))
+    border = np.concatenate([rgb[:t].reshape(-1, 3), rgb[:H // 2, :t].reshape(-1, 3), rgb[:H // 2, -t:].reshape(-1, 3)])
+    already_white = np.percentile(border.min(axis=1), 10) >= 240
+    if already_white:
+        # The photo already sits on white: never run background removal, which can erase
+        # white clothing such as a shemagh or thobe. The photo is only scaled and cropped.
+        cut = img.convert("RGBA")
+        alpha = (rgb.min(axis=2) < 235).astype(np.uint8) * 255
+    else:
+        cut = remove(img, session=session)
+        alpha = np.array(cut)[:, :, 3]
     body_rows = np.where((alpha > 128).sum(axis=1) >= 0.12 * W)[0]
     H = int(body_rows[-1]) if len(body_rows) else H
     gap = float(np.hypot(rx - lx, ry - ly))
@@ -99,8 +109,8 @@ for slug, name in SOURCES.items():
     white = Image.new("RGB", frame.size, (255, 255, 255))
     white.paste(frame, mask=frame.split()[3])
     white = white.filter(ImageFilter.UnsharpMask(radius=1.2, percent=60, threshold=2))
-    white.save(out / f"{slug}-v3.jpg", "JPEG", quality=86, optimize=True, progressive=True)
-    report[slug] = {"how": how, "eye_gap_src": round(gap), "zoom_vs_target": round(scale / (EYE_GAP * OUT_W / gap), 2), "face_ratio": round(face_w / gap, 2) if face_w else None, "eye_y": round(eye_y, 3), "src_px_per_out_px": round(1 / scale, 2)}
+    white.save(out / f"{slug}-v4.jpg", "JPEG", quality=86, optimize=True, progressive=True)
+    report[slug] = {"bg": "kept" if already_white else "removed", "how": how, "eye_gap_src": round(gap), "zoom_vs_target": round(scale / (EYE_GAP * OUT_W / gap), 2), "face_ratio": round(face_w / gap, 2) if face_w else None, "eye_y": round(eye_y, 3), "src_px_per_out_px": round(1 / scale, 2)}
 
 json.dump(report, open(out / "report.json", "w"), indent=1)
 for k, v in report.items():
