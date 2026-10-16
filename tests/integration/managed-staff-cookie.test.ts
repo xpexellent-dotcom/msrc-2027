@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, randomUUID } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { createServer, request as httpRequest, type Server } from "node:http";
@@ -498,17 +498,32 @@ describe.skipIf(!ci)("ORG-015 managed staff HTTP cookies in disposable CI", () =
     // neither native policy nor the code generator is reconfigured.
     const ipHash = createHmac("sha256", Buffer.from(secret, "hex")).update("ip:127.0.0.1").digest("hex");
     const anotherIpHash = "b".repeat(64);
-    const insert = (id: string, ip: string, index: number) => `insert into msrc_staff_email.challenges(id,actor_id,session_id,code_hash,ip_hash,
-      binding,created_at,expires_at,state) values('${randomUUID()}','${id}','${sid(native(id))}','${"a".repeat(64)}','${ip}',
-      '${"c".repeat(64)}',clock_timestamp()-interval '${index + 20} minutes',clock_timestamp()-interval '${index + 15} minutes','failed');`;
-    await query(Array.from({ length: 10 }, (_, index) => insert(dailyId, anotherIpHash, index)).join("\n"));
+    const seed = (id: string, ip: string, count: number) => `insert into msrc_staff_email.challenges(id,actor_id,session_id,code_hash,ip_hash,
+      binding,created_at,expires_at,state) select gen_random_uuid(),'${id}','${sid(native(id))}','${"a".repeat(64)}','${ip}',
+      '${"c".repeat(64)}',clock_timestamp()-interval '20 minutes',clock_timestamp()-interval '15 minutes','failed'
+      from generate_series(1,${count});`;
+    const recentIpCount = () => query(`select count(*) from msrc_staff_email.challenges
+      where ip_hash='${ipHash}' and created_at>clock_timestamp()-interval '1 hour';`);
+    await query(seed(dailyId, anotherIpHash, 10));
+    const existing = Number(await recentIpCount());
+    check(Number.isSafeInteger(existing) && existing < 299, "account limit is exercised below the shared-IP ceiling");
     check((await request("issue", daily)).body.code === "RETRY_LIMITED", "ten reservations per account/rolling day cannot be bypassed");
     const ipId = actors[13];
     const ip = await login(ipId);
-    await login(actors[16]); await login(actors[17]);
-    await query([actors[16], actors[17]].flatMap((id) => Array.from({ length: 10 }, (_, index) => insert(id, ipHash, index))).join("\n"));
-    check((await request("issue", ip)).body.code === "RETRY_LIMITED", "trusted socket IP issuance cap denied");
-    check(!inbox.has(email(dailyId)) && !inbox.has(email(ipId)), "quota denial causes no delivery");
+    await login(actors[16]);
+    const blockedId = actors[17];
+    const blocked = await login(blockedId);
+    // Include earlier HTTP issues on this socket; keep all seeded rows inside
+    // the hour without making hundreds of native login/delivery requests.
+    await query(seed(actors[16], ipHash, 299 - existing));
+    check(await recentIpCount() === "299", "exactly 299 trusted-socket issues precede the boundary request");
+    await issue(ip, ipId);
+    check(await recentIpCount() === "300", "300th HTTP issue is admitted and stored under the trusted socket IP");
+    // A fresh account has no resend/daily limit, so only the shared IP can deny it.
+    const denied = await request("issue", blocked);
+    check(denied.status === 403 && denied.body.code === "RETRY_LIMITED", "301st trusted socket IP issuance is denied");
+    check(await recentIpCount() === "300", "denied issue creates no additional reservation");
+    check(!inbox.has(email(dailyId)) && !inbox.has(email(blockedId)), "quota denial causes no delivery");
     const storage = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/authenticated/synthetic-closed/no-object`, {
       headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, Authorization: `Bearer ${activeNative.access_token}` },
       signal: AbortSignal.timeout(5000),

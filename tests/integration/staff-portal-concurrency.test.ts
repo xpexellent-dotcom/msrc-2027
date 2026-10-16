@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
@@ -79,16 +80,27 @@ describe.skipIf(!isolatedCi)("Staff portal authority concurrency (disposable Git
   });
 
   it("enforces the shared-IP form and password ceiling under concurrent requests", async () => {
-    await query(`insert into msrc_staff.limit_events(kind,subject_hash,nonce_hash)
-      select 'form',repeat('3',64),lpad(to_hex(n),64,'b') from generate_series(1,11999) n;
-      insert into msrc_staff.login_attempts(id,email_hash,ip_hash,state)
-      select gen_random_uuid(),repeat('4',64),repeat('5',64),'admitted' from generate_series(1,299);`);
-    const forms = await Promise.all(["6", "7"].map((nonce) => query(`
-      select public.msrc_staff_form_claim(repeat('${nonce}',64),repeat('3',64))->>'state';`)));
-    expect(forms.map((value) => value.trim()).sort()).toEqual(["claimed", "denied"]);
-    const logins = await Promise.all(["8", "9"].map((email) => query(`
-      select public.msrc_staff_login_begin(gen_random_uuid(),repeat('${email}',64),repeat('5',64))->>'state';`)));
-    expect(logins.map((value) => value.trim()).sort()).toEqual(["denied", "reserved"]);
+    const formIp = randomBytes(32).toString("hex");
+    const loginIp = randomBytes(32).toString("hex");
+    const noncePrefix = randomBytes(16).toString("hex");
+    try {
+      // Zero padding preserves distinct hex integers (padding with 'b' made
+      // 1 and b1 collide). A random prefix also isolates the global nonce index.
+      await query(`insert into msrc_staff.limit_events(kind,subject_hash,nonce_hash)
+        select 'form','${formIp}','${noncePrefix}'||lpad(to_hex(n),32,'0') from generate_series(1,11999) n;
+        insert into msrc_staff.login_attempts(id,email_hash,ip_hash,state)
+        select gen_random_uuid(),'${randomBytes(32).toString("hex")}','${loginIp}','admitted' from generate_series(1,299);`);
+      const forms = await Promise.allSettled([12000, 12001].map((n) => query(`
+        select public.msrc_staff_form_claim('${noncePrefix}${n.toString(16).padStart(32, "0")}','${formIp}')->>'state';`)));
+      expect(forms.map((result) => result.status === "fulfilled" ? result.value.trim() : "query_failed").sort()).toEqual(["claimed", "denied"]);
+      const logins = await Promise.allSettled(Array.from({ length: 2 }, () => query(`
+        select public.msrc_staff_login_begin(gen_random_uuid(),'${randomBytes(32).toString("hex")}','${loginIp}')->>'state';`)));
+      expect(logins.map((result) => result.status === "fulfilled" ? result.value.trim() : "query_failed").sort()).toEqual(["denied", "reserved"]);
+    } finally {
+      // Wait for both requests above before removing only this test's counters.
+      await query(`delete from msrc_staff.limit_events where kind='form' and subject_hash='${formIp}';
+        delete from msrc_staff.login_attempts where ip_hash='${loginIp}';`);
+    }
   });
 
   it("serializes two concurrent demotions at three Super Admins and audits the denial", async () => {
