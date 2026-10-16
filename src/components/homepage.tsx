@@ -103,11 +103,11 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
       <Container>
         <Reveal className="program-opening" stagger>
           <SectionHeading chapter title={expectations.title} accents={locale === "ar" ? ["بفضولك.", "إمكاناتك."] : ["curiosity.", "possibility."]} id="program-title" />
-          <div><p>{expectations.introduction}</p><Link className="editorial-action" href={`/${locale}/team`}>{expectations.link}<Arrow /></Link></div>
+          <div><p>{expectations.introduction}</p><Link className="editorial-action" href={`/${locale}/participate`}>{expectations.link}<Arrow /></Link></div>
         </Reveal>
         <div className="expectations-layout">
           <ResearchArtwork />
-          <div className="program-experiences">{expectations.benefitGroups.flatMap((group) => [<p className="benefit-group-label" key={group.label}>{group.label}</p>, ...group.benefits.map((benefit) => <article className="benefit-card" key={benefit.title}><BenefitArtwork icon={benefit.icon} locale={locale} /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.body}</p></div></article>)])}</div>
+          <div className="program-experiences">{expectations.benefits.map((benefit) => <article className="benefit-card" key={benefit.title}><BenefitArtwork icon={benefit.icon} locale={locale} /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.body}</p></div></article>)}</div>
         </div>
       </Container>
     </section>

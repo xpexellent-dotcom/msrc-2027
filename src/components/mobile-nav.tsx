@@ -3,6 +3,7 @@
 import { Link } from "@/components/ui/link";
 import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
+import type { CSSProperties } from "react";
 import type { Locale } from "@/lib/i18n";
 
 export type NavigationLink = { href: string; label: string; children?: readonly { href: string; label: string }[] };
@@ -17,11 +18,12 @@ export function MobileNav({ id, label, links, pathname, locale, status, action, 
     inert={closing} aria-hidden={closing || undefined} onTransitionEnd={(event) => {
       if (closing && event.target === event.currentTarget && event.propertyName === "opacity") onExited();
     }}><Container>
-    <div className="mobile-menu-registration">
+    <div className="mobile-menu-registration" style={{ "--menu-index": 0 } as CSSProperties}>
       <ButtonLink className="mobile-reserve-action" href={`/${locale}/registration`} variant="gold" onClick={onNavigate}>{action}</ButtonLink>
       <p className="mobile-menu-status">{status}</p>
     </div>
-    <nav aria-label={label}>{links.map((link) => <div className="mobile-nav-group" key={link.href}><Link href={link.href}
+    <nav aria-label={label}>{links.map((link, index) => <div className="mobile-nav-group" key={link.href}
+      style={{ "--menu-index": index + 1 } as CSSProperties}><Link href={link.href}
       aria-current={pathname === link.href ? "page" : undefined} onClick={() => {
         onNavigate();
         if (pathname === link.href) document.getElementById("main-content")?.focus();
