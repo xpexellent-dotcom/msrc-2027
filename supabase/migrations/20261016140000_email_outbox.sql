@@ -131,7 +131,7 @@ $$;
 create function public.msrc_outbox_claim(p_worker_id uuid,p_batch_size integer,p_daily_cap integer) returns jsonb
  language plpgsql security definer set search_path='' set lock_timeout='2s' as $$
 declare s msrc_outbox.settings%rowtype;m msrc_outbox.messages%rowtype;v_now timestamptz:=clock_timestamp();
- v_day date:=(clock_timestamp() at time zone 'UTC')::date;v_count integer;v_limit integer;v_claimed integer:=0;v_result jsonb:='[]';
+ v_day date:=(clock_timestamp() at time zone 'UTC')::date;v_count integer;v_limit integer;v_claimed integer:=0;v_result jsonb:='[]'::jsonb;
 begin
  if p_worker_id is null or p_batch_size is null or p_batch_size not between 1 and 10
   or p_daily_cap is null or p_daily_cap not between 0 and 100000 then
