@@ -655,6 +655,27 @@ owners invoke a guarded SECURITY DEFINER entry point requiring current native
 session, owner/role checks and fresh password/authenticator evidence.
 Do not relax grants/RLS or remove checks to silence these expected findings.
 
+The staff-hardening review on 16 October records these known baseline exceptions
+explicitly. Counts above remain historical; this task has made no hosted advisor
+query or configuration change. Recheck each actual object, owner, definition and
+ACL on the reviewed migration chain before inviting staff. A new finding or an
+unexpected grant is not covered merely because its lint code appears below.
+
+| Finding | Treatment and one-line reason |
+| --- | --- |
+| INFO `0008` — RLS enabled, no policy | Intentional for private forced-RLS tables: clients have no table grants and direct API access must deny; guarded functions mediate necessary access. |
+| WARN `0029` — authenticated SECURITY DEFINER execution | Intentional only for individually reviewed RPCs: an empty search path, explicit execute grants, current native session/assurance, role/ownership checks and bounded projections permit access without opening private tables. |
+| WARN — leaked-password protection disabled | Known temporary release gap pending the separately authorized provider upgrade/configuration; no setting is changed here and activation must satisfy the existing password-protection gate. |
+
+In particular, `msrc_staff_password_change_begin` retains its current owner,
+fresh-password/TOTP and exact-session requirements. The exception never covers
+anonymous SECURITY DEFINER execution, mutable search paths, user-metadata
+authorization, a new client grant or a missing server/database permission check.
+Do not suppress warnings globally. Preserve the object-specific advisor receipt
+and review rationale with each hosted change. Official checks:
+[0008](https://github.com/supabase/splinter/blob/main/docs/0008_rls_enabled_no_policy.md)
+and [0029](https://github.com/supabase/splinter/blob/main/docs/0029_authenticated_security_definer_function_executable.md).
+
 Hosted probes, either hosted migration application, external export/encryption,
 restore replay, provider upgrades/settings, real inbox delivery, Production env
 changes, human UAT and public activation are **NOT TESTED/NOT PERFORMED by this

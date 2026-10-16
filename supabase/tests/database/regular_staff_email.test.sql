@@ -251,7 +251,7 @@ update msrc_staff_email.challenges set created_at=now()-interval '25 hours',expi
 insert into msrc_staff_email.challenges(id,actor_id,session_id,binding,code_hash,ip_hash,created_at,expires_at,state)
   select gen_random_uuid(),'81000000-0000-4000-8000-000000000001','82000000-0000-4000-8000-000000000001',
     repeat('d',64),repeat('a',64),repeat('9',64),now()-interval '2 minutes',now()+interval '3 minutes','failed'
-  from generate_series(1,20);
+  from generate_series(1,300);
 set local role service_role;
 select is(public.msrc_staff_email_begin('81000000-0000-4000-8000-000000000002','82000000-0000-4000-8000-000000000002',
   '83000000-0000-4000-8000-000000000011',repeat('a',64),repeat('9',64))->>'code','retry_limited','Shared IP cap denies another actor without its own recent issues');

@@ -22,7 +22,7 @@ export async function requestStaff(payload?: StaffPayload, options?: { area?: St
   try {
     const query = options?.area ? "?" + new URLSearchParams({ area: options.area, q: options.query ?? "" }) : "";
     const response = await fetch("/api/staff-portal" + query, { method: payload ? "POST" : "GET", credentials: "same-origin", cache: "no-store", signal: options?.signal,
-      ...(payload ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) } : {}) });
+      ...(payload ? { headers: { "Content-Type": "application/json", ...(payload.action === "logout" ? { "x-msrc-staff-logout": "1" } : {}) }, body: JSON.stringify(payload) } : {}) });
     if (!response.headers.get("content-type")?.includes("application/json")) return { state: "unavailable" };
     const result = await response.json() as StaffResponse;
     return typeof result.state === "string" ? result : { state: "unavailable" };

@@ -5,7 +5,7 @@ set local search_path=public,extensions;
 select no_plan();
 select has_schema('msrc_staff','Portal state is isolated in a private schema');
 select is((select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='msrc_staff'
- and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),10::bigint,'Every private portal table enables and forces RLS');
+ and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),12::bigint,'Every private portal table enables and forces RLS');
 select is((select count(*) from pg_policies where schemaname='msrc_staff'),0::bigint,'No client policy exposes staff tables');
 select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role')) r(name) where has_schema_privilege(r.name,'msrc_staff','USAGE')),'No API role can use the private schema');
 select ok(not (public.msrc_staff_status()->>'enabled')::boolean,'Database portal starts closed');
@@ -174,6 +174,70 @@ grant select on portal_role_matrix to authenticated;
 set local role authenticated;
 select checks from portal_role_matrix m cross join lateral pg_temp.check_matrix(m.role,m.actor,m.sid) checks;
 reset role;
+-- Failed password attempts are reduced to time/account/outcome in the existing
+-- Super Admin audit projection. Unknown addresses remain unlinked UUID rows.
+insert into msrc_staff.login_attempts(id,email_hash,ip_hash) values
+ ('a6000000-0000-4000-8000-000000000001',repeat('d',64),repeat('e',64)),
+ ('a6000000-0000-4000-8000-000000000002',repeat('f',64),repeat('e',64));
+select is(public.msrc_staff_login_failure('a6000000-0000-4000-8000-000000000001','portal-registration@example.invalid','synthetic-portal-2027')->>'state','denied','Known staff wrong-password outcome remains generic');
+select is(public.msrc_staff_login_failure('a6000000-0000-4000-8000-000000000002','unknown-synthetic@example.invalid','synthetic-portal-2027')->>'state','denied','Unknown password outcome remains generic');
+select is((select count(*) from msrc_staff.audit where action='password_sign_in' and edition_key='synthetic-portal-2027'),2::bigint,'Every failed reserved password sign-in receives one minimal audit row');
+select ok(exists(select 1 from msrc_staff.audit where action='password_sign_in' and target_id='a1000000-0000-4000-8000-000000000003' and actor_id is null and result='failed' and details='{}'),'Known staff audit links only attempted account UUID without attributing an authenticated actor');
+select ok(exists(select 1 from msrc_staff.audit where action='password_sign_in' and target_id is null and actor_id is null and result='failed' and details='{}'),'Unknown staff audit stores no submitted address or raw IP');
+select is(public.msrc_staff_login_failure('a6000000-0000-4000-8000-000000000001','portal-registration@example.invalid','synthetic-portal-2027')->>'state','denied','Failed attempt cannot replay');
+select is((select count(*) from msrc_staff.audit where action='password_sign_in' and edition_key='synthetic-portal-2027'),2::bigint,'Replaying failure cannot duplicate audit');
+do $$begin perform pg_temp.portal_claims();end$$;
+set local role authenticated;
+select is(jsonb_array_length(public.msrc_staff_audit('synthetic-portal-2027','password_sign_in')->'rows'),2,'Super Admin sees known and unknown failed password rows');
+select throws_ok($$select public.msrc_staff_login_failure(gen_random_uuid(),'synthetic@example.invalid','synthetic-portal-2027')$$,'42501',null,'Clients cannot forge failed password rows');
+select throws_ok($$select public.msrc_staff_totp_begin('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000002',gen_random_uuid())$$,'42501',null,'Clients cannot reserve or clear authenticator budgets');
+reset role;
+create function pg_temp.check_failed_audit(role_name text,target uuid,sid uuid) returns setof text language plpgsql as $$
+ begin
+ perform pg_temp.matrix_claims(target,sid);
+ return next is(public.msrc_staff_audit('synthetic-portal-2027','password_sign_in'),null::jsonb,role_name||' cannot read failed password rows with genuine email assurance');
+ end$$;
+set local role authenticated;
+select checks from portal_role_matrix m cross join lateral pg_temp.check_failed_audit(m.role,m.actor,m.sid) checks;
+reset role;
+
+-- Account TOTP budget survives challenge/session replacement. Failed and
+-- interrupted provider operations are serialized and cannot be replayed.
+create function pg_temp.fail_totp_five() returns setof text language plpgsql as $$
+ declare n integer;attempt uuid;
+ begin
+ for n in 1..5 loop
+ attempt:=gen_random_uuid();
+ return next is(public.msrc_staff_totp_begin('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000002',attempt)->>'state','reserved','TOTP failure '||n||' reserves one account attempt');
+ return next is(public.msrc_staff_totp_finish('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000002',attempt,false)->>'state',case when n=5 then 'limited' else 'failed' end,'TOTP failure '||n||' persists before response');
+ return next is(public.msrc_staff_totp_finish('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000002',attempt,false)->>'state','denied','TOTP completion replay cannot increment failure '||n);
+ end loop;
+ end$$;
+select * from pg_temp.fail_totp_five();
+select is((select failed_attempts from msrc_staff.totp_account_limits where actor_id='a1000000-0000-4000-8000-000000000002'),5,'Fifth account failure reaches email-check threshold');
+select ok((select cooldown_until between clock_timestamp()+interval '14 minutes' and clock_timestamp()+interval '15 minutes' from msrc_staff.totp_account_limits where actor_id='a1000000-0000-4000-8000-000000000002'),'TOTP cooldown is fifteen minutes from fifth failure');
+select is(public.msrc_staff_totp_begin('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000002',gen_random_uuid())->>'state','limited','Further authenticator verification is locked before provider work');
+insert into auth.sessions(id,user_id,created_at,updated_at,aal) values('a2000000-0000-4000-8000-000000000010','a1000000-0000-4000-8000-000000000002',date_trunc('second',clock_timestamp()),clock_timestamp(),'aal1');
+insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at) select gen_random_uuid(),id,'password',created_at,created_at from auth.sessions where id='a2000000-0000-4000-8000-000000000010';
+select is(public.msrc_staff_totp_begin('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000010',gen_random_uuid())->>'state','limited','Fresh password session does not bypass account TOTP lock');
+select ok(exists(select 1 from msrc_staff.audit where action='totp_locked' and target_id='a1000000-0000-4000-8000-000000000002' and result='denied'),'Account lock produces an immutable audit row');
+select throws_ok($$update auth.mfa_amr_claims set updated_at=clock_timestamp() where session_id='a2000000-0000-4000-8000-000000000002' and authentication_method='totp'$$,'42501',null,'Raw native TOTP proof cannot bypass application account cooldown');
+-- Accelerated clock fixture changes only the private cooldown; no wall wait.
+update msrc_staff.totp_account_limits set cooldown_until=clock_timestamp()-interval '1 second' where actor_id='a1000000-0000-4000-8000-000000000002';
+select is(public.msrc_staff_totp_begin('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000002','a7000000-0000-4000-8000-000000000001')->>'state','reserved','New attempt allowed after cooldown window');
+select ok(exists(select 1 from msrc_staff.audit where action='totp_unlocked' and target_id='a1000000-0000-4000-8000-000000000002' and result='completed'),'Window unlock is audited');
+select is(public.msrc_staff_totp_begin('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000002',gen_random_uuid())->>'state','limited','Only one provider verification can be pending per account');
+select is(public.msrc_staff_totp_finish('a1000000-0000-4000-8000-000000000001','a2000000-0000-4000-8000-000000000001','a7000000-0000-4000-8000-000000000001',true)->>'state','denied','Another account cannot complete a TOTP reservation');
+select is(public.msrc_staff_totp_finish('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000002','a7000000-0000-4000-8000-000000000001',true)->>'state','completed','Real existing native proof can complete its exact reservation after unlock');
+select is((select failed_attempts from msrc_staff.totp_account_limits where actor_id='a1000000-0000-4000-8000-000000000002'),0,'Successful exact-session native proof resets failures');
+select is(public.msrc_staff_totp_begin('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000010','a7000000-0000-4000-8000-000000000002')->>'state','reserved','Fresh eligible session can reserve after unlock');
+with moment as(select clock_timestamp() as observed) update msrc_staff.totp_attempts set created_at=moment.observed-interval '31 seconds',expires_at=moment.observed-interval '1 second' from moment where id='a7000000-0000-4000-8000-000000000002';
+select is(public.msrc_staff_totp_begin('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000010','a7000000-0000-4000-8000-000000000003')->>'state','reserved','Expired interrupted reservation terminalizes before allowing a replacement');
+select is((select failed_attempts from msrc_staff.totp_account_limits where actor_id='a1000000-0000-4000-8000-000000000002'),1,'Interrupted verification consumes an account failure');
+select is(public.msrc_staff_totp_finish('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000010','a7000000-0000-4000-8000-000000000002',true)->>'state','denied','Stale provider callback cannot complete a replacement reservation');
+select is(public.msrc_staff_totp_finish('a1000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000010','a7000000-0000-4000-8000-000000000003',true)->>'state','failed','Provider success without genuine current TOTP is rejected and audited');
+select is(public.msrc_staff_totp_begin('a1000000-0000-4000-8000-000000000003','a2000000-0000-4000-8000-000000000003',gen_random_uuid())->>'state','denied','Regular staff cannot use TOTP instead of exact-session email check');
+
 -- Background status/area polling must not renew the idle clock.
 do $$begin perform pg_temp.portal_claims();end$$;
 create temp table observed_clock as select last_activity_at from msrc_sessions.session_state where session_id='a2000000-0000-4000-8000-000000000001';

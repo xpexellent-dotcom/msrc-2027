@@ -68,6 +68,29 @@ describe.skipIf(!isolatedCi)("Staff portal authority concurrency (disposable Git
       commit;`);
   });
 
+  it("serializes a five-attempt account budget while admitting other staff on the same IP", async () => {
+    const results = await Promise.all(Array.from({ length: 6 }, () => query(`
+      select public.msrc_staff_login_begin(gen_random_uuid(),repeat('1',64),repeat('2',64))->>'state';`)));
+    expect(results.filter((value) => value.trim() === "reserved")).toHaveLength(5);
+    expect(results.filter((value) => value.trim() === "denied")).toHaveLength(1);
+    const peers = await query(`select count(*) from generate_series(1,100) n
+      where public.msrc_staff_login_begin(gen_random_uuid(),lpad(to_hex(n),64,'a'),repeat('2',64))->>'state'='reserved';`);
+    expect(peers.trim()).toBe("100");
+  });
+
+  it("enforces the shared-IP form and password ceiling under concurrent requests", async () => {
+    await query(`insert into msrc_staff.limit_events(kind,subject_hash,nonce_hash)
+      select 'form',repeat('3',64),lpad(to_hex(n),64,'b') from generate_series(1,11999) n;
+      insert into msrc_staff.login_attempts(id,email_hash,ip_hash,state)
+      select gen_random_uuid(),repeat('4',64),repeat('5',64),'admitted' from generate_series(1,299);`);
+    const forms = await Promise.all(["6", "7"].map((nonce) => query(`
+      select public.msrc_staff_form_claim(repeat('${nonce}',64),repeat('3',64))->>'state';`)));
+    expect(forms.map((value) => value.trim()).sort()).toEqual(["claimed", "denied"]);
+    const logins = await Promise.all(["8", "9"].map((email) => query(`
+      select public.msrc_staff_login_begin(gen_random_uuid(),repeat('${email}',64),repeat('5',64))->>'state';`)));
+    expect(logins.map((value) => value.trim()).sort()).toEqual(["denied", "reserved"]);
+  });
+
   it("serializes two concurrent demotions at three Super Admins and audits the denial", async () => {
     const first = query(downgrade(2, true));
     let locked = false;

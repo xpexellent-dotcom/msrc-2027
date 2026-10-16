@@ -16,7 +16,10 @@ export async function passwordFixture(page: Page, options: { roles?: Role[]; fre
     const request = route.request();
     let response: StaffResponse = { state, profile: state === "authenticated" ? profile() : null };
     if (request.method() === "POST") {
-      const payload = request.postDataJSON() as StaffPayload; actions.push(payload);
+      const payload = request.postDataJSON() as StaffPayload;
+      // Keep the existing exact administrative-action assertions separate from
+      // the activity protocol, which has its own session regression suite.
+      if (payload.action !== "activity") actions.push(payload);
       if (payload.action === "signin") { state = "pending-totp"; fresh = false; }
       else if (payload.action === "verify-totp") { state = "authenticated"; fresh = true; }
       else if (payload.action === "logout") { state = "ready"; fresh = false; }

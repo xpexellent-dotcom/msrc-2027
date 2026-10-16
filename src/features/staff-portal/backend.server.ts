@@ -40,7 +40,7 @@ export function createStaffBackend(config: StaffConfig): StaffBackend {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: safeFetch },
   });
   const rpc: StaffBackend["rpc"] = async (name, args = {}, accessToken) => {
-    if (!/^msrc_(staff_[a-z_]+|session_context|session_logout)$/.test(name)) throw new Error("Unknown private RPC");
+    if (!/^msrc_(staff_[a-z_]+|session_context|session_activity|session_logout)$/.test(name)) throw new Error("Unknown private RPC");
     const headers = new Headers({ apikey: accessToken ? config.publishableKey : config.secretKey, "Content-Type": "application/json" });
     if (accessToken) headers.set("authorization", "Bearer " + accessToken);
     const response = await safeFetch(config.supabaseUrl + "/rest/v1/rpc/" + name, { method: "POST", headers, body: JSON.stringify(args) });

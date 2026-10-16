@@ -87,33 +87,84 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
   const getBackend = dependencies.backend ?? createStaffBackend;
   const clock = dependencies.now ?? Date.now;
   return async function handle(request: Request): Promise<Response> {
-    // Closed before header/body inspection, provider construction or credential collection.
+    // Closed before body inspection, provider construction or credential collection.
     const readiness = getReadiness();
-    if (readiness.state !== "ready") return reply({ state: readiness.state }, 503);
+    if (readiness.state !== "ready") {
+      // A configured provider is unnecessary to discard fixed-name cookies.
+      // The explicit client signal avoids parsing credentials on a closed route.
+      if (request instanceof Request && request.method === "POST" && request.headers.get("x-msrc-staff-logout") === "1"
+        && request.headers.get("origin") === new URL(request.url).origin
+        && (!request.headers.get("host") || request.headers.get("host") === new URL(request.url).host)
+        && [null, "same-origin", "none"].includes(request.headers.get("sec-fetch-site"))) {
+        const headers = new Headers(privateHeaders);
+        headers.append("Set-Cookie", "__Host-msrc-staff=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Secure");
+        headers.append("Set-Cookie", "msrc-staff-test=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0");
+        return Response.json({ state: "signed-out" }, { headers });
+      }
+      return reply({ state: readiness.state }, 503);
+    }
     const config = readiness.config, now = clock();
     const resolvedOrigin = staffOrigin(config, request), site = request.headers.get("sec-fetch-site");
     if (!resolvedOrigin || (site && !["same-origin", "none"].includes(site)) || request.headers.get("origin") && request.headers.get("origin") !== resolvedOrigin
       || request.method === "POST" && request.headers.get("origin") !== resolvedOrigin) return reply({ state: "invalid-input" }, 400);
     const origin: string = resolvedOrigin;
     if (!["GET", "HEAD", "POST"].includes(request.method)) return reply({ state: "invalid-input" }, 405);
+    // Signing out only removes authority. Same-origin enforcement above remains
+    // mandatory, but a stale form token, abuse quota or unavailable provider must
+    // never prevent clearing the browser's private session.
+    let submitted: unknown;
+    if (request.method === "POST") {
+      try { submitted = await readStaffJson(request); } catch { return reply({ state: "invalid-input" }, 400); }
+      const input = record(submitted);
+      if (input?.action === "logout" && Object.keys(input).every((key) => ["action", "formToken", "website"].includes(key))) {
+        const clear = staffCookie(config, null, now);
+        try {
+          const previous = readStaffSession(config, request, now);
+          if (previous) {
+            const logoutBackend = getBackend(config);
+            let revokeToken = previous.accessToken;
+            if (nativeTokenNeedsRefresh(revokeToken, now)) {
+              try {
+                const refreshed = await logoutBackend.refresh(previous.refreshToken);
+                if (refreshed?.actorId === previous.actorId && refreshed.sessionId === previous.sessionId) revokeToken = refreshed.accessToken;
+              } catch { /* Still attempt both revocations with the available token. */ }
+            }
+            // These revocations are independent: still try the provider when the
+            // application database is down, and vice versa.
+            await Promise.allSettled([
+              Promise.resolve().then(() => logoutBackend.rpc("msrc_session_logout", { edition_key: config.editionKey }, revokeToken)),
+              Promise.resolve().then(() => logoutBackend.logout(revokeToken)),
+            ]);
+          }
+        } catch { /* The browser must always be able to discard its session. */ }
+        return reply({ state: "signed-out" }, 200, clear);
+      }
+    }
     const backend = getBackend(config);
     const stillReady = async () => getReadiness().state === "ready" && await ready(config, backend);
     try { if (!await stillReady()) return reply({ state: "closed" }, 503); } catch { return reply({ state: "unavailable" }, 503); }
     if (request.method === "HEAD") return new Response(null, { headers: privateHeaders });
-    const respond = (body: Record<string, unknown>, status = 200, cookie?: string) => reply({ ...body, formToken: staffFormToken(config, origin, now) }, status, cookie);
     let session = readStaffSession(config, request, now);
     let changed = false;
+    let invalidated = false;
+    // Rotation must survive every response path, including a denied or failed
+    // administrative operation after a successful native refresh.
+    const respond = (body: Record<string, unknown>, status = 200, cookie?: string) => reply({ ...body, formToken: staffFormToken(config, origin, now) }, status,
+      invalidated ? staffCookie(config, null, now) : cookie ?? (changed && session ? staffCookie(config, session, now) : undefined));
     let passwordAttempted = false;
     async function current() {
       if (!session) return null;
       if (nativeTokenNeedsRefresh(session.accessToken, now)) {
         if (!await stillReady()) return null;
-        const refreshed = await backend.refresh(session.refreshToken);
-        if (!refreshed || refreshed.actorId !== session.actorId || refreshed.sessionId !== session.sessionId) return null;
+        let refreshed: NativeStaffSession | null;
+        try { refreshed = await backend.refresh(session.refreshToken); }
+        catch { invalidated = true; throw new Error("Private staff refresh unavailable"); }
+        if (!refreshed || refreshed.actorId !== session.actorId || refreshed.sessionId !== session.sessionId) { invalidated = true; return null; }
         session = { ...session, ...refreshed }; changed = true;
       }
       const observed = await context(config, backend, session, now);
-      return observed?.timing.absoluteExpiresAtMs === session.deadline ? observed : null;
+      if (observed?.timing.absoluteExpiresAtMs === session.deadline) return observed;
+      invalidated = true; return null;
     }
     async function view(observed: PersistedSessionContext | null) {
       if (!session || !observed) return { state: "ready", profile: null };
@@ -164,7 +215,7 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         const rows = safeRows(data.rows, area as "audit" | "participants");
         return rows ? respond({ state: "authenticated", profile: own, [area]: rows, passwordChangeAvailable: await passwordChangeReady(config, backend) }, 200, changed ? staffCookie(config, session, now) : undefined) : respond({ state: "unavailable" }, 503);
       }
-      const payload = validateStaffPayload(await readStaffJson(request));
+      const payload = validateStaffPayload(submitted);
       if (payload?.action === "password-change" && !await passwordChangeReady(config, backend)) return respond({ state: "denied" }, 403);
       const ip = staffIp(config, request);
       const nonce = payload && readStaffFormToken(config, payload.formToken, origin, now);
@@ -177,7 +228,9 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         let native: NativeStaffSession | null = null;
         try { if (await stillReady()) native = await backend.login(payload.email!, payload.password!); }
         finally {
-          const admission = record(await backend.rpc("msrc_staff_login_finish", { attempt_id: attemptId, actor_id: native?.actorId ?? null, session_id: native?.sessionId ?? null }));
+          const admission = record(await backend.rpc(native ? "msrc_staff_login_finish" : "msrc_staff_login_failure", native
+            ? { attempt_id: attemptId, actor_id: native.actorId, session_id: native.sessionId }
+            : { attempt_id: attemptId, attempted_email: payload.email, edition_key: config.editionKey }));
           if (admission?.state !== "admitted" || admission.editionKey !== config.editionKey) { if (native) await backend.logout(native.accessToken); native = null; }
         }
         return native ? setNative(native) : respond({ state: "invalid-credentials" }, 401, staffCookie(config, null, now));
@@ -197,19 +250,12 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
           ip_hash: staffHash(config, "ip", ip) }), "reserved")) return respond({ state: "accepted" }, 200, staffCookie(config, null, now));
         let native: NativeStaffSession | null = null;
         try { if (await stillReady()) native = await backend.login(proof.email, payload.password!); }
-        finally { const admission = record(await backend.rpc("msrc_staff_login_finish", { attempt_id: attemptId,
-          actor_id: native?.actorId ?? null, session_id: native?.sessionId ?? null }));
+        finally { const admission = record(await backend.rpc(native ? "msrc_staff_login_finish" : "msrc_staff_login_failure", native
+          ? { attempt_id: attemptId, actor_id: native.actorId, session_id: native.sessionId }
+          : { attempt_id: attemptId, attempted_email: proof.email, edition_key: config.editionKey }));
           if (admission?.state !== "admitted" || admission.editionKey !== config.editionKey) { if (native) await backend.logout(native.accessToken); native = null; }
         }
         return native ? setNative(native) : respond({ state: "accepted" }, 200, staffCookie(config, null, now));
-      }
-      if (payload.action === "logout") {
-        const clear = staffCookie(config, null, now);
-        try { if (session) {
-          const revoked = await backend.rpc("msrc_session_logout", { edition_key: config.editionKey }, session.accessToken);
-          const loggedOut = await backend.logout(session.accessToken);
-          if (revoked !== true || !loggedOut) return respond({ state: "unavailable" }, 503, clear);
-        } return respond({ state: "signed-out" }, 200, clear); } catch { return respond({ state: "unavailable" }, 503, clear); }
       }
       const observed = await current();
       if (!session || !observed) return respond({ state: payload.action === "password-change" ? "reauthentication-required" : "denied" }, 403, staffCookie(config, null, now));
@@ -278,14 +324,29 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
           return session.challengeId && audited ? respond({ state: "pending-totp", factorId: session.factorId, challengeId: session.challengeId }, 200, staffCookie(config, session, now)) : respond({ state: "unavailable" }, 503);
         }
         if (!session.factorId || !session.challengeId || payload.factorId !== session.factorId || payload.challengeId !== session.challengeId) return respond({ state: "invalid-code" }, 400);
-        const upgraded = await backend.verify(session, session.factorId, session.challengeId, payload.code!); const audited = await audit("totp_verify", Boolean(upgraded));
-        if (!audited) return respond({ state: "unavailable" }, 503);
-        if (!upgraded) return respond({ state: "invalid-code" }, 400);
+        const attemptId = randomUUID();
+        const reservation = record(await backend.rpc("msrc_staff_totp_begin", { actor_id: session.actorId, session_id: session.sessionId, attempt_id: attemptId }));
+        if (reservation?.state === "limited") return respond({ state: "limited" }, 429);
+        if (reservation?.state !== "reserved") return respond({ state: "denied" }, 403);
+        let upgraded: NativeStaffSession | null = null, completion: Record<string, unknown> | null = null;
+        try { upgraded = await backend.verify(session, session.factorId, session.challengeId, payload.code!); }
+        finally { completion = record(await backend.rpc("msrc_staff_totp_finish", { actor_id: session.actorId, session_id: session.sessionId,
+          attempt_id: attemptId, succeeded: Boolean(upgraded) })); }
+        if (completion?.state === "limited") return respond({ state: "limited" }, 429);
+        if (completion?.state === "failed") return respond({ state: "invalid-code" }, 400);
+        if (completion?.state !== "completed" || !upgraded) return respond({ state: "unavailable" }, 503);
         session = { ...session, ...upgraded }; const after = await current();
         if (!after?.sessionPolicySatisfied || !after.mfaValid) return respond({ state: "denied" }, 403);
         return respond(await view(after), 200, staffCookie(config, session, now));
       }
       if (!observed.sessionPolicySatisfied) return respond({ state: "denied" }, 403);
+      if (payload.action === "activity") {
+        const active = parsePersistedSessionContext(await backend.rpc("msrc_session_activity", { edition_key: config.editionKey }, session.accessToken), session.actorId, config.editionKey);
+        if (!active?.sessionPolicySatisfied || active.principal.sessionId !== session.sessionId
+          || active.authenticationTier !== observed.authenticationTier || active.timing.absoluteExpiresAtMs !== session.deadline
+          || active.timing.idleExpiresAtMs === null || active.timing.idleExpiresAtMs <= now) return respond({ state: "denied" }, 403);
+        return respond(await view(active));
+      }
       if (payload.action === "invite" || payload.action === "invite-resend") {
         const invitationId = randomUUID(), token = randomBytes(32).toString("base64url");
         const reservation = record(await backend.rpc("msrc_staff_invite_begin", { edition_key: config.editionKey, email: payload.email, roles: payload.roles,
