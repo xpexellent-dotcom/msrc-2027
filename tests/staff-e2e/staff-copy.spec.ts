@@ -21,7 +21,9 @@ async function fixture(page: Page, roles: Role[], available = false) {
 }
 
 async function axe(page: Page) {
-  await expect(page).toHaveTitle("MSRC 2027 | Staff portal");
+  // The tab title follows the page language (ar: بوابة الفريق).
+  const lang = await page.locator("html").getAttribute("lang");
+  await expect(page).toHaveTitle(`MSRC 2027 | ${staffCopy[lang === "ar" ? "ar" : "en"].portal}`);
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }

@@ -1,5 +1,50 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-042 — BL-AI-01 disabled DeepSeek transport, 16 October 2026
+
+Authority: ORG-040 and the requester's scoped BL-AI-01 implementation task.
+This supersedes ENG-018's Anthropic SDK/model, effort, fallback, caching and Batch
+transport choices. It preserves its scientific-only payload, identity screening,
+manual-review continuity and independent human/committee authority. IDs: AI-01–06,
+PRV-02/03/07, CFG-03/09/10, REL-03.
+
+- Use server-only plain `fetch` at the fixed official
+  `https://api.deepseek.com/chat/completions` endpoint, a 60-second timeout and
+  zero automatic retries, with redirect refusal and omitted ambient credentials.
+  The approved configuration alone supplies Bearer authentication. Refuse endpoint
+  and custom-header environment overrides; never log request/response bodies.
+- Official documentation checked 16 October 2026 lists `deepseek-flash` and
+  `deepseek-v4-pro`. Allow only `deepseek-flash` as requested and serving model;
+  this documented current ID is not an immutable version pin. Strict configuration
+  uses explicit `thinking: "disabled"` instead of Anthropic effort. Digest binding
+  covers every operating value and fixed transport policy, with all six approvals,
+  authority/MFA, atomic budget reservation and mid-operation rechecks preserved.
+- Chat Completions documents `json_object`, not `json_schema`; the separate
+  Responses API's schema format is not used. Keep fixed rules/rubric in the system
+  message, sanitized science in the user message, explicit JSON/schema instructions,
+  no tools/streaming/fallbacks/betas/cache directives and strict local validation.
+- Require exactly one choice, validate the returned model and inspect
+  `finish_reason` before content. `stop` permits parsing, `length` becomes
+  `incomplete_output`, `content_filter` becomes `refusal`, and all other finish
+  reasons become `incomplete_output`. Malformed/multiple choices or invalid final
+  content become `invalid_output`. Ignore and discard `reasoning_content`, including
+  in provenance/evaluation reports; no chain-of-thought is retained.
+- No official batch endpoint was found in reviewed documentation/searches;
+  existence remains NOT VERIFIED. `submitBatch`/`collectBatch` and local synthetic
+  submit/collect return `batch_unsupported` without provider calls. Do not emulate
+  batches with sync loops. Any future official batch integration is separate work.
+- DeepSeek documents automatic disk caching and usual unused-cache clearance in
+  hours to days. Removing application cache directives does not turn that off.
+  Binding no-training, complete retention/deletion and institutional terms remain
+  NOT VERIFIED. The provider/privacy, China transfer, evaluation, budget, rubric,
+  disclosure and operating/integration approvals remain independent release gates.
+- AI remains disabled. No real provider call, account setup, hosted configuration,
+  UI, route, persistence, database migration, public policy change or live workflow
+  is authorized by this switch. Synthetic fixtures remain explicitly unapproved.
+
+Official URLs, verification limits, activation prerequisites and acceptance map:
+[DeepSeek feature note](features/ai-assessment.md#deepseek-api-verification).
+
 ## ENG-045 — Private nonce CSP and server-rendered localized unmatched routes, 16 October 2026
 
 Authority: the current local-only implementation task. Enforce a fresh nonce CSP

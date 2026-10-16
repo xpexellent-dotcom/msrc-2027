@@ -8,5 +8,5 @@ export const SYNTHETIC_RUBRIC = Object.freeze({
     Object.freeze({ id: "claims", label: "Synthetic support for stated claims", min: 0, max: 4 }),
   ]),
 });
-export const SYNTHETIC_MODEL = "claude-opus-5-5";
-export const SYNTHETIC_PROMPT_VERSION = "ai-advisory-synthetic-v1";
+export const SYNTHETIC_MODEL = "deepseek-flash";
+export const SYNTHETIC_PROMPT_VERSION = "ai-advisory-synthetic-deepseek-v2";

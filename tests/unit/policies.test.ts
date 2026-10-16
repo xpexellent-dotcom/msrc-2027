@@ -88,14 +88,25 @@ describe("approved policy v1.0 (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
 
   it.each(["production", "preview", "development"])("indexes approved policies only on production (%s)", async (environment) => {
     vi.resetModules(); vi.stubEnv("VERCEL_ENV", environment);
-    const { policyPageMetadata } = await import("@/features/policies/policy-metadata");
+    const { policyPageMetadata, policyTabLabel } = await import("@/features/policies/policy-metadata");
     const { publicRoutes } = await import("@/lib/metadata");
     expect(publicRoutes).toContain("/privacy"); expect(publicRoutes).toContain("/terms");
     for (const kind of policyKinds) for (const locale of ["en", "ar"] as const) for (const version of [undefined, currentPolicyVersion]) {
-      const metadata = policyPageMetadata(kind, locale, version), suffix = version ? `/${version}` : "";
-      expect(metadata.robots).toEqual({ index: environment === "production", follow: environment === "production" });
-      expect(metadata.title).toBe(`${getPolicyDocument(kind, locale).document.title} | MSRC 2027`);
-      expect(metadata.alternates).toEqual({ canonical: `/${locale}/${kind}${suffix}`, languages: { en: `/en/${kind}${suffix}`, ar: `/ar/${kind}${suffix}`, "x-default": `/en/${kind}${suffix}` } });
+      const metadata = policyPageMetadata(kind, locale, version);
+      // A dated version repeats the current text: never indexed, canonical to the unversioned page.
+      expect(metadata.robots).toEqual({ index: environment === "production" && !version, follow: environment === "production" });
+      expect(metadata.title).toBe(`${policyTabLabel(getPolicyDocument(kind, locale).document.title)} | MSRC 2027`);
+      expect(String(metadata.title)).not.toMatch(/MSRC (?:2027|٢٠٢٧).*MSRC 2027/u);
+      expect(metadata.alternates).toEqual({ canonical: `/${locale}/${kind}`, languages: { en: `/en/${kind}`, ar: `/ar/${kind}`, "x-default": `/en/${kind}` } });
     }
+  });
+
+  it("drops only the brand from the approved headings for the tab title", async () => {
+    const { policyTabLabel } = await import("@/features/policies/policy-metadata");
+    expect(policyTabLabel("MSRC 2027 Privacy Policy")).toBe("Privacy Policy");
+    expect(policyTabLabel("MSRC 2027 Terms and Conditions")).toBe("Terms and Conditions");
+    expect(policyTabLabel("سياسة الخصوصية لمؤتمر MSRC ٢٠٢٧")).toBe("سياسة الخصوصية");
+    expect(policyTabLabel("شروط وأحكام مؤتمر MSRC ٢٠٢٧")).toBe("شروط وأحكام");
+    expect(policyTabLabel("Cookie notice")).toBe("Cookie notice");
   });
 });
