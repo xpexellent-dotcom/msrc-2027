@@ -3,7 +3,7 @@ import { ROLES, type Role } from "@/lib/permissions/contract";
 import { normalizeParticipantCode } from "@/features/participant-accounts/validation.server";
 import { staffUuid } from "./security.server";
 
-export const STAFF_ACTIONS = ["signin", "logout", "enroll-totp", "challenge-totp", "verify-totp", "challenge-email", "verify-email",
+export const STAFF_ACTIONS = ["signin", "logout", "activity", "enroll-totp", "challenge-totp", "verify-totp", "challenge-email", "verify-email",
   "invite-accept", "invite", "invite-resend", "invite-revoke", "roles", "suspend", "reactivate", "revoke-sessions",
   "reset-authenticator", "reset-account", "reveal-identity", "password-change"] as const;
 export interface StaffPayload {
@@ -19,6 +19,7 @@ export function validateStaffPayload(value: unknown): StaffPayload | null {
   if (Object.keys(record).some((key) => !allowed.includes(key))
     || Object.entries(record).some(([key, entry]) => key !== "roles" && (typeof entry !== "string" || entry.length > (key === "formToken" ? 1024 : 512)))) return null;
   const input = { ...record } as unknown as StaffPayload;
+  if (input.action === "activity" && Object.keys(record).some((key) => !["action", "formToken", "website"].includes(key))) return null;
   if (input.action === "reveal-identity") {
     input.reason = input.reason?.trim();
     if (!input.reason || input.reason.length > 300 || /[\x00-\x1f\x7f]/.test(input.reason)) return null;

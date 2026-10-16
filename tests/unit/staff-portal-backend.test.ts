@@ -45,6 +45,7 @@ beforeEach(() => {
       if (name === "msrc_session_context") return current;
       if (name === "msrc_staff_profile") return { schemaVersion: 1, actorId, name: "Synthetic Staff", roles: ["superAdmin"], session: current };
       if (name === "msrc_staff_login_begin") return { state: "reserved" };
+      if (name === "msrc_staff_totp_begin") return { state: "reserved" };
       if (name === "msrc_staff_login_finish") return { state: "admitted", editionKey: config.editionKey, tier: current.authenticationTier };
       if (name === "msrc_session_logout") return true;
       return { state: "completed" };
@@ -92,6 +93,9 @@ describe("staff request and session security", () => {
     const a = await handler()(request("POST", { action: "signin", email: "missing@example.invalid", password: "unknown" }));
     const b = await handler()(request("POST", { action: "signin", email: "suspended@example.invalid", password: "unknown" }));
     expect(a.status).toBe(401); expect(b.status).toBe(401); expect((await a.json()).state).toBe((await b.json()).state);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_login_failure", expect.objectContaining({ attempted_email: "missing@example.invalid", edition_key: config.editionKey }));
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_login_failure", expect.objectContaining({ attempted_email: "suspended@example.invalid", edition_key: config.editionKey }));
+    expect(vi.mocked(backend.rpc).mock.calls.some(([, args]) => args && Object.hasOwn(args, "password"))).toBe(false);
   });
   it("requires database admitted password session before issuing the second step", async () => {
     vi.mocked(backend.rpc).mockImplementation(async (name) => name === "msrc_staff_status" ? { enabled: true, emailDailyLimit: 40 }
@@ -136,7 +140,113 @@ describe("staff request and session security", () => {
   });
 });
 
+describe("unconditional same-origin staff logout", () => {
+  it.each(["closed", "unavailable"] as const)("clears fixed cookies when configuration is %s without reading credentials", async (state) => {
+    const build = vi.fn();
+    const input = request("POST", { action: "logout", formToken: "stale" }, cookie());
+    input.headers.set("x-msrc-staff-logout", "1");
+    const response = await createStaffHandler({ readiness: () => ({ state }), backend: build })(input);
+    expect(response.status).toBe(200); expect(await response.json()).toEqual({ state: "signed-out" });
+    expect(response.headers.getSetCookie()).toHaveLength(2);
+    expect(response.headers.getSetCookie().every((value) => value.includes("Max-Age=0"))).toBe(true);
+    expect(input.bodyUsed).toBe(false); expect(build).not.toHaveBeenCalled();
+  });
+  it("rejects a cross-origin closed-configuration logout signal", async () => {
+    const input = request("POST", { action: "logout" }, cookie());
+    input.headers.set("x-msrc-staff-logout", "1"); input.headers.set("origin", "https://untrusted.example.invalid");
+    const response = await createStaffHandler({ readiness: () => ({ state: "closed" }) })(input);
+    expect(response.status).toBe(503); expect(response.headers.has("set-cookie")).toBe(false); expect(input.bodyUsed).toBe(false);
+  });
+  it.each(["database", "provider", "both"])("clears the cookie and tries both revocations when %s is down", async (failure) => {
+    const original = backend.rpc;
+    backend.rpc = vi.fn(async (...args) => {
+      if (args[0] === "msrc_session_logout" && failure !== "provider") throw new Error("Synthetic database unavailable");
+      return original(args[0], args[1], args[2]);
+    });
+    if (failure !== "database") vi.mocked(backend.logout).mockRejectedValue(new Error("Synthetic provider unavailable"));
+    const response = await handler()(request("POST", { action: "logout" }, cookie()));
+    expect(response.status).toBe(200); expect(await response.json()).toEqual({ state: "signed-out" });
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_session_logout", { edition_key: config.editionKey }, native.accessToken);
+    expect(backend.logout).toHaveBeenCalledWith(native.accessToken);
+  });
+  it("ignores stale form tokens, unavailable readiness and exhausted quotas", async () => {
+    vi.mocked(backend.rpc).mockImplementation(async (name) => {
+      if (name === "msrc_session_logout") return true;
+      throw new Error("Status and quota paths must not run");
+    });
+    const response = await handler()(request("POST", { action: "logout", formToken: "stale" }, cookie()));
+    expect(response.status).toBe(200); expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(vi.mocked(backend.rpc).mock.calls.map(([name]) => name)).toEqual(["msrc_session_logout"]);
+  });
+  it("refreshes an expired provider token only to revoke the same remote session", async () => {
+    const rotated = { ...native, accessToken: token(now + 3_600_001), refreshToken: "synthetic-rotated" };
+    vi.mocked(backend.refresh).mockResolvedValue(rotated);
+    const response = await handler()(request("POST", { action: "logout", formToken: "stale" }, cookie({ accessToken: token(now) })));
+    expect(response.status).toBe(200); expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(backend.refresh).toHaveBeenCalledWith(native.refreshToken);
+    expect(backend.logout).toHaveBeenCalledWith(rotated.accessToken);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_session_logout", { edition_key: config.editionKey }, rotated.accessToken);
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_activity", expect.anything(), expect.anything());
+  });
+  it("still clears and attempts remote revocation if logout refresh fails", async () => {
+    vi.mocked(backend.refresh).mockRejectedValue(new Error("Synthetic refresh unavailable"));
+    const expired = token(now);
+    const response = await handler()(request("POST", { action: "logout" }, cookie({ accessToken: expired })));
+    expect(response.status).toBe(200); expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(backend.logout).toHaveBeenCalledWith(expired);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_session_logout", { edition_key: config.editionKey }, expired);
+  });
+  it("clears a missing or expired cookie without constructing a backend", async () => {
+    const build = vi.fn(() => { throw new Error("Must not construct provider"); });
+    const handle = createStaffHandler({ readiness: () => readiness, backend: build, now: () => now });
+    const response = await handle(request("POST", { action: "logout" }, cookie({ deadline: now })));
+    expect(response.status).toBe(200); expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(build).not.toHaveBeenCalled();
+  });
+  it("still rejects cross-origin sign-out before revocation or cookie changes", async () => {
+    const input = request("POST", { action: "logout", formToken: "stale" }, cookie());
+    input.headers.set("origin", "https://untrusted.example.invalid");
+    const response = await handler()(input);
+    expect(response.status).toBe(400); expect(response.headers.has("set-cookie")).toBe(false);
+    expect(backend.rpc).not.toHaveBeenCalled(); expect(backend.logout).not.toHaveBeenCalled();
+  });
+});
+
 describe("second steps and safe privileged projections", () => {
+  it("does not contact native verification when the account is locked", async () => {
+    current = persisted("super_admin", "mfa_required");
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_totp_begin"
+      ? { state: "limited" } : original(args[0], args[1], args[2]));
+    const response = await handler()(request("POST", { action: "verify-totp", factorId, challengeId, code: "000000" }, cookie({ factorId, challengeId })));
+    expect(response.status).toBe(429); expect((await response.json()).state).toBe("limited"); expect(backend.verify).not.toHaveBeenCalled();
+  });
+  it("commits the failed provider attempt and returns lockout on the fifth failure", async () => {
+    current = persisted("super_admin", "mfa_required"); vi.mocked(backend.verify).mockResolvedValue(null);
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_totp_finish"
+      ? { state: "limited" } : original(args[0], args[1], args[2]));
+    const response = await handler()(request("POST", { action: "verify-totp", factorId, challengeId, code: "000000" }, cookie({ factorId, challengeId })));
+    expect(response.status).toBe(429); expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_totp_finish", expect.objectContaining({ actor_id: actorId, session_id: sessionId, succeeded: false }));
+  });
+  it("terminalizes a thrown provider failure without acknowledging TOTP", async () => {
+    current = persisted("super_admin", "mfa_required"); vi.mocked(backend.verify).mockRejectedValue(new Error("synthetic provider outage"));
+    const response = await handler()(request("POST", { action: "verify-totp", factorId, challengeId, code: "000000" }, cookie({ factorId, challengeId })));
+    expect(response.status).toBe(503); expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_totp_finish", expect.objectContaining({ succeeded: false }));
+    expect(await response.text()).not.toContain("provider outage");
+  });
+  it("does not acknowledge provider success if durable completion fails", async () => {
+    current = persisted("super_admin", "mfa_required");
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => { if (args[0] === "msrc_staff_totp_finish") throw new Error("synthetic audit unavailable"); return original(args[0], args[1], args[2]); });
+    const response = await handler()(request("POST", { action: "verify-totp", factorId, challengeId, code: "123456" }, cookie({ factorId, challengeId })));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("unavailable");
+  });
+  it("requires a real pending reservation and rejects a denied completion", async () => {
+    current = persisted("super_admin", "mfa_required");
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_totp_begin"
+      ? { state: "denied" } : original(args[0], args[1], args[2]));
+    const response = await handler()(request("POST", { action: "verify-totp", factorId, challengeId, code: "123456" }, cookie({ factorId, challengeId })));
+    expect(response.status).toBe(403); expect(backend.verify).not.toHaveBeenCalled();
+  });
   it("requires current database receipt after email provider success", async () => {
     current = persisted("staff", "staff_email_check_required");
     const response = await handler()(request("POST", { action: "verify-email", code: "123456" }, cookie({ challengeId })));
@@ -150,7 +260,7 @@ describe("second steps and safe privileged projections", () => {
   it("requires genuine persisted TOTP after provider success and audits result", async () => {
     current = persisted("super_admin", "mfa_required");
     const response = await handler()(request("POST", { action: "verify-totp", code: "123456", factorId, challengeId }, cookie({ factorId, challengeId })));
-    expect(response.status).toBe(403); expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_auth_event", expect.objectContaining({ event: "totp_verify", result: "completed" }));
+    expect(response.status).toBe(403); expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_totp_finish", expect.objectContaining({ succeeded: true }));
   });
   it("generates QR pixels from URI, never native SVG markup", async () => {
     current = persisted("super_admin", "mfa_required"); vi.mocked(backend.factors).mockResolvedValue([]);

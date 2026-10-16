@@ -13,7 +13,7 @@ function enumValues(path: string, column: string) {
 
 describe("LOC-03 bilingual immutable audit labels", () => {
   const actions = [
-    ...enumValues("20261007195540_staff_password_change.sql", "action"),
+    ...enumValues("20261016120000_staff_auth_hardening.sql", "action"),
     ...enumValues("20261002173712_persisted_authorization.sql", "event"),
     ...enumValues("20261002193800_staff_mfa_session_foundations.sql", "event"),
     ...enumValues("20261002233353_regular_staff_email_check.sql", "event"),

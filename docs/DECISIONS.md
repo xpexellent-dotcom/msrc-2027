@@ -45,6 +45,83 @@ PRV-02/03/07, CFG-03/09/10, REL-03.
 Official URLs, verification limits, activation prerequisites and acceptance map:
 [DeepSeek feature note](features/ai-assessment.md#deepseek-api-verification).
 
+## ENG-044 — Staff sessions and shared-network hardening, 16 October 2026
+
+Authority: the current implementer task, before staff approvers are invited.
+Implement locally on `codex/staff-hardening`, stacked on the closed registration
+foundation. The planner/QA reviews, reruns checks, commits and opens the PR.
+This task authorizes no commit, branch, push, hosted migration, environment
+change, invitation, real email or workflow activation.
+
+Preserve ORG-015 exact-session regular-staff email assurance, ORG-016 Super Admin
+password/TOTP, invite-only admission, ORG-043's minimum two active Super Admins,
+CSRF on privileged actions, encrypted short-lived cookies, server/database
+authorization and forced RLS. Privileged idle remains **30 minutes** and absolute
+lifetime remains **eight hours** from the immutable native session origin. Token
+refresh alone and passive/background observations do not record activity.
+Current-session navigation and real user input may report activity through an
+explicit same-origin, CSRF-protected POST; deny expired/revoked/held or otherwise
+unauthorized evidence before moving activity. Verify a two-hour read-only work
+session with periodic genuine navigation/interaction, plus idle/absolute denial.
+Reuse the existing authenticated `msrc_session_activity` RPC and its existing
+execute ACL: staff activity rechecks `msrc_staff.authorize(..., true)`, while
+participant activity preserves `own_context(..., false)`. Add no client execute
+grant or private schema/table privilege.
+
+Save any provider-rotated session returned by privileged work before the next
+request, including an authorized action that later fails safely. A failed refresh
+must not grant authority. Logout remains a same-origin local-session removal:
+clear its cookie even if its form token expired, a rate limit is exhausted, a
+readiness gate closed, or provider/database work fails. Attempt application
+revocation and native provider sign-out independently where session evidence is
+available; neither failure may prevent local cookie removal. Preserve Origin/Host
+validation; this exception does not relax tokens or limits on privileged actions.
+When application configuration is closed/unavailable, the dedicated same-origin
+logout header clears the two fixed cookie names without inspecting credentials
+or constructing a provider; remote revocation then cannot be attempted. With a
+valid configuration, an expired access token may be refreshed solely to attempt
+remote revocation; no refreshed authority is retained in the browser.
+
+Shared-network engineering bounds are **12,000 form admissions/IP/rolling hour**,
+**300 password attempts/IP/rolling hour**, and **300 regular-staff email-code
+issues/IP/rolling hour**. These allow a synthetic cohort of 100 people to perform
+one activity report plus one administrative form action/minute, or three
+sign-ins/code issues each per hour from a campus
+egress address. These are abuse allowances, not an approved staff headcount,
+provider quota or email budget. The email IP allowance narrowly supersedes
+ORG-015's twenty/IP/hour under this explicit task. Retain strict account bounds:
+password failures five/15 minutes; email resend 60 seconds, three/account/15
+minutes, ten/account/rolling 24 hours, five wrong codes then 15-minute cooldown.
+Account controls must survive session/IP changes and successful colleagues on
+the same network must not share another account's lockout.
+
+Apply the same **five failed entries then 15-minute account cooldown** pattern
+to authenticator verification, with durable sanitized audit and unlock after the
+window. This adds no email substitute, factor deletion or self-recovery bypass;
+the existing other-Super-Admin recovery path remains in force. Show failed staff
+password attempts through the existing Super-Admin-only audit boundary, with
+time, known opaque account reference and outcome only; never retain submitted
+passwords, raw/full IPs or provider payloads. Keep EN/AR/RTL presentation parity.
+Portal attempts enforce the account counter. Direct managed-Auth wrong-code
+requests remain subject to provider controls; native abuse-limit verification is
+still a hosted release gate. The native guard additionally denies successful
+direct TOTP proof while the portal account cooldown is active.
+
+Document owner-run audit deletion by **28 January 2028**, with a fresh protected
+backup, independently reviewed manifest-bound SQL, disposable rehearsal,
+transactional guard restoration and external restore suppression. Record known
+object-specific advisor exceptions in the existing baseline; do not change grants
+or policies to silence them. New migrations remain **pending — owner applies
+with the hosted change routine**, timestamped after `20261016110000`. Actual
+checks and local database blockers belong in
+[the O9 progress note](progress/2026-10-16-codex-staff-hardening.md).
+
+Requirements: AUTH-04/05/06, ROL-10/12, ADM-04/05, SEC-01/02/06,
+PRV-05/06, LOC-01/03, ACC-01, REL-06. Current behavior and limits:
+[staff portal](features/STAFF_PORTAL.md); audit deletion:
+[backup/restore](features/STAFF_BACKUP_RESTORE.md); known exceptions:
+[advisor baseline](features/PARTICIPANT_ACTIVATION_RUNBOOK.md#advisor-baseline-and-evidence-status).
+
 ## 15 October 2026 — Programme date card refinement
 
 Authority: current requester screenshot and explicit instruction to make the
