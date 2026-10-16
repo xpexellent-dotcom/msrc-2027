@@ -76,6 +76,10 @@
   .team-row { grid-template-columns: minmax(0, 1fr); }
   .team-row:hover, [dir="rtl"] .team-row:hover { transform: none; }
   .team-orb { filter: blur(60px); }
+  /* Nineteen empty member boxes become one quiet line each instead of a tall card. */
+  .team-members:has(.team-members-pending) { flex-flow: row wrap; align-items: baseline; gap: .25rem .75rem; padding: .7rem 1rem; border-radius: 12px; }
+  .team-members:has(.team-members-pending) .team-members-label { margin: 0; }
+  .team-members-pending { font-size: .9375rem; }
 }
 @media (max-width: 380px) {
   .team-leader { grid-template-columns: minmax(0, 1fr); }
