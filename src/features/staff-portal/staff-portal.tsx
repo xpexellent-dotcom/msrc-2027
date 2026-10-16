@@ -52,6 +52,8 @@ export function StaffPortal({ locale, screen, initialProfile, initialPasswordCha
   const [busy, setBusy] = useState(true), [outcome, setOutcome] = useState<string>(""), [query, setQuery] = useState("");
   const [signOutFailure, setSignOutFailure] = useState(false);
   const [passwordChangeRequested, setPasswordChangeRequested] = useState(false);
+  const activity = useRef(0), acknowledgedActivity = useRef(-1);
+  const restores = useRef(new Set<AbortController>());
   const inviteEmail = draft.inviteEmail, inviteRoles = draft.inviteRoles;
   const setInviteEmail = (value: string) => updateStaffDraft({ inviteEmail: value });
   const setInviteRoles = (value: Role[]) => updateStaffDraft({ inviteRoles: value });
@@ -67,47 +69,68 @@ export function StaffPortal({ locale, screen, initialProfile, initialPasswordCha
   const language = locale === "en" ? "ar" : "en";
   useEffect(() => { searchQuery.current = query; }, [query]);
 
-  const restore = useCallback(async (signal?: AbortSignal, search = "") => {
-    const before = generation.current;
-    let response = await requestStaff(undefined, { signal });
-    if (!logoutRequested.current && response.state === "authenticated" && area) response = await requestStaff(undefined, { area, query: area === "audit" ? auditSearchQuery(search, locale) : search, signal });
-    if (!alive.current || signal?.aborted || lock.current || before !== generation.current) return;
-    formToken.current = response.formToken;
-    setView((previous) => logoutRequested.current ? { state: "ready", profile: null } : { ...response, enrollment: response.state === "pending-totp" ? previous.enrollment : undefined });
-    if (errors.has(response.state)) setOutcome(response.state);
-    setBusy(false);
+  const restore = useCallback(async (signal?: AbortSignal, search = "", recordActivity = false) => {
+    const controller = new AbortController(), cancel = () => controller.abort();
+    restores.current.add(controller);
+    signal?.addEventListener("abort", cancel, { once: true });
+    if (signal?.aborted) cancel();
+    const requestSignal = controller.signal;
+    try {
+      const before = generation.current;
+      const activitySequence = activity.current;
+      let response = await requestStaff(undefined, { signal: requestSignal });
+      // Only a mounted navigation or actual input can request an idle-clock touch.
+      // Visibility polling by itself observes, so an unattended tab still expires.
+      if (!logoutRequested.current && !lock.current && before === generation.current && recordActivity && response.state === "authenticated" && response.formToken) {
+        response = await requestStaff({ action: "activity", formToken: response.formToken }, { signal: requestSignal });
+        if (response.state === "authenticated") acknowledgedActivity.current = activitySequence;
+      }
+      if (!logoutRequested.current && response.state === "authenticated" && area) response = await requestStaff(undefined, { area, query: area === "audit" ? auditSearchQuery(search, locale) : search, signal: requestSignal });
+      if (!alive.current || requestSignal.aborted || lock.current || before !== generation.current) return;
+      formToken.current = response.formToken;
+      setView((previous) => logoutRequested.current ? { state: "ready", profile: null } : { ...response, enrollment: response.state === "pending-totp" ? previous.enrollment : undefined });
+      if (errors.has(response.state)) setOutcome(response.state);
+      setBusy(false);
+    } finally { signal?.removeEventListener("abort", cancel); restores.current.delete(controller); }
   }, [area, locale]);
 
   useEffect(() => {
     alive.current = true;
+    const pendingRestores = restores.current;
     const controller = new AbortController();
-    const startup = window.setTimeout(() => { void restore(controller.signal); }, 0);
+    const startup = window.setTimeout(() => { void restore(controller.signal, "", true); }, 0);
     if (screen === "accept-invitation") {
       const parameters = new URLSearchParams(window.location.hash.slice(1));
       const invitationId = parameters.get("invitation"), token = parameters.get("token");
       if (invitationId && token) updateStaffDraft({ invitationId, token });
       if (window.location.hash) window.history.replaceState(window.history.state, "", window.location.pathname);
     }
-    const timer = window.setInterval(() => { if (document.visibilityState === "visible" && !lock.current) void restore(undefined, searchQuery.current); }, 60_000);
+    const input = (event: Event) => { if (event.isTrusted && document.visibilityState === "visible") activity.current += 1; };
+    // Scroll events can also be caused by focus restoration or application code;
+    // wheel/pointer/keyboard events distinguish deliberate reading interactions.
+    const inputEvents = ["pointerdown", "keydown", "wheel"] as const;
+    for (const event of inputEvents) window.addEventListener(event, input, { passive: true });
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible" && !lock.current) void restore(undefined, searchQuery.current, activity.current !== acknowledgedActivity.current); }, 60_000);
     const clearPrivate = () => { formToken.current = undefined; setView({ state: "ready", profile: null }); };
-    const resume = (event: PageTransitionEvent) => { if (event.persisted) void restore(); };
+    const resume = (event: PageTransitionEvent) => { if (event.persisted) void restore(undefined, "", true); };
     window.addEventListener("pagehide", clearPrivate); window.addEventListener("pageshow", resume);
-    return () => { alive.current = false; controller.abort(); window.clearTimeout(startup); window.clearInterval(timer); window.removeEventListener("pagehide", clearPrivate); window.removeEventListener("pageshow", resume); };
+    return () => { alive.current = false; controller.abort(); for (const pending of pendingRestores) pending.abort(); window.clearTimeout(startup); window.clearInterval(timer); window.removeEventListener("pagehide", clearPrivate); window.removeEventListener("pageshow", resume); for (const event of inputEvents) window.removeEventListener(event, input); };
   }, [restore, screen]);
 
   useEffect(() => { if (outcome && (errors.has(outcome) || outcome in copy.errors)) feedback.current?.focus(); }, [outcome, copy.errors]);
 
   async function act(payload: Omit<StaffPayload, "formToken">): Promise<StaffResponse> {
-    if (lock.current || !formToken.current) return { state: "unavailable" };
+    if (lock.current || !formToken.current && payload.action !== "logout") return { state: "unavailable" };
     lock.current = true; generation.current += 1; setBusy(true); setOutcome("");
     setSignOutFailure(false);
     if (payload.action === "logout") {
       logoutRequested.current = true;
+      for (const pending of restores.current) pending.abort();
       setView({ state: "ready", profile: null });
       clearStaffDraft();
     }
     if (payload.action === "password-change") setPasswordChangeRequested(true);
-    const response = await requestStaff({ ...payload, formToken: formToken.current });
+    const response = await requestStaff({ ...payload, formToken: formToken.current ?? "" });
     formToken.current = response.formToken;
     if (!alive.current) { lock.current = false; return response; }
     setOutcome(response.state);

@@ -57,7 +57,7 @@ async function actionFixture(page: Page) {
           people.find((person) => person.actorId === payload.targetId)!.recoveryState = payload.action === "reset-account" ? "awaiting_invitation" : "none";
           heldAction = null; response = { state: "updated" };
         }
-      } else response = { state: "updated" };
+      } else if (payload.action !== "activity") response = { state: "updated" };
     } else if (url.searchParams.get("area") === "people") response = { ...response, people, invitations };
     response.formToken = `synthetic-mobile-form-${++sequence}`;
     await route.fulfill({ status: response.state === "unavailable" ? 503 : response.state === "denied" ? 403 : 200, contentType: "application/json", body: JSON.stringify(response) });

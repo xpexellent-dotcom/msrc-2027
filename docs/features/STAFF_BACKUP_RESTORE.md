@@ -101,3 +101,88 @@ accounts created later without that reconciliation.
 The disposable clone remains only for the pending six-stage compatibility
 rehearsal. After evidence is retained, remove only its verified task-owned
 container; retain private original archives, supplemental manifests and receipts.
+
+## Staff audit deletion by 28 January 2028 — owner procedure, not executed
+
+The 16 October hardening task requires staff audit deletion to be completed by
+**28 January 2028**. Append-only controls protect operational history while it is
+retained; they do not approve indefinite retention or an audit exception to the
+published policy. This is an execution procedure for the owner to review and
+authorize separately. It adds no deletion endpoint, job, migration, API grant or
+live change. Database rehearsal and deletion are **NOT TESTED / NOT PERFORMED**
+locally because Docker/Supabase is unavailable.
+
+The staff audit screen combines the following sources. Purging only the first
+table would leave staff evidence visible through the other three. Verify the
+current schema and every additional source before preparing the actual SQL.
+
+| Private table | Row guard to disable only during the reviewed transaction | Truncate guard to leave enabled |
+| --- | --- | --- |
+| `msrc_staff.audit` | `staff_audit_immutable` | `staff_audit_no_truncate` |
+| `msrc_authorization.grant_audit` | `grant_audit_append_only` | `grant_audit_no_truncate` |
+| `msrc_sessions.security_audit` | `security_audit_append_only` | `security_audit_no_truncate` |
+| `msrc_staff_email.audit` | `staff_email_audit_append_only` | `staff_email_audit_no_truncate` |
+
+1. Assign a named owner/operator and independent reviewer, and schedule completion
+   before the deadline. Review the approved scope, exact target/revision and any
+   separately approved retention exception. Inventory table ownership, all audit
+   triggers, ACLs, forced RLS, foreign keys, exports and backup copies. Staff
+   identities may span editions; edition-null sign-in/TOTP records and the
+   session/email sources need explicit inclusion. Do not infer eligibility solely
+   from today's role grants or from a later-deleted staff profile. Resolve shared
+   edition records with the owner before the deadline; this procedure creates no
+   new retention exception.
+2. Take a fresh encrypted private backup **before deletion**, verify its hashes,
+   and restore/reconcile it in an isolated disposable target using this document's
+   backup/restore checks. Record safe counts and metadata only. Agree the backup's
+   destruction/overwrite handling and restore-suppression expiry with the privacy
+   owner; a pre-delete archive must not become an indefinite replacement audit.
+3. Prepare a protected, reviewed manifest containing only source-table names and
+   exact eligible row UUIDs, plus the approved timestamp boundary and per-table
+   expected counts. Include all relevant edition-null records. Keep names,
+   addresses, tokens, passwords, codes, raw IPs and audit contents out of the
+   manifest and public receipts. Keep a separate minimal deletion/restore receipt
+   outside the database backup so restoring an older database cannot silently
+   resurrect deleted audit records.
+4. Rehearse the exact reviewed SQL against the isolated restore first, then run it
+   only through the separately authorized hosted-change routine as native
+   `postgres` with verified table ownership. Use a single explicit transaction,
+   `SET LOCAL search_path = ''`, bounded lock/statement timeouts, and explicit
+   table locks in the table order above. Load the reviewed manifest into a
+   transaction-local temporary table; assert its nonzero total, exact per-table
+   counts, timestamp eligibility and that every UUID resolves to its named source.
+   Missing/unexpected rows, schema drift or an unknown prior transaction outcome
+   are STOP conditions. Keep staff gates closed for the maintenance window under
+   the approved change plan; do not modify live settings in this implementation.
+5. For each approved source use only its named row-guard operation, for example
+   `ALTER TABLE msrc_staff.audit DISABLE TRIGGER staff_audit_immutable`, followed
+   by `DELETE ... USING pg_temp.staff_audit_delete_manifest` matching both source
+   and UUID and the approved timestamp bound. Compare each affected-row count to
+   its manifest count. Immediately restore that same named trigger with
+   `ALTER TABLE msrc_staff.audit ENABLE TRIGGER staff_audit_immutable`. Repeat
+   with the exact row-guard names above, then assert all guards are enabled,
+   every manifested row is absent, unrelated rows are unchanged, and ownership,
+   forced RLS and ACLs match preflight **before COMMIT**. Never use `DISABLE
+   TRIGGER ALL`, `session_replication_role`, `TRUNCATE`, a changed trigger body,
+   disabled RLS or a permanent client/service-role `DELETE` grant. An assertion or
+   query failure must roll back the whole transaction, including trigger changes.
+6. Independently verify committed counts, enabled append-only/truncate guards,
+   API denial and Super-Admin-only audit access. In the isolated rehearsal prove
+   ordinary UPDATE/DELETE/TRUNCATE still fail and inject a deletion failure to
+   prove row data and trigger state roll back together. Retain the reviewed SQL
+   hash, target, operator/reviewer, timestamp, counts and outcome privately; no
+   audit contents belong in repository receipts. A retained in-database purge
+   audit must not recreate personal references just erased.
+7. Remove matching controlled exports and expire the pre-delete archive according
+   to the agreed backup handling; provider backups follow their verified routine
+   overwrite cycle. Before any older backup is reopened, close staff gates,
+   replay the external deletion manifest through the same reviewed procedure,
+   verify absence and guards, then reconcile newer writes and service readiness.
+   Do not restore deleted audit rows as rollback. A backup/manifest/replay failure
+   keeps the restored service closed until the owner reconciles it.
+
+PostgreSQL documents named trigger changes and their locks in
+[`ALTER TABLE`](https://www.postgresql.org/docs/17/sql-altertable.html#SQL-ALTERTABLE-DESC-DISABLE-ENABLE-TRIGGER).
+The exact deletion SQL, review, disposable rehearsal and hosted execution receipts
+remain future owner-run work. Record completion by the deadline; this document
+does not claim any audit data has been erased.

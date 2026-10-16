@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/i18n";
 /** Human-readable labels for the immutable staff, grant, session and email event enums. */
 export const auditActions = {
   en: {
+    password_sign_in: "Password sign-in attempt", totp_locked: "Lock authenticator attempts", totp_unlocked: "Unlock authenticator attempts",
     password_change: "Change own password",
     bootstrap: "First Super Admin setup", invite: "Create invitation", invite_delivery: "Deliver invitation", invite_revoke: "Revoke invitation", invite_consume: "Use invitation link", invite_complete: "Complete invitation",
     sign_in: "Staff sign-in", set_roles: "Change roles", suspend: "Suspend account", reactivate: "Reactivate account", revoke_sessions: "Revoke all sessions", reset_authenticator: "Reset another Super Admin's authenticator", reset_account: "Reset another Super Admin's account", admin_complete: "Complete account recovery",
@@ -11,6 +12,7 @@ export const auditActions = {
     "challenge.reserved": "Prepare staff email code", "challenge.sent": "Send staff email code", "challenge.failed": "Staff email code delivery failed", "challenge.superseded": "Replace staff email code", "challenge.denied": "Deny staff email check", "challenge.expired": "Staff email code expired", "challenge.locked": "Lock staff email check", "challenge.verified": "Verify staff email code", "receipt.created": "Record session email verification",
   },
   ar: {
+    password_sign_in: "محاولة تسجيل الدخول بكلمة المرور", totp_locked: "حظر محاولات تطبيق المصادقة", totp_unlocked: "رفع حظر محاولات تطبيق المصادقة",
     password_change: "تغيير كلمة المرور الخاصة",
     bootstrap: "إعداد المشرف الأعلى الأول", invite: "إنشاء دعوة", invite_delivery: "تسليم الدعوة", invite_revoke: "إلغاء الدعوة", invite_consume: "استخدام رابط الدعوة", invite_complete: "إكمال الدعوة",
     sign_in: "تسجيل دخول الفريق", set_roles: "تغيير الأدوار", suspend: "تعليق الحساب", reactivate: "إعادة تفعيل الحساب", revoke_sessions: "إلغاء جميع الجلسات", reset_authenticator: "إعادة ضبط تطبيق مصادقة مشرف أعلى آخر", reset_account: "إعادة ضبط حساب مشرف أعلى آخر", admin_complete: "إكمال استعادة الحساب",

@@ -21,7 +21,7 @@ the current strongest tier across editions. Regular staff complete #25's exact
 session email check. Super Admins enroll/verify native authenticator TOTP, using
 a generated QR code with a manual setup alternative. The native session origin
 is immutable: privileged idle expiry is 30 minutes and absolute expiry is eight
-hours. Refresh does not restart either clock. Current account suspension, grant
+hours. Refresh does not restart origin or count as activity. Current account suspension, grant
 history, session revocation, password changes and native factor state are checked
 again on privileged requests. Client menus and JWT role labels are not authority.
 
@@ -67,6 +67,61 @@ authority/account locks. Recovery does not suspend accounts or reduce the active
 Super Admin minimum. Expired interrupted operations receive a terminal audit when
 the other administrator authorizes a retry. Provider failures preserve an audit result. Audit projections exclude
 passwords, native tokens, invitation digests, codes and provider payloads.
+
+## 16 October hardening — local implementation, pending release
+
+[ENG-044](../DECISIONS.md#eng-044--staff-sessions-and-shared-network-hardening-16-october-2026)
+records the current request and limits. Periodic real navigation and user input
+report activity through an explicit same-origin, CSRF-protected POST while the
+native session, current assurance and both deadlines remain valid. Ordinary
+background polling/status reads only observe; they cannot keep an abandoned
+session alive. The required regression is two hours of read-only staff work with
+periodic navigation/interaction, alongside 30-minute inactivity and eight-hour
+absolute expiry. This does not open an operational module.
+The POST uses the existing `msrc_session_activity` RPC/execute ACL with current
+staff authorization; participant activity retains its existing non-touching
+context. No new client execute or private schema/table grant is introduced.
+
+Privileged actions persist provider-rotated tokens in the encrypted cookie.
+Refresh failure denies authority. Sign-out validates the request origin, clears
+the local cookie even with a stale form token, exhausted rate limits, closed
+readiness or unavailable provider/database, and tries database and provider
+revocation independently. An expired access token may refresh only for that
+revocation. Without valid application configuration, the dedicated same-origin
+logout header clears the two fixed cookie names without credential inspection
+or provider construction; remote revocation cannot then be attempted. Failed
+remote revocation is a partial remote outcome; local sign-out still completes.
+
+| Abuse boundary | Current bound | Rationale |
+| --- | --- | --- |
+| Form admissions / IP | 12,000 / rolling hour | 100 synthetic staff × [one activity report + one administrative action]/minute. |
+| Password attempts / IP | 300 / rolling hour | 100 synthetic staff × three sign-in/reconnect attempts/hour. |
+| Email-code issues / IP | 300 / rolling hour | The same campus cohort can complete its exact-session checks. |
+| Password failures / account | Five / 15 minutes | Shared-network allowance must not loosen account protection. |
+| Email-code issues / account | 60-second resend; three/15 minutes; ten/rolling 24 hours | Existing ORG-015 account quotas remain strict across sessions/IPs. |
+| Wrong email or authenticator codes / account | Five failures, then 15-minute cooldown | Durable account lockout; the window's end permits retry without removing the required second step. |
+
+The IP figures describe engineering abuse capacity, not an approved roster,
+delivery budget or provider quota. Daily combined delivery caps remain separate.
+No raw IP, password, code, authenticator secret or provider payload enters audit.
+Failed password attempts appear in the existing Super-Admin-only audit view with
+time, outcome and an opaque account reference when safely known, including EN/AR
+labels. Other staff roles and anonymous requests remain denied.
+
+A TOTP lockout does not reset the authenticator. Wait out the 15-minute window
+and retry with the current valid code. For a lost authenticator or account access,
+use the existing other-Super-Admin recovery procedure above and in the activation
+checklist; no self-service or email fallback is added. Portal attempts enforce
+this account counter; wrong codes sent directly to managed Auth are governed by
+the provider's own controls and are not counted by the portal. The native guard
+denies successful direct proof while the portal cooldown is active. Native abuse
+limits and direct-endpoint verification remain independent hosted release gates.
+Staff audit retention uses
+the [owner procedure](STAFF_BACKUP_RESTORE.md#staff-audit-deletion-by-28-january-2028--owner-procedure-not-executed)
+and [object-specific advisor baseline](PARTICIPANT_ACTIVATION_RUNBOOK.md#advisor-baseline-and-evidence-status).
+Hosted migrations/settings, invitations and real delivery remain unperformed by
+this task. Exact observed checks are in
+[the O9 note](../progress/2026-10-16-codex-staff-hardening.md).
 
 ## Activation procedure — document only; not executed
 

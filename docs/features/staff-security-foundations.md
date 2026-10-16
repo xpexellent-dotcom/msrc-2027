@@ -37,6 +37,19 @@ Own-context RPCs omit phone fields and never activate sessions. Current native f
 
 Participant72h absolute; privileged30min idle/8h absolute; equality expires and original managed creation time is authoritative. Refresh cannot reset origin or touch activity. Logout/suspension/email/role/factor change revoke applicable evidence. Recent-auth age/warning lead stay null; dependent actions closed.
 
+The 16 October [ENG-044 hardening](../DECISIONS.md#eng-044--staff-sessions-and-shared-network-hardening-16-october-2026)
+allows an explicit same-origin, CSRF-protected activity POST from real portal
+navigation/input after current authority and deadlines are checked. Passive
+background/profile/status reads remain observation-only; refresh remains no
+activity. The target is two hours of read-only work with genuine periodic
+navigation, retaining 30-minute abandoned-session and eight-hour absolute expiry.
+Provider-rotated sessions must be saved after privileged actions, including
+later safe failures. Local logout clears the cookie despite stale tokens,
+exhausted limits or provider/database failure, attempting both revocations
+independently. See [current portal bounds and recovery](STAFF_PORTAL.md#16-october-hardening--local-implementation-pending-release)
+for shared-IP sizing, strict account counters, audited TOTP cooldown and the
+Super-Admin-only failed-password audit projection. No hosted change is performed.
+
 ## Verification and manual UAT
 
 Current commands/counts/source/CI/visual receipts are in PROGRESS. Database runtime/RLS/ACL/advisors/generated types and genuine Auth tests run only in isolated GitHub CI. Local Docker/database is NOT TESTED by design.
