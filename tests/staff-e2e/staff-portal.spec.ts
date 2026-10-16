@@ -178,7 +178,7 @@ for (const locale of ["en", "ar"] as const) {
     // Audit the completed staff-home document, retaining the document-title rule.
     await expect(page.getByTestId("staff-portal")).toHaveAttribute("data-screen", "home");
     await expect(page.getByRole("navigation", { name: copy.menu })).toBeVisible();
-    await expect(page).toHaveTitle("MSRC 2027 | Staff portal");
+    await expect(page).toHaveTitle(`MSRC 2027 | ${copy.portal}`);
     expect(mock.actions.find((action) => action.action === "invite-accept")).toMatchObject({ invitationId, token: "a".repeat(43) });
     await axe(page);
   });
@@ -227,7 +227,7 @@ for (const locale of ["en", "ar"] as const) {
     // Scan the completed sign-in document, retaining the document-title rule.
     await expect(page.getByTestId("staff-portal")).toHaveAttribute("data-screen", "sign-in");
     await expect(page.getByRole("heading", { name: copy.signIn, exact: true })).toBeVisible();
-    await expect(page).toHaveTitle("MSRC 2027 | Staff portal");
+    await expect(page).toHaveTitle(`MSRC 2027 | ${copy.portal}`);
     await axe(page);
   });
 

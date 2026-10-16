@@ -6,8 +6,11 @@ import { validRubric } from "./request.server.ts";
 
 const exactKeys = (value: Record<string, unknown>, keys: readonly string[]) => Object.keys(value).length === keys.length && Object.keys(value).every(key => keys.includes(key));
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-export const ANTHROPIC_TRANSPORT_POLICY = Object.freeze({ sdkVersion: "0.131.0", baseURL: "https://api.anthropic.com",
-  timeout: 60_000, maxRetries: 0, logLevel: "off" as const, fallbackPolicy: "anthropic-default-sync-only", syncCacheTtl: "5m", batchCacheTtl: "1h" });
+export const DEEPSEEK_TRANSPORT_POLICY = Object.freeze({ transport: "fetch", baseURL: "https://api.deepseek.com",
+  endpoint: "/chat/completions", timeout: 60_000, maxRetries: 0, logLevel: "off", redirect: "error", credentials: "omit",
+  responseFormat: "json_object", thinking: "disabled", stream: false, batch: "unsupported", fallbackPolicy: "manual-review-only",
+  cachePolicy: "provider-automatic-no-client-directives", reasoningPolicy: "discard" } as const);
+export const DEEPSEEK_MODEL = "deepseek-flash";
 function freeze<T>(value: T): T {
   if (typeof value === "object" && value !== null) { Object.values(value).forEach(freeze); Object.freeze(value); }
   return value;
@@ -16,19 +19,18 @@ function freeze<T>(value: T): T {
 /** Binds approval to every operating value and a non-reversible credential fingerprint; never return the key. */
 export function configurationDigest(config: AssessmentConfiguration): string {
   return hash({ provider: config.provider, accountId: config.accountId, keyFingerprint: hash(config.apiKey), model: config.model,
-    servingModelIds: [...config.servingModelIds].sort(), promptVersion: config.promptVersion, effort: config.effort,
-    maxTokens: config.maxTokens, rubric: config.rubric, budget: config.budget, transport: ANTHROPIC_TRANSPORT_POLICY });
+    servingModelIds: [...config.servingModelIds].sort(), promptVersion: config.promptVersion, thinking: config.thinking,
+    maxTokens: config.maxTokens, rubric: config.rubric, budget: config.budget, transport: DEEPSEEK_TRANSPORT_POLICY });
 }
 
 export function validateConfiguration(value: unknown, now: number): { readonly ok: true; readonly configuration: AssessmentConfiguration; readonly digest: string; readonly approvalDigest: string }
   | { readonly ok: false; readonly reason: Extract<ManualReason, "invalid_configuration" | "unapproved_configuration"> } {
   const invalid = { ok: false, reason: "invalid_configuration" } as const;
-  if (!isRecord(value) || !exactKeys(value, ["provider", "accountId", "apiKey", "model", "servingModelIds", "promptVersion", "effort", "maxTokens", "rubric", "budget", "approvals"])
-    || value.provider !== "anthropic" || !validReference(value.accountId) || typeof value.apiKey !== "string" || !/^[^\s]{8,512}$/.test(value.apiKey)
-    || value.model !== "claude-opus-5-5" || !Array.isArray(value.servingModelIds) || value.servingModelIds.length === 0 || value.servingModelIds.length > 20
-    || !value.servingModelIds.every(validReference) || new Set(value.servingModelIds).size !== value.servingModelIds.length
-    || !value.servingModelIds.includes(value.model) || !validReference(value.promptVersion)
-    || typeof value.effort !== "string" || !["low", "medium", "high", "xhigh", "max"].includes(value.effort)
+  if (!isRecord(value) || !exactKeys(value, ["provider", "accountId", "apiKey", "model", "servingModelIds", "promptVersion", "thinking", "maxTokens", "rubric", "budget", "approvals"])
+    || value.provider !== "deepseek" || !validReference(value.accountId) || typeof value.apiKey !== "string" || !/^[^\s]{8,512}$/.test(value.apiKey)
+    || value.model !== DEEPSEEK_MODEL || !Array.isArray(value.servingModelIds) || value.servingModelIds.length !== 1
+    || value.servingModelIds[0] !== DEEPSEEK_MODEL || !validReference(value.promptVersion)
+    || value.thinking !== "disabled"
     || !Number.isSafeInteger(value.maxTokens) || Number(value.maxTokens) <= 0 || Number(value.maxTokens) > 128_000
     || !isRecord(value.rubric) || !exactKeys(value.rubric, ["version", "status", "criteria"]) || !validRubric(value.rubric) || !isRecord(value.budget)
     || !exactKeys(value.budget, ["capUsd", "reservationUsdPerRequest", "ledgerId", "maxBatchItems"])

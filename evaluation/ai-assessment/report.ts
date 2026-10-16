@@ -38,16 +38,17 @@ function validateHuman(records: readonly HumanAssessment[], rubric: ReportRubric
 }
 
 function validTimestamp(value: string) { return typeof value === "string" && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value; }
-const FAILURE_CATEGORIES = new Set(["invalid_snapshot", "identity_leak", "provider_unavailable", "refusal", "incomplete_output", "invalid_output", "unexpected_model", "batch_errored", "batch_canceled", "batch_expired", "batch_missing_result"]);
+const FAILURE_CATEGORIES = new Set(["invalid_snapshot", "identity_leak", "provider_unavailable", "refusal", "incomplete_output", "invalid_output", "unexpected_model", "batch_unsupported"]);
 
-function validateOutcomes(outcomes: readonly EvaluationOutcome[], rubric: ReportRubric, execution: "mock" | "live_synthetic_batch") {
+function validateOutcomes(outcomes: readonly EvaluationOutcome[], rubric: ReportRubric, execution: "mock" | "unsupported_synthetic_batch") {
+  if (!["mock", "unsupported_synthetic_batch"].includes(execution)) throw new Error("invalid_evaluation_execution");
   for (const outcome of outcomes) {
     const example = SYNTHETIC_CORPUS.find((entry) => entry.id === outcome.caseId);
     const provenance = outcome.provenance;
     if (!example || provenance.snapshotId !== example.snapshot.id || provenance.snapshotVersion !== example.snapshot.version ||
       provenance.rubricVersion !== rubric.version || provenance.promptVersion !== SYNTHETIC_PROMPT_VERSION || provenance.requestedModel !== SYNTHETIC_MODEL ||
-      provenance.provider !== (execution === "mock" ? "mock_anthropic" : "anthropic") || !validTimestamp(provenance.timestamp) ||
-      (provenance.model !== null && !/^claude-[a-z0-9-]{1,100}$/.test(provenance.model))) throw new Error("invalid_evaluation_provenance");
+      provenance.provider !== (execution === "mock" ? "mock_deepseek" : "deepseek") || !validTimestamp(provenance.timestamp) ||
+      (provenance.model !== null && !/^deepseek-[a-z0-9.-]{1,100}$/.test(provenance.model))) throw new Error("invalid_evaluation_provenance");
     const sanitized = sanitizeSnapshot(example.snapshot);
     const expectedWarnings = sanitized.ok ? sanitized.warnings : [];
     if (!Array.isArray(provenance.sanitizationWarnings) || provenance.sanitizationWarnings.some((warning) => warning !== "generic_institution_mention") ||
@@ -56,8 +57,10 @@ function validateOutcomes(outcomes: readonly EvaluationOutcome[], rubric: Report
       Object.keys(provenance).some((key) => !["provider", "requestedModel", "model", "promptVersion", "rubricVersion", "snapshotId", "snapshotVersion", "timestamp", "sanitizationWarnings"].includes(key))) throw new Error("invalid_evaluation_provenance");
     if (outcome.status === "manual_review") {
       if (outcome.output !== null || !outcome.reason || !FAILURE_CATEGORIES.has(outcome.reason)) throw new Error("invalid_evaluation_outcome");
+      if (execution === "unsupported_synthetic_batch" && (provenance.model !== null || !["batch_unsupported", "invalid_snapshot", "identity_leak"].includes(outcome.reason))) throw new Error("invalid_evaluation_outcome");
       continue;
     }
+    if (execution === "unsupported_synthetic_batch") throw new Error("invalid_evaluation_outcome");
     if (outcome.status !== "completed" || provenance.model !== SYNTHETIC_MODEL || outcome.reason !== null || !outcome.output || !Array.isArray(outcome.output.criteria) ||
       outcome.output.criteria.length !== rubric.criteria.length || typeof outcome.output.overallComment !== "string" ||
       !outcome.output.overallComment.trim() || outcome.output.overallComment.length > 2000) throw new Error("invalid_evaluation_outcome");
@@ -76,7 +79,7 @@ function validateOutcomes(outcomes: readonly EvaluationOutcome[], rubric: Report
 /** Pure comparison artifact. It neither publishes decisions nor activates assessment. */
 export function createEvaluationReport(outcomes: readonly EvaluationOutcome[], rubric: ReportRubric, options: {
   generatedAt: string;
-  execution: "mock" | "live_synthetic_batch";
+  execution: "mock" | "unsupported_synthetic_batch";
   humanAssessments?: readonly HumanAssessment[];
 }) {
   const human = options.humanAssessments ?? [];
@@ -123,7 +126,7 @@ export function createEvaluationReport(outcomes: readonly EvaluationOutcome[], r
     };
   });
   return {
-    reportVersion: "synthetic-evaluation-report-v2", corpusVersion: CORPUS_VERSION,
+    reportVersion: "synthetic-evaluation-report-v3", corpusVersion: CORPUS_VERSION,
     generatedAt: options.generatedAt, execution: options.execution,
     syntheticOnly: true, rubricVersion: rubric.version, rubricStatus: rubric.status,
     publicationAuthority: "human_committee", activationApproval: "NOT_GRANTED",
@@ -132,7 +135,7 @@ export function createEvaluationReport(outcomes: readonly EvaluationOutcome[], r
       rubric.status === "UNAPPROVED" ? "UNAPPROVED placeholder rubric; synthetic technical exercise only." : "Synthetic technical exercise; committee approval remains separate.",
       "Mock outputs prove plumbing and failure handling; they do not measure real-model scientific accuracy or injection resistance.",
       "Human scores remain null until separately supplied with matching case, snapshot and rubric versions.",
-      "Batch API has no server-side refusal fallback; refusals require manual review.",
+      "DeepSeek batch dispatch and collection are unsupported; no provider call is made and manual review remains available.",
       "No real manuscripts, committee decision, automatic rejection or activation evidence are created.",
     ],
     summary: {
