@@ -57,6 +57,17 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
 .hero-countdown .countdown-context { display: none; }
 .hero-countdown [data-countdown='dates'] .countdown-context, .hero-countdown [data-countdown='day1'] .countdown-context, .hero-countdown [data-countdown='day2'] .countdown-context, .hero-countdown [data-countdown='after'] .countdown-context { display: block; }
 .hero-countdown .countdown-dates { font-size: 1.1rem; border-color: #f8f6f040; }
+/* Desktop reserves the clock's measured height before it hydrates, so the opening
+   does not jump (CLS). Values follow the clock's width- and height-dependent size. */
+@media (scripting: enabled) and (min-width: 1001px) {
+  .hero-countdown { --countdown-reserve: clamp(270px, 214.8px + 5.58vw, 294px); }
+  [lang='ar'] .hero-countdown { --countdown-reserve: clamp(305px, 241.9px + 6.38vw, 333px); }
+  .hero-countdown .conference-countdown[data-countdown='dates'] { min-block-size: var(--countdown-reserve); }
+}
+@media (scripting: enabled) and (min-width: 1001px) and (max-height: 850px) {
+  .hero-countdown { --countdown-reserve: clamp(254px, 218.4px + 3.53vw, 269px); }
+  [lang='ar'] .hero-countdown { --countdown-reserve: clamp(287px, 244.1px + 4.23vw, 305px); }
+}
 
 /* The unconfirmed brand strip is deliberately illustrative and fully pausable. */
 .brand-marquee { overflow: hidden; background: var(--color-ink); color: var(--color-ivory); padding-block: 1.5rem 2.5rem; }
@@ -272,6 +283,9 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
   .hero-editorial h1 { font-size: clamp(2.8rem,11.2vw,4rem); }
   .hero-content { padding-block-start: max(8rem,calc(var(--site-header-height,6rem) + 1rem)); }
   .hero-conference-name { margin-block: 1.5rem; font-size: 1rem; }
+  /* Date and city stack on phones; the separator would otherwise dangle at a line end. */
+  .hero-location { flex-direction: column; }
+  .hero-location > [aria-hidden="true"] { display: none; }
   .hero-bottom-grid { margin-block-start: 1rem; }
   .hero-introduction { max-inline-size: 100%; }
   .hero-lead { font-size: 1rem; }

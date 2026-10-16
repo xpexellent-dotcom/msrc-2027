@@ -231,7 +231,7 @@ export function MediaCard({ locale, record, session }: { locale: Locale; record:
   const description = locale === "ar" && record.descriptionAr ? record.descriptionAr : record.description;
   const captionLocale = locale === "ar" && record.titleAr ? "ar" : "en";
   const duration = record.durationSeconds ? record.durationSeconds < 60
-    ? new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { style: "unit", unit: "second", unitDisplay: "long", maximumFractionDigits: 1 }).format(record.durationSeconds)
+    ? new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { style: "unit", unit: "second", unitDisplay: "long", maximumFractionDigits: 0 }).format(Math.max(1, Math.round(record.durationSeconds)))
     : formatMinutes(Math.ceil(record.durationSeconds / 60), locale) : null;
   return <article className="conference-media-card" data-media-kind={record.kind}>
     <div className={`conference-media-player${isPhoto ? " conference-media-player--photo" : ""}`}>
