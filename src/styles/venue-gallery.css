@@ -94,6 +94,11 @@
   .venue-header-collage .venue-collage-photo--02 { inset-inline-start: 43%; inset-block-start: 44%; --photo-rotation: -3deg; z-index: 3; }
   .venue-header-collage .venue-collage-photo--04 { inset-inline-start: 5%; inset-block-start: 42%; --photo-rotation: 5deg; z-index: 4; }
   .venue-header-collage .venue-collage-photo[data-photo-active="true"] { z-index: 5; }
+  /* Overlapping photos hide each other's lower-start corner, so captions sit on the
+     part of each photo that stays visible in the stack. */
+  .venue-header-collage :is(.venue-collage-photo--03, .venue-collage-photo--01) .venue-collage-caption { inset-block: 1rem auto; }
+  .venue-header-collage :is(.venue-collage-photo--01, .venue-collage-photo--02) .venue-collage-caption { text-align: end; }
+  .venue-header-collage :is(.venue-collage-photo--03, .venue-collage-photo--01) .venue-collage-photo-button::after { background: linear-gradient(0deg,#3b1e6d30,#3b1e6d40 55%,#20132dce); }
   .venue-header-collage .venue-collage-photo:focus-within { z-index: 10; }
   .venue-header-collage .venue-collage-photo-button { box-shadow: 0 14px 32px rgb(17 8 28 / 30%); transform: rotate(var(--photo-rotation)); transition: transform 220ms cubic-bezier(.23,1,.32,1); }
   .venue-header-collage .venue-collage-photo-button:focus-visible { transform: rotate(0) scale(1.035); transition: none; outline-width: 3px; outline-offset: 4px; }

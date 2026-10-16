@@ -1,5 +1,48 @@
 # Progress and session handover
 
+## 16 October 2026 — Public-site QA and polish sweep (production `2406a17`)
+
+- Scope: production `dpl_Ex9A1VCGhRVtziY7MBimW61dPr8w` (`main` at `2406a17`) and
+  local dev/production builds. 19 public routes × EN/AR × 1440px and iPhone 13:
+  status, console/page errors, failed requests, overflow and broken images (all
+  zero), plus sliced visual review at desktop, 768px tablet and phone widths,
+  scripted keyboard/hover/menu/rail/filter checks, focus-ring walk, LCP/CLS and
+  transfer weight. Vercel runtime errors (7 days): none. GitHub: all three
+  workflows green on `2406a17`; no open PRs. Supabase advisors: only the known
+  deny-all RLS/private RPC findings and the hosted Auth "leaked password
+  protection" setting (hosted settings untouched; not in scope).
+- Fixed: hovering Participate opened its menu and the click that usually
+  follows on the chevron closed it again; a hover-opened menu now stays open on
+  that click (second click closes). Regression added to `axiom-navigation.spec`.
+- Fixed: homepage countdown hydration. With JavaScript, the plain-dates fallback
+  no longer flashes before the clock, the clock joins the opening fade, and
+  desktop reserves its measured height so the hero no longer jumps (desktop CLS
+  0.02–0.07 on production → ≤0.0002 locally, 1024–1920px, EN/AR). No-JS output
+  is unchanged.
+- Fixed: Venue header collage captions sat on the corners other photos cover
+  ("Inside the center" showed only "center"); captions now sit on each photo's
+  visible edge. Phone hero no longer leaves a dangling "·" when date and city
+  wrap. Arabic: English hackathon track names and the community figures align
+  to the right edge with their Arabic text.
+- Polish: the dark community section now dissolves into the venue section
+  through an eased lilac fade instead of a short grey band; the 404 page uses
+  the interior purple stage, a line field, a gold home action and four
+  published onward links (existing 404 test contract retained). On phones,
+  Our Team's empty "Members to be announced" boxes become one compact line.
+- Round two: phone Program day filter shows "Both days" above Day 1 / Day 2
+  side by side instead of three stacked pills; archive film lengths read in
+  whole seconds ("7 seconds", «٧ ثوانٍ») instead of "6.7 seconds". Optimized
+  images are served as AVIF first (venue photos 335→167 KB and 207→94 KB at
+  1080px, visually unchanged); WebP remains the fallback.
+- Checks: lint, types, 2,402 unit tests; full Playwright suite 704 passed / 63
+  skipped / 1 transient `ERR_NO_BUFFER_SPACE` navigation (passed on rerun);
+  affected specs rerun after later edits (173 + 72 passed); axe WCAG 2.2 AA clean
+  on changed pages at 1440px and phone. Vercel preview of `bc0d7a1` verified:
+  CLS ≤0.0002 at 1366–1920px EN/AR, dropdown fix live, 404 status kept.
+- Reviewed, unchanged: film-grain overlay (intentional), mobile menu on the
+  physical right edge (organizer request), sponsor "Brand" slots and speaker
+  placeholders (ENG-022), RTL rail start positions (correctly mirrored).
+
 ## 15 October 2026 — Compact programme header card and day navigation
 
 - Implemented the requester's screenshot refinement on current `origin/main`
