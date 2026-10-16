@@ -6,8 +6,15 @@
 -- Participant callers retain the exact pre-existing observation-only behavior.
 create or replace function public.msrc_session_activity(edition_key text) returns jsonb
 language plpgsql volatile security definer set search_path='' as $$
+declare staff boolean;
 begin
-  if exists(select 1 from msrc_staff.profiles where actor_id=auth.uid()) then
+  -- auth.uid() casts the raw subject claim; a malformed one must keep the
+  -- pre-existing own_context denial instead of raising here.
+  begin
+    staff:=exists(select 1 from msrc_staff.profiles where actor_id=auth.uid());
+  exception when invalid_text_representation then staff:=false;
+  end;
+  if staff then
     return msrc_staff.authorize(edition_key,null,true);
   end if;
   return msrc_sessions.own_context(edition_key,false);
