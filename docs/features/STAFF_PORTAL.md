@@ -38,10 +38,13 @@ People/roles and immutable audit access require Super Admin assurance. The
 participant account projection requires Super Admin or an edition-scoped
 registration/workshop administrator. It searches only the private name/email
 projection and shows status/creation time. There is no export API. The masking
-component accepts a masked value; future full reveal must call the Super Admin
-audited boundary. The current database has no registration identifier field, so
-reveal records an unavailable result and returns no identifier. This does not
-claim registration encryption/storage/retention has been built.
+component accepts a masked value; full reveal calls the Super Admin audited
+boundary. The original staff migration has no registration identifier field.
+The separate closed [registration foundation](REGISTRATION.md) adds protected
+storage, masked projection and a reason-bearing reveal overload in its own pending
+migration. Until that independently reviewed change is applied and data exists,
+no identifier is available. Legacy reasonless calls never return a number.
+Registration activation and its later purge/backup/restore gates remain separate.
 
 The minimum-two and self-protection controls run in the database, with serialized
 role/status mutations. Recovery revokes sessions before native provider work;

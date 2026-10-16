@@ -12,7 +12,7 @@ ORG-016 removes all authentication phone collection/verification and SMS. Partic
 
 ## DR-CFG-01 — Approve event and admission operating inputs
 - **Source IDs:** CFG-01, SCP-01, REG-05, REG-06, TIM-01, CMS-01.
-- **Status:** Partially resolved — ORG-001 records the project requester's 1 October 2026 confirmation of Day 1 on 27 January 2027 and Day 2 on 28 January 2027. Remaining operating questions stay open.
+- **Status:** Partially resolved — ORG-001 confirms event dates and ORG-031 the venue. ORG-051 records owner-confirmed general capacity of 2,000, waitlist, early access before general opening, opening countdown, confirm-your-seat and organizing-team/volunteer priority. Opening instants, free versus paid, pricing, early-access proof, approval responsibility/turnaround and lifecycle durations remain open; proposed values are synthetic only. Registration remains closed.
 - **Purpose:** Obtain evidenced decisions for the remaining venue, admission categories/capacity, approvers, turnaround and reservation policy so the affected stage can be implemented and opened honestly. Confirmed calendar dates no longer block public date copy/countdown.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
 - **Exclusions:** Venue options and attendance estimates are not approved facts. Date confirmation supplies no doors/session start times or registration/submission/workshop opening/deadline settings, and does not activate a workflow.
@@ -174,7 +174,7 @@ Authoritative question set (v0.5; retained verbatim):
 
 ## DR-CFG-07 — Approve workshop catalog and seat lifecycle rules
 - **Source IDs:** CFG-07, WKS-01, WKS-03, WKS-04, WKS-05, WKS-06.
-- **Status:** Decision Required — open; no new organizer approval recorded.
+- **Status:** Decision Required — ORG-051 confirms organizing-team/volunteer first pick of workshop seats, but 50 workshop seats remains pending confirmation as per-workshop or total. Qualification/verification, catalog/count, rooms, prices, reserved seats, windows, approval responsibility and cancellation/offer rules remain open; no workshop capacity is seeded or inferred.
 - **Purpose:** Obtain an evidenced decision for per-workshop capacity/rooms/prices, reservations, approvers, deadlines and offer/cancellation policy so the affected stage can be implemented and opened honestly.
 - **Scope:** Resolve every remaining input in the authoritative source text below, preserving its confirmed choices; record partial resolutions individually.
 - **Exclusions:** Manual approval, confirmed conference registration and race-safe allocation are required. The 30–100 figure is an ambiguous estimate, not an implemented cap. This issue does not itself implement or activate a workflow.

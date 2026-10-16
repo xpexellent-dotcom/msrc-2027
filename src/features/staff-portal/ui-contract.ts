@@ -11,7 +11,7 @@ export type StaffAction = "signin" | "logout" | "enroll-totp" | "challenge-totp"
 export type StaffPayload = {
   action: StaffAction; formToken?: string; email?: string; password?: string; passwordConfirmation?: string; name?: string;
   code?: string; factorId?: string; challengeId?: string; invitationId?: string; token?: string;
-  targetId?: string; roles?: Role[];
+  targetId?: string; roles?: Role[]; reason?: string;
 };
 export type StaffState = "ready" | "authenticated" | "pending-email" | "pending-totp" | "enroll-totp" | "closed" | "unavailable" | "identity-unavailable" | "invalid-input" | "invalid-credentials" | "invalid-code" | "denied" | "limited" | "invited" | "updated" | "accepted" | "signed-out" | "password-changed" | "reauthentication-required";
 export type StaffResponse = {

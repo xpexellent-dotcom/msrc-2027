@@ -51,6 +51,9 @@ jobs:
       - name: Verify local-only synthetic staff security lab
         if: ${{ !inputs.auth_stability }}
         run: pnpm exec playwright test --config playwright.auth.config.ts
+      - name: Verify the enabled synthetic registration request interface
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm exec playwright test --config playwright.registration.config.ts
       - name: Repeat staff hydration and session keyboard assertions without retries
         if: ${{ inputs.auth_stability }}
         shell: bash
@@ -195,6 +198,8 @@ jobs:
         run: docker inspect --format='{{.Config.Image}}' supabase_auth_msrc2027-local
       - run: pnpm db:reset
       - run: pnpm db:lint
+      - name: Lint private registration functions
+        run: pnpm exec supabase db lint --local --schema msrc_registration --level warning --fail-on warning
       - name: Lint the private closed outbox schema
         run: pnpm exec supabase db lint --local --schema msrc_outbox --level warning --fail-on warning
       - name: Install the private disposable Storage test helper
@@ -206,6 +211,8 @@ jobs:
         run: node scripts/ci-storage-fixture.ts --cleanup
       - name: Inspect local database security findings
         run: pnpm exec supabase db advisors --local --type security --level warn --fail-on error
+      - name: Inspect local database performance findings
+        run: pnpm exec supabase db advisors --local --type performance --level warn --fail-on error
       - name: Generate the public synthetic schema types for review
         shell: bash
         run: |
@@ -229,6 +236,16 @@ jobs:
             pnpm db:reset
             pnpm db:integration
           done
+      # Registration fixtures change private singleton policy and create their own
+      # Super Admin pair; isolate them from the existing concurrency/native suites.
+      - name: Reset the disposable database for registration proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify registration races and persisted key rotation
+        if: ${{ !inputs.auth_stability }}
+        env:
+          REGISTRATION_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/registration-concurrency.test.ts
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop
