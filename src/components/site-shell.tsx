@@ -15,7 +15,7 @@ export function SiteShell({ children, locale, showDesignSystem = false }: {
   const privateStaffRoute = /^\/(en|ar)\/staff(?:\/|$)/.test(usePathname());
   return (
     <>
-      <a className="skip-link" href="#main-content">{copy.skip}</a>
+      <a className="skip-link" href="#main-content" tabIndex={0}>{copy.skip}</a>
       {!privateStaffRoute ? <SiteHeader locale={locale} /> : null}
       <main id="main-content" className={privateStaffRoute ? "staff-main" : undefined} tabIndex={-1}>{children}</main>
       {!privateStaffRoute ? <Footer locale={locale} showDesignSystem={showDesignSystem} /> : null}

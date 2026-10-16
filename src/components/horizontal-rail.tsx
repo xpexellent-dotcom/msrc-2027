@@ -62,6 +62,20 @@ export function HorizontalRail({ children, label, locale, className = "", stepBy
         </button>)}
       </div>
     </div>
-    <div ref={rail} className="rail-track" role="region" aria-label={label} tabIndex={0}>{children}</div>
+    <div ref={rail} className="rail-track" role="region" aria-label={label} tabIndex={0} onKeyDown={(event) => {
+      // Home/End otherwise scroll the whole document, abandoning the album.
+      // Leave keys on child links, buttons and native media controls alone.
+      if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (event.key === "Home" || event.key === "End") {
+        event.preventDefault();
+        const element = event.currentTarget;
+        const end = element.scrollWidth - element.clientWidth;
+        element.scrollTo({ left: event.key === "Home" ? 0 : locale === "ar" ? -end : end, behavior: "instant" });
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        move(locale === "ar" ? -direction : direction, true);
+      }
+    }}>{children}</div>
   </div>;
 }

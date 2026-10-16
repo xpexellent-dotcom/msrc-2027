@@ -3,12 +3,17 @@
 import { Link } from "@/components/ui/link";
 import { MobileNav, type NavigationLink } from "@/components/mobile-nav";
 import { usePathname } from "next/navigation";
-import { Suspense, useCallback, useEffect, useId, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { LanguageSwitch, LanguageSwitchFallback } from "@/components/language-switch";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import type { Locale } from "@/lib/i18n";
 import { revealPageNavigation } from "@/lib/anchor-navigation";
+
+// Native links work immediately, but disclosures need their client handlers.
+const subscribeHydration = () => () => {};
+const clientSnapshot = () => true;
+const serverSnapshot = () => false;
 
 const headerCopy = {
   en: {
@@ -43,6 +48,7 @@ const headerCopy = {
 
 export function SiteHeader({ locale }: { locale: Locale }) {
   const copy = headerCopy[locale];
+  const hydrated = useSyncExternalStore(subscribeHydration, clientSnapshot, serverSnapshot);
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
@@ -231,7 +237,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                   }}>{link.label}</Link>
                 {link.children ? <>
                   <button type="button" className="header-dropdown-toggle" data-dropdown-toggle={link.href}
-                    aria-expanded={open} aria-controls={dropdownId} aria-label={`${link.label} ${copy.options}`}
+                    aria-expanded={open} aria-controls={dropdownId} aria-label={`${link.label} ${copy.options}`} disabled={!hydrated}
                     onClick={(event) => {
                       const keepHoverOpen = open && event.detail > 0 && hoverOpenedRef.current === link.href;
                       hoverOpenedRef.current = null;
@@ -254,7 +260,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             <Suspense fallback={<LanguageSwitchFallback locale={locale} pathname={pathname} iconOnly />}><LanguageSwitch locale={locale} iconOnly /></Suspense>
           </div>
           <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls={menuId}
-            aria-label={menuOpen ? copy.close : copy.menu} ref={toggleRef}
+            aria-label={menuOpen ? copy.close : copy.menu} ref={toggleRef} disabled={!hydrated}
             onClick={(event) => {
               const animate = event.detail !== 0;
               setAnimateMenu(animate);

@@ -1,0 +1,950 @@
+{
+  "baseline": "a169bfaa50c64d657ef0fd1779caedb226b27f60",
+  "deployment": "dpl_2CjnPZdnQoAaSEA7wkDo7SPTggVp",
+  "origin": "https://www.msrc2027.com",
+  "finished": "2026-10-16T17:16:24.121Z",
+  "scope": "Windows browser engine/device and representative UA emulation, read-only",
+  "profiles": [
+    {
+      "profile": "chromium-desktop",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [],
+      "consoleCount": 0,
+      "pageErrorCount": 0,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "webkit-desktop",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [
+        "Viewport argument key \"interactive-widget\" not recognized and ignored."
+      ],
+      "consoleCount": 28,
+      "pageErrorCount": 224,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "chromium-phone",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [],
+      "consoleCount": 0,
+      "pageErrorCount": 0,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "webkit-phone",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [
+        "Viewport argument key \"interactive-widget\" not recognized and ignored."
+      ],
+      "consoleCount": 28,
+      "pageErrorCount": 8,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "instagram-chromium-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [],
+      "consoleCount": 0,
+      "pageErrorCount": 0,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "whatsapp-chromium-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [],
+      "consoleCount": 0,
+      "pageErrorCount": 0,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "webkit-ipad",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [
+        "Viewport argument key \"interactive-widget\" not recognized and ignored."
+      ],
+      "consoleCount": 28,
+      "pageErrorCount": 12,
+      "otherPageErrors": [],
+      "enlargedOverflow": [
+        {
+          "path": "/ar/program",
+          "px": 13
+        },
+        {
+          "path": "/ar/media",
+          "px": 17
+        }
+      ]
+    },
+    {
+      "profile": "snapchat-chromium-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [],
+      "consoleCount": 0,
+      "pageErrorCount": 0,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "x-chromium-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [],
+      "consoleCount": 0,
+      "pageErrorCount": 0,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "instagram-webkit-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [
+        "Viewport argument key \"interactive-widget\" not recognized and ignored."
+      ],
+      "consoleCount": 28,
+      "pageErrorCount": 0,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "linkedin-chromium-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [],
+      "consoleCount": 0,
+      "pageErrorCount": 0,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "whatsapp-webkit-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [
+        "Viewport argument key \"interactive-widget\" not recognized and ignored."
+      ],
+      "consoleCount": 28,
+      "pageErrorCount": 0,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "snapchat-webkit-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [
+        "Viewport argument key \"interactive-widget\" not recognized and ignored."
+      ],
+      "consoleCount": 28,
+      "pageErrorCount": 5,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "x-webkit-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [
+        "Viewport argument key \"interactive-widget\" not recognized and ignored."
+      ],
+      "consoleCount": 28,
+      "pageErrorCount": 2,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    },
+    {
+      "profile": "linkedin-webkit-ua",
+      "visits": 28,
+      "non200": 0,
+      "failedNetwork": 0,
+      "brokenImages": 0,
+      "deadLinks": 0,
+      "consoleMessages": [
+        "Viewport argument key \"interactive-widget\" not recognized and ignored."
+      ],
+      "consoleCount": 28,
+      "pageErrorCount": 2,
+      "otherPageErrors": [],
+      "enlargedOverflow": []
+    }
+  ],
+  "sharing": [
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en",
+      "status": 200,
+      "title": "MSRC 2027 | The 5th Medical Students Research Conference",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Medical students. Shared ideas. New discoveries.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/dates-venue",
+      "status": 200,
+      "title": "Dates &amp; venue | MSRC 2027",
+      "description": "27–28 January 2027. The fifth Medical Students Research Conference takes place at King Faisal Conference Center, King Abdulaziz University, Jeddah.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/program",
+      "status": 200,
+      "title": "Program | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Two days of research, practical learning and fresh perspectives.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/speakers",
+      "status": 200,
+      "title": "Speakers | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Discover the people behind the scientific program.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/team",
+      "status": 200,
+      "title": "Our Team | MSRC 2027",
+      "description": "Two committees. One shared vision. Meet the students and researchers bringing MSRC 2027 to life.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/sponsors",
+      "status": 200,
+      "title": "Sponsors | MSRC 2027",
+      "description": "A space to recognize the organizations supporting the MSRC community.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/participate",
+      "status": 200,
+      "title": "Participate | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Attend, present, build or learn. Choose your path and review its requirements.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/workshops",
+      "status": 200,
+      "title": "Workshops | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Practical learning alongside the scientific program.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/hackathon",
+      "status": 200,
+      "title": "Hackathon | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Explore how research can improve healthcare and how medical student research can move forward.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/3mt",
+      "status": 200,
+      "title": "Three Minute Thesis | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Communicate your postgraduate research through Three Minute Thesis (3MT).",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/media",
+      "status": 200,
+      "title": "Media | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Explore approved conference highlights and recordings as they become available.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/contact",
+      "status": 200,
+      "title": "Contact | MSRC 2027",
+      "description": "Send a message to the MSRC 2027 organizing team or contact us directly by email.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/privacy",
+      "status": 200,
+      "title": "Privacy Policy | MSRC 2027",
+      "description": "How MSRC 2027 collects, uses, shares and protects personal information, including your rights and privacy requests.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/en/terms",
+      "status": 200,
+      "title": "Terms and Conditions | MSRC 2027",
+      "description": "MSRC 2027 Terms and Conditions for accounts, registration, payment, submissions, attendance and certificates.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar",
+      "status": 200,
+      "title": "MSRC 2027 | المؤتمر الخامس لأبحاث طلاب الطب",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. طلاب طب. أفكار نتشاركها. واكتشافات جديدة.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/dates-venue",
+      "status": 200,
+      "title": "المواعيد والمقر | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧. يُقام المؤتمر الخامس لأبحاث طلاب الطب في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/program",
+      "status": 200,
+      "title": "البرنامج | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. يومان من البحث والتعلّم العملي ووجهات النظر الجديدة.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/speakers",
+      "status": 200,
+      "title": "المتحدثون | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. تعرّف إلى أصحاب الأفكار وراء البرنامج العلمي.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/team",
+      "status": 200,
+      "title": "فريقنا | MSRC 2027",
+      "description": "لجنتان، ورؤية واحدة. تعرّفوا على الطلاب والباحثين الذين يصنعون مؤتمر MSRC 2027.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/sponsors",
+      "status": 200,
+      "title": "الرعاة | MSRC 2027",
+      "description": "مساحة للتعريف بالجهات الداعمة لمجتمع MSRC.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/participate",
+      "status": 200,
+      "title": "المشاركة | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. احضر، أو اعرض بحثك، أو ابتكر، أو تعلّم. اختر مسارك وراجع متطلباته.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/workshops",
+      "status": 200,
+      "title": "ورش العمل | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. تعلّم عملي إلى جانب البرنامج العلمي.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/hackathon",
+      "status": 200,
+      "title": "الهاكاثون | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. استكشف كيف تسهم الأبحاث في تحسين الرعاية الصحية وتطوير البحث لدى طلاب الطب.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/3mt",
+      "status": 200,
+      "title": "الأطروحة في ثلاث دقائق | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. شارك بحثك في الدراسات العليا ضمن مسابقة الأطروحة في ثلاث دقائق (3MT).",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/media",
+      "status": 200,
+      "title": "الوسائط | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. استكشف لقطات المؤتمر وتسجيلاته المعتمدة عند إتاحتها.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/contact",
+      "status": 200,
+      "title": "تواصل معنا | MSRC 2027",
+      "description": "أرسل رسالة إلى الفريق المنظم لمؤتمر أبحاث طلاب الطب ٢٠٢٧ أو تواصل معنا مباشرة عبر البريد الإلكتروني.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/privacy",
+      "status": 200,
+      "title": "سياسة الخصوصية | MSRC 2027",
+      "description": "كيفية جمع مؤتمر MSRC ٢٠٢٧ للبيانات الشخصية واستخدامها ومشاركتها وحمايتها، بما فيها حقوقك وطلبات الخصوصية.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "WhatsApp/2.26.20",
+      "path": "/ar/terms",
+      "status": 200,
+      "title": "شروط وأحكام | MSRC 2027",
+      "description": "شروط وأحكام مؤتمر MSRC ٢٠٢٧ بشأن الحسابات والتسجيل والدفع والمشاركات والحضور والشهادات.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en",
+      "status": 200,
+      "title": "MSRC 2027 | The 5th Medical Students Research Conference",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Medical students. Shared ideas. New discoveries.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/dates-venue",
+      "status": 200,
+      "title": "Dates &amp; venue | MSRC 2027",
+      "description": "27–28 January 2027. The fifth Medical Students Research Conference takes place at King Faisal Conference Center, King Abdulaziz University, Jeddah.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/program",
+      "status": 200,
+      "title": "Program | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Two days of research, practical learning and fresh perspectives.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/speakers",
+      "status": 200,
+      "title": "Speakers | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Discover the people behind the scientific program.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/team",
+      "status": 200,
+      "title": "Our Team | MSRC 2027",
+      "description": "Two committees. One shared vision. Meet the students and researchers bringing MSRC 2027 to life.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/sponsors",
+      "status": 200,
+      "title": "Sponsors | MSRC 2027",
+      "description": "A space to recognize the organizations supporting the MSRC community.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/participate",
+      "status": 200,
+      "title": "Participate | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Attend, present, build or learn. Choose your path and review its requirements.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/workshops",
+      "status": 200,
+      "title": "Workshops | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Practical learning alongside the scientific program.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/hackathon",
+      "status": 200,
+      "title": "Hackathon | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Explore how research can improve healthcare and how medical student research can move forward.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/3mt",
+      "status": 200,
+      "title": "Three Minute Thesis | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Communicate your postgraduate research through Three Minute Thesis (3MT).",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/media",
+      "status": 200,
+      "title": "Media | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Explore approved conference highlights and recordings as they become available.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/contact",
+      "status": 200,
+      "title": "Contact | MSRC 2027",
+      "description": "Send a message to the MSRC 2027 organizing team or contact us directly by email.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/privacy",
+      "status": 200,
+      "title": "Privacy Policy | MSRC 2027",
+      "description": "How MSRC 2027 collects, uses, shares and protects personal information, including your rights and privacy requests.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/en/terms",
+      "status": 200,
+      "title": "Terms and Conditions | MSRC 2027",
+      "description": "MSRC 2027 Terms and Conditions for accounts, registration, payment, submissions, attendance and certificates.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar",
+      "status": 200,
+      "title": "MSRC 2027 | المؤتمر الخامس لأبحاث طلاب الطب",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. طلاب طب. أفكار نتشاركها. واكتشافات جديدة.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/dates-venue",
+      "status": 200,
+      "title": "المواعيد والمقر | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧. يُقام المؤتمر الخامس لأبحاث طلاب الطب في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/program",
+      "status": 200,
+      "title": "البرنامج | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. يومان من البحث والتعلّم العملي ووجهات النظر الجديدة.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/speakers",
+      "status": 200,
+      "title": "المتحدثون | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. تعرّف إلى أصحاب الأفكار وراء البرنامج العلمي.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/team",
+      "status": 200,
+      "title": "فريقنا | MSRC 2027",
+      "description": "لجنتان، ورؤية واحدة. تعرّفوا على الطلاب والباحثين الذين يصنعون مؤتمر MSRC 2027.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/sponsors",
+      "status": 200,
+      "title": "الرعاة | MSRC 2027",
+      "description": "مساحة للتعريف بالجهات الداعمة لمجتمع MSRC.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/participate",
+      "status": 200,
+      "title": "المشاركة | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. احضر، أو اعرض بحثك، أو ابتكر، أو تعلّم. اختر مسارك وراجع متطلباته.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/workshops",
+      "status": 200,
+      "title": "ورش العمل | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. تعلّم عملي إلى جانب البرنامج العلمي.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/hackathon",
+      "status": 200,
+      "title": "الهاكاثون | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. استكشف كيف تسهم الأبحاث في تحسين الرعاية الصحية وتطوير البحث لدى طلاب الطب.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/3mt",
+      "status": 200,
+      "title": "الأطروحة في ثلاث دقائق | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. شارك بحثك في الدراسات العليا ضمن مسابقة الأطروحة في ثلاث دقائق (3MT).",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/media",
+      "status": 200,
+      "title": "الوسائط | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. استكشف لقطات المؤتمر وتسجيلاته المعتمدة عند إتاحتها.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/contact",
+      "status": 200,
+      "title": "تواصل معنا | MSRC 2027",
+      "description": "أرسل رسالة إلى الفريق المنظم لمؤتمر أبحاث طلاب الطب ٢٠٢٧ أو تواصل معنا مباشرة عبر البريد الإلكتروني.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/privacy",
+      "status": 200,
+      "title": "سياسة الخصوصية | MSRC 2027",
+      "description": "كيفية جمع مؤتمر MSRC ٢٠٢٧ للبيانات الشخصية واستخدامها ومشاركتها وحمايتها، بما فيها حقوقك وطلبات الخصوصية.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "Twitterbot/1.0",
+      "path": "/ar/terms",
+      "status": 200,
+      "title": "شروط وأحكام | MSRC 2027",
+      "description": "شروط وأحكام مؤتمر MSRC ٢٠٢٧ بشأن الحسابات والتسجيل والدفع والمشاركات والحضور والشهادات.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en",
+      "status": 200,
+      "title": "MSRC 2027 | The 5th Medical Students Research Conference",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Medical students. Shared ideas. New discoveries.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/dates-venue",
+      "status": 200,
+      "title": "Dates &amp; venue | MSRC 2027",
+      "description": "27–28 January 2027. The fifth Medical Students Research Conference takes place at King Faisal Conference Center, King Abdulaziz University, Jeddah.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/program",
+      "status": 200,
+      "title": "Program | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Two days of research, practical learning and fresh perspectives.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/speakers",
+      "status": 200,
+      "title": "Speakers | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Discover the people behind the scientific program.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/team",
+      "status": 200,
+      "title": "Our Team | MSRC 2027",
+      "description": "Two committees. One shared vision. Meet the students and researchers bringing MSRC 2027 to life.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/sponsors",
+      "status": 200,
+      "title": "Sponsors | MSRC 2027",
+      "description": "A space to recognize the organizations supporting the MSRC community.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/participate",
+      "status": 200,
+      "title": "Participate | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Attend, present, build or learn. Choose your path and review its requirements.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/workshops",
+      "status": 200,
+      "title": "Workshops | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Practical learning alongside the scientific program.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/hackathon",
+      "status": 200,
+      "title": "Hackathon | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Explore how research can improve healthcare and how medical student research can move forward.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/3mt",
+      "status": 200,
+      "title": "Three Minute Thesis | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Communicate your postgraduate research through Three Minute Thesis (3MT).",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/media",
+      "status": 200,
+      "title": "Media | MSRC 2027",
+      "description": "27–28 January 2027, King Faisal Conference Center, Jeddah. Explore approved conference highlights and recordings as they become available.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/contact",
+      "status": 200,
+      "title": "Contact | MSRC 2027",
+      "description": "Send a message to the MSRC 2027 organizing team or contact us directly by email.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/privacy",
+      "status": 200,
+      "title": "Privacy Policy | MSRC 2027",
+      "description": "How MSRC 2027 collects, uses, shares and protects personal information, including your rights and privacy requests.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/en/terms",
+      "status": 200,
+      "title": "Terms and Conditions | MSRC 2027",
+      "description": "MSRC 2027 Terms and Conditions for accounts, registration, payment, submissions, attendance and certificates.",
+      "image": "https://www.msrc2027.com/en/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar",
+      "status": 200,
+      "title": "MSRC 2027 | المؤتمر الخامس لأبحاث طلاب الطب",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. طلاب طب. أفكار نتشاركها. واكتشافات جديدة.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/dates-venue",
+      "status": 200,
+      "title": "المواعيد والمقر | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧. يُقام المؤتمر الخامس لأبحاث طلاب الطب في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/program",
+      "status": 200,
+      "title": "البرنامج | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. يومان من البحث والتعلّم العملي ووجهات النظر الجديدة.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/speakers",
+      "status": 200,
+      "title": "المتحدثون | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. تعرّف إلى أصحاب الأفكار وراء البرنامج العلمي.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/team",
+      "status": 200,
+      "title": "فريقنا | MSRC 2027",
+      "description": "لجنتان، ورؤية واحدة. تعرّفوا على الطلاب والباحثين الذين يصنعون مؤتمر MSRC 2027.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/sponsors",
+      "status": 200,
+      "title": "الرعاة | MSRC 2027",
+      "description": "مساحة للتعريف بالجهات الداعمة لمجتمع MSRC.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/participate",
+      "status": 200,
+      "title": "المشاركة | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. احضر، أو اعرض بحثك، أو ابتكر، أو تعلّم. اختر مسارك وراجع متطلباته.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/workshops",
+      "status": 200,
+      "title": "ورش العمل | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. تعلّم عملي إلى جانب البرنامج العلمي.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/hackathon",
+      "status": 200,
+      "title": "الهاكاثون | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. استكشف كيف تسهم الأبحاث في تحسين الرعاية الصحية وتطوير البحث لدى طلاب الطب.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/3mt",
+      "status": 200,
+      "title": "الأطروحة في ثلاث دقائق | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. شارك بحثك في الدراسات العليا ضمن مسابقة الأطروحة في ثلاث دقائق (3MT).",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/media",
+      "status": 200,
+      "title": "الوسائط | MSRC 2027",
+      "description": "٢٧–٢٨ يناير ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. استكشف لقطات المؤتمر وتسجيلاته المعتمدة عند إتاحتها.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/contact",
+      "status": 200,
+      "title": "تواصل معنا | MSRC 2027",
+      "description": "أرسل رسالة إلى الفريق المنظم لمؤتمر أبحاث طلاب الطب ٢٠٢٧ أو تواصل معنا مباشرة عبر البريد الإلكتروني.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/privacy",
+      "status": 200,
+      "title": "سياسة الخصوصية | MSRC 2027",
+      "description": "كيفية جمع مؤتمر MSRC ٢٠٢٧ للبيانات الشخصية واستخدامها ومشاركتها وحمايتها، بما فيها حقوقك وطلبات الخصوصية.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    },
+    {
+      "agent": "LinkedInBot/1.0",
+      "path": "/ar/terms",
+      "status": 200,
+      "title": "شروط وأحكام | MSRC 2027",
+      "description": "شروط وأحكام مؤتمر MSRC ٢٠٢٧ بشأن الحسابات والتسجيل والدفع والمشاركات والحضور والشهادات.",
+      "image": "https://www.msrc2027.com/ar/opengraph-image"
+    }
+  ],
+  "publicFiles": [
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "contentType": "application/xml",
+      "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n<url>\n<loc>https://www.msrc2027.com/en</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en\" />\n<changefreq>weekly</changefreq>\n<priority>1</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en\" />\n<changefreq>weekly</changefreq>\n<priority>1</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/dates-venue</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/dates-venue\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/dates-venue\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/dates-venue\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/dates-venue</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/dates-venue\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/dates-venue\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/dates-venue\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/program</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/program\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/program\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/program\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/program</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/program\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/program\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/program\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/speakers</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/speakers\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/speakers\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/speakers\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/speakers</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/speakers\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/speakers\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/speakers\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/team</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/team\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/team\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/team\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/team</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/team\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/team\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/team\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/sponsors</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/sponsors\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/sponsors\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/sponsors\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/sponsors</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/sponsors\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/sponsors\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/sponsors\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/participate</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/participate\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/participate\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/participate\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/participate</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/participate\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/participate\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/participate\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/workshops</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/workshops\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/workshops\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/workshops\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/workshops</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/workshops\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/workshops\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/workshops\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/hackathon</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/hackathon\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/hackathon\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/hackathon\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/hackathon</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/hackathon\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/hackathon\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/hackathon\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/3mt</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/3mt\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/3mt\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/3mt\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/3mt</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/3mt\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/3mt\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/3mt\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/media</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/media\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/media\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/media\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/media</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/media\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/media\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/media\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/contact</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/contact\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/contact\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/contact\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/contact</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/contact\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/contact\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/contact\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/privacy</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/privacy\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/privacy\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/privacy\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/privacy</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/privacy\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/privacy\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/privacy\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/en/terms</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/terms\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/terms\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/terms\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n<url>\n<loc>https://www.msrc2027.com/ar/terms</loc>\n<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msrc2027.com/en/terms\" />\n<xhtml:link rel=\"alternate\" hreflang=\"ar\" href=\"https://www.msrc2027.com/ar/terms\" />\n<xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msrc2027.com/en/terms\" />\n<changefreq>weekly</changefreq>\n<priority>0.7</priority>\n</url>\n</urlset>\n"
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "body": "User-Agent: *\nAllow: /\nDisallow: /api/\nDisallow: /design-system\nDisallow: /*/design-system\nDisallow: /*/hero-preview\nDisallow: /*/admin\nDisallow: /*/dashboard\nDisallow: /*/reviewer\nDisallow: /*/check-in\nDisallow: /*/staff\n\nHost: https://www.msrc2027.com\nSitemap: https://www.msrc2027.com/sitemap.xml\n"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "status": 200,
+      "contentType": "application/manifest+json; charset=utf-8",
+      "body": "{\"name\":\"MSRC 2027 | Medical Students Research Conference\",\"short_name\":\"MSRC 2027\",\"description\":\"27–28 January 2027, King Faisal Conference Center, Jeddah. The 5th Medical Students Research Conference.\",\"start_url\":\"/\",\"display\":\"browser\",\"background_color\":\"#F8F6F0\",\"theme_color\":\"#F8F6F0\",\"icons\":[{\"src\":\"/icon.svg\",\"sizes\":\"any\",\"type\":\"image/svg+xml\"},{\"src\":\"/apple-icon\",\"sizes\":\"180x180\",\"type\":\"image/png\"}]}"
+    },
+    {
+      "path": "/icon.svg",
+      "status": 200,
+      "contentType": "image/svg+xml"
+    },
+    {
+      "path": "/apple-icon",
+      "status": 200,
+      "contentType": "image/png"
+    },
+    {
+      "path": "/en/msrc-2027.ics",
+      "status": 200,
+      "contentType": "text/calendar; charset=utf-8",
+      "body": "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//MSRC 2027//www.msrc2027.com//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nBEGIN:VEVENT\r\nUID:msrc-2027-conference@msrc2027.com\r\nDTSTAMP:20261005T000000Z\r\nDTSTART;VALUE=DATE:20270127\r\nDTEND;VALUE=DATE:20270129\r\nSUMMARY:MSRC 2027 | The 5th Medical Students Research Conference\r\nLOCATION:King Faisal Conference Center\\, Abdullah Sulayman St\\, King Abdula\r\n ziz University\\, Jeddah 22254\\, Saudi Arabia\r\nDESCRIPTION:Confirmed conference days and venue. Session times\\, doors and \r\n rooms will be announced. https://www.msrc2027.com/en/dates-venue\r\nURL:https://www.msrc2027.com/en/dates-venue\r\nTRANSP:TRANSPARENT\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n"
+    },
+    {
+      "path": "/ar/msrc-2027.ics",
+      "status": 200,
+      "contentType": "text/calendar; charset=utf-8",
+      "body": "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//MSRC 2027//www.msrc2027.com//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nBEGIN:VEVENT\r\nUID:msrc-2027-conference@msrc2027.com\r\nDTSTAMP:20261005T000000Z\r\nDTSTART;VALUE=DATE:20270127\r\nDTEND;VALUE=DATE:20270129\r\nSUMMARY:MSRC 2027 | المؤتمر الخامس لأبحاث طلاب ال\r\n طب\r\nLOCATION:مركز الملك فيصل للمؤتمرات\\, شارع عبد\r\n الله سليمان، جامعة الملك عبدالعزيز\\, جدة \r\n 22254\\, المملكة العربية السعودية\r\nDESCRIPTION:أيام المؤتمر ومقره مؤكدة. ستُعلن م\r\n واعيد الجلسات وفتح الأبواب والقاعات لاح\r\n قًا. https://www.msrc2027.com/ar/dates-venue\r\nURL:https://www.msrc2027.com/ar/dates-venue\r\nTRANSP:TRANSPARENT\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n"
+    }
+  ],
+  "limits": [
+    "No physical device, real in-app browser or native app handoff",
+    "Interrupted WebKit document replacement diagnostics retained; not a clean console claim",
+    "No production mutations/forms/database/settings"
+  ]
+}

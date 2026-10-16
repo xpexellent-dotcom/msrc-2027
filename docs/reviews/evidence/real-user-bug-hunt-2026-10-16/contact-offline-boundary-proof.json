@@ -1,0 +1,25 @@
+{
+  "scope": "Synthetic loopback Safari WebKit; actual prefetch-only script held until released",
+  "expected": 1,
+  "unexpected": 0,
+  "retries": 0,
+  "events": [
+    {
+      "event": "selected actual prefetch dependency",
+      "url": "http://127.0.0.1:3212/_next/static/chunks/3lz0mnse6889-.js",
+      "source": "http://127.0.0.1:3212/ar/participate?_rsc=LS0eiQaaDXrR1s1h"
+    },
+    {
+      "event": "dependency request held",
+      "url": "http://127.0.0.1:3212/_next/static/chunks/3lz0mnse6889-.js"
+    },
+    {
+      "event": "dependency delivered",
+      "url": "http://127.0.0.1:3212/_next/static/chunks/3lz0mnse6889-.js"
+    },
+    {
+      "event": "offline boundary complete",
+      "dependencyCompleted": true
+    }
+  ]
+}

@@ -19,6 +19,9 @@ export default defineConfig({
   projects: [
     { name: "contact-desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "contact-mobile", use: { ...devices["Pixel 7"] } },
+    { name: "contact-safari", use: { ...devices["Desktop Safari"] } },
+    { name: "contact-iphone", use: { ...devices["iPhone 13"] } },
+    { name: "contact-ipad", use: { ...devices["iPad Pro 11"] } },
   ],
   webServer: {
     command: "node scripts/contact-test-server.ts",

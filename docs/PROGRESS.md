@@ -1,5 +1,42 @@
 # Progress and session handover
 
+## 16 October 2026 — Real visitor bug hunt
+
+- Started `qa/real-user-bug-hunt` from current main `a169bfa`, after checking no
+  open PRs and fetching main. Vercel's production alias served that same SHA.
+  Preserved the older dirty handoff checkout in an isolated attached worktree.
+- Reproduced and repaired Team enlarged-text clipping, gallery Home/End document
+  jumps, header controls enabled before hydration, WebKit skip-link focus,
+  no-JS top-level 404, unsupported Safari viewport diagnostics, enlarged Arabic
+  iPad filters, Contact native-language popovers, indefinite stalled requests and
+  server-error focus attempted before disabled controls re-enabled.
+  Existing design/content, people, facts, operational gates and production
+  settings/database are unchanged. Contact exercises use existing loopback mocks.
+- Added behavior regressions, five primary engine/device profiles and ten social
+  UA compatibility profiles, crash/close/navigation/error monitoring, and local
+  TLS to preserve production CSP. CI adds Chromium/WebKit visitor shards and
+  isolates five Contact profiles with their own mock counters. Public native
+  video uses HTTP loopback because WebKit's decoder does not inherit the TLS
+  certificate exception; private/navigation checks retain HTTPS and unchanged CSP.
+- Observed live: 420 sitemap visits all 200 with no failed assets/crashes, 84
+  sharing-crawler responses, 40 non-sitemap read-only visits and 20 no-JS error
+  cases. Baseline logs retain unsupported viewport errors and WebKit interrupted
+  prefetch diagnostics; this is not a zero-error production claim.
+- Final application source passed lint/types/build including skip/filter/error-
+  focus fixes. Final test-only audit hardening passed 2,797 unit cases/67 files,
+  with lint/types passing. Raw red regressions
+  and intermediate harness failures are preserved. Exact-head CI checks and
+  artifacts are the final receipt, separate from earlier local results. Targeted
+  readiness replays passed 20 navigation, four constrained-network, ten native-
+  video and ten forced-offline Contact cases without increasing timeouts/retries.
+  Hosted preview access is blocked by Vercel protection; the deployment built.
+- Remaining: enabled-Contact cross-locale draft/attempt handoff needs a separate
+  state-aware fix; WebKit document-teardown fetch diagnostics need native Safari
+  confirmation. Physical pinch/OS memory eviction, real embedded apps, software
+  keyboard/autofill, native calendar/maps/mail and true BFCache remain manual.
+  Detailed table, commands, screenshots and 10-minute owner checklist:
+  [visitor QA review](reviews/real-user-bug-hunt-2026-10-16.md).
+
 ## 16 October 2026 — Public-site QA and polish sweep (production `2406a17`)
 
 - Scope: production `dpl_Ex9A1VCGhRVtziY7MBimW61dPr8w` (`main` at `2406a17`) and

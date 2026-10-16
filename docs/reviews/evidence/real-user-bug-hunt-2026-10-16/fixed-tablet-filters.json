@@ -1,0 +1,32 @@
+[
+  {
+    "route": "program",
+    "viewport": 810,
+    "document": 810,
+    "filters": [
+      {
+        "client": 728,
+        "scroll": 728
+      },
+      {
+        "client": 728,
+        "scroll": 728
+      }
+    ]
+  },
+  {
+    "route": "media",
+    "viewport": 810,
+    "document": 810,
+    "filters": [
+      {
+        "client": 728,
+        "scroll": 728
+      },
+      {
+        "client": 728,
+        "scroll": 728
+      }
+    ]
+  }
+]

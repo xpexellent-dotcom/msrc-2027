@@ -1,5 +1,32 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-047 — Visitor interaction regression coverage, 16 October 2026
+
+Authority: current requester real-user bug-hunt task. Requirements ACC-01,
+LOC-01/03, DSN-01/02, PRG-01, MED-01/04, ERR-01/02 and REL-01.
+
+Preserve public content/design and hosted settings. Fix only reproduced visitor
+failures, with regressions that exercise state changes. Restrict generated locale
+params to EN/AR so unsupported root URLs receive the existing routing-level 404
+without JS. Keep zoom enabled and remove the unused viewport key Safari rejects.
+JS-only header controls wait for hydration; native links remain usable. Enlarged
+text can wrap the existing Team/filter composition instead of clipping content.
+
+Contact response/body work has a 30-second client recovery bound, above the
+existing 3-second admission and 6-second provider bounds. A timed-out POST stays
+uncertain and never automatically resends; existing translated copy, preserved
+draft and explicit new-attempt safeguards remain authoritative. No delivery,
+database, production flag or new retry policy is activated.
+
+Browser emulation is regression evidence, not hardware proof. Local HTTPS keeps
+the private production CSP unchanged; ignored short-lived test certificates and
+loopback-only servers are fixtures. Public native-video tests use HTTP loopback
+because WebKit's decoder does not inherit Playwright's self-signed certificate
+exception. CI isolates engine/profile mock state. No retry or timeout inflation
+is used to hide a failure. Preserve raw failed/diagnostic receipts and list
+unresolved native-device checks and deferred bugs in the
+[review](reviews/real-user-bug-hunt-2026-10-16.md).
+
 ## ENG-042 — BL-AI-01 disabled DeepSeek transport, 16 October 2026
 
 Authority: ORG-040 and the requester's scoped BL-AI-01 implementation task.
