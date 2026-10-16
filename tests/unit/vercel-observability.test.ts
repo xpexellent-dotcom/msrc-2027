@@ -27,7 +27,8 @@ describe("isCountedPage", () => {
   it("requires an explicit analytics decision for every new public page folder", () => {
     // BL-PUB-06/08 keep contact and legal drafts outside analytics/Speed Insights.
     // ENG-022: illustrative Team/Sponsors pages stay outside analytics for this demo.
-    const excluded = ["contact", "privacy", "terms", "team", "sponsors"];
+    // ENG-043: registration can contain a private signed-in request form.
+    const excluded = ["contact", "privacy", "terms", "team", "sponsors", "registration"];
     const folders = readdirSync("src/app/[locale]/(preview)", { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
     const missing = folders.filter((folder) => !(countedSections as readonly string[]).includes(folder) && !excluded.includes(folder));
     expect(missing, "New public page: explicitly decide whether it may be counted").toEqual([]);
@@ -36,6 +37,9 @@ describe("isCountedPage", () => {
 });
 
 describe("prepareObservabilityEvent", () => {
+  it.each(["/en/registration", "/ar/registration"])("drops private registration events for %s", (path) => {
+    expect(prepareObservabilityEvent({ type: "pageview", url: `https://www.msrc2027.com${path}` }, false)).toBeNull();
+  });
   it.each(["/en/contact", "/ar/contact", "/en/privacy", "/ar/privacy/2026-10-04-draft", "/en/terms/2026-10-04-draft", "/ar/terms"])("drops contact and legal-draft events for %s", (path) => {
     expect(prepareObservabilityEvent({ type: "pageview", url: `https://www.msrc2027.com${path}?email=private%40example.test#private` }, false)).toBeNull();
   });

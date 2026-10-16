@@ -1,7 +1,7 @@
 import "server-only";
 import { WORKFLOWS, type Workflow } from "@/config/workflows";
 
-/** S1 REL-01..06: no request, role claim or environment value can open M1. */
+/** Default deployment posture. Registration additionally needs private DB evidence. */
 export const workflowFlags = Object.freeze(
   Object.fromEntries(WORKFLOWS.map((workflow) => [workflow, false])),
 ) as Readonly<Record<Workflow, false>>;
@@ -20,8 +20,18 @@ export class WorkflowClosedError extends Error {
   }
 }
 
-export function assertWorkflowOpen(workflow: Workflow): never {
-  // Intentionally closed even if a later edit accidentally changes a flag.
-  // Opening any real workflow requires its own reviewed authorization and gate.
+export interface RegistrationGateEvidence {
+  participantAccountsReady: boolean;
+  enabled: boolean;
+  settingsComplete: boolean;
+  windowOpen: boolean;
+  eligible: boolean;
+}
+
+/** Only the server's private database response may supply this evidence. */
+export function assertWorkflowOpen(workflow: Workflow, registration?: RegistrationGateEvidence): void {
+  if (workflow === "registration" && process.env.REGISTRATION_ENABLED === "true"
+    && registration?.participantAccountsReady === true && registration.enabled === true
+    && registration.settingsComplete === true && registration.windowOpen === true && registration.eligible === true) return;
   throw new WorkflowClosedError(workflow);
 }

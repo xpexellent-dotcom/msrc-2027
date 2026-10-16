@@ -9,16 +9,20 @@ export const STAFF_ACTIONS = ["signin", "logout", "enroll-totp", "challenge-totp
 export interface StaffPayload {
   action: (typeof STAFF_ACTIONS)[number]; formToken: string; email?: string; name?: string; password?: string; passwordConfirmation?: string;
   code?: string; challengeId?: string; factorId?: string; invitationId?: string; token?: string; targetId?: string;
-  roles?: Role[]; website?: string;
+  roles?: Role[]; website?: string; reason?: string;
 }
 export function validateStaffPayload(value: unknown): StaffPayload | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
   if (!STAFF_ACTIONS.includes(record.action as never) || typeof record.formToken !== "string") return null;
-  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website"];
+  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website", "reason"];
   if (Object.keys(record).some((key) => !allowed.includes(key))
     || Object.entries(record).some(([key, entry]) => key !== "roles" && (typeof entry !== "string" || entry.length > (key === "formToken" ? 1024 : 512)))) return null;
   const input = { ...record } as unknown as StaffPayload;
+  if (input.action === "reveal-identity") {
+    input.reason = input.reason?.trim();
+    if (!input.reason || input.reason.length > 300 || /[\x00-\x1f\x7f]/.test(input.reason)) return null;
+  } else if (input.reason !== undefined) return null;
   if (input.action === "password-change") {
     if (Object.keys(record).some((key) => !["action", "formToken", "password", "passwordConfirmation", "website"].includes(key))
       || !input.password || Array.from(input.password).length < 10 || Buffer.byteLength(input.password, "utf8") > 72

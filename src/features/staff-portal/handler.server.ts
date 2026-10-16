@@ -8,6 +8,7 @@ import { getStaffConfig, type StaffConfig, type StaffReadiness } from "./config.
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash,
   staffIp, staffOrigin, staffUuid, type StaffSessionCookie } from "./security.server";
 import { validateStaffPayload } from "./validation.server";
+import { decryptIdentityDocument, getIdentityCryptoConfig, type IdentityDocumentType } from "@/features/registration/identity-crypto.server";
 
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", Expires: "0",
   "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
@@ -300,9 +301,17 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         return respond({ state: hasState(result, "completed") ? "updated" : "denied" }, hasState(result, "completed") ? 200 : 403);
       }
       if (payload.action === "reveal-identity") {
-        const result = record(await backend.rpc("msrc_staff_identity_reveal", { edition_key: config.editionKey, target_actor: payload.targetId }, session.accessToken));
-        // The registration identity field does not exist yet; no native plaintext is projected here.
-        return respond({ state: result?.state === "unavailable" ? "identity-unavailable" : "denied" }, result?.state === "unavailable" ? 200 : 403);
+          const result = record(await backend.rpc("msrc_staff_identity_reveal", { edition_key: config.editionKey,
+            target_actor: payload.targetId, reason: payload.reason }, session.accessToken));
+          if (result?.state === "unavailable") return respond({ state: "identity-unavailable" }, 200);
+          if (result?.state !== "available") return respond({ state: "denied" }, 403);
+          const identityConfig = getIdentityCryptoConfig();
+          if (!identityConfig || !["national_id", "iqama", "passport"].includes(result.documentType as string)) return respond({ state: "unavailable" }, 503);
+          // The DB authorizes and audits before releasing the envelope. Neither its
+          // ciphertext nor key material is ever projected to the staff browser.
+          const identity = decryptIdentityDocument(identityConfig, { editionKey: config.editionKey, actorId: payload.targetId!,
+            documentType: result.documentType as IdentityDocumentType }, result.identityEnvelope);
+          return respond({ state: "updated", identity }, 200);
       }
       const operationId = randomUUID();
       const result = record(await backend.rpc("msrc_staff_admin_change", { edition_key: config.editionKey, target_actor: payload.targetId,
