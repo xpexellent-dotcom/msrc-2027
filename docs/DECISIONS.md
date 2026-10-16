@@ -3090,8 +3090,10 @@ introduced: workshops, certificates, prizes and abstracts were already published
 Organizing-team/volunteer priority (ORG-051) remains an internal, closed registration
 setting with no public promise; its eligibility and proof remain organizer questions.
 
-The phone menu must show every destination, including Contact, in one screen without
-scrolling. The section with sub-pages spans the panel, single destinations sit two per
-row as soft tiles, sub-pages reflow by available width, the registration action is
-slimmer, and rows enter with a short staggered rise. Every target keeps its 44px
-minimum; reduced motion and keyboard opening remain instant.
+The phone menu must show every destination, including Contact, in one panel without
+scrolling. The owner asked to keep the existing format and make everything slightly
+smaller: the same single-column list and two-column Participate sub-pages, with rows
+36px (sub-pages 34px), type one step smaller and a slimmer registration action. This
+supersedes ENG-041's 44px menu-row minimum for the phone menu only; targets stay above
+the WCAG 2.2 AA 24px minimum. Rows enter with a short staggered rise; reduced motion and
+keyboard opening remain instant.
