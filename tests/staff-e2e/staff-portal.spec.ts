@@ -125,9 +125,10 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByRole("link", { name: copy.participants, exact: true }).click();
     await expect(page.getByTestId("identity-value")).toHaveText("••••••1234");
     await screenshot(page, `${locale}-super-admin-participants`, testInfo.project.name);
+    await page.getByRole("textbox", { name: copy.revealReason }).fill("Synthetic identity verification review");
     await page.getByRole("button", { name: copy.reveal, exact: true }).click();
     await expect(page.getByTestId("identity-value")).toHaveText("SYNTHETIC1234");
-    expect(mock.actions.at(-1)).toMatchObject({ action: "reveal-identity", targetId: participantId });
+    expect(mock.actions.at(-1)).toMatchObject({ action: "reveal-identity", targetId: participantId, reason: "Synthetic identity verification review" });
     await page.getByRole("button", { name: copy.hide, exact: true }).click();
     await expect(page.getByTestId("identity-value")).toHaveText("••••••1234");
     await page.getByRole("link", { name: copy.home, exact: true }).click();

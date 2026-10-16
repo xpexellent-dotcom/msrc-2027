@@ -103,7 +103,7 @@ select is(public.msrc_registration_priority_set('synthetic-registration',pg_temp
 select ok(msrc_registration.priority_active('synthetic-registration',pg_temp.registration_actor(1)),'Designation queryable privately for future workshops');
 select is((select count(*) from msrc_registration.audit where event='priority.set' and result='allowed'),1::bigint,'Designation assignment audited once with actor/reason');
 select is(pg_temp.registration_submit('synthetic-registration',1)->>'state','submitted','Designated adult accepted during priority window');
-select is(pg_temp.registration_submit('synthetic-registration',1)->>'request'->>'id',(select id::text from msrc_registration.requests where actor_id=pg_temp.registration_actor(1)),'Repeat submit returns same request');
+select is(pg_temp.registration_submit('synthetic-registration',1)->'request'->>'id',(select id::text from msrc_registration.requests where actor_id=pg_temp.registration_actor(1)),'Repeat submit returns same request');
 select is((select count(*) from msrc_registration.requests where actor_id=pg_temp.registration_actor(1)),1::bigint,'One account has one edition request');
 select is((select count(*) from msrc_registration.audit where event='request.submitted'),1::bigint,'Retry creates one immutable submission audit');
 select is(public.msrc_registration_priority_set('synthetic-registration',pg_temp.registration_claims(100),pg_temp.registration_actor(1),false,'Synthetic designation withdrawn')->>'state','updated','Super Admin removes designation with reason');
