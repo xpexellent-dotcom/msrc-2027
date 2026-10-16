@@ -1,0 +1,84 @@
+-- Disposable synthetic fixture helpers. Included only by rollback SQL tests or
+-- loopback-only GitHub CI integration tests. Never run against hosted data.
+create function pg_temp.registration_actor(n integer) returns uuid language sql immutable as $$
+ select ('e7100000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid;$$;
+create function pg_temp.registration_session(n integer) returns uuid language sql immutable as $$
+ select ('e7200000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid;$$;
+create function pg_temp.registration_claims(n integer) returns jsonb language sql stable as $$
+ select jsonb_build_object('sub',pg_temp.registration_actor(n),'role','authenticated','session_id',pg_temp.registration_session(n),
+ 'aal',coalesce((select s.aal::text from auth.sessions s where s.id=pg_temp.registration_session(n)),'aal1'),'exp',floor(extract(epoch from clock_timestamp()+interval '1 hour')),
+ 'amr',(select jsonb_agg(jsonb_build_object('method',authentication_method,'timestamp',floor(extract(epoch from updated_at::timestamptz))))
+ from auth.mfa_amr_claims where session_id=pg_temp.registration_session(n)));$$;
+create function pg_temp.registration_settings(edition text) returns void language plpgsql as $$begin
+ insert into msrc_authorization.edition_config(edition_key) values(edition);
+ insert into msrc_registration.settings(edition_key,enabled,terms_version,payment_required,general_capacity,
+ early_access_start_at,early_access_end_at,priority_start_at,priority_end_at,general_opening_at,closing_at,
+ waitlist_offer_hours,confirm_seat_lead_days,confirm_seat_response_hours,places_remaining_threshold,minimum_age)
+ values(edition,true,'synthetic-terms',false,17,clock_timestamp()-interval '5 days',clock_timestamp()-interval '4 days',
+ clock_timestamp()-interval '3 days',clock_timestamp()-interval '2 days',clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',
+ 13,3,11,7,18);
+end$$;
+create function pg_temp.registration_fixture(n integer,edition text,verified boolean default true,adult boolean default true,native_age interval default interval '0') returns void
+ language plpgsql as $$
+declare actor uuid:=pg_temp.registration_actor(n);sid uuid:=pg_temp.registration_session(n);admission uuid:=gen_random_uuid();
+ email text:='registration-'||n::text||'@example.invalid';challenge uuid:=gen_random_uuid();operation uuid:=gen_random_uuid();attempt uuid:=gen_random_uuid();
+begin
+ if adult then
+ if public.msrc_participant_signup_reserve(actor,admission,email,'Synthetic adult','synthetic-registration-notice',true)->>'state'<>'reserved' then
+ raise exception 'Synthetic registration adult reservation failed';end if;end if;
+ insert into auth.users(id,email,email_confirmed_at,encrypted_password,created_at,updated_at,is_anonymous,raw_app_meta_data)
+ values(actor,email,case when not adult and verified then clock_timestamp() end,'synthetic-original-password',clock_timestamp()-native_age,clock_timestamp(),false,'{"provider":"email","providers":["email"]}');
+ if not adult then
+ insert into msrc_participant.profiles(actor_id,name,privacy_version,state)
+ values(actor,'Synthetic no age proof','synthetic-registration-notice',case when verified then 'verified' else 'pending' end);
+ insert into msrc_authorization.account_access(actor_id,state,individually_identified) values(actor,'active',false);return;end if;
+ if not verified then return;end if;
+ if public.msrc_participant_email_begin(email,'verify_email',challenge,repeat('a',64),lpad(to_hex(n),64,'0'),lpad(to_hex(n+1000),64,'0'),
+ 'Synthetic adult','synthetic-registration-notice')->>'state'<>'issued' then raise exception 'Synthetic registration challenge failed';end if;
+ perform public.msrc_participant_email_delivery(challenge,true);
+ if public.msrc_participant_email_consume(email,'verify_email',challenge,repeat('a',64),operation,lpad(to_hex(n+2000),64,'0'))->>'state'<>'consumed' then
+ raise exception 'Synthetic registration mailbox proof failed';end if;
+ update auth.users set email_confirmed_at=clock_timestamp() where id=actor;
+ update auth.users set encrypted_password='synthetic-verified-password' where id=actor;
+ if public.msrc_participant_email_complete(operation,true)->>'state'<>'completed' then raise exception 'Synthetic registration verification failed';end if;
+ perform public.msrc_participant_login_begin(attempt,lpad(to_hex(n+3000),64,'0'),lpad(to_hex(n+4000),64,'0'));
+ insert into auth.sessions(id,user_id,created_at,updated_at,aal) values(sid,actor,clock_timestamp(),clock_timestamp(),'aal1');
+ insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+ values(gen_random_uuid(),sid,'password',clock_timestamp(),clock_timestamp());
+ perform set_config('request.jwt.claims',pg_temp.registration_claims(n)::text,true);
+ perform public.msrc_session_context(edition);
+ if public.msrc_participant_login_finish(attempt,actor,sid)->>'state'<>'admitted' then raise exception 'Synthetic registration exact-session admission failed';end if;
+ perform set_config('request.jwt.claims','{}',true);
+end$$;
+create function pg_temp.registration_staff_fixture(n integer,edition text,role_name text default 'superAdmin') returns void language plpgsql as $$
+declare actor uuid:=pg_temp.registration_actor(n);sid uuid:=pg_temp.registration_session(n);factor uuid:=gen_random_uuid();
+ challenge uuid:=gen_random_uuid();evidence jsonb;begin
+ insert into auth.users(id,email,email_confirmed_at,encrypted_password,created_at,updated_at,is_anonymous)
+ values(actor,'registration-staff-'||n||'@example.invalid',now(),'synthetic-staff-password',now(),now(),false);
+ insert into msrc_authorization.account_access(actor_id,state,individually_identified) values(actor,'active',true);
+ insert into msrc_staff.profiles(actor_id,name) values(actor,'Synthetic registration staff');
+ insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
+ values(actor,edition,role_name,'edition','Synthetic registration staff fixture');
+ if role_name<>'superAdmin' then
+ insert into auth.sessions(id,user_id,created_at,updated_at,aal)
+ values(sid,actor,date_trunc('second',now()-interval '2 minutes'),now(),'aal1');
+ insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+ values(gen_random_uuid(),sid,'password',date_trunc('second',now()-interval '2 minutes'),date_trunc('second',now()-interval '2 minutes'));
+ evidence:=msrc_staff_email.basis(actor,sid);
+ insert into msrc_staff_email.challenges(id,actor_id,session_id,binding,code_hash,ip_hash,created_at,expires_at,state,verified_at)
+ values(challenge,actor,sid,evidence->>'binding',repeat('a',64),repeat('a',64),now()-interval '1 minute',now()+interval '4 minutes','verified',now()-interval '30 seconds');
+ insert into msrc_staff_email.receipts(session_id,actor_id,challenge_id,binding,verified_at)
+ values(sid,actor,challenge,evidence->>'binding',now()-interval '30 seconds');
+ return;end if;
+ insert into auth.mfa_factors(id,user_id,factor_type,status,created_at,updated_at)
+ values(factor,actor,'totp','verified',now()-interval '5 minutes',now()-interval '5 minutes');
+ insert into auth.sessions(id,user_id,created_at,updated_at,aal,factor_id)
+ values(sid,actor,date_trunc('second',now()-interval '2 minutes'),now(),'aal2',factor);
+ insert into auth.mfa_amr_claims(id,session_id,authentication_method,created_at,updated_at)
+ values(gen_random_uuid(),sid,'password',date_trunc('second',now()-interval '2 minutes'),date_trunc('second',now()-interval '2 minutes')),
+ (gen_random_uuid(),sid,'totp',date_trunc('second',now()-interval '30 seconds'),date_trunc('second',now()-interval '30 seconds'));
+end$$;
+create function pg_temp.registration_submit(edition text,n integer,digest text default repeat('b',64)) returns jsonb language sql as $$
+ select public.msrc_registration_submit(edition,pg_temp.registration_claims(n),'national_id',
+ jsonb_build_object('ciphertext',repeat('ab',10),'iv',repeat('cd',12),'authTag',repeat('ef',16),'keyVersion','synthetic-v1'),
+ digest,'••••••0000','synthetic-v1','synthetic-terms');$$;

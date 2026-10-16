@@ -2768,3 +2768,118 @@ labels (gender-neutral "قيادة …" form) and Arabic renderings of descripti
 drafts pending organizer review. Members per committee are pending and render as "to be
 announced". Removal or correction requests use the "Privacy & data requests" contact
 topic. ORG-049 was reserved by closed PR #53 and is not reused. IDs: CNT-01, PRV-01.
+
+## ORG-051 — Registration and organizing-team priority, recorded 16 October 2026
+
+Authority: the owner's current registration slice instruction records organizer
+decisions confirmed by the owner on **5 October 2026**, and the separate
+organizing-team priority decision on **15 October 2026**. This entry reconciles
+the registration backlog; it authorizes closed implementation, not activation.
+
+- General conference capacity is **2,000 seats**, held as private per-edition
+  configuration rather than a public constant. General registration has a waiting
+  list, an early-access window before general opening, an opening countdown, and
+  a later confirm-your-seat step. Wallet passes are later work.
+- One registration request per verified participant account per edition. Use
+  **“Reserve your seat”** as the public call to action. Requests begin pending
+  internal approval; support bulk approval internally. Never describe approval or
+  discounts in public registration copy. Submission does not confirm a seat.
+- Members of the MSRC organizing team and volunteers receive priority access:
+  early registration and first pick of workshop seats. Store an internal,
+  per-edition account designation, not a self-declared public profile field.
+  Qualification, verification evidence and the responsible roster process remain
+  open questions. The existing homepage benefits publication is the public copy
+  authority; this slice adds no new volunteer publicity.
+- Every capacity, threshold, duration and opening/closing instant is a setting.
+  Do not seed production values or infer opening authorization from the confirmed
+  capacity. National ID/Iqama or international passport follows ORG-039; minimum
+  age and controlling Arabic Terms follow ORG-041. QR ticket requirements remain
+  CHK-01/02 and published Terms v1.0 §3. Cancellation/financial conditions remain
+  the published Terms §§4–5 and the REG requirements, including item 6's expiry
+  of approved unpaid requests. Consequential bulk actions follow ADM-02/04.
+- **PENDING CONFIRMATION:** 50 workshop seats — per workshop or total — remains
+  unresolved under DR-CFG-07. No default workshop capacity is approved by this
+  entry. This current instruction governs any older plan claiming a settled
+  interpretation; preserve that plan as dated reference.
+- **PROPOSED, NOT APPROVED:** 72-hour early access; KAU students, past attendees
+  and club members as early-access groups; confirm-seat email seven days before
+  the conference with 72 hours to respond; a 24-hour waitlist offer; and showing
+  places remaining below 400. These may appear only as labelled synthetic test
+  values, never migration seeds, production defaults or public commitments.
+- **NOT DECIDED:** free versus paid, prices, opening dates/times, early-access
+  proof method, number of workshops, and refunds beyond published Terms. The
+  earlier paid-product description does not resolve the current registration
+  pricing decision. ORG-042's selected platform remains relevant if paid.
+
+DR-CFG-01 and DR-CFG-07 retain their unresolved questions and release gates.
+Design, slices and activation evidence: [REGISTRATION](features/REGISTRATION.md).
+IDs: REG-01–08, CHK-01/02, ADM-01–05, TIM-01/02, WKS-01/03/04/06, CFG-01/07,
+PRV-03/05/06, LOC-01/03, REL-02/06; BL-REG-01/06–11 and BL-ABS-09.
+
+## ENG-043 — Closed registration authority, identity protection and priority, 16 October 2026
+
+Authority: the current registration slice instruction and ORG-051. This additive
+foundation replaces hard closure only for registration, behind server-only
+`REGISTRATION_ENABLED === "true"`, independent private database registration
+policy, participant-account readiness, complete required per-edition settings,
+current verified participant session and age declaration, and database-time window
+checks. Public environment variables and browser clocks confer no authority.
+All other workflow gates remain hard-closed. Migrations seed no settings.
+
+Deadlines for offers, holds, payment windows and confirm-seat responses are expiry
+timestamps enforced by the database at read/claim time. Schedulers only sweep;
+late scheduler execution never extends eligibility. Seat claim and seat confirm
+will each be one Postgres RPC per request; Vercel functions are in `bom1` and the
+database is in `ap-northeast-1` (ORG-008), so correctness must not depend on a
+multi-round-trip application transaction. Neither allocation nor confirmation is
+built in slice 1. Email must use a transactional durable outbox in slice 2; no
+registration request sends email inline.
+
+Choose application-level **AES-256-GCM** so database snapshots contain ciphertext
+without the decryption key. Each record stores a random 12-byte IV, 16-byte
+authentication tag, ciphertext, key version and masked display value; bind edition,
+actor, document type and key version as authenticated additional data. A separate
+HMAC-SHA-256 secret derives the edition/document-type-scoped duplicate digest from
+the normalized number. Encryption keys and the duplicate secret must be distinct.
+Cipher-key rotation retains old decrypt keys and keeps the HMAC secret stable, so
+existing records remain readable and duplicate detection survives rotation.
+
+Server-only configuration names (never values):
+`REGISTRATION_IDENTITY_ENCRYPTION_KEYS` (version-to-64-hex-character key map),
+`REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION`, and
+`REGISTRATION_IDENTITY_HMAC_SECRET` (separate 64-hex-character secret). The owner
+generates each secret independently from 32 CSPRNG bytes and records only version
+labels in evidence. Vercel Production custody must use Sensitive environment
+variables, with an independently encrypted offline copy. The intended named
+two-person custody handoff is **Akram Awan** and **Abdulrahman Ismail**, the distinct
+people in ORG-043; the owner must confirm their key-custody responsibilities and
+record both acceptances before activation. Their Super Admin designation alone
+does not prove key possession, offline recovery or a completed restore drill.
+Keep their names in this register only. No key is added to Vercel by this task.
+
+New private registration tables use forced RLS, no client table grants, indexed
+foreign keys, and guarded SECURITY DEFINER RPCs with `search_path=''`. Participant
+RPCs require the server's verified native-session context and recheck database
+authority; privileged operations reuse `msrc_staff.authorize`. Only **Super Admin**
+can set/remove the per-edition organizing-team/volunteer designation, with a reason,
+actor/timestamps and immutable audit evidence. The flag is server-queryable for
+later workshop priority; it grants no admission, seat or workshop booking here.
+During the configured priority window only designated accounts may request;
+during general opening every otherwise eligible participant may request.
+
+Ordinary staff projections expose only the masked identity value. Wire the existing
+`identity_reveal` boundary to the stored encrypted document: current Super Admin
+assurance, a nonblank reason and a durable audit are required before ciphertext is
+returned to the server for decryption. Never return identity plaintext through
+participant/ordinary staff RPCs, ordinary logs, analytics, email or audit details.
+Legacy reasonless reveal cannot return a number. Delete registration identifiers
+by **28 January 2028** under ORG-039/041; purge jobs, controlled exports/backups and
+restore suppression are later work and remain release gates.
+
+The new migration follows `20261013205046` lexically but depends on the age-proof
+migration `20261008160137` rather than the cleanup-scheduler migration. It remains
+**pending — owner applies with the hosted change routine; requires
+20261008160137 first**. No hosted SQL, environment setting, scheduler, email or live
+workflow is changed. Rotation, key recovery and restoration procedures are in
+[REGISTRATION](features/REGISTRATION.md); observed checks belong in the O9 progress
+note, not inferred from this decision.
