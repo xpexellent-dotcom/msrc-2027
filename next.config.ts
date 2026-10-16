@@ -12,8 +12,6 @@ const nextConfig: NextConfig = {
   // Preserve the handoff's existing project instructions unchanged.
   agentRules: false,
   poweredByHeader: false,
-  // AVIF first: the detailed venue and archive photographs are 30–50% lighter than WebP.
-  images: { formats: ["image/avif", "image/webp"] },
   // English is the default locale (LOC-01). A config redirect is answered at the CDN edge;
   // the previous route handler made every root visit wait on a function in iad1.
   // A browser whose first language is Arabic opens the Arabic site; everyone else gets English.
