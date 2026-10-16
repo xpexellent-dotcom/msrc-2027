@@ -179,7 +179,7 @@
     /* The organizer requested the physical right edge in either language. */
     margin: .5rem var(--header-side-inset) 0 auto;
     max-block-size: calc(100dvh - var(--site-header-height, 84px) - 20px - env(safe-area-inset-bottom, 0px));
-    border: 0; border-radius: 18px; padding-block: .625rem calc(.375rem + env(safe-area-inset-bottom, 0px));
+    border: 0; border-radius: 16px; padding-block: .5rem calc(.375rem + env(safe-area-inset-bottom, 0px));
     pointer-events: auto; background: var(--color-ivory); color: var(--color-purple);
     scrollbar-color: var(--color-purple) var(--color-info-surface);
     scrollbar-width: thin;
@@ -194,21 +194,17 @@
   }
   /* Enlarge type without doubling the panel's surrounding chrome. */
   .axiom-header .mobile-menu > .site-container { inline-size: calc(100% - min(2rem, 32px)); }
-  /* One compact screen (owner request, 16 October 2026): the section with sub-pages spans the
-     panel; single destinations sit two per row. Every target keeps its 44px minimum. */
-  .axiom-header .mobile-menu nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 .25rem; }
+  .axiom-header .mobile-menu nav { grid-template-columns: minmax(0, 1fr); }
   .axiom-header .mobile-nav-group { min-inline-size: 0; }
-  .axiom-header .mobile-nav-group:has(.mobile-nav-children) { grid-column: 1 / -1; }
-  .axiom-header .mobile-menu nav a.site-link { min-block-size: 44px; min-height: 44px; max-inline-size: 100%; padding: .375rem .5rem; border-radius: 10px; font-size: 1rem; line-height: 1.3; overflow-wrap: anywhere; }
-  .axiom-header .mobile-menu nav > .mobile-nav-group > a.site-link { border: 0; }
-  .axiom-header .mobile-menu nav > .mobile-nav-group:not(:has(.mobile-nav-children)) { margin-block-end: .25rem; }
-  .axiom-header .mobile-menu nav > .mobile-nav-group:not(:has(.mobile-nav-children)) > a.site-link { background: color-mix(in srgb, var(--color-info-surface) 70%, transparent); }
-  .axiom-header .mobile-nav-children { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(6rem, 100%), 1fr)); gap: 0 .125rem; padding-block: 0 .375rem; margin-block-end: .25rem; border-block-end: 1px solid var(--color-line); }
-  .axiom-header .mobile-menu .mobile-nav-children a.site-link { min-block-size: 44px; min-height: 44px; padding: .375rem .5rem; font-size: .875rem; font-weight: 500; border: 0; color: var(--color-muted); overflow-wrap: normal; }
-  .axiom-header .mobile-menu-registration { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .75rem; margin-block-end: .375rem; padding-block-end: .5rem; border-block-end: 1px solid var(--color-line); }
-  .axiom-header .mobile-reserve-action.button { flex: 1 1 10rem; min-block-size: 44px; margin: 0; padding: .5rem min(1rem, 16px); font-size: .9375rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-  .axiom-header .mobile-menu-status { flex: 1 1 100%; margin: 0; padding-inline: .5rem; font-size: .75rem; line-height: 1.4; color: var(--color-muted); overflow-wrap: anywhere; }
-  /* Entrance: the panel unfolds from the toggle, then rows rise into place in reading order. */
+  /* Same layout, slightly smaller (ORG-052): every destination fits one panel without scrolling.
+     36px rows stay well above the WCAG 2.2 AA 24px target minimum. */
+  .axiom-header .mobile-menu nav a.site-link { min-block-size: 36px; min-height: 36px; max-inline-size: 100%; padding: .25rem .5rem; font-size: 1rem; line-height: 1.35; overflow-wrap: anywhere; }
+  .axiom-header .mobile-nav-children { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 .25rem; padding-block: 0 .25rem; border-block-end: 1px solid var(--color-line); }
+  .axiom-header .mobile-menu .mobile-nav-children a.site-link { min-block-size: 34px; min-height: 34px; padding: .25rem .5rem; font-size: .875rem; font-weight: 500; border: 0; }
+  .axiom-header .mobile-nav-children a:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .axiom-header .mobile-menu-registration { display: grid; grid-template-columns: minmax(0, 1fr); gap: .25rem; margin-block-end: .25rem; padding-block-end: .5rem; border-block-end: 1px solid var(--color-line); }
+  .axiom-header .mobile-reserve-action.button { inline-size: 100%; min-block-size: 40px; margin: 0; padding: .45rem min(1rem, 16px); font-size: .9375rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .axiom-header .mobile-menu-status { margin: 0; padding-inline: .5rem; font-size: .75rem; line-height: 1.4; color: var(--color-muted); overflow-wrap: anywhere; }
   .axiom-header .mobile-menu :is(.mobile-menu-registration, .mobile-nav-group) { opacity: 1; transform: none; }
   .axiom-header .mobile-menu[data-animate="true"] :is(.mobile-menu-registration, .mobile-nav-group) {
     transition: opacity 220ms var(--motion-enter-easing), transform 260ms cubic-bezier(.22, 1.2, .36, 1);
@@ -219,8 +215,8 @@
   .axiom-header .mobile-menu .language-switch { color: var(--color-purple); font-size: 1rem; }
   .axiom-header .mobile-menu a:focus-visible { outline-color: var(--color-purple); }
   @starting-style {
-    .axiom-header:not([data-keyboard="true"]) .mobile-menu[data-animate="true"] { opacity: 0; transform: translateY(-8px) scale(.94); }
-    .axiom-header:not([data-keyboard="true"]) .mobile-menu[data-animate="true"] :is(.mobile-menu-registration, .mobile-nav-group) { opacity: 0; transform: translateY(8px); }
+    .axiom-header:not([data-keyboard="true"]) .mobile-menu[data-animate="true"] { opacity: 0; transform: translateY(-8px) scale(.95); }
+    .axiom-header:not([data-keyboard="true"]) .mobile-menu[data-animate="true"] :is(.mobile-menu-registration, .mobile-nav-group) { opacity: 0; transform: translateY(6px); }
   }
 }
 @container navigation (width < 35rem) {
