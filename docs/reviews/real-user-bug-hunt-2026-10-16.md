@@ -7,6 +7,11 @@ There were no open PRs at the start. The older dirty handoff checkout was preser
 No hosted database, settings, workflow gates, content, people, prices or design
 direction changed. Contact submissions used only the existing loopback mocks.
 
+Main later advanced through PR #94 to `74b144e`, retaining its organizer-approved
+smaller menu. CI for QA head `54a0cdf` checked merge `da43678` against that main.
+Open PR #96 independently corrects the identical stale motion-test expectation;
+that PR was left untouched. Current exact-head checks remain attached to PR #95.
+
 This is browser-engine/device emulation on Windows and disposable Linux CI.
 Chromium approximates Chrome/Android; WebKit approximates Safari/iPhone/iPad.
 It is **not** physical iOS/Android, shipping Safari, or an actual embedded social
@@ -141,7 +146,7 @@ focus failure in 18.7 minutes. The assertion was retained and the focus ordering
 was repaired; final focused replay and CI validate it. This failure is not called
 a transient or erased by rerunning the same assertion.
 
-The final five-profile visitor run recorded 318 passes, 22 explicit unsupported
+The combined five-profile local visitor run recorded 318 passes, 22 explicit unsupported
 engine/device skips and five failures. Two received the loopback proxy's own 502
 document; local transport diagnostics now record the error code and socket state.
 The constrained-3G assertion started before JavaScript finished downloading;
@@ -164,6 +169,32 @@ online failures still fail. The offline browser cases now deliberately make one
 such request so this boundary is exercised every run. All 38 collector unit
 cases pass, including 19 added positive/negative offline cases; expected browser
 diagnostics remain attached to results.
+
+CI head `54a0cdf` then caught one Safari Arabic offline case with ordinary JS
+chunk failures. The strict collector retained them. Trace resources prove those
+chunks belong to successful Participate/Submission RSC prefetches and are absent
+from initial Contact HTML. The offline fixture now scrolls the submit control
+into view and waits for that prefetch work to finish before cutting the whole
+connection. This explicit fully-loaded-page boundary uses `networkidle` only in
+the offline scenario. The deterministic offline RSC probe and ordinary asset
+failure guards remain; no production prefetch behavior or error filter changed.
+The [held-dependency proof](evidence/real-user-bug-hunt-2026-10-16/contact-offline-boundary-proof.json)
+confirms the offline boundary stays pending until an actual prefetch-only script
+has returned 200. All ten offline profile/locale cases then pass.
+
+Linux CI also exposed two interaction-test sequencing limits. Four phone/tablet
+Home checks reversed PageDown after only 141ms, while its native animation was
+still moving. The test now waits for native `scrollend` before Home, retaining
+both exact scroll assertions ([CSSOM View definition](https://drafts.csswg.org/cssom-view/#eventdef-document-scrollend)).
+Two Safari portrait groups reached their last independent click with only 3.6s
+and 1.5s left in the whole-test budget after successful earlier popups. The same
+13 native portrait activations are split into four contiguous groups of three
+or four. No click is forced; animations, timeouts and zero retries are retained.
+Final local confirmation: the complete Safari Contact suite passes 42/42 in
+3.5 minutes; all eight Safari portrait groups pass in 50.6s, each case 8.4–13.0s;
+six mobile native-scroll cases pass with four explicit desktop skips. Scoped
+lint, TypeScript and all 38 diagnostic units pass. Linux CI is the remaining
+platform confirmation for these test-only setup changes.
 
 Targeted final replays passed 20 navigation, four constrained-network, ten native-
 video, 33 Contact recovery/focus and ten forced-offline Contact cases. The final

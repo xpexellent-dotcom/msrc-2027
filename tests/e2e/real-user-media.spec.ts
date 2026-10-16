@@ -53,7 +53,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(errors).toEqual([]);
   });
 
-  for (const group of [0, 1]) {
+  for (const group of [0, 1, 2, 3]) {
   test(`${locale} every linked Team portrait opens its expected LinkedIn destination on one activation (group ${group + 1})`, async ({ page, context, isMobile }) => {
     const errors = watchPage(page);
     // A deterministic external navigation probe never signs into or scrapes a profile.
@@ -61,7 +61,13 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/team`);
     const portraits = page.locator(".team-photo--linked");
     expect(await portraits.count()).toBeGreaterThan(0);
-    for (const portrait of (await portraits.all()).filter((_, index) => index % 2 === group)) {
+    const allPortraits = await portraits.all();
+    // Every portrait still receives one real activation. Bound independent
+    // external-tab journeys in contiguous groups so normal reveal/hover and
+    // popup work do not consume a later visitor action's entire test budget.
+    const first = Math.floor(allPortraits.length * group / 4);
+    const last = Math.floor(allPortraits.length * (group + 1) / 4);
+    for (const portrait of allPortraits.slice(first, last)) {
       const href = await portrait.getAttribute("href");
       expect(href).toMatch(/^https:\/\/www\.linkedin\.com\/in\//);
       const row = portrait.locator("..");

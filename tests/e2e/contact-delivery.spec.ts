@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type APIRequestContext } from "@playwright/test";
 import { ContactBrowserDiagnostics } from "../helpers/contact-browser-diagnostics";
+import { waitForContactOfflineReady } from "../helpers/contact-offline-readiness";
 
 // BL-PUB-06: real Next route, local fake Resend/RPCs, synthetic visitors only.
 // The harness rejects managed provider/project endpoints and stores no content.
@@ -313,6 +314,7 @@ for (const locale of ["en", "ar"] as const) {
     await control(request);
     await page.goto(`/${locale}/contact`);
     await fill(page, locale);
+    await waitForContactOfflineReady(page, page.getByRole("button", { name: copy[locale].send, exact: true }));
     const audit = browserFailures.get(page);
     if (!audit) throw new Error("Missing Contact browser evidence collector");
     audit.setForcedOffline(true);

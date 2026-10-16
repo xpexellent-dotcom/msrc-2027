@@ -182,8 +182,20 @@ for (const locale of ["en", "ar"] as const) {
     await expect(toggle).toBeFocused();
     // Mobile WebKit does not expose wheel input; keyboard scrolling still exercises
     // the browser's native default scrolling, rather than mutating window.scrollY.
+    await page.evaluate(() => {
+      document.documentElement.dataset.qaScrollComplete = "false";
+      const complete = () => {
+        if (window.scrollY <= 300) return;
+        document.documentElement.dataset.qaScrollComplete = "true";
+        document.removeEventListener("scrollend", complete);
+      };
+      document.addEventListener("scrollend", complete);
+    });
     await page.keyboard.press("PageDown");
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+    // Linux WebKit animates PageDown. Its intermediate position is not a
+    // completed journey; await the native boundary before reversing with Home.
+    await expect(page.locator("html")).toHaveAttribute("data-qa-scroll-complete", "true");
     await page.keyboard.press("Home");
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
     await toggle.tap();
