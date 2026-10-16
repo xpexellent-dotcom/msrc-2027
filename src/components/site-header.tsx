@@ -57,6 +57,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const toggleRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const dropdownCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // A dropdown opened by hovering stays open on the click that usually follows,
+  // instead of the toggle closing it under the pointer.
+  const hoverOpenedRef = useRef<string | null>(null);
   const menuCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancelMenuClose = useCallback(() => {
     if (menuCloseRef.current !== null) clearTimeout(menuCloseRef.current);
@@ -200,6 +203,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                 onPointerEnter={(event) => {
                   if (event.pointerType !== "touch" && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
                     cancelDropdownClose();
+                    if (!open) hoverOpenedRef.current = link.children ? link.href : null;
                     setKeyboard(false); setOpenDropdown(link.children ? link.href : null);
                   }
                 }}
@@ -228,7 +232,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                 {link.children ? <>
                   <button type="button" className="header-dropdown-toggle" data-dropdown-toggle={link.href}
                     aria-expanded={open} aria-controls={dropdownId} aria-label={`${link.label} ${copy.options}`}
-                    onClick={() => setOpenDropdown(open ? null : link.href)}>
+                    onClick={(event) => {
+                      const keepHoverOpen = open && event.detail > 0 && hoverOpenedRef.current === link.href;
+                      hoverOpenedRef.current = null;
+                      if (!keepHoverOpen) setOpenDropdown(open ? null : link.href);
+                    }}>
                     <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 6 4 4 4-4" /></svg>
                   </button>
                   <div className="header-dropdown" id={dropdownId} inert={!open}>
