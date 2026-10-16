@@ -29,6 +29,14 @@
   the interior purple stage, a line field, a gold home action and four
   published onward links (existing 404 test contract retained). On phones,
   Our Team's empty "Members to be announced" boxes become one compact line.
+- Round two: phone Program day filter shows "Both days" above Day 1 / Day 2
+  side by side instead of three stacked pills; archive film lengths read in
+  whole seconds ("7 seconds", «٧ ثوانٍ») instead of "6.7 seconds".
+- Checks: lint, types, 2,402 unit tests; full Playwright suite 704 passed / 63
+  skipped / 1 transient `ERR_NO_BUFFER_SPACE` navigation (passed on rerun);
+  affected specs rerun after later edits (173 + 72 passed); axe WCAG 2.2 AA clean
+  on changed pages at 1440px and phone. Vercel preview of `bc0d7a1` verified:
+  CLS ≤0.0002 at 1366–1920px EN/AR, dropdown fix live, 404 status kept.
 - Reviewed, unchanged: film-grain overlay (intentional), mobile menu on the
   physical right edge (organizer request), sponsor "Brand" slots and speaker
   placeholders (ENG-022), RTL rail start positions (correctly mirrored).
