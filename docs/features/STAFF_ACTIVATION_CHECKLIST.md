@@ -71,6 +71,12 @@ Reverify this baseline immediately before any separately authorized operation.
   offboarding owners; preserve immutable authority/audit records according to
   approved obligations. Do not invent deletion exceptions or claim that future
   participant cleanup is implemented by this staff release.
+- [ ] **PENDING:** Assign the owner/reviewer and completion window for the
+  [staff audit deletion procedure](STAFF_BACKUP_RESTORE.md#staff-audit-deletion-by-28-january-2028--owner-procedure-not-executed)
+  by **28 January 2028**. Review all four audit-screen sources and edition-null
+  records, backup first, rehearse the exact manifest-bound SQL and failure
+  rollback, verify guards after commit, and retain external restore-suppression
+  evidence. This preparation performs no deletion and grants no API delete right.
 - [ ] **PENDING:** Confirm the actual provider plan, combined email forecast,
   approved hard caps and operating budget in section 7. A configured key or
   source estimate is not permission to send real messages.
@@ -146,6 +152,8 @@ one migration and its evidence, with all release flags off.
   table/schema privileges to silence a finding. Any missing prerequisite,
   unexpected owner/trigger/ACL, divergent definition or unexplained ledger entry
   stops the sequence with both staff gates closed; use a reviewed correction.
+  Apply the object-specific [known-exception baseline](PARTICIPANT_ACTIVATION_RUNBOOK.md#advisor-baseline-and-evidence-status),
+  preserving actual new counts and the separately gated leaked-password setting.
 
 ### Closed-state evidence after all six files
 
@@ -371,6 +379,23 @@ default-off probes do not establish this acceptance.
   server access. Recent-auth age and warning-lead settings remain TBD and require
   a separate decision/implementation; current strongest assurance is mandatory
   for every privileged action.
+- [ ] **PENDING:** **ENG-044 active work and failure paths:** prove a two-hour
+  read-only work session with genuine navigation/input, CSRF-protected activity
+  reporting and unchanged absolute origin; passive polls cannot renew idle.
+  Verify rotated cookies survive privileged actions, refresh failure denies, and
+  logout clears locally with provider/DB down, stale form tokens, exhausted
+  limits or closed readiness. Prove same-origin enforcement remains in place.
+- [ ] **PENDING:** **Shared network and account abuse:** verify the
+  [documented per-IP bounds](STAFF_PORTAL.md#16-october-hardening--local-implementation-pending-release)
+  admit a synthetic room of staff while account password/email/TOTP controls
+  remain strict across sessions/IP changes. Prove five wrong authenticator
+  entries cause a durable audited 15-minute cooldown, valid attempts deny while
+  locked, retry succeeds after the window, and other-admin recovery remains the
+  only lost-authenticator/account recovery path.
+- [ ] **PENDING:** **Failed password audit:** known/unknown password failures
+  yield only time, safely known account reference and outcome in the existing
+  Super-Admin-only audit projection. Verify EN/AR labels, no password or full IP,
+  denial for other roles/anonymous/native direct reads, and preserved forced RLS.
 - [ ] **PENDING:** **Durable mutual recovery:** the other currently authorized
   Super Admin records actor, target and reason before provider work; sessions
   revoke and a private hold commits first. Prove pending, failed and interrupted

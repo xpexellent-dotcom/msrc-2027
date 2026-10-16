@@ -49,7 +49,11 @@ async function fixture(page: Page, initialRoles: Role[] = ["registrationWorkshop
         { actorId: otherId, name: "Synthetic Other Admin", email: "other@example.invalid", roles: ["superAdmin"], status: "active", lastSignIn: null },
       ], invitations: [{ id: invitationId, email: "invited@example.invalid", roles: ["finance"], status: "pending", expiresAt: "2026-10-10T10:00:00Z" }] };
       else if (area === "participants") response = { state, profile: profile(), participants: search === "missing" ? [] : [{ actorId: participantId, name: "Synthetic Participant", email: "participant@example.invalid", status: "verified", createdAt: "2026-10-07T10:00:00Z", identityMasked: "••••••1234" }] };
-      else if (area === "audit") response = { state, profile: profile(), audit: [{ id: "audit-synthetic", actorId, targetId: otherId, actorName: "Synthetic Staff", targetName: "Synthetic Other Admin", action: "invite", result: "completed", occurredAt: "2026-10-07T10:00:00Z", ...{ secret: "synthetic-secret-must-not-display", code: "synthetic-code-must-not-display", token: "synthetic-token-must-not-display" } }] };
+      else if (area === "audit") response = { state, profile: profile(), audit: [
+        { id: "audit-synthetic", actorId, targetId: otherId, actorName: "Synthetic Staff", targetName: "Synthetic Other Admin", action: "invite", result: "completed", occurredAt: "2026-10-07T10:00:00Z", ...{ secret: "synthetic-secret-must-not-display", code: "synthetic-code-must-not-display", token: "synthetic-token-must-not-display" } },
+        { id: "audit-password-known", actorId: null, targetId: otherId, actorName: null, targetName: "Synthetic Other Admin", action: "password_sign_in", result: "failed", occurredAt: "2026-10-07T10:01:00Z" },
+        { id: "audit-password-unknown", actorId: null, targetId: null, actorName: null, targetName: null, action: "password_sign_in", result: "failed", occurredAt: "2026-10-07T10:02:00Z" },
+      ] };
       }
     }
     if (state === "pending-totp") { response.factorId = factorId; response.challengeId = challengeId; }
@@ -138,7 +142,17 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByRole("link", { name: copy.audit, exact: true }).click();
     await expect(page.getByRole("cell", { name: auditActionLabel("invite", locale), exact: true })).toBeVisible();
     await expect(page.getByRole("cell", { name: auditResultLabel("completed", locale), exact: true })).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+    const failedRows = page.getByRole("row").filter({ has: page.getByRole("cell", { name: auditActionLabel("password_sign_in", locale), exact: true }) });
+    await expect(failedRows).toHaveCount(2);
+    await expect(failedRows.first()).toContainText("Synthetic Other Admin");
+    await expect(failedRows.last()).toContainText(copy.unknown);
+    for (const row of await failedRows.all()) await expect(row.getByRole("cell", { name: auditResultLabel("failed", locale), exact: true })).toBeVisible();
+    await screenshot(page, `${locale}-failed-password-audit`, testInfo.project.name);
     await expect(page.locator("body")).not.toContainText(/synthetic-(?:secret|code|token)-must-not-display/);
+    await page.getByLabel(copy.searchAudit).fill(auditActionLabel("password_sign_in", locale));
+    await page.getByRole("button", { name: copy.search, exact: true }).click();
+    await expect.poll(() => mock.searches).toContain("password_sign_in");
     await page.getByLabel(copy.searchAudit).fill(auditActionLabel("invite", locale));
     await page.getByRole("button", { name: copy.search, exact: true }).click();
     await expect.poll(() => mock.searches).toContain("invite"); await axe(page);

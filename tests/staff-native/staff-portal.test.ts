@@ -364,6 +364,56 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
     const reveal = await post(first, { action: "reveal-identity", targetId: ordinary.id, reason: "Synthetic identity check" }); check(reveal.result.state === "identity-unavailable", "an absent registration identifier is not invented");
     check(await query(`select count(*) from msrc_staff.audit where action='identity_reveal' and actor_id=${text(first.id)} and target_id=${text(ordinary.id)} and result='unavailable';`) === "1", "explicit reveal action is audited before any future plaintext field");
   });
+  it("shows minimal failed native password attempts only to current Super Admins", async () => {
+    const rejected = { ...ordinary, cookie: "" }, unknown = person();
+    check((await post(rejected, { action: "signin", email: rejected.email, password: "SyntheticWrongPassword!" })).status === 401, "genuine wrong password receives generic denial");
+    check((await post(unknown, { action: "signin", email: unknown.email, password: "SyntheticWrongPassword!" })).status === 401, "unknown account has the same credential outcome");
+    const audit = await handle(request("GET", first, undefined, "?area=audit&q=password_sign_in"));
+    const projected = await audit.json() as Result;
+    check(audit.status === 200 && Array.isArray(projected.audit), "Super Admin can query failed password events through handler to native SQL");
+    const rows = projected.audit as { targetId: string | null; actorId: string | null; result: string; details: Record<string, unknown> }[];
+    check(rows.some((row) => row.targetId === ordinary.id && row.actorId === null && row.result === "failed"), "known staff failures link only attempted account identity without authenticating an actor");
+    check(rows.some((row) => row.targetId === null && row.actorId === null && row.result === "failed"), "unknown account attempt is visible without storing its submitted email");
+    const serialized = JSON.stringify(rows);
+    check(!serialized.includes("SyntheticWrongPassword!") && !serialized.includes(unknown.email) && !serialized.includes("ip_hash") && rows.every((row) => Object.keys(row.details).length === 0), "no password, submitted unknown email, raw IP or keyed hash is projected");
+    check((await get(ordinary, "audit")).status === 403, "regular staff cannot read wrong-password events");
+  });
+  it("locks five genuine wrong authenticator entries across sessions then unlocks after fifteen minutes", async () => {
+    check(first.secret, "test retains only synthetic authenticator secret in process memory");
+    const pending = { ...first, cookie: "" }; const signed = await signIn(pending);
+    const validCodes = new Set([-30_000, 0, 30_000].map((offset) => totpAt(first.secret!, Date.now() + offset)));
+    const wrong = ["000000", "111111", "222222", "333333"].find((code) => !validCodes.has(code))!;
+    for (let index = 0; index < 5; index += 1) {
+      const response = await post(pending, { action: "verify-totp", factorId: signed.factorId, challengeId: signed.challengeId, code: wrong });
+      check(response.status === (index === 4 ? 429 : 400), "genuine failed provider attempt persists before invalid-code/lock response");
+    }
+    const another = { ...first, cookie: "" }; const otherSigned = await signIn(another);
+    check((await post(another, { action: "verify-totp", factorId: otherSigned.factorId, challengeId: otherSigned.challengeId, code: totpAt(first.secret, Date.now()) })).status === 429, "new native password session cannot bypass account lock");
+    check(await query(`select count(*) from msrc_staff.audit where action='totp_locked' and target_id=${text(first.id)};`) === "1", "account TOTP lock is immutable audited metadata");
+    const sdk = client(); const native = await sdk.auth.signInWithPassword({ email: first.email, password });
+    check(!native.error && native.data.session, "locked account can prove password identity but has no authenticator assurance");
+    const factors = await sdk.auth.mfa.listFactors(); check(!factors.error && factors.data.totp[0], "native verified factor remains intact");
+    const challenge = await sdk.auth.mfa.challenge({ factorId: factors.data.totp[0].id }); check(!challenge.error && challenge.data, "native challenge does not grant access");
+    const proof = await sdk.auth.mfa.verify({ factorId: factors.data.totp[0].id, challengeId: challenge.data.id, code: totpAt(first.secret, Date.now()) });
+    check(Boolean(proof.error), "native proof cannot bypass application account lock");
+    const sid = nativeSessionId(native.data.session.access_token); check(sid, "genuine pending native session has immutable identity");
+    check(await query(`select count(*) from auth.mfa_amr_claims where session_id=${text(sid)} and authentication_method='totp';`) === "0", "locked direct native proof never commits TOTP AMR");
+    // Accelerated fixture clock: no production duration or provider timeout changes.
+    await query(`update msrc_staff.totp_account_limits set cooldown_until=clock_timestamp()-interval '1 second' where actor_id=${text(first.id)};`);
+    const fresh = await post(another, { action: "challenge-totp" });
+    const completed = await post(another, { action: "verify-totp", factorId: fresh.result.factorId, challengeId: fresh.result.challengeId, code: totpAt(first.secret, Date.now()) });
+    check(completed.status === 200 && completed.result.state === "authenticated", "fresh genuine native proof succeeds after account cooldown");
+    check(await query(`select count(*) from msrc_staff.audit where action='totp_unlocked' and target_id=${text(first.id)};`) === "1", "window unlock is audited");
+  });
+  it("serializes concurrent authenticator reservations and persists only one provider attempt", async () => {
+    const native = readStaffSession(config, request("GET", first)); check(native, "test uses an existing genuine authenticated staff session");
+    const ids = [randomUUID(), randomUUID()];
+    const outcomes = await Promise.all(ids.map((id) => backend.rpc("msrc_staff_totp_begin", { actor_id: native.actorId, session_id: native.sessionId, attempt_id: id }) as Promise<Result>));
+    check(outcomes.filter((result) => result.state === "reserved").length === 1 && outcomes.filter((result) => result.state === "limited").length === 1, "account lock admits one concurrent provider reservation");
+    const winningId = ids[outcomes.findIndex((result) => result.state === "reserved")];
+    check((await backend.rpc("msrc_staff_totp_finish", { actor_id: native.actorId, session_id: native.sessionId, attempt_id: winningId, succeeded: false }) as Result).state === "failed", "winner terminalizes and increments account failure once");
+    check((await backend.rpc("msrc_staff_totp_finish", { actor_id: native.actorId, session_id: native.sessionId, attempt_id: winningId, succeeded: false }) as Result).state === "denied", "concurrent reservation completion replay is denied");
+  });
   it("allows only the other Super Admin to remove a verified authenticator and denies the old session", async () => {
     const reset = await post(second, { action: "reset-authenticator", targetId: first.id }); check(reset.result.state === "updated", "other current TOTP Super Admin coordinates reserved native factor deletion");
     check(await query(`select count(*) from auth.mfa_factors where user_id=${text(first.id)} and status::text='verified';`) === "0", "native verified authenticator is removed only by admitted reset");

@@ -95,11 +95,31 @@ database/storage policy before opening their workflow.
 
 ## Controls and recovery
 
-Reuse ORG-014's approved staff control targets: six digits/five minutes, 60-second
-resend, three/account/15 minutes, ten/account/rolling24h, twenty/IP/hour and five
-failed entries then 15-minute cooldown. Account limits survive session/email changes.
+Reuse ORG-014/015's staff control targets: six digits/five minutes, 60-second
+resend, three/account/15 minutes, ten/account/rolling24h and five failed entries
+then 15-minute cooldown. ENG-044 (16 October) raises only the email-code IP
+allowance from twenty to **300 issues/IP/rolling hour** for legitimate staff on
+one campus egress address; account limits survive session/email/IP changes.
+The synthetic sizing case is 100 people making three code issues each per hour,
+not an approved roster or provider sending budget. The independent daily combined
+email cap still applies. See [current portal limits](STAFF_PORTAL.md#16-october-hardening--local-implementation-pending-release).
 Raw codes/IPs are never persisted or audited. Safe audit contains IDs/events/times only.
-Participant email-verification defaults remain distinct. ORG-016 retires all SMS targets; native TOTP/test bounds are not approved live abuse controls.
+Participant email-verification defaults remain distinct. ORG-016 retires all SMS
+targets. ENG-044 adds a durable five-wrong-entry/15-minute account cooldown to
+staff authenticator verification, following the same lockout pattern; it does
+not turn the synthetic lab's native protocol bounds into production policy.
+
+Current portal navigation/real input can report activity through an explicit
+same-origin, CSRF-protected POST; background/readonly context checks remain pure
+observations. Current native identity, role, exact-session email receipt or
+Super Admin TOTP and unexpired 30-minute idle/eight-hour absolute policy must be
+satisfied before activity is accepted. Refresh does not restart session origin
+or count as activity. Portal actions persist provider-rotated cookies; refresh
+failure denies. Sign-out clears its cookie despite stale form tokens, limits or
+provider/database failure, while application and native revocation are attempted
+independently. The older isolated harness receipts below describe their dated
+test boundary; current portal implementation evidence belongs in
+[the O9 hardening note](../progress/2026-10-16-codex-staff-hardening.md).
 
 No approved production SMTP/provider/sender is present. Live email delivery remains
 BLOCKED; do not rely on Supabase development email. Lost-email/address changes stay
