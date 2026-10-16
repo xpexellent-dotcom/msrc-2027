@@ -3048,3 +3048,23 @@ and secret custody and is not recommended. Exact owner steps, pause/monitor/
 replay safeguards and remaining BL-DEP-08 gates are in
 [EMAIL_OUTBOX](features/EMAIL_OUTBOX.md); check receipts are in the
 [per-task progress note](progress/2026-10-16-codex-email-outbox.md).
+
+## ORG-052 — Attendee-only homepage benefits and a one-screen mobile menu, 16 October 2026
+
+Authority: explicit owner instruction, 16 October 2026. The homepage benefits section
+speaks to attendees only. The "For the organizing team" group published on 15 October
+(organizing experience, a certificate from the Dean, networking, priority access) is
+withdrawn from public copy. The section is one list of six attendee benefits: CME hours
+(illustrative figure unchanged), hands-on workshops, networking with experts, research
+exposure, awards and cash prizes, and certificates. Its action now reads "How to take
+part" and links to the participation page instead of the Team page. No new facts are
+introduced: workshops, certificates, prizes and abstracts were already published.
+
+Organizing-team/volunteer priority (ORG-051) remains an internal, closed registration
+setting with no public promise; its eligibility and proof remain organizer questions.
+
+The phone menu must show every destination, including Contact, in one screen without
+scrolling. The section with sub-pages spans the panel, single destinations sit two per
+row as soft tiles, sub-pages reflow by available width, the registration action is
+slimmer, and rows enter with a short staggered rise. Every target keeps its 44px
+minimum; reduced motion and keyboard opening remain instant.

@@ -100,8 +100,3 @@ html[data-cinematic='true'] .editorial-motion-home .hero-scroll-stage > .confere
   .history-count { color: black; font-size: 2rem; }
   .history-numbers { display: block; }
 }
-/* Benefit group labels (participants / organizing team). */
-.editorial-motion-home .program-experiences > .benefit-group-label { margin: 0; max-inline-size: none; padding-block: 1.6rem .4rem; font-size: .9375rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a5e10; border-block-end: 1px solid var(--color-line-strong); }
-.editorial-motion-home .program-experiences > .benefit-group-label:first-child { padding-block-start: 0; }
-.editorial-motion-home .program-experiences > .benefit-group-label + article { padding-block-start: 1.6rem; }
-[lang="ar"] .editorial-motion-home .program-experiences > .benefit-group-label { letter-spacing: 0; text-transform: none; }
