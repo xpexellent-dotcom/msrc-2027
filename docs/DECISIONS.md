@@ -12,8 +12,8 @@ without JS. Keep zoom enabled and remove the unused viewport key Safari rejects.
 JS-only header controls wait for hydration; native links remain usable. Enlarged
 text can wrap the existing Team/filter composition instead of clipping content.
 
-Contact response/body work has a30-second client recovery bound, above the
-existing3-second admission and6-second provider bounds. A timed-out POST stays
+Contact response/body work has a 30-second client recovery bound, above the
+existing 3-second admission and 6-second provider bounds. A timed-out POST stays
 uncertain and never automatically resends; existing translated copy, preserved
 draft and explicit new-attempt safeguards remain authoritative. No delivery,
 database, production flag or new retry policy is activated.

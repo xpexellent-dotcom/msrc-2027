@@ -38,7 +38,11 @@ const proxy = createServer({ key: readFileSync(keyPath), cert: readFileSync(cert
     response.writeHead(result.statusCode ?? 502, result.rawHeaders);
     result.pipe(response);
   });
-  upstream.on("error", () => {
+  upstream.on("error", (error: NodeJS.ErrnoException) => {
+    if (!response.destroyed) console.error("Local QA upstream transport failed", {
+      method: request.method, path: request.url?.split("?")[0],
+      code: error.code, reusedSocket: upstream.reusedSocket,
+    });
     if (!response.headersSent) response.writeHead(502, { "Content-Type": "text/plain", "Cache-Control": "no-store" });
     response.end("Local QA application is unavailable.");
   });

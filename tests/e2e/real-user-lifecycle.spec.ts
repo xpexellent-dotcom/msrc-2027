@@ -28,7 +28,10 @@ for (const locale of ["en", "ar"] as const) {
       // A 400ms RTT and 50KB/s down approximates a constrained 3G connection.
       await session.send("Network.enable");
       await session.send("Network.emulateNetworkConditions", { offline: false, latency: 400, downloadThroughput: 50 * 1024, uploadThroughput: 25 * 1024 });
-      await page.goto(`/${locale}/program`, { waitUntil: "domcontentloaded" });
+      // DOMContentLoaded can precede async Next chunks by several seconds at
+      // this deliberate throughput. Await the actual resource-load boundary
+      // before checking that the loaded interface is enabled.
+      await page.goto(`/${locale}/program`, { waitUntil: "load" });
       await expect(page.locator("main h1")).toBeVisible();
       await expect(page.getByTestId("program-day-day2")).toBeEnabled();
       await page.getByTestId("program-day-day2").click();

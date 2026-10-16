@@ -42,7 +42,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 });
 test.afterEach(async ({ page }, testInfo) => {
   const result = browserFailures.get(page)?.snapshot();
-  if (result?.expectedContactFailures.length || result?.expectedPrefetchCancellations.length || result?.expectedBrowserDiagnostics.length) {
+  if (result?.expectedContactFailures.length || result?.expectedPrefetchCancellations.length || result?.expectedOfflinePrefetchFailures.length || result?.expectedBrowserDiagnostics.length) {
     await testInfo.attach("expected-contact-network-failures", { body: JSON.stringify(result, null, 2), contentType: "application/json" });
   }
   expect(result?.failures ?? []).toEqual([]);
@@ -313,14 +313,30 @@ for (const locale of ["en", "ar"] as const) {
     await control(request);
     await page.goto(`/${locale}/contact`);
     await fill(page, locale);
-    await page.context().setOffline(true);
+    const audit = browserFailures.get(page);
+    if (!audit) throw new Error("Missing Contact browser evidence collector");
+    audit.setForcedOffline(true);
     try {
+      await page.context().setOffline(true);
+      // Force a genuine Next-style prefetch during the offline window instead
+      // of relying on whether background links happen to prefetch in this run.
+      const probeUrl = new URL(`/${locale}/program?_rsc=contact-offline-probe`, page.url()).href;
+      const failedPrefetch = page.waitForEvent("requestfailed", { predicate: (request) => request.url() === probeUrl });
+      expect(await page.evaluate(async (url) => {
+        try { await fetch(url, { headers: { rsc: "1", "next-router-prefetch": "1" } }); return false; }
+        catch { return true; }
+      }, probeUrl)).toBe(true);
+      await failedPrefetch;
+      expect(audit.snapshot().expectedOfflinePrefetchFailures).toEqual(expect.arrayContaining([{ url: probeUrl, reason: expect.any(String) }]));
       await page.getByRole("button", { name: copy[locale].send, exact: true }).click();
       await expect(page.locator(".contact-delivery-error")).toContainText(copy[locale].unconfirmed);
       await expect(page.locator("#contact-reference")).toHaveValue("TEST-ONLY");
       await page.getByRole("button", { name: copy[locale].start, exact: true }).click();
       await expect(page.locator(".contact-delivery-error")).toContainText(copy[locale].unconfirmed);
-    } finally { await page.context().setOffline(false); }
+    } finally {
+      try { await page.context().setOffline(false); }
+      finally { audit.setForcedOffline(false); }
+    }
     expect((await counts(request)).sendCount).toBe(0);
     await expect(page.locator(".contact-duplicate-warning")).toContainText(copy[locale].duplicate);
     await page.getByRole("button", { name: copy[locale].start, exact: true }).click();

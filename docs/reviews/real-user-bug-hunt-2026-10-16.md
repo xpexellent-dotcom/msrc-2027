@@ -141,6 +141,43 @@ focus failure in 18.7 minutes. The assertion was retained and the focus ordering
 was repaired; final focused replay and CI validate it. This failure is not called
 a transient or erased by rerunning the same assertion.
 
+The final five-profile visitor run recorded 318 passes, 22 explicit unsupported
+engine/device skips and five failures. Two received the loopback proxy's own 502
+document; local transport diagnostics now record the error code and socket state.
+The constrained-3G assertion started before JavaScript finished downloading;
+its setup now waits for the actual load event before checking enabled controls.
+One iPhone language request returned 200 in 67ms and committed after the incidental
+5s URL assertion window under parallel load; the unchanged isolated case passed.
+The test now awaits the single native activation's URL commit, then checks the
+same exact locale, query, hash and filter state. The iPad native video's first
+locator attachment consumed most of the autoplay poll budget; setup now awaits
+attachment and media readiness before the unchanged playback assertion. Original
+failure traces remain preserved. No test timeout, retry, product error filter or
+security policy was relaxed.
+
+The first CI pass also retained four Contact profile-job failures: all involved
+background Next prefetch requests during intentional offline injection; form
+assertions passed. The collector now separates those precise connectivity
+failures only while the test has forced offline mode, with same-origin GET,
+`_rsc`, RSC and prefetch headers required. HTTP errors, ordinary assets and
+online failures still fail. The offline browser cases now deliberately make one
+such request so this boundary is exercised every run. All 38 collector unit
+cases pass, including 19 added positive/negative offline cases; expected browser
+diagnostics remain attached to results.
+
+Targeted final replays passed 20 navigation, four constrained-network, ten native-
+video, 33 Contact recovery/focus and ten forced-offline Contact cases. The final
+complete unit suite passed **2,797 cases / 67 files**; TypeScript and scoped lint
+also passed. An older public motion test expected 200/200ms, while the unchanged
+baseline stylesheet already defines 220/280ms. Only that stale expectation was
+reconciled; keyboard reopening, focus and current-page assertions are retained.
+
+The hosted Vercel preview built successfully. Browser verification there is
+BLOCKED by deployment protection: the connected Vercel fetch returned 403 at
+`read_protection_bypass`. No deployment protection, project access or production
+setting was changed. Local production builds and disposable CI remain the
+automated behavior evidence; preview/hardware checks are owner actions.
+
 CI keeps the existing application/public/database suites and adds three sharded
 visitor jobs with Chromium **and WebKit**. Contact has five isolated profile jobs,
 each with its own mocks and single worker. Exact-head results and failure artifacts

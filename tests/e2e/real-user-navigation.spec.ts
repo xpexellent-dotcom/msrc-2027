@@ -104,13 +104,20 @@ for (const locale of ["en", "ar"] as const) {
     } finally { release(); }
   });
 
-  test(`${locale} language change preserves filters and anchor through browser back and forward`, async ({ page }) => {
+  test(`${locale} language change preserves filters and anchor through browser back and forward`, async ({ page, isMobile }) => {
     await page.goto(`/${locale}/program?day=day1&source=shared#programme`);
     await ready(page);
     await page.getByTestId("program-day-day2").click();
     const other = locale === "en" ? "ar" : "en";
-    await (await languageLink(page, other === "ar" ? "View this page in Arabic" : "View this page in English")).click();
-    await expect(page).toHaveURL(new RegExp(`/${other}/program\\?day=day2&source=shared#programme$`));
+    const language = await languageLink(page, other === "ar" ? "View this page in Arabic" : "View this page in English");
+    const translatedAddress = new RegExp(`/${other}/program\\?day=day2&source=shared#programme$`);
+    // The first activation starts a router navigation; await its actual commit
+    // before inspecting the translated state. Touch profiles use a real tap.
+    await Promise.all([
+      page.waitForURL(translatedAddress, { waitUntil: "load" }),
+      isMobile ? language.tap() : language.click(),
+    ]);
+    await expect(page).toHaveURL(translatedAddress);
     await expect(page.locator("html")).toHaveAttribute("lang", other);
     await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
     await page.goBack();

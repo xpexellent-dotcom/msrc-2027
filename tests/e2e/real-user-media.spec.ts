@@ -176,7 +176,33 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(mediaOrigin ? new URL(`/${locale}`, mediaOrigin).href : `/${locale}`);
     const video = page.locator(".conference-hero video");
     const toggle = page.locator(".conference-hero .hero-media-toggle");
+    // Hydration attaches this optional player after document load. Observe its
+    // real decoder boundary before testing autoplay; otherwise attachment work
+    // consumes the behavior assertion's five-second polling budget under load.
+    // Both setup awaits remain inside the unchanged overall test budget.
+    await video.waitFor({ state: "attached" });
+    await video.evaluate((element: HTMLVideoElement) => new Promise<void>((resolve, reject) => {
+      function cleanup() {
+        element.removeEventListener("loadeddata", ready);
+        element.removeEventListener("error", failed);
+      }
+      function ready() {
+        cleanup();
+        resolve();
+      }
+      function failed() {
+        cleanup();
+        reject(new Error(`Native video failed before its first decoded frame (code ${element.error?.code ?? "unknown"}).`));
+      }
+      if (element.error) failed();
+      else if (element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) ready();
+      else {
+        element.addEventListener("loadeddata", ready, { once: true });
+        element.addEventListener("error", failed, { once: true });
+      }
+    }));
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.readyState >= 2 && !element.paused)).toBe(true);
+    await expect(toggle).toHaveAccessibleName(locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video");
     await toggle.focus();
     await page.keyboard.press("Space");
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);

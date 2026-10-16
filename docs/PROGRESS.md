@@ -18,20 +18,23 @@
   isolates five Contact profiles with their own mock counters. Public native
   video uses HTTP loopback because WebKit's decoder does not inherit the TLS
   certificate exception; private/navigation checks retain HTTPS and unchanged CSP.
-- Observed live: 420 sitemap visits all200 with no failed assets/crashes,84
-  sharing-crawler responses,40 non-sitemap read-only visits and20 no-JS error
+- Observed live: 420 sitemap visits all 200 with no failed assets/crashes, 84
+  sharing-crawler responses, 40 non-sitemap read-only visits and 20 no-JS error
   cases. Baseline logs retain unsupported viewport errors and WebKit interrupted
   prefetch diagnostics; this is not a zero-error production claim.
 - Final application source passed lint/types/build including skip/filter/error-
-  focus fixes. Final test-only audit hardening passed 2,778 unit cases/67 files,
+  focus fixes. Final test-only audit hardening passed 2,797 unit cases/67 files,
   with lint/types passing. Raw red regressions
   and intermediate harness failures are preserved. Exact-head CI checks and
-  artifacts are the final receipt, separate from earlier local results.
+  artifacts are the final receipt, separate from earlier local results. Targeted
+  readiness replays passed 20 navigation, four constrained-network, ten native-
+  video and ten forced-offline Contact cases without increasing timeouts/retries.
+  Hosted preview access is blocked by Vercel protection; the deployment built.
 - Remaining: enabled-Contact cross-locale draft/attempt handoff needs a separate
   state-aware fix; WebKit document-teardown fetch diagnostics need native Safari
   confirmation. Physical pinch/OS memory eviction, real embedded apps, software
   keyboard/autofill, native calendar/maps/mail and true BFCache remain manual.
-  Detailed table, commands, screenshots and10-minute owner checklist:
+  Detailed table, commands, screenshots and 10-minute owner checklist:
   [visitor QA review](reviews/real-user-bug-hunt-2026-10-16.md).
 
 ## 16 October 2026 — Public-site QA and polish sweep (production `2406a17`)

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ContactBrowserDiagnostics } from "../helpers/contact-browser-diagnostics";
 
 const origin = "http://127.0.0.1:3212";
+const prefetch = { method: "GET", headers: { rsc: "1", "next-router-prefetch": "1" } };
+const prefetchUrl = `${origin}/en/program?_rsc=synthetic`;
 
 describe("Contact visitor network evidence", () => {
   it.each(["/missing.png", "/_next/static/missing.js", "/fonts/missing.woff2", "/api/unrelated"])("fails an unrelated broken resource %s", (path) => {
@@ -81,5 +83,85 @@ describe("Contact visitor network evidence", () => {
     const audit = new ContactBrowserDiagnostics([origin], false);
     audit.networkFailure(`${origin}/en/program?_rsc=synthetic`, `HTTP ${status}`, { method: "GET", headers: { rsc: "1", "next-router-prefetch": "1" } });
     expect(audit.snapshot().failures).toHaveLength(1);
+  });
+
+  it.each(["net::ERR_INTERNET_DISCONNECTED", "WebKit encountered an internal error"])("records an actual forced-offline prefetch: %s", (reason) => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.setForcedOffline(true);
+    audit.networkFailure(prefetchUrl, reason, prefetch);
+    audit.consoleMessage(`Failed to load resource: ${reason}`, prefetchUrl);
+    expect(audit.snapshot()).toMatchObject({ failures: [], expectedOfflinePrefetchFailures: [{ url: prefetchUrl, reason }] });
+  });
+
+  it.each(["net::ERR_INTERNET_DISCONNECTED", "WebKit encountered an internal error"])("fails the same prefetch error outside the forced-offline window: %s", (reason) => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.networkFailure(prefetchUrl, reason, prefetch);
+    expect(audit.snapshot().failures).toHaveLength(1);
+  });
+
+  it.each(["net::ERR_INTERNET_DISCONNECTED", "WebKit encountered an internal error"])("fails the same prefetch error after reconnection: %s", (reason) => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.setForcedOffline(true);
+    audit.setForcedOffline(false);
+    audit.networkFailure(prefetchUrl, reason, prefetch);
+    expect(audit.snapshot().failures).toHaveLength(1);
+  });
+
+  it.each<{ method: string; headers: Record<string, string> }>([
+    { method: "GET", headers: {} },
+    { method: "GET", headers: { rsc: "0", "next-router-prefetch": "1" } },
+    { method: "GET", headers: { rsc: "1", "next-router-prefetch": "0" } },
+    { method: "POST", headers: { rsc: "1", "next-router-prefetch": "1" } },
+  ])("fails a forced-offline request lacking prefetch provenance: %j", (request) => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.setForcedOffline(true);
+    audit.networkFailure(prefetchUrl, "net::ERR_INTERNET_DISCONNECTED", request);
+    expect(audit.snapshot().failures).toHaveLength(1);
+  });
+
+  it.each(["/missing.png", "/_next/static/missing.js", "/fonts/missing.woff2"])("fails an ordinary offline asset %s", (path) => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.setForcedOffline(true);
+    audit.networkFailure(`${origin}${path}`, "net::ERR_INTERNET_DISCONNECTED", prefetch);
+    expect(audit.snapshot().failures).toHaveLength(1);
+  });
+
+  it.each([404, 500])("fails an HTTP %s prefetch response even while offline injection is marked", (status) => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.setForcedOffline(true);
+    audit.networkFailure(prefetchUrl, `HTTP ${status}`, prefetch);
+    expect(audit.snapshot().failures).toHaveLength(1);
+  });
+
+  it("fails another network error during the forced-offline window", () => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.setForcedOffline(true);
+    audit.networkFailure(prefetchUrl, "net::ERR_CONNECTION_REFUSED", prefetch);
+    expect(audit.snapshot().failures).toHaveLength(1);
+  });
+
+  it("fails a foreign-origin prefetch during the forced-offline window", () => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.setForcedOffline(true);
+    audit.networkFailure("https://unrelated.example.invalid/en/program?_rsc=synthetic", "net::ERR_INTERNET_DISCONNECTED", prefetch);
+    expect(audit.snapshot().failures).toHaveLength(1);
+  });
+
+  it("does not allow empty-location diagnostics solely because offline injection is active", () => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.setForcedOffline(true);
+    audit.consoleMessage("Failed to load resource: WebKit encountered an internal error");
+    expect(audit.snapshot().failures).toHaveLength(1);
+  });
+
+  it("correlates an offline-prefetch empty-location diagnostic without hiding a failed asset or app error", () => {
+    const audit = new ContactBrowserDiagnostics([origin], false);
+    audit.setForcedOffline(true);
+    audit.networkFailure(prefetchUrl, "WebKit encountered an internal error", prefetch);
+    audit.consoleMessage("Failed to load resource: WebKit encountered an internal error");
+    audit.networkFailure(`${origin}/missing.png`, "net::ERR_INTERNET_DISCONNECTED");
+    audit.applicationFailure("Uncaught application failure");
+    expect(audit.snapshot().failures).toEqual([`net::ERR_INTERNET_DISCONNECTED: ${origin}/missing.png`, "Uncaught application failure"]);
+    expect(audit.snapshot().expectedBrowserDiagnostics).toHaveLength(1);
   });
 });
