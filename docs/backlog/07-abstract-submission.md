@@ -193,3 +193,27 @@ M6 / scientific release REL-03. These are planned issues, not evidence of comple
 - **Release gate:** REL-03 final-material settings plus REL-05 judging access readiness.
 - **Owner type:** Full-stack/security engineer with scientific lead.
 - **TBD blocked:** Live stage two yes, CFG-03 deliverables/templates/deadlines and CFG-10 scanning; synthetic boundary work no.
+
+<a id="bl-abs-09"></a>
+
+## BL-ABS-09 — Export accepted abstracts for authorized conference operations
+
+- **Source IDs:** ABS-14/15, ADM-01/02/03/04, ROL-10/11, PRV-03, SEC-02/04; ORG-051.
+- **Status:** Planned; production closed.
+- **Purpose:** Produce a private, authorized export of accepted scientific work without creating the excluded public abstract directory.
+- **Scope:** Edition-scoped accepted-decision snapshot, explicitly approved minimal field list, CSV/Excel formula-injection protection, expiring protected download and export audit. Full personal-data export remains Super Admin-only under ADM-03.
+- **Exclusions:** Public abstract search/directory, rejected/unreleased work, confidential stage-one evidence, identity-document numbers and invented export recipients/fields.
+- **Dependencies:** BL-ABS-06; released acceptance decisions; BL-RPT-02 export foundation; approved purpose/field/recipient/retention specification.
+- **Roles:** Super Admin for full personal-data export; other roles only for an explicitly authorized minimal operational projection, never generic administrator access.
+- **States/transitions:** Authorized export request → immutable snapshot → protected result → expiry/deletion; export does not publish or alter a scientific decision.
+- **Data touched:** Accepted submission/version references, approved fields, private export object, expiry and audit evidence.
+- **Acceptance criteria:** Cross-edition/unreleased/evidence access denied; untrusted spreadsheet content neutralized; repeat/failed jobs do not expose partial files; download expiry enforced server-side.
+- **English/Arabic:** Non-review operator controls bilingual/RTL; scientific content remains English/LTR.
+- **Accessibility:** Keyboard export/download and descriptive progress/error/expiry text.
+- **Security/RLS:** Current scoped assurance at request and download; no public bucket/link, no participant bulk export and no identifier reveal by export.
+- **Audit/email:** Actor, purpose, scope, request/download/result and expiry; no exported scientific/profile payload in audit or logs; authorized delivery uses durable jobs.
+- **Automated tests:** Role/edition negatives, release snapshot correctness, forbidden columns, formula injection, expiry and job/download races.
+- **Manual UAT:** Inspect a synthetic accepted-work export and demonstrate refused stage-one evidence/public access.
+- **Release gate:** REL-03/06 and approved export specification plus retention/access evidence.
+- **Owner type:** Backend/security engineer with scientific and privacy owners.
+- **TBD blocked:** Synthetic export work unblocked; live fields, recipients/purpose and retention require owner approval.

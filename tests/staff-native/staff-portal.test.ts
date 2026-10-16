@@ -361,7 +361,7 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
   });
   it("returns restricted audit metadata and records explicit unavailable identity reveal", async () => {
     const audit = await get(first, "audit"); check(audit.status === 200 && Array.isArray(audit.result.audit), "native audit metadata projection survives strict server sanitizer");
-    const reveal = await post(first, { action: "reveal-identity", targetId: ordinary.id }); check(reveal.result.state === "identity-unavailable", "no registration identifier is invented in this foundation");
+    const reveal = await post(first, { action: "reveal-identity", targetId: ordinary.id, reason: "Synthetic identity check" }); check(reveal.result.state === "identity-unavailable", "an absent registration identifier is not invented");
     check(await query(`select count(*) from msrc_staff.audit where action='identity_reveal' and actor_id=${text(first.id)} and target_id=${text(ordinary.id)} and result='unavailable';`) === "1", "explicit reveal action is audited before any future plaintext field");
   });
   it("allows only the other Super Admin to remove a verified authenticator and denies the old session", async () => {

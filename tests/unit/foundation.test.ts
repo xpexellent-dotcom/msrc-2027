@@ -6,6 +6,7 @@ import {
   isWorkflow,
   WorkflowClosedError,
   workflowFlags,
+  type RegistrationGateEvidence,
 } from "@/lib/workflows.server";
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 import { approvedAtVenue, approvedTravelTime } from "../fixtures/approved-venue-guidance";
@@ -59,11 +60,32 @@ describe("server-side operational closure (SEC-01, API-02)", () => {
     expect(operation).not.toHaveBeenCalled();
   });
 
-  it("does not trust an environment flag to open a gate", () => {
+  it("does not trust an environment flag without private database evidence", () => {
     vi.stubEnv("NEXT_PUBLIC_REGISTRATION_ENABLED", "true");
     vi.stubEnv("REGISTRATION_ENABLED", "true");
     expect(() => assertWorkflowOpen("registration")).toThrow(WorkflowClosedError);
     expect(Object.isFrozen(workflowFlags)).toBe(true);
+  });
+
+  const registration: RegistrationGateEvidence = { enabled: true, participantAccountsReady: true, settingsComplete: true, windowOpen: true, eligible: true };
+  it.each([undefined, "false", "TRUE", "1", ""])("registration remains closed for server flag %s", (flag) => {
+    vi.stubEnv("REGISTRATION_ENABLED", flag);
+    vi.stubEnv("NEXT_PUBLIC_REGISTRATION_ENABLED", "true");
+    expect(() => assertWorkflowOpen("registration", registration)).toThrow(WorkflowClosedError);
+  });
+  it.each(Object.keys(registration) as (keyof RegistrationGateEvidence)[])("registration requires %s from the database", (field) => {
+    vi.stubEnv("REGISTRATION_ENABLED", "true");
+    expect(() => assertWorkflowOpen("registration", { ...registration, [field]: false })).toThrow(WorkflowClosedError);
+    expect(() => assertWorkflowOpen("registration", { ...registration, [field]: null } as unknown as RegistrationGateEvidence)).toThrow(WorkflowClosedError);
+  });
+  it("allows registration only with every server and database condition", () => {
+    vi.stubEnv("REGISTRATION_ENABLED", "true");
+    expect(() => assertWorkflowOpen("registration", registration)).not.toThrow();
+  });
+  it.each(WORKFLOWS.filter((workflow) => workflow !== "registration"))("keeps %s closed even with every gate and environment claim", (workflow) => {
+    vi.stubEnv("REGISTRATION_ENABLED", "true");
+    vi.stubEnv(workflow.replace(/[A-Z]/g, (letter) => "_" + letter).toUpperCase() + "_ENABLED", "true");
+    expect(() => assertWorkflowOpen(workflow, registration)).toThrow(WorkflowClosedError);
   });
 
   it.each(["__proto__", "constructor", "prototype", "REGISTRATION", "unknown", ""])(
