@@ -448,7 +448,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/participate#three-minute-thesis`);
     const thesis = page.locator("#three-minute-thesis");
     await expect(thesis).toBeInViewport();
-    await thesis.getByRole("heading").getByRole("link").click();
+    await thesis.getByRole("link").click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/3mt$`));
     await expect(page.getByTestId("journey-closed")).toBeVisible();
     await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);

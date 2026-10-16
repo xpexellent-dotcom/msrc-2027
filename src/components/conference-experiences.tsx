@@ -6,7 +6,6 @@ import { useId, useSyncExternalStore, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
-import { Reveal } from "@/components/ui/reveal";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ResearchVisual } from "@/components/research-visual";
 import { FlowLines } from "@/components/brand/flow-lines";
@@ -15,6 +14,8 @@ import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { ConferenceDayLinks } from "@/components/conference-day-links";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { datesVenueCopy } from "@/content/dates-venue";
+import { participationBenefitIcons, participationPathDescriptions } from "@/content/participation-copy";
+import { BenefitArtwork } from "@/components/benefit-artwork";
 import {
   experienceCopy, filterMedia, filterSessions, participationPaths, published,
   type ConferenceDay, type ExperiencePageId, type MediaEditionFilter, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
@@ -53,6 +54,7 @@ function Arrow() {
 }
 
 const experiencePhotos: Partial<Record<ExperiencePageId, string>> = {
+  participate: "/media/participate/participate-header-v1.jpg",
   program: "programme-panel.jpg",
   registration: "attend-majed-9744.jpg",
   submissions: "share-research-manar-2560.jpg",
@@ -68,7 +70,7 @@ export function ExperienceIntro({ locale, page, announcement, children }: { loca
   const photo = experiencePhotos[page];
   const lines = intro.title.split("\n");
   return <section className={`experience-intro experience-intro--${page}${photo ? " premium-photo-hero fluid-journey-hero" : ""}`} data-publication-pending={announcement ? true : undefined} aria-labelledby="experience-title">
-    {photo ? <div className="premium-hero-image" aria-hidden="true"><Image src={`/media/msrc-demo/${photo}`} alt="" fill sizes="100vw" priority /></div> : null}
+    {photo ? <div className="premium-hero-image" aria-hidden="true"><Image src={photo.startsWith("/") ? photo : `/media/msrc-demo/${photo}`} alt="" fill sizes="100vw" priority /></div> : null}
     <Container>
       <nav aria-label={copy.breadcrumb} className="experience-breadcrumb"><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
       <div className="experience-intro-grid">
@@ -252,7 +254,12 @@ export function MediaCard({ locale, record, session }: { locale: Locale; record:
 
 export function ParticipateExperience({ locale }: { locale: Locale }) {
   const copy = experienceCopy[locale];
-  return <><ExperienceIntro locale={locale} page="participate" /><section className="experience-pathways"><Container><Reveal stagger>{participationPaths.map((path, index) => <article className="experience-pathway" key={path.id} id={path.id === "threeMinuteThesis" ? "three-minute-thesis" : path.id} tabIndex={-1}><span className="experience-pathway-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span><div className="experience-pathway-copy"><h2><Link href={`/${locale}${path.href}`}>{copy.pages[path.id].label}<Arrow /></Link></h2><p>{copy.pages[path.id].lead}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}</Reveal></Container></section></>;
+  return <><ExperienceIntro locale={locale} page="participate" /><section className="participation-hub" aria-label={copy.pages.participate.label}><Container><div className="participation-paths">{participationPaths.map((path) => <article className="participation-path" key={path.id} id={path.id === "threeMinuteThesis" ? "three-minute-thesis" : path.id} tabIndex={-1}>
+    <Link className="participation-path-link" href={`/${locale}${path.href}`}>
+      <span className="participation-path-icon" aria-hidden="true">{path.icon ? <Image src={path.icon} alt="" width={56} height={56} /> : <JourneyIcon variant={path.glyph} />}</span>
+      <div className="participation-path-copy"><h2>{copy.pages[path.id].label}</h2><p>{participationPathDescriptions[locale][path.id]}</p></div><Arrow />
+    </Link>
+  </article>)}</div></Container></section></>;
 }
 
 export function JourneyExperience({ locale, journey, workshops: approvedWorkshops = [] }: { locale: Locale; journey: keyof typeof experienceCopy.en.journeys; workshops?: readonly PublicWorkshop[] }) {
@@ -260,28 +267,36 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
   const content = copy.journeys[journey];
   const workshops = published(approvedWorkshops);
   const actions = journeyActionCopy[locale];
-  const details = journey === "threeMinuteThesis" ? [...content.details, { title: content.pendingTitle, body: content.pendingBody }] : content.details;
-  return <><ExperienceIntro locale={locale} page={journey}><ButtonLink variant="gold" href={journey === "workshops" ? "#workshop-catalogue" : "#journey-availability"} aria-describedby="journey-closed-title">{actions.primary[journey]}<Arrow /></ButtonLink></ExperienceIntro>
+  return <div className={`participation-journey participation-journey--${journey}`}><ExperienceIntro locale={locale} page={journey}>
+      {journey !== "registration" ? <ButtonLink variant="gold" href={journey === "workshops" ? "#workshop-catalogue" : "#journey-availability"} aria-describedby="journey-closed-title">{actions.primary[journey]}<Arrow /></ButtonLink> : null}
+      <div className="participation-program"><Button disabled data-testid="brochure-unavailable" aria-describedby="brochure-unavailable-note" variant="ghost" size="small">{actions.brochure}</Button><p id="brochure-unavailable-note">{actions.brochurePending}</p></div>
+    </ExperienceIntro>
     <section id="journey-availability" tabIndex={-1} className="journey-availability fluid-journey-availability" data-testid="journey-closed" aria-labelledby="journey-closed-title"><Container><div className="journey-availability-dot" aria-hidden="true" /><div><h2 id="journey-closed-title">{content.closed}</h2><p>{content.closedBody}</p></div></Container></section>
+    <section id="journey-benefits" className="participation-benefits" aria-labelledby="journey-benefits-title"><Container><p className="participation-section-label">{journey === "workshops" ? actions.learning : actions.benefits}</p><h2 id="journey-benefits-title">{content.detailsTitle}</h2><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3 {...(journey === "hackathon" && index < 2 ? { lang: "en", dir: "ltr" } : {})}>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
+      {content.goodToKnow ? <aside className="participation-good-to-know" aria-labelledby="good-to-know-title"><h3 id="good-to-know-title">{content.goodToKnow.title}</h3><ul>{content.goodToKnow.points.map((point) => <li key={point}>{point}</li>)}</ul></aside> : null}
+    </Container></section>
     {journey === "workshops" ? <WorkshopRail locale={locale} workshops={workshops} /> : null}
-    <section id="journey-guidelines" tabIndex={-1} className="journey-guidelines fluid-journey-guidelines fluid-art-surface" aria-labelledby="journey-guidelines-title"><Container><div className="journey-guidelines-heading"><h2 id="journey-guidelines-title">{content.detailsTitle}</h2></div><div className="journey-guidelines-list fluid-requirement-grid">{details.map((detail, index) => <article className="fluid-requirement-card" key={detail.title}><JourneyIcon variant={index} /><div><h3 {...(journey === "hackathon" && index < 2 ? { lang: "en", dir: "ltr" } : {})}>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div></Container></section>
+    <section id="journey-steps" className="participation-steps" aria-labelledby="journey-steps-title"><Container><h2 id="journey-steps-title">{content.stepsTitle}</h2><ol>{content.steps.map((step, index) => <li key={step}><span aria-hidden="true">{formatIndex(index + 1, locale)}</span><p>{step}</p></li>)}</ol>
+      {journey === "registration" ? <div className="participation-bottom-action"><ButtonLink variant="gold" href={`/${locale}/sign-up`} data-testid="participation-sign-up">{actions.primary.registration}<Arrow /></ButtonLink></div> : null}
+    </Container></section>
     <section className="fluid-journey-resources" aria-labelledby="journey-resources-title"><Container><h2 id="journey-resources-title">{actions.resources}</h2><div className="fluid-resource-grid">
-      {journey === "registration" ? <div className="fluid-resource fluid-resource--pending"><JourneyIcon variant={3} /><Button disabled data-testid="ticket-unavailable" aria-describedby="ticket-unavailable-note" variant="secondary">{actions.ticket}</Button><p id="ticket-unavailable-note">{actions.ticketPending}</p></div> : <Link className="fluid-resource" href="#journey-guidelines"><JourneyIcon variant={1} /><span>{journey === "submissions" ? actions.guidelines : actions.requirements}</span><Arrow /></Link>}
+      <div className="fluid-resource fluid-resource--pending"><JourneyIcon variant={3} /><Button disabled data-testid="ticket-unavailable" aria-describedby="ticket-unavailable-note" variant="secondary">{actions.ticket}</Button><p id="ticket-unavailable-note">{actions.ticketPending}</p></div>
       <Link className="fluid-resource" href={`/${locale}/participate`}><JourneyIcon variant={0} /><span>{copy.otherPaths}</span><Arrow /></Link>
       <Link className="fluid-resource" href={`/${locale}#faq`}><JourneyIcon variant={4} /><span>{actions.faq}</span><Arrow /></Link>
-      {journey === "registration" ? <div className="fluid-resource fluid-resource--pending"><JourneyIcon variant={5} /><Button disabled data-testid="brochure-unavailable" aria-describedby="brochure-unavailable-note" variant="secondary">{actions.brochure}</Button><p id="brochure-unavailable-note">{actions.brochurePending}</p></div> : <Link className="fluid-resource" href={`/${locale}/program`}><JourneyIcon variant={5} /><span>{copy.programmeLink}</span><Arrow /></Link>}
     </div></Container></section>
-  </>;
+  </div>;
 }
 
 const journeyActionCopy = {
   en: {
-    primary: { registration: "Reserve your seat", submissions: "Submit your abstract", workshops: "Explore workshops", hackathon: "Enter the hackathon", threeMinuteThesis: "Enter 3MT" },
+    primary: { registration: "Sign up for MSRC", submissions: "Submit your abstract", workshops: "Explore workshops", hackathon: "Enter the hackathon", threeMinuteThesis: "Enter 3MT" },
+    benefits: "What you gain", learning: "Practical learning",
     resources: "Your next move.", ticket: "View my ticket", ticketPending: "Tickets will be available after registration opens and your place is confirmed by email.",
     guidelines: "View submission guidelines", requirements: "Review participation requirements", faq: "Frequently asked questions", brochure: "Download the program", brochurePending: "The program brochure will be available once published.",
   },
   ar: {
-    primary: { registration: "احجز مقعدك", submissions: "قدّم ملخصك البحثي", workshops: "استكشف ورش العمل", hackathon: "شارك في الهاكاثون", threeMinuteThesis: "شارك في 3MT" },
+    primary: { registration: "سجّل في MSRC", submissions: "قدّم ملخصك البحثي", workshops: "استكشف ورش العمل", hackathon: "شارك في الهاكاثون", threeMinuteThesis: "شارك في 3MT" },
+    benefits: "ما الذي تكتسبه", learning: "تعلّم عملي",
     resources: "خطوتك التالية.", ticket: "عرض تذكرتي", ticketPending: "ستتاح التذاكر بعد فتح التسجيل وتأكيد مقعدك عبر البريد الإلكتروني.",
     guidelines: "عرض إرشادات التقديم", requirements: "مراجعة متطلبات المشاركة", faq: "الأسئلة الشائعة", brochure: "تنزيل البرنامج", brochurePending: "سيتاح كتيّب البرنامج بعد نشره.",
   },
@@ -297,6 +312,8 @@ function JourneyIcon({ variant }: { variant: number }) {
     <g key="ticket"><path d="M6 14h36v8a5 5 0 0 0 0 10v7H6v-7a5 5 0 0 0 0-10v-8Z" /><path d="M30 14v5m0 5v5m0 5v5" /></g>,
     <g key="conversation"><path d="M39 26a14 14 0 0 1-14 14H9l4-7A14 14 0 1 1 39 26Z" /><path d="M20 17a5 5 0 0 1 10 0c0 4-5 4-5 8m0 5h.01" /></g>,
     <g key="calendar"><rect x="7" y="10" width="34" height="31" rx="5" /><path d="M15 6v9M33 6v9M7 21h34M16 28h4m8 0h4m-16 7h4m8 0h4" /></g>,
+    <g key="idea"><path d="M24 6a12 12 0 0 0-7.2 21.6c1.3 1 2.2 2.6 2.2 4.3V34h10v-2.1c0-1.7.9-3.3 2.2-4.3A12 12 0 0 0 24 6Z" /><path d="M19 39h10M21 43h6M24 14v6m-4-2 4 4 4-4" /></g>,
+    <g key="stopwatch"><circle cx="24" cy="27" r="14" /><path d="M24 27v-7M20 6h8M24 6v7M35 15l3-3" /></g>,
   ];
   return <span className="fluid-journey-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke={`url(#${gradientId})`} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id={gradientId} x1="7" y1="7" x2="41" y2="41" gradientUnits="userSpaceOnUse"><stop stopColor="#9b76c5" /><stop offset=".55" stopColor="#512f7b" /><stop offset="1" stopColor="#9b7529" /></linearGradient></defs>{symbols[variant % symbols.length]}</svg></span>;
 }

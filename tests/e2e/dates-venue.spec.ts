@@ -113,7 +113,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".dates-note")).toHaveCount(0);
     // Closed registration is communicated on its dedicated destination rather
     // than repeated in the shortened Venue footer.
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/registration`);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
     await expect(page.getByRole("main").locator(".dates-program-link")).toHaveCount(1);
     await expect(stage.locator(".dates-program-link")).toHaveAttribute("href", `/${locale}/program`);
     await expect(stage.locator(`a[href="/${locale}#faq"]`)).toHaveCount(1);

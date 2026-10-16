@@ -1,0 +1,79 @@
+/* ORG-053 / ENG-048: public participation invitations, with native RTL flow. */
+.experience-intro--participate .premium-hero-image img { object-position: 50% 56%; }
+.participation-hub { padding-block: clamp(2rem, 5vw, 5rem); background: var(--color-ivory); }
+.participation-paths { display: grid; gap: .875rem; max-inline-size: 66rem; margin-inline: auto; }
+.participation-path { min-inline-size: 0; scroll-margin-block-start: 7rem; }
+.participation-path-link.site-link { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: clamp(.75rem, 2vw, 2rem); min-block-size: 7.5rem; padding: 1.25rem clamp(1rem, 3vw, 2rem); border: 1px solid var(--color-line); border-radius: 1rem; background: var(--color-white); color: var(--color-purple); text-decoration: none; box-shadow: 0 3px 12px rgb(59 30 109 / 3%); transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
+.participation-path-link.site-link:not(.button):not(.wordmark) { text-decoration: none; }
+.participation-path-icon { display: flex; align-items: center; justify-content: center; inline-size: clamp(3rem, 6vw, 4.5rem); aspect-ratio: 1; border-radius: .875rem; background: var(--color-surface-lilac); }
+.participation-path-icon .fluid-journey-icon { inline-size: 65%; block-size: auto; }
+.participation-path-icon img { inline-size: 75%; block-size: 75%; object-fit: contain; }
+.participation-path-copy { min-inline-size: 0; }
+.participation-path h2 { margin: 0; font-size: clamp(1.125rem, 2vw, 1.75rem); font-weight: 650; line-height: 1.35; letter-spacing: -.02em; text-wrap: initial; }
+.participation-path p { margin: .3rem 0 0; color: var(--color-muted); font-size: 1rem; line-height: 1.6; }
+.participation-path-link > .directional-arrow { inline-size: 1.25rem; block-size: 1.25rem; flex-shrink: 0; }
+.participation-path-link.site-link:active { transform: scale(.99); background: var(--color-surface-lilac); }
+.participation-path-link.site-link:focus-visible { outline: var(--focus-width) solid var(--color-purple); outline-offset: 4px; border-color: var(--color-purple); }
+
+.participation-journey .fluid-journey-hero-actions { align-items: start; gap: 1.25rem 2rem; }
+.participation-program { max-inline-size: 24rem; }
+.participation-journey .participation-program .button { min-block-size: 44px; padding: .5rem 0; border: 0; background: none; color: var(--color-ivory); font-size: .9375rem; font-weight: 600; opacity: 1; text-decoration: underline; text-underline-offset: .25em; }
+.participation-program p { margin: .25rem 0 0; color: var(--color-lilac); font-size: .8125rem; line-height: 1.65; }
+.participation-benefits { padding-block: clamp(3rem, 6vw, 6rem); background: var(--color-ivory); }
+.participation-section-label { margin: 0 0 .75rem; color: var(--color-muted); font-size: .875rem; font-weight: 650; }
+.participation-benefits h2, .participation-steps h2 { max-inline-size: 21ch; margin: 0 0 clamp(2rem, 4vw, 3rem); color: var(--color-purple); font-size: clamp(2rem, 3.8vw, 3.75rem); font-weight: 650; line-height: 1.15; letter-spacing: -.035em; }
+.participation-benefit-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(2rem, 6vw, 6rem); }
+.participation-benefit { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 1rem; padding-block: 1.5rem; border-block-start: 1px solid var(--color-line); min-inline-size: 0; }
+.participation-benefit .fluid-journey-icon { inline-size: 2.75rem; block-size: 2.75rem; }
+.participation-benefit h3 { margin: 0; color: var(--color-purple); font-size: clamp(1.125rem, 1.7vw, 1.5rem); font-weight: 650; line-height: 1.4; letter-spacing: -.015em; }
+.participation-benefit p { margin: .5rem 0 0; max-inline-size: 52ch; color: var(--color-muted); font-size: 1rem; line-height: 1.8; }
+.participation-journey :is(.participation-benefit p, .participation-steps p, .participation-good-to-know li, .participation-program p) { overflow-wrap: anywhere; }
+.participation-good-to-know { margin-block-start: 2rem; padding: clamp(1.25rem, 3vw, 2rem); border-inline-start: 3px solid var(--color-gold); border-radius: 0 .75rem .75rem 0; background: var(--color-surface-lilac); }
+.participation-good-to-know h3 { margin: 0 0 .75rem; color: var(--color-purple); font-size: 1.125rem; }
+.participation-good-to-know ul { display: flex; flex-wrap: wrap; gap: .5rem 2rem; padding-inline-start: 1.25rem; margin: 0; color: var(--color-ink); }
+.participation-good-to-know li { padding-inline-start: .25rem; }
+.participation-steps { padding-block: clamp(3rem, 5vw, 5rem); background: var(--color-surface-lilac); }
+.participation-steps ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; margin: 0; padding: 0; list-style: none; }
+.participation-steps li { min-inline-size: 0; border-block-start: 1px solid var(--color-line-strong); padding-block-start: 1rem; }
+.participation-steps li > span { display: inline-flex; align-items: center; justify-content: center; inline-size: 2.5rem; block-size: 2.5rem; border: 1px solid var(--color-line-strong); border-radius: 50%; color: var(--color-purple); font-size: 1rem; font-variant-numeric: tabular-nums; }
+.participation-steps li p { margin: .875rem 0 0; color: var(--color-purple); font-size: 1.0625rem; line-height: 1.7; }
+.participation-bottom-action { margin-block-start: 2.5rem; }
+.participation-bottom-action .button { min-block-size: 48px; max-inline-size: 100%; white-space: normal; }
+.participation-journey .fluid-resource-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.participation-journey .fluid-resource { align-content: start; font-size: 1.0625rem; }
+.participation-journey .fluid-resource > .fluid-journey-icon { inline-size: 2.5rem; block-size: 2.5rem; }
+.participation-journey .fluid-resource--pending .button { font-size: 1.0625rem; }
+.participation-journey .fluid-resource--pending p { font-size: .9375rem; }
+.participation-journey .fluid-workshop-section { padding-block-start: clamp(3rem, 5vw, 5rem); }
+[dir="rtl"] .participation-good-to-know { border-radius: .75rem 0 0 .75rem; }
+[dir="rtl"] .participation-benefit h3[dir="ltr"] { text-align: right; }
+[lang="ar"] :is(.participation-path h2, .participation-benefits h2, .participation-steps h2, .participation-benefit h3) { letter-spacing: 0; line-height: 1.6; }
+@media (hover: hover) and (pointer: fine) {
+  .participation-path-link.site-link:hover { background: #fcfaff; border-color: var(--color-line-strong); box-shadow: 0 8px 24px rgb(59 30 109 / 7%); transform: translateY(-2px); }
+}
+@media (max-width: 850px) {
+  .participation-steps ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .participation-journey .fluid-resource-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .participation-path-link.site-link { min-block-size: 6.25rem; padding: 1rem .875rem; gap: .75rem; }
+  .participation-path h2 { font-size: 1.0625rem; }
+  .participation-path p { font-size: .875rem; }
+  .participation-benefit-list, .participation-steps ol { grid-template-columns: minmax(0, 1fr); }
+  .participation-steps li { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 1rem; }
+  .participation-steps li p { margin: .25rem 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .participation-path-link.site-link { transition: none; }
+  .participation-path-link.site-link:is(:hover, :active) { transform: none; }
+}
+@media (forced-colors: active) {
+  .participation-path-icon, .participation-good-to-know { border: 1px solid CanvasText; }
+}
+
+/* Benefit artwork by meaning (shared with the homepage), sized for the journey lists. */
+.participation-benefit .benefit-artwork { inline-size: 2.75rem; block-size: 2.75rem; margin: 0; }
+.participation-benefit .benefit-cme { inline-size: 2.75rem; }
+.participation-benefit .benefit-cme-number { font-size: 1.9rem; }
+.participation-benefit .benefit-cme-label { font-size: .625rem; }
+.participation-benefit .benefit-cme-note { font-size: .5625rem; }

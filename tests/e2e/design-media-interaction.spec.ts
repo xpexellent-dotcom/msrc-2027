@@ -59,7 +59,7 @@ for (const locale of ["en", "ar"] as const) {
       return hit !== null && element.contains(hit);
     }), { message: "The visible registration link receives a real pointer hit." }).toBe(true);
     await action.click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/registration$`));
+    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
   });
 
   for (const reducedMotion of ["reduce", "no-preference"] as const) {

@@ -84,7 +84,7 @@ for (const preference of [
     await expect.poll(() => poster.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
     await expect(closing.locator("video, .city-control")).toHaveCount(0);
     await expect(closing.locator("#closing-title")).toBeVisible();
-    await expect(closing.getByRole("link")).toHaveAttribute("href", `/${preference.locale}/registration`);
+    await expect(closing.getByRole("link")).toHaveAttribute("href", `/${preference.locale}/participate`);
     expect(requests).toEqual([]);
     expect(errors).toEqual([]);
   });

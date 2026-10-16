@@ -85,15 +85,15 @@ test("disabled and loading demonstrations cannot trigger operations", async ({ p
   }
   await page.goto("/en");
   const action = page.locator(".header-primary-action");
-  await expect(action).toHaveAttribute("href", "/en/registration");
+  await expect(action).toHaveAttribute("href", "/en/participate");
   if (await action.isVisible()) await action.click();
   else {
     await page.locator(".menu-toggle").click();
     await page.locator(".mobile-menu").getByRole("link", { name: "Reserve your seat", exact: true }).click();
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
   }
-  await expect(page).toHaveURL(/\/en\/registration$/);
-  await expect(page.getByTestId("journey-closed")).toBeVisible();
+  await expect(page).toHaveURL(/\/en\/participate$/);
+  await expect(page.locator(".participation-path-link")).toHaveCount(5);
   await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);
   expect(writes).toEqual([]);
 });

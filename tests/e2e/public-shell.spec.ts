@@ -41,7 +41,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(page.locator("form, input, textarea, select")).toHaveCount(0);
     await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"], a[href*="/admin"]')).toHaveCount(0);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/registration`);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     expect(response?.headers()["x-robots-tag"]).toContain("noindex");
     // ORG-001/002: explicit date and montage approval does not open operations.
@@ -199,7 +199,7 @@ test("responsive navigation is keyboard usable in both languages", async ({ page
     await page.keyboard.press("Tab");
     await page.keyboard.press("Enter");
     await expect(menu).toHaveCount(0);
-    await expect(page).toHaveURL(new RegExp(`/${locale}/registration$`));
+    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }
 });

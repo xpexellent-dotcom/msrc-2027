@@ -140,15 +140,15 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} registration stays closed with useful preparation and unavailable ticket actions`, async ({ page }) => {
     const notice = locale === "en"
-      ? { heading: "Make time for both days", body: "The full conference certificate requires both day check-ins and the general survey. Workshop certificates have their own completion requirements.", closed: "Registration is not open yet" }
-      : { heading: "خصص وقتًا لكلا اليومين", body: "تتطلب شهادة حضور المؤتمر كاملًا تسجيل الحضور في اليومين وإكمال الاستبيان العام. لشهادات ورش العمل متطلبات إتمام مستقلة.", closed: "لم يُفتح التسجيل بعد" };
+      ? { heading: "Your conference certificate", body: "Check in on both days and complete the general survey for your full conference certificate.", closed: "Registration is not open yet" }
+      : { heading: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين وأكمل الاستبيان العام للحصول على شهادة حضور المؤتمر كاملًا.", closed: "لم يُفتح التسجيل بعد" };
     const writes: string[] = [];
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
     const response = await page.goto(`/${locale}/registration`);
     expect(response?.status()).toBe(200);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByTestId("journey-closed")).toContainText(notice.closed);
-    const preparation = page.locator(".journey-guidelines-list article").filter({
+    const preparation = page.locator(".participation-benefit").filter({
       has: page.getByRole("heading", { level: 3, name: notice.heading, exact: true }),
     });
     await expect(preparation).toHaveCount(1);
@@ -157,7 +157,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("ticket-unavailable")).toBeDisabled();
     await expect(page.getByTestId("brochure-unavailable")).toBeDisabled();
     await expect(page.locator("#ticket-unavailable-note")).toContainText(locale === "en" ? "confirmed by email" : "البريد الإلكتروني");
-    await expect(page.locator(".journey-steps")).toHaveCount(0);
+    await expect(page.locator(".participation-steps li")).toHaveCount(4);
     await expect(page.locator("main form, main input, main textarea, main select, main button[type=submit]")).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     expect(writes).toEqual([]);
@@ -190,14 +190,14 @@ test("Contact keyboard and language navigation preserve the page and section", a
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe("auto");
 });
 
-test("Contact stays closed without JavaScript", async ({ browser }) => {
-  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+test("Contact stays closed without JavaScript", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   try {
     const page = await context.newPage();
     const writes: string[] = [];
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
     for (const locale of ["en", "ar"] as const) {
-      await page.goto(`http://127.0.0.1:3210/${locale}/contact`);
+      await page.goto(`/${locale}/contact`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy[locale].heading);
       await expect(page.locator(".contact-form fieldset")).toHaveAttribute("disabled");
       await expect(page.locator(".contact-form button")).toBeDisabled();

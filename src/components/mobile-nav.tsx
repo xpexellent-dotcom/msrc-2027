@@ -19,7 +19,7 @@ export function MobileNav({ id, label, links, pathname, locale, status, action, 
       if (closing && event.target === event.currentTarget && event.propertyName === "opacity") onExited();
     }}><Container>
     <div className="mobile-menu-registration" style={{ "--menu-index": 0 } as CSSProperties}>
-      <ButtonLink className="mobile-reserve-action" href={`/${locale}/registration`} variant="gold" onClick={onNavigate}>{action}</ButtonLink>
+      <ButtonLink className="mobile-reserve-action" href={`/${locale}/participate`} variant="gold" onClick={onNavigate}>{action}</ButtonLink>
       <p className="mobile-menu-status">{status}</p>
     </div>
     <nav aria-label={label}>{links.map((link, index) => <div className="mobile-nav-group" key={link.href}

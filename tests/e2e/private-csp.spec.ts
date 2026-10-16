@@ -68,6 +68,8 @@ for (const locale of ["en", "ar"] as const) {
       await page.locator(".menu-toggle").click();
       await page.locator(".mobile-reserve-action").click();
     } else await page.locator(".header-primary-action").click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
+    await page.locator(`.participation-path-link[href="/${locale}/registration"]`).click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/registration$`));
     expect(await page.locator("script").first().evaluate((script) => script.nonce)).not.toBe("");
   });
