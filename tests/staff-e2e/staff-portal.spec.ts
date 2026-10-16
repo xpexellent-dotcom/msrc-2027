@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "../helpers/csp";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { auditActionLabel, auditResultLabel } from "../../src/features/staff-portal/audit-labels";
 import { staffMenu } from "../../src/features/staff-portal/menu";
@@ -65,6 +65,9 @@ async function fixture(page: Page, initialRoles: Role[] = ["registrationWorkshop
 }
 
 async function axe(page: Page) {
+  // A client route's UI can commit before its streamed document metadata.
+  // Keep the title rule and audit only after a non-empty MSRC title arrives.
+  await expect(page).toHaveTitle(/^MSRC 2027 \| .+/);
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
   expect(result.violations, JSON.stringify(result.violations, null, 2)).toEqual([]);
 }

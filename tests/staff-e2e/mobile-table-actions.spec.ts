@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "../helpers/csp";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import type { Role } from "../../src/lib/permissions/contract";
 import type { StaffAction, StaffInvitation, StaffPayload, StaffPerson, StaffResponse } from "../../src/features/staff-portal/ui-contract";

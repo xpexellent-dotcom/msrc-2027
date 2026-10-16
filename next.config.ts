@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
   // Preserve the handoff's existing project instructions unchanged.
   agentRules: false,
   poweredByHeader: false,
+  // ENG-045: unmatched routes bypass the throwing catch-all and render a localized document.
+  experimental: { globalNotFound: true },
   // English is the default locale (LOC-01). A config redirect is answered at the CDN edge;
   // the previous route handler made every root visit wait on a function in iad1.
   // A browser whose first language is Arabic opens the Arabic site; everyone else gets English.
@@ -39,7 +41,7 @@ const nextConfig: NextConfig = {
         { key: "Referrer-Policy", value: "no-referrer" },
         { key: "X-Frame-Options", value: "DENY" },
         { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-        // Structural directives only; script/style sources stay unrestricted until nonce-based CSP is designed.
+        // Public SSG keeps this policy. src/proxy.ts overrides it on private dynamic routes.
         { key: "Content-Security-Policy", value: "base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" },
         { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
       ],

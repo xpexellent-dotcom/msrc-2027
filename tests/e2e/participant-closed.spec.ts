@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../helpers/csp";
 import { participantCopy, participantScreens } from "../../src/features/participant-accounts/participant-copy";
 
 for (const locale of ["en", "ar"] as const) {

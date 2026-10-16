@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../helpers/csp";
 
 for (const locale of ["en", "ar"]) for (const area of ["", "/sign-in", "/accept-invitation", "/people", "/audit", "/participants", "/security"]) {
   test(`${locale} staff${area} is invisible with STAFF_PORTAL_ENABLED off`, async ({ page }) => {

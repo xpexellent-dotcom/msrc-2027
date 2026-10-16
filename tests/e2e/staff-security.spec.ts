@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { createHmac } from "node:crypto";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "../helpers/csp";
 import { staffSecurityCopy } from "../../src/features/auth/staff-security-copy";
 import { languageLink } from "./helpers/header-navigation";
 
