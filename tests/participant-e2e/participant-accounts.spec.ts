@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "../helpers/csp";
 import type { ParticipantPayload, ParticipantProfile, ParticipantResponse } from "../../src/features/participant-accounts/contracts";
 import { participantCopy } from "../../src/features/participant-accounts/participant-copy";
 import { languageLink } from "../e2e/helpers/header-navigation";
@@ -160,7 +160,7 @@ for (const locale of ["en", "ar"] as const) {
     await mockAccounts(page); await page.setViewportSize({ width: 320, height: 720 });
     await page.emulateMedia({ reducedMotion: "reduce" }); await page.goto(`/${locale}/sign-up`);
     await fillSignup(page, "Synthetic Participant", false);
-    await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
+    await page.evaluate(() => { document.documentElement.style.setProperty("font-size", "200%", "important"); });
     await page.evaluate(async () => { await document.fonts.ready; });
     // The floating masthead reserves its viewport bottom, including its top inset.
     await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--site-header-height").trim() === `${Math.ceil(document.querySelector(".site-header-inner")!.getBoundingClientRect().bottom)}px`)).toBe(true);

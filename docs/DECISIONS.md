@@ -1,5 +1,33 @@
 # MSRC 2027 decision and configuration register
 
+## ENG-045 — Private nonce CSP and server-rendered localized unmatched routes, 16 October 2026
+
+Authority: the current local-only implementation task. Enforce a fresh nonce CSP
+on EN/AR staff, participant account and registration documents, including encoded
+locale aliases. Keep the existing public structural policy and SSG rendering.
+Registration alone gains a dynamic nested layout; no operational gate opens.
+Crossing between public/private pages through the shared Link loads a new document
+so the browser installs the destination's policy. Scripts have no production
+unsafe-inline/eval allowance. Browser connections, media and fonts are same-origin;
+images additionally allow data URLs for QR/Next images. Style attributes retain a
+scoped unsafe-inline exception for existing React/Next sizing and layout.
+
+Next 16.3.8's throwing catch-all under the dynamic locale root emits an empty
+error document before client recovery; a minimal production reproduction with a
+server-only not-found component has the same failure. Remove that catch-all and
+use documented experimental globalNotFound for routing-level unmatched URLs. The
+global server component reads a proxy-controlled locale header, renders the full
+lang/dir document and existing translated content, and keeps 404/noindex. Existing
+in-route notFound() boundaries remain separate. No dependency upgrade or public
+copy change. The experimental convention is covered by production-build tests.
+
+Requirements: SEC-01/06, ACC-01, LOC-01/03, ERR-01, NFR-02, REL-06; ORG-008/013.
+Design, full policy, implementation evidence and limits:
+[strict CSP and localized 404](features/strict-csp-localized-404.md).
+Progress receipt: [O9 task note](progress/2026-10-16-codex-strict-csp-404.md).
+No hosted configuration, environment, migration, workflow activation, branch,
+commit, push or PR is authorized by this decision.
+
 ## 15 October 2026 — Programme date card refinement
 
 Authority: current requester screenshot and explicit instruction to make the

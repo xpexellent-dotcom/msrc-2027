@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "../helpers/csp";
 import { staffActionSummary, staffCopy } from "../../src/features/staff-portal/copy";
 import type { Role } from "../../src/lib/permissions/contract";
 import type { StaffPayload, StaffResponse, StaffState } from "../../src/features/staff-portal/ui-contract";
@@ -57,7 +57,7 @@ for (const locale of ["en", "ar"] as const) {
     const copy = staffCopy[locale]; await fixture(page, ["superAdmin"]);
     await page.setViewportSize({ width: 320, height: 720 }); await page.goto(`/${locale}/staff/people`);
     await expect(page.getByTestId("staff-action-summary")).toBeVisible();
-    await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
+    await page.evaluate(() => { document.documentElement.style.setProperty("font-size", "200%", "important"); });
     await expect(page.locator("html")).toHaveAttribute("lang", locale); await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByText(copy.inviteHint, { exact: true })).toBeVisible();
     await expect(page.locator("body")).not.toContainText(locale === "en" ? "The English invitation link" : "رابط الدعوة باللغة الإنجليزية");
