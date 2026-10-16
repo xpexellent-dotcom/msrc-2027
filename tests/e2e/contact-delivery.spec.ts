@@ -329,27 +329,24 @@ for (const locale of ["en", "ar"] as const) {
     expect((await counts(request)).sendCount).toBe(0);
   });
 
-  test(`${locale} unexpected server and malformed responses remain localized and recoverable`, async ({ page, request }) => {
-    await control(request);
-    for (const failure of [
-      { status: 500, body: "<html><body>Private server error details</body></html>", contentType: "text/html", expected: "unconfirmed" },
-      { status: 503, body: JSON.stringify({ state: "closed", code: "CONTACT_CLOSED" }), contentType: "application/json", expected: "unavailable" },
-      { status: 200, body: "{ invalid json", contentType: "application/json", expected: "unconfirmed" },
-      { status: 429, body: JSON.stringify({ state: "limited", code: "CONTACT_LIMITED", retryAfter: 1 }), contentType: "application/json", expected: "limited" },
-    ] as const) {
+  for (const failure of [
+    { label: "HTTP 500", status: 500, body: "<html><body>Private server error details</body></html>", contentType: "text/html", expected: "unconfirmed" },
+    { label: "HTTP 503", status: 503, body: JSON.stringify({ state: "closed", code: "CONTACT_CLOSED" }), contentType: "application/json", expected: "unavailable" },
+    { label: "malformed JSON", status: 200, body: "{ invalid json", contentType: "application/json", expected: "unconfirmed" },
+    { label: "HTTP 429", status: 429, body: JSON.stringify({ state: "limited", code: "CONTACT_LIMITED", retryAfter: 1 }), contentType: "application/json", expected: "limited" },
+  ] as const) {
+    test(`${locale} unexpected server ${failure.label} response stays localized and recoverable`, async ({ page, request }) => {
+      await control(request);
       await page.goto(`/${locale}/contact`);
       await fill(page, locale);
-      await page.route("**/api/contact", (route) => route.fulfill(failure), { times: 1 });
+      await page.route("**/api/contact", (route) => route.fulfill({ status: failure.status, contentType: failure.contentType, body: failure.body }), { times: 1 });
       await page.getByRole("button", { name: copy[locale].send, exact: true }).click();
       await expect(page.locator(".contact-delivery-error")).toContainText(copy[locale][failure.expected]);
       await expect(page.locator(".contact-form")).not.toContainText(/Private server error|invalid json|CONTACT_/);
       await expect(page.locator("#contact-reference")).toHaveValue("TEST-ONLY");
       expect((await counts(request)).sendCount).toBe(0);
-      // Finish this independent response fixture before opening the next one;
-      // canceled navigation prefetches have separate discovery coverage.
-      await page.waitForLoadState("networkidle");
-    }
-  });
+    });
+  }
 
   test(`${locale} slow response survives rapid submits and rotation without a second send`, async ({ page, request }, testInfo) => {
     await control(request);
