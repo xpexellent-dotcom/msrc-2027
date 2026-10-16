@@ -95,6 +95,7 @@ Status reconciled in the [1 October 2026 checklist audit](../reviews/checklist-a
 - **Release gate:** Before any relevant durable production workflow; REL-06.
 - **Owner type:** Backend/platform engineer.
 - **TBD blocked:** Local implementation no; approved hosted execution/budget requires DR-CFG-10.
+- **Registration slice 2, 16 October 2026 (ENG-046):** Adds a closed email implementation of the durable-job contract: private forced-RLS outbox, retained deduplication identities, same-transaction enqueue boundary, fenced leases/claims, bounded retries, atomic UTC-day attempt budget and off-by-default pg_cron state sweeps. Only synthetic `@example.invalid` records are admitted; no business event producer or generic domain worker is wired. O10 drain scheduling remains an owner decision; no Vercel cron or `pg_net` is added. Database execution is BLOCKED locally pending disposable CI. Review the [design/runbook](../features/EMAIL_OUTBOX.md) and [task receipts](../progress/2026-10-16-codex-email-outbox.md); this is not a live-workflow release.
 
 <a id="bl-fnd-05"></a>
 
@@ -118,6 +119,7 @@ Status reconciled in the [1 October 2026 checklist audit](../reviews/checklist-a
 - **Release gate:** Before any live email-dependent release; delivery target and quotas approved separately.
 - **Owner type:** Backend/email engineer with content reviewer.
 - **TBD blocked:** Synthetic work no; provider/sender/quotas/target require DR-CFG-10/11.
+- **Registration slice 2, 16 October 2026 (ENG-046):** Implements the synthetic-only `synthetic_notice` v1 English template, console/test delivery and closed Resend adapter, protected POST drain, frozen provider request/key, retry/permanent classification and zero-by-default daily cap. Locale is reserved; transactional emails remain English-only. Resend's 24-hour deduplication is bounded by a proposed 23-hour retry horizon; uncertain outcomes outside it require operator reconciliation, not a new automatic send. The proposed 30-day terminal retention and indefinite minimal hash tombstones need owner approval. Contact keeps its current path and 60/day budget; staff's 36/day allocation is separate, with no shared provider ledger. Domain producers/templates, approved paid participant allocation, delivery/bounce callbacks, scoped failure administration, synthetic volume scenarios, human inbox UAT and BL-DEP-08 activation remain separate. See [EMAIL_OUTBOX](../features/EMAIL_OUTBOX.md) and [task receipts](../progress/2026-10-16-codex-email-outbox.md).
 
 <a id="bl-fnd-06"></a>
 

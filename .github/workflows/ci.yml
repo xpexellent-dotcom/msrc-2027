@@ -195,6 +195,8 @@ jobs:
         run: docker inspect --format='{{.Config.Image}}' supabase_auth_msrc2027-local
       - run: pnpm db:reset
       - run: pnpm db:lint
+      - name: Lint the private closed outbox schema
+        run: pnpm exec supabase db lint --local --schema msrc_outbox --level warning --fail-on warning
       - name: Install the private disposable Storage test helper
         id: storage_fixture
         run: node scripts/ci-storage-fixture.ts --install

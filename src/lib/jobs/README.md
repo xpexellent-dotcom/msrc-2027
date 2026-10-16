@@ -1,6 +1,11 @@
 # Durable job boundary
 
-Reserve this directory for a separately authorized durable-job slice. No queue, worker, retry process or external side effect is implemented.
+The closed email outbox foundation implements persisted enqueue, leased claims,
+bounded retries and fenced completion. `outbox.server.ts` accepts a pluggable store
+and sender; `outbox-store.server.ts` supplies service-only database RPC transport.
+The protected POST route has no installed scheduler or business event producer.
 
-This is an inert M1 structure placeholder. It contains no executable implementation;
-operational workflows remain closed. See the project architecture document and the relevant v0.5 release gate.
+Only synthetic recipients and the synthetic versioned template are accepted in
+this slice. See [EMAIL_OUTBOX.md](../../../docs/features/EMAIL_OUTBOX.md) for states,
+transactional producer integration, quotas, replay and the unresolved O10 trigger.
+Other domain workers remain separate backlog work; operational workflows stay closed.
