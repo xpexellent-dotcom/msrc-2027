@@ -37,6 +37,14 @@ html[data-scenes="on"][dir="rtl"] .chapter-stage .eyebrow-rule { transform-origi
 .hero-actions { animation-delay: 240ms; }
 @keyframes hero-line { from { opacity: 0; transform: translateY(.2em); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(-25% -10% -25% -10%); } }
 @keyframes hero-follow { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* The countdown is computed only in the browser. Until it hydrates, its plain-dates
+   fallback stays hidden so the hero does not flash one text and swap to another; it
+   still appears if hydration stalls. The clock then joins the opening sequence. */
+@media (scripting: enabled) {
+  .hero-countdown [data-countdown="dates"] { animation: countdown-fallback 1ms 2s both; }
+}
+.hero-countdown .countdown-clock { animation: hero-follow 500ms var(--motion-enter-easing) both; }
+@keyframes countdown-fallback { from { visibility: hidden; } to { visibility: visible; } }
 
 /* Desktop's held film has an exit scene. Phone text remains readable throughout
    its normal flow instead of fading before the reader reaches the last control. */
@@ -47,7 +55,7 @@ html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero :is(.hero-m
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-editorial h1 > span, .hero-conference-name, .hero-lead, .hero-location, .hero-actions, .reveal--rise > * { animation: none; }
+  .hero-editorial h1 > span, .hero-conference-name, .hero-lead, .hero-location, .hero-actions, .hero-countdown .countdown-clock, .reveal--rise > * { animation: none; }
   .reveal[data-reveal-state="waiting"] > :not(.chapter-stage, :has(.chapter-stage)) { opacity: 1; transform: none; }
 }
 @media print {

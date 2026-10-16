@@ -70,7 +70,8 @@
 .community-image img { object-fit: cover; object-position: 60% 65%; transform: scale(1.14); filter: blur(4px); }
 .community-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--color-ink), rgb(59 30 109 / .7) 40%, rgb(59 30 109 / .6)), linear-gradient(0deg, var(--color-ink), transparent 55%); }
 [dir='rtl'] .community-image::after { background: linear-gradient(-90deg, var(--color-ink), rgb(59 30 109 / .7) 40%, rgb(59 30 109 / .6)), linear-gradient(0deg, var(--color-ink), transparent 55%); }
-.legacy-section::after { content: ''; position: absolute; inset-inline: 0; inset-block-end: -1px; block-size: clamp(4rem,7vw,7rem); background: linear-gradient(transparent,var(--color-ivory)); pointer-events: none; }
+/* An eased fade through lilac: a linear ivory fade leaves a grey band over the dark film. */
+.legacy-section::after { content: ''; position: absolute; inset-inline: 0; inset-block-end: -1px; block-size: clamp(6rem,11vw,11rem); background: linear-gradient(180deg, rgb(220 207 240 / 0) 0%, rgb(220 207 240 / .05) 15%, rgb(220 207 240 / .17) 29%, rgb(225 214 240 / .35) 41%, rgb(232 224 240 / .55) 53%, rgb(240 236 240 / .74) 65%, rgb(245 242 240 / .9) 78%, rgb(248 246 240 / .98) 90%, rgb(248 246 240) 100%); pointer-events: none; }
 .legacy-section .section-topline { align-items: start; }
 .legacy-section .section-topline .editorial-action { background: rgb(31 25 48 / .42); padding: .8rem 1.1rem; border-radius: 12px; }
 .legacy-section .legacy-film-note { max-inline-size: 46ch; }

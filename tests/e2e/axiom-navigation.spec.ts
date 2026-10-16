@@ -195,6 +195,18 @@ for (const locale of ["en", "ar"] as const) {
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
     await page.mouse.move(600, 600);
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    // Hovering opens the menu; the click that follows keeps it open, a second click closes it.
+    await toggle.hover();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect(research).toBeVisible();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await page.mouse.move(600, 600);
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await participation.focus();
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
     await page.keyboard.press("ArrowDown");

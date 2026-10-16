@@ -44,6 +44,8 @@ body:has(.axiom-header)::after {
 .history-numbers dt { order: 1; color: var(--color-lilac); font-size: 1.05rem; line-height: 1.7; margin-block-start: 1rem; }
 .history-numbers dt > span { display: block; font-size: 1rem; }
 .history-count { display: block; white-space: nowrap; font-family: var(--font-manrope),sans-serif; font-variant-numeric: tabular-nums; font-size: clamp(2.8rem,5.7vw,6rem); line-height: 1.1; font-weight: 500; letter-spacing: -.04em; color: var(--color-ivory); }
+/* The count keeps LTR digit order but aligns with its right-aligned Arabic label. */
+[dir='rtl'] .history-count { text-align: right; }
 .history-total .history-count { font-size: clamp(3rem,7vw,7.25rem); color: var(--color-gold); }
 .history-count[data-counting='true'] { animation: count-focus 500ms cubic-bezier(.22,1,.36,1) both; }
 @keyframes count-focus { from { filter: blur(5px); transform: translateY(8px); } to { filter: blur(0); transform: none; } }
