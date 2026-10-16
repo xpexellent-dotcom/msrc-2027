@@ -14,8 +14,6 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // ENG-045: unmatched routes bypass the throwing catch-all and render a localized document.
   experimental: { globalNotFound: true },
-  // AVIF first: the detailed venue and archive photographs are 30–50% lighter than WebP.
-  images: { formats: ["image/avif", "image/webp"] },
   // English is the default locale (LOC-01). A config redirect is answered at the CDN edge;
   // the previous route handler made every root visit wait on a function in iad1.
   // A browser whose first language is Arabic opens the Arabic site; everyone else gets English.

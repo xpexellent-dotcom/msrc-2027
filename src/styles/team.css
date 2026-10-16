@@ -1,13 +1,15 @@
-/* ORG-050: Team page — light "Midnight Gala": ivory and lilac light, drifting colour orbs,
-   a pointer-following gold glow, glass cards with gradient edges and gold accents. */
+/* ORG-050: Team page — light "Midnight Gala": ivory and lilac light, soft colour orbs,
+   white cards with gradient edges and gold accents.
+   The orbs are static radial gradients and the cards use no backdrop blur: animated
+   blur filters behind blurred glass made iPhone Safari run out of memory and reload
+   the page on pinch-zoom. */
 
 .team-roster { position: relative; isolation: isolate; overflow: clip; background: linear-gradient(180deg, #f3edf8 0%, #faf6ee 45%, #f1eaf7 100%); }
 .team-backdrop { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
-.team-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .55; animation: team-drift 26s ease-in-out infinite alternate; }
-.team-orb--lilac { inline-size: 46vw; block-size: 46vw; inset-block-start: -8vw; inset-inline-end: -10vw; background: #cdb6ef; }
-.team-orb--gold { inline-size: 34vw; block-size: 34vw; inset-block-start: 38%; inset-inline-start: -12vw; background: #f2d79a; opacity: .5; animation-duration: 32s; }
-.team-orb--violet { inline-size: 40vw; block-size: 40vw; inset-block-end: -10vw; inset-inline-end: 8vw; background: #b9a2e6; opacity: .4; animation-duration: 38s; }
-@keyframes team-drift { to { transform: translate(6vw, 8vh) scale(1.15); } }
+.team-orb { position: absolute; border-radius: 50%; opacity: .55; background: radial-gradient(closest-side, var(--orb) 0%, color-mix(in srgb, var(--orb) 45%, transparent) 55%, transparent 100%); }
+.team-orb--lilac { --orb: #cdb6ef; inline-size: 62vw; block-size: 62vw; inset-block-start: -16vw; inset-inline-end: -18vw; }
+.team-orb--gold { --orb: #f2d79a; inline-size: 50vw; block-size: 50vw; inset-block-start: 34%; inset-inline-start: -20vw; opacity: .5; }
+.team-orb--violet { --orb: #b9a2e6; inline-size: 56vw; block-size: 56vw; inset-block-end: -18vw; inset-inline-end: 0; opacity: .4; }
 .team-roster .ambient-art { opacity: .55; }
 
 .team-section-title { margin: 0; font-family: var(--font-display); font-size: clamp(2.4rem, 4.4vw, 4.2rem); font-weight: 600; line-height: 1.08; letter-spacing: -.04em; color: var(--color-purple); }
@@ -15,7 +17,7 @@
 .team-leaders > .team-section-title { margin-block-end: 2.25rem; }
 
 /* Glass cards with a gradient edge */
-.team-leader, .team-row { position: relative; border-radius: 24px; background: rgba(255, 255, 255, .72); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 18px 50px -28px rgba(59, 20, 92, .35); }
+.team-leader, .team-row { position: relative; border-radius: 24px; background: rgba(255, 255, 255, .84); box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 18px 50px -28px rgba(59, 20, 92, .35); }
 .team-leader::before, .team-row::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
   background: linear-gradient(140deg, rgba(212, 168, 75, .85), rgba(124, 82, 190, .25) 45%, rgba(255, 255, 255, .6));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
@@ -75,7 +77,6 @@
   .team-role { font-size: .8125rem; letter-spacing: .1em; }
   .team-row { grid-template-columns: minmax(0, 1fr); }
   .team-row:hover, [dir="rtl"] .team-row:hover { transform: none; }
-  .team-orb { filter: blur(60px); }
   /* Nineteen empty member boxes become one quiet line each instead of a tall card. */
   .team-members:has(.team-members-pending) { flex-flow: row wrap; align-items: baseline; gap: .25rem .75rem; padding: .7rem 1rem; border-radius: 12px; }
   .team-members:has(.team-members-pending) .team-members-label { margin: 0; }
@@ -86,7 +87,6 @@
   .team-leader .team-photo { max-inline-size: 11rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .team-orb { animation: none; }
   .team-photo img, .team-row, .team-leader, .team-row-lead::before { transition: none; }
   .team-row:hover, .team-leader:hover, [dir="rtl"] .team-row:hover, .team-row:hover .team-photo img, .team-leader:hover .team-photo img { transform: none; }
 }
