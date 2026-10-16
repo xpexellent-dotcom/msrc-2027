@@ -19,23 +19,23 @@ for (const locale of ["en", "ar"] as const) {
         const descriptions = await page.locator('meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("content") ?? ""));
         expect(descriptions.join(" "), route).not.toMatch(backOfficeTerms);
       }
-      const paths = page.locator('.pathway-card, .experience-pathway').filter({ has: page.locator('a[href$="/registration"], a[href$="/workshops"]') });
+      const paths = page.locator('.pathway-card, .participation-path').filter({ has: page.locator('a[href$="/registration"], a[href$="/workshops"]') });
       const faqs = page.locator('.faq-item').filter({ hasText: locale === "en" ? /registration|workshop/i : /التسجيل|ورشة|ورش/ });
       const relevantCopy = paths.or(faqs);
       if (!route || route === "participate") await expect(paths).toHaveCount(2);
       for (const text of await relevantCopy.allTextContents()) expect(text, route).not.toMatch(backOfficeTerms);
-      for (const text of await page.locator('.eyebrow, .chapter-number, .experience-pathway-number, .pathway-number, .program-row-top > span:last-child, .journey-guidelines-list > article > span, .journey-steps li > span').allTextContents()) {
+      for (const text of await page.locator('.eyebrow, .chapter-number, .experience-pathway-number, .pathway-number, .program-row-top > span:last-child, .journey-guidelines-list > article > span, .participation-steps li > span').allTextContents()) {
         expect(text.trim(), `${route}: ${text}`).not.toMatch(paddedIndex);
       }
     }
     await page.goto(`/${locale}/registration`);
-    await expect(page.locator(".journey-steps li")).toHaveCount(0);
-    await expect(page.locator(".fluid-requirement-card")).toHaveCount(4);
-    await expect(page.locator(".journey-guidelines")).toContainText(locale === "en" ? /email.*confirm|confirm.*email/i : /رسالة.*تأكيد|بريد.*تأكيد|تأكيد.*بريد/);
+    await expect(page.locator(".participation-steps li")).toHaveCount(4);
+    await expect(page.locator(".participation-benefit")).toHaveCount(5);
+    await expect(page.locator(".participation-steps")).toContainText(locale === "en" ? /email.*confirm|confirm.*email/i : /رسالة.*تأكيد|بريد.*تأكيد|تأكيد.*بريد/);
     await page.goto(`/${locale}/workshops`);
-    await expect(page.locator(".journey-steps li")).toHaveCount(0);
-    await expect(page.locator(".fluid-requirement-card")).toHaveCount(4);
-    await expect(page.locator(".journey-guidelines")).toContainText(locale === "en" ? /confirmed conference registration/i : /تأكيد تسجيلك في المؤتمر/);
+    await expect(page.locator(".participation-steps li")).toHaveCount(3);
+    await expect(page.locator(".participation-benefit")).toHaveCount(4);
+    await expect(page.locator(".participation-steps")).toContainText(locale === "en" ? /confirmed conference registration/i : /تأكيد تسجيلك في المؤتمر/);
   });
 
   test(`${locale} affected pages retain accessible layouts and review screenshots`, async ({ page }, testInfo) => {
@@ -64,13 +64,13 @@ for (const locale of ["en", "ar"] as const) {
         await page.goto(`/${locale}${route ? `/${route}` : ""}`);
         await page.evaluate(() => document.fonts.ready);
         expect(await page.evaluate(() => document.documentElement.scrollWidth), `${route} at ${width}`).toBeLessThanOrEqual(width);
-        const indices = page.locator('.eyebrow, .experience-pathway-number, .journey-guidelines-list > article > span, .journey-steps li > span');
+        const indices = page.locator('.eyebrow, .experience-pathway-number, .journey-guidelines-list > article > span, .participation-steps li > span');
         const numbers = indices.or(page.locator('.countdown-number, .countdown-time-number'));
         if (route === "program") {
           // The unpublished catalogue has no rows; homepage programme overview
           // rows above are the rendered numbering surface at this stage.
           await expect(page.locator(".conference-session-row")).toHaveCount(0);
-        } else if (!["registration", "workshops"].includes(route)) {
+        } else if (!["registration", "workshops", "participate"].includes(route)) {
           expect(await numbers.count(), `${route} numbered content`).toBeGreaterThan(0);
         }
         // Section indices are unpadded; hours, minutes and seconds intentionally use two digits.

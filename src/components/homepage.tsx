@@ -54,7 +54,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
               <p className="hero-lead">{copy.lead}</p>
               <p className="hero-location"><span>{dateRange}</span><span aria-hidden="true">·</span><span>{copy.city}</span></p>
               <div className="hero-actions">
-                <ButtonLink href={`/${locale}/registration`} variant="gold">{demo.join}<Arrow /></ButtonLink>
+                <ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink>
                 <Link className="hero-secondary" href={`/${locale}/program`}>{narrative.programmeAction}<Arrow /></Link>
               </div>
             </div>
@@ -159,7 +159,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
     </section>
 
     <ClosingCity locale={locale} video={demoImages.closing.video} poster={demoImages.closing.poster}>
-      <Container><Reveal className="closing-grid" stagger><div><h2 id="closing-title">{copy.endingTitle}</h2><p className="closing-date">{dateRange} · {copy.city}</p></div><ButtonLink href={`/${locale}/registration`} variant="gold">{demo.join}<Arrow /></ButtonLink></Reveal></Container>
+      <Container><Reveal className="closing-grid" stagger><div><h2 id="closing-title">{copy.endingTitle}</h2><p className="closing-date">{dateRange} · {copy.city}</p></div><ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink></Reveal></Container>
     </ClosingCity>
     </div>
   </div>;

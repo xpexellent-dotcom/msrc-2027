@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { experienceCopy } from "@/content/conference-experiences";
+import { participationFormGuidance } from "@/content/participation-form-guidance";
 import { homepageNarrative } from "@/content/homepage-narrative";
 import { homepageCopy } from "@/content/public-site";
 import { participantCopy } from "@/features/participant-accounts/participant-copy";
@@ -30,10 +31,14 @@ describe("public registration and workshop wording", () => {
   it.each(locales)("%s makes email confirmation the final registration and workshop step", (locale) => {
     const journeys = experienceCopy[locale].journeys;
     for (const journey of [journeys.registration, journeys.workshops]) {
-      expect(journey.steps.at(-1)).toMatch(locale === "en" ? /confirmation email/ : /رسالة تأكيد/);
+      expect(journey.steps.at(-1)).toMatch(locale === "en" ? /confirmation email/ : /رسالة.*تأكيد/);
+    }
+    expect(journeys.registration.steps.at(-1)).toContain(locale === "en" ? "ticket" : "تذكرتك");
+    const guidance = participationFormGuidance[locale];
+    for (const journey of [guidance.registration, guidance.workshops]) {
       expect(JSON.stringify(journey.details)).toMatch(locale === "en" ? /We'll email you to confirm/ : /سنرسل إليك رسالة لتأكيد/);
     }
-    const registrationConfirmation = journeys.registration.details.find(({ body }) => body.includes(locale === "en" ? "Your place is confirmed" : "يتأكد مقعدك"));
-    expect(registrationConfirmation?.body).toContain(locale === "en" ? "when you receive that email" : "عند استلام هذه الرسالة");
+    const confirmation = guidance.registration.details.find(({ body }) => body.includes(locale === "en" ? "Your place is confirmed" : "يتأكد مقعدك"));
+    expect(confirmation?.body).toContain(locale === "en" ? "when you receive that email" : "عند استلام هذه الرسالة");
   });
 });

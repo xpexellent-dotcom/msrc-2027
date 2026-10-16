@@ -16,7 +16,7 @@ const headerCopy = {
     edition: "Fifth edition", registration: "Registration not open yet", action: "Reserve your seat", options: "options",
     links: [
       { label: "Participate", href: "/participate", children: [
-        { label: "Attend", href: "/registration" }, { label: "Research", href: "/submissions" },
+        { label: "Attend", href: "/registration" }, { label: "Abstract submission", href: "/submissions" },
         { label: "Workshops", href: "/workshops" }, { label: "Hackathon", href: "/hackathon" },
         { label: "3MT", href: "/3mt" },
       ] },
@@ -30,7 +30,7 @@ const headerCopy = {
     edition: "النسخة الخامسة", registration: "لم يُفتح التسجيل بعد", action: "احجز مقعدك", options: "خيارات",
     links: [
       { label: "المشاركة", href: "/participate", children: [
-        { label: "الحضور", href: "/registration" }, { label: "البحث العلمي", href: "/submissions" },
+        { label: "الحضور", href: "/registration" }, { label: "تقديم الملخصات", href: "/submissions" },
         { label: "ورش العمل", href: "/workshops" }, { label: "الهاكاثون", href: "/hackathon" },
         { label: "أطروحة في ثلاث دقائق", href: "/3mt" },
       ] },
@@ -249,7 +249,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           <Suspense fallback={<LanguageSwitchFallback locale={locale} pathname={pathname} />}><LanguageSwitch locale={locale} /></Suspense>
         </div>
         <div className="header-actions">
-          <ButtonLink className="header-primary-action" href={`/${locale}/registration`} variant="gold" size="small">{copy.action}<svg className="directional-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 19 19 5M5 5h14v14" /></svg></ButtonLink>
+          <ButtonLink className="header-primary-action" href={`/${locale}/participate`} variant="gold" size="small">{copy.action}<svg className="directional-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 19 19 5M5 5h14v14" /></svg></ButtonLink>
           <div className="header-mobile-language" onClick={onNavigate}>
             <Suspense fallback={<LanguageSwitchFallback locale={locale} pathname={pathname} iconOnly />}><LanguageSwitch locale={locale} iconOnly /></Suspense>
           </div>

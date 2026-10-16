@@ -1,15 +1,15 @@
 import { expect, test } from "@playwright/test";
 
 const routes = [
-  ["registration", "attend-majed-9744.jpg", 4],
-  ["submissions", "share-research-manar-2560.jpg", 6],
+  ["registration", "attend-majed-9744.jpg", 5],
+  ["submissions", "share-research-manar-2560.jpg", 4],
   ["workshops", "share-research-manar-2560.jpg", 4],
-  ["hackathon", "build-idea-majed-9846.jpg", 6],
-  ["3mt", "gallery-presentation.jpg", 3],
+  ["hackathon", "build-idea-majed-9846.jpg", 4],
+  ["3mt", "gallery-presentation.jpg", 2],
 ] as const;
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} photographic paths keep complete requirements and truthful closed actions`, async ({ page }) => {
+  test(`${locale} photographic paths show benefits, simple steps and truthful closed actions`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     const writes: string[] = [];
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
@@ -17,7 +17,8 @@ for (const locale of ["en", "ar"] as const) {
       expect((await page.goto(`/${locale}/${route}`))?.status()).toBe(200);
       await expect(page.locator(".premium-hero-image img")).toHaveAttribute("src", new RegExp(image.replace(".", "\\.")));
       await expect(page.locator(".premium-hero-image img")).toHaveAttribute("alt", "");
-      await expect(page.locator(".fluid-requirement-card")).toHaveCount(count);
+      await expect(page.locator(".participation-benefit")).toHaveCount(count);
+      expect(await page.locator(".participation-steps li").count()).toBeGreaterThanOrEqual(3);
       await expect(page.locator(".journey-steps, .journey-next")).toHaveCount(0);
       await expect(page.getByTestId("journey-closed")).toBeVisible();
       await expect(page.locator(".fluid-resource-grid a[href$='#faq']")).toHaveAttribute("href", `/${locale}#faq`);
@@ -30,8 +31,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(/#journey-availability$/);
     await expect(page.getByTestId("journey-closed")).toBeInViewport();
     await expect(page.locator("#journey-availability")).toBeFocused();
-    await expect(page.locator(".journey-guidelines")).toContainText(locale === "en" ? "300" : "٣٠٠");
-    await expect(page.locator(".journey-guidelines")).toContainText(locale === "en" ? "A supervisor is required only after selection" : "يُطلب المشرف فقط بعد اختيار");
+    await expect(page.locator(".participation-good-to-know")).toContainText(locale === "en" ? "300" : "٣٠٠");
+    await expect(page.getByRole("main")).not.toContainText(locale === "en" ? "Supervisor requirements" : "متطلبات المشرف");
     await page.goto(`/${locale}/registration`);
     await expect(page.getByTestId("ticket-unavailable")).toBeDisabled();
     await expect(page.getByTestId("brochure-unavailable")).toBeDisabled();
@@ -47,7 +48,7 @@ for (const locale of ["en", "ar"] as const) {
       await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
       await page.evaluate(() => document.fonts.ready);
       expect(await page.evaluate(() => document.documentElement.scrollWidth), route).toBeLessThanOrEqual(320);
-      const clippedText = await page.locator(".fluid-requirement-card h3, .fluid-requirement-card p, .fluid-resource p").evaluateAll((nodes) => nodes.some((node) => {
+      const clippedText = await page.locator(".participation-benefit h3, .participation-benefit p, .participation-steps p, .fluid-resource p").evaluateAll((nodes) => nodes.some((node) => {
         const range = document.createRange(); range.selectNodeContents(node);
         return Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
       }));

@@ -61,7 +61,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".footer-directory-note, .program-sample-label, .hero-media-status")).toHaveCount(0);
     await expect(page.locator(".conference-hero [data-countdown]")).toHaveCount(1);
     await expect(page.locator(".date-band [data-countdown]")).toHaveCount(0);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/registration`);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
     await expect(page.locator(".hero-actions a")).toHaveCount(2);
     const opening = await page.locator(".conference-hero").boundingBox();
     const viewport = await page.evaluate(() => ({ width: document.documentElement.clientWidth, height: window.innerHeight }));

@@ -3070,3 +3070,60 @@ smaller: the same single-column list and two-column Participate sub-pages, with 
 supersedes ENG-041's 44px menu-row minimum for the phone menu only; targets stay above
 the WCAG 2.2 AA 24px minimum. Rows enter with a short staggered rise; reduced motion and
 keyboard opening remain instant.
+
+## ORG-053 — Participation flow redesign, 16 October 2026
+
+Authority: explicit owner-approved implementation task in the current chat.
+Intent: **“Reserve your seat goes to the Participate hub”**, **“one shared layout
+for all five option pages”**, and **“Public pages only; no workflow opens.”**
+
+- Keep “Reserve your seat” / «احجز مقعدك» in the header, phone menu, homepage hero
+  and closing action, pointing to the localized `/participate` hub.
+- Give the hub the owner-supplied MSRC 2026 opening-session photograph and five
+  horizontal whole-row links in EN/AR, including mobile, with replaceable icon slots.
+- Use benefits, three or four simple steps, a compact unavailable program download
+  near the header, and the next-move links. Preserve removed bilingual rules in a
+  non-rendered future-form guidance export, with requirement IDs.
+- Attend uses “Sign up for MSRC” / «سجّل في MSRC» after benefits and steps, leading
+  to the existing closed `/sign-up` page. Certificate eligibility still requires
+  both day check-ins and the general survey. CME wording matches the homepage;
+  no accredited number is confirmed.
+- Label the abstract path “Abstract submission” / «تقديم الملخصات» throughout its
+  navigation, category, breadcrumb, title and closed state. Keep “Submit your
+  abstract” at the top. Public benefits may mention scientific feedback, awards
+  and cash prizes with categories/details to be announced. No presenter
+  publication, CME or certificate entitlement is authorized.
+- Workshops introduce practical learning, the separate booking and certificate
+  requirements, and non-overlapping attendance above the slider. “Explore
+  workshops” targets the existing slider. Hackathon and 3MT use only existing
+  published facts; unresolved terms remain unresolved.
+
+This supersedes ORG-051's direct public CTA destination only, not its registration
+authority or privacy gates. ORG-037–042, ORG-049's reserved historical reference,
+ORG-050's media boundaries and ORG-052's attendee-only/phone-menu decisions remain
+in force. No backend, database, environment, hosted setting, live workflow,
+communication, branch, commit, push or PR is authorized. Claude owns review,
+rechecks, commit and PR. IDs: SCP-02, DSN-01/02, ACC-01, LOC-01/03, MED-01/04,
+REG-01/07/08, ABS-01/04/07/08/09/15, WKS-01/02/06, HAC-01/02/04/08/09,
+TMT-01/02, CRT-01–04, CMS-04, REL-01.
+
+## ENG-048 — Shared public participation presentation, 16 October 2026
+
+ORG-053 uses the incumbent shared JourneyExperience, a dedicated CSS file and typed
+bilingual presentation content. The full preceding journey copy is retained verbatim
+in `participation-form-guidance.ts`, never imported by public rendering. Icon paths
+are nullable content fields with neutral geometric fallbacks. The existing unavailable
+program-brochure control is shared near all five headers; no download file is invented.
+
+Main and open PR #95's DECISIONS diff were checked: ENG-047 belongs to that visitor-QA
+task; ORG-053 and ENG-048 were free. Keep header changes to labels and destinations,
+leave `conference-experiences.css`, `playwright.config.ts` and `docs/PROGRESS.md`
+untouched, and record evidence in the O9 task note.
+
+Existing ENG-045 explicitly keeps `/registration` dynamic for its request nonce CSP
+and closed operational foundation. Preserve it rather than weakening that boundary
+to meet a conflicting blanket static-page acceptance line. Hub, submissions,
+workshops, hackathon and 3MT must retain their SSG entries. This task adds no dynamic
+route or account opening. Audit, copy, icon replacement and verification:
+[participation feature note](features/participation-flow.md); exact receipts:
+[O9 progress note](progress/2026-10-16-claude-participation-flow.md).
