@@ -7,6 +7,7 @@ import { languageLink } from "./helpers/header-navigation";
 
 const version = "v1.0", effectiveDate = "2026-10-06";
 const titles = { en: { privacy: "MSRC 2027 Privacy Policy", terms: "MSRC 2027 Terms and Conditions" }, ar: { privacy: "سياسة الخصوصية لمؤتمر MSRC ٢٠٢٧", terms: "شروط وأحكام مؤتمر MSRC ٢٠٢٧" } } as const;
+const tabLabels = { en: { privacy: "Privacy Policy", terms: "Terms and Conditions" }, ar: { privacy: "سياسة الخصوصية", terms: "شروط وأحكام" } } as const;
 const footerLabels = { en: { privacy: "Privacy", terms: "Terms" }, ar: { privacy: "الخصوصية", terms: "الشروط" } } as const;
 const unfinished = /\b(?:draft|placeholder)\b|Organizer decision|awaiting review|wording pending|مسودة|نص مؤقت|بانتظار/iu;
 
@@ -23,7 +24,8 @@ for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "term
     for (const suffix of ["", `/${version}`]) {
       const response = await page.goto(`/${locale}/${kind}${suffix}`);
       expect(response?.status()).toBe(200);
-      await expect(page).toHaveTitle(`${titles[locale][kind]} | MSRC 2027`);
+      // The tab drops the heading's own "MSRC 2027" so the brand is not repeated.
+      await expect(page).toHaveTitle(`${tabLabels[locale][kind]} | MSRC 2027`);
       await expect(page.locator("html")).toHaveAttribute("lang", locale);
       await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(titles[locale][kind]);
@@ -35,8 +37,8 @@ for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "term
       // Branch previews and local review retain ORG-013's noindex safety.
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
       expect(response?.headers()["x-robots-tag"]).toContain("noindex");
-      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://www.msrc2027.com/${locale}/${kind}${suffix}`);
-      for (const language of ["en", "ar"]) await expect(page.locator(`link[rel="alternate"][hreflang="${language}"]`)).toHaveAttribute("href", `https://www.msrc2027.com/${language}/${kind}${suffix}`);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://www.msrc2027.com/${locale}/${kind}`);
+      for (const language of ["en", "ar"]) await expect(page.locator(`link[rel="alternate"][hreflang="${language}"]`)).toHaveAttribute("href", `https://www.msrc2027.com/${language}/${kind}`);
       await expect(page.locator("form, input, textarea, select, iframe, video")).toHaveCount(0);
       expect(await context.cookies()).toEqual([]);
       expect(await page.evaluate(() => [localStorage.length, sessionStorage.length])).toEqual([0, 0]);
