@@ -2988,3 +2988,63 @@ migration `20261008160137` rather than the cleanup-scheduler migration. It remai
 workflow is changed. Rotation, key recovery and restoration procedures are in
 [REGISTRATION](features/REGISTRATION.md); observed checks belong in the O9 progress
 note, not inferred from this decision.
+
+## ENG-046 — Closed durable email outbox and job boundary, 16 October 2026
+
+Authority: the current registration slice 2 implementation task, BL-FND-04/05.
+This records engineering design for review, not approval of live recipients,
+delivery, hosted configuration, paid resources or O10's scheduling choice. No
+ORG-052 decision is inferred. EML-01 through EML-05, API-01/02/03, ERR-01/02,
+DAT-03/04, LOC-03 and BL-DEP-08 remain the requirement boundary.
+
+Use additive review-only migration `20261016140000_email_outbox.sql`, after the
+reserved registration migrations but depending only on main, for a private
+`msrc_outbox` schema, forced RLS, no client grants and service-role-only public
+RPCs with empty search paths. Opaque event keys and canonical inputs are hashed
+into minimal retained deduplication identities. Future reviewed postgres-owned
+registration RPCs enqueue inside their own business/audit transaction; a
+separate post-commit HTTP enqueue does not satisfy atomicity. This slice wires
+no domain producer and accepts only `synthetic_notice` v1 with a bounded
+reference variable and `@example.invalid` recipients. Transactional templates
+remain English-only; locale is reserved under AGENTS.md/EML-01. No public UI,
+Contact delivery-path change or authentication email activation is included.
+
+Claim small batches with `FOR UPDATE SKIP LOCKED`, expiring leases and
+owner/token-fenced prepare/finish. Persist immutable provider requests before
+sending and retain one provider idempotency key across uncertain retries. Keep
+bounded allowlisted error classes, exponential backoff with positive jitter,
+max attempts and atomic nonrefundable UTC-day attempt reservations. Existing
+Contact 60/day and staff 36/day caps remain separate; no shared provider ledger
+exists. Participant volume needs separately approved paid capacity/allocation.
+
+Verified official [Resend idempotency documentation](https://resend.com/docs/dashboard/emails/idempotency-keys)
+on this date: identical requests deduplicate for 24 hours; changed payloads
+conflict and simultaneous same-key requests may be retried. The design stops
+automatic retries after 23 hours from the first claim/charged attempt. An
+uncertain result outside that horizon requires reconciliation before a new
+business notification; there is no unbounded exactly-once delivery promise.
+Provider acceptance is not inbox delivery. Terminal-row purging retains minimal
+hash identities so an old event cannot be freshly enqueued after payload purge.
+
+Closed engineering proposals, needing owner approval before activation:
+delivery/sweeps off; daily cap zero; five attempts; 120-second lease;
+60-second base backoff with up-to-25-percent jitter capped at 3,600 seconds;
+23-hour retry horizon; at most ten messages and 20 seconds per drain;
+100-row state sweeps every five minutes; 30-day terminal-message retention,
+aligned as a proposal with approved Privacy Policy Resend retention; indefinite
+minimal hash-tombstone retention. Native postgres owns the pg_cron state job
+and aggregate health function. The maintenance switch is checked before any
+sweep mutation; no client/operator dashboard access is opened.
+
+POST `/api/jobs/outbox/drain` requires the closed flag and constant-time Bearer
+secret validation and returns counts only. O10 is unresolved: do not add a
+Vercel `crons` entry, environment values, hosted scheduler activation or `pg_net`
+in this slice. The recommended future Vercel per-minute cron needs Pro or
+Enterprise and a same-auth protected **GET bridge**, because Vercel invokes
+production cron paths by GET while this slice exposes POST only. Store
+`CRON_SECRET` as Production-only Sensitive/Secret when separately authorized.
+The alternative pg_cron-to-HTTP option requires separately reviewed `pg_net`
+and secret custody and is not recommended. Exact owner steps, pause/monitor/
+replay safeguards and remaining BL-DEP-08 gates are in
+[EMAIL_OUTBOX](features/EMAIL_OUTBOX.md); check receipts are in the
+[per-task progress note](progress/2026-10-16-codex-email-outbox.md).

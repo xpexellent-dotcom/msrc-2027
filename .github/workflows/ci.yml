@@ -200,6 +200,8 @@ jobs:
       - run: pnpm db:lint
       - name: Lint private registration functions
         run: pnpm exec supabase db lint --local --schema msrc_registration --level warning --fail-on warning
+      - name: Lint the private closed outbox schema
+        run: pnpm exec supabase db lint --local --schema msrc_outbox --level warning --fail-on warning
       - name: Install the private disposable Storage test helper
         id: storage_fixture
         run: node scripts/ci-storage-fixture.ts --install
