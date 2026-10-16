@@ -1,19 +1,18 @@
 import "server-only";
-import { randomUUID } from "node:crypto";
 import { authorize } from "../permissions/authorize.server.ts";
 import type { AuthorityReader, VerifiedPrincipal } from "../permissions/contract.ts";
 import type { AssessmentConfiguration, AssessmentProvider, AssessmentResult, BatchReceipt, BatchSubmission, LockedSnapshot, ManualReason, ProviderResponse, SanitizationWarning } from "./contracts.ts";
-import { createAnthropicProvider } from "./anthropic.server.ts";
+import { createDeepSeekProvider } from "./deepseek.server.ts";
 import { validateConfiguration } from "./configuration.server.ts";
-import { buildAssessmentRequest, buildBatchRequest, parseAssessmentMessage } from "./request.server.ts";
-import { isRecord, sanitizeSnapshot, validReference } from "./sanitizer.server.ts";
+import { buildAssessmentRequest, parseAssessmentMessage } from "./request.server.ts";
+import { isRecord, sanitizeSnapshot } from "./sanitizer.server.ts";
 
 export interface BudgetReservation {
   readonly ledgerId: string; readonly capUsd: number; readonly amountUsd: number;
   readonly requestCount: number; readonly configurationDigest: string;
 }
 export interface AssessmentAudit {
-  readonly event: "dispatch" | "complete" | "manual_review" | "batch_dispatch";
+  readonly event: "dispatch" | "complete" | "manual_review";
   readonly actorId: string; readonly configurationDigest: string; readonly reason?: ManualReason;
   readonly snapshotIds: readonly string[]; readonly timestamp: string;
 }
@@ -23,7 +22,7 @@ export interface AdapterDependencies {
   principal(): VerifiedPrincipal | null | Promise<VerifiedPrincipal | null>;
   readonly authorityReader: AuthorityReader;
   readonly integrationResourceId: string;
-  /** Must atomically reserve against cap, including worst-case fallback cost. No refunds on uncertain failure. */
+  /** Must atomically reserve against cap, including the approved worst-case request cost. No refunds on uncertain failure. */
   reserveBudget(request: BudgetReservation): Promise<{ readonly approved: boolean }>;
   audit(event: AssessmentAudit): Promise<void>;
   readonly providerFactory?: (config: AssessmentConfiguration) => AssessmentProvider;
@@ -36,7 +35,6 @@ const isReady = (value: Ready | ReturnType<typeof manual>): value is Ready => "o
 /** No client routes, persistence, reveal, ranking, decisions or application mutation are exposed here. */
 export function createAssessmentAdapter(dependencies: AdapterDependencies) {
   const now = dependencies.now ?? Date.now;
-  const registeredBatches = new Map<string, BatchReceipt>();
   async function gate(expected?: Ready): Promise<Ready | ReturnType<typeof manual>> {
     if (process.env.AI_ASSESSMENT_ENABLED !== "true") return manual("disabled");
     try {
@@ -60,12 +58,12 @@ export function createAssessmentAdapter(dependencies: AdapterDependencies) {
     if (!parsed.ok) return manual(parsed.reason);
     if (!ready.configuration.servingModelIds.includes(parsed.model)) return manual("invalid_output");
     return { state: "advisory_complete", manualReviewAllowed: true, output: parsed.output,
-      provenance: Object.freeze({ provider: "anthropic", requestedModel: ready.configuration.model, model: parsed.model,
+      provenance: Object.freeze({ provider: "deepseek", requestedModel: ready.configuration.model, model: parsed.model,
         promptVersion: ready.configuration.promptVersion, rubricVersion: ready.configuration.rubric.version,
         snapshotId: snapshot.id, snapshotVersion: snapshot.version, snapshotLockedAt: snapshot.lockedAt, assessedAt: new Date(now()).toISOString(),
         sanitizationWarnings: Object.freeze([...warnings]) }) };
   }
-  async function prepare(ready: Ready, count: number, snapshotIds: readonly string[], batch: boolean): Promise<Ready | ReturnType<typeof manual>> {
+  async function prepare(ready: Ready, count: number, snapshotIds: readonly string[]): Promise<Ready | ReturnType<typeof manual>> {
     try {
       if (!Number.isSafeInteger(count) || count < 1 || count > ready.configuration.budget.maxBatchItems) return manual("budget_exhausted");
       const budget = ready.configuration.budget;
@@ -75,7 +73,7 @@ export function createAssessmentAdapter(dependencies: AdapterDependencies) {
       if (!isRecord(reservation) || reservation.approved !== true) return manual("budget_exhausted");
       const current = await gate(ready);
       if (!isReady(current)) return current;
-      await dependencies.audit({ event: batch ? "batch_dispatch" : "dispatch", actorId: current.actorId, configurationDigest: current.digest,
+      await dependencies.audit({ event: "dispatch", actorId: current.actorId, configurationDigest: current.digest,
         snapshotIds, timestamp: new Date(now()).toISOString() });
       return gate(current);
     } catch { return manual("provider_unavailable"); }
@@ -89,10 +87,10 @@ export function createAssessmentAdapter(dependencies: AdapterDependencies) {
     const locked = snapshot as LockedSnapshot;
     const metadata = Object.freeze({ id: locked.id, version: locked.version, lockedAt: locked.lockedAt });
     const request = buildAssessmentRequest(sanitized.payload, ready.configuration.rubric, ready.configuration);
-    const prepared = await prepare(ready, 1, [metadata.id], false);
+    const prepared = await prepare(ready, 1, [metadata.id]);
     if (!isReady(prepared)) return prepared;
     try {
-      const provider = (dependencies.providerFactory ?? createAnthropicProvider)(prepared.configuration);
+      const provider = (dependencies.providerFactory ?? createDeepSeekProvider)(prepared.configuration);
       const response = await provider.assess(request);
       const current = await gate(prepared);
       if (!isReady(current)) return current;
@@ -102,61 +100,16 @@ export function createAssessmentAdapter(dependencies: AdapterDependencies) {
       return result;
     } catch { return manual("provider_unavailable"); }
   }
+  /** No DeepSeek batch transport is implemented. Never emulate it with synchronous calls. */
   async function submitBatch(snapshots: readonly unknown[]): Promise<BatchSubmission> {
+    void snapshots;
     const ready = await gate();
-    if (!isReady(ready)) return ready;
-    if (!Array.isArray(snapshots) || snapshots.length === 0 || snapshots.length > ready.configuration.budget.maxBatchItems) return manual("invalid_snapshot");
-    const items: BatchReceipt["items"][number][] = [];
-    const requests = [];
-    const seen = new Set<string>();
-    for (const snapshot of snapshots) {
-      const sanitized = sanitizeSnapshot(snapshot);
-      if (!sanitized.ok) return manual(sanitized.reason);
-      const locked = snapshot as LockedSnapshot;
-      if (seen.has(locked.id)) return manual("invalid_snapshot");
-      seen.add(locked.id);
-      const customId = randomUUID(); // Never send applicant/snapshot identifiers to the provider.
-      items.push(Object.freeze({ customId, snapshot: Object.freeze({ id: locked.id, version: locked.version, lockedAt: locked.lockedAt }), sanitizationWarnings: sanitized.warnings }));
-      requests.push({ custom_id: customId, params: buildBatchRequest(sanitized.payload, ready.configuration.rubric, ready.configuration) });
-    }
-    const prepared = await prepare(ready, requests.length, [...seen], true);
-    if (!isReady(prepared)) return prepared;
-    try {
-      const provider = (dependencies.providerFactory ?? createAnthropicProvider)(prepared.configuration);
-      const batch = await provider.submitBatch(requests);
-      if (!validReference(batch.id)) return manual("batch_failed");
-      const current = await gate(prepared);
-      if (!isReady(current)) return current;
-      const receipt: BatchReceipt = Object.freeze({ batchId: batch.id, configurationDigest: current.digest,
-        requestedAt: new Date(now()).toISOString(), items: Object.freeze(items) });
-      registeredBatches.set(receipt.batchId, receipt);
-      return { state: "queued", manualReviewAllowed: true, receipt };
-    } catch { return manual("provider_unavailable"); }
+    return isReady(ready) ? manual("batch_unsupported") : ready;
   }
   async function collectBatch(receipt: BatchReceipt): Promise<readonly AssessmentResult[]> {
+    void receipt; // No historical or caller-supplied receipt can trigger provider retrieval.
     const ready = await gate();
-    const registered = receipt && registeredBatches.get(receipt.batchId);
-    if (!registered || registered !== receipt) return [manual("batch_failed")];
-    const allManual = (reason: ManualReason) => registered.items.map(() => manual(reason));
-    if (!isReady(ready)) return allManual(ready.reason);
-    if (ready.digest !== registered.configurationDigest) return allManual("configuration_changed");
-    try {
-      const provider = (dependencies.providerFactory ?? createAnthropicProvider)(ready.configuration);
-      const status = await provider.retrieveBatch(registered.batchId);
-      if (status.processing_status !== "ended") return allManual(status.processing_status === "in_progress" || status.processing_status === "canceling" ? "batch_pending" : "batch_failed");
-      const fresh = await gate(ready);
-      if (!isReady(fresh)) return allManual(fresh.reason);
-      const received = new Map<string, AssessmentResult>();
-      for await (const item of provider.batchResults(registered.batchId)) {
-        const match = registered.items.find(entry => entry.customId === item.custom_id);
-        if (!match || received.has(item.custom_id)) return allManual("batch_failed");
-        received.set(item.custom_id, item.result.type === "succeeded" && item.result.message
-          ? completed(item.result.message, match.snapshot, fresh, match.sanitizationWarnings) : manual("batch_failed"));
-      }
-      const finalGate = await gate(fresh);
-      if (!isReady(finalGate)) return allManual(finalGate.reason);
-      return registered.items.map(item => received.get(item.customId) ?? manual("batch_failed"));
-    } catch { return allManual("provider_unavailable"); }
+    return [isReady(ready) ? manual("batch_unsupported") : ready];
   }
   return Object.freeze({ assess, submitBatch, collectBatch });
 }

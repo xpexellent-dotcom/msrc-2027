@@ -1,112 +1,66 @@
 # BL-AI-01 and synthetic evaluation acceptance map
 
-Source authority: `Development_Specification_v0.5.txt` AI-01 through AI-06 and
-`docs/backlog/09-ai-assessment.md#bl-ai-01`. The organizer's 5 October 2026 task
-selects the Claude API and `claude-opus-5-5` for this disabled foundation. It does
-not approve real manuscript processing, a scientific rubric or live activation.
+Source authority: `Development_Specification_v0.5.txt` AI-01 through AI-06,
+PRV-02/03/07, CFG-03/09/10 and REL-03, plus
+`docs/backlog/09-ai-assessment.md#bl-ai-01`. ORG-040 selects DeepSeek with China
+processing; ENG-042 (16 October 2026) replaces ENG-018's Anthropic transport.
+**AI stays disabled.** The provider switch approves neither real manuscript
+processing nor a scientific rubric, production configuration or live activation.
 
 ## Evidence boundaries
 
-The checks below exercise the server contract and mocked provider. They do not
-establish scientific accuracy, production authorization, actual API compatibility,
-cache hits, provider billing or institutional/privacy approval. Live synthetic API
-execution is deliberately excluded from CI and has not been performed by this task.
-The fixed placeholder rubric is labelled `UNAPPROVED`; simulated scores and empty
-human baselines must remain visibly distinct from committee-scored evaluation.
+The tests exercise the server contract with mocked `fetch`/provider factories.
+They establish no scientific accuracy, account entitlement, real API compatibility,
+provider billing or institutional/privacy approval. No real API call is part of
+this task or CI. The fixed rubric is `UNAPPROVED`; simulated scores and unassessed
+human baselines stay distinct from committee evaluation. Observed commands/counts
+are recorded in [PROGRESS](../PROGRESS.md); the coverage map is not a test receipt.
 
 ## Acceptance map
 
 | Requirement / BL-AI-01 criterion | Required evidence in this slice | Integration boundary |
 | --- | --- | --- |
-| Disabled adapter makes no external request; AI-01/05 | Mock request/client spies remain untouched with the default flag, missing key/config, incomplete approval, changed evidence, unapproved rubric or rejected budget. | Approval records need an authorized storage/source before production integration. |
-| Payload contains only approved fields; AI-02 | Payload contains title, specialty, study type, completion status and abstract body only. Author/account/contact/affiliation/licence/evidence fields and identity-check context never enter either provider turn or batch metadata. Locked snapshot validation rejects malformed inputs. | Submission ownership and immutable database snapshot lookup are BL-REV prerequisites. |
-| Identifying body text is checked; AI-02 | Email, phone, the submission's own author-list and institution names from the locked snapshot, licence and IRB numbers block dispatch. Generic institution words in EN/AR are non-blocking provenance warnings. Rejections and warnings contain safe categories, not leaked text. | Pattern/name checks are screening, not proof of anonymity; privacy-approved human inspection remains necessary. |
-| Manual review does not require AI success; AI-01/06 | Disabled, configuration failure, identity leak, refusal, truncation, provider error, invalid JSON/schema/ranges, expired/cancelled batch and missing results all preserve permitted manual review and never issue an applicant decision. Generic institution warnings still allow assessment. | No reviewer UI, outcome publisher or applicant email is added. |
-| Untrusted abstracts cannot change system rules, invoke tools or publish; AI-04 | Fixed rules and rubric stay in system text; the five scientific fields are JSON data in a user turn. Injection strings cannot add roles/system messages/tools. Unexpected tool output is rejected. | Mock tests show isolation and failure handling; they cannot establish that a real model ignores every injection. |
-| Structured criterion/range output; AI-04 | Exact criterion coverage, finite in-range scores, short nonempty rationales and overall comment are validated after the stop reason. Schema-invalid output is rejected. | The API wire schema uses supported JSON Schema features; numerical/string limits are enforced locally. |
-| Provenance; AI-04 | Accepted advice records provider, requested/served model, prompt/rubric version, locked snapshot ID, assessment timestamp and non-blocking screening categories. Failure reports retain safe metadata without provider responses or keys. Sync, Batch and evaluation reports preserve warnings. | Assessment persistence, assignment RLS and audit transactions remain BL-AI-02 integration work. |
-| Human independence; AI-03 | Report separates model and human values; unset human scores are represented as unassessed and never fabricated. No automatic decision or human-average adjustment is exposed. | Independent draft before reveal, substantive override records, API permissions and UI remain BL-AI-03. |
-| Evaluation and activation; AI-05/06 | 29 synthetic cases cover strong/weak/ongoing studies, varied study types, identity leaks, injections and malformed inputs/outputs, with EN/AR generic-versus-own institution pairs. Reproducible mock reports include failures, provenance, human/model comparison fields and limitations. | Scientific Lead must supply human baselines, examine disagreements/overrides and explicitly judge suitability; no numerical pass threshold is invented. |
-| Local-only real synthetic harness; AI-05/06 | No key in source, docs or outputs; explicit local opt-in/key/config required; CI blocks before SDK/network; built-in synthetic corpus only. Leak/malformed input cases do not dispatch. | Locally running it is a separate deliberate action; it never permits real abstracts or opens the website's assessment gate. |
-| Batch, caching and fallback request design | Mock SDK requests demonstrate Batch API bulk dispatch, fixed system/rubric cache markers, adaptive thinking and explicit effort. Synchronous calls carry server-side fallback and its exact beta header; stop reasons are handled before content. | Anthropic documents that server-side fallback is unavailable in Batches; batch refusals use manual review. Real cache hits are unverified. |
+| Disabled adapter makes no external request; AI-01/05 | Default-off flag, absent/invalid configuration, six missing/stale/revoked/mismatched approvals, rejected authority/MFA, budget denial and audit failure prevent dispatch. Configuration/approval digest and flag changes between gates prevent later dispatch. Disabled assertions include zero fetch/provider-factory calls. | Trusted approval storage, atomic accounting and durable auditing need production integrations. |
+| Strict operating configuration; CFG-03/09/10 | Exact keys reject old `provider: "anthropic"`, effort, wrong/requested/serving models and additional fields. Digest binds all operating values, key fingerprint and fixed transport. | Engineering model selection and fixtures grant no organizer approval. |
+| Payload contains only approved fields; AI-02, PRV-03/07 | Only title, specialty, study type, completion status and abstract body enter the user message. Applicant/account/snapshot IDs, local identity context, contacts, affiliations, licence/IRB/evidence never enter request body or metadata. | Database ownership and immutable snapshot lookup remain BL-REV prerequisites. |
+| Identifying body text is checked; AI-02 | Own author/institution names from the snapshot, email, telephone, licence and IRB identifiers block dispatch. Generic EN/AR institution wording creates safe warning categories without matching text. Malformed snapshots/scalars/dates are rejected. | Pattern/name checks are screening, not anonymity proof; privacy-approved inspection remains necessary. |
+| Untrusted content and structured output; AI-04 | Fixed rules/rubric in system, sanitized scientific JSON in user, explicit JSON mode/schema instruction, disabled thinking and no tools. Local validation rejects missing/extra criteria/fields, nonfinite/out-of-range scores, invalid types/JSON and empty/oversized comments. | Mocks establish request isolation and fail-closed behavior, not universal real-model injection resistance. Chat JSON mode supplies no schema guarantee. |
+| Finish reason and model handling; AI-04 | Exactly one choice; `stop` parses, `length` is incomplete, `content_filter` is refusal, all other/unknown reasons are incomplete. Malformed/multiple choices are invalid. Stop reasons are handled before content. Unexpected model/tool content cannot produce accepted advice. | Returned model is checked against the single serving allowlist; the current model ID is not an immutable version pin. |
+| Reasoning is excluded; AI-04, PRV-03 | Returned `reasoning_content` is never consumed or retained in accepted output, provenance, audit or evaluation report. | Thinking is explicitly disabled even though provider default is enabled. |
+| Transport failure and credential control; AI-01/06, PRV-07 | Fixed official endpoint, timeout, zero retries, no redirects/ambient credentials or body logging. Non-2xx, timeout and network error become `provider_unavailable`. Endpoint/header override attempts are refused; Authorization uses the validated config key only. | No test uses a real key or sends a provider request. Provider-side automatic caching remains a privacy gate. |
+| Manual review and unsupported batch; AI-01/06 | Every failure preserves human-only review and never sends an applicant decision. Batch submit/collect returns `batch_unsupported` with zero fetch calls, without sync loops, including after local harness guards. | Durable queued/recovery work and any future batch integration are separate tasks. |
+| Provenance and human independence; AI-03/04 | `provider: "deepseek"`, requested/served model, prompt/rubric/snapshot versions, timestamp and safe warnings remain validated; no raw output/key/reasoning. Model/human values stay separate; missing human scores are unassessed. | Persistence/RLS is BL-AI-02; independent draft/reveal, override record and UI/API permissions are BL-AI-03. |
+| Evaluation and activation; AI-05/06 | All 29 synthetic corpus expectations, mock outcomes, missing human baselines, versioned comparison validation and safe report fields remain tested. Dedicated synthetic key/consent/spend/budget and local-only/CI/hosted guards remain. Arbitrary input/receipts are refused; submit/collect never dispatch. | Scientific Lead must supply actual baselines and judge disagreements; no invented pass threshold. Privacy/terms/China transfer and six matching approvals remain required. |
 
-## Executable coverage and observed checks
+## Executable coverage
 
-`tests/unit/ai-assessment-adapter.test.ts` covers the four BL-AI-01 acceptance
-criteria through the actual adapter contract:
+`tests/unit/ai-assessment-adapter.test.ts` covers activation/manual continuity,
+exact configuration and digest/approval races, authority/MFA/budget/audit failures,
+locked snapshot identity and generic institution canaries, request role separation,
+finish reasons, choice/model/schema validation, discarded reasoning, transport
+failure/timeout/no retries, override refusal, config-only authentication and
+unsupported batches. Existing sanitizer, immutability and safe-warning assertions
+remain applicable after replacing provider-specific assertions.
 
-- `BL-AI-01 activation and manual-review continuity`: exact default-off flag,
-  incomplete/malformed/version-mismatched/revoked/expired approvals, unapproved
-  rubric, persisted scoped authority, TOTP, atomic budget denial, audit failure,
-  disable during work and provider failure. Disabled rows assert zero global
-  fetch, SDK, factory, configuration, authority and budget calls.
-- `BL-AI-01 allowlist and identity canaries`: the five transmitted fields,
-  removed account/evidence fields, safe audit metadata, all six identity
-  categories, non-blocking EN/AR generic institution wording and warning provenance,
-  Arabic digits, repeated IRB labels, non-body leaks, malformed
-  snapshots, coerced scalar rejection and capture before asynchronous work.
-- `AI-04 untrusted content and structured response`: fixed system/user
-  separation, no tools, supported JSON schema, adaptive effort, caching,
-  refusal/truncation content getters kept unread, exact output coverage/ranges,
-  malformed JSON, tool rejection, actual approved fallback model and provenance.
-- `AI-06 bulk dispatch and stop switch` and `server-only official SDK transport`:
-  approved batch bounds, random IDs, mixed-leak denial, scoped receipts,
-  pending/refused/invalid/missing/duplicate/unknown results, disable, correct
-  stable/beta SDK calls, pinned API endpoint, key-only auth and silent logging.
+`tests/unit/ai-assessment-harness.test.ts` covers the fixed 29 cases, mock outcomes,
+human/model separation, comparison/provenance validation, dedicated local key and
+consent/spend/budget controls, CI/hosted denial, arbitrary-input refusal and batch
+unsupported without provider calls. The header guard is tested with hosted markers
+cleared so each independent denial is exercised.
 
-`tests/unit/ai-assessment-harness.test.ts` covers all 29 corpus input expectations,
-mock provider outcomes, human/model separation and missing baselines, versioned
-comparison validation, dedicated local key/consent/spend/budget guards, CI/hosted
-denial, unsupported arbitrary inputs, Batch request settings, unordered result
-collection, altered receipts, scope denial and mocked CI execution without a key.
-The custom-header guard test clears all hosted/CI markers to isolate that check;
-separate tests verify the real factory refuses actual CI/hosted execution.
-
-Observed during independent review:
-
-- PASS: `pnpm exec vitest run tests/unit/ai-assessment-adapter.test.ts tests/unit/ai-assessment-harness.test.ts`
-  — final PR #40 review passed 202 tests (127 adapter and 75 harness) in two files
-  under `CI=true` and `GITHUB_ACTIONS=true`, including isolated header denial and
-  the real factory's actual-environment denial; no provider request.
-- PASS: `node --conditions=react-server scripts/ai-evaluate.ts mock` — 29 rows,
-  12 completed fixture outputs, 17 manual states, all 29 human baselines unassessed
-  and two safe generic-institution warning rows under the same CI markers.
-  The ignored report contains no abstract bodies, identity canaries or key fields.
-- PASS after correction: native sanitizer probes block all six corpus identity
-  canaries, reject an array completion status and reject an impossible calendar
-  date. Licence/IRB identifiers and scalar/date validation first failed these
-  probes and were repaired with regression coverage.
-- NOT TESTED: real API requests/model entitlement, real-model scientific quality,
-  billing, actual cache hits, committee-scored evaluation and reviewer/browser UAT.
-  Production approval and the deferred integration gates remain BLOCKED.
-
-Repository-wide checks, final branch/head and review receipts belong in
-`docs/PROGRESS.md`; this focused matrix does not imply those checks were run.
+The mock CLI report is synthetic evidence only. No live model quality, billing,
+cache-hit behavior, committee calibration, provider terms or reviewer/browser UAT
+is claimed. Current PASS/FAIL/BLOCKED/NOT TESTED receipts belong in PROGRESS.
 
 ## Separately gated work
 
-BL-AI-02 durable jobs, database deduplication/leases/retries, current-version and
-withdrawal checks, shared budget accounting, protected persistence, audited
-activation, assignment/admin RLS and recovery UI are not completed by a server
-contract. BL-AI-03 independent-draft/reveal/finalization UI and its permissions are
-also separate. BL-AI-04 scientific/privacy approval must include actual provider
-and fallback processing, locations, retention/training/confidentiality terms,
-budget, disclosure and committee evaluation; technical tests cannot grant it.
+BL-AI-02 jobs, database deduplication/leases/retries, current-version and withdrawal
+checks, shared budget accounting, protected persistence, audited activation,
+assignment/admin RLS and recovery UI remain integration work. BL-AI-03 independent
+draft/reveal/finalization and permissions are separate. BL-AI-04 requires scientific
+and privacy approval of actual processing, China transfers, confidentiality,
+retention/training/caching, budget, disclosure and committee evaluation.
 
-## Official API references checked for this design
-
-- [Structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
-  describes `output_config.format`, supported schema features and refusal/truncation
-  exceptions. Unsupported score-range constraints are enforced by local validation.
-- [Refusals and fallback](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback)
-  documents `server-side-fallback-2026-07-01`, served-model provenance and the Batch
-  incompatibility. The SDK's generated Batch types do not override this restriction.
-- [Batch processing](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
-  describes per-item results and asynchronous cancellation/cache limitations.
-- [Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)
-  describes fixed-prefix cache markers, model-dependent minimum lengths and usage
-  fields. A marked prefix alone does not prove it was cached.
-- [Effort](https://platform.claude.com/docs/en/build-with-claude/effort)
-  documents explicit `output_config.effort` for adaptive Opus 5.5 thinking.
-
-Observed command receipts and final test status are recorded in `docs/PROGRESS.md`.
+See the [DeepSeek verification and activation note](ai-assessment.md) for official
+URLs checked on 16 October 2026 and explicit NOT VERIFIED facts. Technical tests
+cannot supply these approvals or open operational workflows.
