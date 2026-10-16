@@ -59,15 +59,12 @@ for (const locale of ["en", "ar"] as const) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} Venue shows its gallery and practical information with pending times and accessible layout`, async ({ page, browserName }, testInfo) => {
+  test(`${locale} Venue shows its gallery and practical information with pending times and accessible layout`, async ({ page }, testInfo) => {
     const errors: string[] = [];
     const writes: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => {
       if (message.type() !== "error") return;
-      // WebKit explicitly ignores this supported Chromium viewport hint.
-      // Retain every application error and every other platform message.
-      if (browserName === "webkit" && message.text() === 'Viewport argument key "interactive-widget" not recognized and ignored.') return;
       errors.push(message.text());
     });
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });

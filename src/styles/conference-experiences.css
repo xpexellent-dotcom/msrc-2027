@@ -12,7 +12,7 @@
 .experience-intro[data-publication-pending="true"] { padding-block-end: 3rem; }
 .experience-intro[data-publication-pending="true"] .experience-breadcrumb { margin-block-end: 1.5rem; }
 .experience-publication-status { display: inline-block; max-inline-size: 100%; margin-block-end: 1.25rem; padding: .6rem .85rem; background: var(--color-gold); color: var(--color-ink); font-size: 1rem; font-weight: 600; }
-.experience-catalogue { padding-block: clamp(2.5rem, 5vw, 5rem); background: var(--color-white); }
+.experience-catalogue { container: catalogue / inline-size; padding-block: clamp(2.5rem, 5vw, 5rem); background: var(--color-white); }
 .programme-toolbar { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 1.5rem; margin-block-end: 2rem; }
 .programme-days { display: flex; flex-wrap: wrap; border: 1px solid var(--color-purple); }
 .programme-days button { min-block-size: 48px; max-inline-size: 100%; padding: .85rem 1.25rem; color: var(--color-purple); font: inherit; font-size: .9rem; font-weight: 500; cursor: pointer; transition: background-color var(--motion-feedback), color var(--motion-feedback); }
@@ -31,6 +31,12 @@
 .experience-search input::placeholder { color: var(--color-muted); opacity: 1; }
 .experience-search > span:focus-within { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
 .experience-search input:focus-visible { outline: none; }
+/* Match the existing 600px filter reflow, also when enlarged text makes native
+   selects wider. Pixel-only breakpoints left Arabic labels overflowing on iPad. */
+@container catalogue (width <= 37.5rem) {
+  .experience-filters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+  .experience-filters > .experience-search { grid-column: 1 / -1; }
+}
 .experience-filter-note { margin-block-start: 1rem; color: var(--color-muted); font-size: .875rem; line-height: 1.8; }
 .experience-result-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; padding-block: 1.5rem; margin-block-start: 1rem; border-block-end: 1px solid var(--color-line); }
 .experience-result-bar > p { font-size: .875rem; font-weight: 500; color: var(--color-muted); }

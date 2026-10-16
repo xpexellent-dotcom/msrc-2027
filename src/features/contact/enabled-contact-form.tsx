@@ -33,6 +33,20 @@ function resultRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
+// The server bounds counter/provider work to 3s + 6s. Leave room for a slow
+// connection, but recover if the connection stalls before a response arrives.
+// A timed-out POST remains uncertain: aborting cannot recall an accepted email.
+async function contactRequest(input: string, init: RequestInit = {}) {
+  const controller = new AbortController();
+  const deadline = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const response = await fetch(input, { ...init, signal: controller.signal });
+    return { response, result: resultRecord(await response.json()) };
+  } finally {
+    clearTimeout(deadline);
+  }
+}
+
 export function EnabledContactForm({ locale, token: initialToken, testOnly = false }: { locale: Locale; token: string; testOnly?: boolean }) {
   const copy = contactCopy[locale];
   const bounds = contactConfig.inputBounds;
@@ -46,9 +60,20 @@ export function EnabledContactForm({ locale, token: initialToken, testOnly = fal
   const form = useRef<HTMLFormElement>(null);
   const currentToken = useRef(initialToken);
   const inFlight = useRef(false);
+  const pendingErrorFocus = useRef(false);
   const cooldown = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (cooldown.current) clearTimeout(cooldown.current); }, []);
+  useEffect(() => {
+    if (status !== "invalid" || !pendingErrorFocus.current) return;
+    pendingErrorFocus.current = false;
+    const first = fields.find((field) => fieldErrors[field]);
+    if (!first) return;
+    // A frame can run before React commits the async error response. Focus only
+    // after the fieldset is re-enabled in the committed DOM, never while busy.
+    const control = form.current?.elements.namedItem(first);
+    if (control instanceof HTMLElement) control.focus();
+  }, [fieldErrors, status]);
 
   const busy = status === "sending" || status === "preparing";
   const frozen = !hydrated || busy || status === "sent" || status === "unconfirmed";
@@ -68,15 +93,6 @@ export function EnabledContactForm({ locale, token: initialToken, testOnly = fal
     setDuplicateWarning(true);
   }
 
-  function focusFirstError(errors: FieldErrors) {
-    const first = fields.find((field) => errors[field]);
-    if (!first) return;
-    requestAnimationFrame(() => {
-      const control = form.current?.elements.namedItem(first);
-      if (control instanceof HTMLElement) control.focus();
-    });
-  }
-
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!hydrated || inFlight.current || waiting || needsToken || frozen) return;
@@ -87,14 +103,13 @@ export function EnabledContactForm({ locale, token: initialToken, testOnly = fal
     setStatus("sending");
     setRetryAfter(null);
     try {
-      const response = await fetch("/api/contact", {
+      const { response, result } = await contactRequest("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
         cache: "no-store",
         body: JSON.stringify({ locale, token: currentToken.current, submission }),
       });
-      const result = resultRecord(await response.json());
       if (response.ok && result.state === "sent") {
         form.current?.reset();
         setStatus("sent");
@@ -109,9 +124,9 @@ export function EnabledContactForm({ locale, token: initialToken, testOnly = fal
         applyWait(result.retryAfter);
       } else if (result.state === "invalid") {
         const errors = safeFieldErrors(result.fieldErrors);
+        pendingErrorFocus.current = true;
         setFieldErrors(errors);
         setStatus("invalid");
-        focusFirstError(errors);
       } else if (result.state === "limited") {
         if (result.code === "CONTACT_ATTEMPT_USED") unconfirmed();
         else {
@@ -141,8 +156,7 @@ export function EnabledContactForm({ locale, token: initialToken, testOnly = fal
     inFlight.current = true;
     setStatus("preparing");
     try {
-      const response = await fetch(`/api/contact?locale=${locale}`, { cache: "no-store", credentials: "same-origin" });
-      const result = resultRecord(await response.json());
+      const { response, result } = await contactRequest(`/api/contact?locale=${locale}`, { cache: "no-store", credentials: "same-origin" });
       if (response.ok && result.state === "ready" && typeof result.token === "string" && result.token) {
         currentToken.current = result.token;
         setNeedsToken(false);
@@ -163,6 +177,10 @@ export function EnabledContactForm({ locale, token: initialToken, testOnly = fal
     const control = event.target;
     if (!(control instanceof HTMLInputElement || control instanceof HTMLSelectElement || control instanceof HTMLTextAreaElement)) return;
     if (fields.includes(control.name as ContactField)) {
+      // Native popovers use the browser language, which can differ from this
+      // page's language. Show the translated inline errors and focus instead.
+      event.preventDefault();
+      pendingErrorFocus.current = true;
       setFieldErrors((previous) => ({ ...previous, [control.name]: control.validity.valueMissing ? "required" : "invalid" }));
       setStatus("invalid");
     }

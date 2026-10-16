@@ -193,3 +193,14 @@ job and removes its RPC/schema. Never drop pg_cron or other jobs. Preserve decis
 migration history. Next smallest task: review/apply the Contact-only migration and finish
 the above configuration/privacy/human-delivery checks; final Privacy/Terms approval and
 staff authentication delivery/recovery remain separate work.
+
+## Visitor QA follow-up — 16 October 2026
+
+The real-user audit adds page-language native validation, a 30-second client
+response/body deadline with uncertain-POST protection, focus after the invalid
+state commits and controls re-enable, and EN/AR failure,
+offline/reconnect, slow/double-submit and retry regressions across Chromium and
+WebKit. No hosted gate or delivery setting changed. Enabled-form locale switches
+still lose draft/attempt state and require a separate memory-only, state-aware
+handoff before that behavior is declared fixed. Evidence and owner checks:
+[real visitor audit](../reviews/real-user-bug-hunt-2026-10-16.md).

@@ -120,10 +120,14 @@ jobs:
           retention-days: 7
 
   contact:
-    name: Contact enabled/closed synthetic browser checks
+    name: Contact enabled/closed synthetic browser checks (${{ matrix.project }})
     if: ${{ !inputs.auth_stability }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [contact-desktop, contact-mobile, contact-safari, contact-iphone, contact-ipad]
     env:
       CI: "true"
       NEXT_TELEMETRY_DISABLED: "1"
@@ -146,17 +150,63 @@ jobs:
       - name: Install test browser
         run: |
           bash scripts/prepare-ci-browser-archive.sh
-          pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright install --with-deps chromium webkit
       - name: Verify Contact on and off with loopback mocks, never email
-        run: pnpm exec playwright test --config playwright.contact.config.ts
+        run: pnpm exec playwright test --config playwright.contact.config.ts --project=${{ matrix.project }}
       - name: Upload synthetic Contact browser evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: contact-delivery-browser-results
+          name: contact-delivery-browser-results-${{ matrix.project }}
           path: |
             playwright-contact-report/
             test-contact-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  real_user:
+    name: Visitor interactions, Chromium and WebKit (shard ${{ matrix.shard }}/3)
+    if: ${{ !inputs.auth_stability }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      # WebKit's native media decoder does not inherit Playwright's trust for
+      # the self-signed loopback certificate. Public video uses identical HTTP
+      # content; navigation/private CSP checks still run over real local TLS.
+      REAL_USER_MEDIA_BASE_URL: "http://127.0.0.1:3210"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        with:
+          run_install: false
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Install both browser engines
+        run: |
+          bash scripts/prepare-ci-browser-archive.sh
+          pnpm exec playwright install --with-deps chromium webkit
+      - name: Exercise visitor state changes and all bilingual sitemap pages
+        run: pnpm exec playwright test --config playwright.real-user.config.ts --shard=${{ matrix.shard }}/3
+      - name: Upload visitor evidence, including failure screenshots and traces
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: real-user-browser-results-${{ matrix.shard }}
+          path: |
+            playwright-report/real-user/
+            test-results/real-user/
           if-no-files-found: ignore
           retention-days: 7
 

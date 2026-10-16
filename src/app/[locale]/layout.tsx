@@ -7,7 +7,13 @@ import "../globals.css";
 import { arabicFont, bodyFont, displayFont, headingFont } from "@/lib/fonts";
 import { siteOrigin } from "@/lib/metadata";
 
-export const viewport: Viewport = { themeColor: "#F8F6F0", viewportFit: "cover", interactiveWidget: "resizes-content" };
+// Keep zoom and native keyboard scrolling. Safari reports unknown viewport keys
+// as console errors; this document has no keyboard-bound fixed app shell.
+export const viewport: Viewport = { themeColor: "#F8F6F0", viewportFit: "cover" };
+
+// Unknown top-level URLs must reach the routing-level 404, rather than enter
+// this locale layout and throw a notFound() document that needs JS to recover.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
