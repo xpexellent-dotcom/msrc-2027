@@ -42,7 +42,7 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
   en: {
     metadataTitle: "Dates & venue | MSRC 2027",
     metadataDescription:
-      "The fifth Medical Students Research Conference takes place at King Faisal Conference Center, King Abdulaziz University, Jeddah. Session times, doors and rooms will be announced.",
+      "The fifth Medical Students Research Conference takes place at King Faisal Conference Center, King Abdulaziz University, Jeddah.",
     breadcrumb: "Breadcrumb",
     home: "Home",
     page: "Dates & venue",
@@ -77,7 +77,7 @@ export const datesVenueCopy: Record<Locale, DatesVenueCopy> = {
   ar: {
     metadataTitle: "المواعيد والمقر | MSRC 2027",
     metadataDescription:
-      "يُقام المؤتمر الخامس لأبحاث طلاب الطب في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة. ستُعلن مواعيد الجلسات وفتح الأبواب والقاعات لاحقًا.",
+      "يُقام المؤتمر الخامس لأبحاث طلاب الطب في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة.",
     breadcrumb: "مسار التنقل",
     home: "الرئيسية",
     page: "المواعيد والمقر",
