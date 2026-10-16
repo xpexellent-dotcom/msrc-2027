@@ -94,7 +94,7 @@ for (const locale of ["en", "ar"] as const) {
     const menu = page.locator(".mobile-menu");
     await expect(menu).toBeVisible();
     expect(await menu.evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
-    expect(await menu.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0.2s, 0.2s");
+    expect(await menu.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0.22s, 0.28s");
     const current = menu.locator("a[aria-current='page']");
     await expect(current).toHaveAttribute("href", `/${locale}/participate`);
     expect(await current.evaluate((element) => getComputedStyle(element).textDecorationLine)).toContain("underline");
