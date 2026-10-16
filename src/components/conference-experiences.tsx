@@ -58,11 +58,14 @@ const experiencePhotos: Partial<Record<ExperiencePageId, string>> = {
   program: "programme-panel.jpg",
   registration: "attend-majed-9744.jpg",
   submissions: "share-research-manar-2560.jpg",
-  workshops: "share-research-manar-2560.jpg",
+  workshops: "learn-doing-manar-2529.jpg",
   hackathon: "build-idea-majed-9846.jpg",
   threeMinuteThesis: "gallery-presentation.jpg",
   speakers: "speakers-rania-9801.jpg",
 };
+
+/** ORG-054: the date, edition and venue block appears only on the Participate hub and Attend. */
+const showsEventFacts = (page: ExperiencePageId) => page === "participate" || page === "registration";
 
 export function ExperienceIntro({ locale, page, announcement, children }: { locale: Locale; page: ExperiencePageId; announcement?: string; children?: ReactNode }) {
   const copy = experienceCopy[locale];
@@ -75,7 +78,7 @@ export function ExperienceIntro({ locale, page, announcement, children }: { loca
       <nav aria-label={copy.breadcrumb} className="experience-breadcrumb"><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
       <div className="experience-intro-grid">
         <div><h1 id="experience-title">{lines.map((line, index) => <span key={line} className={index === lines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{line}</span>)}</h1>{announcement ? <p className="experience-publication-status">{announcement}</p> : null}<p className="experience-lead">{intro.lead}</p>{children ? <div className="fluid-journey-hero-actions">{children}</div> : null}</div>
-        <div className="experience-intro-art">{page === "program" ? <div className="program-date-panel" role="group" aria-label={datesVenueCopy[locale].datesHeading}><ConferenceDayLinks locale={locale} /><p className="program-date-location">{copy.location}</p>{conferenceConfig.dates ? <a className="text-link program-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{datesVenueCopy[locale].addToCalendar}</a> : null}</div> : <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div>}</div>
+        <div className="experience-intro-art">{page === "program" ? <div className="program-date-panel" role="group" aria-label={datesVenueCopy[locale].datesHeading}><ConferenceDayLinks locale={locale} />{conferenceConfig.dates ? <a className="text-link program-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{datesVenueCopy[locale].addToCalendar}</a> : null}</div> : showsEventFacts(page) ? <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div> : null}</div>
       </div>
     </Container>
   </section>;
@@ -120,7 +123,7 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
     <section id="programme" tabIndex={-1} className="experience-catalogue" aria-label={copy.pages.program.label}>
       <Container>
         <div className="programme-toolbar"><div className="programme-days" role="group" aria-label={copy.conferenceDays}>
-          {(["all", "day1", "day2"] as const).map((value) => <button type="button" data-testid={`program-day-${value}`} key={value} aria-pressed={day === value} disabled={!hydrated} onClick={() => change({ day: value })}>{value === "all" ? copy.allDays : copy[value]}</button>)}
+          {(["all", "day1", "day2"] as const).map((value) => <button type="button" data-testid={`program-day-${value}`} key={value} aria-pressed={day === value} disabled={!hydrated} onClick={() => change({ day: value })}>{value === "all" ? copy.allDays : copy[value === "day1" ? "day1Short" : "day2Short"]}</button>)}
         </div><p className="experience-timezone">{copy.timezone}</p></div>
         <div className="experience-filters">
           <label className="experience-search" htmlFor="programme-search">{copy.searchSessions}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="programme-search" data-testid="program-search" type="search" value={query} disabled={!hydrated} onChange={(event) => change({ q: event.target.value })} placeholder={copy.searchSessionsPlaceholder} /></span></label>
@@ -272,11 +275,13 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
       <div className="participation-program"><Button disabled data-testid="brochure-unavailable" aria-describedby="brochure-unavailable-note" variant="ghost" size="small">{actions.brochure}</Button><p id="brochure-unavailable-note">{actions.brochurePending}</p></div>
     </ExperienceIntro>
     <section id="journey-availability" tabIndex={-1} className="journey-availability fluid-journey-availability" data-testid="journey-closed" aria-labelledby="journey-closed-title"><Container><div className="journey-availability-dot" aria-hidden="true" /><div><h2 id="journey-closed-title">{content.closed}</h2><p>{content.closedBody}</p></div></Container></section>
-    <section id="journey-benefits" className="participation-benefits" aria-labelledby="journey-benefits-title"><Container><p className="participation-section-label">{journey === "workshops" ? actions.learning : actions.benefits}</p><h2 id="journey-benefits-title">{content.detailsTitle}</h2><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3 {...(journey === "hackathon" && index < 2 ? { lang: "en", dir: "ltr" } : {})}>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
+    {content.tracks ? <section id="journey-tracks" className="participation-tracks" aria-labelledby="journey-tracks-title"><Container><p className="participation-section-label">{content.tracks.label}</p><h2 id="journey-tracks-title">{content.tracks.title}</h2><div className="participation-track-list">{content.tracks.items.map((track) => <article className="participation-track" key={track.label}><p className="participation-track-label">{track.label}</p><h3 lang="en" dir="ltr">{track.title}</h3><p>{track.body}</p></article>)}</div><p className="participation-track-note">{content.tracks.note}</p></Container></section> : null}
+    <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title"><AmbientArtwork variant="benefits" /><Container><p className="participation-section-label">{journey === "workshops" ? actions.learning : actions.benefits}</p><h2 id="journey-benefits-title">{content.detailsTitle}</h2><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
       {content.goodToKnow ? <aside className="participation-good-to-know" aria-labelledby="good-to-know-title"><h3 id="good-to-know-title">{content.goodToKnow.title}</h3><ul>{content.goodToKnow.points.map((point) => <li key={point}>{point}</li>)}</ul></aside> : null}
     </Container></section>
+    {content.schedule ? <section id="journey-schedule" className="participation-schedule" aria-labelledby="journey-schedule-title"><Container><h2 id="journey-schedule-title">{content.schedule.title}</h2><ol className="participation-schedule-list">{content.schedule.items.map((item) => <li key={item.label}><span className="participation-schedule-day">{item.label}</span><h3>{item.title}</h3><p>{item.body}</p></li>)}</ol></Container></section> : null}
     {journey === "workshops" ? <WorkshopRail locale={locale} workshops={workshops} /> : null}
-    <section id="journey-steps" className="participation-steps" aria-labelledby="journey-steps-title"><Container><h2 id="journey-steps-title">{content.stepsTitle}</h2><ol>{content.steps.map((step, index) => <li key={step}><span aria-hidden="true">{formatIndex(index + 1, locale)}</span><p>{step}</p></li>)}</ol>
+    <section id="journey-steps" className="participation-steps participation-ambient" aria-labelledby="journey-steps-title"><AmbientArtwork variant="paths" /><Container><h2 id="journey-steps-title">{content.stepsTitle}</h2><ol>{content.steps.map((step, index) => <li key={step}><span aria-hidden="true">{formatIndex(index + 1, locale)}</span><p>{step}</p></li>)}</ol>
       {journey === "registration" ? <div className="participation-bottom-action"><ButtonLink variant="gold" href={`/${locale}/sign-up`} data-testid="participation-sign-up">{actions.primary.registration}<Arrow /></ButtonLink></div> : null}
     </Container></section>
     <section className="fluid-journey-resources" aria-labelledby="journey-resources-title"><Container><h2 id="journey-resources-title">{actions.resources}</h2><div className="fluid-resource-grid">

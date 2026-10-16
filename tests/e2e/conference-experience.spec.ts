@@ -149,8 +149,9 @@ for (const locale of ["en", "ar"] as const) {
     const first = page.getByTestId("program-day-day1");
     const second = page.getByTestId("program-day-day2");
     await expect(all).toHaveAttribute("aria-pressed", "true");
-    await expect(first).toContainText(locale === "en" ? /27/ : /٢٧/);
-    await expect(second).toContainText(locale === "en" ? /28/ : /٢٨/);
+    // ORG-054: the dates already sit in the header, so the filter says "Day 1" only.
+    await expect(first).toHaveText(locale === "en" ? "Day 1" : "اليوم الأول");
+    await expect(second).toHaveText(locale === "en" ? "Day 2" : "اليوم الثاني");
     await expect(page.getByRole("main")).toContainText(/Asia\/Riyadh|UTC\+0?3(?::00)?/);
     const category = page.getByTestId("program-category");
     await expect(category.locator("option")).toHaveCount(1);

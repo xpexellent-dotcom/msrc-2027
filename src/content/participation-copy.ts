@@ -8,6 +8,10 @@ export type JourneyCopy = {
   details: readonly { title: string; body: string }[];
   stepsTitle: string; steps: readonly string[];
   goodToKnow?: { title: string; points: readonly string[] };
+  /** ORG-054: the hackathon's two tracks, shown before the benefits. */
+  tracks?: { label: string; title: string; note: string; items: readonly { label: string; title: string; body: string }[] };
+  /** ORG-054: what happens on each conference day. */
+  schedule?: { title: string; items: readonly { label: string; title: string; body: string }[] };
 };
 
 /** ORG-053: public invitations only. Full form rules live in participation-form-guidance.ts. */
@@ -34,7 +38,12 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
         { title: "Awards and cash prizes", body: "Compete for awards and cash prizes. Categories and details will be announced." },
         { title: "A research community", body: "Be part of a community that shares your curiosity." },
       ],
-      goodToKnow: { title: "Good to know", points: ["Completed or ongoing work welcome", "Up to 300 body words", "Up to two submissions per principal investigator, per edition"] },
+      goodToKnow: { title: "Good to know", points: [
+        "Completed or ongoing work is welcome.",
+        "Each principal investigator (the lead researcher responsible for the study) can have up to two submissions in MSRC 2027. Being a co-author does not count toward this limit.",
+        "Write your abstract in English and leave out anything that could identify a patient.",
+        "Submitting an abstract does not register you to attend. Every attendee reserves their own seat.",
+      ] },
       stepsTitle: "Simple steps", steps: ["Prepare your abstract", "Submit when applications open", "Scientific review", "Decision by email"],
     },
     workshops: {
@@ -50,15 +59,27 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
     },
     hackathon: {
       closed: "Hackathon applications are not open yet", closedBody: "Final eligibility, application dates and participation terms will be announced before entries open.",
+      tracks: { label: "Two tracks", title: "Choose your track.", note: "Pick one track for your idea.", items: [
+        { label: "Track 1", title: "Translating research into practice", body: "A new idea that turns research into real impact on healthcare." },
+        { label: "Track 2", title: "Advancing medical student research", body: "A new idea that helps medical students do better research." },
+      ] },
       detailsTitle: "Build on a question that matters.",
       details: [
-        { title: "Translating research into practice", body: "Explore a new idea that connects research with practical healthcare impact." },
-        { title: "Advancing medical student research", body: "Explore a new idea that helps medical student research move forward." },
-        { title: "Solo or together", body: "Bring your idea independently or with a preformed team of up to five." },
-        { title: "Develop your idea", body: "Move from orientation to mentoring, then pitch your idea to the judges." },
+        { title: "Solo or together", body: "Enter on your own or with a team of up to five." },
+        { title: "Guidance from mentors", body: "Shape your idea with experienced mentors." },
+        { title: "Pitch to the judges", body: "Present your idea and hear what the judges think." },
       ],
-      goodToKnow: { title: "Good to know", points: ["Prepare an English title and a pitch of up to 300 words", "Bring a new idea; a prototype is encouraged and optional"] },
-      stepsTitle: "Simple steps", steps: ["Prepare your idea and apply when entries open", "Preparation and compulsory orientation", "Day-one mentoring", "Day-two pitch and judging"],
+      schedule: { title: "Two days, two stages.", items: [
+        { label: "Day 1", title: "Mentoring", body: "Work on your idea with your mentors." },
+        { label: "Day 2", title: "Pitching and judging", body: "Pitch your idea to the judges." },
+      ] },
+      goodToKnow: { title: "Good to know", points: [
+        "Teams are formed before you apply, up to five members, and can include students from different universities. There is no team matching.",
+        "Your idea must be new. Apply with an English title and a pitch of up to 300 words. A prototype is welcome but optional.",
+        "Preparation and a compulsory orientation take place before the conference.",
+        "Your hackathon entry is separate from your conference seat.",
+      ] },
+      stepsTitle: "Simple steps", steps: ["Choose your track", "Prepare your idea and pitch", "Apply when entries open", "Join the compulsory orientation"],
     },
     threeMinuteThesis: {
       closed: "3MT applications are not open yet", closedBody: "Eligibility, entry requirements and the application window will be announced before entries open.",
@@ -92,7 +113,12 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
         { title: "جوائز ومكافآت نقدية", body: "نافس على جوائز ومكافآت نقدية. تُعلن الفئات والتفاصيل لاحقًا." },
         { title: "مجتمع بحثي", body: "كن جزءًا من مجتمع يشاركك الفضول العلمي." },
       ],
-      goodToKnow: { title: "معلومات مفيدة", points: ["نرحّب بالأبحاث المكتملة والجارية", "حتى ٣٠٠ كلمة في متن الملخص", "حتى ملخصين لكل باحث رئيسي في النسخة الواحدة"] },
+      goodToKnow: { title: "معلومات مفيدة", points: [
+        "نرحّب بالأبحاث المكتملة والجارية.",
+        "يحق لكل باحث رئيسي (الباحث المسؤول عن الدراسة) تقديم ملخصين كحد أقصى في MSRC 2027، ولا تُحتسب المشاركة كمؤلف مشارك ضمن هذا الحد.",
+        "اكتب ملخصك بالإنجليزية، ولا تُدرج أي معلومة قد تكشف هوية مريض.",
+        "تقديم الملخص لا يعني تسجيلك في المؤتمر؛ يحجز كل حاضر مقعده بنفسه.",
+      ] },
       stepsTitle: "خطوات بسيطة", steps: ["جهّز ملخصك", "قدّم عند فتح الطلبات", "المراجعة العلمية", "القرار عبر البريد الإلكتروني"],
     },
     workshops: {
@@ -108,15 +134,27 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
     },
     hackathon: {
       closed: "لم يُفتح التقديم للهاكاثون بعد", closedBody: "ستُعلن الأهلية النهائية ومواعيد التقديم وشروط المشاركة قبل فتح الطلبات.",
+      tracks: { label: "مساران", title: "اختر مسارك.", note: "اختر مسارًا واحدًا لفكرتك.", items: [
+        { label: "المسار الأول", title: "Translating research into practice", body: "فكرة جديدة تحوّل البحث إلى أثر حقيقي في الرعاية الصحية." },
+        { label: "المسار الثاني", title: "Advancing medical student research", body: "فكرة جديدة تساعد طلاب الطب على تطوير أبحاثهم." },
+      ] },
       detailsTitle: "ابنِ على سؤال يصنع فرقًا.",
       details: [
-        { title: "Translating research into practice", body: "استكشف فكرة جديدة تربط البحث بأثر عملي في الرعاية الصحية." },
-        { title: "Advancing medical student research", body: "استكشف فكرة جديدة تسهم في تطوير البحث لدى طلاب الطب." },
-        { title: "بمفردك أو ضمن فريق", body: "شارك بفكرتك مستقلًا أو ضمن فريق مُشكّل مسبقًا من خمسة أعضاء كحد أقصى." },
-        { title: "طوّر فكرتك", body: "انتقل من التهيئة إلى الإرشاد، ثم اعرض فكرتك أمام المحكّمين." },
+        { title: "بمفردك أو ضمن فريق", body: "شارك بمفردك أو ضمن فريق من خمسة أعضاء كحد أقصى." },
+        { title: "إرشاد من الخبراء", body: "طوّر فكرتك مع مرشدين ذوي خبرة." },
+        { title: "اعرض أمام المحكّمين", body: "قدّم فكرتك واستمع إلى آراء المحكّمين." },
       ],
-      goodToKnow: { title: "معلومات مفيدة", points: ["جهّز عنوانًا وعرضًا موجزًا بالإنجليزية لا يتجاوز ٣٠٠ كلمة", "قدّم فكرة جديدة؛ يُستحسن تقديم نموذج أولي، وهو اختياري"] },
-      stepsTitle: "خطوات بسيطة", steps: ["جهّز فكرتك وقدّم عند فتح الطلبات", "التحضير والتهيئة الإلزامية", "الإرشاد في اليوم الأول", "العرض والتحكيم في اليوم الثاني"],
+      schedule: { title: "يومان ومرحلتان.", items: [
+        { label: "اليوم الأول", title: "الإرشاد", body: "اعمل على فكرتك مع مرشديك." },
+        { label: "اليوم الثاني", title: "العرض والتحكيم", body: "اعرض فكرتك أمام المحكّمين." },
+      ] },
+      goodToKnow: { title: "معلومات مفيدة", points: [
+        "تُشكَّل الفرق قبل التقديم، بخمسة أعضاء كحد أقصى، ويمكن أن تضم طلابًا من جامعات مختلفة. لا توجد مطابقة تلقائية بين المشاركين.",
+        "يجب أن تكون فكرتك جديدة. قدّم بعنوان وعرض موجز بالإنجليزية لا يتجاوز ٣٠٠ كلمة. النموذج الأولي مرحَّب به وهو اختياري.",
+        "يسبق المؤتمرَ تحضيرٌ وتهيئة إلزامية.",
+        "التقديم للهاكاثون مستقل عن حجز مقعدك في المؤتمر.",
+      ] },
+      stepsTitle: "خطوات بسيطة", steps: ["اختر مسارك", "جهّز فكرتك وعرضك", "قدّم عند فتح الطلبات", "احضر التهيئة الإلزامية"],
     },
     threeMinuteThesis: {
       closed: "لم يُفتح التقديم لمسابقة 3MT بعد", closedBody: "ستُعلن الأهلية ومتطلبات المشاركة وفترة التقديم قبل فتح الطلبات.",
@@ -140,6 +178,6 @@ export const participationBenefitIcons: Record<ParticipationJourney, readonly Be
   registration: ["certificate", "community", "network", "cme", "research"],
   submissions: ["research", "community", "award", "network"],
   workshops: ["practice", "certificate", "priority", "community"],
-  hackathon: ["practice", "research", "network", "community"],
+  hackathon: ["network", "community", "research"],
   threeMinuteThesis: ["research", "community"],
 };
