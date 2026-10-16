@@ -19,8 +19,9 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} compact phone panel shows registration first and every destination without scrolling`, async ({ page, isMobile }, testInfo) => {
     test.skip(!isMobile, "Phone disclosure layout.");
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    for (const width of [390, 412]) {
-      await page.setViewportSize({ width, height: 844 });
+    // ORG-052: every destination fits one panel even on a short phone (568px tall).
+    for (const [width, height] of [[390, 844], [412, 915], [320, 568], [375, 640]] as const) {
+      await page.setViewportSize({ width, height });
       await page.goto(`/${locale}`);
       await hydrated(page);
       await page.locator(".menu-toggle").tap();
@@ -40,24 +41,25 @@ for (const locale of ["en", "ar"] as const) {
       const actionBox = (await action.boundingBox())!;
       const statusBox = (await status.boundingBox())!;
       const firstBox = (await firstDestination.boundingBox())!;
-      expect(menuBox.x, "the compact panel leaves a visible left gutter in EN and AR").toBeGreaterThanOrEqual(32);
+      expect(menuBox.x, "the compact panel leaves a visible left gutter in EN and AR").toBeGreaterThanOrEqual(width < 360 ? 24 : 32);
       expect(menuBox.width).toBeLessThanOrEqual(336);
       expect(Math.abs(menuBox.x + menuBox.width - headerBox.x - headerBox.width), "the panel shares the physical right header edge").toBeLessThanOrEqual(1);
       expect(actionBox.y + actionBox.height).toBeLessThanOrEqual(firstBox.y);
       expect(statusBox.y + statusBox.height).toBeLessThanOrEqual(firstBox.y);
-      expect(menuBox.y + menuBox.height).toBeLessThanOrEqual(844);
+      expect(menuBox.y + menuBox.height).toBeLessThanOrEqual(height);
       const overflow = await menu.evaluate((element) => ({ top: element.scrollTop, content: element.scrollHeight, height: element.clientHeight }));
       expect(overflow.top).toBe(0);
       expect(overflow.content, "a normal portrait phone reaches all destinations at once").toBeLessThanOrEqual(overflow.height + 1);
       for (const link of await menu.locator("nav a").all()) {
         await expect(link).toBeInViewport();
         const box = (await link.boundingBox())!;
-        expect(box.height, await link.innerText()).toBeGreaterThanOrEqual(44);
-        expect(box.width, await link.innerText()).toBeGreaterThanOrEqual(44);
+        // ORG-052 slightly smaller rows (36px; sub-pages 34px), above the WCAG 2.2 AA 24px minimum.
+        expect(box.height, await link.innerText()).toBeGreaterThanOrEqual(34);
+        expect(box.width, await link.innerText()).toBeGreaterThanOrEqual(34);
         expect(box.y).toBeGreaterThanOrEqual(menuBox.y);
         expect(box.y + box.height).toBeLessThanOrEqual(menuBox.y + menuBox.height);
       }
-      await testInfo.attach(`${locale}-compact-menu-${width}`, { body: await page.screenshot(), contentType: "image/png" });
+      await testInfo.attach(`${locale}-compact-menu-${width}x${height}`, { body: await page.screenshot(), contentType: "image/png" });
     }
   });
 
