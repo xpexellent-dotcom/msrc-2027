@@ -14,6 +14,14 @@ shell. Non-review screens support EN/AR and RTL; reviewer/faculty-judge assessme
 areas remain English-only. Unbuilt operational areas are permission-scoped
 "coming soon" entries; they do not open their domain workflows.
 
+ORG-055 adds the closed [registration queue backend](REGISTRATION.md#staff-queue-slice-3--org-055)
+and exact UI contract for the parallel console branch: registration reads and
+approval/waitlisting for registrars/Super Admins, organizing-team priority only for
+Super Admins, and aggregate home counts scoped to readable areas. Existing staff
+gates and session guarantees remain mandatory. Participant registration does not
+open as a consequence. The backend-only worktree needs the planner's EN/AR screen,
+menu and client changes before its expanded contract can typecheck/build with UI.
+
 ## Authentication and membership
 
 Native Supabase verifies password identity; private database evidence supplies

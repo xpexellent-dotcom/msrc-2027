@@ -7,7 +7,9 @@ import { createStaffBackend, type StaffBackend, type NativeStaffSession } from "
 import { getStaffConfig, type StaffConfig, type StaffReadiness } from "./config.server";
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash,
   staffIp, staffOrigin, staffUuid, type StaffSessionCookie } from "./security.server";
-import { validateStaffPayload } from "./validation.server";
+import { validateStaffPayload, validStaffRegistrationStatus } from "./validation.server";
+import { canReadStaffArea, priorityProjection, registrationDecision, registrationProjection, summaryProjection, verifiedPriorityClaims } from "./registration-contract.server";
+import type { StaffArea } from "./ui-contract";
 import { decryptIdentityDocument, getIdentityCryptoConfig, type IdentityDocumentType } from "@/features/registration/identity-crypto.server";
 
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", Expires: "0",
@@ -69,6 +71,14 @@ function safeRows(value: unknown, kind: keyof typeof fields): Record<string, unk
 }
 function safeDetails(value: unknown): boolean {
   const details = record(value); if (!details) return false;
+  if (details.source === "registration") return Object.entries(details).every(([key, entry]) => {
+    if (key === "source") return entry === "registration";
+    if (key === "requestId") return entry === null || typeof entry === "string" && staffUuid.test(entry);
+    if (["previousStatus", "newStatus"].includes(key)) return entry === null || validStaffRegistrationStatus(entry) && entry !== "all";
+    if (["previousActive", "newActive"].includes(key)) return entry === null || typeof entry === "boolean";
+    if (key === "reason") return entry === null || typeof entry === "string" && entry.length > 0 && entry.length <= 300 && !/[\x00-\x1f\x7f]/.test(entry);
+    return false;
+  });
   return Object.entries(details).every(([key, entry]) => {
     if (["previousRoles", "newRoles"].includes(key)) return Array.isArray(entry) && entry.length <= ROLES.length
       && entry.every((role) => typeof role === "string" && ROLES.includes(role as Role));
@@ -195,19 +205,30 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
     try {
       if (request.method === "GET") {
         const params = new URL(request.url).searchParams;
-        if (Array.from(params.keys()).some((key) => !["locale", "area", "q"].includes(key)) || params.get("locale") && !["en", "ar"].includes(params.get("locale")!)) return respond({ state: "invalid-input" }, 400);
+        if (Array.from(params.keys()).some((key) => !["locale", "area", "q", "query", "status"].includes(key) || params.getAll(key).length !== 1)
+          || params.has("q") && params.has("query") || params.get("locale") && !["en", "ar"].includes(params.get("locale")!)) return respond({ state: "invalid-input" }, 400);
         const observed = await current();
         const area = params.get("area");
+        if (params.has("status") && (area !== "registration" || !validStaffRegistrationStatus(params.get("status")))) return respond({ state: "invalid-input" }, 400);
         if (!area) {
           const body = await view(observed);
           return respond(body, 200, changed && session ? staffCookie(config, session, now) : session && !observed ? staffCookie(config, null, now) : undefined);
         }
         if (!session || !observed?.sessionPolicySatisfied) return respond({ state: "denied" }, 403);
         const own = await profile(config, backend, session, observed); if (!own) return respond({ state: "denied" }, 403);
-        const search = params.get("q") ?? "";
-        if (!["people", "audit", "participants"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)) return respond({ state: "invalid-input" }, 400);
-        const data = record(await backend.rpc("msrc_staff_" + area, { edition_key: config.editionKey, search }, session.accessToken));
+        const search = params.get("query") ?? params.get("q") ?? "";
+        if (!["people", "audit", "participants", "registration", "priority", "summary"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)) return respond({ state: "invalid-input" }, 400);
+        if (!canReadStaffArea(own.roles, area as StaffArea)) return respond({ state: "denied" }, 403);
+        const data = record(await backend.rpc("msrc_staff_" + area, { edition_key: config.editionKey,
+          ...(area === "summary" ? {} : { search }), ...(area === "registration" ? { status_filter: params.get("status") ?? "all" } : {}) }, session.accessToken));
         if (!data || data.state === "denied") return respond({ state: "denied" }, 403);
+        if (["registration", "priority", "summary"].includes(area)) {
+          if (data.state !== "ready") return respond({ state: "unavailable" }, 503);
+          const projection = area === "registration" ? registrationProjection(data.registration)
+            : area === "priority" ? priorityProjection(data.priority) : summaryProjection(data.summary, own.roles);
+          return projection ? respond({ state: "authenticated", profile: own, [area]: projection,
+            passwordChangeAvailable: await passwordChangeReady(config, backend) }) : respond({ state: "unavailable" }, 503);
+        }
         if (area === "people") {
           const people = safeRows(data.staff, "staff"), invitations = safeRows(data.invitations, "invitations");
           return people && invitations ? respond({ state: "authenticated", profile: own, people, invitations, passwordChangeAvailable: await passwordChangeReady(config, backend) }, 200, changed ? staffCookie(config, session, now) : undefined) : respond({ state: "unavailable" }, 503);
@@ -346,6 +367,29 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
           || active.authenticationTier !== observed.authenticationTier || active.timing.absoluteExpiresAtMs !== session.deadline
           || active.timing.idleExpiresAtMs === null || active.timing.idleExpiresAtMs <= now) return respond({ state: "denied" }, 403);
         return respond(await view(active));
+      }
+      if (payload.action === "registration-approve" || payload.action === "registration-waitlist") {
+        const own = await profile(config, backend, session, observed);
+        if (!own || !canReadStaffArea(own.roles, "registration")) return respond({ state: "denied" }, 403);
+        const result = record(await backend.rpc(payload.action === "registration-approve" ? "msrc_staff_registration_approve" : "msrc_staff_registration_waitlist",
+          { edition_key: config.editionKey, request_ids: payload.requestIds }, session.accessToken));
+        if (result?.state === "denied") return respond({ state: "denied" }, 403);
+        if (result?.state === "capacity_not_set" || result?.state === "payment_configuration_required") {
+          return respond({ state: result.state === "capacity_not_set" ? "capacity-not-set" : "payment-configuration-required" }, 409);
+        }
+        const registration = registrationProjection(result?.registration), decided = registrationDecision(result?.decided, payload.requestIds!.length, payload.action);
+        return result?.state === "updated" && registration && decided
+          ? respond({ state: "updated", registration, decided }) : respond({ state: "unavailable" }, 503);
+      }
+      if (payload.action === "priority-set" || payload.action === "priority-remove") {
+        const own = await profile(config, backend, session, observed);
+        if (!own || !canReadStaffArea(own.roles, "priority") || observed.authenticationTier !== "super_admin" || !observed.mfaValid) return respond({ state: "denied" }, 403);
+        const claims = verifiedPriorityClaims(session, now);
+        if (!claims) return respond({ state: "denied" }, 403);
+        const result = record(await backend.rpc("msrc_registration_priority_set", { edition_key: config.editionKey, session_claims: claims,
+          target_actor: payload.targetId, active: payload.action === "priority-set", reason: payload.reason }));
+        return result?.state === "updated" ? respond({ state: "updated" })
+          : result?.state === "denied" ? respond({ state: "denied" }, 403) : respond({ state: "unavailable" }, 503);
       }
       if (payload.action === "invite" || payload.action === "invite-resend") {
         const invitationId = randomUUID(), token = randomBytes(32).toString("base64url");

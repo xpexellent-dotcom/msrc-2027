@@ -5,6 +5,8 @@ export const auditActions = {
   en: {
     password_sign_in: "Password sign-in attempt", totp_locked: "Lock authenticator attempts", totp_unlocked: "Unlock authenticator attempts",
     password_change: "Change own password",
+    "request.submitted": "Submit registration request", "request.approved": "Approve registration request", "request.waitlisted": "Waitlist registration request",
+    "priority.set": "Set organizing-team priority", "priority.removed": "Remove organizing-team priority", "identity.revealed": "Reveal registration identity document",
     bootstrap: "First Super Admin setup", invite: "Create invitation", invite_delivery: "Deliver invitation", invite_revoke: "Revoke invitation", invite_consume: "Use invitation link", invite_complete: "Complete invitation",
     sign_in: "Staff sign-in", set_roles: "Change roles", suspend: "Suspend account", reactivate: "Reactivate account", revoke_sessions: "Revoke all sessions", reset_authenticator: "Reset another Super Admin's authenticator", reset_account: "Reset another Super Admin's account", admin_complete: "Complete account recovery",
     people_read: "View staff members", audit_read: "View audit log", participants_read: "View participants", identity_reveal: "Reveal identity document", totp_enroll: "Enroll authenticator", totp_challenge: "Start authenticator check", totp_verify: "Verify authenticator code",
@@ -14,6 +16,8 @@ export const auditActions = {
   ar: {
     password_sign_in: "محاولة تسجيل الدخول بكلمة المرور", totp_locked: "حظر محاولات تطبيق المصادقة", totp_unlocked: "رفع حظر محاولات تطبيق المصادقة",
     password_change: "تغيير كلمة المرور الخاصة",
+    "request.submitted": "إرسال طلب التسجيل", "request.approved": "الموافقة على طلب التسجيل", "request.waitlisted": "إدراج طلب التسجيل في قائمة الانتظار",
+    "priority.set": "تعيين أولوية الفريق المنظم", "priority.removed": "إزالة أولوية الفريق المنظم", "identity.revealed": "إظهار وثيقة الهوية الخاصة بالتسجيل",
     bootstrap: "إعداد المشرف الأعلى الأول", invite: "إنشاء دعوة", invite_delivery: "تسليم الدعوة", invite_revoke: "إلغاء الدعوة", invite_consume: "استخدام رابط الدعوة", invite_complete: "إكمال الدعوة",
     sign_in: "تسجيل دخول الفريق", set_roles: "تغيير الأدوار", suspend: "تعليق الحساب", reactivate: "إعادة تفعيل الحساب", revoke_sessions: "إلغاء جميع الجلسات", reset_authenticator: "إعادة ضبط تطبيق مصادقة مشرف أعلى آخر", reset_account: "إعادة ضبط حساب مشرف أعلى آخر", admin_complete: "إكمال استعادة الحساب",
     people_read: "عرض أعضاء الفريق", audit_read: "عرض سجل التدقيق", participants_read: "عرض المشاركين", identity_reveal: "إظهار وثيقة الهوية", totp_enroll: "إعداد تطبيق المصادقة", totp_challenge: "بدء تحقق تطبيق المصادقة", totp_verify: "التحقق من رمز تطبيق المصادقة",

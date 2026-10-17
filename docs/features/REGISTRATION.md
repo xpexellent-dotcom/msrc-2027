@@ -1,4 +1,8 @@
-# Registration — slice 1, closed foundation
+# Registration — closed foundation and staff queue
+
+Current extension: [staff queue slice 3](#staff-queue-slice-3--org-055) implements
+private staff decisions and counts. The foundation descriptions below remain
+slice-1 history; participant registration and delivery remain closed.
 
 Authority: ORG-051 and ENG-043 in [DECISIONS](../DECISIONS.md). Requirement mapping:
 REG-01–08, AUTH-01/06, CHK-01/02, ADM-01–05, DAT-03/04, API-01–03, TIM-01/02,
@@ -18,7 +22,7 @@ not production configuration or launch approval.
 | --- | --- |
 | 1 — this change | Decisions/settings, private requests and identity protection, audited organizing-team/volunteer designation, neutral EN/AR request form, guarded Super Admin identity reveal |
 | 2 | Durable transactional email outbox and bounded, deduplicated jobs |
-| 3 | Private staff queue, bulk approval, seat allocation, general waitlist/timed offers/counts and Super Admin export |
+| 3 — staff backend implemented | Private staff queue, bulk approval, serialized seat allocation, manual waitlist, organizing-team priority and scoped counts. Timed offers and export remain separate work. |
 | 4 | QR ticket, confirmation email, early-access codes, server-time opening countdown and participant self-cancellation |
 | 5 | Confirm-your-seat response and release of unanswered allocations to the waitlist |
 
@@ -321,3 +325,65 @@ for priority and how the roster is verified/maintained; early-access proof/group
 consequences; remaining operating owners; key-custodian acceptance and recovery
 drill evidence. Published Terms control existing refunds language; do not invent
 additional rules. None of these questions prevents closed synthetic implementation.
+
+## Staff queue slice 3 — ORG-055
+
+Engineering decision: [ENG-049](../DECISIONS.md#eng-049--closed-staff-registration-queue-and-allocation-17-october-2026).
+Migration: `20261017120000_staff_registration_queue.sql`. No settings are seeded,
+participant/account gate is opened, email is sent/enqueued, or hosted database is
+changed. The planner owns the parallel console UI.
+
+`GET /api/staff-portal?area=registration&query=...&status=all` uses the existing
+private staff session. `q` remains an alias for `query`; sending both or repeated
+parameters is invalid. Status accepts the eight request states or `all` (default).
+Search is a literal case-insensitive name/email substring, with no wildcard
+semantics. Results are newest first, up to 50, and expose the active priority flag,
+decision timestamp and mask only. Counts cover the entire edition, independent
+of search/status. `approved` counts all seat holders, not just the literal status.
+
+POST `registration-approve` and `registration-waitlist` require 1–100 distinct
+UUID `requestIds`, existing CSRF/origin protections, and current Super Admin or
+registration/workshop administrator authority. Approval locks the edition settings
+row before allocation, rechecks current session authority after waiting, and
+processes `created_at,id` oldest first. `approved`, `approved_awaiting_payment`,
+`offered` and `confirmed` hold seats. Unknown IDs, other editions, ineligible states
+and capacity overflow count as `skipped`; this does not change them to waitlisted.
+Approval is idempotent, and waitlisting only moves pending requests. Both return
+`decided: { approved, waitlisted, skipped }` and a fresh unfiltered registration
+projection. The UI should refresh its current filter after a mutation.
+
+Missing capacity yields HTTP 409 `capacity-not-set`; missing `payment_required`
+or paid `payment_window_hours` yields `payment-configuration-required`. Explicit
+free approval stores `approved`; explicit paid approval stores
+`approved_awaiting_payment` and a database-time deadline. No elapsed deadline
+silently frees a seat. Future expiry/offer/confirmation writers must use the same
+settings lock and explicit transitions. READ COMMITTED is required for allocation;
+other transaction isolation levels are refused rather than risking stale counts.
+
+Super Admin-only `area=priority` returns `{ designations, candidates }` (each up
+to 50), including inactive designations and private reasons, with the same
+name/email search. `priority-set` / `priority-remove` require `targetId` and a
+trimmed 1–300 character reason without control characters. The server reuses
+`msrc_registration_priority_set` with only claims from the native-verified exact
+Super Admin session; browser metadata is never a role or designation source.
+
+`area=summary` returns only readable areas: registration counts and total visible
+participants for registrars/Super Admins; staff, active priority and audit events
+in the last 24 hours for Super Admins. Other authorized staff receive an empty
+summary. Counts match existing area visibility, including historical/revoked
+staff memberships listed by People; they are not estimates from a 50-row list.
+
+RPCs: `msrc_staff_registration`, `msrc_staff_registration_approve`,
+`msrc_staff_registration_waitlist`, `msrc_staff_priority`, `msrc_staff_summary`.
+They require authenticated native sessions and database authorization. Private
+helpers/tables remain ungranted with forced RLS and empty function search paths.
+Registration audit now includes `request.approved` and `request.waitlisted`, plus
+the existing submission/priority/reveal evidence in the Super Admin audit area.
+
+Next: merge the parallel EN/AR console, run disposable CI database tests and the
+last-seat contention/expired-session tests, then slice 4 reviewed notification
+templates and atomic ENG-046 outbox enqueue. No synthetic template is wired to
+business decisions. Timed offers require approved duration/release behavior;
+export, admission email, QR tickets and participant actions remain outside this
+backend slice. Observed checks and UI integration blockers are in the
+[O9 receipt](../progress/2026-10-17-codex-registration-queue.md).

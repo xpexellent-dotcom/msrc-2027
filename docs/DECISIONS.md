@@ -3182,3 +3182,55 @@ Authority: explicit owner instructions, 17 October 2026 (phone review of the liv
 - Phones hide the pause control on the opening and closing films; both films keep
   playing and desktop keeps the controls. This is an owner-accepted exception to
   WCAG 2.2.2 on phones; reduced-motion users get the static poster.
+
+## ENG-049 — Closed staff registration queue and allocation, 17 October 2026
+
+Authority: the current ORG-055 backend task; the planner records the organizer
+decision separately. REG-01–08, ADM-01/02/04/05, ROL-07/10/12, PRV-03/05/06,
+SEC-01/02/06, LOC-01/03 and ENG-043/044/046 remain applicable. Verified remote
+`main` and this worktree both at `3ac79d91` before reserving this number. This
+authorizes closed source implementation only, with no commit, branch, push,
+hosted migration, settings change, participant opening or real email.
+
+Migration `20261017120000_staff_registration_queue.sql` adds staff queue reads,
+manual bulk approval/waitlisting, Super Admin priority search and scoped dashboard
+counts. Registration/workshop administrators and Super Admins may read and decide
+requests; only Super Admins may list/set/remove organizing-team priority. Reuse
+current native identity, exact-session regular-staff email assurance and Super
+Admin TOTP, both server-side and through `msrc_staff.authorize` in PostgreSQL.
+Identity numbers remain masked; the existing audited Super Admin reveal is
+unchanged. Staff reads do not depend on the participant registration switch.
+
+Serialize approval on the edition settings row with `FOR UPDATE`, then count
+seat holders and process selected eligible requests in `created_at,id` order.
+The seat-holding states are `approved`, `approved_awaiting_payment`, `offered`,
+and `confirmed`: an extant offer reserves a provisional seat conservatively, so
+another request cannot reuse it. This slice creates no offers. Passing a payment
+or offer deadline does not automatically release that seat; future explicit
+expiry/release transitions must take the same settings lock. Allocation refuses
+isolation other than READ COMMITTED, so a transaction cannot retain an older
+snapshot across the settings-lock wait. Recheck staff authority after that wait.
+
+Null capacity returns `capacity_not_set`; missing free/paid selection or missing
+paid duration returns `payment_configuration_required`. These become HTTP 409
+`capacity-not-set` / `payment-configuration-required` states in the staff API.
+An explicitly free configuration produces `approved`; paid produces
+`approved_awaiting_payment` with a database-time `payment_due_at` using the existing
+`payment_window_hours`. This is a private approval state, not payment completion,
+admission confirmation, a ticket, or a public payment integration.
+
+Approve only `pending_approval`/`waitlisted`; waitlist only `pending_approval`.
+Unknown/other-edition IDs, already-decided states and capacity overflow are skipped;
+overflow is not automatically waitlisted. Repeat decisions preserve timestamps and
+audit. Each transition writes immutable performer/request/from/to evidence with
+`request.approved` or `request.waitlisted`, included in the private audit area with
+EN/AR labels. `counts.approved` means all four seat-holding states, and `remaining`
+is clamped at zero (null when capacity is unset). Aggregate totals are unfiltered;
+the newest-first list is filtered and capped at 50.
+
+No outbox producer is added. ENG-046 currently accepts synthetic recipients and
+a synthetic template only; attaching it to real approval decisions would be
+misleading. Slice 4 must add reviewed English notification templates and atomic
+transactional enqueue, preserving the independent closed delivery switches.
+Timed offers remain later work pending approved offer duration and release
+behavior. The engineering receipt is the O9 per-task progress note, not PROGRESS.md.
