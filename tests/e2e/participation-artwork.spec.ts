@@ -46,13 +46,49 @@ async function expectSafeGeometry(page: Page, width: number, locale: string) {
   }
 }
 
+async function expectHackathonTechnology(page: Page, width: number, locale: string) {
+  const art = page.locator(".experience-intro--hackathon .experience-intro-art .hackathon-tech-art");
+  await expect(art).toHaveCount(1);
+  await expect(art).toHaveAttribute("aria-hidden", "true");
+  await expect(art.locator(".hackathon-tech-svg")).toHaveCount(1);
+  expect(await art.evaluate((element) => getComputedStyle(element).pointerEvents)).toBe("none");
+  await expect(art.locator("a, button, [tabindex]:not([tabindex='-1'])")).toHaveCount(0);
+  expect(await art.evaluate((element) => !element.hasAttribute("tabindex") || Number(element.getAttribute("tabindex")) < 0)).toBe(true);
+
+  if (width <= 1000) await expect(art).toBeHidden();
+  else {
+    await expect(art).toBeVisible();
+    const bounds = await art.evaluate((element) => {
+      const drawing = element.getBoundingClientRect();
+      const cell = element.closest(".experience-intro-art")!.getBoundingClientRect();
+      const copy = element.closest(".experience-intro-grid")!.firstElementChild!.getBoundingClientRect();
+      return {
+        overlapsCopy: Math.min(drawing.right, copy.right) - Math.max(drawing.left, copy.left) > 1
+          && Math.min(drawing.bottom, copy.bottom) - Math.max(drawing.top, copy.top) > 1,
+        contained: drawing.left >= cell.left - 1 && drawing.right <= cell.right + 1
+          && drawing.top >= cell.top - 1 && drawing.bottom <= cell.bottom + 1,
+        onReadingEnd: document.documentElement.dir === "rtl" ? drawing.right <= copy.left + 1 : drawing.left >= copy.right - 1,
+      };
+    });
+    expect(bounds.overlapsCopy, `${locale} technology artwork stays clear of hero copy and actions`).toBe(false);
+    expect(bounds.contained, "The artwork stays in the existing empty hero cell").toBe(true);
+    expect(bounds.onReadingEnd, "The hero artwork swaps physical sides in Arabic").toBe(true);
+  }
+
+  await expect(page.locator(".participation-benefits .journey-art-backdrop")).toHaveCount(1);
+  await expect(page.locator(".participation-steps .journey-art-backdrop")).toHaveCount(0);
+  const backgroundCount = (await artworkGeometry(page)).backdrops.length;
+  expect(backgroundCount, "Hackathon keeps its single benefits backdrop").toBe(1);
+  expect(backgroundCount + Number(await art.isVisible()), "Hackathon has two desktop pieces and only one below the hero breakpoint").toBe(width > 1000 ? 2 : 1);
+}
+
 async function expectStaticDecoration(page: Page) {
-  expect(await page.locator(".journey-art-backdrop, .journey-art-backdrop *").evaluateAll((elements) => elements.filter((element) => {
+  expect(await page.locator(".journey-art-backdrop, .journey-art-backdrop *, .hackathon-tech-art, .hackathon-tech-art *").evaluateAll((elements) => elements.filter((element) => {
     const style = getComputedStyle(element);
     return style.animationName !== "none" || style.transitionDuration.split(",").some((duration) => Number.parseFloat(duration) !== 0)
       || element.getAnimations().length > 0;
   }).map((element) => element.outerHTML.slice(0, 160))), "Artwork stays static").toEqual([]);
-  await expect(page.locator(".journey-art animate, .journey-art animateTransform, .journey-art set")).toHaveCount(0);
+  await expect(page.locator(":is(.journey-art, .hackathon-tech-svg) :is(animate, animateTransform, set)")).toHaveCount(0);
 }
 
 test.beforeEach(({}, testInfo) => {
@@ -78,10 +114,10 @@ for (const locale of locales) {
 
         // Compare the actual response SVGs with the hydrated DOM. Deterministic
         // motifs must not change paths, seeds, or coordinates during hydration.
-        const serverMarkup = await page.evaluate((html) => Array.from(new DOMParser().parseFromString(html, "text/html").querySelectorAll(".journey-art"), (element) => element.outerHTML), await response!.text());
-        const clientMarkup = await page.locator(".journey-art").evaluateAll((elements) => elements.map((element) => element.outerHTML));
+        const serverMarkup = await page.evaluate((html) => Array.from(new DOMParser().parseFromString(html, "text/html").querySelectorAll(".journey-art, .hackathon-tech-svg"), (element) => element.outerHTML), await response!.text());
+        const clientMarkup = await page.locator(".journey-art, .hackathon-tech-svg").evaluateAll((elements) => elements.map((element) => element.outerHTML));
         expect(clientMarkup).toEqual(serverMarkup);
-        expect(await page.locator(".journey-art").evaluateAll((elements) => elements.every((element) => element.getAttribute("aria-hidden") === "true"
+        expect(await page.locator(".journey-art, .hackathon-tech-svg").evaluateAll((elements) => elements.every((element) => element.getAttribute("aria-hidden") === "true"
           && element.getAttribute("focusable") === "false"
           && !element.querySelector("a, button, [tabindex]:not([tabindex='-1'])")
           && (!element.hasAttribute("tabindex") || Number(element.getAttribute("tabindex")) < 0)
@@ -92,6 +128,7 @@ for (const locale of locales) {
         await page.screenshot({ path: screenshot, fullPage: true, animations: "disabled" });
         await testInfo.attach(`${locale}-${route}-${width}`, { path: screenshot, contentType: "image/png" });
         await expectSafeGeometry(page, width, locale);
+        if (route === "hackathon") await expectHackathonTechnology(page, width, locale);
         await expectStaticDecoration(page);
         const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"]).analyze();
         expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);
@@ -100,6 +137,7 @@ for (const locale of locales) {
         await expectStaticDecoration(page);
         await page.emulateMedia({ forcedColors: "active" });
         expect((await artworkGeometry(page)).backdrops, "Forced colors removes decorative artwork").toEqual([]);
+        if (route === "hackathon") await expect(page.locator(".hackathon-tech-art")).toBeHidden();
         expect(errors, "No page exceptions or hydration errors").toEqual([]);
       });
     }
@@ -111,7 +149,22 @@ for (const locale of locales) {
         await page.goto(`/${locale}/${route}`);
         await page.evaluate(() => document.fonts.ready);
         await expectSafeGeometry(page, width, locale);
+        if (route === "hackathon") await expectHackathonTechnology(page, width, locale);
       });
     }
   }
+
+  test(`${locale} hackathon technology disappears when the hero becomes one column`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1000, height: 1000 });
+    await page.goto(`/${locale}/hackathon`);
+    await page.evaluate(() => document.fonts.ready);
+    for (const width of [1000, 1001]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await expectSafeGeometry(page, width, locale);
+      await expectHackathonTechnology(page, width, locale);
+    }
+    await page.emulateMedia({ forcedColors: "active" });
+    await expect(page.locator(".hackathon-tech-art")).toBeHidden();
+  });
 }

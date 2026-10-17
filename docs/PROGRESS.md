@@ -1,5 +1,24 @@
 # Progress and session handover
 
+## 17 October 2026 — Restrained Hackathon technology theme
+
+- Owner supplied a technology landing-page reference and requested an MSRC-branded
+  interpretation without excess. Started from current main `db70b05`, preserving
+  its later few-large-artwork and solid-dark-schedule decisions and all other pages.
+- Added one static, clipped orbital circuit composition inside the empty hero cell,
+  with faint lilac rings, a restrained gold connection and deeper purple/ink photo
+  overlay. Arabic mirrors it; the hero decoration disappears at 1000px and below.
+  Removed only Hackathon's Steps watermark: two pieces on desktop, one on phones.
+- PASS: lint, typecheck, 2,894 unit tests and final production build. First full
+  browser run: 679 passed, 139 skipped, 144 failed after local server interruptions;
+  all 52 artwork cases passed. Full suite on isolated port 49717 RUNNING.
+  All 30 option-page
+  locale/width states recaptured; content and horizontal-overflow comparisons pass.
+  Code review found no actionable issues. Physical devices and production NOT TESTED.
+- Details: [feature and test receipt](features/hackathon-technology.md),
+  [before/after screenshots](reviews/hackathon-technology-2026-10-17/README.md).
+  Next: owner review of the follow-up PR. No merge or workflow activation.
+
 ## 17 October 2026 — A few large background studies only
 
 - Owner: "too many of them, just make a few large ones that fill the background".

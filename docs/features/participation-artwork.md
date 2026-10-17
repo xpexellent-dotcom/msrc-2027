@@ -1,5 +1,9 @@
 # Participation background artwork — 17 October 2026
 
+Later owner refinements use fewer large studies and a solid dark Hackathon band
+(see PROGRESS). The subsequent [Hackathon technology theme](hackathon-technology.md)
+adds a restrained hero composition. This original PR #100 receipt remains historical.
+
 Scope: Attend, Abstract submission, Workshops, Hackathon and 3MT, in English and
 Arabic. Requirements DSN-01/02, LOC-01/03 and ACC-01. The owner requested distinct,
 restrained motifs in genuinely empty space, with fuller wide-screen margins and

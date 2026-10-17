@@ -118,6 +118,27 @@
 
 /* All motifs are static, including under prefers-reduced-motion. */
 
+/* Hackathon: a single technology study occupies the hero's unused reading-end
+   column. Absolute placement preserves the photograph and the original height. */
+.experience-intro--hackathon .experience-intro-art { position: relative; align-self: stretch; padding: 0; }
+.experience-intro--hackathon::after { background: linear-gradient(105deg, rgb(31 25 48 / 94%), rgb(59 30 109 / 89%) 65%, rgb(31 25 48 / 92%)); }
+[dir="rtl"] .experience-intro--hackathon::after { background: linear-gradient(-105deg, rgb(31 25 48 / 94%), rgb(59 30 109 / 89%) 65%, rgb(31 25 48 / 92%)); }
+.hackathon-tech-art { position: absolute; inset: 0; overflow: clip; pointer-events: none; isolation: isolate; mask-image: radial-gradient(ellipse at 63% 49%, #000 34%, transparent 76%); }
+.hackathon-tech-art::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 68% 48%, rgb(220 207 240 / 13%), rgb(59 30 109 / 18%) 42%, transparent 72%); pointer-events: none; }
+.hackathon-tech-svg { position: absolute; inset-block-start: -12.5%; inset-inline-start: -25%; inline-size: 155%; block-size: 125%; overflow: hidden; pointer-events: none; stroke: var(--color-lilac); stroke-width: 1; }
+.hackathon-tech-svg :is(path, circle) { vector-effect: non-scaling-stroke; }
+.hackathon-tech-disc { fill: rgb(220 207 240 / 3%); stroke: none; }
+.hackathon-tech-orbits { opacity: .18; }
+.hackathon-tech-route { opacity: .36; }
+.hackathon-tech-svg .hackathon-tech-gold { stroke: var(--color-gold); opacity: .7; }
+.hackathon-tech-svg .hackathon-tech-arc { opacity: .4; }
+.hackathon-tech-nodes { fill: var(--color-purple); stroke: rgb(220 207 240 / 46%); }
+.hackathon-tech-points { fill: var(--color-lilac); stroke: none; opacity: .3; }
+[dir="rtl"] .hackathon-tech-art { scale: -1 1; }
+[dir="rtl"] .hackathon-tech-svg { inset-inline-start: auto; inset-inline-end: -25%; }
+@media (max-width: 1000px) { .hackathon-tech-art { display: none; } }
+@media (forced-colors: active), print { .hackathon-tech-art { display: none; } }
+
 /* ORG-054: hackathon tracks and two-day format. */
 .participation-tracks { padding-block: clamp(3rem, 6vw, 5.5rem) 0; background: var(--color-ivory); }
 .participation-tracks h2, .participation-schedule h2 { max-inline-size: 21ch; margin: 0 0 clamp(1.5rem, 3vw, 2.25rem); color: var(--color-purple); font-family: var(--font-heading); font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.05; letter-spacing: -.035em; }

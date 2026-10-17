@@ -1,5 +1,24 @@
 # MSRC 2027 decision and configuration register
 
+## 17 October 2026 — Restrained Hackathon technology theme
+
+Authority: the owner's supplied technology landing-page reference and explicit
+request to adapt it to MSRC branding without overdoing it. Requirements DSN-01/02,
+LOC-01/03 and ACC-01; Hackathon presentation only.
+
+Use one large, static orbital circuit study in the empty desktop hero column,
+with thin lilac lines, limited gold accents and a deeper purple/ink photo wash.
+Retain the existing Benefits circuit watermark; remove the Hackathon Steps echo
+so desktop has two pieces and phones only one. Keep all content, actions and
+workflow gates unchanged. No new image assets, motion or libraries are needed.
+
+This builds on the later owner instructions recorded in PROGRESS: fewer large
+studies and a solid dark two-day band. Those later instructions supersede the
+earlier scattered-slot and gradient-transition direction below. The hero artwork
+itself is physically clipped away from the text and buttons; the incumbent faint
+Benefits backdrop is preserved. Other option pages and the solid schedule remain
+unchanged. [Implementation and verification](features/hackathon-technology.md).
+
 ## 17 October 2026 — Participation artwork direction
 
 Authority: the current explicit owner request. Requirements DSN-01/02, LOC-01/03,

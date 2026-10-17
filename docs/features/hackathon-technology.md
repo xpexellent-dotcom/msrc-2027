@@ -1,0 +1,80 @@
+# Hackathon technology theme — 17 October 2026
+
+Scope: `/en/hackathon` and `/ar/hackathon`; DSN-01/02, LOC-01/03, ACC-01.
+The owner supplied a technology-themed landing-page reference and requested a
+restrained interpretation in MSRC colors and branding.
+
+## Current baseline and design
+
+PR #100 was already merged. A fresh fetch found `db70b05` on main, including the
+owner's subsequent requests for fewer large studies and a solid dark two-day band.
+No open PR overlapped this slice. The original shared checkout was preserved;
+implementation uses the existing managed worktree on `codex/hackathon-technology`.
+
+The audit found genuine unused space in the hero's second grid cell, approximately
+381px at a 1440px viewport and 455px at 1920px. It already changes physical sides in
+Arabic and collapses at 1000px. The implementation uses that cell without widening
+the grid or placing the new drawing behind the hero copy or buttons.
+
+- A small inline SVG creates three concentric lilac rings, three routed connections,
+  a short gold connection/arc and a sparse field of points. Oversizing and clipping
+  make it read as part of the background. A diffuse lilac wash adds quiet depth.
+- The existing approved photograph remains, under a deeper purple/ink overlay. The
+  overlay and drawing mirror in Arabic, while scientific track titles stay LTR.
+- The existing Benefits circuit backdrop remains. Only Hackathon's Steps backdrop
+  is removed, retaining a maximum of two pieces on desktop and one on phones.
+- The new hero artwork is hidden at 1000px and below, under forced colors and in
+  print. It is static, has no IDs/state/timers, is aria-hidden and non-focusable,
+  and receives no pointer events. No runtime package or website image asset is added.
+- Copy, routes, controls, closed states and the solid dark schedule are unchanged.
+  The other four option pages and Homepage, Venue, Contact and Speakers are unchanged.
+
+One bounded visual correction enlarged/cropped the first drawing and deepened the
+hero overlay. Review then found one capture with its photograph still loading;
+the capture helper now waits for image decoding. The earlier captures are retained
+under ignored local evidence rather than represented as final screenshots.
+
+## Verification
+
+Runtime: Node 24.21.0, pnpm 11.19.0. Package and lockfile unchanged.
+
+| Check | Observed result |
+| --- | --- |
+| `pnpm lint` | PASS |
+| `pnpm typecheck` | PASS |
+| `pnpm test` | PASS — 2,894 tests, 68 files |
+| `pnpm build` | PASS — final production build |
+| Full `pnpm exec playwright test` on default port 3210 | FAIL — 679 passed, 139 skipped, 144 failed; server became unreachable during the run |
+| Full suite on isolated port 49717 | RUNNING — replace with final observed receipt |
+| EN/AR option pages at 390/1440/1920 | 30 before + 30 final captures; final image decoding awaited |
+| Content and overflow comparison | 30 states: zero text changes or horizontal overflow |
+| Hero/layout comparison | Desktop page heights unchanged; phones lose only 8px of empty hero-cell padding |
+| Code review | PASS — no actionable findings; Hackathon scope, deterministic SVG, RTL, clipping and accessibility reviewed |
+| Physical devices, real assistive technology, production deployment | NOT TESTED |
+
+The existing artwork suite checks SVG server/client identity, static rendering,
+forced colors, noninteractivity, horizontal overflow and axe. New Hackathon-specific
+assertions cover separation from hero copy/actions, containment in the existing
+cell, mirrored placement, total decoration count and the 1000/1001px breakpoint.
+The other four routes retain their current assertions.
+
+The first full run is preserved in `hackathon-full-playwright.log` and the original
+`test-results` directory. All 52 artwork cases completed successfully before the
+interruption. Subsequent failures include refused TCP connections and an unstyled
+page focus check. The origin of the server interruption is not established. The
+confirmation run uses the same suite, assertions, two workers and zero retries,
+with an ignored local config changing only its port and evidence output paths.
+The separate screenshot server was stopped before that run.
+
+All six Hackathon screenshots (EN/AR at 390/1440/1920px) were visually reviewed.
+There is no new art overlap, and the corrected wide capture contains the photo.
+The other pages' source and content are unchanged. Pixel-hash matches in the
+comparison JSON are informational only: the original baseline helper did not
+explicitly wait for photo decoding; all final captures do.
+
+[Before/after gallery and comparison receipt](../reviews/hackathon-technology-2026-10-17/README.md).
+Original PNGs and build/unit/browser logs remain in `.tools/participation-artwork`.
+Screenshots in the review folder are documentation evidence only.
+
+No hosted setting, database, account, email or workflow flag was changed. The
+follow-up PR is for owner review; no merge or production activation is implied.
