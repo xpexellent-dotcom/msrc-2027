@@ -1,5 +1,72 @@
 # Progress and session handover
 
+## 17 October 2026 — Hackathon Option E medical artwork
+
+- Refreshed PR #101's `codex/hackathon-technology` baseline to `5ae3c9a` before
+  implementing the owner's written medical direction. The referenced local HTML
+  mockup was unavailable; no approval of an unseen mockup is assumed. The owner
+  explicitly retained the photographic purple header, photo and gold Enter pill.
+- Replaced festival orbs/circuits with static inline DNA and a single ECG beat:
+  helix in the empty hero cell, ECG in its own full-width strip, two faint lower
+  heading-cell echoes, and only the ECG on phones. Dark glass track/day cards have
+  22px corners and fine gradient edges; steps have connected nodes. Arabic mirrors
+  the composition. Existing copy/actions/routes/closed states remain, apart from
+  the requested bilingual medical-hackathon label. Requirements DSN-01/02,
+  LOC-01/03, ACC-01; global design identity and other pages remain unchanged.
+- PASS: lint, typecheck, build, 2,894 unit tests/68 files; four focused Playwright
+  suites: 90 passed, 60 intentional project/device skips, zero failures/retries.
+  The 54 artwork cases include 32 clean axe scans, narrow/enlarged-text and wide
+  layouts, breakpoint boundaries, both hero pieces' rendered alpha edges, unique
+  SVG IDs, server/client identity, forced colors and print.
+- All 30 before/after option-page states recaptured: zero unexpected text changes,
+  zero overflow; only Hackathon heights change. 23/24 other-page images are
+  byte-identical. Independent visual/source review PASS with no fixes requested.
+  Full configured Playwright suite PASS: 825 passed, 141 intentional project/device
+  skips, zero failures/retries (14.4 minutes); receipt in
+  `.tools/participation-artwork/medical-full-playwright.log`.
+  Physical devices, real assistive technology and production NOT TESTED.
+- Details: [feature and checks](features/hackathon-technology.md),
+  [before/after gallery](reviews/hackathon-medical-tech-2026-10-17/README.md).
+  Next: owner review of PR #101. No hosted configuration changes, merge or workflow
+  activation.
+
+## 17 October 2026 — Hackathon technology flow and soft artwork edges
+
+- Owner requested technology styling throughout the page with only a few large
+  pieces, and reported a hard hero cutoff. Three related static circuit studies
+  now appear at the hero, Benefits and closing section, with varied angles, scale
+  and alternating sides. Phones keep one; Arabic mirrors the composition.
+- Corrected the hero with a fully transparent mask boundary and a padded SVG
+  viewBox. A rendered-alpha regression checks all four edges and rejects an empty
+  capture. Content, layout, the solid dark schedule and the other pages are unchanged.
+- PASS: lint, typecheck, build, 2,894 unit tests; four focused Playwright suites:
+  88 passed, 58 intentional skips, zero failures. All 30 option-page EN/AR states
+  captured at 390/1440/1920px: no text, height or horizontal-overflow changes.
+  All six Hackathon captures visually reviewed; independent code review is clean.
+  Full Playwright PASS: 823 passed, 139 intentional skips, zero failures/
+  retries (15.7m) on isolated port 49717. No hosted changes or merge.
+- Details: [feature and checks](features/hackathon-technology.md),
+  [before/after screenshots](reviews/hackathon-technology-flow-2026-10-17/README.md).
+
+## 17 October 2026 — Restrained Hackathon technology theme
+
+- Owner supplied a technology landing-page reference and requested an MSRC-branded
+  interpretation without excess. Started from current main `db70b05`, preserving
+  its later few-large-artwork and solid-dark-schedule decisions and all other pages.
+- Added one static, clipped orbital circuit composition inside the empty hero cell,
+  with faint lilac rings, a restrained gold connection and deeper purple/ink photo
+  overlay. Arabic mirrors it; the hero decoration disappears at 1000px and below.
+  Removed only Hackathon's Steps watermark: two pieces on desktop, one on phones.
+- PASS: lint, typecheck, 2,894 unit tests and final production build. First full
+  browser run: 679 passed, 139 skipped, 144 failed after local server interruptions;
+  all 52 artwork cases passed. Full suite on isolated port 49717 PASS: 823 passed,
+  139 intentional skips, zero failures/retries. All 30 option-page locale/width
+  states recaptured; content and horizontal-overflow comparisons pass.
+  Code review found no actionable issues. Physical devices and production NOT TESTED.
+- Details: [feature and test receipt](features/hackathon-technology.md),
+  [before/after screenshots](reviews/hackathon-technology-2026-10-17/README.md).
+  Next: owner review of the follow-up PR. No merge or workflow activation.
+
 ## 17 October 2026 — A few large background studies only
 
 - Owner: "too many of them, just make a few large ones that fill the background".

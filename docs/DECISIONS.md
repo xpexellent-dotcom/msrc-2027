@@ -1,5 +1,62 @@
 # MSRC 2027 decision and configuration register
 
+## 17 October 2026 — Hackathon Option E medical extension
+
+Authority: the owner's selected written Option E direction and explicit follow-up
+to keep the photographic purple header, photograph and gold Enter pill.
+The referenced `.qa/opts/e.html` was unavailable; the detailed brief is the
+implementation reference, not evidence of approval of an unseen mockup.
+Requirements DSN-01/02, LOC-01/03, ACC-01; `/en/hackathon` and `/ar/hackathon` only.
+
+Replace the earlier orbital/festival decoration with static DNA and a single ECG
+beat. Reserve the empty hero cell for the helix and a separate full-width strip
+for the ECG; use at most two faint lower heading-cell echoes. Phones retain only
+the ECG. Mirror Arabic, preserve English/LTR track titles, and hide decoration in
+forced colors and print. Dark glass track/day cards use 22px corners and fine
+violet-to-gold bottom edges; connected step nodes follow the same local treatment.
+
+The requested medical-hackathon label is the sole new copy and has an Arabic
+translation. Preserve other copy, controls, routes and closed states. This
+supersedes the Hackathon orb/circuit directions below while preserving the
+photographic MSRC world, solid dark schedule and global design contract. It
+authorizes no hosted configuration changes, workflow activation or merge.
+[Implementation and evidence](features/hackathon-technology.md).
+
+## 17 October 2026 — Hackathon technology throughout the page
+
+Authority: the owner's follow-up asking for the technology theme across the whole
+Hackathon page with only a few large pieces, and identifying the visible hero crop.
+This refines the two-piece implementation below; DSN-01/02, LOC-01/03, ACC-01.
+
+Use three related static orbital circuit studies: the empty desktop hero column,
+the Benefits background and the opposite side of the closing section. Vary their
+scale and angle; use thin purple/lilac strokes with sparse gold accents. At 1000px
+and below show only the Benefits study. Mirror Arabic and fully fade the artwork
+before every container edge so the hero no longer ends in a rectangular cutoff.
+Preserve the later approved solid dark schedule and all content and actions.
+
+[Implementation and verification](features/hackathon-technology.md),
+[follow-up screenshots](reviews/hackathon-technology-flow-2026-10-17/README.md).
+
+## 17 October 2026 — Restrained Hackathon technology theme
+
+Authority: the owner's supplied technology landing-page reference and explicit
+request to adapt it to MSRC branding without overdoing it. Requirements DSN-01/02,
+LOC-01/03 and ACC-01; Hackathon presentation only.
+
+Use one large, static orbital circuit study in the empty desktop hero column,
+with thin lilac lines, limited gold accents and a deeper purple/ink photo wash.
+Retain the existing Benefits circuit watermark; remove the Hackathon Steps echo
+so desktop has two pieces and phones only one. Keep all content, actions and
+workflow gates unchanged. No new image assets, motion or libraries are needed.
+
+This builds on the later owner instructions recorded in PROGRESS: fewer large
+studies and a solid dark two-day band. Those later instructions supersede the
+earlier scattered-slot and gradient-transition direction below. The hero artwork
+itself is physically clipped away from the text and buttons; the incumbent faint
+Benefits backdrop is preserved. Other option pages and the solid schedule remain
+unchanged. [Implementation and verification](features/hackathon-technology.md).
+
 ## 17 October 2026 — Participation artwork direction
 
 Authority: the current explicit owner request. Requirements DSN-01/02, LOC-01/03,

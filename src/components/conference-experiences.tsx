@@ -17,6 +17,7 @@ import { datesVenueCopy } from "@/content/dates-venue";
 import { participationBenefitIcons, participationPathDescriptions } from "@/content/participation-copy";
 import { BenefitArtwork } from "@/components/benefit-artwork";
 import { JourneyArtwork, type JourneyArtworkMotif } from "@/components/journey-artwork";
+import { HackathonHeartbeat, HackathonTechArt } from "@/components/hackathon-tech-art";
 import {
   experienceCopy, filterMedia, filterSessions, participationPaths, published,
   type ConferenceDay, type ExperiencePageId, type MediaEditionFilter, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
@@ -78,10 +79,15 @@ export function ExperienceIntro({ locale, page, announcement, children }: { loca
     <Container>
       <nav aria-label={copy.breadcrumb} className="experience-breadcrumb"><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
       <div className="experience-intro-grid">
-        <div><h1 id="experience-title">{lines.map((line, index) => <span key={line} className={index === lines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{line}</span>)}</h1>{announcement ? <p className="experience-publication-status">{announcement}</p> : null}<p className="experience-lead">{intro.lead}</p>{children ? <div className="fluid-journey-hero-actions">{children}</div> : null}</div>
-        <div className="experience-intro-art">{page === "program" ? <div className="program-date-panel" role="group" aria-label={datesVenueCopy[locale].datesHeading}><ConferenceDayLinks locale={locale} />{conferenceConfig.dates ? <a className="text-link program-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{datesVenueCopy[locale].addToCalendar}</a> : null}</div> : showsEventFacts(page) ? <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div> : null}</div>
+        <div>
+          {page === "hackathon" ? <p className="hackathon-hero-label"><span aria-hidden="true" />{locale === "ar" ? "الهاكاثون الطبي" : "MEDICAL HACKATHON"} · <bdi>MSRC 2027</bdi></p> : null}
+          <h1 id="experience-title">{lines.map((line, index) => <span key={line} className={page !== "hackathon" && index === lines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{page === "hackathon" && index === lines.length - 1 ? <>{line.slice(0, line.lastIndexOf(" ") + 1)}<span className="hackathon-title-word">{line.slice(line.lastIndexOf(" ") + 1)}</span></> : line}</span>)}</h1>
+          {announcement ? <p className="experience-publication-status">{announcement}</p> : null}<p className="experience-lead">{intro.lead}</p>{children ? <div className="fluid-journey-hero-actions">{children}</div> : null}
+        </div>
+        <div className="experience-intro-art">{page === "hackathon" ? <HackathonTechArt /> : page === "program" ? <div className="program-date-panel" role="group" aria-label={datesVenueCopy[locale].datesHeading}><ConferenceDayLinks locale={locale} />{conferenceConfig.dates ? <a className="text-link program-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{datesVenueCopy[locale].addToCalendar}</a> : null}</div> : showsEventFacts(page) ? <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div> : null}</div>
       </div>
     </Container>
+    {page === "hackathon" ? <HackathonHeartbeat /> : null}
   </section>;
 }
 
@@ -329,9 +335,10 @@ const journeyOrder = ["registration", "submissions", "workshops", "hackathon", "
 const areaSeeds: Record<ArtworkArea, number> = { tracks: 3, benefits: 0, rail: 4, steps: 7, resources: 9 };
 
 /** The second grid cell is genuinely empty space, even when Arabic headings wrap. */
-function ArtworkHeading({ area, children }: { motif: JourneyArtworkMotif; area: ArtworkArea; children: ReactNode }) {
+function ArtworkHeading({ motif, area, children }: { motif: JourneyArtworkMotif; area: ArtworkArea; children: ReactNode }) {
   return <div className={`participation-heading participation-heading--${area}`}>
     <div className="participation-heading-copy">{children}</div>
+    {motif === "hackathon" && (area === "benefits" || area === "resources") ? <div className="hackathon-section-art"><HackathonTechArt variant={area === "benefits" ? "field" : "closing"} /></div> : null}
   </div>;
 }
 
@@ -341,6 +348,9 @@ function ArtworkHeading({ area, children }: { motif: JourneyArtworkMotif; area: 
 const backdropAreas: readonly ArtworkArea[] = ["benefits", "steps"];
 const backdropSides: Record<ArtworkArea, "start" | "end"> = { tracks: "start", benefits: "end", rail: "start", steps: "start", resources: "start" };
 function SideArtwork({ motif, area }: { motif: JourneyArtworkMotif; area: ArtworkArea }) {
+  if (motif === "hackathon") {
+    return null;
+  }
   if (!backdropAreas.includes(area)) return null;
   return <div aria-hidden="true" className={`journey-art-backdrop journey-art-backdrop--${backdropSides[area]} journey-art-backdrop--${area}`}>
     <JourneyArtwork motif={motif} variant={areaSeeds[area] + 11 + journeyOrder.indexOf(motif)} />
