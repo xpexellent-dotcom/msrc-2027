@@ -155,6 +155,9 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
 [dir='rtl'] .rail-next { transform: scaleX(-1); }
 .rail-track { position: relative; display: flex; gap: 1.5rem; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--color-purple) var(--color-line); padding-block: .25rem 1.5rem; scroll-padding-inline: 0; }
 .rail-track > * { flex: 0 0 auto; scroll-snap-align: center; }
+/* The ends rest flush at the rail edges (RTL centre snapping otherwise settles 1px off). */
+.rail-track > :first-child { scroll-snap-align: start; }
+.rail-track > :last-child { scroll-snap-align: end; }
 .rail-track:focus-visible { outline-offset: 5px; }
 /* Keep the shared workshop slider on the same measured centre stops. */
 .horizontal-rail.fluid-workshop-rail .rail-track > * { scroll-snap-align: center; }
