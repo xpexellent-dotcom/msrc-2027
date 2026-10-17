@@ -11,9 +11,9 @@
   Removed only Hackathon's Steps watermark: two pieces on desktop, one on phones.
 - PASS: lint, typecheck, 2,894 unit tests and final production build. First full
   browser run: 679 passed, 139 skipped, 144 failed after local server interruptions;
-  all 52 artwork cases passed. Full suite on isolated port 49717 RUNNING.
-  All 30 option-page
-  locale/width states recaptured; content and horizontal-overflow comparisons pass.
+  all 52 artwork cases passed. Full suite on isolated port 49717 PASS: 823 passed,
+  139 intentional skips, zero failures/retries. All 30 option-page locale/width
+  states recaptured; content and horizontal-overflow comparisons pass.
   Code review found no actionable issues. Physical devices and production NOT TESTED.
 - Details: [feature and test receipt](features/hackathon-technology.md),
   [before/after screenshots](reviews/hackathon-technology-2026-10-17/README.md).
