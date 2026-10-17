@@ -126,11 +126,17 @@ function Waves({ cx, cy, seed }: { cx: number; cy: number; seed: number }) {
 // Each variant re-seeds and turns its motif slightly, so repeats never look stamped.
 const turns = [0, -14, 10, -6];
 
-export function JourneyArtwork({ motif, placement, size = "lg", variant = 0 }: { motif: JourneyArtworkMotif; placement: Placement; size?: Size; variant?: number }) {
+/**
+ * `side` moves a piece into the page margin beside the reading column (wide screens
+ * only); `at` sets its distance from the section's top or bottom edge.
+ */
+export function JourneyArtwork({ motif, placement, size = "lg", variant = 0, side, at }: {
+  motif: JourneyArtworkMotif; placement: Placement; size?: Size; variant?: number; side?: "start" | "end"; at?: string;
+}) {
   const props = { cx, cy, seed: variant };
   const turn = turns[variant % turns.length];
   return (
-    <svg className={`journey-art journey-art--${placement} journey-art--${size} journey-art--${motif}`} viewBox={`0 0 ${VIEW} ${VIEW}`} fill="none" aria-hidden="true" focusable="false">
+    <svg className={`journey-art journey-art--${placement} journey-art--${size} journey-art--${motif}${side ? ` journey-art--side journey-art--side-${side}` : ""}`} style={at ? { ["--at" as string]: at } : undefined} viewBox={`0 0 ${VIEW} ${VIEW}`} fill="none" aria-hidden="true" focusable="false">
       <g transform={placement === "bottom" ? `translate(0 ${VIEW}) scale(1 -1)` : undefined}>
         <g transform={turn ? `rotate(${turn} ${cx} ${cy})` : undefined}>
           {motif === "registration" ? <Contours {...props} seed={.4 + variant * 1.7} />

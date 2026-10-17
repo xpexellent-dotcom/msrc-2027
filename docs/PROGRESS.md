@@ -1,5 +1,21 @@
 # Progress and session handover
 
+## 17 October 2026 — Margin artwork and a dark two-day band
+
+- Owner request: populate the option pages' empty side margins with the journey
+  motif in different places, sizes and shapes, on both sides. On screens 1800px
+  and wider, each light section carries one or two margin pieces (tracks,
+  benefits, workshop catalogue, steps, next move) at varied heights, sizes and
+  seeds/turns, growing from the page edge and masked before the reading column.
+  Each journey shifts the variants so shapes differ between pages. Narrower
+  screens keep the corner pieces; phones keep one per page.
+- Hackathon "Two days, two stages" is now a dark interlude: long eased fades from
+  ivory and into the lilac Steps, soft purple glows, glass day cards, gold day
+  pills (axe clean EN/AR desktop and phone).
+- Checks: lint, types, 2,797 unit tests; full Playwright 770 passed / 87 skipped /
+  1 known venue-journey-stepper timing failure (untouched page; passed on rerun,
+  36 passed with fluid-journeys).
+
 ## 17 October 2026 — Artwork follow-up: quieter homepage, fuller option pages
 
 - Homepage community section: owner asked to remove the second ribbon artwork

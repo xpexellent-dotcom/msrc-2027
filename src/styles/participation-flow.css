@@ -104,11 +104,27 @@
 /* Echoes stay in the band above the content they sit beside. */
 .journey-art--top:is(.journey-art--md, .journey-art--sm) { -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 10%, transparent 40%); mask-image: radial-gradient(circle at 88% 11%, #000 10%, transparent 40%); }
 /* Attend's Steps motif already fills the corner the next section would start from. */
-.participation-journey--registration .fluid-journey-resources .journey-art { display: none; }
+.participation-journey--registration .fluid-journey-resources .journey-art:not(.journey-art--side) { display: none; }
 /* Steps use the corner beside a closing action when there is one (Attend), and the
    corner beside the heading otherwise; never both, never under step text. */
-.participation-steps:not(:has(.participation-bottom-action)) .journey-art--bottom,
-.participation-steps:has(.participation-bottom-action) .journey-art--top { display: none; }
+.participation-steps:not(:has(.participation-bottom-action)) .journey-art--bottom:not(.journey-art--side),
+.participation-steps:has(.participation-bottom-action) .journey-art--top:not(.journey-art--side) { display: none; }
+/* Margin pieces: on wide screens the space beside the reading column holds quieter
+   versions of the motif, on either side and at varied heights. They grow from the
+   page edge and stop short of the column, so they never sit behind text. */
+.journey-art.journey-art--side { display: none; inline-size: 20rem; max-inline-size: calc((100% - var(--container-width)) / 2 + 5rem); }
+.journey-art.journey-art--side.journey-art--lg { inline-size: 30rem; }
+.journey-art.journey-art--side.journey-art--sm { inline-size: 14rem; }
+.journey-art--side.journey-art--top { inset-block: var(--at, 0) auto; }
+.journey-art--side.journey-art--bottom { inset-block: auto var(--at, 0); }
+.journey-art.journey-art--side.journey-art--top { -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 14%, transparent 62%); mask-image: radial-gradient(circle at 88% 11%, #000 14%, transparent 62%); }
+.journey-art.journey-art--side.journey-art--bottom { -webkit-mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 62%); mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 62%); }
+.journey-art--side-start { inset-inline: 0 auto; scale: -1 1; }
+[dir="rtl"] .journey-art--side-start { scale: none; }
+@media (min-width: 1800px) {
+  .journey-art.journey-art--side { display: block; }
+}
+
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .journey-art { animation: journey-art-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
@@ -131,12 +147,24 @@
 .participation-track h3 { margin: 0; color: var(--color-purple); font-size: clamp(1.25rem, 2vw, 1.6rem); line-height: 1.2; }
 .participation-track p:last-child { margin: .6rem 0 0; color: var(--color-muted); line-height: 1.6; }
 .participation-track-note { margin: 1rem 0 0; color: var(--color-muted); font-weight: 600; }
-.participation-schedule { padding-block: clamp(3rem, 6vw, 5rem); background: var(--color-surface-lilac); }
+/* The two-day format is a dark interlude: it dissolves out of the ivory section above
+   and back into the lilac Steps below through long eased fades. */
+.participation-schedule { --focus-ring: var(--color-ivory); position: relative; isolation: isolate; padding-block: clamp(6rem, 11vw, 10rem); color: var(--color-ivory);
+  background:
+    radial-gradient(60% 55% at 78% 50%, rgb(91 53 150 / 42%), transparent 70%),
+    radial-gradient(45% 50% at 12% 60%, rgb(59 30 109 / 45%), transparent 70%),
+    linear-gradient(180deg, var(--color-ivory) 0%, #8c7da3 7%, #3a2a55 15%, #1f1930 26%, #1f1930 72%, #3d2d5a 84%, #a597bb 93%, var(--color-surface-lilac) 100%); }
+.participation-schedule::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, transparent 18%, rgb(220 207 240 / 5%) 50%, transparent 82%); filter: blur(24px); }
 .participation-schedule-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
 .participation-schedule-list li { padding: clamp(1.25rem, 3vw, 2rem); border-radius: 18px; background: var(--color-ivory); }
 .participation-schedule-day { display: inline-block; margin-block-end: .6rem; padding: .25rem .75rem; border-radius: 999px; background: var(--color-purple); color: var(--color-ivory); font-size: .8125rem; font-weight: 700; }
 .participation-schedule-list h3 { margin: 0; color: var(--color-purple); font-size: clamp(1.25rem, 2vw, 1.5rem); }
 .participation-schedule-list p { margin: .5rem 0 0; color: var(--color-muted); line-height: 1.6; }
+.participation-schedule h2 { color: var(--color-ivory); }
+.participation-schedule-list li { border: 1px solid rgb(220 207 240 / 16%); background: rgb(255 255 255 / 5%); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 18px 40px rgb(10 5 20 / 25%); }
+.participation-schedule-list h3 { color: var(--color-ivory); }
+.participation-schedule-list p { color: var(--color-lilac); }
+.participation-schedule-day { background: var(--color-gold); color: var(--color-ink); }
 [lang="ar"] .participation-track-label { letter-spacing: 0; text-transform: none; }
 [dir="rtl"] .participation-track h3[dir="ltr"] { text-align: right; }
 @media (max-width: 640px) {
