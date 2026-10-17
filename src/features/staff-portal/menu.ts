@@ -31,10 +31,11 @@ export function staffMenu(roles: readonly Role[], options: { passwordChangeAvail
     : roles.includes("superAdmin") || PERMISSION_RULES[item.operation].roles.some((role) => roles.includes(role)));
 }
 
-/** True when a Super Admin sees an area only for oversight, without that area's own working role. */
+/** Blind scoring areas: a Super Admin without the scoring role gets read-only oversight. */
+const SCORING_AREAS = new Set<StaffMenuKey>(["review", "faculty-judging"]);
 export function isOversightOnly(key: StaffMenuKey, roles: readonly Role[]): boolean {
   const item = STAFF_MENU.find((entry) => entry.key === key);
-  if (!item || item.ownAccount || !roles.includes("superAdmin")) return false;
+  if (!item || item.ownAccount || !SCORING_AREAS.has(key) || !roles.includes("superAdmin")) return false;
   return !PERMISSION_RULES[item.operation].roles.some((role) => roles.includes(role));
 }
 

@@ -3234,3 +3234,24 @@ misleading. Slice 4 must add reviewed English notification templates and atomic
 transactional enqueue, preserving the independent closed delivery switches.
 Timed offers remain later work pending approved offer duration and release
 behavior. The engineering receipt is the O9 per-task progress note, not PROGRESS.md.
+
+## ORG-055 — Staff console: role tabs, dashboard, registration queue and organizing-team priority, 17 October 2026
+
+Authority: explicit owner instruction, 17 October 2026.
+
+- Every staff role has its own tab for its job. A Super Admin sees every tab. For the
+  blind-scoring areas (Review and Faculty judging) a Super Admin without the scoring
+  role gets read-only oversight only; scoring and decisions stay with assigned
+  reviewers and judges. Navigation is a projection only; every API and RPC rechecks.
+- Areas without built tools open a landing page that says what the tool will do and
+  what it is waiting for, instead of being hidden.
+- The console gains a sidebar layout (a swipeable tab row on phones) and a dashboard
+  home with role-scoped aggregate counts.
+- Registration queue (registration slice 3, staff side): registration
+  administrators and Super Admins can filter, search, approve one or many requests and
+  move requests to the waitlist. Seat allocation is transactional against the
+  configured capacity (2,000 once entered); approvals are refused while capacity is not
+  set. Timed waitlist offers and notification emails remain later slices. Registration
+  stays closed to participants.
+- Organizing-team priority (ORG-051) gains its Super Admin screen: search, mark with a
+  reason, remove with a reason, full audit history.

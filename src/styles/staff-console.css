@@ -69,3 +69,6 @@
 @media (prefers-reduced-motion: reduce) { .staff-card, .staff-sidebar .staff-menu a { transition: none; } .staff-card:hover { transform: none; } }
 @media (forced-colors: active) { .staff-sidebar .staff-menu, .staff-card, .staff-bulk-bar { border: 1px solid CanvasText; } .staff-sidebar .staff-menu a[aria-current="page"] { outline: 2px solid Highlight; } }
 .staff-sidebar .staff-nav-label { display: flex; flex: 1; align-items: center; justify-content: space-between; gap: .75rem; }
+/* Navigation reads as tabs, not inline text links. */
+.staff-sidebar .staff-menu a, .staff-sidebar .staff-menu a:hover { text-decoration: none; background-image: none; }
+.staff-sidebar .staff-menu a:hover .staff-nav-label, .staff-sidebar .staff-nav-home:hover { text-decoration: underline; text-underline-offset: .25em; }

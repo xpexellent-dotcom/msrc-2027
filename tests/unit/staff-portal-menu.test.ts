@@ -15,6 +15,7 @@ describe("BL-AUTH-01 and BL-RPT-01/03 navigation projection", () => {
     expect(isOversightOnly("review", ["superAdmin", "abstractReviewer"])).toBe(false);
     expect(isOversightOnly("review", ["abstractReviewer"])).toBe(false);
     expect(isOversightOnly("people", ["superAdmin"])).toBe(false);
+    expect(isOversightOnly("finance", ["superAdmin"])).toBe(false);
   });
   it("is additive without granting a participant general staff access", () => {
     expect(staffMenu(["participant"])).toEqual([]);

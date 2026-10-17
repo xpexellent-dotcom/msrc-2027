@@ -21,7 +21,7 @@ import { RegistrationQueue, type RegistrationFilter } from "./registration-queue
 import { PriorityPanel } from "./priority-panel";
 import { consoleCopy } from "./console-copy";
 
-const errors = new Set(["closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required"]);
+const errors = new Set(["closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required", "capacity-not-set", "payment-configuration-required"]);
 function areaFor(screen: StaffScreen): StaffArea | undefined { return screen === "people" || screen === "audit" || screen === "participants" || screen === "registration" || screen === "priority" ? screen : undefined; }
 function date(value: string | null, locale: Locale, fallback: string) {
   const parsed = value ? Date.parse(value) : NaN;
