@@ -1,5 +1,19 @@
 # Progress and session handover
 
+## 17 October 2026 — Participation artwork: one quiet motif per journey
+
+- Owner feedback: the drifting line ribbons behind Benefits and Steps on the five
+  option pages looked busy and centered. Replaced with one-sided, static motifs in
+  each section's empty corner, masked out before the reading column, mirrored in
+  Arabic, one per page: Attend contours, Abstract submission data scatter and fit,
+  Workshops cutting-mat grid, Hackathon circuit traces, 3MT dial and sound arcs.
+- The lower Steps motif renders only beside a closing action (Attend); phones show
+  only the top motif at 72vw; forced colours hide it; reduced motion keeps it
+  static (a scroll-linked fade applies only where supported). Homepage, Contact,
+  Venue and Speakers ambient art is unchanged.
+- Checks: lint, types, 2,797 unit tests, full Playwright suite 771 passed / 87
+  skipped / 0 failed; live production sweep 76/76 page·locale·device clean.
+
 ## 16 October 2026 — Real visitor bug hunt
 
 - Started `qa/real-user-bug-hunt` from current main `a169bfa`, after checking no

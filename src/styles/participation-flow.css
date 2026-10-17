@@ -80,16 +80,37 @@
 .participation-benefit .benefit-cme-label { font-size: .625rem; }
 .participation-benefit .benefit-cme-note { font-size: .5625rem; }
 
-/* ORG-054: soft animated linework behind the benefits and steps. */
+/* A one-sided motif per journey in each section's empty corner. It fades out
+   before the reading column and mirrors with the reading direction. */
 .participation-ambient { position: relative; isolation: isolate; overflow: clip; }
 .participation-ambient > .site-container { position: relative; z-index: 1; }
-.participation-ambient .ambient-art { opacity: .55; }
-@media (prefers-reduced-motion: no-preference) {
-  .participation-ambient .ambient-art.reveal--seen .ambient-ribbon { animation: ambient-settle 4.2s cubic-bezier(.23,1,.32,1) both, participation-drift 22s ease-in-out 4.2s infinite alternate; }
-  .participation-ambient .ambient-art.reveal--seen .ambient-orbit { animation: ambient-orbit-settle 3.8s cubic-bezier(.23,1,.32,1) both, participation-orbit 30s linear 3.8s infinite; }
+.journey-art { position: absolute; z-index: 0; inset-inline-end: 0; inline-size: min(48vw, 42rem); block-size: auto; aspect-ratio: 1; pointer-events: none; stroke: rgb(59 30 109 / 14%); stroke-width: 1; }
+.journey-art :is(path, rect, circle) { vector-effect: non-scaling-stroke; }
+.journey-art .journey-art-faint { stroke: rgb(59 30 109 / 8%); }
+.journey-art .journey-art-accent { stroke: rgb(201 162 74 / 45%); }
+.journey-art .journey-art-dot { fill: rgb(59 30 109 / 22%); stroke: none; }
+.journey-art .journey-art-dot--gold { fill: rgb(201 162 74 / 60%); }
+.journey-art .journey-art-node { fill: var(--color-ivory); }
+.participation-steps .journey-art .journey-art-node { fill: var(--color-surface-lilac); }
+.journey-art .journey-art-node--gold { stroke: rgb(201 162 74 / 70%); }
+.journey-art--top { inset-block-start: 0; -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 18%, transparent 68%); mask-image: radial-gradient(circle at 88% 11%, #000 18%, transparent 68%); }
+.journey-art--bottom { inset-block-end: 0; inline-size: min(32vw, 26rem); -webkit-mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 56%); mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 56%); }
+[dir="rtl"] .journey-art { scale: -1 1; }
+/* Denser motifs fade sooner so nothing sits behind the benefit text. */
+.journey-art--top:is(.journey-art--workshops, .journey-art--hackathon, .journey-art--threeMinuteThesis, .journey-art--submissions) { -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 12%, transparent 52%); mask-image: radial-gradient(circle at 88% 11%, #000 12%, transparent 52%); }
+/* The lower field needs the empty space beside a closing action; without one it would sit under step text. */
+.participation-steps:not(:has(.participation-bottom-action)) .journey-art--bottom { display: none; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .journey-art { animation: journey-art-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
+  }
 }
-@keyframes participation-drift { from { transform: none; } to { transform: translate3d(24px, -18px, 0) rotate(1.5deg); } }
-@keyframes participation-orbit { to { transform: rotate(360deg); } }
+@keyframes journey-art-rise { from { opacity: 0; translate: 0 2rem; } to { opacity: 1; translate: none; } }
+@media (max-width: 700px) {
+  .journey-art { inline-size: 72vw; }
+  .journey-art--bottom { display: none; }
+}
+@media (forced-colors: active) { .journey-art { display: none; } }
 
 /* ORG-054: hackathon tracks and two-day format. */
 .participation-tracks { padding-block: clamp(3rem, 6vw, 5.5rem) 0; background: var(--color-ivory); }
