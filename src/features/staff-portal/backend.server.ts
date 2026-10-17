@@ -6,6 +6,8 @@ import type { StaffConfig } from "./config.server";
 import { deliverStaffMessage, staffInvitationEmail } from "./email.server";
 import { nativeSessionId } from "./security.server";
 
+/** A private RPC whose migration has not reached this database yet (PostgREST PGRST202). */
+export class StaffRpcMissingError extends Error { constructor() { super("Private staff RPC not installed"); this.name = "StaffRpcMissingError"; } }
 export interface NativeStaffSession { actorId: string; sessionId: string; accessToken: string; refreshToken: string }
 export interface StaffBackend {
   rpc(name: string, args?: Record<string, unknown>, accessToken?: string): Promise<unknown>;
@@ -48,6 +50,11 @@ export function createStaffBackend(config: StaffConfig): StaffBackend {
     const headers = new Headers({ apikey: accessToken ? config.publishableKey : config.secretKey, "Content-Type": "application/json" });
     if (accessToken) headers.set("authorization", "Bearer " + accessToken);
     const response = await safeFetch(config.supabaseUrl + "/rest/v1/rpc/" + name, { method: "POST", headers, body: JSON.stringify(args) });
+    if (response.status === 404) {
+      const body: unknown = await response.json().catch(() => null);
+      if (body && typeof body === "object" && (body as { code?: unknown }).code === "PGRST202") throw new StaffRpcMissingError();
+      throw new Error("Private staff RPC unavailable");
+    }
     if (!response.ok) { await response.body?.cancel(); throw new Error("Private staff RPC unavailable"); }
     return response.json();
   };

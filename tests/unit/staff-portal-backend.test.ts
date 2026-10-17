@@ -3,7 +3,7 @@ import { SESSION_POLICY } from "@/config/session-policy";
 import { ROLES } from "@/lib/permissions/contract";
 import { createStaffHandler } from "@/features/staff-portal/handler.server";
 import { resolveStaffConfig, type StaffConfig, type StaffReadiness } from "@/features/staff-portal/config.server";
-import type { StaffBackend, NativeStaffSession } from "@/features/staff-portal/backend.server";
+import { StaffRpcMissingError, type StaffBackend, type NativeStaffSession } from "@/features/staff-portal/backend.server";
 import { staffInvitationEmail } from "@/features/staff-portal/email.server";
 import { readStaffSession, sealStaffSession, staffCookie, staffFormToken, type StaffSessionCookie } from "@/features/staff-portal/security.server";
 import { validateStaffPayload } from "@/features/staff-portal/validation.server";
@@ -96,6 +96,13 @@ describe("staff request and session security", () => {
     expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_login_failure", expect.objectContaining({ attempted_email: "missing@example.invalid", edition_key: config.editionKey }));
     expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_login_failure", expect.objectContaining({ attempted_email: "suspended@example.invalid", edition_key: config.editionKey }));
     expect(vi.mocked(backend.rpc).mock.calls.some(([, args]) => args && Object.hasOwn(args, "password"))).toBe(false);
+  });
+  it("closes a failed sign-in the pre-hardening way while the failure audit is not installed", async () => {
+    vi.mocked(backend.login).mockResolvedValue(null);
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => { if (args[0] === "msrc_staff_login_failure") throw new StaffRpcMissingError(); return original(args[0], args[1], args[2]); });
+    const response = await handler()(request("POST", { action: "signin", email: "missing@example.invalid", password: "unknown" }));
+    expect(response.status).toBe(401); expect((await response.json()).state).toBe("invalid-credentials");
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_login_finish", expect.objectContaining({ actor_id: null, session_id: null }));
   });
   it("requires database admitted password session before issuing the second step", async () => {
     vi.mocked(backend.rpc).mockImplementation(async (name) => name === "msrc_staff_status" ? { enabled: true, emailDailyLimit: 40 }
@@ -214,6 +221,30 @@ describe("unconditional same-origin staff logout", () => {
 });
 
 describe("second steps and safe privileged projections", () => {
+  it("verifies TOTP the pre-hardening way while the lockout migration is not installed", async () => {
+    current = persisted("super_admin", "mfa_required");
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => {
+      if (args[0] === "msrc_staff_totp_begin" || args[0] === "msrc_staff_totp_finish") throw new StaffRpcMissingError();
+      if (args[0] === "msrc_session_context" && vi.mocked(backend.verify).mock.calls.length) return persisted();
+      return original(args[0], args[1], args[2]); });
+    const response = await handler()(request("POST", { action: "verify-totp", code: "123456", factorId, challengeId }, cookie({ factorId, challengeId })));
+    expect(response.status).toBe(200); expect(backend.verify).toHaveBeenCalledTimes(1);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_auth_event", expect.objectContaining({ event: "totp_verify", result: "completed" }));
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_totp_finish", expect.anything());
+  });
+  it("rejects a wrong TOTP code on the pre-hardening fallback", async () => {
+    current = persisted("super_admin", "mfa_required"); vi.mocked(backend.verify).mockResolvedValue(null);
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => { if (args[0] === "msrc_staff_totp_begin") throw new StaffRpcMissingError(); return original(args[0], args[1], args[2]); });
+    const response = await handler()(request("POST", { action: "verify-totp", code: "000000", factorId, challengeId }, cookie({ factorId, challengeId })));
+    expect(response.status).toBe(400); expect((await response.json()).state).toBe("invalid-code");
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_auth_event", expect.objectContaining({ event: "totp_verify", result: "failed" }));
+  });
+  it("keeps other TOTP reservation failures closed", async () => {
+    current = persisted("super_admin", "mfa_required");
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => { if (args[0] === "msrc_staff_totp_begin") throw new Error("synthetic outage"); return original(args[0], args[1], args[2]); });
+    const response = await handler()(request("POST", { action: "verify-totp", code: "123456", factorId, challengeId }, cookie({ factorId, challengeId })));
+    expect(response.status).toBe(503); expect(backend.verify).not.toHaveBeenCalled();
+  });
   it("does not contact native verification when the account is locked", async () => {
     current = persisted("super_admin", "mfa_required");
     const original = backend.rpc; backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_totp_begin"
