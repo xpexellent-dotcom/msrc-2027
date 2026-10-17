@@ -208,21 +208,27 @@ for (const locale of ["en", "ar"] as const) {
       }
     }));
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.readyState >= 2 && !element.paused)).toBe(true);
-    await expect(toggle).toHaveAccessibleName(locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video");
-    await toggle.focus();
-    await page.keyboard.press("Space");
-    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
     const viewport = page.viewportSize()!;
+    const phone = viewport.width <= 700;
+    if (phone) await expect(toggle).toBeHidden();
+    else {
+      await expect(toggle).toHaveAccessibleName(locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video");
+      await toggle.focus();
+      await page.keyboard.press("Space");
+    }
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(!phone);
     await page.setViewportSize({ width: viewport.height, height: viewport.width });
-    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(!phone);
     await page.setViewportSize(viewport);
     await context.setOffline(true);
     await page.evaluate(() => (window as Window & { qaVisibility?: (state: DocumentVisibilityState) => void }).qaVisibility?.("hidden"));
     await context.setOffline(false);
     await page.evaluate(() => (window as Window & { qaVisibility?: (state: DocumentVisibilityState) => void }).qaVisibility?.("visible"));
-    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
-    await toggle.focus();
-    await page.keyboard.press("Enter");
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(!phone);
+    if (!phone) {
+      await toggle.focus();
+      await page.keyboard.press("Enter");
+    }
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.readyState >= 2 && !element.paused)).toBe(true);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(video).toHaveCount(0);

@@ -197,7 +197,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "مكافآت نقدية" : "cash prizes");
     await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "ورش عمل تطبيقية" : "Hands-on workshops");
     await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "تواصل مع الخبراء" : "Network with experts");
-    await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "فور تأكيده" : "once confirmed");
+    await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "عددها المعتمد لاحقًا" : "number to be confirmed");
     await expect(page.locator(".benefit-cme")).toHaveAttribute("aria-label", locale === "ar" ? /مثال بصري فقط، العدد غير مؤكد/ : /illustrative only, hours unconfirmed/);
     await expect(page.locator(".benefit-cme-note")).toHaveText(locale === "ar" ? "مثال بصري" : "Illustrative");
     await expect(page.locator(".program-experiences .benefit-artwork")).toHaveCount(5);

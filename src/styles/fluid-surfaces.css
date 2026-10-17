@@ -55,8 +55,18 @@
 .editorial-motion-home .pathways-section {
   background: radial-gradient(ellipse at 10% 24%, rgb(220 207 240 / .7), transparent 43%), linear-gradient(180deg, var(--color-ivory), #f0eaf5 58%, var(--color-surface-lilac));
 }
-.editorial-motion-home .program-section { background: radial-gradient(ellipse at 78% 45%, rgb(245 237 222 / .7), transparent 56%), var(--color-surface-lilac); }
-.editorial-motion-home .program-experiences > .benefit-card { display: grid; grid-template-columns: 4.5rem minmax(0,1fr); align-items: start; gap: 1.5rem; }
+.editorial-motion-home { --program-speakers-surface: #f0eaf5; }
+.editorial-motion-home .program-section {
+  background: linear-gradient(0deg, var(--program-speakers-surface), transparent 30%), radial-gradient(ellipse at 78% 45%, rgb(245 237 222 / .7), transparent 56%), var(--color-surface-lilac);
+}
+.editorial-motion-home .speakers-section {
+  background: linear-gradient(180deg, var(--program-speakers-surface), transparent 35%), linear-gradient(135deg, #f8f6f0 12%, #ede6f5 66%, #e4d9f0);
+}
+/* The shared boundary is a single colour; decorative strokes fade before it. */
+.program-section > .ambient-art--benefits { mask-image: linear-gradient(transparent, #000 15%, #000 78%, transparent); }
+.editorial-motion-home .speaker-atmosphere { mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); }
+.editorial-motion-home .program-experiences > .benefit-card,
+.editorial-motion-home .program-experiences > .benefit-card:first-child { display: grid; grid-template-columns: 4.5rem minmax(0,1fr); align-items: start; align-content: start; min-block-size: 0; gap: 1.25rem; padding: 1.4rem; }
 .benefit-artwork { inline-size: 4.5rem; block-size: 4.5rem; margin-block-start: .1rem; filter: drop-shadow(0 8px 12px rgb(91 49 135 / .12)); }
 .benefit-copy { min-inline-size: 0; }
 .benefit-cme { display: flex; flex-direction: column; align-items: center; color: var(--color-purple); line-height: 1; }
@@ -66,6 +76,16 @@
 
 .editorial-motion-home .legacy-section { position: relative; isolation: isolate; overflow: clip; padding-block-end: clamp(7rem,12vw,12rem); }
 .legacy-section > .site-container { position: relative; z-index: 1; }
+.community-flow { position: absolute; inset: 0; z-index: 0; pointer-events: none; mask-image: linear-gradient(transparent, #000 12%, #000 84%, transparent); }
+.community-flow > .ambient-art { inline-size: 76%; inset-inline: auto; }
+.community-flow > .ambient-art:first-child { inset-inline-start: -24%; }
+.community-flow > .ambient-art:last-child { inset-inline-end: -24%; transform: scaleX(-1); }
+.community-flow .ambient-art svg { stroke: rgb(233 218 248 / .14); stroke-width: 1.2; }
+.community-flow .ambient-orbit { stroke: rgb(248 246 240 / .08); }
+@media (prefers-reduced-motion: no-preference) {
+  .community-flow { animation: community-flow-drift 32s ease-in-out infinite alternate; }
+}
+@keyframes community-flow-drift { from { transform: translate3d(0,-.6%,0); } to { transform: translate3d(0,.6%,0); } }
 .community-image { position: absolute; inset-inline-end: 0; inset-block-start: 0; inline-size: 64%; block-size: min(64%,55rem); overflow: hidden; pointer-events: none; }
 .community-image img { object-fit: cover; object-position: 60% 65%; transform: scale(1.14); filter: blur(4px); }
 .community-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--color-ink), rgb(59 30 109 / .7) 40%, rgb(59 30 109 / .6)), linear-gradient(0deg, var(--color-ink), transparent 55%); }
@@ -115,9 +135,10 @@
   .contact-hero-grid, .contact-form-layout { grid-template-columns: minmax(0,1fr); }
   .community-image { inline-size: 100%; block-size: 42rem; }
   .community-image::after, [dir='rtl'] .community-image::after { background: linear-gradient(180deg,rgb(59 30 109 / .84),rgb(59 30 109 / .76) 35%,var(--color-ink)); }
-  .editorial-motion-home .program-experiences > .benefit-card { grid-template-columns: 3.25rem minmax(0,1fr); align-items: center; gap: 1rem; padding: 1.4rem 1.2rem; }
+  .editorial-motion-home .program-experiences > .benefit-card,
+  .editorial-motion-home .program-experiences > .benefit-card:first-child { grid-template-columns: 3.25rem minmax(0,1fr); align-items: center; gap: .75rem 1rem; padding: 1.1rem; }
   .benefit-copy { display: contents; }
-  .editorial-motion-home .benefit-copy h3 { grid-column: 2; grid-row: 1; margin: 0; font-size: clamp(1.35rem, 5.8vw, 1.65rem); line-height: 1.35; text-wrap: pretty; }
+  .editorial-motion-home .program-experiences .benefit-copy h3 { grid-column: 2; grid-row: 1; margin: 0; font-size: clamp(1.6rem, 6.8vw, 1.9rem); line-height: 1.35; text-wrap: pretty; }
   .editorial-motion-home .benefit-copy p { grid-column: 1 / -1; grid-row: 2; max-inline-size: none; font-size: 1rem; line-height: 1.75; }
   .benefit-card > :is(.benefit-artwork, .benefit-cme) { grid-column: 1; grid-row: 1; align-self: center; margin: 0; }
   .benefit-artwork { inline-size: 3.25rem; block-size: 3.25rem; }
@@ -127,7 +148,8 @@
   .people-page-heading > div { max-inline-size: 55ch; }
 }
 @media (max-width: 420px) {
-  .editorial-motion-home .program-experiences > .benefit-card { grid-template-columns: 3rem minmax(0,1fr); gap: .9rem .75rem; padding: 1.25rem 1rem; }
+  .editorial-motion-home .program-experiences > .benefit-card,
+  .editorial-motion-home .program-experiences > .benefit-card:first-child { grid-template-columns: 3rem minmax(0,1fr); gap: .75rem; padding: 1rem; }
   .benefit-artwork { inline-size: 3rem; block-size: 3rem; }
   .benefit-cme { inline-size: 3rem; }
   .benefit-cme-number { font-size: 3.5rem; }
@@ -144,10 +166,10 @@
   .benefit-card:hover .benefit-artwork { transform: none; }
 }
 @media (forced-colors: active) {
-  .ambient-art, .community-image, .legacy-section::after, .title-word--accent::after, .dates-location-details > div::after { display: none; }
+  .ambient-art, .community-flow, .community-image, .legacy-section::after, .title-word--accent::after, .dates-location-details > div::after { display: none; }
   :is(.editorial-motion-home .section-heading .title-word, .people-page-heading h1, .dates-content-grid .section-heading h2, .dates-travel .section-heading h2, .contact-form-introduction h2, .experience-intro h1, .premium-photo-hero h1, .premium-title-accent, .contact-hero h1, .hero-editorial h1 > span, .benefit-cme-number) { -webkit-text-fill-color: CanvasText; background: none; color: CanvasText; }
 }
 @media print {
-  .ambient-art, .community-image, .legacy-section::after, .title-word--accent::after { display: none; }
+  .ambient-art, .community-flow, .community-image, .legacy-section::after, .title-word--accent::after { display: none; }
   h1, h2, .title-word, .benefit-cme-number { -webkit-text-fill-color: #000 !important; background: none !important; color: #000 !important; }
 }

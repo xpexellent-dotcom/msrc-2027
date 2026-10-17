@@ -25,6 +25,14 @@ body:has(.axiom-header)::after {
 .editorial-motion-home .program-opening > div > p { color: var(--color-ink); font-size: clamp(1.125rem,1.4vw,1.3rem); line-height: 1.8; max-inline-size: 40ch; margin-block: 0 1.5rem; }
 .expectations-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(2rem,6vw,7rem); align-items: start; margin-block-start: clamp(3rem,6vw,6rem); }
 .expectations-layout > * { min-inline-size: 0; }
+@media (min-width: 801px) {
+  /* Grid lines follow the inline direction, so Arabic mirrors this composition. */
+  .editorial-motion-home .program-opening { grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr); }
+  .editorial-motion-home .program-opening > .chapter-stage { grid-column: 2; grid-row: 1; text-align: end; }
+  .editorial-motion-home .program-opening > div:last-child { grid-column: 1; grid-row: 1; }
+  .editorial-motion-home .expectations-layout > .research-artwork { grid-column: 2; grid-row: 1; }
+  .editorial-motion-home .expectations-layout > .program-experiences { grid-column: 1; grid-row: 1; }
+}
 .research-artwork { position: sticky; inset-block-start: calc(var(--site-header-height,5rem) + 2rem); overflow: hidden; isolation: isolate; border-radius: 16px; aspect-ratio: .95; background: var(--color-ivory); }
 .research-artwork-image { position: absolute; inset: -3%; animation: research-drift 4.5s cubic-bezier(.23,1,.32,1) both; animation-play-state: paused; }
 .research-artwork[data-running='true'] .research-artwork-image { animation-play-state: running; }
@@ -48,6 +56,28 @@ body:has(.axiom-header)::after {
 [dir='rtl'] .history-count { text-align: right; }
 .history-total .history-count { font-size: clamp(3rem,7vw,7.25rem); color: var(--color-gold); }
 .history-count[data-counting='true'] { animation: count-focus 500ms cubic-bezier(.22,1,.36,1) both; }
+/* Owner-requested compact homepage figures; retain the glass treatment and count-up. */
+.editorial-motion-home .history-numbers.history-numbers--glass { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-block: 2.5rem; }
+.editorial-motion-home .history-numbers--glass > div { min-block-size: 0; padding: 1.25rem; justify-content: start; }
+.editorial-motion-home .history-numbers--glass dd { margin-block: 0 .75rem; }
+.editorial-motion-home .history-numbers.history-numbers--glass .history-count { font-size: clamp(2rem, 14cqi, 3.25rem); }
+.editorial-motion-home .history-numbers--glass dt { margin: 0; font-size: 1rem; }
+.editorial-motion-home .history-numbers--glass dt > span { margin-block-start: .25rem; font-size: .875rem; }
+.editorial-motion-home .history-numbers--glass .history-icon { position: static; display: inline-block; vertical-align: middle; inline-size: 1.25rem; block-size: 1.25rem; margin-inline-end: .5rem; }
+@media (max-width: 700px) {
+  .editorial-motion-home .history-numbers.history-numbers--glass { grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); gap: .75rem; }
+  .editorial-motion-home .history-numbers--glass > div { padding: 1rem; }
+  .editorial-motion-home .history-numbers--glass > .history-total { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 1rem; }
+  .editorial-motion-home .history-numbers--glass .history-total dd { flex: 0 0 auto; margin: 0; }
+  .editorial-motion-home .history-numbers.history-numbers--glass .history-count { font-size: clamp(1.25rem, 22cqi, 2rem); }
+  .editorial-motion-home .history-numbers--glass .history-total dt { min-inline-size: 0; flex: 1 1 7.5rem; }
+  .editorial-motion-home .history-numbers--glass dt { font-size: .9375rem; }
+  .editorial-motion-home .history-numbers--glass .history-icon { display: none; }
+  /* Same breakpoint as the portrait film. Explicit full-screen film viewing
+     retains its controls; normal homepage backgrounds keep playing as before. */
+  html:not([data-cinematic='true']) .conference-hero :is(.hero-media-toggle, .hero-media-controls),
+  .editorial-motion-home .city-control { display: none; }
+}
 @keyframes count-focus { from { filter: blur(5px); transform: translateY(8px); } to { filter: blur(0); transform: none; } }
 .home-venue-opening { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(0,.95fr); gap: clamp(2rem,7vw,8rem); align-items: end; }
 .home-venue-opening > * { min-inline-size: 0; }

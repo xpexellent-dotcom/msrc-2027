@@ -153,9 +153,11 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
 .rail-back { transform: scaleX(-1); }
 [dir='rtl'] .rail-back { transform: none; }
 [dir='rtl'] .rail-next { transform: scaleX(-1); }
-.rail-track { display: flex; gap: 1.5rem; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--color-purple) var(--color-line); padding-block: .25rem 1.5rem; scroll-padding-inline: 0; }
-.rail-track > * { flex: 0 0 auto; scroll-snap-align: start; }
+.rail-track { position: relative; display: flex; gap: 1.5rem; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--color-purple) var(--color-line); padding-block: .25rem 1.5rem; scroll-padding-inline: 0; }
+.rail-track > * { flex: 0 0 auto; scroll-snap-align: center; }
 .rail-track:focus-visible { outline-offset: 5px; }
+/* Keep the shared workshop slider on the same measured centre stops. */
+.horizontal-rail.fluid-workshop-rail .rail-track > * { scroll-snap-align: center; }
 .speaker-preview-card { position: relative; isolation: isolate; overflow: hidden; inline-size: clamp(19rem, 29vw, 28rem); block-size: 35rem; border-radius: 16px; background: var(--color-ink); color: var(--color-ivory); }
 .speaker-preview-card > img, .speaker-preview-portrait img { object-fit: cover; object-position: center 30%; transition: transform 600ms cubic-bezier(.22,.68,.3,1), filter 400ms; filter: saturate(.75); }
 .speaker-preview-portrait { position: absolute; inset: 0; }
