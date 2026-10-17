@@ -85,7 +85,6 @@
 .participation-ambient { position: relative; isolation: isolate; overflow: clip; }
 .participation-ambient > .site-container { position: relative; z-index: 1; }
 .participation-heading { display: contents; }
-.journey-art-slot { display: none; pointer-events: none; overflow: hidden; }
 .journey-art { display: block; inline-size: 100%; block-size: 100%; fill: none; pointer-events: none; stroke: rgb(59 30 109 / 18%); stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
 .journey-art :is(path, rect, circle) { vector-effect: non-scaling-stroke; }
 .journey-art .journey-art-faint { stroke: rgb(59 30 109 / 9%); }
@@ -96,13 +95,12 @@
 .participation-steps .journey-art .journey-art-node { fill: var(--color-surface-lilac); }
 .fluid-journey-resources .journey-art .journey-art-node { fill: var(--color-white); }
 .journey-art .journey-art-node--gold { stroke: rgb(201 162 74 / 60%); }
-[dir="rtl"] .journey-art-slot { scale: -1 1; }
 
-/* Backdrop: one large study per section, drawn at watermark strength behind the
+/* Backdrop: a few large studies (benefits and steps), drawn at watermark strength behind the
    whole section and bleeding off one edge, so the motif becomes the page's texture. */
-.journey-art-backdrop { position: absolute; z-index: 0; inset-block-start: 50%; inline-size: clamp(34rem, 58vw, 66rem); aspect-ratio: 1; translate: 0 -50%; pointer-events: none; -webkit-mask-image: radial-gradient(closest-side, #000 35%, transparent 100%); mask-image: radial-gradient(closest-side, #000 35%, transparent 100%); }
-.journey-art-backdrop--end { inset-inline-end: -18%; }
-.journey-art-backdrop--start { inset-inline-start: -18%; scale: -1 1; }
+.journey-art-backdrop { position: absolute; z-index: 0; inset-block-start: 50%; inline-size: clamp(44rem, 82vw, 92rem); aspect-ratio: 1; translate: 0 -50%; pointer-events: none; -webkit-mask-image: radial-gradient(closest-side, #000 35%, transparent 100%); mask-image: radial-gradient(closest-side, #000 35%, transparent 100%); }
+.journey-art-backdrop--end { inset-inline-end: -26%; }
+.journey-art-backdrop--start { inset-inline-start: -26%; scale: -1 1; }
 [dir="rtl"] .journey-art-backdrop--end { scale: -1 1; }
 [dir="rtl"] .journey-art-backdrop--start { scale: none; }
 .journey-art-backdrop .journey-art { stroke: rgb(59 30 109 / 13%); }
@@ -118,42 +116,7 @@
 }
 @media (forced-colors: active) { .journey-art-backdrop { display: none; } }
 
-/* Preserve the heading's natural height and margins. The art cannot grow the row
-   or intrude on long translated copy; it is absolutely contained in its own cell. */
-@media (min-width: 900px) {
-  .participation-heading { display: grid; grid-template-columns: minmax(0, 1fr) clamp(10rem, 25vw, 25rem); column-gap: clamp(2rem, 5vw, 5rem); }
-  .participation-heading-copy { min-inline-size: 0; }
-  .journey-art-slot--heading { display: block; position: relative; margin-block-end: 2.5rem; mask-image: radial-gradient(ellipse at center, #000 26%, transparent 73%); }
-  .journey-art-slot--heading .journey-art { position: absolute; inset: 50% 0 auto; block-size: 26rem; transform: translateY(-50%); }
-  .participation-heading--benefits .journey-art-slot { margin-block-end: 3rem; }
-  .participation-heading--benefits .journey-art { block-size: 32rem; }
-  .participation-heading--steps { grid-template-columns: minmax(0, 1fr) clamp(8rem, 18vw, 18rem); }
-  .participation-heading--steps .journey-art { inset-block-start: 65%; block-size: 22rem; }
-  .participation-heading--resources { grid-template-columns: minmax(0, 1fr) clamp(8rem, 21vw, 21rem); }
-  .participation-heading--resources .journey-art { inset-block-start: 30%; block-size: 28rem; }
-  .participation-heading--resources .journey-art-slot { mask-image: radial-gradient(ellipse at 64% 50%, #000 18%, transparent 70%); }
-}
-
-/* Match Container's real max width and responsive gutter, including safe areas.
-   At 1600px these reveal edge fragments; wider screens reveal the full drawings. */
-@media (min-width: 1600px) {
-  .journey-art-slot--margin { --art-size: 32rem; display: block; position: absolute; z-index: 0; inline-size: max(0px, calc(max(var(--container-gutter), (100% - var(--container-width)) / 2) - 1rem)); block-size: min(var(--art-size), calc(100% - 1rem)); mask-image: radial-gradient(ellipse at center, #000 22%, transparent 74%); }
-  .journey-art-slot--lg { --art-size: 44rem; }
-  .journey-art-slot--sm { --art-size: 22rem; }
-  .journey-art-slot--top { inset-block-start: var(--art-at); }
-  .journey-art-slot--bottom { inset-block-end: var(--art-at); }
-  .journey-art-slot--start { inset-inline-start: 0; scale: -1 1; }
-  .journey-art-slot--end { inset-inline-end: 0; }
-  [dir="rtl"] .journey-art-slot--start { scale: none; }
-  .journey-art-slot--margin .journey-art { position: absolute; inset: 50% auto auto 50%; inline-size: var(--art-size); block-size: var(--art-size); transform: translate(-50%, -50%) rotate(var(--art-turn)); }
-}
-@media (max-width: 700px) {
-  /* One tiny texture in the existing 48px top-padding strip; never behind copy. */
-  .journey-art-slot--mobile { display: block; position: absolute; inset-block-start: .375rem; inset-inline-end: var(--container-gutter); inline-size: 7rem; block-size: 2rem; opacity: .7; mask-image: radial-gradient(ellipse at center, #000 15%, transparent 72%); }
-  .journey-art-slot--mobile .journey-art { position: absolute; inline-size: 7rem; block-size: 4rem; inset-block-start: -1rem; }
-}
 /* All motifs are static, including under prefers-reduced-motion. */
-@media (forced-colors: active) { .journey-art-slot { display: none; } }
 
 /* ORG-054: hackathon tracks and two-day format. */
 .participation-tracks { padding-block: clamp(3rem, 6vw, 5.5rem) 0; background: var(--color-ivory); }

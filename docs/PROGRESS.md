@@ -1,5 +1,16 @@
 # Progress and session handover
 
+## 17 October 2026 — A few large background studies only
+
+- Owner: "too many of them, just make a few large ones that fill the background".
+  Removed every heading, margin and phone slot piece. Each option page now carries
+  only two large watermark-strength studies of its motif: behind "What you gain"
+  (end side) and behind "Simple steps" (start side), mirrored in Arabic; phones keep
+  only the benefits one. participation-artwork.spec now checks one to two pieces on
+  desktop, at most one on phones, side/direction, static drawing, no horizontal
+  overflow and forced-colors removal.
+- Checks: lint, types, 2,894 unit tests; full Playwright 820 passed / 137 skipped / 0 failed.
+
 ## 17 October 2026 — Larger background artwork and a solid dark two-day band
 
 - Owner request on top of PR #100: the Hackathon "Two days, two stages" section is

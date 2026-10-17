@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useId, useSyncExternalStore, type ReactNode, type CSSProperties } from "react";
+import { useId, useSyncExternalStore, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
@@ -277,7 +277,7 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
     </ExperienceIntro>
     <section id="journey-availability" tabIndex={-1} className="journey-availability fluid-journey-availability" data-testid="journey-closed" aria-labelledby="journey-closed-title"><Container><div className="journey-availability-dot" aria-hidden="true" /><div><h2 id="journey-closed-title">{content.closed}</h2><p>{content.closedBody}</p></div></Container></section>
     {content.tracks ? <section id="journey-tracks" className="participation-tracks participation-ambient" aria-labelledby="journey-tracks-title"><SideArtwork motif={journey} area="tracks" /><Container><ArtworkHeading motif={journey} area="tracks"><p className="participation-section-label">{content.tracks.label}</p><h2 id="journey-tracks-title">{content.tracks.title}</h2></ArtworkHeading><div className="participation-track-list">{content.tracks.items.map((track) => <article className="participation-track" key={track.label}><p className="participation-track-label">{track.label}</p><h3 lang="en" dir="ltr">{track.title}</h3><p>{track.body}</p></article>)}</div><p className="participation-track-note">{content.tracks.note}</p></Container></section> : null}
-    <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title"><div className="journey-art-slot journey-art-slot--mobile" aria-hidden="true"><JourneyArtwork motif={journey} variant={2} /></div><SideArtwork motif={journey} area="benefits" /><Container><ArtworkHeading motif={journey} area="benefits"><p className="participation-section-label">{journey === "workshops" ? actions.learning : actions.benefits}</p><h2 id="journey-benefits-title">{content.detailsTitle}</h2></ArtworkHeading><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
+    <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title"><SideArtwork motif={journey} area="benefits" /><Container><ArtworkHeading motif={journey} area="benefits"><p className="participation-section-label">{journey === "workshops" ? actions.learning : actions.benefits}</p><h2 id="journey-benefits-title">{content.detailsTitle}</h2></ArtworkHeading><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
       {content.goodToKnow ? <aside className="participation-good-to-know" aria-labelledby="good-to-know-title"><h3 id="good-to-know-title">{content.goodToKnow.title}</h3><ul>{content.goodToKnow.points.map((point) => <li key={point}>{point}</li>)}</ul></aside> : null}
     </Container></section>
     {content.schedule ? <section id="journey-schedule" className="participation-schedule" aria-labelledby="journey-schedule-title"><Container><h2 id="journey-schedule-title">{content.schedule.title}</h2><ol className="participation-schedule-list">{content.schedule.items.map((item) => <li key={item.label}><span className="participation-schedule-day">{item.label}</span><h3>{item.title}</h3><p>{item.body}</p></li>)}</ol></Container></section> : null}
@@ -329,34 +329,22 @@ const journeyOrder = ["registration", "submissions", "workshops", "hackathon", "
 const areaSeeds: Record<ArtworkArea, number> = { tracks: 3, benefits: 0, rail: 4, steps: 7, resources: 9 };
 
 /** The second grid cell is genuinely empty space, even when Arabic headings wrap. */
-function ArtworkHeading({ motif, area, children }: { motif: JourneyArtworkMotif; area: ArtworkArea; children: ReactNode }) {
+function ArtworkHeading({ area, children }: { motif: JourneyArtworkMotif; area: ArtworkArea; children: ReactNode }) {
   return <div className={`participation-heading participation-heading--${area}`}>
     <div className="participation-heading-copy">{children}</div>
-    <div className="journey-art-slot journey-art-slot--heading" aria-hidden="true"><JourneyArtwork motif={motif} variant={areaSeeds[area] + journeyOrder.indexOf(motif)} /></div>
   </div>;
 }
 
-type SideArt = { side: "start" | "end"; size: "lg" | "md" | "sm"; edge: "top" | "bottom"; at: string; turn: string; variant: number };
-// Each clipped gutter has its own composition, rather than repeated corner stamps.
-const sideArtwork: Record<ArtworkArea, readonly SideArt[]> = {
-  tracks: [{ side: "start", size: "sm", edge: "top", at: "12%", turn: "-18deg", variant: 3 }, { side: "end", size: "md", edge: "bottom", at: "0%", turn: "12deg", variant: 6 }],
-  benefits: [{ side: "start", size: "lg", edge: "top", at: "18%", turn: "-12deg", variant: 2 }, { side: "end", size: "md", edge: "bottom", at: "5%", turn: "22deg", variant: 5 }],
-  rail: [{ side: "start", size: "md", edge: "bottom", at: "6%", turn: "14deg", variant: 8 }, { side: "end", size: "lg", edge: "top", at: "9%", turn: "-8deg", variant: 3 }],
-  steps: [{ side: "start", size: "sm", edge: "bottom", at: "3%", turn: "24deg", variant: 7 }, { side: "end", size: "md", edge: "top", at: "8%", turn: "-24deg", variant: 4 }],
-  resources: [{ side: "start", size: "md", edge: "top", at: "5%", turn: "-8deg", variant: 9 }, { side: "end", size: "sm", edge: "bottom", at: "4%", turn: "18deg", variant: 2 }],
-};
 // One large, very faint study per section sits behind the whole section like a
 // watermark, alternating sides down the page so the background reads as one theme.
-const backdropSides: Record<ArtworkArea, "start" | "end"> = { tracks: "start", benefits: "end", rail: "start", steps: "end", resources: "start" };
+// A few large studies fill the background; smaller decorations would only add noise.
+const backdropAreas: readonly ArtworkArea[] = ["benefits", "steps"];
+const backdropSides: Record<ArtworkArea, "start" | "end"> = { tracks: "start", benefits: "end", rail: "start", steps: "start", resources: "start" };
 function SideArtwork({ motif, area }: { motif: JourneyArtworkMotif; area: ArtworkArea }) {
-  const shift = journeyOrder.indexOf(motif);
-  return <><div aria-hidden="true" className={`journey-art-backdrop journey-art-backdrop--${backdropSides[area]} journey-art-backdrop--${area}`}>
-    <JourneyArtwork motif={motif} variant={areaSeeds[area] + 11 + shift} />
-  </div>{sideArtwork[area].map((piece) => <div key={piece.side} aria-hidden="true"
-    className={`journey-art-slot journey-art-slot--margin journey-art-slot--${piece.side} journey-art-slot--${piece.size} journey-art-slot--${piece.edge}`}
-    style={{ "--art-at": piece.at, "--art-turn": piece.turn } as CSSProperties}>
-    <JourneyArtwork motif={motif} variant={piece.variant + shift} />
-  </div>)}</>;
+  if (!backdropAreas.includes(area)) return null;
+  return <div aria-hidden="true" className={`journey-art-backdrop journey-art-backdrop--${backdropSides[area]} journey-art-backdrop--${area}`}>
+    <JourneyArtwork motif={motif} variant={areaSeeds[area] + 11 + journeyOrder.indexOf(motif)} />
+  </div>;
 }
 
 function WorkshopRail({ locale, workshops }: { locale: Locale; workshops: readonly PublicWorkshop[] }) {
