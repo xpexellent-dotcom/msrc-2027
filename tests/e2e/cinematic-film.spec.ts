@@ -287,6 +287,10 @@ for (const locale of ["en", "ar"] as const) {
 }
 
 test("cinema respects the visitor's paused background state after a deliberate viewing", async ({ page }) => {
+  // The normal phone homepage has no pause target; establish the durable pause
+  // on desktop, then retain the project viewport for explicit film viewing.
+  const viewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/en");
   const video = page.locator(".conference-hero video");
   const background = page.locator(".conference-hero .hero-media-toggle");
@@ -294,6 +298,7 @@ test("cinema respects the visitor's paused background state after a deliberate v
   await background.focus();
   await page.keyboard.press("Space");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  await page.setViewportSize(viewport);
   const retainedVideo = await video.elementHandle();
   const watch = page.locator("#legacy").getByTestId("watch-opening-film");
   await watch.scrollIntoViewIfNeeded();
@@ -303,7 +308,8 @@ test("cinema respects the visitor's paused background state after a deliberate v
   await page.keyboard.press("Escape");
   await expect(watch).toBeFocused();
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
-  await expect(background).toHaveAccessibleName("Play background video");
+  if (viewport.width <= 700) await expect(background).toBeHidden();
+  else await expect(background).toHaveAccessibleName("Play background video");
   expect(await retainedVideo!.evaluate((element) => element.isConnected)).toBe(true);
 });
 

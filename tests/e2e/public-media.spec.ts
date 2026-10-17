@@ -41,6 +41,12 @@ for (const locale of ["en", "ar"] as const) {
     expect([...new Set(videoRequests)]).toEqual([source]);
     await expect(page.locator(".conference-hero iframe")).toHaveCount(0);
 
+    if (mobile) {
+      await expect(control).toBeHidden();
+      await expect(page.locator(".conference-hero").getByRole("button", { name: /background video|فيديو الخلفية/ })).toHaveCount(0);
+      expect(errors).toEqual([]);
+      return;
+    }
     await expect(control).toHaveCount(1);
     await expect(control).toHaveAttribute("aria-keyshortcuts", "Space Enter");
     await expect(control).toBeEmpty();
@@ -176,6 +182,14 @@ test("public film pauses when hidden, resumes when visible, and preserves an exp
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
   expect(await retainedVideo!.evaluate((element) => element.isConnected)).toBe(true);
 
+  if ((page.viewportSize()?.width ?? 1280) <= 700) {
+    await expect(control).toBeHidden();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(video).toHaveCount(0);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
+    return;
+  }
   await control.focus();
   await page.keyboard.press("Space");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
@@ -219,6 +233,15 @@ for (const locale of ["en", "ar"] as const) {
       name: locale === "ar" ? "تشغيل فيديو الخلفية" : "Play background video", exact: true,
     });
     await expect(video).toHaveCount(1);
+    if ((page.viewportSize()?.width ?? 1280) <= 700) {
+      await expect(play).toBeHidden();
+      await expect(page.locator(".hero-media-poster")).toBeVisible();
+      // Explicit film viewing still provides gesture-based recovery on phones.
+      await page.getByTestId("watch-opening-film").click();
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
+      expect(errors).toEqual([]);
+      return;
+    }
     await expect(play).toBeVisible();
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
     await expect(page.getByRole("status").filter({

@@ -43,6 +43,12 @@ for (const locale of ["en", "ar"] as const) {
 
     await closing.scrollIntoViewIfNeeded();
     const control = closing.locator(".city-control");
+    if ((page.viewportSize()?.width ?? 1280) <= 700) {
+      await expect(control).toBeHidden();
+      await expect(closing.getByRole("button", { name: /فيديو جدة|Jeddah video/ })).toHaveCount(0);
+      expect(errors).toEqual([]);
+      return;
+    }
     await expect(control).toHaveAccessibleName(locale === "ar" ? "إيقاف فيديو جدة" : "Pause Jeddah video");
     const size = await control.boundingBox();
     expect(size!.width).toBeGreaterThanOrEqual(44);

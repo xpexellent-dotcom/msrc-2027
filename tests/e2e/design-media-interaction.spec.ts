@@ -19,11 +19,12 @@ for (const locale of ["en", "ar"] as const) {
     });
     // Exercise the visible open film above the poster copy, never a header or text target.
     expect(point.emptyHeight).toBeGreaterThan(16);
-    expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.classList.contains("hero-media-toggle"), point)).toBe(true);
+    const phone = (page.viewportSize()?.width ?? 1280) <= 700;
+    expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.classList.contains("hero-media-toggle"), point)).toBe(!phone);
     for (const paused of [true, false]) {
       if (isMobile) await page.touchscreen.tap(point.x, point.y);
       else await page.mouse.click(point.x, point.y);
-      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(paused);
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(phone ? false : paused);
     }
     const heading = page.locator("#hero-title");
     await expect(heading).toHaveCSS("pointer-events", "auto");
