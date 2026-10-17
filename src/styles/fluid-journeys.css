@@ -8,7 +8,12 @@
 .fluid-journey-hero .experience-location > span:nth-child(2) { color: #fff; font-weight: 650; font-size: 1.375rem; }
 .fluid-journey-hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-block-start: 2rem; }
 .fluid-journey-hero-actions .button { inline-size: auto; min-block-size: 56px; padding: 1rem 1.5rem; gap: 1.25rem; font-size: 1.125rem; }
-.experience-intro--hackathon .premium-hero-image img { object-position: left 40%; }
+/* ORG-054: keep the group discussing in frame when a phone crops the photo. */
+.experience-intro--hackathon .premium-hero-image img { object-position: 50% 50%; }
+.experience-intro--workshops .premium-hero-image img { object-position: 50% 45%; }
+.experience-intro--submissions .premium-hero-image img { object-position: 40% 55%; }
+.experience-intro--threeMinuteThesis .premium-hero-image img { object-position: 46% 40%; }
+.experience-intro--program .premium-hero-image img { object-position: 58% 55%; }
 .experience-intro--registration .premium-hero-image img { object-position: 50% 58%; }
 .experience-intro--speakers .premium-hero-image img { object-position: 50% 65%; }
 .fluid-journey-availability { position: relative; background: #f1ebf7; border-block-end: 0; padding-block: 1.75rem; scroll-margin-block-start: 7rem; }

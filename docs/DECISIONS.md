@@ -3154,3 +3154,31 @@ workshops, hackathon and 3MT must retain their SSG entries. This task adds no dy
 route or account opening. Audit, copy, icon replacement and verification:
 [participation feature note](features/participation-flow.md); exact receipts:
 [O9 progress note](progress/2026-10-16-claude-participation-flow.md).
+
+## ORG-054 — Mobile polish of the homepage, Program and option pages, 17 October 2026
+
+Authority: explicit owner instructions, 17 October 2026 (phone review of the live site).
+
+- Program: the venue line leaves the Program header; the day filter reads "Day 1",
+  "Day 2" and "Both days" (dates already appear in the header).
+- The date / "MSRC / 2027" / venue block appears only on the Participate hub and Attend.
+  Abstract submission, Workshops, Hackathon and 3MT headers no longer repeat it.
+- Header photos keep their subject when phones crop them (per-page focus points; the
+  Hackathon header centres on the group discussing). Workshops uses its own MSRC 2026
+  workshop photograph (`learn-doing-manar-2529.jpg`) instead of the abstract image.
+- Option pages gain soft animated brand linework behind benefits and steps
+  (reduced motion: static).
+- Abstract submission "Good to know" becomes clear bullet points: completed or
+  ongoing work; the per-principal-investigator limit explained in plain words; English
+  and no patient-identifying details; abstracts do not register attendance. The
+  300-word limit stays in the form guidance only.
+- Hackathon shows its two tracks distinctly ("Choose your track", pick one) and the
+  two-day format: Day 1 mentoring, Day 2 pitching and judging; preparation and the
+  compulsory orientation come before the conference. No new rules are introduced.
+- Homepage: shorter benefit copy and larger titles, compact history numbers, gallery
+  arrows that move exactly one item, the benefits section mirrored for variety, a
+  seamless transition into "Meet the speakers", and subtle light linework on the
+  dark history section.
+- Phones hide the pause control on the opening and closing films; both films keep
+  playing and desktop keeps the controls. This is an owner-accepted exception to
+  WCAG 2.2.2 on phones; reduced-motion users get the static poster.

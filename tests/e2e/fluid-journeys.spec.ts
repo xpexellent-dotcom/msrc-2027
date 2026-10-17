@@ -3,8 +3,8 @@ import { expect, test } from "@playwright/test";
 const routes = [
   ["registration", "attend-majed-9744.jpg", 5],
   ["submissions", "share-research-manar-2560.jpg", 4],
-  ["workshops", "share-research-manar-2560.jpg", 4],
-  ["hackathon", "build-idea-majed-9846.jpg", 4],
+  ["workshops", "learn-doing-manar-2529.jpg", 4],
+  ["hackathon", "build-idea-majed-9846.jpg", 3],
   ["3mt", "gallery-presentation.jpg", 2],
 ] as const;
 
@@ -18,20 +18,32 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator(".premium-hero-image img")).toHaveAttribute("src", new RegExp(image.replace(".", "\\.")));
       await expect(page.locator(".premium-hero-image img")).toHaveAttribute("alt", "");
       await expect(page.locator(".participation-benefit")).toHaveCount(count);
+      // ORG-054: the date/edition/venue block appears only on Participate and Attend.
+      await expect(page.locator(".experience-location")).toHaveCount(route === "registration" ? 1 : 0);
       expect(await page.locator(".participation-steps li").count()).toBeGreaterThanOrEqual(3);
       await expect(page.locator(".journey-steps, .journey-next")).toHaveCount(0);
       await expect(page.getByTestId("journey-closed")).toBeVisible();
       await expect(page.locator(".fluid-resource-grid a[href$='#faq']")).toHaveAttribute("href", `/${locale}#faq`);
       await expect(page.locator("main form, main input, main textarea, main button[type=submit]")).toHaveCount(0);
     }
+    // ORG-054: two distinct hackathon tracks and the two-day format.
+    await page.goto(`/${locale}/hackathon`);
+    const tracks = page.locator(".participation-track");
+    await expect(tracks).toHaveCount(2);
+    await expect(tracks.locator("h3")).toHaveText(["Translating research into practice", "Advancing medical student research"]);
+    for (const title of await tracks.locator("h3").all()) { await expect(title).toHaveAttribute("lang", "en"); await expect(title).toHaveAttribute("dir", "ltr"); }
+    await expect(page.locator(".participation-schedule-day")).toHaveText(locale === "en" ? ["Day 1", "Day 2"] : ["اليوم الأول", "اليوم الثاني"]);
+    await expect(page.locator(".participation-schedule-list h3")).toHaveText(locale === "en" ? ["Mentoring", "Pitching and judging"] : ["الإرشاد", "العرض والتحكيم"]);
     await page.goto(`/${locale}/submissions`);
+    await expect(page.locator(".participation-good-to-know li")).toHaveCount(4);
+    await expect(page.locator(".participation-good-to-know")).not.toContainText(locale === "en" ? "300" : "٣٠٠");
     const submit = page.locator(".fluid-journey-hero-actions a");
     await expect(submit).toHaveText(locale === "en" ? "Submit your abstract" : "قدّم ملخصك البحثي");
     await submit.click();
     await expect(page).toHaveURL(/#journey-availability$/);
     await expect(page.getByTestId("journey-closed")).toBeInViewport();
     await expect(page.locator("#journey-availability")).toBeFocused();
-    await expect(page.locator(".participation-good-to-know")).toContainText(locale === "en" ? "300" : "٣٠٠");
+    await expect(page.locator(".participation-good-to-know")).toContainText(locale === "en" ? "principal investigator" : "باحث رئيسي");
     await expect(page.getByRole("main")).not.toContainText(locale === "en" ? "Supervisor requirements" : "متطلبات المشرف");
     await page.goto(`/${locale}/registration`);
     await expect(page.getByTestId("ticket-unavailable")).toBeDisabled();

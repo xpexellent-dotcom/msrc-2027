@@ -72,8 +72,8 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     pathwaysBody: "Research. Innovation. Communication. Hands-on learning.", closed: "Not open yet",
     pathways: [
       { category: "Attend", title: "Be part of the conversation", description: "Meet the people asking the next questions in medicine.", href: "/registration" },
-      { category: "Abstract submission", title: "Share your research", description: "Present your findings, including work in progress, and open a scientific conversation.", href: "/submissions" },
-      { category: "Workshops", title: "Learn by doing", description: "Build practical skills through focused, hands-on learning.", href: "/workshops" },
+      { category: "Abstract submission", title: "Share your research", description: "Discuss your findings, including work in progress.", href: "/submissions" },
+      { category: "Workshops", title: "Learn by doing", description: "Build practical skills through hands-on learning.", href: "/workshops" },
       { category: "Hackathon", title: "Build on an idea", description: "Turn research into practice, or advance the way medical students do research.", href: "/hackathon" },
     ],
     programEyebrow: "3 / The experience", programTitle: "Ideas take\nthe stage.",
@@ -101,8 +101,8 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     pathwaysBody: "بحث. ابتكار. تواصل. وتعلّم بالممارسة.", closed: "لم يُفتح بعد",
     pathways: [
       { category: "الحضور", title: "كن جزءًا من الحوار", description: "التقِ بمن يطرحون أسئلة الطب القادمة.", href: "/registration" },
-      { category: "تقديم الملخصات", title: "شارك بحثك", description: "اعرض نتائجك، بما فيها الأبحاث الجارية، وافتح باب النقاش العلمي.", href: "/submissions" },
-      { category: "ورش العمل", title: "تعلّم بالممارسة", description: "طوّر مهارات عملية من خلال تعلّم مركّز وتطبيقي.", href: "/workshops" },
+      { category: "تقديم الملخصات", title: "شارك بحثك", description: "ناقش نتائجك، بما فيها الأبحاث الجارية.", href: "/submissions" },
+      { category: "ورش العمل", title: "تعلّم بالممارسة", description: "طوّر مهاراتك العملية بالتعلّم التطبيقي.", href: "/workshops" },
       { category: "الهاكاثون", title: "ابنِ على فكرتك", description: "حوّل البحث إلى تطبيق، أو طوّر طريقة إجراء طلاب الطب لأبحاثهم.", href: "/hackathon" },
     ],
     programEyebrow: "٣ / تجربة المؤتمر", programTitle: "أفكار\nعلى المنصّة.",

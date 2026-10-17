@@ -57,6 +57,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(control).toHaveCount(1);
     await expect(control).toHaveJSProperty("tagName", "BUTTON");
     await expect(control).toBeEmpty();
+    if ((page.viewportSize()?.width ?? 1280) <= 700) await expect(control).toBeHidden();
+    else await expect(control).toBeVisible();
     await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
     await expect(page.locator(".footer-directory-note, .program-sample-label, .hero-media-status")).toHaveCount(0);
     await expect(page.locator(".conference-hero [data-countdown]")).toHaveCount(1);

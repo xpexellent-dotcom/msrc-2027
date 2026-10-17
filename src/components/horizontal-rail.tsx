@@ -8,6 +8,7 @@ export function HorizontalRail({ children, label, locale, className = "", stepBy
   children: ReactNode; label: string; locale: Locale; className?: string; stepByItem?: boolean;
 }) {
   const rail = useRef<HTMLDivElement>(null);
+  const destination = useRef<number | null>(null);
   const [edges, setEdges] = useState({ start: true, end: false });
   useEffect(() => {
     const element = rail.current;
@@ -20,35 +21,45 @@ export function HorizontalRail({ children, label, locale, className = "", stepBy
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
     update();
-    const observer = new ResizeObserver(update);
+    const reset = () => { destination.current = null; };
+    const observer = new ResizeObserver(() => { reset(); update(); });
     observer.observe(element);
+    Array.from(element.children).forEach(child => observer.observe(child));
     element.addEventListener("scroll", schedule, { passive: true });
-    return () => { observer.disconnect(); element.removeEventListener("scroll", schedule); cancelAnimationFrame(frame); };
+    element.addEventListener("scrollend", reset);
+    element.addEventListener("pointerdown", reset, { passive: true });
+    element.addEventListener("wheel", reset, { passive: true });
+    return () => {
+      observer.disconnect(); element.removeEventListener("scroll", schedule);
+      element.removeEventListener("scrollend", reset); element.removeEventListener("pointerdown", reset);
+      element.removeEventListener("wheel", reset); cancelAnimationFrame(frame);
+    };
   }, []);
   const move = (direction: number, keyboard: boolean) => {
     const element = rail.current;
     if (!element) return;
-    if (stepByItem) {
-      // Snap items can differ from a viewport increment; use their real edges.
-      const position = Math.abs(element.scrollLeft);
-      const rtl = locale === "ar";
-      const first = element.firstElementChild as HTMLElement | null;
-      const stops = Array.from(element.children).map((child) => {
-        const item = child as HTMLElement;
-        // Layout offsets stay stable while the compositor advances a smooth
-        // scroll; mixing scrollLeft with animated rectangles can drift a frame.
-        return Math.max(0, rtl ? (first?.offsetLeft ?? 0) - item.offsetLeft : item.offsetLeft - (first?.offsetLeft ?? 0));
-      });
-      const target = direction > 0
-        ? stops.find(stop => stop > position + 2) ?? element.scrollWidth
-        : stops.slice().reverse().find(stop => stop < position - 2) ?? 0;
-      const offset = Math.min(target, element.scrollWidth - element.clientWidth);
-      element.scrollTo({ left: rtl ? -offset : offset,
-        // Keyboard changes are immediate; pointer changes use native motion.
-        behavior: keyboard || matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
-      return;
-    }
-    element.scrollBy({ left: direction * (locale === "ar" ? -1 : 1) * element.clientWidth * .82,
+    const first = element.firstElementChild as HTMLElement | null;
+    if (!first) return;
+    const rtl = locale === "ar";
+    const end = Math.max(0, element.scrollWidth - element.clientWidth);
+    const position = destination.current ?? Math.abs(element.scrollLeft);
+    const stops = Array.from(element.children).map((child) => {
+      const item = child as HTMLElement;
+      // Layout offsets remain stable during smooth scrolling. Measure from the
+      // reading edge, including each item's width, so mixed widths and RTL work.
+      const start = rtl
+        ? first.offsetLeft + first.offsetWidth - item.offsetLeft - item.offsetWidth
+        : item.offsetLeft - first.offsetLeft;
+      // Existing full-width venue galleries retain their start alignment.
+      const offset = start - (stepByItem ? 0 : (element.clientWidth - item.offsetWidth) / 2);
+      return Math.max(0, Math.min(end, offset));
+    });
+    const target = direction > 0
+      ? stops.find(stop => stop > position + 2) ?? end
+      : stops.slice().reverse().find(stop => stop < position - 2) ?? 0;
+    // Repeated taps advance from the requested item, even before motion settles.
+    destination.current = target;
+    element.scrollTo({ left: rtl ? -target : target,
       behavior: keyboard || matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   };
   return <div className={`horizontal-rail ${className}`}>
@@ -70,6 +81,7 @@ export function HorizontalRail({ children, label, locale, className = "", stepBy
         event.preventDefault();
         const element = event.currentTarget;
         const end = element.scrollWidth - element.clientWidth;
+        destination.current = null;
         element.scrollTo({ left: event.key === "Home" ? 0 : locale === "ar" ? -end : end, behavior: "instant" });
       } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault();
