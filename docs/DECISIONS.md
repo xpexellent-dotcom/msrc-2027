@@ -1,5 +1,27 @@
 # MSRC 2027 decision and configuration register
 
+## 17 October 2026 — Hackathon Option E medical extension
+
+Authority: the owner's selected written Option E direction and explicit follow-up
+to keep the photographic purple header, photograph and gold Enter pill.
+The referenced `.qa/opts/e.html` was unavailable; the detailed brief is the
+implementation reference, not evidence of approval of an unseen mockup.
+Requirements DSN-01/02, LOC-01/03, ACC-01; `/en/hackathon` and `/ar/hackathon` only.
+
+Replace the earlier orbital/festival decoration with static DNA and a single ECG
+beat. Reserve the empty hero cell for the helix and a separate full-width strip
+for the ECG; use at most two faint lower heading-cell echoes. Phones retain only
+the ECG. Mirror Arabic, preserve English/LTR track titles, and hide decoration in
+forced colors and print. Dark glass track/day cards use 22px corners and fine
+violet-to-gold bottom edges; connected step nodes follow the same local treatment.
+
+The requested medical-hackathon label is the sole new copy and has an Arabic
+translation. Preserve other copy, controls, routes and closed states. This
+supersedes the Hackathon orb/circuit directions below while preserving the
+photographic MSRC world, solid dark schedule and global design contract. It
+authorizes no hosted configuration changes, workflow activation or merge.
+[Implementation and evidence](features/hackathon-technology.md).
+
 ## 17 October 2026 — Hackathon technology throughout the page
 
 Authority: the owner's follow-up asking for the technology theme across the whole

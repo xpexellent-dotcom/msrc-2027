@@ -1,5 +1,35 @@
 # Progress and session handover
 
+## 17 October 2026 — Hackathon Option E medical artwork
+
+- Refreshed PR #101's `codex/hackathon-technology` baseline to `5ae3c9a` before
+  implementing the owner's written medical direction. The referenced local HTML
+  mockup was unavailable; no approval of an unseen mockup is assumed. The owner
+  explicitly retained the photographic purple header, photo and gold Enter pill.
+- Replaced festival orbs/circuits with static inline DNA and a single ECG beat:
+  helix in the empty hero cell, ECG in its own full-width strip, two faint lower
+  heading-cell echoes, and only the ECG on phones. Dark glass track/day cards have
+  22px corners and fine gradient edges; steps have connected nodes. Arabic mirrors
+  the composition. Existing copy/actions/routes/closed states remain, apart from
+  the requested bilingual medical-hackathon label. Requirements DSN-01/02,
+  LOC-01/03, ACC-01; global design identity and other pages remain unchanged.
+- PASS: lint, typecheck, build, 2,894 unit tests/68 files; four focused Playwright
+  suites: 90 passed, 60 intentional project/device skips, zero failures/retries.
+  The 54 artwork cases include 32 clean axe scans, narrow/enlarged-text and wide
+  layouts, breakpoint boundaries, both hero pieces' rendered alpha edges, unique
+  SVG IDs, server/client identity, forced colors and print.
+- All 30 before/after option-page states recaptured: zero unexpected text changes,
+  zero overflow; only Hackathon heights change. 23/24 other-page images are
+  byte-identical. Independent visual/source review PASS with no fixes requested.
+  Full configured Playwright suite PASS: 825 passed, 141 intentional project/device
+  skips, zero failures/retries (14.4 minutes); receipt in
+  `.tools/participation-artwork/medical-full-playwright.log`.
+  Physical devices, real assistive technology and production NOT TESTED.
+- Details: [feature and checks](features/hackathon-technology.md),
+  [before/after gallery](reviews/hackathon-medical-tech-2026-10-17/README.md).
+  Next: owner review of PR #101. No hosted configuration changes, merge or workflow
+  activation.
+
 ## 17 October 2026 — Hackathon technology flow and soft artwork edges
 
 - Owner requested technology styling throughout the page with only a few large

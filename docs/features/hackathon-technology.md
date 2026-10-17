@@ -4,6 +4,72 @@ Scope: `/en/hackathon` and `/ar/hackathon`; DSN-01/02, LOC-01/03, ACC-01.
 The owner supplied a technology-themed landing-page reference and requested a
 restrained interpretation in MSRC colors and branding.
 
+## Current revision — Option E medical artwork
+
+The owner selected the written Option E medical direction and explicitly retained
+the photographic purple header, its photograph and the gold Enter pill. The
+referenced `.qa/opts/e.html` was not present; implementation follows the detailed
+written brief, not a reviewed local mockup. This scoped extension supersedes the
+orb/circuit festival treatment below without changing the global MSRC identity.
+The fresh baseline is PR #101 head `5ae3c9a` on `codex/hackathon-technology`.
+
+- Static, deterministic inline SVG replaces the glass orbs, dot grids and
+  chevrons with a violet/gold DNA helix in the empty hero grid cell and a single
+  ECG beat in a full-width strip with reserved spacing beneath the reading area.
+  Transparent ends and padded geometry avoid the earlier hard artwork cutoff.
+- Two quieter echoes occupy their own empty heading cells: a DNA fragment beside
+  Benefits and an ECG fragment beside the closing resources. At 1000px and below
+  the hero helix and closing echo disappear; at 700px and below only the hero ECG
+  remains. Arabic mirrors the composition and gradients; scientific track titles
+  remain English and LTR.
+- Tracks and day cards use dark glass surfaces, 22px corners and a fine
+  violet-to-gold bottom edge. The solid dark schedule remains; connected step
+  nodes replace the festival decorations. The existing heading's last word has
+  the requested gradient accent, with a solid-color fallback.
+- The only new text is the requested `MEDICAL HACKATHON · MSRC 2027` label,
+  localized as `الهاكاثون الطبي · MSRC 2027`. Existing copy, actions, routes and
+  closed workflow states remain. No dependency or website image asset is added.
+  Decoration is noninteractive, aria-hidden, non-focusable, static under reduced
+  motion, and hidden in forced colors and print. SVG gradient/filter IDs are
+  instance-unique and stable across server rendering and hydration.
+
+### Current verification
+
+Node 24.21.0 / pnpm 11.19.0. These receipts apply to the medical revision;
+historical results below remain evidence for their named revisions only.
+
+| Check | Observed result |
+| --- | --- |
+| `pnpm lint`, `pnpm typecheck`, `pnpm build` | PASS |
+| `pnpm test` | PASS — 2,894 tests, 68 files |
+| Four focused Playwright suites | PASS — 90 passed, 60 intentional project/device skips, zero failures/retries |
+| Artwork coverage | PASS — 54 cases, including 30 locale/page/width matrix axe scans and two enlarged-text axe scans; all 32 clean |
+| Layout and SVG checks | PASS — EN/AR at 320/390px with 100%/200% text, 1440/1920px, 1600/2560px, 700/701px and 1000/1001px boundaries, both hero pieces' rendered alpha edges, unique IDs, exact server/client SVG, forced colors and print |
+| Before/after comparison | PASS — all 30 option-page states recaptured; zero unexpected text changes after the requested label, zero horizontal overflow; only Hackathon page heights change |
+| Other option pages | 23/24 screenshots byte-identical; Arabic Workshops at 390px differs by at most one RGB level within its unchanged hero, with identical text and geometry |
+| Independent visual and source review | PASS — all six EN/AR 390/1440/1920px states, section-by-section and native-size crops; no actionable findings; disposition SHIP |
+| Full configured Playwright suite | PASS — 825 passed, 141 intentional project/device skips, zero failures/retries, 14.4 minutes; `.tools/participation-artwork/medical-full-playwright.log` |
+| Physical devices / real assistive technology / production deployment | NOT TESTED |
+
+Focused command:
+`pnpm exec playwright test tests/e2e/participation-artwork.spec.ts tests/e2e/participation-flow.spec.ts tests/e2e/fluid-journeys.spec.ts tests/e2e/premium-interface.spec.ts --config .tools/playwright-hackathon-isolated.config.ts`.
+Full command: `pnpm exec playwright test --config .tools/playwright-hackathon-isolated.config.ts`.
+The existing isolated config changes only server port and output paths; assertions,
+workers and retry policy remain unchanged. Current logs use the `medical-` prefix
+in the ignored `.tools/participation-artwork` directory.
+
+The design detector was run once. Its two warnings concern the unchanged
+Good-to-know accent border and the explicitly requested heading gradient.
+Advisories cover the legacy type scale and this scoped revision's violet, 22px
+corners and alpha masks. Independent review found no mechanical defect requiring
+a change; these diagnostics do not authorize unrelated design drift repairs.
+The feature-level contract records this extension; global `DESIGN.md` and
+`.impeccable/design.json` remain unchanged.
+
+[Current before/after gallery and comparison receipt](../reviews/hackathon-medical-tech-2026-10-17/README.md).
+Next: owner review of PR #101. No hosted setting, database, account, email, flag, merge or workflow
+activation is part of this revision.
+
 ## Whole-page follow-up
 
 The owner subsequently asked for the technology theme to continue through the

@@ -118,32 +118,51 @@
 
 /* All motifs are static, including under prefers-reduced-motion. */
 
-/* Hackathon: three large studies carry the same circuit language from the hero
-   through Benefits to the closing section. Every edge fades before its clip. */
+/* Hackathon medical-tech: preserve the photographic MSRC header, with a DNA
+   study in its empty cell and an ECG strip in reserved bottom padding. */
+.participation-journey--hackathon { --hackathon-violet: #9b6bff; --hackathon-dark: #0d0a1c; --hackathon-direction: 90deg; }
+[dir="rtl"] .participation-journey--hackathon { --hackathon-direction: -90deg; }
+.experience-intro--hackathon.fluid-journey-hero { padding-block-end: clamp(5.5rem, 9vw, 9rem); background-color: var(--hackathon-dark); }
+.experience-intro--hackathon::after { background: radial-gradient(55% 85% at 80% 42%, rgb(59 30 109 / 38%), transparent 70%), linear-gradient(105deg, rgb(31 25 48 / 93%), rgb(59 30 109 / 78%) 65%, rgb(31 25 48 / 75%)); }
+[dir="rtl"] .experience-intro--hackathon::after { background: radial-gradient(55% 85% at 20% 42%, rgb(59 30 109 / 38%), transparent 70%), linear-gradient(-105deg, rgb(31 25 48 / 93%), rgb(59 30 109 / 78%) 65%, rgb(31 25 48 / 75%)); }
 .experience-intro--hackathon .experience-intro-art { position: relative; align-self: stretch; padding: 0; }
-.experience-intro--hackathon::after { background: linear-gradient(105deg, rgb(31 25 48 / 94%), rgb(59 30 109 / 89%) 65%, rgb(31 25 48 / 92%)); }
-[dir="rtl"] .experience-intro--hackathon::after { background: linear-gradient(-105deg, rgb(31 25 48 / 94%), rgb(59 30 109 / 89%) 65%, rgb(31 25 48 / 92%)); }
-.hackathon-tech-art { position: absolute; inset: 0; overflow: clip; pointer-events: none; isolation: isolate; mask-image: radial-gradient(ellipse closest-side at 50% 50%, #000 32%, rgb(0 0 0 / 85%) 58%, transparent 100%); }
-.hackathon-tech-art::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 68% 48%, rgb(220 207 240 / 13%), rgb(59 30 109 / 18%) 42%, transparent 72%); pointer-events: none; }
-.hackathon-tech-svg { position: absolute; inset-block-start: -7.5%; inset-inline-start: -17.5%; inline-size: 135%; block-size: 115%; overflow: visible; pointer-events: none; stroke: var(--tech-stroke, var(--color-lilac)); stroke-width: 1; }
-.hackathon-tech-svg :is(path, circle) { vector-effect: non-scaling-stroke; }
-.hackathon-tech-disc { fill: rgb(220 207 240 / 3%); stroke: none; }
-.hackathon-tech-orbits { opacity: .18; }
-.hackathon-tech-route { opacity: .36; }
-.hackathon-tech-svg .hackathon-tech-gold { stroke: var(--color-gold); opacity: .7; }
-.hackathon-tech-svg .hackathon-tech-arc { opacity: .4; }
-.hackathon-tech-nodes { fill: var(--tech-surface, var(--color-purple)); stroke: var(--tech-stroke, rgb(220 207 240 / 46%)); }
-.hackathon-tech-points { fill: var(--tech-stroke, var(--color-lilac)); stroke: none; opacity: .3; }
-.hackathon-tech-art--field, .hackathon-tech-art--closing { --tech-stroke: var(--color-purple); --tech-surface: var(--color-ivory); inset: auto; z-index: 0; aspect-ratio: 1; opacity: .4; }
-.hackathon-tech-art--field { inline-size: clamp(36rem, 65vw, 70rem); inset-inline-end: -14%; inset-block-start: 42%; translate: 0 -50%; }
-.hackathon-tech-art--closing { --tech-surface: var(--color-white); inline-size: clamp(32rem, 57vw, 62rem); inset-inline-start: -12%; inset-block-start: 35%; translate: 0 -50%; scale: -1 1; opacity: .28; }
-.hackathon-tech-art--field::before, .hackathon-tech-art--closing::before { background: radial-gradient(ellipse at 60% 48%, rgb(220 207 240 / 30%), transparent 68%); }
-[dir="rtl"] .hackathon-tech-art { scale: -1 1; }
-[dir="rtl"] .hackathon-tech-art--closing { scale: none; }
-[dir="rtl"] .hackathon-tech-svg { inset-inline-start: auto; inset-inline-end: -17.5%; }
-@media (max-width: 1000px) { .hackathon-tech-art--hero, .hackathon-tech-art--closing { display: none; } }
-@media (max-width: 700px) { .hackathon-tech-art--field { inline-size: 130vw; inset-inline-end: -45%; inset-block-start: 0; translate: none; opacity: .28; } }
-@media (forced-colors: active), print { .hackathon-tech-art { display: none; } }
+.hackathon-hero-label { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: 0 0 1.4rem; color: var(--color-gold); font-size: .75rem; font-weight: 700; line-height: 1.8; letter-spacing: .08em; }
+.hackathon-hero-label > span { inline-size: .4rem; block-size: .4rem; flex: 0 0 auto; border-radius: 50%; background: var(--color-gold); box-shadow: 0 0 10px rgb(201 162 74 / 60%); }
+[lang="ar"] .hackathon-hero-label { letter-spacing: 0; }
+.experience-intro--hackathon h1 .hackathon-title-word { color: var(--color-gold); }
+@supports (background-clip: text) {
+  .experience-intro--hackathon h1 .hackathon-title-word { background: linear-gradient(var(--hackathon-direction), var(--hackathon-violet), var(--color-gold)); background-clip: text; -webkit-text-fill-color: transparent; }
+}
+.participation-journey--hackathon .experience-intro--hackathon .fluid-journey-hero-actions > a.button.button--gold:not([aria-disabled="true"]) { box-shadow: inset 0 1px 0 rgb(248 246 240 / 52%), 0 7px 24px rgb(201 162 74 / 18%); }
+.hackathon-tech-art { position: absolute; inset: 0; overflow: clip; pointer-events: none; isolation: isolate; mask-image: radial-gradient(ellipse closest-side at 50% 50%, #000 38%, rgb(0 0 0 / 90%) 64%, transparent 100%); }
+.hackathon-tech-svg { display: block; position: absolute; inset: 0; inline-size: 100%; block-size: 100%; overflow: visible; pointer-events: none; }
+.hackathon-tech-art--hero .hackathon-tech-svg { scale: 1.2; }
+.hackathon-heartbeat { position: absolute; z-index: 1; inset-inline: 0; inset-block-end: .5rem; block-size: clamp(4rem, 7vw, 7rem); pointer-events: none; overflow: clip; }
+.hackathon-heartbeat-svg { display: block; inline-size: 100%; block-size: 100%; pointer-events: none; }
+[dir="rtl"] :is(.hackathon-tech-art, .hackathon-heartbeat) { scale: -1 1; }
+
+/* Two quieter echoes have their own heading cells, clear of all reading content. */
+.participation-journey--hackathon :is(.participation-heading--benefits, .participation-heading--resources) { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 5rem); align-items: stretch; }
+.hackathon-section-art { position: relative; min-inline-size: 0; pointer-events: none; }
+.hackathon-tech-art--field { opacity: .22; }
+.hackathon-tech-art--field .hackathon-tech-svg { rotate: 65deg; scale: 1.6; }
+.hackathon-tech-art--closing { opacity: .4; }
+.hackathon-tech-art--closing .hackathon-tech-svg { scale: -1 1; }
+@media (max-width: 1000px) {
+  .experience-intro--hackathon .experience-intro-art, .hackathon-tech-art--hero, .participation-heading--resources .hackathon-section-art { display: none; }
+  .participation-journey--hackathon .participation-heading--resources { display: block; }
+}
+@media (max-width: 700px) {
+  .participation-journey--hackathon .participation-heading--benefits { display: block; }
+  .participation-journey--hackathon .hackathon-section-art { display: none; }
+  .hackathon-heartbeat { opacity: .75; block-size: 4rem; }
+  .hackathon-heartbeat .hackathon-ecg-line { stroke-width: 1.4; }
+  .hackathon-heartbeat .hackathon-ecg-glow { opacity: .2; }
+}
+@media (forced-colors: active), print {
+  .hackathon-tech-art, .hackathon-heartbeat, .hackathon-hero-label > span { display: none; }
+  .experience-intro--hackathon h1 .hackathon-title-word { background: none; color: inherit; -webkit-text-fill-color: currentColor; }
+}
 
 /* ORG-054: hackathon tracks and two-day format. */
 .participation-tracks { padding-block: clamp(3rem, 6vw, 5.5rem) 0; background: var(--color-ivory); }
@@ -176,56 +195,27 @@
 .fluid-workshop-section .participation-heading h2 { max-inline-size: 24ch; margin: 0 0 1.5rem; color: var(--color-purple); font-family: var(--font-display); font-size: clamp(2.5rem, 4.7vw, 4.7rem); font-weight: 700; letter-spacing: -.035em; line-height: 1.12; text-wrap: balance; }
 [lang="ar"] .fluid-workshop-section .participation-heading h2 { letter-spacing: 0; line-height: 1.5; }
 
-/* Hackathon "technology festival" pass: a vivid violet hero with glass orbs and
-   glowing circuitry, numbered neon track cards, a lit connector between the two
-   days and glowing step nodes. Decoration only; copy and structure are unchanged. */
-.experience-intro--hackathon::after { background: radial-gradient(55% 85% at 80% 42%, rgb(124 72 255 / 52%), transparent 70%), linear-gradient(105deg, rgb(20 11 46 / 96%) 0%, rgb(46 21 112 / 92%) 48%, rgb(82 40 190 / 84%) 100%); }
-[dir="rtl"] .experience-intro--hackathon::after { background: radial-gradient(55% 85% at 20% 42%, rgb(124 72 255 / 52%), transparent 70%), linear-gradient(-105deg, rgb(20 11 46 / 96%) 0%, rgb(46 21 112 / 92%) 48%, rgb(82 40 190 / 84%) 100%); }
-.hackathon-tech-art--hero { --tech-stroke: rgb(255 255 255 / 72%); --tech-surface: #2a1660; }
-.hackathon-tech-art--hero .hackathon-tech-svg { inset-block-start: -14%; inline-size: 150%; block-size: 128%; inset-inline-start: -22%; }
-[dir="rtl"] .hackathon-tech-art--hero .hackathon-tech-svg { inset-inline-start: auto; inset-inline-end: -22%; }
-.hackathon-tech-art--hero::before { background: none; }
-.hackathon-tech-svg .hackathon-tech-orbits { opacity: .3; }
-.hackathon-tech-svg .hackathon-tech-route { opacity: .7; }
-.hackathon-tech-svg .hackathon-tech-gold { opacity: .9; }
-.hackathon-tech-svg .hackathon-tech-nodes { stroke-width: 1.5; }
-.hackathon-tech-svg .hackathon-tech-points { opacity: .5; }
-.hackathon-tech-row { fill: var(--tech-stroke, var(--color-lilac)); stroke: none; opacity: .85; }
-.hackathon-tech-chevrons { opacity: .45; }
-.hackathon-tech-art--field, .hackathon-tech-art--closing { --tech-glow: #b89cff; --tech-glass: #6b3fd1; --tech-line: #3b1e6d; }
-.hackathon-tech-art--field { opacity: .34; }
-.hackathon-tech-art--closing { opacity: .36; }
-
-/* Tracks: two numbered neon cards. */
-.participation-journey--hackathon .participation-track-list { counter-reset: track; }
-.participation-journey--hackathon .participation-track { position: relative; overflow: hidden; isolation: isolate; counter-increment: track; min-block-size: 11rem; padding-inline-end: clamp(5rem, 9vw, 8rem); border: 1px solid rgb(186 156 255 / 35%); background: radial-gradient(70% 120% at 100% 0%, rgb(124 72 255 / 55%), transparent 60%), linear-gradient(135deg, #1d1140 0%, #34187f 55%, #4d24ad 100%); box-shadow: 0 22px 50px rgb(59 30 109 / 22%), inset 0 1px 0 rgb(255 255 255 / 12%); }
-[dir="rtl"] .participation-journey--hackathon .participation-track { background: radial-gradient(70% 120% at 0% 0%, rgb(124 72 255 / 55%), transparent 60%), linear-gradient(-135deg, #1d1140 0%, #34187f 55%, #4d24ad 100%); }
-.participation-journey--hackathon .participation-track::before { content: counter(track, decimal-leading-zero); position: absolute; z-index: -1; inset-block-start: .25rem; inset-inline-end: 1.25rem; color: transparent; font-family: var(--font-heading); font-size: clamp(4.5rem, 8vw, 7rem); font-weight: 600; line-height: 1; -webkit-text-stroke: 1px rgb(220 207 240 / 38%); }
-.participation-journey--hackathon .participation-track::after { content: ""; position: absolute; z-index: -1; inset-block-end: 1.25rem; inset-inline-end: 1.5rem; inline-size: 6.5rem; block-size: 2px; background: linear-gradient(90deg, transparent, var(--color-gold)); box-shadow: 0 0 12px rgb(201 162 74 / 70%); }
-[dir="rtl"] .participation-journey--hackathon .participation-track::after { background: linear-gradient(-90deg, transparent, var(--color-gold)); }
-.participation-journey--hackathon .participation-track-label { color: var(--color-gold-hover); }
-.participation-journey--hackathon .participation-track h3 { color: var(--color-ivory); }
-.participation-journey--hackathon .participation-track p:last-child { color: var(--color-lilac); }
-
-/* Two days: a lit circuit connector runs between the cards. */
-.participation-journey--hackathon .participation-schedule-list { position: relative; }
-.participation-journey--hackathon .participation-schedule-list::before { content: ""; position: absolute; z-index: 0; inset-inline: calc(-1 * var(--container-gutter) - 2rem); inset-block-start: 50%; block-size: 2px; background: linear-gradient(90deg, transparent, #9b6bff 14%, var(--color-gold) 50%, #9b6bff 86%, transparent); box-shadow: 0 0 10px 1px rgb(155 107 255 / 90%), 0 0 30px 4px rgb(124 72 255 / 45%); }
-.participation-journey--hackathon .participation-schedule-list li { position: relative; z-index: 1; border-color: rgb(186 156 255 / 30%); background: linear-gradient(160deg, rgb(52 24 127 / 55%), rgb(20 14 31 / 85%)); box-shadow: 0 20px 50px rgb(10 5 20 / 45%), 0 0 0 1px rgb(155 107 255 / 10%), inset 0 1px 0 rgb(255 255 255 / 10%); }
-.participation-journey--hackathon .participation-schedule-day { box-shadow: 0 0 16px rgb(201 162 74 / 55%); }
-.participation-journey--hackathon .participation-schedule::after { content: ""; position: absolute; z-index: -1; inset-block-start: clamp(2rem, 5vw, 4rem); inset-inline-end: clamp(1.5rem, 6vw, 6rem); inline-size: 14rem; block-size: 9rem; background: radial-gradient(circle, rgb(220 207 240 / 45%) 1.4px, transparent 2px) 0 0 / 18px 18px; -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent); mask-image: radial-gradient(closest-side, #000 30%, transparent); pointer-events: none; }
-
-/* A glowing node marks the hand-off between the two days. */
-.participation-journey--hackathon .participation-schedule-list::after { content: ""; position: absolute; z-index: 2; inset-inline-start: 50%; inset-block-start: 50%; inline-size: 14px; block-size: 14px; translate: -50% -50%; border-radius: 50%; background: var(--color-gold); box-shadow: 0 0 0 5px rgb(201 162 74 / 22%), 0 0 22px rgb(201 162 74 / 80%); }
-[dir="rtl"] .participation-journey--hackathon .participation-schedule-list::after { translate: 50% -50%; }
-
-/* Steps: glowing violet nodes joined by a gradient rule. */
-.participation-journey--hackathon .participation-steps li { border-block-start-color: transparent; border-image: linear-gradient(90deg, #7c48ff, rgb(201 162 74 / 80%)) 1; }
-[dir="rtl"] .participation-journey--hackathon .participation-steps li { border-image: linear-gradient(-90deg, #7c48ff, rgb(201 162 74 / 80%)) 1; }
-.participation-journey--hackathon .participation-steps li > span { border: 0; background: radial-gradient(circle at 35% 30%, #9b6bff, #3b1e6d); color: var(--color-ivory); box-shadow: 0 0 0 4px rgb(155 107 255 / 18%), 0 8px 20px rgb(76 38 170 / 35%); }
-@media (max-width: 640px) {
-  .participation-journey--hackathon .participation-schedule::after { display: none; }
-  .participation-journey--hackathon .participation-schedule-list::before { inset-inline-start: 50%; inset-inline-end: auto; inset-block: 6% 6%; inline-size: 2px; block-size: auto; background: linear-gradient(180deg, transparent, rgb(155 107 255 / 85%) 20%, rgb(201 162 74 / 90%) 50%, rgb(155 107 255 / 85%) 80%, transparent); }
+/* Option E medical-tech cards: quiet glass, a fine gradient edge and real steps. */
+.participation-journey--hackathon :is(.participation-track, .participation-schedule-list li) { position: relative; overflow: hidden; padding: clamp(1.5rem, 3vw, 2.25rem); border: 1px solid rgb(220 207 240 / 20%); border-radius: 22px; background: linear-gradient(145deg, rgb(248 246 240 / 7%), rgb(248 246 240 / 2%)), var(--hackathon-dark); box-shadow: 0 14px 34px rgb(31 25 48 / 10%); }
+[dir="rtl"] .participation-journey--hackathon :is(.participation-track, .participation-schedule-list li) { background: linear-gradient(-145deg, rgb(248 246 240 / 7%), rgb(248 246 240 / 2%)), var(--hackathon-dark); }
+.participation-journey--hackathon :is(.participation-track, .participation-schedule-list li)::after { content: ""; position: absolute; inset-inline: 0; inset-block-end: 0; block-size: 3px; background: linear-gradient(var(--hackathon-direction), var(--hackathon-violet), var(--color-gold)); pointer-events: none; }
+.participation-journey--hackathon .participation-track-label { color: var(--hackathon-violet); }
+.participation-journey--hackathon :is(.participation-track, .participation-schedule-list li) h3 { color: var(--color-ivory); }
+.participation-journey--hackathon :is(.participation-track, .participation-schedule-list li) p:last-child { color: var(--color-lilac); }
+.participation-journey--hackathon .participation-schedule { background: radial-gradient(65% 120% at 80% 0%, rgb(59 30 109 / 36%), transparent 75%), var(--hackathon-dark); }
+[dir="rtl"] .participation-journey--hackathon .participation-schedule { background: radial-gradient(65% 120% at 20% 0%, rgb(59 30 109 / 36%), transparent 75%), var(--hackathon-dark); }
+.participation-journey--hackathon .participation-schedule-list li { backdrop-filter: none; -webkit-backdrop-filter: none; }
+.participation-journey--hackathon .participation-steps li { position: relative; border: 0; padding-block-start: 0; }
+.participation-journey--hackathon .participation-steps li:not(:last-child)::before { content: ""; position: absolute; inset-inline-start: 2.5rem; inset-block-start: 1.25rem; inline-size: calc(100% - 1rem); block-size: 1px; background: linear-gradient(var(--hackathon-direction), var(--hackathon-violet), var(--color-gold)); pointer-events: none; }
+.participation-journey--hackathon .participation-steps li > span { position: relative; border: 1px solid var(--hackathon-violet); color: var(--color-ivory); background: var(--color-purple); box-shadow: 0 0 0 4px rgb(155 107 255 / 10%); }
+@media (min-width: 601px) and (max-width: 850px) {
+  .participation-journey--hackathon .participation-steps li:nth-child(2)::before { display: none; }
 }
-@media (forced-colors: active) {
-  .participation-journey--hackathon .participation-track::before, .participation-journey--hackathon .participation-track::after, .participation-journey--hackathon .participation-schedule-list::before, .participation-journey--hackathon .participation-schedule-list::after, .participation-journey--hackathon .participation-schedule::after { display: none; }
+@media (max-width: 600px) {
+  .participation-journey--hackathon .participation-steps li:not(:last-child)::before { inset-inline-start: 1.25rem; inline-size: 1px; block-size: calc(100% + 1.5rem); background: linear-gradient(180deg, var(--hackathon-violet), var(--color-gold)); }
+}
+@media (forced-colors: active), print {
+  .participation-journey--hackathon :is(.participation-track, .participation-schedule-list li)::after,
+  .participation-journey--hackathon .participation-steps li::before { display: none; }
+  .participation-journey--hackathon .participation-steps li > span { color: CanvasText; background: Canvas; border-color: CanvasText; box-shadow: none; }
 }

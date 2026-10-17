@@ -1,0 +1,40 @@
+{
+  "baseline": "5ae3c9aa9037b51ea0e105ae6f85a3424fde241a",
+  "states": 30,
+  "approvedLabelAddedStates": 6,
+  "unexpectedTextChanges": [],
+  "overflow": [],
+  "heightChanges": [
+    {
+      "name": "en-hackathon-390",
+      "before": 5313,
+      "after": 5321
+    },
+    {
+      "name": "en-hackathon-1440",
+      "before": 4436,
+      "after": 4493
+    },
+    {
+      "name": "en-hackathon-1920",
+      "before": 4557,
+      "after": 4617
+    },
+    {
+      "name": "ar-hackathon-390",
+      "before": 5091,
+      "after": 5099
+    },
+    {
+      "name": "ar-hackathon-1440",
+      "before": 4476,
+      "after": 4533
+    },
+    {
+      "name": "ar-hackathon-1920",
+      "before": 4573,
+      "after": 4633
+    }
+  ],
+  "unchangedOtherPageScreenshots": 23
+}
