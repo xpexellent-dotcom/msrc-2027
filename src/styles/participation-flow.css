@@ -175,3 +175,57 @@
 
 .fluid-workshop-section .participation-heading h2 { max-inline-size: 24ch; margin: 0 0 1.5rem; color: var(--color-purple); font-family: var(--font-display); font-size: clamp(2.5rem, 4.7vw, 4.7rem); font-weight: 700; letter-spacing: -.035em; line-height: 1.12; text-wrap: balance; }
 [lang="ar"] .fluid-workshop-section .participation-heading h2 { letter-spacing: 0; line-height: 1.5; }
+
+/* Hackathon "technology festival" pass: a vivid violet hero with glass orbs and
+   glowing circuitry, numbered neon track cards, a lit connector between the two
+   days and glowing step nodes. Decoration only; copy and structure are unchanged. */
+.experience-intro--hackathon::after { background: radial-gradient(55% 85% at 80% 42%, rgb(124 72 255 / 52%), transparent 70%), linear-gradient(105deg, rgb(20 11 46 / 96%) 0%, rgb(46 21 112 / 92%) 48%, rgb(82 40 190 / 84%) 100%); }
+[dir="rtl"] .experience-intro--hackathon::after { background: radial-gradient(55% 85% at 20% 42%, rgb(124 72 255 / 52%), transparent 70%), linear-gradient(-105deg, rgb(20 11 46 / 96%) 0%, rgb(46 21 112 / 92%) 48%, rgb(82 40 190 / 84%) 100%); }
+.hackathon-tech-art--hero { --tech-stroke: rgb(255 255 255 / 72%); --tech-surface: #2a1660; }
+.hackathon-tech-art--hero .hackathon-tech-svg { inset-block-start: -14%; inline-size: 150%; block-size: 128%; inset-inline-start: -22%; }
+[dir="rtl"] .hackathon-tech-art--hero .hackathon-tech-svg { inset-inline-start: auto; inset-inline-end: -22%; }
+.hackathon-tech-art--hero::before { background: none; }
+.hackathon-tech-svg .hackathon-tech-orbits { opacity: .3; }
+.hackathon-tech-svg .hackathon-tech-route { opacity: .7; }
+.hackathon-tech-svg .hackathon-tech-gold { opacity: .9; }
+.hackathon-tech-svg .hackathon-tech-nodes { stroke-width: 1.5; }
+.hackathon-tech-svg .hackathon-tech-points { opacity: .5; }
+.hackathon-tech-row { fill: var(--tech-stroke, var(--color-lilac)); stroke: none; opacity: .85; }
+.hackathon-tech-chevrons { opacity: .45; }
+.hackathon-tech-art--field, .hackathon-tech-art--closing { --tech-glow: #b89cff; --tech-glass: #6b3fd1; --tech-line: #3b1e6d; }
+.hackathon-tech-art--field { opacity: .34; }
+.hackathon-tech-art--closing { opacity: .36; }
+
+/* Tracks: two numbered neon cards. */
+.participation-journey--hackathon .participation-track-list { counter-reset: track; }
+.participation-journey--hackathon .participation-track { position: relative; overflow: hidden; isolation: isolate; counter-increment: track; min-block-size: 11rem; padding-inline-end: clamp(5rem, 9vw, 8rem); border: 1px solid rgb(186 156 255 / 35%); background: radial-gradient(70% 120% at 100% 0%, rgb(124 72 255 / 55%), transparent 60%), linear-gradient(135deg, #1d1140 0%, #34187f 55%, #4d24ad 100%); box-shadow: 0 22px 50px rgb(59 30 109 / 22%), inset 0 1px 0 rgb(255 255 255 / 12%); }
+[dir="rtl"] .participation-journey--hackathon .participation-track { background: radial-gradient(70% 120% at 0% 0%, rgb(124 72 255 / 55%), transparent 60%), linear-gradient(-135deg, #1d1140 0%, #34187f 55%, #4d24ad 100%); }
+.participation-journey--hackathon .participation-track::before { content: counter(track, decimal-leading-zero); position: absolute; z-index: -1; inset-block-start: .25rem; inset-inline-end: 1.25rem; color: transparent; font-family: var(--font-heading); font-size: clamp(4.5rem, 8vw, 7rem); font-weight: 600; line-height: 1; -webkit-text-stroke: 1px rgb(220 207 240 / 38%); }
+.participation-journey--hackathon .participation-track::after { content: ""; position: absolute; z-index: -1; inset-block-end: 1.25rem; inset-inline-end: 1.5rem; inline-size: 6.5rem; block-size: 2px; background: linear-gradient(90deg, transparent, var(--color-gold)); box-shadow: 0 0 12px rgb(201 162 74 / 70%); }
+[dir="rtl"] .participation-journey--hackathon .participation-track::after { background: linear-gradient(-90deg, transparent, var(--color-gold)); }
+.participation-journey--hackathon .participation-track-label { color: var(--color-gold-hover); }
+.participation-journey--hackathon .participation-track h3 { color: var(--color-ivory); }
+.participation-journey--hackathon .participation-track p:last-child { color: var(--color-lilac); }
+
+/* Two days: a lit circuit connector runs between the cards. */
+.participation-journey--hackathon .participation-schedule-list { position: relative; }
+.participation-journey--hackathon .participation-schedule-list::before { content: ""; position: absolute; z-index: 0; inset-inline: calc(-1 * var(--container-gutter) - 2rem); inset-block-start: 50%; block-size: 2px; background: linear-gradient(90deg, transparent, #9b6bff 14%, var(--color-gold) 50%, #9b6bff 86%, transparent); box-shadow: 0 0 10px 1px rgb(155 107 255 / 90%), 0 0 30px 4px rgb(124 72 255 / 45%); }
+.participation-journey--hackathon .participation-schedule-list li { position: relative; z-index: 1; border-color: rgb(186 156 255 / 30%); background: linear-gradient(160deg, rgb(52 24 127 / 55%), rgb(20 14 31 / 85%)); box-shadow: 0 20px 50px rgb(10 5 20 / 45%), 0 0 0 1px rgb(155 107 255 / 10%), inset 0 1px 0 rgb(255 255 255 / 10%); }
+.participation-journey--hackathon .participation-schedule-day { box-shadow: 0 0 16px rgb(201 162 74 / 55%); }
+.participation-journey--hackathon .participation-schedule::after { content: ""; position: absolute; z-index: -1; inset-block-start: clamp(2rem, 5vw, 4rem); inset-inline-end: clamp(1.5rem, 6vw, 6rem); inline-size: 14rem; block-size: 9rem; background: radial-gradient(circle, rgb(220 207 240 / 45%) 1.4px, transparent 2px) 0 0 / 18px 18px; -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent); mask-image: radial-gradient(closest-side, #000 30%, transparent); pointer-events: none; }
+
+/* A glowing node marks the hand-off between the two days. */
+.participation-journey--hackathon .participation-schedule-list::after { content: ""; position: absolute; z-index: 2; inset-inline-start: 50%; inset-block-start: 50%; inline-size: 14px; block-size: 14px; translate: -50% -50%; border-radius: 50%; background: var(--color-gold); box-shadow: 0 0 0 5px rgb(201 162 74 / 22%), 0 0 22px rgb(201 162 74 / 80%); }
+[dir="rtl"] .participation-journey--hackathon .participation-schedule-list::after { translate: 50% -50%; }
+
+/* Steps: glowing violet nodes joined by a gradient rule. */
+.participation-journey--hackathon .participation-steps li { border-block-start-color: transparent; border-image: linear-gradient(90deg, #7c48ff, rgb(201 162 74 / 80%)) 1; }
+[dir="rtl"] .participation-journey--hackathon .participation-steps li { border-image: linear-gradient(-90deg, #7c48ff, rgb(201 162 74 / 80%)) 1; }
+.participation-journey--hackathon .participation-steps li > span { border: 0; background: radial-gradient(circle at 35% 30%, #9b6bff, #3b1e6d); color: var(--color-ivory); box-shadow: 0 0 0 4px rgb(155 107 255 / 18%), 0 8px 20px rgb(76 38 170 / 35%); }
+@media (max-width: 640px) {
+  .participation-journey--hackathon .participation-schedule::after { display: none; }
+  .participation-journey--hackathon .participation-schedule-list::before { inset-inline-start: 50%; inset-inline-end: auto; inset-block: 6% 6%; inline-size: 2px; block-size: auto; background: linear-gradient(180deg, transparent, rgb(155 107 255 / 85%) 20%, rgb(201 162 74 / 90%) 50%, rgb(155 107 255 / 85%) 80%, transparent); }
+}
+@media (forced-colors: active) {
+  .participation-journey--hackathon .participation-track::before, .participation-journey--hackathon .participation-track::after, .participation-journey--hackathon .participation-schedule-list::before, .participation-journey--hackathon .participation-schedule-list::after, .participation-journey--hackathon .participation-schedule::after { display: none; }
+}

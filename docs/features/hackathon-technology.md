@@ -142,3 +142,18 @@ Screenshots in the review folder are documentation evidence only.
 
 No hosted setting, database, account, email or workflow flag was changed. The
 follow-up PR is for owner review; no merge or production activation is implied.
+
+
+## Visual pass — 17 October 2026 (Claude)
+
+Owner asked for a more visual, "technology festival" treatment (reference: a violet
+landing page with glass orbs, circuit lines, ring nodes, dot grids and chevrons).
+On top of this PR: a brighter violet hero wash with a neon bloom; the shared drawing
+gains glass orbs, ring-ended circuit traces, a dot grid, a dot row and a chevron
+stack; numbered neon track cards with outlined 01/02 and a gold rule; a lit
+violet-gold connector and gold node between the two dark day cards (vertical on
+phones); glowing step nodes joined by a violet-gold rule. Copy, structure, routes
+and gates are unchanged; all decoration is static and hidden in forced colors.
+
+Checks: lint, typecheck, 2,894 unit tests; participation-artwork, participation-flow
+and fluid-journeys 70 passed; full Playwright 823 passed / 139 skipped / 0 failed.
