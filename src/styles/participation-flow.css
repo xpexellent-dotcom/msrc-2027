@@ -80,63 +80,60 @@
 .participation-benefit .benefit-cme-label { font-size: .625rem; }
 .participation-benefit .benefit-cme-note { font-size: .5625rem; }
 
-/* A one-sided motif per journey in each section's empty corner. It fades out
-   before the reading column and mirrors with the reading direction. */
+/* Decorative ink lives in reserved heading cells or clipped outer gutters.
+   Fades soften the drawings; clipping, not the fade, protects the reading column. */
 .participation-ambient { position: relative; isolation: isolate; overflow: clip; }
 .participation-ambient > .site-container { position: relative; z-index: 1; }
-.journey-art { position: absolute; z-index: 0; inset-inline-end: 0; inline-size: min(48vw, 42rem); block-size: auto; aspect-ratio: 1; pointer-events: none; stroke: rgb(59 30 109 / 14%); stroke-width: 1; }
+.participation-heading { display: contents; }
+.journey-art-slot { display: none; pointer-events: none; overflow: hidden; }
+.journey-art { display: block; inline-size: 100%; block-size: 100%; fill: none; pointer-events: none; stroke: rgb(59 30 109 / 18%); stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
 .journey-art :is(path, rect, circle) { vector-effect: non-scaling-stroke; }
-.journey-art .journey-art-faint { stroke: rgb(59 30 109 / 8%); }
-.journey-art .journey-art-accent { stroke: rgb(201 162 74 / 45%); }
-.journey-art .journey-art-dot { fill: rgb(59 30 109 / 22%); stroke: none; }
-.journey-art .journey-art-dot--gold { fill: rgb(201 162 74 / 60%); }
+.journey-art .journey-art-faint { stroke: rgb(59 30 109 / 9%); }
+.journey-art .journey-art-accent { stroke: rgb(201 162 74 / 46%); }
+.journey-art .journey-art-dot { fill: rgb(59 30 109 / 26%); stroke: none; }
+.journey-art .journey-art-dot--gold { fill: rgb(201 162 74 / 62%); }
 .journey-art .journey-art-node { fill: var(--color-ivory); }
 .participation-steps .journey-art .journey-art-node { fill: var(--color-surface-lilac); }
-.journey-art .journey-art-node--gold { stroke: rgb(201 162 74 / 70%); }
-.journey-art--top { inset-block-start: 0; -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 18%, transparent 68%); mask-image: radial-gradient(circle at 88% 11%, #000 18%, transparent 68%); }
-.journey-art--bottom { inset-block-end: 0; -webkit-mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 56%); mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 56%); }
-[dir="rtl"] .journey-art { scale: -1 1; }
-/* Denser motifs fade sooner so nothing sits behind the benefit text. */
-.journey-art--top:is(.journey-art--workshops, .journey-art--hackathon, .journey-art--threeMinuteThesis, .journey-art--submissions) { -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 12%, transparent 52%); mask-image: radial-gradient(circle at 88% 11%, #000 12%, transparent 52%); }
-/* Echoes: smaller, re-seeded versions in other empty corners down the page. */
-.journey-art--md { inline-size: min(30vw, 24rem); }
-.journey-art--sm { inline-size: min(22vw, 16rem); }
-/* Echoes stay in the band above the content they sit beside. */
-.journey-art--top:is(.journey-art--md, .journey-art--sm) { -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 10%, transparent 40%); mask-image: radial-gradient(circle at 88% 11%, #000 10%, transparent 40%); }
-/* Attend's Steps motif already fills the corner the next section would start from. */
-.participation-journey--registration .fluid-journey-resources .journey-art:not(.journey-art--side) { display: none; }
-/* Steps use the corner beside a closing action when there is one (Attend), and the
-   corner beside the heading otherwise; never both, never under step text. */
-.participation-steps:not(:has(.participation-bottom-action)) .journey-art--bottom:not(.journey-art--side),
-.participation-steps:has(.participation-bottom-action) .journey-art--top:not(.journey-art--side) { display: none; }
-/* Margin pieces: on wide screens the space beside the reading column holds quieter
-   versions of the motif, on either side and at varied heights. They grow from the
-   page edge and stop short of the column, so they never sit behind text. */
-.journey-art.journey-art--side { display: none; inline-size: 20rem; max-inline-size: calc((100% - var(--container-width)) / 2 + 5rem); }
-.journey-art.journey-art--side.journey-art--lg { inline-size: 30rem; }
-.journey-art.journey-art--side.journey-art--sm { inline-size: 14rem; }
-.journey-art--side.journey-art--top { inset-block: var(--at, 0) auto; }
-.journey-art--side.journey-art--bottom { inset-block: auto var(--at, 0); }
-.journey-art.journey-art--side.journey-art--top { -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 14%, transparent 62%); mask-image: radial-gradient(circle at 88% 11%, #000 14%, transparent 62%); }
-.journey-art.journey-art--side.journey-art--bottom { -webkit-mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 62%); mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 62%); }
-.journey-art--side-start { inset-inline: 0 auto; scale: -1 1; }
-[dir="rtl"] .journey-art--side-start { scale: none; }
-@media (min-width: 1800px) {
-  .journey-art.journey-art--side { display: block; }
+.fluid-journey-resources .journey-art .journey-art-node { fill: var(--color-white); }
+.journey-art .journey-art-node--gold { stroke: rgb(201 162 74 / 60%); }
+[dir="rtl"] .journey-art-slot { scale: -1 1; }
+
+/* Preserve the heading's natural height and margins. The art cannot grow the row
+   or intrude on long translated copy; it is absolutely contained in its own cell. */
+@media (min-width: 900px) {
+  .participation-heading { display: grid; grid-template-columns: minmax(0, 1fr) clamp(10rem, 25vw, 25rem); column-gap: clamp(2rem, 5vw, 5rem); }
+  .participation-heading-copy { min-inline-size: 0; }
+  .journey-art-slot--heading { display: block; position: relative; margin-block-end: 2.5rem; mask-image: radial-gradient(ellipse at center, #000 26%, transparent 73%); }
+  .journey-art-slot--heading .journey-art { position: absolute; inset: 50% 0 auto; block-size: 17rem; transform: translateY(-50%); }
+  .participation-heading--benefits .journey-art-slot { margin-block-end: 3rem; }
+  .participation-heading--benefits .journey-art { block-size: 21rem; }
+  .participation-heading--steps { grid-template-columns: minmax(0, 1fr) clamp(8rem, 18vw, 18rem); }
+  .participation-heading--steps .journey-art { inset-block-start: 65%; block-size: 14rem; }
+  .participation-heading--resources { grid-template-columns: minmax(0, 1fr) clamp(8rem, 21vw, 21rem); }
+  .participation-heading--resources .journey-art { inset-block-start: 30%; block-size: 19rem; }
+  .participation-heading--resources .journey-art-slot { mask-image: radial-gradient(ellipse at 64% 50%, #000 18%, transparent 70%); }
 }
 
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .journey-art { animation: journey-art-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
-  }
+/* Match Container's real max width and responsive gutter, including safe areas.
+   At 1600px these reveal edge fragments; wider screens reveal the full drawings. */
+@media (min-width: 1600px) {
+  .journey-art-slot--margin { --art-size: 21rem; display: block; position: absolute; z-index: 0; inline-size: max(0px, calc(max(var(--container-gutter), (100% - var(--container-width)) / 2) - 1rem)); block-size: min(var(--art-size), calc(100% - 1rem)); mask-image: radial-gradient(ellipse at center, #000 22%, transparent 74%); }
+  .journey-art-slot--lg { --art-size: 29rem; }
+  .journey-art-slot--sm { --art-size: 14rem; }
+  .journey-art-slot--top { inset-block-start: var(--art-at); }
+  .journey-art-slot--bottom { inset-block-end: var(--art-at); }
+  .journey-art-slot--start { inset-inline-start: 0; scale: -1 1; }
+  .journey-art-slot--end { inset-inline-end: 0; }
+  [dir="rtl"] .journey-art-slot--start { scale: none; }
+  .journey-art-slot--margin .journey-art { position: absolute; inset: 50% auto auto 50%; inline-size: var(--art-size); block-size: var(--art-size); transform: translate(-50%, -50%) rotate(var(--art-turn)); }
 }
-@keyframes journey-art-rise { from { opacity: 0; translate: 0 2rem; } to { opacity: 1; translate: none; } }
 @media (max-width: 700px) {
-  /* Phones keep only the section-anchoring motif; echoes would crowd a narrow screen. */
-  .journey-art { inline-size: 72vw; }
-  .journey-art:is(.journey-art--md, .journey-art--sm) { display: none; }
+  /* One tiny texture in the existing 48px top-padding strip; never behind copy. */
+  .journey-art-slot--mobile { display: block; position: absolute; inset-block-start: .375rem; inset-inline-end: var(--container-gutter); inline-size: 7rem; block-size: 2rem; opacity: .7; mask-image: radial-gradient(ellipse at center, #000 15%, transparent 72%); }
+  .journey-art-slot--mobile .journey-art { position: absolute; inline-size: 7rem; block-size: 4rem; inset-block-start: -1rem; }
 }
-@media (forced-colors: active) { .journey-art { display: none; } }
+/* All motifs are static, including under prefers-reduced-motion. */
+@media (forced-colors: active) { .journey-art-slot { display: none; } }
 
 /* ORG-054: hackathon tracks and two-day format. */
 .participation-tracks { padding-block: clamp(3rem, 6vw, 5.5rem) 0; background: var(--color-ivory); }
@@ -149,12 +146,12 @@
 .participation-track-note { margin: 1rem 0 0; color: var(--color-muted); font-weight: 600; }
 /* The two-day format is a dark interlude: it dissolves out of the ivory section above
    and back into the lilac Steps below through long eased fades. */
-.participation-schedule { --focus-ring: var(--color-ivory); position: relative; isolation: isolate; padding-block: clamp(6rem, 11vw, 10rem); color: var(--color-ivory);
-  background:
-    radial-gradient(60% 55% at 78% 50%, rgb(91 53 150 / 42%), transparent 70%),
-    radial-gradient(45% 50% at 12% 60%, rgb(59 30 109 / 45%), transparent 70%),
-    linear-gradient(180deg, var(--color-ivory) 0%, #8c7da3 7%, #3a2a55 15%, #1f1930 26%, #1f1930 72%, #3d2d5a 84%, #a597bb 93%, var(--color-surface-lilac) 100%); }
-.participation-schedule::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, transparent 18%, rgb(220 207 240 / 5%) 50%, transparent 82%); filter: blur(24px); }
+.participation-schedule { --focus-ring: var(--color-ivory); --schedule-fade: clamp(7rem, 10vw, 10rem); position: relative; isolation: isolate; overflow: clip; padding-block: calc(var(--schedule-fade) + 1.5rem); color: var(--color-ivory); background: var(--color-ink); }
+/* Absolute fade lengths keep the entire content area dark even with tall Arabic
+   cards or enlarged text. Closely eased stops dissolve to the exact adjacent colors. */
+.participation-schedule::before, .participation-schedule::after { content: ""; position: absolute; inset-inline: -2rem; block-size: var(--schedule-fade); z-index: -1; pointer-events: none; }
+.participation-schedule::before { inset-block-start: 0; background: linear-gradient(180deg, var(--color-ivory) 0%, #f1eef0 10%, #dbd4e3 26%, #b2a4c7 44%, #79658f 62%, #4b365f 78%, #2b203f 91%, var(--color-ink) 100%); }
+.participation-schedule::after { inset-block-end: 0; background: linear-gradient(0deg, var(--color-surface-lilac) 0%, #eae3f1 10%, #d4c9e2 26%, #ac9bc5 44%, #75608d 62%, #48335f 78%, #2a203e 91%, var(--color-ink) 100%); }
 .participation-schedule-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
 .participation-schedule-list li { padding: clamp(1.25rem, 3vw, 2rem); border-radius: 18px; background: var(--color-ivory); }
 .participation-schedule-day { display: inline-block; margin-block-end: .6rem; padding: .25rem .75rem; border-radius: 999px; background: var(--color-purple); color: var(--color-ivory); font-size: .8125rem; font-weight: 700; }
@@ -171,3 +168,6 @@
   .participation-track-list, .participation-schedule-list { grid-template-columns: minmax(0, 1fr); }
 }
 @media (forced-colors: active) { .participation-track, .participation-schedule-list li { border: 1px solid CanvasText; } }
+
+.fluid-workshop-section .participation-heading h2 { max-inline-size: 24ch; margin: 0 0 1.5rem; color: var(--color-purple); font-family: var(--font-display); font-size: clamp(2.5rem, 4.7vw, 4.7rem); font-weight: 700; letter-spacing: -.035em; line-height: 1.12; text-wrap: balance; }
+[lang="ar"] .fluid-workshop-section .participation-heading h2 { letter-spacing: 0; line-height: 1.5; }

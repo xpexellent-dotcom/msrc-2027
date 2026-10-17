@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useId, useSyncExternalStore, type ReactNode } from "react";
+import { useId, useSyncExternalStore, type ReactNode, type CSSProperties } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
@@ -16,7 +16,7 @@ import { AmbientArtwork } from "@/components/ambient-artwork";
 import { datesVenueCopy } from "@/content/dates-venue";
 import { participationBenefitIcons, participationPathDescriptions } from "@/content/participation-copy";
 import { BenefitArtwork } from "@/components/benefit-artwork";
-import { JourneyArtwork } from "@/components/journey-artwork";
+import { JourneyArtwork, type JourneyArtworkMotif } from "@/components/journey-artwork";
 import {
   experienceCopy, filterMedia, filterSessions, participationPaths, published,
   type ConferenceDay, type ExperiencePageId, type MediaEditionFilter, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
@@ -276,16 +276,16 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
       <div className="participation-program"><Button disabled data-testid="brochure-unavailable" aria-describedby="brochure-unavailable-note" variant="ghost" size="small">{actions.brochure}</Button><p id="brochure-unavailable-note">{actions.brochurePending}</p></div>
     </ExperienceIntro>
     <section id="journey-availability" tabIndex={-1} className="journey-availability fluid-journey-availability" data-testid="journey-closed" aria-labelledby="journey-closed-title"><Container><div className="journey-availability-dot" aria-hidden="true" /><div><h2 id="journey-closed-title">{content.closed}</h2><p>{content.closedBody}</p></div></Container></section>
-    {content.tracks ? <section id="journey-tracks" className="participation-tracks participation-ambient" aria-labelledby="journey-tracks-title"><JourneyArtwork motif={journey} placement="top" size="md" variant={3} /><SideArtwork motif={journey} area="tracks" /><Container><p className="participation-section-label">{content.tracks.label}</p><h2 id="journey-tracks-title">{content.tracks.title}</h2><div className="participation-track-list">{content.tracks.items.map((track) => <article className="participation-track" key={track.label}><p className="participation-track-label">{track.label}</p><h3 lang="en" dir="ltr">{track.title}</h3><p>{track.body}</p></article>)}</div><p className="participation-track-note">{content.tracks.note}</p></Container></section> : null}
-    <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title"><JourneyArtwork motif={journey} placement="top" /><SideArtwork motif={journey} area="benefits" /><Container><p className="participation-section-label">{journey === "workshops" ? actions.learning : actions.benefits}</p><h2 id="journey-benefits-title">{content.detailsTitle}</h2><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
+    {content.tracks ? <section id="journey-tracks" className="participation-tracks participation-ambient" aria-labelledby="journey-tracks-title"><SideArtwork motif={journey} area="tracks" /><Container><ArtworkHeading motif={journey} area="tracks"><p className="participation-section-label">{content.tracks.label}</p><h2 id="journey-tracks-title">{content.tracks.title}</h2></ArtworkHeading><div className="participation-track-list">{content.tracks.items.map((track) => <article className="participation-track" key={track.label}><p className="participation-track-label">{track.label}</p><h3 lang="en" dir="ltr">{track.title}</h3><p>{track.body}</p></article>)}</div><p className="participation-track-note">{content.tracks.note}</p></Container></section> : null}
+    <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title"><div className="journey-art-slot journey-art-slot--mobile" aria-hidden="true"><JourneyArtwork motif={journey} variant={2} /></div><SideArtwork motif={journey} area="benefits" /><Container><ArtworkHeading motif={journey} area="benefits"><p className="participation-section-label">{journey === "workshops" ? actions.learning : actions.benefits}</p><h2 id="journey-benefits-title">{content.detailsTitle}</h2></ArtworkHeading><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
       {content.goodToKnow ? <aside className="participation-good-to-know" aria-labelledby="good-to-know-title"><h3 id="good-to-know-title">{content.goodToKnow.title}</h3><ul>{content.goodToKnow.points.map((point) => <li key={point}>{point}</li>)}</ul></aside> : null}
     </Container></section>
     {content.schedule ? <section id="journey-schedule" className="participation-schedule" aria-labelledby="journey-schedule-title"><Container><h2 id="journey-schedule-title">{content.schedule.title}</h2><ol className="participation-schedule-list">{content.schedule.items.map((item) => <li key={item.label}><span className="participation-schedule-day">{item.label}</span><h3>{item.title}</h3><p>{item.body}</p></li>)}</ol></Container></section> : null}
     {journey === "workshops" ? <WorkshopRail locale={locale} workshops={workshops} /> : null}
-    <section id="journey-steps" className="participation-steps participation-ambient" aria-labelledby="journey-steps-title"><JourneyArtwork motif={journey} placement="top" size="md" variant={1} /><JourneyArtwork motif={journey} placement="bottom" size="md" variant={2} /><SideArtwork motif={journey} area="steps" /><Container><h2 id="journey-steps-title">{content.stepsTitle}</h2><ol>{content.steps.map((step, index) => <li key={step}><span aria-hidden="true">{formatIndex(index + 1, locale)}</span><p>{step}</p></li>)}</ol>
+    <section id="journey-steps" className="participation-steps participation-ambient" aria-labelledby="journey-steps-title"><SideArtwork motif={journey} area="steps" /><Container><ArtworkHeading motif={journey} area="steps"><h2 id="journey-steps-title">{content.stepsTitle}</h2></ArtworkHeading><ol>{content.steps.map((step, index) => <li key={step}><span aria-hidden="true">{formatIndex(index + 1, locale)}</span><p>{step}</p></li>)}</ol>
       {journey === "registration" ? <div className="participation-bottom-action"><ButtonLink variant="gold" href={`/${locale}/sign-up`} data-testid="participation-sign-up">{actions.primary.registration}<Arrow /></ButtonLink></div> : null}
     </Container></section>
-    <section className="fluid-journey-resources participation-ambient" aria-labelledby="journey-resources-title"><JourneyArtwork motif={journey} placement="top" size="sm" variant={2} /><SideArtwork motif={journey} area="resources" /><Container><h2 id="journey-resources-title">{actions.resources}</h2><div className="fluid-resource-grid">
+    <section className="fluid-journey-resources participation-ambient" aria-labelledby="journey-resources-title"><SideArtwork motif={journey} area="resources" /><Container><ArtworkHeading motif={journey} area="resources"><h2 id="journey-resources-title">{actions.resources}</h2></ArtworkHeading><div className="fluid-resource-grid">
       <div className="fluid-resource fluid-resource--pending"><JourneyIcon variant={3} /><Button disabled data-testid="ticket-unavailable" aria-describedby="ticket-unavailable-note" variant="secondary">{actions.ticket}</Button><p id="ticket-unavailable-note">{actions.ticketPending}</p></div>
       <Link className="fluid-resource" href={`/${locale}/participate`}><JourneyIcon variant={0} /><span>{copy.otherPaths}</span><Arrow /></Link>
       <Link className="fluid-resource" href={`/${locale}#faq`}><JourneyIcon variant={4} /><span>{actions.faq}</span><Arrow /></Link>
@@ -324,27 +324,41 @@ function JourneyIcon({ variant }: { variant: number }) {
   return <span className="fluid-journey-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke={`url(#${gradientId})`} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id={gradientId} x1="7" y1="7" x2="41" y2="41" gradientUnits="userSpaceOnUse"><stop stopColor="#9b76c5" /><stop offset=".55" stopColor="#512f7b" /><stop offset="1" stopColor="#9b7529" /></linearGradient></defs>{symbols[variant % symbols.length]}</svg></span>;
 }
 
-type SideArt = { placement: "top" | "bottom"; size: "lg" | "md" | "sm"; side: "start" | "end"; at: string; variant: number };
+type ArtworkArea = "tracks" | "benefits" | "rail" | "steps" | "resources";
 const journeyOrder = ["registration", "submissions", "workshops", "hackathon", "threeMinuteThesis"] as const;
-// Margin pieces per section, alternating sides and heights; each journey shifts the
-// variants so the same section never repeats a shape from page to page.
-const sideArtwork: Record<"tracks" | "benefits" | "rail" | "steps" | "resources", readonly SideArt[]> = {
-  tracks: [{ placement: "top", size: "md", side: "start", at: "16%", variant: 1 }, { placement: "bottom", size: "sm", side: "end", at: "4%", variant: 2 }],
-  benefits: [{ placement: "bottom", size: "lg", side: "start", at: "12%", variant: 2 }, { placement: "top", size: "md", side: "end", at: "48%", variant: 3 }],
-  rail: [{ placement: "top", size: "md", side: "start", at: "14%", variant: 3 }, { placement: "bottom", size: "md", side: "end", at: "6%", variant: 1 }],
-  steps: [{ placement: "top", size: "sm", side: "start", at: "18%", variant: 3 }],
-  resources: [{ placement: "bottom", size: "md", side: "start", at: "8%", variant: 1 }],
+const areaSeeds: Record<ArtworkArea, number> = { tracks: 3, benefits: 0, rail: 4, steps: 7, resources: 9 };
+
+/** The second grid cell is genuinely empty space, even when Arabic headings wrap. */
+function ArtworkHeading({ motif, area, children }: { motif: JourneyArtworkMotif; area: ArtworkArea; children: ReactNode }) {
+  return <div className={`participation-heading participation-heading--${area}`}>
+    <div className="participation-heading-copy">{children}</div>
+    <div className="journey-art-slot journey-art-slot--heading" aria-hidden="true"><JourneyArtwork motif={motif} variant={areaSeeds[area] + journeyOrder.indexOf(motif)} /></div>
+  </div>;
+}
+
+type SideArt = { side: "start" | "end"; size: "lg" | "md" | "sm"; edge: "top" | "bottom"; at: string; turn: string; variant: number };
+// Each clipped gutter has its own composition, rather than repeated corner stamps.
+const sideArtwork: Record<ArtworkArea, readonly SideArt[]> = {
+  tracks: [{ side: "start", size: "sm", edge: "top", at: "12%", turn: "-18deg", variant: 3 }, { side: "end", size: "md", edge: "bottom", at: "0%", turn: "12deg", variant: 6 }],
+  benefits: [{ side: "start", size: "lg", edge: "top", at: "18%", turn: "-12deg", variant: 2 }, { side: "end", size: "md", edge: "bottom", at: "5%", turn: "22deg", variant: 5 }],
+  rail: [{ side: "start", size: "md", edge: "bottom", at: "6%", turn: "14deg", variant: 8 }, { side: "end", size: "lg", edge: "top", at: "9%", turn: "-8deg", variant: 3 }],
+  steps: [{ side: "start", size: "sm", edge: "bottom", at: "3%", turn: "24deg", variant: 7 }, { side: "end", size: "md", edge: "top", at: "8%", turn: "-24deg", variant: 4 }],
+  resources: [{ side: "start", size: "md", edge: "top", at: "5%", turn: "-8deg", variant: 9 }, { side: "end", size: "sm", edge: "bottom", at: "4%", turn: "18deg", variant: 2 }],
 };
-function SideArtwork({ motif, area }: { motif: (typeof journeyOrder)[number]; area: keyof typeof sideArtwork }) {
+function SideArtwork({ motif, area }: { motif: JourneyArtworkMotif; area: ArtworkArea }) {
   const shift = journeyOrder.indexOf(motif);
-  return <>{sideArtwork[area].map((piece, index) => <JourneyArtwork key={index} motif={motif} {...piece} variant={piece.variant + shift} />)}</>;
+  return <>{sideArtwork[area].map((piece) => <div key={piece.side} aria-hidden="true"
+    className={`journey-art-slot journey-art-slot--margin journey-art-slot--${piece.side} journey-art-slot--${piece.size} journey-art-slot--${piece.edge}`}
+    style={{ "--art-at": piece.at, "--art-turn": piece.turn } as CSSProperties}>
+    <JourneyArtwork motif={motif} variant={piece.variant + shift} />
+  </div>)}</>;
 }
 
 function WorkshopRail({ locale, workshops }: { locale: Locale; workshops: readonly PublicWorkshop[] }) {
   const copy = experienceCopy[locale];
   const heading = locale === "ar" ? "اختر مساحةً للتعلّم." : "Find your next skill.";
   return <section id="workshop-catalogue" tabIndex={-1} className="fluid-workshop-section fluid-art-surface participation-ambient" aria-labelledby="workshop-catalogue-title"><SideArtwork motif="workshops" area="rail" /><Container>
-    <h2 id="workshop-catalogue-title">{heading}</h2>
+    <ArtworkHeading motif="workshops" area="rail"><h2 id="workshop-catalogue-title">{heading}</h2></ArtworkHeading>
     {!workshops.length ? <div data-testid="workshops-empty" className="fluid-workshop-pending"><h3>{copy.workshopsPending}</h3><p>{copy.workshopsPendingBody}</p></div> : null}
     <HorizontalRail locale={locale} label={copy.pages.workshops.label} className="fluid-workshop-rail">
       {workshops.length ? workshops.map((workshop) => <article className="fluid-workshop-card" key={workshop.slug}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{workshop.title[locale]}</h3><p>{workshop.description[locale]}</p><p>{sessionClock(workshop.startAt, locale) ?? copy.timePending}{workshop.room ? ` · ${workshop.room}` : ""}</p>{workshop.eligibility ? <p>{workshop.eligibility[locale]}</p> : null}<StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
