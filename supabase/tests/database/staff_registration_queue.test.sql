@@ -46,6 +46,8 @@ do $$declare n integer;outcome jsonb;begin
   perform pg_temp.registration_fixture(n,'synthetic-staff-queue');
   outcome:=pg_temp.registration_submit('synthetic-staff-queue',n,md5(n::text)||md5(n::text));
   if outcome->>'state'<>'submitted' then
+   perform set_config('request.jwt.claims',pg_temp.registration_claims(n)::text,true);
+   raise notice 'session context %; profile %; participant only %',msrc_sessions.observe_context('synthetic-staff-queue'),msrc_participant.observe_profile('synthetic-staff-queue'),msrc_participant.participant_only(pg_temp.registration_actor(n));
    raise exception 'Queue participant fixture failed for % with %; context %; age proven %; verified profile %',n,outcome,
     public.msrc_registration_context('synthetic-staff-queue',pg_temp.registration_claims(n)),
     msrc_participant.age_proven(pg_temp.registration_actor(n)),
