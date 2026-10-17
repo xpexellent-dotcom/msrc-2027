@@ -41,23 +41,20 @@ update msrc_participant.policy set enabled=true,privacy_version='synthetic-regis
 update msrc_participant.retention_policy set enabled=true;
 update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 select pg_temp.registration_settings('synthetic-staff-queue');
+-- Sessions are checked against statement_timestamp(): create the synthetic participants in one
+-- statement and submit in the next, as a real sign-in precedes a later request.
+do $$declare n integer;begin
+ for n in 1..9 loop perform pg_temp.registration_fixture(n,'synthetic-staff-queue'); end loop;
+end$$;
 do $$declare n integer;outcome jsonb;begin
  for n in 1..9 loop
-  perform pg_temp.registration_fixture(n,'synthetic-staff-queue');
   outcome:=pg_temp.registration_submit('synthetic-staff-queue',n,md5(n::text)||md5(n::text));
-  if outcome->>'state'<>'submitted' then
-   perform set_config('request.jwt.claims',pg_temp.registration_claims(n)::text,true);
-   raise notice 'session context %; profile %; participant only %',msrc_sessions.observe_context('synthetic-staff-queue'),msrc_participant.observe_profile('synthetic-staff-queue'),msrc_participant.participant_only(pg_temp.registration_actor(n));
-   raise exception 'Queue participant fixture failed for % with %; context %; age proven %; verified profile %',n,outcome,
-    public.msrc_registration_context('synthetic-staff-queue',pg_temp.registration_claims(n)),
-    msrc_participant.age_proven(pg_temp.registration_actor(n)),
-    exists(select 1 from msrc_participant.profiles p where p.actor_id=pg_temp.registration_actor(n) and p.state='verified');
-  end if;
+  if outcome->>'state'<>'submitted' then raise exception 'Queue participant fixture failed for % with %',n,outcome; end if;
   update msrc_registration.requests set created_at='2026-10-01T00:00:00Z'::timestamptz+make_interval(secs=>n)
    where actor_id=pg_temp.registration_actor(n);
  end loop;
 end$$;
--- A second edition is created only after the participant fixtures (session/admission helpers assume one configured edition).
+-- A second edition proves edition scoping below.
 select pg_temp.registration_settings('synthetic-staff-queue-other');
 select pg_temp.registration_staff_fixture(100,'synthetic-staff-queue');
 select pg_temp.registration_staff_fixture(101,'synthetic-staff-queue');
