@@ -94,12 +94,21 @@
 .participation-steps .journey-art .journey-art-node { fill: var(--color-surface-lilac); }
 .journey-art .journey-art-node--gold { stroke: rgb(201 162 74 / 70%); }
 .journey-art--top { inset-block-start: 0; -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 18%, transparent 68%); mask-image: radial-gradient(circle at 88% 11%, #000 18%, transparent 68%); }
-.journey-art--bottom { inset-block-end: 0; inline-size: min(32vw, 26rem); -webkit-mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 56%); mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 56%); }
+.journey-art--bottom { inset-block-end: 0; -webkit-mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 56%); mask-image: radial-gradient(circle at 88% 89%, #000 14%, transparent 56%); }
 [dir="rtl"] .journey-art { scale: -1 1; }
 /* Denser motifs fade sooner so nothing sits behind the benefit text. */
 .journey-art--top:is(.journey-art--workshops, .journey-art--hackathon, .journey-art--threeMinuteThesis, .journey-art--submissions) { -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 12%, transparent 52%); mask-image: radial-gradient(circle at 88% 11%, #000 12%, transparent 52%); }
-/* The lower field needs the empty space beside a closing action; without one it would sit under step text. */
-.participation-steps:not(:has(.participation-bottom-action)) .journey-art--bottom { display: none; }
+/* Echoes: smaller, re-seeded versions in other empty corners down the page. */
+.journey-art--md { inline-size: min(30vw, 24rem); }
+.journey-art--sm { inline-size: min(22vw, 16rem); }
+/* Echoes stay in the band above the content they sit beside. */
+.journey-art--top:is(.journey-art--md, .journey-art--sm) { -webkit-mask-image: radial-gradient(circle at 88% 11%, #000 10%, transparent 40%); mask-image: radial-gradient(circle at 88% 11%, #000 10%, transparent 40%); }
+/* Attend's Steps motif already fills the corner the next section would start from. */
+.participation-journey--registration .fluid-journey-resources .journey-art { display: none; }
+/* Steps use the corner beside a closing action when there is one (Attend), and the
+   corner beside the heading otherwise; never both, never under step text. */
+.participation-steps:not(:has(.participation-bottom-action)) .journey-art--bottom,
+.participation-steps:has(.participation-bottom-action) .journey-art--top { display: none; }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .journey-art { animation: journey-art-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
@@ -107,8 +116,9 @@
 }
 @keyframes journey-art-rise { from { opacity: 0; translate: 0 2rem; } to { opacity: 1; translate: none; } }
 @media (max-width: 700px) {
+  /* Phones keep only the section-anchoring motif; echoes would crowd a narrow screen. */
   .journey-art { inline-size: 72vw; }
-  .journey-art--bottom { display: none; }
+  .journey-art:is(.journey-art--md, .journey-art--sm) { display: none; }
 }
 @media (forced-colors: active) { .journey-art { display: none; } }
 

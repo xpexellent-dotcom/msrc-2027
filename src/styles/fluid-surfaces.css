@@ -78,8 +78,7 @@
 .legacy-section > .site-container { position: relative; z-index: 1; }
 .community-flow { position: absolute; inset: 0; z-index: 0; pointer-events: none; mask-image: linear-gradient(transparent, #000 12%, #000 84%, transparent); }
 .community-flow > .ambient-art { inline-size: 76%; inset-inline: auto; }
-.community-flow > .ambient-art:first-child { inset-inline-start: -24%; }
-.community-flow > .ambient-art:last-child { inset-inline-end: -24%; transform: scaleX(-1); }
+.community-flow > .ambient-art { inset-inline-start: -24%; }
 .community-flow .ambient-art svg { stroke: rgb(233 218 248 / .14); stroke-width: 1.2; }
 .community-flow .ambient-orbit { stroke: rgb(248 246 240 / .08); }
 @media (prefers-reduced-motion: no-preference) {

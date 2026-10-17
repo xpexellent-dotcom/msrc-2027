@@ -1,5 +1,20 @@
 # Progress and session handover
 
+## 17 October 2026 — Artwork follow-up: quieter homepage, fuller option pages
+
+- Homepage community section: owner asked to remove the second ribbon artwork
+  (the one over the photograph); only the reading-start one remains (mirrored in
+  Arabic, so it never covers the photo).
+- Option pages: the per-journey motif now also appears as smaller, re-seeded and
+  slightly turned echoes in other empty corners: beside the Steps heading (or the
+  closing action on Attend), beside the Hackathon tracks heading, and beside
+  "Your next move" (except Attend, where the Steps motif already fills that
+  corner). Echo masks stop above the content beside them. Phones keep only the
+  one section-anchoring motif per page.
+- Checks: lint, types, 2,797 unit tests; full Playwright suite 770 passed / 87
+  skipped / 1 timing failure in venue-journey-stepper (untouched page) that passed
+  on rerun with homepage-polish and participation-flow (62 passed).
+
 ## 17 October 2026 — Participation artwork: one quiet motif per journey
 
 - Owner feedback: the drifting line ribbons behind Benefits and Steps on the five

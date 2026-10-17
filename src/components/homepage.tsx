@@ -128,7 +128,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
 
     <section id="legacy" tabIndex={-1} className="editorial-section legacy-section" aria-labelledby="legacy-title">
       <div className="community-image" aria-hidden="true"><Image src="/media/msrc-demo/community-majed-9804.jpg" alt="" fill sizes="(max-width: 800px) 100vw, 60vw" /></div>
-      <div className="community-flow" aria-hidden="true"><AmbientArtwork variant="people" /><AmbientArtwork variant="people" /></div>
+      <div className="community-flow" aria-hidden="true"><AmbientArtwork variant="people" /></div>
       <Container>
         <Reveal className="section-topline" stagger><SectionHeading chapter title={expectations.historyTitle} accents={locale === "ar" ? ["ينمو.", "يجمعنا."] : ["community.", "ambition."]} id="legacy-title" inverse /><Link className="editorial-action" href={`/${locale}/media`}>{expectations.legacyLink}<Arrow /></Link></Reveal>
         <p className="legacy-film-note">{expectations.historyBody}</p>
