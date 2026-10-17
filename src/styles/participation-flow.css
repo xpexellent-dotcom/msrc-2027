@@ -98,28 +98,48 @@
 .journey-art .journey-art-node--gold { stroke: rgb(201 162 74 / 60%); }
 [dir="rtl"] .journey-art-slot { scale: -1 1; }
 
+/* Backdrop: one large study per section, drawn at watermark strength behind the
+   whole section and bleeding off one edge, so the motif becomes the page's texture. */
+.journey-art-backdrop { position: absolute; z-index: 0; inset-block-start: 50%; inline-size: clamp(34rem, 58vw, 66rem); aspect-ratio: 1; translate: 0 -50%; pointer-events: none; -webkit-mask-image: radial-gradient(closest-side, #000 35%, transparent 100%); mask-image: radial-gradient(closest-side, #000 35%, transparent 100%); }
+.journey-art-backdrop--end { inset-inline-end: -18%; }
+.journey-art-backdrop--start { inset-inline-start: -18%; scale: -1 1; }
+[dir="rtl"] .journey-art-backdrop--end { scale: -1 1; }
+[dir="rtl"] .journey-art-backdrop--start { scale: none; }
+.journey-art-backdrop .journey-art { stroke: rgb(59 30 109 / 13%); }
+.journey-art-backdrop .journey-art .journey-art-faint { stroke: rgb(59 30 109 / 7%); }
+.journey-art-backdrop .journey-art .journey-art-accent { stroke: rgb(201 162 74 / 34%); }
+.journey-art-backdrop .journey-art .journey-art-dot { fill: rgb(59 30 109 / 15%); }
+.journey-art-backdrop .journey-art .journey-art-dot--gold { fill: rgb(201 162 74 / 30%); }
+.journey-art-backdrop .journey-art .journey-art-node { stroke: rgb(59 30 109 / 8%); }
+@media (max-width: 700px) {
+  /* Phones keep a single, larger watermark behind the benefits only. */
+  .journey-art-backdrop:not(.journey-art-backdrop--benefits) { display: none; }
+  .journey-art-backdrop--benefits { inline-size: 130vw; inset-block-start: 0; translate: none; inset-inline-end: -55%; }
+}
+@media (forced-colors: active) { .journey-art-backdrop { display: none; } }
+
 /* Preserve the heading's natural height and margins. The art cannot grow the row
    or intrude on long translated copy; it is absolutely contained in its own cell. */
 @media (min-width: 900px) {
   .participation-heading { display: grid; grid-template-columns: minmax(0, 1fr) clamp(10rem, 25vw, 25rem); column-gap: clamp(2rem, 5vw, 5rem); }
   .participation-heading-copy { min-inline-size: 0; }
   .journey-art-slot--heading { display: block; position: relative; margin-block-end: 2.5rem; mask-image: radial-gradient(ellipse at center, #000 26%, transparent 73%); }
-  .journey-art-slot--heading .journey-art { position: absolute; inset: 50% 0 auto; block-size: 17rem; transform: translateY(-50%); }
+  .journey-art-slot--heading .journey-art { position: absolute; inset: 50% 0 auto; block-size: 26rem; transform: translateY(-50%); }
   .participation-heading--benefits .journey-art-slot { margin-block-end: 3rem; }
-  .participation-heading--benefits .journey-art { block-size: 21rem; }
+  .participation-heading--benefits .journey-art { block-size: 32rem; }
   .participation-heading--steps { grid-template-columns: minmax(0, 1fr) clamp(8rem, 18vw, 18rem); }
-  .participation-heading--steps .journey-art { inset-block-start: 65%; block-size: 14rem; }
+  .participation-heading--steps .journey-art { inset-block-start: 65%; block-size: 22rem; }
   .participation-heading--resources { grid-template-columns: minmax(0, 1fr) clamp(8rem, 21vw, 21rem); }
-  .participation-heading--resources .journey-art { inset-block-start: 30%; block-size: 19rem; }
+  .participation-heading--resources .journey-art { inset-block-start: 30%; block-size: 28rem; }
   .participation-heading--resources .journey-art-slot { mask-image: radial-gradient(ellipse at 64% 50%, #000 18%, transparent 70%); }
 }
 
 /* Match Container's real max width and responsive gutter, including safe areas.
    At 1600px these reveal edge fragments; wider screens reveal the full drawings. */
 @media (min-width: 1600px) {
-  .journey-art-slot--margin { --art-size: 21rem; display: block; position: absolute; z-index: 0; inline-size: max(0px, calc(max(var(--container-gutter), (100% - var(--container-width)) / 2) - 1rem)); block-size: min(var(--art-size), calc(100% - 1rem)); mask-image: radial-gradient(ellipse at center, #000 22%, transparent 74%); }
-  .journey-art-slot--lg { --art-size: 29rem; }
-  .journey-art-slot--sm { --art-size: 14rem; }
+  .journey-art-slot--margin { --art-size: 32rem; display: block; position: absolute; z-index: 0; inline-size: max(0px, calc(max(var(--container-gutter), (100% - var(--container-width)) / 2) - 1rem)); block-size: min(var(--art-size), calc(100% - 1rem)); mask-image: radial-gradient(ellipse at center, #000 22%, transparent 74%); }
+  .journey-art-slot--lg { --art-size: 44rem; }
+  .journey-art-slot--sm { --art-size: 22rem; }
   .journey-art-slot--top { inset-block-start: var(--art-at); }
   .journey-art-slot--bottom { inset-block-end: var(--art-at); }
   .journey-art-slot--start { inset-inline-start: 0; scale: -1 1; }
@@ -144,14 +164,8 @@
 .participation-track h3 { margin: 0; color: var(--color-purple); font-size: clamp(1.25rem, 2vw, 1.6rem); line-height: 1.2; }
 .participation-track p:last-child { margin: .6rem 0 0; color: var(--color-muted); line-height: 1.6; }
 .participation-track-note { margin: 1rem 0 0; color: var(--color-muted); font-weight: 600; }
-/* The two-day format is a dark interlude: it dissolves out of the ivory section above
-   and back into the lilac Steps below through long eased fades. */
-.participation-schedule { --focus-ring: var(--color-ivory); --schedule-fade: clamp(7rem, 10vw, 10rem); position: relative; isolation: isolate; overflow: clip; padding-block: calc(var(--schedule-fade) + 1.5rem); color: var(--color-ivory); background: var(--color-ink); }
-/* Absolute fade lengths keep the entire content area dark even with tall Arabic
-   cards or enlarged text. Closely eased stops dissolve to the exact adjacent colors. */
-.participation-schedule::before, .participation-schedule::after { content: ""; position: absolute; inset-inline: -2rem; block-size: var(--schedule-fade); z-index: -1; pointer-events: none; }
-.participation-schedule::before { inset-block-start: 0; background: linear-gradient(180deg, var(--color-ivory) 0%, #f1eef0 10%, #dbd4e3 26%, #b2a4c7 44%, #79658f 62%, #4b365f 78%, #2b203f 91%, var(--color-ink) 100%); }
-.participation-schedule::after { inset-block-end: 0; background: linear-gradient(0deg, var(--color-surface-lilac) 0%, #eae3f1 10%, #d4c9e2 26%, #ac9bc5 44%, #75608d 62%, #48335f 78%, #2a203e 91%, var(--color-ink) 100%); }
+/* The two-day format is a solid dark interlude between the light sections. */
+.participation-schedule { --focus-ring: var(--color-ivory); position: relative; isolation: isolate; overflow: clip; padding-block: clamp(4.5rem, 8vw, 7rem); color: var(--color-ivory); background: radial-gradient(55% 80% at 85% 20%, rgb(75 44 128 / 32%), transparent 70%), radial-gradient(45% 70% at 8% 90%, rgb(59 30 109 / 30%), transparent 70%), #140f1d; }
 .participation-schedule-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
 .participation-schedule-list li { padding: clamp(1.25rem, 3vw, 2rem); border-radius: 18px; background: var(--color-ivory); }
 .participation-schedule-day { display: inline-block; margin-block-end: .6rem; padding: .25rem .75rem; border-radius: 999px; background: var(--color-purple); color: var(--color-ivory); font-size: .8125rem; font-weight: 700; }

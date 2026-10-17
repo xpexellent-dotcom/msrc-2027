@@ -345,9 +345,14 @@ const sideArtwork: Record<ArtworkArea, readonly SideArt[]> = {
   steps: [{ side: "start", size: "sm", edge: "bottom", at: "3%", turn: "24deg", variant: 7 }, { side: "end", size: "md", edge: "top", at: "8%", turn: "-24deg", variant: 4 }],
   resources: [{ side: "start", size: "md", edge: "top", at: "5%", turn: "-8deg", variant: 9 }, { side: "end", size: "sm", edge: "bottom", at: "4%", turn: "18deg", variant: 2 }],
 };
+// One large, very faint study per section sits behind the whole section like a
+// watermark, alternating sides down the page so the background reads as one theme.
+const backdropSides: Record<ArtworkArea, "start" | "end"> = { tracks: "start", benefits: "end", rail: "start", steps: "end", resources: "start" };
 function SideArtwork({ motif, area }: { motif: JourneyArtworkMotif; area: ArtworkArea }) {
   const shift = journeyOrder.indexOf(motif);
-  return <>{sideArtwork[area].map((piece) => <div key={piece.side} aria-hidden="true"
+  return <><div aria-hidden="true" className={`journey-art-backdrop journey-art-backdrop--${backdropSides[area]} journey-art-backdrop--${area}`}>
+    <JourneyArtwork motif={motif} variant={areaSeeds[area] + 11 + shift} />
+  </div>{sideArtwork[area].map((piece) => <div key={piece.side} aria-hidden="true"
     className={`journey-art-slot journey-art-slot--margin journey-art-slot--${piece.side} journey-art-slot--${piece.size} journey-art-slot--${piece.edge}`}
     style={{ "--art-at": piece.at, "--art-turn": piece.turn } as CSSProperties}>
     <JourneyArtwork motif={motif} variant={piece.variant + shift} />

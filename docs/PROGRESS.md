@@ -1,5 +1,19 @@
 # Progress and session handover
 
+## 17 October 2026 — Larger background artwork and a solid dark two-day band
+
+- Owner request on top of PR #100: the Hackathon "Two days, two stages" section is
+  now a solid dark band (no fades), with faint purple glows; artwork is "much
+  larger and fits the background theme".
+- Each artwork section gains one large watermark-strength study of its journey
+  motif behind the whole section (journey-art-backdrop), bleeding off one edge and
+  alternating sides down the page; phones keep one, behind the benefits only.
+  PR #100's clipped heading and margin slots keep their no-overlap guarantee and
+  draw their motifs about 50% larger inside the same slots. The backdrop is
+  deliberately outside that guarantee (it is a section background at 7–15% stroke).
+- Checks: lint, types, 2,894 unit tests; full Playwright 821 passed / 137 skipped /
+  0 failed, including participation-artwork.spec.
+
 ## 17 October 2026 — Participation artwork with protected reading space
 
 - Started from `59b21ba` in `codex/participation-artwork`, preserving the older dirty
