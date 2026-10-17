@@ -1,5 +1,21 @@
 # MSRC 2027 decision and configuration register
 
+## 17 October 2026 — Hackathon technology throughout the page
+
+Authority: the owner's follow-up asking for the technology theme across the whole
+Hackathon page with only a few large pieces, and identifying the visible hero crop.
+This refines the two-piece implementation below; DSN-01/02, LOC-01/03, ACC-01.
+
+Use three related static orbital circuit studies: the empty desktop hero column,
+the Benefits background and the opposite side of the closing section. Vary their
+scale and angle; use thin purple/lilac strokes with sparse gold accents. At 1000px
+and below show only the Benefits study. Mirror Arabic and fully fade the artwork
+before every container edge so the hero no longer ends in a rectangular cutoff.
+Preserve the later approved solid dark schedule and all content and actions.
+
+[Implementation and verification](features/hackathon-technology.md),
+[follow-up screenshots](reviews/hackathon-technology-flow-2026-10-17/README.md).
+
 ## 17 October 2026 — Restrained Hackathon technology theme
 
 Authority: the owner's supplied technology landing-page reference and explicit

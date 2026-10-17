@@ -1,5 +1,7 @@
 # Hackathon technology — before and after
 
+This gallery records the first version. See the [whole-page follow-up](../hackathon-technology-flow-2026-10-17/README.md) for the current three-piece composition and soft hero edges.
+
 Baseline: `db70b05`. Final images: local production build of this follow-up. Chromium, device scale 1, reduced motion, fonts ready. These are documentation screenshots, not website image assets.
 
 The owner supplied a technology landing-page reference and asked for a restrained interpretation using MSRC branding. A clipped orbital circuit study occupies the empty hero cell. The hero photograph has a deeper purple/ink wash; the Steps watermark is removed to keep only two decorative pieces on desktop and one on phones. The solid dark schedule stays as approved in the later 17 October direction.

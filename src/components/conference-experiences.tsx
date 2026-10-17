@@ -342,8 +342,10 @@ function ArtworkHeading({ area, children }: { motif: JourneyArtworkMotif; area: 
 const backdropAreas: readonly ArtworkArea[] = ["benefits", "steps"];
 const backdropSides: Record<ArtworkArea, "start" | "end"> = { tracks: "start", benefits: "end", rail: "start", steps: "start", resources: "start" };
 function SideArtwork({ motif, area }: { motif: JourneyArtworkMotif; area: ArtworkArea }) {
+  if (motif === "hackathon") {
+    return area === "benefits" ? <HackathonTechArt variant="field" /> : area === "resources" ? <HackathonTechArt variant="closing" /> : null;
+  }
   if (!backdropAreas.includes(area)) return null;
-  if (motif === "hackathon" && area === "steps") return null;
   return <div aria-hidden="true" className={`journey-art-backdrop journey-art-backdrop--${backdropSides[area]} journey-art-backdrop--${area}`}>
     <JourneyArtwork motif={motif} variant={areaSeeds[area] + 11 + journeyOrder.indexOf(motif)} />
   </div>;

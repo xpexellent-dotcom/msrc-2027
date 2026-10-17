@@ -1,7 +1,9 @@
-/** One static circuit study, contained in the hero's otherwise empty grid cell. */
-export function HackathonTechArt() {
-  return <div className="hackathon-tech-art" aria-hidden="true">
-    <svg className="hackathon-tech-svg" viewBox="0 0 560 480" fill="none" aria-hidden="true" focusable="false">
+/** Three quiet compositions share one static circuit drawing across the journey. */
+export function HackathonTechArt({ variant = "hero" }: { variant?: "hero" | "field" | "closing" }) {
+  const turn = variant === "field" ? -18 : variant === "closing" ? 24 : 0;
+  return <div className={`hackathon-tech-art hackathon-tech-art--${variant}`} aria-hidden="true">
+    <svg className="hackathon-tech-svg" viewBox="-30 -24 630 528" fill="none" aria-hidden="true" focusable="false">
+      <g transform={`rotate(${turn} 280 240)`}>
       <circle className="hackathon-tech-disc" cx="365" cy="246" r="174" />
       <g className="hackathon-tech-orbits">
         {[138, 166, 195].map((radius) => <circle key={radius} cx="365" cy="246" r={radius} />)}
@@ -17,6 +19,7 @@ export function HackathonTechArt() {
       </g>
       <g className="hackathon-tech-points">
         {Array.from({ length: 20 }, (_, index) => <circle key={index} cx={407 + index % 5 * 21} cy={27 + Math.floor(index / 5) * 21} r="1.5" />)}
+      </g>
       </g>
     </svg>
   </div>;

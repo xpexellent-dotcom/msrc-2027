@@ -1,5 +1,23 @@
 # Progress and session handover
 
+## 17 October 2026 — Hackathon technology flow and soft artwork edges
+
+- Owner requested technology styling throughout the page with only a few large
+  pieces, and reported a hard hero cutoff. Three related static circuit studies
+  now appear at the hero, Benefits and closing section, with varied angles, scale
+  and alternating sides. Phones keep one; Arabic mirrors the composition.
+- Corrected the hero with a fully transparent mask boundary and a padded SVG
+  viewBox. A rendered-alpha regression checks all four edges and rejects an empty
+  capture. Content, layout, the solid dark schedule and the other pages are unchanged.
+- PASS: lint, typecheck, build, 2,894 unit tests; four focused Playwright suites:
+  88 passed, 58 intentional skips, zero failures. All 30 option-page EN/AR states
+  captured at 390/1440/1920px: no text, height or horizontal-overflow changes.
+  All six Hackathon captures visually reviewed; independent code review is clean.
+  Full Playwright PASS: 823 passed, 139 intentional skips, zero failures/
+  retries (15.7m) on isolated port 49717. No hosted changes or merge.
+- Details: [feature and checks](features/hackathon-technology.md),
+  [before/after screenshots](reviews/hackathon-technology-flow-2026-10-17/README.md).
+
 ## 17 October 2026 — Restrained Hackathon technology theme
 
 - Owner supplied a technology landing-page reference and requested an MSRC-branded
