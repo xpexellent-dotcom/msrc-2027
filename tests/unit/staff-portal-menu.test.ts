@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { PERMISSION_RULES, ROLES, type Role } from "@/lib/permissions/contract";
-import { canChangeOwnPassword, canRevealIdentity, maskIdentity, STAFF_MENU, staffMenu } from "@/features/staff-portal/menu";
+import { canChangeOwnPassword, canRevealIdentity, isOversightOnly, maskIdentity, STAFF_MENU, staffMenu } from "@/features/staff-portal/menu";
 import { staffCopy } from "@/features/staff-portal/copy";
 
 describe("BL-AUTH-01 and BL-RPT-01/03 navigation projection", () => {
   it.each(ROLES)("%s sees only areas projected by the permission contract", (role) => {
-    const expected = STAFF_MENU.filter((entry) => !entry.ownAccount && (PERMISSION_RULES[entry.operation].roles.includes(role)
-      || role === "superAdmin" && entry.key === "participants")).map((entry) => entry.key);
+    // ORG-055: each role sees its own areas; Super Admin sees every non-account area.
+    const expected = STAFF_MENU.filter((entry) => !entry.ownAccount && (role === "superAdmin" || PERMISSION_RULES[entry.operation].roles.includes(role))).map((entry) => entry.key);
     expect(staffMenu([role]).map((entry) => entry.key)).toEqual(expected);
+  });
+  it("marks review and faculty judging as oversight-only for a Super Admin without the scoring role", () => {
+    expect(isOversightOnly("review", ["superAdmin"])).toBe(true);
+    expect(isOversightOnly("faculty-judging", ["superAdmin"])).toBe(true);
+    expect(isOversightOnly("review", ["superAdmin", "abstractReviewer"])).toBe(false);
+    expect(isOversightOnly("review", ["abstractReviewer"])).toBe(false);
+    expect(isOversightOnly("people", ["superAdmin"])).toBe(false);
   });
   it("is additive without granting a participant general staff access", () => {
     expect(staffMenu(["participant"])).toEqual([]);

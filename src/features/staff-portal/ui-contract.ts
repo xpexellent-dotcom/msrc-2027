@@ -1,17 +1,22 @@
 import type { Role } from "@/lib/permissions/contract";
 
-export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security";
-export type StaffArea = "people" | "audit" | "participants";
+export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority";
+export type StaffArea = "people" | "audit" | "participants" | "registration" | "priority" | "summary";
+export type StaffRegistrationStatus = "pending_approval" | "approved" | "approved_awaiting_payment" | "waitlisted" | "offered" | "confirmed" | "cancelled" | "expired";
+export type StaffRegistrationRequest = { id: string; actorId: string; name: string; email: string; status: StaffRegistrationStatus; priority: boolean; createdAt: string; decidedAt: string | null; identityMasked: string | null };
+export type StaffRegistrationCounts = { pending: number; approved: number; waitlisted: number; capacity: number | null; remaining: number | null };
+export type StaffPriorityRow = { actorId: string; name: string; email: string; active: boolean; reason: string; designatedAt: string; designatedByName: string | null; removedAt: string | null };
+export type StaffSummary = { registration?: StaffRegistrationCounts; participants?: number; staff?: number; auditLast24h?: number; priority?: number };
 export type StaffProfile = { actorId: string; name: string; roles: Role[] };
 export type StaffPerson = { actorId: string; name: string; email: string; roles: Role[]; status: "active" | "suspended"; lastSignIn: string | null; recoveryState?: "none" | "pending" | "failed" | "awaiting_invitation" };
 export type StaffInvitation = { id: string; email: string; roles: Role[]; status: "pending" | "accepted" | "revoked" | "expired"; expiresAt: string };
 export type StaffAuditRow = { id: string; actorId: string | null; actorName?: string | null; action: string; targetId: string | null; targetName?: string | null; occurredAt: string; result: string };
 export type StaffParticipant = { actorId: string; name: string; email: string; status: "unverified" | "verified" | "suspended"; createdAt: string; identityMasked?: string | null };
-export type StaffAction = "signin" | "logout" | "activity" | "enroll-totp" | "challenge-totp" | "verify-totp" | "challenge-email" | "verify-email" | "invite-accept" | "invite" | "invite-resend" | "invite-revoke" | "roles" | "suspend" | "reactivate" | "revoke-sessions" | "reset-authenticator" | "reset-account" | "reveal-identity" | "password-change";
+export type StaffAction = "signin" | "logout" | "activity" | "enroll-totp" | "challenge-totp" | "verify-totp" | "challenge-email" | "verify-email" | "invite-accept" | "invite" | "invite-resend" | "invite-revoke" | "roles" | "suspend" | "reactivate" | "revoke-sessions" | "reset-authenticator" | "reset-account" | "reveal-identity" | "password-change" | "registration-approve" | "registration-waitlist" | "priority-set" | "priority-remove";
 export type StaffPayload = {
   action: StaffAction; formToken?: string; email?: string; password?: string; passwordConfirmation?: string; name?: string;
   code?: string; factorId?: string; challengeId?: string; invitationId?: string; token?: string;
-  targetId?: string; roles?: Role[]; reason?: string;
+  targetId?: string; roles?: Role[]; reason?: string; requestIds?: string[]; status?: StaffRegistrationStatus | "all";
 };
 export type StaffState = "ready" | "authenticated" | "pending-email" | "pending-totp" | "enroll-totp" | "closed" | "unavailable" | "identity-unavailable" | "invalid-input" | "invalid-credentials" | "invalid-code" | "denied" | "limited" | "invited" | "updated" | "accepted" | "signed-out" | "password-changed" | "reauthentication-required";
 export type StaffResponse = {
@@ -19,4 +24,7 @@ export type StaffResponse = {
   expiresAt?: string | number; enrollment?: { factorId: string; secret: string; qrCode: string };
   people?: StaffPerson[]; invitations?: StaffInvitation[]; audit?: StaffAuditRow[]; participants?: StaffParticipant[];
   identity?: string; retryAfter?: number;
+  registration?: { requests: StaffRegistrationRequest[]; counts: StaffRegistrationCounts };
+  priority?: { designations: StaffPriorityRow[]; candidates?: StaffParticipant[] };
+  summary?: StaffSummary; decided?: { approved: number; waitlisted: number; skipped: number };
 };
