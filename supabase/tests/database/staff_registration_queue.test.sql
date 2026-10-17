@@ -41,19 +41,22 @@ update msrc_participant.policy set enabled=true,privacy_version='synthetic-regis
 update msrc_participant.retention_policy set enabled=true;
 update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 select pg_temp.registration_settings('synthetic-staff-queue');
-select pg_temp.registration_settings('synthetic-staff-queue-other');
 do $$declare n integer;outcome jsonb;begin
  for n in 1..9 loop
   perform pg_temp.registration_fixture(n,'synthetic-staff-queue');
   outcome:=pg_temp.registration_submit('synthetic-staff-queue',n,md5(n::text)||md5(n::text));
   if outcome->>'state'<>'submitted' then
-   raise exception 'Queue participant fixture failed for % with %; context %',n,outcome,
-    public.msrc_registration_context('synthetic-staff-queue',pg_temp.registration_claims(n));
+   raise exception 'Queue participant fixture failed for % with %; context %; age proven %; verified profile %',n,outcome,
+    public.msrc_registration_context('synthetic-staff-queue',pg_temp.registration_claims(n)),
+    msrc_participant.age_proven(pg_temp.registration_actor(n)),
+    exists(select 1 from msrc_participant.profiles p where p.actor_id=pg_temp.registration_actor(n) and p.state='verified');
   end if;
   update msrc_registration.requests set created_at='2026-10-01T00:00:00Z'::timestamptz+make_interval(secs=>n)
    where actor_id=pg_temp.registration_actor(n);
  end loop;
 end$$;
+-- A second edition is created only after the participant fixtures (session/admission helpers assume one configured edition).
+select pg_temp.registration_settings('synthetic-staff-queue-other');
 select pg_temp.registration_staff_fixture(100,'synthetic-staff-queue');
 select pg_temp.registration_staff_fixture(101,'synthetic-staff-queue');
 select pg_temp.registration_staff_fixture(102,'synthetic-staff-queue','registrationWorkshopAdministrator');
