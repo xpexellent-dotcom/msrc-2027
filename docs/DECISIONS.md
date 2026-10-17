@@ -1,5 +1,23 @@
 # MSRC 2027 decision and configuration register
 
+## 17 October 2026 — Participation artwork direction
+
+Authority: the current explicit owner request. Requirements DSN-01/02, LOC-01/03,
+ACC-01; presentation follow-up to ORG-053/054 and ENG-048.
+
+For the five option pages only, replace the earlier animated background ribbons
+with static, faint, page-specific SVG motifs: Attend contours/gold point, abstracts
+scatter/gold trend, workshops cutting-mat grid, Hackathon circuit nodes, and 3MT
+stopwatch/three-minute gold arc/sound waves. Place them in genuinely empty heading
+space and outside the reading column, never behind text/cards/buttons. Use both
+wide margins with varied shapes, heights and crops; phones get at most one quiet
+accent. Mirror Arabic and hide decoration under forced colors. Retain and soften
+the dark Hackathon two-day interlude. This supersedes ORG-054's decorative motion
+direction on these pages only. Content, routes, actions and operational gates
+remain unchanged; Homepage, Venue, Contact and Speakers are excluded.
+
+Implementation and evidence: [participation artwork](features/participation-artwork.md).
+
 ## ENG-047 — Visitor interaction regression coverage, 16 October 2026
 
 Authority: current requester real-user bug-hunt task. Requirements ACC-01,

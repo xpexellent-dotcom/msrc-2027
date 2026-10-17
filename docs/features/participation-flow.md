@@ -1,5 +1,10 @@
 # Public participation flow — ORG-053 / ENG-048
 
+17 October 2026 follow-up: the owner requested a separate decorative-artwork
+redesign and pull request. See [participation artwork](participation-artwork.md)
+for the current placement model, scope and verification evidence. The ownership
+and delivery notes below describe the original 16 October task.
+
 Owner-approved scope, 16 October 2026: public presentation and navigation only.
 Claude is the planner/visual QA and owns rechecks, commit and PR. Implementation
 creates no branch/commit/push, opens no account or workflow and changes no hosted
