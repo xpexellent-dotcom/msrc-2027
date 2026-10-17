@@ -42,7 +42,7 @@ update msrc_participant.retention_policy set enabled=true;
 update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 select pg_temp.registration_settings('synthetic-staff-queue');
 select pg_temp.registration_settings('synthetic-staff-queue-other');
-do $declare n integer;outcome jsonb;begin
+do $$declare n integer;outcome jsonb;begin
  for n in 1..9 loop
   perform pg_temp.registration_fixture(n,'synthetic-staff-queue');
   outcome:=pg_temp.registration_submit('synthetic-staff-queue',n,md5(n::text)||md5(n::text));
