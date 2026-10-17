@@ -42,11 +42,13 @@ update msrc_participant.retention_policy set enabled=true;
 update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 select pg_temp.registration_settings('synthetic-staff-queue');
 select pg_temp.registration_settings('synthetic-staff-queue-other');
-do $$declare n integer;begin
+do $declare n integer;outcome jsonb;begin
  for n in 1..9 loop
   perform pg_temp.registration_fixture(n,'synthetic-staff-queue');
-  if pg_temp.registration_submit('synthetic-staff-queue',n,md5(n::text)||md5(n::text))->>'state'<>'submitted' then
-   raise exception 'Queue participant fixture failed';
+  outcome:=pg_temp.registration_submit('synthetic-staff-queue',n,md5(n::text)||md5(n::text));
+  if outcome->>'state'<>'submitted' then
+   raise exception 'Queue participant fixture failed for % with %; context %',n,outcome,
+    public.msrc_registration_context('synthetic-staff-queue',pg_temp.registration_claims(n));
   end if;
   update msrc_registration.requests set created_at='2026-10-01T00:00:00Z'::timestamptz+make_interval(secs=>n)
    where actor_id=pg_temp.registration_actor(n);
