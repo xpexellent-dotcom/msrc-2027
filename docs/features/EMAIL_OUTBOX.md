@@ -6,6 +6,12 @@ Registration slice 2 of 5, 16 October 2026. This is a closed, trigger-agnostic
 foundation for review; it does not open registration, authentication email or
 any other operational workflow.
 
+ORG-055 staff queue slice 3 deliberately adds no producer here. Approval/waitlist
+notification enqueue is slice 4 work: reviewed English business templates,
+recipient policy and enqueue in the same database transaction as the decision,
+behind the existing closed switches. `synthetic_notice` is not a participant
+notification and is not reused for approval or waitlist decisions.
+
 ## Boundary
 
 The only producer/template exercised here is synthetic: `synthetic_notice`,

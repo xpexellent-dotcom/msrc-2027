@@ -2,28 +2,43 @@ import "server-only";
 import { ROLES, type Role } from "@/lib/permissions/contract";
 import { normalizeParticipantCode } from "@/features/participant-accounts/validation.server";
 import { staffUuid } from "./security.server";
+import type { StaffRegistrationStatus } from "./ui-contract";
+
+export const STAFF_REGISTRATION_STATUSES = ["pending_approval", "approved", "approved_awaiting_payment", "waitlisted", "offered", "confirmed", "cancelled", "expired"] as const satisfies readonly StaffRegistrationStatus[];
+export function validStaffRegistrationStatus(value: unknown): value is StaffRegistrationStatus | "all" {
+  return value === "all" || typeof value === "string" && STAFF_REGISTRATION_STATUSES.includes(value as StaffRegistrationStatus);
+}
 
 export const STAFF_ACTIONS = ["signin", "logout", "activity", "enroll-totp", "challenge-totp", "verify-totp", "challenge-email", "verify-email",
   "invite-accept", "invite", "invite-resend", "invite-revoke", "roles", "suspend", "reactivate", "revoke-sessions",
-  "reset-authenticator", "reset-account", "reveal-identity", "password-change"] as const;
+  "reset-authenticator", "reset-account", "reveal-identity", "password-change", "registration-approve", "registration-waitlist", "priority-set", "priority-remove"] as const;
 export interface StaffPayload {
   action: (typeof STAFF_ACTIONS)[number]; formToken: string; email?: string; name?: string; password?: string; passwordConfirmation?: string;
   code?: string; challengeId?: string; factorId?: string; invitationId?: string; token?: string; targetId?: string;
-  roles?: Role[]; website?: string; reason?: string;
+  roles?: Role[]; website?: string; reason?: string; requestIds?: string[]; status?: StaffRegistrationStatus | "all";
 }
 export function validateStaffPayload(value: unknown): StaffPayload | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
   if (!STAFF_ACTIONS.includes(record.action as never) || typeof record.formToken !== "string") return null;
-  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website", "reason"];
+  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website", "reason", "requestIds", "status"];
   if (Object.keys(record).some((key) => !allowed.includes(key))
-    || Object.entries(record).some(([key, entry]) => key !== "roles" && (typeof entry !== "string" || entry.length > (key === "formToken" ? 1024 : 512)))) return null;
+    || Object.entries(record).some(([key, entry]) => !["roles", "requestIds"].includes(key) && (typeof entry !== "string" || entry.length > (key === "formToken" ? 1024 : 512)))) return null;
   const input = { ...record } as unknown as StaffPayload;
   if (input.action === "activity" && Object.keys(record).some((key) => !["action", "formToken", "website"].includes(key))) return null;
-  if (input.action === "reveal-identity") {
+  if (["reveal-identity", "priority-set", "priority-remove"].includes(input.action)) {
     input.reason = input.reason?.trim();
     if (!input.reason || input.reason.length > 300 || /[\x00-\x1f\x7f]/.test(input.reason)) return null;
   } else if (input.reason !== undefined) return null;
+  if (["registration-approve", "registration-waitlist"].includes(input.action)) {
+    if (Object.keys(record).some((key) => !["action", "formToken", "website", "requestIds", "status"].includes(key))
+      || !Array.isArray(input.requestIds) || input.requestIds.length < 1 || input.requestIds.length > 100
+      || input.requestIds.some((id) => typeof id !== "string" || !staffUuid.test(id))
+      || new Set(input.requestIds.map((id) => id.toLowerCase())).size !== input.requestIds.length
+      || input.status !== undefined && !validStaffRegistrationStatus(input.status)) return null;
+  } else if (input.requestIds !== undefined || input.status !== undefined) return null;
+  if (["priority-set", "priority-remove"].includes(input.action)
+    && Object.keys(record).some((key) => !["action", "formToken", "website", "targetId", "reason"].includes(key))) return null;
   if (input.action === "password-change") {
     if (Object.keys(record).some((key) => !["action", "formToken", "password", "passwordConfirmation", "website"].includes(key))
       || !input.password || Array.from(input.password).length < 10 || Buffer.byteLength(input.password, "utf8") > 72
@@ -47,7 +62,7 @@ export function validateStaffPayload(value: unknown): StaffPayload | null {
     if (!Array.isArray(input.roles) || (input.action !== "roles" && input.roles.length < 1) || input.roles.length > ROLES.length - 1
       || new Set(input.roles).size !== input.roles.length || input.roles.some((role) => role === "participant" || !ROLES.includes(role))) return null;
   } else if (input.roles !== undefined) return null;
-  if (["roles", "suspend", "reactivate", "revoke-sessions", "reset-authenticator", "reset-account", "reveal-identity"].includes(input.action)
+  if (["roles", "suspend", "reactivate", "revoke-sessions", "reset-authenticator", "reset-account", "reveal-identity", "priority-set", "priority-remove"].includes(input.action)
     && (!input.targetId || !staffUuid.test(input.targetId))) return null;
   if (input.action === "invite-revoke" && (!input.invitationId || !staffUuid.test(input.invitationId))) return null;
   if (["verify-email", "verify-totp"].includes(input.action)) {
