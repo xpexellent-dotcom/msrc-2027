@@ -1,0 +1,225 @@
+# Hackathon technology theme — 17 October 2026
+
+Scope: `/en/hackathon` and `/ar/hackathon`; DSN-01/02, LOC-01/03, ACC-01.
+The owner supplied a technology-themed landing-page reference and requested a
+restrained interpretation in MSRC colors and branding.
+
+## Current revision — Option E medical artwork
+
+The owner selected the written Option E medical direction and explicitly retained
+the photographic purple header, its photograph and the gold Enter pill. The
+referenced `.qa/opts/e.html` was not present; implementation follows the detailed
+written brief, not a reviewed local mockup. This scoped extension supersedes the
+orb/circuit festival treatment below without changing the global MSRC identity.
+The fresh baseline is PR #101 head `5ae3c9a` on `codex/hackathon-technology`.
+
+- Static, deterministic inline SVG replaces the glass orbs, dot grids and
+  chevrons with a violet/gold DNA helix in the empty hero grid cell and a single
+  ECG beat in a full-width strip with reserved spacing beneath the reading area.
+  Transparent ends and padded geometry avoid the earlier hard artwork cutoff.
+- Two quieter echoes occupy their own empty heading cells: a DNA fragment beside
+  Benefits and an ECG fragment beside the closing resources. At 1000px and below
+  the hero helix and closing echo disappear; at 700px and below only the hero ECG
+  remains. Arabic mirrors the composition and gradients; scientific track titles
+  remain English and LTR.
+- Tracks and day cards use dark glass surfaces, 22px corners and a fine
+  violet-to-gold bottom edge. The solid dark schedule remains; connected step
+  nodes replace the festival decorations. The existing heading's last word has
+  the requested gradient accent, with a solid-color fallback.
+- The only new text is the requested `MEDICAL HACKATHON · MSRC 2027` label,
+  localized as `الهاكاثون الطبي · MSRC 2027`. Existing copy, actions, routes and
+  closed workflow states remain. No dependency or website image asset is added.
+  Decoration is noninteractive, aria-hidden, non-focusable, static under reduced
+  motion, and hidden in forced colors and print. SVG gradient/filter IDs are
+  instance-unique and stable across server rendering and hydration.
+
+### Current verification
+
+Node 24.21.0 / pnpm 11.19.0. These receipts apply to the medical revision;
+historical results below remain evidence for their named revisions only.
+
+| Check | Observed result |
+| --- | --- |
+| `pnpm lint`, `pnpm typecheck`, `pnpm build` | PASS |
+| `pnpm test` | PASS — 2,894 tests, 68 files |
+| Four focused Playwright suites | PASS — 90 passed, 60 intentional project/device skips, zero failures/retries |
+| Artwork coverage | PASS — 54 cases, including 30 locale/page/width matrix axe scans and two enlarged-text axe scans; all 32 clean |
+| Layout and SVG checks | PASS — EN/AR at 320/390px with 100%/200% text, 1440/1920px, 1600/2560px, 700/701px and 1000/1001px boundaries, both hero pieces' rendered alpha edges, unique IDs, exact server/client SVG, forced colors and print |
+| Before/after comparison | PASS — all 30 option-page states recaptured; zero unexpected text changes after the requested label, zero horizontal overflow; only Hackathon page heights change |
+| Other option pages | 23/24 screenshots byte-identical; Arabic Workshops at 390px differs by at most one RGB level within its unchanged hero, with identical text and geometry |
+| Independent visual and source review | PASS — all six EN/AR 390/1440/1920px states, section-by-section and native-size crops; no actionable findings; disposition SHIP |
+| Full configured Playwright suite | PASS — 825 passed, 141 intentional project/device skips, zero failures/retries, 14.4 minutes; `.tools/participation-artwork/medical-full-playwright.log` |
+| Physical devices / real assistive technology / production deployment | NOT TESTED |
+
+Focused command:
+`pnpm exec playwright test tests/e2e/participation-artwork.spec.ts tests/e2e/participation-flow.spec.ts tests/e2e/fluid-journeys.spec.ts tests/e2e/premium-interface.spec.ts --config .tools/playwright-hackathon-isolated.config.ts`.
+Full command: `pnpm exec playwright test --config .tools/playwright-hackathon-isolated.config.ts`.
+The existing isolated config changes only server port and output paths; assertions,
+workers and retry policy remain unchanged. Current logs use the `medical-` prefix
+in the ignored `.tools/participation-artwork` directory.
+
+The design detector was run once. Its two warnings concern the unchanged
+Good-to-know accent border and the explicitly requested heading gradient.
+Advisories cover the legacy type scale and this scoped revision's violet, 22px
+corners and alpha masks. Independent review found no mechanical defect requiring
+a change; these diagnostics do not authorize unrelated design drift repairs.
+The feature-level contract records this extension; global `DESIGN.md` and
+`.impeccable/design.json` remain unchanged.
+
+[Current before/after gallery and comparison receipt](../reviews/hackathon-medical-tech-2026-10-17/README.md).
+Next: owner review of PR #101. No hosted setting, database, account, email, flag, merge or workflow
+activation is part of this revision.
+
+## Whole-page follow-up
+
+The owner subsequently asked for the technology theme to continue through the
+whole Hackathon page with only a few large background pieces, and supplied a
+screenshot showing an abrupt crop at the hero artwork's right and lower edges.
+The baseline for this follow-up is `7a09823` on the existing PR #101 branch.
+
+The audit traced the crop to an oversized SVG clipped before an off-centre mask
+became transparent. A centred closest-side radial mask now reaches transparency
+at every box boundary. A padded SVG viewBox and visible SVG overflow retain the
+outer geometry until that fade. The existing hero grid and height stay unchanged.
+
+The same small inline drawing now has three compositions: hero, Benefits and
+closing resources. Different rotations, sizes and opposite logical sides create
+continuity down the page. Light-section strokes use faint purple with sparse gold
+accents; the hero retains lilac. There are three desktop studies and one at 1000px
+and below. All remain static, decorative, noninteractive, deterministic, mirrored
+in Arabic, and hidden under forced colors and in print.
+
+The solid dark schedule and its cards remain as approved. There are no content,
+route, control, operational, dependency or website-image changes. The other four
+option pages and excluded pages retain their existing treatment.
+
+### Follow-up verification
+
+Node 24.21.0 / pnpm 11.19.0. Checks below apply to this three-piece follow-up;
+the earlier full-suite receipt is retained separately below.
+
+| Check | Observed result |
+| --- | --- |
+| `pnpm lint`, `pnpm typecheck`, `pnpm build` | PASS |
+| `pnpm test` | PASS — 2,894 tests, 68 files |
+| Four focused Playwright suites | PASS — 88 passed, 58 intentional project/device skips, zero failures/retries |
+| Full Playwright confirmation | PASS — 823 passed, 139 intentional project/device skips, zero failures/retries (15.7m) |
+| Screenshots | All 30 option-page EN/AR states at 390/1440/1920px recaptured with fonts and hero photos ready |
+| Comparison with `7a09823` | Zero text, page-height or horizontal-overflow changes |
+| Unchanged option pages | 23/24 byte-identical PNGs; the remaining Arabic Workshops phone capture differs by at most 1 RGB level within its unchanged hero |
+| Visual and code review | PASS — all six Hackathon states, native-size hero/phone crops and current source diff reviewed; no actionable findings |
+| Physical devices / assistive technology / production deployment | NOT TESTED |
+
+Focused command:
+`pnpm exec playwright test tests/e2e/participation-artwork.spec.ts tests/e2e/participation-flow.spec.ts tests/e2e/fluid-journeys.spec.ts tests/e2e/premium-interface.spec.ts --config .tools/playwright-hackathon-isolated.config.ts`.
+The ignored config changes only server port (49717) and output paths; assertions,
+workers and retry policy remain unchanged. The screenshot server used 49718.
+Full command: `pnpm exec playwright test --config .tools/playwright-hackathon-isolated.config.ts`.
+The full run log is `flow-full-playwright.log`; any incidental Venue screenshot
+fixtures regenerated by that run are preserved locally and restored out of scope.
+
+The artwork suite retains all 30 axe scans, 1600/2560px geometry checks, 1000/1001px
+breakpoint checks, forced colors and server/client SVG identity checks. New
+assertions cover all three compositions and one-piece narrow layouts. A PNG alpha
+check isolates the rendered hero artwork in both languages at 1440px, requires a
+visible interior, and verifies each boundary stays at or below 5/255 alpha. This
+protects against the reported cutoff without asserting one specific CSS gradient.
+
+[Whole-page before/after gallery](../reviews/hackathon-technology-flow-2026-10-17/README.md).
+Current logs and original PNGs are in the ignored `.tools/participation-artwork`
+directory with the `flow-` prefix. Documentation WebP images are review evidence.
+PR #101 remains for owner review; no merge or production activation is implied.
+
+## Initial implementation and prior verification
+
+PR #100 was already merged. A fresh fetch found `db70b05` on main, including the
+owner's subsequent requests for fewer large studies and a solid dark two-day band.
+No open PR overlapped this slice. The original shared checkout was preserved;
+implementation uses the existing managed worktree on `codex/hackathon-technology`.
+
+The audit found genuine unused space in the hero's second grid cell, approximately
+381px at a 1440px viewport and 455px at 1920px. It already changes physical sides in
+Arabic and collapses at 1000px. The implementation uses that cell without widening
+the grid or placing the new drawing behind the hero copy or buttons.
+
+- A small inline SVG creates three concentric lilac rings, three routed connections,
+  a short gold connection/arc and a sparse field of points. Oversizing and clipping
+  make it read as part of the background. A diffuse lilac wash adds quiet depth.
+- The existing approved photograph remains, under a deeper purple/ink overlay. The
+  overlay and drawing mirror in Arabic, while scientific track titles stay LTR.
+- The existing Benefits circuit backdrop remains. Only Hackathon's Steps backdrop
+  is removed, retaining a maximum of two pieces on desktop and one on phones.
+- The new hero artwork is hidden at 1000px and below, under forced colors and in
+  print. It is static, has no IDs/state/timers, is aria-hidden and non-focusable,
+  and receives no pointer events. No runtime package or website image asset is added.
+- Copy, routes, controls, closed states and the solid dark schedule are unchanged.
+  The other four option pages and Homepage, Venue, Contact and Speakers are unchanged.
+
+One bounded visual correction enlarged/cropped the first drawing and deepened the
+hero overlay. Review then found one capture with its photograph still loading;
+the capture helper now waits for image decoding. The earlier captures are retained
+under ignored local evidence rather than represented as final screenshots.
+
+## Initial verification (prior revision)
+
+Runtime: Node 24.21.0, pnpm 11.19.0. Package and lockfile unchanged.
+
+| Check | Observed result |
+| --- | --- |
+| `pnpm lint` | PASS |
+| `pnpm typecheck` | PASS |
+| `pnpm test` | PASS — 2,894 tests, 68 files |
+| `pnpm build` | PASS — final production build |
+| Full `pnpm exec playwright test` on default port 3210 | FAIL — 679 passed, 139 skipped, 144 failed; server became unreachable during the run |
+| Full suite on isolated port 49717 | PASS — 823 passed, 139 intentional project/device skips, zero failures/retries |
+| EN/AR option pages at 390/1440/1920 | 30 before + 30 final captures; final image decoding awaited |
+| Content and overflow comparison | 30 states: zero text changes or horizontal overflow |
+| Hero/layout comparison | Desktop page heights unchanged; phones lose only 8px of empty hero-cell padding |
+| Code review | PASS — no actionable findings; Hackathon scope, deterministic SVG, RTL, clipping and accessibility reviewed |
+| Physical devices, real assistive technology, production deployment | NOT TESTED |
+
+The existing artwork suite checks SVG server/client identity, static rendering,
+forced colors, noninteractivity, horizontal overflow and axe. New Hackathon-specific
+assertions cover separation from hero copy/actions, containment in the existing
+cell, mirrored placement, total decoration count and the 1000/1001px breakpoint.
+The other four routes retain their current assertions.
+
+The first full run is preserved in `hackathon-full-playwright.log` and the original
+`test-results` directory. All 52 artwork cases completed successfully before the
+interruption. Subsequent failures include refused TCP connections and an unstyled
+page focus check. The origin of the server interruption is not established. The
+confirmation run uses the same suite, assertions, two workers and zero retries,
+with an ignored local config changing only its port and evidence output paths.
+The separate screenshot server was stopped before that run.
+Confirmation command: `pnpm exec playwright test --config .tools/playwright-hackathon-isolated.config.ts`;
+823 passed / 139 intentional skips / zero failures in 14.3 minutes. Four incidental
+tracked Venue screenshots regenerated by the suite were copied into ignored
+evidence and restored; they are outside this change.
+
+All six Hackathon screenshots (EN/AR at 390/1440/1920px) were visually reviewed.
+There is no new art overlap, and the corrected wide capture contains the photo.
+The other pages' source and content are unchanged. Pixel-hash matches in the
+comparison JSON are informational only: the original baseline helper did not
+explicitly wait for photo decoding; all final captures do.
+
+[Before/after gallery and comparison receipt](../reviews/hackathon-technology-2026-10-17/README.md).
+Original PNGs and build/unit/browser logs remain in `.tools/participation-artwork`.
+Screenshots in the review folder are documentation evidence only.
+
+No hosted setting, database, account, email or workflow flag was changed. The
+follow-up PR is for owner review; no merge or production activation is implied.
+
+
+## Visual pass — 17 October 2026 (Claude)
+
+Owner asked for a more visual, "technology festival" treatment (reference: a violet
+landing page with glass orbs, circuit lines, ring nodes, dot grids and chevrons).
+On top of this PR: a brighter violet hero wash with a neon bloom; the shared drawing
+gains glass orbs, ring-ended circuit traces, a dot grid, a dot row and a chevron
+stack; numbered neon track cards with outlined 01/02 and a gold rule; a lit
+violet-gold connector and gold node between the two dark day cards (vertical on
+phones); glowing step nodes joined by a violet-gold rule. Copy, structure, routes
+and gates are unchanged; all decoration is static and hidden in forced colors.
+
+Checks: lint, typecheck, 2,894 unit tests; participation-artwork, participation-flow
+and fluid-journeys 70 passed; full Playwright 823 passed / 139 skipped / 0 failed.
