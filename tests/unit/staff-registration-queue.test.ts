@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SESSION_POLICY } from "@/config/session-policy";
 import { ROLES, type Role } from "@/lib/permissions/contract";
 import { createStaffHandler } from "@/features/staff-portal/handler.server";
-import { createStaffBackend, type StaffBackend, type NativeStaffSession } from "@/features/staff-portal/backend.server";
+import { createStaffBackend, StaffRpcMissingError, type StaffBackend, type NativeStaffSession } from "@/features/staff-portal/backend.server";
 import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/config.server";
 import { staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
 import { validateStaffPayload } from "@/features/staff-portal/validation.server";
@@ -253,6 +253,14 @@ describe("private registration transport", () => {
   it("forwards only verified identity/session assurance claims, never mutable metadata", () => {
     const token = "header." + Buffer.from(JSON.stringify({ ...claims, user_metadata: { role: "superAdmin" }, app_metadata: { names: "omit" }, roles: ["superAdmin"] })).toString("base64url") + ".signature";
     expect(verifiedPriorityClaims({ ...native, accessToken: token }, now)).toEqual(claims);
+  });
+  it("reports a not-yet-installed private RPC distinctly from an outage", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ code: "PGRST202", message: "Could not find the function" }, { status: 404 })));
+    await expect(createStaffBackend(config).rpc("msrc_staff_totp_begin", {})).rejects.toBeInstanceOf(StaffRpcMissingError);
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ code: "PGRST116" }, { status: 404 })));
+    await expect(createStaffBackend(config).rpc("msrc_staff_totp_begin", {})).rejects.not.toBeInstanceOf(StaffRpcMissingError);
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("down", { status: 503 })));
+    await expect(createStaffBackend(config).rpc("msrc_staff_totp_begin", {})).rejects.not.toBeInstanceOf(StaffRpcMissingError);
   });
   it("reuses service credentials only for the explicit priority setter", async () => {
     const fetcher = vi.fn(async () => Response.json({ state: "updated" })); vi.stubGlobal("fetch", fetcher);

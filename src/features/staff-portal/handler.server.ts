@@ -3,7 +3,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import QRCode from "qrcode";
 import { ROLES, type Role } from "@/lib/permissions/contract";
 import { parsePersistedSessionContext, type PersistedSessionContext } from "@/lib/supabase/session.server";
-import { createStaffBackend, type StaffBackend, type NativeStaffSession } from "./backend.server";
+import { createStaffBackend, StaffRpcMissingError, type StaffBackend, type NativeStaffSession } from "./backend.server";
 import { getStaffConfig, type StaffConfig, type StaffReadiness } from "./config.server";
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash,
   staffIp, staffOrigin, staffUuid, type StaffSessionCookie } from "./security.server";
@@ -29,6 +29,17 @@ async function passwordChangeReady(config: StaffConfig, backend: StaffBackend): 
   return value?.enabled === true && value.emailDailyLimit === config.emailDailyLimit && value.passwordChangeEnabled === true;
 }
 export interface StaffProfile { actorId: string; name: string; roles: Role[] }
+
+const missingRpc = Symbol("missing private RPC");
+/** Lets code that ships ahead of its hosted migration fall back instead of locking staff out. */
+async function optionalRpc(backend: StaffBackend, name: string, args: Record<string, unknown>): Promise<unknown> {
+  try { return await backend.rpc(name, args); } catch (error) { if (error instanceof StaffRpcMissingError) return missingRpc; throw error; }
+}
+/** Records a failed sign-in; before the hardening migration, closes the attempt the pre-ENG-044 way. */
+async function loginFailure(backend: StaffBackend, attemptId: string, attemptedEmail: string | undefined, editionKey: string): Promise<unknown> {
+  const failed = await optionalRpc(backend, "msrc_staff_login_failure", { attempt_id: attemptId, attempted_email: attemptedEmail, edition_key: editionKey });
+  return failed === missingRpc ? backend.rpc("msrc_staff_login_finish", { attempt_id: attemptId, actor_id: null, session_id: null }) : failed;
+}
 async function context(config: StaffConfig, backend: StaffBackend, session: NativeStaffSession, now: number) {
   if (await backend.identity(session.accessToken) !== session.actorId) return null;
   const value = parsePersistedSessionContext(await backend.rpc("msrc_session_context", { edition_key: config.editionKey }, session.accessToken), session.actorId, config.editionKey);
@@ -249,9 +260,8 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         let native: NativeStaffSession | null = null;
         try { if (await stillReady()) native = await backend.login(payload.email!, payload.password!); }
         finally {
-          const admission = record(await backend.rpc(native ? "msrc_staff_login_finish" : "msrc_staff_login_failure", native
-            ? { attempt_id: attemptId, actor_id: native.actorId, session_id: native.sessionId }
-            : { attempt_id: attemptId, attempted_email: payload.email, edition_key: config.editionKey }));
+          const admission = record(native ? await backend.rpc("msrc_staff_login_finish", { attempt_id: attemptId, actor_id: native.actorId, session_id: native.sessionId })
+            : await loginFailure(backend, attemptId, payload.email, config.editionKey));
           if (admission?.state !== "admitted" || admission.editionKey !== config.editionKey) { if (native) await backend.logout(native.accessToken); native = null; }
         }
         return native ? setNative(native) : respond({ state: "invalid-credentials" }, 401, staffCookie(config, null, now));
@@ -271,9 +281,8 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
           ip_hash: staffHash(config, "ip", ip) }), "reserved")) return respond({ state: "accepted" }, 200, staffCookie(config, null, now));
         let native: NativeStaffSession | null = null;
         try { if (await stillReady()) native = await backend.login(proof.email, payload.password!); }
-        finally { const admission = record(await backend.rpc(native ? "msrc_staff_login_finish" : "msrc_staff_login_failure", native
-          ? { attempt_id: attemptId, actor_id: native.actorId, session_id: native.sessionId }
-          : { attempt_id: attemptId, attempted_email: proof.email, edition_key: config.editionKey }));
+        finally { const admission = record(native ? await backend.rpc("msrc_staff_login_finish", { attempt_id: attemptId, actor_id: native.actorId, session_id: native.sessionId })
+          : await loginFailure(backend, attemptId, proof.email, config.editionKey));
           if (admission?.state !== "admitted" || admission.editionKey !== config.editionKey) { if (native) await backend.logout(native.accessToken); native = null; }
         }
         return native ? setNative(native) : respond({ state: "accepted" }, 200, staffCookie(config, null, now));
@@ -346,7 +355,17 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         }
         if (!session.factorId || !session.challengeId || payload.factorId !== session.factorId || payload.challengeId !== session.challengeId) return respond({ state: "invalid-code" }, 400);
         const attemptId = randomUUID();
-        const reservation = record(await backend.rpc("msrc_staff_totp_begin", { actor_id: session.actorId, session_id: session.sessionId, attempt_id: attemptId }));
+        const begun = await optionalRpc(backend, "msrc_staff_totp_begin", { actor_id: session.actorId, session_id: session.sessionId, attempt_id: attemptId });
+        if (begun === missingRpc) {
+          // Pre-ENG-044 database: the lockout tables are not installed yet, so verify exactly as before the hardening migration.
+          const upgraded = await backend.verify(session, session.factorId, session.challengeId, payload.code!); const audited = await audit("totp_verify", Boolean(upgraded));
+          if (!audited) return respond({ state: "unavailable" }, 503);
+          if (!upgraded) return respond({ state: "invalid-code" }, 400);
+          session = { ...session, ...upgraded }; const after = await current();
+          if (!after?.sessionPolicySatisfied || !after.mfaValid) return respond({ state: "denied" }, 403);
+          return respond(await view(after), 200, staffCookie(config, session, now));
+        }
+        const reservation = record(begun);
         if (reservation?.state === "limited") return respond({ state: "limited" }, 429);
         if (reservation?.state !== "reserved") return respond({ state: "denied" }, 403);
         let upgraded: NativeStaffSession | null = null, completion: Record<string, unknown> | null = null;
