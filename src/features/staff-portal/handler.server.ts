@@ -8,7 +8,7 @@ import { getStaffConfig, type StaffConfig, type StaffReadiness } from "./config.
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash,
   staffIp, staffOrigin, staffUuid, type StaffSessionCookie } from "./security.server";
 import { validateStaffPayload, validStaffRegistrationStatus } from "./validation.server";
-import { canReadStaffArea, priorityProjection, registrationDecision, registrationProjection, summaryProjection, verifiedPriorityClaims } from "./registration-contract.server";
+import { canReadStaffArea, priorityProjection, registrationDecision, registrationDetailProjection, registrationExportCsv, registrationProjection, summaryProjection, verifiedPriorityClaims } from "./registration-contract.server";
 import type { StaffArea } from "./ui-contract";
 import { decryptIdentityDocument, getIdentityCryptoConfig, type IdentityDocumentType } from "@/features/registration/identity-crypto.server";
 
@@ -87,6 +87,7 @@ function safeDetails(value: unknown): boolean {
     if (key === "requestId") return entry === null || typeof entry === "string" && staffUuid.test(entry);
     if (["previousStatus", "newStatus"].includes(key)) return entry === null || validStaffRegistrationStatus(entry) && entry !== "all";
     if (["previousActive", "newActive"].includes(key)) return entry === null || typeof entry === "boolean";
+    if (key === "rowCount") return entry === null || typeof entry === "number" && Number.isSafeInteger(entry) && entry >= 0;
     if (key === "reason") return entry === null || typeof entry === "string" && entry.length > 0 && entry.length <= 300 && !/[\x00-\x1f\x7f]/.test(entry);
     return false;
   });
@@ -216,11 +217,13 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
     try {
       if (request.method === "GET") {
         const params = new URL(request.url).searchParams;
-        if (Array.from(params.keys()).some((key) => !["locale", "area", "q", "query", "status"].includes(key) || params.getAll(key).length !== 1)
+        if (Array.from(params.keys()).some((key) => !["locale", "area", "q", "query", "status", "requestId"].includes(key) || params.getAll(key).length !== 1)
           || params.has("q") && params.has("query") || params.get("locale") && !["en", "ar"].includes(params.get("locale")!)) return respond({ state: "invalid-input" }, 400);
         const observed = await current();
         const area = params.get("area");
         if (params.has("status") && (area !== "registration" || !validStaffRegistrationStatus(params.get("status")))) return respond({ state: "invalid-input" }, 400);
+        if (area === "registration-detail" ? !staffUuid.test(params.get("requestId") ?? "") : params.has("requestId")) return respond({ state: "invalid-input" }, 400);
+        if (["registration-detail", "registration-export"].includes(area ?? "") && (params.has("q") || params.has("query"))) return respond({ state: "invalid-input" }, 400);
         if (!area) {
           const body = await view(observed);
           return respond(body, 200, changed && session ? staffCookie(config, session, now) : session && !observed ? staffCookie(config, null, now) : undefined);
@@ -228,13 +231,28 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         if (!session || !observed?.sessionPolicySatisfied) return respond({ state: "denied" }, 403);
         const own = await profile(config, backend, session, observed); if (!own) return respond({ state: "denied" }, 403);
         const search = params.get("query") ?? params.get("q") ?? "";
-        if (!["people", "audit", "participants", "registration", "priority", "summary"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)) return respond({ state: "invalid-input" }, 400);
+        if (!["people", "audit", "participants", "registration", "registration-detail", "registration-export", "priority", "summary"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)) return respond({ state: "invalid-input" }, 400);
         if (!canReadStaffArea(own.roles, area as StaffArea)) return respond({ state: "denied" }, 403);
-        const read = await optionalRpc(backend, "msrc_staff_" + area, { edition_key: config.editionKey,
-          ...(area === "summary" ? {} : { search }), ...(area === "registration" ? { status_filter: params.get("status") ?? "all" } : {}) }, session.accessToken);
+        if (area === "registration-export" && (observed.authenticationTier !== "super_admin" || !observed.mfaValid)) return respond({ state: "denied" }, 403);
+        const read = await optionalRpc(backend, "msrc_staff_" + area.replaceAll("-", "_"), { edition_key: config.editionKey,
+          ...(["summary", "registration-detail", "registration-export"].includes(area) ? {} : { search }),
+          ...(area === "registration-detail" ? { request_id: params.get("requestId") } : {}),
+          ...(area === "registration" ? { status_filter: params.get("status") ?? "all" } : {}) }, session.accessToken);
         if (read === missingRpc) return respond({ state: "area-not-ready" }, 503);
         const data = record(read);
         if (!data || data.state === "denied") return respond({ state: "denied" }, 403);
+        if (area === "registration-detail") {
+          const detail = data.state === "ready" && registrationDetailProjection(data.detail, params.get("requestId")!);
+          return detail ? respond({ state: "authenticated", profile: own, registrationDetail: detail,
+            passwordChangeAvailable: await passwordChangeReady(config, backend) }) : respond({ state: "unavailable" }, 503);
+        }
+        if (area === "registration-export") {
+          const csv = data.state === "ready" ? registrationExportCsv(data.rows) : null;
+          if (csv === null) return respond({ state: "unavailable" }, 503);
+          return new Response(csv, { headers: { ...privateHeaders, "Cache-Control": "no-store", "Content-Type": "text/csv; charset=utf-8",
+            "Content-Disposition": `attachment; filename="registration-${config.editionKey}.csv"`,
+            ...(changed ? { "Set-Cookie": staffCookie(config, session, now) } : {}) } });
+        }
         if (["registration", "priority", "summary"].includes(area)) {
           if (data.state !== "ready") return respond({ state: "unavailable" }, 503);
           const projection = area === "registration" ? registrationProjection(data.registration)
@@ -393,12 +411,15 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
           || active.timing.idleExpiresAtMs === null || active.timing.idleExpiresAtMs <= now) return respond({ state: "denied" }, 403);
         return respond(await view(active));
       }
-      if (payload.action === "registration-approve" || payload.action === "registration-waitlist") {
+      if (payload.action === "registration-approve" || payload.action === "registration-waitlist" || payload.action === "registration-offer") {
         const own = await profile(config, backend, session, observed);
         if (!own || !canReadStaffArea(own.roles, "registration")) return respond({ state: "denied" }, 403);
-        const result = record(await backend.rpc(payload.action === "registration-approve" ? "msrc_staff_registration_approve" : "msrc_staff_registration_waitlist",
-          { edition_key: config.editionKey, request_ids: payload.requestIds }, session.accessToken));
+        const read = await optionalRpc(backend, "msrc_staff_" + payload.action.replaceAll("-", "_"),
+          { edition_key: config.editionKey, request_ids: payload.requestIds }, session.accessToken);
+        if (read === missingRpc) return respond({ state: "area-not-ready" }, 503);
+        const result = record(read);
         if (result?.state === "denied") return respond({ state: "denied" }, 403);
+        if (result?.state === "offer_window_not_set") return respond({ state: "offer-window-not-set" }, 409);
         if (result?.state === "capacity_not_set" || result?.state === "payment_configuration_required") {
           return respond({ state: result.state === "capacity_not_set" ? "capacity-not-set" : "payment-configuration-required" }, 409);
         }

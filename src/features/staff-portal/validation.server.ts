@@ -11,7 +11,7 @@ export function validStaffRegistrationStatus(value: unknown): value is StaffRegi
 
 export const STAFF_ACTIONS = ["signin", "logout", "activity", "enroll-totp", "challenge-totp", "verify-totp", "challenge-email", "verify-email",
   "invite-accept", "invite", "invite-resend", "invite-revoke", "roles", "suspend", "reactivate", "revoke-sessions",
-  "reset-authenticator", "reset-account", "reveal-identity", "password-change", "registration-approve", "registration-waitlist", "priority-set", "priority-remove"] as const;
+  "reset-authenticator", "reset-account", "reveal-identity", "password-change", "registration-approve", "registration-waitlist", "registration-offer", "priority-set", "priority-remove"] as const;
 export interface StaffPayload {
   action: (typeof STAFF_ACTIONS)[number]; formToken: string; email?: string; name?: string; password?: string; passwordConfirmation?: string;
   code?: string; challengeId?: string; factorId?: string; invitationId?: string; token?: string; targetId?: string;
@@ -30,7 +30,7 @@ export function validateStaffPayload(value: unknown): StaffPayload | null {
     input.reason = input.reason?.trim();
     if (!input.reason || input.reason.length > 300 || /[\x00-\x1f\x7f]/.test(input.reason)) return null;
   } else if (input.reason !== undefined) return null;
-  if (["registration-approve", "registration-waitlist"].includes(input.action)) {
+  if (["registration-approve", "registration-waitlist", "registration-offer"].includes(input.action)) {
     if (Object.keys(record).some((key) => !["action", "formToken", "website", "requestIds", "status"].includes(key))
       || !Array.isArray(input.requestIds) || input.requestIds.length < 1 || input.requestIds.length > 100
       || input.requestIds.some((id) => typeof id !== "string" || !staffUuid.test(id))

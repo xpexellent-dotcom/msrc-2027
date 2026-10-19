@@ -109,7 +109,7 @@ select is(public.msrc_staff_registration('synthetic-staff-queue')->>'state','rea
 select is(public.msrc_staff_priority('synthetic-staff-queue')->>'state','denied','Registrar cannot read priority management');
 select is(public.msrc_staff_registration('synthetic-staff-queue-other')->>'state','denied','Edition scope is enforced');
 select is(public.msrc_staff_registration('synthetic-staff-queue')->'registration'->'counts',
- '{"pending":9,"approved":0,"waitlisted":0,"capacity":17,"remaining":17}'::jsonb,'Queue returns exact initial aggregate shape');
+ '{"pending":9,"approved":0,"waitlisted":0,"offered":0,"expired":0,"capacity":17,"remaining":17}'::jsonb,'Queue returns exact initial aggregate shape');
 select is(jsonb_array_length(public.msrc_staff_registration('synthetic-staff-queue')->'registration'->'requests'),9,'Queue returns seeded requests');
 select is(public.msrc_staff_registration('synthetic-staff-queue')->'registration'->'requests'->0->>'email','registration-9@example.invalid','Queue is newest first');
 select is(jsonb_array_length(public.msrc_staff_registration('synthetic-staff-queue','REGISTRATION-3@')->'registration'->'requests'),1,'Email substring search is case insensitive');
@@ -186,7 +186,7 @@ update msrc_registration.requests set status='cancelled' where actor_id=pg_temp.
 update msrc_registration.requests set status='expired' where actor_id=pg_temp.registration_actor(8);
 update msrc_registration.settings set general_capacity=5,payment_required=false where edition_key='synthetic-staff-queue';
 select is(public.msrc_staff_registration('synthetic-staff-queue')->'registration'->'counts',
- '{"pending":1,"approved":5,"waitlisted":1,"capacity":5,"remaining":0}'::jsonb,'Four seat-holding statuses consume capacity; cancelled/expired/waitlisted do not');
+ '{"pending":1,"approved":5,"waitlisted":1,"offered":1,"expired":1,"capacity":5,"remaining":0}'::jsonb,'Four seat-holding statuses consume capacity; cancelled/expired/waitlisted do not');
 select is(public.msrc_staff_registration_approve('synthetic-staff-queue',pg_temp.queue_ids(4,5,6,7,8,9))->'decided',
  '{"approved":0,"waitlisted":0,"skipped":6}'::jsonb,'Existing offers/confirmations cannot be displaced and terminal requests cannot be approved');
 select is(public.msrc_staff_registration_waitlist('synthetic-staff-queue',pg_temp.queue_ids(5,6,7,8))->'decided',

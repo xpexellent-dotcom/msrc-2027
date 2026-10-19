@@ -7,7 +7,7 @@ import type { Locale } from "@/lib/i18n";
 import { staffCopy } from "./copy";
 import { consoleCopy } from "./console-copy";
 import { formatStaffDate, formatStaffNumber } from "./console-shell";
-import type { StaffPayload, StaffRegistrationDetail, StaffRegistrationStatus, StaffResponse } from "./ui-contract";
+import type { StaffPayload, StaffRegistrationDetail, StaffRegistrationStatus, StaffResponse, StaffState } from "./ui-contract";
 
 const filters = ["all", "pending_approval", "approved", "waitlisted", "offered", "approved_awaiting_payment", "confirmed", "cancelled", "expired"] as const;
 type Filter = (typeof filters)[number];
@@ -40,6 +40,19 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
     const response = await act({ action, requestIds: ids });
     if (response.decided) { onDecided(text.decided(response.decided.approved, response.decided.waitlisted, response.decided.skipped, response.decided.offered)); setSelected([]); setDetail(null); }
   }
+  /** Fetch first so a refused export shows a message instead of saving the error as a file. */
+  async function exportCsv() {
+    const failed = (state: string) => onDecided(copy.states[state as keyof typeof copy.states] || copy.states.unavailable);
+    try {
+      const response = await fetch("/api/staff-portal?area=registration-export", { credentials: "same-origin", cache: "no-store" });
+      if (!response.ok || !response.headers.get("content-type")?.includes("text/csv")) {
+        failed(((await response.json().catch(() => null)) as { state?: StaffState } | null)?.state ?? "unavailable"); return;
+      }
+      const url = URL.createObjectURL(await response.blob()), link = document.createElement("a");
+      link.href = url; link.download = /filename="([^"]+)"/.exec(response.headers.get("content-disposition") ?? "")?.[1] ?? "registration.csv";
+      link.click(); URL.revokeObjectURL(url);
+    } catch { failed("unavailable"); }
+  }
   async function openDetail(id: string) {
     const response = await loadDetail(id);
     if (response.registrationDetail) { setDetail(response.registrationDetail); requestAnimationFrame(() => detailHeading.current?.focus()); }
@@ -58,7 +71,7 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
       <div><dt>{text.offered}</dt><dd>{number(counts?.offered)}</dd></div>
       <div><dt>{text.expired}</dt><dd>{number(counts?.expired)}</dd></div>
     </dl>
-    {canExport ? <p className="staff-export"><a className="button button--secondary button--small" href="/api/staff-portal?area=registration-export" download data-testid="queue-export">{text.exportCsv}</a><span className="staff-muted">{text.exportNote}</span></p> : null}
+    {canExport ? <p className="staff-export"><Button size="small" variant="secondary" disabled={busy} onClick={() => void exportCsv()} data-testid="queue-export">{text.exportCsv}</Button><span className="staff-muted">{text.exportNote}</span></p> : null}
     {counts && !capacitySet ? <p className="staff-note" role="note">{text.capacityUnset}</p> : null}
     <form className="staff-search staff-queue-filters" onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
       <label className="field"><span className="field-label">{text.filter}</span>

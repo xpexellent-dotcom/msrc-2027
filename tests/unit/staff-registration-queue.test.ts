@@ -4,7 +4,7 @@ import { ROLES, type Role } from "@/lib/permissions/contract";
 import { createStaffHandler } from "@/features/staff-portal/handler.server";
 import { createStaffBackend, StaffRpcMissingError, type StaffBackend, type NativeStaffSession } from "@/features/staff-portal/backend.server";
 import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/config.server";
-import { staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
+import { readStaffSession, staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
 import { validateStaffPayload } from "@/features/staff-portal/validation.server";
 import { verifiedPriorityClaims } from "@/features/staff-portal/registration-contract.server";
 import type { StaffRegistrationCounts, StaffRegistrationRequest, StaffPriorityRow } from "@/features/staff-portal/ui-contract";
@@ -22,7 +22,7 @@ const accessToken = "header." + Buffer.from(JSON.stringify(claims)).toString("ba
 const native: NativeStaffSession = { actorId, sessionId, accessToken, refreshToken: "synthetic-refresh" };
 const counts: StaffRegistrationCounts = { pending: 2, approved: 1, waitlisted: 0, offered: 0, expired: 0, capacity: 3, remaining: 2 };
 const row: StaffRegistrationRequest = { id: requestId, actorId: targetId, name: "Synthetic Participant", email: "person@example.invalid",
-  status: "pending_approval", priority: true, createdAt: new Date(now).toISOString(), decidedAt: null, identityMasked: "••••••1234", offerExpiresAt: null };
+  status: "pending_approval", priority: true, createdAt: new Date(now).toISOString(), decidedAt: null, offerExpiresAt: null, identityMasked: "••••••1234" };
 const priorityRow: StaffPriorityRow = { actorId: targetId, name: row.name, email: row.email, active: true, reason: "Synthetic roster verified",
   designatedAt: row.createdAt, designatedByName: "Synthetic Staff", removedAt: null };
 const registration = { requests: [row], counts };
@@ -50,6 +50,11 @@ beforeEach(() => {
   replies = { msrc_staff_registration: { state: "ready", registration },
     msrc_staff_registration_approve: { state: "updated", registration, decided: { approved: 1, waitlisted: 0, skipped: 0 } },
     msrc_staff_registration_waitlist: { state: "updated", registration, decided: { approved: 0, waitlisted: 1, skipped: 0 } },
+    msrc_staff_registration_offer: { state: "updated", registration, decided: { approved: 0, waitlisted: 0, offered: 1, skipped: 0 } },
+    msrc_staff_registration_detail: { state: "ready", detail: { request: row, history: [
+      { id: requestId, from: "pending_approval", to: "waitlisted", at: row.createdAt, performerName: "Synthetic Staff" }] } },
+    msrc_staff_registration_export: { state: "ready", rows: [{ name: row.name, email: row.email, status: row.status,
+      priority: row.priority, createdAt: row.createdAt, decidedAt: row.decidedAt, identityMasked: row.identityMasked }] },
     msrc_staff_priority: { state: "ready", priority: { designations: [priorityRow], candidates: [] } },
     msrc_registration_priority_set: { state: "updated" },
     msrc_staff_summary: { state: "ready", summary: { registration: counts, participants: 3, staff: 2, auditLast24h: 4, priority: 1 } } };
@@ -64,7 +69,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("staff queue payload validation", () => {
-  it.each(["registration-approve", "registration-waitlist"])("validates bounded UUID batches for %s", (action) => {
+  it.each(["registration-approve", "registration-waitlist", "registration-offer"])("validates bounded UUID batches for %s", (action) => {
     const valid = { action, formToken: "synthetic", requestIds: [requestId] };
     expect(validateStaffPayload(valid)?.requestIds).toEqual([requestId]);
     const hundred = Array.from({ length: 100 }, (_, i) => `30000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`);
@@ -132,7 +137,7 @@ describe("staff registration GET and mutations", () => {
   it.each(ROLES.filter((role) => !["superAdmin", "registrationWorkshopAdministrator"].includes(role)))("denies queue read and mutations to %s before domain RPC", async (role) => {
     roles = [role];
     expect((await handle(request("GET", "?area=registration"))).status).toBe(403);
-    for (const action of ["registration-approve", "registration-waitlist"]) {
+    for (const action of ["registration-approve", "registration-waitlist", "registration-offer"]) {
       expect((await handle(request("POST", "", { action, requestIds: [requestId] }))).status).toBe(403);
     }
     expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name.startsWith("msrc_staff_registration"))).toBe(false);
@@ -157,7 +162,7 @@ describe("staff registration GET and mutations", () => {
     expect((await handle(request("POST", "", { action: "registration-approve", requestIds }))).status).toBe(200);
   });
   it("returns nullable capacity without inventing a configured value", async () => {
-    const unconfigured = { requests: [], counts: { pending: 0, approved: 0, waitlisted: 0, capacity: null, remaining: null } };
+    const unconfigured = { requests: [], counts: { pending: 0, approved: 0, waitlisted: 0, offered: 0, expired: 0, capacity: null, remaining: null } };
     replies.msrc_staff_registration = { state: "ready", registration: unconfigured };
     const response = await handle(request("GET", "?area=registration"));
     expect(response.status).toBe(200); expect((await response.json()).registration).toEqual(unconfigured);
@@ -185,6 +190,166 @@ describe("staff registration GET and mutations", () => {
     replies.msrc_staff_registration = { state: "ready", registration: invalid };
     const response = await handle(request("GET", "?area=registration"));
     expect(response.status).toBe(503); expect((await response.json()).registration).toBeUndefined();
+  });
+});
+
+describe("closed staff request details, offers and masked export", () => {
+  it.each(["superAdmin", "registrationWorkshopAdministrator"] as const)("allows %s to read masked detail and offer a waitlisted seat", async (role) => {
+    roles = [role];
+    const detailResponse = await handle(request("GET", "?area=registration-detail&requestId=" + requestId));
+    expect(detailResponse.status).toBe(200);
+    expect((await detailResponse.json()).registrationDetail).toEqual((replies.msrc_staff_registration_detail as { detail: unknown }).detail);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_registration_detail", { edition_key: config.editionKey, request_id: requestId }, accessToken);
+    const offerResponse = await handle(request("POST", "", { action: "registration-offer", requestIds: [requestId] }));
+    expect(offerResponse.status).toBe(200);
+    expect(await offerResponse.json()).toMatchObject({ state: "updated", registration, decided: { approved: 0, waitlisted: 0, offered: 1, skipped: 0 } });
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_registration_offer", { edition_key: config.editionKey, request_ids: [requestId] }, accessToken);
+  });
+  it.each(ROLES.filter((role) => !["superAdmin", "registrationWorkshopAdministrator"].includes(role)))("denies detail to %s before domain RPC", async (role) => {
+    roles = [role];
+    expect((await handle(request("GET", "?area=registration-detail&requestId=" + requestId))).status).toBe(403);
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_registration_detail", expect.anything(), expect.anything());
+  });
+  it.each(["?area=registration-detail", "?area=registration-detail&requestId=bad", "?area=registration-detail&requestId=",
+    "?area=registration-detail&requestId=" + requestId + "&requestId=" + requestId,
+    "?area=registration-detail&requestId=" + requestId + "&q=Synthetic", "?area=registration&requestId=" + requestId,
+    "?area=registration-export&query=Synthetic", "?area=registration-export&status=all", "?area=registration-export&requestId=" + requestId,
+  ])("rejects malformed detail/export query %s", async (query) => {
+    expect((await handle(request("GET", query))).status).toBe(400);
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_registration_detail", expect.anything(), expect.anything());
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_registration_export", expect.anything(), expect.anything());
+  });
+  it.each(["capacity_not_set", "offer_window_not_set"])("maps unavailable offer configuration %s to HTTP 409", async (state) => {
+    replies.msrc_staff_registration_offer = { state };
+    const response = await handle(request("POST", "", { action: "registration-offer", requestIds: [requestId] }));
+    expect(response.status).toBe(409);
+    expect((await response.json()).state).toBe(state.replaceAll("_", "-"));
+  });
+  it("offers require complete session assurance and a genuine form token", async () => {
+    policySatisfied = false;
+    expect((await handle(request("POST", "", { action: "registration-offer", requestIds: [requestId] }))).status).toBe(403);
+    policySatisfied = true;
+    expect((await handle(request("POST", "", { action: "registration-offer", requestIds: [requestId], formToken: "forged" }))).status).toBe(400);
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_registration_offer", expect.anything(), expect.anything());
+  });
+  it.each([{ approved: 0, waitlisted: 0, skipped: 1 }, { approved: 1, waitlisted: 0, offered: 0, skipped: 0 },
+    { approved: 0, waitlisted: 0, offered: -1, skipped: 2 }, { approved: 0, waitlisted: 0, offered: 2, skipped: 0 }])("rejects impossible offer decision projection %#", async (decided) => {
+    replies.msrc_staff_registration_offer = { state: "updated", registration, decided };
+    expect((await handle(request("POST", "", { action: "registration-offer", requestIds: [requestId] }))).status).toBe(503);
+  });
+  it.each(["registration", "summary", "registration-detail", "registration-export"] as const)("reports missing %s RPC as area-not-ready without exposing a partial read", async (area) => {
+    const original = backend.rpc;
+    backend.rpc = vi.fn(async (name, ...args) => {
+      if (name === "msrc_staff_" + area.replaceAll("-", "_")) throw new StaffRpcMissingError();
+      return original(name, ...args);
+    });
+    const response = await handle(request("GET", "?area=" + area + (area === "registration-detail" ? "&requestId=" + requestId : "")));
+    expect(response.status).toBe(503); expect(await response.json()).toMatchObject({ state: "area-not-ready" });
+    expect(response.headers.get("content-disposition")).toBeNull();
+  });
+  it("reports missing offer RPC as area-not-ready", async () => {
+    const original = backend.rpc;
+    backend.rpc = vi.fn(async (name, ...args) => { if (name === "msrc_staff_registration_offer") throw new StaffRpcMissingError(); return original(name, ...args); });
+    const response = await handle(request("POST", "", { action: "registration-offer", requestIds: [requestId] }));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready");
+  });
+  it("keeps real outages distinct from missing migrations", async () => {
+    const original = backend.rpc;
+    backend.rpc = vi.fn(async (name, ...args) => { if (name === "msrc_staff_registration_export") throw new Error("Unavailable"); return original(name, ...args); });
+    const response = await handle(request("GET", "?area=registration-export"));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("unavailable");
+  });
+  it("normalizes only the additive fields from older hosted reads", async () => {
+    const legacyRow: Record<string, unknown> = { ...row }, legacyCounts: Record<string, unknown> = { ...counts };
+    delete legacyRow.offerExpiresAt; delete legacyCounts.offered; delete legacyCounts.expired;
+    replies.msrc_staff_registration = { state: "ready", registration: { requests: [legacyRow], counts: legacyCounts } };
+    const response = await handle(request("GET", "?area=registration"));
+    expect(response.status).toBe(200); expect((await response.json()).registration).toEqual(registration);
+  });
+  it("returns expiry timestamps and offered/expired summary counts", async () => {
+    const withOffers = { ...counts, offered: 1, expired: 4 };
+    replies.msrc_staff_registration = { state: "ready", registration: { requests: [{ ...row, status: "offered", offerExpiresAt: row.createdAt }], counts: withOffers } };
+    replies.msrc_staff_summary = { state: "ready", summary: { registration: withOffers } };
+    expect((await (await handle(request("GET", "?area=registration"))).json()).registration.requests[0].offerExpiresAt).toBe(row.createdAt);
+    expect((await (await handle(request("GET", "?area=summary"))).json()).summary.registration).toEqual(withOffers);
+  });
+  it.each([
+    { request: { ...row, identityEnvelope: "forbidden" }, history: [] },
+    { request: { ...row, id: targetId }, history: [] },
+    { request: { ...row, identityMasked: "1234567890" }, history: [] },
+    { request: { ...row, offerExpiresAt: "invalid" }, history: [] },
+    { request: row, history: [{ id: requestId, from: "pending_approval", to: "all", at: row.createdAt, performerName: "Staff" }] },
+    { request: row, history: [{ id: requestId, from: "pending_approval", to: "waitlisted", at: row.createdAt, performerName: "Staff", secret: "forbidden" }] },
+    { request: row, history: [0, 1].map((hours) => ({ id: requestId, from: "pending_approval", to: "waitlisted", at: new Date(now + hours * 3600000).toISOString(), performerName: "Staff" })) },
+  ])("rejects invalid/sensitive detail or incorrectly ordered history %#", async (detail) => {
+    replies.msrc_staff_registration_detail = { state: "ready", detail };
+    const response = await handle(request("GET", "?area=registration-detail&requestId=" + requestId));
+    expect(response.status).toBe(503); expect((await response.json()).registrationDetail).toBeUndefined();
+  });
+  it.each(ROLES.filter((role) => role !== "superAdmin"))("denies masked export to %s before invoking its audited RPC", async (role) => {
+    roles = [role]; const response = await handle(request("GET", "?area=registration-export"));
+    expect(response.status).toBe(403); expect((await response.json()).state).toBe("denied");
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_registration_export", expect.anything(), expect.anything());
+  });
+  it("denies export without complete TOTP session assurance and honors database denial", async () => {
+    policySatisfied = false;
+    expect((await handle(request("GET", "?area=registration-export"))).status).toBe(403);
+    policySatisfied = true; replies.msrc_staff_registration_export = { state: "denied" };
+    expect((await handle(request("GET", "?area=registration-export"))).status).toBe(403);
+  });
+  it("exports UTF-8 BOM CSV with Arabic text, exact download headers and no-store", async () => {
+    replies.msrc_staff_registration_export = { state: "ready", rows: [{ name: 'اسم, "اختبار"', email: row.email, status: "waitlisted",
+      priority: false, createdAt: row.createdAt, decidedAt: null, identityMasked: row.identityMasked }] };
+    const response = await handle(request("GET", "?area=registration-export&locale=ar"));
+    expect(response.status).toBe(200); expect(response.headers.get("content-type")).toBe("text/csv; charset=utf-8");
+    expect(response.headers.get("content-disposition")).toBe('attachment; filename="registration-synthetic-staff-2027.csv"');
+    expect(response.headers.get("cache-control")).toBe("no-store"); expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    const bytes = Buffer.from(await response.arrayBuffer()); expect([...bytes.subarray(0, 3)]).toEqual([239, 187, 191]);
+    const csv = bytes.toString("utf8");
+    expect(csv).toBe('\uFEFF"name","email","status","priority","createdAt","decidedAt","identityMasked"\r\n"اسم, ""اختبار""","person@example.invalid","waitlisted","false","2026-10-17T00:00:00.000Z","","••••••1234"\r\n');
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_registration_export", { edition_key: config.editionKey }, accessToken);
+  });
+  it.each(["=", "+", "-", "@", "\t", "\r"])("neutralizes CSV cells beginning with %j", async (prefix) => {
+    replies.msrc_staff_registration_export = { state: "ready", rows: [{ name: prefix + 'SUM("a",1)\nnext', email: prefix + "email@example.invalid",
+      status: row.status, priority: true, createdAt: row.createdAt, decidedAt: null, identityMasked: null }] };
+    const response = await handle(request("GET", "?area=registration-export")); expect(response.status).toBe(200);
+    const csv = Buffer.from(await response.arrayBuffer()).toString("utf8");
+    expect(csv).toContain('"\'' + prefix + 'SUM(""a"",1)\nnext"'); expect(csv).toContain('"\'' + prefix + 'email@example.invalid"');
+  });
+  it("exports the full result beyond the 50-row queue cap and handles an empty edition", async () => {
+    const exportRow = (replies.msrc_staff_registration_export as { rows: unknown[] }).rows[0];
+    replies.msrc_staff_registration_export = { state: "ready", rows: Array.from({ length: 101 }, () => exportRow) };
+    const response = await handle(request("GET", "?area=registration-export")); expect(response.status).toBe(200);
+    expect((await response.text()).match(/person@example.invalid/g)).toHaveLength(101);
+    replies.msrc_staff_registration_export = { state: "ready", rows: [] };
+    const empty = await handle(request("GET", "?area=registration-export")); expect(empty.status).toBe(200);
+    expect((await empty.text()).split("\r\n")).toHaveLength(2);
+  });
+  it("retains a refreshed native session on the raw CSV response", async () => {
+    const expiredAccess = "header." + Buffer.from(JSON.stringify({ ...claims, exp: now / 1000 - 1 })).toString("base64url") + ".signature";
+    const input = request("GET", "?area=registration-export");
+    input.headers.set("cookie", staffCookie(config, { ...native, accessToken: expiredAccess, origin, deadline: now + 8 * 3600000,
+      challengeId: null, factorId: null, challengeExpiresAt: null }, now).split(";")[0]);
+    const response = await handle(input);
+    expect(response.status).toBe(200); expect(backend.refresh).toHaveBeenCalledWith(native.refreshToken);
+    expect(response.headers.get("set-cookie")).toBeTruthy();
+    const subsequent = request("GET"); subsequent.headers.set("cookie", response.headers.get("set-cookie")!.split(";")[0]);
+    expect(readStaffSession(config, subsequent, now)?.accessToken).toBe(accessToken);
+  });
+  it.each([{ identityMasked: "1234567890" }, { identityEnvelope: { ciphertext: "secret" } }, { name: "bad\u0000value" }, { priority: "true" }])("fails closed on invalid export rows without partial CSV %#", async (invalid) => {
+    const exportRow = (replies.msrc_staff_registration_export as { rows: Record<string, unknown>[] }).rows[0];
+    replies.msrc_staff_registration_export = { state: "ready", rows: [exportRow, { ...exportRow, ...invalid }] };
+    const response = await handle(request("GET", "?area=registration-export"));
+    expect(response.status).toBe(503); expect(response.headers.get("content-disposition")).toBeNull();
+    expect(await response.json()).toMatchObject({ state: "unavailable" });
+  });
+  it("accepts the export audit row count but rejects arbitrary audit details", async () => {
+    const audit = { id: requestId, actorId, targetId: null, action: "registration.exported", result: "allowed", occurredAt: row.createdAt,
+      details: { source: "registration", rowCount: 7 } };
+    replies.msrc_staff_audit = { rows: [audit] };
+    expect((await handle(request("GET", "?area=audit"))).status).toBe(200);
+    replies.msrc_staff_audit = { rows: [{ ...audit, details: { ...audit.details, rowCount: -1 } }] };
+    expect((await handle(request("GET", "?area=audit"))).status).toBe(503);
   });
 });
 

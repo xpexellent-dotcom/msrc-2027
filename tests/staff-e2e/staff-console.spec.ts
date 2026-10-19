@@ -12,7 +12,7 @@ const ids = ["21000000-0000-4000-8000-0000000000a1", "21000000-0000-4000-8000-00
 const participantId = "21000000-0000-4000-8000-0000000000b1";
 
 /** ORG-055 presentation fixture. Seat allocation and authority are proven by the database suites. */
-async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string; offerWindow?: boolean } = {}) {
+async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string; offerWindow?: boolean; exportRefused?: boolean } = {}) {
   const actions: StaffPayload[] = [], reads: string[] = [];
   const capacity = options.capacity === undefined ? 2000 : options.capacity;
   let requests: StaffRegistrationRequest[] = [
@@ -55,9 +55,12 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
     let response: StaffResponse = base;
     if (area === "summary") response = { ...base, summary: { registration: counts(), participants: 128, staff: 9, auditLast24h: 41, priority: designations.filter((d) => d.active).length } };
     if (area === "registration") { const status = url.searchParams.get("status"); response = { ...base, registration: { requests: status ? requests.filter((r) => r.status === status) : requests, counts: counts() } }; }
+    if (area === "registration-export") return options.exportRefused
+      ? route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ state: "denied" }) })
+      : route.fulfill({ contentType: "text/csv; charset=utf-8", headers: { "content-disposition": 'attachment; filename="registration-synthetic.csv"' }, body: "\uFEFFname,email\r\nSynthetic,a@example.invalid\r\n" });
     if (area === "registration-detail") {
       const request = requests.find((r) => r.id === url.searchParams.get("requestId"))!;
-      response = { ...base, registrationDetail: { request, history: [{ from: "pending_approval", to: "waitlisted", at: "2026-11-19T08:00:00Z", performerName: "Synthetic Staff" }] } };
+      response = { ...base, registrationDetail: { request, history: [{ id: "21000000-0000-4000-8000-0000000000d1", from: "pending_approval", to: "waitlisted", at: "2026-11-19T08:00:00Z", performerName: "Synthetic Staff" }] } };
     }
     if (area === "priority") response = { ...base, priority: { designations, candidates: url.searchParams.get("q") ? [{ actorId: "21000000-0000-4000-8000-0000000000c1", name: "Synthetic Candidate", email: "candidate@example.invalid", status: "verified", createdAt: "2026-10-10T10:00:00Z" }] : undefined } };
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(response) });
@@ -188,11 +191,22 @@ for (const locale of ["en", "ar"] as const) test(`${locale} offering without an 
 test("only a Super Admin sees the registration export", async ({ page }) => {
   await consoleFixture(page, ["superAdmin"]);
   await page.goto("/en/staff/registration");
-  await expect(page.getByTestId("queue-export")).toHaveAttribute("href", "/api/staff-portal?area=registration-export");
+  const download = page.waitForEvent("download");
+  await page.getByTestId("queue-export").click();
+  expect((await download).suggestedFilename()).toBe("registration-synthetic.csv");
   await consoleFixture(page, ["registrationWorkshopAdministrator"]);
   await page.goto("/en/staff/registration");
   await expect(page.getByTestId("queue-row").first()).toBeVisible();
   await expect(page.getByTestId("queue-export")).toHaveCount(0);
+});
+
+test("a refused export explains itself instead of saving an error file", async ({ page }) => {
+  await consoleFixture(page, ["superAdmin"], { exportRefused: true });
+  await page.goto("/en/staff/registration");
+  let downloaded = false; page.on("download", () => { downloaded = true; });
+  await page.getByTestId("queue-export").click();
+  await expect(page.locator(".staff-feedback")).toHaveText(staffCopy.en.states.denied);
+  expect(downloaded).toBe(false);
 });
 
 test("a role without priority access never sees the priority tab", async ({ page }) => {

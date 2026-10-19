@@ -3330,3 +3330,62 @@ Authority: explicit owner instruction, 17 October 2026.
   stays closed to participants.
 - Organizing-team priority (ORG-051) gains its Super Admin screen: search, mark with a
   reason, remove with a reason, full audit history.
+
+## ENG-050 — Closed staff registration detail, offers and masked export, 19 October 2026
+
+Authority: the current registration slice 3, part b backend task, based on
+`c99a08f` in `codex/registration-slice3b`. REG-01–08, ADM-01/02/04/05,
+ROL-07/10/12, PRV-03/05/06, SEC-01/02/06, TIM-01/02 and LOC-01/03 apply.
+This extends ENG-043/044/046/049 for closed source implementation only. The
+planner owns the console UI and integration; no participant opening, hosted
+migration, settings change, real email, commit, branch or push is authorized.
+
+Add one review-only migration,
+`20261019120000_staff_registration_offers_export.sql`, after the staff queue
+migration. Registration/workshop administrators and Super Admins may read a
+masked request with its immutable transition history, newest first, and offer
+seats to selected waitlisted requests. Reuse current native sessions, exact-session
+regular-staff email assurance and Super Admin TOTP, checked in the handler and
+through `msrc_staff.authorize`. The existing audited identity reveal is unchanged.
+
+The organizers have **not approved an offer duration or release behavior**.
+`offer_window_hours` is nullable with no default or seeded value. A null window
+refuses the offer with `offer_window_not_set` (HTTP 409 `offer-window-not-set`).
+An offer uses database time, holds capacity, and processes eligible selected
+requests in `created_at,id` order. Use the same edition settings `FOR UPDATE`
+lock as approval, require READ COMMITTED, and recheck authority after waiting.
+Do not infer a payment configuration, admission confirmation or ticket from an
+offer. Existing seat holders remain `approved`, `approved_awaiting_payment`,
+`offered` and `confirmed`.
+
+Expiry is an explicit, idempotent, audited `offered` → `expired` transition for
+elapsed nonnull offer deadlines, under the same settings lock. Invoke it before
+staff queue reads and summary counts so lapsed offers release their seats before
+the projection. **Do not automatically offer the released seat to the next
+person**: staff decide. This conservative engineering behavior is pending
+organizer confirmation before activation; it does not settle the open release
+policy. No cron or job is added. An older offer without an expiry retains its
+seat rather than receiving an invented deadline. Elapsed payment deadlines are
+unchanged. Audit events are `request.offered` and `request.offer_expired`.
+
+Super Admins with valid TOTP may export all edition requests, with names, emails,
+statuses, priority, created/decided timestamps and **masked identity only**.
+Each export records `registration.exported` and its row count. No decryption or
+identifier key access belongs in export. The private GET download is CSV with a
+UTF-8 BOM, attachment disposition, no-store caching and spreadsheet-formula
+neutralization. Registration administrators and all other staff are denied.
+
+Contracts extend additively with detail, offers, expiry timestamps and offered/
+expired counts. `approved` continues to count all seat holders; `offered` is a
+subset, not additional occupied capacity. Missing hosted read RPCs yield
+`area-not-ready` rather than breaking the staff session. Participant offer
+acceptance/confirm-your-seat belongs to **slice 5**; transactional email templates
+and atomic outbox enqueue belong to **slice 4**. Neither is implemented here.
+Observed checks and integration notes belong in the
+[O9 receipt](progress/2026-10-19-codex-registration-slice3b.md).
+
+Planner review amendment (19 October 2026): an offer expiry is recorded with a
+NULL `performer_id`, because it is automatic and not a decision by whichever
+staff member's read triggered it. The console shows such history rows as
+"Automatic". The Super Admin export is fetched by the console first, so a
+refused export (403/503 JSON) shows a message and never saves an error file.
