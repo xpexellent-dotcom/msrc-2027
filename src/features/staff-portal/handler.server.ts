@@ -32,8 +32,8 @@ export interface StaffProfile { actorId: string; name: string; roles: Role[] }
 
 const missingRpc = Symbol("missing private RPC");
 /** Lets code that ships ahead of its hosted migration fall back instead of locking staff out. */
-async function optionalRpc(backend: StaffBackend, name: string, args: Record<string, unknown>): Promise<unknown> {
-  try { return await backend.rpc(name, args); } catch (error) { if (error instanceof StaffRpcMissingError) return missingRpc; throw error; }
+async function optionalRpc(backend: StaffBackend, name: string, args: Record<string, unknown>, accessToken?: string): Promise<unknown> {
+  try { return await (accessToken === undefined ? backend.rpc(name, args) : backend.rpc(name, args, accessToken)); } catch (error) { if (error instanceof StaffRpcMissingError) return missingRpc; throw error; }
 }
 /** Records a failed sign-in; before the hardening migration, closes the attempt the pre-ENG-044 way. */
 async function loginFailure(backend: StaffBackend, attemptId: string, attemptedEmail: string | undefined, editionKey: string): Promise<unknown> {
@@ -230,8 +230,10 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         const search = params.get("query") ?? params.get("q") ?? "";
         if (!["people", "audit", "participants", "registration", "priority", "summary"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)) return respond({ state: "invalid-input" }, 400);
         if (!canReadStaffArea(own.roles, area as StaffArea)) return respond({ state: "denied" }, 403);
-        const data = record(await backend.rpc("msrc_staff_" + area, { edition_key: config.editionKey,
-          ...(area === "summary" ? {} : { search }), ...(area === "registration" ? { status_filter: params.get("status") ?? "all" } : {}) }, session.accessToken));
+        const read = await optionalRpc(backend, "msrc_staff_" + area, { edition_key: config.editionKey,
+          ...(area === "summary" ? {} : { search }), ...(area === "registration" ? { status_filter: params.get("status") ?? "all" } : {}) }, session.accessToken);
+        if (read === missingRpc) return respond({ state: "area-not-ready" }, 503);
+        const data = record(read);
         if (!data || data.state === "denied") return respond({ state: "denied" }, 403);
         if (["registration", "priority", "summary"].includes(area)) {
           if (data.state !== "ready") return respond({ state: "unavailable" }, 503);
@@ -353,7 +355,11 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
           session.challengeId = await backend.challenge(session, session.factorId); const audited = await audit("totp_challenge", Boolean(session.challengeId));
           return session.challengeId && audited ? respond({ state: "pending-totp", factorId: session.factorId, challengeId: session.challengeId }, 200, staffCookie(config, session, now)) : respond({ state: "unavailable" }, 503);
         }
-        if (!session.factorId || !session.challengeId || payload.factorId !== session.factorId || payload.challengeId !== session.challengeId) return respond({ state: "invalid-code" }, 400);
+        if (!session.factorId || !session.challengeId || payload.factorId !== session.factorId) return respond({ state: "invalid-code" }, 400);
+        // Supabase challenges expire quickly; answer each code against a fresh one so a slow entry never needs a manual restart.
+        const fresh = await backend.challenge(session, session.factorId); const freshAudited = await audit("totp_challenge", Boolean(fresh));
+        if (!fresh || !freshAudited) return respond({ state: "unavailable" }, 503);
+        session.challengeId = fresh;
         const attemptId = randomUUID();
         const begun = await optionalRpc(backend, "msrc_staff_totp_begin", { actor_id: session.actorId, session_id: session.sessionId, attempt_id: attemptId });
         if (begun === missingRpc) {

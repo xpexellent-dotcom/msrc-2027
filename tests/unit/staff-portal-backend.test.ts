@@ -232,6 +232,24 @@ describe("second steps and safe privileged projections", () => {
     expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_auth_event", expect.objectContaining({ event: "totp_verify", result: "completed" }));
     expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_totp_finish", expect.anything());
   });
+  it("answers each TOTP code against a fresh challenge, even after the shown one expired", async () => {
+    current = persisted("super_admin", "mfa_required");
+    const renewed = "30000000-0000-4000-8000-000000000006"; vi.mocked(backend.challenge).mockResolvedValue(renewed);
+    const stale = "30000000-0000-4000-8000-000000000007";
+    await handler()(request("POST", { action: "verify-totp", code: "123456", factorId, challengeId: stale }, cookie({ factorId, challengeId })));
+    expect(backend.challenge).toHaveBeenCalledWith(expect.objectContaining({ actorId }), factorId);
+    expect(backend.verify).toHaveBeenCalledWith(expect.anything(), factorId, renewed, "123456");
+  });
+  it("never verifies when a fresh challenge cannot be issued", async () => {
+    current = persisted("super_admin", "mfa_required"); vi.mocked(backend.challenge).mockResolvedValue(null);
+    const response = await handler()(request("POST", { action: "verify-totp", code: "123456", factorId, challengeId }, cookie({ factorId, challengeId })));
+    expect(response.status).toBe(503); expect(backend.verify).not.toHaveBeenCalled();
+  });
+  it("explains a staff area whose database function is not installed yet", async () => {
+    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => { if (args[0] === "msrc_staff_priority") throw new StaffRpcMissingError(); return original(args[0], args[1], args[2]); });
+    const response = await handler()(request("GET", undefined, cookie(), "?area=priority"));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready");
+  });
   it("rejects a wrong TOTP code on the pre-hardening fallback", async () => {
     current = persisted("super_admin", "mfa_required"); vi.mocked(backend.verify).mockResolvedValue(null);
     const original = backend.rpc; backend.rpc = vi.fn(async (...args) => { if (args[0] === "msrc_staff_totp_begin") throw new StaffRpcMissingError(); return original(args[0], args[1], args[2]); });
