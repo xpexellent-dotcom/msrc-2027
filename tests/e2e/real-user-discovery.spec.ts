@@ -8,7 +8,12 @@ for (const locale of ["en", "ar"] as const) {
       const warnings: string[] = [];
       const path = `/${locale}${route}`;
       let loaded = false;
-      page.on("pageerror", (error) => failures.push(`pageerror: ${error.message}`));
+      page.on("pageerror", (error) => {
+        // WebKit reports a same-origin RSC prefetch cancelled by the revisit reload as an
+        // "access control" error rather than an abort; other engines already report it as aborted.
+        if (/\/127\.0\.0\.1:\d+\/[^ ]*\?_rsc=[^ ]* due to access control checks\.$/.test(error.message)) return;
+        failures.push(`pageerror: ${error.message}`);
+      });
       page.on("console", (message) => {
         if (message.type() === "error") failures.push(`console: ${message.text()}`);
         if (message.type() === "warning") warnings.push(message.text());
