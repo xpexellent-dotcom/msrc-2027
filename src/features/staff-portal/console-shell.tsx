@@ -46,6 +46,7 @@ export function StaffDashboard({ locale, menu, summary }: { locale: Locale; menu
     registration: summary?.registration ? [
       { label: text.cards.pending, value: count(summary.registration.pending, locale) },
       { label: text.cards.approved, value: count(summary.registration.approved, locale) },
+      ...(summary.registration.offered ? [{ label: text.cards.offered, value: count(summary.registration.offered, locale) }] : []),
       { label: summary.registration.capacity === null ? text.cards.capacityUnset : text.cards.remaining, value: summary.registration.capacity === null ? "—" : count(summary.registration.remaining, locale) },
     ] : undefined,
     participants: typeof summary?.participants === "number" ? [{ label: text.cards.participants, value: count(summary.participants, locale) }] : undefined,

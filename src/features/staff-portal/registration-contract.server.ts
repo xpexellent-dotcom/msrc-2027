@@ -2,7 +2,7 @@ import "server-only";
 import type { Role } from "@/lib/permissions/contract";
 import type { NativeStaffSession } from "./backend.server";
 import { staffUuid } from "./security.server";
-import type { StaffArea, StaffParticipant, StaffPriorityRow, StaffRegistrationCounts, StaffRegistrationRequest, StaffResponse, StaffSummary } from "./ui-contract";
+import type { StaffArea, StaffParticipant, StaffPriorityRow, StaffRegistrationCounts, StaffRegistrationDetail, StaffRegistrationRequest, StaffResponse, StaffSummary } from "./ui-contract";
 import { validStaffRegistrationStatus } from "./validation.server";
 
 const record = (value: unknown): Record<string, unknown> | null => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
@@ -16,17 +16,34 @@ const masked = (value: unknown) => value === null || typeof value === "string" &
 export function canReadStaffArea(roles: readonly Role[], area: StaffArea): boolean {
   if (area === "summary") return roles.some((role) => role !== "participant");
   if (roles.includes("superAdmin")) return true;
-  return ["registration", "participants"].includes(area) && roles.includes("registrationWorkshopAdministrator");
+  return ["registration", "registration-detail", "participants"].includes(area) && roles.includes("registrationWorkshopAdministrator");
 }
 
 export function registrationCounts(value: unknown): StaffRegistrationCounts | null {
-  const row = record(value);
-  if (!row || !exact(row, ["pending", "approved", "waitlisted", "capacity", "remaining"])
+  const source = record(value);
+  if (!source) return null;
+  // Existing hosted reads may precede the offers migration. Normalize only the
+  // newly added fields; malformed values and unknown fields still fail closed.
+  const row: Record<string, unknown> = { offered: 0, expired: 0, ...source };
+  if (!exact(row, ["pending", "approved", "waitlisted", "offered", "expired", "capacity", "remaining"])
     || !count(row.pending) || !count(row.approved) || !count(row.waitlisted)
+    || !count(row.offered) || !count(row.expired) || row.offered > row.approved
     || row.capacity !== null && !count(row.capacity) || row.remaining !== null && !count(row.remaining)
     || (row.capacity === null) !== (row.remaining === null)
     || typeof row.remaining === "number" && typeof row.capacity === "number" && row.remaining > row.capacity) return null;
   return row as StaffRegistrationCounts;
+}
+
+function registrationRequest(value: unknown): StaffRegistrationRequest | null {
+  const source = record(value);
+  if (!source) return null;
+  const row: Record<string, unknown> = { offerExpiresAt: null, ...source };
+  if (!exact(row, ["id", "actorId", "name", "email", "status", "priority", "createdAt", "decidedAt", "offerExpiresAt", "identityMasked"])
+    || !uuid(row.id) || !uuid(row.actorId) || !text(row.name, 200) || !text(row.email, 254)
+    || !validStaffRegistrationStatus(row.status) || row.status === "all" || typeof row.priority !== "boolean"
+    || !timestamp(row.createdAt) || row.decidedAt !== null && !timestamp(row.decidedAt)
+    || row.offerExpiresAt !== null && !timestamp(row.offerExpiresAt) || !masked(row.identityMasked)) return null;
+  return row as StaffRegistrationRequest;
 }
 
 export function registrationProjection(value: unknown): NonNullable<StaffResponse["registration"]> | null {
@@ -36,20 +53,68 @@ export function registrationProjection(value: unknown): NonNullable<StaffRespons
   if (!counts) return null;
   const requests: StaffRegistrationRequest[] = [];
   for (const value of data.requests) {
-    const row = record(value);
-    if (!row || !exact(row, ["id", "actorId", "name", "email", "status", "priority", "createdAt", "decidedAt", "identityMasked"])
-      || !uuid(row.id) || !uuid(row.actorId) || !text(row.name, 200) || !text(row.email, 254)
-      || !validStaffRegistrationStatus(row.status) || row.status === "all" || typeof row.priority !== "boolean"
-      || !timestamp(row.createdAt) || row.decidedAt !== null && !timestamp(row.decidedAt) || !masked(row.identityMasked)) return null;
-    requests.push(row as StaffRegistrationRequest);
+    const row = registrationRequest(value);
+    if (!row) return null;
+    requests.push(row);
   }
   return { requests, counts };
 }
 
-export function registrationDecision(value: unknown, requested: number, action: "registration-approve" | "registration-waitlist"): NonNullable<StaffResponse["decided"]> | null {
+export function registrationDetailProjection(value: unknown, requestId: string): StaffRegistrationDetail | null {
+  const data = record(value);
+  if (!data || !exact(data, ["request", "history"]) || !Array.isArray(data.history)) return null;
+  const request = registrationRequest(data.request);
+  if (!request || request.id.toLowerCase() !== requestId.toLowerCase()) return null;
+  const history: StaffRegistrationDetail["history"] = [];
+  let previousTime = Infinity;
+  for (const value of data.history) {
+    const row = record(value);
+    if (!row || !exact(row, ["id", "from", "to", "at", "performerName"]) || !uuid(row.id)
+      || row.from !== null && (!validStaffRegistrationStatus(row.from) || row.from === "all")
+      || !validStaffRegistrationStatus(row.to) || row.to === "all" || !timestamp(row.at)
+      || row.performerName !== null && !text(row.performerName, 200)) return null;
+    const time = Date.parse(row.at as string);
+    if (time > previousTime) return null;
+    previousTime = time;
+    history.push(row as StaffRegistrationDetail["history"][number]);
+  }
+  return { request, history };
+}
+
+type RegistrationExportRow = Pick<StaffRegistrationRequest, "name" | "email" | "status" | "priority" | "createdAt" | "decidedAt" | "identityMasked">;
+const exportColumns = ["name", "email", "status", "priority", "createdAt", "decidedAt", "identityMasked"] as const;
+
+/** Quotes every cell and neutralizes formulas before applying CSV escaping. */
+function csvCell(value: string | boolean | null): string {
+  const cell = value === null ? "" : String(value);
+  return '"' + (/^[=+\-@\t\r]/.test(cell) ? "'" : "") + cell.replaceAll('"', '""') + '"';
+}
+
+export function registrationExportCsv(value: unknown): string | null {
+  if (!Array.isArray(value)) return null;
+  const rows: string[] = [exportColumns.map(csvCell).join(",")];
+  for (const item of value) {
+    const row = record(item);
+    // Tabs and line breaks are valid quoted CSV content; all other controls are
+    // rejected. Identity must always match the masked form, even for Super Admin.
+    const csvText = (value: unknown, max: number) => typeof value === "string" && value.length > 0 && value.length <= max && !/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(value);
+    if (!row || !exact(row, exportColumns) || !csvText(row.name, 200) || !csvText(row.email, 254)
+      || !validStaffRegistrationStatus(row.status) || row.status === "all" || typeof row.priority !== "boolean"
+      || !timestamp(row.createdAt) || row.decidedAt !== null && !timestamp(row.decidedAt) || !masked(row.identityMasked)) return null;
+    const typed = row as RegistrationExportRow;
+    rows.push(exportColumns.map((column) => csvCell(typed[column])).join(","));
+  }
+  return "\uFEFF" + rows.join("\r\n") + "\r\n";
+}
+
+export function registrationDecision(value: unknown, requested: number, action: "registration-approve" | "registration-waitlist" | "registration-offer"): NonNullable<StaffResponse["decided"]> | null {
   const row = record(value);
-  if (!row || !exact(row, ["approved", "waitlisted", "skipped"]) || !count(row.approved) || !count(row.waitlisted) || !count(row.skipped)
-    || row.approved + row.waitlisted + row.skipped !== requested
+  if (!row || !exact(row, ["approved", "waitlisted", "skipped", ...(action === "registration-offer" || Object.hasOwn(row, "offered") ? ["offered"] : [])])
+    || !count(row.approved) || !count(row.waitlisted) || !count(row.skipped)
+    || Object.hasOwn(row, "offered") && !count(row.offered)
+    || action === "registration-offer" && (!count(row.offered) || row.approved !== 0 || row.waitlisted !== 0)
+    || action !== "registration-offer" && (row.offered ?? 0) !== 0
+    || row.approved + row.waitlisted + row.skipped + Number(row.offered ?? 0) !== requested
     || (action === "registration-approve" ? row.waitlisted !== 0 : row.approved !== 0)) return null;
   return row as NonNullable<StaffResponse["decided"]>;
 }

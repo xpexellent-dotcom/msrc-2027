@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
 import { staffCopy } from "./copy";
 import { consoleCopy } from "./console-copy";
 import { formatStaffDate, formatStaffNumber } from "./console-shell";
-import type { StaffPayload, StaffRegistrationStatus, StaffResponse } from "./ui-contract";
+import type { StaffPayload, StaffRegistrationDetail, StaffRegistrationStatus, StaffResponse, StaffState } from "./ui-contract";
 
-const filters = ["all", "pending_approval", "approved", "waitlisted", "approved_awaiting_payment", "confirmed", "cancelled", "expired"] as const;
+const filters = ["all", "pending_approval", "approved", "waitlisted", "offered", "approved_awaiting_payment", "confirmed", "cancelled", "expired"] as const;
 type Filter = (typeof filters)[number];
 const decidable = new Set<StaffRegistrationStatus>(["pending_approval", "waitlisted"]);
 
@@ -17,10 +17,11 @@ const decidable = new Set<StaffRegistrationStatus>(["pending_approval", "waitlis
  * ORG-055 registration queue (slice 3, staff side). Seat allocation, capacity and every
  * transition are enforced by the database RPCs; this screen only collects the request ids.
  */
-export function RegistrationQueue({ locale, data, busy, status, onStatus, query, onQuery, onSearch, act, onDecided }: {
+export function RegistrationQueue({ locale, data, busy, status, onStatus, query, onQuery, onSearch, act, onDecided, canExport, loadDetail }: {
   locale: Locale; data?: StaffResponse["registration"]; busy: boolean; status: Filter; onStatus: (value: Filter) => void;
   query: string; onQuery: (value: string) => void; onSearch: () => void;
   act: (payload: Omit<StaffPayload, "formToken">) => Promise<StaffResponse>; onDecided: (text: string) => void;
+  canExport: boolean; loadDetail: (requestId: string) => Promise<StaffResponse>;
 }) {
   const copy = staffCopy[locale], text = consoleCopy[locale].registration;
   const [selected, setSelected] = useState<string[]>([]);
@@ -30,10 +31,33 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
   const allSelected = selectable.length > 0 && selectable.every((request) => selected.includes(request.id));
   const toggle = (id: string, on: boolean) => setSelected((current) => on ? [...new Set([...current, id])] : current.filter((value) => value !== id));
 
-  async function decide(action: "registration-approve" | "registration-waitlist", ids: string[]) {
+  const [detail, setDetail] = useState<StaffRegistrationDetail | null>(null);
+  const detailHeading = useRef<HTMLHeadingElement>(null);
+  // Move focus once the panel has rendered, so keyboard and screen-reader users land on it.
+  useEffect(() => { if (detail) detailHeading.current?.focus(); }, [detail]);
+  const statusOf = (id: string) => requests.find((request) => request.id === id)?.status;
+
+  async function decide(action: "registration-approve" | "registration-waitlist" | "registration-offer", ids: string[]) {
     if (!ids.length) { onDecided(text.noneSelected); return; }
     const response = await act({ action, requestIds: ids });
-    if (response.decided) { onDecided(text.decided(response.decided.approved, response.decided.waitlisted, response.decided.skipped)); setSelected([]); }
+    if (response.decided) { onDecided(text.decided(response.decided.approved, response.decided.waitlisted, response.decided.skipped, response.decided.offered)); setSelected([]); setDetail(null); }
+  }
+  /** Fetch first so a refused export shows a message instead of saving the error as a file. */
+  async function exportCsv() {
+    const failed = (state: string) => onDecided(copy.states[state as keyof typeof copy.states] || copy.states.unavailable);
+    try {
+      const response = await fetch("/api/staff-portal?area=registration-export", { credentials: "same-origin", cache: "no-store" });
+      if (!response.ok || !response.headers.get("content-type")?.includes("text/csv")) {
+        failed(((await response.json().catch(() => null)) as { state?: StaffState } | null)?.state ?? "unavailable"); return;
+      }
+      const url = URL.createObjectURL(await response.blob()), link = document.createElement("a");
+      link.href = url; link.download = /filename="([^"]+)"/.exec(response.headers.get("content-disposition") ?? "")?.[1] ?? "registration.csv";
+      link.click(); URL.revokeObjectURL(url);
+    } catch { failed("unavailable"); }
+  }
+  async function openDetail(id: string) {
+    const response = await loadDetail(id);
+    if (response.registrationDetail) setDetail(response.registrationDetail);
   }
   const number = (value: number | null | undefined) => typeof value === "number" ? formatStaffNumber(value, locale) : "—";
 
@@ -46,7 +70,10 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
       <div><dt>{text.remaining}</dt><dd>{capacitySet ? number(counts?.remaining) : "—"}</dd></div>
       <div><dt>{text.pending}</dt><dd>{number(counts?.pending)}</dd></div>
       <div><dt>{text.waitlisted}</dt><dd>{number(counts?.waitlisted)}</dd></div>
+      <div><dt>{text.offered}</dt><dd>{number(counts?.offered)}</dd></div>
+      <div><dt>{text.expired}</dt><dd>{number(counts?.expired)}</dd></div>
     </dl>
+    {canExport ? <p className="staff-export"><Button size="small" variant="secondary" disabled={busy} onClick={() => void exportCsv()} data-testid="queue-export">{text.exportCsv}</Button><span className="staff-muted">{text.exportNote}</span></p> : null}
     {counts && !capacitySet ? <p className="staff-note" role="note">{text.capacityUnset}</p> : null}
     <form className="staff-search staff-queue-filters" onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
       <label className="field"><span className="field-label">{text.filter}</span>
@@ -60,26 +87,44 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
     {selected.length ? <div className="staff-bulk-bar" role="region" aria-label={text.selected(selected.length)}>
       <span aria-live="polite">{text.selected(selected.length)}</span>
       <Button size="small" disabled={busy || !capacitySet} onClick={() => void decide("registration-approve", selected)} data-testid="queue-approve-selected">{text.approveSelected}</Button>
-      <Button size="small" variant="secondary" disabled={busy} onClick={() => void decide("registration-waitlist", selected.filter((id) => requests.find((request) => request.id === id)?.status === "pending_approval"))}>{text.waitlistSelected}</Button>
+      <Button size="small" variant="secondary" disabled={busy || !capacitySet} onClick={() => void decide("registration-offer", selected.filter((id) => statusOf(id) === "waitlisted"))} data-testid="queue-offer-selected">{text.offerSelected}</Button>
+      <Button size="small" variant="secondary" disabled={busy} onClick={() => void decide("registration-waitlist", selected.filter((id) => statusOf(id) === "pending_approval"))}>{text.waitlistSelected}</Button>
     </div> : null}
     <p className="staff-muted">{copy.resultLimit}</p>
     <div className="staff-table-scroll" role="region" aria-label={copy.areas.registration} tabIndex={0}>
       <table><thead><tr>
         <th scope="col"><label className="staff-check"><input type="checkbox" checked={allSelected} disabled={busy || !selectable.length} onChange={(event) => setSelected(event.target.checked ? selectable.map((request) => request.id) : [])} /><span className="sr-only">{text.selectAll}</span></label></th>
-        <th scope="col">{copy.name}</th><th scope="col">{copy.status}</th><th scope="col">{text.requested}</th><th scope="col">{copy.identifier}</th><th scope="col">{copy.action}</th>
+        <th scope="col">{copy.name}</th><th scope="col">{copy.status}</th><th scope="col" className="staff-nowrap">{text.requested}</th><th scope="col">{copy.identifier}</th><th scope="col">{copy.action}</th>
       </tr></thead><tbody>{requests.map((request) => <tr key={request.id} data-testid="queue-row">
         <td>{decidable.has(request.status) ? <label className="staff-check"><input type="checkbox" checked={selected.includes(request.id)} disabled={busy} onChange={(event) => toggle(request.id, event.target.checked)} /><span className="sr-only">{text.select} {request.name}</span></label> : null}</td>
         <th scope="row"><bdi>{request.name}</bdi><span className="staff-email"><bdi dir="ltr">{request.email}</bdi></span>{request.priority ? <span className="staff-tag">{text.priority}</span> : null}</th>
-        <td><span className={`staff-status staff-status--${request.status}`}>{text.statuses[request.status]}</span></td>
+        <td><span className={`staff-status staff-status--${request.status}`}>{text.statuses[request.status]}</span>{request.status === "offered" && request.offerExpiresAt ? <span className="staff-muted staff-offer-ends">{text.offerEnds}: {formatStaffDate(request.offerExpiresAt, locale, copy.unknown)}</span> : null}</td>
         <td>{formatStaffDate(request.createdAt, locale, copy.unknown)}</td>
-        <td><bdi dir="ltr">{request.identityMasked ?? "—"}</bdi></td>
-        <td>{decidable.has(request.status) ? <div className="staff-actions">
-          <Button size="small" disabled={busy || !capacitySet} onClick={() => void decide("registration-approve", [request.id])}>{text.approve}</Button>
+        <td className="staff-nowrap"><bdi dir="ltr">{request.identityMasked ?? "—"}</bdi></td>
+        <td><div className="staff-actions">
+          {decidable.has(request.status) ? <Button size="small" disabled={busy || !capacitySet} onClick={() => void decide("registration-approve", [request.id])}>{text.approve}</Button> : null}
+          {request.status === "waitlisted" ? <Button size="small" variant="secondary" disabled={busy || !capacitySet} onClick={() => void decide("registration-offer", [request.id])}>{text.offer}</Button> : null}
           {request.status === "pending_approval" ? <Button size="small" variant="secondary" disabled={busy} onClick={() => void decide("registration-waitlist", [request.id])}>{text.waitlist}</Button> : null}
-        </div> : null}</td>
+          <Button size="small" variant="ghost" disabled={busy} aria-label={`${text.details}: ${request.name}`} onClick={() => void openDetail(request.id)}>{text.details}</Button>
+        </div></td>
       </tr>)}</tbody></table>
     </div>
     {!requests.length ? <p>{counts ? copy.noRecords : text.closedNote}</p> : null}
+    {detail ? <section className="staff-detail" aria-labelledby="staff-detail-title" data-testid="queue-detail">
+      <div className="staff-detail-head"><h3 id="staff-detail-title" ref={detailHeading} tabIndex={-1}>{text.detailTitle}: <bdi>{detail.request.name}</bdi></h3>
+        <Button size="small" variant="secondary" onClick={() => setDetail(null)}>{text.closeDetails}</Button></div>
+      <dl className="staff-detail-facts">
+        <div><dt>{copy.status}</dt><dd>{text.statuses[detail.request.status]}</dd></div>
+        <div><dt>{text.submitted}</dt><dd>{formatStaffDate(detail.request.createdAt, locale, copy.unknown)}</dd></div>
+        <div><dt>{copy.identifier}</dt><dd><bdi dir="ltr">{detail.request.identityMasked ?? "—"}</bdi></dd></div>
+        {detail.request.offerExpiresAt ? <div><dt>{text.offerEnds}</dt><dd>{formatStaffDate(detail.request.offerExpiresAt, locale, copy.unknown)}</dd></div> : null}
+      </dl>
+      <h4>{text.history}</h4>
+      {detail.history.length ? <ol className="staff-history">{detail.history.map((row, index) => <li key={`${row.at}-${index}`}>
+        <span>{row.from ? text.statuses[row.from] : text.submitted} {locale === "ar" ? "←" : "→"} {text.statuses[row.to]}</span>
+        <span className="staff-muted">{formatStaffDate(row.at, locale, copy.unknown)} · {text.by}: <bdi>{row.performerName ?? text.automatic}</bdi></span>
+      </li>)}</ol> : <p>{text.noHistory}</p>}
+    </section> : null}
   </section>;
 }
 export type { Filter as RegistrationFilter };

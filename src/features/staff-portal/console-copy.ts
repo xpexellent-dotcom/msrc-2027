@@ -8,7 +8,7 @@ type LandingKey = "finance" | "check-in" | "review" | "science" | "judging" | "f
 export const consoleCopy = {
   en: {
     overview: "Overview", overviewIntro: "Your areas and what needs attention.", open: "Open",
-    cards: { pending: "Seat requests waiting", approved: "Seats approved", remaining: "Seats remaining", capacityUnset: "Capacity not set", participants: "Participant accounts", staff: "Staff members", audit: "Audit events in the last 24 hours", priority: "Organizing-team members marked" },
+    cards: { pending: "Seat requests waiting", approved: "Seats approved", offered: "Offers waiting for a reply", remaining: "Seats remaining", capacityUnset: "Capacity not set", participants: "Participant accounts", staff: "Staff members", audit: "Audit events in the last 24 hours", priority: "Organizing-team members marked" },
     registration: {
       intro: "Review seat requests, approve them one at a time or together, and move requests to the waitlist when seats run out.",
       closedNote: "Registration is closed to participants. Requests appear here once it opens.",
@@ -17,8 +17,11 @@ export const consoleCopy = {
       approve: "Approve", approveSelected: "Approve selected", waitlist: "Move to waitlist", waitlistSelected: "Waitlist selected",
       requested: "Requested", priority: "Organizing team", seats: "Seats", capacity: "Capacity", remaining: "Remaining", pending: "Waiting", approved: "Approved", waitlisted: "Waitlisted",
       capacityUnset: "Capacity is not set yet. Approvals open once the organizers confirm it.",
-      decided: (approved: number, waitlisted: number, skipped: number) => [approved ? `${approved} approved` : "", waitlisted ? `${waitlisted} moved to the waitlist` : "", skipped ? `${skipped} unchanged` : ""].filter(Boolean).join(" · ") || "Nothing changed.",
+      decided: (approved: number, waitlisted: number, skipped: number, offered = 0) => [approved ? `${approved} approved` : "", offered ? `${offered} offered a seat` : "", waitlisted ? `${waitlisted} moved to the waitlist` : "", skipped ? `${skipped} unchanged` : ""].filter(Boolean).join(" · ") || "Nothing changed.",
       noneSelected: "Select at least one request.",
+      offer: "Offer a seat", offerSelected: "Offer seats to selected", offered: "Offered", expired: "Offers expired", offerEnds: "Offer ends",
+      details: "Details", detailTitle: "Request details", history: "Decision history", noHistory: "No decisions yet.", by: "By", automatic: "Automatic", submitted: "Submitted", closeDetails: "Close details",
+      exportCsv: "Download CSV", exportNote: "Super Admin only. ID numbers stay masked, and every download is recorded in the audit log.",
     },
     priority: {
       intro: "Mark organizing-team members and volunteers so they can register early and choose workshop seats first. Every change needs a reason and is recorded in the audit log.",
@@ -41,7 +44,7 @@ export const consoleCopy = {
   },
   ar: {
     overview: "نظرة عامة", overviewIntro: "مجالات عملك وما يحتاج إلى متابعة.", open: "فتح",
-    cards: { pending: "طلبات مقاعد بانتظار الموافقة", approved: "مقاعد معتمدة", remaining: "مقاعد متبقية", capacityUnset: "لم تُحدَّد السعة", participants: "حسابات المشاركين", staff: "أعضاء الفريق", audit: "أحداث التدقيق خلال ٢٤ ساعة", priority: "أعضاء فريق التنظيم المحددون" },
+    cards: { pending: "طلبات مقاعد بانتظار الموافقة", approved: "مقاعد معتمدة", offered: "عروض بانتظار الرد", remaining: "مقاعد متبقية", capacityUnset: "لم تُحدَّد السعة", participants: "حسابات المشاركين", staff: "أعضاء الفريق", audit: "أحداث التدقيق خلال ٢٤ ساعة", priority: "أعضاء فريق التنظيم المحددون" },
     registration: {
       intro: "راجع طلبات المقاعد، واعتمدها فرديًا أو مجتمعة، وانقل الطلبات إلى قائمة الانتظار عند نفاد المقاعد.",
       closedNote: "التسجيل مغلق أمام المشاركين. تظهر الطلبات هنا عند فتحه.",
@@ -50,8 +53,11 @@ export const consoleCopy = {
       approve: "اعتماد", approveSelected: "اعتماد المحدد", waitlist: "نقل إلى قائمة الانتظار", waitlistSelected: "نقل المحدد إلى الانتظار",
       requested: "تاريخ الطلب", priority: "فريق التنظيم", seats: "المقاعد", capacity: "السعة", remaining: "المتبقي", pending: "بانتظار", approved: "معتمد", waitlisted: "في الانتظار",
       capacityUnset: "لم تُحدَّد السعة بعد. تُتاح الموافقات بعد تأكيدها من المنظمين.",
-      decided: (approved: number, waitlisted: number, skipped: number) => [approved ? `اعتُمد ${approved.toLocaleString("ar-SA")}` : "", waitlisted ? `نُقل ${waitlisted.toLocaleString("ar-SA")} إلى الانتظار` : "", skipped ? `لم يتغير ${skipped.toLocaleString("ar-SA")}` : ""].filter(Boolean).join(" · ") || "لم يتغير شيء.",
+      decided: (approved: number, waitlisted: number, skipped: number, offered = 0) => [approved ? `اعتُمد ${approved.toLocaleString("ar-SA")}` : "", offered ? `عُرض مقعد على ${offered.toLocaleString("ar-SA")}` : "", waitlisted ? `نُقل ${waitlisted.toLocaleString("ar-SA")} إلى الانتظار` : "", skipped ? `لم يتغير ${skipped.toLocaleString("ar-SA")}` : ""].filter(Boolean).join(" · ") || "لم يتغير شيء.",
       noneSelected: "حدّد طلبًا واحدًا على الأقل.",
+      offer: "عرض مقعد", offerSelected: "عرض مقاعد على المحدَّدين", offered: "عُرض عليهم مقعد", expired: "عروض منتهية", offerEnds: "ينتهي العرض",
+      details: "التفاصيل", detailTitle: "تفاصيل الطلب", history: "سجل القرارات", noHistory: "لا توجد قرارات بعد.", by: "بواسطة", automatic: "تلقائي", submitted: "قُدِّم الطلب", closeDetails: "إغلاق التفاصيل",
+      exportCsv: "تنزيل ملف CSV", exportNote: "للمشرف الأعلى فقط. تبقى أرقام الهوية مخفية جزئيًا، وتُسجَّل كل عملية تنزيل في سجل التدقيق.",
     },
     priority: {
       intro: "حدّد أعضاء فريق التنظيم والمتطوعين ليتمكنوا من التسجيل مبكرًا واختيار مقاعد ورش العمل أولًا. يتطلب كل تغيير سببًا ويُسجَّل في سجل التدقيق.",

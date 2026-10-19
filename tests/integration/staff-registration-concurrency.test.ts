@@ -150,3 +150,184 @@ describe.skipIf(!isolatedCi)("Staff registration allocation (disposable GitHub C
     }
   });
 });
+
+const offerEdition = "synthetic-staff-offer-races";
+function offerDecision(action: "offer" | "approve", staff: number, participant: number, applicationName: string,
+  isolation: "read committed" | "repeatable read" = "read committed") {
+  return `begin isolation level ${isolation};
+    set local application_name='${applicationName}';
+    select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
+    select set_config('synthetic.request_id',(select id::text from msrc_registration.requests where edition_key='${offerEdition}' and actor_id='${actor(participant)}'),true);
+    set local role authenticated;
+    select public.msrc_staff_registration_${action}('${offerEdition}',array[current_setting('synthetic.request_id')::uuid])::text;`;
+}
+function expire(staff: number, isolation: "read committed" | "repeatable read" = "read committed") {
+  return `begin isolation level ${isolation};
+    select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
+    set local role authenticated;
+    select public.msrc_staff_registration_expire_offers('${offerEdition}')::text;`;
+}
+
+describe.skipIf(!isolatedCi)("Staff offer allocation and release (disposable GitHub CI only)", () => {
+  beforeAll(async () => {
+    await query(`begin;
+      update msrc_participant.policy set enabled=true,privacy_version='synthetic-registration-notice',email_daily_limit=1000;
+      update msrc_participant.retention_policy set enabled=true;
+      update msrc_staff.policy set enabled=true,email_daily_limit=1000;
+      select pg_temp.registration_settings('${offerEdition}');
+      do $$declare n integer;begin
+        for n in 401..405 loop perform pg_temp.registration_fixture(n,'${offerEdition}');end loop;
+      end$$;
+      select pg_temp.registration_staff_fixture(501,'${offerEdition}');
+      select pg_temp.registration_staff_fixture(502,'${offerEdition}');
+      select pg_temp.registration_staff_fixture(503,'${offerEdition}','registrationWorkshopAdministrator');
+      do $$declare n integer;outcome jsonb;begin
+        for n in 401..405 loop
+          outcome:=pg_temp.registration_submit('${offerEdition}',n,md5(n::text)||md5(n::text));
+          if outcome->>'state'<>'submitted' then raise exception 'Synthetic offer race fixture failed';end if;
+        end loop;
+      end$$;
+      update msrc_registration.requests set status='waitlisted' where edition_key='${offerEdition}';
+      update msrc_registration.settings set general_capacity=1,offer_window_hours=6,enabled=false where edition_key='${offerEdition}';
+      commit;`);
+  });
+
+  it("two contending offers allocate one last seat and one transition audit", async () => {
+    const first = held(offerDecision("offer", 501, 401, "synthetic-offer-winner") + `select pg_advisory_xact_lock(${marker});`);
+    let second: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        second = query(offerDecision("offer", 502, 402, "synthetic-offer-contender") + "commit;");
+        await waiting("synthetic-offer-contender");
+      } finally { first.release(); }
+      const results = (await Promise.all([first.done, second!])).map(response);
+      expect(results.map((row) => row.state)).toEqual(["updated", "updated"]);
+      expect(results.map((row) => row.decided)).toEqual([
+        { approved: 0, waitlisted: 0, offered: 1, skipped: 0 },
+        { approved: 0, waitlisted: 0, offered: 0, skipped: 1 },
+      ]);
+      expect(results.map((row) => row.registration.counts.remaining)).toEqual([0, 0]);
+      await query(`do $$begin
+        if (select count(*) from msrc_registration.requests where edition_key='${offerEdition}' and status='offered')<>1
+        or (select count(*) from msrc_registration.audit where edition_key='${offerEdition}' and event='request.offered')<>1
+        or (select status from msrc_registration.requests where edition_key='${offerEdition}' and actor_id='${actor(402)}')<>'waitlisted'
+        then raise exception 'Last-seat offer concurrency invariant failed';end if;
+        end$$;`);
+    } finally { await Promise.allSettled([first.done, ...(second ? [second] : [])]); }
+  });
+
+  it("expiry and a waiting staff offer serialize release and reallocation without duplicate expiry", async () => {
+    await query(`update msrc_registration.requests set offer_expires_at=clock_timestamp()-interval '1 second'
+      where edition_key='${offerEdition}' and actor_id='${actor(401)}';`);
+    const expiring = held(expire(501) + `select pg_advisory_xact_lock(${marker});`);
+    let offering: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        offering = query(offerDecision("offer", 502, 402, "synthetic-release-contender") + "commit;");
+        await waiting("synthetic-release-contender");
+      } finally { expiring.release(); }
+      const [expired, offered] = (await Promise.all([expiring.done, offering!])).map(response);
+      expect(expired).toMatchObject({ state: "updated", expired: 1 });
+      expect(offered.decided).toEqual({ approved: 0, waitlisted: 0, offered: 1, skipped: 0 });
+      expect(offered.registration.counts).toMatchObject({ offered: 1, expired: 1, approved: 1, remaining: 0 });
+      expect(response(await query(expire(501) + "commit;"))).toMatchObject({ state: "updated", expired: 0 });
+      await query(`do $$begin
+        if (select count(*) from msrc_registration.audit where edition_key='${offerEdition}' and event='request.offer_expired')<>1
+        or (select count(*) from msrc_registration.audit where edition_key='${offerEdition}' and event='request.offered')<>2
+        or (select count(*) from msrc_registration.requests where edition_key='${offerEdition}' and status='offered')<>1
+        or (select status from msrc_registration.requests where edition_key='${offerEdition}' and actor_id='${actor(403)}')<>'waitlisted'
+        then raise exception 'Offer expiry/reallocation invariant failed';end if;
+        end$$;`);
+    } finally { await Promise.allSettled([expiring.done, ...(offering ? [offering] : [])]); }
+  });
+
+  it("an offer and approval contend on the same last-seat settings lock", async () => {
+    await query(`update msrc_registration.settings set general_capacity=2 where edition_key='${offerEdition}';`);
+    const offering = held(offerDecision("offer", 501, 403, "synthetic-mixed-offer-winner") + `select pg_advisory_xact_lock(${marker});`);
+    let approving: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        approving = query(offerDecision("approve", 502, 404, "synthetic-mixed-approval-contender") + "commit;");
+        await waiting("synthetic-mixed-approval-contender");
+      } finally { offering.release(); }
+      const results = (await Promise.all([offering.done, approving!])).map(response);
+      expect(results[0].decided.offered).toBe(1);
+      expect(results[1].decided).toEqual({ approved: 0, waitlisted: 0, skipped: 1 });
+      expect(results.map((row) => row.registration.counts.remaining)).toEqual([0, 0]);
+      await query(`do $$begin
+        if (select count(*) from msrc_registration.requests where edition_key='${offerEdition}' and status in('approved','approved_awaiting_payment','offered','confirmed'))<>2
+        or exists(select 1 from msrc_registration.audit where edition_key='${offerEdition}' and event='request.approved')
+        then raise exception 'Offer/approval shared-lock invariant failed';end if;
+        end$$;`);
+    } finally { await Promise.allSettled([offering.done, ...(approving ? [approving] : [])]); }
+  });
+
+  it("offer rechecks the current session after a real settings-row lock wait", async () => {
+    await query(`update msrc_registration.settings set general_capacity=3 where edition_key='${offerEdition}';`);
+    const locking = held(`begin;
+      select 1 from msrc_registration.settings where edition_key='${offerEdition}' for update;
+      select pg_advisory_xact_lock(${marker});`);
+    let offering: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        offering = query(offerDecision("offer", 503, 405, "synthetic-expiring-offer-registrar") + "commit;");
+        await waiting("synthetic-expiring-offer-registrar");
+        await query("update msrc_sessions.policy set privileged_absolute_seconds=1 where singleton;");
+      } finally { locking.release(); }
+      const [, denied] = await Promise.all([locking.done, offering!]);
+      expect(response(denied).state).toBe("denied");
+      await query(`do $$begin
+        if (select status from msrc_registration.requests where edition_key='${offerEdition}' and actor_id='${actor(405)}')<>'waitlisted'
+        or exists(select 1 from msrc_registration.audit where edition_key='${offerEdition}' and target_actor='${actor(405)}' and event='request.offered')
+        then raise exception 'Expired waiting session offered a seat';end if;
+        end$$;`);
+    } finally {
+      await Promise.allSettled([locking.done, ...(offering ? [offering] : [])]);
+      await query("update msrc_sessions.policy set privileged_absolute_seconds=28800 where singleton;");
+    }
+  });
+
+  it("offer and expiry refuse repeatable-read snapshots before capacity can be miscounted", async () => {
+    await expect(query(offerDecision("offer", 501, 404, "synthetic-repeatable-offer", "repeatable read") + "commit;"))
+      .rejects.toThrow("SQLSTATE 25001");
+    await expect(query(expire(501, "repeatable read") + "commit;")).rejects.toThrow("SQLSTATE 25001");
+  });
+
+  it.each(["queue", "detail", "summary"] as const)("%s read takes the authority lock before locking the actor account", async (area) => {
+    const applicationName = `synthetic-authority-${area}-reader`;
+    const locking = held(`begin;
+      select pg_advisory_xact_lock(hashtextextended('staff-portal-authority',0));
+      select pg_advisory_xact_lock(${marker});`);
+    const rpc = area === "queue" ? `public.msrc_staff_registration('${offerEdition}')`
+      : area === "summary" ? `public.msrc_staff_summary('${offerEdition}')`
+        : `public.msrc_staff_registration_detail('${offerEdition}',current_setting('synthetic.request_id')::uuid)`;
+    let reading: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        reading = query(`begin;
+          set local application_name='${applicationName}';
+          select set_config('request.jwt.claims',pg_temp.registration_claims(501)::text,true);
+          select set_config('synthetic.request_id',(select id::text from msrc_registration.requests where edition_key='${offerEdition}' and actor_id='${actor(401)}'),true);
+          set local role authenticated;
+          select ${rpc}::text;
+          commit;`);
+        await observed(`select count(*) from pg_locks l join pg_stat_activity a on a.pid=l.pid
+          where a.application_name='${applicationName}' and l.locktype='advisory' and not l.granted;`, "read authority advisory wait");
+        // With the read genuinely waiting on authority, an independent connection
+        // must still be able to acquire the account lock needed by a role change.
+        // NOWAIT exposes the old account->authority inversion without a deadlock
+        // timeout, sleep, retry, or deliberately hung connection.
+        expect((await query(`begin;
+          select 1 from msrc_authorization.account_access where actor_id='${actor(501)}' for update nowait;
+          commit;`)).split("\n")).toContain("1");
+      } finally { locking.release(); }
+      const [, read] = await Promise.all([locking.done, reading!]);
+      expect(response(read).state).toBe("ready");
+    } finally { await Promise.allSettled([locking.done, ...(reading ? [reading] : [])]); }
+  });
+});
