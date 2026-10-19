@@ -12,16 +12,16 @@ const ids = ["21000000-0000-4000-8000-0000000000a1", "21000000-0000-4000-8000-00
 const participantId = "21000000-0000-4000-8000-0000000000b1";
 
 /** ORG-055 presentation fixture. Seat allocation and authority are proven by the database suites. */
-async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string } = {}) {
+async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string; offerWindow?: boolean } = {}) {
   const actions: StaffPayload[] = [], reads: string[] = [];
   const capacity = options.capacity === undefined ? 2000 : options.capacity;
   let requests: StaffRegistrationRequest[] = [
-    { id: ids[0], actorId: ids[0], name: "Synthetic Priority Member", email: "priority@example.invalid", status: "pending_approval", priority: true, createdAt: "2026-11-15T17:00:00Z", decidedAt: null, identityMasked: "••••••1234" },
-    { id: ids[1], actorId: ids[1], name: "Synthetic Attendee", email: "attendee@example.invalid", status: "pending_approval", priority: false, createdAt: "2026-11-18T17:01:00Z", decidedAt: null, identityMasked: "••••••5678" },
-    { id: ids[2], actorId: ids[2], name: "Synthetic Approved", email: "approved@example.invalid", status: "approved", priority: false, createdAt: "2026-11-18T17:02:00Z", decidedAt: "2026-11-19T09:00:00Z", identityMasked: "••••••9012" },
+    { id: ids[0], actorId: ids[0], name: "Synthetic Priority Member", email: "priority@example.invalid", status: "pending_approval", priority: true, createdAt: "2026-11-15T17:00:00Z", decidedAt: null, identityMasked: "••••••1234", offerExpiresAt: null },
+    { id: ids[1], actorId: ids[1], name: "Synthetic Attendee", email: "attendee@example.invalid", status: "pending_approval", priority: false, createdAt: "2026-11-18T17:01:00Z", decidedAt: null, identityMasked: "••••••5678", offerExpiresAt: null },
+    { id: ids[2], actorId: ids[2], name: "Synthetic Approved", email: "approved@example.invalid", status: "approved", priority: false, createdAt: "2026-11-18T17:02:00Z", decidedAt: "2026-11-19T09:00:00Z", identityMasked: "••••••9012", offerExpiresAt: null },
   ];
   let designations = [{ actorId: participantId, name: "Synthetic Volunteer", email: "volunteer@example.invalid", active: true, reason: "Logistics committee", designatedAt: "2026-10-17T10:00:00Z", designatedByName: "Synthetic Staff", removedAt: null as string | null }];
-  const counts = () => ({ pending: requests.filter((r) => r.status === "pending_approval").length, approved: requests.filter((r) => r.status === "approved").length, waitlisted: requests.filter((r) => r.status === "waitlisted").length, capacity, remaining: capacity === null ? null : capacity - requests.filter((r) => r.status === "approved").length });
+  const counts = () => ({ pending: requests.filter((r) => r.status === "pending_approval").length, approved: requests.filter((r) => r.status === "approved").length, waitlisted: requests.filter((r) => r.status === "waitlisted").length, offered: requests.filter((r) => r.status === "offered").length, expired: requests.filter((r) => r.status === "expired").length, capacity, remaining: capacity === null ? null : capacity - requests.filter((r) => r.status === "approved").length });
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request(), url = new URL(request.url());
     const base: StaffResponse = { state: "authenticated", profile: { actorId, name: "Synthetic Staff", roles }, formToken: "synthetic-console-token" };
@@ -33,6 +33,12 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
         let approved = 0, skipped = 0;
         requests = requests.map((r) => payload.requestIds?.includes(r.id) ? (["pending_approval", "waitlisted"].includes(r.status) ? (approved++, { ...r, status: "approved" as const }) : (skipped++, r)) : r);
         return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ...base, state: "updated", decided: { approved, waitlisted: 0, skipped } }) });
+      }
+      if (payload.action === "registration-offer") {
+        if (options.offerWindow === false) return route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ ...base, state: "offer-window-not-set" }) });
+        let offered = 0;
+        requests = requests.map((r) => payload.requestIds?.includes(r.id) && r.status === "waitlisted" ? (offered++, { ...r, status: "offered" as const, offerExpiresAt: "2026-11-20T09:00:00Z" }) : r);
+        return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ...base, state: "updated", decided: { approved: 0, waitlisted: 0, skipped: 0, offered } }) });
       }
       if (payload.action === "registration-waitlist") {
         let waitlisted = 0;
@@ -49,6 +55,10 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
     let response: StaffResponse = base;
     if (area === "summary") response = { ...base, summary: { registration: counts(), participants: 128, staff: 9, auditLast24h: 41, priority: designations.filter((d) => d.active).length } };
     if (area === "registration") { const status = url.searchParams.get("status"); response = { ...base, registration: { requests: status ? requests.filter((r) => r.status === status) : requests, counts: counts() } }; }
+    if (area === "registration-detail") {
+      const request = requests.find((r) => r.id === url.searchParams.get("requestId"))!;
+      response = { ...base, registrationDetail: { request, history: [{ from: "pending_approval", to: "waitlisted", at: "2026-11-19T08:00:00Z", performerName: "Synthetic Staff" }] } };
+    }
     if (area === "priority") response = { ...base, priority: { designations, candidates: url.searchParams.get("q") ? [{ actorId: "21000000-0000-4000-8000-0000000000c1", name: "Synthetic Candidate", email: "candidate@example.invalid", status: "verified", createdAt: "2026-10-10T10:00:00Z" }] : undefined } };
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(response) });
   });
@@ -143,6 +153,46 @@ for (const locale of ["en", "ar"] as const) test(`${locale} a tool whose databas
   await expect(page.getByRole("navigation", { name: staffCopy[locale].menu })).toBeVisible();
   await expect(page.getByTestId("staff-name")).toBeVisible();
   await expect(page.getByLabel(staffCopy[locale].password)).toHaveCount(0);
+});
+
+for (const locale of ["en", "ar"] as const) test(`${locale} waitlisted requests can be offered a seat, and details show the decision history`, async ({ page }, testInfo) => {
+  const text = consoleCopy[locale].registration;
+  const mock = await consoleFixture(page, ["superAdmin"]);
+  await page.goto(`/${locale}/staff/registration`);
+  await page.getByTestId("queue-row").nth(1).getByRole("button", { name: text.waitlist, exact: true }).click();
+  await expect(page.getByTestId("queue-row").nth(1)).toContainText(text.statuses.waitlisted);
+  await page.getByTestId("queue-row").nth(1).getByRole("button", { name: text.offer, exact: true }).click();
+  await expect.poll(() => mock.actions.find((action) => action.action === "registration-offer")?.requestIds).toEqual([ids[1]]);
+  await expect(page.locator(".staff-feedback")).toContainText(text.decided(0, 0, 0, 1));
+  await expect(page.getByTestId("queue-row").nth(1)).toContainText(text.offerEnds);
+  await page.getByTestId("queue-row").nth(1).getByRole("button", { name: new RegExp(text.details) }).click();
+  const detail = page.getByTestId("queue-detail");
+  await expect(detail.getByRole("heading", { level: 3 })).toBeFocused();
+  await expect(detail.locator(".staff-history li")).toHaveCount(1);
+  await expect(detail.locator(".staff-history")).toContainText(text.statuses.waitlisted);
+  await shot(page, `${locale}-detail`, testInfo.project.name);
+  await axe(page);
+  await detail.getByRole("button", { name: text.closeDetails }).click();
+  await expect(detail).toHaveCount(0);
+});
+
+for (const locale of ["en", "ar"] as const) test(`${locale} offering without an offer window explains why`, async ({ page }) => {
+  const text = consoleCopy[locale].registration;
+  await consoleFixture(page, ["superAdmin"], { offerWindow: false });
+  await page.goto(`/${locale}/staff/registration`);
+  await page.getByTestId("queue-row").nth(1).getByRole("button", { name: text.waitlist, exact: true }).click();
+  await page.getByTestId("queue-row").nth(1).getByRole("button", { name: text.offer, exact: true }).click();
+  await expect(page.locator(".staff-feedback")).toHaveText(staffCopy[locale].states["offer-window-not-set"]);
+});
+
+test("only a Super Admin sees the registration export", async ({ page }) => {
+  await consoleFixture(page, ["superAdmin"]);
+  await page.goto("/en/staff/registration");
+  await expect(page.getByTestId("queue-export")).toHaveAttribute("href", "/api/staff-portal?area=registration-export");
+  await consoleFixture(page, ["registrationWorkshopAdministrator"]);
+  await page.goto("/en/staff/registration");
+  await expect(page.getByTestId("queue-row").first()).toBeVisible();
+  await expect(page.getByTestId("queue-export")).toHaveCount(0);
 });
 
 test("a role without priority access never sees the priority tab", async ({ page }) => {

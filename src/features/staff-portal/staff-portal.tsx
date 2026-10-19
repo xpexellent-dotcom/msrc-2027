@@ -22,7 +22,7 @@ import { PriorityPanel } from "./priority-panel";
 import { consoleCopy } from "./console-copy";
 
 const areaFailures = new Set(["area-not-ready", "unavailable", "denied"]);
-const errors = new Set(["area-not-ready", "closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required", "capacity-not-set", "payment-configuration-required"]);
+const errors = new Set(["area-not-ready", "offer-window-not-set", "closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required", "capacity-not-set", "payment-configuration-required"]);
 function areaFor(screen: StaffScreen): StaffArea | undefined { return screen === "people" || screen === "audit" || screen === "participants" || screen === "registration" || screen === "priority" ? screen : undefined; }
 function date(value: string | null, locale: Locale, fallback: string) {
   const parsed = value ? Date.parse(value) : NaN;
@@ -210,7 +210,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
     {profile && permitted && screen === "home" && !landing ? <StaffDashboard locale={locale} menu={menu} summary={view.summary} /> : null}
     {profile && permitted && landing ? <StaffLanding locale={locale} area={landing} roles={profile.roles} /> : null}
     {profile && permitted && screen === "security" ? <PasswordChangeForm locale={locale} busy={busy} act={act} /> : null}
-    {profile && permitted && screen === "registration" ? <RegistrationQueue locale={locale} data={view.registration} busy={busy} status={queueStatus} onStatus={(value) => { setQueueStatus(value); queueStatusRef.current = value; setBusy(true); void restore(undefined, query); }} query={query} onQuery={setQuery} onSearch={searchArea} act={act} onDecided={setDecidedText} /> : null}
+    {profile && permitted && screen === "registration" ? <RegistrationQueue locale={locale} data={view.registration} busy={busy} status={queueStatus} onStatus={(value) => { setQueueStatus(value); queueStatusRef.current = value; setBusy(true); void restore(undefined, query); }} query={query} onQuery={setQuery} onSearch={searchArea} act={act} onDecided={setDecidedText} canExport={profile.roles.includes("superAdmin")} loadDetail={(requestId) => requestStaff(undefined, { area: "registration-detail", requestId })} /> : null}
     {profile && permitted && screen === "priority" ? <PriorityPanel locale={locale} data={view.priority} busy={busy} query={query} onQuery={setQuery} onSearch={searchArea} act={act} /> : null}
     {profile && permitted && screen === "people" ? <>
       <section className="staff-panel" aria-labelledby="staff-invite-heading"><h2 id="staff-invite-heading">{copy.invite}</h2><p>{copy.inviteHint}</p><form onSubmit={(event) => { event.preventDefault(); if (!inviteRoles.length || !inviteEmail) { setOutcome("required"); return; } void act({ action: "invite", email: inviteEmail, roles: inviteRoles }); }} aria-busy={busy}>

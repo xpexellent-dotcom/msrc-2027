@@ -20,9 +20,9 @@ const claims = { sub: actorId, session_id: sessionId, role: "authenticated", aal
   amr: [{ method: "password", timestamp: now / 1000 }, { method: "totp", timestamp: now / 1000 }] };
 const accessToken = "header." + Buffer.from(JSON.stringify(claims)).toString("base64url") + ".signature";
 const native: NativeStaffSession = { actorId, sessionId, accessToken, refreshToken: "synthetic-refresh" };
-const counts: StaffRegistrationCounts = { pending: 2, approved: 1, waitlisted: 0, capacity: 3, remaining: 2 };
+const counts: StaffRegistrationCounts = { pending: 2, approved: 1, waitlisted: 0, offered: 0, expired: 0, capacity: 3, remaining: 2 };
 const row: StaffRegistrationRequest = { id: requestId, actorId: targetId, name: "Synthetic Participant", email: "person@example.invalid",
-  status: "pending_approval", priority: true, createdAt: new Date(now).toISOString(), decidedAt: null, identityMasked: "••••••1234" };
+  status: "pending_approval", priority: true, createdAt: new Date(now).toISOString(), decidedAt: null, identityMasked: "••••••1234", offerExpiresAt: null };
 const priorityRow: StaffPriorityRow = { actorId: targetId, name: row.name, email: row.email, active: true, reason: "Synthetic roster verified",
   designatedAt: row.createdAt, designatedByName: "Synthetic Staff", removedAt: null };
 const registration = { requests: [row], counts };
