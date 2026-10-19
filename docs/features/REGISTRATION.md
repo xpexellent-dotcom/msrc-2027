@@ -387,3 +387,64 @@ business decisions. Timed offers require approved duration/release behavior;
 export, admission email, QR tickets and participant actions remain outside this
 backend slice. Observed checks and UI integration blockers are in the
 [O9 receipt](../progress/2026-10-17-codex-registration-queue.md).
+
+## Staff queue slice 3b — detail, offers and export
+
+Engineering decision: [ENG-050](../DECISIONS.md#eng-050--closed-staff-registration-detail-offers-and-masked-export-19-october-2026).
+One pending migration, `20261019120000_staff_registration_offers_export.sql`,
+extends the preceding queue slice. This supersedes that slice's deferral of staff
+offers/export only; participant acceptance, notification and activation remain
+separate. No hosted migration or setting is changed.
+
+`GET /api/staff-portal?area=registration-detail&requestId=<uuid>` returns
+`registrationDetail: { request, history }` for a current registration/workshop
+administrator or Super Admin. `request` has the list's masked projection plus
+`offerExpiresAt: string | null`. History contains `{ id, from, to, at,
+performerName }` for immutable request transitions, newest first. An absent or
+other-edition request is denied without disclosing whether it exists. The full
+identity reveal remains its separate reasoned, audited Super Admin action.
+
+POST `registration-offer` takes the same `requestIds` (1–100 distinct UUIDs),
+form token and optional status filter as approval. Only `waitlisted` requests
+can become `offered`. Process the selected eligible requests oldest first under
+the edition settings lock, count all four seat-holding states, and skip unknown,
+other-edition, already-decided or excess requests. Return
+`decided: { approved: 0, waitlisted: 0, offered, skipped }` and a fresh unfiltered
+registration projection; refresh the UI's active filter afterward.
+
+`offer_window_hours` is nullable, has no default, and is not copied from the older
+reserved `waitlist_offer_hours` field. Null returns HTTP 409
+`offer-window-not-set`. Neither the fixture duration nor the older field approves
+a live duration. Capacity must also be set; offers make no free/paid choice and
+do not start payment, confirmation, ticketing or email.
+
+The explicit `msrc_registration_expire_offers(edition_key)` transition releases
+elapsed nonnull offers idempotently. Queue/detail/export reads, summary counts
+and allocation refresh expiry before projecting counts or allocating seats.
+It shares the settings lock and current authorization checks; READ COMMITTED is
+required. It never advances the next waitlisted person. Staff choose who gets the
+next offer. Release behavior remains pending organizer confirmation. There is no
+cron/job or participant acceptance endpoint. A legacy null expiry keeps holding
+its seat. Payment expiry remains outside this change.
+
+`counts.offered` and `counts.expired` are edition totals. `counts.approved`
+continues to mean all seat holders, including `offered`; never add the two to
+calculate occupied seats. `remaining` remains clamped at zero or null when
+capacity is unset.
+
+`GET /api/staff-portal?area=registration-export` is Super Admin-only with valid
+TOTP. Download all edition requests with name, email, status, priority, created/
+decided timestamps and the identity mask. Every export writes an immutable
+`registration.exported` audit with its row count. CSV uses a UTF-8 BOM, quoted
+cells, escaped embedded quotes, attachment disposition and no-store headers.
+Prefix a single quote to values beginning `=`, `+`, `-`, `@`, tab or CR to prevent
+spreadsheet formulas. The export never retrieves ciphertext or decrypts identity.
+
+The UI must render `offer-window-not-set` in EN/AR and treat missing read RPCs as
+HTTP 503 `area-not-ready`, leaving the session intact. Offer deadlines are stored
+as UTC instants; display them in Asia/Riyadh with a timezone label. New audit
+labels cover `request.offered`, `request.offer_expired` and
+`registration.exported`. Slice 4 adds reviewed English templates and atomic
+outbox enqueue; slice 5 adds participant confirm-your-seat. Disposable database
+verification and observed local checks are recorded in the
+[slice 3b O9 receipt](../progress/2026-10-19-codex-registration-slice3b.md).

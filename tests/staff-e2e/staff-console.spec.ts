@@ -16,12 +16,12 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
   const actions: StaffPayload[] = [], reads: string[] = [];
   const capacity = options.capacity === undefined ? 2000 : options.capacity;
   let requests: StaffRegistrationRequest[] = [
-    { id: ids[0], actorId: ids[0], name: "Synthetic Priority Member", email: "priority@example.invalid", status: "pending_approval", priority: true, createdAt: "2026-11-15T17:00:00Z", decidedAt: null, identityMasked: "••••••1234" },
-    { id: ids[1], actorId: ids[1], name: "Synthetic Attendee", email: "attendee@example.invalid", status: "pending_approval", priority: false, createdAt: "2026-11-18T17:01:00Z", decidedAt: null, identityMasked: "••••••5678" },
-    { id: ids[2], actorId: ids[2], name: "Synthetic Approved", email: "approved@example.invalid", status: "approved", priority: false, createdAt: "2026-11-18T17:02:00Z", decidedAt: "2026-11-19T09:00:00Z", identityMasked: "••••••9012" },
+    { id: ids[0], actorId: ids[0], name: "Synthetic Priority Member", email: "priority@example.invalid", status: "pending_approval", priority: true, createdAt: "2026-11-15T17:00:00Z", decidedAt: null, offerExpiresAt: null, identityMasked: "••••••1234" },
+    { id: ids[1], actorId: ids[1], name: "Synthetic Attendee", email: "attendee@example.invalid", status: "pending_approval", priority: false, createdAt: "2026-11-18T17:01:00Z", decidedAt: null, offerExpiresAt: null, identityMasked: "••••••5678" },
+    { id: ids[2], actorId: ids[2], name: "Synthetic Approved", email: "approved@example.invalid", status: "approved", priority: false, createdAt: "2026-11-18T17:02:00Z", decidedAt: "2026-11-19T09:00:00Z", offerExpiresAt: null, identityMasked: "••••••9012" },
   ];
   let designations = [{ actorId: participantId, name: "Synthetic Volunteer", email: "volunteer@example.invalid", active: true, reason: "Logistics committee", designatedAt: "2026-10-17T10:00:00Z", designatedByName: "Synthetic Staff", removedAt: null as string | null }];
-  const counts = () => ({ pending: requests.filter((r) => r.status === "pending_approval").length, approved: requests.filter((r) => r.status === "approved").length, waitlisted: requests.filter((r) => r.status === "waitlisted").length, capacity, remaining: capacity === null ? null : capacity - requests.filter((r) => r.status === "approved").length });
+  const counts = () => ({ pending: requests.filter((r) => r.status === "pending_approval").length, approved: requests.filter((r) => r.status === "approved").length, waitlisted: requests.filter((r) => r.status === "waitlisted").length, offered: 0, expired: 0, capacity, remaining: capacity === null ? null : capacity - requests.filter((r) => r.status === "approved").length });
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request(), url = new URL(request.url());
     const base: StaffResponse = { state: "authenticated", profile: { actorId, name: "Synthetic Staff", roles }, formToken: "synthetic-console-token" };
