@@ -33,7 +33,7 @@ for (const locale of ["en", "ar"] as const) {
       // before checking that the loaded interface is enabled.
       await page.goto(`/${locale}/program`, { waitUntil: "load" });
       await expect(page.locator("main h1")).toBeVisible();
-      await expect(page.getByTestId("program-day-day2")).toBeEnabled();
+      await expect(page.getByTestId("program-day-day2")).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
       await page.getByTestId("program-day-day2").click();
       await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
       await session.send("Network.emulateNetworkConditions", { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });

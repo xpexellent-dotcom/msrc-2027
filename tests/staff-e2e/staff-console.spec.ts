@@ -12,7 +12,7 @@ const ids = ["21000000-0000-4000-8000-0000000000a1", "21000000-0000-4000-8000-00
 const participantId = "21000000-0000-4000-8000-0000000000b1";
 
 /** ORG-055 presentation fixture. Seat allocation and authority are proven by the database suites. */
-async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null } = {}) {
+async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string } = {}) {
   const actions: StaffPayload[] = [], reads: string[] = [];
   const capacity = options.capacity === undefined ? 2000 : options.capacity;
   let requests: StaffRegistrationRequest[] = [
@@ -44,6 +44,7 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
       return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ...base, state: "updated" }) });
     }
     const area = url.searchParams.get("area");
+    if (area && area === options.missingArea) return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ state: "area-not-ready" }) });
     if (area) reads.push(`${area}:${url.searchParams.get("status") ?? "all"}:${url.searchParams.get("q") ?? ""}`);
     let response: StaffResponse = base;
     if (area === "summary") response = { ...base, summary: { registration: counts(), participants: 128, staff: 9, auditLast24h: 41, priority: designations.filter((d) => d.active).length } };
@@ -134,6 +135,15 @@ for (const locale of ["en", "ar"] as const) {
     await axe(page);
   });
 }
+
+for (const locale of ["en", "ar"] as const) test(`${locale} a tool whose database update is pending keeps the console signed in`, async ({ page }) => {
+  await consoleFixture(page, ["superAdmin"], { missingArea: "priority" });
+  await page.goto(`/${locale}/staff/priority`);
+  await expect(page.locator(".staff-feedback")).toHaveText(staffCopy[locale].states["area-not-ready"]);
+  await expect(page.getByRole("navigation", { name: staffCopy[locale].menu })).toBeVisible();
+  await expect(page.getByTestId("staff-name")).toBeVisible();
+  await expect(page.getByLabel(staffCopy[locale].password)).toHaveCount(0);
+});
 
 test("a role without priority access never sees the priority tab", async ({ page }) => {
   await consoleFixture(page, ["registrationWorkshopAdministrator"]);

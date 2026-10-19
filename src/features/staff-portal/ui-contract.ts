@@ -18,7 +18,7 @@ export type StaffPayload = {
   code?: string; factorId?: string; challengeId?: string; invitationId?: string; token?: string;
   targetId?: string; roles?: Role[]; reason?: string; requestIds?: string[]; status?: StaffRegistrationStatus | "all";
 };
-export type StaffState = "ready" | "authenticated" | "pending-email" | "pending-totp" | "enroll-totp" | "closed" | "unavailable" | "identity-unavailable" | "invalid-input" | "invalid-credentials" | "invalid-code" | "denied" | "limited" | "invited" | "updated" | "accepted" | "signed-out" | "password-changed" | "reauthentication-required" | "capacity-not-set" | "payment-configuration-required";
+export type StaffState = "ready" | "authenticated" | "pending-email" | "pending-totp" | "enroll-totp" | "closed" | "unavailable" | "identity-unavailable" | "invalid-input" | "invalid-credentials" | "invalid-code" | "denied" | "limited" | "invited" | "updated" | "accepted" | "signed-out" | "password-changed" | "reauthentication-required" | "capacity-not-set" | "payment-configuration-required" | "area-not-ready";
 export type StaffResponse = {
   state: StaffState; profile?: StaffProfile | null; formToken?: string; challengeId?: string; factorId?: string; passwordChangeAvailable?: boolean;
   expiresAt?: string | number; enrollment?: { factorId: string; secret: string; qrCode: string };
@@ -26,5 +26,7 @@ export type StaffResponse = {
   registration?: { requests: StaffRegistrationRequest[]; counts: StaffRegistrationCounts };
   priority?: { designations: StaffPriorityRow[]; candidates?: StaffParticipant[] }; summary?: StaffSummary;
   decided?: { approved: number; waitlisted: number; skipped: number };
+  /** Client-only: an area read failed while the session read stayed signed in. */
+  areaFailure?: StaffState;
   identity?: string; retryAfter?: number;
 };

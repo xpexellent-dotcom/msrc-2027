@@ -8,7 +8,12 @@ for (const locale of ["en", "ar"] as const) {
       const warnings: string[] = [];
       const path = `/${locale}${route}`;
       let loaded = false;
-      page.on("pageerror", (error) => failures.push(`pageerror: ${error.message}`));
+      page.on("pageerror", (error) => {
+        // WebKit reports a same-origin RSC prefetch cancelled by the revisit reload as an
+        // "access control" error rather than an abort; other engines already report it as aborted.
+        if (/\/127\.0\.0\.1:\d+\/[^ ]*\?_rsc=[^ ]* due to access control checks\.$/.test(error.message)) return;
+        failures.push(`pageerror: ${error.message}`);
+      });
       page.on("console", (message) => {
         if (message.type() === "error") failures.push(`console: ${message.text()}`);
         if (message.type() === "warning") warnings.push(message.text());
@@ -81,7 +86,7 @@ for (const locale of ["en", "ar"] as const) {
       failures.push(...inventory.links.filter((link) => !link.href || link.href === "#" || link.href.startsWith("javascript:")).map((link) => `dead link: ${link.name} -> ${link.href}`));
       // Exercise the shared shell on every page and in every social UA profile.
       const disclosure = page.locator(isMobile ? ".menu-toggle" : ".header-dropdown-toggle");
-      await expect(disclosure).toBeEnabled();
+      await expect(disclosure).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
       if (isMobile) await disclosure.tap();
       else { await disclosure.focus(); await page.keyboard.press("Enter"); }
       await expect(disclosure).toHaveAttribute("aria-expanded", "true");

@@ -21,7 +21,8 @@ import { RegistrationQueue, type RegistrationFilter } from "./registration-queue
 import { PriorityPanel } from "./priority-panel";
 import { consoleCopy } from "./console-copy";
 
-const errors = new Set(["closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required", "capacity-not-set", "payment-configuration-required"]);
+const areaFailures = new Set(["area-not-ready", "unavailable", "denied"]);
+const errors = new Set(["area-not-ready", "closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required", "capacity-not-set", "payment-configuration-required"]);
 function areaFor(screen: StaffScreen): StaffArea | undefined { return screen === "people" || screen === "audit" || screen === "participants" || screen === "registration" || screen === "priority" ? screen : undefined; }
 function date(value: string | null, locale: Locale, fallback: string) {
   const parsed = value ? Date.parse(value) : NaN;
@@ -93,11 +94,17 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
         response = await requestStaff({ action: "activity", formToken: response.formToken }, { signal: requestSignal });
         if (response.state === "authenticated") acknowledgedActivity.current = activitySequence;
       }
-      if (!logoutRequested.current && response.state === "authenticated" && fetchArea && fetchArea !== "summary") response = await requestStaff(undefined, { area: fetchArea, query: fetchArea === "audit" ? auditSearchQuery(search, locale) : search, status: fetchArea === "registration" ? queueStatusRef.current : undefined, signal: requestSignal });
+      if (!logoutRequested.current && response.state === "authenticated" && fetchArea && fetchArea !== "summary") {
+        // A failed area read keeps the signed-in console and explains itself; only the session read decides sign-in state.
+        const areaResponse = await requestStaff(undefined, { area: fetchArea, query: fetchArea === "audit" ? auditSearchQuery(search, locale) : search, status: fetchArea === "registration" ? queueStatusRef.current : undefined, signal: requestSignal });
+        response = areaResponse.state === "authenticated" || !areaFailures.has(areaResponse.state) ? areaResponse
+          : { ...response, formToken: areaResponse.formToken ?? response.formToken, areaFailure: areaResponse.state };
+      }
       if (!alive.current || requestSignal.aborted || lock.current || before !== generation.current) return;
       formToken.current = response.formToken;
       setView((previous) => logoutRequested.current ? { state: "ready", profile: null } : { ...response, enrollment: response.state === "pending-totp" ? previous.enrollment : undefined });
       if (errors.has(response.state)) setOutcome(response.state);
+      else if (response.areaFailure) setOutcome(response.areaFailure);
       setBusy(false);
       // Dashboard counts load in the background: optional, never blocking the console, and
       // cancelled by sign-out like any other pending read.

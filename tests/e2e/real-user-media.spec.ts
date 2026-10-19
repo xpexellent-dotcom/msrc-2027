@@ -136,7 +136,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/media`);
     const edition = page.locator("#media-edition");
     const kind = page.locator("#media-kind");
-    await expect(edition).toBeEnabled();
+    await expect(edition).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
     await edition.selectOption("2026");
     await kind.selectOption("photograph");
     await expect(page.locator(".conference-media-edition")).toHaveCount(1);
