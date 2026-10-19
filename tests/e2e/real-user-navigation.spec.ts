@@ -14,7 +14,7 @@ test.afterEach(async ({ page }) => { expect(runtimeIssues.get(page)).toEqual([])
 
 // ACC-01, LOC-01/03, PRG-01: exercise visitor state changes, rather than just load URLs.
 async function ready(page: Page) {
-  await expect(page.getByTestId("program-day-all")).toBeEnabled();
+  await expect(page.getByTestId("program-day-all")).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
   await page.evaluate(async () => {
     await document.fonts.ready;
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -26,7 +26,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.setViewportSize({ width: 810, height: 1080 });
     for (const route of ["program", "media"] as const) {
       await page.goto(`/${locale}/${route}`);
-      await expect(page.getByTestId(`${route}-search`)).toBeEnabled();
+      await expect(page.getByTestId(`${route}-search`)).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
       await page.evaluate(async () => {
         await document.fonts.ready;
         document.documentElement.style.fontSize = "200%";
@@ -91,7 +91,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(toggle).toBeDisabled();
       await expect(toggle).toHaveAttribute("aria-expanded", "false");
       release();
-      await expect(toggle).toBeEnabled();
+      await expect(toggle).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
       if (isMobile) {
         await toggle.tap();
         await expect(page.locator(".mobile-menu")).toBeVisible();

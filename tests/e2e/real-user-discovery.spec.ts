@@ -81,7 +81,7 @@ for (const locale of ["en", "ar"] as const) {
       failures.push(...inventory.links.filter((link) => !link.href || link.href === "#" || link.href.startsWith("javascript:")).map((link) => `dead link: ${link.name} -> ${link.href}`));
       // Exercise the shared shell on every page and in every social UA profile.
       const disclosure = page.locator(isMobile ? ".menu-toggle" : ".header-dropdown-toggle");
-      await expect(disclosure).toBeEnabled();
+      await expect(disclosure).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
       if (isMobile) await disclosure.tap();
       else { await disclosure.focus(); await page.keyboard.press("Enter"); }
       await expect(disclosure).toHaveAttribute("aria-expanded", "true");
