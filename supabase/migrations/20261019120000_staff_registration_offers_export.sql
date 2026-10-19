@@ -41,7 +41,7 @@ alter table msrc_registration.audit add constraint registration_audit_export_che
 -- not a decision by whichever staff member's read happened to trigger it.
 -- Staff select the next request; this
 -- does not automatically offer a replacement or implement participant acceptance.
-create function public.msrc_registration_expire_offers(edition_key text) returns jsonb
+create function public.msrc_staff_registration_expire_offers(edition_key text) returns jsonb
  language plpgsql security definer set search_path='' as $$
 #variable_conflict use_variable
 declare request_row msrc_registration.requests%rowtype;expiry_time timestamptz;expired_count integer:=0;
@@ -89,7 +89,7 @@ create or replace function msrc_registration.staff_queue(edition text,search tex
  language plpgsql volatile security definer set search_path='' as $$
 declare result jsonb;expiry jsonb;
 begin
- expiry:=public.msrc_registration_expire_offers(edition);
+ expiry:=public.msrc_staff_registration_expire_offers(edition);
  if expiry->>'state'<>'updated' then return null;end if;
  select jsonb_build_object('requests',coalesce((select jsonb_agg(to_jsonb(q) order by q."createdAt" desc,q.id) from (
  select r.id,r.actor_id as "actorId",p.name,u.email,r.status,
@@ -129,7 +129,7 @@ begin
  perform pg_advisory_xact_lock_shared(hashtextextended('staff-portal-authority',0));
  if request_id is null or msrc_staff.authorize(edition_key,array['superAdmin','registrationWorkshopAdministrator'],false) is null then
  return jsonb_build_object('state','denied');end if;
- expiry:=public.msrc_registration_expire_offers(edition_key);
+ expiry:=public.msrc_staff_registration_expire_offers(edition_key);
  if expiry->>'state'<>'updated' then return jsonb_build_object('state','denied');end if;
  select to_jsonb(q) into request from (
  select r.id,r.actor_id as "actorId",p.name,u.email,r.status,
@@ -168,7 +168,7 @@ begin
  -- Do not infer duration from the older, unrelated completeness placeholder.
  if settings_row.offer_window_hours is null then return jsonb_build_object('state','offer_window_not_set');end if;
  if settings_row.general_capacity is null then return jsonb_build_object('state','capacity_not_set');end if;
- expiry:=public.msrc_registration_expire_offers(edition_key);
+ expiry:=public.msrc_staff_registration_expire_offers(edition_key);
  if expiry->>'state'<>'updated' then return jsonb_build_object('state','denied');end if;
  select count(*) into held from msrc_registration.requests r where r.edition_key=edition_key
  and r.status in ('approved','approved_awaiting_payment','offered','confirmed');
@@ -197,7 +197,7 @@ begin
  perform pg_advisory_xact_lock_shared(hashtextextended('staff-portal-authority',0));
  if msrc_staff.authorize(edition_key,array['superAdmin'],false) is null then
  return jsonb_build_object('state','denied');end if;
- expiry:=public.msrc_registration_expire_offers(edition_key);
+ expiry:=public.msrc_staff_registration_expire_offers(edition_key);
  -- Export requires the Super Admin's existing exact-session TOTP assurance again
  -- after the shared allocation lock wait. No decryption RPC is called here.
  if expiry->>'state'<>'updated' or msrc_staff.authorize(edition_key,array['superAdmin'],false) is null
@@ -245,7 +245,7 @@ begin
  or (settings_row.payment_required and settings_row.payment_window_hours is null) then
  return jsonb_build_object('state','payment_configuration_required');end if;
 
- expiry:=public.msrc_registration_expire_offers(edition_key);
+ expiry:=public.msrc_staff_registration_expire_offers(edition_key);
  if expiry->>'state'<>'updated' then return jsonb_build_object('state','denied');end if;
  target_status:=case when settings_row.payment_required then 'approved_awaiting_payment' else 'approved' end;
  select count(*) into held from msrc_registration.requests r where r.edition_key=edition_key
@@ -279,7 +279,7 @@ begin
  perform pg_advisory_xact_lock_shared(hashtextextended('staff-portal-authority',0));
  if msrc_staff.authorize(edition_key,null,false) is null then return jsonb_build_object('state','denied');end if;
  if msrc_staff.authorize(edition_key,array['superAdmin','registrationWorkshopAdministrator'],false) is not null then
- expiry:=public.msrc_registration_expire_offers(edition_key);
+ expiry:=public.msrc_staff_registration_expire_offers(edition_key);
  if expiry->>'state'<>'updated' then return jsonb_build_object('state','denied');end if;
  select count(*) into total from msrc_participant.profiles p join auth.users u on u.id=p.actor_id
  join msrc_authorization.account_access a on a.actor_id=p.actor_id where u.deleted_at is null;
@@ -347,10 +347,10 @@ end$$;
 -- staff sessions; service-role credentials cannot bypass their staff authorization.
 revoke all on function msrc_registration.staff_counts(text),msrc_registration.staff_queue(text,text,text)
  from public,anon,authenticated,service_role;
-revoke all on function public.msrc_registration_expire_offers(text),
+revoke all on function public.msrc_staff_registration_expire_offers(text),
  public.msrc_staff_registration_detail(text,uuid),public.msrc_staff_registration_offer(text,uuid[]),
  public.msrc_staff_registration_export(text) from public,anon,authenticated,service_role;
-grant execute on function public.msrc_registration_expire_offers(text),
+grant execute on function public.msrc_staff_registration_expire_offers(text),
  public.msrc_staff_registration_detail(text,uuid),public.msrc_staff_registration_offer(text,uuid[]),
  public.msrc_staff_registration_export(text) to authenticated;
 notify pgrst,'reload schema';

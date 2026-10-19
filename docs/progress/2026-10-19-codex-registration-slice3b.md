@@ -23,7 +23,7 @@ unchanged. All new public RPCs return `jsonb` and recheck current staff authorit
 | --- | --- |
 | `msrc_staff_registration_detail(edition_key text, request_id uuid)` | `state: 'ready', detail: { request, history }`, or `denied` |
 | `msrc_staff_registration_offer(edition_key text, request_ids uuid[])` | `state: 'updated', decided: { approved: 0, waitlisted: 0, offered, skipped }, registration`; safe configuration/denial state otherwise |
-| `msrc_registration_expire_offers(edition_key text)` | `state: 'updated', expired: number`, or `denied`; only elapsed nonnull offered deadlines transition |
+| `msrc_staff_registration_expire_offers(edition_key text)` | `state: 'updated', expired: number`, or `denied`; only elapsed nonnull offered deadlines transition |
 | `msrc_staff_registration_export(edition_key text)` | `state: 'ready', rows` for all edition requests, with audited row count; Super Admin only |
 
 Offer allocation requires READ COMMITTED, acquires the same edition settings row

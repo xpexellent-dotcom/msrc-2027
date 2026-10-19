@@ -11,15 +11,15 @@ select ok((select is_nullable='YES' and column_default is null from information_
  'Offer window is nullable with no default: no organizer duration is inferred');
 select is((select count(*) from msrc_registration.settings),0::bigint,'Offers migration seeds no settings');
 select ok(not exists(select 1 from pg_proc p where p.proname in('msrc_staff_registration_detail',
- 'msrc_staff_registration_offer','msrc_registration_expire_offers','msrc_staff_registration_export')
+ 'msrc_staff_registration_offer','msrc_staff_registration_expire_offers','msrc_staff_registration_export')
  and not ('search_path=""'=any(p.proconfig))),'Every new guarded RPC has an empty search path');
 select ok(not exists(select 1 from pg_proc p cross join lateral aclexplode(p.proacl) a
  where p.proname in('msrc_staff_registration_detail','msrc_staff_registration_offer',
- 'msrc_registration_expire_offers','msrc_staff_registration_export')
+ 'msrc_staff_registration_expire_offers','msrc_staff_registration_export')
  and a.grantee in(0,'anon'::regrole,'service_role'::regrole)),'No PUBLIC, anonymous or service-role execution grants');
 select is((select count(*) from pg_proc p where p.pronamespace='public'::regnamespace
  and p.proname in('msrc_staff_registration_detail','msrc_staff_registration_offer',
- 'msrc_registration_expire_offers','msrc_staff_registration_export')
+ 'msrc_staff_registration_expire_offers','msrc_staff_registration_export')
  and has_function_privilege('authenticated',p.oid,'EXECUTE')),4::bigint,'Authenticated callers can reach all four guarded RPCs');
 select ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
  cross join (values('anon'),('authenticated'),('service_role')) r(name)
@@ -33,7 +33,7 @@ select ok(not exists(select 1 from pg_proc p cross join lateral aclexplode(p.pro
 set local role anon;
 select throws_ok($$select public.msrc_staff_registration_detail('synthetic-staff-offers',gen_random_uuid())$$,'42501',null,'Anonymous cannot read detail');
 select throws_ok($$select public.msrc_staff_registration_offer('synthetic-staff-offers',array[gen_random_uuid()])$$,'42501',null,'Anonymous cannot offer');
-select throws_ok($$select public.msrc_registration_expire_offers('synthetic-staff-offers')$$,'42501',null,'Anonymous cannot expire');
+select throws_ok($$select public.msrc_staff_registration_expire_offers('synthetic-staff-offers')$$,'42501',null,'Anonymous cannot expire');
 select throws_ok($$select public.msrc_staff_registration_export('synthetic-staff-offers')$$,'42501',null,'Anonymous cannot export');
 reset role;
 
@@ -87,7 +87,7 @@ declare n integer;begin
   end if;
   return next is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->>'state','denied','Detail refuses caller '||n);
   return next is(public.msrc_staff_registration_offer('synthetic-staff-offers',pg_temp.offer_ids(1))->>'state','denied','Offer refuses caller '||n);
-  return next is(public.msrc_registration_expire_offers('synthetic-staff-offers')->>'state','denied','Expiry refuses caller '||n);
+  return next is(public.msrc_staff_registration_expire_offers('synthetic-staff-offers')->>'state','denied','Expiry refuses caller '||n);
   return next is(public.msrc_staff_registration_export('synthetic-staff-offers')->>'state','denied','Export refuses caller '||n);
  end loop;
 end$$;
@@ -99,7 +99,7 @@ select ok(msrc_staff.authorize('synthetic-staff-offers',array['abstractReviewer'
 do $$begin perform set_config('request.jwt.claims',(pg_temp.registration_claims(100)||'{"aal":"aal1"}'::jsonb)::text,true);end$$;
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->>'state','denied','Super Admin needs TOTP for detail');
 select is(public.msrc_staff_registration_offer('synthetic-staff-offers',pg_temp.offer_ids(1))->>'state','denied','Super Admin needs TOTP for offer');
-select is(public.msrc_registration_expire_offers('synthetic-staff-offers')->>'state','denied','Super Admin needs TOTP for expiry');
+select is(public.msrc_staff_registration_expire_offers('synthetic-staff-offers')->>'state','denied','Super Admin needs TOTP for expiry');
 select is(public.msrc_staff_registration_export('synthetic-staff-offers')->>'state','denied','Super Admin needs TOTP for export');
 do $$begin perform set_config('request.jwt.claims',(pg_temp.registration_claims(101)||jsonb_build_object('session_id',pg_temp.registration_session(102)))::text,true);end$$;
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->>'state','denied','Detail cannot reuse another native session');
@@ -117,7 +117,7 @@ select is(public.msrc_staff_registration_detail('synthetic-staff-offers',
  (select id from msrc_registration.requests where edition_key='synthetic-staff-offers-other'))->>'state','denied','Detail cannot retrieve another edition request through an authorized edition');
 select is(public.msrc_staff_registration_export('synthetic-staff-offers')->>'state','denied','Registration administrator cannot export');
 select is(public.msrc_staff_registration_offer('synthetic-staff-offers-other',pg_temp.offer_ids(1))->>'state','denied','Offer enforces edition scope');
-select is(public.msrc_registration_expire_offers('synthetic-staff-offers-other')->>'state','denied','Expiry enforces edition scope');
+select is(public.msrc_staff_registration_expire_offers('synthetic-staff-offers-other')->>'state','denied','Expiry enforces edition scope');
 select is(public.msrc_staff_registration_offer('synthetic-staff-offers','{}'::uuid[])->>'state','denied','Empty offer selection is rejected');
 select is(public.msrc_staff_registration_offer('synthetic-staff-offers',null)->>'state','denied','Null offer selection is rejected');
 select is(public.msrc_staff_registration_offer('synthetic-staff-offers',array[null]::uuid[])->>'state','denied','Null offer member is rejected');
@@ -181,13 +181,13 @@ select ok(not (public.msrc_staff_registration_detail('synthetic-staff-offers',pg
 -- Explicit expiry is idempotent, releases only elapsed offers and never auto-offers.
 update msrc_registration.requests set offer_expires_at=clock_timestamp()-interval '1 second' where id=pg_temp.offer_id(1);
 select pg_temp.offer_claim(102);
-select is(public.msrc_registration_expire_offers('synthetic-staff-offers')->>'state','denied','Unauthorized finance cannot cause an expiry transition');
+select is(public.msrc_staff_registration_expire_offers('synthetic-staff-offers')->>'state','denied','Unauthorized finance cannot cause an expiry transition');
 select is((select status from msrc_registration.requests where id=pg_temp.offer_id(1)),'offered','Denied expiry does not mutate the elapsed offer');
 select pg_temp.offer_claim(101);
 set local role authenticated;
-select is(public.msrc_registration_expire_offers('synthetic-staff-offers')->>'expired','1','Registrar expires one elapsed offer');
+select is(public.msrc_staff_registration_expire_offers('synthetic-staff-offers')->>'expired','1','Registrar expires one elapsed offer');
 reset role;
-select is(public.msrc_registration_expire_offers('synthetic-staff-offers')->>'expired','0','Repeated expiry is idempotent');
+select is(public.msrc_staff_registration_expire_offers('synthetic-staff-offers')->>'expired','0','Repeated expiry is idempotent');
 select is((select count(*) from msrc_registration.audit where event='request.offer_expired' and previous_status='offered' and new_status='expired' and performer_id is null),1::bigint,'Expiry writes exactly one transition audit');
 select is((select status from msrc_registration.requests where id=pg_temp.offer_id(2)),'offered','Unelapsed offer is retained');
 select is((select status from msrc_registration.requests where id=pg_temp.offer_id(3)),'waitlisted','Released seat is not automatically offered to the next person');
@@ -214,7 +214,7 @@ select throws_ok($$delete from msrc_registration.audit where event='request.offe
 -- Legacy unknown-deadline holds remain conservative; non-offer deadlines never expire.
 update msrc_registration.requests set status='offered',offer_expires_at=null where id=pg_temp.offer_id(5);
 update msrc_registration.requests set status='approved',offer_expires_at=clock_timestamp()-interval '1 day' where id=pg_temp.offer_id(6);
-select is(public.msrc_registration_expire_offers('synthetic-staff-offers')->>'expired','0','Expiry does not release legacy unknown-deadline holds or approvals');
+select is(public.msrc_staff_registration_expire_offers('synthetic-staff-offers')->>'expired','0','Expiry does not release legacy unknown-deadline holds or approvals');
 select is(public.msrc_staff_summary('synthetic-staff-offers')->'summary'->'registration'->>'remaining','0','Unknown-deadline offers and approvals continue holding seats');
 
 -- All-row export is a separate TOTP-only boundary, with a durable row-count audit.

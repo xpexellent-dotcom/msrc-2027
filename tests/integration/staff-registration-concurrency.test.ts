@@ -165,7 +165,7 @@ function expire(staff: number, isolation: "read committed" | "repeatable read" =
   return `begin isolation level ${isolation};
     select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
     set local role authenticated;
-    select public.msrc_registration_expire_offers('${offerEdition}')::text;`;
+    select public.msrc_staff_registration_expire_offers('${offerEdition}')::text;`;
 }
 
 describe.skipIf(!isolatedCi)("Staff offer allocation and release (disposable GitHub CI only)", () => {

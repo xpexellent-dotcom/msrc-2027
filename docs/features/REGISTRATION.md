@@ -418,7 +418,7 @@ reserved `waitlist_offer_hours` field. Null returns HTTP 409
 a live duration. Capacity must also be set; offers make no free/paid choice and
 do not start payment, confirmation, ticketing or email.
 
-The explicit `msrc_registration_expire_offers(edition_key)` transition releases
+The explicit `msrc_staff_registration_expire_offers(edition_key)` transition releases
 elapsed nonnull offers idempotently. Queue/detail/export reads, summary counts
 and allocation refresh expiry before projecting counts or allocating seats.
 It shares the settings lock and current authorization checks; READ COMMITTED is

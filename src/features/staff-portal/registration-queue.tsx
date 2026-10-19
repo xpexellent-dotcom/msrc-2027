@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
@@ -33,6 +33,8 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
 
   const [detail, setDetail] = useState<StaffRegistrationDetail | null>(null);
   const detailHeading = useRef<HTMLHeadingElement>(null);
+  // Move focus once the panel has rendered, so keyboard and screen-reader users land on it.
+  useEffect(() => { if (detail) detailHeading.current?.focus(); }, [detail]);
   const statusOf = (id: string) => requests.find((request) => request.id === id)?.status;
 
   async function decide(action: "registration-approve" | "registration-waitlist" | "registration-offer", ids: string[]) {
@@ -55,7 +57,7 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
   }
   async function openDetail(id: string) {
     const response = await loadDetail(id);
-    if (response.registrationDetail) { setDetail(response.registrationDetail); requestAnimationFrame(() => detailHeading.current?.focus()); }
+    if (response.registrationDetail) setDetail(response.registrationDetail);
   }
   const number = (value: number | null | undefined) => typeof value === "number" ? formatStaffNumber(value, locale) : "—";
 
