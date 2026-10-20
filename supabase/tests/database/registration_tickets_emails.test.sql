@@ -143,10 +143,25 @@ select is(current_setting('msrc_registration.ticket_key'),'','Failure restores t
 select is(current_setting('request.jwt.claims'),'{}','Failure restores the original session claims');
 drop trigger synthetic_seat_failure on msrc_outbox.messages;
 do $$begin perform set_config('msrc_registration.ticket_key',repeat('a',64),true);end$$;
-update auth.users set email_confirmed_at=null where id=pg_temp.registration_actor(1707);
-select throws_ok($$select pg_temp.ticket_approval(1801,1707)$$,'P0002',null,'A no-longer-verified native mailbox cannot receive a new event message');
-select is((select status from msrc_registration.requests where actor_id=pg_temp.registration_actor(1707)),'pending_approval','Unverified recipient failure also rolls back ticket approval');
-update auth.users set email_confirmed_at=clock_timestamp() where id=pg_temp.registration_actor(1707);
+-- Native un-verification is forbidden. Use a real pending signup instead; the
+-- rejected INSERT probes the event trigger directly, without fabricating a
+-- successful request or bypassing the participant identity guard.
+select pg_temp.registration_fixture(1709,'synthetic-tickets',false);
+select ok((select email_confirmed_at is null from auth.users where id=pg_temp.registration_actor(1709)),
+ 'Recipient fixture has never verified its mailbox');
+select is(pg_temp.registration_submit('synthetic-tickets',1709,md5('1709')||md5('1709'))->>'state','denied',
+ 'Unverified signup cannot submit through the registration RPC');
+select throws_ok($$insert into msrc_registration.requests(
+ edition_key,actor_id,terms_version,document_type,identity_envelope,identity_hash,identity_masked,key_version)
+ select edition_key,pg_temp.registration_actor(1709),terms_version,document_type,identity_envelope,
+ md5('1709')||md5('1709'),identity_masked,key_version from msrc_registration.requests
+ where actor_id=pg_temp.registration_actor(1707) and edition_key='synthetic-tickets'$$,
+ 'P0002','query returned no rows','Event trigger independently rejects a never-verified native mailbox');
+select ok(not exists(select 1 from msrc_registration.requests where actor_id=pg_temp.registration_actor(1709)),
+ 'Unverified recipient failure rolls back the attempted request');
+select is((select count(*) from msrc_registration.tickets),2::bigint,'Unverified recipient creates no ticket');
+select is((select count(*) from msrc_outbox.messages),9::bigint,'Unverified recipient creates no event message');
+select is((select count(*) from msrc_outbox.identities),9::bigint,'Unverified recipient creates no deduplication identity');
 
 update msrc_registration.requests set status='cancelled' where actor_id=pg_temp.registration_actor(1701);
 select is(pg_temp.own_ticket(1701)->'ticket'->>'status','revoked','Cancellation atomically revokes issued ticket');
