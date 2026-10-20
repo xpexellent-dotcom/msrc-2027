@@ -8,10 +8,11 @@ import { getStaffConfig, type StaffConfig, type StaffReadiness } from "./config.
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash,
   staffIp, staffOrigin, staffUuid, type StaffSessionCookie } from "./security.server";
 import { validateStaffPayload, validStaffRegistrationStatus } from "./validation.server";
-import { canReadStaffArea, earlyAccessAddResult, earlyAccessProjection, earlyAccessRemoveResult, priorityProjection, registrationDecision, registrationDetailProjection, registrationExportCsv, registrationProjection, summaryProjection, verifiedPriorityClaims } from "./registration-contract.server";
+import { canReadStaffArea, earlyAccessAddResult, earlyAccessProjection, earlyAccessRemoveResult, priorityProjection, registrationDecision, registrationDetailProjection, registrationExportCsv, registrationProjection, summaryProjection, verifiedPriorityClaims, verifiedStaffRegistrationClaims } from "./registration-contract.server";
 import type { StaffArea } from "./ui-contract";
 import { registrationSettingsProjection } from "./registration-settings-contract.server";
 import { decryptIdentityDocument, getIdentityCryptoConfig, type IdentityDocumentType } from "@/features/registration/identity-crypto.server";
+import { getRegistrationTicketSecret } from "@/features/registration/ticket-crypto.server";
 
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", Expires: "0",
   "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
@@ -422,10 +423,22 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
       if (payload.action === "registration-approve" || payload.action === "registration-waitlist" || payload.action === "registration-offer") {
         const own = await profile(config, backend, session, observed);
         if (!own || !canReadStaffArea(own.roles, "registration")) return respond({ state: "denied" }, 403);
-        const read = await optionalRpc(backend, "msrc_staff_" + payload.action.replaceAll("-", "_"),
-          { edition_key: config.editionKey, request_ids: payload.requestIds }, session.accessToken);
+        let read: unknown;
+        if (payload.action === "registration-approve") {
+          const ticketSecret = getRegistrationTicketSecret();
+          if (!ticketSecret) return respond({ state: "area-not-ready" }, 503);
+          const claims = verifiedStaffRegistrationClaims(session, now);
+          if (!claims) return respond({ state: "denied" }, 403);
+          read = await optionalRpc(backend, "msrc_staff_registration_approve_tickets", {
+            edition_key: config.editionKey, session_claims: claims, request_ids: payload.requestIds, ticket_secret: ticketSecret,
+          });
+        } else {
+          read = await optionalRpc(backend, "msrc_staff_" + payload.action.replaceAll("-", "_"),
+            { edition_key: config.editionKey, request_ids: payload.requestIds }, session.accessToken);
+        }
         if (read === missingRpc) return respond({ state: "area-not-ready" }, 503);
         const result = record(read);
+        if (result?.state === "area_not_ready") return respond({ state: "area-not-ready" }, 503);
         if (result?.state === "denied") return respond({ state: "denied" }, 403);
         if (result?.state === "offer_window_not_set") return respond({ state: "offer-window-not-set" }, 409);
         if (result?.state === "capacity_not_set" || result?.state === "payment_configuration_required") {

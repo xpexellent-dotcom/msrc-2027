@@ -23,7 +23,7 @@ function requestSummary(value: unknown): RegistrationRequest | null {
     || typeof row.createdAt !== "string" || !Number.isFinite(Date.parse(row.createdAt))) return null;
   return { id: row.id, status: row.status, createdAt: row.createdAt };
 }
-async function participantReady(config: ParticipantConfig, backend: RegistrationBackend) {
+export async function participantReady(config: ParticipantConfig, backend: RegistrationBackend) {
   const value = record(await backend.rpc("msrc_participant_status"));
   return value?.enabled === true && value.ageEnforcementReady === true && value.retentionEnforcementReady === true
     && value.cleanupEnabled === true && value.privacyVersion === participantNotice("en", config.testMode)?.version
@@ -31,7 +31,7 @@ async function participantReady(config: ParticipantConfig, backend: Registration
 }
 
 /** Tokens are decoded only after getUser verified their identity; editable metadata is discarded. */
-function verifiedClaims(token: string, actorId: string, sessionId: string, now: number): Record<string, unknown> | null {
+export function verifiedClaims(token: string, actorId: string, sessionId: string, now: number): Record<string, unknown> | null {
   try {
     const value = record(JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8")));
     if (!value || value.sub !== actorId || value.session_id !== sessionId || value.role !== "authenticated"

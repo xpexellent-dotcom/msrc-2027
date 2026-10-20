@@ -1,9 +1,10 @@
 /** Loopback synthetic provider for real SSR/API/UI composition only. This is not database/Auth evidence. */
 import http from "node:http";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 
 if (process.env.VERCEL || process.env.VERCEL_ENV) throw new Error("Synthetic registration UI provider is loopback-only");
 const requests = new Map();
+const tickets = new Map();
 const reply = (response, value, status = 200) => response.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify(value));
 const evidence = { enabled: true, participantAccountsReady: true, settingsComplete: true, windowOpen: true, eligible: true, termsVersion: "v1.0" };
 const server = http.createServer(async (request, response) => {
@@ -25,6 +26,18 @@ const server = http.createServer(async (request, response) => {
   for await (const chunk of request) { body += chunk; if (Buffer.byteLength(body) > 8192) return reply(response, { synthetic: true }, 413); }
   let args;
   try { args = JSON.parse(body); } catch { return reply(response, { synthetic: true }, 400); }
+  // Explicit loopback fixture control, separate from production source and participant requests.
+  if (path === "/__synthetic/ticket" && /^da000000-0000-4000-8000-[0-9a-f]{12}$/.test(args.actorId ?? "")) {
+    if (args.state === "missing-rpc") tickets.set(args.actorId, "missing-rpc");
+    else if (args.state === "none") tickets.delete(args.actorId);
+    else if (["issued", "revoked"].includes(args.state)) {
+      const ticketId = randomUUID(), proof = createHmac("sha256", Buffer.from("d".repeat(64), "hex")).update("msrc-ticket-v1:" + ticketId).digest("hex");
+      tickets.set(args.actorId, { status: args.state, referenceCode: ticketId.replaceAll("-", "").slice(0, 12).toUpperCase(),
+        token: args.state === "issued" ? `msrc1.${ticketId}.${proof}` : null });
+    }
+    else return reply(response, { synthetic: true }, 400);
+    return reply(response, { synthetic: true });
+  }
   if (refreshing) {
     const [, actorId, sessionId] = String(args.refresh_token).split(":");
     if (!/^da000000-0000-4000-8000-[0-9a-f]{12}$/.test(actorId ?? "") || !/^db000000-0000-4000-8000-[0-9a-f]{12}$/.test(sessionId ?? "")) return reply(response, { synthetic: true }, 401);
@@ -42,6 +55,11 @@ const server = http.createServer(async (request, response) => {
   const actor = args.session_claims?.sub;
   if (args.edition_key !== "synthetic-participants-2027" || !/^da000000-0000-4000-8000-[0-9a-f]{12}$/.test(actor ?? "")) return reply(response, { state: "denied" });
   if (path === "/rest/v1/rpc/msrc_registration_context") return reply(response, { ...evidence, state: "open", request: requests.get(actor) ?? null });
+  if (path === "/rest/v1/rpc/msrc_registration_ticket") {
+    const ticket = tickets.get(actor);
+    if (ticket === "missing-rpc") return reply(response, { code: "PGRST202", message: "Synthetic missing RPC" }, 404);
+    return reply(response, { state: "ready", ticket: ticket ?? null });
+  }
   if (path === "/rest/v1/rpc/msrc_registration_submit") {
     // The actual application must have encrypted before crossing this provider boundary.
     if (body.includes("FAKE") || !/^[a-f0-9]+$/.test(args.identity_envelope?.ciphertext ?? "") || !/^[a-f0-9]{64}$/.test(args.identity_hash ?? "")

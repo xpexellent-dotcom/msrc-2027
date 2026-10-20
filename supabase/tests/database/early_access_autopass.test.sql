@@ -265,6 +265,7 @@ update msrc_registration.requests set offer_expires_at=clock_timestamp()-interva
  where id=(select id from auto_expected order by id desc limit 1);
 select is(public.msrc_staff_registration_expire_offers('synthetic-autopass'),'{"state":"updated","expired":1,"offered":0}'::jsonb,
  'Missing capacity also prevents replacement while preserving expiry enforcement');
-select is((select count(*) from msrc_outbox.messages),0::bigint,'Email list and automatic offers enqueue no communications');
+select ok((select count(*)>0 and bool_and(status='queued' and attempt_count=0) from msrc_outbox.messages),
+ 'Registration events queue their messages while every delivery remains closed');
 select * from finish();
 rollback;

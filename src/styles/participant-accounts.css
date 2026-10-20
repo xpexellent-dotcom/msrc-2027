@@ -32,6 +32,9 @@
 .participant-account-profile dd { margin: 0; overflow-wrap: anywhere; color: var(--color-purple); font-weight: 600; }
 .participant-account-registration { padding: var(--space-4); background: var(--color-surface-lilac); color: var(--color-purple); }
 .participant-account-trap { display: none; }
+.registration-ticket-qr { margin: var(--space-5) 0; display: grid; justify-items: center; gap: var(--space-3); }
+.registration-ticket-qr img { display: block; inline-size: min(100%, 20rem); block-size: auto; background: white; }
+.registration-ticket-qr figcaption { color: var(--color-muted); text-align: center; line-height: 1.7; }
 [lang="ar"] .participant-account-intro h1 { letter-spacing: 0; line-height: 1.55; }
 @media (max-width: 600px) {
   .participant-account-actions { flex-direction: column; align-items: stretch; }

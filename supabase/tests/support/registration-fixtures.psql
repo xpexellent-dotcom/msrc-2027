@@ -1,5 +1,7 @@
 -- Disposable synthetic fixture helpers. Included only by rollback SQL tests or
 -- loopback-only GitHub CI integration tests. Never run against hosted data.
+-- A synthetic key is session-local to each disposable fixture connection.
+do $$begin perform set_config('msrc_registration.ticket_key',repeat('a',64),false);end$$;
 create function pg_temp.registration_actor(n integer) returns uuid language sql immutable as $$
  select ('e7100000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid;$$;
 create function pg_temp.registration_session(n integer) returns uuid language sql immutable as $$

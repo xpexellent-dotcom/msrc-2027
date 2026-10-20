@@ -8,7 +8,7 @@ export type StaffInvitation = { id: string; email: string; roles: Role[]; status
 export type StaffAuditRow = { id: string; actorId: string | null; actorName?: string | null; action: string; targetId: string | null; targetName?: string | null; occurredAt: string; result: string };
 export type StaffParticipant = { actorId: string; name: string; email: string; status: "unverified" | "verified" | "suspended"; createdAt: string; identityMasked?: string | null };
 export type StaffRegistrationStatus = "pending_approval" | "approved" | "approved_awaiting_payment" | "waitlisted" | "offered" | "confirmed" | "cancelled" | "expired";
-export type StaffRegistrationRequest = { id: string; actorId: string; name: string; email: string; status: StaffRegistrationStatus; priority: boolean; createdAt: string; decidedAt: string | null; offerExpiresAt: string | null; identityMasked: string | null };
+export type StaffRegistrationRequest = { id: string; actorId: string; name: string; email: string; status: StaffRegistrationStatus; priority: boolean; createdAt: string; decidedAt: string | null; offerExpiresAt: string | null; identityMasked: string | null; ticketStatus?: "issued" | "revoked" | null };
 export type StaffRegistrationDetail = {
   request: StaffRegistrationRequest;
   history: { id: string; from: StaffRegistrationStatus | null; to: StaffRegistrationStatus; at: string; performerName: string | null }[];

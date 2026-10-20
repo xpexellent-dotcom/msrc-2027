@@ -1,8 +1,9 @@
 # Registration — closed foundation and staff queue
 
-Current extension: [staff queue slice 3](#staff-queue-slice-3--org-055) implements
-private staff decisions and counts. The foundation descriptions below remain
-slice-1 history; participant registration and delivery remain closed.
+Current extension: [tickets and transactional email](#tickets-and-transactional-email-task-3--eng-054)
+adds private tickets, atomic notification jobs and staff ticket indicators.
+Earlier slice descriptions below are historical where superseded by ORG-056
+and the appended current sections. Participant registration and delivery remain closed.
 
 Authority: ORG-051 and ENG-043 in [DECISIONS](../DECISIONS.md). Requirement mapping:
 REG-01–08, AUTH-01/06, CHK-01/02, ADM-01–05, DAT-03/04, API-01–03, TIM-01/02,
@@ -23,7 +24,7 @@ not production configuration or launch approval.
 | 1 — this change | Decisions/settings, private requests and identity protection, audited organizing-team/volunteer designation, neutral EN/AR request form, guarded Super Admin identity reveal |
 | 2 | Durable transactional email outbox and bounded, deduplicated jobs |
 | 3 — staff backend implemented | Private staff queue, bulk approval, serialized seat allocation, manual waitlist, organizing-team priority and scoped counts. Timed offers and export remain separate work. |
-| 4 | QR ticket, confirmation email, early-access codes, server-time opening countdown and participant self-cancellation |
+| 4 — Task 3 implemented | QR ticket and five transactional email templates, atomic outbox events, closed cron bridge. Early access uses ORG-056's email list. Countdown, offer acceptance and self-cancellation are later work. |
 | 5 | Confirm-your-seat response and release of unanswered allocations to the waitlist |
 
 Payments, if the owner selects paid registration, and workshop booking are
@@ -522,3 +523,110 @@ read-only switch here, and enabling is refused. See the
 [settings feature note](registration-settings.md) for RPC/HTTP contracts and
 the [Task 2 receipt](../progress/2026-10-20-codex-registration-settings.md) for
 local checks, blocked database execution and owner review points.
+
+## Tickets and transactional email (Task 3 / ENG-054)
+
+Migration `20261020140000_registration_tickets_emails.sql` adds forced-RLS
+`msrc_registration.tickets`. The unique request foreign key inherits the existing
+participant/edition uniqueness. The ticket contains an independent random UUID,
+secret hash, status and issuance/revocation timestamps. No plaintext secret or key
+is stored. Free approval and confirmation issue the ticket in the business
+transaction; bulk approval uses the same trigger. Repeats preserve it, and
+cancellation/expiry revoke it permanently. Offers alone do not issue tickets.
+This follows the current Task 3/ORG-056 free-registration rule over the older
+v0.5 confirmed-only wording. Existing rows are not backfilled.
+
+The guarded service-only RPCs are:
+
+```sql
+msrc_staff_registration_approve_tickets(
+  edition_key text, session_claims jsonb, request_ids uuid[], ticket_secret text
+) returns jsonb
+msrc_registration_ticket(
+  edition_key text, session_claims jsonb, ticket_secret text
+) returns jsonb
+```
+
+Approval binds only server-verified native claims, reuses current staff role and
+exact-session assurance, serializes on the existing edition capacity lock, and
+restores transient claims/key settings on every exit. The older authenticated
+approval RPC returns `area_not_ready` without the private key context. The
+application does not fall back to it when the new RPC is missing.
+
+The own-ticket RPC uses the current verified account and exact session; caller
+input cannot choose another participant. It returns
+`{state:'ready', ticket:null|{status,referenceCode,token}}`. `status` is `issued`
+or `revoked`; revoked tokens are null. Closed, denied and unavailable states are
+explicit. A current participant may read their existing ticket after submission
+closes while the independent registration/account policy remains enabled.
+It never enables registration. The 12-character uppercase reference is a display
+aid, not a secret or unique manual-entry authorization credential.
+
+`REGISTRATION_TICKET_SECRET` is a separate random 32-byte key encoded as 64 hex
+characters. Keep it server-only, independent of identity/cookie keys, out of logs
+and database settings/backups. The secret derived with HMAC-SHA-256 over
+`msrc-ticket-v1:<random UUID>` is reproducible for its owner; PostgreSQL checks its
+SHA-256 hash. The token is `msrc1.<UUID>.<secret>`. The short reference is derived
+from the UUID. It contains no identity data. Restoring a database does not restore
+the application key: the owner must retain it under the existing restricted key
+custody process before activation. Missing or wrong keys fail closed. Key rotation,
+reissue and reconciliation of pre-migration approvals require a later reviewed
+operation, not overwriting the environment key or minting duplicate tickets.
+
+GET `/api/registration/ticket` supplies
+`{state:'ready',ticket:null|{status,referenceCode,qrDataUrl}}` with private/no-store
+headers after independent server and database checks. Other states are `closed`,
+`denied`, `area-not-ready` and `unavailable`; missing migrations preserve the
+session. The server validates the exact projection and HMAC, then uses installed
+`qrcode` to create a PNG data URL. The EN/AR `/registration/ticket` page displays
+the QR, reference, status and registration link. No external QR service, token URL,
+analytics event, browser storage or email attachment is used. The data URL itself
+encodes a private credential and must be treated accordingly.
+
+Staff queue/detail contracts add `ticketStatus: null|'issued'|'revoked'`, with
+missing old-schema fields normalized to null. Staff never receive a ticket ID,
+secret hash, token or QR. EN/AR queue rows and details show issued/revoked badges.
+
+The request trigger atomically enqueues the five v1 DRAFT templates documented
+in [REGISTRATION_EMAILS.md](REGISTRATION_EMAILS.md): submission receipt, seat
+approved, offered (including auto-pass), waitlisted, offer expired. Stable request
+event keys deduplicate retries; offer keys additionally identify their deadline.
+An exception/rollback removes the request transition, ticket and queued message
+together. The generic outbox enqueue RPC remains synthetic-only. Registration
+recipients come from Auth, not browser input; all automated tests use
+`@example.invalid`. Queued does not mean sent or delivered.
+
+O10 GET uses the existing authenticated drain, with no work while delivery is off.
+The source cron is daily for the unresolved Vercel plan; a five-minute schedule
+requires confirmed Pro/Enterprise before live activation. All delivery switches
+remain off and both caps remain zero. Full wording, plan constraints, environment
+names and activation checks are in the email note. No offer acceptance endpoint
+exists yet; Task 4 must use the same issuance/enqueue transaction when built.
+
+Check-in remains later work. A scanner must verify the secret hash **and** live
+ticket revocation, registration entitlement, account authority and assigned
+activity/day before admitting anyone. No public verification RPC or permissive
+stub is added here. A QR image, signature or staff indicator alone is not check-in
+validation. CI database, real inbox and device/UAT evidence remain release gates;
+see the [Task 3 receipt](../progress/2026-10-20-codex-registration-slice4.md).
+
+### Task 3 fixture review — 20 October 2026
+
+The native participant guard forbids clearing a verified mailbox, including
+during a pending verification operation. The ticket/email pgTAP case now creates
+a never-verified signup through `registration_fixture(..., false)`. It verifies
+RPC submission denial, then attempts an otherwise valid direct request insertion
+to exercise the event trigger's independent recipient check (`P0002`). The
+statement rolls back; request, ticket, message and deduplication checks prove
+there are no business side effects. The existing approval enqueue-failure test
+continues to cover approval/ticket rollback. REG-02/07 and EML-03/04 are preserved.
+
+Static review covered the new early-access, settings and ticket/email SQL suites,
+the other three changed registration SQL suites, their shared fixture helper,
+the full changed staff-registration integration suite and direct Auth updates in
+the remaining integration fixtures. No other blocked fixture step was found.
+The six changed SQL suites all use `no_plan()` and one `finish()`, including
+the loop-generated assertions; no fixed plan count needs adjustment.
+Production guards and migrations are unchanged. Local lint, typecheck and all
+3,171 unit tests pass; pgTAP and database integration execution remain pending
+disposable Supabase CI.

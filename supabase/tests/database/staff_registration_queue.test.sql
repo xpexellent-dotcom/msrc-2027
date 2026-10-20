@@ -220,7 +220,8 @@ select ok((public.msrc_staff_summary('synthetic-staff-queue')->'summary') ?& arr
 select is(public.msrc_staff_summary('synthetic-staff-queue')->'summary'->>'participants','9','Summary counts all participant accounts');
 select is(public.msrc_staff_summary('synthetic-staff-queue')->'summary'->>'priority','0','Summary counts active priority only');
 select ok((public.msrc_staff_summary('synthetic-staff-queue')->'summary'->>'auditLast24h')::integer>=5,'Summary includes recent durable decision audit activity');
-select is((select count(*) from msrc_outbox.messages),0::bigint,'Staff decisions do not enqueue or send notification mail in this slice');
+select ok((select count(*)>0 and bool_and(status='queued' and attempt_count=0) from msrc_outbox.messages),
+ 'Staff decisions atomically queue notifications without sending mail');
 
 -- Extend read-only fixtures above fifty to prove bounded projection, independent aggregate totals.
 do $$declare n integer;begin

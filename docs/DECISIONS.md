@@ -3498,3 +3498,65 @@ This does not build a payment flow or change ORG-056's free-attendance decision.
 Evidence and owner review notes belong in the
 [Task 2 receipt](progress/2026-10-20-codex-registration-settings.md).
 `docs/PROGRESS.md` remains untouched.
+
+## ENG-054 — Closed registration tickets, atomic email events and O10 bridge, 20 October 2026
+
+Authority: the owner's overnight Task 3 and ORG-055/056. ENG-053 was the highest
+number when this entry was reserved. REG-01–08, CHK-01 (credential only),
+EML-01–05, SCP-03, ROL-02/07/10/12, DAT-03/04, API-01–03, SEC-01/02/06,
+PRV-03/05/06, LOC-01/03, ACC-01 and REL-02/06 apply. The explicit Task 3 rule
+and ORG-056 supersede v0.5 REG-03/07 and AT-03's paid/confirmed-only sequence:
+free `approved` registration receives its ticket immediately; `confirmed` also
+qualifies. Paid `approved_awaiting_payment` does not. No payment flow is added.
+
+Review-only migration `20261020140000_registration_tickets_emails.sql` issues a
+single private ticket per request (therefore per participant/edition) inside
+the approval transaction, including bulk decisions. A request-state trigger
+also covers future confirmation and revokes on cancellation/expiry. Existing
+tickets remain identical on repeat approval/confirmation; revoked credentials
+remain revoked. No existing request is backfilled by this migration. Existing
+records needing reconciliation require a separate reviewed operation.
+
+Ticket IDs are independent random UUIDs. The secret is HMAC-SHA-256 of the ticket
+ID with the independent server-only `REGISTRATION_TICKET_SECRET`; only its hash
+is stored. The key passes transiently through a service-only approval RPC and
+is cleared/restored from the transaction setting on success and failure. It is
+never persisted in a table, audit or outbox payload. The service boundary binds
+server-verified native staff claims, then reuses database exact-session staff
+authorization and the edition allocation lock. Stale approval callers fail
+closed. Neither an authenticated browser nor a staff projection receives the key.
+
+The server-only own-ticket RPC rechecks participant account/session authority,
+edition and policy. It reconstructs a token only if its hash matches the issued
+credential, and returns no token for revocation. The server uses the installed
+`qrcode` package to produce a data URL for the private EN/AR ticket page. QR
+content contains only version, opaque ticket ID and secret: no participant,
+identity, email or financial fields. Missing RPCs show `area-not-ready` and keep
+valid sessions. The key must remain available for existing credentials; key
+rotation/reissue is deferred and must not be an unreviewed environment overwrite.
+Check-in verification/scanning is deliberately unimplemented, not a validity claim.
+
+Same-transaction triggers enqueue received, approved, offered, waitlisted and
+offer-expired messages, including automatic hand-on. Stable event identities
+deduplicate retries; rollback removes the business event, ticket and outbox job.
+All five registration templates are **DRAFT for owner wording approval**:
+`registration_received`, `registration_approved`, `registration_offered`,
+`registration_waitlisted`, `registration_expired`, version 1. Full plain text
+and HTML behavior are in [REGISTRATION_EMAILS.md](features/REGISTRATION_EMAILS.md).
+English-only copy uses published conference facts and the existing support
+contact. Email contains sign-in page links, never a QR credential or attachment.
+Offer wording uses ORG-056's 24 hours and the stored `offer_expires_at` deadline;
+offer acceptance remains Task 4 and is an email-activation prerequisite.
+
+O10 adds GET to the existing drain route, with the same exact Bearer
+`CRON_SECRET`, fixed-size timing-safe comparison and closed delivery switches.
+HEAD is inert. Daily caps remain zero. The repository has no confirmed Vercel
+plan; current official limits allow Hobby cron only daily, so the source uses
+`0 0 * * *` UTC. This is not the live delivery target for seat offers. Before
+activation, confirm Pro/Enterprise and review `*/5 * * * *` with an approved
+delivery budget. See the [verified plan constraints](https://vercel.com/docs/cron-jobs/usage-and-pricing).
+
+No hosted migration, settings seed, flag activation, real email, branch, commit
+or push is authorized or performed. The O9
+[Task 3 receipt](progress/2026-10-20-codex-registration-slice4.md) records observed
+checks and CI-only database gates. `docs/PROGRESS.md` is unchanged.

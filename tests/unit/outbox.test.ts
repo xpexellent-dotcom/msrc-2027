@@ -4,7 +4,7 @@ import { createResendOutboxSender, createTestOutboxSender, OutboxSendError, rend
 import { drainOutbox } from "@/lib/jobs/outbox.server";
 import { createOutboxDrainHandler, resolveOutboxRunConfig, validOutboxSecret } from "@/lib/jobs/outbox-route.server";
 import { createRpcOutboxStore, enqueueOutbox } from "@/lib/jobs/outbox-store.server";
-import { GET, POST } from "@/app/api/jobs/outbox/drain/route";
+import { GET, HEAD, POST } from "@/app/api/jobs/outbox/drain/route";
 
 vi.mock("node:crypto", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:crypto")>();
@@ -382,12 +382,57 @@ describe("protected outbox drain route", () => {
     expect(resolveOutboxRunConfig({ ...production, OUTBOX_RESEND_ENABLED: "true", VERCEL_ENV: "preview" })).toBeNull();
   });
 
-  it("ships the actual route closed and its GET trigger unavailable", async () => {
+  it("ships the actual POST and cron GET closed without storage or provider work", async () => {
     vi.stubEnv("OUTBOX_ENABLED", undefined);
     const fetcher = vi.fn();
     vi.stubGlobal("fetch", fetcher);
     expect((await POST(request())).status).toBe(404);
-    expect(GET().status).toBe(404);
+    expect((await GET(new Request("https://msrc2027.com/api/jobs/outbox/drain"))).status).toBe(404);
+    expect(HEAD().status).toBe(404);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { configured: undefined, authorization: "Bearer undefined" },
+    { configured: "", authorization: "Bearer " },
+    { configured: secret, authorization: undefined },
+    { configured: secret, authorization: "Bearer wrong" },
+    { configured: secret, authorization: "Basic " + secret },
+  ])("rejects unauthenticated cron GET without any network access %j", async ({ configured, authorization }) => {
+    vi.stubEnv("OUTBOX_ENABLED", "true");
+    vi.stubEnv("CRON_SECRET", configured);
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const response = await GET(new Request("https://msrc2027.com/api/jobs/outbox/drain", {
+      headers: authorization ? { authorization } : {},
+    }));
+    expect(response.status).toBe(401);
+    expect(await response.text()).toBe("");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("authenticates the actual cron GET with a fixed-length timing-safe comparison and leaves a zero cap inert", async () => {
+    for (const [key, value] of Object.entries({ ...enabledEnvironment, OUTBOX_DAILY_CAP: "0" })) vi.stubEnv(key, value);
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const compare = vi.mocked(timingSafeEqual);
+    compare.mockClear();
+    const response = await GET(new Request("https://msrc2027.com/api/jobs/outbox/drain", { headers: { authorization: "Bearer " + secret } }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ claimed: 0, sent: 0, retryable: 0, permanent: 0, stale: 0 });
+    expect(compare).toHaveBeenCalledOnce();
+    expect(compare.mock.calls[0].map((digest) => digest.byteLength)).toEqual([32, 32]);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("cron GET cannot select the provider while its independent Resend switch is off", async () => {
+    for (const [key, value] of Object.entries({ ...enabledEnvironment, VERCEL: "1", VERCEL_ENV: "production",
+      OUTBOX_SENDER: "resend", OUTBOX_RESEND_ENABLED: "false", OUTBOX_SUPABASE_URL: "https://ecemjggwlzqpjcwmchrl.supabase.co",
+      RESEND_API_KEY: "re_synthetic_dummy" })) vi.stubEnv(key, value);
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const response = await GET(new Request("https://msrc2027.com/api/jobs/outbox/drain", { headers: { authorization: "Bearer " + secret } }));
+    expect(response.status).toBe(503);
     expect(fetcher).not.toHaveBeenCalled();
   });
 });

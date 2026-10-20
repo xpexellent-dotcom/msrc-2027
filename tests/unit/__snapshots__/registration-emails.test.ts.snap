@@ -1,0 +1,103 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_approved 1`] = `
+{
+  "from": "MSRC 2027 <no-reply@msrc2027.com>",
+  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>You have a seat at the conference.</p><p>Sign in to view your ticket: <a href="https://www.msrc2027.com/en/registration/ticket">https://www.msrc2027.com/en/registration/ticket</a></p><p>Support: contact@msrc2027.com</p></body></html>",
+  "subject": "You have a seat",
+  "text": "The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+You have a seat at the conference.
+
+Sign in to view your ticket: https://www.msrc2027.com/en/registration/ticket
+
+Support: contact@msrc2027.com",
+  "to": [
+    "participant@example.invalid",
+  ],
+}
+`;
+
+exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_expired 1`] = `
+{
+  "from": "MSRC 2027 <no-reply@msrc2027.com>",
+  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>Your seat offer has expired.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
+  "subject": "Your offer expired",
+  "text": "The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+Your seat offer has expired.
+
+Sign in to My registration: https://www.msrc2027.com/en/registration
+
+Support: contact@msrc2027.com",
+  "to": [
+    "participant@example.invalid",
+  ],
+}
+`;
+
+exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_offered 1`] = `
+{
+  "from": "MSRC 2027 <no-reply@msrc2027.com>",
+  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>A seat is offered to you. Accept the offer on My registration before the deadline below.</p><p>Offer deadline: 19 November 2026 at 20:00 (Asia/Riyadh).</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
+  "subject": "A seat is offered to you: reply within 24 hours",
+  "text": "The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+A seat is offered to you. Accept the offer on My registration before the deadline below.
+
+Offer deadline: 19 November 2026 at 20:00 (Asia/Riyadh).
+
+Sign in to My registration: https://www.msrc2027.com/en/registration
+
+Support: contact@msrc2027.com",
+  "to": [
+    "participant@example.invalid",
+  ],
+}
+`;
+
+exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_received 1`] = `
+{
+  "from": "MSRC 2027 <no-reply@msrc2027.com>",
+  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>We have received your seat request. Your request is awaiting review. This email does not confirm a seat.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
+  "subject": "Seat request received",
+  "text": "The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+We have received your seat request. Your request is awaiting review. This email does not confirm a seat.
+
+Sign in to My registration: https://www.msrc2027.com/en/registration
+
+Support: contact@msrc2027.com",
+  "to": [
+    "participant@example.invalid",
+  ],
+}
+`;
+
+exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_waitlisted 1`] = `
+{
+  "from": "MSRC 2027 <no-reply@msrc2027.com>",
+  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>You are on the conference waitlist. This email does not confirm a seat.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
+  "subject": "You are on the waitlist",
+  "text": "The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+You are on the conference waitlist. This email does not confirm a seat.
+
+Sign in to My registration: https://www.msrc2027.com/en/registration
+
+Support: contact@msrc2027.com",
+  "to": [
+    "participant@example.invalid",
+  ],
+}
+`;
