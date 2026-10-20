@@ -50,6 +50,9 @@ value silently persisted or prefilled. The owner enters the values. Capacity
 2,000 remains pending owner confirmation.
 
 Saving uses READ COMMITTED and the same settings-row lock as approvals/offers.
+The save RPC raises SQLSTATE `25001` for any other isolation level at function
+entry, before authorization, validation, operation replay or any lock. Thus
+REPEATABLE READ and SERIALIZABLE cannot bypass the guard through an early return.
 The seat count includes approved, approved-awaiting-payment, offered and
 confirmed requests. It cannot fall below those holders. First-time settings
 creation also serializes on the edition parent. Authority is checked again
@@ -66,3 +69,19 @@ participant workflow, email, scheduler or feature switch is enabled by this
 source change. Database execution is a CI gate, as the local environment has no
 Docker runtime. See the [O9 receipt](../progress/2026-10-20-codex-registration-settings.md)
 for observed checks and owner review points.
+
+## ENG-053 isolation regression, 20 October 2026
+
+The isolation test reused actor 1601 after the lock-wait expiry test durably
+revoked its session. Restoring the policy did not clear revocation, so the
+save returned `denied` before reaching its old isolation guard. The guard now
+runs first. Expiry has its own actor and verifies durable revocation; each
+isolation test has fresh actors, an edition and a committed replay receipt.
+Both isolation levels must raise `25001` while the settings row remains locked,
+including denied, invalid, enabling, replay and conflict calls, with unchanged
+settings/history. The other settings concurrency assertions remain intact.
+
+Local checks on Node 24.21.0 / pnpm 11.19.0: `pnpm lint`, `pnpm typecheck`,
+`pnpm exec vitest run` (3,107 tests / 69 files) and `git diff --check` PASS.
+Database execution is NOT TESTED locally; the new regressions require disposable
+CI. `docs/PROGRESS.md` is unchanged and no commit was made.
