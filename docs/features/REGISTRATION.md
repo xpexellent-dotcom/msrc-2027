@@ -512,3 +512,13 @@ individual/bulk removal, search and axe on desktop/mobile. New concurrency cases
 cover duplicate additions/removals; database execution remains a CI gate. See the
 [integration receipt](../progress/2026-10-20-codex-early-access-integration.md) for
 observed checks. The existing migration and auto-pass behavior are unchanged.
+
+Task 2 / ENG-053 adds the Super Admin-only EN/AR
+`/staff/registration-settings` screen. Owner-entered settings require explicit
+before/after confirmation, complete validation, the existing allocation lock,
+and immutable save history. Legacy early dates mirror the priority window on
+save; no automatic backfill or seed is performed. Registration remains a
+read-only switch here, and enabling is refused. See the
+[settings feature note](registration-settings.md) for RPC/HTTP contracts and
+the [Task 2 receipt](../progress/2026-10-20-codex-registration-settings.md) for
+local checks, blocked database execution and owner review points.

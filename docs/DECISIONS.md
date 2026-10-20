@@ -3461,3 +3461,40 @@ The integration, browser/axe and full local-check receipt is
 [Task 1b](progress/2026-10-20-codex-early-access-integration.md).
 `docs/PROGRESS.md` stays unchanged under the owner's O9 rule. Database execution
 and activation remain separate gates; source integration is not production proof.
+
+## ENG-053 — Closed Super Admin registration settings, 20 October 2026
+
+Authority: the owner's overnight Task 2, ORG-055/056. Checked the current
+register before reserving this number: ENG-052 was the highest used. REG-01–08,
+ADM-01/04/05, ROL-10/12, SEC-01/02/06, TIM-01/02, CFG-01, LOC-01/03 and
+ACC-01 apply. This authorizes local source implementation only; no hosted
+migration, settings seed, feature switch, real email, branch, commit or push.
+
+Add a Super Admin-only Registration settings area with independent handler and
+database exact-session TOTP checks. Every save validates the merged settings
+against the existing table constraints and `settings_complete()` requirements,
+serializes with allocation on the edition settings row, and refuses capacity
+below current seat holders. Saving cannot set `enabled=true`; opening remains
+a separate owner release step. A private immutable audit records each save's
+operation ID, performer and changed fields with before/after values; reads show
+the latest 20 entries. Missing RPCs keep the console signed in with
+`area-not-ready`.
+
+The UI enters and displays all instants in Asia/Riyadh. ORG-056's early-access
+window maps to both `priority_start_at`/`priority_end_at` and the legacy
+`early_access_start_at`/`early_access_end_at`, because `settings_complete()`
+still requires both pairs and there is one approved early window. No dates,
+capacity or offer duration are seeded or prefilled. Free attendance is selected
+only in an unsaved new form. Minimum age is fixed at 18 on save.
+
+`waitlist_offer_hours`, `confirm_seat_lead_days` and
+`confirm_seat_response_hours` remain required by the unchanged completeness
+function; the UI identifies confirm-your-seat as a later step. The optional
+`offer_window_hours` remains nullable under the existing rules; offers remain
+blocked until configured. Paid settings require `payment_window_hours` under
+the existing completeness rule, so it is shown conditionally without a default.
+This does not build a payment flow or change ORG-056's free-attendance decision.
+
+Evidence and owner review notes belong in the
+[Task 2 receipt](progress/2026-10-20-codex-registration-settings.md).
+`docs/PROGRESS.md` remains untouched.
