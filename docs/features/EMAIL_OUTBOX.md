@@ -1,5 +1,13 @@
 # Durable email outbox and job foundation
 
+Current extension (20 October 2026): registration slice 4 adds five DRAFT
+English business templates, atomic registration producers and an authenticated
+GET cron bridge. See [REGISTRATION_EMAILS](REGISTRATION_EMAILS.md) for full owner
+review text and O10's plan-compatible daily source schedule. The slice-2 account
+below is historical where it describes synthetic-only producers or unavailable
+GET. Delivery remains off, both caps remain zero, and no hosted activation is
+authorized by the source changes.
+
 BL-FND-04/05, BL-DEP-08; EML-01 through EML-05, API-01/02/03,
 ERR-01/02, DAT-03/04, LOC-03, SEC-02/06. Engineering decision: ENG-046.
 Registration slice 2 of 5, 16 October 2026. This is a closed, trigger-agnostic

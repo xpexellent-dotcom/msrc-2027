@@ -64,14 +64,15 @@ const waiting = (name: string) => observed(`select count(*) from pg_stat_activit
 const response = (output: string) => output.split("\n").filter((line) => line.startsWith("{"))
   .map((line) => JSON.parse(line)).find((row) => typeof row.state === "string");
 function approval(staff: number, participant: number, applicationName: string) {
-  // Resolve fixture ID before adopting authenticated. The RPC itself then runs
-  // with the same ACL/claims role as the production staff Data API request.
+  // Resolve fixture ID/verified claims before adopting the production service
+  // boundary. The RPC rechecks the staff session after taking allocation locks.
   return `begin;
     set local application_name='${applicationName}';
     select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
     select set_config('synthetic.request_id',(select id::text from msrc_registration.requests where edition_key='${edition}' and actor_id='${actor(participant)}'),true);
-    set local role authenticated;
-    select public.msrc_staff_registration_approve('${edition}',array[current_setting('synthetic.request_id')::uuid])::text;`;
+    set local role service_role;
+    select public.msrc_staff_registration_approve_tickets('${edition}',current_setting('request.jwt.claims')::jsonb,
+      array[current_setting('synthetic.request_id')::uuid],repeat('a',64))::text;`;
 }
 
 describe.skipIf(!isolatedCi)("Staff registration allocation (disposable GitHub CI only)", () => {
@@ -113,6 +114,9 @@ describe.skipIf(!isolatedCi)("Staff registration allocation (disposable GitHub C
       await query(`do $$begin
         if (select count(*) from msrc_registration.requests where edition_key='${edition}' and status in('approved','approved_awaiting_payment','offered','confirmed'))<>1
         or (select count(*) from msrc_registration.audit where edition_key='${edition}' and event='request.approved')<>1
+        or (select count(*) from msrc_registration.tickets t join msrc_registration.requests r on r.id=t.request_id where r.edition_key='${edition}')<>1
+        or (select count(*) from msrc_outbox.messages where template_key='registration_approved'
+          and recipient_email in('registration-201@example.invalid','registration-202@example.invalid'))<>1
         or (select status from msrc_registration.requests where edition_key='${edition}' and actor_id='${actor(202)}')<>'pending_approval'
         then raise exception 'Last-seat concurrency invariant failed';end if;
         end$$;`);
@@ -149,6 +153,28 @@ describe.skipIf(!isolatedCi)("Staff registration allocation (disposable GitHub C
       await query("update msrc_sessions.policy set privileged_absolute_seconds=28800 where singleton;");
     }
   });
+
+  it("concurrent retries for one request commit one ticket and one seat email", async () => {
+    const first = held(approval(301, 202, "synthetic-ticket-first") + `select pg_advisory_xact_lock(${marker});`);
+    let second: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        second = query(approval(302, 202, "synthetic-ticket-retry") + "commit;");
+        await waiting("synthetic-ticket-retry");
+      } finally { first.release(); }
+      const results = (await Promise.all([first.done, second!])).map(response);
+      expect(results.map((row) => row.decided.approved)).toEqual([1, 0]);
+      await query(`do $$begin
+        if (select count(*) from msrc_registration.tickets t join msrc_registration.requests r on r.id=t.request_id
+          where r.edition_key='${edition}' and r.actor_id='${actor(202)}')<>1
+        or (select count(*) from msrc_outbox.messages where template_key='registration_approved'
+          and recipient_email='registration-202@example.invalid')<>1
+        or (select count(*) from msrc_registration.audit where edition_key='${edition}'
+          and target_actor='${actor(202)}' and event='request.approved')<>1
+        then raise exception 'Concurrent ticket retry invariant failed';end if;end$$;`);
+    } finally { await Promise.allSettled([first.done, ...(second ? [second] : [])]); }
+  });
 });
 
 // ENG-053 shares this existing CI entrypoint and its guarded disposable stack.
@@ -167,8 +193,9 @@ function settingsApproval(participant: number, applicationName: string) {
     set local application_name='${applicationName}';
     select set_config('request.jwt.claims',pg_temp.registration_claims(1600)::text,true);
     select set_config('synthetic.request_id',(select id::text from msrc_registration.requests where edition_key='${settingsEdition}' and actor_id='${actor(participant)}'),true);
-    set local role authenticated;
-    select public.msrc_staff_registration_approve('${settingsEdition}',array[current_setting('synthetic.request_id')::uuid])::text;`;
+    set local role service_role;
+    select public.msrc_staff_registration_approve_tickets('${settingsEdition}',current_setting('request.jwt.claims')::jsonb,
+      array[current_setting('synthetic.request_id')::uuid],repeat('a',64))::text;`;
 }
 
 describe.skipIf(!isolatedCi)("Registration settings serialization (disposable GitHub CI only)", () => {

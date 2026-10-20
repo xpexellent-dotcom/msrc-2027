@@ -84,12 +84,13 @@ export function registrationCounts(value: unknown): StaffRegistrationCounts | nu
 function registrationRequest(value: unknown): StaffRegistrationRequest | null {
   const source = record(value);
   if (!source) return null;
-  const row: Record<string, unknown> = { offerExpiresAt: null, ...source };
-  if (!exact(row, ["id", "actorId", "name", "email", "status", "priority", "createdAt", "decidedAt", "offerExpiresAt", "identityMasked"])
+  const row: Record<string, unknown> = { offerExpiresAt: null, ticketStatus: null, ...source };
+  if (!exact(row, ["id", "actorId", "name", "email", "status", "priority", "createdAt", "decidedAt", "offerExpiresAt", "identityMasked", "ticketStatus"])
     || !uuid(row.id) || !uuid(row.actorId) || !text(row.name, 200) || !text(row.email, 254)
     || !validStaffRegistrationStatus(row.status) || row.status === "all" || typeof row.priority !== "boolean"
     || !timestamp(row.createdAt) || row.decidedAt !== null && !timestamp(row.decidedAt)
-    || row.offerExpiresAt !== null && !timestamp(row.offerExpiresAt) || !masked(row.identityMasked)) return null;
+    || row.offerExpiresAt !== null && !timestamp(row.offerExpiresAt) || !masked(row.identityMasked)
+    || row.ticketStatus !== null && row.ticketStatus !== "issued" && row.ticketStatus !== "revoked") return null;
   return row as StaffRegistrationRequest;
 }
 
@@ -210,20 +211,26 @@ export function summaryProjection(value: unknown, roles: readonly Role[]): Staff
 }
 
 /** Decode only after native identity and exact-session policy verification. */
-export function verifiedPriorityClaims(session: NativeStaffSession, now: number): Record<string, unknown> | null {
+export function verifiedStaffRegistrationClaims(session: NativeStaffSession, now: number): Record<string, unknown> | null {
   try {
     const value = record(JSON.parse(Buffer.from(session.accessToken.split(".")[1], "base64url").toString("utf8")));
-    if (!value || value.sub !== session.actorId || value.session_id !== session.sessionId || value.role !== "authenticated" || value.aal !== "aal2"
+    if (!value || value.sub !== session.actorId || value.session_id !== session.sessionId || value.role !== "authenticated" || !["aal1", "aal2"].includes(String(value.aal))
       || !Number.isSafeInteger(value.exp) || Number(value.exp) * 1000 <= now || !Array.isArray(value.amr)) return null;
     const amr = value.amr.map((entry) => {
       const item = record(entry);
       return item && typeof item.method === "string" && /^[a-z_]{1,40}$/.test(item.method) && Number.isSafeInteger(item.timestamp)
         && Number(item.timestamp) >= 0 && Number(item.timestamp) * 1000 <= now ? { method: item.method, timestamp: item.timestamp } : null;
     });
-    if (amr.some((entry) => entry === null) || !amr.some((entry) => entry?.method === "password") || !amr.some((entry) => entry?.method === "totp")) return null;
+    if (amr.some((entry) => entry === null) || !amr.some((entry) => entry?.method === "password")
+      || value.aal === "aal2" && !amr.some((entry) => entry?.method === "totp")) return null;
     if (value.iat !== undefined && (!Number.isSafeInteger(value.iat) || Number(value.iat) < 0 || Number(value.iat) * 1000 > now)) return null;
     // Neither user/app metadata nor JWT role-name arrays are authority evidence.
     return { sub: value.sub, session_id: value.session_id, role: value.role, aal: value.aal, amr, exp: value.exp,
       ...(value.iat !== undefined ? { iat: value.iat } : {}) };
   } catch { return null; }
+}
+
+export function verifiedPriorityClaims(session: NativeStaffSession, now: number): Record<string, unknown> | null {
+  const claims = verifiedStaffRegistrationClaims(session, now);
+  return claims?.aal === "aal2" ? claims : null;
 }

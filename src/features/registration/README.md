@@ -1,6 +1,12 @@
 # Registration feature boundary
 
-Reserve this directory for a separately authorized registration slice. No registration form, approval transition, admission capacity or participant record is implemented.
+Closed registration includes participant request/identity protection, staff
+allocation, early access/settings and private tickets. All runtime/database
+release switches remain independent and closed. The ticket API renders local QR
+data URLs only after own-account authorization; staff see status alone.
 
-This is an inert M1 structure placeholder. It contains no executable implementation;
-operational workflows remain closed. See the project architecture document and the relevant v0.5 release gate.
+See [REGISTRATION.md](../../../docs/features/REGISTRATION.md) for the current
+contracts and [REGISTRATION_EMAILS.md](../../../docs/features/REGISTRATION_EMAILS.md)
+for the five DRAFT English templates. Database transitions enqueue atomically;
+this feature never sends inline. Check-in validation and offer acceptance remain
+later work.

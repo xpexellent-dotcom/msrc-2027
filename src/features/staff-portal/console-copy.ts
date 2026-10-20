@@ -22,6 +22,7 @@ export const consoleCopy = {
       offer: "Offer a seat", offerSelected: "Offer seats to selected", offered: "Offered", expired: "Offers expired", offerEnds: "Offer ends",
       details: "Details", detailTitle: "Request details", history: "Decision history", noHistory: "No decisions yet.", by: "By", automatic: "Automatic", submitted: "Submitted", closeDetails: "Close details",
       exportCsv: "Download CSV", exportNote: "Super Admin only. ID numbers stay masked, and every download is recorded in the audit log.",
+      ticket: "Ticket", ticketStatuses: { issued: "Issued", revoked: "Revoked", none: "Not issued" },
     },
     earlyAccess: {
       intro: "People on this list can request a seat during early access, from Sun 15 Nov at 20:00 until general registration opens on Wed 18 Nov at 20:00. Enter the email they use, or will use, for their MSRC account. Early access does not include workshop seats.",
@@ -68,6 +69,7 @@ export const consoleCopy = {
       offer: "عرض مقعد", offerSelected: "عرض مقاعد على المحدَّدين", offered: "عُرض عليهم مقعد", expired: "عروض منتهية", offerEnds: "ينتهي العرض",
       details: "التفاصيل", detailTitle: "تفاصيل الطلب", history: "سجل القرارات", noHistory: "لا توجد قرارات بعد.", by: "بواسطة", automatic: "تلقائي", submitted: "قُدِّم الطلب", closeDetails: "إغلاق التفاصيل",
       exportCsv: "تنزيل ملف CSV", exportNote: "للمشرف الأعلى فقط. تبقى أرقام الهوية مخفية جزئيًا، وتُسجَّل كل عملية تنزيل في سجل التدقيق.",
+      ticket: "التذكرة", ticketStatuses: { issued: "صادرة", revoked: "ملغاة", none: "لم تصدر" },
     },
     earlyAccess: {
       intro: "يمكن للأشخاص المدرجين في هذه القائمة طلب مقعد خلال الوصول المبكر، من الأحد ١٥ نوفمبر الساعة ٨:٠٠ مساءً حتى فتح التسجيل العام يوم الأربعاء ١٨ نوفمبر الساعة ٨:٠٠ مساءً. أدخل البريد الإلكتروني الذي يستخدمه الشخص، أو سيستخدمه، لحسابه في المؤتمر. لا يشمل الوصول المبكر مقاعد ورش العمل.",

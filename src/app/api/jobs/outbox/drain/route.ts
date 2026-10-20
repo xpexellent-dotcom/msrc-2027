@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-export async function POST(request: Request): Promise<Response> {
+async function run(request: Request): Promise<Response> {
   return createOutboxDrainHandler({ env: process.env, run: (config) => drainOutbox({
     store: createRpcOutboxStore(config),
     sender: config.sender === "resend" ? createResendOutboxSender(config.resendKey!) : createConsoleOutboxSender(),
@@ -15,6 +15,9 @@ export async function POST(request: Request): Promise<Response> {
   }) })(request);
 }
 
-// Vercel Cron uses GET; any future bridge is an explicit O10 follow-up, not installed here.
-export function GET(): Response { return new Response(null, { status: 404, headers: { "Cache-Control": "no-store" } }); }
-export const HEAD = GET;
+// Vercel sends Authorization: Bearer ${CRON_SECRET}; both methods use the same
+// fail-closed, timing-safe boundary and never put a credential in a URL.
+export const GET = run;
+export const POST = run;
+// HEAD probes must not drain the queue (Next otherwise delegates HEAD to GET).
+export function HEAD(): Response { return new Response(null, { status: 404, headers: { "Cache-Control": "no-store" } }); }

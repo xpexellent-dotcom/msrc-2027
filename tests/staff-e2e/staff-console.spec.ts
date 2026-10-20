@@ -13,13 +13,13 @@ const participantId = "21000000-0000-4000-8000-0000000000b1";
 const earlyIds = ["21000000-0000-4000-8000-0000000000e1", "21000000-0000-4000-8000-0000000000e2"];
 
 /** ORG-055/056 presentation fixture. Seat allocation and authority are proven by the database suites. */
-async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string; missingAction?: StaffPayload["action"]; offerWindow?: boolean; exportRefused?: boolean } = {}) {
+async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string; missingAction?: StaffPayload["action"]; offerWindow?: boolean; exportRefused?: boolean; revokedTicket?: boolean } = {}) {
   const actions: StaffPayload[] = [], reads: string[] = [];
   const capacity = options.capacity === undefined ? 2000 : options.capacity;
   let requests: StaffRegistrationRequest[] = [
-    { id: ids[0], actorId: ids[0], name: "Synthetic Priority Member", email: "priority@example.invalid", status: "pending_approval", priority: true, createdAt: "2026-11-15T17:00:00Z", decidedAt: null, identityMasked: "••••••1234", offerExpiresAt: null },
-    { id: ids[1], actorId: ids[1], name: "Synthetic Attendee", email: "attendee@example.invalid", status: "pending_approval", priority: false, createdAt: "2026-11-18T17:01:00Z", decidedAt: null, identityMasked: "••••••5678", offerExpiresAt: null },
-    { id: ids[2], actorId: ids[2], name: "Synthetic Approved", email: "approved@example.invalid", status: "approved", priority: false, createdAt: "2026-11-18T17:02:00Z", decidedAt: "2026-11-19T09:00:00Z", identityMasked: "••••••9012", offerExpiresAt: null },
+    { id: ids[0], actorId: ids[0], name: "Synthetic Priority Member", email: "priority@example.invalid", status: "pending_approval", priority: true, createdAt: "2026-11-15T17:00:00Z", decidedAt: null, identityMasked: "••••••1234", offerExpiresAt: null, ticketStatus: null },
+    { id: ids[1], actorId: ids[1], name: "Synthetic Attendee", email: "attendee@example.invalid", status: "pending_approval", priority: false, createdAt: "2026-11-18T17:01:00Z", decidedAt: null, identityMasked: "••••••5678", offerExpiresAt: null, ticketStatus: null },
+    { id: ids[2], actorId: ids[2], name: "Synthetic Approved", email: "approved@example.invalid", status: options.revokedTicket ? "cancelled" : "approved", priority: false, createdAt: "2026-11-18T17:02:00Z", decidedAt: "2026-11-19T09:00:00Z", identityMasked: "••••••9012", offerExpiresAt: null, ticketStatus: options.revokedTicket ? "revoked" : "issued" },
   ];
   let designations = [{ actorId: participantId, name: "Synthetic Volunteer", email: "volunteer@example.invalid", active: true, reason: "Logistics committee", designatedAt: "2026-10-17T10:00:00Z", designatedByName: "Synthetic Staff", removedAt: null as string | null }];
   let earlyEntries: StaffEarlyAccessEntry[] = [
@@ -48,7 +48,7 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
       if (payload.action === "registration-approve") {
         if (capacity === null) return route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ ...base, state: "capacity-not-set" }) });
         let approved = 0, skipped = 0;
-        requests = requests.map((r) => payload.requestIds?.includes(r.id) ? (["pending_approval", "waitlisted"].includes(r.status) ? (approved++, { ...r, status: "approved" as const }) : (skipped++, r)) : r);
+        requests = requests.map((r) => payload.requestIds?.includes(r.id) ? (["pending_approval", "waitlisted"].includes(r.status) ? (approved++, { ...r, status: "approved" as const, ticketStatus: "issued" as const }) : (skipped++, r)) : r);
         return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ...base, state: "updated", decided: { approved, waitlisted: 0, skipped } }) });
       }
       if (payload.action === "registration-offer") {
@@ -119,6 +119,8 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/staff/registration`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy.areas.registration);
     await expect(page.getByTestId("queue-row")).toHaveCount(3);
+    await expect(page.getByTestId("queue-ticket").nth(0)).toHaveText(text.registration.ticketStatuses.none);
+    await expect(page.getByTestId("queue-ticket").nth(2)).toHaveText(text.registration.ticketStatuses.issued);
     await expect(page.locator(".staff-tag").first()).toHaveText(text.registration.priority);
     await shot(page, `${locale}-queue`, testInfo.project.name);
     await axe(page);
@@ -127,6 +129,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByTestId("queue-approve-selected").click();
     await expect.poll(() => mock.actions.find((action) => action.action === "registration-approve")?.requestIds?.sort()).toEqual([ids[0], ids[1]].sort());
     await expect(page.locator(".staff-feedback")).toContainText(text.registration.decided(2, 0, 0));
+    await expect(page.getByTestId("queue-ticket")).toHaveText(Array(3).fill(text.registration.ticketStatuses.issued));
     await page.locator(".staff-queue-filters select").selectOption("approved");
     await expect.poll(() => mock.reads.some((read) => read.startsWith("registration:approved"))).toBe(true);
   });
@@ -319,6 +322,22 @@ for (const locale of ["en", "ar"] as const) test(`${locale} waitlisted requests 
   await axe(page);
   await detail.getByRole("button", { name: text.closeDetails }).click();
   await expect(detail).toHaveCount(0);
+});
+
+for (const locale of ["en", "ar"] as const) for (const revokedTicket of [false, true]) test(`${locale} ${revokedTicket ? "revoked" : "issued"} ticket indicator appears in queue and request details`, async ({ page }, testInfo) => {
+  const text = consoleCopy[locale].registration;
+  await consoleFixture(page, ["registrationWorkshopAdministrator"], { revokedTicket });
+  await page.goto(`/${locale}/staff/registration`);
+  const row = page.getByTestId("queue-row").filter({ hasText: "Synthetic Approved" });
+  const label = revokedTicket ? text.ticketStatuses.revoked : text.ticketStatuses.issued;
+  await expect(row.getByTestId("queue-ticket")).toHaveText(label);
+  await row.getByRole("button", { name: `${text.details}: Synthetic Approved`, exact: true }).click();
+  await expect(page.getByTestId("detail-ticket")).toHaveText(label);
+  await expect(page.getByTestId("queue-detail").getByRole("heading", { level: 3 })).toBeFocused();
+  await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await axe(page);
+  await shot(page, `${locale}-ticket-${revokedTicket ? "revoked" : "issued"}`, testInfo.project.name);
 });
 
 for (const locale of ["en", "ar"] as const) test(`${locale} offering without an offer window explains why`, async ({ page }) => {

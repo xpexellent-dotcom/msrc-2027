@@ -1,6 +1,11 @@
 import "server-only";
 
 import { createHash } from "node:crypto";
+import { conferenceConfig } from "@/config/conference";
+import { contactConfig } from "@/config/contact";
+import { homepageCopy } from "@/content/public-site";
+import { formatConferenceDateRange } from "@/lib/conference-dates";
+import { siteOrigin } from "@/lib/metadata";
 
 export type EmailRequest = Readonly<{
   from: string;
@@ -40,8 +45,80 @@ export function syntheticRecipient(value: string): boolean {
   return /^[A-Za-z0-9._%+-]{1,64}@example\.invalid$/.test(value);
 }
 
+export const registrationEmailTemplates = ["registration_received", "registration_approved", "registration_offered",
+  "registration_waitlisted", "registration_expired"] as const;
+export type RegistrationEmailTemplate = typeof registrationEmailTemplates[number];
+
+/** Destinations come only from the current verified Auth identity in the business transaction. */
+export function validOutboxRecipient(value: string): boolean {
+  return value.length <= 254 && /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$/.test(value);
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
+}
+
+/** DRAFT v1: owner wording approval is required before delivery activation (EML-04).
+ * No bearer token, participant name, identity number or caller-supplied URL is accepted. */
+function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
+  if (!registrationEmailTemplates.includes(message.template_key as RegistrationEmailTemplate)
+    || message.template_version !== 1 || !["en", "ar"].includes(message.locale)
+    || !validOutboxRecipient(message.recipient_email) || !conferenceConfig.dates) {
+    throw new OutboxSendError("template_invalid", false);
+  }
+  const offered = message.template_key === "registration_offered";
+  const expiresAt = message.payload.offer_expires_at;
+  if (offered ? Object.keys(message.payload).length !== 1 || typeof expiresAt !== "string"
+    || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(expiresAt)
+    || !Number.isFinite(Date.parse(expiresAt)) : Object.keys(message.payload).length !== 0) {
+    throw new OutboxSendError("template_invalid", false);
+  }
+  const registrationUrl = `${siteOrigin}/${message.locale}/registration`;
+  let subject: string;
+  let paragraphs: string[];
+  switch (message.template_key as RegistrationEmailTemplate) {
+    case "registration_received":
+      subject = "Seat request received";
+      paragraphs = ["We have received your seat request. Your request is awaiting review. This email does not confirm a seat.",
+        `Sign in to My registration: ${registrationUrl}`];
+      break;
+    case "registration_approved":
+      subject = "You have a seat";
+      paragraphs = ["You have a seat at the conference.", `Sign in to view your ticket: ${registrationUrl}/ticket`];
+      break;
+    case "registration_offered": {
+      const deadline = new Intl.DateTimeFormat("en-GB", { timeZone: conferenceConfig.timeZone,
+        dateStyle: "long", timeStyle: "short", hourCycle: "h23" }).format(new Date(expiresAt as string));
+      subject = "A seat is offered to you: reply within 24 hours";
+      paragraphs = ["A seat is offered to you. Accept the offer on My registration before the deadline below.",
+        `Offer deadline: ${deadline} (${conferenceConfig.timeZone}).`, `Sign in to My registration: ${registrationUrl}`];
+      break;
+    }
+    case "registration_waitlisted":
+      subject = "You are on the waitlist";
+      paragraphs = ["You are on the conference waitlist. This email does not confirm a seat.",
+        `Sign in to My registration: ${registrationUrl}`];
+      break;
+    case "registration_expired":
+      subject = "Your offer expired";
+      paragraphs = ["Your seat offer has expired.", `Sign in to My registration: ${registrationUrl}`];
+      break;
+  }
+  const text = [homepageCopy.en.kicker, `Conference dates: ${formatConferenceDateRange(conferenceConfig.dates, "en")}.`,
+    ...paragraphs, `Support: ${contactConfig.recipient}`].join("\n\n");
+  const html = `<html lang="en"><body>${text.split("\n\n").map((paragraph) => {
+    const link = [registrationUrl + "/ticket", registrationUrl].find((url) => paragraph.endsWith(url));
+    const content = link ? escapeHtml(paragraph.slice(0, -link.length)) + `<a href="${escapeHtml(link)}">${escapeHtml(link)}</a>`
+      : escapeHtml(paragraph);
+    return `<p>${content}</p>`;
+  }).join("")}</body></html>`;
+  return Object.freeze({ from: `MSRC ${conferenceConfig.edition} <${contactConfig.sender}>`,
+    to: [message.recipient_email], subject, text, html });
+}
+
 /** Immutable v1 fixture. Add new versions rather than editing a rendered request in flight. */
 export function renderOutboxMessage(message: OutboxMessage): EmailRequest {
+  if (message.template_key !== "synthetic_notice") return renderRegistrationMessage(message);
   const reference = message.payload.reference;
   if (message.template_key !== "synthetic_notice" || message.template_version !== 1
     || !["en", "ar"].includes(message.locale) || !syntheticRecipient(message.recipient_email)
@@ -78,7 +155,9 @@ export function createConsoleOutboxSender(): OutboxSender {
 /** Direct HTTP follows the incumbent Contact adapter; one bounded attempt, no internal retry. */
 export function createResendOutboxSender(key: string, fetcher: typeof fetch = fetch): OutboxSender {
   return { async send(request, idempotencyKey) {
-    if (!request.to.every(syntheticRecipient) || idempotencyKey.length > 256 || !idempotencyKey) {
+    // The production route independently requires both delivery switches and bounded caps.
+    // Console/test senders retain their synthetic-only boundary.
+    if (request.to.length !== 1 || !request.to.every(validOutboxRecipient) || idempotencyKey.length > 256 || !idempotencyKey) {
       throw new OutboxSendError("template_invalid", false);
     }
     let response: Response;

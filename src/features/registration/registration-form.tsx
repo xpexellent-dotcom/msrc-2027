@@ -9,6 +9,7 @@ import type { Locale } from "@/lib/i18n";
 import type { RegistrationResponse } from "./contracts";
 import type { IdentityDocumentType } from "./identity-crypto.server";
 import { registrationCopy } from "./registration-copy";
+import { registrationTicketCopy } from "./ticket-copy";
 
 export function RegistrationForm({ locale, initial }: { locale: Locale; initial: RegistrationResponse }) {
   const copy = registrationCopy[locale];
@@ -68,6 +69,7 @@ export function RegistrationForm({ locale, initial }: { locale: Locale; initial:
       {checking ? <p>{copy.checking}</p> : submitted ? <p className="participant-account-status">{copy.confirmation}</p> : error ? <><h2>{copy.errorTitle}</h2><p>{error}</p></> : null}
     </div>
     {!checking && result.state === "denied" ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : null}
+    {!checking && submitted ? <ButtonLink href={`/${locale}/registration/ticket`} variant="secondary">{registrationTicketCopy[locale].title}</ButtonLink> : null}
     {!checking && result.state === "unavailable" && !result.formToken ? <Button onClick={() => { setChecking(true); setStatusRefresh((value) => value + 1); }}>{copy.retry}</Button> : null}
     {!checking && !submitted && result.formToken && result.termsVersion && !["closed", "denied"].includes(result.state) ? <form onSubmit={submit}>
       <fieldset className="participant-account-fields" disabled={pending}>

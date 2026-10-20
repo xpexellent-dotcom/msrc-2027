@@ -94,11 +94,12 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
     <div className="staff-table-scroll" role="region" aria-label={copy.areas.registration} tabIndex={0}>
       <table><thead><tr>
         <th scope="col"><label className="staff-check"><input type="checkbox" checked={allSelected} disabled={busy || !selectable.length} onChange={(event) => setSelected(event.target.checked ? selectable.map((request) => request.id) : [])} /><span className="sr-only">{text.selectAll}</span></label></th>
-        <th scope="col">{copy.name}</th><th scope="col">{copy.status}</th><th scope="col" className="staff-nowrap">{text.requested}</th><th scope="col">{copy.identifier}</th><th scope="col">{copy.action}</th>
+        <th scope="col">{copy.name}</th><th scope="col">{copy.status}</th><th scope="col">{text.ticket}</th><th scope="col" className="staff-nowrap">{text.requested}</th><th scope="col">{copy.identifier}</th><th scope="col">{copy.action}</th>
       </tr></thead><tbody>{requests.map((request) => <tr key={request.id} data-testid="queue-row">
         <td>{decidable.has(request.status) ? <label className="staff-check"><input type="checkbox" checked={selected.includes(request.id)} disabled={busy} onChange={(event) => toggle(request.id, event.target.checked)} /><span className="sr-only">{text.select} {request.name}</span></label> : null}</td>
         <th scope="row"><bdi>{request.name}</bdi><span className="staff-email"><bdi dir="ltr">{request.email}</bdi></span>{request.priority ? <span className="staff-tag">{text.priority}</span> : null}</th>
         <td><span className={`staff-status staff-status--${request.status}`}>{text.statuses[request.status]}</span>{request.status === "offered" && request.offerExpiresAt ? <span className="staff-muted staff-offer-ends">{text.offerEnds}: {formatStaffDate(request.offerExpiresAt, locale, copy.unknown)}</span> : null}</td>
+        <td data-testid="queue-ticket"><span className={`staff-status${request.ticketStatus === "issued" ? " staff-status--approved" : request.ticketStatus === "revoked" ? " staff-status--cancelled" : ""}`}>{request.ticketStatus ? text.ticketStatuses[request.ticketStatus] : text.ticketStatuses.none}</span></td>
         <td>{formatStaffDate(request.createdAt, locale, copy.unknown)}</td>
         <td className="staff-nowrap"><bdi dir="ltr">{request.identityMasked ?? "—"}</bdi></td>
         <td><div className="staff-actions">
@@ -115,6 +116,7 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
         <Button size="small" variant="secondary" onClick={() => setDetail(null)}>{text.closeDetails}</Button></div>
       <dl className="staff-detail-facts">
         <div><dt>{copy.status}</dt><dd>{text.statuses[detail.request.status]}</dd></div>
+        <div><dt>{text.ticket}</dt><dd data-testid="detail-ticket">{detail.request.ticketStatus ? text.ticketStatuses[detail.request.ticketStatus] : text.ticketStatuses.none}</dd></div>
         <div><dt>{text.submitted}</dt><dd>{formatStaffDate(detail.request.createdAt, locale, copy.unknown)}</dd></div>
         <div><dt>{copy.identifier}</dt><dd><bdi dir="ltr">{detail.request.identityMasked ?? "—"}</bdi></dd></div>
         {detail.request.offerExpiresAt ? <div><dt>{text.offerEnds}</dt><dd>{formatStaffDate(detail.request.offerExpiresAt, locale, copy.unknown)}</dd></div> : null}

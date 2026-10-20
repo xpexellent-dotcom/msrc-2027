@@ -208,7 +208,8 @@ update msrc_registration.requests set offer_expires_at=clock_timestamp()-interva
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(4))->'detail'->'request'->>'status','expired','Detail read cannot display an elapsed offer as current');
 select is((select count(*) from msrc_registration.audit where event='request.offered'),6::bigint,'Two manual offers plus four replacements each have one audit');
 select is((select count(*) from msrc_registration.audit where event='request.offered' and performer_id is null),4::bigint,'Every expiry-triggered replacement records an automatic performer');
-select is((select count(*) from msrc_outbox.messages),0::bigint,'Offer/expiry operations enqueue no email');
+select is((select count(*) from msrc_outbox.messages where template_key='registration_offered'),6::bigint,
+ 'Two manual offers and four automatic offers each enqueue one notification');
 select throws_ok($$update msrc_registration.audit set new_status='waitlisted' where event='request.offered'$$,'55000',null,'Offer audit rows cannot be mutated');
 select throws_ok($$delete from msrc_registration.audit where event='request.offer_expired'$$,'55000',null,'Expiry audit rows cannot be deleted');
 
@@ -239,6 +240,7 @@ do $$declare n integer;begin
  end loop;
 end$$;
 update auth.users set deleted_at=clock_timestamp() where id=pg_temp.registration_actor(55);
+create temporary table export_outbox_snapshot as select count(*) as total from msrc_outbox.messages;
 create temporary table export_result as select public.msrc_staff_registration_export('synthetic-staff-offers') as value;
 select is((select value->>'state' from export_result),'ready','TOTP-valid Super Admin can export');
 select is((select jsonb_array_length(value->'rows') from export_result),55,'Export includes all edition requests, exceeding queue limit');
@@ -261,7 +263,7 @@ select is(public.msrc_staff_registration_export('synthetic-staff-offers')->>'sta
 reset role;
 select is((select count(*) from msrc_registration.audit where event='registration.exported' and row_count=55),2::bigint,'Every export creates its own durable row-count audit');
 select throws_ok($$update msrc_registration.audit set row_count=0 where event='registration.exported'$$,'55000',null,'Export row-count evidence is immutable');
-select is((select count(*) from msrc_outbox.messages),0::bigint,'Detail/export produce no notification mail');
+select is((select count(*) from msrc_outbox.messages),(select total from export_outbox_snapshot),'Detail/export create no extra notification mail');
 
 select * from finish();
 rollback;

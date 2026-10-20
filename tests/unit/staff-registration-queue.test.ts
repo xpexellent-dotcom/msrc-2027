@@ -6,7 +6,7 @@ import { createStaffBackend, StaffRpcMissingError, type StaffBackend, type Nativ
 import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/config.server";
 import { readStaffJson, readStaffSession, staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
 import { validateStaffPayload } from "@/features/staff-portal/validation.server";
-import { verifiedPriorityClaims } from "@/features/staff-portal/registration-contract.server";
+import { registrationProjection, verifiedPriorityClaims, verifiedStaffRegistrationClaims } from "@/features/staff-portal/registration-contract.server";
 import type { StaffRegistrationCounts, StaffRegistrationRequest, StaffPriorityRow } from "@/features/staff-portal/ui-contract";
 
 const origin = "http://127.0.0.1:3219", now = Date.parse("2026-10-17T00:00:00Z");
@@ -22,7 +22,7 @@ const accessToken = "header." + Buffer.from(JSON.stringify(claims)).toString("ba
 const native: NativeStaffSession = { actorId, sessionId, accessToken, refreshToken: "synthetic-refresh" };
 const counts: StaffRegistrationCounts = { pending: 2, approved: 1, waitlisted: 0, offered: 0, expired: 0, capacity: 3, remaining: 2 };
 const row: StaffRegistrationRequest = { id: requestId, actorId: targetId, name: "Synthetic Participant", email: "person@example.invalid",
-  status: "pending_approval", priority: true, createdAt: new Date(now).toISOString(), decidedAt: null, offerExpiresAt: null, identityMasked: "••••••1234" };
+  status: "pending_approval", priority: true, createdAt: new Date(now).toISOString(), decidedAt: null, offerExpiresAt: null, identityMasked: "••••••1234", ticketStatus: null };
 const priorityRow: StaffPriorityRow = { actorId: targetId, name: row.name, email: row.email, active: true, reason: "Synthetic roster verified",
   designatedAt: row.createdAt, designatedByName: "Synthetic Staff", removedAt: null };
 const registration = { requests: [row], counts };
@@ -48,9 +48,10 @@ function request(method: "GET" | "POST", query = "", body?: Record<string, unkno
 }
 function handle(input: Request) { return createStaffHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => now })(input); }
 beforeEach(() => {
+  vi.stubEnv("REGISTRATION_TICKET_SECRET", "d".repeat(64));
   roles = ["superAdmin"]; policySatisfied = true;
   replies = { msrc_staff_registration: { state: "ready", registration },
-    msrc_staff_registration_approve: { state: "updated", registration, decided: { approved: 1, waitlisted: 0, skipped: 0 } },
+    msrc_staff_registration_approve_tickets: { state: "updated", registration, decided: { approved: 1, waitlisted: 0, skipped: 0 } },
     msrc_staff_registration_waitlist: { state: "updated", registration, decided: { approved: 0, waitlisted: 1, skipped: 0 } },
     msrc_staff_registration_offer: { state: "updated", registration, decided: { approved: 0, waitlisted: 0, offered: 1, skipped: 0 } },
     msrc_staff_registration_detail: { state: "ready", detail: { request: row, history: [
@@ -72,6 +73,48 @@ beforeEach(() => {
   }), identity: vi.fn(async () => actorId), refresh: vi.fn(async () => native), logout: vi.fn(async () => true) } as unknown as StaffBackend;
 });
 afterEach(() => vi.unstubAllGlobals());
+
+describe("ticket-bearing approval service boundary", () => {
+  it("uses the service credential without a user bearer and strips editable claims", async () => {
+    const adapter = createStaffBackend(config);
+    const fetcher = vi.fn(async () => Response.json({ state: "area_not_ready" })); vi.stubGlobal("fetch", fetcher);
+    const args = { edition_key: config.editionKey, session_claims: claims, request_ids: [requestId], ticket_secret: "d".repeat(64) };
+    await adapter.rpc("msrc_staff_registration_approve_tickets", args);
+    const [, options] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
+    expect(new Headers(options.headers).get("apikey")).toBe(config.secretKey);
+    expect(new Headers(options.headers).get("authorization")).toBeNull();
+    await expect(adapter.rpc("msrc_staff_registration_approve_tickets", args, accessToken)).rejects.toThrow("Invalid private RPC transport");
+    expect(fetcher).toHaveBeenCalledOnce();
+    const edited = "header." + Buffer.from(JSON.stringify({ ...claims, user_metadata: { role: "superAdmin" }, app_metadata: { private: "discard" } })).toString("base64url") + ".signature";
+    expect(verifiedStaffRegistrationClaims({ ...native, accessToken: edited }, now)).toEqual(claims);
+  });
+  it("accepts validated regular-staff AAL1 claims for database email-session authorization", () => {
+    const regular = { ...claims, aal: "aal1", amr: claims.amr.slice(0, 1) };
+    const session = { ...native, accessToken: "header." + Buffer.from(JSON.stringify(regular)).toString("base64url") + ".signature" };
+    expect(verifiedStaffRegistrationClaims(session, now)).toEqual(regular);
+    expect(verifiedPriorityClaims(session, now)).toBeNull();
+  });
+  it("missing key or migration closes approval without invalidating the session or using legacy RPC", async () => {
+    vi.stubEnv("REGISTRATION_TICKET_SECRET", "");
+    let response = await handle(request("POST", "", { action: "registration-approve", requestIds: [requestId] }));
+    expect(response.status).toBe(503); expect(await response.json()).toMatchObject({ state: "area-not-ready" });
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name.includes("registration_approve"))).toBe(false);
+    vi.stubEnv("REGISTRATION_TICKET_SECRET", "d".repeat(64));
+    const original = backend.rpc;
+    backend.rpc = vi.fn(async (name, ...args) => { if (name === "msrc_staff_registration_approve_tickets") throw new StaffRpcMissingError(); return original(name, ...args); });
+    response = await handle(request("POST", "", { action: "registration-approve", requestIds: [requestId] }));
+    expect(response.status).toBe(503); expect(await response.json()).toMatchObject({ state: "area-not-ready" });
+    expect(response.headers.get("set-cookie")).toBeNull(); expect(backend.logout).not.toHaveBeenCalled();
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name === "msrc_staff_registration_approve")).toBe(false);
+  });
+  it("projects only safe ticket status and normalizes older rows", () => {
+    for (const ticketStatus of [null, "issued", "revoked"]) expect(registrationProjection({ ...registration, requests: [{ ...row, ticketStatus }] })?.requests[0].ticketStatus).toBe(ticketStatus);
+    const legacy = { ...row }; delete legacy.ticketStatus;
+    expect(registrationProjection({ ...registration, requests: [legacy] })?.requests[0].ticketStatus).toBeNull();
+    for (const field of [{ ticketStatus: "valid" }, { ticketToken: "private" }, { secret_hash: "private" }, { ticketId: targetId }])
+      expect(registrationProjection({ ...registration, requests: [{ ...row, ...field }] })).toBeNull();
+  });
+});
 
 describe("ORG-056 private early-access list", () => {
   function rpcTransport(failure?: { name: string; status: number; body: Record<string, unknown> }) {
@@ -324,10 +367,14 @@ describe("staff registration GET and mutations", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ state: "updated", registration, decided: action === "registration-approve"
       ? { approved: 1, waitlisted: 0, skipped: 0 } : { approved: 0, waitlisted: 1, skipped: 0 } });
-    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_" + action.replaceAll("-", "_"), { edition_key: config.editionKey, request_ids: [requestId] }, accessToken);
+    if (action === "registration-approve") {
+      expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_registration_approve_tickets", {
+        edition_key: config.editionKey, request_ids: [requestId], session_claims: claims, ticket_secret: "d".repeat(64),
+      });
+    } else expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_" + action.replaceAll("-", "_"), { edition_key: config.editionKey, request_ids: [requestId] }, accessToken);
   });
   it.each(["capacity_not_set", "payment_configuration_required"])("exposes clear safe configuration state %s", async (state) => {
-    replies.msrc_staff_registration_approve = { state };
+    replies.msrc_staff_registration_approve_tickets = { state };
     const response = await handle(request("POST", "", { action: "registration-approve", requestIds: [requestId] }));
     expect(response.status).toBe(409); expect((await response.json()).state).toBe(state.replaceAll("_", "-"));
   });
@@ -351,11 +398,11 @@ describe("staff registration GET and mutations", () => {
   });
   it("requires CSRF for bulk allocation", async () => {
     expect((await handle(request("POST", "", { action: "registration-approve", requestIds: [requestId], formToken: "forged" }))).status).toBe(400);
-    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name === "msrc_staff_registration_approve")).toBe(false);
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name === "msrc_staff_registration_approve_tickets")).toBe(false);
   });
   it("admits 100 UUIDs through the real JSON body boundary", async () => {
     const requestIds = Array.from({ length: 100 }, (_, i) => `30000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`);
-    replies.msrc_staff_registration_approve = { state: "updated", registration, decided: { approved: 0, waitlisted: 0, skipped: 100 } };
+    replies.msrc_staff_registration_approve_tickets = { state: "updated", registration, decided: { approved: 0, waitlisted: 0, skipped: 100 } };
     expect((await handle(request("POST", "", { action: "registration-approve", requestIds }))).status).toBe(200);
   });
   it("returns nullable capacity without inventing a configured value", async () => {
@@ -365,13 +412,13 @@ describe("staff registration GET and mutations", () => {
     expect(response.status).toBe(200); expect((await response.json()).registration).toEqual(unconfigured);
   });
   it("honors database denial after server role approval", async () => {
-    replies.msrc_staff_registration_approve = { state: "denied" };
+    replies.msrc_staff_registration_approve_tickets = { state: "denied" };
     const response = await handle(request("POST", "", { action: "registration-approve", requestIds: [requestId] }));
     expect(response.status).toBe(403); expect((await response.json()).decided).toBeUndefined();
   });
   it.each([{ approved: 2, waitlisted: 0, skipped: 0 }, { approved: 0, waitlisted: 1, skipped: 0 },
     { approved: 1, waitlisted: 0, skipped: -1 }])("rejects impossible decision counts %#", async (decided) => {
-    replies.msrc_staff_registration_approve = { state: "updated", registration, decided };
+    replies.msrc_staff_registration_approve_tickets = { state: "updated", registration, decided };
     const response = await handle(request("POST", "", { action: "registration-approve", requestIds: [requestId] }));
     expect(response.status).toBe(503); expect((await response.json()).decided).toBeUndefined();
   });
