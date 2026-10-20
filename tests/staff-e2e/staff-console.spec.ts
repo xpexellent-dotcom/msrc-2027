@@ -171,8 +171,8 @@ for (const locale of ["en", "ar"] as const) test(`${locale} waitlisted requests 
   await page.getByTestId("queue-row").nth(1).getByRole("button", { name: new RegExp(text.details) }).click();
   const detail = page.getByTestId("queue-detail");
   await expect(detail.getByRole("heading", { level: 3 })).toBeFocused();
-  await expect(detail.locator(".staff-history li")).toHaveCount(1);
-  await expect(detail.locator(".staff-history")).toContainText(text.statuses.waitlisted);
+  await expect(detail.locator(".staff-decisions li")).toHaveCount(1);
+  await expect(detail.locator(".staff-decisions")).toContainText(text.statuses.waitlisted);
   await shot(page, `${locale}-detail`, testInfo.project.name);
   await axe(page);
   await detail.getByRole("button", { name: text.closeDetails }).click();
