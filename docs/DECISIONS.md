@@ -3591,3 +3591,37 @@ preserving valid sessions. Public closed-state presentation is preserved when
 the registration runtime gate is off. Observed checks, database CI gates and
 owner review points belong in the [Task 4 receipt](progress/2026-10-20-codex-my-registration.md).
 `docs/PROGRESS.md` stays unchanged under O9.
+
+## ENG-056 — Staging, load preparation and opening-night monitoring, 20 October 2026
+
+Authority: the owner's overnight Tasks 5 and 6; ORG-055/056. ENG-055 was
+the highest used when reserved. INF-04–06, NFR-01–03, REG-01–08,
+EML-01–05, SEC-01/02/06, TIM-01/02 and REL-02/06 apply. Scripts,
+runbooks and narrowly scoped health instrumentation only; no hosted resources,
+migrations, seeds, settings, flags, email, branches, commits or pushes.
+
+Prepare an explicitly allowlisted synthetic staging seed and a guarded load
+runner. The 2,000-seat / 500 submissions in ten minutes scenario is a planning
+assumption requiring owner confirmation, not a seeded production capacity.
+ORG-056 free attendance and 24-hour offers are preserved; staging instants
+remain explicit owner inputs. Delivery and workflow settings remain closed.
+
+Public health reports only bounded database reachability. A separate secret
+protects outbox aggregate monitoring; monitoring neither drains nor advances
+registration state. Missing health RPCs fail safely until reviewed migrations
+are applied. No frontend contract or authorization gate is relaxed.
+
+Reconciliation: current hosted staff/participant runtime resolvers reject
+Preview and custom staging origins; their console/test mail paths are local
+only. Therefore creating a staging project and seeding it does not make hosted
+authenticated rehearsal available. A separately reviewed staging runtime/mail
+sink slice is a prerequisite. Participant POST rate limits also constrain a
+single load-generator egress. The runbooks expose these gates rather than
+spoofing Production, forwarding headers or weakening authentication.
+
+No literal O11 entry was found in the checked-out docs. Existing staging
+authority is in OWNERSHIP_AND_SETUP, ARCHITECTURE and backlog/23-deployment;
+the owner must reconcile the external overnight-plan O11 note. The fresh
+synthetic-only staging migration replay in STAGING_SETUP is an explicit
+Task 5 exception to older blanket hosted-replay prohibitions, never a
+Production migration procedure. See [the O9 receipt](progress/2026-10-20-codex-staging-opening-night.md).

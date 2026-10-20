@@ -20,7 +20,7 @@ select ok(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pron
  'Private functions have no PUBLIC or API execution grants');
 select is((select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace
  where n.nspname='public' and p.proname like 'msrc_outbox_%' and p.prosecdef and p.proowner='postgres'::regrole
- and p.proconfig @> array['search_path=""']),4::bigint,'Exactly four postgres-owned empty-path RPCs exist');
+ and p.proconfig @> array['search_path=""']),5::bigint,'Five postgres-owned empty-path outbox RPCs include the read-only monitor');
 select ok(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace cross join lateral aclexplode(p.proacl) a
  where n.nspname='public' and p.proname like 'msrc_outbox_%' and (a.grantee=0 or a.grantee in('anon'::regrole,'authenticated'::regrole))),
  'All public RPCs revoke PUBLIC and client execution');
