@@ -21,7 +21,7 @@ Probe paths exactly, without redirects to another host and without query secrets
 | `/api/jobs/outbox/drain` | **Do not use for uptime.** GET/POST can send mail and spend quota. HEAD intentionally returns 404 and proves no drain health. | Observe scheduled invocation logs; do not invoke merely to test uptime. |
 
 The new health migration is
-`supabase/migrations/20261020020245_operational_health.sql`. It grants only
+`supabase/migrations/20261020160000_operational_health.sql`. It grants only
 `service_role` the public wrappers `msrc_health_check() returns boolean` and
 `msrc_outbox_monitor() returns jsonb`; `anon`/`authenticated` have no execution.
 No private schema/table is exposed. Review/apply through the relevant staging or

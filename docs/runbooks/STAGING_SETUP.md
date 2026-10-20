@@ -115,7 +115,7 @@ pnpm exec supabase migration list --project-ref $env:MSRC_STAGING_PROJECT_REF
 
 Stop on any nonzero exit code. The installed CLI applies pending versioned files
 in order and records its ledger; all local and remote versions must match after
-the push. This task's health migration is `20261020020245_operational_health.sql`,
+the push. This task's health migration is `20261020160000_operational_health.sql`,
 which sorts before the hand-set afternoon task 1–4 timestamps and depends only
 on the October 16 outbox migration. Do not rename historical migrations to move
 it. [Supabase environment/migration procedure](https://supabase.com/docs/guides/deployment/managing-environments).
