@@ -27,7 +27,7 @@ comment on table msrc_registration.tickets is
  'Exactly one ticket per request, therefore per participant and edition. No raw secret, QR token, key, personal data or public lookup. Revocation is permanent; reissue policy and scanner validation remain later work.';
 
 create function msrc_registration.ticket_secret(ticket_id uuid,application_secret text) returns text
- language plpgsql immutable security definer set search_path='' as $$
+ language plpgsql stable security definer set search_path='' as $$
 begin
  if ticket_id is null or application_secret is null or application_secret !~ '^[a-fA-F0-9]{64}$' then
  raise exception using errcode='55000',message='Ticket key unavailable.';end if;
