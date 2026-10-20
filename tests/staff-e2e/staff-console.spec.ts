@@ -5,14 +5,15 @@ import { staffCopy } from "../../src/features/staff-portal/copy";
 import { consoleCopy } from "../../src/features/staff-portal/console-copy";
 import { staffMenu } from "../../src/features/staff-portal/menu";
 import type { Role } from "../../src/lib/permissions/contract";
-import type { StaffPayload, StaffRegistrationRequest, StaffResponse } from "../../src/features/staff-portal/ui-contract";
+import type { StaffEarlyAccessEntry, StaffPayload, StaffRegistrationRequest, StaffResponse } from "../../src/features/staff-portal/ui-contract";
 
 const actorId = "21000000-0000-4000-8000-000000000001";
 const ids = ["21000000-0000-4000-8000-0000000000a1", "21000000-0000-4000-8000-0000000000a2", "21000000-0000-4000-8000-0000000000a3"];
 const participantId = "21000000-0000-4000-8000-0000000000b1";
+const earlyIds = ["21000000-0000-4000-8000-0000000000e1", "21000000-0000-4000-8000-0000000000e2"];
 
-/** ORG-055 presentation fixture. Seat allocation and authority are proven by the database suites. */
-async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string; offerWindow?: boolean; exportRefused?: boolean } = {}) {
+/** ORG-055/056 presentation fixture. Seat allocation and authority are proven by the database suites. */
+async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string; missingAction?: StaffPayload["action"]; offerWindow?: boolean; exportRefused?: boolean } = {}) {
   const actions: StaffPayload[] = [], reads: string[] = [];
   const capacity = options.capacity === undefined ? 2000 : options.capacity;
   let requests: StaffRegistrationRequest[] = [
@@ -21,6 +22,10 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
     { id: ids[2], actorId: ids[2], name: "Synthetic Approved", email: "approved@example.invalid", status: "approved", priority: false, createdAt: "2026-11-18T17:02:00Z", decidedAt: "2026-11-19T09:00:00Z", identityMasked: "••••••9012", offerExpiresAt: null },
   ];
   let designations = [{ actorId: participantId, name: "Synthetic Volunteer", email: "volunteer@example.invalid", active: true, reason: "Logistics committee", designatedAt: "2026-10-17T10:00:00Z", designatedByName: "Synthetic Staff", removedAt: null as string | null }];
+  let earlyEntries: StaffEarlyAccessEntry[] = [
+    { id: earlyIds[0], email: "registered@example.invalid", addedAt: "2026-10-20T10:00:00Z", addedByName: "Synthetic Staff", hasAccount: true, hasRequest: true },
+    { id: earlyIds[1], email: "future@example.invalid", addedAt: "2026-10-20T10:01:00Z", addedByName: "Synthetic Staff", hasAccount: false, hasRequest: false },
+  ];
   const counts = () => ({ pending: requests.filter((r) => r.status === "pending_approval").length, approved: requests.filter((r) => r.status === "approved").length, waitlisted: requests.filter((r) => r.status === "waitlisted").length, offered: requests.filter((r) => r.status === "offered").length, expired: requests.filter((r) => r.status === "expired").length, capacity, remaining: capacity === null ? null : capacity - requests.filter((r) => r.status === "approved").length });
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request(), url = new URL(request.url());
@@ -28,6 +33,18 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
     if (request.method() === "POST") {
       const payload = request.postDataJSON() as StaffPayload; actions.push(payload);
       if (payload.action === "activity") return route.fulfill({ contentType: "application/json", body: JSON.stringify(base) });
+      if (payload.action === options.missingAction) return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ...base, state: "area-not-ready" }) });
+      if (payload.action === "early-access-add") {
+        const invalid: string[] = (payload.emails ?? []).filter((email) => email === "not-an-email");
+        const added = (payload.emails ?? []).filter((email) => !invalid.includes(email) && !earlyEntries.some((entry) => entry.email === email));
+        earlyEntries = [...earlyEntries, ...added.map((email, index) => ({ id: `21000000-0000-4000-8000-${String(earlyEntries.length + index + 1).padStart(12, "0")}`, email, addedAt: "2026-10-20T11:00:00Z", addedByName: "Synthetic Staff", hasAccount: false, hasRequest: false }))];
+        return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ...base, state: "updated", added: added.length, invalid }) });
+      }
+      if (payload.action === "early-access-remove") {
+        const removed = earlyEntries.filter((entry) => payload.entryIds?.includes(entry.id)).length;
+        earlyEntries = earlyEntries.filter((entry) => !payload.entryIds?.includes(entry.id));
+        return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ...base, state: "updated", removed }) });
+      }
       if (payload.action === "registration-approve") {
         if (capacity === null) return route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ ...base, state: "capacity-not-set" }) });
         let approved = 0, skipped = 0;
@@ -63,6 +80,7 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
       response = { ...base, registrationDetail: { request, history: [{ id: "21000000-0000-4000-8000-0000000000d1", from: "pending_approval", to: "waitlisted", at: "2026-11-19T08:00:00Z", performerName: "Synthetic Staff" }] } };
     }
     if (area === "priority") response = { ...base, priority: { designations, candidates: url.searchParams.get("q") ? [{ actorId: "21000000-0000-4000-8000-0000000000c1", name: "Synthetic Candidate", email: "candidate@example.invalid", status: "verified", createdAt: "2026-10-10T10:00:00Z" }] : undefined } };
+    if (area === "early-access") { const query = url.searchParams.get("q")?.toLowerCase() ?? ""; response = { ...base, earlyAccess: { entries: earlyEntries.filter((entry) => entry.email.includes(query)) } }; }
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(response) });
   });
   return { actions, reads };
@@ -86,7 +104,7 @@ for (const locale of ["en", "ar"] as const) {
     const menu = page.getByRole("navigation", { name: copy.menu });
     await expect(menu).toBeVisible();
     await expect(menu.locator("li")).toHaveCount(staffMenu(["superAdmin"]).length);
-    for (const key of ["registration", "priority", "finance", "check-in", "science", "content", "sponsorship"] as const) await expect(menu).toContainText(copy.areas[key]);
+    for (const key of ["registration", "priority", "early-access", "finance", "check-in", "science", "content", "sponsorship"] as const) await expect(menu).toContainText(copy.areas[key]);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     const overview = page.locator(".staff-dashboard");
     await expect(overview).toContainText(text.cards.pending);
@@ -137,6 +155,113 @@ for (const locale of ["en", "ar"] as const) {
     await axe(page);
   });
 
+  test(`${locale} early access normalizes pasted emails, reports invalid entries and supports removal and search`, async ({ page }, testInfo) => {
+    const early = text.earlyAccess;
+    const mock = await consoleFixture(page, ["superAdmin"]);
+    await page.goto(`/${locale}/staff/early-access`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy.areas["early-access"]);
+    await expect(page.getByRole("navigation", { name: copy.menu }).getByRole("link", { name: copy.areas["early-access"], exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+    await expect(page.getByTestId("early-row")).toHaveCount(2);
+    await expect(page.getByRole("columnheader", { name: early.account, exact: true })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: early.request, exact: true })).toBeVisible();
+    const registered = page.getByTestId("early-row").filter({ hasText: "registered@example.invalid" });
+    await expect(registered).toContainText(early.hasAccount);
+    await expect(registered).toContainText(early.requested);
+    await expect(registered.locator("bdi").first()).toHaveAttribute("dir", "ltr");
+    const future = page.getByTestId("early-row").filter({ hasText: "future@example.invalid" });
+    await expect(future).toContainText(early.noAccount);
+    await expect(future.locator("td").nth(2)).toHaveText("—");
+    const paste = page.getByLabel(early.paste);
+    await expect(paste).toHaveAttribute("dir", "ltr");
+    await expect(page.getByTestId("early-add")).toBeDisabled();
+    await paste.fill("  FIRST@Example.Invalid, not-an-email;\n SECOND@EXAMPLE.INVALID  ");
+    await page.getByTestId("early-add").click();
+    await expect.poll(() => mock.actions.find((action) => action.action === "early-access-add")?.emails).toEqual(["first@example.invalid", "not-an-email", "second@example.invalid"]);
+    await expect(paste).toHaveValue("not-an-email");
+    await expect(paste).toHaveAttribute("aria-invalid", "true");
+    await expect(page.getByRole("note")).toHaveText(early.invalid(1));
+    await expect(page.locator(".staff-feedback")).toHaveText(early.added(2, 1));
+    await expect(page.getByTestId("early-row")).toHaveCount(4);
+    await shot(page, `${locale}-early-access`, testInfo.project.name);
+    await axe(page);
+    // Duplicate input must use the server's actual added count, rather than attempted entries.
+    await paste.fill("FIRST@example.invalid; first@example.invalid");
+    await expect(paste).not.toHaveAttribute("aria-invalid", "true");
+    await page.getByTestId("early-add").click();
+    await expect.poll(() => mock.actions.filter((action) => action.action === "early-access-add").at(-1)?.emails).toEqual(["first@example.invalid"]);
+    await expect(page.locator(".staff-feedback")).toHaveText(early.added(0, 0));
+    await expect(paste).toHaveValue("");
+    await expect(page.getByTestId("early-row")).toHaveCount(4);
+    await future.getByRole("button", { name: `${early.remove}: future@example.invalid`, exact: true }).click();
+    await expect.poll(() => mock.actions.find((action) => action.action === "early-access-remove")?.entryIds).toEqual([earlyIds[1]]);
+    await expect(page.locator(".staff-feedback")).toHaveText(early.removed(1));
+    await expect(future).toHaveCount(0);
+    await expect(page.getByTestId("early-row")).toHaveCount(3);
+    await registered.getByRole("checkbox").check();
+    await expect(page.getByTestId("early-remove-selected")).toBeVisible();
+    await page.getByLabel(early.search, { exact: true }).fill("second");
+    await page.getByRole("button", { name: copy.search, exact: true }).click();
+    await expect.poll(() => mock.reads.includes("early-access:all:second")).toBe(true);
+    await expect(page.getByTestId("early-row")).toHaveCount(1);
+    await expect(page.getByTestId("early-row")).toContainText("second@example.invalid");
+    await expect(page.getByTestId("early-remove-selected")).toHaveCount(0);
+    await expect(page.getByTestId("early-row").getByRole("checkbox")).not.toBeChecked();
+    await page.getByTestId("early-row").getByRole("checkbox").check();
+    await page.getByTestId("early-remove-selected").click();
+    await expect.poll(() => mock.actions.filter((action) => action.action === "early-access-remove").at(-1)?.entryIds).toEqual(["21000000-0000-4000-8000-000000000004"]);
+    await expect(page.locator(".staff-feedback")).toHaveText(early.removed(1));
+    await expect(page.getByTestId("early-row")).toHaveCount(0);
+    await page.getByLabel(early.search, { exact: true }).fill("registered");
+    await page.getByRole("button", { name: copy.search, exact: true }).click();
+    await expect(registered).toHaveCount(1);
+  });
+
+  test(`${locale} a registration administrator cannot see or open early-access controls`, async ({ page }) => {
+    const mock = await consoleFixture(page, ["registrationWorkshopAdministrator"]);
+    await page.goto(`/${locale}/staff`);
+    const menu = page.getByRole("navigation", { name: copy.menu });
+    await expect(menu).toContainText(copy.areas.registration);
+    await expect(menu.getByRole("link", { name: copy.areas["early-access"], exact: true })).toHaveCount(0);
+    await page.goto(`/${locale}/staff/early-access`);
+    await expect(page.locator(".staff-workspace").getByRole("alert")).toHaveText(copy.states.denied);
+    await expect(page.getByTestId("early-add")).toHaveCount(0);
+    await expect(page.getByTestId("early-row")).toHaveCount(0);
+    expect(mock.actions.some((action) => action.action.startsWith("early-access-"))).toBe(false);
+    await axe(page);
+  });
+
+  test(`${locale} early-access read failures replace old success text and recover on search`, async ({ page }) => {
+    const early = text.earlyAccess, options: { missingArea?: string } = {};
+    const mock = await consoleFixture(page, ["superAdmin"], options);
+    await page.goto(`/${locale}/staff/early-access`);
+    await page.getByLabel(early.paste).fill("success@example.invalid");
+    await page.getByTestId("early-add").click();
+    await expect(page.locator(".staff-feedback")).toHaveText(early.added(1, 0));
+    await expect(page.getByTestId("early-row")).toHaveCount(3);
+    options.missingArea = "early-access";
+    await page.getByLabel(early.search, { exact: true }).fill("success");
+    await page.getByRole("button", { name: copy.search, exact: true }).click();
+    await expect(page.locator(".staff-feedback")).toHaveText(copy.states["area-not-ready"]);
+    await expect(page.getByRole("navigation", { name: copy.menu })).toBeVisible();
+    await expect(page.getByTestId("staff-name")).toBeVisible();
+    options.missingArea = undefined;
+    await page.getByRole("button", { name: copy.search, exact: true }).click();
+    await expect(page.getByTestId("early-row")).toHaveCount(1);
+    await expect(page.getByTestId("early-row")).toContainText("success@example.invalid");
+    await expect(page.locator(".staff-feedback")).toBeEmpty();
+    // A successful write followed by a failed refresh must still explain the read failure.
+    options.missingArea = "early-access";
+    await page.getByLabel(early.paste).fill("refresh@example.invalid");
+    await page.getByTestId("early-add").click();
+    await expect.poll(() => mock.actions.filter((action) => action.action === "early-access-add").at(-1)?.emails).toEqual(["refresh@example.invalid"]);
+    await expect(page.locator(".staff-feedback")).toHaveText(copy.states["area-not-ready"]);
+    await expect(page.getByRole("navigation", { name: copy.menu })).toBeVisible();
+    await expect(page.getByTestId("staff-name")).toBeVisible();
+    await expect(page.getByLabel(copy.password)).toHaveCount(0);
+    await axe(page);
+  });
+
   test(`${locale} planned areas explain themselves and review is oversight-only for Super Admin`, async ({ page }) => {
     await consoleFixture(page, ["superAdmin"]);
     await page.goto(`/${locale}/staff/review`);
@@ -149,13 +274,30 @@ for (const locale of ["en", "ar"] as const) {
   });
 }
 
-for (const locale of ["en", "ar"] as const) test(`${locale} a tool whose database update is pending keeps the console signed in`, async ({ page }) => {
-  await consoleFixture(page, ["superAdmin"], { missingArea: "priority" });
-  await page.goto(`/${locale}/staff/priority`);
+for (const locale of ["en", "ar"] as const) for (const area of ["priority", "early-access"] as const) test(`${locale} ${area} whose database update is pending keeps the console signed in`, async ({ page }) => {
+  await consoleFixture(page, ["superAdmin"], { missingArea: area });
+  await page.goto(`/${locale}/staff/${area}`);
   await expect(page.locator(".staff-feedback")).toHaveText(staffCopy[locale].states["area-not-ready"]);
   await expect(page.getByRole("navigation", { name: staffCopy[locale].menu })).toBeVisible();
   await expect(page.getByTestId("staff-name")).toBeVisible();
   await expect(page.getByLabel(staffCopy[locale].password)).toHaveCount(0);
+});
+
+for (const locale of ["en", "ar"] as const) for (const action of ["early-access-add", "early-access-remove"] as const) test(`${locale} a missing ${action} RPC preserves the list and signed-in session`, async ({ page }) => {
+  const copy = staffCopy[locale], early = consoleCopy[locale].earlyAccess;
+  await consoleFixture(page, ["superAdmin"], { missingAction: action });
+  await page.goto(`/${locale}/staff/early-access`);
+  await expect(page.getByTestId("early-row")).toHaveCount(2);
+  if (action === "early-access-add") {
+    await page.getByLabel(early.paste).fill("new@example.invalid");
+    await page.getByTestId("early-add").click();
+  } else await page.getByRole("button", { name: `${early.remove}: future@example.invalid`, exact: true }).click();
+  await expect(page.locator(".staff-feedback")).toHaveText(copy.states["area-not-ready"]);
+  await expect(page.getByRole("navigation", { name: copy.menu })).toBeVisible();
+  await expect(page.getByTestId("staff-name")).toBeVisible();
+  await expect(page.getByTestId("early-row")).toHaveCount(2);
+  await expect(page.getByLabel(copy.password)).toHaveCount(0);
+  if (action === "early-access-add") await expect(page.getByLabel(early.paste)).toHaveValue("new@example.invalid");
 });
 
 for (const locale of ["en", "ar"] as const) test(`${locale} waitlisted requests can be offered a seat, and details show the decision history`, async ({ page }, testInfo) => {
@@ -171,8 +313,8 @@ for (const locale of ["en", "ar"] as const) test(`${locale} waitlisted requests 
   await page.getByTestId("queue-row").nth(1).getByRole("button", { name: new RegExp(text.details) }).click();
   const detail = page.getByTestId("queue-detail");
   await expect(detail.getByRole("heading", { level: 3 })).toBeFocused();
-  await expect(detail.locator(".staff-history li")).toHaveCount(1);
-  await expect(detail.locator(".staff-history")).toContainText(text.statuses.waitlisted);
+  await expect(detail.locator(".staff-decisions li")).toHaveCount(1);
+  await expect(detail.locator(".staff-decisions")).toContainText(text.statuses.waitlisted);
   await shot(page, `${locale}-detail`, testInfo.project.name);
   await axe(page);
   await detail.getByRole("button", { name: text.closeDetails }).click();

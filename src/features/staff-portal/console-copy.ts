@@ -23,6 +23,16 @@ export const consoleCopy = {
       details: "Details", detailTitle: "Request details", history: "Decision history", noHistory: "No decisions yet.", by: "By", automatic: "Automatic", submitted: "Submitted", closeDetails: "Close details",
       exportCsv: "Download CSV", exportNote: "Super Admin only. ID numbers stay masked, and every download is recorded in the audit log.",
     },
+    earlyAccess: {
+      intro: "People on this list can request a seat during early access, from Sun 15 Nov at 20:00 until general registration opens on Wed 18 Nov at 20:00. Enter the email they use, or will use, for their MSRC account. Early access does not include workshop seats.",
+      paste: "Emails to add", pasteHint: "Paste one or more emails, one per line or separated by commas.", add: (count: number) => count ? `Add ${count} to the list` : "Add to the list",
+      noneEntered: "Enter at least one email.", invalid: (count: number) => `${count} ${count === 1 ? "entry is" : "entries are"} not a valid email. Correct them above and add again.`,
+      added: (added: number, invalid: number) => [`${added} added to the list`, invalid ? `${invalid} not valid` : ""].filter(Boolean).join(" · "),
+      list: "Early-access list", search: "Search email", email: "Email", account: "Account", request: "Seat request", addedOn: "Added", by: "By",
+      hasAccount: "Has an account", noAccount: "No account yet", requested: "Requested", remove: "Remove", removeSelected: "Remove selected",
+      select: "Select", selectAll: "Select all shown", selected: (count: number) => `${count} selected`, noneSelected: "Select at least one email.",
+      removed: (count: number) => `${count} removed from the list`, empty: "No emails on the list yet.", loading: "Loading the list…",
+    },
     priority: {
       intro: "Mark organizing-team members and volunteers so they can register early and choose workshop seats first. Every change needs a reason and is recorded in the audit log.",
       find: "Find a participant", findHint: "Search by name or email, then mark them.", mark: "Mark as organizing team", remove: "Remove", reason: "Reason", reasonHint: "For example: Logistics committee member.",
@@ -58,6 +68,16 @@ export const consoleCopy = {
       offer: "عرض مقعد", offerSelected: "عرض مقاعد على المحدَّدين", offered: "عُرض عليهم مقعد", expired: "عروض منتهية", offerEnds: "ينتهي العرض",
       details: "التفاصيل", detailTitle: "تفاصيل الطلب", history: "سجل القرارات", noHistory: "لا توجد قرارات بعد.", by: "بواسطة", automatic: "تلقائي", submitted: "قُدِّم الطلب", closeDetails: "إغلاق التفاصيل",
       exportCsv: "تنزيل ملف CSV", exportNote: "للمشرف الأعلى فقط. تبقى أرقام الهوية مخفية جزئيًا، وتُسجَّل كل عملية تنزيل في سجل التدقيق.",
+    },
+    earlyAccess: {
+      intro: "يمكن للأشخاص المدرجين في هذه القائمة طلب مقعد خلال الوصول المبكر، من الأحد ١٥ نوفمبر الساعة ٨:٠٠ مساءً حتى فتح التسجيل العام يوم الأربعاء ١٨ نوفمبر الساعة ٨:٠٠ مساءً. أدخل البريد الإلكتروني الذي يستخدمه الشخص، أو سيستخدمه، لحسابه في المؤتمر. لا يشمل الوصول المبكر مقاعد ورش العمل.",
+      paste: "رسائل البريد المراد إضافتها", pasteHint: "الصق بريدًا واحدًا أو أكثر، كل بريد في سطر أو مفصولة بفواصل.", add: (count: number) => count ? `إضافة ${count.toLocaleString("ar-SA")} إلى القائمة` : "إضافة إلى القائمة",
+      noneEntered: "أدخل بريدًا إلكترونيًا واحدًا على الأقل.", invalid: (count: number) => `${count.toLocaleString("ar-SA")} من المدخلات ليست بريدًا صالحًا. صحّحها أعلاه ثم أضفها مجددًا.`,
+      added: (added: number, invalid: number) => [`أُضيف ${added.toLocaleString("ar-SA")} إلى القائمة`, invalid ? `${invalid.toLocaleString("ar-SA")} غير صالح` : ""].filter(Boolean).join(" · "),
+      list: "قائمة الوصول المبكر", search: "البحث بالبريد", email: "البريد الإلكتروني", account: "الحساب", request: "طلب المقعد", addedOn: "تاريخ الإضافة", by: "بواسطة",
+      hasAccount: "لديه حساب", noAccount: "لا يوجد حساب بعد", requested: "قدّم طلبًا", remove: "إزالة", removeSelected: "إزالة المحدَّد",
+      select: "تحديد", selectAll: "تحديد كل المعروض", selected: (count: number) => `تم تحديد ${count.toLocaleString("ar-SA")}`, noneSelected: "حدّد بريدًا واحدًا على الأقل.",
+      removed: (count: number) => `أُزيل ${count.toLocaleString("ar-SA")} من القائمة`, empty: "لا توجد رسائل بريد في القائمة بعد.", loading: "جارٍ تحميل القائمة…",
     },
     priority: {
       intro: "حدّد أعضاء فريق التنظيم والمتطوعين ليتمكنوا من التسجيل مبكرًا واختيار مقاعد ورش العمل أولًا. يتطلب كل تغيير سببًا ويُسجَّل في سجل التدقيق.",

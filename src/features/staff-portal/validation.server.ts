@@ -11,19 +11,28 @@ export function validStaffRegistrationStatus(value: unknown): value is StaffRegi
 
 export const STAFF_ACTIONS = ["signin", "logout", "activity", "enroll-totp", "challenge-totp", "verify-totp", "challenge-email", "verify-email",
   "invite-accept", "invite", "invite-resend", "invite-revoke", "roles", "suspend", "reactivate", "revoke-sessions",
-  "reset-authenticator", "reset-account", "reveal-identity", "password-change", "registration-approve", "registration-waitlist", "registration-offer", "priority-set", "priority-remove"] as const;
+  "reset-authenticator", "reset-account", "reveal-identity", "password-change", "registration-approve", "registration-waitlist", "registration-offer", "priority-set", "priority-remove", "early-access-add", "early-access-remove"] as const;
 export interface StaffPayload {
   action: (typeof STAFF_ACTIONS)[number]; formToken: string; email?: string; name?: string; password?: string; passwordConfirmation?: string;
   code?: string; challengeId?: string; factorId?: string; invitationId?: string; token?: string; targetId?: string;
   roles?: Role[]; website?: string; reason?: string; requestIds?: string[]; status?: StaffRegistrationStatus | "all";
+  emails?: string[]; entryIds?: string[];
+}
+/** Validate the private response without rewriting the database's normalized email. */
+export function validStaffEarlyAccessEmail(email: string): boolean {
+  // SQL applies its own Unicode-aware shape check. This common transport shape
+  // deliberately avoids claiming JavaScript and database locale equivalence.
+  const length = Array.from(email).length;
+  return length >= 3 && length <= 254
+    && /^[^\x00-\x20\x7f@<>]+@[^\x00-\x20\x7f@<>]+\.[^\x00-\x20\x7f@<>]+$/.test(email);
 }
 export function validateStaffPayload(value: unknown): StaffPayload | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
   if (!STAFF_ACTIONS.includes(record.action as never) || typeof record.formToken !== "string") return null;
-  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website", "reason", "requestIds", "status"];
+  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website", "reason", "requestIds", "status", "emails", "entryIds"];
   if (Object.keys(record).some((key) => !allowed.includes(key))
-    || Object.entries(record).some(([key, entry]) => !["roles", "requestIds"].includes(key) && (typeof entry !== "string" || entry.length > (key === "formToken" ? 1024 : 512)))) return null;
+    || Object.entries(record).some(([key, entry]) => !["roles", "requestIds", "emails", "entryIds"].includes(key) && (typeof entry !== "string" || entry.length > (key === "formToken" ? 1024 : 512)))) return null;
   const input = { ...record } as unknown as StaffPayload;
   if (input.action === "activity" && Object.keys(record).some((key) => !["action", "formToken", "website"].includes(key))) return null;
   if (["reveal-identity", "priority-set", "priority-remove"].includes(input.action)) {
@@ -37,6 +46,19 @@ export function validateStaffPayload(value: unknown): StaffPayload | null {
       || new Set(input.requestIds.map((id) => id.toLowerCase())).size !== input.requestIds.length
       || input.status !== undefined && !validStaffRegistrationStatus(input.status)) return null;
   } else if (input.requestIds !== undefined || input.status !== undefined) return null;
+  if (input.action === "early-access-add") {
+    if (Object.keys(record).some((key) => !["action", "formToken", "website", "emails"].includes(key))
+      || !Array.isArray(input.emails) || input.emails.length < 1 || input.emails.length > 500
+      || input.emails.some((email) => typeof email !== "string" || email.length > 512 || email.includes("\u0000"))) return null;
+    // Shape-invalid emails remain in the batch so the result can report them;
+    // the handler binds the RPC's invalid values to this batch. NUL cannot cross
+    // PostgreSQL's text transport, so it rejects the whole malformed request.
+  } else if (input.emails !== undefined) return null;
+  if (input.action === "early-access-remove") {
+    if (Object.keys(record).some((key) => !["action", "formToken", "website", "entryIds"].includes(key))
+      || !Array.isArray(input.entryIds) || input.entryIds.length < 1 || input.entryIds.length > 500
+      || input.entryIds.some((id) => typeof id !== "string" || !staffUuid.test(id))) return null;
+  } else if (input.entryIds !== undefined) return null;
   if (["priority-set", "priority-remove"].includes(input.action)
     && Object.keys(record).some((key) => !["action", "formToken", "website", "targetId", "reason"].includes(key))) return null;
   if (input.action === "password-change") {

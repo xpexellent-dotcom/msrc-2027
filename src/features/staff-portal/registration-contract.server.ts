@@ -2,8 +2,8 @@ import "server-only";
 import type { Role } from "@/lib/permissions/contract";
 import type { NativeStaffSession } from "./backend.server";
 import { staffUuid } from "./security.server";
-import type { StaffArea, StaffParticipant, StaffPriorityRow, StaffRegistrationCounts, StaffRegistrationDetail, StaffRegistrationRequest, StaffResponse, StaffSummary } from "./ui-contract";
-import { validStaffRegistrationStatus } from "./validation.server";
+import type { StaffArea, StaffEarlyAccessEntry, StaffParticipant, StaffPriorityRow, StaffRegistrationCounts, StaffRegistrationDetail, StaffRegistrationRequest, StaffResponse, StaffSummary } from "./ui-contract";
+import { validStaffEarlyAccessEmail, validStaffRegistrationStatus } from "./validation.server";
 
 const record = (value: unknown): Record<string, unknown> | null => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 const exact = (row: Record<string, unknown>, keys: readonly string[]) => Object.keys(row).sort().join(",") === [...keys].sort().join(",");
@@ -15,8 +15,55 @@ const masked = (value: unknown) => value === null || typeof value === "string" &
 
 export function canReadStaffArea(roles: readonly Role[], area: StaffArea): boolean {
   if (area === "summary") return roles.some((role) => role !== "participant");
+  if (area === "early-access") return roles.includes("superAdmin");
   if (roles.includes("superAdmin")) return true;
   return ["registration", "registration-detail", "participants"].includes(area) && roles.includes("registrationWorkshopAdministrator");
+}
+
+export function earlyAccessProjection(value: unknown): NonNullable<StaffResponse["earlyAccess"]> | null {
+  const data = record(value);
+  if (!data || !exact(data, ["entries"]) || !Array.isArray(data.entries) || data.entries.length > 200) return null;
+  const entries: StaffEarlyAccessEntry[] = [], ids = new Set<string>();
+  let previousTime = Infinity;
+  for (const value of data.entries) {
+    const row = record(value);
+    if (!row || !exact(row, ["id", "email", "addedAt", "addedByName", "hasAccount", "hasRequest"])
+      || !uuid(row.id) || typeof row.email !== "string" || !validStaffEarlyAccessEmail(row.email)
+      || row.email !== row.email.replace(/^ +| +$/g, "")
+      || !timestamp(row.addedAt) || row.addedByName !== null && !text(row.addedByName, 200)
+      || typeof row.hasAccount !== "boolean" || typeof row.hasRequest !== "boolean" || row.hasRequest && !row.hasAccount) return null;
+    const time = Date.parse(row.addedAt as string), id = (row.id as string).toLowerCase();
+    if (time > previousTime || ids.has(id)) return null;
+    previousTime = time; ids.add(id); entries.push(row as StaffEarlyAccessEntry);
+  }
+  return { entries };
+}
+
+/** Bound counts and reject invalid-address replies unrelated to this private request. */
+export function earlyAccessAddResult(value: unknown, emails: readonly string[]): { added: number; invalid: string[] } | null {
+  const row = record(value);
+  if (!row || !exact(row, ["state", "added", "invalid"]) || row.state !== "updated" || !count(row.added)
+    || !Array.isArray(row.invalid) || row.invalid.length > emails.length) return null;
+  // The database is the final server-side email validator. Its Unicode locale
+  // need not match JavaScript's case/space rules. Bind each invalid original to
+  // its ordered input occurrence instead of reinterpreting the database result.
+  const remaining = [...emails], invalid: string[] = [];
+  let cursor = 0;
+  for (const email of row.invalid) {
+    if (typeof email !== "string") return null;
+    const index = remaining.indexOf(email, cursor);
+    if (index < 0) return null;
+    remaining.splice(index, 1); cursor = index; invalid.push(email);
+  }
+  if (row.added > new Set(remaining).size) return null;
+  return { added: row.added, invalid };
+}
+
+export function earlyAccessRemoveResult(value: unknown, entryIds: readonly string[]): { removed: number } | null {
+  const row = record(value);
+  if (!row || !exact(row, ["state", "removed"]) || row.state !== "updated" || !count(row.removed)
+    || row.removed > new Set(entryIds.map((id) => id.toLowerCase())).size) return null;
+  return { removed: row.removed };
 }
 
 export function registrationCounts(value: unknown): StaffRegistrationCounts | null {

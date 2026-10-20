@@ -3389,3 +3389,75 @@ NULL `performer_id`, because it is automatic and not a decision by whichever
 staff member's read triggered it. The console shows such history rows as
 "Automatic". The Super Admin export is fetched by the console first, so a
 refused export (403/503 JSON) shows a message and never saves an error file.
+
+## ORG-056 — Free registration, opening times, early-access email list and seat offers, 20 October 2026
+
+Organizer decisions given by the owner (Akram Awan) in the planning session on 20 October 2026:
+
+- General attendance is **free** (`payment_required=false`). No payment step is built for registration.
+- **Early access opens Sun 15 Nov 2026 at 20:00 Riyadh time; general registration opens Wed 18 Nov 2026 at 20:00
+  Riyadh time.** These are owner-entered settings (the priority window and `general_opening_at`), not code defaults.
+- Early-access eligibility is an **email list that a Super Admin types in manually**. It supersedes the earlier proposal
+  of single-use access codes. Early access only allows submitting a registration request during the early window.
+- **Workshop seats are separate from registration and are likely to be paid.** That is not decided yet, so nothing
+  about workshop prices or first pick is built.
+- A **seat offer stays open for 24 hours** (`offer_window_hours=24`, owner-entered).
+- When an offer expires, **the seat passes automatically to the next waitlisted person**. This supersedes ENG-050's
+  "staff decide" default; ENG-051 implements it.
+- Registration approvers: the owner will invite them and grant the Registration and workshops administrator role.
+
+Still open: approver names (to be given privately); the opening-night support rota.
+
+## ENG-051 — Closed early-access email list and automatic offer hand-on, 20 October 2026
+
+Authority: the current backend task and organizer decisions ORG-056, recorded by
+the planner. REG-01–08, ADM-01/02/04/05, ROL-07/10/12, PRV-03/05/06,
+SEC-01/02/06 and TIM-01/02 apply. This reserves ENG-051 for the additive migration
+`20261020120000_early_access_list_autopass.sql` and its backend contracts/tests,
+from `origin/main` `0dbfab6` in `codex/early-access-autopass`.
+
+Only Super Admins with existing exact-session TOTP assurance may list, add or
+remove normalized early-access email entries. Entries can precede participant
+accounts. The private, forced-RLS list has no client table grants; immutable
+registration audit identifies the entry without copying its email. Only a
+current verified Auth email match grants early-window request eligibility,
+alongside the existing organizing-team priority. Submission rechecks eligibility
+on the server/database. Early access grants no workshop priority or admission.
+
+Amendment to ENG-050: ORG-056 supersedes its provisional **staff decide** expiry
+default. Expiring elapsed offers automatically hands each released seat to the
+next waitlisted request in `created_at,id` order, under the existing edition
+settings lock and seat-holder capacity rules. Automatic offers have a NULL
+performer and database-time deadlines. A null offer window prevents automatic
+replacement offers; recorded elapsed offers still expire. No expiry means no
+automatic offer; manual offers do not automatically fill unrelated vacant seats.
+The existing staff-triggered expiry RPC returns
+`{expired, offered}` counts; no scheduler is added.
+
+ORG-056's free attendance, early/general opening instants and 24-hour offer
+duration are owner-entered settings, not migration seeds or code defaults. No
+hosted migration/settings, workflow opening, email, commit, branch or push is
+performed. The planner owns the console UI and ORG-056. Checks and UI handoff are
+recorded in [the backend receipt](progress/2026-10-20-codex-early-access-autopass.md);
+`docs/PROGRESS.md` remains outside this task's edit scope.
+
+## ENG-052 — Closed early-access console integration, 20 October 2026
+
+Authority: the owner's Task 1b follow-up to ENG-051 and ORG-055/056. Checked the
+current register before reserving this number: ENG-051 was the highest used.
+REG-01–08, ADM-01/02/04/05, ROL-07/10/12, PRV-03/05/06, SEC-01/02/06,
+LOC-01/03 and ACC-01 apply. The owner authorizes backend and UI integration,
+including EN/AR action-summary copy, and leaves commits to Claude.
+
+Wire the existing early-access route and panel into the staff console using its
+Super Admin-only menu projection and independently enforced handler/RPC gates.
+Retain the existing `emails` / `entryIds` request fields and `invalid` response;
+normalize pasted addresses, preserve rejected entries for correction, and report
+the server's actual `added` / `removed` counts. Refresh the current search after
+mutations. Missing RPCs show `area-not-ready` while retaining the signed-in shell.
+No new migration, hosted settings, seeds, workflow activation or email is needed.
+
+The integration, browser/axe and full local-check receipt is
+[Task 1b](progress/2026-10-20-codex-early-access-integration.md).
+`docs/PROGRESS.md` stays unchanged under the owner's O9 rule. Database execution
+and activation remain separate gates; source integration is not production proof.

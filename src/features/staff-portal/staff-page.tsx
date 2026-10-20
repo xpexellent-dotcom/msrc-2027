@@ -17,7 +17,7 @@ export async function StaffPage({ params, screen, landing }: { params: Promise<{
   const state = await readStaffPageState();
   if (screen === "security" && state.profile && !canChangeOwnPassword(state.profile.roles)) notFound();
   // Navigation projection only; every API and RPC rechecks the current grants.
-  const area = landing ?? (["people", "audit", "participants", "registration", "priority"].includes(screen) ? screen : null);
+  const area = landing ?? (["people", "audit", "participants", "registration", "priority", "early-access"].includes(screen) ? screen : null);
   if (area && state.profile && !staffMenu(state.profile.roles).some((entry) => entry.key === area)) notFound();
   return <StaffPortal locale={locale} screen={screen} landing={landing} initialProfile={state.profile} initialPasswordChangeAvailable={passwordChangeAvailable} testMode={state.testMode} />;
 }

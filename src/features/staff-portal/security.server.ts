@@ -101,15 +101,22 @@ export function nativeTokenNeedsRefresh(token: string, now = Date.now()): boolea
 export async function readStaffJson(request: Request): Promise<unknown> {
   if ((request.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase() !== "application/json"
     || ![null, "identity"].includes(request.headers.get("content-encoding"))) throw new Error("Invalid input");
+  // A bounded 500-address batch may exceed the legacy 8 KiB form limit. Keep
+  // that limit for every other action after parsing, including disguised input.
+  const bulkLimit = 768 * 1024;
   const declared = request.headers.get("content-length");
-  if (declared && (!/^\d+$/.test(declared) || Number(declared) > 8192)) throw new Error("Invalid input");
+  if (declared && (!/^\d+$/.test(declared) || Number(declared) > bulkLimit)) throw new Error("Invalid input");
   const reader = request.body?.getReader();
   if (!reader) throw new Error("Invalid input");
   const chunks: Uint8Array[] = [];
   let size = 0;
   try {
     for (;;) { const { value, done } = await reader.read(); if (done) break;
-      size += value.byteLength; if (size > 8192) { await reader.cancel(); throw new Error("Invalid input"); } chunks.push(value); }
-    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)));
+      size += value.byteLength; if (size > bulkLimit) { await reader.cancel(); throw new Error("Invalid input"); } chunks.push(value); }
+    const input: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)));
+    const action = input && typeof input === "object" && !Array.isArray(input) ? (input as Record<string, unknown>).action : null;
+    const limit = action === "early-access-add" ? bulkLimit : action === "early-access-remove" ? 24 * 1024 : 8192;
+    if (size > limit || declared && Number(declared) > limit) throw new Error("Invalid input");
+    return input;
   } finally { reader.releaseLock(); }
 }

@@ -1,7 +1,7 @@
 import type { Role } from "@/lib/permissions/contract";
 
-export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority";
-export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "priority" | "summary";
+export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access";
+export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "priority" | "early-access" | "summary";
 export type StaffProfile = { actorId: string; name: string; roles: Role[] };
 export type StaffPerson = { actorId: string; name: string; email: string; roles: Role[]; status: "active" | "suspended"; lastSignIn: string | null; recoveryState?: "none" | "pending" | "failed" | "awaiting_invitation" };
 export type StaffInvitation = { id: string; email: string; roles: Role[]; status: "pending" | "accepted" | "revoked" | "expired"; expiresAt: string };
@@ -15,12 +15,14 @@ export type StaffRegistrationDetail = {
 };
 export type StaffRegistrationCounts = { pending: number; approved: number; waitlisted: number; offered: number; expired: number; capacity: number | null; remaining: number | null };
 export type StaffPriorityRow = { actorId: string; name: string; email: string; active: boolean; reason: string; designatedAt: string; designatedByName: string | null; removedAt: string | null };
+export type StaffEarlyAccessEntry = { id: string; email: string; addedAt: string; addedByName: string | null; hasAccount: boolean; hasRequest: boolean };
 export type StaffSummary = { registration?: StaffRegistrationCounts; participants?: number; staff?: number; auditLast24h?: number; priority?: number };
-export type StaffAction = "signin" | "logout" | "activity" | "enroll-totp" | "challenge-totp" | "verify-totp" | "challenge-email" | "verify-email" | "invite-accept" | "invite" | "invite-resend" | "invite-revoke" | "roles" | "suspend" | "reactivate" | "revoke-sessions" | "reset-authenticator" | "reset-account" | "reveal-identity" | "password-change" | "registration-approve" | "registration-waitlist" | "registration-offer" | "priority-set" | "priority-remove";
+export type StaffAction = "signin" | "logout" | "activity" | "enroll-totp" | "challenge-totp" | "verify-totp" | "challenge-email" | "verify-email" | "invite-accept" | "invite" | "invite-resend" | "invite-revoke" | "roles" | "suspend" | "reactivate" | "revoke-sessions" | "reset-authenticator" | "reset-account" | "reveal-identity" | "password-change" | "registration-approve" | "registration-waitlist" | "registration-offer" | "priority-set" | "priority-remove" | "early-access-add" | "early-access-remove";
 export type StaffPayload = {
   action: StaffAction; formToken?: string; email?: string; password?: string; passwordConfirmation?: string; name?: string;
   code?: string; factorId?: string; challengeId?: string; invitationId?: string; token?: string;
   targetId?: string; roles?: Role[]; reason?: string; requestIds?: string[]; status?: StaffRegistrationStatus | "all";
+  emails?: string[]; entryIds?: string[];
 };
 export type StaffState = "ready" | "authenticated" | "pending-email" | "pending-totp" | "enroll-totp" | "closed" | "unavailable" | "identity-unavailable" | "invalid-input" | "invalid-credentials" | "invalid-code" | "denied" | "limited" | "invited" | "updated" | "accepted" | "signed-out" | "password-changed" | "reauthentication-required" | "capacity-not-set" | "payment-configuration-required" | "offer-window-not-set" | "area-not-ready";
 export type StaffResponse = {
@@ -30,6 +32,7 @@ export type StaffResponse = {
   registration?: { requests: StaffRegistrationRequest[]; counts: StaffRegistrationCounts };
   registrationDetail?: StaffRegistrationDetail;
   priority?: { designations: StaffPriorityRow[]; candidates?: StaffParticipant[] }; summary?: StaffSummary;
+  earlyAccess?: { entries: StaffEarlyAccessEntry[] }; added?: number; removed?: number; invalid?: string[];
   decided?: { approved: number; waitlisted: number; offered?: number; skipped: number };
   /** Client-only: an area read failed while the session read stayed signed in. */
   areaFailure?: StaffState;

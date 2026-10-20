@@ -4,7 +4,7 @@ import { ROLES, type Role } from "@/lib/permissions/contract";
 import { createStaffHandler } from "@/features/staff-portal/handler.server";
 import { createStaffBackend, StaffRpcMissingError, type StaffBackend, type NativeStaffSession } from "@/features/staff-portal/backend.server";
 import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/config.server";
-import { readStaffSession, staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
+import { readStaffJson, readStaffSession, staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
 import { validateStaffPayload } from "@/features/staff-portal/validation.server";
 import { verifiedPriorityClaims } from "@/features/staff-portal/registration-contract.server";
 import type { StaffRegistrationCounts, StaffRegistrationRequest, StaffPriorityRow } from "@/features/staff-portal/ui-contract";
@@ -26,6 +26,8 @@ const row: StaffRegistrationRequest = { id: requestId, actorId: targetId, name: 
 const priorityRow: StaffPriorityRow = { actorId: targetId, name: row.name, email: row.email, active: true, reason: "Synthetic roster verified",
   designatedAt: row.createdAt, designatedByName: "Synthetic Staff", removedAt: null };
 const registration = { requests: [row], counts };
+const earlyAccessEntry = { id: requestId, email: "person@example.invalid", addedAt: row.createdAt,
+  addedByName: "Synthetic Staff", hasAccount: true, hasRequest: true };
 let roles: Role[], policySatisfied: boolean, backend: StaffBackend, replies: Record<string, unknown>;
 function persisted() {
   const superAdmin = roles.includes("superAdmin");
@@ -56,6 +58,9 @@ beforeEach(() => {
     msrc_staff_registration_export: { state: "ready", rows: [{ name: row.name, email: row.email, status: row.status,
       priority: row.priority, createdAt: row.createdAt, decidedAt: row.decidedAt, identityMasked: row.identityMasked }] },
     msrc_staff_priority: { state: "ready", priority: { designations: [priorityRow], candidates: [] } },
+    msrc_staff_early_access: { state: "ready", earlyAccess: { entries: [earlyAccessEntry] } },
+    msrc_staff_early_access_add: { state: "updated", added: 1, invalid: [] },
+    msrc_staff_early_access_remove: { state: "updated", removed: 1 },
     msrc_registration_priority_set: { state: "updated" },
     msrc_staff_summary: { state: "ready", summary: { registration: counts, participants: 3, staff: 2, auditLast24h: 4, priority: 1 } } };
   backend = { rpc: vi.fn(async (name) => {
@@ -67,6 +72,198 @@ beforeEach(() => {
   }), identity: vi.fn(async () => actorId), refresh: vi.fn(async () => native), logout: vi.fn(async () => true) } as unknown as StaffBackend;
 });
 afterEach(() => vi.unstubAllGlobals());
+
+describe("ORG-056 private early-access list", () => {
+  function rpcTransport(failure?: { name: string; status: number; body: Record<string, unknown> }) {
+    const original = backend.rpc;
+    const fetcher = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+      const name = url.pathname.split("/").at(-1)!;
+      if (name === failure?.name) return Response.json(failure.body, { status: failure.status });
+      const result = await original(name, JSON.parse(String(init?.body)), new Headers(init?.headers).get("authorization")?.replace(/^Bearer /, ""));
+      return Response.json(result);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    backend = { ...backend, rpc: createStaffBackend(config).rpc };
+    return fetcher;
+  }
+  it("round-trips list, partial add and removal through the HTTP RPC adapter and handler", async () => {
+    const emails = ["first@example.invalid", "second@example.invalid", "invalid"];
+    replies.msrc_staff_early_access_add = { state: "updated", added: 2, invalid: [emails[2]] };
+    const fetcher = rpcTransport();
+    const listed = await handle(request("GET", "?area=early-access&query=person"));
+    expect(listed.status).toBe(200);
+    expect(await listed.json()).toMatchObject({ state: "authenticated", earlyAccess: { entries: [earlyAccessEntry] } });
+    const added = await handle(request("POST", "", { action: "early-access-add", emails }));
+    expect(added.status).toBe(200);
+    expect(await added.json()).toMatchObject({ state: "updated", added: 2, invalid: ["invalid"] });
+    const removed = await handle(request("POST", "", { action: "early-access-remove", entryIds: [requestId] }));
+    expect(removed.status).toBe(200);
+    expect(await removed.json()).toMatchObject({ state: "updated", removed: 1 });
+    const calls = fetcher.mock.calls.filter(([url]) => String(url).includes("/msrc_staff_early_access"));
+    expect(calls.map(([url, options]) => [String(url).split("/").at(-1), JSON.parse(String(options?.body))])).toEqual([
+      ["msrc_staff_early_access", { edition_key: config.editionKey, search: "person" }],
+      ["msrc_staff_early_access_add", { edition_key: config.editionKey, emails }],
+      ["msrc_staff_early_access_remove", { edition_key: config.editionKey, entry_ids: [requestId] }],
+    ]);
+    for (const [, options] of calls) {
+      expect(new Headers(options?.headers).get("apikey")).toBe(config.publishableKey);
+      expect(new Headers(options?.headers).get("authorization")).toBe("Bearer " + accessToken);
+      expect(options).toMatchObject({ method: "POST", cache: "no-store", redirect: "error" });
+    }
+  });
+  it.each(["msrc_staff_early_access", "msrc_staff_early_access_add", "msrc_staff_early_access_remove"])("keeps the session when the HTTP transport reports missing %s or an outage", async (name) => {
+    for (const failure of [
+      { status: 404, body: { code: "PGRST202" }, state: "area-not-ready" },
+      { status: 404, body: { code: "PGRST116" }, state: "unavailable" },
+      { status: 503, body: { message: "Synthetic provider outage" }, state: "unavailable" },
+    ]) {
+      const original = backend;
+      rpcTransport({ name, ...failure });
+      const input = name === "msrc_staff_early_access" ? request("GET", "?area=early-access")
+        : request("POST", "", name.endsWith("_add") ? { action: "early-access-add", emails: [row.email] } : { action: "early-access-remove", entryIds: [requestId] });
+      const response = await handle(input);
+      expect(response.status).toBe(503);
+      expect(await response.json()).toMatchObject({ state: failure.state, formToken: expect.any(String) });
+      expect(response.headers.get("cache-control")).toContain("no-store");
+      expect(response.headers.get("set-cookie")).toBeNull();
+      expect(backend.logout).not.toHaveBeenCalled();
+      backend = original;
+    }
+    const response = await handle(request("GET"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "authenticated" });
+  });
+  it("lists email entries through the verified native Super Admin session", async () => {
+    const response = await handle(request("GET", "?area=early-access&query=person"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "authenticated", earlyAccess: { entries: [earlyAccessEntry] } });
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_early_access", { edition_key: config.editionKey, search: "person" }, accessToken);
+  });
+  it("reports invalid originals while accepting normalized duplicates idempotently", async () => {
+    const emails = ["  PERSON@EXAMPLE.INVALID  ", "person@example.invalid", "invalid", "\tperson@example.invalid", "<person>@example.invalid", ""];
+    replies.msrc_staff_early_access_add = { state: "updated", added: 1, invalid: emails.slice(2) };
+    const response = await handle(request("POST", "", { action: "early-access-add", emails }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "updated", added: 1, invalid: emails.slice(2) });
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_early_access_add", { edition_key: config.editionKey, emails }, accessToken);
+    replies.msrc_staff_early_access_add = { state: "updated", added: 0, invalid: [] };
+    expect(await (await handle(request("POST", "", { action: "early-access-add", emails: [emails[0]] }))).json()).toMatchObject({ state: "updated", added: 0, invalid: [] });
+  });
+  it("reports an entirely invalid batch without bypassing the RPC readiness or authorization", async () => {
+    const emails = ["", "not an email", "a".repeat(255) + "@example.invalid", "not an email"];
+    replies.msrc_staff_early_access_add = { state: "updated", added: 0, invalid: emails };
+    const response = await handle(request("POST", "", { action: "early-access-add", emails }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "updated", added: 0, invalid: emails });
+  });
+  it("removes a bounded batch by row ID and accepts repeated removals", async () => {
+    const response = await handle(request("POST", "", { action: "early-access-remove", entryIds: [requestId, requestId] }));
+    expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ state: "updated", removed: 1 });
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_early_access_remove", { edition_key: config.editionKey, entry_ids: [requestId, requestId] }, accessToken);
+    replies.msrc_staff_early_access_remove = { state: "updated", removed: 0 };
+    expect(await (await handle(request("POST", "", { action: "early-access-remove", entryIds: [requestId] }))).json()).toMatchObject({ state: "updated", removed: 0 });
+  });
+  it.each(ROLES.filter((role) => role !== "superAdmin"))("denies %s list and mutation access before the private RPC", async (role) => {
+    roles = [role];
+    expect((await handle(request("GET", "?area=early-access"))).status).toBe(403);
+    expect((await handle(request("POST", "", { action: "early-access-add", emails: [row.email] }))).status).toBe(403);
+    expect((await handle(request("POST", "", { action: "early-access-remove", entryIds: [requestId] }))).status).toBe(403);
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name.startsWith("msrc_staff_early_access"))).toBe(false);
+  });
+  it("requires completed exact-session TOTP and matching native identity", async () => {
+    policySatisfied = false;
+    expect((await handle(request("GET", "?area=early-access"))).status).toBe(403);
+    expect((await handle(request("POST", "", { action: "early-access-add", emails: [row.email] }))).status).toBe(403);
+    policySatisfied = true; vi.mocked(backend.identity).mockResolvedValue(targetId);
+    expect((await handle(request("POST", "", { action: "early-access-remove", entryIds: [requestId] }))).status).toBe(403);
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name.startsWith("msrc_staff_early_access"))).toBe(false);
+  });
+  it.each(["msrc_staff_early_access", "msrc_staff_early_access_add", "msrc_staff_early_access_remove"])("maps missing %s to area-not-ready", async (missing) => {
+    const existing = vi.mocked(backend.rpc).getMockImplementation()!;
+    vi.mocked(backend.rpc).mockImplementation(async (...args) => { if (args[0] === missing) throw new StaffRpcMissingError(); return existing(...args); });
+    const input = missing === "msrc_staff_early_access" ? request("GET", "?area=early-access")
+      : request("POST", "", missing.endsWith("_add") ? { action: "early-access-add", emails: [row.email] } : { action: "early-access-remove", entryIds: [requestId] });
+    const response = await handle(input);
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready");
+  });
+  it.each(["msrc_staff_early_access", "msrc_staff_early_access_add", "msrc_staff_early_access_remove"])("honors refreshed database denial from %s", async (rpc) => {
+    replies[rpc] = { state: "denied" };
+    const input = rpc === "msrc_staff_early_access" ? request("GET", "?area=early-access")
+      : request("POST", "", rpc.endsWith("_add") ? { action: "early-access-add", emails: [row.email] } : { action: "early-access-remove", entryIds: [requestId] });
+    const response = await handle(input);
+    expect(response.status).toBe(403); expect((await response.json()).state).toBe("denied");
+  });
+  it.each([
+    { ...earlyAccessEntry, email: " person@example.invalid " }, { ...earlyAccessEntry, email: "not an email" },
+    { ...earlyAccessEntry, addedAt: "invalid" }, { ...earlyAccessEntry, hasAccount: "yes" },
+    { ...earlyAccessEntry, hasAccount: false, hasRequest: true }, { ...earlyAccessEntry, actorId: targetId },
+    { ...earlyAccessEntry, addedByName: "line\nbreak" },
+  ])("rejects malformed or excessive list disclosure %#", async (entry) => {
+    replies.msrc_staff_early_access = { state: "ready", earlyAccess: { entries: [entry] } };
+    const response = await handle(request("GET", "?area=early-access"));
+    expect(response.status).toBe(503); expect((await response.json()).earlyAccess).toBeUndefined();
+  });
+  it("accepts prospective accounts, rejects duplicate IDs, unsorted rows and more than 200 entries", async () => {
+    replies.msrc_staff_early_access = { state: "ready", earlyAccess: { entries: [{ ...earlyAccessEntry, addedByName: null, hasAccount: false, hasRequest: false }] } };
+    expect((await handle(request("GET", "?area=early-access"))).status).toBe(200);
+    for (const entries of [[earlyAccessEntry, earlyAccessEntry], [earlyAccessEntry, { ...earlyAccessEntry, id: targetId, addedAt: new Date(now + 1).toISOString() }], Array(201).fill(earlyAccessEntry)]) {
+      replies.msrc_staff_early_access = { state: "ready", earlyAccess: { entries } };
+      expect((await handle(request("GET", "?area=early-access"))).status).toBe(503);
+    }
+  });
+  it.each([{ added: 2, invalid: [] }, { added: -1, invalid: [] }, { added: 1, invalid: ["unrelated@example.invalid"] },
+    { added: 1, invalid: [], rawEmail: "unrelated@example.invalid" }])("fails closed on unbound add results %#", async (result) => {
+    replies.msrc_staff_early_access_add = { state: "updated", ...result };
+    expect((await handle(request("POST", "", { action: "early-access-add", emails: [row.email, row.email] }))).status).toBe(503);
+  });
+  it("rejects impossible removal counts and invalid values repeated more than input occurrences", async () => {
+    replies.msrc_staff_early_access_remove = { state: "updated", removed: 2 };
+    expect((await handle(request("POST", "", { action: "early-access-remove", entryIds: [requestId, requestId] }))).status).toBe(503);
+    replies.msrc_staff_early_access_add = { state: "updated", added: 0, invalid: ["invalid", "invalid"] };
+    expect((await handle(request("POST", "", { action: "early-access-add", emails: ["invalid"] }))).status).toBe(503);
+  });
+  it("keeps form-token and query restrictions for early-access operations", async () => {
+    expect((await handle(request("POST", "", { action: "early-access-add", emails: [row.email], formToken: "forged" }))).status).toBe(400);
+    for (const query of ["?area=early-access&status=all", "?area=early-access&requestId=" + requestId, "?area=early-access&q=%00", "?area=early-access&q=a&query=b"]) {
+      expect((await handle(request("GET", query))).status).toBe(400);
+    }
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name.startsWith("msrc_staff_early_access"))).toBe(false);
+  });
+  it("validates bounded email and UUID arrays with action-specific fields", () => {
+    const add = { action: "early-access-add", formToken: "synthetic", emails: [row.email] };
+    const remove = { action: "early-access-remove", formToken: "synthetic", entryIds: [requestId] };
+    for (const emails of [undefined, [], Array(501).fill(row.email), [null], [123], row.email, ["a".repeat(513)], ["person\u0000@example.invalid"]]) expect(validateStaffPayload({ ...add, emails })).toBeNull();
+    for (const entryIds of [undefined, [], Array(501).fill(requestId), [null], [123], ["invalid"], requestId]) expect(validateStaffPayload({ ...remove, entryIds })).toBeNull();
+    expect(validateStaffPayload({ ...add, entryIds: [requestId] })).toBeNull();
+    expect(validateStaffPayload({ ...remove, emails: [row.email] })).toBeNull();
+    expect(validateStaffPayload({ action: "activity", formToken: "synthetic", emails: [row.email] })).toBeNull();
+    expect(validateStaffPayload({ ...add, session_claims: claims })).toBeNull();
+  });
+  it("preserves Unicode inputs and database invalid decisions without applying browser locale assumptions", async () => {
+    const emails = ["مشارك@example.invalid", "\u00a0person@example.invalid", "İ@example.invalid", "\u0001person@example.invalid"];
+    replies.msrc_staff_early_access_add = { state: "updated", added: 2, invalid: [emails[1], emails[3]] };
+    const response = await handle(request("POST", "", { action: "early-access-add", emails }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "updated", added: 2, invalid: [emails[1], emails[3]] });
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_early_access_add", { edition_key: config.editionKey, emails }, accessToken);
+  });
+  it("admits 500 maximum-length addresses and 500 IDs through the JSON body boundary", async () => {
+    const email = "x".repeat(238) + "@example.invalid";
+    expect(email).toHaveLength(254);
+    expect((await handle(request("POST", "", { action: "early-access-add", emails: Array(500).fill(email) }))).status).toBe(200);
+    expect((await handle(request("POST", "", { action: "early-access-remove", entryIds: Array(500).fill(requestId) }))).status).toBe(200);
+  });
+  it("retains legacy body limits and enforces both declared and streamed bulk ceilings", async () => {
+    const raw = (body: string, declared?: string) => new Request(origin, { method: "POST", headers: { "Content-Type": "application/json", ...(declared ? { "Content-Length": declared } : {}) }, body });
+    await expect(readStaffJson(raw(JSON.stringify({ action: "activity", unused: "x".repeat(8192) })))).rejects.toThrow("Invalid input");
+    await expect(readStaffJson(raw(JSON.stringify({ action: "activity" }), "8193"))).rejects.toThrow("Invalid input");
+    await expect(readStaffJson(raw(JSON.stringify({ action: "early-access-add", emails: [] }), String(768 * 1024 + 1)))).rejects.toThrow("Invalid input");
+    await expect(readStaffJson(raw(JSON.stringify({ action: "early-access-add", emails: ["x".repeat(768 * 1024)] })))).rejects.toThrow("Invalid input");
+    await expect(readStaffJson(raw(JSON.stringify({ action: "early-access-remove", entryIds: ["x".repeat(24 * 1024)] })))).rejects.toThrow("Invalid input");
+  });
+});
 
 describe("staff queue payload validation", () => {
   it.each(["registration-approve", "registration-waitlist", "registration-offer"])("validates bounded UUID batches for %s", (action) => {
