@@ -611,6 +611,27 @@ stub is added here. A QR image, signature or staff indicator alone is not check-
 validation. CI database, real inbox and device/UAT evidence remain release gates;
 see the [Task 3 receipt](../progress/2026-10-20-codex-registration-slice4.md).
 
+### Task 3 fixture review — 20 October 2026
+
+The native participant guard forbids clearing a verified mailbox, including
+during a pending verification operation. The ticket/email pgTAP case now creates
+a never-verified signup through `registration_fixture(..., false)`. It verifies
+RPC submission denial, then attempts an otherwise valid direct request insertion
+to exercise the event trigger's independent recipient check (`P0002`). The
+statement rolls back; request, ticket, message and deduplication checks prove
+there are no business side effects. The existing approval enqueue-failure test
+continues to cover approval/ticket rollback. REG-02/07 and EML-03/04 are preserved.
+
+Static review covered the new early-access, settings and ticket/email SQL suites,
+the other three changed registration SQL suites, their shared fixture helper,
+the full changed staff-registration integration suite and direct Auth updates in
+the remaining integration fixtures. No other blocked fixture step was found.
+The six changed SQL suites all use `no_plan()` and one `finish()`, including
+the loop-generated assertions; no fixed plan count needs adjustment.
+Production guards and migrations are unchanged. Local lint, typecheck and all
+3,171 unit tests pass; pgTAP and database integration execution remain pending
+disposable Supabase CI.
+
 ## My registration (Task 4 / ENG-055)
 
 `/[locale]/registration` renders the signed-in participant's current request on
