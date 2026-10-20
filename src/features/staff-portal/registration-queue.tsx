@@ -120,7 +120,7 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
         {detail.request.offerExpiresAt ? <div><dt>{text.offerEnds}</dt><dd>{formatStaffDate(detail.request.offerExpiresAt, locale, copy.unknown)}</dd></div> : null}
       </dl>
       <h4>{text.history}</h4>
-      {detail.history.length ? <ol className="staff-history">{detail.history.map((row, index) => <li key={`${row.at}-${index}`}>
+      {detail.history.length ? <ol className="staff-decisions">{detail.history.map((row, index) => <li key={`${row.at}-${index}`}>
         <span>{row.from ? text.statuses[row.from] : text.submitted} {locale === "ar" ? "←" : "→"} {text.statuses[row.to]}</span>
         <span className="staff-muted">{formatStaffDate(row.at, locale, copy.unknown)} · {text.by}: <bdi>{row.performerName ?? text.automatic}</bdi></span>
       </li>)}</ol> : <p>{text.noHistory}</p>}

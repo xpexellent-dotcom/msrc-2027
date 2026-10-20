@@ -3389,3 +3389,21 @@ NULL `performer_id`, because it is automatic and not a decision by whichever
 staff member's read triggered it. The console shows such history rows as
 "Automatic". The Super Admin export is fetched by the console first, so a
 refused export (403/503 JSON) shows a message and never saves an error file.
+
+## ORG-056 — Free registration, opening times, early-access email list and seat offers, 20 October 2026
+
+Organizer decisions given by the owner (Akram Awan) in the planning session on 20 October 2026:
+
+- General attendance is **free** (`payment_required=false`). No payment step is built for registration.
+- **Early access opens Sun 15 Nov 2026 at 20:00 Riyadh time; general registration opens Wed 18 Nov 2026 at 20:00
+  Riyadh time.** These are owner-entered settings (the priority window and `general_opening_at`), not code defaults.
+- Early-access eligibility is an **email list that a Super Admin types in manually**. It supersedes the earlier proposal
+  of single-use access codes. Early access only allows submitting a registration request during the early window.
+- **Workshop seats are separate from registration and are likely to be paid.** That is not decided yet, so nothing
+  about workshop prices or first pick is built.
+- A **seat offer stays open for 24 hours** (`offer_window_hours=24`, owner-entered).
+- When an offer expires, **the seat passes automatically to the next waitlisted person**. This supersedes ENG-050's
+  "staff decide" default; ENG-051 implements it.
+- Registration approvers: the owner will invite them and grant the Registration and workshops administrator role.
+
+Still open: approver names (to be given privately); the opening-night support rota.
