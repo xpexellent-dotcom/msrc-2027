@@ -22,6 +22,10 @@ describe("BL-AUTH-01 and BL-RPT-01/03 navigation projection", () => {
     expect(staffMenu(["finance", "contentMediaEditor"]).map((entry) => entry.key)).toEqual(["finance", "content"]);
     expect(staffMenu(["checkInStaff"]).some((entry) => entry.key === "participants")).toBe(false);
   });
+  it.each(ROLES)("%s sees registration settings only with Super Admin authority", (role) => {
+    expect(staffMenu([role]).some((entry) => entry.key === "registration-settings")).toBe(role === "superAdmin");
+    expect(staffMenu([role, "superAdmin"]).some((entry) => entry.key === "registration-settings")).toBe(true);
+  });
   it.each(ROLES)("%s receives own password security only behind its separate availability gate", (role) => {
     expect(canChangeOwnPassword([role])).toBe(role === "superAdmin");
     expect(staffMenu([role]).some((entry) => entry.key === "security")).toBe(false);
