@@ -494,3 +494,21 @@ pricing, windows and booking remain separate.
 
 Exact HTTP/TypeScript contracts, UI obligations and executed versus blocked checks
 are in the [backend receipt](../progress/2026-10-20-codex-early-access-autopass.md).
+
+Task 1b / ENG-052 integrates the EN/AR `/staff/early-access` screen with the
+Super Admin menu, page guard and API area. Pasted addresses are normalized and
+deduplicated before sending `emails`; the server validates them again and returns
+`invalid` entries for correction. Result text uses actual `added` / `removed`
+counts, including duplicate/no-op results. Removal sends `entryIds`. Account and
+request columns describe existing records without creating accounts or sending
+invitations. Search refreshes the active list after changes and clears selection;
+bulk removal is limited to displayed rows. Current read failures take precedence
+over old success text, including a failed refresh after a successful mutation.
+
+The handler and HTTP RPC adapter distinguish missing functions (`area-not-ready`)
+from other failures (`unavailable`), preserving the staff session. EN/AR browser
+coverage exercises these states, role restrictions, partial invalid results,
+individual/bulk removal, search and axe on desktop/mobile. New concurrency cases
+cover duplicate additions/removals; database execution remains a CI gate. See the
+[integration receipt](../progress/2026-10-20-codex-early-access-integration.md) for
+observed checks. The existing migration and auto-pass behavior are unchanged.

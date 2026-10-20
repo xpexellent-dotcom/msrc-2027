@@ -1,6 +1,6 @@
 import type { Role } from "@/lib/permissions/contract";
 
-export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority";
+export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access";
 export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "priority" | "early-access" | "summary";
 export type StaffProfile = { actorId: string; name: string; roles: Role[] };
 export type StaffPerson = { actorId: string; name: string; email: string; roles: Role[]; status: "active" | "suspended"; lastSignIn: string | null; recoveryState?: "none" | "pending" | "failed" | "awaiting_invitation" };

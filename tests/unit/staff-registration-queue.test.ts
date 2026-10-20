@@ -74,6 +74,66 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("ORG-056 private early-access list", () => {
+  function rpcTransport(failure?: { name: string; status: number; body: Record<string, unknown> }) {
+    const original = backend.rpc;
+    const fetcher = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+      const name = url.pathname.split("/").at(-1)!;
+      if (name === failure?.name) return Response.json(failure.body, { status: failure.status });
+      const result = await original(name, JSON.parse(String(init?.body)), new Headers(init?.headers).get("authorization")?.replace(/^Bearer /, ""));
+      return Response.json(result);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    backend = { ...backend, rpc: createStaffBackend(config).rpc };
+    return fetcher;
+  }
+  it("round-trips list, partial add and removal through the HTTP RPC adapter and handler", async () => {
+    const emails = ["first@example.invalid", "second@example.invalid", "invalid"];
+    replies.msrc_staff_early_access_add = { state: "updated", added: 2, invalid: [emails[2]] };
+    const fetcher = rpcTransport();
+    const listed = await handle(request("GET", "?area=early-access&query=person"));
+    expect(listed.status).toBe(200);
+    expect(await listed.json()).toMatchObject({ state: "authenticated", earlyAccess: { entries: [earlyAccessEntry] } });
+    const added = await handle(request("POST", "", { action: "early-access-add", emails }));
+    expect(added.status).toBe(200);
+    expect(await added.json()).toMatchObject({ state: "updated", added: 2, invalid: ["invalid"] });
+    const removed = await handle(request("POST", "", { action: "early-access-remove", entryIds: [requestId] }));
+    expect(removed.status).toBe(200);
+    expect(await removed.json()).toMatchObject({ state: "updated", removed: 1 });
+    const calls = fetcher.mock.calls.filter(([url]) => String(url).includes("/msrc_staff_early_access"));
+    expect(calls.map(([url, options]) => [String(url).split("/").at(-1), JSON.parse(String(options?.body))])).toEqual([
+      ["msrc_staff_early_access", { edition_key: config.editionKey, search: "person" }],
+      ["msrc_staff_early_access_add", { edition_key: config.editionKey, emails }],
+      ["msrc_staff_early_access_remove", { edition_key: config.editionKey, entry_ids: [requestId] }],
+    ]);
+    for (const [, options] of calls) {
+      expect(new Headers(options?.headers).get("apikey")).toBe(config.publishableKey);
+      expect(new Headers(options?.headers).get("authorization")).toBe("Bearer " + accessToken);
+      expect(options).toMatchObject({ method: "POST", cache: "no-store", redirect: "error" });
+    }
+  });
+  it.each(["msrc_staff_early_access", "msrc_staff_early_access_add", "msrc_staff_early_access_remove"])("keeps the session when the HTTP transport reports missing %s or an outage", async (name) => {
+    for (const failure of [
+      { status: 404, body: { code: "PGRST202" }, state: "area-not-ready" },
+      { status: 404, body: { code: "PGRST116" }, state: "unavailable" },
+      { status: 503, body: { message: "Synthetic provider outage" }, state: "unavailable" },
+    ]) {
+      const original = backend;
+      rpcTransport({ name, ...failure });
+      const input = name === "msrc_staff_early_access" ? request("GET", "?area=early-access")
+        : request("POST", "", name.endsWith("_add") ? { action: "early-access-add", emails: [row.email] } : { action: "early-access-remove", entryIds: [requestId] });
+      const response = await handle(input);
+      expect(response.status).toBe(503);
+      expect(await response.json()).toMatchObject({ state: failure.state, formToken: expect.any(String) });
+      expect(response.headers.get("cache-control")).toContain("no-store");
+      expect(response.headers.get("set-cookie")).toBeNull();
+      expect(backend.logout).not.toHaveBeenCalled();
+      backend = original;
+    }
+    const response = await handle(request("GET"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "authenticated" });
+  });
   it("lists email entries through the verified native Super Admin session", async () => {
     const response = await handle(request("GET", "?area=early-access&query=person"));
     expect(response.status).toBe(200);

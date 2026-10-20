@@ -9,7 +9,7 @@ import { consoleCopy } from "./console-copy";
 import { formatStaffDate, formatStaffNumber } from "./console-shell";
 import type { StaffPayload, StaffResponse } from "./ui-contract";
 
-/** Splits pasted text on new lines, commas, semicolons and spaces; the server validates and normalizes. */
+/** Splits and normalizes pasted text; the server revalidates every entry. */
 export function parseEarlyAccessEmails(value: string) {
   return [...new Set(value.split(/[\s,;]+/).map((entry) => entry.trim().toLowerCase()).filter(Boolean))];
 }
@@ -22,6 +22,7 @@ export function EarlyAccessPanel({ locale, data, busy, query, onQuery, onSearch,
   const copy = staffCopy[locale], text = consoleCopy[locale].earlyAccess;
   const [pasted, setPasted] = useState(""), [invalid, setInvalid] = useState<string[]>([]), [selected, setSelected] = useState<string[]>([]);
   const emails = parseEarlyAccessEmails(pasted), entries = data?.entries ?? [];
+  const selectedIds = entries.filter((entry) => selected.includes(entry.id)).map((entry) => entry.id);
   const number = (value: number) => formatStaffNumber(value, locale);
 
   async function add() {
@@ -30,12 +31,12 @@ export function EarlyAccessPanel({ locale, data, busy, query, onQuery, onSearch,
     if (response.state !== "updated") return;
     const rejected = response.invalid ?? [];
     setInvalid(rejected); setPasted(rejected.join("\n"));
-    onResult(text.added(emails.length - rejected.length, rejected.length));
+    onResult(text.added(response.added ?? 0, rejected.length));
   }
   async function remove(ids: string[]) {
     if (!ids.length) { onResult(text.noneSelected); return; }
     const response = await act({ action: "early-access-remove", entryIds: ids });
-    if (response.state === "updated") { setSelected([]); onResult(text.removed(ids.length)); }
+    if (response.state === "updated") { setSelected([]); onResult(text.removed(response.removed ?? 0)); }
   }
 
   return <>
@@ -54,13 +55,13 @@ export function EarlyAccessPanel({ locale, data, busy, query, onQuery, onSearch,
     </section>
     <section className="staff-panel" aria-labelledby="staff-early-list">
       <h2 id="staff-early-list">{text.list}{data ? ` (${number(entries.length)})` : ""}</h2>
-      <form className="staff-search" onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
+      <form className="staff-search" onSubmit={(event) => { event.preventDefault(); setSelected([]); onSearch(); }}>
         <FormField id="staff-early-search" type="search" label={text.search} value={query} onChange={(event) => onQuery(event.target.value)} maxLength={120} disabled={busy} />
         <Button type="submit" disabled={busy}>{copy.search}</Button>
       </form>
-      {selected.length ? <div className="staff-bulk-bar" role="region" aria-label={text.selected(selected.length)}>
-        <span aria-live="polite">{text.selected(selected.length)}</span>
-        <Button size="small" variant="secondary" disabled={busy} onClick={() => void remove(selected)} data-testid="early-remove-selected">{text.removeSelected}</Button>
+      {selectedIds.length ? <div className="staff-bulk-bar" role="region" aria-label={text.selected(selectedIds.length)}>
+        <span aria-live="polite">{text.selected(selectedIds.length)}</span>
+        <Button size="small" variant="secondary" disabled={busy} onClick={() => void remove(selectedIds)} data-testid="early-remove-selected">{text.removeSelected}</Button>
       </div> : null}
       {entries.length ? <div className="staff-table-scroll" role="region" aria-label={text.list} tabIndex={0}>
         <table><thead><tr>
@@ -74,7 +75,7 @@ export function EarlyAccessPanel({ locale, data, busy, query, onQuery, onSearch,
           <td><span className={entry.hasAccount ? "staff-status staff-status--approved" : "staff-status"}>{entry.hasAccount ? text.hasAccount : text.noAccount}</span></td>
           <td>{entry.hasRequest ? text.requested : "—"}</td>
           <td>{formatStaffDate(entry.addedAt, locale, copy.unknown)}{entry.addedByName ? <span className="staff-muted staff-offer-ends">{text.by}: <bdi>{entry.addedByName}</bdi></span> : null}</td>
-          <td><Button size="small" variant="secondary" disabled={busy} aria-label={`${text.remove}: ${entry.email}`} onClick={() => void remove([entry.id])}>{text.remove}</Button></td>
+          <td className="staff-nowrap"><Button size="small" variant="secondary" disabled={busy} aria-label={`${text.remove}: ${entry.email}`} onClick={() => void remove([entry.id])}>{text.remove}</Button></td>
         </tr>)}</tbody></table>
       </div> : <p>{data ? (query ? copy.noRecords : text.empty) : text.loading}</p>}
     </section>

@@ -3440,3 +3440,24 @@ hosted migration/settings, workflow opening, email, commit, branch or push is
 performed. The planner owns the console UI and ORG-056. Checks and UI handoff are
 recorded in [the backend receipt](progress/2026-10-20-codex-early-access-autopass.md);
 `docs/PROGRESS.md` remains outside this task's edit scope.
+
+## ENG-052 — Closed early-access console integration, 20 October 2026
+
+Authority: the owner's Task 1b follow-up to ENG-051 and ORG-055/056. Checked the
+current register before reserving this number: ENG-051 was the highest used.
+REG-01–08, ADM-01/02/04/05, ROL-07/10/12, PRV-03/05/06, SEC-01/02/06,
+LOC-01/03 and ACC-01 apply. The owner authorizes backend and UI integration,
+including EN/AR action-summary copy, and leaves commits to Claude.
+
+Wire the existing early-access route and panel into the staff console using its
+Super Admin-only menu projection and independently enforced handler/RPC gates.
+Retain the existing `emails` / `entryIds` request fields and `invalid` response;
+normalize pasted addresses, preserve rejected entries for correction, and report
+the server's actual `added` / `removed` counts. Refresh the current search after
+mutations. Missing RPCs show `area-not-ready` while retaining the signed-in shell.
+No new migration, hosted settings, seeds, workflow activation or email is needed.
+
+The integration, browser/axe and full local-check receipt is
+[Task 1b](progress/2026-10-20-codex-early-access-integration.md).
+`docs/PROGRESS.md` stays unchanged under the owner's O9 rule. Database execution
+and activation remain separate gates; source integration is not production proof.

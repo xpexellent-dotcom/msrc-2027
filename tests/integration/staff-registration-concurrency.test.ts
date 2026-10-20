@@ -404,12 +404,67 @@ describe.skipIf(!isolatedCi)("Early-access removal and submit (disposable GitHub
       select pg_temp.registration_settings('${earlyEdition}');
       select pg_temp.registration_fixture(1201,'${earlyEdition}');
       select pg_temp.registration_staff_fixture(1301,'${earlyEdition}');
+      select pg_temp.registration_staff_fixture(1302,'${earlyEdition}');
       update msrc_registration.settings set priority_start_at=clock_timestamp()-interval '1 hour',
         priority_end_at=clock_timestamp()+interval '1 hour',general_opening_at=clock_timestamp()+interval '2 hours'
         where edition_key='${earlyEdition}';
       select set_config('request.jwt.claims',pg_temp.registration_claims(1301)::text,true);
-      select public.msrc_staff_early_access_add('${earlyEdition}',array['registration-1201@example.invalid']);
+      select public.msrc_staff_early_access_add('${earlyEdition}',array['registration-1201@example.invalid','concurrent-remove@example.invalid']);
       commit;`);
+  });
+
+  it("concurrent normalized duplicate additions create one entry and one audit", async () => {
+    const add = (staff: number, email: string, applicationName: string) => `begin;
+      set local application_name='${applicationName}';
+      select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
+      set local role authenticated;
+      select public.msrc_staff_early_access_add('${earlyEdition}',array['${email}'])::text;`;
+    const first = held(add(1301, "  CONCURRENT@EXAMPLE.INVALID  ", "synthetic-early-add-first") + `select pg_advisory_xact_lock(${marker});`);
+    let second: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        second = query(add(1302, "concurrent@example.invalid", "synthetic-early-add-second") + "commit;");
+        await waiting("synthetic-early-add-second");
+      } finally { first.release(); }
+      expect((await Promise.all([first.done, second!])).map(response)).toEqual([
+        { state: "updated", added: 1, invalid: [] }, { state: "updated", added: 0, invalid: [] },
+      ]);
+      await query(`do $$begin
+        if (select count(*) from msrc_registration.early_access_entries where edition_key='${earlyEdition}' and email='concurrent@example.invalid' and active)<>1
+        or (select count(*) from msrc_registration.audit a join msrc_registration.early_access_entries e on e.id=a.early_access_entry_id
+          where e.edition_key='${earlyEdition}' and e.email='concurrent@example.invalid' and a.event='early_access.added')<>1
+        then raise exception 'Concurrent early-access addition invariant failed';end if;
+        end$$;`);
+    } finally { await Promise.allSettled([first.done, ...(second ? [second] : [])]); }
+  });
+
+  it("concurrent removal of one entry records one transition and one audit", async () => {
+    const remove = (staff: number, applicationName: string) => `begin;
+      set local application_name='${applicationName}';
+      select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
+      select set_config('synthetic.entry_id',(select id::text from msrc_registration.early_access_entries
+        where edition_key='${earlyEdition}' and email='concurrent-remove@example.invalid'),true);
+      set local role authenticated;
+      select public.msrc_staff_early_access_remove('${earlyEdition}',array[current_setting('synthetic.entry_id')::uuid])::text;`;
+    const first = held(remove(1301, "synthetic-early-remove-first") + `select pg_advisory_xact_lock(${marker});`);
+    let second: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        second = query(remove(1302, "synthetic-early-remove-second") + "commit;");
+        await waiting("synthetic-early-remove-second");
+      } finally { first.release(); }
+      expect((await Promise.all([first.done, second!])).map(response)).toEqual([
+        { state: "updated", removed: 1 }, { state: "updated", removed: 0 },
+      ]);
+      await query(`do $$begin
+        if exists(select 1 from msrc_registration.early_access_entries where edition_key='${earlyEdition}' and email='concurrent-remove@example.invalid' and active)
+        or (select count(*) from msrc_registration.audit a join msrc_registration.early_access_entries e on e.id=a.early_access_entry_id
+          where e.edition_key='${earlyEdition}' and e.email='concurrent-remove@example.invalid' and a.event='early_access.removed')<>1
+        then raise exception 'Concurrent early-access removal invariant failed';end if;
+        end$$;`);
+    } finally { await Promise.allSettled([first.done, ...(second ? [second] : [])]); }
   });
 
   it("submit waits for a concurrent removal then rejects its previously open context", async () => {
@@ -434,7 +489,8 @@ describe.skipIf(!isolatedCi)("Early-access removal and submit (disposable GitHub
       await query(`do $$begin
         if exists(select 1 from msrc_registration.requests where edition_key='${earlyEdition}')
         or exists(select 1 from msrc_registration.audit where edition_key='${earlyEdition}' and event='request.submitted')
-        or (select count(*) from msrc_registration.audit where edition_key='${earlyEdition}' and event='early_access.removed')<>1
+        or (select count(*) from msrc_registration.audit a join msrc_registration.early_access_entries e on e.id=a.early_access_entry_id
+          where e.edition_key='${earlyEdition}' and e.email='registration-1201@example.invalid' and a.event='early_access.removed')<>1
         then raise exception 'Removal/submit serialization invariant failed';end if;
         end$$;`);
     } finally { await Promise.allSettled([removing.done, ...(submitting ? [submitting] : [])]); }
