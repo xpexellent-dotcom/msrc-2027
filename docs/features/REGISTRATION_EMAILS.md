@@ -1,6 +1,6 @@
 # Registration emails — DRAFT v1 for owner review
 
-All five templates below are **DRAFT: owner wording approval is pending**.
+All six templates below are **DRAFT: owner wording approval is pending**.
 This is the complete plain-text content of the implemented v1 templates. Simple
 HTML repeats the same paragraphs in `<html lang="en">`, escapes text and makes
 the registration/ticket URL clickable. There are no images, attachments or QR
@@ -63,7 +63,8 @@ Support: contact@msrc2027.com
 Key/version: `registration_offered` / `1`;
 payload: `{"offer_expires_at":"<database timestamptz>"}`.
 ORG-056 approves a 24-hour offer; the owner must configure that value. Offer
-acceptance UI is Task 4 and must be available before this email can be activated.
+acceptance is implemented in Task 4 and still requires database and release checks
+before this email can be activated.
 
 Subject: **A seat is offered to you: reply within 24 hours**
 
@@ -116,6 +117,29 @@ Sign in to My registration: https://www.msrc2027.com/{locale}/registration
 
 Support: contact@msrc2027.com
 ```
+
+## Registration cancelled — DRAFT
+
+Key/version: `registration_cancelled` / `1`; payload: `{}`.
+
+Subject: **Your registration was cancelled**
+
+```text
+The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+Your conference registration was cancelled. Any ticket for this registration is no longer valid.
+
+Sign in to My registration: https://www.msrc2027.com/{locale}/registration
+
+Support: contact@msrc2027.com
+```
+
+Self-cancellation and declining an offer enqueue this template atomically with
+the cancellation, ticket revocation and any automatic offer to the next waitlisted
+participant. Operation retries do not enqueue another copy. This template remains
+a wording draft; neither adding it nor creating its queued event authorizes delivery.
 
 ## Atomic producers and delivery gates
 

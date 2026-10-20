@@ -46,7 +46,7 @@ export function syntheticRecipient(value: string): boolean {
 }
 
 export const registrationEmailTemplates = ["registration_received", "registration_approved", "registration_offered",
-  "registration_waitlisted", "registration_expired"] as const;
+  "registration_waitlisted", "registration_expired", "registration_cancelled"] as const;
 export type RegistrationEmailTemplate = typeof registrationEmailTemplates[number];
 
 /** Destinations come only from the current verified Auth identity in the business transaction. */
@@ -102,6 +102,11 @@ function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
     case "registration_expired":
       subject = "Your offer expired";
       paragraphs = ["Your seat offer has expired.", `Sign in to My registration: ${registrationUrl}`];
+      break;
+    case "registration_cancelled":
+      subject = "Your registration was cancelled";
+      paragraphs = ["Your conference registration was cancelled. Any ticket for this registration is no longer valid.",
+        `Sign in to My registration: ${registrationUrl}`];
       break;
   }
   const text = [homepageCopy.en.kicker, `Conference dates: ${formatConferenceDateRange(conferenceConfig.dates, "en")}.`,

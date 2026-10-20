@@ -21,7 +21,7 @@ const claims = { sub: actorId, session_id: sessionId, exp: now / 1000 + 3600, ia
 const nativeToken = (value: unknown = claims) => "synthetic." + Buffer.from(JSON.stringify(value)).toString("base64url") + ".synthetic";
 const token = "msrc1." + id + "." + createHmac("sha256", Buffer.from(secret, "hex")).update("msrc-ticket-v1:" + id).digest("hex");
 const ticket = { status: "issued", referenceCode: "DC0000000000", token };
-function fixture(options: { result?: unknown; error?: Error; identity?: string | null; claims?: unknown; observeOnly?: boolean; closed?: boolean;
+function fixture(options: { result?: unknown; error?: Error; identity?: string | null; claims?: unknown; observeOnly?: boolean; closed?: boolean; settingsComplete?: boolean;
   refresh?: Awaited<ReturnType<RegistrationBackend["refresh"]>> } = {}) {
   const backend: RegistrationBackend = {
     identity: vi.fn(async () => Object.hasOwn(options, "identity") ? options.identity! : actorId),
@@ -29,7 +29,7 @@ function fixture(options: { result?: unknown; error?: Error; identity?: string |
     rpc: vi.fn(async (name) => {
       if (name === "msrc_participant_status") return { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true,
         cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
-      if (name === "msrc_registration_status") return { enabled: !options.closed, participantAccountsReady: true, settingsComplete: true };
+      if (name === "msrc_registration_status") return { enabled: !options.closed, participantAccountsReady: true, settingsComplete: options.settingsComplete ?? true };
       if (name === "msrc_registration_ticket") { if (options.error) throw options.error; return options.result ?? { state: "ready", ticket }; }
       throw new Error("Unexpected RPC");
     }),
@@ -98,6 +98,9 @@ describe("participant own-ticket boundary", () => {
     const f = fixture(); expect((await f.get()).status).toBe(200);
     expect(f.backend.rpc).toHaveBeenCalledWith("msrc_registration_ticket", { edition_key: config.editionKey, session_claims: claims, ticket_secret: secret });
     expect(vi.mocked(f.backend.rpc).mock.calls.some(([name]) => name === "msrc_registration_context")).toBe(false);
+  });
+  it("keeps an existing ticket available when submission settings become incomplete", async () => {
+    expect((await fixture({ settingsComplete: false }).get()).status).toBe(200);
   });
   it.each([new RegistrationRpcMissingError(), new Error("outage")])("missing migration/outage keeps valid session", async (error) => {
     const response = await fixture({ error }).get(); expect(response.status).toBe(503); expect(response.headers.get("set-cookie")).toBeNull();

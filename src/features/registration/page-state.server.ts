@@ -17,7 +17,6 @@ export async function readRegistrationPageState(locale: Locale): Promise<Registr
   const response = await observeRegistrationRequest(new Request(origin + "/api/workflows/registration?locale=" + locale, {
     headers: { host: new URL(origin).host, cookie: current.get("cookie") ?? "" },
   }));
-  if (!response.ok && response.status !== 401) return null;
   const value = await response.json() as RegistrationResponse;
-  return ["ready", "submitted", "denied"].includes(value.state) ? value : null;
+  return ["ready", "submitted", "denied", "area-not-ready"].includes(value.state) ? value : null;
 }

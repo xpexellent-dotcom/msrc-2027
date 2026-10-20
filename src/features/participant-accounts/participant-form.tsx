@@ -5,6 +5,7 @@ import { FormField } from "@/components/forms/form-field";
 import { Checkbox } from "@/components/forms/checkbox";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
+import { myRegistrationCopy } from "@/features/registration/my-registration-copy";
 import type { Locale } from "@/lib/i18n";
 import type { ParticipantAction, ParticipantField, ParticipantPageState, ParticipantPayload, ParticipantProfile, ParticipantResponse, ParticipantState } from "./contracts";
 import { participantCopy, type ParticipantScreen } from "./participant-copy";
@@ -20,7 +21,7 @@ function formattedTime(value: number, locale: Locale) {
   return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { hour: "numeric", minute: "2-digit", second: "2-digit", timeZone: "Asia/Riyadh" }).format(value);
 }
 
-export function ParticipantAccountForm({ locale, screen, initialState }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState }) {
+export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean }) {
   const copy = participantCopy[locale];
   const draft = useParticipantDraft();
   // A completion can land in the prior locale's unmounted form. Observe its
@@ -159,7 +160,8 @@ export function ParticipantAccountForm({ locale, screen, initialState }: { local
           <div><dt>{copy.profileName}</dt><dd data-testid="participant-profile-name"><bdi dir="auto">{profile.name}</bdi></dd></div>
           <div><dt>{copy.accountState}</dt><dd data-testid="participant-account-state">{copy.verifiedState}</dd></div>
         </dl>
-        <p className="participant-account-registration" data-testid="participant-registration-closed">{copy.registrationClosed}</p>
+        {registrationAvailable ? <ButtonLink href={`/${locale}/registration`} variant="secondary">{myRegistrationCopy[locale].title}</ButtonLink>
+          : <p className="participant-account-registration" data-testid="participant-registration-closed">{copy.registrationClosed}</p>}
         <div className="participant-account-actions"><Button variant="secondary" disabled={disabled} onClick={() => void handleAction("logout", false)}>{copy.signOut}</Button></div>
       </> : availability === "ready" ? <p data-testid="participant-signin-required">{copy.needSignIn}</p> : null}
     </> : screen === "sign-up" && !notice ? <p className="participant-account-notice" data-testid="participant-privacy-pending">{copy.privacyPending}</p> : complete ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : <>

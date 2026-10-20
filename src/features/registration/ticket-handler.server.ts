@@ -32,7 +32,7 @@ export function createRegistrationTicketHandler(dependencies: {
     try {
       if (!await participantReady(config, backend)) return reply({ state: "closed" }, 503);
       const status = record(await backend.rpc("msrc_registration_status", { edition_key: config.editionKey }));
-      if (status?.enabled !== true || status.participantAccountsReady !== true || status.settingsComplete !== true) return reply({ state: "closed" }, 503);
+      if (status?.enabled !== true || status.participantAccountsReady !== true) return reply({ state: "closed" }, 503);
       let session = readParticipantSession(config, request, now);
       if (!session) return reply({ state: "denied" }, 401);
       if (nativeTokenNeedsRefresh(session.accessToken, now)) {

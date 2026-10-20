@@ -60,7 +60,7 @@ describe("DRAFT English registration email templates", () => {
       await sender.send(envelope, template);
       expect(JSON.parse(String(fetcher.mock.calls.at(-1)?.[1]?.body))).toEqual(envelope);
     }
-    expect(fetcher).toHaveBeenCalledTimes(5);
+    expect(fetcher).toHaveBeenCalledTimes(registrationEmailTemplates.length);
   });
 
   it("retains synthetic-only test and console senders for local registration fixtures", async () => {

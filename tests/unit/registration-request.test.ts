@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { resolveParticipantConfig } from "@/features/participant-accounts/config.server";
 import { participantCookie, participantFormToken, readParticipantSession } from "@/features/participant-accounts/security.server";
-import type { RegistrationBackend } from "@/features/registration/backend.server";
+import { RegistrationRpcMissingError, type RegistrationBackend } from "@/features/registration/backend.server";
 import { createRegistrationHandler } from "@/features/registration/handler.server";
 import { decryptIdentityDocument, type IdentityCryptoConfig } from "@/features/registration/identity-crypto.server";
 import { readRegistrationFormToken, registrationFormToken } from "@/features/registration/security.server";
@@ -21,11 +21,12 @@ const summary = { id: "dc000000-0000-4000-8000-000000000001", status: "pending_a
 const evidence = { enabled: true, participantAccountsReady: true, settingsComplete: true, windowOpen: true, eligible: true, state: "open", request: null, termsVersion: "v1.0" };
 
 function fixture(options: { context?: unknown; status?: unknown; participantStatus?: unknown; identity?: string | null; accessClaims?: unknown; submit?: unknown; claim?: string;
-  refresh?: Awaited<ReturnType<RegistrationBackend["refresh"]>>; observeOnly?: boolean } = {}) {
+  refresh?: Awaited<ReturnType<RegistrationBackend["refresh"]>>; observeOnly?: boolean; error?: Error; errorRpc?: string } = {}) {
   const backend: RegistrationBackend = {
     identity: vi.fn(async () => Object.hasOwn(options, "identity") ? options.identity! : actorId),
     refresh: vi.fn(async () => Object.hasOwn(options, "refresh") ? options.refresh! : { actorId, sessionId, accessToken: token(), refreshToken: "synthetic-rotated-refresh" }),
     rpc: vi.fn(async (name) => {
+      if (options.error && name === (options.errorRpc ?? "msrc_registration_context")) throw options.error;
       if (name === "msrc_participant_status") return options.participantStatus ?? { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true,
         cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
       if (name === "msrc_registration_status") return options.status ?? { enabled: true, participantAccountsReady: true, settingsComplete: true };
@@ -118,6 +119,15 @@ describe("closed registration request boundary (REG-01/02, ORG-039/041/051, SEC-
   it("never returns unexpected private RPC data", async () => {
     vi.stubEnv("REGISTRATION_ENABLED", "true"); const response = await fixture({ submit: { state: "submitted", request: { ...summary, plaintext: "FAKE0001" } } }).post();
     expect(response.status).toBe(503); expect(JSON.stringify(await response.json())).not.toContain("FAKE0001");
+  });
+  it.each(["msrc_registration_status", "msrc_registration_context", "msrc_registration_submit"])("keeps login and returns area-not-ready when %s is not installed", async (errorRpc) => {
+    vi.stubEnv("REGISTRATION_ENABLED", "true"); const f = fixture({ error: new RegistrationRpcMissingError(), errorRpc });
+    const response = await f.post(); expect(response.status).toBe(503);
+    expect(response.headers.get("set-cookie")).toBeNull(); expect(await response.json()).toEqual({ state: "area-not-ready" });
+  });
+  it("keeps a generic failure distinct from a missing registration migration", async () => {
+    vi.stubEnv("REGISTRATION_ENABLED", "true"); const response = await fixture({ error: new Error("unavailable") }).post();
+    expect(response.status).toBe(503); expect(await response.json()).toEqual({ state: "unavailable" });
   });
   it("observes the existing request without exposing identity data", async () => {
     vi.stubEnv("REGISTRATION_ENABLED", "true"); const { handle, cookie } = fixture({ context: { ...evidence, request: summary } });

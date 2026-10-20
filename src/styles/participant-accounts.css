@@ -36,6 +36,18 @@
 .registration-ticket-qr img { display: block; inline-size: min(100%, 20rem); block-size: auto; background: white; }
 .registration-ticket-qr figcaption { color: var(--color-muted); text-align: center; line-height: 1.7; }
 [lang="ar"] .participant-account-intro h1 { letter-spacing: 0; line-height: 1.55; }
+.my-registration { display: grid; gap: var(--space-5); }
+.registration-status-card > h2 { font-size: clamp(1.35rem, 3.5vw, 1.75rem); }
+.registration-status-description, .registration-window, .registration-confirmation p { line-height: 1.85; }
+.registration-window { margin-block-start: var(--space-5); padding-block-start: var(--space-4); border-block-start: 1px solid var(--color-line); }
+.registration-window p:empty { display: none; }
+.registration-few-places { display: inline-block; margin-block-start: var(--space-3); padding: .4rem .8rem; border-radius: .5rem; background: var(--color-surface-lilac); color: var(--color-purple); font-weight: 600; }
+.registration-offer-clock { margin-block: var(--space-5); padding: var(--space-4); border-inline-start: 3px solid var(--color-purple); background: var(--color-info-surface); line-height: 1.85; }
+.registration-offer-clock [role="timer"] { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem; }
+.registration-offer-clock bdi { color: var(--color-purple); font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.registration-confirmation { margin-block-start: var(--space-5); padding: var(--space-4); border: 1px solid var(--color-purple); border-radius: .75rem; }
+.registration-confirmation h3 { color: var(--color-purple); font-size: 1.15rem; line-height: 1.7; }
+.registration-status-card .participant-account-actions:empty { display: none; }
 @media (max-width: 600px) {
   .participant-account-actions { flex-direction: column; align-items: stretch; }
   .participant-account-navigation { flex-direction: column; align-items: start; gap: var(--space-1); }

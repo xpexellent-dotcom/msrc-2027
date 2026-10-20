@@ -20,6 +20,26 @@ Support: contact@msrc2027.com",
 }
 `;
 
+exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_cancelled 1`] = `
+{
+  "from": "MSRC 2027 <no-reply@msrc2027.com>",
+  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>Your conference registration was cancelled. Any ticket for this registration is no longer valid.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
+  "subject": "Your registration was cancelled",
+  "text": "The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+Your conference registration was cancelled. Any ticket for this registration is no longer valid.
+
+Sign in to My registration: https://www.msrc2027.com/en/registration
+
+Support: contact@msrc2027.com",
+  "to": [
+    "participant@example.invalid",
+  ],
+}
+`;
+
 exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_expired 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",

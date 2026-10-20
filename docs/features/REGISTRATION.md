@@ -1,7 +1,8 @@
 # Registration — closed foundation and staff queue
 
-Current extension: [tickets and transactional email](#tickets-and-transactional-email-task-3--eng-054)
-adds private tickets, atomic notification jobs and staff ticket indicators.
+Current extension: [My registration](#my-registration-task-4--eng-055)
+adds participant status, offer acceptance, decline and self-cancellation on top
+of the existing tickets and transactional email events.
 Earlier slice descriptions below are historical where superseded by ORG-056
 and the appended current sections. Participant registration and delivery remain closed.
 
@@ -24,7 +25,7 @@ not production configuration or launch approval.
 | 1 — this change | Decisions/settings, private requests and identity protection, audited organizing-team/volunteer designation, neutral EN/AR request form, guarded Super Admin identity reveal |
 | 2 | Durable transactional email outbox and bounded, deduplicated jobs |
 | 3 — staff backend implemented | Private staff queue, bulk approval, serialized seat allocation, manual waitlist, organizing-team priority and scoped counts. Timed offers and export remain separate work. |
-| 4 — Task 3 implemented | QR ticket and five transactional email templates, atomic outbox events, closed cron bridge. Early access uses ORG-056's email list. Countdown, offer acceptance and self-cancellation are later work. |
+| 4 — Tasks 3–4 implemented | QR ticket, six DRAFT transactional email templates, atomic outbox events, closed cron bridge, participant status/countdown, offer acceptance, decline and self-cancellation. Early access uses ORG-056's email list. |
 | 5 | Confirm-your-seat response and release of unanswered allocations to the waitlist |
 
 Payments, if the owner selects paid registration, and workshop booking are
@@ -600,8 +601,8 @@ O10 GET uses the existing authenticated drain, with no work while delivery is of
 The source cron is daily for the unresolved Vercel plan; a five-minute schedule
 requires confirmed Pro/Enterprise before live activation. All delivery switches
 remain off and both caps remain zero. Full wording, plan constraints, environment
-names and activation checks are in the email note. No offer acceptance endpoint
-exists yet; Task 4 must use the same issuance/enqueue transaction when built.
+names and activation checks are in the email note. Task 4 below adds offer
+acceptance using the same issuance/enqueue transaction.
 
 Check-in remains later work. A scanner must verify the secret hash **and** live
 ticket revocation, registration entitlement, account authority and assigned
@@ -630,3 +631,82 @@ the loop-generated assertions; no fixed plan count needs adjustment.
 Production guards and migrations are unchanged. Local lint, typecheck and all
 3,171 unit tests pass; pgTAP and database integration execution remain pending
 disposable Supabase CI.
+
+## My registration (Task 4 / ENG-055)
+
+`/[locale]/registration` renders the signed-in participant's current request on
+the server, with EN/AR status text, full RTL and mobile controls. The existing
+closed public journey remains when the runtime/account registration gates are
+off. My MSRC links to this screen when the runtime registration gate is enabled.
+No flag is enabled by this task.
+
+The own view distinguishes not requested (scheduled, early-access eligible or
+not eligible, open, closed), pending approval, waitlisted, offered, approved,
+cancelled and expired. Existing confirmed and payment-pending records have safe
+explicit presentation; this task builds no payment action or confirm-seat stage.
+No waitlist position is exposed. REG-05 authorizes capacity status, whereas
+WKS-01's exact workshop counts do not authorize general registration counts.
+Only `fewPlacesLeft` leaves the server, true when the configured threshold is
+non-null and remaining seats are at or below it. Approved/confirmed views use
+Task 3's private PNG QR and reference; cancelled/expired views expose no QR.
+
+Review-only migration:
+`20261020150000_participant_registration_self_service.sql`.
+New service-role-only RPCs (all return `jsonb`):
+
+```sql
+msrc_registration_me(edition_key text, session_claims jsonb)
+msrc_registration_accept_offer(edition_key text, session_claims jsonb,
+  request_id uuid, operation_id uuid, ticket_secret text)
+msrc_registration_decline_offer(edition_key text, session_claims jsonb,
+  request_id uuid, operation_id uuid)
+msrc_registration_cancel(edition_key text, session_claims jsonb,
+  request_id uuid, operation_id uuid)
+```
+
+Own status returns only `state`, `request:{id,status,createdAt,offerExpiresAt}|null`,
+`window:{state,eligible,opensAt}`, `fewPlaces` and `serverNow`. HTTP handlers
+keep the database request ID private and resolve it themselves before mutations.
+Clients cannot choose an actor, session, request, ticket secret or target state.
+The mutation returns `updated`, `expired`, `conflict`, `closed`, `denied` or
+`area_not_ready`. An immutable, forced-RLS `participant_operations` table binds
+each operation ID to edition, verified actor, request and action; reuse with a
+different action conflicts. No API role receives direct table access.
+
+Acceptance runs under the shared edition settings lock and checks actual database
+time after waiting; only a live offered free seat can become approved. The existing
+trigger issues one ticket and enqueues `registration_approved` in that same
+transaction. Decline cancels an offered request; self-cancel accepts pending,
+waitlisted, offered and approved states after an explicit UI confirmation. Both
+record a fixed participant reason in the audit. Cancelling an occupied seat
+revokes the ticket and offers only the released seat to the next waitlisted
+request in `created_at,id` order, using the same helper as expiry. Pending and
+waitlist cancellation do not allocate a seat. Cancellation emits the sixth v1
+DRAFT English template, `registration_cancelled`. Failures roll back the action,
+audit, ticket, operation receipt and outbox changes together.
+
+Status reads can expire the current participant's elapsed offer and hand on that
+seat after exact-session and ownership checks. They cannot expire another
+participant's offer. A countdown is rendered from `serverTime` and advances with
+a monotonic display clock; zero requests a fresh server status and never changes
+entitlement locally. Existing request management and ticket viewing survive the
+submission closing time or incomplete submission settings. Independent runtime,
+database, participant/privacy, age and exact-session gates continue to apply.
+
+GET/POST `/api/registration/me` use private/no-store responses. GET returns
+`MyRegistrationResponse`: ready data (`registration`, `window`, `fewPlacesLeft`,
+`serverTime`, `formToken`, `ticket`) or closed, denied, area-not-ready, unavailable,
+invalid_input or limited. POST accepts exactly
+`{action:'accept'|'decline'|'cancel', operationId, formToken}`. The action token
+is origin/actor/session-bound with a fixed 30-minute expiry and is separate from
+the collection form's anti-bot token. Existing participant mutation rate limits
+apply. Success returns a new canonical ready snapshot; conflict/expiry returns
+that snapshot with `outcome` and HTTP 409. Missing RPCs preserve a valid login
+and display area-not-ready, including the earlier collection/ticket handlers.
+
+Verification and blockers: [Task 4 receipt](../progress/2026-10-20-codex-my-registration.md).
+No hosted migration, settings seed, workflow activation, email delivery, branch,
+commit or push was performed. The current Supabase
+[function security and execution guidance](https://supabase.com/docs/guides/database/functions)
+was checked for explicit grants and empty search paths. CI database evidence,
+owner wording/Arabic review and all existing activation gates remain required.
