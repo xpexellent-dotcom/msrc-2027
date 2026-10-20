@@ -7,10 +7,12 @@ export const registrationCopy = {
     photography: "MSRC 2027 is photographed and video-recorded.",
     submit: "Reserve your seat", sending: "Sending your request…", confirmation: "Your seat request is in. We'll email you.",
     invalid: "Check your document details and accept the Terms, then try again.",
+    areaNotReady: "Registration requests are not ready yet. Please try again later.",
     unavailable: "We couldn't send your request. Please try again.", closed: "Registration is not open yet.",
     denied: "Sign in with your verified participant account to continue.", signIn: "Sign in", errorTitle: "Check your request", retry: "Try again", checking: "Checking your account…",
   },
   ar: {
+    areaNotReady: "طلبات التسجيل غير جاهزة بعد. يُرجى المحاولة لاحقًا.",
     title: "احجز مقعدك", lead: "أدخل بيانات وثيقة هويتك واقبل الشروط والأحكام لإرسال طلب مقعدك.",
     documentType: "نوع وثيقة الهوية", nationalId: "الهوية الوطنية", iqama: "الإقامة", passport: "جواز السفر (للحاضرين الدوليين)",
     documentNumber: "رقم الوثيقة", documentHint: "أدخل الرقم كما يظهر في وثيقتك. تُحفظ بياناته بسرية.",

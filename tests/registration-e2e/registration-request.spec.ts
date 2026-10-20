@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { createCipheriv, randomBytes } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { registrationCopy } from "../../src/features/registration/registration-copy";
+import { myRegistrationCopy } from "../../src/features/registration/my-registration-copy";
 
 /** Actual SSR/API/crypto/form against a loopback synthetic provider. Database enforcement has separate SQL tests. */
 async function sessionCookie(stale = false) {
@@ -49,7 +50,7 @@ for (const locale of ["en", "ar"] as const) {
     page.on("pageerror", (error) => errors.push(error.name));
     page.on("response", (response) => { if (response.status() >= 500) failedResponses.push(new URL(response.url()).pathname); });
     await page.goto(`/${locale}/registration`);
-    await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: myRegistrationCopy[locale].title })).toBeVisible();
     await expect(page.getByTestId("registration-request")).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.locator("#registration-document-number")).toHaveAttribute("dir", "ltr");
@@ -74,13 +75,13 @@ for (const locale of ["en", "ar"] as const) {
     const response = await submitted, value = await response.json();
     expect(response.status()).toBe(200); expect(value.state).toBe("submitted");
     expect(JSON.stringify(value)).not.toContain("FAKE0001");
-    await expect(page.getByRole("status")).toContainText(copy.confirmation);
+    await expect(page.getByTestId("registration-status")).toHaveText(myRegistrationCopy[locale].states.pending_approval);
     await expect(page.locator("#registration-document-number")).toHaveCount(0);
     const payload = response.request().postDataJSON();
     const retries = await Promise.all([context.request.post("/api/workflows/registration", { headers: { origin: "http://127.0.0.1:3216" }, data: payload }),
       context.request.post("/api/workflows/registration", { headers: { origin: "http://127.0.0.1:3216" }, data: payload })]);
     for (const retry of retries) { expect(retry.status()).toBe(200); expect((await retry.json()).request.id).toBe(value.request.id); }
-    await page.reload(); await expect(page.getByRole("status")).toContainText(copy.confirmation);
+    await page.reload(); await expect(page.getByTestId("registration-status")).toHaveText(myRegistrationCopy[locale].states.pending_approval);
     expect(errors).toEqual([]);
     expect(failedResponses).toEqual([]);
   });

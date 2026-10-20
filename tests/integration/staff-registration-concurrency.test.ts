@@ -177,6 +177,153 @@ describe.skipIf(!isolatedCi)("Staff registration allocation (disposable GitHub C
   });
 });
 
+// ENG-055 uses the same isolated CI entrypoint, native sessions and observed
+// database lock barriers. These cases cannot execute against hosted projects.
+const selfEdition = "synthetic-participant-registration-races";
+function participantAction(action: "accept_offer" | "cancel", participant: number, operation: number, applicationName: string) {
+  return `begin;
+    set local application_name='${applicationName}';
+    select set_config('request.jwt.claims',pg_temp.registration_claims(${participant})::text,true);
+    select set_config('synthetic.request_id',(select id::text from msrc_registration.requests
+      where edition_key='${selfEdition}' and actor_id='${actor(participant)}'),true);
+    set local role service_role;
+    select public.msrc_registration_${action}('${selfEdition}',current_setting('request.jwt.claims')::jsonb,
+      current_setting('synthetic.request_id')::uuid,'e7400000-0000-4000-8000-${String(operation).padStart(12, "0")}'
+      ${action === "accept_offer" ? ",repeat('a',64)" : ""})::text;`;
+}
+function participantExpiry(applicationName: string) {
+  return `begin;
+    set local application_name='${applicationName}';
+    select set_config('request.jwt.claims',pg_temp.registration_claims(2701)::text,true);
+    set local role authenticated;
+    select public.msrc_staff_registration_expire_offers('${selfEdition}')::text;`;
+}
+
+describe.skipIf(!isolatedCi)("Participant registration lifecycle (disposable GitHub CI only)", () => {
+  beforeAll(async () => {
+    await query(`begin;
+      update msrc_participant.policy set enabled=true,privacy_version='synthetic-registration-notice',email_daily_limit=1000;
+      update msrc_participant.retention_policy set enabled=true;
+      update msrc_staff.policy set enabled=true,email_daily_limit=1000;
+      select pg_temp.registration_settings('${selfEdition}');
+      do $$declare n integer;begin
+        for n in 2601..2608 loop perform pg_temp.registration_fixture(n,'${selfEdition}');end loop;
+      end$$;
+      select pg_temp.registration_staff_fixture(2701,'${selfEdition}');
+      do $$declare n integer;begin
+        for n in 2601..2608 loop perform pg_temp.registration_submit('${selfEdition}',n,md5(n::text)||md5(n::text));end loop;
+      end$$;
+      update msrc_registration.requests set status='offered',offer_expires_at=clock_timestamp()+interval '1 hour'
+        where edition_key='${selfEdition}' and actor_id in('${actor(2601)}','${actor(2602)}');
+      update msrc_registration.requests set status='approved'
+        where edition_key='${selfEdition}' and actor_id in('${actor(2603)}','${actor(2604)}');
+      update msrc_registration.requests set status='waitlisted'
+        where edition_key='${selfEdition}' and actor_id in('${actor(2605)}','${actor(2606)}','${actor(2607)}');
+      update msrc_registration.settings set general_capacity=4,offer_window_hours=24 where edition_key='${selfEdition}';
+      commit;`);
+  });
+
+  it("acceptance winning the settings lock cannot be expired or hand the same seat to someone else", async () => {
+    const accepting = held(participantAction("accept_offer", 2601, 2601, "synthetic-self-accept-winner") + `
+      reset role;
+      update msrc_registration.requests set offer_expires_at=clock_timestamp()-interval '1 second'
+        where edition_key='${selfEdition}' and actor_id='${actor(2601)}';
+      select pg_advisory_xact_lock(${marker});`);
+    let expiring: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        expiring = query(participantExpiry("synthetic-self-expire-contender") + "commit;");
+        await waiting("synthetic-self-expire-contender");
+      } finally { accepting.release(); }
+      const [accepted, expired] = (await Promise.all([accepting.done, expiring!])).map(response);
+      expect(accepted.state).toBe("updated");
+      expect(expired).toEqual({ state: "updated", expired: 0, offered: 0 });
+      await query(`do $$begin
+        if (select status from msrc_registration.requests where edition_key='${selfEdition}' and actor_id='${actor(2601)}')<>'approved'
+        or (select count(*) from msrc_registration.tickets t join msrc_registration.requests r on r.id=t.request_id
+          where r.edition_key='${selfEdition}' and r.actor_id='${actor(2601)}' and t.status='issued')<>1
+        or (select count(*) from msrc_outbox.messages where template_key='registration_approved' and recipient_email='registration-2601@example.invalid')<>1
+        or exists(select 1 from msrc_registration.audit where edition_key='${selfEdition}' and target_actor='${actor(2601)}' and event='request.offer_expired')
+        then raise exception 'Accept-winning race invariant failed';end if;end$$;`);
+    } finally { await Promise.allSettled([accepting.done, ...(expiring ? [expiring] : [])]); }
+  });
+
+  it("expiry winning the settings lock denies acceptance and passes the seat only once", async () => {
+    await query(`update msrc_registration.requests set offer_expires_at=clock_timestamp()-interval '1 second'
+      where edition_key='${selfEdition}' and actor_id='${actor(2602)}';`);
+    const expiring = held(participantExpiry("synthetic-self-expire-winner") + `select pg_advisory_xact_lock(${marker});`);
+    let accepting: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        accepting = query(participantAction("accept_offer", 2602, 2602, "synthetic-self-accept-contender") + "commit;");
+        await waiting("synthetic-self-accept-contender");
+      } finally { expiring.release(); }
+      const [expired, accepted] = (await Promise.all([expiring.done, accepting!])).map(response);
+      expect(expired).toEqual({ state: "updated", expired: 1, offered: 1 });
+      expect(accepted.state).toBe("expired");
+      await query(`do $$begin
+        if exists(select 1 from msrc_registration.tickets t join msrc_registration.requests r on r.id=t.request_id
+          where r.edition_key='${selfEdition}' and r.actor_id='${actor(2602)}')
+        or (select count(*) from msrc_registration.audit where edition_key='${selfEdition}' and target_actor='${actor(2602)}' and event='request.offer_expired')<>1
+        or (select count(*) from msrc_registration.audit where edition_key='${selfEdition}' and event='request.offered')<>1
+        or (select count(*) from msrc_outbox.messages where template_key='registration_expired' and recipient_email='registration-2602@example.invalid')<>1
+        then raise exception 'Expiry-winning race invariant failed';end if;end$$;`);
+    } finally { await Promise.allSettled([expiring.done, ...(accepting ? [accepting] : [])]); }
+  });
+
+  it.each([{ participant: 2603, sameOperation: true }, { participant: 2604, sameOperation: false }])(
+    "two concurrent cancellations for $participant (same operation: $sameOperation) revoke and pass one seat",
+    async ({ participant, sameOperation }) => {
+      const first = held(participantAction("cancel", participant, participant, `synthetic-self-cancel-first-${participant}`) +
+        `select pg_advisory_xact_lock(${marker});`);
+      let second: Promise<string> | undefined;
+      try {
+        try {
+          await barrier();
+          second = query(participantAction("cancel", participant, sameOperation ? participant : participant + 100,
+            `synthetic-self-cancel-second-${participant}`) + "commit;");
+          await waiting(`synthetic-self-cancel-second-${participant}`);
+        } finally { first.release(); }
+        expect((await Promise.all([first.done, second!])).map(response).map((row) => row.state))
+          .toEqual(["updated", sameOperation ? "updated" : "conflict"]);
+        await query(`do $$begin
+          if (select count(*) from msrc_registration.tickets t join msrc_registration.requests r on r.id=t.request_id
+            where r.edition_key='${selfEdition}' and r.actor_id='${actor(participant)}' and t.status='revoked')<>1
+          or (select count(*) from msrc_registration.audit where edition_key='${selfEdition}'
+            and target_actor='${actor(participant)}' and event='request.cancelled')<>1
+          or (select count(*) from msrc_outbox.messages where template_key='registration_cancelled'
+            and recipient_email='registration-${participant}@example.invalid')<>1
+          or (select count(*) from msrc_registration.requests where edition_key='${selfEdition}'
+            and status in('approved','approved_awaiting_payment','offered','confirmed'))<>4
+          then raise exception 'Concurrent cancellation invariant failed';end if;end$$;`);
+      } finally { await Promise.allSettled([first.done, ...(second ? [second] : [])]); }
+    });
+
+  it("rechecks a participant session deadline after waiting for the settings lock", async () => {
+    const locking = held(`begin;
+      select 1 from msrc_registration.settings where edition_key='${selfEdition}' for update;
+      select pg_advisory_xact_lock(${marker});`);
+    let cancelling: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        cancelling = query(participantAction("cancel", 2608, 2608, "synthetic-self-session-expired") + "commit;");
+        await waiting("synthetic-self-session-expired");
+        // The contender has not obtained its native-session row lock yet.
+        await query(`update auth.sessions set not_after=clock_timestamp()-interval '1 second' where id='e7200000-0000-4000-8000-000000002608';`);
+      } finally { locking.release(); }
+      const [, denied] = await Promise.all([locking.done, cancelling!]);
+      expect(response(denied).state).toBe("denied");
+      await query(`do $$begin
+        if (select status from msrc_registration.requests where edition_key='${selfEdition}' and actor_id='${actor(2608)}')<>'pending_approval'
+        or exists(select 1 from msrc_registration.participant_operations where edition_key='${selfEdition}' and actor_id='${actor(2608)}')
+        then raise exception 'Expired participant session mutated registration';end if;end$$;`);
+    } finally { await Promise.allSettled([locking.done, ...(cancelling ? [cancelling] : [])]); }
+  });
+});
+
 // ENG-053 shares this existing CI entrypoint and its guarded disposable stack.
 // Settings and allocation must observe each other's committed seat decisions.
 const settingsEdition = "synthetic-settings-races";

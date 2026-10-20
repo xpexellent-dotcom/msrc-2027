@@ -6,7 +6,7 @@ import { participantNotice } from "@/features/participant-accounts/privacy.serve
 import { nativeTokenNeedsRefresh, participantCookie, participantHash, participantIp, participantOrigin, participantUuid,
   readParticipantJson, readParticipantSession } from "@/features/participant-accounts/security.server";
 import { assertWorkflowOpen, type RegistrationGateEvidence } from "@/lib/workflows.server";
-import { createRegistrationBackend, type RegistrationBackend } from "./backend.server";
+import { createRegistrationBackend, RegistrationRpcMissingError, type RegistrationBackend } from "./backend.server";
 import type { RegistrationRequest, RegistrationResponse } from "./contracts";
 import { encryptIdentityDocument, getIdentityCryptoConfig, identityDocumentHash, maskIdentityNumber,
   normalizeIdentityNumber, type IdentityCryptoConfig, type IdentityDocumentType } from "./identity-crypto.server";
@@ -123,7 +123,7 @@ export function createRegistrationHandler(dependencies: {
       const submitted = requestSummary(result?.request);
       return result?.state === "submitted" && submitted ? respond({ state: "submitted", request: submitted, formToken: fresh(), termsVersion: currentPolicyVersion })
         : respond({ state: "unavailable", formToken: fresh() }, 503);
-    } catch { return respond({ state: "unavailable" }, 503); }
+    } catch (error) { return respond({ state: error instanceof RegistrationRpcMissingError ? "area-not-ready" : "unavailable" }, 503); }
   };
 }
 

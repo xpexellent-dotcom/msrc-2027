@@ -11,7 +11,7 @@ import type { IdentityDocumentType } from "./identity-crypto.server";
 import { registrationCopy } from "./registration-copy";
 import { registrationTicketCopy } from "./ticket-copy";
 
-export function RegistrationForm({ locale, initial }: { locale: Locale; initial: RegistrationResponse }) {
+export function RegistrationForm({ locale, initial, onSubmitted }: { locale: Locale; initial: RegistrationResponse; onSubmitted?: () => void }) {
   const copy = registrationCopy[locale];
   const [result, setResult] = useState(initial);
   const [documentType, setDocumentType] = useState<IdentityDocumentType>("national_id");
@@ -25,17 +25,18 @@ export function RegistrationForm({ locale, initial }: { locale: Locale; initial:
   const summary = useRef<HTMLDivElement>(null);
   const submitted = result.state === "submitted";
   const error = result.state === "invalid_input" ? copy.invalid : result.state === "closed" ? copy.closed
-    : result.state === "denied" ? copy.denied : ["unavailable", "limited"].includes(result.state) ? copy.unavailable : null;
+    : result.state === "denied" ? copy.denied : result.state === "area-not-ready" ? copy.areaNotReady
+    : ["unavailable", "limited"].includes(result.state) ? copy.unavailable : null;
   useEffect(() => { const timer = setTimeout(() => setTokenReady(true), 2_100); return () => clearTimeout(timer); }, [attempt]);
   useEffect(() => {
-    if (initial.state !== "denied") return;
+    if (initial.state !== "denied" && statusRefresh === 0) return;
     const controller = new AbortController();
     fetch("/api/workflows/registration?locale=" + locale, { credentials: "same-origin", cache: "no-store", signal: controller.signal })
       .then(async (response) => {
         const value = await response.json() as RegistrationResponse & { error?: unknown };
         if (controller.signal.aborted) return;
         if (response.ok && ["ready", "submitted"].includes(value.state) && typeof value.formToken === "string" && typeof value.termsVersion === "string") setResult(value);
-        else setResult({ state: value.state === "denied" ? "denied" : value.error ? "closed" : "unavailable" });
+        else setResult({ state: value.state === "denied" ? "denied" : value.state === "area-not-ready" ? "area-not-ready" : value.error ? "closed" : "unavailable" });
         setTokenReady(false); setAttempt((value) => value + 1); setChecking(false);
       }).catch(() => { if (!controller.signal.aborted) { setResult({ state: "unavailable" }); setChecking(false); } });
     return () => controller.abort();
@@ -53,10 +54,10 @@ export function RegistrationForm({ locale, initial }: { locale: Locale; initial:
       const observed = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
       const state = observed?.state;
       if (response.status === 503 && observed?.error) setResult({ ...result, state: "closed" });
-      else if (typeof state === "string" && ["ready", "submitted", "closed", "denied", "invalid_input", "unavailable", "limited"].includes(state)) {
-        setResult({ state: state as RegistrationResponse["state"], formToken: typeof observed?.formToken === "string" ? observed.formToken : result.formToken,
+      else if (typeof state === "string" && ["ready", "submitted", "closed", "denied", "area-not-ready", "invalid_input", "unavailable", "limited"].includes(state)) {
+        setResult({ state: state as RegistrationResponse["state"], formToken: state === "area-not-ready" ? undefined : typeof observed?.formToken === "string" ? observed.formToken : result.formToken,
           termsVersion: result.termsVersion });
-        if (state === "submitted") { setDocumentNumber(""); setAccepted(false); }
+        if (state === "submitted") { setDocumentNumber(""); setAccepted(false); onSubmitted?.(); }
       } else setResult({ ...result, state: "unavailable" });
     } catch { setResult({ ...result, state: "unavailable" }); }
     finally {
@@ -70,8 +71,8 @@ export function RegistrationForm({ locale, initial }: { locale: Locale; initial:
     </div>
     {!checking && result.state === "denied" ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : null}
     {!checking && submitted ? <ButtonLink href={`/${locale}/registration/ticket`} variant="secondary">{registrationTicketCopy[locale].title}</ButtonLink> : null}
-    {!checking && result.state === "unavailable" && !result.formToken ? <Button onClick={() => { setChecking(true); setStatusRefresh((value) => value + 1); }}>{copy.retry}</Button> : null}
-    {!checking && !submitted && result.formToken && result.termsVersion && !["closed", "denied"].includes(result.state) ? <form onSubmit={submit}>
+    {!checking && ["unavailable", "area-not-ready"].includes(result.state) && !result.formToken ? <Button onClick={() => { setChecking(true); setStatusRefresh((value) => value + 1); }}>{copy.retry}</Button> : null}
+    {!checking && !submitted && result.formToken && result.termsVersion && !["closed", "denied", "area-not-ready"].includes(result.state) ? <form onSubmit={submit}>
       <fieldset className="participant-account-fields" disabled={pending}>
         <legend className="sr-only">{copy.title}</legend>
         <div className="field"><label className="field-label" htmlFor="registration-document-type">{copy.documentType}</label>

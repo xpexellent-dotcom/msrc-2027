@@ -3560,3 +3560,34 @@ No hosted migration, settings seed, flag activation, real email, branch, commit
 or push is authorized or performed. The O9
 [Task 3 receipt](progress/2026-10-20-codex-registration-slice4.md) records observed
 checks and CI-only database gates. `docs/PROGRESS.md` is unchanged.
+
+## ENG-055 — Closed participant My registration and seat actions, 20 October 2026
+
+Authority: the owner's overnight Task 4, ORG-055/056. ENG-054 was the highest
+number when reserved. REG-01–08, DAT-03/04, EML-01–05, SEC-01/02/06,
+PRV-03/05/06, TIM-01/02, LOC-01/03 and ACC-01 apply. This is local source
+implementation only; all hosted migrations, settings, delivery and activation
+remain outside this task. The owner leaves commits to Claude.
+
+The participant registration screen uses a server-rendered, own-account status
+projection and server-only seat actions. Signed session/origin-bound action
+tokens, existing participant rate limits and actor-scoped operation IDs protect
+mutations. Ownership, session, independent account/registration gates and the
+database clock are rechecked under the edition settings lock. Free offer
+acceptance issues the existing ticket and approval email atomically. Decline
+and self-cancellation revoke any ticket and hand only the released seat to the
+next waitlisted request in the same order as expiry. All actions are audited.
+
+REG-05 requires capacity status; it does not authorize an exact public
+registration count (WKS-01's separate workshop counts do not extend to general
+attendance). Expose only a threshold-derived `fewPlacesLeft` boolean, and no
+waitlist position or other participant's data. Opening instants and offer
+deadlines come from settings and are displayed in Asia/Riyadh; none are seeded.
+The countdown is informational and cannot approve or expire a registration.
+
+Cancellation adds the English-only `registration_cancelled` version 1 DRAFT
+template for owner wording approval. Missing RPCs show `area-not-ready` while
+preserving valid sessions. Public closed-state presentation is preserved when
+the registration runtime gate is off. Observed checks, database CI gates and
+owner review points belong in the [Task 4 receipt](progress/2026-10-20-codex-my-registration.md).
+`docs/PROGRESS.md` stays unchanged under O9.

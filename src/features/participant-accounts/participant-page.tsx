@@ -31,6 +31,6 @@ export function ParticipantAccountPage({ locale, screen, state }: { locale: Loca
       <h1>{copy.titles[screen]}</h1>
       <p>{copy.leads[screen]}</p>
     </header>
-    <ParticipantAccountForm locale={locale} screen={screen} initialState={state} />
+    <ParticipantAccountForm locale={locale} screen={screen} initialState={state} registrationAvailable={process.env.REGISTRATION_ENABLED === "true"} />
   </Container>;
 }

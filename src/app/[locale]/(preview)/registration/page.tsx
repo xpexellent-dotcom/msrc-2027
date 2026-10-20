@@ -5,8 +5,9 @@ import { experienceCopy } from "@/content/conference-experiences";
 import { isLocale } from "@/lib/i18n";
 import { conferenceDescription, localizedPageMetadata, siteTitle } from "@/lib/metadata";
 import { Container } from "@/components/ui/container";
-import { RegistrationForm } from "@/features/registration/registration-form";
-import { registrationCopy } from "@/features/registration/registration-copy";
+import { MyRegistration } from "@/features/registration/my-registration";
+import { myRegistrationCopy } from "@/features/registration/my-registration-copy";
+import { readMyRegistrationPageState } from "@/features/registration/my-registration-page-state.server";
 import { readRegistrationPageState } from "@/features/registration/page-state.server";
 import "@/styles/participant-accounts.css";
 
@@ -29,12 +30,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const state = await readRegistrationPageState(locale);
-  if (state) {
-    const copy = registrationCopy[locale];
+  let state = await readMyRegistrationPageState(locale);
+  if (state.state !== "closed") {
+    const form = state.state === "ready" && !state.registration && state.window.eligible
+      && ["early-access", "open"].includes(state.window.state) ? await readRegistrationPageState(locale) : null;
+    // Another tab may submit between the two authorized reads. Render its current
+    // request instead of pairing a not-requested heading with a submitted form.
+    if (form?.state === "submitted") state = await readMyRegistrationPageState(locale);
+    const copy = myRegistrationCopy[locale];
     return <Container className="participant-account-page" narrow>
       <header className="participant-account-intro"><h1>{copy.title}</h1><p>{copy.lead}</p></header>
-      <RegistrationForm locale={locale} initial={state} />
+      <MyRegistration locale={locale} initial={state} initialForm={form} />
     </Container>;
   }
   return <JourneyExperience locale={locale} journey="registration" />;

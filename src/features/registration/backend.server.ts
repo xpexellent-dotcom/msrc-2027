@@ -19,7 +19,8 @@ export function createRegistrationBackend(config: ParticipantConfig): Registrati
     refresh: participant.refresh,
     async rpc(name, args = {}) {
       if (name === "msrc_participant_status" || name === "msrc_participant_form_claim") return participant.rpc(name, args);
-      if (!["msrc_registration_status", "msrc_registration_context", "msrc_registration_submit", "msrc_registration_ticket"].includes(name)) throw new Error("Unknown private RPC");
+      if (!["msrc_registration_status", "msrc_registration_context", "msrc_registration_submit", "msrc_registration_ticket",
+        "msrc_registration_me", "msrc_registration_accept_offer", "msrc_registration_decline_offer", "msrc_registration_cancel"].includes(name)) throw new Error("Unknown private RPC");
       const response = await fetch(config.supabaseUrl + "/rest/v1/rpc/" + name, {
         method: "POST", headers: { apikey: config.secretKey, "Content-Type": "application/json" }, body: JSON.stringify(args),
         cache: "no-store", redirect: "error", signal: AbortSignal.timeout(6_000),
