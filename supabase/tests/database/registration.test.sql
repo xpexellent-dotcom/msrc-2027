@@ -5,7 +5,7 @@ set local search_path=public,extensions;
 select no_plan();
 \ir ../support/registration-fixtures.psql
 select is((select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
- where n.nspname='msrc_registration' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),4::bigint,'All four registration tables force RLS');
+ where n.nspname='msrc_registration' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),5::bigint,'All five registration tables, including the private email list, force RLS');
 select is((select count(*) from pg_policies where schemaname='msrc_registration'),0::bigint,'No client RLS policies');
 select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role')) r(name)
  where has_schema_privilege(r.name,'msrc_registration','USAGE')),'No API role has private schema access');

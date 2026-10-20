@@ -3389,3 +3389,36 @@ NULL `performer_id`, because it is automatic and not a decision by whichever
 staff member's read triggered it. The console shows such history rows as
 "Automatic". The Super Admin export is fetched by the console first, so a
 refused export (403/503 JSON) shows a message and never saves an error file.
+
+## ENG-051 — Closed early-access email list and automatic offer hand-on, 20 October 2026
+
+Authority: the current backend task and organizer decisions ORG-056, recorded by
+the planner. REG-01–08, ADM-01/02/04/05, ROL-07/10/12, PRV-03/05/06,
+SEC-01/02/06 and TIM-01/02 apply. This reserves ENG-051 for the additive migration
+`20261020120000_early_access_list_autopass.sql` and its backend contracts/tests,
+from `origin/main` `0dbfab6` in `codex/early-access-autopass`.
+
+Only Super Admins with existing exact-session TOTP assurance may list, add or
+remove normalized early-access email entries. Entries can precede participant
+accounts. The private, forced-RLS list has no client table grants; immutable
+registration audit identifies the entry without copying its email. Only a
+current verified Auth email match grants early-window request eligibility,
+alongside the existing organizing-team priority. Submission rechecks eligibility
+on the server/database. Early access grants no workshop priority or admission.
+
+Amendment to ENG-050: ORG-056 supersedes its provisional **staff decide** expiry
+default. Expiring elapsed offers automatically hands each released seat to the
+next waitlisted request in `created_at,id` order, under the existing edition
+settings lock and seat-holder capacity rules. Automatic offers have a NULL
+performer and database-time deadlines. A null offer window prevents automatic
+replacement offers; recorded elapsed offers still expire. No expiry means no
+automatic offer; manual offers do not automatically fill unrelated vacant seats.
+The existing staff-triggered expiry RPC returns
+`{expired, offered}` counts; no scheduler is added.
+
+ORG-056's free attendance, early/general opening instants and 24-hour offer
+duration are owner-entered settings, not migration seeds or code defaults. No
+hosted migration/settings, workflow opening, email, commit, branch or push is
+performed. The planner owns the console UI and ORG-056. Checks and UI handoff are
+recorded in [the backend receipt](progress/2026-10-20-codex-early-access-autopass.md);
+`docs/PROGRESS.md` remains outside this task's edit scope.

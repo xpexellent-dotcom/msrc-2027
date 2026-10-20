@@ -5,6 +5,7 @@ export const auditActions = {
   en: {
     password_sign_in: "Password sign-in attempt", totp_locked: "Lock authenticator attempts", totp_unlocked: "Unlock authenticator attempts",
     password_change: "Change own password",
+    "early_access.added": "Add early-access email", "early_access.removed": "Remove early-access email",
     "request.submitted": "Submit registration request", "request.approved": "Approve registration request", "request.waitlisted": "Waitlist registration request",
     "request.offered": "Offer a registration seat", "request.offer_expired": "Expire a registration seat offer", "registration.exported": "Export masked registrations",
     "priority.set": "Set organizing-team priority", "priority.removed": "Remove organizing-team priority", "identity.revealed": "Reveal registration identity document",
@@ -17,6 +18,7 @@ export const auditActions = {
   ar: {
     password_sign_in: "محاولة تسجيل الدخول بكلمة المرور", totp_locked: "حظر محاولات تطبيق المصادقة", totp_unlocked: "رفع حظر محاولات تطبيق المصادقة",
     password_change: "تغيير كلمة المرور الخاصة",
+    "early_access.added": "إضافة بريد إلى قائمة الوصول المبكر", "early_access.removed": "إزالة بريد من قائمة الوصول المبكر",
     "request.submitted": "إرسال طلب التسجيل", "request.approved": "الموافقة على طلب التسجيل", "request.waitlisted": "إدراج طلب التسجيل في قائمة الانتظار",
     "request.offered": "عرض مقعد للتسجيل", "request.offer_expired": "انتهاء صلاحية عرض مقعد التسجيل", "registration.exported": "تصدير طلبات التسجيل مع إخفاء أرقام الهوية",
     "priority.set": "تعيين أولوية الفريق المنظم", "priority.removed": "إزالة أولوية الفريق المنظم", "identity.revealed": "إظهار وثيقة الهوية الخاصة بالتسجيل",

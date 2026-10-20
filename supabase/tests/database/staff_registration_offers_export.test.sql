@@ -178,7 +178,7 @@ select is(jsonb_array_length(public.msrc_staff_registration_detail('synthetic-st
 select ok(not (public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))::text ~ 'ciphertext|identity_hash|identityEnvelope|authTag|identity_envelope'),
  'Detail/history expose no encrypted identity or duplicate digest');
 
--- Explicit expiry is idempotent, releases only elapsed offers and never auto-offers.
+-- ENG-051: expiry hands each released seat to the next waitlisted request.
 update msrc_registration.requests set offer_expires_at=clock_timestamp()-interval '1 second' where id=pg_temp.offer_id(1);
 select pg_temp.offer_claim(102);
 select is(public.msrc_staff_registration_expire_offers('synthetic-staff-offers')->>'state','denied','Unauthorized finance cannot cause an expiry transition');
@@ -190,23 +190,24 @@ reset role;
 select is(public.msrc_staff_registration_expire_offers('synthetic-staff-offers')->>'expired','0','Repeated expiry is idempotent');
 select is((select count(*) from msrc_registration.audit where event='request.offer_expired' and previous_status='offered' and new_status='expired' and performer_id is null),1::bigint,'Expiry writes exactly one transition audit');
 select is((select status from msrc_registration.requests where id=pg_temp.offer_id(2)),'offered','Unelapsed offer is retained');
-select is((select status from msrc_registration.requests where id=pg_temp.offer_id(3)),'waitlisted','Released seat is not automatically offered to the next person');
-select is(public.msrc_staff_registration('synthetic-staff-offers')->'registration'->'counts'->>'remaining','1','Expired offer releases its held seat');
+select is((select status from msrc_registration.requests where id=pg_temp.offer_id(3)),'offered','Released seat passes automatically to the next person');
+select is(public.msrc_staff_registration('synthetic-staff-offers')->'registration'->'counts'->>'remaining','0','Replacement offer holds the released seat');
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'history'->0->>'to','expired','Detail includes the newest expiry transition');
 select is(public.msrc_staff_registration_offer('synthetic-staff-offers',pg_temp.offer_ids(1))->'decided'->>'offered','0','Expired terminal requests cannot be re-offered');
-select is(public.msrc_staff_registration_offer('synthetic-staff-offers',pg_temp.offer_ids(3))->'decided'->>'offered','1','Staff can explicitly allocate the released seat');
+select is(public.msrc_staff_registration_offer('synthetic-staff-offers',pg_temp.offer_ids(3))->'decided'->>'offered','0','Staff cannot duplicate the automatic replacement offer');
 
 -- Reads must sweep before their aggregate/projection snapshot, even when filtered.
 update msrc_registration.requests set offer_expires_at=clock_timestamp()-interval '1 second' where id=pg_temp.offer_id(2);
-select is(public.msrc_staff_registration('synthetic-staff-offers','','waitlisted')->'registration'->'counts'->>'offered','1','Filtered queue expires elapsed offers before counts');
+select is(public.msrc_staff_registration('synthetic-staff-offers','','waitlisted')->'registration'->'counts'->>'offered','2','Filtered queue expires and replaces elapsed offers before counts');
 select is((select status from msrc_registration.requests where id=pg_temp.offer_id(2)),'expired','Queue read performs explicit elapsed-offer transition');
 update msrc_registration.requests set offer_expires_at=clock_timestamp()-interval '1 second' where id=pg_temp.offer_id(3);
-select is(public.msrc_staff_summary('synthetic-staff-offers')->'summary'->'registration'->>'remaining','2','Summary expires elapsed offers before remaining count');
+select is(public.msrc_staff_summary('synthetic-staff-offers')->'summary'->'registration'->>'remaining','0','Summary expires and replaces elapsed offers before remaining count');
 select is(public.msrc_staff_summary('synthetic-staff-offers')->'summary'->'registration'->>'expired','3','Summary includes every expired offer');
-select is(public.msrc_staff_registration_offer('synthetic-staff-offers',pg_temp.offer_ids(4))->'decided'->>'offered','1','A further explicit staff offer succeeds');
+select is(public.msrc_staff_registration_offer('synthetic-staff-offers',pg_temp.offer_ids(4))->'decided'->>'offered','0','Read-triggered replacement also prevents a duplicate staff offer');
 update msrc_registration.requests set offer_expires_at=clock_timestamp()-interval '1 second' where id=pg_temp.offer_id(4);
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(4))->'detail'->'request'->>'status','expired','Detail read cannot display an elapsed offer as current');
-select is((select count(*) from msrc_registration.audit where event='request.offered'),4::bigint,'Reads and expiry have never auto-offered another seat');
+select is((select count(*) from msrc_registration.audit where event='request.offered'),6::bigint,'Two manual offers plus four replacements each have one audit');
+select is((select count(*) from msrc_registration.audit where event='request.offered' and performer_id is null),4::bigint,'Every expiry-triggered replacement records an automatic performer');
 select is((select count(*) from msrc_outbox.messages),0::bigint,'Offer/expiry operations enqueue no email');
 select throws_ok($$update msrc_registration.audit set new_status='waitlisted' where event='request.offered'$$,'55000',null,'Offer audit rows cannot be mutated');
 select throws_ok($$delete from msrc_registration.audit where event='request.offer_expired'$$,'55000',null,'Expiry audit rows cannot be deleted');

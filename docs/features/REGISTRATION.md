@@ -448,3 +448,49 @@ labels cover `request.offered`, `request.offer_expired` and
 outbox enqueue; slice 5 adds participant confirm-your-seat. Disposable database
 verification and observed local checks are recorded in the
 [slice 3b O9 receipt](../progress/2026-10-19-codex-registration-slice3b.md).
+
+## Early-access email list and automatic offer hand-on (ORG-056 / ENG-051)
+
+The pending `20261020120000_early_access_list_autopass.sql` migration supersedes
+the preceding **staff choose after expiry** default. Under the existing edition
+settings lock, each elapsed offer releases its seat and can offer it to the next
+waitlisted request in `created_at,id` order. The number offered cannot exceed
+either released seats or available capacity. An invocation that expires nothing
+does not fill vacancies. Automatic offers have NULL audit performers and deadlines
+from database time plus `offer_window_hours`. A null window prevents replacement
+offers; recorded elapsed deadlines still expire. All four existing seat-holding
+states remain counted. Existing staff reads trigger this operation; there is no
+new background scheduler, email producer or participant acceptance endpoint.
+
+Super Admins with exact-session TOTP can maintain a private per-edition email
+list before accounts exist. Entries use lowercase, space-trimmed email addresses;
+active duplicate additions and repeated removals are no-ops. Re-adding a removed
+email reactivates its existing entry and records a new change. Forced RLS and
+absence of client grants protect the list. Audit evidence references the opaque
+entry ID, never a copied email. The list contains up to 200 active entries per
+search, newest first, with verified participant-account and registration-request
+existence indicators. Addition accepts 1–500 emails and reports invalid entries
+while applying valid entries; removal accepts 1–500 entry UUIDs and treats
+duplicates, unknown IDs and already removed entries as no-ops.
+
+During `priority_start_at <= database_time < priority_end_at`, existing
+organizing-team priority **or** an active list match against the participant's
+current verified `auth.users.email` permits an otherwise eligible registration
+request. Submission rechecks this under the settings lock at READ COMMITTED;
+removing an entry before that check revokes its early-window eligibility. General
+opening, closing, account assurance, age, settings readiness and feature gates
+retain their existing behavior. Email-list membership never grants workshop
+priority, a seat, registration approval or admission.
+
+ORG-056 approves free general attendance (`payment_required=false`), early access
+on 15 November 2026 at 20:00 Asia/Riyadh, general registration on 18 November 2026
+at 20:00 Asia/Riyadh, and a 24-hour offer window. The owner enters these settings:
+`priority_start_at=2026-11-15T17:00:00Z`,
+`priority_end_at=general_opening_at=2026-11-18T17:00:00Z`,
+`offer_window_hours=24`. These documentation examples do not seed, default or
+activate anything. The legacy `early_access_*`/`waitlist_offer_hours` completeness
+fields are unchanged; no automatic settings backfill is introduced. Workshop
+pricing, windows and booking remain separate.
+
+Exact HTTP/TypeScript contracts, UI obligations and executed versus blocked checks
+are in the [backend receipt](../progress/2026-10-20-codex-early-access-autopass.md).
