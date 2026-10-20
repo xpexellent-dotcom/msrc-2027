@@ -50,6 +50,10 @@ declare previous_row msrc_registration.settings%rowtype;candidate msrc_registrat
  receipt msrc_registration.settings_audit%rowtype;field text;value jsonb;before_values jsonb;after_values jsonb;
  delta jsonb:='{}'::jsonb;held bigint;
 begin
+ -- Reject stale transaction snapshots before authorization, validation or replay
+ -- can return, and before taking any authority/session/settings locks.
+ if current_setting('transaction_isolation')<>'read committed' then
+ raise exception using errcode='25001',message='Registration settings maintenance requires READ COMMITTED isolation.';end if;
  perform pg_advisory_xact_lock_shared(hashtextextended('staff-portal-authority',0));
  if msrc_staff.authorize(edition_key,array['superAdmin'],false) is null then
  return jsonb_build_object('state','denied');end if;
@@ -75,9 +79,6 @@ begin
  end loop;
  if changes ? 'minimum_age' and changes->'minimum_age' is distinct from '18'::jsonb then
  return jsonb_build_object('state','invalid');end if;
- if current_setting('transaction_isolation')<>'read committed' then
- raise exception using errcode='25001',message='Registration settings maintenance requires READ COMMITTED isolation.';end if;
-
  -- Existing rows use exactly the allocation lock. Initial creation also locks
  -- the edition parent, then repeats the lookup to serialize two first saves.
  select s.* into previous_row from msrc_registration.settings s where s.edition_key=edition_key for update;
