@@ -21,7 +21,9 @@ REL-01 through REL-06. M1 does not satisfy a public or operational release gate.
   return 503/WORKFLOW_CLOSED; unknown names return 404. It does not parse or save request
   bodies. There is no registration/payment/submission handler behind it. Real handlers
   must later enforce their release gate, authenticated permission and database policy.
-- `/api/health` reports static process availability only; it does not test integrations.
+- `/api/health` now checks database reachability with a service-only, no-data RPC;
+  it returns 503 when configuration, migration or connectivity is unavailable.
+  It does not certify release readiness or email delivery. See [Monitoring](../runbooks/MONITORING.md).
 - Responses are marked noindex; robots directives are not authorization. Local servers
   bind to loopback. A future remote preview still requires provider access protection.
 - No operational tables, participant records, email sender, payment provider, analytics,
