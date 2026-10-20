@@ -328,7 +328,7 @@ describe.skipIf(!isolatedCi)("Participant registration lifecycle (disposable Git
 // Settings and allocation must observe each other's committed seat decisions.
 const settingsEdition = "synthetic-settings-races";
 function settingsDecision(staff: number, changes: Record<string, unknown>, operation: string, applicationName: string,
-  targetEdition = settingsEdition, isolation: "read committed" | "repeatable read" = "read committed") {
+  targetEdition = settingsEdition, isolation: "read committed" | "repeatable read" | "serializable" = "read committed") {
   return `begin isolation level ${isolation};
     set local application_name='${applicationName}';
     select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
@@ -426,13 +426,16 @@ describe.skipIf(!isolatedCi)("Registration settings serialization (disposable Gi
   });
 
   it("save rechecks exact-session expiry after the allocation lock wait", async () => {
+    // Expiry durably revokes the session; restoring policy does not revive it.
+    // Keep this actor separate from the other save/allocation fixtures.
+    await query(`select pg_temp.registration_staff_fixture(1602,'${settingsEdition}');`);
     const locking = held(`begin; select 1 from msrc_registration.settings where edition_key='${settingsEdition}' for update;
       select pg_advisory_xact_lock(${marker});`);
     let saving: Promise<string> | undefined;
     try {
       try {
         await barrier();
-        saving = query(settingsDecision(1601, { general_capacity: 9 }, "e7300000-0000-4000-8000-000000001604", "synthetic-settings-expired-save") + "commit;");
+        saving = query(settingsDecision(1602, { general_capacity: 9 }, "e7300000-0000-4000-8000-000000001604", "synthetic-settings-expired-save") + "commit;");
         await waiting("synthetic-settings-expired-save");
         await query("update msrc_sessions.policy set privileged_absolute_seconds=1 where singleton;");
       } finally { locking.release(); }
@@ -441,17 +444,69 @@ describe.skipIf(!isolatedCi)("Registration settings serialization (disposable Gi
       await query(`do $$begin
         if (select general_capacity from msrc_registration.settings where edition_key='${settingsEdition}')<>2
         or exists(select 1 from msrc_registration.settings_audit where operation_id='e7300000-0000-4000-8000-000000001604')
+        or not exists(select 1 from msrc_sessions.session_state where session_id=pg_temp.registration_session(1602)
+          and revoked_at is not null and revocation_cause='policy_expired')
         then raise exception 'Expired waiting session changed settings';end if;end$$;`);
     } finally {
       await Promise.allSettled([locking.done, ...(saving ? [saving] : [])]);
       await query("update msrc_sessions.policy set privileged_absolute_seconds=28800 where singleton;");
     }
+    expect(response(await query(settingsDecision(1602, { general_capacity: 9 }, "e7300000-0000-4000-8000-000000001604",
+      "synthetic-settings-still-revoked") + "commit;")).state).toBe("denied");
   });
 
-  it("save refuses repeatable-read snapshots that could miss allocation after waiting", async () => {
-    await expect(query(settingsDecision(1601, { general_capacity: 2 }, "e7300000-0000-4000-8000-000000001605",
-      "synthetic-settings-repeatable-read", settingsEdition, "repeatable read") + "commit;")).rejects.toThrow("SQLSTATE 25001");
-  });
+  it.each(["repeatable read", "serializable"] as const)(
+    "save refuses %s before early returns or waiting for the settings lock", async (isolation) => {
+      const staff = isolation === "repeatable read" ? 1630 : 1631;
+      const targetEdition = `synthetic-settings-isolation-${staff}`;
+      const operation = `e7300000-0000-4000-8000-${String(staff).padStart(12, "0")}`;
+      const newOperation = `e7300000-0000-4000-8000-${String(staff + 10).padStart(12, "0")}`;
+      const changes = { terms_version: "synthetic-isolation-replay" };
+      // Each isolation case has fresh native sessions and its own edition/receipt,
+      // independent of the preceding expiry case and other settings mutations.
+      await query(`begin;
+        select pg_temp.registration_settings('${targetEdition}');
+        select pg_temp.registration_staff_fixture(${staff},'${targetEdition}');
+        select pg_temp.registration_staff_fixture(${staff + 10},'${targetEdition}','registrationWorkshopAdministrator');
+        commit;`);
+      expect(response(await query(settingsDecision(staff, changes, operation, "synthetic-isolation-receipt", targetEdition) + "commit;")).state)
+        .toBe("updated");
+      expect(response(await query(settingsDecision(staff + 10, changes, newOperation, "synthetic-isolation-denied", targetEdition) + "commit;")).state)
+        .toBe("denied");
+      const read = `begin;
+        select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
+        set local role authenticated;
+        select public.msrc_staff_registration_settings('${targetEdition}')::text;
+        commit;`;
+      const before = response(await query(read));
+      expect(before.state).toBe("ready");
+      const locking = held(`begin;
+        select 1 from msrc_registration.settings where edition_key='${targetEdition}' for update;
+        select pg_advisory_xact_lock(${marker});`);
+      try {
+        await barrier();
+        const attempts = [
+          { staff, changes: { general_capacity: 5 }, operation: newOperation },
+          { staff: staff + 10, changes, operation: newOperation },
+          { staff, changes: {}, operation: newOperation },
+          { staff, changes: { enabled: true }, operation: newOperation },
+          { staff, changes: { minimum_age: 17 }, operation: newOperation },
+          { staff, changes, operation },
+          { staff, changes: { terms_version: "synthetic-conflicting-replay" }, operation },
+        ];
+        for (const attempt of attempts) {
+          // A misplaced guard must fail with a lock timeout, not hang until the
+          // holder is released. Every call must raise 25001 while it still holds.
+          await expect(query("set lock_timeout='1s';\n" + settingsDecision(attempt.staff, attempt.changes, attempt.operation,
+            `synthetic-settings-isolation-${staff}`, targetEdition, isolation) + "commit;")).rejects.toThrow("SQLSTATE 25001");
+        }
+      } finally {
+        locking.release();
+        await locking.done;
+      }
+      expect(response(await query(read))).toEqual(before);
+    },
+  );
 
   it("two first saves serialize on the edition before the settings row exists", async () => {
     const targetEdition = "synthetic-settings-initial-race";
