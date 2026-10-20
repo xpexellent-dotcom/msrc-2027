@@ -5,8 +5,9 @@ set local search_path=public,extensions;
 select no_plan();
 \ir ../support/registration-fixtures.psql
 
+-- Count-agnostic: later slices add registration tables; none may lack forced RLS.
 select is((select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
- where n.nspname='msrc_registration' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),4::bigint,
+ where n.nspname='msrc_registration' and c.relkind='r' and not (c.relrowsecurity and c.relforcerowsecurity)),0::bigint,
  'Queue keeps all registration tables under forced RLS');
 select ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
  cross join (values('anon'),('authenticated'),('service_role')) r(name)
