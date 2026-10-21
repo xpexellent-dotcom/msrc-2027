@@ -24,6 +24,7 @@ const ticketToken = "msrc1." + requestId + "." + createHmac("sha256", Buffer.fro
 const rpcNames = { accept: "msrc_registration_accept_offer", decline: "msrc_registration_decline_offer", cancel: "msrc_registration_cancel" };
 
 function fixture(options: { result?: unknown; snapshot?: unknown; next?: unknown; error?: Error; errorRpc?: string; identity?: string | null;
+  attendance?: unknown;
   claims?: unknown; observeOnly?: boolean; closed?: boolean; settingsComplete?: boolean; secret?: string | null; claim?: string;
   onClaim?: () => void; onIdentity?: () => void; refresh?: Awaited<ReturnType<RegistrationBackend["refresh"]>> } = {}) {
   let reads = 0;
@@ -36,6 +37,7 @@ function fixture(options: { result?: unknown; snapshot?: unknown; next?: unknown
         cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
       if (name === "msrc_registration_status") return { enabled: !options.closed, participantAccountsReady: true, settingsComplete: options.settingsComplete ?? true };
       if (name === "msrc_registration_me") return reads++ > 0 && Object.hasOwn(options, "next") ? options.next : options.snapshot ?? base;
+      if (name === "msrc_registration_attendance") return options.attendance ?? { state: "ready", days: [] };
       if (name === "msrc_participant_form_claim") { options.onClaim?.(); return { state: options.claim ?? "claimed" }; }
       if (Object.values(rpcNames).includes(name)) return options.result ?? { state: "updated" };
       if (name === "msrc_registration_ticket") return { state: "ready", ticket: { status: "issued", referenceCode: "DC0000000000", token: ticketToken } };
@@ -57,6 +59,32 @@ function fixture(options: { result?: unknown; snapshot?: unknown; next?: unknown
 beforeEach(() => vi.stubEnv("REGISTRATION_ENABLED", "true"));
 
 describe("participant My registration projections", () => {
+  it("exposes each configured day independently without leaking staff or entitlement identifiers", async () => {
+    const days = [{ conferenceDay: "2027-01-27", checkedInAt: "2027-01-27T06:30:00Z" }, { conferenceDay: "2027-01-28", checkedInAt: null }];
+    const f = fixture({ attendance: { state: "ready", days } }), response = await f.get();
+    expect(response.status).toBe(200); expect((await response.json()).attendance).toEqual(days);
+    expect(f.backend.rpc).toHaveBeenCalledWith("msrc_registration_attendance", { edition_key: config.editionKey, session_claims: claims });
+  });
+  it.each([
+    { state: "ready", days: [{ conferenceDay: "2027-01-27", checkedInAt: null, performerId: actorId }] },
+    { state: "ready", days: [{ conferenceDay: "2027-02-29", checkedInAt: null }] },
+    { state: "ready", days: [{ conferenceDay: "2027-01-27", checkedInAt: "today" }] },
+    { state: "ready", days: [{ conferenceDay: "2027-01-27", checkedInAt: null }, { conferenceDay: "2027-01-27", checkedInAt: null }] },
+    { state: "ready", days: [{ conferenceDay: "2027-01-28", checkedInAt: null }, { conferenceDay: "2027-01-27", checkedInAt: null }] },
+    { state: "ready", days: [], ticketId: requestId }, { state: "ready", days: null },
+  ])("refuses malformed or over-returned attendance %#", async (attendance) => {
+    const response = await fixture({ attendance }).get();
+    expect(response.status).toBe(503); expect(await response.json()).toEqual({ state: "unavailable" });
+  });
+  it("keeps the participant cookie when the attendance migration is absent", async () => {
+    const response = await fixture({ error: new RegistrationRpcMissingError(), errorRpc: "msrc_registration_attendance" }).get();
+    expect(response.status).toBe(503); expect(await response.json()).toEqual({ state: "area-not-ready" });
+    expect(response.headers.get("set-cookie")).toBeNull();
+  });
+  it.each([["denied", 403], ["closed", 503], ["area_not_ready", 503]] as const)("honors the attendance RPC %s gate", async (state, status) => {
+    const response = await fixture({ attendance: { state } }).get();
+    expect(response.status).toBe(status); expect((await response.json()).state).toBe(state.replaceAll("_", "-"));
+  });
   it.each([null, ...["pending_approval", "waitlisted", "offered", "approved", "confirmed", "approved_awaiting_payment", "cancelled", "expired"]
     .map((status) => ({ ...baseRequest, status }))])("renders only the canonical participant state %j", async (request) => {
     const f = fixture({ snapshot: { ...base, request } }), response = await f.get(), body = await response.json();

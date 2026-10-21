@@ -1,8 +1,9 @@
 import type { StaffRegistrationSettings, StaffRegistrationSettingsChanges, StaffRegistrationSettingsField } from "./ui-contract";
+import { validConferenceDays } from "@/features/attendance/conference-days";
 
 export const REGISTRATION_SETTINGS_FIELDS = ["enabled", "terms_version", "payment_required", "general_capacity", "early_access_start_at", "early_access_end_at",
   "priority_start_at", "priority_end_at", "general_opening_at", "closing_at", "offer_window_hours", "places_remaining_threshold", "minimum_age",
-  "waitlist_offer_hours", "confirm_seat_lead_days", "confirm_seat_response_hours", "payment_window_hours"] as const satisfies readonly StaffRegistrationSettingsField[];
+  "waitlist_offer_hours", "confirm_seat_lead_days", "confirm_seat_response_hours", "payment_window_hours", "conference_days"] as const satisfies readonly StaffRegistrationSettingsField[];
 export const REGISTRATION_SETTINGS_TIMESTAMPS = ["early_access_start_at", "early_access_end_at", "priority_start_at", "priority_end_at", "general_opening_at", "closing_at"] as const;
 const positive = ["general_capacity", "offer_window_hours", "waitlist_offer_hours", "confirm_seat_response_hours", "payment_window_hours", "default_workshop_capacity"];
 const nonnegative = ["confirm_seat_lead_days", "places_remaining_threshold"];
@@ -18,6 +19,7 @@ export function validRegistrationSetting(field: string, value: unknown, saving =
   if (field === "enabled") return typeof value === "boolean";
   if (value === null) return REGISTRATION_SETTINGS_FIELDS.includes(field as StaffRegistrationSettingsField) || field === "default_workshop_capacity";
   if (field === "payment_required") return typeof value === "boolean";
+  if (field === "conference_days") return validConferenceDays(value);
   if (field === "terms_version") return typeof value === "string" && value === value.replace(/^ +| +$/g, "")
     && Array.from(value).length >= 1 && Array.from(value).length <= 128 && !value.includes("\0");
   if ((REGISTRATION_SETTINGS_TIMESTAMPS as readonly string[]).includes(field)) return validSettingsTimestamp(value);
@@ -37,7 +39,7 @@ export function registrationSettingsChanges(value: unknown): StaffRegistrationSe
 /** Mirrors the existing settings_complete requirements and table checks for form feedback. */
 export function registrationSettingsComplete(settings: StaffRegistrationSettings | StaffRegistrationSettingsChanges | null): boolean {
   if (!settings) return false;
-  const required = REGISTRATION_SETTINGS_FIELDS.filter((field) => !["enabled", "offer_window_hours", "payment_window_hours"].includes(field));
+  const required = REGISTRATION_SETTINGS_FIELDS.filter((field) => !["enabled", "offer_window_hours", "payment_window_hours", "conference_days"].includes(field));
   if (required.some((field) => settings[field] == null) || Object.entries(settings).some(([field, value]) => !validRegistrationSetting(field, value))
     || settings.payment_required && settings.payment_window_hours == null) return false;
   // PostgreSQL retains microseconds. Date.parse alone can collapse two distinct

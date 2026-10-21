@@ -3,7 +3,7 @@
 import NextLink from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 import { activateNavigation } from "@/lib/anchor-navigation";
-import { isPrivatePage } from "@/lib/content-security-policy";
+import { isCheckInPage, isPrivatePage } from "@/lib/content-security-policy";
 
 export function Link({ disabled = false, className = "", onClick, children, ...props }: ComponentPropsWithoutRef<typeof NextLink> & { disabled?: boolean }) {
   if (disabled) return <span role="link" aria-disabled="true" className={`site-link ${className}`} id={props.id} lang={props.lang} dir={props.dir} title={props.title} aria-label={props["aria-label"]} aria-describedby={props["aria-describedby"]}>{children}</span>;
@@ -12,10 +12,12 @@ export function Link({ disabled = false, className = "", onClick, children, ...p
     onClick?.(event);
     // A client transition retains the old document CSP. Cross this boundary with
     // a full navigation so entering private pages always installs their policy.
+    // CHK-02: scanner camera permissions also belong to the loaded document.
     const address = new URL(event.currentTarget.href);
     if (!event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
       && !event.currentTarget.download && (!event.currentTarget.target || event.currentTarget.target === "_self")
-      && address.origin === window.location.origin && isPrivatePage(address.pathname) !== isPrivatePage(window.location.pathname)) {
+      && address.origin === window.location.origin && (isPrivatePage(address.pathname) !== isPrivatePage(window.location.pathname)
+        || isCheckInPage(address.pathname) !== isCheckInPage(window.location.pathname))) {
       event.preventDefault();
       if (props.replace) window.location.replace(address.href);
       else window.location.assign(address.href);

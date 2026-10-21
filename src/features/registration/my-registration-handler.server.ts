@@ -4,7 +4,8 @@ import { getParticipantConfig, type ParticipantReadiness, type ParticipantConfig
 import { nativeTokenNeedsRefresh, participantCookie, participantHash, participantIp, participantOrigin, participantUuid,
   readParticipantJson, readParticipantSession } from "@/features/participant-accounts/security.server";
 import { createRegistrationBackend, RegistrationRpcMissingError, type RegistrationBackend } from "./backend.server";
-import type { MyRegistration, MyRegistrationResponse, RegistrationAction, RegistrationWindow } from "./contracts";
+import type { MyRegistration, MyRegistrationResponse, RegistrationAction, RegistrationWindow, RegistrationAttendanceDay } from "./contracts";
+import { validConferenceDay } from "@/features/attendance/conference-days";
 import { participantReady, verifiedClaims } from "./handler.server";
 import { readRegistrationActionToken, registrationActionToken } from "./security.server";
 import { getRegistrationTicketSecret, registrationTicketProjection } from "./ticket-crypto.server";
@@ -15,6 +16,22 @@ const timestamp = (value: unknown): value is string => typeof value === "string"
   && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value) && Number.isFinite(Date.parse(value));
 const statuses = ["pending_approval", "waitlisted", "offered", "approved", "confirmed", "approved_awaiting_payment", "cancelled", "expired"];
 type Snapshot = { requestId: string | null; registration: MyRegistration | null; window: RegistrationWindow; fewPlacesLeft: boolean; serverTime: string };
+
+/** Own-account attendance exposes no staff, ticket or participant identifiers. */
+function attendanceProjection(value: unknown): RegistrationAttendanceDay[] | null {
+  const data = record(value);
+  if (!data || Object.keys(data).sort().join(",") !== "days,state" || data.state !== "ready"
+    || !Array.isArray(data.days) || data.days.length > 31) return null;
+  const days: RegistrationAttendanceDay[] = [];
+  for (const entry of data.days) {
+    const day = record(entry);
+    if (!day || Object.keys(day).sort().join(",") !== "checkedInAt,conferenceDay" || !validConferenceDay(day.conferenceDay)
+      || day.checkedInAt !== null && !timestamp(day.checkedInAt)
+      || days.length && day.conferenceDay <= days[days.length - 1].conferenceDay) return null;
+    days.push({ conferenceDay: day.conferenceDay, checkedInAt: day.checkedInAt as string | null });
+  }
+  return days;
+}
 
 /** Fail closed on over-returned private fields; identifiers stay on the server. */
 function snapshot(value: unknown): Snapshot | null {
@@ -137,8 +154,12 @@ export function createMyRegistrationHandler(dependencies: {
         if (!projection) return reply({ state: "unavailable" }, 503);
         ticket = projection.ticket ?? null;
       }
+      const rawAttendance = await backend.rpc("msrc_registration_attendance", args), attendanceRefusal = gate(rawAttendance);
+      if (attendanceRefusal) return attendanceRefusal;
+      const attendance = attendanceProjection(rawAttendance);
+      if (!attendance) return reply({ state: "unavailable" }, 503);
       return reply({ state: "ready", registration: current.registration, window: current.window, fewPlacesLeft: current.fewPlacesLeft,
-        serverTime: current.serverTime, formToken: fresh(), ticket, ...(outcome ? { outcome } : {}) }, outcome === "conflict" || outcome === "expired" ? 409 : 200);
+        serverTime: current.serverTime, formToken: fresh(), ticket, attendance, ...(outcome ? { outcome } : {}) }, outcome === "conflict" || outcome === "expired" ? 409 : 200);
     } catch (error) {
       // Code ships before hosted migrations. Missing capabilities retain login.
       return reply({ state: error instanceof RegistrationRpcMissingError ? "area-not-ready" : "unavailable" }, 503);

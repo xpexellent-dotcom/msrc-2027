@@ -38,7 +38,8 @@ const server = http.createServer(async (request, response) => {
   if (path === "/__synthetic/registration" && /^da000000-0000-4000-8000-[0-9a-f]{12}$/.test(args.actorId ?? "")) {
     if (!["not-requested", "pending_approval", "waitlisted", "offered", "approved", "confirmed", "cancelled", "expired", "missing-rpc"].includes(args.state)) return reply(response, { synthetic: true }, 400);
     registrationViews.set(args.actorId, { window: args.window ?? { state: "open", eligible: true, opensAt: null }, fewPlaces: args.fewPlaces === true,
-      missing: args.state === "missing-rpc", missingCollection: args.missingCollection ?? null, actionState: args.actionState ?? null });
+      missing: args.state === "missing-rpc", missingCollection: args.missingCollection ?? null, actionState: args.actionState ?? null,
+      attendance: args.attendance ?? [], missingAttendance: args.missingAttendance === true });
     if (["not-requested", "missing-rpc"].includes(args.state)) requests.delete(args.actorId);
     else requests.set(args.actorId, { id: randomUUID(), status: args.state, createdAt: new Date().toISOString(),
       offerExpiresAt: args.state === "offered" ? args.offerExpiresAt ?? new Date(Date.now() + 24 * 3600_000).toISOString() : null });
@@ -83,6 +84,11 @@ const server = http.createServer(async (request, response) => {
     const registration = requests.get(actor);
     return reply(response, { state: "ready", request: registration ? { ...registration, offerExpiresAt: registration.offerExpiresAt ?? null } : null,
       window: fixture?.window ?? { state: "open", eligible: true, opensAt: null }, fewPlaces: fixture?.fewPlaces ?? false, serverNow: new Date().toISOString() });
+  }
+  if (path === "/rest/v1/rpc/msrc_registration_attendance") {
+    const fixture = registrationViews.get(actor);
+    if (fixture?.missingAttendance) return reply(response, { code: "PGRST202", message: "Synthetic missing RPC" }, 404);
+    return reply(response, { state: "ready", days: fixture?.attendance ?? [] });
   }
   if (["msrc_registration_accept_offer", "msrc_registration_decline_offer", "msrc_registration_cancel"].some((name) => path === "/rest/v1/rpc/" + name)) {
     const registration = requests.get(actor), fixture = registrationViews.get(actor);

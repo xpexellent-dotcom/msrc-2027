@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
 import { formatStaffDate, formatStaffNumber } from "./console-shell";
 import { registrationSettingsCopy } from "./registration-settings-copy";
+import { parseConferenceDays } from "@/features/attendance/conference-days";
 import { registrationSettingsChanges, registrationSettingsComplete, riyadhLocalToTimestamp, timestampToRiyadhLocal } from "./registration-settings-validation";
 import type { StaffPayload, StaffRegistrationSettings, StaffRegistrationSettingsAudit, StaffRegistrationSettingsChanges, StaffRegistrationSettingsField, StaffRegistrationSettingsView, StaffResponse, StaffState } from "./ui-contract";
 
 const dateFields = ["priority_start_at", "priority_end_at", "general_opening_at", "closing_at"] as const;
 const numberFields = ["general_capacity", "offer_window_hours", "places_remaining_threshold", "waitlist_offer_hours", "confirm_seat_lead_days", "confirm_seat_response_hours", "payment_window_hours"] as const;
-type DraftField = typeof dateFields[number] | typeof numberFields[number] | "terms_version";
+type DraftField = typeof dateFields[number] | typeof numberFields[number] | "terms_version" | "conference_days";
 type Draft = Record<DraftField, string> & { payment_required: boolean };
-type Change = { field: StaffRegistrationSettingsField; before: string | number | boolean | null; after: string | number | boolean | null };
+type Change = { field: StaffRegistrationSettingsField; before: string | string[] | number | boolean | null; after: string | string[] | number | boolean | null };
 type Confirmation = { changes: StaffRegistrationSettingsChanges; rows: Change[]; baseline: string; operationId: string };
 type Actions = { busy: boolean; act: (payload: Omit<StaffPayload, "formToken">) => Promise<StaffResponse>; onResult: (text: string) => void };
 const emptyView: StaffRegistrationSettingsView = { settings: null, settingsComplete: false, participantAccountsReady: false, history: [] };
@@ -21,16 +22,21 @@ const emptyView: StaffRegistrationSettingsView = { settings: null, settingsCompl
 function initialDraft(settings: StaffRegistrationSettings | null): Draft {
   return {
     terms_version: settings?.terms_version ?? "", payment_required: settings?.payment_required ?? false,
+    conference_days: settings?.conference_days?.join(", ") ?? "",
     ...Object.fromEntries(dateFields.map((field) => [field, timestampToRiyadhLocal(settings?.[field] ?? null)])),
     ...Object.fromEntries(numberFields.map((field) => [field, settings?.[field] == null ? "" : String(settings[field])])),
   } as Draft;
 }
 function sameValue(left: Change["before"], right: Change["after"], field: string): boolean {
-  return left === right || field.endsWith("_at") && typeof left === "string" && typeof right === "string" && Date.parse(left) === Date.parse(right);
+  return left === right || Array.isArray(left) && Array.isArray(right) && left.join(",") === right.join(",")
+    || field.endsWith("_at") && typeof left === "string" && typeof right === "string" && Date.parse(left) === Date.parse(right);
 }
 function settingsValue(value: Change["before"], field: StaffRegistrationSettingsField, locale: Locale): string {
   const text = registrationSettingsCopy[locale];
   if (value === null) return text.none;
+  if (Array.isArray(value)) return value.map((day) => new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", {
+    dateStyle: "medium", timeZone: "Asia/Riyadh",
+  }).format(new Date(day + "T00:00:00Z"))).join(locale === "ar" ? "، " : ", ");
   if (typeof value === "boolean") return field === "payment_required" ? value ? text.paid : text.free : value ? text.open : text.closed;
   if (typeof value === "number") return formatStaffNumber(value, locale);
   return field.endsWith("_at") ? formatStaffDate(value, locale, text.none) : value;
@@ -62,6 +68,8 @@ function SettingsEditor({ locale, data, available, busy, act, onResult }: Action
   function review(event: FormEvent) {
     event.preventDefault(); setMessage("");
     const proposed: Record<string, unknown> = { terms_version: values.terms_version.trim(), payment_required: values.payment_required, minimum_age: 18 };
+    proposed.conference_days = parseConferenceDays(values.conference_days);
+    if (proposed.conference_days === undefined) { setMessage(text.invalidConferenceDays); return; }
     for (const field of dateFields) proposed[field] = riyadhLocalToTimestamp(values[field]);
     for (const field of numberFields) if (field !== "payment_window_hours" || values.payment_required) proposed[field] = values[field] === "" ? null : Number(values[field]);
     proposed.early_access_start_at = proposed.priority_start_at;
@@ -100,6 +108,8 @@ function SettingsEditor({ locale, data, available, busy, act, onResult }: Action
       <p className="field-hint">{text.required}</p>
       <fieldset className="staff-settings-group" disabled={busy || !available}><legend>{text.basic}</legend>
         <FormField id="registration-settings-terms_version" label={text.fields.terms_version} hint={text.termsHint} maxLength={128} required value={values.terms_version} onChange={(event) => edit("terms_version", event.target.value)} />
+        <FormField id="registration-settings-conference_days" label={text.fields.conference_days} hint={text.conferenceDaysHint} dir="ltr" maxLength={371}
+          value={values.conference_days} onChange={(event) => edit("conference_days", event.target.value)} />
         <fieldset className="staff-settings-attendance" aria-describedby="registration-settings-payment-hint"><legend>{text.attendance}</legend>
           <div><label htmlFor="registration-settings-free"><input id="registration-settings-free" name="attendance" type="radio" checked={!values.payment_required} onChange={() => edit("payment_required", false)} />{text.free}</label>
             <label htmlFor="registration-settings-paid"><input id="registration-settings-paid" name="attendance" type="radio" checked={values.payment_required} onChange={() => edit("payment_required", true)} />{text.paid}</label></div>

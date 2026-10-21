@@ -126,3 +126,28 @@
 .staff-email-source { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; }
 .staff-email-copy-status { min-block-size: 1.5em; margin-block-end: 0; }
 @media (forced-colors: active) { .staff-email-text { border-color: CanvasText; color: CanvasText; background: Canvas; } }
+
+/* CHK-02: phone-first scanner, native RTL flow and a redundant icon/text result. */
+.staff-checkin { min-inline-size: 0; }
+.staff-checkin-settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
+.staff-checkin .field, .staff-checkin .field-input { min-inline-size: 0; inline-size: 100%; }
+.staff-checkin h2 { font-size: 1.15rem; margin-block: 0 .65rem; }
+.staff-checkin-counts, .staff-checkin-camera { margin-block: 1.5rem; }
+.staff-checkin-counts .staff-seat-bar { margin-block: .5rem .75rem; }
+.staff-checkin-video { inline-size: 100%; max-block-size: 24rem; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; background: #20172b; margin-block-end: .5rem; }
+.staff-checkin-video[hidden] { display: none; }
+.staff-checkin-options { display: grid; gap: .5rem; margin-block-start: 1rem; }
+.staff-checkin-options label { display: flex; gap: .75rem; align-items: flex-start; min-block-size: 44px; cursor: pointer; }
+.staff-checkin-options input { flex: 0 0 auto; inline-size: 1.15rem; block-size: 1.15rem; margin-block-start: .25rem; accent-color: #603a75; }
+.staff-checkin-options small { display: block; color: #5c5268; line-height: 1.5; margin-block-start: .2rem; }
+.staff-checkin-manual, .staff-checkin-undo { display: grid; gap: .75rem; margin-block: 1.5rem; }
+.staff-checkin-manual > button { inline-size: 100%; min-block-size: 52px; font-size: 1.1rem; }
+.staff-checkin-result { display: flex; align-items: flex-start; gap: 1rem; padding: clamp(1rem, 3vw, 1.5rem); border: 2px solid currentColor; border-radius: 16px; background: #fbeeee; color: #702828; overflow-wrap: anywhere; scroll-margin-block: 1rem; }
+.staff-checkin-result h2 { color: inherit; font-size: clamp(1.35rem, 4vw, 1.8rem); line-height: 1.3; }
+.staff-checkin-result p { margin-block: .5rem 0; }
+.staff-checkin-result--checked_in { color: #1d5736; background: #e7f5ec; }
+.staff-checkin-result--already_checked_in { color: #614910; background: #fbf2d8; }
+.staff-checkin-icon { display: inline-grid; place-items: center; flex: 0 0 2.5rem; inline-size: 2.5rem; block-size: 2.5rem; border: 2px solid currentColor; border-radius: 50%; font: 700 1.7rem/1 sans-serif; }
+.staff-checkin-result:focus-visible { outline: 3px solid #50317a; outline-offset: 4px; }
+@media (max-width: 400px) { .staff-checkin-result { flex-direction: column; gap: .6rem; } }
+@media (forced-colors: active) { .staff-checkin-result { background: Canvas; color: CanvasText; border-color: CanvasText; } }

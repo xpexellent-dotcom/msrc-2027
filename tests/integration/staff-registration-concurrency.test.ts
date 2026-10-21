@@ -946,3 +946,144 @@ describe.skipIf(!isolatedCi)("Early-access removal and submit (disposable GitHub
     await expect(query(earlySubmit("repeatable read"))).rejects.toThrow("SQLSTATE 25001");
   });
 });
+
+// ENG-058 / CHK-03/04: separate cold identities; no case reuses an expired
+// scanner session or a previously revoked participant entitlement.
+const checkinEdition = "synthetic-checkin-races";
+function scan(staff: number, participant: number, applicationName: string) {
+  return `begin;
+    set local application_name='${applicationName}';
+    select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
+    select set_config('synthetic.checkin_reference',(select upper(substr(replace(t.id::text,'-',''),1,12))
+      from msrc_registration.tickets t join msrc_registration.requests r on r.id=t.request_id
+      where r.edition_key='${checkinEdition}' and r.actor_id='${actor(participant)}'),true);
+    set local role authenticated;
+    select public.msrc_staff_checkin('${checkinEdition}',current_setting('synthetic.checkin_reference'),'2040-01-01','Synthetic entry')::text;`;
+}
+
+describe.skipIf(!isolatedCi)("Conference attendance (disposable GitHub CI only)", () => {
+  beforeAll(async () => {
+    await query(`begin;
+      update msrc_participant.policy set enabled=true,privacy_version='synthetic-registration-notice',email_daily_limit=1000;
+      update msrc_participant.retention_policy set enabled=true;
+      update msrc_staff.policy set enabled=true,email_daily_limit=1000;
+      select pg_temp.registration_settings('${checkinEdition}');
+      select pg_temp.registration_fixture(79001,'${checkinEdition}');
+      select pg_temp.registration_fixture(79002,'${checkinEdition}');
+      select pg_temp.registration_fixture(79003,'${checkinEdition}');
+      select pg_temp.registration_fixture(79004,'${checkinEdition}');
+      select pg_temp.registration_staff_fixture(79011,'${checkinEdition}','checkInStaff');
+      select pg_temp.registration_staff_fixture(79012,'${checkinEdition}','checkInStaff');
+      select pg_temp.registration_staff_fixture(79013,'${checkinEdition}','checkInStaff');
+      select pg_temp.registration_staff_fixture(79014,'${checkinEdition}','checkInStaff');
+      select pg_temp.registration_submit('${checkinEdition}',79001,md5('79001')||md5('79001'));
+      select pg_temp.registration_submit('${checkinEdition}',79002,md5('79002')||md5('79002'));
+      select pg_temp.registration_submit('${checkinEdition}',79003,md5('79003')||md5('79003'));
+      select pg_temp.registration_submit('${checkinEdition}',79004,md5('79004')||md5('79004'));
+      update msrc_registration.requests set status='approved' where edition_key='${checkinEdition}';
+      update msrc_registration.settings set enabled=false,conference_days=array[date '2040-01-01',date '2040-01-02']
+        where edition_key='${checkinEdition}';
+      commit;`);
+  });
+
+  it("two scanners contending for one ticket commit one check-in and return the original receipt on the duplicate", async () => {
+    const first = held(scan(79011, 79001, "synthetic-checkin-first") + `select pg_advisory_xact_lock(${marker});`);
+    let second: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        second = query(scan(79012, 79001, "synthetic-checkin-second") + "commit;");
+        await waiting("synthetic-checkin-second");
+      } finally { first.release(); }
+      const results = (await Promise.all([first.done, second!])).map(response);
+      expect(results.map((row) => row.state)).toEqual(["checked_in", "already_checked_in"]);
+      expect(results[1].attendance).toEqual(results[0].attendance);
+      expect(results[0].attendance.performerId).toBe(actor(79011));
+      await query(`do $$begin
+        if (select count(*) from msrc_registration.attendance a join msrc_registration.tickets t on t.id=a.ticket_id
+          join msrc_registration.requests r on r.id=t.request_id where r.edition_key='${checkinEdition}' and r.actor_id='${actor(79001)}')<>1
+        or (select count(*) from msrc_registration.attendance_audit where edition_key='${checkinEdition}' and result='checked_in')<>1
+        or (select count(*) from msrc_registration.attendance_audit where edition_key='${checkinEdition}' and result='already_checked_in')<>1
+        then raise exception 'Concurrent check-in invariant failed';end if;end$$;`);
+    } finally { await Promise.allSettled([first.done, ...(second ? [second] : [])]); }
+  });
+
+  it("a scanner waiting behind revocation observes the committed revoked entitlement", async () => {
+    const revoking = held(`begin;
+      update msrc_registration.requests set status='cancelled'
+      where edition_key='${checkinEdition}' and actor_id='${actor(79002)}';
+      select pg_advisory_xact_lock(${marker});`);
+    let scanning: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        scanning = query(scan(79011, 79002, "synthetic-checkin-revoked") + "commit;");
+        await waiting("synthetic-checkin-revoked");
+      } finally { revoking.release(); }
+      const [, scanned] = await Promise.all([revoking.done, scanning!]);
+      expect(response(scanned).state).toBe("revoked");
+      await query(`do $$begin
+        if exists(select 1 from msrc_registration.attendance a join msrc_registration.tickets t on t.id=a.ticket_id
+          join msrc_registration.requests r on r.id=t.request_id where r.actor_id='${actor(79002)}')
+        then raise exception 'Revoked ticket gained attendance';end if;end$$;`);
+    } finally { await Promise.allSettled([revoking.done, ...(scanning ? [scanning] : [])]); }
+  });
+
+  it("rechecks scanner session expiry after waiting behind a ticket-row transaction", async () => {
+    const locking = held(`begin;
+      select 1 from msrc_registration.requests where edition_key='${checkinEdition}' and actor_id='${actor(79003)}' for update;
+      select pg_advisory_xact_lock(${marker});`);
+    let scanning: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        scanning = query(scan(79013, 79003, "synthetic-checkin-expired") + "commit;");
+        await waiting("synthetic-checkin-expired");
+        await query("update msrc_sessions.policy set privileged_absolute_seconds=1 where singleton;");
+      } finally { locking.release(); }
+      const [, scanned] = await Promise.all([locking.done, scanning!]);
+      expect(response(scanned).state).toBe("denied");
+      await query(`do $$begin
+        if exists(select 1 from msrc_registration.attendance a join msrc_registration.tickets t on t.id=a.ticket_id
+          join msrc_registration.requests r on r.id=t.request_id where r.actor_id='${actor(79003)}')
+        then raise exception 'Expired scanner granted attendance';end if;end$$;`);
+    } finally {
+      await Promise.allSettled([locking.done, ...(scanning ? [scanning] : [])]);
+      await query("update msrc_sessions.policy set privileged_absolute_seconds=28800 where singleton;");
+    }
+  });
+
+  it.each(["repeatable read", "serializable"] as const)("refuses %s at RPC entry, even before invalid-input/authorization early returns", async (isolation) => {
+    for (const call of [
+      `public.msrc_staff_checkin('${checkinEdition}',null,null,null)`,
+      `public.msrc_staff_checkin_undo('${checkinEdition}',null,null)`,
+      `public.msrc_staff_attendance_summary('${checkinEdition}',null)`,
+      `public.msrc_registration_attendance('${checkinEdition}','{}'::jsonb)`,
+    ]) {
+      await expect(query(`begin isolation level ${isolation};select set_config('request.jwt.claims','{}',true);select ${call};rollback;`))
+        .rejects.toThrow("SQLSTATE 25001");
+    }
+  });
+
+  it("a contended attendee authority row returns retryable unavailability without attendance, then a fresh retry succeeds", async () => {
+    const locking = held(`begin;
+      select 1 from msrc_authorization.account_access where actor_id='${actor(79004)}' for update;
+      select pg_advisory_xact_lock(${marker});`);
+    try {
+      try {
+        await barrier();
+        // The target lock remains held until this call returns: NOWAIT, not a
+        // timeout/retry loop, proves no cross-account lock cycle is possible.
+        expect(response(await query(scan(79014, 79004, "synthetic-checkin-authority-busy") + "commit;")).state).toBe("unavailable");
+        await query(`do $$begin
+          if exists(select 1 from msrc_registration.attendance a join msrc_registration.tickets t on t.id=a.ticket_id
+            join msrc_registration.requests r on r.id=t.request_id where r.actor_id='${actor(79004)}')
+          or not exists(select 1 from msrc_registration.attendance_audit where edition_key='${checkinEdition}'
+            and performer_id='${actor(79014)}' and result='unavailable')
+          then raise exception 'Contended authority must not grant attendance';end if;end$$;`);
+      } finally { locking.release(); }
+      await locking.done;
+      expect(response(await query(scan(79014, 79004, "synthetic-checkin-authority-retry") + "commit;")).state).toBe("checked_in");
+    } finally { await Promise.allSettled([locking.done]); }
+  });
+});

@@ -9,6 +9,7 @@ import type { StaffPayload, StaffRegistrationSettings, StaffRegistrationSettings
 const actorId = "53000000-0000-4000-8000-000000000001";
 const stored: StaffRegistrationSettings = {
   enabled: false, terms_version: "synthetic-v1", payment_required: false, general_capacity: 42, default_workshop_capacity: null,
+  conference_days: null,
   early_access_start_at: "2028-03-01T17:00:00Z", early_access_end_at: "2028-03-03T17:00:00Z",
   priority_start_at: "2028-03-01T17:00:00Z", priority_end_at: "2028-03-03T17:00:00Z",
   general_opening_at: "2028-03-03T17:00:00Z", closing_at: "2028-03-10T17:00:00Z",
@@ -71,6 +72,33 @@ async function fillNew(page: Page) {
 }
 
 for (const locale of ["en", "ar"] as const) {
+  test(`${locale} owner configures conference dates without defaults and sees date validation`, async ({ page }) => {
+    const mock = await fixture(page), copy = registrationSettingsCopy[locale];
+    await page.goto(`/${locale}/staff/registration-settings`);
+    const editor = page.getByRole("region", { name: copy.title, exact: true });
+    const input = page.getByLabel(copy.fields.conference_days, { exact: true });
+    await expect(input).toHaveValue(""); await expect(input).toHaveAttribute("dir", "ltr");
+    for (const value of ["2027-02-29", "2027-01-27,2027-01-27"]) {
+      await input.fill(value); await page.getByTestId("registration-settings-review").click();
+      await expect(editor.getByRole("alert")).toHaveText(copy.invalidConferenceDays);
+      await expect(editor.getByRole("alert")).toBeFocused();
+      expect(mock.actions).toHaveLength(0);
+    }
+    await input.fill("2027-01-28, 2027-01-27"); await page.getByTestId("registration-settings-review").click();
+    const confirmation = page.getByTestId("registration-settings-confirmation");
+    await expect(confirmation).toContainText(copy.fields.conference_days);
+    await axe(page, locale);
+    await page.getByTestId("registration-settings-confirm").click();
+    expect(mock.actions).toHaveLength(1);
+    expect(mock.actions[0].changes?.conference_days).toEqual(["2027-01-27", "2027-01-28"]);
+    await expect(input).toHaveValue("2027-01-27, 2027-01-28");
+    await expect(page.getByTestId("registration-settings-history-entry")).toContainText(copy.fields.conference_days);
+    await input.fill(""); await page.getByTestId("registration-settings-review").click();
+    await page.getByTestId("registration-settings-confirm").click();
+    expect(mock.actions[1].changes?.conference_days).toBeNull();
+    await expect(input).toHaveValue("");
+    await axe(page, locale);
+  });
   test(`${locale} new settings remain unsaved until keyboard confirmation, with Riyadh conversion and audit`, async ({ page }, testInfo) => {
     const mock = await fixture(page, { settings: null });
     await page.goto(`/${locale}/staff/registration-settings`);

@@ -23,6 +23,7 @@ const accessToken = "header." + Buffer.from(JSON.stringify(claims)).toString("ba
 const native: NativeStaffSession = { actorId, sessionId, accessToken, refreshToken: "synthetic-refresh" };
 // Every value is a local synthetic fixture, never an organizer setting or seed.
 const settings: StaffRegistrationSettings = { enabled: false, terms_version: "synthetic-terms", payment_required: false, general_capacity: 3,
+  conference_days: null,
   default_workshop_capacity: null, early_access_start_at: "2027-01-01T17:00:00Z", early_access_end_at: "2027-01-02T17:00:00Z",
   priority_start_at: "2027-01-01T17:00:00Z", priority_end_at: "2027-01-02T17:00:00Z", general_opening_at: "2027-01-02T17:00:00Z",
   closing_at: "2027-01-03T17:00:00Z", offer_window_hours: null, places_remaining_threshold: 0, minimum_age: 18,
@@ -76,6 +77,13 @@ describe("closed Super Admin registration settings", () => {
   it("preserves an empty settings row and closed readiness without introducing defaults", async () => {
     replies.msrc_staff_registration_settings = { state: "ready", settings: null, settingsComplete: false, participantAccountsReady: false, history: [] };
     expect(await (await handle(request("GET", "?area=registration-settings"))).json()).toMatchObject({ registrationSettings: { settings: null, settingsComplete: false, history: [] } });
+  });
+  it("keeps staff signed in when the installed settings projection predates conference days", async () => {
+    const oldSettings = Object.fromEntries(Object.entries(settings).filter(([field]) => field !== "conference_days"));
+    replies.msrc_staff_registration_settings = { ...read(), settings: oldSettings };
+    const response = await handle(request("GET", "?area=registration-settings"));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready");
+    expect(response.headers.get("set-cookie")).toBeNull(); expect(backend.logout).not.toHaveBeenCalled();
   });
   it("sends only the requested settings changes and operation identifier under the user's bearer", async () => {
     const response = await handle(post());
@@ -220,5 +228,19 @@ describe("registration settings validation and projection", () => {
     const changes: StaffRegistrationSettingsChanges = { general_capacity: 3 };
     const output = registrationSettingsChanges(changes)!; output.general_capacity = 4;
     expect(changes.general_capacity).toBe(3);
+  });
+  it("validates nullable conference days without making them a registration completeness gate", () => {
+    expect(registrationSettingsChanges({ conference_days: null })).toEqual({ conference_days: null });
+    const days = ["2027-01-27", "2027-01-28"];
+    expect(registrationSettingsChanges({ conference_days: days })).toEqual({ conference_days: days });
+    for (const conference_days of [[], ["2027-02-29"], ["2027-01-27", "2027-01-27"], ["2027-01-28", "2027-01-27"], "2027-01-27"]) {
+      expect(registrationSettingsChanges({ conference_days })).toBeNull();
+      expect(registrationSettingsProjection({ ...read(), settings: { ...settings, conference_days } }, config.editionKey)).toBeNull();
+    }
+    expect(registrationSettingsComplete({ ...settings, conference_days: null })).toBe(true);
+    expect(registrationSettingsComplete({ ...settings, conference_days: days })).toBe(true);
+    const result = registrationSettingsProjection({ ...read(), settings: { ...settings, conference_days: days },
+      history: [{ ...history, changes: { conference_days: { before: null, after: days } } }] }, config.editionKey);
+    expect(result?.history[0].changes.conference_days).toEqual({ before: null, after: days });
   });
 });

@@ -3670,3 +3670,65 @@ Runtime health alone does not establish database or workflow readiness.
 Observed checks, contract details and remaining CI-only database gates belong
 in [the Night-2 ACD receipt](progress/2026-10-22-codex-acd.md).
 `docs/PROGRESS.md` remains unchanged under the owner's O9 instruction.
+
+## ENG-058 — Closed online conference check-in and daily attendance, 22 October 2026
+
+Authority: the owner's Night-2 task B, current ORG-055/056/057 and ENG-054's
+ticket scheme. ENG-057 was the highest number when reserved. BL-CHK-02/03,
+BL-ATT-01/03, CHK-01–05, CRT-01, ROL-08/10/12, SEC-01/02/06, DAT-03/04,
+LOC-01/03 and ACC-01 apply. The v0.5 source contains CHK-01–05 and no ATT-
+prefixed requirements; BL-ATT maps to those CHK requirements and CRT-01.
+This is local, uncommitted source implementation on top of task ACD. Claude
+owns committing. No hosted migrations, settings seeds, activation or email.
+
+Review-only migration `20261022130000_checkin_attendance.sql` adds private
+daily attendance, immutable outcome/correction audit and per-native-session
+mutation limits. One row per ticket/day serializes competing scanners and
+reports the original current check-in time and performer on repetition.
+Super Admin undo requires a reason; audit snapshots preserve earlier facts
+when the same daily row is later checked in again. Ticket scans compare the
+presented secret hash with ENG-054's stored hash, never expose the master key,
+and recheck current admission. Manual reference lookup is staff-authorized,
+rate-limited and rejects ambiguous references. Summary reads return counts.
+
+Only current edition-granted `checkInStaff` and Super Admin sessions can scan;
+Super Admins alone can undo. Regular staff retain exact-session email checks,
+and Super Admins retain exact-session TOTP. Entry-point labels are optional
+provenance, not authorization assignments. Decision 19 (entry points, named
+staff and tested outage/offline backup/reconciliation) remains OPEN. Online
+scanning is this slice's boundary; assigned-entry restrictions and the chosen
+backup procedure must be reconciled and rehearsed before live use. No offline
+queue or synchronization is built or promised.
+
+The owner must enter `conference_days` on Registration settings. The field
+is nullable, unique and sorted, with a 31-day engineering input bound; it is
+not a seeded schedule or a change to registration completeness. The published
+conference dates remain 27–28 January 2027. Staff choose a configured day,
+defaulting only to today's configured date in Asia/Riyadh. Own-registration
+attendance shows each day separately. Both conference days AND the general
+survey remain required for an ordinary full-conference certificate. No scan
+grants a certificate, workshop completion or credit for a different day.
+
+Browser QR detection uses `BarcodeDetector` when supported. The lazy fallback
+is exact-pinned `@zxing/browser@0.2.1` (npm published 6 July 2026) with exact
+peer `@zxing/library@0.23.0` (29 April 2026), both older than two weeks as of
+this task. Registry version/time/repository metadata and the project's
+[browser documentation](https://github.com/zxing-js/browser) were checked.
+The maintained browser adapter provides typed QR-only canvas decoding and
+ships in a separate on-demand chunk; the lockfile records integrity. Manual
+reference entry remains available, camera access requires HTTPS, and stopping,
+hiding or leaving the scanner releases its media tracks. Screen wake lock and
+success vibration are opt-in; vibration is suppressed for reduced motion.
+EN/AR result cards communicate with icon, text and colour.
+
+The scanner document alone permits same-origin camera and screen wake lock.
+Entering and leaving it uses document navigation to apply the correct
+Permissions-Policy; other documents keep camera access denied. Contended
+attendee-authority rows return retryable `unavailable`, session authorization
+is rechecked after waits, and passive count polling does not extend idle time.
+
+All new optional RPCs fail to `area-not-ready` when their migration is absent,
+preserving valid sessions. Commands, observed counts, remaining device/CI
+gates and the review handoff are in the
+[Night-2 B receipt](progress/2026-10-22-codex-b.md). `docs/PROGRESS.md` is
+unchanged under O9.
