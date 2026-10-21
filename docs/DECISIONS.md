@@ -3625,3 +3625,15 @@ the owner must reconcile the external overnight-plan O11 note. The fresh
 synthetic-only staging migration replay in STAGING_SETUP is an explicit
 Task 5 exception to older blanket hosted-replay prohibitions, never a
 Production migration procedure. See [the O9 receipt](progress/2026-10-20-codex-staging-opening-night.md).
+
+## ORG-057 — Registration email wording approved; second Super Admin added, 22 October 2026
+
+Owner (Akram Awan) decisions in the planning session on 22 October 2026:
+
+- The registration email drafts in `docs/features/REGISTRATION_EMAILS.md` (request received, you have a seat,
+  seat offered, waitlisted, offer expired, cancellation) are **approved as worded**. Delivery remains off until the
+  separate email activation steps (paid Resend plan, caps, switches) are completed.
+- The owner has added the second Super Admin (Abdulrahman Ismail). Each Super Admin enrolls their own
+  authenticator; recovery is tested between the two.
+- The registration `terms_version` is `v1.0`, the currently published Terms and Privacy Policy version.
+- Still open: the registration closing date and time.
