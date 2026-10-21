@@ -710,3 +710,45 @@ commit or push was performed. The current Supabase
 [function security and execution guidance](https://supabase.com/docs/guides/database/functions)
 was checked for explicit grants and empty search paths. CI database evidence,
 owner wording/Arabic review and all existing activation gates remain required.
+
+## Complete staff request history — ENG-057 / Night-2 ACD, 22 October 2026
+
+Review-only migration `20261022120000_staff_registration_complete_history.sql`
+replaces `public.msrc_staff_registration_detail(edition_key text, request_id uuid)`
+(returns `jsonb`) without widening its registration-administrator / Super Admin
+authorization. The existing expiry sweep and settings lock remain; READ COMMITTED
+is checked at function entry. Missing functions and older detail RPCs show
+`area-not-ready` and preserve the staff session.
+
+The RPC now returns `historyVersion: 1` beside `state` and `detail`. Each history
+row contains `{id, event, actorKind, from, to, at, performerName}`. `event` is one
+of `request.submitted`, `request.approved`, `request.waitlisted`, `request.offered`,
+`request.offer_expired`, `request.offer_accepted`, `request.offer_declined`,
+`request.cancelled`, `ticket.issued` or `ticket.revoked`. `actorKind` is
+`participant`, `automatic` or `staff`; only staff actors carry `performerName`.
+Submission and ticket events retain null `from`/`to` values. The projection
+rejects unknown fields, invalid transitions, mismatched actor kinds, duplicate
+IDs and out-of-order timestamps. The private EN/AR timeline labels every event
+and actor, including automatic offers, with newest events first.
+
+Ticket lifecycle changes previously retained timestamps in `tickets` but emitted
+no registration audit row. A private `ticket_audit_event()` trigger now writes
+issuance/revocation audit evidence in the same transaction, with automatic actors
+and exactly the ticket's stored timestamps. A unique request/event index prevents
+duplicate ticket evidence. The migration also backfills these two facts for
+existing tickets from `issued_at` and `revoked_at`. It does not infer historical
+request states, staff names, credential values or notification events. This
+backfill is an owner review point before any separately authorized hosted replay;
+it issues no tickets and enqueues no messages. Identity/credential fields remain
+excluded from detail and history.
+
+Coverage adds complete synthetic lifecycle pgTAP, rollback, immutable/deduplicated
+ticket evidence, role/target filtering, exact timestamps and ordering. Existing
+CI concurrency cases now assert one ticket audit per competing approval or
+cancellation. Additional CI cases check the isolation guard before early returns
+and replay the migration's actual backfill statements twice against synthetic
+pre-audit tickets, checking exact timestamps and unchanged business/outbox data.
+The EN/AR browser detail test covers every label, actor, RTL,
+overflow and axe. Database execution and database lint remain CI-only because
+this checkout has no local Docker. No hosted migration, settings seed, participant
+opening, feature activation or real email is part of this change.

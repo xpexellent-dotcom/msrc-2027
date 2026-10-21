@@ -3,13 +3,13 @@ import { WORKFLOWS } from "../../src/config/workflows";
 
 // SEC-01, API-02, REL-06: denial happens at the server boundary even when
 // requests bypass the public UI. No operational mutation is implemented.
-test("health refuses unconfigured database readiness without details", async ({ request }) => {
+test("health reports runtime uptime before database configuration without claiming readiness", async ({ request }) => {
   const response = await request.get("/api/health");
-  expect(response.status()).toBe(503);
+  expect(response.status()).toBe(200);
   expect(await response.json()).toEqual({
-    status: "unavailable",
+    status: "ok",
     scope: "runtime-health",
-    database: "unavailable",
+    database: "not-configured",
   });
   expect(response.headers()["cache-control"]).toContain("no-store");
 });

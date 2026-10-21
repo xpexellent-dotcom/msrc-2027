@@ -1,7 +1,8 @@
 import type { Role } from "@/lib/permissions/contract";
 
-export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access" | "registration-settings";
-export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "priority" | "early-access" | "registration-settings" | "summary";
+export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access" | "registration-settings" | "email-previews";
+export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "priority" | "early-access" | "registration-settings" | "email-previews" | "summary";
+export type StaffEmailPreview = { templateKey: string; templateVersion: number; recipient: string; subject: string; text: string; html: string };
 export type StaffProfile = { actorId: string; name: string; roles: Role[] };
 export type StaffPerson = { actorId: string; name: string; email: string; roles: Role[]; status: "active" | "suspended"; lastSignIn: string | null; recoveryState?: "none" | "pending" | "failed" | "awaiting_invitation" };
 export type StaffInvitation = { id: string; email: string; roles: Role[]; status: "pending" | "accepted" | "revoked" | "expired"; expiresAt: string };
@@ -9,9 +10,14 @@ export type StaffAuditRow = { id: string; actorId: string | null; actorName?: st
 export type StaffParticipant = { actorId: string; name: string; email: string; status: "unverified" | "verified" | "suspended"; createdAt: string; identityMasked?: string | null };
 export type StaffRegistrationStatus = "pending_approval" | "approved" | "approved_awaiting_payment" | "waitlisted" | "offered" | "confirmed" | "cancelled" | "expired";
 export type StaffRegistrationRequest = { id: string; actorId: string; name: string; email: string; status: StaffRegistrationStatus; priority: boolean; createdAt: string; decidedAt: string | null; offerExpiresAt: string | null; identityMasked: string | null; ticketStatus?: "issued" | "revoked" | null };
+export type StaffRegistrationEvent = "request.submitted" | "request.approved" | "request.waitlisted" | "request.offered" | "request.offer_expired" | "request.offer_accepted" | "request.offer_declined" | "request.cancelled" | "ticket.issued" | "ticket.revoked";
+export type StaffRegistrationHistoryRow = {
+  id: string; event: StaffRegistrationEvent; actorKind: "participant" | "automatic" | "staff";
+  from: StaffRegistrationStatus | null; to: StaffRegistrationStatus | null; at: string; performerName: string | null;
+};
 export type StaffRegistrationDetail = {
   request: StaffRegistrationRequest;
-  history: { id: string; from: StaffRegistrationStatus | null; to: StaffRegistrationStatus; at: string; performerName: string | null }[];
+  history: StaffRegistrationHistoryRow[];
 };
 export type StaffRegistrationCounts = { pending: number; approved: number; waitlisted: number; offered: number; expired: number; capacity: number | null; remaining: number | null };
 export type StaffPriorityRow = { actorId: string; name: string; email: string; active: boolean; reason: string; designatedAt: string; designatedByName: string | null; removedAt: string | null };
@@ -48,6 +54,7 @@ export type StaffResponse = {
   registration?: { requests: StaffRegistrationRequest[]; counts: StaffRegistrationCounts };
   registrationDetail?: StaffRegistrationDetail;
   registrationSettings?: StaffRegistrationSettingsView; operationId?: string;
+  emailPreviews?: StaffEmailPreview[];
   priority?: { designations: StaffPriorityRow[]; candidates?: StaffParticipant[] }; summary?: StaffSummary;
   earlyAccess?: { entries: StaffEarlyAccessEntry[] }; added?: number; removed?: number; invalid?: string[];
   decided?: { approved: number; waitlisted: number; offered?: number; skipped: number };

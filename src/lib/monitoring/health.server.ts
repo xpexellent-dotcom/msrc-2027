@@ -46,14 +46,22 @@ async function readRpc(config: DatabaseConfig, name: "msrc_health_check" | "msrc
 
 export function createHealthHandler({ env, fetcher = fetch }: { env: Environment; fetcher?: typeof fetch }) {
   return async (): Promise<Response> => {
+    if (!env.HEALTH_SUPABASE_URL && !env.HEALTH_SUPABASE_SECRET_KEY) {
+      return Response.json({ status: "ok", scope: "runtime-health", database: "not-configured" }, { headers });
+    }
     const config = databaseConfig(env, "HEALTH");
-    let reachable = false;
+    let database: "reachable" | "not-ready" | "unavailable" = "unavailable";
     if (config) {
-      try { reachable = await readRpc(config, "msrc_health_check", fetcher) === true; } catch { /* Deliberately sanitized. */ }
+      try {
+        if (await readRpc(config, "msrc_health_check", fetcher) === true) database = "reachable";
+      } catch (error) {
+        if (error instanceof MonitoringUnavailable && error.missing) database = "not-ready";
+      }
     }
     // Reachability alone is not authentication, schema, readiness or delivery evidence.
+    const reachable = database === "reachable";
     return Response.json({ status: reachable ? "ok" : "unavailable", scope: "runtime-health",
-      database: reachable ? "reachable" : "unavailable" }, { status: reachable ? 200 : 503, headers });
+      database }, { status: reachable ? 200 : 503, headers });
   };
 }
 

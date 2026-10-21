@@ -5,12 +5,25 @@ import { staffCopy } from "../../src/features/staff-portal/copy";
 import { consoleCopy } from "../../src/features/staff-portal/console-copy";
 import { staffMenu } from "../../src/features/staff-portal/menu";
 import type { Role } from "../../src/lib/permissions/contract";
-import type { StaffEarlyAccessEntry, StaffPayload, StaffRegistrationRequest, StaffResponse } from "../../src/features/staff-portal/ui-contract";
+import type { StaffEarlyAccessEntry, StaffPayload, StaffRegistrationHistoryRow, StaffRegistrationRequest, StaffResponse } from "../../src/features/staff-portal/ui-contract";
 
 const actorId = "21000000-0000-4000-8000-000000000001";
 const ids = ["21000000-0000-4000-8000-0000000000a1", "21000000-0000-4000-8000-0000000000a2", "21000000-0000-4000-8000-0000000000a3"];
 const participantId = "21000000-0000-4000-8000-0000000000b1";
 const earlyIds = ["21000000-0000-4000-8000-0000000000e1", "21000000-0000-4000-8000-0000000000e2"];
+const historyEvents: Pick<StaffRegistrationHistoryRow, "event" | "actorKind" | "from" | "to">[] = [
+  { event: "ticket.revoked", actorKind: "automatic", from: null, to: null },
+  { event: "request.cancelled", actorKind: "participant", from: "approved", to: "cancelled" },
+  { event: "ticket.issued", actorKind: "automatic", from: null, to: null },
+  { event: "request.offer_accepted", actorKind: "participant", from: "offered", to: "approved" },
+  { event: "request.offered", actorKind: "automatic", from: "waitlisted", to: "offered" },
+  { event: "request.offer_expired", actorKind: "automatic", from: "offered", to: "expired" },
+  { event: "request.offer_declined", actorKind: "participant", from: "offered", to: "cancelled" },
+  { event: "request.offered", actorKind: "staff", from: "waitlisted", to: "offered" },
+  { event: "request.waitlisted", actorKind: "staff", from: "pending_approval", to: "waitlisted" },
+  { event: "request.approved", actorKind: "staff", from: "pending_approval", to: "approved" },
+  { event: "request.submitted", actorKind: "participant", from: null, to: null },
+];
 
 /** ORG-055/056 presentation fixture. Seat allocation and authority are proven by the database suites. */
 async function consoleFixture(page: Page, roles: Role[], options: { capacity?: number | null; missingArea?: string; missingAction?: StaffPayload["action"]; offerWindow?: boolean; exportRefused?: boolean; revokedTicket?: boolean } = {}) {
@@ -77,7 +90,12 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
       : route.fulfill({ contentType: "text/csv; charset=utf-8", headers: { "content-disposition": 'attachment; filename="registration-synthetic.csv"' }, body: "\uFEFFname,email\r\nSynthetic,a@example.invalid\r\n" });
     if (area === "registration-detail") {
       const request = requests.find((r) => r.id === url.searchParams.get("requestId"))!;
-      response = { ...base, registrationDetail: { request, history: [{ id: "21000000-0000-4000-8000-0000000000d1", from: "pending_approval", to: "waitlisted", at: "2026-11-19T08:00:00Z", performerName: "Synthetic Staff" }] } };
+      // Combined synthetic display fixture exercises every event label; database
+      // tests assert each real request's distinct, valid lifecycle.
+      response = { ...base, registrationDetail: { request, history: historyEvents.map((event, index) => ({ ...event,
+        id: `21000000-0000-4000-8000-${String(index + 100).padStart(12, "0")}`,
+        at: new Date(Date.parse("2026-11-19T08:00:00Z") - index * 60000).toISOString(),
+        performerName: event.actorKind === "staff" ? "Synthetic Staff" : null })) } };
     }
     if (area === "priority") response = { ...base, priority: { designations, candidates: url.searchParams.get("q") ? [{ actorId: "21000000-0000-4000-8000-0000000000c1", name: "Synthetic Candidate", email: "candidate@example.invalid", status: "verified", createdAt: "2026-10-10T10:00:00Z" }] : undefined } };
     if (area === "early-access") { const query = url.searchParams.get("q")?.toLowerCase() ?? ""; response = { ...base, earlyAccess: { entries: earlyEntries.filter((entry) => entry.email.includes(query)) } }; }
@@ -303,7 +321,7 @@ for (const locale of ["en", "ar"] as const) for (const action of ["early-access-
   if (action === "early-access-add") await expect(page.getByLabel(early.paste)).toHaveValue("new@example.invalid");
 });
 
-for (const locale of ["en", "ar"] as const) test(`${locale} waitlisted requests can be offered a seat, and details show the decision history`, async ({ page }, testInfo) => {
+for (const locale of ["en", "ar"] as const) test(`${locale} waitlisted requests can be offered a seat, and details show complete request history`, async ({ page }, testInfo) => {
   const text = consoleCopy[locale].registration;
   const mock = await consoleFixture(page, ["superAdmin"]);
   await page.goto(`/${locale}/staff/registration`);
@@ -316,8 +334,15 @@ for (const locale of ["en", "ar"] as const) test(`${locale} waitlisted requests 
   await page.getByTestId("queue-row").nth(1).getByRole("button", { name: new RegExp(text.details) }).click();
   const detail = page.getByTestId("queue-detail");
   await expect(detail.getByRole("heading", { level: 3 })).toBeFocused();
-  await expect(detail.locator(".staff-decisions li")).toHaveCount(1);
-  await expect(detail.locator(".staff-decisions")).toContainText(text.statuses.waitlisted);
+  const entries = detail.locator(".staff-decisions li");
+  await expect(entries).toHaveCount(historyEvents.length);
+  for (const [index, event] of historyEvents.entries()) {
+    await expect(entries.nth(index)).toContainText(event.event === "request.offered" && event.actorKind === "automatic" ? text.automaticOffer : text.events[event.event]);
+    await expect(entries.nth(index)).toContainText(`${text.by}: ${event.actorKind === "participant" ? text.participant : event.actorKind === "automatic" ? text.automatic : "Synthetic Staff"}`);
+    if (event.from && event.to) await expect(entries.nth(index)).toContainText(`${text.statuses[event.from]} ${locale === "ar" ? "←" : "→"} ${text.statuses[event.to]}`);
+  }
+  await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await shot(page, `${locale}-detail`, testInfo.project.name);
   await axe(page);
   await detail.getByRole("button", { name: text.closeDetails }).click();

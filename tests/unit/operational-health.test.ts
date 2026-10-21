@@ -18,6 +18,18 @@ function request(authorization: string | null = "Bearer " + secret) {
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("database reachability health", () => {
+  it.each([{}, { HEALTH_SUPABASE_URL: "", HEALTH_SUPABASE_SECRET_KEY: "" },
+    { ...env, HEALTH_SUPABASE_URL: undefined, HEALTH_SUPABASE_SECRET_KEY: undefined },
+  ])("reports runtime uptime without making a database claim when both settings are absent %j", async (environment) => {
+    const fetcher = vi.fn();
+    const response = await createHealthHandler({ env: environment, fetcher })();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: "ok", scope: "runtime-health", database: "not-configured" });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("executes a fixed no-data database ping with a bounded timeout and server-only key", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json(true));
     const result = await createHealthHandler({ env, fetcher })();
@@ -34,11 +46,13 @@ describe("database reachability health", () => {
   });
 
   it.each([
-    {}, { ...env, HEALTH_SUPABASE_URL: undefined }, { ...env, HEALTH_SUPABASE_SECRET_KEY: undefined },
+    { ...env, HEALTH_SUPABASE_URL: undefined }, { ...env, HEALTH_SUPABASE_SECRET_KEY: undefined },
+    { ...env, HEALTH_SUPABASE_URL: "" }, { ...env, HEALTH_SUPABASE_SECRET_KEY: "" },
+    { HEALTH_SUPABASE_URL: " ", HEALTH_SUPABASE_SECRET_KEY: " " },
     { ...env, HEALTH_SUPABASE_SECRET_KEY: "sb_publishable_not_a_server_key" },
     ...["https://example.invalid", url + "/path", url + "?secret=x", url + "#x", url + "/", "https://user:pass@abcdefghijklmnopqrst.supabase.co",
       "https://abcdefghijklmnopqrst.supabase.co.evil.invalid", "http://127.0.0.1:54321"].map((endpoint) => ({ ...env, VERCEL: "1", HEALTH_SUPABASE_URL: endpoint })),
-  ])("refuses missing or invalid connection configuration before network access %j", async (environment) => {
+  ])("refuses partial or invalid connection configuration before network access %j", async (environment) => {
     const fetcher = vi.fn();
     const response = await createHealthHandler({ env: environment, fetcher })();
     expect(response.status).toBe(503);
@@ -58,9 +72,25 @@ describe("database reachability health", () => {
     expect(await response.json()).toEqual({ status: "unavailable", scope: "runtime-health", database: "unavailable" });
   });
 
-  it.each([401, 403, 404, 429, 500, 503])("sanitizes HTTP %s including missing hosted migration", async (status) => {
+  it("reports a missing health RPC as not-ready with no database diagnostic or session changes", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ code: "PGRST202", details: "private database detail" }, { status: 404 }));
+    const response = await createHealthHandler({ env, fetcher })();
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ status: "unavailable", scope: "runtime-health", database: "not-ready" });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.has("set-cookie")).toBe(false);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([401, 403, 429, 500, 503])("sanitizes HTTP %s without treating other statuses as a missing RPC", async (status) => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ code: "PGRST202", details: "private database detail" }, { status }));
     const response = await createHealthHandler({ env, fetcher })();
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ status: "unavailable", scope: "runtime-health", database: "unavailable" });
+  });
+
+  it.each([{ code: "PGRST205" }, { message: "PGRST202" }, null])("does not classify other 404 payloads as a missing health RPC %j", async (value) => {
+    const response = await createHealthHandler({ env, fetcher: vi.fn<typeof fetch>().mockResolvedValue(Response.json(value, { status: 404 })) })();
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ status: "unavailable", scope: "runtime-health", database: "unavailable" });
   });
@@ -68,7 +98,8 @@ describe("database reachability health", () => {
   it.each([new DOMException("private timeout", "TimeoutError"), new TypeError("private transport")])("contains transport and timeout failures", async (failure) => {
     const response = await createHealthHandler({ env, fetcher: vi.fn<typeof fetch>().mockRejectedValue(failure) })();
     expect(response.status).toBe(503);
-    expect(await response.text()).not.toContain("private");
+    expect(await response.json()).toEqual({ status: "unavailable", scope: "runtime-health", database: "unavailable" });
+    expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
   it("returns unavailable for malformed JSON", async () => {
@@ -81,6 +112,19 @@ describe("database reachability health", () => {
     vi.stubEnv("REGISTRATION_ENABLED", "true");
     vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(Response.json(true)));
     expect(await (await healthGET()).json()).toEqual({ status: "ok", scope: "runtime-health", database: "reachable" });
+  });
+
+  it.each(["not-configured", "not-ready", "unavailable"] as const)("wires the real route's %s state", async (database) => {
+    vi.stubEnv("HEALTH_SUPABASE_URL", database === "not-configured" ? "" : url);
+    vi.stubEnv("HEALTH_SUPABASE_SECRET_KEY", database === "not-configured" ? "" : key);
+    const fetcher = vi.fn<typeof fetch>();
+    if (database === "not-ready") fetcher.mockResolvedValue(Response.json({ code: "PGRST202" }, { status: 404 }));
+    else fetcher.mockRejectedValue(new TypeError("private database unreachable"));
+    vi.stubGlobal("fetch", fetcher);
+    const response = await healthGET();
+    expect(response.status).toBe(database === "not-configured" ? 200 : 503);
+    expect(await response.json()).toEqual({ status: database === "not-configured" ? "ok" : "unavailable", scope: "runtime-health", database });
+    expect(fetcher).toHaveBeenCalledTimes(database === "not-configured" ? 0 : 1);
   });
 });
 

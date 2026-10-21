@@ -3638,3 +3638,35 @@ Owner (Akram Awan) decisions in the planning session on 22 October 2026:
 - The registration `terms_version` is `v1.0`, the currently published Terms and Privacy Policy version.
 - Registration **closes Tue 26 Jan 2027 at 23:59 Riyadh time** (`closing_at`, owner-entered, not seeded); the
   conference is 27–28 January 2027.
+
+## ENG-057 — Staff email previews, complete request history and initial runtime health, 22 October 2026
+
+Authority: the owner's Night-2 task ACD and ORG-055/056/057. ENG-056 was the
+highest number used when this entry was reserved. EML-01/03/04, REG-04,
+ADM-02/04/05, ROL-10/12, SEC-01/02/06, LOC-01/03, ACC-01 and INF-04–06 apply.
+This is local source implementation only; Claude owns the commit. No hosted
+migration, settings seed, participant opening, feature activation or real email.
+
+Super Admins may preview every registration template from the outbox registry
+using the same server rendering functions and fixed synthetic data. The staff
+chrome is bilingual; transactional content stays English. ORG-057 approves the
+existing wording, while delivery remains off. Previewing needs no registration
+or outbox database reads and retains the current staff authentication gates.
+
+Review-only migration `20261022120000_staff_registration_complete_history.sql`
+extends the staff request-detail history with participant and automatic
+registration audit events, alongside staff decisions. A private ticket trigger
+records issuance/revocation in the same transaction; existing ticket timestamps
+provide the exact facts for an audit-only backfill. No ticket is issued by the
+backfill. Each event identifies its actor category without exposing ticket
+credentials or identity documents. Existing role/session checks remain in
+force. Missing or pre-history-version RPCs yield `area-not-ready`.
+
+Absent health database configuration returns HTTP 200 with runtime status `ok`
+and database `not-configured`. Configured health checks with a missing RPC
+return HTTP 503 and database `not-ready`; unreachable databases remain 503.
+Runtime health alone does not establish database or workflow readiness.
+
+Observed checks, contract details and remaining CI-only database gates belong
+in [the Night-2 ACD receipt](progress/2026-10-22-codex-acd.md).
+`docs/PROGRESS.md` remains unchanged under the owner's O9 instruction.

@@ -8,6 +8,7 @@ import { staffInvitationEmail } from "@/features/staff-portal/email.server";
 import { readStaffSession, sealStaffSession, staffCookie, staffFormToken, type StaffSessionCookie } from "@/features/staff-portal/security.server";
 import { validateStaffPayload } from "@/features/staff-portal/validation.server";
 import { encryptIdentityDocument, getIdentityCryptoConfig } from "@/features/registration/identity-crypto.server";
+import { renderRegistrationEmailPreviews } from "@/features/staff-portal/email-previews.server";
 
 const origin = "http://127.0.0.1:3219";
 const actorId = "30000000-0000-4000-8000-000000000001", sessionId = "30000000-0000-4000-8000-000000000002";
@@ -56,6 +57,41 @@ beforeEach(() => {
     enroll: vi.fn(async () => ({ factorId, secret: "JBSWY3DPEHPK3PXP", uri: "otpauth://totp/MSRC?secret=JBSWY3DPEHPK3PXP" })),
     challenge: vi.fn(async () => challengeId), verify: vi.fn(async () => native), resetFactors: vi.fn(async () => true), invite: vi.fn(async () => true),
   };
+});
+
+describe("Super Admin static email previews", () => {
+  it("renders every registered template without querying an area RPC or requiring its migrations", async () => {
+    const original = vi.mocked(backend.rpc).getMockImplementation()!;
+    vi.mocked(backend.rpc).mockImplementation(async (name, ...args) => {
+      if (!["msrc_staff_status", "msrc_session_context", "msrc_staff_profile"].includes(name)) throw new StaffRpcMissingError();
+      return original(name, ...args);
+    });
+    const response = await handler()(request("GET", undefined, cookie(), "?area=email-previews"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "authenticated", emailPreviews: renderRegistrationEmailPreviews() });
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(vi.mocked(backend.rpc).mock.calls.every(([name]) => ["msrc_staff_status", "msrc_session_context", "msrc_staff_profile"].includes(name))).toBe(true);
+    expect(backend.invite).not.toHaveBeenCalled();
+  });
+  it.each(ROLES.filter((role) => role !== "superAdmin"))("denies %s independently of navigation", async (role) => {
+    const original = vi.mocked(backend.rpc).getMockImplementation()!;
+    vi.mocked(backend.rpc).mockImplementation(async (name, ...args) => name === "msrc_staff_profile"
+      ? { schemaVersion: 1, actorId, name: "Synthetic Staff", roles: [role], session: current } : original(name, ...args));
+    const response = await handler()(request("GET", undefined, cookie(), "?area=email-previews"));
+    expect(response.status).toBe(403); expect(await response.json()).not.toHaveProperty("emailPreviews");
+  });
+  it("requires the native identity and the exact session's completed TOTP", async () => {
+    current = persisted("super_admin", "mfa_required");
+    expect((await handler()(request("GET", undefined, cookie(), "?area=email-previews"))).status).toBe(403);
+    current = persisted(); vi.mocked(backend.identity).mockResolvedValue(null);
+    expect((await handler()(request("GET", undefined, cookie(), "?area=email-previews"))).status).toBe(403);
+  });
+  it("denies anonymous reads and rejects caller-selected samples", async () => {
+    expect((await handler()(request("GET", undefined, undefined, "?area=email-previews"))).status).toBe(403);
+    for (const query of ["&q=custom", "&recipient_email=person@example.invalid", "&offer_expires_at=tomorrow", "&status=all", "&requestId=" + actorId]) {
+      expect((await handler()(request("GET", undefined, cookie(), "?area=email-previews" + query))).status).toBe(400);
+    }
+  });
 });
 
 describe("closed staff portal configuration", () => {

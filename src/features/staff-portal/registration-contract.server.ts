@@ -115,15 +115,37 @@ export function registrationDetailProjection(value: unknown, requestId: string):
   if (!request || request.id.toLowerCase() !== requestId.toLowerCase()) return null;
   const history: StaffRegistrationDetail["history"] = [];
   let previousTime = Infinity;
+  const ids = new Set<string>();
   for (const value of data.history) {
     const row = record(value);
-    if (!row || !exact(row, ["id", "from", "to", "at", "performerName"]) || !uuid(row.id)
+    if (!row || !exact(row, ["id", "event", "actorKind", "from", "to", "at", "performerName"]) || !uuid(row.id)
+      || !["request.submitted", "request.approved", "request.waitlisted", "request.offered", "request.offer_expired",
+        "request.offer_accepted", "request.offer_declined", "request.cancelled", "ticket.issued", "ticket.revoked"].includes(row.event as string)
+      || !["participant", "automatic", "staff"].includes(row.actorKind as string)
       || row.from !== null && (!validStaffRegistrationStatus(row.from) || row.from === "all")
-      || !validStaffRegistrationStatus(row.to) || row.to === "all" || !timestamp(row.at)
-      || row.performerName !== null && !text(row.performerName, 200)) return null;
-    const time = Date.parse(row.at as string);
-    if (time > previousTime) return null;
-    previousTime = time;
+      || row.to !== null && (!validStaffRegistrationStatus(row.to) || row.to === "all") || !timestamp(row.at)
+      || row.performerName !== null && !text(row.performerName, 200)
+      || row.actorKind !== "staff" && row.performerName !== null) return null;
+    const participant = ["request.submitted", "request.offer_accepted", "request.offer_declined", "request.cancelled"].includes(row.event as string);
+    const automatic = ["request.offer_expired", "ticket.issued", "ticket.revoked"].includes(row.event as string);
+    if (participant && row.actorKind !== "participant" || automatic && row.actorKind !== "automatic"
+      || ["request.approved", "request.waitlisted"].includes(row.event as string) && row.actorKind !== "staff"
+      || row.event === "request.offered" && row.actorKind === "participant") return null;
+    // Submission and ticket audit records carry no request-state transition.
+    const noTransition = ["request.submitted", "ticket.issued", "ticket.revoked"].includes(row.event as string);
+    if (noTransition ? row.from !== null || row.to !== null : row.from === null || row.to === null) return null;
+    const transitions: Record<string, [readonly string[], readonly string[]]> = {
+      "request.approved": [["pending_approval", "waitlisted"], ["approved", "approved_awaiting_payment"]],
+      "request.waitlisted": [["pending_approval"], ["waitlisted"]], "request.offered": [["waitlisted"], ["offered"]],
+      "request.offer_expired": [["offered"], ["expired"]], "request.offer_accepted": [["offered"], ["approved"]],
+      "request.offer_declined": [["offered"], ["cancelled"]],
+      "request.cancelled": [["pending_approval", "waitlisted", "offered", "approved"], ["cancelled"]],
+    };
+    const transition = transitions[row.event as string];
+    if (transition && (!transition[0].includes(row.from as string) || !transition[1].includes(row.to as string))) return null;
+    const time = Date.parse(row.at as string), id = (row.id as string).toLowerCase();
+    if (time > previousTime || ids.has(id)) return null;
+    previousTime = time; ids.add(id);
     history.push(row as StaffRegistrationDetail["history"][number]);
   }
   return { request, history };

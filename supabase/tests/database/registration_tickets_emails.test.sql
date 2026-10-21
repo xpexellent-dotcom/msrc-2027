@@ -139,6 +139,8 @@ do $$begin perform set_config('msrc_registration.ticket_key','',true);perform se
 select throws_ok($$select pg_temp.ticket_approval(1801,1706)$$,'22023','Synthetic enqueue failure','Outbox failure aborts the approval transaction');
 select is((select status from msrc_registration.requests where actor_id=pg_temp.registration_actor(1706)),'pending_approval','Outbox failure leaves participant pending');
 select is((select count(*) from msrc_registration.tickets),2::bigint,'Outbox failure cannot leave a ticket behind');
+select ok(not exists(select 1 from msrc_registration.audit where target_actor=pg_temp.registration_actor(1706) and event='ticket.issued'),
+ 'Outbox failure also rolls back automatic ticket history');
 select is(current_setting('msrc_registration.ticket_key'),'','Failure restores the transient ticket key');
 select is(current_setting('request.jwt.claims'),'{}','Failure restores the original session claims');
 drop trigger synthetic_seat_failure on msrc_outbox.messages;
