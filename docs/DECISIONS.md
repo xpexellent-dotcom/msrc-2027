@@ -3636,4 +3636,5 @@ Owner (Akram Awan) decisions in the planning session on 22 October 2026:
 - The owner has added the second Super Admin (Abdulrahman Ismail). Each Super Admin enrolls their own
   authenticator; recovery is tested between the two.
 - The registration `terms_version` is `v1.0`, the currently published Terms and Privacy Policy version.
-- Still open: the registration closing date and time.
+- Registration **closes Tue 26 Jan 2027 at 23:59 Riyadh time** (`closing_at`, owner-entered, not seeded); the
+  conference is 27–28 January 2027.
