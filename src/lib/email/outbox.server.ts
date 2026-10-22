@@ -58,7 +58,7 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
 }
 
-/** DRAFT v1: owner wording approval is required before delivery activation (EML-04).
+/** ORG-057 approved v1 wording; independent delivery activation gates remain (EML-04).
  * No bearer token, participant name, identity number or caller-supplied URL is accepted. */
 function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
   if (!registrationEmailTemplates.includes(message.template_key as RegistrationEmailTemplate)

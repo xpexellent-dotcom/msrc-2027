@@ -1,6 +1,6 @@
 import { expect, test } from "../helpers/csp";
 
-for (const locale of ["en", "ar"]) for (const area of ["", "/sign-in", "/accept-invitation", "/people", "/audit", "/participants", "/security"]) {
+for (const locale of ["en", "ar"]) for (const area of ["", "/sign-in", "/accept-invitation", "/people", "/audit", "/participants", "/security", "/email-previews"]) {
   test(`${locale} staff${area} is invisible with STAFF_PORTAL_ENABLED off`, async ({ page }) => {
     const response = await page.goto(`/${locale}/staff${area}`);
     expect(response?.status()).toBe(404);

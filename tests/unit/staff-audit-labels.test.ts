@@ -17,7 +17,7 @@ describe("LOC-03 bilingual immutable audit labels", () => {
     ...enumValues("20261002173712_persisted_authorization.sql", "event"),
     ...enumValues("20261002193800_staff_mfa_session_foundations.sql", "event"),
     ...enumValues("20261002233353_regular_staff_email_check.sql", "event"),
-    ...enumValues("20261020120000_early_access_list_autopass.sql", "event"),
+    ...enumValues("20261022120000_staff_registration_complete_history.sql", "event"),
   ];
   it("adds ordinary owner password change without dropping existing audited actions", () => {
     expect(enumValues("20261007195540_staff_password_change.sql", "action").sort()).toEqual([

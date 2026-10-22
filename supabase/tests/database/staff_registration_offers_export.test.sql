@@ -109,7 +109,8 @@ select is(public.msrc_staff_registration_offer('synthetic-staff-offers',pg_temp.
 update msrc_registration.settings set enabled=false where edition_key='synthetic-staff-offers';
 select pg_temp.offer_claim(101);
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->>'state','ready','Assured registrar reads closed request detail');
-select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'history','[]'::jsonb,'Pending request has no staff decision history');
+select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))#>>'{detail,history,0,event}','request.submitted','Pending request history includes participant submission');
+select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))#>>'{detail,history,0,actorKind}','participant','Submission is attributed to the participant');
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',null)->>'state','denied','Null request ID is rejected');
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',gen_random_uuid())->>'state','denied','Unknown request ID is rejected');
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers-other',pg_temp.offer_id(1))->>'state','denied','Request detail enforces edition scope');
@@ -172,9 +173,9 @@ select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'history'->0->>'to','offered','Latest history row contains next state');
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'history'->1->>'to','waitlisted','History is newest first');
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'history'->0->>'performerName','Synthetic registration staff','History resolves staff display name');
-select ok((public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'history'->0) ?& array['id','from','to','at','performerName'],
+select ok((public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'history'->0) ?& array['id','event','actorKind','from','to','at','performerName'],
  'History contains every agreed contract key');
-select is(jsonb_array_length(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'history'),2,'History contains only this request decision rows');
+select is(jsonb_array_length(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'history'),3,'History contains this request submission and decisions');
 select ok(not (public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))::text ~ 'ciphertext|identity_hash|identityEnvelope|authTag|identity_envelope'),
  'Detail/history expose no encrypted identity or duplicate digest');
 

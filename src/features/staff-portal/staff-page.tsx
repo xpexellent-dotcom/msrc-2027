@@ -7,6 +7,7 @@ import { canChangeOwnPassword, staffMenu } from "./menu";
 import type { LandingKey } from "./console-copy";
 import { getStaffConfig } from "./config.server";
 import { staffPasswordChangeReady } from "./handler.server";
+import { renderRegistrationEmailPreviews } from "./email-previews.server";
 
 export async function StaffPage({ params, screen, landing }: { params: Promise<{ locale: string }>; screen: StaffScreen; landing?: LandingKey }) {
   const { locale } = await params;
@@ -17,7 +18,8 @@ export async function StaffPage({ params, screen, landing }: { params: Promise<{
   const state = await readStaffPageState();
   if (screen === "security" && state.profile && !canChangeOwnPassword(state.profile.roles)) notFound();
   // Navigation projection only; every API and RPC rechecks the current grants.
-  const area = landing ?? (["people", "audit", "participants", "registration", "priority", "early-access", "registration-settings"].includes(screen) ? screen : null);
+  const area = landing ?? (["people", "audit", "participants", "registration", "priority", "early-access", "registration-settings", "email-previews"].includes(screen) ? screen : null);
   if (area && state.profile && !staffMenu(state.profile.roles).some((entry) => entry.key === area)) notFound();
-  return <StaffPortal locale={locale} screen={screen} landing={landing} initialProfile={state.profile} initialPasswordChangeAvailable={passwordChangeAvailable} testMode={state.testMode} />;
+  const emailPreviews = screen === "email-previews" && state.profile?.roles.includes("superAdmin") ? renderRegistrationEmailPreviews() : undefined;
+  return <StaffPortal locale={locale} screen={screen} landing={landing} initialProfile={state.profile} initialPasswordChangeAvailable={passwordChangeAvailable} initialEmailPreviews={emailPreviews} testMode={state.testMode} />;
 }

@@ -14,7 +14,7 @@ import { canChangeOwnPassword, canRevealIdentity, STAFF_ROLES, staffMenu, type S
 import { IdentityDocument } from "./identity-document";
 import { PasswordChangeForm } from "./password-change-form";
 import { clearStaffDraft, normalizeStaffCode, requestStaff, updateStaffDraft, useStaffDraft } from "./staff-client";
-import type { StaffAction, StaffArea, StaffPayload, StaffPerson, StaffProfile, StaffResponse, StaffScreen } from "./ui-contract";
+import type { StaffAction, StaffArea, StaffPayload, StaffPerson, StaffProfile, StaffResponse, StaffScreen, StaffEmailPreview } from "./ui-contract";
 import { StaffDashboard, StaffLanding, StaffSidebar } from "./console-shell";
 import type { LandingKey } from "./console-copy";
 import { RegistrationQueue, type RegistrationFilter } from "./registration-queue";
@@ -22,10 +22,11 @@ import { PriorityPanel } from "./priority-panel";
 import { EarlyAccessPanel } from "./early-access-panel";
 import { RegistrationSettingsPanel } from "./registration-settings-panel";
 import { consoleCopy } from "./console-copy";
+import { EmailPreviewsPanel } from "./email-previews-panel";
 
 const areaFailures = new Set(["area-not-ready", "unavailable", "denied"]);
 const errors = new Set(["area-not-ready", "offer-window-not-set", "closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required", "capacity-not-set", "payment-configuration-required", "capacity-below-held", "enable-not-allowed-here", "operation-conflict"]);
-function areaFor(screen: StaffScreen): StaffArea | undefined { return screen === "people" || screen === "audit" || screen === "participants" || screen === "registration" || screen === "priority" || screen === "early-access" || screen === "registration-settings" ? screen : undefined; }
+function areaFor(screen: StaffScreen): StaffArea | undefined { return screen === "people" || screen === "audit" || screen === "participants" || screen === "registration" || screen === "priority" || screen === "early-access" || screen === "registration-settings" || screen === "email-previews" ? screen : undefined; }
 function date(value: string | null, locale: Locale, fallback: string) {
   const parsed = value ? Date.parse(value) : NaN;
   return Number.isFinite(parsed) ? new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh", calendar: "gregory" }).format(parsed) : fallback;
@@ -54,9 +55,9 @@ function PersonActions({ locale, person, actorId, busy, act }: { locale: Locale;
   </details>;
 }
 
-export function StaffPortal({ locale, screen, landing, initialProfile, initialPasswordChangeAvailable = false, testMode = false }: { locale: Locale; screen: StaffScreen; landing?: LandingKey; initialProfile: StaffProfile | null; initialPasswordChangeAvailable?: boolean; testMode?: boolean }) {
+export function StaffPortal({ locale, screen, landing, initialProfile, initialPasswordChangeAvailable = false, initialEmailPreviews, testMode = false }: { locale: Locale; screen: StaffScreen; landing?: LandingKey; initialProfile: StaffProfile | null; initialPasswordChangeAvailable?: boolean; initialEmailPreviews?: StaffEmailPreview[]; testMode?: boolean }) {
   const copy = staffCopy[locale], router = useRouter(), draft = useStaffDraft();
-  const [view, setView] = useState<StaffResponse>({ state: initialProfile ? "authenticated" : "ready", profile: initialProfile });
+  const [view, setView] = useState<StaffResponse>({ state: initialProfile ? "authenticated" : "ready", profile: initialProfile, emailPreviews: initialEmailPreviews });
   const [busy, setBusy] = useState(true), [outcome, setOutcome] = useState<string>(""), [query, setQuery] = useState("");
   const [signOutFailure, setSignOutFailure] = useState(false);
   const [queueStatus, setQueueStatus] = useState<RegistrationFilter>("all"), [decidedText, setDecidedText] = useState("");
@@ -201,7 +202,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
   const message = signOutFailure ? copy.signOutFailed : decidedText && !errors.has(outcome) && !(outcome in copy.errors) ? decidedText : passwordReentry && outcome === "unavailable" ? copy.passwordChangeUnknown : outcome === "identity-unavailable" ? copy.identityPending : outcome in copy.states ? copy.states[outcome as keyof typeof copy.states] : outcome in copy.errors ? copy.errors[outcome as keyof typeof copy.errors] : "";
   const acceptedInvitation = screen === "accept-invitation" && view.state === "accepted" && !profile;
   const landingTitle = landing ? (landing === "review" || landing === "faculty-judging" ? consoleCopy.en : consoleCopy[locale]).landing.areas[landing].title : null;
-  const title = passwordReentry ? copy.security : verification ? view.state === "pending-email" ? copy.emailStep : view.state === "enroll-totp" ? copy.enroll : copy.totpStep : screen === "accept-invitation" && !profile ? copy.accept : !profile ? copy.signIn : landingTitle ? landingTitle : screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? copy.home : screen === "registration" || screen === "priority" || screen === "early-access" || screen === "registration-settings" ? copy.areas[screen] : copy[screen];
+  const title = passwordReentry ? copy.security : verification ? view.state === "pending-email" ? copy.emailStep : view.state === "enroll-totp" ? copy.enroll : copy.totpStep : screen === "accept-invitation" && !profile ? copy.accept : !profile ? copy.signIn : landingTitle ? landingTitle : screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? copy.home : screen === "registration" || screen === "priority" || screen === "early-access" || screen === "registration-settings" || screen === "email-previews" ? copy.areas[screen] : copy[screen];
   const inConsole = !!profile && !verification && !passwordReentry && !acceptedInvitation;
   const current: StaffMenuKey | "home" = landing ?? (screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? "home" : screen);
   const heading = <div className="staff-heading"><p className="eyebrow">{copy.private}</p><h1 tabIndex={-1}>{title}</h1>{profile ? <><p className="staff-name" data-testid="staff-name"><bdi>{profile.name}</bdi></p>{view.state === "authenticated" && !verification && profile.roles.length > 0 ? <><p data-testid="staff-current-roles">{copy.yourRoles}: {profile.roles.map((role) => copy.roleLabels[role]).join(locale === "ar" ? "، " : ", ")}</p><p data-testid="staff-action-summary">{staffActionSummary(locale, profile.roles, { passwordChangeAvailable })}</p></> : null}<div className="staff-actions"><Link href={`/${locale}/staff`}>{copy.home}</Link><Button variant="secondary" size="small" disabled={busy} onClick={() => void act({ action: "logout" })}>{copy.signOut}</Button></div></> : null}</div>;
@@ -216,6 +217,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
     {profile && permitted && screen === "registration" ? <RegistrationQueue locale={locale} data={view.registration} busy={busy} status={queueStatus} onStatus={(value) => { setQueueStatus(value); queueStatusRef.current = value; setBusy(true); void restore(undefined, query); }} query={query} onQuery={setQuery} onSearch={searchArea} act={act} onDecided={setDecidedText} canExport={profile.roles.includes("superAdmin")} loadDetail={(requestId) => requestStaff(undefined, { area: "registration-detail", requestId })} /> : null}
     {profile && permitted && screen === "priority" ? <PriorityPanel locale={locale} data={view.priority} busy={busy} query={query} onQuery={setQuery} onSearch={searchArea} act={act} /> : null}
     {profile && permitted && screen === "early-access" ? <EarlyAccessPanel locale={locale} data={view.earlyAccess} busy={busy} query={query} onQuery={setQuery} onSearch={searchArea} act={act} onResult={setDecidedText} /> : null}
+    {profile && permitted && screen === "email-previews" ? <EmailPreviewsPanel locale={locale} previews={view.emailPreviews} /> : null}
     {profile && permitted && screen === "registration-settings" ? <RegistrationSettingsPanel locale={locale} data={view.registrationSettings} areaFailure={view.areaFailure} busy={busy} act={act} onResult={setDecidedText} /> : null}
     {profile && permitted && screen === "people" ? <>
       <section className="staff-panel" aria-labelledby="staff-invite-heading"><h2 id="staff-invite-heading">{copy.invite}</h2><p>{copy.inviteHint}</p><form onSubmit={(event) => { event.preventDefault(); if (!inviteRoles.length || !inviteEmail) { setOutcome("required"); return; } void act({ action: "invite", email: inviteEmail, roles: inviteRoles }); }} aria-busy={busy}>

@@ -1,5 +1,5 @@
 import type { Locale } from "@/lib/i18n";
-import type { StaffRegistrationStatus } from "./ui-contract";
+import type { StaffRegistrationEvent, StaffRegistrationStatus } from "./ui-contract";
 import type { StaffMenuKey } from "./menu";
 
 type LandingKey = "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship";
@@ -20,7 +20,9 @@ export const consoleCopy = {
       decided: (approved: number, waitlisted: number, skipped: number, offered = 0) => [approved ? `${approved} approved` : "", offered ? `${offered} offered a seat` : "", waitlisted ? `${waitlisted} moved to the waitlist` : "", skipped ? `${skipped} unchanged` : ""].filter(Boolean).join(" · ") || "Nothing changed.",
       noneSelected: "Select at least one request.",
       offer: "Offer a seat", offerSelected: "Offer seats to selected", offered: "Offered", expired: "Offers expired", offerEnds: "Offer ends",
-      details: "Details", detailTitle: "Request details", history: "Decision history", noHistory: "No decisions yet.", by: "By", automatic: "Automatic", submitted: "Submitted", closeDetails: "Close details",
+      details: "Details", detailTitle: "Request details", history: "Request history", noHistory: "No events yet.", by: "By", automatic: "Automatic", participant: "Participant", staff: "Staff", submitted: "Submitted", closeDetails: "Close details",
+      automaticOffer: "Seat offered automatically",
+      events: { "request.submitted": "Request submitted", "request.approved": "Request approved", "request.waitlisted": "Moved to the waitlist", "request.offered": "Seat offered", "request.offer_expired": "Offer expired", "request.offer_accepted": "Accepted the offer", "request.offer_declined": "Declined the offer", "request.cancelled": "Registration cancelled", "ticket.issued": "Ticket issued", "ticket.revoked": "Ticket revoked" } satisfies Record<StaffRegistrationEvent, string>,
       exportCsv: "Download CSV", exportNote: "Super Admin only. ID numbers stay masked, and every download is recorded in the audit log.",
       ticket: "Ticket", ticketStatuses: { issued: "Issued", revoked: "Revoked", none: "Not issued" },
     },
@@ -67,7 +69,9 @@ export const consoleCopy = {
       decided: (approved: number, waitlisted: number, skipped: number, offered = 0) => [approved ? `اعتُمد ${approved.toLocaleString("ar-SA")}` : "", offered ? `عُرض مقعد على ${offered.toLocaleString("ar-SA")}` : "", waitlisted ? `نُقل ${waitlisted.toLocaleString("ar-SA")} إلى الانتظار` : "", skipped ? `لم يتغير ${skipped.toLocaleString("ar-SA")}` : ""].filter(Boolean).join(" · ") || "لم يتغير شيء.",
       noneSelected: "حدّد طلبًا واحدًا على الأقل.",
       offer: "عرض مقعد", offerSelected: "عرض مقاعد على المحدَّدين", offered: "عُرض عليهم مقعد", expired: "عروض منتهية", offerEnds: "ينتهي العرض",
-      details: "التفاصيل", detailTitle: "تفاصيل الطلب", history: "سجل القرارات", noHistory: "لا توجد قرارات بعد.", by: "بواسطة", automatic: "تلقائي", submitted: "قُدِّم الطلب", closeDetails: "إغلاق التفاصيل",
+      details: "التفاصيل", detailTitle: "تفاصيل الطلب", history: "سجل الطلب", noHistory: "لا توجد أحداث بعد.", by: "بواسطة", automatic: "تلقائي", participant: "المشارك", staff: "عضو الفريق", submitted: "قُدِّم الطلب", closeDetails: "إغلاق التفاصيل",
+      automaticOffer: "عُرض مقعد تلقائيًا",
+      events: { "request.submitted": "قُدِّم الطلب", "request.approved": "اعتُمد الطلب", "request.waitlisted": "نُقل إلى قائمة الانتظار", "request.offered": "عُرض مقعد", "request.offer_expired": "انتهت صلاحية العرض", "request.offer_accepted": "قَبِل العرض", "request.offer_declined": "رفض العرض", "request.cancelled": "أُلغي التسجيل", "ticket.issued": "أُصدرت التذكرة", "ticket.revoked": "أُلغيت التذكرة" } satisfies Record<StaffRegistrationEvent, string>,
       exportCsv: "تنزيل ملف CSV", exportNote: "للمشرف الأعلى فقط. تبقى أرقام الهوية مخفية جزئيًا، وتُسجَّل كل عملية تنزيل في سجل التدقيق.",
       ticket: "التذكرة", ticketStatuses: { issued: "صادرة", revoked: "ملغاة", none: "لم تصدر" },
     },

@@ -13,7 +13,7 @@ Probe paths exactly, without redirects to another host and without query secrets
 
 | URL / request | Expected signal | Suggested frequency |
 | --- | --- | --- |
-| `GET https://msrc2027.com/api/health` | 200 JSON `status=ok`, `scope=runtime-health`, `database=reachable`; 503 means database reachability/configuration could not be established. No provider/SQL details. | 60s; alert after 2 consecutive failures, recover after 2 successes. |
+| `GET https://msrc2027.com/api/health` | 200 JSON `status=ok`, `scope=runtime-health`, with `database=not-configured` before health database configuration or `database=reachable` after a successful ping. Configured but missing RPC returns 503 `database=not-ready`; other configuration/DB faults return 503 `database=unavailable`. No provider/SQL details. | 60s; alert after 2 consecutive failures, recover after 2 successes. |
 | `GET https://msrc2027.com/en` | 200 HTML, conference page marker, expected host/TLS; record latency. | 60s. |
 | `GET https://msrc2027.com/ar` | 200 HTML, Arabic locale/RTL marker and expected host/TLS. | 5min, plus before GO and after any deployment. |
 | `GET https://msrc2027.com/api/jobs/outbox/health` with `Authorization: Bearer <OUTBOX_MONITOR_SECRET>` in a private header | 200 aggregate JSON described below. Never log secret or response headers containing credentials. | 60s during rush, 5min otherwise. |
@@ -25,15 +25,27 @@ The new health migration is
 `service_role` the public wrappers `msrc_health_check() returns boolean` and
 `msrc_outbox_monitor() returns jsonb`; `anon`/`authenticated` have no execution.
 No private schema/table is exposed. Review/apply through the relevant staging or
-Production procedure before enabling these probes.
+Production procedure before enabling database probes. The runtime uptime probe
+can be configured before this migration or its health database environment.
 
 `/api/health` uses independent server-only `HEALTH_SUPABASE_URL` and
 `HEALTH_SUPABASE_SECRET_KEY`. It makes a bounded constant-query RPC rather than
-scanning application data. Absent configuration, missing RPC, timeout, invalid
-payload and database error all return the same 503 body. This replaces the old
-static 200 contract: update monitor expectations at rollout. It certifies
-reachability through the Data API, not schema readiness, auth, email or every
-business gate. Pages can remain available while it returns 503.
+scanning application data. Its three configuration/failure states are:
+
+| Condition | HTTP / JSON body | Meaning |
+| --- | --- | --- |
+| Both health settings absent or empty | 200 `{ "status": "ok", "scope": "runtime-health", "database": "not-configured" }` | The runtime answered; no database call or database readiness claim is made. Other Supabase settings do not enable this probe. |
+| Valid health settings; RPC absent/stale (`PGRST202`, HTTP 404) | 503 `{ "status": "unavailable", "scope": "runtime-health", "database": "not-ready" }` | Review the health migration and Data API schema cache. |
+| Partial/invalid health settings, timeout, unreachable DB, invalid payload or another DB error | 503 `{ "status": "unavailable", "scope": "runtime-health", "database": "unavailable" }` | Investigate configuration or reachability. Nonempty whitespace settings are invalid. |
+
+A successful configured ping returns 200
+`{ "status": "ok", "scope": "runtime-health", "database": "reachable" }`.
+All responses are `no-store`. Runtime-only monitoring accepts `not-configured`
+on day one. Once database monitoring is intentionally configured, require
+`database=reachable` as its success marker so accidental removal of both
+settings does not silently weaken that monitor. Reachability through the Data
+API does not certify schema readiness, auth, email or every business gate.
+Pages can remain available while the configured probe returns 503.
 
 The outbox health route uses `OUTBOX_SUPABASE_URL`,
 `OUTBOX_SUPABASE_SECRET_KEY` and a new independent `OUTBOX_MONITOR_SECRET`
@@ -106,8 +118,12 @@ permit a probe or place secrets in URLs.
 
 ## Verification before enabling alerts
 
-1. Apply reviewed migration, configure only target-specific health secrets and
-   verify 200/503 behavior on staging. A missing RPC must stay a safe 503.
+1. Before configuring health database settings, verify the runtime probe returns
+   200 `database=not-configured`. For a database monitor, apply the reviewed
+   migration, configure only target-specific health secrets and verify 200
+   `database=reachable` on staging. A missing RPC must return 503
+   `database=not-ready`; unreachable DB and partial/invalid settings must return
+   503 `database=unavailable`.
 2. Verify outbox unauthorized requests deny and correct-secret responses have
    only aggregates. Repeat with delivery off; no jobs change state or send.
 3. Exercise controlled test faults via the test harness or disposable staging

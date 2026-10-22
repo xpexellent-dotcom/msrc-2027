@@ -122,9 +122,10 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
         {detail.request.offerExpiresAt ? <div><dt>{text.offerEnds}</dt><dd>{formatStaffDate(detail.request.offerExpiresAt, locale, copy.unknown)}</dd></div> : null}
       </dl>
       <h4>{text.history}</h4>
-      {detail.history.length ? <ol className="staff-decisions">{detail.history.map((row, index) => <li key={`${row.at}-${index}`}>
-        <span>{row.from ? text.statuses[row.from] : text.submitted} {locale === "ar" ? "←" : "→"} {text.statuses[row.to]}</span>
-        <span className="staff-muted">{formatStaffDate(row.at, locale, copy.unknown)} · {text.by}: <bdi>{row.performerName ?? text.automatic}</bdi></span>
+      {detail.history.length ? <ol className="staff-decisions">{detail.history.map((row) => <li key={row.id} data-event={row.event}>
+        <span>{row.event === "request.offered" && row.actorKind === "automatic" ? text.automaticOffer : text.events[row.event]}</span>
+        {row.from && row.to ? <span className="staff-muted">{text.statuses[row.from]} {locale === "ar" ? "←" : "→"} {text.statuses[row.to]}</span> : null}
+        <span className="staff-muted">{formatStaffDate(row.at, locale, copy.unknown)} · {text.by}: <bdi>{row.actorKind === "participant" ? text.participant : row.actorKind === "automatic" ? text.automatic : row.performerName ?? text.staff}</bdi></span>
       </li>)}</ol> : <p>{text.noHistory}</p>}
     </section> : null}
   </section>;

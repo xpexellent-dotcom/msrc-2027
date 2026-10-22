@@ -13,6 +13,7 @@ import type { StaffArea } from "./ui-contract";
 import { registrationSettingsProjection } from "./registration-settings-contract.server";
 import { decryptIdentityDocument, getIdentityCryptoConfig, type IdentityDocumentType } from "@/features/registration/identity-crypto.server";
 import { getRegistrationTicketSecret } from "@/features/registration/ticket-crypto.server";
+import { renderRegistrationEmailPreviews } from "./email-previews.server";
 
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", Expires: "0",
   "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
@@ -233,10 +234,13 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         if (!session || !observed?.sessionPolicySatisfied) return respond({ state: "denied" }, 403);
         const own = await profile(config, backend, session, observed); if (!own) return respond({ state: "denied" }, 403);
         const search = params.get("query") ?? params.get("q") ?? "";
-        if (!["people", "audit", "participants", "registration", "registration-detail", "registration-export", "priority", "early-access", "registration-settings", "summary"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)
-          || area === "registration-settings" && search !== "") return respond({ state: "invalid-input" }, 400);
+        if (!["people", "audit", "participants", "registration", "registration-detail", "registration-export", "priority", "early-access", "registration-settings", "email-previews", "summary"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)
+          || ["registration-settings", "email-previews"].includes(area) && search !== "") return respond({ state: "invalid-input" }, 400);
         if (!canReadStaffArea(own.roles, area as StaffArea)) return respond({ state: "denied" }, 403);
-        if (["registration-export", "early-access", "registration-settings"].includes(area) && (observed.authenticationTier !== "super_admin" || !observed.mfaValid)) return respond({ state: "denied" }, 403);
+        if (["registration-export", "early-access", "registration-settings", "email-previews"].includes(area) && (observed.authenticationTier !== "super_admin" || !observed.mfaValid)) return respond({ state: "denied" }, 403);
+        // Static approved templates need the existing session authority, but no area RPC or migration.
+        if (area === "email-previews") return respond({ state: "authenticated", profile: own, emailPreviews: renderRegistrationEmailPreviews(),
+          passwordChangeAvailable: await passwordChangeReady(config, backend) });
         const read = await optionalRpc(backend, "msrc_staff_" + area.replaceAll("-", "_"), { edition_key: config.editionKey,
           ...(["summary", "registration-detail", "registration-export", "registration-settings"].includes(area) ? {} : { search }),
           ...(area === "registration-detail" ? { request_id: params.get("requestId") } : {}),
@@ -250,6 +254,9 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
             passwordChangeAvailable: await passwordChangeReady(config, backend) }) : respond({ state: "unavailable" }, 503);
         }
         if (area === "registration-detail") {
+          // The existing RPC may still be the older, staff-decisions-only read.
+          if (data.state === "ready" && data.historyVersion === undefined) return respond({ state: "area-not-ready" }, 503);
+          if (data.historyVersion !== 1) return respond({ state: "unavailable" }, 503);
           const detail = data.state === "ready" && registrationDetailProjection(data.detail, params.get("requestId")!);
           return detail ? respond({ state: "authenticated", profile: own, registrationDetail: detail,
             passwordChangeAvailable: await passwordChangeReady(config, backend) }) : respond({ state: "unavailable" }, 503);

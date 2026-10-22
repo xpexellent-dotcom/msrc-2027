@@ -1,6 +1,7 @@
-# Registration emails — DRAFT v1 for owner review
+# Registration emails — approved v1 wording
 
-All six templates below are **DRAFT: owner wording approval is pending**.
+ORG-057 (22 October 2026) **approves all six templates below as worded**. Delivery
+remains off until the separate activation gates pass.
 This is the complete plain-text content of the implemented v1 templates. Simple
 HTML repeats the same paragraphs in `<html lang="en">`, escapes text and makes
 the registration/ticket URL clickable. There are no images, attachments or QR
@@ -22,7 +23,7 @@ it is never recalculated as 24 hours from the email's send time. For example,
 the synthetic test instant `2026-11-19T17:00:00+00:00` renders as
 `19 November 2026 at 20:00 (Asia/Riyadh)`.
 
-## Seat request received — DRAFT
+## Seat request received
 
 Key/version: `registration_received` / `1`; payload: `{}`.
 
@@ -40,7 +41,7 @@ Sign in to My registration: https://www.msrc2027.com/{locale}/registration
 Support: contact@msrc2027.com
 ```
 
-## Seat approved — DRAFT
+## Seat approved
 
 Key/version: `registration_approved` / `1`; payload: `{}`.
 
@@ -58,7 +59,7 @@ Sign in to view your ticket: https://www.msrc2027.com/{locale}/registration/tick
 Support: contact@msrc2027.com
 ```
 
-## Seat offered — DRAFT
+## Seat offered
 
 Key/version: `registration_offered` / `1`;
 payload: `{"offer_expires_at":"<database timestamptz>"}`.
@@ -82,7 +83,7 @@ Sign in to My registration: https://www.msrc2027.com/{locale}/registration
 Support: contact@msrc2027.com
 ```
 
-## Waitlisted — DRAFT
+## Waitlisted
 
 Key/version: `registration_waitlisted` / `1`; payload: `{}`.
 
@@ -100,7 +101,7 @@ Sign in to My registration: https://www.msrc2027.com/{locale}/registration
 Support: contact@msrc2027.com
 ```
 
-## Offer expired — DRAFT
+## Offer expired
 
 Key/version: `registration_expired` / `1`; payload: `{}`.
 
@@ -118,7 +119,7 @@ Sign in to My registration: https://www.msrc2027.com/{locale}/registration
 Support: contact@msrc2027.com
 ```
 
-## Registration cancelled — DRAFT
+## Registration cancelled
 
 Key/version: `registration_cancelled` / `1`; payload: `{}`.
 
@@ -138,8 +139,9 @@ Support: contact@msrc2027.com
 
 Self-cancellation and declining an offer enqueue this template atomically with
 the cancellation, ticket revocation and any automatic offer to the next waitlisted
-participant. Operation retries do not enqueue another copy. This template remains
-a wording draft; neither adding it nor creating its queued event authorizes delivery.
+participant. Operation retries do not enqueue another copy. ORG-057 approves
+this wording; neither adding the template nor creating its queued event
+authorizes delivery.
 
 ## Atomic producers and delivery gates
 
@@ -156,7 +158,7 @@ Preserve the existing off switches: `OUTBOX_ENABLED`, `OUTBOX_RESEND_ENABLED`,
 SQL `delivery_enabled` and SQL `sweeps_enabled`. Both daily caps remain zero
 by default. No environment values, hosted migrations, settings or delivery
 activation are part of this task. Template previews are snapshot-tested with
-synthetic addresses; owner preview/test-send approval, provider capacity,
+synthetic addresses; test-send approval, provider capacity,
 sender/DNS, monitoring and the other [outbox gates](EMAIL_OUTBOX.md) still apply.
 Provider acceptance is not proof of inbox delivery (EML-02–05).
 
@@ -190,3 +192,20 @@ Existing leases, per-message provider idempotency and bounded retry behavior
 handle overlapping cron invocations; cron execution alone is not proof that
 any email was delivered.
 [Vercel cron authentication and behavior](https://vercel.com/docs/cron-jobs/manage-cron-jobs).
+
+## Staff email previews (ENG-057)
+
+The Super Admin-only EN/AR staff area at `/[locale]/staff/email-previews` shows
+all six registration templates through the same server-side outbox renderer.
+Recipient `sample@example.invalid` and the offer deadline are fixed SYNTHETIC
+examples; no recipient, deadline, or payload can be supplied by the browser.
+Email content stays English, while page controls and notices support EN/AR/RTL.
+Subject, plain text and HTML source are escaped text, with one Copy text control
+per template and a manual-copy message if clipboard access is refused.
+
+The page and its GET area independently reuse existing staff authority; the GET
+requires a Super Admin role and completed exact-session TOTP before rendering.
+Authenticated server-page rendering supplies the same preview data. There is no
+preview data RPC, migration, outbox claim, enqueue, or send; missing registration
+migrations cannot block these previews. Existing staff authentication and
+readiness still apply. Delivery and every operational switch remain off.

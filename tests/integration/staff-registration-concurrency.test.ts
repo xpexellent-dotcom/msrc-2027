@@ -172,8 +172,65 @@ describe.skipIf(!isolatedCi)("Staff registration allocation (disposable GitHub C
           and recipient_email='registration-202@example.invalid')<>1
         or (select count(*) from msrc_registration.audit where edition_key='${edition}'
           and target_actor='${actor(202)}' and event='request.approved')<>1
+        or (select count(*) from msrc_registration.audit where edition_key='${edition}'
+          and target_actor='${actor(202)}' and event='ticket.issued' and performer_id is null)<>1
         then raise exception 'Concurrent ticket retry invariant failed';end if;end$$;`);
     } finally { await Promise.allSettled([first.done, ...(second ? [second] : [])]); }
+  });
+});
+
+describe.skipIf(!isolatedCi)("Complete staff registration history (disposable GitHub CI only)", () => {
+  it.each(["repeatable read", "serializable"] as const)("detail refuses %s before authorization or a null-request early return", async (isolation) => {
+    await expect(query(`begin isolation level ${isolation};
+      select set_config('request.jwt.claims','{}',true);
+      select public.msrc_staff_registration_detail('synthetic-history-isolation',null);
+      rollback;`)).rejects.toThrow("SQLSTATE 25001");
+  });
+
+  it("backfills retained ticket facts once, without issuing tickets or queuing mail", async () => {
+    const migration = readFileSync("supabase/migrations/20261022120000_staff_registration_complete_history.sql", "utf8");
+    const start = migration.indexOf("\ninsert into msrc_registration.audit", migration.indexOf("-- Reconstruct only facts"));
+    const end = migration.indexOf("\ncreate or replace function public.msrc_staff_registration_detail", start);
+    expect(start).toBeGreaterThan(0); expect(end).toBeGreaterThan(start);
+    // Execute the migration's actual backfill statements against preexisting
+    // issued/revoked records, twice. The entire rehearsal rolls back, including
+    // trigger suspension used only to recreate the old pre-audit ticket state.
+    const backfill = migration.slice(start, end);
+    await query(`begin;
+      update msrc_participant.policy set enabled=true,privacy_version='synthetic-registration-notice',email_daily_limit=1000;
+      update msrc_participant.retention_policy set enabled=true;
+      select pg_temp.registration_settings('synthetic-history-backfill');
+      select pg_temp.registration_fixture(91001,'synthetic-history-backfill');
+      select pg_temp.registration_fixture(91002,'synthetic-history-backfill');
+      select pg_temp.registration_submit('synthetic-history-backfill',91001,md5('91001')||md5('91001'));
+      select pg_temp.registration_submit('synthetic-history-backfill',91002,md5('91002')||md5('91002'));
+      alter table msrc_registration.tickets disable trigger registration_ticket_audit;
+      update msrc_registration.requests set status='approved' where edition_key='synthetic-history-backfill';
+      update msrc_registration.requests set status='cancelled' where edition_key='synthetic-history-backfill' and actor_id='${actor(91002)}';
+      alter table msrc_registration.tickets enable trigger registration_ticket_audit;
+      create temporary table history_backfill_tickets as select to_jsonb(t) as value from msrc_registration.tickets t;
+      create temporary table history_backfill_requests as select to_jsonb(r) as value from msrc_registration.requests r;
+      create temporary table history_backfill_mail as select count(*) as total from msrc_outbox.messages;
+      do $$begin
+        if (select count(*) from msrc_registration.tickets t join msrc_registration.requests r on r.id=t.request_id
+          where r.edition_key='synthetic-history-backfill')<>2
+        or exists(select 1 from msrc_registration.audit where edition_key='synthetic-history-backfill' and event like 'ticket.%')
+        then raise exception 'Synthetic pre-audit ticket fixture failed';end if;end$$;
+      ${backfill}
+      ${backfill}
+      do $$begin
+        if (select count(*) from msrc_registration.audit where edition_key='synthetic-history-backfill' and event in('ticket.issued','ticket.revoked'))<>3
+        or exists(select 1 from msrc_registration.audit a join msrc_registration.tickets t on t.request_id=a.request_id
+          where a.edition_key='synthetic-history-backfill' and a.event in('ticket.issued','ticket.revoked')
+          and (a.occurred_at is distinct from case a.event when 'ticket.issued' then t.issued_at else t.revoked_at end
+            or a.performer_id is not null or a.previous_status is not null or a.new_status is not null))
+        or (select count(*) from msrc_outbox.messages)<>(select total from history_backfill_mail)
+        or exists((select to_jsonb(t) from msrc_registration.tickets t except select value from history_backfill_tickets)
+          union all (select value from history_backfill_tickets except select to_jsonb(t) from msrc_registration.tickets t))
+        or exists((select to_jsonb(r) from msrc_registration.requests r except select value from history_backfill_requests)
+          union all (select value from history_backfill_requests except select to_jsonb(r) from msrc_registration.requests r))
+        then raise exception 'Ticket history backfill changed evidence or business state';end if;end$$;
+      rollback;`);
   });
 });
 
@@ -293,6 +350,8 @@ describe.skipIf(!isolatedCi)("Participant registration lifecycle (disposable Git
             where r.edition_key='${selfEdition}' and r.actor_id='${actor(participant)}' and t.status='revoked')<>1
           or (select count(*) from msrc_registration.audit where edition_key='${selfEdition}'
             and target_actor='${actor(participant)}' and event='request.cancelled')<>1
+          or (select count(*) from msrc_registration.audit where edition_key='${selfEdition}'
+            and target_actor='${actor(participant)}' and event='ticket.revoked' and performer_id is null)<>1
           or (select count(*) from msrc_outbox.messages where template_key='registration_cancelled'
             and recipient_email='registration-${participant}@example.invalid')<>1
           or (select count(*) from msrc_registration.requests where edition_key='${selfEdition}'

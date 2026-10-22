@@ -11,6 +11,7 @@ export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "priority", operation: "security.grant.manage", built: true },
   { key: "early-access", operation: "security.grant.manage", built: true },
   { key: "registration-settings", operation: "security.grant.manage", built: true },
+  { key: "email-previews", operation: "security.grant.manage", built: true },
   { key: "participants", operation: "operations.registration.manage", built: true },
   { key: "registration", operation: "operations.registration.manage", built: true },
   { key: "finance", operation: "finance.reconciliation.read", built: false },
