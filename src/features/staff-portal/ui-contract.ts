@@ -1,7 +1,18 @@
 import type { Role } from "@/lib/permissions/contract";
 
-export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access" | "registration-settings" | "email-previews" | "check-in";
-export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "priority" | "early-access" | "registration-settings" | "email-previews" | "summary" | "check-in";
+export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access" | "registration-settings" | "email-previews" | "check-in" | "launch-readiness";
+export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "priority" | "early-access" | "registration-settings" | "email-previews" | "summary" | "check-in" | "launch-readiness";
+export type StaffReadinessStatus = "green" | "amber" | "red";
+export type StaffLaunchCheckKey = "migrations" | "settings" | "participantAccounts" | "participantPolicy" | "retention" | "outboxDelivery" | "outboxSweeps" | "outboxCap" | "conferenceDays" | "approvers" | "checkInStaff" | "earlyAccess" | "secondSuperAdmin" | "health" | "latestDrain";
+export type StaffLaunchReadiness = {
+  checks: { key: StaffLaunchCheckKey; status: StaffReadinessStatus }[];
+  environment: { name: string; present: boolean; valid: boolean; enabled?: boolean; status: StaffReadinessStatus }[];
+  requiredRpcs: Record<"participantAccounts" | "registration" | "registrationSettings" | "earlyAccess" | "tickets" | "checkIn" | "outbox" | "health", boolean>;
+  staffCounts: Record<Exclude<Role, "participant">, number>;
+  earlyAccessCount: number; outboxDailyCap: number; participantEmailDailyLimit: number; superAdminsWithAuthenticatorCount: number;
+  registrationEnabled: boolean;
+  settings: Pick<StaffRegistrationSettings, "general_capacity" | "priority_start_at" | "priority_end_at" | "general_opening_at" | "closing_at" | "conference_days"> | null;
+};
 /** BL-CHK / BL-ATT: day-specific evidence, never certificate eligibility. */
 export type StaffCheckInStatus = "checked_in" | "already_checked_in" | "revoked" | "not_found" | "wrong_day" | "not_approved";
 export type StaffCheckInResult = { status: StaffCheckInStatus; attendanceId?: string; checkedInAt?: string; performedBy?: string };
@@ -61,6 +72,7 @@ export type StaffResponse = {
   registrationDetail?: StaffRegistrationDetail;
   registrationSettings?: StaffRegistrationSettingsView; operationId?: string;
   emailPreviews?: StaffEmailPreview[];
+  launchReadiness?: StaffLaunchReadiness;
   checkIn?: StaffCheckInView; checkInResult?: StaffCheckInResult;
   priority?: { designations: StaffPriorityRow[]; candidates?: StaffParticipant[] }; summary?: StaffSummary;
   earlyAccess?: { entries: StaffEarlyAccessEntry[] }; added?: number; removed?: number; invalid?: string[];

@@ -1,5 +1,14 @@
 # Registration — closed foundation and staff queue
 
+22 October 2026: ENG-060 adds the owner's [activation guide](../runbooks/ACTIVATION.md)
+and a read-only Super Admin **Launch readiness** area in EN/AR. It combines
+server environment presence/format booleans with the new
+`public.msrc_staff_launch_readiness(edition_key text) returns jsonb` aggregate
+and the existing settings read. It exposes counts and entered Riyadh dates/capacity,
+never secrets or participant records. It cannot open registration; missing RPCs
+retain the signed-in shell with `area-not-ready`. The new migration is pending;
+all hosted gates remain unchanged. See the [O9 receipt](../progress/2026-10-22-codex-activation.md).
+
 22 October 2026: ENG-059 adds participant journey polish and EN/AR 360/390px
 and desktop regression coverage. Request/approval wording, identity-format
 guidance, opening labels, direction isolation and keyboard completion are

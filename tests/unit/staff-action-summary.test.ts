@@ -8,8 +8,8 @@ describe("Current staff tool guidance", () => {
     expect(Object.keys(staffCopy[locale].toolActions).sort()).toEqual(STAFF_MENU.filter((entry) => entry.built).map((entry) => entry.key).sort());
   });
   it("describes Super Admin tools without implying future module access", () => {
-    expect(staffActionSummary("en", ["superAdmin"])).toBe("Manage staff access, view audit records, manage organizing-team priority, manage the early-access list, manage registration settings, preview registration emails, view participant accounts, review seat requests, and record daily attendance.");
-    expect(staffActionSummary("en", ["superAdmin"], { passwordChangeAvailable: true })).toBe("Change your password, manage staff access, view audit records, manage organizing-team priority, manage the early-access list, manage registration settings, preview registration emails, view participant accounts, review seat requests, and record daily attendance.");
+    expect(staffActionSummary("en", ["superAdmin"])).toBe("Manage staff access, view audit records, manage organizing-team priority, manage the early-access list, manage registration settings, preview registration emails, check launch readiness, view participant accounts, review seat requests, and record daily attendance.");
+    expect(staffActionSummary("en", ["superAdmin"], { passwordChangeAvailable: true })).toBe("Change your password, manage staff access, view audit records, manage organizing-team priority, manage the early-access list, manage registration settings, preview registration emails, check launch readiness, view participant accounts, review seat requests, and record daily attendance.");
   });
   it.each(ROLES)("%s describes only its current built menu tools in both locales", (role) => {
     for (const locale of ["en", "ar"] as const) {

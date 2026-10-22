@@ -79,7 +79,7 @@ persisted by this change: correlate invocation logs and queue-age trends.
 | Any new permanent failure or growing retryable count across 3 polls | Email watcher checks classified provider failures and remaining quota; escalate to lead if offers may be affected. |
 | Oldest pending age exceeds 10min, or pending queue rises for 10min while delivery is meant to be on | Email watcher checks budget, scheduler and throughput; compare with agreed service objective. Delivery-off staging deliberately queues messages and must not generate production pages. |
 | Sending rows persist beyond the configured 120s lease plus 2 monitor intervals | DB/email operators inspect sweep state and drain failures. Aggregate count alone cannot prove these are the same rows; use a restricted native diagnostic before intervention. |
-| No successful drain invocation for twice the **approved** cadence plus execution margin | Application operator checks Vercel Cron/logs; HTTP health alone does not prove scheduler execution. Current daily schedule cannot satisfy a five-minute expectation. |
+| No successful drain invocation for twice the **approved** cadence plus execution margin | Application operator checks Vercel Cron/logs; HTTP health alone does not prove scheduler execution. ENG-060 changes source to five-minute `*/5 * * * *` for the owner-reported Pro plan; verify that schedule on the serving deployment. |
 | API latency/error rate breaches agreed load baseline, connections/CPU/IO sustained near measured capacity | DB/application operators reduce concurrent manual work and use [incident responses](OPENING_NIGHT.md). Do not invent an automatic compute upgrade. |
 
 Use the owner's existing private operations channel and named primary/backup

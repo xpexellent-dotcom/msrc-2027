@@ -15,6 +15,7 @@ import { decryptIdentityDocument, getIdentityCryptoConfig, type IdentityDocument
 import { getRegistrationTicketSecret } from "@/features/registration/ticket-crypto.server";
 import { renderRegistrationEmailPreviews } from "./email-previews.server";
 import { checkInDay, checkInResultProjection, checkInSummaryProjection, checkInUndoProjection } from "./check-in-contract.server";
+import { launchReadinessProjection } from "./launch-readiness-contract.server";
 
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", Expires: "0",
   "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
@@ -108,7 +109,7 @@ function safeDetails(value: unknown): boolean {
   });
 }
 
-export function createStaffHandler(dependencies: { readiness?: () => StaffReadiness; backend?: (config: StaffConfig) => StaffBackend; now?: () => number } = {}) {
+export function createStaffHandler(dependencies: { readiness?: () => StaffReadiness; backend?: (config: StaffConfig) => StaffBackend; now?: () => number; environment?: () => Record<string, string | undefined> } = {}) {
   const getReadiness = dependencies.readiness ?? getStaffConfig;
   const getBackend = dependencies.backend ?? createStaffBackend;
   const clock = dependencies.now ?? Date.now;
@@ -236,10 +237,24 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         if (!session || !observed?.sessionPolicySatisfied) return respond({ state: "denied" }, 403);
         const own = await profile(config, backend, session, observed); if (!own) return respond({ state: "denied" }, 403);
         const search = params.get("query") ?? params.get("q") ?? "";
-        if (!["people", "audit", "participants", "registration", "registration-detail", "registration-export", "priority", "early-access", "registration-settings", "email-previews", "summary", "check-in"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)
-          || ["registration-settings", "email-previews", "check-in"].includes(area) && search !== "") return respond({ state: "invalid-input" }, 400);
+        if (!["people", "audit", "participants", "registration", "registration-detail", "registration-export", "priority", "early-access", "registration-settings", "email-previews", "summary", "check-in", "launch-readiness"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)
+          || ["registration-settings", "email-previews", "check-in", "launch-readiness"].includes(area) && search !== "") return respond({ state: "invalid-input" }, 400);
         if (!canReadStaffArea(own.roles, area as StaffArea)) return respond({ state: "denied" }, 403);
-        if (["registration-export", "early-access", "registration-settings", "email-previews"].includes(area) && (observed.authenticationTier !== "super_admin" || !observed.mfaValid)) return respond({ state: "denied" }, 403);
+        if (["registration-export", "early-access", "registration-settings", "email-previews", "launch-readiness"].includes(area) && (observed.authenticationTier !== "super_admin" || !observed.mfaValid)) return respond({ state: "denied" }, 403);
+        if (area === "launch-readiness") {
+          const reads = await Promise.all([
+            optionalRpc(backend, "msrc_staff_launch_readiness", { edition_key: config.editionKey }, session.accessToken),
+            optionalRpc(backend, "msrc_staff_registration_settings", { edition_key: config.editionKey }, session.accessToken),
+          ]);
+          if (reads.includes(missingRpc)) return respond({ state: "area-not-ready" }, 503);
+          if (reads.some((read) => record(read)?.state === "denied")) return respond({ state: "denied" }, 403);
+          const settingsSource = record(record(reads[1])?.settings);
+          if (settingsSource && !Object.hasOwn(settingsSource, "conference_days")) return respond({ state: "area-not-ready" }, 503);
+          const settings = registrationSettingsProjection(reads[1], config.editionKey);
+          const launchReadiness = settings && launchReadinessProjection(reads[0], settings, dependencies.environment?.() ?? process.env);
+          return launchReadiness ? respond({ state: "authenticated", profile: own, launchReadiness,
+            passwordChangeAvailable: await passwordChangeReady(config, backend) }) : respond({ state: "unavailable" }, 503);
+        }
         // Static approved templates need the existing session authority, but no area RPC or migration.
         if (area === "email-previews") return respond({ state: "authenticated", profile: own, emailPreviews: renderRegistrationEmailPreviews(),
           passwordChangeAvailable: await passwordChangeReady(config, backend) });

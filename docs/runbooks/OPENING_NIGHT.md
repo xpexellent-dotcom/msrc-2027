@@ -5,6 +5,12 @@ NFR-01–03, EML-01–05 and REL-02/06. Preparation only. Every hosted action be
 is for the owner during a separately authorized release; none was performed by
 this task. Record operator names privately; the rota is not yet supplied.
 
+22 October activation update (ENG-060): use [ACTIVATION](ACTIVATION.md) for the
+ordered environment/SQL switches, current owner-reported migration baseline,
+ORG-057 email wording approval and the five-minute Pro cron. This runbook remains
+the release coordination and incident companion; older unknown-plan wording is
+superseded by the owner's paid-plan report, not live account verification.
+
 ORG-056 sets early access to **15 November 2026, 20:00 Asia/Riyadh** and general
 opening to **18 November 2026, 20:00 Asia/Riyadh** (17:00 UTC each). Repeat this
 timeline for each opening. Enter those instants in reviewed settings; do not copy
@@ -38,7 +44,7 @@ is not a green readiness checklist.
   Use [participant activation](../features/PARTICIPANT_ACTIVATION_RUNBOOK.md),
   not the fresh-staging replay procedure.
 - Settings saved and second-reader reviewed: free attendance, confirmed capacity
-  (about 2,000 is the load assumption), approved terms version, both early-window
+  (2,000 owner-entered per ORG-051/055), approved terms version, both early-window
   pairs, general opening, closing time, 24-hour offer window, age 18, threshold
   and required legacy waitlist/confirm-seat values. Resolve pending values rather
   than inventing them. Check early-access list, ticket key custody and audit.
@@ -77,8 +83,9 @@ keys, and quota exhaustion differs from rate limiting.
 [Pricing](https://resend.com/pricing), [limits](https://resend.com/docs/api-reference/rate-limit).
 
 **Capacity warning:** the current worker claims at most 10 messages per call.
-The shipped `vercel.json` is daily. Even a proposed five-minute cron processes at
-most 120 attempts/hour; one-minute invocation is at most 600/hour, before errors.
+The shipped `vercel.json` now uses `*/5 * * * *`, based on the owner's Vercel Pro
+purchase report. A five-minute cron processes at most 120 attempts/hour;
+one-minute invocation would be at most 600/hour, before errors.
 500 received + 500 approved messages in ten minutes would need about 100
 attempts/minute to keep up. This is a planning example, not approved traffic.
 A paid Resend plan alone does not solve this bottleneck. Review and measure a

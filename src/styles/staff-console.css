@@ -30,6 +30,23 @@
 .staff-card-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
 
 .staff-landing .staff-badge { display: inline-block; margin: 0 0 .75rem; }
+.staff-launch-readiness { display: grid; gap: 1rem; }
+.staff-launch-readiness .staff-panel { margin: 0; min-inline-size: 0; }
+.staff-readiness-list { margin: 1rem 0; padding: 0; list-style: none; }
+.staff-readiness-list > li { display: flex; justify-content: space-between; align-items: start; gap: .75rem; padding-block: .7rem; border-block-end: 1px solid #e2d9ec; }
+.staff-readiness-list > li > span:first-child { min-inline-size: 0; overflow-wrap: anywhere; }
+.staff-readiness-status { flex: 0 0 auto; padding: .2rem .55rem; border: 1px solid transparent; border-radius: 999px; font-size: .8rem; font-weight: 600; }
+.staff-readiness-status[data-status="green"] { background: #e3f3ea; color: #1d5a37; }
+.staff-readiness-status[data-status="amber"] { background: #fbf0d2; color: #6a4f12; }
+.staff-readiness-status[data-status="red"] { background: #f3e5e5; color: #7a2a2a; }
+.staff-readiness-environment code { display: inline-block; max-inline-size: 100%; font-size: .85rem; overflow-wrap: anywhere; }
+.staff-readiness-environment small { display: block; margin-block-start: .3rem; color: #5c5268; }
+.staff-readiness-summary { display: grid; gap: .7rem 1.5rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+.staff-readiness-summary > div { min-inline-size: 0; overflow-wrap: anywhere; }
+.staff-readiness-summary dt { font-size: .9rem; color: #5c5268; }
+.staff-readiness-summary dd { margin: .2rem 0 0; font-variant-numeric: tabular-nums; }
+.staff-launch-readiness summary { min-block-size: 44px; align-content: center; cursor: pointer; }
+@media (forced-colors: active) { .staff-readiness-status { border-color: CanvasText; } }
 .staff-oversight, .staff-note { padding: .85rem 1rem; border-inline-start: 4px solid #c9a24a; border-radius: 0 .6rem .6rem 0; background: #fbf6e8; color: #4a3a12; }
 [dir="rtl"] :is(.staff-oversight, .staff-note) { border-radius: .6rem 0 0 .6rem; }
 
