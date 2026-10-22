@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { NextRequest } from "next/server";
 import { proxy } from "../../src/proxy";
-import { isPrivatePage, privateContentSecurityPolicy } from "@/lib/content-security-policy";
+import { isCheckInPage, isPrivatePage, privateContentSecurityPolicy } from "@/lib/content-security-policy";
 
 describe("private CSP (SEC-01/06, ENG-045)", () => {
+  it("allows same-origin camera and wake lock only on exact bilingual scanner documents", () => {
+    for (const path of ["/en/staff/check-in", "/ar/staff/check-in/", "/%65n/staff/check-in"]) {
+      expect(isCheckInPage(path)).toBe(true);
+      expect(proxy(new NextRequest("http://localhost" + path)).headers.get("permissions-policy"))
+        .toBe("camera=(self), microphone=(), geolocation=(), screen-wake-lock=(self)");
+    }
+    for (const path of ["/en", "/en/staff", "/en/staff/check-in-other", "/en/staff/check-in/extra", "/api/staff-portal"]) {
+      expect(isCheckInPage(path)).toBe(false);
+      expect(proxy(new NextRequest("http://localhost" + path)).headers.get("permissions-policy")).toBeNull();
+    }
+  });
   it.each(["staff", "staff/people", "staff/sign-in", "staff/future/route", "sign-in", "sign-up", "forgot-password", "reset-password", "verify-email", "my-msrc", "my-msrc/future", "registration", "staff-security-preview"])("protects EN/AR %s", (path) => {
     for (const locale of ["en", "ar"]) expect(isPrivatePage(`/${locale}/${path}`)).toBe(true);
   });

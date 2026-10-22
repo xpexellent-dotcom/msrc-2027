@@ -18,9 +18,9 @@ function subscribe(listener: () => void) {
 /** Transient memory keeps form data during locale changes; never browser storage or logs. */
 export function useStaffDraft() { return useSyncExternalStore(subscribe, () => draft, () => empty); }
 export function normalizeStaffCode(value: string) { return value.replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit))).replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit))); }
-export async function requestStaff(payload?: StaffPayload, options?: { area?: StaffArea; query?: string; status?: string; requestId?: string; signal?: AbortSignal }): Promise<StaffResponse> {
+export async function requestStaff(payload?: StaffPayload, options?: { area?: StaffArea; query?: string; status?: string; requestId?: string; day?: string; signal?: AbortSignal }): Promise<StaffResponse> {
   try {
-    const query = options?.area ? "?" + new URLSearchParams({ area: options.area, q: options.query ?? "", ...(options.status && options.status !== "all" ? { status: options.status } : {}), ...(options.requestId ? { requestId: options.requestId } : {}) }) : "";
+    const query = options?.area ? "?" + new URLSearchParams({ area: options.area, q: options.query ?? "", ...(options.status && options.status !== "all" ? { status: options.status } : {}), ...(options.requestId ? { requestId: options.requestId } : {}), ...(options.day ? { day: options.day } : {}) }) : "";
     const response = await fetch("/api/staff-portal" + query, { method: payload ? "POST" : "GET", credentials: "same-origin", cache: "no-store", signal: options?.signal,
       ...(payload ? { headers: { "Content-Type": "application/json", ...(payload.action === "logout" ? { "x-msrc-staff-logout": "1" } : {}) }, body: JSON.stringify(payload) } : {}) });
     if (!response.headers.get("content-type")?.includes("application/json")) return { state: "unavailable" };

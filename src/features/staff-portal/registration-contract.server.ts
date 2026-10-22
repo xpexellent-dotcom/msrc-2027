@@ -17,6 +17,7 @@ export function canReadStaffArea(roles: readonly Role[], area: StaffArea): boole
   if (area === "summary") return roles.some((role) => role !== "participant");
   if (area === "early-access") return roles.includes("superAdmin");
   if (roles.includes("superAdmin")) return true;
+  if (area === "check-in") return roles.includes("checkInStaff");
   return ["registration", "registration-detail", "participants"].includes(area) && roles.includes("registrationWorkshopAdministrator");
 }
 

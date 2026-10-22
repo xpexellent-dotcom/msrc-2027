@@ -9,6 +9,7 @@ import { registrationTicketCopy } from "../../src/features/registration/ticket-c
 const origin = "http://127.0.0.1:3216";
 type FixtureState = "not-requested" | "pending_approval" | "waitlisted" | "offered" | "approved" | "confirmed" | "cancelled" | "expired" | "missing-rpc";
 type Fixture = { state: FixtureState; window?: { state: "early_access" | "scheduled" | "open" | "closed"; eligible: boolean; opensAt: string | null };
+  attendance?: { conferenceDay: string; checkedInAt: string | null }[]; missingAttendance?: boolean;
   fewPlaces?: boolean; offerExpiresAt?: string; actionState?: string; missingCollection?: "context" | "submit" };
 
 /** The application SSR, native session, handler and QR generator stay real; only the loopback provider is synthetic. */
@@ -41,6 +42,27 @@ async function accessible(page: Page, locale: "en" | "ar") {
 
 for (const locale of ["en", "ar"] as const) {
   const copy = myRegistrationCopy[locale];
+  test(`${locale} attendance shows separate day credit and preserves login before its migration`, async ({ page, context, request }) => {
+    const days = [{ conferenceDay: "2027-01-27", checkedInAt: "2027-01-27T06:30:00Z" }, { conferenceDay: "2027-01-28", checkedInAt: null }];
+    const { actorId } = await registrationSession(request, context, { state: "approved", attendance: days });
+    await page.goto(`/${locale}/registration`);
+    const attendance = page.getByTestId("registration-attendance");
+    await expect(attendance.getByRole("heading", { name: copy.attendance })).toBeVisible();
+    await expect(attendance.getByTestId("attendance-2027-01-27")).toContainText(copy.checkedIn);
+    await expect(attendance.getByTestId("attendance-2027-01-28")).toContainText(copy.notCheckedIn);
+    await expect(attendance.locator('time[datetime="2027-01-27T06:30:00Z"]')).toBeVisible();
+    await expect(attendance).toContainText(copy.attendanceHint);
+    await accessible(page, locale);
+    const originalCookie = (await context.cookies()).find((cookie) => cookie.name === "msrc-participant-test")?.value;
+    await request.post("http://127.0.0.1:3218/__synthetic/registration", {
+      headers: { apikey: "sb_secret_participant_mock_only" }, data: { actorId, state: "approved", missingAttendance: true },
+    });
+    await page.getByRole("button", { name: copy.refresh, exact: true }).click();
+    await expect(page.getByTestId("registration-status")).toHaveText(copy.areaNotReady);
+    expect((await context.cookies()).find((cookie) => cookie.name === "msrc-participant-test")?.value).toBe(originalCookie);
+    await expect(page.getByTestId("registration-attendance")).toHaveCount(0);
+    await accessible(page, locale);
+  });
   const statusStates = ["pending_approval", "waitlisted", "offered", "approved", "confirmed", "cancelled", "expired"] as const;
   for (const state of statusStates) test(`${locale} ${state} is a single server-owned, private and accessible registration state`, async ({ page, context, request }, testInfo) => {
     const { actorId } = await registrationSession(request, context, { state });

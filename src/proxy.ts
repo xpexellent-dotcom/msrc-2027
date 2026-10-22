@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { decodedPagePath, isPrivatePage, privateContentSecurityPolicy } from "@/lib/content-security-policy";
+import { decodedPagePath, isCheckInPage, isPrivatePage, privateContentSecurityPolicy } from "@/lib/content-security-policy";
 
 export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
@@ -20,6 +20,9 @@ export function proxy(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", policy);
   response.headers.set("Cache-Control", "private, no-store");
+  if (isCheckInPage(request.nextUrl.pathname)) {
+    response.headers.set("Permissions-Policy", "camera=(self), microphone=(), geolocation=(), screen-wake-lock=(self)");
+  }
   return response;
 }
 

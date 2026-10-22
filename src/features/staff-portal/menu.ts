@@ -15,7 +15,7 @@ export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "participants", operation: "operations.registration.manage", built: true },
   { key: "registration", operation: "operations.registration.manage", built: true },
   { key: "finance", operation: "finance.reconciliation.read", built: false },
-  { key: "check-in", operation: "checkIn.entitlement.read", built: false },
+  { key: "check-in", operation: "checkIn.entitlement.read", built: true },
   { key: "review", operation: "review.packet.read", built: false, englishOnly: true },
   { key: "science", operation: "science.assignment.manage", built: false },
   { key: "judging", operation: "judging.readiness.manage", built: false },

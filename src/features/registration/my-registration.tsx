@@ -123,6 +123,16 @@ export function MyRegistration({ locale, initial, initialForm }: {
           </figure> : null}
         </div> : null}
         {["approved", "confirmed"].includes(status) && ticket?.status !== "issued" ? <p className="participant-account-status">{ticketCopy.unavailable}</p> : null}
+        {ready.registration && ready.attendance.length ? <section className="registration-attendance" aria-labelledby="registration-attendance-title" data-testid="registration-attendance">
+          <h3 id="registration-attendance-title">{copy.attendance}</h3>
+          <dl className="participant-account-profile">{ready.attendance.map((day) => <div key={day.conferenceDay} data-testid={`attendance-${day.conferenceDay}`}>
+            <dt><time dateTime={day.conferenceDay}>{new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", {
+              dateStyle: "long", timeZone: "Asia/Riyadh",
+            }).format(new Date(day.conferenceDay + "T00:00:00Z"))}</time></dt>
+            <dd><strong><span aria-hidden="true">{day.checkedInAt ? "✓ " : "○ "}</span>{day.checkedInAt ? copy.checkedIn : copy.notCheckedIn}</strong>
+              {day.checkedInAt ? <span>{copy.checkedInAt}: <time dateTime={day.checkedInAt}>{dateTime(day.checkedInAt, locale)}</time></span> : null}</dd>
+          </div>)}</dl><p className="field-hint">{copy.attendanceHint}</p>
+        </section> : null}
         {confirmation ? <section className="registration-confirmation" aria-labelledby="registration-confirm-title" data-testid="registration-confirmation">
           <h3 id="registration-confirm-title" tabIndex={-1} ref={confirmationHeading}>{confirmation === "cancel" ? copy.cancelTitle : copy.declineTitle}</h3>
           <p>{confirmation === "cancel" ? copy.cancelMessage : copy.declineMessage}</p>

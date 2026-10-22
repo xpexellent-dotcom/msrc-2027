@@ -4,6 +4,7 @@ import { normalizeParticipantCode } from "@/features/participant-accounts/valida
 import { staffUuid } from "./security.server";
 import type { StaffRegistrationSettingsChanges, StaffRegistrationStatus } from "./ui-contract";
 import { registrationSettingsChanges } from "./registration-settings-validation";
+import { checkInDay } from "./check-in-contract.server";
 
 export const STAFF_REGISTRATION_STATUSES = ["pending_approval", "approved", "approved_awaiting_payment", "waitlisted", "offered", "confirmed", "cancelled", "expired"] as const satisfies readonly StaffRegistrationStatus[];
 export function validStaffRegistrationStatus(value: unknown): value is StaffRegistrationStatus | "all" {
@@ -12,12 +13,13 @@ export function validStaffRegistrationStatus(value: unknown): value is StaffRegi
 
 export const STAFF_ACTIONS = ["signin", "logout", "activity", "enroll-totp", "challenge-totp", "verify-totp", "challenge-email", "verify-email",
   "invite-accept", "invite", "invite-resend", "invite-revoke", "roles", "suspend", "reactivate", "revoke-sessions",
-  "reset-authenticator", "reset-account", "reveal-identity", "password-change", "registration-approve", "registration-waitlist", "registration-offer", "priority-set", "priority-remove", "early-access-add", "early-access-remove", "registration-settings-save"] as const;
+  "reset-authenticator", "reset-account", "reveal-identity", "password-change", "registration-approve", "registration-waitlist", "registration-offer", "priority-set", "priority-remove", "early-access-add", "early-access-remove", "registration-settings-save", "check-in", "check-in-undo"] as const;
 export interface StaffPayload {
   action: (typeof STAFF_ACTIONS)[number]; formToken: string; email?: string; name?: string; password?: string; passwordConfirmation?: string;
   code?: string; challengeId?: string; factorId?: string; invitationId?: string; token?: string; targetId?: string;
   roles?: Role[]; website?: string; reason?: string; requestIds?: string[]; status?: StaffRegistrationStatus | "all";
   emails?: string[]; entryIds?: string[]; changes?: StaffRegistrationSettingsChanges; operationId?: string;
+  ticketTokenOrReference?: string; conferenceDay?: string; entryPoint?: string; attendanceId?: string;
 }
 /** Validate the private response without rewriting the database's normalized email. */
 export function validStaffEarlyAccessEmail(email: string): boolean {
@@ -31,10 +33,20 @@ export function validateStaffPayload(value: unknown): StaffPayload | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
   if (!STAFF_ACTIONS.includes(record.action as never) || typeof record.formToken !== "string") return null;
-  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website", "reason", "requestIds", "status", "emails", "entryIds", "changes", "operationId"];
+  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website", "reason", "requestIds", "status", "emails", "entryIds", "changes", "operationId", "ticketTokenOrReference", "conferenceDay", "entryPoint", "attendanceId"];
   if (Object.keys(record).some((key) => !allowed.includes(key))
     || Object.entries(record).some(([key, entry]) => !["roles", "requestIds", "emails", "entryIds", "changes"].includes(key) && (typeof entry !== "string" || entry.length > (key === "formToken" ? 1024 : 512)))) return null;
   const input = { ...record } as unknown as StaffPayload;
+  if (input.action === "check-in") {
+    if (Object.keys(record).some((key) => !["action", "formToken", "website", "ticketTokenOrReference", "conferenceDay", "entryPoint"].includes(key))) return null;
+    input.ticketTokenOrReference = input.ticketTokenOrReference?.trim(); input.entryPoint = input.entryPoint?.trim();
+    if (!input.ticketTokenOrReference || input.ticketTokenOrReference.length > 256 || /[\x00-\x1f\x7f]/.test(input.ticketTokenOrReference)
+      || !checkInDay(input.conferenceDay) || input.entryPoint !== undefined && (input.entryPoint.length > 120 || /[\x00-\x1f\x7f]/.test(input.entryPoint))) return null;
+  } else if (input.ticketTokenOrReference !== undefined || input.conferenceDay !== undefined || input.entryPoint !== undefined) return null;
+  if (input.action === "check-in-undo") {
+    if (Object.keys(record).some((key) => !["action", "formToken", "website", "attendanceId", "reason"].includes(key))
+      || !input.attendanceId || !staffUuid.test(input.attendanceId)) return null;
+  } else if (input.attendanceId !== undefined) return null;
   if (input.action === "registration-settings-save") {
     const changes = registrationSettingsChanges(input.changes);
     if (Object.keys(record).some((key) => !["action", "formToken", "website", "changes", "operationId"].includes(key))
@@ -42,7 +54,7 @@ export function validateStaffPayload(value: unknown): StaffPayload | null {
     input.changes = changes; input.operationId = input.operationId.toLowerCase();
   } else if (input.changes !== undefined || input.operationId !== undefined) return null;
   if (input.action === "activity" && Object.keys(record).some((key) => !["action", "formToken", "website"].includes(key))) return null;
-  if (["reveal-identity", "priority-set", "priority-remove"].includes(input.action)) {
+  if (["reveal-identity", "priority-set", "priority-remove", "check-in-undo"].includes(input.action)) {
     input.reason = input.reason?.trim();
     if (!input.reason || input.reason.length > 300 || /[\x00-\x1f\x7f]/.test(input.reason)) return null;
   } else if (input.reason !== undefined) return null;
