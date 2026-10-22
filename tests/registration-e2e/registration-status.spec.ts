@@ -1,38 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
-import { createCipheriv, randomBytes, randomUUID } from "node:crypto";
-import type { APIRequestContext, BrowserContext, Page } from "@playwright/test";
+import { randomUUID } from "node:crypto";
+import type { Page } from "@playwright/test";
 import { expect, test } from "../helpers/csp";
+import { prepareRegistrationCapture, registrationSession } from "../helpers/registration";
 import { myRegistrationCopy } from "../../src/features/registration/my-registration-copy";
 import { registrationCopy } from "../../src/features/registration/registration-copy";
 import { registrationTicketCopy } from "../../src/features/registration/ticket-copy";
 
 const origin = "http://127.0.0.1:3216";
-type FixtureState = "not-requested" | "pending_approval" | "waitlisted" | "offered" | "approved" | "confirmed" | "cancelled" | "expired" | "missing-rpc";
-type Fixture = { state: FixtureState; window?: { state: "early_access" | "scheduled" | "open" | "closed"; eligible: boolean; opensAt: string | null };
-  attendance?: { conferenceDay: string; checkedInAt: string | null }[]; missingAttendance?: boolean;
-  fewPlaces?: boolean; offerExpiresAt?: string; actionState?: string; missingCollection?: "context" | "submit" };
-
-/** The application SSR, native session, handler and QR generator stay real; only the loopback provider is synthetic. */
-async function registrationSession(request: APIRequestContext, context: BrowserContext, fixture: Fixture, stale = false) {
-  const suffix = randomBytes(6).toString("hex"), actorId = "da000000-0000-4000-8000-" + suffix, sessionId = "db000000-0000-4000-8000-" + suffix;
-  const now = Date.now();
-  const claims = { sub: actorId, session_id: sessionId, role: "authenticated", aal: "aal1", exp: Math.floor(now / 1000) + (stale ? -30 : 3600),
-    iat: Math.floor(now / 1000), amr: [{ method: "password", timestamp: Math.floor(now / 1000) }] };
-  const accessToken = "synthetic." + Buffer.from(JSON.stringify(claims)).toString("base64url") + ".synthetic";
-  const iv = randomBytes(12), cipher = createCipheriv("aes-256-gcm", Buffer.from("a".repeat(64), "hex"), iv);
-  cipher.setAAD(Buffer.from("msrc-participant-cookie-v1"));
-  const encrypted = Buffer.concat([cipher.update(JSON.stringify({ actorId, sessionId, accessToken, refreshToken: "synthetic-refresh:" + actorId + ":" + sessionId,
-    deadline: now + 71 * 3600_000, origin }), "utf8"), cipher.final()]);
-  const seeded = await request.post("http://127.0.0.1:3218/__synthetic/registration", {
-    headers: { apikey: "sb_secret_participant_mock_only" }, data: { actorId, ...fixture },
-  });
-  expect(seeded.status()).toBe(200);
-  const cookie = { name: "msrc-participant-test", value: Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64url"), url: origin,
-    httpOnly: true, sameSite: "Strict" as const };
-  await context.addCookies([cookie]);
-  return { actorId, cookie };
-}
-
 async function accessible(page: Page, locale: "en" | "ar") {
   await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
@@ -97,7 +72,8 @@ for (const locale of ["en", "ar"] as const) {
     for (const privateValue of [actorId, "msrc1.", "example.invalid", "request_id", "session_claims", "remaining", "capacity"]) expect(JSON.stringify(data)).not.toContain(privateValue);
     expect(data.registration).not.toHaveProperty("id");
     await accessible(page, locale);
-    await page.screenshot({ path: `test-results/registration/${testInfo.project.name}-${locale}-status-${state}.png`, fullPage: true });
+    await prepareRegistrationCapture(page);
+    await page.screenshot({ path: `.tools/journey-review/registration/after/${testInfo.project.name}-${locale}/status-${state}.png`, fullPage: true, scale: "css" });
   });
 
   const windows = [
@@ -116,7 +92,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByText(copy.fewPlaces, { exact: true })).toHaveCount(0);
     await expect(page.getByTestId("ticket-qr")).toHaveCount(0);
     await accessible(page, locale);
-    await page.screenshot({ path: `test-results/registration/${testInfo.project.name}-${locale}-window-${window.state}-${window.eligible}.png`, fullPage: true });
+    await prepareRegistrationCapture(page);
+    await page.screenshot({ path: `.tools/journey-review/registration/after/${testInfo.project.name}-${locale}/window-${window.state}-${window.eligible}.png`, fullPage: true, scale: "css" });
   });
 
   test(`${locale} low-capacity notice uses only the private server projection`, async ({ page, context, request }) => {

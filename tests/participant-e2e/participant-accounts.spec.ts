@@ -271,7 +271,7 @@ for (const locale of ["en", "ar"] as const) {
   });
 
   for (const screen of ["sign-up", "verify-email", "reset-password"] as const) {
-    test(`${locale} ${screen} explains and displays Unicode password boundary responses`, async ({ page }) => {
+    test(`${locale} ${screen} explains and displays Unicode password boundary responses`, async ({ page }, testInfo) => {
       await mockAccounts(page);
       if (screen === "reset-password") {
         await page.goto(`/${locale}/forgot-password`);
@@ -312,6 +312,10 @@ for (const locale of ["en", "ar"] as const) {
       await expect(summary).toBeFocused();
       await expect(page.locator("#participant-password-error")).toContainText(copy.passwordTooLong);
       await expect(password).toHaveValue("😀".repeat(19));
+      await mkdir(resolve(".tools/journey-review/account/after"), { recursive: true });
+      await page.evaluate(async () => { await document.fonts.ready; window.scrollTo({ top: 0, behavior: "instant" }); });
+      await page.screenshot({ path: resolve(`.tools/journey-review/account/after/${locale}-${testInfo.project.name}-password-too-long-${screen}.png`), fullPage: true, scale: "css", mask: [password, page.locator("#participant-code")] });
+      expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
 
       await password.fill("😀".repeat(10));
       await button.click();
@@ -319,7 +323,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(password).toHaveValue("😀".repeat(10));
       if (screen === "sign-up") await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
       else {
-        await expect(page.locator("#participant-code-error")).toContainText(copy.invalidCode);
+        await expect(page.locator("#participant-code-error")).toContainText(copy.codeNotVerified);
         await page.locator("#participant-code").fill(syntheticCode);
       }
       await password.fill("😀".repeat(18)); // Exactly 72 UTF-8 bytes.

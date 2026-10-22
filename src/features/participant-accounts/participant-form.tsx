@@ -45,7 +45,9 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
   const needsPassword = needsName || screen === "sign-in" || needsCode;
   const newPassword = screen === "sign-up" || screen === "reset-password";
   const complete = (screen === "verify-email" && draft.outcome === "verified") || (screen === "reset-password" && draft.outcome === "password_reset");
-  const expiredAt = timestamp(draft.expiresAt);
+  const signedIn = screen === "sign-in" && profile !== null && availability === "ready";
+  const hasCodeRequest = draft.requestId !== null && draft.purpose === (screen === "reset-password" ? "recovery" : "verification");
+  const expiredAt = timestamp(hasCodeRequest ? draft.expiresAt : null);
   const resendAt = timestamp(draft.resendAvailableAt);
   const codeExpired = expiredAt !== null && expiredAt <= now;
   const waiting = (tokenUsableAt !== null && tokenUsableAt > now) || (retryAt !== null && retryAt > now);
@@ -97,7 +99,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
     if (error === "required") return copy.required;
     if (error === "too_long") return field === "password" && screen !== "sign-in" ? copy.passwordTooLong : copy.tooLong;
     if (field === "password" && screen !== "sign-in") return copy.invalidPassword;
-    return field === "email" ? copy.invalidEmail : field === "code" ? copy.invalidCode : copy.invalidField;
+    return field === "email" ? copy.invalidEmail : field === "code" ? draft.outcome === "invalid_code" ? copy.codeNotVerified : copy.invalidCode : copy.invalidField;
   }
   function edit(field: Exclude<ParticipantField, "ageConfirmed">, value: string) { updateParticipantDraft({ [field]: field === "code" ? normalizeParticipantCode(value) : value, outcome: null, fieldErrors: {} }); }
 
@@ -143,7 +145,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
     const action: ParticipantAction = screen === "sign-up" ? "signup" : screen === "sign-in" ? "signin" : screen === "verify-email" ? "verify" : screen === "forgot-password" ? "forgot" : "reset";
     void handleAction(action);
   }
-  const navigation: ParticipantScreen[] = screen === "sign-up" ? ["sign-in"] : screen === "sign-in" ? ["sign-up", "forgot-password"] : screen === "forgot-password" ? ["reset-password", "sign-in"] : screen === "verify-email" ? ["sign-in"] : screen === "reset-password" ? ["forgot-password", "sign-in"] : ["sign-in"];
+  const navigation: ParticipantScreen[] = signedIn ? registrationAvailable ? ["my-msrc"] : [] : screen === "sign-up" ? ["sign-in"] : screen === "sign-in" ? ["sign-up", "forgot-password", "verify-email"] : screen === "forgot-password" ? ["reset-password", "sign-in"] : screen === "verify-email" ? ["sign-in"] : screen === "reset-password" ? ["forgot-password", "sign-in"] : ["sign-in"];
 
   if (availability === "closed") return <section className="participant-account-card" data-testid="participant-accounts-closed"><h2>{copy.comingSoon}</h2><p>{copy.closed}</p><ButtonLink href={`/${locale}/participate`}>{copy.explore}</ButtonLink></section>;
   return <section className="participant-account-card" data-testid="participant-account-panel">
@@ -152,7 +154,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
         <h2>{copy.errorsTitle}</h2><p>{copy.states[errorState]}</p>
         {activeFields.some((field) => draft.fieldErrors?.[field]) ? <ul>{activeFields.filter((field) => draft.fieldErrors?.[field]).map((field) => <li key={field}><a href={`#participant-${field}`} onClick={(event) => { event.preventDefault(); document.getElementById(`participant-${field}`)?.focus(); }}>{field === "password" && newPassword ? copy.newPassword : copy[field]}</a></li>)}</ul> : null}
       </div> : null}
-      <p ref={outcome} role="status" aria-live="polite" aria-atomic="true" tabIndex={-1} className="participant-account-status" data-testid="participant-account-status">{draft.pending ? copy.pending : availability === "checking" ? copy.checking : !errorState && draft.outcome ? copy.states[draft.outcome] : availability === "unavailable" ? copy.states.unavailable : ""}</p>
+      <p ref={outcome} role="status" aria-live="polite" aria-atomic="true" tabIndex={-1} className="participant-account-status" data-testid="participant-account-status">{draft.pending ? copy.pending : availability === "checking" ? copy.checking : availability === "unavailable" ? copy.states.unavailable : !errorState && draft.outcome ? copy.states[draft.outcome] : ""}</p>
     </div>
     {screen === "my-msrc" ? <>
       {profile && availability === "ready" ? <>
@@ -164,12 +166,14 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
           : <p className="participant-account-registration" data-testid="participant-registration-closed">{copy.registrationClosed}</p>}
         <div className="participant-account-actions"><Button variant="secondary" disabled={disabled} onClick={() => void handleAction("logout", false)}>{copy.signOut}</Button></div>
       </> : availability === "ready" ? <p data-testid="participant-signin-required">{copy.needSignIn}</p> : null}
-    </> : screen === "sign-up" && !notice ? <p className="participant-account-notice" data-testid="participant-privacy-pending">{copy.privacyPending}</p> : complete ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : <>
+    </> : signedIn ? <ButtonLink className="participant-account-primary-next" href={`/${locale}/${registrationAvailable ? "registration" : "my-msrc"}`}>{registrationAvailable ? myRegistrationCopy[locale].title : copy.links["my-msrc"]}</ButtonLink>
+      : screen === "sign-up" && !notice ? <p className="participant-account-notice" data-testid="participant-privacy-pending">{copy.privacyPending}</p> : complete ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : <>
       {screen === "sign-up" && notice ? <aside className="participant-account-notice" aria-labelledby="participant-privacy-title">
         <h2 id="participant-privacy-title">{copy.privacy}</h2><p>{notice.summary}</p>
         <p>{copy.privacyVersion}: <bdi dir="ltr" data-testid="participant-privacy-version">{notice.version}</bdi></p>
         <Link href={notice.url}>{copy.privacyLink}</Link>
       </aside> : null}
+      {needsCode && !hasCodeRequest ? <p className="participant-account-notice" data-testid="participant-code-restart">{screen === "verify-email" ? copy.verificationRestart : copy.recoveryRestart}</p> : null}
       <form ref={form} onSubmit={submit} noValidate aria-label={copy.titles[screen]} aria-busy={draft.pending}>
         <fieldset className="participant-account-fields" disabled={frozen}>
           {needsName ? <FormField id="participant-name" name="name" label={copy.name} value={draft.name} onChange={(event) => edit("name", event.target.value)} autoComplete="name" dir="auto" error={fieldError("name")} required /> : null}
@@ -183,18 +187,17 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
             onChange={(event) => updateParticipantDraft({ ageConfirmed: event.target.checked, outcome: null, fieldErrors: {} })} error={fieldError("ageConfirmed")} style={{ alignSelf: "flex-start" }} required /></div> : null}
           <div className="participant-account-trap" aria-hidden="true"><label htmlFor="participant-website">Website</label><input id="participant-website" name="website" autoComplete="off" tabIndex={-1} /></div>
         </fieldset>
-        {needsCode && expiredAt !== null ? <p className="participant-account-time">{codeExpired ? copy.expired : <>{copy.expiresAt} <time dateTime={draft.expiresAt!}>{formattedTime(expiredAt, locale)}</time></>}</p> : null}
-        {needsCode && resendAt !== null && resendAt > now ? <p className="participant-account-time">{copy.waitUntil} <time dateTime={draft.resendAvailableAt!}>{formattedTime(resendAt, locale)}</time></p> : null}
+        {needsCode && expiredAt !== null ? <p className="participant-account-time">{codeExpired ? copy.expired : <>{copy.expiresAt} <time dateTime={draft.expiresAt!}><bdi dir="ltr">{formattedTime(expiredAt, locale)}</bdi></time> ({copy.riyadhTime})</>}</p> : null}
+        {needsCode && resendAt !== null && resendAt > now ? <p className="participant-account-time">{copy.waitUntil} <time dateTime={draft.resendAvailableAt!}><bdi dir="ltr">{formattedTime(resendAt, locale)}</bdi></time> ({copy.riyadhTime})</p> : null}
         <div className="participant-account-actions">
-          <Button type="submit" disabled={disabled || (needsCode && (codeExpired || !draft.requestId))}>{screen === "sign-up" ? copy.create : screen === "sign-in" ? copy.signIn : screen === "verify-email" ? copy.verify : screen === "forgot-password" ? copy.requestReset : copy.reset}</Button>
+          <Button type="submit" disabled={disabled || (needsCode && (codeExpired || !hasCodeRequest))}>{screen === "sign-up" ? copy.create : screen === "sign-in" ? copy.signIn : screen === "verify-email" ? copy.verify : screen === "forgot-password" ? copy.requestReset : copy.reset}</Button>
           {needsCode ? <Button variant="secondary" disabled={disabled || (resendAt !== null && resendAt > now)} onClick={() => void handleAction(screen === "reset-password" ? "forgot" : "resend")}>{copy.resend}</Button> : null}
           {draft.outcome === "accepted" && screen === "sign-up" ? <ButtonLink href={`/${locale}/verify-email`}>{copy.verify}</ButtonLink> : null}
           {draft.outcome === "accepted" && screen === "forgot-password" ? <ButtonLink href={`/${locale}/reset-password`}>{copy.links["reset-password"]}</ButtonLink> : null}
-          {profile && screen === "sign-in" ? <ButtonLink href={`/${locale}/my-msrc`}>{copy.links["my-msrc"]}</ButtonLink> : null}
         </div>
       </form>
     </>}
     {availability === "unavailable" ? <div className="participant-account-actions"><Button variant="secondary" onClick={() => { setAvailability("checking"); setStatusRefresh((value) => value + 1); }}>{copy.retry}</Button></div> : null}
-    <nav className="participant-account-navigation" aria-label={copy.navigation}>{navigation.map((destination) => <Link key={destination} href={`/${locale}/${destination}`}>{copy.links[destination]}</Link>)}</nav>
+    {navigation.length ? <nav className="participant-account-navigation" aria-label={copy.navigation}>{navigation.map((destination) => <Link key={destination} href={`/${locale}/${destination}`}>{copy.links[destination]}</Link>)}</nav> : null}
   </section>;
 }

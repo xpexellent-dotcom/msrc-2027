@@ -124,7 +124,7 @@
 .footer-directory-group h2 { margin: 0; color: var(--color-lilac); font-family: var(--font-heading); font-size: .9375rem; font-weight: 600; letter-spacing: 0; }
 .footer-directory ul { display: grid; gap: .25rem; padding: 0; margin: 1rem 0 0; list-style: none; }
 .footer-directory li { min-inline-size: 0; font-size: .9375rem; line-height: 1.65; }
-.footer-directory a, .footer-unpublished { display: inline-flex; align-items: center; min-height: 44px; min-inline-size: 0; max-inline-size: 100%; overflow-wrap: anywhere; }
+.footer-directory a, .footer-unpublished { display: inline-flex; align-items: center; min-height: 44px; min-inline-size: 44px; max-inline-size: 100%; overflow-wrap: anywhere; }
 .site-footer .footer-directory .site-link { color: var(--color-ivory); text-decoration: none; }
 .site-footer .footer-directory .site-link:hover { color: var(--color-gold); }
 .footer-unpublished { flex-wrap: wrap; gap: .2rem .5rem; color: var(--color-lilac); cursor: default; }

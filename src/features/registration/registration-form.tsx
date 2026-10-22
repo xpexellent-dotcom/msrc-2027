@@ -7,9 +7,9 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import type { Locale } from "@/lib/i18n";
 import type { RegistrationResponse } from "./contracts";
-import type { IdentityDocumentType } from "./identity-crypto.server";
+import { normalizeIdentityNumber, type IdentityDocumentType } from "./identity-number";
 import { registrationCopy } from "./registration-copy";
-import { registrationTicketCopy } from "./ticket-copy";
+import { myRegistrationCopy } from "./my-registration-copy";
 
 export function RegistrationForm({ locale, initial, onSubmitted }: { locale: Locale; initial: RegistrationResponse; onSubmitted?: () => void }) {
   const copy = registrationCopy[locale];
@@ -24,9 +24,10 @@ export function RegistrationForm({ locale, initial, onSubmitted }: { locale: Loc
   const [statusRefresh, setStatusRefresh] = useState(0);
   const summary = useRef<HTMLDivElement>(null);
   const submitted = result.state === "submitted";
+  const numberHint = documentType === "passport" ? copy.passportNumberHint : copy.nationalNumberHint;
   const error = result.state === "invalid_input" ? copy.invalid : result.state === "closed" ? copy.closed
     : result.state === "denied" ? copy.denied : result.state === "area-not-ready" ? copy.areaNotReady
-    : ["unavailable", "limited"].includes(result.state) ? copy.unavailable : null;
+    : result.state === "limited" ? copy.limited : result.state === "unavailable" ? copy.unavailable : null;
   useEffect(() => { const timer = setTimeout(() => setTokenReady(true), 2_100); return () => clearTimeout(timer); }, [attempt]);
   useEffect(() => {
     if (initial.state !== "denied" && statusRefresh === 0) return;
@@ -70,7 +71,7 @@ export function RegistrationForm({ locale, initial, onSubmitted }: { locale: Loc
       {checking ? <p>{copy.checking}</p> : submitted ? <p className="participant-account-status">{copy.confirmation}</p> : error ? <><h2>{copy.errorTitle}</h2><p>{error}</p></> : null}
     </div>
     {!checking && result.state === "denied" ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : null}
-    {!checking && submitted ? <ButtonLink href={`/${locale}/registration/ticket`} variant="secondary">{registrationTicketCopy[locale].title}</ButtonLink> : null}
+    {!checking && submitted ? <ButtonLink href={`/${locale}/registration`} variant="secondary">{myRegistrationCopy[locale].title}</ButtonLink> : null}
     {!checking && ["unavailable", "area-not-ready"].includes(result.state) && !result.formToken ? <Button onClick={() => { setChecking(true); setStatusRefresh((value) => value + 1); }}>{copy.retry}</Button> : null}
     {!checking && !submitted && result.formToken && result.termsVersion && !["closed", "denied", "area-not-ready"].includes(result.state) ? <form onSubmit={submit}>
       <fieldset className="participant-account-fields" disabled={pending}>
@@ -80,8 +81,9 @@ export function RegistrationForm({ locale, initial, onSubmitted }: { locale: Loc
             <option value="national_id">{copy.nationalId}</option><option value="iqama">{copy.iqama}</option><option value="passport">{copy.passport}</option>
           </select>
         </div>
-        <FormField id="registration-document-number" label={copy.documentNumber} hint={copy.documentHint} required dir="ltr" autoComplete="off"
-          spellCheck={false} maxLength={40} value={documentNumber} onChange={(event) => setDocumentNumber(event.target.value)} />
+        <FormField id="registration-document-number" label={copy.documentNumber} hint={`${copy.documentHint} ${numberHint}`} required dir="ltr" autoComplete="off"
+          error={result.state === "invalid_input" && !normalizeIdentityNumber(documentType, documentNumber) ? numberHint : undefined}
+          inputMode={documentType === "passport" ? "text" : "numeric"} spellCheck={false} maxLength={40} value={documentNumber} onChange={(event) => setDocumentNumber(event.target.value)} />
         <Checkbox id="registration-terms" label={copy.termsAccepted} required checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
         <p>{copy.photography}</p>
         <Link href={`/${locale}/terms/${result.termsVersion}`}>{copy.termsLink}</Link>

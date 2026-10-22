@@ -16,10 +16,10 @@ async function settled(menu: Locator) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} compact phone panel shows registration first and every destination without scrolling`, async ({ page, isMobile }, testInfo) => {
+  test(`${locale} compact phone panel shows registration first with reachable 44px destinations`, async ({ page, isMobile }, testInfo) => {
     test.skip(!isMobile, "Phone disclosure layout.");
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    // ORG-052: every destination fits one panel even on a short phone (568px tall).
+    // ENG-059: retain the compact panel, with native scrolling on short phones.
     for (const [width, height] of [[390, 844], [412, 915], [320, 568], [375, 640]] as const) {
       await page.setViewportSize({ width, height });
       await page.goto(`/${locale}`);
@@ -34,7 +34,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(menu.getByRole("link").first()).toHaveClass(/\bmobile-reserve-action\b/);
       await expect(action).toHaveAttribute("href", `/${locale}/participate`);
       await expect(action).toBeInViewport();
-      await expect(status).toHaveText(locale === "en" ? "Registration not open yet" : "لم يُفتح التسجيل بعد");
+      await expect(status).toHaveText(locale === "en" ? "Conference registration" : "التسجيل في المؤتمر");
       await expect(status).toBeInViewport();
       const menuBox = (await menu.boundingBox())!;
       const headerBox = (await page.locator(".site-header-inner").boundingBox())!;
@@ -49,13 +49,13 @@ for (const locale of ["en", "ar"] as const) {
       expect(menuBox.y + menuBox.height).toBeLessThanOrEqual(height);
       const overflow = await menu.evaluate((element) => ({ top: element.scrollTop, content: element.scrollHeight, height: element.clientHeight }));
       expect(overflow.top).toBe(0);
-      expect(overflow.content, "a normal portrait phone reaches all destinations at once").toBeLessThanOrEqual(overflow.height + 1);
+      if (height >= 844) expect(overflow.content, "a tall portrait phone reaches all destinations at once").toBeLessThanOrEqual(overflow.height + 1);
       for (const link of await menu.locator("nav a").all()) {
+        await link.scrollIntoViewIfNeeded();
         await expect(link).toBeInViewport();
         const box = (await link.boundingBox())!;
-        // ORG-052 slightly smaller rows (36px; sub-pages 34px), above the WCAG 2.2 AA 24px minimum.
-        expect(box.height, await link.innerText()).toBeGreaterThanOrEqual(34);
-        expect(box.width, await link.innerText()).toBeGreaterThanOrEqual(34);
+        expect(box.height, await link.innerText()).toBeGreaterThanOrEqual(44);
+        expect(box.width, await link.innerText()).toBeGreaterThanOrEqual(44);
         expect(box.y).toBeGreaterThanOrEqual(menuBox.y);
         expect(box.y + box.height).toBeLessThanOrEqual(menuBox.y + menuBox.height);
       }
@@ -190,6 +190,7 @@ for (const locale of ["en", "ar"] as const) {
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width);
       const sizes = await menu.evaluate((element) => ({ width: element.clientWidth, contentWidth: element.scrollWidth, height: element.clientHeight, contentHeight: element.scrollHeight }));
+      if (viewport.enlarged) expect(await menu.locator(".mobile-nav-children").evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length)).toBe(1);
       expect(sizes.contentWidth).toBeLessThanOrEqual(sizes.width);
       expect(sizes.contentHeight, "constrained reading uses the panel's native vertical scroll").toBeGreaterThan(sizes.height);
       const last = menu.locator("nav a").last();

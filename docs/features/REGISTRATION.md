@@ -1,5 +1,11 @@
 # Registration — closed foundation and staff queue
 
+22 October 2026: ENG-059 adds participant journey polish and EN/AR 360/390px
+and desktop regression coverage. Request/approval wording, identity-format
+guidance, opening labels, direction isolation and keyboard completion are
+reviewed in [the journey review](../reviews/participant-journey-2026-10-22.md).
+No migration, RPC, API contract or authorization change is part of this review.
+
 Current extension: [My registration](#my-registration-task-4--eng-055)
 adds participant status, offer acceptance, decline and self-cancellation on top
 of the existing tickets and transactional email events.

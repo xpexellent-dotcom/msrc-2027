@@ -2,9 +2,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { createCipheriv, randomBytes } from "node:crypto";
 import type { APIRequestContext } from "@playwright/test";
 import { expect, test } from "../helpers/csp";
+import { prepareRegistrationCapture } from "../helpers/registration";
 import { registrationTicketCopy } from "../../src/features/registration/ticket-copy";
 
 const origin = "http://127.0.0.1:3216";
+const phase = process.env.JOURNEY_REVIEW_PHASE === "before" ? "before" : "after";
 async function ticketSession(request: APIRequestContext, state: "issued" | "revoked" | "none" | "missing-rpc", stale = false) {
   const suffix = randomBytes(6).toString("hex"), actorId = "da000000-0000-4000-8000-" + suffix, sessionId = "db000000-0000-4000-8000-" + suffix;
   const now = Date.now();
@@ -52,7 +54,8 @@ for (const locale of ["en", "ar"] as const) {
     expect(JSON.stringify(payload)).not.toContain("actorId");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
-    await page.screenshot({ path: `test-results/registration/${testInfo.project.name}-${locale}-ticket-${state}.png`, fullPage: true });
+    await prepareRegistrationCapture(page);
+    await page.screenshot({ path: `.tools/journey-review/registration/${phase}/${testInfo.project.name}-${locale}/ticket-${state}.png`, fullPage: true, scale: "css" });
     const back = page.getByRole("link", { name: copy.registration, exact: true });
     await expect(back).toHaveAttribute("href", `/${locale}/registration`);
     if (state === "missing-rpc") {
@@ -64,7 +67,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(errors).toEqual([]); expect(unexpectedImages).toEqual([]);
   });
 
-  test(`${locale} ticket refresh restores an expired native token without exposing the QR first`, async ({ page, context, request }) => {
+  test(`${locale} ticket refresh restores an expired native token without exposing the QR first`, async ({ page, context, request }, testInfo) => {
     await context.addCookies([await ticketSession(request, "issued", true)]);
     let release!: () => void;
     const held = new Promise<void>((resolve) => { release = resolve; });
@@ -73,17 +76,21 @@ for (const locale of ["en", "ar"] as const) {
       await page.goto(`/${locale}/registration/ticket`);
       await expect(page.getByRole("status")).toHaveText(copy.checking);
       await expect(page.getByTestId("ticket-qr")).toHaveCount(0);
+      await prepareRegistrationCapture(page);
+      await page.screenshot({ path: `.tools/journey-review/registration/${phase}/${testInfo.project.name}-${locale}/ticket-checking.png`, fullPage: true, scale: "css" });
       release();
       await expect(page.getByRole("status")).toHaveText(copy.issued);
       await expect(page.getByTestId("ticket-qr")).toBeVisible();
     } finally { release(); }
   });
 
-  test(`${locale} a signed-out ticket request offers sign-in without private content`, async ({ page }) => {
+  test(`${locale} a signed-out ticket request offers sign-in without private content`, async ({ page }, testInfo) => {
     await page.goto(`/${locale}/registration/ticket`);
     await expect(page.getByRole("status")).toHaveText(copy.denied);
     await expect(page.getByRole("link", { name: copy.signIn, exact: true })).toHaveAttribute("href", `/${locale}/sign-in`);
     await expect(page.getByTestId("ticket-qr")).toHaveCount(0);
     await expect(page.getByTestId("ticket-reference")).toHaveCount(0);
+    await prepareRegistrationCapture(page);
+    await page.screenshot({ path: `.tools/journey-review/registration/${phase}/${testInfo.project.name}-${locale}/ticket-signed-out.png`, fullPage: true, scale: "css" });
   });
 }

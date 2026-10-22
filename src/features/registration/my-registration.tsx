@@ -38,7 +38,7 @@ function OfferCountdown({ expiresAt, serverTime, locale, onDeadline }: {
   const number = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { minimumIntegerDigits: 2 });
   const time = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map((value) => number.format(value)).join(":");
   return <div className="registration-offer-clock">
-    <p>{copy.deadline} <time dateTime={expiresAt}>{dateTime(expiresAt, locale)}</time> <span>{locale === "ar" ? "(توقيت الرياض)" : "(Riyadh time)"}</span></p>
+    <p>{copy.deadline} <time dateTime={expiresAt}><bdi dir="ltr">{dateTime(expiresAt, locale)}</bdi></time> <span>{locale === "ar" ? "(توقيت الرياض)" : "(Riyadh time)"}</span></p>
     <p data-testid="offer-countdown" role="timer" aria-live="off" aria-label={copy.remaining}>
       <span>{copy.remaining}</span> <bdi dir="ltr">{time}</bdi>
     </p>
@@ -111,7 +111,7 @@ export function MyRegistration({ locale, initial, initialForm }: {
         {!ready.registration ? <div className="registration-window" data-testid="registration-window">
           <p>{ready.window.state === "early-access" ? copy.earlyAccess : ready.window.state === "open" ? copy.open : ready.window.state === "closed" ? copy.closed : null}</p>
           {ready.window.state === "early-access" && ready.window.eligible ? <p>{copy.eligible}</p> : null}
-          {ready.window.opensAt && ["scheduled", "early-access"].includes(ready.window.state) ? <p>{copy.scheduled} <time dateTime={ready.window.opensAt}>{dateTime(ready.window.opensAt, locale)}</time> {locale === "ar" ? "(توقيت الرياض)" : "(Riyadh time)"}</p> : null}
+          {ready.window.opensAt && ["scheduled", "early-access"].includes(ready.window.state) ? <p>{ready.window.state === "early-access" ? copy.generalOpening : copy.scheduled} <time dateTime={ready.window.opensAt}><bdi dir="ltr">{dateTime(ready.window.opensAt, locale)}</bdi></time> {locale === "ar" ? "(توقيت الرياض)" : "(Riyadh time)"}</p> : null}
         </div> : null}
         {ready.fewPlacesLeft && !ready.registration ? <p className="registration-few-places" data-testid="few-places-left">{copy.fewPlaces}</p> : null}
         {status === "offered" && ready.registration?.offerExpiresAt ? <OfferCountdown key={ready.serverTime} expiresAt={ready.registration.offerExpiresAt} serverTime={ready.serverTime} locale={locale} onDeadline={refresh} /> : null}
@@ -126,11 +126,11 @@ export function MyRegistration({ locale, initial, initialForm }: {
         {ready.registration && ready.attendance.length ? <section className="registration-attendance" aria-labelledby="registration-attendance-title" data-testid="registration-attendance">
           <h3 id="registration-attendance-title">{copy.attendance}</h3>
           <dl className="participant-account-profile">{ready.attendance.map((day) => <div key={day.conferenceDay} data-testid={`attendance-${day.conferenceDay}`}>
-            <dt><time dateTime={day.conferenceDay}>{new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", {
+            <dt><time dateTime={day.conferenceDay}><bdi dir="ltr">{new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", {
               dateStyle: "long", timeZone: "Asia/Riyadh",
-            }).format(new Date(day.conferenceDay + "T00:00:00Z"))}</time></dt>
+            }).format(new Date(day.conferenceDay + "T00:00:00Z"))}</bdi></time></dt>
             <dd><strong><span aria-hidden="true">{day.checkedInAt ? "✓ " : "○ "}</span>{day.checkedInAt ? copy.checkedIn : copy.notCheckedIn}</strong>
-              {day.checkedInAt ? <span>{copy.checkedInAt}: <time dateTime={day.checkedInAt}>{dateTime(day.checkedInAt, locale)}</time></span> : null}</dd>
+              {day.checkedInAt ? <span>{copy.checkedInAt}: <time dateTime={day.checkedInAt}><bdi dir="ltr">{dateTime(day.checkedInAt, locale)}</bdi></time></span> : null}</dd>
           </div>)}</dl><p className="field-hint">{copy.attendanceHint}</p>
         </section> : null}
         {confirmation ? <section className="registration-confirmation" aria-labelledby="registration-confirm-title" data-testid="registration-confirmation">
@@ -152,11 +152,11 @@ export function MyRegistration({ locale, initial, initialForm }: {
         </div>}
       </> : null}
       <div className="participant-account-actions">
-        {!checking && result.state === "denied" ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : null}
-        {!checking && result.state !== "closed" ? <Button variant="secondary" disabled={pending} onClick={() => { setChecking(true); setConfirmation(null); void refresh(); }}>{copy.refresh}</Button> : null}
+        {!checking && result.state === "denied" ? <><ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink><ButtonLink href={`/${locale}/sign-up`} variant="secondary">{copy.createAccount}</ButtonLink></> : null}
+        {!checking && result.state !== "closed" ? <Button variant="secondary" disabled={pending} onClick={() => { setChecking(true); setConfirmation(null); void refresh()?.finally(() => requestAnimationFrame(() => statusHeading.current?.focus())); }}>{copy.refresh}</Button> : null}
       </div>
     </section>
-    {canRequest ? <RegistrationForm locale={locale} initial={initialForm ?? { state: "denied" }} onSubmitted={() => void refresh()} /> : null}
+    {canRequest ? <RegistrationForm locale={locale} initial={initialForm ?? { state: "denied" }} onSubmitted={() => { void refresh()?.finally(() => requestAnimationFrame(() => statusHeading.current?.focus())); }} /> : null}
     <nav className="participant-account-navigation" aria-label={copy.title}>
       <Link href={`/${locale}/my-msrc`}>{copy.account}</Link><Link href={`/${locale}/contact`}>{copy.support}</Link>
     </nav>
