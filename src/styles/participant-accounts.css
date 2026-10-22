@@ -3,7 +3,7 @@
 .participant-account-intro { margin-block-end: var(--space-6); }
 .participant-account-intro h1 { margin-block: var(--space-3) var(--space-4); color: var(--color-purple); font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.25; letter-spacing: -.035em; }
 .participant-account-intro > p:not(.eyebrow) { max-inline-size: 48ch; color: var(--color-muted); font-size: var(--text-lead); line-height: 1.8; }
-.participant-account-card { padding: clamp(1.25rem, 4vw, 2.25rem); border: 1px solid var(--color-line); border-radius: 1rem; background: var(--color-white); min-inline-size: 0; }
+.participant-account-card { padding: clamp(20px, 4vw, 2.25rem); border: 1px solid var(--color-line); border-radius: 1rem; background: var(--color-white); min-inline-size: 0; }
 .participant-account-card h2 { margin-block: 0 var(--space-4); color: var(--color-purple); font-size: 1.35rem; line-height: 1.55; }
 .participant-account-fields { display: grid; gap: var(--space-5); border: 0; padding: 0; margin: 0; min-inline-size: 0; }
 .participant-account-fields .field-input { inline-size: 100%; }
@@ -20,7 +20,7 @@
 .participant-account-error { padding: var(--space-4); border: 1px solid var(--color-error); border-radius: var(--radius-medium); background: var(--color-error-surface); color: var(--color-error); }
 .participant-account-error h2 { margin-block: 0 var(--space-2); color: inherit; font-size: 1.1rem; }
 .participant-account-error ul { margin-block: var(--space-2) 0; padding-inline-start: var(--space-5); }
-.participant-account-error a { display: inline-flex; align-items: center; min-block-size: var(--touch-target); color: inherit; }
+.participant-account-error a { display: inline-flex; align-items: center; min-inline-size: var(--touch-target); min-block-size: var(--touch-target); color: inherit; }
 .participant-account-status { padding: var(--space-4); background: var(--color-info-surface); border-inline-start: 3px solid var(--color-purple); line-height: 1.85; }
 .participant-account-status:empty { display: none; }
 .participant-account-time { margin-block-start: var(--space-4); color: var(--color-muted); font-size: .9rem; overflow-wrap: anywhere; }
@@ -44,7 +44,7 @@
 .registration-few-places { display: inline-block; margin-block-start: var(--space-3); padding: .4rem .8rem; border-radius: .5rem; background: var(--color-surface-lilac); color: var(--color-purple); font-weight: 600; }
 .registration-offer-clock { margin-block: var(--space-5); padding: var(--space-4); border-inline-start: 3px solid var(--color-purple); background: var(--color-info-surface); line-height: 1.85; }
 .registration-offer-clock [role="timer"] { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem; }
-.registration-offer-clock bdi { color: var(--color-purple); font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.registration-offer-clock [role="timer"] bdi { color: var(--color-purple); font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .registration-confirmation { margin-block-start: var(--space-5); padding: var(--space-4); border: 1px solid var(--color-purple); border-radius: .75rem; }
 .registration-confirmation h3 { color: var(--color-purple); font-size: 1.15rem; line-height: 1.7; }
 .registration-status-card .participant-account-actions:empty { display: none; }

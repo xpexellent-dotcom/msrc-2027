@@ -216,9 +216,8 @@ html[lang="ar"] :is(.experience-intro h1, .about-hero-copy h1, .contact-hero h1,
   .sponsor-tier-heading { align-items: start; flex-direction: column; gap: .75rem; }
   .footer-directory { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 2rem; }
 }
-/* Common phones (360–480px) keep the two-column team and footer grids from the
-   700px step, so 16 placeholder cards and 14 footer links do not each take a
-   full-width row. Only narrower screens fall back to one column. */
+/* Common phones keep two columns at normal text size. Footer columns also
+   collapse when enlarged text needs more room for complete words (ENG-059). */
 @media (max-width: 480px) {
   .team-grid { gap: 1.25rem .875rem; }
   .team-portrait { min-block-size: 0; }
@@ -227,7 +226,7 @@ html[lang="ar"] :is(.experience-intro h1, .about-hero-copy h1, .contact-hero h1,
   .team-grid .team-card-copy { padding: .875rem 1rem 1rem; }
   .team-card-copy h3, [lang="ar"] .team-card-copy h3 { margin-block: 0; font-size: 1.0625rem; }
   .footer-top { gap: 2rem; }
-  .footer-directory { gap: 2.25rem 1.25rem; }
+  .footer-directory { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); gap: 2.25rem 1.25rem; }
   .footer-directory-group h2 { font-size: 1.25rem; }
   .footer-directory ul { gap: 0; margin-block-start: .75rem; }
   .footer-directory li, [lang="ar"] .footer-directory li { font-size: 1rem; line-height: 1.4; }

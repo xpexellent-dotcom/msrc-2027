@@ -196,14 +196,13 @@
   .axiom-header .mobile-menu > .site-container { inline-size: calc(100% - min(2rem, 32px)); }
   .axiom-header .mobile-menu nav { grid-template-columns: minmax(0, 1fr); }
   .axiom-header .mobile-nav-group { min-inline-size: 0; }
-  /* Same layout, slightly smaller (ORG-052): every destination fits one panel without scrolling.
-     36px rows stay well above the WCAG 2.2 AA 24px target minimum. */
-  .axiom-header .mobile-menu nav a.site-link { min-block-size: 36px; min-height: 36px; max-inline-size: 100%; padding: .25rem .5rem; font-size: 1rem; line-height: 1.35; overflow-wrap: anywhere; }
-  .axiom-header .mobile-nav-children { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 .25rem; padding-block: 0 .25rem; border-block-end: 1px solid var(--color-line); }
-  .axiom-header .mobile-menu .mobile-nav-children a.site-link { min-block-size: 34px; min-height: 34px; padding: .25rem .5rem; font-size: .875rem; font-weight: 500; border: 0; }
+  /* ENG-059: the journey review requires 44px targets; short panels scroll natively. */
+  .axiom-header .mobile-menu nav a.site-link { min-block-size: 44px; min-height: 44px; max-inline-size: 100%; padding: .25rem .5rem; font-size: 1rem; line-height: 1.35; overflow-wrap: anywhere; }
+  .axiom-header .mobile-nav-children { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr)); gap: 0 .25rem; padding-block: 0 .25rem; border-block-end: 1px solid var(--color-line); }
+  .axiom-header .mobile-menu .mobile-nav-children a.site-link { min-block-size: 44px; min-height: 44px; padding: .25rem .5rem; font-size: .875rem; font-weight: 500; border: 0; }
   .axiom-header .mobile-nav-children a:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .axiom-header .mobile-menu-registration { display: grid; grid-template-columns: minmax(0, 1fr); gap: .25rem; margin-block-end: .25rem; padding-block-end: .5rem; border-block-end: 1px solid var(--color-line); }
-  .axiom-header .mobile-reserve-action.button { inline-size: 100%; min-block-size: 40px; margin: 0; padding: .45rem min(1rem, 16px); font-size: .9375rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .axiom-header .mobile-reserve-action.button { inline-size: 100%; min-block-size: 44px; margin: 0; padding: .45rem min(1rem, 16px); font-size: .9375rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   .axiom-header .mobile-menu-status { margin: 0; padding-inline: .5rem; font-size: .75rem; line-height: 1.4; color: var(--color-muted); overflow-wrap: anywhere; }
   .axiom-header .mobile-menu :is(.mobile-menu-registration, .mobile-nav-group) { opacity: 1; transform: none; }
   .axiom-header .mobile-menu[data-animate="true"] :is(.mobile-menu-registration, .mobile-nav-group) {

@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { createCipheriv, randomBytes } from "node:crypto";
 import { expect, test } from "@playwright/test";
+import { prepareRegistrationCapture } from "../helpers/registration";
 import { registrationCopy } from "../../src/features/registration/registration-copy";
 import { myRegistrationCopy } from "../../src/features/registration/my-registration-copy";
 
@@ -67,7 +68,8 @@ for (const locale of ["en", "ar"] as const) {
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
     const button = page.getByRole("button", { name: copy.submit, exact: true });
     await expect(button).toBeEnabled();
-    await page.screenshot({ path: `test-results/registration/${testInfo.project.name}-${locale}-form.png`, fullPage: true });
+    await prepareRegistrationCapture(page);
+    await page.screenshot({ path: `.tools/journey-review/registration/after/${testInfo.project.name}-${locale}/form.png`, fullPage: true, scale: "css" });
     await page.keyboard.press("Tab"); await page.keyboard.press("Tab"); await page.keyboard.press("Tab");
     await expect(button).toBeFocused();
     const submitted = page.waitForResponse((response) => response.url().endsWith("/api/workflows/registration") && response.request().method() === "POST");

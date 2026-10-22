@@ -90,7 +90,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
           <div className="pathway-photo"><Image src={demoImages.pathways[index]} alt="" fill sizes="(max-width: 800px) 100vw, (max-width: 1400px) 60vw, 850px" /></div>
           <div className="pathway-card-body">
             <h3>{pathway.title}</h3>
-            <div className="pathway-category"><span>{pathway.category}</span><StatusBadge tone="neutral">{copy.closed}</StatusBadge></div>
+            <div className="pathway-category"><span>{pathway.category}</span>{pathway.href !== "/registration" ? <StatusBadge tone="neutral">{copy.closed}</StatusBadge> : null}</div>
             <p className="pathway-description">{pathway.description}</p>
             <Link className="pathway-action" href={`/${locale}${pathway.href}`} aria-label={`${narrative.pathwayLink}: ${pathway.category}`}><Arrow /></Link>
           </div>

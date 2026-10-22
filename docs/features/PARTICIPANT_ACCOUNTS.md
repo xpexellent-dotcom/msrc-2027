@@ -1,5 +1,11 @@
 # Participant accounts — closed release and activation guide
 
+22 October 2026: ENG-059 reviews the phone/desktop EN/AR account journey,
+clarifies code recovery and completed sign-in navigation, and verifies enlarged
+text, keyboard access and synthetic pending/error states. See the
+[participant journey review](../reviews/participant-journey-2026-10-22.md).
+Authentication, policies, delivery and release gates remain unchanged.
+
 Scope: BL-AUTH-02/03/04, BL-AUTH-06 participant sessions, and BL-AUTH-08 dashboard
 shell. Current authority is ORG-016 (email/password, verified email, no authentication
 phone/SMS or participant MFA) and ORG-019 (72-hour absolute participant session).

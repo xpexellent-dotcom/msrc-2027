@@ -110,7 +110,8 @@ for (const locale of ["en", "ar"] as const) {
       await card.scrollIntoViewIfNeeded();
       await expect(card.getByRole("heading", { level: 3 })).toBeVisible();
       await expect(card.locator(".pathway-action")).toBeInViewport();
-      await expect(card.locator(".status-badge")).toContainText(locale === "en" ? /not open/i : /لم.*يفتح|لم.*يُفتح|غير متاح|لم يبدأ/);
+      if (await card.getAttribute("data-pathway") === "/registration") await expect(card.locator(".status-badge")).toHaveCount(0);
+      else await expect(card.locator(".status-badge")).toContainText(locale === "en" ? /not open/i : /لم.*يفتح|لم.*يُفتح|غير متاح|لم يبدأ/);
       expect(await card.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
     }
     await page.locator("#top").scrollIntoViewIfNeeded();

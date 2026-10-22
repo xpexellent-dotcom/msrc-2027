@@ -18,7 +18,7 @@ const serverSnapshot = () => false;
 const headerCopy = {
   en: {
     navigation: "Main navigation", menu: "Menu", close: "Close menu", homeSuffix: ", home page",
-    edition: "Fifth edition", registration: "Registration not open yet", action: "Reserve your seat", options: "options",
+    edition: "Fifth edition", registration: "Conference registration", action: "Reserve your seat", options: "options",
     links: [
       { label: "Participate", href: "/participate", children: [
         { label: "Attend", href: "/registration" }, { label: "Abstract submission", href: "/submissions" },
@@ -32,7 +32,7 @@ const headerCopy = {
   },
   ar: {
     navigation: "التنقل الرئيسي", menu: "القائمة", close: "إغلاق القائمة", homeSuffix: "، الصفحة الرئيسية",
-    edition: "النسخة الخامسة", registration: "لم يُفتح التسجيل بعد", action: "احجز مقعدك", options: "خيارات",
+    edition: "النسخة الخامسة", registration: "التسجيل في المؤتمر", action: "احجز مقعدك", options: "خيارات",
     links: [
       { label: "المشاركة", href: "/participate", children: [
         { label: "الحضور", href: "/registration" }, { label: "تقديم الملخصات", href: "/submissions" },

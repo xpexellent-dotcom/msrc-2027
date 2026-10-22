@@ -1,5 +1,11 @@
 # Public participation flow — ORG-053 / ENG-048
 
+22 October 2026: [ENG-059's participant journey review](../reviews/participant-journey-2026-10-22.md)
+preserves ORG-053 CTA wording/destinations, clarifies the seat-request step,
+removes static registration-status claims from shared navigation/home cards,
+and applies the current task's 44px target requirement to the phone menu.
+Short panels retain native vertical scrolling; operational gates remain closed.
+
 17 October 2026 follow-up: the owner requested a separate decorative-artwork
 redesign and pull request. See [participation artwork](participation-artwork.md)
 for the current placement model, scope and verification evidence. The ownership

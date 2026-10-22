@@ -5,7 +5,11 @@ export default defineConfig({
   testDir: "./tests/registration-e2e", fullyParallel: true, forbidOnly: Boolean(process.env.CI), retries: 0, workers: 2,
   reporter: [["list"]], outputDir: "test-results/registration",
   use: { baseURL, trace: "off", screenshot: "off" },
-  projects: [{ name: "registration-desktop", use: { ...devices["Desktop Chrome"] } }, { name: "registration-mobile", use: { ...devices["Pixel 7"] } }],
+  projects: [
+    { name: "registration-desktop", use: { ...devices["Desktop Chrome"] } },
+    { name: "registration-mobile-390", use: { ...devices["Pixel 7"], viewport: { width: 390, height: 844 } } },
+    { name: "registration-mobile-360", use: { ...devices["Pixel 7"], viewport: { width: 360, height: 800 } } },
+  ],
   webServer: [
     { command: "node scripts/registration-ui-provider.mjs", url: "http://127.0.0.1:3218/health", reuseExistingServer: false, env: { VERCEL: "", VERCEL_ENV: "" } },
     { command: "node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3216", url: baseURL + "/en", reuseExistingServer: false, timeout: 60_000,

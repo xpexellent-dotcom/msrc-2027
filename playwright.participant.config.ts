@@ -15,7 +15,8 @@ export default defineConfig({
   projects: [
     { name: "participant-desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "participant-tablet", use: { ...devices["Desktop Chrome"], viewport: { width: 791, height: 1000 } } },
-    { name: "participant-mobile", use: { ...devices["Pixel 7"] } },
+    { name: "participant-mobile", use: { ...devices["Pixel 7"], viewport: { width: 390, height: 844 } } },
+    { name: "participant-mobile-360", use: { ...devices["Pixel 7"], viewport: { width: 360, height: 800 } } },
   ],
   webServer: {
     command: "node ./node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3216",

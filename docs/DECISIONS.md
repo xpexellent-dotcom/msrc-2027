@@ -3732,3 +3732,31 @@ preserving valid sessions. Commands, observed counts, remaining device/CI
 gates and the review handoff are in the
 [Night-2 B receipt](progress/2026-10-22-codex-b.md). `docs/PROGRESS.md` is
 unchanged under O9.
+
+## ENG-059 — Participant journey pre-launch review and polish, 22 October 2026
+
+Authority: the owner's Night-2 task E, building on ACD and B, and current
+ORG-055/056/057. ENG-058 was the highest number checked before reservation.
+AUTH-01–04, REG-01/02/05/07, ACC-01, LOC-01/03 and TIM-01 apply. Local source
+and synthetic browser verification only; no hosted migration, settings seed,
+workflow activation, real email, branch, commit or push. Claude owns committing.
+
+Keep approved ORG-053 public CTA labels and destinations. Clarify the request
+step, remove hardcoded registration-closed claims from shared
+navigation/home cards/FAQ, and let the existing registration route show actual
+availability. Approved policy and ORG-057 email wording remain unchanged.
+
+Preserve the 5 October organizer decision keeping back-office approval/discount
+details out of public invitation copy. The public step says "Request a seat";
+the existing signed-in registration screen explains manual approval. No new
+public approval-process wording is authorized by this review.
+
+The current task's 44px touch-target requirement supersedes ORG-052's earlier
+34/36px phone-menu rows for this review. Preserve the compact layout and native
+vertical scrolling when enlarged text or a short screen needs it. No exact
+registration counts or hardcoded opening dates are introduced.
+
+Findings, before/after evidence, and owner questions are recorded in
+[the journey review](reviews/participant-journey-2026-10-22.md). Commands and
+observed results belong in [the Task E receipt](progress/2026-10-22-codex-e.md).
+`docs/PROGRESS.md` remains unchanged under O9.

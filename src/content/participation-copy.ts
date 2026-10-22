@@ -27,7 +27,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
         { title: "CME hours", body: conferenceExpectations.en.benefits[0].body },
         { title: "Two days of discovery", body: "Explore talks, sessions and scientific conversations across both days." },
       ],
-      stepsTitle: "Simple steps", steps: ["Create your account", "Verify your email", "Reserve your seat", "Receive your confirmation email and ticket"],
+      stepsTitle: "Simple steps", steps: ["Create your account", "Verify your email", "Request a seat", "Receive your confirmation email and ticket"],
     },
     submissions: {
       closed: "Abstract submissions are not open yet", closedBody: "The submission window and final instructions will be published before applications open.",
@@ -102,7 +102,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
         { title: "ساعات تعليم طبي مستمر", body: conferenceExpectations.ar.benefits[0].body },
         { title: "يومان من الاكتشاف", body: "استكشف المحاضرات والجلسات والحوارات العلمية على مدى يومين." },
       ],
-      stepsTitle: "خطوات بسيطة", steps: ["أنشئ حسابك", "تحقّق من بريدك الإلكتروني", "احجز مقعدك", "استلم رسالة التأكيد وتذكرتك"],
+      stepsTitle: "خطوات بسيطة", steps: ["أنشئ حسابك", "تحقّق من بريدك الإلكتروني", "اطلب مقعدًا", "استلم رسالة التأكيد وتذكرتك"],
     },
     submissions: {
       closed: "لم يُفتح تقديم الملخصات بعد", closedBody: "ستُنشر فترة التقديم والتعليمات النهائية قبل فتح الطلبات.",
