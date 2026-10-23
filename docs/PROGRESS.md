@@ -18,10 +18,16 @@
   public-shell, fluid-journeys, public-media and participation-flow browser specs
   77 pass / 6 skipped. One earlier full unit run had a single
   `check-in-decoder` timing failure that passed alone (18/18) and in two full reruns.
-- Observed, not changed: `.fluid-requirement-*` rules in `fluid-journeys.css` no longer
-  match any component after the ORG-053 redesign; main's Foundation run at `d7ef947`
-  failed only "Verify the enabled synthetic registration request interface", which
-  passes 336/336 locally on the same commit.
+- Removed 140 CSS rules (and trimmed 27 selector lists) whose every selector needs a
+  class that no source file renders: About-page remnants, pre-ORG-053 pathway and
+  requirement cards, old dates/hero/team layouts. Classes inside `:is()`/`:not()` and
+  any class whose prefix code completes at runtime (`brand-placeholder-${n}`) were
+  kept. Shipped stylesheet 294,170 -> 278,943 bytes. Proof: full-page screenshots of
+  19 public/account routes in EN/AR at 1440px and 375px (76 states) are pixel-identical
+  before and after; full public browser suite 847 pass / 159 skipped / 0 fail.
+- Observed, not changed: main's Foundation run at `d7ef947` failed only "Verify the
+  enabled synthetic registration request interface", which passes 336/336 locally on
+  the same commit.
 
 ## 17 October 2026 — Hackathon Option E medical artwork
 

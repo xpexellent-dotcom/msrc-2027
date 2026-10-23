@@ -16,7 +16,6 @@
 .program-date-panel .dates-day-list li + li .conference-day-link { border-color: rgb(220 207 240 / 24%); }
 .program-date-panel .conference-day-label { color: var(--color-lilac); font-size: .875rem; line-height: 1.4; }
 .program-date-panel .dates-day-list time { color: var(--color-ivory); font-size: 1.125rem; line-height: 1.4; letter-spacing: -.015em; }
-.program-date-panel > .program-date-location { margin: .5rem .25rem 0; color: var(--color-ivory); font-size: .875rem; line-height: 1.55; }
 .program-calendar-link { display: inline-flex; align-items: center; min-block-size: 44px; padding-inline: .25rem; margin-block-start: .125rem; color: var(--color-ivory); font-size: .875rem; font-weight: 650; }
 .program-date-panel .conference-day-link:focus-visible { background: rgb(220 207 240 / 14%); }
 .program-calendar-link:focus-visible { transition: none; }

@@ -87,16 +87,6 @@
 .conference-media-copy h3 { font-family: var(--font-display); font-size: clamp(1.25rem, 2.2vw, 1.75rem); font-weight: 500; line-height: 1.4; color: var(--color-purple); margin-block: 0 .5rem; }
 .conference-media-copy > p { font-size: .95rem; color: var(--color-muted); }
 .conference-media-copy > .site-link { margin-block-start: .8rem; gap: .6rem; }
-.experience-pathways { padding-block: clamp(2.5rem, 5vw, 5rem); background: var(--color-white); }
-.experience-pathway { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: 2rem; padding-block: 3rem; border-block-start: 1px solid var(--color-purple); align-items: start; }
-.experience-pathway:last-child { border-block-end: 1px solid var(--color-purple); }
-.experience-pathway-number { color: var(--color-muted); font-family: var(--font-display); font-size: 1.1rem; font-variant-numeric: tabular-nums; padding-block-start: .5rem; }
-.experience-pathway-copy { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1.2rem 3rem; align-items: start; overflow-wrap: anywhere; }
-.experience-pathway h2 { color: var(--color-purple); font-family: var(--font-display); font-size: clamp(1.8rem, 3.1vw, 3rem); font-weight: 600; letter-spacing: -.03em; line-height: 1.15; margin: 0; }
-.experience-pathway h2 .site-link { display: flex; gap: 1rem; justify-content: space-between; text-decoration: none; }
-.experience-pathway h2 .directional-arrow { inline-size: 1.5rem; block-size: 1.5rem; }
-.experience-pathway p { color: var(--color-muted); max-inline-size: 60ch; line-height: 1.8; font-size: 1rem; }
-.experience-pathway .status-badge { justify-self: start; grid-column: 2; }
 .journey-availability { padding-block: 1.8rem; border-block-end: 1px solid var(--color-line); background: var(--color-surface-warm); }
 .journey-availability .site-container { display: flex; gap: 1rem; align-items: baseline; }
 .journey-availability-dot { inline-size: .5rem; block-size: .5rem; background: var(--color-purple); flex-shrink: 0; }
@@ -124,9 +114,6 @@
 .journey-next h2 { max-inline-size: 25ch; margin-block: 0 1.5rem; }
 .journey-next p { font-size: 1rem; line-height: 1.85; color: var(--color-muted); max-inline-size: 65ch; }
 .journey-next-actions { display: flex; flex-direction: column; align-items: start; gap: 1.3rem; }
-.conference-workshop-row { padding-block: 2rem; border-block-end: 1px solid var(--color-line); }
-.conference-workshop-row h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 600; color: var(--color-purple); }
-.conference-workshop-row p { color: var(--color-muted); font-size: 1rem; margin-block: 1rem; line-height: 1.8; }
 .experience-detail-intro { padding-block: clamp(2rem, 5vw, 5rem); border-block-end: 1px solid var(--color-purple); }
 .experience-detail-intro > .site-container > .site-link { color: var(--color-purple); margin-block-end: 2rem; }
 .experience-detail-intro h1 { color: var(--color-purple); font-family: var(--font-display); font-size: clamp(2.5rem, 5.5vw, 5.5rem); line-height: 1.1; font-weight: 600; letter-spacing: -.035em; max-inline-size: 22ch; margin-block: 1.5rem; }
@@ -154,8 +141,6 @@
   .experience-band .site-container { align-items: start; flex-direction: column; }
   .speaker-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .journey-guidelines .site-container { grid-template-columns: minmax(0, 1fr); }
-  .experience-pathway-copy { grid-template-columns: minmax(0, 1fr); }
-  .experience-pathway .status-badge { grid-column: 1; }
 }
 @media (max-width: 600px) {
   .experience-intro { padding-block: 1.25rem 2.5rem; }
@@ -168,8 +153,6 @@
   .experience-filters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
   .experience-filters > .experience-search { grid-column: 1 / -1; }
   .experience-empty { padding-block: 2.5rem; }
-  .experience-pathway { grid-template-columns: minmax(0, 1fr); gap: .75rem; padding-block: 2rem; }
-  .experience-pathway-number { font-size: .95rem; }
   .journey-guidelines-list article { gap: 1rem; }
   .journey-steps li { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
   .journey-next .site-container, .speaker-grid, .conference-media-grid, .conference-session-row, .speaker-profile-heading { grid-template-columns: minmax(0, 1fr); }
@@ -182,7 +165,7 @@
 @media (hover: hover) and (pointer: fine) {
   .programme-days button:not([aria-pressed="true"]):hover { background: var(--color-surface-lilac); }
   .conference-speaker-card-link:hover img { transform: scale(1.02); }
-  .conference-speaker-card-link:hover h2, .experience-pathway h2 .site-link:hover { text-decoration: underline; text-underline-offset: .2em; }
+  .conference-speaker-card-link:hover h2 { text-decoration: underline; text-underline-offset: .2em; }
 }
 @media (prefers-reduced-motion: reduce) {
   .programme-days button, .conference-speaker-portrait img { transition: none; }

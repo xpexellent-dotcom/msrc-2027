@@ -27,7 +27,7 @@
 .experience-publication-status { margin-block: .5rem 1.5rem; padding: .75rem 1.1rem; border-radius: 12px; font-size: 1.0625rem; }
 
 /* Content controls stay prominent at the scale of the surrounding display typography. */
-.experience-catalogue, .experience-pathways { padding-block: clamp(3.5rem, 7vw, 7rem); background: var(--color-ivory); }
+.experience-catalogue { padding-block: clamp(3.5rem, 7vw, 7rem); background: var(--color-ivory); }
 .programme-days { gap: .35rem; padding: .35rem; background: var(--color-surface-lilac); border: 0; border-radius: 999px; }
 .programme-days button { min-block-size: 52px; border-radius: 999px; padding: .85rem 1.5rem; font-size: 1rem; }
 .programme-days button + button { border: 0; }
@@ -50,11 +50,6 @@
 .conference-speaker-copy h2 { font-size: 1.8rem; font-weight: 500; }
 .conference-speaker-copy p, .conference-media-copy > p { font-size: 1rem; }
 .conference-media-grid { gap: 3rem 2rem; }
-.experience-pathway { padding-block: clamp(2.5rem, 5vw, 4rem); }
-.experience-pathway h2 { font-size: clamp(2.2rem, 3.6vw, 3.5rem); font-weight: 500; }
-.experience-pathway p { font-size: 1.1875rem; line-height: 1.75; }
-.experience-pathway-number { font-size: 1.125rem; }
-.experience-pathway .status-badge { font-size: 1rem; }
 .journey-availability { padding-block: 2rem; }
 .journey-availability h2 { font-size: 1.25rem; font-weight: 500; }
 .journey-availability p { font-size: 1.0625rem; }
@@ -65,8 +60,7 @@
 .journey-guidelines-list article { padding-block: 2.25rem; }
 .journey-guidelines-list h3 { font-size: clamp(1.5rem, 2.3vw, 2rem); font-weight: 500; }
 .journey-guidelines-list article > span { font-size: 1rem; }
-.journey-guidelines-list p, .journey-steps li > p, .journey-next p, .conference-workshop-row p { font-size: 1.125rem; line-height: 1.8; }
-.conference-workshop-row h2 { font-weight: 500; font-size: 2rem; }
+.journey-guidelines-list p, .journey-steps li > p, .journey-next p { font-size: 1.125rem; line-height: 1.8; }
 .experience-detail-intro { padding-block: clamp(3rem, 6vw, 6rem); background: var(--color-surface-lilac); border: 0; }
 .experience-detail-intro h1 { font-weight: 500; }
 .session-detail-facts dt, .session-detail-facts dd, .speaker-profile-heading > div > p { font-size: 1.125rem; }
@@ -79,23 +73,15 @@
 .speaker-page-preview { padding-block: 1rem 2rem; }
 
 /* Reading pages use the same scale without changing approved public or legal wording. */
-.about-hero-grid, .contact-hero-grid, .dates-hero-grid, .policy-hero-grid { padding-block-start: clamp(2rem, 4vw, 4rem); }
-.about-identity dt, .dates-day-list li > span, .dates-location-details dt, .policy-version-details dt { font-size: 1rem; }
-.about-identity dd, .contact-email-link, .dates-location-details dd, .policy-version-details dd { font-size: 1.1875rem; }
-.about-purpose .section-heading h2, .about-community .section-heading h2, .about-explore .section-heading h2,
-.contact-form-layout > .section-heading h2, .dates-content-grid .section-heading h2, .dates-travel .section-heading h2 {
+.contact-hero-grid, .policy-hero-grid { padding-block-start: clamp(2rem, 4vw, 4rem); }
+.dates-day-list li > span, .dates-location-details dt, .policy-version-details dt { font-size: 1rem; }
+.contact-email-link, .dates-location-details dd, .policy-version-details dd { font-size: 1.1875rem; }
+.contact-form-layout > .section-heading h2 {
   font-size: clamp(2.5rem, 4.4vw, 4.25rem);
   font-weight: 500;
 }
-.about-purpose-item h3, .venue-travel-details h3 { font-weight: 500; font-size: clamp(1.8rem, 2.6vw, 2.5rem); }
-.about-purpose-item p, .about-community-body, .about-explore-grid > div > p, .about-section-intro > p,
-.dates-body, .venue-travel-cards p, .venue-international p, .venue-arrival-details dd { font-size: 1.1875rem; line-height: 1.8; }
-.about-lead, .about-purpose-item p, .about-community-body, .about-explore-grid > div > p, .about-section-intro > p { overflow-wrap: anywhere; }
-.about-audiences li { font-size: clamp(1.5rem, 2.5vw, 2.25rem); font-weight: 500; }
-.about-audiences li > span { font-size: 1rem; }
-.about-purpose-list { margin-block-start: 4rem; }
-.about-purpose-item { padding-block: 2.5rem; }
-.dates-calendar { border-radius: 16px; }
+.venue-travel-details h3 { font-weight: 500; font-size: clamp(1.8rem, 2.6vw, 2.5rem); }
+.venue-travel-cards p, .venue-international p, .venue-arrival-details dd { font-size: 1.1875rem; line-height: 1.8; }
 .dates-day-list time { font-size: clamp(2rem, 3vw, 2.75rem); font-weight: 500; }
 .venue-travel-cards h4 { font-size: 1.5rem; font-weight: 500; }
 .venue-arrival-details dt { font-size: 1.125rem; }
@@ -157,8 +143,6 @@
 .sponsor-brand-word { display: inline-flex; align-items: start; gap: .2em; font-family: var(--font-manrope), Arial, sans-serif; font-size: clamp(2.75rem, 5vw, 4.75rem); font-weight: 500; line-height: 1.05; letter-spacing: -.04em; }
 .sponsor-invitation > .site-container { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(3rem, 6vw, 5rem); }
 .sponsor-invitation h2 { max-inline-size: 18ch; font-size: clamp(3rem, 6vw, 5.5rem); }
-.sponsor-invitation-action.button { display: flex; inline-size: 100%; min-block-size: 110px; justify-content: space-between; padding: clamp(1.5rem, 4vw, 3rem); font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1.3; }
-.sponsor-invitation-action svg { inline-size: 1.4em; block-size: 1.4em; flex-shrink: 0; }
 .people-page-heading > *, .people-next > .site-container > * { min-inline-size: 0; }
 :is(.people-page-intro, .team-roster, .sponsor-invitation) :is(p, h1, h2, h3, a) { overflow-wrap: anywhere; }
 .sponsor-tiers--compact { gap: 2.5rem; }

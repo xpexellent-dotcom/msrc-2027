@@ -22,7 +22,6 @@ html[dir="rtl"] .hero-media-scrim { transform: scaleX(-1); }
 .hero-media-control:hover { background: var(--color-purple); }
 .hero-media-control { transition: background-color var(--motion-feedback) var(--motion-easing), transform var(--motion-feedback) var(--motion-easing); cursor: pointer; }
 .hero-media-control:active { transform: scale(var(--motion-press-scale)); }
-.conference-hero:has(.hero-media-control, .hero-media-status) .hero-caption { padding-inline-end: min(22rem, 35%); }
 .hero-media-control:focus-visible { outline: 3px solid var(--color-ivory); outline-offset: 4px; }
 .hero-media-status { display: inline-block; max-width: min(32rem, calc(100% - 2rem)); }
 @media (max-width: 640px) {
@@ -31,8 +30,6 @@ html[dir="rtl"] .hero-media-scrim { transform: scaleX(-1); }
   .hero-media-control, .hero-media-status { inset-inline-end: 1rem; inset-block-end: 1rem; }
   .conference-hero .hero-media-controls { min-block-size: 60px; padding-block-start: 1rem; align-self: flex-end; max-inline-size: 100%; }
   .conference-hero .hero-media-control, .conference-hero .hero-media-status { position: static; max-inline-size: 100%; }
-  .conference-hero:has(.hero-media-control, .hero-media-status) .hero-caption { padding-inline-end: 0; padding-block-end: 5rem; }
-  .conference-hero:has(.hero-media-control, .hero-media-status) .hero-caption { padding-block-end: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-media[data-playback-policy="respect-preferences"] .hero-media-video { display: none; }
