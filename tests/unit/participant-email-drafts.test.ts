@@ -13,7 +13,7 @@ function message(template: string, frozen = false): OutboxMessage {
 }
 
 describe("ORG-058 participant wording approval gate", () => {
-  it.each([...registrationEmailTemplates, "abstract_decision"].flatMap((key) => [false, true].map((frozen) => ({ key, frozen }))))(
+  it.each([...registrationEmailTemplates, "abstract_decision", "announcement"].flatMap((key) => [false, true].map((frozen) => ({ key, frozen }))))(
     "blocks $key (frozen=$frozen) before preparing or sending, even with a positive cap", async ({ key, frozen }) => {
       const original = message(key, frozen);
       const snapshot = structuredClone(original);

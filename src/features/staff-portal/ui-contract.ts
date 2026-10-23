@@ -1,6 +1,6 @@
 import type { Role } from "@/lib/permissions/contract";
 
-export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access" | "registration-settings" | "email-previews" | "check-in" | "launch-readiness";
+export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access" | "registration-settings" | "email-previews" | "check-in" | "launch-readiness" | "announcements";
 export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "registration-confirmation-preview" | "priority" | "early-access" | "registration-settings" | "email-previews" | "summary" | "check-in" | "launch-readiness";
 export type StaffReadinessStatus = "green" | "amber" | "red";
 export type StaffLaunchCheckKey = "migrations" | "settings" | "confirmationSettings" | "participantAccounts" | "participantPolicy" | "retention" | "outboxDelivery" | "outboxSweeps" | "outboxCap" | "conferenceDays" | "approvers" | "checkInStaff" | "earlyAccess" | "secondSuperAdmin" | "health" | "latestDrain";

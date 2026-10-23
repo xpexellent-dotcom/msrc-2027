@@ -7,6 +7,7 @@ import { homepageCopy } from "@/content/public-site";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { siteOrigin } from "@/lib/metadata";
 import { renderParticipantBody } from "./participant-message.server";
+import { announcementTemplate, renderAnnouncementEmail, validAnnouncementPayload } from "./announcement.server";
 
 export type EmailRequest = Readonly<{
   from: string;
@@ -60,7 +61,7 @@ export const abstractDecisionTemplate = { key: "abstract_decision", version: 1, 
 
 /** ORG-058: every new bilingual composition requires owner wording approval before delivery. */
 export function isDraftParticipantTemplate(key: string): boolean {
-  return key === abstractDecisionTemplate.key || registrationEmailTemplates.includes(key as RegistrationEmailTemplate);
+  return key === announcementTemplate.key || key === abstractDecisionTemplate.key || registrationEmailTemplates.includes(key as RegistrationEmailTemplate);
 }
 
 /** Destinations come only from the current verified Auth identity in the business transaction. */
@@ -186,6 +187,13 @@ function arabicDeadline(value: string): string {
 
 /** Preview DRAFT participant wording. Existing provider snapshots must never be rewritten. */
 export function renderOutboxMessage(message: OutboxMessage, translations?: ParticipantEmailTranslations): EmailRequest {
+  if (message.template_key === announcementTemplate.key) {
+    if (message.template_version !== announcementTemplate.version || message.locale !== "en"
+      || !validOutboxRecipient(message.recipient_email) || !validAnnouncementPayload(message.payload)) {
+      throw new OutboxSendError("template_invalid", false);
+    }
+    return renderAnnouncementEmail(message.payload, message.recipient_email);
+  }
   if (message.template_key === abstractDecisionTemplate.key) return renderAbstractDecision(message, translations);
   if (message.template_key !== "synthetic_notice") return renderRegistrationMessage(message);
   const reference = message.payload.reference;

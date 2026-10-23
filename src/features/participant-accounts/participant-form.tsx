@@ -7,6 +7,8 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { myRegistrationCopy } from "@/features/registration/my-registration-copy";
 import { abstractCopy } from "@/features/submissions/copy";
+import { ParticipantInbox } from "@/features/announcements/participant-inbox";
+import type { ParticipantAnnouncementsResponse } from "@/features/announcements/participant-contracts";
 import type { Locale } from "@/lib/i18n";
 import type { ParticipantAction, ParticipantField, ParticipantPageState, ParticipantPayload, ParticipantProfile, ParticipantResponse, ParticipantState } from "./contracts";
 import { participantCopy, type ParticipantScreen } from "./participant-copy";
@@ -22,13 +24,13 @@ function formattedTime(value: number, locale: Locale) {
   return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { hour: "numeric", minute: "2-digit", second: "2-digit", timeZone: "Asia/Riyadh" }).format(value);
 }
 
-export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false, abstractsAvailable = false }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean; abstractsAvailable?: boolean }) {
+export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false, abstractsAvailable = false, initialAnnouncements }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean; abstractsAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse }) {
   const copy = participantCopy[locale];
   const draft = useParticipantDraft();
   // A completion can land in the prior locale's unmounted form. Observe its
   // shared outcome here, and cancel any status read from before the mutation.
   const authenticationStatusRefresh = draft.outcome === "authenticated" || draft.outcome === "signed_out" || draft.outcome === "password_reset" ? draft.outcomeSequence : 0;
-  const [availability, setAvailability] = useState<"checking" | "ready" | "closed" | "unavailable">("checking");
+  const [availability, setAvailability] = useState<"checking" | "ready" | "closed" | "unavailable">(initialState.profile ? "ready" : "checking");
   const [profile, setProfile] = useState<ParticipantProfile | null>(initialState.profile);
   const [formToken, setFormToken] = useState<string | null>(null);
   const [tokenUsableAt, setTokenUsableAt] = useState<number | null>(null);
@@ -166,6 +168,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
         {registrationAvailable ? <ButtonLink href={`/${locale}/registration`} variant="secondary">{myRegistrationCopy[locale].title}</ButtonLink>
           : <p className="participant-account-registration" data-testid="participant-registration-closed">{copy.registrationClosed}</p>}
         {abstractsAvailable ? <ButtonLink href={`/${locale}/abstracts`} variant="secondary">{abstractCopy[locale].title}</ButtonLink> : null}
+        {!draft.pending ? <ParticipantInbox locale={locale} initialState={initialAnnouncements} /> : null}
         <div className="participant-account-actions"><Button variant="secondary" disabled={disabled} onClick={() => void handleAction("logout", false)}>{copy.signOut}</Button></div>
       </> : availability === "ready" ? <p data-testid="participant-signin-required">{copy.needSignIn}</p> : null}
     </> : signedIn ? <ButtonLink className="participant-account-primary-next" href={`/${locale}/${registrationAvailable ? "registration" : "my-msrc"}`}>{registrationAvailable ? myRegistrationCopy[locale].title : copy.links["my-msrc"]}</ButtonLink>
