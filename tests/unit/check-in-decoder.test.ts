@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import QRCode from "qrcode";
+// Resolve the real pinned decoder dependencies during test-module setup. Cold Vitest
+// transforms are not part of the frame-decoding assertion's five-second deadline.
+// Production still loads these lazily through the default createQrDecoder path.
+import "@zxing/browser";
+import "@zxing/library";
 import { cameraFailure, createQrDecoder, keepScannerAwake, openCheckInCamera, riyadhConferenceDay } from "../../src/features/staff-portal/check-in-decoder";
 
 const video = {} as HTMLVideoElement;
