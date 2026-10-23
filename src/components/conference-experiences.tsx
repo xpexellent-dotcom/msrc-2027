@@ -21,7 +21,7 @@ import { HackathonHeartbeat, HackathonTechArt } from "@/components/hackathon-tec
 import { RegistrationOpeningNotice } from "@/components/registration-opening-notice";
 import {
   experienceCopy, filterMedia, filterSessions, participationPaths, published,
-  type ConferenceDay, type ExperiencePageId, type MediaEditionFilter, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
+  type ProgrammeDay, type ExperiencePageId, type MediaEditionFilter, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
 } from "@/content/conference-experiences";
 import { conferenceConfig } from "@/config/conference";
 import { formatIndex, formatMinutes, formatResultCount, type Locale } from "@/lib/i18n";
@@ -34,8 +34,13 @@ const subscribeHydration = () => () => {};
 const clientSnapshot = () => true;
 const serverSnapshot = () => false;
 
-function queryDay(value?: string): "all" | ConferenceDay {
-  return value === "day1" || value === "day2" ? value : "all";
+function queryDay(value?: string): "all" | ProgrammeDay {
+  return value === "day1" || value === "day2" ? value : value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(`${value}T00:00:00+03:00`)) ? value as ProgrammeDay : "all";
+}
+function programmeDayLabel(day: ProgrammeDay, locale: Locale, short = false) {
+  const copy = experienceCopy[locale];
+  if (day === "day1" || day === "day2") return short ? copy[day === "day1" ? "day1Short" : "day2Short"] : copy[day];
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { calendar: "gregory", timeZone: "Asia/Riyadh", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${day}T00:00:00+03:00`));
 }
 function queryEdition(value?: string): MediaEditionFilter {
   return value === "2023" || value === "2024" || value === "2025" || value === "2026" || value === "2027" ? value : "all";
@@ -111,13 +116,14 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
   const room = addressQuery.get("room") ?? "all";
   const query = addressQuery.get("q") ?? "";
   const confirmed = published(approvedSessions);
+  const days: ProgrammeDay[] = ["day1", "day2", ...[...new Set(confirmed.map((session) => session.day).filter((value) => value !== "day1" && value !== "day2"))].sort()];
   const categories = [...new Map(confirmed.map((session) => [session.category.id, session.category])).values()];
   const rooms = [...new Set(confirmed.flatMap((session) => session.room ? [session.room] : []))];
   const sessions = filterSessions(approvedSessions, { day, category, room, query });
   const filtering = query.trim() !== "" || category !== "all" || room !== "all";
   const hasActiveFilters = filtering || day !== "all";
 
-  function change(values: Partial<{ day: "all" | ConferenceDay; category: string; room: string; q: string }>) {
+  function change(values: Partial<{ day: "all" | ProgrammeDay; category: string; room: string; q: string }>) {
     if (!hydrated) return;
     updateAddress(values);
   }
@@ -131,7 +137,7 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
     <section id="programme" tabIndex={-1} className="experience-catalogue" aria-label={copy.pages.program.label}>
       <Container>
         <div className="programme-toolbar"><div className="programme-days" role="group" aria-label={copy.conferenceDays}>
-          {(["all", "day1", "day2"] as const).map((value) => <button type="button" data-testid={`program-day-${value}`} key={value} aria-pressed={day === value} disabled={!hydrated} onClick={() => change({ day: value })}>{value === "all" ? copy.allDays : copy[value === "day1" ? "day1Short" : "day2Short"]}</button>)}
+          {(["all", ...days] as const).map((value) => <button type="button" data-testid={`program-day-${value}`} key={value} aria-pressed={day === value} disabled={!hydrated} onClick={() => change({ day: value })}>{value === "all" ? days.length > 2 ? locale === "ar" ? "جميع الأيام" : "All days" : copy.allDays : programmeDayLabel(value, locale, true)}</button>)}
         </div><p className="experience-timezone">{copy.timezone}</p></div>
         <div className="experience-filters">
           <label className="experience-search" htmlFor="programme-search">{copy.searchSessions}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="programme-search" data-testid="program-search" type="search" value={query} disabled={!hydrated} onChange={(event) => change({ q: event.target.value })} placeholder={copy.searchSessionsPlaceholder} /></span></label>
@@ -140,9 +146,9 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
         </div>
         {categories.length === 0 || rooms.length === 0 ? <p id="programme-filter-note" className="experience-filter-note">{copy.filterNote}</p> : null}
         <div className={`experience-result-bar${!sessions.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!sessions.length ? "sr-only" : undefined} role="status" aria-live="polite">{sessions.length ? formatResultCount(sessions.length, locale) : filtering ? copy.noResults : copy.programPending}</p>{hasActiveFilters ? <Button variant="ghost" size="small" data-testid="program-clear" disabled={!hydrated} onClick={clear}>{copy.clear}</Button> : null}</div>
-        {sessions.length ? <div className="programme-results">{(["day1", "day2"] as const).map((value) => {
+        {sessions.length ? <div className="programme-results">{days.map((value) => {
           const rows = sessions.filter((session) => session.day === value);
-          return rows.length ? <section key={value} aria-labelledby={`programme-${value}-heading`}><h2 id={`programme-${value}-heading`} className="programme-day-heading">{copy[value]}</h2>{rows.map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}</section> : null;
+          return rows.length ? <section key={value} aria-labelledby={`programme-${value}-heading`}><h2 id={`programme-${value}-heading`} className="programme-day-heading">{programmeDayLabel(value, locale)}</h2>{rows.map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}</section> : null;
         })}</div> : <EmptyCatalogue testId="program-empty" title={filtering ? copy.noResults : copy.programPending} body={filtering ? copy.noResultsBody : copy.programPendingBody} />}
       </Container>
     </section>
@@ -167,7 +173,7 @@ export function SessionRow({ locale, session, speakers: approvedSpeakers = [] }:
   const speakers = published(approvedSpeakers).filter((speaker) => session.speakerSlugs.includes(speaker.slug));
   return <article className="conference-session-row">
     <div className="conference-session-time">{start ? <time dateTime={session.startAt!}>{start}{end ? ` – ${end}` : ""}</time> : <span>{copy.timePending}</span>}{duration ? <span>{formatMinutes(duration, locale)}</span> : null}</div>
-    <div><p className="conference-session-format">{session.category.label[locale]}{session.room ? <span> · <bdi>{session.room}</bdi></span> : null}</p><h3 lang="en" dir="ltr"><Link href={`/${locale}/program/${session.slug}`}>{session.title}<Arrow /></Link></h3>{speakers.length ? <p className="conference-session-speakers" dir="ltr">{speakers.map((speaker) => speaker.name).join(" · ")}</p> : null}</div>
+    <div><p className="conference-session-format">{session.category.label[locale]}{session.room ? <span> · <bdi>{session.room}</bdi></span> : null}</p><h3 lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}><Link href={`/${locale}/program/${session.slug}`}>{session.title}<Arrow /></Link></h3>{speakers.length ? <p className="conference-session-speakers" dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{speakers.map((speaker) => speaker.name).join(" · ")}</p> : null}</div>
   </article>;
 }
 
@@ -199,7 +205,7 @@ function SpeakerPreviewRail({ locale }: { locale: Locale }) {
 }
 
 export function SpeakerCard({ locale, speaker }: { locale: Locale; speaker: PublicSpeaker }) {
-  return <article className="conference-speaker-card"><Link className="conference-speaker-card-link" href={`/${locale}/speakers/${speaker.slug}`} aria-label={speaker.name}><div className="conference-speaker-portrait">{speaker.portrait ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} fill sizes="(max-width: 600px) 90vw, (max-width: 900px) 45vw, 28vw" /> : <ResearchVisual variant={0} />}<FlowLines className="speaker-flow-lines" /></div><div className="conference-speaker-copy" dir="ltr"><h2>{speaker.name}</h2><p>{speaker.title}</p><p>{speaker.institution}</p></div></Link></article>;
+  return <article className="conference-speaker-card"><Link className="conference-speaker-card-link" href={`/${locale}/speakers/${speaker.slug}`} aria-label={speaker.name}><div className="conference-speaker-portrait">{speaker.portrait ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} unoptimized={speaker.portrait.startsWith("https:") || speaker.portrait.startsWith("http:")} style={{ objectPosition: speaker.portraitPosition }} fill sizes="(max-width: 600px) 90vw, (max-width: 900px) 45vw, 28vw" /> : <ResearchVisual variant={0} />}<FlowLines className="speaker-flow-lines" /></div><div className="conference-speaker-copy" lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}><h2>{speaker.name}</h2><p>{speaker.title}</p><p>{speaker.institution}</p></div></Link></article>;
 }
 
 export function MediaExperience({ locale, media, sessions }: { locale: Locale; media: readonly PublicMedia[]; sessions: readonly PublicSession[]; initialQuery?: CatalogueQuery }) {
@@ -378,11 +384,11 @@ export function SessionDetailExperience({ locale, session, speakers: approvedSpe
   const copy = experienceCopy[locale];
   const speakers = published(approvedSpeakers).filter((speaker) => session.speakerSlugs.includes(speaker.slug));
   const start = sessionClock(session.startAt, locale); const end = sessionClock(session.endAt, locale); const duration = sessionMinutes(session);
-  return <><section className="experience-detail-intro"><Container><Link href={`/${locale}/program`}>{copy.pages.program.label}</Link><p className="eyebrow">{session.category.label[locale]} · {copy[session.day]}</p><h1 lang="en" dir="ltr">{session.title}</h1><dl className="session-detail-facts"><div><dt>{copy.time}</dt><dd>{start ? `${start}${end ? ` – ${end}` : ""}` : copy.timePending}</dd></div>{duration ? <div><dt>{copy.duration}</dt><dd>{formatMinutes(duration, locale)}</dd></div> : null}{session.room ? <div><dt>{copy.room}</dt><dd><bdi>{session.room}</bdi></dd></div> : null}</dl><p className="experience-timezone">{copy.timezone}</p></Container></section><section className="experience-detail-body"><Container narrow><p lang="en" dir="ltr">{session.description}</p>{session.objectives.length ? <div><h2>{copy.objectives}</h2><ul lang="en" dir="ltr">{session.objectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></div> : null}{speakers.length ? <div><h2>{copy.pages.speakers.label}</h2><div className="speaker-grid">{speakers.map((speaker) => <SpeakerCard locale={locale} speaker={speaker} key={speaker.slug} />)}</div></div> : null}<div><h2>{copy.recording}</h2>{recording ? <MediaCard locale={locale} record={recording} session={session} /> : <p>{copy.recordingPending}</p>}</div></Container></section></>;
+  return <><section className="experience-detail-intro"><Container><Link href={`/${locale}/program`}>{copy.pages.program.label}</Link><p className="eyebrow">{session.category.label[locale]} · {programmeDayLabel(session.day, locale)}</p><h1 lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{session.title}</h1><dl className="session-detail-facts"><div><dt>{copy.time}</dt><dd>{start ? `${start}${end ? ` – ${end}` : ""}` : copy.timePending}</dd></div>{duration ? <div><dt>{copy.duration}</dt><dd>{formatMinutes(duration, locale)}</dd></div> : null}{session.room ? <div><dt>{copy.room}</dt><dd><bdi>{session.room}</bdi></dd></div> : null}</dl><p className="experience-timezone">{copy.timezone}</p></Container></section><section className="experience-detail-body"><Container narrow><p lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{session.description}</p>{session.objectives.length ? <div><h2>{copy.objectives}</h2><ul lang="en" dir="ltr">{session.objectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></div> : null}{speakers.length ? <div><h2>{copy.pages.speakers.label}</h2><div className="speaker-grid">{speakers.map((speaker) => <SpeakerCard locale={locale} speaker={speaker} key={speaker.slug} />)}</div></div> : null}<div><h2>{copy.recording}</h2>{recording ? <MediaCard locale={locale} record={recording} session={session} /> : <p>{copy.recordingPending}</p>}</div></Container></section></>;
 }
 
 export function SpeakerDetailExperience({ locale, speaker, sessions: approvedSessions = [] }: { locale: Locale; speaker: PublicSpeaker; sessions?: readonly PublicSession[] }) {
   const copy = experienceCopy[locale];
   const sessions = published(approvedSessions).filter((session) => session.speakerSlugs.includes(speaker.slug));
-  return <><section className="experience-detail-intro"><Container><Link href={`/${locale}/speakers`}>{copy.pages.speakers.label}</Link><div className="speaker-profile-heading"><div><p className="eyebrow">MSRC / 2027</p><h1 dir="ltr">{speaker.name}</h1><p dir="ltr">{speaker.title}</p><p dir="ltr">{speaker.institution}</p></div><div className="conference-speaker-portrait">{speaker.portrait ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} fill sizes="(max-width: 600px) 90vw, 35vw" priority /> : <ResearchVisual variant={0} />}</div></div></Container></section><section className="experience-detail-body"><Container narrow><h2>{copy.biography}</h2><p lang="en" dir="ltr">{speaker.biography}</p>{speaker.professionalLinks.length ? <ul className="speaker-professional-links">{speaker.professionalLinks.map((link) => <li key={link.href}><Link href={link.href} target="_blank" rel="noopener noreferrer">{link.label}<Arrow /></Link></li>)}</ul> : null}<div><h2>{copy.speakerSessions}</h2>{sessions.length ? sessions.map((session) => <SessionRow key={session.slug} locale={locale} session={session} speakers={[speaker]} />) : <p>{copy.programPending}</p>}</div></Container></section></>;
+  return <><section className="experience-detail-intro"><Container><Link href={`/${locale}/speakers`}>{copy.pages.speakers.label}</Link><div className="speaker-profile-heading"><div><p className="eyebrow">MSRC / 2027</p><h1 lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.name}</h1><p lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.title}</p><p lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.institution}</p></div><div className="conference-speaker-portrait">{speaker.portrait ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} unoptimized={speaker.portrait.startsWith("https:") || speaker.portrait.startsWith("http:")} style={{ objectPosition: speaker.portraitPosition }} fill sizes="(max-width: 600px) 90vw, 35vw" priority /> : <ResearchVisual variant={0} />}</div></div></Container></section><section className="experience-detail-body"><Container narrow><h2>{copy.biography}</h2><p lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.biography}</p>{speaker.professionalLinks.length ? <ul className="speaker-professional-links">{speaker.professionalLinks.map((link) => <li key={link.href}><Link href={link.href} target="_blank" rel="noopener noreferrer">{link.label}<Arrow /></Link></li>)}</ul> : null}<div><h2>{copy.speakerSessions}</h2>{sessions.length ? sessions.map((session) => <SessionRow key={session.slug} locale={locale} session={session} speakers={[speaker]} />) : <p>{copy.programPending}</p>}</div></Container></section></>;
 }

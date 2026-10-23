@@ -7,6 +7,9 @@ import { createStaffBackend, StaffRpcMissingError, type StaffBackend, type Nativ
 import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/config.server";
 import { staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
 import { MEDIA_PRIVATE_BUCKET, MEDIA_PUBLIC_BUCKET, type MediaStorage } from "@/features/staff-portal/media-storage.server";
+import { revalidatePublishedContent } from "@/features/content/revalidate.server";
+
+vi.mock("@/features/content/revalidate.server", () => ({ revalidatePublishedContent: vi.fn() }));
 
 const origin = "http://127.0.0.1:3219", now = Date.parse("2026-10-23T06:00:00Z");
 const actorId = "39000000-0000-4000-8000-000000000001", sessionId = "39000000-0000-4000-8000-000000000002";
@@ -46,6 +49,7 @@ const handle = (input: Request) => createMediaHandler({ readiness: () => ({ stat
 const sign = () => request({ action: "upload-url", filename: "synthetic.png", size: 100 });
 const transition = (action = "publish") => request({ action, assetId, version: 1, operationId });
 beforeEach(async () => {
+  vi.mocked(revalidatePublishedContent).mockClear();
   roles = ["contentMediaEditor"]; policySatisfied = true;
   replies = {
     msrc_staff_media_list: { state: "ready", assets: [asset], total: 1 }, msrc_staff_media_get: { state: "ready", asset },
@@ -146,6 +150,8 @@ describe("staff media authorization and mutations", () => {
     expect((await handle(transition(action))).status).toBe(200);
     expect(storage.remove).toHaveBeenCalledWith(MEDIA_PUBLIC_BUCKET, expect.arrayContaining([publicPath, publicPath.replace(".webp", ".640.webp")]));
     expect(vi.mocked(storage.remove).mock.calls[0][1]).toHaveLength(4); expect(storage.write).not.toHaveBeenCalled();
+    expect(revalidatePublishedContent).toHaveBeenCalledTimes(4);
+    expect(revalidatePublishedContent).toHaveBeenCalledWith("team");
   });
   it("does not release the lock after an ambiguous storage write or removal", async () => {
     vi.mocked(storage.write).mockRejectedValue(new Error("network failed")); expect((await handle(transition())).status).toBe(503);

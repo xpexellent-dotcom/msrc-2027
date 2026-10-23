@@ -28,11 +28,13 @@ import { cinematicCopy, demoImages } from "@/content/cinematic-demo";
 import type { Locale } from "@/lib/i18n";
 import type { PreviewHeroVideo } from "@/lib/media-policy";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
+import { SessionRow, SpeakerCard } from "@/components/conference-experiences";
+import type { PublicSession, PublicSpeaker } from "@/content/conference-experiences";
 
 export type HomepageMediaPreview = { video: PreviewHeroVideo; poster: string; caption: string };
 const Arrow = () => <svg className="directional-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 
-export function HomePageContent({ locale, media }: { locale: Locale; media?: HomepageMediaPreview }) {
+export function HomePageContent({ locale, media, speakers = [], sessions = [] }: { locale: Locale; media?: HomepageMediaPreview; speakers?: readonly PublicSpeaker[]; sessions?: readonly PublicSession[] }) {
   const copy = homepageCopy[locale];
   const narrative = homepageNarrative[locale];
   const demo = cinematicCopy[locale];
@@ -111,6 +113,7 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
           <ResearchArtwork />
           <div className="program-experiences">{expectations.benefits.map((benefit) => <article className="benefit-card" key={benefit.title}><BenefitArtwork icon={benefit.icon} locale={locale} /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.homepageBody ?? benefit.body}</p></div></article>)}</div>
         </div>
+        {sessions.length ? <div className="public-home-programme" data-testid="home-published-programme">{sessions.slice(0, 4).map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}<Link className="editorial-action" href={`/${locale}/program`}>{narrative.programmeLink}<Arrow /></Link></div> : null}
       </Container>
     </section>
 
@@ -118,13 +121,13 @@ export function HomePageContent({ locale, media }: { locale: Locale; media?: Hom
       <SpeakerAtmosphere />
       <Container>
         <Reveal className="section-topline" stagger><SectionHeading chapter title={narrative.speakersTitle} accents={locale === "ar" ? ["المتحدثين.", "المتحدثين"] : ["speakers.", "speakers"]} id="speakers-title" /><Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link></Reveal>
-        <p className="section-intro-text">{narrative.speakersBody}</p>
-        <HorizontalRail className="speaker-rail" locale={locale} label={demo.speakerRail}>
+        {!speakers.length ? <p className="section-intro-text">{narrative.speakersBody}</p> : null}
+        {speakers.length ? <div className="speaker-grid public-home-speakers" data-testid="home-published-speakers">{speakers.slice(0, 4).map((speaker) => <SpeakerCard key={speaker.slug} locale={locale} speaker={speaker} />)}</div> : <HorizontalRail className="speaker-rail" locale={locale} label={demo.speakerRail}>
           {[0, 1, 2, 3].map((index) => <article className="speaker-preview-card" key={index}>
             <div className="speaker-preview-portrait"><PortraitPlaceholder variant={index} /></div>
             <div className="speaker-preview-content"><h3>{demo.speakerTitle}</h3><p>{demo.speakerPending}</p>{/* Pointer shortcut only: the section's "Meet the speakers" link already reaches this page, so the four identical placeholder cards add no keyboard or screen-reader stops. */}<Link className="speaker-preview-link" href={`/${locale}/speakers`} tabIndex={-1} aria-hidden="true"><Arrow /></Link></div>
           </article>)}
-        </HorizontalRail>
+        </HorizontalRail>}
       </Container>
     </section>
 

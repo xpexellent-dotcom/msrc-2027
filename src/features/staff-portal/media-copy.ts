@@ -1,7 +1,7 @@
 export const mediaCopy = {
   en: {
     title: "Media library", intro: "Prepare approved site images. Uploads stay private until you publish them.",
-    contentPending: "The content editor is planned separately. This library manages images for it.",
+    contentPending: "Published images are available in the content editor’s image picker.",
     search: "Search images", searchAction: "Search", filter: "Image state", all: "All states",
     states: { draft: "Draft", published: "Published", archived: "Archived" },
     upload: "Upload image", drop: "Drop an image here, or choose a file", uploadHint: "JPEG, PNG, WebP or AVIF · up to 10 MB. Location and other embedded metadata are removed.",
@@ -31,7 +31,7 @@ export const mediaCopy = {
   },
   ar: {
     title: "مكتبة الوسائط", intro: "جهّز صور الموقع المعتمدة. تبقى الصور المرفوعة خاصة حتى نشرها.",
-    contentPending: "محرر المحتوى أداة مخطط لها بشكل منفصل. تدير هذه المكتبة الصور التي سيستخدمها.",
+    contentPending: "تتوفر الصور المنشورة في أداة اختيار الصور داخل محرر المحتوى.",
     search: "البحث في الصور", searchAction: "بحث", filter: "حالة الصورة", all: "جميع الحالات",
     states: { draft: "مسودة", published: "منشورة", archived: "مؤرشفة" },
     upload: "رفع صورة", drop: "أفلت صورة هنا، أو اختر ملفًا", uploadHint: "JPEG أو PNG أو WebP أو AVIF · بحد أقصى ١٠ ميغابايت. تُزال بيانات الموقع والبيانات الوصفية المضمّنة الأخرى.",

@@ -29,6 +29,6 @@ export default async function Page({ params, searchParams }: PageProps) {
     const value = search[key];
     if (typeof value === "string") initialQuery[key] = value.slice(0, 200);
   }
-  const { sessions, speakers } = getPublicConferenceCatalogue();
+  const { sessions, speakers } = await getPublicConferenceCatalogue(locale);
   return <ProgrammeExperience key={JSON.stringify(initialQuery)} locale={locale} initialQuery={initialQuery} sessions={sessions} speakers={speakers} />;
 }

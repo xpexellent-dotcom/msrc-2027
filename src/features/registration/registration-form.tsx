@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { Checkbox } from "@/components/forms/checkbox";
 import { FormField } from "@/components/forms/form-field";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -23,12 +23,16 @@ export function RegistrationForm({ locale, initial, onSubmitted }: { locale: Loc
   const [checking, setChecking] = useState(initial.state === "denied");
   const [statusRefresh, setStatusRefresh] = useState(0);
   const summary = useRef<HTMLDivElement>(null);
+  const [summaryFocus, setSummaryFocus] = useState(0);
   const submitted = result.state === "submitted";
   const numberHint = documentType === "passport" ? copy.passportNumberHint : copy.nationalNumberHint;
   const error = result.state === "invalid_input" ? copy.invalid : result.state === "closed" ? copy.closed
     : result.state === "denied" ? copy.denied : result.state === "area-not-ready" ? copy.areaNotReady
     : result.state === "limited" ? copy.limited : result.state === "unavailable" ? copy.unavailable : null;
   useEffect(() => { const timer = setTimeout(() => setTokenReady(true), 2_100); return () => clearTimeout(timer); }, [attempt]);
+  // Focus the result only after it is in the DOM: the empty summary is display:none, and a
+  // requestAnimationFrame could run before React committed the message, silently dropping focus.
+  useLayoutEffect(() => { if (summaryFocus) summary.current?.focus(); }, [summaryFocus]);
   useEffect(() => {
     if (initial.state !== "denied" && statusRefresh === 0) return;
     const controller = new AbortController();
@@ -62,8 +66,7 @@ export function RegistrationForm({ locale, initial, onSubmitted }: { locale: Loc
       } else setResult({ ...result, state: "unavailable" });
     } catch { setResult({ ...result, state: "unavailable" }); }
     finally {
-      setPending(false); setTokenReady(false); setAttempt((value) => value + 1);
-      requestAnimationFrame(() => summary.current?.focus());
+      setPending(false); setTokenReady(false); setAttempt((value) => value + 1); setSummaryFocus((value) => value + 1);
     }
   }
   return <div className="participant-account-card" data-testid="registration-request" dir={locale === "ar" ? "rtl" : "ltr"}>

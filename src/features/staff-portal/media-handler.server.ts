@@ -6,6 +6,7 @@ import { verifiedStaffRegistrationClaims } from "./registration-contract.server"
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash, staffIp, staffOrigin, staffUuid } from "./security.server";
 import { MEDIA_MAX_BYTES, MediaInputError, mediaVariantPaths, processMedia } from "./media-processing.server";
 import { createMediaStorage, MEDIA_PRIVATE_BUCKET, MEDIA_PUBLIC_BUCKET, type MediaStorage } from "./media-storage.server";
+import { revalidatePublishedContent } from "@/features/content/revalidate.server";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
 const record = (value: unknown): Record<string, unknown> | null => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
@@ -30,7 +31,7 @@ function assetProjection(value: unknown, config: StaffConfig) {
     createdAt: a.createdAt, updatedAt: a.updatedAt, busy: a.busy === true,
     previewUrl: `/api/staff-portal/media?preview=${a.id}`, publicUrl: a.state === "published" ? `${config.supabaseUrl}/storage/v1/object/public/${MEDIA_PUBLIC_BUCKET}/${a.publicPath}` : null };
 }
-export function createMediaHandler(dependencies: { readiness?: () => StaffReadiness; backend?: (config: StaffConfig) => StaffBackend; storage?: (config: StaffConfig) => MediaStorage; now?: () => number } = {}) {
+export function createMediaHandler(dependencies: { readiness?: () => StaffReadiness; backend?: (config: StaffConfig) => StaffBackend; storage?: (config: StaffConfig) => MediaStorage; now?: () => number; revalidate?: () => void } = {}) {
   return async (request: Request): Promise<Response> => {
     let rotated: string | undefined;
     const readiness = (dependencies.readiness ?? getStaffConfig)();
@@ -135,8 +136,16 @@ export function createMediaHandler(dependencies: { readiness?: () => StaffReadin
       }
       if (!["publish", "unpublish", "archive"].includes(String(input.action)) || !keys("assetId", "version", "operationId")
         || typeof input.operationId !== "string" || !staffUuid.test(input.operationId)) return reply({ state: "invalid" }, 400);
+      const transitionOutcome = (result: Record<string, unknown> | null) => {
+        const response = outcome(result);
+        if (response.ok) {
+          if (dependencies.revalidate) dependencies.revalidate();
+          else for (const collection of ["speakers", "sessions", "partners", "team"] as const) revalidatePublishedContent(collection);
+        }
+        return response;
+      };
       const data = await rpc("transition_begin", { asset_id: input.assetId, expected_version: input.version, action: input.action, operation_id: input.operationId });
-      if (data?.state !== "reserved") return outcome(data);
+      if (data?.state !== "reserved") return transitionOutcome(data);
       const asset = record(data.asset);
       if (data.operationId !== input.operationId || !safePath(asset?.storagePath, config) || data.publicPath !== null && !safePath(data.publicPath, config)) return reply({ state: "unavailable" }, 503);
       // Reservation is durable. Never release it on ambiguous Storage/DB errors:
@@ -149,7 +158,7 @@ export function createMediaHandler(dependencies: { readiness?: () => StaffReadin
         catch { await rpc("transition_finish", { operation_id: input.operationId, success: false }, true); return reply({ state: "unavailable" }, 503); }
         for (let i = 0; i < publicPaths.length; i++) await storage.write(MEDIA_PUBLIC_BUCKET, publicPaths[i], bytes[i]);
       } else if (data.publicPath !== null) await storage.remove(MEDIA_PUBLIC_BUCKET, mediaVariantPaths(data.publicPath as string));
-      return outcome(await rpc("transition_finish", { operation_id: input.operationId, success: true }, true));
+      return transitionOutcome(await rpc("transition_finish", { operation_id: input.operationId, success: true }, true));
     } catch (error) {
       return reply({ state: error instanceof StaffRpcMissingError ? "area-not-ready" : "unavailable" }, 503);
     }

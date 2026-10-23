@@ -1,6 +1,9 @@
 # Content feature boundary
 
-Future structured content editing and publication belong here after staff authorization and content release gates. Existing public static copy remains in src/content; CMS editing stays closed.
+CMS-01..04 / PRG-01: public speakers, programme sessions, partners and team members read only immutable published snapshots through service-only `public.msrc_content_published(edition_key text, collection_key text)`. Staff editing lives in `src/features/staff-portal/content-*`; no data is seeded and the staff portal remains closed by default.
 
-This is an inert M1 structure placeholder. It contains no executable implementation;
-operational workflows remain closed. See the project architecture document and the relevant v0.5 release gate.
+Each collection keeps its current `src/content` static fallback until it has a published item. A missing RPC, invalid result, absent configuration, timeout or database failure returns the static collection. The first published item replaces that entire collection; static people are never appended. Team replacement uses the published groups and ordering instead of inferring the legacy committee hierarchy.
+
+The server reader reuses `STAFF_SUPABASE_URL`, `STAFF_SUPABASE_SECRET_KEY` and `STAFF_EDITION_KEY` without depending on `STAFF_PORTAL_ENABLED` or email configuration. Keys stay server-only. Runtime `connection()` is outside `unstable_cache`; this prevents a pre-migration build from pinning empty content forever. Published reads are cached for 60 seconds with collection tags. Publish, unpublish and media withdrawals use `revalidateTag(tag, { expire: 0 })` and affected EN/AR paths, including dynamic detail pages. Staff-authored programme dates and Riyadh clocks remain exact; arbitrary dates receive their own localized day filter.
+
+`playwright.content.config.ts` uses only synthetic loopback records and ports 3230–3233. `PUBLIC_CONTENT_TEST_MODE` is rejected in hosted environments. Its populated, empty and unavailable database modes exercise the actual server rendering path. The pending migration, database permissions and snapshot behavior still require disposable CI; this directory does not authorize a hosted migration, content publication or operational activation.

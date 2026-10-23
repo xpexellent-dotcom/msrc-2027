@@ -1,0 +1,6 @@
+.public-content-photo img { width: 100%; height: 100%; object-fit: cover; }
+.public-content-partner { display: flex; flex-direction: column; gap: 1rem; text-align: center; overflow-wrap: anywhere; }
+.public-content-partner img { width: min(100%, 220px); height: 120px; object-fit: contain; }
+.public-content-partner:focus-visible { outline: 3px solid var(--color-gold, #ae873b); outline-offset: 4px; }
+.public-home-speakers { margin-block: 2rem; }
+.public-home-programme { margin-block-start: 3rem; }

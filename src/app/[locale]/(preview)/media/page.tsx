@@ -29,6 +29,6 @@ export default async function Page({ params, searchParams }: PageProps) {
     const value = search[key];
     if (typeof value === "string") initialQuery[key] = value.slice(0, 200);
   }
-  const { media, sessions } = getPublicConferenceCatalogue();
+  const { media, sessions } = await getPublicConferenceCatalogue(locale);
   return <MediaExperience key={JSON.stringify(initialQuery)} locale={locale} initialQuery={initialQuery} media={media} sessions={sessions} />;
 }
