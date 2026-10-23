@@ -25,7 +25,7 @@ async function fixture(page: Page, options: { items?: ContentItem[]; roles?: Rol
     const request = route.request(), url = new URL(request.url()), formToken = `synthetic-content-token-${++sequence}`;
     if (url.pathname === "/api/staff-portal/media") {
       if (url.searchParams.has("preview")) return route.fulfill({ contentType: "image/png", body: image });
-      return route.fulfill({ json: { state: "ready", formToken, total: 1, assets: [{ id: imageId, filename: "Synthetic approved image.webp", state: "published", mime: "image/webp", size: 1000, width: 640, height: 480, version: 1, altEn: "Synthetic approved image", altAr: "صورة تجريبية معتمدة", captionEn: "", captionAr: "", creditEn: "", creditAr: "", focalX: 50, focalY: 50, rightsConfirmed: true, rightsEvidence: "Synthetic rights record", previewUrl: `/api/staff-portal/media?preview=${imageId}`, publicUrl: `/media/synthetic-${imageId}.webp`, createdAt: now, updatedAt: now }] } });
+      return route.fulfill({ json: { state: "ready", formToken, total: 1, assets: [{ editionYear: null, kind: "photograph", displayOrder: 0, videoPath: null, id: imageId, filename: "Synthetic approved image.webp", state: "published", mime: "image/webp", size: 1000, width: 640, height: 480, version: 1, altEn: "Synthetic approved image", altAr: "صورة تجريبية معتمدة", captionEn: "", captionAr: "", creditEn: "", creditAr: "", focalX: 50, focalY: 50, rightsConfirmed: true, rightsEvidence: "Synthetic rights record", previewUrl: `/api/staff-portal/media?preview=${imageId}`, publicUrl: `/media/synthetic-${imageId}.webp`, createdAt: now, updatedAt: now }] } });
     }
     if (url.pathname !== "/api/staff-portal/content") {
       if (request.method() === "POST") shellActions.push(request.postDataJSON().action);

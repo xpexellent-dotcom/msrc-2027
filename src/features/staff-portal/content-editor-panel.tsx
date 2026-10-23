@@ -14,7 +14,7 @@ import type { MediaAsset } from "./media-contract";
 
 type BilingualField = "name" | "title" | "affiliation" | "bio" | "description" | "group" | "room";
 const collectionFields: Record<ContentCollection, readonly BilingualField[]> = {
-  speakers: ["name", "title", "affiliation", "bio"], sessions: ["title", "description", "room"], partners: ["name"], team: ["name", "title", "group"],
+  speakers: ["name", "title", "affiliation", "bio"], sessions: ["title", "description", "room"], partners: ["name"], team: ["name", "title", "group", "description"],
 };
 function label(item: ContentItem, locale: Locale) { return (item.collection === "sessions" ? item.draft[locale === "ar" ? "titleAr" : "titleEn"] : item.draft[locale === "ar" ? "nameAr" : "nameEn"]) || contentCopy[locale].untitled; }
 function errorText(response: ContentResponse, locale: Locale) { const errors = contentCopy[locale].errors; return response.state in errors ? errors[response.state as keyof typeof errors] : errors.unavailable; }
@@ -70,7 +70,7 @@ function ContentDetails({ locale, collection, item, busy, act, onClose, onDirty,
     if (response.state === "ready") setHistory(response.history ?? []); else setHistoryError(errorText(response, locale));
     setHistoryBusy(false);
   }
-  const sharedFields = collection === "sessions" ? ["day", "startTime", "endTime"] as const : collection === "partners" ? ["url"] as const : [];
+  const sharedFields = collection === "sessions" ? ["day", "startTime", "endTime"] as const : collection === "partners" || collection === "team" ? ["url"] as const : [];
   return <section className="staff-panel staff-content-details" aria-label={text.details}>
     <div className="staff-detail-head"><h3 ref={heading} tabIndex={-1}>{text.details}</h3><Button variant="secondary" size="small" disabled={busy} onClick={onClose}>{text.close}</Button></div>
     {item ? <p className="staff-muted">{text.version} {formatStaffNumber(item.version, locale)} · {item.publishedVersion ? `${text.published} ${formatStaffNumber(item.publishedVersion, locale)}` : text.draft}</p> : null}

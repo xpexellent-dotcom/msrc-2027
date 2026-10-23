@@ -5,6 +5,7 @@ import { peopleAndPartnersCopy } from "@/content/people-and-partners";
 import { isLocale } from "@/lib/i18n";
 import { localizedPageMetadata, siteTitle } from "@/lib/metadata";
 import { getPublishedContent } from "@/features/content/published.server";
+import { publishedTeamRoster } from "@/features/content/team-roster";
 
 // ISR: published content refreshes on publish, or within a minute otherwise.
 export const revalidate = 60;
@@ -15,7 +16,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = peopleAndPartnersCopy[locale].team;
-  const description = (await getPublishedContent("team")).length ? copy.groupTitle : copy.lead;
+  const items = await getPublishedContent("team");
+  const description = items.length && !publishedTeamRoster(items) ? copy.groupTitle : copy.lead;
   return { ...localizedPageMetadata(locale, "/team", siteTitle(copy.label), description), title: siteTitle(copy.label), description };
 }
 

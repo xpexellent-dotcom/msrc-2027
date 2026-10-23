@@ -1,6 +1,7 @@
 /** CMS-01..04 / PRG-01: editable public collections, never private contact data. */
 export const CONTENT_COLLECTIONS = ["speakers", "sessions", "partners", "team"] as const;
 export type ContentCollection = typeof CONTENT_COLLECTIONS[number];
+export type TeamLayout = { slug: string; committee: "scientific" | "organization"; kind: "head" | "lead" | "co-lead"; parentSlug: string | null; noMembers: boolean; members: { nameEn: string; nameAr: string }[] };
 export type ContentFields = {
   nameEn: string; nameAr: string; titleEn: string; titleAr: string;
   affiliationEn: string; affiliationAr: string; bioEn: string; bioAr: string;
@@ -8,6 +9,7 @@ export type ContentFields = {
   roomEn: string; roomAr: string; day: string; startTime: string; endTime: string;
   type: string; tier: string; url: string; links: string[]; assetId: string | null;
   speakerIds: string[]; sortOrder: number; permissionToDisplay: boolean;
+  teamLayout?: TeamLayout;
 };
 export type ContentItem = { id: string; collection: ContentCollection; version: number; publishedVersion: number | null; draft: ContentFields; updatedAt: string };
 export type ContentRevision = { version: number; action: string; fields: ContentFields; createdAt: string };
@@ -31,7 +33,9 @@ export function safeContentUrl(value: string) {
 }
 export function decodeContentFields(value: unknown): ContentFields | null {
   const data = contentRecord(value), base = emptyContentFields();
-  if (!data || Object.keys(data).some((key) => !Object.hasOwn(base, key)) || Object.keys(base).some((key) => !Object.hasOwn(data, key))) return null;
+  if (!data || Object.keys(data).some((key) => key !== "teamLayout" && !Object.hasOwn(base, key)) || Object.keys(base).some((key) => !Object.hasOwn(data, key))) return null;
+  const teamLayout = data.teamLayout == null ? undefined : decodeTeamLayout(data.teamLayout);
+  if (teamLayout === null) return null;
   const strings = Object.keys(base).filter((key) => typeof base[key as keyof ContentFields] === "string");
   if (!strings.every((key) => typeof data[key] === "string" && data[key].length <= (key.startsWith("bio") || key.startsWith("description") ? 6000 : key === "url" ? 2000 : 500) && !/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(data[key]))) return null;
   if (typeof data.permissionToDisplay !== "boolean" || !contentVersion(data.sortOrder, 0) || Number(data.sortOrder) > 1_000_000
@@ -46,8 +50,23 @@ export function decodeContentFields(value: unknown): ContentFields | null {
     || data.tier !== "" && !["platinum", "gold", "silver", "partner"].includes(data.tier as string)) return null;
   // Construct a new allowlisted record rather than forwarding provider properties.
   return { ...Object.fromEntries(Object.keys(base).map((key) => [key, data[key]])),
+    ...(teamLayout ? { teamLayout } : {}),
     assetId: typeof data.assetId === "string" ? data.assetId.toLowerCase() : null,
     speakerIds: data.speakerIds.map((id) => (id as string).toLowerCase()) } as ContentFields;
+}
+export function decodeTeamLayout(value: unknown): TeamLayout | null {
+  const row = contentRecord(value), slug = (v: unknown): v is string => typeof v === "string" && /^[a-z0-9][a-z0-9-]{0,127}$/.test(v);
+  if (!row || Object.keys(row).sort().join(",") !== "committee,kind,members,noMembers,parentSlug,slug"
+    || !slug(row.slug) || !["scientific", "organization"].includes(String(row.committee)) || !["head", "lead", "co-lead"].includes(String(row.kind))
+    || row.parentSlug !== null && !slug(row.parentSlug) || (row.kind === "co-lead") !== (row.parentSlug !== null)
+    || typeof row.noMembers !== "boolean" || !Array.isArray(row.members) || row.members.length > 100) return null;
+  const members: TeamLayout["members"] = [];
+  for (const value of row.members) {
+    const member = contentRecord(value);
+    if (!member || Object.keys(member).sort().join(",") !== "nameAr,nameEn" || ![member.nameEn, member.nameAr].every((v) => typeof v === "string" && v.trim() && v.length <= 500 && !/[\x00-\x1f\x7f]/.test(v))) return null;
+    members.push({ nameEn: member.nameEn as string, nameAr: member.nameAr as string });
+  }
+  return { slug: row.slug, committee: row.committee as TeamLayout["committee"], kind: row.kind as TeamLayout["kind"], parentSlug: row.parentSlug as string | null, noMembers: row.noMembers, members };
 }
 export function contentPublishIssue(collection: ContentCollection, fields: ContentFields): ContentState | null {
   const required = collection === "sessions" ? ["title"] : collection === "partners" ? ["name"] : collection === "team" ? ["name", "title", "group"] : ["name", "title"];

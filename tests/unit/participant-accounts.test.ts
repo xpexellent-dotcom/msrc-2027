@@ -98,7 +98,13 @@ describe("participant accounts closed-by-default and private server protocol", (
     for (const action of ["signup", "forgot"]) {
       const response = await post(action); const result = await response.json();
       expect(response.status).toBe(202); expect(result.state).toBe("accepted"); expect(Object.keys(result).sort()).toEqual(["expiresAt", "formToken", "requestId", "resendAvailableAt", "state"]);
-      expect(response.headers.get("set-cookie")).toBeNull(); expect(JSON.stringify(result)).not.toMatch(/person@|registered|actorId|recipient|SQL|password|codeValue/);
+      expect(response.headers.get("set-cookie")).toBeNull();
+      const { formToken, ...publicFields } = result;
+      expect(formToken).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
+      // Random base64url HMAC bytes can coincidentally spell "SQL". Inspect the
+      // actual public fields and decoded token payload, rather than random bytes.
+      const tokenPayload = JSON.parse(Buffer.from(formToken.split(".")[0], "base64url").toString("utf8"));
+      expect(JSON.stringify({ ...publicFields, tokenPayload })).not.toMatch(/person@|registered|actorId|recipient|SQL|password|codeValue/);
     }
   });
   it.each(["signup", "resend", "forgot"])("acknowledges %s before private account/provider work or timestamps can reveal eligibility", async (action) => {

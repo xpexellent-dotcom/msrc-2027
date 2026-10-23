@@ -2,6 +2,9 @@ export const mediaCopy = {
   en: {
     title: "Media library", intro: "Prepare approved site images. Uploads stay private until you publish them.",
     contentPending: "Published images are available in the content editor’s image picker.",
+    year: "Edition year", allYears: "All years", noYear: "No edition year", kind: "Media kind", kinds: { photograph: "Photograph", film: "Film" }, order: "Display order", videoPath: "Static film file", chooseFilm: "Choose a film", archiveHint: "An edition year includes this item on the public Media page. Leave it empty for team or content images.",
+    earlier: "Move earlier in year", later: "Move later in year", reordered: "Media order updated.",
+    import: "Import current site media and content", importHint: "Import the approved archive and current team as published items. Existing imports stay unchanged when run again.", importConfirm: "Import and publish the current site archive and team?", importSummary: "Import completed", mediaCreated: "Media added", mediaExisting: "Media already present", contentCreated: "Content added", contentExisting: "Content already present",
     search: "Search images", searchAction: "Search", filter: "Image state", all: "All states",
     states: { draft: "Draft", published: "Published", archived: "Archived" },
     upload: "Upload image", drop: "Drop an image here, or choose a file", uploadHint: "JPEG, PNG, WebP or AVIF · up to 10 MB. Location and other embedded metadata are removed.",
@@ -32,6 +35,9 @@ export const mediaCopy = {
   ar: {
     title: "مكتبة الوسائط", intro: "جهّز صور الموقع المعتمدة. تبقى الصور المرفوعة خاصة حتى نشرها.",
     contentPending: "تتوفر الصور المنشورة في أداة اختيار الصور داخل محرر المحتوى.",
+    year: "سنة النسخة", allYears: "جميع السنوات", noYear: "دون سنة نسخة", kind: "نوع الوسائط", kinds: { photograph: "صورة فوتوغرافية", film: "مقطع مرئي" }, order: "ترتيب العرض", videoPath: "ملف المقطع الثابت", chooseFilm: "اختر مقطعًا", archiveHint: "تظهر العناصر ذات سنة النسخة في صفحة الوسائط العامة. اتركها فارغة لصور الفريق والمحتوى.",
+    earlier: "تقديم العنصر ضمن السنة", later: "تأخير العنصر ضمن السنة", reordered: "حُدّث ترتيب الوسائط.",
+    import: "استيراد وسائط الموقع ومحتواه الحالي", importHint: "استورد الأرشيف المعتمد والفريق الحالي كعناصر منشورة. تبقى العناصر المستوردة سابقًا دون تغيير عند تكرار الاستيراد.", importConfirm: "هل تريد استيراد ونشر أرشيف الموقع والفريق الحالي؟", importSummary: "اكتمل الاستيراد", mediaCreated: "الوسائط المضافة", mediaExisting: "الوسائط الموجودة مسبقًا", contentCreated: "المحتوى المضاف", contentExisting: "المحتوى الموجود مسبقًا",
     search: "البحث في الصور", searchAction: "بحث", filter: "حالة الصورة", all: "جميع الحالات",
     states: { draft: "مسودة", published: "منشورة", archived: "مؤرشفة" },
     upload: "رفع صورة", drop: "أفلت صورة هنا، أو اختر ملفًا", uploadHint: "JPEG أو PNG أو WebP أو AVIF · بحد أقصى ١٠ ميغابايت. تُزال بيانات الموقع والبيانات الوصفية المضمّنة الأخرى.",

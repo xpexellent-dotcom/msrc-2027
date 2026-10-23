@@ -11,6 +11,7 @@ const draftId = "56000000-0000-4000-8000-000000000002";
 const syntheticImage = `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720"><rect width="1280" height="720" fill="#36234e"/><path d="M0 0h640v360H0zm640 360h640v360H640z" fill="#533772"/><circle cx="880" cy="310" r="150" fill="#cba85c"/><path d="M840 210h80v200h-80zM780 270h200v80H780z" fill="#36234e"/><path d="M80 590h440v28H80zm0 48h280v20H80z" fill="#e6d9f5"/></svg>`;
 function asset(id: string, filename: string, state: MediaAsset["state"]): MediaAsset {
   return { id, filename, state, mime: "image/webp", size: 1280, width: 1280, height: 720, version: 1,
+    editionYear: 2026, kind: "photograph", displayOrder: Number(id.slice(-1)), videoPath: null,
     altEn: state === "published" ? "Synthetic published image" : "", altAr: state === "published" ? "صورة تجريبية منشورة" : "",
     captionEn: "", captionAr: "", creditEn: "", creditAr: "", focalX: 50, focalY: 50,
     rightsConfirmed: state === "published", rightsEvidence: state === "published" ? "Synthetic permission record v1; approved website use; grant current." : "",
@@ -23,7 +24,8 @@ async function fixture(page: Page, options: { roles?: Role[]; missing?: boolean;
   const imageBytes = await sharp(Buffer.from(syntheticImage)).png().toBuffer();
   const roles = options.roles ?? ["contentMediaEditor"];
   const assets = [asset(draftId, "Synthetic draft.png", "draft"), asset("56000000-0000-4000-8000-000000000003", "Synthetic published.webp", "published"), asset("56000000-0000-4000-8000-000000000004", "Synthetic archive.jpg", "archived")];
-  const actions: MediaPayload[] = [], reads: { q: string; state: string }[] = [], shellActions: string[] = [];
+  const actions: MediaPayload[] = [], reads: { q: string; state: string; year: string }[] = [], shellActions: string[] = [];
+  const importStorageWrites: string[] = []; let imported = false;
   const uploads: { bytes: Buffer | null; headers: Record<string, string> }[] = [];
   let missing = Boolean(options.missing), failure: MediaResponseState | undefined, storageFailure = false, sequence = 0, uploadedName = "";
   let releaseUpload = () => {};
@@ -31,6 +33,7 @@ async function fixture(page: Page, options: { roles?: Role[]; missing?: boolean;
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request(), url = new URL(request.url());
     if (url.pathname === "/api/staff-portal/media" && url.searchParams.has("preview")) return route.fulfill({ contentType: "image/png", body: imageBytes });
+    if (url.pathname === "/api/staff-portal/content") return route.fulfill({ json: { state: "ready", items: [], formToken: `synthetic-content-${++sequence}` } });
     if (url.pathname !== "/api/staff-portal/media") {
       if (request.method() === "POST") shellActions.push(request.postDataJSON().action);
       return route.fulfill({ json: { state: "authenticated", profile: { actorId, name: "Synthetic Media Editor", roles }, formToken: `synthetic-shell-${++sequence}` } });
@@ -39,13 +42,20 @@ async function fixture(page: Page, options: { roles?: Role[]; missing?: boolean;
     if (!roles.some((role) => role === "superAdmin" || role === "contentMediaEditor")) return route.fulfill({ status: 403, json: { state: "denied", formToken } });
     if (request.method() === "GET") {
       if (missing) return route.fulfill({ status: 503, json: { state: "area-not-ready", formToken } });
-      const q = url.searchParams.get("q") ?? "", state = url.searchParams.get("state") ?? "all";
-      reads.push({ q, state });
-      const matches = assets.filter((entry) => (state === "all" || entry.state === state) && `${entry.filename} ${entry.altEn} ${entry.altAr}`.toLowerCase().includes(q.toLowerCase()));
-      return route.fulfill({ json: { state: "ready", assets: matches, total: matches.length, formToken } });
+      const q = url.searchParams.get("q") ?? "", state = url.searchParams.get("state") ?? "all", year = url.searchParams.get("year") ?? "all";
+      reads.push({ q, state, year });
+      const matches = assets.filter((entry) => (state === "all" || entry.state === state) && (year === "all" || entry.editionYear === Number(year)) && `${entry.filename} ${entry.altEn} ${entry.altAr}`.toLowerCase().includes(q.toLowerCase())).sort((a, b) => a.displayOrder - b.displayOrder);
+      return route.fulfill({ json: { state: "ready", assets: matches, total: matches.length, formToken, years: [2026], canImport: roles.includes("superAdmin") } });
     }
     const payload = request.postDataJSON() as MediaPayload; actions.push(payload);
     if (failure) return route.fulfill({ status: failure === "area-not-ready" || failure === "unavailable" ? 503 : 409, json: { state: failure, formToken } });
+    if (payload.action === "import-current-site") {
+      if (!roles.includes("superAdmin")) return route.fulfill({ status: 403, json: { state: "denied", formToken } });
+      // Synthetic Storage adapter boundary: no provider write or existing site photograph is used.
+      if (!imported) for (const suffix of ["", ".640", ".1280", ".1920"]) importStorageWrites.push(`synthetic/import/image${suffix}.webp`);
+      const summary = { mediaCreated: imported ? 0 : 1, mediaExisting: imported ? 1 : 0, contentCreated: imported ? 0 : 1, contentExisting: imported ? 1 : 0 };
+      imported = true; return route.fulfill({ json: { state: "ready", summary, formToken } });
+    }
     if (payload.action === "upload-url") {
       uploadedName = payload.filename;
       return route.fulfill({ json: { state: "ready", uploadId: "56000000-0000-4000-8000-000000000010", path: "synthetic/image", signedUrl: "http://127.0.0.1:3220/storage/v1/object/upload/sign/msrc-media-drafts/synthetic/image?token=synthetic-upload-only", formToken } });
@@ -60,6 +70,11 @@ async function fixture(page: Page, options: { roles?: Role[]; missing?: boolean;
     if (payload.action === "save") {
       for (const key of ["altEn", "altAr", "captionEn", "captionAr", "creditEn", "creditAr", "rightsEvidence"] as const) entry[key] = payload[key];
       entry.focalX = payload.focalX; entry.focalY = payload.focalY; entry.rightsConfirmed = payload.rightsConfirmed;
+      entry.editionYear = payload.editionYear; entry.kind = payload.kind; entry.displayOrder = payload.displayOrder; entry.videoPath = payload.videoPath;
+    } else if (payload.action === "reorder") {
+      const group = assets.filter((item) => item.editionYear === entry.editionYear && item.state !== "archived").sort((a, b) => a.displayOrder - b.displayOrder);
+      const other = group[group.indexOf(entry) + (payload.direction === "earlier" ? -1 : 1)];
+      if (other) { const position = other.displayOrder; other.displayOrder = entry.displayOrder; entry.displayOrder = position; other.version += 1; }
     } else {
       entry.state = payload.action === "publish" ? "published" : payload.action === "unpublish" ? "draft" : "archived";
       entry.publicUrl = entry.state === "published" ? `/media/synthetic-${entry.id}.webp` : null;
@@ -74,7 +89,7 @@ async function fixture(page: Page, options: { roles?: Role[]; missing?: boolean;
     await uploadGate;
     return route.fulfill({ status: storageFailure ? 500 : 200, headers, json: storageFailure ? { error: "Synthetic storage failure" } : { Key: "synthetic/image" } });
   });
-  return { actions, reads, assets, uploads, shellActions, imageBytes, releaseUpload, recover: () => { missing = false; failure = undefined; storageFailure = false; }, fail: (state?: MediaResponseState) => { failure = state; }, failStorage: () => { storageFailure = true; } };
+  return { actions, reads, assets, uploads, shellActions, imageBytes, releaseUpload, importStorageWrites, recover: () => { missing = false; failure = undefined; storageFailure = false; }, fail: (state?: MediaResponseState) => { failure = state; }, failStorage: () => { storageFailure = true; } };
 }
 
 async function axe(page: Page, locale: "en" | "ar") {
@@ -115,7 +130,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByLabel(copy.search, { exact: true }).fill("no synthetic match");
     await page.getByRole("button", { name: copy.searchAction, exact: true }).click();
     await expect(page.getByText(copy.empty, { exact: true })).toBeVisible();
-    expect(mock.reads).toContainEqual({ q: "no synthetic match", state: "all" });
+    expect(mock.reads).toContainEqual({ q: "no synthetic match", state: "all", year: "all" });
     await axe(page, locale);
     await page.getByLabel(copy.search, { exact: true }).fill("");
     await page.getByRole("button", { name: copy.searchAction, exact: true }).click();
@@ -270,6 +285,63 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("navigation", { name: staff.menu }).getByRole("link", { name: staff.areas.content, exact: true })).toHaveCount(0);
     await expect(page.locator("#media-upload")).toHaveCount(0);
     expect(mock.actions).toHaveLength(0); expect(mock.reads).toHaveLength(0);
+    await axe(page, locale);
+  });
+
+  test(`${locale} archive metadata edits, year filtering and ordering keep the bilingual screen accessible`, async ({ page }) => {
+    const mock = await fixture(page);
+    await page.goto(`/${locale}/staff/content`);
+    await expect(page.getByRole("button", { name: copy.import, exact: true })).toHaveCount(0);
+    await page.locator("#media-year-filter").selectOption("2026");
+    await expect.poll(() => mock.reads.at(-1)?.year).toBe("2026");
+    await page.getByRole("button", { name: `${copy.open}: Synthetic draft.png`, exact: true }).click();
+    await page.locator("#media-kind").selectOption("film");
+    await page.getByLabel(copy.videoPath, { exact: true }).selectOption("/media/editions/2026/video-2-silent-v2.mp4");
+    await page.getByLabel(copy.order, { exact: true }).fill("4");
+    await axe(page, locale);
+    await page.getByRole("button", { name: copy.save, exact: true }).click();
+    await expect(page.getByText(copy.saved, { exact: true })).toBeVisible();
+    expect(mock.actions.at(-1)).toMatchObject({ action: "save", editionYear: 2026, kind: "film", displayOrder: 4, videoPath: "/media/editions/2026/video-2-silent-v2.mp4" });
+    await page.getByRole("button", { name: copy.earlier, exact: true }).click();
+    await expect(page.getByText(copy.reordered, { exact: true })).toBeVisible();
+    expect(mock.actions.at(-1)).toMatchObject({ action: "reorder", assetId: draftId, direction: "earlier" });
+    await axe(page, locale);
+  });
+
+  test(`${locale} Super Admin import shows an idempotent summary and handles missing migration`, async ({ page }, testInfo) => {
+    const mock = await fixture(page, { roles: ["superAdmin"] });
+    await page.goto(`/${locale}/staff/content`);
+    await page.getByRole("button", { name: copy.import, exact: true }).click();
+    let confirmation = page.getByRole("group", { name: copy.importConfirm, exact: true });
+    await expect(confirmation).toBeVisible();
+    await axe(page, locale);
+    await confirmation.getByRole("button", { name: `${copy.confirm} ${copy.import}`, exact: true }).click();
+    await expect(page.getByText(copy.importSummary, { exact: true })).toBeVisible();
+    expect(mock.importStorageWrites).toHaveLength(4);
+    await expect(page.locator(".staff-media-import")).toContainText(copy.mediaCreated);
+    await expect(page.getByText(copy.mediaCreated, { exact: true }).locator("..").locator("dd")).toHaveText(locale === "ar" ? "١" : "1");
+    await page.getByRole("button", { name: copy.import, exact: true }).click();
+    confirmation = page.getByRole("group", { name: copy.importConfirm, exact: true });
+    await confirmation.getByRole("button", { name: `${copy.confirm} ${copy.import}`, exact: true }).click();
+    await expect.poll(() => mock.actions.filter((action) => action.action === "import-current-site").length).toBe(2);
+    await expect(confirmation).toHaveCount(0);
+    expect(mock.importStorageWrites).toHaveLength(4);
+    await expect(page.locator(".staff-media-import dl")).toContainText(copy.mediaExisting);
+    await expect(page.getByText(copy.mediaCreated, { exact: true }).locator("..").locator("dd")).toHaveText(locale === "ar" ? "٠" : "0");
+    await expect(page.getByText(copy.mediaExisting, { exact: true }).locator("..").locator("dd")).toHaveText(locale === "ar" ? "١" : "1");
+    if (testInfo.project.name.includes("mobile")) {
+      await page.setViewportSize({ width: 320, height: 740 });
+      await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+    await axe(page, locale);
+    await page.locator(".staff-media-import").screenshot({ path: `test-results/staff-evidence/${testInfo.project.name}-${locale}-media-import-summary.png` });
+    mock.fail("area-not-ready");
+    await page.getByRole("button", { name: copy.import, exact: true }).click();
+    await page.getByRole("group", { name: copy.importConfirm, exact: true }).getByRole("button", { name: `${copy.confirm} ${copy.import}`, exact: true }).click();
+    await expect(page.getByText(copy.errors["area-not-ready"], { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: staff.signOut, exact: true })).toBeVisible();
+    expect(mock.shellActions).not.toContain("logout"); expect(mock.importStorageWrites).toHaveLength(4);
     await axe(page, locale);
   });
 }
