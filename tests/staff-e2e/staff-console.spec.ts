@@ -12,6 +12,10 @@ const ids = ["21000000-0000-4000-8000-0000000000a1", "21000000-0000-4000-8000-00
 const participantId = "21000000-0000-4000-8000-0000000000b1";
 const earlyIds = ["21000000-0000-4000-8000-0000000000e1", "21000000-0000-4000-8000-0000000000e2"];
 const historyEvents: Pick<StaffRegistrationHistoryRow, "event" | "actorKind" | "from" | "to">[] = [
+  { event: "request.seat_released", actorKind: "participant", from: "confirmed", to: "cancelled" },
+  { event: "request.seat_confirmed", actorKind: "participant", from: "approved", to: "confirmed" },
+  { event: "request.confirmation_kept", actorKind: "automatic", from: "approved", to: "approved" },
+  { event: "request.confirmation_opened", actorKind: "staff", from: "approved", to: "approved" },
   { event: "ticket.revoked", actorKind: "automatic", from: null, to: null },
   { event: "request.cancelled", actorKind: "participant", from: "approved", to: "cancelled" },
   { event: "ticket.issued", actorKind: "automatic", from: null, to: null },

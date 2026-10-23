@@ -4,6 +4,7 @@ import { expect, type APIRequestContext, type BrowserContext, type Page } from "
 const origin = "http://127.0.0.1:3216";
 export type FixtureState = "not-requested" | "pending_approval" | "waitlisted" | "offered" | "approved" | "confirmed" | "cancelled" | "expired" | "missing-rpc";
 export type Fixture = { state: FixtureState; window?: { state: "early_access" | "scheduled" | "open" | "closed"; eligible: boolean; opensAt: string | null };
+  confirmation?: { state: "awaiting" | "confirmed" | "released" | "kept"; deadline: string }; deadlinePolicy?: "release" | "keep"; missingConfirmation?: "version" | "action";
   attendance?: { conferenceDay: string; checkedInAt: string | null }[]; missingAttendance?: boolean;
   fewPlaces?: boolean; offerExpiresAt?: string; actionState?: string; missingCollection?: "context" | "submit" };
 

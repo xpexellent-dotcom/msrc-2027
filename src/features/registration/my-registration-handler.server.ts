@@ -4,7 +4,7 @@ import { getParticipantConfig, type ParticipantReadiness, type ParticipantConfig
 import { nativeTokenNeedsRefresh, participantCookie, participantHash, participantIp, participantOrigin, participantUuid,
   readParticipantJson, readParticipantSession } from "@/features/participant-accounts/security.server";
 import { createRegistrationBackend, RegistrationRpcMissingError, type RegistrationBackend } from "./backend.server";
-import type { MyRegistration, MyRegistrationResponse, RegistrationAction, RegistrationWindow, RegistrationAttendanceDay } from "./contracts";
+import type { MyRegistration, MyRegistrationResponse, RegistrationAction, RegistrationWindow, RegistrationAttendanceDay, SeatConfirmation } from "./contracts";
 import { validConferenceDay } from "@/features/attendance/conference-days";
 import { participantReady, verifiedClaims } from "./handler.server";
 import { readRegistrationActionToken, registrationActionToken } from "./security.server";
@@ -36,16 +36,26 @@ function attendanceProjection(value: unknown): RegistrationAttendanceDay[] | nul
 /** Fail closed on over-returned private fields; identifiers stay on the server. */
 function snapshot(value: unknown): Snapshot | null {
   const data = record(value), window = record(data?.window), request = record(data?.request);
-  if (!data || Object.keys(data).sort().join(",") !== "fewPlaces,request,serverNow,state,window" || data.state !== "ready"
+  if (data?.state === "ready" && data.confirmationVersion === undefined) throw new RegistrationRpcMissingError();
+  if (!data || Object.keys(data).sort().join(",") !== "confirmationVersion,fewPlaces,request,serverNow,state,window" || data.state !== "ready" || data.confirmationVersion !== 1
     || !window || Object.keys(window).sort().join(",") !== "eligible,opensAt,state"
     || !["early_access", "scheduled", "open", "closed"].includes(String(window.state)) || typeof window.eligible !== "boolean"
     || window.opensAt !== null && !timestamp(window.opensAt) || typeof data.fewPlaces !== "boolean" || !timestamp(data.serverNow)) return null;
-  if (data.request !== null && (!request || Object.keys(request).sort().join(",") !== "createdAt,id,offerExpiresAt,status"
+  if (data.request !== null && (!request || Object.keys(request).sort().join(",") !== "confirmation,createdAt,id,offerExpiresAt,status"
     || typeof request.id !== "string" || !participantUuid.test(request.id) || !statuses.includes(String(request.status))
     || !timestamp(request.createdAt) || request.offerExpiresAt !== null && !timestamp(request.offerExpiresAt)
     || request.status === "offered" && request.offerExpiresAt === null)) return null;
+  let confirmation: SeatConfirmation | null = null;
+  if (request && request.confirmation !== null) {
+    const value = record(request.confirmation);
+    if (!value || Object.keys(value).sort().join(",") !== "deadline,state" || !timestamp(value.deadline)
+      || !["awaiting", "confirmed", "released", "kept"].includes(String(value.state))) return null;
+    const state = value.state as SeatConfirmation["state"];
+    if (request.status !== { awaiting: "approved", confirmed: "confirmed", released: "cancelled", kept: "approved" }[state]) return null;
+    confirmation = { state, deadline: value.deadline };
+  }
   return { requestId: request?.id as string | undefined ?? null,
-    registration: request ? { status: request.status as MyRegistration["status"], createdAt: request.createdAt as string, offerExpiresAt: request.offerExpiresAt as string | null } : null,
+    registration: request ? { status: request.status as MyRegistration["status"], createdAt: request.createdAt as string, offerExpiresAt: request.offerExpiresAt as string | null, confirmation } : null,
     window: { state: window.state === "early_access" ? "early-access" : window.state as RegistrationWindow["state"],
       eligible: window.eligible, opensAt: window.opensAt as string | null }, fewPlacesLeft: data.fewPlaces, serverTime: data.serverNow };
 }
@@ -113,7 +123,7 @@ export function createMyRegistrationHandler(dependencies: {
         let body: Record<string, unknown> | null;
         try { body = record(await readParticipantJson(request)); } catch { return reply({ state: "invalid_input", formToken: fresh() }, 400); }
         const ip = participantIp(config, request);
-        if (!body || Object.keys(body).sort().join(",") !== "action,formToken,operationId" || !["accept", "decline", "cancel"].includes(String(body.action))
+        if (!body || Object.keys(body).sort().join(",") !== "action,formToken,operationId" || !["accept", "decline", "cancel", "confirm", "release"].includes(String(body.action))
           || typeof body.operationId !== "string" || !participantUuid.test(body.operationId) || !ip
           || !readRegistrationActionToken(config, body.formToken, origin, session.actorId, session.sessionId, now)) return reply({ state: "invalid_input", formToken: fresh() }, 400);
         const claim = record(await backend.rpc("msrc_participant_form_claim", {
@@ -128,7 +138,8 @@ export function createMyRegistrationHandler(dependencies: {
           const action = body.action as RegistrationAction;
           const secret = action === "accept" ? (dependencies.secret ?? getRegistrationTicketSecret)() : null;
           if (action === "accept" && !secret) return reply({ state: "area-not-ready" }, 503);
-          const rpc = { accept: "msrc_registration_accept_offer", decline: "msrc_registration_decline_offer", cancel: "msrc_registration_cancel" }[action];
+          const rpc = { accept: "msrc_registration_accept_offer", decline: "msrc_registration_decline_offer", cancel: "msrc_registration_cancel",
+            confirm: "msrc_registration_confirm_seat", release: "msrc_registration_release_seat" }[action];
           const result = await backend.rpc(rpc, { ...args, request_id: current.requestId, operation_id: body.operationId,
             ...(action === "accept" ? { ticket_secret: secret } : {}) });
           const refused = gate(result);

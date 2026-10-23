@@ -6,7 +6,8 @@ import { createStaffBackend, StaffRpcMissingError, type StaffBackend, type Nativ
 import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/config.server";
 import { readStaffJson, readStaffSession, staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
 import { validateStaffPayload } from "@/features/staff-portal/validation.server";
-import { registrationProjection, verifiedPriorityClaims, verifiedStaffRegistrationClaims } from "@/features/staff-portal/registration-contract.server";
+import { registrationDetailProjection, registrationProjection, verifiedPriorityClaims, verifiedStaffRegistrationClaims } from "@/features/staff-portal/registration-contract.server";
+import { confirmationPreviewProjection } from "@/features/staff-portal/confirmation-contract.server";
 import type { StaffRegistrationCounts, StaffRegistrationHistoryRow, StaffRegistrationRequest, StaffPriorityRow } from "@/features/staff-portal/ui-contract";
 
 const origin = "http://127.0.0.1:3219", now = Date.parse("2026-10-17T00:00:00Z");
@@ -73,6 +74,87 @@ beforeEach(() => {
   }), identity: vi.fn(async () => actorId), refresh: vi.fn(async () => native), logout: vi.fn(async () => true) } as unknown as StaffBackend;
 });
 afterEach(() => vi.unstubAllGlobals());
+
+describe("ENG-064 staff confirmation boundary", () => {
+  const preview = { eligibleCount: 2, opensAt: "2026-10-16T21:00:00Z", responseHours: 48, settingsReady: true, canStart: true, previewToken: "a".repeat(64) };
+  const input = { action: "registration-confirmation-start", operationId: requestId, nonresponsePolicy: "release_unconfirmed", previewToken: preview.previewToken };
+  it("reads an exact private preview and passes the chosen policy and digest to the authenticated RPC", async () => {
+    replies.msrc_staff_registration_confirmation_preview = { state: "ready", confirmation: preview };
+    replies.msrc_staff_registration_confirmation_start = { state: "updated", opened: 2 };
+    const read = await handle(request("GET", "?area=registration-confirmation-preview"));
+    expect(await read.json()).toMatchObject({ state: "authenticated", confirmationPreview: preview });
+    expect(read.headers.get("cache-control")).toContain("no-store");
+    for (const nonresponsePolicy of ["release_unconfirmed", "keep_unconfirmed"]) {
+      const response = await handle(request("POST", "", { ...input, nonresponsePolicy }));
+      expect(await response.json()).toMatchObject({ state: "updated", confirmationOpened: 2 });
+      expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_registration_confirmation_start", {
+        edition_key: config.editionKey, operation_id: requestId, nonresponse_policy: nonresponsePolicy, preview_token: preview.previewToken,
+      }, accessToken);
+    }
+  });
+  it.each(ROLES.filter((role) => role !== "superAdmin"))("denies %s before confirmation reads or mutations", async (role) => {
+    roles = [role];
+    for (const call of [request("GET", "?area=registration-confirmation-preview"), request("POST", "", input)]) expect((await handle(call)).status).toBe(403);
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_registration_confirmation_start", expect.anything(), expect.anything());
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_registration_confirmation_preview", expect.anything(), expect.anything());
+  });
+  it("requires current exact-session assurance and does not select a policy", async () => {
+    policySatisfied = false;
+    expect((await handle(request("POST", "", input))).status).toBe(403);
+    for (const patch of [{ nonresponsePolicy: undefined }, { nonresponsePolicy: "" }, { nonresponsePolicy: "automatic" }, { previewToken: "" }, { previewToken: "z".repeat(64) }, { operationId: "invalid" }, { targetId }])
+      expect(validateStaffPayload({ formToken: "synthetic", ...input, ...patch })).toBeNull();
+  });
+  it.each(["preview", "start"])("keeps login on missing confirmation %s RPC", async (kind) => {
+    const original = backend.rpc;
+    backend.rpc = vi.fn(async (name, ...args) => { if (name === `msrc_staff_registration_confirmation_${kind}`) throw new StaffRpcMissingError(); return original(name, ...args); });
+    const response = await handle(kind === "preview" ? request("GET", "?area=registration-confirmation-preview") : request("POST", "", input));
+    expect(response.status).toBe(503); expect(await response.json()).toMatchObject({ state: "area-not-ready" });
+    expect(response.headers.get("set-cookie") ?? "").not.toContain("Max-Age=0"); expect(backend.logout).not.toHaveBeenCalled();
+  });
+  it.each([["conflict", "operation-conflict", 409], ["not_due", "confirmation-not-due", 409], ["denied", "denied", 403], ["area_not_ready", "area-not-ready", 503]])("maps %s without exposing internal details", async (state, expected, status) => {
+    replies.msrc_staff_registration_confirmation_start = { state };
+    const response = await handle(request("POST", "", input)); expect(response.status).toBe(status);
+    expect(await response.json()).toMatchObject({ state: expected }); expect(backend.logout).not.toHaveBeenCalled();
+  });
+  it("rejects over-returned, inconsistent and malformed previews", () => {
+    expect(confirmationPreviewProjection(preview)).toEqual(preview);
+    for (const patch of [{ emails: [row.email] }, { eligibleCount: -1 }, { eligibleCount: 1.5 }, { canStart: true, settingsReady: false }, { responseHours: 0 }, { opensAt: "bad" }, { previewToken: null }])
+      expect(confirmationPreviewProjection({ ...preview, ...patch })).toBeNull();
+  });
+  it("passes confirmation filters and refuses old-schema confirmation filters", async () => {
+    for (const status of ["confirmation_awaiting", "confirmation_confirmed", "confirmation_released"]) {
+      const old = await handle(request("GET", `?area=registration&status=${status}`)); expect(await old.json()).toMatchObject({ state: "area-not-ready" });
+      replies.msrc_staff_registration = { state: "ready", confirmationVersion: 1, registration };
+      const response = await handle(request("GET", `?area=registration&status=${status}`)); expect(response.status).toBe(200);
+      expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_registration", { edition_key: config.editionKey, search: "", status_filter: status }, accessToken);
+      replies.msrc_staff_registration = { state: "ready", registration };
+    }
+  });
+  it("projects confirmation state and rejects hidden fields and impossible status combinations", () => {
+    for (const [state, status] of [["awaiting", "approved"], ["confirmed", "confirmed"], ["released", "cancelled"], ["kept", "approved"]]) {
+      const request = { ...row, status, confirmation: { state, deadline: "2026-10-19T00:00:00Z" } };
+      expect(registrationProjection({ requests: [request], counts: { ...counts, confirmationAwaiting: 1, confirmationConfirmed: 0, confirmationReleased: 0 } })).not.toBeNull();
+      expect(registrationProjection({ requests: [{ ...request, status: "waitlisted" }], counts })).toBeNull();
+      expect(registrationProjection({ requests: [{ ...request, confirmation: { ...request.confirmation, recipient: row.email } }], counts })).toBeNull();
+    }
+  });
+  it("retains the actor and transition rules for the new confirmation timeline", () => {
+    const events = [
+      { event: "request.confirmation_opened", actorKind: "staff", from: "approved", to: "approved", performerName: "Synthetic Staff" },
+      { event: "request.confirmation_opened", actorKind: "automatic", from: "approved", to: "approved", performerName: null },
+      { event: "request.seat_confirmed", actorKind: "participant", from: "approved", to: "confirmed", performerName: null },
+      { event: "request.seat_released", actorKind: "participant", from: "confirmed", to: "cancelled", performerName: null },
+      { event: "request.seat_released", actorKind: "automatic", from: "approved", to: "cancelled", performerName: null },
+      { event: "request.confirmation_kept", actorKind: "automatic", from: "approved", to: "approved", performerName: null },
+    ];
+    for (const event of events) {
+      const history = { id: requestId, at: row.createdAt, ...event };
+      expect(registrationDetailProjection({ request: row, history: [history] }, requestId)).not.toBeNull();
+      expect(registrationDetailProjection({ request: row, history: [{ ...history, from: "waitlisted" }] }, requestId)).toBeNull();
+    }
+    expect(registrationDetailProjection({ request: row, history: [{ id: requestId, at: row.createdAt, ...events[2], actorKind: "staff" }] }, requestId)).toBeNull();
+  });
+});
 
 describe("ticket-bearing approval service boundary", () => {
   it("uses the service credential without a user bearer and strips editable claims", async () => {

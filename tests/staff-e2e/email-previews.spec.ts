@@ -7,7 +7,7 @@ import type { StaffEmailPreview, StaffResponse } from "../../src/features/staff-
 import renderedPreviews from "./fixtures/email-previews.json" with { type: "json" };
 
 /** Exact server-rendered samples, kept in sync by the renderer unit test; session responses are presentation fixtures. */
-const previews: StaffEmailPreview[] = renderedPreviews;
+const previews = renderedPreviews as StaffEmailPreview[];
 
 async function fixture(page: Page, options: { denied?: boolean; clipboardFails?: boolean; maliciousMarkup?: boolean } = {}) {
   const reads: string[] = [], mutations: string[] = [];
@@ -42,13 +42,14 @@ async function axe(page: Page) {
 
 for (const locale of ["en", "ar"] as const) {
   const copy = emailPreviewsCopy[locale];
-  test(`${locale} email previews show all six English templates and copy exact plain text by keyboard`, async ({ page }, testInfo) => {
+  test(`${locale} email previews show approved and draft English templates and copy exact plain text by keyboard`, async ({ page }, testInfo) => {
     const mock = await fixture(page);
     await page.goto(`/${locale}/staff/email-previews`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(staffCopy[locale].areas["email-previews"]);
     await expect(page.getByRole("navigation", { name: staffCopy[locale].menu }).getByRole("link", { name: staffCopy[locale].areas["email-previews"], exact: true })).toHaveAttribute("aria-current", "page");
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
-    await expect(page.getByText(copy.approved, { exact: true })).toBeVisible();
+    await expect(page.getByText(copy.approved, { exact: true })).toHaveCount(6);
+    await expect(page.getByText(copy.draft, { exact: true })).toHaveCount(2);
     const cards = page.getByTestId("email-preview");
     await expect(cards).toHaveCount(previews.length);
     for (let index = 0; index < previews.length; index++) {

@@ -2,7 +2,7 @@ import "server-only";
 import { ROLES, type Role } from "@/lib/permissions/contract";
 import { normalizeParticipantCode } from "@/features/participant-accounts/validation.server";
 import { staffUuid } from "./security.server";
-import type { StaffRegistrationSettingsChanges, StaffRegistrationStatus } from "./ui-contract";
+import type { StaffConfirmationFilter, StaffConfirmationPolicy, StaffRegistrationSettingsChanges, StaffRegistrationStatus } from "./ui-contract";
 import { registrationSettingsChanges } from "./registration-settings-validation";
 import { checkInDay } from "./check-in-contract.server";
 
@@ -11,14 +11,19 @@ export function validStaffRegistrationStatus(value: unknown): value is StaffRegi
   return value === "all" || typeof value === "string" && STAFF_REGISTRATION_STATUSES.includes(value as StaffRegistrationStatus);
 }
 
+export function validStaffRegistrationFilter(value: unknown): value is StaffRegistrationStatus | StaffConfirmationFilter | "all" {
+  return validStaffRegistrationStatus(value) || typeof value === "string" && ["confirmation_awaiting", "confirmation_confirmed", "confirmation_released"].includes(value);
+}
+
 export const STAFF_ACTIONS = ["signin", "logout", "activity", "enroll-totp", "challenge-totp", "verify-totp", "challenge-email", "verify-email",
   "invite-accept", "invite", "invite-resend", "invite-revoke", "roles", "suspend", "reactivate", "revoke-sessions",
-  "reset-authenticator", "reset-account", "reveal-identity", "password-change", "registration-approve", "registration-waitlist", "registration-offer", "priority-set", "priority-remove", "early-access-add", "early-access-remove", "registration-settings-save", "check-in", "check-in-undo"] as const;
+  "reset-authenticator", "reset-account", "reveal-identity", "password-change", "registration-approve", "registration-waitlist", "registration-offer", "priority-set", "priority-remove", "early-access-add", "early-access-remove", "registration-settings-save", "registration-confirmation-start", "check-in", "check-in-undo"] as const;
 export interface StaffPayload {
   action: (typeof STAFF_ACTIONS)[number]; formToken: string; email?: string; name?: string; password?: string; passwordConfirmation?: string;
   code?: string; challengeId?: string; factorId?: string; invitationId?: string; token?: string; targetId?: string;
   roles?: Role[]; website?: string; reason?: string; requestIds?: string[]; status?: StaffRegistrationStatus | "all";
   emails?: string[]; entryIds?: string[]; changes?: StaffRegistrationSettingsChanges; operationId?: string;
+  nonresponsePolicy?: StaffConfirmationPolicy; previewToken?: string;
   ticketTokenOrReference?: string; conferenceDay?: string; entryPoint?: string; attendanceId?: string;
 }
 /** Validate the private response without rewriting the database's normalized email. */
@@ -33,7 +38,7 @@ export function validateStaffPayload(value: unknown): StaffPayload | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
   if (!STAFF_ACTIONS.includes(record.action as never) || typeof record.formToken !== "string") return null;
-  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website", "reason", "requestIds", "status", "emails", "entryIds", "changes", "operationId", "ticketTokenOrReference", "conferenceDay", "entryPoint", "attendanceId"];
+  const allowed = ["action", "formToken", "email", "name", "password", "passwordConfirmation", "code", "challengeId", "factorId", "invitationId", "token", "targetId", "roles", "website", "reason", "requestIds", "status", "emails", "entryIds", "changes", "operationId", "ticketTokenOrReference", "conferenceDay", "entryPoint", "attendanceId", "nonresponsePolicy", "previewToken"];
   if (Object.keys(record).some((key) => !allowed.includes(key))
     || Object.entries(record).some(([key, entry]) => !["roles", "requestIds", "emails", "entryIds", "changes"].includes(key) && (typeof entry !== "string" || entry.length > (key === "formToken" ? 1024 : 512)))) return null;
   const input = { ...record } as unknown as StaffPayload;
@@ -47,12 +52,18 @@ export function validateStaffPayload(value: unknown): StaffPayload | null {
     if (Object.keys(record).some((key) => !["action", "formToken", "website", "attendanceId", "reason"].includes(key))
       || !input.attendanceId || !staffUuid.test(input.attendanceId)) return null;
   } else if (input.attendanceId !== undefined) return null;
+  if (input.action === "registration-confirmation-start") {
+    if (Object.keys(record).some((key) => !["action", "formToken", "website", "operationId", "nonresponsePolicy", "previewToken"].includes(key))
+      || !input.operationId || !staffUuid.test(input.operationId)
+      || !["release_unconfirmed", "keep_unconfirmed"].includes(input.nonresponsePolicy ?? "")
+      || !input.previewToken || !/^[a-f0-9]{64}$/.test(input.previewToken)) return null;
+  } else if (input.nonresponsePolicy !== undefined || input.previewToken !== undefined) return null;
   if (input.action === "registration-settings-save") {
     const changes = registrationSettingsChanges(input.changes);
     if (Object.keys(record).some((key) => !["action", "formToken", "website", "changes", "operationId"].includes(key))
       || !changes || !input.operationId || !staffUuid.test(input.operationId)) return null;
     input.changes = changes; input.operationId = input.operationId.toLowerCase();
-  } else if (input.changes !== undefined || input.operationId !== undefined) return null;
+  } else if (input.changes !== undefined || input.operationId !== undefined && input.action !== "registration-confirmation-start") return null;
   if (input.action === "activity" && Object.keys(record).some((key) => !["action", "formToken", "website"].includes(key))) return null;
   if (["reveal-identity", "priority-set", "priority-remove", "check-in-undo"].includes(input.action)) {
     input.reason = input.reason?.trim();

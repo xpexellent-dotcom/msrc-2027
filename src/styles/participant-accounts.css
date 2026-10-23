@@ -48,6 +48,9 @@
 .registration-confirmation { margin-block-start: var(--space-5); padding: var(--space-4); border: 1px solid var(--color-purple); border-radius: .75rem; }
 .registration-confirmation h3 { color: var(--color-purple); font-size: 1.15rem; line-height: 1.7; }
 .registration-status-card .participant-account-actions:empty { display: none; }
+.registration-seat-confirmation { margin-block: var(--space-5); padding: var(--space-4); border: 1px solid var(--color-purple); border-radius: .75rem; }
+.registration-seat-confirmation h3 { color: var(--color-purple); font-size: 1.2rem; line-height: 1.7; }
+.registration-seat-confirmation > p { margin-block-start: var(--space-2); line-height: 1.85; }
 @media (max-width: 600px) {
   .participant-account-actions { flex-direction: column; align-items: stretch; }
   .participant-account-navigation { flex-direction: column; align-items: start; gap: var(--space-1); }

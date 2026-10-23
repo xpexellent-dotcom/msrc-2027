@@ -3910,3 +3910,37 @@ Publish/Unpublish transitions. The Next 16 route-handler form is
 `revalidateTag(tag, { expire: 0 })`; cache-component opt-in is not introduced.
 See the current [revalidateTag documentation](https://nextjs.org/docs/app/api-reference/functions/revalidateTag)
 and [unstable_cache documentation](https://nextjs.org/docs/app/api-reference/functions/unstable_cache).
+
+## ENG-064 — Closed confirm-your-seat round, 23 October 2026
+
+Authority: the owner's Night-3 Task 4, ORG-055/056/057 and ENG-054 ticket
+continuity. ENG-063 was the highest number checked before reservation.
+Requirements REG-04/06/07, AT-05/06, ADM-02/04, EML-01–05, SEC-01/02/06,
+TIM-01/02, LOC-01/03 and ACC-01 apply. The v0.5 specification's `confirm`
+matches concern admission/payment and other workflows; it does not define a
+confirm-your-seat nonresponse policy. **Owner decision for this implementation:**
+at send time the Super Admin must explicitly choose release unconfirmed seats
+or keep unconfirmed seats; neither choice has a default. This implements the
+owner's stated fallback without selecting the operational policy for them.
+
+This is local source work on top of Night-3 Tasks 1–3, with pending migrations,
+no settings seeds, hosted changes, flag activation, real email, branch, commit
+or push. The six ORG-057-approved emails and public legal text remain unchanged.
+New confirmation and released-seat messages are DRAFT for owner approval.
+The O9 receipt is `docs/progress/2026-10-23-codex-night3-confirm-seat.md`;
+`docs/PROGRESS.md` remains untouched.
+
+The opening threshold uses midnight Asia/Riyadh on the first owner-configured
+conference day minus the configured lead days. Lead days zero is valid; no
+unrequested first-day cutoff is imposed. An explicitly started round also
+covers later approved requests, each receiving its own full response duration
+under the latest round's immutable policy. The review dialog discloses that
+ongoing scope beside the current recipient count. Existing windows never reset.
+
+Use the existing explicit read/action expiry pattern and the authenticated
+outbox drain for background maintenance, not a new scheduler. Database time
+under the shared settings lock controls transitions, including own ticket
+reads and online check-in. The daily source cron remains unchanged and all
+existing runtime/database/delivery switches remain off. Timely delivery and
+background cadence remain owner activation gates; this change is not a
+production-readiness claim.

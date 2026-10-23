@@ -1087,3 +1087,166 @@ describe.skipIf(!isolatedCi)("Conference attendance (disposable GitHub CI only)"
     } finally { await Promise.allSettled([locking.done]); }
   });
 });
+
+// ENG-064: each case has fresh users/sessions and its own edition. These proofs
+// run in the existing disposable staff DB job, never the ordinary unit suite.
+describe.skipIf(!isolatedCi)("Confirm-your-seat serialization (disposable GitHub CI only)", () => {
+  const confirmationEdition = (n: number) => `synthetic-confirmation-race-${n}`;
+  const requestIdSql = (n: number) => `(select id from msrc_registration.requests where actor_id='${actor(n)}')`;
+  async function fixture(n: number, start = true) {
+    const event = confirmationEdition(n);
+    await query(`begin;
+      update msrc_participant.policy set enabled=true,privacy_version='synthetic-registration-notice',email_daily_limit=1000;
+      update msrc_participant.retention_policy set enabled=true;
+      update msrc_staff.policy set enabled=true,email_daily_limit=1000;
+      update msrc_outbox.settings set sweeps_enabled=true;
+      select pg_temp.registration_settings('${event}');
+      update msrc_registration.settings set conference_days=array[(clock_timestamp() at time zone 'Asia/Riyadh')::date+1,(clock_timestamp() at time zone 'Asia/Riyadh')::date+2],general_capacity=1,offer_window_hours=24 where edition_key='${event}';
+      select pg_temp.registration_fixture(${n},'${event}');
+      select pg_temp.registration_fixture(${n + 1},'${event}');
+      select pg_temp.registration_staff_fixture(${n + 2},'${event}');
+      commit;`);
+    // Auth sessions above must exist in a prior statement/transaction.
+    await query(`begin;
+      select pg_temp.registration_submit('${event}',${n},md5('${n}')||md5('${n}'));
+      select pg_temp.registration_submit('${event}',${n + 1},md5('${n + 1}')||md5('${n + 1}'));
+      update msrc_registration.requests set status='approved' where id=${requestIdSql(n)};
+      update msrc_registration.requests set status='waitlisted' where id=${requestIdSql(n + 1)};
+      select set_config('request.jwt.claims',pg_temp.registration_claims(${n + 2})::text,true);
+      ${start ? `select public.msrc_staff_registration_confirmation_start('${event}',gen_random_uuid(),'release_unconfirmed',
+        public.msrc_staff_registration_confirmation_preview('${event}')#>>'{confirmation,previewToken}');` : ""}
+      commit;`);
+  }
+  function confirm(n: number, name: string, operation = "e7900000-0000-4000-8000-000000000101") {
+    return `begin;set local application_name='${name}';
+      select set_config('request.jwt.claims',pg_temp.registration_claims(${n})::text,true);
+      select set_config('synthetic.confirm_request',${requestIdSql(n)}::text,true);
+      set local role service_role;
+      select public.msrc_registration_confirm_seat('${confirmationEdition(n)}',current_setting('request.jwt.claims')::jsonb,
+        current_setting('synthetic.confirm_request')::uuid,'${operation}')::text;`;
+  }
+  function maintenance(n: number, name: string) {
+    return `begin;set local application_name='${name}';set local role service_role;
+      select public.msrc_registration_confirmation_maintenance('${confirmationEdition(n)}')::text;commit;`;
+  }
+
+  it("a confirmation holding the settings lock wins over a queued deadline sweep and preserves its ticket", async () => {
+    const n = 88001;
+    await fixture(n);
+    const original = (await query(`select id::text||':'||encode(secret_hash,'hex') from msrc_registration.tickets where request_id=${requestIdSql(n)};`)).trim();
+    const first = held(confirm(n, "synthetic-confirm-before-expiry") + `reset role;
+      update msrc_registration.confirmation_windows set opened_at=clock_timestamp()-interval '2 hours',deadline=clock_timestamp()-interval '1 hour'
+        where request_id=${requestIdSql(n)};
+      select pg_advisory_xact_lock(${marker});`);
+    let sweep: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        sweep = query(maintenance(n, "synthetic-confirm-expiry-contender"));
+        await waiting("synthetic-confirm-expiry-contender");
+      } finally { first.release(); }
+      const [confirmed, expired] = await Promise.all([first.done, sweep!]);
+      expect(response(confirmed).state).toBe("updated");
+      expect(response(expired)).toMatchObject({ state: "updated", released: 0, offered: 0 });
+      expect((await query(`select id::text||':'||encode(secret_hash,'hex') from msrc_registration.tickets where request_id=${requestIdSql(n)};`)).trim()).toBe(original);
+      await query(`do $$begin
+        if (select status from msrc_registration.requests where id=${requestIdSql(n)})<>'confirmed'
+        or (select status from msrc_registration.tickets where request_id=${requestIdSql(n)})<>'issued'
+        or (select status from msrc_registration.requests where id=${requestIdSql(n + 1)})<>'waitlisted'
+        then raise exception 'Confirmation winner lost entitlement';end if;end$$;`);
+    } finally { await Promise.allSettled([first.done, ...(sweep ? [sweep] : [])]); }
+  });
+
+  it("a confirm request begun before the settings wait cannot use a stale pre-deadline snapshot", async () => {
+    const n = 88011;
+    await fixture(n);
+    const locking = held(`begin;
+      select 1 from msrc_registration.settings where edition_key='${confirmationEdition(n)}' for update;
+      update msrc_registration.confirmation_windows set opened_at=clock_timestamp()-interval '2 hours',deadline=clock_timestamp()-interval '1 hour'
+        where request_id=${requestIdSql(n)};
+      select pg_advisory_xact_lock(${marker});`);
+    let deciding: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        deciding = query(confirm(n, "synthetic-confirm-late-contender") + "commit;");
+        await waiting("synthetic-confirm-late-contender");
+      } finally { locking.release(); }
+      const [, result] = await Promise.all([locking.done, deciding!]);
+      expect(response(result).state).toBe("expired");
+      await query(`do $$begin
+        if (select status from msrc_registration.requests where id=${requestIdSql(n)})<>'cancelled'
+        or (select status from msrc_registration.tickets where request_id=${requestIdSql(n)})<>'revoked'
+        or (select status from msrc_registration.requests where id=${requestIdSql(n + 1)})<>'offered'
+        or (select count(*) from msrc_registration.audit where request_id=${requestIdSql(n)} and event='request.seat_released')<>1
+        or exists(select 1 from msrc_registration.audit where request_id=${requestIdSql(n)} and event='request.seat_confirmed')
+        or (select count(*) from msrc_outbox.messages where recipient_email='registration-${n}@example.invalid' and template_key='registration_seat_released')<>1
+        then raise exception 'Deadline must win and release exactly once';end if;end$$;`);
+    } finally { await Promise.allSettled([locking.done, ...(deciding ? [deciding] : [])]); }
+  });
+
+  it("concurrent retries for the same participant confirmation commit one operation and audit", async () => {
+    const n = 88021;
+    await fixture(n);
+    const first = held(confirm(n, "synthetic-confirm-retry-first") + `select pg_advisory_xact_lock(${marker});`);
+    let retry: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        retry = query(confirm(n, "synthetic-confirm-retry-second") + "commit;");
+        await waiting("synthetic-confirm-retry-second");
+      } finally { first.release(); }
+      const results = (await Promise.all([first.done, retry!])).map(response);
+      expect(results.map((result) => result.state)).toEqual(["updated", "updated"]);
+      await query(`do $$begin
+        if (select count(*) from msrc_registration.participant_operations where request_id=${requestIdSql(n)} and action='confirm')<>1
+        or (select count(*) from msrc_registration.audit where request_id=${requestIdSql(n)} and event='request.seat_confirmed')<>1
+        or (select count(*) from msrc_registration.tickets where request_id=${requestIdSql(n)})<>1
+        then raise exception 'Confirmation replay duplicated durable effects';end if;end$$;`);
+    } finally { await Promise.allSettled([first.done, ...(retry ? [retry] : [])]); }
+  });
+
+  it("concurrent start retries bind one preview and one policy without duplicate emails", async () => {
+    const n = 88031;
+    await fixture(n, false);
+    const token = response(await query(`begin;select set_config('request.jwt.claims',pg_temp.registration_claims(${n + 2})::text,true);
+      select public.msrc_staff_registration_confirmation_preview('${confirmationEdition(n)}')::text;commit;`)).confirmation.previewToken as string;
+    function start(name: string) {
+      return `begin;set local application_name='${name}';select set_config('request.jwt.claims',pg_temp.registration_claims(${n + 2})::text,true);
+        set local role authenticated;
+        select public.msrc_staff_registration_confirmation_start('${confirmationEdition(n)}','e7900000-0000-4000-8000-000000000102','release_unconfirmed','${token}')::text;`;
+    }
+    const first = held(start("synthetic-round-first") + `select pg_advisory_xact_lock(${marker});`);
+    let retry: Promise<string> | undefined;
+    try {
+      try {
+        await barrier();
+        retry = query(start("synthetic-round-second") + "commit;");
+        await waiting("synthetic-round-second");
+      } finally { first.release(); }
+      const results = (await Promise.all([first.done, retry!])).map(response);
+      expect(results).toEqual([{ state: "updated", opened: 1 }, { state: "updated", opened: 1 }]);
+      await query(`do $$begin
+        if (select count(*) from msrc_registration.confirmation_rounds where edition_key='${confirmationEdition(n)}')<>1
+        or (select count(*) from msrc_registration.confirmation_windows where request_id=${requestIdSql(n)})<>1
+        or (select count(*) from msrc_outbox.messages where recipient_email='registration-${n}@example.invalid' and template_key='registration_confirm_seat')<>1
+        then raise exception 'Round replay duplicated recipients';end if;end$$;`);
+    } finally { await Promise.allSettled([first.done, ...(retry ? [retry] : [])]); }
+  });
+
+  it.each(["repeatable read", "serializable"])("confirmation entrypoints reject %s before invalid claims or early returns", async (isolation) => {
+    for (const call of [
+      "public.msrc_staff_registration_confirmation_preview('synthetic-missing')",
+      "public.msrc_staff_registration_confirmation_start('synthetic-missing',null,null,null)",
+      "public.msrc_registration_confirmation_maintenance('synthetic-missing')",
+      "public.msrc_registration_confirm_seat('synthetic-missing','{}'::jsonb,null,null)",
+      "public.msrc_registration_release_seat('synthetic-missing','{}'::jsonb,null,null)",
+      "public.msrc_registration_me('synthetic-missing','{}'::jsonb)",
+      "public.msrc_registration_ticket('synthetic-missing','{}'::jsonb,null)",
+      "public.msrc_registration_cancel('synthetic-missing','{}'::jsonb,null,null)",
+    ]) {
+      await expect(query(`begin isolation level ${isolation};select set_config('request.jwt.claims','{}',true);select ${call};rollback;`))
+        .rejects.toThrow("SQLSTATE 25001");
+    }
+  });
+});

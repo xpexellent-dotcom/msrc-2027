@@ -3,6 +3,7 @@ import "server-only";
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { OutboxDatabaseConfig } from "./outbox-store.server";
 import type { OutboxSummary } from "./outbox.server";
+import type { ConfirmationMaintenanceResult } from "./registration-confirmation.server";
 
 type Environment = Readonly<Record<string, string | undefined>>;
 export type OutboxRunConfig = OutboxDatabaseConfig & { sender: "console" | "resend"; resendKey?: string;
@@ -47,7 +48,9 @@ export function validOutboxSecret(authorization: string | null, secret: string |
   return matches && typeof secret === "string" && secret.length >= 32 && secret.length <= 256 && /^[A-Za-z0-9_-]+$/.test(secret);
 }
 
-export function createOutboxDrainHandler({ env, run }: { env: Environment; run: (config: OutboxRunConfig) => Promise<OutboxSummary> }) {
+export function createOutboxDrainHandler({ env, run, maintainConfirmations }: { env: Environment;
+  run: (config: OutboxRunConfig) => Promise<OutboxSummary>;
+  maintainConfirmations?: (config: OutboxRunConfig, editionKey: string) => Promise<ConfirmationMaintenanceResult> }) {
   return async (request: Request): Promise<Response> => {
     const headers = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" };
     if (env.OUTBOX_ENABLED !== "true") return new Response(null, { status: 404, headers });
@@ -55,10 +58,15 @@ export function createOutboxDrainHandler({ env, run }: { env: Environment; run: 
     const config = resolveOutboxRunConfig(env);
     if (!config) return new Response(null, { status: 503, headers });
     try {
+      // No background registration work while any existing runtime gate/cap is closed.
+      // SQL independently checks registration, account policy and sweeps_enabled.
+      const confirmation = maintainConfirmations && config.dailyCap > 0
+        && env.REGISTRATION_ENABLED === "true" && env.PARTICIPANT_ACCOUNTS_ENABLED === "true"
+        ? await maintainConfirmations(config, env.PARTICIPANT_EDITION_KEY ?? "") : undefined;
       const result = await run(config);
       // Counts only; never reflect request, settings, payloads, destinations, keys or errors.
       return Response.json({ claimed: result.claimed, sent: result.sent, retryable: result.retryable,
-        permanent: result.permanent, stale: result.stale }, { headers });
+        permanent: result.permanent, stale: result.stale, ...(confirmation ? { confirmation } : {}) }, { headers });
     } catch { return new Response(null, { status: 503, headers }); }
   };
 }

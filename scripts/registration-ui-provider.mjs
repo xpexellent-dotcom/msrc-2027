@@ -15,6 +15,15 @@ function issueTicket(actor) {
   tickets.set(actor, ticket);
   return ticket;
 }
+function expireConfirmation(actor) {
+  const registration = requests.get(actor), fixture = registrationViews.get(actor);
+  if (registration?.confirmation?.state !== "awaiting" || Date.parse(registration.confirmation.deadline) > Date.now()) return;
+  if (fixture?.deadlinePolicy === "keep") registration.confirmation.state = "kept";
+  else {
+    registration.confirmation.state = "released"; registration.status = "cancelled";
+    if (tickets.has(actor)) tickets.set(actor, { ...tickets.get(actor), status: "revoked", token: null });
+  }
+}
 const server = http.createServer(async (request, response) => {
   if (!["127.0.0.1", "::ffff:127.0.0.1"].includes(request.socket.remoteAddress)) return reply(response, { synthetic: true }, 403);
   const path = new URL(request.url ?? "/", "http://127.0.0.1:3218").pathname;
@@ -39,10 +48,12 @@ const server = http.createServer(async (request, response) => {
     if (!["not-requested", "pending_approval", "waitlisted", "offered", "approved", "confirmed", "cancelled", "expired", "missing-rpc"].includes(args.state)) return reply(response, { synthetic: true }, 400);
     registrationViews.set(args.actorId, { window: args.window ?? { state: "open", eligible: true, opensAt: null }, fewPlaces: args.fewPlaces === true,
       missing: args.state === "missing-rpc", missingCollection: args.missingCollection ?? null, actionState: args.actionState ?? null,
-      attendance: args.attendance ?? [], missingAttendance: args.missingAttendance === true });
+      attendance: args.attendance ?? [], missingAttendance: args.missingAttendance === true,
+      missingConfirmation: args.missingConfirmation ?? null, deadlinePolicy: args.deadlinePolicy ?? "release" });
     if (["not-requested", "missing-rpc"].includes(args.state)) requests.delete(args.actorId);
     else requests.set(args.actorId, { id: randomUUID(), status: args.state, createdAt: new Date().toISOString(),
-      offerExpiresAt: args.state === "offered" ? args.offerExpiresAt ?? new Date(Date.now() + 24 * 3600_000).toISOString() : null });
+      offerExpiresAt: args.state === "offered" ? args.offerExpiresAt ?? new Date(Date.now() + 24 * 3600_000).toISOString() : null,
+      confirmation: args.confirmation ?? null });
     tickets.delete(args.actorId);
     if (["approved", "confirmed"].includes(args.state)) issueTicket(args.actorId);
     return reply(response, { synthetic: true });
@@ -81,14 +92,34 @@ const server = http.createServer(async (request, response) => {
   if (path === "/rest/v1/rpc/msrc_registration_me") {
     const fixture = registrationViews.get(actor);
     if (fixture?.missing) return reply(response, { code: "PGRST202", message: "Synthetic missing RPC" }, 404);
+    expireConfirmation(actor);
     const registration = requests.get(actor);
-    return reply(response, { state: "ready", request: registration ? { ...registration, offerExpiresAt: registration.offerExpiresAt ?? null } : null,
+    return reply(response, { state: "ready", ...(fixture?.missingConfirmation !== "version" ? { confirmationVersion: 1 } : {}),
+      request: registration ? { ...registration, offerExpiresAt: registration.offerExpiresAt ?? null, confirmation: registration.confirmation ?? null } : null,
       window: fixture?.window ?? { state: "open", eligible: true, opensAt: null }, fewPlaces: fixture?.fewPlaces ?? false, serverNow: new Date().toISOString() });
   }
   if (path === "/rest/v1/rpc/msrc_registration_attendance") {
     const fixture = registrationViews.get(actor);
     if (fixture?.missingAttendance) return reply(response, { code: "PGRST202", message: "Synthetic missing RPC" }, 404);
     return reply(response, { state: "ready", days: fixture?.attendance ?? [] });
+  }
+  if (["msrc_registration_confirm_seat", "msrc_registration_release_seat"].some((name) => path === "/rest/v1/rpc/" + name)) {
+    const registration = requests.get(actor), fixture = registrationViews.get(actor);
+    if (fixture?.missingConfirmation === "action") return reply(response, { code: "PGRST202", message: "Synthetic missing RPC" }, 404);
+    if (!registration || registration.id !== args.request_id || typeof args.operation_id !== "string") return reply(response, { state: "denied" });
+    if (fixture?.actionState) return reply(response, { state: fixture.actionState });
+    const action = path.endsWith("_confirm_seat") ? "confirm" : "release", key = actor + ":" + args.operation_id;
+    const previous = operations.get(key);
+    if (previous) return reply(response, { state: previous === action ? "updated" : "conflict" });
+    expireConfirmation(actor);
+    if (["released", "kept"].includes(registration.confirmation?.state)) return reply(response, { state: "expired" });
+    if (action === "confirm" && (registration.status !== "approved" || registration.confirmation?.state !== "awaiting")
+      || action === "release" && !["awaiting", "confirmed"].includes(registration.confirmation?.state)) return reply(response, { state: "conflict" });
+    registration.status = action === "confirm" ? "confirmed" : "cancelled";
+    registration.confirmation.state = action === "confirm" ? "confirmed" : "released";
+    if (action === "release" && tickets.has(actor)) tickets.set(actor, { ...tickets.get(actor), status: "revoked", token: null });
+    operations.set(key, action);
+    return reply(response, { state: "updated" });
   }
   if (["msrc_registration_accept_offer", "msrc_registration_decline_offer", "msrc_registration_cancel"].some((name) => path === "/rest/v1/rpc/" + name)) {
     const registration = requests.get(actor), fixture = registrationViews.get(actor);
@@ -108,12 +139,14 @@ const server = http.createServer(async (request, response) => {
     if (action === "accept" && args.ticket_secret !== "d".repeat(64)) return reply(response, { state: "denied" });
     registration.status = action === "accept" ? "approved" : "cancelled";
     registration.offerExpiresAt = null;
+    if (registration.confirmation && registration.status === "cancelled") registration.confirmation.state = "released";
     if (action === "accept") issueTicket(actor);
     else if (tickets.has(actor)) tickets.set(actor, { ...tickets.get(actor), status: "revoked", token: null });
     operations.set(key, action);
     return reply(response, { state: "updated" });
   }
   if (path === "/rest/v1/rpc/msrc_registration_ticket") {
+    expireConfirmation(actor);
     const ticket = tickets.get(actor);
     if (ticket === "missing-rpc") return reply(response, { code: "PGRST202", message: "Synthetic missing RPC" }, 404);
     return reply(response, { state: "ready", ticket: ticket ?? null });

@@ -40,6 +40,30 @@ Support: contact@msrc2027.com",
 }
 `;
 
+exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_confirm_seat 1`] = `
+{
+  "from": "MSRC 2027 <no-reply@msrc2027.com>",
+  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>Please confirm that you can attend on My registration. If you cannot attend, you can release your seat there.</p><p>Confirmation deadline: 24 January 2027 at 20:00 (Asia/Riyadh).</p><p>If you do not respond by this deadline, your seat will be released and your ticket will no longer be valid.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
+  "subject": "Please confirm your seat by 24 January 2027 at 20:00 (Asia/Riyadh)",
+  "text": "The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+Please confirm that you can attend on My registration. If you cannot attend, you can release your seat there.
+
+Confirmation deadline: 24 January 2027 at 20:00 (Asia/Riyadh).
+
+If you do not respond by this deadline, your seat will be released and your ticket will no longer be valid.
+
+Sign in to My registration: https://www.msrc2027.com/en/registration
+
+Support: contact@msrc2027.com",
+  "to": [
+    "participant@example.invalid",
+  ],
+}
+`;
+
 exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_expired 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",
@@ -92,6 +116,26 @@ exports[`DRAFT English registration email templates > renders reviewed plain tex
 Conference dates: 27–28 January 2027.
 
 We have received your seat request. Your request is awaiting review. This email does not confirm a seat.
+
+Sign in to My registration: https://www.msrc2027.com/en/registration
+
+Support: contact@msrc2027.com",
+  "to": [
+    "participant@example.invalid",
+  ],
+}
+`;
+
+exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_seat_released 1`] = `
+{
+  "from": "MSRC 2027 <no-reply@msrc2027.com>",
+  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>Your conference seat was released. Your registration is cancelled and your ticket is no longer valid.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
+  "subject": "Your seat was released",
+  "text": "The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+Your conference seat was released. Your registration is cancelled and your ticket is no longer valid.
 
 Sign in to My registration: https://www.msrc2027.com/en/registration
 
