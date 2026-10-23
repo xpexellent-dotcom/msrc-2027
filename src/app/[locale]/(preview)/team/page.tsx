@@ -6,6 +6,9 @@ import { isLocale } from "@/lib/i18n";
 import { localizedPageMetadata, siteTitle } from "@/lib/metadata";
 import { getPublishedContent } from "@/features/content/published.server";
 
+// ISR: published content refreshes on publish, or within a minute otherwise.
+export const revalidate = 60;
+
 type PageProps = { params: Promise<{ locale: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

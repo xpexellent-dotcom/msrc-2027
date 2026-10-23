@@ -1,6 +1,5 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
-import { connection } from "next/server";
 import { cache } from "react";
 import type { ContentCollection } from "@/features/staff-portal/content-contract";
 import { decodePublishedContent, type PublishedContent } from "./published";
@@ -32,9 +31,10 @@ export async function fetchPublishedCollection(collection: ContentCollection, co
 }
 
 export const getPublishedContent = cache(async (collection: ContentCollection): Promise<readonly PublishedContent[]> => {
-  // Runtime configuration must be observed even when the build ran before the migration/config existed.
-  // This request boundary deliberately stays outside the persistent public-data cache.
-  await connection();
+  // Public pages stay prerendered (ISR). Their page-level revalidate window picks up
+  // configuration added after the build; publishing revalidates tags and paths at once.
+  // A request-time boundary here made unknown locales and slugs render Next's bare
+  // error document instead of the localized 404 without JavaScript.
   const config = resolvePublicContentConfig(process.env);
   if (!config) return [];
   try {

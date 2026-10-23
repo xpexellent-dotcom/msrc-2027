@@ -56,7 +56,9 @@ jobs:
         run: pnpm exec playwright test --config playwright.registration.config.ts
       - name: Verify published content and safe fallback in both languages
         if: ${{ !inputs.auth_stability }}
-        run: pnpm exec playwright test --config playwright.content.config.ts
+        run: |
+          node scripts/build-content-e2e.ts
+          pnpm exec playwright test --config playwright.content.config.ts
       - name: Repeat staff hydration and session keyboard assertions without retries
         if: ${{ inputs.auth_stability }}
         shell: bash

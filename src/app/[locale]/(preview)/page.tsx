@@ -7,6 +7,9 @@ import { conferenceDescription, localizedPageMetadata } from "@/lib/metadata";
 import { conferenceEventJsonLd, jsonLdScript, websiteJsonLd } from "@/lib/structured-data";
 import { getPublicConferenceCatalogue } from "@/content/conference-catalogue.server";
 
+// ISR: published content refreshes on publish, or within a minute otherwise.
+export const revalidate = 60;
+
 type HomePageProps = { params: Promise<{ locale: string }> };
 
 export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
