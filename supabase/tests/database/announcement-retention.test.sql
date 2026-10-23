@@ -36,7 +36,7 @@ update msrc_registration.settings set conference_days=array[((now() at time zone
 select is((msrc_announcements.purge_retained('synthetic-retention')->>'inbox')::integer,0,'Latest conference day governs, not the first');
 update msrc_registration.settings set conference_days=array[((now() at time zone 'Asia/Riyadh')::date-interval '2 years')::date] where edition_key='synthetic-retention';
 update msrc_registration.settings set conference_days=array[((now() at time zone 'Asia/Riyadh')::date-interval '2 years')::date] where edition_key='synthetic-retention-other';
-update msrc_staff.policy set enabled=true;
+update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 update msrc_participant.policy set enabled=true,privacy_version='synthetic-registration-notice',email_daily_limit=1000;
 update msrc_participant.retention_policy set enabled=true;
 update msrc_outbox.settings set sweeps_enabled=true;
