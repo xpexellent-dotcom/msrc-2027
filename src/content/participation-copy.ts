@@ -18,7 +18,7 @@ export type JourneyCopy = {
 export const participationJourneyCopy: Record<Locale, Record<ParticipationJourney, JourneyCopy>> = {
   en: {
     registration: {
-      closed: "Registration is not open yet", closedBody: "Registration dates and attendance details will be announced before registration opens.",
+      closed: "Registration is not open yet", closedBody: "Free attendance. Visit the Participate page for registration dates.",
       detailsTitle: "Two days. So much to take away.",
       details: [
         { title: "Your conference certificate", body: "Check in on both days and complete the general survey for your full conference certificate." },
@@ -30,7 +30,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
       stepsTitle: "Simple steps", steps: ["Create your account", "Verify your email", "Request a seat", "Receive your confirmation email and ticket"],
     },
     submissions: {
-      closed: "Abstract submissions are not open yet", closedBody: "The submission window and final instructions will be published before applications open.",
+      closed: "Abstract submissions are not open yet", closedBody: "See the important dates below to plan your submission.",
       detailsTitle: "Give your work a wider conversation.",
       details: [
         { title: "Present your work", body: "Share your work with peers, faculty and judges." },
@@ -93,7 +93,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
   },
   ar: {
     registration: {
-      closed: "لم يُفتح التسجيل بعد", closedBody: "ستُعلن مواعيد التسجيل وتفاصيل الحضور قبل فتح التسجيل.",
+      closed: "لم يُفتح التسجيل بعد", closedBody: "الحضور مجاني. راجع صفحة المشاركة للاطلاع على مواعيد التسجيل.",
       detailsTitle: "يومان يفتحان لك آفاقًا.",
       details: [
         { title: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين وأكمل الاستبيان العام للحصول على شهادة حضور المؤتمر كاملًا." },
@@ -105,7 +105,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
       stepsTitle: "خطوات بسيطة", steps: ["أنشئ حسابك", "تحقّق من بريدك الإلكتروني", "اطلب مقعدًا", "استلم رسالة التأكيد وتذكرتك"],
     },
     submissions: {
-      closed: "لم يُفتح تقديم الملخصات بعد", closedBody: "ستُنشر فترة التقديم والتعليمات النهائية قبل فتح الطلبات.",
+      closed: "لم يُفتح تقديم الملخصات بعد", closedBody: "راجع المواعيد المهمة أدناه للتخطيط لتقديم ملخصك.",
       detailsTitle: "افتح لبحثك باب الحوار.",
       details: [
         { title: "اعرض بحثك", body: "شارك عملك أمام الزملاء وأعضاء هيئة التدريس والمحكّمين." },

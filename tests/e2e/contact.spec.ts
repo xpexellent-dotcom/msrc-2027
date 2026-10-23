@@ -140,14 +140,14 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} registration stays closed with useful preparation and unavailable ticket actions`, async ({ page }) => {
     const notice = locale === "en"
-      ? { heading: "Your conference certificate", body: "Check in on both days and complete the general survey for your full conference certificate.", opening: "Registration opens" }
-      : { heading: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين وأكمل الاستبيان العام للحصول على شهادة حضور المؤتمر كاملًا.", opening: "مواعيد فتح التسجيل" };
+      ? { heading: "Your conference certificate", body: "Check in on both days and complete the general survey for your full conference certificate.", opening: "Registration is not open yet" }
+      : { heading: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين وأكمل الاستبيان العام للحصول على شهادة حضور المؤتمر كاملًا.", opening: "لم يُفتح التسجيل بعد" };
     const writes: string[] = [];
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
     const response = await page.goto(`/${locale}/registration`);
     expect(response?.status()).toBe(200);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
-    // ORG-056/057 publish the schedule while the workflow remains closed.
+    // ORG-058: Attend keeps the ordinary closed journey; dates live on Participate.
     await expect(page.getByTestId("journey-closed").getByRole("heading", { name: notice.opening, exact: true })).toBeVisible();
     const preparation = page.locator(".participation-benefit").filter({
       has: page.getByRole("heading", { level: 3, name: notice.heading, exact: true }),

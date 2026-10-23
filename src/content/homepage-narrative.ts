@@ -17,7 +17,7 @@ export const homepageNarrative = {
     practicalEyebrow: "7 / Plan your visit", practicalTitle: "Before\nyou arrive.", datesLink: "Dates & venue details", faqLabel: "Frequently asked questions",
     faq: [
       { question: "When and where is MSRC 2027?", answer: "The conference takes place on 27–28 January 2027 at King Faisal Conference Center, King Abdulaziz University, Jeddah. Session times will be announced." },
-      { question: "Can I register or submit research now?", answer: "Check each participation page for its current availability. Each page explains its confirmed requirements; opening dates and deadlines will be announced there." },
+      { question: "Can I register or submit research now?", answer: "Check each participation page for its current availability, confirmed requirements and important dates." },
       { question: "Can I present work that is still in progress?", answer: "Yes. Ongoing research is allowed. Research abstracts have a 300-word body limit, with up to two finalized applications per principal investigator per edition. The submission interface will open after its requirements are ready." },
       { question: "Do workshops have separate bookings?", answer: "Yes. Book each workshop separately with your confirmed conference registration. We'll email you to confirm your workshop place. Workshops and availability will be announced." },
       { question: "Will session recordings be available?", answer: "The media library will list approved recordings when their publication and access arrangements are confirmed. The homepage film shows the previous MSRC 2026 edition." },
@@ -39,7 +39,7 @@ export const homepageNarrative = {
     practicalEyebrow: "٧ / خطّط لزيارتك", practicalTitle: "قبل أن\nتصل.", datesLink: "تفاصيل المواعيد والمقر", faqLabel: "الأسئلة الشائعة",
     faq: [
       { question: "متى وأين يُقام المؤتمر؟", answer: "يُقام المؤتمر يومي ٢٧ و٢٨ يناير ٢٠٢٧ في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة. ستُعلن مواعيد الجلسات لاحقًا." },
-      { question: "هل يمكنني التسجيل أو تقديم بحث الآن؟", answer: "راجع صفحة كل مسار لمعرفة إتاحته الحالية. تشرح كل صفحة متطلباته المؤكدة؛ وسنعلن فيها مواعيد الفتح والمواعيد النهائية." },
+      { question: "هل يمكنني التسجيل أو تقديم بحث الآن؟", answer: "راجع صفحة كل مسار لمعرفة إتاحته الحالية ومتطلباته المؤكدة ومواعيده المهمة." },
       { question: "هل يمكنني تقديم بحث لا يزال جاريًا؟", answer: "نعم، يُسمح بالأبحاث الجارية. الحد الأقصى لنص الملخص ٣٠٠ كلمة، ولكل باحث رئيسي طلبان نهائيان كحد أقصى في النسخة الواحدة. ستُفتح واجهة التقديم بعد استكمال متطلباتها." },
       { question: "هل لورش العمل حجوزات منفصلة؟", answer: "نعم. احجز كل ورشة بشكل منفصل بعد تأكيد تسجيلك في المؤتمر. سنرسل إليك رسالة لتأكيد مقعدك في الورشة. سنعلن الورش والأماكن المتاحة لاحقًا." },
       { question: "هل ستتوفر تسجيلات الجلسات؟", answer: "ستعرض مكتبة الوسائط التسجيلات المعتمدة بعد تأكيد ترتيبات نشرها والوصول إليها. فيلم الصفحة الرئيسية يعرض نسخة المؤتمر السابقة في عام ٢٠٢٦." },
