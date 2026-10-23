@@ -94,7 +94,7 @@ declare s msrc_abstracts.advisory_settings%rowtype;prior jsonb;is_super boolean;
  if not is_super and (configuration-array['maxPerRun','maxPerDay','estimatedCostPerAbstract','dailyCostCap','currency'])
  is distinct from (prior-array['maxPerRun','maxPerDay','estimatedCostPerAbstract','dailyCostCap','currency']) then return jsonb_build_object('state','denied');end if;
  insert into msrc_abstracts.advisory_settings values(edition_key,expected_version+1,configuration)
- on conflict(edition_key) do update set version=excluded.version,configuration=excluded.configuration;
+ on conflict on constraint advisory_settings_pkey do update set version=excluded.version,configuration=excluded.configuration;
  perform msrc_abstracts.record(edition_key,'advisory.settings_updated',null,jsonb_build_object('version',expected_version+1));
  return jsonb_build_object('state','updated','version',expected_version+1);
 end$$;
