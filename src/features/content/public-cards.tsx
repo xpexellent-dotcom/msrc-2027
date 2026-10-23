@@ -2,7 +2,6 @@ import Image from "next/image";
 import type { Locale } from "@/lib/i18n";
 import { initials } from "@/content/team";
 import { localizedContent, type PublishedContent } from "./published";
-import "./public-content.css";
 
 export function PublishedContentImage({ item, locale }: { item: PublishedContent; locale: Locale }) {
   return item.media ? <Image src={item.media.src} unoptimized alt={locale === "ar" ? item.media.altAr : item.media.altEn}
