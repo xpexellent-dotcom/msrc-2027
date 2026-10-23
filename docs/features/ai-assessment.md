@@ -1,6 +1,6 @@
 # Disabled advisory assessment and synthetic evaluation
 
-**23 October 2026 integration:** ENG-066 adds the closed staff batch, durable
+**23 October 2026 integration:** ENG-068 adds the closed staff batch, durable
 jobs, private advisory records and calibration described in
 [Advisory scoring](ADVISORY_SCORING.md). The foundation boundaries below describe
 the earlier PR #86 slice. The staff worker reuses its transport and strict JSON

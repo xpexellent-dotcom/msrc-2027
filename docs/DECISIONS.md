@@ -3983,7 +3983,7 @@ status. Explicit batch publication records the dashboard outcome and durable,
 held English email jobs atomically; template approval and independent delivery
 activation remain necessary before sending.
 
-## ENG-066 — Closed staff advisory scoring and calibration, 23 October 2026
+## ENG-068 — Closed staff advisory scoring and calibration, 23 October 2026
 
 Authority: the owner's Night-3 Task 6 and Decision 13 go/no-go; ENG-065 was the
 highest existing number checked before reservation. AI-01–06, REV-01–09,
@@ -4022,7 +4022,7 @@ emails, commits, branches or pushes are authorized by this implementation.
 Receipt: `docs/progress/2026-10-23-codex-night3-advisory.md`.
 `docs/PROGRESS.md` is explicitly outside this task's edit scope.
 
-Continuation on `claude/night3-6`: ENG-066 is the existing Task 6 reservation
+Continuation on `claude/night3-6`: ENG-068 is the existing Task 6 reservation
 and remains the highest ENG number after checking the reconciled register;
 no duplicate number is reserved. The completed worker also screens known names
 and institutions from the immutable source snapshot locally. That private

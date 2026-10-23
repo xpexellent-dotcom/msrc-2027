@@ -2,7 +2,7 @@
 
 Date: 23 October 2026. Branch: `claude/night3-6`. Continued the committed partial
 slice at `0da2517` after reading AGENTS, the project brief, decisions, progress,
-AI-01–06 and the existing DeepSeek/Task 5 implementation. ENG-066 was already
+AI-01–06 and the existing DeepSeek/Task 5 implementation. ENG-068 was already
 reserved for this task; it is still the highest ENG number, so the continuation
 keeps that reservation. `docs/PROGRESS.md` is untouched.
 

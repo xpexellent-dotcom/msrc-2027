@@ -1,6 +1,6 @@
 # Closed advisory scoring and calibration
 
-Night-3 Task 6, ENG-066; AI-01–06, REV-01–09, ROL-03/05/10/12,
+Night-3 Task 6, ENG-068; AI-01–06, REV-01–09, ROL-03/05/10/12,
 SEC-01/02/06, LOC-01–03, ACC-01 and ORG-040. Implementation and test evidence:
 [O9 receipt](../progress/2026-10-23-codex-night3-advisory.md).
 

@@ -1,4 +1,4 @@
--- AI-01--06 / ORG-040 / ENG-066. Pending local source only: no settings or activation seeded.
+-- AI-01--06 / ORG-040 / ENG-068. Pending local source only: no settings or activation seeded.
 begin;
 
 create table msrc_abstracts.advisory_settings (
