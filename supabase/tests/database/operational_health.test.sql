@@ -26,7 +26,8 @@ select throws_ok($$select public.msrc_health_check()$$,'42501',null,'Signed-in c
 select throws_ok($$select public.msrc_outbox_monitor()$$,'42501',null,'Signed-in participants and staff cannot bypass the monitor secret');
 reset role;
 
-truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+-- DELETE, not TRUNCATE: announcement recipients reference outbox identities.
+delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
 set local role service_role;
 select is(public.msrc_health_check(),true,'The service role can verify database execution');
 select is(public.msrc_outbox_monitor(),'{"counts":{"queued":0,"sending":0,"sent":0,"failed_retryable":0,"failed_permanent":0,"cancelled":0},"oldestPendingAgeSeconds":0}'::jsonb,
