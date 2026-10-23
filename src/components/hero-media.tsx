@@ -230,7 +230,10 @@ export function HeroMedia({
       </picture>
       {load && (
         <video
-          ref={videoRef} src={source} poster={preferences.smallScreen && video.mobilePoster ? video.mobilePoster : poster}
+          // No poster attribute: the video stays transparent until it has a frame, so the
+          // <picture> above is the visible poster. next/image adds ?dpl= to that URL, and a
+          // bare poster attribute made desktop download the same image a second time.
+          ref={videoRef} src={source}
           className={`hero-media-video${frameAvailable ? " is-playing" : ""}`}
           muted autoPlay={!userPaused && !autoplayBlocked && preferences.visible} playsInline loop preload="metadata"
           aria-hidden="true" tabIndex={-1}

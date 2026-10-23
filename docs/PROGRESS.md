@@ -25,6 +25,12 @@
   kept. Shipped stylesheet 294,170 -> 278,943 bytes. Proof: full-page screenshots of
   19 public/account routes in EN/AR at 1440px and 375px (76 states) are pixel-identical
   before and after; full public browser suite 847 pass / 159 skipped / 0 fail.
+- Desktop home downloaded the 137 KB hero poster twice: next/image requests
+  `poster-desktop-v1.jpg?dpl=…` while the video's `poster` attribute requested the
+  bare path. The video is transparent until it has a frame, so the attribute was never
+  visible; it is removed. Production-like build (deployment ID set): desktop poster
+  requests 2 -> 1, phone 1 -> 1, video still plays, hero brightness curve during load
+  matches production. Hero/film/media browser specs 174 pass; unit 3,702 pass.
 - Observed, not changed: main's Foundation run at `d7ef947` failed only "Verify the
   enabled synthetic registration request interface", which passes 336/336 locally on
   the same commit.
