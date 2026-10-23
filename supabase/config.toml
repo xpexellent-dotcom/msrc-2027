@@ -43,8 +43,9 @@ api_url = "http://127.0.0.1"
 [local_smtp]
 enabled = false
 
+# The ENG-062 media library needs local Storage buckets and policies.
 [storage]
-enabled = false
+enabled = true
 
 [storage.s3_protocol]
 enabled = false
