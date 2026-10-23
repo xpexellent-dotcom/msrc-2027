@@ -15,4 +15,11 @@ describe("public launch wording", () => {
     expect(source).not.toMatch(/WEBSITE PREVIEW/);
     expect(source).toContain("msrc2027.com");
   });
+
+  it("the Arabic link-preview card is a 1200x630 PNG small enough for messaging previews", () => {
+    const card = readFileSync("public/og/msrc-2027-ar.png");
+    expect(card.subarray(1, 4).toString("latin1")).toBe("PNG");
+    expect([card.readUInt32BE(16), card.readUInt32BE(20)]).toEqual([1200, 630]);
+    expect(card.length).toBeLessThan(300 * 1024);
+  });
 });

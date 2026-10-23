@@ -1,5 +1,28 @@
 # Progress and session handover
 
+## 23 October 2026 — Arabic link-preview card and production QA pass
+
+- Live QA at `d7ef947`: 22 public and account routes in EN/AR at 1440px and 375px
+  (88 combinations) had zero axe WCAG 2.2 AA violations, console errors, horizontal
+  overflow or broken images. Vercel runtime errors (7 days): none.
+- Arabic pages previously shared the English card. The image renderer cannot shape
+  Arabic (Noto Sans Arabic GSUB: "lookupType: 5 - substFormat: 3 is not yet
+  supported"), so `scripts/render-arabic-share-card.mjs` renders the same design in
+  Chromium with the site's existing Arabic copy to `public/og/msrc-2027-ar.png`
+  (1200x630, 39 KB palette PNG, below the ~300 KB messaging-preview limit).
+  `/ar/opengraph-image` serves it; English is unchanged. `dynamicParams = false`
+  makes unknown locales such as `/fr/opengraph-image` 404 instead of rendering.
+- Media search placeholder shortened (EN/AR) to fit a 320px field; README no longer
+  documents the removed About page.
+- Local validation: PASS lint/types, 3,702 unit tests / 83 files (twice), build;
+  public-shell, fluid-journeys, public-media and participation-flow browser specs
+  77 pass / 6 skipped. One earlier full unit run had a single
+  `check-in-decoder` timing failure that passed alone (18/18) and in two full reruns.
+- Observed, not changed: `.fluid-requirement-*` rules in `fluid-journeys.css` no longer
+  match any component after the ORG-053 redesign; main's Foundation run at `d7ef947`
+  failed only "Verify the enabled synthetic registration request interface", which
+  passes 336/336 locally on the same commit.
+
 ## 17 October 2026 — Hackathon Option E medical artwork
 
 - Refreshed PR #101's `codex/hackathon-technology` baseline to `5ae3c9a` before

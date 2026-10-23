@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { locales } from "@/lib/i18n";
 import { conferenceConfig } from "@/config/conference";
@@ -6,14 +8,20 @@ import { formatConferenceDateRange } from "@/lib/conference-dates";
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
+// Only the two prerendered cards exist; /fr/opengraph-image and the like are 404s.
+export const dynamicParams = false;
 
 export const alt = "MSRC 2027: The 5th Medical Students Research Conference, King Abdulaziz University, Jeddah";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// Link-preview card in the working palette. Latin-only on purpose: the bundled image font has
-// no Arabic glyphs and the self-hosted fonts are WOFF2, which the renderer cannot read.
-export default function OpenGraphImage() {
+// Link-preview card in the working palette. The image renderer cannot shape Arabic, so the
+// Arabic card is a browser-rendered PNG of the same design: scripts/render-arabic-share-card.mjs.
+export default async function OpenGraphImage({ params }: { params: Promise<{ locale: string }> }) {
+  if ((await params).locale === "ar") {
+    const card = await readFile(join(process.cwd(), "public/og/msrc-2027-ar.png"));
+    return new Response(card, { headers: { "Content-Type": contentType } });
+  }
   return new ImageResponse(
     (
       <div style={{
