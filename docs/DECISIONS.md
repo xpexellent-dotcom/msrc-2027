@@ -3983,6 +3983,38 @@ status. Explicit batch publication records the dashboard outcome and durable,
 held English email jobs atomically; template approval and independent delivery
 activation remain necessary before sending.
 
+## ORG-058 — Public registration copy and abstract calendar dates, 23 October 2026
+
+Authority: explicit organizer instruction, 23 October 2026. Supersedes the
+public announcement scope of ENG-061, without changing ORG-055/056 operations.
+
+- Public pages mention public registration only: remove early-access dates,
+  eligibility and the homepage opening summary. The opening notice appears only
+  on Participate, showing Wednesday, 18 November 2026, 8 pm Riyadh time and the
+  existing closing date. Attend uses the ordinary closed-journey section.
+- Keep Free attendance; omit organizer seat-approval statements from public
+  informational copy. Preserve accurate signed-in registration request states
+  and the staff/database early-access mechanism.
+- Remove the Contact form's Resend/inbox/no-copy sentence in EN/AR. Approved
+  Privacy Policy, Terms and ORG-057 email wording remain unchanged.
+- Abstract Important dates (calendar dates only, no times): 23 November 2026
+  submission opens; 13 December closes; 18 December initial screening completed;
+  19 December eligible abstracts sent to reviewers; 2 January 2027 review
+  completed; 7 January final acceptance and oral/poster allocation; 10 January
+  participant instructions sent. Publish EN/AR with semantic dates and RTL.
+- These abstract dates are public display only. Staff still enter exact opening
+  and closing instants in Science settings. No database defaults, seeds or hosted
+  changes are authorized; all workflows and delivery switches remain closed.
+
+## ENG-066 — Focused public copy and abstract timeline, 23 October 2026
+
+ORG-058; ABS-01, REG-02, TIM-01/02, SUP-01, LOC-01/03 and ACC-01. ENG-065
+was the highest entry checked before reservation. Reuse the deterministic date
+formatter and existing journey schedule styles; do not infer operational instants
+from calendar dates. No migrations, RPCs or backend contracts are required.
+Evidence: [public copy receipt](progress/2026-10-23-claude-public-copy-dates.md).
+Do not edit PROGRESS.md.
+
 ## ENG-068 — Closed staff advisory scoring and calibration, 23 October 2026
 
 Authority: the owner's Night-3 Task 6 and Decision 13 go/no-go; ENG-065 was the
