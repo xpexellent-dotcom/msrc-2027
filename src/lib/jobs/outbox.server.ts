@@ -1,7 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { OutboxSendError, renderOutboxMessage, type EmailRequest, type OutboxMessage, type OutboxSender } from "@/lib/email/outbox.server";
+import { abstractDecisionTemplate, OutboxSendError, renderOutboxMessage, type EmailRequest, type OutboxMessage, type OutboxSender } from "@/lib/email/outbox.server";
 
 export type { OutboxMessage, EmailRequest } from "@/lib/email/outbox.server";
 export type OutboxOutcome = { state: "sent" | "retryable" | "permanent"; providerMessageId?: string; errorClass?: string };
@@ -29,6 +29,12 @@ export async function drainOutbox({ store, sender, batchSize = 10, timeBudgetMs 
     const [message] = await store.claim(workerId, 1, dailyCap);
     if (!message) break;
     result.claimed++;
+    // Defense in depth: SQL excludes held DRAFT jobs. Even a malformed claim cannot send one.
+    if (message.template_key === abstractDecisionTemplate.key) {
+      if (await store.finish(message, workerId, { state: "permanent", errorClass: "template_invalid" })) result.permanent++;
+      else result.stale++;
+      continue;
+    }
     let request: EmailRequest;
     try { request = renderOutboxMessage(message); }
     catch {
