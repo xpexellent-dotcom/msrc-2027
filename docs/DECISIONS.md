@@ -3983,7 +3983,7 @@ status. Explicit batch publication records the dashboard outcome and durable,
 held English email jobs atomically; template approval and independent delivery
 activation remain necessary before sending.
 
-## ORG-058 — Bilingual participant email drafts with approved banner art, 23 October 2026
+## ORG-059 — Bilingual participant email drafts with approved banner art, 23 October 2026
 
 Authority: the organizer's explicit current instruction:
 
@@ -4010,11 +4010,11 @@ sending**. Preserve English meaning and existing facts; this language/design
 decision does not approve translations or authorize delivery, activation,
 hosted migrations, settings seeds or feature-flag changes.
 
-## ENG-066 — Closed bilingual participant email previews and banner, 23 October 2026
+## ENG-067 — Closed bilingual participant email previews and banner, 23 October 2026
 
-Authority: the current bilingual-email task and ORG-058. ENG-065 and ORG-057
+Authority: the current bilingual-email task and ORG-059. ENG-065 and ORG-057
 were the highest numbers checked before reservation. Requirements EML-01–05,
-LOC-01/03, ACC-01, REG-04/06/07 and REV-07 apply, with ORG-058's participant
+LOC-01/03, ACC-01, REG-04/06/07 and REV-07 apply, with ORG-059's participant
 language supersession.
 
 Render all eight registration templates and abstract decision outcomes with

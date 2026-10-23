@@ -1,7 +1,7 @@
 # Bilingual participant email drafts and banner
 
 Date: 23 October 2026. Worktree: `C:\m\codex-emails`.
-Branch: `claude/bilingual-emails`. Decisions: ORG-058 and ENG-066.
+Branch: `claude/bilingual-emails`. Decisions: ORG-059 and ENG-067.
 Requirements: EML-01–05, LOC-01/03, ACC-01, REG-04/06/07 and REV-07.
 `docs/PROGRESS.md` is unchanged. The task authorizes a local commit, without push.
 Staging is BLOCKED by filesystem permissions on the Git directory outside this
@@ -133,7 +133,7 @@ case results are green; the command-level shutdown blocker is separate.
 Review the Arabic wording with a native reader, especially confirmation policy
 sentences and scientific outcomes; approve the complete bilingual compositions
 and email placement of the previous-edition image before sending. Approving
-ORG-058's language direction does not approve the translations themselves.
+ORG-059's language direction does not approve the translations themselves.
 Decide how reviewed Arabic companion text for real committee-authored abstract
 instructions will be collected and retained before decision email activation.
 Review the worker guard and immutable frozen-envelope handling when authorizing

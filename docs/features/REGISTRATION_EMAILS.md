@@ -1,6 +1,6 @@
 # Registration emails — bilingual DRAFT previews
 
-ORG-058 (23 October 2026) requires participant emails in English followed by
+ORG-059 (23 October 2026) requires participant emails in English followed by
 Arabic, with a banner at the top. **All eight bilingual compositions are DRAFT
 pending owner approval before sending.** ORG-057 continues to approve only the
 original English wording of the first six templates; that approval does not

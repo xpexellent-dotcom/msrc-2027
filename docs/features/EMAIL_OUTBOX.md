@@ -1,6 +1,6 @@
 # Durable email outbox and job foundation
 
-Current extension (23 October 2026, ORG-058/ENG-066): all eight registration
+Current extension (23 October 2026, ORG-059/ENG-067): all eight registration
 templates and abstract decision outcomes render a brand-art PNG banner, complete
 English text, a divider and complete Arabic text. Subjects include both languages;
 the Arabic HTML block is RTL. Every new bilingual participant composition is
@@ -36,7 +36,7 @@ version `1`, with a single `reference` variable. Recipients must end in
 Resend adapter. This slice cannot send participant notices by setting flags.
 Future confirmation, ticket, waitlist, confirm-your-seat and decision templates,
 approved content, recipient policy and domain event producers need their own
-review. ORG-058 supersedes the original English-only rule for participant-facing
+review. ORG-059 supersedes the original English-only rule for participant-facing
 emails: the renderer includes English then Arabic, independently of persisted
 `locale`. Staff/reviewer/faculty-judge emails, staff session email checks and
 Contact delivery stay English-only. `synthetic_notice` is an internal fixture,

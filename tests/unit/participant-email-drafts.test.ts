@@ -12,7 +12,7 @@ function message(template: string, frozen = false): OutboxMessage {
     provider_idempotency_key: "unchanged-key", provider_request: frozen ? historicalRequest : null, first_attempt_at: "2026-10-23T11:59:00Z" };
 }
 
-describe("ORG-058 participant wording approval gate", () => {
+describe("ORG-059 participant wording approval gate", () => {
   it.each([...registrationEmailTemplates, "abstract_decision"].flatMap((key) => [false, true].map((frozen) => ({ key, frozen }))))(
     "blocks $key (frozen=$frozen) before preparing or sending, even with a positive cap", async ({ key, frozen }) => {
       const original = message(key, frozen);

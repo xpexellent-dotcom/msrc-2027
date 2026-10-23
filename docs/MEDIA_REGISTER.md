@@ -279,7 +279,7 @@ Never overwrite a published file: ship a corrected cut or poster under a new ver
 | Accessibility and crop | `premium-hero-image`, `alt=""`, wrapper `aria-hidden="true"`, fill, `sizes="100vw"`, priority. Audience and stage stay within the image crop; the dark hero scrim supports the live bilingual heading. |
 | Removal and versioning | Use the existing Privacy & data requests contact route. Remove the reference and derivative on authorized withdrawal; publish a new `-v2` URL for a replacement because ORG-008 caches public media. Originals are not added to the repo. |
 
-## 12. DRAFT participant email banner — 23 October 2026 (ORG-058/ENG-066)
+## 12. DRAFT participant email banner — 23 October 2026 (ORG-059/ENG-067)
 
 | Field | Record |
 |---|---|
