@@ -2,9 +2,9 @@ import "server-only";
 
 import { siteOrigin } from "@/lib/metadata";
 
-/** Static PNG from the approved MSRC 2026 homepage still; no remote fonts or tracking. */
+/** ORG-062 plain branded PLACEHOLDER PNG; no remote fonts or tracking. */
 export const participantEmailBanner = Object.freeze({
-  src: `${siteOrigin}/brand/email-banner.png`, alt: "MSRC 2026 conference audience — previous edition", width: 600, height: 338,
+  src: `${siteOrigin}/brand/email-banner.png`, alt: "MSRC 2027", width: 600, height: 338,
 });
 
 export function escapeEmailHtml(value: string): string {

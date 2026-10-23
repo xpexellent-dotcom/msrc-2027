@@ -7,11 +7,14 @@ original English wording of the first six templates; that approval does not
 approve the added translations or bilingual presentation. The two ENG-064
 confirm-your-seat messages remain drafts in both languages.
 
-HTML starts with the approved previous-edition homepage still,
-`public/media/msrc2026/poster-desktop-v1.jpg` (MEDIA_REGISTER §9), resized to
-`public/brand/email-banner.png` (600 × 338px) without a new crop or added artwork.
+HTML starts with the ORG-062 **PLACEHOLDER** plain branded banner,
+`public/brand/email-banner.png` (600 × 338px). It uses the deep purple and gold
+from `src/styles/tokens.css`, with “MSRC 2027” and
+“Medical Students Research Conference”; no photograph, people or invented logo.
+Rebuild with `node scripts/build-email-banner.mjs`. The official banner can
+later replace this one PNG without changing email renderers.
 The banner URL is `https://www.msrc2027.com/brand/email-banner.png`, with English
-alt text `MSRC 2026 conference audience — previous edition` and a maximum display
+alt text `MSRC 2027` and a maximum display
 width of 600px. Its use in this email composition awaits owner approval with
 the translation. The complete English message is followed by a divider and
 the complete Arabic message in a `dir="rtl" lang="ar"`
@@ -47,7 +50,7 @@ Key/version: `registration_received` / `1`; payload: `{}`.
 Subject (DRAFT): **Seat request received | تم استلام طلب حجز مقعد**
 
 ```text
-MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+MSRC 2027: https://www.msrc2027.com/brand/email-banner.png
 
 The 5th Medical Students Research Conference
 
@@ -79,7 +82,7 @@ Key/version: `registration_approved` / `1`; payload: `{}`.
 Subject (DRAFT): **You have a seat | لديك مقعد في المؤتمر**
 
 ```text
-MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+MSRC 2027: https://www.msrc2027.com/brand/email-banner.png
 
 The 5th Medical Students Research Conference
 
@@ -115,7 +118,7 @@ before this email can be activated.
 Subject (DRAFT): **A seat is offered to you: reply within 24 hours | عُرض عليك مقعد: يُرجى الرد خلال ٢٤ ساعة**
 
 ```text
-MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+MSRC 2027: https://www.msrc2027.com/brand/email-banner.png
 
 The 5th Medical Students Research Conference
 
@@ -151,7 +154,7 @@ Key/version: `registration_waitlisted` / `1`; payload: `{}`.
 Subject (DRAFT): **You are on the waitlist | أنت على قائمة الانتظار**
 
 ```text
-MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+MSRC 2027: https://www.msrc2027.com/brand/email-banner.png
 
 The 5th Medical Students Research Conference
 
@@ -183,7 +186,7 @@ Key/version: `registration_expired` / `1`; payload: `{}`.
 Subject (DRAFT): **Your offer expired | انتهت صلاحية عرض المقعد**
 
 ```text
-MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+MSRC 2027: https://www.msrc2027.com/brand/email-banner.png
 
 The 5th Medical Students Research Conference
 
@@ -215,7 +218,7 @@ Key/version: `registration_cancelled` / `1`; payload: `{}`.
 Subject (DRAFT): **Your registration was cancelled | تم إلغاء تسجيلك**
 
 ```text
-MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+MSRC 2027: https://www.msrc2027.com/brand/email-banner.png
 
 The 5th Medical Students Research Conference
 
@@ -257,7 +260,7 @@ default. The stored confirmation deadline is formatted in English with
 Subject (DRAFT): **Please confirm your seat by 24 January 2027 at 20:00 (Asia/Riyadh) | يُرجى تأكيد مقعدك بحلول ٢٤ يناير ٢٠٢٧ في ٢٠:٠٠ (بتوقيت الرياض)**
 
 ```text
-MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+MSRC 2027: https://www.msrc2027.com/brand/email-banner.png
 
 The 5th Medical Students Research Conference
 
@@ -302,7 +305,7 @@ The same confirmation template with synthetic `nonresponse_policy: "keep_unconfi
 Subject (DRAFT): **Please confirm your seat by 24 January 2027 at 20:00 (Asia/Riyadh) | يُرجى تأكيد مقعدك بحلول ٢٤ يناير ٢٠٢٧ في ٢٠:٠٠ (بتوقيت الرياض)**
 
 ```text
-MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+MSRC 2027: https://www.msrc2027.com/brand/email-banner.png
 
 The 5th Medical Students Research Conference
 
@@ -342,7 +345,7 @@ Key/version: `registration_seat_released` / `1`; payload: `{}`.
 Subject (DRAFT): **Your seat was released | تمت إتاحة مقعدك لغيرك**
 
 ```text
-MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+MSRC 2027: https://www.msrc2027.com/brand/email-banner.png
 
 The 5th Medical Students Research Conference
 

@@ -14,7 +14,7 @@ The author supplies an English subject/body and Arabic subject/body. These are
 plain text with paragraphs, never raw HTML. The technical limits are 90 UTF-16
 units per subject and 3,500 per body, fitting the existing 64 KiB provider snapshot.
 There is no automatic translation. The shared renderer escapes content and uses
-the existing approved-art banner, complete English, a divider, then complete
+the ORG-062 plain branded PLACEHOLDER banner, complete English, a divider, then complete
 Arabic with RTL. The live staff email frame previews this same renderer.
 
 ## DRAFT email layout
@@ -35,19 +35,18 @@ ORG-057's approved wording and all approved public legal text are unchanged.
 
 ## Audience and snapshot
 
-Multi-select segments are drawn from real current data only: verified
-participants; registration pending, approved, confirmed, waitlisted and offered;
+Multi-select segments are drawn from real current data only: all verified
+accounts; registration pending, approved, confirmed, waitlisted and offered;
 finalized abstract submitters; accepted presenters; reviewers; check-in staff;
 all active staff. Empty/unbacked segments are not offered. Final recipients must
-still have verified email and an active account. Overlapping selections are
+still have verified email; all segments except the global verified-account
+segment also require active account access. Overlapping selections are
 deduplicated by account before any outbox/inbox rows are created.
 
 Signup profiles currently have no edition membership or participant role grant.
-Consequently, “all verified participants” means all verified participant accounts
-on the platform, including signup-only accounts without a registration. It does
-not infer a nonexistent membership record. Registration, abstract and staff
-segments are edition-scoped. The owner can narrow the global segment before
-activation if a different audience policy is desired.
+ORG-062 defines “All verified accounts” across the platform, including staff and
+signup-only accounts without a registration or profile. Registration, abstract
+and staff segments remain edition-scoped.
 
 A private preview returns each segment count, the deduplicated total and up to
 five masked addresses. Its token binds the announcement version, authored content
@@ -119,8 +118,37 @@ No hosted migrations, seeds, settings, feature flags, participant access, schedu
 activation, real email or push have been performed. A local commit is authorized;
 push is not. Owner/Claude review must cover the migration, permissions, SQL test
 and race evidence in disposable CI, native Arabic copy and DRAFT email layout.
-Inbox/snapshot retention must be agreed before live operational use; this task
-does not invent a retention interval or automated deletion policy.
+ORG-062 now sets announcement, snapshot and inbox retention to one year after
+the last configured conference day. Pending migration
+`20261023160000_announcement_retention.sql` extends the existing server-only
+`msrc_announcements_maintenance(edition_key text) returns jsonb`; its response
+adds `retention: { announcements, recipients, inbox, operations }` counts. The
+server maintenance contract accepts these bounded counts as an optional field
+so the preceding migration still works. No participant/staff RPC signature
+changes. Missing-RPC readiness handling remains unchanged. The private
+`purge_retained(edition text)` helper
+is not exposed to API roles.
+
+No conference days means no purge. The deadline is the final conference date plus one calendar year at midnight
+in Asia/Riyadh; no announcements for that
+edition are dispatched by maintenance after expiry. Runs delete at most 20
+parents and 500 rows per child table (inbox, recipients, dependent operation
+pointers). Existing runtime and database maintenance/sweep gates still apply;
+no activation is performed here. Parents remain until children are gone;
+repeated/concurrent runs are idempotent under the existing edition lock. Counts-only retention receipts
+are append-only; existing operational audit history remains. Outbox messages
+and immutable provider requests follow their existing independent terminal
+retention policy, including the existing treatment of held/pending messages.
+
+The staff label is “All verified accounts” / “جميع الحسابات ذات البريد الإلكتروني
+الموثّق”. The stored key `verified_participants` is retained for compatibility.
+It includes verified staff and signup-only accounts without requiring a profile,
+registration or active-access record. Suspended, deleted and anonymous accounts, and addresses
+that cannot pass the existing outbox email validation are excluded. Other
+segments still require active access. ORG-062 supersedes the older
+participant-only segment description.
 
 See [the execution receipt](../progress/2026-10-23-claude-announcements.md) for
 commands, actual results and outstanding database/human checks.
+The retention/banner follow-up is recorded in
+[its receipt](../progress/2026-10-23-claude-banner-retention.md).
