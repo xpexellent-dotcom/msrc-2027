@@ -1,9 +1,9 @@
 "use client";
 import type { MediaFilter, MediaPayload, MediaResponse } from "./media-contract";
 
-export async function requestMedia(payload?: MediaPayload, options?: { query?: string; state?: MediaFilter; signal?: AbortSignal }): Promise<MediaResponse> {
+export async function requestMedia(payload?: MediaPayload, options?: { query?: string; state?: MediaFilter; year?: string; signal?: AbortSignal }): Promise<MediaResponse> {
   try {
-    const query = payload ? "" : `?${new URLSearchParams({ q: options?.query ?? "", state: options?.state ?? "all" })}`;
+    const query = payload ? "" : `?${new URLSearchParams({ q: options?.query ?? "", state: options?.state ?? "all", year: options?.year ?? "all" })}`;
     const response = await fetch(`/api/staff-portal/media${query}`, { method: payload ? "POST" : "GET", cache: "no-store", credentials: "same-origin", signal: options?.signal,
       ...(payload ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) } : {}) });
     if (!response.headers.get("content-type")?.includes("application/json")) return { state: "unavailable" };

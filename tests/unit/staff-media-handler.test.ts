@@ -8,8 +8,12 @@ import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/co
 import { staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
 import { MEDIA_PRIVATE_BUCKET, MEDIA_PUBLIC_BUCKET, type MediaStorage } from "@/features/staff-portal/media-storage.server";
 import { revalidatePublishedContent } from "@/features/content/revalidate.server";
+import { revalidatePublishedMedia } from "@/features/media/revalidate.server";
+import { importCurrentSite } from "@/features/staff-portal/current-site-import.server";
 
 vi.mock("@/features/content/revalidate.server", () => ({ revalidatePublishedContent: vi.fn() }));
+vi.mock("@/features/media/revalidate.server", () => ({ revalidatePublishedMedia: vi.fn() }));
+vi.mock("@/features/staff-portal/current-site-import.server", () => ({ importCurrentSite: vi.fn() }));
 
 const origin = "http://127.0.0.1:3219", now = Date.parse("2026-10-23T06:00:00Z");
 const actorId = "39000000-0000-4000-8000-000000000001", sessionId = "39000000-0000-4000-8000-000000000002";
@@ -24,7 +28,7 @@ const accessToken = "header." + Buffer.from(JSON.stringify(claims)).toString("ba
 const native: NativeStaffSession = { actorId, sessionId, accessToken, refreshToken: "synthetic-refresh" };
 const storagePath = `${config.editionKey}/${assetId}/image.webp`, rawPath = `${config.editionKey}/${assetId}/raw`;
 const publicPath = `${config.editionKey}/${assetId}/${operationId}/image.webp`;
-const fields = { altEn: "Synthetic image", altAr: "صورة تجريبية", captionEn: "", captionAr: "", creditEn: "", creditAr: "", focalX: 50, focalY: 50, rightsConfirmed: true, rightsEvidence: "Synthetic permission record" };
+const fields = { altEn: "Synthetic image", altAr: "صورة تجريبية", captionEn: "", captionAr: "", creditEn: "", creditAr: "", focalX: 50, focalY: 50, rightsConfirmed: true, rightsEvidence: "Synthetic permission record", editionYear: 2026, kind: "photograph", displayOrder: 0, videoPath: null };
 const asset = { id: assetId, fileName: "synthetic.png", storagePath, publicPath: null, mime: "image/webp", size: 128, width: 48, height: 32,
   ...fields, state: "draft", version: 1, busy: false, createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString() };
 let roles: Role[], policySatisfied: boolean, backend: StaffBackend, storage: MediaStorage, replies: Record<string, unknown>;
@@ -50,13 +54,16 @@ const sign = () => request({ action: "upload-url", filename: "synthetic.png", si
 const transition = (action = "publish") => request({ action, assetId, version: 1, operationId });
 beforeEach(async () => {
   vi.mocked(revalidatePublishedContent).mockClear();
+  vi.mocked(revalidatePublishedMedia).mockClear();
+  vi.mocked(importCurrentSite).mockReset();
   roles = ["contentMediaEditor"]; policySatisfied = true;
   replies = {
-    msrc_staff_media_list: { state: "ready", assets: [asset], total: 1 }, msrc_staff_media_get: { state: "ready", asset },
+    msrc_staff_media_list: { state: "ready", assets: [asset], total: 1, years: [2026] }, msrc_staff_media_get: { state: "ready", asset },
     msrc_staff_media_upload_reserve: { state: "reserved", uploadId: assetId, storagePath: rawPath, expiresAt: new Date(now + 900000).toISOString() },
     msrc_staff_media_upload_claim: { state: "reserved", uploadId: assetId, storagePath: rawPath, sanitizedPath: storagePath },
     msrc_staff_media_upload_complete: { state: "created", asset }, msrc_staff_media_upload_reject: { state: "rejected" },
     msrc_staff_media_update: { state: "updated", asset: { ...asset, version: 2 } },
+    msrc_staff_media_reorder: { state: "updated", asset: { ...asset, version: 2, displayOrder: 1 } },
     msrc_staff_media_transition_begin: { state: "reserved", operationId, asset, publicPath },
     msrc_staff_media_transition_finish: { state: "updated", asset: { ...asset, state: "published", publicPath, version: 2 } },
   };
@@ -169,5 +176,50 @@ describe("staff media authorization and mutations", () => {
   it("saves all localized fields and version only through staff RPC", async () => {
     expect((await handle(request({ action: "save", assetId, version: 1, ...fields }))).status).toBe(200);
     expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_media_update", { edition_key: config.editionKey, asset_id: assetId, expected_version: 1, fields }, accessToken);
+  });
+  it("filters by a validated year and exposes import only to Super Admins", async () => {
+    let response = await handle(request(undefined, "?year=2026"));
+    expect(await response.json()).toMatchObject({ state: "ready", years: [2026], canImport: false });
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_media_list", { edition_key: config.editionKey, search_query: "", state_filter: "all", year_filter: 2026 }, accessToken);
+    roles = ["superAdmin"]; response = await handle(request()); expect((await response.json()).canImport).toBe(true);
+    for (const year of ["0", "2026.1", "2201", "2026&year=2025"]) expect((await handle(request(undefined, "?year=" + year))).status).toBe(400);
+  });
+  it.each([
+    { editionYear: 1899 }, { editionYear: "2026" }, { displayOrder: -1 }, { displayOrder: 1.1 },
+    { kind: "film", videoPath: "https://untrusted.invalid/film.mp4" }, { kind: "film", videoPath: "/media/editions/2026/../secret.mp4" },
+    { kind: "film", videoPath: null }, { kind: "photograph", videoPath: "/media/editions/2026/video-1-silent-v2.mp4" },
+  ])("rejects invalid archive metadata %j", async (invalid) => {
+    expect((await handle(request({ action: "save", assetId, version: 1, ...fields, ...invalid }))).status).toBe(400);
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name === "msrc_staff_media_update")).toBe(false);
+  });
+  it("allows only the existing static films and refreshes archive reads after a save", async () => {
+    expect((await handle(request({ action: "save", assetId, version: 1, ...fields, kind: "film", videoPath: "/media/editions/2026/video-1-silent-v2.mp4" }))).status).toBe(200);
+    expect(revalidatePublishedMedia).toHaveBeenCalledOnce();
+  });
+  it("reorders with a version guard and refreshes archive reads only on success", async () => {
+    expect((await handle(request({ action: "reorder", assetId, version: 1, direction: "later" }))).status).toBe(200);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_media_reorder", { edition_key: config.editionKey, asset_id: assetId, expected_version: 1, direction: "later" }, accessToken);
+    expect(revalidatePublishedMedia).toHaveBeenCalledOnce();
+    replies.msrc_staff_media_reorder = { state: "conflict" };
+    expect((await handle(request({ action: "reorder", assetId, version: 1, direction: "earlier" }))).status).toBe(409);
+    expect(revalidatePublishedMedia).toHaveBeenCalledOnce();
+  });
+  it.each(ROLES.filter((role) => role !== "superAdmin"))("denies %s imports before accessing the import service or Storage", async (role) => {
+    roles = [role];
+    const response = await handle(request({ action: "import-current-site" }));
+    expect(response.status).toBe(403); expect(importCurrentSite).not.toHaveBeenCalled(); expect(storage.write).not.toHaveBeenCalled();
+  });
+  it("passes verified Super Admin claims and existing Storage into the audited import service", async () => {
+    roles = ["superAdmin"];
+    vi.mocked(importCurrentSite).mockResolvedValue({ state: "ready", summary: { mediaCreated: 4, mediaExisting: 1, contentCreated: 2, contentExisting: 0 } });
+    const response = await handle(request({ action: "import-current-site" }));
+    expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ state: "ready", summary: { mediaCreated: 4, mediaExisting: 1, contentCreated: 2, contentExisting: 0 } });
+    expect(importCurrentSite).toHaveBeenCalledWith({ config, backend, storage, claims, accessToken });
+    expect(revalidatePublishedContent).toHaveBeenCalledTimes(4); expect(revalidatePublishedMedia).toHaveBeenCalledOnce();
+  });
+  it("keeps the session when the import migration is missing", async () => {
+    roles = ["superAdmin"]; vi.mocked(importCurrentSite).mockRejectedValue(new StaffRpcMissingError());
+    const response = await handle(request({ action: "import-current-site" }));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready"); expect(backend.logout).not.toHaveBeenCalled();
   });
 });

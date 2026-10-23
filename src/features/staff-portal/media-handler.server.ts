@@ -7,12 +7,17 @@ import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSe
 import { MEDIA_MAX_BYTES, MediaInputError, mediaVariantPaths, processMedia } from "./media-processing.server";
 import { createMediaStorage, MEDIA_PRIVATE_BUCKET, MEDIA_PUBLIC_BUCKET, type MediaStorage } from "./media-storage.server";
 import { revalidatePublishedContent } from "@/features/content/revalidate.server";
+import { importCurrentSite } from "./current-site-import.server";
+import { isMediaVideoPath } from "./media-contract";
+import { revalidatePublishedMedia } from "@/features/media/revalidate.server";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
 const record = (value: unknown): Record<string, unknown> | null => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 const integer = (v: unknown, min: number, max: number): v is number => Number.isSafeInteger(v) && Number(v) >= min && Number(v) <= max;
 const text = (v: unknown, max: number): v is string => typeof v === "string" && v.length <= max && !/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(v);
 const stateNames = new Set(["denied", "invalid", "invalid_transition", "conflict", "busy", "alt_required", "rights_required", "expired", "not_found", "limited", "rate_limited", "unavailable", "failed"]);
+const validArchiveFields = (a: Record<string, unknown>) => (a.editionYear === null || integer(a.editionYear, 1900, 2200))
+  && integer(a.displayOrder, 0, 2_147_483_647) && (a.kind === "photograph" && a.videoPath === null || a.kind === "film" && isMediaVideoPath(a.videoPath));
 function safePath(value: unknown, config: StaffConfig, raw = false): value is string {
   return typeof value === "string" && value.startsWith(config.editionKey + "/") && !value.includes("..")
     && /^[a-z0-9/_\-.]+$/.test(value) && value.length < 320 && (raw || value.endsWith("/image.webp"));
@@ -24,14 +29,16 @@ function assetProjection(value: unknown, config: StaffConfig) {
     || !["altEn", "altAr", "captionEn", "captionAr", "creditEn", "creditAr", "rightsEvidence"].every((key) => text(a[key], 2000))
     || typeof a.rightsConfirmed !== "boolean" || ![a.focalX, a.focalY].every((v) => typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 100)
     || ![a.createdAt, a.updatedAt].every((v) => typeof v === "string" && Number.isFinite(Date.parse(v)))
+    || !validArchiveFields(a)
     || a.state === "published" && !safePath(a.publicPath, config)) return null;
   return { id: a.id, filename: a.fileName, mime: a.mime, size: a.size, width: a.width, height: a.height, version: a.version,
     state: a.state, altEn: a.altEn, altAr: a.altAr, captionEn: a.captionEn, captionAr: a.captionAr, creditEn: a.creditEn, creditAr: a.creditAr,
     focalX: a.focalX, focalY: a.focalY, rightsConfirmed: a.rightsConfirmed, rightsEvidence: a.rightsEvidence,
+    editionYear: a.editionYear, kind: a.kind, displayOrder: a.displayOrder, videoPath: a.videoPath,
     createdAt: a.createdAt, updatedAt: a.updatedAt, busy: a.busy === true,
     previewUrl: `/api/staff-portal/media?preview=${a.id}`, publicUrl: a.state === "published" ? `${config.supabaseUrl}/storage/v1/object/public/${MEDIA_PUBLIC_BUCKET}/${a.publicPath}` : null };
 }
-export function createMediaHandler(dependencies: { readiness?: () => StaffReadiness; backend?: (config: StaffConfig) => StaffBackend; storage?: (config: StaffConfig) => MediaStorage; now?: () => number; revalidate?: () => void } = {}) {
+export function createMediaHandler(dependencies: { readiness?: () => StaffReadiness; backend?: (config: StaffConfig) => StaffBackend; storage?: (config: StaffConfig) => MediaStorage; now?: () => number; revalidate?: () => void; importCurrentSite?: typeof importCurrentSite } = {}) {
   return async (request: Request): Promise<Response> => {
     let rotated: string | undefined;
     const readiness = (dependencies.readiness ?? getStaffConfig)();
@@ -73,9 +80,13 @@ export function createMediaHandler(dependencies: { readiness?: () => StaffReadin
         return ["updated", "created", "duplicate", "completed", "ready"].includes(state) && asset ? reply({ state: "ready", asset, duplicate: state === "duplicate" }) : reply({ state: "unavailable" }, 503);
       };
       const storage = (dependencies.storage ?? createMediaStorage)(config);
+      const revalidate = () => {
+        if (dependencies.revalidate) dependencies.revalidate();
+        else { for (const collection of ["speakers", "sessions", "partners", "team"] as const) revalidatePublishedContent(collection); revalidatePublishedMedia(); }
+      };
       if (request.method === "GET") {
         const params = new URL(request.url).searchParams;
-        if ([...params.keys()].some((key) => !["q", "state", "preview"].includes(key) || params.getAll(key).length !== 1)) return reply({ state: "invalid" }, 400);
+        if ([...params.keys()].some((key) => !["q", "state", "year", "preview"].includes(key) || params.getAll(key).length !== 1)) return reply({ state: "invalid" }, 400);
         if (params.has("preview")) {
           const id = params.get("preview")!;
           if (params.size !== 1 || !staffUuid.test(id)) return reply({ state: "invalid" }, 400);
@@ -84,13 +95,16 @@ export function createMediaHandler(dependencies: { readiness?: () => StaffReadin
           const bytes = await storage.read(asset.storagePath);
           return new Response(new Uint8Array(bytes), { headers: { ...headers, "Content-Type": "image/webp", ...(rotated ? { "Set-Cookie": rotated } : {}) } });
         }
-        const search = params.get("q") ?? "", filter = params.get("state") ?? "all";
-        if (!text(search, 120) || !["all", "draft", "published", "archived"].includes(filter)) return reply({ state: "invalid" }, 400);
-        const data = await rpc("list", { search_query: search, state_filter: filter });
+        const search = params.get("q") ?? "", filter = params.get("state") ?? "all", year = params.get("year") ?? "all";
+        if (!text(search, 120) || !["all", "draft", "published", "archived"].includes(filter) || year !== "all" && !/^(19|20|21|22)\d{2}$/.test(year)
+          || year !== "all" && !integer(Number(year), 1900, 2200)) return reply({ state: "invalid" }, 400);
+        const data = await rpc("list", { search_query: search, state_filter: filter, year_filter: year === "all" ? null : Number(year) });
         if (data?.state !== "ready") return outcome(data);
         if (!Array.isArray(data.assets) || data.assets.length > 100 || !integer(data.total, 0, 2_147_483_647)) return reply({ state: "unavailable" }, 503);
         const assets = data.assets.map((asset) => assetProjection(asset, config));
-        return assets.every(Boolean) ? reply({ state: "ready", assets, total: data.total }) : reply({ state: "unavailable" }, 503);
+        const years = data.years;
+        if (!Array.isArray(years) || years.length > 301 || !years.every((value) => integer(value, 1900, 2200))) return reply({ state: "unavailable" }, 503);
+        return assets.every(Boolean) ? reply({ state: "ready", assets, total: data.total, years, canImport: authority.profile.roles.includes("superAdmin") }) : reply({ state: "unavailable" }, 503);
       }
       let input: Record<string, unknown> | null;
       try { input = record(await readStaffJson(request)); } catch { return reply({ state: "invalid" }, 400); }
@@ -99,6 +113,13 @@ export function createMediaHandler(dependencies: { readiness?: () => StaffReadin
       const claimed = record(await backend.rpc("msrc_staff_form_claim", { nonce_hash: staffHash(config, "nonce", nonce), ip_hash: staffHash(config, "ip", ip) }));
       if (claimed?.state !== "claimed") return reply({ state: "limited" }, 429);
       const keys = (...allowed: string[]) => Object.keys(input).every((key) => ["action", "formToken", ...allowed].includes(key));
+      if (input.action === "import-current-site") {
+        if (!keys()) return reply({ state: "invalid" }, 400);
+        if (!authority.profile.roles.includes("superAdmin")) return reply({ state: "denied" }, 403);
+        const result = await (dependencies.importCurrentSite ?? importCurrentSite)({ config, backend, storage, claims, accessToken: session.accessToken });
+        if (result.state === "ready") revalidate();
+        return reply(result, result.state === "ready" ? 200 : result.state === "denied" ? 403 : result.state === "unavailable" ? 503 : 409);
+      }
       if (input.action === "upload-url") {
         if (!keys("filename", "size") || !text(input.filename, 200) || !input.filename.trim() || /[\\/\x00-\x1f\x7f]/.test(input.filename) || !integer(input.size, 1, MEDIA_MAX_BYTES)) return reply({ state: Number(input.size) > MEDIA_MAX_BYTES ? "upload-too-large" : "invalid" }, 400);
         const data = await rpc("upload_reserve", { file_name: input.filename.trim(), file_size: input.size });
@@ -128,20 +149,25 @@ export function createMediaHandler(dependencies: { readiness?: () => StaffReadin
         }
       }
       if (typeof input.assetId !== "string" || !staffUuid.test(input.assetId) || !integer(input.version, 1, 2_147_483_647)) return reply({ state: "invalid" }, 400);
+      if (input.action === "reorder") {
+        if (!keys("assetId", "version", "direction") || !["earlier", "later"].includes(String(input.direction))) return reply({ state: "invalid" }, 400);
+        const response = outcome(await rpc("reorder", { asset_id: input.assetId, expected_version: input.version, direction: input.direction }));
+        if (response.ok) (dependencies.revalidate ?? revalidatePublishedMedia)();
+        return response;
+      }
       if (input.action === "save") {
-        const fieldNames = ["altEn", "altAr", "captionEn", "captionAr", "creditEn", "creditAr", "focalX", "focalY", "rightsConfirmed", "rightsEvidence"];
+        const fieldNames = ["altEn", "altAr", "captionEn", "captionAr", "creditEn", "creditAr", "focalX", "focalY", "rightsConfirmed", "rightsEvidence", "editionYear", "kind", "displayOrder", "videoPath"];
         if (!keys("assetId", "version", ...fieldNames) || !fieldNames.slice(0, 6).every((key) => text(input[key], key.startsWith("caption") ? 2000 : 500))
-          || !text(input.rightsEvidence, 2000) || typeof input.rightsConfirmed !== "boolean" || ![input.focalX, input.focalY].every((v) => typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 100)) return reply({ state: "invalid" }, 400);
-        return outcome(await rpc("update", { asset_id: input.assetId, expected_version: input.version, fields: Object.fromEntries(fieldNames.map((key) => [key, input[key]])) }));
+          || !validArchiveFields(input) || !text(input.rightsEvidence, 2000) || typeof input.rightsConfirmed !== "boolean" || ![input.focalX, input.focalY].every((v) => typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 100)) return reply({ state: "invalid" }, 400);
+        const response = outcome(await rpc("update", { asset_id: input.assetId, expected_version: input.version, fields: Object.fromEntries(fieldNames.map((key) => [key, input[key]])) }));
+        if (response.ok) revalidate();
+        return response;
       }
       if (!["publish", "unpublish", "archive"].includes(String(input.action)) || !keys("assetId", "version", "operationId")
         || typeof input.operationId !== "string" || !staffUuid.test(input.operationId)) return reply({ state: "invalid" }, 400);
       const transitionOutcome = (result: Record<string, unknown> | null) => {
         const response = outcome(result);
-        if (response.ok) {
-          if (dependencies.revalidate) dependencies.revalidate();
-          else for (const collection of ["speakers", "sessions", "partners", "team"] as const) revalidatePublishedContent(collection);
-        }
+        if (response.ok) revalidate();
         return response;
       };
       const data = await rpc("transition_begin", { asset_id: input.assetId, expected_version: input.version, action: input.action, operation_id: input.operationId });

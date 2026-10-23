@@ -4,6 +4,7 @@ import { published, type PublicMedia, type PublicSession, type PublicSpeaker, ty
 import { getPublishedContent } from "@/features/content/published.server";
 import { contentSession, contentSpeaker } from "@/features/content/catalogue";
 import { publishedOrFallback } from "@/features/content/published";
+import { getPublishedMedia } from "@/features/media/published.server";
 import type { Locale } from "@/lib/i18n";
 
 // SCP-02 / PRG-01 / CMS-03 / WKS-01 / MED-01: programme and people remain unannounced.
@@ -18,14 +19,15 @@ export const conferenceWorkshops: readonly PublicWorkshop[] = [];
 export function getPublicWorkshops() { return published(conferenceWorkshops); }
 
 export async function getPublicConferenceCatalogue(locale: Locale = "en") {
-  const [sessions, speakers] = await Promise.all([
+  const [sessions, speakers, media] = await Promise.all([
     publishedOrFallback(async () => (await getPublishedContent("sessions")).map((item) => contentSession(item, locale)), published(conferenceSessions)),
     publishedOrFallback(async () => (await getPublishedContent("speakers")).map((item) => contentSpeaker(item, locale)), published(conferenceSpeakers)),
+    publishedOrFallback(getPublishedMedia, published(conferenceMedia)),
   ]);
   return {
     sessions,
     speakers,
-    media: published(conferenceMedia),
+    media,
     workshops: getPublicWorkshops(),
   };
 }

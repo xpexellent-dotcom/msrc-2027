@@ -9,7 +9,10 @@
 .staff-media-drop input::file-selector-button { margin-inline-end: .75rem; padding: .6rem .8rem; border: 1px solid #6b4a9c; border-radius: .5rem; background: #fff; color: #3b1e6d; font: inherit; cursor: pointer; }
 .staff-media-upload-progress { display: grid; gap: .5rem; margin-block-start: 1rem; }
 .staff-media-upload-progress progress { inline-size: 100%; accent-color: #603a75; }
-.staff-media-search { grid-template-columns: minmax(0, 1fr) minmax(8rem, 12rem) auto; }
+.staff-media-search { grid-template-columns: minmax(0, 1fr) repeat(2, minmax(8rem, 10rem)) auto; }
+.staff-media-import { margin-block: 1rem; }
+.staff-media-import .staff-media-confirmation { margin-block-start: 1rem; }
+.staff-media-reorder { margin-block-start: 1rem; }
 .staff-media-search .field, .staff-media-search .field-input { min-inline-size: 0; inline-size: 100%; }
 .staff-media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); gap: .85rem; padding: 0; margin: 1rem 0 0; list-style: none; }
 .staff-media-grid li { min-inline-size: 0; }

@@ -130,7 +130,82 @@ The evidence fields do not implement a separate structured consent lifecycle;
 MED-02's permission wording/version, purpose, subject/group permissions and
 grant/withdrawal handling must be covered by the reviewed operational process.
 
-## Verified provider references
+## Existing-site import and public archive — ENG-069 / ORG-060
+
+Pending migration `20261023145255_staff_site_media_import.sql` adds nullable
+`edition_year`, `kind` (`photograph` or `film`), `display_order`, allowlisted
+`video_path`, stable imported `source_slug` and optional `duration_seconds`.
+The staff editor shows/edits year, kind, order and static film selection;
+year filtering and Earlier/Later actions reorder nonarchived assets within
+that year. Version checks, current role/session authorization and audit apply.
+A blank year keeps team portraits out of the public archive.
+
+Only a current Super Admin can execute **Import current site media and content**,
+with explicit publication confirmation and localized result counts. The server
+manifest contains 30 current archive items (26 photographs and four film posters),
+18 team photographs and 23 team content records. No real partners exist in the
+static site: Brand slots are not imported. Existing EN/AR titles become alt text;
+descriptions become captions. Physical focal points, years and ordering are
+preserved. MP4s stay static. Archive rights evidence records the organizer-supplied
+photographs and photographers' consent confirmed on 13 and 23 October 2026.
+Team evidence retains ORG-050. No hosted import has run.
+
+POST adds `import-current-site` (no client-supplied manifest/paths) and `reorder`
+(`assetId`, `version`, `direction=earlier|later`). GET adds `year=all|<year>`.
+`MediaAsset`/`MediaFields` add `editionYear`, `kind`, `displayOrder`, `videoPath`;
+`MediaResponse` adds `years`, `canImport` and a `summary` with `mediaCreated`,
+`mediaExisting`, `contentCreated`, `contentExisting`.
+
+New/changed JSONB RPCs:
+
+```sql
+-- Current contentMediaEditor or Super Admin, authenticated:
+public.msrc_staff_media_list(edition_key text, search_query text default '',
+  state_filter text default 'all', year_filter integer default null)
+public.msrc_staff_media_update(edition_key text, asset_id uuid,
+  expected_version integer, fields jsonb)
+public.msrc_staff_media_reorder(edition_key text, asset_id uuid,
+  expected_version integer, direction text)
+-- Server/service role only; import binds verified native SA session claims:
+public.msrc_staff_media_import_reserve(edition_key text, session_claims jsonb,
+  source_key text, media jsonb)
+public.msrc_staff_media_import_finish(edition_key text, session_claims jsonb,
+  import_id uuid, fields jsonb)
+public.msrc_media_published(edition_key text)
+```
+
+The importer uses the existing stripped sharp canonical WebP and all four
+variants. File tracing includes the checked-in import images; the importer never
+reads or uploads MP4 bytes. SHA-256
+dedupe plus durable per-source keys make completed reruns retain edited metadata,
+publication state and content. Existing matching assets retain their current
+state; content validation refuses unpublished portraits. Initial mismatching
+SHA collisions stop with `conflict` rather than replacing
+incumbent metadata or silently missing archive content. Completed exposed source
+keys still preserve later staff edits/withdrawal. Pending reservations
+return `busy`, including to concurrent executors. Ambiguous external failures
+need owner-reviewed reconciliation of both private/public paths; never clear
+locks or repeat Storage writes blindly. Prior completed sources remain imported
+if a later source fails; rerunning skips completed sources. New imported archive
+assets stay out of the public projection until the final content batch validates
+every media source and exposes them atomically with the complete roster. A failed
+first import therefore retains the complete built-in archive.
+
+Public archive data reads use a 60-second cache, and the route exports
+`revalidate = 60`; its existing query filters keep the page request-rendered.
+Publish, withdrawal, metadata,
+reorder and successful import invalidate the media tag and EN/AR paths. Empty,
+unconfigured, missing-function, malformed or unavailable reads use the complete
+original built-in archive. The first published archive item replaces that whole
+collection. Withdrawing its last item restores the fallback, per ORG-060. Year
+groups, filters, framing, focal points, lightbox and static film controls remain.
+Public library images bypass the Next image optimizer for withdrawal.
+
+No hosted migration, Storage import or activation has run. Database reset, lint,
+pgTAP and concurrency execution require CI. Local checks are in the
+[media-import receipt](../progress/2026-10-23-claude-media-import.md).
+
+### Provider references checked for the original media pipeline
 
 Checked 23 October 2026:
 [bucket visibility](https://supabase.com/docs/guides/storage/buckets/fundamentals),

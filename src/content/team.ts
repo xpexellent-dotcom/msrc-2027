@@ -14,6 +14,8 @@ export type TeamPerson = {
   description?: Record<Locale, string>;
   profile?: string;
   photo?: string;
+  /** Published library URLs bypass the public image optimizer for withdrawal. */
+  publishedPhoto?: boolean;
   members?: Record<Locale, string>[];
   /** Co-leads shown beside the lead in the same row. */
   coLeads?: TeamPerson[];
