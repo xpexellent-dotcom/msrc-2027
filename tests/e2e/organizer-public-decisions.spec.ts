@@ -1,21 +1,30 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-// ORG-030/031/032; REG-02/03, WKS-02, LOC-01/03, ACC-01.
+// ORG-030/031/032/056; REG-02/03, WKS-02, LOC-01/03, ACC-01.
 // Check the visitor-facing journey, including collapsed FAQ answers and metadata.
 const backOfficeTerms = /approval|approve|discount|موافقة|خصم/i;
 const paddedIndex = /^(?:0[1-9]|٠[١-٩])(?:\s|\/|$)/;
 const pages = ["", "dates-venue", "program", "speakers", "team", "sponsors", "media", "participate", "registration", "submissions", "hackathon", "workshops", "3mt", "contact", "privacy", "terms"];
-const screenshotPages = ["", "dates-venue", "registration", "workshops"];
+const screenshotPages = ["", "dates-venue", "participate", "registration", "workshops"];
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} public registration and workshop copy keeps back-office terms private`, async ({ page }) => {
+  test(`${locale} public copy limits approval wording to the approved registration notice`, async ({ page }) => {
     for (const route of pages) {
       expect((await page.goto(`/${locale}${route ? `/${route}` : ""}`))?.status(), route).toBe(200);
       // Registration/workshops pages are wholly in scope. Other pages may have
       // legitimate research ethics or policy approval wording outside these paths.
       if (route === "registration" || route === "workshops") {
-        await expect(page.getByRole("main")).not.toContainText(backOfficeTerms);
+        // ORG-056 and the Night-3 publication instruction explicitly require the
+        // manual seat-approval rule in this notice. Preserve the older guard
+        // throughout the remaining page and all workshop copy.
+        const text = await page.getByRole("main").evaluate((element) => {
+          const copy = element.cloneNode(true) as HTMLElement;
+          copy.querySelector('[data-testid="registration-opening-notice"]')?.remove();
+          return copy.textContent ?? "";
+        });
+        expect(text, route).not.toMatch(backOfficeTerms);
+        await expect(page.getByRole("main")).not.toContainText(/discount|خصم/i);
         const descriptions = await page.locator('meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("content") ?? ""));
         expect(descriptions.join(" "), route).not.toMatch(backOfficeTerms);
       }

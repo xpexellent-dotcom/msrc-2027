@@ -88,6 +88,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("registration-status")).toHaveText(registration.states.not_requested);
     await expect(page.locator("#registration-document-number")).toBeEnabled();
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+    // Next applies the route title just after client navigation renders content.
+    await expect(page).toHaveTitle(/./);
     await capture("05-registration-request");
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
   });

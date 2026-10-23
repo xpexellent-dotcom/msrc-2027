@@ -1,5 +1,14 @@
 # Public participation flow — ORG-053 / ENG-048
 
+23 October 2026: [ENG-061's registration opening notice](../progress/2026-10-23-codex-night3-registration-opening.md)
+adds the ORG-056/057 schedule to Participate and the closed Attend page, plus a
+short general-opening line below the homepage actions. One display-only content
+module defines the dates and bilingual copy; semantic times use Riyadh time and
+Gregorian Arabic-Indic formatting. Free attendance and the owner's newly requested
+seat-approval statement appear in the notice. This explicit instruction supersedes
+the older private-approval-copy rule only for this notice. Actual access continues
+to use the database settings and existing gates; no registration logic changes.
+
 22 October 2026: [ENG-059's participant journey review](../reviews/participant-journey-2026-10-22.md)
 preserves ORG-053 CTA wording/destinations, clarifies the seat-request step,
 removes static registration-status claims from shared navigation/home cards,
