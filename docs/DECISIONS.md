@@ -3798,3 +3798,25 @@ is supplied. Existing staff/contact secrets are retained; optional initial-insta
 generation is not authorization to rotate established keys. Registration opening
 remains the final explicitly authorized database switch after complete settings
 and the opening-night go/no-go checks.
+
+## ENG-061 — Public registration opening notice, 23 October 2026
+
+Authority: the owner's Night-3 Task 1 and ORG-056/057. ENG-060 was the highest
+number checked before reservation. Requirements REG-02, TIM-01/02, LOC-01/03,
+ACC-01 and DSN-01/02 apply.
+
+Publish the approved early-access, general-opening and closing instants from one
+shared display-only content module on Participate and Attend, with a compact
+general-opening line beside the homepage actions. Show Riyadh time, semantic
+`time` elements, Gregorian dates and Arabic-Indic numerals in Arabic. Early access
+is for people on the organizers' early-access list; attendance is free and seats
+require organizer approval. The owner's explicit request to publish this last
+sentence narrowly supersedes ORG-030 and ENG-059's older instruction to keep
+approval wording private. Other operational and discount wording remains private.
+
+The published dates are announcements, never access defaults or settings seeds.
+Database registration settings remain authoritative. No registration logic,
+workflow flag, hosted setting, migration, policy or approved email text changes.
+Keep work uncommitted for Claude; O9 evidence belongs in
+[the Task 1 receipt](progress/2026-10-23-codex-night3-registration-opening.md),
+never `docs/PROGRESS.md`.

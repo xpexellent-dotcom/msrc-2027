@@ -30,6 +30,7 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
 .hero-lead { max-inline-size: 31ch; font-size: 1.1rem; line-height: 1.65; margin: 0 0 1rem; }
 .hero-location { display: flex; flex-wrap: wrap; column-gap: 1.25rem; font-size: 1rem; color: var(--color-lilac); margin: 0; }
 .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.75rem; margin-block-start: 1.75rem; }
+.hero-registration-opening { max-inline-size: 54ch; margin: 1rem 0 0; color: var(--color-ivory); font-size: .875rem; line-height: 1.8; }
 .hero-secondary { gap: 1rem; color: var(--color-ivory); font-size: 1rem; overflow-wrap: anywhere; max-inline-size: 100%; }
 .hero-bottom { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-start: 2rem; min-block-size: 48px; }
 .hero-scroll { gap: .8rem; color: var(--color-ivory); font-size: 1rem; }

@@ -1,6 +1,28 @@
 /* ORG-053 / ENG-048: public participation invitations, with native RTL flow. */
 .experience-intro--participate .premium-hero-image img { object-position: 50% 56%; }
 .participation-hub { padding-block: clamp(2rem, 5vw, 5rem); background: var(--color-ivory); }
+.registration-opening { padding-block: clamp(2rem, 4vw, 3.5rem) 0; background: var(--color-ivory); }
+.registration-opening-content { max-inline-size: 66rem; margin-inline: auto; padding-block: 1.25rem; border-block-start: 2px solid var(--color-gold); border-block-end: 1px solid var(--color-line); }
+.registration-opening-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 2rem; }
+.registration-opening-heading h2 { margin: 0; color: var(--color-purple); font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 650; line-height: 1.4; letter-spacing: -.02em; }
+.registration-opening-heading p { margin: 0; color: var(--color-muted); font-size: .875rem; }
+.registration-opening-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 3rem; margin: 1.5rem 0; }
+.registration-opening-dates > div { min-inline-size: 0; }
+.registration-opening-dates dt { margin-block-end: .5rem; color: var(--color-muted); font-size: .875rem; font-weight: 600; }
+.registration-opening-dates dd { margin: 0; }
+.registration-opening-dates time { display: block; color: var(--color-purple); font-size: clamp(1.125rem, 1.8vw, 1.4rem); font-weight: 600; line-height: 1.6; }
+.registration-opening-clock { display: block; }
+.registration-opening-dates dd p { margin: .5rem 0 0; color: var(--color-muted); font-size: .9375rem; line-height: 1.7; }
+.registration-opening-details { padding-block-start: 1rem; border-block-start: 1px solid var(--color-line); color: var(--color-muted); font-size: .875rem; line-height: 1.8; }
+.registration-opening-details p { margin: 0; }
+.registration-opening-details .registration-opening-attendance { margin-block-end: .35rem; color: var(--color-ink); font-size: 1rem; font-weight: 500; }
+.registration-opening-content :is(p, time) { overflow-wrap: anywhere; }
+[lang="ar"] .registration-opening-heading h2 { letter-spacing: 0; }
+@media (max-width: 600px) {
+  .registration-opening-dates { grid-template-columns: minmax(0, 1fr); }
+  .registration-opening-dates > div + div { padding-block-start: 1.25rem; border-block-start: 1px solid var(--color-line); }
+}
+@media (forced-colors: active) { .registration-opening-content { border-color: CanvasText; } }
 .participation-paths { display: grid; gap: .875rem; max-inline-size: 66rem; margin-inline: auto; }
 .participation-path { min-inline-size: 0; scroll-margin-block-start: 7rem; }
 .participation-path-link.site-link { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: clamp(.75rem, 2vw, 2rem); min-block-size: 7.5rem; padding: 1.25rem clamp(1rem, 3vw, 2rem); border: 1px solid var(--color-line); border-radius: 1rem; background: var(--color-white); color: var(--color-purple); text-decoration: none; box-shadow: 0 3px 12px rgb(59 30 109 / 3%); transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
