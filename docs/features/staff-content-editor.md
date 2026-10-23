@@ -117,7 +117,7 @@ The content browser suite now builds one app per synthetic provider state
 (`node scripts/build-content-e2e.ts`, into `.next/content-<state>`) before
 `playwright.content.config.ts` starts them.
 
-## Current approved roster import — ENG-067 / ORG-059
+## Current approved roster import — ENG-069 / ORG-060
 
 The Super Admin action on the media tab imports 23 current roster records as
 PUBLISHED content, after importing/linking their 18 supplied photographs. Neutral

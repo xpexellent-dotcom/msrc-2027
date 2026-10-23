@@ -4015,7 +4015,7 @@ from calendar dates. No migrations, RPCs or backend contracts are required.
 Evidence: [public copy receipt](progress/2026-10-23-claude-public-copy-dates.md).
 Do not edit PROGRESS.md.
 
-## ORG-059 — Existing site media and content import, 23 October 2026
+## ORG-060 — Existing site media and content import, 23 October 2026
 
 Authority: explicit organizer instructions in the media-import task, 23 October 2026.
 
@@ -4033,9 +4033,9 @@ Authority: explicit organizer instructions in the media-import task, 23 October 
 - This task prepares the import action locally. It does not execute a hosted
   import, apply migrations, activate flags, open participants or send email.
 
-## ENG-067 — Staff import of existing site archive and roster, 23 October 2026
+## ENG-069 — Staff import of existing site archive and roster, 23 October 2026
 
-ORG-059; MED-01–04, CMS-01–04, ARC-01, ROL-09/10/12, LOC-01/03,
+ORG-060; MED-01–04, CMS-01–04, ARC-01, ROL-09/10/12, LOC-01/03,
 ACC-01 and SEC-01/02/06. ENG-066 was the highest engineering entry checked
 before reservation. Use the existing stripped canonical WebP/four-variant
 pipeline, SHA-256 deduplication, current native staff assurance and private audit.

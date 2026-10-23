@@ -2,7 +2,7 @@ import { editionMedia } from "../../content/edition-media.ts";
 import { teamCommittees, type TeamPerson } from "../../content/team.ts";
 import { emptyContentFields, type ContentFields } from "./content-contract.ts";
 
-/** ORG-059: existing approved site sources only, never inferred people or sponsors. */
+/** ORG-060: existing approved site sources only, never inferred people or sponsors. */
 export const ARCHIVE_RIGHTS = "Archive photographs supplied by the organizers, who confirmed the photographers' consent on 13 and 23 October 2026; approved existing MSRC public archive use.";
 export const TEAM_RIGHTS = "ORG-050: names, roles, descriptions, profile links and photographs submitted by each person for the existing MSRC 2027 team page; approved existing public team-page use.";
 export type SiteMediaImport = {

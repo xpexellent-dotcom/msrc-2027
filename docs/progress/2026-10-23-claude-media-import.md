@@ -1,6 +1,6 @@
 # O9 — Existing site media and content import, 23 October 2026
 
-Authority: current task, ORG-055/056/057/059 and ENG-067; MED-01–04,
+Authority: current task, ORG-055/056/057/059 and ENG-069; MED-01–04,
 CMS-01–04, ARC-01, ROL-09/10/12, LOC-01/03, ACC-01, SEC-01/02/06.
 Initial checkout: clean `claude/media-import`, HEAD
 `1504055b7daf52a58277252d34b8130a47129383`, based on `claude/public-copy-dates`.
@@ -26,7 +26,7 @@ was made to bypass the filesystem restriction.
 - Every source uses the existing sharp pipeline: metadata-stripped canonical
   WebP and 640/1280/1920 variants, no enlargement. Films retain their static MP4s.
   Alt text, captions, physical focal coordinates, edition years and ordering come
-  from the current approved source files. ORG-059 rights evidence records the
+  from the current approved source files. ORG-060 rights evidence records the
   organizers' confirmation on 13 and 23 October; team evidence retains ORG-050.
 - Durable source keys and canonical SHA-256 dedupe preserve later staff edits
   and withdrawals on repetition. Storage writes use immutable reserved paths.

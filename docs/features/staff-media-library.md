@@ -130,7 +130,7 @@ The evidence fields do not implement a separate structured consent lifecycle;
 MED-02's permission wording/version, purpose, subject/group permissions and
 grant/withdrawal handling must be covered by the reviewed operational process.
 
-## Existing-site import and public archive — ENG-067 / ORG-059
+## Existing-site import and public archive — ENG-069 / ORG-060
 
 Pending migration `20261023145255_staff_site_media_import.sql` adds nullable
 `edition_year`, `kind` (`photograph` or `film`), `display_order`, allowlisted
@@ -197,7 +197,7 @@ Publish, withdrawal, metadata,
 reorder and successful import invalidate the media tag and EN/AR paths. Empty,
 unconfigured, missing-function, malformed or unavailable reads use the complete
 original built-in archive. The first published archive item replaces that whole
-collection. Withdrawing its last item restores the fallback, per ORG-059. Year
+collection. Withdrawing its last item restores the fallback, per ORG-060. Year
 groups, filters, framing, focal points, lightbox and static film controls remain.
 Public library images bypass the Next image optimizer for withdrawal.
 
