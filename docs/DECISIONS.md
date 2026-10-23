@@ -4214,3 +4214,45 @@ The explicit task override authorizes a local commit on
 [the announcements receipt](progress/2026-10-23-claude-announcements.md), with
 feature notes in [ANNOUNCEMENTS.md](features/ANNOUNCEMENTS.md).
 `docs/PROGRESS.md` remains outside this task's edit scope.
+
+## ORG-062 — Placeholder email banner, verified audience and announcement retention, 23 October 2026
+
+Authority: explicit organizer decisions in the banner-retention task. ORG-061
+was the highest organizer entry checked before reservation.
+
+- Use a plain branded email banner, with no photograph, as a **PLACEHOLDER**
+  until the official banner arrives. Use the site's purple and gold, “MSRC 2027”
+  and “Medical Students Research Conference”.
+- “All verified accounts” means every account with a verified email, including
+  accounts that never registered for the conference. Explain this in EN/AR.
+- Delete announcements, recipient snapshots and participant inbox rows one year
+  after the last conference day, using the edition's configured conference days.
+  If conference days are unset, purge nothing. Outbox retention remains independent.
+
+These decisions authorize local implementation only; all live workflows stay closed.
+
+## ENG-071 — Bounded announcement retention and plain email placeholder, 23 October 2026
+
+ORG-062; EML-01–05, LOC-01/03, PRV-03/05/06, SEC-01/02/06 and ACC-01.
+ENG-070 was the highest engineering entry checked before reservation.
+
+Preserve the single banner PNG URL and existing bilingual DRAFT wording gates.
+Keep the legacy segment key `verified_participants` for stored drafts and API
+compatibility; its meaning is now all verified accounts, including staff and
+signup-only accounts. Exclude suspended, deleted and anonymous accounts and undeliverable email
+addresses; no profile, role grant, active-access state or registration is required.
+Other segments retain their existing active-access requirements.
+
+The existing server-only maintenance RPC performs retention under the same
+edition lock as preview/send/edit, before scheduled dispatch. Use the final conference date plus one calendar year at midnight in
+Asia/Riyadh; purge only when now() is strictly past that instant. Each run bounds deletion to 20 announcement parents and
+500 rows each from inbox, recipients and dependent operation records. A private
+transaction-bound target capability permits only those retention deletions;
+counts-only retention audit receipts and existing operational audit history stay
+immutable. Outbox messages, frozen provider requests and tombstones are untouched
+and follow the existing terminal-retention policy. No new scheduler is added.
+
+The explicit task override authorizes a local commit on the existing
+`claude/banner-retention` branch, without push. No hosted migration, settings
+seed, flag activation, participant opening or real email. Evidence:
+`docs/progress/2026-10-23-claude-banner-retention.md`; never edit PROGRESS.md.

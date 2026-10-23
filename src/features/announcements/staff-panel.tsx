@@ -32,7 +32,7 @@ function LiveEmail({ locale, fields, rendered }: { locale: Locale; fields: Annou
   const text = announcementCopy[locale];
   return <section className="staff-panel staff-email-preview" aria-labelledby="announcement-email-preview"><h3 id="announcement-email-preview">{text.previewEmail}</h3><p className="staff-muted">{text.previewHint}</p>
     <div className="staff-email-message" data-testid="announcement-email-preview">
-      <Image src="/brand/email-banner.png" alt="MSRC 2026 conference audience — previous edition" width={600} height={338} unoptimized className="staff-email-banner" />
+      <Image src="/brand/email-banner.png" alt="MSRC 2027" width={600} height={338} unoptimized className="staff-email-banner" />
       <div className="staff-email-message-body">{(["en", "ar"] as const).map((language, index) => <div key={language}>{index ? <hr /> : null}<div lang={language} dir={language === "ar" ? "rtl" : "ltr"} className={language === "ar" ? "staff-email-arabic" : undefined}>
         <p><strong>{fields[language === "ar" ? "subjectAr" : "subjectEn"]}</strong></p>{fields[language === "ar" ? "bodyAr" : "bodyEn"].replace(/\r\n?/g, "\n").split(/\n[\t ]*\n/).map((paragraph, n) => <p className="staff-announcement-paragraph" key={n}>{paragraph}</p>)}
       </div></div>)}</div>

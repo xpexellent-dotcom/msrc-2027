@@ -64,6 +64,10 @@ for (const locale of ["en", "ar"] as const) {
       await expect(banner).toHaveAttribute("src", "/brand/email-banner.png");
       await banner.scrollIntoViewIfNeeded();
       await expect.poll(() => banner.evaluate((node) => (node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+      expect(await banner.evaluate((node) => {
+        const image = node as HTMLImageElement;
+        return { width: image.naturalWidth, height: image.naturalHeight, alt: image.alt };
+      })).toEqual({ width: 600, height: 338, alt: "MSRC 2027" });
       await card.getByRole("button").focus(); await page.keyboard.press("Enter");
       await expect(card.getByRole("status")).toHaveText(copy.copied);
       await card.getByText(copy.html, { exact: true }).click();

@@ -150,6 +150,33 @@ describe.skipIf(!isolatedCi)("Announcement ordering (disposable GitHub CI only)"
     expect(scalar(await query(`select count(*) from msrc_announcements.recipients where announcement_id='${id(9740)}';`))).toBe("0");
   });
 
+  it("concurrent retention runs serialize and erase an expired announcement exactly once", async () => {
+    const expiredEdition = `${edition}-retention`;
+    await query(`select pg_temp.registration_settings('${expiredEdition}');
+      update msrc_registration.settings set conference_days=array[(current_date-interval '2 years')::date] where edition_key='${expiredEdition}';
+      insert into msrc_announcements.announcements(edition_key,subject_en,subject_ar,body_en,body_ar,segments,created_by)
+      values('${expiredEdition}','Synthetic','Synthetic','Synthetic','Synthetic',array['verified_participants'],gen_random_uuid());`);
+    await race(`begin;select msrc_announcements.purge_retained('${expiredEdition}');`,
+      `begin;set local application_name='synthetic-announcement-retention-second';select msrc_announcements.purge_retained('${expiredEdition}');`,
+      "synthetic-announcement-retention-second");
+    expect(scalar(await query(`select count(*) from msrc_announcements.announcements where edition_key='${expiredEdition}';`))).toBe("0");
+    expect(scalar(await query(`select count(*) from msrc_announcements.retention_audit where edition_key='${expiredEdition}' and announcements=1;`))).toBe("1");
+    expect(scalar(await query(`select count(*) from msrc_announcements.retention_targets;`))).toBe("0");
+  });
+
+  it("retention waits for a conference-day extension and rechecks the committed deadline", async () => {
+    const changedEdition = `${edition}-retention-settings`;
+    await query(`select pg_temp.registration_settings('${changedEdition}');
+      update msrc_registration.settings set conference_days=array[(current_date-interval '2 years')::date] where edition_key='${changedEdition}';
+      insert into msrc_announcements.announcements(edition_key,subject_en,subject_ar,body_en,body_ar,segments,created_by)
+      values('${changedEdition}','Synthetic','Synthetic','Synthetic','Synthetic',array['verified_participants'],gen_random_uuid());`);
+    await race(`begin;update msrc_registration.settings set conference_days=array[current_date] where edition_key='${changedEdition}';`,
+      `begin;set local application_name='synthetic-announcement-retention-settings';select msrc_announcements.purge_retained('${changedEdition}');`,
+      "synthetic-announcement-retention-settings");
+    expect(scalar(await query(`select count(*) from msrc_announcements.announcements where edition_key='${changedEdition}';`))).toBe("1");
+    expect(scalar(await query(`select count(*) from msrc_announcements.retention_audit where edition_key='${changedEdition}';`))).toBe("0");
+  });
+
   it.each(["repeatable read", "serializable"] as const)("all public entrypoints reject %s before authorization or lock wait", async (isolation) => {
     const calls = [
       `msrc_staff_announcements_list('${edition}')`,

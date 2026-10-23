@@ -2,8 +2,9 @@ import "server-only";
 
 import type { OutboxDatabaseConfig } from "./outbox-store.server";
 
+export type AnnouncementRetentionCounts = { announcements: number; recipients: number; inbox: number; operations: number };
 export type AnnouncementMaintenanceResult = { state: "closed" | "area-not-ready" }
-  | { state: "updated"; started: number; needsReview: number };
+  | { state: "updated"; started: number; needsReview: number; retention?: AnnouncementRetentionCounts };
 
 /** Reuses the existing authenticated outbox drain. No new scheduler or activation.
  * Missing hosted migrations are a readiness result, never an authentication error. */
@@ -25,8 +26,19 @@ export async function maintainAnnouncements(config: OutboxDatabaseConfig, editio
     if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error();
     const row = value as Record<string, unknown>;
     if (row.state === "closed" && Object.keys(row).length === 1) return { state: "closed" };
-    if (row.state !== "updated" || Object.keys(row).length !== 3
+    const hasRetention = Object.hasOwn(row, "retention");
+    if (row.state !== "updated" || Object.keys(row).length !== (hasRetention ? 4 : 3)
       || !["started", "needsReview"].every((key) => Number.isSafeInteger(row[key]) && Number(row[key]) >= 0)) throw new Error();
-    return { state: "updated", started: Number(row.started), needsReview: Number(row.needsReview) };
+    // Accept the older migration response until the pending retention migration lands.
+    let retention: AnnouncementRetentionCounts | undefined;
+    if (hasRetention) {
+      if (!row.retention || typeof row.retention !== "object" || Array.isArray(row.retention)) throw new Error();
+      const counts = row.retention as Record<string, unknown>;
+      if (Object.keys(counts).length !== 4 || !["announcements", "recipients", "inbox", "operations"]
+        .every((key) => Number.isSafeInteger(counts[key]) && Number(counts[key]) >= 0
+          && Number(counts[key]) <= (key === "announcements" ? 20 : 500))) throw new Error();
+      retention = counts as AnnouncementRetentionCounts;
+    }
+    return { state: "updated", started: Number(row.started), needsReview: Number(row.needsReview), ...(retention ? { retention } : {}) };
   } catch { throw new Error("Announcement maintenance unavailable."); }
 }

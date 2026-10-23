@@ -42,6 +42,8 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} Super Admin composes, previews exact deduplicated count and queues an announcement with axe`, async ({ page }, testInfo) => {
     const { actions } = await fixture(page); await page.goto(`/${locale}/staff/announcements`);
     await expect(page.getByRole("heading", { level: 1, name: copy.areas.announcements })).toBeVisible();
+    await expect(page.getByText(text.audienceHint, { exact: true })).toBeVisible();
+    await expect(page.getByRole("checkbox", { name: text.segments.verified_participants, exact: true })).toBeVisible();
     await expect(page.getByRole("checkbox", { name: text.segments.active_staff, exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: new RegExp(`^${text.edit}`) }).click();
     await expect(page.locator("#announcement-body-ar")).toHaveAttribute("dir", "rtl");

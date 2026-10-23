@@ -56,7 +56,9 @@ insert into msrc_abstracts.submissions(edition_key,actor_id,version,document,sta
  ('synthetic-announcements',pg_temp.registration_actor(9801),1,'{}'::jsonb,'submitted',1,clock_timestamp()),
  ('synthetic-announcements',pg_temp.registration_actor(9802),1,'{}'::jsonb,'accepted',1,clock_timestamp()),
  ('synthetic-announcements',pg_temp.registration_actor(9806),1,'{}'::jsonb,'draft',1,null);
-select is((select count(*) from msrc_announcements.audience('synthetic-announcements') where segment='verified_participants'),6::bigint,'Only verified participant-only accounts in participant segment');
+select is((select count(*) from msrc_announcements.audience('synthetic-announcements') where segment='verified_participants'),11::bigint,'All verified accounts includes staff and signup-only participants');
+select ok(exists(select 1 from msrc_announcements.audience('synthetic-announcements') where segment='verified_participants' and actor_id=pg_temp.registration_actor(9810)),'Global verified segment includes staff');
+select ok(exists(select 1 from msrc_announcements.audience('synthetic-announcements') where segment='verified_participants' and actor_id=pg_temp.registration_actor(9806)),'Global verified segment includes accounts without conference registration');
 select is((select count(*) from msrc_announcements.audience('synthetic-announcements') where segment='registration_pending'),1::bigint,'Pending uses real pending_approval status');
 select is((select count(*) from msrc_announcements.audience('synthetic-announcements') where segment='registration_approved'),1::bigint,'Approved segment uses existing request state');
 select is((select count(*) from msrc_announcements.audience('synthetic-announcements') where segment='registration_confirmed'),1::bigint,'Confirmed segment uses existing request state');
@@ -68,7 +70,7 @@ select is((select count(*) from msrc_announcements.audience('synthetic-announcem
 select is((select count(*) from msrc_announcements.audience('synthetic-announcements') where segment='checkin_staff'),1::bigint,'Check-in segment uses actual grants');
 select is((select count(*) from msrc_announcements.audience('synthetic-announcements') where segment='active_staff'),5::bigint,'Staff segment deduplicates current account grants');
 update msrc_authorization.account_access set state='suspended' where actor_id=pg_temp.registration_actor(9806);
-select is((select count(*) from msrc_announcements.audience('synthetic-announcements') where segment='verified_participants'),5::bigint,'Suspended account excluded at send-time source');
+select is((select count(*) from msrc_announcements.audience('synthetic-announcements') where segment='verified_participants'),10::bigint,'All verified accounts excludes suspended accounts');
 update msrc_authorization.account_access set state='active' where actor_id=pg_temp.registration_actor(9806);
 
 create function pg_temp.announcement_input(selected text[] default array['registration_pending','abstract_submitters']) returns jsonb language sql immutable as $$

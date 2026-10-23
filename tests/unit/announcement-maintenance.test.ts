@@ -11,7 +11,9 @@ const request = () => new Request("http://localhost/api/jobs/outbox/drain", { he
 afterEach(() => vi.unstubAllGlobals());
 
 describe("scheduled announcement maintenance on the existing outbox drain", () => {
-  it.each([{ state: "closed" }, { state: "updated", started: 2, needsReview: 1 }])("decodes safe counts only %j", async (result) => {
+  it.each([{ state: "closed" }, { state: "updated", started: 2, needsReview: 1 },
+    { state: "updated", started: 0, needsReview: 0, retention: { announcements: 20, recipients: 500, inbox: 500, operations: 500 } },
+  ])("decodes safe counts only %j", async (result) => {
     const fetcher = vi.fn().mockResolvedValue(Response.json(result));
     vi.stubGlobal("fetch", fetcher);
     expect(await maintainAnnouncements(config, "synthetic-2027")).toEqual(result);
@@ -37,6 +39,16 @@ describe("scheduled announcement maintenance on the existing outbox drain", () =
     fetcher.mockClear();
     await expect(maintainAnnouncements(config, "bad edition")).rejects.toThrow("Announcement maintenance unavailable.");
     expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([null, [], {}, { announcements: 21, recipients: 0, inbox: 0, operations: 0 },
+    { announcements: 0, recipients: 501, inbox: 0, operations: 0 },
+    { announcements: 0, recipients: 0, inbox: -1, operations: 0 },
+    { announcements: 0, recipients: 0, inbox: 0, operations: 0.5 },
+    { announcements: 0, recipients: 0, inbox: 0, operations: 0, email: "private" },
+  ])("rejects malformed or identifying retention receipts %#", async (retention) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ state: "updated", started: 0, needsReview: 0, retention })));
+    await expect(maintainAnnouncements(config, "synthetic-2027")).rejects.toThrow("Announcement maintenance unavailable.");
   });
 
   it.each([
