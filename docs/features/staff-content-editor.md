@@ -116,3 +116,37 @@ navigation into the detail page in Next 16.3.8, so it was not kept.
 The content browser suite now builds one app per synthetic provider state
 (`node scripts/build-content-e2e.ts`, into `.next/content-<state>`) before
 `playwright.content.config.ts` starts them.
+
+## Current approved roster import — ENG-069 / ORG-060
+
+The Super Admin action on the media tab imports 23 current roster records as
+PUBLISHED content, after importing/linking their 18 supplied photographs. Neutral
+sponsor placeholders are not partner records; speakers/programme remain empty.
+No hosted import is performed by this source change.
+
+Pending `20261023145255_staff_site_media_import.sql` adds authenticated,
+Super Admin-only `public.msrc_staff_content_import(edition_key text, items jsonb,
+media_sources jsonb default '[]'::jsonb)`
+returning JSONB `{state, created, existing}`. Each item has a stable server source
+key, collection and fields. Required EN/AR, permission and current published-media
+validation still apply. The whole content batch is validated and published in
+one transaction; after every listed media source is complete, the same transaction
+exposes the imported archive. Failures retain the complete static archive and
+cannot leave half a replacement roster. Durable unique
+source keys make reruns preserve later staff edits and deliberate withdrawals.
+Revisions/publications/audit remain append-only; the private import audit records
+the batch counts. No table is directly client-readable.
+
+`ContentFields.teamLayout` optionally preserves the supplied `slug`, committee,
+head/lead/co-lead position, parent slug, no-members layout and paired member names.
+The decoder bounds and allowlists this metadata. Existing generic cards remain
+available for ordinary content. Imported rosters use the existing team components,
+founder placeholder, portraits, locale sorting and shared lead rows, with the same
+descriptions and profile links. Team description and profile URL are now editable
+in the structured form and included in the public projection. Internal rights
+evidence and source import keys stay out of public responses.
+
+The import and media transitions invalidate both the media and affected content
+caches. The migration remains pending owner authorization; no settings, legal
+text, approved emails or release flags change. See the
+[O9 receipt](../progress/2026-10-23-claude-media-import.md).

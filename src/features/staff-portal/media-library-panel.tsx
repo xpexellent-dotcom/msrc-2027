@@ -10,11 +10,12 @@ import { formatStaffNumber } from "./console-shell";
 import { mediaCopy } from "./media-copy";
 import { requestMedia, uploadMediaFile } from "./media-client";
 import type { MediaAsset, MediaFields, MediaFilter, MediaPayload, MediaResponse, MediaTransition } from "./media-contract";
+import { MEDIA_VIDEO_PATHS } from "./media-contract";
 
 const maxUploadBytes = 10 * 1024 * 1024;
 function fields(asset: MediaAsset): MediaFields {
-  const { altEn, altAr, captionEn, captionAr, creditEn, creditAr, focalX, focalY, rightsConfirmed, rightsEvidence } = asset;
-  return { altEn, altAr, captionEn, captionAr, creditEn, creditAr, focalX, focalY, rightsConfirmed, rightsEvidence };
+  const { altEn, altAr, captionEn, captionAr, creditEn, creditAr, focalX, focalY, rightsConfirmed, rightsEvidence, editionYear, kind, displayOrder, videoPath } = asset;
+  return { altEn, altAr, captionEn, captionAr, creditEn, creditAr, focalX, focalY, rightsConfirmed, rightsEvidence, editionYear, kind, displayOrder, videoPath };
 }
 const clamp = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
 function errorText(response: MediaResponse, locale: Locale) {
@@ -28,7 +29,7 @@ function MediaDetails({ locale, asset, busy, onClose, act }: { locale: Locale; a
   const confirmationHeading = useRef<HTMLHeadingElement>(null), heading = useRef<HTMLHeadingElement>(null);
   const dirty = JSON.stringify(edit) !== JSON.stringify(fields(asset));
   const disabled = busy || !!asset.busy || asset.state === "archived";
-  const publishReady = !!edit.altEn.trim() && !!edit.altAr.trim() && edit.rightsConfirmed && !!edit.rightsEvidence.trim();
+  const publishReady = !!edit.altEn.trim() && !!edit.altAr.trim() && edit.rightsConfirmed && !!edit.rightsEvidence.trim() && (edit.kind === "photograph" || !!edit.videoPath);
   const change = <K extends keyof MediaFields>(key: K, value: MediaFields[K]) => { setEdit((previous) => ({ ...previous, [key]: value })); setConfirmation(null); };
   useEffect(() => { heading.current?.focus(); }, []);
   useEffect(() => { if (confirmation) confirmationHeading.current?.focus(); }, [confirmation]);
@@ -53,6 +54,13 @@ function MediaDetails({ locale, asset, busy, onClose, act }: { locale: Locale; a
     {asset.state === "archived" ? <p className="staff-note">{text.archiveReadOnly}</p> : null}
     <form onSubmit={(event) => { event.preventDefault(); void act({ action: "save", assetId: asset.id, version: asset.version, ...edit }, text.saved); }}>
       <fieldset className="staff-media-fields" disabled={disabled}><legend className="sr-only">{text.details}</legend>
+        <p id="media-archive-hint" className="staff-muted">{text.archiveHint}</p>
+        <div className="staff-media-language-fields">
+          <div className="field"><label className="field-label" htmlFor="media-year">{text.year}</label><input id="media-year" type="number" className="field-input" min={1900} max={2200} step={1} value={edit.editionYear ?? ""} aria-describedby="media-archive-hint" onChange={(event) => change("editionYear", event.target.value === "" ? null : Number(event.target.value))} /></div>
+          <div className="field"><label className="field-label" htmlFor="media-kind">{text.kind}</label><select id="media-kind" className="field-input" value={edit.kind} onChange={(event) => { change("kind", event.target.value as MediaAsset["kind"]); change("videoPath", null); }}><option value="photograph">{text.kinds.photograph}</option><option value="film">{text.kinds.film}</option></select></div>
+          <div className="field"><label className="field-label" htmlFor="media-order">{text.order}</label><input id="media-order" type="number" className="field-input" min={0} max={2147483647} step={1} value={edit.displayOrder} onChange={(event) => change("displayOrder", Number(event.target.value))} /></div>
+          {edit.kind === "film" ? <div className="field"><label className="field-label" htmlFor="media-video">{text.videoPath}</label><select id="media-video" className="field-input" required value={edit.videoPath ?? ""} onChange={(event) => change("videoPath", event.target.value || null)}><option value="">{text.chooseFilm}</option>{MEDIA_VIDEO_PATHS.map((path) => <option key={path} value={path}>{path}</option>)}</select></div> : null}
+        </div>
         <p id="media-alt-hint" className="staff-muted">{text.altHint}</p>
         <div className="staff-media-language-fields">{bilingualFields.map(([key, id, label, lang, dir, maxLength]) => <div className="field" key={key}>
           <label className="field-label" htmlFor={id}>{label}</label>
@@ -75,6 +83,7 @@ function MediaDetails({ locale, asset, busy, onClose, act }: { locale: Locale; a
       {dirty ? <p className="staff-note">{text.unsaved}</p> : null}
       <Button type="submit" disabled={disabled || !dirty}>{text.save}</Button>
     </form>
+    <div className="staff-actions staff-media-reorder"><Button size="small" variant="secondary" disabled={disabled || dirty} onClick={() => void act({ action: "reorder", assetId: asset.id, version: asset.version, direction: "earlier" }, text.reordered)}>{text.earlier}</Button><Button size="small" variant="secondary" disabled={disabled || dirty} onClick={() => void act({ action: "reorder", assetId: asset.id, version: asset.version, direction: "later" }, text.reordered)}>{text.later}</Button></div>
     <div className="staff-media-state-actions"><div className="staff-actions">
       {asset.state === "draft" ? <Button disabled={disabled || dirty || !publishReady} aria-describedby={!publishReady ? "media-publish-blocked" : undefined} onClick={() => setConfirmation({ action: "publish", operationId: crypto.randomUUID() })}>{text.publish}</Button> : null}
       {asset.state === "published" ? <Button variant="secondary" disabled={disabled || dirty} onClick={() => setConfirmation({ action: "unpublish", operationId: crypto.randomUUID() })}>{text.unpublish}</Button> : null}
@@ -88,24 +97,28 @@ export function MediaLibraryPanel({ locale }: { locale: Locale }) {
   const text = mediaCopy[locale];
   const [assets, setAssets] = useState<MediaAsset[]>([]), [total, setTotal] = useState(0), [selected, setSelected] = useState<MediaAsset | null>(null);
   const [query, setQuery] = useState(""), [filter, setFilter] = useState<MediaFilter>("all"), [busy, setBusy] = useState(false), [loading, setLoading] = useState(true);
+  const [year, setYear] = useState("all"), [years, setYears] = useState<number[]>([]), [canImport, setCanImport] = useState(false), [confirmImport, setConfirmImport] = useState(false);
+  const [summary, setSummary] = useState<MediaResponse["summary"]>();
   const [ready, setReady] = useState(false), [message, setMessage] = useState(""), [failure, setFailure] = useState(false);
   const [progress, setProgress] = useState<number | null>(null), [processing, setProcessing] = useState(false), [dragging, setDragging] = useState(false);
   const formToken = useRef<string | undefined>(undefined), active = useRef(true), lock = useRef(false), pending = useRef<AbortController | null>(null), upload = useRef<AbortController | null>(null);
-  const search = useRef({ query: "", filter: "all" as MediaFilter }), feedback = useRef<HTMLParagraphElement>(null), uploadInput = useRef<HTMLInputElement>(null);
+  const search = useRef({ query: "", filter: "all" as MediaFilter, year: "all" }), feedback = useRef<HTMLParagraphElement>(null), uploadInput = useRef<HTMLInputElement>(null);
+  const importHeading = useRef<HTMLHeadingElement>(null);
   const restoreFocus = useRef<HTMLButtonElement | null>(null);
   const load = useCallback(async (clearMessage = true) => {
     pending.current?.abort();
     const controller = new AbortController(); pending.current = controller;
     setLoading(true); if (clearMessage) { setMessage(""); setFailure(false); }
-    const response = await requestMedia(undefined, { query: search.current.query, state: search.current.filter, signal: controller.signal });
+    const response = await requestMedia(undefined, { query: search.current.query, state: search.current.filter, year: search.current.year, signal: controller.signal });
     if (!active.current || controller.signal.aborted) return;
     if (response.formToken) formToken.current = response.formToken;
-    if (response.state === "ready") { setReady(true); setAssets(response.assets ?? []); setTotal(response.total ?? response.assets?.length ?? 0); }
+    if (response.state === "ready") { setReady(true); setAssets(response.assets ?? []); setTotal(response.total ?? response.assets?.length ?? 0); setYears(response.years ?? []); setCanImport(response.canImport === true); }
     else { setReady(false); setAssets([]); setSelected(null); setMessage(errorText(response, locale)); setFailure(true); }
     setLoading(false);
   }, [locale]);
   useEffect(() => { active.current = true; const start = window.setTimeout(() => void load(), 0); return () => { active.current = false; window.clearTimeout(start); pending.current?.abort(); upload.current?.abort(); }; }, [load]);
   useEffect(() => { if (failure && message) feedback.current?.focus(); }, [failure, message]);
+  useEffect(() => { if (confirmImport) importHeading.current?.focus(); }, [confirmImport]);
   async function act(payload: MediaPayload, success: string) {
     if (lock.current || !formToken.current) return false;
     lock.current = true; pending.current?.abort(); setBusy(true); setMessage(""); setFailure(false);
@@ -113,7 +126,7 @@ export function MediaLibraryPanel({ locale }: { locale: Locale }) {
     if (!active.current) return false;
     if (response.formToken) formToken.current = response.formToken;
     const done = response.state === "ready" || response.state === "updated";
-    if (done) { if (response.asset) setSelected(response.asset); else setSelected(null); setMessage(success); await load(false); }
+    if (done) { if (response.asset) setSelected(response.asset); else setSelected(null); if (response.summary) { setSummary(response.summary); setConfirmImport(false); } setMessage(success); await load(false); }
     else { setMessage(errorText(response, locale)); setFailure(true); }
     lock.current = false; setBusy(false); return done;
   }
@@ -137,6 +150,10 @@ export function MediaLibraryPanel({ locale }: { locale: Locale }) {
   }
   return <div className="staff-media-library" data-testid="media-library">
     <section className="staff-panel" aria-labelledby="media-library-title"><h2 id="media-library-title">{text.title}</h2><p>{text.intro}</p><p className="staff-muted">{text.contentPending}</p>
+      {canImport ? <div className="staff-media-import"><p>{text.importHint}</p><Button variant="secondary" disabled={busy || !ready} onClick={() => setConfirmImport(true)}>{text.import}</Button>
+        {confirmImport ? <div className="staff-media-confirmation" role="group" aria-label={text.importConfirm}><h3 ref={importHeading} tabIndex={-1}>{text.importConfirm}</h3><div className="staff-actions"><Button disabled={busy} onClick={() => void act({ action: "import-current-site" }, text.importSummary)}>{text.confirm} {text.import}</Button><Button variant="secondary" disabled={busy} onClick={() => setConfirmImport(false)}>{text.cancel}</Button></div></div> : null}
+        {summary ? <dl className="staff-media-facts" aria-label={text.importSummary}>{(["mediaCreated", "mediaExisting", "contentCreated", "contentExisting"] as const).map((key) => <div key={key}><dt>{text[key]}</dt><dd>{formatStaffNumber(summary[key], locale)}</dd></div>)}</dl> : null}
+      </div> : null}
       <div className="staff-media-drop" data-dragging={dragging || undefined} onDragOver={(event) => { event.preventDefault(); if (!busy && ready) setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); if (!busy) void receive(event.dataTransfer.files[0]); }}>
         <p>{text.drop}</p><p className="staff-muted" id="media-upload-hint">{text.uploadHint}</p>
         <label className="field-label" htmlFor="media-upload">{text.upload}</label><input ref={uploadInput} id="media-upload" type="file" accept="image/jpeg,image/png,image/webp,image/avif" aria-describedby="media-upload-hint" disabled={busy || !ready} onChange={(event) => { void receive(event.target.files?.[0]); event.target.value = ""; }} />
@@ -145,11 +162,12 @@ export function MediaLibraryPanel({ locale }: { locale: Locale }) {
     </section>
     <p className={message ? "staff-feedback" : "staff-feedback staff-feedback--empty"} role={failure ? "alert" : "status"} ref={feedback} tabIndex={-1}>{message}</p>
     {!ready && !loading || failure ? <Button variant="secondary" disabled={busy || loading} onClick={() => { setSelected(null); void load(); }}>{text.retry}</Button> : null}
-    <section className="staff-panel" aria-label={text.title}><form className="staff-search staff-media-search" onSubmit={(event) => { event.preventDefault(); search.current = { query, filter }; setSelected(null); void load(); }}>
+    <section className="staff-panel" aria-label={text.title}><form className="staff-search staff-media-search" onSubmit={(event) => { event.preventDefault(); search.current = { query, filter, year }; setSelected(null); void load(); }}>
       <FormField id="media-search" type="search" label={text.search} value={query} onChange={(event) => setQuery(event.target.value)} maxLength={120} disabled={busy || loading} />
-      <div className="field"><label className="field-label" htmlFor="media-state">{text.filter}</label><select id="media-state" className="field-input" value={filter} disabled={busy || loading} onChange={(event) => { const next = event.target.value as MediaFilter; setFilter(next); search.current = { query, filter: next }; setSelected(null); void load(); }}><option value="all">{text.all}</option>{(["draft", "published", "archived"] as const).map((state) => <option key={state} value={state}>{text.states[state]}</option>)}</select></div><Button type="submit" disabled={busy || loading}>{text.searchAction}</Button>
+      <div className="field"><label className="field-label" htmlFor="media-state">{text.filter}</label><select id="media-state" className="field-input" value={filter} disabled={busy || loading} onChange={(event) => { const next = event.target.value as MediaFilter; setFilter(next); search.current = { query, filter: next, year }; setSelected(null); void load(); }}><option value="all">{text.all}</option>{(["draft", "published", "archived"] as const).map((state) => <option key={state} value={state}>{text.states[state]}</option>)}</select></div>
+      <div className="field"><label className="field-label" htmlFor="media-year-filter">{text.year}</label><select id="media-year-filter" className="field-input" value={year} disabled={busy || loading} onChange={(event) => { const next = event.target.value; setYear(next); search.current = { query, filter, year: next }; setSelected(null); void load(); }}><option value="all">{text.allYears}</option>{years.map((value) => <option key={value} value={value}>{formatStaffNumber(value, locale)}</option>)}</select></div><Button type="submit" disabled={busy || loading}>{text.searchAction}</Button>
     </form><p className="staff-muted">{text.count}: {formatStaffNumber(total, locale)}. {text.resultsLimit}</p>
-      {loading ? <p role="status">{text.loading}</p> : !assets.length ? <p>{text.empty}</p> : <ul className="staff-media-grid">{assets.map((asset) => <li key={asset.id}><button type="button" className="staff-media-card" aria-label={`${text.open}: ${asset.filename}`} aria-pressed={selected?.id === asset.id} disabled={busy} onClick={(event) => { restoreFocus.current = event.currentTarget; setSelected(asset); }}><img src={asset.previewUrl} alt="" width={asset.width} height={asset.height} loading="lazy" style={{ objectPosition: `${asset.focalX}% ${asset.focalY}%` }} /><span className="staff-media-card-meta"><bdi>{asset.filename}</bdi><span className="staff-status" data-state={asset.state}>{text.states[asset.state]}</span></span></button></li>)}</ul>}
+      {loading ? <p role="status">{text.loading}</p> : !assets.length ? <p>{text.empty}</p> : <ul className="staff-media-grid">{assets.map((asset) => <li key={asset.id}><button type="button" className="staff-media-card" aria-label={`${text.open}: ${asset.filename}`} aria-pressed={selected?.id === asset.id} disabled={busy} onClick={(event) => { restoreFocus.current = event.currentTarget; setSelected(asset); }}><img src={asset.previewUrl} alt="" width={asset.width} height={asset.height} loading="lazy" style={{ objectPosition: `${asset.focalX}% ${asset.focalY}%` }} /><span className="staff-media-card-meta"><bdi>{asset.filename}</bdi><span>{text.kinds[asset.kind]} · {asset.editionYear === null ? text.noYear : formatStaffNumber(asset.editionYear, locale)} · {text.order}: {formatStaffNumber(asset.displayOrder, locale)}</span><span className="staff-status" data-state={asset.state}>{text.states[asset.state]}</span></span></button></li>)}</ul>}
     </section>
     {selected ? <MediaDetails key={`${selected.id}:${selected.version}`} locale={locale} asset={selected} busy={busy} act={act} onClose={() => { setSelected(null); restoreFocus.current?.focus(); }} /> : null}
   </div>;

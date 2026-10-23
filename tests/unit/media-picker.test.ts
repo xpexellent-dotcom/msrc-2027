@@ -5,7 +5,7 @@ import { MediaPickerChoices } from "@/features/staff-portal/media-picker";
 import { mediaCopy } from "@/features/staff-portal/media-copy";
 import type { MediaAsset } from "@/features/staff-portal/media-contract";
 
-const published: MediaAsset = { id: "synthetic-approved", filename: "Synthetic image.webp", state: "published", publicUrl: "https://synthetic.supabase.co/approved.webp", previewUrl: "/api/staff-portal/media?preview=synthetic-approved", width: 100, height: 100, altEn: "Approved synthetic image", altAr: "صورة تجريبية معتمدة", focalX: 35, focalY: 62, mime: "image/webp", size: 100, version: 1, captionEn: "", captionAr: "", creditEn: "", creditAr: "", rightsConfirmed: true, rightsEvidence: "Synthetic permission", createdAt: "2026-10-23T00:00:00Z", updatedAt: "2026-10-23T00:00:00Z" };
+const published: MediaAsset = { editionYear: null, kind: "photograph", displayOrder: 0, videoPath: null, id: "synthetic-approved", filename: "Synthetic image.webp", state: "published", publicUrl: "https://synthetic.supabase.co/approved.webp", previewUrl: "/api/staff-portal/media?preview=synthetic-approved", width: 100, height: 100, altEn: "Approved synthetic image", altAr: "صورة تجريبية معتمدة", focalX: 35, focalY: 62, mime: "image/webp", size: 100, version: 1, captionEn: "", captionAr: "", creditEn: "", creditAr: "", rightsConfirmed: true, rightsEvidence: "Synthetic permission", createdAt: "2026-10-23T00:00:00Z", updatedAt: "2026-10-23T00:00:00Z" };
 
 describe("MED-01 published image picker", () => {
   it.each(["en", "ar"] as const)("offers only available published choices with %s labels", (locale) => {

@@ -11,6 +11,7 @@ import { initials, teamCommittees, teamCopy, teamFounders, type TeamPerson } fro
 import { formatIndex, type Locale } from "@/lib/i18n";
 import { PublishedPartners, PublishedTeam } from "@/features/content/public-cards";
 import type { PublishedContent } from "@/features/content/published";
+import { publishedTeamRoster } from "@/features/content/team-roster";
 
 function Arrow() {
   return <svg className="directional-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.5" /></svg>;
@@ -58,7 +59,7 @@ function TeamIntro({ locale, publishedRoster = false }: { locale: Locale; publis
 
 function TeamPortrait({ person, size }: { person: TeamPerson; size: "leader" | "lead" }) {
   const sizes = size === "leader" ? "(max-width: 700px) 40vw, 240px" : "(max-width: 700px) 30vw, 160px";
-  const portrait = person.photo ? <Image src={person.photo} alt="" fill sizes={sizes} /> : <span className="team-initials" aria-hidden="true" lang="en" dir="ltr">{initials(person.name.en)}</span>;
+  const portrait = person.photo ? <Image src={person.photo} alt="" fill sizes={sizes} unoptimized={person.publishedPhoto} /> : <span className="team-initials" aria-hidden="true" lang="en" dir="ltr">{initials(person.name.en)}</span>;
   // Pointer shortcut only: the visible LinkedIn text link beside it is the keyboard and screen-reader route.
   return person.profile
     ? <a className={`team-photo team-photo--${size} team-photo--linked`} href={person.profile} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true">{portrait}</a>
@@ -78,20 +79,22 @@ function TeamIdentity({ person, locale, heading: Heading }: { person: TeamPerson
 export function TeamExperience({ locale, items = [] }: { locale: Locale; items?: readonly PublishedContent[] }) {
   const copy = peopleAndPartnersCopy[locale].team;
   const team = teamCopy[locale];
+  const importedRoster = publishedTeamRoster(items), committees = importedRoster ?? teamCommittees;
+  const useCards = items.length > 0 && !importedRoster;
   return <>
-    <TeamIntro locale={locale} publishedRoster={items.length > 0} />
+    <TeamIntro locale={locale} publishedRoster={useCards} />
     <section className="team-roster fluid-art-surface" aria-label={copy.label}>
       <TeamSpotlight />
       <AmbientArtwork variant="people" />
       <Container>
-        {items.length ? <PublishedTeam locale={locale} items={items} /> : <><section className="team-leaders" aria-labelledby="team-leaders-title">
+        {useCards ? <PublishedTeam locale={locale} items={items} /> : <><section className="team-leaders" aria-labelledby="team-leaders-title">
           <h2 id="team-leaders-title" className="team-section-title">{team.leadersTitle}</h2>
-          <Reveal className="team-leader-grid" stagger>{teamCommittees.map((committee) => <article className={`team-leader team-leader--${committee.id}`} key={committee.id}>
+          <Reveal className="team-leader-grid" stagger>{committees.map((committee) => <article className={`team-leader team-leader--${committee.id}`} key={committee.id}>
             <TeamPortrait person={committee.lead} size="leader" />
             <TeamIdentity person={committee.lead} locale={locale} heading="h3" />
           </article>)}</Reveal>
         </section>
-        {teamCommittees.map((committee) => <section className={`team-committee team-committee--${committee.id}`} key={committee.id} aria-labelledby={`team-${committee.id}-title`}>
+        {committees.map((committee) => <section className={`team-committee team-committee--${committee.id}`} key={committee.id} aria-labelledby={`team-${committee.id}-title`}>
           <div className="team-committee-heading">
             <h2 id={`team-${committee.id}-title`} className="team-section-title">{committee.title[locale]}</h2>
             <p>{formatIndex(committee.leads.length, locale)} {team.leadsLabel}</p>

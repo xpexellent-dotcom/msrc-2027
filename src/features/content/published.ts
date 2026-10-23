@@ -29,6 +29,7 @@ export function decodePublishedContent(value: unknown, collection: ContentCollec
     const sourceFields = item.fields;
     const allowed = Object.fromEntries(textKeys.filter((key) => Object.hasOwn(sourceFields, key)).map((key) => [key, sourceFields[key]]));
     const raw = decodeContentFields({ ...emptyContentFields(), ...allowed,
+      ...(sourceFields.teamLayout !== undefined ? { teamLayout: sourceFields.teamLayout } : {}),
       links: item.fields.links ?? [], speakerIds: item.fields.speakerIds ?? [], sortOrder: item.fields.sortOrder,
       assetId: null, permissionToDisplay: true });
     if (!raw || contentPublishIssue(collection, raw)) return null;
@@ -46,7 +47,7 @@ export function decodePublishedContent(value: unknown, collection: ContentCollec
     }
     ids.add(item.id);
     rows.push({ id: item.id, collection, version: item.version, fields: { ...fields, links: [...raw.links],
-      speakerIds: [...raw.speakerIds], sortOrder: raw.sortOrder }, media });
+      speakerIds: [...raw.speakerIds], sortOrder: raw.sortOrder, ...(raw.teamLayout ? { teamLayout: raw.teamLayout } : {}) }, media });
   }
   return rows.sort((a, b) => a.fields.sortOrder - b.fields.sortOrder || a.id.localeCompare(b.id));
 }

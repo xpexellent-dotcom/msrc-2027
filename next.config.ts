@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
   // Preserve the handoff's existing project instructions unchanged.
   agentRules: false,
   poweredByHeader: false,
+  // The authorized import reads checked-in image sources in the server runtime.
+  // Films stay static; only their WebP posters enter the image pipeline.
+  outputFileTracingIncludes: {
+    "/api/staff-portal/media": ["./public/media/editions/**/*.webp", "./public/media/team/*-v4.jpg"],
+  },
   // Content e2e only: one prerendered build per synthetic provider state (scripts/build-content-e2e.ts).
   // The regular build type-checks the same sources, so these test builds skip that pass.
   ...(/^\.next\/content-(published|empty|down)$/.test(process.env.MSRC_CONTENT_E2E_DIST_DIR ?? "")

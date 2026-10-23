@@ -12,6 +12,7 @@ import { FlowLines } from "@/components/brand/flow-lines";
 import { HorizontalRail } from "@/components/horizontal-rail";
 import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { ConferenceDayLinks } from "@/components/conference-day-links";
+import { MediaImage } from "@/components/media-image";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { datesVenueCopy } from "@/content/dates-venue";
 import { participationBenefitIcons, participationPathDescriptions } from "@/content/participation-copy";
@@ -45,7 +46,7 @@ function programmeDayLabel(day: ProgrammeDay, locale: Locale, short = false) {
   return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { calendar: "gregory", timeZone: "Asia/Riyadh", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${day}T00:00:00+03:00`));
 }
 function queryEdition(value?: string): MediaEditionFilter {
-  return value === "2023" || value === "2024" || value === "2025" || value === "2026" || value === "2027" ? value : "all";
+  return value && /^(19\d{2}|20\d{2}|21\d{2}|2200)$/.test(value) ? value as MediaEditionFilter : "all";
 }
 // Writes only the filters that changed, onto the current address. The rendered values lag the
 // address until React re-renders, so writing them all let a second quick change put back a
@@ -219,6 +220,7 @@ export function MediaExperience({ locale, media, sessions }: { locale: Locale; m
   const kind = addressQuery.get("kind") ?? "all";
   const records = filterMedia(media, { query, edition, kind });
   const editions = [...new Set(records.map((record) => record.edition))];
+  const editionOptions = [...new Set([2026, 2025, 2024, 2023, 2027, ...media.map((record) => record.edition)])];
   const filtering = query.trim() !== "" || kind !== "all";
   const hasActiveFilters = filtering || edition !== "all";
   function change(values: Partial<{ q: string; edition: MediaEditionFilter; kind: string }>) {
@@ -233,7 +235,7 @@ export function MediaExperience({ locale, media, sessions }: { locale: Locale; m
   return <><ExperienceIntro locale={locale} page="media" /><section className="experience-catalogue" data-testid="media-catalogue"><Container>
     <div className="experience-filters">
       <label className="experience-search" htmlFor="media-search">{copy.searchMedia}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="media-search" data-testid="media-search" type="search" value={query} disabled={!hydrated} placeholder={copy.searchMediaPlaceholder} onChange={(event) => change({ q: event.target.value })} /></span></label>
-      <label htmlFor="media-edition">{copy.edition}<select id="media-edition" data-testid="media-edition" value={edition} disabled={!hydrated} onChange={(event) => change({ edition: queryEdition(event.target.value) })}><option value="all">{copy.allEditions}</option>{[2026, 2025, 2024, 2023, 2027].map((year) => <option value={year} key={year}>MSRC {year}</option>)}</select></label>
+      <label htmlFor="media-edition">{copy.edition}<select id="media-edition" data-testid="media-edition" value={edition} disabled={!hydrated} onChange={(event) => change({ edition: queryEdition(event.target.value) })}><option value="all">{copy.allEditions}</option>{editionOptions.map((year) => <option value={year} key={year}>MSRC {year}</option>)}</select></label>
       <label htmlFor="media-kind">{copy.mediaKind}<select id="media-kind" data-testid="media-kind" value={kind} disabled={!hydrated} onChange={(event) => change({ kind: event.target.value })}><option value="all">{copy.allMedia}</option><option value="recording">{copy.recordings}</option><option value="highlight">{copy.highlights}</option><option value="photograph">{copy.photographs}</option></select></label>
     </div>
     <div className={`experience-result-bar${!records.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!records.length ? "sr-only" : undefined} role="status" aria-live="polite">{records.length ? formatResultCount(records.length, locale) : filtering ? copy.noResults : copy.mediaPending}</p>{hasActiveFilters ? <Button variant="ghost" size="small" data-testid="media-clear" disabled={!hydrated} onClick={clear}>{copy.clear}</Button> : null}</div>
@@ -254,10 +256,10 @@ export function MediaCard({ locale, record, session }: { locale: Locale; record:
   const duration = record.durationSeconds ? record.durationSeconds < 60
     ? new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { style: "unit", unit: "second", unitDisplay: "long", maximumFractionDigits: 0 }).format(Math.max(1, Math.round(record.durationSeconds)))
     : formatMinutes(Math.ceil(record.durationSeconds / 60), locale) : null;
-  return <article className="conference-media-card" data-media-kind={record.kind}>
+  return <article className="conference-media-card" data-media-kind={record.kind} data-media-slug={record.slug}>
     <div className={`conference-media-player${isPhoto ? " conference-media-player--photo" : ""}`}>
       {record.access === "public" ? record.kind === "photograph" ? <>
-        <Image src={record.asset} alt={description} fill style={{ objectPosition: record.objectPosition ?? "50% 50%" }} sizes="(max-width: 600px) 90vw, 45vw" />
+        {record.libraryImage && record.width && record.height ? <MediaImage asset={{ ...record.libraryImage, state: "published", publicUrl: record.asset, width: record.width, height: record.height }} locale={locale} sizes="(max-width: 600px) 90vw, 45vw" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} /> : <Image src={record.asset} alt={description} fill style={{ objectPosition: record.objectPosition ?? "50% 50%" }} sizes="(max-width: 600px) 90vw, 45vw" />}
         <span className="conference-media-year" dir="ltr">{record.edition}</span>
       </> : <video controls playsInline preload="none" poster={record.poster ?? undefined} src={record.asset} aria-label={title}>{record.captions?.map((caption, index) => <track key={caption.src} kind="captions" src={caption.src} srcLang={caption.language} label={caption.label} default={index === 0} />)}</video> : <div className="conference-media-unavailable"><ResearchVisual variant={2} /><p>{record.access === "restricted" ? copy.recordingRestricted : copy.recordingPending}</p></div>}
     </div>

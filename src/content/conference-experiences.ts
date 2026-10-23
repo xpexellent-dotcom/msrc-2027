@@ -19,7 +19,7 @@ export type PublicSpeaker = Readonly<{
   institution: string; biography: string; portrait: string | null;
   portraitAlt: LocalizedText; professionalLinks: readonly Readonly<{ label: string; href: string }>[];
 }>;
-export type MediaEdition = 2023 | 2024 | 2025 | 2026 | 2027;
+export type MediaEdition = number;
 export type MediaEditionFilter = "all" | `${MediaEdition}`;
 type MediaBase = Readonly<{
   slug: string; publication: "approved" | "draft"; title: string; description: string;
@@ -29,6 +29,8 @@ type MediaBase = Readonly<{
   /** Source dimensions and reviewed focal position for consistent archive frames. */
   width?: number; height?: number;
   objectPosition?: string;
+  /** Library images use the stored derivatives directly, so withdrawals avoid another image cache. */
+  libraryImage?: Readonly<{ altEn: string; altAr: string; focalX: number; focalY: number }>;
   topic: string; speakerNames: readonly string[]; durationSeconds: number | null;
   sessionSlug: string | null;
 }>;

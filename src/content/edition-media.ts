@@ -1,5 +1,5 @@
 import type { PublicMedia } from "@/content/conference-experiences";
-import { editionPhotoFocus } from "@/content/edition-photo-framing";
+import { editionPhotoFocus } from "./edition-photo-framing.ts";
 
 // MED-01–04 / LOC-01 / ARC-01. Organizer-selected Drive collection, 13 October 2026.
 // Years follow the supplied filenames; historical photographs do not announce 2027 participants.

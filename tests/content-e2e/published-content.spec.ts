@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { teamCommittees } from "../../src/content/team";
 
 for (const locale of ["en", "ar"] as const) {
   test(`${locale}: public collection fallback or published programme and speakers`, async ({ page }, testInfo) => {
@@ -69,13 +70,22 @@ for (const locale of ["en", "ar"] as const) {
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({ path: testInfo.outputPath(`${locale}-partners.png`), fullPage: true });
     await page.goto(`/${locale}/team`);
-    if (populated) {
-      await expect(page.getByTestId("published-team")).toContainText(locale === "ar" ? "عضو فريق تجريبي" : "Synthetic Team Member");
-      await expect(page.locator(".team-leaders")).toHaveCount(0);
-      await expect(page.locator(".team-founders")).toHaveCount(0);
-    } else {
-      await expect(page.locator(".team-leaders")).toBeVisible();
-      await expect(page.getByTestId("published-team")).toHaveCount(0);
+    // The import retains the current roster hierarchy, ordering, shared rows and member boxes.
+    const orderedPeople = [...teamCommittees.map((committee) => committee.lead), ...teamCommittees.flatMap((committee) =>
+      [...committee.leads].sort((a, b) => Number(!a.photo) - Number(!b.photo) || a.name[locale].localeCompare(b.name[locale], locale))
+        .flatMap((person) => [person, ...[...person.coLeads ?? []].sort((a, b) => a.name[locale].localeCompare(b.name[locale], locale))]))];
+    await expect(page.getByTestId("published-team")).toHaveCount(0);
+    await expect(page.locator(".team-name")).toHaveText(orderedPeople.map((person) => person.name[locale]));
+    await expect(page.locator(".team-role")).toHaveText(orderedPeople.map((person) => person.role[locale]));
+    await expect(page.locator(".team-description")).toHaveText(orderedPeople.filter((person) => person.description).map((person) => person.description![locale]));
+    await expect(page.locator(".team-leader")).toHaveCount(teamCommittees.length);
+    await expect(page.locator(".team-founders")).toBeVisible();
+    await expect(page.locator(".team-row")).toHaveCount(teamCommittees.reduce((count, committee) => count + committee.leads.length, 0));
+    await expect(page.locator(".team-members li")).toHaveText(teamCommittees.flatMap((committee) => committee.leads.flatMap((person) => (person.members ?? []).map((member) => member[locale]))));
+    const portraits = page.locator(".team-photo img");
+    await expect(portraits).toHaveCount(orderedPeople.filter((person) => person.photo).length);
+    if (populated) for (const portrait of await portraits.all()) {
+      await expect(portrait).toHaveAttribute("src", /\/storage\/v1\/object\/public\/msrc-published-media\//);
     }
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
