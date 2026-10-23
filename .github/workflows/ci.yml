@@ -304,6 +304,14 @@ jobs:
         env:
           STAFF_REGISTRATION_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/staff-registration-concurrency.test.ts
+      - name: Reset the disposable database for media operation proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify media version races and durable Storage operation exclusion
+        if: ${{ !inputs.auth_stability }}
+        env:
+          STAFF_MEDIA_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/staff-media-concurrency.test.ts
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop

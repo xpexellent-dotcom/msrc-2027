@@ -19,7 +19,7 @@ export type ResourceKind =
   | "participantRecord" | "participantOutcome" | "reviewPacket" | "reviewAssessment"
   | "reviewAssignment" | "validationOutcome" | "scientificAdministration"
   | "judgingReadiness" | "eventMaterial" | "eventScore" | "registrationOperation"
-  | "financeRecord" | "entryEntitlement" | "contentDraft" | "sponsorInquiry"
+  | "financeRecord" | "entryEntitlement" | "contentDraft" | "mediaAsset" | "sponsorInquiry"
   | "securityAdministration" | "auditMetadata" | "exportRequest"
   | "confidentialOriginal" | "presentationFile";
 
@@ -99,7 +99,7 @@ type Projection =
   | "ownPermittedFields" | "publishedOutcome" | "sanitizedReviewPacket"
   | "ownReview" | "ownAssignment" | "validationOutcome" | "scientificDuty"
   | "assignedJudgingCategory" | "assignedEventMaterial" | "ownEventScore"
-  | "registrationMinimum" | "financeMinimum" | "entryMinimum" | "assignedPublicDraft"
+  | "registrationMinimum" | "financeMinimum" | "entryMinimum" | "assignedPublicDraft" | "mediaMetadata"
   | "sponsorInquiry" | "scopedSecurity" | "auditMetadata" | "approvedExportScope"
   | "confidentialOriginal";
 
@@ -121,7 +121,7 @@ const rule = (value: Rule): Readonly<Rule> => Object.freeze({
 });
 const reviewers: readonly Role[] = ["abstractReviewer", "hackathonReviewer", "threeMinuteThesisReviewer"];
 
-/** Purpose-sized examples; omitted operations (including media approval/refunds) deny. */
+/** Purpose-sized operations; omitted operations (including refunds) deny. */
 export const PERMISSION_RULES = Object.freeze({
   "participant.record.read": rule({ roles: ["participant"], kind: "participantRecord", check: "owner", projection: "ownPermittedFields", audit: null, sourceIds: ["ROL-02"] }),
   "participant.record.update": rule({ roles: ["participant"], kind: "participantRecord", check: "owner", projection: "ownPermittedFields", audit: "record.change", sourceIds: ["ROL-02"] }),
@@ -138,6 +138,7 @@ export const PERMISSION_RULES = Object.freeze({
   "finance.reconciliation.read": rule({ roles: ["finance"], kind: "financeRecord", check: "scoped", projection: "financeMinimum", audit: null, sourceIds: ["ROL-07"] }),
   "checkIn.entitlement.read": rule({ roles: ["checkInStaff"], kind: "entryEntitlement", check: "scoped", projection: "entryMinimum", audit: null, sourceIds: ["ROL-08"], scopes: ["function", "resource"] }),
   "content.draft.manage": rule({ roles: ["contentMediaEditor"], kind: "contentDraft", check: "scoped", projection: "assignedPublicDraft", audit: "content.draft", sourceIds: ["ROL-09"], scopes: ["function", "resource"] }),
+  "media.library.manage": rule({ roles: ["contentMediaEditor", "superAdmin"], kind: "mediaAsset", check: "scoped", projection: "mediaMetadata", audit: "media.change", sourceIds: ["MED-01", "MED-02", "MED-03", "MED-04", "ROL-09", "ROL-10"], scopes: ["edition"] }),
   "sponsorship.inquiry.manage": rule({ roles: ["sponsorshipPr"], kind: "sponsorInquiry", check: "scoped", projection: "sponsorInquiry", audit: "sponsorship.change", sourceIds: ["ROL-09"] }),
   "security.grant.manage": rule({ roles: ["superAdmin"], kind: "securityAdministration", check: "scoped", projection: "scopedSecurity", audit: "grant.change", sourceIds: ["ROL-10", "ROL-12"] }),
   "security.audit.read": rule({ roles: ["superAdmin"], kind: "auditMetadata", check: "scoped", projection: "auditMetadata", audit: "audit.access", sourceIds: ["ROL-10"] }),

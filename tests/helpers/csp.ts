@@ -1,5 +1,5 @@
 import { expect, test as base } from "@playwright/test";
-import { isPrivatePage } from "../../src/lib/content-security-policy";
+import { isMediaPage, isPrivatePage } from "../../src/lib/content-security-policy";
 
 export { expect } from "@playwright/test";
 export type { Locator, Page } from "@playwright/test";
@@ -8,7 +8,7 @@ export type { Locator, Page } from "@playwright/test";
 export const test = base.extend({
   page: async ({ page }, providePage) => {
     const violations: string[] = [];
-    const policies: string[] = [];
+    const policies: { value: string; media: boolean }[] = [];
     page.on("console", (message) => {
       if (/content security policy|violates.*directive|refused to (execute|load|connect|apply)/i.test(message.text())) {
         violations.push(message.text());
@@ -23,14 +23,15 @@ export const test = base.extend({
     });
     page.on("response", (response) => {
       if (response.request().resourceType() === "document" && isPrivatePage(new URL(response.url()).pathname)) {
-        policies.push(response.headers()["content-security-policy"] ?? "");
+        policies.push({ value: response.headers()["content-security-policy"] ?? "", media: isMediaPage(new URL(response.url()).pathname) });
       }
     });
     await providePage(page);
-    for (const policy of policies) {
+    for (const { value: policy, media } of policies) {
       expect(policy).toMatch(/script-src 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic';/);
       expect(policy).not.toMatch(/script-src[^;]*'unsafe-(inline|eval)'/);
-      expect(policy).toContain("connect-src 'self';");
+      if (media) expect(policy).toMatch(/connect-src 'self'(?: http:\/\/127\.0\.0\.1:3220| https:\/\/ecemjggwlzqpjcwmchrl\.supabase\.co)?;/);
+      else expect(policy).toContain("connect-src 'self';");
     }
     expect(violations).toEqual([]);
   },

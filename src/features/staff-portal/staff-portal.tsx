@@ -25,6 +25,7 @@ import { consoleCopy } from "./console-copy";
 import { EmailPreviewsPanel } from "./email-previews-panel";
 import { LaunchReadinessPanel } from "./launch-readiness-panel";
 import { CheckInPanel } from "./check-in-panel";
+import { MediaLibraryPanel } from "./media-library-panel";
 
 const areaFailures = new Set(["area-not-ready", "unavailable", "denied"]);
 const errors = new Set(["area-not-ready", "offer-window-not-set", "closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required", "capacity-not-set", "payment-configuration-required", "capacity-below-held", "enable-not-allowed-here", "operation-conflict"]);
@@ -214,7 +215,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
   const workspace = <>
     {profile && !permitted ? <p role="alert">{copy.states.denied}</p> : null}
     {profile && permitted && screen === "home" && !landing ? <StaffDashboard locale={locale} menu={menu} summary={view.summary} /> : null}
-    {profile && permitted && landing ? <StaffLanding locale={locale} area={landing} roles={profile.roles} /> : null}
+    {profile && permitted && landing === "content" ? <MediaLibraryPanel locale={locale} /> : profile && permitted && landing ? <StaffLanding locale={locale} area={landing} roles={profile.roles} /> : null}
     {profile && permitted && screen === "security" ? <PasswordChangeForm locale={locale} busy={busy} act={act} /> : null}
     {profile && permitted && screen === "registration" ? <RegistrationQueue locale={locale} data={view.registration} busy={busy} status={queueStatus} onStatus={(value) => { setQueueStatus(value); queueStatusRef.current = value; setBusy(true); void restore(undefined, query); }} query={query} onQuery={setQuery} onSearch={searchArea} act={act} onDecided={setDecidedText} canExport={profile.roles.includes("superAdmin")} loadDetail={(requestId) => requestStaff(undefined, { area: "registration-detail", requestId })} /> : null}
     {profile && permitted && screen === "priority" ? <PriorityPanel locale={locale} data={view.priority} busy={busy} query={query} onQuery={setQuery} onSearch={searchArea} act={act} /> : null}

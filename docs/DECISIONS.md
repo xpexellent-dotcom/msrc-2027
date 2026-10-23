@@ -3820,3 +3820,52 @@ workflow flag, hosted setting, migration, policy or approved email text changes.
 Keep work uncommitted for Claude; O9 evidence belongs in
 [the Task 1 receipt](progress/2026-10-23-codex-night3-registration-opening.md),
 never `docs/PROGRESS.md`.
+
+## ENG-062 — Closed staff media library, 23 October 2026
+
+Authority: the owner's Night-3 Task 2, current ORG-055/056/057, and requirements
+MED-01–04, CMS-01/02/04, ROL-09/10/12, LOC-01/03, ACC-01 and SEC-01/02/06.
+ENG-061 was the highest number checked before reservation. This work adds local
+source and synthetic verification only. No hosted migration, settings seed,
+participant opening, email, flag change, branch, commit or push is authorized.
+The content editor remains Task 3. O9 evidence belongs in
+[the media receipt](progress/2026-10-23-codex-night3-media.md), never PROGRESS.md.
+
+Only current `contentMediaEditor` and `superAdmin` staff may manage media, with
+existing exact-session email/TOTP assurance independently checked by server and
+database. The private metadata schema has forced RLS and no client table grants.
+Restrictive Storage policies block direct client writes to both media buckets
+and private reads even if another permissive policy is introduced. Explicit
+Publish confirms bilingual alt text and recorded rights/consent evidence; this
+does not invent approved consent wording or replace MED-02's operational process.
+
+Supabase's [signed upload API](https://supabase.com/docs/reference/javascript/storage-from-createsigneduploadurl)
+fixes native upload capabilities at two hours; it has no expiry argument. Use
+random immutable private raw paths, no overwrite, and a 15-minute application
+completion window. Do not describe that window as revoking the provider token.
+After staff authorization, actual bytes and bounded decoded dimensions are
+validated; JPEG/PNG/WebP/AVIF inputs up to 10 MiB are re-encoded to stripped WebP.
+Raw bytes are removed after processing/rejection; interrupted raw uploads remain
+private and need the documented review/cleanup procedure.
+
+`sharp@0.35.5` was already installed transitively through Next. Promote that exact
+version to a direct dependency for explicit server imports; npm records publication
+on 27 September 2026, more than two weeks before this task. The
+[sharp output documentation](https://sharp.pixelplumbing.com/api-output/) documents
+default metadata removal. Next supports sharp in its Node runtime. Generate a
+bounded 2560px master and 640/1280/1920px WebP variants during processing, with
+no upscaling, instead of adding another image cache or provider transformation
+configuration. [Supabase transformations](https://supabase.com/docs/guides/storage/serving/image-transformations)
+are available on Pro and above; this implementation does not require enabling them.
+Public rendering uses responsive images and the stored focal point as
+`object-position`. Existing approved public media is unchanged.
+
+Publish writes sanitized variants to a unique public path after the explicit
+approval reservation; Unpublish/Archive remove all four public objects. External
+Storage and PostgreSQL cannot share a transaction: durable operation reservations
+exclude competing edits/transitions and never expire into another executor.
+Ambiguous storage/completion failures retain the lock for owner-reviewed
+reconciliation. Do not blindly retry external writes or assert immediate deletion
+of browser/CDN/third-party copies. Public objects use `cacheControl: 0`; unique
+publication paths avoid reusing withdrawn URLs. Native Storage behavior, deletion
+propagation and the recovery procedure need disposable/hosted review before use.

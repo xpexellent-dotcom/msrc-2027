@@ -62,6 +62,13 @@ async function profile(config: StaffConfig, backend: StaffBackend, session: Nati
     && observed.authenticationTier === before.authenticationTier && observed.timing.absoluteExpiresAtMs === before.timing.absoluteExpiresAtMs
     ? { actorId: session.actorId, name: value.name, roles: value.roles as Role[] } : null;
 }
+/** Shared native verification for the bounded media route; no cookie or client role is authority. */
+export async function readStaffToolAuthority(config: StaffConfig, backend: StaffBackend, session: NativeStaffSession, now: number) {
+  const observed = await context(config, backend, session, now);
+  if (!observed?.sessionPolicySatisfied) return null;
+  const own = await profile(config, backend, session, observed);
+  return own ? { profile: own, context: observed } : null;
+}
 const fields = {
   staff: ["actorId", "name", "email", "roles", "status", "lastSignIn", "recoveryState"],
   invitations: ["id", "email", "roles", "status", "expiresAt"],
