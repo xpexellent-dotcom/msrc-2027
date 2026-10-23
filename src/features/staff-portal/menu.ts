@@ -21,7 +21,7 @@ export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "science", operation: "science.assignment.manage", built: false },
   { key: "judging", operation: "judging.readiness.manage", built: false },
   { key: "faculty-judging", operation: "judging.material.read", built: false, englishOnly: true },
-  { key: "content", operation: "content.draft.manage", built: false },
+  { key: "content", operation: "media.library.manage", built: true },
   { key: "sponsorship", operation: "sponsorship.inquiry.manage", built: false },
 ];
 

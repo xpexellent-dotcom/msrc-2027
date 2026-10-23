@@ -8,8 +8,8 @@ describe("Current staff tool guidance", () => {
     expect(Object.keys(staffCopy[locale].toolActions).sort()).toEqual(STAFF_MENU.filter((entry) => entry.built).map((entry) => entry.key).sort());
   });
   it("describes Super Admin tools without implying future module access", () => {
-    expect(staffActionSummary("en", ["superAdmin"])).toBe("Manage staff access, view audit records, manage organizing-team priority, manage the early-access list, manage registration settings, preview registration emails, check launch readiness, view participant accounts, review seat requests, and record daily attendance.");
-    expect(staffActionSummary("en", ["superAdmin"], { passwordChangeAvailable: true })).toBe("Change your password, manage staff access, view audit records, manage organizing-team priority, manage the early-access list, manage registration settings, preview registration emails, check launch readiness, view participant accounts, review seat requests, and record daily attendance.");
+    expect(staffActionSummary("en", ["superAdmin"])).toBe("Manage staff access, view audit records, manage organizing-team priority, manage the early-access list, manage registration settings, preview registration emails, check launch readiness, view participant accounts, review seat requests, record daily attendance, and manage site images.");
+    expect(staffActionSummary("en", ["superAdmin"], { passwordChangeAvailable: true })).toBe("Change your password, manage staff access, view audit records, manage organizing-team priority, manage the early-access list, manage registration settings, preview registration emails, check launch readiness, view participant accounts, review seat requests, record daily attendance, and manage site images.");
   });
   it.each(ROLES)("%s describes only its current built menu tools in both locales", (role) => {
     for (const locale of ["en", "ar"] as const) {
@@ -28,7 +28,7 @@ describe("Current staff tool guidance", () => {
     expect(staffActionSummary("ar", ["registrationWorkshopAdministrator"])).toBe(`عرض حسابات المشاركين ${new Intl.ListFormat("ar", { type: "conjunction" }).format(["", ""]).trim()}مراجعة طلبات المقاعد.`);
   });
   it("keeps multi-role guidance additive and does not duplicate tools", () => {
-    expect(staffActionSummary("en", ["finance", "registrationWorkshopAdministrator", "contentMediaEditor"])).toBe("View participant accounts and review seat requests.");
+    expect(staffActionSummary("en", ["finance", "registrationWorkshopAdministrator", "contentMediaEditor"])).toBe("View participant accounts, review seat requests, and manage site images.");
     expect(staffActionSummary("en", ["superAdmin", "registrationWorkshopAdministrator", "superAdmin"])).toBe(staffActionSummary("en", ["superAdmin"]));
   });
   it("does not invent guidance when no current role exists", () => {

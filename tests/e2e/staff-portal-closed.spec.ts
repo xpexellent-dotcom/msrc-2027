@@ -1,6 +1,6 @@
 import { expect, test } from "../helpers/csp";
 
-for (const locale of ["en", "ar"]) for (const area of ["", "/sign-in", "/accept-invitation", "/people", "/audit", "/participants", "/security", "/email-previews"]) {
+for (const locale of ["en", "ar"]) for (const area of ["", "/sign-in", "/accept-invitation", "/people", "/audit", "/participants", "/security", "/email-previews", "/content"]) {
   test(`${locale} staff${area} is invisible with STAFF_PORTAL_ENABLED off`, async ({ page }) => {
     const response = await page.goto(`/${locale}/staff${area}`);
     expect(response?.status()).toBe(404);
@@ -24,4 +24,12 @@ test("closed staff API denies without cookies or provider work", async ({ reques
 test("public navigation contains no staff destinations", async ({ page }) => {
   await page.goto("/en");
   await expect(page.locator('a[href*="/staff"]')).toHaveCount(0);
+});
+
+test("closed media API cannot sign, complete, publish or preview images", async ({ request }) => {
+  for (const action of [null, "upload-url", "complete-upload", "save", "publish", "unpublish", "archive"]) {
+    const response = action ? await request.post("/api/staff-portal/media", { data: { action } }) : await request.get("/api/staff-portal/media?preview=00000000-0000-4000-8000-000000000001");
+    expect(response.status()).toBe(503); expect(await response.json()).toEqual({ state: "closed" });
+    expect(response.headers()["set-cookie"]).toBeUndefined();
+  }
 });

@@ -46,7 +46,8 @@ export function createStaffBackend(config: StaffConfig): StaffBackend {
       && name !== "msrc_registration_priority_set") throw new Error("Unknown private RPC");
     // This legacy bridge accepts only native-verified session claims from the
     // handler. Its service-role transport is never mixed with a user bearer.
-    if (["msrc_registration_priority_set", "msrc_staff_registration_approve_tickets"].includes(name) && accessToken) throw new Error("Invalid private RPC transport");
+    if (["msrc_registration_priority_set", "msrc_staff_registration_approve_tickets", "msrc_staff_media_upload_complete",
+      "msrc_staff_media_upload_reject", "msrc_staff_media_transition_finish"].includes(name) && accessToken) throw new Error("Invalid private RPC transport");
     const headers = new Headers({ apikey: accessToken ? config.publishableKey : config.secretKey, "Content-Type": "application/json" });
     if (accessToken) headers.set("authorization", "Bearer " + accessToken);
     const response = await safeFetch(config.supabaseUrl + "/rest/v1/rpc/" + name, { method: "POST", headers, body: JSON.stringify(args) });

@@ -31,6 +31,7 @@ const purposes: readonly {
   { operation: "finance.reconciliation.read", kind: "financeRecord", roles: ["finance"], projection: "financeMinimum", audit: null },
   { operation: "checkIn.entitlement.read", kind: "entryEntitlement", roles: ["checkInStaff"], projection: "entryMinimum", audit: null },
   { operation: "content.draft.manage", kind: "contentDraft", roles: ["contentMediaEditor"], projection: "assignedPublicDraft", audit: "content.draft" },
+  { operation: "media.library.manage", kind: "mediaAsset", roles: ["contentMediaEditor", "superAdmin"], projection: "mediaMetadata", audit: "media.change" },
   { operation: "sponsorship.inquiry.manage", kind: "sponsorInquiry", roles: ["sponsorshipPr"], projection: "sponsorInquiry", audit: "sponsorship.change" },
   { operation: "security.grant.manage", kind: "securityAdministration", roles: ["superAdmin"], projection: "scopedSecurity", audit: "grant.change" },
   { operation: "security.audit.read", kind: "auditMetadata", roles: ["superAdmin"], projection: "auditMetadata", audit: "audit.access" },
@@ -66,7 +67,7 @@ function fixture(operation: Operation = "review.packet.read", role: Role = "abst
         staffEmailVerified: role !== "superAdmin" && role !== "participant" },
     },
     resource,
-    grants: [{ actorId: principal.userId, editionId: resource.editionId, role, state: "active", scope: { kind: "resource", resourceId: resource.id } }],
+    grants: [{ actorId: principal.userId, editionId: resource.editionId, role, state: "active", scope: operation === "media.library.manage" ? { kind: "edition" } : { kind: "resource", resourceId: resource.id } }],
     assignments: [{
       id: "synthetic-assignment-a", actorId: principal.userId, editionId: resource.editionId,
       resourceId: resource.id, kind: assignmentKind, track, trackId: resource.trackId!, state: "active", conflicted: false,
@@ -241,6 +242,22 @@ describe("current identity, assurance and revocation (ROL-12, SEC-01/02)", () =>
 });
 
 describe("bounded edition, track, duty, resource and assignment grants", () => {
+  it.each(["contentMediaEditor", "superAdmin"] as const)("requires a current edition grant for %s media management", async (role) => {
+    const operation = "media.library.manage", current = fixture(operation, role);
+    expect(await decision(current, operation)).toEqual({ allowed: true, operation, projection: "mediaMetadata", auditRequirement: "media.change" });
+    for (const scope of [
+      { kind: "resource", resourceId: current.resource!.id },
+      { kind: "function", functionId: current.resource!.functionId! },
+      { kind: "track", track: "research", trackId: current.resource!.trackId! },
+    ] as const) expectDenied(await decision(scoped(current, scope), operation));
+    expectDenied(await decision({ ...current, grants: current.grants.map((grant) => ({ ...grant, editionId: "synthetic-other-edition" })) }, operation));
+    expectDenied(await decision({ ...current, grants: current.grants.map((grant) => ({ ...grant, state: "revoked" })) }, operation));
+    expectDenied(await decision(resourcePatch(current, { editable: false }), operation));
+    const weakened = role === "superAdmin" ? { ...current.actor!.session, assurance: "aal1" as const, factor: null }
+      : { ...current.actor!.session, staffEmailVerified: false };
+    expectDenied(await decision({ ...current, actor: { ...current.actor!, session: weakened } }, operation));
+  });
+
   const scopes: readonly { name: string; matching: GrantScope; unrelated: GrantScope }[] = [
     { name: "track", matching: { kind: "track", track: "research", trackId: "synthetic-research-track-a" }, unrelated: { kind: "track", track: "research", trackId: "synthetic-research-track-b" } },
     { name: "function", matching: { kind: "function", functionId: "synthetic-duty-a" }, unrelated: { kind: "function", functionId: "synthetic-duty-b" } },

@@ -5,6 +5,7 @@ import { getStaffConfig } from "@/features/staff-portal/config.server";
 import { staffCopy } from "@/features/staff-portal/copy";
 import "@/styles/staff-portal.css";
 import "@/styles/staff-console.css";
+import "@/styles/staff-media.css";
 
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {

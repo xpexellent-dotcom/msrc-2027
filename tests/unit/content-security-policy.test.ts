@@ -1,9 +1,39 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { proxy } from "../../src/proxy";
-import { isCheckInPage, isPrivatePage, privateContentSecurityPolicy } from "@/lib/content-security-policy";
+import { isCheckInPage, isMediaPage, isPrivatePage, mediaUploadOrigin, privateContentSecurityPolicy } from "@/lib/content-security-policy";
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe("private CSP (SEC-01/06, ENG-045)", () => {
+  it("adds the fixed test Storage origin only to exact bilingual media documents", () => {
+    vi.stubEnv("STAFF_PORTAL_ENABLED", "true"); vi.stubEnv("STAFF_PORTAL_TEST_MODE", "true");
+    vi.stubEnv("STAFF_SUPABASE_URL", "http://127.0.0.1:3220");
+    for (const key of ["VERCEL", "VERCEL_ENV", "VERCEL_URL", "VERCEL_TARGET_ENV"]) vi.stubEnv(key, "");
+    for (const path of ["/en/staff/content", "/ar/staff/content/", "/%65n/staff/content"]) {
+      expect(isMediaPage(path)).toBe(true);
+      const policy = proxy(new NextRequest("http://localhost" + path)).headers.get("content-security-policy")!;
+      expect(policy).toContain("connect-src 'self' http://127.0.0.1:3220;");
+      expect(policy).toContain("img-src 'self' data:;");
+    }
+    for (const path of ["/en/staff", "/ar/staff/people", "/en/staff/content-other", "/en/staff/content/extra", "/en/sign-in"]) {
+      expect(isMediaPage(path)).toBe(false);
+      expect(proxy(new NextRequest("http://localhost" + path)).headers.get("content-security-policy")).toContain("connect-src 'self';");
+    }
+  });
+  it("keeps upload access closed outside the staff production or fixed local test boundary", () => {
+    const production = { STAFF_PORTAL_ENABLED: "true", VERCEL: "1", VERCEL_ENV: "production", STAFF_SUPABASE_URL: "https://ecemjggwlzqpjcwmchrl.supabase.co" };
+    expect(mediaUploadOrigin(production)).toBe(production.STAFF_SUPABASE_URL);
+    for (const override of [{ STAFF_PORTAL_ENABLED: "false" }, { VERCEL_ENV: "preview" }, { VERCEL: "" }, { STAFF_PORTAL_TEST_MODE: "true" }, { STAFF_SUPABASE_URL: "https://another.supabase.co" }, { STAFF_SUPABASE_URL: "https://ecemjggwlzqpjcwmchrl.supabase.co.attacker.invalid" }]) {
+      expect(mediaUploadOrigin({ ...production, ...override })).toBeUndefined();
+    }
+    const local = { STAFF_PORTAL_ENABLED: "true", STAFF_PORTAL_TEST_MODE: "true", STAFF_SUPABASE_URL: "http://127.0.0.1:3220" };
+    expect(mediaUploadOrigin(local)).toBe(local.STAFF_SUPABASE_URL);
+    for (const override of [{ VERCEL_URL: "preview.invalid" }, { VERCEL_TARGET_ENV: "preview" }, { STAFF_SUPABASE_URL: "http://localhost:3220" }, { STAFF_SUPABASE_URL: "http://127.0.0.1:3221" }]) expect(mediaUploadOrigin({ ...local, ...override })).toBeUndefined();
+  });
+  it.each(["https://allowed.supabase.co; script-src *", "https://allowed.supabase.co/path", "https://allowed.supabase.co.attacker.invalid", "http://allowed.supabase.co", "https://user@allowed.supabase.co", "https://allowed.supabase.co:444", "http://127.0.0.1:3221"])("does not interpolate an unsafe upload origin: %s", (origin) => {
+    expect(privateContentSecurityPolicy("synthetic-nonce", false, origin)).toContain("connect-src 'self';");
+  });
   it("allows same-origin camera and wake lock only on exact bilingual scanner documents", () => {
     for (const path of ["/en/staff/check-in", "/ar/staff/check-in/", "/%65n/staff/check-in"]) {
       expect(isCheckInPage(path)).toBe(true);
