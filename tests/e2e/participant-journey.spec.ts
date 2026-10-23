@@ -61,7 +61,7 @@ for (const locale of ["en", "ar"] as const) for (const width of [360, 390, 1440]
           }
           const registrationFaq = page.locator("#faq details").nth(1);
           await registrationFaq.locator("summary").click();
-          await expect(registrationFaq).toContainText(locale === "en" ? "Check each participation page for its current availability." : "راجع صفحة كل مسار لمعرفة إتاحته الحالية.");
+          await expect(registrationFaq).toContainText(locale === "en" ? "Check each participation page for its current availability, confirmed requirements and important dates." : "راجع صفحة كل مسار لمعرفة إتاحته الحالية ومتطلباته المؤكدة ومواعيده المهمة.");
           await registrationFaq.screenshot({ path: `${directory}/${locale}-${width}-faq-${size}.png`, scale: "css" });
           expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
           await registrationFaq.locator("summary").click();
