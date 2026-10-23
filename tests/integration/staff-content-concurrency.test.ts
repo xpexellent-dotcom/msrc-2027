@@ -85,11 +85,12 @@ async function race(firstSql: string, secondSql: string, secondName: string) {
 }
 
 function content(n: number, staff: number, collection = "speakers", extra = "'{}'::jsonb") {
-  return `select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
+  // One transaction: set_config(..., true) claims would vanish between autocommit statements.
+  return `begin;select set_config('request.jwt.claims',pg_temp.registration_claims(${staff})::text,true);
     insert into msrc_content.content_items(id,edition_key,collection,version,draft)
     values('${id(n)}','${edition}','${collection}',1,msrc_content.content_defaults()||
     '{"nameEn":"Synthetic person","nameAr":"شخص تجريبي","titleEn":"Synthetic title","titleAr":"صفة تجريبية"}'::jsonb||${extra});
-    select msrc_content.content_record(i,'create',null) from msrc_content.content_items i where i.id='${id(n)}';`;
+    select msrc_content.content_record(i,'create',null) from msrc_content.content_items i where i.id='${id(n)}';commit;`;
 }
 const save = (staff: number, name: string, item: number, version: number, title: string) => authenticated(staff, name,
   `select public.msrc_staff_content_save('${edition}','speakers','${id(item)}',${version},

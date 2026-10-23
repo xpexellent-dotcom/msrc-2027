@@ -9,23 +9,34 @@ create function msrc_content.has_text(value text) returns boolean
  select coalesce(regexp_replace(value,'[[:space:]'||chr(160)||chr(65279)||']','','g')<>'',false);
 $$;
 
-insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) values
- ('msrc-published-media','msrc-published-media',true,10485760,array['image/webp']),
- ('msrc-media-drafts','msrc-media-drafts',false,10485760,array['image/jpeg','image/png','image/webp','image/avif']);
+-- Hosted Supabase always has Storage. The disposable local CI stack runs
+-- without it by design (see scripts/ci-storage-fixture.ts), so the bucket and
+-- policy DDL is skipped there and verified on hosted after application.
 -- Restrictive policies still deny these buckets if a future unrelated permissive
 -- policy grants broad storage access. Service-issued signed upload capabilities
 -- target one immutable private raw path and bypass ordinary client insert RLS.
-create policy msrc_media_no_client_insert on storage.objects as restrictive for insert to anon,authenticated
- with check(bucket_id not in('msrc-published-media','msrc-media-drafts'));
-create policy msrc_media_no_client_update on storage.objects as restrictive for update to anon,authenticated
+do $storage$
+begin
+ if to_regclass('storage.buckets') is null or to_regclass('storage.objects') is null then
+  raise notice 'Storage is not installed; media buckets and policies skipped.';
+  return;
+ end if;
+ execute $m$insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) values
+ ('msrc-published-media','msrc-published-media',true,10485760,array['image/webp']),
+ ('msrc-media-drafts','msrc-media-drafts',false,10485760,array['image/jpeg','image/png','image/webp','image/avif'])$m$;
+ execute $m$create policy msrc_media_no_client_insert on storage.objects as restrictive for insert to anon,authenticated
+ with check(bucket_id not in('msrc-published-media','msrc-media-drafts'))$m$;
+ execute $m$create policy msrc_media_no_client_update on storage.objects as restrictive for update to anon,authenticated
  using(bucket_id not in('msrc-published-media','msrc-media-drafts'))
- with check(bucket_id not in('msrc-published-media','msrc-media-drafts'));
-create policy msrc_media_no_client_delete on storage.objects as restrictive for delete to anon,authenticated
- using(bucket_id not in('msrc-published-media','msrc-media-drafts'));
-create policy msrc_media_private_no_client_read on storage.objects as restrictive for select to anon,authenticated
- using(bucket_id<>'msrc-media-drafts');
-create policy msrc_media_public_read on storage.objects for select to anon,authenticated
- using(bucket_id='msrc-published-media');
+ with check(bucket_id not in('msrc-published-media','msrc-media-drafts'))$m$;
+ execute $m$create policy msrc_media_no_client_delete on storage.objects as restrictive for delete to anon,authenticated
+ using(bucket_id not in('msrc-published-media','msrc-media-drafts'))$m$;
+ execute $m$create policy msrc_media_private_no_client_read on storage.objects as restrictive for select to anon,authenticated
+ using(bucket_id<>'msrc-media-drafts')$m$;
+ execute $m$create policy msrc_media_public_read on storage.objects for select to anon,authenticated
+ using(bucket_id='msrc-published-media')$m$;
+end
+$storage$;
 
 create table msrc_content.media_assets (
  id uuid primary key,

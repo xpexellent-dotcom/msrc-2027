@@ -5,8 +5,6 @@ set local search_path=public,extensions;
 select no_plan();
 \ir ../support/registration-fixtures.psql
 
-select ok((select public and file_size_limit=10485760 and allowed_mime_types=array['image/webp'] from storage.buckets where id='msrc-published-media'),'Public bucket accepts only bounded canonical WebP');
-select ok((select not public and file_size_limit=10485760 from storage.buckets where id='msrc-media-drafts'),'Raw uploads and drafts use a private bounded bucket');
 select ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='msrc_content' and c.relkind='r' and not(c.relrowsecurity and c.relforcerowsecurity)),'Every media table has forced RLS');
 select ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace cross join (values('anon'),('authenticated'),('service_role')) r(name)
  where n.nspname='msrc_content' and c.relkind='r' and has_table_privilege(r.name,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE')),'All media tables are private even from service-role direct access');
@@ -21,6 +19,13 @@ set local role anon;
 select throws_ok($$select public.msrc_staff_media_list('synthetic-media')$$,'42501',null,'Anonymous cannot list metadata');
 reset role;
 
+
+-- Storage assertions run wherever native Storage exists (hosted, or a local
+-- stack with Storage enabled). The CI stack runs without Storage by design.
+select to_regclass('storage.buckets') is not null and to_regclass('storage.objects') is not null as msrc_has_storage \gset
+\if :msrc_has_storage
+select ok((select public and file_size_limit=10485760 and allowed_mime_types=array['image/webp'] from storage.buckets where id='msrc-published-media'),'Public bucket accepts only bounded canonical WebP');
+select ok((select not public and file_size_limit=10485760 from storage.buckets where id='msrc-media-drafts'),'Raw uploads and drafts use a private bounded bucket');
 -- A deliberately overbroad permissive policy cannot defeat the media boundaries.
 create policy synthetic_media_permissive on storage.objects for all to anon,authenticated using(true) with check(true);
 insert into storage.objects(bucket_id,name) values('msrc-media-drafts','synthetic-private.webp'),('msrc-published-media','synthetic-public.webp');
@@ -44,6 +49,9 @@ set local role anon;
 select is((select count(*) from storage.objects where bucket_id='msrc-media-drafts'),0::bigint,'Anonymous cannot read private objects');
 select throws_ok($$insert into storage.objects(bucket_id,name) values('msrc-published-media','synthetic-anon.webp')$$,'42501',null,'Anonymous cannot write public files');
 reset role;
+\else
+select skip('Native Storage is not installed on this disposable stack',11);
+\endif
 
 update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 insert into msrc_authorization.edition_config(edition_key) values('synthetic-media'),('synthetic-media-other');

@@ -56,10 +56,14 @@ for (const locale of ["en", "ar"] as const) {
     for (const path of ["/dates-venue", "/participate", "/workshops", "/hackathon", "/3mt", "/submissions", "/privacy", "/privacy/v1.0", "/terms", "/terms/v1.0"]) {
       expect(routes[`/${locale}${path}`], `${locale}${path} remains SSG`).toBeDefined();
     }
-    // CMS collections observe runtime configuration and serve cached public snapshots.
-    // They must not preserve a pre-migration, build-time static fallback indefinitely.
-    const publishedPaths = ["", "/program", "/speakers", "/sponsors", "/team", "/media"];
-    for (const path of publishedPaths) expect(routes[`/${locale}${path}`], `${locale}${path} reads published content at runtime`).toBeUndefined();
+    // CMS collections serve cached public snapshots. They must not preserve a
+    // pre-migration, build-time fallback indefinitely: prerendered collections
+    // regenerate within 60 s (ISR), and query-driven pages render per request.
+    const isrPaths = ["", "/speakers", "/sponsors", "/team"];
+    const requestPaths = ["/program", "/media"];
+    for (const path of isrPaths) expect(routes[`/${locale}${path}`]?.initialRevalidateSeconds, `${locale}${path} regenerates published content`).toBe(60);
+    for (const path of requestPaths) expect(routes[`/${locale}${path}`], `${locale}${path} reads published content per request`).toBeUndefined();
+    const publishedPaths = [...isrPaths, ...requestPaths];
     expect(routes[`/${locale}/registration`]).toBeUndefined();
     for (const path of [...publishedPaths, "/participate", "/dates-venue"]) {
       const response = await page.goto(`/${locale}${path}`);

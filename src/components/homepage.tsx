@@ -30,7 +30,6 @@ import type { PreviewHeroVideo } from "@/lib/media-policy";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { SessionRow, SpeakerCard } from "@/components/conference-experiences";
 import type { PublicSession, PublicSpeaker } from "@/content/conference-experiences";
-import "@/features/content/public-content.css";
 
 export type HomepageMediaPreview = { video: PreviewHeroVideo; poster: string; caption: string };
 const Arrow = () => <svg className="directional-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;

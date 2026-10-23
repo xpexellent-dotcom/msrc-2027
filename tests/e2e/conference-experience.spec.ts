@@ -104,7 +104,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/speakers`);
     await expect(page.locator(".conference-speaker-card")).toHaveCount(0);
     await page.goto(`/${locale}/media`);
-    await expect(page.getByTestId("media-catalogue").locator(".conference-media-card")).toHaveCount(21);
+    await expect(page.getByTestId("media-catalogue").locator(".conference-media-card")).toHaveCount(30);
     await expect(page.getByTestId("media-catalogue").locator("iframe, audio")).toHaveCount(0);
     await page.getByTestId("media-edition").selectOption("2027");
     await expect(page.getByTestId("media-catalogue").locator("video, .conference-media-card")).toHaveCount(0);
@@ -203,8 +203,8 @@ for (const locale of ["en", "ar"] as const) {
     await edition.selectOption("2027");
     await expect(page.getByTestId("media-empty")).toContainText(locale === "en" ? /2027/ : /٢٠٢٧/);
     await edition.selectOption("2026");
-    await expect(page.locator(".conference-media-card")).toHaveCount(13);
-    await expect(page.locator(".conference-media-card[data-media-kind=photograph]")).toHaveCount(9);
+    await expect(page.locator(".conference-media-card")).toHaveCount(22);
+    await expect(page.locator(".conference-media-card[data-media-kind=photograph]")).toHaveCount(18);
     await expect(page.locator(".conference-media-card video")).toHaveCount(4);
     await page.getByTestId("media-kind").selectOption("recording");
     await expect(page.locator(".conference-media-card")).toHaveCount(0);
@@ -225,7 +225,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("media-search")).toHaveValue("");
     await expect(page.getByTestId("media-edition")).toHaveValue("all");
     await expect(page.getByTestId("media-kind")).toHaveValue("all");
-    await expect(page.locator(".conference-media-card")).toHaveCount(21);
+    await expect(page.locator(".conference-media-card")).toHaveCount(30);
     expect(writes).toEqual([]);
   });
 
@@ -236,14 +236,14 @@ for (const locale of ["en", "ar"] as const) {
     await expect(groups).toHaveCount(4);
     expect(await groups.evaluateAll((sections) => sections.map((section) => section.getAttribute("data-edition"))))
       .toEqual(["2026", "2025", "2024", "2023"]);
-    for (const [year, count] of [["2026", 13], ["2025", 4], ["2024", 2], ["2023", 2]] as const) {
+    for (const [year, count] of [["2026", 22], ["2025", 4], ["2024", 2], ["2023", 2]] as const) {
       const group = page.locator(`.conference-media-edition[data-edition="${year}"]`);
       await expect(group.getByRole("heading", { level: 2 })).toHaveText(`MSRC ${year}`);
       await expect(group.locator(".conference-media-card")).toHaveCount(count);
     }
 
     const photos = page.locator(".conference-media-player--photo");
-    await expect(photos).toHaveCount(17);
+    await expect(photos).toHaveCount(26);
     for (const photo of await photos.all()) {
       await photo.scrollIntoViewIfNeeded();
       const picture = photo.locator("img");
@@ -304,8 +304,8 @@ for (const locale of ["en", "ar"] as const) {
     const edition = page.getByTestId("media-edition");
     const kind = page.getByTestId("media-kind");
     await kind.selectOption("photograph");
-    await expect(page.locator(".conference-media-card")).toHaveCount(17);
-    for (const [year, count] of [["2026", 9], ["2025", 4], ["2024", 2], ["2023", 2]] as const) {
+    await expect(page.locator(".conference-media-card")).toHaveCount(26);
+    for (const [year, count] of [["2026", 18], ["2025", 4], ["2024", 2], ["2023", 2]] as const) {
       await edition.selectOption(year);
       await expect(page.locator(".conference-media-card")).toHaveCount(count);
       await expect(page.locator(".conference-media-year")).toHaveText(Array.from({ length: count }, () => year));
@@ -368,7 +368,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("media-edition")).toHaveValue("all");
     await expect(page.getByTestId("media-kind")).toHaveValue("all");
     await expect(page.getByTestId("media-empty")).toHaveCount(0);
-    await expect(page.locator(".conference-media-card")).toHaveCount(21);
+    await expect(page.locator(".conference-media-card")).toHaveCount(30);
   });
 
   test(`${locale} rendered language links preserve current filters and fragment when followed in a new tab`, async ({ page }) => {

@@ -88,11 +88,13 @@ describe("server-only public snapshot transport", () => {
       expect(await fetchPublishedCollection("speakers", config, request)).toBeNull();
     }
   });
-  it("observes runtime configuration before caching and excludes secrets from cache keys", async () => {
+  it("reads runtime configuration without forcing request-time rendering and excludes secrets from cache keys", async () => {
     vi.stubEnv("STAFF_SUPABASE_URL", origin); vi.stubEnv("STAFF_SUPABASE_SECRET_KEY", config.secret); vi.stubEnv("STAFF_EDITION_KEY", "msrc-2027");
     vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(Response.json({ items: [row] })));
     expect(await getPublishedContent("speakers")).toHaveLength(1);
-    expect(next.connection).toHaveBeenCalled();
+    // ENG-063 follow-up: public content pages stay prerendered (ISR); connection() made
+    // unknown locales and slugs render Next's bare error document without JavaScript.
+    expect(next.connection).not.toHaveBeenCalled();
     expect(next.cache).toHaveBeenCalledWith(expect.any(Function), ["msrc-content-v1", origin, "msrc-2027", "speakers"], { revalidate: 60, tags: ["msrc-content:speakers"] });
     vi.unstubAllGlobals();
   });
