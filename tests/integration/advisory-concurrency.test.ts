@@ -76,7 +76,11 @@ async function race(firstSql: string, secondSql: string, name: string, waits = t
 }
 const staff = (n: number, sql: string) => `begin;select pg_temp.abstract_claims(${n});set local role authenticated;${sql}`;
 const worker = (sql: string) => `begin;set local role service_role;${sql}`;
-const start = (n: number, operation: number, submissions: number[]) => staff(9801,
+// Each race edition has its own scientific administrator. A regular-staff email
+// check is bound to the identity revision, so adding a grant after it (as one
+// shared administrator would need) correctly invalidates that session.
+const scientificAdministrator = (n: number) => 9810 + n;
+const start = (n: number, operation: number, submissions: number[]) => staff(scientificAdministrator(n),
   `select public.msrc_staff_advisory_start('${edition(n)}','${id(operation)}',array[${submissions.map(s => `'${id(s)}'::uuid`).join(",")}])::text;`);
 interface Claim { id: string; leaseToken: string; attempt: number }
 const claim = (workerId: number, batch = 1) => worker(`select public.msrc_advisory_worker_claim('${id(workerId)}',${batch})::text;`);
@@ -87,8 +91,8 @@ async function fixture(n: number, configuration = "pg_temp.advisory_configuratio
     insert into msrc_abstracts.settings(edition_key,version,configuration) values('${edition(n)}',1,pg_temp.abstract_settings());
     insert into msrc_abstracts.settings_versions values('${edition(n)}',1,pg_temp.abstract_settings());
     insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
-      values('${actor(9800)}','${edition(n)}','superAdmin','edition','Synthetic advisory race'),
-      ('${actor(9801)}','${edition(n)}','scientificAdministrator','edition','Synthetic advisory race');
+      values('${actor(9800)}','${edition(n)}','superAdmin','edition','Synthetic advisory race');
+    select pg_temp.registration_staff_fixture(${scientificAdministrator(n)},'${edition(n)}','scientificAdministrator');
     select pg_temp.advisory_submission(${n * 10 + 1},'${edition(n)}',9802);
     select pg_temp.advisory_submission(${n * 10 + 2},'${edition(n)}',9802);`);
   expect(response(await query(staff(9800,
