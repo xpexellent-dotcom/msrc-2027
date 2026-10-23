@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { expect, test, type Page } from "../helpers/csp";
+import { reviewCopy } from "../../src/features/staff-portal/research-copy";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { consoleCopy } from "../../src/features/staff-portal/console-copy";
 import { staffMenu } from "../../src/features/staff-portal/menu";
@@ -46,6 +47,7 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
   const counts = () => ({ pending: requests.filter((r) => r.status === "pending_approval").length, approved: requests.filter((r) => r.status === "approved").length, waitlisted: requests.filter((r) => r.status === "waitlisted").length, offered: requests.filter((r) => r.status === "offered").length, expired: requests.filter((r) => r.status === "expired").length, capacity, remaining: capacity === null ? null : capacity - requests.filter((r) => r.status === "approved").length });
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request(), url = new URL(request.url());
+    if (url.pathname === "/api/staff-portal/research") return route.fulfill({ json: { state: "ready", oversight: true, assignments: [], ownAffiliations: [], formToken: "synthetic-research-token" } });
     const base: StaffResponse = { state: "authenticated", profile: { actorId, name: "Synthetic Staff", roles }, formToken: "synthetic-console-token" };
     if (request.method() === "POST") {
       const payload = request.postDataJSON() as StaffPayload; actions.push(payload);
@@ -290,8 +292,8 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} planned areas explain themselves and review is oversight-only for Super Admin`, async ({ page }) => {
     await consoleFixture(page, ["superAdmin"]);
     await page.goto(`/${locale}/staff/review`);
-    await expect(page.locator(".staff-landing")).toHaveAttribute("lang", "en");
-    await expect(page.locator(".staff-oversight")).toHaveText(consoleCopy.en.landing.oversight);
+    await expect(page.getByTestId("review-workspace")).toHaveAttribute("lang", "en");
+    await expect(page.getByText(reviewCopy.oversight)).toBeVisible();
     await page.goto(`/${locale}/staff/finance`);
     await expect(page.locator(".staff-landing h2")).toHaveText(text.landing.areas.finance.title);
     await expect(page.locator(".staff-oversight")).toHaveCount(0);

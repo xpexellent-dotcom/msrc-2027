@@ -49,6 +49,9 @@ export const registrationEmailTemplates = ["registration_received", "registratio
   "registration_waitlisted", "registration_expired", "registration_cancelled", "registration_confirm_seat", "registration_seat_released"] as const;
 export type RegistrationEmailTemplate = typeof registrationEmailTemplates[number];
 
+/** ENG-065: previewable wording only. SQL holds these jobs and the worker denies delivery. */
+export const abstractDecisionTemplate = { key: "abstract_decision", version: 1, approval: "DRAFT" } as const;
+
 /** Destinations come only from the current verified Auth identity in the business transaction. */
 export function validOutboxRecipient(value: string): boolean {
   return value.length <= 254 && /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$/.test(value);
@@ -144,6 +147,7 @@ function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
 
 /** Immutable v1 fixture. Add new versions rather than editing a rendered request in flight. */
 export function renderOutboxMessage(message: OutboxMessage): EmailRequest {
+  if (message.template_key === abstractDecisionTemplate.key) return renderAbstractDecision(message);
   if (message.template_key !== "synthetic_notice") return renderRegistrationMessage(message);
   const reference = message.payload.reference;
   if (message.template_key !== "synthetic_notice" || message.template_version !== 1
@@ -155,6 +159,35 @@ export function renderOutboxMessage(message: OutboxMessage): EmailRequest {
     subject: "MSRC 2027 synthetic outbox check",
     text: `Synthetic development notice. Reference: ${reference}. This is not a registration or ticket.`,
     html: `<html lang="en"><body><p>Synthetic development notice.</p><p>Reference: ${reference}.</p><p>This is not a registration or ticket.</p></body></html>` });
+}
+
+/** English-only DRAFT; the payload contains no reviewer identity, score or private note. */
+function renderAbstractDecision(message: OutboxMessage): EmailRequest {
+  const { reference, outcome, instructions, revision_deadline: deadline } = message.payload;
+  const fields = Object.keys(message.payload).sort().join(",");
+  if (message.template_version !== 1 || message.locale !== "en" || !validOutboxRecipient(message.recipient_email)
+    || fields !== "instructions,outcome,reference,revision_deadline"
+    || typeof reference !== "string" || !/^[A-Za-z0-9_-]{1,160}$/.test(reference)
+    || !["accept", "reject", "revise"].includes(String(outcome))
+    || typeof instructions !== "string" || instructions.length > 4_000
+    || (outcome === "revise" ? !instructions.trim() || typeof deadline !== "string"
+      || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(deadline)
+      || !Number.isFinite(Date.parse(deadline)) : deadline !== null)) {
+    throw new OutboxSendError("template_invalid", false);
+  }
+  const outcomeText = outcome === "accept" ? "accepted" : outcome === "reject" ? "not accepted" : "returned for revision";
+  const paragraphs = [`The scientific committee has recorded the following outcome for abstract ${reference}: ${outcomeText}.`];
+  if (instructions.trim()) paragraphs.push(instructions.trim());
+  if (outcome === "revise") {
+    const formatted = new Intl.DateTimeFormat("en-GB", { timeZone: conferenceConfig.timeZone,
+      dateStyle: "long", timeStyle: "short", hourCycle: "h23" }).format(new Date(deadline as string));
+    paragraphs.push(`Submit the revised abstract in your account by ${formatted} (${conferenceConfig.timeZone}). An email reply does not submit a revision.`);
+  }
+  paragraphs.push(`Sign in to view your abstract: ${siteOrigin}/en/abstracts`, `Support: ${contactConfig.recipient}`);
+  const text = paragraphs.join("\n\n");
+  return Object.freeze({ from: `MSRC ${conferenceConfig.edition} <${contactConfig.sender}>`, to: [message.recipient_email],
+    subject: `Abstract ${reference}: ${outcomeText}`, text,
+    html: `<html lang="en"><body>${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</body></html>` });
 }
 
 /** Test provider models a provider idempotency cache, including accepted-but-unacknowledged sends. */

@@ -3944,3 +3944,41 @@ reads and online check-in. The daily source cron remains unchanged and all
 existing runtime/database/delivery switches remain off. Timely delivery and
 background cadence remain owner activation gates; this change is not a
 production-readiness claim.
+
+## ENG-065 — Closed abstract submission and scientific review workspace, 23 October 2026
+
+Authority: the owner's Night-3 Task 5; ENG-064 was the highest number checked
+before reservation. ABS-01–08/12/13/15, REV-01–09, BL-ABS-01–03/06,
+BL-REV-01–07, LOC-01–03, ACC-01, ROL-03/05/10/12 and SEC-01/02/06 apply.
+This is uncommitted local implementation on top of Tasks 1–4. No hosted
+migrations, settings seeds, feature activation, participant opening or real email.
+The O9 receipt is `docs/progress/2026-10-23-codex-night3-abstracts.md`;
+`docs/PROGRESS.md` is outside this task's edit scope.
+
+The task expressly supersedes BL-REV-03's older automatic-matching exclusion:
+provide balanced automatic assignment as well as manual assignment, with declared
+affiliation conflicts, current reviewer grants and approved sanitized packets
+checked in both paths. It does not authorize automatic scientific decisions.
+
+Scientific settings have no invented operational defaults: submission/review
+windows, specialties, study types, rubric scales/weights, required review count,
+blinding and corresponding-author eligibility require staff configuration.
+Scientific Administrators and Super Admins may configure settings. The current
+task's read-only Super Admin oversight is implemented conservatively: an SA-only
+actor cannot assign, make scientific decisions or score; those actions require
+the relevant scientific-administrator or assigned-reviewer role. Setting access
+is the explicit exception requested in this task. Reviewer screens and packets
+remain English/LTR, including within an Arabic staff route.
+
+No upload endpoint or evidence download is added. ABS-09–11 administrative
+evidence and the virus-scanning/storage decision remain release gates; settings
+completeness alone cannot establish evidence readiness. Confidential originals
+remain restricted to Super Admins in future implementation. Initial submission
+never requests a supervisor. Two finalized applications per declared PI per
+edition count across submitters; drafts do not consume that limit.
+
+New abstract decision email wording is DRAFT, separate from ORG-057's unchanged
+approved registration templates. Preparing a decision does not change participant
+status. Explicit batch publication records the dashboard outcome and durable,
+held English email jobs atomically; template approval and independent delivery
+activation remain necessary before sending.

@@ -7,6 +7,7 @@ import "@/styles/staff-portal.css";
 import "@/styles/staff-console.css";
 import "@/styles/staff-media.css";
 import "@/styles/staff-content.css";
+import "@/styles/staff-research.css";
 
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {

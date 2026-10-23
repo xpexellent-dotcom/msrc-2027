@@ -47,6 +47,8 @@ jobs:
         run: pnpm exec playwright test tests/e2e/participant-closed.spec.ts --project=chromium-desktop --project=chromium-mobile
       - name: Verify synthetic flag-on forms, keyboard, locale preservation and axe
         run: pnpm exec playwright test --config playwright.participant.config.ts
+      - name: Verify closed abstract workflow, EN/AR drafts, revision and axe
+        run: pnpm exec playwright test --config playwright.abstracts.config.ts
       - name: Upload synthetic browser evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -1,0 +1,18 @@
+-- Synthetic only; shared by rollback pgTAP and disposable local CI.
+create function pg_temp.abstract_settings() returns jsonb language sql stable as $$
+ select jsonb_build_object('opensAt',clock_timestamp()-interval '1 day','closesAt',clock_timestamp()+interval '1 day','reviewDeadline',clock_timestamp()+interval '3 days',
+ 'specialties','[{"id":"synthetic-specialty","label":"Synthetic specialty"}]'::jsonb,
+ 'studyTypes','[{"id":"synthetic-study","label":"Synthetic study","template":"research"}]'::jsonb,
+ 'rubric','[{"id":"synthetic-criterion","label":"Synthetic criterion","weight":3,"min":1,"max":7}]'::jsonb,
+ 'reviewersPerAbstract',1,'blindingPolicy','Synthetic manual sanitation','correspondingAuthorPolicy','Synthetic corresponding author policy','keywordCount',0,
+ 'ongoingPolicy','Synthetic progress may be reviewed','aggregationPolicy','weighted_normalized_mean','acceptanceThreshold',50,'notApplicablePolicy','all_required');$$;
+create function pg_temp.abstract_document(pi_email text default 'synthetic-pi@example.invalid') returns jsonb language sql immutable as $$
+ select jsonb_build_object('title','Synthetic study','specialtyId','synthetic-specialty','studyTypeId','synthetic-study','completionStatus','ongoing',
+ 'body','{"background":"Synthetic background","aim":"Synthetic aim","methods":"Synthetic methods","results":"","conclusion":"Current implications"}'::jsonb,
+ 'keywords','[]'::jsonb,'authors',jsonb_build_array(jsonb_build_object('id','e7800000-0000-4000-8000-000000000001','name','Identity Canary Person','email',pi_email,'affiliations','["Identity Canary Institute"]'::jsonb)),
+ 'piAuthorId','e7800000-0000-4000-8000-000000000001','correspondingAuthorId','e7800000-0000-4000-8000-000000000001','presentingAuthorId',null,
+ 'ethicsStatus','not_required','ethicsExplanation','Confidential ethics canary','conflictOfInterest','None declared','fundingDeclaration','No funding','authorityConfirmed',true);$$;
+create function pg_temp.abstract_packet() returns jsonb language sql immutable as $$
+ select pg_temp.abstract_document()-array['authors','piAuthorId','correspondingAuthorId','presentingAuthorId','ethicsStatus','ethicsExplanation','conflictOfInterest','fundingDeclaration','authorityConfirmed'];$$;
+create function pg_temp.abstract_claims(n integer) returns void language plpgsql as $$begin
+ perform set_config('request.jwt.claims',pg_temp.registration_claims(n)::text,true);end$$;

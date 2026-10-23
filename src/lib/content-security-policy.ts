@@ -31,7 +31,7 @@ export function decodedPagePath(pathname: string): string {
 }
 
 export function isPrivatePage(pathname: string): boolean {
-  return /^\/(en|ar)\/(staff|sign-in|sign-up|verify-email|forgot-password|reset-password|my-msrc|registration|staff-security-preview)(?:\/|$)/.test(decodedPagePath(pathname));
+  return /^\/(en|ar)\/(staff|sign-in|sign-up|verify-email|forgot-password|reset-password|my-msrc|registration|abstracts|staff-security-preview)(?:\/|$)/.test(decodedPagePath(pathname));
 }
 
 /** Camera policy is document-scoped, so scanner transitions must install a fresh document. */

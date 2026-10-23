@@ -324,6 +324,14 @@ jobs:
         env:
           STAFF_CONTENT_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/staff-content-concurrency.test.ts
+      - name: Reset the disposable database for abstract and review proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify PI limits, immutable versions and review allocation races
+        if: ${{ !inputs.auth_stability }}
+        env:
+          ABSTRACT_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/abstract-concurrency.test.ts
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop
