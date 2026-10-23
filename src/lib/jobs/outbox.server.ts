@@ -29,7 +29,7 @@ export async function drainOutbox({ store, sender, batchSize = 10, timeBudgetMs 
     const [message] = await store.claim(workerId, 1, dailyCap);
     if (!message) break;
     result.claimed++;
-    // ORG-058: new bilingual participant compositions are DRAFT even for historically
+    // ORG-059: new bilingual participant compositions are DRAFT even for historically
     // approved English keys. Never prepare, alter or replay a frozen provider snapshot.
     // Abstract jobs also retain their existing SQL hold. Activation alone cannot send drafts.
     if (isDraftParticipantTemplate(message.template_key)) {

@@ -3983,7 +3983,7 @@ status. Explicit batch publication records the dashboard outcome and durable,
 held English email jobs atomically; template approval and independent delivery
 activation remain necessary before sending.
 
-## ORG-058 — Bilingual participant email drafts with approved banner art, 23 October 2026
+## ORG-059 — Bilingual participant email drafts with approved banner art, 23 October 2026
 
 Authority: the organizer's explicit current instruction:
 
@@ -4010,11 +4010,11 @@ sending**. Preserve English meaning and existing facts; this language/design
 decision does not approve translations or authorize delivery, activation,
 hosted migrations, settings seeds or feature-flag changes.
 
-## ENG-066 — Closed bilingual participant email previews and banner, 23 October 2026
+## ENG-067 — Closed bilingual participant email previews and banner, 23 October 2026
 
-Authority: the current bilingual-email task and ORG-058. ENG-065 and ORG-057
+Authority: the current bilingual-email task and ORG-059. ENG-065 and ORG-057
 were the highest numbers checked before reservation. Requirements EML-01–05,
-LOC-01/03, ACC-01, REG-04/06/07 and REV-07 apply, with ORG-058's participant
+LOC-01/03, ACC-01, REG-04/06/07 and REV-07 apply, with ORG-059's participant
 language supersession.
 
 Render all eight registration templates and abstract decision outcomes with
@@ -4038,7 +4038,7 @@ Evidence belongs in
 [the bilingual-email receipt](progress/2026-10-23-claude-bilingual-emails.md);
 do not edit `docs/PROGRESS.md`.
 
-## ORG-059 — Essential bilingual announcements and participant inbox, 23 October 2026
+## ORG-061 — Essential bilingual announcements and participant inbox, 23 October 2026
 
 Authority: the organizer's explicit announcements task on this branch.
 
@@ -4049,7 +4049,7 @@ Authority: the organizer's explicit announcements task on this branch.
   for these announcements and the older specification's optional-announcement
   example; approved public legal text is unchanged by this implementation task.
 - Each announcement uses email and a private signed-in participant My MSRC inbox.
-  Email uses ORG-058's existing banner and bilingual renderer: English followed by
+  Email uses ORG-059's existing banner and bilingual renderer: English followed by
   Arabic. The participant reader can read either language. The message itself is
   authored by a Super Admin; no automatic translation is supplied.
 - Email is the only delivery channel. No SMS, WhatsApp or push service is added.
@@ -4057,12 +4057,12 @@ Authority: the organizer's explicit announcements task on this branch.
 The new email layout remains DRAFT for owner approval. No hosted migration,
 settings seed, feature activation, participant opening or real email is authorized.
 
-## ENG-067 — Closed announcements, frozen audience and participant inbox, 23 October 2026
+## ENG-070 — Closed announcements, frozen audience and participant inbox, 23 October 2026
 
-Authority: the current task, ORG-058/059 and existing ORG-055/056. ENG-066 and
-ORG-058 were the highest numbers checked before reservation. Requirements
+Authority: the current task, ORG-059/059 and existing ORG-055/056. ENG-067 and
+ORG-059 were the highest numbers checked before reservation. Requirements
 EML-01–05, LOC-01/03, ACC-01, ROL-10/12, PRV-03/05/06, SEC-01/02/06 and AT-16
-apply, subject to ORG-059's essential-communication supersession.
+apply, subject to ORG-061's essential-communication supersession.
 
 Add a private forced-RLS announcement store with exact-session Super Admin RPCs,
 optimistic versions, audited operation IDs, live segment previews, masked samples

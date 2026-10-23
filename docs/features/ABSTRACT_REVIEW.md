@@ -111,7 +111,7 @@ the committee must prepare a new decision against the current review basis.
 ## DRAFT bilingual decision template
 
 Registry: `abstract_decision`, version 1, **DRAFT — owner approval pending**.
-ORG-058/ENG-066 adds a banner and complete Arabic translation below the complete
+ORG-059/ENG-067 adds a banner and complete Arabic translation below the complete
 English message for each accepted, not-accepted and revision outcome. The
 English meaning is preserved. Subjects use `English subject | Arabic subject`;
 HTML separates its language blocks with a divider and gives Arabic `dir="rtl"`
@@ -159,7 +159,7 @@ The draft is previewable but cannot be activated merely by opening the existing
 outbox switches. Owner wording approval, a reviewed change releasing template
 holds, provider/delivery checks and authorized activation remain necessary.
 Staff/reviewer/faculty-judge emails, staff session email checks and Contact
-delivery remain English-only under ORG-058; scientific content and reviewer
+delivery remain English-only under ORG-059; scientific content and reviewer
 screens retain their English/LTR policy.
 
 ## Synthetic bilingual decision previews

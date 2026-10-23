@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 
-// ENG-067. Requires its own cold disposable reset in GitHub CI:
+// ENG-070. Requires its own cold disposable reset in GitHub CI:
 // ANNOUNCEMENT_DB_TESTS=true pnpm exec vitest run --config
 // vitest.integration.config.ts tests/integration/announcement-concurrency.test.ts
 const isolatedCi = process.env.GITHUB_ACTIONS === "true" && process.env.ANNOUNCEMENT_DB_TESTS === "true";

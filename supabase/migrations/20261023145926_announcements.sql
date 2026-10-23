@@ -1,4 +1,4 @@
--- ENG-067 / ORG-059. EML-01--05, ADM-02, ROL-10/12, SEC-01/02/06,
+-- ENG-070 / ORG-061. EML-01--05, ADM-02, ROL-10/12, SEC-01/02/06,
 -- LOC-01/03, PRV-03/05. Review only: no settings, flags, delivery or cron seed.
 begin;
 create schema msrc_announcements;
@@ -376,7 +376,7 @@ do $$declare p record;begin
 end$$;
 revoke all on function public.msrc_announcements_maintenance(text),public.msrc_participant_announcements(text,jsonb,uuid,boolean) from public,anon,authenticated,service_role;
 grant execute on function public.msrc_announcements_maintenance(text),public.msrc_participant_announcements(text,jsonb,uuid,boolean) to service_role;
-comment on table msrc_announcements.announcements is 'ORG-059 essential conference communications; no opt-out or preferences. Plain text EN/AR content. DRAFT email layout remains held pending owner approval; no hosted activation.';
+comment on table msrc_announcements.announcements is 'ORG-061 essential conference communications; no opt-out or preferences. Plain text EN/AR content. DRAFT email layout remains held pending owner approval; no hosted activation.';
 comment on table msrc_announcements.recipients is 'Immutable live-at-send account/address snapshot. Private delivery identity only; no public attendee directory. Retention requires owner review before activation.';
 comment on function public.msrc_announcements_maintenance(text) is 'Existing authenticated outbox drain only, no new scheduler. Due audiences must exactly match the SA preview or return to draft for review. Recorded SA authorization is rechecked against current account, edition grant and recovery status.';
 notify pgrst,'reload schema';

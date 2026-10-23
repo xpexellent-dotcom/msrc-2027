@@ -1,6 +1,6 @@
 # Announcements — closed implementation
 
-Authority: ORG-059 and ENG-067, extending ORG-058's bilingual participant emails.
+Authority: ORG-061 and ENG-070, extending ORG-059's bilingual participant emails.
 Requirements: EML-01–05, LOC-01/03, ACC-01, ROL-10/12, SEC-01/02/06,
 PRV-03/05/06 and AT-16. The current organizer decision makes these essential
 communications with no opt-out, unsubscribe link or preference record.

@@ -26,7 +26,7 @@ export function validAnnouncementPayload(value: unknown): value is AnnouncementE
   });
 }
 
-/** ORG-059: Super Admin text, English then Arabic, approved-art banner, no opt-out.
+/** ORG-061: Super Admin text, English then Arabic, approved-art banner, no opt-out.
  * Rendering a private preview never enqueues or delivers a message. */
 export function renderAnnouncementEmail(payload: AnnouncementEmailPayload, recipientEmail = "preview@example.invalid"): EmailRequest {
   if (!validAnnouncementPayload(payload) || recipientEmail.length > 254

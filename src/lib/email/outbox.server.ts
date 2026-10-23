@@ -59,7 +59,7 @@ export type RegistrationEmailTemplate = typeof registrationEmailTemplates[number
 /** ENG-065: previewable wording only. SQL holds these jobs and the worker denies delivery. */
 export const abstractDecisionTemplate = { key: "abstract_decision", version: 1, approval: "DRAFT" } as const;
 
-/** ORG-058: every new bilingual composition requires owner wording approval before delivery. */
+/** ORG-059: every new bilingual composition requires owner wording approval before delivery. */
 export function isDraftParticipantTemplate(key: string): boolean {
   return key === announcementTemplate.key || key === abstractDecisionTemplate.key || registrationEmailTemplates.includes(key as RegistrationEmailTemplate);
 }
@@ -69,7 +69,7 @@ export function validOutboxRecipient(value: string): boolean {
   return value.length <= 254 && /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$/.test(value);
 }
 
-/** ORG-057 English wording is preserved; the bilingual compositions are all DRAFT under ORG-058.
+/** ORG-057 English wording is preserved; the bilingual compositions are all DRAFT under ORG-059.
  * Independent wording and delivery activation gates remain (EML-04).
  * No bearer token, participant name, identity number or caller-supplied URL is accepted. */
 function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
@@ -201,7 +201,7 @@ export function renderOutboxMessage(message: OutboxMessage, translations?: Parti
     || !["en", "ar"].includes(message.locale) || !syntheticRecipient(message.recipient_email)
     || Object.keys(message.payload).length !== 1 || typeof reference !== "string"
     || !/^[A-Za-z0-9_-]{1,80}$/.test(reference)) throw new OutboxSendError("template_invalid", false);
-  // This synthetic infrastructure notice is not participant-facing (ORG-058).
+  // This synthetic infrastructure notice is not participant-facing (ORG-059).
   return Object.freeze({ from: "MSRC 2027 <no-reply@msrc2027.com>", to: [message.recipient_email],
     subject: "MSRC 2027 synthetic outbox check",
     text: `Synthetic development notice. Reference: ${reference}. This is not a registration or ticket.`,

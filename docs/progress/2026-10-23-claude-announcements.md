@@ -2,7 +2,7 @@
 
 Date: 23 October 2026. Worktree: `C:\m\codex-emails`.
 Branch: `claude/bilingual-emails`; starting commit `f6388cf`.
-Decisions recorded: ORG-059 and ENG-067 (highest prior IDs: ORG-058, ENG-066).
+Decisions recorded: ORG-061 and ENG-070 (highest prior IDs: ORG-059, ENG-067).
 Requirements: EML-01–05, LOC-01/03, ACC-01, ROL-10/12, PRV-03/05/06,
 SEC-01/02/06 and AT-16. `docs/PROGRESS.md` was not edited.
 

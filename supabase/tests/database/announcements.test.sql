@@ -1,4 +1,4 @@
--- ENG-067 / ORG-059. Synthetic rollback-only announcements authorization proofs.
+-- ENG-070 / ORG-061. Synthetic rollback-only announcements authorization proofs.
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
