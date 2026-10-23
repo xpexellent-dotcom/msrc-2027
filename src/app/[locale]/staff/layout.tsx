@@ -8,6 +8,8 @@ import "@/styles/staff-console.css";
 import "@/styles/staff-media.css";
 import "@/styles/staff-content.css";
 import "@/styles/staff-research.css";
+import "@/styles/staff-advisory.css";
+
 import "@/features/announcements/staff.css";
 
 export const dynamic = "force-dynamic";
