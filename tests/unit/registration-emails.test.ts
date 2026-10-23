@@ -28,8 +28,9 @@ describe("DRAFT bilingual registration email templates", () => {
     expect(rendered.html).toContain("font-family:'Noto Sans Arabic',Tahoma,Arial,sans-serif");
     expect(rendered.html).toContain(`<img src="${participantEmailBanner.src}" alt="${participantEmailBanner.alt}" width="600"`);
     expect(participantEmailBanner.src).toMatch(/^https:\/\//);
-    expect(rendered.text.startsWith(`${participantEmailBanner.alt}: ${participantEmailBanner.src}`)).toBe(true);
-    const [english, arabic] = rendered.text.replace(`${participantEmailBanner.alt}: ${participantEmailBanner.src}\n\n`, "").split("\n\n---\n\n");
+    // The banner is HTML-only decoration; the plain-text part starts with the message itself.
+    expect(rendered.text).not.toContain(participantEmailBanner.src);
+    const [english, arabic] = rendered.text.split("\n\n---\n\n");
     expect(english).toBe(originalEnglish[template].text);
     expect(rendered.subject.split(" | ")[0]).toBe(originalEnglish[template].subject);
     expect(rendered.subject.split(" | ")[1]).toMatch(/[\u0600-\u06ff]/);

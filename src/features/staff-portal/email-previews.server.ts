@@ -24,8 +24,7 @@ export function renderRegistrationEmailPreviews(): StaffEmailPreview[] {
     };
     const rendered = renderOutboxMessage(message, previewKey === "abstract_decision_revise"
       ? { abstractInstructions: { english: "Please clarify the methods in the abstract.", arabic: "يُرجى توضيح المنهجية في الملخص." } } : undefined);
-    const [englishWithBanner, arabicText] = rendered.text.split("\n\n---\n\n");
-    const englishText = englishWithBanner.replace(`${participantEmailBanner.alt}: ${participantEmailBanner.src}\n\n`, "");
+    const [englishText, arabicText] = rendered.text.split("\n\n---\n\n");
     return { previewKey, templateKey, templateVersion: message.template_version, wordingStatus: "draft",
       recipient: rendered.to[0], subject: rendered.subject, text: rendered.text, html: rendered.html,
       englishText, arabicText, banner: participantEmailBanner };
