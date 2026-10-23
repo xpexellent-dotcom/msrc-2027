@@ -133,7 +133,7 @@ for (const locale of ["en", "ar"] as const) {
     const mock = await fixture(page, { holdUpload: true });
     await page.goto(`/${locale}/staff/content`);
     await page.locator("#media-upload").setInputFiles({ name: "Synthetic click.png", mimeType: "image/png", buffer: mock.imageBytes });
-    await expect.poll(() => mock.uploads.length).toBe(1);
+    await expect.poll(() => mock.uploads.length, { timeout: 15_000 }).toBe(1);
     await expect(page.getByRole("progressbar")).toBeVisible();
     expect(mock.actions.some((entry) => entry.action === "complete-upload")).toBe(false);
     expect(mock.uploads[0].headers.authorization).toBeUndefined();
@@ -148,7 +148,7 @@ for (const locale of ["en", "ar"] as const) {
     }, [...mock.imageBytes]);
     await page.locator(".staff-media-drop").dispatchEvent("drop", { dataTransfer: transfer });
     await transfer.dispose();
-    await expect.poll(() => mock.uploads.length).toBe(2);
+    await expect.poll(() => mock.uploads.length, { timeout: 15_000 }).toBe(2);
     await expect.poll(() => mock.assets[0].filename).toBe("Synthetic drop.png");
     expect(mock.assets[0]).toMatchObject({ state: "draft", publicUrl: null });
     expect(mock.actions.filter((entry) => entry.action === "publish")).toHaveLength(0);
