@@ -39,10 +39,10 @@ select pg_temp.registration_staff_fixture(10302,'synthetic-site-import');
 select pg_temp.registration_staff_fixture(10303,'synthetic-site-other');
 create function pg_temp.site_media(n integer) returns jsonb language sql immutable as $$
  select jsonb_build_object('fileName','Synthetic image.webp','mime','image/webp','sha256',lpad(to_hex(n),64,'0'),'size',40,'width',10,'height',10);$$;
-create function pg_temp.site_fields(year integer default 2026,position integer default 0) returns jsonb language sql immutable as $$
+create function pg_temp.site_fields(year integer default 2026,item_position integer default 0) returns jsonb language sql immutable as $$
  select jsonb_build_object('altEn','Synthetic archive','altAr','صورة تجريبية','captionEn','Synthetic caption','captionAr','وصف تجريبي',
  'rightsConfirmed',true,'rightsEvidence','Synthetic organizer consent evidence','editionYear',year,'kind','photograph',
- 'displayOrder',position,'videoPath',null,'focalX',42,'focalY',37);$$;
+ 'displayOrder',item_position,'videoPath',null,'focalX',42,'focalY',37);$$;
 create function pg_temp.site_team(name text,asset uuid default null) returns jsonb language sql immutable as $$
  select jsonb_build_object('nameEn',name,'nameAr','اسم تجريبي','titleEn','Synthetic role','titleAr','دور تجريبي',
  'groupEn','Synthetic committee','groupAr','لجنة تجريبية','assetId',asset,'sortOrder',0,
