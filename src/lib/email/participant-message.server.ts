@@ -20,7 +20,8 @@ export function renderParticipantBody(english: string[], arabic: string[], links
       : escapeEmailHtml(paragraph);
     return `<p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">${content}</p>`;
   }).join("");
-  const text = `${participantEmailBanner.alt}: ${participantEmailBanner.src}\n\n${english.join("\n\n")}\n\n---\n\n${arabic.join("\n\n")}`;
+  // The banner is decorative in the HTML part; the plain-text part starts with the message.
+  const text = `${english.join("\n\n")}\n\n---\n\n${arabic.join("\n\n")}`;
   const html = `<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MSRC 2027</title></head>`
     + `<body style="margin:0;background-color:#f5f3f7;color:#211a2d;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7">`
     + `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center">`
