@@ -132,6 +132,8 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} click and drop uploads show progress and create only private drafts`, async ({ page }) => {
     const mock = await fixture(page, { holdUpload: true });
     await page.goto(`/${locale}/staff/content`);
+    // The picker stays disabled until the library has loaded, as it does for a real user.
+    await expect(page.locator("#media-upload")).toBeEnabled();
     await page.locator("#media-upload").setInputFiles({ name: "Synthetic click.png", mimeType: "image/png", buffer: mock.imageBytes });
     await expect.poll(() => mock.uploads.length, { timeout: 15_000 }).toBe(1);
     await expect(page.getByRole("progressbar")).toBeVisible();
@@ -159,6 +161,8 @@ for (const locale of ["en", "ar"] as const) {
     const mock = await fixture(page, { duplicateUpload: true });
     const before = structuredClone(mock.assets[1]);
     await page.goto(`/${locale}/staff/content`);
+    // The picker stays disabled until the library has loaded, as it does for a real user.
+    await expect(page.locator("#media-upload")).toBeEnabled();
     await page.locator("#media-upload").setInputFiles({ name: "Synthetic duplicate.png", mimeType: "image/png", buffer: mock.imageBytes });
     await expect(page.getByText(copy.duplicate, { exact: true })).toBeVisible();
     await expect(page.getByText(copy.uploaded, { exact: true })).toHaveCount(0);
