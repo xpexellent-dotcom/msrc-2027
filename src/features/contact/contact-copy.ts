@@ -28,7 +28,6 @@ type ContactCopy = {
   website: string;
   enabledMetadataDescription: string;
   deliveryIntro: string;
-  deliveryProcessing: string;
   testOnly: string;
   noScript: string;
   sending: string;
@@ -84,7 +83,6 @@ export const contactCopy: Record<Locale, ContactCopy> = {
     website: "Leave this field empty",
     enabledMetadataDescription: "Send a message to the MSRC 2027 organizing team or contact us directly by email.",
     deliveryIntro: "Send a message to the organizing team. We’ll reply to the email address you provide.",
-    deliveryProcessing: "Your message and contact details go through Resend to the organizing team’s inbox. The website does not keep a copy of your message.",
     testOnly: "Synthetic delivery test. No real email is sent.",
     noScript: "Please enable JavaScript to use this form, or contact us using the email address above.",
     sending: "Sending your message…",
@@ -141,7 +139,6 @@ export const contactCopy: Record<Locale, ContactCopy> = {
     website: "اترك هذا الحقل فارغًا",
     enabledMetadataDescription: "أرسل رسالة إلى الفريق المنظم لمؤتمر أبحاث طلاب الطب ٢٠٢٧ أو تواصل معنا مباشرة عبر البريد الإلكتروني.",
     deliveryIntro: "أرسل رسالة إلى الفريق المنظم. سنرد على عنوان البريد الإلكتروني الذي تقدمه.",
-    deliveryProcessing: "تُرسل رسالتك وبيانات التواصل عبر Resend إلى صندوق بريد الفريق المنظم. لا يحتفظ الموقع بنسخة من رسالتك.",
     testOnly: "اختبار ببيانات تجريبية. لا تُرسل رسائل بريد إلكتروني حقيقية.",
     noScript: "يرجى تفعيل JavaScript لاستخدام النموذج، أو التواصل معنا عبر عنوان البريد الإلكتروني أعلاه.",
     sending: "جارٍ إرسال رسالتك…",
