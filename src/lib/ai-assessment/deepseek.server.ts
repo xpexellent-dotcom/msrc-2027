@@ -2,6 +2,14 @@ import "server-only";
 import type { AssessmentConfiguration, AssessmentProvider, ProviderResponse } from "./contracts.ts";
 import { DEEPSEEK_TRANSPORT_POLICY } from "./configuration.server.ts";
 
+/** Only these fixed categories leave the transport; no provider message/body is retained. */
+export class DeepSeekProviderError extends Error {
+  constructor(readonly code: "rate_limited" | "provider_unavailable" | "provider_configuration" | "invalid_output", readonly retryable: boolean) {
+    super("PROVIDER_UNAVAILABLE");
+    this.name = "DeepSeekProviderError";
+  }
+}
+
 /** Plain fetch reads no SDK environment defaults; reject known endpoint/header overrides explicitly. */
 function assertTransportEnvironment() {
   if (["DEEPSEEK_BASE_URL", "DEEPSEEK_API_BASE", "DEEPSEEK_CUSTOM_HEADERS", "DEEPSEEK_HEADERS", "ANTHROPIC_CUSTOM_HEADERS"]
@@ -9,7 +17,7 @@ function assertTransportEnvironment() {
 }
 
 /** Constructed only after the adapter's flag, approval, authority and budget gates. */
-export function createDeepSeekProvider(config: AssessmentConfiguration): AssessmentProvider {
+export function createDeepSeekProvider(config: Pick<AssessmentConfiguration, "apiKey">): AssessmentProvider {
   assertTransportEnvironment();
   const apiKey = config.apiKey; // Only the approved credential, never an ambient provider key/token.
   return Object.freeze({
@@ -23,11 +31,12 @@ export function createDeepSeekProvider(config: AssessmentConfiguration): Assessm
           headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify(request), signal: controller.signal,
         });
-        if (!response.ok) throw new Error("PROVIDER_UNAVAILABLE");
-        return await response.json() as ProviderResponse;
-      } catch {
+        if (!response.ok) throw new DeepSeekProviderError(response.status === 429 ? "rate_limited" : response.status >= 500 ? "provider_unavailable" : "provider_configuration", response.status === 429 || response.status >= 500);
+        try { return await response.json() as ProviderResponse; }
+        catch { throw new DeepSeekProviderError("invalid_output", false); }
+      } catch (error) {
         // Never propagate bodies, manuscript text, credentials or raw network diagnostics.
-        throw new Error("PROVIDER_UNAVAILABLE");
+        throw error instanceof DeepSeekProviderError ? error : new DeepSeekProviderError("provider_unavailable", true);
       } finally { clearTimeout(timeout); }
     },
   } satisfies AssessmentProvider);

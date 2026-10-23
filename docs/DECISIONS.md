@@ -3982,3 +3982,42 @@ approved registration templates. Preparing a decision does not change participan
 status. Explicit batch publication records the dashboard outcome and durable,
 held English email jobs atomically; template approval and independent delivery
 activation remain necessary before sending.
+
+## ENG-066 — Closed staff advisory scoring and calibration, 23 October 2026
+
+Authority: the owner's Night-3 Task 6 and Decision 13 go/no-go; ENG-065 was the
+highest existing number checked before reservation. AI-01–06, REV-01–09,
+ROL-03/05/10/12, SEC-01/02/06, LOC-01–03, ACC-01 and ORG-040 apply. This slice
+builds on Task 5 and the PR #86 DeepSeek transport. AI remains disabled unless
+the owner separately activates the runtime and database gates after approved
+data handling, evaluation, budget and operating configuration evidence.
+
+Advisory records are separate from human scorecards and decisions, invisible
+to authors, and cannot publish or change an outcome. Scientific Administrators
+and Super Admins may start a batch and inspect calibration. Only a Super Admin
+may change activation, evidence, model/operating settings or reviewer visibility;
+Scientific Administrators may enter budgets. Budget and operating fields have
+no supplied defaults. Reviewer visibility defaults off; any permitted reveal
+also requires a completed independent human review and a current assignment, preserving
+AI-03's anti-anchoring boundary.
+
+Only the title/body of a current, staff-attested sanitized finalized packet and
+its frozen Task 5 rubric may reach DeepSeek. Identity canaries supplement that
+human check. Staff UI identifies processing in the People's Republic of China.
+No approved public legal text or email wording changes. Data-handling references
+are approval evidence pointers, not newly approved legal language.
+
+The queue uses per-submission/rubric-version deduplication, fenced leases, small
+bounded worker chunks, retry/backoff and atomic budget reservations. Estimated
+cost is staff entered, includes reserved retry attempts, and is not a provider
+invoice guarantee. Calibration reports descriptive correlation/agreement only;
+there is no invented passing threshold or automatic go/no-go. Offline synthetic
+evaluation can establish the initial evaluation evidence before live activation.
+
+Pending migration, worker endpoint and source cron entry require owner review
+before deployment. The source cron reuses the existing five-minute engineering
+cadence; the advisory route returns 404 while disabled and is independent of
+email delivery. No hosted settings, seeds, flags, API scoring,
+emails, commits, branches or pushes are authorized by this implementation.
+Receipt: `docs/progress/2026-10-23-codex-night3-advisory.md`.
+`docs/PROGRESS.md` is explicitly outside this task's edit scope.
