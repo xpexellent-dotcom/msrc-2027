@@ -14,14 +14,14 @@ export const registrationOpeningCopy = {
   en: {
     title: "Registration opens",
     timezone: "All times are Riyadh time.",
-    general: "Registration opens",
+    general: "Public registration",
     closing: "Registration closes",
     attendance: "Free attendance",
   },
   ar: {
     title: "مواعيد فتح التسجيل",
     timezone: "جميع المواعيد بتوقيت الرياض.",
-    general: "يُفتح التسجيل",
+    general: "التسجيل العام",
     closing: "يُغلق التسجيل",
     attendance: "الحضور مجاني",
   },
