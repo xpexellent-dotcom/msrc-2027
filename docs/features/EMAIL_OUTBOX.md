@@ -1,12 +1,20 @@
 # Durable email outbox and job foundation
 
-Current extension (20 October 2026): registration slice 4 adds five DRAFT
-English business templates, atomic registration producers and an authenticated
-GET cron bridge. See [REGISTRATION_EMAILS](REGISTRATION_EMAILS.md) for full owner
-review text and O10's plan-compatible daily source schedule. The slice-2 account
-below is historical where it describes synthetic-only producers or unavailable
-GET. Delivery remains off, both caps remain zero, and no hosted activation is
-authorized by the source changes.
+Current extension (23 October 2026, ORG-059/ENG-067): all eight registration
+templates and abstract decision outcomes render a brand-art PNG banner, complete
+English text, a divider and complete Arabic text. Subjects include both languages;
+the Arabic HTML block is RTL. Every new bilingual participant composition is
+**DRAFT pending owner approval** and the worker blocks delivery even for an older
+frozen request under the same key. Template keys/versions and persisted `locale`
+`en` remain unchanged; no migration or new RPC is needed. Existing frozen requests
+remain immutable. See [REGISTRATION_EMAILS](REGISTRATION_EMAILS.md) and
+[ABSTRACT_REVIEW](ABSTRACT_REVIEW.md) for owner previews and approval gates.
+
+Registration slice 4 previously added business templates, atomic registration
+producers and an authenticated GET cron bridge. The slice-2 account below is
+historical where it describes synthetic-only producers or unavailable GET.
+Delivery remains off, both caps remain zero, and no hosted activation is
+authorized by these source changes.
 
 BL-FND-04/05, BL-DEP-08; EML-01 through EML-05, API-01/02/03,
 ERR-01/02, DAT-03/04, LOC-03, SEC-02/06. Engineering decision: ENG-046.
@@ -28,9 +36,11 @@ version `1`, with a single `reference` variable. Recipients must end in
 Resend adapter. This slice cannot send participant notices by setting flags.
 Future confirmation, ticket, waitlist, confirm-your-seat and decision templates,
 approved content, recipient policy and domain event producers need their own
-review. Transactional email text remains English-only under AGENTS.md/EML-01;
-the persisted `en`/`ar` locale is reserved for future interface-link context and
-does not select an Arabic transactional translation.
+review. ORG-059 supersedes the original English-only rule for participant-facing
+emails: the renderer includes English then Arabic, independently of persisted
+`locale`. Staff/reviewer/faculty-judge emails, staff session email checks and
+Contact delivery stay English-only. `synthetic_notice` is an internal fixture,
+not a participant template, and retains its existing English text.
 
 No Contact code or delivery behavior changes. Contact retains its existing
 one-attempt, 60-admissions-per-UTC-day path and has no durable queue. Staff's

@@ -17,7 +17,11 @@ export type StaffLaunchReadiness = {
 export type StaffCheckInStatus = "checked_in" | "already_checked_in" | "revoked" | "not_found" | "wrong_day" | "not_approved";
 export type StaffCheckInResult = { status: StaffCheckInStatus; attendanceId?: string; checkedInAt?: string; performedBy?: string };
 export type StaffCheckInView = { conferenceDays: string[] | null; summary: { day: string | null; checkedIn: number; scan: number; manualCode: number } | null };
-export type StaffEmailPreview = { wordingStatus: "approved" | "draft"; templateKey: string; templateVersion: number; recipient: string; subject: string; text: string; html: string };
+export type StaffEmailPreview = {
+  wordingStatus: "draft"; previewKey: string; templateKey: string; templateVersion: number;
+  recipient: string; subject: string; text: string; html: string; englishText: string; arabicText: string;
+  banner: { src: string; alt: string; width: number; height: number };
+};
 export type StaffProfile = { actorId: string; name: string; roles: Role[] };
 export type StaffPerson = { actorId: string; name: string; email: string; roles: Role[]; status: "active" | "suspended"; lastSignIn: string | null; recoveryState?: "none" | "pending" | "failed" | "awaiting_invitation" };
 export type StaffInvitation = { id: string; email: string; roles: Role[]; status: "pending" | "accepted" | "revoked" | "expired"; expiresAt: string };
