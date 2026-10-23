@@ -100,3 +100,19 @@ fixtures and do not prove PostgreSQL enforcement. pgTAP and concurrent integrati
 tests require the disposable Linux CI database; local Docker is unavailable.
 The exact commands/results and pending migration are recorded in the
 [O9 receipt](../progress/2026-10-23-codex-night3-content.md).
+
+## Public rendering (follow-up, 23 October 2026)
+
+The homepage, speakers, sponsors and team pages stay prerendered with incremental
+static regeneration (`revalidate = 60`). Publishing still expires the collection tag
+and paths immediately; the 60-second window picks up configuration or a migration
+added after the build. An earlier `connection()` call made these pages request-time
+routes, so unknown locales (`/team`, `/random`) rendered Next's bare error document
+instead of the localized 404 without JavaScript. Speaker and session detail pages
+remain request-time as on main. Their unknown-slug 404 without JavaScript is an
+existing limitation; an empty `generateStaticParams` fixed it but broke client
+navigation into the detail page in Next 16.3.8, so it was not kept.
+
+The content browser suite now builds one app per synthetic provider state
+(`node scripts/build-content-e2e.ts`, into `.next/content-<state>`) before
+`playwright.content.config.ts` starts them.

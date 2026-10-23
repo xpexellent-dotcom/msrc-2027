@@ -46,6 +46,10 @@ export function RegistrationForm({ locale, initial, onSubmitted }: { locale: Loc
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending || !tokenReady || !result.formToken || !accepted) return;
+    // The submit button disables itself while sending. Move focus to the live summary
+    // first: browsers later blur a disabled focused button, which could otherwise land
+    // after the result focus below and leave keyboard users on <body>.
+    summary.current?.focus();
     setPending(true);
     try {
       const response = await fetch("/api/workflows/registration", { method: "POST", credentials: "same-origin", cache: "no-store",

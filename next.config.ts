@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
   // Preserve the handoff's existing project instructions unchanged.
   agentRules: false,
   poweredByHeader: false,
+  // Content e2e only: one prerendered build per synthetic provider state (scripts/build-content-e2e.ts).
+  // The regular build type-checks the same sources, so these test builds skip that pass.
+  ...(/^\.next\/content-(published|empty|down)$/.test(process.env.MSRC_CONTENT_E2E_DIST_DIR ?? "")
+    ? { distDir: process.env.MSRC_CONTENT_E2E_DIST_DIR, typescript: { ignoreBuildErrors: true } } : {}),
   // ENG-045: unmatched routes bypass the throwing catch-all and render a localized document.
   experimental: { globalNotFound: true },
   // English is the default locale (LOC-01). A config redirect is answered at the CDN edge;
