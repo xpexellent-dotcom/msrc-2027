@@ -4123,6 +4123,7 @@ Evidence belongs in
 [the bilingual-email receipt](progress/2026-10-23-claude-bilingual-emails.md);
 do not edit `docs/PROGRESS.md`.
 
+
 ## ORG-061 — Essential bilingual announcements and participant inbox, 23 October 2026
 
 Authority: the organizer's explicit announcements task on this branch.
