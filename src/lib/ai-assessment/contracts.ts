@@ -1,5 +1,5 @@
 /** AI-01..06: advisory contracts; these do not grant access or publish outcomes. */
-export interface RubricCriterion { readonly id: string; readonly label: string; readonly min: number; readonly max: number }
+export interface RubricCriterion { readonly id: string; readonly label: string; readonly min: number; readonly max: number; readonly weight?: number }
 export interface Rubric { readonly version: string; readonly status: "UNAPPROVED" | "APPROVED"; readonly criteria: readonly RubricCriterion[] }
 export interface ScientificPayload {
   readonly title: string; readonly specialty: string; readonly studyType: string;
