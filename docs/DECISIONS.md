@@ -3760,3 +3760,41 @@ Findings, before/after evidence, and owner questions are recorded in
 [the journey review](reviews/participant-journey-2026-10-22.md). Commands and
 observed results belong in [the Task E receipt](progress/2026-10-22-codex-e.md).
 `docs/PROGRESS.md` remains unchanged under O9.
+
+## ENG-060 — Closed opening activation package and launch readiness, 22 October 2026
+
+Authority: the owner's activation-package task for the ORG-056 opening and
+ORG-055/056/057. ENG-059 was the highest number checked before reservation.
+AUTH-01–06/08, REG-01–08, ROL-10/12, EML-01–05, INF-04–06, SEC-01/02/06,
+PRV-01/05/08, TIM-01/02, LOC-01/03, ACC-01 and REL-02/06 apply.
+This is local source preparation only: no hosted queries or writes, migration
+application, settings seed, flag activation, real email, branch, commit or push.
+Claude reviews and commits. O9 evidence belongs in
+[the activation receipt](progress/2026-10-22-codex-activation.md), never PROGRESS.md.
+
+The owner reports Supabase Pro, Vercel Pro and paid Resend purchased on 22 October,
+and 25 hosted migration versions through `20261022130000`, with all participant,
+registration, retention and delivery gates still closed. These are current owner
+facts, not a live audit by this task. The readiness migration becomes the single
+pending migration; historic ledger counts in older runbooks are not replay targets.
+
+Provide a Super Admin-only, read-only EN/AR readiness view, with independent
+server and database authorization and no secret values. Missing optional RPCs
+show `area-not-ready` without clearing valid sessions. Environment diagnostics
+show presence/format and enabled booleans; production credential usability and
+real inbox delivery still require owner verification. No stored drain heartbeat
+exists, so Vercel invocation logs remain the evidence for the latest drain run.
+
+The current participant reader requires privacy version `v1.0`; the older
+participant activation runbook's `1.0` was stale and is corrected. The approved
+Terms version remains `v1.0`. The Vercel Pro source cron becomes `*/5 * * * *`
+in UTC, with its existing exact Bearer authorization and closed gates intact.
+Resend caps in the activation guide are recommendations for owner approval,
+subject to actual plan quota, remaining monthly budget and other senders.
+
+The owner-only local key generator uses Node cryptography, never networks,
+and writes only terminal output unless an explicit new path outside the repository
+is supplied. Existing staff/contact secrets are retained; optional initial-install
+generation is not authorization to rotate established keys. Registration opening
+remains the final explicitly authorized database switch after complete settings
+and the opening-night go/no-go checks.

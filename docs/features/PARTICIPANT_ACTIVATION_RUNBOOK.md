@@ -195,7 +195,7 @@ addresses, credentials, codes, factors or provider payloads in repository eviden
 
 8. **Set participant notice/budget while its database gate remains false.**
    Configure the singleton `msrc_participant.policy` with
-   `privacy_version='1.0'`, `email_daily_limit=P` and `enabled=false`. P must match
+   `privacy_version='v1.0'`, `email_daily_limit=P` and `enabled=false`. P must match
    the later `PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT` exactly, within the technical
    database range 1..100000. That bound is not approved volume. Confirm deployed
    EN/AR notice v1.0, links, age self-declaration and support/privacy custody.
@@ -203,6 +203,13 @@ addresses, credentials, codes, factors or provider payloads in repository eviden
    false and the anonymous API remains closed.
    **Rollback:** keep enabled false and restore reviewed notice/cap configuration;
    never change an immutable consent receipt to force a version match.
+
+   ENG-060 correction (22 October 2026): the literal includes `v`, matching
+   `currentPolicyVersion` and the participant handler's exact comparison.
+   The earlier `1.0` instruction was stale. Use the current
+   [activation package](../runbooks/ACTIVATION.md) for the owner-reported
+   25-version hosted baseline and the single new readiness migration; the
+   historical migration-application sequences above are not a replay plan.
 
 9. **Configure Supabase Auth in this exact order.** Do not stage SMTP first.
 

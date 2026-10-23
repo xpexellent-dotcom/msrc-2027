@@ -15,7 +15,7 @@ const masked = (value: unknown) => value === null || typeof value === "string" &
 
 export function canReadStaffArea(roles: readonly Role[], area: StaffArea): boolean {
   if (area === "summary") return roles.some((role) => role !== "participant");
-  if (area === "early-access") return roles.includes("superAdmin");
+  if (area === "early-access" || area === "launch-readiness") return roles.includes("superAdmin");
   if (roles.includes("superAdmin")) return true;
   if (area === "check-in") return roles.includes("checkInStaff");
   return ["registration", "registration-detail", "participants"].includes(area) && roles.includes("registrationWorkshopAdministrator");
