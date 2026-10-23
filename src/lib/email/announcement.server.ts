@@ -5,7 +5,8 @@ import { contactConfig } from "@/config/contact";
 import type { EmailRequest } from "./outbox.server";
 import { renderParticipantBody } from "./participant-message.server";
 
-export const announcementTemplate = { key: "announcement", version: 1, approval: "DRAFT" } as const;
+/** ORG-063: layout approval is a private database setting, never a code flag. */
+export const announcementTemplate = { key: "announcement", version: 1 } as const;
 export type AnnouncementEmailPayload = Readonly<{
   subject_en: string; subject_ar: string; body_en: string; body_ar: string;
 }>;

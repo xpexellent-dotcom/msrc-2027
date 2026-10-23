@@ -4,11 +4,21 @@ import { getStaffConfig, type StaffConfig, type StaffReadiness } from "@/feature
 import { readStaffToolAuthority } from "@/features/staff-portal/handler.server";
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash, staffIp, staffOrigin } from "@/features/staff-portal/security.server";
 import { renderAnnouncementEmail } from "@/lib/email/announcement.server";
-import { announcementRecord, announcementUuid, announcementVersion, decodeAnnouncement, decodeAnnouncementFields, decodeAnnouncementPreview, decodeAnnouncementSegments, type AnnouncementResponse, type AnnouncementState } from "./contracts";
+import { resolveOutboxRunConfig } from "@/lib/jobs/outbox-route.server";
+import { announcementRecord, announcementUuid, announcementVersion, decodeAnnouncement, decodeAnnouncementDelivery, decodeAnnouncementFields, decodeAnnouncementPreview, decodeAnnouncementSegments, type AnnouncementResponse, type AnnouncementState } from "./contracts";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
-const failures: Record<string, AnnouncementState> = { denied: "denied", invalid: "invalid", conflict: "conflict", not_found: "conflict", audience_changed: "audience-changed", preview_changed: "audience-changed", not_due: "not-due", area_not_ready: "area-not-ready", limited: "limited" };
-export function createAnnouncementHandler(dependencies: { readiness?: () => StaffReadiness; backend?: (config: StaffConfig) => StaffBackend; now?: () => number } = {}) {
+const failures: Record<string, AnnouncementState> = { denied: "denied", invalid: "invalid", conflict: "conflict", not_found: "conflict", audience_changed: "audience-changed", preview_changed: "audience-changed", not_due: "not-due", area_not_ready: "area-not-ready", limited: "limited", rate_limited: "limited" };
+const missingRpc = Symbol("missing announcement release RPC");
+async function optionalRpc(backend: StaffBackend, name: string, args: Record<string, unknown>, accessToken: string) {
+  try { return await backend.rpc(name, args, accessToken); } catch (error) { if (error instanceof StaffRpcMissingError) return missingRpc; throw error; }
+}
+function runtimeDeliveryReady() {
+  const config = resolveOutboxRunConfig(process.env);
+  return process.env.OUTBOX_ENABLED === "true" && config?.sender === "resend" && config.dailyCap > 0
+    && /^[A-Za-z0-9_-]{32,256}$/.test(process.env.CRON_SECRET ?? "");
+}
+export function createAnnouncementHandler(dependencies: { readiness?: () => StaffReadiness; backend?: (config: StaffConfig) => StaffBackend; now?: () => number; runtimeDeliveryReady?: () => boolean } = {}) {
   return async (request: Request): Promise<Response> => {
     const readiness = (dependencies.readiness ?? getStaffConfig)();
     if (readiness.state !== "ready") return Response.json({ state: readiness.state }, { status: 503, headers });
@@ -32,6 +42,15 @@ export function createAnnouncementHandler(dependencies: { readiness?: () => Staf
       const authority = await readStaffToolAuthority(config, backend, session, now);
       if (!authority || authority.context.timing.absoluteExpiresAtMs !== session.deadline || !authority.profile.roles.includes("superAdmin")) return reply({ state: "denied" }, 403);
       const rpc = async (name: string, args: Record<string, unknown> = {}) => announcementRecord(await backend.rpc(name, { edition_key: config.editionKey, ...args }, session.accessToken));
+      const releaseRpc = async (name: string, args: Record<string, unknown> = {}) => {
+        const result = await optionalRpc(backend, name, { edition_key: config.editionKey, ...args }, session.accessToken);
+        return result === missingRpc ? { state: "area_not_ready" } : announcementRecord(result);
+      };
+      const deliveryOutcome = (data: Record<string, unknown> | null): Response => {
+        if (data?.state !== "ready") return outcome(data);
+        const delivery = decodeAnnouncementDelivery(data, (dependencies.runtimeDeliveryReady ?? runtimeDeliveryReady)());
+        return delivery ? reply({ state: "ready", delivery }) : reply({ state: "unavailable" }, 503);
+      };
       const outcome = (data: Record<string, unknown> | null): Response => {
         if (typeof data?.state !== "string") return reply({ state: "unavailable" }, 503);
         const failure = failures[data.state];
@@ -51,7 +70,15 @@ export function createAnnouncementHandler(dependencies: { readiness?: () => Staf
       };
       if (request.method === "GET") {
         if (new URL(request.url).searchParams.size) return reply({ state: "invalid" }, 400);
-        return outcome(await rpc("msrc_staff_announcements_list"));
+        const data = await rpc("msrc_staff_announcements_list");
+        if (data?.state !== "ready") return outcome(data);
+        const release = await releaseRpc("msrc_staff_announcement_delivery_status");
+        if (release?.state !== "ready") return outcome(release);
+        const delivery = decodeAnnouncementDelivery(release, (dependencies.runtimeDeliveryReady ?? runtimeDeliveryReady)());
+        if (!delivery) return reply({ state: "unavailable" }, 503);
+        const response = outcome(data);
+        if (!response.ok) return response;
+        return reply({ ...await response.json(), delivery });
       }
       let input: Record<string, unknown> | null;
       try { input = announcementRecord(await readStaffJson(request, 131072)); } catch { return reply({ state: "invalid" }, 400); }
@@ -74,9 +101,20 @@ export function createAnnouncementHandler(dependencies: { readiness?: () => Staf
         if (!fields || id !== undefined && (typeof id !== "string" || !announcementUuid.test(id)) || !announcementVersion(expectedVersion, id === undefined ? 0 : 1) || id === undefined && expectedVersion !== 0) return reply({ state: "invalid" }, 400);
         return outcome(await rpc("msrc_staff_announcement_save", { input: { ...fields, ...(id ? { id } : {}), expectedVersion } }));
       }
+      if (input.action === "layout-approval") {
+        if (!keys("approved", "operationId", "confirmed") || typeof input.approved !== "boolean" || input.confirmed !== true
+          || typeof input.operationId !== "string" || !announcementUuid.test(input.operationId)) return reply({ state: "invalid" }, 400);
+        return deliveryOutcome(await releaseRpc("msrc_staff_announcement_layout_approval", { approved: input.approved, operation_id: input.operationId }));
+      }
       if (typeof input.announcementId !== "string" || !announcementUuid.test(input.announcementId) || !announcementVersion(input.version)) return reply({ state: "invalid" }, 400);
       const base = { announcement_id: input.announcementId, expected_version: input.version };
       if (input.action === "preview" && keys("announcementId", "version")) return outcome(await rpc("msrc_staff_announcement_preview", base));
+      if (input.action === "test-send") {
+        if (!keys("announcementId", "version", "operationId") || typeof input.operationId !== "string" || !announcementUuid.test(input.operationId)) return reply({ state: "invalid" }, 400);
+        const data = await releaseRpc("msrc_staff_announcement_test_send", { ...base, operation_id: input.operationId });
+        return data?.state === "queued" ? typeof data.messageId === "string" && announcementUuid.test(data.messageId)
+          ? reply({ state: "queued", messageId: data.messageId }) : reply({ state: "unavailable" }, 503) : outcome(data);
+      }
       if (typeof input.operationId !== "string" || !announcementUuid.test(input.operationId) || input.confirmed !== true) return reply({ state: "invalid" }, 400);
       if (input.action === "cancel" && keys("announcementId", "version", "operationId", "confirmed")) return outcome(await rpc("msrc_staff_announcement_cancel", { ...base, operation_id: input.operationId }));
       if (input.action !== "send" || !keys("announcementId", "version", "operationId", "confirmed", "previewToken", "scheduledAt") || typeof input.previewToken !== "string" || !input.previewToken || input.previewToken.length > 2048

@@ -9,18 +9,26 @@ import type { Role } from "../../src/lib/permissions/contract";
 const id = "39000000-0000-4000-8000-000000000003", at = "2026-10-23T06:00:00Z";
 const base: Announcement = { id, editionKey: "synthetic-staff-2027", subjectEn: "Synthetic conference announcement", subjectAr: "إعلان مؤتمر تجريبي", bodyEn: "First English paragraph.\n\nSecond English paragraph.", bodyAr: "الفقرة العربية الأولى.\n\nالفقرة العربية الثانية.",
   segments: ["verified_participants", "registration_pending"], state: "draft", version: 1, createdAt: at, updatedAt: at, scheduledAt: null, sentAt: null, recipientCount: 0, sentCount: 0, failedCount: 0, lastError: null };
-async function fixture(page: Page, options: { role?: Role; missing?: boolean; conflict?: boolean; failFirstSend?: boolean; scheduled?: boolean; staleAuthor?: boolean } = {}) {
+async function fixture(page: Page, options: { role?: Role; missing?: boolean; conflict?: boolean; failFirstSend?: boolean; failFirstTest?: boolean; limitedTest?: boolean; scheduled?: boolean; staleAuthor?: boolean; deliveryOn?: boolean } = {}) {
   const roles: Role[] = [options.role ?? "superAdmin"], actions: AnnouncementPayload[] = [];
-  let row = { ...base, ...(options.scheduled ? { state: "scheduled" as const, scheduledAt: "2099-01-27T07:00:00Z" } : {}), ...(options.staleAuthor ? { lastError: "author_no_longer_authorized" } : {}) }, sends = 0;
+  let row = { ...base, ...(options.scheduled ? { state: "scheduled" as const, scheduledAt: "2099-01-27T07:00:00Z" } : {}), ...(options.staleAuthor ? { lastError: "author_no_longer_authorized" } : {}) }, sends = 0, tests = 0;
+  let delivery = { layoutApproved: false, deliveryEnabled: !!options.deliveryOn, dailyCap: options.deliveryOn ? 10 : 0, sweepsEnabled: !!options.deliveryOn, runtimeReady: !!options.deliveryOn };
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request(), url = new URL(request.url());
     if (url.pathname !== "/api/staff-portal/announcements") return route.fulfill({ json: { state: "authenticated", profile: { actorId: id, name: "Synthetic Super Admin", roles }, formToken: "synthetic-staff-token" } });
     if (options.missing) return route.fulfill({ status: 503, json: { state: "area-not-ready", formToken: "synthetic-announcement-token" } });
     const extra = { formToken: "synthetic-announcement-token" };
-    if (request.method() === "GET") return route.fulfill({ json: { state: "ready", announcements: [row], segments: ["verified_participants", "registration_pending", "abstract_submitters"], ...extra } });
+    if (request.method() === "GET") return route.fulfill({ json: { state: "ready", announcements: [row], segments: ["verified_participants", "registration_pending", "abstract_submitters"], delivery, ...extra } });
     const payload = request.postDataJSON() as AnnouncementPayload; actions.push(payload);
     if (payload.action === "render") return route.fulfill({ json: { state: "ready", rendered: { subject: payload.fields.subjectEn + " | " + payload.fields.subjectAr, text: payload.fields.bodyEn + "\n\n---\n\n" + payload.fields.bodyAr, html: '<html lang="en"><body>synthetic preview</body></html>' }, ...extra } });
     if (payload.action === "preview") return route.fulfill({ json: { state: "ready", preview: { previewToken: "synthetic-preview-token", total: 3, segments: [{ segment: "verified_participants", count: 3 }, { segment: "registration_pending", count: 2 }], samples: ["a***@e***", "a***@e***"] }, ...extra } });
+    if (payload.action === "layout-approval") { delivery = { ...delivery, layoutApproved: payload.approved }; return route.fulfill({ json: { state: "ready", delivery, ...extra } }); }
+    if (payload.action === "test-send") {
+      tests++;
+      if (options.limitedTest) return route.fulfill({ status: 429, json: { state: "limited", ...extra } });
+      if (options.failFirstTest && tests === 1) return route.fulfill({ status: 503, json: { state: "unavailable", ...extra } });
+      return route.fulfill({ json: { state: "queued", messageId: id, ...extra } });
+    }
     if (payload.action === "save") row = { ...row, ...payload.input, version: row.version + 1, state: "draft", scheduledAt: null, lastError: null };
     if (payload.action === "send") {
       sends++;
@@ -82,6 +90,43 @@ for (const locale of ["en", "ar"] as const) {
     const dialog = page.getByRole("dialog"); await dialog.getByRole("button", { name: text.send, exact: true }).click(); await expect(dialog.getByRole("alert")).toHaveText(text.errors.unavailable);
     await dialog.getByRole("button", { name: text.send, exact: true }).click(); await expect(dialog).toHaveCount(0);
     const sends = actions.filter((action) => action.action === "send"); expect(sends).toHaveLength(2); expect(sends[1]).toEqual(sends[0]);
+  });
+  test(`${locale} self-test is own-address only, saved-draft only and clearly queued while delivery is off`, async ({ page }, testInfo) => {
+    const { actions } = await fixture(page); await page.goto(`/${locale}/staff/announcements`);
+    await expect(page.getByTestId("announcement-delivery-status")).toHaveText(text.deliveryOff);
+    await expect(page.getByText(text.layoutPending, { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: new RegExp(`^${text.edit}`) }).click();
+    const button = page.getByRole("button", { name: text.testSend, exact: true });
+    await expect(page.getByText(text.testHint, { exact: true })).toBeVisible();
+    await page.locator("#announcement-body-en").fill("Unsaved test content"); await expect(button).toBeDisabled();
+    await page.getByRole("button", { name: text.save, exact: true }).click(); await expect(button).toBeEnabled();
+    await button.click(); await expect(page.getByRole("status").filter({ hasText: text.testQueuedOff })).toBeVisible();
+    const tests = actions.filter((action) => action.action === "test-send"); expect(tests).toHaveLength(1);
+    expect(tests[0]).toMatchObject({ announcementId: id, version: 2 }); expect(tests[0]).not.toHaveProperty("recipient"); expect(tests[0]).not.toHaveProperty("fields");
+    expect(actions.some((action) => action.action === "send")).toBe(false);
+    await expect(page.getByText(text.layoutPending, { exact: true })).toBeVisible();
+    await axe(page); await mkdir(".tools/announcements", { recursive: true }); await page.screenshot({ path: `.tools/announcements/staff-${locale}-${testInfo.project.name}-test-queued.png`, fullPage: true });
+  });
+  test(`${locale} uncertain self-test retry keeps its operation ID and rate limiting stays visible`, async ({ page }) => {
+    const { actions } = await fixture(page, { failFirstTest: true }); await page.goto(`/${locale}/staff/announcements`);
+    await page.getByRole("button", { name: new RegExp(`^${text.edit}`) }).click();
+    await page.getByRole("button", { name: text.testSend, exact: true }).click(); await expect(page.locator(".staff-announcements").getByRole("alert")).toHaveText(text.errors.unavailable);
+    await page.getByRole("button", { name: text.testSend, exact: true }).click(); await expect(page.getByRole("status").filter({ hasText: text.testQueuedOff })).toBeVisible();
+    const tests = actions.filter((action) => action.action === "test-send"); expect(tests).toHaveLength(2); expect(tests[1]).toEqual(tests[0]);
+    await page.unroute("**/api/staff-portal**"); await fixture(page, { limitedTest: true }); await page.reload();
+    await page.getByRole("button", { name: new RegExp(`^${text.edit}`) }).click(); await page.getByRole("button", { name: text.testSend, exact: true }).click();
+    await expect(page.locator(".staff-announcements").getByRole("alert")).toHaveText(text.errors.limited);
+  });
+  test(`${locale} layout approval requires confirmation and leaves global delivery off`, async ({ page }) => {
+    const { actions } = await fixture(page); await page.goto(`/${locale}/staff/announcements`);
+    await page.getByRole("button", { name: text.approveLayout, exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: text.approvalTitle }); await expect(dialog).toBeVisible();
+    await expect(dialog.getByText(text.approvalHint, { exact: true })).toBeVisible(); expect(actions.some((action) => action.action === "layout-approval")).toBe(false);
+    await axe(page); await dialog.getByRole("button", { name: text.approveLayout, exact: true }).click(); await expect(dialog).toHaveCount(0);
+    await expect(page.getByText(text.layoutApproved, { exact: true })).toBeVisible(); await expect(page.getByTestId("announcement-delivery-status")).toHaveText(text.deliveryOff);
+    expect(actions.find((action) => action.action === "layout-approval")).toMatchObject({ approved: true, confirmed: true });
+    await page.getByRole("button", { name: text.revokeLayout, exact: true }).click(); await page.getByRole("dialog").getByRole("button", { name: text.revokeLayout, exact: true }).click();
+    await expect(page.getByText(text.layoutPending, { exact: true })).toBeVisible();
   });
   test(`${locale} stale recipient preview requires a new review without leaving the staff console`, async ({ page }) => {
     await fixture(page, { conflict: true }); await page.goto(`/${locale}/staff/announcements`);

@@ -3,6 +3,8 @@ import { SESSION_POLICY } from "@/config/session-policy";
 import { ROLES, type Role } from "@/lib/permissions/contract";
 import { createAnnouncementHandler } from "@/features/announcements/staff-handler.server";
 import { decodeAnnouncement, decodeAnnouncementFields } from "@/features/announcements/contracts";
+import { announcementDeliveryReady, decodeAnnouncementDelivery } from "@/features/announcements/contracts";
+import { announcementCopy } from "@/features/announcements/staff-copy";
 import { StaffRpcMissingError, type StaffBackend, type NativeStaffSession } from "@/features/staff-portal/backend.server";
 import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/config.server";
 import { staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
@@ -30,9 +32,12 @@ function request(body?: Record<string, unknown>, options: { signedIn?: boolean; 
 const handle = (input: Request) => createAnnouncementHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => now })(input);
 const save = () => ({ action: "save", input: { ...fields, expectedVersion: 0 } });
 const send = () => ({ action: "send", announcementId: id, version: 1, previewToken: "preview-token", operationId, scheduledAt: null, confirmed: true });
+const testSend = () => ({ action: "test-send", announcementId: id, version: 1, operationId });
+const approve = () => ({ action: "layout-approval", approved: true, operationId, confirmed: true });
+const delivery = { state: "ready", layoutApproved: false, deliveryEnabled: false, dailyCap: 0, sweepsEnabled: false };
 beforeEach(() => {
   roles = ["superAdmin"]; policySatisfied = true;
-  replies = { msrc_staff_announcements_list: { state: "ready", announcements: [announcement], segments: ["verified_participants"] }, msrc_staff_announcement_save: { state: "updated", announcement },
+  replies = { msrc_staff_announcement_delivery_status: delivery, msrc_staff_announcement_layout_approval: { ...delivery, layoutApproved: true }, msrc_staff_announcement_test_send: { state: "queued", messageId: operationId }, msrc_staff_announcements_list: { state: "ready", announcements: [announcement], segments: ["verified_participants"] }, msrc_staff_announcement_save: { state: "updated", announcement },
     msrc_staff_announcement_preview: { state: "ready", preview: { previewToken: "preview-token", total: 3, segments: [{ segment: "verified_participants", count: 3 }], samples: ["a***@e***"] } },
     msrc_staff_announcement_send: { state: "updated", announcement: { ...announcement, state: "sending", recipientCount: 3 } }, msrc_staff_announcement_cancel: { state: "updated", announcement: { ...announcement, state: "cancelled" } } };
   backend = { rpc: vi.fn(async (name) => {
@@ -47,7 +52,7 @@ beforeEach(() => {
 describe("announcements server authority and transport", () => {
   it.each(ROLES)("only Super Admin may read, save, preview or send: %s", async (role) => {
     roles = [role]; const allowed = role === "superAdmin";
-    for (const body of [undefined, save(), { action: "preview", announcementId: id, version: 1 }, send()]) expect((await handle(request(body))).status).toBe(allowed ? 200 : 403);
+    for (const body of [undefined, save(), { action: "preview", announcementId: id, version: 1 }, send(), testSend(), approve()]) expect((await handle(request(body))).status).toBe(allowed ? 200 : 403);
     if (!allowed) expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name.startsWith("msrc_staff_announcement"))).toBe(false);
   });
   it("denies an insufficient exact session, missing cookie and native identity mismatch", async () => {
@@ -101,6 +106,58 @@ describe("announcements server authority and transport", () => {
     const body = await response.json(); expect(body.rendered.html).toContain('dir="rtl"'); expect(body.rendered.subject).toBe(fields.subjectEn + " | " + fields.subjectAr);
     expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => /enqueue|announcement_send|form_claim/.test(name))).toBe(false);
     roles = ["finance"]; expect((await handle(request({ action: "render", fields }))).status).toBe(403);
+  });
+  it("reports the database gates and server-only runtime status without reflecting private configuration", async () => {
+    const response = await handle(request());
+    expect((await response.json()).delivery).toEqual({ layoutApproved: false, deliveryEnabled: false, dailyCap: 0, sweepsEnabled: false, runtimeReady: false });
+    replies.msrc_staff_announcement_delivery_status = { ...delivery, deliveryEnabled: true, dailyCap: 10, sweepsEnabled: true, secret: "private-key" };
+    const ready = await createAnnouncementHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => now, runtimeDeliveryReady: () => true })(request());
+    const data = await ready.json(); expect(announcementDeliveryReady(data.delivery)).toBe(true); expect(JSON.stringify(data)).not.toContain("private-key");
+  });
+  it("enqueues a self-test with only the draft identity and stable operation, never a supplied recipient", async () => {
+    for (let i = 0; i < 2; i++) expect((await handle(request(testSend()))).status).toBe(200);
+    const calls = vi.mocked(backend.rpc).mock.calls.filter(([name]) => name === "msrc_staff_announcement_test_send");
+    expect(calls).toHaveLength(2); expect(calls[0]).toEqual(calls[1]);
+    expect(calls[0]).toEqual(["msrc_staff_announcement_test_send", { edition_key: config.editionKey, announcement_id: id, expected_version: 1, operation_id: operationId }, accessToken]);
+    for (const change of [{ recipient: "someone@example.invalid" }, { fields }, { version: 0 }, { operationId: "bad" }]) expect((await handle(request({ ...testSend(), ...change }))).status).toBe(400);
+  });
+  it("requires explicit confirmation for layout approval and sends only approved boolean and operation ID", async () => {
+    expect((await handle(request({ ...approve(), confirmed: false }))).status).toBe(400);
+    expect((await handle(request({ ...approve(), approved: "true" }))).status).toBe(400);
+    const response = await handle(request(approve())); expect(response.status).toBe(200); expect((await response.json()).delivery.layoutApproved).toBe(true);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_announcement_layout_approval", { edition_key: config.editionKey, approved: true, operation_id: operationId }, accessToken);
+  });
+  it.each(["msrc_staff_announcement_delivery_status", "msrc_staff_announcement_layout_approval", "msrc_staff_announcement_test_send"])("missing release RPC preserves staff sign-in: %s", async (name) => {
+    replies[name] = new StaffRpcMissingError();
+    const response = await handle(request(name.endsWith("delivery_status") ? undefined : name.endsWith("test_send") ? testSend() : approve()));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready"); expect(backend.logout).not.toHaveBeenCalled();
+  });
+  it.each(["rate_limited", "conflict", "denied", "invalid"])("preserves safe test-send failure %s", async (state) => {
+    replies.msrc_staff_announcement_test_send = { state };
+    const response = await handle(request(testSend())); expect(response.status).toBe(state === "rate_limited" ? 429 : state === "denied" ? 403 : 409);
+  });
+  it("rejects malformed release status and queued test results", async () => {
+    replies.msrc_staff_announcement_delivery_status = { ...delivery, layoutApproved: "true" }; expect((await handle(request())).status).toBe(503);
+    replies.msrc_staff_announcement_test_send = { state: "queued", messageId: "private@example.invalid" }; const response = await handle(request(testSend())); expect(response.status).toBe(503); expect(await response.text()).not.toContain("private@example.invalid");
+  });
+});
+
+describe("announcement release UI copy and gates", () => {
+  it.each(["en", "ar"] as const)("explains self-only tests, closed delivery and permanent old holds in %s", (locale) => {
+    const text = announcementCopy[locale];
+    for (const key of ["deliveryOff", "approvalHint", "testHint", "testQueuedOff", "held"] as const) expect(text[key].length).toBeGreaterThan(30);
+    expect(text.deliveryOff).toContain(locale === "en" ? "No email will arrive" : "لن تصلك");
+    expect(text.testHint).toContain(locale === "en" ? "own verified address" : "بريدك الموثّق فقط");
+    expect(text.testQueuedOff).toContain(locale === "en" ? "Delivery is off" : "التوصيل معطّل");
+    expect(text.held).toContain(locale === "en" ? "even after later approval" : "حتى بعد اعتماده لاحقًا");
+    expect(text.approvalHint).toContain(locale === "en" ? "registration email approval is separate" : "اعتماد بريد التسجيل منفصل");
+  });
+  it("requires every global delivery gate independently of layout approval", () => {
+    const open = { layoutApproved: false, deliveryEnabled: true, dailyCap: 1, sweepsEnabled: true, runtimeReady: true };
+    expect(announcementDeliveryReady(open)).toBe(true);
+    for (const change of [{ deliveryEnabled: false }, { dailyCap: 0 }, { sweepsEnabled: false }, { runtimeReady: false }]) expect(announcementDeliveryReady({ ...open, ...change })).toBe(false);
+    expect(announcementDeliveryReady(undefined)).toBe(false);
+    expect(decodeAnnouncementDelivery({ ...delivery, dailyCap: "1000" }, false)).toBeNull();
   });
 });
 describe("announcement shared contracts", () => {

@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 
-// ENG-070. Requires its own cold disposable reset in GitHub CI:
+// ENG-070/072. Requires its own cold disposable reset in GitHub CI:
 // ANNOUNCEMENT_DB_TESTS=true pnpm exec vitest run --config
 // vitest.integration.config.ts tests/integration/announcement-concurrency.test.ts
 const isolatedCi = process.env.GITHUB_ACTIONS === "true" && process.env.ANNOUNCEMENT_DB_TESTS === "true";
@@ -91,6 +91,17 @@ async function fixture(item: number, staff: number, recipient: number) {
 function send(staff: number, name: string, item: number, token: string, operation: number) {
   return authenticated(staff, name, `select public.msrc_staff_announcement_send('${edition}','${id(item)}',1,'${token}','${id(operation)}')::text;`);
 }
+function selfTest(staff: number, name: string, item: number, operation: number, targetEdition = edition) {
+  return authenticated(staff, name, `select public.msrc_staff_announcement_test_send('${targetEdition}','${id(item)}',1,'${id(operation)}')::text;`);
+}
+function approval(staff: number, name: string, approved: boolean, operation: number) {
+  return authenticated(staff, name, `select public.msrc_staff_announcement_layout_approval('${edition}',${approved},'${id(operation)}')::text;`);
+}
+async function selfTestFixture(item: number, staff: number) {
+  await query(`select pg_temp.registration_staff_fixture(${staff},'${edition}');
+    insert into msrc_announcements.announcements(id,edition_key,subject_en,subject_ar,body_en,body_ar,segments,created_by)
+    values('${id(item)}','${edition}','Synthetic self-test','Synthetic Arabic subject','Synthetic English body','Synthetic Arabic body',array['verified_participants'],'${actor(staff)}');`);
+}
 
 describe.skipIf(!isolatedCi)("Announcement ordering (disposable GitHub CI only)", () => {
   beforeAll(async () => {
@@ -150,6 +161,72 @@ describe.skipIf(!isolatedCi)("Announcement ordering (disposable GitHub CI only)"
     expect(scalar(await query(`select count(*) from msrc_announcements.recipients where announcement_id='${id(9740)}';`))).toBe("0");
   });
 
+  it("concurrent retries of a self-test operation enqueue one own-address message and one audit receipt", async () => {
+    await selfTestFixture(9750, 9750);
+    const results = await race(selfTest(9750, "synthetic-self-test-first", 9750, 9752),
+      selfTest(9750, "synthetic-self-test-second", 9750, 9752), "synthetic-self-test-second");
+    expect(results.map((value) => value?.state)).toEqual(["queued", "queued"]);
+    expect(results[0]?.messageId).toBe(results[1]?.messageId);
+    expect(scalar(await query(`select count(*) from msrc_outbox.messages where recipient_email='registration-staff-9750@example.invalid'
+      and template_key='announcement' and not delivery_hold;`))).toBe("1");
+    expect(scalar(await query(`select count(*) from msrc_announcements.delivery_audit where actor_id='${actor(9750)}' and event='self_test';`))).toBe("1");
+    expect(scalar(await query(`select count(*) from msrc_announcements.recipients where announcement_id='${id(9750)}';`))).toBe("0");
+    expect(scalar(await query(`select count(*) from msrc_announcements.inbox where announcement_id='${id(9750)}';`))).toBe("0");
+    expect(scalar(await query(`select state||':'||version::text from msrc_announcements.announcements where id='${id(9750)}';`))).toBe("draft:1");
+  });
+
+  it("self-test admission serializes an actor's last hourly slot across editions", async () => {
+    const otherEdition = `${edition}-self-test`;
+    await selfTestFixture(9760, 9760);
+    await query(`select pg_temp.registration_settings('${otherEdition}');
+      insert into msrc_authorization.role_grants(actor_id,edition_key,role_name,scope_kind,grant_reason)
+      values('${actor(9760)}','${otherEdition}','superAdmin','edition','Synthetic cross-edition test');
+      insert into msrc_announcements.announcements(id,edition_key,subject_en,subject_ar,body_en,body_ar,segments,created_by)
+      values('${id(9761)}','${otherEdition}','Synthetic self-test','Synthetic Arabic subject','Synthetic English body','Synthetic Arabic body',array['verified_participants'],'${actor(9760)}');`);
+    await query(selfTest(9760, "synthetic-self-test-seed-one", 9760, 9762) + "commit;");
+    await query(selfTest(9760, "synthetic-self-test-seed-two", 9760, 9763) + "commit;");
+    const results = await race(selfTest(9760, "synthetic-self-test-third", 9761, 9764, otherEdition),
+      selfTest(9760, "synthetic-self-test-capped", 9760, 9765), "synthetic-self-test-capped");
+    expect(results.map((value) => value?.state)).toEqual(["queued", "rate_limited"]);
+    expect(scalar(await query(`select count(*) from msrc_announcements.delivery_audit where actor_id='${actor(9760)}' and event='self_test';`))).toBe("3");
+    expect(scalar(await query(`select count(*) from msrc_outbox.messages where recipient_email='registration-staff-9760@example.invalid' and template_key='announcement';`))).toBe("3");
+    expect(scalar(await query(`select count(*) from msrc_announcements.recipients where announcement_id in('${id(9760)}','${id(9761)}');`))).toBe("0");
+  });
+
+  it("a waiting self-test rechecks native TOTP evidence before admitting a message", async () => {
+    await selfTestFixture(9770, 9770);
+    const first = `begin;select pg_advisory_xact_lock(hashtextextended('announcements-edition:${edition}',0));
+      delete from auth.mfa_amr_claims where session_id=pg_temp.registration_session(9770) and authentication_method='totp';`;
+    const results = await race(first, selfTest(9770, "synthetic-self-test-revoked-session", 9770, 9772), "synthetic-self-test-revoked-session");
+    expect(results[1]?.state).toBe("denied");
+    expect(scalar(await query(`select count(*) from msrc_outbox.messages where recipient_email='registration-staff-9770@example.invalid';`))).toBe("0");
+    expect(scalar(await query(`select count(*) from msrc_announcements.delivery_audit where actor_id='${actor(9770)}' and event='self_test';`))).toBe("0");
+  });
+
+  it("a publish waiting for layout approval uses the committed approval without releasing earlier held jobs", async () => {
+    const token = await fixture(9780, 9780, 9781);
+    const results = await race(approval(9780, "synthetic-layout-approve-first", true, 9782),
+      send(9780, "synthetic-layout-publish-second", 9780, token, 9783), "synthetic-layout-publish-second");
+    expect(results.map((value) => value?.state)).toEqual(["ready", "updated"]);
+    expect(scalar(await query(`select count(*) from msrc_announcements.recipients r join msrc_outbox.messages m on m.id=r.outbox_id
+      where r.announcement_id='${id(9780)}' and not m.delivery_hold;`))).toBe("1");
+    expect(scalar(await query(`select count(*) from msrc_announcements.recipients r join msrc_outbox.messages m on m.id=r.outbox_id
+      where r.announcement_id='${id(9700)}' and m.delivery_hold;`))).toBe("1");
+    await query(approval(9780, "synthetic-layout-disable", false, 9784) + "commit;");
+    await query(`update msrc_registration.requests set status='cancelled' where actor_id='${actor(9781)}';`);
+  });
+
+  it("approval waiting behind a publish keeps that just-published unapproved message held", async () => {
+    const token = await fixture(9790, 9790, 9791);
+    const results = await race(send(9790, "synthetic-layout-held-publish-first", 9790, token, 9792),
+      approval(9790, "synthetic-layout-approve-second", true, 9793), "synthetic-layout-approve-second");
+    expect(results.map((value) => value?.state)).toEqual(["updated", "ready"]);
+    expect(scalar(await query(`select count(*) from msrc_announcements.recipients r join msrc_outbox.messages m on m.id=r.outbox_id
+      where r.announcement_id='${id(9790)}' and m.delivery_hold;`))).toBe("1");
+    await query(approval(9790, "synthetic-layout-close-after-race", false, 9794) + "commit;");
+    await query(`update msrc_registration.requests set status='cancelled' where actor_id='${actor(9791)}';`);
+  });
+
   it("concurrent retention runs serialize and erase an expired announcement exactly once", async () => {
     const expiredEdition = `${edition}-retention`;
     await query(`select pg_temp.registration_settings('${expiredEdition}');
@@ -184,6 +261,9 @@ describe.skipIf(!isolatedCi)("Announcement ordering (disposable GitHub CI only)"
       `msrc_staff_announcement_preview('${edition}','${id(1)}',1)`,
       `msrc_staff_announcement_send('${edition}','${id(1)}',1,'${"a".repeat(64)}','${id(2)}')`,
       `msrc_staff_announcement_cancel('${edition}','${id(1)}',1,'${id(2)}')`,
+      `msrc_staff_announcement_delivery_status('${edition}')`,
+      `msrc_staff_announcement_layout_approval('${edition}',true,'${id(2)}')`,
+      `msrc_staff_announcement_test_send('${edition}','${id(1)}',1,'${id(2)}')`,
       `msrc_announcements_maintenance('${edition}')`,
       `msrc_participant_announcements('${edition}','{}'::jsonb)`,
     ];
