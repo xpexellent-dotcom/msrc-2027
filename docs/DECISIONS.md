@@ -3869,3 +3869,44 @@ reconciliation. Do not blindly retry external writes or assert immediate deletio
 of browser/CDN/third-party copies. Public objects use `cacheControl: 0`; unique
 publication paths avoid reusing withdrawn URLs. Native Storage behavior, deletion
 propagation and the recovery procedure need disposable/hosted review before use.
+
+## ENG-063 — Closed bilingual content editor and safe public fallback, 23 October 2026
+
+Authority: the owner's Night-3 Task 3, ORG-055/056/057, and requirements
+CMS-01–04, PRG-01, SPN-01, MED-02, ROL-09/10/12, LOC-01/03, ACC-01 and
+SEC-01/02/06. ENG-062 was the highest number checked before reservation.
+This authorizes local uncommitted implementation only, building on Tasks 1–2.
+No hosted migration, settings seed, participant opening, flag change, email,
+branch, commit or push. O9 evidence belongs in
+[the content receipt](progress/2026-10-23-codex-night3-content.md), never PROGRESS.md.
+
+Only current `contentMediaEditor` and `superAdmin` sessions may maintain speakers,
+programme sessions, sponsors/partners and committee/team members. Preserve the
+existing exact-session email/TOTP checks in both server and database. Sponsorship/PR
+does not gain this editor from the older baseline role description: the current
+task explicitly names the two authorized roles. Ordinary content publication is
+an explicit confirmation by the authorized publisher, not a second-person approval.
+Sponsor publication also requires recorded permission to display.
+
+Draft changes, reordering and restoring a version never change public snapshots.
+Publish creates a new immutable snapshot; Unpublish withdraws its current pointer.
+All mutations use expected versions and immutable audit/revision records. Session
+speaker links are same-edition many-to-many references; a speaker used by a live
+session cannot be unpublished until those sessions are revised or withdrawn.
+Programme day and HH:mm inputs use Asia/Riyadh; no session date, time, room, tier
+assignment or person is seeded. This slice does not change approved conference
+dates, legal wording, approved transactional emails or workflow opening settings.
+
+Each collection retains its current static content until at least one database
+item is published, then uses that collection's published records only. Empty,
+missing-function, malformed or unreachable database reads safely use the original
+static source. Withdrawing the last published item returns to that static source;
+organizers must review this explicit fallback behavior before first publication,
+especially for the existing ORG-050 team roster. No automatic import is performed.
+
+Public reads are server-only, service-role RPC projections of published fields.
+Use bounded cached reads and immediate tag/path invalidation after committed
+Publish/Unpublish transitions. The Next 16 route-handler form is
+`revalidateTag(tag, { expire: 0 })`; cache-component opt-in is not introduced.
+See the current [revalidateTag documentation](https://nextjs.org/docs/app/api-reference/functions/revalidateTag)
+and [unstable_cache documentation](https://nextjs.org/docs/app/api-reference/functions/unstable_cache).

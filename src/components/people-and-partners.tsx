@@ -9,6 +9,8 @@ import { Reveal } from "@/components/ui/reveal";
 import { peopleAndPartnersCopy } from "@/content/people-and-partners";
 import { initials, teamCommittees, teamCopy, teamFounders, type TeamPerson } from "@/content/team";
 import { formatIndex, type Locale } from "@/lib/i18n";
+import { PublishedPartners, PublishedTeam } from "@/features/content/public-cards";
+import type { PublishedContent } from "@/features/content/published";
 
 function Arrow() {
   return <svg className="directional-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.5" /></svg>;
@@ -28,7 +30,7 @@ function PeoplePageIntro({ locale, page }: { locale: Locale; page: "sponsors" })
 }
 
 /** Same header anatomy as the Program page (ExperienceIntro): photo hero, two-line title, lead and a glass side panel with the founders. */
-function TeamIntro({ locale }: { locale: Locale }) {
+function TeamIntro({ locale, publishedRoster = false }: { locale: Locale; publishedRoster?: boolean }) {
   const copy = peopleAndPartnersCopy[locale];
   const team = teamCopy[locale];
   const lines = copy.team.title.split("\n");
@@ -38,8 +40,8 @@ function TeamIntro({ locale }: { locale: Locale }) {
       <Container>
         <nav aria-label={copy.breadcrumb} className="experience-breadcrumb"><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{copy.team.label}</span></li></ol></nav>
         <div className="experience-intro-grid">
-          <div><h1 id="experience-title">{lines.map((line, index) => <span key={line} className={index === lines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{line}</span>)}</h1><p className="experience-lead">{copy.team.lead}</p></div>
-          <div className="experience-intro-art">
+          <div><h1 id="experience-title">{lines.map((line, index) => <span key={line} className={index === lines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{line}</span>)}</h1><p className="experience-lead">{publishedRoster ? copy.team.groupTitle : copy.team.lead}</p></div>
+          {!publishedRoster ? <div className="experience-intro-art">
             <section className="program-date-panel team-founders" aria-labelledby="team-founders-title">
               <h2 id="team-founders-title" className="team-founders-title">{team.founders}</h2>
               {teamFounders.length ? <ul className="team-founder-list">{teamFounders.map((founder) => <li key={founder.slug} className="team-founder">
@@ -47,7 +49,7 @@ function TeamIntro({ locale }: { locale: Locale }) {
                 <span className="team-founder-text"><span className="team-founder-name">{founder.name[locale]}</span>{founder.role ? <span className="team-founder-role">{founder.role[locale]}</span> : null}{founder.profile ? <a className="team-profile" href={founder.profile} target="_blank" rel="noopener noreferrer">{team.profile}<span className="sr-only">: {founder.name[locale]}</span></a> : null}</span>
               </li>)}</ul> : <p className="team-founders-pending">{team.foundersPending}</p>}
             </section>
-          </div>
+          </div> : null}
         </div>
       </Container>
     </section>
@@ -73,16 +75,16 @@ function TeamIdentity({ person, locale, heading: Heading }: { person: TeamPerson
   </div>;
 }
 
-export function TeamExperience({ locale }: { locale: Locale }) {
+export function TeamExperience({ locale, items = [] }: { locale: Locale; items?: readonly PublishedContent[] }) {
   const copy = peopleAndPartnersCopy[locale].team;
   const team = teamCopy[locale];
   return <>
-    <TeamIntro locale={locale} />
+    <TeamIntro locale={locale} publishedRoster={items.length > 0} />
     <section className="team-roster fluid-art-surface" aria-label={copy.label}>
       <TeamSpotlight />
       <AmbientArtwork variant="people" />
       <Container>
-        <section className="team-leaders" aria-labelledby="team-leaders-title">
+        {items.length ? <PublishedTeam locale={locale} items={items} /> : <><section className="team-leaders" aria-labelledby="team-leaders-title">
           <h2 id="team-leaders-title" className="team-section-title">{team.leadersTitle}</h2>
           <Reveal className="team-leader-grid" stagger>{teamCommittees.map((committee) => <article className={`team-leader team-leader--${committee.id}`} key={committee.id}>
             <TeamPortrait person={committee.lead} size="leader" />
@@ -107,18 +109,18 @@ export function TeamExperience({ locale }: { locale: Locale }) {
               {person.members?.length ? <ul>{person.members.map((member) => <li key={member.en}>{member[locale]}</li>)}</ul> : <p className="team-members-pending">{team.membersPending}</p>}
             </div>}
           </Reveal></li>)}</ol>
-        </section>)}
+        </section>)}</>}
       </Container>
     </section>
     <section className="people-next"><Container><h2>{copy.nextTitle}</h2><ButtonLink href={`/${locale}/participate`} variant="gold">{copy.nextLink}<Arrow /></ButtonLink></Container></section>
   </>;
 }
 
-export function SponsorsExperience({ locale }: { locale: Locale }) {
+export function SponsorsExperience({ locale, items = [] }: { locale: Locale; items?: readonly PublishedContent[] }) {
   const copy = peopleAndPartnersCopy[locale].sponsors;
   return <>
     <PeoplePageIntro locale={locale} page="sponsors" />
-    <section className="sponsors-page" aria-label={copy.label}><Container><SponsorTiers locale={locale} /></Container></section>
+    <section className="sponsors-page" aria-label={copy.label}><Container>{items.length ? <PublishedPartners locale={locale} items={items} /> : <SponsorTiers locale={locale} />}</Container></section>
     <section className="people-next sponsor-invitation"><Container><div><h2>{copy.nextTitle}</h2><p>{copy.nextBody}</p></div></Container></section>
   </>;
 }

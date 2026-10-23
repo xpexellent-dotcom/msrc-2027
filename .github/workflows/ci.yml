@@ -54,6 +54,9 @@ jobs:
       - name: Verify the enabled synthetic registration request interface
         if: ${{ !inputs.auth_stability }}
         run: pnpm exec playwright test --config playwright.registration.config.ts
+      - name: Verify published content and safe fallback in both languages
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm exec playwright test --config playwright.content.config.ts
       - name: Repeat staff hydration and session keyboard assertions without retries
         if: ${{ inputs.auth_stability }}
         shell: bash
@@ -70,6 +73,7 @@ jobs:
             playwright-report/
             test-results/
             playwright-auth-report/
+            playwright-content-report/
             test-auth-results/
           if-no-files-found: ignore
           retention-days: 7
@@ -312,6 +316,14 @@ jobs:
         env:
           STAFF_MEDIA_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/staff-media-concurrency.test.ts
+      - name: Reset the disposable database for content publication proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify content version races and waiting-session authorization
+        if: ${{ !inputs.auth_stability }}
+        env:
+          STAFF_CONTENT_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/staff-content-concurrency.test.ts
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop

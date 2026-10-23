@@ -51,13 +51,17 @@ for (const locale of ["en", "ar"] as const) {
     }
   });
 
-  test(`${locale} public documents keep their baseline policy and SSG entries`, async ({ page }) => {
+  test(`${locale} public documents keep their baseline policy across static and published content routes`, async ({ page }) => {
     const { routes } = JSON.parse(readFileSync(".next/prerender-manifest.json", "utf8"));
-    for (const path of ["", "/dates-venue", "/participate", "/speakers", "/sponsors", "/team", "/workshops", "/hackathon", "/3mt", "/submissions", "/privacy", "/privacy/v1.0", "/terms", "/terms/v1.0"]) {
+    for (const path of ["/dates-venue", "/participate", "/workshops", "/hackathon", "/3mt", "/submissions", "/privacy", "/privacy/v1.0", "/terms", "/terms/v1.0"]) {
       expect(routes[`/${locale}${path}`], `${locale}${path} remains SSG`).toBeDefined();
     }
+    // CMS collections observe runtime configuration and serve cached public snapshots.
+    // They must not preserve a pre-migration, build-time static fallback indefinitely.
+    const publishedPaths = ["", "/program", "/speakers", "/sponsors", "/team", "/media"];
+    for (const path of publishedPaths) expect(routes[`/${locale}${path}`], `${locale}${path} reads published content at runtime`).toBeUndefined();
     expect(routes[`/${locale}/registration`]).toBeUndefined();
-    for (const path of ["", "/participate", "/dates-venue"]) {
+    for (const path of [...publishedPaths, "/participate", "/dates-venue"]) {
       const response = await page.goto(`/${locale}${path}`);
       expect(response?.status()).toBe(200);
       expect(response!.headers()["content-security-policy"]).toBe(publicPolicy);

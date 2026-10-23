@@ -23,6 +23,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const { speakers } = getPublicConferenceCatalogue();
+  const { speakers } = await getPublicConferenceCatalogue(locale);
   return <SpeakersExperience locale={locale} speakers={speakers} />;
 }

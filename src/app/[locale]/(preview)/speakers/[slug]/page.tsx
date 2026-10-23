@@ -10,7 +10,7 @@ type PageProps = { params: Promise<{ locale: string; slug: string }> };
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
-  const speaker = getPublicConferenceCatalogue().speakers.find((record) => record.slug === slug);
+  const speaker = (await getPublicConferenceCatalogue(locale)).speakers.find((record) => record.slug === slug);
   if (!speaker) notFound();
   return {
     ...localizedPageMetadata(locale, `/speakers/${slug}`, siteTitle(speaker.name), speaker.biography),
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
-  const { speakers, sessions } = getPublicConferenceCatalogue();
+  const { speakers, sessions } = await getPublicConferenceCatalogue(locale);
   const speaker = speakers.find((record) => record.slug === slug);
   if (!speaker) notFound();
   const linkedSessions = sessions.filter((session) => session.speakerSlugs.includes(speaker.slug));

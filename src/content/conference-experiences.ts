@@ -3,9 +3,11 @@ import type { Locale } from "@/lib/i18n";
 
 export type LocalizedText = Readonly<Record<Locale, string>>;
 export type ConferenceDay = "day1" | "day2";
+export type ProgrammeDay = ConferenceDay | `${number}-${number}-${number}`;
 export type PublicSession = Readonly<{
-  slug: string; publication: "approved" | "draft"; day: ConferenceDay;
-  /** Scientific content is English/LTR (LOC-02). Times are approved UTC instants. */
+  slug: string; publication: "approved" | "draft"; day: ProgrammeDay;
+  contentLocale?: Locale; sortOrder?: number;
+  /** Legacy scientific content stays English/LTR (LOC-02); CMS editorial copy declares its locale. Times carry an explicit UTC offset. */
   title: string; description: string; startAt: string | null; endAt: string | null;
   category: Readonly<{ id: string; label: LocalizedText }>; topic: string;
   room: string | null; speakerSlugs: readonly string[]; objectives: readonly string[];
@@ -13,6 +15,7 @@ export type PublicSession = Readonly<{
 }>;
 export type PublicSpeaker = Readonly<{
   slug: string; publication: "approved" | "draft"; name: string; title: string;
+  contentLocale?: Locale; portraitPosition?: string;
   institution: string; biography: string; portrait: string | null;
   portraitAlt: LocalizedText; professionalLinks: readonly Readonly<{ label: string; href: string }>[];
 }>;
@@ -46,7 +49,7 @@ export function published<T extends { publication: "approved" | "draft" }>(recor
 }
 
 export function filterSessions(records: readonly PublicSession[], filters: {
-  day: "all" | ConferenceDay; category: string; room: string; query: string;
+  day: "all" | ProgrammeDay; category: string; room: string; query: string;
 }): PublicSession[] {
   const query = filters.query.trim().toLocaleLowerCase();
   return published(records).filter((session) =>
@@ -54,7 +57,7 @@ export function filterSessions(records: readonly PublicSession[], filters: {
     (filters.category === "all" || session.category.id === filters.category) &&
     (filters.room === "all" || session.room === filters.room) &&
     (!query || `${session.title} ${session.description} ${session.topic}`.toLocaleLowerCase().includes(query)),
-  ).sort((a, b) => a.day.localeCompare(b.day) || (a.startAt ?? "z").localeCompare(b.startAt ?? "z"));
+  ).sort((a, b) => a.day.localeCompare(b.day) || (a.sortOrder !== undefined && b.sortOrder !== undefined ? a.sortOrder - b.sortOrder : 0) || (a.startAt ?? "z").localeCompare(b.startAt ?? "z"));
 }
 
 export function filterMedia(records: readonly PublicMedia[], filters: {
