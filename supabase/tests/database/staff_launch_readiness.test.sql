@@ -146,7 +146,10 @@ update msrc_authorization.account_access set state='active' where actor_id=pg_te
 update auth.users set banned_until=clock_timestamp()+interval '1 hour' where id=pg_temp.registration_actor(2401);
 select is(pg_temp.readiness()->>'secondSuperAdminWithAuthenticator','false','A native-banned backup Super Admin cannot satisfy readiness');
 update auth.users set banned_until=null where id=pg_temp.registration_actor(2401);
-update msrc_staff.profiles set recovery_state='pending',recovery_action='reset_authenticator',recovery_operation=gen_random_uuid()
+-- The recovery reference must be a real admin operation (staff_profile_recovery_fk).
+insert into msrc_staff.admin_operations(id,performer_actor_id,target_actor_id,edition_key,action,expires_at)
+ values('e9500000-0000-4000-8000-000000002401',pg_temp.registration_actor(2408),pg_temp.registration_actor(2401),'synthetic-readiness','reset_authenticator',now()+interval '5 minutes');
+update msrc_staff.profiles set recovery_state='pending',recovery_action='reset_authenticator',recovery_operation='e9500000-0000-4000-8000-000000002401'
  where actor_id=pg_temp.registration_actor(2401);
 select is(pg_temp.readiness()->>'secondSuperAdminWithAuthenticator','false','A recovery-held backup Super Admin cannot satisfy readiness');
 update msrc_staff.profiles set recovery_state='none',recovery_action=null,recovery_operation=null
