@@ -5,11 +5,14 @@ $$;
 create function pg_temp.advisory_id(n integer) returns uuid language sql immutable as $$
  select ('e8000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid;
 $$;
-create function pg_temp.advisory_submission(n integer,edition text,actor integer) returns void language plpgsql as $$begin
+create function pg_temp.advisory_submission(n integer,edition text,actor integer,pi_email text default 'synthetic-pi@example.invalid') returns void language plpgsql as $$begin
  insert into msrc_abstracts.submissions(id,edition_key,actor_id,version,document,status,reference,word_count,finalized_at)
- values(pg_temp.advisory_id(n),edition,pg_temp.registration_actor(actor),1,pg_temp.abstract_document(),'scientific_review','SYNTHETIC-AI-'||n,8,clock_timestamp());
+ values(pg_temp.advisory_id(n),edition,pg_temp.registration_actor(actor),1,pg_temp.abstract_document(pi_email),'scientific_review','SYNTHETIC-AI-'||n,8,clock_timestamp());
  insert into msrc_abstracts.snapshots(submission_id,version,document,word_count,settings_version)
- values(pg_temp.advisory_id(n),1,pg_temp.abstract_document(),8,1);
+ values(pg_temp.advisory_id(n),1,pg_temp.abstract_document(pi_email),8,1);
+ insert into msrc_abstracts.authors(submission_id,submission_version,position,author_id,name,email,affiliations)
+ select pg_temp.advisory_id(n),1,ordinality::integer,(a->>'id')::uuid,a->>'name',a->>'email',
+ array(select jsonb_array_elements_text(a->'affiliations')) from jsonb_array_elements(pg_temp.abstract_document(pi_email)->'authors') with ordinality x(a,ordinality);
  insert into msrc_abstracts.packets(submission_id,submission_version,packet,prepared_by)
  values(pg_temp.advisory_id(n),1,pg_temp.abstract_packet(),pg_temp.registration_actor(actor));
 end$$;

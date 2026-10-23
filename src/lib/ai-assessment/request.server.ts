@@ -2,12 +2,15 @@ import "server-only";
 import type { AssessmentOutput, AssessmentRequest, RequestConfiguration, Rubric, ScientificPayload } from "./contracts.ts";
 import { isRecord, validReference } from "./sanitizer.server.ts";
 
+/** Task-5 rubric IDs may start with a hyphen or underscore; other references keep their own rules. */
+const validCriterionReference = (value: unknown): value is string => typeof value === "string" && /^[a-zA-Z0-9_-][a-zA-Z0-9_.:-]{0,127}$/.test(value);
+
 export function validRubric(value: unknown): value is Rubric {
   if (!isRecord(value) || !validReference(value.version) || typeof value.status !== "string" || !["UNAPPROVED", "APPROVED"].includes(value.status)
     || !Array.isArray(value.criteria) || value.criteria.length === 0 || value.criteria.length > 100) return false;
   return new Set(value.criteria.map(item => isRecord(item) ? item.id : null)).size === value.criteria.length
     && value.criteria.every(item => isRecord(item) && Object.keys(item).every(key => ["id", "label", "min", "max", "weight"].includes(key))
-      && validReference(item.id) && typeof item.label === "string" && item.label.trim().length > 0 && item.label.length <= 500
+      && validCriterionReference(item.id) && typeof item.label === "string" && item.label.trim().length > 0 && item.label.length <= 500
       && typeof item.min === "number" && Number.isFinite(item.min) && typeof item.max === "number" && Number.isFinite(item.max) && item.min < item.max
       && (item.weight === undefined || typeof item.weight === "number" && Number.isFinite(item.weight) && item.weight > 0));
 }
@@ -52,7 +55,7 @@ export function validateAssessmentOutput(value: unknown, rubric: Rubric): { read
   const seen = new Set<string>();
   const criteria: AssessmentOutput["criteria"][number][] = [];
   for (const entry of value.criteria) {
-    if (!isRecord(entry) || Object.keys(entry).length !== 3 || !validReference(entry.criterionId) || seen.has(entry.criterionId)) return invalid;
+    if (!isRecord(entry) || Object.keys(entry).length !== 3 || !validCriterionReference(entry.criterionId) || seen.has(entry.criterionId)) return invalid;
     const criterion = rubric.criteria.find(item => item.id === entry.criterionId);
     if (!criterion || typeof entry.score !== "number" || !Number.isFinite(entry.score) || entry.score < criterion.min || entry.score > criterion.max
       || typeof entry.rationale !== "string" || !entry.rationale.trim() || entry.rationale.length > 1_000) return invalid;
@@ -71,6 +74,7 @@ export function parseAssessmentMessage(message: unknown, rubric: Rubric): { read
   if (choice.finish_reason !== "stop") return { ok: false, reason: "incomplete_output" };
   if (!validReference(message.model) || !isRecord(choice.message)) return { ok: false, reason: "invalid_output" };
   const answer = choice.message;
+  if (answer.refusal !== undefined && answer.refusal !== null) return { ok: false, reason: "refusal" };
   if (answer.role !== "assistant" || (answer.tool_calls !== undefined && answer.tool_calls !== null)
     || (answer.function_call !== undefined && answer.function_call !== null)
     || typeof answer.content !== "string" || answer.content.length > 150_000) return { ok: false, reason: "invalid_output" };

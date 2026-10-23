@@ -27,6 +27,8 @@ select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_confi
 select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_configuration()||'{"maxPerRun":21}'::jsonb),'Run cap cannot exceed day cap');
 select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_configuration()||'{"maxPerRun":1.5}'::jsonb),'Fractional abstract budget rejected');
 select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_configuration()||'{"model":"invented"}'::jsonb),'Unapproved model rejected');
+select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_configuration()-'maxAttempts'),'Missing configuration key rejected');
+select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_configuration()||'{"unexpected":true}'::jsonb),'Unknown configuration key rejected');
 select ok(msrc_abstracts.advisory_result_valid(pg_temp.advisory_output(),pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Strict valid synthetic output accepted');
 select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||'{"decision":"accept"}'::jsonb,pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Outcome field discarded as invalid output');
 select ok(not msrc_abstracts.advisory_result_valid(jsonb_set(pg_temp.advisory_output(),'{scores,0,value}','9'::jsonb),pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Out-of-range score rejected');
@@ -34,6 +36,9 @@ select ok(not msrc_abstracts.advisory_result_valid(jsonb_set(pg_temp.advisory_ou
 select ok(not msrc_abstracts.advisory_result_valid(jsonb_set(pg_temp.advisory_output(),'{scores,0,rationale}','""'::jsonb),pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Empty rationale rejected');
 select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||'{"scores":[]}'::jsonb,pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Incomplete criteria rejected');
 select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output(),pg_temp.abstract_settings()->'rubric','another-model'),'Model mismatch rejected');
+select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||'{"scores":[{"criterionId":"synthetic-criterion","value":4,"rationale":"Synthetic rationale","decision":"accept"}]}'::jsonb,pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Unknown criterion fields rejected');
+select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||jsonb_build_object('scores',(pg_temp.advisory_output()->'scores')||(pg_temp.advisory_output()->'scores')),pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Duplicate criterion coverage rejected');
+select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()-'model',pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Missing model provenance rejected');
 set local role anon;
 select throws_ok($$select public.msrc_staff_advisory_workspace('synthetic-advisory')$$,'42501',null,'Anonymous cannot read staff advisory');
 reset role;
@@ -52,9 +57,10 @@ select pg_temp.registration_staff_fixture(9700,'synthetic-advisory');
 select pg_temp.registration_staff_fixture(9701,'synthetic-advisory','scientificAdministrator');
 select pg_temp.registration_staff_fixture(9702,'synthetic-advisory','abstractReviewer');
 select pg_temp.registration_staff_fixture(9703,'synthetic-advisory','finance');
+select pg_temp.registration_staff_fixture(9705,'synthetic-advisory','scientificAdministrator');
 select pg_temp.abstract_claims(9700);
 select is(public.msrc_staff_research_save_settings('synthetic-advisory',0,pg_temp.abstract_settings())->>'state','ready','Synthetic rubric configured without opening abstracts');
-select pg_temp.advisory_submission(n,'synthetic-advisory',9704) from generate_series(1,6) n;
+select pg_temp.advisory_submission(n,'synthetic-advisory',9704,case when n=1 then 'registration-staff-9705@example.invalid' else 'synthetic-pi@example.invalid' end) from generate_series(1,6) n;
 select is(public.msrc_staff_advisory_workspace('synthetic-advisory')->>'eligibleCount','6','Only finalized prepared-packet candidates projected');
 select is(public.msrc_staff_advisory_start('synthetic-advisory',pg_temp.advisory_id(101),array[pg_temp.advisory_id(1)])->>'state','disabled','Default-off DB gate refuses enqueue');
 select is(public.msrc_staff_advisory_save_settings('synthetic-advisory',0,msrc_abstracts.advisory_defaults())->>'state','updated','SA can save closed draft configuration');
@@ -83,7 +89,8 @@ select is((select reserved_abstracts from msrc_abstracts.advisory_daily_usage wh
 select is((select reserved_cost from msrc_abstracts.advisory_daily_usage where edition_key='synthetic-advisory'),1::numeric,'Reserve all possible attempts at enqueue');
 insert into advisory_result values('claim1',public.msrc_advisory_worker_claim(pg_temp.advisory_id(900),1));
 select is(jsonb_array_length((select value from advisory_result where key='claim1')),1,'Worker leases one small chunk');
-select ok((select value::text !~ 'Identity Canary|example.invalid|affiliations|ethics|keywords|specialtyId|studyTypeId|completionStatus' from advisory_result where key='claim1'),'Worker payload excludes identities, account fields and unrelated scientific metadata');
+select ok((select ((value->0)-'identity')::text !~ 'Identity Canary|example.invalid|affiliations|ethics|keywords|specialtyId|studyTypeId|completionStatus' from advisory_result where key='claim1'),'Provider candidate excludes identities, account fields and unrelated scientific metadata');
+select ok((select value->0->'identity'->'authorNames' @> '["Identity Canary Person"]'::jsonb and value->0->'identity'->'institutions' @> '["Identity Canary Institute"]'::jsonb from advisory_result where key='claim1'),'Server-only screening retains immutable known-name and affiliation canaries');
 select is((select value->0->'body' from advisory_result where key='claim1'),pg_temp.abstract_packet()->'body','Worker receives only sanitized scientific body');
 select is(public.msrc_advisory_worker_claim(pg_temp.advisory_id(901),1),'[]'::jsonb,'Second worker cannot take active lease');
 select is(public.msrc_advisory_worker_finish(pg_temp.advisory_id(901),(select (value->0->>'id')::uuid from advisory_result where key='claim1'),(select (value->0->>'leaseToken')::uuid from advisory_result where key='claim1'),pg_temp.advisory_output(),null)->>'state','stale','Wrong worker cannot finish');
@@ -95,6 +102,9 @@ select is((select count(*) from msrc_abstracts.assignments),0::bigint,'Advisory 
 select throws_ok($$update msrc_abstracts.advisory_records set scores='[]'::jsonb$$,'55000',null,'Advisory results are immutable');
 select ok(public.msrc_staff_advisory_workspace('synthetic-advisory')->'runs' @> '[{"completed":1,"failed":0,"pending":0}]'::jsonb,'Run log reports counts');
 select ok((public.msrc_staff_advisory_workspace('synthetic-advisory')->'runs')::text !~ 'rationale|Synthetic study|scores|prompt','Run logs contain no prompts or provider outputs');
+select pg_temp.abstract_claims(9705);
+select is(public.msrc_staff_advisory_workspace('synthetic-advisory')->'records','[]'::jsonb,'Scientific administrator who is a listed coauthor cannot see the advisory');
+select pg_temp.abstract_claims(9701);
 insert into msrc_abstracts.reviewer_profiles values('synthetic-advisory',pg_temp.registration_actor(9702),array['Independent synthetic institute']);
 insert into msrc_abstracts.assignments(id,edition_key,submission_id,submission_version,rubric_version,reviewer_id,status)
  values(pg_temp.advisory_id(800),'synthetic-advisory',pg_temp.advisory_id(1),1,1,pg_temp.registration_actor(9702),'assigned');
@@ -111,6 +121,9 @@ select pg_temp.abstract_claims(9701);
 select is(public.msrc_staff_advisory_calibration('synthetic-advisory')->'pairs'->0->>'aiScore','4','Calibration returns advisory score');
 select is(public.msrc_staff_advisory_calibration('synthetic-advisory')->'pairs'->0->>'humanScore','3.0000000000000000','Calibration uses independent completed human criterion');
 select is((select scorecard->'scores'->0->>'value' from msrc_abstracts.assignments where id=pg_temp.advisory_id(800)),'3','Reading suggestion leaves human score unchanged');
+select pg_temp.abstract_claims(9705);
+select is(public.msrc_staff_advisory_calibration('synthetic-advisory')->'pairs','[]'::jsonb,'Dual-role coauthor cannot infer own AI score through calibration');
+select pg_temp.abstract_claims(9701);
 
 select is(public.msrc_staff_advisory_start('synthetic-advisory',pg_temp.advisory_id(102),array[pg_temp.advisory_id(2)])->>'state','queued','Second test abstract queued');
 insert into advisory_result values('claim2',public.msrc_advisory_worker_claim(pg_temp.advisory_id(900),1));
@@ -138,5 +151,50 @@ select is(public.msrc_advisory_worker_claim(pg_temp.advisory_id(902),1),'[]'::js
 select is((select count(*) from msrc_abstracts.advisory_records),1::bigint,'No new advisory committed after disable');
 select pg_temp.abstract_claims(9704);
 select ok(public.msrc_abstracts_me('synthetic-advisory',pg_temp.registration_claims(9704))::text !~ 'advisory|rationale|deepseek|promptVersion','Participant projection contains no AI results');
+
+-- Historical coauthors retain protection after the current version removes them.
+-- Construct an immutable past result locally without enabling the history edition.
+insert into msrc_authorization.edition_config(edition_key) values('synthetic-advisory-history');
+insert into msrc_abstracts.settings(edition_key,version,configuration) values('synthetic-advisory-history',1,pg_temp.abstract_settings());
+insert into msrc_abstracts.settings_versions values('synthetic-advisory-history',1,pg_temp.abstract_settings());
+insert into msrc_abstracts.advisory_settings values('synthetic-advisory-history',1,msrc_abstracts.advisory_defaults());
+select pg_temp.registration_staff_fixture(9706,'synthetic-advisory-history','scientificAdministrator');
+select pg_temp.advisory_submission(31,'synthetic-advisory-history',9704,'registration-staff-9706@example.invalid');
+insert into msrc_abstracts.advisory_runs(id,edition_key,operation_id,actor_id,input_hash,configuration,abstract_count,estimated_cost)
+ values(pg_temp.advisory_id(131),'synthetic-advisory-history',pg_temp.advisory_id(331),pg_temp.registration_actor(9706),'synthetic-history',pg_temp.advisory_configuration(),1,1);
+insert into msrc_abstracts.advisory_jobs(id,run_id,edition_key,submission_id,submission_version,rubric_version,status,completed_at)
+ values(pg_temp.advisory_id(231),pg_temp.advisory_id(131),'synthetic-advisory-history',pg_temp.advisory_id(31),1,1,'completed',clock_timestamp());
+insert into msrc_abstracts.advisory_records(job_id,scores,model,prompt_version)
+ values(pg_temp.advisory_id(231),pg_temp.advisory_output()->'scores','deepseek-flash','synthetic-history');
+update msrc_abstracts.submissions set version=2,document=pg_temp.abstract_document('another-author@example.invalid') where id=pg_temp.advisory_id(31);
+insert into msrc_abstracts.snapshots(submission_id,version,document,word_count,settings_version)
+ values(pg_temp.advisory_id(31),2,pg_temp.abstract_document('another-author@example.invalid'),8,1);
+insert into msrc_abstracts.authors(submission_id,submission_version,position,author_id,name,email,affiliations)
+ select pg_temp.advisory_id(31),2,1,(a->>'id')::uuid,a->>'name',a->>'email',array(select jsonb_array_elements_text(a->'affiliations'))
+ from jsonb_array_elements(pg_temp.abstract_document('another-author@example.invalid')->'authors') a;
+select ok(not exists(select 1 from msrc_abstracts.authors where submission_id=pg_temp.advisory_id(31) and submission_version=2 and email='registration-staff-9706@example.invalid'),'Historical coauthor is absent from the current author list');
+select pg_temp.abstract_claims(9706);
+select ok(msrc_abstracts.advisory_is_author(pg_temp.advisory_id(31),pg_temp.registration_actor(9706)),'Immutable historical authorship remains protected across revisions');
+select is(public.msrc_staff_advisory_workspace('synthetic-advisory-history')->'records','[]'::jsonb,'Removed coauthor with valid science authority cannot read a historical advisory');
+
+-- A separate fixture proves dispatch-day limits independently of enqueue reserves.
+insert into msrc_authorization.edition_config(edition_key) values('synthetic-advisory-dispatch');
+insert into msrc_abstracts.settings(edition_key,version,configuration) values('synthetic-advisory-dispatch',1,pg_temp.abstract_settings());
+insert into msrc_abstracts.settings_versions values('synthetic-advisory-dispatch',1,pg_temp.abstract_settings());
+select pg_temp.registration_staff_fixture(9710,'synthetic-advisory-dispatch');
+select pg_temp.abstract_claims(9710);
+select is(public.msrc_staff_advisory_save_settings('synthetic-advisory-dispatch',0,pg_temp.advisory_configuration()||'{"maxPerDay":2}'::jsonb)->>'state','updated','Independent dispatch-cap fixture configured explicitly');
+select pg_temp.advisory_submission(n,'synthetic-advisory-dispatch',9704) from generate_series(21,22) n;
+select is(public.msrc_staff_advisory_start('synthetic-advisory-dispatch',pg_temp.advisory_id(121),array[pg_temp.advisory_id(21),pg_temp.advisory_id(22)])->>'state','queued','Two abstract cap reserves two distinct abstracts');
+insert into advisory_result values('dispatch',public.msrc_advisory_worker_claim(pg_temp.advisory_id(920),2));
+select is(jsonb_array_length((select value from advisory_result where key='dispatch')),2,'Daily dispatch cap permits initial attempts');
+update msrc_abstracts.advisory_jobs set lease_expires_at=clock_timestamp()-interval '1 second' where edition_key='synthetic-advisory-dispatch';
+select is(public.msrc_advisory_worker_claim(pg_temp.advisory_id(921),2),'[]'::jsonb,'Expired leases cannot bypass current-day attempt count budget');
+update msrc_abstracts.advisory_daily_usage set utc_day=utc_day-1 where edition_key='synthetic-advisory-dispatch';
+insert into advisory_result values('reclaimed',public.msrc_advisory_worker_claim(pg_temp.advisory_id(921),2));
+select is(jsonb_array_length((select value from advisory_result where key='reclaimed')),2,'New dispatch day can reclaim expired leases within configured global attempt limits');
+select ok((select bool_and((v->>'attempt')::integer=2) from advisory_result cross join lateral jsonb_array_elements(value) v where key='reclaimed'),'Expired lease reclaim consumes another attempt');
+select is(public.msrc_advisory_worker_finish(pg_temp.advisory_id(920),(select (value->0->>'id')::uuid from advisory_result where key='dispatch'),(select (value->0->>'leaseToken')::uuid from advisory_result where key='dispatch'),pg_temp.advisory_output(),null)->>'state','stale','Expired worker token remains fenced after reclamation');
+select is((select attempt_count from msrc_abstracts.advisory_daily_usage where edition_key='synthetic-advisory-dispatch' and utc_day=(clock_timestamp() at time zone 'UTC')::date),2,'Reclaimed work charges the current dispatch day');
 select * from finish();
 rollback;

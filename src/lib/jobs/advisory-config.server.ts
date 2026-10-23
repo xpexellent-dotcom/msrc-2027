@@ -8,6 +8,7 @@ export function advisoryRuntimeReady(env: AdvisoryEnvironment): boolean {
 /** Independent worker credentials; there is no implicit email delivery or participant activation. */
 export function resolveAdvisoryWorkerConfig(env: AdvisoryEnvironment): AdvisoryWorkerConfig | null {
   if (!advisoryRuntimeReady(env)) return null;
+  if (!/^[A-Za-z0-9_-]{32,256}$/.test(env.CRON_SECRET ?? "")) return null;
   const databaseUrl = env.AI_ASSESSMENT_SUPABASE_URL, databaseKey = env.AI_ASSESSMENT_SUPABASE_SECRET_KEY;
   if (!databaseUrl || !databaseKey || !/^sb_secret_[A-Za-z0-9_-]+$/.test(databaseKey)) return null;
   const hosted = databaseUrl === "https://ecemjggwlzqpjcwmchrl.supabase.co" && env.VERCEL === "1" && env.VERCEL_ENV === "production";

@@ -4021,3 +4021,17 @@ email delivery. No hosted settings, seeds, flags, API scoring,
 emails, commits, branches or pushes are authorized by this implementation.
 Receipt: `docs/progress/2026-10-23-codex-night3-advisory.md`.
 `docs/PROGRESS.md` is explicitly outside this task's edit scope.
+
+Continuation on `claude/night3-6`: ENG-066 is the existing Task 6 reservation
+and remains the highest ENG number after checking the reconciled register;
+no duplicate number is reserved. The completed worker also screens known names
+and institutions from the immutable source snapshot locally. That private
+screening context never enters the provider request, logs or staff response.
+Runtime readiness for starting a run requires the independent worker database
+credentials and authenticated cron configuration as well as the flag/key.
+Compare entered decimal estimates exactly when enforcing the JS budget gate,
+matching PostgreSQL numeric serialization without a tolerance or rounding band.
+Disposable CI adds isolated reservation/idempotency/lease contention proofs;
+local database checks remain blocked without Docker. Current implementation
+and observed check results are recorded in the Task 6 receipt and
+`docs/features/ADVISORY_SCORING.md`.

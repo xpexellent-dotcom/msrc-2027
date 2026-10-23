@@ -5,7 +5,7 @@ import { readStaffToolAuthority } from "./handler.server";
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash, staffIp, staffOrigin } from "./security.server";
 import { researchInteger, researchRecord, researchUuid } from "./research-contract";
 import { decodeAdvisoryResponse, decodeAdvisorySettings, type AdvisoryResponse } from "./advisory-contract";
-import { advisoryRuntimeReady } from "@/lib/jobs/advisory-config.server";
+import { resolveAdvisoryWorkerConfig } from "@/lib/jobs/advisory-config.server";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
 export function createAdvisoryHandler(dependencies: { readiness?: () => StaffReadiness; backend?: (config: StaffConfig) => StaffBackend; now?: () => number; env?: Readonly<Record<string, string | undefined>> } = {}) {
@@ -24,7 +24,7 @@ export function createAdvisoryHandler(dependencies: { readiness?: () => StaffRea
       if (!authority || authority.context.timing.absoluteExpiresAtMs !== session.deadline) return reply({ state: "denied" }, 403);
       const roles = authority.profile.roles, staff = roles.includes("scientificAdministrator") || roles.includes("superAdmin"), reviewer = roles.includes("abstractReviewer");
       if (!staff && !reviewer) return reply({ state: "denied" }, 403);
-      const runtimeReady = advisoryRuntimeReady(dependencies.env ?? process.env);
+      const runtimeReady = resolveAdvisoryWorkerConfig(dependencies.env ?? process.env) !== null;
       const rpc = async (name: string, args: Record<string, unknown> = {}) => {
         const decoded = decodeAdvisoryResponse(name, await backend.rpc("msrc_staff_advisory_" + name, { edition_key: config.editionKey, ...args }, session.accessToken));
         if (!decoded) return reply({ state: "unavailable" }, 503);

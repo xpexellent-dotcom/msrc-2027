@@ -5,7 +5,7 @@ import { createAdvisoryHandler } from "@/features/staff-portal/advisory-handler.
 import { StaffRpcMissingError, type StaffBackend, type NativeStaffSession } from "@/features/staff-portal/backend.server";
 import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/config.server";
 import { staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
-import { decodeAdvisoryResponse, decodeAdvisorySettings, emptyAdvisorySettings, type AdvisorySettings } from "@/features/staff-portal/advisory-contract";
+import { advisoryEstimateWithinCap, decodeAdvisoryResponse, decodeAdvisorySettings, emptyAdvisorySettings, type AdvisorySettings } from "@/features/staff-portal/advisory-contract";
 
 const origin = "http://127.0.0.1:3219", now = Date.parse("2026-10-23T06:00:00Z");
 const actorId = "7a000000-0000-4000-8000-000000000001", sessionId = "7a000000-0000-4000-8000-000000000002", itemId = "7a000000-0000-4000-8000-000000000003", otherId = "7a000000-0000-4000-8000-000000000004";
@@ -23,7 +23,7 @@ function request(body?: Record<string, unknown>, query = "?area=workspace", sign
 const handle = (input: Request) => createAdvisoryHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => now, env })(input);
 const advisoryCalls = () => vi.mocked(backend.rpc).mock.calls.filter(([name]) => name.startsWith("msrc_staff_advisory_"));
 beforeEach(() => {
-  roles = ["scientificAdministrator"]; policySatisfied = true; env = { AI_ASSESSMENT_ENABLED: "true", DEEPSEEK_API_KEY: "synthetic-deepseek-key-never-valid" };
+  roles = ["scientificAdministrator"]; policySatisfied = true; env = { AI_ASSESSMENT_ENABLED: "true", DEEPSEEK_API_KEY: "synthetic-deepseek-key-never-valid", AI_ASSESSMENT_SUPABASE_URL: "http://127.0.0.1:54321", AI_ASSESSMENT_SUPABASE_SECRET_KEY: "sb_secret_synthetic_only", CRON_SECRET: "s".repeat(32) };
   replies = {
     msrc_staff_advisory_workspace: { state: "ready", version: 0, settings: emptyAdvisorySettings(), eligibleCount: 1, candidates: [{ id: itemId, reference: "SYN-1", submissionVersion: 1, rubricVersion: 2, title: "Synthetic sanitized title" }], records: [], runs: [] },
     msrc_staff_advisory_calibration: { state: "ready", pairs: [] },
@@ -82,6 +82,10 @@ describe("AI advisory staff authorization and durable batch boundary", () => {
   });
   it.each([undefined, "", "short", "invalid key contains whitespace"])("never starts without a valid server credential", async key => {
     env.DEEPSEEK_API_KEY = key; expect((await handle(request(start()))).status).toBe(409); expect(advisoryCalls()).toHaveLength(0);
+  });
+  it.each([{ AI_ASSESSMENT_SUPABASE_URL: undefined }, { AI_ASSESSMENT_SUPABASE_SECRET_KEY: undefined }, { AI_ASSESSMENT_SUPABASE_URL: "https://wrong.invalid" }, { CRON_SECRET: undefined }, { CRON_SECRET: "short" }, { VERCEL: "1", VERCEL_ENV: "preview" }])("does not queue or show ready without operating worker credentials %j", async change => {
+    Object.assign(env, change); const response = await handle(request(start())); expect(response.status).toBe(409); expect((await response.json()).state).toBe("disabled"); expect(advisoryCalls()).toHaveLength(0);
+    const workspace = await handle(request()); expect(workspace.status).toBe(200); expect((await workspace.json()).runtimeReady).toBe(false);
   });
   it("honors the separate database disabled gate even when env is enabled", async () => {
     replies.msrc_staff_advisory_start = { state: "disabled", prompt: "PRIVATE PROMPT" };
@@ -157,6 +161,13 @@ describe("advisory response minimization and calibration", () => {
 });
 
 describe("no invented advisory activation or budget defaults", () => {
+  it("accepts an exact decimal retry reservation at its cap and rejects a real excess", () => {
+    expect(decodeAdvisorySettings({ ...configured(), enabled: true, estimatedCostPerAbstract: 0.1, maxAttempts: 3, dailyCostCap: 0.3 })).not.toBeNull();
+    expect(decodeAdvisorySettings({ ...configured(), enabled: true, estimatedCostPerAbstract: 0.10000000000000002, maxAttempts: 3, dailyCostCap: 0.3 })).toBeNull();
+  });
+  it.each([[0.1, 3, 0.3, true], [0.02, 15, 0.3, true], [0.1, 4, 0.3, false], [0.10000000000000002, 3, 0.3, false], [1e-7, 3, 3e-7, true], [1e-7, 4, 3e-7, false], [NaN, 1, 1, false], [1, Infinity, 1, false], [1, -1, 1, false], [1, 1, Infinity, false]] as const)("compares entered decimal cost %s × %s against %s without a tolerance band", (cost, attempts, cap, expected) => {
+    expect(advisoryEstimateWithinCap(cost, attempts, cap)).toBe(expected);
+  });
   it("defaults every operating value to unset and both switches to off", () => {
     const settings = emptyAdvisorySettings(); expect(settings.enabled).toBe(false); expect(settings.reviewerVisible).toBe(false);
     expect(Object.entries(settings).filter(([key]) => !["enabled", "reviewerVisible"].includes(key)).every(([, value]) => value === null)).toBe(true); expect(decodeAdvisorySettings(settings)).toEqual(settings);

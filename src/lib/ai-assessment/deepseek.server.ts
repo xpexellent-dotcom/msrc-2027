@@ -31,7 +31,10 @@ export function createDeepSeekProvider(config: Pick<AssessmentConfiguration, "ap
           headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify(request), signal: controller.signal,
         });
-        if (!response.ok) throw new DeepSeekProviderError(response.status === 429 ? "rate_limited" : response.status >= 500 ? "provider_unavailable" : "provider_configuration", response.status === 429 || response.status >= 500);
+        if (!response.ok) {
+          await response.body?.cancel();
+          throw new DeepSeekProviderError(response.status === 429 ? "rate_limited" : response.status >= 500 ? "provider_unavailable" : "provider_configuration", response.status === 429 || response.status >= 500);
+        }
         try { return await response.json() as ProviderResponse; }
         catch { throw new DeepSeekProviderError("invalid_output", false); }
       } catch (error) {

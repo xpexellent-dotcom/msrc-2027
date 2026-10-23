@@ -5,6 +5,7 @@ import type { Locale } from "@/lib/i18n";
 import type { Role } from "@/lib/permissions/contract";
 import type { CalibrationSummary } from "@/lib/ai-assessment/calibration";
 import type { AdvisoryPayload, AdvisoryRecord, AdvisoryResponse, AdvisorySettings } from "./advisory-contract";
+import { advisoryEstimateWithinCap } from "./advisory-contract";
 import { requestAdvisory } from "./advisory-client";
 import { advisoryCopy } from "./advisory-copy";
 
@@ -57,8 +58,11 @@ export function AdvisoryPanel({ locale, roles }: { locale: Locale; roles: readon
   const active = useRef(true), token = useRef<string | undefined>(undefined), lock = useRef(false), pending = useRef(new Set<AbortController>()), feedback = useRef<HTMLParagraphElement>(null), operation = useRef<string | null>(null), readVersion = useRef(0);
   useEffect(() => { active.current = true; const requests = pending.current; return () => { active.current = false; for (const controller of requests) controller.abort(); }; }, []);
   useEffect(() => { if (message) feedback.current?.focus(); }, [message]);
-  const load = useCallback(async () => {
-    setLoading(true); const version = ++readVersion.current, controller = new AbortController(); pending.current.add(controller);
+  const load = useCallback(async (preserveFeedback = false) => {
+    // A fresh packet/settings snapshot requires a fresh selection and processing acknowledgement.
+    setLoading(true); setSelected([]); setConfirmed(false); operation.current = null;
+    if (!preserveFeedback) { setMessage(""); setFailed(false); }
+    const version = ++readVersion.current, controller = new AbortController(); pending.current.add(controller);
     const response = await requestAdvisory(undefined, { area: view, signal: controller.signal }); pending.current.delete(controller);
     if (!active.current || controller.signal.aborted || version !== readVersion.current) return;
     if (response.formToken) token.current = response.formToken;
@@ -77,7 +81,7 @@ export function AdvisoryPanel({ locale, roles }: { locale: Locale; roles: readon
   }, [locale]);
   const settings = data?.settings, enabled = data?.runtimeReady === true && settings?.enabled === true;
   const estimate = settings?.estimatedCostPerAbstract !== null && settings?.estimatedCostPerAbstract !== undefined && settings.maxAttempts !== null ? selected.length * settings.estimatedCostPerAbstract * settings.maxAttempts : null;
-  const runWithinBudget = !!settings?.maxPerRun && !!settings.maxPerDay && estimate !== null && settings.dailyCostCap !== null && selected.length <= settings.maxPerRun && selected.length <= settings.maxPerDay && estimate <= settings.dailyCostCap;
+  const runWithinBudget = !!settings?.maxPerRun && !!settings.maxPerDay && estimate !== null && settings.dailyCostCap !== null && selected.length <= settings.maxPerRun && selected.length <= settings.maxPerDay && advisoryEstimateWithinCap(settings.estimatedCostPerAbstract!, selected.length * settings.maxAttempts!, settings.dailyCostCap);
   const choose = (id: string, checked: boolean) => { setSelected(current => checked ? [...current, id] : current.filter(value => value !== id)); setConfirmed(false); operation.current = null; };
   return <div className="staff-research-workspace staff-advisory-workspace" data-testid="advisory-workspace" lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
     <p>{text.description}</p><aside className="staff-note" aria-label={text.label}><strong>{text.label}</strong><p>{text.prc}</p><p>{text.minimization}</p><p>{text.gate}</p></aside>
@@ -85,8 +89,8 @@ export function AdvisoryPanel({ locale, roles }: { locale: Locale; roles: readon
     <p ref={feedback} tabIndex={-1} role={failed ? "alert" : "status"} className={message ? "staff-feedback" : "staff-feedback staff-feedback--empty"}>{busy ? text.loading : message}</p>
     {loading ? <p role="status">{text.loading}</p> : data?.state !== "ready" ? <Button variant="secondary" onClick={() => void load()}>{text.retry}</Button> : view === "calibration" ? data.calibration ? <CalibrationView locale={locale} data={data.calibration} /> : <p>{text.emptyCalibration}</p> : settings ? <>
       <p className="staff-note">{text.runtime}: <strong>{data.runtimeReady ? text.enabled : text.disabled}</strong> · {text.database}: <strong>{settings.enabled ? text.enabled : text.disabled}</strong></p>
-      <AdvisorySettingsEditor key={data.version} locale={locale} initial={settings} version={data.version ?? 0} superAdmin={roles.includes("superAdmin")} busy={busy} act={act} onSaved={() => void load()} />
-      <section className="staff-panel" aria-label={text.candidates}><div className="staff-detail-head"><h3>{text.candidates}</h3><Button variant="secondary" size="small" disabled={busy} onClick={() => void load()}>{text.refresh}</Button></div><p>{text.runHint}</p>{!data.candidates?.length ? <p>{text.emptyCandidates}</p> : <form onSubmit={event => { event.preventDefault(); if (!enabled || !confirmed || !selected.length || !runWithinBudget) return; operation.current ??= crypto.randomUUID(); void act({ action: "start", operationId: operation.current, submissionIds: selected }, text.queued).then(response => { if (response.state === "queued") { setSelected([]); setConfirmed(false); operation.current = null; void load(); } }); }}>
+      <AdvisorySettingsEditor key={data.version} locale={locale} initial={settings} version={data.version ?? 0} superAdmin={roles.includes("superAdmin")} busy={busy} act={act} onSaved={() => void load(true)} />
+      <section className="staff-panel" aria-label={text.candidates}><div className="staff-detail-head"><h3>{text.candidates}</h3><Button variant="secondary" size="small" disabled={busy} onClick={() => void load()}>{text.refresh}</Button></div><p>{text.runHint}</p>{!data.candidates?.length ? <p>{text.emptyCandidates}</p> : <form onSubmit={event => { event.preventDefault(); if (!enabled || !confirmed || !selected.length || !runWithinBudget) return; operation.current ??= crypto.randomUUID(); void act({ action: "start", operationId: operation.current, submissionIds: selected }, text.queued).then(response => { if (response.state === "queued") void load(true); }); }}>
         <fieldset disabled={busy} className="staff-research-fields"><legend className="sr-only">{text.candidates}</legend><ul className="staff-advisory-candidates">{data.candidates.map(candidate => <li key={candidate.id}><label className="staff-research-check"><input type="checkbox" checked={selected.includes(candidate.id)} onChange={event => choose(candidate.id, event.target.checked)} aria-label={`${text.select} ${candidate.reference}`} /><span><strong><bdi>{candidate.reference}</bdi></strong><span className="staff-advisory-title" lang="en" dir="ltr">{candidate.title}</span><span>{text.rubricVersion}: {number(candidate.rubricVersion, locale)}</span></span></label></li>)}</ul>
           <p>{text.selected}: {number(selected.length, locale)} · {text.estimate}: {estimate === null ? text.unset : `${number(estimate, locale, 6)} ${settings.currency ?? ""}`}</p><p className="staff-muted">{text.reservedEstimate}</p><label className="staff-research-check"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} /><span>{text.runConfirmation}</span></label><Button type="submit" disabled={!enabled || !confirmed || !selected.length || !runWithinBudget}>{text.start}</Button>
         </fieldset>
@@ -99,11 +103,12 @@ export function AdvisoryPanel({ locale, roles }: { locale: Locale; roles: readon
 
 /** Assigned-reviewer endpoint is the authority for visibility; no cached/global records are reused here. */
 export function ReviewerAdvisory({ assignmentId }: { assignmentId: string }) {
-  const [record, setRecord] = useState<AdvisoryRecord | null>(null);
+  const [result, setResult] = useState<{ assignmentId: string; record: AdvisoryRecord | null } | null>(null);
   useEffect(() => {
     const controller = new AbortController();
-    void requestAdvisory(undefined, { area: "reviewer", assignmentId, signal: controller.signal }).then(response => { if (!controller.signal.aborted) setRecord(response.state === "ready" ? response.advisory ?? null : null); });
+    void requestAdvisory(undefined, { area: "reviewer", assignmentId, signal: controller.signal }).then(response => { if (!controller.signal.aborted) setResult({ assignmentId, record: response.state === "ready" ? response.advisory ?? null : null }); });
     return () => controller.abort();
   }, [assignmentId]);
+  const record = result?.assignmentId === assignmentId ? result.record : null;
   return record ? <section className="staff-research-section" aria-label={advisoryCopy.en.label} lang="en" dir="ltr"><h4>{advisoryCopy.en.label}</h4><p>{advisoryCopy.en.reviewerHint}</p><AdvisoryRecordView locale="en" record={record} /></section> : null;
 }

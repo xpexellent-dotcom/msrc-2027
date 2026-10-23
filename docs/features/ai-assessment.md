@@ -1,5 +1,15 @@
 # Disabled advisory assessment and synthetic evaluation
 
+**23 October 2026 integration:** ENG-066 adds the closed staff batch, durable
+jobs, private advisory records and calibration described in
+[Advisory scoring](ADVISORY_SCORING.md). The foundation boundaries below describe
+the earlier PR #86 slice. The staff worker reuses its transport and strict JSON
+validator, projects only title/body plus rubric, and uses private frozen identity
+context solely for local leak screening. It does not use the unsupported provider
+Batch API. AI remains disabled; the integration authorizes no processing or
+activation. Current verification and pending gates are in the
+[Task 6 receipt](../progress/2026-10-23-codex-night3-advisory.md).
+
 BL-AI-01; AI-01 through AI-06, PRV-02/03/07, CFG-03/09/10, REL-03.
 ORG-040 selects DeepSeek, with processing in the People's Republic of China.
 ENG-042 (16 October 2026) replaces ENG-018's Anthropic transport with the

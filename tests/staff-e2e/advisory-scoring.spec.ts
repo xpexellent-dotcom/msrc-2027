@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { mkdirSync } from "node:fs";
+import type { TestInfo } from "@playwright/test";
 import { expect, test, type Page } from "../helpers/csp";
 import type { Role } from "../../src/lib/permissions/contract";
 import { advisoryCopy } from "../../src/features/staff-portal/advisory-copy";
@@ -15,8 +15,8 @@ const configured: AdvisorySettings = { enabled: true, reviewerVisible: false, no
 const calibration = summarizeCalibration([1, 2, 3].map((value) => ({ submissionId: `synthetic-${value}`, submissionVersion: 1, rubricVersion: 1, criterionId: rubric[0].id, min: 0, max: 10, aiScore: value + 1, humanScore: value })));
 
 /** Presentation mocks only: no external provider request, credentials or production activation. */
-async function fixture(page: Page, roles: Role[], options: { empty?: boolean; runtime?: boolean; missing?: boolean; failFirst?: boolean } = {}) {
-  const actions: AdvisoryPayload[] = [], reviewerReads: string[] = []; let settings = structuredClone(options.empty ? emptyAdvisorySettings() : configured), version = 1, missing = options.missing ?? false, queued = false, reveal = false;
+async function fixture(page: Page, roles: Role[], options: { empty?: boolean; runtime?: boolean; missing?: boolean; failFirst?: boolean; budgetCap?: number; maxAttempts?: number; secondCandidate?: boolean } = {}) {
+  const actions: AdvisoryPayload[] = [], reviewerReads: string[] = []; let settings = structuredClone(options.empty ? emptyAdvisorySettings() : { ...configured, ...(options.budgetCap === undefined ? {} : { dailyCostCap: options.budgetCap }), ...(options.maxAttempts === undefined ? {} : { maxAttempts: options.maxAttempts }) }), version = 1, missing = options.missing ?? false, queued = false, reveal = false;
   let callsToProvider = 0;
   await page.route("https://api.deepseek.com/**", async route => { callsToProvider++; await route.abort(); });
   await page.route("**/api/staff-portal**", async route => {
@@ -31,7 +31,8 @@ async function fixture(page: Page, roles: Role[], options: { empty?: boolean; ru
     if (request.method() === "GET") {
       if (url.searchParams.get("area") === "reviewer") { reviewerReads.push(url.searchParams.get("assignmentId") ?? ""); return route.fulfill({ json: { state: "ready", advisory: reveal ? record : null, formToken } }); }
       if (url.searchParams.get("area") === "calibration") return route.fulfill({ json: { state: "ready", calibration, formToken } });
-      return route.fulfill({ json: { state: "ready", version, settings, runtimeReady: options.runtime ?? false, eligibleCount: queued ? 0 : 1, candidates: queued ? [] : [{ id: submissionId, reference: record.reference, title: "Synthetic finalized study", submissionVersion: 1, rubricVersion: 1 }], records: options.empty ? [] : [record], runs: queued ? [{ id: runId, createdAt: record.createdAt, count: 2, completed: 1, failed: 1, pending: 0, estimatedCost: 0.4, currency: "USD", errors: [{ code: "invalid_output", count: 1 }] }] : [], formToken } });
+      const candidates = queued ? [] : [{ id: submissionId, reference: record.reference, title: "Synthetic finalized study", submissionVersion: 1, rubricVersion: 1 }, ...(options.secondCandidate ? [{ id: "79000000-0000-4000-8000-000000000005", reference: "SYN-ADV-0002", title: "Second synthetic finalized study", submissionVersion: 1, rubricVersion: 1 }] : [])];
+      return route.fulfill({ json: { state: "ready", version, settings, runtimeReady: options.runtime ?? false, eligibleCount: candidates.length, candidates, records: options.empty ? [] : [record], runs: queued ? [{ id: runId, createdAt: record.createdAt, count: 2, completed: 1, failed: 1, pending: 0, estimatedCost: 0.4, currency: "USD", errors: [{ code: "invalid_output", count: 1 }] }] : [], formToken } });
     }
     const payload = request.postDataJSON() as AdvisoryPayload; actions.push(payload);
     if (payload.action === "save-settings") { settings = payload.settings; version++; return route.fulfill({ json: { state: "updated", version, formToken } }); }
@@ -42,19 +43,19 @@ async function fixture(page: Page, roles: Role[], options: { empty?: boolean; ru
 }
 async function open(page: Page, locale: "en" | "ar") { await page.goto(`/${locale}/staff/science`); await page.getByRole("tab", { name: advisoryCopy[locale].advisory, exact: true }).click(); return page.getByTestId("advisory-workspace"); }
 async function axe(page: Page) { expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]); }
-async function snapshot(page: Page, name: string) { mkdirSync("test-results/advisory", { recursive: true }); await page.screenshot({ path: `test-results/advisory/${name}.png`, fullPage: true }); }
+async function snapshot(page: Page, testInfo: TestInfo, name: string) { await page.screenshot({ path: testInfo.outputPath(`${name}.png`), fullPage: true }); }
 
 for (const locale of ["en", "ar"] as const) {
   const text = advisoryCopy[locale];
   test(`${locale} advisory stays closed with blank budget fields and safe keyboard tabs`, async ({ page }, testInfo) => {
-    const f = await fixture(page, ["scientificAdministrator"], { empty: true }); const workspace = await open(page, locale);
+    const f = await fixture(page, ["scientificAdministrator"], { empty: true, runtime: true }); const workspace = await open(page, locale);
     await expect(workspace).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr"); await expect(workspace.getByText(text.prc, { exact: true })).toBeVisible();
     await workspace.locator("summary").click();
     for (const key of ["maxPerRun", "maxPerDay", "estimatedCostPerAbstract", "dailyCostCap", "currency"] as const) await expect(workspace.getByLabel(text[key], { exact: true })).toHaveValue("");
     await expect(workspace.getByRole("checkbox", { name: text.activate, exact: true })).toHaveCount(0); await expect(workspace.getByRole("checkbox", { name: text.reviewers, exact: true })).toHaveCount(0);
     await workspace.getByRole("checkbox", { name: `${text.select} ${record.reference}`, exact: true }).check(); await workspace.getByRole("checkbox", { name: text.runConfirmation, exact: true }).check(); await expect(workspace.getByRole("button", { name: text.start, exact: true })).toBeDisabled();
     await workspace.getByRole("button", { name: text.save, exact: true }).click(); await expect(workspace.getByRole("status").filter({ hasText: text.saved })).toBeVisible(); expect(f.actions[0]).toMatchObject({ action: "save-settings", settings: { enabled: false, maxPerRun: null, maxPerDay: null, estimatedCostPerAbstract: null, dailyCostCap: null } });
-    await axe(page); await snapshot(page, `${locale}-advisory-closed-${testInfo.project.name}`);
+    await axe(page); await snapshot(page, testInfo, `${locale}-advisory-closed-${testInfo.project.name}`);
     const advisoryTab = page.getByRole("tab", { name: text.advisory, exact: true }); await advisoryTab.focus(); await page.keyboard.press("Home"); await expect(page.getByRole("tab", { name: text.abstracts, exact: true })).toBeFocused(); await page.keyboard.press("End"); await expect(advisoryTab).toBeFocused(); await expect(advisoryTab).toHaveAttribute("aria-selected", "true");
     expect(f.providerCalls()).toBe(0);
   });
@@ -65,19 +66,42 @@ for (const locale of ["en", "ar"] as const) {
     await workspace.getByRole("button", { name: text.start, exact: true }).click(); await expect(workspace.getByRole("status").filter({ hasText: text.queued })).toBeVisible();
     const starts = f.actions.filter(action => action.action === "start"); expect(starts).toHaveLength(2); expect(starts[0].action === "start" && starts[0].operationId).toBe(starts[1].action === "start" && starts[1].operationId); expect(starts[0]).toMatchObject({ submissionIds: [submissionId] }); expect(JSON.stringify(starts)).not.toContain("rationale");
     const log = workspace.getByRole("region", { name: text.runs, exact: true }).first(); await expect(log).toContainText(text.errorCodes.invalid_output); await expect(log).not.toContainText(record.scores[0].rationale); await expect(log).not.toContainText("Synthetic finalized study");
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1); await axe(page); await snapshot(page, `${locale}-advisory-run-${testInfo.project.name}`); expect(f.providerCalls()).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1); await axe(page); await snapshot(page, testInfo, `${locale}-advisory-run-${testInfo.project.name}`); expect(f.providerCalls()).toBe(0);
   });
   test(`${locale} Super Admin controls reviewer visibility and inspects descriptive calibration`, async ({ page }, testInfo) => {
     const f = await fixture(page, ["superAdmin"]); const workspace = await open(page, locale); await workspace.locator("summary").click();
     const visibility = workspace.getByRole("checkbox", { name: text.reviewers, exact: true }); await expect(visibility).not.toBeChecked(); await visibility.check(); await workspace.getByRole("button", { name: text.save, exact: true }).click(); await expect(workspace.getByRole("status").filter({ hasText: text.saved })).toBeVisible(); expect(f.actions[0]).toMatchObject({ action: "save-settings", settings: { reviewerVisible: true } });
+    await workspace.getByRole("checkbox", { name: `${text.select} ${record.reference}`, exact: true }).check(); await workspace.getByRole("checkbox", { name: text.runConfirmation, exact: true }).check();
     await expect(workspace.getByRole("button", { name: text.start, exact: true })).toBeDisabled(); const records = workspace.getByRole("region", { name: text.records, exact: true }); await expect(records.getByText(record.scores[0].rationale, { exact: true })).toHaveAttribute("dir", "ltr"); await expect(records.getByText(text.label, { exact: true })).toBeVisible();
     await workspace.getByRole("button", { name: text.calibration, exact: true }).click(); const calibrationRegion = workspace.getByRole("region", { name: text.calibration, exact: true }).first(); await expect(calibrationRegion.getByText(text.calibrationScale, { exact: true })).toBeVisible(); await expect(calibrationRegion.getByText(text.correlation, { exact: true }).first()).toBeVisible(); await expect(calibrationRegion.getByText(text.agreement, { exact: true }).first()).toBeVisible();
     // Selecting an already selected view must not leave it loading forever.
     await workspace.getByRole("button", { name: text.calibration, exact: true }).click(); await expect(calibrationRegion).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1); await axe(page); await snapshot(page, `${locale}-advisory-calibration-${testInfo.project.name}`); expect(f.providerCalls()).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1); await axe(page); await snapshot(page, testInfo, `${locale}-advisory-calibration-${testInfo.project.name}`); expect(f.providerCalls()).toBe(0);
   });
   test(`${locale} missing advisory RPC preserves staff session and retries`, async ({ page }) => {
-    const f = await fixture(page, ["scientificAdministrator"], { missing: true }); const workspace = await open(page, locale); await expect(workspace.getByRole("alert")).toContainText(text.errors["area-not-ready"]); await expect(page.getByTestId("staff-name")).toContainText("Synthetic Staff"); f.recover(); await workspace.getByRole("button", { name: text.retry, exact: true }).click(); await expect(workspace.getByRole("heading", { name: text.candidates, exact: true })).toBeVisible(); await axe(page);
+    const f = await fixture(page, ["scientificAdministrator"], { missing: true }); const workspace = await open(page, locale); await expect(workspace.getByRole("alert")).toContainText(text.errors["area-not-ready"]); await expect(page.getByTestId("staff-name")).toContainText("Synthetic Staff"); f.recover(); await workspace.getByRole("button", { name: text.retry, exact: true }).click(); await expect(workspace.getByRole("heading", { name: text.candidates, exact: true })).toBeVisible(); await expect(workspace.getByRole("alert")).toHaveCount(0); await axe(page);
+  });
+  test(`${locale} a fresh snapshot clears selections and confirmation, while the cost reservation includes retries`, async ({ page }, testInfo) => {
+    const f = await fixture(page, ["scientificAdministrator"], { runtime: true, budgetCap: 0.3, secondCandidate: true }); const workspace = await open(page, locale);
+    if (testInfo.project.name === "staff-mobile") await page.evaluate(async () => { await document.fonts.ready; document.documentElement.style.fontSize = "200%"; });
+    const first = workspace.getByRole("checkbox", { name: `${text.select} ${record.reference}`, exact: true }), second = workspace.getByRole("checkbox", { name: `${text.select} SYN-ADV-0002`, exact: true }), acknowledgement = workspace.getByRole("checkbox", { name: text.runConfirmation, exact: true }), queue = workspace.getByRole("button", { name: text.start, exact: true });
+    await first.check(); await acknowledgement.check(); await expect(queue).toBeEnabled(); await second.check(); await expect(acknowledgement).not.toBeChecked(); await acknowledgement.check(); await expect(queue).toBeDisabled();
+    await second.uncheck(); await acknowledgement.check(); await expect(queue).toBeEnabled(); await workspace.getByRole("button", { name: text.refresh, exact: true }).click();
+    await expect(first).not.toBeChecked(); await expect(acknowledgement).not.toBeChecked(); await expect(queue).toBeDisabled(); expect(f.actions).toHaveLength(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1); await axe(page); await snapshot(page, testInfo, `${locale}-advisory-refreshed-${testInfo.project.name}`); expect(f.providerCalls()).toBe(0);
+  });
+  test(`${locale} Super Admin activation and reviewer gates have no configured defaults`, async ({ page }) => {
+    const f = await fixture(page, ["superAdmin"], { empty: true }); const workspace = await open(page, locale); await workspace.locator("summary").click();
+    for (const key of ["notice", "evaluation", "operating", "model", "maxAttempts", "maxTokens"] as const) await expect(workspace.getByLabel(text[key], { exact: true })).toHaveValue("");
+    await expect(workspace.getByRole("checkbox", { name: text.activate, exact: true })).not.toBeChecked(); await expect(workspace.getByRole("checkbox", { name: text.reviewers, exact: true })).not.toBeChecked();
+    await expect(workspace.getByText(text.anchoring, { exact: true })).toBeVisible(); expect(f.actions).toHaveLength(0); await axe(page); expect(f.providerCalls()).toBe(0);
+  });
+  test(`${locale} a decimal retry estimate equal to the entered cap can be queued`, async ({ page }) => {
+    const f = await fixture(page, ["scientificAdministrator"], { runtime: true, budgetCap: 0.3, maxAttempts: 3 }), workspace = await open(page, locale);
+    await workspace.getByRole("checkbox", { name: `${text.select} ${record.reference}`, exact: true }).check();
+    await workspace.getByRole("checkbox", { name: text.runConfirmation, exact: true }).check();
+    const queue = workspace.getByRole("button", { name: text.start, exact: true }); await expect(queue).toBeEnabled(); await queue.click();
+    await expect(workspace.getByRole("status").filter({ hasText: text.queued })).toBeVisible(); await expect(workspace.getByText(text.emptyCandidates, { exact: true })).toBeVisible(); expect(f.actions.filter(action => action.action === "start")).toHaveLength(1); expect(f.providerCalls()).toBe(0); await axe(page);
   });
   test(`${locale} completed reviewer sees advisory only when server reveals it without scorecard changes`, async ({ page }) => {
     const f = await fixture(page, ["abstractReviewer"]); await page.goto(`/${locale}/staff/review`); const review = page.getByTestId("review-workspace"); await review.getByRole("button", { name: reviewCopy.open, exact: true }).click(); await expect.poll(() => f.reviewerReads.length).toBe(1); await expect(review.getByRole("region", { name: advisoryCopy.en.label, exact: true })).toHaveCount(0);

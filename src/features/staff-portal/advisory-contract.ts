@@ -18,6 +18,17 @@ export const ADVISORY_ERROR_CODES = ["rate_limited", "provider_unavailable", "pr
 export function emptyAdvisorySettings(): AdvisorySettings { return { enabled: false, reviewerVisible: false, noticeReference: null, evaluationReference: null, operatingReference: null, model: null, maxPerRun: null, maxPerDay: null, estimatedCostPerAbstract: null, dailyCostCap: null, currency: null, maxAttempts: null, maxTokens: null }; }
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 const money = (value: unknown): value is number => finite(value) && value > 0 && value <= 1_000_000;
+/** Compare the decimal values serialized to PostgreSQL numeric, without a rounding tolerance. */
+export function advisoryEstimateWithinCap(unitCost: number, attempts: number, cap: number): boolean {
+  if (!finite(unitCost) || unitCost < 0 || !finite(cap) || cap < 0 || !Number.isSafeInteger(attempts) || attempts < 0) return false;
+  const decimal = (value: number) => {
+    const [mantissa, exponent = "0"] = String(value).split("e"), [whole, fraction = ""] = mantissa.split(".");
+    return { coefficient: BigInt(whole + fraction), exponent: Number(exponent) - fraction.length };
+  };
+  const cost = decimal(unitCost), limit = decimal(cap), exponent = Math.min(cost.exponent, limit.exponent);
+  return cost.coefficient * BigInt(attempts) * BigInt(10) ** BigInt(cost.exponent - exponent)
+    <= limit.coefficient * BigInt(10) ** BigInt(limit.exponent - exponent);
+}
 const date = (value: unknown): value is string => typeof value === "string" && Number.isFinite(Date.parse(value));
 export function decodeAdvisorySettings(value: unknown): AdvisorySettings | null {
   const row = researchRecord(value), base = emptyAdvisorySettings();
@@ -28,7 +39,7 @@ export function decodeAdvisorySettings(value: unknown): AdvisorySettings | null 
   if (row.maxPerRun !== null && row.maxPerDay !== null && Number(row.maxPerRun) > Number(row.maxPerDay)) return null;
   for (const key of ["estimatedCostPerAbstract", "dailyCostCap"] as const) if (row[key] !== null && !money(row[key])) return null;
   if (row.enabled && Object.values(row).some(item => item === null)) return null;
-  if (row.enabled && Number(row.estimatedCostPerAbstract) * Number(row.maxAttempts) > Number(row.dailyCostCap)) return null;
+  if (row.enabled && !advisoryEstimateWithinCap(Number(row.estimatedCostPerAbstract), Number(row.maxAttempts), Number(row.dailyCostCap))) return null;
   return Object.fromEntries(Object.keys(base).map(key => [key, row[key]])) as AdvisorySettings;
 }
 export function decodeAdvisoryRecord(value: unknown): AdvisoryRecord | null {

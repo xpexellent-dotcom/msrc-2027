@@ -4,10 +4,10 @@ import { decodeAdvisorySettings, type AdvisorySettings } from "@/features/staff-
 import { decodeResearchRubric, researchInteger, researchRecord, researchText, researchUuid, type ResearchCriterion, type ResearchPacket } from "@/features/staff-portal/research-contract";
 import { ADVISORY_PROMPT_VERSION, parseAdvisoryResponse, prepareAdvisoryRequest } from "@/lib/ai-assessment/advisory.server";
 import { createDeepSeekProvider, DeepSeekProviderError } from "@/lib/ai-assessment/deepseek.server";
-import type { AssessmentProvider } from "@/lib/ai-assessment/contracts";
+import type { AssessmentProvider, LockedSnapshot } from "@/lib/ai-assessment/contracts";
 import { advisoryRuntimeReady, type AdvisoryEnvironment, type AdvisoryWorkerConfig } from "./advisory-config.server";
 
-export type AdvisoryJob = { id: string; leaseToken: string; runId: string; submissionId: string; submissionVersion: number; rubricVersion: number; title: string; body: ResearchPacket["body"]; rubric: ResearchCriterion[]; configuration: AdvisorySettings; attempt: number };
+export type AdvisoryJob = { id: string; leaseToken: string; runId: string; submissionId: string; submissionVersion: number; rubricVersion: number; title: string; body: ResearchPacket["body"]; identity: LockedSnapshot["identity"]; rubric: ResearchCriterion[]; configuration: AdvisorySettings; attempt: number };
 export type AdvisoryJobResult = { scores: readonly { criterionId: string; value: number; rationale: string }[]; model: string; promptVersion: string };
 export type AdvisoryJobError = "rate_limited" | "provider_unavailable" | "provider_configuration" | "invalid_output" | "invalid_snapshot" | "identity_leak" | "disabled";
 export type AdvisoryFinish = "completed" | "retry" | "failed" | "stale";
@@ -17,11 +17,13 @@ export interface AdvisoryStore {
 }
 export type AdvisorySummary = { claimed: number; completed: number; retry: number; failed: number; stale: number };
 export function decodeAdvisoryJob(value: unknown): AdvisoryJob | null {
-  const row = researchRecord(value), configuration = decodeAdvisorySettings(row?.configuration), rubric = decodeResearchRubric(row?.rubric), body = researchRecord(row?.body);
-  if (!row || !configuration?.enabled || !rubric?.length || !researchUuid(row.id) || !researchUuid(row.leaseToken) || !researchUuid(row.runId) || !researchUuid(row.submissionId) || !researchInteger(row.submissionVersion, 1) || !researchInteger(row.rubricVersion, 1) || !researchInteger(row.attempt, 1) || row.attempt > configuration.maxAttempts! || !researchText(row.title, 500) || !body) return null;
+  const row = researchRecord(value), configuration = decodeAdvisorySettings(row?.configuration), rubric = decodeResearchRubric(row?.rubric), body = researchRecord(row?.body), identity = researchRecord(row?.identity);
+  if (!row || !configuration?.enabled || !rubric?.length || !researchUuid(row.id) || !researchUuid(row.leaseToken) || !researchUuid(row.runId) || !researchUuid(row.submissionId) || !researchInteger(row.submissionVersion, 1) || !researchInteger(row.rubricVersion, 1) || !researchInteger(row.attempt, 1) || row.attempt > configuration.maxAttempts! || !researchText(row.title, 500) || !body || !identity) return null;
+  const authorNames = identity.authorNames, institutions = identity.institutions;
+  if (![authorNames, institutions].every(items => Array.isArray(items) && items.length > 0 && items.length <= 100 && items.every(item => researchText(item, 300) && item.trim()))) return null;
   const keys = ["background", "aim", "methods", "results", "conclusion"] as const;
   if (!keys.every(key => researchText(body[key], 12000))) return null;
-  return { id: row.id, leaseToken: row.leaseToken, runId: row.runId, submissionId: row.submissionId, submissionVersion: row.submissionVersion, rubricVersion: row.rubricVersion, title: row.title, body: Object.fromEntries(keys.map(key => [key, body[key]])) as ResearchPacket["body"], rubric, configuration, attempt: row.attempt };
+  return { id: row.id, leaseToken: row.leaseToken, runId: row.runId, submissionId: row.submissionId, submissionVersion: row.submissionVersion, rubricVersion: row.rubricVersion, title: row.title, body: Object.fromEntries(keys.map(key => [key, body[key]])) as ResearchPacket["body"], identity: { authorNames: [...authorNames as string[]], institutions: [...institutions as string[]] }, rubric, configuration, attempt: row.attempt };
 }
 export function createAdvisoryStore(config: AdvisoryWorkerConfig): AdvisoryStore {
   async function rpc(name: "claim" | "finish", args: Record<string, unknown>): Promise<unknown> {
@@ -56,13 +58,13 @@ export async function drainAdvisory({ env, store, provider, workerId = randomUUI
     let result: AdvisoryJobResult | null = null, error: AdvisoryJobError | null = null;
     if (!advisoryRuntimeReady(env) || !job.configuration.enabled) error = "disabled";
     else {
-      const prepared = prepareAdvisoryRequest({ title: job.title, body: job.body }, job.rubricVersion, job.rubric, { model: job.configuration.model!, promptVersion: ADVISORY_PROMPT_VERSION, thinking: "disabled", maxTokens: job.configuration.maxTokens! });
+      const prepared = prepareAdvisoryRequest({ title: job.title, body: job.body }, job.rubricVersion, job.rubric, { model: job.configuration.model!, promptVersion: ADVISORY_PROMPT_VERSION, thinking: "disabled", maxTokens: job.configuration.maxTokens! }, job.identity);
       if (!prepared.ok) error = prepared.reason === "invalid_configuration" ? "provider_configuration" : prepared.reason;
       else try {
         const response = await provider.assess(prepared.request);
         if (!advisoryRuntimeReady(env)) error = "disabled";
         else {
-          const parsed = parseAdvisoryResponse(response, job.rubricVersion, job.rubric);
+          const parsed = parseAdvisoryResponse(response, job.rubricVersion, job.rubric, job.identity);
           if (!parsed.ok) error = "invalid_output";
           else result = { scores: parsed.scores, model: parsed.model, promptVersion: ADVISORY_PROMPT_VERSION };
         }

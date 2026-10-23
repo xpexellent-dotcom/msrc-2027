@@ -181,7 +181,7 @@ end$$;
 create function public.msrc_advisory_worker_claim(p_worker_id uuid,p_batch_size integer) returns jsonb
  language plpgsql security definer set search_path='' set lock_timeout='2s' as $$
 declare s msrc_abstracts.advisory_settings%rowtype;j msrc_abstracts.advisory_jobs%rowtype;r msrc_abstracts.advisory_runs%rowtype;
- d msrc_abstracts.advisory_daily_usage%rowtype;packet jsonb;rubric jsonb;locked_at timestamptz;now_at timestamptz;day date;result jsonb:='[]'::jsonb;begin
+ d msrc_abstracts.advisory_daily_usage%rowtype;packet jsonb;rubric jsonb;identity jsonb;locked_at timestamptz;now_at timestamptz;day date;result jsonb:='[]'::jsonb;begin
  perform msrc_abstracts.guard();
  if p_worker_id is null or p_batch_size is null or p_batch_size not between 1 and 10 then raise exception using errcode='22023',message='Invalid advisory claim.';end if;
  for s in select * from msrc_abstracts.advisory_settings q where q.configuration->>'enabled'='true' order by q.edition_key for update skip locked loop
@@ -197,7 +197,17 @@ declare s msrc_abstracts.advisory_settings%rowtype;j msrc_abstracts.advisory_job
  update msrc_abstracts.advisory_jobs q set status='discarded',error_code='configuration_changed',claimed_by=null,lease_token=null,lease_expires_at=null,completed_at=now_at where q.id=j.id;continue;end if;
  if j.attempts>=(r.configuration->>'maxAttempts')::integer then
  update msrc_abstracts.advisory_jobs q set status='failed',error_code='max_attempts',claimed_by=null,lease_token=null,lease_expires_at=null,completed_at=now_at where q.id=j.id;continue;end if;
- select p.packet,v.configuration->'rubric',x.created_at into packet,rubric,locked_at from msrc_abstracts.submissions a
+ -- Identity remains server-only screening context, separated from the provider payload.
+ -- The frozen document is authoritative even after a later author/profile change.
+ select p.packet,v.configuration->'rubric',x.created_at,jsonb_build_object(
+ 'authorNames',(select coalesce(jsonb_agg(n order by n),'[]'::jsonb) from (
+ select au->>'name' n from jsonb_array_elements(x.document->'authors') au
+ union select pr.name from msrc_participant.profiles pr where pr.actor_id=a.actor_id
+ union select pr.name from msrc_staff.profiles pr where pr.actor_id=a.actor_id) names where char_length(btrim(n))>0),
+ 'institutions',(select coalesce(jsonb_agg(n order by n),'[]'::jsonb) from (
+ select distinct f n from jsonb_array_elements(x.document->'authors') au
+ cross join lateral jsonb_array_elements_text(au->'affiliations') f) institutions where char_length(btrim(n))>0))
+ into packet,rubric,locked_at,identity from msrc_abstracts.submissions a
  join msrc_abstracts.snapshots x on x.submission_id=a.id and x.version=a.version
  join msrc_abstracts.packets p on p.submission_id=a.id and p.submission_version=a.version
  join msrc_abstracts.settings_versions v on v.edition_key=a.edition_key and v.version=j.rubric_version
@@ -214,13 +224,13 @@ declare s msrc_abstracts.advisory_settings%rowtype;j msrc_abstracts.advisory_job
  where q.edition_key=s.edition_key and q.utc_day=day returning * into d;
  result:=result||jsonb_build_array(jsonb_build_object('id',j.id,'leaseToken',j.lease_token,'runId',j.run_id,'submissionId',j.submission_id,
  'submissionVersion',j.submission_version,'rubricVersion',j.rubric_version,'title',packet->>'title','body',packet->'body','rubric',rubric,
- 'configuration',r.configuration,'attempt',j.attempts,'lockedAt',locked_at));
+ 'configuration',r.configuration,'attempt',j.attempts,'lockedAt',locked_at,'identity',identity));
  exit when jsonb_array_length(result)>=p_batch_size;
  end loop;exit when jsonb_array_length(result)>=p_batch_size;end loop;
  return result;
 end$$;
 
-create function msrc_abstracts.advisory_result_valid(value jsonb,rubric jsonb,model text) returns boolean language plpgsql immutable security invoker set search_path='' as $$
+create function msrc_abstracts.advisory_result_valid(value jsonb,rubric jsonb,model text) returns boolean language plpgsql stable security invoker set search_path='' as $$
 declare criterion jsonb;score jsonb;begin
  if jsonb_typeof(value) is distinct from 'object' or octet_length(value::text)>600000
  or value<>jsonb_build_object('scores',value->'scores','model',value->'model','promptVersion',value->'promptVersion')
@@ -310,7 +320,10 @@ declare pairs jsonb;begin
  where j.edition_key=edition_key and ai->>'criterionId'=criterion->>'id' and hs->>'criterionId'=ai->>'criterionId'
  and not msrc_abstracts.advisory_is_author(j.submission_id,auth.uid())
  and msrc_abstracts.reviewer_eligible(edition_key,a.reviewer_id) and not msrc_abstracts.has_conflict(edition_key,j.submission_id,a.reviewer_id)
- group by j.submission_id,j.submission_version,j.rubric_version,ai,criterion limit 10000) q;
+ -- A sentinel above the response decoder's capacity rejects the whole cohort.
+ -- No metrics may be calculated from a truncated subset of eligible pairs.
+ group by j.submission_id,j.submission_version,j.rubric_version,ai,criterion limit 500001) q;
+ if jsonb_array_length(pairs)>500000 then return jsonb_build_object('state','unavailable');end if;
  return jsonb_build_object('state','ready','pairs',pairs);
 end$$;
 
