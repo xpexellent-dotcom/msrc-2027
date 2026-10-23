@@ -42,33 +42,42 @@ async function axe(page: Page) {
 
 for (const locale of ["en", "ar"] as const) {
   const copy = emailPreviewsCopy[locale];
-  test(`${locale} email previews show approved and draft English templates and copy exact plain text by keyboard`, async ({ page }, testInfo) => {
+  test(`${locale} email previews show draft bilingual messages with the banner and copy exact plain text by keyboard`, async ({ page }, testInfo) => {
     const mock = await fixture(page);
     await page.goto(`/${locale}/staff/email-previews`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(staffCopy[locale].areas["email-previews"]);
     await expect(page.getByRole("navigation", { name: staffCopy[locale].menu }).getByRole("link", { name: staffCopy[locale].areas["email-previews"], exact: true })).toHaveAttribute("aria-current", "page");
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
-    await expect(page.getByText(copy.approved, { exact: true })).toHaveCount(6);
-    await expect(page.getByText(copy.draft, { exact: true })).toHaveCount(2);
+    await expect(page.getByText(copy.draft, { exact: true })).toHaveCount(previews.length);
     const cards = page.getByTestId("email-preview");
     await expect(cards).toHaveCount(previews.length);
     for (let index = 0; index < previews.length; index++) {
       const card = cards.nth(index);
-      await expect(card.getByTestId("email-preview-text")).toHaveAttribute("lang", "en");
       await expect(card.getByTestId("email-preview-text")).toHaveAttribute("dir", "ltr");
       await expect(card.getByTestId("email-preview-text")).toHaveText(previews[index].text);
+      const english = card.getByTestId("email-message-english"), arabic = card.getByTestId("email-message-arabic");
+      await expect(english).toHaveAttribute("lang", "en"); await expect(english).toHaveAttribute("dir", "ltr");
+      await expect(arabic).toHaveAttribute("lang", "ar"); await expect(arabic).toHaveAttribute("dir", "rtl");
+      await expect(english.locator("p")).toHaveText(previews[index].englishText.split("\n\n"));
+      await expect(arabic.locator("p")).toHaveText(previews[index].arabicText.split("\n\n"));
+      const banner = card.getByRole("img", { name: previews[index].banner.alt, exact: true });
+      await expect(banner).toHaveAttribute("src", "/brand/email-banner.png");
+      await banner.scrollIntoViewIfNeeded();
+      await expect.poll(() => banner.evaluate((node) => (node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
       await card.getByRole("button").focus(); await page.keyboard.press("Enter");
       await expect(card.getByRole("status")).toHaveText(copy.copied);
       await card.getByText(copy.html, { exact: true }).click();
       await expect(card.getByTestId("email-preview-html")).toHaveText(previews[index].html);
-      await expect(card.locator("iframe, script, img")).toHaveCount(0);
+      await expect(card.locator("iframe, script")).toHaveCount(0);
+      await expect(card.locator("img")).toHaveCount(1);
+      await card.getByText(copy.html, { exact: true }).click();
     }
     expect(await page.evaluate(() => (window as unknown as { copiedEmailTexts: string[] }).copiedEmailTexts)).toEqual(previews.map((preview) => preview.text));
     expect(mock.mutations.filter((action) => action !== "activity")).toEqual([]);
     expect(mock.reads.every((area) => ["status", "email-previews"].includes(area))).toBe(true);
     await axe(page);
-    await mkdir(".tools/night2-acd", { recursive: true });
-    await page.screenshot({ path: `.tools/night2-acd/email-previews-${locale}-${testInfo.project.name}.png`, fullPage: true });
+    await mkdir(".tools/bilingual-emails", { recursive: true });
+    await cards.first().screenshot({ path: `.tools/bilingual-emails/email-previews-${locale}-${testInfo.project.name}.png` });
   });
 
   test(`${locale} clipboard refusal preserves readable text and HTML stays escaped`, async ({ page }) => {
@@ -81,7 +90,9 @@ for (const locale of ["en", "ar"] as const) {
     await card.getByText(copy.html, { exact: true }).click();
     await expect(card.getByTestId("email-preview-html")).toContainText("<script>");
     expect(await page.evaluate(() => "emailPreviewExecuted" in window)).toBe(false);
-    await expect(card.locator("script, img, iframe")).toHaveCount(0);
+    await expect(card.locator("script, iframe")).toHaveCount(0);
+    await expect(card.locator("img")).toHaveCount(1);
+    await expect(card.locator('img[src="https://example.invalid/pixel"]')).toHaveCount(0);
     await axe(page);
   });
 
@@ -91,7 +102,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("staff-name")).toBeVisible();
     await expect(page.getByRole("navigation", { name: staffCopy[locale].menu }).getByRole("link", { name: staffCopy[locale].areas["email-previews"], exact: true })).toHaveCount(0);
     await expect(page.getByTestId("email-preview")).toHaveCount(0);
-    await expect(page.getByText(copy.approved, { exact: true })).toHaveCount(0);
+    await expect(page.getByText(copy.draft, { exact: true })).toHaveCount(0);
     await axe(page);
   });
 

@@ -4067,3 +4067,58 @@ Disposable CI adds isolated reservation/idempotency/lease contention proofs;
 local database checks remain blocked without Docker. Current implementation
 and observed check results are recorded in the Task 6 receipt and
 `docs/features/ADVISORY_SCORING.md`.
+
+## ORG-059 — Bilingual participant email drafts with approved banner art, 23 October 2026
+
+Authority: the organizer's explicit current instruction:
+
+> For the draft emails also have an Arabic translation below the English, and there should be a banner art at the top.
+
+Participant-facing emails show the complete English message followed by a clear
+divider and its complete formal Arabic translation. Subjects include English
+and Arabic. The Arabic HTML block has Arabic language, RTL direction and the
+Arabic font stack; dates and deadlines use both languages and Riyadh time.
+Place existing approved brand artwork at the top as an email-safe image with
+English alt text, an absolute site-origin HTTPS URL and width at most 600px.
+Do not add tracking pixels, remote fonts, new artwork or public claims.
+
+This supersedes LOC-03 and the earlier English-only transactional-email rule
+**for participant-facing emails only**. Staff, reviewer and faculty-judge
+emails, the staff session email check and Contact delivery remain English-only,
+unless a future message is explicitly a participant-facing draft. Reviewer and
+faculty-judge assessment screens and scientific/project content stay English/LTR.
+
+ORG-057's six original English registration messages remain the approved English
+wording. Their new bilingual compositions, the two confirm-your-seat messages
+and all abstract decision messages are **DRAFT pending owner approval before
+sending**. Preserve English meaning and existing facts; this language/design
+decision does not approve translations or authorize delivery, activation,
+hosted migrations, settings seeds or feature-flag changes.
+
+## ENG-067 — Closed bilingual participant email previews and banner, 23 October 2026
+
+Authority: the current bilingual-email task and ORG-059. ENG-065 and ORG-057
+were the highest numbers checked before reservation. Requirements EML-01–05,
+LOC-01/03, ACC-01, REG-04/06/07 and REV-07 apply, with ORG-059's participant
+language supersession.
+
+Render all eight registration templates and abstract decision outcomes with
+the existing English text, complete Arabic translation and approved-art banner.
+Keep database `locale` as `en`; the renderer supplies both languages without a
+database migration or new RPC. Reuse the same renderer for private Super Admin
+previews and keep all participant compositions DRAFT pending owner approval.
+Existing frozen provider requests remain immutable; do not rewrite queued retry
+snapshots or treat an older English-only approval as bilingual approval.
+
+For nonempty committee-authored abstract instructions, require an explicitly
+supplied English/Arabic companion pair matching the stored English. Do not
+fabricate or automatically translate scientific instructions. A reviewed path
+to author and retain real Arabic companion text remains a release gate; the
+existing four-field decision payload and held jobs stay unchanged in this task.
+
+This task's explicit override authorizes a local commit on
+`claude/bilingual-emails`, with no push. All hosted migrations, settings seeds,
+participant opening, real email and feature-flag activation remain prohibited.
+Evidence belongs in
+[the bilingual-email receipt](progress/2026-10-23-claude-bilingual-emails.md);
+do not edit `docs/PROGRESS.md`.

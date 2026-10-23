@@ -278,3 +278,13 @@ Never overwrite a published file: ship a corrected cut or poster under a new ver
 | Purpose and approval scope | Decorative EN/AR `/participate` hero, following the Team header pattern. Explicit owner selection for this placement; no 2027 speaker/attendee/program claim, broader photo permission or independent institutional rights audit is inferred. As with the Team header, original source/licence confirmation remains with the owner. |
 | Accessibility and crop | `premium-hero-image`, `alt=""`, wrapper `aria-hidden="true"`, fill, `sizes="100vw"`, priority. Audience and stage stay within the image crop; the dark hero scrim supports the live bilingual heading. |
 | Removal and versioning | Use the existing Privacy & data requests contact route. Remove the reference and derivative on authorized withdrawal; publish a new `-v2` URL for a replacement because ORG-008 caches public media. Originals are not added to the repo. |
+
+## 12. DRAFT participant email banner — 23 October 2026 (ORG-059/ENG-067)
+
+| Field | Record |
+|---|---|
+| Asset | `public/brand/email-banner.png`, 600 × 338px PNG; a resize of `public/media/msrc2026/poster-desktop-v1.jpg`, with no new crop, artwork, logo or claim |
+| Source and existing approval | The reviewed previous-edition homepage still in §9; its incumbent approval is for homepage use |
+| Proposed purpose and status | Banner above the English and Arabic participant email drafts. **DRAFT: email placement and the complete composition await owner approval before sending.** Existing homepage approval does not establish broader media rights or approval of this new placement |
+| Accessibility and delivery | English alt text: `MSRC 2026 conference audience — previous edition`; absolute site-origin HTTPS image URL; display width at most 600px; no tracking pixel or remote font |
+| Release boundary | No hosted change, real email or delivery activation. The source still and its homepage presentation are unchanged |
