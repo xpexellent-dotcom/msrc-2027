@@ -342,6 +342,15 @@ jobs:
         env:
           ADVISORY_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/advisory-concurrency.test.ts
+
+      - name: Reset the disposable database for announcement proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify announcement double sends, audience changes and waiting-session authorization
+        if: ${{ !inputs.auth_stability }}
+        env:
+          ANNOUNCEMENT_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/announcement-concurrency.test.ts
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop

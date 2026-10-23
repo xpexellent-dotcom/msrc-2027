@@ -84,11 +84,11 @@ async function barrier() {
 
 describe.skipIf(!isolatedCi)("Durable outbox concurrency (disposable GitHub CI only)", () => {
   beforeEach(async () => {
-    await query(`truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+    await query(`delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
       update msrc_outbox.settings set delivery_enabled=true,sweeps_enabled=false,daily_cap=1000,max_attempts=5;`);
   });
   afterAll(async () => {
-    await query(`truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+    await query(`delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
       update msrc_outbox.settings set delivery_enabled=false,sweeps_enabled=false,daily_cap=0,max_attempts=5;`);
   });
 

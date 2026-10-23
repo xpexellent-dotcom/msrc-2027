@@ -1,0 +1,14 @@
+.staff-announcements { display: grid; gap: 1.25rem; min-inline-size: 0; }
+.staff-announcement-fields { padding: 0; border: 0; min-inline-size: 0; }
+.staff-announcement-segments { margin-block: 1.25rem; padding: 1rem; border: 1px solid var(--color-sand); border-radius: .5rem; }
+.staff-announcement-segments label { margin-block: .6rem; }
+.staff-announcement-send { margin-block-start: 1.5rem; padding-block-start: 1.5rem; border-block-start: 1px solid var(--color-sand); }
+.staff-announcement-send input { max-inline-size: 24rem; }
+.staff-announcement-paragraph { white-space: pre-wrap; overflow-wrap: anywhere; }
+.staff-announcement-history { list-style: none; padding: 0; display: grid; gap: 1.5rem; }
+.staff-announcement-history > li { min-inline-size: 0; padding-block-end: 1.5rem; border-block-end: 1px solid var(--color-sand); }
+.staff-announcement-history h3 { margin-block: 0 .5rem; }
+.staff-announcement-confirm { max-block-size: calc(100dvh - 3rem); overflow-y: auto; }
+.staff-announcement-total { font-size: 1.25rem; }
+.staff-announcement-total strong { font-size: 1.75rem; }
+@media (max-width: 700px) { .staff-announcements .staff-detail-head { align-items: flex-start; flex-direction: column; } .staff-announcements .staff-content-languages { grid-template-columns: minmax(0, 1fr); } }

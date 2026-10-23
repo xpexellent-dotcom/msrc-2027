@@ -4160,3 +4160,57 @@ locally on the existing `claude/media-import` branch supersedes the common
 overnight no-commit instruction for this task; do not push or create branches.
 The task-specific O9 receipt is
 `docs/progress/2026-10-23-claude-media-import.md`; never edit PROGRESS.md.
+
+
+## ORG-061 — Essential bilingual announcements and participant inbox, 23 October 2026
+
+Authority: the organizer's explicit announcements task on this branch.
+
+- Only Super Admins can write, edit, preview, schedule, cancel and send announcements.
+  Other staff roles have no announcement tab or RPC authority.
+- Announcements are essential conference communications. There is no opt-out,
+  unsubscribe link or preference storage. This supersedes EML-04's preference rule
+  for these announcements and the older specification's optional-announcement
+  example; approved public legal text is unchanged by this implementation task.
+- Each announcement uses email and a private signed-in participant My MSRC inbox.
+  Email uses ORG-059's existing banner and bilingual renderer: English followed by
+  Arabic. The participant reader can read either language. The message itself is
+  authored by a Super Admin; no automatic translation is supplied.
+- Email is the only delivery channel. No SMS, WhatsApp or push service is added.
+
+The new email layout remains DRAFT for owner approval. No hosted migration,
+settings seed, feature activation, participant opening or real email is authorized.
+
+## ENG-070 — Closed announcements, frozen audience and participant inbox, 23 October 2026
+
+Authority: the current task, ORG-059/059 and existing ORG-055/056. ENG-067 and
+ORG-059 were the highest numbers checked before reservation. Requirements
+EML-01–05, LOC-01/03, ACC-01, ROL-10/12, PRV-03/05/06, SEC-01/02/06 and AT-16
+apply, subject to ORG-061's essential-communication supersession.
+
+Add a private forced-RLS announcement store with exact-session Super Admin RPCs,
+optimistic versions, audited operation IDs, live segment previews, masked samples
+and immutable recipient snapshots. Sending compares the preview's audience digest
+with one materialized live audience and atomically creates each outbox message
+and participant inbox row. A schedule whose audience changed returns to draft for
+review. Existing outbox delivery switches, daily caps and bounded drains govern
+delivery; announcement DRAFT jobs retain an independent delivery hold.
+
+Only segments backed by existing edition data are offered. No future workflow,
+synthetic recipient or invented capacity is introduced into operational data.
+Plain text is escaped by the existing bilingual renderer. Technical content
+bounds are 90 UTF-16 units per subject and 3,500 per body to fit the existing
+64 KiB outbox provider snapshot. No public legal or approved email wording changes.
+
+Staff EN/AR composition, preview confirmation and history accompany the backend.
+The participant inbox is server-rendered, locale-first and bound to the current
+verified participant claims; the other language is available without JavaScript.
+Missing pending RPCs return an area-not-ready result without ending a session.
+Scheduled dispatch uses the existing authenticated outbox drain; no scheduler
+is created or enabled.
+
+The explicit task override authorizes a local commit on
+`claude/bilingual-emails`, without push. Evidence belongs in
+[the announcements receipt](progress/2026-10-23-claude-announcements.md), with
+feature notes in [ANNOUNCEMENTS.md](features/ANNOUNCEMENTS.md).
+`docs/PROGRESS.md` remains outside this task's edit scope.

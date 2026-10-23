@@ -10,6 +10,8 @@ import "@/styles/staff-content.css";
 import "@/styles/staff-research.css";
 import "@/styles/staff-advisory.css";
 
+import "@/features/announcements/staff.css";
+
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;

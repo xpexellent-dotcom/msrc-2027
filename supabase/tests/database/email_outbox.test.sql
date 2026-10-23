@@ -67,7 +67,8 @@ select is(public.msrc_outbox_enqueue('service-synthetic','synthetic_notice',1,'a
  'true','Service role may enqueue a synthetic reserved-Arabic-locale message');
 select is(public.msrc_outbox_claim(gen_random_uuid(),1,1000),'[]'::jsonb,'Database delivery switch blocks claims');
 reset role;
-truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+-- DELETE, not TRUNCATE: announcement recipients reference outbox identities.
+delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
 create temporary table original as select pg_temp.enqueue(1) as value;
 select is((select value->>'created' from original),'true','First enqueue creates a durable identity and row');
 select is(pg_temp.enqueue(1)->>'id',(select value->>'id' from original),'Same idempotency key returns original message id');
@@ -128,7 +129,8 @@ select is(pg_temp.finish((select value from second_claim),'permanent','provider_
 select ok((select status='failed_permanent' and last_error_class='provider_validation' and completed_at is not null
  and claimed_by is null and lease_token is null and lease_expires_at is null from msrc_outbox.messages),'Terminal failure clears every lease field');
 
-truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+-- DELETE, not TRUNCATE: announcement recipients reference outbox identities.
+delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
 select pg_temp.enqueue(2);
 create temporary table expired_claim as select pg_temp.claim() as value;
 update msrc_outbox.messages set lease_expires_at=clock_timestamp()-interval '1 second';
@@ -142,7 +144,8 @@ select pg_temp.prepare((select value from reclaimed));
 select is(pg_temp.finish((select value from reclaimed),'sent'),true,'Prepared reclaimed message can complete');
 select is(pg_temp.finish((select value from reclaimed),'sent'),false,'Repeated completion is a harmless false result');
 
-truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+-- DELETE, not TRUNCATE: announcement recipients reference outbox identities.
+delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
 update msrc_outbox.settings set max_attempts=1;
 select pg_temp.enqueue(3);
 create temporary table last_claim as select pg_temp.claim() as value;
@@ -155,7 +158,8 @@ select is(public.msrc_outbox_claim(gen_random_uuid(),1,1000),'[]'::jsonb,'Exhaus
 select ok((select bool_and(msrc_outbox.backoff_seconds(n,60,3600) between least(60*power(2,n-1),3600) and least(75*power(2,n-1),3600))
  from generate_series(1,10) n cross join generate_series(1,50)),'All 500 sampled exponential delays stay inside jitter and maximum bounds');
 
-truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+-- DELETE, not TRUNCATE: announcement recipients reference outbox identities.
+delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
 update msrc_outbox.settings set max_attempts=5,daily_cap=2;
 select pg_temp.enqueue(n) from generate_series(4,6) n;
 select is(jsonb_array_length(public.msrc_outbox_claim(gen_random_uuid(),10,1000)),2,'A small database daily cap bounds a larger batch');
@@ -164,7 +168,8 @@ select is((select count(*) from msrc_outbox.messages where status='queued'),1::b
 select is((select attempt_count from msrc_outbox.daily_attempts),2,'Budget never exceeds its configured cap');
 select throws_ok($$select public.msrc_outbox_claim(gen_random_uuid(),11,2)$$,'22023',null,'Oversized per-run claim batches are denied');
 
-truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+-- DELETE, not TRUNCATE: announcement recipients reference outbox identities.
+delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
 update msrc_outbox.settings set daily_cap=10;
 select pg_temp.enqueue(7);
 select pg_temp.enqueue(8);
@@ -187,7 +192,8 @@ update msrc_outbox.messages set attempt_count=5;
 select is(msrc_outbox.sweep()->>'failed','1','Sweep marks messages exceeding the max attempts permanently failed');
 select is((select last_error_class from msrc_outbox.messages),'max_attempts','Sweep stores only a classified max-attempt error');
 
-truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+-- DELETE, not TRUNCATE: announcement recipients reference outbox identities.
+delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
 select pg_temp.enqueue(9);
 select pg_temp.claim();
 update msrc_outbox.messages set lease_expires_at=clock_timestamp()-interval '1 second',first_attempt_at=clock_timestamp()-interval '23 hours 1 second';
@@ -199,7 +205,8 @@ select is((select array_agg(attname::text order by attnum) from pg_attribute whe
 select ok((select queued=0 and oldest_queued_age_seconds=0 and failures_last_24h=1 from health),'Health counts latest classified message failures without recipient data');
 
 -- Validate the purge boundary and bound independently of lease/max-attempt work.
-truncate msrc_outbox.messages,msrc_outbox.identities,msrc_outbox.daily_attempts;
+-- DELETE, not TRUNCATE: announcement recipients reference outbox identities.
+delete from msrc_outbox.messages;delete from msrc_outbox.identities;delete from msrc_outbox.daily_attempts;
 select pg_temp.enqueue(n) from generate_series(10,12) n;
 update msrc_outbox.messages set status='cancelled',completed_at=statement_timestamp()-interval '31 days';
 update msrc_outbox.settings set sweep_batch_size=1;

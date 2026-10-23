@@ -2,7 +2,7 @@ import { PERMISSION_RULES, ROLES, type Operation, type Role } from "@/lib/permis
 import type { StaffArea } from "./ui-contract";
 
 export const STAFF_ROLES = ROLES.filter((role) => role !== "participant");
-export type StaffMenuKey = Exclude<StaffArea, "summary" | "registration-detail" | "registration-export" | "registration-confirmation-preview"> | "security" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship";
+export type StaffMenuKey = Exclude<StaffArea, "summary" | "registration-detail" | "registration-export" | "registration-confirmation-preview"> | "security" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship" | "announcements";
 type MenuDefinition = { key: StaffMenuKey; built: boolean; englishOnly?: boolean } & ({ operation: Operation; ownAccount?: never } | { key: "security"; ownAccount: true; operation?: never });
 export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "security", ownAccount: true, built: true },
@@ -12,6 +12,7 @@ export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "early-access", operation: "security.grant.manage", built: true },
   { key: "registration-settings", operation: "security.grant.manage", built: true },
   { key: "email-previews", operation: "security.grant.manage", built: true },
+  { key: "announcements", operation: "security.grant.manage", built: true },
   { key: "launch-readiness", operation: "security.grant.manage", built: true },
   { key: "participants", operation: "operations.registration.manage", built: true },
   { key: "registration", operation: "operations.registration.manage", built: true },
