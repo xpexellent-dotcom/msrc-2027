@@ -113,7 +113,7 @@ create or replace function msrc_announcements.audience(edition text) returns tab
  where u.email_confirmed_at is not null and u.deleted_at is null and not coalesce(u.is_anonymous,false)
  and char_length(u.email)<=254 and u.email ~ '^[A-Za-z0-9.!#$%&''*+/=?^_`{|}~-]{1,64}@[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?([.][A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$'
  ), members as (
- select 'verified_participants'::text segment,e.id from eligible e
+ select 'verified_participants'::text segment,e.id actor_id from eligible e
  union all select case r.status when 'pending_approval' then 'registration_pending'
  when 'approved_awaiting_payment' then 'registration_approved' else 'registration_'||r.status end,r.actor_id
  from msrc_registration.requests r where r.edition_key=edition
