@@ -30,25 +30,35 @@ const next = process.env.REAL_USER_REUSE_SERVER === "1" ? undefined : spawn(proc
 // Bound/reuse backend connections instead of exhausting Windows socket buffers.
 const upstreamAgent = new Agent({ keepAlive: true, maxSockets: 32, maxFreeSockets: 16, scheduling: "lifo" });
 const proxy = createServer({ key: readFileSync(keyPath), cert: readFileSync(certificatePath) }, (request, response) => {
-  const upstream = httpRequest({ agent: upstreamAgent, hostname: "127.0.0.1", port: 3210, path: request.url, method: request.method,
-    // Keep the browser-facing Host, Origin, cookies and request body intact.
-    headers: { ...request.headers, "x-forwarded-proto": "https", "x-forwarded-host": request.headers.host,
-      "x-forwarded-for": request.socket.remoteAddress ?? "127.0.0.1" } }, (result) => {
-    // rawHeaders preserve duplicate Set-Cookie fields and the original CSP verbatim.
-    response.writeHead(result.statusCode ?? 502, result.rawHeaders);
-    result.pipe(response);
-  });
-  upstream.on("error", (error: NodeJS.ErrnoException) => {
-    if (!response.destroyed) console.error("Local QA upstream transport failed", {
-      method: request.method, path: request.url?.split("?")[0],
-      code: error.code, reusedSocket: upstream.reusedSocket,
+  // A kept-alive socket can be closed by Next just as it is reused; Node reports
+  // that race as ECONNRESET with reusedSocket set. Bodiless reads are replayed once
+  // on a fresh request instead of surfacing a spurious 502 to the browser suites.
+  const replayable = (request.method === "GET" || request.method === "HEAD")
+    && !request.headers["content-length"] && !request.headers["transfer-encoding"];
+  const send = (retried: boolean) => {
+    const upstream = httpRequest({ agent: upstreamAgent, hostname: "127.0.0.1", port: 3210, path: request.url, method: request.method,
+      // Keep the browser-facing Host, Origin, cookies and request body intact.
+      headers: { ...request.headers, "x-forwarded-proto": "https", "x-forwarded-host": request.headers.host,
+        "x-forwarded-for": request.socket.remoteAddress ?? "127.0.0.1" } }, (result) => {
+      // rawHeaders preserve duplicate Set-Cookie fields and the original CSP verbatim.
+      response.writeHead(result.statusCode ?? 502, result.rawHeaders);
+      result.pipe(response);
     });
-    if (!response.headersSent) response.writeHead(502, { "Content-Type": "text/plain", "Cache-Control": "no-store" });
-    response.end("Local QA application is unavailable.");
-  });
-  request.on("aborted", () => upstream.destroy());
-  response.on("close", () => { if (!response.writableEnded) upstream.destroy(); });
-  request.pipe(upstream);
+    upstream.on("error", (error: NodeJS.ErrnoException) => {
+      if (replayable && !retried && upstream.reusedSocket && error.code === "ECONNRESET"
+        && !response.headersSent && !response.destroyed) { send(true); return; }
+      if (!response.destroyed) console.error("Local QA upstream transport failed", {
+        method: request.method, path: request.url?.split("?")[0],
+        code: error.code, reusedSocket: upstream.reusedSocket,
+      });
+      if (!response.headersSent) response.writeHead(502, { "Content-Type": "text/plain", "Cache-Control": "no-store" });
+      response.end("Local QA application is unavailable.");
+    });
+    request.on("aborted", () => upstream.destroy());
+    response.on("close", () => { if (!response.writableEnded) upstream.destroy(); });
+    if (replayable) upstream.end(); else request.pipe(upstream);
+  };
+  send(false);
 });
 
 let stopping = false;
