@@ -1,7 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { abstractDecisionTemplate, OutboxSendError, renderOutboxMessage, type EmailRequest, type OutboxMessage, type OutboxSender } from "@/lib/email/outbox.server";
+import { isDraftParticipantTemplate, OutboxSendError, renderOutboxMessage, type EmailRequest, type OutboxMessage, type OutboxSender } from "@/lib/email/outbox.server";
 
 export type { OutboxMessage, EmailRequest } from "@/lib/email/outbox.server";
 export type OutboxOutcome = { state: "sent" | "retryable" | "permanent"; providerMessageId?: string; errorClass?: string };
@@ -29,8 +29,10 @@ export async function drainOutbox({ store, sender, batchSize = 10, timeBudgetMs 
     const [message] = await store.claim(workerId, 1, dailyCap);
     if (!message) break;
     result.claimed++;
-    // Defense in depth: SQL excludes held DRAFT jobs. Even a malformed claim cannot send one.
-    if (message.template_key === abstractDecisionTemplate.key) {
+    // ORG-058: new bilingual participant compositions are DRAFT even for historically
+    // approved English keys. Never prepare, alter or replay a frozen provider snapshot.
+    // Abstract jobs also retain their existing SQL hold. Activation alone cannot send drafts.
+    if (isDraftParticipantTemplate(message.template_key)) {
       if (await store.finish(message, workerId, { state: "permanent", errorClass: "template_invalid" })) result.permanent++;
       else result.stale++;
       continue;

@@ -1,11 +1,13 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_approved 1`] = `
+exports[`DRAFT bilingual registration email templates > renders complete English and Arabic with the banner for registration_approved 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",
-  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>You have a seat at the conference.</p><p>Sign in to view your ticket: <a href="https://www.msrc2027.com/en/registration/ticket">https://www.msrc2027.com/en/registration/ticket</a></p><p>Support: contact@msrc2027.com</p></body></html>",
-  "subject": "You have a seat",
-  "text": "The 5th Medical Students Research Conference
+  "html": "<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MSRC 2027</title></head><body style="margin:0;background-color:#f5f3f7;color:#211a2d;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff"><tr><td><img src="https://www.msrc2027.com/brand/email-banner.png" alt="MSRC 2026 conference audience — previous edition" width="600" height="338" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr><tr><td style="padding:28px 24px"><div dir="ltr" lang="en"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">The 5th Medical Students Research Conference</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Conference dates: 27–28 January 2027.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">You have a seat at the conference.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Sign in to view your ticket: <a dir="ltr" href="https://www.msrc2027.com/en/registration/ticket" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/en/registration/ticket</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Support: contact@msrc2027.com</p></div><hr style="border:0;border-top:1px solid #d9d2e1;margin:28px 0"><div dir="rtl" lang="ar" style="font-family:'Noto Sans Arabic',Tahoma,Arial,sans-serif;text-align:right"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">المؤتمر الخامس لأبحاث طلاب الطب</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">لديك مقعد في المؤتمر.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">سجّل الدخول لعرض تذكرتك: <a dir="ltr" href="https://www.msrc2027.com/ar/registration/ticket" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/ar/registration/ticket</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">للدعم: contact@msrc2027.com</p></div></td></tr></table></td></tr></table></body></html>",
+  "subject": "You have a seat | لديك مقعد في المؤتمر",
+  "text": "MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The 5th Medical Students Research Conference
 
 Conference dates: 27–28 January 2027.
 
@@ -13,19 +15,33 @@ You have a seat at the conference.
 
 Sign in to view your ticket: https://www.msrc2027.com/en/registration/ticket
 
-Support: contact@msrc2027.com",
+Support: contact@msrc2027.com
+
+---
+
+المؤتمر الخامس لأبحاث طلاب الطب
+
+موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.
+
+لديك مقعد في المؤتمر.
+
+سجّل الدخول لعرض تذكرتك: https://www.msrc2027.com/ar/registration/ticket
+
+للدعم: contact@msrc2027.com",
   "to": [
     "participant@example.invalid",
   ],
 }
 `;
 
-exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_cancelled 1`] = `
+exports[`DRAFT bilingual registration email templates > renders complete English and Arabic with the banner for registration_cancelled 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",
-  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>Your conference registration was cancelled. Any ticket for this registration is no longer valid.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
-  "subject": "Your registration was cancelled",
-  "text": "The 5th Medical Students Research Conference
+  "html": "<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MSRC 2027</title></head><body style="margin:0;background-color:#f5f3f7;color:#211a2d;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff"><tr><td><img src="https://www.msrc2027.com/brand/email-banner.png" alt="MSRC 2026 conference audience — previous edition" width="600" height="338" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr><tr><td style="padding:28px 24px"><div dir="ltr" lang="en"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">The 5th Medical Students Research Conference</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Conference dates: 27–28 January 2027.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Your conference registration was cancelled. Any ticket for this registration is no longer valid.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Sign in to My registration: <a dir="ltr" href="https://www.msrc2027.com/en/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/en/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Support: contact@msrc2027.com</p></div><hr style="border:0;border-top:1px solid #d9d2e1;margin:28px 0"><div dir="rtl" lang="ar" style="font-family:'Noto Sans Arabic',Tahoma,Arial,sans-serif;text-align:right"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">المؤتمر الخامس لأبحاث طلاب الطب</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">تم إلغاء تسجيلك في المؤتمر. لم تعد أي تذكرة مرتبطة بهذا التسجيل صالحة.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">سجّل الدخول إلى صفحة تسجيلي: <a dir="ltr" href="https://www.msrc2027.com/ar/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/ar/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">للدعم: contact@msrc2027.com</p></div></td></tr></table></td></tr></table></body></html>",
+  "subject": "Your registration was cancelled | تم إلغاء تسجيلك",
+  "text": "MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The 5th Medical Students Research Conference
 
 Conference dates: 27–28 January 2027.
 
@@ -33,19 +49,33 @@ Your conference registration was cancelled. Any ticket for this registration is 
 
 Sign in to My registration: https://www.msrc2027.com/en/registration
 
-Support: contact@msrc2027.com",
+Support: contact@msrc2027.com
+
+---
+
+المؤتمر الخامس لأبحاث طلاب الطب
+
+موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.
+
+تم إلغاء تسجيلك في المؤتمر. لم تعد أي تذكرة مرتبطة بهذا التسجيل صالحة.
+
+سجّل الدخول إلى صفحة تسجيلي: https://www.msrc2027.com/ar/registration
+
+للدعم: contact@msrc2027.com",
   "to": [
     "participant@example.invalid",
   ],
 }
 `;
 
-exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_confirm_seat 1`] = `
+exports[`DRAFT bilingual registration email templates > renders complete English and Arabic with the banner for registration_confirm_seat 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",
-  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>Please confirm that you can attend on My registration. If you cannot attend, you can release your seat there.</p><p>Confirmation deadline: 24 January 2027 at 20:00 (Asia/Riyadh).</p><p>If you do not respond by this deadline, your seat will be released and your ticket will no longer be valid.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
-  "subject": "Please confirm your seat by 24 January 2027 at 20:00 (Asia/Riyadh)",
-  "text": "The 5th Medical Students Research Conference
+  "html": "<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MSRC 2027</title></head><body style="margin:0;background-color:#f5f3f7;color:#211a2d;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff"><tr><td><img src="https://www.msrc2027.com/brand/email-banner.png" alt="MSRC 2026 conference audience — previous edition" width="600" height="338" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr><tr><td style="padding:28px 24px"><div dir="ltr" lang="en"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">The 5th Medical Students Research Conference</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Conference dates: 27–28 January 2027.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Please confirm that you can attend on My registration. If you cannot attend, you can release your seat there.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Confirmation deadline: 24 January 2027 at 20:00 (Asia/Riyadh).</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">If you do not respond by this deadline, your seat will be released and your ticket will no longer be valid.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Sign in to My registration: <a dir="ltr" href="https://www.msrc2027.com/en/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/en/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Support: contact@msrc2027.com</p></div><hr style="border:0;border-top:1px solid #d9d2e1;margin:28px 0"><div dir="rtl" lang="ar" style="font-family:'Noto Sans Arabic',Tahoma,Arial,sans-serif;text-align:right"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">المؤتمر الخامس لأبحاث طلاب الطب</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">يُرجى تأكيد قدرتك على الحضور من صفحة تسجيلي. إذا تعذّر عليك الحضور، فيمكنك إتاحة مقعدك لغيرك من الصفحة نفسها.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">الموعد النهائي للتأكيد: ٢٤ يناير ٢٠٢٧ في ٢٠:٠٠ (بتوقيت الرياض).</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">إذا لم ترد بحلول هذا الموعد، فسيُتاح مقعدك لغيرك ولن تعود تذكرتك صالحة.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">سجّل الدخول إلى صفحة تسجيلي: <a dir="ltr" href="https://www.msrc2027.com/ar/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/ar/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">للدعم: contact@msrc2027.com</p></div></td></tr></table></td></tr></table></body></html>",
+  "subject": "Please confirm your seat by 24 January 2027 at 20:00 (Asia/Riyadh) | يُرجى تأكيد مقعدك بحلول ٢٤ يناير ٢٠٢٧ في ٢٠:٠٠ (بتوقيت الرياض)",
+  "text": "MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The 5th Medical Students Research Conference
 
 Conference dates: 27–28 January 2027.
 
@@ -57,19 +87,37 @@ If you do not respond by this deadline, your seat will be released and your tick
 
 Sign in to My registration: https://www.msrc2027.com/en/registration
 
-Support: contact@msrc2027.com",
+Support: contact@msrc2027.com
+
+---
+
+المؤتمر الخامس لأبحاث طلاب الطب
+
+موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.
+
+يُرجى تأكيد قدرتك على الحضور من صفحة تسجيلي. إذا تعذّر عليك الحضور، فيمكنك إتاحة مقعدك لغيرك من الصفحة نفسها.
+
+الموعد النهائي للتأكيد: ٢٤ يناير ٢٠٢٧ في ٢٠:٠٠ (بتوقيت الرياض).
+
+إذا لم ترد بحلول هذا الموعد، فسيُتاح مقعدك لغيرك ولن تعود تذكرتك صالحة.
+
+سجّل الدخول إلى صفحة تسجيلي: https://www.msrc2027.com/ar/registration
+
+للدعم: contact@msrc2027.com",
   "to": [
     "participant@example.invalid",
   ],
 }
 `;
 
-exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_expired 1`] = `
+exports[`DRAFT bilingual registration email templates > renders complete English and Arabic with the banner for registration_expired 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",
-  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>Your seat offer has expired.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
-  "subject": "Your offer expired",
-  "text": "The 5th Medical Students Research Conference
+  "html": "<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MSRC 2027</title></head><body style="margin:0;background-color:#f5f3f7;color:#211a2d;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff"><tr><td><img src="https://www.msrc2027.com/brand/email-banner.png" alt="MSRC 2026 conference audience — previous edition" width="600" height="338" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr><tr><td style="padding:28px 24px"><div dir="ltr" lang="en"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">The 5th Medical Students Research Conference</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Conference dates: 27–28 January 2027.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Your seat offer has expired.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Sign in to My registration: <a dir="ltr" href="https://www.msrc2027.com/en/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/en/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Support: contact@msrc2027.com</p></div><hr style="border:0;border-top:1px solid #d9d2e1;margin:28px 0"><div dir="rtl" lang="ar" style="font-family:'Noto Sans Arabic',Tahoma,Arial,sans-serif;text-align:right"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">المؤتمر الخامس لأبحاث طلاب الطب</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">انتهت صلاحية عرض المقعد المقدم لك.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">سجّل الدخول إلى صفحة تسجيلي: <a dir="ltr" href="https://www.msrc2027.com/ar/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/ar/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">للدعم: contact@msrc2027.com</p></div></td></tr></table></td></tr></table></body></html>",
+  "subject": "Your offer expired | انتهت صلاحية عرض المقعد",
+  "text": "MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The 5th Medical Students Research Conference
 
 Conference dates: 27–28 January 2027.
 
@@ -77,19 +125,33 @@ Your seat offer has expired.
 
 Sign in to My registration: https://www.msrc2027.com/en/registration
 
-Support: contact@msrc2027.com",
+Support: contact@msrc2027.com
+
+---
+
+المؤتمر الخامس لأبحاث طلاب الطب
+
+موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.
+
+انتهت صلاحية عرض المقعد المقدم لك.
+
+سجّل الدخول إلى صفحة تسجيلي: https://www.msrc2027.com/ar/registration
+
+للدعم: contact@msrc2027.com",
   "to": [
     "participant@example.invalid",
   ],
 }
 `;
 
-exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_offered 1`] = `
+exports[`DRAFT bilingual registration email templates > renders complete English and Arabic with the banner for registration_offered 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",
-  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>A seat is offered to you. Accept the offer on My registration before the deadline below.</p><p>Offer deadline: 19 November 2026 at 20:00 (Asia/Riyadh).</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
-  "subject": "A seat is offered to you: reply within 24 hours",
-  "text": "The 5th Medical Students Research Conference
+  "html": "<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MSRC 2027</title></head><body style="margin:0;background-color:#f5f3f7;color:#211a2d;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff"><tr><td><img src="https://www.msrc2027.com/brand/email-banner.png" alt="MSRC 2026 conference audience — previous edition" width="600" height="338" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr><tr><td style="padding:28px 24px"><div dir="ltr" lang="en"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">The 5th Medical Students Research Conference</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Conference dates: 27–28 January 2027.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">A seat is offered to you. Accept the offer on My registration before the deadline below.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Offer deadline: 19 November 2026 at 20:00 (Asia/Riyadh).</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Sign in to My registration: <a dir="ltr" href="https://www.msrc2027.com/en/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/en/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Support: contact@msrc2027.com</p></div><hr style="border:0;border-top:1px solid #d9d2e1;margin:28px 0"><div dir="rtl" lang="ar" style="font-family:'Noto Sans Arabic',Tahoma,Arial,sans-serif;text-align:right"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">المؤتمر الخامس لأبحاث طلاب الطب</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">عُرض عليك مقعد. اقبل العرض من صفحة تسجيلي قبل الموعد النهائي الموضح أدناه.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">الموعد النهائي لقبول العرض: ١٩ نوفمبر ٢٠٢٦ في ٢٠:٠٠ (بتوقيت الرياض).</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">سجّل الدخول إلى صفحة تسجيلي: <a dir="ltr" href="https://www.msrc2027.com/ar/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/ar/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">للدعم: contact@msrc2027.com</p></div></td></tr></table></td></tr></table></body></html>",
+  "subject": "A seat is offered to you: reply within 24 hours | عُرض عليك مقعد: يُرجى الرد خلال ٢٤ ساعة",
+  "text": "MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The 5th Medical Students Research Conference
 
 Conference dates: 27–28 January 2027.
 
@@ -99,19 +161,35 @@ Offer deadline: 19 November 2026 at 20:00 (Asia/Riyadh).
 
 Sign in to My registration: https://www.msrc2027.com/en/registration
 
-Support: contact@msrc2027.com",
+Support: contact@msrc2027.com
+
+---
+
+المؤتمر الخامس لأبحاث طلاب الطب
+
+موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.
+
+عُرض عليك مقعد. اقبل العرض من صفحة تسجيلي قبل الموعد النهائي الموضح أدناه.
+
+الموعد النهائي لقبول العرض: ١٩ نوفمبر ٢٠٢٦ في ٢٠:٠٠ (بتوقيت الرياض).
+
+سجّل الدخول إلى صفحة تسجيلي: https://www.msrc2027.com/ar/registration
+
+للدعم: contact@msrc2027.com",
   "to": [
     "participant@example.invalid",
   ],
 }
 `;
 
-exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_received 1`] = `
+exports[`DRAFT bilingual registration email templates > renders complete English and Arabic with the banner for registration_received 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",
-  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>We have received your seat request. Your request is awaiting review. This email does not confirm a seat.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
-  "subject": "Seat request received",
-  "text": "The 5th Medical Students Research Conference
+  "html": "<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MSRC 2027</title></head><body style="margin:0;background-color:#f5f3f7;color:#211a2d;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff"><tr><td><img src="https://www.msrc2027.com/brand/email-banner.png" alt="MSRC 2026 conference audience — previous edition" width="600" height="338" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr><tr><td style="padding:28px 24px"><div dir="ltr" lang="en"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">The 5th Medical Students Research Conference</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Conference dates: 27–28 January 2027.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">We have received your seat request. Your request is awaiting review. This email does not confirm a seat.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Sign in to My registration: <a dir="ltr" href="https://www.msrc2027.com/en/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/en/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Support: contact@msrc2027.com</p></div><hr style="border:0;border-top:1px solid #d9d2e1;margin:28px 0"><div dir="rtl" lang="ar" style="font-family:'Noto Sans Arabic',Tahoma,Arial,sans-serif;text-align:right"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">المؤتمر الخامس لأبحاث طلاب الطب</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">لقد استلمنا طلبك لحجز مقعد. طلبك بانتظار المراجعة. لا تُعد هذه الرسالة تأكيدًا لحجز مقعد.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">سجّل الدخول إلى صفحة تسجيلي: <a dir="ltr" href="https://www.msrc2027.com/ar/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/ar/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">للدعم: contact@msrc2027.com</p></div></td></tr></table></td></tr></table></body></html>",
+  "subject": "Seat request received | تم استلام طلب حجز مقعد",
+  "text": "MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The 5th Medical Students Research Conference
 
 Conference dates: 27–28 January 2027.
 
@@ -119,19 +197,33 @@ We have received your seat request. Your request is awaiting review. This email 
 
 Sign in to My registration: https://www.msrc2027.com/en/registration
 
-Support: contact@msrc2027.com",
+Support: contact@msrc2027.com
+
+---
+
+المؤتمر الخامس لأبحاث طلاب الطب
+
+موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.
+
+لقد استلمنا طلبك لحجز مقعد. طلبك بانتظار المراجعة. لا تُعد هذه الرسالة تأكيدًا لحجز مقعد.
+
+سجّل الدخول إلى صفحة تسجيلي: https://www.msrc2027.com/ar/registration
+
+للدعم: contact@msrc2027.com",
   "to": [
     "participant@example.invalid",
   ],
 }
 `;
 
-exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_seat_released 1`] = `
+exports[`DRAFT bilingual registration email templates > renders complete English and Arabic with the banner for registration_seat_released 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",
-  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>Your conference seat was released. Your registration is cancelled and your ticket is no longer valid.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
-  "subject": "Your seat was released",
-  "text": "The 5th Medical Students Research Conference
+  "html": "<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MSRC 2027</title></head><body style="margin:0;background-color:#f5f3f7;color:#211a2d;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff"><tr><td><img src="https://www.msrc2027.com/brand/email-banner.png" alt="MSRC 2026 conference audience — previous edition" width="600" height="338" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr><tr><td style="padding:28px 24px"><div dir="ltr" lang="en"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">The 5th Medical Students Research Conference</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Conference dates: 27–28 January 2027.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Your conference seat was released. Your registration is cancelled and your ticket is no longer valid.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Sign in to My registration: <a dir="ltr" href="https://www.msrc2027.com/en/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/en/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Support: contact@msrc2027.com</p></div><hr style="border:0;border-top:1px solid #d9d2e1;margin:28px 0"><div dir="rtl" lang="ar" style="font-family:'Noto Sans Arabic',Tahoma,Arial,sans-serif;text-align:right"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">المؤتمر الخامس لأبحاث طلاب الطب</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">تمت إتاحة مقعدك في المؤتمر لغيرك. تم إلغاء تسجيلك ولم تعد تذكرتك صالحة.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">سجّل الدخول إلى صفحة تسجيلي: <a dir="ltr" href="https://www.msrc2027.com/ar/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/ar/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">للدعم: contact@msrc2027.com</p></div></td></tr></table></td></tr></table></body></html>",
+  "subject": "Your seat was released | تمت إتاحة مقعدك لغيرك",
+  "text": "MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The 5th Medical Students Research Conference
 
 Conference dates: 27–28 January 2027.
 
@@ -139,19 +231,33 @@ Your conference seat was released. Your registration is cancelled and your ticke
 
 Sign in to My registration: https://www.msrc2027.com/en/registration
 
-Support: contact@msrc2027.com",
+Support: contact@msrc2027.com
+
+---
+
+المؤتمر الخامس لأبحاث طلاب الطب
+
+موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.
+
+تمت إتاحة مقعدك في المؤتمر لغيرك. تم إلغاء تسجيلك ولم تعد تذكرتك صالحة.
+
+سجّل الدخول إلى صفحة تسجيلي: https://www.msrc2027.com/ar/registration
+
+للدعم: contact@msrc2027.com",
   "to": [
     "participant@example.invalid",
   ],
 }
 `;
 
-exports[`DRAFT English registration email templates > renders reviewed plain text and simple HTML for registration_waitlisted 1`] = `
+exports[`DRAFT bilingual registration email templates > renders complete English and Arabic with the banner for registration_waitlisted 1`] = `
 {
   "from": "MSRC 2027 <no-reply@msrc2027.com>",
-  "html": "<html lang="en"><body><p>The 5th Medical Students Research Conference</p><p>Conference dates: 27–28 January 2027.</p><p>You are on the conference waitlist. This email does not confirm a seat.</p><p>Sign in to My registration: <a href="https://www.msrc2027.com/en/registration">https://www.msrc2027.com/en/registration</a></p><p>Support: contact@msrc2027.com</p></body></html>",
-  "subject": "You are on the waitlist",
-  "text": "The 5th Medical Students Research Conference
+  "html": "<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MSRC 2027</title></head><body style="margin:0;background-color:#f5f3f7;color:#211a2d;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.7"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff"><tr><td><img src="https://www.msrc2027.com/brand/email-banner.png" alt="MSRC 2026 conference audience — previous edition" width="600" height="338" style="display:block;width:100%;max-width:600px;height:auto;border:0"></td></tr><tr><td style="padding:28px 24px"><div dir="ltr" lang="en"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">The 5th Medical Students Research Conference</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Conference dates: 27–28 January 2027.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">You are on the conference waitlist. This email does not confirm a seat.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Sign in to My registration: <a dir="ltr" href="https://www.msrc2027.com/en/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/en/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">Support: contact@msrc2027.com</p></div><hr style="border:0;border-top:1px solid #d9d2e1;margin:28px 0"><div dir="rtl" lang="ar" style="font-family:'Noto Sans Arabic',Tahoma,Arial,sans-serif;text-align:right"><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">المؤتمر الخامس لأبحاث طلاب الطب</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">أنت على قائمة انتظار المؤتمر. لا تُعد هذه الرسالة تأكيدًا لحجز مقعد.</p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">سجّل الدخول إلى صفحة تسجيلي: <a dir="ltr" href="https://www.msrc2027.com/ar/registration" style="color:#563681;overflow-wrap:anywhere">https://www.msrc2027.com/ar/registration</a></p><p style="margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere">للدعم: contact@msrc2027.com</p></div></td></tr></table></td></tr></table></body></html>",
+  "subject": "You are on the waitlist | أنت على قائمة الانتظار",
+  "text": "MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The 5th Medical Students Research Conference
 
 Conference dates: 27–28 January 2027.
 
@@ -159,7 +265,19 @@ You are on the conference waitlist. This email does not confirm a seat.
 
 Sign in to My registration: https://www.msrc2027.com/en/registration
 
-Support: contact@msrc2027.com",
+Support: contact@msrc2027.com
+
+---
+
+المؤتمر الخامس لأبحاث طلاب الطب
+
+موعد المؤتمر: ٢٧–٢٨ يناير ٢٠٢٧.
+
+أنت على قائمة انتظار المؤتمر. لا تُعد هذه الرسالة تأكيدًا لحجز مقعد.
+
+سجّل الدخول إلى صفحة تسجيلي: https://www.msrc2027.com/ar/registration
+
+للدعم: contact@msrc2027.com",
   "to": [
     "participant@example.invalid",
   ],

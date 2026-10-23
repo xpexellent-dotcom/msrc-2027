@@ -1,0 +1,34 @@
+{
+  "registration_approved": {
+    "subject": "You have a seat",
+    "text": "The 5th Medical Students Research Conference\n\nConference dates: 27–28 January 2027.\n\nYou have a seat at the conference.\n\nSign in to view your ticket: https://www.msrc2027.com/en/registration/ticket\n\nSupport: contact@msrc2027.com"
+  },
+  "registration_cancelled": {
+    "subject": "Your registration was cancelled",
+    "text": "The 5th Medical Students Research Conference\n\nConference dates: 27–28 January 2027.\n\nYour conference registration was cancelled. Any ticket for this registration is no longer valid.\n\nSign in to My registration: https://www.msrc2027.com/en/registration\n\nSupport: contact@msrc2027.com"
+  },
+  "registration_confirm_seat": {
+    "subject": "Please confirm your seat by 24 January 2027 at 20:00 (Asia/Riyadh)",
+    "text": "The 5th Medical Students Research Conference\n\nConference dates: 27–28 January 2027.\n\nPlease confirm that you can attend on My registration. If you cannot attend, you can release your seat there.\n\nConfirmation deadline: 24 January 2027 at 20:00 (Asia/Riyadh).\n\nIf you do not respond by this deadline, your seat will be released and your ticket will no longer be valid.\n\nSign in to My registration: https://www.msrc2027.com/en/registration\n\nSupport: contact@msrc2027.com"
+  },
+  "registration_expired": {
+    "subject": "Your offer expired",
+    "text": "The 5th Medical Students Research Conference\n\nConference dates: 27–28 January 2027.\n\nYour seat offer has expired.\n\nSign in to My registration: https://www.msrc2027.com/en/registration\n\nSupport: contact@msrc2027.com"
+  },
+  "registration_offered": {
+    "subject": "A seat is offered to you: reply within 24 hours",
+    "text": "The 5th Medical Students Research Conference\n\nConference dates: 27–28 January 2027.\n\nA seat is offered to you. Accept the offer on My registration before the deadline below.\n\nOffer deadline: 19 November 2026 at 20:00 (Asia/Riyadh).\n\nSign in to My registration: https://www.msrc2027.com/en/registration\n\nSupport: contact@msrc2027.com"
+  },
+  "registration_received": {
+    "subject": "Seat request received",
+    "text": "The 5th Medical Students Research Conference\n\nConference dates: 27–28 January 2027.\n\nWe have received your seat request. Your request is awaiting review. This email does not confirm a seat.\n\nSign in to My registration: https://www.msrc2027.com/en/registration\n\nSupport: contact@msrc2027.com"
+  },
+  "registration_seat_released": {
+    "subject": "Your seat was released",
+    "text": "The 5th Medical Students Research Conference\n\nConference dates: 27–28 January 2027.\n\nYour conference seat was released. Your registration is cancelled and your ticket is no longer valid.\n\nSign in to My registration: https://www.msrc2027.com/en/registration\n\nSupport: contact@msrc2027.com"
+  },
+  "registration_waitlisted": {
+    "subject": "You are on the waitlist",
+    "text": "The 5th Medical Students Research Conference\n\nConference dates: 27–28 January 2027.\n\nYou are on the conference waitlist. This email does not confirm a seat.\n\nSign in to My registration: https://www.msrc2027.com/en/registration\n\nSupport: contact@msrc2027.com"
+  }
+}

@@ -108,27 +108,139 @@ Each decision also freezes its exact completed scorecard versions. If a score
 or comment changes after preparation, publication refuses the stale decision;
 the committee must prepare a new decision against the current review basis.
 
-## DRAFT English decision template
+## DRAFT bilingual decision template
 
 Registry: `abstract_decision`, version 1, **DRAFT — owner approval pending**.
-Publication queues held jobs in the existing transactional outbox. The SQL
-claim path excludes held jobs, and the worker independently refuses this DRAFT
-template. No real message was sent. ORG-057 registration wording is unchanged.
+ORG-058/ENG-066 adds a banner and complete Arabic translation below the complete
+English message for each accepted, not-accepted and revision outcome. The
+English meaning is preserved. Subjects use `English subject | Arabic subject`;
+HTML separates its language blocks with a divider and gives Arabic `dir="rtl"`
+and `lang="ar"` with the local Arabic font stack. Plain text includes the banner
+alt text and absolute URL, English, a divider and Arabic. The image is the
+600 × 338px resize of the approved previous-edition homepage still
+`public/media/msrc2026/poster-desktop-v1.jpg` (MEDIA_REGISTER §9), served from
+`https://www.msrc2027.com/brand/email-banner.png`. Its English alt text is
+`MSRC 2026 conference audience — previous edition`; email placement awaits owner
+approval with the composition. There are no tracking
+pixels, remote fonts, new artwork or delivery claims.
+
+Publication still queues held jobs in the existing transactional outbox. The
+SQL claim path excludes held jobs, and the worker independently refuses this
+DRAFT template. The existing `locale: "en"`, template version and database/RPC
+contracts are retained; bilingual rendering needs no migration. No real message
+was sent. ORG-057's original approved English registration wording is preserved,
+while its new bilingual compositions also await owner approval.
 
 Allowed variables: stable abstract `reference`, `outcome` (`accept`, `reject`,
 `revise`), applicant-facing `instructions`, and `revision_deadline` for revisions.
 No author details, reviewer identity, criterion scores, confidential reason or
 caller-controlled URL is accepted. The renderer escapes all text.
 
-- Subject: `Abstract {reference}: accepted`, `not accepted`, or `returned for revision`.
+The persisted four-field payload is unchanged. When `instructions` is nonempty,
+the server-only renderer additionally requires a reviewed translation pair via
+`renderOutboxMessage(message, { abstractInstructions: { english, arabic } })`.
+The supplied English must match the stored instructions; missing, empty or
+mismatched companion text fails closed. The synthetic preview supplies a fixed
+English/Arabic pair. No automatic translation, inferred policy or repeated
+English is presented as an Arabic translation. A reviewed collection/persistence
+path for real committee-authored Arabic instructions remains a release gate;
+this task adds no database column, payload field or RPC for that future work.
+
+Bilingual abstract subjects abbreviate a reference longer than 100 characters
+to respect the existing subject limit; the body retains the full reference.
+
+- English subject: `Abstract {reference}: accepted`, `not accepted`, or `returned for revision`, followed by its Arabic subject.
 - Opening: `The scientific committee has recorded the following outcome for abstract {reference}: {outcome}.`
 - Optional applicant-facing instructions, separately entered by authorized staff.
-- Revision only: `Submit the revised abstract in your account by {deadline} (Asia/Riyadh). An email reply does not submit a revision.`
-- The fixed `/en/abstracts` sign-in destination and configured support address.
+- Revision only: `Submit the revised abstract in your account by {deadline} (Asia/Riyadh). An email reply does not submit a revision.` The Arabic block uses the same stored deadline with Arabic month names and Riyadh time.
+- Corresponding `/en/abstracts` and `/ar/abstracts` sign-in destinations and the configured support address in each language block.
 
 The draft is previewable but cannot be activated merely by opening the existing
 outbox switches. Owner wording approval, a reviewed change releasing template
 holds, provider/delivery checks and authorized activation remain necessary.
+Staff/reviewer/faculty-judge emails, staff session email checks and Contact
+delivery remain English-only under ORG-058; scientific content and reviewer
+screens retain their English/LTR policy.
+
+## Synthetic bilingual decision previews
+
+These exact renderer fixtures use `SYNTHETIC-ABSTRACT-001` and
+`sample@example.invalid`. The revision deadline and paired instructions are
+fixed synthetic examples, not live decisions, policy or configured workflow dates.
+
+### DRAFT — Accepted
+
+Subject (DRAFT): **Abstract SYNTHETIC-ABSTRACT-001: accepted | الملخص: مقبول**
+
+```text
+MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The scientific committee has recorded the following outcome for abstract SYNTHETIC-ABSTRACT-001: accepted.
+
+Sign in to view your abstract: https://www.msrc2027.com/en/abstracts
+
+Support: contact@msrc2027.com
+
+---
+
+سجّلت اللجنة العلمية النتيجة التالية للملخص SYNTHETIC-ABSTRACT-001: مقبول.
+
+سجّل الدخول لعرض ملخصك: https://www.msrc2027.com/ar/abstracts
+
+للدعم: contact@msrc2027.com
+```
+
+### DRAFT — Not accepted
+
+Subject (DRAFT): **Abstract SYNTHETIC-ABSTRACT-001: not accepted | الملخص: غير مقبول**
+
+```text
+MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The scientific committee has recorded the following outcome for abstract SYNTHETIC-ABSTRACT-001: not accepted.
+
+Sign in to view your abstract: https://www.msrc2027.com/en/abstracts
+
+Support: contact@msrc2027.com
+
+---
+
+سجّلت اللجنة العلمية النتيجة التالية للملخص SYNTHETIC-ABSTRACT-001: غير مقبول.
+
+سجّل الدخول لعرض ملخصك: https://www.msrc2027.com/ar/abstracts
+
+للدعم: contact@msrc2027.com
+```
+
+### DRAFT — Returned for revision
+
+Subject (DRAFT): **Abstract SYNTHETIC-ABSTRACT-001: returned for revision | الملخص: أُعيد للتعديل**
+
+```text
+MSRC 2026 conference audience — previous edition: https://www.msrc2027.com/brand/email-banner.png
+
+The scientific committee has recorded the following outcome for abstract SYNTHETIC-ABSTRACT-001: returned for revision.
+
+Please clarify the methods in the abstract.
+
+Submit the revised abstract in your account by 19 November 2026 at 20:00 (Asia/Riyadh). An email reply does not submit a revision.
+
+Sign in to view your abstract: https://www.msrc2027.com/en/abstracts
+
+Support: contact@msrc2027.com
+
+---
+
+سجّلت اللجنة العلمية النتيجة التالية للملخص SYNTHETIC-ABSTRACT-001: أُعيد للتعديل.
+
+يُرجى توضيح المنهجية في الملخص.
+
+قدّم الملخص المعدّل من حسابك بحلول ١٩ نوفمبر ٢٠٢٦ في ٢٠:٠٠ (بتوقيت الرياض). الرد على هذه الرسالة لا يُعد تقديمًا للتعديل.
+
+سجّل الدخول لعرض ملخصك: https://www.msrc2027.com/ar/abstracts
+
+للدعم: contact@msrc2027.com
+```
 
 ## Verification and handoff
 
