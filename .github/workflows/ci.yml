@@ -334,6 +334,14 @@ jobs:
         env:
           ABSTRACT_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/abstract-concurrency.test.ts
+      - name: Reset the disposable database for advisory scoring proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify advisory budget contention, job deduplication and lease fencing
+        if: ${{ !inputs.auth_stability }}
+        env:
+          ADVISORY_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/advisory-concurrency.test.ts
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop
