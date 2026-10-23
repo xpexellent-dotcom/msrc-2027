@@ -21,6 +21,8 @@ export function LaunchReadinessPanel({ locale, data, areaFailure = false }: { lo
         <details><summary>{copy.checks.migrations}</summary><p>{copy.functionNote}</p><ul>{Object.entries(data.requiredRpcs).map(([key, present]) => <li key={key}>{copy.rpcs[key as keyof typeof copy.rpcs]}: {present ? copy.present : copy.missing}</li>)}</ul></details>
       </section>
       <section className="staff-panel" aria-labelledby="launch-settings"><h2 id="launch-settings">{copy.summary}</h2><dl className="staff-readiness-summary">
+        <div><dt>{copy.confirmationLead}</dt><dd>{data.settings?.confirm_seat_lead_days == null ? copy.unset : number(data.settings.confirm_seat_lead_days)}</dd></div>
+        <div><dt>{copy.confirmationHours}</dt><dd>{data.settings?.confirm_seat_response_hours == null ? copy.unset : number(data.settings.confirm_seat_response_hours)}</dd></div>
         <div><dt>{copy.capacity}</dt><dd>{data.settings?.general_capacity == null ? copy.unset : number(data.settings.general_capacity)}</dd></div>
         <div><dt>{copy.earlyStart}</dt><dd>{date(data.settings?.priority_start_at)}</dd></div>
         <div><dt>{copy.earlyEnd}</dt><dd>{date(data.settings?.priority_end_at)}</dd></div>

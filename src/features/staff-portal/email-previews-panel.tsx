@@ -19,6 +19,7 @@ function EmailPreview({ locale, preview }: { locale: Locale; preview: StaffEmail
       <Button variant="secondary" size="small" onClick={() => void copyText()}>{copy.copy}<span className="sr-only" lang="en" dir="ltr">: {preview.subject}</span></Button>
     </div>
     <p className="staff-muted">{copy.version}: <bdi>{preview.templateVersion}</bdi> · <bdi>{preview.templateKey}</bdi></p>
+    <p className="staff-note">{preview.wordingStatus === "approved" ? copy.approved : copy.draft}</p>
     <p>{copy.recipient}: <bdi>{preview.recipient}</bdi></p>
     <h3>{copy.subject}</h3><p lang="en" dir="ltr" data-testid="email-preview-subject">{preview.subject}</p>
     <h3>{copy.text}</h3><pre lang="en" dir="ltr" className="staff-email-text" data-testid="email-preview-text">{preview.text}</pre>
@@ -32,7 +33,7 @@ export function EmailPreviewsPanel({ locale, previews }: { locale: Locale; previ
   const copy = emailPreviewsCopy[locale];
   return <div className="staff-email-previews">
     <section className="staff-panel" aria-label={copy.synthetic}>
-      <p className="staff-badge">{copy.synthetic}</p><p className="staff-note">{copy.approved}</p>
+      <p className="staff-badge">{copy.synthetic}</p>
       <p>{copy.intro}</p><p className="staff-muted">{copy.sample}</p>
     </section>
     {previews ? previews.map((preview) => <EmailPreview key={preview.templateKey} locale={locale} preview={preview} />)

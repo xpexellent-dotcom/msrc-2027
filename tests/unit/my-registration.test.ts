@@ -18,10 +18,11 @@ const requestId = "dc000000-0000-4000-8000-000000000001", operationId = "dd00000
 const claims = { sub: actorId, session_id: sessionId, exp: now / 1000 + 3600, iat: now / 1000, role: "authenticated", aal: "aal1",
   amr: [{ method: "password", timestamp: now / 1000 }], email: "participant@example.invalid" };
 const nativeToken = (value: unknown = claims) => "synthetic." + Buffer.from(JSON.stringify(value)).toString("base64url") + ".synthetic";
-const baseRequest = { id: requestId, status: "offered", createdAt: new Date(now - 3600_000).toISOString(), offerExpiresAt: new Date(now + 3600_000).toISOString() };
-const base = { state: "ready", request: baseRequest, window: { state: "open", eligible: true, opensAt: null }, fewPlaces: true, serverNow: new Date(now).toISOString() };
+const baseRequest = { id: requestId, status: "offered", createdAt: new Date(now - 3600_000).toISOString(), offerExpiresAt: new Date(now + 3600_000).toISOString(), confirmation: null };
+const base = { state: "ready", confirmationVersion: 1, request: baseRequest, window: { state: "open", eligible: true, opensAt: null }, fewPlaces: true, serverNow: new Date(now).toISOString() };
 const ticketToken = "msrc1." + requestId + "." + createHmac("sha256", Buffer.from(secret, "hex")).update("msrc-ticket-v1:" + requestId).digest("hex");
-const rpcNames = { accept: "msrc_registration_accept_offer", decline: "msrc_registration_decline_offer", cancel: "msrc_registration_cancel" };
+const rpcNames = { accept: "msrc_registration_accept_offer", decline: "msrc_registration_decline_offer", cancel: "msrc_registration_cancel",
+  confirm: "msrc_registration_confirm_seat", release: "msrc_registration_release_seat" };
 
 function fixture(options: { result?: unknown; snapshot?: unknown; next?: unknown; error?: Error; errorRpc?: string; identity?: string | null;
   attendance?: unknown;
@@ -181,6 +182,77 @@ describe("participant lifecycle mutation boundary", () => {
     const response = await fixture({ result: { state } }).post();
     expect(response.status).toBe(state === "denied" ? 403 : 503);
     expect(await response.json()).toEqual({ state: state === "area_not_ready" ? "area-not-ready" : state });
+  });
+});
+
+describe("participant confirm-your-seat", () => {
+  const deadline = new Date(now + 3600_000).toISOString();
+  const awaiting = { ...base, request: { ...baseRequest, status: "approved", offerExpiresAt: null, confirmation: { state: "awaiting", deadline } } };
+  it.each(["awaiting", "confirmed", "released", "kept"] as const)("projects only public confirmation fields for %s", async (state) => {
+    const status = { awaiting: "approved", confirmed: "confirmed", released: "cancelled", kept: "approved" }[state];
+    const response = await fixture({ snapshot: { ...awaiting, request: { ...awaiting.request, status, confirmation: { state, deadline } } } }).get();
+    expect(response.status).toBe(200);
+    expect((await response.json()).registration.confirmation).toEqual({ state, deadline });
+  });
+  it.each([
+    { state: "unknown", deadline }, { state: "awaiting", deadline: "tomorrow" }, { state: "awaiting", deadline, roundId: requestId },
+    { state: "confirmed", deadline }, { state: "released", deadline }, {}, [], "awaiting", undefined,
+  ])("fails closed for invalid, private or inconsistent confirmation data %#", async (confirmation) => {
+    const response = await fixture({ snapshot: { ...awaiting, request: { ...awaiting.request, confirmation } } }).get();
+    expect(response.status).toBe(503); expect(await response.json()).toEqual({ state: "unavailable" });
+  });
+  it("distinguishes an older installed own-status RPC from invalid projections and retains login", async () => {
+    const older: Record<string, unknown> = { ...base }; delete older.confirmationVersion;
+    const response = await fixture({ snapshot: older }).get();
+    expect(response.status).toBe(503); expect(await response.json()).toEqual({ state: "area-not-ready" });
+    expect(response.headers.get("set-cookie")).toBeNull();
+    const unknown = await fixture({ snapshot: { ...base, confirmationVersion: 2 } }).get();
+    expect(await unknown.json()).toEqual({ state: "unavailable" });
+  });
+  it("confirmation keeps the original ticket while returning the canonical confirmed status", async () => {
+    const next = { ...awaiting, request: { ...awaiting.request, status: "confirmed", confirmation: { state: "confirmed", deadline } } };
+    const f = fixture({ snapshot: awaiting, next });
+    const before = await (await f.get()).json(), response = await f.post({ action: "confirm" }), after = await response.json();
+    expect(response.status).toBe(200); expect(after.registration.status).toBe("confirmed");
+    expect(after.registration.confirmation.state).toBe("confirmed"); expect(after.ticket).toEqual(before.ticket);
+    expect(f.backend.rpc).toHaveBeenCalledWith(rpcNames.confirm, { edition_key: config.editionKey, session_claims: claims,
+      request_id: requestId, operation_id: operationId });
+  });
+  it("release requires no ticket issuance secret and removes the ticket from the refreshed view", async () => {
+    const next = { ...awaiting, request: { ...awaiting.request, status: "cancelled", confirmation: { state: "released", deadline } } };
+    const f = fixture({ snapshot: awaiting, next, secret: null }), response = await f.post({ action: "release" });
+    expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ registration: { status: "cancelled", confirmation: { state: "released" } }, ticket: null });
+    expect(f.backend.rpc).toHaveBeenCalledWith(rpcNames.release, { edition_key: config.editionKey, session_claims: claims,
+      request_id: requestId, operation_id: operationId });
+    expect(vi.mocked(f.backend.rpc).mock.calls.some(([name]) => name === "msrc_registration_ticket")).toBe(false);
+  });
+  it.each(["confirm", "release"] as const)("%s retries keep the idempotency key and use fresh canonical reads", async (action) => {
+    const f = fixture();
+    const results = await Promise.all([f.post({ action }), f.post({ action })]);
+    expect(results.map((result) => result.status)).toEqual([200, 200]);
+    expect(vi.mocked(f.backend.rpc).mock.calls.filter(([name]) => name === rpcNames[action]).map(([, args]) => args?.operation_id)).toEqual([operationId, operationId]);
+  });
+  it.each(["confirm", "release"] as const)("%s remains denied for another identity, invalid token, rate denial or closure", async (action) => {
+    for (const [f, body, status] of [
+      [fixture({ identity: sessionId }), { action }, 401],
+      [fixture(), { action, formToken: registrationActionToken(config, origin, sessionId, sessionId, now) }, 400],
+      [fixture({ claim: "denied" }), { action }, 429],
+      [fixture({ closed: true }), { action }, 503],
+    ] as const) {
+      expect((await f.post(body)).status).toBe(status);
+      expect(vi.mocked(f.backend.rpc).mock.calls.some(([name]) => name === rpcNames[action])).toBe(false);
+    }
+  });
+  it.each(["confirm", "release"] as const)("a missing %s RPC retains the valid session", async (action) => {
+    const response = await fixture({ error: new RegistrationRpcMissingError(), errorRpc: rpcNames[action] }).post({ action });
+    expect(response.status).toBe(503); expect(await response.json()).toEqual({ state: "area-not-ready" });
+    expect(response.headers.get("set-cookie")).toBeNull();
+  });
+  it.each(["released", "kept"] as const)("a confirm racing expiry displays the server's %s decision", async (state) => {
+    const next = { ...awaiting, request: { ...awaiting.request, status: state === "released" ? "cancelled" : "approved", confirmation: { state, deadline } } };
+    const response = await fixture({ snapshot: awaiting, next, result: { state: "expired" } }).post({ action: "confirm" });
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ outcome: "expired", registration: { status: next.request.status, confirmation: { state } } });
   });
 });
 

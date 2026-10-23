@@ -1,7 +1,9 @@
-# Registration emails — approved v1 wording
+# Registration emails — approved v1 wording and confirmation drafts
 
-ORG-057 (22 October 2026) **approves all six templates below as worded**. Delivery
+ORG-057 (22 October 2026) **approves the original six templates below as worded**. Delivery
 remains off until the separate activation gates pass.
+The two ENG-064 confirm-your-seat templates are **DRAFT for owner approval**;
+they are not covered by ORG-057. Their wording is documented separately below.
 This is the complete plain-text content of the implemented v1 templates. Simple
 HTML repeats the same paragraphs in `<html lang="en">`, escapes text and makes
 the registration/ticket URL clickable. There are no images, attachments or QR
@@ -143,6 +145,61 @@ participant. Operation retries do not enqueue another copy. ORG-057 approves
 this wording; neither adding the template nor creating its queued event
 authorizes delivery.
 
+## DRAFT — Please confirm your seat
+
+Key/version: `registration_confirm_seat` / `1`; payload:
+`{"confirm_expires_at":"<database timestamptz>","nonresponse_policy":"release_unconfirmed|keep_unconfirmed"}`.
+The policy is explicitly selected by the Super Admin at send time, with no
+default. `{confirmation_deadline}` is the stored deadline formatted in English
+with `Asia/Riyadh`; it is never extended by delayed email delivery.
+
+Subject: **Please confirm your seat by {confirmation_deadline}**
+
+```text
+The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+Please confirm that you can attend on My registration. If you cannot attend, you can release your seat there.
+
+Confirmation deadline: {confirmation_deadline}.
+
+{nonresponse_sentence}
+
+Sign in to My registration: https://www.msrc2027.com/{locale}/registration
+
+Support: contact@msrc2027.com
+```
+
+For `release_unconfirmed`, `{nonresponse_sentence}` is:
+“If you do not respond by this deadline, your seat will be released and your
+ticket will no longer be valid.” For `keep_unconfirmed`, it is:
+“If you do not respond by this deadline, your seat and ticket will be kept.”
+
+## DRAFT — Your seat was released
+
+Key/version: `registration_seat_released` / `1`; payload: `{}`.
+
+Subject: **Your seat was released**
+
+```text
+The 5th Medical Students Research Conference
+
+Conference dates: 27–28 January 2027.
+
+Your conference seat was released. Your registration is cancelled and your ticket is no longer valid.
+
+Sign in to My registration: https://www.msrc2027.com/{locale}/registration
+
+Support: contact@msrc2027.com
+```
+
+Confirmation-window opening and seat release enqueue transactionally with audit
+and ticket changes. Repeating an action never sends another event. Confirming
+preserves the existing ticket and does not enqueue another approval email.
+Confirmation release emits this new message instead of a second cancellation
+message. The original six approved subjects and bodies remain unchanged.
+
 ## Atomic producers and delivery gates
 
 Registration database events enqueue through the private outbox function in
@@ -196,7 +253,8 @@ any email was delivered.
 ## Staff email previews (ENG-057)
 
 The Super Admin-only EN/AR staff area at `/[locale]/staff/email-previews` shows
-all six registration templates through the same server-side outbox renderer.
+all eight registration templates through the same server-side outbox renderer.
+Each card labels its own wording status: six approved and two DRAFT.
 Recipient `sample@example.invalid` and the offer deadline are fixed SYNTHETIC
 examples; no recipient, deadline, or payload can be supplied by the browser.
 Email content stays English, while page controls and notices support EN/AR/RTL.
@@ -209,3 +267,22 @@ Authenticated server-page rendering supplies the same preview data. There is no
 preview data RPC, migration, outbox claim, enqueue, or send; missing registration
 migrations cannot block these previews. Existing staff authentication and
 readiness still apply. Delivery and every operational switch remain off.
+
+### ENG-064 confirmation maintenance
+
+The existing authenticated GET/POST drain invokes
+`msrc_registration_confirmation_maintenance(edition_key text)` before claiming
+email only when runtime registration/accounts, outbox configuration and a
+positive application cap permit it. The database independently requires its
+registration/account gates and outbox `sweeps_enabled`. An explicitly started
+round is required; the cron cannot select a policy or create one. Missing new
+RPCs report aggregate `confirmation.state: area-not-ready` while existing outbox
+delivery retains its behavior. No participant details enter this response.
+
+Explicit database expiry on participant reads/actions and staff actions enforces
+the deadline even between cron invocations. The cron handles inactive accounts'
+windows and later approvals in an active round. No pg_cron schedule or additional
+Vercel schedule is installed; `vercel.json` is unchanged. Vercel's current
+[plan limits](https://vercel.com/docs/cron-jobs/usage-and-pricing), checked
+23 October 2026, still restrict Hobby to daily execution. Before activation the
+owner must review plan/cadence, delivery budget and these two draft messages.

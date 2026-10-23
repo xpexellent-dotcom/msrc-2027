@@ -164,7 +164,7 @@ select is(public.msrc_staff_registration_offer('synthetic-staff-offers',
  'Unknown and other-edition IDs are skipped without touching their requests');
 select is((select status from msrc_registration.requests where edition_key='synthetic-staff-offers-other'),'pending_approval','Cross-edition offer never changes another edition request');
 select is(public.msrc_staff_registration('synthetic-staff-offers')->'registration'->'counts',
- '{"pending":2,"approved":2,"waitlisted":5,"offered":2,"expired":0,"capacity":2,"remaining":0}'::jsonb,'Offered count is separate while offers still hold seats');
+ '{"pending":2,"approved":2,"waitlisted":5,"offered":2,"expired":0,"capacity":2,"remaining":0,"confirmationAwaiting":0,"confirmationConfirmed":0,"confirmationReleased":0}'::jsonb,'Offered count is separate while offers still hold seats');
 select is(public.msrc_staff_registration_approve('synthetic-staff-offers',pg_temp.offer_ids(8))->'decided'->>'approved','0','Approval cannot consume seats held by offers');
 select is(public.msrc_staff_registration_detail('synthetic-staff-offers',pg_temp.offer_id(1))->'detail'->'request',
  (select item from jsonb_array_elements(public.msrc_staff_registration('synthetic-staff-offers')->'registration'->'requests') item where item->>'id'=pg_temp.offer_id(1)::text),

@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
+import { confirmationCopy } from "./confirmation-copy";
+import { ConfirmationRound } from "./confirmation-round";
 import { staffCopy } from "./copy";
 import { consoleCopy } from "./console-copy";
 import { formatStaffDate, formatStaffNumber } from "./console-shell";
 import type { StaffPayload, StaffRegistrationDetail, StaffRegistrationStatus, StaffResponse, StaffState } from "./ui-contract";
 
-const filters = ["all", "pending_approval", "approved", "waitlisted", "offered", "approved_awaiting_payment", "confirmed", "cancelled", "expired"] as const;
+const filters = ["all", "pending_approval", "approved", "waitlisted", "offered", "approved_awaiting_payment", "confirmed", "cancelled", "expired", "confirmation_awaiting", "confirmation_confirmed", "confirmation_released"] as const;
 type Filter = (typeof filters)[number];
 const decidable = new Set<StaffRegistrationStatus>(["pending_approval", "waitlisted"]);
 
@@ -17,13 +19,14 @@ const decidable = new Set<StaffRegistrationStatus>(["pending_approval", "waitlis
  * ORG-055 registration queue (slice 3, staff side). Seat allocation, capacity and every
  * transition are enforced by the database RPCs; this screen only collects the request ids.
  */
-export function RegistrationQueue({ locale, data, busy, status, onStatus, query, onQuery, onSearch, act, onDecided, canExport, loadDetail }: {
+export function RegistrationQueue({ locale, data, busy, status, onStatus, query, onQuery, onSearch, act, onDecided, canExport, loadDetail, loadConfirmationPreview }: {
   locale: Locale; data?: StaffResponse["registration"]; busy: boolean; status: Filter; onStatus: (value: Filter) => void;
   query: string; onQuery: (value: string) => void; onSearch: () => void;
   act: (payload: Omit<StaffPayload, "formToken">) => Promise<StaffResponse>; onDecided: (text: string) => void;
+  loadConfirmationPreview: () => Promise<StaffResponse>;
   canExport: boolean; loadDetail: (requestId: string) => Promise<StaffResponse>;
 }) {
-  const copy = staffCopy[locale], text = consoleCopy[locale].registration;
+  const confirmation = confirmationCopy[locale], copy = staffCopy[locale], text = consoleCopy[locale].registration;
   const [selected, setSelected] = useState<string[]>([]);
   const requests = data?.requests ?? [], counts = data?.counts;
   const capacitySet = typeof counts?.capacity === "number";
@@ -73,12 +76,18 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
       <div><dt>{text.offered}</dt><dd>{number(counts?.offered)}</dd></div>
       <div><dt>{text.expired}</dt><dd>{number(counts?.expired)}</dd></div>
     </dl>
+    <dl className="staff-seat-bar" aria-label={confirmation.title}>
+      <div><dt>{confirmation.awaiting}</dt><dd>{number(counts?.confirmationAwaiting)}</dd></div>
+      <div><dt>{confirmation.confirmed}</dt><dd>{number(counts?.confirmationConfirmed)}</dd></div>
+      <div><dt>{confirmation.released}</dt><dd>{number(counts?.confirmationReleased)}</dd></div>
+    </dl>
+    {canExport ? <ConfirmationRound locale={locale} busy={busy} loadPreview={loadConfirmationPreview} act={act} onResult={onDecided} /> : null}
     {canExport ? <p className="staff-export"><Button size="small" variant="secondary" disabled={busy} onClick={() => void exportCsv()} data-testid="queue-export">{text.exportCsv}</Button><span className="staff-muted">{text.exportNote}</span></p> : null}
     {counts && !capacitySet ? <p className="staff-note" role="note">{text.capacityUnset}</p> : null}
     <form className="staff-search staff-queue-filters" onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
       <label className="field"><span className="field-label">{text.filter}</span>
         <select className="field-input" value={status} disabled={busy} onChange={(event) => { setSelected([]); onStatus(event.target.value as Filter); }}>
-          {filters.map((value) => <option key={value} value={value}>{text.statuses[value]}</option>)}
+          {filters.map((value) => <option key={value} value={value}>{value in confirmation.filters ? confirmation.filters[value as keyof typeof confirmation.filters] : text.statuses[value as keyof typeof text.statuses]}</option>)}
         </select>
       </label>
       <FormField id="staff-queue-search" type="search" label={text.search} value={query} onChange={(event) => onQuery(event.target.value)} maxLength={120} disabled={busy} />
@@ -98,7 +107,7 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
       </tr></thead><tbody>{requests.map((request) => <tr key={request.id} data-testid="queue-row">
         <td>{decidable.has(request.status) ? <label className="staff-check"><input type="checkbox" checked={selected.includes(request.id)} disabled={busy} onChange={(event) => toggle(request.id, event.target.checked)} /><span className="sr-only">{text.select} {request.name}</span></label> : null}</td>
         <th scope="row"><bdi>{request.name}</bdi><span className="staff-email"><bdi dir="ltr">{request.email}</bdi></span>{request.priority ? <span className="staff-tag">{text.priority}</span> : null}</th>
-        <td><span className={`staff-status staff-status--${request.status}`}>{text.statuses[request.status]}</span>{request.status === "offered" && request.offerExpiresAt ? <span className="staff-muted staff-offer-ends">{text.offerEnds}: {formatStaffDate(request.offerExpiresAt, locale, copy.unknown)}</span> : null}</td>
+        <td><span className={`staff-status staff-status--${request.status}`}>{text.statuses[request.status]}</span>{request.confirmation ? <span className="staff-muted staff-offer-ends">{confirmation[request.confirmation.state]} · {confirmation.deadline}: {formatStaffDate(request.confirmation.deadline, locale, copy.unknown)}</span> : null}{request.status === "offered" && request.offerExpiresAt ? <span className="staff-muted staff-offer-ends">{text.offerEnds}: {formatStaffDate(request.offerExpiresAt, locale, copy.unknown)}</span> : null}</td>
         <td data-testid="queue-ticket"><span className={`staff-status${request.ticketStatus === "issued" ? " staff-status--approved" : request.ticketStatus === "revoked" ? " staff-status--cancelled" : ""}`}>{request.ticketStatus ? text.ticketStatuses[request.ticketStatus] : text.ticketStatuses.none}</span></td>
         <td>{formatStaffDate(request.createdAt, locale, copy.unknown)}</td>
         <td className="staff-nowrap"><bdi dir="ltr">{request.identityMasked ?? "—"}</bdi></td>
@@ -119,6 +128,7 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
         <div><dt>{text.ticket}</dt><dd data-testid="detail-ticket">{detail.request.ticketStatus ? text.ticketStatuses[detail.request.ticketStatus] : text.ticketStatuses.none}</dd></div>
         <div><dt>{text.submitted}</dt><dd>{formatStaffDate(detail.request.createdAt, locale, copy.unknown)}</dd></div>
         <div><dt>{copy.identifier}</dt><dd><bdi dir="ltr">{detail.request.identityMasked ?? "—"}</bdi></dd></div>
+        {detail.request.confirmation ? <div><dt>{confirmation.title}</dt><dd>{confirmation[detail.request.confirmation.state]} · {formatStaffDate(detail.request.confirmation.deadline, locale, copy.unknown)}</dd></div> : null}
         {detail.request.offerExpiresAt ? <div><dt>{text.offerEnds}</dt><dd>{formatStaffDate(detail.request.offerExpiresAt, locale, copy.unknown)}</dd></div> : null}
       </dl>
       <h4>{text.history}</h4>

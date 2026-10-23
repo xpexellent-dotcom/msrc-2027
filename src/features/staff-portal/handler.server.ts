@@ -7,7 +7,7 @@ import { createStaffBackend, StaffRpcMissingError, type StaffBackend, type Nativ
 import { getStaffConfig, type StaffConfig, type StaffReadiness } from "./config.server";
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash,
   staffIp, staffOrigin, staffUuid, type StaffSessionCookie } from "./security.server";
-import { validateStaffPayload, validStaffRegistrationStatus } from "./validation.server";
+import { validateStaffPayload, validStaffRegistrationFilter, validStaffRegistrationStatus } from "./validation.server";
 import { canReadStaffArea, earlyAccessAddResult, earlyAccessProjection, earlyAccessRemoveResult, priorityProjection, registrationDecision, registrationDetailProjection, registrationExportCsv, registrationProjection, summaryProjection, verifiedPriorityClaims, verifiedStaffRegistrationClaims } from "./registration-contract.server";
 import type { StaffArea } from "./ui-contract";
 import { registrationSettingsProjection } from "./registration-settings-contract.server";
@@ -15,6 +15,7 @@ import { decryptIdentityDocument, getIdentityCryptoConfig, type IdentityDocument
 import { getRegistrationTicketSecret } from "@/features/registration/ticket-crypto.server";
 import { renderRegistrationEmailPreviews } from "./email-previews.server";
 import { checkInDay, checkInResultProjection, checkInSummaryProjection, checkInUndoProjection } from "./check-in-contract.server";
+import { confirmationPreviewProjection } from "./confirmation-contract.server";
 import { launchReadinessProjection } from "./launch-readiness-contract.server";
 
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", Expires: "0",
@@ -234,7 +235,7 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         const observed = await current();
         const area = params.get("area");
         if (params.has("day") && (area !== "check-in" || !checkInDay(params.get("day")))) return respond({ state: "invalid-input" }, 400);
-        if (params.has("status") && (area !== "registration" || !validStaffRegistrationStatus(params.get("status")))) return respond({ state: "invalid-input" }, 400);
+        if (params.has("status") && (area !== "registration" || !validStaffRegistrationFilter(params.get("status")))) return respond({ state: "invalid-input" }, 400);
         if (area === "registration-detail" ? !staffUuid.test(params.get("requestId") ?? "") : params.has("requestId")) return respond({ state: "invalid-input" }, 400);
         if (["registration-detail", "registration-export"].includes(area ?? "") && (params.has("q") || params.has("query"))) return respond({ state: "invalid-input" }, 400);
         if (!area) {
@@ -244,10 +245,17 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         if (!session || !observed?.sessionPolicySatisfied) return respond({ state: "denied" }, 403);
         const own = await profile(config, backend, session, observed); if (!own) return respond({ state: "denied" }, 403);
         const search = params.get("query") ?? params.get("q") ?? "";
-        if (!["people", "audit", "participants", "registration", "registration-detail", "registration-export", "priority", "early-access", "registration-settings", "email-previews", "summary", "check-in", "launch-readiness"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)
-          || ["registration-settings", "email-previews", "check-in", "launch-readiness"].includes(area) && search !== "") return respond({ state: "invalid-input" }, 400);
+        if (!["people", "audit", "participants", "registration", "registration-detail", "registration-export", "priority", "early-access", "registration-settings", "registration-confirmation-preview", "email-previews", "summary", "check-in", "launch-readiness"].includes(area) || search.length > 120 || /[\x00-\x1f\x7f]/.test(search)
+          || ["registration-settings", "registration-confirmation-preview", "email-previews", "check-in", "launch-readiness"].includes(area) && search !== "") return respond({ state: "invalid-input" }, 400);
         if (!canReadStaffArea(own.roles, area as StaffArea)) return respond({ state: "denied" }, 403);
-        if (["registration-export", "early-access", "registration-settings", "email-previews", "launch-readiness"].includes(area) && (observed.authenticationTier !== "super_admin" || !observed.mfaValid)) return respond({ state: "denied" }, 403);
+        if (["registration-export", "early-access", "registration-settings", "registration-confirmation-preview", "email-previews", "launch-readiness"].includes(area) && (observed.authenticationTier !== "super_admin" || !observed.mfaValid)) return respond({ state: "denied" }, 403);
+        if (area === "registration-confirmation-preview") {
+          const read = await optionalRpc(backend, "msrc_staff_registration_confirmation_preview", { edition_key: config.editionKey }, session.accessToken);
+          if (read === missingRpc || record(read)?.state === "area_not_ready") return respond({ state: "area-not-ready" }, 503);
+          if (record(read)?.state === "denied") return respond({ state: "denied" }, 403);
+          const confirmationPreview = record(read)?.state === "ready" && confirmationPreviewProjection(record(read)?.confirmation);
+          return confirmationPreview ? respond({ state: "authenticated", profile: own, confirmationPreview }) : respond({ state: "unavailable" }, 503);
+        }
         if (area === "launch-readiness") {
           const reads = await Promise.all([
             optionalRpc(backend, "msrc_staff_launch_readiness", { edition_key: config.editionKey }, session.accessToken),
@@ -255,6 +263,8 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
           ]);
           if (reads.includes(missingRpc)) return respond({ state: "area-not-ready" }, 503);
           if (reads.some((read) => record(read)?.state === "denied")) return respond({ state: "denied" }, 403);
+          if (record(reads[0])?.state === "ready" && (!Object.hasOwn(record(reads[0])!, "confirmationSettingsSet")
+            || !Object.hasOwn(record(record(reads[0])?.requiredRpcs) ?? {}, "confirmation"))) return respond({ state: "area-not-ready" }, 503);
           const settingsSource = record(record(reads[1])?.settings);
           if (settingsSource && !Object.hasOwn(settingsSource, "conference_days")) return respond({ state: "area-not-ready" }, 503);
           const settings = registrationSettingsProjection(reads[1], config.editionKey);
@@ -305,6 +315,7 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
             "Content-Disposition": `attachment; filename="registration-${config.editionKey}.csv"`,
             ...(changed ? { "Set-Cookie": staffCookie(config, session, now) } : {}) } });
         }
+        if (area === "registration" && params.get("status")?.startsWith("confirmation_") && data.confirmationVersion !== 1) return respond({ state: "area-not-ready" }, 503);
         if (["registration", "priority", "early-access", "summary"].includes(area)) {
           if (data.state !== "ready") return respond({ state: "unavailable" }, 503);
           const projection = area === "registration" ? registrationProjection(data.registration)
@@ -511,6 +522,19 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         const registration = registrationProjection(result?.registration), decided = registrationDecision(result?.decided, payload.requestIds!.length, payload.action);
         return result?.state === "updated" && registration && decided
           ? respond({ state: "updated", registration, decided }) : respond({ state: "unavailable" }, 503);
+      }
+      if (payload.action === "registration-confirmation-start") {
+        const own = await profile(config, backend, session, observed);
+        if (!own?.roles.includes("superAdmin") || observed.authenticationTier !== "super_admin" || !observed.mfaValid) return respond({ state: "denied" }, 403);
+        const read = await optionalRpc(backend, "msrc_staff_registration_confirmation_start", { edition_key: config.editionKey, operation_id: payload.operationId,
+          nonresponse_policy: payload.nonresponsePolicy, preview_token: payload.previewToken }, session.accessToken);
+        if (read === missingRpc || record(read)?.state === "area_not_ready") return respond({ state: "area-not-ready" }, 503);
+        const result = record(read);
+        if (result?.state === "denied") return respond({ state: "denied" }, 403);
+        if (result?.state === "conflict") return respond({ state: "operation-conflict" }, 409);
+        if (result?.state === "not_due") return respond({ state: "confirmation-not-due" }, 409);
+        return result?.state === "updated" && Object.keys(result).sort().join(",") === "opened,state" && Number.isSafeInteger(result.opened) && Number(result.opened) >= 0
+          ? respond({ state: "updated", confirmationOpened: result.opened }) : respond({ state: "unavailable" }, 503);
       }
       if (payload.action === "registration-settings-save") {
         const own = await profile(config, backend, session, observed);

@@ -41,7 +41,7 @@ not production configuration or launch approval.
 | 2 | Durable transactional email outbox and bounded, deduplicated jobs |
 | 3 — staff backend implemented | Private staff queue, bulk approval, serialized seat allocation, manual waitlist, organizing-team priority and scoped counts. Timed offers and export remain separate work. |
 | 4 — Tasks 3–4 implemented | QR ticket, six DRAFT transactional email templates, atomic outbox events, closed cron bridge, participant status/countdown, offer acceptance, decline and self-cancellation. Early access uses ORG-056's email list. |
-| 5 | Confirm-your-seat response and release of unanswered allocations to the waitlist |
+| 5 — ENG-064 implemented, closed | Confirm-your-seat, voluntary release and explicit Super Admin nonresponse policy, transactional draft emails, queue and readiness integration |
 
 Payments, if the owner selects paid registration, and workshop booking are
 separate. Wallet passes are later work. No staff queue/bulk-action UI, ticket,
@@ -767,3 +767,68 @@ The EN/AR browser detail test covers every label, actor, RTL,
 overflow and axe. Database execution and database lint remain CI-only because
 this checkout has no local Docker. No hosted migration, settings seed, participant
 opening, feature activation or real email is part of this change.
+
+## Confirm your seat — ENG-064 / Night-3 Task 4
+
+The confirm-your-seat slice remains closed. The owner enters
+`confirm_seat_lead_days`, `confirm_seat_response_hours` and `conference_days`;
+none are seeded. The opening boundary is midnight in Asia/Riyadh on the first
+configured conference day minus the lead days. A Super Admin with current
+exact-session TOTP reviews the actual eligible recipient count and explicitly
+chooses `release_unconfirmed` or `keep_unconfirmed`. Neither is preselected.
+The v0.5 source supplies REG-04/06/07, AT-05/06 and TIM-01/02, but no specific
+nonresponse rule; this choice implements the owner's explicit fallback.
+
+Start is bound to an operation UUID and a preview digest of the current
+recipients/settings. A stale preview requires another review; it does not send
+to a silently changed set. Only approved requests without an existing window
+receive one. A started round also covers later approvals;
+their full response window starts when opened, using the snapshotted round
+duration/policy. Repetition never resets a deadline or changes a policy.
+The dialog explicitly explains this ongoing scope. There is no invented
+first-day upper cutoff, so an owner-entered lead time of zero remains usable.
+
+The database clock decides every transition under the edition settings lock.
+All confirmation entry points require READ COMMITTED before authorization or
+early returns. Participant confirmation changes `approved` to `confirmed` and
+keeps the exact existing ticket. Voluntary release cancels the request, revokes
+the ticket, writes immutable audit and passes the seat through the existing
+waitlist helper. At the deadline, release policy performs that same release;
+keep policy leaves the request approved and its ticket issued, with an explicit
+`kept` outcome. The UI countdown never changes entitlement locally.
+
+The private own-status projection adds `confirmationVersion: 1` and
+`request.confirmation: null | {state, deadline}`. `state` is `awaiting`,
+`confirmed`, `released` or `kept`. HTTP `MyRegistrationResponse.registration`
+receives only that safe projection; request/actor/session IDs remain server-side.
+POST `/api/registration/me` adds `confirm` and `release` to the existing exact
+`{action, operationId, formToken}` contract and retains origin/session tokens,
+rate limiting, verified email, age and account/registration gates. Missing RPCs
+and old status projections show `area-not-ready` without clearing the login.
+
+Staff queue filters add `confirmation_awaiting`, `confirmation_confirmed` and
+`confirmation_released`. Counts add `confirmationAwaiting`,
+`confirmationConfirmed` and `confirmationReleased`; these are subsets, never
+additional occupied seats. Rows/details carry `{state,deadline}|null` and the
+timeline labels opening, confirmation, release and keep outcomes in EN/AR.
+GET `/api/staff-portal?area=registration-confirmation-preview` returns
+`confirmationPreview:{eligibleCount,opensAt,responseHours,settingsReady,canStart,previewToken}`.
+POST adds `registration-confirmation-start` with `operationId`,
+`nonresponsePolicy`, `previewToken` and the existing `formToken`. Success returns
+`confirmationOpened`; stale review returns `operation-conflict` and too-early
+start returns `confirmation-not-due`. Registration administrators may read
+confirmation status; starting remains Super Admin-only in both HTTP and SQL.
+Launch readiness adds the explicit confirmation settings/RPC checks and displays
+the configured lead days and response hours.
+
+Opening/release emails use the outbox in the business transaction and are
+[DRAFT for owner approval](REGISTRATION_EMAILS.md#draft--please-confirm-your-seat).
+No new scheduler is introduced: existing explicit read/action expiry maintains
+correctness between invocations, and the authenticated outbox drain advances
+already-authorized rounds while its existing gates permit. Ticket reads and
+check-in also enforce elapsed confirmation deadlines. The existing daily source
+cron is unchanged; timely background processing/delivery still requires the
+owner's plan/cadence and budget review before activation.
+
+The [O9 receipt](../progress/2026-10-23-codex-night3-confirm-seat.md) records exact
+migration/RPC signatures, checks, screenshots and CI-only database gates.

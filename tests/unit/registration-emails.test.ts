@@ -8,7 +8,9 @@ import { createConsoleOutboxSender, createResendOutboxSender, createTestOutboxSe
 function message(template: RegistrationEmailTemplate, locale = "en"): OutboxMessage {
   return { id: "b1000000-0000-4000-8000-000000000001", template_key: template, template_version: 1,
     recipient_email: "participant@example.invalid", locale,
-    payload: template === "registration_offered" ? { offer_expires_at: "2026-11-19T17:00:00+00:00" } : {},
+    payload: template === "registration_offered" ? { offer_expires_at: "2026-11-19T17:00:00+00:00" }
+      : template === "registration_confirm_seat"
+        ? { confirm_expires_at: "2027-01-24T17:00:00+00:00", nonresponse_policy: "release_unconfirmed" } : {},
     attempt_count: 1, lease_token: "b2000000-0000-4000-8000-000000000001", lease_expires_at: "2026-11-18T17:02:00Z",
     provider_idempotency_key: "synthetic-registration-message", provider_request: null, first_attempt_at: "2026-11-18T17:00:00Z" };
 }
@@ -36,6 +38,22 @@ describe("DRAFT English registration email templates", () => {
     const rendered = renderOutboxMessage(message("registration_offered"));
     expect(rendered.text).toContain("19 November 2026 at 20:00 (Asia/Riyadh)");
     expect(rendered.subject).toBe("A seat is offered to you: reply within 24 hours");
+  });
+
+  it.each(["release_unconfirmed", "keep_unconfirmed"])("renders the persisted confirmation deadline and explicit %s policy", (policy) => {
+    const input = message("registration_confirm_seat");
+    const rendered = renderOutboxMessage({ ...input, payload: { ...input.payload, nonresponse_policy: policy } });
+    expect(rendered.subject).toBe("Please confirm your seat by 24 January 2027 at 20:00 (Asia/Riyadh)");
+    expect(rendered.text).toContain(policy === "release_unconfirmed"
+      ? "your seat will be released and your ticket will no longer be valid" : "your seat and ticket will be kept");
+  });
+
+  it.each([{}, { confirm_expires_at: "2027-01-24T17:00:00Z" },
+    { confirm_expires_at: "tomorrow", nonresponse_policy: "keep_unconfirmed" },
+    { confirm_expires_at: "2027-01-24T17:00:00Z", nonresponse_policy: "" },
+    { confirm_expires_at: "2027-01-24T17:00:00Z", nonresponse_policy: "release_unconfirmed", name: "private" },
+  ])("refuses confirmation payload without exact deadline and policy %j", (payload) => {
+    expect(() => renderOutboxMessage({ ...message("registration_confirm_seat"), payload })).toThrow();
   });
 
   it.each([

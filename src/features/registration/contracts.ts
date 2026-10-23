@@ -14,9 +14,10 @@ export interface RegistrationResponse {
 
 export type ParticipantRegistrationStatus = "pending_approval" | "waitlisted" | "offered" | "approved" | "confirmed"
   | "approved_awaiting_payment" | "cancelled" | "expired";
-export type MyRegistration = { status: ParticipantRegistrationStatus; createdAt: string; offerExpiresAt: string | null };
+export type SeatConfirmation = { state: "awaiting" | "confirmed" | "released" | "kept"; deadline: string };
+export type MyRegistration = { status: ParticipantRegistrationStatus; createdAt: string; offerExpiresAt: string | null; confirmation: SeatConfirmation | null };
 export type RegistrationWindow = { state: "early-access" | "scheduled" | "open" | "closed"; eligible: boolean; opensAt: string | null };
-export type RegistrationAction = "accept" | "decline" | "cancel";
+export type RegistrationAction = "accept" | "decline" | "cancel" | "confirm" | "release";
 export type RegistrationAttendanceDay = { conferenceDay: string; checkedInAt: string | null };
 export type MyRegistrationResponse = {
   state: "ready";

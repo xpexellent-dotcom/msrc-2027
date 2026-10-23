@@ -17,8 +17,8 @@ function dateTime(value: string, locale: Locale) {
 }
 
 /** A display clock only: reaching zero never changes the registration state. */
-function OfferCountdown({ expiresAt, serverTime, locale, onDeadline }: {
-  expiresAt: string; serverTime: string; locale: Locale; onDeadline: () => void;
+function RegistrationCountdown({ expiresAt, serverTime, locale, onDeadline, kind = "offer" }: {
+  expiresAt: string; serverTime: string; locale: Locale; onDeadline: () => void; kind?: "offer" | "confirmation";
 }) {
   const [elapsed, setElapsed] = useState(0);
   const duration = Math.max(0, Date.parse(expiresAt) - Date.parse(serverTime));
@@ -38,11 +38,11 @@ function OfferCountdown({ expiresAt, serverTime, locale, onDeadline }: {
   const number = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { minimumIntegerDigits: 2 });
   const time = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map((value) => number.format(value)).join(":");
   return <div className="registration-offer-clock">
-    <p>{copy.deadline} <time dateTime={expiresAt}><bdi dir="ltr">{dateTime(expiresAt, locale)}</bdi></time> <span>{locale === "ar" ? "(توقيت الرياض)" : "(Riyadh time)"}</span></p>
-    <p data-testid="offer-countdown" role="timer" aria-live="off" aria-label={copy.remaining}>
+    <p>{kind === "confirmation" ? copy.confirmationDeadline : copy.deadline} <time dateTime={expiresAt}><bdi dir="ltr">{dateTime(expiresAt, locale)}</bdi></time> <span>{locale === "ar" ? "(توقيت الرياض)" : "(Riyadh time)"}</span></p>
+    <p data-testid={`${kind}-countdown`} role="timer" aria-live="off" aria-label={copy.remaining}>
       <span>{copy.remaining}</span> <bdi dir="ltr">{time}</bdi>
     </p>
-    {seconds === 0 ? <p>{copy.deadlinePassed}</p> : null}
+    {seconds === 0 ? <p>{kind === "confirmation" ? copy.confirmationExpired : copy.deadlinePassed}</p> : null}
   </div>;
 }
 
@@ -53,12 +53,13 @@ export function MyRegistration({ locale, initial, initialForm }: {
   const [result, setResult] = useState(initial);
   const [pending, setPending] = useState(false);
   const [checking, setChecking] = useState(initial.state === "denied");
-  const [confirmation, setConfirmation] = useState<"cancel" | "decline" | null>(null);
+  const [confirmation, setConfirmation] = useState<"cancel" | "decline" | "release" | null>(null);
   const operation = useRef<{ action: RegistrationAction; id: string } | null>(null);
   const requestSequence = useRef(0), busy = useRef(false);
   const readController = useRef<AbortController | null>(null);
   const statusHeading = useRef<HTMLHeadingElement>(null), confirmationHeading = useRef<HTMLHeadingElement>(null);
   const actionButtons = useRef<HTMLDivElement>(null);
+  const confirmationActions = useRef<HTMLDivElement>(null);
   const refresh = useCallback(() => {
     if (busy.current) return;
     readController.current?.abort();
@@ -97,7 +98,10 @@ export function MyRegistration({ locale, initial, initialForm }: {
   const ready = !checking && result.state === "ready" ? result : null;
   const status = ready?.registration?.status ?? "not_requested";
   const ticket = ready && ["approved", "confirmed"].includes(status) ? ready.ticket : null;
-  const canCancel = ready?.registration && ["pending_approval", "waitlisted", "offered", "approved"].includes(status);
+  const seatConfirmation = ready?.registration?.confirmation;
+  const awaitingConfirmation = status === "approved" && seatConfirmation?.state === "awaiting";
+  const canRelease = awaitingConfirmation || status === "confirmed" && seatConfirmation?.state === "confirmed";
+  const canCancel = !canRelease && ready?.registration && ["pending_approval", "waitlisted", "offered", "approved"].includes(status);
   const canRequest = ready && !ready.registration && ready.window.eligible && ["early-access", "open"].includes(ready.window.state);
   const error = checking ? copy.checking : result.state === "denied" ? copy.denied : result.state === "area-not-ready" ? copy.areaNotReady
     : result.state === "closed" ? copy.closed : result.state === "limited" ? copy.limited : result.state === "invalid_input" ? copy.invalid : copy.unavailable;
@@ -114,7 +118,18 @@ export function MyRegistration({ locale, initial, initialForm }: {
           {ready.window.opensAt && ["scheduled", "early-access"].includes(ready.window.state) ? <p>{ready.window.state === "early-access" ? copy.generalOpening : copy.scheduled} <time dateTime={ready.window.opensAt}><bdi dir="ltr">{dateTime(ready.window.opensAt, locale)}</bdi></time> {locale === "ar" ? "(توقيت الرياض)" : "(Riyadh time)"}</p> : null}
         </div> : null}
         {ready.fewPlacesLeft && !ready.registration ? <p className="registration-few-places" data-testid="few-places-left">{copy.fewPlaces}</p> : null}
-        {status === "offered" && ready.registration?.offerExpiresAt ? <OfferCountdown key={ready.serverTime} expiresAt={ready.registration.offerExpiresAt} serverTime={ready.serverTime} locale={locale} onDeadline={refresh} /> : null}
+        {status === "offered" && ready.registration?.offerExpiresAt ? <RegistrationCountdown key={ready.serverTime} expiresAt={ready.registration.offerExpiresAt} serverTime={ready.serverTime} locale={locale} onDeadline={refresh} /> : null}
+        {awaitingConfirmation ? <section className="registration-seat-confirmation" aria-labelledby="registration-seat-confirmation-title" data-testid="seat-confirmation">
+          <h3 id="registration-seat-confirmation-title">{copy.confirmationTitle}</h3>
+          <p>{copy.confirmationHint}</p>
+          <RegistrationCountdown key={ready.serverTime} kind="confirmation" expiresAt={seatConfirmation.deadline} serverTime={ready.serverTime} locale={locale} onDeadline={refresh} />
+          {!confirmation ? <div className="participant-account-actions" ref={confirmationActions}>
+            <Button onClick={() => void act("confirm")} loading={pending} loadingLabel={copy.working}>{copy.confirmSeat}</Button>
+            <Button data-registration-action="release" variant="secondary" disabled={pending} onClick={() => setConfirmation("release")}>{copy.releaseSeat}</Button>
+          </div> : null}
+        </section> : null}
+        {seatConfirmation?.state === "kept" ? <p className="participant-account-status" data-testid="confirmation-kept">{copy.confirmationKept}</p> : null}
+        {seatConfirmation?.state === "released" ? <p className="participant-account-status" data-testid="confirmation-released">{copy.confirmationReleased}</p> : null}
         {ticket?.status === "issued" ? <div className="registration-ticket" data-testid="registration-ticket">
           <dl className="participant-account-profile"><div><dt>{ticketCopy.reference}</dt><dd><bdi dir="ltr" data-testid="ticket-reference">{ticket.referenceCode}</bdi></dd></div></dl>
           {ticket.qrDataUrl?.startsWith("data:image/png;base64,") ? <figure className="registration-ticket-qr">
@@ -134,13 +149,13 @@ export function MyRegistration({ locale, initial, initialForm }: {
           </div>)}</dl><p className="field-hint">{copy.attendanceHint}</p>
         </section> : null}
         {confirmation ? <section className="registration-confirmation" aria-labelledby="registration-confirm-title" data-testid="registration-confirmation">
-          <h3 id="registration-confirm-title" tabIndex={-1} ref={confirmationHeading}>{confirmation === "cancel" ? copy.cancelTitle : copy.declineTitle}</h3>
-          <p>{confirmation === "cancel" ? copy.cancelMessage : copy.declineMessage}</p>
+          <h3 id="registration-confirm-title" tabIndex={-1} ref={confirmationHeading}>{confirmation === "cancel" ? copy.cancelTitle : confirmation === "release" ? copy.releaseTitle : copy.declineTitle}</h3>
+          <p>{confirmation === "cancel" ? copy.cancelMessage : confirmation === "release" ? copy.releaseMessage : copy.declineMessage}</p>
           <div className="participant-account-actions">
-            <Button onClick={() => void act(confirmation)} loading={pending} loadingLabel={copy.working}>{confirmation === "cancel" ? copy.confirmCancel : copy.confirmDecline}</Button>
+            <Button onClick={() => void act(confirmation)} loading={pending} loadingLabel={copy.working}>{confirmation === "cancel" ? copy.confirmCancel : confirmation === "release" ? copy.confirmRelease : copy.confirmDecline}</Button>
             <Button variant="secondary" disabled={pending} onClick={() => {
               const action = confirmation; setConfirmation(null);
-              requestAnimationFrame(() => actionButtons.current?.querySelector<HTMLButtonElement>(`[data-registration-action="${action}"]`)?.focus());
+              requestAnimationFrame(() => (awaitingConfirmation ? confirmationActions : actionButtons).current?.querySelector<HTMLButtonElement>(`[data-registration-action="${action}"]`)?.focus());
             }}>{copy.keep}</Button>
           </div>
         </section> : <div className="participant-account-actions" ref={actionButtons}>
@@ -148,6 +163,7 @@ export function MyRegistration({ locale, initial, initialForm }: {
             <Button onClick={() => void act("accept")} loading={pending} loadingLabel={copy.working}>{copy.accept}</Button>
             <Button data-registration-action="decline" variant="secondary" disabled={pending} onClick={() => setConfirmation("decline")}>{copy.decline}</Button>
           </> : null}
+          {canRelease && !awaitingConfirmation ? <Button data-registration-action="release" variant="secondary" disabled={pending} onClick={() => setConfirmation("release")}>{copy.releaseSeat}</Button> : null}
           {canCancel ? <Button data-registration-action="cancel" variant="ghost" disabled={pending} onClick={() => setConfirmation("cancel")}>{copy.cancel}</Button> : null}
         </div>}
       </> : null}

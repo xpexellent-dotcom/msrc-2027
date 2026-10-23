@@ -2,7 +2,7 @@ import { PERMISSION_RULES, ROLES, type Operation, type Role } from "@/lib/permis
 import type { StaffArea } from "./ui-contract";
 
 export const STAFF_ROLES = ROLES.filter((role) => role !== "participant");
-export type StaffMenuKey = Exclude<StaffArea, "summary" | "registration-detail" | "registration-export"> | "security" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship";
+export type StaffMenuKey = Exclude<StaffArea, "summary" | "registration-detail" | "registration-export" | "registration-confirmation-preview"> | "security" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship";
 type MenuDefinition = { key: StaffMenuKey; built: boolean; englishOnly?: boolean } & ({ operation: Operation; ownAccount?: never } | { key: "security"; ownAccount: true; operation?: never });
 export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "security", ownAccount: true, built: true },

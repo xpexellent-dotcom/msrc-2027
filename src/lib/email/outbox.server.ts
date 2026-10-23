@@ -46,7 +46,7 @@ export function syntheticRecipient(value: string): boolean {
 }
 
 export const registrationEmailTemplates = ["registration_received", "registration_approved", "registration_offered",
-  "registration_waitlisted", "registration_expired", "registration_cancelled"] as const;
+  "registration_waitlisted", "registration_expired", "registration_cancelled", "registration_confirm_seat", "registration_seat_released"] as const;
 export type RegistrationEmailTemplate = typeof registrationEmailTemplates[number];
 
 /** Destinations come only from the current verified Auth identity in the business transaction. */
@@ -58,7 +58,8 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
 }
 
-/** ORG-057 approved v1 wording; independent delivery activation gates remain (EML-04).
+/** First six templates have ORG-057 approval; confirm-seat/released templates are DRAFT.
+ * Independent wording and delivery activation gates remain (EML-04).
  * No bearer token, participant name, identity number or caller-supplied URL is accepted. */
 function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
   if (!registrationEmailTemplates.includes(message.template_key as RegistrationEmailTemplate)
@@ -67,10 +68,13 @@ function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
     throw new OutboxSendError("template_invalid", false);
   }
   const offered = message.template_key === "registration_offered";
-  const expiresAt = message.payload.offer_expires_at;
-  if (offered ? Object.keys(message.payload).length !== 1 || typeof expiresAt !== "string"
+  const confirmation = message.template_key === "registration_confirm_seat";
+  const expiresAt = confirmation ? message.payload.confirm_expires_at : message.payload.offer_expires_at;
+  if (offered || confirmation ? Object.keys(message.payload).length !== (confirmation ? 2 : 1) || typeof expiresAt !== "string"
     || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(expiresAt)
-    || !Number.isFinite(Date.parse(expiresAt)) : Object.keys(message.payload).length !== 0) {
+    || !Number.isFinite(Date.parse(expiresAt))
+    || (confirmation && !["release_unconfirmed", "keep_unconfirmed"].includes(String(message.payload.nonresponse_policy)))
+    : Object.keys(message.payload).length !== 0) {
     throw new OutboxSendError("template_invalid", false);
   }
   const registrationUrl = `${siteOrigin}/${message.locale}/registration`;
@@ -106,6 +110,23 @@ function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
     case "registration_cancelled":
       subject = "Your registration was cancelled";
       paragraphs = ["Your conference registration was cancelled. Any ticket for this registration is no longer valid.",
+        `Sign in to My registration: ${registrationUrl}`];
+      break;
+    case "registration_confirm_seat": {
+      const deadline = new Intl.DateTimeFormat("en-GB", { timeZone: conferenceConfig.timeZone,
+        dateStyle: "long", timeStyle: "short", hourCycle: "h23" }).format(new Date(expiresAt as string));
+      subject = `Please confirm your seat by ${deadline} (${conferenceConfig.timeZone})`;
+      paragraphs = ["Please confirm that you can attend on My registration. If you cannot attend, you can release your seat there.",
+        `Confirmation deadline: ${deadline} (${conferenceConfig.timeZone}).`,
+        message.payload.nonresponse_policy === "release_unconfirmed"
+          ? "If you do not respond by this deadline, your seat will be released and your ticket will no longer be valid."
+          : "If you do not respond by this deadline, your seat and ticket will be kept.",
+        `Sign in to My registration: ${registrationUrl}`];
+      break;
+    }
+    case "registration_seat_released":
+      subject = "Your seat was released";
+      paragraphs = ["Your conference seat was released. Your registration is cancelled and your ticket is no longer valid.",
         `Sign in to My registration: ${registrationUrl}`];
       break;
   }

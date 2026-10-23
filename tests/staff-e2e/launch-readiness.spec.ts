@@ -8,7 +8,7 @@ import type { StaffLaunchReadiness, StaffLaunchCheckKey, StaffPayload, StaffResp
 
 /** Synthetic presentation only. Handler and SQL suites prove authorization and server evaluation. */
 function snapshot(): StaffLaunchReadiness {
-  const keys: StaffLaunchCheckKey[] = ["migrations", "settings", "participantAccounts", "participantPolicy", "retention", "outboxDelivery", "outboxSweeps", "outboxCap", "conferenceDays", "approvers", "checkInStaff", "earlyAccess", "secondSuperAdmin", "health", "latestDrain"];
+  const keys: StaffLaunchCheckKey[] = ["migrations", "settings", "confirmationSettings", "participantAccounts", "participantPolicy", "retention", "outboxDelivery", "outboxSweeps", "outboxCap", "conferenceDays", "approvers", "checkInStaff", "earlyAccess", "secondSuperAdmin", "health", "latestDrain"];
   return { checks: keys.map((key) => ({ key, status: key === "latestDrain" || key === "approvers" ? "amber" : key === "retention" ? "red" : "green" })),
     environment: [
       { name: "PARTICIPANT_ACCOUNTS_ENABLED", present: true, valid: true, enabled: false, status: "amber" },
@@ -16,10 +16,10 @@ function snapshot(): StaffLaunchReadiness {
       { name: "REGISTRATION_TICKET_SECRET", present: false, valid: false, status: "red" },
       { name: "OUTBOX_BATCH_SIZE", present: false, valid: true, status: "green" },
     ],
-    requiredRpcs: { participantAccounts: true, registration: true, registrationSettings: true, earlyAccess: true, tickets: true, checkIn: true, outbox: true, health: true },
+    requiredRpcs: { confirmation: true, participantAccounts: true, registration: true, registrationSettings: true, earlyAccess: true, tickets: true, checkIn: true, outbox: true, health: true },
     staffCounts: Object.fromEntries(ROLES.filter((role) => role !== "participant").map((role) => [role, role === "superAdmin" ? 2 : role === "registrationWorkshopAdministrator" || role === "checkInStaff" ? 1 : 0])) as StaffLaunchReadiness["staffCounts"],
     earlyAccessCount: 7, outboxDailyCap: 400, participantEmailDailyLimit: 80, superAdminsWithAuthenticatorCount: 2, registrationEnabled: false,
-    settings: { general_capacity: 42, priority_start_at: "2028-03-01T17:00:00Z", priority_end_at: "2028-03-03T17:00:00Z", general_opening_at: "2028-03-03T17:00:00Z", closing_at: "2028-03-10T17:00:00Z", conference_days: ["2028-03-11", "2028-03-12"] },
+    settings: { confirm_seat_lead_days: 7, confirm_seat_response_hours: 48, general_capacity: 42, priority_start_at: "2028-03-01T17:00:00Z", priority_end_at: "2028-03-03T17:00:00Z", general_opening_at: "2028-03-03T17:00:00Z", closing_at: "2028-03-10T17:00:00Z", conference_days: ["2028-03-11", "2028-03-12"] },
   };
 }
 async function fixture(page: Page, options: { roles?: Role[]; missing?: boolean } = {}) {
@@ -57,6 +57,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("launch-check-retention")).toContainText(copy.status.red);
     await expect(page.getByTestId("launch-check-latestDrain")).toContainText(copy.status.amber);
     await expect(page.getByTestId("launch-check-settings")).toContainText(copy.status.green);
+    await expect(page.getByTestId("launch-check-confirmationSettings")).toContainText(copy.status.green);
+    await expect(panel).toContainText(copy.confirmationLead);
+    await expect(panel).toContainText(copy.confirmationHours);
     await expect(panel.getByRole("link", { name: copy.guide })).toHaveAttribute("href", /\/docs\/runbooks\/ACTIVATION\.md$/);
     await expect(panel).toContainText("REGISTRATION_IDENTITY_ENCRYPTION_KEYS");
     await expect(panel).toContainText(locale === "ar" ? "٤٢" : "42");

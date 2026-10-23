@@ -20,11 +20,11 @@ const accessToken = "header." + Buffer.from(JSON.stringify(claims)).toString("ba
 const native: NativeStaffSession = { actorId, sessionId, accessToken, refreshToken: "synthetic-refresh" };
 const settings: StaffRegistrationSettingsView = { settings: null, settingsComplete: false, participantAccountsReady: false, history: [] };
 const aggregate = () => ({ state: "ready", participantAccountsEnabled: false, participantPolicyComplete: true, participantEmailDailyLimit: 40,
-  retentionEnabled: false, outboxDeliveryEnabled: false, outboxSweepsEnabled: false, outboxDailyCap: 0, registrationSettingsComplete: false,
+  retentionEnabled: false, outboxDeliveryEnabled: false, outboxSweepsEnabled: false, outboxDailyCap: 0, registrationSettingsComplete: false, confirmationSettingsSet: false,
   registrationEnabled: false, conferenceDaysSet: false, conferenceDayCount: 0, earlyAccessCount: 3,
   secondSuperAdminWithAuthenticator: true, superAdminsWithAuthenticatorCount: 2, healthReady: true, lastOutboxDrainObservable: false,
   staffCounts: Object.fromEntries(ROLES.filter((role) => role !== "participant").map((role) => [role, role === "superAdmin" ? 2 : 0])),
-  requiredRpcs: { participantAccounts: true, registration: true, registrationSettings: true, earlyAccess: true, tickets: true, checkIn: true, outbox: true, health: true } });
+  requiredRpcs: { confirmation: true, participantAccounts: true, registration: true, registrationSettings: true, earlyAccess: true, tickets: true, checkIn: true, outbox: true, health: true } });
 const environment = { REGISTRATION_TICKET_SECRET: "a".repeat(64), OUTBOX_MONITOR_SECRET: "synthetic_monitor_secret".repeat(3), PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT: "40" };
 let roles: Role[], policySatisfied: boolean, backend: StaffBackend, replies: Record<string, unknown>;
 function persisted() {
@@ -56,6 +56,15 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Super Admin launch readiness handler", () => {
+  it.each(["flag", "rpc"])("keeps the session and reports area-not-ready for a pre-confirmation %s aggregate", async (missing) => {
+    const legacy = aggregate() as Record<string, unknown>;
+    if (missing === "flag") delete legacy.confirmationSettingsSet;
+    else delete (legacy.requiredRpcs as Record<string, unknown>).confirmation;
+    replies.msrc_staff_launch_readiness = legacy;
+    const response = await handle(); expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ state: "area-not-ready" }); expect(backend.logout).not.toHaveBeenCalled();
+    expect(response.headers.get("set-cookie") ?? "").not.toContain("Max-Age=0");
+  });
   it("reads both exact-session RPCs and projects only configuration booleans, entered settings and aggregate counts", async () => {
     const response = await handle(), body = await response.json();
     expect(response.status).toBe(200); expect(response.headers.get("cache-control")).toContain("no-store");
@@ -127,6 +136,10 @@ describe("bounded readiness projection", () => {
       priority_end_at: null, general_opening_at: null, closing_at: null, offer_window_hours: null, places_remaining_threshold: null, minimum_age: null,
       waitlist_offer_hours: null, confirm_seat_lead_days: null, confirm_seat_response_hours: null, payment_window_hours: null, conference_days: ["2028-03-11"] } };
     expect(launchReadinessProjection(input, oneDay, environment)?.checks).toContainEqual({ key: "conferenceDays", status: "red" });
+    expect(launchReadinessProjection(input, oneDay, environment)?.checks).toContainEqual({ key: "confirmationSettings", status: "red" });
+    const timing = { ...oneDay, settings: { ...oneDay.settings!, confirm_seat_lead_days: 0, confirm_seat_response_hours: 48 } };
+    expect(launchReadinessProjection({ ...input, confirmationSettingsSet: true }, timing, environment)?.checks).toContainEqual({ key: "confirmationSettings", status: "green" });
+    expect(launchReadinessProjection({ ...input, confirmationSettingsSet: true }, oneDay, environment)).toBeNull();
     expect(launchReadinessProjection(input, settings, environment)).toBeNull();
   });
   it("requires the participant runtime and database email budgets to match", () => {

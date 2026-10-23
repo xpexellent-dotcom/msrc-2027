@@ -1,4 +1,5 @@
 import "server-only";
+import { seatConfirmationProjection } from "./confirmation-contract.server";
 import type { Role } from "@/lib/permissions/contract";
 import type { NativeStaffSession } from "./backend.server";
 import { staffUuid } from "./security.server";
@@ -15,7 +16,7 @@ const masked = (value: unknown) => value === null || typeof value === "string" &
 
 export function canReadStaffArea(roles: readonly Role[], area: StaffArea): boolean {
   if (area === "summary") return roles.some((role) => role !== "participant");
-  if (area === "early-access" || area === "launch-readiness") return roles.includes("superAdmin");
+  if (area === "early-access" || area === "launch-readiness" || area === "registration-confirmation-preview") return roles.includes("superAdmin");
   if (roles.includes("superAdmin")) return true;
   if (area === "check-in") return roles.includes("checkInStaff");
   return ["registration", "registration-detail", "participants"].includes(area) && roles.includes("registrationWorkshopAdministrator");
@@ -73,7 +74,8 @@ export function registrationCounts(value: unknown): StaffRegistrationCounts | nu
   // Existing hosted reads may precede the offers migration. Normalize only the
   // newly added fields; malformed values and unknown fields still fail closed.
   const row: Record<string, unknown> = { offered: 0, expired: 0, ...source };
-  if (!exact(row, ["pending", "approved", "waitlisted", "offered", "expired", "capacity", "remaining"])
+  if (!exact(row, ["pending", "approved", "waitlisted", "offered", "expired", "capacity", "remaining", ...["confirmationAwaiting", "confirmationConfirmed", "confirmationReleased"].filter((key) => Object.hasOwn(row, key))])
+    || ["confirmationAwaiting", "confirmationConfirmed", "confirmationReleased"].some((key) => Object.hasOwn(row, key) && !count(row[key]))
     || !count(row.pending) || !count(row.approved) || !count(row.waitlisted)
     || !count(row.offered) || !count(row.expired) || row.offered > row.approved
     || row.capacity !== null && !count(row.capacity) || row.remaining !== null && !count(row.remaining)
@@ -86,12 +88,13 @@ function registrationRequest(value: unknown): StaffRegistrationRequest | null {
   const source = record(value);
   if (!source) return null;
   const row: Record<string, unknown> = { offerExpiresAt: null, ticketStatus: null, ...source };
-  if (!exact(row, ["id", "actorId", "name", "email", "status", "priority", "createdAt", "decidedAt", "offerExpiresAt", "identityMasked", "ticketStatus"])
+  if (!exact(row, ["id", "actorId", "name", "email", "status", "priority", "createdAt", "decidedAt", "offerExpiresAt", "identityMasked", "ticketStatus", ...(Object.hasOwn(row, "confirmation") ? ["confirmation"] : [])])
     || !uuid(row.id) || !uuid(row.actorId) || !text(row.name, 200) || !text(row.email, 254)
     || !validStaffRegistrationStatus(row.status) || row.status === "all" || typeof row.priority !== "boolean"
     || !timestamp(row.createdAt) || row.decidedAt !== null && !timestamp(row.decidedAt)
     || row.offerExpiresAt !== null && !timestamp(row.offerExpiresAt) || !masked(row.identityMasked)
     || row.ticketStatus !== null && row.ticketStatus !== "issued" && row.ticketStatus !== "revoked") return null;
+  if (Object.hasOwn(row, "confirmation") && row.confirmation !== null && !seatConfirmationProjection(row.confirmation, String(row.status))) return null;
   return row as StaffRegistrationRequest;
 }
 
@@ -121,17 +124,18 @@ export function registrationDetailProjection(value: unknown, requestId: string):
     const row = record(value);
     if (!row || !exact(row, ["id", "event", "actorKind", "from", "to", "at", "performerName"]) || !uuid(row.id)
       || !["request.submitted", "request.approved", "request.waitlisted", "request.offered", "request.offer_expired",
-        "request.offer_accepted", "request.offer_declined", "request.cancelled", "ticket.issued", "ticket.revoked"].includes(row.event as string)
+        "request.offer_accepted", "request.offer_declined", "request.cancelled", "request.confirmation_opened", "request.seat_confirmed", "request.seat_released", "request.confirmation_kept", "ticket.issued", "ticket.revoked"].includes(row.event as string)
       || !["participant", "automatic", "staff"].includes(row.actorKind as string)
       || row.from !== null && (!validStaffRegistrationStatus(row.from) || row.from === "all")
       || row.to !== null && (!validStaffRegistrationStatus(row.to) || row.to === "all") || !timestamp(row.at)
       || row.performerName !== null && !text(row.performerName, 200)
       || row.actorKind !== "staff" && row.performerName !== null) return null;
-    const participant = ["request.submitted", "request.offer_accepted", "request.offer_declined", "request.cancelled"].includes(row.event as string);
-    const automatic = ["request.offer_expired", "ticket.issued", "ticket.revoked"].includes(row.event as string);
+    const participant = ["request.submitted", "request.offer_accepted", "request.offer_declined", "request.cancelled", "request.seat_confirmed"].includes(row.event as string);
+    const automatic = ["request.offer_expired", "request.confirmation_kept", "ticket.issued", "ticket.revoked"].includes(row.event as string);
     if (participant && row.actorKind !== "participant" || automatic && row.actorKind !== "automatic"
       || ["request.approved", "request.waitlisted"].includes(row.event as string) && row.actorKind !== "staff"
-      || row.event === "request.offered" && row.actorKind === "participant") return null;
+      || ["request.offered", "request.confirmation_opened"].includes(row.event as string) && row.actorKind === "participant"
+      || row.event === "request.seat_released" && row.actorKind === "staff") return null;
     // Submission and ticket audit records carry no request-state transition.
     const noTransition = ["request.submitted", "ticket.issued", "ticket.revoked"].includes(row.event as string);
     if (noTransition ? row.from !== null || row.to !== null : row.from === null || row.to === null) return null;
@@ -141,6 +145,8 @@ export function registrationDetailProjection(value: unknown, requestId: string):
       "request.offer_expired": [["offered"], ["expired"]], "request.offer_accepted": [["offered"], ["approved"]],
       "request.offer_declined": [["offered"], ["cancelled"]],
       "request.cancelled": [["pending_approval", "waitlisted", "offered", "approved"], ["cancelled"]],
+      "request.confirmation_opened": [["approved"], ["approved"]], "request.seat_confirmed": [["approved"], ["confirmed"]],
+      "request.seat_released": [["approved", "confirmed"], ["cancelled"]], "request.confirmation_kept": [["approved"], ["approved"]],
     };
     const transition = transitions[row.event as string];
     if (transition && (!transition[0].includes(row.from as string) || !transition[1].includes(row.to as string))) return null;

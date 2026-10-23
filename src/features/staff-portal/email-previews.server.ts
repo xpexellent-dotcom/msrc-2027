@@ -9,12 +9,16 @@ export function renderRegistrationEmailPreviews(): StaffEmailPreview[] {
     const message: OutboxMessage = {
       id: "e1000000-0000-4000-8000-000000000001", template_key: templateKey, template_version: 1,
       locale: "en", recipient_email: "sample@example.invalid",
-      payload: templateKey === "registration_offered" ? { offer_expires_at: "2026-11-19T17:00:00+00:00" } : {},
+      payload: templateKey === "registration_offered" ? { offer_expires_at: "2026-11-19T17:00:00+00:00" }
+        : templateKey === "registration_confirm_seat"
+          ? { confirm_expires_at: "2027-01-24T17:00:00+00:00", nonresponse_policy: "release_unconfirmed" } : {},
       attempt_count: 0, lease_token: "e2000000-0000-4000-8000-000000000001", lease_expires_at: "2026-11-18T17:02:00Z",
       provider_idempotency_key: "synthetic-preview-only", provider_request: null, first_attempt_at: "2026-11-18T17:00:00Z",
     };
     const rendered = renderOutboxMessage(message);
-    return { templateKey, templateVersion: message.template_version, recipient: rendered.to[0],
+    return { templateKey, templateVersion: message.template_version,
+      wordingStatus: templateKey === "registration_confirm_seat" || templateKey === "registration_seat_released" ? "draft" : "approved",
+      recipient: rendered.to[0],
       subject: rendered.subject, text: rendered.text, html: rendered.html };
   });
 }
