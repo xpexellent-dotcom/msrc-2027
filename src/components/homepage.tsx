@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { HeroMedia } from "@/components/hero-media";
 import { HeroScrollStage } from "@/components/hero-scroll-stage";
-import { RegistrationOpeningSummary } from "@/components/registration-opening-notice";
 import { CinematicFilm, CinematicFilmLink } from "@/components/cinematic-film";
 import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
@@ -60,7 +59,6 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
                 <ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink>
                 <Link className="hero-secondary" href={`/${locale}/program`}>{narrative.programmeAction}<Arrow /></Link>
               </div>
-              <RegistrationOpeningSummary locale={locale} />
             </div>
             {dates && <div className="hero-countdown"><ConferenceCountdown dates={dates} locale={locale} dateRange={dateRange} /></div>}
           </div>

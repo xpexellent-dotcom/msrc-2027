@@ -111,6 +111,9 @@ for (const locale of ["en", "ar"] as const) {
     await control(request);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/contact`);
+    await expect(page.getByRole("main")).not.toContainText(/Resend|does not keep a copy|لا يحتفظ الموقع بنسخة/);
+    await expect(page.locator("#contact-delivery-processing")).toHaveCount(0);
+    await expect(page.locator(".contact-form")).toHaveAttribute("aria-describedby", "contact-delivery-intro contact-required-hint");
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.locator(".contact-form fieldset")).not.toHaveAttribute("disabled", "");

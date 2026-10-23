@@ -200,7 +200,7 @@ export function EnabledContactForm({ locale, token: initialToken, testOnly = fal
   return (
     <form
       ref={form} className="contact-form contact-form--enabled" aria-labelledby="contact-form-title"
-      aria-describedby="contact-delivery-intro contact-delivery-processing contact-required-hint" onSubmit={submit} onInvalidCapture={nativeInvalid}
+      aria-describedby="contact-delivery-intro contact-required-hint" onSubmit={submit} onInvalidCapture={nativeInvalid}
       onChangeCapture={(event) => {
         const control = event.target;
         if (control instanceof HTMLInputElement || control instanceof HTMLSelectElement || control instanceof HTMLTextAreaElement) {
@@ -210,7 +210,6 @@ export function EnabledContactForm({ locale, token: initialToken, testOnly = fal
     >
       {testOnly ? <p className="contact-test-only" role="note" data-contact-test-only>{copy.testOnly}</p> : null}
       <p id="contact-delivery-intro" className="contact-delivery-intro">{copy.deliveryIntro}</p>
-      <p id="contact-delivery-processing" className="contact-processing-note">{copy.deliveryProcessing}</p>
       {/* Keep the fallback real SSR text: client-component noscript children
           are not reliably readable in the streamed document without JS. */}
       <p className="contact-closed-note" hidden={hydrated} data-contact-no-script>{copy.noScript}</p>
