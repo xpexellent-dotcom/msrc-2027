@@ -8,6 +8,7 @@ import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { siteOrigin } from "@/lib/metadata";
 import { renderParticipantBody } from "./participant-message.server";
 import { announcementTemplate, renderAnnouncementEmail, validAnnouncementPayload } from "./announcement.server";
+import { workshopNoticeTemplate, renderWorkshopNotice, validWorkshopNoticePayload } from "./workshop-message.server";
 
 export type EmailRequest = Readonly<{
   from: string;
@@ -61,7 +62,7 @@ export const abstractDecisionTemplate = { key: "abstract_decision", version: 1, 
 
 /** ORG-059: every new bilingual composition requires owner wording approval before delivery. */
 export function isDraftParticipantTemplate(key: string): boolean {
-  return key === announcementTemplate.key || key === abstractDecisionTemplate.key || registrationEmailTemplates.includes(key as RegistrationEmailTemplate);
+  return key === workshopNoticeTemplate.key || key === announcementTemplate.key || key === abstractDecisionTemplate.key || registrationEmailTemplates.includes(key as RegistrationEmailTemplate);
 }
 
 /** Destinations come only from the current verified Auth identity in the business transaction. */
@@ -187,6 +188,13 @@ function arabicDeadline(value: string): string {
 
 /** Preview DRAFT participant wording. Existing provider snapshots must never be rewritten. */
 export function renderOutboxMessage(message: OutboxMessage, translations?: ParticipantEmailTranslations): EmailRequest {
+  if (message.template_key === workshopNoticeTemplate.key) {
+    if (message.template_version !== workshopNoticeTemplate.version || message.locale !== "en"
+      || !validOutboxRecipient(message.recipient_email) || !validWorkshopNoticePayload(message.payload)) {
+      throw new OutboxSendError("template_invalid", false);
+    }
+    return renderWorkshopNotice(message.payload, message.recipient_email);
+  }
   if (message.template_key === announcementTemplate.key) {
     if (message.template_version !== announcementTemplate.version || message.locale !== "en"
       || !validOutboxRecipient(message.recipient_email) || !validAnnouncementPayload(message.payload)) {

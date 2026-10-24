@@ -351,6 +351,14 @@ jobs:
         env:
           ANNOUNCEMENT_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/announcement-concurrency.test.ts
+      - name: Reset the disposable database for workshop allocation proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify workshop last-seat, overlap and waiting-session races
+        if: ${{ !inputs.auth_stability }}
+        env:
+          WORKSHOP_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/workshop-concurrency.test.ts
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop

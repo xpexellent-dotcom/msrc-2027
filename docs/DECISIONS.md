@@ -4256,3 +4256,39 @@ The explicit task override authorizes a local commit on the existing
 `claude/banner-retention` branch, without push. No hosted migration, settings
 seed, flag activation, participant opening or real email. Evidence:
 `docs/progress/2026-10-23-claude-banner-retention.md`; never edit PROGRESS.md.
+
+## ENG-074 — Closed workshop booking and completion evidence, 24 October 2026
+
+Authority: Task n11, WKS-01–07, CHK-03/04, CRT-01, PRG-01, ROL-06/07/10/12,
+SEC-01/02/06 and LOC-01/03. Prepare the additive review-only migration
+`20261024120000_workshop_booking.sql` and bilingual participant/staff interfaces.
+Reuse registration's native session authority, server-only participant transport,
+transactional allocation, existing authenticated maintenance path and held outbox.
+
+No workshop price, capacity, date, eligibility, booking deadline, approval/payment
+window or transfer buffer is approved by this implementation. Operational settings
+remain unset, runtime booking defaults off, and database booking/payment gates
+default off. Only Super Admins configure booking policy; edition-scoped registration
+and workshop administrators and Super Admins manage workshop records and decisions.
+Check-in authority and authorized completion sign-off remain distinct.
+
+Requests require confirmed conference registration. Server-recorded valid request
+order governs allocations and the waitlist; staff click order cannot reorder it.
+Active holds, offers, reservations and confirmations count against capacity.
+Recheck current eligibility, registration and overlap at allocation transitions.
+Schedule changes that create conflicts require an explicit resolution record;
+they cannot silently preserve conflicting confirmed bookings. Workshop completion
+evidence is available for future CRT-01 use; this task issues no certificates and
+does not implement survey completion or a personal schedule builder.
+
+The current task explicitly requests **English transactional** workshop emails.
+This narrowly overrides ORG-059 for the new workshop notice draft only; existing
+bilingual participant templates keep their current behavior. Workshop notices
+are DRAFT, queued transactionally and held in SQL, with an independent worker
+delivery denial. No wording approval or real delivery is inferred.
+
+Leave all work uncommitted on `claude/workshop-booking`; no branch changes,
+pushes, hosted migrations, settings seeds, flag activation, participant opening
+or real emails. Evidence belongs in
+[the workshop receipt](progress/2026-10-24-claude-workshop-booking.md), with
+[feature notes](features/WORKSHOP_BOOKING.md). Do not edit `docs/PROGRESS.md`.

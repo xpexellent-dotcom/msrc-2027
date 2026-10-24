@@ -19,7 +19,7 @@ export type ResourceKind =
   | "participantRecord" | "participantOutcome" | "reviewPacket" | "reviewAssessment"
   | "reviewAssignment" | "validationOutcome" | "scientificAdministration"
   | "judgingReadiness" | "eventMaterial" | "eventScore" | "registrationOperation"
-  | "financeRecord" | "entryEntitlement" | "contentDraft" | "mediaAsset" | "sponsorInquiry"
+  | "financeRecord" | "entryEntitlement" | "workshopOperation" | "contentDraft" | "mediaAsset" | "sponsorInquiry"
   | "securityAdministration" | "auditMetadata" | "exportRequest"
   | "confidentialOriginal" | "presentationFile";
 
@@ -135,6 +135,7 @@ export const PERMISSION_RULES = Object.freeze({
   "judging.material.read": rule({ roles: ["facultyJudge"], kind: "eventMaterial", check: "judge", projection: "assignedEventMaterial", audit: null, sourceIds: ["ROL-06", "REV-10"] }),
   "judging.score.write": rule({ roles: ["facultyJudge"], kind: "eventScore", check: "judgeWrite", projection: "ownEventScore", audit: "judging.score", sourceIds: ["ROL-06", "REV-10"] }),
   "operations.registration.manage": rule({ roles: ["registrationWorkshopAdministrator"], kind: "registrationOperation", check: "scoped", projection: "registrationMinimum", audit: "registration.change", sourceIds: ["ROL-07"] }),
+  "operations.workshop.read": rule({ roles: ["registrationWorkshopAdministrator", "checkInStaff"], kind: "workshopOperation", check: "scoped", projection: "entryMinimum", audit: null, sourceIds: ["WKS-01", "CHK-03", "ROL-07", "ROL-08"], scopes: ["edition"] }),
   "finance.reconciliation.read": rule({ roles: ["finance"], kind: "financeRecord", check: "scoped", projection: "financeMinimum", audit: null, sourceIds: ["ROL-07"] }),
   "checkIn.entitlement.read": rule({ roles: ["checkInStaff"], kind: "entryEntitlement", check: "scoped", projection: "entryMinimum", audit: null, sourceIds: ["ROL-08"], scopes: ["function", "resource"] }),
   "content.draft.manage": rule({ roles: ["contentMediaEditor"], kind: "contentDraft", check: "scoped", projection: "assignedPublicDraft", audit: "content.draft", sourceIds: ["ROL-09"], scopes: ["function", "resource"] }),

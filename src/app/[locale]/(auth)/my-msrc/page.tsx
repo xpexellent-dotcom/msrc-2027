@@ -4,6 +4,7 @@ import { isLocale } from "@/lib/i18n";
 import { participantPageTitle, readParticipantPageState } from "@/features/participant-accounts/page-state.server";
 import { ParticipantAccountPage } from "@/features/participant-accounts/participant-page";
 import { readParticipantAnnouncementsPageState } from "@/features/announcements/participant-page-state.server";
+import { readWorkshopBookingsPageState } from "@/features/workshops/participant-page-state.server";
 
 export const dynamic = "force-dynamic";
 type PageProps = { params: Promise<{ locale: string }> };
@@ -18,6 +19,8 @@ export default async function Page({ params }: PageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const state = await readParticipantPageState(locale);
-  const announcements = state.profile ? await readParticipantAnnouncementsPageState(locale) : undefined;
-  return <ParticipantAccountPage locale={locale} screen="my-msrc" state={state} announcements={announcements} />;
+  const [announcements, workshopBookings] = state.profile ? await Promise.all([
+    readParticipantAnnouncementsPageState(locale), readWorkshopBookingsPageState(locale),
+  ]) : [undefined, undefined];
+  return <ParticipantAccountPage locale={locale} screen="my-msrc" state={state} announcements={announcements} workshopBookings={workshopBookings} />;
 }

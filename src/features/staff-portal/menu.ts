@@ -2,7 +2,7 @@ import { PERMISSION_RULES, ROLES, type Operation, type Role } from "@/lib/permis
 import type { StaffArea } from "./ui-contract";
 
 export const STAFF_ROLES = ROLES.filter((role) => role !== "participant");
-export type StaffMenuKey = Exclude<StaffArea, "summary" | "registration-detail" | "registration-export" | "registration-confirmation-preview"> | "security" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship" | "announcements";
+export type StaffMenuKey = Exclude<StaffArea, "summary" | "registration-detail" | "registration-export" | "registration-confirmation-preview"> | "security" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship" | "announcements" | "workshops";
 type MenuDefinition = { key: StaffMenuKey; built: boolean; englishOnly?: boolean } & ({ operation: Operation; ownAccount?: never } | { key: "security"; ownAccount: true; operation?: never });
 export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "security", ownAccount: true, built: true },
@@ -16,6 +16,7 @@ export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "launch-readiness", operation: "security.grant.manage", built: true },
   { key: "participants", operation: "operations.registration.manage", built: true },
   { key: "registration", operation: "operations.registration.manage", built: true },
+  { key: "workshops", operation: "operations.workshop.read", built: true },
   { key: "finance", operation: "finance.reconciliation.read", built: false },
   { key: "check-in", operation: "checkIn.entitlement.read", built: true },
   { key: "review", operation: "review.packet.read", built: true, englishOnly: true },

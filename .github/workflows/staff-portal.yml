@@ -68,6 +68,7 @@ jobs:
             playwright-staff-report/
             playwright-staff-password-report/
             .tools/staff-password-evidence/
+            .tools/workshops/
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7

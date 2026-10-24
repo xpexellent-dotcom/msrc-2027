@@ -22,6 +22,7 @@ import { HackathonHeartbeat, HackathonTechArt } from "@/components/hackathon-tec
 import { RegistrationOpeningNotice } from "@/components/registration-opening-notice";
 import { abstractDates } from "@/content/abstract-dates";
 import { formatRegistrationOpeningDate } from "@/content/registration-opening";
+import { usePublicWorkshopCatalogue } from "@/features/workshops/public-catalogue";
 import {
   experienceCopy, filterMedia, filterSessions, participationPaths, published,
   type ProgrammeDay, type ExperiencePageId, type MediaEditionFilter, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
@@ -369,14 +370,25 @@ function SideArtwork({ motif, area }: { motif: JourneyArtworkMotif; area: Artwor
   </div>;
 }
 
-function WorkshopRail({ locale, workshops }: { locale: Locale; workshops: readonly PublicWorkshop[] }) {
+function WorkshopRail({ locale, workshops: initialWorkshops }: { locale: Locale; workshops: readonly PublicWorkshop[] }) {
+  const workshops = usePublicWorkshopCatalogue(initialWorkshops);
   const copy = experienceCopy[locale];
   const heading = locale === "ar" ? "اختر مساحةً للتعلّم." : "Find your next skill.";
   return <section id="workshop-catalogue" tabIndex={-1} className="fluid-workshop-section fluid-art-surface participation-ambient" aria-labelledby="workshop-catalogue-title"><SideArtwork motif="workshops" area="rail" /><Container>
     <ArtworkHeading motif="workshops" area="rail"><h2 id="workshop-catalogue-title">{heading}</h2></ArtworkHeading>
     {!workshops.length ? <div data-testid="workshops-empty" className="fluid-workshop-pending"><h3>{copy.workshopsPending}</h3><p>{copy.workshopsPendingBody}</p></div> : null}
     <HorizontalRail locale={locale} label={copy.pages.workshops.label} className="fluid-workshop-rail">
-      {workshops.length ? workshops.map((workshop) => <article className="fluid-workshop-card" key={workshop.slug}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{workshop.title[locale]}</h3><p>{workshop.description[locale]}</p><p>{sessionClock(workshop.startAt, locale) ?? copy.timePending}{workshop.room ? ` · ${workshop.room}` : ""}</p>{workshop.eligibility ? <p>{workshop.eligibility[locale]}</p> : null}<StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
+      {workshops.length ? workshops.map((workshop) => <article className="fluid-workshop-card" key={workshop.slug}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{workshop.title[locale]}</h3><p>{workshop.description[locale]}</p>
+        {workshop.instructor ? <p>{locale === "ar" ? "المدرّب" : "Instructor"}: <bdi>{workshop.instructor}</bdi></p> : null}
+        <p>{sessionClock(workshop.startAt, locale) ?? copy.timePending}{workshop.endAt ? " – " + sessionClock(workshop.endAt, locale) : ""}{workshop.room ? ` · ${workshop.room}` : ""}</p>
+        {workshop.eligibility ? <p>{workshop.eligibility[locale]}</p> : null}
+        {workshop.capacity !== null ? <p>{locale === "ar" ? "السعة" : "Capacity"}: {new Intl.NumberFormat(locale).format(workshop.capacity)}</p> : null}
+        {workshop.remainingSeats !== null ? <p data-testid="workshop-public-remaining">{locale === "ar" ? "المقاعد المتاحة للحجز" : "Bookable seats"}: {new Intl.NumberFormat(locale).format(workshop.remainingSeats)}</p> : null}
+        {workshop.priceLabel ? <p>{workshop.priceLabel[locale]}</p> : null}
+        {workshop.bookingDeadline ? <p>{locale === "ar" ? "آخر موعد للحجز" : "Booking deadline"}: {new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Riyadh" }).format(new Date(workshop.bookingDeadline))} ({locale === "ar" ? "بتوقيت الرياض" : "Riyadh time"})</p> : null}
+        {workshop.transferBufferMinutes !== null && workshop.transferBufferMinutes !== undefined ? <p>{locale === "ar" ? "وقت الانتقال بالدقائق" : "Transfer buffer in minutes"}: {new Intl.NumberFormat(locale).format(workshop.transferBufferMinutes)}</p> : null}
+        {workshop.bookingAvailable ? <ButtonLink href={`/${locale}/my-msrc`} variant="secondary">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</ButtonLink> : <StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge>}
+      </div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
     </HorizontalRail>
   </Container></section>;
 }
