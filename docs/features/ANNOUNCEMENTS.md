@@ -1,6 +1,6 @@
 # Announcements — closed implementation
 
-Authority: ORG-061 and ENG-070, extending ORG-059's bilingual participant emails.
+Authority: ORG-061/062/063 and ENG-070/071/072, extending ORG-059's bilingual participant emails.
 Requirements: EML-01–05, LOC-01/03, ACC-01, ROL-10/12, SEC-01/02/06,
 PRV-03/05/06 and AT-16. The current organizer decision makes these essential
 communications with no opt-out, unsubscribe link or preference record.
@@ -17,7 +17,7 @@ There is no automatic translation. The shared renderer escapes content and uses
 the ORG-062 plain branded PLACEHOLDER banner, complete English, a divider, then complete
 Arabic with RTL. The live staff email frame previews this same renderer.
 
-## DRAFT email layout
+## Private layout approval
 
 Template: `announcement`, version `1`, locale stored as `en`; both languages are
 included in every composition. Payload has exactly `subject_en`, `subject_ar`,
@@ -26,12 +26,53 @@ or tracking link is added. Authored URLs remain plain text. The renderer inserts
 no participant-specific fields, bearer tokens, recipient lists or identifiers;
 the Super Admin remains responsible for the plain text they author.
 
-This layout is **DRAFT pending owner approval before sending**. The message
-wording is supplied by the Super Admin. The SQL delivery hold and the worker's
-DRAFT gate prevent delivery even if the general outbox switches are later enabled.
-Approval must be followed by a separately reviewed activation change; this task
-does not provide an activation shortcut or rewrite frozen provider requests.
-ORG-057's approved wording and all approved public legal text are unchanged.
+ORG-063 replaces the permanent announcement DRAFT gate with a private per-edition
+layout approval, **false by default**. A current Super Admin uses an audited,
+idempotent RPC through the staff screen to approve or withdraw approval. This is
+safer than a direct settings UPDATE: SQL rechecks exact-session TOTP and current
+authority, serializes changes against publication and records the actor/session.
+Direct client table access remains denied. No approval is seeded or activated by
+this implementation. Registration and abstract emails keep their independent
+DRAFT status; ORG-057's wording and approved public legal text are unchanged.
+
+When approval is off, publication behaves as before: recipients and inbox rows
+are created atomically and announcement email remains held. When approval is on,
+only **new publications** receive immutable `announcement_delivery='approved'`
+proof and enqueue without a hold. Approval is evaluated at actual publication,
+including scheduled dispatch. Disabling approval affects future publications;
+use the global outbox switches to stop already queued approved email.
+
+All old held messages remain held permanently. Approval never updates their hold,
+payload, provider request or release proof. There is no bulk-release action. A
+later communication requires a separately reviewed new announcement and audience
+preview; publishing it creates a new recipient/inbox snapshot.
+
+The worker requires database release proof, failing closed for older or malformed
+claim responses. The existing Resend outbox is the only delivery transport.
+Announcement claims require database `delivery_enabled`, positive database/runtime
+daily caps and `sweeps_enabled`. Provider preparation rechecks database delivery and
+sweep switches against the reserved attempt; runtime `OUTBOX_ENABLED`, production
+Resend configuration and the authenticated drain must also be ready.
+Neither layout approval nor enqueue means an email has been delivered.
+
+## Send a test to myself
+
+The Super Admin selects a saved draft with no unsaved changes and chooses “Send a
+test to myself”. SQL binds its version and derives the only destination from the
+acting account's current verified Auth address; the request has no recipient
+field. A test renders the exact saved English/Arabic subject/body and shared
+banner, without a test prefix or alternate template. It can be reviewed before
+layout approval using immutable `announcement_delivery='self_test'` proof, while
+obeying all the same global delivery gates and caps.
+
+Tests create one outbox message, no recipient snapshot and no inbox row. They
+leave announcement content/version/state and recipient totals unchanged. Durable
+operation IDs make uncertain retries reuse the same result, and a serialized
+actor-wide rolling-hour limit admits at most three distinct tests, across all
+editions. The audit records the actor/session and operation without an address.
+The staff screen says clearly when delivery is off and no email will arrive;
+queued tests wait for later owner-authorized activation and still consume the
+normal daily attempt budget if delivered. Review queued tests before activation.
 
 ## Audience and snapshot
 
@@ -101,6 +142,9 @@ Staff RPCs use the existing authenticated staff boundary:
 - `msrc_staff_announcement_preview(edition_key text, announcement_id uuid, expected_version integer)`
 - `msrc_staff_announcement_send(edition_key text, announcement_id uuid, expected_version integer, preview_token text, operation_id uuid, scheduled_at timestamptz default null)`
 - `msrc_staff_announcement_cancel(edition_key text, announcement_id uuid, expected_version integer, operation_id uuid)`
+- `msrc_staff_announcement_delivery_status(edition_key text)`
+- `msrc_staff_announcement_layout_approval(edition_key text, approved boolean, operation_id uuid)`
+- `msrc_staff_announcement_test_send(edition_key text, announcement_id uuid, expected_version integer, operation_id uuid)`
 
 Server-only RPCs:
 
@@ -115,9 +159,19 @@ Missing migration errors use the established readiness fallback.
 ## Review and activation
 
 No hosted migrations, seeds, settings, feature flags, participant access, scheduler
-activation, real email or push have been performed. A local commit is authorized;
-push is not. Owner/Claude review must cover the migration, permissions, SQL test
-and race evidence in disposable CI, native Arabic copy and DRAFT email layout.
+activation, real email, commit or push have been performed for ORG-063. Changes
+remain uncommitted for Claude. Owner/Claude review must cover the complete pending
+migration chain, permissions, SQL test and race evidence in disposable CI, native
+Arabic copy and announcement layout before any separate activation.
+
+The release migration is `20261024100000_announcement_release.sql` (pending).
+After review/deployment and separately authorized migration application, keep
+global delivery off, inspect the exact preview, and approve the layout with the
+Super Admin action. If an owner-authorized human self-test is needed, review
+queued jobs and separately approve the provider budget, processing/location,
+sender, authenticated drain and global switches before sending; verify actual
+inbox receipt in English/Arabic. The approval RPC never changes global switches.
+No activation step is executed by this task.
 ORG-062 now sets announcement, snapshot and inbox retention to one year after
 the last configured conference day. Pending migration
 `20261023160000_announcement_retention.sql` extends the existing server-only
@@ -152,3 +206,5 @@ See [the execution receipt](../progress/2026-10-23-claude-announcements.md) for
 commands, actual results and outstanding database/human checks.
 The retention/banner follow-up is recorded in
 [its receipt](../progress/2026-10-23-claude-banner-retention.md).
+The release-path evidence is recorded in
+[its receipt](../progress/2026-10-24-claude-announcement-release.md).
