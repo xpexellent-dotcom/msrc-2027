@@ -106,7 +106,7 @@ insert into msrc_workshops.orders(booking_id,kind,price_minor,due_minor,currency
  values('e7930000-0000-4000-8000-000000000001','mock',0,0,'SAR',pg_temp.registration_actor(9901));
 insert into msrc_competitions.settings(edition_key,kind,version,configuration) values('synthetic-reporting','hackathon',1,'{}'::jsonb);
 insert into msrc_competitions.entries(id,edition_key,kind,lead_id,version,document,status)
- values('e7940000-0000-4000-8000-000000000001','synthetic-reporting','hackathon',pg_temp.registration_actor(9901),1,'{}'::jsonb,'accepted');
+ values('e7940000-0000-4000-8000-000000000001','synthetic-reporting','hackathon',pg_temp.registration_actor(9901),1,'{"title":"Synthetic reporting entry","pitch":"Synthetic pitch.","participationMode":"team","track":"translating_research","declarations":{"newIdea":true,"notPreviouslyEntered":true,"notPrizeWinning":true,"notFunded":true,"notCommerciallyLaunched":true,"authorityConfirmed":true}}'::jsonb,'accepted');
 insert into msrc_competitions.roster(entry_id,actor_id,email,is_lead,confirmed)
  values('e7940000-0000-4000-8000-000000000001',pg_temp.registration_actor(9902),'registration-9902@example.invalid',false,true);
 
