@@ -1,0 +1,13 @@
+.research-participant { margin-block: var(--space-6); min-inline-size: 0; overflow-wrap: anywhere; }
+.research-participant > h2 { color: var(--color-purple); font-size: 1.35rem; line-height: 1.6; }
+.research-participant > [role="status"]:empty { display: none; }
+.research-participant > [role="status"] { margin-block: var(--space-4); line-height: 1.8; }
+.research-participant-list { display: grid; gap: var(--space-5); margin-block-start: var(--space-4); }
+.research-participant h3 { font-size: 1.2rem; line-height: 1.6; margin-block-end: var(--space-3); }
+.research-supervisor-form { margin-block-start: var(--space-5); padding-block-start: var(--space-5); border-block-start: 1px solid var(--color-line); }
+.research-supervisor-form h4 { font-size: 1.15rem; color: var(--color-purple); }
+.research-supervisor-form p { margin-block: var(--space-3); line-height: 1.8; }
+.research-supervisor-evidence { white-space: pre-wrap; }
+.research-supervisor-form .field-label { display: grid; gap: var(--space-2); min-inline-size: 0; }
+.research-supervisor-form .choice-label { align-items: start; }
+.research-supervisor-form .choice-label > span { min-inline-size: 0; }

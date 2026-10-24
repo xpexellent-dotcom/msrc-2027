@@ -1,0 +1,26 @@
+export const researchParticipantCopy = {
+  en: {
+    title: "Research presentations and awards", lead: "Your published presentation format and research awards.",
+    closed: "Research presentations and awards are not available yet.", denied: "Sign in with your verified account to view your research outcomes.",
+    notReady: "This area is not ready yet. Please try again later.", unavailable: "Your research outcomes could not be loaded. Please try again.",
+    empty: "No research presentation or award updates are available.", unpublished: "Your presentation format has not been published yet.",
+    format: "Presentation format", oral: "Oral presentation", poster: "Poster presentation", award: "Published award", refresh: "Refresh",
+    supervisor: "Winner supervisor confirmation", supervisorNote: "Please confirm your supervisor details for the award team's validation. Award confirmation is pending.",
+    deadline: "Response deadline (Riyadh time)", name: "Supervisor name", affiliation: "Supervisor affiliation", email: "Supervisor email",
+    confirmation: "I confirm these supervisor details are correct.", submit: "Confirm supervisor details", saved: "Your supervisor confirmation has been saved for the award team to validate.",
+    invalid: "Complete the supervisor details and confirm they are correct.", conflict: "The award request changed. Refresh before trying again.",
+    limited: "Too many attempts. Please wait before trying again.", locked: "This supervisor request is locked. Contact the scientific team.",
+  },
+  ar: {
+    title: "العروض البحثية والجوائز", lead: "صيغة عرضك المنشورة وجوائزك البحثية.",
+    closed: "العروض البحثية والجوائز غير متاحة حاليًا.", denied: "سجّل الدخول بحسابك الموثّق للاطلاع على نتائج بحثك.",
+    notReady: "هذا القسم غير جاهز بعد. يُرجى المحاولة لاحقًا.", unavailable: "تعذّر تحميل نتائج بحثك. يُرجى المحاولة مجددًا.",
+    empty: "لا توجد تحديثات متاحة للعروض البحثية أو الجوائز.", unpublished: "لم تُنشر صيغة عرضك بعد.",
+    format: "صيغة العرض", oral: "عرض شفهي", poster: "عرض ملصق", award: "الجائزة المنشورة", refresh: "تحديث",
+    supervisor: "تأكيد مشرف الفائز", supervisorNote: "يُرجى تأكيد بيانات مشرفك ليتحقق منها فريق الجوائز. تأكيد الجائزة قيد الانتظار.",
+    deadline: "الموعد النهائي للرد (بتوقيت الرياض)", name: "اسم المشرف", affiliation: "جهة انتساب المشرف", email: "البريد الإلكتروني للمشرف",
+    confirmation: "أؤكد صحة بيانات المشرف هذه.", submit: "تأكيد بيانات المشرف", saved: "حُفظ تأكيد بيانات مشرفك ليتحقق منه فريق الجوائز.",
+    invalid: "أكمل بيانات المشرف وأكّد صحتها.", conflict: "تغيّر طلب الجائزة. حدّث الصفحة قبل المحاولة مجددًا.",
+    limited: "محاولات كثيرة. يُرجى الانتظار قبل المحاولة مجددًا.", locked: "طلب بيانات المشرف مقفل. تواصل مع الفريق العلمي.",
+  },
+} as const;

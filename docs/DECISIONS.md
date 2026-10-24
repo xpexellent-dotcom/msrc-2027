@@ -4532,3 +4532,7 @@ and [feature notes](../src/features/competitions/README.md).
 ## ENG-079 — Role-scoped organizer dashboards, exports and unified audit, 25 October 2026
 
 ADM-01..05. Server aggregate RPCs scope modules by role, suppress whole partitions with any cell below 5 for non-Super-Admin roles, and restrict full personal-data exports and the cross-module participant finder to Super Admins. Exports are UTF-8 BOM CSV with formula-injection neutralization; each lookup/export writes an immutable counts-and-filters-only `msrc_staff.reporting_audit` receipt. The unified audit timeline is a read-only Super Admin view over existing audit tables. Evidence: `docs/progress/2026-10-25-claude-organizer-dashboards.md`.
+
+## ENG-078 — Research presentation allocation, event judging and awards, 25 October 2026
+
+REV-06/07/10. Oral/poster allocation and award outcomes separate preparation from publication and are append-only. Faculty judges score independently from snapshot content only; pre-event reviewers of a submission are conflicted from judging it. Rubric, categories, judge count, tie rule and supervisor deadline/evidence are owner settings without defaults (the owner's hackathon rubrics are hackathon-only). A supervisor is required only for a selected winner, before confirmation, and is private to Super Admins and scientific administrators. Evidence: `docs/progress/2026-10-25-claude-research-judging.md`.
