@@ -216,7 +216,7 @@ begin
  reference:=case when jsonb_typeof(item->'reference')='string' then upper(btrim(item->>'reference')) end;
  recorded:=case when jsonb_typeof(item->'time')='string' then btrim(item->>'time') end;
  recorder:=case when jsonb_typeof(item->'recorder')='string' then btrim(item->>'recorder') end;
- if case when jsonb_typeof(item)='object' then exists(select 1 from jsonb_object_keys(item) k where k not in('reference','time','recorder')) else true end
+ if (case when jsonb_typeof(item)='object' then exists(select 1 from jsonb_object_keys(item) k where k not in('reference','time','recorder')) else true end)
  or reference is null or reference !~ '^[A-F0-9]{12}$' or recorded is null or recorded !~ '^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$'
  or recorder is null or char_length(recorder) not between 1 and 80 or recorder ~ '[[:cntrl:]]' then outcome:='invalid';
  else
