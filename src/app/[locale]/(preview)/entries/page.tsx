@@ -20,6 +20,6 @@ export default async function Page({ params, searchParams }: Props) {
   const { locale } = await params; if (!isLocale(locale)) notFound(); const copy = competitionCopy[locale];
   const query = await searchParams, kind = query.kind ?? "hackathon"; if (!isCompetitionKind(kind)) notFound();
   return <Container className="participant-account-page" narrow><header className="participant-account-intro"><h1>{copy.title}</h1><p>{copy.lead}</p></header>
-    <EntryWorkspace key={kind} locale={locale} kind={kind} initial={await readCompetitionPageState(locale)} />
+    <EntryWorkspace key={kind} locale={locale} kind={kind} initial={await readCompetitionPageState(locale, kind)} />
   </Container>;
 }

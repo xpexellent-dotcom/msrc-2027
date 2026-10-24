@@ -23,6 +23,7 @@ import { RegistrationOpeningNotice } from "@/components/registration-opening-not
 import { abstractDates } from "@/content/abstract-dates";
 import { formatRegistrationOpeningDate } from "@/content/registration-opening";
 import { usePublicWorkshopCatalogue } from "@/features/workshops/public-catalogue";
+import type { PublicHackathonTracks } from "@/features/competitions/public-tracks.server";
 import {
   experienceCopy, filterMedia, filterSessions, participationPaths, published,
   type ProgrammeDay, type ExperiencePageId, type MediaEditionFilter, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
@@ -295,9 +296,10 @@ export function ParticipateExperience({ locale }: { locale: Locale }) {
   </article>)}</div></Container></section></>;
 }
 
-export function JourneyExperience({ locale, journey, workshops: approvedWorkshops = [] }: { locale: Locale; journey: keyof typeof experienceCopy.en.journeys; workshops?: readonly PublicWorkshop[] }) {
+export function JourneyExperience({ locale, journey, workshops: approvedWorkshops = [], hackathonTracks }: { locale: Locale; journey: keyof typeof experienceCopy.en.journeys; workshops?: readonly PublicWorkshop[]; hackathonTracks?: PublicHackathonTracks | null }) {
   const copy = experienceCopy[locale];
-  const content = copy.journeys[journey];
+  const original = copy.journeys[journey];
+  const content = journey === "hackathon" && hackathonTracks && original.tracks ? { ...original, tracks: { ...original.tracks, items: original.tracks.items.map((track, index) => { const configured = hackathonTracks[index === 0 ? "translating_research" : "advancing_research"]; return { ...track, title: configured.label[locale], body: configured.description[locale] }; }) } } : original;
   const workshops = published(approvedWorkshops);
   const actions = journeyActionCopy[locale];
   return <div className={`participation-journey participation-journey--${journey}`}><ExperienceIntro locale={locale} page={journey}>
@@ -305,7 +307,7 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
       <div className="participation-program"><Button disabled data-testid="brochure-unavailable" aria-describedby="brochure-unavailable-note" variant="ghost" size="small">{actions.brochure}</Button><p id="brochure-unavailable-note">{actions.brochurePending}</p></div>
     </ExperienceIntro>
     <section id="journey-availability" tabIndex={-1} className="journey-availability fluid-journey-availability" data-testid="journey-closed" aria-labelledby="journey-closed-title"><Container><div className="journey-availability-dot" aria-hidden="true" /><div><h2 id="journey-closed-title">{content.closed}</h2><p>{content.closedBody}</p></div></Container></section>
-    {content.tracks ? <section id="journey-tracks" className="participation-tracks participation-ambient" aria-labelledby="journey-tracks-title"><SideArtwork motif={journey} area="tracks" /><Container><ArtworkHeading motif={journey} area="tracks"><p className="participation-section-label">{content.tracks.label}</p><h2 id="journey-tracks-title">{content.tracks.title}</h2></ArtworkHeading><div className="participation-track-list">{content.tracks.items.map((track) => <article className="participation-track" key={track.label}><p className="participation-track-label">{track.label}</p><h3 lang="en" dir="ltr">{track.title}</h3><p>{track.body}</p></article>)}</div><p className="participation-track-note">{content.tracks.note}</p></Container></section> : null}
+    {content.tracks ? <section id="journey-tracks" className="participation-tracks participation-ambient" aria-labelledby="journey-tracks-title"><SideArtwork motif={journey} area="tracks" /><Container><ArtworkHeading motif={journey} area="tracks"><p className="participation-section-label">{content.tracks.label}</p><h2 id="journey-tracks-title">{content.tracks.title}</h2></ArtworkHeading><div className="participation-track-list">{content.tracks.items.map((track) => <article className="participation-track" key={track.label}><p className="participation-track-label">{track.label}</p><h3 lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>{track.title}</h3><p>{track.body}</p></article>)}</div><p className="participation-track-note">{content.tracks.note}</p></Container></section> : null}
     <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title"><SideArtwork motif={journey} area="benefits" /><Container><ArtworkHeading motif={journey} area="benefits"><p className="participation-section-label">{journey === "workshops" ? actions.learning : actions.benefits}</p><h2 id="journey-benefits-title">{content.detailsTitle}</h2></ArtworkHeading><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
       {content.goodToKnow ? <aside className="participation-good-to-know" aria-labelledby="good-to-know-title"><h3 id="good-to-know-title">{content.goodToKnow.title}</h3><ul>{content.goodToKnow.points.map((point) => <li key={point}>{point}</li>)}</ul></aside> : null}
     </Container></section>

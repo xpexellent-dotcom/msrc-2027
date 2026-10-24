@@ -25,3 +25,5 @@
 .competition-policy-list dd { margin: .3rem 0 0; white-space: pre-wrap; }
 @media (max-width: 800px) { .competition-settings-grid, .competition-entry-tools { grid-template-columns: minmax(0, 1fr); } .competition-rubric-row { grid-template-columns: minmax(0, 1fr); } }
 @media (forced-colors: active) { .competition-staff-workspace :is(fieldset, .competition-packet) { border-color: CanvasText; } }
+.hackathon-framework-tools { display: grid; gap: 1rem; margin-block-start: 1rem; } .competition-rubric-metadata { grid-column: 1 / -1; min-inline-size: 0; } .competition-rubric-metadata .field { margin-block: .75rem; }
+.competition-application-text { white-space: pre-wrap; overflow-wrap: anywhere; }

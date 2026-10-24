@@ -1,0 +1,170 @@
+MSRC 2027                                                                                        STAGE 02 / INTERNAL WORKING DRAFT
+
+FINAL-STAGE JUDGING
+
+Live pitch scorecard
+
+Stage 2 only: score each finalist after mentoring, the live presentation and judges' questions.
+
+35  POINTS                                                              FINAL-ROUND FORMAT
+    7 equally weighted criteria                                         5-minute pitch + 3-minute Q&A
+
+Team / project ID                Judge ID                                                        Track
+                                                                                                       ENTER 1-5 POINTS PER CRITERION
+SCORE EACH DOMAIN
+                                                                                                                          SCORE
+01 Problem & Need
+                                                                                                                                /5
+            Is the unmet need specific, significant and relevant to the track?
+            Are affected users, causes and context understood?
+
+02 Evidence & Scientific Rationale                                                                     SCORE
+
+            Do credible sources support the problem and key claims?                                                 /5
+            Is the approach justified, with uncertainties recognized?
+
+03 Innovation & Solution Fit                                                                           SCORE
+
+            Does the idea offer meaningful improvement or originality?                                              /5
+            Does it directly address the identified problem and users?
+
+04 Feasibility & Implementation                                                                        SCORE
+
+            Is there a realistic pathway, with resources and barriers considered?                                   /5
+            Are stakeholders and relevant ethical or safety issues addressed?
+
+05 Impact & Sustainability                                                                             SCORE
+
+            Are the expected benefits credible and assessable?                                                      /5
+            Could the solution be maintained or adapted where appropriate?
+
+06 Pitch & Communication                                                                               SCORE
+
+            Is the 5-minute presentation clear, coherent and concise?                                               /5
+            Do visuals or demonstrations improve understanding?
+
+07 Q&A & Defense                                                                                       SCORE
+
+            Are answers direct, accurate and logically defended?                                                    /5
+            Does the team acknowledge limitations and uncertainty?
+
+     TOTAL JUDGING SCORE                                                                               / 35
+     Sum all seven criteria
+                                                                                                                 1 / 3
+MSRC 2027 / HACKATHON
+MSRC 2027                                                                      SCORE DEFINITIONS / REVIEWER GUIDE
+
+CONSISTENT SCORING
+
+How to assign points
+
+Use the common 1-5 scale, then consult the criterion-specific anchors below. Rate the proposal at its current concept stage.
+
+5 Excellent            Convincing, well-supported; no material deficiency.
+4 Strong               Well addressed, with minor gaps.
+3 Adequate             Core expectations met; substantive gaps remain.
+2 Weak                 Major deficiencies reduce confidence.
+1 Poor                 Criterion largely unclear, unsupported or unaddressed.
+
+CRITERION-SPECIFIC ANCHORS                                                                         EXAMPLES FOR SCORES 5 / 3 / 1
+01 Problem & Need                                   1: vague or unjustified need
+                                                    1: unsupported or misinterpreted claims
+   5: clear, significant need, users and causes     1: poor fit or negligible added value
+   3: relevant but incomplete context               1: unrealistic or major barriers ignored
+                                                    1: overstated or unclear likely benefit
+02 Evidence & Scientific Rationale                  1: unclear or substantially disorganized
+                                                    1: inaccurate, evasive or poorly understood
+   5: credible support and justified mechanism
+   3: some support but important gaps
+
+03 Innovation & Solution Fit
+
+   5: meaningful advancement with strong fit
+   3: reasonable fit, limited differentiation
+
+04 Feasibility & Implementation
+
+   5: realistic pathway, barriers and safeguards
+   3: plausible but incomplete plan
+
+05 Impact & Sustainability
+
+   5: credible benefits, measures and continuation
+   3: plausible but weak measurement or plan
+
+06 Pitch & Communication
+
+   5: concise, coherent and easy to follow
+   3: understandable but uneven or crowded
+
+07 Q&A & Defense
+
+   5: accurate, reasoned answers; honest limits
+   3: adequate with significant knowledge gaps
+
+Fairness rule: Evaluate conceptual merit, not slide design, charisma, commercial potential or possession of a prototype. A prototype is
+optional.
+
+MSRC 2027 / HACKATHON                                                                                                         2 / 3
+MSRC 2027                 FRAMEWORK REFERENCES / USE PROTOCOL
+
+FRAMEWORK & PROCEDURE
+
+Source basis & judge notes
+
+Published hackathon criteria inform the domains below; the seven-category combination and equal weights are MSRC proposals, not a
+validated external scale.
+HOW EACH MSRC DOMAIN WAS ADAPTED
+
+01 Problem & Need
+
+Harvard: Challenge | MIT Hacking Medicine: Impact
+Defines the unmet problem, users and significance across both MSRC tracks.
+
+02 Evidence & Scientific Rationale
+
+Memphis: Evidence & Data Support | CMU: Validity
+Separates scientific justification from persuasive delivery or projected impact.
+
+03 Innovation & Solution Fit
+
+Harvard: Technology & Innovation | MIT: Innovation
+Makes technology optional and explicitly tests whether the idea addresses its users.
+
+04 Feasibility & Implementation
+
+Harvard: Implementation | Memphis: Feasibility & Implementation
+Assesses implementation pathway and safeguards without requiring commercial revenue.
+
+05 Impact & Sustainability
+
+Memphis: Impact & Relevance | Scalability & Sustainability
+Combines anticipated benefit with continuation; global scaling is not mandatory.
+
+06 Pitch & Communication
+
+Harvard: Pitch | Memphis: Presentation & Clarity | CMU: Presentation
+Rewards concise explanation, not design polish or a working demo.
+
+07 Q&A & Defense
+
+Harvard: Question & Answer | CMU: Responses to questions
+Rewards accurate, thoughtful defense, including acknowledgment of uncertainty.
+
+JUDGING PROTOCOL
+
+Panel: Score each finalist independently out of 35 within its assigned track. Judge conflicts should be declared and handled before scores
+are combined.
+
+Flag separately: Record major originality, ethics, privacy or safety concerns for committee review. A flag triggers review; any exclusion
+requires a pre-agreed process.
+
+Before the event: Confirm pitch timekeeping, treatment of absent presenters, procedures for technical failure, tie handling and any
+proposed minimum passing thresholds.
+
+OFFICIAL BENCHMARKS       Memphis Public Health IDEAS
+Harvard HSIL 2026 rubric  MIT Hacking Medicine 2025
+CMU judging criteria
+                                                       3 / 3
+MSRC 2027 / HACKATHON
+

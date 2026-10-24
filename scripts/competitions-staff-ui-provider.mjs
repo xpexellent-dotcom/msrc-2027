@@ -27,7 +27,7 @@ const server = http.createServer(async (request, response) => {
   if (url.pathname === "/rest/v1/rpc/msrc_staff_competitions_data") {
     if (current.missing) return send(response, { code: "PGRST202" }, 404);
     if (input.view === "settings") return send(response, { state: "ready", settings: current.settings, version: current.settingsVersion ?? 0, enabled: false, evidenceReady: false, stageStates: { entry: "not_ready", selection: "not_ready", judging: "not_ready", final_material: "not_ready", membership: "not_ready" } });
-    if (["list", "export"].includes(input.view)) return send(response, { state: "ready", entries: current.entries ?? [] });
+    if (["list", "export", "eligibility"].includes(input.view)) return send(response, { state: "ready", entries: (current.entries ?? []).map((entry) => ({ ...entry, roster: entry.roster.map((member) => { if (input.view === "eligibility") return member; const safeMember = { ...member }; delete safeMember.profile; return safeMember; }) })) });
     return send(response, { state: "ready", assignments: current.assignments ?? [], reviewBasis: "SYNTHETIC PRIVATE PRE-EVENT CARD" });
   }
   if (url.pathname === "/rest/v1/rpc/msrc_staff_competitions_mutate") {

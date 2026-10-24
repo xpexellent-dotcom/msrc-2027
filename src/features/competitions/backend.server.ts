@@ -11,7 +11,7 @@ export function createCompetitionBackend(config: ParticipantConfig): Competition
   const participant = createParticipantBackend(config);
   return { identity: participant.identity, refresh: participant.refresh, async rpc(name, args = {}) {
     if (name === "msrc_participant_status") return participant.rpc(name, args);
-    if (!["msrc_competitions_status", "msrc_competitions_me", "msrc_competitions_save_draft", "msrc_competitions_submit", "msrc_competitions_member_action", "msrc_competitions_file_action"].includes(name)) throw new Error("Unknown competition RPC");
+    if (!["msrc_competitions_status", "msrc_competitions_me", "msrc_competitions_save_draft", "msrc_competitions_submit", "msrc_competitions_member_action", "msrc_competitions_file_action", "msrc_competitions_hackathon_action"].includes(name)) throw new Error("Unknown competition RPC");
     const response = await fetch(config.supabaseUrl + "/rest/v1/rpc/" + name, { method: "POST", headers: { apikey: config.secretKey, "Content-Type": "application/json" },
       body: JSON.stringify(args), cache: "no-store", redirect: "error", signal: AbortSignal.timeout(6_000) });
     if (response.status === 404) { const body: unknown = await response.json().catch(() => null);
