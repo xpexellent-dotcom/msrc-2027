@@ -128,7 +128,7 @@ function SettingsEditor({ locale, data, available, busy, act, onResult }: Action
       </fieldset>
       <fieldset className="staff-settings-group" disabled={busy || !available}><legend>{text.timing}</legend>
         {numeric("offer_window_hours", text.offerHint)}<p className="staff-note" id="registration-settings-legacy-hint">{text.legacyHint}</p>
-        <div className="staff-settings-grid" aria-describedby="registration-settings-legacy-hint">{numeric("waitlist_offer_hours")}{numeric("confirm_seat_lead_days")}{numeric("confirm_seat_response_hours")}</div>
+        <div className="staff-settings-grid" aria-describedby="registration-settings-legacy-hint">{numeric("confirm_seat_lead_days")}{numeric("confirm_seat_response_hours")}</div>
       </fieldset>
       <div className="staff-actions" ref={reviewAction}><Button type="submit" disabled={busy || !available} data-testid="registration-settings-review">{text.review}</Button></div>
     </form>}
