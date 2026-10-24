@@ -88,6 +88,18 @@
 .staff-early-form .staff-actions { margin-block-start: .75rem; }
 .staff-nowrap { white-space: nowrap; }
 .staff-export { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin-block: .5rem 1rem; }
+
+/* ENG-079: private aggregate reporting shares the staff console density and RTL flow. */
+.staff-organizer { display: grid; gap: 1.5rem; }
+.staff-organizer-heading { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: .75rem 1.25rem; }
+.staff-organizer-heading > div { flex: 1 1 20rem; min-inline-size: 0; }
+.staff-organizer .staff-metrics dt { display: grid; gap: .2rem; overflow-wrap: anywhere; }
+.staff-organizer .staff-metrics dt > span:first-child { font-size: .78rem; color: #6d6276; }
+.staff-organizer .staff-metrics dd { flex-shrink: 0; }
+.staff-organizer-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: .75rem 1rem; align-items: end; margin-block: 1rem; }
+.staff-organizer-filters > button { justify-self: start; align-self: end; }
+.staff-organizer-details { max-inline-size: 28rem; max-block-size: 20rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8rem; }
+.staff-organizer .staff-candidates ul { padding-inline-start: 1.25rem; margin-block-start: .75rem; overflow-wrap: anywhere; }
 .staff-offer-ends { display: block; margin-block-start: .25rem; font-size: .8rem; }
 .staff-detail { margin-block-start: 1.5rem; padding: 1.1rem 1.25rem; border: 1px solid #e3dbea; border-radius: 16px; background: #fcfaf7; }
 .staff-detail-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }

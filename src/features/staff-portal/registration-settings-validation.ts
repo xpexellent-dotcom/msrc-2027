@@ -39,7 +39,7 @@ export function registrationSettingsChanges(value: unknown): StaffRegistrationSe
 /** Mirrors the existing settings_complete requirements and table checks for form feedback. */
 export function registrationSettingsComplete(settings: StaffRegistrationSettings | StaffRegistrationSettingsChanges | null): boolean {
   if (!settings) return false;
-  const required = REGISTRATION_SETTINGS_FIELDS.filter((field) => !["enabled", "offer_window_hours", "payment_window_hours", "conference_days"].includes(field));
+  const required = REGISTRATION_SETTINGS_FIELDS.filter((field) => !["enabled", "offer_window_hours", "waitlist_offer_hours", "payment_window_hours", "conference_days"].includes(field));
   if (required.some((field) => settings[field] == null) || Object.entries(settings).some(([field, value]) => !validRegistrationSetting(field, value))
     || settings.payment_required && settings.payment_window_hours == null) return false;
   // PostgreSQL retains microseconds. Date.parse alone can collapse two distinct

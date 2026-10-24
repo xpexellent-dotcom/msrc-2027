@@ -8,6 +8,12 @@ for (const locale of ["en", "ar"] as const) {
     let now = start, lastActivity = start, activities = 0, reads = 0, sequence = 0;
     await page.clock.install({ time: start });
     await page.route("**/api/staff-portal**", async (route) => {
+      // ENG-079: the home dashboard loads its own counts; it is not session activity.
+      if (new URL(route.request().url()).pathname.endsWith("/organizer")) {
+        await route.fulfill({ contentType: "application/json", body: JSON.stringify({ state: "ready", formToken: "synthetic-organizer-token",
+          dashboard: { cells: [], modules: [], suppressionThreshold: 5 } }) });
+        return;
+      }
       const valid = now < start + 8 * 3_600_000 && now < lastActivity + 30 * 60_000;
       if (route.request().method() === "POST") {
         const payload = route.request().postDataJSON() as StaffPayload;

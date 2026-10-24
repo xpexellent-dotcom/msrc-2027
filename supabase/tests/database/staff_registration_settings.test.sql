@@ -106,7 +106,7 @@ create function pg_temp.settings_validation() returns setof text language plpgsq
  return next is(pg_temp.settings_save(patch)->>'state','invalid','Invalid settings patch is refused: '||patch::text);
  end loop;
  foreach field in array array['terms_version','payment_required','general_capacity','priority_start_at','priority_end_at',
- 'general_opening_at','closing_at','waitlist_offer_hours','confirm_seat_lead_days','confirm_seat_response_hours','places_remaining_threshold'] loop
+ 'general_opening_at','closing_at','confirm_seat_lead_days','confirm_seat_response_hours','places_remaining_threshold'] loop
  return next is(pg_temp.settings_save(jsonb_build_object(field,null))->>'state','invalid','Completeness refuses null '||field);
  end loop;
  return next is(pg_temp.settings_save(jsonb_build_object('terms_version',repeat('x',129)))->>'state','invalid','Terms version cannot exceed CHECK length');

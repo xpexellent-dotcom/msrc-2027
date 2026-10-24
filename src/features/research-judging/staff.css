@@ -1,0 +1,13 @@
+﻿.research-console{max-inline-size:90rem;margin-inline:auto;padding:clamp(1rem,4vw,3rem)}
+.research-workspace,.research-tools,.research-settings-grid{display:grid;gap:1.25rem}
+.research-tools{grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr))}
+.research-workspace form,.research-workspace fieldset{min-inline-size:0}
+.research-workspace fieldset{padding:1rem;border:1px solid var(--staff-border,#d7cfe4);border-radius:.75rem}
+.research-workspace .field{margin-block-end:1rem}
+.research-workspace .field-input{inline-size:100%;max-inline-size:100%}
+.research-rubric-row,.research-category-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr));gap:.75rem;align-items:end;margin-block-end:1rem}
+.research-entry>summary{display:flex;flex-wrap:wrap;gap:.75rem;cursor:pointer}
+.research-entry bdi,.research-entry p,.research-packet{overflow-wrap:anywhere}
+.research-packet{white-space:pre-wrap;margin-block:1.25rem}
+.research-workspace .staff-note{margin-block:1rem}
+.research-workspace button:focus-visible,.research-workspace summary:focus-visible{outline:3px solid #715294;outline-offset:3px}
