@@ -14,7 +14,7 @@ export const registrationSettingsCopy = {
     conferenceDaysHint: "Optional. Enter each approved conference date as YYYY-MM-DD, separated by commas. Leave blank until configured; check-in remains unavailable without conference days.",
     invalidConferenceDays: "Enter valid, distinct conference dates as YYYY-MM-DD, separated by commas (up to 31), or leave this field blank.",
     earlyHint: "This early window also supplies the legacy early-access dates required for readiness.",
-    legacyHint: "Waitlist and confirm-your-seat values are required by the current readiness check. A Super Admin starts each confirmation round from the registration queue; saving these timings does not start a round.",
+    legacyHint: "Confirm-your-seat values are required by the current readiness check. A Super Admin starts each confirmation round from the registration queue; saving these timings does not start a round.",
     offerHint: "How long a seat offer remains available. If unset, seats cannot be offered.",
     ageHint: "The minimum age is fixed at 18.", paymentHint: "Required only for paid attendance. This does not configure a payment service.",
     fields: {
@@ -43,7 +43,7 @@ export const registrationSettingsCopy = {
     conferenceDaysHint: "اختياري. أدخل كل تاريخ معتمد للمؤتمر بصيغة YYYY-MM-DD وافصل التواريخ بفواصل إنجليزية. اترك الحقل فارغًا حتى اعتماد الإعداد؛ لا يتاح تسجيل الحضور دون تحديد أيام المؤتمر.",
     invalidConferenceDays: "أدخل تواريخ صحيحة وغير مكررة بصيغة YYYY-MM-DD مفصولة بفواصل إنجليزية (حتى ٣١ تاريخًا)، أو اترك الحقل فارغًا.",
     earlyHint: "تُستخدم هذه الفترة أيضًا لتواريخ الوصول المبكر القديمة المطلوبة للجاهزية.",
-    legacyHint: "تتطلب قائمة الجاهزية الحالية قيم قائمة الانتظار وتأكيد المقعد. يبدأ المشرف الأعلى كل جولة تأكيد من قائمة طلبات التسجيل؛ وحفظ هذه المهل لا يبدأ جولة.",
+    legacyHint: "تتطلب قائمة الجاهزية الحالية قيم تأكيد المقعد. يبدأ المشرف الأعلى كل جولة تأكيد من قائمة طلبات التسجيل؛ وحفظ هذه المهل لا يبدأ جولة.",
     offerHint: "المدة التي يبقى فيها عرض المقعد متاحًا. لا يمكن عرض المقاعد دون تحديدها.",
     ageHint: "الحد الأدنى للعمر ثابت عند ١٨ عامًا.", paymentHint: "مطلوبة للحضور المدفوع فقط. لا يهيّئ هذا الحقل خدمة دفع.",
     fields: {
