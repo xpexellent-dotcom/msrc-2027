@@ -19,9 +19,9 @@ select ok(not has_function_privilege('authenticated','public.msrc_certificates_p
 select ok(has_function_privilege('service_role','public.msrc_certificates_participant_manage(text,jsonb,jsonb)','EXECUTE'),'Participant transport is service-only');
 select ok(not has_function_privilege('authenticated','public.msrc_certificates_verify(text,text)','EXECUTE'),'Verification uses rate-limited server boundary');
 select ok(not has_function_privilege('authenticated','public.msrc_certificates_generation_claim(uuid,integer)','EXECUTE'),'Generation server-only');
-select results_eq($$select column_name::text from information_schema.columns where table_schema='msrc_certificates' and table_name='answers' order by ordinal_position$$,
+select results_eq($$select column_name::text collate "default" from information_schema.columns where table_schema='msrc_certificates' and table_name='answers' order by ordinal_position$$,
  $$values ('survey_id'::text), ('question_id'::text), ('value'::text), ('answer_date'::text)$$,'S2 answers contain only categorical survey/question, value, date');
-select results_eq($$select column_name::text from information_schema.columns where table_schema='msrc_certificates' and table_name='completions' order by ordinal_position$$,
+select results_eq($$select column_name::text collate "default" from information_schema.columns where table_schema='msrc_certificates' and table_name='completions' order by ordinal_position$$,
  $$values ('survey_id'::text), ('actor_id'::text)$$,'S2 completion stores no response ID, token, date or correlated timestamp');
 select is((select count(*) from pg_constraint where conrelid='msrc_certificates.answers'::regclass and contype='f'),0::bigint,'S2 answers have no FK edge/path to actors');
 select ok(not exists(select 1 from pg_index where indrelid='msrc_certificates.answers'::regclass and indisunique),'S2 answers have no response identity/grouping key');
