@@ -34,7 +34,7 @@ create index certificate_answers_survey on msrc_certificates.answers(survey_id,q
 -- Completion has neither response IDs nor timestamps; retries use actor+survey only.
 create table msrc_certificates.completions (
  survey_id uuid not null references msrc_certificates.surveys(id) on delete restrict,
- actor_id uuid not null references msrc_participant.profiles(actor_id) on delete restrict,
+ actor_id uuid not null,
  primary key(survey_id,actor_id)
 );
 create table msrc_certificates.templates (
@@ -53,7 +53,7 @@ create table msrc_certificates.batches (
 );
 create table msrc_certificates.certificates (
  id uuid primary key default gen_random_uuid(),edition_key text not null references msrc_certificates.settings(edition_key) on delete restrict,
- actor_id uuid not null references msrc_participant.profiles(actor_id) on delete restrict,
+ actor_id uuid not null,
  batch_id uuid not null references msrc_certificates.batches(id) on delete restrict,
  kind text not null check(kind in('conference','workshop')),workshop_id uuid,recipient_name text not null,
  certificate_type text not null,edition text not null,activity text not null,signature text not null,
