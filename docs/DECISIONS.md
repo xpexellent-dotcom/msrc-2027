@@ -4528,3 +4528,7 @@ and [feature notes](../src/features/competitions/README.md).
 ## ENG-081 — Retire the legacy waitlist offer field; approved photography notice, 25 October 2026
 
 `waitlist_offer_hours` no longer gates `msrc_registration.settings_complete` or the staff settings form; `offer_window_hours` remains the only offer duration. The column is retained, unrequired. The registration form's photography notice reuses the approved Terms v1.0 section 6 wording (EN/AR) and links removal requests to Privacy Policy section 5; awareness only, no opt-out (owner, 24 October 2026). Evidence: `docs/progress/2026-10-25-claude-registration-cleanup.md`.
+
+## ENG-079 — Role-scoped organizer dashboards, exports and unified audit, 25 October 2026
+
+ADM-01..05. Server aggregate RPCs scope modules by role, suppress whole partitions with any cell below 5 for non-Super-Admin roles, and restrict full personal-data exports and the cross-module participant finder to Super Admins. Exports are UTF-8 BOM CSV with formula-injection neutralization; each lookup/export writes an immutable counts-and-filters-only `msrc_staff.reporting_audit` receipt. The unified audit timeline is a read-only Super Admin view over existing audit tables. Evidence: `docs/progress/2026-10-25-claude-organizer-dashboards.md`.
