@@ -36,6 +36,8 @@ export type OutboxMessage = Readonly<{
   provider_idempotency_key: string;
   provider_request: EmailRequest | null;
   first_attempt_at: string;
+  /** Immutable database release proof; absent on older databases and other templates. */
+  announcement_delivery?: "approved" | "self_test" | null;
 }>;
 
 export class OutboxSendError extends Error {
@@ -60,9 +62,9 @@ export type RegistrationEmailTemplate = typeof registrationEmailTemplates[number
 /** ENG-065: previewable wording only. SQL holds these jobs and the worker denies delivery. */
 export const abstractDecisionTemplate = { key: "abstract_decision", version: 1, approval: "DRAFT" } as const;
 
-/** ORG-059: every new bilingual composition requires owner wording approval before delivery. */
+/** ORG-059: registration and abstract wording approvals remain independent of ORG-063. */
 export function isDraftParticipantTemplate(key: string): boolean {
-  return key === workshopNoticeTemplate.key || key === announcementTemplate.key || key === abstractDecisionTemplate.key || registrationEmailTemplates.includes(key as RegistrationEmailTemplate);
+  return key === workshopNoticeTemplate.key || key === abstractDecisionTemplate.key || registrationEmailTemplates.includes(key as RegistrationEmailTemplate);
 }
 
 /** Destinations come only from the current verified Auth identity in the business transaction. */
@@ -186,7 +188,7 @@ function arabicDeadline(value: string): string {
     dateStyle: "long", timeStyle: "short", hourCycle: "h23" }).format(new Date(value)) + " (بتوقيت الرياض)";
 }
 
-/** Preview DRAFT participant wording. Existing provider snapshots must never be rewritten. */
+/** Preview participant wording. Existing provider snapshots must never be rewritten. */
 export function renderOutboxMessage(message: OutboxMessage, translations?: ParticipantEmailTranslations): EmailRequest {
   if (message.template_key === workshopNoticeTemplate.key) {
     if (message.template_version !== workshopNoticeTemplate.version || message.locale !== "en"
