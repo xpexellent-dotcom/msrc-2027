@@ -130,3 +130,36 @@ in disposable CI; review EN/AR and English scoring browser receipts; obtain the
 organizer policies and independent release evidence before any activation. Claude
 owns the requested commit/review handoff. No commits, pushes, new branches,
 hosted changes or live messages were made by this task.
+## Task n15 ? CI staff browser race follow-up, 24 October 2026
+
+Root cause: the synthetic staff provider read the clock independently for
+lastActivityAt and idleExpiresAt. Crossing a millisecond boundary violated the
+session parser's exact idle-expiry invariant, so authority failed closed before
+either queue loading or scorecard mutation. The initial CI-mode local staff run
+reproduced the same denied-save symptom in the mobile settings case (15 passed,
+1 failed). An advancing-clock diagnostic deterministically produced an invalid
+1,800,001 ms idle interval before the fix and the required 1,800,000 ms afterward.
+The provider now captures one activity instant and derives expiry from that value
+and SESSION_POLICY. Zero scores were already preserved; production authorization,
+assertions, timeouts, retries and worker counts are unchanged.
+
+The participant baseline also failed all four EN/AR desktop/mobile over-limit
+cases on the second pitch fill: exact getByLabel matching included the nested
+textarea's updated text. The pitch now has an explicit span/aria-labelledby
+reference. The existing .competition-error text-filter assertion is unchanged.
+
+Validation on Windows, Node 24.21.0 / pnpm 11.19.0:
+- PASS: pnpm build (before reproduction and after the fix), pnpm lint,
+  pnpm exec tsc --noEmit, pnpm exec vitest run (109 files, 4,786 tests),
+  and git diff --check.
+- PASS: two consecutive verification rounds, each running
+  pnpm exec playwright test --config playwright.competitions-staff.config.ts
+  (16/16 each) followed by --config playwright.competitions.config.ts
+  (24/24 each), with CI=1 and NEXT_TELEMETRY_DISABLED=1, two workers and
+  zero retries. All four commands exited 0. Windows server teardown required
+  stopping only each completed run's own logged provider/Next PIDs after every
+  case finished; no in-flight test or unrelated process was stopped.
+
+Linux GitHub execution remains NOT TESTED on these uncommitted edits; Claude's
+next step is commit/review and CI verification. No push or hosted change was
+performed. docs/PROGRESS.md is untouched.
