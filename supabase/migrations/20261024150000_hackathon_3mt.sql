@@ -381,7 +381,7 @@ declare entry uuid;edition text;object_path text;byte_size bigint;mime text;pres
  and not exists(select 1 from msrc_competitions.judge_assignments ja where ja.entry_id=e.id);
  if not found or to_regclass('storage.objects') is null then return jsonb_build_object('state','closed');end if;
  -- Dynamic so installs without Storage still compile and lint; the object must match the reserved file exactly.
- execute 'select exists(select 1 from storage.objects o where o.bucket_id=''msrc-competition-files'' and o.name=$1 and (o.metadata->>''size'')::bigint=$2 and o.metadata->>''mimetype''=$3)'
+ execute 'select exists(select 1 from '||to_regclass('storage.objects')::text||' o where o.bucket_id=''msrc-competition-files'' and o.name=$1 and (o.metadata->>''size'')::bigint=$2 and o.metadata->>''mimetype''=$3)'
  into present using object_path,byte_size,mime;
  if not present then return jsonb_build_object('state','closed');end if;
  update msrc_competitions.files f set state=case when clean then 'clean' else 'rejected' end where f.id=file_id;

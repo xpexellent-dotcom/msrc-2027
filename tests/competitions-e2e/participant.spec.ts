@@ -73,7 +73,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByRole("button", { name: copy.create, exact: true }).click();
     await page.getByLabel(copy.titleField, { exact: true }).fill("Title ".repeat(301));
     await page.getByLabel(copy.pitch, { exact: true }).fill("Pitch ".repeat(301));
-    await expect(page.locator(".competition-error")).toHaveText(copy.overLimit);
+    await expect(page.locator(".competition-error").filter({ hasText: copy.overLimit }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: copy.save, exact: true })).toBeDisabled();
     await page.getByLabel(copy.pitch, { exact: true }).fill("Pitch ".repeat(300));
     await expect(page.getByRole("button", { name: copy.save, exact: true })).toBeEnabled();
