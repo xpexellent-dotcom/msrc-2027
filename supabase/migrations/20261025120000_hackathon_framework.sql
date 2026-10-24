@@ -707,22 +707,3 @@ do $$declare p record;begin
  execute format('grant execute on function %s to authenticated',p.signature);end loop;
 end$$;
 commit;
-
--- Display text is the only competition setting allowed into public rendering.
--- Server-only retrieval keeps the rest of the settings (including support links) private.
-create function public.msrc_competitions_public_tracks(edition_key text) returns jsonb language sql stable security definer set search_path='' as $$
- select jsonb_object_agg(k,jsonb_build_object('label',c->'trackLabels'->k,'description',c->'trackDescriptions'->k))
- from (select msrc_competitions.hackathon_defaults()||coalesce((select s.configuration from msrc_competitions.settings s where s.edition_key=msrc_competitions_public_tracks.edition_key and s.kind='hackathon'),'{}'::jsonb) c) x,
- unnest(array['translating_research','advancing_research']) k;$$;
-
-revoke all on all tables in schema msrc_competitions from public,anon,authenticated,service_role;
-revoke all on all functions in schema msrc_competitions from public,anon,authenticated,service_role;
-do $$declare p record;begin
- for p in select oid::regprocedure signature from pg_proc where pronamespace='public'::regnamespace and proname like 'msrc_competitions_%' loop
- execute format('revoke all on function %s from public,anon,authenticated,service_role',p.signature);
- execute format('grant execute on function %s to service_role',p.signature);end loop;
- for p in select oid::regprocedure signature from pg_proc where pronamespace='public'::regnamespace and proname like 'msrc_staff_competitions_%' loop
- execute format('revoke all on function %s from public,anon,authenticated,service_role',p.signature);
- execute format('grant execute on function %s to authenticated',p.signature);end loop;
-end$$;
-commit;

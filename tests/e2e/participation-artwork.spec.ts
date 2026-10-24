@@ -131,8 +131,9 @@ async function expectHackathonTechnology(page: Page, width: number, locale: stri
   const tracks = page.locator(".participation-track h3");
   await expect(tracks).toHaveCount(2);
   for (const title of await tracks.all()) {
-    await expect(title).toHaveAttribute("lang", "en");
-    await expect(title).toHaveAttribute("dir", "ltr");
+    // ORG-065: configured track labels are bilingual public copy.
+    await expect(title).toHaveAttribute("lang", locale);
+    await expect(title).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
   }
 }
 
