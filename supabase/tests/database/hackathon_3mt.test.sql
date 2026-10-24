@@ -214,8 +214,8 @@ select is(pg_temp.competition_mutate(9502,'file_read',jsonb_build_object('entryI
 select is(pg_temp.competition_mutate(9501,'file_read',jsonb_build_object('entryId',(select value->'entry'->>'id' from competition_result where key='files'),'fileId',(select value->>'fileId' from competition_result where key='file-grant')))->>'state','ready','Authorized science staff may retrieve clean private evidence');
 select is(public.msrc_competitions_file_action('synthetic-competitions',pg_temp.registration_claims(9407),'hackathon',(select (value->'entry'->>'id')::uuid from competition_result where key='files'),1,'read',(select (value->>'fileId')::uuid from competition_result where key='file-grant'),'{}'::jsonb,'e7900000-0000-4000-8000-000000000998')->>'state','available','Owner reads only object-approved clean private file');
 update msrc_competitions.settings set files_ready=false where kind='hackathon';
-\endif
 select is(public.msrc_competitions_file_action('synthetic-competitions',pg_temp.registration_claims(9407),'hackathon',(select (value->'entry'->>'id')::uuid from competition_result where key='files'),1,'read',(select (value->>'fileId')::uuid from competition_result where key='file-grant'),'{}'::jsonb,'e7900000-0000-4000-8000-000000000998')->>'state','closed','Cached clean-file read grant cannot bypass newly closed file gate');
+\endif
 
 select * from finish();
 rollback;
