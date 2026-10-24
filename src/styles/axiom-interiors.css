@@ -29,8 +29,8 @@
 /* Content controls stay prominent at the scale of the surrounding display typography. */
 .experience-catalogue, .experience-pathways { padding-block: clamp(3.5rem, 7vw, 7rem); background: var(--color-ivory); }
 .programme-days { gap: .35rem; padding: .35rem; background: var(--color-surface-lilac); border: 0; border-radius: 999px; }
-.programme-days button { min-block-size: 52px; border-radius: 999px; padding: .85rem 1.5rem; font-size: 1rem; }
-.programme-days button + button { border: 0; }
+.programme-days a { min-block-size: 52px; border-radius: 999px; padding: .85rem 1.5rem; font-size: 1rem; }
+.programme-days a + a { border: 0; }
 .experience-filters { gap: 1.5rem; }
 .experience-filters > label { gap: .8rem; font-size: 1rem; }
 .experience-filters select, .experience-search > span { min-block-size: 60px; border-radius: 12px; background: var(--color-white); }
@@ -196,11 +196,11 @@ html[lang="ar"] :is(.experience-intro h1, .about-hero-copy h1, .contact-hero h1,
   .experience-breadcrumb { margin-block-end: 2.5rem; }
   .experience-location { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
   .programme-days { border-radius: 16px; }
-  .programme-days button { border-radius: 12px; text-align: center; }
+  .programme-days a { border-radius: 12px; text-align: center; }
   /* "Both days" spans the top; the two days sit side by side instead of a tall stack. */
   .programme-days { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .programme-days button:first-child { grid-column: 1 / -1; }
-  .programme-days button:not(:first-child) { padding-inline: .5rem; font-size: .9375rem; text-wrap: balance; }
+  .programme-days a:first-child { grid-column: 1 / -1; }
+  .programme-days a:not(:first-child) { padding-inline: .5rem; font-size: .9375rem; text-wrap: balance; }
   .people-next > .site-container { flex-direction: column; align-items: start; }
   .programme-archive-panel > img { block-size: auto; aspect-ratio: 3 / 2; }
   .team-grid { gap: 2rem 1.25rem; }

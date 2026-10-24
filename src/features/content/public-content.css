@@ -4,3 +4,9 @@
 .public-content-partner:focus-visible { outline: 3px solid var(--color-gold, #ae873b); outline-offset: 4px; }
 .public-home-speakers { margin-block: 2rem; }
 .public-home-programme { margin-block-start: 3rem; }
+
+/* PRG-01: chronological slots, parallel rooms, native filter controls. */
+.programme-days a { display: block; text-decoration: none; }
+.programme-parallel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: 1.5rem; }
+.programme-time-slot { border-block-start: 1px solid currentColor; margin-block: 1.5rem; }
+.programme-parallel .conference-session-row { min-width: 0; overflow-wrap: anywhere; }

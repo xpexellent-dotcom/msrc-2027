@@ -59,3 +59,7 @@
   .staff-content-list > li, .staff-content-preview, .staff-content-confirmation { border-color: CanvasText; }
   .staff-content-editor :focus-visible, .staff-content-confirmation :focus-visible { outline-color: Highlight; }
 }
+
+.programme-editor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }
+.programme-editor-grid article { padding: 1rem; border: 1px solid currentColor; overflow-wrap: anywhere; }
+.programme-editor-grid [data-current] { border-width: 3px; }

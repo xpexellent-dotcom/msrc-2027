@@ -313,7 +313,7 @@ test("forced colours retain programme selection and keyboard navigation", async 
   });
   await page.goto("/en/program");
   const day1 = page.getByTestId("program-day-day1");
-  await expect(async () => { await day1.click(); await expect(day1).toHaveAttribute("aria-pressed", "true", { timeout: 500 }); }).toPass();
+  await expect(async () => { await day1.click(); await expect(day1).toHaveAttribute("aria-current", "true", { timeout: 500 }); }).toPass();
   expect(await keepsFill('[data-testid="program-day-day1"]')).toBe(true);
   expect(await keepsFill('[data-testid="program-day-all"]')).toBe(false);
   // Establish keyboard modality after the pointer selection so :focus-visible is exercised.

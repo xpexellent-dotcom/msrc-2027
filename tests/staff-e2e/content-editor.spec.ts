@@ -152,6 +152,26 @@ for (const locale of ["en", "ar"] as const) {
     await details.getByRole("button", { name: copy.save, exact: true }).click(); await expect(details.getByRole("button", { name: copy.publish, exact: true })).toBeEnabled(); await axe(page);
   });
 
+  test(`${locale} schedule overlap warning, range validation and day preview`, async ({ page }) => {
+    const first = synthetic("sessions", 10, true), second = synthetic("sessions", 11);
+    for (const item of [first, second]) Object.assign(item.draft, { day: "2027-01-27", startTime: "09:00", endTime: "10:00", roomEn: "Synthetic room", roomAr: "قاعة تجريبية", type: "talk" });
+    await fixture(page, { items: [first, second] });
+    await page.goto(`/${locale}/staff/content`);
+    const editor = page.getByTestId("content-editor");
+    await editor.getByLabel(copy.collection, { exact: true }).selectOption("sessions");
+    await editor.locator('[data-content-id="' + second.id + '"] .staff-content-open').click();
+    const preview = editor.getByRole("region", { name: locale === "ar" ? "معاينة جدول اليوم" : "Day grid preview", exact: true });
+    await expect(preview.getByRole("status")).toContainText(locale === "ar" ? "تحذير" : "Warning");
+    await expect(preview.locator("article")).toHaveCount(2);
+    await editor.getByLabel(copy.startTime, { exact: true }).fill("10:00");
+    await editor.getByLabel(copy.endTime, { exact: true }).fill("11:00");
+    await expect(preview.getByRole("status")).toHaveCount(0);
+    await editor.getByLabel(copy.endTime, { exact: true }).fill("09:00");
+    await expect(preview.getByRole("alert")).toBeVisible();
+    await axe(page);
+
+  });
+
   test(`${locale} stale draft and publication errors preserve the editor`, async ({ page }) => {
     const mock = await fixture(page, { items: [synthetic("speakers", 1)] }); await page.goto(`/${locale}/staff/content`);
     const editor = page.getByTestId("content-editor"), details = editor.getByRole("region", { name: copy.details, exact: true });

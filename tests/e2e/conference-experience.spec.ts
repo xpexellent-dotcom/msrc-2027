@@ -1,3 +1,4 @@
+import { experienceCopy } from "../../src/content/conference-experiences";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { languageLink, revealDesktopHeader } from "./helpers/header-navigation";
@@ -148,7 +149,7 @@ for (const locale of ["en", "ar"] as const) {
     const all = page.getByTestId("program-day-all");
     const first = page.getByTestId("program-day-day1");
     const second = page.getByTestId("program-day-day2");
-    await expect(all).toHaveAttribute("aria-pressed", "true");
+    await expect(all).toHaveAttribute("aria-current", "true");
     // ORG-054: the dates already sit in the header, so the filter says "Day 1" only.
     await expect(first).toHaveText(locale === "en" ? "Day 1" : "اليوم الأول");
     await expect(second).toHaveText(locale === "en" ? "Day 2" : "اليوم الثاني");
@@ -161,13 +162,13 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("program-empty")).toContainText(locale === "en" ? /announced/i : /سيُعلن|الإعلان/);
 
     await second.focus();
-    await page.keyboard.press("Space");
-    await expect(second).toHaveAttribute("aria-pressed", "true");
-    await expect(all).toHaveAttribute("aria-pressed", "false");
-    await expect(first).toHaveAttribute("aria-pressed", "false");
+    await page.keyboard.press("Enter");
+    await expect(second).toHaveAttribute("aria-current", "true");
+    await expect(all).not.toHaveAttribute("aria-current", "true");
+    await expect(first).not.toHaveAttribute("aria-current", "true");
     const search = page.getByTestId("program-search");
     await search.fill("unmatched scientific session");
-    await expect(page.getByTestId("program-empty")).toContainText(locale === "en" ? /no.*match/i : /مطابق/);
+    await expect(page.getByTestId("program-empty")).toContainText(experienceCopy[locale].programPending);
     expect(new URL(page.url()).searchParams.get("day")).toBe("day2");
     expect(new URL(page.url()).searchParams.get("q")).toBe("unmatched scientific session");
     const otherLocale = locale === "en" ? "ar" : "en";
@@ -175,17 +176,17 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(new RegExp(`/${otherLocale}/program(?:\\?|$)`));
     await expect(page.locator("html")).toHaveAttribute("lang", otherLocale);
     await expect(page.getByTestId("program-search")).toHaveValue("unmatched scientific session");
-    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
     await (await languageLink(page, locale === "ar" ? "View this page in Arabic" : "View this page in English")).click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/program(?:\\?|$)`));
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(search).toHaveValue("unmatched scientific session");
-    await expect(second).toHaveAttribute("aria-pressed", "true");
+    await expect(second).toHaveAttribute("aria-current", "true");
     expect(new URL(page.url()).searchParams.get("day")).toBe("day2");
     expect(new URL(page.url()).searchParams.get("q")).toBe("unmatched scientific session");
     await page.getByTestId("program-clear").click();
     await expect(search).toHaveValue("");
-    await expect(all).toHaveAttribute("aria-pressed", "true");
+    await expect(all).toHaveAttribute("aria-current", "true");
     await expect(page.getByTestId("program-empty")).toContainText(locale === "en" ? /announced/i : /سيُعلن|الإعلان/);
     await expect(page.locator('a[href*="/program/"]')).toHaveCount(0);
   });
@@ -352,7 +353,7 @@ for (const locale of ["en", "ar"] as const) {
     await followPublicDestination(page, `/${locale}/program`);
     await expect(page).toHaveURL(new RegExp(`/${locale}/program$`));
     await expect(page.getByTestId("program-search")).toHaveValue("");
-    await expect(page.getByTestId("program-day-all")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-all")).toHaveAttribute("aria-current", "true");
     await expect(page.getByTestId("program-category")).toHaveValue("all");
     await expect(page.getByTestId("program-room")).toHaveValue("all");
     await expect(page.getByTestId("program-empty")).toContainText(locale === "en" ? /announced/i : /سيُعلن|الإعلان/);
@@ -411,7 +412,7 @@ for (const locale of ["en", "ar"] as const) {
         expect(new URL(translated.url()).hash).toBe("#main-content");
         if (route === "program") {
           await expect(translated.getByTestId("program-search")).toHaveValue("session & topic");
-          await expect(translated.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+          await expect(translated.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
         } else {
           await expect(translated.getByTestId("media-search")).toHaveValue("speaker & topic");
           await expect(translated.getByTestId("media-edition")).toHaveValue("2026");
