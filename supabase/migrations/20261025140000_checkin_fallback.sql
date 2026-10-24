@@ -9,7 +9,7 @@ alter table msrc_registration.attendance add column offline_recorder text
  check(offline_recorder is null or (offline_recorder=btrim(offline_recorder) and char_length(offline_recorder) between 1 and 80 and offline_recorder !~ '[[:cntrl:]]'));
 alter table msrc_registration.attendance drop constraint attendance_method_check;
 alter table msrc_registration.attendance add constraint attendance_method_check check(method in('scan','manual_code','offline'));
-alter table msrc_registration.attendance add constraint attendance_offline_recorder_check check((method='offline')=(offline_recorder is not null));
+alter table msrc_registration.attendance add constraint attendance_offline_method_check check((method='offline')=(offline_recorder is not null));
 comment on column msrc_registration.attendance.offline_recorder is
  'ENG-082: name or initials from the outage sheet. Present only for method offline; the uploading Super Admin is performer_id.';
 
