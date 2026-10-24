@@ -66,8 +66,7 @@ end$$;
 -- Disable the former encrypted submission contract, including stale servers.
 create or replace function public.msrc_registration_submit(edition_key text,session_claims jsonb,document_type text,
  identity_envelope jsonb,identity_hash text,identity_masked text,key_version text,terms_version text) returns jsonb
- language plpgsql security definer set search_path='' as $$begin
- perform msrc_registration.server_only();return jsonb_build_object('state','denied');end$$;
+ language sql security definer set search_path='' as $$select msrc_registration.server_only();select jsonb_build_object('state','denied');$$;
 -- Remove the separate reveal flow. Detail is the sole plaintext read.
 create or replace function public.msrc_staff_identity_reveal(edition_key text,target_actor uuid,reason text) returns jsonb
  language sql security definer set search_path='' as $$select jsonb_build_object('state','denied');$$;
