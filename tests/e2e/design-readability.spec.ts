@@ -73,7 +73,8 @@ for (const locale of ["en", "ar"] as const) {
     await testInfo.attach(`${locale}-programme-phone`, { path: screenshot, contentType: "image/png" });
     await expect(page.getByTestId("program-search")).toBeEnabled();
     await page.getByTestId("program-search").fill("No matching session");
-    await expect(page.getByTestId("program-empty")).toContainText(locale === "en" ? /No matching results/ : /لا توجد نتائج مطابقة/);
+    // ENG-076: with nothing published, a search still reports the honest pending state.
+    await expect(page.getByTestId("program-empty")).toContainText(locale === "en" ? /to be announced/ : /سيُعلن/);
     await expect(announcement).toBeVisible();
     await page.getByTestId("program-clear").click();
     await expect(page.getByTestId("program-search")).toHaveValue("");
