@@ -127,7 +127,7 @@ declare k text;decl jsonb;begin
  if finalizing then
  if length(btrim(d->>'title'))=0 or msrc_competitions.word_count(d->>'pitch')=0 or length(btrim(decl->>'teamContributions'))=0 then return false;end if;
  foreach k in array array['originalityPermissions','rulesAcknowledged','mediaNoticeAcknowledged','authorityConfirmed'] loop if decl->k<>'true'::jsonb then return false;end if;end loop;
- if exists(select 1 from unnest(array['previouslyPresented','competitionEntered','prizeReceived','fundingReceived','commercialized']) k where decl->k='true'::jsonb) and length(btrim(decl->>'historyDetails'))=0 then return false;end if;
+ if exists(select 1 from unnest(array['previouslyPresented','competitionEntered','prizeReceived','fundingReceived','commercialized']) flag(name) where decl->flag.name='true'::jsonb) and length(btrim(decl->>'historyDetails'))=0 then return false;end if;
  if decl->'aiUsed'='true'::jsonb and length(btrim(decl->>'aiTools'))=0 then return false;end if;
  end if;return true;
 end$$;
