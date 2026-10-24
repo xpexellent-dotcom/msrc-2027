@@ -4257,6 +4257,51 @@ The explicit task override authorizes a local commit on the existing
 seed, flag activation, participant opening or real email. Evidence:
 `docs/progress/2026-10-23-claude-banner-retention.md`; never edit PROGRESS.md.
 
+## ORG-063 — Announcement email release path, 24 October 2026
+
+Authority: the owner's explicit request to “turn on announcement delivery end to
+end”, implemented closed by default. ORG-062 was the highest organizer number
+checked before reservation. This supersedes ORG-061's permanent announcement
+layout DRAFT gate only; registration and abstract email approvals remain separate.
+
+Add a private, default-off announcement layout approval, changed only through an
+exact-session Super Admin RPC with audit. Once approved, newly published
+announcements may enqueue without the layout hold. Existing outbox delivery,
+daily-cap, sweep, runtime and Resend configuration gates still control delivery.
+Every DRAFT-era held message stays held; approval never releases or rewrites it.
+
+A Super Admin can enqueue a test of a saved draft to their own current verified
+address, using the exact bilingual announcement renderer and banner. Tests may
+preview the layout before approval, but obey every global delivery gate. They
+are idempotent, audited and limited to three per rolling hour per actor; they
+create no recipient snapshot or participant inbox row. UI copy distinguishes
+queued from delivered and explains that no email arrives while delivery is off.
+
+No hosted migration, settings seed, real email, flag activation, participant
+opening, commit or push is authorized. Changes remain uncommitted for Claude.
+Evidence belongs in `docs/progress/2026-10-24-claude-announcement-release.md`;
+never edit `docs/PROGRESS.md`.
+
+## ENG-072 — Audited announcement layout approval and self-test outbox path, 24 October 2026
+
+ORG-063; EML-01–05, LOC-01/03, ACC-01, ROL-10/12, PRV-03/05/06,
+SEC-01/02/06 and AT-16. ENG-071 was the highest engineering number checked
+before reservation.
+
+Prefer the Super Admin RPC over an owner-run settings UPDATE: the RPC rechecks
+current authority and exact-session TOTP, serializes concurrent mutations,
+records the actor/session and supports durable operation IDs. Direct table access
+remains denied. Approval controls new publication only; old held snapshots are
+immutable. A separate audited self-test operation derives its single destination
+from Auth, binds the saved draft/version, serializes the actor's rolling-hour
+quota and atomically enqueues through the existing Resend outbox transport.
+
+Code ships ahead of pending hosted migrations: new staff RPCs use the established
+optional-RPC/area-not-ready fallback. The announcement worker DRAFT gate yields
+to the database's per-message release decision; registration/abstract worker gates
+stay intact. No new provider or scheduler is added. Database lint, pgTAP and real
+database integration/concurrency execution remain disposable-CI checks.
+
 ## ORG-064 — Simplified conference registration identity, 24 October 2026
 
 Authority: the owner's explicit Task n10 decision, refining ORG-039. Build the

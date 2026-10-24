@@ -165,6 +165,38 @@ describe("closed outbox templates and sender boundaries", () => {
 });
 
 describe("durable outbox drain orchestration", () => {
+  const announcementPayload = { subject_en: "Conference update", subject_ar: "مستجدات المؤتمر",
+    body_en: "An English paragraph.", body_ar: "فقرة باللغة العربية." };
+
+  it.each(["approved", "self_test"] as const)("uses the existing sender for a SQL-released announcement (%s)", async (release) => {
+    const queued = message(1, { template_key: "announcement", payload: announcementPayload, announcement_delivery: release });
+    const value = fixture([queued]); const sender = createTestOutboxSender();
+    expect(await drainOutbox({ store: value.store, sender, dailyCap: 10, now: () => now })).toMatchObject({ claimed: 1, sent: 1 });
+    expect(sender.captured.get(queued.provider_idempotency_key)).toEqual(renderOutboxMessage(queued));
+    expect(value.store.prepare).toHaveBeenCalledWith(queued, expect.any(String), renderOutboxMessage(queued));
+  });
+
+  it.each([undefined, null])("denies an announcement without immutable SQL release proof (%s)", async (release) => {
+    const value = fixture([message(1, { template_key: "announcement", payload: announcementPayload, announcement_delivery: release })]);
+    const sender = { send: vi.fn() };
+    expect(await drainOutbox({ store: value.store, sender, dailyCap: 10, now: () => now })).toMatchObject({ permanent: 1, sent: 0 });
+    expect(value.store.prepare).not.toHaveBeenCalled(); expect(sender.send).not.toHaveBeenCalled();
+  });
+
+  it.each(["registration_received", "abstract_decision"])("keeps the independent bilingual DRAFT gate for %s", async (template) => {
+    const value = fixture([message(1, { template_key: template, announcement_delivery: "approved" })]);
+    const sender = { send: vi.fn() };
+    expect(await drainOutbox({ store: value.store, sender, dailyCap: 10, now: () => now })).toMatchObject({ permanent: 1, sent: 0 });
+    expect(value.store.prepare).not.toHaveBeenCalled(); expect(sender.send).not.toHaveBeenCalled();
+  });
+
+  it("leaves approved announcements and self-tests untouched with a zero runtime cap", async () => {
+    const value = fixture([message(1, { template_key: "announcement", payload: announcementPayload, announcement_delivery: "self_test" })]);
+    const sender = { send: vi.fn() };
+    expect(await drainOutbox({ store: value.store, sender, dailyCap: 0, now: () => now })).toMatchObject({ claimed: 0, sent: 0 });
+    expect(value.store.claim).not.toHaveBeenCalled(); expect(sender.send).not.toHaveBeenCalled();
+  });
+
   it("sends each queued message once across repeated invocations", async () => {
     const value = fixture([message(1), message(2)]);
     const sender = createTestOutboxSender();
@@ -441,6 +473,19 @@ describe("service-only outbox RPC transport", () => {
   const config = { databaseUrl: "http://127.0.0.1:54321", databaseKey: "sb_secret_synthetic_test" };
   const input = { idempotencyKey: "synthetic/test-1", templateKey: "synthetic_notice" as const, templateVersion: 1 as const,
     locale: "en" as const, recipientEmail: "synthetic-1@example.invalid", payload: { reference: "TEST-1" } };
+
+  it.each([undefined, null, "unknown"])("rejects a claimed announcement without valid database release proof (%s)", async (release) => {
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(Response.json([
+      { ...message(), template_key: "announcement", announcement_delivery: release },
+    ])));
+    await expect(createRpcOutboxStore(config).claim(message().id, 1, 10)).rejects.toThrow("Invalid outbox storage result.");
+  });
+
+  it.each(["approved", "self_test"])("preserves the claimed announcement release proof (%s)", async (release) => {
+    const claimed = { ...message(), template_key: "announcement", announcement_delivery: release };
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(Response.json([claimed])));
+    expect(await createRpcOutboxStore(config).claim(message().id, 1, 10)).toEqual([claimed]);
+  });
 
   it("enqueues the same event key and preserves an existing-row response", async () => {
     const fetcher = vi.fn<typeof fetch>()
