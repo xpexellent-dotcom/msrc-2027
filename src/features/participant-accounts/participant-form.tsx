@@ -26,7 +26,7 @@ function formattedTime(value: number, locale: Locale) {
   return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { hour: "numeric", minute: "2-digit", second: "2-digit", timeZone: "Asia/Riyadh" }).format(value);
 }
 
-export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false, abstractsAvailable = false, workshopsAvailable = false, initialAnnouncements, initialWorkshopBookings }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean; abstractsAvailable?: boolean; workshopsAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse; initialWorkshopBookings?: WorkshopParticipantResponse }) {
+export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false, abstractsAvailable = false, workshopsAvailable = false, certificatesAvailable = false, initialAnnouncements, initialWorkshopBookings }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean; abstractsAvailable?: boolean; workshopsAvailable?: boolean; certificatesAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse; initialWorkshopBookings?: WorkshopParticipantResponse }) {
   const copy = participantCopy[locale];
   const draft = useParticipantDraft();
   // A completion can land in the prior locale's unmounted form. Observe its
@@ -169,6 +169,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
         </dl>
         {registrationAvailable ? <ButtonLink href={`/${locale}/registration`} variant="secondary">{myRegistrationCopy[locale].title}</ButtonLink>
           : <p className="participant-account-registration" data-testid="participant-registration-closed">{copy.registrationClosed}</p>}
+        {certificatesAvailable ? <ButtonLink href={`/${locale}/my-msrc/certificates`} variant="secondary">{locale === "ar" ? "الاستبيانات والشهادات" : "Surveys and certificates"}</ButtonLink> : null}
         {abstractsAvailable ? <ButtonLink href={`/${locale}/abstracts`} variant="secondary">{abstractCopy[locale].title}</ButtonLink> : null}
         {!draft.pending ? <ParticipantInbox locale={locale} initialState={initialAnnouncements} /> : null}
         {!draft.pending && workshopsAvailable ? <MyWorkshopBookings locale={locale} initialState={initialWorkshopBookings} /> : null}

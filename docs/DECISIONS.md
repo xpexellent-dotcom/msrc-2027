@@ -4292,3 +4292,50 @@ pushes, hosted migrations, settings seeds, flag activation, participant opening
 or real emails. Evidence belongs in
 [the workshop receipt](progress/2026-10-24-claude-workshop-booking.md), with
 [feature notes](features/WORKSHOP_BOOKING.md). Do not edit `docs/PROGRESS.md`.
+
+## ENG-075 — Closed S2 surveys and ordinary certificates, 24 October 2026
+
+Authority: Task n12, CRT-01..06 and AT-14, built on ENG-074 workshop evidence
+and existing registration/attendance/outbox. Prepare the additive review-only
+migration `20261024130000_surveys_certificates.sql`. Exactly two ordinary kinds:
+Full Two-Day Conference Attendance and Workshop Participation. No one-day
+variant, hours/accreditation field or role/competition eligibility is introduced.
+Presenter, reviewer, speaker, organizer, hackathon and 3MT remain separately
+approved extension paths.
+
+Store survey completion as actor/survey membership and feedback as individual
+question values dated to the Riyadh calendar day. Retain no application response
+mapping, reusable token, response grouping, operation fingerprint, precise answer
+timestamp, submission audit or request log. Application Super Admins have no raw
+answer/table access or identity-answer export. Atomic submission/retry and the
+schema/ACL boundary are covered in pgTAP. Physical PostgreSQL MVCC/WAL/backups
+and infrastructure logging remain outside the application projection boundary;
+review that threat model and logging, free-text/small-group disclosure, question
+sets, deadlines and retention before enabling S2. Do not claim anonymity against
+unrestricted database operators. The independent unlinking approval remains off.
+
+Super Admins approve template/signature and release immutable batches. Durable
+server-only leases generate private PDFs with opaque verification codes; finishing
+rechecks current account/evidence and atomically issues with held email. Template
+edits clear approval; revocation and staff-reviewed correction/reissue retain the
+original status and audit. English `certificate_notice` v1 is DRAFT and held in SQL
+and independently in the worker. This task's explicit English-email instruction
+narrowly overrides ORG-059 for this new draft only, preserving other bilingual
+participant templates.
+
+Use PDFKit 0.20.2 (MIT), checked against current official docs/package metadata,
+with static OFL Inter/Noto Sans Arabic 5.3.0 embedded server-side. Static fonts
+resolve the observed variable-webfont subsetting failure. Artwork remains a plain
+purple/gold PLACEHOLDER. No public Storage bucket or external PDF service.
+Owner-only downloads and minimal public verification have separate unset retention
+values; expired PDFs/feedback are deleted in bounded existing maintenance. Public
+verification is opaque-code-only, rate-limited, noindex, private/no-store and
+no-referrer. Identity/audit retention beyond verification expiry needs an approved
+privacy policy before issuance; expiry is not claimed to delete every record.
+
+Runtime and database issuance/survey gates default off. Draft settings preparation
+cannot activate them. No hosted migration/settings seed, flag switch, participant
+opening, real email, branch change, commit or push is authorized. Leave changes
+uncommitted on `claude/surveys-certificates`. Evidence belongs in
+[the task receipt](progress/2026-10-24-claude-surveys-certificates.md), with
+[feature notes](features/SURVEYS_CERTIFICATES.md). Do not edit `docs/PROGRESS.md`.
