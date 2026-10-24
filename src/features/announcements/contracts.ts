@@ -7,12 +7,15 @@ export type Announcement = AnnouncementFields & {
   recipientCount: number; sentCount: number; failedCount: number; lastError: string | null;
 };
 export type AnnouncementPreview = { previewToken: string; total: number; segments: { segment: AnnouncementSegment; count: number }[]; samples: string[] };
-export type AnnouncementState = "ready" | "updated" | "closed" | "area-not-ready" | "unavailable" | "denied" | "invalid" | "conflict" | "limited" | "audience-changed" | "not-due";
-export type AnnouncementResponse = { state: AnnouncementState; formToken?: string; announcements?: Announcement[]; announcement?: Announcement; segments?: AnnouncementSegment[]; preview?: AnnouncementPreview; rendered?: { subject: string; text: string; html: string } };
+export type AnnouncementDelivery = { layoutApproved: boolean; deliveryEnabled: boolean; dailyCap: number; sweepsEnabled: boolean; runtimeReady: boolean };
+export type AnnouncementState = "ready" | "updated" | "queued" | "closed" | "area-not-ready" | "unavailable" | "denied" | "invalid" | "conflict" | "limited" | "audience-changed" | "not-due";
+export type AnnouncementResponse = { state: AnnouncementState; formToken?: string; announcements?: Announcement[]; announcement?: Announcement; segments?: AnnouncementSegment[]; preview?: AnnouncementPreview; delivery?: AnnouncementDelivery; messageId?: string; rendered?: { subject: string; text: string; html: string } };
 export type AnnouncementPayload = ({ action: "save"; input: AnnouncementFields & { id?: string; expectedVersion: number } }
   | { action: "preview"; announcementId: string; version: number }
   | { action: "send"; announcementId: string; version: number; previewToken: string; operationId: string; scheduledAt: string | null; confirmed: true }
   | { action: "cancel"; announcementId: string; version: number; operationId: string; confirmed: true }
+  | { action: "test-send"; announcementId: string; version: number; operationId: string }
+  | { action: "layout-approval"; approved: boolean; operationId: string; confirmed: true }
   | { action: "render"; fields: AnnouncementFields }) & { formToken?: string };
 export const announcementUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const announcementRecord = (value: unknown): Record<string, unknown> | null => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
@@ -34,6 +37,15 @@ export function decodeAnnouncementFields(value: unknown): AnnouncementFields | n
 }
 const date = (value: unknown): value is string => typeof value === "string" && Number.isFinite(Date.parse(value));
 const count = (value: unknown): value is number => Number.isSafeInteger(value) && Number(value) >= 0;
+export function decodeAnnouncementDelivery(value: unknown, runtimeReady: boolean): AnnouncementDelivery | null {
+  const row = announcementRecord(value);
+  return row && typeof row.layoutApproved === "boolean" && typeof row.deliveryEnabled === "boolean"
+    && typeof row.sweepsEnabled === "boolean" && count(row.dailyCap) && row.dailyCap <= 100000
+    ? { layoutApproved: row.layoutApproved, deliveryEnabled: row.deliveryEnabled, sweepsEnabled: row.sweepsEnabled, dailyCap: row.dailyCap, runtimeReady } : null;
+}
+export function announcementDeliveryReady(delivery: AnnouncementDelivery | undefined): boolean {
+  return !!delivery && delivery.deliveryEnabled && delivery.sweepsEnabled && delivery.dailyCap > 0 && delivery.runtimeReady;
+}
 export function decodeAnnouncement(value: unknown): Announcement | null {
   const row = announcementRecord(value);
   if (!row) return null;

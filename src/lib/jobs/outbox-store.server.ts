@@ -46,6 +46,7 @@ function claimedMessage(value: unknown): value is OutboxMessage {
   return ["id", "template_key", "locale", "recipient_email", "lease_token", "lease_expires_at", "provider_idempotency_key", "first_attempt_at"]
     .every((key) => typeof row[key] === "string") && Number.isInteger(row.template_version) && Number.isInteger(row.attempt_count)
     && !!row.payload && typeof row.payload === "object" && !Array.isArray(row.payload)
+    && (row.template_key !== "announcement" || row.announcement_delivery === "approved" || row.announcement_delivery === "self_test")
     && (row.provider_request === null || typeof row.provider_request === "object");
 }
 
