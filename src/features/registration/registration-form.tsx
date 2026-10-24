@@ -88,7 +88,7 @@ export function RegistrationForm({ locale, initial, onSubmitted }: { locale: Loc
           error={result.state === "invalid_input" && !normalizeIdentityNumber(documentType, documentNumber) ? numberHint : undefined}
           inputMode={documentType === "passport" ? "text" : "numeric"} spellCheck={false} maxLength={40} value={documentNumber} onChange={(event) => setDocumentNumber(event.target.value)} />
         <Checkbox id="registration-terms" label={copy.termsAccepted} required checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
-        <p>{copy.photography}</p>
+        <p className="registration-photography-notice" data-testid="registration-photography-notice">{copy.photography}</p>
         <Link href={`/${locale}/terms/${result.termsVersion}`}>{copy.termsLink}</Link>
         <Link href={`/${locale}/privacy`}>{copy.privacyLink}</Link>
       </fieldset>

@@ -68,7 +68,7 @@ select is(current_setting('request.jwt.claims'),'{}','Forwarded claims restored 
 create function pg_temp.registration_nulls() returns setof text language plpgsql as $$declare field text;snapshot jsonb;begin
  select to_jsonb(s) into snapshot from msrc_registration.settings s where edition_key='synthetic-registration';
  foreach field in array array['terms_version','payment_required','general_capacity','early_access_start_at','early_access_end_at',
- 'priority_start_at','priority_end_at','general_opening_at','closing_at','waitlist_offer_hours','confirm_seat_lead_days',
+ 'priority_start_at','priority_end_at','general_opening_at','closing_at','confirm_seat_lead_days',
  'confirm_seat_response_hours','places_remaining_threshold','minimum_age'] loop
  execute format('update msrc_registration.settings set %I=null where edition_key=''synthetic-registration''',field);
  return next ok(not msrc_registration.settings_complete('synthetic-registration'),'NULL '||field||' closes request gate');

@@ -67,7 +67,7 @@ async function fillNew(page: Page) {
   for (const [field, value] of Object.entries({
     terms_version: "synthetic-v1", general_capacity: "42", priority_start_at: "2028-03-01T20:00", priority_end_at: "2028-03-03T20:00",
     general_opening_at: "2028-03-03T20:00", closing_at: "2028-03-10T20:00", offer_window_hours: "12",
-    places_remaining_threshold: "5", waitlist_offer_hours: "12", confirm_seat_lead_days: "3", confirm_seat_response_hours: "12",
+    places_remaining_threshold: "5", confirm_seat_lead_days: "3", confirm_seat_response_hours: "12",
   })) await page.locator(`#registration-settings-${field}`).fill(value);
 }
 
@@ -107,7 +107,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(nav.getByRole("link", { name: staffCopy[locale].areas["registration-settings"], exact: true })).toHaveAttribute("aria-current", "page");
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.locator("#registration-settings-free")).toBeChecked();
-    for (const field of ["general_capacity", "priority_start_at", "priority_end_at", "general_opening_at", "closing_at", "offer_window_hours", "waitlist_offer_hours", "confirm_seat_lead_days", "confirm_seat_response_hours"]) await expect(page.locator(`#registration-settings-${field}`)).toHaveValue("");
+    for (const field of ["general_capacity", "priority_start_at", "priority_end_at", "general_opening_at", "closing_at", "offer_window_hours", "confirm_seat_lead_days", "confirm_seat_response_hours"]) await expect(page.locator(`#registration-settings-${field}`)).toHaveValue("");
     await expect(page.locator("#registration-settings-minimum_age")).toHaveValue("18");
     await expect(page.locator("#registration-settings-minimum_age")).toHaveAttribute("readonly", "");
     await page.getByTestId("registration-settings-review").click();

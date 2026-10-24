@@ -4524,3 +4524,7 @@ judges are English/LTR. Scoring outcomes do not distribute awards.
 
 Evidence and remaining gates: [Task n14 receipt](progress/2026-10-24-claude-hackathon-3mt.md)
 and [feature notes](../src/features/competitions/README.md).
+
+## ENG-081 — Retire the legacy waitlist offer field; approved photography notice, 25 October 2026
+
+`waitlist_offer_hours` no longer gates `msrc_registration.settings_complete` or the staff settings form; `offer_window_hours` remains the only offer duration. The column is retained, unrequired. The registration form's photography notice reuses the approved Terms v1.0 section 6 wording (EN/AR) and links removal requests to Privacy Policy section 5; awareness only, no opt-out (owner, 24 October 2026). Evidence: `docs/progress/2026-10-25-claude-registration-cleanup.md`.
