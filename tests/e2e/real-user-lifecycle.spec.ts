@@ -35,15 +35,15 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator("main h1")).toBeVisible();
       await expect(page.getByTestId("program-day-day2")).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
       await page.getByTestId("program-day-day2").click();
-      await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+      await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
       await session.send("Network.emulateNetworkConditions", { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
       await context.setOffline(true);
       await page.getByTestId("program-day-day1").click();
-      await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-pressed", "true");
+      await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-current", "true");
       await expect(page.locator("main h1")).toBeVisible();
       await context.setOffline(false);
       await page.reload();
-      await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-pressed", "true");
+      await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-current", "true");
       await expect(page.locator("main h1")).toBeVisible();
       expect(errors).toEqual([]);
     } finally {

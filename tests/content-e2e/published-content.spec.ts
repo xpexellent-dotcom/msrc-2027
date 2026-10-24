@@ -16,6 +16,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator(".conference-speaker-portrait img")).toHaveJSProperty("naturalWidth", 320);
       await page.getByRole("link", { name: speaker, exact: true }).click();
       await expect(page.getByRole("heading", { level: 1, name: speaker })).toBeVisible();
+      await expect(page).toHaveTitle(`${speaker} | MSRC 2027`);
       await expect(page.getByRole("link", { name: session, exact: true })).toBeVisible();
     } else {
       await expect(page.getByTestId("speakers-empty")).toBeVisible();
@@ -26,13 +27,14 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/program`);
     if (populated) {
       await expect(page.getByRole("link", { name: session, exact: true })).toBeVisible();
-      await expect(page.locator("time[datetime='2027-01-27T09:15:00+03:00']")).toContainText(locale === "ar" ? "٠٩:١٥" : "09:15");
+      await expect(page.locator(".conference-session-row").filter({ has: page.getByRole("link", { name: session, exact: true }) }).locator("time[datetime='2027-01-27T09:15:00+03:00']")).toContainText(locale === "ar" ? "٠٩:١٥" : "09:15");
       await page.getByTestId("program-day-2027-01-29").click();
       await expect(page.getByRole("link", { name: locale === "ar" ? "يوم إضافي تجريبي" : "Synthetic Additional Day", exact: true })).toBeVisible();
       await expect(page.getByRole("link", { name: session, exact: true })).toHaveCount(0);
       await page.getByTestId("program-day-day1").click();
       await page.getByRole("link", { name: session, exact: true }).click();
       await expect(page.getByRole("heading", { level: 1, name: session })).toBeVisible();
+      await expect(page).toHaveTitle(`${session} | MSRC 2027`);
       await expect(page.getByRole("heading", { name: speaker, exact: true })).toBeVisible();
     } else await expect(page.getByTestId("program-empty")).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);

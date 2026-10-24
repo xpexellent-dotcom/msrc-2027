@@ -119,15 +119,15 @@ for (const locale of ["en", "ar"] as const) {
     ]);
     await expect(page).toHaveURL(translatedAddress);
     await expect(page.locator("html")).toHaveAttribute("lang", other);
-    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
     await page.goBack();
     await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day2&source=shared#programme$`));
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
-    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
     await page.goForward();
     await expect(page).toHaveURL(new RegExp(`/${other}/program\\?day=day2&source=shared#programme$`));
     await expect(page.locator("html")).toHaveAttribute("lang", other);
-    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
     await expect.poll(() => page.locator(".programme-toolbar").evaluate((element) =>
       element.getBoundingClientRect().top >= document.querySelector(".site-header-inner")!.getBoundingClientRect().bottom,
     ), { message: "Restored programme controls remain clear of the sticky header" }).toBe(true);
@@ -139,10 +139,10 @@ for (const locale of ["en", "ar"] as const) {
     // Several events in one browser turn expose stale URL/filter writes.
     await page.evaluate(() => {
       for (const day of ["day1", "day2", "all", "day1", "day2"]) {
-        (document.querySelector(`[data-testid="program-day-${day}"]`) as HTMLButtonElement).click();
+        (document.querySelector(`[data-testid="program-day-${day}"]`) as HTMLAnchorElement).click();
       }
     });
-    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
     await page.getByTestId("program-search").fill("synthetic unmatched query");
     await expect(page.getByTestId("program-empty")).toBeVisible();
     if (isMobile) {
@@ -153,11 +153,11 @@ for (const locale of ["en", "ar"] as const) {
       await page.setViewportSize({ width: 1440, height: 900 });
     }
     await expect(page.getByTestId("program-search")).toHaveValue("synthetic unmatched query");
-    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
     await page.getByTestId("program-clear").click();
     await expect(page.getByTestId("program-search")).toHaveValue("");
     await expect(page.getByTestId("program-search")).toBeFocused();
-    await expect(page.getByTestId("program-day-all")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-all")).toHaveAttribute("aria-current", "true");
     expect(new URL(page.url()).search).toBe("?source=shared");
     expect(new URL(page.url()).hash).toBe("#programme");
   });

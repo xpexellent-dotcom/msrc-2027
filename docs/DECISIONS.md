@@ -4302,6 +4302,29 @@ to the database's per-message release decision; registration/abstract worker gat
 stay intact. No new provider or scheduler is added. Database lint, pgTAP and real
 database integration/concurrency execution remain disposable-CI checks.
 
+## ENG-076 - Program schedule publishing, 24 October 2026
+
+PRG-01, CMS-01..04, LOC-01/02/03 and ACC-01. Authority: task n13.
+Reuse the existing published sessions/speakers content editor and its server-only
+projection, authorization, SQL publication validation, history and cache tags.
+No new migration is needed. Keep 60-second public content revalidation.
+
+Publish chronological day/time slots with parallel rooms, linked published
+speakers, descriptions and URL day/category/room filters. Native links/GET forms
+work without JavaScript. Use deterministic Asia/Riyadh clocks. English scientific
+content stays LTR within Arabic pages. Empty content stays unannounced.
+Staff get bilingual advisory draft overlap warnings, end-time guidance and a day
+grid preview; these warnings do not reserve rooms or replace publication guards.
+
+No personal schedule builder. Signed-in participants can navigate to the closed
+My Bookings dashboard section; actual workshop booking records await that module.
+Document the booked/assigned change-notification integration point only. No email
+execution, audience selection or conference-wide notifications are added here.
+All operational flags remain off; no hosted migration/settings or real messages.
+Leave changes uncommitted and use the task receipt; do not edit PROGRESS.md.
+
+Evidence: [task n13 receipt](progress/2026-10-24-claude-program-schedule.md).
+
 ## ENG-074 — Closed workshop booking and completion evidence, 24 October 2026
 
 Authority: Task n11, WKS-01–07, CHK-03/04, CRT-01, PRG-01, ROL-06/07/10/12,
