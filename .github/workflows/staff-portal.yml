@@ -23,7 +23,7 @@ jobs:
   browser:
     name: Closed staff routes and synthetic EN/AR browser checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       CI: "true"
       NEXT_TELEMETRY_DISABLED: "1"
