@@ -29,10 +29,12 @@ export async function drainOutbox({ store, sender, batchSize = 10, timeBudgetMs 
     const [message] = await store.claim(workerId, 1, dailyCap);
     if (!message) break;
     result.claimed++;
-    // ORG-059: new bilingual participant compositions are DRAFT even for historically
-    // approved English keys. Never prepare, alter or replay a frozen provider snapshot.
-    // Abstract jobs also retain their existing SQL hold. Activation alone cannot send drafts.
-    if (isDraftParticipantTemplate(message.template_key)) {
+    // ORG-063: only immutable SQL approval/self-test proof permits an announcement.
+    // Old held jobs and pre-migration claim responses cannot gain release from code.
+    // Registration and abstract compositions retain their independent DRAFT gate.
+    if (isDraftParticipantTemplate(message.template_key)
+      || (message.template_key === "announcement"
+        && !["approved", "self_test"].includes(message.announcement_delivery ?? ""))) {
       if (await store.finish(message, workerId, { state: "permanent", errorClass: "template_invalid" })) result.permanent++;
       else result.stale++;
       continue;
