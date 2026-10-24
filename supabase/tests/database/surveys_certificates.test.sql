@@ -20,9 +20,9 @@ select ok(has_function_privilege('service_role','public.msrc_certificates_partic
 select ok(not has_function_privilege('authenticated','public.msrc_certificates_verify(text,text)','EXECUTE'),'Verification uses rate-limited server boundary');
 select ok(not has_function_privilege('authenticated','public.msrc_certificates_generation_claim(uuid,integer)','EXECUTE'),'Generation server-only');
 select results_eq($$select column_name::text from information_schema.columns where table_schema='msrc_certificates' and table_name='answers' order by ordinal_position$$,
- $$values('survey_id'::text),('question_id'::text),('value'::text),('answer_date'::text)$$,'S2 answers contain only categorical survey/question, value, date');
+ $$values ('survey_id'::text), ('question_id'::text), ('value'::text), ('answer_date'::text)$$,'S2 answers contain only categorical survey/question, value, date');
 select results_eq($$select column_name::text from information_schema.columns where table_schema='msrc_certificates' and table_name='completions' order by ordinal_position$$,
- $$values('survey_id'::text),('actor_id'::text)$$,'S2 completion stores no response ID, token, date or correlated timestamp');
+ $$values ('survey_id'::text), ('actor_id'::text)$$,'S2 completion stores no response ID, token, date or correlated timestamp');
 select is((select count(*) from pg_constraint where conrelid='msrc_certificates.answers'::regclass and contype='f'),0::bigint,'S2 answers have no FK edge/path to actors');
 select ok(not exists(select 1 from pg_index where indrelid='msrc_certificates.answers'::regclass and indisunique),'S2 answers have no response identity/grouping key');
 select ok(not exists(select 1 from information_schema.columns where table_schema='msrc_certificates' and column_name~'(hours|accredit|cme)'),'No hours/accreditation fields');
@@ -156,7 +156,7 @@ select is(public.msrc_certificates_download('synthetic-certificates',pg_temp.reg
 select ok(strpos(public.msrc_certificates_download('synthetic-certificates',pg_temp.registration_claims(7513),(select id from msrc_certificates.certificates))->>'pdfBase64',chr(10))=0,'Private PDF base64 omits PostgreSQL line wraps');
 insert into certificate_results values('verify',public.msrc_certificates_verify((select code from msrc_certificates.certificates),repeat('d',64)));
 select results_eq($$select jsonb_object_keys(value) from certificate_results where key='verify' order by 1$$,
- $$values('activity'::text),('certificate_type'::text),('edition'::text),('recipient_name'::text),('validity'::text)$$,'Public projection exposes exactly five approved fields');
+ $$values ('activity'::text), ('certificate_type'::text), ('edition'::text), ('recipient_name'::text), ('validity'::text)$$,'Public projection exposes exactly five approved fields');
 select is((select value->>'validity' from certificate_results where key='verify'),'valid','Issued certificate publicly valid');
 select ok((select code~'^[a-f0-9]{64}$' from msrc_certificates.certificates),'Opaque 244-bit random code prevents predictable enumeration');
 do $$begin for n in 1..30 loop perform public.msrc_certificates_verify(repeat('0',64),repeat('e',64));end loop;end$$;
