@@ -1,0 +1,366 @@
+                                                                                     MSRC 2027 / MSR ACCELERATE
+
+KING ABDULAZIZ UNIVERSITY / MSRC 2027
+
+MSR Accelerate
+
+Hackathon Operational Framework
+
+DOCUMENT STATUS Working operational baseline -- internal planning, not public rules
+VERSION 1.0 | 23 October 2026
+PROGRAM Two proposed competition tracks within the two-day MSRC 2027 conference
+PROGRAM LEAD Hackathon Lead -- Omar Alsaggaf
+
+Executive overview
+
+MSR Accelerate is a student innovation competition designed to translate research into useful healthcare solutions and to
+reimagine the practice of medical and health research. It combines off-site preparation, structured mentoring during conference
+Day 1, and competitive pitching and judging on Day 2. Participants may propose a solution without building a working prototype;
+however, all finalists must present an evidence-supported, feasible implementation concept.
+
+Core parameter      Working decision
+Competition tracks  Evidence to Impact; Research Reimagined
+Eligibility         Students and interns studying at universities in Saudi Arabia, any discipline or nationality
+Team model          Solo or pre-formed teams; 1-5 members; one project and one team per person
+Finalist capacity   Up to 8 teams per track / 16 total, pending timetable and venue approval
+Pitch format        5-minute presentation + 3-minute questions; Arabic or English spoken, English written
+Evaluation          Blinded pre-event screening; separate live judging with two parallel track panels proposed
+                    Free hackathon entry; conference registration handled separately; one cash winner per track, amount
+Entry and awards    pending
+
+Decision convention: "Agreed direction" reflects current committee planning; "Proposed" requires internal agreement; "Pending approval" may
+not be advertised or implemented as a confirmed commitment.
+
+                                                                                     Operational framework · Working v1.0 | 1
+                                                                                                 MSRC 2027 / MSR ACCELERATE
+
+1. Purpose, scope and tracks
+
+Purpose. Promote scientific reasoning, interdisciplinary collaboration, and practical innovation. The competition values both
+learning and the development of useful research-informed ideas. A prototype or demonstration is encouraged, but is not
+mandatory.
+
+Working public-facing theme (proposed): "Accelerating Research-Driven Innovation." The name and theme are placeholders until
+MSRC leadership approves branding.
+
+Track                           Scope and primary beneficiaries
+Track 1 -- Evidence to Impact
+Track 2 -- Research Reimagined  Transform existing scientific evidence into a practical, responsible solution to a
+                                healthcare problem. Beneficiaries may include patients, clinicians, healthcare
+                                organizations or health systems.
+
+                                Improve how medical and health research is conducted, organized, assessed, analyzed,
+                                communicated or applied. Beneficiaries are primarily researchers and research teams.
+
+Teams bring and define their own problem, explain their proposed solution, compare it with existing work and defend its
+feasibility. The committee assigns or confirms the appropriate track during screening; changing tracks after acceptance is not
+permitted.
+
+Optional third track (conditional). An industry or pharmaceutical sponsor could provide a defined challenge. This track will only
+be launched with a confirmed sponsor, approved challenge brief, evaluation method, resources, and explicit confidentiality and
+intellectual-property terms.
+
+2. Eligibility and team membership
+
+   Eligible applicants: currently enrolled university students and interns studying in Saudi Arabia, from any academic discipline
+     and of any nationality. No healthcare-specialty member is required; cross-university teams are permitted.
+
+   Students may apply alone as a one-person team or in a pre-formed team of up to five. Automatic matching with other
+     applicants is not offered.
+
+   Each participant may belong to only one team. Each team may submit one project.
+   The project lead creates the application and invites team members before the application deadline. Members accept
+
+     invitations and complete the required hackathon account details during team formation. Conference registration may be
+     completed separately after acceptance, subject to the published registration window and approval.
+   The final team roster is confirmed by a published deadline. Changes after submission or acceptance require committee
+     approval and may not be used to evade eligibility or team-size restrictions.
+   Full team attendance is expected for mandatory event activities. At least one approved presenter must attend the final pitch;
+     justified absences and their effect on eligibility or certificates require a documented committee decision, subject to
+     leadership approval.
+
+3. Competition format and indicative capacity
+
+Phase               Expected activity                                                            Location / status
+Application window                                                                               Online / dates pending
+Screening and       Teams submit an anonymized 300-word proposal, references, declarations and
+selection           optional supporting files.                                                   Online / dates pending
+Preparation
+                    Eligibility/originality check; independent scientific review; decisions and  Off-campus + online
+Conference Day 1    reserve list.                                                                On-site / mentoring space
+                                                                                                 pending
+                    Accepted teams confirm participation, register separately for MSRC, receive  On-site / rooms and timetable
+                    instructions and attend online orientation.                                  pending
+
+                    Structured mentor access, team work period, and optional workshop; final
+                    revisions if the timetable permits.
+
+Conference Day 2    Final pitches, separate track judging, deliberation and awards.
+
+Planning capacity is eight finalists per track (16 overall). Each 8-team panel requires 64 minutes of pitch and Q&A before
+transitions and deliberation. Two concurrent panels are therefore preferred; a provisional approximately two-hour block per
+track should be assessed with the conference scheduling lead. Conference sessions and research presentations must be
+considered before fixing timings.
+
+                                                                                     Operational framework · Working v1.0 | 2
+                                                                                                                                                      MSRC 2027 / MSR ACCELERATE
+
+Final slide upload deadline and revision window are pending scheduling approval. Where feasible, teams may revise after Day 1
+mentoring; the same published lock time must apply to everyone.
+
+4. Applications and submissions
+
+4.1 Initial application
+
+Every application includes a project title, selected track and a single English-language pitch of no more than 300 words. The form
+should guide applicants to cover all five elements below within that limit:
+
+   Problem and target users or setting
+   Relevant evidence and why the problem matters
+   Proposed solution and how it works
+   Novelty: how it differs from existing work
+   Practical feasibility, expected impact and next steps
+References are supplied in a separate field or attachment outside the 300-word count. Applicants may optionally attach one short
+pitch deck, figures, supporting documents or links to a video/demonstration. Optional production quality should not replace the
+core screening assessment. A pitch deck is a brief slide presentation outlining the problem, solution, evidence, innovation and
+proposed implementation.
+
+Account profiles contain necessary contact and enrollment details (name, email, phone, university and field of study). University
+ID or equivalent proof of enrollment may be requested for verification, particularly after shortlisting. Collection of national
+identity numbers, document images or other sensitive identifiers requires a justified purpose and institutional privacy approval.
+
+Required declarations cover prior presentations and project history; AI use; team contributions; originality and permissions;
+acknowledgment of competition rules; and appropriate media/data-processing consent. Research ethics or approval documents
+are required only where applicable to activities actually undertaken.
+
+4.2 Blinding and final-stage materials
+
+All material seen by pre-event scientific reviewers must be anonymized. Proposal text, decks, filenames and visible metadata
+must not contain applicant names, institutional logos, direct personal identifiers or other team-identifying details. A committee
+eligibility officer retains access to identity and verification records separately.
+
+Accepted finalists submit an English-language pitch deck with references and a sufficiently specific implementation approach. A
+mockup, prototype, recording, screenshots or PDF walkthrough may be provided but is optional. A safe backup demonstration
+may substitute for a failed live demo; it does not change the scoring standards. Spoken pitches and Q&A may be in Arabic or
+English.
+
+A convincing idea alone is not a sufficient final outcome: teams must show supporting evidence, identify the intended users or
+setting, and explain practical feasibility and limitations. No functioning product or demonstrated clinical benefit is required.
+
+5. Screening, decisions and reserve list
+
+Step 1 -- Administrative and eligibility check. The registration lead verifies basic eligibility, one-person/one-team and one-project
+limits, completion, project history declarations, prohibited content, and apparent ethics or safety concerns. Identity and
+institutional proof should be limited to what is necessary and may be verified in stages.
+
+Step 2 -- Blinded proposal review. Every administratively eligible application receives two independent scientific reviews using
+the separately approved Screening Rubric. Reviewers score the proposed contribution and its distinction from existing work; they
+do not need evidence that no comparable idea exists anywhere.
+
+Step 3 -- Resolution and ranking. Material score disagreements, borderline shortlist decisions or disputed eligibility findings go to
+a third independent reviewer or designated scientific officer; the hackathon lead oversees the process. The score-difference
+trigger and final tie protocol must be fixed before screening. Reviewers declare conflicts and are reassigned when appropriate.
+
+Step 4 -- Selection and confirmation. Up to eight teams per track are offered finalist places. Remaining eligible teams form a
+track-specific ranked reserve list. Acceptance is provisional until eligibility, roster confirmation and separate conference
+processes are completed. If an accepted team withdraws or is found ineligible, the committee may offer the place to the next
+reserve team only if meaningful preparation and registration remain feasible.
+
+                                                                                                                Operational framework · Working v1.0 | 3
+                                                                                                                                                      MSRC 2027 / MSR ACCELERATE
+
+Originality review. Applicants must disclose any earlier presentation, competition entry, prize, external funding,
+commercialization or substantive development of the same project. A prior unawarded presentation may be reviewed case by
+case; previously awarded, commercially launched or substantially completed projects are ineligible under the current working
+rule. Funding and ambiguous prior development should be referred to the committee for a documented decision. Designated
+eligibility staff may verify relevant public project records, published competition lists, LinkedIn posts and other public sources.
+Similarity findings are not proof by themselves; teams must be given an opportunity to clarify.
+
+6. Mentoring, presentations and live judging
+
+6.1 Preparation and mentorship
+
+Following acceptance, finalists join an online orientation and a WhatsApp support channel. The first conference day provides
+structured, reasonably equitable access to mentors and dedicated team working time. Mentors may critique research evidence,
+implementation pathways, clinical relevance, technical choices and presentation readiness; they may not take over a project,
+create deliverables as undisclosed contributors or join a team in competition.
+
+Mentors are coordinated through the Hackathon Lead and faculty/judges liaison. A short expert or sponsor workshop may be
+included if space and time allow. Equal opportunity to consult mentors is required; identical advice or identical specialist
+involvement is not.
+
+6.2 Pitch and judges
+
+Each finalist team receives five minutes to present and three minutes for judges' questions. Presentation order, timekeeper,
+permissible number of speakers, overrun handling and audiovisual fallback will be released in the finalist instructions. Written
+slides and supporting materials remain in English; the spoken presentation may be Arabic or English.
+
+Ideally, each track has its own simultaneous panel of three to five judges with relevant clinical, scientific, research, technical and
+implementation expertise. External university or industry judges may be invited subject to conference/KAU approval. Each judge
+declares conflicts; scores are entered independently before a documented panel discussion. The separate Live Judging Rubric
+governs assessment and must not be replaced by the application screening rubric.
+
+Brief outcome notifications will be sent to applicants. Detailed individual reviewer scores, reviewer identities and confidential
+panel notes are not routinely disclosed. Procedural complaints are handled through website support and committee escalation;
+this does not create a general right to re-score substantive judging decisions.
+
+7. Academic integrity, AI and responsible innovation
+
+7.1 Generative AI policy
+
+Generative AI is permitted for idea development, literature discovery, writing, coding, graphics, prototyping and preparing
+presentations. Teams must disclose whether they used generative AI, identify significant tools/functions and remain able to
+explain and defend their work. Disclosed use carries no automatic penalty or fixed percentage cap.
+
+Teams must verify references and scientific claims. Fabricated sources, data or performance results; undisclosed copied work;
+manipulated evidence; and the presentation of simulated or AI-generated outcomes as real validation are prohibited. Automated
+AI-writing detectors are not used as a sole basis for disqualification. Significant integrity concerns are assessed by committee
+members using available evidence and a chance for the team to respond.
+
+7.2 Safety, ethics, conduct and ownership
+
+Teams may use permitted public data, synthetic examples and suitably authorized de-identified data. Patient-identifying records
+or confidential organizational material must not be uploaded to the platform or unapproved third-party AI services. Projects
+involving actual participants, patient data, clinical testing or regulated activities must comply with applicable ethical, institutional
+and data permissions before those activities occur. Preliminary safety flags are reviewed during application screening, with
+specialist escalation when needed; live judges also assess safety and unsupported clinical claims.
+
+Participants, mentors and judges must act respectfully and avoid harassment, falsification, plagiarism, sabotage and misuse of
+confidential information. Serious conduct or integrity violations may lead to suspension or removal, following a documented
+committee review.
+
+                                                                                                                Operational framework · Working v1.0 | 4
+                                          MSRC 2027 / MSR ACCELERATE
+
+As a working principle, teams retain rights in their own work, subject to applicable law, existing agreements and university
+policies. MSRC obtains only the consent-based permissions necessary for review and agreed publicity. Public pitches are not
+confidential; participants should not reveal unprotected sensitive information. There is no promise of patent protection,
+adoption, incubation or commercialization.
+
+Photo, video, team-image, pitch-recording and winner-description permissions must be covered by explicit registration terms
+consistent with institutional policy. Full submitted proposals should not automatically be published. The committee and media
+team need a defined process for no-photo requests, withdrawal requests and publicity corrections.
+
+8. Registration, participant support, awards and partners
+
+   Hackathon entry is free. Every finalist must still follow the regular MSRC conference registration, approval and any applicable
+     conference access/payment rules. Hackathon acceptance does not itself grant conference admission.
+
+   Pre-acceptance questions and complaints are submitted through the website support function. Platform notifications are
+     sent by email in English. A support email should be verified and staffed before launch; the draft specifies
+     MSRC27kau+hackathon@gmail.com as a candidate, not a confirmed address. Finalists additionally receive a managed
+     WhatsApp support group.
+
+   One winning team per track is planned, with a cash prize in each track. Prize amounts, source of funding, team distribution
+     and payment approvals are pending conference leadership. Announcements must not promise unapproved amounts.
+
+   Participation certificates are planned for finalists meeting published activity, final submission and feedback-survey
+     requirements, with a documented process for justified absences. Winner, mentor and judge certificates are distinct. Final
+     certificate criteria and signatories require approval.
+
+   Potential contributors include KAU clinical departments, research groups, technology partners, healthcare organizations and
+     innovation units. KAU's Center for Innovation and Entrepreneurship is a suggested outreach target for mentoring or a
+     possible development pathway; no partnership or incubation outcome is confirmed.
+
+   Out-of-city participants arrange and fund their own travel and accommodation unless leadership separately approves
+     assistance.
+
+9. Organization and event-day operations
+
+Workstream                             Proposed accountable owner / handoff
+Program and final rules                Hackathon Lead (Omar Alsaggaf); escalates approvals to MSRC conference leadership.
+Registration, eligibility and reserve
+list                                   Hackathon registration lead; protected identity records and blinded-review administration.
+Reviewers, mentors and judges
+Conference programme / pitch           Hackathon Lead with faculty/judge coordination liaison; proposed Reem -- confirm assignment.
+slots                                  Conference scheduling lead; proposed Aisha -- confirm simultaneous panel rooms and session
+                                       clashes.
+Awards and certificates                Conference awards coordinator (proposed Toleen; confirm name/assignment), Hackathon Lead and
+                                       authorized signatory.
+Website and participant                Technical/web team with registration lead; support queue, notifications, reviewer roles and
+communications                         submission locks.
+                                       Conference media/PR team; public rules, consent-based photography and approved result
+Media and outreach                     announcements.
+                                       Organizing/logistics team; mentoring tables, power, Wi-Fi, pitch rooms, catering and check-in.
+Venue and event-day logistics
+
+On each event day, assign named staff for check-in and attendance; late/absent team escalation; mentor availability; judges and
+reserve judges; presentation room/AV failures; schedule and timekeeping; website/helpdesk incidents; and complaints. Maintain
+an offline team contact list restricted to authorized staff, backup presentations where permitted, and a written escalation route.
+
+Minimum venue requirements: suitable working area and team tables on Day 1, reliable Wi-Fi and power, presentation
+equipment and technical support, separate rooms for parallel panels on Day 2, and agreed catering for the mentoring period. The
+draft mentions the Mini Auditorium as a possible venue; suitability and booking are unconfirmed.
+
+Website outage plan (proposed). The official website announces interruptions and revised deadlines when operational. If it fails,
+official MSRC social channels can direct entrants to an authorized alternative. Any fallback submission uses a controlled
+committee channel with timestamps, access control and a published deadline extension policy; unpublished proposals should not
+be posted publicly or sent by social-media direct message.
+
+                                          Operational framework · Working v1.0 | 5
+                                                                                                 MSRC 2027 / MSR ACCELERATE
+
+10. Website implementation handoff
+
+MSR Accelerate is a distinct application route within the MSRC website, separate from abstracts, three-minute thesis and regular
+conference registration. Public pages and participant workflows are bilingual (Arabic/English). Project submissions and
+assessment screens are English-only. System-generated notifications are email-only and in English.
+
+Website function           Required behavior
+Project and team workflow
+Applicant form             Lead creates one project; invites up to four others during application; invitees confirm
+Role-based access          accounts/team membership; drafts and application lock; one-team-per-person enforcement.
+Decision workflow
+Finalist workspace         Title, track, 300-word proposal, reference entry, optional attachments/links, prior-history and AI
+Support and consent        declarations, applicable ethics flag, participant acceptance of terms.
+
+                           Registration staff see eligibility identities; two scientific reviewers see anonymized project content
+                           only; live judging uses a separate event-stage interface.
+
+                           Administrative eligibility checks, reviewer assignment, independent scores, third-review escalation,
+                           track-specific rankings/reserve list, decision notices and finalist confirmation.
+
+                           Conference-registration reminder, orientation details, WhatsApp invite, final deck upload/lock,
+                           event timetable and participant instructions.
+
+                           Website support/complaints, consent records, access-controlled verification files, media
+                           preferences, audit trail and outage handling.
+
+The technical lead should validate these workflows against the MSRC website development specification before launch. No
+application window should open until privacy/access controls, forms, content, email templates, reviewer isolation, support
+routes and required approvals have been tested.
+
+11. Approval register -- close before launch                                                     Owner / status
+                                                                                                 MSRC leadership -- pending approval
+    Open decision / action                                                                       Conference scheduling + Hackathon Lead --
+    Approve competition name, theme and public track descriptions.                               pending
+    Confirm timetable, opening/closing dates, Day 1 work period, submission lock, and Day 2
+    parallel panels.                                                                             MSRC leadership / faculty liaison -- pending
+    Confirm eight finalists per track and judge/mentor capacity, including backups and external
+    invitees.                                                                                    Hackathon Lead / scientific officer --
+    Finalize screening and live judging rubric versions, disagreement threshold, tie rule and    pending
+    award ratification.                                                                          Hackathon Lead + MSRC leadership --
+                                                                                                 pending
+    Approve full attendance exception rules and individual certificate criteria.
+                                                                                                 Conference registration lead -- pending
+    Confirm what conference registration, approval, admission and any payment require for
+    finalists.                                                                                   Conference leadership / awards -- pending
+    Confirm awards, cash amount, payout process and finance owner.                               Web team / registration lead -- pending
+    Finalize support email, website support ownership and emergency submission route.            Hackathon Lead / institutional approvers --
+    Approve public integrity, AI, data, IP, media, conduct and consent language with relevant    pending
+    KAU offices.                                                                                 Conference organizing team -- pending
+    Confirm venue, equipment, catering, Wi-Fi, check-in and incident owners.                     Partnership/sponsorship lead -- optional /
+    Explore KAU innovation partnership; decide whether to pursue optional industry challenge     conditional
+    track.
+
+Reference and implementation notes
+
+Internal basis: "Hackathon Draft," MSRC 2027 working draft v0.1 (8 pages), and subsequent Hackathon Lead discussion through 23 October 2026.
+This framework records planning directions, not evidence of institutional authorization or completed website implementation.
+External reference for possible outreach: KAU, Center for Innovation and Entrepreneurship, https://kau.edu.sa/en/page/center-for-innovation-
+and-entrepreneurship (accessed 23 October 2026).
+Privacy drafting reference: Saudi Data & AI Authority, Personal Data Protection Law implementing regulations and data minimization guidance,
+https://dgp.sdaia.gov.sa/ (accessed 23 October 2026). Institutional review of public-facing terms is still required.
+
+                                                                                                 Operational framework · Working v1.0 | 6
+

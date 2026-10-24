@@ -1,0 +1,92 @@
+MSRC 2027                                                                               STAGE 01 / INTERNAL WORKING DRAFT
+
+PRELIMINARY SCREENING
+
+Application scorecard
+
+Stage 1 only: select proposals for mentoring and the final pitch. This is not the live judging rubric.
+
+20  POINTS                                    APPLICATION MATERIALS
+    4 equally weighted criteria
+                                              300-word summary + pitch deck
+
+Application ID                   Reviewer ID                                                              Track
+                                                                                                        ENTER 1-5 POINTS PER CRITERION
+SCORE EACH DOMAIN
+
+01 Problem Relevance & Potential Impact                                                                              SCORE
+
+            01 Is the problem clear, significant, and aligned with the selected track?                                          /5
+            02 If solved, would it meaningfully benefit the intended users?
+
+02 Innovation & Solution Fit                                                                                         SCORE
+
+            01 Does the proposed solution directly address the identified problem?                                              /5
+            02 Does it offer meaningful novelty or improvement over existing approaches?
+
+03 Feasibility & Development Potential                                                                               SCORE
+
+            01 Is the idea realistic considering likely requirements, resources, and barriers?                                  /5
+            02 Is there a plausible pathway for further development?
+
+04 Evidence & Rationale                                                                                              SCORE
+
+            01 Is the problem supported by credible research or other appropriate evidence?                                     /5
+            02 Is there a sound rationale for why the proposed solution could work?
+
+     TOTAL SCREENING SCORE                                                                                           / 20
+     Sum all four criteria
+                                                                                                                                1 / 2
+Optional supporting documents may substantiate a proposal but earn no separate points. A prototype is not required.
+MSRC 2027 / HACKATHON
+MSRC 2027                                                                    REVIEWER GUIDANCE / EVIDENCE BASIS
+
+REVIEWER NOTES
+
+Scoring & source basis
+
+An MSRC adaptation of published screening approaches; equal weights are proposed, not externally validated.
+ONE CONSISTENT 1-5 SCALE
+
+5 Excellent                         Both guiding questions convincingly addressed; strong support.
+4 Strong                            Both addressed well; only minor gaps.
+3 Adequate                          Core expectations met, but some development is needed.
+2 Weak                              Substantial gaps in explanation, justification or practicality.
+1 Poor                              Criterion largely unaddressed or unsupported.
+
+HOW THE MSRC CRITERIA WERE DERIVED
+01 Problem Relevance & Potential Impact
+Taiwan: Social Impact | EPRA: Relevance + Societal Impact
+Combines importance of the problem, track fit and plausible benefit.
+
+02 Innovation & Solution Fit
+
+Taiwan: Innovation + Feasibility | EPRA: Innovation
+Pairs originality with whether the solution actually addresses the need.
+
+03 Feasibility & Development Potential
+
+Taiwan: Feasibility | UKRI/NQCC: Hackathon Suitability
+Judges a realistic path forward, not a completed product or prototype.
+
+04 Evidence & Rationale
+
+EPRA: Use of Data & Analytical Approach | UKRI/NQCC: Supporting Information
+Retained independently because MSRC is a research-focused conference.
+
+REVIEW PROTOCOL
+
+Eligibility first: confirm submission completeness, team/track rules, originality declarations and any safety or ethics concerns before
+competitive scoring.
+
+Independent scoring: two blinded reviewers score each eligible application out of 20. Average reviewer totals and rank within each track;
+define a third-review process for close or disputed cases.
+
+Fairness: score the substantive content of the summary, deck and optional material. Do not separately reward polished design, videos,
+previous progress or a prototype.
+
+OFFICIAL BENCHMARKS                 EPRA Research Week Hackathon 2026                                UKRI / NQCC Hackathon 2026
+Taiwan Presidential Hackathon 2026
+
+MSRC 2027 / HACKATHON                                                                                                            2 / 2
+

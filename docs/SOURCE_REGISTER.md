@@ -14,6 +14,9 @@
 | S6 | [Visible project conversation notes](../sources/PROJECT_CONTEXT_NOTES.md) | Context supplied to this conversation | User intent/preferences and prior artifact breadcrumbs; not a complete transcript export |
 | S7 | [MSRC 2026 media source](https://drive.google.com/drive/folders/1wkez3zex5RiTc3dM85s9QLO07rpLrsEu); [media register](MEDIA_REGISTER.md) | Folder named Without frame; read-only metadata inspection, six photographer folders; bounded child samples | Confirms observed file/folder access and media formats; partial inventory, no content selection/download/permission clearance |
 | S8 | [Original Canva brand reference sheet](https://www.canva.com/d/zrujOnVYUtutnfB); [included text](../sources/MSRC27_Brand_Reference_Canva.txt) | MSRC27 brand reference sheet, design DAHWgMSGq3E, one page; modified 29 Sep 2026 12:16:35 UTC / 15:16:35 Riyadh | Text read directly from existing design; corroborates palette and English font names; font uncertainty and example schedule remain nonfinal |
+| S9 | [MSR Accelerate Hackathon Operational Framework](../sources/hackathon-2027/hackathon-framework.txt) | Owner-supplied v1.0, 23 Oct 2026; six pages; internal working operational baseline, not public rules; read in full for Task n18 | ORG-065 (24 Oct 2026) adopts the task's specific implementation directions and track names despite their proposed source status. Pending approvals, illustrative capacity, proposed assignments, branding/theme, candidate support address, venues, cash amounts and institutional terms remain unapproved. |
+| S10 | [Stage 1 Preliminary Screening Rubric](../sources/hackathon-2027/preliminary-screening.txt) | Owner-supplied internal working draft; two pages; read in full for Task n18 | ORG-065 authorizes an editable, versioned default only: four equally weighted 1–5 criteria, total 20, with the exact criterion names, guiding questions and common anchors. Screening stays closed until its settings and release gates are satisfied. |
+| S11 | [Stage 2 Final-Stage Judging Rubric](../sources/hackathon-2027/final-judging.txt) | Owner-supplied internal working draft; three pages; read in full for Task n18 | ORG-065 authorizes a distinct editable, versioned default only: seven equally weighted 1–5 criteria, total 35, exact questions, common scale and criterion-specific 5/3/1 anchors. Fairness and separate concern flags remain visible; preloading does not authorize judging. |
 
 S1 and S2 text snapshots preserve the readable paragraph content returned by the current document read. Their source links remain available for layout and future edits. Original Google Docs files were not modified. S8 is a text snapshot, not a Canva PDF export; the existing Canva design was not changed. Source PDFs are retained unchanged.
 
@@ -45,6 +48,46 @@ If a newer source conflicts with this handoff, record source, date, owner and ch
 | Shorthand says submissions English-only | Participant labels/errors remain bilingual; scientific content English/LTR; assessment screens and transactional emails English-only |
 | Blank tracker and staged prompts | No completed code, infrastructure, tests or releases inferred |
 | Older setup commands include version-sensitive instructions | Reverify supported versions and CLI help during implementation |
+
+### Task n18 reconciliation, 24 October 2026
+
+S9–S11 are newer **internal working drafts**. The owner's explicit ORG-065
+directions control their bounded implementation; the documents do not approve
+every proposed rule or public statement. Preserve S1 requirement IDs TRK-01,
+HAC-01–11 and TMT-01/02 when recording changes.
+
+- HAC-02: replace the old display labels with Evidence to Impact and Research
+  Reimagined, with the framework scopes and bilingual editable display settings;
+  retain stored keys. Eligibility now covers enrolled university students/interns
+  studying in Saudi Arabia, any discipline/nationality, self-declared then verified.
+- HAC-01/03: one team per person now includes solo entries across all Hackathon
+  projects. Invitees accept and complete their private Hackathon profile before
+  the application deadline. Later roster changes require a reasoned committee
+  action. Do not apply these changes to 3MT.
+- HAC-04/05: one 300-word English pitch contains five guidance prompts; references
+  sit outside its count. Record the specified history, AI-use, contributions,
+  originality, rules, ethics and notice acknowledgments. Refer prior history and
+  integrity doubts for a documented human decision; no automated originality/AI
+  detector is adopted.
+- HAC-06/07/11: use the editable default rubrics, two independent blinded reviews,
+  a third-review difference setting with no default, average valid totals and
+  track-specific reserves. Capacity, solo quota accounting, ties, judge count,
+  dates/locks and policy approvals remain configured gates; eight per track is
+  not a configured default or public promise.
+- HAC-10/PRV-03: the required Hackathon phone is private contact information only,
+  separate from authentication; no SMS or number sharing. Optional enrollment
+  proof uses the closed private-file scan gate. Hackathon national ID stays
+  excluded. An accepted-finalist-only, staff-entered external WhatsApp group URL
+  is authorized; no WhatsApp integration or automatic membership is added.
+- HAC-08/09/11, EML-01 and SUP-01: conference admission remains separate. Brief
+  Hackathon outcome templates are English and held DRAFT under this task's
+  explicit direction; no real mail is sent. Use the existing Hackathon Contact
+  topic/routing; the framework address is a candidate, not a new mailbox decision.
+  Certificates remain an evidence hook only; award outcomes do not issue prizes.
+
+The earlier reconciliation table is a historical 29 September snapshot. These
+bounded updates supersede its Hackathon eligibility/phone/group uncertainty;
+unresolved public legal/IP/media terms, logistics and release evidence stay open.
 
 ## Coverage boundaries
 
