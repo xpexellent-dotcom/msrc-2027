@@ -373,12 +373,17 @@ begin
  using(bucket_id<>'msrc-competition-files') with check(bucket_id<>'msrc-competition-files')$m$;
 end$storage$;
 create function public.msrc_competitions_scan_result(file_id uuid,clean boolean) returns jsonb language plpgsql security definer set search_path='' as $$
-declare entry uuid;edition text;begin
+declare entry uuid;edition text;object_path text;byte_size bigint;mime text;present boolean;begin
  perform msrc_competitions.guard();perform msrc_registration.server_only();
  -- Scanner integration is intentionally unavailable until the independent files release gate is evidenced.
- if not exists(select 1 from msrc_competitions.files f join msrc_competitions.entries e on e.id=f.entry_id join msrc_competitions.settings s on s.edition_key=e.edition_key and s.kind=e.kind where f.id=file_id and s.files_ready and f.state='quarantine'
- and not exists(select 1 from msrc_competitions.judge_assignments ja where ja.entry_id=e.id)
- and exists(select 1 from storage.objects o where o.bucket_id='msrc-competition-files' and o.name=f.object_path and (o.metadata->>'size')::bigint=f.byte_size and o.metadata->>'mimetype'=f.mime)) then return jsonb_build_object('state','closed');end if;
+ select f.object_path,f.byte_size,f.mime into object_path,byte_size,mime from msrc_competitions.files f join msrc_competitions.entries e on e.id=f.entry_id
+ join msrc_competitions.settings s on s.edition_key=e.edition_key and s.kind=e.kind where f.id=file_id and s.files_ready and f.state='quarantine'
+ and not exists(select 1 from msrc_competitions.judge_assignments ja where ja.entry_id=e.id);
+ if not found or to_regclass('storage.objects') is null then return jsonb_build_object('state','closed');end if;
+ -- Dynamic so installs without Storage still compile and lint; the object must match the reserved file exactly.
+ execute 'select exists(select 1 from storage.objects o where o.bucket_id=''msrc-competition-files'' and o.name=$1 and (o.metadata->>''size'')::bigint=$2 and o.metadata->>''mimetype''=$3)'
+ into present using object_path,byte_size,mime;
+ if not present then return jsonb_build_object('state','closed');end if;
  update msrc_competitions.files f set state=case when clean then 'clean' else 'rejected' end where f.id=file_id;
  select e.id,e.edition_key into entry,edition from msrc_competitions.files f join msrc_competitions.entries e on e.id=f.entry_id where f.id=file_id;
  perform msrc_competitions.record(edition,'file.scan_result',entry,jsonb_build_object('fileId',file_id,'state',case when clean then 'clean' else 'rejected' end));
@@ -482,7 +487,7 @@ end$$;
 create function public.msrc_staff_competitions_mutate(edition_key text,competition_type text,action text,payload jsonb,operation_id uuid) returns jsonb language plpgsql security definer set search_path='' as $$
 #variable_conflict use_variable
 declare cfg msrc_competitions.settings%rowtype;e msrc_competitions.entries%rowtype;a msrc_competitions.assignments%rowtype;j msrc_competitions.judge_assignments%rowtype;decision msrc_competitions.decisions%rowtype;
- old msrc_competitions.operations%rowtype;input bytea;result jsonb;required text[];reviewer text;entry uuid;actor uuid;rubric jsonb;basis jsonb;outcome text;judge uuid;cap integer;used integer;k text;begin
+ old msrc_competitions.operations%rowtype;input bytea;result jsonb;required text[];reviewer text;entry uuid;actor uuid;rubric jsonb;basis jsonb;outcome text;judge uuid;cap integer;used integer;begin
  perform msrc_competitions.guard();
  if competition_type is null or competition_type not in('hackathon','three_minute_thesis') or action is null or operation_id is null or jsonb_typeof(payload) is distinct from 'object' or octet_length(payload::text)>262144 then return jsonb_build_object('state','invalid');end if;
  if action not in('affiliations','file_read') and (jsonb_typeof(payload->'expectedVersion') is distinct from 'number' or coalesce(payload->>'expectedVersion','')!~'^[0-9]{1,9}$') then return jsonb_build_object('state','invalid');end if;
