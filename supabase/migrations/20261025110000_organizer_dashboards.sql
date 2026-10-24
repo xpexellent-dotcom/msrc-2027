@@ -53,6 +53,17 @@ create function msrc_staff.reporting_review_scope(edition text,roles text[],trac
  or (g.scope_kind='track' and g.track=track_name and g.scope_target=track_name)));
 $$;
 
+-- Participant accounts are platform-wide; there is no participant role grant.
+-- An account belongs to an edition's reporting scope once it holds any record there.
+create function msrc_staff.reporting_edition_participant(target uuid,edition text) returns boolean
+ language sql stable security definer set search_path='' as $$
+ select exists(select 1 from msrc_registration.requests r where r.actor_id=target and r.edition_key=edition)
+ or exists(select 1 from msrc_abstracts.submissions s where s.actor_id=target and s.edition_key=edition)
+ or exists(select 1 from msrc_competitions.entries e where e.lead_id=target and e.edition_key=edition)
+ or exists(select 1 from msrc_competitions.roster r join msrc_competitions.entries e on e.id=r.entry_id where r.actor_id=target and e.edition_key=edition)
+ or exists(select 1 from msrc_workshops.bookings b join msrc_workshops.workshops w on w.id=b.workshop_id where b.actor_id=target and w.edition_key=edition);
+$$;
+
 create function msrc_staff.reporting_status_valid(module_name text,status_name text) returns boolean
  language sql immutable security invoker set search_path='' as $$
  select status_name='all' or case module_name
@@ -77,7 +88,7 @@ create function msrc_staff.reporting_records(edition text,module_name text)
 #variable_conflict use_variable
 declare science boolean:=msrc_staff.authorize(edition,array['superAdmin','scientificAdministrator'],false) is not null;begin
  if module_name='registrations' then return query select r.id::text,r.status,r.actor_id from msrc_registration.requests r where r.edition_key=edition;
- elsif module_name='accounts' then return query select p.actor_id::text,p.state,p.actor_id from msrc_participant.profiles p where exists(select 1 from msrc_authorization.role_grants g where g.actor_id=p.actor_id and g.edition_key=edition and g.role_name='participant' and g.state='active');
+ elsif module_name='accounts' then return query select p.actor_id::text,p.state,p.actor_id from msrc_participant.profiles p where msrc_staff.reporting_edition_participant(p.actor_id,edition);
  elsif module_name='orders' then return query select o.id::text,'mock_settled'::text,o.actor_id from msrc_workshops.orders o join msrc_workshops.bookings b on b.id=o.booking_id join msrc_workshops.workshops w on w.id=b.workshop_id where w.edition_key=edition and o.kind='mock';
  elsif module_name='submissions' then return query select coalesce(s.reference,s.id::text),s.status,s.actor_id from msrc_abstracts.submissions s where s.edition_key=edition;
  elsif module_name='reviews' then
@@ -103,7 +114,7 @@ create function msrc_staff.reporting_cells(edition text,modules text[])
 #variable_conflict use_variable
 declare science boolean:=msrc_staff.authorize(edition,array['superAdmin','scientificAdministrator'],false) is not null;begin
  if 'registrations'=any(modules) then return query select 'registrations'::text,'status'::text,v.s,count(r.id) from unnest(array['pending_approval','approved','approved_awaiting_payment','waitlisted','offered','confirmed','cancelled','expired']) v(s) left join msrc_registration.requests r on r.edition_key=edition and r.status=v.s group by v.s;end if;
- if 'accounts'=any(modules) then return query select 'accounts'::text,'status'::text,'verified'::text,count(p.actor_id) from msrc_participant.profiles p join auth.users u on u.id=p.actor_id where p.state='verified' and u.email_confirmed_at is not null and u.deleted_at is null and exists(select 1 from msrc_authorization.role_grants g where g.actor_id=p.actor_id and g.edition_key=edition and g.role_name='participant' and g.state='active');end if;
+ if 'accounts'=any(modules) then return query select 'accounts'::text,'status'::text,'verified'::text,count(p.actor_id) from msrc_participant.profiles p join auth.users u on u.id=p.actor_id where p.state='verified' and u.email_confirmed_at is not null and u.deleted_at is null and msrc_staff.reporting_edition_participant(p.actor_id,edition);end if;
  if 'orders'=any(modules) then
  return query select 'orders'::text,'status'::text,'mock_settled'::text,count(o.id) from msrc_workshops.orders o join msrc_workshops.bookings b on b.id=o.booking_id join msrc_workshops.workshops w on w.id=b.workshop_id where w.edition_key=edition and o.kind='mock';
  return query select 'orders'::text,'status'::text,'mock_exceptions'::text,count(c.id) from msrc_workshops.conflicts c where c.resolved_at is null and exists(select 1 from msrc_workshops.orders o join msrc_workshops.bookings b on b.id=o.booking_id join msrc_workshops.workshops w on w.id=b.workshop_id where w.edition_key=edition and o.kind='mock' and b.id in(c.booking_id,c.other_booking_id));end if;
@@ -164,7 +175,7 @@ declare matches jsonb;query_kind text;begin
  union all select e.kind,e.id::text,e.status,r.actor_id from msrc_competitions.roster r join msrc_competitions.entries e on e.id=r.entry_id
  where e.edition_key=edition_key and r.actor_id<>e.lead_id),
  matched as (select p.actor_id,p.name,u.email from msrc_participant.profiles p join auth.users u on u.id=p.actor_id
- where exists(select 1 from msrc_authorization.role_grants g where g.actor_id=p.actor_id and g.edition_key=edition_key and g.role_name='participant' and g.state='active')
+ where msrc_staff.reporting_edition_participant(p.actor_id,edition_key)
  and ((query_kind='email' and lower(u.email)=lower(query)) or (query_kind='reference' and (lower(p.actor_id::text)=lower(query) or exists(select 1 from records r where r.actor_id=p.actor_id and lower(r.reference)=lower(query))
  or exists(select 1 from msrc_registration.tickets t join msrc_registration.requests r on r.id=t.request_id where r.edition_key=edition_key and r.actor_id=p.actor_id and upper(substr(replace(t.id::text,'-',''),1,12))=upper(query))))) order by p.actor_id limit 20)
  select coalesce(jsonb_agg(jsonb_build_object('actorId',p.actor_id,'name',p.name,'email',p.email,'records',coalesce((select jsonb_agg(jsonb_build_object('module',r.module,'reference',r.reference,'status',r.status) order by r.module,r.reference) from records r where r.actor_id=p.actor_id),'[]'::jsonb)) order by p.actor_id),'[]'::jsonb) into matches from matched p;
@@ -237,7 +248,7 @@ declare events jsonb;more boolean;begin
  return jsonb_build_object('state','ready','events',events,'hasMore',more);
 end$$;
 
-revoke all on function msrc_staff.reporting_guard(),msrc_staff.reporting_modules(text),msrc_staff.reporting_review_scope(text,text[],text,uuid),msrc_staff.reporting_status_valid(text,text),msrc_staff.reporting_records(text,text),msrc_staff.reporting_cells(text,text[]) from public,anon,authenticated,service_role;
+revoke all on function msrc_staff.reporting_guard(),msrc_staff.reporting_modules(text),msrc_staff.reporting_review_scope(text,text[],text,uuid),msrc_staff.reporting_status_valid(text,text),msrc_staff.reporting_edition_participant(uuid,text),msrc_staff.reporting_records(text,text),msrc_staff.reporting_cells(text,text[]) from public,anon,authenticated,service_role;
 revoke all on function public.msrc_staff_dashboard(text),public.msrc_staff_dashboard_find(text,text),public.msrc_staff_dashboard_export(text,text,text,text),public.msrc_staff_dashboard_audit(text,text,uuid,text,timestamptz,timestamptz,integer) from public,anon,authenticated,service_role;
 grant execute on function public.msrc_staff_dashboard(text),public.msrc_staff_dashboard_find(text,text),public.msrc_staff_dashboard_export(text,text,text,text),public.msrc_staff_dashboard_audit(text,text,uuid,text,timestamptz,timestamptz,integer) to authenticated;
 commit;

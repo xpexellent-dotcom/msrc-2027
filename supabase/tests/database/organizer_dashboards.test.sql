@@ -219,8 +219,8 @@ select is(public.msrc_staff_dashboard_audit('synthetic-reporting','all',null,'',
 do $$begin perform set_config('request.jwt.claims',(pg_temp.registration_claims(9950)||'{"aal":"aal1"}'::jsonb)::text,true);end$$;
 select is(public.msrc_staff_dashboard('synthetic-reporting')->>'state','denied','Super Admin dashboard requires native TOTP assurance');
 select is(public.msrc_staff_dashboard_export('synthetic-reporting','registrations','personal')->>'state','denied','Super Admin personal export requires native TOTP assurance');
-select pg_temp.reporting_claim(9951);
 update msrc_authorization.account_access set state='suspended' where actor_id=pg_temp.registration_actor(9951);
+select pg_temp.reporting_claim(9951);
 select is(public.msrc_staff_dashboard('synthetic-reporting')->>'state','denied','Suspended staff loses aggregate access immediately');
 select is(public.msrc_staff_dashboard_export('synthetic-reporting','registrations','operational')->>'state','denied','Suspended staff loses operational export immediately');
 select pg_temp.reporting_claim(9950);

@@ -15,6 +15,11 @@ export async function passwordFixture(page: Page, options: { roles?: Role[]; fre
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request();
     let response: StaffResponse = { state, profile: state === "authenticated" ? profile() : null };
+    // ENG-079: the home dashboard reads its own counts; it is not a password action.
+    if (new URL(request.url()).pathname.endsWith("/organizer")) {
+      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ state: "ready", dashboard: { cells: [], modules: [], suppressionThreshold: 5 } }) });
+      return;
+    }
     if (request.method() === "POST") {
       const payload = request.postDataJSON() as StaffPayload;
       // Keep the existing exact administrative-action assertions separate from
