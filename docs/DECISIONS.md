@@ -4525,6 +4525,14 @@ judges are English/LTR. Scoring outcomes do not distribute awards.
 Evidence and remaining gates: [Task n14 receipt](progress/2026-10-24-claude-hackathon-3mt.md)
 and [feature notes](../src/features/competitions/README.md).
 
+## ENG-081 — Retire the legacy waitlist offer field; approved photography notice, 25 October 2026
+
+`waitlist_offer_hours` no longer gates `msrc_registration.settings_complete` or the staff settings form; `offer_window_hours` remains the only offer duration. The column is retained, unrequired. The registration form's photography notice reuses the approved Terms v1.0 section 6 wording (EN/AR) and links removal requests to Privacy Policy section 5; awareness only, no opt-out (owner, 24 October 2026). Evidence: `docs/progress/2026-10-25-claude-registration-cleanup.md`.
+
+## ENG-079 — Role-scoped organizer dashboards, exports and unified audit, 25 October 2026
+
+ADM-01..05. Server aggregate RPCs scope modules by role, suppress whole partitions with any cell below 5 for non-Super-Admin roles, and restrict full personal-data exports and the cross-module participant finder to Super Admins. Exports are UTF-8 BOM CSV with formula-injection neutralization; each lookup/export writes an immutable counts-and-filters-only `msrc_staff.reporting_audit` receipt. The unified audit timeline is a read-only Super Admin view over existing audit tables. Evidence: `docs/progress/2026-10-25-claude-organizer-dashboards.md`.
+
 ## ENG-078 — Research presentation allocation, event judging and awards, 25 October 2026
 
 REV-06/07/10. Oral/poster allocation and award outcomes separate preparation from publication and are append-only. Faculty judges score independently from snapshot content only; pre-event reviewers of a submission are conflicted from judging it. Rubric, categories, judge count, tie rule and supervisor deadline/evidence are owner settings without defaults (the owner's hackathon rubrics are hackathon-only). A supervisor is required only for a selected winner, before confirmation, and is private to Super Admins and scientific administrators. Evidence: `docs/progress/2026-10-25-claude-research-judging.md`.

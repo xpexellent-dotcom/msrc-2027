@@ -14,7 +14,8 @@ import { canChangeOwnPassword, STAFF_ROLES, staffMenu, type StaffMenuKey } from 
 import { PasswordChangeForm } from "./password-change-form";
 import { clearStaffDraft, normalizeStaffCode, requestStaff, updateStaffDraft, useStaffDraft } from "./staff-client";
 import type { StaffAction, StaffArea, StaffPayload, StaffPerson, StaffProfile, StaffResponse, StaffScreen, StaffEmailPreview } from "./ui-contract";
-import { StaffDashboard, StaffLanding, StaffSidebar } from "./console-shell";
+import { StaffLanding, StaffSidebar } from "./console-shell";
+import { OrganizerAuditPanel, OrganizerDashboard } from "./organizer-dashboard";
 import type { LandingKey } from "./console-copy";
 import { RegistrationQueue, type RegistrationFilter } from "./registration-queue";
 import { PriorityPanel } from "./priority-panel";
@@ -80,7 +81,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
   const searchQuery = useRef("");
   const logoutRequested = useRef(false);
   const generation = useRef(0), alive = useRef(true), area = areaFor(screen);
-  const fetchArea: StaffArea | undefined = area ?? (screen === "home" && !landing ? "summary" : undefined);
+  const fetchArea: StaffArea | undefined = area;
   const passwordChangeAvailable = view.passwordChangeAvailable ?? initialPasswordChangeAvailable;
   const profile = view.profile ?? null, menu = profile ? staffMenu(profile.roles, { passwordChangeAvailable }) : [];
   const permitted = screen === "security" ? passwordChangeAvailable && !!profile && canChangeOwnPassword(profile.roles) : screen === "certificates" ? !!profile?.roles.some((role) => role === "superAdmin" || role === "registrationWorkshopAdministrator") : screen === "announcements" ? !!profile?.roles.includes("superAdmin") : screen === "workshops" ? !!profile?.roles.some((role) => role !== "participant") : landing ? menu.some((entry) => entry.key === landing) : !area || menu.some((entry) => entry.key === area);
@@ -219,7 +220,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
   const searchArea = () => { setDecidedText(""); setOutcome(""); setBusy(true); void restore(undefined, query); };
   const workspace = <>
     {profile && !permitted ? <p role="alert">{copy.states.denied}</p> : null}
-    {profile && permitted && screen === "home" && !landing ? <StaffDashboard locale={locale} menu={menu} summary={view.summary} /> : null}
+    {profile && permitted && screen === "home" && !landing ? <OrganizerDashboard locale={locale} roles={profile.roles} formToken={view.formToken} /> : null}
     {profile && permitted && landing === "content" ? <div className="staff-content-workspace"><ContentEditorPanel locale={locale} /><MediaLibraryPanel locale={locale} /></div> : profile && permitted && landing === "science" ? <ScienceWorkspace locale={locale} roles={profile.roles} /> : profile && permitted && landing === "review" ? <ReviewPanel roles={profile.roles} /> : profile && permitted && landing ? <StaffLanding locale={locale} area={landing} roles={profile.roles} /> : null}
     {profile && permitted && screen === "security" ? <PasswordChangeForm locale={locale} busy={busy} act={act} /> : null}
     {profile && permitted && screen === "registration" ? <RegistrationQueue locale={locale} data={view.registration} busy={busy} status={queueStatus} onStatus={(value) => { setQueueStatus(value); queueStatusRef.current = value; setBusy(true); void restore(undefined, query); }} query={query} onQuery={setQuery} onSearch={searchArea} act={act} onDecided={setDecidedText} canExport={profile.roles.includes("superAdmin")} loadConfirmationPreview={() => requestStaff(undefined, { area: "registration-confirmation-preview" })} loadDetail={(requestId) => requestStaff(undefined, { area: "registration-detail", requestId })} /> : null}
@@ -242,6 +243,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
     {profile && permitted && (screen === "audit" || screen === "participants") ? <section className="staff-panel"><h2>{copy[screen]}</h2>{screen === "audit" ? <p>{copy.auditIntro}</p> : null}<form className="staff-search" onSubmit={(event) => { event.preventDefault(); searchArea(); }}><FormField id="staff-search" type="search" label={screen === "audit" ? copy.searchAudit : copy.searchParticipants} value={query} onChange={(event) => setQuery(event.target.value)} maxLength={120} disabled={busy} /><Button type="submit" disabled={busy}>{copy.search}</Button></form>
       <p className="staff-muted">{copy.resultLimit}</p><div className="staff-table-scroll" role="region" aria-label={copy[screen]} tabIndex={0}>{screen === "audit" ? <table><thead><tr><th scope="col">{copy.actor}</th><th scope="col">{copy.action}</th><th scope="col">{copy.target}</th><th scope="col">{copy.when}</th><th scope="col">{copy.result}</th></tr></thead><tbody>{view.audit?.map((row) => <tr key={row.id}><td><bdi>{row.actorName ?? row.actorId ?? copy.unknown}</bdi></td><td><bdi>{auditActionLabel(row.action, locale)}</bdi></td><td><bdi>{row.targetName ?? row.targetId ?? copy.unknown}</bdi></td><td>{date(row.occurredAt, locale, copy.unknown)}</td><td><bdi>{auditResultLabel(row.result, locale)}</bdi></td></tr>)}</tbody></table> : <table><thead><tr><th scope="col">{copy.name}</th><th scope="col">{copy.email}</th><th scope="col">{copy.status}</th><th scope="col">{copy.created}</th><th scope="col">{copy.identifier}</th></tr></thead><tbody>{view.participants?.map((person) => <tr key={person.actorId}><th scope="row"><bdi>{person.name}</bdi></th><td><bdi dir="ltr">{person.email}</bdi></td><td>{copy.statuses[person.status]}</td><td>{date(person.createdAt, locale, copy.unknown)}</td><td><bdi dir="ltr">{person.identityMasked ?? "—"}</bdi></td></tr>)}</tbody></table>}</div>{!(screen === "audit" ? view.audit : view.participants)?.length ? <p>{copy.noRecords}</p> : null}
     </section> : null}
+    {profile && permitted && screen === "audit" ? <OrganizerAuditPanel locale={locale} formToken={view.formToken} /> : null}
   </>;
   const languageHref = `/${language}/staff${landing ? `/${landing}` : screen === "home" ? "" : `/${screen}`}`;
   return <div className="staff-portal" lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-testid="staff-portal" data-screen={screen} data-console={inConsole ? "true" : undefined}>
