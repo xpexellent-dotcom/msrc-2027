@@ -91,7 +91,7 @@ select is((select row(method,performer_id,offline_recorder,checked_in_at)::text 
  row('offline',pg_temp.registration_actor(8201),'AK',(pg_temp.riyadh(-1)+time '08:30') at time zone 'Asia/Riyadh')::text,'Offline row keeps method, uploader, recorder and Riyadh paper time');
 select is((select row(method,performer_id,entry_point,offline_recorder)::text from msrc_registration.attendance a join msrc_registration.tickets t on t.id=a.ticket_id
  where upper(substr(replace(t.id::text,'-',''),1,12))=pg_temp.ref(8105) and a.conference_day=pg_temp.riyadh(-1)),
- row('scan',pg_temp.registration_actor(8202),'Synthetic door',null::text)::text,'Online attendance is never overwritten');
+ row('manual_code',pg_temp.registration_actor(8202),'Synthetic door',null::text)::text,'Online attendance is never overwritten');
 select is((select count(*) from msrc_registration.attendance where conference_day=pg_temp.riyadh(-1)),3::bigint,'Duplicates and refused rows add no attendance');
 select ok((select checked_in_at from msrc_registration.attendance a join msrc_registration.tickets t on t.id=a.ticket_id
  where upper(substr(replace(t.id::text,'-',''),1,12))=pg_temp.ref(8106) and a.conference_day=pg_temp.riyadh(-1))
@@ -100,7 +100,7 @@ select is((select count(*) from msrc_registration.attendance_audit where event='
 select ok(not exists(select 1 from msrc_registration.attendance_audit where to_jsonb(attendance_audit)::text like '%FFFFFFFFFFFF%'),'Unknown references are not retained');
 select ok(exists(select 1 from msrc_registration.offline_imports where operation_id=(select id from fallback_ops where name='first') and row_count=9
  and counts=(select result->'counts' from first_import) and outcomes::text !~ '[A-F0-9]{12}'),'Receipt stores counts and outcomes without references');
-select is(public.msrc_staff_attendance_summary('synthetic-fallback',pg_temp.riyadh(-1))->'counts','{"checkedIn":3,"scan":1,"manualCode":0,"offline":2}'::jsonb,'Running counts separate offline records');
+select is(public.msrc_staff_attendance_summary('synthetic-fallback',pg_temp.riyadh(-1))->'counts','{"checkedIn":3,"scan":0,"manualCode":1,"offline":2}'::jsonb,'Running counts separate offline records');
 
 -- Idempotency.
 create temporary table replay as select public.msrc_staff_checkin_offline_import('synthetic-fallback',pg_temp.riyadh(-1),(select id from fallback_ops where name='first'),
@@ -120,7 +120,7 @@ select is(public.msrc_staff_checkin_undo('synthetic-fallback',(select a.id from 
  where upper(substr(replace(t.id::text,'-',''),1,12))=pg_temp.ref(8101) and a.conference_day=pg_temp.riyadh(-1)),'Synthetic paper error')->>'state','undone','Super Admin can undo an offline record');
 select is(public.msrc_staff_checkin_offline_import('synthetic-fallback',pg_temp.riyadh(-1),(select id from fallback_ops where name='second'),jsonb_build_array(pg_temp.sheet_row(8101,'08:30')))->'outcomes','["previously_undone"]'::jsonb,'An undone record is listed for review, not restored');
 select pg_temp.claim(8202);
-select is(public.msrc_staff_checkin('synthetic-fallback',pg_temp.ref(8101),pg_temp.riyadh(-1),null)#>>'{attendance,method}','scan','A later online scan restores attendance');
+select is(public.msrc_staff_checkin('synthetic-fallback',pg_temp.ref(8101),pg_temp.riyadh(-1),null)#>>'{attendance,method}','manual_code','A later online check-in restores attendance');
 select ok((select offline_recorder is null from msrc_registration.attendance a join msrc_registration.tickets t on t.id=a.ticket_id
  where upper(substr(replace(t.id::text,'-',''),1,12))=pg_temp.ref(8101) and a.conference_day=pg_temp.riyadh(-1)),'Online re-entry clears the offline recorder');
 
