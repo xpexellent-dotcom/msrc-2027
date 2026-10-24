@@ -14,14 +14,14 @@ export function checkInDay(value: unknown): value is string {
 export function checkInSummaryProjection(value: unknown, requestedDay: string | null): StaffCheckInView | null {
   const row = record(value), counts = record(row?.counts);
   if (!row || !exact(row, ["state", "conferenceDays", "day", "counts"]) || row.state !== "ready"
-    || row.day !== requestedDay || !counts || !exact(counts, ["checkedIn", "scan", "manualCode"])
-    || !count(counts.checkedIn) || !count(counts.scan) || !count(counts.manualCode)
-    || counts.scan + counts.manualCode !== counts.checkedIn) return null;
+    || row.day !== requestedDay || !counts || !exact(counts, ["checkedIn", "scan", "manualCode", "offline"])
+    || !count(counts.checkedIn) || !count(counts.scan) || !count(counts.manualCode) || !count(counts.offline)
+    || counts.scan + counts.manualCode + counts.offline !== counts.checkedIn) return null;
   if (row.conferenceDays !== null && (!Array.isArray(row.conferenceDays) || row.conferenceDays.length > 31
     || row.conferenceDays.some((day, index, days) => !checkInDay(day) || index > 0 && day <= days[index - 1]))) return null;
   const conferenceDays = row.conferenceDays as string[] | null;
   if (requestedDay && !conferenceDays?.includes(requestedDay) || !requestedDay && counts.checkedIn !== 0) return null;
-  return { conferenceDays, summary: { day: requestedDay, checkedIn: counts.checkedIn, scan: counts.scan, manualCode: counts.manualCode } };
+  return { conferenceDays, summary: { day: requestedDay, checkedIn: counts.checkedIn, scan: counts.scan, manualCode: counts.manualCode, offline: counts.offline } };
 }
 
 export function checkInResultProjection(value: unknown, requestedDay: string): StaffCheckInResult | null {
@@ -38,7 +38,7 @@ export function checkInResultProjection(value: unknown, requestedDay: string): S
     || item.performerId !== null && (typeof item.performerId !== "string" || !staffUuid.test(item.performerId))
     || item.performerName !== null && (typeof item.performerName !== "string" || !item.performerName.trim() || item.performerName.length > 200 || /[\x00-\x1f\x7f]/.test(item.performerName))
     || item.entryPoint !== null && (typeof item.entryPoint !== "string" || item.entryPoint.length > 120 || /[\x00-\x1f\x7f]/.test(item.entryPoint))
-    || !["scan", "manual_code"].includes(String(item.method))) return null;
+    || !["scan", "manual_code", "offline"].includes(String(item.method))) return null;
   return { status: row.state as StaffCheckInStatus, attendanceId: item.id, checkedInAt: item.checkedInAt,
     ...(item.performerName || item.performerId ? { performedBy: (item.performerName ?? item.performerId) as string } : {}) };
 }

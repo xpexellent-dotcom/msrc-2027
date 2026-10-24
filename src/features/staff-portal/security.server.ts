@@ -116,7 +116,7 @@ export async function readStaffJson(request: Request, contentLimit?: 131072): Pr
       size += value.byteLength; if (size > bulkLimit) { await reader.cancel(); throw new Error("Invalid input"); } chunks.push(value); }
     const input: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)));
     const action = input && typeof input === "object" && !Array.isArray(input) ? (input as Record<string, unknown>).action : null;
-    const limit = contentLimit ?? (action === "early-access-add" ? bulkLimit : action === "early-access-remove" ? 24 * 1024 : 8192);
+    const limit = contentLimit ?? (action === "early-access-add" || action === "offline-import" ? bulkLimit : action === "early-access-remove" ? 24 * 1024 : 8192);
     if (size > limit || declared && Number(declared) > limit) throw new Error("Invalid input");
     return input;
   } finally { reader.releaseLock(); }

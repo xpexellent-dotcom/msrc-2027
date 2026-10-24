@@ -5,6 +5,7 @@ import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
 import { checkInCopy } from "./check-in-copy";
+import { CheckInFallbackPanel } from "./check-in-fallback-panel";
 import { cameraFailure, createQrDecoder, keepScannerAwake, openCheckInCamera, riyadhConferenceDay } from "./check-in-decoder";
 import { formatStaffDate, formatStaffNumber } from "./console-shell";
 import { requestStaff } from "./staff-client";
@@ -16,7 +17,7 @@ type Result = NonNullable<StaffResponse["checkInResult"]>;
 const resultIcons: Record<Result["status"], string> = { checked_in: "✓", already_checked_in: "↻", revoked: "×", not_found: "?", wrong_day: "!", not_approved: "!" };
 const dayLabel = (day: string, locale: Locale) => new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { dateStyle: "full", calendar: "gregory", timeZone: "Asia/Riyadh" }).format(new Date(`${day}T12:00:00+03:00`));
 
-/** CHK-02..05: online, one-day attendance. No camera image, ticket or attendee roster is persisted by this UI. */
+/** CHK-02..05: online, one-day attendance. No camera image, ticket or attendee roster is persisted by this UI; the ENG-082 outage roster is a Super Admin download. */
 export function CheckInPanel({ locale, data, busy, canUndo, act }: {
   locale: Locale; data: CheckIn; busy: boolean; canUndo: boolean;
   act: (payload: Omit<StaffPayload, "formToken">) => Promise<StaffResponse>;
@@ -131,7 +132,7 @@ export function CheckInPanel({ locale, data, busy, canUndo, act }: {
       <FormField id="checkin-entry" label={text.entryPoint} hint={text.entryHint} value={entryPoint} maxLength={120} disabled={busy || scanning || starting} onChange={(event) => setEntryPoint(event.target.value)} />
     </div>
     <div className="staff-checkin-counts"><h2>{text.counts}</h2><dl className="staff-seat-bar" data-testid="checkin-counts">
-      {([["checkedIn", text.total], ["scan", text.scans], ["manualCode", text.manualCount]] as const).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{day && summary?.day === day ? formatStaffNumber(summary[key], locale) : "—"}</dd></div>)}
+      {([["checkedIn", text.total], ["scan", text.scans], ["manualCode", text.manualCount], ["offline", text.offlineCount]] as const).map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{day && summary?.day === day ? formatStaffNumber(summary[key], locale) : "—"}</dd></div>)}
     </dl><Button size="small" variant="secondary" disabled={!day || busy || !online} onClick={() => setRefreshKey((value) => value + 1)}>{text.refresh}</Button>{countFailure ? <p role="status">{text.countFailure}</p> : null}</div>
     <div className="staff-checkin-camera"><h2>{text.camera}</h2>
       <video ref={video} className="staff-checkin-video" hidden={!scanning} muted playsInline aria-label={text.camera} />
@@ -156,5 +157,6 @@ export function CheckInPanel({ locale, data, busy, canUndo, act }: {
       <Button variant="secondary" disabled={busy || !reason.trim()} type="submit">{text.undo}</Button>
     </form> : null}
     {undone ? <p role="status">{text.undone}</p> : null}
+    {canUndo ? <CheckInFallbackPanel locale={locale} day={day} /> : null}
   </section>;
 }

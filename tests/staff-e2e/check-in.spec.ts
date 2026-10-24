@@ -3,6 +3,7 @@ import { mkdir } from "node:fs/promises";
 import { expect, test, type Page } from "../helpers/csp";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { checkInCopy } from "../../src/features/staff-portal/check-in-copy";
+import { checkInFallbackCopy } from "../../src/features/staff-portal/check-in-fallback-copy";
 import type { StaffCheckInResult, StaffPayload, StaffResponse } from "../../src/features/staff-portal/ui-contract";
 
 const days = ["2027-01-27", "2027-01-28"], attendanceId = "57000000-0000-4000-8000-000000000010";
@@ -22,7 +23,7 @@ async function fixture(page: Page, options: { superAdmin?: boolean; missing?: bo
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request(), url = new URL(request.url()), area = url.searchParams.get("area") ?? "status";
     const base: StaffResponse = { state: "authenticated", formToken: "synthetic-checkin-form", profile: { actorId: "57000000-0000-4000-8000-000000000001", name: "Synthetic Check-in Staff", roles: options.denied ? ["finance"] : options.superAdmin ? ["superAdmin"] : ["checkInStaff"] } };
-    const view = (day: string | null) => ({ conferenceDays: options.noDays ? null : days, summary: day ? { day, checkedIn: count, scan: 2, manualCode: count - 2 } : null });
+    const view = (day: string | null) => ({ conferenceDays: options.noDays ? null : days, summary: day ? { day, checkedIn: count, scan: 2, manualCode: count - 2, offline: 0 } : null });
     if (request.method() === "POST") {
       const payload = request.postDataJSON() as StaffPayload;
       if (payload.action === "activity") return route.fulfill({ json: base });
@@ -160,5 +161,65 @@ for (const locale of ["en", "ar"] as const) {
     await page.context().setOffline(true); await expect(page.getByText(copy.offline, { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: copy.submit, exact: true })).toBeDisabled();
     expect(mock.mutations).toHaveLength(1); await page.context().setOffline(false); await axe(page);
+  });
+}
+
+// ENG-082 / CHK-05: Super Admin outage roster download and offline reconciliation.
+for (const locale of ["en", "ar"] as const) {
+  const text = checkInFallbackCopy[locale];
+  test(`${locale} Super Admin downloads the outage roster and reconciles offline rows`, async ({ page }) => {
+    await fixture(page, { superAdmin: true });
+    const imports: Record<string, unknown>[] = [], rosterDays: string[] = [];
+    let rosterFailure = true;
+    await page.route("**/api/staff-portal/check-in-fallback**", async (route) => {
+      const request = route.request(), url = new URL(request.url());
+      if (request.method() === "GET") {
+        rosterDays.push(url.searchParams.get("day") ?? "");
+        if (rosterFailure) { rosterFailure = false; return route.fulfill({ status: 403, json: { state: "denied" } }); }
+        return route.fulfill({ body: "﻿\"reference\",\"name\"\r\n\"A1B2C3D4E5F6\",\"Synthetic Attendee\"\r\n", headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": "attachment; filename=\"checkin-roster-2027-01-27.csv\"" } });
+      }
+      const payload = request.postDataJSON() as Record<string, unknown>; imports.push(payload);
+      return route.fulfill({ json: { state: "updated", result: { state: imports.length > 1 ? "replayed" : "ready", day: "2027-01-27", outcomes: ["checked_in", "already_checked_in", "not_found"], counts: { checked_in: 1, already_checked_in: 1, not_found: 1 } } } });
+    });
+    await page.goto(`/${locale}/staff/check-in`);
+    const panel = page.getByTestId("checkin-fallback");
+    await expect(panel.getByRole("heading", { name: text.title, exact: true })).toBeVisible();
+    await panel.getByRole("button", { name: text.download, exact: true }).click();
+    await expect(panel.getByText(text.states.denied, { exact: true })).toBeVisible();
+    const download = page.waitForEvent("download");
+    await panel.getByRole("button", { name: text.download, exact: true }).click();
+    expect((await download).suggestedFilename()).toBe("checkin-roster-2027-01-27.csv");
+    await expect(panel.getByText(text.downloaded, { exact: true })).toBeVisible();
+    expect(rosterDays).toEqual(["2027-01-27", "2027-01-27"]);
+
+    const sheet = panel.getByRole("textbox", { name: text.sheet, exact: true });
+    await expect(panel.getByRole("button", { name: text.reconcile, exact: true })).toBeDisabled();
+    await sheet.fill("reference,time,recorder\nA1B2C3D4E5F6,09:15,AK\nnot-a-reference,09:20,AK");
+    await panel.getByRole("button", { name: text.check, exact: true }).click();
+    await expect(panel.getByText(text.malformed(3), { exact: true })).toBeVisible();
+    await expect(panel.getByRole("button", { name: text.reconcile, exact: true })).toBeDisabled();
+    await sheet.fill("A1B2C3D4E5F6,09:15,AK\n0123456789AB\t09:20\tSmith\nFFFFFFFFFFFF,09:25,\"Smith, J\"");
+    await panel.getByRole("button", { name: text.check, exact: true }).click();
+    await expect(panel.getByText(text.ready(3), { exact: true })).toBeVisible();
+    await panel.getByRole("button", { name: text.reconcile, exact: true }).click();
+    const results = panel.getByTestId("checkin-fallback-results");
+    await expect(results.getByRole("heading", { name: text.resultsTitle, exact: true })).toBeVisible();
+    await expect(results.locator("tbody tr")).toHaveCount(3);
+    await expect(results.locator("tbody tr").nth(2)).toHaveAttribute("data-outcome", "not_found");
+    await expect(results.getByText(text.review, { exact: true })).toBeVisible();
+    expect(imports[0]).toMatchObject({ action: "offline-import", day: "2027-01-27", formToken: "synthetic-checkin-form",
+      entries: [{ reference: "A1B2C3D4E5F6", time: "09:15", recorder: "AK" }, { reference: "0123456789AB", time: "09:20", recorder: "Smith" }, { reference: "FFFFFFFFFFFF", time: "09:25", recorder: "Smith, J" }] });
+    // A retry of the same checked sheet reuses its batch ID so the server can replay instead of duplicating.
+    await panel.getByRole("button", { name: text.reconcile, exact: true }).click();
+    await expect(panel.getByText(text.replayed, { exact: true })).toBeVisible();
+    expect(imports[1].operationId).toBe(imports[0].operationId);
+    await axe(page);
+  });
+
+  test(`${locale} check-in staff never see the outage fallback`, async ({ page }) => {
+    await fixture(page);
+    await page.goto(`/${locale}/staff/check-in`);
+    await expect(page.getByTestId("checkin-counts")).toBeVisible();
+    await expect(page.getByTestId("checkin-fallback")).toHaveCount(0);
   });
 }

@@ -4524,3 +4524,31 @@ judges are English/LTR. Scoring outcomes do not distribute awards.
 
 Evidence and remaining gates: [Task n14 receipt](progress/2026-10-24-claude-hackathon-3mt.md)
 and [feature notes](../src/features/competitions/README.md).
+
+## ENG-082 — Check-in outage fallback, 25 October 2026
+
+Authority: owner instruction to finish the remaining backlog and spec §11 CHK-05.
+Migration `20261025140000_checkin_fallback.sql`; review only, not applied to the
+hosted database. Online scanning remains the baseline and no offline sync is built.
+
+- **Shared entitlement.** `msrc_registration.checkin_ticket_outcome` and
+  `checkin_attendee_active` now decide admission for online scanning, the roster
+  export and the offline import. `msrc_staff_checkin` is redefined to call them,
+  so the three paths cannot drift.
+- **Roster export.** Super Admin with authenticator assurance only. One configured
+  day, reference code and display name only, references that collide are omitted
+  (the manual path refuses them), lapsed confirmation deadlines are applied first,
+  formula-safe UTF-8 CSV with BOM, audited with a count.
+- **Offline import.** Super Admin only, at most 2,000 rows, Riyadh paper time
+  clamped to the day and never in the future, a day that has not started is
+  refused. Rows use the online lock order and rules. A new attendance method
+  `offline` stores the uploader as performer and the paper recorder text in
+  `offline_recorder`. Online records are never overwritten; undone records are
+  listed for review. An operation ID makes retries replay the saved result. Every
+  row is audited; unknown references are not retained.
+- Running counts add an `offline` total. Certificates already rely on active
+  attendance rows, so reconciled rows count as attendance; that is the purpose of
+  the fallback.
+- Procedure (who exports, storage on one approved device, deletion after
+  reconciliation) is in `docs/runbooks/CHECKIN_OUTAGE.md` as an engineering default
+  pending organizer confirmation.
