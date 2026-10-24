@@ -4,7 +4,7 @@ const routes = [
   ["registration", "attend-majed-9744.jpg", 5],
   ["submissions", "share-research-manar-2560.jpg", 4],
   ["workshops", "learn-doing-manar-2529.jpg", 4],
-  ["hackathon", "build-idea-majed-9846.jpg", 3],
+  ["hackathon", "build-idea-majed-9846.jpg", 4],
   ["3mt", "gallery-presentation.jpg", 2],
 ] as const;
 
@@ -30,8 +30,8 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/hackathon`);
     const tracks = page.locator(".participation-track");
     await expect(tracks).toHaveCount(2);
-    await expect(tracks.locator("h3")).toHaveText(["Translating research into practice", "Advancing medical student research"]);
-    for (const title of await tracks.locator("h3").all()) { await expect(title).toHaveAttribute("lang", "en"); await expect(title).toHaveAttribute("dir", "ltr"); }
+    await expect(tracks.locator("h3")).toHaveText(locale === "en" ? ["Evidence to Impact", "Research Reimagined"] : ["من الدليل إلى الأثر", "البحث برؤية جديدة"]);
+    for (const title of await tracks.locator("h3").all()) { await expect(title).toHaveAttribute("lang", locale); await expect(title).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr"); }
     await expect(page.locator(".participation-schedule-day")).toHaveText(locale === "en" ? ["Day 1", "Day 2"] : ["اليوم الأول", "اليوم الثاني"]);
     await expect(page.locator(".participation-schedule-list h3")).toHaveText(locale === "en" ? ["Mentoring", "Pitching and judging"] : ["الإرشاد", "العرض والتحكيم"]);
     await page.goto(`/${locale}/submissions`);

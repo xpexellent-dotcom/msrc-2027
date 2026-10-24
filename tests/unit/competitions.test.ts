@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { emptyHackathonDocument, emptyThesisDocument, HACKATHON_TRACKS } from "@/features/competitions/contracts";
-import { countPitchWords, validateCompetitionDocument, competitionEntryProjection, competitionSettingsProjection } from "@/features/competitions/validation";
+import { countPitchWords, validateCompetitionDocument, competitionEntryProjection, competitionSettingsProjection, hackathonProfileProjection } from "@/features/competitions/validation";
 import { CompetitionRpcMissingError, createCompetitionBackend, type CompetitionBackend } from "@/features/competitions/backend.server";
 import { createCompetitionHandler } from "@/features/competitions/handler.server";
 import { competitionFormToken, readCompetitionFormToken, readCompetitionJson } from "@/features/competitions/security.server";
@@ -21,7 +21,7 @@ function fixture(options: { missing?: boolean; identity?: string | null; data?: 
     if (name === "msrc_participant_status") return { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true, cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
     if (name === "msrc_competitions_status") return { enabled: true };
     if (options.missing) throw new CompetitionRpcMissingError();
-    if (name === "msrc_competitions_me") return options.data ?? { state: "ready", settings: { hackathon: settings, three_minute_thesis: settings }, entries: [entry] };
+    if (name === "msrc_competitions_me") return options.data ?? { state: "ready", settings: { hackathon: settings, three_minute_thesis: settings }, entries: [entry], hackathonProfile: null };
     return options.result ?? { state: "saved", entry };
   }) };
   const storage = { sign: vi.fn(async () => "http://127.0.0.1:3218/storage/synthetic") };
@@ -35,13 +35,25 @@ function fixture(options: { missing?: boolean; identity?: string | null; data?: 
 beforeEach(() => vi.stubEnv("COMPETITIONS_ENABLED", "true"));
 describe("TRK-01 distinct project schemas and HAC-04 exact pitch count", () => {
   it.each([["alpha beta", 2], ["alpha-beta / !!! 2027", 2], ["alpha\u00a0beta\u2003gamma\n delta", 4], ["مرحبا 世界 café ١٢٣", 4], ["\t-- … 👩‍⚕️", 0], ["A\ufeffB\vC\fD\rE", 5], ["alpha\u0085beta", 1]])("counts %j as %d", (text, count) => expect(countPitchWords(String(text))).toBe(count));
-  it("allows exactly two named tracks", () => { expect(Object.values(HACKATHON_TRACKS)).toEqual(["Translating research into practice", "Advancing medical student research"]); expect(validateCompetitionDocument("hackathon", { ...document, track: "third" })).toBeNull(); });
+  it("allows exactly two named tracks", () => { expect(Object.values(HACKATHON_TRACKS)).toEqual(["Evidence to Impact", "Research Reimagined"]); expect(validateCompetitionDocument("hackathon", { ...document, track: "third" })).toBeNull(); });
   it("accepts 300 pitch words; rejects 301 while excluding the title", () => { expect(validateCompetitionDocument("hackathon", { ...document, title: "title ".repeat(301), pitch: "word ".repeat(300) })).not.toBeNull(); expect(validateCompetitionDocument("hackathon", { ...document, pitch: "word ".repeat(301) })).toBeNull(); });
   it("does not inherit the abstract word limit or form fields for 3MT", () => { expect(validateCompetitionDocument("three_minute_thesis", { ...emptyThesisDocument(), narrative: "word ".repeat(301) })).not.toBeNull(); expect(validateCompetitionDocument("three_minute_thesis", document)).toBeNull(); });
   it.each(["nationalId", "phone", "supervisor", "reviewer", "leadId", "roster", "aiOriginality"])("rejects uncontracted %s", (key) => expect(validateCompetitionDocument("hackathon", { ...document, [key]: "secret" })).toBeNull());
   it("accepts unresolved null settings without inventing values", () => expect(competitionSettingsProjection(settings)).not.toBeNull());
   it("rejects extra identity/review information in participant projections", () => { expect(competitionEntryProjection({ ...entry, reviews: [] })).toBeNull(); expect(competitionEntryProjection({ ...entry, roster: [{ ...entry.roster[0], nationalId: "private" }] })).toBeNull(); });
   it("refuses invalid solo/team roster projections", () => { expect(competitionEntryProjection({ ...entry, roster: [] })).toBeNull(); expect(competitionEntryProjection({ ...entry, roster: [entry.roster[0], { ...entry.roster[0], id: operationId, isLead: false }] })).toBeNull(); });
+  it("keeps hackathon contact profiles separate from the anonymous document", () => {
+    const profile = { university: "Synthetic university", fieldOfStudy: "Research", phone: "+966500000000", enrolledInSaudiUniversity: true };
+    expect(hackathonProfileProjection(profile)).toEqual(profile);
+    expect(hackathonProfileProjection({ ...profile, nationalId: "private" })).toBeNull();
+    expect(validateCompetitionDocument("hackathon", { ...document, phone: profile.phone })).toBeNull();
+  });
+  it("refuses finalist workspace leaks before acceptance", () => {
+    const finalistWorkspace = { orientationDetails: null, timetable: null, whatsappSupportUrl: "https://chat.whatsapp.com/synthetic", finalDeckLockAt: null, participantInstructions: null, confirmed: false };
+    expect(competitionEntryProjection({ ...entry, finalistWorkspace })).toBeNull();
+    expect(competitionEntryProjection({ ...entry, status: "accepted", finalistWorkspace })).not.toBeNull();
+    expect(competitionEntryProjection({ ...entry, status: "accepted", finalistWorkspace: { ...finalistWorkspace, whatsappSupportUrl: "javascript:alert(1)" } })).toBeNull();
+  });
 });
 describe("closed participant competition transport", () => {
   it("fails closed before touching backend", async () => { vi.stubEnv("COMPETITIONS_ENABLED", ""); const f = fixture(); expect((await f.get()).status).toBe(503); expect(f.backend.rpc).not.toHaveBeenCalled(); });
@@ -67,6 +79,13 @@ describe("closed participant competition transport", () => {
   it("bounds JSON stream bytes", async () => await expect(readCompetitionJson(new Request(origin, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ data: "a".repeat(256 * 1024) }) }))).rejects.toThrow());
   it("binds form tokens to actor, session, origin and expiry", () => { const token = competitionFormToken(config, origin, actorId, sessionId, now); expect(readCompetitionFormToken(config, token, origin, actorId, sessionId, now)).toBe(true); expect(readCompetitionFormToken(config, token, origin, actorId, operationId, now)).toBe(false); expect(readCompetitionFormToken(config, token, origin, actorId, sessionId, now + 30 * 60_000)).toBe(false); });
   it("maps only missing RPC errors to pending migration", async () => { vi.stubGlobal("fetch", vi.fn(async () => Response.json({ code: "PGRST202" }, { status: 404 }))); await expect(createCompetitionBackend(config).rpc("msrc_competitions_me")).rejects.toBeInstanceOf(CompetitionRpcMissingError); });
+  it("saves a private profile through the server-only framework RPC", async () => {
+    const profile = { university: "Synthetic university", fieldOfStudy: "Research", phone: "+966500000000", enrolledInSaudiUniversity: true };
+    const f = fixture({ result: { state: "profile_saved" } });
+    expect((await f.post({ action: "profile", document: undefined, entryId: null, expectedVersion: 0, profile })).status).toBe(200);
+    expect(f.backend.rpc).toHaveBeenCalledWith("msrc_competitions_hackathon_action", expect.objectContaining({ action: "profile", entry_id: null, payload: profile, session_claims: claims }));
+    expect((await f.post({ action: "profile", document: undefined, profile: { ...profile, actorId } })).status).toBe(400);
+  });
 });
 describe("competition document CSP", () => {
   it.each(["/en/entries", "/ar/entries", "/en/reviewer/competitions", "/ar/judge/competitions"])("treats %s as private", (path) => expect(isPrivatePage(path)).toBe(true));

@@ -4537,6 +4537,132 @@ ADM-01..05. Server aggregate RPCs scope modules by role, suppress whole partitio
 
 REV-06/07/10. Oral/poster allocation and award outcomes separate preparation from publication and are append-only. Faculty judges score independently from snapshot content only; pre-event reviewers of a submission are conflicted from judging it. Rubric, categories, judge count, tie rule and supervisor deadline/evidence are owner settings without defaults (the owner's hackathon rubrics are hackathon-only). A supervisor is required only for a selected winner, before confirmation, and is private to Super Admins and scientific administrators. Evidence: `docs/progress/2026-10-25-claude-research-judging.md`.
 
+## ORG-065 — MSR Accelerate Hackathon framework directions, 24 October 2026
+
+Authority: the owner's explicit Task n18 decisions and implementation request.
+Sources S9–S11 are internal working drafts: the Operational Framework v1.0
+(23 October 2026), Stage 1 Preliminary Screening Rubric and Stage 2 Final Judging
+Rubric. Read all three in full. Their proposed/pending items do not independently
+establish institutional or public approval. This decision updates TRK-01,
+HAC-01–11 and CFG-13 within the following scope; 3MT retains TMT-01/02.
+
+- Adopt **Evidence to Impact** and **Research Reimagined**, with the framework's
+  scope descriptions, across public, participant and staff EN/AR experiences.
+  Keep stored keys `translating_research` and `advancing_research`. Authorized
+  staff may edit bilingual display labels/descriptions through settings.
+  This explicitly resolves the source's proposed track-name status; it does not
+  approve its separate proposed competition theme or branding.
+- Eligibility is enrolled university students/interns studying in Saudi Arabia,
+  any discipline/nationality. Self-declaration is checked by eligibility staff.
+  Require university, field of study and a phone number in a **separate private
+  Hackathon profile**. Phone is contact-only, visible to eligibility officers and
+  Super Admins; never sign-in, SMS or automatic sharing. This bounded exception
+  supersedes ENG-077/HAC-10 phone uncertainty; ORG-016's authentication-phone
+  exclusion and the Hackathon national-ID exclusion still apply. Optional student
+  ID/enrollment-letter proof is restricted to those same staff roles and its
+  owner, through the existing private-file/scan gate, closed until scanning ready.
+- Enforce one team per person across **all** Hackathon entries, including solo,
+  one project per team and at most five people including the lead. This resolves
+  HAC-01's cross-mode uncertainty. Leads invite up to four members, who accept
+  and complete their profile before the configured application deadline. This
+  supersedes HAC-03's older post-acceptance invitation timing. Changes after
+  submission require a reasoned, audited committee action; acceptance remains
+  provisional until roster confirmation.
+- Use one English pitch of at most 300 words with the framework's five prompts
+  as guidance inside that field, separate references outside its count, optional
+  video/demo links and optional files through the existing closed file gate.
+  Record presentation/competition/prize/funding/commercialization history and
+  details, AI use/tools, team contributions, originality/permissions, rules,
+  ethics applicability and a media/data-processing **notice acknowledgment**
+  (awareness, not an opt-out or new legal approval). Prior-history and integrity
+  concerns go to committee review with clarification; no automated detector.
+- Preload two editable, versioned **default** rubrics: screening four criteria
+  scored 1–5 (20 total); final judging seven criteria scored 1–5 (35 total).
+  Preserve exact source criterion names, questions and common 1–5 anchors, plus
+  final criterion-specific 5/3/1 examples. Show these in English on assessment
+  screens. Preloading is not authority to open review. The score-difference
+  trigger for a third reviewer has **no default** and blocks screening until set.
+- Screening uses administrative/eligibility clearance and an anonymization check,
+  two independent blinded reviewers, a third when difference is at least the
+  configured trigger or manually escalated, and the mean of valid reviewer
+  totals ranked within each track. Ties use a configured protocol. Finalist cap
+  remains unset; remaining eligible entries form track-specific ranked reserves.
+  A reasoned, audited offer goes to the next reserve after a withdrawal, within
+  the current cap and after a feasibility decision. Solo quota accounting remains
+  a required setting; the draft's eight-per-track estimate is not a default.
+- Accepted finalists alone receive the configured orientation, timetable,
+  instructions and external WhatsApp group invitation URL. No messaging
+  integration or participant-number import is authorized. Conference registration
+  and approval remain separate and are linked as a reminder. The final English
+  deck uses the existing closed file gate and a configured published lock time.
+- Final judging is independent, with separate track panels of a configured
+  three-to-five judges. Originality/ethics/privacy/safety flags require committee
+  review. A prototype is optional; show the source fairness rule. Record one
+  winner per track; do not show prize amounts or distribute money. Preserve only
+  a documented finalist certificate evidence hook; no certificates are issued.
+- Task-specific outcome emails are brief English **DRAFT** templates, held with
+  no real delivery, overriding the general participant-email language rule only
+  for these Hackathon outcomes. Never disclose reviewer identities, scores or
+  confidential notes to applicants. Reuse the existing Contact Hackathon topic
+  and route; the framework's support address is only a candidate.
+
+The public working overview may explain these tracks, eligibility, team model,
+format and evaluation, free Hackathon entry and separate conference registration.
+Hackathon dates/timetable, prize amounts and venue remain “to be confirmed”.
+Do not infer a venue booking, eight-team capacity, compulsory attendance exception
+policy, certificate criteria, sponsor/partner, named assignment, cash/payout
+approval, optional third track or approved public legal/IP/media language from
+the drafts. All independent privacy, account, file, email and release gates stay
+closed. No hosted migration/settings seeds, flags, live entry opening, mail,
+commit, push or branch creation is authorized by this task.
+
+## ENG-080 — Closed Hackathon framework extension, 25 October 2026
+
+ORG-065; TRK-01, HAC-01–11, TMT-01/02, CFG-13, EML-01/03/04, SUP-01/02,
+PRV-02/03/05/06, SEC-01/02/03/05/06, LOC-01/02/03 and ACC-01.
+Extend ENG-077's existing competition module rather than rebuilding it. Use only
+review-only migration `20261025120000_hackathon_framework.sql`; preserve the
+separate 3MT document/stage behavior and pre-existing synthetic fixtures.
+
+Private Hackathon profiles and proof metadata are distinct from submitted project
+documents and sanitized packets. Forced RLS, no client table policies/grants,
+service-only participant RPCs using verified claims, exact-session persisted
+staff authority, READ COMMITTED guards, actor-scoped operation keys, optimistic
+versions, settings/entry locks and immutable snapshots/audit remain mandatory.
+Identity/eligibility projections require eligibility-officer or Super Admin
+authority; scientific staff and reviewers never receive private profile/proof.
+Participant and non-review staff shells are EN/AR; scientific content and
+reviewer/judge screens are English/LTR. Missing pending RPCs return
+`area-not-ready` without destroying the session.
+
+Database enforcement covers cross-solo/team membership and roster bounds,
+required profiles/accepted invitations at submission, committee-only later roster
+changes, eligibility/history/integrity clearance, attested anonymized packets,
+independent review and trigger/manual third review. Settings and rubric versions
+freeze the assessment basis. Rank with the average valid totals per track and
+apply the configured tie protocol; reserve offers and publication recheck the
+current finalist capacity transactionally. Outcomes and committee decisions are
+audited records, never score disclosures, prize payments or certificate issuance.
+
+The only preloaded business content is the owner-selected track display copy and
+the two authorized editable rubric defaults. Dates, caps, third-review difference,
+ties, panel count, finalist details/links/locks, policy text and other unresolved
+business settings have no invented values. Default configuration does not create
+settings rows or enable the global/per-kind/evidence/files gates. Private
+supporting/proof/final files stay quarantined until the existing scan and release
+checks pass; no scanner bypass is introduced.
+
+The existing per-person activity evidence is the finalist participation-certificate
+hook. A future separately approved certificate task must define templates,
+signatories, activity/final-submission/survey requirements, individual attendance
+and justified absences, privacy/retention and explicit release; this task issues
+nothing. Existing support routing is reused without a new mailbox.
+
+Evidence, check status and remaining gates:
+[Task n18 receipt](progress/2026-10-25-claude-hackathon-framework.md) and
+[competition notes](../src/features/competitions/README.md). No edits to
+`docs/PROGRESS.md`; leave all work uncommitted for Claude.
+
 ## ENG-082 — Check-in outage fallback, 25 October 2026
 
 Authority: owner instruction to finish the remaining backlog and spec §11 CHK-05.
