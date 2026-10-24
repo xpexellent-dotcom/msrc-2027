@@ -118,11 +118,11 @@ select ok(exists(select 1 from msrc_participant.retention_audit where actor_id=p
 update msrc_registration.settings set priority_start_at=clock_timestamp()-interval '3 days',priority_end_at=clock_timestamp()-interval '2 days',general_opening_at=clock_timestamp()-interval '1 day';
 select is(public.msrc_registration_submit('synthetic-registration',pg_temp.registration_claims(2),'national_id',
  jsonb_build_object('ciphertext',repeat('ab',10),'iv',repeat('cd',12),'authTag',repeat('ef',16),'keyVersion','synthetic-v1','plaintext','FAKE0000'),
- repeat('c',64),'••••••0000','synthetic-v1','synthetic-terms')->>'state','denied','Envelope extra keys cannot smuggle plaintext into storage');
+ repeat('c',64),'••••••0000','synthetic-v1','synthetic-terms')->>'state','denied','Retired encrypted submit signature denies extra envelope keys');
 select is(public.msrc_registration_submit('synthetic-registration',pg_temp.registration_claims(2),'national_id',
  jsonb_build_object('ciphertext',null,'iv',repeat('cd',12),'authTag',repeat('ef',16),'keyVersion','synthetic-v1'),
- repeat('c',64),'••••••0000','synthetic-v1','synthetic-terms')->>'state','denied','JSON null cannot bypass encrypted-envelope field constraints');
-select is(pg_temp.registration_submit('synthetic-registration',2)->>'state','conflict','Same keyed identifier hash refused across participant accounts');
+ repeat('c',64),'••••••0000','synthetic-v1','synthetic-terms')->>'state','denied','Retired encrypted submit signature denies null envelope fields');
+select is(pg_temp.registration_submit('synthetic-registration',2)->>'state','conflict','Same normalized document refused across participant accounts');
 select is(pg_temp.registration_submit('synthetic-registration',2,repeat('c',64))->>'state','submitted','General window accepts non-designated verified adult');
 select is((select status from msrc_registration.requests where actor_id=pg_temp.registration_actor(2)),'pending_approval','Only pending request built in slice 1');
 select is((select payment_due_at from msrc_registration.requests where actor_id=pg_temp.registration_actor(2)),null::timestamptz,'No payment deadline invented');
@@ -130,23 +130,8 @@ select ok(not (pg_temp.registration_submit('synthetic-registration',2,repeat('c'
 select throws_ok($$update msrc_registration.audit set reason='tampered'$$,'55000',null,'Registration audit immutable');
 select throws_ok($$truncate msrc_registration.audit$$,'55000',null,'Registration audit cannot truncate');
 
--- The database never decrypts; only an assured audited server reveal releases the envelope.
-do $$begin perform set_config('request.jwt.claims',pg_temp.registration_claims(102)::text,true);end$$;
-set local role authenticated;
-select is(public.msrc_staff_identity_reveal('synthetic-registration','e7100000-0000-4000-8000-000000000001','Synthetic duty')->>'state','denied','Non-Super-Admin identity reveal denied');
-reset role;
-do $$begin perform set_config('request.jwt.claims',pg_temp.registration_claims(100)::text,true);end$$;
-set local role authenticated;
-select is(public.msrc_staff_identity_reveal('synthetic-registration','e7100000-0000-4000-8000-000000000001',null)->>'state','denied','Missing reveal reason denied');
-select is(public.msrc_staff_identity_reveal('synthetic-registration','e7100000-0000-4000-8000-000000000001','  ')->>'state','denied','Blank reveal reason denied');
-select is(public.msrc_staff_identity_reveal('synthetic-registration','e7100000-0000-4000-8000-000000000001','Synthetic identity support case')->>'state','available','Assured Super Admin with reason gets encrypted envelope');
-select is(public.msrc_staff_participants('synthetic-registration','registration-1@')->'rows'->0->>'identityMasked','••••••0000','Staff ordinary projection contains masked display only');
-select ok(not (public.msrc_staff_participants('synthetic-registration','registration-1@')::text ~ 'ciphertext|identity_hash|identityEnvelope'),'Staff ordinary projection excludes encrypted envelope and hash');
-reset role;
-select is((select count(*) from msrc_registration.audit where event='identity.revealed'),4::bigint,'Every reasoned reveal attempt, including denied, audited');
-select is((select count(*) from msrc_staff.audit where action='identity_reveal'),4::bigint,'Existing staff immutable audit records every reveal attempt');
-select is((select reason from msrc_registration.audit where event='identity.revealed' and result='allowed'),'Synthetic identity support case','Successful reveal records explicit reason');
-select ok(not exists(select 1 from information_schema.columns where table_schema='msrc_registration' and column_name in('identity_number','document_number','plaintext')),'No plaintext identity database column');
+-- ORG-064 retires reveal; authorized details are covered in registration_identity.test.sql.
+select is(public.msrc_staff_identity_reveal('synthetic-registration',pg_temp.registration_actor(1),'Synthetic')->>'state','denied','Legacy reveal contract disabled');
 do $$begin perform set_config('request.jwt.claims',pg_temp.registration_claims(100)::text,true);end$$;
 select is(public.msrc_staff_admin_change('synthetic-registration',pg_temp.registration_actor(103),'set_roles',array['finance'])->>'state','completed','Another Super Admin removes grant through existing audited authority');
 select is(public.msrc_registration_priority_set('synthetic-registration',pg_temp.registration_claims(103),pg_temp.registration_actor(2),true,'Stale grant attempt')->>'state','denied','Previously assured session cannot reuse revoked Super Admin grant');

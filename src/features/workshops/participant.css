@@ -1,0 +1,13 @@
+.workshop-bookings { margin-block: 2rem; border-block-start: 1px solid var(--color-border, #ddd7e5); padding-block-start: 1.5rem; min-width: 0; }
+.workshop-bookings-list { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: 1rem; }
+.workshop-bookings-catalogue { display: grid; gap: 1rem; margin-block: 1rem; }
+.workshop-booking-card { padding: 1.1rem; border: 1px solid var(--color-border, #ddd7e5); border-radius: .75rem; overflow-wrap: anywhere; min-width: 0; }
+.workshop-booking-card h3, .workshop-booking-card h4 { margin-block: 0 .65rem; }
+.workshop-booking-card dl { display: grid; gap: .6rem; margin-block: 1rem; }
+.workshop-booking-card dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; }
+.workshop-booking-card dd { margin: 0; }
+.workshop-booking-status { font-weight: 600; }
+.workshop-booking-warning { border-inline-start: 3px solid #aa780e; padding-inline-start: .75rem; }
+.workshop-booking-actions { display: flex; gap: .6rem; flex-wrap: wrap; margin-block-start: 1rem; }
+.workshop-booking-actions .button { max-width: 100%; white-space: normal; text-align: center; }
+@media (max-width: 420px) { .workshop-booking-card dl > div { grid-template-columns: minmax(0, 1fr); gap: .15rem; } }

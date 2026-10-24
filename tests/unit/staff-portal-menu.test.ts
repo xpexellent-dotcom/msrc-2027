@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PERMISSION_RULES, ROLES, type Role } from "@/lib/permissions/contract";
-import { canChangeOwnPassword, canRevealIdentity, isOversightOnly, maskIdentity, STAFF_MENU, staffMenu } from "@/features/staff-portal/menu";
+import { PERMISSION_RULES, ROLES } from "@/lib/permissions/contract";
+import { canChangeOwnPassword, isOversightOnly, maskIdentity, STAFF_MENU, staffMenu } from "@/features/staff-portal/menu";
 import { staffCopy } from "@/features/staff-portal/copy";
 
 describe("BL-AUTH-01 and BL-RPT-01/03 navigation projection", () => {
@@ -50,8 +50,5 @@ describe("BL-AUTH-01 and BL-RPT-01/03 navigation projection", () => {
     expect(maskIdentity("SYN THETIC ١٢٣٤")).toBe("••••••١٢٣٤");
     expect(maskIdentity("123")).toBe("••••••");
     expect(maskIdentity(null)).toBeNull();
-  });
-  it.each(ROLES)("%s has the expected explicit reveal control policy", (role: Role) => {
-    expect(canRevealIdentity([role])).toBe(role === "superAdmin");
   });
 });

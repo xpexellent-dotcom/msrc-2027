@@ -6,6 +6,8 @@ import { getPublicConferenceCatalogue } from "@/content/conference-catalogue.ser
 import { isLocale } from "@/lib/i18n";
 import { conferenceDescription, localizedPageMetadata, siteTitle } from "@/lib/metadata";
 
+export const revalidate = 60;
+
 type PageProps = { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -30,5 +32,5 @@ export default async function Page({ params, searchParams }: PageProps) {
     if (typeof value === "string") initialQuery[key] = value.slice(0, 200);
   }
   const { sessions, speakers } = await getPublicConferenceCatalogue(locale);
-  return <ProgrammeExperience key={JSON.stringify(initialQuery)} locale={locale} initialQuery={initialQuery} sessions={sessions} speakers={speakers} />;
+  return <ProgrammeExperience bookingsEnabled={process.env.PARTICIPANT_ACCOUNTS_ENABLED === "true"} key={JSON.stringify(initialQuery)} locale={locale} initialQuery={initialQuery} sessions={sessions} speakers={speakers} />;
 }

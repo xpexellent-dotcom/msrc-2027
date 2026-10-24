@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MediaExperience, ProgrammeExperience } from "@/components/conference-experiences";
 import type { PublicSession } from "@/content/conference-experiences";
+import { experienceCopy } from "@/content/conference-experiences";
 
 const address = vi.hoisted(() => ({ query: new URLSearchParams() }));
 vi.mock("next/navigation", () => ({ useSearchParams: () => address.query }));
@@ -22,10 +23,17 @@ function mediaControls(html: string) {
 
 describe("public catalogue server hydration boundary", () => {
   beforeEach(() => { address.query = new URLSearchParams(); });
-  it.each(["en", "ar"] as const)("%s programme controls stay disabled in server HTML even when category/room options exist", (locale) => {
+  it.each(["en", "ar"] as const)("%s empty publication remains unannounced even with stale filters", (locale) => {
+    address.query = new URLSearchParams("day=day2&category=panel&q=stale");
+    const html = renderToStaticMarkup(createElement(ProgrammeExperience, { locale, sessions: [], speakers: [] }));
+    expect(html).toContain(experienceCopy[locale].programPending);
+    expect(html).not.toContain(experienceCopy[locale].noResults);
+  });
+  it.each(["en", "ar"] as const)("%s programme controls work in server HTML without JavaScript", (locale) => {
     const html = renderToStaticMarkup(createElement(ProgrammeExperience, { locale, sessions: [session], speakers: [] }));
-    expect(controls(html)).toHaveLength(6);
-    expect(controls(html).every((control) => control.includes('disabled=""'))).toBe(true);
+    expect(controls(html)).toHaveLength(5);
+    expect(controls(html).every((control) => !control.includes('disabled=""'))).toBe(true);
+    expect(html).toContain('method="get"');
     expect(html).toContain('value="synthetic"');
     expect(html).toContain('value="Synthetic Room"');
   });
@@ -46,9 +54,10 @@ describe("public catalogue server hydration boundary", () => {
   it.each(["en", "ar"] as const)("%s programme deep-link fields and selected day survive server rendering", (locale) => {
     address.query = new URLSearchParams("day=day2&category=synthetic&room=Synthetic+Room&q=synthetic");
     const html = renderToStaticMarkup(createElement(ProgrammeExperience, { locale, sessions: [session], speakers: [] }));
-    expect(controls(html)).toHaveLength(7);
-    expect(controls(html).every((control) => control.includes('disabled=""'))).toBe(true);
-    expect(html).toMatch(/data-testid="program-day-day2"[^>]*aria-pressed="true"/);
+    expect(controls(html)).toHaveLength(5);
+    expect(controls(html).every((control) => !control.includes('disabled=""'))).toBe(true);
+    expect(html).toContain('method="get"');
+    expect(html).toMatch(/data-testid="program-day-day2"[^>]*aria-current="true"/);
     expect(html).toContain('value="synthetic" selected=""');
     expect(html).toContain('value="Synthetic Room" selected=""');
   });

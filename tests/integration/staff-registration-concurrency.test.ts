@@ -836,8 +836,7 @@ function earlySubmit(isolation: "read committed" | "repeatable read" = "read com
     select set_config('synthetic.claims',pg_temp.registration_claims(1201)::text,true);
     set local role service_role;
     select public.msrc_registration_submit('${earlyEdition}',current_setting('synthetic.claims')::jsonb,'national_id',
-      jsonb_build_object('ciphertext',repeat('ab',10),'iv',repeat('cd',12),'authTag',repeat('ef',16),'keyVersion','synthetic-v1'),
-      repeat('a',64),repeat(chr(8226),6)||'0000','synthetic-v1','synthetic-terms')::text;
+      '1234567890','synthetic-terms')::text;
     commit;`;
 }
 

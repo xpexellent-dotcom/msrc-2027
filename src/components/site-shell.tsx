@@ -12,7 +12,7 @@ export function SiteShell({ children, locale, showDesignSystem = false }: {
   showDesignSystem?: boolean;
 }) {
   const copy = dictionaries[locale];
-  const privateStaffRoute = /^\/(en|ar)\/staff(?:\/|$)/.test(usePathname());
+  const privateStaffRoute = /^\/(en|ar)\/(?:staff(?:\/|$)|(?:reviewer|judge)\/competitions(?:\/|$))/.test(usePathname());
   return (
     <>
       <a className="skip-link" href="#main-content" tabIndex={0}>{copy.skip}</a>

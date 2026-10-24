@@ -55,7 +55,7 @@ beforeEach(() => {
     msrc_staff_registration_approve_tickets: { state: "updated", registration, decided: { approved: 1, waitlisted: 0, skipped: 0 } },
     msrc_staff_registration_waitlist: { state: "updated", registration, decided: { approved: 0, waitlisted: 1, skipped: 0 } },
     msrc_staff_registration_offer: { state: "updated", registration, decided: { approved: 0, waitlisted: 0, offered: 1, skipped: 0 } },
-    msrc_staff_registration_detail: { state: "ready", historyVersion: 1, detail: { request: row, history: [
+    msrc_staff_registration_detail: { state: "ready", historyVersion: 1, identityVersion: 1, detail: { identity: null, request: row, history: [
       { id: requestId, event: "request.waitlisted", actorKind: "staff", from: "pending_approval", to: "waitlisted", at: row.createdAt, performerName: "Synthetic Staff" }] } },
     msrc_staff_registration_export: { state: "ready", rows: [{ name: row.name, email: row.email, status: row.status,
       priority: row.priority, createdAt: row.createdAt, decidedAt: row.decidedAt, identityMasked: row.identityMasked }] },
@@ -149,10 +149,10 @@ describe("ENG-064 staff confirmation boundary", () => {
     ];
     for (const event of events) {
       const history = { id: requestId, at: row.createdAt, ...event };
-      expect(registrationDetailProjection({ request: row, history: [history] }, requestId)).not.toBeNull();
-      expect(registrationDetailProjection({ request: row, history: [{ ...history, from: "waitlisted" }] }, requestId)).toBeNull();
+      expect(registrationDetailProjection({ identity: null, request: row, history: [history] }, requestId)).not.toBeNull();
+      expect(registrationDetailProjection({ identity: null, request: row, history: [{ ...history, from: "waitlisted" }] }, requestId)).toBeNull();
     }
-    expect(registrationDetailProjection({ request: row, history: [{ id: requestId, at: row.createdAt, ...events[2], actorKind: "staff" }] }, requestId)).toBeNull();
+    expect(registrationDetailProjection({ identity: null, request: row, history: [{ id: requestId, at: row.createdAt, ...events[2], actorKind: "staff" }] }, requestId)).toBeNull();
   });
 });
 
@@ -538,24 +538,30 @@ describe("closed staff request details, offers and masked export", () => {
     const history = events.map((entry, index) => ({ ...historyRow, ...entry,
       id: `30000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
       at: new Date(now - index * 1000).toISOString(), performerName: entry.actorKind === "staff" ? "Synthetic Staff" : null }));
-    replies.msrc_staff_registration_detail = { state: "ready", historyVersion: 1, detail: { request: row, history } };
+    replies.msrc_staff_registration_detail = { state: "ready", historyVersion: 1, identityVersion: 1, detail: { identity: null, request: row, history } };
     const response = await handle(request("GET", "?area=registration-detail&requestId=" + requestId));
     expect(response.status).toBe(200);
     expect((await response.json()).registrationDetail.history).toEqual(history);
   });
   it.each([{ history: [] }, { history: [{ id: requestId, from: "pending_approval", to: "waitlisted", at: row.createdAt, performerName: "Synthetic Staff" }] }])("keeps the session when an older RPC lacks complete history version %#", async ({ history }) => {
-    replies.msrc_staff_registration_detail = { state: "ready", detail: { request: row, history } };
+    replies.msrc_staff_registration_detail = { state: "ready", detail: { identity: null, request: row, history } };
     const response = await handle(request("GET", "?area=registration-detail&requestId=" + requestId));
     expect(response.status).toBe(503);
     expect(await response.json()).toMatchObject({ state: "area-not-ready" });
     expect(response.headers.get("set-cookie") ?? "").not.toContain("Max-Age=0");
     expect(backend.logout).not.toHaveBeenCalled();
   });
+  it("retains the staff session when the identity migration is absent", async () => {
+    replies.msrc_staff_registration_detail = { state: "ready", historyVersion: 1, detail: { identity: null, request: row, history: [] } };
+    const response = await handle(request("GET", "?area=registration-detail&requestId=" + requestId));
+    expect(response.status).toBe(503); expect(await response.json()).toMatchObject({ state: "area-not-ready" });
+    expect(backend.logout).not.toHaveBeenCalled();
+  });
   it.each([0, 2, "1", null])("rejects unexpected history version %s", async (historyVersion) => {
-    replies.msrc_staff_registration_detail = { state: "ready", historyVersion, detail: { request: row, history: [] } };
+    replies.msrc_staff_registration_detail = { state: "ready", historyVersion, detail: { identity: null, request: row, history: [] } };
     expect((await handle(request("GET", "?area=registration-detail&requestId=" + requestId))).status).toBe(503);
   });
-  it.each(["superAdmin", "registrationWorkshopAdministrator"] as const)("allows %s to read masked detail and offer a waitlisted seat", async (role) => {
+  it.each(["superAdmin", "registrationWorkshopAdministrator"] as const)("allows %s to read ordinary identity detail and offer a waitlisted seat", async (role) => {
     roles = [role];
     const detailResponse = await handle(request("GET", "?area=registration-detail&requestId=" + requestId));
     expect(detailResponse.status).toBe(200);
@@ -639,19 +645,19 @@ describe("closed staff request details, offers and masked export", () => {
     { request: { ...row, id: targetId }, history: [] },
     { request: { ...row, identityMasked: "1234567890" }, history: [] },
     { request: { ...row, offerExpiresAt: "invalid" }, history: [] },
-    { request: row, history: [{ ...historyRow, to: "all" }] },
-    { request: row, history: [{ ...historyRow, secret: "forbidden" }] },
-    { request: row, history: [{ ...historyRow, event: "identity.revealed" }] },
-    { request: row, history: [{ ...historyRow, actorKind: "unknown" }] },
-    { request: row, history: [{ ...historyRow, actorKind: "participant", performerName: null }] },
-    { request: row, history: [{ ...historyRow, event: "request.cancelled" }] },
-    { request: row, history: [{ ...historyRow, event: "request.offer_expired", actorKind: "staff" }] },
-    { request: row, history: [{ ...historyRow, event: "ticket.issued", actorKind: "automatic", performerName: null }] },
-    { request: row, history: [{ ...historyRow, event: "request.submitted", actorKind: "participant", from: null, to: null }] },
-    { request: row, history: [historyRow, historyRow] },
-    { request: row, history: [0, 1].map((hours) => ({ ...historyRow, id: hours ? targetId : requestId, at: new Date(now + hours * 3600000).toISOString() })) },
+    { identity: null, request: row, history: [{ ...historyRow, to: "all" }] },
+    { identity: null, request: row, history: [{ ...historyRow, secret: "forbidden" }] },
+    { identity: null, request: row, history: [{ ...historyRow, event: "identity.revealed" }] },
+    { identity: null, request: row, history: [{ ...historyRow, actorKind: "unknown" }] },
+    { identity: null, request: row, history: [{ ...historyRow, actorKind: "participant", performerName: null }] },
+    { identity: null, request: row, history: [{ ...historyRow, event: "request.cancelled" }] },
+    { identity: null, request: row, history: [{ ...historyRow, event: "request.offer_expired", actorKind: "staff" }] },
+    { identity: null, request: row, history: [{ ...historyRow, event: "ticket.issued", actorKind: "automatic", performerName: null }] },
+    { identity: null, request: row, history: [{ ...historyRow, event: "request.submitted", actorKind: "participant", from: null, to: null }] },
+    { identity: null, request: row, history: [historyRow, historyRow] },
+    { identity: null, request: row, history: [0, 1].map((hours) => ({ ...historyRow, id: hours ? targetId : requestId, at: new Date(now + hours * 3600000).toISOString() })) },
   ])("rejects invalid/sensitive detail or incorrectly ordered history %#", async (detail) => {
-    replies.msrc_staff_registration_detail = { state: "ready", historyVersion: 1, detail };
+    replies.msrc_staff_registration_detail = { state: "ready", historyVersion: 1, identityVersion: 1, detail };
     const response = await handle(request("GET", "?area=registration-detail&requestId=" + requestId));
     expect(response.status).toBe(503); expect((await response.json()).registrationDetail).toBeUndefined();
   });

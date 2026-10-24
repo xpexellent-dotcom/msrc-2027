@@ -1,0 +1,28 @@
+export const workshopParticipantCopy = {
+  en: {
+    title: "My Bookings", lead: "Your workshop requests, holds, offers and confirmed bookings.", catalogue: "Workshop booking", empty: "You have no workshop bookings yet.",
+    noWorkshops: "Workshop details will appear after publication.", loading: "Loading your bookings…", closed: "Workshop booking is closed.",
+    notReady: "This area is not ready yet. Your account remains signed in.", unavailable: "Bookings could not be loaded. Try again.", denied: "Workshop booking is unavailable for this account. A verified participant account, confirmed conference registration and workshop eligibility are required.",
+    retry: "Refresh bookings", pending: "Saving…", request: "Request a place", waitlist: "Join waitlist", accept_offer: "Accept offer", decline_offer: "Decline offer", cancel: "Cancel booking",
+    mock_pay: "Complete mock payment", redeem_discount: "Confirm with validated discount / no payment due", manual: "Every request requires manual approval. A hold or offer is not a confirmed booking.",
+    registration: "A confirmed conference registration is required. Overlapping holds or confirmed bookings cannot be added.",
+    mockNotice: "Mock payment only. No money is collected.", untitled: "Workshop details pending", remaining: "Bookable seats", capacity: "Capacity", instructor: "Instructor", room: "Room", eligibility: "Eligibility", price: "Price", deadline: "Booking deadline", buffer: "Transfer buffer (minutes)",
+    notSet: "Not set", riyadh: "Riyadh time", requested: "Requested", expires: "Hold / offer deadline", checkedIn: "Workshop checked in", completed: "Workshop completion confirmed", conflict: "Schedule conflict — organizer resolution required.",
+    workshopClosed: "Booking is not available for this workshop.", updated: "Your booking was updated.", invalid_input: "The request could not be verified. Refresh and try again.", limited: "Too many attempts. Try again later.",
+    full: "No place is available. You can join the waitlist.", expired: "This hold or offer has expired. The list has been refreshed.", not_found: "This booking is no longer available.", conflictOutcome: "The request could not be completed. Eligibility, timing or availability may have changed.",
+    statuses: { held: "Held — awaiting manual approval", approved: "Approved — awaiting payment / validated discount", confirmed: "Confirmed", waitlisted: "Waitlisted", offered: "Offer awaiting acceptance", declined: "Declined", cancelled: "Cancelled", expired: "Expired" },
+  },
+  ar: {
+    title: "حجوزاتي", lead: "طلبات الورش والحجوزات المؤقتة والعروض والحجوزات المؤكدة الخاصة بك.", catalogue: "حجز ورش العمل", empty: "لا توجد لديك حجوزات ورش حتى الآن.",
+    noWorkshops: "ستظهر تفاصيل الورش بعد نشرها.", loading: "جارٍ تحميل حجوزاتك…", closed: "حجز ورش العمل مغلق.",
+    notReady: "هذه المساحة غير جاهزة بعد. يظل حسابك مسجّل الدخول.", unavailable: "تعذّر تحميل الحجوزات. حاول مجددًا.", denied: "الحجز غير متاح لهذا الحساب. يلزم حساب مشارك موثّق وتسجيل مؤكد في المؤتمر واستيفاء أهلية الورشة.",
+    retry: "تحديث الحجوزات", pending: "جارٍ الحفظ…", request: "طلب مقعد", waitlist: "الانضمام لقائمة الانتظار", accept_offer: "قبول العرض", decline_offer: "رفض العرض", cancel: "إلغاء الحجز",
+    mock_pay: "إتمام الدفع التجريبي", redeem_discount: "التأكيد بخصم معتمد / دون مبلغ مستحق", manual: "يتطلب كل طلب موافقة يدوية. الحجز المؤقت أو العرض ليس حجزًا مؤكدًا.",
+    registration: "يلزم تسجيل مؤكد في المؤتمر. لا يمكن إضافة حجوزات مؤقتة أو مؤكدة متداخلة زمنيًا.",
+    mockNotice: "دفع تجريبي فقط. لا تُحصّل أي مبالغ.", untitled: "تفاصيل الورشة قيد الإعداد", remaining: "المقاعد المتاحة للحجز", capacity: "السعة", instructor: "المدرّب", room: "القاعة", eligibility: "الأهلية", price: "السعر", deadline: "آخر موعد للحجز", buffer: "وقت الانتقال (بالدقائق)",
+    notSet: "غير محدد", riyadh: "بتوقيت الرياض", requested: "وقت الطلب", expires: "موعد انتهاء الحجز المؤقت / العرض", checkedIn: "تم تسجيل حضور الورشة", completed: "تم تأكيد إكمال الورشة", conflict: "تعارض في المواعيد — يتطلب معالجة المنظّمين.",
+    workshopClosed: "الحجز غير متاح لهذه الورشة.", updated: "تم تحديث حجزك.", invalid_input: "تعذّر التحقق من الطلب. حدّث الصفحة وحاول مجددًا.", limited: "محاولات كثيرة. حاول لاحقًا.",
+    full: "لا يوجد مقعد متاح. يمكنك الانضمام لقائمة الانتظار.", expired: "انتهت صلاحية الحجز المؤقت أو العرض. تم تحديث القائمة.", not_found: "هذا الحجز لم يعد متاحًا.", conflictOutcome: "تعذّر إتمام الطلب. ربما تغيّرت الأهلية أو المواعيد أو المقاعد المتاحة.",
+    statuses: { held: "حجز مؤقت — بانتظار الموافقة اليدوية", approved: "معتمد — بانتظار الدفع / الخصم المعتمد", confirmed: "مؤكد", waitlisted: "في قائمة الانتظار", offered: "عرض بانتظار القبول", declined: "مرفوض", cancelled: "ملغى", expired: "منتهي الصلاحية" },
+  },
+};

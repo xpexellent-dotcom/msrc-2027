@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
+import { registrationCopy } from "@/features/registration/registration-copy";
 import { confirmationCopy } from "./confirmation-copy";
 import { ConfirmationRound } from "./confirmation-round";
 import { staffCopy } from "./copy";
@@ -127,7 +128,7 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
         <div><dt>{copy.status}</dt><dd>{text.statuses[detail.request.status]}</dd></div>
         <div><dt>{text.ticket}</dt><dd data-testid="detail-ticket">{detail.request.ticketStatus ? text.ticketStatuses[detail.request.ticketStatus] : text.ticketStatuses.none}</dd></div>
         <div><dt>{text.submitted}</dt><dd>{formatStaffDate(detail.request.createdAt, locale, copy.unknown)}</dd></div>
-        <div><dt>{copy.identifier}</dt><dd><bdi dir="ltr">{detail.request.identityMasked ?? "—"}</bdi></dd></div>
+        <div><dt>{copy.identifier}</dt><dd>{detail.identity ? <>{registrationCopy[locale][detail.identity.documentType === "national_id" ? "nationalId" : detail.identity.documentType === "iqama" ? "iqama" : "passport"]}: <bdi dir="ltr">{detail.identity.documentNumber}</bdi></> : locale === "ar" ? "غير مقدّم" : "Not provided"}</dd></div>
         {detail.request.confirmation ? <div><dt>{confirmation.title}</dt><dd>{confirmation[detail.request.confirmation.state]} · {formatStaffDate(detail.request.confirmation.deadline, locale, copy.unknown)}</dd></div> : null}
         {detail.request.offerExpiresAt ? <div><dt>{text.offerEnds}</dt><dd>{formatStaffDate(detail.request.offerExpiresAt, locale, copy.unknown)}</dd></div> : null}
       </dl>

@@ -1,6 +1,6 @@
 // SEC-01/06, ENG-045. Only the media document can upload to scoped Storage URLs.
 export function privateContentSecurityPolicy(nonce: string, development: boolean, storageOrigin?: string): string {
-  const uploadOrigin = storageOrigin === "http://127.0.0.1:3220" || /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(storageOrigin ?? "") ? storageOrigin : undefined;
+  const uploadOrigin = ["http://127.0.0.1:3220", "http://127.0.0.1:3218"].includes(storageOrigin ?? "") || /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(storageOrigin ?? "") ? storageOrigin : undefined;
   return [
     "default-src 'self'",
     `script-src 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ""}`,
@@ -31,7 +31,14 @@ export function decodedPagePath(pathname: string): string {
 }
 
 export function isPrivatePage(pathname: string): boolean {
-  return /^\/(en|ar)\/(staff|sign-in|sign-up|verify-email|forgot-password|reset-password|my-msrc|registration|abstracts|staff-security-preview)(?:\/|$)/.test(decodedPagePath(pathname));
+  return /^\/(en|ar)\/(staff|reviewer|judge|entries|sign-in|sign-up|verify-email|forgot-password|reset-password|my-msrc|registration|abstracts|certificates|staff-security-preview)(?:\/|$)/.test(decodedPagePath(pathname));
+}
+
+export function isCompetitionEntryPage(pathname: string): boolean { return /^\/(en|ar)\/entries\/?$/.test(decodedPagePath(pathname)); }
+export function competitionUploadOrigin(env: Readonly<Record<string, string | undefined>>): string | undefined {
+  if (env.COMPETITIONS_ENABLED !== "true" || env.PARTICIPANT_ACCOUNTS_ENABLED !== "true") return undefined;
+  if (env.PARTICIPANT_ACCOUNTS_TEST_MODE === "true") return !env.VERCEL && !env.VERCEL_ENV && env.PARTICIPANT_SUPABASE_URL === "http://127.0.0.1:3218" ? env.PARTICIPANT_SUPABASE_URL : undefined;
+  return env.VERCEL === "1" && env.VERCEL_ENV === "production" && env.PARTICIPANT_SUPABASE_URL === "https://ecemjggwlzqpjcwmchrl.supabase.co" ? env.PARTICIPANT_SUPABASE_URL : undefined;
 }
 
 /** Camera policy is document-scoped, so scanner transitions must install a fresh document. */

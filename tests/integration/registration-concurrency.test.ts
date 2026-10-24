@@ -2,8 +2,6 @@ import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
-import { decryptIdentityDocument, encryptIdentityDocument, identityDocumentHash, maskIdentityNumber,
-  type IdentityCryptoConfig } from "@/features/registration/identity-crypto.server";
 
 // Requires its own cold disposable DB reset, not the parallel shared auth suite:
 // REGISTRATION_DB_TESTS=true pnpm exec vitest run --config vitest.integration.config.ts tests/integration/registration-concurrency.test.ts
@@ -44,7 +42,7 @@ async function barrier() {
 }
 const jsonLine = (output: string) => output.split("\n").filter((line) => line.startsWith("{"))
   .map((line) => JSON.parse(line)).find((row) => typeof row.state === "string");
-describe.skipIf(!isolatedCi)("Registration concurrency and persisted encryption (disposable GitHub CI only)", () => {
+describe.skipIf(!isolatedCi)("Registration concurrency and private identity (disposable GitHub CI only)", () => {
   beforeAll(async () => {
     await query(`begin;
       update msrc_participant.policy set enabled=true,privacy_version='synthetic-registration-notice',email_daily_limit=1000;
@@ -67,7 +65,8 @@ describe.skipIf(!isolatedCi)("Registration concurrency and persisted encryption 
     expect(results.map(jsonLine).map((row) => row.state)).toEqual(["submitted", "submitted"]);
     expect(new Set(results.map(jsonLine).map((row) => row.request.id)).size).toBe(1);
     await query(`do $$begin if (select count(*) from msrc_registration.requests where actor_id='${actor(20)}')<>1
-      or (select count(*) from msrc_registration.audit where target_actor='${actor(20)}' and event='request.submitted')<>1 then
+      or (select count(*) from msrc_registration.audit where target_actor='${actor(20)}' and event='request.submitted')<>1
+      or (select count(*) from msrc_registration.identity_documents i join msrc_registration.requests r on r.id=i.request_id where r.actor_id='${actor(20)}')<>1 then
       raise exception 'Exactly one request and event required';end if;end$$;`);
   });
   it("rechecks the database deadline after waiting for the request lock", async () => {
@@ -94,19 +93,27 @@ describe.skipIf(!isolatedCi)("Registration concurrency and persisted encryption 
     await query(`update msrc_registration.settings set priority_start_at=clock_timestamp()-interval '3 days',
       priority_end_at=clock_timestamp()-interval '2 days',general_opening_at=clock_timestamp()-interval '1 day' where edition_key='${edition}';`);
   });
-  it("a restored older-version persisted envelope decrypts after rotating the active key", async () => {
-    const config: IdentityCryptoConfig = { keys: { "synthetic-v1": "a1".repeat(32), "synthetic-v2": "b2".repeat(32) }, activeKeyVersion: "synthetic-v1", hmacSecret: "c3".repeat(32) };
-    const context = { editionKey: edition, actorId: actor(23), documentType: "passport" as const };
-    const number = "FAKE0000", envelope = encryptIdentityDocument(config, context, number);
-    const hash = identityDocumentHash(config, context, number), masked = maskIdentityNumber("passport", number);
-    const submitted = jsonLine(await query(`select public.msrc_registration_submit('${edition}',pg_temp.registration_claims(23),'passport',
-      '${JSON.stringify(envelope)}'::jsonb,'${hash}','${masked}','synthetic-v1','synthetic-terms')::text;`));
+  it("persists identity separately and exposes it only in authorized request detail", async () => {
+    const submitted = jsonLine(await query(`select public.msrc_registration_submit('${edition}',pg_temp.registration_claims(23),'passport','FAKE0000','synthetic-terms')::text;`));
     expect(submitted.state).toBe("submitted");
     const read = jsonLine(await query(`begin;select set_config('request.jwt.claims',pg_temp.registration_claims(120)::text,true);
-      select public.msrc_staff_identity_reveal('${edition}','${actor(23)}','Synthetic restore drill')::text;commit;`));
-    // Read JSON transport like a backup restore. Neither plaintext nor key material went to SQL.
-    const restored = JSON.parse(JSON.stringify(read.identityEnvelope));
-    expect(decryptIdentityDocument({ ...config, activeKeyVersion: "synthetic-v2" }, context, restored)).toBe(number);
-    expect(() => decryptIdentityDocument({ ...config, keys: { "synthetic-v2": config.keys["synthetic-v2"] }, activeKeyVersion: "synthetic-v2" }, context, restored)).toThrow();
+      select public.msrc_staff_registration_detail('${edition}','${submitted.request.id}')::text;commit;`));
+    expect(read.detail.identity).toEqual({ documentType: "passport", documentNumber: "FAKE0000" });
+    expect(read.detail.request).not.toHaveProperty("documentNumber");
   });
+  it("retention rechecks conference days after waiting for a settings edit", async () => {
+    await query(`update msrc_registration.settings set conference_days=array[(current_date-interval '2 years')::date] where edition_key='${edition}';`);
+    const extending = query(`begin;update msrc_registration.settings set conference_days=array[current_date] where edition_key='${edition}';
+      select pg_advisory_xact_lock(${marker});select pg_sleep(1);commit;`);
+    await barrier();
+    const purge = query(`select msrc_registration.purge_identity('${edition}')::text;`);
+    await extending;
+    expect((await purge).split("\n").filter(line => line.startsWith("{")).map(line => JSON.parse(line))[0].deleted).toBe(0);
+    await query(`do $$begin if not exists(select 1 from msrc_registration.identity_documents where edition_key='${edition}') then
+      raise exception 'Extended retention must preserve identities';end if;end$$;`);
+  });
+  it.each(["repeatable read", "serializable"])("identity purge refuses %s before an unset-edition early return", async isolation => {
+    await expect(query(`begin isolation level ${isolation};select msrc_registration.purge_identity('synthetic-missing');commit;`)).rejects.toThrow("SQLSTATE 25001");
+  });
+
 });

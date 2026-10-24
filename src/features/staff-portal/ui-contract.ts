@@ -1,6 +1,6 @@
 import type { Role } from "@/lib/permissions/contract";
 
-export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access" | "registration-settings" | "email-previews" | "check-in" | "launch-readiness" | "announcements";
+export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access" | "registration-settings" | "email-previews" | "check-in" | "launch-readiness" | "announcements" | "workshops" | "certificates";
 export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "registration-confirmation-preview" | "priority" | "early-access" | "registration-settings" | "email-previews" | "summary" | "check-in" | "launch-readiness";
 export type StaffReadinessStatus = "green" | "amber" | "red";
 export type StaffLaunchCheckKey = "migrations" | "settings" | "confirmationSettings" | "participantAccounts" | "participantPolicy" | "retention" | "outboxDelivery" | "outboxSweeps" | "outboxCap" | "conferenceDays" | "approvers" | "checkInStaff" | "earlyAccess" | "secondSuperAdmin" | "health" | "latestDrain";
@@ -39,6 +39,7 @@ export type StaffRegistrationHistoryRow = {
   from: StaffRegistrationStatus | null; to: StaffRegistrationStatus | null; at: string; performerName: string | null;
 };
 export type StaffRegistrationDetail = {
+  identity: { documentType: "national_id" | "iqama" | "passport"; documentNumber: string } | null;
   request: StaffRegistrationRequest;
   history: StaffRegistrationHistoryRow[];
 };

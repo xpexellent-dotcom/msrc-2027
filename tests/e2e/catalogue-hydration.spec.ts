@@ -10,14 +10,14 @@ async function assertFilters(page: Page, route: "program" | "media") {
     await expect(page.getByTestId("media-kind")).toHaveValue("recording");
   } else {
     await expect.poll(() => Object.fromEntries(new URL(page.url()).searchParams)).toEqual({ day: "day2", q: "synthetic session" });
-    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
     await expect(page.getByTestId("program-search")).toHaveValue("synthetic session");
   }
   expect(new URL(page.url()).hash).toBe("#main-content");
 }
 
 for (const locale of ["en", "ar"] as const) for (const route of ["media", "program"] as const) {
-  test(`${locale} ${route} held JavaScript keeps first filter interaction inert until hydration`, async ({ page }) => {
+  test(`${locale} ${route} held JavaScript preserves native programme controls and media hydration guard`, async ({ page }) => {
     let release!: () => void;
     const scripts = new Promise<void>((resolve) => { release = resolve; });
     const writes: string[] = [];
@@ -27,20 +27,26 @@ for (const locale of ["en", "ar"] as const) for (const route of ["media", "progr
     try {
       await page.goto(`/${locale}/${route}?${initial}#main-content`, { waitUntil: "domcontentloaded" });
       const search = page.getByTestId(route === "media" ? "media-search" : "program-search");
-      await expect(search).toBeDisabled();
-      await expect(page.getByTestId(`${route}-clear`)).toBeDisabled();
+      if (route === "media") {
+        await expect(search).toBeDisabled();
+        await expect(page.getByTestId(`${route}-clear`)).toBeDisabled();
+      } else {
+        await expect(search).toBeEnabled();
+        await expect(page.getByTestId(`${route}-clear`)).toHaveAttribute("href", `/${locale}/program#programme`);
+      }
       if (route === "media") {
         await expect(page.getByTestId("media-edition")).toBeDisabled();
         await expect(page.getByTestId("media-kind")).toBeDisabled();
         await expect(page.getByTestId("media-edition")).toHaveValue("2027");
         await expect(page.getByTestId("media-kind")).toHaveValue("highlight");
       } else {
-        for (const day of ["all", "day1", "day2"]) await expect(page.getByTestId(`program-day-${day}`)).toBeDisabled();
-        await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-pressed", "true");
+        for (const day of ["all", "day1", "day2"]) await expect(page.getByTestId(`program-day-${day}`)).toHaveAttribute("href", /program\?/);
+        await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-current", "true");
         await expect(search).toHaveValue("initial query");
       }
       expect(new URL(page.url()).searchParams.toString()).toBe(initial);
       release();
+      if (route === "program") await expect(page.locator("#programme")).toHaveAttribute("data-hydrated", "true");
       await expect(search).toBeEnabled();
       await expect(page.getByTestId(`${route}-clear`)).toBeEnabled();
       if (route === "media") {
@@ -54,7 +60,7 @@ for (const locale of ["en", "ar"] as const) for (const route of ["media", "progr
           }
         });
       } else {
-        await page.getByTestId("program-day-day2").focus(); await page.keyboard.press("Space");
+        await page.getByTestId("program-day-day2").focus(); await page.keyboard.press("Enter");
         await search.fill("synthetic session");
         // Empty approved catalogues must keep unavailable category/room options disabled.
         await expect(page.getByTestId("program-category")).toBeDisabled();

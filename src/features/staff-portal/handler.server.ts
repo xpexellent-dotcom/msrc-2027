@@ -11,7 +11,6 @@ import { validateStaffPayload, validStaffRegistrationFilter, validStaffRegistrat
 import { canReadStaffArea, earlyAccessAddResult, earlyAccessProjection, earlyAccessRemoveResult, priorityProjection, registrationDecision, registrationDetailProjection, registrationExportCsv, registrationProjection, summaryProjection, verifiedPriorityClaims, verifiedStaffRegistrationClaims } from "./registration-contract.server";
 import type { StaffArea } from "./ui-contract";
 import { registrationSettingsProjection } from "./registration-settings-contract.server";
-import { decryptIdentityDocument, getIdentityCryptoConfig, type IdentityDocumentType } from "@/features/registration/identity-crypto.server";
 import { getRegistrationTicketSecret } from "@/features/registration/ticket-crypto.server";
 import { renderRegistrationEmailPreviews } from "./email-previews.server";
 import { checkInDay, checkInResultProjection, checkInSummaryProjection, checkInUndoProjection } from "./check-in-contract.server";
@@ -302,8 +301,8 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         }
         if (area === "registration-detail") {
           // The existing RPC may still be the older, staff-decisions-only read.
-          if (data.state === "ready" && data.historyVersion === undefined) return respond({ state: "area-not-ready" }, 503);
-          if (data.historyVersion !== 1) return respond({ state: "unavailable" }, 503);
+          if (data.state === "ready" && (data.historyVersion === undefined || data.identityVersion === undefined)) return respond({ state: "area-not-ready" }, 503);
+          if (data.historyVersion !== 1 || data.identityVersion !== 1) return respond({ state: "unavailable" }, 503);
           const detail = data.state === "ready" && registrationDetailProjection(data.detail, params.get("requestId")!);
           return detail ? respond({ state: "authenticated", profile: own, registrationDetail: detail,
             passwordChangeAvailable: await passwordChangeReady(config, backend) }) : respond({ state: "unavailable" }, 503);
@@ -587,19 +586,7 @@ export function createStaffHandler(dependencies: { readiness?: () => StaffReadin
         const result = await backend.rpc("msrc_staff_invite_revoke", { edition_key: config.editionKey, invite_id: payload.invitationId }, session.accessToken);
         return respond({ state: hasState(result, "completed") ? "updated" : "denied" }, hasState(result, "completed") ? 200 : 403);
       }
-      if (payload.action === "reveal-identity") {
-          const result = record(await backend.rpc("msrc_staff_identity_reveal", { edition_key: config.editionKey,
-            target_actor: payload.targetId, reason: payload.reason }, session.accessToken));
-          if (result?.state === "unavailable") return respond({ state: "identity-unavailable" }, 200);
-          if (result?.state !== "available") return respond({ state: "denied" }, 403);
-          const identityConfig = getIdentityCryptoConfig();
-          if (!identityConfig || !["national_id", "iqama", "passport"].includes(result.documentType as string)) return respond({ state: "unavailable" }, 503);
-          // The DB authorizes and audits before releasing the envelope. Neither its
-          // ciphertext nor key material is ever projected to the staff browser.
-          const identity = decryptIdentityDocument(identityConfig, { editionKey: config.editionKey, actorId: payload.targetId!,
-            documentType: result.documentType as IdentityDocumentType }, result.identityEnvelope);
-          return respond({ state: "updated", identity }, 200);
-      }
+      if (payload.action === "reveal-identity") return respond({ state: "denied" }, 403);
       const operationId = randomUUID();
       const result = record(await backend.rpc("msrc_staff_admin_change", { edition_key: config.editionKey, target_actor: payload.targetId,
         action: payload.action === "roles" ? "set_roles" : payload.action.replaceAll("-", "_"), roles: payload.roles ?? [], operation_id: operationId }, session.accessToken));

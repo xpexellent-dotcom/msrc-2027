@@ -28,7 +28,8 @@ describe("isCountedPage", () => {
     // BL-PUB-06/08 keep contact and legal drafts outside analytics/Speed Insights.
     // ENG-022: illustrative Team/Sponsors pages stay outside analytics for this demo.
     // ENG-043: registration can contain a private signed-in request form.
-    const excluded = ["contact", "privacy", "terms", "team", "sponsors", "registration", "abstracts"];
+    // ENG-077: entries contains private project and roster information.
+    const excluded = ["contact", "privacy", "terms", "team", "sponsors", "registration", "abstracts", "entries"];
     const folders = readdirSync("src/app/[locale]/(preview)", { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
     const missing = folders.filter((folder) => !(countedSections as readonly string[]).includes(folder) && !excluded.includes(folder));
     expect(missing, "New public page: explicitly decide whether it may be counted").toEqual([]);
@@ -37,7 +38,7 @@ describe("isCountedPage", () => {
 });
 
 describe("prepareObservabilityEvent", () => {
-  it.each(["/en/registration", "/ar/registration", "/en/abstracts", "/ar/abstracts"])("drops private participant events for %s", (path) => {
+  it.each(["/en/registration", "/ar/registration", "/en/abstracts", "/ar/abstracts", "/en/entries", "/ar/entries", "/en/reviewer/competitions", "/en/judge/competitions"])("drops private participant events for %s", (path) => {
     expect(prepareObservabilityEvent({ type: "pageview", url: `https://www.msrc2027.com${path}` }, false)).toBeNull();
   });
   it.each(["/en/contact", "/ar/contact", "/en/privacy", "/ar/privacy/2026-10-04-draft", "/en/terms/2026-10-04-draft", "/ar/terms"])("drops contact and legal-draft events for %s", (path) => {

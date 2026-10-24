@@ -1,0 +1,27 @@
+.competition-console { padding-block: clamp(2rem, 6vw, 5rem); max-inline-size: 1280px; margin-inline: auto; padding-inline: clamp(1rem, 4vw, 3rem); color: #2a1745; }
+.competition-staff-workspace { display: grid; gap: 1rem; min-inline-size: 0; }
+.competition-staff-workspace .field-input { inline-size: 100%; max-inline-size: 100%; min-inline-size: 0; }
+.competition-staff-workspace .staff-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.competition-staff-workspace fieldset { min-inline-size: 0; border: 1px solid #ded4e8; border-radius: 12px; padding: 1rem; display: grid; gap: .85rem; }
+.competition-staff-workspace legend { font-weight: 650; max-inline-size: 100%; overflow-wrap: anywhere; }
+.competition-staff-workspace .field { min-inline-size: 0; display: grid; gap: .35rem; }
+.competition-staff-workspace :is(summary, label, p, li, dd, small) { overflow-wrap: anywhere; }
+.competition-staff-workspace summary { cursor: pointer; min-block-size: 44px; padding-block: .65rem; font-weight: 650; }
+.competition-settings-grid, .competition-entry-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.competition-settings-grid .competition-rubric { grid-column: 1 / -1; }
+.competition-rubric-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) repeat(2, minmax(4rem, .6fr)) auto; gap: .75rem; align-items: end; }
+.competition-unset { display: block; color: #705014; margin-block-start: .3rem; }
+.competition-entry > summary { display: flex; flex-wrap: wrap; gap: .75rem; align-items: baseline; }
+.competition-check { display: flex; align-items: start; gap: .65rem; }
+.competition-check input { flex: 0 0 auto; margin-block-start: .3rem; }
+.competition-packet { white-space: pre-wrap; padding: 1rem; border-inline-start: 3px solid #8065a3; background: #f8f5fb; margin-block: 1rem; }
+.competition-assignment { display: grid; gap: 1rem; }
+.competition-staff-workspace .staff-feedback { margin: 0; }
+.competition-staff-workspace .staff-feedback:empty { display: none; }
+.competition-staff-workspace small { color: #5c5268; }
+.competition-policy-list { display: grid; gap: .75rem; }
+.competition-policy-list > div { padding-block: .65rem; border-block-end: 1px solid #ded4e8; }
+.competition-policy-list dt { font-weight: 650; }
+.competition-policy-list dd { margin: .3rem 0 0; white-space: pre-wrap; }
+@media (max-width: 800px) { .competition-settings-grid, .competition-entry-tools { grid-template-columns: minmax(0, 1fr); } .competition-rubric-row { grid-template-columns: minmax(0, 1fr); } }
+@media (forced-colors: active) { .competition-staff-workspace :is(fieldset, .competition-packet) { border-color: CanvasText; } }

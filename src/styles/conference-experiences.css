@@ -15,10 +15,10 @@
 .experience-catalogue { container: catalogue / inline-size; padding-block: clamp(2.5rem, 5vw, 5rem); background: var(--color-white); }
 .programme-toolbar { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 1.5rem; margin-block-end: 2rem; }
 .programme-days { display: flex; flex-wrap: wrap; border: 1px solid var(--color-purple); }
-.programme-days button { min-block-size: 48px; max-inline-size: 100%; padding: .85rem 1.25rem; color: var(--color-purple); font: inherit; font-size: .9rem; font-weight: 500; cursor: pointer; transition: background-color var(--motion-feedback), color var(--motion-feedback); }
-.programme-days button + button { border-inline-start: 1px solid var(--color-line); }
-.programme-days button[aria-pressed="true"] { background: var(--color-purple); color: var(--color-ivory); }
-.programme-days button:active { transform: scale(.98); }
+.programme-days a { min-block-size: 48px; max-inline-size: 100%; padding: .85rem 1.25rem; color: var(--color-purple); font: inherit; font-size: .9rem; font-weight: 500; cursor: pointer; transition: background-color var(--motion-feedback), color var(--motion-feedback); }
+.programme-days a + a { border-inline-start: 1px solid var(--color-line); }
+.programme-days a[aria-current="true"] { background: var(--color-purple); color: var(--color-ivory); }
+.programme-days a:active { transform: scale(.98); }
 .experience-timezone { color: var(--color-muted); font-size: .875rem; line-height: 1.7; }
 .experience-filters { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); align-items: end; gap: 1.25rem; }
 .experience-filters > label { display: grid; min-inline-size: 0; gap: .65rem; color: var(--color-purple); font-size: .875rem; font-weight: 500; }
@@ -163,8 +163,8 @@
   .experience-intro h1 { font-size: clamp(2.4rem, 10vw, 3.5rem); }
   .experience-location { grid-template-columns: minmax(0, 1fr); gap: .65rem; }
   .programme-days { inline-size: 100%; display: grid; grid-template-columns: minmax(0, 1fr); }
-  .programme-days button { text-align: start; }
-  .programme-days button + button { border-inline-start: 0; border-block-start: 1px solid var(--color-line); }
+  .programme-days a { text-align: start; }
+  .programme-days a + a { border-inline-start: 0; border-block-start: 1px solid var(--color-line); }
   .experience-filters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
   .experience-filters > .experience-search { grid-column: 1 / -1; }
   .experience-empty { padding-block: 2.5rem; }
@@ -180,15 +180,15 @@
   [lang="ar"] .experience-intro h1 { font-size: clamp(2.2rem, 9vw, 3.2rem); }
 }
 @media (hover: hover) and (pointer: fine) {
-  .programme-days button:not([aria-pressed="true"]):hover { background: var(--color-surface-lilac); }
+  .programme-days a:not([aria-current="true"]):hover { background: var(--color-surface-lilac); }
   .conference-speaker-card-link:hover img { transform: scale(1.02); }
   .conference-speaker-card-link:hover h2, .experience-pathway h2 .site-link:hover { text-decoration: underline; text-underline-offset: .2em; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .programme-days button, .conference-speaker-portrait img { transition: none; }
-  .programme-days button:active, .conference-speaker-card-link:hover img { transform: none; }
+  .programme-days a, .conference-speaker-portrait img { transition: none; }
+  .programme-days a:active, .conference-speaker-card-link:hover img { transform: none; }
 }
 @media (forced-colors: active) {
-  .programme-days button { border: 1px solid transparent; }
-  .programme-days button[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight; }
+  .programme-days a { border: 1px solid transparent; }
+  .programme-days a[aria-current="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight; }
 }

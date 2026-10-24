@@ -39,9 +39,6 @@ async function main() {
       OUTBOX_MONITOR_SECRET: secret(),
       PARTICIPANT_AUTH_SECURITY_SECRET: secret(),
       REGISTRATION_TICKET_SECRET: secret(),
-      REGISTRATION_IDENTITY_ENCRYPTION_KEYS: JSON.stringify({ v1: secret() }),
-      REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION: "v1",
-      REGISTRATION_IDENTITY_HMAC_SECRET: secret(),
       ...(includeExisting ? { STAFF_AUTH_SECURITY_SECRET: secret(), CONTACT_SECURITY_SECRET: secret() } : {}),
     };
     const lines = Object.entries(entries).map(([name, value]) => `${name}=${value}`).join("\n") + "\n";

@@ -5,9 +5,9 @@ import { languageLink } from "./helpers/header-navigation";
 // and bring its programme controls into view, including before sessions exist.
 async function expectProgrammeArrival(page: Page, day: "day1" | "day2", focused = true) {
   const programme = page.locator("#programme");
-  await expect(page.getByTestId(`program-day-${day}`)).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId(`program-day-${day === "day1" ? "day2" : "day1"}`)).toHaveAttribute("aria-pressed", "false");
-  await expect(page.getByTestId("program-day-all")).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByTestId(`program-day-${day}`)).toHaveAttribute("aria-current", "true");
+  await expect(page.getByTestId(`program-day-${day === "day1" ? "day2" : "day1"}`)).not.toHaveAttribute("aria-current", "true");
+  await expect(page.getByTestId("program-day-all")).not.toHaveAttribute("aria-current", "true");
   if (focused) await expect(programme).toBeFocused();
   await expect.poll(() => page.evaluate(() => {
     const target = document.getElementById("programme")!;

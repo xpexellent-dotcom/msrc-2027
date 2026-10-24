@@ -2,7 +2,7 @@ import { PERMISSION_RULES, ROLES, type Operation, type Role } from "@/lib/permis
 import type { StaffArea } from "./ui-contract";
 
 export const STAFF_ROLES = ROLES.filter((role) => role !== "participant");
-export type StaffMenuKey = Exclude<StaffArea, "summary" | "registration-detail" | "registration-export" | "registration-confirmation-preview"> | "security" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship" | "announcements";
+export type StaffMenuKey = Exclude<StaffArea, "summary" | "registration-detail" | "registration-export" | "registration-confirmation-preview"> | "security" | "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship" | "announcements" | "workshops" | "certificates";
 type MenuDefinition = { key: StaffMenuKey; built: boolean; englishOnly?: boolean } & ({ operation: Operation; ownAccount?: never } | { key: "security"; ownAccount: true; operation?: never });
 export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "security", ownAccount: true, built: true },
@@ -16,6 +16,8 @@ export const STAFF_MENU: readonly MenuDefinition[] = [
   { key: "launch-readiness", operation: "security.grant.manage", built: true },
   { key: "participants", operation: "operations.registration.manage", built: true },
   { key: "registration", operation: "operations.registration.manage", built: true },
+  { key: "workshops", operation: "operations.workshop.read", built: true },
+  { key: "certificates", operation: "operations.registration.manage", built: true },
   { key: "finance", operation: "finance.reconciliation.read", built: false },
   { key: "check-in", operation: "checkIn.entitlement.read", built: true },
   { key: "review", operation: "review.packet.read", built: true, englishOnly: true },
@@ -50,10 +52,9 @@ export const STAFF_LANDING_KEYS = STAFF_MENU.filter((item) => !item.built).map((
 /** Own-account navigation only; password mutation rechecks the native owner and fresh proof. */
 export function canChangeOwnPassword(roles: readonly Role[]): boolean { return roles.includes("superAdmin"); }
 
-/** Future registration identifiers must reach the client masked, never as raw values. */
+/** Registration list identifiers stay masked; full identity belongs only in authorized request detail. */
 export function maskIdentity(value: string | null | undefined): string | null {
   if (!value) return null;
   const compact = value.replace(/\s/g, "");
   return compact.length >= 4 ? `••••••${compact.slice(-4)}` : "••••••";
 }
-export function canRevealIdentity(roles: readonly Role[]): boolean { return roles.includes("superAdmin"); }

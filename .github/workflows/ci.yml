@@ -54,6 +54,9 @@ jobs:
       - name: Verify the enabled synthetic registration request interface
         if: ${{ !inputs.auth_stability }}
         run: pnpm exec playwright test --config playwright.registration.config.ts
+      - name: Verify synthetic surveys, certificate verification and staff release
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm exec playwright test --config playwright.certificates.config.ts
       - name: Verify published content and safe fallback in both languages
         if: ${{ !inputs.auth_stability }}
         run: |
@@ -334,6 +337,14 @@ jobs:
         env:
           ABSTRACT_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/abstract-concurrency.test.ts
+      - name: Reset the disposable database for competition proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify competition draft, idempotency and finalist publication races
+        if: ${{ !inputs.auth_stability }}
+        env:
+          COMPETITIONS_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/competition-concurrency.test.ts
       - name: Reset the disposable database for advisory scoring proofs
         if: ${{ !inputs.auth_stability }}
         run: pnpm db:reset
@@ -351,6 +362,22 @@ jobs:
         env:
           ANNOUNCEMENT_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/announcement-concurrency.test.ts
+      - name: Reset the disposable database for workshop allocation proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify workshop last-seat, overlap and waiting-session races
+        if: ${{ !inputs.auth_stability }}
+        env:
+          WORKSHOP_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/workshop-concurrency.test.ts
+      - name: Reset the disposable database for survey and certificate proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify survey retries, batch release and generation lease contention
+        if: ${{ !inputs.auth_stability }}
+        env:
+          CERTIFICATE_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/certificate-concurrency.test.ts
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop
