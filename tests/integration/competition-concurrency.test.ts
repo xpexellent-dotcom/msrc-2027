@@ -14,14 +14,15 @@ create function pg_temp.competition_claims(n integer) returns void language plpg
  perform set_config('request.jwt.claims',pg_temp.registration_claims(n)::text,true);end$$;
 create function pg_temp.competition_document(title text default 'Synthetic project') returns jsonb language sql immutable as $$
  select jsonb_build_object('title',title,'pitch','Synthetic English project pitch','participationMode','team','track','translating_research',
- 'declarations','{"newIdea":true,"notPreviouslyEntered":true,"notPrizeWinning":true,"notFunded":true,"notCommerciallyLaunched":true,"authorityConfirmed":true}'::jsonb);$$;
+ 'references','Synthetic reference list','links','[]'::jsonb,
+ 'declarations','{"previouslyPresented":false,"competitionEntered":false,"prizeReceived":false,"fundingReceived":false,"commercialized":false,"aiUsed":false,"originalityPermissions":true,"rulesAcknowledged":true,"ethicsApplicable":false,"mediaNoticeAcknowledged":true,"authorityConfirmed":true,"historyDetails":"","aiTools":"","teamContributions":"Synthetic shared contributions"}'::jsonb);$$;
 create function pg_temp.competition_settings() returns jsonb language plpgsql stable as $$
-declare c jsonb:=msrc_competitions.settings_defaults();k text;begin
- for k in select jsonb_object_keys(c) loop c:=jsonb_set(c,array[k],to_jsonb('Synthetic approved policy'::text));end loop;
+-- ORG-065: start from the preloaded framework rubrics and fill unresolved policies synthetically.
+declare c jsonb:=msrc_competitions.hackathon_defaults();k text;begin
+ for k in select jsonb_object_keys(c) loop if c->k='null'::jsonb then c:=jsonb_set(c,array[k],to_jsonb('Synthetic approved policy'::text));end if;end loop;
  return c||jsonb_build_object('opensAt',clock_timestamp()-interval '1 day','closesAt',clock_timestamp()+interval '1 day','reviewDeadline',clock_timestamp()+interval '3 days',
- 'soloConsumesFinalistQuota',true,'finalistCapPerTrack',1,'minimumReviews',2,'judgeCount',1,'selectionScoreMin',0,'selectionScoreMax',10,
- 'selectionCriteria','[{"id":"synthetic-selection","label":"Synthetic selection","min":0,"max":10}]'::jsonb,
- 'finalRubric','[{"id":"synthetic-final","label":"Synthetic final","min":1,"max":5}]'::jsonb,
+ 'finalDeckLockAt',clock_timestamp()+interval '5 days','rosterConfirmationDeadline',clock_timestamp()+interval '4 days','whatsappSupportUrl',null,
+ 'soloConsumesFinalistQuota',true,'finalistCapPerTrack',1,'minimumReviews',2,'thirdReviewDifference',5,'judgeCount',3,'selectionScoreMin',1,'selectionScoreMax',5,
  'requiredActivities','["orientation","mentoring","finals"]'::jsonb);end$$;
 `;
 
@@ -86,12 +87,12 @@ async function draft(n: number, op: number): Promise<string> {
 async function candidate(n: number, rank: number, op: number): Promise<{ id: string; decisionId: string }> {
   const id = await draft(n, op), base = `'entryId','${id}','expectedVersion',1`;
   expect(response(await query(`select public.msrc_competitions_submit('${edition}',pg_temp.registration_claims(${n}),'hackathon','${id}',1,'${operation(op + 1)}')::text;`)).state).toBe("submitted");
-  expect(response(await query(mutate(9680, "eligibility", `jsonb_build_object(${base},'eligibility','eligible','reason','Synthetic eligibility evidence reviewed')`, op + 2) + "commit;")).state).toBe("updated");
+  expect(response(await query(mutate(9683, "eligibility", `jsonb_build_object(${base},'eligibility','eligible','reason','Synthetic eligibility evidence reviewed')`, op + 2) + "commit;")).state).toBe("updated");
   expect(response(await query(mutate(9680, "prepare_packet", `jsonb_build_object(${base},'packet','{"title":"Sanitized project","pitch":"Sanitized English pitch","narrative":"","track":"translating_research"}'::jsonb,'attestation',true)`, op + 3) + "commit;")).state).toBe("prepared");
   for (const [offset, reviewer] of [9681, 9682].entries()) {
     expect(response(await query(mutate(9680, "assign", `jsonb_build_object(${base},'reviewerId','${actor(reviewer)}')`, op + 4 + offset) + "commit;")).state).toBe("assigned");
     const assignment = scalar(await query(`select id from msrc_competitions.assignments where entry_id='${id}' and reviewer_id='${actor(reviewer)}';`));
-    expect(response(await query(mutate(reviewer, "review", `jsonb_build_object('assignmentId','${assignment}','expectedVersion',1,'scorecard','{"scores":[{"criterionId":"synthetic-selection","value":7}],"comments":"Independent synthetic assessment"}'::jsonb,'submit',true)`, op + 6 + offset) + "commit;")).state).toBe("updated");
+    expect(response(await query(mutate(reviewer, "review", `jsonb_build_object('assignmentId','${assignment}','expectedVersion',1,'scorecard','{"scores":[{"criterionId":"problem_relevance","value":4},{"criterionId":"innovation_fit","value":4},{"criterionId":"feasibility_development","value":4},{"criterionId":"evidence_rationale","value":4}],"comments":"Independent synthetic assessment"}'::jsonb,'submit',true)`, op + 6 + offset) + "commit;")).state).toBe("updated");
   }
   const decision = response(await query(mutate(9680, "select", `jsonb_build_object(${base},'outcome','accept','reason','Synthetic committee rationale','rank',${rank},'tieResolution','Synthetic explicit ranking justification')`, op + 8) + "commit;"));
   expect(decision.state).toBe("prepared");
@@ -112,6 +113,9 @@ describe.skipIf(!isolatedCi)("Competition transaction races (disposable GitHub C
       select pg_temp.registration_staff_fixture(9680,'${edition}','scientificAdministrator');
       select pg_temp.registration_staff_fixture(9681,'${edition}','hackathonReviewer');
       select pg_temp.registration_staff_fixture(9682,'${edition}','hackathonReviewer');
+      select pg_temp.registration_staff_fixture(9683,'${edition}','registrationWorkshopAdministrator');
+      insert into msrc_competitions.hackathon_profiles(edition_key,actor_id,university,field_of_study,phone,enrolled_in_saudi_university)
+        select '${edition}',pg_temp.registration_actor(n),'Synthetic University','Synthetic Medicine','+966 500 000 000',true from generate_series(9620,9623) n;
       insert into msrc_competitions.reviewer_profiles values('${edition}','${actor(9681)}',array['Independent synthetic institute A']),('${edition}','${actor(9682)}',array['Independent synthetic institute B']);
       commit;`);
   });
