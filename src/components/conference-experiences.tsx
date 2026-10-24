@@ -382,11 +382,11 @@ function WorkshopRail({ locale, workshops: initialWorkshops }: { locale: Locale;
         {workshop.instructor ? <p>{locale === "ar" ? "المدرّب" : "Instructor"}: <bdi>{workshop.instructor}</bdi></p> : null}
         <p>{sessionClock(workshop.startAt, locale) ?? copy.timePending}{workshop.endAt ? " – " + sessionClock(workshop.endAt, locale) : ""}{workshop.room ? ` · ${workshop.room}` : ""}</p>
         {workshop.eligibility ? <p>{workshop.eligibility[locale]}</p> : null}
-        {workshop.capacity !== null ? <p>{locale === "ar" ? "السعة" : "Capacity"}: {new Intl.NumberFormat(locale).format(workshop.capacity)}</p> : null}
-        {workshop.remainingSeats !== null ? <p data-testid="workshop-public-remaining">{locale === "ar" ? "المقاعد المتاحة للحجز" : "Bookable seats"}: {new Intl.NumberFormat(locale).format(workshop.remainingSeats)}</p> : null}
+        {workshop.capacity !== null ? <p>{locale === "ar" ? "السعة" : "Capacity"}: {formatIndex(workshop.capacity, locale)}</p> : null}
+        {workshop.remainingSeats !== null ? <p data-testid="workshop-public-remaining">{locale === "ar" ? "المقاعد المتاحة للحجز" : "Bookable seats"}: {formatIndex(workshop.remainingSeats, locale)}</p> : null}
         {workshop.priceLabel ? <p>{workshop.priceLabel[locale]}</p> : null}
         {workshop.bookingDeadline ? <p>{locale === "ar" ? "آخر موعد للحجز" : "Booking deadline"}: {new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Riyadh" }).format(new Date(workshop.bookingDeadline))} ({locale === "ar" ? "بتوقيت الرياض" : "Riyadh time"})</p> : null}
-        {workshop.transferBufferMinutes !== null && workshop.transferBufferMinutes !== undefined ? <p>{locale === "ar" ? "وقت الانتقال بالدقائق" : "Transfer buffer in minutes"}: {new Intl.NumberFormat(locale).format(workshop.transferBufferMinutes)}</p> : null}
+        {workshop.transferBufferMinutes !== null && workshop.transferBufferMinutes !== undefined ? <p>{locale === "ar" ? "وقت الانتقال بالدقائق" : "Transfer buffer in minutes"}: {formatIndex(workshop.transferBufferMinutes, locale)}</p> : null}
         {workshop.bookingAvailable ? <ButtonLink href={`/${locale}/my-msrc`} variant="secondary">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</ButtonLink> : <StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge>}
       </div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
     </HorizontalRail>
