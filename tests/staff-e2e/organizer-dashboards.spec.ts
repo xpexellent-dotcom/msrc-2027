@@ -88,8 +88,8 @@ for (const locale of ["en", "ar"] as const) {
     const downloads: string[] = []; page.on("download", (artifact) => downloads.push(artifact.suggestedFilename()));
     const failed = page.waitForResponse((response) => response.url().endsWith("/api/staff-portal/organizer") && response.request().postDataJSON()?.action === "export");
     await page.getByTestId("organizer-export-download").click(); expect((await failed).status()).toBe(503);
-    await expect(page.getByRole("alert")).toHaveText(copy.unavailable); await expect(page.getByTestId("organizer-export-download")).toBeEnabled(); expect(downloads).toEqual([]);
-    await download(page); await expect(page.getByRole("alert")).toHaveCount(0); expect(downloads).toEqual(["msrc-all-aggregate.csv"]);
+    await expect(page.locator("[role=alert]:not(#__next-route-announcer__)")).toHaveText(copy.unavailable); await expect(page.getByTestId("organizer-export-download")).toBeEnabled(); expect(downloads).toEqual([]);
+    await download(page); await expect(page.locator("[role=alert]:not(#__next-route-announcer__)")).toHaveCount(0); expect(downloads).toEqual(["msrc-all-aggregate.csv"]);
     expect((await f.actions()).filter((action) => action.name === "msrc_staff_dashboard_export")).toHaveLength(2); await accessible(page);
   });
 

@@ -74,6 +74,7 @@ $$;
 -- These references contain neither a credential nor a download/verification code.
 create function msrc_staff.reporting_records(edition text,module_name text)
  returns table(reference text,status text,actor_id uuid) language plpgsql volatile security definer set search_path='' as $$
+#variable_conflict use_variable
 declare science boolean:=msrc_staff.authorize(edition,array['superAdmin','scientificAdministrator'],false) is not null;begin
  if module_name='registrations' then return query select r.id::text,r.status,r.actor_id from msrc_registration.requests r where r.edition_key=edition;
  elsif module_name='accounts' then return query select p.actor_id::text,p.state,p.actor_id from msrc_participant.profiles p where exists(select 1 from msrc_authorization.role_grants g where g.actor_id=p.actor_id and g.edition_key=edition and g.role_name='participant' and g.state='active');
@@ -99,6 +100,7 @@ end$$;
 -- member of that partition: no published total/complement can reconstruct it.
 create function msrc_staff.reporting_cells(edition text,modules text[])
  returns table(module text,dimension text,value text,n bigint) language plpgsql volatile security definer set search_path='' as $$
+#variable_conflict use_variable
 declare science boolean:=msrc_staff.authorize(edition,array['superAdmin','scientificAdministrator'],false) is not null;begin
  if 'registrations'=any(modules) then return query select 'registrations'::text,'status'::text,v.s,count(r.id) from unnest(array['pending_approval','approved','approved_awaiting_payment','waitlisted','offered','confirmed','cancelled','expired']) v(s) left join msrc_registration.requests r on r.edition_key=edition and r.status=v.s group by v.s;end if;
  if 'accounts'=any(modules) then return query select 'accounts'::text,'status'::text,'verified'::text,count(p.actor_id) from msrc_participant.profiles p join auth.users u on u.id=p.actor_id where p.state='verified' and u.email_confirmed_at is not null and u.deleted_at is null and exists(select 1 from msrc_authorization.role_grants g where g.actor_id=p.actor_id and g.edition_key=edition and g.role_name='participant' and g.state='active');end if;
