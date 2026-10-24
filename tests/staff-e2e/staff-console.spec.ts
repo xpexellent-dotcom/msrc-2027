@@ -47,6 +47,9 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
   const counts = () => ({ pending: requests.filter((r) => r.status === "pending_approval").length, approved: requests.filter((r) => r.status === "approved").length, waitlisted: requests.filter((r) => r.status === "waitlisted").length, offered: requests.filter((r) => r.status === "offered").length, expired: requests.filter((r) => r.status === "expired").length, capacity, remaining: capacity === null ? null : capacity - requests.filter((r) => r.status === "approved").length });
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request(), url = new URL(request.url());
+    if (url.pathname === "/api/staff-portal/organizer") return route.fulfill({ json: { state: "ready", formToken: "synthetic-organizer-token", dashboard: { suppressionThreshold: 5, modules: ["registrations", "accounts"], cells: [
+      { module: "registrations", dimension: "status", value: "pending_approval", count: 1999 }, { module: "accounts", dimension: "status", value: "verified", count: 128 },
+    ] } } });
     if (url.pathname === "/api/staff-portal/research") return route.fulfill({ json: { state: "ready", oversight: true, assignments: [], ownAffiliations: [], formToken: "synthetic-research-token" } });
     const base: StaffResponse = { state: "authenticated", profile: { actorId, name: "Synthetic Staff", roles }, formToken: "synthetic-console-token" };
     if (request.method() === "POST") {
@@ -130,10 +133,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(menu.locator("li")).toHaveCount(staffMenu(["superAdmin"]).length);
     for (const key of ["registration", "priority", "early-access", "finance", "check-in", "science", "content", "sponsorship"] as const) await expect(menu).toContainText(copy.areas[key]);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
-    const overview = page.locator(".staff-dashboard");
-    await expect(overview).toContainText(text.cards.pending);
-    await expect(overview).toContainText(locale === "en" ? "1,999" : "١٬٩٩٩");
-    await expect(overview).toContainText(locale === "en" ? "128" : "١٢٨");
+    const overview = page.getByTestId("organizer-dashboard");
+    await expect(overview.getByTestId("organizer-cell-registrations-status-pending_approval")).toHaveText(locale === "en" ? "1,999" : "١٬٩٩٩");
+    await expect(overview.getByTestId("organizer-cell-accounts-status-verified")).toHaveText(locale === "en" ? "128" : "١٢٨");
     await shot(page, `${locale}-dashboard`, testInfo.project.name);
     await axe(page);
   });

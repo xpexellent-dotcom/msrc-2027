@@ -4524,3 +4524,7 @@ judges are English/LTR. Scoring outcomes do not distribute awards.
 
 Evidence and remaining gates: [Task n14 receipt](progress/2026-10-24-claude-hackathon-3mt.md)
 and [feature notes](../src/features/competitions/README.md).
+
+## ENG-079 — Role-scoped organizer dashboards, exports and unified audit, 25 October 2026
+
+ADM-01..05. Server aggregate RPCs scope modules by role, suppress whole partitions with any cell below 5 for non-Super-Admin roles, and restrict full personal-data exports and the cross-module participant finder to Super Admins. Exports are UTF-8 BOM CSV with formula-injection neutralization; each lookup/export writes an immutable counts-and-filters-only `msrc_staff.reporting_audit` receipt. The unified audit timeline is a read-only Super Admin view over existing audit tables. Evidence: `docs/progress/2026-10-25-claude-organizer-dashboards.md`.
