@@ -7,6 +7,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { myRegistrationCopy } from "@/features/registration/my-registration-copy";
 import { abstractCopy } from "@/features/submissions/copy";
+import { ResearchParticipantWorkspace } from "@/features/research-judging/participant-workspace";
 import { ParticipantInbox } from "@/features/announcements/participant-inbox";
 import type { ParticipantAnnouncementsResponse } from "@/features/announcements/participant-contracts";
 import { MyWorkshopBookings } from "@/features/workshops/my-bookings";
@@ -26,7 +27,7 @@ function formattedTime(value: number, locale: Locale) {
   return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { hour: "numeric", minute: "2-digit", second: "2-digit", timeZone: "Asia/Riyadh" }).format(value);
 }
 
-export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false, abstractsAvailable = false, workshopsAvailable = false, certificatesAvailable = false, initialAnnouncements, initialWorkshopBookings }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean; abstractsAvailable?: boolean; workshopsAvailable?: boolean; certificatesAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse; initialWorkshopBookings?: WorkshopParticipantResponse }) {
+export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false, abstractsAvailable = false, workshopsAvailable = false, certificatesAvailable = false, researchJudgingAvailable = false, initialAnnouncements, initialWorkshopBookings }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean; abstractsAvailable?: boolean; workshopsAvailable?: boolean; certificatesAvailable?: boolean; researchJudgingAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse; initialWorkshopBookings?: WorkshopParticipantResponse }) {
   const copy = participantCopy[locale];
   const draft = useParticipantDraft();
   // A completion can land in the prior locale's unmounted form. Observe its
@@ -171,6 +172,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
           : <p className="participant-account-registration" data-testid="participant-registration-closed">{copy.registrationClosed}</p>}
         {certificatesAvailable ? <ButtonLink href={`/${locale}/my-msrc/certificates`} variant="secondary">{locale === "ar" ? "الاستبيانات والشهادات" : "Surveys and certificates"}</ButtonLink> : null}
         {abstractsAvailable ? <ButtonLink href={`/${locale}/abstracts`} variant="secondary">{abstractCopy[locale].title}</ButtonLink> : null}
+        {!draft.pending && researchJudgingAvailable ? <ResearchParticipantWorkspace locale={locale} /> : null}
         {!workshopsAvailable ? <section id="my-bookings" tabIndex={-1} aria-labelledby="my-bookings-title"><h2 id="my-bookings-title">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</h2><p>{locale === "ar" ? "حجز ورش العمل غير متاح حاليًا. هذا القسم مخصص للحجوزات الفعلية لورش العمل." : "Workshop booking is not available yet. This section is reserved for actual workshop bookings."}</p></section> : null}
         {!draft.pending ? <ParticipantInbox locale={locale} initialState={initialAnnouncements} /> : null}
         {!draft.pending && workshopsAvailable ? <div id="my-bookings" tabIndex={-1}><MyWorkshopBookings locale={locale} initialState={initialWorkshopBookings} /></div> : null}

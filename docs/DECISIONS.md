@@ -4524,3 +4524,7 @@ judges are English/LTR. Scoring outcomes do not distribute awards.
 
 Evidence and remaining gates: [Task n14 receipt](progress/2026-10-24-claude-hackathon-3mt.md)
 and [feature notes](../src/features/competitions/README.md).
+
+## ENG-078 — Research presentation allocation, event judging and awards, 25 October 2026
+
+REV-06/07/10. Oral/poster allocation and award outcomes separate preparation from publication and are append-only. Faculty judges score independently from snapshot content only; pre-event reviewers of a submission are conflicted from judging it. Rubric, categories, judge count, tie rule and supervisor deadline/evidence are owner settings without defaults (the owner's hackathon rubrics are hackathon-only). A supervisor is required only for a selected winner, before confirmation, and is private to Super Admins and scientific administrators. Evidence: `docs/progress/2026-10-25-claude-research-judging.md`.

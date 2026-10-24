@@ -49,6 +49,8 @@ jobs:
         run: pnpm exec playwright test --config playwright.staff.config.ts
       - name: Verify closed competition policies and assigned English review and judging
         run: pnpm exec playwright test --config playwright.competitions-staff.config.ts
+      - name: Verify research allocation, independent judging and award publication in EN/AR
+        run: pnpm exec playwright test --config playwright.research-judging.config.ts
       - name: Verify synthetic owner password change, EN/AR, mobile and axe
         run: pnpm exec playwright test --config playwright.staff-password.config.ts
       - name: Verify independent server password-change gate stays closed
