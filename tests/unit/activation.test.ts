@@ -4,7 +4,6 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { evaluateActivationEnvironment } from "@/lib/activation/readiness";
-import { getIdentityCryptoConfig } from "@/features/registration/identity-crypto.server";
 import { getRegistrationTicketSecret } from "@/features/registration/ticket-crypto.server";
 import { resolveParticipantConfig } from "@/features/participant-accounts/config.server";
 import { resolveStaffConfig } from "@/features/staff-portal/config.server";
@@ -20,7 +19,6 @@ const environment: Record<string, string> = {
   PARTICIPANT_SUPABASE_URL: url, PARTICIPANT_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_synthetic_format_test", PARTICIPANT_SUPABASE_SECRET_KEY: "sb_secret_synthetic_format_test",
   PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT: "40", PARTICIPANT_EDITION_KEY: "synthetic-2027",
   REGISTRATION_ENABLED: "true", REGISTRATION_TICKET_SECRET: "c".repeat(64),
-  REGISTRATION_IDENTITY_ENCRYPTION_KEYS: JSON.stringify({ v1: "d".repeat(64) }), REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION: "v1", REGISTRATION_IDENTITY_HMAC_SECRET: "e".repeat(64),
   OUTBOX_ENABLED: "true", OUTBOX_RESEND_ENABLED: "true", OUTBOX_SENDER: "resend", OUTBOX_DAILY_CAP: "500", OUTBOX_BATCH_SIZE: "10", OUTBOX_TIME_BUDGET_MS: "20000",
   OUTBOX_SUPABASE_URL: url, OUTBOX_SUPABASE_SECRET_KEY: "sb_secret_synthetic_format_test", HEALTH_SUPABASE_URL: url, HEALTH_SUPABASE_SECRET_KEY: "sb_secret_synthetic_format_test",
   CRON_SECRET: "f".repeat(64), OUTBOX_MONITOR_SECRET: "1".repeat(64),
@@ -72,12 +70,7 @@ describe("activation environment projection", () => {
     expect(evaluate(name, undefined).valid).toBe(true);
   });
   it.each([
-    ["REGISTRATION_IDENTITY_ENCRYPTION_KEYS", "[]"], ["REGISTRATION_IDENTITY_ENCRYPTION_KEYS", "not-json"],
-    ["REGISTRATION_IDENTITY_ENCRYPTION_KEYS", JSON.stringify({ v1: "e".repeat(64) })],
-    ["REGISTRATION_IDENTITY_ENCRYPTION_KEYS", JSON.stringify({ constructor: "d".repeat(64) })],
-    ["REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION", "absent"], ["REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION", "bad version"],
     ["REGISTRATION_TICKET_SECRET", "a".repeat(64)], ["REGISTRATION_TICKET_SECRET", "b".repeat(64)],
-    ["REGISTRATION_TICKET_SECRET", "d".repeat(64)], ["REGISTRATION_TICKET_SECRET", "e".repeat(64)],
   ])("uses the real crypto validator for %s", (name, value) => { expect(evaluate(name, value).valid).toBe(false); });
   it("returns only static names and booleans even when inputs contain private material", () => {
     const rows = evaluateActivationEnvironment(environment);
@@ -106,15 +99,14 @@ describe("owner-only key generator", () => {
     const output = run([], cwd);
     const generated = Object.fromEntries(output.trimEnd().split("\n").map((line) => [line.slice(0, line.indexOf("=")), line.slice(line.indexOf("=") + 1)]));
     expect(readdirSync(cwd)).toEqual(before);
-    expect(Object.keys(generated).sort()).toEqual(["CRON_SECRET", "OUTBOX_MONITOR_SECRET", "PARTICIPANT_AUTH_SECURITY_SECRET", "REGISTRATION_TICKET_SECRET", "REGISTRATION_IDENTITY_ENCRYPTION_KEYS", "REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION", "REGISTRATION_IDENTITY_HMAC_SECRET"].sort());
+    expect(Object.keys(generated).sort()).toEqual(["CRON_SECRET", "OUTBOX_MONITOR_SECRET", "PARTICIPANT_AUTH_SECURITY_SECRET", "REGISTRATION_TICKET_SECRET"].sort());
     const merged = { ...environment, ...generated };
-    expect(getIdentityCryptoConfig(merged) !== null).toBe(true);
     expect(getRegistrationTicketSecret(merged) !== null).toBe(true);
     expect(resolveParticipantConfig(merged).state).toBe("ready");
     expect(validOutboxSecret("Bearer " + generated.CRON_SECRET, generated.CRON_SECRET)).toBe(true);
     expect(validOutboxSecret("Bearer " + generated.OUTBOX_MONITOR_SECRET, generated.OUTBOX_MONITOR_SECRET)).toBe(true);
     expect(evaluateActivationEnvironment(merged).every((row) => row.valid)).toBe(true);
-    const secrets = Object.entries(generated).filter(([name]) => name !== "REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION").map(([, value]) => value);
+    const secrets = Object.values(generated);
     expect(new Set(secrets).size).toBe(secrets.length);
   });
   it("generates optional initial-install secrets without changing installed values", () => {

@@ -59,10 +59,7 @@ required variable name: the readers do not inherit another boundary's values.
 | `PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT` | Participant verification/reset budget P | No | Owner-approved positive decimal, same reader format as staff; use 1–100000 to fit the database; must equal `msrc_participant.policy.email_daily_limit` | No |
 | `PARTICIPANT_EDITION_KEY` | Participant edition scope | No | Copy the reviewed `STAFF_EDITION_KEY`; same `^[a-z0-9][a-z0-9_-]{0,127}$` format and persisted edition | No |
 | `REGISTRATION_ENABLED` | Participant registration, own status/actions and ticket runtime gate | No | Fixed `false` during preparation; exact `true` at B5 while database registration remains closed | No |
-| `REGISTRATION_IDENTITY_ENCRYPTION_KEYS` | AES-256-GCM identity encryption keyring | Yes | Generator's single-line JSON object, initially `{"v1":"<64 hexadecimal characters>"}`; 1–32 entries, total length ≤8192; names match `^[A-Za-z0-9_-]{1,32}$`, excluding `__proto__`, `constructor`, `prototype`; each value exactly 64 hex; no key may equal the identity HMAC secret | No |
-| `REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION` | Keyring entry used for new identity encryption | No | Generator fixed `v1`; must match an existing keyring entry and `^[A-Za-z0-9_-]{1,32}$` | No |
-| `REGISTRATION_IDENTITY_HMAC_SECRET` | Stable identity deduplication digest | Yes | Generate locally; exactly 64 hex, independent of encryption keys | No |
-| `REGISTRATION_TICKET_SECRET` | Stable HMAC credential for tickets | Yes | Generate locally; exactly 64 hex; must differ from participant/staff security secrets, identity HMAC and every identity encryption key | No |
+| `REGISTRATION_TICKET_SECRET` | Stable HMAC credential for tickets | Yes | Generate locally; exactly 64 hex; must differ from participant/staff security secrets | No |
 | `RESEND_API_KEY` | Shared Contact, staff, participant and outbox email provider | Yes | Preserve verified Resend API key; `^re_[A-Za-z0-9_-]+$`, no `mock_only`; verified sending domain and sufficient permissions required | Yes |
 | `OUTBOX_ENABLED` | Authenticated GET/POST drain route gate | No | Fixed `false` during preparation; exact `true` at B4 | No |
 | `OUTBOX_RESEND_ENABLED` | Independent real-email adapter gate | No | Fixed `false` during preparation; exact `true` at B4 | No |
@@ -106,7 +103,7 @@ The application fixes its auth/registration sender to
 
 Configuration sources: `src/features/{participant-accounts,staff-portal}/config.server.ts`,
 `src/features/contact/delivery-config.server.ts`,
-`src/features/registration/{identity-crypto,ticket-crypto}.server.ts`,
+`src/features/registration/ticket-crypto.server.ts`,
 `src/lib/jobs/outbox-route.server.ts`, `src/lib/monitoring/health.server.ts`,
 `src/lib/supabase/config.ts` and `.env.example`.
 
@@ -135,8 +132,9 @@ restrict access to the approved custodians; a file mode is not an ACL guarantee.
 Do not redirect stdout into the repository.
 `--include-existing` additionally generates staff/Contact keys for a new
 installation. **Do not use those generated replacements for the already
-installed staff/Contact keys.** Preserve identity/ticket keys after first use;
-overwriting them can break decryption, deduplication or existing tickets.
+installed staff/Contact keys.** Preserve ticket keys after first use; replacing them can invalidate existing tickets.
+ORG-064 retires the registration identity keyring and reveal flow; do not generate
+or configure identity encryption/HMAC keys for the new private-table contract.
 
 ### Approve the email budget before choosing positive caps
 

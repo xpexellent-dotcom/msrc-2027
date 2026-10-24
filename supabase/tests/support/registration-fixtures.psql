@@ -81,6 +81,5 @@ declare actor uuid:=pg_temp.registration_actor(n);sid uuid:=pg_temp.registration
  (gen_random_uuid(),sid,'totp',date_trunc('second',now()-interval '30 seconds'),date_trunc('second',now()-interval '30 seconds'));
 end$$;
 create function pg_temp.registration_submit(edition text,n integer,digest text default repeat('b',64)) returns jsonb language sql as $$
- select public.msrc_registration_submit(edition,pg_temp.registration_claims(n),'national_id',
- jsonb_build_object('ciphertext',repeat('ab',10),'iv',repeat('cd',12),'authTag',repeat('ef',16),'keyVersion','synthetic-v1'),
- digest,'••••••0000','synthetic-v1','synthetic-terms');$$;
+ select public.msrc_registration_submit(edition,pg_temp.registration_claims(n),'passport',
+ 'FAKE'||upper(substr(digest,1,8))||'0000','synthetic-terms');$$;

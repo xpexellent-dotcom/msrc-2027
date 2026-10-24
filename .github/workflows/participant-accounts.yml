@@ -49,6 +49,8 @@ jobs:
         run: pnpm exec playwright test --config playwright.participant.config.ts
       - name: Verify closed abstract workflow, EN/AR drafts, revision and axe
         run: pnpm exec playwright test --config playwright.abstracts.config.ts
+      - name: Verify closed competition gates and synthetic EN/AR entry journeys
+        run: pnpm exec playwright test --config playwright.competitions.config.ts
       - name: Upload synthetic browser evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -57,6 +59,8 @@ jobs:
           path: |
             test-results/
             playwright-report/
+            .tools/workshops/
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
   native:

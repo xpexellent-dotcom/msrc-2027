@@ -23,7 +23,7 @@ jobs:
   browser:
     name: Closed staff routes and synthetic EN/AR browser checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       CI: "true"
       NEXT_TELEMETRY_DISABLED: "1"
@@ -47,6 +47,8 @@ jobs:
         run: pnpm exec playwright test tests/e2e/staff-portal-closed.spec.ts --project=chromium-desktop --project=chromium-mobile
       - name: Verify synthetic flag-on forms, keyboard, locale preservation and axe
         run: pnpm exec playwright test --config playwright.staff.config.ts
+      - name: Verify closed competition policies and assigned English review and judging
+        run: pnpm exec playwright test --config playwright.competitions-staff.config.ts
       - name: Verify synthetic owner password change, EN/AR, mobile and axe
         run: pnpm exec playwright test --config playwright.staff-password.config.ts
       - name: Verify independent server password-change gate stays closed
@@ -68,6 +70,7 @@ jobs:
             playwright-staff-report/
             playwright-staff-password-report/
             .tools/staff-password-evidence/
+            .tools/workshops/
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7

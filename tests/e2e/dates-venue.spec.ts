@@ -48,11 +48,11 @@ for (const locale of ["en", "ar"] as const) {
     }
     await page.locator(`.program-date-panel a[href="/${locale}/program?day=day2#programme"]`).click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day2#programme$`));
-    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-day2")).toHaveAttribute("aria-current", "true");
     await page.locator(`.program-date-panel a[href="/${locale}/program?day=day1#programme"]`).focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(new RegExp(`/${locale}/program\\?day=day1#programme$`));
-    await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("program-day-day1")).toHaveAttribute("aria-current", "true");
     await expect(page.locator(".premium-hero-image img")).toHaveCount(1);
     expect(await page.locator(".premium-hero-image img").evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0s");
   });

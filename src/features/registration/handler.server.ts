@@ -8,8 +8,7 @@ import { nativeTokenNeedsRefresh, participantCookie, participantHash, participan
 import { assertWorkflowOpen, type RegistrationGateEvidence } from "@/lib/workflows.server";
 import { createRegistrationBackend, RegistrationRpcMissingError, type RegistrationBackend } from "./backend.server";
 import type { RegistrationRequest, RegistrationResponse } from "./contracts";
-import { encryptIdentityDocument, getIdentityCryptoConfig, identityDocumentHash, maskIdentityNumber,
-  normalizeIdentityNumber, type IdentityCryptoConfig, type IdentityDocumentType } from "./identity-crypto.server";
+import { normalizeIdentityNumber, type IdentityDocumentType } from "./identity-number";
 import { readRegistrationFormToken, registrationFormToken } from "./security.server";
 
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", Expires: "0", "X-Content-Type-Options": "nosniff" };
@@ -44,7 +43,6 @@ export function verifiedClaims(token: string, actorId: string, sessionId: string
 
 export function createRegistrationHandler(dependencies: {
   readiness?: () => ParticipantReadiness;
-  crypto?: () => IdentityCryptoConfig | null;
   backend?: (config: ParticipantConfig) => RegistrationBackend;
   now?: () => number;
   observeOnly?: boolean;
@@ -57,8 +55,7 @@ export function createRegistrationHandler(dependencies: {
     // Preserve the pre-existing 503 payload before visitor headers/body or provider construction.
     if (process.env.REGISTRATION_ENABLED !== "true") return gateClosed();
     const readiness = (dependencies.readiness ?? getParticipantConfig)();
-    const crypto = (dependencies.crypto ?? getIdentityCryptoConfig)();
-    if (readiness.state !== "ready" || !crypto) return gateClosed();
+    if (readiness.state !== "ready") return gateClosed();
     const config = readiness.config, now = (dependencies.now ?? Date.now)();
     const origin = participantOrigin(config, request), site = request.headers.get("sec-fetch-site");
     if (!origin || site && !["same-origin", "none"].includes(site) || request.headers.get("origin") && request.headers.get("origin") !== origin
@@ -112,11 +109,8 @@ export function createRegistrationHandler(dependencies: {
       if (claim?.state !== "claimed") return respond({ state: "limited", formToken: fresh() }, 429);
       // Closing the server flag during an in-flight request prevents collection. The RPC rechecks DB policy and time atomically.
       if (process.env.REGISTRATION_ENABLED !== "true" || (dependencies.readiness ?? getParticipantConfig)().state !== "ready") return gateClosed();
-      const identityContext = { actorId: session.actorId, editionKey: config.editionKey, documentType: type };
-      const envelope = encryptIdentityDocument(crypto, identityContext, number);
       const result = record(await backend.rpc("msrc_registration_submit", { edition_key: config.editionKey, session_claims: claims,
-        document_type: type, identity_envelope: envelope, identity_hash: identityDocumentHash(crypto, identityContext, number),
-        identity_masked: maskIdentityNumber(type, number), key_version: envelope.keyVersion, terms_version: currentPolicyVersion }));
+        document_type: type, document_number: number, terms_version: currentPolicyVersion }));
       if (result?.state === "closed") return gateClosed();
       if (result?.state === "denied") return respond({ state: "denied", formToken: fresh() }, 403);
       if (result?.state === "conflict") return respond({ state: "invalid_input", formToken: fresh() }, 400);

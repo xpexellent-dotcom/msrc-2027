@@ -1,0 +1,28 @@
+.workshop-staff { display: grid; gap: 1.4rem; min-inline-size: 0; }
+.workshop-staff > p, .workshop-staff h2, .workshop-staff h3 { margin-block: 0; }
+.workshop-staff .staff-panel { margin-block: 0; }
+.workshop-staff details { padding-block: .65rem; }
+.workshop-staff summary { cursor: pointer; min-block-size: 44px; align-content: center; font-weight: 600; overflow-wrap: anywhere; }
+.workshop-staff section { min-inline-size: 0; }
+.workshop-staff section > h2 { margin-block-end: 1rem; }
+.workshop-fields { display: grid; gap: 1rem; border: 0; padding: 0; margin: 0; min-inline-size: 0; }
+.workshop-fields .field { min-inline-size: 0; margin: 0; }
+.workshop-fields .field-input { inline-size: 100%; min-inline-size: 0; max-inline-size: 100%; }
+.workshop-fields textarea { resize: vertical; }
+.workshop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.workshop-cards, .workshop-bookings { display: grid; gap: 1rem; padding: 0; margin: 0; list-style: none; }
+.workshop-cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); }
+.workshop-card > * + * { margin-block-start: .8rem; }
+.workshop-detail { display: grid; gap: .65rem; margin-block: 1rem; }
+.workshop-detail > div { display: grid; grid-template-columns: minmax(6rem, 1fr) minmax(0, 2fr); gap: .75rem; }
+.workshop-detail dt { font-weight: 600; }
+.workshop-detail dd { margin: 0; overflow-wrap: anywhere; }
+.workshop-checkbox { display: flex; align-items: start; gap: .65rem; min-block-size: 44px; }
+.workshop-checkbox input { flex: 0 0 auto; margin-block-start: .35rem; inline-size: 1.15rem; block-size: 1.15rem; }
+.workshop-staff .staff-metrics { grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr)); }
+.workshop-staff .staff-actions { align-items: start; }
+.workshop-staff .staff-actions > * { white-space: normal; max-inline-size: 100%; }
+.workshop-staff [role="alert"] { color: var(--color-danger, #8b2332); }
+.workshop-booking-actions > * + * { margin-block-start: 1rem; }
+@media (max-width: 42rem) { .workshop-grid, .workshop-detail > div { grid-template-columns: minmax(0, 1fr); } .workshop-staff .staff-detail-head { flex-wrap: wrap; } }
+@media (forced-colors: active) { .workshop-staff [role="alert"] { color: CanvasText; } }

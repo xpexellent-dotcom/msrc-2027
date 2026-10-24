@@ -359,10 +359,10 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
     check(await query(`select count(*) from msrc_staff.audit where action='set_roles' and target_id=${text(ordinary.id)} and result='completed'
       and details->'previousRoles' ? 'registrationWorkshopAdministrator' and details->'newRoles' ? 'finance';`) === "1", "immutable audit retains exact role transition without secrets");
   });
-  it("returns restricted audit metadata and records explicit unavailable identity reveal", async () => {
+  it("returns restricted audit metadata and denies the retired identity reveal", async () => {
     const audit = await get(first, "audit"); check(audit.status === 200 && Array.isArray(audit.result.audit), "native audit metadata projection survives strict server sanitizer");
-    const reveal = await post(first, { action: "reveal-identity", targetId: ordinary.id, reason: "Synthetic identity check" }); check(reveal.result.state === "identity-unavailable", "an absent registration identifier is not invented");
-    check(await query(`select count(*) from msrc_staff.audit where action='identity_reveal' and actor_id=${text(first.id)} and target_id=${text(ordinary.id)} and result='unavailable';`) === "1", "explicit reveal action is audited before any future plaintext field");
+    const reveal = await post(first, { action: "reveal-identity", targetId: ordinary.id, reason: "Synthetic identity check" }); check(reveal.status === 403 && reveal.result.state === "denied", "ORG-064 removes the separate reveal flow");
+    check(await query(`select count(*) from msrc_staff.audit where action='identity_reveal' and actor_id=${text(first.id)} and target_id=${text(ordinary.id)} and result='unavailable';`) === "0", "retired reveal never invokes the database read or creates a reveal receipt");
   });
   it("shows minimal failed native password attempts only to current Super Admins", async () => {
     const rejected = { ...ordinary, cookie: "" }, unknown = person();

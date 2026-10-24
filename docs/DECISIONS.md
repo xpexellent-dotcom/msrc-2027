@@ -4301,3 +4301,226 @@ optional-RPC/area-not-ready fallback. The announcement worker DRAFT gate yields
 to the database's per-message release decision; registration/abstract worker gates
 stay intact. No new provider or scheduler is added. Database lint, pgTAP and real
 database integration/concurrency execution remain disposable-CI checks.
+
+## ORG-064 — Simplified conference registration identity, 24 October 2026
+
+Authority: the owner's explicit Task n10 decision, refining ORG-039. Build the
+National ID / Iqama / passport choice and number for new conference registration
+requests. Saudi National ID is ten digits starting with 1; Iqama is ten digits
+starting with 2; passport is 5–20 letters/digits, normalized uppercase. Normalize
+Arabic-Indic digits. The purpose is identity verification only. HAC-10 remains
+unchanged: no identity collection or reuse for hackathon entries or profiles.
+
+The owner explicitly rejects application/column encryption, special vaulting,
+a separate reveal flow and additional step-up. Preserve ordinary private-schema,
+forced-RLS/no-client-grants protection and existing staff session assurance.
+Only registration administrators and Super Admins may see the full identifier,
+on registration request detail. Other roles, check-in, reviewer views, public
+views, tickets, QR codes, email and logs must not receive it. Preserve existing
+masked lists/export; no full identifier is added to an export. Existing requests
+without identity remain valid and show “Not provided”.
+
+Delete identity one calendar year after the last configured conference day in
+`msrc_registration.settings.conference_days`; unset days purge nothing. Reuse
+bounded existing maintenance with counts-only audit and no new scheduler.
+This supersedes the earlier implementation's encryption/reveal requirements,
+without changing approved public legal text or authorizing any hosted change.
+
+## ENG-073 — Private registration identity child record and retention, 24 October 2026
+
+ORG-064/039; REG-01/02/05, PRV-03/05/06, SEC-01/02/06, LOC-01/03,
+ACC-01 and HAC-10. Review-only migration
+`20261024110000_registration_identity.sql` adds a separate private child table,
+keyed by request, with normalized document constraints and edition-scoped
+uniqueness. The service-only submit contract derives ownership from verified
+session claims; existing request uniqueness supplies idempotency. Preserve
+READ COMMITTED and current authorization, account, actor and settings locks.
+
+The staff detail RPC returns `identityVersion: 1` and a nullable `detail.identity`.
+Missing functions/older projections return `area-not-ready` without logging out.
+The former encrypted submit signature and reasoned reveal signature fail closed.
+No keys are used for new identity collection. Historical encrypted records are
+not decrypted or fabricated: their requests remain valid, detail shows Not
+provided, and their legacy protection fields are cleared at the same deadline.
+The new plaintext number is never copied to requests/profiles or outbox payloads;
+only the existing masked request/list/export projection is retained.
+
+Purge at strictly past the last conference date plus one calendar year, midnight
+Asia/Riyadh, under the settings row lock. Bound each invocation to 500 child
+identities and 500 legacy request-field clearances. Keep only counts in the
+immutable retention audit. Integrate into the existing guarded registration
+confirmation maintenance RPC; no scheduler or settings seed. Maintenance remains
+subject to its existing runtime/account/outbox sweep gates, whose activation and
+continued cadence are owner release responsibilities. No participant opening,
+flag activation, hosted migration, real email, commit, push or branch creation.
+Receipt: [Task n10](progress/2026-10-24-claude-registration-identity.md).
+
+## ENG-076 - Program schedule publishing, 24 October 2026
+
+PRG-01, CMS-01..04, LOC-01/02/03 and ACC-01. Authority: task n13.
+Reuse the existing published sessions/speakers content editor and its server-only
+projection, authorization, SQL publication validation, history and cache tags.
+No new migration is needed. Keep 60-second public content revalidation.
+
+Publish chronological day/time slots with parallel rooms, linked published
+speakers, descriptions and URL day/category/room filters. Native links/GET forms
+work without JavaScript. Use deterministic Asia/Riyadh clocks. English scientific
+content stays LTR within Arabic pages. Empty content stays unannounced.
+Staff get bilingual advisory draft overlap warnings, end-time guidance and a day
+grid preview; these warnings do not reserve rooms or replace publication guards.
+
+No personal schedule builder. Signed-in participants can navigate to the closed
+My Bookings dashboard section; actual workshop booking records await that module.
+Document the booked/assigned change-notification integration point only. No email
+execution, audience selection or conference-wide notifications are added here.
+All operational flags remain off; no hosted migration/settings or real messages.
+Leave changes uncommitted and use the task receipt; do not edit PROGRESS.md.
+
+Evidence: [task n13 receipt](progress/2026-10-24-claude-program-schedule.md).
+
+## ENG-074 — Closed workshop booking and completion evidence, 24 October 2026
+
+Authority: Task n11, WKS-01–07, CHK-03/04, CRT-01, PRG-01, ROL-06/07/10/12,
+SEC-01/02/06 and LOC-01/03. Prepare the additive review-only migration
+`20261024120000_workshop_booking.sql` and bilingual participant/staff interfaces.
+Reuse registration's native session authority, server-only participant transport,
+transactional allocation, existing authenticated maintenance path and held outbox.
+
+No workshop price, capacity, date, eligibility, booking deadline, approval/payment
+window or transfer buffer is approved by this implementation. Operational settings
+remain unset, runtime booking defaults off, and database booking/payment gates
+default off. Only Super Admins configure booking policy; edition-scoped registration
+and workshop administrators and Super Admins manage workshop records and decisions.
+Check-in authority and authorized completion sign-off remain distinct.
+
+Requests require confirmed conference registration. Server-recorded valid request
+order governs allocations and the waitlist; staff click order cannot reorder it.
+Active holds, offers, reservations and confirmations count against capacity.
+Recheck current eligibility, registration and overlap at allocation transitions.
+Schedule changes that create conflicts require an explicit resolution record;
+they cannot silently preserve conflicting confirmed bookings. Workshop completion
+evidence is available for future CRT-01 use; this task issues no certificates and
+does not implement survey completion or a personal schedule builder.
+
+The current task explicitly requests **English transactional** workshop emails.
+This narrowly overrides ORG-059 for the new workshop notice draft only; existing
+bilingual participant templates keep their current behavior. Workshop notices
+are DRAFT, queued transactionally and held in SQL, with an independent worker
+delivery denial. No wording approval or real delivery is inferred.
+
+Leave all work uncommitted on `claude/workshop-booking`; no branch changes,
+pushes, hosted migrations, settings seeds, flag activation, participant opening
+or real emails. Evidence belongs in
+[the workshop receipt](progress/2026-10-24-claude-workshop-booking.md), with
+[feature notes](features/WORKSHOP_BOOKING.md). Do not edit `docs/PROGRESS.md`.
+
+## ENG-075 — Closed S2 surveys and ordinary certificates, 24 October 2026
+
+Authority: Task n12, CRT-01..06 and AT-14, built on ENG-074 workshop evidence
+and existing registration/attendance/outbox. Prepare the additive review-only
+migration `20261024130000_surveys_certificates.sql`. Exactly two ordinary kinds:
+Full Two-Day Conference Attendance and Workshop Participation. No one-day
+variant, hours/accreditation field or role/competition eligibility is introduced.
+Presenter, reviewer, speaker, organizer, hackathon and 3MT remain separately
+approved extension paths.
+
+Store survey completion as actor/survey membership and feedback as individual
+question values dated to the Riyadh calendar day. Retain no application response
+mapping, reusable token, response grouping, operation fingerprint, precise answer
+timestamp, submission audit or request log. Application Super Admins have no raw
+answer/table access or identity-answer export. Atomic submission/retry and the
+schema/ACL boundary are covered in pgTAP. Physical PostgreSQL MVCC/WAL/backups
+and infrastructure logging remain outside the application projection boundary;
+review that threat model and logging, free-text/small-group disclosure, question
+sets, deadlines and retention before enabling S2. Do not claim anonymity against
+unrestricted database operators. The independent unlinking approval remains off.
+
+Super Admins approve template/signature and release immutable batches. Durable
+server-only leases generate private PDFs with opaque verification codes; finishing
+rechecks current account/evidence and atomically issues with held email. Template
+edits clear approval; revocation and staff-reviewed correction/reissue retain the
+original status and audit. English `certificate_notice` v1 is DRAFT and held in SQL
+and independently in the worker. This task's explicit English-email instruction
+narrowly overrides ORG-059 for this new draft only, preserving other bilingual
+participant templates.
+
+Use PDFKit 0.20.2 (MIT), checked against current official docs/package metadata,
+with static OFL Inter/Noto Sans Arabic 5.3.0 embedded server-side. Static fonts
+resolve the observed variable-webfont subsetting failure. Artwork remains a plain
+purple/gold PLACEHOLDER. No public Storage bucket or external PDF service.
+Owner-only downloads and minimal public verification have separate unset retention
+values; expired PDFs/feedback are deleted in bounded existing maintenance. Public
+verification is opaque-code-only, rate-limited, noindex, private/no-store and
+no-referrer. Identity/audit retention beyond verification expiry needs an approved
+privacy policy before issuance; expiry is not claimed to delete every record.
+
+Runtime and database issuance/survey gates default off. Draft settings preparation
+cannot activate them. No hosted migration/settings seed, flag switch, participant
+opening, real email, branch change, commit or push is authorized. Leave changes
+uncommitted on `claude/surveys-certificates`. Evidence belongs in
+[the task receipt](progress/2026-10-24-claude-surveys-certificates.md), with
+[feature notes](features/SURVEYS_CERTIFICATES.md). Do not edit `docs/PROGRESS.md`.
+
+## ENG-077 — Closed Hackathon and Three Minute Thesis infrastructure, 24 October 2026
+
+Authority: Task n14 and the current organizer instructions. Requirements TRK-01,
+HAC-01–11, TMT-01–02 and CFG-13. Use only migration
+`20261024150000_hackathon_3mt.sql`; no hosted execution, settings seeds, activation,
+real email, commit or push. This task never edits `docs/PROGRESS.md`.
+
+Reuse verified-account/session authority, draft versioning, immutable submission
+and decision evidence, idempotency, sanitized blinded packets, assignment and
+conflict patterns from abstracts. Keep the two competitions' forms, settings,
+eligibility, stages, rubrics and final judging separate. Hackathon has the two
+HAC-02 tracks, solo exactly one and preformed teams at most five including the
+lead, a 300-word English pitch, originality declarations and no matching or AI
+originality service. HAC-10 adds no national ID or phone fields. The registered
+application roster, committee acceptance and later member confirmation are
+separate; initial review never waits on that confirmation.
+
+All business settings below have **no default**. An unset setting keeps its
+relevant stage closed. Their presence is configuration, not evidence that an
+organizer approved publication, privacy, operating procedures or activation.
+
+- HAC-01/02 and CFG-13: final broader eligibility wording/evidence, participation
+  limits, multiple-solo and cross-mode duplicate rules. Preserve one-team/person
+  independently; do not silently apply it to solo entries.
+- HAC-03: member editing permissions, post-submission changes/cutoff, confirmation
+  window, refusal/no-response handling and any solo-to-team changes.
+- HAC-04: pitch prompt structure, required references/appendix and their format or
+  word-limit treatment, applicable ethics/IRB/prototype evidence and initial files.
+- HAC-05 and CFG-13: originality-check method, data handling, human flag/decision
+  procedure, participant AI/outside-assistance policy. No automated originality
+  check or provider is introduced.
+- HAC-06/07: selection criteria, score scale, minimum completed reviews, ranking
+  and tie/capacity rules; **whether solo entries consume the eight-per-track team
+  quota**; configured finalist cap per track; application/review deadlines.
+  Exactly two independent Hackathon reviewer assignments remains the baseline.
+  Manual rank/tie resolution records do not invent aggregation weights.
+- HAC-08: required per-participant activity evidence, exceptions, fair mentoring
+  arrangements, orientation/preparation/confirmation deadlines and onboarding.
+- HAC-09/11: final rubric, judge count, cross-panel comparison and tie rules;
+  final-material requirements/deadline/lock, presenter count, spoken language,
+  timekeeping/overruns, demo-failure fairness and recording/publicity permission.
+  Do not automatically record or publish pitches.
+- HAC-10 and CFG-13: Hackathon national-ID/phone source conflict and any separate
+  external organizer group remain unresolved; no collection or WhatsApp workflow.
+  ORG-039 concerns conference registration and supplies no Hackathon authorization.
+- HAC-11: fees/inclusions, certificate evidence, prizes/budgets/distribution,
+  solo-versus-team award treatment, partners, IP and publicity terms. Only outcome
+  recording is built; admission/workshops and research-supervisor rules stay separate.
+- TMT-01/02: postgraduate eligibility and evidence, participation/presenter limits,
+  required declarations/initial files, qualification/review stages and deadlines,
+  presentation and slide/file limits, final rubric, judge count, ties and
+  certificate/award evidence. No external competition affiliation or imported
+  rules are implied.
+
+Private optional files remain quarantined pending an approved scanning integration
+and file release evidence. The initial PDF/PNG/JPEG and 25 MiB transport bounds are
+technical safety limits, not approved competition file rules. Final event cards
+are distinct from pre-event reviews; panel judges cannot receive those reviews.
+Participant and non-review staff shells are EN/AR; project content, reviewers and
+judges are English/LTR. Scoring outcomes do not distribute awards.
+
+Evidence and remaining gates: [Task n14 receipt](progress/2026-10-24-claude-hackathon-3mt.md)
+and [feature notes](../src/features/competitions/README.md).

@@ -5,6 +5,6 @@ export function normalizeIdentityNumber(type: IdentityDocumentType, input: unkno
   if (typeof input !== "string" || input.length > 64) return null;
   const number = input.trim().replace(/[\u0660-\u0669\u06f0-\u06f9]/g,
     (digit) => String(digit.charCodeAt(0) - (digit.charCodeAt(0) >= 0x6f0 ? 0x6f0 : 0x660))).toUpperCase();
-  if (type === "national_id" || type === "iqama") return /^\d{10}$/.test(number) ? number : null;
-  return type === "passport" && /^[A-Z0-9]{4,20}$/.test(number) ? number : null;
+  if (type === "national_id" || type === "iqama") return (type === "national_id" ? /^1\d{9}$/ : /^2\d{9}$/).test(number) ? number : null;
+  return type === "passport" && /^[A-Z0-9]{5,20}$/.test(number) ? number : null;
 }

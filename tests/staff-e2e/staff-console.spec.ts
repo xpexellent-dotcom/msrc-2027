@@ -98,7 +98,7 @@ async function consoleFixture(page: Page, roles: Role[], options: { capacity?: n
       const request = requests.find((r) => r.id === url.searchParams.get("requestId"))!;
       // Combined synthetic display fixture exercises every event label; database
       // tests assert each real request's distinct, valid lifecycle.
-      response = { ...base, registrationDetail: { request, history: historyEvents.map((event, index) => ({ ...event,
+      response = { ...base, registrationDetail: { identity: { documentType: "passport", documentNumber: "SYNTHETIC1234" }, request, history: historyEvents.map((event, index) => ({ ...event,
         id: `21000000-0000-4000-8000-${String(index + 100).padStart(12, "0")}`,
         at: new Date(Date.parse("2026-11-19T08:00:00Z") - index * 60000).toISOString(),
         performerName: event.actorKind === "staff" ? "Synthetic Staff" : null })) } };
@@ -340,6 +340,8 @@ for (const locale of ["en", "ar"] as const) test(`${locale} waitlisted requests 
   await page.getByTestId("queue-row").nth(1).getByRole("button", { name: new RegExp(text.details) }).click();
   const detail = page.getByTestId("queue-detail");
   await expect(detail.getByRole("heading", { level: 3 })).toBeFocused();
+  await expect(detail).toContainText("SYNTHETIC1234");
+  await expect(detail.getByRole("button", { name: staffCopy[locale].reveal, exact: true })).toHaveCount(0);
   const entries = detail.locator(".staff-decisions li");
   await expect(entries).toHaveCount(historyEvents.length);
   for (const [index, event] of historyEvents.entries()) {

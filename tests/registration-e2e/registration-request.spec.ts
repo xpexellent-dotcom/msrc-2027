@@ -5,7 +5,7 @@ import { prepareRegistrationCapture } from "../helpers/registration";
 import { registrationCopy } from "../../src/features/registration/registration-copy";
 import { myRegistrationCopy } from "../../src/features/registration/my-registration-copy";
 
-/** Actual SSR/API/crypto/form against a loopback synthetic provider. Database enforcement has separate SQL tests. */
+/** Actual SSR/API/form against a loopback synthetic provider. Database enforcement has separate SQL tests. */
 async function sessionCookie(stale = false) {
   const suffix = randomBytes(6).toString("hex"), actorId = "da000000-0000-4000-8000-" + suffix, sessionId = "db000000-0000-4000-8000-" + suffix;
   const now = Date.now(), origin = "http://127.0.0.1:3216";
@@ -87,4 +87,30 @@ for (const locale of ["en", "ar"] as const) {
     expect(errors).toEqual([]);
     expect(failedResponses).toEqual([]);
   });
+  for (const [type, invalid, valid] of [
+    ["national_id", "2345678901", "١٢٣٤٥٦٧٨٩٠"],
+    ["iqama", "1234567890", "٢٣٤٥٦٧٨٩٠١"],
+    ["passport", "AB12", "ab١٢٣"],
+  ] as const) test(`${locale} ${type} rejects invalid input and accepts normalized identity`, async ({ page, context }) => {
+    await context.addCookies([await sessionCookie()]);
+    await page.goto(`/${locale}/registration`);
+    await page.locator("#registration-document-type").selectOption(type);
+    const number = page.locator("#registration-document-number");
+    await expect(number).toHaveAttribute("dir", "ltr");
+    await expect(number).toHaveAttribute("required", "");
+    await number.fill(invalid); await page.locator("#registration-terms").check();
+    const submit = page.getByRole("button", { name: copy.submit, exact: true });
+    await expect(submit).toBeEnabled();
+    const failed = page.waitForResponse(response => response.url().endsWith("/api/workflows/registration") && response.request().method() === "POST");
+    await submit.click(); expect((await failed).status()).toBe(400);
+    await expect(page.getByTestId("registration-request").getByRole("alert")).toContainText(copy.invalid);
+    await number.fill(valid); await expect(submit).toBeEnabled();
+    const success = page.waitForResponse(response => response.url().endsWith("/api/workflows/registration") && response.request().method() === "POST");
+    await submit.click(); const response = await success;
+    expect(response.status()).toBe(200);
+    const body = await response.text();
+    expect(body).not.toContain(valid); expect(body).not.toContain("documentNumber");
+    await expect(page.getByTestId("registration-status")).toHaveText(myRegistrationCopy[locale].states.pending_approval);
+  });
+
 }

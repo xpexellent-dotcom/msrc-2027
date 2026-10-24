@@ -12,10 +12,13 @@ const nextConfig: NextConfig = {
   // Preserve the handoff's existing project instructions unchanged.
   agentRules: false,
   poweredByHeader: false,
+  serverExternalPackages: ["pdfkit"],
   // The authorized import reads checked-in image sources in the server runtime.
   // Films stay static; only their WebP posters enter the image pipeline.
   outputFileTracingIncludes: {
     "/api/staff-portal/media": ["./public/media/editions/**/*.webp", "./public/media/team/*-v4.jpg"],
+    "/api/staff-portal/certificates": ["./node_modules/@fontsource/inter/files/inter-latin-400-normal.woff", "./node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-arabic-400-normal.woff"],
+    "/api/jobs/outbox/drain": ["./node_modules/@fontsource/inter/files/inter-latin-400-normal.woff", "./node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-arabic-400-normal.woff"],
   },
   // Content e2e only: one prerendered build per synthetic provider state (scripts/build-content-e2e.ts).
   // The regular build type-checks the same sources, so these test builds skip that pass.

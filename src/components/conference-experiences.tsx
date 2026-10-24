@@ -22,10 +22,13 @@ import { HackathonHeartbeat, HackathonTechArt } from "@/components/hackathon-tec
 import { RegistrationOpeningNotice } from "@/components/registration-opening-notice";
 import { abstractDates } from "@/content/abstract-dates";
 import { formatRegistrationOpeningDate } from "@/content/registration-opening";
+import { usePublicWorkshopCatalogue } from "@/features/workshops/public-catalogue";
 import {
   experienceCopy, filterMedia, filterSessions, participationPaths, published,
   type ProgrammeDay, type ExperiencePageId, type MediaEditionFilter, type PublicMedia, type PublicSession, type PublicSpeaker, type PublicWorkshop,
 } from "@/content/conference-experiences";
+import { ProgramBookingsLink } from "@/features/program/bookings-link";
+import { formatProgramTime, groupProgramSlots } from "@/features/program/schedule";
 import { conferenceConfig } from "@/config/conference";
 import { formatIndex, formatMinutes, formatResultCount, type Locale } from "@/lib/i18n";
 
@@ -43,7 +46,7 @@ function queryDay(value?: string): "all" | ProgrammeDay {
 function programmeDayLabel(day: ProgrammeDay, locale: Locale, short = false) {
   const copy = experienceCopy[locale];
   if (day === "day1" || day === "day2") return short ? copy[day === "day1" ? "day1Short" : "day2Short"] : copy[day];
-  return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { calendar: "gregory", timeZone: "Asia/Riyadh", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${day}T00:00:00+03:00`));
+  return formatRegistrationOpeningDate(`${day}T00:00:00+03:00`, locale, false);
 }
 function queryEdition(value?: string): MediaEditionFilter {
   return value && /^(19\d{2}|20\d{2}|21\d{2}|2200)$/.test(value) ? value as MediaEditionFilter : "all";
@@ -110,7 +113,7 @@ function ExploreBand({ locale, title, href, label }: { locale: Locale; title: st
   return <section className="experience-band"><Container><h2>{title}</h2><ButtonLink variant="gold" href={`/${locale}${href}`}>{label}<Arrow /></ButtonLink></Container></section>;
 }
 
-export function ProgrammeExperience({ locale, sessions: approvedSessions, speakers }: { locale: Locale; sessions: readonly PublicSession[]; speakers: readonly PublicSpeaker[]; initialQuery?: CatalogueQuery }) {
+export function ProgrammeExperience({ locale, sessions: approvedSessions, speakers, bookingsEnabled = false }: { locale: Locale; sessions: readonly PublicSession[]; speakers: readonly PublicSpeaker[]; bookingsEnabled?: boolean; initialQuery?: CatalogueQuery }) {
   const copy = experienceCopy[locale];
   const hydrated = useSyncExternalStore(subscribeHydration, clientSnapshot, serverSnapshot);
   const addressQuery = useSearchParams();
@@ -123,35 +126,45 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
   const categories = [...new Map(confirmed.map((session) => [session.category.id, session.category])).values()];
   const rooms = [...new Set(confirmed.flatMap((session) => session.room ? [session.room] : []))];
   const sessions = filterSessions(approvedSessions, { day, category, room, query });
-  const filtering = query.trim() !== "" || category !== "all" || room !== "all";
-  const hasActiveFilters = filtering || day !== "all";
+  const hasActiveFilters = query.trim() !== "" || category !== "all" || room !== "all" || day !== "all";
+  const filtering = confirmed.length > 0 && hasActiveFilters;
 
   function change(values: Partial<{ day: "all" | ProgrammeDay; category: string; room: string; q: string }>) {
     if (!hydrated) return;
     updateAddress(values);
   }
-  function clear() {
-    document.getElementById("programme-search")?.focus();
-    change({ day: "all", category: "all", room: "all", q: "" });
+  function clearHref() {
+    const params = new URLSearchParams(addressQuery.toString());
+    for (const key of ["day", "category", "room", "q"]) params.delete(key);
+    const query = params.toString();
+    return `/${locale}/program${query ? `?${query}` : ""}#programme`;
+  }
+  function dayHref(value: string) {
+    const params = new URLSearchParams(addressQuery.toString());
+    if (value === "all") params.delete("day"); else params.set("day", value);
+    return `/${locale}/program?${params.toString()}#programme`;
   }
 
   return <>
     <ExperienceIntro locale={locale} page="program" announcement={confirmed.length === 0 ? copy.programPending : undefined} />
-    <section id="programme" tabIndex={-1} className="experience-catalogue" aria-label={copy.pages.program.label}>
+    <section id="programme" data-hydrated={hydrated} tabIndex={-1} className="experience-catalogue" aria-label={copy.pages.program.label}>
       <Container>
         <div className="programme-toolbar"><div className="programme-days" role="group" aria-label={copy.conferenceDays}>
-          {(["all", ...days] as const).map((value) => <button type="button" data-testid={`program-day-${value}`} key={value} aria-pressed={day === value} disabled={!hydrated} onClick={() => change({ day: value })}>{value === "all" ? days.length > 2 ? locale === "ar" ? "جميع الأيام" : "All days" : copy.allDays : programmeDayLabel(value, locale, true)}</button>)}
+          {(["all", ...days] as const).map((value) => <a data-testid={`program-day-${value}`} key={value} aria-current={day === value ? "true" : undefined} href={dayHref(value)} onClick={(event) => { if (hydrated && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); change({ day: value }); } }}>{value === "all" ? days.length > 2 ? locale === "ar" ? "جميع الأيام" : "All days" : copy.allDays : programmeDayLabel(value, locale, true)}</a>)}
         </div><p className="experience-timezone">{copy.timezone}</p></div>
-        <div className="experience-filters">
-          <label className="experience-search" htmlFor="programme-search">{copy.searchSessions}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="programme-search" data-testid="program-search" type="search" value={query} disabled={!hydrated} onChange={(event) => change({ q: event.target.value })} placeholder={copy.searchSessionsPlaceholder} /></span></label>
-          <label htmlFor="programme-category">{copy.category}<select id="programme-category" data-testid="program-category" value={category} onChange={(event) => change({ category: event.target.value })} disabled={!hydrated || categories.length === 0} aria-describedby={categories.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allFormats}</option>{categories.map((item) => <option value={item.id} key={item.id}>{item.label[locale]}</option>)}</select></label>
-          <label htmlFor="programme-room">{copy.room}<select id="programme-room" data-testid="program-room" value={room} onChange={(event) => change({ room: event.target.value })} disabled={!hydrated || rooms.length === 0} aria-describedby={rooms.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allRooms}</option>{rooms.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-        </div>
+        {bookingsEnabled ? <ProgramBookingsLink locale={locale} /> : null}
+        <form className="experience-filters" action={`/${locale}/program#programme`} method="get">
+          <input type="hidden" name="day" value={day} />
+          <label className="experience-search" htmlFor="programme-search">{copy.searchSessions}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="programme-search" data-testid="program-search" name="q" type="search" value={query} onChange={(event) => change({ q: event.target.value })} placeholder={copy.searchSessionsPlaceholder} /></span></label>
+          <label htmlFor="programme-category">{copy.category}<select id="programme-category" name="category" data-testid="program-category" value={category} onChange={(event) => change({ category: event.target.value })} disabled={categories.length === 0} aria-describedby={categories.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allFormats}</option>{categories.map((item) => <option value={item.id} key={item.id}>{item.label[locale]}</option>)}</select></label>
+          <label htmlFor="programme-room">{copy.room}<select id="programme-room" name="room" data-testid="program-room" value={room} onChange={(event) => change({ room: event.target.value })} disabled={rooms.length === 0} aria-describedby={rooms.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allRooms}</option>{rooms.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <Button type="submit">{locale === "ar" ? "تطبيق المرشحات" : "Apply filters"}</Button>
+        </form>
         {categories.length === 0 || rooms.length === 0 ? <p id="programme-filter-note" className="experience-filter-note">{copy.filterNote}</p> : null}
-        <div className={`experience-result-bar${!sessions.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!sessions.length ? "sr-only" : undefined} role="status" aria-live="polite">{sessions.length ? formatResultCount(sessions.length, locale) : filtering ? copy.noResults : copy.programPending}</p>{hasActiveFilters ? <Button variant="ghost" size="small" data-testid="program-clear" disabled={!hydrated} onClick={clear}>{copy.clear}</Button> : null}</div>
+        <div className={`experience-result-bar${!sessions.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!sessions.length ? "sr-only" : undefined} role="status" aria-live="polite">{sessions.length ? formatResultCount(sessions.length, locale) : filtering ? copy.noResults : copy.programPending}</p>{hasActiveFilters ? <a data-testid="program-clear" href={clearHref()} onClick={(event) => { if (hydrated && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); document.getElementById("programme-search")?.focus(); change({ day: "all", category: "all", room: "all", q: "" }); } }}>{copy.clear}</a> : null}</div>
         {sessions.length ? <div className="programme-results">{days.map((value) => {
           const rows = sessions.filter((session) => session.day === value);
-          return rows.length ? <section key={value} aria-labelledby={`programme-${value}-heading`}><h2 id={`programme-${value}-heading`} className="programme-day-heading">{programmeDayLabel(value, locale)}</h2>{rows.map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}</section> : null;
+          return rows.length ? <section key={value} aria-labelledby={`programme-${value}-heading`}><h2 id={`programme-${value}-heading`} className="programme-day-heading">{programmeDayLabel(value, locale)}</h2>{groupProgramSlots(rows).map((slot) => <div className="programme-time-slot" data-testid="program-time-slot" key={slot.key} role="group" aria-label={`${sessionClock(slot.sessions[0].startAt, locale)} - ${sessionClock(slot.sessions[0].endAt, locale)}`}><div className="programme-parallel">{slot.sessions.map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}</div></div>)}</section> : null;
         })}</div> : <EmptyCatalogue testId="program-empty" title={filtering ? copy.noResults : copy.programPending} body={filtering ? copy.noResultsBody : copy.programPendingBody} />}
       </Container>
     </section>
@@ -159,8 +172,7 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
 }
 
 function sessionClock(instant: string | null, locale: Locale) {
-  if (!instant || Number.isNaN(Date.parse(instant))) return null;
-  return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { timeZone: conferenceConfig.timeZone, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(instant));
+  return formatProgramTime(instant, locale);
 }
 function sessionMinutes(session: PublicSession) {
   if (!session.startAt || !session.endAt) return null;
@@ -176,7 +188,7 @@ export function SessionRow({ locale, session, speakers: approvedSpeakers = [] }:
   const speakers = published(approvedSpeakers).filter((speaker) => session.speakerSlugs.includes(speaker.slug));
   return <article className="conference-session-row">
     <div className="conference-session-time">{start ? <time dateTime={session.startAt!}>{start}{end ? ` – ${end}` : ""}</time> : <span>{copy.timePending}</span>}{duration ? <span>{formatMinutes(duration, locale)}</span> : null}</div>
-    <div><p className="conference-session-format">{session.category.label[locale]}{session.room ? <span> · <bdi>{session.room}</bdi></span> : null}</p><h3 lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}><Link href={`/${locale}/program/${session.slug}`}>{session.title}<Arrow /></Link></h3>{speakers.length ? <p className="conference-session-speakers" dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{speakers.map((speaker) => speaker.name).join(" · ")}</p> : null}</div>
+    <div><p className="conference-session-format">{session.category.label[locale]}{session.room ? <span> · <bdi>{session.room}</bdi></span> : null}</p><h3 lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}><Link href={`/${locale}/program/${session.slug}`}>{session.title}<Arrow /></Link></h3>{speakers.length ? <p className="conference-session-speakers" dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{speakers.map((speaker, index) => <span key={speaker.slug}>{index ? " / " : ""}<Link href={`/${locale}/speakers/${speaker.slug}`}>{speaker.name}</Link></span>)}</p> : null}{session.description ? <p lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{session.description}</p> : null}</div>
   </article>;
 }
 
@@ -369,14 +381,25 @@ function SideArtwork({ motif, area }: { motif: JourneyArtworkMotif; area: Artwor
   </div>;
 }
 
-function WorkshopRail({ locale, workshops }: { locale: Locale; workshops: readonly PublicWorkshop[] }) {
+function WorkshopRail({ locale, workshops: initialWorkshops }: { locale: Locale; workshops: readonly PublicWorkshop[] }) {
+  const workshops = usePublicWorkshopCatalogue(initialWorkshops);
   const copy = experienceCopy[locale];
   const heading = locale === "ar" ? "اختر مساحةً للتعلّم." : "Find your next skill.";
   return <section id="workshop-catalogue" tabIndex={-1} className="fluid-workshop-section fluid-art-surface participation-ambient" aria-labelledby="workshop-catalogue-title"><SideArtwork motif="workshops" area="rail" /><Container>
     <ArtworkHeading motif="workshops" area="rail"><h2 id="workshop-catalogue-title">{heading}</h2></ArtworkHeading>
     {!workshops.length ? <div data-testid="workshops-empty" className="fluid-workshop-pending"><h3>{copy.workshopsPending}</h3><p>{copy.workshopsPendingBody}</p></div> : null}
     <HorizontalRail locale={locale} label={copy.pages.workshops.label} className="fluid-workshop-rail">
-      {workshops.length ? workshops.map((workshop) => <article className="fluid-workshop-card" key={workshop.slug}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{workshop.title[locale]}</h3><p>{workshop.description[locale]}</p><p>{sessionClock(workshop.startAt, locale) ?? copy.timePending}{workshop.room ? ` · ${workshop.room}` : ""}</p>{workshop.eligibility ? <p>{workshop.eligibility[locale]}</p> : null}<StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
+      {workshops.length ? workshops.map((workshop) => <article className="fluid-workshop-card" key={workshop.slug}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{workshop.title[locale]}</h3><p>{workshop.description[locale]}</p>
+        {workshop.instructor ? <p>{locale === "ar" ? "المدرّب" : "Instructor"}: <bdi>{workshop.instructor}</bdi></p> : null}
+        <p>{sessionClock(workshop.startAt, locale) ?? copy.timePending}{workshop.endAt ? " – " + sessionClock(workshop.endAt, locale) : ""}{workshop.room ? ` · ${workshop.room}` : ""}</p>
+        {workshop.eligibility ? <p>{workshop.eligibility[locale]}</p> : null}
+        {workshop.capacity !== null ? <p>{locale === "ar" ? "السعة" : "Capacity"}: {formatIndex(workshop.capacity, locale)}</p> : null}
+        {workshop.remainingSeats !== null ? <p data-testid="workshop-public-remaining">{locale === "ar" ? "المقاعد المتاحة للحجز" : "Bookable seats"}: {formatIndex(workshop.remainingSeats, locale)}</p> : null}
+        {workshop.priceLabel ? <p>{workshop.priceLabel[locale]}</p> : null}
+        {workshop.bookingDeadline ? <p>{locale === "ar" ? "آخر موعد للحجز" : "Booking deadline"}: {new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Riyadh" }).format(new Date(workshop.bookingDeadline))} ({locale === "ar" ? "بتوقيت الرياض" : "Riyadh time"})</p> : null}
+        {workshop.transferBufferMinutes !== null && workshop.transferBufferMinutes !== undefined ? <p>{locale === "ar" ? "وقت الانتقال بالدقائق" : "Transfer buffer in minutes"}: {formatIndex(workshop.transferBufferMinutes, locale)}</p> : null}
+        {workshop.bookingAvailable ? <ButtonLink href={`/${locale}/my-msrc`} variant="secondary">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</ButtonLink> : <StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge>}
+      </div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
     </HorizontalRail>
   </Container></section>;
 }
