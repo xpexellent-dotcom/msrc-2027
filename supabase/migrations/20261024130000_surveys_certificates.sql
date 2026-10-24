@@ -147,7 +147,7 @@ declare reasons text[]:='{}'::text[];days date[];evidence jsonb;survey uuid;acti
  select p.name into recipient from msrc_participant.profiles p where p.actor_id=$2;
  if not exists(select 1 from msrc_authorization.account_access a join auth.users u on u.id=a.actor_id join msrc_participant.profiles p on p.actor_id=a.actor_id
  where a.actor_id=$2 and a.state='active' and p.state='verified' and u.email_confirmed_at is not null and u.deleted_at is null and not coalesce(u.is_anonymous,false)
- and (u.banned_until is null or u.banned_until<=clock_timestamp()) and msrc_participant.age_proven($2) and msrc_participant.participant_only($2)) then
+ and (u.banned_until is null or u.banned_until<=now()) and msrc_participant.age_proven($2) and msrc_participant.participant_only($2)) then
  reasons:=array_append(reasons,'configuration_required');end if;
  if kind='conference' then
  activity:='Full Two-Day Conference Attendance';
