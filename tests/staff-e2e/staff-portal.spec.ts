@@ -112,7 +112,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(await page.evaluate(() => Object.keys(localStorage).concat(Object.keys(sessionStorage)))).toEqual([]);
   });
 
-  test(`${locale} Super Admin people actions, audited explicit reveal and audit filters`, async ({ page }, testInfo) => {
+  test(`${locale} Super Admin people actions, masked participants and audit filters`, async ({ page }, testInfo) => {
     const copy = staffCopy[locale], mock = await fixture(page, ["superAdmin"], true);
     await page.goto(`/${locale}/staff/people`);
     await expect(page.getByRole("rowheader", { name: "Synthetic Other Admin other@example.invalid" })).toBeVisible();
@@ -130,14 +130,10 @@ for (const locale of ["en", "ar"] as const) {
     expect(mock.actions.some((action) => action.action === "invite" && action.roles?.includes("finance"))).toBe(true);
     await page.getByRole("link", { name: copy.home, exact: true }).click();
     await page.getByRole("link", { name: copy.participants, exact: true }).click();
-    await expect(page.getByTestId("identity-value")).toHaveText("••••••1234");
+    await expect(page.getByRole("cell", { name: "••••••1234", exact: true })).toBeVisible();
     await screenshot(page, `${locale}-super-admin-participants`, testInfo.project.name);
-    await page.getByRole("textbox", { name: copy.revealReason }).fill("Synthetic identity verification review");
-    await page.getByRole("button", { name: copy.reveal, exact: true }).click();
-    await expect(page.getByTestId("identity-value")).toHaveText("SYNTHETIC1234");
-    expect(mock.actions.at(-1)).toMatchObject({ action: "reveal-identity", targetId: participantId, reason: "Synthetic identity verification review" });
-    await page.getByRole("button", { name: copy.hide, exact: true }).click();
-    await expect(page.getByTestId("identity-value")).toHaveText("••••••1234");
+    await expect(page.getByRole("button", { name: copy.reveal, exact: true })).toHaveCount(0);
+    expect(mock.actions.some((action) => action.action === "reveal-identity")).toBe(false);
     await page.getByRole("link", { name: copy.home, exact: true }).click();
     await page.getByRole("link", { name: copy.audit, exact: true }).click();
     await expect(page.getByRole("cell", { name: auditActionLabel("invite", locale), exact: true })).toBeVisible();

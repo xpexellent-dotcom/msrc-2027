@@ -39,6 +39,7 @@ export type StaffRegistrationHistoryRow = {
   from: StaffRegistrationStatus | null; to: StaffRegistrationStatus | null; at: string; performerName: string | null;
 };
 export type StaffRegistrationDetail = {
+  identity: { documentType: "national_id" | "iqama" | "passport"; documentNumber: string } | null;
   request: StaffRegistrationRequest;
   history: StaffRegistrationHistoryRow[];
 };

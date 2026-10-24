@@ -44,9 +44,8 @@ describe("private recoverable ticket and local QR projection", () => {
   it("requires a separate well-formed ticket key", () => {
     expect(getRegistrationTicketSecret({ REGISTRATION_TICKET_SECRET: secret })).toBe(secret);
     for (const key of [undefined, "", "not-a-key", "a".repeat(63)]) expect(getRegistrationTicketSecret({ REGISTRATION_TICKET_SECRET: key })).toBeNull();
-    for (const name of ["REGISTRATION_IDENTITY_HMAC_SECRET", "PARTICIPANT_AUTH_SECURITY_SECRET", "STAFF_AUTH_SECURITY_SECRET"])
+    for (const name of ["PARTICIPANT_AUTH_SECURITY_SECRET", "STAFF_AUTH_SECURITY_SECRET"])
       expect(getRegistrationTicketSecret({ REGISTRATION_TICKET_SECRET: secret, [name]: secret.toUpperCase() })).toBeNull();
-    expect(getRegistrationTicketSecret({ REGISTRATION_TICKET_SECRET: secret, REGISTRATION_IDENTITY_ENCRYPTION_KEYS: JSON.stringify({ v1: secret }) })).toBeNull();
   });
   it("renders only an opaque signed ticket token with the local qrcode package", async () => {
     const qr = vi.spyOn(QRCode, "toDataURL").mockImplementation((() => Promise.resolve("data:image/png;base64,c3ludGhldGlj")) as typeof QRCode.toDataURL);

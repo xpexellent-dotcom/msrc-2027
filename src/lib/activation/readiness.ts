@@ -1,5 +1,4 @@
 import "server-only";
-import { getIdentityCryptoConfig } from "@/features/registration/identity-crypto.server";
 import { getRegistrationTicketSecret } from "@/features/registration/ticket-crypto.server";
 
 type Environment = Readonly<Record<string, string | undefined>>;
@@ -38,10 +37,6 @@ export function evaluateActivationEnvironment(env: Environment): ActivationEnvir
   flag("STAFF_PASSWORD_CHANGE_ENABLED");
   check("RESEND_API_KEY", productionKey("re_"));
   flag("REGISTRATION_ENABLED");
-  const identityReady = getIdentityCryptoConfig(env) !== null;
-  check("REGISTRATION_IDENTITY_ENCRYPTION_KEYS", () => identityReady);
-  check("REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION", () => identityReady);
-  check("REGISTRATION_IDENTITY_HMAC_SECRET", () => identityReady);
   check("REGISTRATION_TICKET_SECRET", () => getRegistrationTicketSecret(env) !== null);
   flag("OUTBOX_ENABLED");
   flag("OUTBOX_RESEND_ENABLED");

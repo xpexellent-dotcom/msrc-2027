@@ -50,10 +50,9 @@ export const STAFF_LANDING_KEYS = STAFF_MENU.filter((item) => !item.built).map((
 /** Own-account navigation only; password mutation rechecks the native owner and fresh proof. */
 export function canChangeOwnPassword(roles: readonly Role[]): boolean { return roles.includes("superAdmin"); }
 
-/** Future registration identifiers must reach the client masked, never as raw values. */
+/** Registration list identifiers stay masked; full identity belongs only in authorized request detail. */
 export function maskIdentity(value: string | null | undefined): string | null {
   if (!value) return null;
   const compact = value.replace(/\s/g, "");
   return compact.length >= 4 ? `••••••${compact.slice(-4)}` : "••••••";
 }
-export function canRevealIdentity(roles: readonly Role[]): boolean { return roles.includes("superAdmin"); }

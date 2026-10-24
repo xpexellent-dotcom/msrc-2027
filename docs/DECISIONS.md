@@ -4256,3 +4256,56 @@ The explicit task override authorizes a local commit on the existing
 `claude/banner-retention` branch, without push. No hosted migration, settings
 seed, flag activation, participant opening or real email. Evidence:
 `docs/progress/2026-10-23-claude-banner-retention.md`; never edit PROGRESS.md.
+
+## ORG-064 — Simplified conference registration identity, 24 October 2026
+
+Authority: the owner's explicit Task n10 decision, refining ORG-039. Build the
+National ID / Iqama / passport choice and number for new conference registration
+requests. Saudi National ID is ten digits starting with 1; Iqama is ten digits
+starting with 2; passport is 5–20 letters/digits, normalized uppercase. Normalize
+Arabic-Indic digits. The purpose is identity verification only. HAC-10 remains
+unchanged: no identity collection or reuse for hackathon entries or profiles.
+
+The owner explicitly rejects application/column encryption, special vaulting,
+a separate reveal flow and additional step-up. Preserve ordinary private-schema,
+forced-RLS/no-client-grants protection and existing staff session assurance.
+Only registration administrators and Super Admins may see the full identifier,
+on registration request detail. Other roles, check-in, reviewer views, public
+views, tickets, QR codes, email and logs must not receive it. Preserve existing
+masked lists/export; no full identifier is added to an export. Existing requests
+without identity remain valid and show “Not provided”.
+
+Delete identity one calendar year after the last configured conference day in
+`msrc_registration.settings.conference_days`; unset days purge nothing. Reuse
+bounded existing maintenance with counts-only audit and no new scheduler.
+This supersedes the earlier implementation's encryption/reveal requirements,
+without changing approved public legal text or authorizing any hosted change.
+
+## ENG-073 — Private registration identity child record and retention, 24 October 2026
+
+ORG-064/039; REG-01/02/05, PRV-03/05/06, SEC-01/02/06, LOC-01/03,
+ACC-01 and HAC-10. Review-only migration
+`20261024110000_registration_identity.sql` adds a separate private child table,
+keyed by request, with normalized document constraints and edition-scoped
+uniqueness. The service-only submit contract derives ownership from verified
+session claims; existing request uniqueness supplies idempotency. Preserve
+READ COMMITTED and current authorization, account, actor and settings locks.
+
+The staff detail RPC returns `identityVersion: 1` and a nullable `detail.identity`.
+Missing functions/older projections return `area-not-ready` without logging out.
+The former encrypted submit signature and reasoned reveal signature fail closed.
+No keys are used for new identity collection. Historical encrypted records are
+not decrypted or fabricated: their requests remain valid, detail shows Not
+provided, and their legacy protection fields are cleared at the same deadline.
+The new plaintext number is never copied to requests/profiles or outbox payloads;
+only the existing masked request/list/export projection is retained.
+
+Purge at strictly past the last conference date plus one calendar year, midnight
+Asia/Riyadh, under the settings row lock. Bound each invocation to 500 child
+identities and 500 legacy request-field clearances. Keep only counts in the
+immutable retention audit. Integrate into the existing guarded registration
+confirmation maintenance RPC; no scheduler or settings seed. Maintenance remains
+subject to its existing runtime/account/outbox sweep gates, whose activation and
+continued cadence are owner release responsibilities. No participant opening,
+flag activation, hosted migration, real email, commit, push or branch creation.
+Receipt: [Task n10](progress/2026-10-24-claude-registration-identity.md).

@@ -8,12 +8,8 @@ const tokenPattern = /^msrc1\.([a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-
 export function getRegistrationTicketSecret(env: Readonly<Record<string, string | undefined>> = process.env): string | null {
   const secret = env.REGISTRATION_TICKET_SECRET;
   if (!secret || !secretPattern.test(secret)) return null;
-  if ([env.REGISTRATION_IDENTITY_HMAC_SECRET, env.PARTICIPANT_AUTH_SECURITY_SECRET, env.STAFF_AUTH_SECURITY_SECRET]
+  if ([env.PARTICIPANT_AUTH_SECURITY_SECRET, env.STAFF_AUTH_SECURITY_SECRET]
     .some((other) => other?.toLowerCase() === secret.toLowerCase())) return null;
-  try {
-    const keys: unknown = JSON.parse(env.REGISTRATION_IDENTITY_ENCRYPTION_KEYS ?? "{}");
-    if (keys && typeof keys === "object" && Object.values(keys).some((key) => typeof key === "string" && key.toLowerCase() === secret.toLowerCase())) return null;
-  } catch { return null; }
   return secret;
 }
 
