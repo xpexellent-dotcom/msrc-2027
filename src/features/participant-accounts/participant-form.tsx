@@ -171,9 +171,9 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
           : <p className="participant-account-registration" data-testid="participant-registration-closed">{copy.registrationClosed}</p>}
         {certificatesAvailable ? <ButtonLink href={`/${locale}/my-msrc/certificates`} variant="secondary">{locale === "ar" ? "الاستبيانات والشهادات" : "Surveys and certificates"}</ButtonLink> : null}
         {abstractsAvailable ? <ButtonLink href={`/${locale}/abstracts`} variant="secondary">{abstractCopy[locale].title}</ButtonLink> : null}
-        <section id="my-bookings" tabIndex={-1} aria-labelledby="my-bookings-title"><h2 id="my-bookings-title">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</h2><p>{locale === "ar" ? "حجز ورش العمل غير متاح حاليًا. هذا القسم مخصص للحجوزات الفعلية لورش العمل." : "Workshop booking is not available yet. This section is reserved for actual workshop bookings."}</p></section>
+        {!workshopsAvailable ? <section id="my-bookings" tabIndex={-1} aria-labelledby="my-bookings-title"><h2 id="my-bookings-title">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</h2><p>{locale === "ar" ? "حجز ورش العمل غير متاح حاليًا. هذا القسم مخصص للحجوزات الفعلية لورش العمل." : "Workshop booking is not available yet. This section is reserved for actual workshop bookings."}</p></section> : null}
         {!draft.pending ? <ParticipantInbox locale={locale} initialState={initialAnnouncements} /> : null}
-        {!draft.pending && workshopsAvailable ? <MyWorkshopBookings locale={locale} initialState={initialWorkshopBookings} /> : null}
+        {!draft.pending && workshopsAvailable ? <div id="my-bookings" tabIndex={-1}><MyWorkshopBookings locale={locale} initialState={initialWorkshopBookings} /></div> : null}
         <div className="participant-account-actions"><Button variant="secondary" disabled={disabled} onClick={() => void handleAction("logout", false)}>{copy.signOut}</Button></div>
       </> : availability === "ready" ? <p data-testid="participant-signin-required">{copy.needSignIn}</p> : null}
     </> : signedIn ? <ButtonLink className="participant-account-primary-next" href={`/${locale}/${registrationAvailable ? "registration" : "my-msrc"}`}>{registrationAvailable ? myRegistrationCopy[locale].title : copy.links["my-msrc"]}</ButtonLink>
