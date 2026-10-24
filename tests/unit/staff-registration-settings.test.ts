@@ -184,7 +184,8 @@ describe("registration settings validation and projection", () => {
   });
   it("matches required legacy fields while keeping the offer window optional and payment duration conditional", () => {
     expect(registrationSettingsComplete(settings)).toBe(true);
-    for (const field of ["waitlist_offer_hours", "confirm_seat_lead_days", "confirm_seat_response_hours", "early_access_start_at", "early_access_end_at", "minimum_age", "closing_at"] as const) {
+    expect(registrationSettingsComplete({ ...settings, waitlist_offer_hours: null })).toBe(true);
+    for (const field of ["confirm_seat_lead_days", "confirm_seat_response_hours", "early_access_start_at", "early_access_end_at", "minimum_age", "closing_at"] as const) {
       expect(registrationSettingsComplete({ ...settings, [field]: null })).toBe(false);
     }
     expect(registrationSettingsComplete({ ...settings, payment_required: true })).toBe(false);

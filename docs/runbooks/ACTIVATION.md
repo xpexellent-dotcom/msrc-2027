@@ -249,10 +249,10 @@ the real Super Admin application session for authorization and immutable audit.
 | `offer_window_hours` | 24, ORG-056 |
 | Conference days | `2027-01-27` and `2027-01-28`; separate scanner prerequisite |
 | Minimum age | 18 |
-| Legacy/remaining settings | Owner must supply `waitlist_offer_hours`, `confirm_seat_lead_days`, `confirm_seat_response_hours`, `places_remaining_threshold`; do not copy synthetic/default proposals. `default_workshop_capacity` remains optional; `payment_window_hours` is unnecessary for free attendance. |
+| Remaining settings | Owner must supply `confirm_seat_lead_days`, `confirm_seat_response_hours`, `places_remaining_threshold`; do not copy synthetic/default proposals. `default_workshop_capacity` remains optional; `payment_window_hours` is unnecessary for free attendance. |
 
-The 24-hour offer decision is explicit for `offer_window_hours`; ask the owner
-to approve the legacy `waitlist_offer_hours` value as well. Confirm-seat lead
+The 24-hour offer decision is explicit for `offer_window_hours`. ENG-081 retired the
+legacy `waitlist_offer_hours` requirement; it is no longer shown or required. Confirm-seat lead
 and response durations remain unresolved and cannot be invented to pass the
 complete indicator. Add the real early-access email list through its Super
 Admin screen; it grants early submission only.
