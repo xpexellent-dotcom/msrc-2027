@@ -1,4 +1,5 @@
 import "server-only";
+import { normalizeIdentityNumber, type IdentityDocumentType } from "@/features/registration/identity-number";
 import { seatConfirmationProjection } from "./confirmation-contract.server";
 import type { Role } from "@/lib/permissions/contract";
 import type { NativeStaffSession } from "./backend.server";
@@ -114,7 +115,7 @@ export function registrationProjection(value: unknown): NonNullable<StaffRespons
 
 export function registrationDetailProjection(value: unknown, requestId: string): StaffRegistrationDetail | null {
   const data = record(value);
-  if (!data || !exact(data, ["request", "history"]) || !Array.isArray(data.history)) return null;
+  if (!data || !exact(data, ["request", "history", "identity"]) || !Array.isArray(data.history)) return null;
   const request = registrationRequest(data.request);
   if (!request || request.id.toLowerCase() !== requestId.toLowerCase()) return null;
   const history: StaffRegistrationDetail["history"] = [];
@@ -155,7 +156,12 @@ export function registrationDetailProjection(value: unknown, requestId: string):
     previousTime = time; ids.add(id);
     history.push(row as StaffRegistrationDetail["history"][number]);
   }
-  return { request, history };
+  const identity = record(data.identity);
+  if (data.identity !== null && (!identity || !exact(identity, ["documentType", "documentNumber"])
+    || !["national_id", "iqama", "passport"].includes(String(identity.documentType))
+    || !normalizeIdentityNumber(identity.documentType as IdentityDocumentType, identity.documentNumber)
+    || normalizeIdentityNumber(identity.documentType as IdentityDocumentType, identity.documentNumber) !== identity.documentNumber)) return null;
+  return { request, history, identity: identity as StaffRegistrationDetail["identity"] };
 }
 
 type RegistrationExportRow = Pick<StaffRegistrationRequest, "name" | "email" | "status" | "priority" | "createdAt" | "decidedAt" | "identityMasked">;

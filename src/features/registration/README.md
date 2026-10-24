@@ -24,3 +24,11 @@ generic server rejection. Opening times, attendance dates and offer deadlines ar
 direction-isolated, and request/refresh completion retains keyboard focus.
 The registration Playwright config covers EN/AR at desktop, 390px and 360px, with
 200% text/axe checks and synthetic screenshots under `.tools/journey-review/registration/`.
+
+ORG-064 / ENG-073 replaces identity encryption and separate reveal with an ordinary
+private child record. New requests require validated, normalized identity; staff
+registration details alone show its full number. Existing missing identifiers
+remain valid. The registration maintenance path purges identity and legacy masks /
+ciphertext one year after the last configured conference day, in bounded batches.
+See docs/features/REGISTRATION.md and the Task n10 receipt. All activation gates
+remain closed and the migration is review-only.

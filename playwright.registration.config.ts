@@ -18,8 +18,7 @@ export default defineConfig({
         PARTICIPANT_EDITION_KEY: "synthetic-participants-2027", PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT: "40",
         PARTICIPANT_SUPABASE_URL: "http://127.0.0.1:3218", PARTICIPANT_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_participant_mock_only",
         PARTICIPANT_SUPABASE_SECRET_KEY: "sb_secret_participant_mock_only", RESEND_API_KEY: "re_participant_mock_only",
-        REGISTRATION_IDENTITY_ENCRYPTION_KEYS: JSON.stringify({ synthetic_v1: "b".repeat(64) }),
         REGISTRATION_TICKET_SECRET: "d".repeat(64),
-        REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION: "synthetic_v1", REGISTRATION_IDENTITY_HMAC_SECRET: "c".repeat(64) } },
+        } },
   ],
 });

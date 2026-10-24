@@ -1,5 +1,11 @@
 # Registration — closed foundation and staff queue
 
+24 October 2026: ORG-064 / ENG-073 replaces the earlier encrypted identity and
+Super Admin reveal implementation with ordinary private registration identity.
+See [the current identity contract](#current-identity-contract--org-064--eng-073-24-october-2026)
+and [Task n10 evidence](../progress/2026-10-24-claude-registration-identity.md).
+
+
 22 October 2026: ENG-060 adds the owner's [activation guide](../runbooks/ACTIVATION.md)
 and a read-only Super Admin **Launch readiness** area in EN/AR. It combines
 server environment presence/format booleans with the new
@@ -832,3 +838,55 @@ owner's plan/cadence and budget review before activation.
 
 The [O9 receipt](../progress/2026-10-23-codex-night3-confirm-seat.md) records exact
 migration/RPC signatures, checks, screenshots and CI-only database gates.
+
+## Current identity contract — ORG-064 / ENG-073, 24 October 2026
+
+This section supersedes the earlier encryption, custody and Super Admin reveal
+instructions in this document. Task n10 refines ORG-039; REG-01/02/05,
+PRV-03/05/06, SEC-01/02/06, LOC-01/03, ACC-01 and HAC-10 remain mapped.
+
+New conference registration requests require National ID (10 digits, starts 1),
+Iqama (10 digits, starts 2), or international passport (5–20 Latin letters/digits,
+uppercase). Both Arabic-Indic digit ranges normalize to ASCII on the server and
+in SQL. The existing EN/AR form, required fields and LTR number isolation remain.
+The short purpose line says identity verification only; it does not amend the
+approved public Privacy Policy. No hackathon or profile identity field is added.
+
+`msrc_registration.identity_documents` stores the type and number separately,
+keyed by request. It forces RLS and has no PUBLIC, anon, authenticated or service
+role table grants or client policies. Only the service-only submission RPC can
+write a participant's request, deriving the actor from the verified exact session.
+It keeps the original actor/edition idempotency, readiness gates and locks; the
+new signature is `msrc_registration_submit(text,jsonb,text,text,text)` with
+`document_number` replacing the encrypted envelope/hash/key arguments. Its old
+encrypted signature returns denied, preventing stale servers from writing.
+
+`msrc_staff_registration_detail(text,uuid)` retains ordinary registration admin /
+Super Admin authorization and adds `identityVersion:1` plus
+`detail.identity:null|{documentType,documentNumber}`. Only this detail returns the
+full number. Check-in staff and reviewers cannot read it. Existing requests with
+no child record remain valid and render “Not provided” / “غير مقدّم”. Missing
+RPCs or old detail versions return `area-not-ready`, preserving the login.
+Existing lists and the existing Super Admin CSV retain their masked-only form;
+no public view, QR, ticket, email, history or log gains an identifier.
+
+There is no application/column encryption, keyring requirement, separate reveal
+or extra assurance step. The unused crypto/reveal components are removed; the
+old reveal RPC denies. Legacy ciphertext is not recoverable without its retired
+keys, so the migration does not pretend to translate it into a new identifier.
+
+Retention uses the final configured conference day plus one calendar year at
+midnight Asia/Riyadh, strictly past the boundary. Unset/empty conference days
+purge nothing. The private helper locks settings, deletes at most 500 identity
+rows and clears at most 500 legacy request identity fields (including masks,
+ciphertext and digest), writing only deletion counts to immutable audit.
+Requests and their status/history remain. Other editions are untouched and
+repeat runs finish larger batches. New collection is closed past the deadline.
+The existing registration confirmation maintenance path calls the helper; no
+scheduler is added. Its existing runtime/account/outbox sweep gates still apply:
+continued retention cadence is an owner activation/operations responsibility.
+
+Migration: `20261024110000_registration_identity.sql` (review only). The
+[Task n10 receipt](../progress/2026-10-24-claude-registration-identity.md) separates
+local checks from CI-only pgTAP, strict database lint and integration evidence.
+No hosted migration/settings, feature opening or communication is authorized.

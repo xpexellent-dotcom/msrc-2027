@@ -126,3 +126,25 @@ authentication or other workflows. No role/grant/session-policy/readiness change
 Initial foundation rollback is a code/route/footer revert. For the new adapter use the
 Contact delivery runbook: flag off plus redeploy, retain counter expiry, no inquiry data
 to recover, no shared-extension removal. Preserve dated decision/source history.
+
+## Conference identity retention — ORG-064 / ENG-073 (24 October 2026)
+
+Task n10 implements ORG-039 for conference registration only, using normal
+private-schema/forced-RLS access. No application/column encryption, vault,
+reveal flow or additional step-up is required by the owner. Only registration
+administrators and Super Admins can read the full identifier on request detail;
+no public, check-in, reviewer, ticket, email, QR or full-number export projection.
+
+Identity and legacy ciphertext/hash/masks expire one calendar year after the
+last date in `msrc_registration.settings.conference_days`, strictly past midnight
+Asia/Riyadh. Unset days purge nothing. Existing registration maintenance handles
+bounded batches with counts-only immutable receipts; it creates no scheduler
+and retains existing runtime/account/sweep gates. Owner operations must keep an
+authorized maintenance cadence. Requests remain valid after identity deletion.
+
+The form uses a short neutral “used for identity verification only” line in EN/AR;
+no exact standalone purpose sentence was found in the approved source during
+this task. This UI clarification is flagged for owner/native-Arabic review in
+the receipt; the approved public policy text is unchanged. Database backups and
+restores remain subject to the existing privacy/restore/expiry release review;
+a live-row purge is not a claim of immediate backup erasure.

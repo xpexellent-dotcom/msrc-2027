@@ -7,7 +7,6 @@ import { StaffRpcMissingError, type StaffBackend, type NativeStaffSession } from
 import { staffInvitationEmail } from "@/features/staff-portal/email.server";
 import { readStaffSession, sealStaffSession, staffCookie, staffFormToken, type StaffSessionCookie } from "@/features/staff-portal/security.server";
 import { validateStaffPayload } from "@/features/staff-portal/validation.server";
-import { encryptIdentityDocument, getIdentityCryptoConfig } from "@/features/registration/identity-crypto.server";
 import { renderRegistrationEmailPreviews } from "@/features/staff-portal/email-previews.server";
 
 const origin = "http://127.0.0.1:3219";
@@ -396,31 +395,15 @@ describe("second steps and safe privileged projections", () => {
     const response = await handler()(request("GET", undefined, cookie(), "?area=participants")); expect(response.status).toBe(200);
     expect((await response.json()).participants[0].identityMasked).toBe(identityMasked);
   });
-  it("routes explicit identity reveal through the audited native RPC without projecting absent identity", async () => {
-    const original = backend.rpc; backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_identity_reveal" ? { state: "unavailable" } : original(args[0], args[1], args[2]));
+  it("retires separate reveal without invoking the RPC", async () => {
     const response = await handler()(request("POST", { action: "reveal-identity", targetId: invitationId, reason: "Synthetic identity check" }, cookie()));
-    expect((await response.json()).state).toBe("identity-unavailable"); expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_identity_reveal", { edition_key: config.editionKey, target_actor: invitationId, reason: "Synthetic identity check" }, native.accessToken);
+    expect(response.status).toBe(403);
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_identity_reveal", expect.anything(), expect.anything());
   });
   it.each([undefined, "", "   ", "x".repeat(301), "line\nbreak"])("refuses reveal with an absent or invalid reason %# before the reveal RPC", async (reason) => {
     const response = await handler()(request("POST", { action: "reveal-identity", targetId: invitationId, reason }, cookie()));
     expect(response.status).toBe(400);
     expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_identity_reveal", expect.anything(), expect.anything());
-  });
-  it("decrypts only the envelope returned by the audited reveal boundary", async () => {
-    vi.stubEnv("REGISTRATION_IDENTITY_ENCRYPTION_KEYS", JSON.stringify({ v1: "a".repeat(64) }));
-    vi.stubEnv("REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION", "v1");
-    vi.stubEnv("REGISTRATION_IDENTITY_HMAC_SECRET", "b".repeat(64));
-    const identityEnvelope = encryptIdentityDocument(getIdentityCryptoConfig()!, {
-      editionKey: config.editionKey, actorId: invitationId, documentType: "passport",
-    }, "FAKE000001");
-    const original = backend.rpc;
-    backend.rpc = vi.fn(async (...args) => args[0] === "msrc_staff_identity_reveal"
-      ? { state: "available", documentType: "passport", identityEnvelope } : original(args[0], args[1], args[2]));
-    const response = await handler()(request("POST", { action: "reveal-identity", targetId: invitationId, reason: "Synthetic identity check" }, cookie()));
-    expect(response.status).toBe(200); const body = await response.json();
-    expect(body).toMatchObject({ state: "updated", identity: "FAKE000001" });
-    expect(body).not.toHaveProperty("identityEnvelope");
-    expect(response.headers.get("cache-control")).toContain("no-store");
   });
   it("does not decrypt or expose data when the database refuses a reveal", async () => {
     const original = backend.rpc;

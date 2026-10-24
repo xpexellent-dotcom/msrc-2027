@@ -153,9 +153,10 @@ const server = http.createServer(async (request, response) => {
   }
   if (path === "/rest/v1/rpc/msrc_registration_submit") {
     if (registrationViews.get(actor)?.missingCollection === "submit") return reply(response, { code: "PGRST202", message: "Synthetic missing RPC" }, 404);
-    // The actual application must have encrypted before crossing this provider boundary.
-    if (body.includes("FAKE") || !/^[a-f0-9]+$/.test(args.identity_envelope?.ciphertext ?? "") || !/^[a-f0-9]{64}$/.test(args.identity_hash ?? "")
-      || args.terms_version !== "v1.0" || args.key_version !== "synthetic_v1" || !/^••••••[A-Z0-9]{4}$/.test(args.identity_masked ?? "")) return reply(response, { state: "denied" });
+      // Private server-only synthetic boundary; never echo submitted identity.
+      if (!(["national_id","iqama","passport"].includes(args.document_type)) ||
+        typeof args.document_number !== "string" || args.terms_version !== "v1.0" ||
+        !(/^[A-Z0-9]{5,20}$/.test(args.document_number))) return reply(response, { state: "denied" });
     if (!requests.has(actor)) requests.set(actor, { id: randomUUID(), status: "pending_approval", createdAt: new Date().toISOString() });
     return reply(response, { state: "submitted", request: requests.get(actor) });
   }

@@ -3,7 +3,6 @@ import { resolveParticipantConfig } from "@/features/participant-accounts/config
 import { participantCookie, participantFormToken, readParticipantSession } from "@/features/participant-accounts/security.server";
 import { RegistrationRpcMissingError, type RegistrationBackend } from "@/features/registration/backend.server";
 import { createRegistrationHandler } from "@/features/registration/handler.server";
-import { decryptIdentityDocument, type IdentityCryptoConfig } from "@/features/registration/identity-crypto.server";
 import { readRegistrationFormToken, registrationFormToken } from "@/features/registration/security.server";
 
 const env = { PARTICIPANT_ACCOUNTS_ENABLED: "true", PARTICIPANT_ACCOUNTS_TEST_MODE: "true", PARTICIPANT_AUTH_SECURITY_SECRET: "a".repeat(64),
@@ -16,7 +15,6 @@ const config = readiness.config, origin = "http://127.0.0.1:3216", now = Date.UT
 const actorId = "da000000-0000-4000-8000-000000000001", sessionId = "db000000-0000-4000-8000-000000000001";
 const claims = { sub: actorId, session_id: sessionId, exp: Math.floor(now / 1000) + 3600, iat: Math.floor(now / 1000), role: "authenticated", aal: "aal1", amr: [{ method: "password", timestamp: Math.floor(now / 1000) }] };
 const token = (value: unknown = claims) => "synthetic." + Buffer.from(JSON.stringify(value)).toString("base64url") + ".synthetic";
-const crypto: IdentityCryptoConfig = { keys: { synthetic_v1: "b".repeat(64) }, activeKeyVersion: "synthetic_v1", hmacSecret: "c".repeat(64) };
 const summary = { id: "dc000000-0000-4000-8000-000000000001", status: "pending_approval", createdAt: new Date(now).toISOString() };
 const evidence = { enabled: true, participantAccountsReady: true, settingsComplete: true, windowOpen: true, eligible: true, state: "open", request: null, termsVersion: "v1.0" };
 
@@ -36,7 +34,7 @@ function fixture(options: { context?: unknown; status?: unknown; participantStat
       throw new Error("Unexpected private RPC");
     }),
   };
-  const handle = createRegistrationHandler({ readiness: () => readiness, crypto: () => crypto, backend: () => backend, now: () => now, observeOnly: options.observeOnly });
+  const handle = createRegistrationHandler({ readiness: () => readiness, backend: () => backend, now: () => now, observeOnly: options.observeOnly });
   const cookie = participantCookie(config, { actorId, sessionId, accessToken: token(options.accessClaims), refreshToken: "synthetic-refresh", origin, deadline: now + 72 * 3600_000 }, now).split(";")[0];
   const post = (extra: Record<string, unknown> = {}, headers: Record<string, string> = {}) => handle(new Request(origin + "/api/workflows/registration", {
     method: "POST", headers: { origin, cookie, "Content-Type": "application/json", ...headers },
@@ -53,12 +51,11 @@ describe("closed registration request boundary (REG-01/02, ORG-039/041/051, SEC-
     const response = await createRegistrationHandler({ backend })(new Request(origin, { method: "POST", body: "broken" }));
     expect(response.status).toBe(503); expect(await response.json()).toEqual({ error: { code: "WORKFLOW_CLOSED", workflow: "registration" } }); expect(backend).not.toHaveBeenCalled();
   });
-  it("requires configured identity protection and participant configuration", async () => {
+  it("requires participant configuration", async () => {
     vi.stubEnv("REGISTRATION_ENABLED", "true");
-    for (const dependencies of [{ readiness: () => readiness, crypto: () => null }, { readiness: () => ({ state: "closed" } as const), crypto: () => crypto }]) {
-      const backend = vi.fn(); const response = await createRegistrationHandler({ ...dependencies, backend })(new Request(origin));
-      expect(response.status).toBe(503); expect(backend).not.toHaveBeenCalled();
-    }
+    const backend = vi.fn();
+    const response = await createRegistrationHandler({ readiness: () => ({ state: "closed" }), backend })(new Request(origin));
+    expect(response.status).toBe(503); expect(backend).not.toHaveBeenCalled();
   });
   it.each(["enabled", "participantAccountsReady", "settingsComplete", "windowOpen", "eligible"])("refuses missing/false private context %s", async (field) => {
     vi.stubEnv("REGISTRATION_ENABLED", "true");
@@ -93,13 +90,13 @@ describe("closed registration request boundary (REG-01/02, ORG-039/041/051, SEC-
   it.each<Record<string, string>>([{ origin: "https://evil.example" }, { "sec-fetch-site": "cross-site" }, { cookie: "" }])("refuses cross-origin/anonymous request %j", async (headers) => {
     vi.stubEnv("REGISTRATION_ENABLED", "true"); expect([400, 401]).toContain((await fixture().post({}, headers)).status);
   });
-  it("encrypts before the private RPC and returns only the neutral request summary", async () => {
+  it("normalizes before the private RPC and returns only the neutral request summary", async () => {
     vi.stubEnv("REGISTRATION_ENABLED", "true"); const { post, backend } = fixture(); const response = await post();
     expect(response.status).toBe(200); const result = await response.json(); expect(result).toMatchObject({ state: "submitted", request: summary });
     expect(JSON.stringify(result)).not.toContain("FAKE0001");
     const call = vi.mocked(backend.rpc).mock.calls.find(([name]) => name === "msrc_registration_submit")!;
-    expect(JSON.stringify(call)).not.toContain("FAKE0001"); expect(call[1]).toMatchObject({ document_type: "passport", identity_masked: "••••••0001", key_version: "synthetic_v1", terms_version: "v1.0" });
-    expect(decryptIdentityDocument(crypto, { editionKey: config.editionKey, actorId, documentType: "passport" }, call[1]!.identity_envelope as Parameters<typeof decryptIdentityDocument>[2])).toBe("FAKE0001");
+    expect(call[1]).toMatchObject({ document_type: "passport", document_number: "FAKE0001", terms_version: "v1.0" });
+    expect(call[1]).not.toHaveProperty("identity_envelope");
   });
   it("two identical concurrent attempts reach the idempotent RPC and return one request with separate IP-rate claims", async () => {
     vi.stubEnv("REGISTRATION_ENABLED", "true"); const { post, backend } = fixture();
