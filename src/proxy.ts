@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { decodedPagePath, isCheckInPage, isMediaPage, isPrivatePage, mediaUploadOrigin, privateContentSecurityPolicy } from "@/lib/content-security-policy";
+import { competitionUploadOrigin, decodedPagePath, isCheckInPage, isCompetitionEntryPage, isMediaPage, isPrivatePage, mediaUploadOrigin, privateContentSecurityPolicy } from "@/lib/content-security-policy";
 
 export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
@@ -13,7 +13,7 @@ export function proxy(request: NextRequest) {
   }
 
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-  const policy = privateContentSecurityPolicy(nonce, process.env.NODE_ENV === "development", isMediaPage(request.nextUrl.pathname) ? mediaUploadOrigin(process.env) : undefined);
+  const policy = privateContentSecurityPolicy(nonce, process.env.NODE_ENV === "development", isMediaPage(request.nextUrl.pathname) ? mediaUploadOrigin(process.env) : isCompetitionEntryPage(request.nextUrl.pathname) ? competitionUploadOrigin(process.env) : undefined);
   // Next reads the request CSP to nonce its framework, bootstrap and RSC scripts.
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("content-security-policy", policy);

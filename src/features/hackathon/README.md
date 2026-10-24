@@ -1,6 +1,6 @@
 # Hackathon feature boundary
 
-Reserve this directory for a separately authorized hackathon slice. No entry, team membership, review, quota, selection or judging behavior is implemented.
-
-This is an inert M1 structure placeholder. It contains no executable implementation;
-operational workflows remain closed. See the project architecture document and the relevant v0.5 release gate.
+The closed ENG-077 implementation lives in [competitions](../competitions/README.md).
+It shares account, draft and authorization infrastructure with 3MT while retaining
+Hackathon-specific form, roster, review, quota and judging rules. All activation
+gates remain closed; see TRK-01, HAC-01–11 and CFG-13.

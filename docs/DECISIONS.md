@@ -4256,3 +4256,67 @@ The explicit task override authorizes a local commit on the existing
 `claude/banner-retention` branch, without push. No hosted migration, settings
 seed, flag activation, participant opening or real email. Evidence:
 `docs/progress/2026-10-23-claude-banner-retention.md`; never edit PROGRESS.md.
+
+## ENG-077 — Closed Hackathon and Three Minute Thesis infrastructure, 24 October 2026
+
+Authority: Task n14 and the current organizer instructions. Requirements TRK-01,
+HAC-01–11, TMT-01–02 and CFG-13. Use only migration
+`20261024150000_hackathon_3mt.sql`; no hosted execution, settings seeds, activation,
+real email, commit or push. This task never edits `docs/PROGRESS.md`.
+
+Reuse verified-account/session authority, draft versioning, immutable submission
+and decision evidence, idempotency, sanitized blinded packets, assignment and
+conflict patterns from abstracts. Keep the two competitions' forms, settings,
+eligibility, stages, rubrics and final judging separate. Hackathon has the two
+HAC-02 tracks, solo exactly one and preformed teams at most five including the
+lead, a 300-word English pitch, originality declarations and no matching or AI
+originality service. HAC-10 adds no national ID or phone fields. The registered
+application roster, committee acceptance and later member confirmation are
+separate; initial review never waits on that confirmation.
+
+All business settings below have **no default**. An unset setting keeps its
+relevant stage closed. Their presence is configuration, not evidence that an
+organizer approved publication, privacy, operating procedures or activation.
+
+- HAC-01/02 and CFG-13: final broader eligibility wording/evidence, participation
+  limits, multiple-solo and cross-mode duplicate rules. Preserve one-team/person
+  independently; do not silently apply it to solo entries.
+- HAC-03: member editing permissions, post-submission changes/cutoff, confirmation
+  window, refusal/no-response handling and any solo-to-team changes.
+- HAC-04: pitch prompt structure, required references/appendix and their format or
+  word-limit treatment, applicable ethics/IRB/prototype evidence and initial files.
+- HAC-05 and CFG-13: originality-check method, data handling, human flag/decision
+  procedure, participant AI/outside-assistance policy. No automated originality
+  check or provider is introduced.
+- HAC-06/07: selection criteria, score scale, minimum completed reviews, ranking
+  and tie/capacity rules; **whether solo entries consume the eight-per-track team
+  quota**; configured finalist cap per track; application/review deadlines.
+  Exactly two independent Hackathon reviewer assignments remains the baseline.
+  Manual rank/tie resolution records do not invent aggregation weights.
+- HAC-08: required per-participant activity evidence, exceptions, fair mentoring
+  arrangements, orientation/preparation/confirmation deadlines and onboarding.
+- HAC-09/11: final rubric, judge count, cross-panel comparison and tie rules;
+  final-material requirements/deadline/lock, presenter count, spoken language,
+  timekeeping/overruns, demo-failure fairness and recording/publicity permission.
+  Do not automatically record or publish pitches.
+- HAC-10 and CFG-13: Hackathon national-ID/phone source conflict and any separate
+  external organizer group remain unresolved; no collection or WhatsApp workflow.
+  ORG-039 concerns conference registration and supplies no Hackathon authorization.
+- HAC-11: fees/inclusions, certificate evidence, prizes/budgets/distribution,
+  solo-versus-team award treatment, partners, IP and publicity terms. Only outcome
+  recording is built; admission/workshops and research-supervisor rules stay separate.
+- TMT-01/02: postgraduate eligibility and evidence, participation/presenter limits,
+  required declarations/initial files, qualification/review stages and deadlines,
+  presentation and slide/file limits, final rubric, judge count, ties and
+  certificate/award evidence. No external competition affiliation or imported
+  rules are implied.
+
+Private optional files remain quarantined pending an approved scanning integration
+and file release evidence. The initial PDF/PNG/JPEG and 25 MiB transport bounds are
+technical safety limits, not approved competition file rules. Final event cards
+are distinct from pre-event reviews; panel judges cannot receive those reviews.
+Participant and non-review staff shells are EN/AR; project content, reviewers and
+judges are English/LTR. Scoring outcomes do not distribute awards.
+
+Evidence and remaining gates: [Task n14 receipt](progress/2026-10-24-claude-hackathon-3mt.md)
+and [feature notes](../src/features/competitions/README.md).

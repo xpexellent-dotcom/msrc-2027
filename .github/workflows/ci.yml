@@ -334,6 +334,14 @@ jobs:
         env:
           ABSTRACT_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/abstract-concurrency.test.ts
+      - name: Reset the disposable database for competition proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify competition draft, idempotency and finalist publication races
+        if: ${{ !inputs.auth_stability }}
+        env:
+          COMPETITIONS_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/competition-concurrency.test.ts
       - name: Reset the disposable database for advisory scoring proofs
         if: ${{ !inputs.auth_stability }}
         run: pnpm db:reset
