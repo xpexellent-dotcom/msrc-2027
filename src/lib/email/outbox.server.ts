@@ -8,6 +8,8 @@ import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { siteOrigin } from "@/lib/metadata";
 import { renderParticipantBody } from "./participant-message.server";
 import { announcementTemplate, renderAnnouncementEmail, validAnnouncementPayload } from "./announcement.server";
+import { workshopNoticeTemplate, renderWorkshopNotice, validWorkshopNoticePayload } from "./workshop-message.server";
+import { certificateNoticeTemplate, renderCertificateNotice, validCertificateNoticePayload } from "./certificate-message.server";
 
 export type EmailRequest = Readonly<{
   from: string;
@@ -63,7 +65,7 @@ export const abstractDecisionTemplate = { key: "abstract_decision", version: 1, 
 
 /** ORG-059: registration and abstract wording approvals remain independent of ORG-063. */
 export function isDraftParticipantTemplate(key: string): boolean {
-  return key === abstractDecisionTemplate.key || registrationEmailTemplates.includes(key as RegistrationEmailTemplate);
+  return key === certificateNoticeTemplate.key || key === workshopNoticeTemplate.key || key === abstractDecisionTemplate.key || registrationEmailTemplates.includes(key as RegistrationEmailTemplate);
 }
 
 /** Destinations come only from the current verified Auth identity in the business transaction. */
@@ -189,6 +191,18 @@ function arabicDeadline(value: string): string {
 
 /** Preview participant wording. Existing provider snapshots must never be rewritten. */
 export function renderOutboxMessage(message: OutboxMessage, translations?: ParticipantEmailTranslations): EmailRequest {
+  if (message.template_key === certificateNoticeTemplate.key) {
+    if (message.template_version !== certificateNoticeTemplate.version || message.locale !== "en"
+      || !validOutboxRecipient(message.recipient_email) || !validCertificateNoticePayload(message.payload)) throw new OutboxSendError("template_invalid", false);
+    return renderCertificateNotice(message.payload, message.recipient_email);
+  }
+  if (message.template_key === workshopNoticeTemplate.key) {
+    if (message.template_version !== workshopNoticeTemplate.version || message.locale !== "en"
+      || !validOutboxRecipient(message.recipient_email) || !validWorkshopNoticePayload(message.payload)) {
+      throw new OutboxSendError("template_invalid", false);
+    }
+    return renderWorkshopNotice(message.payload, message.recipient_email);
+  }
   if (message.template_key === announcementTemplate.key) {
     if (message.template_version !== announcementTemplate.version || message.locale !== "en"
       || !validOutboxRecipient(message.recipient_email) || !validAnnouncementPayload(message.payload)) {

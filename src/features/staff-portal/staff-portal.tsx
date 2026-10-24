@@ -30,6 +30,8 @@ import { ContentEditorPanel } from "./content-editor-panel";
 import { ReviewPanel } from "./research-panel";
 import { ScienceWorkspace } from "./science-workspace";
 import { AnnouncementsPanel } from "@/features/announcements/staff-panel";
+import { CertificateStaffPanel } from "@/components/certificates/staff-panel";
+import { WorkshopStaffPanel } from "@/features/workshops/staff-panel";
 
 const areaFailures = new Set(["area-not-ready", "unavailable", "denied"]);
 const errors = new Set(["area-not-ready", "offer-window-not-set", "closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required", "capacity-not-set", "payment-configuration-required", "capacity-below-held", "enable-not-allowed-here", "operation-conflict"]);
@@ -82,7 +84,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
   const fetchArea: StaffArea | undefined = area ?? (screen === "home" && !landing ? "summary" : undefined);
   const passwordChangeAvailable = view.passwordChangeAvailable ?? initialPasswordChangeAvailable;
   const profile = view.profile ?? null, menu = profile ? staffMenu(profile.roles, { passwordChangeAvailable }) : [];
-  const permitted = screen === "security" ? passwordChangeAvailable && !!profile && canChangeOwnPassword(profile.roles) : screen === "announcements" ? !!profile?.roles.includes("superAdmin") : landing ? menu.some((entry) => entry.key === landing) : !area || menu.some((entry) => entry.key === area);
+  const permitted = screen === "security" ? passwordChangeAvailable && !!profile && canChangeOwnPassword(profile.roles) : screen === "certificates" ? !!profile?.roles.some((role) => role === "superAdmin" || role === "registrationWorkshopAdministrator") : screen === "announcements" ? !!profile?.roles.includes("superAdmin") : screen === "workshops" ? !!profile?.roles.some((role) => role !== "participant") : landing ? menu.some((entry) => entry.key === landing) : !area || menu.some((entry) => entry.key === area);
   const enrollment = view.enrollment ?? draft.enrollment;
   const verification = view.state === "pending-email" || view.state === "pending-totp" || view.state === "enroll-totp";
   const language = locale === "en" ? "ar" : "en";
@@ -209,7 +211,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
   const message = signOutFailure ? copy.signOutFailed : decidedText && !errors.has(outcome) && !(outcome in copy.errors) ? decidedText : passwordReentry && outcome === "unavailable" ? copy.passwordChangeUnknown : outcome === "identity-unavailable" ? copy.identityPending : outcome in copy.states ? copy.states[outcome as keyof typeof copy.states] : outcome in copy.errors ? copy.errors[outcome as keyof typeof copy.errors] : "";
   const acceptedInvitation = screen === "accept-invitation" && view.state === "accepted" && !profile;
   const landingTitle = landing ? (landing === "review" || landing === "faculty-judging" ? consoleCopy.en : consoleCopy[locale]).landing.areas[landing].title : null;
-  const title = passwordReentry ? copy.security : verification ? view.state === "pending-email" ? copy.emailStep : view.state === "enroll-totp" ? copy.enroll : copy.totpStep : screen === "accept-invitation" && !profile ? copy.accept : !profile ? copy.signIn : landingTitle ? landingTitle : screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? copy.home : screen === "registration" || screen === "priority" || screen === "early-access" || screen === "registration-settings" || screen === "email-previews" || screen === "check-in" || screen === "launch-readiness" || screen === "announcements" ? copy.areas[screen] : copy[screen];
+  const title = passwordReentry ? copy.security : verification ? view.state === "pending-email" ? copy.emailStep : view.state === "enroll-totp" ? copy.enroll : copy.totpStep : screen === "accept-invitation" && !profile ? copy.accept : !profile ? copy.signIn : landingTitle ? landingTitle : screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? copy.home : screen === "registration" || screen === "priority" || screen === "early-access" || screen === "registration-settings" || screen === "email-previews" || screen === "check-in" || screen === "launch-readiness" || screen === "announcements" || screen === "workshops" || screen === "certificates" ? copy.areas[screen] : copy[screen];
   const inConsole = !!profile && !verification && !passwordReentry && !acceptedInvitation;
   const current: StaffMenuKey | "home" = landing ?? (screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? "home" : screen);
   const heading = <div className="staff-heading"><p className="eyebrow">{copy.private}</p><h1 tabIndex={-1}>{title}</h1>{profile ? <><p className="staff-name" data-testid="staff-name"><bdi>{profile.name}</bdi></p>{view.state === "authenticated" && !verification && profile.roles.length > 0 ? <><p data-testid="staff-current-roles">{copy.yourRoles}: {profile.roles.map((role) => copy.roleLabels[role]).join(locale === "ar" ? "، " : ", ")}</p><p data-testid="staff-action-summary">{staffActionSummary(locale, profile.roles, { passwordChangeAvailable })}</p></> : null}<div className="staff-actions"><Link href={`/${locale}/staff`}>{copy.home}</Link><Button variant="secondary" size="small" disabled={busy} onClick={() => void act({ action: "logout" })}>{copy.signOut}</Button></div></> : null}</div>;
@@ -227,6 +229,8 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
     {profile && permitted && screen === "launch-readiness" ? <LaunchReadinessPanel locale={locale} data={view.launchReadiness} areaFailure={!!view.areaFailure} /> : null}
     {profile && permitted && screen === "email-previews" ? <EmailPreviewsPanel locale={locale} previews={view.emailPreviews} /> : null}
     {profile && permitted && screen === "announcements" ? <AnnouncementsPanel locale={locale} /> : null}
+    {profile && permitted && screen === "certificates" ? <CertificateStaffPanel locale={locale} roles={profile.roles} /> : null}
+    {profile && permitted && screen === "workshops" ? <WorkshopStaffPanel locale={locale} roles={profile.roles} /> : null}
     {profile && permitted && screen === "check-in" && view.checkIn ? <CheckInPanel locale={locale} data={view.checkIn} busy={busy} canUndo={profile.roles.includes("superAdmin")} act={act} /> : null}
     {profile && permitted && screen === "registration-settings" ? <RegistrationSettingsPanel locale={locale} data={view.registrationSettings} areaFailure={view.areaFailure} busy={busy} act={act} onResult={setDecidedText} /> : null}
     {profile && permitted && screen === "people" ? <>

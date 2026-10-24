@@ -5,6 +5,8 @@ import type { OutboxDatabaseConfig } from "./outbox-store.server";
 import type { OutboxSummary } from "./outbox.server";
 import type { ConfirmationMaintenanceResult } from "./registration-confirmation.server";
 import type { AnnouncementMaintenanceResult } from "./announcements.server";
+import type { WorkshopMaintenanceResult } from "./workshops.server";
+import type { CertificateGenerationResult } from "@/features/certificates/generation.server";
 
 type Environment = Readonly<Record<string, string | undefined>>;
 export type OutboxRunConfig = OutboxDatabaseConfig & { sender: "console" | "resend"; resendKey?: string;
@@ -49,8 +51,10 @@ export function validOutboxSecret(authorization: string | null, secret: string |
   return matches && typeof secret === "string" && secret.length >= 32 && secret.length <= 256 && /^[A-Za-z0-9_-]+$/.test(secret);
 }
 
-export function createOutboxDrainHandler({ env, run, maintainConfirmations, maintainAnnouncements }: { env: Environment;
+export function createOutboxDrainHandler({ env, run, maintainConfirmations, maintainAnnouncements, maintainWorkshops, generateCertificates }: { env: Environment;
   run: (config: OutboxRunConfig) => Promise<OutboxSummary>;
+  generateCertificates?: (config: OutboxRunConfig) => Promise<CertificateGenerationResult>;
+  maintainWorkshops?: (config: OutboxRunConfig, editionKey: string) => Promise<WorkshopMaintenanceResult>;
   maintainAnnouncements?: (config: OutboxRunConfig, editionKey: string) => Promise<AnnouncementMaintenanceResult>;
   maintainConfirmations?: (config: OutboxRunConfig, editionKey: string) => Promise<ConfirmationMaintenanceResult> }) {
   return async (request: Request): Promise<Response> => {
@@ -67,11 +71,15 @@ export function createOutboxDrainHandler({ env, run, maintainConfirmations, main
         ? await maintainConfirmations(config, env.PARTICIPANT_EDITION_KEY ?? "") : undefined;
       const announcements = maintainAnnouncements && config.dailyCap > 0 && env.PARTICIPANT_ACCOUNTS_ENABLED === "true"
         ? await maintainAnnouncements(config, env.STAFF_EDITION_KEY ?? env.PARTICIPANT_EDITION_KEY ?? "") : undefined;
+      const workshops = maintainWorkshops && env.WORKSHOP_BOOKING_ENABLED === "true" && env.PARTICIPANT_ACCOUNTS_ENABLED === "true"
+        ? await maintainWorkshops(config, env.PARTICIPANT_EDITION_KEY ?? "") : undefined;
+      const certificates = generateCertificates && env.CERTIFICATES_ENABLED === "true" && env.PARTICIPANT_ACCOUNTS_ENABLED === "true"
+        ? await generateCertificates(config) : undefined;
       const result = await run(config);
       // Counts only; never reflect request, settings, payloads, destinations, keys or errors.
       return Response.json({ claimed: result.claimed, sent: result.sent, retryable: result.retryable,
         permanent: result.permanent, stale: result.stale, ...(confirmation ? { confirmation } : {}),
-        ...(announcements ? { announcements } : {}) }, { headers });
+        ...(announcements ? { announcements } : {}), ...(workshops ? { workshops } : {}), ...(certificates ? { certificates } : {}) }, { headers });
     } catch { return new Response(null, { status: 503, headers }); }
   };
 }

@@ -1,0 +1,37 @@
+-- ENG-074. Disposable rollback/isolated loopback CI only. Load registration-fixtures.psql first.
+create function pg_temp.workshop_id(n integer) returns uuid language sql immutable as $$
+ select ('f7400000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid;
+$$;
+create function pg_temp.workshop_settings(edition text) returns void language plpgsql as $$begin
+ insert into msrc_workshops.settings(edition_key,enabled,hold_hours,offer_hours,mock_payment_enabled) values(edition,true,7,3,true);
+end$$;
+create function pg_temp.workshop_fixture(edition text,n integer,slot integer default 0,seats integer default 1) returns uuid language plpgsql as $$begin
+ insert into msrc_workshops.workshops(id,edition_key,published,title_en,title_ar,description_en,description_ar,instructor,room,start_at,end_at,capacity,
+ eligibility_en,eligibility_ar,eligibility_rule,price_minor,currency,booking_deadline,transfer_buffer_minutes)
+ values(pg_temp.workshop_id(n),edition,true,'Synthetic workshop '||n,'ورشة تجريبية '||n,'Synthetic description','وصف تجريبي','Synthetic instructor','Synthetic room',
+ timestamptz '2040-01-01 09:00:00+00'+make_interval(hours=>slot),timestamptz '2040-01-01 10:00:00+00'+make_interval(hours=>slot),seats,
+ 'Synthetic confirmed registration','تسجيل مؤكد تجريبي','confirmed_registration',1700,'SAR',timestamptz '2039-12-31 20:00:00+00',0);
+ return pg_temp.workshop_id(n);
+end$$;
+create function pg_temp.workshop_request(edition text,n integer,workshop integer,action text default 'request',operation uuid default gen_random_uuid()) returns jsonb language sql as $$
+ select public.msrc_workshop_participant_mutate(edition,pg_temp.registration_claims(n),jsonb_build_object('action',action,'operationId',operation,'workshopId',pg_temp.workshop_id(workshop)));
+$$;
+create function pg_temp.workshop_booking(edition text,n integer,workshop integer,action text,operation uuid default gen_random_uuid()) returns jsonb language sql as $$
+ select public.msrc_workshop_participant_mutate(edition,pg_temp.registration_claims(n),jsonb_build_object('action',action,'operationId',operation,'bookingId',
+ (select b.id from msrc_workshops.bookings b where b.workshop_id=pg_temp.workshop_id(workshop) and b.actor_id=pg_temp.registration_actor(n))));
+$$;
+create function pg_temp.workshop_staff(edition text,n integer,input jsonb) returns jsonb language plpgsql as $$
+declare previous_claims text:=current_setting('request.jwt.claims',true);result jsonb;begin
+ perform set_config('request.jwt.claims',pg_temp.registration_claims(n)::text,true);
+ result:=public.msrc_staff_workshop_mutate(edition,input||jsonb_build_object('operationId',coalesce(input->>'operationId',gen_random_uuid()::text)));
+ perform set_config('request.jwt.claims',coalesce(previous_claims,''),true);return result;
+end$$;
+create function pg_temp.workshop_staff_booking(edition text,n integer,actor integer,workshop integer,action text,extra jsonb default '{}'::jsonb) returns jsonb language sql as $$
+ select pg_temp.workshop_staff(edition,n,extra||jsonb_build_object('action',action,'bookingId',
+ (select b.id from msrc_workshops.bookings b where b.workshop_id=pg_temp.workshop_id(workshop) and b.actor_id=pg_temp.registration_actor(actor))));
+$$;
+create function pg_temp.workshop_edit(edition text,n integer,workshop integer,patch jsonb,reason text default 'Synthetic workshop edit') returns jsonb language sql as $$
+ select pg_temp.workshop_staff(edition,n,jsonb_build_object('action','save_workshop','reason',reason,'workshop',
+ (msrc_workshops.workshop_projection(w)-array['removed','remaining','ready'])||jsonb_build_object('instructorActorId',w.instructor_actor_id)||patch))
+ from msrc_workshops.workshops w where w.id=pg_temp.workshop_id(workshop) and w.edition_key=edition;
+$$;

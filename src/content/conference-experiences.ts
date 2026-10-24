@@ -44,6 +44,7 @@ export type PublicWorkshop = Readonly<{
   instructorSlugs: readonly string[]; startAt: string | null; endAt: string | null;
   room: string | null; eligibility: LocalizedText | null; priceLabel: LocalizedText | null;
   capacity: number | null; remainingSeats: number | null; bookingDeadline: string | null;
+  instructor?: string | null; transferBufferMinutes?: number | null; bookingAvailable?: boolean;
 }>;
 
 export function published<T extends { publication: "approved" | "draft" }>(records: readonly T[]): T[] {

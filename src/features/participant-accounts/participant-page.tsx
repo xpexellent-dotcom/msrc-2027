@@ -4,11 +4,12 @@ import { Link } from "@/components/ui/link";
 import type { Locale } from "@/lib/i18n";
 import type { ParticipantPageState } from "./contracts";
 import type { ParticipantAnnouncementsResponse } from "@/features/announcements/participant-contracts";
+import type { WorkshopParticipantResponse } from "@/features/workshops/participant-contracts";
 import { ParticipantAccountForm } from "./participant-form";
 import { participantCopy, type ParticipantScreen } from "./participant-copy";
 import "@/styles/participant-accounts.css";
 
-export function ParticipantAccountPage({ locale, screen, state, announcements }: { locale: Locale; screen: ParticipantScreen; state: ParticipantPageState; announcements?: ParticipantAnnouncementsResponse }) {
+export function ParticipantAccountPage({ locale, screen, state, announcements, workshopBookings }: { locale: Locale; screen: ParticipantScreen; state: ParticipantPageState; announcements?: ParticipantAnnouncementsResponse; workshopBookings?: WorkshopParticipantResponse }) {
   const copy = participantCopy[locale];
   if (!state.enabled) return <Container className="participant-account-page" narrow>
     <header className="participant-account-intro">
@@ -32,6 +33,6 @@ export function ParticipantAccountPage({ locale, screen, state, announcements }:
       <h1>{copy.titles[screen]}</h1>
       <p>{copy.leads[screen]}</p>
     </header>
-    <ParticipantAccountForm locale={locale} screen={screen} initialState={state} initialAnnouncements={announcements} registrationAvailable={process.env.REGISTRATION_ENABLED === "true"} abstractsAvailable={process.env.ABSTRACT_SUBMISSIONS_ENABLED === "true"} />
+    <ParticipantAccountForm locale={locale} screen={screen} initialState={state} initialAnnouncements={announcements} initialWorkshopBookings={workshopBookings} certificatesAvailable={process.env.CERTIFICATES_ENABLED === "true"} workshopsAvailable={process.env.WORKSHOP_BOOKING_ENABLED === "true"} registrationAvailable={process.env.REGISTRATION_ENABLED === "true"} abstractsAvailable={process.env.ABSTRACT_SUBMISSIONS_ENABLED === "true"} />
   </Container>;
 }

@@ -9,6 +9,8 @@ import { myRegistrationCopy } from "@/features/registration/my-registration-copy
 import { abstractCopy } from "@/features/submissions/copy";
 import { ParticipantInbox } from "@/features/announcements/participant-inbox";
 import type { ParticipantAnnouncementsResponse } from "@/features/announcements/participant-contracts";
+import { MyWorkshopBookings } from "@/features/workshops/my-bookings";
+import type { WorkshopParticipantResponse } from "@/features/workshops/participant-contracts";
 import type { Locale } from "@/lib/i18n";
 import type { ParticipantAction, ParticipantField, ParticipantPageState, ParticipantPayload, ParticipantProfile, ParticipantResponse, ParticipantState } from "./contracts";
 import { participantCopy, type ParticipantScreen } from "./participant-copy";
@@ -24,7 +26,7 @@ function formattedTime(value: number, locale: Locale) {
   return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { hour: "numeric", minute: "2-digit", second: "2-digit", timeZone: "Asia/Riyadh" }).format(value);
 }
 
-export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false, abstractsAvailable = false, initialAnnouncements }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean; abstractsAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse }) {
+export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false, abstractsAvailable = false, workshopsAvailable = false, certificatesAvailable = false, initialAnnouncements, initialWorkshopBookings }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean; abstractsAvailable?: boolean; workshopsAvailable?: boolean; certificatesAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse; initialWorkshopBookings?: WorkshopParticipantResponse }) {
   const copy = participantCopy[locale];
   const draft = useParticipantDraft();
   // A completion can land in the prior locale's unmounted form. Observe its
@@ -167,8 +169,10 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
         </dl>
         {registrationAvailable ? <ButtonLink href={`/${locale}/registration`} variant="secondary">{myRegistrationCopy[locale].title}</ButtonLink>
           : <p className="participant-account-registration" data-testid="participant-registration-closed">{copy.registrationClosed}</p>}
+        {certificatesAvailable ? <ButtonLink href={`/${locale}/my-msrc/certificates`} variant="secondary">{locale === "ar" ? "الاستبيانات والشهادات" : "Surveys and certificates"}</ButtonLink> : null}
         {abstractsAvailable ? <ButtonLink href={`/${locale}/abstracts`} variant="secondary">{abstractCopy[locale].title}</ButtonLink> : null}
         {!draft.pending ? <ParticipantInbox locale={locale} initialState={initialAnnouncements} /> : null}
+        {!draft.pending && workshopsAvailable ? <MyWorkshopBookings locale={locale} initialState={initialWorkshopBookings} /> : null}
         <div className="participant-account-actions"><Button variant="secondary" disabled={disabled} onClick={() => void handleAction("logout", false)}>{copy.signOut}</Button></div>
       </> : availability === "ready" ? <p data-testid="participant-signin-required">{copy.needSignIn}</p> : null}
     </> : signedIn ? <ButtonLink className="participant-account-primary-next" href={`/${locale}/${registrationAvailable ? "registration" : "my-msrc"}`}>{registrationAvailable ? myRegistrationCopy[locale].title : copy.links["my-msrc"]}</ButtonLink>

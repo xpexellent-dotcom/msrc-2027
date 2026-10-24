@@ -28,6 +28,7 @@ const purposes: readonly {
   { operation: "judging.material.read", kind: "eventMaterial", roles: ["facultyJudge"], projection: "assignedEventMaterial", audit: null },
   { operation: "judging.score.write", kind: "eventScore", roles: ["facultyJudge"], projection: "ownEventScore", audit: "judging.score" },
   { operation: "operations.registration.manage", kind: "registrationOperation", roles: ["registrationWorkshopAdministrator"], projection: "registrationMinimum", audit: "registration.change" },
+  { operation: "operations.workshop.read", kind: "workshopOperation", roles: ["registrationWorkshopAdministrator", "checkInStaff"], projection: "entryMinimum", audit: null },
   { operation: "finance.reconciliation.read", kind: "financeRecord", roles: ["finance"], projection: "financeMinimum", audit: null },
   { operation: "checkIn.entitlement.read", kind: "entryEntitlement", roles: ["checkInStaff"], projection: "entryMinimum", audit: null },
   { operation: "content.draft.manage", kind: "contentDraft", roles: ["contentMediaEditor"], projection: "assignedPublicDraft", audit: "content.draft" },
@@ -67,7 +68,7 @@ function fixture(operation: Operation = "review.packet.read", role: Role = "abst
         staffEmailVerified: role !== "superAdmin" && role !== "participant" },
     },
     resource,
-    grants: [{ actorId: principal.userId, editionId: resource.editionId, role, state: "active", scope: operation === "media.library.manage" ? { kind: "edition" } : { kind: "resource", resourceId: resource.id } }],
+    grants: [{ actorId: principal.userId, editionId: resource.editionId, role, state: "active", scope: ["media.library.manage", "operations.workshop.read"].includes(operation) ? { kind: "edition" } : { kind: "resource", resourceId: resource.id } }],
     assignments: [{
       id: "synthetic-assignment-a", actorId: principal.userId, editionId: resource.editionId,
       resourceId: resource.id, kind: assignmentKind, track, trackId: resource.trackId!, state: "active", conflicted: false,
@@ -242,6 +243,27 @@ describe("current identity, assurance and revocation (ROL-12, SEC-01/02)", () =>
 });
 
 describe("bounded edition, track, duty, resource and assignment grants", () => {
+  it.each(["registrationWorkshopAdministrator", "checkInStaff"] as const)("requires an active edition grant and minimal workshop projection for %s (WKS-01, CHK-03)", async (role) => {
+    const operation = "operations.workshop.read", current = fixture(operation, role);
+    expect(await decision(current, operation)).toEqual({ allowed: true, operation, projection: "entryMinimum", auditRequirement: null });
+    for (const scope of [
+      { kind: "resource", resourceId: current.resource!.id },
+      { kind: "function", functionId: current.resource!.functionId! },
+      { kind: "track", track: "research", trackId: current.resource!.trackId! },
+      { kind: "assignment", assignmentId: current.assignments[0].id },
+    ] as const) expectDenied(await decision(scoped(current, scope), operation));
+    expectDenied(await decision({ ...current, grants: current.grants.map((grant) => ({ ...grant, editionId: "synthetic-other-edition" })) }, operation));
+    expectDenied(await decision({ ...current, grants: current.grants.map((grant) => ({ ...grant, state: "revoked" })) }, operation));
+    expectDenied(await decision({ ...current, actor: { ...current.actor!, session: { ...current.actor!.session, staffEmailVerified: false } } }, operation));
+  });
+
+  it("does not turn workshop read access into conference approval authority for check-in staff", async () => {
+    const reader = fixture("operations.workshop.read", "checkInStaff");
+    expect(await decision(reader, "operations.workshop.read")).toMatchObject({ allowed: true, projection: "entryMinimum" });
+    expectDenied(await decision(resourcePatch(reader, { kind: "registrationOperation" }), "operations.registration.manage"));
+    expectDenied(await decision(resourcePatch(reader, { kind: "securityAdministration" }), "security.grant.manage"));
+  });
+
   it.each(["contentMediaEditor", "superAdmin"] as const)("requires a current edition grant for %s media management", async (role) => {
     const operation = "media.library.manage", current = fixture(operation, role);
     expect(await decision(current, operation)).toEqual({ allowed: true, operation, projection: "mediaMetadata", auditRequirement: "media.change" });

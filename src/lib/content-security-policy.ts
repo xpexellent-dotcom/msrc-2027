@@ -31,7 +31,7 @@ export function decodedPagePath(pathname: string): string {
 }
 
 export function isPrivatePage(pathname: string): boolean {
-  return /^\/(en|ar)\/(staff|reviewer|judge|entries|sign-in|sign-up|verify-email|forgot-password|reset-password|my-msrc|registration|abstracts|staff-security-preview)(?:\/|$)/.test(decodedPagePath(pathname));
+  return /^\/(en|ar)\/(staff|reviewer|judge|entries|sign-in|sign-up|verify-email|forgot-password|reset-password|my-msrc|registration|abstracts|certificates|staff-security-preview)(?:\/|$)/.test(decodedPagePath(pathname));
 }
 
 export function isCompetitionEntryPage(pathname: string): boolean { return /^\/(en|ar)\/entries\/?$/.test(decodedPagePath(pathname)); }

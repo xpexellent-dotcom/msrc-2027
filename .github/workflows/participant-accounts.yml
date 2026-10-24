@@ -59,6 +59,8 @@ jobs:
           path: |
             test-results/
             playwright-report/
+            .tools/workshops/
+          include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7
   native:

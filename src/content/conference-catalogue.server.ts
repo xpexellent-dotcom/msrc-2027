@@ -15,7 +15,7 @@ export const conferenceSpeakers: readonly PublicSpeaker[] = [];
 export const conferenceMedia: readonly PublicMedia[] = editionMedia;
 export const conferenceWorkshops: readonly PublicWorkshop[] = [];
 
-/** Workshop booking/catalogue content is outside the edited programme collections. */
+/** Static unannounced fallback; WorkshopRail reads live safe allocations separately. */
 export function getPublicWorkshops() { return published(conferenceWorkshops); }
 
 export async function getPublicConferenceCatalogue(locale: Locale = "en") {
