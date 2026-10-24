@@ -1,5 +1,17 @@
 # Durable email outbox and job foundation
 
+Announcement release extension (24 October 2026, ORG-063/ENG-072): announcements
+have a separate private, default-off, audited Super Admin layout approval. Newly
+published approved messages receive immutable SQL release proof; old held messages
+stay held. An audited, idempotent self-test sends only to the acting Super Admin's
+current verified address, at most three per rolling hour across editions, without
+recipient or inbox rows. It can preview the layout before approval, using the same
+bilingual renderer and Resend transport. Both approved announcements and self-tests
+still require the global runtime, database delivery/cap/sweep and production
+Resend gates. No settings or flags are activated. Registration and abstract
+compositions below remain DRAFT. See [ANNOUNCEMENTS](ANNOUNCEMENTS.md) and
+[the release receipt](../progress/2026-10-24-claude-announcement-release.md).
+
 Current extension (23 October 2026, ORG-059/ENG-067): all eight registration
 templates and abstract decision outcomes render a brand-art PNG banner, complete
 English text, a divider and complete Arabic text. Subjects include both languages;

@@ -12,7 +12,7 @@ function message(change: Partial<OutboxMessage> = {}): OutboxMessage {
     provider_request: null, first_attempt_at: "2026-10-23T16:00:00Z", ...change };
 }
 
-describe("DRAFT bilingual announcement renderer", () => {
+describe("bilingual announcement renderer governed by private layout approval", () => {
   it("uses the shared approved banner and complete English before Arabic", () => {
     const rendered = renderOutboxMessage(message());
     expect(rendered.subject).toBe("Conference update | مستجدات المؤتمر");
@@ -25,6 +25,7 @@ describe("DRAFT bilingual announcement renderer", () => {
     expect(rendered.html).not.toMatch(/unsubscribe|tracking|<script|<iframe|@font-face/i);
     expect(rendered).not.toHaveProperty("bcc");
     expect(rendered).not.toHaveProperty("attachments");
+    expect(rendered.subject + rendered.text + rendered.html).not.toContain("DRAFT");
     expect(rendered).toEqual(renderAnnouncementEmail(payload, "participant@example.invalid"));
   });
 

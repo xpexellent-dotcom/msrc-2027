@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
 import { formatStaffDate, formatStaffNumber } from "@/features/staff-portal/console-shell";
-import { decodeAnnouncementFields, type Announcement, type AnnouncementFields, type AnnouncementPayload, type AnnouncementPreview, type AnnouncementResponse, type AnnouncementSegment } from "./contracts";
+import { announcementDeliveryReady, decodeAnnouncementFields, type Announcement, type AnnouncementDelivery, type AnnouncementFields, type AnnouncementPayload, type AnnouncementPreview, type AnnouncementResponse, type AnnouncementSegment } from "./contracts";
 import { announcementCopy } from "./staff-copy";
 import { requestAnnouncements } from "./staff-client";
 
@@ -27,6 +27,15 @@ function Confirmation({ locale, preview, scheduledAt, cancel, busy, error, onClo
   </dialog>;
 }
 
+function LayoutConfirmation({ locale, approved, busy, error, onClose, onConfirm }: { locale: Locale; approved: boolean; busy: boolean; error: string; onClose: () => void; onConfirm: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null), text = announcementCopy[locale];
+  useEffect(() => { const element = dialog.current; element?.showModal(); return () => element?.close(); }, []);
+  return <dialog ref={dialog} className="staff-content-confirmation staff-announcement-confirm" aria-labelledby="announcement-layout-title" aria-describedby="announcement-layout-description" onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}>
+    <h3 id="announcement-layout-title">{text.approvalTitle}</h3><p id="announcement-layout-description">{text.approvalHint}</p>{error ? <p role="alert">{error}</p> : null}
+    <div className="staff-actions"><Button disabled={busy} onClick={onConfirm}>{approved ? text.revokeLayout : text.approveLayout}</Button><Button variant="secondary" disabled={busy} onClick={onClose}>{text.close}</Button></div>
+  </dialog>;
+}
+
 /** Same structured preview frame as the existing email previews; authored text is React-escaped. */
 function LiveEmail({ locale, fields, rendered }: { locale: Locale; fields: AnnouncementFields; rendered?: AnnouncementResponse["rendered"] }) {
   const text = announcementCopy[locale];
@@ -46,6 +55,8 @@ export function AnnouncementsPanel({ locale }: { locale: Locale }) {
   const [selected, setSelected] = useState<Announcement | null>(null), [fields, setFields] = useState<AnnouncementFields>(empty), [busy, setBusy] = useState(false), [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(""), [success, setSuccess] = useState(""), [preview, setPreview] = useState<AnnouncementPreview | null>(null), [confirm, setConfirm] = useState<"send" | "cancel" | null>(null);
   const [scheduledAt, setScheduledAt] = useState(""), [rendered, setRendered] = useState<AnnouncementResponse["rendered"]>();
+  const [delivery, setDelivery] = useState<AnnouncementDelivery>(), [approve, setApprove] = useState(false);
+  const testOperation = useRef<string | null>(null), approvalOperation = useRef<string | null>(null);
   const token = useRef<string | undefined>(undefined), operation = useRef<string | null>(null), lock = useRef(false), alive = useRef(true), heading = useRef<HTMLHeadingElement>(null);
   const dirty = JSON.stringify(fields) !== JSON.stringify(selected ? fieldsOf(selected) : empty()), editable = !selected || selected.state === "draft" || selected.state === "scheduled";
   const valid = !!decodeAnnouncementFields(fields);
@@ -53,7 +64,7 @@ export function AnnouncementsPanel({ locale }: { locale: Locale }) {
     const response = await requestAnnouncements(undefined, signal);
     if (signal?.aborted || !alive.current) return;
     if (response.formToken) token.current = response.formToken;
-    if (response.state === "ready") { setRows(response.announcements ?? []); setSegments(response.segments ?? []); setError(""); }
+    if (response.state === "ready") { setRows(response.announcements ?? []); setSegments(response.segments ?? []); setDelivery(response.delivery); setError(""); }
     else setError(message(response, locale));
     setLoaded(true);
   }, [locale]);
@@ -66,23 +77,26 @@ export function AnnouncementsPanel({ locale }: { locale: Locale }) {
     }, 350);
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [fields, valid, loaded]);
-  function change<K extends keyof AnnouncementFields>(key: K, value: AnnouncementFields[K]) { setFields((previous) => ({ ...previous, [key]: value })); setPreview(null); operation.current = null; setSuccess(""); }
+  function change<K extends keyof AnnouncementFields>(key: K, value: AnnouncementFields[K]) { setFields((previous) => ({ ...previous, [key]: value })); setPreview(null); operation.current = null; testOperation.current = null; setSuccess(""); }
   function open(row: Announcement | null) {
     setSelected(row); setFields(row ? fieldsOf(row) : empty()); setScheduledAt(row?.scheduledAt ? new Date(Date.parse(row.scheduledAt) + 3 * 3600000).toISOString().slice(0, 16) : "");
-    setPreview(null); setConfirm(null); operation.current = null; setError(""); setSuccess(""); heading.current?.focus();
+    setPreview(null); setConfirm(null); operation.current = null; testOperation.current = null; setError(""); setSuccess(""); heading.current?.focus();
   }
-  async function act(payload: AnnouncementPayload, kind: "save" | "preview" | "send" | "cancel") {
+  async function act(payload: AnnouncementPayload, kind: "save" | "preview" | "send" | "cancel" | "test-send" | "layout-approval") {
     if (lock.current || !token.current) return;
     lock.current = true; setBusy(true); setError(""); setSuccess("");
     try {
       const response = await requestAnnouncements({ ...payload, formToken: token.current });
       if (!alive.current) return;
       if (response.formToken) token.current = response.formToken;
-      if (response.state !== "ready" && response.state !== "updated") {
+      if (response.state !== "ready" && response.state !== "updated" && response.state !== "queued") {
         setError(message(response, locale));
-        if (["conflict", "audience-changed"].includes(response.state)) { setPreview(null); setConfirm(null); operation.current = null; }
+        if (["conflict", "audience-changed"].includes(response.state)) { setPreview(null); setConfirm(null); operation.current = null; testOperation.current = null; }
         return;
       }
+      if (response.delivery) setDelivery(response.delivery);
+      if (kind === "test-send") { testOperation.current = null; setSuccess(announcementDeliveryReady(delivery) ? text.testQueued : text.testQueuedOff); return; }
+      if (kind === "layout-approval") { approvalOperation.current = null; setApprove(false); setSuccess(text.approvalSaved); return; }
       if (response.announcement) { const row = response.announcement; setSelected(row); setFields(fieldsOf(row)); setRows((previous) => [row, ...previous.filter((item) => item.id !== row.id)]); if (kind === "save" && selected?.state === "scheduled") setScheduledAt(""); }
       if (kind === "preview" && response.preview) { setPreview(response.preview); operation.current = crypto.randomUUID(); setConfirm("send"); }
       else { setPreview(null); setConfirm(null); operation.current = null; setSuccess(kind === "save" ? text.saved : kind === "cancel" ? text.cancelled : scheduledAt ? text.scheduled : text.queued); }
@@ -90,6 +104,10 @@ export function AnnouncementsPanel({ locale }: { locale: Locale }) {
   }
   return <div className="staff-announcements">
     <section className="staff-panel"><p>{text.intro}</p><p className="staff-note">{text.draftNote}</p></section>
+    {delivery ? <section className="staff-panel" aria-labelledby="announcement-delivery-title"><h2 id="announcement-delivery-title">{text.deliveryTitle}</h2>
+      <p>{delivery.layoutApproved ? text.layoutApproved : text.layoutPending}</p><p className="staff-note" data-testid="announcement-delivery-status">{announcementDeliveryReady(delivery) ? text.deliveryOn : text.deliveryOff}</p>
+      <Button variant="secondary" disabled={busy} onClick={() => { approvalOperation.current = crypto.randomUUID(); setError(""); setApprove(true); }}>{delivery.layoutApproved ? text.revokeLayout : text.approveLayout}</Button>
+    </section> : null}
     <div role="status" aria-live="polite">{success}</div>{error ? <p role="alert" className="staff-note">{error}</p> : null}
     {!loaded ? <p role="status">{text.loading}</p> : <>
       <section className="staff-panel" aria-labelledby="announcement-compose-title"><div className="staff-detail-head"><h2 ref={heading} tabIndex={-1} id="announcement-compose-title">{text.compose}</h2><Button variant="secondary" disabled={busy} onClick={() => open(null)}>{text.newDraft}</Button></div>
@@ -104,7 +122,9 @@ export function AnnouncementsPanel({ locale }: { locale: Locale }) {
           </fieldset>
           {dirty && editable ? <p className="staff-muted">{text.unsaved}</p> : null}{editable ? <Button type="submit" disabled={busy || !valid || !dirty && selected?.state !== "scheduled" && !selected?.lastError}>{text.save}</Button> : null}
         </form>
-        {selected && editable ? <div className="staff-announcement-send"><div className="field"><label className="field-label" htmlFor="announcement-schedule">{text.schedule}</label><input id="announcement-schedule" className="field-input" type="datetime-local" dir="ltr" disabled={busy} value={scheduledAt} onChange={(event) => { setScheduledAt(event.target.value); setConfirm(null); operation.current = null; }} aria-describedby="announcement-schedule-hint" /><p id="announcement-schedule-hint" className="staff-muted">{text.scheduleHint}</p></div><div className="staff-actions"><Button disabled={busy || dirty || selected.state !== "draft"} onClick={() => void act({ action: "preview", announcementId: selected.id, version: selected.version }, "preview")}>{text.preview}</Button><Button variant="secondary" disabled={busy} onClick={() => { operation.current = crypto.randomUUID(); setConfirm("cancel"); }}>{text.cancel}</Button></div></div> : null}
+        {selected && editable ? <div className="staff-announcement-send"><div className="field"><label className="field-label" htmlFor="announcement-schedule">{text.schedule}</label><input id="announcement-schedule" className="field-input" type="datetime-local" dir="ltr" disabled={busy} value={scheduledAt} onChange={(event) => { setScheduledAt(event.target.value); setConfirm(null); operation.current = null; }} aria-describedby="announcement-schedule-hint" /><p id="announcement-schedule-hint" className="staff-muted">{text.scheduleHint}</p></div><div className="staff-actions"><Button disabled={busy || dirty || selected.state !== "draft"} onClick={() => void act({ action: "preview", announcementId: selected.id, version: selected.version }, "preview")}>{text.preview}</Button><Button variant="secondary" disabled={busy} onClick={() => { operation.current = crypto.randomUUID(); setConfirm("cancel"); }}>{text.cancel}</Button></div>
+          <p id="announcement-test-hint" className="staff-muted">{text.testHint}</p><Button variant="secondary" aria-describedby="announcement-test-hint" disabled={busy || dirty || selected.state !== "draft" || !delivery} onClick={() => void act({ action: "test-send", announcementId: selected.id, version: selected.version, operationId: testOperation.current ?? (testOperation.current = crypto.randomUUID()) }, "test-send")}>{text.testSend}</Button>
+        </div> : null}
       </section>
       <LiveEmail locale={locale} fields={fields} rendered={rendered} />
       <section className="staff-panel" aria-labelledby="announcement-history-title"><div className="staff-detail-head"><h2 id="announcement-history-title">{text.history}</h2><Button variant="secondary" disabled={busy} onClick={() => void load()}>{text.refresh}</Button></div><p className="staff-muted">{text.held}</p>
@@ -120,5 +140,6 @@ export function AnnouncementsPanel({ locale }: { locale: Locale }) {
       if (confirm === "cancel") void act({ action: "cancel", announcementId: selected.id, version: selected.version, operationId, confirmed: true }, "cancel");
       else if (preview) { const instant = scheduledAt ? Date.parse(`${scheduledAt}:00+03:00`) : null; if (instant !== null && !Number.isFinite(instant)) { setError(text.errors.invalid); setConfirm(null); return; } void act({ action: "send", announcementId: selected.id, version: selected.version, operationId, previewToken: preview.previewToken, scheduledAt: instant === null ? null : new Date(instant).toISOString(), confirmed: true }, "send"); }
     }} /> : null}
+    {approve && delivery ? <LayoutConfirmation locale={locale} approved={delivery.layoutApproved} busy={busy} error={error} onClose={() => setApprove(false)} onConfirm={() => void act({ action: "layout-approval", approved: !delivery.layoutApproved, operationId: approvalOperation.current ?? (approvalOperation.current = crypto.randomUUID()), confirmed: true }, "layout-approval")} /> : null}
   </div>;
 }
