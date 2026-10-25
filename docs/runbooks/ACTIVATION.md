@@ -320,6 +320,8 @@ stored ledger export. Missing export/restore proof means NO-GO for accounts.
 
 ### B3. Configure and enable participant accounts
 
+> **Status (25 Oct 2026): opened.** Owner-approved. Supabase: native signup off, Send Email hook to `msrc_participant.suppress_native_email`, minimum password 10, leaked-password protection on, Resend SMTP configured (unused while the hook is active). Database `msrc_participant.policy.enabled=true` (v1.0, cap 1000, 30-day unverified cleanup); Vercel `PARTICIPANT_ACCOUNTS_ENABLED=true`, production redeployed. Owner test: one English and one Arabic alias account each received the code, verified, signed in and out. A staff login email cannot become a participant account, and the generic acknowledgement sends nothing for it.
+
 Confirm native public signup remains disabled, the approved Send Email
 suppression hook works, email/password and email confirmation are correctly
 configured, minimum password length is 10, leaked-password protection is enabled
