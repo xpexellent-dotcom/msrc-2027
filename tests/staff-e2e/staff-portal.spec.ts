@@ -101,6 +101,26 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("button", { name: copy.reveal, exact: true })).toHaveCount(0);
     await expect(page.locator("body")).not.toContainText("SYNTHETIC1234");
     await axe(page); await screenshot(page, `${locale}-participants`, testInfo.project.name);
+    // ENG-083: a participant name opens the read-only detail panel.
+    let detailRequests = 0;
+    await page.route("**/api/staff-portal/participant-detail**", async (route) => {
+      detailRequests += 1;
+      await route.fulfill({ json: { state: "ready", participant: { actorId: participantId, name: "Synthetic Participant", email: "participant@example.invalid", status: "verified",
+        createdAt: "2027-01-01T08:00:00Z", verifiedAt: "2027-01-01T08:05:00Z", lastSignInAt: null, privacyVersion: "v1.0", ageConfirmedAt: "2027-01-01T08:00:00Z",
+        registration: { status: "approved", createdAt: "2027-01-02T08:00:00Z", decidedAt: null, identityMasked: "••••••1234", ticket: null, attendance: [] },
+        workshops: [], submissions: [{ reference: "MSRC-SYN-1", title: "Synthetic abstract", status: "submitted", createdAt: "2027-01-03T08:00:00Z" }],
+        competitions: [], hackathonProfile: null, certificates: [] } } });
+    });
+    await page.getByRole("button", { name: "Synthetic Participant", exact: true }).click();
+    const detail = page.getByTestId("participant-detail");
+    await expect(detail.getByRole("heading", { level: 2 })).toHaveText("Synthetic Participant");
+    await expect(detail).toContainText("participant@example.invalid");
+    await expect(detail).toContainText("MSRC-SYN-1");
+    await expect(detail).not.toContainText("SYNTHETIC1234");
+    expect(detailRequests).toBe(1);
+    await axe(page);
+    await detail.getByRole("button").first().click();
+    await expect(detail).toHaveCount(0);
     const searchesBefore = mock.searches.length;
     await page.getByLabel(copy.searchParticipants).fill("missing");
     expect(mock.searches.length).toBe(searchesBefore);

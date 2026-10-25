@@ -14,7 +14,11 @@ function parseResponse(value: unknown): ParticipantResponse {
   if (typeof record.retryAfterSeconds === "number" && Number.isSafeInteger(record.retryAfterSeconds) && record.retryAfterSeconds > 0) response.retryAfterSeconds = record.retryAfterSeconds;
   if (record.profile && typeof record.profile === "object") {
     const profile = record.profile as Record<string, unknown>;
-    if (typeof profile.name === "string" && profile.accountState === "verified") response.profile = { name: profile.name, accountState: "verified" };
+    if (typeof profile.name === "string" && profile.accountState === "verified") {
+      response.profile = { name: profile.name, accountState: "verified" };
+      if (typeof profile.email === "string") response.profile.email = profile.email;
+      if (typeof profile.createdAt === "string") response.profile.createdAt = profile.createdAt;
+    }
   }
   if (record.fieldErrors && typeof record.fieldErrors === "object") {
     response.fieldErrors = {};
@@ -37,8 +41,21 @@ async function requestResponse(payload?: ParticipantPayload, signal?: AbortSigna
   } catch { return { state: "unavailable" }; }
 }
 
+/** Non-secret hint that lets the site header ask for the session only when one may exist. */
+export const PARTICIPANT_HINT_COOKIE = "msrc-signed-in";
+export function hasParticipantHint() { return typeof document !== "undefined" && document.cookie.split(";").some((part) => part.trim() === PARTICIPANT_HINT_COOKIE + "=1"); }
+export function setParticipantHint(signedIn: boolean) {
+  if (typeof document === "undefined") return;
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = signedIn ? `${PARTICIPANT_HINT_COOKIE}=1; Path=/; Max-Age=28800; SameSite=Strict${secure}` : `${PARTICIPANT_HINT_COOKIE}=; Path=/; Max-Age=0; SameSite=Strict${secure}`;
+  window.dispatchEvent(new Event("msrc-participant-hint"));
+}
+
 export async function requestAccount(payload?: ParticipantPayload, signal?: AbortSignal) {
   const response = await requestResponse(payload, signal);
+  // Keep the header hint in step with what the server reports about this session.
+  if (response.profile) setParticipantHint(true);
+  else if (response.state === "signed_out" || response.state === "closed" || (!payload && response.state === "ready")) setParticipantHint(false);
   return { response, receivedAt: Date.now() };
 }
 

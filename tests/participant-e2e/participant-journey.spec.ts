@@ -90,6 +90,8 @@ async function credentials(page: Page) {
   await expect(page.locator("#participant-email")).toBeEnabled();
   await page.locator("#participant-email").fill("synthetic@example.invalid");
   await page.locator("#participant-password").fill(password);
+  // ENG-083: sign-up also asks to confirm the password.
+  if (await page.locator("#participant-confirmPassword").count()) await page.locator("#participant-confirmPassword").fill(password);
 }
 
 for (const locale of ["en", "ar"] as const) {
@@ -99,7 +101,7 @@ for (const locale of ["en", "ar"] as const) {
     const mock = await accountJourney(page);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/sign-up`);
-    await expect(page.locator("#participant-name")).toBeEnabled();
+    await expect(page.locator("#participant-firstName")).toBeEnabled();
     await expect(page.getByTestId("participant-privacy-version")).toHaveAttribute("dir", "ltr");
     await capture(page, locale, testInfo.project.name, "01-signup");
     const create = page.getByRole("button", { name: copy.create, exact: true });
@@ -115,7 +117,7 @@ for (const locale of ["en", "ar"] as const) {
     await emailError.focus(); await page.keyboard.press("Enter");
     await expect(page.locator("#participant-email")).toBeFocused();
     expect(await page.locator("#participant-email").evaluate((element) => parseFloat(getComputedStyle(element).outlineWidth))).toBeGreaterThanOrEqual(2);
-    await page.locator("#participant-name").fill("Synthetic Participant");
+    await page.locator("#participant-firstName").fill("Synthetic"); await page.locator("#participant-lastName").fill("Participant");
     await credentials(page);
     await page.locator("#participant-ageConfirmed").check();
     mock.hold();
@@ -128,11 +130,14 @@ for (const locale of ["en", "ar"] as const) {
       expect(mock.calls()).toBe(1);
     } finally { mock.release(); }
     await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
+    // ENG-083: creating the account continues straight to verification with live countdowns.
+    await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
     await capture(page, locale, testInfo.project.name, "04-signup-accepted");
-    await page.getByRole("link", { name: copy.verify, exact: true }).click();
     await expect(page.locator("#participant-code")).toBeEnabled();
+    await expect(page.getByTestId("participant-code-sent")).toContainText("synthetic@example.invalid");
+    await expect(page.getByTestId("participant-code-expiry")).toContainText(copy.expiresIn);
+    await expect(page.getByTestId("participant-resend-wait")).toContainText(copy.resendIn);
     await expect(page.locator(".participant-account-time time > bdi[dir=ltr]")).toHaveCount(2);
-    await expect(page.locator(".participant-account-time").first()).toContainText(copy.riyadhTime);
     await capture(page, locale, testInfo.project.name, "05-verification-code");
     await page.locator("#participant-code").fill("000000");
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
@@ -263,14 +268,14 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} availability failure replaces stale account success and preserves retry input`, async ({ page }, testInfo) => {
     const mock = await accountJourney(page);
     await page.goto(`/${locale}/sign-up`);
-    await expect(page.locator("#participant-name")).toBeEnabled();
-    await page.locator("#participant-name").fill("Synthetic Participant");
+    await expect(page.locator("#participant-firstName")).toBeEnabled();
+    await page.locator("#participant-firstName").fill("Synthetic"); await page.locator("#participant-lastName").fill("Participant");
     await credentials(page);
     await page.locator("#participant-ageConfirmed").check();
-    await page.getByRole("button", { name: copy.create, exact: true }).click();
-    await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
+    // ENG-083: sign-up continues straight to verification, whose status read then fails.
     mock.failStatus(true);
-    await page.getByRole("link", { name: copy.verify, exact: true }).click();
+    await page.getByRole("button", { name: copy.create, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
     const retry = page.getByRole("button", { name: copy.retry, exact: true });
     await expect(retry).toBeEnabled();
     await capture(page, locale, testInfo.project.name, "27-verification-status-unavailable");

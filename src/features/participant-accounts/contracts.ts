@@ -2,9 +2,9 @@ export const PARTICIPANT_ACTIONS = ["signup", "signin", "verify", "resend", "for
 export type ParticipantAction = typeof PARTICIPANT_ACTIONS[number];
 export type ParticipantState = "closed" | "ready" | "accepted" | "authenticated" | "verified" | "password_reset"
   | "signed_out" | "invalid_input" | "invalid_credentials" | "invalid_code" | "limited" | "unavailable";
-export type ParticipantField = "name" | "email" | "password" | "code" | "ageConfirmed";
+export type ParticipantField = "name" | "firstName" | "lastName" | "email" | "password" | "confirmPassword" | "code" | "ageConfirmed";
 export interface ApprovedNotice { version: string; url: string; summary: string }
-export interface ParticipantProfile { name: string; accountState: "verified" }
+export interface ParticipantProfile { name: string; accountState: "verified"; email?: string; createdAt?: string }
 export interface ParticipantResponse {
   state: ParticipantState;
   notice?: ApprovedNotice | null;

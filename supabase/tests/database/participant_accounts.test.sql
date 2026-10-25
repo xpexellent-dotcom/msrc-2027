@@ -112,7 +112,7 @@ select throws_ok($$update auth.users set encrypted_password='synthetic-forbidden
 -- operations stay unusable, and a fresh mailbox proof repairs the pending shell.
 update msrc_participant.operations set created_at=statement_timestamp()-interval '2 minutes',expires_at=statement_timestamp()
   where id='a4000000-0000-4000-8000-000000000001';
-update msrc_participant.limit_events set occurred_at=occurred_at-interval '61 seconds' where kind='issue_email';
+update msrc_participant.limit_events set occurred_at=occurred_at-interval '121 seconds' where kind='issue_email';
 select is(pg_temp.participant_issue(challenge=>'a3000000-0000-4000-8000-000000000002')->>'state','issued',
   'Fresh mailbox verification repairs a confirmed native identity with pending profile');
 select is(public.msrc_participant_email_delivery('a3000000-0000-4000-8000-000000000002',true)->>'state','ok','Repair still requires actual email delivery');
@@ -191,7 +191,7 @@ select is(public.msrc_participant_profile('synthetic-participant-2027'),null::js
 reset role;
 
 -- Reset is a separate purpose and loses validity when native identity changes.
-update msrc_participant.limit_events set occurred_at=occurred_at-interval '61 seconds' where kind='issue_email';
+update msrc_participant.limit_events set occurred_at=occurred_at-interval '121 seconds' where kind='issue_email';
 select is(pg_temp.participant_issue(challenge=>'a3000000-0000-4000-8000-000000000003',purpose=>'reset_password')->>'state','issued','Verified participant can request private password reset');
 select is(public.msrc_participant_email_delivery('a3000000-0000-4000-8000-000000000003',true)->>'state','ok','Reset code needs provider acknowledgement');
 update msrc_participant.challenges set created_at=statement_timestamp()-interval '10 minutes',expires_at=statement_timestamp()
@@ -210,7 +210,7 @@ end loop; end$$;
 select is((select failed_attempts from msrc_participant.challenges where id='a3000000-0000-4000-8000-000000000004'),5,'Five incorrect codes exhaust the challenge');
 select is(pg_temp.participant_consume(challenge=>'a3000000-0000-4000-8000-000000000004',operation=>gen_random_uuid(),purpose=>'reset_password')->>'state',
   'denied','Correct code cannot revive an exhausted credential');
-update msrc_participant.limit_events set occurred_at=occurred_at-interval '61 seconds' where kind='issue_email';
+update msrc_participant.limit_events set occurred_at=occurred_at-interval '121 seconds' where kind='issue_email';
 select is(pg_temp.participant_issue(challenge=>'a3000000-0000-4000-8000-000000000005',purpose=>'reset_password')->>'state','denied','Resend cannot bypass challenge cooldown');
 
 -- Unknown addresses incur the same quota without manufacturing users.
