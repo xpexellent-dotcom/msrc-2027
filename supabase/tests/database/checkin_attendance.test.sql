@@ -97,15 +97,15 @@ select is((select result#>>'{attendance,method}' from first_attendance),'scan','
 select is(pg_temp.checkin(7101)->>'state','already_checked_in','Repeat scan is idempotent');
 select is(pg_temp.checkin(7101)->'attendance',(select result->'attendance' from first_attendance),'Repeat returns original time and performer');
 select is((select count(*) from msrc_registration.attendance),1::bigint,'Repeated scans grant exactly one attendance row');
-select is(public.msrc_staff_attendance_summary('synthetic-checkin','2040-01-01')->'counts','{"checkedIn":1,"scan":1,"manualCode":0}'::jsonb,'Running counts expose only aggregate day evidence');
+select is(public.msrc_staff_attendance_summary('synthetic-checkin','2040-01-01')->'counts','{"checkedIn":1,"scan":1,"manualCode":0,"offline":0}'::jsonb,'Running counts expose only aggregate day evidence');
 create temporary table scan_activity_before_poll as select last_activity_at from msrc_sessions.session_state where session_id=pg_temp.registration_session(7203);
 select is(public.msrc_staff_attendance_summary('synthetic-checkin',null)->>'state','ready','Passive summary can refresh configuration');
 select is((select last_activity_at from msrc_sessions.session_state where session_id=pg_temp.registration_session(7203)),
  (select last_activity_at from scan_activity_before_poll),'Passive count polling never extends staff idle activity');
-select is(public.msrc_staff_attendance_summary('synthetic-checkin','2040-01-02')->'counts','{"checkedIn":0,"scan":0,"manualCode":0}'::jsonb,'Day one never grants day two attendance');
+select is(public.msrc_staff_attendance_summary('synthetic-checkin','2040-01-02')->'counts','{"checkedIn":0,"scan":0,"manualCode":0,"offline":0}'::jsonb,'Day one never grants day two attendance');
 select is(public.msrc_staff_attendance_summary('synthetic-checkin','2040-01-03')->>'state','wrong_day','Summary refuses an unconfigured day');
 select is(pg_temp.checkin(7101,'2040-01-02',false)->>'state','checked_in','Manual reference independently records day two');
-select is(public.msrc_staff_attendance_summary('synthetic-checkin','2040-01-02')->'counts','{"checkedIn":1,"scan":0,"manualCode":1}'::jsonb,'Manual path is separately counted');
+select is(public.msrc_staff_attendance_summary('synthetic-checkin','2040-01-02')->'counts','{"checkedIn":1,"scan":0,"manualCode":1,"offline":0}'::jsonb,'Manual path is separately counted');
 select is((select count(*) from msrc_registration.attendance),2::bigint,'One participant can hold both day records');
 select is(public.msrc_staff_checkin_undo('synthetic-checkin',(select (result#>>'{attendance,id}')::uuid from first_attendance),'Synthetic mistake')->>'state','denied','Check-in staff cannot undo');
 select pg_temp.checkin_claim(7201);
@@ -116,7 +116,7 @@ select is(public.msrc_staff_checkin_undo('synthetic-checkin',(select (result#>>'
 select is(public.msrc_staff_checkin_undo('synthetic-checkin',(select (result#>>'{attendance,id}')::uuid from first_attendance),'Synthetic mistaken scan')->>'state','already_undone','Undo retries are idempotent');
 select is((select checked_in_at::text from msrc_registration.attendance where id=(select (result#>>'{attendance,id}')::uuid from first_attendance)),
  (select (result#>>'{attendance,checkedInAt}')::timestamptz::text from first_attendance),'Undo preserves the original attendance timestamp');
-select is(public.msrc_staff_attendance_summary('synthetic-checkin','2040-01-01')->'counts','{"checkedIn":0,"scan":0,"manualCode":0}'::jsonb,'Undo removes active attendance credit');
+select is(public.msrc_staff_attendance_summary('synthetic-checkin','2040-01-01')->'counts','{"checkedIn":0,"scan":0,"manualCode":0,"offline":0}'::jsonb,'Undo removes active attendance credit');
 select ok(exists(select 1 from msrc_registration.attendance_audit where event='undo' and result='undone'
  and reason='Synthetic mistaken scan' and snapshot->>'checked_in_at' is not null),'Correction history preserves original record and reason');
 select is(pg_temp.checkin(7101)->>'state','checked_in','A valid later scan restores corrected attendance');

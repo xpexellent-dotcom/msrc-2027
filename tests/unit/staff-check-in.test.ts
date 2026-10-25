@@ -21,7 +21,7 @@ const accessToken = "header." + Buffer.from(JSON.stringify(claims)).toString("ba
 const native: NativeStaffSession = { actorId, sessionId, accessToken, refreshToken: "synthetic-refresh" };
 const attendance = { id: attendanceId, conferenceDay: day, checkedInAt: new Date(now).toISOString(), performerId: actorId,
   performerName: "Synthetic Scanner", entryPoint: null, method: "manual_code" };
-const summary = { state: "ready", conferenceDays: [day, "2027-01-28"], day, counts: { checkedIn: 2, scan: 1, manualCode: 1 } };
+const summary = { state: "ready", conferenceDays: [day, "2027-01-28"], day, counts: { checkedIn: 2, scan: 1, manualCode: 1, offline: 0 } };
 let roles: Role[], policySatisfied: boolean, backend: StaffBackend, replies: Record<string, unknown>;
 function persisted() {
   const superAdmin = roles.includes("superAdmin");
@@ -149,9 +149,9 @@ describe("check-in payload and response validation", () => {
     expect(checkInResultProjection({ state: "checked_in", attendance: { ...attendance, token: "secret" } }, day)).toBeNull();
     expect(checkInResultProjection({ state: "checked_in", attendance: { ...attendance, conferenceDay: "2027-01-28" } }, day)).toBeNull();
     expect(checkInResultProjection({ state: "not_found", email: "person@example.invalid" }, day)).toBeNull();
-    expect(checkInSummaryProjection({ ...summary, counts: { checkedIn: 5, scan: 1, manualCode: 1 } }, day)).toBeNull();
+    expect(checkInSummaryProjection({ ...summary, counts: { checkedIn: 5, scan: 1, manualCode: 1, offline: 0 } }, day)).toBeNull();
     expect(checkInSummaryProjection({ ...summary, conferenceDays: [day, day] }, day)).toBeNull();
     expect(checkInSummaryProjection(summary, "2027-01-28")).toBeNull();
-    expect(checkInSummaryProjection({ state: "ready", conferenceDays: null, day: null, counts: { checkedIn: 0, scan: 0, manualCode: 0 } }, null)).toMatchObject({ conferenceDays: null });
+    expect(checkInSummaryProjection({ state: "ready", conferenceDays: null, day: null, counts: { checkedIn: 0, scan: 0, manualCode: 0, offline: 0 } }, null)).toMatchObject({ conferenceDays: null });
   });
 });

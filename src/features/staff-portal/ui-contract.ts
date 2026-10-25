@@ -16,7 +16,7 @@ export type StaffLaunchReadiness = {
 /** BL-CHK / BL-ATT: day-specific evidence, never certificate eligibility. */
 export type StaffCheckInStatus = "checked_in" | "already_checked_in" | "revoked" | "not_found" | "wrong_day" | "not_approved";
 export type StaffCheckInResult = { status: StaffCheckInStatus; attendanceId?: string; checkedInAt?: string; performedBy?: string };
-export type StaffCheckInView = { conferenceDays: string[] | null; summary: { day: string | null; checkedIn: number; scan: number; manualCode: number } | null };
+export type StaffCheckInView = { conferenceDays: string[] | null; summary: { day: string | null; checkedIn: number; scan: number; manualCode: number; offline: number } | null };
 export type StaffEmailPreview = {
   wordingStatus: "draft"; previewKey: string; templateKey: string; templateVersion: number;
   recipient: string; subject: string; text: string; html: string; englishText: string; arabicText: string;
