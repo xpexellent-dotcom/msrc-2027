@@ -76,3 +76,7 @@
 .participant-announcements-feedback:empty { display: none; }
 .participant-announcements-feedback { margin-block: 1rem; color: var(--color-purple); line-height: 1.8; }
 .participant-announcements-feedback[data-error="true"] { color: var(--color-error); }
+
+/* First and last name sit side by side when there is room. */
+.participant-name-row { display: grid; gap: inherit; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+.participant-name-row > * { min-width: 0; }

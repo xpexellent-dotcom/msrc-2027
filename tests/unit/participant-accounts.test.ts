@@ -320,11 +320,14 @@ describe("participant code/cookie protection", () => {
     expect(readParticipantSession(config, request("msrc-participant-test=" + encoded, "http://hostile.example"), now)).toBeNull();
     expect(nativeSessionId(accessToken)).toBe(sessionId);
   });
-  it("uses English branded transactional templates and accepts both Arabic digit sets", () => {
+  it("uses bilingual branded code emails and accepts both Arabic digit sets", () => {
     expect(normalizeParticipantCode("١٢٣٤٥٦")).toBe("123456"); expect(normalizeParticipantCode("۱۲۳۴۵۶")).toBe("123456");
     for (const purpose of ["verify_email", "reset_password"] as const) {
       const email = participantCodeEmail("person@example.invalid", "012345", purpose);
-      expect(email.from).toBe("MSRC 2027 <no-reply@msrc2027.com>"); expect(email.text).toContain("10 minutes"); expect(email.text).toContain("012345"); expect(email.text).not.toMatch(/[\u0600-\u06ff]/);
+      expect(email.from).toBe("MSRC 2027 <no-reply@msrc2027.com>"); expect(email.text).toContain("10 minutes"); expect(email.text).toContain("012345");
+      // ENG-083: English then Arabic, in the shared layout with the banner.
+      expect(email.text).toMatch(/[\u0600-\u06ff]/); expect(email.subject).toMatch(/[\u0600-\u06ff]/);
+      expect(email.html).toContain("/brand/email-banner.png"); expect(email.html).toContain('dir="rtl"'); expect(email.html.match(/012345/g)?.length).toBe(2);
     }
   });
 });

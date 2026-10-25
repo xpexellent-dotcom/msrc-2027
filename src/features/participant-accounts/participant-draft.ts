@@ -6,8 +6,11 @@ import { participantScreens } from "./participant-copy";
 
 export type ParticipantDraft = Readonly<{
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
+  confirmPassword: string;
   code: string;
   ageConfirmed: boolean;
   requestId: string | null;
@@ -19,7 +22,7 @@ export type ParticipantDraft = Readonly<{
   outcomeSequence: number;
   fieldErrors: ParticipantResponse["fieldErrors"];
 }>;
-const emptyDraft: ParticipantDraft = { name: "", email: "", password: "", code: "", ageConfirmed: false, requestId: null, purpose: "verification", outcome: null, expiresAt: null, resendAvailableAt: null, pending: false, outcomeSequence: 0, fieldErrors: {} };
+const emptyDraft: ParticipantDraft = { name: "", firstName: "", lastName: "", email: "", password: "", confirmPassword: "", code: "", ageConfirmed: false, requestId: null, purpose: "verification", outcome: null, expiresAt: null, resendAvailableAt: null, pending: false, outcomeSequence: 0, fieldErrors: {} };
 let draft: ParticipantDraft = emptyDraft;
 let generation = 0;
 const listeners = new Set<() => void>();
@@ -32,7 +35,7 @@ export function updateParticipantDraft(next: Partial<ParticipantDraft>) {
   for (const listener of listeners) listener();
 }
 export function clearParticipantDraft() { generation += 1; updateParticipantDraft(emptyDraft); }
-export function clearParticipantCredentials() { updateParticipantDraft({ password: "", code: "", ageConfirmed: false }); }
+export function clearParticipantCredentials() { updateParticipantDraft({ password: "", confirmPassword: "", code: "", ageConfirmed: false }); }
 export function beginParticipantAction() {
   if (draft.pending) return null;
   generation += 1;

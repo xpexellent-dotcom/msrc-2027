@@ -4690,3 +4690,30 @@ hosted database. Online scanning remains the baseline and no offline sync is bui
 - Procedure (who exports, storage on one approved device, deletion after
   reconciliation) is in `docs/runbooks/CHECKIN_OUTAGE.md` as an engineering default
   pending organizer confirmation.
+
+## ENG-083 — Participant sign-up flow, profile link and staff participant detail, 25 October 2026
+
+Authority: owner request after the 25 October account opening. Migration
+`20261025160000_participant_account_flow.sql` (needs owner OK to apply to the hosted database).
+
+- **Sign-up** asks for first name, last name, email, password and password confirmation (plus the
+  ORG-041 18+ declaration). The server still stores one display name, `First Last`, so no schema or
+  identity rules change. The confirmation is checked in the browser and never sent.
+- **Verification** follows immediately: after "Create account" the page moves to Verify email with
+  the email and password kept in memory, the code field focused (unless the person is already
+  typing), and live countdowns for code expiry and the next code.
+- **Resend wait** is 2 minutes per address (was 60 seconds). It is enforced in
+  `public.msrc_participant_email_begin`; the legacy 3-per-15-minutes and per-IP limits still apply.
+- **Password hint** shortened to "Use at least 10 characters. Choose a password you do not use for
+  another account." The 72-byte server limit and its error message are unchanged.
+- **Code email** is English then Arabic in the shared branded layout with the banner. The owner's
+  request overrides the earlier English-only rule for this message.
+- **Header profile link**: a non-secret `msrc-signed-in` hint cookie is set by the browser after
+  sign-in and cleared on sign-out. Only then does the header ask the server for the session and
+  show "My profile". The session stays in the HttpOnly cookie. My MSRC now shows the account email
+  and member-since date, via `msrc_participant_account_details()` (own account only).
+- **Staff participant detail**: in Participants, a name opens a read-only record for Super Admins
+  and registration/workshop administrators (the roles that can list participants). It covers
+  account, registration, ticket, attendance, workshops, submissions, competitions, hackathon
+  profile and certificates. Identity stays masked; the audited reveal is unchanged. Each view is
+  audited as `participants_read` with the participant as target.

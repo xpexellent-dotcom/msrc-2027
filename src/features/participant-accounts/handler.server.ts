@@ -40,7 +40,14 @@ async function ownProfile(config: ParticipantConfig, backend: ParticipantBackend
   const observed = parsePersistedSessionContext(value.session, native.actorId, config.editionKey);
   if (!observed || !observed.sessionPolicySatisfied || observed.authenticationTier !== "participant"
     || observed.principal.sessionId !== native.sessionId || observed.timing.absoluteExpiresAtMs !== context.timing.absoluteExpiresAtMs) return null;
-  return { profile: { name: value.name, accountState: "verified" } as ParticipantProfile, deadline: context.timing.absoluteExpiresAtMs };
+  const profile: ParticipantProfile = { name: value.name, accountState: "verified" };
+  // ENG-083: own email and join date for the profile page. Missing details never block sign-in.
+  try {
+    const details = record(await backend.rpc("msrc_participant_account_details", {}, native.accessToken));
+    if (details && typeof details.email === "string" && details.email.length <= 254) profile.email = details.email;
+    if (details && typeof details.createdAt === "string" && Number.isFinite(Date.parse(details.createdAt))) profile.createdAt = details.createdAt;
+  } catch { /* Profile still loads without the optional details. */ }
+  return { profile, deadline: context.timing.absoluteExpiresAtMs };
 }
 
 export function createParticipantHandler(dependencies: {
@@ -108,7 +115,7 @@ export function createParticipantHandler(dependencies: {
     const issuing = ["signup", "resend", "forgot"].includes(payload.action);
     const challengeId = randomUUID();
     const accepted = () => respond({ state: "accepted", requestId: challengeId,
-      expiresAt: new Date(now + 600_000).toISOString(), resendAvailableAt: new Date(now + 60_000).toISOString() }, 202);
+      expiresAt: new Date(now + 600_000).toISOString(), resendAvailableAt: new Date(now + 120_000).toISOString() }, 202);
     try {
       // Recheck the mutable flag/readiness directly before any identity or delivery operation.
       if (getReadiness().state !== "ready" || !await ready(config, backend)) return respond({ state: "closed" }, 503);

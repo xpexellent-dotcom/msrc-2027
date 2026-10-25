@@ -196,7 +196,7 @@ async function login(value: Actor, credential = password, initialize = true) {
   return { sdk, session };
 }
 async function ageIssueCounters(value: Actor) {
-  await query(`update msrc_participant.limit_events set occurred_at=clock_timestamp()-interval '61 seconds'
+  await query(`update msrc_participant.limit_events set occurred_at=clock_timestamp()-interval '121 seconds'
     where kind='issue_email' and subject_hash=${text(digest(`email:${value.email}`))};`);
 }
 async function cleanup(batchSize = 100, dryRun = true): Promise<Result> {
@@ -383,7 +383,7 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
     const value = await create();
     const first = challenge(value);
     check((await issue(first)).state === "issued" && (await delivered(first)).state === "ok", "first verification issued");
-    check((await issue(challenge(value))).state === "denied", "60-second resend throttle");
+    check((await issue(challenge(value))).state === "denied", "2-minute resend throttle (ENG-083)");
     await ageIssueCounters(value);
     const replacement = challenge(value);
     check((await issue(replacement)).state === "issued", "permitted resend replaces the first credential");
@@ -661,7 +661,7 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
       const dashboard = await get(cookie);
       check(dashboard.body.state === "authenticated" && dashboard.body.profile?.name === value.name,
         "genuine native identity plus RPCs restore the own dashboard through Arabic GET");
-      await query(`update msrc_participant.limit_events set occurred_at=clock_timestamp()-interval '61 seconds'
+      await query(`update msrc_participant.limit_events set occurred_at=clock_timestamp()-interval '121 seconds'
         where kind='issue_email' and subject_hash=${text(participantHash(config, "email", value.email))};`);
       const forgot = await post({ action: "forgot", name: value.name, email: value.email }, cookie);
       check(forgot.response.status === 202 && forgot.body.state === "accepted" && forgot.body.requestId,
@@ -692,7 +692,7 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
       const fresh = await post({ action: "signin", email: value.email, password: nextPassword });
       check(fresh.response.status === 200 && fresh.body.state === "authenticated" && fresh.body.profile?.name === value.name,
         "new password completes genuine application admission");
-      await query(`update msrc_participant.limit_events set occurred_at=clock_timestamp()-interval '61 seconds'
+      await query(`update msrc_participant.limit_events set occurred_at=clock_timestamp()-interval '121 seconds'
         where kind='issue_email' and subject_hash=${text(participantHash(config, "email", value.email))};`);
       const boundaryForgot = await post({ action: "forgot", email: value.email });
       check(boundaryForgot.response.status === 202 && boundaryForgot.body.requestId, "final provider-boundary reset proof is admitted normally");

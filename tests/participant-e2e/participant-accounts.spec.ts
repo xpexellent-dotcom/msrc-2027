@@ -61,10 +61,14 @@ async function mockAccounts(page: Page, options: { initialStatusGate?: Promise<v
 }
 
 async function fillSignup(page: Page, name = "Synthetic Participant", ageConfirmed = true) {
-  await expect(page.locator("#participant-name")).toBeEnabled();
-  await page.locator("#participant-name").fill(name);
+  // ENG-083: first and last name are separate fields; the server receives "First Last".
+  const [first, ...rest] = name.split(" ");
+  await expect(page.locator("#participant-firstName")).toBeEnabled();
+  await page.locator("#participant-firstName").fill(first);
+  await page.locator("#participant-lastName").fill(rest.join(" ") || "Participant");
   await page.locator("#participant-email").fill("synthetic@example.invalid");
   await page.locator("#participant-password").fill(syntheticPassword);
+  await page.locator("#participant-confirmPassword").fill(syntheticPassword);
   await page.locator("#participant-ageConfirmed").setChecked(ageConfirmed);
 }
 
@@ -81,18 +85,20 @@ for (const locale of ["en", "ar"] as const) {
     await page.route("**/_next/static/**/*.js", async (route) => { await scripts; await route.continue(); });
     try {
       await page.goto(`/${locale}/sign-up`, { waitUntil: "domcontentloaded" });
-      await expect(page.locator("#participant-name")).toBeDisabled();
+      await expect(page.locator("#participant-firstName")).toBeDisabled();
       releaseScripts();
       await requested;
-      await expect(page.locator("#participant-name")).toBeDisabled();
+      await expect(page.locator("#participant-firstName")).toBeDisabled();
       releaseStatus();
       await fillSignup(page);
       const create = page.getByRole("button", { name: copy.create, exact: true });
       await expect(create).toBeEnabled();
       await create.focus();
       await page.keyboard.press("Enter");
+      // ENG-083: creating the account continues straight to verification.
+      await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
       await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
-      await expect(page.getByTestId("participant-account-status")).toBeFocused();
+      await expect(page.locator("#participant-code")).toBeEnabled();
       expect(mock.calls()).toBe(1);
     } finally { releaseScripts(); releaseStatus(); }
   });
@@ -102,10 +108,12 @@ for (const locale of ["en", "ar"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/sign-up`);
     await fillSignup(page, "مشارك مصطنع");
-    await expect(page.locator('form input:not([name="website"]):not([type="checkbox"])')).toHaveCount(3);
+    await expect(page.locator('form input:not([name="website"]):not([type="checkbox"])')).toHaveCount(5);
     await expect(page.locator('input[type="checkbox"]')).toHaveCount(1);
     await expect(page.locator('input[type="tel"], input[type="date"], input[name="dob"], input[name="dateOfBirth"]')).toHaveCount(0);
-    await expect(page.locator("#participant-name")).toHaveAttribute("autocomplete", "name");
+    await expect(page.locator("#participant-firstName")).toHaveAttribute("autocomplete", "given-name");
+    await expect(page.locator("#participant-lastName")).toHaveAttribute("autocomplete", "family-name");
+    await expect(page.locator("#participant-confirmPassword")).toHaveAttribute("autocomplete", "new-password");
     await expect(page.locator("#participant-email")).toHaveAttribute("autocomplete", "email");
     await expect(page.locator("#participant-password")).toHaveAttribute("autocomplete", "new-password");
     await expect(page.getByTestId("participant-privacy-version")).toHaveText("synthetic-privacy-ci-v1");
@@ -201,7 +209,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/sign-up`);
     await fillSignup(page);
     await page.getByRole("button", { name: copy.create, exact: true }).click();
-    await page.getByRole("link", { name: copy.verify, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
     const code = page.locator("#participant-code");
     await expect(code).toHaveAttribute("autocomplete", "one-time-code");
     await expect(code).toHaveAttribute("dir", "ltr");
@@ -284,10 +292,11 @@ for (const locale of ["en", "ar"] as const) {
         await fillSignup(page);
         if (screen === "verify-email") {
           await page.getByRole("button", { name: copy.create, exact: true }).click();
-          await page.getByRole("link", { name: copy.verify, exact: true }).click();
+          await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
         }
       }
       const password = page.locator("#participant-password");
+      const setPassword = async (value: string) => { await password.fill(value); if (screen === "sign-up") await page.locator("#participant-confirmPassword").fill(value); };
       const button = page.getByRole("button", { name: screen === "sign-up" ? copy.create : screen === "verify-email" ? copy.verify : copy.reset, exact: true });
       await expect(page.locator("#participant-password-hint")).toHaveText(copy.passwordHint);
       await expect(password).toHaveAttribute("autocomplete", screen === "verify-email" ? "current-password" : "new-password");
@@ -295,7 +304,7 @@ for (const locale of ["en", "ar"] as const) {
 
       // Nine supplementary characters occupy 18 UTF-16 units but remain below
       // the ten-character minimum; the error comes from the API response.
-      await password.fill("😀".repeat(9));
+      await setPassword("😀".repeat(9));
       await button.click();
       const summary = page.getByTestId("participant-account-error");
       await expect(summary).toBeFocused();
@@ -307,7 +316,7 @@ for (const locale of ["en", "ar"] as const) {
       await page.keyboard.press("Enter");
       await expect(password).toBeFocused();
 
-      await password.fill("😀".repeat(19)); // 76 UTF-8 bytes.
+      await setPassword("😀".repeat(19)); // 76 UTF-8 bytes.
       await button.click();
       await expect(summary).toBeFocused();
       await expect(page.locator("#participant-password-error")).toContainText(copy.passwordTooLong);
@@ -317,18 +326,23 @@ for (const locale of ["en", "ar"] as const) {
       await page.screenshot({ path: resolve(`.tools/journey-review/account/after/${locale}-${testInfo.project.name}-password-too-long-${screen}.png`), fullPage: true, scale: "css", mask: [password, page.locator("#participant-code")] });
       expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
 
+      if (screen === "sign-up") {
+        // A successful sign-up moves on to verification, so check the 72-byte limit last.
+        await setPassword("😀".repeat(18)); // Exactly 72 UTF-8 bytes.
+        await button.click();
+        await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
+        await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
+        return;
+      }
       await password.fill("😀".repeat(10));
       await button.click();
       await expect(page.locator("#participant-password-error")).toHaveCount(0);
       await expect(password).toHaveValue("😀".repeat(10));
-      if (screen === "sign-up") await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
-      else {
-        await expect(page.locator("#participant-code-error")).toContainText(copy.codeNotVerified);
-        await page.locator("#participant-code").fill(syntheticCode);
-      }
+      await expect(page.locator("#participant-code-error")).toContainText(copy.codeNotVerified);
+      await page.locator("#participant-code").fill(syntheticCode);
       await password.fill("😀".repeat(18)); // Exactly 72 UTF-8 bytes.
       await button.click();
-      await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states[screen === "sign-up" ? "accepted" : screen === "verify-email" ? "verified" : "password_reset"]);
+      await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states[screen === "verify-email" ? "verified" : "password_reset"]);
     });
   }
 }
@@ -339,7 +353,8 @@ test("locale changes retain name, email, password and code in memory, while relo
   await fillSignup(page, "مشارك مصطنع");
   await (await languageLink(page, "View this page in Arabic")).click();
   await expect(page).toHaveURL(/\/ar\/sign-up$/);
-  await expect(page.locator("#participant-name")).toHaveValue("مشارك مصطنع");
+  await expect(page.locator("#participant-firstName")).toHaveValue("مشارك");
+  await expect(page.locator("#participant-lastName")).toHaveValue("مصطنع");
   await expect(page.locator("#participant-email")).toHaveValue("synthetic@example.invalid");
   await expect(page.locator("#participant-password")).toHaveValue(syntheticPassword);
   await expect(page.locator("#participant-ageConfirmed")).toBeChecked();
@@ -349,7 +364,7 @@ test("locale changes retain name, email, password and code in memory, while relo
   await expect(page.locator("#participant-password")).toHaveValue(syntheticPassword);
   mock.failTransport(false);
   await page.getByRole("button", { name: participantCopy.ar.create, exact: true }).click();
-  await page.getByRole("link", { name: participantCopy.ar.verify, exact: true }).click();
+  await expect(page).toHaveURL(/\/ar\/verify-email$/);
   await page.locator("#participant-code").fill(syntheticCode);
   await (await languageLink(page, "View this page in English")).click();
   await expect(page).toHaveURL(/\/en\/verify-email$/);
