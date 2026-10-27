@@ -1,7 +1,10 @@
 /** ENG-083: one participant's full record for staff who can list participants. */
+import { decodeOptionalParticipantProfile, type OptionalParticipantProfile, type ProfileSpecialty } from "@/features/participant-accounts/profile-contract";
+
 export type ParticipantDetail = {
   actorId: string; name: string; email: string; status: "verified" | "unverified" | "suspended";
   createdAt: string; verifiedAt: string | null; lastSignInAt: string | null; privacyVersion: string | null; ageConfirmedAt: string | null;
+  optionalProfile?: (OptionalParticipantProfile & { specialties: ProfileSpecialty[] }) | null;
   registration: { status: string; createdAt: string; decidedAt: string | null; identityMasked: string | null;
     ticket: { reference: string; status: string; issuedAt: string | null } | null;
     attendance: { day: string; checkedInAt: string; method: string }[] } | null;
@@ -33,5 +36,9 @@ export function decodeParticipantDetail(value: unknown): ParticipantDetail | nul
     || !list(row.certificates, (item) => text(item.kind, 40) && optional(item.activity, 500) && text(item.status, 40))) return null;
   const hackathon = row.hackathonProfile === null ? null : record(row.hackathonProfile);
   if (row.hackathonProfile !== null && (!hackathon || !text(hackathon.university) || !text(hackathon.fieldOfStudy) || !text(hackathon.phone, 40) || typeof hackathon.enrolled !== "boolean")) return null;
+  if (row.optionalProfile !== undefined && row.optionalProfile !== null) {
+    const profile = record(row.optionalProfile);
+    if (!profile || !decodeOptionalParticipantProfile(profile) || !list(profile.specialties, (item) => text(item.id, 100) && text(item.label, 200))) return null;
+  }
   return row as unknown as ParticipantDetail;
 }

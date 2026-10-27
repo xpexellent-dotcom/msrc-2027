@@ -378,6 +378,14 @@ jobs:
         env:
           CERTIFICATE_DB_TESTS: "true"
         run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/certificate-concurrency.test.ts
+      - name: Reset the disposable database for optional participant profile proofs
+        if: ${{ !inputs.auth_stability }}
+        run: pnpm db:reset
+      - name: Verify profile edit contention, avatar abandonment and waiting-session denial
+        if: ${{ !inputs.auth_stability }}
+        env:
+          PARTICIPANT_PROFILE_DB_TESTS: "true"
+        run: pnpm exec vitest run --config vitest.integration.config.ts tests/integration/participant-profile-concurrency.test.ts
       - name: Stop the local stack
         if: ${{ always() && steps.dependencies.outcome == 'success' }}
         run: pnpm db:stop

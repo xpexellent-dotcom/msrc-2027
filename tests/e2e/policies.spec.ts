@@ -5,20 +5,22 @@ import { expect, test } from "@playwright/test";
 import { readApprovedPolicy, visibleMarkdown, type SourceBlock } from "../policy-source";
 import { languageLink } from "./helpers/header-navigation";
 
-const version = "v1.0", effectiveDate = "2026-10-06";
+const version = "v1.1", effectiveDate = "2026-10-06";
+const versions = { privacy: "v1.1", terms: "v1.0" } as const;
 const titles = { en: { privacy: "MSRC 2027 Privacy Policy", terms: "MSRC 2027 Terms and Conditions" }, ar: { privacy: "سياسة الخصوصية لمؤتمر MSRC ٢٠٢٧", terms: "شروط وأحكام مؤتمر MSRC ٢٠٢٧" } } as const;
 const tabLabels = { en: { privacy: "Privacy Policy", terms: "Terms and Conditions" }, ar: { privacy: "سياسة الخصوصية", terms: "شروط وأحكام" } } as const;
 const footerLabels = { en: { privacy: "Privacy", terms: "Terms" }, ar: { privacy: "الخصوصية", terms: "الشروط" } } as const;
 const unfinished = /\b(?:draft|placeholder)\b|Organizer decision|awaiting review|wording pending|مسودة|نص مؤقت|بانتظار/iu;
 
 for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "terms"] as const) {
-  test(`${locale} ${kind} current and v1.0 preserve approved content, links and accessible read-only design`, async ({ page, context, request }, testInfo) => {
+  const version = versions[kind];
+  test(`${locale} ${kind} current and ${version} preserve approved content, links and accessible read-only design`, async ({ page, context, request }, testInfo) => {
     const errors: string[] = [], writes: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
     const source = readApprovedPolicy(kind);
-    const evidenceDir = path.resolve("deliverables/policy-v1.0");
+    const evidenceDir = path.resolve("deliverables/policy-v1.1");
     await mkdir(evidenceDir, { recursive: true });
     let initialContent: string | undefined;
     for (const suffix of ["", `/${version}`]) {
@@ -30,7 +32,7 @@ for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "term
       await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(titles[locale][kind]);
       await expect(page.locator(".policy-page")).toHaveAttribute("data-policy-version", version);
-      await expect(page.locator(".policy-version-details")).toContainText(locale === "en" ? "Version 1.0" : "الإصدار ١.٠");
+      await expect(page.locator(".policy-version-details")).toContainText(locale === "en" ? `Version ${version.slice(1)}` : kind === "privacy" ? "الإصدار ١.١" : "الإصدار ١.٠");
       await expect(page.locator(`.policy-version-details time[datetime="${effectiveDate}"]`)).toHaveText(locale === "en" ? "6 October 2026" : "٦ أكتوبر ٢٠٢٦");
       await expect(page.getByRole("main")).not.toContainText(unfinished);
       await expect(page.locator(".policy-draft-notice, .policy-section-status, [data-policy-section-status=placeholder]")).toHaveCount(0);
@@ -101,7 +103,7 @@ for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "term
       for (const target of internalPaths) expect((await request.get(target)).status(), target).toBe(200);
       await page.evaluate(() => document.fonts.ready);
       const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
-      const name = `${locale}-${kind}-${suffix ? "v1.0" : "current"}-${testInfo.project.name}`;
+      const name = `${locale}-${kind}-${suffix ? version : "current"}-${testInfo.project.name}`;
       const axeBody = JSON.stringify({ violations: accessibility.violations, needsManualReview: accessibility.incomplete }, null, 2);
       await writeFile(path.join(evidenceDir, `${name}-axe.json`), axeBody);
       await testInfo.attach(`${name}-accessibility`, { body: axeBody, contentType: "application/json" });
@@ -152,6 +154,7 @@ test("policy versions survive keyboard language and native section navigation", 
 
 test("footer and locale-free policy links resolve while the old draft and unknown versions return 404", async ({ page, request }) => {
   for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "terms"] as const) {
+    const version = versions[kind];
     await page.goto(`/${locale}`);
     await page.getByRole("contentinfo").getByRole("link", { name: footerLabels[locale][kind], exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/${kind}$`));
@@ -163,5 +166,9 @@ test("footer and locale-free policy links resolve while the old draft and unknow
       const response = await request.get(`/${kind}${suffix}`, { headers: { "Accept-Language": locale === "ar" ? "ar-SA,ar;q=0.9,en;q=0.8" : "en-US,en;q=0.9,ar;q=0.8" }, maxRedirects: 0 });
       expect(response.status()).toBe(307); expect(response.headers().location).toBe(`/${locale}/${kind}${suffix}`);
     }
+  }
+  for (const locale of ["en", "ar"]) {
+    expect((await request.get(`/${locale}/privacy/v1.0`)).status()).toBe(200);
+    expect((await request.get(`/${locale}/terms/v1.1`)).status()).toBe(404);
   }
 });

@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { policyEffectiveDate } from "@/config/policies";
-import { currentPolicyVersion, getPolicyDocument, isPolicyVersion, policyKinds, policyVersions } from "@/content/policies";
+import { currentPolicyVersion, currentTermsVersion, currentVersionFor, getPolicyDocument, isPolicyVersion, policyKinds, policyVersionKeys, policyVersions } from "@/content/policies";
 import { PolicyPage } from "@/features/policies/policy-page";
 import { policyPageMetadata } from "@/features/policies/policy-metadata";
 import { readApprovedPolicy } from "../policy-source";
@@ -12,16 +12,55 @@ const unfinished = /\b(?:draft|placeholder)\b|Organizer decision|awaiting review
 
 afterEach(() => vi.unstubAllEnvs());
 
-describe("approved policy v1.0 (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
-  it("uses one approved version and effective date for both documents and stable routes", () => {
-    expect(currentPolicyVersion).toBe("v1.0");
+describe("approved privacy v1.1 and Terms v1.0 (ORG-066 / BL-PUB-08 / PRV-01/02/05/07/08)", () => {
+  it("uses the approved privacy version without changing Terms or the shared effective date", () => {
+    expect(currentPolicyVersion).toBe("v1.1");
+    expect(currentTermsVersion).toBe("v1.0");
     expect(policyEffectiveDate).toBe("2026-10-06");
-    expect(policyVersions[currentPolicyVersion]).toMatchObject({ version: "v1.0", status: "approved", effectiveOn: policyEffectiveDate });
+    expect(policyVersions[currentPolicyVersion]).toMatchObject({ version: "v1.1", status: "approved", effectiveOn: policyEffectiveDate });
     for (const kind of policyKinds) for (const locale of ["en", "ar"] as const) {
       const current = getPolicyDocument(kind, locale);
-      expect(current.document).toEqual(getPolicyDocument(kind, locale, currentPolicyVersion).document);
+      expect(current.document).toEqual(getPolicyDocument(kind, locale, currentVersionFor(kind)).document);
       expect(current.effectiveOn).toBe(policyEffectiveDate);
     }
+  });
+
+  it("preserves archived v1.0 and changes only the approved optional profile rows in privacy v1.1", () => {
+    expect(policyVersionKeys("privacy")).toEqual(["v1.0", "v1.1"]);
+    expect(policyVersionKeys("terms")).toEqual(["v1.0"]);
+    expect(isPolicyVersion("v1.1", "terms")).toBe(false);
+    expect(() => getPolicyDocument("terms", "en", "v1.1")).toThrow("Unavailable policy version");
+    const original = readApprovedPolicy("privacy", "v1.0");
+    expect(getPolicyDocument("privacy", "en", "v1.0").document.sections.map(({ title, blocks }) => ({ title, blocks }))).toEqual(original.sections);
+    for (const locale of ["en", "ar"] as const) {
+      const before = getPolicyDocument("privacy", locale, "v1.0").document;
+      const after = getPolicyDocument("privacy", locale).document;
+      expect(after.title).toBe(before.title);
+      expect(after.lead).toBe(before.lead);
+      for (const section of before.sections) {
+        const updated = after.sections.find(({ id }) => id === section.id)!;
+        if (!["information", "processing", "retention"].includes(section.id)) expect(updated).toEqual(section);
+        else {
+          expect(updated.title).toBe(section.title);
+          expect(updated.blocks).toHaveLength(section.blocks.length);
+          section.blocks.forEach((block, index) => {
+            const next = updated.blocks[index];
+            if (block.type !== "table" || next.type !== "table") expect(next).toEqual(block);
+            else {
+              expect(next.headers).toEqual(block.headers);
+              expect(next.rows).toHaveLength(block.rows.length);
+              const changedRows = block.rows.flatMap((row, rowIndex) => JSON.stringify(row) === JSON.stringify(next.rows[rowIndex]) ? [] : [rowIndex]);
+              expect(changedRows).toEqual(section.id === "information" ? [2] : section.id === "processing" ? [1] : [0, 5]);
+              if (section.id === "retention") block.rows.forEach((row, rowIndex) => expect(next.rows[rowIndex][1]).toBe(row[1]));
+            }
+          });
+        }
+      }
+    }
+    const privacy = JSON.stringify(getPolicyDocument("privacy", "en").document);
+    for (const text of ["a profile picture", "your university or institution", "your student status and year", "your specialty interests", "optional and visible only to you and authorized organizers", "There is no public directory", "your consent, given when you add them", "You can remove them at any time", "Deleted after 30 days", "by 28 January 2028"]) expect(privacy).toContain(text);
+    const arabic = JSON.stringify(getPolicyDocument("privacy", "ar").document);
+    for (const text of ["صورة ملفك الشخصي", "وجامعتك أو مؤسستك", "وصفتك الطلابية وسنتك الدراسية", "والتخصصات التي تهمك", "اختيارية", "للمنظمين المصرح لهم", "ولا يوجد دليل عام", "موافقتك التي تمنحها عند إضافتها", "ويمكنك إزالتها في أي وقت"]) expect(arabic).toContain(text);
   });
 
   it.each([undefined, null, "", "2026-10-04-draft", "2026-10-04", "2027-final", "__proto__", "constructor", 20261004])("rejects an unavailable version %s", (version) => {
@@ -66,21 +105,22 @@ describe("approved policy v1.0 (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
   it("renders final read-only documents, semantic tables, version label and shared effective date", () => {
     for (const locale of ["en", "ar"] as const) for (const kind of policyKinds) {
       const html = renderToStaticMarkup(createElement(PolicyPage, { locale, kind }));
-      expect(html).toContain(`data-policy-version="${currentPolicyVersion}"`);
-      expect(html).toContain(`href="/${locale}/${kind}/${currentPolicyVersion}"`);
+      const version = currentVersionFor(kind);
+      expect(html).toContain(`data-policy-version="${version}"`);
+      expect(html).toContain(`href="/${locale}/${kind}/${version}"`);
       expect(html).toContain(`dateTime="${policyEffectiveDate}"`);
-      expect(html).toContain(locale === "en" ? "Version 1.0" : "الإصدار ١.٠");
+      expect(html).toContain(locale === "en" ? `Version ${version.slice(1)}` : kind === "privacy" ? "الإصدار ١.١" : "الإصدار ١.٠");
       expect(html).not.toMatch(unfinished);
       expect(html).not.toMatch(/<(form|input|textarea|select|iframe|video)\b/i);
       expect(html.match(/<table\b/g) ?? []).toHaveLength(kind === "privacy" ? 4 : 0);
       if (kind === "privacy") expect(html).toMatch(/<th[^>]*scope="col"/);
-      const stable = renderToStaticMarkup(createElement(PolicyPage, { locale, kind, version: currentPolicyVersion, dated: true }));
+      const stable = renderToStaticMarkup(createElement(PolicyPage, { locale, kind, version, dated: true }));
       expect(stable).toContain(`href="/${locale}/${kind}"`);
     }
   });
 
   it.each(["en", "ar"] as const)("keeps internal people out of public %s documents and metadata", (locale) => {
-    for (const kind of policyKinds) for (const version of [undefined, currentPolicyVersion]) {
+    for (const kind of policyKinds) for (const version of [undefined, currentVersionFor(kind)]) {
       expect(renderToStaticMarkup(createElement(PolicyPage, { locale, kind, version, dated: version !== undefined }))).not.toMatch(privateOrganizerNames);
       expect(JSON.stringify(policyPageMetadata(kind, locale, version))).not.toMatch(privateOrganizerNames);
     }
@@ -91,7 +131,7 @@ describe("approved policy v1.0 (BL-PUB-08 / PRV-01/02/05/07/08)", () => {
     const { policyPageMetadata, policyTabLabel } = await import("@/features/policies/policy-metadata");
     const { publicRoutes } = await import("@/lib/metadata");
     expect(publicRoutes).toContain("/privacy"); expect(publicRoutes).toContain("/terms");
-    for (const kind of policyKinds) for (const locale of ["en", "ar"] as const) for (const version of [undefined, currentPolicyVersion]) {
+    for (const kind of policyKinds) for (const locale of ["en", "ar"] as const) for (const version of [undefined, currentVersionFor(kind)]) {
       const metadata = policyPageMetadata(kind, locale, version);
       // A dated version repeats the current text: never indexed, canonical to the unversioned page.
       expect(metadata.robots).toEqual({ index: environment === "production" && !version, follow: environment === "production" });

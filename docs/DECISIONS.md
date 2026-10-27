@@ -4749,3 +4749,40 @@ Owner request (27 October 2026). No migration.
   - The separate ENG-083 header profile link is folded into this one button.
 - **Sign in page:** a "New to MSRC?" callout with a gold "Sign up" button gives people without an account a clear way to create one. It disappears once signed in.
 - The hero buttons and the Participate navigation item still lead to the Participate hub.
+- After ENG-086 merged, the signed-in action shows the participant's profile picture or initials instead of a generic icon; ENG-086's separate header avatar link is folded into this one button.
+
+## ORG-066 — Privacy Policy v1.1, optional profile fields, owner-approved 27 October 2026
+
+Authority: pre-approved in chat by the owner for this change only. Participants may
+choose to add a private profile picture, university/institution, student status and
+medical-student year, and up to five interests from the existing abstract specialty
+catalog. These fields are optional, consent-based, visible only to the participant
+and the staff roles already authorized for ENG-083 participant detail, and removable
+at any time. No public profile or directory is authorized. Privacy Policy v1.1 adds
+exactly these fields, their purposes/consent basis, visibility and account retention
+in English and Arabic; Terms remain v1.0. Existing v1.0 policy archives are retained.
+AUTH-06/07/08, PRV-02/03/04/05/06, LOC-01/03 and ACC-01 apply. This approval does not
+apply a hosted migration, change a hosted setting, open a workflow, or authorize
+sending email. Announcing the change and emailing account holders under Privacy
+Policy section 9 are owner actions. The existing display effective date is preserved;
+no new publication date is inferred by this implementation.
+
+## ENG-086 — Participant "Complete your profile"
+
+Authority: Task n21, owner request and optional-field selection, 27 October 2026;
+ORG-066. Add the bilingual optional-profile progress card above ENG-084 next steps,
+a focused editor, initials/private-avatar header fallback, and the existing audited
+ENG-083 staff detail projection. JPEG/PNG/WebP input is validated server-side at
+2 MB maximum and re-encoded with the already installed sharp library to remove
+metadata; private Storage objects are served through authorized no-store routes
+(the staff route uses a 60-second signed URL server-side). Forced-RLS private tables
+have no client policies; service-only RPCs enforce exact native session/ownership,
+validation, READ COMMITTED locking and optimistic versions. Use only the abstract
+module's configured specialty catalog. Replacement/removal and account/retention
+cleanup queue Storage API deletion durably; ambiguous save responses cannot delete
+an active avatar. Existing authenticated outbox maintenance drains the queue even
+when profile editing is later disabled. No new hosted scheduler is configured.
+Migration `20261027120000_participant_profile.sql` is review-only and
+`PARTICIPANT_PROFILE_ENABLED` remains absent/false by default. Missing RPCs render
+area-not-ready. AUTH-05/06/07/08, SEC-01/02/06, PRV-02/03/04/05/06, LOC-01/03 and
+ACC-01 apply. See [implementation receipt](progress/2026-10-27-codex-participant-profile.md).

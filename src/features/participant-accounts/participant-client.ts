@@ -1,6 +1,7 @@
 "use client";
 
 import type { ParticipantField, ParticipantPayload, ParticipantResponse, ParticipantState } from "./contracts";
+import { clearProfileEditorDraft } from "./profile-editor-draft";
 
 const responseStates = new Set<ParticipantState>(["closed", "ready", "accepted", "authenticated", "verified", "password_reset", "signed_out", "invalid_input", "invalid_credentials", "invalid_code", "limited", "unavailable"]);
 const fields: ParticipantField[] = ["name", "email", "password", "code", "ageConfirmed"];
@@ -10,6 +11,7 @@ function parseResponse(value: unknown): ParticipantResponse {
   const record = value as Record<string, unknown>;
   if (!responseStates.has(record.state as ParticipantState)) return { state: "unavailable" };
   const response: ParticipantResponse = { state: record.state as ParticipantState };
+  if (typeof record.profileEnabled === "boolean") response.profileEnabled = record.profileEnabled;
   for (const key of ["formToken", "requestId", "expiresAt", "resendAvailableAt"] as const) if (typeof record[key] === "string") response[key] = record[key];
   if (typeof record.retryAfterSeconds === "number" && Number.isSafeInteger(record.retryAfterSeconds) && record.retryAfterSeconds > 0) response.retryAfterSeconds = record.retryAfterSeconds;
   if (record.profile && typeof record.profile === "object") {
@@ -46,9 +48,11 @@ export const PARTICIPANT_HINT_COOKIE = "msrc-signed-in";
 export function hasParticipantHint() { return typeof document !== "undefined" && document.cookie.split(";").some((part) => part.trim() === PARTICIPANT_HINT_COOKIE + "=1"); }
 export function setParticipantHint(signedIn: boolean) {
   if (typeof document === "undefined") return;
+  if (!signedIn) clearProfileEditorDraft();
+  const changed = hasParticipantHint() !== signedIn;
   const secure = window.location.protocol === "https:" ? "; Secure" : "";
   document.cookie = signedIn ? `${PARTICIPANT_HINT_COOKIE}=1; Path=/; Max-Age=28800; SameSite=Strict${secure}` : `${PARTICIPANT_HINT_COOKIE}=; Path=/; Max-Age=0; SameSite=Strict${secure}`;
-  window.dispatchEvent(new Event("msrc-participant-hint"));
+  if (changed) window.dispatchEvent(new Event("msrc-participant-hint"));
 }
 
 /** Non-identifying flag: an account was created here and is waiting for email verification. */

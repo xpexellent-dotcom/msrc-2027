@@ -5,7 +5,7 @@ set local search_path=public,extensions;
 select no_plan();
 
 select is((select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
- where n.nspname='msrc_participant' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),18::bigint,'All participant tables, including the private scheduler and ledger, force RLS');
+ where n.nspname='msrc_participant' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),20::bigint,'All participant tables, including the private scheduler, ledger and ENG-086 profile tables, force RLS');
 select ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
  cross join (values('anon'),('authenticated'),('service_role'),('supabase_auth_admin')) r(name)
  where n.nspname='msrc_participant' and c.relkind='r' and has_table_privilege(r.name,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE')),

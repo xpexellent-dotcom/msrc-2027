@@ -466,5 +466,7 @@ for (const locale of ["en", "ar"] as const) test(`${locale} header action opens 
   // Signed in, the same header action becomes My profile.
   if (isMobile) await page.locator(".menu-toggle").click();
   await expect(action).toHaveAttribute("href", `/${locale}/my-msrc`);
-  await expect(action).toHaveText(copy.myProfile);
+  // ENG-086: the header button (not the phone menu link) also shows the participant's initials or picture before the label.
+  if (!isMobile) await expect(action.locator(".header-profile-avatar")).toBeVisible();
+  await expect(action).toContainText(copy.myProfile);
 });

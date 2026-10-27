@@ -7,6 +7,7 @@ export interface ApprovedNotice { version: string; url: string; summary: string 
 export interface ParticipantProfile { name: string; accountState: "verified"; email?: string; createdAt?: string }
 export interface ParticipantResponse {
   state: ParticipantState;
+  profileEnabled?: boolean;
   notice?: ApprovedNotice | null;
   profile?: ParticipantProfile | null;
   requestId?: string;

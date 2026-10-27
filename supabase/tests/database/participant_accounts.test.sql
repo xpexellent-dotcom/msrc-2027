@@ -7,7 +7,7 @@ select no_plan();
 select has_schema('msrc_participant','Participant security evidence is private');
 select is((select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
   where n.nspname='msrc_participant' and c.relkind='r' and c.relrowsecurity and c.relforcerowsecurity),
-  18::bigint,'Every participant table, including scheduler settings and ledger receipts, forces RLS');
+  20::bigint,'Every participant table, including scheduler settings, ledger receipts and ENG-086 profile tables, forces RLS');
 select ok(not exists(select 1 from (values('anon'),('authenticated'),('service_role')) r(name)
   where has_schema_privilege(r.name,'msrc_participant','USAGE')),'API roles have no private-schema access');
 select ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace

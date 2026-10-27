@@ -17,6 +17,7 @@ import type { ParticipantAction, ParticipantField, ParticipantPageState, Partici
 import { participantCopy, type ParticipantScreen } from "./participant-copy";
 import { requestAccount } from "./participant-client";
 import { beginParticipantAction, finishParticipantAction, normalizeParticipantCode, updateParticipantDraft, useParticipantDraft } from "./participant-draft";
+import { ParticipantProfileCard } from "./profile-card";
 
 const fields: ParticipantField[] = ["firstName", "lastName", "email", "password", "confirmPassword", "code", "ageConfirmed"];
 const failedStates = new Set<ParticipantState>(["invalid_input", "invalid_credentials", "invalid_code", "limited", "unavailable", "closed"]);
@@ -56,7 +57,7 @@ function NextSteps({ locale, registrationAvailable, abstractsAvailable, workshop
   </section>;
 }
 
-export function ParticipantAccountForm({ locale, screen, initialState, registrationAvailable = false, abstractsAvailable = false, competitionsAvailable = false, workshopsAvailable = false, certificatesAvailable = false, researchJudgingAvailable = false, initialAnnouncements, initialWorkshopBookings }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; registrationAvailable?: boolean; abstractsAvailable?: boolean; competitionsAvailable?: boolean; workshopsAvailable?: boolean; certificatesAvailable?: boolean; researchJudgingAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse; initialWorkshopBookings?: WorkshopParticipantResponse }) {
+export function ParticipantAccountForm({ locale, screen, initialState, profileEnabled = false, registrationAvailable = false, abstractsAvailable = false, competitionsAvailable = false, workshopsAvailable = false, certificatesAvailable = false, researchJudgingAvailable = false, initialAnnouncements, initialWorkshopBookings }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; profileEnabled?: boolean; registrationAvailable?: boolean; abstractsAvailable?: boolean; competitionsAvailable?: boolean; workshopsAvailable?: boolean; certificatesAvailable?: boolean; researchJudgingAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse; initialWorkshopBookings?: WorkshopParticipantResponse }) {
   const copy = participantCopy[locale];
   const draft = useParticipantDraft();
   // A completion can land in the prior locale's unmounted form. Observe its
@@ -236,6 +237,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, registrat
           <div><dt>{copy.accountState}</dt><dd data-testid="participant-account-state">{copy.verifiedState}</dd></div>
           {profile.createdAt ? <div><dt>{copy.memberSince}</dt><dd data-testid="participant-member-since">{memberSince(profile.createdAt, locale)}</dd></div> : null}
         </dl>
+        {profileEnabled && !draft.pending ? <ParticipantProfileCard locale={locale} name={profile.name} identity={profile.email ?? profile.name} /> : null}
         <NextSteps locale={locale} registrationAvailable={registrationAvailable} abstractsAvailable={abstractsAvailable} workshopsAvailable={workshopsAvailable} competitionsAvailable={competitionsAvailable} />
         {certificatesAvailable ? <ButtonLink href={`/${locale}/my-msrc/certificates`} variant="secondary">{locale === "ar" ? "الاستبيانات والشهادات" : "Surveys and certificates"}</ButtonLink> : null}
         {!draft.pending && researchJudgingAvailable ? <ResearchParticipantWorkspace locale={locale} /> : null}
