@@ -4739,6 +4739,18 @@ Owner request (27 October 2026). No migration; display and client-flow changes o
   authorized `/api/registration/me`. The site header's existing "Reserve your seat" button is
   unchanged.
 
+## ENG-085 — Header account action and Sign up callout, 27 October 2026
+
+Owner request (27 October 2026). No migration.
+
+- **Header action:**
+  - Signed out, the gold "Reserve your seat" button (desktop header and mobile menu) now opens Sign in instead of the Participate hub.
+  - Signed in (the `msrc-signed-in` hint plus a verified profile from the server), the same button becomes "My profile" with a person icon and opens My MSRC.
+  - The separate ENG-083 header profile link is folded into this one button.
+- **Sign in page:** a "New to MSRC?" callout with a gold "Sign up" button gives people without an account a clear way to create one. It disappears once signed in.
+- The hero buttons and the Participate navigation item still lead to the Participate hub.
+- After ENG-086 merged, the signed-in action shows the participant's profile picture or initials instead of a generic icon; ENG-086's separate header avatar link is folded into this one button.
+
 ## ORG-066 — Privacy Policy v1.1, optional profile fields, owner-approved 27 October 2026
 
 Authority: pre-approved in chat by the owner for this change only. Participants may

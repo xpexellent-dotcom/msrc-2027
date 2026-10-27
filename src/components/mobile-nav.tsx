@@ -9,9 +9,9 @@ import type { Locale } from "@/lib/i18n";
 export type NavigationLink = { href: string; label: string; children?: readonly { href: string; label: string }[] };
 
 /** A disclosure navigation, not a modal: native Tab order stays intact. */
-export function MobileNav({ id, label, links, pathname, locale, status, action, animate, closing, onExited, onNavigate }: {
+export function MobileNav({ id, label, links, pathname, status, action, actionHref, animate, closing, onExited, onNavigate }: {
   id: string; label: string; links: readonly NavigationLink[]; locale: Locale;
-  pathname: string; status: string; action: string; animate: boolean; closing: boolean;
+  pathname: string; status: string; action: string; actionHref: string; animate: boolean; closing: boolean;
   onExited: () => void; onNavigate: () => void;
 }) {
   return <div id={id} className="mobile-menu" data-animate={animate} data-closing={closing}
@@ -19,7 +19,7 @@ export function MobileNav({ id, label, links, pathname, locale, status, action, 
       if (closing && event.target === event.currentTarget && event.propertyName === "opacity") onExited();
     }}><Container>
     <div className="mobile-menu-registration" style={{ "--menu-index": 0 } as CSSProperties}>
-      <ButtonLink className="mobile-reserve-action" href={`/${locale}/participate`} variant="gold" onClick={onNavigate}>{action}</ButtonLink>
+      <ButtonLink className="mobile-reserve-action" href={actionHref} variant="gold" onClick={onNavigate}>{action}</ButtonLink>
       <p className="mobile-menu-status">{status}</p>
     </div>
     <nav aria-label={label}>{links.map((link, index) => <div className="mobile-nav-group" key={link.href}

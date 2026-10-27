@@ -6,17 +6,17 @@ const routes = ["participate", "registration", "submissions", "workshops", "hack
 const screenshots = ".tools/participation-flow/screenshots";
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} reserve actions lead to the hub and abstract naming is consistent`, async ({ page, isMobile }) => {
+  test(`${locale} reserve actions lead to sign in and abstract naming is consistent`, async ({ page, isMobile }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/sign-in`);
     await expect(page.locator(".hero-actions a").first()).toHaveAttribute("href", `/${locale}/participate`);
     await expect(page.locator(".closing-grid a")).toHaveAttribute("href", `/${locale}/participate`);
     const label = locale === "en" ? "Abstract submission" : "تقديم الملخصات";
     await expect(page.locator(`.pathway-card`).filter({ has: page.locator(`a[href='/${locale}/submissions']`) })).toContainText(label);
     if (isMobile) {
       await page.locator(".menu-toggle").click();
-      await expect(page.locator(".mobile-reserve-action")).toHaveAttribute("href", `/${locale}/participate`);
+      await expect(page.locator(".mobile-reserve-action")).toHaveAttribute("href", `/${locale}/sign-in`);
       await expect(page.locator(`.mobile-nav-children a[href='/${locale}/submissions']`)).toHaveText(label);
       await page.locator(".mobile-reserve-action").click();
     } else {
@@ -24,7 +24,9 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator(`.header-dropdown a[href='/${locale}/submissions']`)).toContainText(label);
       await page.locator(".header-primary-action").click();
     }
-    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
+    // ENG-085: "Reserve your seat" opens Sign in, which offers a clear Sign up.
+    await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
+    await page.goto(`/${locale}/participate`);
     await expect(page.locator(`.participation-path-link[href='/${locale}/submissions'] h2`)).toHaveText(label);
     await expect(page.locator(".participation-hub")).not.toContainText(locale === "en" ? /\bResearch\b/ : "البحث العلمي");
     await page.goto(`/${locale}/submissions`);

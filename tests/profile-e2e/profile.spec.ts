@@ -82,7 +82,7 @@ for (const locale of ["en", "ar"] as const) {
     await card.getByRole("button", { name: copy.save, exact: true }).click();
     await expect(card.getByRole("heading", { name: copy.complete, exact: true })).toBeVisible();
     await expect(card.locator("form")).toHaveCount(0);
-    await expect(page.getByTestId("header-account-link").locator("img")).toHaveAttribute("src", /avatar\?v=1$/);
+    await expect(page.getByTestId("header-primary-action").locator("img")).toHaveAttribute("src", /avatar\?v=1$/);
     await card.getByRole("button", { name: copy.edit, exact: true }).click();
     await card.getByRole("button", { name: copy.remove, exact: true }).click();
     await page.locator("#profile-institution").fill(""); await page.locator("#profile-status").selectOption("");
@@ -90,8 +90,8 @@ for (const locale of ["en", "ar"] as const) {
     for (const option of specialties.slice(0, 5)) await card.getByRole("button", { name: option.label, exact: true }).click();
     await card.getByRole("button", { name: copy.save, exact: true }).click();
     await expect(card.locator("progress")).toHaveAttribute("value", "0");
-    await expect(page.getByTestId("header-account-link").locator("img")).toHaveCount(0);
-    await expect(page.getByTestId("header-account-link").locator("bdi")).toHaveText("SP");
+    await expect(page.getByTestId("header-primary-action").locator("img")).toHaveCount(0);
+    await expect(page.getByTestId("header-primary-action").locator("bdi")).toHaveText("SP");
     await accessible(page);
     expect(mock.saves()).toBe(2);
   });

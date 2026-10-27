@@ -283,6 +283,10 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
       </form>
     </>}
     {availability === "unavailable" ? <div className="participant-account-actions"><Button variant="secondary" onClick={() => { setAvailability("checking"); setStatusRefresh((value) => value + 1); }}>{copy.retry}</Button></div> : null}
+    {screen === "sign-in" && !signedIn ? <aside className="participant-signup-callout" aria-labelledby="participant-signup-callout-title" data-testid="participant-signup-callout">
+      <div><h2 id="participant-signup-callout-title">{copy.newHere}</h2><p>{copy.newHereBody}</p></div>
+      <ButtonLink href={`/${locale}/sign-up`} variant="gold">{copy.signUp}</ButtonLink>
+    </aside> : null}
     {navigation.length ? <nav className="participant-account-navigation" aria-label={copy.navigation}>{navigation.map((destination) => <Link key={destination} href={`/${locale}/${destination}`}>{copy.links[destination]}</Link>)}</nav> : null}
   </section>;
 }

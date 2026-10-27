@@ -178,11 +178,6 @@
   .button:disabled, .button[aria-disabled="true"], .field-input:disabled { border-color: GrayText; color: GrayText; }
 }
 
-/* ENG-083: signed-in participant profile link in the header. */
-.header-account-link { display: inline-flex; align-items: center; gap: .4rem; min-block-size: 2.75rem; padding-inline: .75rem; border-radius: 999px; color: inherit; font-weight: 600; text-decoration: none; white-space: nowrap; }
+/* ENG-086: participant initials or picture (also used in the header action). */
 .participant-profile-avatar { display: grid; place-items: center; flex: none; inline-size: 3.5rem; block-size: 3.5rem; overflow: hidden; border: 1px solid currentColor; border-radius: 50%; background: var(--color-surface-lilac); color: var(--color-purple); font-size: 1.15rem; font-weight: 600; }
 .participant-profile-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
-.header-account-link .header-profile-avatar { inline-size: 1.75rem; block-size: 1.75rem; font-size: .7rem; }
-.header-account-link:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
-.header-account-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-@media (max-width: 47.99em) { .header-account-link .header-account-label { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .header-account-link { padding-inline: .5rem; } }

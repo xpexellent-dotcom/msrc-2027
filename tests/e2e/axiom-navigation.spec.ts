@@ -226,7 +226,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} navigation lists all five paths and the closed registration destination`, async ({ page, isMobile }) => {
     await page.goto(`/${locale}`);
     await settle(page);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/participate`);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/sign-in`);
     await expect(page.locator(".header-primary-action")).toHaveText(locale === "en" ? "Reserve your seat" : "احجز مقعدك");
     const order = ["participate", "program", "speakers", "sponsors", "dates-venue", "team", "contact"];
     const topLinks = page.locator(".desktop-nav > .header-nav-item > a");
