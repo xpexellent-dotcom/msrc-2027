@@ -69,19 +69,17 @@ for (const locale of ["en", "ar"] as const) {
     await page.locator("#participant-confirmPassword").fill(password);
     await page.locator("#participant-ageConfirmed").check();
     await page.getByRole("button", { name: copy.create, exact: true }).click();
-    await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
-    await capture("02-account-created");
+    // ENG-084: verification asks only for the code, then signs in and opens My MSRC.
     await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
+    await expect(page.getByTestId("participant-code-sent")).toContainText("synthetic@example.invalid");
+    await expect(page.locator("#participant-email, #participant-password")).toHaveCount(0);
+    await capture("02-account-created");
     await page.locator("#participant-code").fill(locale === "ar" ? "٦٥٤٣٢١" : code);
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
-    await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.verified);
-    await capture("03-email-verified");
-    await page.getByRole("link", { name: copy.signIn, exact: true }).first().click();
-    await page.locator("#participant-password").fill(password);
-    await page.getByRole("button", { name: copy.signIn, exact: true }).click();
-    await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.authenticated);
-    await expect(page.locator("form")).toHaveCount(0);
-    const next = page.locator(".participant-account-primary-next");
+    await expect(page).toHaveURL(new RegExp(`/${locale}/my-msrc$`));
+    await expect(page.getByTestId("participant-profile-name")).toHaveText("Synthetic Participant");
+    await capture("03-email-verified-signed-in");
+    const next = page.getByTestId("participant-next-steps").locator('[data-step="attend"] a');
     await expect(next).toHaveAttribute("href", `/${locale}/registration`);
     await capture("04-signed-in-next-action");
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
