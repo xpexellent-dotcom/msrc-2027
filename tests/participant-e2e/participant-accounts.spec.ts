@@ -161,7 +161,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveTitle(`MSRC 2027 | ${copy.titles["sign-up"]}`);
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
     mock.rejectAge(false); await create.click();
-    await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
+    // ENG-084: an accepted sign-up continues to verification, which shows the code-sent line.
+    await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
+    await expect(page.getByTestId("participant-code-sent")).toContainText("synthetic@example.invalid");
     expect(mock.calls()).toBe(2);
   });
 
