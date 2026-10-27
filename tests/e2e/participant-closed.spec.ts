@@ -11,20 +11,20 @@ for (const locale of ["en", "ar"] as const) {
     // The tab title matches the closed page instead of promising a sign-in or sign-up form.
     await expect(page).toHaveTitle(`MSRC 2027 | ${participantCopy[locale].comingSoon}`);
     await expect(page.getByTestId("participant-accounts-closed")).toContainText(participantCopy[locale].registrationClosed);
-    await expect(page.locator("form, input, [data-testid=participant-profile-name]")).toHaveCount(0);
+    await expect(page.locator("form, input, [data-testid=participant-profile-name], [data-testid=participant-profile-card]")).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
     if (screen === "sign-up") {
       const notice = page.getByTestId("participant-privacy-notice");
-      await expect(notice).toContainText(locale === "en" ? "Privacy Policy v1.0" : "الإصدار ١.٠");
+      await expect(notice).toContainText(locale === "en" ? "Privacy Policy v1.1" : "الإصدار ١.١");
       await expect(notice).toContainText(locale === "en" ? "Faculty of Medicine, KAU" : "كلية الطب بجامعة الملك عبدالعزيز");
-      await expect(notice.locator("a")).toHaveAttribute("href", `/${locale}/privacy/v1.0`);
+      await expect(notice.locator("a")).toHaveAttribute("href", `/${locale}/privacy/v1.1`);
       await expect(notice).not.toContainText(/draft|awaiting|placeholder|مسودة|بانتظار/i);
       const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
       expect(axe.violations, JSON.stringify(axe.violations, null, 2)).toEqual([]);
       await notice.locator("a").click();
-      await expect(page).toHaveURL(new RegExp(`/${locale}/privacy/v1\\.0$`));
-      await expect(page.locator(".policy-page")).toHaveAttribute("data-policy-version", "v1.0");
+      await expect(page).toHaveURL(new RegExp(`/${locale}/privacy/v1\\.1$`));
+      await expect(page.locator(".policy-page")).toHaveAttribute("data-policy-version", "v1.1");
     } else await expect(page.getByTestId("participant-privacy-notice")).toHaveCount(0);
     expect(calls).toBe(0);
   });
@@ -37,4 +37,14 @@ test("closed participant API rejects all actions without cookies or account fiel
     expect(await response.json()).toEqual({ state: "closed" });
     expect(response.headers()["set-cookie"]).toBeUndefined();
   }
+});
+
+test("optional profile and avatar APIs remain closed without accepting profile data", async ({ request }) => {
+  for (const path of ["/api/participant-accounts/profile", "/api/participant-accounts/profile/avatar"]) {
+    const response = await request.get(path);
+    expect(response.status()).toBe(503); expect(await response.json()).toEqual({ state: "closed" });
+    expect(response.headers()["cache-control"]).toContain("no-store"); expect(response.headers()["set-cookie"]).toBeUndefined();
+  }
+  const response = await request.post("/api/participant-accounts/profile", { multipart: { action: "save", institution: "Synthetic closed input" } });
+  expect(response.status()).toBe(503); expect(await response.json()).toEqual({ state: "closed" });
 });

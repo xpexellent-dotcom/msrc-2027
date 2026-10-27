@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SESSION_POLICY } from "@/config/session-policy";
 import { ROLES, type Role } from "@/lib/permissions/contract";
 import { createParticipantDetailHandler } from "@/features/staff-portal/participant-detail-handler.server";
@@ -40,6 +40,7 @@ const handle = (input: Request) => createParticipantDetailHandler({ readiness: (
 const rpcNames = () => vi.mocked(backend.rpc).mock.calls.map(([name]) => name);
 
 beforeEach(() => {
+  vi.stubEnv("PARTICIPANT_PROFILE_ENABLED", "false");
   roles = ["superAdmin"]; reply = { state: "ready", participant };
   backend = { rpc: vi.fn(async (name) => {
     if (name === "msrc_staff_status") return { enabled: true, emailDailyLimit: 40 };
@@ -49,6 +50,7 @@ beforeEach(() => {
     return null;
   }), identity: vi.fn(async () => actorId), refresh: vi.fn(async () => native), logout: vi.fn(async () => true) } as unknown as StaffBackend;
 });
+afterEach(() => vi.unstubAllEnvs());
 
 describe("ENG-083 participant detail", () => {
   it.each(["superAdmin", "registrationWorkshopAdministrator"] as const)("returns the full record for %s", async (role) => {
@@ -78,5 +80,55 @@ describe("ENG-083 participant detail", () => {
     expect(decodeParticipantDetail({ ...participant, registration: { ...participant.registration, attendance: "none" } })).toBeNull();
     expect(decodeParticipantDetail({ ...participant, competitions: [{ kind: "hackathon", title: null, status: "draft", isLead: "yes", confirmed: true }] })).toBeNull();
     expect(decodeParticipantDetail({ ...participant, hackathonProfile: { university: "U", fieldOfStudy: "F", phone: "+966", enrolled: true } })?.hackathonProfile?.phone).toBe("+966");
+  });
+});
+
+describe("ENG-086 private staff participant profile", () => {
+  const object = "39000000-0000-4000-8000-000000000004.webp";
+  const optionalProfile = { institution: "Synthetic Institution", studentStatus: "medical_student", studentYear: 3,
+    specialtyInterests: ["synthetic-specialty"], specialties: [{ id: "synthetic-specialty", label: "Synthetic specialty" }], avatarObject: object, version: 2 };
+  const avatarRequest = (query = `?actorId=${target}&v=2`) => new Request(origin + "/api/staff-portal/participant-detail/avatar" + query, { headers: request().headers });
+  const avatar = vi.fn(async () => new Blob([new Uint8Array([1, 2, 3])], { type: "image/webp" }));
+  const profileHandler = () => createParticipantDetailHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => now, avatar });
+  beforeEach(() => { avatar.mockClear(); reply = { state: "ready", participant: { ...participant, optionalProfile } }; });
+  it("keeps profile fields and avatar closed while the flag is off", async () => {
+    const detail = await profileHandler()(request());
+    expect(await detail.json()).toEqual({ state: "ready", participant });
+    expect((await profileHandler()(avatarRequest())).status).toBe(503);
+    expect(avatar).not.toHaveBeenCalled();
+  });
+  it.each(["superAdmin", "registrationWorkshopAdministrator"] as const)("projects optional fields for %s without storage object paths", async (role) => {
+    vi.stubEnv("PARTICIPANT_PROFILE_ENABLED", "true"); roles = [role];
+    const detail = await profileHandler()(request()), json = await detail.json();
+    expect(detail.status).toBe(200);
+    expect(json.participant.optionalProfile).toEqual({ institution: "Synthetic Institution", status: "medical_student", year: 3,
+      interests: ["synthetic-specialty"], specialties: optionalProfile.specialties, version: 2,
+      avatarUrl: `/api/staff-portal/participant-detail/avatar?actorId=${target}&v=2` });
+    expect(JSON.stringify(json)).not.toContain(object); expect(avatar).not.toHaveBeenCalled();
+    expect(rpcNames()).toContain("msrc_staff_participant_detail");
+  });
+  it.each(["superAdmin", "registrationWorkshopAdministrator"] as const)("serves a private avatar only after the audited %s participant read", async (role) => {
+    vi.stubEnv("PARTICIPANT_PROFILE_ENABLED", "true"); roles = [role];
+    const response = await profileHandler()(avatarRequest());
+    expect(response.status).toBe(200); expect(response.headers.get("content-type")).toBe("image/webp");
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(avatar).toHaveBeenCalledExactlyOnceWith(config, object);
+    expect(rpcNames()).toContain("msrc_staff_participant_detail");
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array([1, 2, 3]));
+  });
+  it.each(ROLES.filter((role) => role !== "superAdmin" && role !== "registrationWorkshopAdministrator"))("denies %s before reading or downloading an avatar", async (role) => {
+    vi.stubEnv("PARTICIPANT_PROFILE_ENABLED", "true"); roles = [role];
+    expect((await profileHandler()(avatarRequest())).status).toBe(403);
+    expect(rpcNames()).not.toContain("msrc_staff_participant_detail"); expect(avatar).not.toHaveBeenCalled();
+  });
+  it("retains pre-migration legacy detail shapes with no optional profile", async () => {
+    vi.stubEnv("PARTICIPANT_PROFILE_ENABLED", "true"); reply = { state: "ready", participant };
+    expect(await (await profileHandler()(request())).json()).toEqual({ state: "ready", participant });
+    expect((await profileHandler()(avatarRequest())).status).toBe(404); expect(avatar).not.toHaveBeenCalled();
+  });
+  it("rejects malformed object paths before invoking Storage", async () => {
+    vi.stubEnv("PARTICIPANT_PROFILE_ENABLED", "true");
+    reply = { state: "ready", participant: { ...participant, optionalProfile: { ...optionalProfile, avatarObject: "../another-person.webp" } } };
+    expect((await profileHandler()(avatarRequest())).status).toBe(503); expect(avatar).not.toHaveBeenCalled();
   });
 });

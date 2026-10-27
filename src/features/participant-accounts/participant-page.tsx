@@ -33,6 +33,6 @@ export function ParticipantAccountPage({ locale, screen, state, announcements, w
       <h1>{copy.titles[screen]}</h1>
       <p>{copy.leads[screen]}</p>
     </header>
-    <ParticipantAccountForm locale={locale} screen={screen} initialState={state} initialAnnouncements={announcements} initialWorkshopBookings={workshopBookings} researchJudgingAvailable={process.env.RESEARCH_JUDGING_ENABLED === "true"} certificatesAvailable={process.env.CERTIFICATES_ENABLED === "true"} workshopsAvailable={process.env.WORKSHOP_BOOKING_ENABLED === "true"} registrationAvailable={process.env.REGISTRATION_ENABLED === "true"} abstractsAvailable={process.env.ABSTRACT_SUBMISSIONS_ENABLED === "true"} competitionsAvailable={process.env.COMPETITIONS_ENABLED === "true"} />
+    <ParticipantAccountForm locale={locale} screen={screen} initialState={state} initialAnnouncements={announcements} initialWorkshopBookings={workshopBookings} profileEnabled={process.env.PARTICIPANT_PROFILE_ENABLED === "true"} researchJudgingAvailable={process.env.RESEARCH_JUDGING_ENABLED === "true"} certificatesAvailable={process.env.CERTIFICATES_ENABLED === "true"} workshopsAvailable={process.env.WORKSHOP_BOOKING_ENABLED === "true"} registrationAvailable={process.env.REGISTRATION_ENABLED === "true"} abstractsAvailable={process.env.ABSTRACT_SUBMISSIONS_ENABLED === "true"} competitionsAvailable={process.env.COMPETITIONS_ENABLED === "true"} />
   </Container>;
 }

@@ -47,6 +47,10 @@ jobs:
         run: pnpm exec playwright test tests/e2e/participant-closed.spec.ts --project=chromium-desktop --project=chromium-mobile
       - name: Verify synthetic flag-on forms, keyboard, locale preservation and axe
         run: pnpm exec playwright test --config playwright.participant.config.ts
+      - name: Verify optional private profile editor, avatars, EN/AR and axe
+        run: pnpm exec playwright test --config playwright.profile.config.ts
+      - name: Verify authorized staff optional-profile presentation in EN/AR
+        run: pnpm exec playwright test --config playwright.staff-profile.config.ts
       - name: Verify closed abstract workflow, EN/AR drafts, revision and axe
         run: pnpm exec playwright test --config playwright.abstracts.config.ts
       - name: Verify closed competition gates and synthetic EN/AR entry journeys
@@ -60,6 +64,7 @@ jobs:
             test-results/
             playwright-report/
             .tools/workshops/
+            .tools/profile-review/
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 7

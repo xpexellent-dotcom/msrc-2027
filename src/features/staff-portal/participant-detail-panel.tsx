@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
 import { formatStaffDate } from "./console-shell";
 import type { ParticipantDetail, ParticipantDetailResponse } from "./participant-detail-contract";
+import { ProfileAvatar } from "@/features/participant-accounts/profile-avatar";
+import { profileCopy } from "@/features/participant-accounts/profile-copy";
 
 const detailCopy = {
   en: {
@@ -36,6 +38,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) { retu
 /** ENG-083: read-only view of one participant; identity stays masked (the audited reveal is separate). */
 export function ParticipantDetailPanel({ locale, actorId, onClose }: { locale: Locale; actorId: string; onClose: () => void }) {
   const copy = detailCopy[locale];
+  const profileText = profileCopy[locale];
   const [state, setState] = useState<ParticipantDetailResponse | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -68,6 +71,16 @@ export function ParticipantDetailPanel({ locale, actorId, onClose }: { locale: L
         <Row label={copy.privacy}><bdi dir="ltr">{person.privacyVersion ?? copy.none}</bdi></Row>
         <Row label={copy.age}>{date(person.ageConfirmedAt)}</Row>
       </dl>
+      {person.optionalProfile ? <section aria-labelledby="staff-participant-optional-profile" data-testid="staff-participant-profile">
+        <h3 id="staff-participant-optional-profile">{profileText.optionalProfile}</h3>
+        <dl className="staff-detail-list">
+          <Row label={profileText.picture}><ProfileAvatar name={person.name} url={person.optionalProfile.avatarUrl} /></Row>
+          <Row label={profileText.institution}><bdi dir="auto">{person.optionalProfile.institution ?? copy.none}</bdi></Row>
+          <Row label={profileText.status}>{person.optionalProfile.status ? profileText.statuses[person.optionalProfile.status] : copy.none}</Row>
+          <Row label={profileText.year}>{person.optionalProfile.year === null ? copy.none : new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB").format(person.optionalProfile.year)}</Row>
+          <Row label={profileText.interests}>{person.optionalProfile.interests.length ? person.optionalProfile.interests.map((id) => <div key={id}><bdi dir="ltr" lang="en">{person.optionalProfile!.specialties.find((option) => option.id === id)?.label ?? id}</bdi></div>) : copy.none}</Row>
+        </dl>
+      </section> : null}
       <h3>{copy.registration}</h3>
       {person.registration ? <dl className="staff-detail-list">
         <Row label={copy.registrationStatus}><bdi dir="ltr">{person.registration.status}</bdi></Row>

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Link } from "@/components/ui/link";
 import { hasParticipantHint, requestAccount } from "@/features/participant-accounts/participant-client";
 import { participantCopy } from "@/features/participant-accounts/participant-copy";
+import { ProfileAvatar } from "@/features/participant-accounts/profile-avatar";
+import { requestParticipantProfile } from "@/features/participant-accounts/profile-client";
 import type { Locale } from "@/lib/i18n";
 
 /**
@@ -12,22 +14,31 @@ import type { Locale } from "@/lib/i18n";
  */
 export function HeaderAccountLink({ locale }: { locale: Locale }) {
   const [name, setName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   useEffect(() => {
     const controller = new AbortController();
+    let generation = 0;
     async function check() {
-      if (!hasParticipantHint()) { setName(null); return; }
+      const current = ++generation;
+      if (!hasParticipantHint()) { setName(null); setAvatarUrl(null); return; }
       const { response } = await requestAccount(undefined, controller.signal);
-      if (!controller.signal.aborted) setName(response.profile?.name ?? null);
+      if (controller.signal.aborted || current !== generation) return;
+      setName(response.profile?.name ?? null); setAvatarUrl(null);
+      if (response.profile && response.profileEnabled) {
+        const profile = await requestParticipantProfile(undefined, controller.signal);
+        if (!controller.signal.aborted && current === generation) setAvatarUrl(profile.state === "ready" ? profile.profile.avatarUrl : null);
+      }
     }
     void check();
     const changed = () => void check();
     window.addEventListener("msrc-participant-hint", changed);
-    return () => { controller.abort(); window.removeEventListener("msrc-participant-hint", changed); };
+    window.addEventListener("msrc-participant-profile", changed);
+    return () => { controller.abort(); window.removeEventListener("msrc-participant-hint", changed); window.removeEventListener("msrc-participant-profile", changed); };
   }, []);
   if (!name) return null;
   const label = participantCopy[locale].myProfile;
   return <Link className="header-account-link" href={`/${locale}/my-msrc`} aria-label={`${label}: ${name}`} data-testid="header-account-link">
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4" /><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5" /></svg>
-    <span>{label}</span>
+    <ProfileAvatar name={name} url={avatarUrl} className="header-profile-avatar" />
+    <span className="header-account-label">{label}</span>
   </Link>;
 }

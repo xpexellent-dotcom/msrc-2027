@@ -13,9 +13,9 @@ export function policyTabLabel(heading: string): string {
 }
 
 /**
- * ORG-037: approved policies inherit the site's production-only indexing rule. A dated
- * version page repeats the current text, so it points search engines at the unversioned
- * page and stays out of the index instead of competing with it.
+ * ORG-037/066: approved policies inherit the site's production-only indexing rule.
+ * Stable version pages point search engines at the current unversioned document
+ * and stay out of the index.
  */
 export function policyPageMetadata(kind: PolicyKind, locale: Locale, version?: PolicyVersion): Metadata {
   const { document } = getPolicyDocument(kind, locale, version);

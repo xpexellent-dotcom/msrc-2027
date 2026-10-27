@@ -89,3 +89,34 @@
 .participant-next-steps li > p { margin: 0; }
 .participant-next-steps li[data-open="true"] { border-color: var(--color-primary, currentColor); }
 .participant-next-step-closed { color: var(--color-muted, inherit); }
+
+/* ENG-086: optional private participant profile, native controls and no required motion. */
+.participant-profile-card { padding: var(--space-4); margin-block-end: var(--space-6); border: 1px solid var(--color-line); border-radius: 1rem; background: var(--color-info-surface); min-inline-size: 0; }
+.participant-profile-overview { display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center; }
+.participant-profile-overview-copy { flex: 1 1 16rem; min-inline-size: 0; }
+.participant-profile-overview h2 { margin-block: 0 var(--space-2); }
+.participant-profile-overview p { margin: 0; line-height: 1.8; }
+.participant-profile-progress { display: grid; gap: var(--space-2); margin-block-start: var(--space-3); font-size: .9rem; color: var(--color-purple); }
+.participant-profile-progress progress { inline-size: 100%; block-size: .65rem; accent-color: var(--color-purple); border: 0; border-radius: 1rem; overflow: hidden; }
+.participant-profile-progress progress::-webkit-progress-bar { background: var(--color-line); }
+.participant-profile-progress progress::-webkit-progress-value { background: var(--color-purple); }
+.participant-profile-card--complete .participant-profile-overview-copy { flex-basis: 10rem; }
+.participant-profile-card--complete h2 { font-size: 1rem; margin: 0; }
+.participant-profile-card--complete .participant-profile-avatar { inline-size: 2.5rem; block-size: 2.5rem; font-size: .9rem; }
+.participant-profile-feedback:empty { display: none; }
+.participant-profile-feedback { margin-block: var(--space-3) 0; color: var(--color-purple); line-height: 1.8; }
+#participant-profile-editor { margin-block-start: var(--space-5); padding-block-start: var(--space-5); border-block-start: 1px solid var(--color-line); }
+#participant-profile-editor > h3 { margin-block: 0 var(--space-4); color: var(--color-purple); font-size: 1.2rem; }
+#participant-profile-editor > .participant-account-error { margin-block-end: var(--space-5); }
+.participant-profile-picture { display: grid; gap: var(--space-3); min-inline-size: 0; }
+.participant-profile-picture .participant-profile-avatar { inline-size: 5rem; block-size: 5rem; }
+.participant-profile-picture > .button { justify-self: start; }
+.participant-profile-picture .file-input { min-inline-size: 0; max-inline-size: 100%; }
+.participant-profile-interests { border: 0; padding: 0; margin: 0; min-inline-size: 0; }
+.participant-profile-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-block-start: var(--space-3); }
+.participant-profile-chips button { min-block-size: 2.75rem; min-inline-size: 2.75rem; max-inline-size: 100%; padding: .5rem .85rem; border: 1px solid var(--color-line); border-radius: 1.5rem; background: var(--color-white); color: var(--color-purple); font: inherit; text-align: start; overflow-wrap: anywhere; cursor: pointer; }
+.participant-profile-chips button[aria-pressed="true"] { color: var(--color-white); background: var(--color-purple); border-color: var(--color-purple); }
+.participant-profile-chips button:disabled { opacity: .55; cursor: default; }
+.participant-profile-chips button:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 3px; }
+@media (max-width: 600px) { .participant-profile-overview > .button { inline-size: 100%; } }
+@media (forced-colors: active) { .participant-profile-chips button[aria-pressed="true"] { border: 3px solid Highlight; color: HighlightText; background: Highlight; } .participant-profile-avatar { border-color: CanvasText; } }
