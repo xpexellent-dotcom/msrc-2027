@@ -93,7 +93,7 @@ export function createParticipantHandler(dependencies: {
         const allowed = cookie && own?.deadline === cookie.deadline ? own : null;
         if (cookie && !allowed) cookie = null;
         return reply({ state: allowed ? "authenticated" : "ready", notice: participantNotice(locale, config.testMode),
-          profile: allowed?.profile ?? null, formToken: fresh() }, 200, changed && cookie ? participantCookie(config, cookie, now)
+          profile: allowed?.profile ?? null, ...(allowed && process.env.PARTICIPANT_PROFILE_ENABLED === "true" ? { profileEnabled: true } : {}), formToken: fresh() }, 200, changed && cookie ? participantCookie(config, cookie, now)
             : !cookie && request.headers.get("cookie") ? participantCookie(config, null, now) : undefined);
       } catch { return reply({ state: "unavailable", formToken: fresh() }, 503); }
     }
@@ -176,7 +176,7 @@ export function createParticipantHandler(dependencies: {
         const own = await ownProfile(config, backend, native, now);
         if (!own) { await backend.logout(native.accessToken); return respond({ state: "invalid_credentials" }, 401); }
         const session: ParticipantSessionCookie = { ...native, deadline: own.deadline, origin };
-        return respond({ state: "authenticated", profile: own.profile }, 200, participantCookie(config, session, now));
+        return respond({ state: "authenticated", profile: own.profile, ...(process.env.PARTICIPANT_PROFILE_ENABLED === "true" ? { profileEnabled: true } : {}) }, 200, participantCookie(config, session, now));
       }
       if (payload.action === "logout") {
         const cleared = participantCookie(config, null, now);

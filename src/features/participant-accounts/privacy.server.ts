@@ -3,17 +3,17 @@ import { currentPolicyVersion } from "@/content/policies";
 import type { Locale } from "@/lib/i18n";
 import type { ApprovedNotice } from "./contracts";
 
-/** ORG-037 / PRV-01/02: notice approval does not enable accounts or database readiness. */
+/** ORG-037/066 / PRV-01/02: notice approval does not enable accounts or database readiness. */
 export const approvedParticipantPrivacy: Readonly<Record<Locale, ApprovedNotice>> = {
   en: {
     version: currentPolicyVersion,
     url: `/en/privacy/${currentPolicyVersion}`,
-    summary: "Privacy Policy v1.0 explains how the Faculty of Medicine, KAU, uses your information for the conference, who processes it, how long it is kept and your rights as a data subject.",
+    summary: "Privacy Policy v1.1 explains how the Faculty of Medicine, KAU, uses your information for the conference, who processes it, how long it is kept and your rights as a data subject.",
   },
   ar: {
     version: currentPolicyVersion,
     url: `/ar/privacy/${currentPolicyVersion}`,
-    summary: "توضح سياسة الخصوصية، الإصدار ١.٠، كيفية استخدام كلية الطب بجامعة الملك عبدالعزيز لبياناتك لأغراض المؤتمر، والجهات التي تعالجها، ومدد الاحتفاظ بها، وحقوقك بصفتك صاحب البيانات.",
+    summary: "توضح سياسة الخصوصية، الإصدار ١.١، كيفية استخدام كلية الطب بجامعة الملك عبدالعزيز لبياناتك لأغراض المؤتمر، والجهات التي تعالجها، ومدد الاحتفاظ بها، وحقوقك بصفتك صاحب البيانات.",
   },
 };
 

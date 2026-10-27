@@ -6,6 +6,7 @@ import { maintainRegistrationConfirmations } from "@/lib/jobs/registration-confi
 import { maintainAnnouncements } from "@/lib/jobs/announcements.server";
 import { maintainWorkshops } from "@/lib/jobs/workshops.server";
 import { generatePendingCertificates } from "@/features/certificates/generation.server";
+import { maintainParticipantProfiles } from "@/lib/jobs/participant-profile.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export const maxDuration = 30;
 
 async function run(request: Request): Promise<Response> {
   return createOutboxDrainHandler({ env: process.env, maintainConfirmations: maintainRegistrationConfirmations,
-    maintainAnnouncements, maintainWorkshops, generateCertificates: generatePendingCertificates, run: (config) => drainOutbox({
+    maintainAnnouncements, maintainWorkshops, maintainProfiles: maintainParticipantProfiles, generateCertificates: generatePendingCertificates, run: (config) => drainOutbox({
     store: createRpcOutboxStore(config),
     sender: config.sender === "resend" ? createResendOutboxSender(config.resendKey!) : createConsoleOutboxSender(),
     dailyCap: config.dailyCap, batchSize: config.batchSize, timeBudgetMs: config.timeBudgetMs,

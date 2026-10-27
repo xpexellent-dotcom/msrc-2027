@@ -35,7 +35,8 @@ const nextConfig: NextConfig = {
       { source: "/", has: [{ type: "header" as const, key: "accept-language", value: arabicFirst }], destination: "/ar", permanent: false },
       { source: "/", destination: "/en", permanent: false },
       // ORG-037: the published short policy URLs follow the same locale preference.
-      ...["privacy", "terms"].flatMap((kind) => ["", "/v1.0"].flatMap((suffix) => [
+      // ORG-066: Privacy also has v1.1; Terms stay v1.0.
+      ...["privacy", "terms"].flatMap((kind) => (kind === "privacy" ? ["", "/v1.0", "/v1.1"] : ["", "/v1.0"]).flatMap((suffix) => [
         { source: `/${kind}${suffix}`, has: [{ type: "header" as const, key: "accept-language", value: arabicFirst }], destination: `/ar/${kind}${suffix}`, permanent: false },
         { source: `/${kind}${suffix}`, destination: `/en/${kind}${suffix}`, permanent: false },
       ])),

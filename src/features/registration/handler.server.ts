@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { currentPolicyVersion } from "@/content/policies";
+import { currentTermsVersion } from "@/content/policies";
 import { getParticipantConfig, type ParticipantConfig, type ParticipantReadiness } from "@/features/participant-accounts/config.server";
 import { participantNotice } from "@/features/participant-accounts/privacy.server";
 import { nativeTokenNeedsRefresh, participantCookie, participantHash, participantIp, participantOrigin, participantUuid,
@@ -83,7 +83,7 @@ export function createRegistrationHandler(dependencies: {
       const claims = verifiedClaims(session.accessToken, session.actorId, session.sessionId, now);
       if (!claims) return respond({ state: "denied" }, 401);
       const context = record(await backend.rpc("msrc_registration_context", { edition_key: config.editionKey, session_claims: claims }));
-      if (!context || context.state !== "open" || context.termsVersion !== currentPolicyVersion) return gateClosed();
+      if (!context || context.state !== "open" || context.termsVersion !== currentTermsVersion) return gateClosed();
       try { assertWorkflowOpen("registration", context as unknown as RegistrationGateEvidence); } catch { return gateClosed(); }
       if (!["GET", "HEAD", "POST"].includes(request.method)) return respond({ state: "invalid_input" }, 405);
       const summary = context.request === null ? null : requestSummary(context.request);
@@ -94,13 +94,13 @@ export function createRegistrationHandler(dependencies: {
       if (request.method === "GET") {
         if (Array.from(new URL(request.url).searchParams.keys()).some((key) => key !== "locale")
           || ![null, "en", "ar"].includes(new URL(request.url).searchParams.get("locale"))) return respond({ state: "invalid_input" }, 400);
-        return respond({ state: summary ? "submitted" : "ready", request: summary, termsVersion: currentPolicyVersion, formToken: fresh() });
+        return respond({ state: summary ? "submitted" : "ready", request: summary, termsVersion: currentTermsVersion, formToken: fresh() });
       }
       let value: Record<string, unknown> | null;
       try { value = record(await readParticipantJson(request)); } catch { return respond({ state: "invalid_input", formToken: fresh() }, 400); }
       if (!value || Object.keys(value).sort().join(",") !== "documentNumber,documentType,formToken,termsAccepted,termsVersion,website"
         || !["national_id", "iqama", "passport"].includes(String(value.documentType)) || typeof value.documentNumber !== "string"
-        || value.termsAccepted !== true || value.termsVersion !== currentPolicyVersion || value.website !== "") return respond({ state: "invalid_input", formToken: fresh() }, 400);
+        || value.termsAccepted !== true || value.termsVersion !== currentTermsVersion || value.website !== "") return respond({ state: "invalid_input", formToken: fresh() }, 400);
       const type = value.documentType as IdentityDocumentType, number = normalizeIdentityNumber(type, value.documentNumber);
       const tokenValid = readRegistrationFormToken(config, value.formToken, origin, session.actorId, session.sessionId, now), ip = participantIp(config, request);
       if (!number || !tokenValid || !ip) return respond({ state: "invalid_input", formToken: fresh() }, 400);
@@ -110,12 +110,12 @@ export function createRegistrationHandler(dependencies: {
       // Closing the server flag during an in-flight request prevents collection. The RPC rechecks DB policy and time atomically.
       if (process.env.REGISTRATION_ENABLED !== "true" || (dependencies.readiness ?? getParticipantConfig)().state !== "ready") return gateClosed();
       const result = record(await backend.rpc("msrc_registration_submit", { edition_key: config.editionKey, session_claims: claims,
-        document_type: type, document_number: number, terms_version: currentPolicyVersion }));
+        document_type: type, document_number: number, terms_version: currentTermsVersion }));
       if (result?.state === "closed") return gateClosed();
       if (result?.state === "denied") return respond({ state: "denied", formToken: fresh() }, 403);
       if (result?.state === "conflict") return respond({ state: "invalid_input", formToken: fresh() }, 400);
       const submitted = requestSummary(result?.request);
-      return result?.state === "submitted" && submitted ? respond({ state: "submitted", request: submitted, formToken: fresh(), termsVersion: currentPolicyVersion })
+      return result?.state === "submitted" && submitted ? respond({ state: "submitted", request: submitted, formToken: fresh(), termsVersion: currentTermsVersion })
         : respond({ state: "unavailable", formToken: fresh() }, 503);
     } catch (error) { return respond({ state: error instanceof RegistrationRpcMissingError ? "area-not-ready" : "unavailable" }, 503); }
   };

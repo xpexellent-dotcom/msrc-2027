@@ -443,18 +443,19 @@ describe("protected outbox drain route", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  it("authenticates the actual cron GET with a fixed-length timing-safe comparison and leaves a zero cap inert", async () => {
+  it("authenticates the actual cron GET and keeps zero-cap mail inert while maintaining private file deletion", async () => {
     for (const [key, value] of Object.entries({ ...enabledEnvironment, OUTBOX_DAILY_CAP: "0" })) vi.stubEnv(key, value);
-    const fetcher = vi.fn();
+    const fetcher = vi.fn<typeof fetch>(async () => Response.json({ state: "ready", erased: 0, objects: [] }));
     vi.stubGlobal("fetch", fetcher);
     const compare = vi.mocked(timingSafeEqual);
     compare.mockClear();
     const response = await GET(new Request("https://msrc2027.com/api/jobs/outbox/drain", { headers: { authorization: "Bearer " + secret } }));
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ claimed: 0, sent: 0, retryable: 0, permanent: 0, stale: 0 });
+    expect(await response.json()).toEqual({ claimed: 0, sent: 0, retryable: 0, permanent: 0, stale: 0, profiles: { state: "updated", erased: 0, removed: 0, pending: 0 } });
     expect(compare).toHaveBeenCalledOnce();
     expect(compare.mock.calls[0].map((digest) => digest.byteLength)).toEqual([32, 32]);
-    expect(fetcher).not.toHaveBeenCalled();
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(String(fetcher.mock.calls[0][0])).toMatch(/\/rest\/v1\/rpc\/msrc_participant_profile_cleanup$/);
   });
 
   it("cron GET cannot select the provider while its independent Resend switch is off", async () => {

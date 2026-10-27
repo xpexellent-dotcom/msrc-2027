@@ -12,12 +12,12 @@ export function visibleMarkdown(text: string): string {
 /** Independent, deliberately narrow reader for the two approved source files.
  * Unknown block syntax fails rather than silently dropping an approved clause.
  */
-export function readApprovedPolicy(kind: "privacy" | "terms") {
-  const source = readFileSync(new URL(`../docs/policies/${kind === "privacy" ? "privacy-policy" : "terms"}-v1.0.en.md`, import.meta.url), "utf8");
+export function readApprovedPolicy(kind: "privacy" | "terms", version = kind === "privacy" ? "v1.1" : "v1.0") {
+  const source = readFileSync(new URL(`../docs/policies/${kind === "privacy" ? "privacy-policy" : "terms"}-${version}.en.md`, import.meta.url), "utf8");
   const lines = source.replace(/\r\n/g, "\n").trim().split("\n");
   const title = lines.shift()!.replace(/^# /, "");
   const versionLine = lines.shift() === "" ? lines.shift()! : "";
-  if (!versionLine.startsWith("**Version 1.0** · Effective from the date")) throw new Error("Unexpected approved version header");
+  if (!versionLine.startsWith(`**Version ${version.slice(1)}** · Effective from the date`)) throw new Error("Unexpected approved version header");
   const intro: string[] = [];
   const sections: { title: string; blocks: SourceBlock[] }[] = [];
   for (let index = 0; index < lines.length;) {
