@@ -4717,3 +4717,24 @@ Authority: owner request after the 25 October account opening. Migration
   account, registration, ticket, attendance, workshops, submissions, competitions, hackathon
   profile and certificates. Identity stays masked; the audited reveal is unchanged. Each view is
   audited as `participants_read` with the participant as target.
+
+## ENG-084 — Verify-only code screen, account next steps and the Attend step tracker, 27 October 2026
+
+Owner request (27 October 2026). No migration; display and client-flow changes only.
+
+- **Verify screen**: arriving straight from sign-up in the same document, the email and password
+  are held in memory (`fromSignup` in the participant draft), so the screen asks only for the code
+  and offers "Used the wrong email? Create your account again". Any other arrival still shows the
+  email and password fields. After a successful verification the browser signs in with the held
+  credentials and opens My MSRC; if that fails, the Sign in link remains.
+- **My MSRC next steps**: four cards (attend, abstract, workshops, hackathon/3MT), each linking to
+  its own application when that area's server flag is on, otherwise "Opens soon" with a Learn more
+  link to the public page. Creating an account still registers the person for nothing.
+- **Attend page**: the hero button "Sign up for MSRC" jumps to Simple steps. Simple steps is an
+  interactive tracker: step 1 links to sign-up, and the highlighted step follows the visitor's
+  state: no account, step 1; account created but unverified in this browser (a non-identifying
+  `msrc-signup-pending` localStorage flag), step 2; signed in, step 3; a seat request in review,
+  step 4 in progress; approved or confirmed, all done. The state is a display hint only. Anonymous
+  visitors make no account request, and registration status is read through the existing
+  authorized `/api/registration/me`. The site header's existing "Reserve your seat" button is
+  unchanged.

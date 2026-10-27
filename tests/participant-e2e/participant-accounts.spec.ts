@@ -97,7 +97,9 @@ for (const locale of ["en", "ar"] as const) {
       await page.keyboard.press("Enter");
       // ENG-083: creating the account continues straight to verification.
       await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
-      await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
+      // ENG-084: arriving from sign-up, only the code is asked for.
+      await expect(page.getByTestId("participant-code-sent")).toContainText("synthetic@example.invalid");
+      await expect(page.locator("#participant-email, #participant-password")).toHaveCount(0);
       await expect(page.locator("#participant-code")).toBeEnabled();
       expect(mock.calls()).toBe(1);
     } finally { releaseScripts(); releaseStatus(); }
@@ -213,7 +215,9 @@ for (const locale of ["en", "ar"] as const) {
     const code = page.locator("#participant-code");
     await expect(code).toHaveAttribute("autocomplete", "one-time-code");
     await expect(code).toHaveAttribute("dir", "ltr");
-    await expect(page.locator("#participant-password")).toHaveValue(syntheticPassword);
+    // ENG-084: the sign-up email and password stay in memory, so only the code is shown.
+    await expect(page.locator("#participant-email, #participant-password")).toHaveCount(0);
+    await expect(page.getByRole("link", { name: copy.differentEmail, exact: true })).toHaveAttribute("href", `/${locale}/sign-up`);
     await code.fill("000000");
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
     await expect(page.getByTestId("participant-account-error")).toBeFocused();
@@ -288,11 +292,18 @@ for (const locale of ["en", "ar"] as const) {
         await page.getByRole("button", { name: copy.requestReset, exact: true }).click();
         await page.getByRole("link", { name: copy.links["reset-password"], exact: true }).first().click();
       } else {
-        await page.goto(`/${locale}/sign-up`);
-        await fillSignup(page);
         if (screen === "verify-email") {
-          await page.getByRole("button", { name: copy.create, exact: true }).click();
-          await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
+          // ENG-084: a direct visit (not straight from sign-up) still asks for email and password.
+          await page.goto(`/${locale}/verify-email`);
+          await expect(page.locator("#participant-email")).toBeEnabled();
+          await page.locator("#participant-email").fill("synthetic@example.invalid");
+          await page.locator("#participant-password").fill(syntheticPassword);
+          await page.getByRole("button", { name: copy.resend, exact: true }).click();
+          await expect(page.getByTestId("participant-code-sent")).toBeVisible();
+          await expect(page.locator("#participant-password")).toBeVisible();
+        } else {
+          await page.goto(`/${locale}/sign-up`);
+          await fillSignup(page);
         }
       }
       const password = page.locator("#participant-password");
@@ -331,7 +342,7 @@ for (const locale of ["en", "ar"] as const) {
         await setPassword("😀".repeat(18)); // Exactly 72 UTF-8 bytes.
         await button.click();
         await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
-        await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
+        await expect(page.getByTestId("participant-code-sent")).toBeVisible();
         return;
       }
       await password.fill("😀".repeat(10));
@@ -369,8 +380,9 @@ test("locale changes retain name, email, password and code in memory, while relo
   await (await languageLink(page, "View this page in English")).click();
   await expect(page).toHaveURL(/\/en\/verify-email$/);
   await expect(page.locator("#participant-code")).toHaveValue(syntheticCode);
-  await expect(page.locator("#participant-password")).toHaveValue(syntheticPassword);
-  expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
+  await expect(page.locator("#participant-password")).toHaveCount(0);
+  // ENG-084: only the non-identifying "account awaiting verification" flag is stored.
+  expect(await page.evaluate(() => ({ local: Object.keys(localStorage), session: sessionStorage.length }))).toEqual({ local: ["msrc-signup-pending"], session: 0 });
   expect(new URL(page.url()).search).toBe("");
   await page.reload();
   await expect(page.locator("#participant-code")).toHaveValue("");

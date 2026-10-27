@@ -51,9 +51,16 @@ export function setParticipantHint(signedIn: boolean) {
   window.dispatchEvent(new Event("msrc-participant-hint"));
 }
 
+/** Non-identifying flag: an account was created here and is waiting for email verification. */
+const SIGNUP_PENDING_KEY = "msrc-signup-pending";
+export function hasSignupPending() { try { return window.localStorage.getItem(SIGNUP_PENDING_KEY) === "1"; } catch { return false; } }
+function setSignupPending(pending: boolean) { try { if (pending) window.localStorage.setItem(SIGNUP_PENDING_KEY, "1"); else window.localStorage.removeItem(SIGNUP_PENDING_KEY); } catch { /* Storage is optional. */ } }
+
 export async function requestAccount(payload?: ParticipantPayload, signal?: AbortSignal) {
   const response = await requestResponse(payload, signal);
   // Keep the header hint in step with what the server reports about this session.
+  if (payload?.action === "signup" && response.state === "accepted") setSignupPending(true);
+  if (response.state === "verified" || response.profile) setSignupPending(false);
   if (response.profile) setParticipantHint(true);
   else if (response.state === "signed_out" || response.state === "closed" || (!payload && response.state === "ready")) setParticipantHint(false);
   return { response, receivedAt: Date.now() };
