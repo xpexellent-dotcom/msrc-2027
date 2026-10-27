@@ -440,3 +440,29 @@ test("authentication completed after a locale change restores current owner stat
     await expect(page.getByTestId("participant-signin-required")).toBeVisible();
   } finally { releaseSignIn(); releaseLogout(); }
 });
+
+for (const locale of ["en", "ar"] as const) test(`${locale} header action opens sign in, which offers sign up, and becomes My profile once signed in`, async ({ page, isMobile }) => {
+  const copy = participantCopy[locale];
+  const mock = await mockAccounts(page);
+  mock.allowSignIn();
+  await page.goto(`/${locale}`);
+  // ENG-085: signed out, "Reserve your seat" opens Sign in.
+  const action = isMobile ? page.locator(".mobile-reserve-action") : page.getByTestId("header-primary-action");
+  if (isMobile) await page.locator(".menu-toggle").click();
+  await expect(action).toHaveAttribute("href", `/${locale}/sign-in`);
+  await action.click();
+  await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
+  const callout = page.getByTestId("participant-signup-callout");
+  await expect(callout.getByRole("heading", { name: copy.newHere })).toBeVisible();
+  await expect(callout.getByRole("link", { name: copy.signUp, exact: true })).toHaveAttribute("href", `/${locale}/sign-up`);
+  await expect(page.locator("#participant-email")).toBeEnabled();
+  await page.locator("#participant-email").fill("synthetic@example.invalid");
+  await page.locator("#participant-password").fill(syntheticPassword);
+  await page.getByRole("button", { name: copy.signIn, exact: true }).click();
+  await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.authenticated);
+  await expect(callout).toHaveCount(0);
+  // Signed in, the same header action becomes My profile.
+  if (isMobile) await page.locator(".menu-toggle").click();
+  await expect(action).toHaveAttribute("href", `/${locale}/my-msrc`);
+  await expect(action).toHaveText(copy.myProfile);
+});

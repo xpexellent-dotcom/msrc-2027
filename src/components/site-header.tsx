@@ -5,8 +5,7 @@ import { MobileNav, type NavigationLink } from "@/components/mobile-nav";
 import { usePathname } from "next/navigation";
 import { Suspense, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { LanguageSwitch, LanguageSwitchFallback } from "@/components/language-switch";
-import { ButtonLink } from "@/components/ui/button";
-import { HeaderAccountLink } from "@/components/header-account-link";
+import { HeaderPrimaryAction, headerAction, useParticipantName } from "@/components/header-account-link";
 import { Container } from "@/components/ui/container";
 import type { Locale } from "@/lib/i18n";
 import { revealPageNavigation } from "@/lib/anchor-navigation";
@@ -49,6 +48,7 @@ const headerCopy = {
 
 export function SiteHeader({ locale }: { locale: Locale }) {
   const copy = headerCopy[locale];
+  const action = headerAction(locale, useParticipantName(), copy.action);
   const hydrated = useSyncExternalStore(subscribeHydration, clientSnapshot, serverSnapshot);
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -256,8 +256,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           <Suspense fallback={<LanguageSwitchFallback locale={locale} pathname={pathname} />}><LanguageSwitch locale={locale} /></Suspense>
         </div>
         <div className="header-actions">
-          <HeaderAccountLink locale={locale} />
-          <ButtonLink className="header-primary-action" href={`/${locale}/participate`} variant="gold" size="small">{copy.action}<svg className="directional-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 19 19 5M5 5h14v14" /></svg></ButtonLink>
+          <HeaderPrimaryAction action={action} />
           <div className="header-mobile-language" onClick={onNavigate}>
             <Suspense fallback={<LanguageSwitchFallback locale={locale} pathname={pathname} iconOnly />}><LanguageSwitch locale={locale} iconOnly /></Suspense>
           </div>
@@ -276,7 +275,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         </div>
       </Container>
       {menuOpen || menuClosing ? <MobileNav id={menuId} label={copy.navigation} links={links} locale={locale}
-        pathname={pathname} status={copy.registration} action={copy.action} animate={animateMenu} closing={menuClosing}
+        pathname={pathname} status={copy.registration} action={action.label} actionHref={action.href} animate={animateMenu} closing={menuClosing}
         onExited={finishMenuClose} onNavigate={onNavigate} /> : null}
     </header>
   );

@@ -32,7 +32,7 @@ for (const locale of ["en", "ar"] as const) {
       const firstDestination = menu.locator("nav a").first();
       const status = menu.locator(".mobile-menu-status");
       await expect(menu.getByRole("link").first()).toHaveClass(/\bmobile-reserve-action\b/);
-      await expect(action).toHaveAttribute("href", `/${locale}/participate`);
+      await expect(action).toHaveAttribute("href", `/${locale}/sign-in`);
       await expect(action).toBeInViewport();
       await expect(status).toHaveText(locale === "en" ? "Conference registration" : "التسجيل في المؤتمر");
       await expect(status).toBeInViewport();
@@ -72,10 +72,9 @@ for (const locale of ["en", "ar"] as const) {
     const action = page.locator(".mobile-menu .mobile-reserve-action");
     await expect(action).toBeInViewport();
     await action.tap();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
+    await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
-    await expect(page.locator(".participation-path-link")).toHaveCount(5);
-    await expect(page.getByRole("main").locator("form")).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
   test(`${locale} pointer exit immediately removes access and rapid reopening survives its old cleanup`, async ({ page, isMobile }) => {
