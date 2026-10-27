@@ -276,3 +276,38 @@
 @keyframes abstract-timeline-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 @keyframes abstract-timeline-reveal { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
 @keyframes abstract-timeline-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+/* ENG-084: Simple steps on the Attend page, highlighting where the visitor is. */
+#journey-steps { scroll-margin-block-start: 6rem; }
+.step-tracker { display: grid; gap: 1.25rem; }
+.step-tracker-progress { margin: 0; color: var(--color-purple); font-size: .9375rem; font-weight: 600; }
+.step-tracker-bar { block-size: 4px; border-radius: 999px; background: color-mix(in srgb, var(--color-purple) 14%, transparent); overflow: hidden; }
+.step-tracker-bar > span { display: block; block-size: 100%; border-radius: inherit; background: var(--color-gold); transition: inline-size .6s ease; }
+.participation-steps .step-tracker ol { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.participation-steps .step-tracker li { border: 0; padding: 0; }
+.step-tracker .step-tracker-item { display: flex; flex-direction: column; align-items: flex-start; inline-size: 100%; text-align: start; gap: 1rem; block-size: 100%; padding: 1.25rem; border: 1px solid var(--color-line-strong); border-radius: 1rem; background: color-mix(in srgb, white 55%, transparent); color: var(--color-purple); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease; }
+.step-tracker a.step-tracker-item:hover { transform: translateY(-2px); border-color: var(--color-purple); box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--color-purple) 60%, transparent); }
+a.step-tracker-item:focus-visible { outline: 3px solid var(--color-gold); outline-offset: 3px; }
+.step-tracker-marker { display: inline-flex; align-items: center; justify-content: center; inline-size: 2.75rem; block-size: 2.75rem; border: 1px solid var(--color-line-strong); border-radius: 50%; font-size: 1rem; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.step-tracker-marker svg { inline-size: 1.25rem; block-size: 1.25rem; }
+.step-tracker-copy { display: grid; gap: .35rem; }
+.step-tracker-state { font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--color-muted); }
+.step-tracker-title { font-size: 1.0625rem; line-height: 1.6; overflow-wrap: anywhere; }
+.step-tracker-arrow { inline-size: 1.25rem; block-size: 1.25rem; margin-block-start: auto; }
+.step-tracker [data-step-state="done"] .step-tracker-item { background: transparent; border-style: dashed; opacity: .8; }
+[data-step-state="done"] .step-tracker-marker { border-color: var(--color-purple); background: var(--color-purple); color: var(--color-ivory); }
+.step-tracker :is([data-step-state="current"], [data-step-state="waiting"]) .step-tracker-item { border-color: var(--color-purple); background: var(--color-purple); color: var(--color-ivory); box-shadow: 0 16px 32px -20px color-mix(in srgb, var(--color-purple) 80%, transparent); }
+:is([data-step-state="current"], [data-step-state="waiting"]) .step-tracker-marker { border-color: var(--color-gold); background: var(--color-gold); color: var(--color-purple); }
+:is([data-step-state="current"], [data-step-state="waiting"]) .step-tracker-state { color: var(--color-gold); }
+[data-step-state="current"] .step-tracker-marker { animation: step-tracker-pulse 2.4s ease-in-out infinite; }
+@keyframes step-tracker-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-gold) 55%, transparent); } 50% { box-shadow: 0 0 0 .5rem transparent; } }
+[dir="rtl"] .step-tracker-arrow { transform: scaleX(-1); }
+[lang="ar"] .step-tracker-state { letter-spacing: 0; text-transform: none; }
+@media (max-width: 860px) { .participation-steps .step-tracker ol { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .participation-steps .step-tracker ol { grid-template-columns: minmax(0, 1fr); } .step-tracker-item { flex-direction: row; align-items: center; } .step-tracker-arrow { margin: 0; margin-inline-start: auto; } }
+@media (prefers-reduced-motion: reduce) { .step-tracker-bar > span, .step-tracker-item { transition: none; } [data-step-state="current"] .step-tracker-marker { animation: none; } a.step-tracker-item:hover { transform: none; } }
+.step-tracker .step-tracker-item, .step-tracker .step-tracker-item * { text-decoration: none; }
+.step-tracker a.step-tracker-item:hover .step-tracker-title { text-decoration: underline; text-underline-offset: .2em; }
+@media (max-width: 520px) { .step-tracker .step-tracker-item { flex-direction: row; align-items: center; } }
+.step-tracker .site-link.step-tracker-item:not(.button) { text-decoration: none; }
+.participation-steps .step-tracker li { display: block; }

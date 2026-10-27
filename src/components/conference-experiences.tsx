@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { RegistrationStepTracker } from "@/components/registration-step-tracker";
 import { useId, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
@@ -303,7 +304,8 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
   const workshops = published(approvedWorkshops);
   const actions = journeyActionCopy[locale];
   return <div className={`participation-journey participation-journey--${journey}`}><ExperienceIntro locale={locale} page={journey}>
-      {journey !== "registration" ? <ButtonLink variant="gold" href={journey === "workshops" ? "#workshop-catalogue" : "#journey-availability"} aria-describedby="journey-closed-title">{actions.primary[journey]}<Arrow /></ButtonLink> : null}
+      {journey !== "registration" ? <ButtonLink variant="gold" href={journey === "workshops" ? "#workshop-catalogue" : "#journey-availability"} aria-describedby="journey-closed-title">{actions.primary[journey]}<Arrow /></ButtonLink>
+        : <ButtonLink variant="gold" href="#journey-steps" data-testid="registration-steps-jump">{actions.primary.registration}<Arrow /></ButtonLink>}
       <div className="participation-program"><Button disabled data-testid="brochure-unavailable" aria-describedby="brochure-unavailable-note" variant="ghost" size="small">{actions.brochure}</Button><p id="brochure-unavailable-note">{actions.brochurePending}</p></div>
     </ExperienceIntro>
     <section id="journey-availability" tabIndex={-1} className="journey-availability fluid-journey-availability" data-testid="journey-closed" aria-labelledby="journey-closed-title"><Container><div className="journey-availability-dot" aria-hidden="true" /><div><h2 id="journey-closed-title">{content.closed}</h2><p>{content.closedBody}</p></div></Container></section>
@@ -314,8 +316,8 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
     {journey === "submissions" ? <section className="participation-schedule abstract-timeline" aria-labelledby="abstract-dates-title"><Container><h2 id="abstract-dates-title">{locale === "ar" ? "مواعيد مهمة" : "Important dates"}</h2><ol className="abstract-timeline-list" role="list">{abstractDates.map((item, index) => <li key={item.date} style={{ "--timeline-index": index } as CSSProperties}><span className="abstract-timeline-dot" aria-hidden="true" /><div className="abstract-timeline-card"><time className="participation-schedule-day" dateTime={item.date}>{formatRegistrationOpeningDate(item.date, locale, false)}</time><h3>{item[locale]}</h3></div></li>)}</ol></Container></section> : null}
     {content.schedule ? <section id="journey-schedule" className="participation-schedule" aria-labelledby="journey-schedule-title"><Container><h2 id="journey-schedule-title">{content.schedule.title}</h2><ol className="participation-schedule-list">{content.schedule.items.map((item) => <li key={item.label}><span className="participation-schedule-day">{item.label}</span><h3>{item.title}</h3><p>{item.body}</p></li>)}</ol></Container></section> : null}
     {journey === "workshops" ? <WorkshopRail locale={locale} workshops={workshops} /> : null}
-    <section id="journey-steps" className="participation-steps participation-ambient" aria-labelledby="journey-steps-title"><SideArtwork motif={journey} area="steps" /><Container><ArtworkHeading motif={journey} area="steps"><h2 id="journey-steps-title">{content.stepsTitle}</h2></ArtworkHeading><ol>{content.steps.map((step, index) => <li key={step}><span aria-hidden="true">{formatIndex(index + 1, locale)}</span><p>{step}</p></li>)}</ol>
-      {journey === "registration" ? <div className="participation-bottom-action"><ButtonLink variant="gold" href={`/${locale}/sign-up`} data-testid="participation-sign-up">{actions.primary.registration}<Arrow /></ButtonLink></div> : null}
+    <section id="journey-steps" className="participation-steps participation-ambient" aria-labelledby="journey-steps-title"><SideArtwork motif={journey} area="steps" /><Container><ArtworkHeading motif={journey} area="steps"><h2 id="journey-steps-title">{content.stepsTitle}</h2></ArtworkHeading>{journey === "registration" ? <RegistrationStepTracker locale={locale} steps={content.steps} />
+        : <ol>{content.steps.map((step, index) => <li key={step}><span aria-hidden="true">{formatIndex(index + 1, locale)}</span><p>{step}</p></li>)}</ol>}
     </Container></section>
     <section className="fluid-journey-resources participation-ambient" aria-labelledby="journey-resources-title"><SideArtwork motif={journey} area="resources" /><Container><ArtworkHeading motif={journey} area="resources"><h2 id="journey-resources-title">{actions.resources}</h2></ArtworkHeading><div className="fluid-resource-grid">
       <div className="fluid-resource fluid-resource--pending"><JourneyIcon variant={3} /><Button disabled data-testid="ticket-unavailable" aria-describedby="ticket-unavailable-note" variant="secondary">{actions.ticket}</Button><p id="ticket-unavailable-note">{actions.ticketPending}</p></div>

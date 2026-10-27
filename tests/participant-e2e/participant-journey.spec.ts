@@ -18,6 +18,7 @@ async function accountJourney(page: Page) {
   let calls = 0;
   let expired = false;
   let statusUnavailable = false;
+  let denySignIn = false;
   await page.route("**/api/participant-accounts", async (route) => {
     const response: ParticipantResponse = { state: "ready", profile, formToken: "synthetic-journey-form" };
     if (route.request().method() === "GET" && statusUnavailable) {
@@ -37,6 +38,8 @@ async function accountJourney(page: Page) {
       } else if (payload.action === "verify" || payload.action === "reset") {
         response.state = payload.code === code ? payload.action === "verify" ? "verified" : "password_reset" : "invalid_code";
         if (response.state === "invalid_code") response.fieldErrors = { code: "invalid" };
+      } else if (payload.action === "signin" && denySignIn) {
+        response.state = "invalid_credentials";
       } else if (payload.action === "signin") {
         response.state = "authenticated";
         response.profile = profile = { name: "Synthetic Participant", accountState: "verified" };
@@ -52,6 +55,7 @@ async function accountJourney(page: Page) {
     release: () => { release(); hold = undefined; },
     calls: () => calls,
     failStatus: (value: boolean) => { statusUnavailable = value; },
+    denySignIn: (value: boolean) => { denySignIn = value; },
   };
 }
 
@@ -129,9 +133,9 @@ for (const locale of ["en", "ar"] as const) {
       await capture(page, locale, testInfo.project.name, "03-signup-pending");
       expect(mock.calls()).toBe(1);
     } finally { mock.release(); }
-    await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.accepted);
     // ENG-083: creating the account continues straight to verification with live countdowns.
     await expect(page).toHaveURL(new RegExp(`/${locale}/verify-email$`));
+    await expect(page.locator("#participant-email, #participant-password")).toHaveCount(0);
     await capture(page, locale, testInfo.project.name, "04-signup-accepted");
     await expect(page.locator("#participant-code")).toBeEnabled();
     await expect(page.getByTestId("participant-code-sent")).toContainText("synthetic@example.invalid");
@@ -146,7 +150,12 @@ for (const locale of ["en", "ar"] as const) {
     await capture(page, locale, testInfo.project.name, "06-verification-error");
     await accessible(page);
     await page.locator("#participant-code").fill(locale === "ar" ? "٦٥٤٣٢١" : code);
+    // ENG-084: verification signs in automatically; refuse it here to cover the Sign in fallback.
+    mock.denySignIn(true);
+    const verifiedCalls = mock.calls();
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
+    await expect.poll(() => mock.calls()).toBe(verifiedCalls + 2);
+    mock.denySignIn(false);
     await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.verified);
     await capture(page, locale, testInfo.project.name, "07-verified");
     await accessible(page);
@@ -280,9 +289,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(retry).toBeEnabled();
     await capture(page, locale, testInfo.project.name, "27-verification-status-unavailable");
     await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.unavailable);
-    await expect(page.locator("#participant-email")).toBeDisabled();
-    await expect(page.locator("#participant-email")).toHaveValue("synthetic@example.invalid");
-    await expect(page.locator("#participant-password")).toHaveValue(password);
+    await expect(page.getByTestId("participant-code-sent")).toContainText("synthetic@example.invalid");
+    await expect(page.locator("#participant-email, #participant-password")).toHaveCount(0);
     await accessible(page);
     expect(mock.calls()).toBe(1);
     mock.failStatus(false);
@@ -290,8 +298,10 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#participant-code")).toBeEnabled();
     await page.locator("#participant-code").fill(code);
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
-    await expect(page.getByTestId("participant-account-status")).toHaveText(copy.states.verified);
-    expect(mock.calls()).toBe(2);
+    // ENG-084: a verified account signs in with the remembered credentials and opens My MSRC.
+    await expect(page).toHaveURL(new RegExp(`/${locale}/my-msrc$`));
+    await expect(page.getByTestId("participant-next-steps")).toBeVisible();
+    expect(mock.calls()).toBe(3);
   });
 
   test(`${locale} direct and reloaded reset screens explain how to request a replacement code`, async ({ page }, testInfo) => {

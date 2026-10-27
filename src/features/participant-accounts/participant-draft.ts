@@ -13,6 +13,8 @@ export type ParticipantDraft = Readonly<{
   confirmPassword: string;
   code: string;
   ageConfirmed: boolean;
+  /** ENG-084: true only when this verification came straight from sign-up in this document. */
+  fromSignup: boolean;
   requestId: string | null;
   purpose: "verification" | "recovery";
   outcome: ParticipantState | null;
@@ -22,7 +24,7 @@ export type ParticipantDraft = Readonly<{
   outcomeSequence: number;
   fieldErrors: ParticipantResponse["fieldErrors"];
 }>;
-const emptyDraft: ParticipantDraft = { name: "", firstName: "", lastName: "", email: "", password: "", confirmPassword: "", code: "", ageConfirmed: false, requestId: null, purpose: "verification", outcome: null, expiresAt: null, resendAvailableAt: null, pending: false, outcomeSequence: 0, fieldErrors: {} };
+const emptyDraft: ParticipantDraft = { name: "", firstName: "", lastName: "", email: "", password: "", confirmPassword: "", code: "", ageConfirmed: false, fromSignup: false, requestId: null, purpose: "verification", outcome: null, expiresAt: null, resendAvailableAt: null, pending: false, outcomeSequence: 0, fieldErrors: {} };
 let draft: ParticipantDraft = emptyDraft;
 let generation = 0;
 const listeners = new Set<() => void>();

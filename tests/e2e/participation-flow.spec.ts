@@ -92,11 +92,20 @@ for (const locale of ["en", "ar"] as const) {
       expect(axe.violations, JSON.stringify(axe.violations)).toEqual([]);
     }
     await page.goto(`/${locale}/registration`);
-    const signup = page.getByTestId("participation-sign-up");
-    await expect(signup).toHaveText(locale === "en" ? "Sign up for MSRC" : "سجّل في MSRC");
-    await expect(signup).toHaveAttribute("href", `/${locale}/sign-up`);
+    // ENG-084: the hero jumps to Simple steps, where step 1 is the sign-up link.
+    const jump = page.getByTestId("registration-steps-jump");
+    await expect(jump).toHaveText(locale === "en" ? "Sign up for MSRC" : "سجّل في MSRC");
+    await expect(jump).toHaveAttribute("href", "#journey-steps");
     await expect(page.locator("main a, main button").filter({ hasText: locale === "en" ? "Reserve your seat" : "احجز مقعدك" })).toHaveCount(0);
-    expect(await signup.evaluate((button) => Boolean(document.querySelector(".participation-steps ol")!.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+    await jump.click();
+    await expect(page).toHaveURL(/#journey-steps$/);
+    await expect(page.locator("#journey-steps")).toBeInViewport();
+    const tracker = page.getByTestId("registration-step-tracker");
+    await expect(tracker).toHaveAttribute("data-current-step", "1");
+    await expect(tracker.locator("[aria-current=step]")).toHaveCount(1);
+    const signup = page.getByTestId("participation-sign-up");
+    await expect(signup).toContainText(locale === "en" ? "Create your account" : "أنشئ حسابك");
+    await expect(signup).toHaveAttribute("href", `/${locale}/sign-up`);
     await signup.click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/sign-up$`));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(locale === "en" ? "Accounts are coming soon" : "حسابات المشاركين قريبًا");
