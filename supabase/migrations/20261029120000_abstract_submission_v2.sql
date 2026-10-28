@@ -94,6 +94,8 @@ $$;
 create or replace function msrc_abstracts.document_valid(d jsonb,c jsonb,finalizing boolean) returns boolean
  language plpgsql stable security invoker set search_path='' as $$
 declare k text;a jsonb;begin
+ -- ORG-068 fixes the taxonomy in code; settings stay in the signature for existing callers.
+ if c is not null and jsonb_typeof(c)<>'object' then return false;end if;
  if jsonb_typeof(d) is distinct from 'object' or octet_length(d::text)>262144 or d<>jsonb_build_object(
  'title',d->'title','specialtyId',d->'specialtyId','studyTypeId',d->'studyTypeId','studyTypeOther',d->'studyTypeOther','analysisComplete',d->'analysisComplete',
  'body',d->'body','authors',d->'authors','presentingAuthorId',d->'presentingAuthorId','supervisor',d->'supervisor','ethics',d->'ethics','registration',d->'registration',
@@ -275,7 +277,7 @@ end$$;
 -- only supervisor values may become blank, with scientific data untouched. The
 -- pre-existing broader author/document retention gap is not silently claimed solved.
 create function msrc_abstracts.redact_supervisor(value jsonb) returns jsonb
- language plpgsql immutable security invoker set search_path='' as $$
+ language plpgsql stable security invoker set search_path='' as $$
 declare result jsonb;begin
  if jsonb_typeof(value)='object' then
  select coalesce(jsonb_object_agg(k,case when k='supervisor' and jsonb_typeof(v)='object'
