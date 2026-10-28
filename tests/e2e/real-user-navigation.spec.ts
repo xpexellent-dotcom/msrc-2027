@@ -54,7 +54,7 @@ for (const locale of ["en", "ar"] as const) {
   });
 
   for (const routes of [
-    ["participate", "registration", "submissions", "workshops"],
+    ["participate", "registration", "abstracts", "workshops"],
     ["hackathon", "3mt", "program", "speakers"],
     ["sponsors", "dates-venue", "team", "contact"],
   ]) test(`${locale} header destinations ${routes[0]} through ${routes.at(-1)} follow their first activation`, async ({ page, isMobile }) => {
@@ -69,7 +69,7 @@ for (const locale of ["en", "ar"] as const) {
         await link.tap();
         await expect(page.locator(".mobile-menu")).toHaveCount(0);
       } else {
-        if (["registration", "submissions", "workshops", "hackathon", "3mt"].includes(route)) {
+        if (["registration", "abstracts", "workshops", "hackathon", "3mt"].includes(route)) {
           await page.locator(".header-dropdown-toggle").click();
         }
         link = page.locator(`.desktop-nav a[href="/${locale}/${route}"]`);
