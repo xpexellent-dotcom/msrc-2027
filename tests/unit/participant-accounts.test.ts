@@ -73,11 +73,11 @@ describe("participant accounts closed-by-default and private server protocol", (
     { PARTICIPANT_SUPABASE_SECRET_KEY: "sb_secret_real" }, { RESEND_API_KEY: "re_real" }, { PARTICIPANT_AUTH_EMAIL_DAILY_LIMIT: "100" }])("refuses hybrid test/hosted config %j", (change) => {
     expect(resolveParticipantConfig({ ...env, ...change }).state).toBe("unavailable");
   });
-  it("registers approved v1.1 notices without enabling accounts or admitting synthetic provider settings in production", () => {
+  it("registers approved v1.2 notices without enabling accounts or admitting synthetic provider settings in production", () => {
     for (const locale of ["en", "ar"] as const) {
       const notice = participantNotice(locale, false);
       expect(notice).toEqual(approvedParticipantPrivacy?.[locale]);
-      expect(notice).toMatchObject({ version: "v1.1", url: `/${locale}/privacy/v1.1` });
+      expect(notice).toMatchObject({ version: "v1.2", url: `/${locale}/privacy/v1.2` });
       expect(notice?.summary.length).toBeGreaterThan(30);
       expect(notice?.summary).not.toMatch(/draft|placeholder|awaiting|مسودة|بانتظار/i);
       expect(participantNotice(locale, true)).toMatchObject({ version: "synthetic-privacy-ci-v1", url: `/${locale}/privacy` });

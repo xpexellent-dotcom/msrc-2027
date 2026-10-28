@@ -34,7 +34,12 @@ export function createCompetitionHandler(dependencies: { readiness?: () => Parti
       if (await backend.identity(session.accessToken) !== session.actorId) return reply({ state: "denied" }, 401);
       const claims = verifiedClaims(session.accessToken, session.actorId, session.sessionId, now); if (!claims) return reply({ state: "denied" }, 401);
       const args = { edition_key: config.editionKey, session_claims: claims };
+      const completion = competitionRecord(await backend.rpc("msrc_participant_profile_complete", args));
+      if (completion?.state === "denied") return reply({ state: "denied" }, 403);
+      if (completion?.state !== "ready" || typeof completion.complete !== "boolean") return reply({ state: "area-not-ready" }, 503);
+      const profileComplete = completion.complete;
       const gate = (value: unknown) => { const state = competitionRecord(value)?.state;
+        if (state === "profile_incomplete") return reply({ state: "profile_incomplete" }, 409);
         if (state === "denied") return reply({ state: "denied" }, 403);
         if (state === "closed") return reply({ state: "closed" }, 503);
         if (state === "area_not_ready") return reply({ state: "area-not-ready" }, 503);
@@ -68,6 +73,7 @@ export function createCompetitionHandler(dependencies: { readiness?: () => Parti
           || !["application/pdf", "image/png", "image/jpeg"].includes(String(metadata.mime)) || !Number.isSafeInteger(metadata.size) || Number(metadata.size) < 1 || Number(metadata.size) > 26214400 || !["supporting", "final"].includes(String(metadata.stage)))
           || body.action === "file_read" && (typeof body.fileId !== "string" || !competitionUuid.test(body.fileId))) return reply({ state: "invalid_input" }, 400);
         if (process.env.COMPETITIONS_ENABLED !== "true" || (dependencies.readiness ?? getParticipantConfig)().state !== "ready") return reply({ state: "closed" }, 503);
+        if (body.action === "submit" && !profileComplete) return reply({ state: "profile_incomplete" }, 409);
         const mutationArgs = { ...args, competition_type: body.kind, entry_id: body.entryId, expected_version: body.expectedVersion, operation_id: body.operationId };
         const fileAction = ["file_reserve", "file_read", "proof_reserve", "proof_read"].includes(String(body.action));
         const raw = frameworkAction ? await backend.rpc("msrc_competitions_hackathon_action", { ...args, action: body.action, entry_id: body.entryId, expected_version: body.expectedVersion, operation_id: body.operationId,
@@ -98,7 +104,7 @@ export function createCompetitionHandler(dependencies: { readiness?: () => Parti
       if (data.hackathonProfile !== undefined && data.hackathonProfile !== null && !profile) return reply({ state: "unavailable" }, 503);
       const hackathon = competitionSettingsProjection(settings.hackathon), thesis = competitionSettingsProjection(settings.three_minute_thesis), entries = (Object.hasOwn(data, "hackathonProfile") ? data.entries : data.entries.filter((row) => competitionRecord(row)?.kind === "three_minute_thesis")).map(competitionEntryProjection);
       if (!hackathon || !thesis || entries.some((entry) => !entry)) return reply({ state: "unavailable" }, 503);
-      return reply({ state: "ready", settings: { hackathon, three_minute_thesis: thesis }, entries: entries.filter((entry) => entry !== null),
+      return reply({ state: "ready", profileComplete, settings: { hackathon, three_minute_thesis: thesis }, entries: entries.filter((entry) => entry !== null),
         formToken: competitionFormToken(config, origin, session.actorId, session.sessionId, now), ...(Object.hasOwn(data, "hackathonProfile") ? { hackathonProfile: profile } : {}), ...(outcome ? { outcome } : {}), ...(entryId ? { entryId } : {}), ...(fileTransfer ? { fileTransfer } : {}) }, outcome && !["saved", "submitted", "invited", "confirmed", "profile_saved", "finalist_confirmed", "reserved", "available"].includes(outcome) ? 409 : 200);
     } catch (error) { return reply({ state: error instanceof CompetitionRpcMissingError ? "area-not-ready" : "unavailable" }, 503); }
   };

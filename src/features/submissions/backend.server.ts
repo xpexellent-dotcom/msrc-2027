@@ -11,7 +11,7 @@ export function createAbstractBackend(config: ParticipantConfig): AbstractBacken
   const participant = createParticipantBackend(config);
   return { identity: participant.identity, refresh: participant.refresh, async rpc(name, args = {}) {
     if (name === "msrc_participant_status") return participant.rpc(name, args);
-    if (!["msrc_abstracts_status", "msrc_abstracts_me", "msrc_abstracts_save_draft", "msrc_abstracts_finalize"].includes(name)) throw new Error("Unknown private abstract RPC");
+    if (!["msrc_participant_profile_complete", "msrc_abstracts_status", "msrc_abstracts_me", "msrc_abstracts_save_draft", "msrc_abstracts_finalize"].includes(name)) throw new Error("Unknown private abstract RPC");
     const response = await fetch(config.supabaseUrl + "/rest/v1/rpc/" + name, {
       method: "POST", headers: { apikey: config.secretKey, "Content-Type": "application/json" }, body: JSON.stringify(args),
       cache: "no-store", redirect: "error", signal: AbortSignal.timeout(6_000),

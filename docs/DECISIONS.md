@@ -4786,3 +4786,75 @@ Migration `20261027120000_participant_profile.sql` is review-only and
 `PARTICIPANT_PROFILE_ENABLED` remains absent/false by default. Missing RPCs render
 area-not-ready. AUTH-05/06/07/08, SEC-01/02/06, PRV-02/03/04/05/06, LOC-01/03 and
 ACC-01 apply. See [implementation receipt](progress/2026-10-27-codex-participant-profile.md).
+
+## ORG-067 — Complete private profile before submissions; Privacy Policy v1.2, 27–28 October 2026
+
+Authority: explicit owner decisions in the current chat, including “Draft v1.2, I approve it”.
+This supersedes ORG-066's optional-only profile requirement for final abstract,
+hackathon and 3MT submission. Valid partial profiles may still be saved. Conference
+registration and workshop booking are not subject to this completion requirement.
+
+A complete profile requires a private picture; a Ministry-listed Saudi institution
+or Other with free text; exactly one status (Year 1–6, Internship, Clinical placement,
+Postgraduate, Residency, Faculty); full Arabic name; ISO alpha-2 nationality; gender
+(Male/Female); date of birth establishing age at least 18; city (maximum 80 characters);
+contact-only E.164 phone with +966 initially selected; and identity document type
+(National ID/Iqama/Passport) and number. At least one specialty interest is required
+only when the edition's abstract specialty list is nonempty. The card explains this
+submission prerequisite and private visibility, drops optional wording, and shows
+items added or a complete state. Keep the image format/2 MB hint and metadata removal.
+
+This explicitly supersedes AUTH-06/PRV-03's earlier identifier exclusion and ENG-019's
+no-DOB interpretation for this private profile. It does not add authentication phone
+collection, phone verification, SMS or phone sign-in: ORG-016 remains authoritative
+for authentication. It authorizes encrypted profile identity storage despite later
+registration's ordinary private identity record; registration storage is unchanged.
+National ID is 10 digits starting 1, Iqama 10 starting 2, passport 6–20 alphanumerics.
+Only masked last-four identity information returns after save or through the existing
+audited authorized staff detail path. Identity ciphertext and lookup data are erased
+with the account and no later than one year after conference end. No public profile,
+attendee directory, bulk identity export or new organizer role is authorized.
+
+Privacy Policy v1.2 EN/AR is pre-approved for these data items and their necessity
+for identity verification, eligibility, certificates and communications about the
+participant's own submissions, contact-only phone and encrypted ID retention. Archive
+v1.1, retain Terms v1.0, and coordinate the hosted participant privacy-version setting
+with the migration. Sign-up must close on a version mismatch. This decision authorizes
+implementation and policy publication preparation only: no hosted migration/settings,
+workflow opening, real email or feature-flag activation in this task.
+Requirements AUTH-05/06/07/08, ABS-01/12, TRK-01, HAC-01/03/10, TMT-01,
+PRV-02/03/04/05/06, SEC-01/02/06, LOC-01/03, ACC-01.
+
+## ENG-087 — Complete-profile authority and submission gates, 28 October 2026
+
+Implement ORG-067 in one review-only migration,
+`20261028120000_participant_profile_complete.sql`. Extend existing forced-RLS
+`msrc_participant.profile_details` without new client grants, policies or tables.
+Map old medical-student years/intern/resident/faculty statuses and move legacy
+institution text to `institution_other`; exactly one institution selection is stored.
+Use a Ministry-sourced bilingual university/health-college catalog and an ARIA 1.2
+combobox with keyboard, RTL and normalized EN/AR search. Store assigned ISO country
+codes independently from displayed names. Maintain independent draft saving.
+
+Use server AES-256-GCM envelopes and a separate HMAC-SHA256 lookup under the existing
+`REGISTRATION_IDENTITY_*` key configuration, with owner/edition/type authenticated as
+associated data. Return only identity type/last four and sanitized profile fields;
+missing key configuration cannot save a new identity. Existing account erasure and
+bounded profile retention cover all new columns; the avatar deletion queue remains
+independent of editing/mail flags. No scheduler or real key is created.
+
+SQL `msrc_participant.profile_complete(actor, edition)` is authoritative. Final
+submission RPCs lock the profile and current specialty settings before checking,
+retaining existing session/ownership/idempotency/deadline/evidence/snapshot controls.
+Reject incomplete profiles as `profile_incomplete`. Handlers repeat the check, and
+EN/AR UI replaces submit actions with a clear link to `/{locale}/my-msrc#profile`.
+Missing hosted functions produce `area-not-ready`; existing sign-in is preserved.
+The audited staff participant detail adds private fields and masked profile identity.
+
+Current privacy version becomes v1.2; v1.0/v1.1 archives and Terms v1.0 remain.
+Hosted `msrc_participant.policy.privacy_version` must change to `v1.2` together with
+the hosted migration to avoid the intentional sign-up mismatch closure. No hosted
+action, commit, push, branch creation, activation or communication is performed.
+[Feature notes](features/participant-profile.md) and
+[verification receipt](progress/2026-10-28-codex-profile-complete.md) record evidence
+and remaining release gates. Requirement IDs are preserved under ORG-067 above.

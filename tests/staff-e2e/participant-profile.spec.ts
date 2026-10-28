@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "../helpers/csp";
 import { profileCopy } from "../../src/features/participant-accounts/profile-copy";
+import { EMPTY_PARTICIPANT_PROFILE } from "../../src/features/participant-accounts/profile-contract";
 import type { ParticipantDetail } from "../../src/features/staff-portal/participant-detail-contract";
 
 const staffId = "11000000-0000-4000-8000-000000000001", participantId = "11000000-0000-4000-8000-000000000003";
@@ -18,7 +19,7 @@ async function fixture(page: Page) {
     createdAt: "2026-10-27T08:00:00Z", verifiedAt: "2026-10-27T08:05:00Z", lastSignInAt: null, privacyVersion: "v1.1", ageConfirmedAt: "2026-10-27T08:00:00Z",
     registration: { status: "approved", createdAt: "2026-10-27T08:10:00Z", decidedAt: null, identityMasked: "••••••1234", ticket: null, attendance: [] },
     workshops: [], submissions: [], competitions: [], hackathonProfile: null, certificates: [],
-    optionalProfile: { institution, status: "medical_student", year: 4, interests: ["synthetic-specialty", "synthetic-second-specialty"],
+    optionalProfile: { ...EMPTY_PARTICIPANT_PROFILE, institution, institutionOther: institution, status: "year_4", year: null, interests: ["synthetic-specialty", "synthetic-second-specialty"],
       specialties: [{ id: "synthetic-specialty", label: "Synthetic specialty" }, { id: "synthetic-second-specialty", label: "Synthetic second specialty" }],
       avatarUrl: avatarPath, version: 1 },
   };
@@ -56,8 +57,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     const row = (label: string) => optional.locator("dl > div").filter({ has: page.locator("dt").filter({ hasText: label }) });
     await expect(row(copy.institution).locator("dd")).toHaveText(institution);
-    await expect(row(copy.status).locator("dd")).toHaveText(copy.statuses.medical_student);
-    await expect(row(copy.year).locator("dd")).toHaveText(locale === "ar" ? "٤" : "4");
+    await expect(row(copy.status).locator("dd")).toHaveText(copy.statuses.year_4);
     await expect(row(copy.interests).locator("dd bdi")).toHaveText(["Synthetic specialty", "Synthetic second specialty"]);
     for (const chip of await row(copy.interests).locator("dd bdi").all()) {
       await expect(chip).toHaveAttribute("dir", "ltr"); await expect(chip).toHaveAttribute("lang", "en");

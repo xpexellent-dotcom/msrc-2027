@@ -126,3 +126,24 @@
 .participant-profile-chips button:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 3px; }
 @media (max-width: 600px) { .participant-profile-overview > .button { inline-size: 100%; } }
 @media (forced-colors: active) { .participant-profile-chips button[aria-pressed="true"] { border: 3px solid Highlight; color: HighlightText; background: Highlight; } .participant-profile-avatar { border-color: CanvasText; } }
+/* ENG-087: bounded keyboard-navigable bilingual university results. */
+#profile { scroll-margin-block-start: 7rem; }
+.participant-profile-combobox { position: relative; }
+.participant-profile-options { position: relative; z-index: 2; list-style: none; margin: .4rem 0 0; padding: .35rem; max-block-size: 17rem; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--color-line); border-radius: .65rem; background: var(--color-white); color: var(--color-purple); }
+.participant-profile-options [role="option"] { padding: .7rem; min-block-size: 2.75rem; border-radius: .3rem; cursor: pointer; overflow-wrap: anywhere; }
+.participant-profile-options [role="option"][data-active], .participant-profile-options [role="option"]:hover { background: var(--color-info-surface); outline: 2px solid var(--color-purple); outline-offset: -2px; }
+.participant-profile-options [aria-selected="true"] { font-weight: 700; }
+.participant-profile-clear { justify-self: start; min-block-size: 2.75rem; margin-block-start: .35rem; padding: .4rem .7rem; border: 1px solid var(--color-line); border-radius: .4rem; background: var(--color-white); color: var(--color-purple); font: inherit; cursor: pointer; }
+.participant-profile-clear:focus-visible { outline: 2px solid var(--color-purple); outline-offset: 2px; }
+@media (forced-colors: active) { .participant-profile-options [role="option"][data-active] { outline: 2px solid Highlight; } }
+.participant-profile-complete-state { font-weight: 700; color: var(--color-purple); }
+
+/* ENG-087 polish: the longer profile reads as four short sections. */
+.participant-profile-group { display: grid; gap: var(--space-4); min-inline-size: 0; margin: 0; padding: var(--space-4) 0 0; border: 0; border-block-start: 1px solid var(--color-line); }
+.participant-profile-group-title { padding: 0; margin-block-end: var(--space-1); color: var(--color-purple); font-size: 1.05rem; font-weight: 650; }
+.participant-profile-group-grid { display: grid; gap: var(--space-4); min-inline-size: 0; }
+.participant-profile-phone { display: grid; gap: var(--space-4); min-inline-size: 0; }
+@media (min-width: 48em) {
+  .participant-profile-group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .participant-profile-phone { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: end; }
+}

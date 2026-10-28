@@ -4,6 +4,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
 select no_plan();
 \ir ../support/registration-fixtures.psql
+\ir ../support/profile-complete-fixtures.psql
 \ir ../support/abstract-fixtures.psql
 
 -- ORG-065: hackathon entries carry references, links and the framework declarations.
@@ -88,6 +89,7 @@ update msrc_participant.retention_policy set enabled=true;
 update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 insert into msrc_authorization.edition_config(edition_key) values('synthetic-competitions');
 select pg_temp.registration_fixture(n,'synthetic-competitions') from generate_series(9401,9407) n;
+select pg_temp.complete_profile(n,'synthetic-competitions') from generate_series(9401,9407) n;
 select pg_temp.registration_staff_fixture(9500,'synthetic-competitions');
 select pg_temp.registration_staff_fixture(9501,'synthetic-competitions','scientificAdministrator');
 select pg_temp.registration_staff_fixture(9502,'synthetic-competitions','hackathonReviewer');

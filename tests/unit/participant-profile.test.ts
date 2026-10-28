@@ -6,6 +6,7 @@ import { createParticipantProfileHandler } from "@/features/participant-accounts
 import { profileFormToken, readProfileFormToken } from "@/features/participant-accounts/profile-security.server";
 import { MAX_AVATAR_BYTES, readProfileForm, reencodeProfileAvatar, validateProfileForm } from "@/features/participant-accounts/profile-validation.server";
 import { participantCookie, participantFormToken, readParticipantSession } from "@/features/participant-accounts/security.server";
+import { EMPTY_PARTICIPANT_PROFILE, PROFILE_STATUSES, isProfileIdentityNumber, isAdultProfileDate, isProfilePhone } from "@/features/participant-accounts/profile-contract";
 import { abstractSettings } from "../fixtures/abstracts";
 
 const readiness = resolveParticipantConfig({ PARTICIPANT_ACCOUNTS_ENABLED: "true", PARTICIPANT_ACCOUNTS_TEST_MODE: "true", PARTICIPANT_AUTH_SECURITY_SECRET: "a".repeat(64),
@@ -18,12 +19,12 @@ const actorId = "da000000-0000-4000-8000-000000000001", sessionId = "db000000-00
 const otherId = "da000000-0000-4000-8000-000000000002", avatarObject = "dc000000-0000-4000-8000-000000000001.webp";
 const claims = { sub: actorId, session_id: sessionId, exp: now / 1000 + 3600, iat: now / 1000, role: "authenticated", aal: "aal1", amr: [{ method: "password", timestamp: now / 1000 }] };
 const token = (value: unknown = claims) => "synthetic." + Buffer.from(JSON.stringify(value)).toString("base64url") + ".synthetic";
-const profile = { institution: null, studentStatus: null, studentYear: null, specialtyInterests: [], avatarObject: null, version: 0 };
+const profile = { institution: null, institutionId: null, institutionOther: null, studentStatus: null, studentYear: null, arabicName: null, nationality: null, gender: null, dateOfBirth: null, city: null, phone: null, identityType: null, identityLast4: null, specialtyInterests: [], avatarObject: null, version: 0 };
 const current = { state: "ready", profile, specialties: abstractSettings.specialties, sessionDeadline: new Date(deadline).toISOString() };
 const status = { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true, cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
 function form(extra: Record<string, string | Blob> = {}) {
   const result = new FormData();
-  for (const [key, value] of Object.entries({ action: "save", institution: "  Synthetic institution  ", status: "medical_student", year: "3",
+  for (const [key, value] of Object.entries({ action: "save", institutionId: "", institutionOther: "  Synthetic institution  ", status: "year_3", arabicName: "", nationality: "", gender: "", dateOfBirth: "", city: "", phone: "", identityType: "", identityNumber: "",
     interests: JSON.stringify([abstractSettings.specialties[0].id]), version: "0", formToken: profileFormToken(config, origin, actorId, sessionId, now), website: "", ...extra })) result.set(key, value);
   return result;
 }
@@ -44,8 +45,10 @@ function fixture(options: { identity?: string | null; accessClaims?: unknown; cu
       if (name === "msrc_participant_profile_avatar_deleted") return { state: "deleted" };
       if (name === "msrc_participant_profile_save") {
         options.onSave?.();
-        return options.save ?? { ...current, profile: { ...profile, institution: args?.institution, studentStatus: args?.student_status,
-          studentYear: args?.student_year, specialtyInterests: args?.specialty_interests, avatarObject: args?.avatar_object ?? null, version: 1 } };
+        const input = args?.profile_input as Record<string, unknown>;
+        const identity = input.identity as { type: string; last4: string } | null;
+        return options.save ?? { ...current, profile: { ...profile, institution: input.institutionOther, institutionId: input.institutionId, institutionOther: input.institutionOther, studentStatus: input.status,
+          studentYear: null, specialtyInterests: input.interests, identityType: identity?.type ?? null, identityLast4: identity?.last4 ?? null, avatarObject: args?.avatar_object ?? null, version: 1 } };
       }
       throw new Error("Unexpected profile RPC");
     }),
@@ -110,9 +113,9 @@ describe("optional private participant profile boundary (ENG-086 / AUTH-07 / PRV
   });
   it("normalizes fields and sends only verified claims to the atomic save RPC", async () => {
     const f = fixture({ accessClaims: { ...claims, user_metadata: { role: "super_admin" } } }), response = await f.post();
-    expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ state: "ready", profile: { institution: "Synthetic institution", status: "medical_student", year: 3 } });
+    expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ state: "ready", profile: { institutionOther: "Synthetic institution", status: "year_3", year: null } });
     const args = vi.mocked(f.backend.rpc).mock.calls.find(([name]) => name === "msrc_participant_profile_save")![1]!;
-    expect(args).toMatchObject({ institution: "Synthetic institution", student_status: "medical_student", student_year: 3, specialty_interests: [abstractSettings.specialties[0].id], expected_version: 0 });
+    expect(args).toMatchObject({ profile_input: { institutionOther: "Synthetic institution", status: "year_3", interests: [abstractSettings.specialties[0].id] }, expected_version: 0 });
     expect(args.session_claims).not.toHaveProperty("user_metadata"); expect(f.backend.upload).not.toHaveBeenCalled();
   });
   it("rejects other-session, wrong-purpose, malformed and expired form tokens without saving", async () => {
@@ -121,6 +124,23 @@ describe("optional private participant profile boundary (ENG-086 / AUTH-07 / PRV
       const f = fixture(); expect((await f.post({ formToken })).status).toBe(400);
       expect(vi.mocked(f.backend.rpc).mock.calls.some(([name]) => name === "msrc_participant_profile_save")).toBe(false);
     }
+  });
+  it("encrypts identity before the RPC and returns only the masked suffix", async () => {
+    vi.stubEnv("REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION", "synthetic-v1");
+    vi.stubEnv("REGISTRATION_IDENTITY_ENCRYPTION_KEYS", JSON.stringify({ "synthetic-v1": "b".repeat(64) }));
+    vi.stubEnv("REGISTRATION_IDENTITY_HMAC_SECRET", "c".repeat(64));
+    const f = fixture(), response = await f.post({ identityType: "national_id", identityNumber: "1000004321" });
+    expect(response.status).toBe(200);
+    const args = vi.mocked(f.backend.rpc).mock.calls.find(([name]) => name === "msrc_participant_profile_save")![1]!;
+    expect(args.profile_input).toMatchObject({ identity: { type: "national_id", last4: "4321", envelope: expect.stringMatching(/^v1:synthetic-v1:/), lookup: expect.stringMatching(/^[a-f0-9]{64}$/) } });
+    const body = await response.json(); expect(body.profile).toMatchObject({ identityType: "national_id", identityLast4: "4321" });
+    expect(JSON.stringify(args)).not.toContain("1000004321"); expect(JSON.stringify(body)).not.toContain("1000004321"); expect(JSON.stringify(body)).not.toContain("envelope");
+  });
+  it("fails closed without encryption keys before saving identity", async () => {
+    vi.stubEnv("REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION", "");
+    const f = fixture(), response = await f.post({ identityType: "passport", identityNumber: "AB123456" });
+    expect(response.status).toBe(503); expect(await response.json()).toMatchObject({ state: "area-not-ready" });
+    expect(vi.mocked(f.backend.rpc).mock.calls.some(([name]) => name === "msrc_participant_profile_save")).toBe(false);
   });
   it("honors the database IP rate limit before image processing or Storage", async () => {
     const f = fixture({ claim: "denied" }), response = await f.post({ avatar: await image() });
@@ -185,16 +205,36 @@ describe("optional private participant profile boundary (ENG-086 / AUTH-07 / PRV
 });
 
 describe("profile field and image validation", () => {
-  it("accepts empty optional values, trims institution, and counts Unicode characters", () => {
-    expect(validateProfileForm(form({ institution: " ", status: "", year: "", interests: "[]" }), abstractSettings.specialties)).toMatchObject({ ok: true, value: { institution: null, status: null, year: null, interests: [] } });
-    expect(validateProfileForm(form({ institution: "  " + "😀".repeat(160) + "  " }), abstractSettings.specialties).ok).toBe(true);
-    expect(validateProfileForm(form({ institution: "😀".repeat(161) }), abstractSettings.specialties)).toMatchObject({ ok: false, fieldErrors: { institution: "too_long" } });
+  it("validates ID formats independently and permits a saved masked ID to remain unchanged", () => {
+    for (const [type, valid, invalid] of [["national_id", "1000000000", "2000000000"], ["iqama", "2000000000", "1000000000"], ["passport", "AB1234", "AB123"]] as const) {
+      expect(isProfileIdentityNumber(type, valid)).toBe(true); expect(isProfileIdentityNumber(type, invalid)).toBe(false);
+      expect(validateProfileForm(form({ identityType: type, identityNumber: valid }), abstractSettings.specialties).ok).toBe(true);
+      expect(validateProfileForm(form({ identityType: type, identityNumber: invalid }), abstractSettings.specialties).ok).toBe(false);
+    }
+    const saved = { ...EMPTY_PARTICIPANT_PROFILE, identityType: "national_id" as const, identityLast4: "0000" };
+    expect(validateProfileForm(form({ identityType: "national_id" }), abstractSettings.specialties, saved).ok).toBe(true);
+    expect(validateProfileForm(form({ identityType: "iqama" }), abstractSettings.specialties, saved).ok).toBe(false);
   });
-  it.each([{ status: "medical_student", year: "", error: "required" }, { status: "medical_student", year: "7", error: "invalid" },
-    { status: "medical_student", year: "1.0", error: "invalid" }, { status: "intern", year: "1", error: "invalid" }])("enforces the conditional year %j", ({ status, year, error }) => {
-    expect(validateProfileForm(form({ status, year }), abstractSettings.specialties)).toMatchObject({ ok: false, fieldErrors: { year: error } });
+  it("accepts age 18 exactly and rejects invalid dates, younger people and leap-day rollover", () => {
+    const today = new Date("2026-10-28T12:00:00Z");
+    expect(isAdultProfileDate("2008-10-28", today)).toBe(true); expect(isAdultProfileDate("2008-10-29", today)).toBe(false);
+    for (const value of ["0000-01-01", "2000-02-30", "2027-01-01", "not-a-date"]) expect(isAdultProfileDate(value, today)).toBe(false);
+    expect(isAdultProfileDate("2010-03-01", new Date("2028-02-29T12:00:00Z"))).toBe(false);
+    expect(validateProfileForm(form({ dateOfBirth: "2008-10-28" }), abstractSettings.specialties, undefined, today).ok).toBe(true);
+    expect(validateProfileForm(form({ dateOfBirth: "2008-10-29" }), abstractSettings.specialties, undefined, today).ok).toBe(false);
   });
-  it.each(["intern", "resident", "faculty", "other"])("accepts %s without a year", (status) => expect(validateProfileForm(form({ status, year: "" }), abstractSettings.specialties).ok).toBe(true));
+  it("requires international E.164 contact numbers and bounded city data", () => {
+    for (const phone of ["+6831234", "+966500000000", "+442012345678"]) expect(isProfilePhone(phone)).toBe(true);
+    for (const phone of ["0500000000", "+0123456789", "+966 500000000", "+" + "1".repeat(16)]) expect(validateProfileForm(form({ phone }), abstractSettings.specialties).ok).toBe(false);
+    expect(validateProfileForm(form({ city: "x".repeat(81) }), abstractSettings.specialties)).toMatchObject({ ok: false, fieldErrors: { city: "too_long" } });
+  });
+  it("accepts partial values, trims institution, and counts Unicode characters", () => {
+    expect(validateProfileForm(form({ institutionOther: " ", status: "", interests: "[]" }), abstractSettings.specialties)).toMatchObject({ ok: true, value: { institutionOther: null, status: null, interests: [] } });
+    expect(validateProfileForm(form({ institutionOther: "  " + "😀".repeat(160) + "  " }), abstractSettings.specialties).ok).toBe(true);
+    expect(validateProfileForm(form({ institutionOther: "😀".repeat(161) }), abstractSettings.specialties)).toMatchObject({ ok: false, fieldErrors: { institutionOther: "too_long" } });
+  });
+  it.each(PROFILE_STATUSES)("accepts approved status %s", (status) => expect(validateProfileForm(form({ status }), abstractSettings.specialties).ok).toBe(true));
+  it.each(["medical_student", "intern", "resident", "other"])("rejects retired status %s", (status) => expect(validateProfileForm(form({ status }), abstractSettings.specialties).ok).toBe(false));
   it("uses only the supplied abstract specialty catalog, with five unique values maximum", () => {
     const catalog = Array.from({ length: 6 }, (_, index) => ({ id: `synthetic-configured-${index}`, label: `Synthetic configured ${index}` }));
     expect(validateProfileForm(form({ interests: JSON.stringify(catalog.slice(0, 5).map(({ id }) => id)) }), catalog).ok).toBe(true);
@@ -204,11 +244,11 @@ describe("profile field and image validation", () => {
     expect(validateProfileForm(form({ interests: "[]" }), []).ok).toBe(true);
     expect(validateProfileForm(form(), []).ok).toBe(false);
   });
-  it.each<Record<string, string>>([{ status: "unapproved" }, { institution: "Synthetic\ncontrol" }, { website: "bot" }, { version: "-1" }, { interests: "not-json" }, { ownerId: otherId }])("rejects invalid fields and owner injection %j", (extra) => {
+  it.each<Record<string, string>>([{ status: "unapproved" }, { institutionOther: "Synthetic\ncontrol" }, { website: "bot" }, { version: "-1" }, { interests: "not-json" }, { ownerId: otherId }])("rejects invalid fields and owner injection %j", (extra) => {
     expect(validateProfileForm(form(extra), abstractSettings.specialties).ok).toBe(false);
   });
   it("rejects duplicate multipart keys and replacing and removing the avatar together", async () => {
-    const duplicate = form(); duplicate.append("institution", "second"); expect(validateProfileForm(duplicate, abstractSettings.specialties).ok).toBe(false);
+    const duplicate = form(); duplicate.append("institutionOther", "second"); expect(validateProfileForm(duplicate, abstractSettings.specialties).ok).toBe(false);
     expect(validateProfileForm(form({ avatar: await image(), removeAvatar: "true" }), abstractSettings.specialties)).toMatchObject({ ok: false, fieldErrors: { avatar: "invalid" } });
   });
   it.each([[0, "image/png"], [MAX_AVATAR_BYTES + 1, "image/png"], [10, "image/gif"], [10, "image/svg+xml"]] as const)("rejects avatar size %s and type %s", (size, type) => {

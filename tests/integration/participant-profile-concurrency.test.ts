@@ -7,10 +7,12 @@ import { resolveLocalSupabaseConfig } from "@/lib/supabase/config";
 const isolatedCi = process.env.GITHUB_ACTIONS === "true" && process.env.PARTICIPANT_PROFILE_DB_TESTS === "true";
 const edition = "synthetic-participant-profile-races";
 const marker = 202710271;
-const helpers = readFileSync("supabase/tests/support/registration-fixtures.psql", "utf8");
+const helpers = readFileSync("supabase/tests/support/registration-fixtures.psql", "utf8")
+  + readFileSync("supabase/tests/support/abstract-fixtures.psql", "utf8")
+  + readFileSync("supabase/tests/support/profile-complete-fixtures.psql", "utf8");
 const actor = (n: number) => `e7100000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
-function query(sql: string, release?: Promise<void>): Promise<string> {
+function query(sql: string, release?: Promise<void | string>): Promise<string> {
   const target = process.env.NEXT_PUBLIC_SUPABASE_TARGET;
   if (!isolatedCi || process.platform !== "linux" || target && target !== "local"
     || existsSync("supabase/.temp/project-ref") || !resolveLocalSupabaseConfig({
@@ -36,7 +38,7 @@ function query(sql: string, release?: Promise<void>): Promise<string> {
     child.stdin.on("error", () => {});
     if (release) {
       child.stdin.write(helpers + "\n" + sql + "\n");
-      void release.then(() => child.stdin.end("commit;\n"));
+      void release.then((remaining) => child.stdin.end((remaining ?? "") + "commit;\n"));
     } else child.stdin.end(helpers + "\n" + sql);
   });
 }
@@ -67,7 +69,7 @@ async function race(firstSql: string, secondSql: string, name: string) {
   } finally { await Promise.allSettled([first, ...(second ? [second] : [])]); }
 }
 const save = (n: number, institution: string, version: number) =>
-  `select public.msrc_participant_profile_save('${edition}',pg_temp.registration_claims(${n}),'${institution}','intern',null,'{}'::text[],${version})::text;`;
+  `select public.msrc_participant_profile_save('${edition}',pg_temp.registration_claims(${n}),jsonb_build_object('institutionOther','${institution}','status','internship','interests','[]'::jsonb),${version})::text;`;
 
 describe.skipIf(!isolatedCi)("Participant profile concurrent edits (disposable GitHub CI only)", () => {
   beforeAll(async () => {
@@ -81,13 +83,23 @@ describe.skipIf(!isolatedCi)("Participant profile concurrent edits (disposable G
       select pg_temp.registration_fixture(88603,'${edition}');
       select pg_temp.registration_fixture(88604,'${edition}');
       select pg_temp.registration_fixture(88605,'${edition}');
+      select pg_temp.registration_fixture(88606,'${edition}');
+      select pg_temp.registration_fixture(88607,'${edition}');
+      select pg_temp.registration_fixture(88608,'${edition}');
+      select pg_temp.registration_fixture(88609,'${edition}');
+      insert into msrc_abstracts.settings(edition_key,version,configuration,enabled,evidence_ready)
+        values('${edition}',1,pg_temp.abstract_settings(),true,true);
+      select pg_temp.complete_profile(88606,'${edition}');
+      select pg_temp.complete_profile(88609,'${edition}');
+      insert into msrc_competitions.settings(edition_key,kind,version,configuration,enabled,evidence_ready)
+        values('${edition}','three_minute_thesis',1,pg_temp.profile_competition_settings('three_minute_thesis'),true,true);
       commit;`);
   });
   it("two simultaneous saves with the same expected version preserve exactly one winner", async () => {
     const results = await race("begin;" + save(88601, "Winning synthetic institution", 0),
       "begin;" + save(88601, "Losing synthetic institution", 0), "participant-profile-edit-race");
     expect(results.map((row) => row.state)).toEqual(["ready", "conflict"]);
-    expect(scalar(await query(`select institution from msrc_participant.profile_details where actor_id='${actor(88601)}';`))).toBe("Winning synthetic institution");
+    expect(scalar(await query(`select institution_other from msrc_participant.profile_details where actor_id='${actor(88601)}';`))).toBe("Winning synthetic institution");
     expect(scalar(await query(`select version from msrc_participant.profile_details where actor_id='${actor(88601)}';`))).toBe("1");
     const other = response(await query(`select public.msrc_participant_profile_read('${edition}',pg_temp.registration_claims(88602))::text;`));
     expect(other.state).toBe("ready");
@@ -118,6 +130,56 @@ describe.skipIf(!isolatedCi)("Participant profile concurrent edits (disposable G
     const results = await race(`begin;update msrc_registration.settings set conference_days=array[current_date] where edition_key='${edition}';`,
       "begin;select public.msrc_participant_profile_cleanup(10)::text;", "participant-profile-retention-race");
     expect(results[1]).toMatchObject({ state: "ready", erased: 0 });
-    expect(scalar(await query(`select institution from msrc_participant.profile_details where actor_id='${actor(88605)}';`))).toBe("Synthetic retained institution");
+    expect(scalar(await query(`select institution_other from msrc_participant.profile_details where actor_id='${actor(88605)}';`))).toBe("Synthetic retained institution");
+  });
+  it("identity removal committed while finalization waits prevents the submission snapshot", async () => {
+    const saved = response(await query(`select public.msrc_abstracts_save_draft('${edition}',pg_temp.registration_claims(88606),null,0,
+      pg_temp.abstract_document(),gen_random_uuid())::text;`));
+    expect(saved.state).toBe("saved");
+    const submissionId = (saved.submission as { id: string }).id;
+    const results = await race(`begin;select public.msrc_participant_profile_save('${edition}',pg_temp.registration_claims(88606),
+      msrc_participant.profile_save_input(msrc_participant.profile_projection('${actor(88606)}'))||'{"removeIdentity":true}'::jsonb,1)::text;`,
+    `begin;select public.msrc_abstracts_finalize('${edition}',pg_temp.registration_claims(88606),'${submissionId}',1,gen_random_uuid())::text;`,
+    "participant-profile-finalization-race");
+    expect(results.map((row) => row.state)).toEqual(["ready", "profile_incomplete"]);
+    expect(scalar(await query(`select count(*) from msrc_abstracts.snapshots where submission_id='${submissionId}';`))).toBe("0");
+  });
+  it("two participants racing with the same identity HMAC preserve one encrypted record", async () => {
+    const identitySave = (n: number) => `begin;select public.msrc_participant_profile_save('${edition}',pg_temp.registration_claims(${n}),
+      jsonb_build_object('interests','[]'::jsonb,'identity',jsonb_build_object('type','passport',
+        'envelope','v1:synthetic:YWJjZGVmZ2hpamts:YWJjZGVmZ2hpamtsbW5vcA==:U1lOVEhFVElDX0VOVkVMT1BF',
+        'lookup',repeat('f',64),'last4','0000')),0)::text;`;
+    const results = await race(identitySave(88607), identitySave(88608), "participant-profile-identity-race");
+    expect(results.map((row) => row.state)).toEqual(["ready", "conflict"]);
+    expect(scalar(await query(`select count(*) from msrc_participant.profile_details where edition_key='${edition}' and identity_lookup=repeat('f',64);`))).toBe("1");
+    expect(scalar(await query(`select count(*) from msrc_participant.profile_details where actor_id='${actor(88608)}';`))).toBe("0");
+  });
+  it("simultaneous abstract and 3MT submissions for one actor follow a common lock order", async () => {
+    const abstract = response(await query(`select public.msrc_abstracts_save_draft('${edition}',pg_temp.registration_claims(88609),null,0,
+      pg_temp.abstract_document(),gen_random_uuid())::text;`));
+    expect(abstract.state).toBe("saved");
+    const thesis = response(await query(`select public.msrc_competitions_save_draft('${edition}',pg_temp.registration_claims(88609),'three_minute_thesis',null,0,
+      '{"title":"Synthetic postgraduate project","narrative":"Synthetic study narrative","presenter":"Synthetic Presenter","affiliation":"Synthetic Institute","declarations":{"postgraduate":true,"authorityConfirmed":true}}'::jsonb,gen_random_uuid())::text;`));
+    expect(thesis.state).toBe("saved");
+    const submissionId = (abstract.submission as { id: string }).id, entryId = (thesis.entry as { id: string }).id;
+    let continueFirst!: (sql: string) => void;
+    const barrier = new Promise<string>((resolve) => { continueFirst = resolve; });
+    const first = query(`begin;select 1 from msrc_abstracts.settings where edition_key='${edition}' for update;
+      select pg_advisory_xact_lock(${marker});`, barrier);
+    let second: Promise<string> | undefined;
+    try {
+      await observed(`select count(*) from pg_locks where locktype='advisory' and objid=${marker} and granted;`, "cross-submission settings lock");
+      second = query(`set application_name='participant-profile-cross-submit-race';begin;
+        select public.msrc_competitions_submit('${edition}',pg_temp.registration_claims(88609),'three_minute_thesis','${entryId}',1,gen_random_uuid())::text;commit;`);
+      await observed("select count(*) from pg_stat_activity where application_name='participant-profile-cross-submit-race' and wait_event_type='Lock' and state='active';", "cross-submission contender");
+      // An inverted profile-before-settings lock in the competition path would
+      // deadlock here against the abstract's settings-before-profile order.
+      continueFirst(`select public.msrc_abstracts_finalize('${edition}',pg_temp.registration_claims(88609),'${submissionId}',1,gen_random_uuid())::text;`);
+      const results = (await Promise.all([first, second])).map(response);
+      expect(results.map((row) => row.state)).toEqual(["finalized", "submitted"]);
+    } finally {
+      continueFirst("");
+      await Promise.allSettled([first, ...(second ? [second] : [])]);
+    }
   });
 });

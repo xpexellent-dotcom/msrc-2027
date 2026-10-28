@@ -38,10 +38,10 @@ export type CompetitionEntry = {
   finalistWorkspace?: FinalistWorkspace | null;
 };
 export type CompetitionResponse = {
-  state: "ready"; settings: Record<CompetitionKind, CompetitionSettings>; entries: CompetitionEntry[]; formToken: string;
+  state: "ready"; profileComplete?: boolean; settings: Record<CompetitionKind, CompetitionSettings>; entries: CompetitionEntry[]; formToken: string;
   outcome?: string; entryId?: string; fileTransfer?: { fileId: string; url: string; operation: "upload" | "download" };
   hackathonProfile?: HackathonProfile | null;
-} | { state: "closed" | "denied" | "area-not-ready" | "unavailable" | "invalid_input" | "limited" };
+} | { state: "closed" | "denied" | "area-not-ready" | "unavailable" | "invalid_input" | "limited" | "profile_incomplete" };
 export const emptyHackathonDocument = (): HackathonDocument => ({ title: "", pitch: "", participationMode: "solo", track: "translating_research",
   references: "", links: [], declarations: { previouslyPresented: false, competitionEntered: false, prizeReceived: false, fundingReceived: false, commercialized: false, historyDetails: "", aiUsed: false, aiTools: "", teamContributions: "", originalityPermissions: false, rulesAcknowledged: false, ethicsApplicable: false, mediaNoticeAcknowledged: false, authorityConfirmed: false } });
 export const emptyHackathonProfile = (): HackathonProfile => ({ university: "", fieldOfStudy: "", phone: "", enrolledInSaudiUniversity: false });

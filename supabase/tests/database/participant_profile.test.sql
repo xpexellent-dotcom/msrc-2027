@@ -1,4 +1,4 @@
--- ENG-086 / ORG-066. Disposable synthetic data, rollback only.
+-- ENG-086/087 / ORG-066/067. Disposable synthetic data, rollback only.
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
@@ -34,6 +34,13 @@ begin
 end$$;
 select * from pg_temp.profile_storage_assertions();
 
+-- Concise scalar/invalid-input fixtures; production saves use the v2 JSON contract.
+create function pg_temp.profile_save(edition text,claims jsonb,institution text,status text,retired_year integer,interests text[],version integer,avatar text default null,remove_avatar boolean default false) returns jsonb
+ language sql as $$
+ select public.msrc_participant_profile_save(edition,claims,jsonb_build_object('institutionOther',institution,'status',status,'interests',to_jsonb(interests))
+  ||case when retired_year is null then '{}'::jsonb else jsonb_build_object('year',retired_year) end,version,avatar,remove_avatar);$$;
+
+
 update msrc_participant.policy set enabled=true,privacy_version='synthetic-registration-notice',email_daily_limit=1000;
 update msrc_participant.retention_policy set enabled=true;
 update msrc_staff.policy set enabled=true,email_daily_limit=1000;
@@ -60,29 +67,29 @@ select is(public.msrc_participant_profile_read('synthetic-profile',pg_temp.regis
 set local role authenticated;
 select throws_ok($$select public.msrc_participant_profile_read('synthetic-profile','{}'::jsonb)$$,'42501',null,'Direct client profile RPC is denied');
 reset role;
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),'  Synthetic University  ','medical_student',3,array['synthetic-a','synthetic-b'],0)->>'state','ready','Saves all optional scalar fields');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),'  Synthetic University  ','year_3',null,array['synthetic-a','synthetic-b'],0)->>'state','ready','Saves all optional scalar fields');
 select is(public.msrc_participant_profile_read('synthetic-profile',pg_temp.registration_claims(8601))#>>'{profile,institution}','Synthetic University','Institution is trimmed');
 select is(public.msrc_participant_profile_read('synthetic-profile',pg_temp.registration_claims(8602))#>>'{profile,institution}',null,'Second participant reads only their own empty data');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),'stale','other',null,'{}'::text[],0)->>'state','conflict','Stale concurrent save cannot overwrite committed values');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),'stale',null,null,'{}'::text[],0)->>'state','conflict','Stale concurrent save cannot overwrite committed values');
 select is(public.msrc_participant_profile_read('synthetic-profile',pg_temp.registration_claims(8601))#>>'{profile,institution}','Synthetic University','Conflict leaves the saved profile intact');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),repeat('x',161),'intern',null,'{}'::text[],1)->>'state','invalid','Institution length is enforced by SQL');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),E'bad\ntext','intern',null,'{}'::text[],1)->>'state','invalid','Institution control characters are rejected');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'unknown',null,'{}'::text[],1)->>'state','invalid','Status enum is enforced');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'medical_student',null,'{}'::text[],1)->>'state','invalid','Medical students must select a year');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'medical_student',7,'{}'::text[],1)->>'state','invalid','Medical year must be one through six');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'intern',1,'{}'::text[],1)->>'state','invalid','Nonstudent status cannot carry a year');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,null,1,'{}'::text[],1)->>'state','invalid','An omitted status cannot carry a year');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'other',null,array['invented'],1)->>'state','invalid','Interests must come from the existing configured specialty list');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'other',null,array['synthetic-a','synthetic-a'],1)->>'state','invalid','Duplicate interests cannot inflate progress');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'other',null,array['synthetic-a','synthetic-b','synthetic-c','synthetic-d','synthetic-e','synthetic-f'],1)->>'state','invalid','At most five interests');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'other',null,array[null::text],1)->>'state','invalid','Null interest values are invalid');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'other',null,array[['synthetic-a','synthetic-b']],1)->>'state','invalid','Interests must be a one-dimensional list');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),repeat('x',161),'internship',null,'{}'::text[],1)->>'state','invalid','Institution length is enforced by SQL');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),E'bad\ntext','internship',null,'{}'::text[],1)->>'state','invalid','Institution control characters are rejected');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'unknown',null,'{}'::text[],1)->>'state','invalid','Status enum is enforced');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'medical_student',null,'{}'::text[],1)->>'state','invalid','Retired medical_student enum is rejected');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'medical_student',7,'{}'::text[],1)->>'state','invalid','Retired status/year input is rejected');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,'internship',1,'{}'::text[],1)->>'state','invalid','Retired year field is rejected');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,null,1,'{}'::text[],1)->>'state','invalid','Retired year field cannot accompany omitted status');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,null,null,array['invented'],1)->>'state','invalid','Interests must come from the existing configured specialty list');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,null,null,array['synthetic-a','synthetic-a'],1)->>'state','invalid','Duplicate interests cannot inflate progress');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,null,null,array['synthetic-a','synthetic-b','synthetic-c','synthetic-d','synthetic-e','synthetic-f'],1)->>'state','invalid','At most five interests');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,null,null,array[null::text],1)->>'state','invalid','Null interest values are invalid');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),null,null,null,array[['synthetic-a','synthetic-b']],1)->>'state','invalid','Interests must be a one-dimensional list');
 
 -- Durable reservation precedes bytes; only this participant can attach it.
 select is(public.msrc_participant_profile_avatar_reserve('synthetic-profile',pg_temp.registration_claims(8601),'../unsafe.webp')->>'state','invalid','Avatar object path cannot escape the private registry');
 select is(public.msrc_participant_profile_avatar_reserve('synthetic-profile',pg_temp.registration_claims(8601),'f8600000-0000-4000-8000-000000000001.webp')->>'state','reserved','Upload is durably registered before Storage upload');
 select is(public.msrc_participant_profile_avatar_register('synthetic-profile',pg_temp.registration_claims(8602),'f8600000-0000-4000-8000-000000000001.webp',0)->>'state','invalid','A different participant cannot attach a reserved avatar');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),'Synthetic University','medical_student',3,array['synthetic-a'],1,'f8600000-0000-4000-8000-000000000001.webp',false)->>'state','ready','Fields and registered avatar commit atomically');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),'Synthetic University','year_3',null,array['synthetic-a'],1,'f8600000-0000-4000-8000-000000000001.webp',false)->>'state','ready','Fields and registered avatar commit atomically');
 select is(public.msrc_participant_profile_read('synthetic-profile',pg_temp.registration_claims(8601))#>>'{profile,avatarObject}','f8600000-0000-4000-8000-000000000001.webp','Own private projection contains only registered object');
 select is(public.msrc_participant_profile_avatar_abandon('synthetic-profile',pg_temp.registration_claims(8601),'f8600000-0000-4000-8000-000000000001.webp')->>'state','active','A lost successful save response cannot authorize deletion of the active avatar');
 select is(public.msrc_participant_profile_avatar_deleted_many(array['f8600000-0000-4000-8000-000000000001.webp'])->>'state','ready','Deletion acknowledgements are idempotent and queue-only');
@@ -116,7 +123,7 @@ do $$begin perform set_config('request.jwt.claims','{}',true);end$$;
 -- A pending account can never use the API but historical/imported optional data
 -- still follows its original thirty-day cleanup proof and queues stored bytes.
 select pg_temp.registration_fixture(8610,'synthetic-profile',false,true,interval '31 days');
-insert into msrc_participant.profile_details(actor_id,edition_key,institution,version)
+insert into msrc_participant.profile_details(actor_id,edition_key,institution_other,version)
  values(pg_temp.registration_actor(8610),'synthetic-profile','Synthetic abandoned profile',1);
 insert into msrc_participant.avatar_objects(object_name,actor_id,edition_key,state)
  values('f8600000-0000-4000-8000-000000000010.webp',pg_temp.registration_actor(8610),'synthetic-profile','staged');
@@ -129,7 +136,7 @@ select is((select state from msrc_participant.avatar_objects where actor_id=pg_t
 -- retention gate; the owner has not authorized a hosted schedule or activation.
 select pg_temp.registration_settings('synthetic-profile-expired');
 select pg_temp.registration_fixture(8620,'synthetic-profile-expired');
-insert into msrc_participant.profile_details(actor_id,edition_key,institution,version)
+insert into msrc_participant.profile_details(actor_id,edition_key,institution_other,version)
  values(pg_temp.registration_actor(8620),'synthetic-profile-expired','Synthetic retention data',1);
 insert into msrc_participant.avatar_objects(object_name,actor_id,edition_key,state)
  values('f8600000-0000-4000-8000-000000000020.webp',pg_temp.registration_actor(8620),'synthetic-profile-expired','active');
@@ -149,7 +156,7 @@ select ok(exists(select 1 from auth.users where id=pg_temp.registration_actor(86
 insert into msrc_participant.avatar_objects(object_name,actor_id,edition_key,state,expires_at)
  values('f8600000-0000-4000-8000-000000000030.webp',pg_temp.registration_actor(8602),'synthetic-profile','staged',clock_timestamp()-interval '1 minute');
 select ok((public.msrc_participant_profile_cleanup(100)->'objects') ? 'f8600000-0000-4000-8000-000000000030.webp','Expired staged upload is reclaimed durably');
-select is(public.msrc_participant_profile_save('synthetic-profile',pg_temp.registration_claims(8601),'  ',null,null,'{}'::text[],4)->>'state','ready','All optional scalar fields can be withdrawn');
+select is(pg_temp.profile_save('synthetic-profile',pg_temp.registration_claims(8601),'  ',null,null,'{}'::text[],4)->>'state','ready','All optional scalar fields can be withdrawn');
 select is(public.msrc_participant_profile_read('synthetic-profile',pg_temp.registration_claims(8601))#>>'{profile,institution}',null,'Blank institution removes the optional value');
 
 select * from finish();

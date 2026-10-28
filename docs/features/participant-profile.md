@@ -1,81 +1,101 @@
-# Optional participant profile — ENG-086 / ORG-066
+﻿# Participant profile — ENG-087 / ORG-067
 
-Task n21, 27 October 2026. Implementation receipt:
-[participant profile](../progress/2026-10-27-codex-participant-profile.md).
-Requirements AUTH-05/06/07/08, PRV-02/03/04/05/06, SEC-01/02/06, LOC-01/03,
-ACC-01. All fields are optional; no directory or public profile is introduced.
+The owner approved this requirement on 27–28 October 2026. It supersedes the
+optional-only ENG-086 / ORG-066 rule for abstract, hackathon and 3MT submission.
+Participants can still save any valid partial profile. Conference registration
+and workshop booking have no profile-completeness prerequisite.
 
-`PARTICIPANT_PROFILE_ENABLED` is server-only and absent/false by default. It
-controls the My MSRC card, participant API and avatar routes, header avatar lookup,
-and the staff display. Accounts retain their independent readiness gates. A missing
-profile RPC returns `area-not-ready`; it never prevents existing account sign-in.
+Requirements AUTH-05/06/07/08, ABS-01/12, HAC-01/03/10, TMT-01,
+PRV-02/03/04/05/06, SEC-01/02/06, LOC-01/03 and ACC-01 apply.
+See the [implementation receipt](../progress/2026-10-28-codex-profile-complete.md)
+and [original profile receipt](../progress/2026-10-27-codex-participant-profile.md).
 
-The My MSRC card sits above ENG-084 next steps. Four completion items are picture,
-institution, status (including year when medical student), and at least one interest.
-The editor supports removing every optional item. Unsaved edits survive language
-changes in browser memory, scoped to the account and saved version; sign-out clears
-them. They are never written to localStorage/sessionStorage. Scientific specialty
-labels remain English/LTR inside the bilingual interface.
+## Completion and editing
 
-## Private storage and authorization
+Completion requires a private picture, institution, status, full Arabic name,
+ISO 3166-1 alpha-2 nationality, gender, date of birth establishing age 18 or older,
+city (80 characters maximum), E.164 contact phone, and a saved identity document.
+At least one specialty interest is required only while the edition's abstract
+specialty catalog is nonempty. The card shows ten baseline items, or eleven with
+configured specialties, and a complete state when all are present.
 
-Review-only migration `20261027120000_participant_profile.sql` creates
-`msrc_participant.profile_details` and `avatar_objects`, both forced RLS without
-client policies or direct application-role grants, and the private
-`participant-avatars` bucket. Restrictive Storage policies deny clients even if an
-unrelated permissive bucket policy exists. The server accepts JPEG/PNG/WebP at
-2 MiB maximum, verifies decoded format and dimensions, rejects animation, rotates,
-resizes within 512 × 512 and re-encodes as WebP using installed sharp. Metadata is
-removed. No new dependency is installed.
+Status is one of Year 1–6, Internship, Clinical placement, Postgraduate, Residency,
+or Faculty. The migration maps medical-student years, intern, resident and faculty
+values to these choices; legacy other becomes null. Existing institution text moves
+to `institution_other`. A listed `institution_id` and `institution_other` are
+mutually exclusive. The bilingual Ministry-sourced catalog and accessible
+combobox support EN/AR search, Arabic article/diacritic normalization and keyboard
+selection. Other reveals a free-text field. Country names display in EN/AR while
+only assigned ISO codes are stored. The phone picker starts at +966 and accepts
+international E.164 contact numbers; ORG-016 still prohibits authentication phone
+collection, SMS, phone verification and phone-based sign-in.
 
-Participant RPCs use service-role transport with native-verified session claims,
-the existing participant authority/retention gates, READ COMMITTED guards,
-per-participant locks and optimistic versions. No target participant ID comes from
-the request. `GET/POST /api/participant-accounts/profile` preserves the account
-origin, exact session, CSRF and database IP-rate-limit checks. Multipart streams are
-bounded before parsing. `GET /api/participant-accounts/profile/avatar` authorizes
-the current participant on every request. Responses are private/no-store and never
-pass through the public image optimizer.
+The editor supports removal and partial saving. New identity numbers, birth dates
+and contact details remain in the current editor only; they are not placed in
+browser persistent storage or the cross-language draft. Arabic names are RTL;
+phone and identity inputs are LTR. Scientific specialty labels remain English/LTR.
 
-The ENG-083 staff detail RPC retains its existing role checks and `participants_read`
-audit. Only Super Admins and registration/workshop administrators see these fields.
-Its avatar route repeats the audited authorization, obtains a 60-second signed
-Storage URL server-side, and proxies the bytes with private/no-store headers. Raw
-Storage paths and signed tokens are not returned in the staff detail JSON. The
-existing image CSP is preserved.
+## Private authority and submission enforcement
 
-## Removal, retention and release
+`PARTICIPANT_PROFILE_ENABLED` remains server-only and absent/false by default.
+It controls profile editing, private avatar routes and profile display. Account,
+abstract and competition release gates remain independent. No flag is changed by
+this implementation. Missing new RPCs show `area-not-ready` and preserve sign-in.
 
-Upload reservation precedes Storage upload. Saving scalar fields and activating a
-replacement avatar is atomic. Replacement/removal queues old objects durably and
-the API deletes their bytes before acknowledging success. A failed/ambiguous save
-can abandon only an object the database confirms remains staged; an active avatar
-is preserved. Stale staging, account deletion (including the existing 30-day
-never-verified rule), and the configured conference-end-plus-one-year deadline feed
-the same durable deletion queue. The native cleanup inventory explicitly recognizes
-the new cascade FK.
+Review-only migration `20261028120000_participant_profile_complete.sql` extends
+the existing `msrc_participant.profile_details`; it creates no extra private table.
+Forced RLS, no direct application-role grants, no client policies, exact native
+session authorization, READ COMMITTED guards, per-participant advisory locks and
+optimistic versions remain in force. The old scalar-save signature is removed.
+The new server-only save RPC accepts an allowlisted JSON payload.
 
-The existing authenticated outbox cron drains a bounded batch through Storage API
-deletion and acknowledges it afterward. This maintenance is independent of the
-profile editing flag and email daily cap, so disabling editing or mail does not
-prevent authorized deletion. Failed byte deletion remains pending; lost
-acknowledgements are safe to repeat. No scheduler is added or enabled by this work.
-Future activation must verify both the existing retention job and authenticated
-outbox maintenance actually run, monitor pending deletions, and verify Storage bytes
-are removed. Removing a Storage metadata row alone is not deletion evidence.
+`msrc_participant.profile_complete(actor, edition)` checks current stored fields,
+active avatar ownership and the configured specialty list. Final abstract and
+competition submissions acquire the profile lock and check completion inside the
+database transaction before proceeding. An incomplete profile returns the
+distinct `profile_incomplete` state. Handlers also check the server-only completion
+RPC; submit controls show a bilingual message linking to `/{locale}/my-msrc#profile`.
+Draft saving remains available. Existing ownership, idempotency, deadlines,
+evidence rules and immutable submission snapshots remain in place.
 
-Privacy v1.1 adds only the approved optional fields, private visibility, purposes,
-consent/removal and existing retention dates in EN/AR. Privacy v1.0 remains archived;
-Terms and registration Terms acceptance remain v1.0. Signup records privacy v1.1.
-There is no separate privacy-version environment variable: accepted version derives
-from the approved notice, while hosted participant policy readiness must separately
-match it. Deploying this code while the hosted policy still requires v1.0 makes
-the existing account readiness check close; coordinate the owner's version setting
-before deployment. No hosted policy setting is changed here. The existing display effective
-date remains unchanged under the task's “change nothing else” instruction.
+## Identity protection, staff access and deletion
 
-Before owner activation: obtain CI migration reset/strict SQL lint/pgTAP and real
-two-connection concurrency results, review private bucket and cleanup behavior,
-check hosted readiness/privacy version explicitly, and complete human EN/AR UAT.
-Announcing the change and emailing account holders under Privacy Policy section 9
-are owner actions. This implementation sends no announcement or account email.
+Identity formats are National ID (10 digits starting 1), Iqama (10 starting 2),
+and passport (6–20 alphanumeric characters). Profile identity uses the ORG-039
+server key configuration: `REGISTRATION_IDENTITY_ENCRYPTION_KEYS`,
+`REGISTRATION_IDENTITY_ACTIVE_KEY_VERSION`, and the separate
+`REGISTRATION_IDENTITY_HMAC_SECRET`. AES-256-GCM uses a fresh IV and authenticates
+owner, edition and document type. An edition/type/number HMAC supports uniqueness
+and lookup without a database-only dictionary attack. Missing keys fail closed;
+no key is generated or configured by this work. The active cipher key and HMAC
+secret must differ. Retain the versioned keyring under the existing custody,
+rotation, backup and restoration process before collecting real identifiers.
+
+Plaintext identity numbers never enter a profile RPC or saved response. Only type
+and last four characters return to participants and the existing audited staff
+detail path. Authorized Super Admins and registration/workshop administrators see
+the expanded private profile; no public profile, directory or export is added.
+Registration's current identity storage is unaffected by this profile change.
+
+Account erasure cascades through the existing profile FK. The existing profile
+retention function deletes all scalar data, identity ciphertext, HMAC and mask by
+the configured conference-end-plus-one-year deadline. Avatar deletion still uses
+the durable Storage deletion queue, including replacement, removal, stale staging,
+account deletion and retention. The existing authenticated outbox maintenance
+drains it even when profile editing or mail is disabled. No scheduler is added or
+enabled. Hosted worker execution, byte deletion, backup expiry and restore
+suppression remain release checks; a metadata deletion is not byte-deletion proof.
+
+## Policy and rollout
+
+Owner-approved Privacy Policy v1.2 describes the required profile, submission
+purposes, private access, contact-only phone and encrypted identity retention.
+v1.0 and v1.1 remain archived; Terms remain v1.0. Short version URLs redirect to
+the corresponding localized version. Deploy the hosted migration and switch
+`msrc_participant.policy.privacy_version` to `v1.2` together: the existing readiness
+check closes sign-up on a policy-version mismatch. No hosted migration, policy
+setting, feature activation, announcement or real email is authorized here.
+
+CI migration reset, strict SQL lint, pgTAP, two-connection database concurrency,
+and human EN/AR UAT are required before activation. Local verification outcomes
+and unrun checks are recorded in the receipt.

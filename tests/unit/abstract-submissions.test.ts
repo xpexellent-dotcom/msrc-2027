@@ -18,13 +18,14 @@ if (readiness.state !== "ready") throw new Error("Synthetic participant configur
 const config = readiness.config;
 const claims = { sub: actorId, session_id: sessionId, role: "authenticated", aal: "aal1", exp: now / 1000 + 3600, amr: [{ method: "password", timestamp: now / 1000 }] };
 const token = (value: unknown = claims) => "synthetic." + Buffer.from(JSON.stringify(value)).toString("base64url") + ".synthetic";
-function fixture(options: { error?: Error; identity?: string | null; context?: unknown; outcome?: string; claims?: unknown; onIdentity?: () => void } = {}) {
+function fixture(options: { error?: Error; profileComplete?: boolean; identity?: string | null; context?: unknown; outcome?: string; claims?: unknown; onIdentity?: () => void } = {}) {
   const submission = { ...abstractSubmission, wordCount: countAbstractWords(abstractDocument.body) };
   const backend: AbstractBackend = { identity: vi.fn(async () => { options.onIdentity?.(); return Object.hasOwn(options, "identity") ? options.identity! : actorId; }), refresh: vi.fn(async () => null),
     rpc: vi.fn(async (name) => {
       if (name === "msrc_participant_status") return { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true, cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
       if (name === "msrc_abstracts_status") return { enabled: true, settingsComplete: true };
       if (options.error) throw options.error;
+      if (name === "msrc_participant_profile_complete") return { state: "ready", complete: options.profileComplete ?? true };
       if (name === "msrc_abstracts_me") return options.context ?? { state: "ready", settings: abstractSettings, submissions: [submission] };
       if (name === "msrc_abstracts_save_draft") return { state: options.outcome ?? "saved", submission };
       if (name === "msrc_abstracts_finalize") return { state: options.outcome ?? "finalized", submission };
@@ -129,4 +130,19 @@ describe("participant abstract API authorization and failures", () => {
   it("bounds JSON transport without a silent author cap", async () => { const request = new Request(origin, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ large: "a".repeat(256 * 1024) }) }); await expect(readAbstractJson(request)).rejects.toThrow(); });
   it("scopes CSRF to origin, actor and exact session", () => { const supplied = abstractFormToken(config, origin, actorId, sessionId, now); expect(readAbstractFormToken(config, supplied, origin, actorId, sessionId, now)).toBe(true); expect(readAbstractFormToken(config, supplied, origin, actorId, operationId, now)).toBe(false); expect(readAbstractFormToken(config, supplied, origin, actorId, sessionId, now + 30 * 60_000)).toBe(false); });
   it("recognizes only missing function responses as area-not-ready", async () => { vi.stubGlobal("fetch", vi.fn(async () => Response.json({ code: "PGRST202" }, { status: 404 }))); await expect(createAbstractBackend(config).rpc("msrc_abstracts_me")).rejects.toBeInstanceOf(AbstractRpcMissingError); });
+});
+
+describe("ENG-087 abstract profile submission gate", () => {
+  it("allows drafts while incomplete, refuses finalization before mutation", async () => {
+    const f = fixture({ profileComplete: false });
+    expect((await f.post()).status).toBe(200);
+    const response = await f.post({ action: "finalize", document: undefined });
+    expect(response.status).toBe(409); expect(await response.json()).toEqual({ state: "profile_incomplete" });
+    expect(f.backend.rpc).not.toHaveBeenCalledWith("msrc_abstracts_finalize", expect.anything());
+    expect((await (await f.get()).json()).profileComplete).toBe(false);
+  });
+  it("preserves the distinct atomic database rejection", async () => {
+    const response = await fixture({ outcome: "profile_incomplete" }).post({ action: "finalize", document: undefined });
+    expect(response.status).toBe(409); expect(await response.json()).toEqual({ state: "profile_incomplete" });
+  });
 });

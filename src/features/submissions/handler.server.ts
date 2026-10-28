@@ -40,9 +40,14 @@ export function createAbstractHandler(dependencies: { readiness?: () => Particip
       const claims = verifiedClaims(session.accessToken, session.actorId, session.sessionId, now);
       if (!claims) return reply({ state: "denied" }, 401);
       const args = { edition_key: config.editionKey, session_claims: claims };
+      const completion = abstractRecord(await backend.rpc("msrc_participant_profile_complete", args));
+      if (completion?.state === "denied") return reply({ state: "denied" }, 403);
+      if (completion?.state !== "ready" || typeof completion.complete !== "boolean") return reply({ state: "area-not-ready" }, 503);
+      const profileComplete = completion.complete;
       const fresh = () => abstractFormToken(config, origin, session.actorId, session.sessionId, now);
       const gate = (value: unknown) => {
         const state = abstractRecord(value)?.state;
+        if (state === "profile_incomplete") return reply({ state: "profile_incomplete" }, 409);
         if (state === "denied") return reply({ state: "denied" }, 403);
         if (state === "closed") return reply({ state: "closed" }, 503);
         if (state === "area_not_ready") return reply({ state: "area-not-ready" }, 503);
@@ -64,6 +69,7 @@ export function createAbstractHandler(dependencies: { readiness?: () => Particip
         // The abstract RPC has its own actor-scoped budget. Autosave must not consume
         // the authentication form's shared 20/IP/hour admission quota.
         if (process.env.ABSTRACT_SUBMISSIONS_ENABLED !== "true" || (dependencies.readiness ?? getParticipantConfig)().state !== "ready") return reply({ state: "closed" }, 503);
+        if (body.action === "finalize" && !profileComplete) return reply({ state: "profile_incomplete" }, 409);
         const result = await backend.rpc(body.action === "save" ? "msrc_abstracts_save_draft" : "msrc_abstracts_finalize", { ...args,
           submission_id: body.submissionId, expected_version: body.expectedVersion, operation_id: body.operationId, ...(document ? { document } : {}) });
         const refused = gate(result); if (refused) return refused;
@@ -78,7 +84,7 @@ export function createAbstractHandler(dependencies: { readiness?: () => Particip
       if (!data || Object.keys(data).sort().join(",") !== "settings,state,submissions" || data.state !== "ready" || !Array.isArray(data.submissions)) return reply({ state: "unavailable" }, 503);
       const settings = abstractSettingsProjection(data.settings), submissions = data.submissions.map(abstractSubmissionProjection);
       if (!settings || submissions.some((row) => !row)) return reply({ state: "unavailable" }, 503);
-      return reply({ state: "ready", settings, submissions: submissions.filter((row) => row !== null), formToken: fresh(), ...(outcome ? { outcome } : {}), ...(submissionId ? { submissionId } : {}) }, outcome && !["saved", "finalized"].includes(outcome) ? 409 : 200);
+      return reply({ state: "ready", profileComplete, settings, submissions: submissions.filter((row) => row !== null), formToken: fresh(), ...(outcome ? { outcome } : {}), ...(submissionId ? { submissionId } : {}) }, outcome && !["saved", "finalized"].includes(outcome) ? 409 : 200);
     } catch (error) { return reply({ state: error instanceof AbstractRpcMissingError ? "area-not-ready" : "unavailable" }, 503); }
   };
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { ProfileSubmissionGate } from "@/features/participant-accounts/profile-submission-gate";
 import type { Locale } from "@/lib/i18n";
 import { HACKATHON_TRACKS, HACKATHON_TRACK_LABELS, emptyHackathonDocument, emptyHackathonProfile, emptyThesisDocument, type CompetitionDocument, type CompetitionEntry, type CompetitionKind, type CompetitionResponse, type HackathonDocument } from "./contracts";
 import { countPitchWords } from "./validation";
@@ -119,6 +120,7 @@ export function EntryWorkspace({ locale, kind, initial }: { locale: Locale; kind
         headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...payload, operationId: operation.current.id, formToken: result.formToken }) });
       const next = await response.json() as CompetitionResponse;
       if (!mounted.current) return;
+      if (next.state === "profile_incomplete") { setResult({ ...result, profileComplete: false }); return; }
       setMessage(resultMessage(next));
       // Keep local text on failure; a renewed token may still be used for an explicit retry.
       if (next.state !== "ready") return;
@@ -169,6 +171,7 @@ export function EntryWorkspace({ locale, kind, initial }: { locale: Locale; kind
     finally { busy.current = false; if (mounted.current) setPending(false); }
   }
 
+  if (result.state === "profile_incomplete") return <ProfileSubmissionGate locale={locale} />;
   if (result.state !== "ready") return <section className="participant-account-card" data-testid="competition-unavailable">
     <p role="status">{resultMessage(result)}</p>
     <div className="competition-actions">{result.state === "denied" ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : null}
@@ -187,6 +190,7 @@ export function EntryWorkspace({ locale, kind, initial }: { locale: Locale; kind
   const fieldDisabled = pending || preview || locked || !entryOpen || !isLead;
   const statusLabel = (status: string) => (copy.status as Record<string, string>)[status] ?? (status === "ineligible" ? copy.status.rejected : copy.status.submitted);
   return <div className="competition-workspace" data-testid="competition-workspace">
+    {result.profileComplete !== true ? <ProfileSubmissionGate locale={locale} /> : null}
     <nav className="competition-kind-nav" aria-label={copy.title}>
       {(["hackathon", "three_minute_thesis"] as const).map((option) => <a key={option} href={`/${locale}/entries?kind=${option}`} aria-current={kind === option ? "page" : undefined}>{copy[option]}</a>)}
     </nav>
@@ -256,7 +260,8 @@ export function EntryWorkspace({ locale, kind, initial }: { locale: Locale; kind
           <Button disabled={pending || !entryOpen || words > 300} onClick={() => void mutate("save")}>{copy.save}</Button>
           <Button disabled={pending || !entryOpen || words > 300} variant="secondary" onClick={() => void mutate("save", true)}>{copy.preview}</Button>
         </>}
-        {preview ? <Button disabled={pending || dirty || !current || !entryOpen || !complete} onClick={() => void mutate("submit", true)}>{copy.submit}</Button> : null}
+        {preview && result.profileComplete !== true ? <ProfileSubmissionGate locale={locale} /> : null}
+        {preview && result.profileComplete === true ? <Button disabled={pending || dirty || !current || !entryOpen || !complete} onClick={() => void mutate("submit", true)}>{copy.submit}</Button> : null}
       </div> : null}
       {kind === "hackathon" ? <section className="competition-section">
         <h3>{copy.roster}</h3><p>{framework.rosterNote}</p>

@@ -26,6 +26,7 @@ const server = http.createServer(async (req, res) => {
   if (args.edition_key !== "synthetic-participants-2027" || !actorPattern.test(actor ?? "")) return reply(res, { state: "denied" });
   const fixture = fixtures.get(actor) ?? { mode: "ready", entries: [], settings: { hackathon: settings, three_minute_thesis: settings } }; fixtures.set(actor, fixture);
   if (fixture.mode === "missing") return reply(res, { code: "PGRST202" }, 404);
+  if (path === "/rest/v1/rpc/msrc_participant_profile_complete") return reply(res, { state: "ready", complete: fixture.mode !== "profile_incomplete" });
   if (path === "/rest/v1/rpc/msrc_competitions_me") return reply(res, { state: "ready", settings: fixture.settings, entries: fixture.entries, hackathonProfile: fixture.hackathonProfile ?? null });
   const key = actor + ":" + args.operation_id; if (operations.has(key)) return reply(res, operations.get(key));
   const entry = fixture.entries.find((e) => e.id === args.entry_id);

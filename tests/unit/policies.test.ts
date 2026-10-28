@@ -12,12 +12,12 @@ const unfinished = /\b(?:draft|placeholder)\b|Organizer decision|awaiting review
 
 afterEach(() => vi.unstubAllEnvs());
 
-describe("approved privacy v1.1 and Terms v1.0 (ORG-066 / BL-PUB-08 / PRV-01/02/05/07/08)", () => {
+describe("approved privacy v1.2 and Terms v1.0 (ORG-067 / BL-PUB-08 / PRV-01/02/05/07/08)", () => {
   it("uses the approved privacy version without changing Terms or the shared effective date", () => {
-    expect(currentPolicyVersion).toBe("v1.1");
+    expect(currentPolicyVersion).toBe("v1.2");
     expect(currentTermsVersion).toBe("v1.0");
     expect(policyEffectiveDate).toBe("2026-10-06");
-    expect(policyVersions[currentPolicyVersion]).toMatchObject({ version: "v1.1", status: "approved", effectiveOn: policyEffectiveDate });
+    expect(policyVersions[currentPolicyVersion]).toMatchObject({ version: "v1.2", status: "approved", effectiveOn: policyEffectiveDate });
     for (const kind of policyKinds) for (const locale of ["en", "ar"] as const) {
       const current = getPolicyDocument(kind, locale);
       expect(current.document).toEqual(getPolicyDocument(kind, locale, currentVersionFor(kind)).document);
@@ -26,7 +26,7 @@ describe("approved privacy v1.1 and Terms v1.0 (ORG-066 / BL-PUB-08 / PRV-01/02/
   });
 
   it("preserves archived v1.0 and changes only the approved optional profile rows in privacy v1.1", () => {
-    expect(policyVersionKeys("privacy")).toEqual(["v1.0", "v1.1"]);
+    expect(policyVersionKeys("privacy")).toEqual(["v1.0", "v1.1", "v1.2"]);
     expect(policyVersionKeys("terms")).toEqual(["v1.0"]);
     expect(isPolicyVersion("v1.1", "terms")).toBe(false);
     expect(() => getPolicyDocument("terms", "en", "v1.1")).toThrow("Unavailable policy version");
@@ -34,7 +34,7 @@ describe("approved privacy v1.1 and Terms v1.0 (ORG-066 / BL-PUB-08 / PRV-01/02/
     expect(getPolicyDocument("privacy", "en", "v1.0").document.sections.map(({ title, blocks }) => ({ title, blocks }))).toEqual(original.sections);
     for (const locale of ["en", "ar"] as const) {
       const before = getPolicyDocument("privacy", locale, "v1.0").document;
-      const after = getPolicyDocument("privacy", locale).document;
+      const after = getPolicyDocument("privacy", locale, "v1.1").document;
       expect(after.title).toBe(before.title);
       expect(after.lead).toBe(before.lead);
       for (const section of before.sections) {
@@ -57,10 +57,46 @@ describe("approved privacy v1.1 and Terms v1.0 (ORG-066 / BL-PUB-08 / PRV-01/02/
         }
       }
     }
-    const privacy = JSON.stringify(getPolicyDocument("privacy", "en").document);
+    const privacy = JSON.stringify(getPolicyDocument("privacy", "en", "v1.1").document);
     for (const text of ["a profile picture", "your university or institution", "your student status and year", "your specialty interests", "optional and visible only to you and authorized organizers", "There is no public directory", "your consent, given when you add them", "You can remove them at any time", "Deleted after 30 days", "by 28 January 2028"]) expect(privacy).toContain(text);
-    const arabic = JSON.stringify(getPolicyDocument("privacy", "ar").document);
+    const arabic = JSON.stringify(getPolicyDocument("privacy", "ar", "v1.1").document);
     for (const text of ["صورة ملفك الشخصي", "وجامعتك أو مؤسستك", "وصفتك الطلابية وسنتك الدراسية", "والتخصصات التي تهمك", "اختيارية", "للمنظمين المصرح لهم", "ولا يوجد دليل عام", "موافقتك التي تمنحها عند إضافتها", "ويمكنك إزالتها في أي وقت"]) expect(arabic).toContain(text);
+  });
+
+  it("archives v1.1 unchanged and limits v1.2 changes to approved profile data, purposes, retention and security", () => {
+    const archived = readApprovedPolicy("privacy", "v1.1");
+    expect(getPolicyDocument("privacy", "en", "v1.1").document.sections.map(({ title, blocks }) => ({ title, blocks }))).toEqual(archived.sections);
+    expect(isPolicyVersion("v1.2", "terms")).toBe(false);
+    expect(() => getPolicyDocument("terms", "en", "v1.2")).toThrow("Unavailable policy version");
+    for (const locale of ["en", "ar"] as const) {
+      const before = getPolicyDocument("privacy", locale, "v1.1").document;
+      const after = getPolicyDocument("privacy", locale, "v1.2").document;
+      expect(after.title).toBe(before.title);
+      expect(after.lead).toBe(before.lead);
+      for (const section of before.sections) {
+        const updated = after.sections.find(({ id }) => id === section.id)!;
+        expect(updated.title).toBe(section.title);
+        if (!["information", "processing", "retention", "security-age-changes"].includes(section.id)) expect(updated).toEqual(section);
+        if (["information", "processing"].includes(section.id)) {
+          expect(updated.blocks).toHaveLength(section.blocks.length);
+          section.blocks.forEach((block, index) => {
+            const next = updated.blocks[index];
+            if (block.type !== "table" || next.type !== "table") expect(next).toEqual(block);
+            else {
+              expect(next.headers).toEqual(block.headers);
+              expect(next.rows).toHaveLength(block.rows.length);
+              const changedRows = block.rows.flatMap((row, rowIndex) => JSON.stringify(row) === JSON.stringify(next.rows[rowIndex]) ? [] : [rowIndex]);
+              expect(changedRows).toEqual(section.id === "information" ? [2] : [1]);
+            }
+          });
+        }
+      }
+    }
+    const privacy = JSON.stringify(getPolicyDocument("privacy", "en").document);
+    for (const text of ["full name in Arabic", "nationality", "gender", "date of birth", "city", "contact phone number", "national ID, Iqama or passport", "Specialty interests are required only when", "You may save a partially completed profile", "does not apply to conference registration or workshop booking", "your own submissions", "not used for authentication, SMS or phone verification", "encrypted at rest", "masked number", "private audited participant detail", "deleted with your account and no later than one year"]) expect(privacy).toContain(text);
+    expect(privacy).not.toContain("optional profile fields");
+    const arabic = JSON.stringify(getPolicyDocument("privacy", "ar").document);
+    for (const text of ["واسمك الكامل بالعربية", "وجنسيتك وجنسك وتاريخ ميلادك ومدينتك", "ورقم هاتف للتواصل", "ملف شخصي غير مكتمل", "ولا ينطبق هذا الشرط على التسجيل في المؤتمر أو حجز ورش العمل", "ولا يُستخدم للمصادقة أو الرسائل النصية أو التحقق من الهاتف", "وتُشفّر أرقام وثائق الهوية في الملف الشخصي", "سجل تدقيق", "لا يتجاوز سنة واحدة"]) expect(arabic).toContain(text);
   });
 
   it.each([undefined, null, "", "2026-10-04-draft", "2026-10-04", "2027-final", "__proto__", "constructor", 20261004])("rejects an unavailable version %s", (version) => {
@@ -109,7 +145,7 @@ describe("approved privacy v1.1 and Terms v1.0 (ORG-066 / BL-PUB-08 / PRV-01/02/
       expect(html).toContain(`data-policy-version="${version}"`);
       expect(html).toContain(`href="/${locale}/${kind}/${version}"`);
       expect(html).toContain(`dateTime="${policyEffectiveDate}"`);
-      expect(html).toContain(locale === "en" ? `Version ${version.slice(1)}` : kind === "privacy" ? "الإصدار ١.١" : "الإصدار ١.٠");
+      expect(html).toContain(locale === "en" ? `Version ${version.slice(1)}` : kind === "privacy" ? "الإصدار ١.٢" : "الإصدار ١.٠");
       expect(html).not.toMatch(unfinished);
       expect(html).not.toMatch(/<(form|input|textarea|select|iframe|video)\b/i);
       expect(html.match(/<table\b/g) ?? []).toHaveLength(kind === "privacy" ? 4 : 0);
