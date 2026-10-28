@@ -16,11 +16,12 @@ const config = readiness.config, document = { ...emptyHackathonDocument(), title
 const settings = { stageStates: { entry: "not_ready", selection: "not_ready", judging: "not_ready", final_material: "not_ready", membership: "not_ready" }, pitchPrompt: null, finalistCapPerTrack: null, filesReady: false };
 const entry = { id: entryId, kind: "hackathon", version: 1, status: "draft", document, roster: [{ id: actorId, email: "synthetic@example.invalid", isLead: true, confirmed: false }], files: [], outcome: null };
 const claims = { sub: actorId, session_id: sessionId, role: "authenticated", aal: "aal1", exp: now / 1000 + 3600, amr: [{ method: "password", timestamp: now / 1000 }] };
-function fixture(options: { missing?: boolean; identity?: string | null; data?: unknown; result?: unknown; onIdentity?: () => void } = {}) {
+function fixture(options: { missing?: boolean; profileComplete?: boolean; identity?: string | null; data?: unknown; result?: unknown; onIdentity?: () => void } = {}) {
   const backend: CompetitionBackend = { identity: vi.fn(async () => { options.onIdentity?.(); return "identity" in options ? options.identity! : actorId; }), refresh: vi.fn(async () => null), rpc: vi.fn(async (name) => {
     if (name === "msrc_participant_status") return { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true, cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
     if (name === "msrc_competitions_status") return { enabled: true };
     if (options.missing) throw new CompetitionRpcMissingError();
+    if (name === "msrc_participant_profile_complete") return { state: "ready", complete: options.profileComplete ?? true };
     if (name === "msrc_competitions_me") return options.data ?? { state: "ready", settings: { hackathon: settings, three_minute_thesis: settings }, entries: [entry], hackathonProfile: null };
     return options.result ?? { state: "saved", entry };
   }) };
@@ -90,4 +91,19 @@ describe("closed participant competition transport", () => {
 describe("competition document CSP", () => {
   it.each(["/en/entries", "/ar/entries", "/en/reviewer/competitions", "/ar/judge/competitions"])("treats %s as private", (path) => expect(isPrivatePage(path)).toBe(true));
   it("scopes Storage connections to the entry page", () => { expect(isCompetitionEntryPage("/en/entries")).toBe(true); expect(isCompetitionEntryPage("/en/hackathon")).toBe(false); expect(competitionUploadOrigin({ COMPETITIONS_ENABLED: "true" })).toBeUndefined(); });
+});
+
+describe("ENG-087 competition profile submission gate", () => {
+  it.each(["hackathon", "three_minute_thesis"])("refuses %s submission before mutation but permits drafts", async (kind) => {
+    const f = fixture({ profileComplete: false });
+    const response = await f.post({ action: "submit", kind, document: undefined });
+    expect(response.status).toBe(409); expect(await response.json()).toEqual({ state: "profile_incomplete" });
+    expect(f.backend.rpc).not.toHaveBeenCalledWith("msrc_competitions_submit", expect.anything());
+    expect((await (await f.get()).json()).profileComplete).toBe(false);
+    expect((await f.post()).status).toBe(200);
+  });
+  it("preserves the distinct database rejection after the preliminary check", async () => {
+    const response = await fixture({ result: { state: "profile_incomplete" } }).post({ action: "submit", document: undefined });
+    expect(response.status).toBe(409); expect(await response.json()).toEqual({ state: "profile_incomplete" });
+  });
 });

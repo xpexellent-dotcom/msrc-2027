@@ -8,7 +8,8 @@ const isolatedCi = process.env.GITHUB_ACTIONS === "true" && process.env.ABSTRACT
 const edition = "synthetic-abstract-races";
 const marker = 202710235;
 const helpers = readFileSync("supabase/tests/support/registration-fixtures.psql", "utf8")
-  + readFileSync("supabase/tests/support/abstract-fixtures.psql", "utf8");
+  + readFileSync("supabase/tests/support/abstract-fixtures.psql", "utf8")
+  + readFileSync("supabase/tests/support/profile-complete-fixtures.psql", "utf8");
 const actor = (n: number) => `e7100000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const operation = (n: number) => `e7900000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
@@ -89,7 +90,7 @@ describe.skipIf(!isolatedCi)("Abstract/review lock ordering (disposable GitHub C
       insert into msrc_authorization.edition_config(edition_key) values('${edition}');
       insert into msrc_abstracts.settings(edition_key,version,configuration,enabled,evidence_ready) values('${edition}',1,pg_temp.abstract_settings(),true,true);
       insert into msrc_abstracts.settings_versions values('${edition}',1,pg_temp.abstract_settings());
-      ${Array.from({ length: 15 }, (_, i) => `select pg_temp.registration_fixture(${9200 + i},'${edition}');`).join("\n")}
+      ${Array.from({ length: 15 }, (_, i) => `select pg_temp.registration_fixture(${9200 + i},'${edition}');select pg_temp.complete_profile(${9200 + i},'${edition}');`).join("\n")}
       select pg_temp.registration_staff_fixture(9300,'${edition}','scientificAdministrator');
       select pg_temp.registration_staff_fixture(9301,'${edition}','abstractReviewer');
       select pg_temp.registration_staff_fixture(9302,'${edition}','abstractReviewer');

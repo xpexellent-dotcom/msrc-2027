@@ -1,6 +1,8 @@
-import "server-only";
+﻿import "server-only";
 import sharp from "sharp";
-import { PROFILE_STATUSES, type ProfileStatus, type ProfileField, type ProfileSpecialty } from "./profile-contract";
+import { PROFILE_STATUSES, PROFILE_IDENTITY_TYPES, safeProfileText, isAdultProfileDate, isArabicProfileName, isProfileIdentityNumber, isProfilePhone, type ProfileStatus, type ProfileIdentityType, type ProfileErrors, type OptionalParticipantProfile, type ProfileSpecialty } from "./profile-contract";
+import { isCountryCode } from "@/content/countries";
+import { SAUDI_UNIVERSITIES } from "@/content/saudi-universities";
 
 export const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const MAX_BODY_BYTES = MAX_AVATAR_BYTES + 16_384;
@@ -25,25 +27,45 @@ export async function readProfileForm(request: Request): Promise<FormData> {
   return new Response(Buffer.concat(chunks), { headers: { "Content-Type": contentType } }).formData();
 }
 export type ProfileSaveInput = {
-  institution: string | null; status: ProfileStatus | null; year: number | null; interests: string[];
+  institutionId: string | null; institutionOther: string | null; status: ProfileStatus | null;
+  arabicName: string | null; nationality: string | null; gender: "male" | "female" | null;
+  dateOfBirth: string | null; city: string | null; phone: string | null;
+  identityType: ProfileIdentityType | null; identityNumber: string | null; removeIdentity: boolean; interests: string[];
   avatar: File | null; removeAvatar: boolean; version: number; formToken: string;
 };
-export function validateProfileForm(form: FormData, specialties: ProfileSpecialty[]):
-  { ok: true; value: ProfileSaveInput } | { ok: false; fieldErrors: Partial<Record<ProfileField, "required" | "invalid" | "too_long">> } {
-  const errors: Partial<Record<ProfileField, "required" | "invalid" | "too_long">> = {};
-  const allowed = ["action", "institution", "status", "year", "interests", "avatar", "removeAvatar", "version", "formToken", "website"];
+export function validateProfileForm(form: FormData, specialties: ProfileSpecialty[], existing?: OptionalParticipantProfile, now = new Date()):
+  { ok: true; value: ProfileSaveInput } | { ok: false; fieldErrors: ProfileErrors } {
+  const errors: ProfileErrors = {};
+  const scalarKeys = ["institutionId", "institutionOther", "status", "arabicName", "nationality", "gender", "dateOfBirth", "city", "phone", "identityType", "identityNumber"] as const;
+  const allowed = ["action", ...scalarKeys, "interests", "avatar", "removeAvatar", "removeIdentity", "version", "formToken", "website"];
   if (Array.from(form.keys()).some((key) => !allowed.includes(key) || form.getAll(key).length !== 1)
+    || scalarKeys.some((key) => typeof form.get(key) !== "string")
     || form.get("action") !== "save" || form.get("website") !== ""
     || typeof form.get("formToken") !== "string" || !/^\d{1,10}$/.test(String(form.get("version")))) return { ok: false, fieldErrors: errors };
-  const institutionValue = form.get("institution"), statusValue = form.get("status"), yearValue = form.get("year");
-  const institution = typeof institutionValue === "string" ? institutionValue.trim() : "";
-  if (typeof institutionValue !== "string" || /[\x00-\x1f\x7f]/.test(institution)) errors.institution = "invalid";
-  else if (Array.from(institution).length > 160) errors.institution = "too_long";
-  const status = statusValue === "" ? null : statusValue as ProfileStatus;
-  if (typeof statusValue !== "string" || status !== null && !PROFILE_STATUSES.includes(status)) errors.status = "invalid";
-  const year = status === "medical_student" && typeof yearValue === "string" && /^[1-6]$/.test(yearValue) ? Number(yearValue) : null;
-  if (status === "medical_student" && year === null) errors.year = yearValue === "" ? "required" : "invalid";
-  if (status !== "medical_student" && yearValue !== "") errors.year = "invalid";
+  const text = (key: typeof scalarKeys[number]) => String(form.get(key)).trim();
+  const institutionId = text("institutionId") || null, institutionOther = text("institutionOther") || null;
+  if (institutionId !== null && !SAUDI_UNIVERSITIES.some((item) => item.id === institutionId)) errors.institution = "invalid";
+  if (institutionOther !== null && !safeProfileText(institutionOther, 160)) errors.institutionOther = Array.from(institutionOther).length > 160 ? "too_long" : "invalid";
+  if (institutionId !== null && institutionOther !== null) errors.institution = "invalid";
+  const status = text("status") as ProfileStatus || null;
+  if (status !== null && !PROFILE_STATUSES.includes(status)) errors.status = "invalid";
+  const arabicName = text("arabicName") || null, nationality = text("nationality") || null;
+  if (arabicName !== null && !isArabicProfileName(arabicName)) errors.arabicName = Array.from(arabicName).length > 160 ? "too_long" : "invalid";
+  if (nationality !== null && !isCountryCode(nationality)) errors.nationality = "invalid";
+  const gender = text("gender") as "male" | "female" || null;
+  if (gender !== null && !["male", "female"].includes(gender)) errors.gender = "invalid";
+  const dateOfBirth = text("dateOfBirth") || null, city = text("city") || null, phone = text("phone") || null;
+  if (dateOfBirth !== null && !isAdultProfileDate(dateOfBirth, now)) errors.dateOfBirth = "invalid";
+  if (city !== null && !safeProfileText(city, 80)) errors.city = Array.from(city).length > 80 ? "too_long" : "invalid";
+  if (phone !== null && !isProfilePhone(phone)) errors.phone = "invalid";
+  const identityType = text("identityType") as ProfileIdentityType || null, identityNumber = text("identityNumber").toUpperCase() || null;
+  if (identityType !== null && !PROFILE_IDENTITY_TYPES.includes(identityType)) errors.identityType = "invalid";
+  const removeIdentity = form.get("removeIdentity") === "true";
+  if (form.get("removeIdentity") !== null && !["true", "false"].includes(String(form.get("removeIdentity")))) errors.identityNumber = "invalid";
+  if (identityNumber !== null && (!identityType || !PROFILE_IDENTITY_TYPES.includes(identityType) || !isProfileIdentityNumber(identityType, identityNumber))) errors.identityNumber = "invalid";
+  if (identityType && !identityNumber && (removeIdentity || existing?.identityType !== identityType || !existing.identityLast4)) errors.identityNumber = "required";
+  if (existing?.identityType && identityType !== existing.identityType && !identityNumber && !removeIdentity) errors.identityType = "invalid";
+  if (removeIdentity && (identityType || identityNumber)) errors.identityNumber = "invalid";
   let interests: string[] = [];
   try {
     const parsed: unknown = JSON.parse(String(form.get("interests")));
@@ -57,7 +79,8 @@ export function validateProfileForm(form: FormData, specialties: ProfileSpecialt
     || !["image/jpeg", "image/png", "image/webp"].includes(avatar.type))) errors.avatar = "invalid";
   if (avatar && remove === "true") errors.avatar = "invalid";
   if (Object.keys(errors).length) return { ok: false, fieldErrors: errors };
-  return { ok: true, value: { institution: institution || null, status, year, interests, avatar: avatar instanceof File ? avatar : null,
+  return { ok: true, value: { institutionId, institutionOther, status, arabicName, nationality, gender, dateOfBirth, city, phone,
+    identityType, identityNumber, removeIdentity, interests, avatar: avatar instanceof File ? avatar : null,
     removeAvatar: remove === "true", version: Number(form.get("version")), formToken: String(form.get("formToken")) } };
 }
 /** Decode the actual bytes, reject MIME mismatches/animation, rotate and re-encode.

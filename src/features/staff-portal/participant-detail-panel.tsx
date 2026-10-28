@@ -6,6 +6,7 @@ import type { Locale } from "@/lib/i18n";
 import { formatStaffDate } from "./console-shell";
 import type { ParticipantDetail, ParticipantDetailResponse } from "./participant-detail-contract";
 import { ProfileAvatar } from "@/features/participant-accounts/profile-avatar";
+import { SAUDI_UNIVERSITIES } from "@/content/saudi-universities";
 import { profileCopy } from "@/features/participant-accounts/profile-copy";
 
 const detailCopy = {
@@ -14,6 +15,7 @@ const detailCopy = {
     created: "Account created", verified: "Email verified", lastSignIn: "Last sign-in", privacy: "Privacy notice accepted", age: "18+ confirmed",
     registration: "Conference registration", registrationStatus: "Request status", requested: "Requested", decided: "Decided", identity: "Identity document",
     ticket: "Ticket", attendance: "Attendance", workshops: "Workshops", submissions: "Abstract submissions", competitions: "Competitions",
+    arabicName: "Full name in Arabic", nationality: "Nationality", gender: "Gender", dateOfBirth: "Date of birth", city: "City", male: "Male", female: "Female",
     hackathonProfile: "Hackathon profile", university: "University", field: "Field of study", phone: "Contact phone", enrolled: "Enrolled in Saudi Arabia",
     certificates: "Certificates", none: "None", yes: "Yes", no: "No", lead: "Lead", member: "Member", accepted: "accepted", pending: "pending acceptance",
     statuses: { verified: "Verified", unverified: "Unverified", suspended: "Suspended" },
@@ -21,6 +23,7 @@ const detailCopy = {
     kinds: { hackathon: "Hackathon", three_minute_thesis: "3MT" } as Record<string, string>,
   },
   ar: {
+    arabicName: "الاسم الكامل بالعربية", nationality: "الجنسية", gender: "الجنس", dateOfBirth: "تاريخ الميلاد", city: "المدينة", male: "ذكر", female: "أنثى",
     title: "تفاصيل المشارك", close: "إغلاق التفاصيل", loading: "جارٍ تحميل بيانات المشارك…", account: "الحساب", name: "الاسم", email: "البريد الإلكتروني", status: "الحالة",
     created: "تاريخ إنشاء الحساب", verified: "تاريخ توثيق البريد", lastSignIn: "آخر تسجيل دخول", privacy: "إشعار الخصوصية المقبول", age: "تأكيد بلوغ ١٨ عامًا",
     registration: "التسجيل في المؤتمر", registrationStatus: "حالة الطلب", requested: "تاريخ الطلب", decided: "تاريخ القرار", identity: "وثيقة الهوية",
@@ -75,9 +78,15 @@ export function ParticipantDetailPanel({ locale, actorId, onClose }: { locale: L
         <h3 id="staff-participant-optional-profile">{profileText.optionalProfile}</h3>
         <dl className="staff-detail-list">
           <Row label={profileText.picture}><ProfileAvatar name={person.name} url={person.optionalProfile.avatarUrl} /></Row>
-          <Row label={profileText.institution}><bdi dir="auto">{person.optionalProfile.institution ?? copy.none}</bdi></Row>
+          <Row label={profileText.institution}><bdi dir="auto">{(SAUDI_UNIVERSITIES.find((item) => item.id === person.optionalProfile!.institutionId)?.[locale === "ar" ? "nameAr" : "nameEn"] ?? person.optionalProfile.institutionOther) ?? copy.none}</bdi></Row>
           <Row label={profileText.status}>{person.optionalProfile.status ? profileText.statuses[person.optionalProfile.status] : copy.none}</Row>
-          <Row label={profileText.year}>{person.optionalProfile.year === null ? copy.none : new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB").format(person.optionalProfile.year)}</Row>
+          <Row label={copy.arabicName}><bdi dir="rtl" lang="ar">{person.optionalProfile.arabicName ?? copy.none}</bdi></Row>
+          <Row label={copy.nationality}>{person.optionalProfile.nationality ? new Intl.DisplayNames([locale], { type: "region" }).of(person.optionalProfile.nationality) : copy.none}</Row>
+          <Row label={copy.gender}>{person.optionalProfile.gender ? copy[person.optionalProfile.gender] : copy.none}</Row>
+          <Row label={copy.dateOfBirth}><bdi dir="ltr">{person.optionalProfile.dateOfBirth ?? copy.none}</bdi></Row>
+          <Row label={copy.city}><bdi dir="auto">{person.optionalProfile.city ?? copy.none}</bdi></Row>
+          <Row label={copy.phone}><bdi dir="ltr">{person.optionalProfile.phone ?? copy.none}</bdi></Row>
+          <Row label={copy.identity}><bdi dir="ltr">{person.optionalProfile.identityLast4 ? "••••" + person.optionalProfile.identityLast4 : copy.none}</bdi></Row>
           <Row label={profileText.interests}>{person.optionalProfile.interests.length ? person.optionalProfile.interests.map((id) => <div key={id}><bdi dir="ltr" lang="en">{person.optionalProfile!.specialties.find((option) => option.id === id)?.label ?? id}</bdi></div>) : copy.none}</Row>
         </dl>
       </section> : null}

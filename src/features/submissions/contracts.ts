@@ -22,7 +22,7 @@ export type AbstractSubmission = {
   decision: null | { outcome: "accept" | "reject" | "revise"; instructions: string; revisionDeadline: string | null; permittedFields: string[] };
 };
 export type AbstractOutcome = "saved" | "finalized" | "conflict" | "pi_limit" | "evidence_gate" | "invalid";
-export type AbstractResponse = { state: "ready"; settings: AbstractSettings; submissions: AbstractSubmission[]; formToken: string;
+export type AbstractResponse = { state: "ready"; profileComplete?: boolean; settings: AbstractSettings; submissions: AbstractSubmission[]; formToken: string;
   outcome?: AbstractOutcome; submissionId?: string } | {
-  state: "closed" | "denied" | "area-not-ready" | "unavailable" | "invalid_input" | "limited";
+  state: "closed" | "denied" | "area-not-ready" | "unavailable" | "invalid_input" | "limited" | "profile_incomplete";
 };

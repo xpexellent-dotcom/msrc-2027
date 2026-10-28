@@ -4,6 +4,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
 select no_plan();
 \ir ../support/registration-fixtures.psql
+\ir ../support/profile-complete-fixtures.psql
 \ir ../support/abstract-fixtures.psql
 select is((select count(*) from msrc_abstracts.settings),0::bigint,'No scientific settings seeded');
 select ok(not exists(select 1 from pg_class c where c.relnamespace='msrc_abstracts'::regnamespace and c.relkind='r' and not(c.relrowsecurity and c.relforcerowsecurity)),'All abstract tables force RLS without fixed object count');
@@ -40,6 +41,7 @@ insert into msrc_authorization.edition_config(edition_key) values('synthetic-abs
 select pg_temp.registration_fixture(9001,'synthetic-abstracts');
 select pg_temp.registration_fixture(9002,'synthetic-abstracts');
 select pg_temp.registration_fixture(9003,'synthetic-abstracts');
+select pg_temp.complete_profile(n,'synthetic-abstracts') from generate_series(9001,9003) n;
 select pg_temp.registration_staff_fixture(9100,'synthetic-abstracts');
 select pg_temp.registration_staff_fixture(9101,'synthetic-abstracts','scientificAdministrator');
 select pg_temp.registration_staff_fixture(9102,'synthetic-abstracts','abstractReviewer');
@@ -56,6 +58,7 @@ select is(public.msrc_staff_research_save_settings('synthetic-abstracts',0,pg_te
 select is(public.msrc_staff_research_auto_assign('synthetic-abstracts',gen_random_uuid())->>'state','denied','SA-only science oversight cannot assign');
 select is(public.msrc_abstracts_save_draft('synthetic-abstracts',pg_temp.registration_claims(9001),null,0,pg_temp.abstract_document(),gen_random_uuid())->>'state','closed','Disabled workflow refuses drafts');
 update msrc_abstracts.settings set enabled=true where edition_key='synthetic-abstracts';
+update msrc_participant.profile_details set specialty_interests=array['synthetic-specialty'] where edition_key='synthetic-abstracts';
 create temporary table abstract_result(key text primary key,value jsonb);
 insert into abstract_result values('one',public.msrc_abstracts_save_draft('synthetic-abstracts',pg_temp.registration_claims(9001),null,0,pg_temp.abstract_document(),'e7900000-0000-4000-8000-000000000001'));
 select is((select value->>'state' from abstract_result where key='one'),'saved','Owner can save draft');

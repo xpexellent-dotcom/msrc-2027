@@ -9,7 +9,8 @@ const edition = "synthetic-competition-races";
 const marker = 2027102414;
 const actor = (n: number) => `e7100000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const operation = (n: number) => `e7900000-0000-4000-8000-${String(n).padStart(12, "0")}`;
-const helpers = readFileSync("supabase/tests/support/registration-fixtures.psql", "utf8") + `
+const helpers = readFileSync("supabase/tests/support/registration-fixtures.psql", "utf8")
+  + readFileSync("supabase/tests/support/profile-complete-fixtures.psql", "utf8") + `
 create function pg_temp.competition_claims(n integer) returns void language plpgsql as $$begin
  perform set_config('request.jwt.claims',pg_temp.registration_claims(n)::text,true);end$$;
 create function pg_temp.competition_document(title text default 'Synthetic project') returns jsonb language sql immutable as $$
@@ -109,7 +110,7 @@ describe.skipIf(!isolatedCi)("Competition transaction races (disposable GitHub C
       insert into msrc_authorization.edition_config(edition_key) values('${edition}');
       insert into msrc_competitions.settings(edition_key,kind,version,configuration,enabled,evidence_ready) values('${edition}','hackathon',1,pg_temp.competition_settings(),true,true);
       insert into msrc_competitions.settings_versions select edition_key,kind,version,configuration from msrc_competitions.settings where edition_key='${edition}' and kind='hackathon';
-      ${Array.from({ length: 4 }, (_, i) => `select pg_temp.registration_fixture(${9620 + i},'${edition}');`).join("\n")}
+      ${Array.from({ length: 4 }, (_, i) => `select pg_temp.registration_fixture(${9620 + i},'${edition}');select pg_temp.complete_profile(${9620 + i},'${edition}');`).join("\n")}
       select pg_temp.registration_staff_fixture(9680,'${edition}','scientificAdministrator');
       select pg_temp.registration_staff_fixture(9681,'${edition}','hackathonReviewer');
       select pg_temp.registration_staff_fixture(9682,'${edition}','hackathonReviewer');

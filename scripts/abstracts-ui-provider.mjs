@@ -33,6 +33,7 @@ const server = http.createServer(async (request, response) => {
   const fixture = fixtures.get(actor) ?? { mode: "ready", submissions: [], settings };
   fixtures.set(actor, fixture);
   if (fixture.mode === "missing") return reply(response, { code: "PGRST202", message: "Synthetic missing capability" }, 404);
+  if (path === "/rest/v1/rpc/msrc_participant_profile_complete") return reply(response, { state: "ready", complete: fixture.mode !== "profile_incomplete" });
   if (path === "/rest/v1/rpc/msrc_abstracts_me") return reply(response, { state: "ready", settings: fixture.settings, submissions: fixture.submissions });
   const key = actor + ":" + args.operation_id;
   if (operations.has(key)) return reply(response, operations.get(key));

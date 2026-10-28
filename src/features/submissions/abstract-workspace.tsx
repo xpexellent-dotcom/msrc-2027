@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { ProfileSubmissionGate } from "@/features/participant-accounts/profile-submission-gate";
 import type { Locale } from "@/lib/i18n";
 import { ABSTRACT_BODY_KEYS, type AbstractDocument, type AbstractResponse, type AbstractSubmission } from "./contracts";
 import { abstractDocumentIssues, countAbstractWords } from "./validation";
@@ -39,6 +40,7 @@ export function AbstractWorkspace({ locale, initial }: { locale: Locale; initial
         body: JSON.stringify({ ...payload, operationId: operation.current.id, formToken: result.formToken }) });
       const next = await response.json() as AbstractResponse;
       if (!mounted.current) return;
+      if (next.state === "profile_incomplete") { setResult({ ...result, profileComplete: false }); return; }
       if (next.state !== "ready") { setAutosaveFailed(true); setMessage(next.state === "area-not-ready" ? copy.notReady : next.state === "limited" ? copy.limited : next.state === "invalid_input" ? copy.invalid : next.state === "closed" ? copy.closed : copy.unavailable); return; }
       setResult(next);
       if (next.outcome === "saved" || next.outcome === "finalized") {
@@ -63,6 +65,7 @@ export function AbstractWorkspace({ locale, initial }: { locale: Locale; initial
   }, [dirty]);
   function edit(change: Partial<AbstractDocument>) { if (document) { setDocument({ ...document, ...change }); setDirty(true); setAutosaveFailed(false); setMessage(""); } }
   function open(row: AbstractSubmission | null) { setCurrent(row); setDocument(row?.document ?? blankDocument()); setDirty(false); setPreview(row !== null && !["draft", "revision_requested"].includes(row.status)); setMessage(""); setAutosaveFailed(false); }
+  if (result.state === "profile_incomplete") return <ProfileSubmissionGate locale={locale} />;
   if (result.state !== "ready") return <section className="participant-account-card" data-testid="abstract-unavailable">
     <p role="status">{result.state === "closed" ? copy.closed : result.state === "area-not-ready" ? copy.notReady : result.state === "denied" ? copy.denied : copy.unavailable}</p>
     {result.state === "denied" ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : null}<ButtonLink href={`/${locale}/my-msrc`} variant="secondary">{copy.back}</ButtonLink>
@@ -71,6 +74,7 @@ export function AbstractWorkspace({ locale, initial }: { locale: Locale; initial
   // The database clock enforces revision deadlines; the client never grants an extension.
   const openWindow = result.settings.windowState === "open" || revision;
   return <div className="abstract-workspace" data-testid="abstract-workspace">
+    {result.profileComplete !== true ? <ProfileSubmissionGate locale={locale} /> : null}
     <aside className="participant-account-card abstract-guidance"><p>{copy.guidance}</p><p>{copy.rules}</p><p>{copy.uploadGate}</p></aside>
     <section className="participant-account-card" aria-label={copy.title}>
       {!openWindow ? <p role="status">{copy.windowClosed}</p> : null}
@@ -129,7 +133,7 @@ export function AbstractWorkspace({ locale, initial }: { locale: Locale; initial
         <label htmlFor="abstract-funding">{copy.fields.funding}<textarea lang="en" dir="ltr" disabled={revision} id="abstract-funding" value={document.fundingDeclaration} onChange={(event) => edit({ fundingDeclaration: event.target.value })} /></label>
       </fieldset>
       <label className="abstract-consent"><input type="checkbox" disabled={pending || preview || locked || revision} checked={document.authorityConfirmed} onChange={(event) => edit({ authorityConfirmed: event.target.checked })} /><span>{copy.authority}</span></label>
-      {!locked ? <div className="participant-account-actions">{preview ? <><Button variant="secondary" disabled={pending} onClick={() => setPreview(false)}>{copy.editAgain}</Button><Button disabled={pending || !openWindow || abstractDocumentIssues(document, result.settings).length > 0} onClick={() => void save("finalize")}>{copy.finalize}</Button></> : <><Button variant="secondary" disabled={pending || words > 300 || !openWindow} onClick={() => void save("save")}>{copy.save}</Button><Button disabled={pending || words > 300 || !openWindow} onClick={() => void save("save", true)}>{copy.preview}</Button></>}</div> : null}
+      {!locked ? <div className="participant-account-actions">{preview ? <><Button variant="secondary" disabled={pending} onClick={() => setPreview(false)}>{copy.editAgain}</Button>{result.profileComplete === true ? <Button disabled={pending || !openWindow || abstractDocumentIssues(document, result.settings).length > 0} onClick={() => void save("finalize")}>{copy.finalize}</Button> : <ProfileSubmissionGate locale={locale} />}</> : <><Button variant="secondary" disabled={pending || words > 300 || !openWindow} onClick={() => void save("save")}>{copy.save}</Button><Button disabled={pending || words > 300 || !openWindow} onClick={() => void save("save", true)}>{copy.preview}</Button></>}</div> : null}
       {preview && !locked && abstractDocumentIssues(document, result.settings).length ? <p role="alert">{copy.invalid}</p> : null}
     </section> : null}
   </div>;

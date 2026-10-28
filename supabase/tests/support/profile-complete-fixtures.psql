@@ -1,0 +1,25 @@
+-- ENG-087: disposable synthetic profile fixture, never a real identity/key.
+-- Include after registration-fixtures.psql. All data stays in rollback tests or
+-- the existing explicitly isolated GitHub CI integration database.
+create function pg_temp.complete_profile(n integer,edition text) returns void language plpgsql as $$
+declare object_name text:=pg_temp.registration_actor(n)::text||'.webp';begin
+ insert into msrc_participant.avatar_objects(object_name,actor_id,edition_key,state)
+ values(object_name,pg_temp.registration_actor(n),edition,'active');
+ insert into msrc_participant.profile_details(actor_id,edition_key,institution_other,student_status,arabic_name,nationality,gender,date_of_birth,city,phone,
+  specialty_interests,avatar_object,version,identity_type,identity_envelope,identity_lookup,identity_last4)
+ values(pg_temp.registration_actor(n),edition,'Synthetic University','postgraduate','اسم مشارك تجريبي','SA','male',date '1990-01-01','Synthetic city','+966500000000',
+  array(select specialty->>'id' from jsonb_array_elements(msrc_participant.profile_specialties(edition)) specialty limit 1),object_name,1,
+  'passport','v1:synthetic:YWJjZGVmZ2hpamts:YWJjZGVmZ2hpamtsbW5vcA==:U1lOVEhFVElDX0VOVkVMT1BF',lpad(to_hex(n),64,'0'),'0000');
+end$$;
+
+create function pg_temp.profile_competition_settings(kind text) returns jsonb language plpgsql stable as $$
+declare c jsonb:=case when kind='hackathon' then msrc_competitions.hackathon_defaults() else msrc_competitions.settings_defaults() end;k text;begin
+ for k in select jsonb_object_keys(c) loop if c->k='null'::jsonb then c:=jsonb_set(c,array[k],to_jsonb('Synthetic approved policy'::text));end if;end loop;
+ c:=c||jsonb_build_object('opensAt',clock_timestamp()-interval '1 day','closesAt',clock_timestamp()+interval '1 day','reviewDeadline',clock_timestamp()+interval '3 days',
+ 'finalDeckLockAt',clock_timestamp()+interval '5 days','rosterConfirmationDeadline',clock_timestamp()+interval '4 days','whatsappSupportUrl',null,
+ 'soloConsumesFinalistQuota',true,'finalistCapPerTrack',1,'minimumReviews',2,'thirdReviewDifference',5,'requiredActivities','["orientation","mentoring","finals"]'::jsonb);
+ if kind='hackathon' then return c||jsonb_build_object('judgeCount',3,'selectionScoreMin',1,'selectionScoreMax',5);end if;
+ return c||jsonb_build_object('judgeCount',1,'selectionScoreMin',0,'selectionScoreMax',10,'trackLabels',null,'trackDescriptions',null,
+ 'selectionCriteria','[{"id":"synthetic-selection","label":"Synthetic selection","min":0,"max":10}]'::jsonb,
+ 'finalRubric','[{"id":"synthetic-final","label":"Synthetic final","min":1,"max":5}]'::jsonb);
+end$$;

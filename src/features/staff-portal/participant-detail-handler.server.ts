@@ -45,10 +45,12 @@ export function createParticipantDetailHandler(dependencies: { readiness?: () =>
         if (!blob) return reply({ state: "unavailable" }, 503);
         return new Response(blob, { headers: { ...headers, "Content-Type": "image/webp", "Content-Disposition": "inline; filename=profile.webp", ...(rotated ? { "Set-Cookie": rotated } : {}) } });
       }
+      if (process.env.PARTICIPANT_PROFILE_ENABLED === "true" && optional && !Object.hasOwn(optional, "institutionId")) return reply({ state: "area-not-ready" }, 503);
       const base = { ...raw };
       delete base.optionalProfile;
       const participant = raw ? decodeParticipantDetail({ ...base, ...(process.env.PARTICIPANT_PROFILE_ENABLED === "true" && optional ? { optionalProfile: {
         institution: optional.institution, status: optional.studentStatus, year: optional.studentYear, interests: optional.specialtyInterests,
+        institutionId: optional.institutionId, institutionOther: optional.institutionOther, arabicName: optional.arabicName, nationality: optional.nationality, gender: optional.gender, dateOfBirth: optional.dateOfBirth, city: optional.city, phone: optional.phone, identityType: optional.identityType, identityLast4: optional.identityLast4,
         version: optional.version, specialties: optional.specialties,
         avatarUrl: object ? "/api/staff-portal/participant-detail/avatar?actorId=" + actorId + "&v=" + optional.version : null,
       } } : {}) }) : null;
