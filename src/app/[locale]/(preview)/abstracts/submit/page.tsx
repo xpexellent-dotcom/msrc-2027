@@ -8,7 +8,6 @@ import { abstractCopy } from "@/features/submissions/copy";
 import { readAbstractPageState } from "@/features/submissions/page-state.server";
 import "@/styles/participant-accounts.css";
 import "@/styles/abstract-submissions.css";
-import "@/styles/research-competition.css";
 
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ locale: string }> };

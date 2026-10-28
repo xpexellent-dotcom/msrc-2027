@@ -11,7 +11,8 @@ const routes = [
   "program", "speakers", "media", "participate",
   "registration", "submissions", "hackathon", "workshops", "3mt",
 ] as const;
-const journeys = ["registration", "submissions", "hackathon", "workshops", "3mt"] as const;
+// ENG-088: /abstracts is the Research competition information page, not a closed journey; checked separately below.
+const journeys = ["registration", "hackathon", "workshops", "3mt"] as const;
 
 // Independently inspected source-coordinate bounds around faces and the lectern.
 // These catch a clipped edge panelist or speaker even when every frame is uniform.
@@ -440,6 +441,10 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);
       await expect(page.getByRole("main")).not.toContainText(/submission successful|application received|payment successful/i);
     }
+    await page.goto(`/${locale}/participate`);
+    await page.getByRole("main").locator(`a[href="/${locale}/abstracts"]`).first().click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/abstracts$`));
+    await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await page.locator(`.pathway-card a[href="/${locale}/3mt"]`).click();

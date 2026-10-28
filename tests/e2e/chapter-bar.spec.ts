@@ -52,7 +52,7 @@ for (const locale of ["en", "ar"] as const) {
     const pathways = page.locator(".pathway-card .pathway-action");
     await expect(pathways).toHaveCount(5);
     expect(await pathways.evaluateAll((links) => links.map((link) => link.getAttribute("href"))))
-      .toEqual(["registration", "submissions", "workshops", "hackathon", "3mt"].map((path) => `/${locale}/${path}`));
+      .toEqual(["registration", "abstracts", "workshops", "hackathon", "3mt"].map((path) => `/${locale}/${path}`));
     await expect(page.locator(".pathways-archive-note")).toHaveCount(0);
     await expect(page.locator(".hero-countdown [data-countdown]")).toHaveCount(1);
     await expect(page.locator("#essentials [data-countdown]")).toHaveCount(0);

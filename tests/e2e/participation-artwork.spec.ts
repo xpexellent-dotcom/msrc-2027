@@ -2,7 +2,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 
-const routes = ["registration", "submissions", "workshops", "hackathon", "3mt"] as const;
+// ENG-088 replaced the /submissions journey (and its artwork) with the /abstracts Research competition page.
+const routes = ["registration", "workshops", "hackathon", "3mt"] as const;
 const locales = ["en", "ar"] as const;
 const screenshotDirectory = ".tools/participation-artwork/after";
 const decorativeSvgSelector = ".journey-art, .hackathon-tech-svg, .hackathon-heartbeat-svg";

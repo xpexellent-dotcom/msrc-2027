@@ -4,7 +4,6 @@ import { researchCompetitionCopy } from "@/features/research-competition/copy";
 import { ResearchCompetitionPage } from "@/features/research-competition/research-page";
 import { isLocale } from "@/lib/i18n";
 import { localizedPageMetadata, siteTitle } from "@/lib/metadata";
-import "@/styles/research-competition.css";
 
 type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
