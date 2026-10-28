@@ -39,8 +39,8 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
         { title: "A research community", body: "Be part of a community that shares your curiosity." },
       ],
       goodToKnow: { title: "Good to know", points: [
-        "Completed or ongoing work is welcome.",
-        "Each principal investigator (the lead researcher responsible for the study) can have up to two submissions in MSRC 2027. Being a co-author does not count toward this limit.",
+        "Research must be completed, with analysis finished and the manuscript written within the past three years.",
+        "Each participant has one submission chance in MSRC 2027. After submitting, you cannot edit or submit another abstract.",
         "Write your abstract in English and leave out anything that could identify a patient.",
         "Submitting an abstract does not register you to attend. Every attendee reserves their own seat.",
       ] },
@@ -116,8 +116,8 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
         { title: "مجتمع بحثي", body: "كن جزءًا من مجتمع يشاركك الفضول العلمي." },
       ],
       goodToKnow: { title: "معلومات مفيدة", points: [
-        "نرحّب بالأبحاث المكتملة والجارية.",
-        "يحق لكل باحث رئيسي (الباحث المسؤول عن الدراسة) تقديم ملخصين كحد أقصى في MSRC 2027، ولا تُحتسب المشاركة كمؤلف مشارك ضمن هذا الحد.",
+        "يجب أن يكون البحث مكتملًا، بتحليل منتهٍ ومخطوطة مكتوبة خلال السنوات الثلاث الماضية.",
+        "لكل مشارك فرصة تقديم واحدة في MSRC 2027. بعد التقديم، لا يمكن تعديل الملخص أو تقديم ملخص آخر.",
         "اكتب ملخصك بالإنجليزية، ولا تُدرج أي معلومة قد تكشف هوية مريض.",
         "تقديم الملخص لا يعني تسجيلك في المؤتمر؛ يحجز كل حاضر مقعده بنفسه.",
       ] },

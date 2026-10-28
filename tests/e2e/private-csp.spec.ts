@@ -20,7 +20,7 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} encoded locale cannot bypass the private policy`, async ({ page }) => {
     const encodedLocale = locale === "en" ? "%65n" : "%61r";
-    for (const path of ["sign-in", "registration"]) {
+    for (const path of ["sign-in", "registration", "abstracts/submit"]) {
       const response = await page.goto(`/${encodedLocale}/${path}`);
       expect(response?.status()).toBe(200);
       expect(response!.headers()["content-security-policy"]).toContain("'strict-dynamic'");
@@ -53,7 +53,7 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} public documents keep their baseline policy across static and published content routes`, async ({ page }) => {
     const { routes } = JSON.parse(readFileSync(".next/prerender-manifest.json", "utf8"));
-    for (const path of ["/dates-venue", "/participate", "/workshops", "/hackathon", "/3mt", "/submissions", "/privacy", "/privacy/v1.0", "/terms", "/terms/v1.0"]) {
+    for (const path of ["/dates-venue", "/participate", "/workshops", "/hackathon", "/3mt", "/abstracts", "/privacy", "/privacy/v1.0", "/terms", "/terms/v1.0"]) {
       expect(routes[`/${locale}${path}`], `${locale}${path} remains SSG`).toBeDefined();
     }
     // CMS collections serve cached public snapshots. They must not preserve a
@@ -65,7 +65,7 @@ for (const locale of ["en", "ar"] as const) {
     for (const path of requestPaths) expect(routes[`/${locale}${path}`], `${locale}${path} reads published content per request`).toBeUndefined();
     const publishedPaths = [...isrPaths, ...requestPaths];
     expect(routes[`/${locale}/registration`]).toBeUndefined();
-    for (const path of [...publishedPaths, "/participate", "/dates-venue"]) {
+    for (const path of [...publishedPaths, "/participate", "/dates-venue", "/abstracts"]) {
       const response = await page.goto(`/${locale}${path}`);
       expect(response?.status()).toBe(200);
       expect(response!.headers()["content-security-policy"]).toBe(publicPolicy);

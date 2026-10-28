@@ -5,6 +5,7 @@ import { FileUpload } from "@/components/forms/file-upload";
 import { FieldMessages, FormField } from "@/components/forms/form-field";
 import { Select } from "@/components/forms/select";
 import { Button } from "@/components/ui/button";
+import { ContactPhoneField, phoneCountries } from "./contact-phone-field";
 import { COUNTRIES } from "@/content/countries";
 import type { Locale } from "@/lib/i18n";
 import { InstitutionCombobox } from "./institution-combobox";
@@ -19,7 +20,6 @@ export { profileCompletion } from "./profile-contract";
 type EditorValues = { institutionId: string | null; institutionOther: string; status: OptionalParticipantProfile["status"]; arabicName: string; nationality: string;
   gender: "male" | "female" | ""; dateOfBirth: string; city: string; phone: string; identityType: ProfileIdentityType | ""; identityNumber: string };
 const emptyValues: EditorValues = { institutionId: null, institutionOther: "", status: null, arabicName: "", nationality: "", gender: "", dateOfBirth: "", city: "", phone: "", identityType: "", identityNumber: "" };
-const phoneCountries = [{ code: "SA", prefix: "+966" }, { code: "AE", prefix: "+971" }, { code: "BH", prefix: "+973" }, { code: "KW", prefix: "+965" }, { code: "OM", prefix: "+968" }, { code: "QA", prefix: "+974" }, { code: "JO", prefix: "+962" }, { code: "EG", prefix: "+20" }, { code: "IN", prefix: "+91" }, { code: "PK", prefix: "+92" }, { code: "GB", prefix: "+44" }, { code: "US", prefix: "+1" }];
 function valuesFromProfile(profile: OptionalParticipantProfile): EditorValues { return { institutionId: profile.institutionId, institutionOther: profile.institutionOther ?? "", status: profile.status,
   arabicName: profile.arabicName ?? "", nationality: profile.nationality ?? "", gender: profile.gender ?? "", dateOfBirth: profile.dateOfBirth ?? "", city: profile.city ?? "", phone: profile.phone ?? "", identityType: profile.identityType ?? "", identityNumber: "" }; }
 
@@ -189,12 +189,8 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
         <fieldset className="participant-profile-group">
           <legend className="participant-profile-group-title">{copy.groups.contact}</legend>
           <FormField id="profile-city" name="city" label={copy.city} hint={copy.cityHint} value={values.city} dir="auto" autoComplete="address-level2" maxLength={80} error={errorText("city")} onChange={(event) => update("city", event.target.value)} />
-          <div className="participant-profile-phone">
-            <Select id="profile-phone-country" label={copy.phoneCountry} value={phoneCountry} onChange={(event) => { const prefix = event.target.value; setPhoneCountry(prefix); if (values.phone) update("phone", prefix); }}>
-              {phoneCountries.map(({ code, prefix }) => <option key={code} value={prefix}>{COUNTRIES.find((country) => country.code === code)?.[locale === "ar" ? "nameAr" : "nameEn"]} {`⁦(${prefix})⁩`}</option>)}<option value="">{copy.internationalPhone}</option>
-            </Select>
-            <FormField id="profile-phone" name="phone" type="tel" label={copy.phone} hint={copy.phoneHint} value={values.phone} placeholder={phoneCountry || "+"} dir="ltr" inputMode="tel" autoComplete="tel" maxLength={16} error={errorText("phone")} onChange={(event) => { const entered = event.target.value.replace(/[ ()-]/g, ""); update("phone", entered && !entered.startsWith("+") && phoneCountry ? phoneCountry + entered.replace(/^0/, "") : entered); }} />
-          </div>
+          <ContactPhoneField id="profile-phone" name="phone" locale={locale} country={phoneCountry} onCountryChange={setPhoneCountry} value={values.phone} onChange={(value) => update("phone", value)}
+            labels={{ country: copy.phoneCountry, phone: copy.phone, hint: copy.phoneHint, international: copy.internationalPhone }} error={errorText("phone")} />
         </fieldset>
         <fieldset className="participant-profile-group">
           <legend className="participant-profile-group-title">{copy.groups.identity}</legend>

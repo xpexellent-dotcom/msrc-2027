@@ -91,19 +91,23 @@ describe.skipIf(!isolatedCi)("Abstract/review lock ordering (disposable GitHub C
       insert into msrc_abstracts.settings(edition_key,version,configuration,enabled,evidence_ready) values('${edition}',1,pg_temp.abstract_settings(),true,true);
       insert into msrc_abstracts.settings_versions values('${edition}',1,pg_temp.abstract_settings());
       ${Array.from({ length: 15 }, (_, i) => `select pg_temp.registration_fixture(${9200 + i},'${edition}');select pg_temp.complete_profile(${9200 + i},'${edition}');`).join("\n")}
+      update msrc_participant.profile_details set student_status='year_6' where edition_key='${edition}';
       select pg_temp.registration_staff_fixture(9300,'${edition}','scientificAdministrator');
       select pg_temp.registration_staff_fixture(9301,'${edition}','abstractReviewer');
       select pg_temp.registration_staff_fixture(9302,'${edition}','abstractReviewer');
       insert into msrc_abstracts.reviewer_profiles values('${edition}','${actor(9301)}',array['Independent institute one']),('${edition}','${actor(9302)}',array['Independent institute two']);`);
   });
-  it("two submitters racing for the second PI application finalize only one", async () => {
-    const pi = "shared-pi@example.invalid";
-    const first = await draft(9200, 1, pi), second = await draft(9201, 2, pi), third = await draft(9202, 3, pi);
-    expect(response(await query(finalize(9200, first, 4))).state).toBe("finalized");
-    const results = await race("begin;" + finalize(9201, second, 5), "begin;" + finalize(9202, third, 6), "abstract-pi-race");
-    expect(results.map((row) => row.state)).toEqual(["finalized", "pi_limit"]);
-    expect(scalar(await query(`select count(*) from msrc_abstracts.submissions where edition_key='${edition}' and pi_key='${pi}' and finalized_at is not null;`))).toBe("2");
-    expect(scalar(await query(`select count(*) from msrc_abstracts.snapshots where submission_id='${third}';`))).toBe("0");
+  it("independent finalize operations race for a participant's single submission chance", async () => {
+    const id = await draft(9200, 1);
+    const results = await race("begin;" + finalize(9200, id, 4), "begin;" + finalize(9200, id, 5), "abstract-chance-race");
+    expect(results.map((row) => row.state)).toEqual(["finalized", "submission_used"]);
+    expect(scalar(await query(`select count(*) from msrc_abstracts.submissions where actor_id='${actor(9200)}' and finalized_at is not null;`))).toBe("1");
+    expect(scalar(await query(`select count(*) from msrc_abstracts.snapshots where submission_id='${id}';`))).toBe("1");
+  });
+  it("independent create-draft operations cannot create two drafts", async () => {
+    const results = await race("begin;" + save(9201, 6), "begin;" + save(9201, 7), "abstract-one-draft-race");
+    expect(results.map((row) => row.state)).toEqual(["saved", "conflict"]);
+    expect(scalar(await query(`select count(*) from msrc_abstracts.submissions where actor_id='${actor(9201)}' and status='draft';`))).toBe("1");
   });
   it("concurrent draft retries create one application and one operation receipt", async () => {
     const results = await race("begin;" + save(9203, 10), "begin;" + save(9203, 10), "abstract-operation-race");

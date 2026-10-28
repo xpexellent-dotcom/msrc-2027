@@ -36,7 +36,7 @@ export const participantCopy = {
     opensSoon: "Opens soon", learnMore: "Learn more",
     steps: {
       attend: { title: "Attend the conference", body: "Request your conference seat. The organizers review each request." },
-      abstract: { title: "Submit an abstract", body: "Share completed research or work in progress with the scientific community." },
+    abstract: { title: "Research competition", body: "Share completed research with the scientific community. Review the guidelines before using your one submission chance." },
       workshops: { title: "Join a workshop", body: "Practical sessions alongside the scientific program. Each workshop is booked separately." },
       competitions: { title: "Hackathon and 3MT", body: "Enter the hackathon or the Three Minute Thesis competition." },
     },
@@ -91,7 +91,7 @@ export const participantCopy = {
     opensSoon: "يُفتح قريبًا", learnMore: "اعرف المزيد",
     steps: {
       attend: { title: "حضور المؤتمر", body: "اطلب مقعدك في المؤتمر. يراجع المنظمون كل طلب." },
-      abstract: { title: "تقديم ملخص بحثي", body: "شارك بحثك المكتمل أو الجاري مع المجتمع العلمي." },
+      abstract: { title: "مسابقة الأبحاث", body: "شارك بحثك المكتمل مع المجتمع العلمي. راجع الإرشادات قبل استخدام فرصة التقديم الواحدة." },
       workshops: { title: "الانضمام إلى ورشة عمل", body: "جلسات تطبيقية إلى جانب البرنامج العلمي، ويُحجز كل منها على حدة." },
       competitions: { title: "الهاكاثون والأطروحة في ثلاث دقائق", body: "شارك في الهاكاثون أو مسابقة الأطروحة في ثلاث دقائق." },
     },

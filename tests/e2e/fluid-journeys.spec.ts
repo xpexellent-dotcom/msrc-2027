@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 
 const routes = [
   ["registration", "attend-majed-9744.jpg", 5],
-  ["submissions", "share-research-manar-2560.jpg", 4],
   ["workshops", "learn-doing-manar-2529.jpg", 4],
   ["hackathon", "build-idea-majed-9846.jpg", 4],
   ["3mt", "gallery-presentation.jpg", 2],
@@ -34,17 +33,11 @@ for (const locale of ["en", "ar"] as const) {
     for (const title of await tracks.locator("h3").all()) { await expect(title).toHaveAttribute("lang", locale); await expect(title).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr"); }
     await expect(page.locator(".participation-schedule-day")).toHaveText(locale === "en" ? ["Day 1", "Day 2"] : ["اليوم الأول", "اليوم الثاني"]);
     await expect(page.locator(".participation-schedule-list h3")).toHaveText(locale === "en" ? ["Mentoring", "Pitching and judging"] : ["الإرشاد", "العرض والتحكيم"]);
-    await page.goto(`/${locale}/submissions`);
-    await expect(page.locator(".participation-good-to-know li")).toHaveCount(4);
-    await expect(page.locator(".participation-good-to-know")).not.toContainText(locale === "en" ? "300" : "٣٠٠");
-    const submit = page.locator(".fluid-journey-hero-actions a");
-    await expect(submit).toHaveText(locale === "en" ? "Submit your abstract" : "قدّم ملخصك البحثي");
-    await submit.click();
-    await expect(page).toHaveURL(/#journey-availability$/);
-    await expect(page.getByTestId("journey-closed")).toBeInViewport();
-    await expect(page.locator("#journey-availability")).toBeFocused();
-    await expect(page.locator(".participation-good-to-know")).toContainText(locale === "en" ? "principal investigator" : "باحث رئيسي");
-    await expect(page.getByRole("main")).not.toContainText(locale === "en" ? "Supervisor requirements" : "متطلبات المشرف");
+    await page.goto(`/${locale}/abstracts`);
+    await expect(page.locator(".research-hero-photo")).toHaveAttribute("src", /share-research-manar-2560/);
+    await expect(page.locator(".research-guidelines li")).toHaveCount(6);
+    await expect(page.locator(".research-word-limit")).toContainText(locale === "en" ? "350" : "٣٥٠");
+    await expect(page.locator(".research-submission-cta")).toHaveCount(2);
     await page.goto(`/${locale}/registration`);
     await expect(page.getByTestId("ticket-unavailable")).toBeDisabled();
     await expect(page.getByTestId("brochure-unavailable")).toBeDisabled();

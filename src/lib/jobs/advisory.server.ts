@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { decodeAdvisorySettings, type AdvisorySettings } from "@/features/staff-portal/advisory-contract";
-import { decodeResearchRubric, researchInteger, researchRecord, researchText, researchUuid, type ResearchCriterion, type ResearchPacket } from "@/features/staff-portal/research-contract";
+import { decodeResearchRubric, projectResearchBody, researchInteger, researchRecord, researchText, researchUuid, type ResearchCriterion, type ResearchPacket } from "@/features/staff-portal/research-contract";
 import { ADVISORY_PROMPT_VERSION, parseAdvisoryResponse, prepareAdvisoryRequest } from "@/lib/ai-assessment/advisory.server";
 import { createDeepSeekProvider, DeepSeekProviderError } from "@/lib/ai-assessment/deepseek.server";
 import type { AssessmentProvider, LockedSnapshot } from "@/lib/ai-assessment/contracts";
@@ -18,12 +18,12 @@ export interface AdvisoryStore {
 export type AdvisorySummary = { claimed: number; completed: number; retry: number; failed: number; stale: number };
 export function decodeAdvisoryJob(value: unknown): AdvisoryJob | null {
   const row = researchRecord(value), configuration = decodeAdvisorySettings(row?.configuration), rubric = decodeResearchRubric(row?.rubric), body = researchRecord(row?.body), identity = researchRecord(row?.identity);
-  if (!row || !configuration?.enabled || !rubric?.length || !researchUuid(row.id) || !researchUuid(row.leaseToken) || !researchUuid(row.runId) || !researchUuid(row.submissionId) || !researchInteger(row.submissionVersion, 1) || !researchInteger(row.rubricVersion, 1) || !researchInteger(row.attempt, 1) || row.attempt > configuration.maxAttempts! || !researchText(row.title, 500) || !body || !identity) return null;
+  if (!row || !configuration?.enabled || !rubric?.length || !researchUuid(row.id) || !researchUuid(row.leaseToken) || !researchUuid(row.runId) || !researchUuid(row.submissionId) || !researchInteger(row.submissionVersion, 1) || !researchInteger(row.rubricVersion, 1) || !researchInteger(row.attempt, 1) || row.attempt > configuration.maxAttempts! || !researchText(row.title, 6000) || !body || !identity) return null;
   const authorNames = identity.authorNames, institutions = identity.institutions;
-  if (![authorNames, institutions].every(items => Array.isArray(items) && items.length > 0 && items.length <= 100 && items.every(item => researchText(item, 300) && item.trim()))) return null;
-  const keys = ["background", "aim", "methods", "results", "conclusion"] as const;
-  if (!keys.every(key => researchText(body[key], 12000))) return null;
-  return { id: row.id, leaseToken: row.leaseToken, runId: row.runId, submissionId: row.submissionId, submissionVersion: row.submissionVersion, rubricVersion: row.rubricVersion, title: row.title, body: Object.fromEntries(keys.map(key => [key, body[key]])) as ResearchPacket["body"], identity: { authorNames: [...authorNames as string[]], institutions: [...institutions as string[]] }, rubric, configuration, attempt: row.attempt };
+  if (![authorNames, institutions].every(items => Array.isArray(items) && items.length > 0 && items.length <= 100 && items.every(item => researchText(item, 500) && item.trim()))) return null;
+  const scientificBody = projectResearchBody(body);
+  if (!scientificBody) return null;
+  return { id: row.id, leaseToken: row.leaseToken, runId: row.runId, submissionId: row.submissionId, submissionVersion: row.submissionVersion, rubricVersion: row.rubricVersion, title: row.title, body: scientificBody, identity: { authorNames: [...authorNames as string[]], institutions: [...institutions as string[]] }, rubric, configuration, attempt: row.attempt };
 }
 export function createAdvisoryStore(config: AdvisoryWorkerConfig): AdvisoryStore {
   async function rpc(name: "claim" | "finish", args: Record<string, unknown>): Promise<unknown> {

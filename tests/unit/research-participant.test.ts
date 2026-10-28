@@ -40,6 +40,11 @@ function fixture(options: { context?: unknown; error?: Error; identity?: string 
 }
 beforeEach(() => vi.stubEnv("RESEARCH_JUDGING_ENABLED", "true"));
 describe("REV-07/10 participant publication and private supervisor contract", () => {
+  it("preserves the abstract's permitted long-word title after presentation allocation", () => {
+    const title = Array.from({ length: 20 }, () => "x".repeat(200)).join(" ");
+    expect(projectResearchParticipantEntries({ state: "ready", entries: [{ ...entry, title }] })?.[0].title).toBe(title);
+    expect(projectResearchParticipantEntries({ state: "ready", entries: [{ ...entry, title: "x".repeat(6001) }] })).toBeNull();
+  });
   it("allows an ordinary accepted abstract without a supervisor or a published outcome", () => expect(projectResearchParticipantEntries({ state: "ready", entries: [entry] })).toEqual([entry]));
   it("projects published oral/poster formats and an award only through explicit contract fields", () => {
     const row = { ...entry, presentationFormat: "poster", award: { categoryId: "synthetic", label: "Synthetic category" } };

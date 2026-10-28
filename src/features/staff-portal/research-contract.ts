@@ -1,5 +1,5 @@
 /** ABS-01..15, REV-01..09: staff projections never forward provider JSON. */
-import type { AbstractDocument } from "@/features/submissions/contracts";
+import { ABSTRACT_BODY_KEYS, type AbstractDocument } from "../submissions/contracts.ts";
 export type ResearchCriterion = { id: string; label: string; weight: number; min: number; max: number };
 export type ResearchSettings = {
   opensAt: string | null; closesAt: string | null; reviewDeadline: string | null;
@@ -8,14 +8,14 @@ export type ResearchSettings = {
   blindingPolicy: string | null; correspondingAuthorPolicy: string | null; ongoingPolicy: string | null;
   aggregationPolicy: string | null; acceptanceThreshold: number | null; notApplicablePolicy: string | null;
 };
-export type ResearchPacket = Pick<AbstractDocument, "title" | "body" | "specialtyId" | "studyTypeId" | "completionStatus" | "keywords">;
+export type ResearchPacket = Pick<AbstractDocument, "title" | "body" | "specialtyId" | "studyTypeId" | "studyTypeOther" | "analysisComplete">;
 export type ResearchScorecard = { scores: { criterionId: string; value: number }[]; comments: string; recommendation: "accept" | "reject" | "revise" | null };
 export type ResearchDecision = { id: string; outcome: "accept" | "reject" | "revise"; reason: string; instructions: string; revisionDeadline: string | null; state: string };
 export type ResearchSubmission = { id: string; reference: string; status: string; version: number; title: string; wordCount: number; packetReady: boolean; assignedCount: number; completedCount: number; decision: ResearchDecision | null };
 export type ResearchAssignment = { id: string; reference: string; status: string; version: number; title: string };
 export type ResearchReviewer = { id: string; name: string; affiliations: string[]; activeAssignments: number };
 export type ResearchReviewSummary = { requiredReviews: number | null; completedReviews: number; meanScore: number | null; reviews: { assignmentId: string; submissionVersion: number; rubricVersion: number; total: number; scorecard: ResearchScorecard & { recommendation: "accept" | "reject" | "revise" }; rubric: ResearchCriterion[] }[] };
-export type ResearchDetail = { id: string; reference: string; version: number; status: string; wordCount: number; document: ResearchPacket };
+export type ResearchDetail = { id: string; reference: string; version: number; status: string; wordCount: number; document: ResearchPacket; supervisor?: AbstractDocument["supervisor"] };
 export type ResearchResponse = {
   state: string; formToken?: string; version?: number; settings?: ResearchSettings; evidenceReady?: boolean; enabled?: boolean; complete?: boolean;
   submissions?: ResearchSubmission[]; reviewers?: ResearchReviewer[]; assignments?: ResearchAssignment[]; oversight?: boolean; ownAffiliations?: string[];
@@ -66,11 +66,35 @@ export function decodeResearchSettings(value: unknown): ResearchSettings | null 
   }
   return { ...Object.fromEntries(Object.keys(base).map((key) => [key, row[key]])), rubric } as ResearchSettings;
 }
+/** Historical snapshots stay immutable. Read projection alone renames aim and adds limitations. */
+export function decodeResearchBody(value: unknown): ResearchPacket["body"] | null {
+  const body = researchRecord(value);
+  if (!body) return null;
+  const legacy = exact(body, ["background", "aim", "methods", "results", "conclusion"]);
+  if (!legacy && !exact(body, ABSTRACT_BODY_KEYS) || !Object.values(body).every((part) => researchText(part, 12000))) return null;
+  return { background: body.background as string, objectives: (legacy ? body.aim : body.objectives) as string,
+    methods: body.methods as string, results: body.results as string, limitations: legacy ? "" : body.limitations as string, conclusion: body.conclusion as string };
+}
+/** Whitelist projection for internal jobs that carry private context alongside scientific fields. */
+export function projectResearchBody(value: unknown): ResearchPacket["body"] | null {
+  const body = researchRecord(value);
+  if (!body) return null;
+  const keys: readonly string[] = Object.hasOwn(body, "objectives") || Object.hasOwn(body, "limitations")
+    ? ABSTRACT_BODY_KEYS : ["background", "aim", "methods", "results", "conclusion"];
+  return decodeResearchBody(Object.fromEntries(keys.map((key) => [key, body[key]])));
+}
 /** Exact keys intentionally reject identity-bearing extras, including nested body keys. */
 export function decodeResearchPacket(value: unknown): ResearchPacket | null {
-  const row = researchRecord(value), body = researchRecord(row?.body);
-  if (!row || !exact(row, ["title", "body", "specialtyId", "studyTypeId", "completionStatus", "keywords"]) || !body || !exact(body, ["background", "aim", "methods", "results", "conclusion"]) || !Object.values(body).every((part) => researchText(part, 12000)) || !researchText(row.title, 500) || !researchText(row.specialtyId, 100) || !researchText(row.studyTypeId, 100) || !["completed", "ongoing"].includes(String(row.completionStatus)) || !Array.isArray(row.keywords) || row.keywords.length > 999 || !row.keywords.every((word) => researchText(word, 100))) return null;
-  return { title: row.title, body: { background: body.background as string, aim: body.aim as string, methods: body.methods as string, results: body.results as string, conclusion: body.conclusion as string }, specialtyId: row.specialtyId, studyTypeId: row.studyTypeId, completionStatus: row.completionStatus as ResearchPacket["completionStatus"], keywords: row.keywords as string[] };
+  const row = researchRecord(value), body = decodeResearchBody(row?.body);
+  if (!row || !body || !researchText(row.title, 6000) || !researchText(row.specialtyId, 100) || !researchText(row.studyTypeId, 100)) return null;
+  const legacy = exact(row, ["title", "body", "specialtyId", "studyTypeId", "completionStatus", "keywords"]);
+  if (legacy) {
+    if (typeof row.completionStatus !== "string" || !["completed", "ongoing"].includes(row.completionStatus) || !Array.isArray(row.keywords)
+      || row.keywords.length > 999 || !row.keywords.every((word) => researchText(word, 100))) return null;
+  } else if (!exact(row, ["title", "body", "specialtyId", "studyTypeId", "studyTypeOther", "analysisComplete"])
+    || !researchText(row.studyTypeOther, 80) || typeof row.analysisComplete !== "boolean") return null;
+  return { title: row.title, body, specialtyId: row.specialtyId, studyTypeId: row.studyTypeId,
+    studyTypeOther: legacy ? "" : row.studyTypeOther as string, analysisComplete: legacy ? false : row.analysisComplete as boolean };
 }
 export function decodeResearchScorecard(value: unknown): ResearchScorecard | null {
   const row = researchRecord(value); if (!row || !exact(row, ["scores", "comments", "recommendation"]) || !researchText(row.comments, 6000) || row.recommendation !== null && !["accept", "reject", "revise"].includes(String(row.recommendation)) || !Array.isArray(row.scores) || row.scores.length > 100) return null;

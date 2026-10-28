@@ -41,7 +41,7 @@ function NextSteps({ locale, registrationAvailable, abstractsAvailable, workshop
   const copy = participantCopy[locale];
   const items = [
     { key: "attend", open: registrationAvailable, action: myRegistrationCopy[locale].title, href: "/registration", info: "/registration", testId: "participant-registration-closed", closed: copy.registrationClosed },
-    { key: "abstract", open: abstractsAvailable, action: abstractCopy[locale].title, href: "/abstracts", info: "/submissions", testId: undefined, closed: copy.opensSoon },
+    { key: "abstract", open: abstractsAvailable, action: abstractCopy[locale].title, href: "/abstracts/submit", info: "/abstracts", testId: undefined, closed: copy.opensSoon },
     { key: "workshops", open: workshopsAvailable, action: copy.stepActions.workshops, href: "/workshops", info: "/workshops", testId: undefined, closed: copy.opensSoon },
     { key: "competitions", open: competitionsAvailable, action: copy.stepActions.competitions, href: "/entries", info: "/hackathon", testId: undefined, closed: copy.opensSoon },
   ] as const;

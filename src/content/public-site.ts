@@ -11,6 +11,7 @@ export type PublicPage = Readonly<{
 
 /** S1 SCP-02: full future public sitemap; it does not claim empty pages exist. */
 export const publicSitemap = [
+  { id: "research", path: "/abstracts", label: { en: "Research competition", ar: "مسابقة الأبحاث" }, previewHref: "/abstracts" },
   { id: "home", path: "/", label: { en: "Home", ar: "الرئيسية" }, previewHref: "/" },
   { id: "dates", path: "/dates-venue", label: { en: "Dates & venue", ar: "المواعيد والمقر" }, previewHref: "/dates-venue" },
   { id: "program", path: "/program", label: { en: "Program", ar: "البرنامج" }, previewHref: "/program" },
@@ -72,14 +73,14 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     pathwaysBody: "Research. Innovation. Communication. Hands-on learning.", closed: "Not open yet",
     pathways: [
       { category: "Attend", title: "Be part of the conversation", description: "Meet the people asking the next questions in medicine.", href: "/registration" },
-      { category: "Abstract submission", title: "Share your research", description: "Discuss your findings, including work in progress.", href: "/submissions" },
+      { category: "Research competition", title: "Share your research", description: "Present completed research and discuss your scientific findings.", href: "/abstracts" },
       { category: "Workshops", title: "Learn by doing", description: "Build practical skills through hands-on learning.", href: "/workshops" },
       { category: "Hackathon", title: "Build on an idea", description: "Turn research into practice, or advance the way medical students do research.", href: "/hackathon" },
     ],
     programEyebrow: "3 / The experience", programTitle: "Ideas take\nthe stage.",
     programBody: "Research presentations, scientific conversations, and practical learning. The full schedule will follow when confirmed.",
     programRows: [
-      { format: "Present", title: "Research presentations", description: "Student questions, findings and work in progress." },
+      { format: "Present", title: "Research presentations", description: "Student questions and scientific findings from completed research." },
       { format: "Discuss", title: "Scientific exchange", description: "Different perspectives on evidence and practice." },
       { format: "Practice", title: "Practical learning", description: "Focused skills, explored together." },
     ],
@@ -101,14 +102,14 @@ export const homepageCopy: Record<Locale, HomepageCopy> = {
     pathwaysBody: "بحث. ابتكار. تواصل. وتعلّم بالممارسة.", closed: "لم يُفتح بعد",
     pathways: [
       { category: "الحضور", title: "كن جزءًا من الحوار", description: "التقِ بمن يطرحون أسئلة الطب القادمة.", href: "/registration" },
-      { category: "تقديم الملخصات", title: "شارك بحثك", description: "ناقش نتائجك، بما فيها الأبحاث الجارية.", href: "/submissions" },
+      { category: "مسابقة الأبحاث", title: "شارك بحثك", description: "اعرض بحثًا مكتملًا وناقش نتائجك العلمية.", href: "/abstracts" },
       { category: "ورش العمل", title: "تعلّم بالممارسة", description: "طوّر مهاراتك العملية بالتعلّم التطبيقي.", href: "/workshops" },
       { category: "الهاكاثون", title: "ابنِ على فكرتك", description: "حوّل البحث إلى تطبيق، أو طوّر طريقة إجراء طلاب الطب لأبحاثهم.", href: "/hackathon" },
     ],
     programEyebrow: "٣ / تجربة المؤتمر", programTitle: "أفكار\nعلى المنصّة.",
     programBody: "عروض أبحاث، وحوارات علمية، وتعلّم عملي. سنعلن الجدول الكامل بعد تأكيده.",
     programRows: [
-      { format: "عرض", title: "عروض الأبحاث", description: "أسئلة طلابية، ونتائج، وأبحاث لا تزال جارية." },
+      { format: "عرض", title: "عروض الأبحاث", description: "أسئلة طلابية ونتائج علمية من أبحاث مكتملة." },
       { format: "نقاش", title: "تبادل المعرفة العلمية", description: "وجهات نظر مختلفة حول الأدلة والممارسة." },
       { format: "تطبيق", title: "تعلّم عملي", description: "مهارات نكتشفها ونطوّرها معًا." },
     ],

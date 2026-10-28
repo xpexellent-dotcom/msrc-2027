@@ -41,7 +41,7 @@ export function sanitizeSnapshot(snapshot: unknown): { readonly ok: true; readon
   if (!Array.isArray(authorNames) || !Array.isArray(institutions) || authorNames.length > 100 || institutions.length > 100
     || ![...authorNames, ...institutions].every(value => safeText(value, 300))) return { ok: false, reason: "invalid_snapshot" };
   const fields = snapshot.scientific;
-  if (!safeText(fields.title, 500) || !safeText(fields.specialty, 200) || !safeText(fields.studyType, 200)
+  if (!safeText(fields.title, 6000) || !safeText(fields.specialty, 200) || !safeText(fields.studyType, 200)
     || typeof fields.completionStatus !== "string" || !["ongoing", "completed"].includes(fields.completionStatus) || !safeText(fields.body, 12_000)) return { ok: false, reason: "invalid_snapshot" };
   const payload = Object.freeze({ title: fields.title, specialty: fields.specialty, studyType: fields.studyType,
     completionStatus: fields.completionStatus as ScientificPayload["completionStatus"], body: fields.body });

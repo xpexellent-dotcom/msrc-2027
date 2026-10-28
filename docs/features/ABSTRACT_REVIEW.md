@@ -1,5 +1,13 @@
 # Abstract submission and scientific review — closed implementation
 
+**ENG-088 / ORG-068 update:** The participant rules and route descriptions below
+record the ENG-065 baseline. Current six-section, 350-word, completed-research,
+presenter-eligibility, supervisor and one-chance rules are in
+[abstract submissions](abstract-submissions.md). The public page is `/abstracts`;
+the private form is `/abstracts/submit`. Review/scoring policy is unchanged by
+ENG-088. Do not use the historical PI/keywords/ongoing/revision rules below for
+new participant submissions.
+
 Night-3 Task 5, ENG-065. Requirements ABS-01–08/12/13/15, REV-01–09,
 BL-ABS-01–03/06 and BL-REV-01–07. The current task authorizes balanced
 automatic assignment, superseding the older BL-REV-03 exclusion. Event judging,

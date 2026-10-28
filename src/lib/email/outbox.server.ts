@@ -261,9 +261,9 @@ function renderAbstractDecision(message: OutboxMessage, translations?: Participa
     paragraphs.push(`Submit the revised abstract in your account by ${formatted} (${conferenceConfig.timeZone}). An email reply does not submit a revision.`);
     arabicParagraphs.push(`قدّم الملخص المعدّل من حسابك بحلول ${arabicDeadline(deadline as string)}. الرد على هذه الرسالة لا يُعد تقديمًا للتعديل.`);
   }
-  paragraphs.push(`Sign in to view your abstract: ${siteOrigin}/en/abstracts`, `Support: ${contactConfig.recipient}`);
-  arabicParagraphs.push(`سجّل الدخول لعرض ملخصك: ${siteOrigin}/ar/abstracts`, `للدعم: ${contactConfig.recipient}`);
-  const body = renderParticipantBody(paragraphs, arabicParagraphs, [`${siteOrigin}/en/abstracts`, `${siteOrigin}/ar/abstracts`]);
+  paragraphs.push(`Sign in to view your abstract: ${siteOrigin}/en/abstracts/submit`, `Support: ${contactConfig.recipient}`);
+  arabicParagraphs.push(`سجّل الدخول لعرض ملخصك: ${siteOrigin}/ar/abstracts/submit`, `للدعم: ${contactConfig.recipient}`);
+  const body = renderParticipantBody(paragraphs, arabicParagraphs, [`${siteOrigin}/en/abstracts/submit`, `${siteOrigin}/ar/abstracts/submit`]);
   // Keep the full reference in both bodies. Bound subject length for the incumbent SQL 200-character limit.
   const subjectReference = reference.length > 100 ? reference.slice(0, 100) + "…" : reference;
   return Object.freeze({ from: `MSRC ${conferenceConfig.edition} <${contactConfig.sender}>`, to: [message.recipient_email],

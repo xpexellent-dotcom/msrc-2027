@@ -7,12 +7,17 @@ create function pg_temp.abstract_settings() returns jsonb language sql stable as
  'reviewersPerAbstract',1,'blindingPolicy','Synthetic manual sanitation','correspondingAuthorPolicy','Synthetic corresponding author policy','keywordCount',0,
  'ongoingPolicy','Synthetic progress may be reviewed','aggregationPolicy','weighted_normalized_mean','acceptanceThreshold',50,'notApplicablePolicy','all_required');$$;
 create function pg_temp.abstract_document(pi_email text default 'synthetic-pi@example.invalid') returns jsonb language sql immutable as $$
- select jsonb_build_object('title','Synthetic study','specialtyId','synthetic-specialty','studyTypeId','synthetic-study','completionStatus','ongoing',
- 'body','{"background":"Synthetic background","aim":"Synthetic aim","methods":"Synthetic methods","results":"","conclusion":"Current implications"}'::jsonb,
- 'keywords','[]'::jsonb,'authors',jsonb_build_array(jsonb_build_object('id','e7800000-0000-4000-8000-000000000001','name','Identity Canary Person','email',pi_email,'affiliations','["Identity Canary Institute"]'::jsonb)),
- 'piAuthorId','e7800000-0000-4000-8000-000000000001','correspondingAuthorId','e7800000-0000-4000-8000-000000000001','presentingAuthorId',null,
- 'ethicsStatus','not_required','ethicsExplanation','Confidential ethics canary','conflictOfInterest','None declared','fundingDeclaration','No funding','authorityConfirmed',true);$$;
+ select jsonb_build_object('title','Synthetic study','specialtyId','internal_medicine','studyTypeId','cross_sectional','studyTypeOther','','analysisComplete',true,
+ 'body','{"background":"Synthetic background","objectives":"Synthetic objectives","methods":"Synthetic methods","results":"Synthetic results","limitations":"Synthetic limitations","conclusion":"Current implications"}'::jsonb,
+ 'authors',jsonb_build_array(jsonb_build_object('id','e7800000-0000-4000-8000-000000000001','name','Identity Canary Person','email',pi_email,'affiliations','["Identity Canary Institute"]'::jsonb),
+ jsonb_build_object('id','e7800000-0000-4000-8000-000000000002','name','Synthetic Presenter','email','synthetic-presenter@example.invalid','affiliations','["Synthetic University"]'::jsonb)),
+ 'presentingAuthorId','e7800000-0000-4000-8000-000000000002',
+ 'supervisor',jsonb_build_object('fullName','Supervisor Canary Physician','email','supervisor-canary@example.invalid','phone','+966511111111'),
+ 'ethics',jsonb_build_object('status','not_required','committee','','reference','','explanation','Confidential ethics canary'),
+ 'registration',jsonb_build_object('status','not_applicable','registry','','number',''),
+ 'conflictOfInterest','None declared','fundingDeclaration','No funding','authorityConfirmed',true,
+ 'englishConfirmed',true,'integrityConfirmed',true,'singlePresenterConfirmed',true,'oneSubmissionConfirmed',true);$$;
 create function pg_temp.abstract_packet() returns jsonb language sql immutable as $$
- select pg_temp.abstract_document()-array['authors','piAuthorId','correspondingAuthorId','presentingAuthorId','ethicsStatus','ethicsExplanation','conflictOfInterest','fundingDeclaration','authorityConfirmed'];$$;
+ select pg_temp.abstract_document()-array['authors','presentingAuthorId','supervisor','ethics','registration','conflictOfInterest','fundingDeclaration','authorityConfirmed','englishConfirmed','integrityConfirmed','singlePresenterConfirmed','oneSubmissionConfirmed'];$$;
 create function pg_temp.abstract_claims(n integer) returns void language plpgsql as $$begin
  perform set_config('request.jwt.claims',pg_temp.registration_claims(n)::text,true);end$$;

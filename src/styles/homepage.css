@@ -110,7 +110,7 @@ html:has(.site-header) { --container-width: 1600px; --container-gutter: max(clam
 .pathway-photo img { object-fit: cover; object-position: var(--pathway-focus, 50% 50%); }
 .pathway-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #1f193000 10%, #1f193048 42%, #130e20e8 74%, #130e20fc 100%); }
 .pathway-card[data-pathway='/registration'] { --pathway-focus: 70% 50%; }
-.pathway-card[data-pathway='/submissions'] { --pathway-focus: 45% 48%; }
+.pathway-card[data-pathway='/abstracts'] { --pathway-focus: 45% 48%; }
 .pathway-card[data-pathway='/workshops'] { --pathway-focus: 46% 48%; }
 .pathway-card[data-pathway='/hackathon'] { --pathway-focus: 43% 38%; }
 .pathway-card[data-pathway='/3mt'] { --pathway-focus: 0% 50%; }

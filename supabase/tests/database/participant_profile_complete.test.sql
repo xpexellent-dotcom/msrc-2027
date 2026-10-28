@@ -109,6 +109,7 @@ select is((select result->>'state' from profile_gate_result where kind='abstract
 select is(public.msrc_abstracts_finalize('synthetic-profile-complete',pg_temp.registration_claims(8705),(select (result#>>'{submission,id}')::uuid from profile_gate_result where kind='abstract'),1,gen_random_uuid())->>'state','profile_incomplete','Abstract finalization enforces the distinct profile-incomplete state');
 select is((select count(*) from msrc_abstracts.snapshots),0::bigint,'Blocked abstract creates no immutable submission snapshot');
 select pg_temp.complete_profile(8705,'synthetic-profile-complete');
+update msrc_participant.profile_details set student_status='year_6' where actor_id=pg_temp.registration_actor(8705);
 select is(public.msrc_abstracts_finalize('synthetic-profile-complete',pg_temp.registration_claims(8705),(select (result#>>'{submission,id}')::uuid from profile_gate_result where kind='abstract'),1,gen_random_uuid())->>'state','finalized','Completing the profile permits otherwise-authorized abstract finalization');
 
 insert into msrc_competitions.settings(edition_key,kind,version,configuration,enabled,evidence_ready)

@@ -6,6 +6,8 @@
 .abstract-fields { display: grid; gap: 1rem; min-inline-size: 0; margin: 1.25rem 0; padding: 0; border: 0; }
 .abstract-fields legend { font-weight: 700; padding-block-end: 1rem; }
 .abstract-fields label { display: grid; gap: .45rem; font-weight: 600; }
+.abstract-fields label.abstract-consent { display: flex; font-weight: 400; }
+.abstract-fields .abstract-consent input { inline-size: 1.25rem; min-block-size: 1.25rem; }
 .abstract-fields input, .abstract-fields select, .abstract-fields textarea { inline-size: 100%; min-inline-size: 0; min-block-size: 44px; padding: .7rem; border: 1px solid #83748d; border-radius: .5rem; color: #251332; background: #fff; font: inherit; }
 .abstract-fields textarea { resize: vertical; line-height: 1.6; }
 .abstract-fields :disabled { opacity: 1; color: #463e4b; background: #f4f1f6; }
@@ -13,7 +15,20 @@
 .abstract-author { display: grid; min-inline-size: 0; gap: 1rem; border: 1px solid #c9bfd0; border-radius: .75rem; padding: 1rem; }
 .abstract-consent { display: flex; align-items: flex-start; gap: .75rem; padding-block: 1rem; }
 .abstract-consent input { inline-size: 1.25rem; block-size: 1.25rem; flex: 0 0 auto; margin-block-start: .2rem; }
-.abstract-word-count { font-weight: 700; }
+.abstract-word-count { position: sticky; inset-block-start: 7rem; z-index: 2; font-weight: 700; background: #f8f6f0; border: 1px solid #c9bfd0; border-radius: .75rem; padding: .8rem 1rem; }
+.abstract-count-static { position: static; }
+.abstract-fields .abstract-word-count { margin: 0; }
+.abstract-preview { display: grid; gap: 1rem; overflow-wrap: anywhere; }
+.abstract-preview p { white-space: pre-wrap; }
+.abstract-preview dl { display: grid; gap: .5rem; }
+.abstract-preview dt { font-weight: 700; }
+.abstract-preview dd { margin: 0; }
+.abstract-preview section { padding-block: 1rem; border-block-start: 1px solid #c9bfd0; }
+.abstract-one-chance { padding: 1rem; border-inline-start: 4px solid #3b1e6d; background: #f2edf8; }
+.abstract-review-actions { display: grid; gap: 1rem; }
+.abstract-fields :is(input, select, textarea):focus-visible { outline: 3px solid #3b1e6d; outline-offset: 3px; }
+.abstract-fields label > span { font-size: .9rem; font-weight: 400; }
+.abstract-fields label > .abstract-section-label { font-size: 1rem; font-weight: 600; }
 .abstract-error { color: #a31831; }
 .abstract-save-status { min-block-size: 1.5em; }
 .abstract-editor .participant-account-actions { flex-wrap: wrap; }

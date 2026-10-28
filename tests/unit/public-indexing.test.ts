@@ -18,16 +18,16 @@ describe("public indexing", () => {
     const rules = robots();
     expect(rules.sitemap).toBe("https://www.msrc2027.com/sitemap.xml");
     expect(rules.rules).toMatchObject({ userAgent: "*", allow: "/" });
-    expect((rules.rules as { disallow: string[] }).disallow).toEqual(expect.arrayContaining(["/api/", "/*/admin", "/*/hero-preview"]));
+    expect((rules.rules as { disallow: string[] }).disallow).toEqual(expect.arrayContaining(["/api/", "/*/admin", "/*/hero-preview", "/*/abstracts/submit"]));
     const urls = sitemap().map((entry) => entry.url);
     expect(urls).toContain("https://www.msrc2027.com/en");
     expect(urls).toContain("https://www.msrc2027.com/ar/program");
     expect(urls).toContain("https://www.msrc2027.com/en/contact");
     expect(urls).toContain("https://www.msrc2027.com/ar/contact");
-    expect(urls).toHaveLength(28);
+    expect(urls).toHaveLength(30);
     expect(urls.some((url) => url.endsWith("/about"))).toBe(false);
     expect(urls.some((url) => /registration|submissions|admin|draft|v1\.0/.test(url))).toBe(false);
-    for (const kind of ["privacy", "terms", "team", "sponsors"]) for (const locale of ["en", "ar"]) {
+    for (const kind of ["privacy", "terms", "team", "sponsors", "abstracts"]) for (const locale of ["en", "ar"]) {
       const url = `https://www.msrc2027.com/${locale}/${kind}`;
       expect(urls).toContain(url);
       expect(sitemap().find((entry) => entry.url === url)?.alternates?.languages).toEqual({
@@ -38,6 +38,8 @@ describe("public indexing", () => {
       en: "https://www.msrc2027.com/en/participate", ar: "https://www.msrc2027.com/ar/participate", "x-default": "https://www.msrc2027.com/en/participate",
     });
     expect(localizedPageMetadata("en", "/participate", "Participate", "Participate in MSRC").robots).toEqual({ index: true, follow: true });
+    expect(urls.some((url) => url.includes("/abstracts/submit"))).toBe(false);
+    expect(localizedPageMetadata("en", "/abstracts", "Research competition", "Research competition").robots).toEqual({ index: true, follow: true });
     const headers = (await config.headers!())[0].headers.map((header) => header.key);
     expect(headers).not.toContain("X-Robots-Tag");
     const redirects = await config.redirects!();

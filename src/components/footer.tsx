@@ -24,7 +24,7 @@ const footerCopy = {
 
 const directoryGroups = [
   ["home", "dates", "program", "speakers", "teams"],
-  ["workshops", "participation", "sponsors", "gallery"],
+  ["workshops", "participation", "research", "sponsors", "gallery"],
   ["announcements", "faq", "contact", "privacy", "terms"],
 ] as const;
 

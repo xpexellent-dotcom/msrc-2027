@@ -53,6 +53,13 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("ENG-083 participant detail", () => {
+  it("keeps an authorized participant record available with a permitted long-word abstract title", async () => {
+    const title = Array.from({ length: 20 }, () => "x".repeat(200)).join(" ");
+    const current = { ...participant, submissions: [{ ...participant.submissions[0], title }] };
+    expect(decodeParticipantDetail(current)?.submissions[0].title).toBe(title);
+    reply = { state: "ready", participant: current }; expect((await handle(request())).status).toBe(200);
+    expect(decodeParticipantDetail({ ...current, submissions: [{ ...current.submissions[0], title: "x".repeat(6001) }] })).toBeNull();
+  });
   it.each(["superAdmin", "registrationWorkshopAdministrator"] as const)("returns the full record for %s", async (role) => {
     roles = [role];
     const response = await handle(request());

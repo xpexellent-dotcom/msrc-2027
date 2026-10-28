@@ -15,7 +15,7 @@ export const indexable = process.env.VERCEL_ENV === "production";
 
 /** Public information pages listed in the sitemap, as locale-free routes. */
 // ORG-037: approved Privacy/Terms v1.0 are public and have localized sitemap twins.
-export const publicRoutes = ["", "/dates-venue", "/program", "/speakers", "/team", "/sponsors", "/participate", "/workshops", "/hackathon", "/3mt", "/media", "/contact", "/privacy", "/terms"] as const;
+export const publicRoutes = ["", "/dates-venue", "/program", "/speakers", "/team", "/sponsors", "/participate", "/workshops", "/abstracts", "/hackathon", "/3mt", "/media", "/contact", "/privacy", "/terms"] as const;
 
 const openGraphLocale: Record<Locale, string> = { en: "en_US", ar: "ar_SA" };
 

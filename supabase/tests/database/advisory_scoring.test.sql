@@ -170,8 +170,8 @@ update msrc_abstracts.submissions set version=2,document=pg_temp.abstract_docume
 insert into msrc_abstracts.snapshots(submission_id,version,document,word_count,settings_version)
  values(pg_temp.advisory_id(31),2,pg_temp.abstract_document('another-author@example.invalid'),8,1);
 insert into msrc_abstracts.authors(submission_id,submission_version,position,author_id,name,email,affiliations)
- select pg_temp.advisory_id(31),2,1,(a->>'id')::uuid,a->>'name',a->>'email',array(select jsonb_array_elements_text(a->'affiliations'))
- from jsonb_array_elements(pg_temp.abstract_document('another-author@example.invalid')->'authors') a;
+ select pg_temp.advisory_id(31),2,n::integer,(a->>'id')::uuid,a->>'name',a->>'email',array(select jsonb_array_elements_text(a->'affiliations'))
+ from jsonb_array_elements(pg_temp.abstract_document('another-author@example.invalid')->'authors') with ordinality x(a,n);
 select ok(not exists(select 1 from msrc_abstracts.authors where submission_id=pg_temp.advisory_id(31) and submission_version=2 and email='registration-staff-9706@example.invalid'),'Historical coauthor is absent from the current author list');
 select pg_temp.abstract_claims(9706);
 select ok(msrc_abstracts.advisory_is_author(pg_temp.advisory_id(31),pg_temp.registration_actor(9706)),'Immutable historical authorship remains protected across revisions');

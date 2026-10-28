@@ -6,7 +6,7 @@ const fixtures = new Map(), operations = new Map();
 const reply = (response, value, status = 200) => response.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify(value));
 const settings = { specialties: [{ id: "synthetic-specialty", label: "Synthetic specialty" }], studyTypes: [{ id: "synthetic-study", label: "Synthetic study", template: "research" }],
   keywordCount: 1, windowState: "open", opensAt: "2026-01-01T00:00:00Z", closesAt: "2028-01-01T00:00:00Z", correspondingAuthorPolicy: "Synthetic policy for local tests only" };
-const count = (document) => ["background", "aim", "methods", "results", "conclusion"].flatMap((key) => document.body[key].split(/\s+/u)).filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
+const count = (document) => 6 + ["background", "objectives", "methods", "results", "limitations", "conclusion"].flatMap((key) => document.body[key].split(/\s+/u)).filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
 const actorPattern = /^da000000-0000-4000-8000-[0-9a-f]{12}$/;
 const server = http.createServer(async (request, response) => {
   if (!["127.0.0.1", "::ffff:127.0.0.1"].includes(request.socket.remoteAddress)) return reply(response, { synthetic: true }, 403);
@@ -27,26 +27,27 @@ const server = http.createServer(async (request, response) => {
     fixtures.set(args.actorId, { mode: args.mode ?? "ready", submissions: args.submissions ?? [], settings: args.settings ?? settings }); return reply(response, { synthetic: true });
   }
   if (path === "/rest/v1/rpc/msrc_participant_status") return reply(response, { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true, cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 });
-  if (path === "/rest/v1/rpc/msrc_abstracts_status") return reply(response, { enabled: true, settingsComplete: true });
+  if (path === "/rest/v1/rpc/msrc_abstracts_status") return reply(response, { enabled: true, documentVersion: 2, settingsComplete: true });
   const actor = args.session_claims?.sub;
   if (args.edition_key !== "synthetic-participants-2027" || !actorPattern.test(actor ?? "")) return reply(response, { state: "denied" });
   const fixture = fixtures.get(actor) ?? { mode: "ready", submissions: [], settings };
   fixtures.set(actor, fixture);
   if (fixture.mode === "missing") return reply(response, { code: "PGRST202", message: "Synthetic missing capability" }, 404);
   if (path === "/rest/v1/rpc/msrc_participant_profile_complete") return reply(response, { state: "ready", complete: fixture.mode !== "profile_incomplete" });
-  if (path === "/rest/v1/rpc/msrc_abstracts_me") return reply(response, { state: "ready", settings: fixture.settings, submissions: fixture.submissions });
+  if (path === "/rest/v1/rpc/msrc_abstracts_me") return reply(response, { state: "ready", settings: fixture.settings, submissions: fixture.submissions, presenter: { id: actor, name: "Synthetic Presenter", email: "synthetic@example.invalid", institution: "Synthetic Institution", status: fixture.mode === "presenter_ineligible" ? "postgraduate" : "year_6" } });
   const key = actor + ":" + args.operation_id;
   if (operations.has(key)) return reply(response, operations.get(key));
   const submission = fixture.submissions.find((entry) => entry.id === args.submission_id);
   if (path === "/rest/v1/rpc/msrc_abstracts_save_draft") {
-    if (fixture.mode === "conflict" || submission && (submission.version !== args.expected_version || !["draft", "revision_requested"].includes(submission.status))) return reply(response, { state: "conflict" });
+    if (fixture.mode === "conflict" || submission && (submission.version !== args.expected_version || submission.status !== "draft")) return reply(response, { state: "conflict" });
+    if (!submission && fixture.submissions.length) return reply(response, { state: "submission_used" });
     const saved = submission ?? { id: randomUUID(), reference: null, status: "draft", version: 0, finalizedAt: null, decision: null };
     saved.document = args.document; saved.wordCount = count(args.document); saved.version++;
     if (!submission) fixture.submissions.push(saved);
     const result = { state: "saved", submission: saved }; operations.set(key, result); return reply(response, result);
   }
   if (path === "/rest/v1/rpc/msrc_abstracts_finalize") {
-    if (["evidence_gate", "pi_limit"].includes(fixture.mode)) return reply(response, { state: fixture.mode });
+    if (["evidence_gate", "submission_used", "presenter_ineligible"].includes(fixture.mode)) return reply(response, { state: fixture.mode });
     if (!submission || submission.version !== args.expected_version || !["draft", "revision_requested"].includes(submission.status)) return reply(response, { state: "conflict" });
     submission.status = "submitted"; submission.finalizedAt = new Date().toISOString(); submission.reference ??= "SYNTHETIC-ABSTRACT-" + submission.id.slice(0, 8);
     const result = { state: "finalized", submission }; operations.set(key, result); return reply(response, result);
