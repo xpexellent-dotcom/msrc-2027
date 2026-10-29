@@ -24,16 +24,17 @@
 .abstract-list li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-block-end: 1px solid var(--color-line); padding-block-end: 1rem; }
 .abstract-list li div { min-inline-size: 0; display: grid; gap: .4rem; overflow-wrap: anywhere; }
 .abstract-fields { display: grid; gap: 1.5rem; min-inline-size: 0; margin: 2.5rem 0 0; padding: 2rem 0 0; border: 0; border-block-start: 1px solid #cfc1dc; }
-.abstract-fields legend { float: inline-start; inline-size: 100%; color: var(--color-purple); font-size: 1.25rem; font-weight: 800; padding: 0; margin-block-end: .5rem; line-height: 1.6; }
+.abstract-fields > legend { float: inline-start; inline-size: 100%; color: var(--color-purple); font-size: clamp(1.3rem, 2.2vw, 1.6rem); font-weight: 800; padding: 0; margin-block-end: .5rem; line-height: 1.6; }
 .abstract-fields > p { line-height: 1.85; margin: 0; }
 .abstract-fields h3 { color: var(--color-purple); font-size: 1.1rem; margin: .5rem 0 0; line-height: 1.6; }
-.abstract-fields label { display: grid; gap: .6rem; font-weight: 650; line-height: 1.7; }
+.abstract-fields label { display: grid; gap: .6rem; font-weight: 700; line-height: 1.7; }
 .abstract-fields label.abstract-consent { display: flex; font-weight: 400; }
-.abstract-fields input, .abstract-fields select, .abstract-fields textarea { inline-size: 100%; min-inline-size: 0; min-block-size: 48px; padding: .85rem 1rem; border: 1px solid #9989a8; border-radius: .65rem; color: #251332; background: #fff; font: inherit; }
+.abstract-fields input, .abstract-fields select, .abstract-fields textarea { inline-size: 100%; min-inline-size: 0; min-block-size: 48px; padding: .85rem 1rem; border: 1px solid #9989a8; border-radius: .65rem; color: #251332; background: #fff; font: inherit; font-weight: 400; }
 .abstract-fields textarea { resize: vertical; line-height: 1.8; }
 .abstract-fields :disabled { opacity: 1; color: #463e4b; background: #f4f1f6; }
 .abstract-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
 .abstract-author { display: grid; min-inline-size: 0; gap: 1rem; border: 1px solid #d2c7de; border-radius: .75rem; padding: 1.25rem; background: #f8f6fa; }
+.abstract-author > legend { padding-inline: .5rem; color: var(--color-purple); font-size: 1.05rem; line-height: 1.6; }
 .abstract-author p { margin: 0; line-height: 1.85; }
 .abstract-consent { display: flex; align-items: flex-start; gap: .85rem; padding-block: 1rem; }
 .abstract-fields .abstract-consent input { inline-size: 1.25rem; block-size: 1.25rem; min-block-size: 1.25rem; flex: 0 0 auto; margin-block-start: .25rem; accent-color: var(--color-purple); padding: 0; }

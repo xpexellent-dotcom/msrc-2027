@@ -23,6 +23,13 @@ the signed-out label, then checks the public opening calendar and an existing
 session hint; account/profile/draft/finalized state updates its destination.
 Calendar display does not configure an operational opening instant.
 
+The abs3 independent review uses three wider journey columns on desktop, stronger
+form section headings, regular-weight entered text and explicit dialog focus.
+Title-count, ethics and registration helpers are associated with their controls.
+Short public headings and availability messages use concise EN/AR wording;
+Arabic remains DRAFT. Rules and owner paragraphs are unchanged. Full wording,
+screenshots and check results: [abs3 review](../progress/2026-10-29-codex-abstract-polish.md#abs3-review).
+
 ## TEMPORARY owner review mode — remove before release
 
 On a Vercel **preview** deployment, visit `/en/abstracts?review=1` or

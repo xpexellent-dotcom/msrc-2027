@@ -101,6 +101,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(banner).toBeVisible();
     if (locale === "en") await expect(banner).toHaveText("Review mode — preview only. Nothing is saved or submitted.");
     await expect(page.getByTestId("abstract-editor")).toBeVisible();
+    await expect(page.locator("#abstract-title")).toHaveAccessibleDescription(/0 \/ 20/);
+    await expect(page.locator("#abstract-ethics")).toHaveAccessibleDescription(formCopy.ethicsHelp);
+    await expect(page.locator("#abstract-registration")).toHaveAccessibleDescription(formCopy.registrationHelp);
     await expect(page.getByText("Review Presenter", { exact: false }).first()).toBeVisible();
     await expect(page.getByText("reviewer@example.test", { exact: false }).first()).toBeVisible();
     await fillReviewAbstract(page, locale);
@@ -124,6 +127,11 @@ for (const locale of ["en", "ar"] as const) {
     await page.reload();
     await expect(page.locator("#abstract-title")).toHaveValue("");
     await expect(page.getByTestId("abstract-review-banner")).toBeVisible();
+    await page.getByRole("button", { name: formCopy.addAuthor, exact: true }).click();
+    const authorName = page.locator('input[id^="author-name-"]');
+    await authorName.fill("Synthetic Co-author");
+    await expect(authorName).toHaveAttribute("dir", "ltr");
+    await expect(authorName).toHaveAttribute("lang", "en");
     await page.setViewportSize({ width: 320, height: 800 });
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
     expect(await page.locator("html").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
