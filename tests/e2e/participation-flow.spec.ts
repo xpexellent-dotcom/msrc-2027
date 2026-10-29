@@ -33,6 +33,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".research-breadcrumb [aria-current=page]")).toHaveText(label);
     await expect(page.getByTestId("research-competition-page")).toBeVisible();
     await expect(page.locator(".research-roadmap li")).toHaveCount(6);
+    await expect(page.locator(".research-criteria > li")).toHaveCount(7);
+    await expect(page.locator(".research-criteria-count")).toHaveText(locale === "en" ? "7" : "٧");
   });
 
   test(`${locale} hub rows stay horizontal, mirror in RTL and support enlarged text`, async ({ page }, testInfo) => {

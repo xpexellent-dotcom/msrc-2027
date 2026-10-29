@@ -34,7 +34,7 @@ export const researchCompetitionCopy = {
     ],
     wordLimit: "The abstract must not exceed 350 words, including section headings. The research title, author information, affiliations, study type, and medical specialty are entered separately and are not included in the abstract word count.",
     headingCount: "The six fixed headings count as six words. Suggested section ranges are guidance; the overall 350-word limit applies.",
-    evaluation: "Evaluation criteria", evaluationIntro: "Eligible abstracts are assessed using a standardized scoring rubric:",
+    evaluation: "Evaluation criteria", evaluationIntro: "Eligible abstracts are assessed using a standardized scoring rubric.",
     criteria: [
       ["Significance and Contribution", "Relevance and potential contribution of the research."],
       ["Research Question and Objectives", "Clarity of the research question and objectives."],
@@ -91,7 +91,7 @@ export const researchCompetitionCopy = {
     ],
     wordLimit: "يجب ألا يتجاوز الملخص ٣٥٠ كلمة، بما في ذلك عناوين الأقسام. ويُدخل عنوان البحث ومعلومات المؤلفين والانتماءات المؤسسية ونوع الدراسة والتخصص الطبي في حقول منفصلة، ولا تُحتسب ضمن كلمات الملخص.",
     headingCount: "تُحتسب العناوين الإنجليزية الستة الثابتة بست كلمات. الأعداد المقترحة لكل قسم إرشادية، ويُطبَّق الحد الإجمالي البالغ ٣٥٠ كلمة.",
-    evaluation: "معايير التقييم", evaluationIntro: "تُقيَّم الملخصات المؤهلة باستخدام نموذج تقييم موحّد:",
+    evaluation: "معايير التقييم", evaluationIntro: "تُقيَّم الملخصات المؤهلة باستخدام نموذج تقييم موحّد.",
     criteria: [
       ["الأهمية والإسهام", "صلة البحث بالمجال وإسهامه المحتمل."],
       ["سؤال البحث والأهداف", "وضوح سؤال البحث وأهدافه."],

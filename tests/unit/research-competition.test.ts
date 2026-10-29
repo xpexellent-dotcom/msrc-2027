@@ -5,10 +5,22 @@ import { abstractDates } from "@/content/abstract-dates";
 import { researchCompetitionCopy } from "@/features/research-competition/copy";
 import { researchCtaState } from "@/features/research-competition/cta-state";
 import { AbstractSubmissionCta } from "@/features/research-competition/submission-cta";
+import { AbstractRoadmap } from "@/features/research-competition/abstract-roadmap";
 import { abstractSettings, abstractSubmission } from "../fixtures/abstracts";
 
 const ready = { state: "ready" as const, settings: abstractSettings, submissions: [], profileComplete: true, formToken: "synthetic" };
 describe("ORG-068 public research competition", () => {
+  it.each(["en", "ar"] as const)("retains all %s journey details and receipt semantics with decorative locale numerals", (locale) => {
+    const html = renderToStaticMarkup(createElement(AbstractRoadmap, { locale, currentStep: 4 }));
+    const copy = researchCompetitionCopy[locale];
+    expect(html.match(/tabindex="0"/g)).toHaveLength(6);
+    expect(html.match(/aria-current="step"/g)).toHaveLength(1);
+    expect(html).toContain(copy.current);
+    expect(html).toContain(copy.steps[4]);
+    for (const detail of copy.stepDetails) expect(html).toContain(detail);
+    expect(html).toContain(`<text x="${locale === "ar" ? "140" : "0"}" y="80" text-anchor="${locale === "ar" ? "end" : "start"}" font-size="100">${locale === "en" ? "01" : "١"}</text>`);
+    expect(copy.evaluationIntro.endsWith(".")).toBe(true);
+  });
   it("defaults to the signed-out label without reading a server session or clock", () => {
     expect(researchCtaState({ signedIn: false })).toBe("signIn");
   });

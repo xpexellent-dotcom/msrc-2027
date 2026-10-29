@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { formatIndex, type Locale } from "@/lib/i18n";
 import { AbstractRoadmap } from "./abstract-roadmap";
 import { researchCompetitionCopy } from "./copy";
+import { DecorativeNumeral } from "./decorative-numeral";
 import { AbstractSubmissionCta } from "./submission-cta";
 
 /** Decorative studies: a speaking lectern and a scientific poster's column grid. */
@@ -23,6 +24,7 @@ function PresentationStudy({ poster }: { poster: boolean }) {
 
 export function ResearchCompetitionPage({ locale, reviewAllowed = false }: { locale: Locale; reviewAllowed?: boolean }) {
   const copy = researchCompetitionCopy[locale];
+  const criterionNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
   return <div className="research-competition" data-testid="research-competition-page">
     <section className="research-hero" aria-labelledby="research-title">
       <Image className="research-hero-photo" src="/media/msrc-demo/share-research-manar-2560.jpg" alt="" fill sizes="100vw" priority />
@@ -40,7 +42,10 @@ export function ResearchCompetitionPage({ locale, reviewAllowed = false }: { loc
     </Container></section>
     <section className="research-section" aria-labelledby="research-eligibility"><Container><SectionHeading id="research-eligibility" title={copy.eligibility} description={copy.eligibilityIntro} /><div className="research-eligibility-grid">{copy.eligibilityCards.map(([title, text]) => <article className="research-eligibility-card" key={title}><h3>{title}</h3><p>{text}</p></article>)}</div></Container></section>
     <section className="research-section" aria-labelledby="research-guidelines"><Container><SectionHeading id="research-guidelines" title={copy.guidelines} description={copy.guidelinesIntro} /><ol className="research-guidelines">{copy.sections.map(([title, text, range], index) => <li key={title}><span className="research-card-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span><div><h3>{title}</h3><p>{text}</p></div><span className="research-suggested">{range} {copy.suggested}</span></li>)}</ol><aside className="research-word-limit"><p><strong>{copy.wordLimit}</strong></p><p>{copy.headingCount}</p></aside></Container></section>
-    <section className="research-section research-evaluation" aria-labelledby="research-evaluation"><Container><div className="research-editorial-split"><SectionHeading id="research-evaluation" title={copy.evaluation} description={copy.evaluationIntro} /><dl className="research-criteria">{copy.criteria.map(([name, description]) => <div key={name}><dt>{name}</dt><dd>{description}</dd></div>)}</dl></div></Container></section>
+    <section className="research-section research-evaluation" aria-labelledby="research-evaluation"><Container><div className="research-rubric-panel">
+      <div className="research-rubric-intro"><DecorativeNumeral locale={locale} className="research-criteria-count" value={formatIndex(copy.criteria.length, locale)} /><h2 id="research-evaluation">{copy.evaluation}</h2><p>{copy.evaluationIntro}</p></div>
+      <ol className="research-criteria" role="list">{copy.criteria.map(([name, description], index) => <li key={name}><DecorativeNumeral locale={locale} className="research-criterion-number" value={locale === "ar" ? formatIndex(index + 1, locale) : criterionNumerals[index]} /><dl><dt>{name}</dt><dd>{description}</dd></dl></li>)}</ol>
+    </div></Container></section>
     <section className="research-closing" aria-labelledby="research-closing"><Container><h2 id="research-closing">{copy.closing}</h2><p>{copy.closingText}</p><div className="research-closing-actions"><AbstractSubmissionCta locale={locale} reviewAllowed={reviewAllowed} /><Link href={`/${locale}/contact`} className="research-contact">{copy.contact}</Link></div></Container></section>
   </div>;
 }

@@ -4,6 +4,8 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { abstractCopy } from "../../src/features/submissions/copy";
 import { abstractDocument, abstractSettings, abstractSubmission } from "../fixtures/abstracts";
 import { captureAbstractViews } from "../helpers/abstract-captures";
+import { researchCompetitionCopy } from "../../src/features/research-competition/copy";
+import { mkdirSync } from "node:fs";
 
 async function fixture(context: BrowserContext, mode = "ready", submissions: unknown[] = []) {
   const suffix = randomBytes(6).toString("hex"), actorId = "da000000-0000-4000-8000-" + suffix, sessionId = "db000000-0000-4000-8000-" + suffix;
@@ -57,6 +59,15 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".abstract-save-status")).toHaveText(copy.finalized);
     await expect(page.getByText(copy.locked, { exact: true })).toBeVisible();
     await expect(page.locator('.research-roadmap [aria-current="step"]')).toHaveCount(1);
+    const current = page.locator('.research-roadmap [aria-current="step"]');
+    await expect(current.locator(".research-current-step")).toHaveText(researchCompetitionCopy[locale].current);
+    await expect(current.locator(".research-step-number")).toHaveCSS("color", "rgb(59, 30, 109)");
+    expect(await current.evaluate((node) => getComputedStyle(node, "::before").opacity)).toBe("1");
+    const tops = await page.locator(".abstract-workspace .research-roadmap > li").evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().top)));
+    expect(new Set(tops).size).toBe(testInfo.project.name.includes("mobile") ? 6 : 2);
+    await accessible(page);
+    mkdirSync("output/abs4", { recursive: true });
+    await page.locator(".abstract-workspace .research-roadmap").screenshot({ path: `output/abs4/${locale}-${testInfo.project.name}-receipt.png`, animations: "disabled", style: ".site-header { visibility: hidden !important; }" });
     await page.reload(); await page.getByRole("button", { name: copy.edit, exact: true }).click();
     await expect(page.getByTestId("abstract-preview")).toBeVisible(); await expect(page.getByRole("button", { name: copy.finalize, exact: true })).toHaveCount(0);
   });
