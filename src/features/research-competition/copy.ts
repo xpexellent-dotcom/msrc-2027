@@ -2,7 +2,7 @@
 export const researchCompetitionCopy = {
   en: {
     title: "Research competition", kicker: "MSRC’27 · Research", home: "Home",
-    intro: "The MSRC Research Competition provides medical students with an opportunity to present their research, communicate scientific findings, and engage with fellow students and academic professionals. After submitting their abstracts, participants will be notified whether they have been accepted or rejected. Accepted abstracts will be assigned to one of two presentation categories: Oral Presentation or Poster Presentation, based on the conference’s review and selection process.",
+    intro: "The MSRC Research Competition provides medical students with an opportunity to present their research, communicate scientific findings, and engage with fellow students and academic professionals.",
     description: "Explore the MSRC’27 Research Competition: eligibility, abstract guidelines, submission dates and evaluation criteria.",
     journey: "Your abstract’s journey", by: "By", from: "From", current: "Current step",
     steps: ["Submit", "Initial screening", "Scientific review", "Decision", "Confirm attendance and receive instructions", "Present"],
@@ -60,7 +60,7 @@ export const researchCompetitionCopy = {
   },
   ar: {
     title: "مسابقة الأبحاث", kicker: "المؤتمر الطلابي للأبحاث الطبية ٢٠٢٧ · الأبحاث", home: "الرئيسية",
-    intro: "تتيح مسابقة الأبحاث في المؤتمر الطلابي للأبحاث الطبية لطلاب الطب فرصة عرض أبحاثهم، ونقل النتائج العلمية، والتفاعل مع زملائهم من الطلاب والمختصين الأكاديميين. بعد تقديم الملخصات، سيُبلَّغ المشاركون بقبولها أو رفضها. وستُخصَّص الملخصات المقبولة لإحدى فئتي العرض: العرض الشفهي أو عرض الملصق العلمي، وفقًا لإجراءات المراجعة والاختيار في المؤتمر.",
+    intro: "تتيح مسابقة الأبحاث في المؤتمر الطلابي للأبحاث الطبية لطلاب الطب فرصة عرض أبحاثهم، ونقل النتائج العلمية، والتفاعل مع زملائهم من الطلاب والمختصين الأكاديميين.",
     description: "تعرّف على مسابقة الأبحاث في المؤتمر الطلابي للأبحاث الطبية ٢٠٢٧: الأهلية وإرشادات الملخصات ومواعيد التقديم ومعايير التقييم.",
     journey: "رحلة ملخصك البحثي", by: "بحلول", from: "ابتداءً من", current: "الخطوة الحالية",
     steps: ["التقديم", "الفرز الأولي", "التحكيم العلمي", "القرار", "تأكيد الحضور واستلام التعليمات", "العرض"],

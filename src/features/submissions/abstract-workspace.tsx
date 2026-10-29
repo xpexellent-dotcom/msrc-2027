@@ -143,7 +143,7 @@ export function AbstractWorkspace({ locale, initial, reviewMode = false }: { loc
               <Button variant="secondary" onClick={() => edit({ authors: document.authors.filter((entry) => entry.id !== author.id) })}>{copy.remove}</Button></div>
           </fieldset>)}
           <Button variant="secondary" onClick={() => edit({ authors: [...document.authors, { id: crypto.randomUUID(), name: "", email: "", affiliations: [""] }] })}>{copy.addAuthor}</Button>
-          <h3>{copy.supervisor}</h3><p>{copy.supervisorHint}</p>
+          <h3>{copy.supervisor}</h3>
           <label htmlFor="abstract-supervisor-name">{copy.fields.supervisorName}<input id="abstract-supervisor-name" lang="en" dir="ltr" value={document.supervisor.fullName} onChange={(event) => edit({ supervisor: { ...document.supervisor, fullName: event.target.value } })} /></label>
           <label htmlFor="abstract-supervisor-email">{copy.fields.supervisorEmail}<input id="abstract-supervisor-email" type="email" dir="ltr" value={document.supervisor.email} onChange={(event) => edit({ supervisor: { ...document.supervisor, email: event.target.value } })} /></label>
           <ContactPhoneField id="abstract-supervisor-phone" locale={locale} country={phoneCountry} onCountryChange={setPhoneCountry} value={document.supervisor.phone} onChange={(phone) => edit({ supervisor: { ...document.supervisor, phone } })} labels={{ country: copy.country, phone: copy.phone, hint: copy.phoneHint, international: copy.internationalPhone }} />

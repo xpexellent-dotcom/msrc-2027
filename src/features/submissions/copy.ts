@@ -100,7 +100,6 @@ export const abstractCopy = {
   "editProfile": "Edit your profile",
   "presenter": "Presenting author",
   "supervisor": "Supervising physician",
-  "supervisorHint": "Contact details only. No SMS or verification. Visible to you and authorized scientific administrators and Super Admins.",
   "country": "Phone country code",
   "phone": "Supervisor phone",
   "phoneHint": "International format, for example +9665XXXXXXXX.",
