@@ -4,8 +4,10 @@ import { getParticipantConfig } from "@/features/participant-accounts/config.ser
 import type { Locale } from "@/lib/i18n";
 import type { AbstractResponse } from "./contracts";
 import { createAbstractHandler } from "./handler.server";
+import { createAbstractReviewState, isAbstractReviewMode } from "./review-mode.server";
 const observe = createAbstractHandler({ observeOnly: true });
-export async function readAbstractPageState(locale: Locale): Promise<AbstractResponse> {
+export async function readAbstractPageState(locale: Locale, searchParams: { review?: string | string[] } = {}): Promise<AbstractResponse> {
+  if (isAbstractReviewMode(searchParams)) return createAbstractReviewState();
   if (process.env.ABSTRACT_SUBMISSIONS_ENABLED !== "true") return { state: "closed" };
   const readiness = getParticipantConfig(); if (readiness.state !== "ready") return { state: "closed" };
   const current = await headers(), origin = readiness.config.origins.find((value) => new URL(value).host === current.get("host"));

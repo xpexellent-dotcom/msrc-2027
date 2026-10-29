@@ -1,13 +1,32 @@
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { abstractDates } from "@/content/abstract-dates";
 import { researchCompetitionCopy } from "@/features/research-competition/copy";
 import { researchCtaState } from "@/features/research-competition/cta-state";
+import { AbstractSubmissionCta } from "@/features/research-competition/submission-cta";
 import { abstractSettings, abstractSubmission } from "../fixtures/abstracts";
 
 const ready = { state: "ready" as const, settings: abstractSettings, submissions: [], profileComplete: true, formToken: "synthetic" };
 describe("ORG-068 public research competition", () => {
   it("defaults to the signed-out label without reading a server session or clock", () => {
     expect(researchCtaState({ signedIn: false })).toBe("signIn");
+  });
+  it.each(["en", "ar"] as const)("preserves a real no-JavaScript form link and all acknowledgement items in %s review mode", (locale) => {
+    const copy = researchCompetitionCopy[locale];
+    const html = renderToStaticMarkup(createElement(AbstractSubmissionCta, { locale, reviewMode: true }));
+    expect(html).toContain(`href="/${locale}/abstracts/submit?review=1"`);
+    expect(html).toContain('aria-haspopup="dialog"');
+    expect(html.match(/type="checkbox"/g)).toHaveLength(copy.checklist.length);
+    expect(html).toContain('disabled=""');
+    expect(html).toContain(copy.continueToForm);
+    expect(html).toContain(copy.cancel);
+    expect(html).not.toContain("<dialog open");
+  });
+  it("retains the normal signed-out destination outside review mode", () => {
+    const html = renderToStaticMarkup(createElement(AbstractSubmissionCta, { locale: "en" }));
+    expect(html).toContain('href="/en/sign-in"');
+    expect(html).not.toContain('href="/en/abstracts/submit?review=1"');
   });
   it("uses ORG-058's public calendar date without opening the operational window", () => {
     expect(abstractDates[0].date).toBe("2026-11-23");
@@ -31,6 +50,7 @@ describe("ORG-068 public research competition", () => {
     for (const locale of ["en", "ar"] as const) {
       const copy = researchCompetitionCopy[locale];
       expect(copy.steps).toHaveLength(6); expect(copy.sections).toHaveLength(6); expect(copy.criteria).toHaveLength(7); expect(copy.rules).toHaveLength(9);
+      expect(copy.formats).toHaveLength(2); expect(copy.checklist).toHaveLength(8);
       expect(JSON.stringify(copy.criteria)).not.toMatch(/%|threshold|weight/i);
     }
     expect(researchCompetitionCopy.en.sections.map(([title]) => title)).toEqual(["Background", "Objectives", "Methods", "Results", "Limitations", "Conclusion"]);

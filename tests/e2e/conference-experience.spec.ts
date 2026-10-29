@@ -444,7 +444,13 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/participate`);
     await page.getByRole("main").locator(`a[href="/${locale}/abstracts"]`).first().click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/abstracts$`));
-    await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);
+    // Acknowledgements are local-only controls inside closed native dialogs;
+    // the public information page still has no submission form or data fields.
+    await expect(page.locator("main form, main input:not(.research-acknowledgement input), main textarea")).toHaveCount(0);
+    await expect(page.locator("main .research-acknowledgement")).toHaveCount(2);
+    await expect(page.locator("main .research-acknowledgement[open]")).toHaveCount(0);
+    await expect(page.locator("main .research-acknowledgement input[type='checkbox']")).toHaveCount(16);
+    await expect(page.locator("main .research-acknowledgement input:not([type='checkbox'])")).toHaveCount(0);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await page.locator(`.pathway-card a[href="/${locale}/3mt"]`).click();

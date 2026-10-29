@@ -7,7 +7,6 @@ import type { ParticipantAnnouncementsResponse } from "@/features/announcements/
 import type { WorkshopParticipantResponse } from "@/features/workshops/participant-contracts";
 import { ParticipantAccountForm } from "./participant-form";
 import { participantCopy, type ParticipantScreen } from "./participant-copy";
-import "@/styles/participant-accounts.css";
 
 export function ParticipantAccountPage({ locale, screen, state, announcements, workshopBookings }: { locale: Locale; screen: ParticipantScreen; state: ParticipantPageState; announcements?: ParticipantAnnouncementsResponse; workshopBookings?: WorkshopParticipantResponse }) {
   const copy = participantCopy[locale];

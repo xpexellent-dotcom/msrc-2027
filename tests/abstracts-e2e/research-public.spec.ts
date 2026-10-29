@@ -20,13 +20,20 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".research-roadmap time")).toHaveCount(7);
     await expect(page.locator(".research-guidelines > li")).toHaveCount(6);
     await expect(page.locator(".research-criteria dt")).toHaveCount(7);
-    await expect(page.locator(".research-rules > li")).toHaveCount(9);
+    await expect(page.locator("#research-prepare, #research-rules")).toHaveCount(0);
+    const presentations = page.getByRole("region", { name: copy.presentations });
+    await expect(presentations.getByRole("article")).toHaveCount(2);
+    await expect(presentations.getByRole("article").getByRole("heading", { level: 3 })).toHaveText([copy.oral, copy.poster]);
+    await expect(presentations.locator(".research-format-label")).toHaveCount(2);
+    await expect(presentations.locator(".research-format-art[aria-hidden='true'] .research-format-numeral")).toHaveCount(2);
+    await expect(presentations.locator("svg[aria-hidden='true']")).toHaveCount(2);
+    await expect(presentations.locator(".research-winners")).toContainText(copy.winners);
     await expect(page.locator(".research-submission-cta").first()).toHaveAttribute("aria-disabled", "true");
     await expect(page.locator(".research-submission-cta").first()).toContainText(copy.cta.opening);
     await expect(page.locator(".research-submission-cta time").first()).toHaveAttribute("datetime", "2026-11-23");
     expect(await page.locator("html").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await captureAbstractViews(page, testInfo.project.name, locale, "public", [["roadmap", "#research-journey"], ["evaluation", "#research-evaluation"], ["rules", "#research-rules"], ["closing", "#research-closing"]]);
+    await captureAbstractViews(page, testInfo.project.name, locale, "public", [["roadmap", "#research-journey"], ["presentations", "#research-presentations"], ["evaluation", "#research-evaluation"], ["closing", "#research-closing"]]);
     await page.getByRole("link", { name: copy.contact, exact: true }).focus();
     await expect(page.getByRole("link", { name: copy.contact, exact: true })).toBeFocused();
     await page.setViewportSize({ width: 320, height: 800 });
@@ -48,5 +55,10 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/abstracts`);
     await expect(page.locator(".research-submission-cta").first()).toHaveText(copy.cta[mode]);
     await expect(page.locator(".research-submission-cta").first()).toHaveAttribute("href", mode === "profile" ? `/${locale}/my-msrc#profile` : `/${locale}/abstracts/submit`);
+    if (mode === "submit" || mode === "draft") {
+      await page.locator(".research-submission-cta").first().click();
+      await expect(page.getByRole("dialog", { name: copy.prepare, exact: true })).toBeVisible();
+      await expect(page).toHaveURL(new RegExp(`/${locale}/abstracts$`));
+    }
   });
 }

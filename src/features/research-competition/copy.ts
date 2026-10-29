@@ -8,6 +8,7 @@ export const researchCompetitionCopy = {
     steps: ["Submit", "Initial screening", "Scientific review", "Decision", "Confirm attendance and receive instructions", "Present"],
     stepDetails: ["Prepare, review and submit your abstract.", "Abstracts undergo an initial eligibility screening.", "Eligible abstracts receive scientific review.", "Accepted or rejected; oral or poster presentation assigned.", "Confirm attendance and prepare for your presentation.", "Share your research through an oral or poster presentation."],
     presentations: "Two ways to share your research",
+    formats: ["Format I", "Format II"], distinction: "Research distinction",
     oral: "Oral Presentation", poster: "Poster Presentation",
     oralText: "Participants whose abstracts are selected for oral presentation will present their research verbally to an audience and a panel of judges. The presentation should clearly explain the research background, objectives, methodology, results, and conclusions. Presenters will also have the opportunity to answer questions from the judges and discuss their findings.",
     posterText: "Participants whose abstracts are selected for poster presentation will communicate their research through a scientific poster that summarizes the study’s background, objectives, methods, results, and conclusions. Presenters will explain their work to the judges and answer questions about their research.",
@@ -19,6 +20,8 @@ export const researchCompetitionCopy = {
       ["Completed research", "The research must be completed — analysis finished and manuscript written — within the past three years. Research whose analysis is not yet complete cannot be submitted."],
     ],
     prepare: "Before you start", prepareIntro: "Have these details ready before you begin your draft.",
+    acknowledgeIntro: "Confirm that you have each item ready before continuing.",
+    continueToForm: "Continue to the form", cancel: "Cancel", draftTranslation: "Draft translation — for review",
     checklist: ["A complete participant profile", "A research title of up to 20 words", "Authors’ names and affiliations", "Supervising physician’s name, email and phone", "Study type", "Medical specialty of the research", "Ethics approval and study registration details", "An abstract of up to 350 words in six sections"],
     guidelines: "Abstract guidelines", guidelinesIntro: "Each abstract must include the following sections:", suggested: "suggested words",
     sections: [
@@ -63,6 +66,7 @@ export const researchCompetitionCopy = {
     steps: ["التقديم", "الفرز الأولي", "التحكيم العلمي", "القرار", "تأكيد الحضور واستلام التعليمات", "العرض"],
     stepDetails: ["أعدّ ملخصك وراجعه ثم قدّمه.", "تُفحص أهلية الملخصات في مرحلة الفرز الأولي.", "تخضع الملخصات المؤهلة للتحكيم العلمي.", "قبول أو رفض، مع تخصيص عرض شفهي أو ملصق علمي للمقبولين.", "أكّد حضورك واستعد لعرض بحثك.", "شارك بحثك من خلال عرض شفهي أو ملصق علمي."],
     presentations: "طريقتان لمشاركة بحثك", oral: "العرض الشفهي", poster: "عرض الملصق العلمي",
+    formats: ["الصيغة الأولى", "الصيغة الثانية"], distinction: "التميّز البحثي",
     oralText: "سيعرض المشاركون الذين تُختار ملخصاتهم للعرض الشفهي أبحاثهم شفهيًا أمام الجمهور ولجنة التحكيم. وينبغي أن يوضح العرض خلفية البحث وأهدافه ومنهجيته ونتائجه واستنتاجاته. وستتاح للمقدمين أيضًا فرصة الإجابة عن أسئلة المحكّمين ومناقشة نتائجهم.",
     posterText: "سيشارك المشاركون الذين تُختار ملخصاتهم لعرض الملصق العلمي أبحاثهم عبر ملصق علمي يلخّص خلفية الدراسة وأهدافها وطرقها ونتائجها واستنتاجاتها. وسيشرح المقدمون أعمالهم للمحكّمين ويجيبون عن الأسئلة المتعلقة بأبحاثهم.",
     winners: "سيُختار ثلاثة فائزين في كل فئة من فئتي العرض، تقديرًا لتميّز البحث وجودة العرض.",
@@ -73,6 +77,8 @@ export const researchCompetitionCopy = {
       ["بحث مكتمل", "يجب أن يكون البحث قد اكتمل — بانتهاء التحليل وكتابة المخطوطة — خلال السنوات الثلاث الماضية. ولا يمكن تقديم بحث لم يكتمل تحليله بعد."],
     ],
     prepare: "قبل أن تبدأ", prepareIntro: "جهّز هذه التفاصيل قبل بدء مسودتك.",
+    acknowledgeIntro: "أكّد جاهزية كل بند قبل المتابعة.",
+    continueToForm: "المتابعة إلى النموذج", cancel: "إلغاء", draftTranslation: "ترجمة أولية — للمراجعة",
     checklist: ["ملف مشارك مكتمل", "عنوان بحث لا يتجاوز ٢٠ كلمة", "أسماء المؤلفين وانتماءاتهم المؤسسية", "اسم الطبيب المشرف وبريده الإلكتروني ورقم هاتفه", "نوع الدراسة", "التخصص الطبي للبحث", "تفاصيل الموافقة الأخلاقية وتسجيل الدراسة", "ملخص لا يتجاوز ٣٥٠ كلمة موزّع على ستة أقسام"],
     guidelines: "إرشادات الملخص", guidelinesIntro: "يجب أن يتضمن كل ملخص الأقسام الآتية:", suggested: "كلمة مقترحة",
     sections: [

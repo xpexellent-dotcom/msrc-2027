@@ -14,6 +14,9 @@ test.afterEach(async ({ page }) => { expect(runtimeIssues.get(page)).toEqual([])
 
 // ACC-01, LOC-01/03, PRG-01: exercise visitor state changes, rather than just load URLs.
 async function ready(page: Page) {
+  // Day links remain usable before JavaScript, so their enabled state alone
+  // cannot establish that client-side filter handlers are ready.
+  await expect(page.locator("#programme")).toHaveAttribute("data-hydrated", "true", { timeout: 15_000 });
   await expect(page.getByTestId("program-day-all")).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
   await page.evaluate(async () => {
     await document.fonts.ready;

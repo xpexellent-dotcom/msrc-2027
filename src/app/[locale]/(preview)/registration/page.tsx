@@ -9,7 +9,6 @@ import { MyRegistration } from "@/features/registration/my-registration";
 import { myRegistrationCopy } from "@/features/registration/my-registration-copy";
 import { readMyRegistrationPageState } from "@/features/registration/my-registration-page-state.server";
 import { readRegistrationPageState } from "@/features/registration/page-state.server";
-import "@/styles/participant-accounts.css";
 
 export const dynamic = "force-dynamic";
 type PageProps = { params: Promise<{ locale: string }> };

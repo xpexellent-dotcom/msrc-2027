@@ -4,6 +4,7 @@ export const abstractCopy = {
   en: {
   "title": "Submit your abstract",
   "lead": "Prepare your English research abstract, save a draft, and review every detail before submitting.",
+  "reviewBanner": "Review mode — preview only. Nothing is saved or submitted.",
   "closed": "Abstract submissions are not open.",
   "unavailable": "The abstract workspace is temporarily unavailable. Your saved work is retained.",
   "notReady": "This workspace is awaiting its database release. Your sign-in is retained.",

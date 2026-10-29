@@ -7,15 +7,57 @@ email are outside this slice. All hosted workflows and delivery remain closed.
 
 ## Public information
 
-`/{locale}/abstracts` is prerenderable and indexable on production. It contains
+`/{locale}/abstracts` is indexable on production. It contains
 the owner-supplied competition copy, public ORG-058 calendar roadmap, oral/poster
-descriptions, eligibility, preparation checklist, guidelines, seven simplified
-evaluation criteria without weights/thresholds, and nine submission rules.
+descriptions, eligibility, guidelines and seven simplified evaluation criteria
+without weights/thresholds. The preparation checklist is an acknowledgement
+dialog on the submit/draft CTA states; the nine submission rules appear above
+the private form. Hero and closing links retain a real form destination without
+JavaScript. The dialog requires each checklist item, supports native modal
+keyboard/Escape behavior and returns focus to its initiating link on dismissal.
+Oral/poster descriptions retain the owner's paragraphs in complementary editorial
+panels; the three-winners statement is a separate distinction band.
 `/submissions` redirects permanently to this page. Navigation, participation,
 footer and sitemap point to the public route. The client-only CTA starts with
 the signed-out label, then checks the public opening calendar and an existing
 session hint; account/profile/draft/finalized state updates its destination.
 Calendar display does not configure an operational opening instant.
+
+## TEMPORARY owner review mode — remove before release
+
+On a Vercel **preview** deployment, visit `/en/abstracts?review=1` or
+`/ar/abstracts?review=1`, acknowledge every checklist item and continue. Direct
+links `/en/abstracts/submit?review=1` and `/ar/abstracts/submit?review=1` also work.
+Development (`NODE_ENV=development`) supports the same URLs. This is temporary
+owner design review, not a participant workflow, and needs no hosted migration,
+feature flag, account, delivery configuration or Vercel environment changes.
+
+`review-mode.server.ts` accepts the exact single query value `review=1` only when
+`VERCEL_ENV=preview` or `NODE_ENV=development`. `VERCEL_ENV=production` always
+vetoes the mode, including a contradictory development NODE_ENV. Ordinary URLs,
+other values and repeated query parameters retain the existing operational gates.
+The public route reads search parameters on the server for this guard, making it
+dynamic for now; it still reads no private session data. Allowed public review
+URLs are noindex; the private form remains noindex in every mode.
+
+The form receives a fresh synthetic ready state before any hosted/account read:
+Review Presenter, reviewer@example.test, Synthetic Review Institution, complete
+profile, eligible presenter, open synthetic window and no submissions. The full
+blank editor is available immediately. A sticky banner above the rules reads
+“Review mode — preview only. Nothing is saved or submitted.” (Arabic DRAFT).
+Save, autosave, preview and finalization operate only in mounted component state;
+they make no `/api/abstracts` requests. Reloading discards that state. Scientific
+content remains English/LTR and the same field validation and one-chance locked
+presentation can be reviewed. No operational window dates/reference or real acceptance
+outcome is created.
+
+**Removal gate:** before release, remove the review helper/synthetic state,
+query/metadata/CTA plumbing, local workspace mutation branch and banner copy;
+remove the review-only tests/capture opt-in and the isolated preview test server.
+Restore the public route's static-friendly signature once it no longer reads
+search parameters. Retain the acknowledgement dialog, rules panel, design and
+normal operational regression coverage. Do not use this review surface as hosted
+database or release evidence. [Polish receipt](../progress/2026-10-29-codex-abstract-polish.md).
 
 ## Private submission
 
