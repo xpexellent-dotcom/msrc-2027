@@ -101,3 +101,9 @@ commits, pushes or branches were changed. The existing synthetic Playwright
 configuration is the only account-enabled environment used for verification.
 
 Next: owner/Claude visual review and commit of the uncommitted changes.
+
+## Owner follow-up: detail text on hover / scroll
+
+- Public journey only (`AbstractRoadmap reveal`): step descriptions are hidden until the step is hovered or keyboard-focused on pointer devices, and fade in as each step scrolls into view on touch screens (`roadmap-reveal.tsx`, IntersectionObserver). The text stays in the DOM for screen readers, stays visible without JavaScript, and the participant receipt is unchanged. Reduced motion removes the movement.
+- Evidence: lint, typecheck, `tests/unit/research-competition.test.ts` 13 passed, build passed, abstracts Playwright 86 passed / 2 skipped. Browser check at 1560px: only the hovered step's detail has opacity 1, no text overflow; iPhone 13: details 0 before scroll, 1 after scrolling past them.
+- NOT TESTED: physical phones.

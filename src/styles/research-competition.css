@@ -26,6 +26,15 @@
 .research-step-number { display: block; position: absolute; inset-block-start: 0; inset-inline-start: .75rem; color: var(--color-line); font-family: Georgia, "Times New Roman", serif; font-size: 2.25rem; line-height: 1; font-weight: 400; font-variant-numeric: tabular-nums; transition: color 400ms cubic-bezier(.2,.8,.2,1), transform 400ms cubic-bezier(.2,.8,.2,1); }
 .research-roadmap h3 { color: var(--color-ink); font-size: 1.05rem; line-height: 1.6; margin: 0; font-weight: 750; }
 .research-roadmap p { max-inline-size: 42ch; color: var(--color-muted); font-size: .9rem; line-height: 1.8; margin-block: .7rem 0; }
+.research-roadmap p { overflow-wrap: break-word; }
+/* Public journey: detail text appears on hover/focus with a pointer, and fades in on scroll on touch screens. Hidden only once JS is ready. */
+.research-roadmap-reveal .research-step-detail { transition: opacity 450ms cubic-bezier(.2,.8,.2,1), transform 450ms cubic-bezier(.2,.8,.2,1); }
+@media (hover: none), (pointer: coarse) {
+  .research-roadmap-reveal[data-reveal="ready"] li:not(.is-revealed) .research-step-detail { opacity: 0; transform: translateY(8px); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .research-roadmap-reveal[data-reveal="ready"] li:not(:hover, :focus-within) .research-step-detail { opacity: 0; transform: translateY(6px); }
+}
 .research-roadmap .research-step-date { color: #59357c; font-size: .875rem; font-weight: 650; }
 .research-roadmap li:is(:hover, :focus-within, [aria-current="step"])::before { transform: scaleY(1); }
 .research-roadmap li:is(:hover, :focus-within, [aria-current="step"]) .research-step-number { color: var(--color-purple); transform: translateY(-3px); }
@@ -140,7 +149,8 @@
 @media print { .research-hero-photo, .research-format-art, .research-winners-mark, .research-acknowledgement { display: none; } .research-presentation-card { border: 1px solid; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .research-roadmap li::before, .research-step-number, .research-criteria > li { transition: none; }
+  .research-roadmap li::before, .research-step-number, .research-criteria > li, .research-roadmap-reveal .research-step-detail { transition: none; transform: none; }
+  .research-roadmap-reveal[data-reveal="ready"] li .research-step-detail { transform: none; }
   .research-roadmap li:is(:hover, :focus-within, [aria-current="step"]) .research-step-number { transform: none; }
   /* Keep the gold state visible without animating or transforming its rail. */
   .research-roadmap li::before { transform: none; opacity: 0; }

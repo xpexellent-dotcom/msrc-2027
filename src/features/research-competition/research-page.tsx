@@ -32,7 +32,7 @@ export function ResearchCompetitionPage({ locale, reviewAllowed = false }: { loc
         <p className="research-kicker">{copy.kicker}</p><h1 id="research-title">{copy.title}</h1><p className="research-hero-intro">{copy.intro}</p><AbstractSubmissionCta locale={locale} reviewAllowed={reviewAllowed} />
       </Container>
     </section>
-    <section className="research-section research-journey" aria-labelledby="research-journey"><Container><SectionHeading id="research-journey" title={copy.journey} /><AbstractRoadmap locale={locale} /></Container></section>
+    <section className="research-section research-journey" aria-labelledby="research-journey"><Container><SectionHeading id="research-journey" title={copy.journey} /><AbstractRoadmap locale={locale} reveal /></Container></section>
     <section className="research-section research-presentations" aria-labelledby="research-presentations"><Container><SectionHeading id="research-presentations" title={copy.presentations} />
       <div className="research-presentation-grid">{[[copy.oral, copy.oralText], [copy.poster, copy.posterText]].map(([title, text], index) => <article className={`research-presentation-card research-presentation-card--${index === 0 ? "oral" : "poster"}`} key={title} aria-labelledby={`research-format-${index}`}>
         <div className="research-format-art" aria-hidden="true"><span className="research-format-numeral">{index === 0 ? "I" : "II"}</span><PresentationStudy poster={index === 1} /></div>
