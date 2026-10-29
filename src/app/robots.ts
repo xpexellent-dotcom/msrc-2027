@@ -6,7 +6,7 @@ import { indexable, siteOrigin } from "@/lib/metadata";
 export default function robots(): MetadataRoute.Robots {
   if (!indexable) return { rules: { userAgent: "*", disallow: "/" } };
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/design-system", "/*/design-system", "/*/hero-preview", "/*/admin", "/*/dashboard", "/*/reviewer", "/*/check-in", "/*/staff"] },
+    rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/design-system", "/*/design-system", "/*/hero-preview", "/*/admin", "/*/dashboard", "/*/reviewer", "/*/check-in", "/*/staff", "/*/abstracts/submit"] },
     sitemap: `${siteOrigin}/sitemap.xml`,
     host: siteOrigin,
   };

@@ -12,7 +12,7 @@ for (const locale of ["en", "ar"] as const) test(`${locale} incomplete profile r
   await context.addCookies([{ name: "msrc-participant-test", value: Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64url"), url: origin, httpOnly: true, sameSite: "Strict" }]);
   const fixture = await context.request.post("http://127.0.0.1:3218/__synthetic/abstracts", { headers: { apikey: "sb_secret_participant_mock_only" }, data: { actorId, mode: "profile_incomplete", submissions: [abstractSubmission], settings: abstractSettings } });
   expect(fixture.ok()).toBe(true);
-  await page.goto(`/${locale}/abstracts`);
+  await page.goto(`/${locale}/abstracts/submit`);
   const gate = page.getByTestId("profile-submission-gate").first(); await expect(gate).toBeVisible();
   await expect(gate.getByRole("link")).toHaveAttribute("href", `/${locale}/my-msrc#profile`);
   await page.getByRole("button", { name: abstractCopy[locale].edit, exact: true }).click();

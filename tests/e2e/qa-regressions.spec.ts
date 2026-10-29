@@ -128,7 +128,7 @@ test("the Arabic webfont leaves 1ch unchanged, so authored two-line headings sta
 
 // 41 of 490 paragraphs and list items ended with one word alone on the last line.
 test("paragraphs and list items wrap without a lone last word where supported", async ({ page }) => {
-  for (const path of ["/en", "/ar/submissions"]) {
+  for (const path of ["/en", "/ar/abstracts"]) {
     await page.goto(path);
     const styles = await page.locator("main p, main li").evaluateAll((elements) => {
       if (!CSS.supports("text-wrap-style", "pretty")) return ["unsupported"];

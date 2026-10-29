@@ -21,7 +21,7 @@ const headerCopy = {
     edition: "Fifth edition", registration: "Conference registration", action: "Reserve your seat", options: "options",
     links: [
       { label: "Participate", href: "/participate", children: [
-        { label: "Attend", href: "/registration" }, { label: "Abstract submission", href: "/submissions" },
+        { label: "Attend", href: "/registration" }, { label: "Research competition", href: "/abstracts" },
         { label: "Workshops", href: "/workshops" }, { label: "Hackathon", href: "/hackathon" },
         { label: "3MT", href: "/3mt" },
       ] },
@@ -35,7 +35,7 @@ const headerCopy = {
     edition: "النسخة الخامسة", registration: "التسجيل في المؤتمر", action: "احجز مقعدك", options: "خيارات",
     links: [
       { label: "المشاركة", href: "/participate", children: [
-        { label: "الحضور", href: "/registration" }, { label: "تقديم الملخصات", href: "/submissions" },
+        { label: "الحضور", href: "/registration" }, { label: "مسابقة الأبحاث", href: "/abstracts" },
         { label: "ورش العمل", href: "/workshops" }, { label: "الهاكاثون", href: "/hackathon" },
         { label: "أطروحة في ثلاث دقائق", href: "/3mt" },
       ] },

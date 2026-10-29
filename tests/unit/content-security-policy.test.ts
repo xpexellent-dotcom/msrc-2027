@@ -45,13 +45,13 @@ describe("private CSP (SEC-01/06, ENG-045)", () => {
       expect(proxy(new NextRequest("http://localhost" + path)).headers.get("permissions-policy")).toBeNull();
     }
   });
-  it.each(["staff", "staff/people", "staff/sign-in", "staff/future/route", "sign-in", "sign-up", "forgot-password", "reset-password", "verify-email", "my-msrc", "my-msrc/future", "registration", "abstracts", "staff-security-preview"])("protects EN/AR %s", (path) => {
+  it.each(["staff", "staff/people", "staff/sign-in", "staff/future/route", "sign-in", "sign-up", "forgot-password", "reset-password", "verify-email", "my-msrc", "my-msrc/future", "registration", "abstracts/submit", "staff-security-preview"])("protects EN/AR %s", (path) => {
     for (const locale of ["en", "ar"]) expect(isPrivatePage(`/${locale}/${path}`)).toBe(true);
   });
-  it.each(["/en", "/ar/program", "/en/staffing", "/en/registration-information", "/en/media", "/api/staff-portal", "/en/sign-instructions", "/media/file.mp4", "/en/privacy"])("preserves public/API policy at %s", (path) => {
+  it.each(["/en", "/ar/program", "/en/abstracts", "/ar/abstracts/", "/en/staffing", "/en/registration-information", "/en/media", "/api/staff-portal", "/en/sign-instructions", "/media/file.mp4", "/en/privacy"])("preserves public/API policy at %s", (path) => {
     expect(isPrivatePage(path)).toBe(false);
   });
-  it.each(["/%65n/sign-in", "/%61r/registration", "/%65n/staff/people", "/%61r/my-msrc", "/%65n/staff/%invalid", "/%61r/abstracts"])("protects encoded locale paths at %s", (path) => {
+  it.each(["/%65n/sign-in", "/%61r/registration", "/%65n/staff/people", "/%61r/my-msrc", "/%65n/staff/%invalid", "/%61r/abstracts/submit"])("protects encoded locale paths at %s", (path) => {
     expect(isPrivatePage(path)).toBe(true);
   });
   it("uses no production script exception or third-party origin", () => {

@@ -91,6 +91,7 @@ describe.skipIf(!isolatedCi)("Participant profile concurrent edits (disposable G
         values('${edition}',1,pg_temp.abstract_settings(),true,true);
       select pg_temp.complete_profile(88606,'${edition}');
       select pg_temp.complete_profile(88609,'${edition}');
+      update msrc_participant.profile_details set student_status='year_6' where actor_id in('${actor(88606)}','${actor(88609)}');
       insert into msrc_competitions.settings(edition_key,kind,version,configuration,enabled,evidence_ready)
         values('${edition}','three_minute_thesis',1,pg_temp.profile_competition_settings('three_minute_thesis'),true,true);
       commit;`);

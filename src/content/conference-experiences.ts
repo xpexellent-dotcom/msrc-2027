@@ -101,7 +101,7 @@ const englishPages: ExperienceCopy["pages"] = {
   media: { label: "Media", eyebrow: "The conversation continues", title: "Moments to revisit.\nIdeas to return to.", lead: "Explore approved conference highlights and recordings as they become available." },
   participate: { label: "Participate", eyebrow: "Find your place at MSRC", title: "Bring a question.\nLeave with possibility.", lead: "Attend, present, build or learn. Find the experience for you." },
   registration: { label: "Attend MSRC", eyebrow: "Join the conversation", title: "Be part of\nwhat comes next.", lead: "Join a community of students, researchers and healthcare professionals." },
-  submissions: { label: "Abstract submission", eyebrow: "Share your research", title: "Abstract\nsubmission.", lead: "Bring completed research or work in progress into a conversation with the scientific community." },
+    submissions: { label: "Research competition", eyebrow: "Share your research", title: "Research\ncompetition.", lead: "Bring your completed research into a conversation with the scientific community." },
   hackathon: { label: "Hackathon", eyebrow: "Research to impact", title: "Turn an idea\ninto a possibility.", lead: "Turn scientific evidence into responsible healthcare solutions, or reimagine how medical and health research works." },
   workshops: { label: "Workshops", eyebrow: "Learn by doing", title: "New skills.\nFresh perspective.", lead: "Practical learning alongside the scientific program." },
   threeMinuteThesis: { label: "Three Minute Thesis", eyebrow: "Postgraduate research", title: "Make your\nresearch heard.", lead: "Communicate your postgraduate research through Three Minute Thesis (3MT)." },
@@ -112,7 +112,7 @@ const arabicPages: ExperienceCopy["pages"] = {
   media: { label: "الوسائط", eyebrow: "الحوار مستمر", title: "لحظات نعود إليها.\nوأفكار تبقى معنا.", lead: "استكشف لقطات المؤتمر وتسجيلاته المعتمدة عند إتاحتها." },
   participate: { label: "المشاركة", eyebrow: "اختر مسارك في المؤتمر", title: "ابدأ بسؤال.\nواكتشف إمكانات جديدة.", lead: "احضر، أو اعرض بحثك، أو ابتكر، أو تعلّم. اكتشف التجربة التي تناسبك." },
   registration: { label: "حضور المؤتمر", eyebrow: "انضم إلى الحوار", title: "كن جزءًا\nمن الفصل القادم.", lead: "انضم إلى مجتمع من الطلاب والباحثين والممارسين الصحيين." },
-  submissions: { label: "تقديم الملخصات", eyebrow: "شارك بحثك", title: "قدّم\nملخصك البحثي.", lead: "شارك أبحاثك المكتملة أو الجارية في حوار مع المجتمع العلمي." },
+    submissions: { label: "مسابقة الأبحاث", eyebrow: "شارك بحثك", title: "مسابقة\nالأبحاث.", lead: "شارك بحثك المكتمل في حوار مع المجتمع العلمي." },
   hackathon: { label: "الهاكاثون", eyebrow: "من البحث إلى الأثر", title: "حوّل فكرتك\nإلى إمكانية.", lead: "حوّل الأدلة العلمية إلى حلول مسؤولة للرعاية الصحية، أو أعد تصور كيفية إجراء البحوث الطبية والصحية." },
   workshops: { label: "ورش العمل", eyebrow: "تعلّم بالممارسة", title: "مهارات جديدة.\nورؤية أوسع.", lead: "تعلّم عملي إلى جانب البرنامج العلمي." },
   threeMinuteThesis: { label: "الأطروحة في ثلاث دقائق", eyebrow: "أبحاث الدراسات العليا", title: "اجعل\nبحثك مسموعًا.", lead: "شارك بحثك في الدراسات العليا ضمن مسابقة الأطروحة في ثلاث دقائق (3MT)." },
@@ -145,7 +145,7 @@ export const experienceCopy: Record<Locale, ExperienceCopy> = {
 /** Replace any null icon with an approved local SVG/image path; no component edit needed. */
 export const participationPaths: readonly { id: keyof typeof participationJourneyCopy.en; href: string; icon: string | null; glyph: number }[] = [
   { id: "registration", href: "/registration", icon: null, glyph: 0 },
-  { id: "submissions", href: "/submissions", icon: null, glyph: 1 },
+  { id: "submissions", href: "/abstracts", icon: null, glyph: 1 },
   { id: "workshops", href: "/workshops", icon: null, glyph: 5 },
   { id: "hackathon", href: "/hackathon", icon: null, glyph: 6 },
   { id: "threeMinuteThesis", href: "/3mt", icon: null, glyph: 7 },

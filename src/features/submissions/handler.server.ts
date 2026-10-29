@@ -4,7 +4,7 @@ import { nativeTokenNeedsRefresh, participantCookie, participantOrigin, particip
 import { participantReady, verifiedClaims } from "@/features/registration/handler.server";
 import { AbstractRpcMissingError, createAbstractBackend, type AbstractBackend } from "./backend.server";
 import type { AbstractOutcome, AbstractResponse } from "./contracts";
-import { abstractRecord, abstractSettingsProjection, abstractSubmissionProjection, countAbstractWords, validateAbstractDocument } from "./validation";
+import { abstractDraftIssues, abstractRecord, abstractSettingsProjection, abstractSubmissionProjection, presenterEligible, validateAbstractDocument } from "./validation";
 import { abstractFormToken, readAbstractFormToken, readAbstractJson } from "./security.server";
 
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", Expires: "0", "X-Content-Type-Options": "nosniff" };
@@ -26,6 +26,7 @@ export function createAbstractHandler(dependencies: { readiness?: () => Particip
       if (!await participantReady(config, backend)) return reply({ state: "closed" }, 503);
       const status = abstractRecord(await backend.rpc("msrc_abstracts_status", { edition_key: config.editionKey }));
       if (status?.enabled !== true) return reply({ state: "closed" }, 503);
+      if (status.documentVersion !== 2) return reply({ state: "area-not-ready" }, 503);
       let session = readParticipantSession(config, request, now);
       if (!session) return reply({ state: "denied" }, 401);
       if (nativeTokenNeedsRefresh(session.accessToken, now)) {
@@ -47,13 +48,20 @@ export function createAbstractHandler(dependencies: { readiness?: () => Particip
       const fresh = () => abstractFormToken(config, origin, session.actorId, session.sessionId, now);
       const gate = (value: unknown) => {
         const state = abstractRecord(value)?.state;
-        if (state === "profile_incomplete") return reply({ state: "profile_incomplete" }, 409);
+        if (state === "profile_incomplete" || state === "presenter_ineligible" || state === "submission_used") return reply({ state }, 409);
         if (state === "denied") return reply({ state: "denied" }, 403);
         if (state === "closed") return reply({ state: "closed" }, 503);
         if (state === "area_not_ready") return reply({ state: "area-not-ready" }, 503);
         if (state === "limited") return reply({ state: "limited" }, 429);
         return null;
       };
+      const before = abstractRecord(await backend.rpc("msrc_abstracts_me", args));
+      const earlyGate = gate(before); if (earlyGate) return earlyGate;
+      const presenter = abstractRecord(before?.presenter), beforeSettings = abstractSettingsProjection(before?.settings);
+      if (before?.state !== "ready" || !Array.isArray(before.submissions) || !beforeSettings || !presenter
+        || presenter.id !== session.actorId || !["name", "email", "institution"].every((key) => typeof presenter[key] === "string")
+        || presenter.status !== null && typeof presenter.status !== "string") return reply({ state: "area-not-ready" }, 503);
+      const eligible = presenterEligible(presenter.status);
       let outcome: AbstractOutcome | undefined, submissionId: string | undefined;
       if (request.method === "POST") {
         if (dependencies.observeOnly) return reply({ state: "invalid_input" }, 405);
@@ -64,27 +72,37 @@ export function createAbstractHandler(dependencies: { readiness?: () => Particip
           || typeof body.operationId !== "string" || !participantUuid.test(body.operationId) || !Number.isSafeInteger(body.expectedVersion) || Number(body.expectedVersion) < 0
           || body.submissionId !== null && (typeof body.submissionId !== "string" || !participantUuid.test(body.submissionId))
           || body.action === "finalize" && body.submissionId === null || !readAbstractFormToken(config, body.formToken, origin, session.actorId, session.sessionId, now)) return reply({ state: "invalid_input" }, 400);
-        const document = body.action === "save" ? validateAbstractDocument(body.document) : null;
-        if (body.action === "save" && (!document || countAbstractWords(document.body) > 300)) return reply({ state: "invalid_input" }, 400);
+        let document = body.action === "save" ? validateAbstractDocument(body.document) : null;
+        if (body.action === "save" && (!document || abstractDraftIssues(document).length)) return reply({ state: "invalid_input" }, 400);
+        // The presenter identity is account/profile authority, never editable request data.
+        if (document) document = { ...document, presentingAuthorId: session.actorId,
+          authors: [{ id: session.actorId, name: presenter.name as string, email: presenter.email as string, affiliations: [presenter.institution as string] },
+            ...document.authors.filter((author) => author.id !== document!.presentingAuthorId && author.id !== session.actorId)] };
         // The abstract RPC has its own actor-scoped budget. Autosave must not consume
         // the authentication form's shared 20/IP/hour admission quota.
         if (process.env.ABSTRACT_SUBMISSIONS_ENABLED !== "true" || (dependencies.readiness ?? getParticipantConfig)().state !== "ready") return reply({ state: "closed" }, 503);
-        if (body.action === "finalize" && !profileComplete) return reply({ state: "profile_incomplete" }, 409);
+        if (body.action === "finalize") {
+          if (beforeSettings.windowState !== "open") return reply({ state: "closed" }, 409);
+          if (!profileComplete) return reply({ state: "profile_incomplete" }, 409);
+          if (!eligible) return reply({ state: "presenter_ineligible" }, 409);
+          // The transactional RPC owns the one-chance check and can replay the same
+          // idempotency receipt after a successful response is lost.
+        }
         const result = await backend.rpc(body.action === "save" ? "msrc_abstracts_save_draft" : "msrc_abstracts_finalize", { ...args,
           submission_id: body.submissionId, expected_version: body.expectedVersion, operation_id: body.operationId, ...(document ? { document } : {}) });
         const refused = gate(result); if (refused) return refused;
         const row = abstractRecord(result);
-        if (!["saved", "finalized", "conflict", "locked", "pi_limit", "evidence_gate", "invalid"].includes(String(row?.state))) return reply({ state: "unavailable" }, 503);
+        if (!["saved", "finalized", "conflict", "locked", "evidence_gate", "invalid"].includes(String(row?.state))) return reply({ state: "unavailable" }, 503);
         outcome = row!.state === "locked" ? "conflict" : row!.state as AbstractOutcome;
         const saved = abstractRecord(row?.submission);
         if (saved && typeof saved.id === "string" && participantUuid.test(saved.id)) submissionId = saved.id;
       }
       const raw = await backend.rpc("msrc_abstracts_me", args), refused = gate(raw); if (refused) return refused;
       const data = abstractRecord(raw);
-      if (!data || Object.keys(data).sort().join(",") !== "settings,state,submissions" || data.state !== "ready" || !Array.isArray(data.submissions)) return reply({ state: "unavailable" }, 503);
+      if (!data || Object.keys(data).sort().join(",") !== "presenter,settings,state,submissions" || data.state !== "ready" || !Array.isArray(data.submissions)) return reply({ state: "unavailable" }, 503);
       const settings = abstractSettingsProjection(data.settings), submissions = data.submissions.map(abstractSubmissionProjection);
       if (!settings || submissions.some((row) => !row)) return reply({ state: "unavailable" }, 503);
-      return reply({ state: "ready", profileComplete, settings, submissions: submissions.filter((row) => row !== null), formToken: fresh(), ...(outcome ? { outcome } : {}), ...(submissionId ? { submissionId } : {}) }, outcome && !["saved", "finalized"].includes(outcome) ? 409 : 200);
+      return reply({ state: "ready", profileComplete, presenterEligible: eligible, presenter: { id: session.actorId, name: presenter.name as string, email: presenter.email as string, institution: presenter.institution as string, status: presenter.status as string | null }, settings, submissions: submissions.filter((row) => row !== null), formToken: fresh(), ...(outcome ? { outcome } : {}), ...(submissionId ? { submissionId } : {}) }, outcome && !["saved", "finalized"].includes(outcome) ? 409 : 200);
     } catch (error) { return reply({ state: error instanceof AbstractRpcMissingError ? "area-not-ready" : "unavailable" }, 503); }
   };
 }

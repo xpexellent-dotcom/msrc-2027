@@ -31,7 +31,7 @@ export function decodeParticipantDetail(value: unknown): ParticipantDetail | nul
     || !(registration.ticket === null || (record(registration.ticket) && text(record(registration.ticket)!.reference, 12) && text(record(registration.ticket)!.status, 40)))
     || !list(registration.attendance, (item) => text(item.day, 10) && text(item.checkedInAt, 64) && text(item.method, 20)))) return null;
   if (!list(row.workshops, (item) => text(item.title, 500) && text(item.status, 40))
-    || !list(row.submissions, (item) => optional(item.reference, 60) && optional(item.title, 2000) && text(item.status, 40))
+    || !list(row.submissions, (item) => optional(item.reference, 60) && optional(item.title, 6000) && text(item.status, 40))
     || !list(row.competitions, (item) => text(item.kind, 40) && optional(item.title, 2000) && text(item.status, 40) && typeof item.isLead === "boolean" && typeof item.confirmed === "boolean")
     || !list(row.certificates, (item) => text(item.kind, 40) && optional(item.activity, 500) && text(item.status, 40))) return null;
   const hackathon = row.hackathonProfile === null ? null : record(row.hackathonProfile);

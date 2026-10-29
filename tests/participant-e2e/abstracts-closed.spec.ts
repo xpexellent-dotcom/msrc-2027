@@ -8,7 +8,7 @@ for (const locale of ["en", "ar"] as const) {
     // The incumbent account suite has no abstract flag and no abstract provider/mock.
     const response = await request.get("/api/abstracts?locale=" + locale);
     expect(response.status()).toBe(503); expect(await response.json()).toEqual({ state: "closed" });
-    await page.goto(`/${locale}/abstracts`);
+    await page.goto(`/${locale}/abstracts/submit`);
     await expect(page.getByRole("status")).toHaveText(abstractCopy[locale].closed);
     await expect(page.locator("#abstract-title, input[type=file]")).toHaveCount(0);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);

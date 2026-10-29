@@ -9,7 +9,7 @@ const rubric = [
 ];
 const identity = { authorNames: ["Synthetic Private Author"], institutions: ["Synthetic Private Institution"] };
 const config: RequestConfiguration = { model: "deepseek-flash", promptVersion: "synthetic-advisory-v1", thinking: "disabled", maxTokens: 2048 };
-const packet = () => ({ title: "Synthetic ongoing study", body: { background: "An entirely fictional question.", aim: "Compare synthetic interventions.", methods: "Recruitment continues.", results: "No results are available yet.", conclusion: "The study is ongoing." } });
+const packet = () => ({ title: "Synthetic ongoing study", body: { background: "An entirely fictional question.", objectives: "Compare synthetic interventions.", methods: "Recruitment continues.", results: "No results are available yet.", limitations: "Synthetic limitations.", conclusion: "The study is ongoing." } });
 const output = () => ({ criteria: [{ criterionId: "methods", score: 6, rationale: "The stated methods describe the comparison." }, { criterionId: "evidence", score: 1.5, rationale: "Results are not yet available; uncertainty remains." }], overallComment: "AI advisory, not a decision." });
 const response = (value: unknown = output()) => ({ model: "deepseek-flash", choices: [{ finish_reason: "stop", message: { role: "assistant", content: JSON.stringify(value) } }] });
 const network = vi.fn<typeof fetch>();
@@ -17,20 +17,42 @@ beforeEach(() => { network.mockReset(); network.mockRejectedValue(new Error("REA
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("AI-04 staff advisory minimization boundary", () => {
-  it("projects only title and the five scientific body fields, even with identity-bearing extras", async () => {
-    const input = { ...packet(), id: "private-abstract-id", authorNames: ["Synthetic Private Author"], affiliations: ["Synthetic Private Institution"], email: "private@example.invalid", identity: { passport: "private-passport" }, keywords: ["private-keyword"], specialtyId: "private-specialty", studyTypeId: "private-type", body: { ...packet().body, email: "nested@example.invalid", authorName: "Nested Private Author" } };
+  it("screens a DB-valid 500-character supervisor name locally without placing it in the provider payload", () => {
+    const supervisorName = "S".repeat(500), privateIdentity = { ...identity, authorNames: [...identity.authorNames, supervisorName] };
+    const prepared = prepareAdvisoryRequest({ ...packet(), supervisor: { fullName: supervisorName, email: "supervisor@example.invalid", phone: "+966551234567" } }, 3, rubric, config, privateIdentity);
+    expect(prepared.ok).toBe(true); if (!prepared.ok) throw new Error("fixture");
+    expect(JSON.parse(prepared.request.messages[1].content)).toEqual(packet()); expect(JSON.stringify(prepared.request)).not.toContain(supervisorName);
+    expect(prepareAdvisoryRequest({ ...packet(), body: { ...packet().body, methods: supervisorName } }, 3, rubric, config, privateIdentity)).toEqual({ ok: false, reason: "identity_leak" });
+    expect(prepareAdvisoryRequest(packet(), 3, rubric, config, { ...identity, authorNames: ["S".repeat(501)] })).toEqual({ ok: false, reason: "invalid_snapshot" });
+    expect(network).not.toHaveBeenCalled();
+  });
+  it("does not truncate valid scientific titles containing long words", () => {
+    const title = Array.from({ length: 20 }, () => "x".repeat(200)).join(" ");
+    const prepared = prepareAdvisoryRequest({ ...packet(), title }, 3, rubric, config, identity);
+    expect(prepared.ok).toBe(true); if (!prepared.ok) throw new Error("fixture");
+    expect(JSON.parse(prepared.request.messages[1].content).title).toBe(title);
+  });
+  it("projects only title and the six scientific body fields, even with identity-bearing extras", async () => {
+    const input = { ...packet(), supervisor: { fullName: "Private Supervisor", email: "supervisor@example.invalid", phone: "+966551234567" }, ethics: { reference: "private-ethics-reference" }, id: "private-abstract-id", authorNames: ["Synthetic Private Author"], affiliations: ["Synthetic Private Institution"], email: "private@example.invalid", identity: { passport: "private-passport" }, keywords: ["private-keyword"], specialtyId: "private-specialty", studyTypeId: "private-type", body: { ...packet().body, email: "nested@example.invalid", authorName: "Nested Private Author" } };
     const prepared = prepareAdvisoryRequest(input, 3, rubric, config, identity);
     expect(prepared.ok).toBe(true); if (!prepared.ok) throw new Error("fixture");
     network.mockResolvedValue(new Response(JSON.stringify(response()), { status: 200 }));
     await createDeepSeekProvider({ apiKey: "synthetic-key-never-valid" }).assess(prepared.request);
     const request = JSON.parse(String(network.mock.calls[0][1]?.body));
     expect(JSON.parse(request.messages[1].content)).toEqual(packet());
-    expect(JSON.stringify(request)).not.toMatch(/private-|Private Author|Private Institution|example.invalid|authorNames|affiliations|passport|specialtyId|keywords/);
+    expect(JSON.stringify(request)).not.toMatch(/private-|Private Author|Private Institution|Private Supervisor|example.invalid|authorNames|affiliations|passport|specialtyId|keywords|supervisor|ethics|966551234567/);
     expect(request.messages[0].content).toContain(JSON.stringify(rubric));
     expect(request).toMatchObject({ model: "deepseek-flash", thinking: { type: "disabled" }, response_format: { type: "json_object" }, stream: false });
     expect(Object.keys(request).sort()).toEqual(["max_tokens", "messages", "model", "response_format", "stream", "thinking"]);
   });
-  it.each(["title", "background", "aim", "methods", "results", "conclusion"])("blocks email canary in %s before dispatch", field => {
+  it("projects all six sections from historical snapshots without modifying them", () => {
+    const legacy = { title: "Historical study", body: { background: "Background", aim: "Historical aim", methods: "Methods", results: "Results", conclusion: "Conclusion" } }, original = structuredClone(legacy);
+    const prepared = prepareAdvisoryRequest(legacy, 3, rubric, config, identity);
+    expect(prepared.ok).toBe(true); if (!prepared.ok) throw new Error("fixture");
+    expect(JSON.parse(prepared.request.messages[1].content)).toEqual({ title: legacy.title, body: { background: "Background", objectives: "Historical aim", methods: "Methods", results: "Results", limitations: "", conclusion: "Conclusion" } });
+    expect(legacy).toEqual(original);
+  });
+  it.each(["title", "background", "objectives", "methods", "results", "limitations", "conclusion"])("blocks email canary in %s before dispatch", field => {
     const value = packet(); if (field === "title") value.title = "Name person@example.invalid"; else value.body[field as keyof typeof value.body] = "Contact person@example.invalid";
     expect(prepareAdvisoryRequest(value, 3, rubric, config, identity)).toEqual({ ok: false, reason: "identity_leak" }); expect(network).not.toHaveBeenCalled();
   });

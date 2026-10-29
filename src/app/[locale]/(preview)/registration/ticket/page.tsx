@@ -6,7 +6,6 @@ import { registrationTicketCopy } from "@/features/registration/ticket-copy";
 import { readRegistrationTicketPageState } from "@/features/registration/ticket-page-state.server";
 import { isLocale } from "@/lib/i18n";
 import { siteTitle } from "@/lib/metadata";
-import "@/styles/participant-accounts.css";
 
 export const dynamic = "force-dynamic";
 type PageProps = { params: Promise<{ locale: string }> };

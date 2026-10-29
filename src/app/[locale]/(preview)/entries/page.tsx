@@ -7,7 +7,6 @@ import { EntryWorkspace } from "@/features/competitions/entry-workspace";
 import { competitionCopy } from "@/features/competitions/copy";
 import { readCompetitionPageState } from "@/features/competitions/page-state.server";
 import { isCompetitionKind } from "@/features/competitions/validation";
-import "@/styles/participant-accounts.css";
 import "@/features/competitions/competitions.css";
 
 export const dynamic = "force-dynamic";

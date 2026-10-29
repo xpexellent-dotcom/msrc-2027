@@ -16,7 +16,7 @@ describe("pageAddress", () => {
 
 // Only public information pages are counted; anything else, including future private areas, is not.
 describe("isCountedPage", () => {
-  it.each(["/en", "/ar/", "/en/participate", "/ar/dates-venue", "/en/media", "/ar/program/opening-keynote", "/en/speakers/a-speaker"])("counts %s", (path) => {
+  it.each(["/en", "/ar/", "/en/participate", "/en/abstracts", "/ar/abstracts", "/ar/dates-venue", "/en/media", "/ar/program/opening-keynote", "/en/speakers/a-speaker"])("counts %s", (path) => {
     expect(isCountedPage(path)).toBe(true);
   });
 
@@ -29,7 +29,7 @@ describe("isCountedPage", () => {
     // ENG-022: illustrative Team/Sponsors pages stay outside analytics for this demo.
     // ENG-043: registration can contain a private signed-in request form.
     // ENG-077: entries contains private project and roster information.
-    const excluded = ["contact", "privacy", "terms", "team", "sponsors", "registration", "abstracts", "entries"];
+    const excluded = ["contact", "privacy", "terms", "team", "sponsors", "registration", "entries"];
     const folders = readdirSync("src/app/[locale]/(preview)", { withFileTypes: true }).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
     const missing = folders.filter((folder) => !(countedSections as readonly string[]).includes(folder) && !excluded.includes(folder));
     expect(missing, "New public page: explicitly decide whether it may be counted").toEqual([]);
@@ -38,7 +38,7 @@ describe("isCountedPage", () => {
 });
 
 describe("prepareObservabilityEvent", () => {
-  it.each(["/en/registration", "/ar/registration", "/en/abstracts", "/ar/abstracts", "/en/entries", "/ar/entries", "/en/reviewer/competitions", "/en/judge/competitions"])("drops private participant events for %s", (path) => {
+  it.each(["/en/registration", "/ar/registration", "/en/abstracts/submit", "/ar/abstracts/submit", "/en/entries", "/ar/entries", "/en/reviewer/competitions", "/en/judge/competitions"])("drops private participant events for %s", (path) => {
     expect(prepareObservabilityEvent({ type: "pageview", url: `https://www.msrc2027.com${path}` }, false)).toBeNull();
   });
   it.each(["/en/contact", "/ar/contact", "/en/privacy", "/ar/privacy/2026-10-04-draft", "/en/terms/2026-10-04-draft", "/ar/terms"])("drops contact and legal-draft events for %s", (path) => {

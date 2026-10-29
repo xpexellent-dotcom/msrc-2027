@@ -6,7 +6,6 @@ import { isLocale } from "@/lib/i18n";
 import { researchParticipantCopy } from "@/features/research-judging/participant-copy";
 import { readResearchParticipantPageState } from "@/features/research-judging/participant-page-state.server";
 import { ResearchParticipantWorkspace } from "@/features/research-judging/participant-workspace";
-import "@/styles/participant-accounts.css";
 export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

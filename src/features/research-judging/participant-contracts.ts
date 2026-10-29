@@ -26,7 +26,7 @@ export function projectResearchParticipantEntries(value: unknown): ResearchParti
   for (const raw of root.entries) {
     const row = record(raw);
     if (!row || !exact(row, ["id", "title", "reference", "presentationFormat", "award", "supervisorRequest"]) || !uuid(row.id)
-      || !safeText(row.title, 2000) || row.reference !== null && !safeText(row.reference, 200)
+      || !safeText(row.title, 6000) || row.reference !== null && !safeText(row.reference, 200)
       || ![null, "oral", "poster"].includes(row.presentationFormat as null | string)) return null;
     let award: ResearchParticipantEntry["award"] = null, supervisorRequest: ResearchParticipantEntry["supervisorRequest"] = null;
     if (row.award !== null) {

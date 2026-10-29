@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const routes = ["registration", "submissions", "workshops", "hackathon", "3mt"] as const;
+const routes = ["registration", "abstracts", "workshops", "hackathon", "3mt"] as const;
 
 async function readCard(page: Page, route: string) {
   await page.locator(`#pathway-${route}`).evaluate((card) => {
@@ -21,7 +21,7 @@ for (const locale of ["en", "ar"] as const) {
     for (const route of [...routes].reverse()) await readCard(page, route);
     await expect(page).toHaveURL(new RegExp(`/${locale}$`));
     await expect(page.locator(".pathways-introduction")).toHaveCSS("position", "sticky");
-    await readCard(page, "submissions");
+    await readCard(page, "abstracts");
     const before = await page.locator(".pathways-introduction").boundingBox();
     await readCard(page, "workshops");
     const after = await page.locator(".pathways-introduction").boundingBox();

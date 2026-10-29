@@ -105,7 +105,7 @@ for (const locale of ["en", "ar"] as const) {
     const cards = page.locator(".pathway-list > .pathway-card");
     await expect(cards).toHaveCount(5);
     expect(await cards.locator(".pathway-action").evaluateAll((links) => links.map((link) => new URL((link as HTMLAnchorElement).href).pathname)))
-      .toEqual(["registration", "submissions", "workshops", "hackathon", "3mt"].map((path) => `/${locale}/${path}`));
+      .toEqual(["registration", "abstracts", "workshops", "hackathon", "3mt"].map((path) => `/${locale}/${path}`));
     for (const card of await cards.all()) {
       await card.scrollIntoViewIfNeeded();
       await expect(card.getByRole("heading", { level: 3 })).toBeVisible();

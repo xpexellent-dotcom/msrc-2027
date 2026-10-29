@@ -35,20 +35,28 @@ function decodeResponse(value: unknown): ResearchResponse | null {
   }
   if (data.submissions !== undefined) {
     if (!Array.isArray(data.submissions) || data.submissions.length > 5000) return null;
-    result.submissions = []; for (const raw of data.submissions) { const row = researchRecord(raw), item = row?.decision === null ? null : decision(row?.decision); if (!row || !researchUuid(row.id) || !researchText(row.reference, 160) || !researchText(row.status, 100) || !researchInteger(row.version, 1) || !researchText(row.title, 1000) || !researchInteger(row.wordCount) || typeof row.packetReady !== "boolean" || !researchInteger(row.assignedCount) || !researchInteger(row.completedCount) || row.decision !== null && !item) return null; result.submissions.push({ id: row.id, reference: row.reference, status: row.status, version: row.version, title: row.title, wordCount: row.wordCount, packetReady: row.packetReady, assignedCount: row.assignedCount, completedCount: row.completedCount, decision: item }); }
+    result.submissions = []; for (const raw of data.submissions) { const row = researchRecord(raw), item = row?.decision === null ? null : decision(row?.decision); if (!row || !researchUuid(row.id) || !researchText(row.reference, 160) || !researchText(row.status, 100) || !researchInteger(row.version, 1) || !researchText(row.title, 6000) || !researchInteger(row.wordCount) || typeof row.packetReady !== "boolean" || !researchInteger(row.assignedCount) || !researchInteger(row.completedCount) || row.decision !== null && !item) return null; result.submissions.push({ id: row.id, reference: row.reference, status: row.status, version: row.version, title: row.title, wordCount: row.wordCount, packetReady: row.packetReady, assignedCount: row.assignedCount, completedCount: row.completedCount, decision: item }); }
   }
   if (data.reviewers !== undefined) { if (!Array.isArray(data.reviewers) || data.reviewers.length > 5000) return null; result.reviewers = []; for (const raw of data.reviewers) { const row = researchRecord(raw); if (!row || !researchUuid(row.id) || !researchText(row.name, 500) || !Array.isArray(row.affiliations) || !row.affiliations.every((affiliation) => researchText(affiliation, 500)) || !researchInteger(row.activeAssignments)) return null; result.reviewers.push({ id: row.id, name: row.name, affiliations: row.affiliations as string[], activeAssignments: row.activeAssignments }); } }
   if (data.assignments !== undefined) {
     if (!Array.isArray(data.assignments) || data.assignments.length > 5000 || typeof data.oversight !== "boolean") return null;
     result.oversight = data.oversight; result.assignments = [];
-    for (const raw of data.assignments) { const row = researchRecord(raw); if (!row || !researchUuid(row.id) || !researchText(row.reference, 160) || !researchText(row.status, 100) || !researchInteger(row.version, 1) || !researchText(row.title, 1000)) return null; result.assignments.push({ id: row.id, reference: row.reference, status: row.status, version: row.version, title: row.title }); }
+    for (const raw of data.assignments) { const row = researchRecord(raw); if (!row || !researchUuid(row.id) || !researchText(row.reference, 160) || !researchText(row.status, 100) || !researchInteger(row.version, 1) || !researchText(row.title, 6000)) return null; result.assignments.push({ id: row.id, reference: row.reference, status: row.status, version: row.version, title: row.title }); }
     if (!Array.isArray(data.ownAffiliations) || !data.ownAffiliations.every((entry) => researchText(entry, 500))) return null; result.ownAffiliations = data.ownAffiliations as string[];
   }
   if (data.submission !== undefined) {
     const row = researchRecord(data.submission), doc = researchRecord(row?.document);
-    const packet = doc ? decodeResearchPacket({ title: doc.title, body: doc.body, specialtyId: doc.specialtyId, studyTypeId: doc.studyTypeId, completionStatus: doc.completionStatus, keywords: doc.keywords }) : null;
+    const packet = doc ? decodeResearchPacket({ title: doc.title, body: doc.body, specialtyId: doc.specialtyId, studyTypeId: doc.studyTypeId,
+      ...(Object.hasOwn(doc, "analysisComplete") ? { studyTypeOther: doc.studyTypeOther, analysisComplete: doc.analysisComplete }
+        : { completionStatus: doc.completionStatus, keywords: doc.keywords }) }) : null;
     if (!row || !packet || !researchUuid(row.id) || !researchText(row.reference, 160) || !researchInteger(row.version, 1) || !researchText(row.status, 100) || !researchInteger(row.wordCount)) return null;
     result.submission = { id: row.id, reference: row.reference, version: row.version, status: row.status, wordCount: row.wordCount, document: packet };
+    // This private science-detail response is separate from every reviewer/AI packet.
+    if (doc?.supervisor !== undefined) {
+      const supervisor = researchRecord(doc.supervisor);
+      if (!supervisor || !researchText(supervisor.fullName, 500) || !researchText(supervisor.email, 500) || !researchText(supervisor.phone, 500)) return null;
+      result.submission.supervisor = { fullName: supervisor.fullName, email: supervisor.email, phone: supervisor.phone };
+    }
     if (!researchInteger(data.packetVersion)) return null; result.packetVersion = data.packetVersion;
   }
   if (data.packet !== undefined) { const packet = data.packet === null ? null : decodeResearchPacket(data.packet); if (data.packet !== null && !packet) return null; result.packet = packet; }

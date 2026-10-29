@@ -4858,3 +4858,116 @@ action, commit, push, branch creation, activation or communication is performed.
 [Feature notes](features/participant-profile.md) and
 [verification receipt](progress/2026-10-28-codex-profile-complete.md) record evidence
 and remaining release gates. Requirement IDs are preserved under ORG-067 above.
+
+## ORG-068 — Research competition and abstract submission rules, 28 October 2026
+
+Authority: explicit owner chat decisions dated 28 October 2026, based on the owner's
+“MSRC'27 Abstract Evaluation Rubric” PDF and the English source copy supplied with
+ENG-088. These decisions supersede conflicting research-abstract rules in AGENTS.md,
+S1 ABS-01–04/07/08/12, ENG-065 and ENG-078; other competition rules are unchanged.
+
+1. An abstract may not exceed **350 words including its six fixed section headings**.
+   Background, Objectives, Methods, Results, Limitations and Conclusion count as six
+   words. Title, authors, affiliations, study type and medical specialty are separate
+   and excluded. All six sections are required at finalization; at least one result
+   must be reported. Objectives replaces Aim; Limitations is new and may be one to two
+   sentences. Suggested section lengths are 40–50, 15–25, 60–80, 80–100, 20–30 and
+   20–30 words respectively; these are suggestions within the combined limit.
+2. Only completed research may be submitted: the analysis must be finished and the
+   manuscript already written. Research whose analysis is not done is ineligible.
+   Require a confirmation of both facts instead of completed/ongoing status. Public
+   eligibility specifies completion within the past three years. No completion date
+   field or unrequested screening implementation is authorized in this slice.
+3. Each participant has exactly **one final submission chance per edition**, and at
+   most one draft. Finalized work cannot be edited or resubmitted. Rejection or
+   withdrawal does not restore the chance. Remove the two-applications-per-PI rule
+   and its `pi_limit` outcome for research abstracts.
+4. The submitting participant is the presenting author and must be an undergraduate
+   medical student or medical intern. After the existing ORG-067 completeness gate,
+   allow profile statuses year_1 through year_6, internship and clinical_placement;
+   block postgraduate, residency and faculty with `presenter_ineligible`. Presenter
+   name, account email and institution come from the profile/account and are read-only.
+   Co-author names and affiliations are required; their emails are optional. Remove
+   corresponding-author and PI selections, and remove keywords entirely.
+5. A supervising physician is required at submission: full name, email and E.164
+   phone with a country picker initially +966, reusing profile contact-phone behavior.
+   These are contact details only: no SMS, phone verification or authentication use
+   (ORG-016 remains). They are private to the owner participant, Scientific
+   Administrators and Super Admins, excluded from blinded reviewer and AI packets.
+   ENG-078's separate winner-stage supervisor evidence may remain unchanged.
+6. Title is required and limited to 20 words using the same whitespace/token rule.
+   Study type is exactly one stable ID: retrospective_cohort, prospective_cohort,
+   cross_sectional, case_control, randomized_controlled_trial, quasi_experimental,
+   systematic_review_meta_analysis, qualitative, case_report_series, or other.
+   Other requires text of at most 80 characters. Medical specialty is exactly one
+   of: Internal Medicine; General Surgery; Pediatrics; Obstetrics and Gynecology;
+   Family Medicine; Emergency Medicine; Anesthesiology; Dermatology; Psychiatry;
+   Neurology; Neurosurgery; Orthopedic Surgery; Plastic and Reconstructive Surgery;
+   Urology; Ophthalmology; Otolaryngology (ENT); Cardiothoracic Surgery; Vascular
+   Surgery; Thoracic Surgery; Pediatric Surgery; Surgical Oncology. There is no Other.
+   Owner-approved code constants replace staff-configured taxonomy for abstracts;
+   profile specialty interests keep their incumbent settings and completeness rules.
+7. Owner instruction “draft it”: ethics status approved requires committee/IRB name
+   and approval reference; exempt requires a committee exemption reference or a short
+   explanation; not_required requires a short explanation, for example no human
+   participants or data. Study/trial registration is registered (registry name and
+   number required) or not_applicable. Concise EN/AR helpers are DRAFT for review.
+8. Keep conflict-of-interest, funding, and all-co-author authority/consent declarations.
+   Require acknowledgments of English abstract/materials, academic integrity, one
+   registered presenter and one submission chance without editing after submission.
+9. Public Research competition page shows the supplied intro, ORG-058 journey dates,
+   oral/poster descriptions, three winners in each presentation category, three
+   eligibility cards, preparation checklist, six-section guidelines, seven simplified
+   evaluation criteria and nine compact submission rules including one submission.
+   Evaluation is names plus one line each, **no weights or score thresholds**.
+   Do not include an Oral/Poster presentation rules section. Fix MSRC'26 to MSRC'27,
+   “scintefic” to “scientific” and light grammar only. Draft all new Arabic for owner
+   approval. The supplied source copy is retained in the research-competition content.
+
+Scope: PR 1 covers public information and participant form/server/database validation
+only. Screening gates, rubric/scoring changes, AI scoring changes, decision thresholds
+and supervisor notification email belong to PR 2. Existing consumers must accept the
+new shape without changing those operational policies. No hosted migration, settings
+seed, workflow opening, feature activation, real email, commit, branch or push.
+
+Conflict recorded: approved Terms v1.0 EN/AR still contain the superseded 300-word,
+ongoing-study and two-per-PI rules. This implementation does not invent a replacement
+legal version; owner reconciliation of approved Terms remains a release blocker.
+
+## ENG-088 — Public research competition and abstract document v2, 29 October 2026
+
+Implement ORG-068 on `claude/abstract-page`, base main `576fce9`, leaving changes
+uncommitted. Requirements ABS-01–04/07/08/12/13/15, REV-01/06–09, PRV-03–06,
+SEC-01/02/06, LOC-01–03, TIM-01/02 and ACC-01 apply with the scoped overrides above.
+
+`/{locale}/abstracts` is static-friendly public information with EN/AR metadata and
+sitemap inclusion; a client-only account-aware CTA retains a signed-out server label.
+`/{locale}/abstracts/submit` is private, noindex and force-dynamic. Existing `/submissions`
+links redirect to the public page; participant actions and email workspace links use
+`/abstracts/submit`. Scientific inputs remain English/LTR in both interfaces.
+
+Use the single review-only migration `20261029120000_abstract_submission_v2.sql`.
+Keep forced RLS, private-schema access, server-only service-role RPCs, verified sessions,
+READ COMMITTED and idempotency controls. Serialize the one chance and one draft with
+existing transaction/advisory-lock patterns. Finalize gate order is window, profile
+complete, presenter eligible, unused chance, valid document (then existing evidence
+readiness). Withdrawn/rejected finalized records remain counted. The fixed six-heading
+counter shares the incumbent pinned Unicode ranges with TypeScript, including title
+counting; suggested ranges are not individual limits.
+
+Migrate editable drafts only. Preserve finalized document/snapshot JSON and expose
+legacy `aim` as `objectives`, empty limitations, and unconfirmed analysis through read
+projections. Never infer new participant acknowledgments from old snapshots. New
+supervisor fields stay in private owner/scientific detail paths, excluded by explicit
+reviewer/AI packet whitelists. Existing staff, reviewer, advisory, judging, export and
+email consumers retain their own workflows through compatibility projections.
+Legacy settings remain for profile interests and incumbent staff/review consumers;
+abstract form choices and document validation use `src/content/abstract-taxonomy.ts`.
+
+Code deploys before the migration; the participant API requires documentVersion 2 and
+maps old/missing hosted capabilities to area-not-ready without discarding the session.
+No display date is converted into an operational default. Staff must deliberately
+configure the window and pass existing independent release gates before opening.
+Arabic and ethics helper copy are DRAFT. Full evidence, rollout order and blockers:
+[ENG-088 receipt](progress/2026-10-29-codex-abstract-page.md). Feature note:
+[abstract submissions](features/abstract-submissions.md). `docs/PROGRESS.md` is untouched.

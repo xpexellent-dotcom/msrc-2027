@@ -1,5 +1,5 @@
 import "server-only";
-import { decodeResearchRubric } from "../../features/staff-portal/research-contract.ts";
+import { decodeResearchRubric, projectResearchBody } from "../../features/staff-portal/research-contract.ts";
 import type { AssessmentRequest, LockedSnapshot, RequestConfiguration, Rubric } from "./contracts.ts";
 import { DEEPSEEK_MODEL } from "./configuration.server.ts";
 import { buildAssessmentRequest, parseAssessmentMessage } from "./request.server.ts";
@@ -7,13 +7,13 @@ import { checkIdentityLeaks, isRecord, validReference } from "./sanitizer.server
 
 export interface AdvisoryCriterionScore { readonly criterionId: string; readonly value: number; readonly rationale: string }
 export const ADVISORY_PROMPT_VERSION = "staff-advisory-v1";
-const bodyKeys = ["background", "aim", "methods", "results", "conclusion"] as const;
+const bodyKeys = ["background", "objectives", "methods", "results", "limitations", "conclusion"] as const;
 const text = (value: unknown, limit: number): value is string => typeof value === "string" && value.length <= limit && !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value);
 export type AdvisoryIdentityScreen = LockedSnapshot["identity"];
 /** Private screening context is consumed locally and never copied into the request or result. */
 function validIdentity(value: unknown): value is AdvisoryIdentityScreen {
   return isRecord(value) && [value.authorNames, value.institutions].every(items => Array.isArray(items)
-    && items.length > 0 && items.length <= 100 && items.every(item => text(item, 300) && item.trim().length > 0));
+    && items.length > 0 && items.length <= 100 && items.every(item => text(item, 500) && item.trim().length > 0));
 }
 
 /** The worker independently requires a finalized, staff-attested sanitized packet. */
@@ -23,16 +23,17 @@ export function advisoryRubric(rubricVersion: number, input: unknown): Rubric | 
   return Object.freeze({ status: "APPROVED", version: String(rubricVersion), criteria: Object.freeze(criteria.map(criterion => Object.freeze({ ...criterion }))) });
 }
 
-/** Explicit projection: identity, packet metadata, keywords and attachments cannot reach the provider. */
+/** Explicit projection: identity, supervisor contact details, metadata and attachments cannot reach the provider. */
 export function prepareAdvisoryRequest(input: unknown, rubricVersion: number, criteria: unknown, config: RequestConfiguration, identity: AdvisoryIdentityScreen):
   | { readonly ok: true; readonly request: AssessmentRequest; readonly rubric: Rubric }
   | { readonly ok: false; readonly reason: "invalid_snapshot" | "identity_leak" | "invalid_configuration" } {
   const rubric = advisoryRubric(rubricVersion, criteria);
   if (!rubric || config.model !== DEEPSEEK_MODEL || config.thinking !== "disabled" || !validReference(config.promptVersion)
     || !Number.isSafeInteger(config.maxTokens) || config.maxTokens < 1 || config.maxTokens > 128_000) return { ok: false, reason: "invalid_configuration" };
-  if (!validIdentity(identity) || !isRecord(input) || !text(input.title, 500) || !input.title.trim() || !isRecord(input.body)
-    || !bodyKeys.every(key => text((input.body as Record<string, unknown>)[key], 12_000))) return { ok: false, reason: "invalid_snapshot" };
-  const body = Object.freeze(Object.fromEntries(bodyKeys.map(key => [key, (input.body as Record<string, string>)[key]])));
+  if (!validIdentity(identity) || !isRecord(input) || !text(input.title, 6000) || !input.title.trim()) return { ok: false, reason: "invalid_snapshot" };
+  const projectedBody = projectResearchBody(input.body);
+  if (!projectedBody) return { ok: false, reason: "invalid_snapshot" };
+  const body = Object.freeze(projectedBody);
   const bodyText = bodyKeys.map(key => body[key]).join("\n");
   if (!bodyText.trim() || bodyText.length > 12_000) return { ok: false, reason: "invalid_snapshot" };
   const payload = Object.freeze({ title: input.title, body });

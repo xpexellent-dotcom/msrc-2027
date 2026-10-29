@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 
-const routes = ["participate", "registration", "submissions", "workshops", "hackathon", "3mt"] as const;
+const routes = ["participate", "registration", "abstracts", "workshops", "hackathon", "3mt"] as const;
 const screenshots = ".tools/participation-flow/screenshots";
 
 for (const locale of ["en", "ar"] as const) {
@@ -12,27 +12,27 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/sign-in`);
     await expect(page.locator(".hero-actions a").first()).toHaveAttribute("href", `/${locale}/participate`);
     await expect(page.locator(".closing-grid a")).toHaveAttribute("href", `/${locale}/participate`);
-    const label = locale === "en" ? "Abstract submission" : "تقديم الملخصات";
-    await expect(page.locator(`.pathway-card`).filter({ has: page.locator(`a[href='/${locale}/submissions']`) })).toContainText(label);
+    const label = locale === "en" ? "Research competition" : "مسابقة الأبحاث";
+    await expect(page.locator(`.pathway-card`).filter({ has: page.locator(`a[href='/${locale}/abstracts']`) })).toContainText(label);
     if (isMobile) {
       await page.locator(".menu-toggle").click();
       await expect(page.locator(".mobile-reserve-action")).toHaveAttribute("href", `/${locale}/sign-in`);
-      await expect(page.locator(`.mobile-nav-children a[href='/${locale}/submissions']`)).toHaveText(label);
+      await expect(page.locator(`.mobile-nav-children a[href='/${locale}/abstracts']`)).toHaveText(label);
       await page.locator(".mobile-reserve-action").click();
     } else {
       await page.locator(`.desktop-nav > .header-nav-item > a[href='/${locale}/participate']`).hover();
-      await expect(page.locator(`.header-dropdown a[href='/${locale}/submissions']`)).toContainText(label);
+      await expect(page.locator(`.header-dropdown a[href='/${locale}/abstracts']`)).toContainText(label);
       await page.locator(".header-primary-action").click();
     }
     // ENG-085: "Reserve your seat" opens Sign in, which offers a clear Sign up.
     await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
     await page.goto(`/${locale}/participate`);
-    await expect(page.locator(`.participation-path-link[href='/${locale}/submissions'] h2`)).toHaveText(label);
-    await expect(page.locator(".participation-hub")).not.toContainText(locale === "en" ? /\bResearch\b/ : "البحث العلمي");
-    await page.goto(`/${locale}/submissions`);
+    await expect(page.locator(`.participation-path-link[href='/${locale}/abstracts'] h2`)).toHaveText(label);
+    await page.goto(`/${locale}/abstracts`);
     await expect(page).toHaveTitle(new RegExp(label));
-    await expect(page.locator(".experience-breadcrumb [aria-current=page]")).toHaveText(label);
-    await expect(page.getByTestId("journey-closed")).toContainText(locale === "en" ? "Abstract submissions are not open yet" : "لم يُفتح تقديم الملخصات بعد");
+    await expect(page.locator(".research-breadcrumb [aria-current=page]")).toHaveText(label);
+    await expect(page.getByTestId("research-competition-page")).toBeVisible();
+    await expect(page.locator(".research-roadmap li")).toHaveCount(6);
   });
 
   test(`${locale} hub rows stay horizontal, mirror in RTL and support enlarged text`, async ({ page }, testInfo) => {
@@ -77,7 +77,7 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} each option has benefits, steps, next move and closed actions without dense rules`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    for (const route of routes.slice(1)) {
+    for (const route of routes.slice(1).filter((route) => route !== "abstracts")) {
       await page.goto(`/${locale}/${route}`);
       await expect(page.locator(".participation-benefits")).toBeVisible();
       expect(await page.locator(".participation-benefit").count()).toBeGreaterThanOrEqual(2);
@@ -111,8 +111,10 @@ for (const locale of ["en", "ar"] as const) {
     await signup.click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/sign-up$`));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(locale === "en" ? "Accounts are coming soon" : "حسابات المشاركين قريبًا");
-    await page.goto(`/${locale}/submissions`);
-    await expect(page.locator(".experience-intro .button--gold")).toHaveText(locale === "en" ? "Submit your abstract" : "قدّم ملخصك البحثي");
+    await page.goto(`/${locale}/abstracts`);
+    await expect(page.locator(".research-submission-cta")).toHaveCount(2);
+    // abs2: the submission rules moved to the top of the submission form.
+    await expect(page.locator(".research-rules li")).toHaveCount(0);
     await expect(page.getByRole("main")).not.toContainText(locale === "en" ? /Evidence, handled privately|Research and attendance|Supervisor requirements/ : /الوثائق بسرية|البحث والحضور|متطلبات المشرف/);
     await page.goto(`/${locale}/workshops`);
     await expect(page.getByRole("main")).not.toContainText(locale === "en" ? /Make space for practical learning|Browse before you book/ : /مساحة للتعلّم العملي|استكشف قبل الحجز/);

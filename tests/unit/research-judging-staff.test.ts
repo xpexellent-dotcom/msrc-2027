@@ -20,6 +20,14 @@ function request(body?: Record<string, unknown>, query = "?view=settings", extra
 const handle = (req: Request) => createStaffResearchEventHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => now })(req);
 beforeEach(() => { vi.stubEnv("RESEARCH_JUDGING_ENABLED", "true"); roles = ["superAdmin"]; assurance = true; data = settings(); backend = { rpc: vi.fn(async (name) => { if (name === "msrc_staff_status") return { enabled: true, emailDailyLimit: 40 }; if (name === "msrc_staff_form_claim") return { state: "claimed" }; if (name === "msrc_session_context") return persisted(); if (name === "msrc_staff_profile") return { schemaVersion: 1, actorId, name: "Synthetic Staff", roles, session: persisted() }; if (name === "msrc_staff_research_event_write") return { state: "updated" }; if (data instanceof Error) throw data; return data; }), identity: vi.fn(async () => actorId), refresh: vi.fn(async () => session), logout: vi.fn() } as unknown as StaffBackend; });
 describe("ENG-078 research event staff boundary", () => {
+  it("preserves permitted abstract titles through staff allocation and judge packets", () => {
+    const title = Array.from({ length: 20 }, () => "x".repeat(200)).join(" ");
+    const entry = { id: submissionId, version: 1, reference: "SYNTHETIC", title, allocation: null, categoryId: null, assignments: [], award: null };
+    expect(projectResearchResponse("list", { state: "ready", entries: [entry] })?.entries?.[0].title).toBe(title);
+    const row = { ...assignment(), title, packet: { ...assignment().packet, title } };
+    expect(projectResearchResponse("judge_queue", { state: "ready", assignments: [row] })?.assignments?.[0].packet.title).toBe(title);
+    expect(projectResearchResponse("judge_queue", { state: "ready", assignments: [{ ...row, packet: { ...row.packet, title: "x".repeat(6001) } }] })).toBeNull();
+  });
   it("denies before any provider access by default", async () => { vi.stubEnv("RESEARCH_JUDGING_ENABLED", "false"); expect((await handle(request())).status).toBe(503); expect(backend.rpc).not.toHaveBeenCalled(); });
   it.each(ROLES)("restricts settings for %s", async (role) => { roles = [role]; expect((await handle(request({ action: "settings", payload: { expectedVersion: 0, settings: empty() } }))).status).toBe(["superAdmin", "scientificAdministrator"].includes(role) ? 200 : 403); });
   it.each(ROLES)("requires faculty judge role for %s scoring", async (role) => { roles = [role]; expect((await handle(request({ action: "judge", payload: { assignmentId: actorId, expectedVersion: 1, scorecard, submit: true } }))).status).toBe(role === "facultyJudge" ? 200 : 403); });

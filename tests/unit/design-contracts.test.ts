@@ -44,13 +44,13 @@ describe("public content publication boundaries (SCP-02, CFG-12, MED-01)", () =>
   it("retains every required bilingual public destination without inventing assets", () => {
     expect(publicSitemap.map((page) => page.id).sort()).toEqual([
       "home", "dates", "program", "speakers", "workshops", "participation", "teams",
-      "sponsors", "gallery", "announcements", "faq", "contact", "privacy", "terms",
+      "sponsors", "gallery", "announcements", "faq", "contact", "privacy", "terms", "research",
     ].sort());
     expect(new Set(publicSitemap.map((page) => page.path)).size).toBe(publicSitemap.length);
     for (const page of publicSitemap) {
       expect(page.label.en.trim().length).toBeGreaterThan(0);
       expect(page.label.ar).toMatch(/[\u0600-\u06ff]/);
-      const implemented = ["/", "/dates-venue", "/program", "/speakers", "/team", "/sponsors", "/workshops", "/participate", "/media", "/contact", "/privacy", "/terms"];
+      const implemented = ["/", "/dates-venue", "/program", "/speakers", "/team", "/sponsors", "/workshops", "/participate", "/media", "/contact", "/privacy", "/terms", "/abstracts"];
       expect(page.previewHref === null || implemented.includes(page.previewHref) || page.previewHref.startsWith("/#")).toBe(true);
     }
     expect(hasApprovedVideo(homepageAssets.heroVideo)).toBe(true);

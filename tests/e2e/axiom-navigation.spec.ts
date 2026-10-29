@@ -185,7 +185,7 @@ for (const locale of ["en", "ar"] as const) {
     const participation = page.locator(`.desktop-nav > .header-nav-item > a[href="/${locale}/participate"]`);
     const toggle = page.locator(`[data-dropdown-toggle="/${locale}/participate"]`);
     const attend = page.locator(`.header-dropdown a[href="/${locale}/registration"]`);
-    const research = page.locator(`.header-dropdown a[href="/${locale}/submissions"]`);
+    const research = page.locator(`.header-dropdown a[href="/${locale}/abstracts"]`);
     await participation.hover();
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
     await expect(research).toBeVisible();
@@ -231,7 +231,7 @@ for (const locale of ["en", "ar"] as const) {
     const order = ["participate", "program", "speakers", "sponsors", "dates-venue", "team", "contact"];
     const topLinks = page.locator(".desktop-nav > .header-nav-item > a");
     expect(await topLinks.evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual(order.map((route) => `/${locale}/${route}`));
-    const expected = ["/registration", "/submissions", "/workshops", "/hackathon", "/3mt"];
+    const expected = ["/registration", "/abstracts", "/workshops", "/hackathon", "/3mt"];
     if (isMobile) {
       await page.locator(".menu-toggle").click();
       for (const href of expected) await expect(page.locator(`.mobile-nav-children a[href="/${locale}${href}"]`)).toBeVisible();

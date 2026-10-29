@@ -14,6 +14,9 @@ test.afterEach(async ({ page }) => { expect(runtimeIssues.get(page)).toEqual([])
 
 // ACC-01, LOC-01/03, PRG-01: exercise visitor state changes, rather than just load URLs.
 async function ready(page: Page) {
+  // Day links remain usable before JavaScript, so their enabled state alone
+  // cannot establish that client-side filter handlers are ready.
+  await expect(page.locator("#programme")).toHaveAttribute("data-hydrated", "true", { timeout: 15_000 });
   await expect(page.getByTestId("program-day-all")).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
   await page.evaluate(async () => {
     await document.fonts.ready;
@@ -54,7 +57,7 @@ for (const locale of ["en", "ar"] as const) {
   });
 
   for (const routes of [
-    ["participate", "registration", "submissions", "workshops"],
+    ["participate", "registration", "abstracts", "workshops"],
     ["hackathon", "3mt", "program", "speakers"],
     ["sponsors", "dates-venue", "team", "contact"],
   ]) test(`${locale} header destinations ${routes[0]} through ${routes.at(-1)} follow their first activation`, async ({ page, isMobile }) => {
@@ -69,7 +72,7 @@ for (const locale of ["en", "ar"] as const) {
         await link.tap();
         await expect(page.locator(".mobile-menu")).toHaveCount(0);
       } else {
-        if (["registration", "submissions", "workshops", "hackathon", "3mt"].includes(route)) {
+        if (["registration", "abstracts", "workshops", "hackathon", "3mt"].includes(route)) {
           await page.locator(".header-dropdown-toggle").click();
         }
         link = page.locator(`.desktop-nav a[href="/${locale}/${route}"]`);
