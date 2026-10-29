@@ -10,6 +10,11 @@ export function isAbstractReviewMode(searchParams: ReviewSearchParams, env: Revi
   return searchParams.review === "1" && (env.VERCEL_ENV === "preview" || env.NODE_ENV === "development");
 }
 
+/** Static public pages cannot read the query on the server; they only need the production veto. The form page re-checks fully. */
+export function abstractReviewCtaAllowed(env: ReviewEnvironment = process.env): boolean {
+  return env.VERCEL_ENV !== "production";
+}
+
 /** Synthetic state only: no account, database lookup, operational window or submission. */
 export function createAbstractReviewState(): Extract<AbstractResponse, { state: "ready" }> {
   return {

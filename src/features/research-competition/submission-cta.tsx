@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent, type MouseEvent } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { abstractDates } from "@/content/abstract-dates";
 import { formatRegistrationOpeningDate } from "@/content/registration-opening";
@@ -10,9 +10,13 @@ import type { Locale } from "@/lib/i18n";
 import { researchCompetitionCopy } from "./copy";
 import { researchCtaState, type ResearchCtaState } from "./cta-state";
 
-export function AbstractSubmissionCta({ locale, reviewMode = false }: { locale: Locale; reviewMode?: boolean }) {
+const ignoreQueryChanges = () => () => {};
+
+export function AbstractSubmissionCta({ locale, reviewAllowed = false }: { locale: Locale; reviewAllowed?: boolean }) {
   // Keep the public server render independent of cookies and private data.
   const [observedState, setState] = useState<ResearchCtaState>("signIn");
+  // TEMPORARY review mode: the build-time preview/development guard allows it; ?review=1 opts in.
+  const reviewMode = useSyncExternalStore(ignoreQueryChanges, () => reviewAllowed && new URLSearchParams(window.location.search).get("review") === "1", () => false);
   const state = reviewMode ? "submit" : observedState;
   const [checked, setChecked] = useState<boolean[]>([]);
   const [open, setOpen] = useState(false);
@@ -20,7 +24,6 @@ export function AbstractSubmissionCta({ locale, reviewMode = false }: { locale: 
   const trigger = useRef<HTMLAnchorElement>(null);
   const headingId = useId(), introId = useId();
   useEffect(() => {
-    // This prop is granted only by the server's preview/development guard.
     if (reviewMode) return;
     const controller = new AbortController(); let generation = 0;
     async function check() {

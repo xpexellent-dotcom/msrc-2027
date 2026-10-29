@@ -203,3 +203,15 @@ Next: owner reviews the design/new microcopy and Arabic draft using the preview
 links after the authorized commit/push; obtain authoritative CI playback evidence
 on a working decoder and remove temporary review mode before release. Existing legal/evidence,
 hosted migration/configuration and activation gates in the feature note remain.
+
+## CI follow-up (Claude)
+
+CI on 074c213 failed two public checks. `/abstracts` had become dynamic because it
+read the review query on the server, breaking the SSG baseline in
+`private-csp.spec.ts`; and `participation-flow.spec.ts` still expected nine rules
+on the public page. The public page is static again: the build-time production
+veto (`abstractReviewCtaAllowed`) is passed down and the CTA reads `?review=1` in
+the browser. The form page keeps the full server guard. Without JavaScript the
+public CTA keeps its normal destination. Local: lint, typecheck, build PASS;
+unit 26 PASS; abstracts suite 84 PASS; private-csp + participation-flow 28 PASS
+(4 skipped); conference-experience + premium-interface 56 PASS (2 skipped).

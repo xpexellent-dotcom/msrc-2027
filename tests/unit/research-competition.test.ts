@@ -12,11 +12,12 @@ describe("ORG-068 public research competition", () => {
   it("defaults to the signed-out label without reading a server session or clock", () => {
     expect(researchCtaState({ signedIn: false })).toBe("signIn");
   });
-  it.each(["en", "ar"] as const)("preserves a real no-JavaScript form link and all acknowledgement items in %s review mode", (locale) => {
+  it.each(["en", "ar"] as const)("keeps the static %s render free of review state and ships every acknowledgement item", (locale) => {
     const copy = researchCompetitionCopy[locale];
-    const html = renderToStaticMarkup(createElement(AbstractSubmissionCta, { locale, reviewMode: true }));
-    expect(html).toContain(`href="/${locale}/abstracts/submit?review=1"`);
-    expect(html).toContain('aria-haspopup="dialog"');
+    // Review mode opts in from the query after hydration, so the static page never bakes it in.
+    const html = renderToStaticMarkup(createElement(AbstractSubmissionCta, { locale, reviewAllowed: true }));
+    expect(html).toContain(`href="/${locale}/sign-in"`);
+    expect(html).not.toContain("?review=1");
     expect(html.match(/type="checkbox"/g)).toHaveLength(copy.checklist.length);
     expect(html).toContain('disabled=""');
     expect(html).toContain(copy.continueToForm);

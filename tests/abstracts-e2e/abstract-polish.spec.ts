@@ -134,15 +134,14 @@ for (const locale of ["en", "ar"] as const) {
     expect(requests).toEqual([]);
   });
 
-  test(`${locale} acknowledgement CTA remains a working form link without JavaScript`, async ({ browser }, testInfo) => {
+  test(`${locale} acknowledgement CTA remains a working link without JavaScript`, async ({ browser }, testInfo) => {
     const context = await browser.newContext({ javaScriptEnabled: false, baseURL: String(testInfo.project.use.baseURL) });
     const page = await context.newPage();
     try {
+      // The public page is static, so without JavaScript the review query cannot reach the CTA.
       await page.goto(`/${locale}/abstracts?review=1`);
-      const link = page.locator(".research-submission-cta").first();
-      await expect(link).toHaveAttribute("href", `/${locale}/abstracts/submit?review=1`);
-      await link.click();
-      await expect(page).toHaveURL(new RegExp(`/${locale}/abstracts/submit\\?review=1$`));
+      await expect(page.locator(".research-submission-cta").first()).toHaveAttribute("href", `/${locale}/sign-in`);
+      await page.goto(`/${locale}/abstracts/submit?review=1`);
       await expect(page.getByTestId("abstract-submission-rules")).toBeVisible();
       await expect(page.getByTestId("abstract-editor")).toBeVisible();
     } finally { await context.close(); }

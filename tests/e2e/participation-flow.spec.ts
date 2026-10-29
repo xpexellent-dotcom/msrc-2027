@@ -113,7 +113,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(locale === "en" ? "Accounts are coming soon" : "حسابات المشاركين قريبًا");
     await page.goto(`/${locale}/abstracts`);
     await expect(page.locator(".research-submission-cta")).toHaveCount(2);
-    await expect(page.locator(".research-rules li")).toHaveCount(9);
+    // abs2: the submission rules moved to the top of the submission form.
+    await expect(page.locator(".research-rules li")).toHaveCount(0);
     await expect(page.getByRole("main")).not.toContainText(locale === "en" ? /Evidence, handled privately|Research and attendance|Supervisor requirements/ : /الوثائق بسرية|البحث والحضور|متطلبات المشرف/);
     await page.goto(`/${locale}/workshops`);
     await expect(page.getByRole("main")).not.toContainText(locale === "en" ? /Make space for practical learning|Browse before you book/ : /مساحة للتعلّم العملي|استكشف قبل الحجز/);

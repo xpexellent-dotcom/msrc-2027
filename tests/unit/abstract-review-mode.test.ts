@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createAbstractReviewState, isAbstractReviewMode } from "@/features/submissions/review-mode.server";
+import { abstractReviewCtaAllowed, createAbstractReviewState, isAbstractReviewMode } from "@/features/submissions/review-mode.server";
 import { readAbstractPageState } from "@/features/submissions/page-state.server";
 
 const readHeaders = vi.hoisted(() => vi.fn());
@@ -7,6 +7,10 @@ vi.mock("next/headers", () => ({ headers: readHeaders }));
 afterEach(() => vi.unstubAllEnvs());
 
 describe("TEMPORARY abstract owner review mode", () => {
+  it("never lets a production build offer the public review CTA", () => {
+    expect(abstractReviewCtaAllowed({ VERCEL_ENV: "production", NODE_ENV: "development" })).toBe(false);
+    expect(abstractReviewCtaAllowed({ VERCEL_ENV: "preview" })).toBe(true);
+  });
   it.each([
     [{ VERCEL_ENV: "preview", NODE_ENV: "production" }, "1", true],
     [{ NODE_ENV: "development" }, "1", true],

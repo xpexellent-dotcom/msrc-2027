@@ -21,13 +21,13 @@ function PresentationStudy({ poster }: { poster: boolean }) {
   </svg>;
 }
 
-export function ResearchCompetitionPage({ locale, reviewMode = false }: { locale: Locale; reviewMode?: boolean }) {
+export function ResearchCompetitionPage({ locale, reviewAllowed = false }: { locale: Locale; reviewAllowed?: boolean }) {
   const copy = researchCompetitionCopy[locale];
   return <div className="research-competition" data-testid="research-competition-page">
     <section className="research-hero" aria-labelledby="research-title">
       <Image className="research-hero-photo" src="/media/msrc-demo/share-research-manar-2560.jpg" alt="" fill sizes="100vw" priority />
       <Container><nav className="research-breadcrumb" aria-label={locale === "ar" ? "مسار التنقل" : "Breadcrumb"}><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li aria-current="page">{copy.title}</li></ol></nav>
-        <p className="research-kicker">{copy.kicker}</p><h1 id="research-title">{copy.title}</h1><p className="research-hero-intro">{copy.intro}</p><AbstractSubmissionCta locale={locale} reviewMode={reviewMode} />
+        <p className="research-kicker">{copy.kicker}</p><h1 id="research-title">{copy.title}</h1><p className="research-hero-intro">{copy.intro}</p><AbstractSubmissionCta locale={locale} reviewAllowed={reviewAllowed} />
       </Container>
     </section>
     <section className="research-section research-journey" aria-labelledby="research-journey"><Container><SectionHeading id="research-journey" title={copy.journey} /><AbstractRoadmap locale={locale} /></Container></section>
@@ -41,6 +41,6 @@ export function ResearchCompetitionPage({ locale, reviewMode = false }: { locale
     <section className="research-section" aria-labelledby="research-eligibility"><Container><SectionHeading id="research-eligibility" title={copy.eligibility} description={copy.eligibilityIntro} /><div className="research-eligibility-grid">{copy.eligibilityCards.map(([title, text]) => <article className="research-eligibility-card" key={title}><h3>{title}</h3><p>{text}</p></article>)}</div></Container></section>
     <section className="research-section" aria-labelledby="research-guidelines"><Container><SectionHeading id="research-guidelines" title={copy.guidelines} description={copy.guidelinesIntro} /><ol className="research-guidelines">{copy.sections.map(([title, text, range], index) => <li key={title}><span className="research-card-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span><div><h3>{title}</h3><p>{text}</p></div><span className="research-suggested">{range} {copy.suggested}</span></li>)}</ol><aside className="research-word-limit"><p><strong>{copy.wordLimit}</strong></p><p>{copy.headingCount}</p></aside></Container></section>
     <section className="research-section research-evaluation" aria-labelledby="research-evaluation"><Container><div className="research-editorial-split"><SectionHeading id="research-evaluation" title={copy.evaluation} description={copy.evaluationIntro} /><dl className="research-criteria">{copy.criteria.map(([name, description]) => <div key={name}><dt>{name}</dt><dd>{description}</dd></div>)}</dl></div></Container></section>
-    <section className="research-closing" aria-labelledby="research-closing"><Container><h2 id="research-closing">{copy.closing}</h2><p>{copy.closingText}</p><div className="research-closing-actions"><AbstractSubmissionCta locale={locale} reviewMode={reviewMode} /><Link href={`/${locale}/contact`} className="research-contact">{copy.contact}</Link></div></Container></section>
+    <section className="research-closing" aria-labelledby="research-closing"><Container><h2 id="research-closing">{copy.closing}</h2><p>{copy.closingText}</p><div className="research-closing-actions"><AbstractSubmissionCta locale={locale} reviewAllowed={reviewAllowed} /><Link href={`/${locale}/contact`} className="research-contact">{copy.contact}</Link></div></Container></section>
   </div>;
 }
