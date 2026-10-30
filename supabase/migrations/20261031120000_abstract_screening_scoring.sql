@@ -315,7 +315,7 @@ declare s msrc_abstracts.submissions%rowtype;x msrc_abstracts.snapshots%rowtype;
 end$$;
 
 create function msrc_abstracts.provisional_band(mean numeric,reviews jsonb,bands jsonb,oral_available boolean default null) returns text
- language plpgsql immutable security invoker set search_path='' as $$
+ language plpgsql stable security invoker set search_path='' as $$
 declare oral_quality boolean;begin
  if bands is null or bands='null'::jsonb then return 'settings_unset';end if;
  if mean is null or mean not between 0 and 100 or jsonb_typeof(reviews) is distinct from 'array' then return 'reviews_incomplete';end if;
