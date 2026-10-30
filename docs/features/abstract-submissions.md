@@ -1,5 +1,41 @@
 # Research competition and abstract submission v2
 
+## Submission window — ENG-092
+
+ORG-058 dates are owner-confirmed accurate on 31 October 2026. The existing staff
+research workspace now has an EN/AR Submission window section. Scientific
+Administrators can inspect it; only Super Admins can save dates and Accept
+submissions. Inputs/display use Asia/Riyadh, transport/storage use explicit UTC,
+and saves share the incumbent settings CAS version, immutable history and audit.
+The published-date button fills 23 November 00:00 / 13 December 23:59 Riyadh only;
+it never saves or enables anything. Opening is inclusive; closing is exclusive.
+
+The saved readiness checklist includes the switch, ordered dates, current window,
+upload/virus-scanning release gate, latest screening threshold, participant account,
+privacy, email, retention and server flags/configuration. The public CTA reads
+only state and saved instants from `/api/abstracts/window` without cookies or
+private data; the calendar remains informational. Private page-state observation
+uses the same saved window via its existing abstract handler. Missing database
+capabilities return area-not-ready and never clear the account session.
+
+ORG-068 item 7 replaces ethics and study-registration files with reference text.
+ABS-09/11 still require a separate similarity-report file; ENG-090 / ORG-069
+external attestation/reference does not remove that requirement. Therefore the
+database `evidence_ready` finalization gate remains closed. Abstract upload/storage,
+quarantine, malware scanning and validated release handling are still missing;
+this slice builds no scanner or upload system. ABS-14 final materials retain
+their independent file requirements, and confidential stage-one evidence stays
+Super Admin only under ABS-15. The latest screening threshold is also a database
+finalization gate; clearing its latest version closes entry even if older
+versions contained thresholds.
+
+Migration `20261031140000_abstract_submission_window.sql` is review-only and must
+follow ENG-088 and ENG-090. All settings/flags and hosted environments stay closed.
+Arabic copy remains DRAFT pending human review. Details and verification:
+[abs8 receipt](../progress/2026-10-31-abstract-submission-window.md).
+
+## Earlier implementation context
+
 ENG-088 implements ORG-068, PR 1 of 2. ABS-01–04/07/08/12/13/15, REV-01/06–09,
 PRV-03–06, SEC-01/02/06, LOC-01–03, TIM-01/02 and ACC-01 apply with the recorded
 owner overrides. Screening, scoring/rubric changes, thresholds and supervisor

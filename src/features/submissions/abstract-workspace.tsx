@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { formatSubmissionOpening } from "./window-copy";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { ABSTRACT_SPECIALTIES, ABSTRACT_STUDY_TYPES } from "@/content/abstract-taxonomy";
 import { ContactPhoneField, phoneCountries } from "@/features/participant-accounts/contact-phone-field";
@@ -81,7 +82,7 @@ export function AbstractWorkspace({ locale, initial, reviewMode = false }: { loc
   }
   if (result.state === "profile_incomplete") return <ProfileSubmissionGate locale={locale} />;
   if (result.state !== "ready") return <section className="participant-account-card" data-testid="abstract-unavailable">
-    <p role="status">{result.state === "closed" ? copy.closed : result.state === "area-not-ready" ? copy.notReady : result.state === "denied" ? copy.denied : result.state === "presenter_ineligible" ? copy.presenter_ineligible : result.state === "submission_used" ? copy.submission_used : copy.unavailable}</p>
+    <p role="status">{result.state === "closed" ? (result.window?.state === "opening" && result.window.opensAt ? formatSubmissionOpening(result.window.opensAt, locale) : copy.closed) : result.state === "area-not-ready" ? copy.notReady : result.state === "denied" ? copy.denied : result.state === "presenter_ineligible" ? copy.presenter_ineligible : result.state === "submission_used" ? copy.submission_used : copy.unavailable}</p>
     {result.state === "denied" ? <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : null}<ButtonLink href={`/${locale}/my-msrc`} variant="secondary">{copy.back}</ButtonLink>
   </section>;
   const used = submissionChanceUsed(result.submissions), locked = current !== null && (current.finalizedAt !== null || current.status !== "draft");
@@ -95,7 +96,7 @@ export function AbstractWorkspace({ locale, initial, reviewMode = false }: { loc
     {result.profileComplete !== true ? <ProfileSubmissionGate locale={locale} /> : !eligible ? <aside className="participant-account-card" data-testid="presenter-ineligible" aria-label={copy.presenter}><p role="status">{copy.presenter_ineligible}</p><ButtonLink href={`/${locale}/my-msrc#profile`}>{copy.editProfile}</ButtonLink></aside> : null}
     <aside className="participant-account-card abstract-guidance" aria-label={copy.scientific}><p>{copy.guidance}</p><p><strong>{copy.rules}</strong></p></aside>
     <section className="participant-account-card" aria-label={copy.title}>
-      {!openWindow ? <p role="status">{copy.windowClosed}</p> : null}
+      {!openWindow ? <p role="status">{result.window?.state === "opening" && result.settings.opensAt ? formatSubmissionOpening(result.settings.opensAt, locale) : copy.windowClosed}</p> : null}
       {!result.submissions.length ? <p>{copy.empty}</p> : <ul className="abstract-list">{result.submissions.map((row) => <li key={row.id}>
         <div><strong dir="ltr" lang="en">{row.document.title || copy.newDraft}</strong><span>{copy.status[row.status]} {row.reference ? <bdi>{row.reference}</bdi> : null}</span></div>
         <Button variant="secondary" disabled={pending || dirty} onClick={() => open(row)}>{copy.edit}</Button>

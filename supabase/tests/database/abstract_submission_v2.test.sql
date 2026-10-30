@@ -50,6 +50,8 @@ update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 insert into msrc_authorization.edition_config(edition_key) values('synthetic-v2');
 insert into msrc_abstracts.settings(edition_key,version,configuration,enabled,evidence_ready) values('synthetic-v2',1,pg_temp.abstract_settings(),true,true);
 insert into msrc_abstracts.settings_versions values('synthetic-v2',1,pg_temp.abstract_settings());
+-- ENG-092: explicit synthetic similarity readiness, never a production default.
+insert into msrc_abstracts.screening_settings(edition_key,version,similarity_threshold,actor_id,session_id) values('synthetic-v2',1,30,gen_random_uuid(),gen_random_uuid());
 select pg_temp.registration_fixture(n,'synthetic-v2') from generate_series(9420,9431) n;
 select pg_temp.complete_profile(n,'synthetic-v2') from generate_series(9420,9430) n;
 update msrc_participant.profile_details p set student_status=status

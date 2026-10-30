@@ -89,6 +89,8 @@ describe.skipIf(!isolatedCi)("Participant profile concurrent edits (disposable G
       select pg_temp.registration_fixture(88609,'${edition}');
       insert into msrc_abstracts.settings(edition_key,version,configuration,enabled,evidence_ready)
         values('${edition}',1,pg_temp.abstract_settings(),true,true);
+-- ENG-092: explicit synthetic similarity readiness, never a production default.
+insert into msrc_abstracts.screening_settings(edition_key,version,similarity_threshold,actor_id,session_id) values('${edition}',1,30,gen_random_uuid(),gen_random_uuid());
       select pg_temp.complete_profile(88606,'${edition}');
       select pg_temp.complete_profile(88609,'${edition}');
       update msrc_participant.profile_details set student_status='year_6' where actor_id in('${actor(88606)}','${actor(88609)}');

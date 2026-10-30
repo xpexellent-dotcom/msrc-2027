@@ -108,6 +108,7 @@ describe.skipIf(!isolatedCi)("Abstract/review lock ordering (disposable GitHub C
       select pg_temp.registration_staff_fixture(9302,'${edition}','abstractReviewer');
       select pg_temp.registration_staff_fixture(9303,'${edition}','abstractReviewer');
       select pg_temp.registration_staff_fixture(9304,'${edition}','scientificAdministrator');
+      select pg_temp.registration_staff_fixture(9305,'${edition}');
       insert into msrc_abstracts.screening_settings(edition_key,version,bands,similarity_threshold,oral_capacity,actor_id,session_id)
        values('${edition}',1,null,100,null,'${actor(9300)}',pg_temp.registration_session(9300));
       insert into msrc_abstracts.reviewer_profiles values('${edition}','${actor(9301)}',array['Independent institute one']),('${edition}','${actor(9302)}',array['Independent institute two']),('${edition}','${actor(9303)}',array['Independent institute three']);`);
@@ -239,6 +240,25 @@ describe.skipIf(!isolatedCi)("Abstract/review lock ordering (disposable GitHub C
     expect(scalar(await query(`select count(*) from msrc_abstracts.screenings where submission_id='${id}';`))).toBe("1");
     expect(scalar(await query(`select count(*) from msrc_abstracts.screening_gates g join msrc_abstracts.screenings r on r.id=g.screening_id where r.submission_id='${id}';`))).toBe("7");
     expect(scalar(await query(`select count(*) from msrc_abstracts.audit where target_id='${id}' and event='screening.passed';`))).toBe("1");
+  });
+  const windowSave = (version: number, enabled: boolean) => staff(9305, `select public.msrc_staff_research_save_window('${edition}',${version},
+    (select to_char((configuration->>'opensAt')::timestamptz at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') from msrc_abstracts.settings where edition_key='${edition}'),
+    (select to_char((configuration->>'closesAt')::timestamptz at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') from msrc_abstracts.settings where edition_key='${edition}'),${enabled})::text;`);
+  it("two Super Admin window saves with one expected version preserve one winner and one audit", async () => {
+    const version = Number(scalar(await query(`select version from msrc_abstracts.settings where edition_key='${edition}';`)));
+    const count = Number(scalar(await query(`select count(*) from msrc_abstracts.audit where edition_key='${edition}' and event='window.saved';`)));
+    const results = await race(windowSave(version, false), windowSave(version, true), "abstract-window-cas-race");
+    expect(results.map(r => r.state)).toEqual(["ready", "conflict"]);
+    expect(Number(scalar(await query(`select count(*) from msrc_abstracts.audit where edition_key='${edition}' and event='window.saved';`)))).toBe(count + 1);
+    await query(windowSave(version + 1, true) + "commit;");
+  });
+  it("a saved switch-off wins against a waiting finalization", async () => {
+    const id = await draft(9213, 120);
+    const version = Number(scalar(await query(`select version from msrc_abstracts.settings where edition_key='${edition}';`)));
+    const results = await race(windowSave(version, false), "begin;" + finalize(9213, id, 121), "abstract-window-switch-race");
+    expect(results.map(r => r.state)).toEqual(["ready", "closed"]);
+    expect(scalar(await query(`select count(*) from msrc_abstracts.snapshots where submission_id='${id}';`))).toBe("0");
+    await query(windowSave(version + 1, true) + "commit;");
   });
 
 });

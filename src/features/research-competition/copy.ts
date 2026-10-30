@@ -56,7 +56,7 @@ export const researchCompetitionCopy = {
       ["One submission", "Each participant has one submission chance only."],
     ],
     closing: "Ready to share your research?", contact: "Contact us", closingText: "Prepare your abstract and review every detail before submitting.",
-    cta: { opening: "Opens", signIn: "Sign in to submit", profile: "Complete your profile first", draft: "Continue your draft", finalized: "View your submission", submit: "Submit your abstract" },
+    cta: { closed: "Submissions closed", opening: "Opens", signIn: "Sign in to submit", profile: "Complete your profile first", draft: "Continue your draft", finalized: "View your submission", submit: "Submit your abstract" },
   },
   ar: {
     title: "مسابقة الأبحاث", kicker: "المؤتمر الطلابي للأبحاث الطبية ٢٠٢٧ · الأبحاث", home: "الرئيسية",
@@ -113,6 +113,6 @@ export const researchCompetitionCopy = {
       ["طلب واحد", "لكل مشارك فرصة تقديم واحدة فقط."],
     ],
     closing: "هل أنت مستعد لمشاركة بحثك؟", contact: "تواصل معنا", closingText: "أعدّ ملخصك وراجع جميع التفاصيل قبل تقديمه.",
-    cta: { opening: "يُفتح التقديم في", signIn: "سجّل الدخول للتقديم", profile: "أكمل ملفك أولًا", draft: "تابع مسودتك", finalized: "اعرض طلبك", submit: "قدّم ملخصك" },
+    cta: { closed: "التقديم مغلق", opening: "يُفتح التقديم في", signIn: "سجّل الدخول للتقديم", profile: "أكمل ملفك أولًا", draft: "تابع مسودتك", finalized: "اعرض طلبك", submit: "قدّم ملخصك" },
   },
 } as const;

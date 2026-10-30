@@ -1,0 +1,73 @@
+-- ENG-092; rollback-only synthetic window, authority, CAS and upload gate proofs.
+begin;
+create extension if not exists pgtap with schema extensions;
+set local search_path=public,extensions;
+select no_plan();
+\ir ../support/registration-fixtures.psql
+\ir ../support/profile-complete-fixtures.psql
+\ir ../support/abstract-fixtures.psql
+
+update msrc_staff.policy set enabled=true,email_daily_limit=1000;
+update msrc_participant.policy set enabled=true,privacy_version='synthetic-registration-notice',email_daily_limit=1000;
+update msrc_participant.retention_policy set enabled=true;
+insert into msrc_authorization.edition_config(edition_key) values('synthetic-window');
+select pg_temp.registration_staff_fixture(9600,'synthetic-window');
+select pg_temp.registration_staff_fixture(9601,'synthetic-window','scientificAdministrator');
+select pg_temp.registration_staff_fixture(9602,'synthetic-window','abstractReviewer');
+select pg_temp.registration_fixture(9603,'synthetic-window');
+select pg_temp.complete_profile(9603,'synthetic-window');
+update msrc_participant.profile_details set student_status='year_6' where edition_key='synthetic-window';
+create function pg_temp.window_open() returns text language sql stable as $$select to_char((statement_timestamp()-interval '1 hour') at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')$$;
+create function pg_temp.window_close() returns text language sql stable as $$select to_char((statement_timestamp()+interval '1 hour') at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')$$;
+select ok(not has_function_privilege('anon','public.msrc_staff_research_save_window(text,integer,text,text,boolean)','EXECUTE'),'Anonymous cannot save windows');
+select ok(not has_function_privilege('service_role','public.msrc_staff_research_save_window(text,integer,text,text,boolean)','EXECUTE'),'Service role cannot bypass staff authority');
+select pg_temp.abstract_claims(9601);
+select is(public.msrc_staff_research_save_window('synthetic-window',0,pg_temp.window_open(),pg_temp.window_close(),true)->>'state','denied','Scientific Administrator cannot save dates or switch');
+select pg_temp.abstract_claims(9602);
+select is(public.msrc_staff_research_save_window('synthetic-window',0,pg_temp.window_open(),pg_temp.window_close(),false)->>'state','denied','Reviewer cannot save dates or switch');
+select pg_temp.abstract_claims(9603);
+select is(public.msrc_staff_research_save_window('synthetic-window',0,pg_temp.window_open(),pg_temp.window_close(),true)->>'state','denied','Participant cannot save window');
+select pg_temp.abstract_claims(9600);
+select is(public.msrc_staff_research_save_window('synthetic-window',0,pg_temp.window_open(),pg_temp.window_open(),false)->>'state','invalid','Close equal to open rejected');
+select is(public.msrc_staff_research_save_window('synthetic-window',0,pg_temp.window_close(),pg_temp.window_open(),false)->>'state','invalid','Close before open rejected');
+select is(public.msrc_staff_research_save_window('synthetic-window',0,'2026-11-23T00:00:00','2026-12-13T23:59:00',false)->>'state','invalid','No ambiguous local timestamp accepted');
+select is(public.msrc_staff_research_save_window('synthetic-window',0,'2026-02-30T00:00:00Z','2026-12-13T23:59:00Z',false)->>'state','invalid','Invalid date rejected');
+select is(public.msrc_staff_research_save_window('synthetic-window',0,null,null,true)->>'state','invalid','Switch cannot enable undated window');
+select is(public.msrc_staff_research_save_window('synthetic-window',0,pg_temp.window_open(),pg_temp.window_close(),false)->>'state','ready','Super Admin can explicitly save window without enabling it');
+select is(public.msrc_staff_research_save_window('synthetic-window',0,pg_temp.window_open(),pg_temp.window_close(),true)->>'state','conflict','CAS rejects stale save');
+select is((select count(*) from msrc_abstracts.audit where event='window.saved' and edition_key='synthetic-window'),1::bigint,'Only successful mutation writes immutable audit');
+select is((select details->>'enabled' from msrc_abstracts.audit where event='window.saved' and edition_key='synthetic-window'),'false','Audit records switch state');
+select ok((select actor_id=pg_temp.registration_actor(9600) and session_id is not null and details->>'storage'='UTC' from msrc_abstracts.audit where event='window.saved' and edition_key='synthetic-window'),'Audit records exact actor/session and UTC storage');
+select is((select count(*) from msrc_abstracts.settings_versions where edition_key='synthetic-window'),1::bigint,'Window uses incumbent immutable settings history');
+select ok(not (select evidence_ready from msrc_abstracts.settings where edition_key='synthetic-window'),'Saving window never changes closed evidence gate');
+select throws_ok($$update msrc_abstracts.audit set details='{}'::jsonb where event='window.saved'$$,'55000',null,'Window audit is immutable');
+select pg_temp.abstract_claims(9601);
+select is(public.msrc_staff_research_window('synthetic-window')->>'state','ready','Scientific Administrator can read readiness');
+select is(public.msrc_staff_research_save_settings('synthetic-window',1,(select configuration||jsonb_build_object('opensAt','2000-01-01T00:00:00.000Z','rubric',msrc_abstracts.rubric_2027()) from msrc_abstracts.settings where edition_key='synthetic-window'))->>'state','denied','Legacy settings RPC cannot bypass Super Admin date authority');
+select pg_temp.abstract_claims(9600);
+select is(public.msrc_staff_research_save_window('synthetic-window',1,pg_temp.window_open(),pg_temp.window_close(),true)->>'state','ready','Super Admin may enable switch explicitly');
+-- Synthetic evidence gates only; never seed hosted environments.
+update msrc_abstracts.settings set configuration=configuration||jsonb_build_object('specialties',pg_temp.abstract_settings()->'specialties') where edition_key='synthetic-window';
+update msrc_participant.profile_details set specialty_interests=array['synthetic-specialty'] where edition_key='synthetic-window';
+create temporary table window_draft as select public.msrc_abstracts_save_draft('synthetic-window',pg_temp.registration_claims(9603),null,0,pg_temp.abstract_document(),gen_random_uuid()) result;
+select is((select result->>'state' from window_draft),'saved','Draft saved inside synthetic window');
+create function pg_temp.finalize_window() returns jsonb language sql volatile as $$select public.msrc_abstracts_finalize('synthetic-window',pg_temp.registration_claims(9603),(select (result#>>'{submission,id}')::uuid from window_draft),1,gen_random_uuid())$$;
+select is(pg_temp.finalize_window()->>'state','evidence_gate','ABS-09/11 similarity upload and virus-scanning gate retained in database');
+update msrc_abstracts.settings set evidence_ready=true where edition_key='synthetic-window';
+select is(pg_temp.finalize_window()->>'state','closed','Missing screening threshold refuses finalization');
+insert into msrc_abstracts.screening_settings(edition_key,version,similarity_threshold,actor_id,session_id) values('synthetic-window',1,30,pg_temp.registration_actor(9600),pg_temp.registration_session(9600));
+update msrc_abstracts.settings set enabled=false where edition_key='synthetic-window';
+select is(pg_temp.finalize_window()->>'state','closed','Switch off refuses finalization');
+update msrc_abstracts.settings set enabled=true,configuration=configuration||jsonb_build_object('opensAt',clock_timestamp()+interval '1 day','closesAt',clock_timestamp()+interval '2 days') where edition_key='synthetic-window';
+select is(pg_temp.finalize_window()->>'state','closed','Before opening refuses finalization');
+update msrc_abstracts.settings set configuration=configuration||jsonb_build_object('opensAt',clock_timestamp()-interval '2 days','closesAt',clock_timestamp()-interval '1 day') where edition_key='synthetic-window';
+select is(pg_temp.finalize_window()->>'state','closed','After closing refuses finalization');
+update msrc_abstracts.settings set configuration=configuration||jsonb_build_object('opensAt',pg_temp.window_open(),'closesAt',pg_temp.window_close()) where edition_key='synthetic-window';
+insert into msrc_abstracts.screening_settings(edition_key,version,similarity_threshold,actor_id,session_id) values('synthetic-window',2,null,pg_temp.registration_actor(9600),pg_temp.registration_session(9600));
+select is(pg_temp.finalize_window()->>'state','closed','Latest cleared threshold closes window despite older saved threshold');
+select is(msrc_abstracts.window_status('synthetic-window')->>'similarityReady','false','Checklist uses latest screening configuration');
+insert into msrc_abstracts.screening_settings(edition_key,version,similarity_threshold,actor_id,session_id) values('synthetic-window',3,30,pg_temp.registration_actor(9600),pg_temp.registration_session(9600));
+select is(pg_temp.finalize_window()->>'state','finalized','Inside window with all synthetic gates ready finalizes');
+select is((select count(*) from msrc_abstracts.audit where event='submission.finalized' and edition_key='synthetic-window'),1::bigint,'Only allowed finalization audited');
+select * from finish();
+rollback;

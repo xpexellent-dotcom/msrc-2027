@@ -1,6 +1,8 @@
 -- Synthetic only; shared by rollback pgTAP and disposable local CI.
 create function pg_temp.abstract_settings() returns jsonb language sql stable as $$
- select jsonb_build_object('opensAt',clock_timestamp()-interval '1 day','closesAt',clock_timestamp()+interval '1 day','reviewDeadline',clock_timestamp()+interval '3 days',
+ -- Match ENG-092's explicit UTC transport regardless of the database timezone.
+ select jsonb_build_object('opensAt',to_char((clock_timestamp()-interval '1 day') at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+ 'closesAt',to_char((clock_timestamp()+interval '1 day') at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),'reviewDeadline',clock_timestamp()+interval '3 days',
  'specialties','[{"id":"synthetic-specialty","label":"Synthetic specialty"}]'::jsonb,
  'studyTypes','[{"id":"synthetic-study","label":"Synthetic study","template":"research"}]'::jsonb,
  'rubric','[{"id":"synthetic-criterion","label":"Synthetic criterion","weight":3,"min":1,"max":7}]'::jsonb,

@@ -13,6 +13,8 @@ update msrc_staff.policy set enabled=true,email_daily_limit=1000;
 select pg_temp.registration_settings('synthetic-profile-complete');
 insert into msrc_abstracts.settings(edition_key,version,configuration,enabled,evidence_ready)
  values('synthetic-profile-complete',1,pg_temp.abstract_settings(),true,true);
+-- ENG-092: explicit synthetic similarity readiness, never a production default.
+insert into msrc_abstracts.screening_settings(edition_key,version,similarity_threshold,actor_id,session_id) values('synthetic-profile-complete',1,30,gen_random_uuid(),gen_random_uuid());
 select pg_temp.registration_fixture(n,'synthetic-profile-complete') from generate_series(8701,8707) n;
 select pg_temp.complete_profile(n,'synthetic-profile-complete') from generate_series(8701,8702) n;
 select pg_temp.registration_staff_fixture(8791,'synthetic-profile-complete','registrationWorkshopAdministrator');

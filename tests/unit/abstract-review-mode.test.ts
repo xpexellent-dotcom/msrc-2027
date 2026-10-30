@@ -41,13 +41,13 @@ describe("TEMPORARY abstract owner review mode", () => {
 
   it("production ignores review=1 and retains the closed server state even with NODE_ENV development", async () => {
     vi.stubEnv("VERCEL_ENV", "production"); vi.stubEnv("NODE_ENV", "development"); vi.stubEnv("ABSTRACT_SUBMISSIONS_ENABLED", "false");
-    await expect(readAbstractPageState("en", { review: "1" })).resolves.toEqual({ state: "closed" });
+    await expect(readAbstractPageState("en", { review: "1" })).resolves.toEqual({ state: "closed", window: { state: "closed", opensAt: null, closesAt: null } });
     expect(readHeaders).not.toHaveBeenCalled();
   });
 
   it("preview without review=1 retains the closed server state", async () => {
     vi.stubEnv("VERCEL_ENV", "preview"); vi.stubEnv("ABSTRACT_SUBMISSIONS_ENABLED", "false");
-    await expect(readAbstractPageState("ar")).resolves.toEqual({ state: "closed" });
+    await expect(readAbstractPageState("ar")).resolves.toEqual({ state: "closed", window: { state: "closed", opensAt: null, closesAt: null } });
     expect(readHeaders).not.toHaveBeenCalled();
   });
 });

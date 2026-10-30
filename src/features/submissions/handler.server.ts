@@ -7,6 +7,8 @@ import type { AbstractOutcome, AbstractResponse } from "./contracts";
 import { abstractDraftIssues, abstractRecord, abstractSettingsProjection, abstractSubmissionProjection, presenterEligible, validateAbstractDocument } from "./validation";
 import { abstractFormToken, readAbstractFormToken, readAbstractJson } from "./security.server";
 
+import { decodeSubmissionWindow, publicWindowState } from "./submission-window";
+
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", Expires: "0", "X-Content-Type-Options": "nosniff" };
 export function createAbstractHandler(dependencies: { readiness?: () => ParticipantReadiness; backend?: (config: ParticipantConfig) => AbstractBackend; now?: () => number; observeOnly?: boolean } = {}) {
   return async function handle(request: Request): Promise<Response> {
@@ -25,8 +27,11 @@ export function createAbstractHandler(dependencies: { readiness?: () => Particip
     try {
       if (!await participantReady(config, backend)) return reply({ state: "closed" }, 503);
       const status = abstractRecord(await backend.rpc("msrc_abstracts_status", { edition_key: config.editionKey }));
-      if (status?.enabled !== true) return reply({ state: "closed" }, 503);
-      if (status.documentVersion !== 2) return reply({ state: "area-not-ready" }, 503);
+      if (status?.documentVersion !== 2) return reply({ state: "area-not-ready" }, 503);
+      const savedWindow = decodeSubmissionWindow({ ...abstractRecord(status.window), deploymentReady: true });
+      if (!savedWindow) return reply({ state: "area-not-ready" }, 503);
+      const window = publicWindowState(savedWindow);
+      if (status.enabled !== true || request.method === "GET" && window.state !== "open") return reply({ state: "closed", window }, 503);
       let session = readParticipantSession(config, request, now);
       if (!session) return reply({ state: "denied" }, 401);
       if (nativeTokenNeedsRefresh(session.accessToken, now)) {
@@ -102,7 +107,7 @@ export function createAbstractHandler(dependencies: { readiness?: () => Particip
       if (!data || Object.keys(data).sort().join(",") !== "presenter,settings,state,submissions" || data.state !== "ready" || !Array.isArray(data.submissions)) return reply({ state: "unavailable" }, 503);
       const settings = abstractSettingsProjection(data.settings), submissions = data.submissions.map(abstractSubmissionProjection);
       if (!settings || submissions.some((row) => !row)) return reply({ state: "unavailable" }, 503);
-      return reply({ state: "ready", profileComplete, presenterEligible: eligible, presenter: { id: session.actorId, name: presenter.name as string, email: presenter.email as string, institution: presenter.institution as string, status: presenter.status as string | null }, settings, submissions: submissions.filter((row) => row !== null), formToken: fresh(), ...(outcome ? { outcome } : {}), ...(submissionId ? { submissionId } : {}) }, outcome && !["saved", "finalized"].includes(outcome) ? 409 : 200);
+      return reply({ state: "ready", window, profileComplete, presenterEligible: eligible, presenter: { id: session.actorId, name: presenter.name as string, email: presenter.email as string, institution: presenter.institution as string, status: presenter.status as string | null }, settings, submissions: submissions.filter((row) => row !== null), formToken: fresh(), ...(outcome ? { outcome } : {}), ...(submissionId ? { submissionId } : {}) }, outcome && !["saved", "finalized"].includes(outcome) ? 409 : 200);
     } catch (error) { return reply({ state: error instanceof AbstractRpcMissingError ? "area-not-ready" : "unavailable" }, 503); }
   };
 }
