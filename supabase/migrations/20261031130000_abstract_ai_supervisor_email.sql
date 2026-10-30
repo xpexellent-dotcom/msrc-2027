@@ -190,6 +190,8 @@ end$$;
 create or replace function public.msrc_staff_advisory_reviewer(edition_key text,assignment_id uuid) returns jsonb
  language plpgsql security definer set search_path='' as $$begin
  perform msrc_abstracts.guard();
+ -- ENG-091: advisories are staff-only, so reviewers are always denied whatever the target.
+ if edition_key is null or assignment_id is null then return jsonb_build_object('state','denied');end if;
  return jsonb_build_object('state','denied');
 end$$;
 
