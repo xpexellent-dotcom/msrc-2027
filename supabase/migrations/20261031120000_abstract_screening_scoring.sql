@@ -21,7 +21,7 @@ create function msrc_abstracts.rubric_2027() returns jsonb
  {"id":"structure","label":"Structure and Completeness","weight":10,"min":1,"max":4}]'::jsonb;
 $$;
 create function msrc_abstracts.weighted_total_2027(scores jsonb) returns numeric
- language plpgsql immutable security invoker set search_path='' as $$
+ language plpgsql stable security invoker set search_path='' as $$
 declare r jsonb;s jsonb;n numeric:=0;begin
  if jsonb_typeof(scores) is distinct from 'array' then return null;end if;
  if jsonb_array_length(scores)<>7 or (select count(*)<>count(distinct x->>'criterionId') from jsonb_array_elements(scores) x) then return null;end if;
@@ -206,7 +206,7 @@ create function msrc_abstracts.screening_projection(submission uuid) returns jso
  left join lateral(select q.* from msrc_abstracts.screening_settings q where q.edition_key=s.edition_key order by q.version desc limit 1) cfg on true where s.id=submission;
 $$;
 create function msrc_abstracts.bands_valid(b jsonb) returns boolean
- language plpgsql immutable security invoker set search_path='' as $$
+ language plpgsql stable security invoker set search_path='' as $$
 declare k text;begin
  if b is null or b='null'::jsonb then return true;end if;
  if jsonb_typeof(b) is distinct from 'object' or b<>jsonb_build_object('oralMin',b->'oralMin','posterMin',b->'posterMin','borderlineMin',b->'borderlineMin','acceptanceMin',b->'acceptanceMin') then return false;end if;
