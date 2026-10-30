@@ -119,6 +119,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#participant-email")).toHaveAttribute("autocomplete", "email");
     await expect(page.locator("#participant-password")).toHaveAttribute("autocomplete", "new-password");
     await expect(page.getByTestId("participant-privacy-version")).toHaveText("synthetic-privacy-ci-v1");
+    await expect(page.getByRole("link", { name: copy.termsLink, exact: true })).toHaveAttribute("href", `/${locale}/terms/v1.1`);
     await expect(page.getByRole("link", { name: copy.privacyLink, exact: true })).toHaveAttribute("href", new RegExp(`^/${locale}/privacy`));
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("button", { name: copy.create, exact: true })).toBeEnabled();

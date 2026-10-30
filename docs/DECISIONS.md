@@ -4971,3 +4971,101 @@ configure the window and pass existing independent release gates before opening.
 Arabic and ethics helper copy are DRAFT. Full evidence, rollout order and blockers:
 [ENG-088 receipt](progress/2026-10-29-codex-abstract-page.md). Feature note:
 [abstract submissions](features/abstract-submissions.md). `docs/PROGRESS.md` is untouched.
+
+
+## ORG-069 — Arabic approval, Terms v1.1 and abstract review authority, 31 October 2026
+
+Authority: the owner's explicit abs5 decisions dated 31 October 2026.
+ABS-01–04/07/08/12/13/15, REV-01/06–09, AI-01–06, PRV-01–06,
+REG-01/02/05, LOC-01–03, TIM-01/02 and ACC-01 apply with these overrides.
+
+1. All Arabic copy drafted under ORG-068/ENG-088 and their follow-ups is
+   owner-approved: public research page, submission workspace, acknowledgement
+   dialog, rules, journey, evaluation panel and ethics/registration helpers.
+   Remove draft markers without changing wording. EN/AR ethics and registration
+   helper drafts are approved as supplied.
+2. Confirm **350 words including the six section headings**, per ORG-068 §1.
+   Confirm ORG-058's calendar: opens 23 November 2026, closes 13 December,
+   screening by 18 December, review 19 December–2 January 2027, decision
+   7 January, participant instructions from 10 January. These remain display
+   dates, never operational settings defaults or permission to open submissions.
+3. Owner instruction: “draft [Terms] 1.1 with new rules”. Prepare EN/AR v1.1
+   from v1.0, changing only the research-abstract clauses to ORG-068: 350 including
+   headings; completed research only (analysis finished, manuscript written),
+   completed within three years; one final submission per participant per edition,
+   no editing after finalization and no restored chance on withdrawal/rejection;
+   undergraduate medical student/intern presenter; supervisor at submission.
+   Remove ongoing-work/two-per-PI wording. **Owner approval of Terms v1.1 occurs
+   through review and merge of this PR**, not this preparation receipt. Preserve
+   the existing Privacy v1.1/v1.2 version/effective-date pattern, v1.0 archive and
+   existing acceptances; no forced re-acceptance. **ORG-068 Terms conflict:
+   resolved by Terms v1.1 pending merge.** No other legal clause changes.
+4. PR 2 authority is the owner's “MSRC'27 Abstract Evaluation Rubric” supplied at
+   the scratchpad path in the abs5 task. The original scored anchors and verbatim
+   supervisor template are retained in the [internal authority note](features/abstract-rubric-authority.md).
+   Record these seven pass/fail gates, applying ORG-068 where the PDF is older:
+   - Gate 1: at most 350 words including section headings; title/authors excluded.
+   - Gate 2: Background, Objectives, Methods, Results, Limitations and Conclusion
+     all present; Limitations may be one to two sentences.
+   - Gate 3: at least one reported result.
+   - Gate 4: presenter name, email and institution; supervising physician name
+     and email; all co-author names; medical specialty/subspecialty; title within
+     20 words; study type. ORG-068's private supervisor contact rules also apply.
+   - Gate 5: ethics and registration, with ORG-068's approved helpers.
+   - Gate 6: relevance to medicine (specify subspecialty), health sciences or public health.
+   - Gate 7: similarity to published work/previously accepted abstracts below
+     the staff threshold **set before submissions open, with no default**.
+
+   Internal scored criteria, in order: Significance and Contribution **20**;
+   Research Question and Objectives **15**; Methodology and Rigor **20**;
+   Results and Alignment with Objectives **15**; Conclusions and Impact **10**;
+   Clarity and Writing Quality **10**; Structure and Completeness **10**.
+   Each contribution = **weight × (score − 1) / 3**, maximum **100**.
+   Scores are **4 Excellent, 3 Good, 2 Fair, 1 Poor**, using the PDF's
+   criterion-specific anchors retained in the internal note. Weights stay
+   internal and are never public.
+
+   **PROVISIONAL recommendations, needing a pilot:** oral candidate 85–100,
+   with at least 3 in both Methodology and Rigor and Results and Alignment with
+   Objectives; poster 60–84.99; borderline 55–59.99 goes to additional review;
+   below the approved threshold is not accepted. Pilot the rubric on 5–10
+   published abstracts with two blinded reviewers and compare results before
+   adoption; these are source pilot directions, not approved capacity. Oral
+   allocation remains subject to available slots; meeting its score does not
+   guarantee an oral slot, and otherwise eligible work may be assigned poster.
+   Integrity/ethical concerns requiring investigation receive human review before
+   a final decision. Bands advise humans only; **AI never publishes outcomes**.
+   Keep AI disabled and DeepSeek selected under ORG-040. No scoring changes or
+   activation are performed by abs5.
+
+   Notify the supervisor with the exact retained template **once a human confirms
+   initial evaluation passed**. Delivery stays email-only, test/console until the
+   separate email release gate passes; this records authority for PR 2 and sends
+   no email. The PDF's AI-triggered wording is superseded by this human trigger.
+5. ORG-039/ORG-064 identity collection at registration is already implemented by
+   ENG-073; abs5 adds no identity field or new identity implementation.
+
+## ENG-089 — Terms research reconciliation and removal of abstract review bypass, 31 October 2026
+
+Implement ORG-069 on the existing `claude/abstract-content-terms` worktree,
+starting at main `a16ab09`. No migration. Remove ORG-068 Arabic draft markers
+without changing the approved Arabic copy. Prepare Terms v1.1 EN/AR with only
+the research paragraph changed; retain v1.0 archives, incumbent effective-date
+display and versioned acceptance records. The existing routes use `v1.0` and
+`v1.1`; bare `/terms/1.0` and `/terms/1.1` redirect to those snapshots.
+Current routes/links and registration's existing version gate use v1.1; a hosted
+old version closes new registration until separately authorized reconciliation.
+No old acceptance is rewritten and no re-acceptance flow is added. Sign-up keeps
+its existing privacy-version/age handling, with a link to the current Terms;
+there is no new sign-up acceptance field or record. Sitemap keeps unversioned
+current routes; dated archives remain noindex/canonical to the current route.
+
+Delete the preview helper, query/CTA plumbing, synthetic workspace mutations,
+banner and port-3217 server/projects. Retain the acknowledgement dialog, real
+signed-in form and Submission rules panel. Dialog/focus/keyboard/RTL/320px and
+no-JS coverage uses the existing synthetic signed-in fixture/server on 3216/3218.
+AGENTS.md changes only its Research bullet. Preserve all workflow/delivery gates;
+no hosted migration/settings, feature activation, participant opening, real email,
+commit, push or branch action. `docs/PROGRESS.md` remains untouched.
+Evidence, complete EN/AR sentence diff and remaining gates:
+[abs5 receipt](progress/2026-10-31-abstract-content-terms.md).

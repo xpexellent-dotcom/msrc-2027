@@ -24,22 +24,16 @@ describe("ORG-068 public research competition", () => {
   it("defaults to the signed-out label without reading a server session or clock", () => {
     expect(researchCtaState({ signedIn: false })).toBe("signIn");
   });
-  it.each(["en", "ar"] as const)("keeps the static %s render free of review state and ships every acknowledgement item", (locale) => {
+  it.each(["en", "ar"] as const)("ships every approved %s acknowledgement item with a signed-out static link", (locale) => {
     const copy = researchCompetitionCopy[locale];
-    // Review mode opts in from the query after hydration, so the static page never bakes it in.
-    const html = renderToStaticMarkup(createElement(AbstractSubmissionCta, { locale, reviewAllowed: true }));
+    const html = renderToStaticMarkup(createElement(AbstractSubmissionCta, { locale }));
     expect(html).toContain(`href="/${locale}/sign-in"`);
-    expect(html).not.toContain("?review=1");
+    expect(html).not.toMatch(/Draft translation|ترجمة أولية/);
     expect(html.match(/type="checkbox"/g)).toHaveLength(copy.checklist.length);
     expect(html).toContain('disabled=""');
     expect(html).toContain(copy.continueToForm);
     expect(html).toContain(copy.cancel);
     expect(html).not.toContain("<dialog open");
-  });
-  it("retains the normal signed-out destination outside review mode", () => {
-    const html = renderToStaticMarkup(createElement(AbstractSubmissionCta, { locale: "en" }));
-    expect(html).toContain('href="/en/sign-in"');
-    expect(html).not.toContain('href="/en/abstracts/submit?review=1"');
   });
   it("uses ORG-058's public calendar date without opening the operational window", () => {
     expect(abstractDates[0].date).toBe("2026-11-23");

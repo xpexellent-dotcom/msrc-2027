@@ -1,4 +1,4 @@
-﻿# abs2 — Research competition polish and temporary owner review
+# abs2 — Research competition polish and former owner review
 
 29 October 2026. Worktree `C:/m/codex-abstract`, branch `claude/abstract-page`,
 starting HEAD `74c6b90`, PR #146. The tree was clean before this task.
@@ -36,7 +36,7 @@ research form. No rule or long owner paragraph was rewritten.
   studies. A designed distinction band contains the unchanged three-winners
   statement. Decoration is hidden from assistive technology, forced colors and
   print. Mobile stacks in reading order; Arabic uses logical layout properties.
-- Added TEMPORARY server-only `?review=1` guard for preview/development, with an
+- Previously added (removed by ENG-089) server-only `?review=1` guard for preview/development, with an
   explicit production veto. A fresh synthetic ready state is returned before
   session/configuration/database reads. The full blank form opens immediately.
   Save/autosave/preview/finalize use mounted component state only; reload clears
@@ -58,9 +58,9 @@ research form. No rule or long owner paragraph was rewritten.
 eligibility, limits, supervisor requirements, criteria names, nine rules and
 three-winners wording are byte-for-byte unchanged. “Before you start” moved from
 public section to dialog heading; “Submission rules” moved to the form panel.
-The following additions are the complete new interface wording (Arabic DRAFT):
+The following additions record the original interface wording (Arabic now approved by ORG-069; draft label and preview banner removed by ENG-089):
 
-| Old | New English | New Arabic draft |
+| Old | New English | New Arabic at implementation |
 |---|---|---|
 | Absent | Confirm that you have each item ready before continuing. | أكّد جاهزية كل بند قبل المتابعة. |
 | Absent | Continue to the form | المتابعة إلى النموذج |
@@ -71,26 +71,17 @@ The following additions are the complete new interface wording (Arabic DRAFT):
 | Absent | Research distinction | التميّز البحثي |
 | Absent | Review mode — preview only. Nothing is saved or submitted. | وضع المراجعة — للمعاينة فقط. لا يُحفظ أي شيء ولا يُقدَّم أي طلب. |
 
-`draftTranslation` displays only in the Arabic dialog; its English equivalent is
-provided for parity. The synthetic review identity is “Review Presenter”,
-“reviewer@example.test”, “Synthetic Review Institution”; these are clearly labelled
-review data and create no person/affiliation claim. No thresholds, dates, prices,
-prizes, capacities, weights or operational defaults were added.
+The draft-translation label and preview banner in this historical table were
+removed by ENG-089. Other Arabic wording is now approved under ORG-069.
 
-## Review instructions and removal
+## Review surface removed — ENG-089, 31 October 2026
 
-On an existing Vercel preview, open `/en/abstracts?review=1` or
-`/ar/abstracts?review=1`, acknowledge the checklist and continue. Direct review
-forms are `/en/abstracts/submit?review=1` and `/ar/abstracts/submit?review=1`.
-No hosted configuration change is needed. Repeated/other query values do not
-activate review. `VERCEL_ENV=production` always ignores it, even alongside
-`NODE_ENV=development`. Ordinary paths retain all incumbent workflow gates.
-
-This TEMPORARY mode must be removed before release. The feature note contains
-exact removal scope (server synthetic helper, query/CTA/metadata wiring, local
-workspace mutations, banner and review test server). Reading server query
-parameters makes public `/abstracts` dynamic temporarily; restore its static
-signature when removing review support. Production indexing stays unchanged.
+The former query-driven review surface, synthetic workspace branch, banner and
+separate server have been removed. Use the normal gated signed-in flow. The
+acknowledgement dialog and Submission rules panel remain, with synthetic
+signed-in browser coverage. ORG-069 approves the Arabic and helper copy without
+wording changes; Terms v1.1 reconciliation is pending owner merge. Earlier
+validation below is historical evidence of the former implementation only.
 
 ## Validation
 
@@ -199,9 +190,9 @@ CI remains authoritative for database lint, pgTAP and concurrency; local Docker
 is unavailable and those checks were NOT TESTED in this UI task. Actual preview
 hosting and physical devices/screen-reader/native Arabic approval are NOT TESTED.
 
-Next: owner reviews the design/new microcopy and Arabic draft using the preview
-links after the authorized commit/push; obtain authoritative CI playback evidence
-on a working decoder and remove temporary review mode before release. Existing legal/evidence,
+Next: owner reviews the design/new microcopy using the normal gated flow;
+Arabic is approved by ORG-069. Obtain authoritative CI playback evidence
+on a working decoder. The review surface is removed by ENG-089. Existing legal/evidence,
 hosted migration/configuration and activation gates in the feature note remain.
 
 ## CI follow-up (Claude)
@@ -276,7 +267,7 @@ docs/DECISIONS.md and docs/PROGRESS.md are untouched.
   helpers. Extended the existing review-flow regression with those descriptions
   and a synthetic English/LTR co-author at 320px / 200% text.
 - Concise public headings, eligibility/evaluation intros, form introduction,
-  preview instruction and availability messages, with matching DRAFT Arabic.
+  preview instruction and availability messages, with matching Arabic (owner-approved by ORG-069).
 - Feature-note cross-reference added. CSS remains loaded through globals.css;
   no route stylesheet imports were added.
 
@@ -290,7 +281,7 @@ sections, word-limit explanations, criteria, rules and journey copy.
 ### Every wording change — old → new
 
 The following 22 replacements are the complete wording diff. Arabic remains
-**DRAFT**. The uploadGate entry is currently unused by the workspace; its wording
+**owner-approved by ORG-069**. The uploadGate entry is currently unused by the workspace; its wording
 was aligned without adding a new visible notice or changing an upload gate.
 
 | Surface / key | Old | New |
@@ -300,23 +291,23 @@ was aligned without adding a new visible notice or changing an upload gate.
 | Public EN / eligibilityIntro | To ensure a high standard of academic and research quality, presenters must meet the following eligibility criteria: | Presenters must meet the following eligibility criteria: |
 | Public EN / evaluation | How abstracts are evaluated | Evaluation criteria |
 | Public EN / evaluationIntro | Eligible abstracts will be evaluated using a standardized scoring rubric based on the following criteria: | Eligible abstracts are assessed using a standardized scoring rubric: |
-| Public AR DRAFT / presentations | طريقتان لمشاركة بحثك | صيغ العرض |
-| Public AR DRAFT / eligibility | من يمكنه المشاركة؟ | الأهلية |
-| Public AR DRAFT / eligibilityIntro | لضمان مستوى عالٍ من الجودة الأكاديمية والبحثية، يجب أن يستوفي مقدم العرض معايير الأهلية الآتية: | يجب أن يستوفي مقدم العرض معايير الأهلية الآتية: |
-| Public AR DRAFT / evaluation | كيف تُقيَّم الملخصات؟ | معايير التقييم |
-| Public AR DRAFT / evaluationIntro | ستُقيَّم الملخصات المؤهلة باستخدام نموذج تقييم موحّد يستند إلى المعايير الآتية: | تُقيَّم الملخصات المؤهلة باستخدام نموذج تقييم موحّد: |
+| Public AR / presentations | طريقتان لمشاركة بحثك | صيغ العرض |
+| Public AR / eligibility | من يمكنه المشاركة؟ | الأهلية |
+| Public AR / eligibilityIntro | لضمان مستوى عالٍ من الجودة الأكاديمية والبحثية، يجب أن يستوفي مقدم العرض معايير الأهلية الآتية: | يجب أن يستوفي مقدم العرض معايير الأهلية الآتية: |
+| Public AR / evaluation | كيف تُقيَّم الملخصات؟ | معايير التقييم |
+| Public AR / evaluationIntro | ستُقيَّم الملخصات المؤهلة باستخدام نموذج تقييم موحّد يستند إلى المعايير الآتية: | تُقيَّم الملخصات المؤهلة باستخدام نموذج تقييم موحّد: |
 | Form EN / lead | Prepare your English research abstract, save a draft, and review every detail before submitting. | Prepare your abstract in English. Save a draft and review it before submission. |
 | Form EN / notReady | This workspace is awaiting its database release. Your sign-in is retained. | Abstract submissions are not yet available. You remain signed in. |
 | Form EN / windowClosed | The submission window is closed or its scientific settings are incomplete. | Abstract submissions are currently closed. |
 | Form EN / uploadGate | Uploads are unavailable. Ethics evidence and the similarity report require an approved virus-scanning and confidential evidence process before final submission can open. | File uploads and final submission are not yet available. |
 | Form EN / previewNote | Check the complete preview before using your one submission chance. | Review all details before submitting. |
 | Form EN / evidence_gate | Final submission is blocked pending the approved confidential evidence and virus-scanning process. Your draft is saved. | Final submission is not yet available. Your draft is saved. |
-| Form AR DRAFT / lead | أعدّ ملخص بحثك باللغة الإنجليزية واحفظ مسودة وراجع جميع التفاصيل قبل التقديم. | أعدّ ملخصك باللغة الإنجليزية. احفظ مسودة وراجعها قبل التقديم. |
-| Form AR DRAFT / notReady | هذه المساحة بانتظار إصدار قاعدة البيانات. لم يتم تسجيل خروجك. | تقديم الملخصات غير متاح بعد. ما زلت مسجّل الدخول. |
-| Form AR DRAFT / windowClosed | فترة التقديم مغلقة أو لم تكتمل إعداداتها العلمية. | تقديم الملخصات مغلق حاليًا. |
-| Form AR DRAFT / uploadGate | رفع الملفات غير متاح. يلزم اعتماد فحص الفيروسات وآلية الأدلة السرية قبل فتح التقديم النهائي. | رفع الملفات والتقديم النهائي غير متاحين بعد. |
-| Form AR DRAFT / previewNote | راجع المعاينة الكاملة قبل استخدام فرصة التقديم الوحيدة. | راجع جميع التفاصيل قبل التقديم. |
-| Form AR DRAFT / evidence_gate | التقديم النهائي متوقف لحين اعتماد آلية الأدلة السرية وفحص الفيروسات. حُفظت مسودتك. | التقديم النهائي غير متاح بعد. حُفظت مسودتك. |
+| Form AR / lead | أعدّ ملخص بحثك باللغة الإنجليزية واحفظ مسودة وراجع جميع التفاصيل قبل التقديم. | أعدّ ملخصك باللغة الإنجليزية. احفظ مسودة وراجعها قبل التقديم. |
+| Form AR / notReady | هذه المساحة بانتظار إصدار قاعدة البيانات. لم يتم تسجيل خروجك. | تقديم الملخصات غير متاح بعد. ما زلت مسجّل الدخول. |
+| Form AR / windowClosed | فترة التقديم مغلقة أو لم تكتمل إعداداتها العلمية. | تقديم الملخصات مغلق حاليًا. |
+| Form AR / uploadGate | رفع الملفات غير متاح. يلزم اعتماد فحص الفيروسات وآلية الأدلة السرية قبل فتح التقديم النهائي. | رفع الملفات والتقديم النهائي غير متاحين بعد. |
+| Form AR / previewNote | راجع المعاينة الكاملة قبل استخدام فرصة التقديم الوحيدة. | راجع جميع التفاصيل قبل التقديم. |
+| Form AR / evidence_gate | التقديم النهائي متوقف لحين اعتماد آلية الأدلة السرية وفحص الفيروسات. حُفظت مسودتك. | التقديم النهائي غير متاح بعد. حُفظت مسودتك. |
 
 ### Recommended, not changed — owner decisions
 
@@ -325,11 +316,10 @@ was aligned without adding a new visible notice or changing an upload gate.
   is already open. The current rules-first arrangement and safeguards remain.
 - Decide whether to shorten the long oral/poster and single-presenter paragraphs
   in a later content pass. They remain verbatim in this task.
-- Obtain native Arabic review for the draft wording, including ethics guidance;
-  do not treat this visual/technical review as translation approval.
-- Reconcile the approved Terms with ORG-068 before release. Remove the temporary
-  review surface before release under its existing removal gate. These are
-  existing owner/release decisions, not changes made by abs3.
+- Arabic wording, including ethics guidance, is approved by ORG-069. This earlier
+  visual/technical review did not itself establish translation approval.
+- Terms v1.1 resolves the ORG-068 conflict pending owner merge. ENG-089 removes
+  the former review surface. Other evidence/activation gates remain separate.
 
 ### Screenshots and visual review
 

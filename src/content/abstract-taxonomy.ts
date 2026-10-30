@@ -1,4 +1,4 @@
-/** ORG-068: owner-approved abstract choices. Arabic labels are DRAFT for owner review. */
+/** ORG-068/069: owner-approved abstract choices and Arabic labels. */
 export const ABSTRACT_STUDY_TYPES = [
   { id: "retrospective_cohort", en: "Retrospective cohort", ar: "دراسة أتراب استعادية" },
   { id: "prospective_cohort", en: "Prospective cohort", ar: "دراسة أتراب مستقبلية" },

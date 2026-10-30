@@ -35,11 +35,12 @@ const nextConfig: NextConfig = {
       { source: "/", has: [{ type: "header" as const, key: "accept-language", value: arabicFirst }], destination: "/ar", permanent: false },
       { source: "/", destination: "/en", permanent: false },
       // ORG-037: the published short policy URLs follow the same locale preference.
-      // ORG-067: Privacy also has v1.1/v1.2 archives; Terms stay v1.0.
-      ...["privacy", "terms"].flatMap((kind) => (kind === "privacy" ? ["", "/v1.0", "/v1.1", "/v1.2"] : ["", "/v1.0"]).flatMap((suffix) => [
+      // ORG-067/069: independent Privacy and Terms snapshots, with Terms aliases.
+      ...["privacy", "terms"].flatMap((kind) => (kind === "privacy" ? ["", "/v1.0", "/v1.1", "/v1.2"] : ["", "/v1.0", "/v1.1", "/1.0", "/1.1"]).flatMap((suffix) => [
         { source: `/${kind}${suffix}`, has: [{ type: "header" as const, key: "accept-language", value: arabicFirst }], destination: `/ar/${kind}${suffix}`, permanent: false },
         { source: `/${kind}${suffix}`, destination: `/en/${kind}${suffix}`, permanent: false },
       ])),
+      ...["1.0", "1.1"].map((version) => ({ source: `/:locale(en|ar)/terms/${version}`, destination: `/:locale/terms/v${version}`, permanent: true })),
       // British-spelling and long-form aliases are permanent, answered at the edge, and keep the query.
       { source: "/:locale(en|ar)/programme", destination: "/:locale/program", permanent: true },
       { source: "/:locale(en|ar)/participation", destination: "/:locale/participate", permanent: true },

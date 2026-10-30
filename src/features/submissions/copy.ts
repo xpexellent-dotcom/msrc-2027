@@ -1,10 +1,9 @@
 import { abstractArabic } from "./copy-ar";
-/** ORG-068: new Arabic and ethics helper wording is DRAFT for owner review. */
+/** ORG-069: Arabic and ethics/registration helpers are owner-approved. */
 export const abstractCopy = {
   en: {
   "title": "Submit your abstract",
   "lead": "Prepare your abstract in English. Save a draft and review it before submission.",
-  "reviewBanner": "Review mode — preview only. Nothing is saved or submitted.",
   "closed": "Abstract submissions are not open.",
   "unavailable": "The abstract workspace is temporarily unavailable. Your saved work is retained.",
   "notReady": "Abstract submissions are not yet available. You remain signed in.",

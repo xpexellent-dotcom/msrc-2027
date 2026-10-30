@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FormField } from "@/components/forms/form-field";
 import { Checkbox } from "@/components/forms/checkbox";
+import { currentTermsVersion } from "@/config/policies";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { myRegistrationCopy } from "@/features/registration/my-registration-copy";
@@ -252,6 +253,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
         <h2 id="participant-privacy-title">{copy.privacy}</h2><p>{notice.summary}</p>
         <p>{copy.privacyVersion}: <bdi dir="ltr" data-testid="participant-privacy-version">{notice.version}</bdi></p>
         <Link href={notice.url}>{copy.privacyLink}</Link>
+        <p><Link href={`/${locale}/terms/${currentTermsVersion}`}>{copy.termsLink}</Link></p>
       </aside> : null}
       {screen === "verify-email" && hasCodeRequest && draft.email ? <p className="participant-account-notice" data-testid="participant-code-sent">{copy.codeSent} <bdi dir="ltr">{draft.email}</bdi>{carried ? <><br /><Link href={`/${locale}/sign-up`}>{copy.differentEmail}</Link></> : null}</p> : null}
       {needsCode && !hasCodeRequest ? <p className="participant-account-notice" data-testid="participant-code-restart">{screen === "verify-email" ? copy.verificationRestart : copy.recoveryRestart}</p> : null}

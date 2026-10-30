@@ -121,7 +121,6 @@
 .research-acknowledgement__actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-block-start: 1.75rem; }
 .research-acknowledgement__actions .button { white-space: normal; text-align: center; }
 .research-acknowledgement :is(input, button):focus-visible { outline: 3px solid var(--color-purple); outline-offset: 4px; }
-.research-acknowledgement__draft { color: #644780; font-size: .85rem; font-weight: 650; margin-block: 0 .75rem; }
 [lang="ar"] .research-competition :is(h1, h2, h3), [lang="ar"] .research-acknowledgement h2 { font-family: var(--font-arabic); letter-spacing: 0; line-height: 1.5; font-weight: 800; }
 [lang="ar"] .research-rubric-intro h2 { line-height: 1.3; }
 @media (max-width: 700px) {
