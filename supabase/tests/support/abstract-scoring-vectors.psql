@@ -1,0 +1,20 @@
+-- Shared SQL/TypeScript parity vectors. Keep literal independent expected totals.
+create function pg_temp.abstract_scoring_vectors() returns table(name text,scores jsonb,total numeric)
+ language sql stable as $$
+ select v.name,(select jsonb_agg(jsonb_build_object('criterionId',r->>'id','value',v.ratings[n]) order by n)
+  from jsonb_array_elements(msrc_abstracts.rubric_2027()) with ordinality x(r,n)),v.total
+ from (values
+  ('all-poor',array[1,1,1,1,1,1,1]::int[],0.00::numeric),
+  ('all-fair',array[2,2,2,2,2,2,2]::int[],33.33::numeric),
+  ('all-good',array[3,3,3,3,3,3,3]::int[],66.67::numeric),
+  ('all-excellent',array[4,4,4,4,4,4,4]::int[],100.00::numeric),
+  ('significance-only',array[4,1,1,1,1,1,1]::int[],20.00::numeric),
+  ('objectives-only',array[1,4,1,1,1,1,1]::int[],15.00::numeric),
+  ('methodology-only',array[1,1,4,1,1,1,1]::int[],20.00::numeric),
+  ('results-only',array[1,1,1,4,1,1,1]::int[],15.00::numeric),
+  ('conclusions-only',array[1,1,1,1,4,1,1]::int[],10.00::numeric),
+  ('clarity-only',array[1,1,1,1,1,4,1]::int[],10.00::numeric),
+  ('structure-only',array[1,1,1,1,1,1,4]::int[],10.00::numeric),
+  ('mixed',array[4,3,2,1,4,3,2]::int[],56.67::numeric)
+ ) v(name,ratings,total);
+$$;

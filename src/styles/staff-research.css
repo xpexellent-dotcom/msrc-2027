@@ -28,3 +28,15 @@
 .staff-research-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 1050px) { .staff-research-option, .staff-research-rubric-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .staff-research-grid, .staff-research-option, .staff-research-rubric-row { grid-template-columns: minmax(0, 1fr); } .staff-research-queue li { align-items: stretch; flex-direction: column; } .staff-research-check { flex-wrap: wrap; } }
+.staff-screening-band { display: inline-flex; flex-direction: column; gap: .25rem; min-inline-size: 10rem; }
+.staff-screening-band small { font-weight: 400; }
+.staff-screening-gates { display: grid; gap: .65rem; padding-inline-start: 1.5rem; }
+.staff-screening-gates li { padding-block: .5rem; border-block-end: 1px solid var(--staff-border, #ded8e7); }
+.staff-screening-gates li > span, .staff-screening-gates li > small { display: block; margin-block-start: .25rem; }
+.staff-screening-rubric { display: grid; gap: .5rem; }
+.staff-screening-rubric > div { display: flex; justify-content: space-between; gap: 1rem; }
+.staff-screening-rubric dd { margin: 0; flex-shrink: 0; }
+.staff-screening-matches li, .staff-screening article { overflow-wrap: anywhere; padding-block: .5rem; }
+.staff-screening-settings summary, .staff-screening summary, .staff-research-criterion summary { cursor: pointer; }
+.staff-research-criterion { padding-block-end: 1rem; border-block-end: 1px solid var(--staff-border, #ded8e7); }
+.staff-research-criterion li { margin-block: .5rem; }

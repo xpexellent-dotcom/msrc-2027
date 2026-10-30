@@ -39,7 +39,7 @@ describe("ABS/REV staff boundary", () => {
   it.each(ROLES)("restricts settings and scientific mutations independently for %s", async (role) => {
     roles = [role]; expect((await handle(request())).status).toBe(["scientificAdministrator", "superAdmin"].includes(role) ? 200 : 403);
     expect((await handle(request({ action: "save-settings", version: 0, settings: emptyResearchSettings() }))).status).toBe(["scientificAdministrator", "superAdmin"].includes(role) ? 200 : 403);
-    expect((await handle(request({ action: "auto-assign", submissionId: itemId }))).status).toBe(role === "scientificAdministrator" ? 200 : 403);
+    expect((await handle(request({ action: "auto-assign", submissionId: itemId }))).status).toBe(["scientificAdministrator", "superAdmin"].includes(role) ? 200 : 403);
   });
   it.each(ROLES)("restricts review writes to abstractReviewer for %s", async (role) => {
     roles = [role]; expect((await handle(request(undefined, "?area=queue"))).status).toBe(["abstractReviewer", "superAdmin"].includes(role) ? 200 : 403);
@@ -58,12 +58,53 @@ describe("ABS/REV staff boundary", () => {
   it("refuses malformed science aggregates instead of displaying a false quorum", async () => { replies.msrc_staff_research_submission = { state: "ready", reviewSummary: { requiredReviews: 2, completedReviews: 2, meanScore: 50, reviews: [] } }; expect((await handle(request(undefined, `?area=submission&submissionId=${itemId}`))).status).toBe(503); });
   it("keeps supervisor contact in private science detail while stripping unrelated identity and evidence", async () => { replies.msrc_staff_research_submission = { state: "ready", submission: { id: itemId, reference: "SYN-1", version: 1, status: "submitted", wordCount: 8, document: { ...packet, authors: [{ name: "PRIVATE" }], ethicsExplanation: "CONFIDENTIAL", supervisor: { fullName: "Synthetic Supervisor", email: "supervisor@example.invalid", phone: "+966551234567", extra: "FORBIDDEN" } } }, packet: null, packetVersion: 0 }; const response = await handle(request(undefined, `?area=submission&submissionId=${itemId}`)); expect(response.status).toBe(200); const json = await response.json(); expect(json.submission.document).toEqual(packet); expect(json.submission.supervisor).toEqual({ fullName: "Synthetic Supervisor", email: "supervisor@example.invalid", phone: "+966551234567" }); expect(JSON.stringify(json)).not.toMatch(/PRIVATE|CONFIDENTIAL|FORBIDDEN/); });
   it("requires explicit packet attestation and never forwards identity", async () => { expect((await handle(request({ action: "prepare-packet", submissionId: itemId, version: 1, packet, attestation: false }))).status).toBe(400); expect((await handle(request({ action: "prepare-packet", submissionId: itemId, version: 1, packet: { ...packet, authors: [] }, attestation: true }))).status).toBe(400); expect((await handle(request({ action: "prepare-packet", submissionId: itemId, version: 1, packet, attestation: true }))).status).toBe(200); expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_research_prepare_packet", { edition_key: config.editionKey, submission_id: itemId, expected_version: 1, packet, attestation: true }, accessToken); });
-  it.each([["coi", "conflict-of-interest"], ["locked", "review-locked"], ["duplicate", "already-assigned"], ["full", "assignment-full"], ["area_not_ready", "area-not-ready"]])("maps actual SQL state %s", async (state, expected) => { replies.msrc_staff_research_auto_assign = { state }; const response = await handle(request({ action: "auto-assign", submissionId: itemId })); expect(response.status).toBe(409); expect((await response.json()).state).toBe(expected); });
+  it.each([["coi", "conflict-of-interest"], ["locked", "review-locked"], ["duplicate", "already-assigned"], ["full", "assignment-full"], ["area_not_ready", "area-not-ready"]])("maps actual SQL state %s", async (state, expected) => { replies.msrc_staff_research_auto_assign = { state }; const response = await handle(request({ action: "auto-assign", submissionId: itemId })); expect(response.status).toBe(state === "area_not_ready" ? 503 : 409); expect((await response.json()).state).toBe(expected); });
   it("supports actual assigned and scorecard-version responses", async () => { expect((await handle(request({ action: "assign", submissionId: itemId, reviewerId: actorId }))).status).toBe(200); roles = ["abstractReviewer"]; const response = await handle(request({ action: "scorecard", assignmentId: itemId, version: 1, scorecard: { ...card, scores: [] }, submit: false })); expect(response.status).toBe(200); expect((await response.json()).version).toBe(2); expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_research_scorecard", expect.objectContaining({ expected_version: 1, submit: false }), accessToken); });
   it("saves an unfinished draft without inventing a recommendation but refuses final submission", async () => { roles = ["abstractReviewer"]; const scorecard = { scores: [], comments: "Unfinished draft comment", recommendation: null }; expect((await handle(request({ action: "scorecard", assignmentId: itemId, version: 1, scorecard, submit: false }))).status).toBe(200); expect((await handle(request({ action: "scorecard", assignmentId: itemId, version: 1, scorecard, submit: true }))).status).toBe(400); });
   it("requires explicit outcomes, revision deadline and bounded English instructions", async () => { for (const patch of [{ outcome: "" }, { instructions: "" }, { instructions: "x".repeat(4001) }, { revisionDeadline: null }]) expect((await handle(request({ action: "decision", submissionId: itemId, version: 1, outcome: "revise", reason: "Reason", instructions: "Revise title/body/keywords only.", revisionDeadline: "2027-01-01T00:00:00Z", ...patch }))).status).toBe(400); });
   it("uses an immutable batch preview operation and explicit publication", async () => { const body = { action: "batch", decisionIds: [itemId], operationId: actorId, stage: "publish", confirmed: true }; expect((await handle(request({ ...body, confirmed: false }))).status).toBe(400); expect((await handle(request({ ...body, decisionIds: [itemId, itemId] }))).status).toBe(400); const response = await handle(request(body)); expect((await response.json()).emailState).toBe("draft_held"); expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_research_batch", { edition_key: config.editionKey, decision_ids: [itemId], operation_id: actorId, action: "publish" }, accessToken); });
   it("enforces the database's 200-decision transport batch bound before the RPC", async () => { const decisionIds = Array.from({ length: 201 }, (_, index) => `e7900000-0000-4000-8000-${String(index).padStart(12, "0")}`); const body = { action: "batch", decisionIds, operationId: actorId, stage: "prepare", confirmed: true }; expect((await handle(request(body))).status).toBe(400); expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_research_batch", expect.anything(), expect.anything()); expect((await handle(request({ ...body, decisionIds: decisionIds.slice(0, 200) }))).status).toBe(200); });
+
+  it.each(ROLES)("restricts screening and settings independently for %s", async (role) => {
+    roles = [role];
+    replies.msrc_staff_research_confirm_screening = { state: "updated" };
+    replies.msrc_staff_research_request_review = { state: "updated" };
+    replies.msrc_staff_research_save_screening_settings = { state: "ready", screeningSettings: { version: 1, bands: null, similarityThreshold: null, oralCapacity: null } };
+    const screening = { ethics: { passed: true, note: "Confirmed" }, relevance: { passed: true, note: "Relevant" }, externalChecked: true, externalReference: "SYNTHETIC-REPORT", similarityNote: "Reviewed", failureDisposition: null, note: "", investigation: false, investigationNote: "" };
+    const result = await handle(request({ action: "confirm-screening", submissionId: itemId, version: 1, sequence: 0, operationId: actorId, screening }));
+    expect(result.status).toBe(["scientificAdministrator", "superAdmin"].includes(role) ? 200 : 403);
+    const additional = await handle(request({ action: "request-additional-review", submissionId: itemId, expectedRequired: 2, requiredReviews: 3, note: "Synthetic borderline disagreement", operationId: actorId }));
+    expect(additional.status).toBe(["scientificAdministrator", "superAdmin"].includes(role) ? 200 : 403);
+    const settings = await handle(request({ action: "save-screening-settings", settings: { version: 0, bands: null, similarityThreshold: null, oralCapacity: null } }));
+    expect(settings.status).toBe(role === "superAdmin" ? 200 : 403);
+  });
+  it("keeps a new screening RPC that is missing area-not-ready with no logout", async () => {
+    replies.msrc_staff_research_screening_settings = new StaffRpcMissingError();
+    const response = await handle(request(undefined, "?area=screening-settings"));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready");
+    expect(backend.logout).not.toHaveBeenCalled(); expect(response.headers.get("set-cookie")).toBeNull();
+  });
+  it("does not widen a blind reviewer packet with screening or settings", async () => {
+    roles = ["abstractReviewer"];
+    replies.msrc_staff_research_packet = { ...(replies.msrc_staff_research_packet as object), screening: { note: "CONFIDENTIAL" }, screeningSettings: { bands: "PRIVATE" }, recommendedBand: "reject" };
+    const response = await handle(request(undefined, "?area=packet&assignmentId=" + itemId));
+    expect(response.status).toBe(200); expect(JSON.stringify(await response.json())).not.toMatch(/CONFIDENTIAL|PRIVATE|screening|recommendedBand/);
+  });
+  it("projects audited screening without forwarding source evidence or unknown fields", async () => {
+    const gates = Array.from({ length: 7 }, (_, i) => ({ gate: i + 1, passed: true, note: "Synthetic confirmation", sourceDocument: "CONFIDENTIAL" }));
+    replies.msrc_staff_research_submission = { state: "ready", submission: { id: itemId, reference: "SYN-ABS-0001", status: "submitted", version: 1, wordCount: 30, document: packet }, packet: null, packetVersion: 0,
+      screening: { sequence: 1, status: "passed", investigation: false, investigationNote: "", ethicsNote: "Confirmed", actorId, at: "2026-10-31T06:00:00Z", gates, automatic: gates.slice(0, 5), externalChecked: true, externalReference: "SYNTHETIC-REPORT", similarityThreshold: 30, matches: [], current: true, specialty: "internal_medicine", history: [{ sequence: 1, status: "passed", investigation: false, actorId, at: "2026-10-31T06:00:00Z", note: "Synthetic", gates, evidence: "CONFIDENTIAL" }], evidence: "CONFIDENTIAL" }, recommendedBand: "reviews_incomplete" };
+    const response = await handle(request(undefined, "?area=submission&submissionId=" + itemId));
+    expect(response.status).toBe(200); const json = await response.json();
+    expect(json.screening.history[0].actorId).toBe(actorId); expect(json.screening.gates).toHaveLength(7);
+    expect(JSON.stringify(json)).not.toContain("CONFIDENTIAL");
+  });
+  it.each([{ externalReference: "" }, { investigation: true }, { failureDisposition: "final" }, { actorId: "forged" }, { ethics: { passed: true, note: "", evidence: "PRIVATE" } }])("refuses incomplete or widened screening input %j", async (patch) => {
+    const screening = { ethics: { passed: true, note: "Confirmed" }, relevance: { passed: true, note: "Relevant" }, externalChecked: true, externalReference: "SYNTHETIC-REPORT", similarityNote: "Reviewed", failureDisposition: null, note: "", investigation: false, investigationNote: "", ...patch };
+    const response = await handle(request({ action: "confirm-screening", submissionId: itemId, version: 1, sequence: 0, operationId: actorId, screening }));
+    expect(response.status).toBe(400);
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_research_confirm_screening", expect.anything(), expect.anything());
+  });
   it("keeps private responses uncached", async () => { const response = await handle(request()); expect(response.headers.get("cache-control")).toContain("no-store"); expect(response.headers.get("referrer-policy")).toBe("no-referrer"); });
 });
 describe("scientific configuration and blind allowlists", () => {

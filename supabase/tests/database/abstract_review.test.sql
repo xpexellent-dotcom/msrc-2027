@@ -6,6 +6,7 @@ select no_plan();
 \ir ../support/registration-fixtures.psql
 \ir ../support/profile-complete-fixtures.psql
 \ir ../support/abstract-fixtures.psql
+\ir ../support/abstract-screening-fixtures.psql
 select is((select count(*) from msrc_abstracts.settings),0::bigint,'No scientific settings seeded');
 select ok(not exists(select 1 from pg_class c where c.relnamespace='msrc_abstracts'::regnamespace and c.relkind='r' and not(c.relrowsecurity and c.relforcerowsecurity)),'All abstract tables force RLS without fixed object count');
 select ok(not exists(select 1 from pg_policies where schemaname='msrc_abstracts'),'Private tables have no permissive client policies');
@@ -52,11 +53,11 @@ select pg_temp.registration_staff_fixture(9105,'synthetic-abstracts','abstractRe
 select pg_temp.abstract_claims(9104);
 select is(public.msrc_staff_research_settings('synthetic-abstracts')->>'state','denied','Finance cannot inspect science');
 select pg_temp.abstract_claims(9100);
-select is(public.msrc_staff_research_save_settings('synthetic-abstracts',0,pg_temp.abstract_settings())->>'state','ready','Assured Super Admin may manage explicit settings');
+select is(public.msrc_staff_research_save_settings('synthetic-abstracts',0,pg_temp.screening_configuration())->>'state','ready','Assured Super Admin may manage explicit settings');
 select is((select enabled from msrc_abstracts.settings where edition_key='synthetic-abstracts'),false,'Saving complete settings never enables workflow');
 select is((select evidence_ready from msrc_abstracts.settings where edition_key='synthetic-abstracts'),false,'Saving settings never bypasses evidence gate');
-select is(public.msrc_staff_research_save_settings('synthetic-abstracts',0,pg_temp.abstract_settings())->>'state','conflict','Settings CAS rejects stale writes');
-select is(public.msrc_staff_research_auto_assign('synthetic-abstracts',gen_random_uuid())->>'state','denied','SA-only science oversight cannot assign');
+select is(public.msrc_staff_research_save_settings('synthetic-abstracts',0,pg_temp.screening_configuration())->>'state','conflict','Settings CAS rejects stale writes');
+select is(public.msrc_staff_research_auto_assign('synthetic-abstracts',gen_random_uuid())->>'count','0','Super Admin may use scientific assignment workflow; no target is assigned');
 select is(public.msrc_abstracts_save_draft('synthetic-abstracts',pg_temp.registration_claims(9001),null,0,pg_temp.abstract_document(),gen_random_uuid())->>'state','closed','Disabled workflow refuses drafts');
 update msrc_abstracts.settings set enabled=true where edition_key='synthetic-abstracts';
 update msrc_participant.profile_details set specialty_interests=array['synthetic-specialty'] where edition_key='synthetic-abstracts';
@@ -68,6 +69,8 @@ select is((select count(*) from msrc_abstracts.submissions),1::bigint,'Idempoten
 select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9002),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','denied','Foreign participant cannot finalize draft');
 select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','evidence_gate','Evidence and virus-scanning gate enforced by database');
 update msrc_abstracts.settings set evidence_ready=true where edition_key='synthetic-abstracts';
+-- Explicitly distinguish the test corpus before finalization; screening must not waive identical text.
+update msrc_abstracts.submissions set document=jsonb_set(document,'{body,background}',to_jsonb('Synthetic independent study A'::text)) where actor_id=pg_temp.registration_actor(9001);
 select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','finalized','Synthetic authorized evidence fixture can finalize');
 select is((select count(*) from msrc_abstracts.snapshots),1::bigint,'Finalization creates one immutable snapshot');
 select is((select count(*) from msrc_abstracts.authors),2::bigint,'Ordered authors retained with snapshot');
@@ -79,7 +82,10 @@ select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registrat
 insert into abstract_result values('three',public.msrc_abstracts_save_draft('synthetic-abstracts',pg_temp.registration_claims(9003),null,0,pg_temp.abstract_document(),gen_random_uuid()));
 select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9003),(select (value->'submission'->>'id')::uuid from abstract_result where key='three'),1,gen_random_uuid())->>'state','finalized','Co-author identity does not limit a different participant');
 select is((select count(*) from msrc_abstracts.submissions where finalized_at is not null),3::bigint,'Each of three distinct participants may finalize once');
+insert into msrc_abstracts.screening_settings(edition_key,version,bands,similarity_threshold,oral_capacity,actor_id,session_id)
+ values('synthetic-abstracts',1,null,100,null,pg_temp.registration_actor(9100),pg_temp.registration_session(9100));
 select pg_temp.abstract_claims(9101);
+select pg_temp.confirm_screening((select (value->'submission'->>'id')::uuid from abstract_result where key='one'));
 select ok(public.msrc_staff_research_submission('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'))::text !~ 'Confidential ethics canary|ethicsExplanation|ethicsStatus','Science projection excludes confidential stage-one evidence');
 select is(public.msrc_staff_research_prepare_packet('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,pg_temp.abstract_packet()||'{"title":"Identity Canary Person"}'::jsonb,true)->>'state','invalid','Author identity in title blocks packet');
 select is(public.msrc_staff_research_prepare_packet('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,jsonb_set(pg_temp.abstract_packet(),'{body,background}','"Identity Canary Institute"'::jsonb),true)->>'state','invalid','Affiliation in body blocks packet');
@@ -91,40 +97,44 @@ select pg_temp.abstract_claims(9102);
 select is(public.msrc_staff_research_declare_affiliations('synthetic-abstracts',array['identity-canary INSTITUTE'])->>'state','updated','Reviewer declares affiliations');
 select pg_temp.abstract_claims(9103);
 select is(public.msrc_staff_research_declare_affiliations('synthetic-abstracts',array['Independent synthetic institute'])->>'state','updated','Independent reviewer declares affiliations');
+select pg_temp.abstract_claims(9105);
+select public.msrc_staff_research_declare_affiliations('synthetic-abstracts',array['Second independent synthetic institute']);
 select pg_temp.abstract_claims(9101);
 select is(public.msrc_staff_research_assign('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),pg_temp.registration_actor(9102))->>'state','coi','Normalized case and punctuation affiliation conflict blocks manual assignment');
-select is(public.msrc_staff_research_auto_assign('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'))->>'count','1','Balanced auto assignment skips conflict and fills configured reviewer count');
-select is((select reviewer_id from msrc_abstracts.assignments limit 1),pg_temp.registration_actor(9103),'Eligible independent reviewer assigned');
-select is(public.msrc_staff_research_save_settings('synthetic-abstracts',1,pg_temp.abstract_settings()||'{"reviewersPerAbstract":2,"rubric":[{"id":"later-criterion","label":"Later synthetic criterion","weight":1,"min":0,"max":10}]}'::jsonb)->>'state','ready','Later settings receive a new immutable version');
+select is(public.msrc_staff_research_auto_assign('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'))->>'count','2','Balanced auto assignment skips conflict and fills two reviewers');
+select is((select reviewer_id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1),pg_temp.registration_actor(9103),'Eligible independent reviewer assigned');
+select is(public.msrc_staff_research_save_settings('synthetic-abstracts',1,pg_temp.screening_configuration())->>'state','ready','Later settings receive a new immutable version without changing owner weights');
 select is(public.msrc_staff_research_assign('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),pg_temp.registration_actor(9103))->>'state','duplicate','Existing assignment cannot duplicate after rubric changes');
 select pg_temp.abstract_claims(9102);
-select is(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1))->>'state','denied','Foreign reviewer cannot read packet');
+select is(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1))->>'state','denied','Foreign reviewer cannot read packet');
 select pg_temp.abstract_claims(9103);
-select is(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1))->'assignment'->>'rubricVersion','1','Assignments remain on snapshot rubric version after settings change');
-select is(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1))->'reviewPolicy'->>'requiredReviews','1','Review count stays pinned to the assessed version');
-select ok(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1))::text !~ 'Canary|example.invalid|actorId|author|affiliations','Reviewer response cannot disclose author identities');
-select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1),1,'{"scores":[],"comments":"Draft","recommendation":null}'::jsonb,false)->>'state','updated','Partial scorecard draft may be saved without inventing a recommendation');
-select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1),2,'{"scores":[],"comments":"Draft","recommendation":"revise"}'::jsonb,true)->>'state','invalid','Missing score cannot be submitted or counted as zero');
+select is(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1))->'assignment'->>'rubricVersion','1','Assignments remain on snapshot rubric version after settings change');
+select is(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1))->'reviewPolicy'->>'requiredReviews','2','Pilot count is two independent reviewers');
+select ok(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1))::text !~ 'Canary|example.invalid|actorId|author|affiliations','Reviewer response cannot disclose author identities');
+select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1),1,'{"scores":[],"comments":"Draft","recommendation":null}'::jsonb,false)->>'state','updated','Partial scorecard draft may be saved without inventing a recommendation');
+select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1),2,'{"scores":[],"comments":"Draft","recommendation":"revise"}'::jsonb,true)->>'state','invalid','Missing score cannot be submitted or counted as zero');
 select pg_temp.abstract_claims(9101);
 select is(public.msrc_staff_research_decision('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,'accept','Committee rationale','Applicant instruction',null)->>'state','reviews_incomplete','Missing completed reviews block acceptance decision');
 select pg_temp.abstract_claims(9103);
-select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1),2,'{"scores":[{"criterionId":"synthetic-criterion","value":4}],"comments":"Independent review","recommendation":"revise"}'::jsonb,true)->>'state','updated','Exact pinned rubric scorecard completes');
-select is((select score_total from msrc_abstracts.assignments limit 1),50::numeric,'Weighted normalized score preserves scale');
+select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1),2,pg_temp.owner_scorecard(3),true)->>'state','updated','Exact pinned rubric scorecard completes');
+select is((select score_total from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1),66.67::numeric,'Owner formula rounds the complete score once');
+select pg_temp.abstract_claims(9105);
+select public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9105) and submission_version=1),1,pg_temp.owner_scorecard(3),true);
 select pg_temp.abstract_claims(9101);
 insert into abstract_result values('stale-decision',public.msrc_staff_research_decision('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,'accept','Committee reviewed original scorecard','Synthetic acceptance',null));
 select is((select value->>'state' from abstract_result where key='stale-decision'),'prepared','Decision preparation freezes the eligible completed scorecard basis');
-select is((select review_basis->'completed'->0->>'scorecardVersion' from msrc_abstracts.decisions where id=(select (value->>'decisionId')::uuid from abstract_result where key='stale-decision')),'3','Decision stores immutable component version reference');
+select is((select (select b->>'scorecardVersion' from jsonb_array_elements(review_basis->'completed') b where b->>'assignmentId'=(select id::text from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1)) from msrc_abstracts.decisions where id=(select (value->>'decisionId')::uuid from abstract_result where key='stale-decision')),'3','Decision stores immutable component version reference');
 select is(public.msrc_staff_research_batch('synthetic-abstracts',array[(select (value->>'decisionId')::uuid from abstract_result where key='stale-decision')],'e7900000-0000-4000-8000-000000000020','prepare')->>'state','prepared','Exact review basis reaches explicit batch preview');
 select pg_temp.abstract_claims(9103);
-select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1),3,'{"scores":[{"criterionId":"synthetic-criterion","value":5}],"comments":"Updated assessment before lock","recommendation":"accept"}'::jsonb,true)->>'state','updated','Reviewer may update completed scorecard before deadline');
+select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1),3,pg_temp.owner_scorecard(4),true)->>'state','updated','Reviewer may update completed scorecard before deadline');
 select pg_temp.abstract_claims(9101);
 select ok(msrc_abstracts.reviews_complete((select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1),'Changed score still satisfies completed review quorum');
 select is(public.msrc_staff_research_batch('synthetic-abstracts',array[(select (value->>'decisionId')::uuid from abstract_result where key='stale-decision')],'e7900000-0000-4000-8000-000000000020','publish')->>'state','conflict','Publication rejects changed scorecard basis even when quorum remains satisfied');
 select is((select count(*) from msrc_abstracts.publications where decision_id=(select (value->>'decisionId')::uuid from abstract_result where key='stale-decision')),0::bigint,'Stale scientific basis publishes no outcome');
 select is((select count(*) from msrc_outbox.messages where template_key='abstract_decision'),0::bigint,'Stale scientific basis queues no decision email');
 select pg_temp.abstract_claims(9100);
-select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1),3,'{}'::jsonb,true)->>'state','denied','SA-only review oversight cannot score');
-select is(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1))->'scorecard','null'::jsonb,'SA-only blind oversight omits confidential reviewer scorecard');
+select is(public.msrc_staff_research_scorecard('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1),3,'{}'::jsonb,true)->>'state','denied','SA-only review oversight cannot score');
+select is(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1))->'scorecard','null'::jsonb,'SA-only blind oversight omits confidential reviewer scorecard');
 select pg_temp.abstract_claims(9101);
 insert into abstract_result values('decision',public.msrc_staff_research_decision('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,'revise','Committee rationale','Revise scientific text only',clock_timestamp()+interval '2 days'));
 select is((select value->>'state' from abstract_result where key='decision'),'prepared','Committee records immutable unpublished decision');
@@ -135,7 +145,7 @@ select is(public.msrc_staff_research_batch('synthetic-abstracts',array[(select (
 select is(public.msrc_staff_research_batch('synthetic-abstracts',array[(select (value->>'decisionId')::uuid from abstract_result where key='decision')],'e7900000-0000-4000-8000-000000000010','publish')->>'state','published','Explicit publication atomically changes dashboard and held outbox');
 select is(public.msrc_staff_research_batch('synthetic-abstracts',array[(select (value->>'decisionId')::uuid from abstract_result where key='decision')],'e7900000-0000-4000-8000-000000000010','publish')->>'state','published','Published batch retry is idempotent');
 select pg_temp.abstract_claims(9103);
-select is(public.msrc_staff_research_review_response('synthetic-abstracts',(select id from msrc_abstracts.assignments limit 1),'decline','Synthetic late response')->>'state','locked','Published outcome prevents a late review decline from changing its valid quorum');
+select is(public.msrc_staff_research_review_response('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1),'decline','Synthetic late response')->>'state','locked','Published outcome prevents a late review decline from changing its valid quorum');
 select pg_temp.abstract_claims(9101);
 select is((select count(*) from msrc_outbox.messages where template_key='abstract_decision'),1::bigint,'One decision message only');
 select ok((select bool_and(delivery_hold and status='queued' and locale='en') from msrc_outbox.messages where template_key='abstract_decision'),'New English DRAFT message stays held');
@@ -153,6 +163,7 @@ insert into msrc_abstracts.authors select submission_id,2,position,author_id,nam
 select is((select count(*) from msrc_abstracts.assignments a join msrc_abstracts.submissions s on s.id=a.submission_id and s.version=a.submission_version where s.actor_id=pg_temp.registration_actor(9001)),0::bigint,'Old review never becomes new-version score');
 select pg_temp.abstract_claims(9101);
 select is(public.msrc_staff_research_prepare_packet('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),2,pg_temp.abstract_packet(),true)->>'state','prepared','Revision needs a separately attested packet');
+select pg_temp.confirm_screening((select (value->'submission'->>'id')::uuid from abstract_result where key='one'));
 select is(public.msrc_staff_research_assign('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),pg_temp.registration_actor(9103))->>'state','assigned','Current revision receives an explicit new review');
 update msrc_authorization.role_grants set state='revoked',revocation_reason='Synthetic revocation',revoked_at=clock_timestamp() where actor_id=pg_temp.registration_actor(9103) and role_name='abstractReviewer';
 select pg_temp.abstract_claims(9105);
@@ -164,11 +175,13 @@ select ok(exists(select 1 from msrc_abstracts.audit where event='review.withdraw
 -- Restored historical fixture: immutable rubric deadline has already elapsed.
 insert into msrc_abstracts.settings_versions values('synthetic-abstracts',3,pg_temp.abstract_settings()||jsonb_build_object('opensAt',clock_timestamp()-interval '3 days','closesAt',clock_timestamp()-interval '2 days','reviewDeadline',clock_timestamp()-interval '1 day'));
 insert into msrc_abstracts.submissions(id,edition_key,actor_id,version,document,status,word_count,finalized_at,pi_key,reference)
-values('e7a00000-0000-4000-8000-000000000001','synthetic-abstracts',pg_temp.registration_actor(9003),1,pg_temp.abstract_document('historical-pi@example.invalid'),'scientific_review',8,clock_timestamp()-interval '2 days','historical-pi@example.invalid','synthetic-historical');
-insert into msrc_abstracts.snapshots values('e7a00000-0000-4000-8000-000000000001',1,pg_temp.abstract_document('historical-pi@example.invalid'),8,3,clock_timestamp()-interval '2 days');
+values('e7a00000-0000-4000-8000-000000000001','synthetic-abstracts',pg_temp.registration_actor(9003),1,jsonb_set(pg_temp.abstract_document('historical-pi@example.invalid'),'{body,background}',to_jsonb('Distinct historical synthetic context'::text)),'scientific_review',8,clock_timestamp()-interval '2 days','historical-pi@example.invalid','synthetic-historical');
+insert into msrc_abstracts.snapshots values('e7a00000-0000-4000-8000-000000000001',1,jsonb_set(pg_temp.abstract_document('historical-pi@example.invalid'),'{body,background}',to_jsonb('Distinct historical synthetic context'::text)),8,3,clock_timestamp()-interval '2 days');
 insert into msrc_abstracts.packets values('e7a00000-0000-4000-8000-000000000001',1,pg_temp.abstract_packet(),pg_temp.registration_actor(9101),clock_timestamp()-interval '2 days');
 insert into msrc_abstracts.assignments(id,edition_key,submission_id,submission_version,rubric_version,reviewer_id)
 values('e7a00000-0000-4000-8000-000000000002','synthetic-abstracts','e7a00000-0000-4000-8000-000000000001',1,3,pg_temp.registration_actor(9105));
+select pg_temp.abstract_claims(9101);
+select pg_temp.confirm_screening('e7a00000-0000-4000-8000-000000000001');
 select pg_temp.abstract_claims(9105);
 select is(public.msrc_staff_research_scorecard('synthetic-abstracts','e7a00000-0000-4000-8000-000000000002',1,'{"scores":[{"criterionId":"synthetic-criterion","value":7}],"comments":"Late score","recommendation":"accept"}'::jsonb,true)->>'state','locked','Pinned immutable review deadline rejects late scorecard writes');
 update msrc_abstracts.mutation_limits set used=60,window_started_at=clock_timestamp() where actor_id=pg_temp.registration_actor(9001);

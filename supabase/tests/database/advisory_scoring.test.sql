@@ -59,7 +59,10 @@ select pg_temp.registration_staff_fixture(9702,'synthetic-advisory','abstractRev
 select pg_temp.registration_staff_fixture(9703,'synthetic-advisory','finance');
 select pg_temp.registration_staff_fixture(9705,'synthetic-advisory','scientificAdministrator');
 select pg_temp.abstract_claims(9700);
-select is(public.msrc_staff_research_save_settings('synthetic-advisory',0,pg_temp.abstract_settings())->>'state','ready','Synthetic rubric configured without opening abstracts');
+select is(public.msrc_staff_research_save_settings('synthetic-advisory',0,pg_temp.abstract_settings())->>'state','invalid','New staff saves cannot replace the owner-approved human rubric');
+-- Preserve explicit historical advisory fixtures. No provider/AI implementation change.
+insert into msrc_abstracts.settings(edition_key,version,configuration) values('synthetic-advisory',1,pg_temp.abstract_settings());
+insert into msrc_abstracts.settings_versions values('synthetic-advisory',1,pg_temp.abstract_settings());
 select pg_temp.advisory_submission(n,'synthetic-advisory',9704,case when n=1 then 'registration-staff-9705@example.invalid' else 'synthetic-pi@example.invalid' end) from generate_series(1,6) n;
 select is(public.msrc_staff_advisory_workspace('synthetic-advisory')->>'eligibleCount','6','Only finalized prepared-packet candidates projected');
 select is(public.msrc_staff_advisory_start('synthetic-advisory',pg_temp.advisory_id(101),array[pg_temp.advisory_id(1)])->>'state','disabled','Default-off DB gate refuses enqueue');
