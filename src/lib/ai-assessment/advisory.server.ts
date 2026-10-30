@@ -1,4 +1,5 @@
 import "server-only";
+import { abstractWeightedTotal, fixedAbstractRubric, type GateObservation } from "./abstract-advisory.ts";
 import { decodeResearchRubric, projectResearchBody } from "../../features/staff-portal/research-contract.ts";
 import type { AssessmentRequest, LockedSnapshot, RequestConfiguration, Rubric } from "./contracts.ts";
 import { DEEPSEEK_MODEL } from "./configuration.server.ts";
@@ -6,7 +7,7 @@ import { buildAssessmentRequest, parseAssessmentMessage } from "./request.server
 import { checkIdentityLeaks, isRecord, validReference } from "./sanitizer.server.ts";
 
 export interface AdvisoryCriterionScore { readonly criterionId: string; readonly value: number; readonly rationale: string }
-export const ADVISORY_PROMPT_VERSION = "staff-advisory-v1";
+export const ADVISORY_PROMPT_VERSION = "staff-advisory-org069-v2";
 const bodyKeys = ["background", "objectives", "methods", "results", "limitations", "conclusion"] as const;
 const text = (value: unknown, limit: number): value is string => typeof value === "string" && value.length <= limit && !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value);
 export type AdvisoryIdentityScreen = LockedSnapshot["identity"];
@@ -36,20 +37,22 @@ export function prepareAdvisoryRequest(input: unknown, rubricVersion: number, cr
   const body = Object.freeze(projectedBody);
   const bodyText = bodyKeys.map(key => body[key]).join("\n");
   if (!bodyText.trim() || bodyText.length > 12_000) return { ok: false, reason: "invalid_snapshot" };
-  const payload = Object.freeze({ title: input.title, body });
+  const fixed = fixedAbstractRubric(rubric.criteria);
+  if (fixed && (!validReference(input.specialtyId) || !validReference(input.studyTypeId) || !text(input.studyTypeOther, 500) || typeof input.analysisComplete !== "boolean")) return { ok: false, reason: "invalid_snapshot" };
+  const payload = Object.freeze({ title: input.title, body, ...(fixed ? { specialtyId: input.specialtyId as string, studyTypeId: input.studyTypeId as string, studyTypeOther: input.studyTypeOther as string, analysisComplete: input.analysisComplete as boolean } : {}) });
   // Canary screening supplements staff blinding; it does not prove free text is anonymous.
-  if (checkIdentityLeaks([payload.title, bodyText, ...rubric.criteria.map(criterion => criterion.label)].join("\n"), identity).length) return { ok: false, reason: "identity_leak" };
+  if (checkIdentityLeaks([payload.title, bodyText, ...(fixed ? [payload.specialtyId!, payload.studyTypeId!, payload.studyTypeOther!] : []), ...rubric.criteria.map(criterion => criterion.label)].join("\n"), identity).length) return { ok: false, reason: "identity_leak" };
   return { ok: true, request: buildAssessmentRequest(payload, rubric, config), rubric };
 }
 
 /** Invalid responses are discarded whole; even a valid subset must never be persisted. */
 export function parseAdvisoryResponse(response: unknown, rubricVersion: number, criteria: unknown, identity: AdvisoryIdentityScreen):
-  | { readonly ok: true; readonly scores: readonly AdvisoryCriterionScore[]; readonly model: string }
+  | { readonly ok: true; readonly scores: readonly AdvisoryCriterionScore[]; readonly model: string; readonly gates?: readonly GateObservation[]; readonly total?: number }
   | { readonly ok: false; readonly reason: "invalid_output" | "refusal" | "incomplete_output" } {
   const rubric = advisoryRubric(rubricVersion, criteria);
   if (!rubric || !validIdentity(identity)) return { ok: false, reason: "invalid_output" };
   const parsed = parseAssessmentMessage(response, rubric);
   if (!parsed.ok) return parsed;
-  if (parsed.model !== DEEPSEEK_MODEL || checkIdentityLeaks([...parsed.output.criteria.map(criterion => criterion.rationale), parsed.output.overallComment].join("\n"), identity).length) return { ok: false, reason: "invalid_output" };
-  return { ok: true, model: parsed.model, scores: Object.freeze(parsed.output.criteria.map(criterion => Object.freeze({ criterionId: criterion.criterionId, value: criterion.score, rationale: criterion.rationale }))) };
+  if (parsed.model !== DEEPSEEK_MODEL || checkIdentityLeaks([...parsed.output.criteria.map(criterion => criterion.rationale), parsed.output.overallComment, ...(parsed.output.gates?.map(g => g.observation) ?? [])].join("\n"), identity).length) return { ok: false, reason: "invalid_output" };
+  return { ok: true, model: parsed.model, ...(parsed.output.gates ? { gates: parsed.output.gates, total: abstractWeightedTotal(parsed.output.criteria.map(c => ({ criterionId: c.criterionId, value: c.score })))! } : {}), scores: Object.freeze(parsed.output.criteria.map(criterion => Object.freeze({ criterionId: criterion.criterionId, value: criterion.score, rationale: criterion.rationale }))) };
 }

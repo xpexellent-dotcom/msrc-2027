@@ -1,5 +1,14 @@
 # Closed advisory scoring and calibration
 
+**31 October 2026 / ENG-091:** the current implementation and closed-state
+evidence are in [the AI and supervisor receipt](../progress/2026-10-31-abstract-ai-supervisor-email.md).
+ORG-040 and ORG-069 govern the fixed ENG-090 rubric. Advice is staff-only,
+including after reviewer submission; the former configurable reveal is retired.
+Scientific Administrators and Super Admins confirm individual suggestions in
+separate immutable AI-assisted records, never reviewer cards or decisions.
+Supervisor correspondence is held in the existing outbox only after a human
+`screening.passed` event. No settings, migration or delivery is activated.
+
 Night-3 Task 6, ENG-068; AI-01–06, REV-01–09, ROL-03/05/10/12,
 SEC-01/02/06, LOC-01–03, ACC-01 and ORG-040. Implementation and test evidence:
 [O9 receipt](../progress/2026-10-23-codex-night3-advisory.md).
@@ -60,8 +69,11 @@ Malformed, identifying, incomplete or out-of-range outputs are discarded whole.
 Changed configuration or stale submissions prevent result persistence. Manual
 human review remains available after every AI failure.
 
-The provider receives only the sanitized title and five body fields, together
-with the rubric and fixed system rules. No IDs, author/account names, contacts,
+The staff worker receives the same blinded reviewer packet: sanitized title,
+six body sections, specialty/study-type identifiers, other study-type text and
+analysis-completion metadata. The fixed ENG-090 rubric and system rules accompany
+that science. G1-G6 observations are comments only; seven integer 1-4 suggestions
+are schema-validated as one object, and the shared formula computes the total. No IDs, author/account names, contacts,
 affiliations, keywords, attachments or identity documents enter the request.
 Frozen source names and institutions are private **local screening context**;
 the worker checks them against transmitted text and returned rationales without
@@ -79,11 +91,11 @@ raw outputs, manuscript excerpts, credentials or provider exception text.
 
 ## Reviewer visibility and calibration
 
-Reviewer visibility is default OFF and Super Admin controlled. Reveal also
-requires a current assignment, eligibility/no conflict, the current submission
-version and an independently completed human review. Author and coauthor checks
-apply independently. Reviewers cannot enable the setting or write advisory
-records. Their existing assessment workspace remains English/LTR.
+Reviewer visibility is permanently OFF in this slice. Both HTTP and database
+reviewer endpoints deny access; the reviewer UI never requests advisory data.
+Staff holding a reviewer role are also denied by the new staff projection and
+confirmation RPCs. Author/coauthor checks apply independently. Reviewer assessment
+screens remain English/LTR and AI never contributes to reviewer counts or means.
 
 Calibration is staff-only and pairs AI with the mean of eligible completed human
 scores for exactly the same abstract version, rubric version and criterion.

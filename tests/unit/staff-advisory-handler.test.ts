@@ -22,6 +22,30 @@ function persisted() { const superAdmin = roles.includes("superAdmin"); return {
 function request(body?: Record<string, unknown>, query = "?area=workspace", signedIn = true, extraHeaders: Record<string, string> = {}) { return new Request(origin + "/api/staff-portal/advisory" + query, { method: body ? "POST" : "GET", headers: { host: "127.0.0.1:3219", ...(signedIn ? { cookie: staffCookie(config, { ...native, origin, deadline: now + 8 * 3600000, challengeId: null, factorId: null, challengeExpiresAt: null }, now).split(";")[0] } : {}), ...(body ? { origin, "Content-Type": "application/json" } : {}), ...extraHeaders }, body: body ? JSON.stringify({ formToken: staffFormToken(config, origin, now), ...body }) : undefined }); }
 const handle = (input: Request) => createAdvisoryHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => now, env })(input);
 const advisoryCalls = () => vi.mocked(backend.rpc).mock.calls.filter(([name]) => name.startsWith("msrc_staff_advisory_"));
+
+describe("ENG-091 human advisory confirmation boundary", () => {
+  const item = () => ({ action: "confirm-item", advisoryId: itemId, item: "methodology", score: 3, note: "Synthetic human reasoning", operationId: actorId });
+  it.each(ROLES)("authorizes individual human confirmations for %s", async role => {
+    roles = [role]; replies.msrc_staff_advisory_confirm_item = { state: "updated" };
+    expect((await handle(request(item()))).status).toBe(["scientificAdministrator", "superAdmin"].includes(role) ? 200 : 403);
+  });
+  it("denies dual staff/reviewer visibility before any advisory RPC", async () => {
+    roles = ["scientificAdministrator", "abstractReviewer"];
+    expect((await handle(request(undefined, `?area=submission&submissionId=${itemId}`))).status).toBe(403); expect(advisoryCalls()).toHaveLength(0);
+  });
+  it.each([{ score: 2.5 }, { score: 5 }, { item: "G1" }, { decision: "accept" }, { note: "" }, { formToken: "" }])("rejects invalid or unconfirmed fields %j", async patch => {
+    expect((await handle(request({ ...item(), ...patch }))).status).toBe(400); expect(advisoryCalls()).toHaveLength(0);
+  });
+  it("projects only the staff status, validated record and attributable confirmations", async () => {
+    replies.msrc_staff_advisory_submission = { state: "ready", enabled: false, advisory: null, notification: "draft_held", confirmations: [], supervisor_email: "private@example.invalid", document: "CONFIDENTIAL" };
+    const r = await handle(request(undefined, `?area=submission&submissionId=${itemId}`)); const value = await r.json();
+    expect(r.status).toBe(200); expect(value.notification).toBe("draft_held"); expect(JSON.stringify(value)).not.toMatch(/private@example.invalid|CONFIDENTIAL/);
+  });
+  it("degrades missing human-confirmation RPCs to area-not-ready", async () => {
+    replies.msrc_staff_advisory_confirm_item = new StaffRpcMissingError(); const r = await handle(request(item()));
+    expect(r.status).toBe(503); expect((await r.json()).state).toBe("area-not-ready"); expect(backend.logout).not.toHaveBeenCalled();
+  });
+});
 beforeEach(() => {
   roles = ["scientificAdministrator"]; policySatisfied = true; env = { AI_ASSESSMENT_ENABLED: "true", DEEPSEEK_API_KEY: "synthetic-deepseek-key-never-valid", AI_ASSESSMENT_SUPABASE_URL: "http://127.0.0.1:54321", AI_ASSESSMENT_SUPABASE_SECRET_KEY: "sb_secret_synthetic_only", CRON_SECRET: "s".repeat(32) };
   replies = {
@@ -43,7 +67,7 @@ describe("AI advisory staff authorization and durable batch boundary", () => {
     expect((await handle(request(start()))).status).toBe(expected);
   });
   it.each(ROLES)("restricts assigned-reviewer projection for %s", async role => {
-    roles = [role]; expect((await handle(request(undefined, `?area=reviewer&assignmentId=${itemId}`))).status).toBe(role === "abstractReviewer" ? 200 : 403);
+    roles = [role]; expect((await handle(request(undefined, `?area=reviewer&assignmentId=${itemId}`))).status).toBe(403);
   });
   it.each(["scientificAdministrator", "superAdmin", "abstractReviewer"] as const)("rejects unsatisfied exact-session assurance for %s", async role => {
     roles = [role]; policySatisfied = false; expect((await handle(request())).status).toBe(403); expect(advisoryCalls()).toHaveLength(0);
@@ -68,10 +92,10 @@ describe("AI advisory staff authorization and durable batch boundary", () => {
   it.each(["", "?area=unknown", "?area=workspace&area=workspace", "?area=workspace&extra=1", "?area=reviewer&assignmentId=bad", `?area=calibration&assignmentId=${itemId}`])("rejects malformed query %s", async query => {
     expect((await handle(request(undefined, query))).status).toBe(400); expect(advisoryCalls()).toHaveLength(0);
   });
-  it.each(["workspace", "calibration", "reviewer", "save_settings", "start"])("missing %s RPC degrades gracefully without logout", async area => {
+  it.each(["workspace", "calibration", "submission", "save_settings", "start"])("missing %s RPC degrades gracefully without logout", async area => {
     replies[`msrc_staff_advisory_${area}`] = new StaffRpcMissingError();
     if (area === "reviewer") roles = ["abstractReviewer"];
-    const input = area === "save_settings" ? request({ action: "save-settings", version: 0, settings: emptyAdvisorySettings() }) : area === "start" ? request(start()) : request(undefined, area === "reviewer" ? `?area=reviewer&assignmentId=${itemId}` : `?area=${area}`);
+    const input = area === "save_settings" ? request({ action: "save-settings", version: 0, settings: emptyAdvisorySettings() }) : area === "start" ? request(start()) : request(undefined, area === "submission" ? `?area=submission&submissionId=${itemId}` : `?area=${area}`);
     const response = await handle(input); expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready");
     expect(response.headers.get("set-cookie")).toBeNull(); expect(backend.logout).not.toHaveBeenCalled();
   });
@@ -100,7 +124,7 @@ describe("AI advisory staff authorization and durable batch boundary", () => {
   });
   it("retains database authority over scientist changes to owner activation and reviewer visibility", async () => {
     replies.msrc_staff_advisory_save_settings = { state: "denied" }; const response = await handle(request({ action: "save-settings", version: 0, settings: { ...configured(), enabled: true, reviewerVisible: true } }));
-    expect(response.status).toBe(403); expect((await response.json()).state).toBe("denied");
+    expect(response.status).toBe(400); expect((await response.json()).state).toBe("invalid");
   });
   it("starts only the named finalized candidates with a caller idempotency key", async () => {
     const response = await handle(request(start())); expect(response.status).toBe(200); expect((await response.json()).runId).toBe(itemId);
@@ -128,12 +152,12 @@ describe("advisory response minimization and calibration", () => {
     const response = await handle(request()), value = await response.json(); expect(response.status).toBe(200); expect(JSON.stringify(value)).not.toContain("PRIVATE"); expect(value.records[0].scores[0].value).toBe(0); expect(value.runs[0].errors).toEqual([{ code: "invalid_output", count: 1 }]);
   });
   it("reviewer visibility remains empty until the database permits the assignment", async () => {
-    roles = ["abstractReviewer"]; const response = await handle(request(undefined, `?area=reviewer&assignmentId=${itemId}`)); expect(response.status).toBe(200); expect((await response.json()).advisory).toBeNull();
-    expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_advisory_reviewer", { edition_key: config.editionKey, assignment_id: itemId }, accessToken);
+    roles = ["abstractReviewer"]; const response = await handle(request(undefined, `?area=reviewer&assignmentId=${itemId}`)); expect(response.status).toBe(403); expect((await response.json()).state).toBe("denied");
+    expect(advisoryCalls()).toHaveLength(0);
   });
   it("never widens reviewer projection to other records, calibration or settings", async () => {
     roles = ["abstractReviewer"]; replies.msrc_staff_advisory_reviewer = { state: "ready", advisory: record(), settings: configured(), records: [{ ...record(), reference: "PRIVATE OTHER ABSTRACT" }], pairs: [{ authorName: "PRIVATE AUTHOR" }] };
-    const response = await handle(request(undefined, `?area=reviewer&assignmentId=${itemId}`)); const value = await response.json(); expect(response.status).toBe(200); expect(value.advisory).toEqual(record()); expect(value).not.toHaveProperty("settings"); expect(value).not.toHaveProperty("records"); expect(JSON.stringify(value)).not.toContain("PRIVATE");
+    const response = await handle(request(undefined, `?area=reviewer&assignmentId=${itemId}`)); const value = await response.json(); expect(response.status).toBe(403); expect(value).not.toHaveProperty("advisory"); expect(value).not.toHaveProperty("settings"); expect(value).not.toHaveProperty("records"); expect(JSON.stringify(value)).not.toContain("PRIVATE");
   });
   it.each(["duplicate", "range", "unknown", "missing", "text_score"])("discards malformed %s advisory records", async variant => {
     const value = record(); if (variant === "duplicate") value.scores.push(value.scores[0]); if (variant === "range") value.scores[0].value = 11; if (variant === "unknown") value.scores[0].criterionId = "unknown"; if (variant === "missing") value.scores = []; if (variant === "text_score") Object.assign(value.scores[0], { value: "5" });
