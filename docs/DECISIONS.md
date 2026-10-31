@@ -4971,3 +4971,58 @@ configure the window and pass existing independent release gates before opening.
 Arabic and ethics helper copy are DRAFT. Full evidence, rollout order and blockers:
 [ENG-088 receipt](progress/2026-10-29-codex-abstract-page.md). Feature note:
 [abstract submissions](features/abstract-submissions.md). `docs/PROGRESS.md` is untouched.
+
+## ENG-090 — Abstract screening, fixed human rubric and provisional bands, 31 October 2026
+
+Authority: the owner's abs6 task and 31 October decisions (ORG-069, recorded by
+a parallel PR), with ORG-068 / ENG-088's 350-word inclusive limit and finalized
+document rules. This task cites ORG-069 without creating or editing it. ABS-04,
+ABS-10–12/15, REV-01–09, AI-01–06, LOC-01–03 and SEC-01/02/06 apply. The supplied
+v0.5 has no SCR-prefixed requirement IDs; no new ones are invented.
+
+Extend the incumbent private abstract settings, snapshots, packets, assignments,
+scorecard versions, audit and human decision/batch workflow. G1–G4 and G5
+completeness use immutable finalized content; G5/G6 require staff judgement, and
+G7 requires an explicitly saved similarity threshold plus external-report
+attestation/reference. Scientific Administrators and Super Admins can confirm
+screening and maintain scientific decisions; this supersedes ENG-065's former
+Super Admin read-only scientific-mutation limit. Reviewer scoring still requires
+the reviewer role and current assignment. Confidential stage-one evidence remains
+Super Admin only. Immutable screening rounds/gates capture actor, time, note,
+correctability, investigation and idempotency evidence. A non-correctable failed
+mandatory gate is rejection eligible; investigation blocks a final decision.
+
+ORG-069 fixes seven integer 1–4 criteria with weights 20/15/20/15/10/10/10.
+Compute `Σ weight × (score − 1) / 3`, rounding the complete human total once to two
+decimals; aggregate eligible completed human totals by their unrounded mean.
+Use the existing two-reviewer assignment model for the initial pilot, with an
+explicit reason/count for additional review within the incumbent REV-02 range.
+Each assignment freezes its approved review configuration independently of the
+earlier submission-settings version; finalized content is never rewritten.
+The immutable `msrc2027_org069` rule tag distinguishes new human cards from
+legacy score history. The obsolete acceptance-threshold field does not control
+scoring readiness or recommendations and is removed from the staff editor.
+
+Band settings have no default row. Show 85/60/55 only as inactive draft suggestions;
+require an explicit acceptance threshold. Label recommendations “Provisional —
+pilot required.” Oral eligibility requires every reviewer to score Methodology
+and Results at least 3. Oral capacity is optional with no default; overflow
+recommends poster, and a capacity-boundary tie requires additional review.
+No recommendation prepares or publishes an actual decision. The existing human
+workflow rechecks screening, investigations, review quorum and immutable basis.
+
+Existing migrations did not enable pg_trgm. The new migration checks extension
+availability and uses it when available, otherwise normalized shingle Jaccard.
+Compare other same-edition abstracts and previously accepted abstracts held in
+the database; project the five highest internal matches to authorized staff.
+No external literature/plagiarism service is integrated. Threshold unset blocks
+screening pass. A prior pass is rechecked against the current threshold/corpus.
+
+Only migration `20261031120000_abstract_screening_scoring.sql` is added; it remains
+unapplied. No hosted seed, setting, migration, feature activation, participant
+opening, notification, commit, push or branch operation is authorized/performed.
+AI scoring/provider work, supervisor mail, a new submission-window settings screen
+and uploads are excluded. `screening.passed` is an immutable extension event for
+future notification work, with snapshot-scoped deduplication required downstream.
+Evidence and limitations: [receipt](progress/2026-10-31-abstract-screening-scoring.md).
+`docs/PROGRESS.md` is untouched.

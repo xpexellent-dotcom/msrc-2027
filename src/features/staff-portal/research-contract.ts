@@ -1,5 +1,7 @@
 /** ABS-01..15, REV-01..09: staff projections never forward provider JSON. */
 import { ABSTRACT_BODY_KEYS, type AbstractDocument } from "../submissions/contracts.ts";
+import type { RecommendedBand } from "./abstract-rubric";
+import type { ScreeningInput, ScreeningReview, ScreeningSettings, ScreeningStatus } from "./screening-contract";
 export type ResearchCriterion = { id: string; label: string; weight: number; min: number; max: number };
 export type ResearchSettings = {
   opensAt: string | null; closesAt: string | null; reviewDeadline: string | null;
@@ -11,7 +13,7 @@ export type ResearchSettings = {
 export type ResearchPacket = Pick<AbstractDocument, "title" | "body" | "specialtyId" | "studyTypeId" | "studyTypeOther" | "analysisComplete">;
 export type ResearchScorecard = { scores: { criterionId: string; value: number }[]; comments: string; recommendation: "accept" | "reject" | "revise" | null };
 export type ResearchDecision = { id: string; outcome: "accept" | "reject" | "revise"; reason: string; instructions: string; revisionDeadline: string | null; state: string };
-export type ResearchSubmission = { id: string; reference: string; status: string; version: number; title: string; wordCount: number; packetReady: boolean; assignedCount: number; completedCount: number; decision: ResearchDecision | null };
+export type ResearchSubmission = { id: string; reference: string; status: string; version: number; title: string; wordCount: number; packetReady: boolean; assignedCount: number; completedCount: number; decision: ResearchDecision | null; screeningStatus?: ScreeningStatus; recommendedBand?: RecommendedBand };
 export type ResearchAssignment = { id: string; reference: string; status: string; version: number; title: string };
 export type ResearchReviewer = { id: string; name: string; affiliations: string[]; activeAssignments: number };
 export type ResearchReviewSummary = { requiredReviews: number | null; completedReviews: number; meanScore: number | null; reviews: { assignmentId: string; submissionVersion: number; rubricVersion: number; total: number; scorecard: ResearchScorecard & { recommendation: "accept" | "reject" | "revise" }; rubric: ResearchCriterion[] }[] };
@@ -25,10 +27,14 @@ export type ResearchResponse = {
   studyTemplate?: "research" | "case_report";
   reviewPolicy?: { deadline: string; ongoingPolicy: string; requiredReviews: number; aggregationPolicy: string; notApplicablePolicy: string };
   reviewSummary?: ResearchReviewSummary;
+  screening?: ScreeningReview; screeningSettings?: ScreeningSettings; recommendedBand?: RecommendedBand;
   batchId?: string; count?: number; emailState?: "draft_held"; decisions?: { id: string; reference: string; outcome: "accept" | "reject" | "revise"; instructions: string; revisionDeadline: string | null }[];
 };
 export type ResearchPayload = (
   | { action: "save-settings"; version: number; settings: ResearchSettings }
+  | { action: "save-screening-settings"; settings: ScreeningSettings }
+  | { action: "confirm-screening"; submissionId: string; version: number; sequence: number; operationId: string; screening: ScreeningInput }
+  | { action: "request-additional-review"; submissionId: string; expectedRequired: number; requiredReviews: number; note: string; operationId: string }
   | { action: "prepare-packet"; submissionId: string; version: number; packet: ResearchPacket; attestation: true }
   | { action: "assign"; submissionId: string; reviewerId: string }
   | { action: "auto-assign"; submissionId: string }
