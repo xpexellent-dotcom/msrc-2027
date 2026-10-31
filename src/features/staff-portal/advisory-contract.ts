@@ -1,3 +1,5 @@
+import { decodeGateObservations, abstractWeightedTotal, type GateObservation } from "@/lib/ai-assessment/abstract-advisory";
+import { type ScreeningInput } from "./screening-contract";
 import { decodeResearchRubric, researchInteger, researchRecord, researchText, researchUuid, type ResearchCriterion } from "./research-contract";
 import { summarizeCalibration, type CalibrationPair, type CalibrationSummary } from "@/lib/ai-assessment/calibration";
 
@@ -10,10 +12,11 @@ export type AdvisorySettings = {
 };
 export type AdvisoryScore = { criterionId: string; value: number; rationale: string };
 export type AdvisoryCandidate = { id: string; reference: string; submissionVersion: number; rubricVersion: number; title: string };
-export type AdvisoryRecord = { id: string; reference: string; submissionVersion: number; rubricVersion: number; model: string; promptVersion: string; createdAt: string; rubric: ResearchCriterion[]; scores: AdvisoryScore[] };
+export type AdvisoryRecord = { id: string; reference: string; submissionVersion: number; rubricVersion: number; model: string; promptVersion: string; createdAt: string; rubric: ResearchCriterion[]; scores: AdvisoryScore[]; gates?: GateObservation[]; total?: number };
 export type AdvisoryRun = { id: string; createdAt: string; count: number; completed: number; failed: number; pending: number; estimatedCost: number; currency: string; errors: { code: string; count: number }[] };
-export type AdvisoryResponse = { state: string; formToken?: string; runtimeReady?: boolean; version?: number; settings?: AdvisorySettings; eligibleCount?: number; candidates?: AdvisoryCandidate[]; runs?: AdvisoryRun[]; records?: AdvisoryRecord[]; advisory?: AdvisoryRecord | null; calibration?: CalibrationSummary; runId?: string; count?: number };
-export type AdvisoryPayload = ({ action: "save-settings"; version: number; settings: AdvisorySettings } | { action: "start"; operationId: string; submissionIds: string[] }) & { formToken?: string };
+export type AdvisoryConfirmation = { item: string; actorId: string; advisoryId: string; marker: "AI-assisted"; at: string; value: Record<string, unknown> };
+export type AdvisoryResponse = { enabled?: boolean; notification?: string; confirmations?: AdvisoryConfirmation[]; state: string; formToken?: string; runtimeReady?: boolean; version?: number; settings?: AdvisorySettings; eligibleCount?: number; candidates?: AdvisoryCandidate[]; runs?: AdvisoryRun[]; records?: AdvisoryRecord[]; advisory?: AdvisoryRecord | null; calibration?: CalibrationSummary; runId?: string; count?: number };
+export type AdvisoryPayload = ({ action: "save-settings"; version: number; settings: AdvisorySettings } | { action: "start"; operationId: string; submissionIds: string[] } | { action: "confirm-item"; advisoryId: string; item: string; score: number; note: string; operationId: string } | { action: "confirm-screening"; submissionId: string; version: number; sequence: number; operationId: string; screening: ScreeningInput; advisoryId: string; items: string[] }) & { formToken?: string };
 export const ADVISORY_ERROR_CODES = ["rate_limited", "provider_unavailable", "provider_configuration", "invalid_output", "invalid_snapshot", "identity_leak", "configuration_changed", "lease_expired", "disabled", "stale_snapshot", "budget_exceeded", "max_attempts"] as const;
 export function emptyAdvisorySettings(): AdvisorySettings { return { enabled: false, reviewerVisible: false, noticeReference: null, evaluationReference: null, operatingReference: null, model: null, maxPerRun: null, maxPerDay: null, estimatedCostPerAbstract: null, dailyCostCap: null, currency: null, maxAttempts: null, maxTokens: null }; }
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
@@ -34,6 +37,7 @@ export function decodeAdvisorySettings(value: unknown): AdvisorySettings | null 
   const row = researchRecord(value), base = emptyAdvisorySettings();
   if (!row || Object.keys(row).length !== Object.keys(base).length || !Object.keys(base).every(key => Object.hasOwn(row, key)) || typeof row.enabled !== "boolean" || typeof row.reviewerVisible !== "boolean") return null;
   for (const key of ["noticeReference", "evaluationReference", "operatingReference"] as const) if (row[key] !== null && (!researchText(row[key], 500) || !row[key].trim())) return null;
+  if (row.reviewerVisible) return null;
   if (row.model !== null && row.model !== "deepseek-flash" || row.currency !== null && (typeof row.currency !== "string" || !/^[A-Z]{3}$/.test(row.currency))) return null;
   for (const key of ["maxPerRun", "maxPerDay", "maxAttempts", "maxTokens"] as const) if (row[key] !== null && (!researchInteger(row[key], 1) || row[key] > ({ maxPerRun: 10000, maxPerDay: 100000, maxAttempts: 5, maxTokens: 16384 }[key]))) return null;
   if (row.maxPerRun !== null && row.maxPerDay !== null && Number(row.maxPerRun) > Number(row.maxPerDay)) return null;
@@ -48,7 +52,9 @@ export function decodeAdvisoryRecord(value: unknown): AdvisoryRecord | null {
   const scores: AdvisoryScore[] = [];
   for (const raw of row.scores) { const score = researchRecord(raw), criterion = rubric.find(item => item.id === score?.criterionId); if (!score || !criterion || !finite(score.value) || score.value < criterion.min || score.value > criterion.max || !researchText(score.rationale, 1000) || !score.rationale.trim()) return null; scores.push({ criterionId: criterion.id, value: score.value, rationale: score.rationale }); }
   if (new Set(scores.map(score => score.criterionId)).size !== rubric.length) return null;
-  return { id: row.id, reference: row.reference, submissionVersion: row.submissionVersion, rubricVersion: row.rubricVersion, model: row.model, promptVersion: row.promptVersion, createdAt: row.createdAt, rubric, scores };
+  const gates = row.gates == null ? undefined : decodeGateObservations(row.gates);
+  if (gates === null || gates && (row.total !== abstractWeightedTotal(scores) || scores.some(s => !Number.isInteger(s.value)))) return null;
+  return { ...(gates ? { gates, total: row.total as number } : {}), id: row.id, reference: row.reference, submissionVersion: row.submissionVersion, rubricVersion: row.rubricVersion, model: row.model, promptVersion: row.promptVersion, createdAt: row.createdAt, rubric, scores };
 }
 /** Each RPC has its own allowlist. Never reflect raw provider, database or cross-area data. */
 export function decodeAdvisoryResponse(area: string, value: unknown): AdvisoryResponse | null {
@@ -56,6 +62,14 @@ export function decodeAdvisoryResponse(area: string, value: unknown): AdvisoryRe
   if (["denied", "invalid", "conflict", "not_found", "disabled", "closed", "budget_exceeded", "unavailable", "area_not_ready", "settings_incomplete", "packet_required", "stale_snapshot", "limited"].includes(row.state)) return { state: row.state.replaceAll("_", "-") };
   if (!["ready", "updated", "queued"].includes(row.state)) return null;
   const result: AdvisoryResponse = { state: row.state };
+  if (area === "confirm_item" || area === "confirm_screening") return row.state === "updated" ? result : null;
+  if (area === "submission") {
+    const advisory = row.advisory === null ? null : decodeAdvisoryRecord(row.advisory);
+    if (typeof row.enabled !== "boolean" || row.advisory !== null && !advisory || typeof row.notification !== "string" || !["not_queued","draft_held","ineligible","sent","failed_permanent","failed_retryable","cancelled","queued","sending"].includes(row.notification) || !Array.isArray(row.confirmations)) return null;
+    const confirmations: AdvisoryConfirmation[] = [];
+    for (const c of row.confirmations) { const v = researchRecord(c); if (!v || !researchText(v.item,60) || !researchUuid(v.actorId) || !researchUuid(v.advisoryId) || v.marker !== "AI-assisted" || !date(v.at) || !researchRecord(v.value)) return null; confirmations.push({ item: v.item, actorId: v.actorId, advisoryId: v.advisoryId, marker: "AI-assisted", at: v.at, value: v.value as Record<string,unknown> }); }
+    return { ...result, enabled: row.enabled, advisory, notification: row.notification, confirmations };
+  }
   if (area === "save_settings") { if (!researchInteger(row.version)) return null; return { ...result, version: row.version }; }
   if (area === "start") { if (!researchUuid(row.runId) || !researchInteger(row.count, 1)) return null; return { ...result, runId: row.runId, count: row.count }; }
   if (area === "reviewer") { const advisory = row.advisory === null ? null : decodeAdvisoryRecord(row.advisory); return row.advisory !== null && !advisory ? null : { ...result, advisory }; }

@@ -5,6 +5,13 @@ PRV-03–06, SEC-01/02/06, LOC-01–03, TIM-01/02 and ACC-01 apply with the reco
 owner overrides. Screening, scoring/rubric changes, thresholds and supervisor
 email are outside this slice. All hosted workflows and delivery remain closed.
 
+ENG-090 / ORG-069 now adds the staff screening checklist, fixed seven-criterion
+human rubric, inactive provisional band suggestions and internal similarity
+checks in the existing research workspace. Participant document validation,
+one-chance locking, public copy and opening gates are unchanged. See
+[current scientific review](ABSTRACT_REVIEW.md#current-screening-and-recommendations--eng-090)
+and its [receipt](../progress/2026-10-31-abstract-screening-scoring.md).
+
 ## Public information
 
 `/{locale}/abstracts` is indexable on production. It contains

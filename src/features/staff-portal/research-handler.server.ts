@@ -4,10 +4,16 @@ import { getStaffConfig, type StaffConfig, type StaffReadiness } from "./config.
 import { readStaffToolAuthority } from "./handler.server";
 import { nativeTokenNeedsRefresh, readStaffFormToken, readStaffJson, readStaffSession, staffCookie, staffFormToken, staffHash, staffIp, staffOrigin } from "./security.server";
 import { decodeResearchPacket, decodeResearchRubric, decodeResearchScorecard, decodeResearchSettings, researchInteger, researchRecord, researchText, researchUuid, type ResearchDecision, type ResearchResponse } from "./research-contract";
+import { decodeScreeningInput, decodeScreeningReview, decodeScreeningSettings, RECOMMENDED_BANDS } from "./screening-contract";
+import type { RecommendedBand } from "./abstract-rubric";
+import type { ScreeningStatus } from "./screening-contract";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
-const states = new Set(["denied", "invalid", "conflict", "not_found", "limited", "unavailable", "closed", "settings_incomplete", "evidence_gate", "conflict_of_interest", "affiliations_required", "packet_required", "blinding_required", "review_locked", "reviews_incomplete", "already_assigned", "no_eligible_reviewers", "batch_conflict", "locked", "coi", "full", "duplicate", "area_not_ready"]);
+const states = new Set(["denied", "invalid", "conflict", "not_found", "limited", "unavailable", "closed", "settings_incomplete", "evidence_gate", "conflict_of_interest", "affiliations_required", "packet_required", "blinding_required", "review_locked", "reviews_incomplete", "already_assigned", "no_eligible_reviewers", "batch_conflict", "locked", "coi", "full", "duplicate", "area_not_ready", "screening_required", "investigation_open"]);
 const outcomes = ["accept", "reject", "revise"];
+async function optionalRpc(backend: StaffBackend, name: string, args: Record<string, unknown>, token: string): Promise<unknown> {
+  try { return await backend.rpc(name, args, token); } catch (error) { if (error instanceof StaffRpcMissingError) return { state: "area_not_ready" }; throw error; }
+}
 const validDate = (value: unknown) => value === null || typeof value === "string" && Number.isFinite(Date.parse(value));
 function decision(value: unknown): ResearchDecision | null { const row = researchRecord(value); return row && researchUuid(row.id) && outcomes.includes(String(row.outcome)) && researchText(row.reason) && researchText(row.instructions) && validDate(row.revisionDeadline) && researchText(row.state, 80) ? { id: row.id, outcome: row.outcome as ResearchDecision["outcome"], reason: row.reason, instructions: row.instructions, revisionDeadline: row.revisionDeadline as string | null, state: row.state } : null; }
 function decodeResponse(value: unknown): ResearchResponse | null {
@@ -16,6 +22,9 @@ function decodeResponse(value: unknown): ResearchResponse | null {
   if (states.has(data.state) || data.state === "preview_required") return { state: aliases[data.state] ?? data.state.replaceAll("_", "-") };
   if (!["ready", "updated", "created", "prepared", "published", "assigned"].includes(data.state)) return null;
   const result: ResearchResponse = { state: data.state };
+  if (data.screening !== undefined) { const screening = decodeScreeningReview(data.screening); if (!screening) return null; result.screening = screening; }
+  if (data.screeningSettings !== undefined) { const settings = decodeScreeningSettings(data.screeningSettings); if (!settings) return null; result.screeningSettings = settings; }
+  if (data.recommendedBand !== undefined) { if (!RECOMMENDED_BANDS.includes(data.recommendedBand as RecommendedBand)) return null; result.recommendedBand = data.recommendedBand as RecommendedBand; }
   if (data.version !== undefined) { if (!researchInteger(data.version)) return null; result.version = data.version; }
   if (data.studyTemplate !== undefined) { if (data.studyTemplate !== "research" && data.studyTemplate !== "case_report") return null; result.studyTemplate = data.studyTemplate; }
   if (data.reviewPolicy !== undefined) { const policy = researchRecord(data.reviewPolicy); if (!policy || typeof policy.deadline !== "string" || !validDate(policy.deadline) || !researchText(policy.ongoingPolicy, 3000) || !researchInteger(policy.requiredReviews, 1) || policy.requiredReviews > 5 || !researchText(policy.aggregationPolicy, 3000) || !researchText(policy.notApplicablePolicy, 3000)) return null; result.reviewPolicy = { deadline: policy.deadline, ongoingPolicy: policy.ongoingPolicy, requiredReviews: policy.requiredReviews, aggregationPolicy: policy.aggregationPolicy, notApplicablePolicy: policy.notApplicablePolicy }; }
@@ -36,6 +45,11 @@ function decodeResponse(value: unknown): ResearchResponse | null {
   if (data.submissions !== undefined) {
     if (!Array.isArray(data.submissions) || data.submissions.length > 5000) return null;
     result.submissions = []; for (const raw of data.submissions) { const row = researchRecord(raw), item = row?.decision === null ? null : decision(row?.decision); if (!row || !researchUuid(row.id) || !researchText(row.reference, 160) || !researchText(row.status, 100) || !researchInteger(row.version, 1) || !researchText(row.title, 6000) || !researchInteger(row.wordCount) || typeof row.packetReady !== "boolean" || !researchInteger(row.assignedCount) || !researchInteger(row.completedCount) || row.decision !== null && !item) return null; result.submissions.push({ id: row.id, reference: row.reference, status: row.status, version: row.version, title: row.title, wordCount: row.wordCount, packetReady: row.packetReady, assignedCount: row.assignedCount, completedCount: row.completedCount, decision: item }); }
+    for (const [index, raw] of data.submissions.entries()) {
+      const row = researchRecord(raw)!;
+      if (row.screeningStatus !== undefined) { if (!["pending", "passed", "failed_correctable", "failed_final"].includes(String(row.screeningStatus))) return null; result.submissions[index].screeningStatus = row.screeningStatus as ScreeningStatus; }
+      if (row.recommendedBand !== undefined) { if (!RECOMMENDED_BANDS.includes(row.recommendedBand as RecommendedBand)) return null; result.submissions[index].recommendedBand = row.recommendedBand as RecommendedBand; }
+    }
   }
   if (data.reviewers !== undefined) { if (!Array.isArray(data.reviewers) || data.reviewers.length > 5000) return null; result.reviewers = []; for (const raw of data.reviewers) { const row = researchRecord(raw); if (!row || !researchUuid(row.id) || !researchText(row.name, 500) || !Array.isArray(row.affiliations) || !row.affiliations.every((affiliation) => researchText(affiliation, 500)) || !researchInteger(row.activeAssignments)) return null; result.reviewers.push({ id: row.id, name: row.name, affiliations: row.affiliations as string[], activeAssignments: row.activeAssignments }); } }
   if (data.assignments !== undefined) {
@@ -78,7 +92,8 @@ function projectRpc(name: string, value: unknown): ResearchResponse | null {
     settings: ["version", "settings", "complete", "enabled", "evidenceReady"], save_settings: ["version", "settings", "complete", "enabled", "evidenceReady"],
     list: ["submissions"], reviewers: ["reviewers"], queue: ["assignments", "oversight", "ownAffiliations"],
     packet: ["assignment", "packet", "rubric", "scorecard", "studyTemplate", "reviewPolicy"],
-    submission: ["submission", "packet", "packetVersion", "reviewSummary"], scorecard: ["version"], auto_assign: ["count"],
+    submission: ["submission", "packet", "packetVersion", "reviewSummary", "screening", "recommendedBand"], scorecard: ["version"], auto_assign: ["count"],
+    screening_settings: ["screeningSettings"], save_screening_settings: ["screeningSettings"],
     batch: ["batchId", "count", "decisions", "emailState"],
   };
   return decodeResponse(Object.fromEntries(["state", ...(fields[name] ?? [])].filter((key) => Object.hasOwn(data, key)).map((key) => [key, data[key]])));
@@ -101,13 +116,13 @@ export function createResearchHandler(dependencies: { readiness?: () => StaffRea
       const roles = authority.profile.roles, science = roles.includes("scientificAdministrator"), admin = roles.includes("superAdmin"), reviewer = roles.includes("abstractReviewer");
       if (!science && !admin && !reviewer) return reply({ state: "denied" }, 403);
       const rpc = async (name: string, args: Record<string, unknown> = {}) => {
-        const decoded = projectRpc(name, await backend.rpc("msrc_staff_research_" + name, { edition_key: config.editionKey, ...args }, session.accessToken));
+        const decoded = projectRpc(name, await optionalRpc(backend, "msrc_staff_research_" + name, { edition_key: config.editionKey, ...args }, session.accessToken));
         if (!decoded) return reply({ state: "unavailable" }, 503);
-        return reply(decoded, ["ready", "updated", "created", "prepared", "published", "assigned"].includes(decoded.state) ? 200 : decoded.state === "denied" ? 403 : decoded.state === "limited" ? 429 : decoded.state === "unavailable" ? 503 : 409);
+        return reply(decoded, ["ready", "updated", "created", "prepared", "published", "assigned"].includes(decoded.state) ? 200 : decoded.state === "denied" ? 403 : decoded.state === "limited" ? 429 : ["unavailable", "area-not-ready"].includes(decoded.state) ? 503 : 409);
       };
       if (request.method === "GET") {
         const query = new URL(request.url).searchParams, area = query.get("area");
-        if (query.size === 1 && ["settings", "list", "reviewers"].includes(String(area))) return science || admin ? await rpc(area!) : reply({ state: "denied" }, 403);
+        if (query.size === 1 && ["settings", "screening-settings", "list", "reviewers"].includes(String(area))) return science || admin ? await rpc(area!.replaceAll("-", "_")) : reply({ state: "denied" }, 403);
         if (query.size === 1 && area === "queue") return reviewer || admin ? await rpc("queue") : reply({ state: "denied" }, 403);
         if (query.size === 2 && area === "packet" && researchUuid(query.get("assignmentId"))) return reviewer || admin ? await rpc("packet", { assignment_id: query.get("assignmentId") }) : reply({ state: "denied" }, 403);
         if (query.size === 2 && area === "submission" && researchUuid(query.get("submissionId"))) return science || admin ? await rpc("submission", { submission_id: query.get("submissionId") }) : reply({ state: "denied" }, 403);
@@ -116,10 +131,13 @@ export function createResearchHandler(dependencies: { readiness?: () => StaffRea
       let input: Record<string, unknown> | null; try { input = researchRecord(await readStaffJson(request, 131072)); } catch { return reply({ state: "invalid" }, 400); }
       const nonce = readStaffFormToken(config, input?.formToken, origin, now), ip = staffIp(config, request); if (!input || !nonce || !ip) return reply({ state: "invalid" }, 400);
       const keys = (...allowed: string[]) => Object.keys(input).every((key) => ["action", "formToken", ...allowed].includes(key));
-      const scienceActions = ["prepare-packet", "assign", "auto-assign", "decision", "batch"], reviewerActions = ["scorecard", "review-response", "declare-affiliations"];
-      if (scienceActions.includes(String(input.action)) && !science || reviewerActions.includes(String(input.action)) && !reviewer || input.action === "save-settings" && !science && !admin) return reply({ state: "denied" }, 403);
+      const scienceActions = ["prepare-packet", "assign", "auto-assign", "decision", "batch", "confirm-screening", "request-additional-review"], reviewerActions = ["scorecard", "review-response", "declare-affiliations"];
+      if (scienceActions.includes(String(input.action)) && !science && !admin || reviewerActions.includes(String(input.action)) && !reviewer || input.action === "save-settings" && !science && !admin || input.action === "save-screening-settings" && !admin) return reply({ state: "denied" }, 403);
       const claimed = researchRecord(await backend.rpc("msrc_staff_form_claim", { nonce_hash: staffHash(config, "nonce", nonce), ip_hash: staffHash(config, "ip", ip) })); if (claimed?.state !== "claimed") return reply({ state: "limited" }, 429);
       if (input.action === "save-settings") { const settings = decodeResearchSettings(input.settings); return settings && researchInteger(input.version) && keys("version", "settings") ? await rpc("save_settings", { expected_version: input.version, settings }) : reply({ state: "invalid" }, 400); }
+      if (input.action === "save-screening-settings") { const settings = decodeScreeningSettings(input.settings); return settings && keys("settings") ? await rpc("save_screening_settings", { expected_version: settings.version, bands: settings.bands, similarity_threshold: settings.similarityThreshold, oral_capacity: settings.oralCapacity }) : reply({ state: "invalid" }, 400); }
+      if (input.action === "confirm-screening") { const screening = decodeScreeningInput(input.screening); return screening && keys("submissionId", "version", "sequence", "operationId", "screening") && researchUuid(input.submissionId) && researchUuid(input.operationId) && researchInteger(input.version, 1) && researchInteger(input.sequence) ? await rpc("confirm_screening", { submission_id: input.submissionId, expected_version: input.version, expected_sequence: input.sequence, operation_id: input.operationId, screening }) : reply({ state: "invalid" }, 400); }
+      if (input.action === "request-additional-review") return keys("submissionId", "expectedRequired", "requiredReviews", "note", "operationId") && researchUuid(input.submissionId) && researchUuid(input.operationId) && researchInteger(input.expectedRequired, 2) && researchInteger(input.requiredReviews, 3) && input.requiredReviews <= 5 && input.requiredReviews > input.expectedRequired && researchText(input.note, 3000) && !!input.note.trim() ? await rpc("request_review", { submission_id: input.submissionId, expected_required: input.expectedRequired, required_reviews: input.requiredReviews, note: input.note, operation_id: input.operationId }) : reply({ state: "invalid" }, 400);
       if (input.action === "declare-affiliations") return keys("affiliations") && Array.isArray(input.affiliations) && input.affiliations.length > 0 && input.affiliations.length <= 100 && input.affiliations.every((entry) => researchText(entry, 500) && entry.trim()) ? await rpc("declare_affiliations", { affiliations: input.affiliations }) : reply({ state: "invalid" }, 400);
       if (input.action === "scorecard") { const scorecard = decodeResearchScorecard(input.scorecard); return keys("assignmentId", "version", "scorecard", "submit") && researchUuid(input.assignmentId) && researchInteger(input.version, 1) && scorecard && typeof input.submit === "boolean" && (!input.submit || scorecard.recommendation !== null) ? await rpc("scorecard", { assignment_id: input.assignmentId, expected_version: input.version, scorecard, submit: input.submit }) : reply({ state: "invalid" }, 400); }
       if (input.action === "review-response") return keys("assignmentId", "response", "reason") && researchUuid(input.assignmentId) && ["decline", "conflict"].includes(String(input.response)) && researchText(input.reason, 3000) && !!input.reason.trim() ? await rpc("review_response", { assignment_id: input.assignmentId, response: input.response, reason: input.reason }) : reply({ state: "invalid" }, 400);

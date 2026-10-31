@@ -1,0 +1,18 @@
+-- ENG-090. Explicit synthetic data only; never a production settings seed.
+create function pg_temp.screening_configuration() returns jsonb language sql stable security definer set search_path='' as $$
+ select pg_temp.abstract_settings()||jsonb_build_object('rubric',msrc_abstracts.rubric_2027(),'reviewersPerAbstract',2);
+$$;
+create function pg_temp.screening_input() returns jsonb language sql immutable as $$
+ select '{"ethics":{"passed":true,"note":"Synthetic ethics confirmation"},"relevance":{"passed":true,"note":"Synthetic medicine relevance"},"externalChecked":true,"externalReference":"SYNTHETIC-REPORT","similarityNote":"Synthetic comparison checked","failureDisposition":null,"note":"Synthetic screening","investigation":false,"investigationNote":""}'::jsonb;
+$$;
+create function pg_temp.owner_scorecard(score integer) returns jsonb language sql stable security definer set search_path='' as $$
+ select jsonb_build_object('scores',(select jsonb_agg(jsonb_build_object('criterionId',r->>'id','value',score)) from jsonb_array_elements(msrc_abstracts.rubric_2027()) r),'comments','Synthetic independent review','recommendation','accept');
+$$;
+create function pg_temp.confirm_screening(submission uuid) returns text language plpgsql security definer set search_path='' as $$
+declare s msrc_abstracts.submissions%rowtype;result jsonb;begin
+ select * into strict s from msrc_abstracts.submissions where id=submission;
+ result:=public.msrc_staff_research_confirm_screening(s.edition_key,s.id,s.version,
+  coalesce((select max(sequence) from msrc_abstracts.screenings r where r.submission_id=s.id and r.submission_version=s.version),0),gen_random_uuid(),pg_temp.screening_input());
+ if result->>'state'<>'updated' or not msrc_abstracts.screening_current(s.id) then raise exception 'Synthetic screening fixture did not pass: %',result->>'state';end if;
+ return result->>'state';
+end$$;
