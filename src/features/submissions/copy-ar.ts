@@ -1,7 +1,6 @@
-/** DRAFT Arabic for owner approval, ORG-068. */
+/** ORG-069: Arabic and ethics/registration helpers are owner-approved. */
 export const abstractArabic = {
   title: "قدّم ملخصك البحثي", lead: "أعدّ ملخصك باللغة الإنجليزية. احفظ مسودة وراجعها قبل التقديم.",
-  reviewBanner: "وضع المراجعة — للمعاينة فقط. لا يُحفظ أي شيء ولا يُقدَّم أي طلب.",
   closed: "تقديم الملخصات غير مفتوح حاليًا.", unavailable: "مساحة الملخصات غير متاحة مؤقتًا. تبقى أعمالك المحفوظة محفوظة.",
   notReady: "تقديم الملخصات غير متاح بعد. ما زلت مسجّل الدخول.", denied: "سجّل الدخول بحساب مشارك ذي بريد إلكتروني موثّق لعرض ملخصك.",
   signIn: "تسجيل الدخول", back: "حسابي في MSRC", create: "إنشاء مسودة", empty: "لا يوجد ملخص محفوظ.", edit: "فتح الملخص", newDraft: "مسودة جديدة",

@@ -6,7 +6,7 @@ import { readApprovedPolicy, visibleMarkdown, type SourceBlock } from "../policy
 import { languageLink } from "./helpers/header-navigation";
 
 const version = "v1.2", effectiveDate = "2026-10-06";
-const versions = { privacy: "v1.2", terms: "v1.0" } as const;
+const versions = { privacy: "v1.2", terms: "v1.1" } as const;
 const titles = { en: { privacy: "MSRC 2027 Privacy Policy", terms: "MSRC 2027 Terms and Conditions" }, ar: { privacy: "سياسة الخصوصية لمؤتمر MSRC ٢٠٢٧", terms: "شروط وأحكام مؤتمر MSRC ٢٠٢٧" } } as const;
 const tabLabels = { en: { privacy: "Privacy Policy", terms: "Terms and Conditions" }, ar: { privacy: "سياسة الخصوصية", terms: "شروط وأحكام" } } as const;
 const footerLabels = { en: { privacy: "Privacy", terms: "Terms" }, ar: { privacy: "الخصوصية", terms: "الشروط" } } as const;
@@ -20,7 +20,7 @@ for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "term
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
     const source = readApprovedPolicy(kind);
-    const evidenceDir = path.resolve("deliverables/policy-v1.2");
+    const evidenceDir = path.resolve(kind === "terms" ? "output/abs5" : "deliverables/policy-v1.2");
     await mkdir(evidenceDir, { recursive: true });
     let initialContent: string | undefined;
     for (const suffix of ["", `/${version}`]) {
@@ -32,7 +32,7 @@ for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "term
       await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(titles[locale][kind]);
       await expect(page.locator(".policy-page")).toHaveAttribute("data-policy-version", version);
-      await expect(page.locator(".policy-version-details")).toContainText(locale === "en" ? `Version ${version.slice(1)}` : kind === "privacy" ? "الإصدار ١.٢" : "الإصدار ١.٠");
+      await expect(page.locator(".policy-version-details")).toContainText(locale === "en" ? `Version ${version.slice(1)}` : kind === "privacy" ? "الإصدار ١.٢" : "الإصدار ١.١");
       await expect(page.locator(`.policy-version-details time[datetime="${effectiveDate}"]`)).toHaveText(locale === "en" ? "6 October 2026" : "٦ أكتوبر ٢٠٢٦");
       await expect(page.getByRole("main")).not.toContainText(unfinished);
       await expect(page.locator(".policy-draft-notice, .policy-section-status, [data-policy-section-status=placeholder]")).toHaveCount(0);
@@ -170,7 +170,12 @@ test("footer and locale-free policy links resolve while the old draft and unknow
   for (const locale of ["en", "ar"]) {
     expect((await request.get(`/${locale}/privacy/v1.0`)).status()).toBe(200);
     expect((await request.get(`/${locale}/privacy/v1.1`)).status()).toBe(200);
-    expect((await request.get(`/${locale}/terms/v1.1`)).status()).toBe(404);
+    expect((await request.get(`/${locale}/terms/v1.0`)).status()).toBe(200);
+    for (const version of ["1.0", "1.1"]) {
+      const alias = await request.get(`/${locale}/terms/${version}`, { maxRedirects: 0 });
+      expect(alias.status()).toBe(308);
+      expect(alias.headers().location).toBe(`/${locale}/terms/v${version}`);
+    }
     expect((await request.get(`/${locale}/terms/v1.2`)).status()).toBe(404);
   }
 });

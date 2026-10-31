@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent, type MouseEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { abstractDates } from "@/content/abstract-dates";
 import { formatRegistrationOpeningDate } from "@/content/registration-opening";
@@ -10,21 +10,15 @@ import type { Locale } from "@/lib/i18n";
 import { researchCompetitionCopy } from "./copy";
 import { researchCtaState, type ResearchCtaState } from "./cta-state";
 
-const ignoreQueryChanges = () => () => {};
-
-export function AbstractSubmissionCta({ locale, reviewAllowed = false }: { locale: Locale; reviewAllowed?: boolean }) {
+export function AbstractSubmissionCta({ locale }: { locale: Locale }) {
   // Keep the public server render independent of cookies and private data.
-  const [observedState, setState] = useState<ResearchCtaState>("signIn");
-  // TEMPORARY review mode: the build-time preview/development guard allows it; ?review=1 opts in.
-  const reviewMode = useSyncExternalStore(ignoreQueryChanges, () => reviewAllowed && new URLSearchParams(window.location.search).get("review") === "1", () => false);
-  const state = reviewMode ? "submit" : observedState;
+  const [state, setState] = useState<ResearchCtaState>("signIn");
   const [checked, setChecked] = useState<boolean[]>([]);
   const [open, setOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLAnchorElement>(null);
   const headingId = useId(), introId = useId();
   useEffect(() => {
-    if (reviewMode) return;
     const controller = new AbortController(); let generation = 0;
     async function check() {
       const current = ++generation, now = new Date();
@@ -43,7 +37,7 @@ export function AbstractSubmissionCta({ locale, reviewAllowed = false }: { local
     const changed = () => void check();
     window.addEventListener("msrc-participant-hint", changed); window.addEventListener("msrc-participant-profile", changed); window.addEventListener("focus", changed);
     return () => { controller.abort(); window.removeEventListener("msrc-participant-hint", changed); window.removeEventListener("msrc-participant-profile", changed); window.removeEventListener("focus", changed); };
-  }, [locale, reviewMode]);
+  }, [locale]);
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
@@ -51,7 +45,7 @@ export function AbstractSubmissionCta({ locale, reviewAllowed = false }: { local
     return () => { document.body.style.overflow = previousOverflow; };
   }, [open]);
   const copy = researchCompetitionCopy[locale];
-  const formHref = `/${locale}/abstracts/submit${reviewMode ? "?review=1" : ""}`;
+  const formHref = `/${locale}/abstracts/submit`;
   const href = state === "profile" ? `/${locale}/my-msrc#profile` : state === "signIn" ? `/${locale}/sign-in` : formHref;
   const acknowledged = copy.checklist.every((_, index) => checked[index] === true);
   function acknowledge(event: MouseEvent<HTMLAnchorElement>) {
@@ -88,7 +82,6 @@ export function AbstractSubmissionCta({ locale, reviewAllowed = false }: { local
     </ButtonLink>
     <dialog ref={dialog} className="research-acknowledgement" aria-labelledby={headingId} aria-describedby={introId} dir={locale === "ar" ? "rtl" : "ltr"} onKeyDown={wrapDialogFocus} onClose={() => { setOpen(false); trigger.current?.focus({ preventScroll: true }); }}>
       <div className="research-acknowledgement__header">
-        {locale === "ar" ? <p className="research-acknowledgement__draft">{copy.draftTranslation}</p> : null}
         <h2 id={headingId}>{copy.prepare}</h2>
         <p id={introId} className="research-acknowledgement__intro">{copy.acknowledgeIntro}</p>
       </div>

@@ -152,7 +152,9 @@ contained blank raster regions; viewport captures replaced them and prove the
 lower content actually renders on scroll. These are browser emulations, not
 physical-device or native-reader sign-off.
 
-## DRAFT copy requiring owner review
+## Copy approval — superseded by ORG-069, 31 October 2026
+
+All copy listed below is now owner-approved under ORG-069, without wording changes.
 
 - **All new Arabic**: public Research competition copy, taxonomy labels, CTA,
   journey, eligibility/guidelines/criteria/rules, navigation/footer research
@@ -165,14 +167,14 @@ physical-device or native-reader sign-off.
   participants or data; no patient-identifying information.
 - **English and Arabic registration helper**: enter registry + registration
   number when registered; otherwise select Not applicable. These helpers are
-  organizer-requested drafts, not a legal or ethics determination.
+  organizer-requested helpers approved under ORG-069; they are not a legal or ethics determination.
 
 ## Hosted rollout order and remaining gates
 
 1. Obtain disposable CI evidence for migration lint, native pgTAP and genuine
-   concurrency; review this uncommitted code and the single migration. Complete
-   owner review of draft Arabic/ethics helpers and resolve the approved Terms
-   conflict before any participant opening.
+   concurrency; review this uncommitted code and the single migration.
+   Arabic/ethics helper review is complete under ORG-069; Terms v1.1 resolves the
+   recorded conflict pending owner merge (ENG-089), before any participant opening.
 2. Deploy code first with operational/delivery flags unchanged. Until database
    documentVersion 2 exists, the new handler intentionally shows area-not-ready
    and retains sign-in, rather than sending a v2 document to old RPCs.
@@ -184,10 +186,9 @@ physical-device or native-reader sign-off.
    ORG-058 display dates never seed those settings. The existing confidential
    evidence/virus-scanning gate remains independent and closed. No real email.
 
-Approved Terms v1.0 EN/AR still state 300 words, ongoing eligibility and two
-applications per PI. ORG-068 is the current owner authority, but no replacement
-legal version was invented. Owner/legal reconciliation and broader pre-existing
-abstract author/document retention are release blockers.
+Terms v1.1 EN/AR resolves the superseded v1.0 research clauses under ORG-069,
+pending owner review and merge. Broader pre-existing abstract author/document
+retention remains a separate release gate.
 
 Next task: owner/Claude review and commit, CI verification, then the separately
 scoped PR 2 for screening/scoring/thresholds/supervisor notification. Nothing in

@@ -12,7 +12,7 @@ export function visibleMarkdown(text: string): string {
 /** Independent, deliberately narrow reader for the two approved source files.
  * Unknown block syntax fails rather than silently dropping an approved clause.
  */
-export function readApprovedPolicy(kind: "privacy" | "terms", version = kind === "privacy" ? "v1.2" : "v1.0") {
+export function readApprovedPolicy(kind: "privacy" | "terms", version = kind === "privacy" ? "v1.2" : "v1.1") {
   const source = readFileSync(new URL(`../docs/policies/${kind === "privacy" ? "privacy-policy" : "terms"}-${version}.en.md`, import.meta.url), "utf8");
   const lines = source.replace(/\r\n/g, "\n").trim().split("\n");
   const title = lines.shift()!.replace(/^# /, "");

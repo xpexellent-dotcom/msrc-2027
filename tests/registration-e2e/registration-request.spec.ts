@@ -38,7 +38,7 @@ for (const locale of ["en", "ar"] as const) {
       release();
       expect((await restored).status()).toBe(200);
       await expect(page.locator("#registration-document-number")).toBeVisible();
-      await expect(page.getByRole("link", { name: copy.termsLink, exact: true })).toHaveAttribute("href", `/${locale}/terms/v1.0`);
+      await expect(page.getByRole("link", { name: copy.termsLink, exact: true })).toHaveAttribute("href", `/${locale}/terms/v1.1`);
       const cookie = (await context.cookies()).find((value) => value.name === original.name);
       expect(cookie?.value).not.toBe(original.value);
       expect(failedResponses).toEqual([]);

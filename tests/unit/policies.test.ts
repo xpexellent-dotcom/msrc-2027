@@ -12,10 +12,10 @@ const unfinished = /\b(?:draft|placeholder)\b|Organizer decision|awaiting review
 
 afterEach(() => vi.unstubAllEnvs());
 
-describe("approved privacy v1.2 and Terms v1.0 (ORG-067 / BL-PUB-08 / PRV-01/02/05/07/08)", () => {
-  it("uses the approved privacy version without changing Terms or the shared effective date", () => {
+describe("approved privacy v1.2 and Terms v1.1 (ORG-069 / ORG-067 / BL-PUB-08 / PRV-01/02/05/07/08)", () => {
+  it("uses the approved privacy version with the new Terms version and preserved shared effective date", () => {
     expect(currentPolicyVersion).toBe("v1.2");
-    expect(currentTermsVersion).toBe("v1.0");
+    expect(currentTermsVersion).toBe("v1.1");
     expect(policyEffectiveDate).toBe("2026-10-06");
     expect(policyVersions[currentPolicyVersion]).toMatchObject({ version: "v1.2", status: "approved", effectiveOn: policyEffectiveDate });
     for (const kind of policyKinds) for (const locale of ["en", "ar"] as const) {
@@ -27,9 +27,8 @@ describe("approved privacy v1.2 and Terms v1.0 (ORG-067 / BL-PUB-08 / PRV-01/02/
 
   it("preserves archived v1.0 and changes only the approved optional profile rows in privacy v1.1", () => {
     expect(policyVersionKeys("privacy")).toEqual(["v1.0", "v1.1", "v1.2"]);
-    expect(policyVersionKeys("terms")).toEqual(["v1.0"]);
-    expect(isPolicyVersion("v1.1", "terms")).toBe(false);
-    expect(() => getPolicyDocument("terms", "en", "v1.1")).toThrow("Unavailable policy version");
+    expect(policyVersionKeys("terms")).toEqual(["v1.0", "v1.1"]);
+    expect(isPolicyVersion("v1.1", "terms")).toBe(true);
     const original = readApprovedPolicy("privacy", "v1.0");
     expect(getPolicyDocument("privacy", "en", "v1.0").document.sections.map(({ title, blocks }) => ({ title, blocks }))).toEqual(original.sections);
     for (const locale of ["en", "ar"] as const) {
@@ -103,6 +102,40 @@ describe("approved privacy v1.2 and Terms v1.0 (ORG-067 / BL-PUB-08 / PRV-01/02/
     expect(isPolicyVersion(version)).toBe(false);
   });
 
+  it("archives Terms v1.0 and changes only the research paragraph in v1.1 EN/AR (ORG-069)", () => {
+    expect(getPolicyDocument("terms", "en", "v1.0").document.sections.map(({ title, blocks }) => ({ title, blocks }))).toEqual(readApprovedPolicy("terms", "v1.0").sections);
+    for (const locale of ["en", "ar"] as const) {
+      const before = getPolicyDocument("terms", locale, "v1.0").document;
+      const after = getPolicyDocument("terms", locale, "v1.1").document;
+      expect(after.title).toBe(before.title);
+      expect(after.lead).toBe(before.lead);
+      expect(after.sections.map(({ id, title }) => ({ id, title }))).toEqual(before.sections.map(({ id, title }) => ({ id, title })));
+      const changes: string[] = [];
+      before.sections.forEach((section, i) => {
+        expect(after.sections[i].blocks).toHaveLength(section.blocks.length);
+        section.blocks.forEach((block, j) => {
+          if (JSON.stringify(block) !== JSON.stringify(after.sections[i].blocks[j])) changes.push(`${section.id}:${j}`);
+        });
+      });
+      const research = after.sections.find(({ id }) => id === "submissions")!;
+      const index = research.blocks.findIndex(block => block.type === "paragraph" && block.text.startsWith(locale === "en" ? "**Research abstracts.**" : "**ملخصات الأبحاث.**"));
+      expect(changes).toEqual([`submissions:${index}`]);
+      const text = JSON.stringify(research.blocks[index]);
+      for (const rule of locale === "en"
+        ? ["350 words", "including the six section headings", "Background, Objectives, Methods, Results, Limitations and Conclusion", "completed within the past three years", "analysis must be finished and the manuscript written", "one research abstract submission per edition", "cannot be edited", "withdrawal or rejection does not restore", "undergraduate medical student or medical intern", "supervising physician is required at submission"]
+        : ["٣٥٠ كلمة", "عناوين الأقسام الستة", "الأبحاث المكتملة خلال السنوات الثلاث الماضية", "التحليل قد انتهى", "المخطوطة قد كُتبت", "ملخص بحث واحد نهائيًا في كل دورة", "لا يمكن تعديل", "ولا يعيد سحبه أو رفضه فرصة التقديم", "طالب طب في مرحلة البكالوريوس أو طبيب امتياز", "طبيب مشرف عند التقديم"]) expect(text).toContain(rule);
+      expect(text).not.toMatch(/300|٣٠٠|work in progress|principal investigator|قيد التنفيذ|للباحث الرئيسي/);
+    }
+  });
+
+  it("keeps the sitemap on current unversioned policy routes and the public abstracts page", async () => {
+    const { default: sitemap } = await import("@/app/sitemap");
+    const urls = sitemap().map(({ url }) => url);
+    for (const locale of ["en", "ar"]) for (const route of ["terms", "privacy", "abstracts"]) expect(urls).toContain(`https://www.msrc2027.com/${locale}/${route}`);
+    expect(urls.filter(url => /\/(?:terms|privacy)\//.test(url))).toEqual([]);
+    expect(urls.some(url => url.endsWith("/abstracts/submit"))).toBe(false);
+  });
+
   it.each(policyKinds)("preserves every approved English %s paragraph, list item and table cell verbatim", (kind) => {
     const source = readApprovedPolicy(kind), { document } = getPolicyDocument(kind, "en");
     expect(document.title).toBe(source.title);
@@ -145,7 +178,7 @@ describe("approved privacy v1.2 and Terms v1.0 (ORG-067 / BL-PUB-08 / PRV-01/02/
       expect(html).toContain(`data-policy-version="${version}"`);
       expect(html).toContain(`href="/${locale}/${kind}/${version}"`);
       expect(html).toContain(`dateTime="${policyEffectiveDate}"`);
-      expect(html).toContain(locale === "en" ? `Version ${version.slice(1)}` : kind === "privacy" ? "الإصدار ١.٢" : "الإصدار ١.٠");
+      expect(html).toContain(locale === "en" ? `Version ${version.slice(1)}` : kind === "privacy" ? "الإصدار ١.٢" : "الإصدار ١.١");
       expect(html).not.toMatch(unfinished);
       expect(html).not.toMatch(/<(form|input|textarea|select|iframe|video)\b/i);
       expect(html.match(/<table\b/g) ?? []).toHaveLength(kind === "privacy" ? 4 : 0);

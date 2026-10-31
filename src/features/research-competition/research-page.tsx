@@ -22,14 +22,14 @@ function PresentationStudy({ poster }: { poster: boolean }) {
   </svg>;
 }
 
-export function ResearchCompetitionPage({ locale, reviewAllowed = false }: { locale: Locale; reviewAllowed?: boolean }) {
+export function ResearchCompetitionPage({ locale }: { locale: Locale }) {
   const copy = researchCompetitionCopy[locale];
   const criterionNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
   return <div className="research-competition" data-testid="research-competition-page">
     <section className="research-hero" aria-labelledby="research-title">
       <Image className="research-hero-photo" src="/media/msrc-demo/share-research-manar-2560.jpg" alt="" fill sizes="100vw" priority />
       <Container><nav className="research-breadcrumb" aria-label={locale === "ar" ? "مسار التنقل" : "Breadcrumb"}><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li aria-current="page">{copy.title}</li></ol></nav>
-        <p className="research-kicker">{copy.kicker}</p><h1 id="research-title">{copy.title}</h1><p className="research-hero-intro">{copy.intro}</p><AbstractSubmissionCta locale={locale} reviewAllowed={reviewAllowed} />
+        <p className="research-kicker">{copy.kicker}</p><h1 id="research-title">{copy.title}</h1><p className="research-hero-intro">{copy.intro}</p><AbstractSubmissionCta locale={locale} />
       </Container>
     </section>
     <section className="research-section research-journey" aria-labelledby="research-journey"><Container><SectionHeading id="research-journey" title={copy.journey} /><AbstractRoadmap locale={locale} reveal /></Container></section>
@@ -46,6 +46,6 @@ export function ResearchCompetitionPage({ locale, reviewAllowed = false }: { loc
       <div className="research-rubric-intro"><DecorativeNumeral locale={locale} className="research-criteria-count" value={formatIndex(copy.criteria.length, locale)} /><h2 id="research-evaluation">{copy.evaluation}</h2><p>{copy.evaluationIntro}</p></div>
       <ol className="research-criteria" role="list">{copy.criteria.map(([name, description], index) => <li key={name}><DecorativeNumeral locale={locale} className="research-criterion-number" value={locale === "ar" ? formatIndex(index + 1, locale) : criterionNumerals[index]} /><dl><dt>{name}</dt><dd>{description}</dd></dl></li>)}</ol>
     </div></Container></section>
-    <section className="research-closing" aria-labelledby="research-closing"><Container><h2 id="research-closing">{copy.closing}</h2><p>{copy.closingText}</p><div className="research-closing-actions"><AbstractSubmissionCta locale={locale} reviewAllowed={reviewAllowed} /><Link href={`/${locale}/contact`} className="research-contact">{copy.contact}</Link></div></Container></section>
+    <section className="research-closing" aria-labelledby="research-closing"><Container><h2 id="research-closing">{copy.closing}</h2><p>{copy.closingText}</p><div className="research-closing-actions"><AbstractSubmissionCta locale={locale} /><Link href={`/${locale}/contact`} className="research-contact">{copy.contact}</Link></div></Container></section>
   </div>;
 }
