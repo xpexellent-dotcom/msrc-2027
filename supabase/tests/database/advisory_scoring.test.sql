@@ -29,16 +29,16 @@ select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_confi
 select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_configuration()||'{"model":"invented"}'::jsonb),'Unapproved model rejected');
 select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_configuration()-'maxAttempts'),'Missing configuration key rejected');
 select ok(not msrc_abstracts.advisory_configuration_valid(pg_temp.advisory_configuration()||'{"unexpected":true}'::jsonb),'Unknown configuration key rejected');
-select ok(msrc_abstracts.advisory_result_valid(pg_temp.advisory_output(),pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Strict valid synthetic output accepted');
-select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||'{"decision":"accept"}'::jsonb,pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Outcome field discarded as invalid output');
-select ok(not msrc_abstracts.advisory_result_valid(jsonb_set(pg_temp.advisory_output(),'{scores,0,value}','9'::jsonb),pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Out-of-range score rejected');
-select ok(not msrc_abstracts.advisory_result_valid(jsonb_set(pg_temp.advisory_output(),'{scores,0,criterionId}','"unknown"'::jsonb),pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Unknown criterion rejected');
-select ok(not msrc_abstracts.advisory_result_valid(jsonb_set(pg_temp.advisory_output(),'{scores,0,rationale}','""'::jsonb),pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Empty rationale rejected');
-select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||'{"scores":[]}'::jsonb,pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Incomplete criteria rejected');
-select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output(),pg_temp.abstract_settings()->'rubric','another-model'),'Model mismatch rejected');
-select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||'{"scores":[{"criterionId":"synthetic-criterion","value":4,"rationale":"Synthetic rationale","decision":"accept"}]}'::jsonb,pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Unknown criterion fields rejected');
-select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||jsonb_build_object('scores',(pg_temp.advisory_output()->'scores')||(pg_temp.advisory_output()->'scores')),pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Duplicate criterion coverage rejected');
-select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()-'model',pg_temp.abstract_settings()->'rubric','deepseek-flash'),'Missing model provenance rejected');
+select ok(msrc_abstracts.advisory_result_valid(pg_temp.advisory_output(),msrc_abstracts.rubric_2027(),'deepseek-flash'),'Strict valid synthetic output accepted');
+select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||'{"decision":"accept"}'::jsonb,msrc_abstracts.rubric_2027(),'deepseek-flash'),'Outcome field discarded as invalid output');
+select ok(not msrc_abstracts.advisory_result_valid(jsonb_set(pg_temp.advisory_output(),'{scores,0,value}','9'::jsonb),msrc_abstracts.rubric_2027(),'deepseek-flash'),'Out-of-range score rejected');
+select ok(not msrc_abstracts.advisory_result_valid(jsonb_set(pg_temp.advisory_output(),'{scores,0,criterionId}','"unknown"'::jsonb),msrc_abstracts.rubric_2027(),'deepseek-flash'),'Unknown criterion rejected');
+select ok(not msrc_abstracts.advisory_result_valid(jsonb_set(pg_temp.advisory_output(),'{scores,0,rationale}','""'::jsonb),msrc_abstracts.rubric_2027(),'deepseek-flash'),'Empty rationale rejected');
+select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||'{"scores":[]}'::jsonb,msrc_abstracts.rubric_2027(),'deepseek-flash'),'Incomplete criteria rejected');
+select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output(),msrc_abstracts.rubric_2027(),'another-model'),'Model mismatch rejected');
+select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||'{"scores":[{"criterionId":"synthetic-criterion","value":4,"rationale":"Synthetic rationale","decision":"accept"}]}'::jsonb,msrc_abstracts.rubric_2027(),'deepseek-flash'),'Unknown criterion fields rejected');
+select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()||jsonb_build_object('scores',(pg_temp.advisory_output()->'scores')||(pg_temp.advisory_output()->'scores')),msrc_abstracts.rubric_2027(),'deepseek-flash'),'Duplicate criterion coverage rejected');
+select ok(not msrc_abstracts.advisory_result_valid(pg_temp.advisory_output()-'model',msrc_abstracts.rubric_2027(),'deepseek-flash'),'Missing model provenance rejected');
 set local role anon;
 select throws_ok($$select public.msrc_staff_advisory_workspace('synthetic-advisory')$$,'42501',null,'Anonymous cannot read staff advisory');
 reset role;
@@ -61,7 +61,7 @@ select pg_temp.registration_staff_fixture(9705,'synthetic-advisory','scientificA
 select pg_temp.abstract_claims(9700);
 select is(public.msrc_staff_research_save_settings('synthetic-advisory',0,pg_temp.abstract_settings())->>'state','invalid','New staff saves cannot replace the owner-approved human rubric');
 -- Preserve explicit historical advisory fixtures. No provider/AI implementation change.
-insert into msrc_abstracts.settings(edition_key,version,configuration) values('synthetic-advisory',1,pg_temp.abstract_settings());
+insert into msrc_abstracts.settings(edition_key,version,configuration) values('synthetic-advisory',1,pg_temp.abstract_settings()||jsonb_build_object('rubric',msrc_abstracts.rubric_2027()));
 insert into msrc_abstracts.settings_versions values('synthetic-advisory',1,pg_temp.abstract_settings());
 select pg_temp.advisory_submission(n,'synthetic-advisory',9704,case when n=1 then 'registration-staff-9705@example.invalid' else 'synthetic-pi@example.invalid' end) from generate_series(1,6) n;
 select is(public.msrc_staff_advisory_workspace('synthetic-advisory')->>'eligibleCount','6','Only finalized prepared-packet candidates projected');
@@ -92,7 +92,8 @@ select is((select reserved_abstracts from msrc_abstracts.advisory_daily_usage wh
 select is((select reserved_cost from msrc_abstracts.advisory_daily_usage where edition_key='synthetic-advisory'),1::numeric,'Reserve all possible attempts at enqueue');
 insert into advisory_result values('claim1',public.msrc_advisory_worker_claim(pg_temp.advisory_id(900),1));
 select is(jsonb_array_length((select value from advisory_result where key='claim1')),1,'Worker leases one small chunk');
-select ok((select ((value->0)-'identity')::text !~ 'Identity Canary|example.invalid|affiliations|ethics|keywords|specialtyId|studyTypeId|completionStatus' from advisory_result where key='claim1'),'Provider candidate excludes identities, account fields and unrelated scientific metadata');
+select ok((select ((value->0)-'identity')::text !~ 'Identity Canary|Supervisor Canary|example.invalid|affiliations|ethics|keywords|completionStatus|phone|registration|fundingDeclaration|conflictOfInterest' from advisory_result where key='claim1'),'Provider candidate excludes identities, account fields and unrelated scientific metadata');
+select is((select (value->0)-array['id','leaseToken','runId','submissionId','submissionVersion','rubricVersion','rubric','configuration','attempt','lockedAt','identity'] from advisory_result where key='claim1'),pg_temp.abstract_packet(),'Worker science is exactly the approved blinded packet including study metadata');
 select ok((select value->0->'identity'->'authorNames' @> '["Identity Canary Person"]'::jsonb and value->0->'identity'->'institutions' @> '["Identity Canary Institute"]'::jsonb from advisory_result where key='claim1'),'Server-only screening retains immutable known-name and affiliation canaries');
 select is((select value->0->'body' from advisory_result where key='claim1'),pg_temp.abstract_packet()->'body','Worker receives only sanitized scientific body');
 select is(public.msrc_advisory_worker_claim(pg_temp.advisory_id(901),1),'[]'::jsonb,'Second worker cannot take active lease');
@@ -112,14 +113,14 @@ insert into msrc_abstracts.reviewer_profiles values('synthetic-advisory',pg_temp
 insert into msrc_abstracts.assignments(id,edition_key,submission_id,submission_version,rubric_version,reviewer_id,status)
  values(pg_temp.advisory_id(800),'synthetic-advisory',pg_temp.advisory_id(1),1,1,pg_temp.registration_actor(9702),'assigned');
 select pg_temp.abstract_claims(9702);
-select is(public.msrc_staff_advisory_reviewer('synthetic-advisory',pg_temp.advisory_id(800))->'advisory','null'::jsonb,'Assigned reviewer cannot see AI with default visibility');
+select is(public.msrc_staff_advisory_reviewer('synthetic-advisory',pg_temp.advisory_id(800))->>'state','denied','Assigned reviewer cannot see AI with default visibility');
 select is(public.msrc_staff_advisory_workspace('synthetic-advisory')->>'state','denied','Reviewer cannot use administrator workspace');
 select pg_temp.abstract_claims(9700);
-select is(public.msrc_staff_advisory_save_settings('synthetic-advisory',3,pg_temp.advisory_configuration()||'{"reviewerVisible":true}'::jsonb)->>'state','updated','Only SA can permit reviewer visibility');
+select is(public.msrc_staff_advisory_save_settings('synthetic-advisory',3,pg_temp.advisory_configuration()||'{"reviewerVisible":true}'::jsonb)->>'state','invalid','Reviewer visibility cannot be activated');
 select pg_temp.abstract_claims(9702);
-select is(public.msrc_staff_advisory_reviewer('synthetic-advisory',pg_temp.advisory_id(800))->'advisory','null'::jsonb,'Permission alone cannot anchor an unscored reviewer');
-update msrc_abstracts.assignments set status='completed',scorecard='{"scores":[{"criterionId":"synthetic-criterion","value":3}],"comments":"Independent reasoning","recommendation":"revise"}'::jsonb,score_total=33.333 where id=pg_temp.advisory_id(800);
-select is(public.msrc_staff_advisory_reviewer('synthetic-advisory',pg_temp.advisory_id(800))->'advisory'->'scores'->0->>'value','4','Independent reviewer with explicit SA visibility can read separate suggestion');
+select is(public.msrc_staff_advisory_reviewer('synthetic-advisory',pg_temp.advisory_id(800)),'{"state":"denied"}'::jsonb,'Unscored reviewer receives only denial, with no advisory projection');
+update msrc_abstracts.assignments set status='completed',scorecard=jsonb_build_object('scores',(select jsonb_agg(jsonb_build_object('criterionId',r->>'id','value',3)) from jsonb_array_elements(msrc_abstracts.rubric_2027()) r),'comments','Independent reasoning','recommendation','revise'),score_total=33.333 where id=pg_temp.advisory_id(800);
+select is(public.msrc_staff_advisory_reviewer('synthetic-advisory',pg_temp.advisory_id(800))->>'state','denied','Completed reviewers cannot see staff-only advisory');
 select pg_temp.abstract_claims(9701);
 select is(public.msrc_staff_advisory_calibration('synthetic-advisory')->'pairs'->0->>'aiScore','4','Calibration returns advisory score');
 select is(public.msrc_staff_advisory_calibration('synthetic-advisory')->'pairs'->0->>'humanScore','3.0000000000000000','Calibration uses independent completed human criterion');
@@ -148,7 +149,7 @@ select is(public.msrc_staff_advisory_start('synthetic-advisory',pg_temp.advisory
 insert into advisory_result values('claim45',public.msrc_advisory_worker_claim(pg_temp.advisory_id(900),2));
 select is(jsonb_array_length((select value from advisory_result where key='claim45')),2,'Small batch processes independent jobs');
 select pg_temp.abstract_claims(9700);
-select is(public.msrc_staff_advisory_save_settings('synthetic-advisory',4,pg_temp.advisory_configuration()||'{"enabled":false,"reviewerVisible":true}'::jsonb)->>'state','updated','SA may disable while work is in flight');
+select is(public.msrc_staff_advisory_save_settings('synthetic-advisory',3,pg_temp.advisory_configuration()||'{"enabled":false}'::jsonb)->>'state','updated','SA may disable while work is in flight');
 select is(public.msrc_advisory_worker_finish(pg_temp.advisory_id(900),(select (value->0->>'id')::uuid from advisory_result where key='claim45'),(select (value->0->>'leaseToken')::uuid from advisory_result where key='claim45'),pg_temp.advisory_output(),null)->>'state','failed','Disable invalidates an in-flight response');
 select is(public.msrc_advisory_worker_claim(pg_temp.advisory_id(902),1),'[]'::jsonb,'Disabled database issues no new lease');
 select is((select count(*) from msrc_abstracts.advisory_records),1::bigint,'No new advisory committed after disable');

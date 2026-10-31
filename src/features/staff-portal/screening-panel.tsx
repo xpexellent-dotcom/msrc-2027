@@ -1,5 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { SubmissionAdvisory } from "./submission-advisory";
+import { submissionAdvisoryCopy } from "./submission-advisory-copy";
+import { requestAdvisory } from "./advisory-client";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
 import { ABSTRACT_RUBRIC, SUGGESTED_ABSTRACT_BANDS, type DecisionBands, type RecommendedBand } from "./abstract-rubric";
@@ -36,6 +39,9 @@ export function ScreeningSettingsEditor({ locale, initial, admin, busy, act, onS
 export function ScreeningChecklist({ locale, review, submissionId, version, busy, act, onChanged }: { locale: Locale; review: ScreeningReview; submissionId: string; version: number; busy: boolean; act: Act; onChanged: () => void }) {
   const t = screeningCopy[locale], prior = (gate: number) => review.gates.find((g) => g.gate === gate);
   const [input, setInput] = useState<ScreeningInput>(() => ({ ethics: { passed: prior(5)?.passed ?? null, note: review.ethicsNote }, relevance: { passed: prior(6)?.passed ?? null, note: prior(6)?.note ?? "" }, externalChecked: review.externalChecked, externalReference: review.externalReference, similarityNote: "", failureDisposition: null, note: "", investigation: review.investigation, investigationNote: review.investigationNote }));
+  const [assistance, setAssistance] = useState<{ id: string; items: string[] } | null>(null), [advisoryMessage, setAdvisoryMessage] = useState("");
+  const token = useRef<string | undefined>(undefined), advisoryBusy = useRef(false);
+  const onToken = useCallback((value: string) => { token.current = value; }, []);
   const [operationId, setOperationId] = useState<string | null>(null);
   const update = <K extends keyof ScreeningInput>(key: K, value: ScreeningInput[K]) => { setInput((i) => ({ ...i, [key]: value })); setOperationId(null); };
   const allAutomatic = review.automatic.every((g) => g.passed === true), internalPass = review.similarityThreshold !== null && (review.matches[0]?.score ?? 0) < review.similarityThreshold;
@@ -45,7 +51,9 @@ export function ScreeningChecklist({ locale, review, submissionId, version, busy
   return <section className="staff-research-section staff-screening" aria-label={t.title} data-testid="abstract-screening"><h4>{t.title}</h4><p className="staff-note" role="status" data-testid="screening-status">{t.statuses[review.status]}</p>{review.status === "passed" && !review.current ? <p role="status">{t.stale}</p> : null}<p>{t.confidentiality}</p>
     <ol className="staff-screening-gates">{t.gates.map((label, i) => { const g = review.gates.find((g) => g.gate === i + 1), auto = review.automatic.find((g) => g.gate === i + 1); return <li key={i}><strong>G{i + 1}: {label}</strong><span>{g ? g.passed === null ? t.pending : g.passed ? t.pass : t.fail : t.pending}</span>{auto ? <small>{t.automatic}: {auto.passed ? t.pass : t.fail}</small> : null}</li>; })}</ol>
     <p>{t.specialty}: <bdi lang="en" dir="ltr">{specialty?.en ?? review.specialty}</bdi></p>
-    <form onSubmit={(e) => { e.preventDefault(); const operation = operationId ?? crypto.randomUUID(); setOperationId(operation); void act({ action: "confirm-screening", submissionId, version, sequence: review.sequence, operationId: operation, screening: input }).then((r) => { if (r.state === "updated") onChanged(); }); }}>
+    <SubmissionAdvisory locale={locale} submissionId={submissionId} onToken={onToken} onCopy={(id, gate, observation) => { if (gate === 5 || gate === 6) { const key = gate === 5 ? "ethics" : "relevance"; update(key, { ...input[key], note: observation }); } else update("note", (input.note + " G" + gate + ": " + observation).trim().slice(0, 2700)); setAssistance(a => ({ id, items: Array.from(new Set([...(a?.id === id ? a.items : []), `G${gate}`])) })); }} />
+    <p role="alert">{advisoryMessage}</p>
+    <form onSubmit={(e) => { e.preventDefault(); if (advisoryBusy.current) return; const operation = operationId ?? crypto.randomUUID(); setOperationId(operation); advisoryBusy.current = true; void (assistance ? requestAdvisory({ action: "confirm-screening", submissionId, version, sequence: review.sequence, operationId: operation, screening: input, advisoryId: assistance.id, items: assistance.items, formToken: token.current }) : act({ action: "confirm-screening", submissionId, version, sequence: review.sequence, operationId: operation, screening: input })).then((r) => { advisoryBusy.current = false; if (r.state === "updated") onChanged(); else if (assistance) { if ("formToken" in r && typeof r.formToken === "string") token.current = r.formToken; setAdvisoryMessage(submissionAdvisoryCopy[locale].unavailable); } }); }}>
       <fieldset disabled={busy} className="staff-research-fields"><legend>{t.staff}</legend>
         {(["ethics", "relevance"] as const).map((key) => <div key={key} className="staff-research-grid"><label className="field">{t[key]}<select aria-label={t[key]} className="field-input" value={input[key].passed === null ? "" : String(input[key].passed)} onChange={(e) => update(key, { ...input[key], passed: e.target.value === "" ? null : e.target.value === "true" })}><option value="">{t.pending}</option><option value="true">{t.pass}</option><option value="false">{t.fail}</option></select></label><label className="field">G{key === "ethics" ? 5 : 6}: {t.note}<textarea aria-label={`G${key === "ethics" ? 5 : 6}: ${t.note}`} className="field-input" rows={2} maxLength={3000} required={input[key].passed !== null} value={input[key].note} onChange={(e) => update(key, { ...input[key], note: e.target.value })} /></label></div>)}
         <p>{t.externalHint}</p>{review.similarityThreshold === null ? <p className="staff-note">{t.thresholdUnset}</p> : <p>{t.threshold}: {number(review.similarityThreshold)}%</p>}

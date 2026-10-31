@@ -17,6 +17,7 @@ export type SanitizationWarning = "generic_institution_mention";
 export interface AssessmentOutput {
   readonly criteria: readonly { readonly criterionId: string; readonly score: number; readonly rationale: string }[];
   readonly overallComment: string;
+  readonly gates?: readonly import("./abstract-advisory.ts").GateObservation[];
 }
 export interface RequestConfiguration { readonly model: string; readonly promptVersion: string; readonly thinking: "disabled"; readonly maxTokens: number }
 export type ApprovalKind = "provider" | "privacy" | "scientific_lead" | "rubric" | "budget" | "activation";
