@@ -83,6 +83,7 @@ for (const locale of ["en", "ar"] as const) {
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
   test(`${locale} public research information, dates, mobile layout and accessibility`, async ({ page }, testInfo) => {
+    await page.route("**/api/abstracts/window", route => route.fulfill({ json: { state: "opening", opensAt: "2026-11-22T21:00:00.000Z", closesAt: "2026-12-13T20:59:00.000Z" } }));
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.clock.install({ time: new Date("2026-10-28T12:00:00Z") });
     const response = await page.goto(`/${locale}/abstracts`);
@@ -106,7 +107,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(presentations.locator(".research-winners")).toContainText(copy.winners);
     await expect(page.locator(".research-submission-cta").first()).toHaveAttribute("aria-disabled", "true");
     await expect(page.locator(".research-submission-cta").first()).toContainText(copy.cta.opening);
-    await expect(page.locator(".research-submission-cta time").first()).toHaveAttribute("datetime", "2026-11-23");
+    await expect(page.locator(".research-submission-cta time").first()).toHaveAttribute("datetime", "2026-11-22T21:00:00.000Z");
     expect(await page.locator("html").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await captureAbstractViews(page, testInfo.project.name, locale, "public", [["roadmap", "#research-journey"], ["presentations", "#research-presentations"], ["evaluation", "#research-evaluation"], ["closing", "#research-closing"]]);

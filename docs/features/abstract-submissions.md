@@ -1,5 +1,42 @@
 # Research competition and abstract submission v2
 
+## Submission window — ENG-092
+
+ORG-058 dates are owner-confirmed accurate on 31 October 2026. The existing staff
+research workspace now has an EN/AR Submission window section. Scientific
+Administrators can inspect it; only Super Admins can save dates and Accept
+submissions. Inputs/display use Asia/Riyadh, transport/storage use explicit UTC,
+and saves share the incumbent settings CAS version, immutable history and audit.
+The published-date button fills 23 November 00:00 / 13 December 23:59 Riyadh only;
+it never saves or enables anything. Opening is inclusive; closing is exclusive.
+
+The saved readiness checklist includes the switch, ordered dates, current window,
+latest screening threshold, participant account,
+privacy, email, retention and server flags/configuration. The public CTA reads
+only state and saved instants from `/api/abstracts/window` without cookies or
+private data; the calendar remains informational. Private page-state observation
+uses the same saved window via its existing abstract handler. Missing database
+capabilities return area-not-ready and never clear the account session.
+
+ORG-070 supersedes ABS-09/11's participant similarity-report upload and AT-08's
+stage-one similarity PDF requirement: organizers run screening Gate 7. ORG-068
+item 7 already replaces ethics and study-registration files with reference text.
+No current stage-one abstract requirement needs participant file uploads.
+Stage-one readiness/status/finalization are independent of `evidence_ready`; its
+code remains for file workflows such as ABS-14 stage-two materials. Existing
+confidential stage-one evidence remains Super Admin only under ABS-15. No external
+plagiarism-provider integration is assumed or approved. The latest screening
+threshold must be saved before opening and remains a database finalization gate;
+clearing its latest version closes entry even if older versions had thresholds.
+
+Migration `20261031140000_abstract_submission_window.sql` is review-only and must
+follow ENG-088, ENG-090 and ENG-091; it preserves advisory and held supervisor-mail
+behavior. All settings/flags and hosted environments stay closed.
+Arabic copy remains DRAFT pending human review. Details and verification:
+[abs8 receipt](../progress/2026-10-31-abstract-submission-window.md).
+
+## Earlier implementation context
+
 ENG-088 implements ORG-068, PR 1 of 2. ABS-01–04/07/08/12/13/15, REV-01/06–09,
 PRV-03–06, SEC-01/02/06, LOC-01–03, TIM-01/02 and ACC-01 apply with the recorded
 owner overrides. Screening, scoring/rubric changes, thresholds and supervisor
@@ -71,8 +108,8 @@ and affiliations are required. Presenter identity is rebound from authoritative
 account/profile data on save/finalize, never trusted from request metadata.
 
 Finalization checks the configured window, complete profile, allowed presenter
-status, unused chance and document validity, then preserves the existing
-confidential-evidence gate. A finalized rejection or withdrawal still consumes
+status, unused chance, document validity and the saved G7 similarity threshold,
+without an upload gate (ORG-070). A finalized rejection or withdrawal still consumes
 the chance. The server-only transactional RPC owns the one-chance check so a
 lost successful response can replay its existing idempotency receipt. The UI
 offers no participant revision/resubmission after finalization.
@@ -112,8 +149,8 @@ no schedules, seeds, windows, grants or activation defaults. See the
 ## Owner review and release gates
 
 All new Arabic labels/copy, and EN/AR ethics and registration helpers, are owner-approved under ORG-069.
-Terms v1.1 EN/AR resolves the superseded research clauses, pending owner review
-and merge (ORG-069/ENG-089). v1.0 remains archived and recorded acceptances are
-unchanged; no forced re-acceptance is added. Actual Supabase lint, pgTAP and database concurrency
-must pass in disposable CI. Hosted migration/configuration,
-real account/device/inbox UAT and existing evidence/privacy gates remain separate.
+The owner reviewed Terms v1.1 EN/AR (ORG-069/ENG-089), recorded in ORG-070. v1.0 remains archived and recorded
+acceptances are unchanged; no forced re-acceptance is added. The ENG-091 supervisor email subject is approved,
+while delivery and the other release gates remain closed. Actual Supabase lint, pgTAP and database concurrency
+must pass in disposable CI. Hosted migration/configuration, real account/device/inbox UAT, ABS-14 file-workflow
+evidence and privacy gates remain separate.

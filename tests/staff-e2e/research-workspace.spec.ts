@@ -7,6 +7,7 @@ import type { Role } from "../../src/lib/permissions/contract";
 import { ABSTRACT_RUBRIC } from "../../src/features/staff-portal/abstract-rubric";
 import { screeningCopy } from "../../src/features/staff-portal/screening-copy";
 import type { ScreeningReview, ScreeningSettings } from "../../src/features/staff-portal/screening-contract";
+import { submissionWindowCopy } from "../../src/features/staff-portal/submission-window-copy";
 import { researchCopy, reviewCopy } from "../../src/features/staff-portal/research-copy";
 import { emptyResearchSettings, type ResearchPayload, type ResearchPacket, type ResearchReviewSummary, type ResearchScorecard, type ResearchSettings, type ResearchSubmission } from "../../src/features/staff-portal/research-contract";
 
@@ -19,6 +20,8 @@ async function fixture(page: Page, roles: Role[], options: { empty?: boolean; mi
   const actions: ResearchPayload[] = [], advisoryActions: AdvisoryPayload[] = [];
   let screeningSettings: ScreeningSettings = { version: options.completedPair ? 1 : 0, bands: options.completedPair ? { oralMin: 85, posterMin: 60, borderlineMin: 55, acceptanceMin: 55 } : null, similarityThreshold: options.unscreened || options.empty ? null : 30, oralCapacity: null };
   let screening: ScreeningReview = { sequence: options.unscreened ? 0 : 1, status: options.unscreened ? "pending" : "passed", investigation: false, investigationNote: "", actorId, at: "2026-10-31T06:00:00Z", ethicsNote: options.unscreened ? "" : "Synthetic ethics reviewed", gates: options.unscreened ? [] : Array.from({ length: 7 }, (_, i) => ({ gate: i + 1, passed: true, note: "Synthetic confirmation" })), automatic: Array.from({ length: 5 }, (_, i) => ({ gate: i + 1, passed: true, note: "Synthetic automatic check" })), externalChecked: !options.unscreened, externalReference: options.unscreened ? "" : "SYNTHETIC-REPORT", similarityThreshold: screeningSettings.similarityThreshold, matches: [{ id: actorId, reference: "SYN-MATCH-0002", title: "Synthetic related work", edition: "synthetic-staff-2027", version: 1, score: 12.5 }], current: !options.unscreened, specialty: "internal_medicine", history: [] }; let version = options.empty ? 0 : 1, settings = structuredClone(options.empty ? emptyResearchSettings() : configured), missing = options.missing ?? false;
+  let accepts = false;
+  const windowResult = () => ({ state: "ready", window: { version, enabled: accepts, opensAt: settings.opensAt, closesAt: settings.closesAt, observedAt: new Date().toISOString(), similarityReady: screeningSettings.similarityThreshold !== null, participantEnabled: false, privacyReady: false, emailReady: false, retentionReady: false, deploymentReady: false }, formToken: "synthetic-research-token" });
   let prepared: ResearchPacket | null = options.completedReview || options.completedPair ? packet : null, reviewVersion = 1, scorecard: ResearchScorecard | null = null, affiliations: string[] = [], reviewStatus = "assigned";
   let submission: ResearchSubmission = { id: submissionId, reference: "SYN-ABS-0001", status: prepared ? "scientific_review" : "submitted", version: 1, title: packet.title, wordCount: 30, packetReady: !!prepared, assignedCount: options.completedPair ? 2 : options.completedReview ? 1 : 0, completedCount: options.completedPair ? 2 : options.completedReview ? 1 : 0, decision: null };
   const reviewSummary: ResearchReviewSummary = options.completedPair
@@ -37,6 +40,7 @@ async function fixture(page: Page, roles: Role[], options: { empty?: boolean; mi
     const settingsResult = () => ({ state: "ready", version, settings, complete: !options.empty, enabled: false, evidenceReady: false, formToken });
     if (request.method() === "GET") {
       switch (url.searchParams.get("area")) {
+        case "window": return route.fulfill({ json: windowResult() });
         case "screening-settings": return route.fulfill({ json: { state: "ready", screeningSettings, formToken } });
         case "settings": return route.fulfill({ json: settingsResult() });
         case "list": return route.fulfill({ json: { state: "ready", submissions: options.empty ? [] : [{ ...submission, screeningStatus: screening.status, recommendedBand: band() }], formToken } });
@@ -48,6 +52,7 @@ async function fixture(page: Page, roles: Role[], options: { empty?: boolean; mi
     }
     const payload = request.postDataJSON() as ResearchPayload; actions.push(payload);
     switch (payload.action) {
+      case "save-window": if (!roles.includes("superAdmin")) return route.fulfill({ status: 403, json: { state: "denied" } }); if (payload.version !== version) return route.fulfill({ status: 409, json: { state: "conflict" } }); settings = { ...settings, opensAt: payload.opensAt, closesAt: payload.closesAt }; accepts = payload.enabled; version++; return route.fulfill({ json: windowResult() });
       case "save-screening-settings": screeningSettings = { ...payload.settings, version: screeningSettings.version + 1 }; screening = { ...screening, similarityThreshold: screeningSettings.similarityThreshold }; return route.fulfill({ json: { state: "ready", screeningSettings, formToken } });
       case "request-additional-review": reviewSummary.requiredReviews = payload.requiredReviews; reviewSummary.meanScore = null; return route.fulfill({ json: { state: "updated", formToken } });
       case "confirm-screening": {
@@ -105,6 +110,37 @@ for (const locale of ["en", "ar"] as const) {
 
 for (const locale of ["en", "ar"] as const) {
   const copy = researchCopy[locale];
+  test(`${locale} Super Admin fills published window without saving, then saves UTC and sees closed readiness`, async ({ page }, testInfo) => {
+    const f = await fixture(page, ["superAdmin"], { empty: true }), text = submissionWindowCopy[locale];
+    await page.goto(`/${locale}/staff/science`); const section = page.getByTestId("submission-window");
+    await expect(section).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+    await expect(section.getByLabel(text.opens, { exact: true })).toHaveValue("");
+    await section.getByRole("button", { name: text.suggestion, exact: true }).click();
+    await expect(section.getByLabel(text.opens, { exact: true })).toHaveValue("2026-11-23T00:00");
+    await expect(section.getByLabel(text.closes, { exact: true })).toHaveValue("2026-12-13T23:59");
+    expect(f.actions).toHaveLength(0);
+    await expect(section.getByRole("switch", { name: text.enabled, exact: true })).not.toBeChecked();
+    await expect(section.locator("[data-gate]")).toHaveCount(9);
+    await section.getByRole("button", { name: text.save, exact: true }).click();
+    await expect(section.locator('[data-gate="dates"]')).toHaveAttribute("data-ready", "true");
+    await expect(section.locator(".staff-window-utc")).toHaveAttribute("dir", "ltr");
+    await expect(section.locator(".staff-window-utc time")).toHaveText(["2026-11-22T21:00:00.000Z", "2026-12-13T20:59:00.000Z"]);
+    expect(f.actions).toContainEqual(expect.objectContaining({ action: "save-window", version: 0, enabled: false, opensAt: "2026-11-22T21:00:00.000Z", closesAt: "2026-12-13T20:59:00.000Z" }));
+    await expect(section.locator('[data-gate="evidence"]')).toHaveCount(0);
+    await expect(section.locator('[data-gate="similarity"]')).toContainText("ORG-070");
+    await expect(section.getByRole("status")).toHaveText(text.closed);
+    await axe(page); await snapshot(page, `${locale}-submission-window-${testInfo.project.name}`);
+  });
+  test(`${locale} Scientific Administrator can read readiness but cannot change window`, async ({ page }) => {
+    const f = await fixture(page, ["scientificAdministrator"]), text = submissionWindowCopy[locale];
+    await page.goto(`/${locale}/staff/science`); const section = page.getByTestId("submission-window");
+    await expect(section.getByLabel(text.opens, { exact: true })).toBeDisabled();
+    await expect(section.getByRole("switch", { name: text.enabled, exact: true })).toBeDisabled();
+    await expect(section.getByRole("button", { name: text.save, exact: true })).toBeDisabled();
+    await expect(section.locator('[data-gate="evidence"]')).toHaveCount(0);
+    await expect(section.locator('[data-gate="similarity"]')).toContainText("ORG-070");
+    expect(f.actions).toHaveLength(0); await axe(page);
+  });
   test(`${locale} staff see provisional bands and criterion disagreement, then route additional review`, async ({ page }, testInfo) => {
     const f = await fixture(page, ["scientificAdministrator"], { completedPair: true }), t = screeningCopy[locale];
     await page.goto(`/${locale}/staff/science`); const workspace = page.getByTestId("science-workspace");
@@ -165,7 +201,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} science settings have no defaults and save without opening`, async ({ page }, testInfo) => {
     const f = await fixture(page, ["scientificAdministrator"], { empty: true }); await page.goto(`/${locale}/staff/science`);
     const workspace = page.getByTestId("science-workspace"); await expect(workspace).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr"); await expect(workspace.getByText(copy.empty)).toBeVisible();
-    await workspace.locator(".staff-research-settings > summary").click(); for (const key of ["opensAt", "closesAt", "reviewDeadline", "reviewersPerAbstract", "keywordCount"] as const) await expect(workspace.getByLabel(copy[key], { exact: true })).toHaveValue("");
+    await workspace.locator(".staff-research-settings > summary").click(); for (const key of ["reviewDeadline", "reviewersPerAbstract", "keywordCount"] as const) await expect(workspace.getByLabel(copy[key], { exact: true })).toHaveValue("");
     await expect(workspace.locator('input[type="file"]')).toHaveCount(0); await expect(workspace.getByText(copy.gate)).toBeVisible();
     for (const collection of ["specialties", "studyTypes"] as const) {
       const group = workspace.getByRole("group", { name: copy[collection], exact: true }); await group.getByRole("button", { name: copy.add, exact: true }).click();

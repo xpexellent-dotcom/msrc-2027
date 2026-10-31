@@ -5169,3 +5169,71 @@ Console/test rendering only; no new delivery release path is introduced.
 Only source migration 20261031130000 is supplied. No hosted migration, settings
 seed, activation, participant opening or real email. Submission windows and file
 upload gates remain abs8 / ENG-092 scope. See the [receipt](progress/2026-10-31-abstract-ai-supervisor-email.md).
+
+## ENG-092 — Staff abstract submission window and organizer similarity screening, 31 October 2026
+
+Authority: the owner's abs8 task; ORG-058 (23 November–13 December 2026,
+owner-confirmed accurate on 31 October), ORG-068 / ENG-088, ORG-069 / ENG-090
+and ORG-070's organizer-run similarity decision. ABS-02/09–15, CFG-03/10, SEC-01/02/06,
+PRV-03–06, LOC-01–03, TIM-01/02 and ACC-01 apply with the owner overrides.
+
+Reuse `msrc_abstracts.settings.configuration.opensAt/closesAt`, `enabled`, its
+shared CAS version, immutable settings history and audit. The new bilingual
+Submission window section is readable by Scientific Administrators and Super
+Admins; only an authorized Super Admin may save dates or the switch. The legacy
+settings RPC also enforces Super Admin authority for changed window dates.
+Use explicit UTC transport/storage and Asia/Riyadh input/display; reject ambiguous
+local timestamps, invalid dates and closing at/before opening. Settings and
+finalization serialize on the incumbent settings row. No parallel settings table.
+
+ORG-058 specifies calendar dates without times. The owner's permitted suggested
+fill is 23 November 2026 00:00 through 13 December 2026 23:59 Asia/Riyadh,
+stored as `2026-11-22T21:00:00.000Z` and `2026-12-13T20:59:00.000Z`.
+The existing interval remains opening-inclusive, closing-exclusive; the final
+minute beginning at 23:59 is outside it. The button only fills local form state,
+never saves, turns on the switch, or configures a hosted environment.
+
+Read-only readiness shows the saved switch, ordered dates, current interval,
+latest saved screening similarity threshold, participant
+account policy, privacy notice, email allowance, retention and server release
+configuration. A cleared latest threshold cannot inherit an older value.
+The participant database finalization guard enforces the threshold as well as
+the incumbent window, switch and participant gates. Shared row locking
+serializes threshold saves with finalization. The public CTA uses a no-store
+server projection through the existing client pattern; public calendar copy and
+the incumbent preview-review rendering behavior are unchanged. Before the saved
+window show its opening instant, during it offer submission only when every gate
+passes, and after it show closed. Missing RPC/contracts fail to area-not-ready.
+
+ORG-070 supersedes ABS-09/11's participant similarity-report upload and AT-08's
+stage-one similarity PDF requirement. Organizers run screening Gate 7, using a
+threshold saved before opening. ORG-068 item 7 / ENG-088 already represent ethics
+approval/exemption and study registration as reference text, so current stage-one
+abstract requirements need no participant files. Remove the evidence/upload gate
+from stage-one readiness, status and finalization; retain its code for file
+workflows such as ABS-14 stage-two materials. Existing confidential stage-one
+evidence remains Super Admin only under ABS-15. Reviewer/AI packets are unchanged.
+No external plagiarism-provider integration is assumed or approved.
+
+Only review migration `20261031140000_abstract_submission_window.sql` is added.
+No seeds, hosted apply, flags, real mail, workflow opening, commits, pushes or
+branch changes. ENG-091 advisory and held supervisor-mail behavior is preserved.
+Evidence and release blockers: [abs8 receipt](progress/2026-10-31-abstract-submission-window.md).
+`docs/PROGRESS.md` remains untouched.
+
+## ORG-070 — Organizer similarity checks and owner approvals, 31 October 2026
+
+Authority: the owner's chat decision: "I'd prefer we do the similarity check ourselves."
+Participants do not upload similarity/plagiarism reports. This
+supersedes ABS-09/11's participant similarity-report upload and AT-08's stage-one
+similarity PDF requirement. Gate 7 remains staff screening against published
+works or previously accepted abstracts, with a threshold saved before submission
+opens (ENG-090). No external plagiarism-provider integration is assumed or
+approved. ORG-068 item 7 already makes ethics and study registration references;
+no current stage-one abstract requirement needs a participant file upload.
+ABS-14 file workflows and ABS-15 Super Admin-only confidential evidence remain.
+
+From the same owner chat: Terms v1.1 reviewed by the owner (PR #149); supervisor
+email subject "MSRC'27 abstract submission" approved (ENG-091). These decisions
+do not activate delivery, AI, accounts or submissions. The owner separately
+authorized applying the merged migrations to the hosted database the same day.

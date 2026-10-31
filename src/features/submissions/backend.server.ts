@@ -7,11 +7,19 @@ export class AbstractRpcMissingError extends Error {
   constructor() { super("Private abstract RPC not installed"); this.name = "AbstractRpcMissingError"; }
 }
 export type AbstractBackend = RegistrationBackend;
+export type AbstractStatusConfig = Pick<ParticipantConfig, "supabaseUrl" | "secretKey" | "editionKey">;
+export function readAbstractStatus(config: AbstractStatusConfig): Promise<unknown> {
+  return abstractRpc(config, "msrc_abstracts_status", { edition_key: config.editionKey });
+}
 export function createAbstractBackend(config: ParticipantConfig): AbstractBackend {
   const participant = createParticipantBackend(config);
   return { identity: participant.identity, refresh: participant.refresh, async rpc(name, args = {}) {
     if (name === "msrc_participant_status") return participant.rpc(name, args);
     if (!["msrc_participant_profile_complete", "msrc_abstracts_status", "msrc_abstracts_me", "msrc_abstracts_save_draft", "msrc_abstracts_finalize"].includes(name)) throw new Error("Unknown private abstract RPC");
+    return abstractRpc(config, name, args);
+  } };
+}
+async function abstractRpc(config: Pick<ParticipantConfig, "supabaseUrl" | "secretKey">, name: string, args: Record<string, unknown>) {
     const response = await fetch(config.supabaseUrl + "/rest/v1/rpc/" + name, {
       method: "POST", headers: { apikey: config.secretKey, "Content-Type": "application/json" }, body: JSON.stringify(args),
       cache: "no-store", redirect: "error", signal: AbortSignal.timeout(6_000),
@@ -22,5 +30,4 @@ export function createAbstractBackend(config: ParticipantConfig): AbstractBacken
     }
     if (!response.ok) { await response.body?.cancel(); throw new Error("Private abstract RPC unavailable"); }
     return response.json();
-  } };
 }

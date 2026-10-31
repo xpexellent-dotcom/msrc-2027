@@ -1,6 +1,7 @@
 /** ABS-01..15, REV-01..09: staff projections never forward provider JSON. */
 import { ABSTRACT_BODY_KEYS, type AbstractDocument } from "../submissions/contracts.ts";
 import type { RecommendedBand } from "./abstract-rubric";
+import type { SubmissionWindow } from "../submissions/submission-window";
 import type { ScreeningInput, ScreeningReview, ScreeningSettings, ScreeningStatus } from "./screening-contract";
 export type ResearchCriterion = { id: string; label: string; weight: number; min: number; max: number };
 export type ResearchSettings = {
@@ -19,6 +20,7 @@ export type ResearchReviewer = { id: string; name: string; affiliations: string[
 export type ResearchReviewSummary = { requiredReviews: number | null; completedReviews: number; meanScore: number | null; reviews: { assignmentId: string; submissionVersion: number; rubricVersion: number; total: number; scorecard: ResearchScorecard & { recommendation: "accept" | "reject" | "revise" }; rubric: ResearchCriterion[] }[] };
 export type ResearchDetail = { id: string; reference: string; version: number; status: string; wordCount: number; document: ResearchPacket; supervisor?: AbstractDocument["supervisor"] };
 export type ResearchResponse = {
+  window?: SubmissionWindow;
   state: string; formToken?: string; version?: number; settings?: ResearchSettings; evidenceReady?: boolean; enabled?: boolean; complete?: boolean;
   submissions?: ResearchSubmission[]; reviewers?: ResearchReviewer[]; assignments?: ResearchAssignment[]; oversight?: boolean; ownAffiliations?: string[];
   submission?: ResearchDetail; packet?: ResearchPacket | null; packetVersion?: number;
@@ -31,6 +33,7 @@ export type ResearchResponse = {
   batchId?: string; count?: number; emailState?: "draft_held"; decisions?: { id: string; reference: string; outcome: "accept" | "reject" | "revise"; instructions: string; revisionDeadline: string | null }[];
 };
 export type ResearchPayload = (
+  | { action: "save-window"; version: number; opensAt: string | null; closesAt: string | null; enabled: boolean }
   | { action: "save-settings"; version: number; settings: ResearchSettings }
   | { action: "save-screening-settings"; settings: ScreeningSettings }
   | { action: "confirm-screening"; submissionId: string; version: number; sequence: number; operationId: string; screening: ScreeningInput }

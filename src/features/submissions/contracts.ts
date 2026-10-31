@@ -26,7 +26,8 @@ export type AbstractSubmission = {
   decision: null | { outcome: "accept" | "reject" | "revise"; instructions: string; revisionDeadline: string | null; permittedFields: string[] };
 };
 export type AbstractOutcome = "saved" | "finalized" | "conflict" | "evidence_gate" | "invalid";
-export type AbstractResponse = { state: "ready"; profileComplete?: boolean; presenterEligible?: boolean; presenter?: AbstractPresenter;
+export type AbstractResponse = { state: "ready"; window?: import("./submission-window").PublicSubmissionWindow; profileComplete?: boolean; presenterEligible?: boolean; presenter?: AbstractPresenter;
   settings: AbstractSettings; submissions: AbstractSubmission[]; formToken: string; outcome?: AbstractOutcome; submissionId?: string } | {
+  window?: import("./submission-window").PublicSubmissionWindow;
   state: "closed" | "denied" | "area-not-ready" | "unavailable" | "invalid_input" | "limited" | "profile_incomplete" | "presenter_ineligible" | "submission_used";
 };

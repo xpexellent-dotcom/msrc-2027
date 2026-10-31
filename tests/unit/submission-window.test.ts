@@ -1,0 +1,23 @@
+import { describe, expect, it } from "vitest";
+import { decodeSubmissionWindow, explicitUtc, PUBLISHED_WINDOW, publicWindowState, riyadhToUtc, utcToRiyadh, validWindow, WINDOW_GATES, windowReadiness, type SubmissionWindow } from "@/features/submissions/submission-window";
+import { researchCtaState } from "@/features/research-competition/cta-state";
+const ready: SubmissionWindow = { version: 1, enabled: true, ...PUBLISHED_WINDOW, observedAt: PUBLISHED_WINDOW.opensAt, similarityReady: true, participantEnabled: true, privacyReady: true, emailReady: true, retentionReady: true, deploymentReady: true };
+describe("ENG-092 Riyadh window boundaries", () => {
+  it.each([["2026-11-23T00:00", "2026-11-22T21:00:00.000Z"], ["2026-12-13T23:59", "2026-12-13T20:59:00.000Z"], ["2027-01-01T00:00", "2026-12-31T21:00:00.000Z"], ["2028-02-29T00:00", "2028-02-28T21:00:00.000Z"]])("round trips %s without the host timezone", (local, utc) => { expect(riyadhToUtc(local)).toBe(utc); expect(utcToRiyadh(utc)).toBe(local); });
+  it.each(["2026-02-29T12:00", "2026-11-31T00:00", "2026-12-01T24:00", "2026-12-01T12:60", "2026-12-01T12:00Z", "", "2026-12-01"])('rejects invalid or ambiguous local input %s', (value) => expect(riyadhToUtc(value)).toBeNull());
+  it.each(["2026-12-01T00:00:00", "2026-12-01T00:00:00+03:00", "2026-02-30T00:00:00Z"])('rejects non-UTC or normalized request %s', value => expect(explicitUtc(value)).toBe(false));
+  it("requires both instants and close strictly after open", () => { expect(validWindow(null, null)).toBe(true); expect(validWindow(ready.opensAt, null)).toBe(false); expect(validWindow(ready.opensAt, ready.opensAt)).toBe(false); expect(validWindow(ready.closesAt, ready.opensAt)).toBe(false); });
+  it.each([["2026-11-22T20:59:59.999Z", "opening"], ["2026-11-22T21:00:00.000Z", "open"], ["2026-12-13T20:58:59.999Z", "open"], ["2026-12-13T20:59:00.000Z", "closed"]] as const)("classifies server boundary %s as %s", (observedAt, state) => expect(publicWindowState({ ...ready, observedAt }).state).toBe(state));
+  it.each(["enabled", "similarityReady", "participantEnabled", "privacyReady", "emailReady", "retentionReady", "deploymentReady"] as const)("never opens with %s closed", key => { const window = { ...ready, [key]: false }; expect(publicWindowState(window).state).toBe("closed"); expect(Object.values(windowReadiness(window)).every(Boolean)).toBe(false); });
+  it("opens without participant evidence or upload readiness (ORG-070)", () => {
+    for (const evidenceReady of [false, true, undefined]) {
+      const window = decodeSubmissionWindow({ ...ready, evidenceReady });
+      expect(window).toEqual(ready);
+      expect(publicWindowState(window!).state).toBe("open");
+      expect(windowReadiness(window!)).not.toHaveProperty("evidence");
+    }
+  });
+  it("shows every gate and fails closed for missing dates", () => { expect(Object.keys(windowReadiness(ready))).toEqual(WINDOW_GATES); expect(publicWindowState({ ...ready, opensAt: null, closesAt: null }).state).toBe("closed"); });
+  it("rejects incomplete projections and drops unknown provider fields", () => { expect(decodeSubmissionWindow({ ...ready, similarityReady: undefined })).toBeNull(); expect(decodeSubmissionWindow({ ...ready, secret: "canary" })).toEqual(ready); });
+  it("uses live availability rather than the published calendar for the CTA", () => { expect(researchCtaState({ signedIn: false, window: publicWindowState(ready) })).toBe("signIn"); expect(researchCtaState({ signedIn: true, window: { ...publicWindowState(ready), state: "closed" } })).toBe("closed"); expect(researchCtaState({ signedIn: true, response: { state: "area-not-ready" } })).toBe("closed"); });
+});

@@ -6,6 +6,7 @@ import { StaffRpcMissingError, type StaffBackend, type NativeStaffSession } from
 import { resolveStaffConfig, type StaffConfig } from "@/features/staff-portal/config.server";
 import { staffCookie, staffFormToken } from "@/features/staff-portal/security.server";
 import { decodeResearchPacket, decodeResearchScorecard, decodeResearchSettings, emptyResearchSettings } from "@/features/staff-portal/research-contract";
+import { PUBLISHED_WINDOW } from "@/features/submissions/submission-window";
 
 const origin = "http://127.0.0.1:3219", now = Date.parse("2026-10-23T06:00:00Z");
 const actorId = "79000000-0000-4000-8000-000000000001", sessionId = "79000000-0000-4000-8000-000000000002", itemId = "79000000-0000-4000-8000-000000000003";
@@ -27,6 +28,27 @@ beforeEach(() => {
 });
 
 describe("ABS/REV staff boundary", () => {
+  it.each(ROLES)("restricts submission-window saves to Super Admin for %s", async role => {
+    roles = [role]; replies.msrc_staff_research_save_window = { state: "conflict" };
+    const response = await handle(request({ action: "save-window", version: 3, ...PUBLISHED_WINDOW, enabled: true }));
+    expect(response.status).toBe(role === "superAdmin" ? 409 : 403);
+    if (role !== "superAdmin") expect(backend.rpc).not.toHaveBeenCalledWith("msrc_staff_research_save_window", expect.anything(), expect.anything());
+  });
+  it.each([{ opensAt: "2026-11-23T00:00:00", closesAt: PUBLISHED_WINDOW.closesAt }, { opensAt: PUBLISHED_WINDOW.closesAt, closesAt: PUBLISHED_WINDOW.opensAt }, { opensAt: PUBLISHED_WINDOW.opensAt, closesAt: PUBLISHED_WINDOW.opensAt }, { opensAt: null, closesAt: null }])("validates window dates on server %j", async dates => {
+    roles = ["superAdmin"];
+    expect((await handle(request({ action: "save-window", version: 0, ...dates, enabled: true }))).status).toBe(400);
+  });
+  it("uses optional RPC fallback for a missing window migration without losing the session", async () => {
+    replies.msrc_staff_research_window = new StaffRpcMissingError();
+    const response = await handle(request(undefined, "?area=window"));
+    expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready"); expect(response.headers.has("set-cookie")).toBe(false);
+  });
+  it("projects saved readiness and derives closed server deployment gates", async () => {
+    vi.stubEnv("ABSTRACT_SUBMISSIONS_ENABLED", "false");
+    replies.msrc_staff_research_window = { state: "ready", window: { version: 1, ...PUBLISHED_WINDOW, enabled: false, evidenceReady: false, similarityReady: false, participantEnabled: false, privacyReady: false, emailReady: false, retentionReady: false, observedAt: new Date(now).toISOString(), secret: "canary" } };
+    const response = await handle(request(undefined, "?area=window")), data = await response.json();
+    expect(response.status).toBe(200); expect(data.window.deploymentReady).toBe(false); expect(JSON.stringify(data)).not.toContain("canary");
+  });
   it("preserves DB-valid private supervisor contacts throughout the scientific detail projection", async () => {
     const supervisor = { fullName: "S".repeat(500), email: "s".repeat(484) + "@example.invalid", phone: "+966551234567" };
     replies.msrc_staff_research_submission = { state: "ready", submission: { id: itemId, reference: "SYN-1", version: 1, status: "submitted", wordCount: 8, document: { ...packet, supervisor } }, packet, packetVersion: 1 };

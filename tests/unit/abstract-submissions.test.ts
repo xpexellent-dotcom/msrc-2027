@@ -27,7 +27,7 @@ function fixture(options: { error?: Error; profileComplete?: boolean; documentVe
   const backend: AbstractBackend = { identity: vi.fn(async () => { options.onIdentity?.(); return Object.hasOwn(options, "identity") ? options.identity! : actorId; }), refresh: vi.fn(async () => null),
     rpc: vi.fn(async (name) => {
       if (name === "msrc_participant_status") return { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true, cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
-      if (name === "msrc_abstracts_status") return { enabled: true, settingsComplete: true, documentVersion: options.documentVersion ?? 2 };
+      if (name === "msrc_abstracts_status") return { enabled: true, settingsComplete: true, documentVersion: options.documentVersion ?? 2, window: { version: 1, enabled: true, opensAt: "2026-01-01T00:00:00.000Z", closesAt: "2028-01-01T00:00:00.000Z", observedAt: new Date(now).toISOString(), evidenceReady: true, similarityReady: true, participantEnabled: true, privacyReady: true, emailReady: true, retentionReady: true } };
       if (options.error) throw options.error;
       if (name === "msrc_participant_profile_complete") return { state: "ready", complete: options.profileComplete ?? true };
       if (name === "msrc_abstracts_me") return options.context ?? { state: "ready", settings: { ...abstractSettings, windowState: options.windowState ?? "open" }, presenter, submissions: [submission] };

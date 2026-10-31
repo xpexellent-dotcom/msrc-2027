@@ -27,7 +27,7 @@ const server = http.createServer(async (request, response) => {
     fixtures.set(args.actorId, { mode: args.mode ?? "ready", submissions: args.submissions ?? [], settings: args.settings ?? settings }); return reply(response, { synthetic: true });
   }
   if (path === "/rest/v1/rpc/msrc_participant_status") return reply(response, { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true, cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 });
-  if (path === "/rest/v1/rpc/msrc_abstracts_status") return reply(response, { enabled: true, documentVersion: 2, settingsComplete: true });
+  if (path === "/rest/v1/rpc/msrc_abstracts_status") return reply(response, { enabled: true, documentVersion: 2, settingsComplete: true, window: { version: 1, enabled: true, opensAt: "2026-01-01T00:00:00.000Z", closesAt: "2028-01-01T00:00:00.000Z", evidenceReady: false, similarityReady: true, participantEnabled: true, privacyReady: true, emailReady: true, retentionReady: true, observedAt: new Date().toISOString() } });
   const actor = args.session_claims?.sub;
   if (args.edition_key !== "synthetic-participants-2027" || !actorPattern.test(actor ?? "")) return reply(response, { state: "denied" });
   const fixture = fixtures.get(actor) ?? { mode: "ready", submissions: [], settings };

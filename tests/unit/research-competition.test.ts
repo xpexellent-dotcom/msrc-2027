@@ -35,10 +35,10 @@ describe("ORG-068 public research competition", () => {
     expect(html).toContain(copy.cancel);
     expect(html).not.toContain("<dialog open");
   });
-  it("uses ORG-058's public calendar date without opening the operational window", () => {
+  it("uses the saved operational window independently of the public calendar", () => {
     expect(abstractDates[0].date).toBe("2026-11-23");
-    expect(researchCtaState({ signedIn: true, response: ready, now: new Date("2026-11-22T20:59:59Z") })).toBe("opening");
-    expect(researchCtaState({ signedIn: false, now: new Date("2026-11-22T21:00:00Z") })).toBe("signIn");
+    expect(researchCtaState({ signedIn: true, response: ready, window: { state: "opening", opensAt: "2026-11-22T21:00:00Z", closesAt: "2026-12-13T20:59:00Z" } })).toBe("opening");
+    expect(researchCtaState({ signedIn: false, window: { state: "open", opensAt: "2026-11-22T21:00:00Z", closesAt: "2026-12-13T20:59:00Z" } })).toBe("signIn");
   });
   it("offers sign-in, profile completion, draft continuation and a new submission", () => {
     expect(researchCtaState({ signedIn: false, response: ready })).toBe("signIn");

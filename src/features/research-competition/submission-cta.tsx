@@ -2,8 +2,8 @@
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { abstractDates } from "@/content/abstract-dates";
-import { formatRegistrationOpeningDate } from "@/content/registration-opening";
+import type { PublicSubmissionWindow } from "@/features/submissions/submission-window";
+import { formatWindowInstant } from "@/features/submissions/window-copy";
 import { hasParticipantHint, requestAccount } from "@/features/participant-accounts/participant-client";
 import type { AbstractResponse } from "@/features/submissions/contracts";
 import type { Locale } from "@/lib/i18n";
@@ -12,6 +12,7 @@ import { researchCtaState, type ResearchCtaState } from "./cta-state";
 
 export function AbstractSubmissionCta({ locale }: { locale: Locale }) {
   // Keep the public server render independent of cookies and private data.
+  const [savedWindow, setWindow] = useState<PublicSubmissionWindow | null>(null);
   const [state, setState] = useState<ResearchCtaState>("signIn");
   const [checked, setChecked] = useState<boolean[]>([]);
   const [open, setOpen] = useState(false);
@@ -21,22 +22,32 @@ export function AbstractSubmissionCta({ locale }: { locale: Locale }) {
   useEffect(() => {
     const controller = new AbortController(); let generation = 0;
     async function check() {
-      const current = ++generation, now = new Date();
-      const initial = researchCtaState({ signedIn: false, now });
+      const current = ++generation;
+      let window: PublicSubmissionWindow;
+      try {
+        const response = await fetch("/api/abstracts/window", { cache: "no-store", signal: controller.signal });
+        const data = await response.json() as PublicSubmissionWindow;
+        if (!["opening", "open", "closed", "area-not-ready"].includes(data.state) || data.state === "opening" && (!data.opensAt || !Number.isFinite(Date.parse(data.opensAt)))) throw new Error("Invalid window");
+        window = data;
+      } catch { if (!controller.signal.aborted && current === generation) setState("closed"); return; }
+      if (controller.signal.aborted || current !== generation) return;
+      setWindow(window);
+      const initial = researchCtaState({ signedIn: false, window });
       setState(initial);
-      if (initial === "opening" || !hasParticipantHint()) return;
+      if (initial === "opening" || initial === "closed" || !hasParticipantHint()) return;
       const { response: account } = await requestAccount(undefined, controller.signal);
       if (controller.signal.aborted || current !== generation || !account.profile) return;
       try {
         const response = await fetch(`/api/abstracts?locale=${locale}`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
         const data = response.headers.get("content-type")?.includes("application/json") ? await response.json() as AbstractResponse : undefined;
-        if (!controller.signal.aborted && current === generation) setState(researchCtaState({ signedIn: true, response: data, now }));
-      } catch { if (!controller.signal.aborted && current === generation) setState("submit"); }
+        if (!controller.signal.aborted && current === generation) setState(researchCtaState({ signedIn: true, response: data, window }));
+      } catch { if (!controller.signal.aborted && current === generation) setState("closed"); }
     }
     void check();
+    const interval = window.setInterval(() => void check(), 60_000);
     const changed = () => void check();
     window.addEventListener("msrc-participant-hint", changed); window.addEventListener("msrc-participant-profile", changed); window.addEventListener("focus", changed);
-    return () => { controller.abort(); window.removeEventListener("msrc-participant-hint", changed); window.removeEventListener("msrc-participant-profile", changed); window.removeEventListener("focus", changed); };
+    return () => { controller.abort(); window.clearInterval(interval); window.removeEventListener("msrc-participant-hint", changed); window.removeEventListener("msrc-participant-profile", changed); window.removeEventListener("focus", changed); };
   }, [locale]);
   useEffect(() => {
     if (!open) return;
@@ -77,8 +88,8 @@ export function AbstractSubmissionCta({ locale }: { locale: Locale }) {
     window.location.assign(new URL(formHref, window.location.origin).href);
   }
   return <>
-    <ButtonLink href={href} variant="gold" disabled={state === "opening"} className="research-submission-cta" data-testid="research-submission-cta" onClick={acknowledge} aria-haspopup={state === "submit" || state === "draft" ? "dialog" : undefined}>
-      {state === "opening" ? <>{copy.cta.opening} <time dateTime={abstractDates[0].date}>{formatRegistrationOpeningDate(`${abstractDates[0].date}T00:00:00+03:00`, locale, false)}</time></> : copy.cta[state]}
+    <ButtonLink href={href} variant="gold" disabled={state === "opening" || state === "closed"} className="research-submission-cta" data-testid="research-submission-cta" onClick={acknowledge} aria-haspopup={state === "submit" || state === "draft" ? "dialog" : undefined}>
+      {state === "opening" ? <>{copy.cta.opening} <time dateTime={savedWindow?.opensAt ?? undefined}>{savedWindow?.opensAt ? formatWindowInstant(savedWindow.opensAt, locale) : ""}</time></> : copy.cta[state]}
     </ButtonLink>
     <dialog ref={dialog} className="research-acknowledgement" aria-labelledby={headingId} aria-describedby={introId} dir={locale === "ar" ? "rtl" : "ltr"} onKeyDown={wrapDialogFocus} onClose={() => { setOpen(false); trigger.current?.focus({ preventScroll: true }); }}>
       <div className="research-acknowledgement__header">

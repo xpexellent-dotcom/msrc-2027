@@ -67,11 +67,12 @@ select is((select value->>'state' from abstract_result where key='one'),'saved',
 select is(public.msrc_abstracts_save_draft('synthetic-abstracts',pg_temp.registration_claims(9001),null,0,pg_temp.abstract_document(),'e7900000-0000-4000-8000-000000000001')->'submission',(select value->'submission' from abstract_result where key='one'),'Operation retry returns same draft');
 select is((select count(*) from msrc_abstracts.submissions),1::bigint,'Idempotency creates one draft');
 select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9002),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','denied','Foreign participant cannot finalize draft');
-select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','evidence_gate','Evidence and virus-scanning gate enforced by database');
-update msrc_abstracts.settings set evidence_ready=true where edition_key='synthetic-abstracts';
+select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','closed','Saved G7 threshold remains enforced by database with no participant file requirement (ORG-070)');
+insert into msrc_abstracts.screening_settings(edition_key,version,bands,similarity_threshold,oral_capacity,actor_id,session_id)
+ values('synthetic-abstracts',1,null,100,null,pg_temp.registration_actor(9100),pg_temp.registration_session(9100));
 -- Explicitly distinguish the test corpus before finalization; screening must not waive identical text.
 update msrc_abstracts.submissions set document=jsonb_set(document,'{body,background}',to_jsonb('Synthetic independent study A'::text)) where actor_id=pg_temp.registration_actor(9001);
-select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','finalized','Synthetic authorized evidence fixture can finalize');
+select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','finalized','Threshold-ready participant finalizes without evidence upload (ORG-070)');
 select is((select count(*) from msrc_abstracts.snapshots),1::bigint,'Finalization creates one immutable snapshot');
 select is((select count(*) from msrc_abstracts.authors),2::bigint,'Ordered authors retained with snapshot');
 select throws_ok($$update msrc_abstracts.snapshots set document='{}'::jsonb$$,'55000',null,'Finalized snapshot cannot mutate');
@@ -82,8 +83,7 @@ select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registrat
 insert into abstract_result values('three',public.msrc_abstracts_save_draft('synthetic-abstracts',pg_temp.registration_claims(9003),null,0,pg_temp.abstract_document(),gen_random_uuid()));
 select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9003),(select (value->'submission'->>'id')::uuid from abstract_result where key='three'),1,gen_random_uuid())->>'state','finalized','Co-author identity does not limit a different participant');
 select is((select count(*) from msrc_abstracts.submissions where finalized_at is not null),3::bigint,'Each of three distinct participants may finalize once');
-insert into msrc_abstracts.screening_settings(edition_key,version,bands,similarity_threshold,oral_capacity,actor_id,session_id)
- values('synthetic-abstracts',1,null,100,null,pg_temp.registration_actor(9100),pg_temp.registration_session(9100));
+
 select pg_temp.abstract_claims(9101);
 select pg_temp.confirm_screening((select (value->'submission'->>'id')::uuid from abstract_result where key='one'));
 select ok(public.msrc_staff_research_submission('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'))::text !~ 'Confidential ethics canary|ethicsExplanation|ethicsStatus','Science projection excludes confidential stage-one evidence');
@@ -103,7 +103,7 @@ select pg_temp.abstract_claims(9101);
 select is(public.msrc_staff_research_assign('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),pg_temp.registration_actor(9102))->>'state','coi','Normalized case and punctuation affiliation conflict blocks manual assignment');
 select is(public.msrc_staff_research_auto_assign('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'))->>'count','2','Balanced auto assignment skips conflict and fills two reviewers');
 select is((select reviewer_id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1),pg_temp.registration_actor(9103),'Eligible independent reviewer assigned');
-select is(public.msrc_staff_research_save_settings('synthetic-abstracts',1,pg_temp.screening_configuration())->>'state','ready','Later settings receive a new immutable version without changing owner weights');
+select is(public.msrc_staff_research_save_settings('synthetic-abstracts',1,pg_temp.screening_configuration()||(select jsonb_build_object('opensAt',configuration->'opensAt','closesAt',configuration->'closesAt') from msrc_abstracts.settings where edition_key='synthetic-abstracts'))->>'state','ready','Later settings receive a new immutable version without changing owner weights');
 select is(public.msrc_staff_research_assign('synthetic-abstracts',(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),pg_temp.registration_actor(9103))->>'state','duplicate','Existing assignment cannot duplicate after rubric changes');
 select pg_temp.abstract_claims(9102);
 select is(public.msrc_staff_research_packet('synthetic-abstracts',(select id from msrc_abstracts.assignments where reviewer_id=pg_temp.registration_actor(9103) and submission_version=1))->>'state','denied','Foreign reviewer cannot read packet');

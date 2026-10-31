@@ -14,7 +14,7 @@ async function accessible(page: Page) {
 }
 for (const locale of ["en", "ar"] as const) {
   const copy = abstractCopy[locale];
-  test(`${locale} create, autosave, resume, preview and finalize one synthetic abstract`, async ({ page, context }, testInfo) => {
+  test(`${locale} create, autosave, resume, preview and finalize without uploads (ORG-070)`, async ({ page, context }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await fixture(context); await page.goto(`/${locale}/abstracts/submit`);
     await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
@@ -67,7 +67,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/abstracts/submit`); await expect(page.getByRole("status")).toHaveText(copy.notReady); await accessible(page);
     expect((await context.cookies()).find((value) => value.name === "msrc-participant-test")?.value).toBe(before);
   });
-  test(`${locale} existing evidence gate retains saved draft`, async ({ page, context }) => {
+  test(`${locale} legacy database evidence response retains saved draft during rollout`, async ({ page, context }) => {
     await fixture(context, "evidence_gate", [abstractSubmission]); await page.goto(`/${locale}/abstracts/submit`); await page.getByRole("button", { name: copy.edit, exact: true }).click();
     await page.getByRole("button", { name: copy.preview, exact: true }).click(); await page.getByRole("button", { name: copy.finalize, exact: true }).click();
     await expect(page.locator(".abstract-save-status")).toHaveText(copy.evidence_gate); await expect(page.getByTestId("abstract-preview")).toBeVisible(); await accessible(page);

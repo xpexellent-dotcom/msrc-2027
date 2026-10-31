@@ -7,6 +7,9 @@ import { decodeResearchPacket, decodeResearchRubric, decodeResearchScorecard, de
 import { decodeScreeningInput, decodeScreeningReview, decodeScreeningSettings, RECOMMENDED_BANDS } from "./screening-contract";
 import type { RecommendedBand } from "./abstract-rubric";
 import type { ScreeningStatus } from "./screening-contract";
+import { decodeSubmissionWindow, validWindow } from "../submissions/submission-window";
+import { getParticipantConfig } from "../participant-accounts/config.server";
+import { participantNotice } from "../participant-accounts/privacy.server";
 
 const headers = { "Cache-Control": "private, no-store, max-age=0", Pragma: "no-cache", "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, nofollow, noarchive", "Referrer-Policy": "no-referrer" };
 const states = new Set(["denied", "invalid", "conflict", "not_found", "limited", "unavailable", "closed", "settings_incomplete", "evidence_gate", "conflict_of_interest", "affiliations_required", "packet_required", "blinding_required", "review_locked", "reviews_incomplete", "already_assigned", "no_eligible_reviewers", "batch_conflict", "locked", "coi", "full", "duplicate", "area_not_ready", "screening_required", "investigation_open"]);
@@ -22,6 +25,7 @@ function decodeResponse(value: unknown): ResearchResponse | null {
   if (states.has(data.state) || data.state === "preview_required") return { state: aliases[data.state] ?? data.state.replaceAll("_", "-") };
   if (!["ready", "updated", "created", "prepared", "published", "assigned"].includes(data.state)) return null;
   const result: ResearchResponse = { state: data.state };
+  if (data.window !== undefined) { const window = decodeSubmissionWindow(data.window); if (!window) return null; result.window = window; }
   if (data.screening !== undefined) { const screening = decodeScreeningReview(data.screening); if (!screening) return null; result.screening = screening; }
   if (data.screeningSettings !== undefined) { const settings = decodeScreeningSettings(data.screeningSettings); if (!settings) return null; result.screeningSettings = settings; }
   if (data.recommendedBand !== undefined) { if (!RECOMMENDED_BANDS.includes(data.recommendedBand as RecommendedBand)) return null; result.recommendedBand = data.recommendedBand as RecommendedBand; }
@@ -89,6 +93,7 @@ function decodeResponse(value: unknown): ResearchResponse | null {
 function projectRpc(name: string, value: unknown): ResearchResponse | null {
   const data = researchRecord(value); if (!data) return null;
   const fields: Record<string, readonly string[]> = {
+    window: ["window"], save_window: ["window"],
     settings: ["version", "settings", "complete", "enabled", "evidenceReady"], save_settings: ["version", "settings", "complete", "enabled", "evidenceReady"],
     list: ["submissions"], reviewers: ["reviewers"], queue: ["assignments", "oversight", "ownAffiliations"],
     packet: ["assignment", "packet", "rubric", "scorecard", "studyTemplate", "reviewPolicy"],
@@ -116,13 +121,20 @@ export function createResearchHandler(dependencies: { readiness?: () => StaffRea
       const roles = authority.profile.roles, science = roles.includes("scientificAdministrator"), admin = roles.includes("superAdmin"), reviewer = roles.includes("abstractReviewer");
       if (!science && !admin && !reviewer) return reply({ state: "denied" }, 403);
       const rpc = async (name: string, args: Record<string, unknown> = {}) => {
-        const decoded = projectRpc(name, await optionalRpc(backend, "msrc_staff_research_" + name, { edition_key: config.editionKey, ...args }, session.accessToken));
+        let raw = await optionalRpc(backend, "msrc_staff_research_" + name, { edition_key: config.editionKey, ...args }, session.accessToken);
+        if (name === "window" || name === "save_window") {
+          const data = researchRecord(raw), window = researchRecord(data?.window), participant = getParticipantConfig();
+          if (window) raw = { ...data, window: { ...window,
+            ...(participant.state === "ready" ? { privacyReady: window.privacyVersion === participantNotice("en", participant.config.testMode)?.version, emailReady: window.emailDailyLimit === participant.config.emailDailyLimit } : {}),
+            deploymentReady: process.env.ABSTRACT_SUBMISSIONS_ENABLED === "true" && participant.state === "ready" && participant.config.editionKey === config.editionKey } };
+        }
+        const decoded = projectRpc(name, raw);
         if (!decoded) return reply({ state: "unavailable" }, 503);
         return reply(decoded, ["ready", "updated", "created", "prepared", "published", "assigned"].includes(decoded.state) ? 200 : decoded.state === "denied" ? 403 : decoded.state === "limited" ? 429 : ["unavailable", "area-not-ready"].includes(decoded.state) ? 503 : 409);
       };
       if (request.method === "GET") {
         const query = new URL(request.url).searchParams, area = query.get("area");
-        if (query.size === 1 && ["settings", "screening-settings", "list", "reviewers"].includes(String(area))) return science || admin ? await rpc(area!.replaceAll("-", "_")) : reply({ state: "denied" }, 403);
+        if (query.size === 1 && ["window", "settings", "screening-settings", "list", "reviewers"].includes(String(area))) return science || admin ? await rpc(area!.replaceAll("-", "_")) : reply({ state: "denied" }, 403);
         if (query.size === 1 && area === "queue") return reviewer || admin ? await rpc("queue") : reply({ state: "denied" }, 403);
         if (query.size === 2 && area === "packet" && researchUuid(query.get("assignmentId"))) return reviewer || admin ? await rpc("packet", { assignment_id: query.get("assignmentId") }) : reply({ state: "denied" }, 403);
         if (query.size === 2 && area === "submission" && researchUuid(query.get("submissionId"))) return science || admin ? await rpc("submission", { submission_id: query.get("submissionId") }) : reply({ state: "denied" }, 403);
@@ -131,9 +143,11 @@ export function createResearchHandler(dependencies: { readiness?: () => StaffRea
       let input: Record<string, unknown> | null; try { input = researchRecord(await readStaffJson(request, 131072)); } catch { return reply({ state: "invalid" }, 400); }
       const nonce = readStaffFormToken(config, input?.formToken, origin, now), ip = staffIp(config, request); if (!input || !nonce || !ip) return reply({ state: "invalid" }, 400);
       const keys = (...allowed: string[]) => Object.keys(input).every((key) => ["action", "formToken", ...allowed].includes(key));
+      if (input.action === "save-window" && !admin) return reply({ state: "denied" }, 403);
       const scienceActions = ["prepare-packet", "assign", "auto-assign", "decision", "batch", "confirm-screening", "request-additional-review"], reviewerActions = ["scorecard", "review-response", "declare-affiliations"];
       if (scienceActions.includes(String(input.action)) && !science && !admin || reviewerActions.includes(String(input.action)) && !reviewer || input.action === "save-settings" && !science && !admin || input.action === "save-screening-settings" && !admin) return reply({ state: "denied" }, 403);
       const claimed = researchRecord(await backend.rpc("msrc_staff_form_claim", { nonce_hash: staffHash(config, "nonce", nonce), ip_hash: staffHash(config, "ip", ip) })); if (claimed?.state !== "claimed") return reply({ state: "limited" }, 429);
+      if (input.action === "save-window") return keys("version", "opensAt", "closesAt", "enabled") && researchInteger(input.version) && typeof input.enabled === "boolean" && validWindow(input.opensAt, input.closesAt) && (!input.enabled || input.opensAt !== null) ? await rpc("save_window", { expected_version: input.version, opens_at: input.opensAt, closes_at: input.closesAt, accept_submissions: input.enabled }) : reply({ state: "invalid" }, 400);
       if (input.action === "save-settings") { const settings = decodeResearchSettings(input.settings); return settings && researchInteger(input.version) && keys("version", "settings") ? await rpc("save_settings", { expected_version: input.version, settings }) : reply({ state: "invalid" }, 400); }
       if (input.action === "save-screening-settings") { const settings = decodeScreeningSettings(input.settings); return settings && keys("settings") ? await rpc("save_screening_settings", { expected_version: settings.version, bands: settings.bands, similarity_threshold: settings.similarityThreshold, oral_capacity: settings.oralCapacity }) : reply({ state: "invalid" }, 400); }
       if (input.action === "confirm-screening") { const screening = decodeScreeningInput(input.screening); return screening && keys("submissionId", "version", "sequence", "operationId", "screening") && researchUuid(input.submissionId) && researchUuid(input.operationId) && researchInteger(input.version, 1) && researchInteger(input.sequence) ? await rpc("confirm_screening", { submission_id: input.submissionId, expected_version: input.version, expected_sequence: input.sequence, operation_id: input.operationId, screening }) : reply({ state: "invalid" }, 400); }
