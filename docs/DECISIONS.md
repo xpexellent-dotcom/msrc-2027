@@ -5069,6 +5069,7 @@ no hosted migration/settings, feature activation, participant opening, real emai
 commit, push or branch action. `docs/PROGRESS.md` remains untouched.
 Evidence, complete EN/AR sentence diff and remaining gates:
 [abs5 receipt](progress/2026-10-31-abstract-content-terms.md).
+
 ## ENG-090 — Abstract screening, fixed human rubric and provisional bands, 31 October 2026
 
 Authority: the owner's abs6 task and 31 October decisions (ORG-069, recorded by
