@@ -67,13 +67,12 @@ select is((select value->>'state' from abstract_result where key='one'),'saved',
 select is(public.msrc_abstracts_save_draft('synthetic-abstracts',pg_temp.registration_claims(9001),null,0,pg_temp.abstract_document(),'e7900000-0000-4000-8000-000000000001')->'submission',(select value->'submission' from abstract_result where key='one'),'Operation retry returns same draft');
 select is((select count(*) from msrc_abstracts.submissions),1::bigint,'Idempotency creates one draft');
 select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9002),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','denied','Foreign participant cannot finalize draft');
-select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','evidence_gate','ABS-09/11 similarity-upload and virus-scanning gate remains enforced by database (ENG-092)');
-update msrc_abstracts.settings set evidence_ready=true where edition_key='synthetic-abstracts';
+select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','closed','Saved G7 threshold remains enforced by database with no participant file requirement (ORG-070)');
 insert into msrc_abstracts.screening_settings(edition_key,version,bands,similarity_threshold,oral_capacity,actor_id,session_id)
  values('synthetic-abstracts',1,null,100,null,pg_temp.registration_actor(9100),pg_temp.registration_session(9100));
 -- Explicitly distinguish the test corpus before finalization; screening must not waive identical text.
 update msrc_abstracts.submissions set document=jsonb_set(document,'{body,background}',to_jsonb('Synthetic independent study A'::text)) where actor_id=pg_temp.registration_actor(9001);
-select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','finalized','Synthetic authorized evidence fixture can finalize');
+select is(public.msrc_abstracts_finalize('synthetic-abstracts',pg_temp.registration_claims(9001),(select (value->'submission'->>'id')::uuid from abstract_result where key='one'),1,gen_random_uuid())->>'state','finalized','Threshold-ready participant finalizes without evidence upload (ORG-070)');
 select is((select count(*) from msrc_abstracts.snapshots),1::bigint,'Finalization creates one immutable snapshot');
 select is((select count(*) from msrc_abstracts.authors),2::bigint,'Ordered authors retained with snapshot');
 select throws_ok($$update msrc_abstracts.snapshots set document='{}'::jsonb$$,'55000',null,'Finalized snapshot cannot mutate');

@@ -8,13 +8,14 @@ vi.mock("@/features/participant-accounts/config.server", () => ({ getParticipant
 vi.mock("@/features/registration/handler.server", () => ({ participantReady: mocks.participant }));
 vi.mock("@/features/submissions/window-config.server", async importOriginal => ({ ...await importOriginal<typeof import("@/features/submissions/window-config.server")>(), getWindowReader: () => ({ editionKey: "synthetic-window" }) }));
 vi.mock("@/features/submissions/backend.server", async importOriginal => ({ ...await importOriginal<typeof import("@/features/submissions/backend.server")>(), readAbstractStatus: mocks.rpc, createAbstractBackend: () => ({ rpc: mocks.rpc }) }));
-const window = { version: 1, ...PUBLISHED_WINDOW, enabled: true, observedAt: "2026-12-01T00:00:00.000Z", evidenceReady: true, similarityReady: true, participantEnabled: true, privacyReady: true, emailReady: true, retentionReady: true };
+const window = { version: 1, ...PUBLISHED_WINDOW, enabled: true, observedAt: "2026-12-01T00:00:00.000Z", similarityReady: true, participantEnabled: true, privacyReady: true, emailReady: true, retentionReady: true };
 beforeEach(() => { vi.stubEnv("ABSTRACT_SUBMISSIONS_ENABLED", "true"); mocks.config.mockReturnValue({ state: "ready", config: { editionKey: "synthetic-window" } }); mocks.participant.mockResolvedValue(true); mocks.rpc.mockResolvedValue({ enabled: true, documentVersion: 2, window }); });
 describe("ENG-092 public window projection", () => {
   it("exposes only saved instants and effective state", async () => {
     mocks.rpc.mockResolvedValue({ documentVersion: 2, secret: "canary", window: { ...window, private: "canary" } });
     expect(await readPublicSubmissionWindow()).toEqual({ state: "open", ...PUBLISHED_WINDOW });
   });
+  it("ignores the separate upload gate for public availability (ORG-070)", async () => { mocks.rpc.mockResolvedValue({ documentVersion: 2, window: { ...window, evidenceReady: false } }); expect((await readPublicSubmissionWindow()).state).toBe("open"); });
   it("keeps effective entry closed when release flags are off", async () => { vi.stubEnv("ABSTRACT_SUBMISSIONS_ENABLED", "false"); expect((await readPublicSubmissionWindow()).state).toBe("closed"); });
   it("can show a saved future date while release flags remain off", async () => { vi.stubEnv("ABSTRACT_SUBMISSIONS_ENABLED", "false"); mocks.rpc.mockResolvedValue({ documentVersion: 2, window: { ...window, observedAt: "2026-11-01T00:00:00.000Z" } }); expect((await readPublicSubmissionWindow()).state).toBe("opening"); });
   it("keeps participant-account and email policy mismatches closed", async () => { mocks.participant.mockResolvedValue(false); expect((await readPublicSubmissionWindow()).state).toBe("closed"); });

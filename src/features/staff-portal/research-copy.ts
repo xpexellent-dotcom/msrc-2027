@@ -1,7 +1,7 @@
 export const researchCopy = {
   en: {
     title: "Scientific workspace", description: "Configure the scientific rules, prepare blind packets, assign reviewers and prepare committee decisions.",
-    gate: "Similarity-report uploads require approved private storage, virus scanning and validation before submission can open. Ethics and study registration use reference fields. No files can be uploaded here.",
+    gate: "Organizers run the similarity check (ORG-070); save the screening threshold before opening submissions. Participants upload no stage-one files. Ethics and study registration use reference fields.",
     settings: "Scientific settings", settingsHint: "Enter approved values. Nothing is preselected. Saving settings does not open submissions.", settingsSaved: "Scientific settings saved. Submission access remains separately gated.",
     opensAt: "Submission opens (Riyadh time)", closesAt: "Submission closes (Riyadh time)", reviewDeadline: "Review lock deadline (Riyadh time)",
     specialties: "Research specialties", studyTypes: "Study types", rubric: "Versioned review rubric", id: "Stable code", label: "English label", template: "Body template", research: "Ordinary research", case_report: "Case report",
@@ -20,7 +20,7 @@ export const researchCopy = {
   },
   ar: {
     title: "مساحة العمل العلمية", description: "إعداد القواعد العلمية وتجهيز الملخصات المحجوبة الهوية وتوزيع المحكمين وإعداد قرارات اللجنة.",
-    gate: "يتطلب رفع تقارير التشابه تخزينًا خاصًا وفحص فيروسات وتحققًا معتمدًا قبل فتح التقديم. تُسجَّل الأخلاقيات وتسجيل الدراسة في حقول مرجعية. لا يمكن رفع ملفات هنا.",
+    gate: "يتولى المنظمون فحص التشابه (ORG-070)؛ احفظ حد التشابه قبل فتح التقديم. لا يرفع المشاركون ملفات في المرحلة الأولى. تُسجَّل الأخلاقيات وتسجيل الدراسة في حقول مرجعية.",
     settings: "الإعدادات العلمية", settingsHint: "أدخل القيم المعتمدة. لا توجد اختيارات مسبقة. حفظ الإعدادات لا يفتح تقديم الملخصات.", settingsSaved: "حُفظت الإعدادات العلمية. يبقى فتح التقديم خاضعًا لشروط مستقلة.",
     opensAt: "فتح تقديم الملخصات (بتوقيت الرياض)", closesAt: "إغلاق تقديم الملخصات (بتوقيت الرياض)", reviewDeadline: "موعد قفل التحكيم (بتوقيت الرياض)",
     specialties: "التخصصات البحثية", studyTypes: "أنواع الدراسات", rubric: "معايير التحكيم ذات الإصدارات", id: "الرمز الثابت", label: "المسمى بالإنجليزية", template: "قالب النص", research: "بحث اعتيادي", case_report: "تقرير حالة",

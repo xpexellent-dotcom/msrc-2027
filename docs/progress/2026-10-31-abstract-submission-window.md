@@ -216,3 +216,91 @@ passing results and exited 0. No other jobs' processes were stopped.
 Next: Claude reviews/commits the uncommitted changes and runs disposable CI for
 native database lint, pgTAP and concurrency. Hosted migrations/settings, release
 flags, participant opening and real communications remain untouched and closed.
+
+## ORG-070 similarity check
+
+abs9 on `claude/abstract-submission-window`, starting at merge `0992d60`
+(PR #152). Owner authority: "I'd prefer we do the similarity check ourselves."
+ORG-070 is appended to the decision register, superseding ABS-09/11's participant
+similarity-report upload and AT-08's stage-one similarity PDF requirement. It also
+records the owner's Terms v1.1 review (PR #149) and approval of ENG-091's supervisor
+email subject "MSRC'27 abstract submission". ENG-092 is renamed and reconciled.
+No decision numbers are renumbered; unrelated decision entries are unchanged.
+
+Only the unmerged `20261031140000_abstract_submission_window.sql` is edited.
+Stage-one participant settings/readiness, status and finalization no longer
+depend on `evidence_ready` or upload/virus-scanning readiness. Organizers retain
+Gate 7; its latest similarity threshold must be saved before opening and remains
+a database finalization guard. A latest null threshold cannot inherit an older
+value. Window/switch, profile/eligibility, one-chance, authorization, immutable
+snapshot/audit and idempotency checks remain. Existing row locks still serialize
+threshold changes and finalization. No external plagiarism-provider integration
+is assumed or approved.
+
+The EN/AR staff checklist drops the upload gate and retains the threshold row.
+Staff guidance and participant preparation help now explain organizer-run
+similarity checks; ethics and study registration remain reference text under
+ORG-068 item 7 / ENG-088. The form already had no report-upload field. Feature
+notes and the submissions README are reconciled. AGENTS.md's Research bullet
+already has no report-upload requirement, so it is unchanged. Published EN/AR
+Terms contain no participant similarity-report upload requirement and are
+unchanged. Existing confidential stage-one evidence stays Super Admin only;
+reviewer/AI projections and ABS-14 stage-two file requirements are unchanged.
+The upload gate and its file-workflow code are retained without activation.
+Arabic changes remain pending human language review.
+
+Merged-migration verification: function-name intersection between migrations
+20261031130000 and 20261031140000 is empty; the latter does not overwrite
+ENG-091's screening/advisory functions or supervisor-event trigger. Migrations
+20261031120000 and 20261031130000 are unchanged. Full replay and the advisory /
+supervisor pgTAP suites pass together. No PL/pgSQL function is declared
+IMMUTABLE in 20261031140000, and no function parameter was added or left unused
+by this change. Native plpgsql_check remains a CI check, not a local pass.
+
+Runtime: Node `v24.21.0`, pnpm `11.19.0`; no dependencies or lockfile changes.
+Commands run from this worktree unless the harness directory is stated.
+
+| Check | Command / local log | Result |
+| --- | --- | --- |
+| Full migration replay | In `C:/m/pglite`: `& 'C:/Program Files/nodejs/node.exe' run.mjs C:/m/codex-abs8`; `.tools-abs9-database-replay.log` | PASS — `ALL OK` |
+| Nine database suites together | `& 'C:/Program Files/nodejs/node.exe' C:/m/pglite/test.mjs C:/m/codex-abs8 abstract_submission_window.test.sql abstract_submission_v2.test.sql abstract_review.test.sql abstract_screening_scoring.test.sql abstract_ai_supervisor_email.test.sql advisory_scoring.test.sql participant_profile_complete.test.sql organizer_dashboards.test.sql research_judging_awards.test.sql`; `.tools-abs9-database-tests.log` | PASS — 829/829 assertions |
+| Targeted readiness units | `pnpm exec vitest run tests/unit/submission-window.test.ts tests/unit/submission-window-server.test.ts`; `.tools-abs9-targeted-unit.log` | PASS — 39 tests |
+| Lint | `pnpm lint`; `.tools-abs9-lint.log` | PASS, exit 0 |
+| Types | `pnpm typecheck`; `.tools-abs9-typecheck.log` | PASS, exit 0 |
+| Full unit suite | `pnpm test`; `.tools-abs9-unit.log` | PASS — 5,647 tests / 139 files, exit 0 |
+| Production build | `pnpm build`; `.tools-abs9-build.log` | PASS, exit 0 |
+| Staff research browser suite | `pnpm exec playwright test --config playwright.staff.config.ts research-workspace.spec.ts`; `.tools-abs9-staff.log` | PASS — 48 tests, exit 0 |
+| Abstract browser suite | `pnpm exec playwright test --config playwright.abstracts.config.ts`; `.tools-abs9-abstracts.log` | PASS — 106 tests, 2 intentional skips, exit 0 |
+| Native Supabase pgTAP, strict database lint, integration/concurrency | `pnpm db:test`, `pnpm db:lint`, `pnpm db:integration` | BLOCKED / NOT RUN — Docker unavailable; disposable CI required |
+| Hosted migrations/settings, participant opening, real mail, physical-device/inbox UAT | Outside this task | NOT TESTED / NOT PERFORMED |
+
+PGlite counts: submission window 34/34, submission v2 106/106, abstract review
+110/110, screening/scoring 100/100, AI/supervisor email 52/52, advisory scoring
+112/112, participant profile 72/72, organizer dashboards 147/147, research awards
+96/96. None of the known harness-only failures required exclusion. These are
+stubbed local PGlite results, not native Supabase or multi-connection proofs.
+
+New database assertions prove finalization without uploads while upload readiness
+stays false, missing/latest-cleared threshold denial, switch-off denial and
+before/after-window denial. Invalid document, profile, eligibility, ownership,
+snapshot/audit and other existing assertions remain. Readiness unit regressions
+ignore absent/false/true legacy upload readiness while retaining every remaining
+gate. Browser fixtures retain legacy evidence-error handling for code deployed
+ahead of database migration; normal journeys use upload readiness false.
+
+Both Playwright configs used zero retries and completed all active cases before
+Windows fixture-server cleanup stalled. Stopped only the five server PIDs printed
+by these runs (14072, 13848, 7232, 32052, 17920), after checking their process names
+and start times. Both runners then summarized their results and exited 0. No port
+conflict or suite retry was needed; other jobs' processes were preserved.
+
+EN/AR desktop/mobile staff captures are under
+`test-results/abstract-consumers/{en,ar}-submission-window-{staff-desktop,staff-mobile}.png`.
+English desktop and Arabic mobile captures were visually inspected: the upload
+row is absent, the G7 threshold remains, controls fit and Arabic remains RTL.
+PASS: final `git diff --check`.
+
+All changes remain uncommitted. No commits, pushes, branches, hosted migrations,
+settings seeds, live flags, participants or real communications.
+`docs/PROGRESS.md` is untouched. Next: Claude reviews/commits and obtains native
+disposable-CI SQL lint, pgTAP and concurrency evidence before any separate release.

@@ -5072,11 +5072,11 @@ Only source migration 20261031130000 is supplied. No hosted migration, settings
 seed, activation, participant opening or real email. Submission windows and file
 upload gates remain abs8 / ENG-092 scope. See the [receipt](progress/2026-10-31-abstract-ai-supervisor-email.md).
 
-## ENG-092 — Staff abstract submission window and retained upload gate, 31 October 2026
+## ENG-092 — Staff abstract submission window and organizer similarity screening, 31 October 2026
 
 Authority: the owner's abs8 task; ORG-058 (23 November–13 December 2026,
-owner-confirmed accurate on 31 October), ORG-068 / ENG-088 and ORG-069 / ENG-090.
-No ORG decision is created or amended. ABS-02/09–15, CFG-03/10, SEC-01/02/06,
+owner-confirmed accurate on 31 October), ORG-068 / ENG-088, ORG-069 / ENG-090
+and ORG-070's organizer-run similarity decision. ABS-02/09–15, CFG-03/10, SEC-01/02/06,
 PRV-03–06, LOC-01–03, TIM-01/02 and ACC-01 apply with the owner overrides.
 
 Reuse `msrc_abstracts.settings.configuration.opensAt/closesAt`, `enabled`, its
@@ -5096,31 +5096,46 @@ minute beginning at 23:59 is outside it. The button only fills local form state,
 never saves, turns on the switch, or configures a hosted environment.
 
 Read-only readiness shows the saved switch, ordered dates, current interval,
-evidence/upload gate, latest saved screening similarity threshold, participant
+latest saved screening similarity threshold, participant
 account policy, privacy notice, email allowance, retention and server release
 configuration. A cleared latest threshold cannot inherit an older value.
 The participant database finalization guard enforces the threshold as well as
-the incumbent window, switch, evidence and participant gates. Shared row locking
+the incumbent window, switch and participant gates. Shared row locking
 serializes threshold saves with finalization. The public CTA uses a no-store
 server projection through the existing client pattern; public calendar copy and
 the incumbent preview-review rendering behavior are unchanged. Before the saved
 window show its opening instant, during it offer submission only when every gate
 passes, and after it show closed. Missing RPC/contracts fail to area-not-ready.
 
-Upload investigation: ORG-068 item 7 / ENG-088 represent ethics approval/exemption
-and study registration as reference text, not uploads. They do not revoke
-ABS-09/11's separate mandatory similarity-report supporting file. ENG-090's
-external-report attestation/reference and internal similarity signal do not
-themselves authorize removing that file requirement. ABS-14 stage-two materials
-also remain file workflows. Therefore retain `evidence_ready` and the database
-finalization refusal. Its purpose is clarified to similarity-report upload,
-private storage, quarantine, malware scanning and validated release handling;
-none of that infrastructure is built in abs8. Existing confidential stage-one
-evidence remains restricted to Super Admins under ABS-15; reviewer/AI packets and
-other upload workflows are unchanged. The receipt lists the missing components.
+ORG-070 supersedes ABS-09/11's participant similarity-report upload and AT-08's
+stage-one similarity PDF requirement. Organizers run screening Gate 7, using a
+threshold saved before opening. ORG-068 item 7 / ENG-088 already represent ethics
+approval/exemption and study registration as reference text, so current stage-one
+abstract requirements need no participant files. Remove the evidence/upload gate
+from stage-one readiness, status and finalization; retain its code for file
+workflows such as ABS-14 stage-two materials. Existing confidential stage-one
+evidence remains Super Admin only under ABS-15. Reviewer/AI packets are unchanged.
+No external plagiarism-provider integration is assumed or approved.
 
 Only review migration `20261031140000_abstract_submission_window.sql` is added.
 No seeds, hosted apply, flags, real mail, workflow opening, commits, pushes or
-branch changes. AI advisory and supervisor-mail work (abs7 / ENG-091) is excluded.
+branch changes. ENG-091 advisory and held supervisor-mail behavior is preserved.
 Evidence and release blockers: [abs8 receipt](progress/2026-10-31-abstract-submission-window.md).
 `docs/PROGRESS.md` remains untouched.
+
+## ORG-070 — Organizer similarity checks and owner approvals, 31 October 2026
+
+Authority: the owner's chat decision: "I'd prefer we do the similarity check ourselves."
+Participants do not upload similarity/plagiarism reports. This
+supersedes ABS-09/11's participant similarity-report upload and AT-08's stage-one
+similarity PDF requirement. Gate 7 remains staff screening against published
+works or previously accepted abstracts, with a threshold saved before submission
+opens (ENG-090). No external plagiarism-provider integration is assumed or
+approved. ORG-068 item 7 already makes ethics and study registration references;
+no current stage-one abstract requirement needs a participant file upload.
+ABS-14 file workflows and ABS-15 Super Admin-only confidential evidence remain.
+
+From the same owner chat: Terms v1.1 reviewed by the owner (PR #149); supervisor
+email subject "MSRC'27 abstract submission" approved (ENG-091). These decisions
+do not activate delivery, AI, accounts or submissions. The owner separately
+authorized applying the merged migrations to the hosted database the same day.

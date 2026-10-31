@@ -1,4 +1,4 @@
--- ENG-092; rollback-only synthetic window, authority, CAS and upload gate proofs.
+-- ENG-092; rollback-only synthetic window, authority, CAS and ORG-070 file-free finalization proofs.
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
@@ -46,14 +46,13 @@ select is(public.msrc_staff_research_window('synthetic-window')->>'state','ready
 select is(public.msrc_staff_research_save_settings('synthetic-window',1,(select configuration||jsonb_build_object('opensAt','2000-01-01T00:00:00.000Z','rubric',msrc_abstracts.rubric_2027()) from msrc_abstracts.settings where edition_key='synthetic-window'))->>'state','denied','Legacy settings RPC cannot bypass Super Admin date authority');
 select pg_temp.abstract_claims(9600);
 select is(public.msrc_staff_research_save_window('synthetic-window',1,pg_temp.window_open(),pg_temp.window_close(),true)->>'state','ready','Super Admin may enable switch explicitly');
--- Synthetic evidence gates only; never seed hosted environments.
+-- Synthetic readiness only; never seed hosted environments.
 update msrc_abstracts.settings set configuration=configuration||jsonb_build_object('specialties',pg_temp.abstract_settings()->'specialties') where edition_key='synthetic-window';
 update msrc_participant.profile_details set specialty_interests=array['synthetic-specialty'] where edition_key='synthetic-window';
 create temporary table window_draft as select public.msrc_abstracts_save_draft('synthetic-window',pg_temp.registration_claims(9603),null,0,pg_temp.abstract_document(),gen_random_uuid()) result;
 select is((select result->>'state' from window_draft),'saved','Draft saved inside synthetic window');
 create function pg_temp.finalize_window() returns jsonb language sql volatile as $$select public.msrc_abstracts_finalize('synthetic-window',pg_temp.registration_claims(9603),(select (result#>>'{submission,id}')::uuid from window_draft),1,gen_random_uuid())$$;
-select is(pg_temp.finalize_window()->>'state','evidence_gate','ABS-09/11 similarity upload and virus-scanning gate retained in database');
-update msrc_abstracts.settings set evidence_ready=true where edition_key='synthetic-window';
+select is(msrc_abstracts.participant_settings('synthetic-window')->>'windowState','not_ready','Missing threshold keeps participant readiness closed without an upload gate');
 select is(pg_temp.finalize_window()->>'state','closed','Missing screening threshold refuses finalization');
 insert into msrc_abstracts.screening_settings(edition_key,version,similarity_threshold,actor_id,session_id) values('synthetic-window',1,30,pg_temp.registration_actor(9600),pg_temp.registration_session(9600));
 update msrc_abstracts.settings set enabled=false where edition_key='synthetic-window';
@@ -67,7 +66,10 @@ insert into msrc_abstracts.screening_settings(edition_key,version,similarity_thr
 select is(pg_temp.finalize_window()->>'state','closed','Latest cleared threshold closes window despite older saved threshold');
 select is(msrc_abstracts.window_status('synthetic-window')->>'similarityReady','false','Checklist uses latest screening configuration');
 insert into msrc_abstracts.screening_settings(edition_key,version,similarity_threshold,actor_id,session_id) values('synthetic-window',3,30,pg_temp.registration_actor(9600),pg_temp.registration_session(9600));
-select is(pg_temp.finalize_window()->>'state','finalized','Inside window with all synthetic gates ready finalizes');
+select is(public.msrc_abstracts_status('synthetic-window')->>'settingsComplete','true','Status settings completeness is independent of upload readiness');
+select is(msrc_abstracts.participant_settings('synthetic-window')->>'windowState','open','Participant readiness opens without evidence uploads (ORG-070)');
+select is(pg_temp.finalize_window()->>'state','finalized','Inside window with threshold and participant gates ready finalizes without evidence upload (ORG-070)');
+select ok(not (select evidence_ready from msrc_abstracts.settings where edition_key='synthetic-window'),'Finalization leaves the separate upload gate closed');
 select is((select count(*) from msrc_abstracts.audit where event='submission.finalized' and edition_key='synthetic-window'),1::bigint,'Only allowed finalization audited');
 select * from finish();
 rollback;

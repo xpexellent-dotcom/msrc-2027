@@ -66,11 +66,10 @@ select is(public.msrc_abstracts_finalize('synthetic-v2',pg_temp.registration_cla
 select is(public.msrc_abstracts_finalize('synthetic-v2',pg_temp.registration_claims(n),(result#>>'{submission,id}')::uuid,1,gen_random_uuid())->>'state','presenter_ineligible','Ineligible completed profile: '||n) from v2_drafts where n between 9428 and 9430;
 update msrc_abstracts.settings set evidence_ready=false where edition_key='synthetic-v2';
 update msrc_abstracts.submissions set document=jsonb_set(document,'{body,results}','""'::jsonb) where actor_id=pg_temp.registration_actor(9420);
-select is(public.msrc_abstracts_finalize('synthetic-v2',pg_temp.registration_claims(9420),(select (result#>>'{submission,id}')::uuid from v2_drafts where n=9420),1,gen_random_uuid())->>'state','invalid','Document validation precedes the existing closed evidence gate');
+select is(public.msrc_abstracts_finalize('synthetic-v2',pg_temp.registration_claims(9420),(select (result#>>'{submission,id}')::uuid from v2_drafts where n=9420),1,gen_random_uuid())->>'state','invalid','Document validation remains enforced without an upload gate (ORG-070)');
 update msrc_abstracts.submissions set document=jsonb_set(document,'{body,results}','"Synthetic results"'::jsonb) where actor_id=pg_temp.registration_actor(9420);
-select is(public.msrc_abstracts_finalize('synthetic-v2',pg_temp.registration_claims(9420),(select (result#>>'{submission,id}')::uuid from v2_drafts where n=9420),1,gen_random_uuid())->>'state','evidence_gate','Valid document still cannot bypass closed evidence');
-update msrc_abstracts.settings set evidence_ready=true where edition_key='synthetic-v2';
-select is(public.msrc_abstracts_finalize('synthetic-v2',pg_temp.registration_claims(n),(result#>>'{submission,id}')::uuid,1,gen_random_uuid())->>'state','finalized','Eligible status may finalize: '||n) from v2_drafts where n between 9420 and 9427;
+select is(public.msrc_abstracts_finalize('synthetic-v2',pg_temp.registration_claims(9420),(select (result#>>'{submission,id}')::uuid from v2_drafts where n=9420),1,gen_random_uuid())->>'state','finalized','Valid document finalizes with upload readiness false (ORG-070)');
+select is(public.msrc_abstracts_finalize('synthetic-v2',pg_temp.registration_claims(n),(result#>>'{submission,id}')::uuid,1,gen_random_uuid())->>'state','finalized','Eligible status may finalize: '||n) from v2_drafts where n between 9421 and 9427;
 select is((select count(*) from msrc_abstracts.snapshots),8::bigint,'Only eligible actors obtain immutable snapshots');
 update msrc_abstracts.submissions set status='withdrawn' where actor_id=pg_temp.registration_actor(9420);
 select is(public.msrc_abstracts_save_draft('synthetic-v2',pg_temp.registration_claims(9420),null,0,pg_temp.abstract_document(),gen_random_uuid())->>'state','submission_used','Withdrawal never restores the chance');

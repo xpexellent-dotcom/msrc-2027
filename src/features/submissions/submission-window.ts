@@ -14,15 +14,15 @@ export function validWindow(opensAt: unknown, closesAt: unknown): boolean {
 }
 export type SubmissionWindow = {
   version: number; enabled: boolean; opensAt: string | null; closesAt: string | null;
-  evidenceReady: boolean; similarityReady: boolean; participantEnabled: boolean; privacyReady: boolean;
+  similarityReady: boolean; participantEnabled: boolean; privacyReady: boolean;
   emailReady: boolean; retentionReady: boolean; deploymentReady: boolean; observedAt: string;
 };
-export const WINDOW_GATES = ["enabled", "dates", "time", "evidence", "similarity", "accounts", "privacy", "email", "retention", "deployment"] as const;
+export const WINDOW_GATES = ["enabled", "dates", "time", "similarity", "accounts", "privacy", "email", "retention", "deployment"] as const;
 export type WindowGate = typeof WINDOW_GATES[number];
 export function windowReadiness(window: SubmissionWindow, now = Date.parse(window.observedAt)): Record<WindowGate, boolean> {
   const dates = validWindow(window.opensAt, window.closesAt) && window.opensAt !== null;
   return { enabled: window.enabled, dates, time: dates && now >= Date.parse(window.opensAt!) && now < Date.parse(window.closesAt!),
-    evidence: window.evidenceReady, similarity: window.similarityReady, accounts: window.participantEnabled,
+    similarity: window.similarityReady, accounts: window.participantEnabled,
     privacy: window.privacyReady, email: window.emailReady, retention: window.retentionReady, deployment: window.deploymentReady };
 }
 export type PublicSubmissionWindow = { state: "opening" | "open" | "closed" | "area-not-ready"; opensAt: string | null; closesAt: string | null };
@@ -34,8 +34,8 @@ export function decodeSubmissionWindow(value: unknown): SubmissionWindow | null 
   if (!value || typeof value !== "object") return null;
   const row = value as SubmissionWindow;
   if (!Number.isSafeInteger(row.version) || row.version < 0 || !explicitUtc(row.opensAt) || !explicitUtc(row.closesAt) || !explicitUtc(row.observedAt) || row.observedAt === null
-    || !["enabled", "evidenceReady", "similarityReady", "participantEnabled", "privacyReady", "emailReady", "retentionReady", "deploymentReady"].every((key) => typeof (value as Record<string, unknown>)[key] === "boolean")) return null;
-  return Object.fromEntries(["version", "opensAt", "closesAt", "observedAt", "enabled", "evidenceReady", "similarityReady", "participantEnabled", "privacyReady", "emailReady", "retentionReady", "deploymentReady"].map((key) => [key, (value as Record<string, unknown>)[key]])) as SubmissionWindow;
+    || !["enabled", "similarityReady", "participantEnabled", "privacyReady", "emailReady", "retentionReady", "deploymentReady"].every((key) => typeof (value as Record<string, unknown>)[key] === "boolean")) return null;
+  return Object.fromEntries(["version", "opensAt", "closesAt", "observedAt", "enabled", "similarityReady", "participantEnabled", "privacyReady", "emailReady", "retentionReady", "deploymentReady"].map((key) => [key, (value as Record<string, unknown>)[key]])) as SubmissionWindow;
 }
 // ORG-058 publishes dates only. Suggested, never persisted automatically.
 export const PUBLISHED_WINDOW = { opensAt: "2026-11-22T21:00:00.000Z", closesAt: "2026-12-13T20:59:00.000Z" };

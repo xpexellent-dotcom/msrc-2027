@@ -11,26 +11,27 @@ The published-date button fills 23 November 00:00 / 13 December 23:59 Riyadh onl
 it never saves or enables anything. Opening is inclusive; closing is exclusive.
 
 The saved readiness checklist includes the switch, ordered dates, current window,
-upload/virus-scanning release gate, latest screening threshold, participant account,
+latest screening threshold, participant account,
 privacy, email, retention and server flags/configuration. The public CTA reads
 only state and saved instants from `/api/abstracts/window` without cookies or
 private data; the calendar remains informational. Private page-state observation
 uses the same saved window via its existing abstract handler. Missing database
 capabilities return area-not-ready and never clear the account session.
 
-ORG-068 item 7 replaces ethics and study-registration files with reference text.
-ABS-09/11 still require a separate similarity-report file; ENG-090 / ORG-069
-external attestation/reference does not remove that requirement. Therefore the
-database `evidence_ready` finalization gate remains closed. Abstract upload/storage,
-quarantine, malware scanning and validated release handling are still missing;
-this slice builds no scanner or upload system. ABS-14 final materials retain
-their independent file requirements, and confidential stage-one evidence stays
-Super Admin only under ABS-15. The latest screening threshold is also a database
-finalization gate; clearing its latest version closes entry even if older
-versions contained thresholds.
+ORG-070 supersedes ABS-09/11's participant similarity-report upload and AT-08's
+stage-one similarity PDF requirement: organizers run screening Gate 7. ORG-068
+item 7 already replaces ethics and study-registration files with reference text.
+No current stage-one abstract requirement needs participant file uploads.
+Stage-one readiness/status/finalization are independent of `evidence_ready`; its
+code remains for file workflows such as ABS-14 stage-two materials. Existing
+confidential stage-one evidence remains Super Admin only under ABS-15. No external
+plagiarism-provider integration is assumed or approved. The latest screening
+threshold must be saved before opening and remains a database finalization gate;
+clearing its latest version closes entry even if older versions had thresholds.
 
 Migration `20261031140000_abstract_submission_window.sql` is review-only and must
-follow ENG-088 and ENG-090. All settings/flags and hosted environments stay closed.
+follow ENG-088, ENG-090 and ENG-091; it preserves advisory and held supervisor-mail
+behavior. All settings/flags and hosted environments stay closed.
 Arabic copy remains DRAFT pending human review. Details and verification:
 [abs8 receipt](../progress/2026-10-31-abstract-submission-window.md).
 
@@ -134,8 +135,8 @@ and affiliations are required. Presenter identity is rebound from authoritative
 account/profile data on save/finalize, never trusted from request metadata.
 
 Finalization checks the configured window, complete profile, allowed presenter
-status, unused chance and document validity, then preserves the existing
-confidential-evidence gate. A finalized rejection or withdrawal still consumes
+status, unused chance, document validity and the saved G7 similarity threshold,
+without an upload gate (ORG-070). A finalized rejection or withdrawal still consumes
 the chance. The server-only transactional RPC owns the one-chance check so a
 lost successful response can replay its existing idempotency receipt. The UI
 offers no participant revision/resubmission after finalization.
@@ -175,8 +176,9 @@ no schedules, seeds, windows, grants or activation defaults. See the
 ## Owner review and release gates
 
 All new Arabic labels/copy, and EN/AR ethics and registration helpers, are DRAFT.
-Approved Terms v1.0 still describe 300 words, ongoing research and two submissions
-per PI. Owner/legal reconciliation is required before opening this form; no new
-legal version was invented. Actual Supabase lint, pgTAP and database concurrency
-must pass in disposable CI. Hosted migration/configuration, human Arabic review,
-real account/device/inbox UAT and existing evidence/privacy gates remain separate.
+The owner reviewed Terms v1.1 (PR #149), recorded in ORG-070; published Terms
+are unchanged by this task. The ENG-091 supervisor email subject is approved,
+while delivery and the other release gates remain closed. Actual Supabase lint,
+pgTAP and database concurrency must pass in disposable CI. Hosted migration/configuration, human Arabic review,
+real account/device/inbox UAT, ABS-14 file-workflow evidence and privacy gates
+remain separate.

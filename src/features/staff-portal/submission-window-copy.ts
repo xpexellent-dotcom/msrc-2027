@@ -6,8 +6,7 @@ export const submissionWindowCopy = {
     gates: {
       enabled: ["Accept submissions", "Saved switch is on.", "Saved switch is off."], dates: ["Window dates", "Both dates are saved in order.", "Save both dates with closing after opening."],
       time: ["Current time", "Now is within the saved window.", "The saved window has not started, has ended, or has no dates."],
-      evidence: ["Evidence and virus scanning", "Evidence release gate is ready.", "ABS-09/11 similarity-report files still require private upload/storage, quarantine, malware scanning, validation and tested release handling. Ethics and registration use text references (ORG-068)."],
-      similarity: ["Screening similarity threshold", "A threshold is saved (ENG-090 / ORG-069).", "A Super Admin must save the screening similarity threshold; there is no default."],
+      similarity: ["Screening similarity threshold", "A threshold is saved. Organizers run the similarity check (ORG-070).", "A Super Admin must save the screening similarity threshold before opening; there is no default (ORG-070)."],
       accounts: ["Participant accounts", "Database account policy is enabled.", "Database participant-account policy is disabled."], privacy: ["Participant privacy notice", "Database privacy version is configured.", "Participant privacy notice configuration is missing."],
       email: ["Participant email", "Database email allowance is configured.", "Participant email allowance is missing or does not match server configuration."], retention: ["Age and retention", "Database retention enforcement is enabled.", "Participant retention enforcement is disabled."],
       deployment: ["Server release gates", "Abstract and participant flags, authentication delivery, privacy and server configuration are ready for this edition.", "Abstract or participant server flags/configuration, authentication email or privacy release gates are closed. Saving this window does not change them."],
@@ -20,8 +19,7 @@ export const submissionWindowCopy = {
     gates: {
       enabled: ["قبول الملخصات", "مفتاح القبول المحفوظ مفعّل.", "مفتاح القبول المحفوظ متوقف."], dates: ["تواريخ الفترة", "تم حفظ التاريخين بالترتيب الصحيح.", "احفظ التاريخين بحيث يكون الإغلاق بعد الفتح."],
       time: ["الوقت الحالي", "الوقت الحالي ضمن الفترة المحفوظة.", "الفترة لم تبدأ أو انتهت أو لم تُحفظ تواريخها."],
-      evidence: ["المستندات وفحص الفيروسات", "بوابة إتاحة المستندات جاهزة.", "لا يزال تقرير التشابه وفق ABS-09/11 يحتاج رفعًا وتخزينًا خاصًا وحجرًا وفحص برمجيات ضارة وتحققًا واختبارات إتاحة. الأخلاقيات وتسجيل الدراسة حقول مرجعية نصية وفق ORG-068."],
-      similarity: ["حد التشابه للفحص", "تم حفظ حد التشابه (ENG-090 / ORG-069).", "يجب أن يحفظ المشرف العام حد التشابه؛ لا توجد قيمة افتراضية."],
+      similarity: ["حد التشابه للفحص", "تم حفظ حد التشابه. يتولى المنظمون فحص التشابه (ORG-070).", "يجب أن يحفظ المشرف العام حد التشابه قبل فتح التقديم؛ لا توجد قيمة افتراضية (ORG-070)."],
       accounts: ["حسابات المشاركين", "سياسة الحسابات في قاعدة البيانات مفعّلة.", "سياسة حسابات المشاركين في قاعدة البيانات متوقفة."], privacy: ["إشعار خصوصية المشارك", "إصدار الخصوصية مضبوط في قاعدة البيانات.", "إعداد إشعار خصوصية المشارك مفقود."],
       email: ["بريد المشارك", "حد إرسال البريد مضبوط في قاعدة البيانات.", "حد إرسال بريد المشارك مفقود أو لا يطابق إعداد الخادم."], retention: ["العمر والاحتفاظ", "ضوابط الاحتفاظ مفعّلة في قاعدة البيانات.", "ضوابط الاحتفاظ ببيانات المشاركين متوقفة."],
       deployment: ["متطلبات الإتاحة على الخادم", "مفاتيح الملخصات والمشاركين وإعدادات البريد والخصوصية والخادم جاهزة لهذه الدورة.", "مفاتيح الملخصات أو المشاركين أو إعدادات الخادم أو بريد المصادقة أو متطلبات الخصوصية مغلقة. حفظ الفترة لا يغيّرها."],

@@ -1,4 +1,4 @@
--- ENG-092 / ORG-058/068/069; ABS-09/11/12/15, CFG-03/10, TIM-01/02.
+-- ENG-092 / ORG-058/068/069/070; ABS-09/11/12/15, CFG-03/10, TIM-01/02.
 -- Review only. No settings seeds, activation, storage or scanning infrastructure.
 begin;
 
@@ -8,7 +8,6 @@ create function msrc_abstracts.window_status(edition text) returns jsonb
  'opensAt',to_char((s.configuration->>'opensAt')::timestamptz at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
  'closesAt',to_char((s.configuration->>'closesAt')::timestamptz at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
  'observedAt',to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
- 'evidenceReady',coalesce(s.evidence_ready,false),
  'similarityReady',((select q.similarity_threshold from msrc_abstracts.screening_settings q where q.edition_key=edition order by q.version desc limit 1) is not null),
  'participantEnabled',coalesce(p.enabled,false),'privacyReady',p.privacy_version is not null,
  'privacyVersion',p.privacy_version,'emailDailyLimit',p.email_daily_limit,
@@ -54,9 +53,9 @@ declare s msrc_abstracts.settings%rowtype;c jsonb;begin
  return public.msrc_staff_research_window(edition_key);
 end$$;
 
--- The staff RPC never changes evidence_ready. Similarity-report uploads remain
--- required by ABS-09/11; ethics and study registration use ORG-068 references.
-comment on column msrc_abstracts.settings.evidence_ready is 'ENG-092: closed for ABS-09/11 private similarity-report uploads, quarantine, virus scanning and validation/release evidence. ORG-068 ethics and trial registration are text references. No staff RPC changes this gate. ABS-15 confidentiality remains Super Admin only.';
+-- ORG-070 removes participant similarity-report uploads at stage one. Keep the
+-- file gate for upload workflows; neither window saves nor finalize changes it.
+comment on column msrc_abstracts.settings.evidence_ready is 'ORG-070 / ENG-092: upload readiness retained for file workflows, including ABS-14 stage-two materials; not a stage-one abstract finalization gate. Organizers run G7 similarity screening with a threshold saved before opening. ORG-068 ethics and study registration are text references. Existing ABS-15 confidential stage-one evidence remains Super Admin only. No staff RPC changes this gate.';
 
 revoke all on function msrc_abstracts.window_status(text) from public,anon,authenticated,service_role;
 revoke all on function public.msrc_staff_research_window(text),public.msrc_staff_research_save_window(text,integer,text,text,boolean) from public,anon,authenticated,service_role;
@@ -90,7 +89,7 @@ end$$;
 
 create or replace function msrc_abstracts.participant_settings(edition text) returns jsonb language sql volatile security invoker set search_path='' as $$
  select jsonb_build_object('specialties',c->'specialties','studyTypes',c->'studyTypes','keywordCount',c->'keywordCount','opensAt',c->'opensAt','closesAt',c->'closesAt',
- 'correspondingAuthorPolicy',c->'correspondingAuthorPolicy','windowState',case when not msrc_abstracts.submission_settings_ready(c) or not coalesce(s.evidence_ready,false) or not msrc_participant.ready() or not ((select t.similarity_threshold from msrc_abstracts.screening_settings t where t.edition_key=edition order by t.version desc limit 1) is not null) then 'not_ready'
+ 'correspondingAuthorPolicy',c->'correspondingAuthorPolicy','windowState',case when not msrc_abstracts.submission_settings_ready(c) or not msrc_participant.ready() or not ((select t.similarity_threshold from msrc_abstracts.screening_settings t where t.edition_key=edition order by t.version desc limit 1) is not null) then 'not_ready'
  when coalesce(s.enabled,false) and clock_timestamp()>=(c->>'opensAt')::timestamptz and clock_timestamp()<(c->>'closesAt')::timestamptz then 'open' else 'closed' end)
  from (select coalesce((select configuration from msrc_abstracts.settings where edition_key=edition),msrc_abstracts.settings_defaults()) c) x
  left join msrc_abstracts.settings s on s.edition_key=edition;
@@ -158,7 +157,7 @@ declare cfg msrc_abstracts.settings%rowtype;s msrc_abstracts.submissions%rowtype
  elsif action='finalize' then
  s.document:=msrc_abstracts.bind_presenter(s.document,auth.uid(),edition);
  if not msrc_abstracts.document_valid(s.document,cfg.configuration,true) then return jsonb_build_object('state','invalid');end if;
- if not cfg.evidence_ready then return jsonb_build_object('state','evidence_gate');end if;
+ -- ORG-070: organizers run G7; stage-one participants upload no files.
  if not ((select t.similarity_threshold from msrc_abstracts.screening_settings t where t.edition_key=edition order by t.version desc limit 1) is not null) then return jsonb_build_object('state','closed');end if;
  if s.reference is null then update msrc_abstracts.settings q set next_reference=q.next_reference+1 where q.edition_key=edition returning next_reference-1 into reference_number;end if;
  update msrc_abstracts.submissions q set status='submitted',finalized_at=coalesce(q.finalized_at,clock_timestamp()),pi_key=null,document=s.document,word_count=msrc_abstracts.word_count(s.document->'body'),
@@ -178,8 +177,8 @@ create or replace function public.msrc_abstracts_status(edition_key text) return
 begin
  perform msrc_abstracts.guard();perform msrc_registration.server_only();
  return jsonb_build_object('documentVersion',2,'enabled',coalesce((select enabled from msrc_abstracts.settings s where s.edition_key=edition_key),false),
- 'settingsComplete',coalesce((select msrc_abstracts.submission_settings_ready(configuration) and evidence_ready from msrc_abstracts.settings s where s.edition_key=edition_key),false),
- 'evidenceGate','similarity_upload_and_virus_scanning_pending','window',msrc_abstracts.window_status(edition_key));
+ 'settingsComplete',coalesce((select msrc_abstracts.submission_settings_ready(configuration) from msrc_abstracts.settings s where s.edition_key=edition_key),false),
+ 'window',msrc_abstracts.window_status(edition_key));
 end$$;
 notify pgrst,'reload schema';
 commit;

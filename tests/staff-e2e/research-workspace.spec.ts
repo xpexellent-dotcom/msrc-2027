@@ -21,7 +21,7 @@ async function fixture(page: Page, roles: Role[], options: { empty?: boolean; mi
   let screeningSettings: ScreeningSettings = { version: options.completedPair ? 1 : 0, bands: options.completedPair ? { oralMin: 85, posterMin: 60, borderlineMin: 55, acceptanceMin: 55 } : null, similarityThreshold: options.unscreened || options.empty ? null : 30, oralCapacity: null };
   let screening: ScreeningReview = { sequence: options.unscreened ? 0 : 1, status: options.unscreened ? "pending" : "passed", investigation: false, investigationNote: "", actorId, at: "2026-10-31T06:00:00Z", ethicsNote: options.unscreened ? "" : "Synthetic ethics reviewed", gates: options.unscreened ? [] : Array.from({ length: 7 }, (_, i) => ({ gate: i + 1, passed: true, note: "Synthetic confirmation" })), automatic: Array.from({ length: 5 }, (_, i) => ({ gate: i + 1, passed: true, note: "Synthetic automatic check" })), externalChecked: !options.unscreened, externalReference: options.unscreened ? "" : "SYNTHETIC-REPORT", similarityThreshold: screeningSettings.similarityThreshold, matches: [{ id: actorId, reference: "SYN-MATCH-0002", title: "Synthetic related work", edition: "synthetic-staff-2027", version: 1, score: 12.5 }], current: !options.unscreened, specialty: "internal_medicine", history: [] }; let version = options.empty ? 0 : 1, settings = structuredClone(options.empty ? emptyResearchSettings() : configured), missing = options.missing ?? false;
   let accepts = false;
-  const windowResult = () => ({ state: "ready", window: { version, enabled: accepts, opensAt: settings.opensAt, closesAt: settings.closesAt, observedAt: new Date().toISOString(), evidenceReady: false, similarityReady: screeningSettings.similarityThreshold !== null, participantEnabled: false, privacyReady: false, emailReady: false, retentionReady: false, deploymentReady: false }, formToken: "synthetic-research-token" });
+  const windowResult = () => ({ state: "ready", window: { version, enabled: accepts, opensAt: settings.opensAt, closesAt: settings.closesAt, observedAt: new Date().toISOString(), similarityReady: screeningSettings.similarityThreshold !== null, participantEnabled: false, privacyReady: false, emailReady: false, retentionReady: false, deploymentReady: false }, formToken: "synthetic-research-token" });
   let prepared: ResearchPacket | null = options.completedReview || options.completedPair ? packet : null, reviewVersion = 1, scorecard: ResearchScorecard | null = null, affiliations: string[] = [], reviewStatus = "assigned";
   let submission: ResearchSubmission = { id: submissionId, reference: "SYN-ABS-0001", status: prepared ? "scientific_review" : "submitted", version: 1, title: packet.title, wordCount: 30, packetReady: !!prepared, assignedCount: options.completedPair ? 2 : options.completedReview ? 1 : 0, completedCount: options.completedPair ? 2 : options.completedReview ? 1 : 0, decision: null };
   const reviewSummary: ResearchReviewSummary = options.completedPair
@@ -120,13 +120,14 @@ for (const locale of ["en", "ar"] as const) {
     await expect(section.getByLabel(text.closes, { exact: true })).toHaveValue("2026-12-13T23:59");
     expect(f.actions).toHaveLength(0);
     await expect(section.getByRole("switch", { name: text.enabled, exact: true })).not.toBeChecked();
-    await expect(section.locator("[data-gate]")).toHaveCount(10);
+    await expect(section.locator("[data-gate]")).toHaveCount(9);
     await section.getByRole("button", { name: text.save, exact: true }).click();
     await expect(section.locator('[data-gate="dates"]')).toHaveAttribute("data-ready", "true");
     await expect(section.locator(".staff-window-utc")).toHaveAttribute("dir", "ltr");
     await expect(section.locator(".staff-window-utc time")).toHaveText(["2026-11-22T21:00:00.000Z", "2026-12-13T20:59:00.000Z"]);
     expect(f.actions).toContainEqual(expect.objectContaining({ action: "save-window", version: 0, enabled: false, opensAt: "2026-11-22T21:00:00.000Z", closesAt: "2026-12-13T20:59:00.000Z" }));
-    await expect(section.locator('[data-gate="evidence"]')).toHaveAttribute("data-ready", "false");
+    await expect(section.locator('[data-gate="evidence"]')).toHaveCount(0);
+    await expect(section.locator('[data-gate="similarity"]')).toContainText("ORG-070");
     await expect(section.getByRole("status")).toHaveText(text.closed);
     await axe(page); await snapshot(page, `${locale}-submission-window-${testInfo.project.name}`);
   });
@@ -136,7 +137,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(section.getByLabel(text.opens, { exact: true })).toBeDisabled();
     await expect(section.getByRole("switch", { name: text.enabled, exact: true })).toBeDisabled();
     await expect(section.getByRole("button", { name: text.save, exact: true })).toBeDisabled();
-    await expect(section.locator('[data-gate="evidence"]')).toContainText("ABS-09/11");
+    await expect(section.locator('[data-gate="evidence"]')).toHaveCount(0);
+    await expect(section.locator('[data-gate="similarity"]')).toContainText("ORG-070");
     expect(f.actions).toHaveLength(0); await axe(page);
   });
   test(`${locale} staff see provisional bands and criterion disagreement, then route additional review`, async ({ page }, testInfo) => {
