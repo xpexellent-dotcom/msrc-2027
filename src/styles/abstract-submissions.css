@@ -13,7 +13,6 @@
 [lang="ar"] .abstract-submission-rules li::before { content: counter(submission-rule, arabic-indic); }
 .abstract-submission-rules h3 { margin: 0 0 .5rem; font-size: 1rem; color: var(--color-purple); line-height: 1.6; }
 .abstract-submission-rules p { margin: 0; font-size: .94rem; line-height: 1.85; }
-.abstract-review-banner { position: sticky; inset-block-start: calc(var(--site-header-height, 6rem) + .5rem); z-index: 8; margin-block: 0 1.5rem; padding: 1rem 1.25rem; border: 1px solid #806524; border-inline-start: 5px solid var(--color-gold); border-radius: .75rem; color: #30203c; background: #f1e5c7; box-shadow: 0 4px 16px rgb(31 25 48 / 8%); line-height: 1.7; font-size: .95rem; }
 .abstract-workspace { display: grid; gap: 1.5rem; }
 .abstract-submission-page .participant-account-card { padding: clamp(1.25rem, 3vw, 2.5rem); border-color: #d2c7de; border-radius: 1rem; }
 .abstract-submission-page .participant-account-card h2 { font-size: clamp(1.5rem, 2.8vw, 2.1rem); font-weight: 800; line-height: 1.4; }
@@ -39,7 +38,7 @@
 .abstract-consent { display: flex; align-items: flex-start; gap: .85rem; padding-block: 1rem; }
 .abstract-fields .abstract-consent input { inline-size: 1.25rem; block-size: 1.25rem; min-block-size: 1.25rem; flex: 0 0 auto; margin-block-start: .25rem; accent-color: var(--color-purple); padding: 0; }
 .abstract-word-count { position: sticky; inset-block-start: calc(var(--site-header-height, 6rem) + 1rem); z-index: 2; display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1rem; font-weight: 750; color: var(--color-purple); background: #eee8f4; border: 1px solid #b4a1c8; border-radius: .65rem; padding: 1rem 1.25rem; font-variant-numeric: tabular-nums; }
-.abstract-count-static, [data-review-mode="true"] .abstract-word-count { position: static; }
+.abstract-count-static { position: static; }
 .abstract-fields .abstract-word-count { margin: 0; }
 .abstract-preview { display: grid; gap: 1.25rem; overflow-wrap: anywhere; }
 .abstract-preview p { white-space: pre-wrap; line-height: 1.85; }
@@ -66,7 +65,6 @@
   .abstract-list li { align-items: flex-start; flex-direction: column; }
   .abstract-fields { gap: 1.25rem; }
   .abstract-submission-intro { padding-block-end: 1.75rem; }
-  .abstract-review-banner { font-size: .875rem; padding: .85rem 1rem; }
 }
 @media (prefers-reduced-motion: reduce) { .abstract-submission-page .button { transition: none; transform: none; } }
-@media print { .abstract-review-banner { position: static; } .abstract-word-count { position: static; } }
+@media print { .abstract-word-count { position: static; } }

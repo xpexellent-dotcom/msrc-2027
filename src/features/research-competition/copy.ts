@@ -1,4 +1,4 @@
-/** ORG-068: owner English source; all Arabic is DRAFT for owner review. */
+/** ORG-069: Arabic and ethics/registration helpers are owner-approved. */
 export const researchCompetitionCopy = {
   en: {
     title: "Research competition", kicker: "MSRC’27 · Research", home: "Home",
@@ -21,7 +21,7 @@ export const researchCompetitionCopy = {
     ],
     prepare: "Before you start", prepareIntro: "Have these details ready before you begin your draft.",
     acknowledgeIntro: "Confirm that you have each item ready before continuing.",
-    continueToForm: "Continue to the form", cancel: "Cancel", draftTranslation: "Draft translation — for review",
+    continueToForm: "Continue to the form", cancel: "Cancel",
     checklist: ["A complete participant profile", "A research title of up to 20 words", "Authors’ names and affiliations", "Supervising physician’s name, email and phone", "Study type", "Medical specialty of the research", "Ethics approval and study registration details", "An abstract of up to 350 words in six sections"],
     guidelines: "Abstract guidelines", guidelinesIntro: "Each abstract must include the following sections:", suggested: "suggested words",
     sections: [
@@ -78,7 +78,7 @@ export const researchCompetitionCopy = {
     ],
     prepare: "قبل أن تبدأ", prepareIntro: "جهّز هذه التفاصيل قبل بدء مسودتك.",
     acknowledgeIntro: "أكّد جاهزية كل بند قبل المتابعة.",
-    continueToForm: "المتابعة إلى النموذج", cancel: "إلغاء", draftTranslation: "ترجمة أولية — للمراجعة",
+    continueToForm: "المتابعة إلى النموذج", cancel: "إلغاء",
     checklist: ["ملف مشارك مكتمل", "عنوان بحث لا يتجاوز ٢٠ كلمة", "أسماء المؤلفين وانتماءاتهم المؤسسية", "اسم الطبيب المشرف وبريده الإلكتروني ورقم هاتفه", "نوع الدراسة", "التخصص الطبي للبحث", "تفاصيل الموافقة الأخلاقية وتسجيل الدراسة", "ملخص لا يتجاوز ٣٥٠ كلمة موزّع على ستة أقسام"],
     guidelines: "إرشادات الملخص", guidelinesIntro: "يجب أن يتضمن كل ملخص الأقسام الآتية:", suggested: "كلمة مقترحة",
     sections: [

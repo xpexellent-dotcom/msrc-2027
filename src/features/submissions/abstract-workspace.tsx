@@ -8,46 +8,33 @@ import { ContactPhoneField, phoneCountries } from "@/features/participant-accoun
 import { ProfileSubmissionGate } from "@/features/participant-accounts/profile-submission-gate";
 import { AbstractRoadmap } from "@/features/research-competition/abstract-roadmap";
 import type { Locale } from "@/lib/i18n";
-import { ABSTRACT_BODY_KEYS, type AbstractDocument, type AbstractPresenter, type AbstractResponse, type AbstractSubmission } from "./contracts";
+import { ABSTRACT_BODY_KEYS, type AbstractDocument, type AbstractResponse, type AbstractSubmission } from "./contracts";
 import { abstractDocumentIssues, abstractDraftIssues, blankAbstractDocument, countAbstractWords, countWords, submissionChanceUsed } from "./validation";
 import { abstractCopy } from "./copy";
 
 const suggested = { background: "40–50", objectives: "15–25", methods: "60–80", results: "80–100", limitations: "20–30", conclusion: "20–30" };
 
-function newPresenterDocument(presenter?: AbstractPresenter): AbstractDocument {
-  const document = blankAbstractDocument();
-  return presenter ? { ...document, presentingAuthorId: presenter.id, authors: [{ id: presenter.id, name: presenter.name, email: presenter.email, affiliations: [presenter.institution] }] } : document;
-}
-
-export function AbstractWorkspace({ locale, initial, reviewMode = false }: { locale: Locale; initial: AbstractResponse; reviewMode?: boolean }) {
+export function AbstractWorkspace({ locale, initial }: { locale: Locale; initial: AbstractResponse }) {
   const copy = abstractCopy[locale];
   const [result, setResult] = useState(initial), [current, setCurrent] = useState<AbstractSubmission | null>(null);
-  const [document, setDocument] = useState<AbstractDocument | null>(() => reviewMode && initial.state === "ready" ? newPresenterDocument(initial.presenter) : null), [dirty, setDirty] = useState(false), [pending, setPending] = useState(false);
+  const [document, setDocument] = useState<AbstractDocument | null>(null), [dirty, setDirty] = useState(false), [pending, setPending] = useState(false);
   const [preview, setPreview] = useState(false), [message, setMessage] = useState(""), [autosaveFailed, setAutosaveFailed] = useState(false);
   const [phoneCountry, setPhoneCountry] = useState("+966");
   const busy = useRef(false), mounted = useRef(true), operation = useRef<{ payload: string; id: string } | null>(null);
-  const refresh = useCallback(() => reviewMode ? Promise.resolve(initial) : fetch("/api/abstracts?locale=" + locale, { credentials: "same-origin", cache: "no-store" })
+  const refresh = useCallback(() => fetch("/api/abstracts?locale=" + locale, { credentials: "same-origin", cache: "no-store" })
     .then((response) => response.json() as Promise<AbstractResponse>).then((next) => { if (mounted.current) setResult(next); return next; })
-    .catch(() => { if (mounted.current) setMessage(copy.unavailable); }), [locale, copy.unavailable, initial, reviewMode]);
+    .catch(() => { if (mounted.current) setMessage(copy.unavailable); }), [locale, copy.unavailable]);
   useEffect(() => { mounted.current = true; if (initial.state === "denied") void refresh(); return () => { mounted.current = false; }; }, [initial.state, refresh]);
   const save = useCallback(async (action: "save" | "finalize", showPreview = false) => {
     if (busy.current || result.state !== "ready" || !document) return;
     busy.current = true; setPending(true); setMessage("");
     try {
-      let next: AbstractResponse;
-      if (reviewMode) {
-        // TEMPORARY preview: all mutations exist only in this mounted component.
-        const row: AbstractSubmission = { id: current?.id ?? crypto.randomUUID(), reference: null, status: action === "finalize" ? "submitted" : "draft",
-          version: (current?.version ?? 0) + 1, document: structuredClone(document), wordCount: countAbstractWords(document.body), finalizedAt: action === "finalize" ? new Date().toISOString() : null, decision: null };
-        next = { ...result, submissions: [row], outcome: action === "finalize" ? "finalized" : "saved", submissionId: row.id };
-      } else {
-        const payload = { action, submissionId: current?.id ?? null, expectedVersion: current?.version ?? 0, ...(action === "save" ? { document } : {}) };
-        const fingerprint = JSON.stringify(payload);
-        if (operation.current?.payload !== fingerprint) operation.current = { payload: fingerprint, id: crypto.randomUUID() };
-        const response = await fetch("/api/abstracts?locale=" + locale, { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...payload, operationId: operation.current.id, formToken: result.formToken }) });
-        next = await response.json() as AbstractResponse;
-      }
+      const payload = { action, submissionId: current?.id ?? null, expectedVersion: current?.version ?? 0, ...(action === "save" ? { document } : {}) };
+      const fingerprint = JSON.stringify(payload);
+      if (operation.current?.payload !== fingerprint) operation.current = { payload: fingerprint, id: crypto.randomUUID() };
+      const response = await fetch("/api/abstracts?locale=" + locale, { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, operationId: operation.current.id, formToken: result.formToken }) });
+      const next = await response.json() as AbstractResponse;
       if (!mounted.current) return;
       if (next.state === "profile_incomplete") { setResult({ ...result, profileComplete: false }); return; }
       if (next.state === "presenter_ineligible") { setResult({ ...result, presenterEligible: false }); setMessage(copy.presenter_ineligible); return; }
@@ -62,7 +49,7 @@ export function AbstractWorkspace({ locale, initial, reviewMode = false }: { loc
       } else { setAutosaveFailed(true); setMessage(copy[next.outcome ?? "invalid"]); }
     } catch { if (mounted.current) { setAutosaveFailed(true); setMessage(copy.unavailable); } }
     finally { busy.current = false; if (mounted.current) setPending(false); }
-  }, [copy, current, document, locale, refresh, result, reviewMode]);
+  }, [copy, current, document, locale, refresh, result]);
   const words = document ? countAbstractWords(document.body) : 6, titleWords = countWords(document?.title ?? "");
   const draftInvalid = document ? abstractDraftIssues(document).length > 0 : false;
   useEffect(() => {

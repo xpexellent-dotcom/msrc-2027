@@ -16,7 +16,7 @@ const actorId = "da000000-0000-4000-8000-000000000001", sessionId = "db000000-00
 const claims = { sub: actorId, session_id: sessionId, exp: Math.floor(now / 1000) + 3600, iat: Math.floor(now / 1000), role: "authenticated", aal: "aal1", amr: [{ method: "password", timestamp: Math.floor(now / 1000) }] };
 const token = (value: unknown = claims) => "synthetic." + Buffer.from(JSON.stringify(value)).toString("base64url") + ".synthetic";
 const summary = { id: "dc000000-0000-4000-8000-000000000001", status: "pending_approval", createdAt: new Date(now).toISOString() };
-const evidence = { enabled: true, participantAccountsReady: true, settingsComplete: true, windowOpen: true, eligible: true, state: "open", request: null, termsVersion: "v1.0" };
+const evidence = { enabled: true, participantAccountsReady: true, settingsComplete: true, windowOpen: true, eligible: true, state: "open", request: null, termsVersion: "v1.1" };
 
 function fixture(options: { context?: unknown; status?: unknown; participantStatus?: unknown; identity?: string | null; accessClaims?: unknown; submit?: unknown; claim?: string;
   refresh?: Awaited<ReturnType<RegistrationBackend["refresh"]>>; observeOnly?: boolean; error?: Error; errorRpc?: string } = {}) {
@@ -38,13 +38,31 @@ function fixture(options: { context?: unknown; status?: unknown; participantStat
   const cookie = participantCookie(config, { actorId, sessionId, accessToken: token(options.accessClaims), refreshToken: "synthetic-refresh", origin, deadline: now + 72 * 3600_000 }, now).split(";")[0];
   const post = (extra: Record<string, unknown> = {}, headers: Record<string, string> = {}) => handle(new Request(origin + "/api/workflows/registration", {
     method: "POST", headers: { origin, cookie, "Content-Type": "application/json", ...headers },
-    body: JSON.stringify({ documentType: "passport", documentNumber: "FAKE0001", termsAccepted: true, termsVersion: "v1.0", website: "",
+    body: JSON.stringify({ documentType: "passport", documentNumber: "FAKE0001", termsAccepted: true, termsVersion: "v1.1", website: "",
       formToken: registrationFormToken(config, origin, actorId, sessionId, now - 3_000), ...extra }),
   }));
   return { backend, handle, cookie, post };
 }
 
 describe("closed registration request boundary (REG-01/02, ORG-039/041/051, SEC-01/02)", () => {
+  it("closes new registrations on an archived configured Terms version (ORG-069)", async () => {
+    vi.stubEnv("REGISTRATION_ENABLED", "true");
+    const historical = { ...evidence, termsVersion: "v1.0", request: summary };
+    const { post, backend } = fixture({ context: historical });
+    expect((await post({ termsVersion: "v1.0" })).status).toBe(503);
+    expect(vi.mocked(backend.rpc).mock.calls.map(([name]) => name)).not.toContain("msrc_registration_submit");
+    expect(historical).toEqual({ ...evidence, termsVersion: "v1.0", request: summary });
+  });
+  it("returns an existing request without asking for Terms re-acceptance (ORG-069)", async () => {
+    vi.stubEnv("REGISTRATION_ENABLED", "true");
+    // The private RPC exposes only the existing request summary, never its historical acceptance record.
+    const { handle, cookie, backend } = fixture({ context: { ...evidence, request: summary } });
+    const response = await handle(new Request(origin + "/api/workflows/registration", { headers: { cookie } }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "submitted", request: summary, termsVersion: "v1.1" });
+    expect(vi.mocked(backend.rpc).mock.calls.map(([name]) => name)).not.toContain("msrc_registration_submit");
+    expect(vi.mocked(backend.rpc).mock.calls.map(([name]) => name)).not.toContain("msrc_participant_form_claim");
+  });
   it.each([undefined, "false", "TRUE", "1", ""])("flag %s refuses visitor input before constructing a provider", async (flag) => {
     vi.stubEnv("REGISTRATION_ENABLED", flag); vi.stubEnv("NEXT_PUBLIC_REGISTRATION_ENABLED", "true");
     const backend = vi.fn();
@@ -95,7 +113,7 @@ describe("closed registration request boundary (REG-01/02, ORG-039/041/051, SEC-
     expect(response.status).toBe(200); const result = await response.json(); expect(result).toMatchObject({ state: "submitted", request: summary });
     expect(JSON.stringify(result)).not.toContain("FAKE0001");
     const call = vi.mocked(backend.rpc).mock.calls.find(([name]) => name === "msrc_registration_submit")!;
-    expect(call[1]).toMatchObject({ document_type: "passport", document_number: "FAKE0001", terms_version: "v1.0" });
+    expect(call[1]).toMatchObject({ document_type: "passport", document_number: "FAKE0001", terms_version: "v1.1" });
     expect(call[1]).not.toHaveProperty("identity_envelope");
   });
   it("two identical concurrent attempts reach the idempotent RPC and return one request with separate IP-rate claims", async () => {
@@ -129,7 +147,7 @@ describe("closed registration request boundary (REG-01/02, ORG-039/041/051, SEC-
   it("observes the existing request without exposing identity data", async () => {
     vi.stubEnv("REGISTRATION_ENABLED", "true"); const { handle, cookie } = fixture({ context: { ...evidence, request: summary } });
     const response = await handle(new Request(origin + "/api/workflows/registration?locale=ar", { headers: { cookie } }));
-    expect(await response.json()).toMatchObject({ state: "submitted", request: summary, termsVersion: "v1.0" });
+    expect(await response.json()).toMatchObject({ state: "submitted", request: summary, termsVersion: "v1.1" });
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
   it("refreshes an expired native token in the same72-hour session without moving its absolute deadline", async () => {

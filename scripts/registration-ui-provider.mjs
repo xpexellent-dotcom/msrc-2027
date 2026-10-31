@@ -8,7 +8,7 @@ const tickets = new Map();
 const registrationViews = new Map();
 const operations = new Map();
 const reply = (response, value, status = 200) => response.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify(value));
-const evidence = { enabled: true, participantAccountsReady: true, settingsComplete: true, windowOpen: true, eligible: true, termsVersion: "v1.0" };
+const evidence = { enabled: true, participantAccountsReady: true, settingsComplete: true, windowOpen: true, eligible: true, termsVersion: "v1.1" };
 function issueTicket(actor) {
   const ticketId = randomUUID(), proof = createHmac("sha256", Buffer.from("d".repeat(64), "hex")).update("msrc-ticket-v1:" + ticketId).digest("hex");
   const ticket = { status: "issued", referenceCode: ticketId.replaceAll("-", "").slice(0, 12).toUpperCase(), token: `msrc1.${ticketId}.${proof}` };
@@ -155,7 +155,7 @@ const server = http.createServer(async (request, response) => {
     if (registrationViews.get(actor)?.missingCollection === "submit") return reply(response, { code: "PGRST202", message: "Synthetic missing RPC" }, 404);
       // Private server-only synthetic boundary; never echo submitted identity.
       if (!(["national_id","iqama","passport"].includes(args.document_type)) ||
-        typeof args.document_number !== "string" || args.terms_version !== "v1.0" ||
+        typeof args.document_number !== "string" || args.terms_version !== "v1.1" ||
         !(/^[A-Z0-9]{5,20}$/.test(args.document_number))) return reply(response, { state: "denied" });
     if (!requests.has(actor)) requests.set(actor, { id: randomUUID(), status: "pending_approval", createdAt: new Date().toISOString() });
     return reply(response, { state: "submitted", request: requests.get(actor) });

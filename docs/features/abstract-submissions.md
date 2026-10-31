@@ -71,44 +71,17 @@ The abs3 independent review uses three wider journey columns on desktop, stronge
 form section headings, regular-weight entered text and explicit dialog focus.
 Title-count, ethics and registration helpers are associated with their controls.
 Short public headings and availability messages use concise EN/AR wording;
-Arabic remains DRAFT. Rules and owner paragraphs are unchanged. Full wording,
+Arabic is owner-approved under ORG-069. Rules and owner paragraphs are unchanged. Full wording,
 screenshots and check results: [abs3 review](../progress/2026-10-29-codex-abstract-polish.md#abs3-review).
 
-## TEMPORARY owner review mode — remove before release
+## Owner approval and Terms v1.1
 
-On a Vercel **preview** deployment, visit `/en/abstracts?review=1` or
-`/ar/abstracts?review=1`, acknowledge every checklist item and continue. Direct
-links `/en/abstracts/submit?review=1` and `/ar/abstracts/submit?review=1` also work.
-Development (`NODE_ENV=development`) supports the same URLs. This is temporary
-owner design review, not a participant workflow, and needs no hosted migration,
-feature flag, account, delivery configuration or Vercel environment changes.
-
-`review-mode.server.ts` accepts the exact single query value `review=1` only when
-`VERCEL_ENV=preview` or `NODE_ENV=development`. `VERCEL_ENV=production` always
-vetoes the mode, including a contradictory development NODE_ENV. Ordinary URLs,
-other values and repeated query parameters retain the existing operational gates.
-The public route reads search parameters on the server for this guard, making it
-dynamic for now; it still reads no private session data. Allowed public review
-URLs are noindex; the private form remains noindex in every mode.
-
-The form receives a fresh synthetic ready state before any hosted/account read:
-Review Presenter, reviewer@example.test, Synthetic Review Institution, complete
-profile, eligible presenter, open synthetic window and no submissions. The full
-blank editor is available immediately. A sticky banner above the rules reads
-“Review mode — preview only. Nothing is saved or submitted.” (Arabic DRAFT).
-Save, autosave, preview and finalization operate only in mounted component state;
-they make no `/api/abstracts` requests. Reloading discards that state. Scientific
-content remains English/LTR and the same field validation and one-chance locked
-presentation can be reviewed. No operational window dates/reference or real acceptance
-outcome is created.
-
-**Removal gate:** before release, remove the review helper/synthetic state,
-query/metadata/CTA plumbing, local workspace mutation branch and banner copy;
-remove the review-only tests/capture opt-in and the isolated preview test server.
-Restore the public route's static-friendly signature once it no longer reads
-search parameters. Retain the acknowledgement dialog, rules panel, design and
-normal operational regression coverage. Do not use this review surface as hosted
-database or release evidence. [Polish receipt](../progress/2026-10-29-codex-abstract-polish.md).
+ORG-069 approves the existing Arabic and ethics/registration helper copy without
+wording changes. ENG-089 removes the preview bypass, synthetic workspace branch,
+banner and separate test server. The acknowledgement dialog and Submission rules
+panel remain on the normal signed-in flow, covered by synthetic signed-in fixtures.
+Terms v1.1 EN/AR reconciles the research rules; approval is by owner review and merge.
+See [receipt](../progress/2026-10-31-abstract-content-terms.md).
 
 ## Private submission
 
@@ -175,10 +148,9 @@ no schedules, seeds, windows, grants or activation defaults. See the
 
 ## Owner review and release gates
 
-All new Arabic labels/copy, and EN/AR ethics and registration helpers, are DRAFT.
-The owner reviewed Terms v1.1 (PR #149), recorded in ORG-070; published Terms
-are unchanged by this task. The ENG-091 supervisor email subject is approved,
-while delivery and the other release gates remain closed. Actual Supabase lint,
-pgTAP and database concurrency must pass in disposable CI. Hosted migration/configuration, human Arabic review,
-real account/device/inbox UAT, ABS-14 file-workflow evidence and privacy gates
-remain separate.
+All new Arabic labels/copy, and EN/AR ethics and registration helpers, are owner-approved under ORG-069.
+The owner reviewed Terms v1.1 EN/AR (ORG-069/ENG-089), recorded in ORG-070. v1.0 remains archived and recorded
+acceptances are unchanged; no forced re-acceptance is added. The ENG-091 supervisor email subject is approved,
+while delivery and the other release gates remain closed. Actual Supabase lint, pgTAP and database concurrency
+must pass in disposable CI. Hosted migration/configuration, real account/device/inbox UAT, ABS-14 file-workflow
+evidence and privacy gates remain separate.
