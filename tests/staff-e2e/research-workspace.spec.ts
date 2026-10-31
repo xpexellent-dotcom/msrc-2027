@@ -1,3 +1,5 @@
+import { submissionAdvisoryCopy } from "../../src/features/staff-portal/submission-advisory-copy";
+import type { AdvisoryPayload } from "../../src/features/staff-portal/advisory-contract";
 import AxeBuilder from "@axe-core/playwright";
 import { mkdirSync } from "node:fs";
 import { expect, test, type Page } from "../helpers/csp";
@@ -14,8 +16,8 @@ const packet: ResearchPacket = { title: "Completed synthetic study", specialtyId
 const rubric = [...ABSTRACT_RUBRIC];
 const configured: ResearchSettings = { ...emptyResearchSettings(), opensAt: "2026-12-01T00:00:00Z", closesAt: "2026-12-20T00:00:00Z", reviewDeadline: "2027-01-01T00:00:00Z", specialties: [{ id: "synthetic-specialty", label: "Synthetic specialty" }], studyTypes: [{ id: "synthetic-type", label: "Synthetic study type", template: "research" }], rubric, reviewersPerAbstract: 2, keywordCount: 1, blindingPolicy: "Synthetic blinded policy", correspondingAuthorPolicy: "Synthetic eligibility policy", ongoingPolicy: "Synthetic ongoing policy", aggregationPolicy: "weighted_normalized_mean", acceptanceThreshold: 5, notApplicablePolicy: "all_required" };
 /** Synthetic presentation fixture. RPC/SQL suites independently prove authority and persistence. */
-async function fixture(page: Page, roles: Role[], options: { empty?: boolean; missing?: boolean; completedReview?: boolean; completedPair?: boolean; unscreened?: boolean } = {}) {
-  const actions: ResearchPayload[] = [];
+async function fixture(page: Page, roles: Role[], options: { empty?: boolean; missing?: boolean; completedReview?: boolean; completedPair?: boolean; unscreened?: boolean; advisory?: boolean } = {}) {
+  const actions: ResearchPayload[] = [], advisoryActions: AdvisoryPayload[] = [];
   let screeningSettings: ScreeningSettings = { version: options.completedPair ? 1 : 0, bands: options.completedPair ? { oralMin: 85, posterMin: 60, borderlineMin: 55, acceptanceMin: 55 } : null, similarityThreshold: options.unscreened || options.empty ? null : 30, oralCapacity: null };
   let screening: ScreeningReview = { sequence: options.unscreened ? 0 : 1, status: options.unscreened ? "pending" : "passed", investigation: false, investigationNote: "", actorId, at: "2026-10-31T06:00:00Z", ethicsNote: options.unscreened ? "" : "Synthetic ethics reviewed", gates: options.unscreened ? [] : Array.from({ length: 7 }, (_, i) => ({ gate: i + 1, passed: true, note: "Synthetic confirmation" })), automatic: Array.from({ length: 5 }, (_, i) => ({ gate: i + 1, passed: true, note: "Synthetic automatic check" })), externalChecked: !options.unscreened, externalReference: options.unscreened ? "" : "SYNTHETIC-REPORT", similarityThreshold: screeningSettings.similarityThreshold, matches: [{ id: actorId, reference: "SYN-MATCH-0002", title: "Synthetic related work", edition: "synthetic-staff-2027", version: 1, score: 12.5 }], current: !options.unscreened, specialty: "internal_medicine", history: [] }; let version = options.empty ? 0 : 1, settings = structuredClone(options.empty ? emptyResearchSettings() : configured), missing = options.missing ?? false;
   let accepts = false;
@@ -28,6 +30,10 @@ async function fixture(page: Page, roles: Role[], options: { empty?: boolean; mi
   const band = () => screening.investigation ? "investigation" : screening.status === "failed_final" ? "reject" : !screening.current ? "screening_required" : !screeningSettings.bands ? "settings_unset" : reviewSummary.completedReviews < (reviewSummary.requiredReviews ?? 2) ? "reviews_incomplete" : "poster";
   await page.route("**/api/staff-portal**", async (route) => {
     const request = route.request(), url = new URL(request.url()), formToken = "synthetic-research-token";
+    if (url.pathname === "/api/staff-portal/advisory") {
+      if (request.method() === "POST") { const payload = request.postDataJSON() as AdvisoryPayload; advisoryActions.push(payload); return route.fulfill({ json: { state: "updated", formToken } }); }
+      return route.fulfill({ json: { state: "ready", enabled: options.advisory === true, runtimeReady: options.advisory === true, notification: "draft_held", confirmations: [], advisory: options.advisory ? { id: decisionId, reference: submission.reference, submissionVersion: 1, rubricVersion: 1, model: "deepseek-flash", promptVersion: "staff-advisory-org069-v2", createdAt: "2026-10-31T06:00:00Z", rubric, total: 66.67, scores: rubric.map(r => ({ criterionId: r.id, value: 3, rationale: "Synthetic evidence only." })), gates: [1,2,3,4,5,6].map(gate => ({ gate, observation: "Synthetic blinded observation " + gate })) } : null, formToken } });
+    }
     if (url.pathname !== "/api/staff-portal/research") return route.fulfill({ json: { state: "authenticated", profile: { actorId, name: "Synthetic Staff", roles }, formToken } });
     if (missing) return route.fulfill({ status: 503, json: { state: "area-not-ready", formToken } });
     const oversight = !roles.includes("abstractReviewer");
@@ -72,10 +78,35 @@ async function fixture(page: Page, roles: Role[], options: { empty?: boolean; mi
       case "review-response": reviewStatus = payload.response === "conflict" ? "conflict" : "declined"; return route.fulfill({ json: { state: "updated", formToken } });
     }
   });
-  return { actions, recover: () => { missing = false; } };
+  return { actions, advisoryActions, recover: () => { missing = false; } };
 }
 async function axe(page: Page) { expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]); }
 async function snapshot(page: Page, name: string) { mkdirSync("test-results/abstract-consumers", { recursive: true }); await page.screenshot({ path: `test-results/abstract-consumers/${name}.png`, fullPage: true }); }
+
+for (const locale of ["en", "ar"] as const) {
+  test(`${locale} screening advisory defaults off and shows held supervisor status`, async ({ page }) => {
+    await fixture(page, ["scientificAdministrator"]); await page.goto(`/${locale}/staff/science`);
+    await page.getByTestId("science-workspace").getByRole("button", { name: researchCopy[locale].open, exact: true }).click();
+    const panel = page.getByTestId("submission-advisory"), t = submissionAdvisoryCopy[locale];
+    await expect(panel.getByText(t.disabled, { exact: true })).toBeVisible(); await expect(panel.getByText(t.states.draft_held, { exact: true })).toBeVisible();
+    await expect(panel.getByRole("button")).toHaveCount(0); await axe(page);
+  });
+  test(`${locale} synthetic advisory requires individual human confirmation and cannot set gates`, async ({ page }, info) => {
+    const f = await fixture(page, ["scientificAdministrator"], { advisory: true, unscreened: true }); await page.goto(`/${locale}/staff/science`);
+    await page.getByTestId("science-workspace").getByRole("button", { name: researchCopy[locale].open, exact: true }).click();
+    const panel = page.getByTestId("submission-advisory"), checklist = page.getByTestId("abstract-screening"), t = submissionAdvisoryCopy[locale];
+    await expect(panel).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr"); await expect(panel.getByText("66.67/100", { exact: true })).toBeVisible();
+    expect(f.advisoryActions).toHaveLength(0);
+    await panel.getByRole("button", { name: `${t.copy} G5`, exact: true }).click();
+    await expect(checklist.getByLabel(`G5: ${screeningCopy[locale].note}`, { exact: true })).toHaveValue("Synthetic blinded observation 5");
+    await expect(checklist.getByLabel(screeningCopy[locale].ethics, { exact: true })).toHaveValue("");
+    await expect(checklist.getByRole("button", { name: screeningCopy[locale].confirm, exact: true })).toHaveCount(0);
+    await panel.getByRole("button", { name: t.confirm, exact: true }).first().click();
+    await expect(panel.getByText(t.confirmed, { exact: true })).toBeVisible();
+    expect(f.advisoryActions).toHaveLength(1); expect(f.advisoryActions[0]).toMatchObject({ action: "confirm-item", advisoryId: decisionId, item: "significance", score: 3 });
+    expect(f.actions).toHaveLength(0); await axe(page); await snapshot(page, `${locale}-ai-human-confirmation-${info.project.name}`);
+  });
+}
 
 for (const locale of ["en", "ar"] as const) {
   const copy = researchCopy[locale];

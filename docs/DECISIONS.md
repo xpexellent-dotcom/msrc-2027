@@ -5027,6 +5027,51 @@ future notification work, with snapshot-scoped deduplication required downstream
 Evidence and limitations: [receipt](progress/2026-10-31-abstract-screening-scoring.md).
 `docs/PROGRESS.md` is untouched.
 
+## ENG-091 - Staff-only AI advice, human confirmation and held supervisor notice, 31 October 2026
+
+Authority: the explicit abs7 task, owner abstract rubric, ORG-040 and ORG-069
+(recorded in a parallel branch; this entry does not create an ORG decision).
+Builds on unmerged ENG-090 / da4908d. AI-01-06, ABS-04/10-12/15, REV-01-09,
+EML-04, SEC-01/02/06, PRV-02/03/07 and LOC-01-03 apply.
+
+Extend the existing advisory transport/jobs/tables, using the same blinded
+reviewer science packet and the seven fixed ENG-090 criteria. Six G1-G6
+observations cannot set or override gates; the seven suggested integer 1-4
+scores have short rationales and a total computed by the shared formula.
+Reject malformed output whole and persist only a bounded failure classification.
+Scientific Administrators and Super Admins may confirm each item explicitly.
+Immutable separate confirmations record the human actor/session, AI-assisted
+marker and advisory ID. They are never reviewer cards, reviewer counts, bands
+or decisions. Copying a gate observation fills a human note, never a pass/fail
+selection. Existing deterministic G1-G4, human G5/G6 and external G7 remain intact.
+
+Choose staff-only visibility as the safer AI-03 default: deny reviewer projection
+even after submission, with no configurable reveal path. New staff projection
+and confirmations also deny dual staff/reviewer roles and authors/coauthors.
+EN/AR staff UI supports RTL; scientific suggestions remain English/LTR.
+
+This checkout already contains ENG-042's DeepSeek fetch adapter. Reuse and verify
+it against current official docs rather than reintroducing an older Anthropic
+adapter. Server-only DEEPSEEK_API_KEY and approved fixed model/transport settings
+remain gated. Processing in the People's Republic of China is disclosed; data
+handling, evaluation, budget and operating approval remain pending. AI stays OFF.
+
+A human ENG-090 screening.passed audit event atomically enqueues one held
+supervisor email for the edition/submission/finalized-snapshot tuple. Immutable
+outbox identities dedupe retries and re-confirmations. The recipient, full
+supervisor name, title and presenter name come only from that finalized snapshot.
+Do not infer a surname; retain the full stored name. The owner body is verbatim,
+with substitutions escaped in both MIME parts. Supervisor correspondence is
+English-only under ORG-059. Proposed subject "MSRC'27 abstract submission" awaits
+owner approval. Staff can read notification status. Send-time eligibility checks
+current screening and the snapshot; SQL hold constraints and the worker's draft
+template guard prevent real delivery even if global email gates are opened.
+Console/test rendering only; no new delivery release path is introduced.
+
+Only source migration 20261031130000 is supplied. No hosted migration, settings
+seed, activation, participant opening or real email. Submission windows and file
+upload gates remain abs8 / ENG-092 scope. See the [receipt](progress/2026-10-31-abstract-ai-supervisor-email.md).
+
 ## ENG-092 — Staff abstract submission window and retained upload gate, 31 October 2026
 
 Authority: the owner's abs8 task; ORG-058 (23 November–13 December 2026,

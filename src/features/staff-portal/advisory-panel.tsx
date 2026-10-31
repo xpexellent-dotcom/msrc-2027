@@ -7,6 +7,7 @@ import type { CalibrationSummary } from "@/lib/ai-assessment/calibration";
 import type { AdvisoryPayload, AdvisoryRecord, AdvisoryResponse, AdvisorySettings } from "./advisory-contract";
 import { advisoryEstimateWithinCap } from "./advisory-contract";
 import { requestAdvisory } from "./advisory-client";
+import { submissionAdvisoryCopy } from "./submission-advisory-copy";
 import { advisoryCopy } from "./advisory-copy";
 
 type Act = (payload: AdvisoryPayload, success: string) => Promise<AdvisoryResponse>;
@@ -30,7 +31,7 @@ function AdvisorySettingsEditor({ locale, initial, version, superAdmin, busy, ac
       <fieldset className="staff-research-fields" disabled={busy}><legend className="sr-only">{text.settings}</legend><div className="staff-research-grid">{numericKeys.map(numeric)}<div className="field"><label className="field-label" htmlFor="advisory-currency">{text.currency}</label><input id="advisory-currency" className="field-input" dir="ltr" maxLength={3} pattern="[A-Z]{3}" value={draft.currency ?? ""} onChange={event => change("currency", event.target.value.toUpperCase() || null)} /></div></div><p className="staff-muted">{text.budgetHint}</p>
         {superAdmin ? <fieldset className="staff-research-collection"><legend>{text.database}</legend><div className="staff-research-grid">{evidenceKeys.map(key => <div className="field" key={key}><label className="field-label" htmlFor={`advisory-${key}`}>{text[evidenceLabels[key]]}</label><input id={`advisory-${key}`} className="field-input" maxLength={500} value={draft[key] ?? ""} onChange={event => change(key, event.target.value || null)} /></div>)}<div className="field"><label className="field-label" htmlFor="advisory-model">{text.model}</label><select id="advisory-model" className="field-input" value={draft.model ?? ""} onChange={event => change("model", event.target.value || null)}><option value="">{text.choose}</option><option value="deepseek-flash">deepseek-flash</option></select></div>{numeric("maxAttempts")}{numeric("maxTokens")}</div>
           <label className="staff-research-check"><input type="checkbox" checked={draft.enabled} onChange={event => change("enabled", event.target.checked)} /><span>{text.activate}</span></label>
-          <label className="staff-research-check"><input type="checkbox" checked={draft.reviewerVisible} onChange={event => change("reviewerVisible", event.target.checked)} /><span>{text.reviewers}</span></label><p className="staff-muted">{text.anchoring}</p>
+          <label className="staff-research-check"><input type="checkbox" disabled checked={false} /><span>{text.reviewers}</span></label><p className="staff-muted">{text.anchoring}</p>
         </fieldset> : <p className="staff-note">{text.reviewers}: {initial.reviewerVisible ? text.enabled : text.disabled}. {text.anchoring}</p>}
         <Button type="submit">{text.save}</Button>
       </fieldset>
@@ -88,6 +89,7 @@ export function AdvisoryPanel({ locale, roles }: { locale: Locale; roles: readon
     <div className="staff-actions"><Button variant="secondary" aria-pressed={view === "workspace"} disabled={busy} onClick={() => { if (view !== "workspace") { setData(null); setLoading(true); setMessage(""); setView("workspace"); } }}>{text.scoring}</Button><Button variant="secondary" aria-pressed={view === "calibration"} disabled={busy} onClick={() => { if (view !== "calibration") { setData(null); setLoading(true); setMessage(""); setView("calibration"); } }}>{text.calibration}</Button></div>
     <p ref={feedback} tabIndex={-1} role={failed ? "alert" : "status"} className={message ? "staff-feedback" : "staff-feedback staff-feedback--empty"}>{busy ? text.loading : message}</p>
     {loading ? <p role="status">{text.loading}</p> : data?.state !== "ready" ? <Button variant="secondary" onClick={() => void load()}>{text.retry}</Button> : view === "calibration" ? data.calibration ? <CalibrationView locale={locale} data={data.calibration} /> : <p>{text.emptyCalibration}</p> : settings ? <>
+      <p className="staff-note" role="status">{!enabled ? submissionAdvisoryCopy[locale].disabled : text.label}</p>
       <p className="staff-note">{text.runtime}: <strong>{data.runtimeReady ? text.enabled : text.disabled}</strong> · {text.database}: <strong>{settings.enabled ? text.enabled : text.disabled}</strong></p>
       <AdvisorySettingsEditor key={data.version} locale={locale} initial={settings} version={data.version ?? 0} superAdmin={roles.includes("superAdmin")} busy={busy} act={act} onSaved={() => void load(true)} />
       <section className="staff-panel" aria-label={text.candidates}><div className="staff-detail-head"><h3>{text.candidates}</h3><Button variant="secondary" size="small" disabled={busy} onClick={() => void load()}>{text.refresh}</Button></div><p>{text.runHint}</p>{!data.candidates?.length ? <p>{text.emptyCandidates}</p> : <form onSubmit={event => { event.preventDefault(); if (!enabled || !confirmed || !selected.length || !runWithinBudget) return; operation.current ??= crypto.randomUUID(); void act({ action: "start", operationId: operation.current, submissionIds: selected }, text.queued).then(response => { if (response.state === "queued") void load(true); }); }}>
@@ -101,14 +103,5 @@ export function AdvisoryPanel({ locale, roles }: { locale: Locale; roles: readon
   </div>;
 }
 
-/** Assigned-reviewer endpoint is the authority for visibility; no cached/global records are reused here. */
-export function ReviewerAdvisory({ assignmentId }: { assignmentId: string }) {
-  const [result, setResult] = useState<{ assignmentId: string; record: AdvisoryRecord | null } | null>(null);
-  useEffect(() => {
-    const controller = new AbortController();
-    void requestAdvisory(undefined, { area: "reviewer", assignmentId, signal: controller.signal }).then(response => { if (!controller.signal.aborted) setResult({ assignmentId, record: response.state === "ready" ? response.advisory ?? null : null }); });
-    return () => controller.abort();
-  }, [assignmentId]);
-  const record = result?.assignmentId === assignmentId ? result.record : null;
-  return record ? <section className="staff-research-section" aria-label={advisoryCopy.en.label} lang="en" dir="ltr"><h4>{advisoryCopy.en.label}</h4><p>{advisoryCopy.en.reviewerHint}</p><AdvisoryRecordView locale="en" record={record} /></section> : null;
-}
+/** ENG-091: staff-only. No reviewer request or reveal, including completed cards. */
+export function ReviewerAdvisory({ assignmentId }: { assignmentId: string }) { void assignmentId; return null; }

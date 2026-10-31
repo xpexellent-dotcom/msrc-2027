@@ -1,5 +1,12 @@
 # Disabled advisory assessment and synthetic evaluation
 
+**ENG-091 / 31 October 2026:** DeepSeek was already switched by ENG-042 in this
+branch. The official endpoint, model and JSON-mode docs were rechecked; no
+Anthropic transport or SDK dependency remains. Processing in the People's
+Republic of China remains disclosed and **unapproved for activation**. New
+staff advisory observations and human confirmations reuse the existing worker;
+see [the receipt](../progress/2026-10-31-abstract-ai-supervisor-email.md).
+
 **23 October 2026 integration:** ENG-068 adds the closed staff batch, durable
 jobs, private advisory records and calibration described in
 [Advisory scoring](ADVISORY_SCORING.md). The foundation boundaries below describe

@@ -16,6 +16,6 @@ create function pg_temp.advisory_submission(n integer,edition text,actor integer
  insert into msrc_abstracts.packets(submission_id,submission_version,packet,prepared_by)
  values(pg_temp.advisory_id(n),1,pg_temp.abstract_packet(),pg_temp.registration_actor(actor));
 end$$;
-create function pg_temp.advisory_output() returns jsonb language sql immutable as $$
- select '{"scores":[{"criterionId":"synthetic-criterion","value":4,"rationale":"Synthetic scientific rationale"}],"model":"deepseek-flash","promptVersion":"synthetic-prompt-v1"}'::jsonb;
+create function pg_temp.advisory_output() returns jsonb language sql stable security definer set search_path='' as $$
+ select jsonb_build_object('scores',(select jsonb_agg(jsonb_build_object('criterionId',r->>'id','value',4,'rationale','Synthetic scientific rationale')) from jsonb_array_elements(msrc_abstracts.rubric_2027()) r),'model','deepseek-flash','promptVersion','staff-advisory-org069-v2','total',100,'gates',(select jsonb_agg(jsonb_build_object('gate',g,'observation','Synthetic scientific observation')) from generate_series(1,6) g));
 $$;
