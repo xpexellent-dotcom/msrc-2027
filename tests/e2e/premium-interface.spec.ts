@@ -49,7 +49,8 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} cinematic homepage has a hero countdown, floating navigation and decorative photographs`, async ({ page }) => {
     await page.goto(`/${locale}`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(content[locale].title);
-    await expect(page.locator(".hero-lead")).toHaveText(content[locale].lead);
+    await expect(page.locator(".hero-lead")).toHaveCount(0);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", expect.stringContaining(content[locale].lead));
     // ORG-013: the site is public; the development-preview notice is gone.
     await expect(page.getByText(content[locale].preview, { exact: true })).toHaveCount(0);
     await expect(page.locator(".preview-banner")).toHaveCount(0);
@@ -158,6 +159,7 @@ for (const locale of ["en", "ar"] as const) {
         return style.animationName === "none" && style.transform === "none" && style.transitionDuration === "0s";
       }))).toBe(true);
     }
+    await expect(page.locator(".pathway-tile").first()).toHaveCSS("scale", "none");
     // The decorative composition may have a static rotation, but must never
     // travel or animate when the visitor requests reduced motion.
     const artwork = page.locator(".ambient-art, .ambient-art *");

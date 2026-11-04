@@ -1,3 +1,4 @@
+import { homepageNarrative } from "../../src/content/homepage-narrative";
 import { expect, test } from "@playwright/test";
 import { prepareHeroCue } from "./helpers/hero-navigation";
 
@@ -24,11 +25,11 @@ test("Arabic words are never letter-spaced", async ({ page }) => {
   }
 });
 
-// Axiom revision: one reading-edge "Step inside" cue without the MSRC2026 caption. It glides to the dates
-// band when motion is allowed and jumps under reduced motion; the band clears the header.
+// Axiom revision: one reading-edge "Step inside" cue without the MSRC2026 caption. It glides to the participation
+// section when motion is allowed and jumps under reduced motion; the section heading clears the header.
 for (const [motion, glides] of [["no-preference", true], ["reduce", false]] as const) {
   for (const locale of ["en", "ar"] as const) {
-    test(`${locale} Step inside follows the reading edge and ${glides ? "glides" : "jumps"} to the dates band (${motion})`, async ({ page, browserName }) => {
+    test(`${locale} Step inside follows the reading edge and ${glides ? "glides" : "jumps"} to participation (${motion})`, async ({ page, browserName }) => {
       await page.emulateMedia({ reducedMotion: motion });
       await page.goto(`/${locale}`);
       // Before hydration a click is a plain fragment jump; the live countdown marks hydration,
@@ -36,7 +37,7 @@ for (const [motion, glides] of [["no-preference", true], ["reduce", false]] as c
       await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before", { timeout: 15_000 });
       await expect(page.locator(".conference-hero .hero-caption")).toHaveCount(0);
       const cue = await prepareHeroCue(page);
-      await expect(cue).toHaveAttribute("href", "#essentials");
+      await expect(cue).toHaveAttribute("href", "#participate");
       expect(await cue.evaluate((element) => {
         const box = element.getBoundingClientRect();
         const row = element.closest(".hero-bottom")!.getBoundingClientRect();
@@ -54,8 +55,8 @@ for (const [motion, glides] of [["no-preference", true], ["reduce", false]] as c
         setTimeout(() => clearInterval(timer), 1500);
       });
       await cue.click();
-      await expect(page).toHaveURL(new RegExp(`/${locale}#essentials$`));
-      await expect(page.locator("#essentials")).toBeFocused();
+      await expect(page).toHaveURL(new RegExp(`/${locale}#participate$`));
+      await expect(page.locator("#participate")).toBeFocused();
       await page.waitForTimeout(1600);
       const positions = await page.evaluate(() => (window as unknown as { scrollSamples: number[] }).scrollSamples);
       const settled = positions[positions.length - 1];
@@ -63,7 +64,7 @@ for (const [motion, glides] of [["no-preference", true], ["reduce", false]] as c
       // Headless WebKit advances a smooth scroll on this page in one or two coarse steps; a jump
       // is still asserted there, the glide only where frames are rendered (Chromium, CI).
       if (!(glides && browserName === "webkit")) expect(positions.some((y) => y > startingPosition + 1 && y < settled - 1), positions.join(",")).toBe(glides);
-      expect(await page.evaluate(() => document.querySelector("#event-details")!.getBoundingClientRect().top
+      expect(await page.evaluate(() => document.querySelector("#participate .section-heading")!.getBoundingClientRect().top
         - document.querySelector(".site-header")!.getBoundingClientRect().bottom)).toBeGreaterThan(0);
     });
   }
@@ -369,10 +370,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
     const name = locale === "ar" ? "تعرّف إلى المتحدثين" : "Meet the speakers";
     await expect(page.locator("#speakers").getByRole("link", { name, exact: true })).toHaveCount(1);
-    await expect(page.locator(".speaker-preview-link")).toHaveCount(4);
-    for (const link of await page.locator(".speaker-preview-link").all()) {
-      await expect(link).toHaveAttribute("tabindex", "-1");
-      await expect(link).toHaveAttribute("href", `/${locale}/speakers`);
-    }
+    await expect(page.locator(".speaker-preview-link")).toHaveCount(0);
+    await expect(page.locator("#speakers .speakers-pending")).toHaveText(homepageNarrative[locale].speakersPending);
   });
 }

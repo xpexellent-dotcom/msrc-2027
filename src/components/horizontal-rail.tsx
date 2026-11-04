@@ -4,8 +4,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
 
 /** Native scrolling remains the primary interaction; arrows are an additional affordance. */
-export function HorizontalRail({ children, label, locale, className = "", stepByItem = false }: {
-  children: ReactNode; label: string; locale: Locale; className?: string; stepByItem?: boolean;
+export function HorizontalRail({ children, label, locale, className = "", stepByItem = false, hint = true }: {
+  children: ReactNode; label: string; locale: Locale; className?: string; stepByItem?: boolean; hint?: boolean;
 }) {
   const rail = useRef<HTMLDivElement>(null);
   const destination = useRef<number | null>(null);
@@ -63,8 +63,8 @@ export function HorizontalRail({ children, label, locale, className = "", stepBy
       behavior: keyboard || matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   };
   return <div className={`horizontal-rail ${className}`}>
-    <div className="rail-tools">
-      <p>{locale === "ar" ? "اسحب لاستكشاف المزيد" : "Scroll to explore"}</p>
+    <div className={`rail-tools${hint ? "" : " rail-tools--no-hint"}`}>
+      {hint ? <p>{locale === "ar" ? "اسحب لاستكشاف المزيد" : "Scroll to explore"}</p> : null}
       <div className="rail-buttons">
         {([-1, 1] as const).map((direction) => <button key={direction} type="button" disabled={direction < 0 ? edges.start : edges.end}
           aria-label={direction < 0 ? locale === "ar" ? "السابق" : "Previous" : locale === "ar" ? "التالي" : "Next"}

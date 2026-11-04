@@ -7,7 +7,7 @@ export async function prepareHeroCue(page: Page) {
   await page.locator(".conference-hero").evaluate((hero) => {
     window.scrollTo({ top: Math.max(0, hero.getBoundingClientRect().height - window.innerHeight), behavior: "instant" });
   });
-  const cue = page.locator('.hero-scroll[href="#essentials"]');
+  const cue = page.locator('.hero-scroll[href="#participate"]');
   await expect(cue).toBeInViewport({ ratio: 1 });
   await expect.poll(() => cue.evaluate((element) => {
     const box = element.getBoundingClientRect();

@@ -47,7 +47,7 @@ for (const locale of ["en", "ar"] as const) {
     // ORG-001/002: explicit date and montage approval does not open operations.
     await expect(page.locator("iframe")).toHaveCount(0);
     await expect(page.locator("[data-countdown]")).toHaveCount(1);
-    await expect(page.locator(".event-strip")).toContainText(locale === "en" ? /27\D+28 January 2027/ : /٢٧\D+٢٨ يناير ٢٠٢٧/);
+    await expect(page.locator(".hero-location")).toContainText(locale === "en" ? /27\D+28 January 2027/ : /٢٧\D+٢٨ يناير ٢٠٢٧/);
     const missingAnchors = await page.locator('a[href*="#"]').evaluateAll((links) => links
       .map((link) => new URL((link as HTMLAnchorElement).href))
       .filter((url) => url.pathname === location.pathname)

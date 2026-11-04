@@ -5237,3 +5237,110 @@ From the same owner chat: Terms v1.1 reviewed by the owner (PR #149); supervisor
 email subject "MSRC'27 abstract submission" approved (ENG-091). These decisions
 do not activate delivery, AI, accounts or submissions. The owner separately
 authorized applying the merged migrations to the hosted database the same day.
+
+## ORG-071 — Owner request 3 Nov 2026: immersive mobile homepage
+
+Authority: the owner's 3 November request and final build specification supplied
+on 4 November 2026. The whole homepage is in scope, principally on mobile through
+800px: edge-to-edge natural photographs, giant chapter/category headings,
+restrained MSRC colour fields and gradient arrow orbs. Desktop keeps its layout
+with the same copy removals, pathway card language, purple speakers curtain and
+FAQ orbs. Requirements: SCP-01, DSN-01/02, ACC-01, LOC-01/03, MED-01/04 and CFG-12.
+
+Path cards show the existing sentence title as a small kicker above the giant
+short category name, then the existing “Not open yet” status on four paths and
+an arrow orb. Registration has no closed-status pill. The visible 3MT name is
+“3MT” with the full existing category as its accessible heading name. No new
+copy keys, factual claims, dates, numbers, people or workflow approvals are added.
+
+Stop rendering R1–R14 in the feature note: hero lead; date/venue band;
+pathways body and Explore participation link; five pathway descriptions and
+old category wrappers; program introduction; practice/network/research benefit
+bodies; unpublished speaker introduction/placeholder rail; legacy film note;
+homepage gallery hint; venue body; venue figure caption (moved above the venue
+name); and the FAQ dates/venue link. Retain all content keys, FAQ answers,
+metadata/Event JSON-LD lead, CME “7” illustration and its qualification, pending
+CME/award/certificate bodies, historical scopes, gallery year badges and film
+link. No small-print qualifier is removed while its unconfirmed claim remains.
+
+This supersedes ORG-007's cue destination from `#essentials` to `#participate`;
+the visible Step inside / «اكتشف الأجواء» label stays at every width above a
+48px mobile ring. The hero film, poster, countdown and date/city content stay.
+The date band is removed. Existing section/h2 ids are retained except the removed
+`#essentials` and `#event-details` nodes; `#film` and `#faq` remain addressable.
+
+The unpublished homepage speakers surface becomes one purple curtain at every
+width, with an inverse heading, Meet the speakers orb link and the single
+existing `speakersPending` pill. This supersedes ENG-024's carried-forward
+placeholder presentation and the actual ENG-023 sentence “Anonymous designed
+portraits and pending names remain” (historical line 720), plus the “Preserve …
+placeholder rosters” clause of the public-design approval note (historical
+line 612), for the homepage only. The final build spec attributed the line-720
+sentence to ENG-024; inspection places it under ENG-023. Both prior directions
+are explicitly reconciled here. Published SpeakerCard grids and other-page
+placeholder use remain governed by their incumbent content boundary.
+
+Accept the specified slide-over text dwell, keep the Step inside label, and
+keep the 1000px King Faisal venue photograph with the capped mobile tile rather
+than reusing a different venue photograph. Existing provenance and publication
+scope remain unchanged. The receipt records visual sharpness observations.
+This task authorizes local uncommitted implementation and verification only:
+no commit, push, branch creation, PR publication, hosted deployment, activation
+or operational setting change. `docs/PROGRESS.md` stays untouched; evidence goes
+to [the home1 receipt](progress/2026-11-04-mobile-immersive-home.md).
+
+## ENG-093 — Native mobile pathway stacking deck, 4 November 2026
+
+Implement ORG-071 in `claude/mobile-immersive-home` from `13469ad`. Follow
+[DESIGN_GUIDE](DESIGN_GUIDE.md), DSN-01/02, ACC-01 and LOC-01/03, preserving
+ORG-010/011's native scrolling and removal of the mobile chapter bar. Chapter
+headings retain their incumbent reading-line behaviour. ENG-039's separate Venue
+journey stepper is untouched. Homepage rules live in `immersive-home.css`, scoped
+to `.homepage-journey`, imported after existing homepage styles and directly
+before public-content.css. Legacy edits only remove dead selectors, remove the
+date-band mixed selector and refine the specified 3MT focal point.
+
+At widths through 800px, heights at least 560px and no reduced-motion preference,
+five direct-child articles stack with native `position: sticky; top: 0` inside
+the non-sticky list. Each card is `100lvh`, with a `100vh` fallback and tile
+bottom padding of `100lvh - 100svh` to keep controls above collapsed-toolbar
+peeks. List height is exactly the sum of the five cards: no runway, scroll snap,
+wheel/touch/keyboard interception or mandatory hold. The last card releases
+with its list into Program. Sticky ancestry keeps overflow visible or clip;
+the content sheet itself receives no overflow clipping.
+
+One named view timeline on the list progressively enhances supported browsers:
+covered tiles scale to .9 and receive a separate dim layer; photos settle from
+1.12; only kicker/name translate and fade; meta fades without a transform so
+the orb's stretched whole-tile link keeps the tile as its containing block.
+Use ordered animation longhands followed by timeline/range declarations;
+verify the built CSS preserves timeline, exit-crossing, named-view-timeline and
+100lvh declarations. No will-change, animated filter or new backdrop-filter.
+Unsupported timeline browsers retain native sticky stacking with visible text.
+
+Keyboard `:has(:focus-visible)` raises the focused card and disables its tile,
+dim and text animations. Taps do not raise cards. The orb and its ancestor body
+and meta stay untransformed and non-positioned; feedback moves its arrow only.
+Reduced motion, short screens and enlarged text that cannot fit use static
+full-screen tiles which grow with their content. Desktop retains its existing
+grid, sticky intro and exact `pathway-track-nav` class/behaviour. Logical gutters,
+orbs and hairlines mirror in Arabic; image focal points and year badges do not.
+
+The small null-rendering PathwayDeck client gate measures body height against
+a stable 100svh probe plus measured header clearance. ResizeObserver, resize and
+matchMedia change events update `data-deck`; it adds no scroll, wheel, touch or
+IntersectionObserver listener. Cleanup removes the observer/listeners, probe
+and dataset. CSS provides stack behaviour before JavaScript; known gap: without
+JavaScript or before hydration, unusually tall enlarged text can be clipped in
+stack mode until the fit gate runs, although CSS short-height and reduced-motion
+guards still apply. Real iOS/Safari and Android toolbar behaviour, Firefox's
+no-timeline stack and pre-hydration/no-JavaScript behaviour require separate
+verification and are explicitly NOT TESTED in this task.
+
+Accept the owner's slide-over dwell trade-off: text is fully readable for about
+one text-block (roughly 250–300px of scroll at 390×844), plus its approach reveal.
+Do not add a hold, move the text upward or replace the deck with a peel effect.
+All operational gates and approved media/copy boundaries stay in force. Checks,
+screenshots, limitations and any observed desktop venue fallback belong in the
+[feature note](features/mobile-immersive-home.md) and
+[receipt](progress/2026-11-04-mobile-immersive-home.md), with no progress-index edit.

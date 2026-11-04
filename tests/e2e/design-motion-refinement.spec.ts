@@ -40,9 +40,9 @@ for (const locale of ["en", "ar"] as const) {
     await waitForHeader(page);
     await page.locator(".hero-scroll").focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=keyboard-motion#essentials$`));
-    await expect(page.locator("#essentials")).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.designMotionEvidence.scrolls.at(-1))).toEqual({ id: "essentials", behavior: "instant" });
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=keyboard-motion#participate$`));
+    await expect(page.locator("#participate")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.designMotionEvidence.scrolls.at(-1))).toEqual({ id: "participate", behavior: "instant" });
     expect(await page.evaluate(() => window.designMotionEvidence.slides)).toEqual([]);
 
     const toggle = page.locator(".menu-toggle");
@@ -60,8 +60,8 @@ for (const locale of ["en", "ar"] as const) {
     expect(await page.evaluate(() => window.designMotionEvidence.slides)).toEqual([]);
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
     await page.goBack();
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=keyboard-motion#essentials$`));
-    await expect(page.locator("#essentials")).toBeInViewport();
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=keyboard-motion#participate$`));
+    await expect(page.locator("#participate")).toBeInViewport();
   });
 
   test(`${locale} pointer navigation retains a short directional arrival and native Back`, async ({ page }) => {

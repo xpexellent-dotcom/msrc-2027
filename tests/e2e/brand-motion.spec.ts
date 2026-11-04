@@ -70,14 +70,14 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".section-journey")).toHaveCount(0);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
     await cue.click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}#essentials$`));
-    await expect(page.locator("#essentials")).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "essentials")?.behavior)).toBe("smooth");
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "essentials")?.duration)).toBe(220);
-    const slide = await page.evaluate(() => window.navigationEvidence.slides.find((entry) => entry.id === "essentials"));
+    await expect(page).toHaveURL(new RegExp(`/${locale}#participate$`));
+    await expect(page.locator("#participate")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "participate")?.behavior)).toBe("smooth");
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "participate")?.duration)).toBe(220);
+    const slide = await page.evaluate(() => window.navigationEvidence.slides.find((entry) => entry.id === "participate"));
     expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -8 : 8}px)`);
     expect(slide?.frames[1].transform).toBe("translateX(0)");
-    await expect.poll(() => page.locator("#essentials").evaluate((element) =>
+    await expect.poll(() => page.locator("#participate").evaluate((element) =>
       Math.round(element.getBoundingClientRect().top) - parseFloat(getComputedStyle(element).scrollMarginBlockStart),
     )).toBeLessThanOrEqual(1);
     const position = await page.evaluate(() => window.scrollY);
@@ -122,9 +122,9 @@ for (const locale of ["en", "ar"] as const) {
     await observeNavigation(page);
     await page.goto(`/${locale}?view=motion`);
     await clickHeroCue(page);
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#essentials$`));
-    await expect(page.locator("#essentials")).toBeFocused();
-    await expect.poll(() => page.locator("#essentials").evaluate((element) =>
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#participate$`));
+    await expect(page.locator("#participate")).toBeFocused();
+    await expect.poll(() => page.locator("#participate").evaluate((element) =>
       Math.round(element.getBoundingClientRect().top) - parseFloat(getComputedStyle(element).scrollMarginBlockStart),
     )).toBeLessThanOrEqual(1);
     const navigation = await headerNavigation(page);
@@ -132,8 +132,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
     await expect(page.getByRole("main")).toBeFocused();
     await page.goBack();
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#essentials$`));
-    await expect(page.locator("#essentials")).toBeInViewport();
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#participate$`));
+    await expect(page.locator("#participate")).toBeInViewport();
   });
 
   test(`${locale} language navigation preserves query, hash, destination focus and directional slide`, async ({ page }) => {
@@ -142,17 +142,17 @@ for (const locale of ["en", "ar"] as const) {
     const targetLocale = locale === "en" ? "ar" : "en";
     await page.goto(`/${locale}?view=motion`);
     await clickHeroCue(page);
-    await expect(page.locator("#essentials")).toBeFocused();
+    await expect(page.locator("#participate")).toBeFocused();
     await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(1);
     const language = await languageLink(page, locale === "en" ? "View this page in Arabic" : "View this page in English");
-    await expect(language).toHaveAttribute("href", `/${targetLocale}?view=motion#essentials`);
+    await expect(language).toHaveAttribute("href", `/${targetLocale}?view=motion#participate`);
     await language.click();
-    await expect(page).toHaveURL(new RegExp(`/${targetLocale}\\?view=motion#essentials$`));
+    await expect(page).toHaveURL(new RegExp(`/${targetLocale}\\?view=motion#participate$`));
     await expect(page.locator("html")).toHaveAttribute("dir", targetLocale === "ar" ? "rtl" : "ltr");
-    await expect(page.locator("#essentials")).toBeFocused();
+    await expect(page.locator("#participate")).toBeFocused();
     await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(2);
     const slide = await page.evaluate(() => window.navigationEvidence.slides.at(-1));
-    expect(slide?.id).toBe("essentials");
+    expect(slide?.id).toBe("participate");
     expect(slide?.frames[0].transform).toBe(`translateX(${targetLocale === "ar" ? -8 : 8}px)`);
     expect(slide?.duration).toBe(220);
   });
@@ -167,8 +167,8 @@ for (const locale of ["en", "ar"] as const) {
     expect(await button.evaluate((element) => getComputedStyle(element).transform)).toBe("none");
     expect(await button.evaluate((element) => getComputedStyle(element, "::before").transitionDuration)).toBe("0s");
     await clickHeroCue(page);
-    await expect(page.locator("#essentials")).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "essentials")?.behavior)).toBe("instant");
+    await expect(page.locator("#participate")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "participate")?.behavior)).toBe("instant");
     expect(await page.evaluate(() => window.navigationEvidence.slides)).toEqual([]);
   });
 }

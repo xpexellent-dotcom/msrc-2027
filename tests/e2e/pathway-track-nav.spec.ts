@@ -64,8 +64,14 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".pathway-track-nav")).toBeHidden();
     await expect(page.locator(".pathway-list .pathway-action")).toHaveCount(5);
     const outside = await page.locator(".pathway-card h3").evaluateAll((labels) => labels.some((label) => {
-      const range = document.createRange(); range.selectNodeContents(label);
-      return Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
+      const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        // 3MT's full accessible category is intentionally clipped; its visible short name still must fit.
+        if (node.parentElement?.closest(".sr-only")) continue;
+        const range = document.createRange(); range.selectNodeContents(node);
+        if (Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1)) return true;
+      }
+      return false;
     }));
     expect(outside).toBe(false);
     for (const route of routes) {

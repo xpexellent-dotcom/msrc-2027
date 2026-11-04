@@ -38,7 +38,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(countdown).toHaveAttribute("data-countdown", "after");
     await expect(countdown).toContainText(locale === "ar" ? "مواعيد المؤتمر المؤكدة" : "Confirmed conference dates");
     await expect(countdown.locator(".countdown-number")).toHaveCount(0);
-    await expect(page.locator("#event-details")).toContainText(locale === "ar" ? /٢٧.*٢٨ يناير ٢٠٢٧/ : /27.*28 January 2027/);
+    await expect(page.locator(".hero-location")).toContainText(locale === "ar" ? /٢٧.*٢٨ يناير ٢٠٢٧/ : /27.*28 January 2027/);
     expect(pageErrors).toEqual([]);
   });
 

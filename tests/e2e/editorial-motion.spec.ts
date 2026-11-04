@@ -96,13 +96,17 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator(".pathway-list > article")).toHaveCount(5);
       const cards = page.locator(".benefit-card");
       await expect(cards).toHaveCount(6);
+      for (const index of [0, 4, 5]) await expect(cards.nth(index).locator("p")).toHaveCount(1);
+      for (const index of [1, 2, 3]) await expect(cards.nth(index).locator("p")).toHaveCount(0);
       for (const card of await cards.all()) {
         const icon = (await card.locator(":scope > :is(.benefit-artwork, .benefit-cme)").boundingBox())!;
         const title = (await card.locator("h3").boundingBox())!;
-        const body = (await card.locator("p").boundingBox())!;
+        const body = await card.locator("p").count() ? (await card.locator("p").boundingBox())! : null;
         expect(Math.abs(icon.y + icon.height / 2 - title.y - title.height / 2)).toBeLessThan(2);
-        expect(body.width).toBeGreaterThan(title.width + 40);
-        expect(body.y).toBeGreaterThanOrEqual(Math.max(icon.y + icon.height, title.y + title.height));
+        if (body) {
+          expect(body.width).toBeGreaterThan(title.width + 40);
+          expect(body.y).toBeGreaterThanOrEqual(Math.max(icon.y + icon.height, title.y + title.height));
+        }
         expect(await card.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
@@ -202,8 +206,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".benefit-cme-note")).toHaveText(locale === "ar" ? "مثال بصري" : "Illustrative");
     await expect(page.locator(".program-experiences .benefit-artwork")).toHaveCount(5);
     await expect(page.locator("a.editorial-action", { hasText: locale === "ar" ? "كيف تشارك" : "How to take part" })).toHaveAttribute("href", `/${locale}/participate`);
-    await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(4);
-    await expect(page.locator("#speakers .portrait-placeholder")).toHaveCount(4);
+    await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(0);
+    await expect(page.locator("#speakers .portrait-placeholder")).toHaveCount(0);
     await expect(page.locator("#speakers img, .demo-chip, .portrait-provenance, .pathways-archive-note")).toHaveCount(0);
     const venue = page.locator("#venue");
     await venue.scrollIntoViewIfNeeded();

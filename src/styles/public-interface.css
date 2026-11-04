@@ -27,7 +27,7 @@ html[lang="ar"]:has(.site-header) .section-heading h2 { letter-spacing: 0; }
 html:has(.site-header) main:not(:has(.homepage-journey)) { padding-block-start: var(--site-header-height, 81px); }
 html:has(.site-header) { scroll-padding-block-start: calc(var(--site-header-height, 81px) + 1rem); }
 html:has(.homepage-journey) { scroll-padding-block-start: 0; }
-.homepage-journey > .editorial-section, .date-band { min-block-size: 0; scroll-margin-block-start: calc(var(--site-header-height, 81px) + 1rem); }
+.homepage-journey > .editorial-section { min-block-size: 0; scroll-margin-block-start: calc(var(--site-header-height, 81px) + 1rem); }
 
 /* The desktop index is navigation, not a second card. Numerals describe the reading order. */
 .section-journey { position: sticky; inset-block-start: var(--site-header-height, 81px); z-index: 15; padding-block: .5rem; background: var(--color-ivory); border-block-end: 1px solid var(--color-line); }

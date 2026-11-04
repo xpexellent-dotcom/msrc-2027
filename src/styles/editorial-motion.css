@@ -12,11 +12,6 @@ body:has(.axiom-header)::after {
 .editorial-motion-home .hero-scroll-stage[data-hold-ready='true'] > .conference-hero { position: sticky; inset-block-start: var(--hero-sticky-top, 0px); }
 .homepage-content-sheet { position: relative; z-index: 2; background: var(--color-ivory); margin-block-start: 0; border-radius: 32px 32px 0 0; }
 .hero-scroll-stage[data-hold-ready='true'] + .homepage-content-sheet { margin-block-start: calc(-1 * var(--hero-hold)); }
-.editorial-motion-home .date-band { position: relative; border-radius: 32px 32px 0 0; background: var(--color-ivory); color: var(--color-ink); padding-block: 2.5rem 0; }
-.editorial-motion-home .date-band-inner { border-color: var(--color-line); padding-block: 0 2.5rem; border-block-start: 0; border-block-end: 1px solid var(--color-line); }
-.editorial-motion-home .event-strip { inline-size: 100%; justify-content: space-between; }
-.editorial-motion-home .event-strip dt { color: var(--color-muted); }
-.editorial-motion-home .event-strip dd { color: var(--color-purple); }
 .editorial-motion-home .section-heading h2 { font-size: clamp(3rem, 5.6vw, 5.8rem); line-height: 1.12; letter-spacing: -.035em; }
 .editorial-motion-home .hero-content { padding-block-start: clamp(8rem, 17vh, 11rem); }
 .editorial-motion-home .program-section { --focus-ring: var(--color-purple); background: var(--color-surface-lilac); color: var(--color-ink); }
@@ -99,7 +94,6 @@ html[data-cinematic='true'] .editorial-motion-home .hero-scroll-stage > .confere
   .editorial-motion-home .hero-content { padding-block-start: max(8rem, calc(var(--site-header-height, 5rem) + 2rem)); padding-block-end: 2rem; }
   .hero-conference-name { margin-block: 1rem 1.5rem; }
   .homepage-content-sheet { border-radius: 24px 24px 0 0; }
-  .editorial-motion-home .date-band { border-radius: 24px 24px 0 0; }
   .editorial-motion-home .program-opening, .expectations-layout, .home-venue-opening { grid-template-columns: minmax(0,1fr); }
   .research-artwork { position: relative; inset-block-start: auto; aspect-ratio: 1.3; }
   .editorial-motion-home .section-heading h2 { font-size: clamp(2.5rem,8vw,4rem); }

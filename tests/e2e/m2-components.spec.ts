@@ -158,9 +158,17 @@ for (const locale of ["en", "ar"] as const) {
     await expect(close).toBeFocused();
     await page.keyboard.press("Shift+Tab");
     await expect(finish).toBeFocused();
+    await dialog.evaluate((element) => {
+      (window as unknown as { __m2DialogClosed: Promise<void> }).__m2DialogClosed = new Promise<void>((resolve) => {
+        element.addEventListener("close", () => resolve(), { once: true });
+      });
+    });
     await page.keyboard.press("Escape");
     await expect(dialog).not.toBeVisible();
     await expect(opener).toBeFocused();
+    // Native close is queued after focus restoration. Complete that event
+    // before exercising a new open, so the previous cycle cannot close it.
+    await page.evaluate(() => (window as unknown as { __m2DialogClosed: Promise<void> }).__m2DialogClosed);
     await page.keyboard.press("Enter");
     await expect(dialog).toBeVisible();
     await dialog.click({ position: { x: 4, y: 4 } });
@@ -206,12 +214,21 @@ for (const locale of ["en", "ar"] as const) {
     await openShowcase(page, locale);
     const anchor = page.getByRole("link", { name: text("Jump to table examples", "انتقل إلى أمثلة الجداول"), exact: true });
     const destination = page.locator("#design-data");
-    for (const preference of ["no-preference", "reduce"] as const) {
+    const expectedCalls = [
+      { behavior: "smooth", block: "start" },
+      { behavior: "instant", block: "start" },
+    ];
+    for (const [index, preference] of (["no-preference", "reduce"] as const).entries()) {
       await page.emulateMedia({ reducedMotion: preference });
       await anchor.click();
       await expect(page).toHaveURL(new RegExp(`/${locale}/design-system#design-data$`));
       await expect(destination).toBeFocused();
       await expect(page.locator("html")).toHaveCSS("scroll-behavior", "auto");
+      // The anchor schedules scrolling on its next frame. Observe that actual
+      // call before changing the preference for the independent activation.
+      await expect.poll(() => page.evaluate(() => (window as unknown as {
+        __m2AnchorScrollCalls: { behavior: ScrollBehavior; block: ScrollLogicalPosition }[];
+      }).__m2AnchorScrollCalls)).toEqual(expectedCalls.slice(0, index + 1));
     }
     // Focus and the hash commit synchronously; scrolling runs on the next frame
     // so a closing navigation disclosure can settle before its destination.

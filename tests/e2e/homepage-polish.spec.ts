@@ -50,7 +50,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(flow).toHaveAttribute("aria-hidden", "true");
       await expect(flow).toHaveCSS("pointer-events", "none");
       await expect(flow).toHaveCSS("animation-name", "none");
-      expect(await flow.evaluate(element => {
+      if (width > 800) expect(await flow.evaluate(element => {
         const art = element.getBoundingClientRect();
         return [".history-numbers", ".gallery-rail"].every(selector => {
           const content = document.querySelector(selector)!.getBoundingClientRect();
@@ -60,9 +60,11 @@ for (const locale of ["en", "ar"] as const) {
       const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
       expect(accessibility.violations).toEqual([]);
       await page.emulateMedia({ reducedMotion: "no-preference" });
-      await expect(flow).toHaveCSS("animation-name", "community-flow-drift");
-      const initialTransform = await flow.evaluate(element => getComputedStyle(element).transform);
-      await expect.poll(() => flow.evaluate(element => getComputedStyle(element).transform)).not.toBe(initialTransform);
+      if (width > 800) {
+        await expect(flow).toHaveCSS("animation-name", "community-flow-drift");
+        const initialTransform = await flow.evaluate(element => getComputedStyle(element).transform);
+        await expect.poll(() => flow.evaluate(element => getComputedStyle(element).transform)).not.toBe(initialTransform);
+      } else await expect(flow).toBeHidden();
       await page.emulateMedia({ reducedMotion: "reduce" });
       await expect(flow).toHaveCSS("animation-name", "none");
       await expect(flow).toHaveCSS("transform", "none");
@@ -123,13 +125,13 @@ for (const locale of ["en", "ar"] as const) {
         for (const card of await benefits.locator(".benefit-card").all()) {
           const layout = await card.evaluate(element => {
             const box = element.getBoundingClientRect();
-            const body = element.querySelector("p")!.getBoundingClientRect();
+            const body = element.querySelector("p")?.getBoundingClientRect();
             const title = element.querySelector("h3")!;
-            return { bottomSpace: box.bottom - body.bottom, padding: parseFloat(getComputedStyle(element).paddingBottom), title: parseFloat(getComputedStyle(title).fontSize) };
+            return { bottomSpace: body ? box.bottom - body.bottom : null, padding: parseFloat(getComputedStyle(element).paddingBottom), title: parseFloat(getComputedStyle(title).fontSize) };
           });
           if (phone) {
             expect(layout.padding).toBeLessThanOrEqual(18);
-            expect(layout.bottomSpace).toBeLessThanOrEqual(layout.padding + 2);
+            if (layout.bottomSpace !== null) expect(layout.bottomSpace).toBeLessThanOrEqual(layout.padding + 2);
             expect(layout.title).toBeGreaterThanOrEqual(25.6);
           }
         }

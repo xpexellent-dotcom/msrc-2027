@@ -184,8 +184,8 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} cinema returns to the watching position after using the hero anchor`, async ({ page }) => {
     await page.goto(`/${locale}?view=chapters`);
     await clickHeroCue(page);
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=chapters#essentials$`));
-    await expect(page.locator("#essentials")).toBeFocused();
+    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=chapters#participate$`));
+    await expect(page.locator("#participate")).toBeFocused();
     const watch = page.locator("#legacy").getByTestId("watch-opening-film");
     await watch.scrollIntoViewIfNeeded();
     await watch.focus();

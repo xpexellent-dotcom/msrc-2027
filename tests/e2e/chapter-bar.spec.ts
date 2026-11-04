@@ -5,7 +5,7 @@ import { prepareHeroCue } from "./helpers/hero-navigation";
 // The Axiom demo replaces the chapter bar with the shared masthead and a native hero cue.
 // Keep the destination, focus, history and readable section hierarchy covered on every device.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} the hero cue reaches practical details while ordinary scrolling stays native`, async ({ page }) => {
+  test(`${locale} the hero cue reaches participation while ordinary scrolling stays native`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}`);
     await expect(page.locator(".section-journey")).toHaveCount(0);
@@ -13,13 +13,11 @@ for (const locale of ["en", "ar"] as const) {
     await expect(cue).toBeVisible();
     expect((await cue.boundingBox())?.height).toBeGreaterThanOrEqual(44);
     await cue.click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}#essentials$`));
-    const details = page.locator("#essentials");
+    await expect(page).toHaveURL(new RegExp(`/${locale}#participate$`));
+    const details = page.locator("#participate");
     await expect(details).toBeFocused();
     await expect(details).toBeInViewport();
-    await expect(details.locator("dt")).toHaveCount(2);
-    await expect(details.locator("dd").first()).toHaveText(/2027|٢٠٢٧/);
-    expect((await new AxeBuilder({ page }).include("#essentials")
+    expect((await new AxeBuilder({ page }).include("#participate")
       .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
     const position = await page.evaluate(() => window.scrollY);
