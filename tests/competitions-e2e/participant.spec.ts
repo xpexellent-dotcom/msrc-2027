@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { expectHeaderSettled } from "../helpers/header";
 import { createCipheriv, randomBytes } from "node:crypto";
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { competitionCopy } from "../../src/features/competitions/copy";
@@ -21,6 +22,7 @@ async function fixture(context: BrowserContext, mode = "ready") {
   return { actorId, settings };
 }
 async function accessible(page: Page) {
+  await expectHeaderSettled(page);
   await expect(page.locator("html")).toHaveJSProperty("scrollWidth", await page.locator("html").evaluate((element) => element.clientWidth));
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 }

@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { expectHeaderSettled } from "../helpers/header";
 import { createHmac } from "node:crypto";
 import { expect, test, type Page } from "../helpers/csp";
 import { staffSecurityCopy } from "../../src/features/auth/staff-security-copy";
@@ -161,8 +162,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("isolated-email-delivery")).toContainText(staffSecurityCopy[locale].isolatedEmailSent);
     expect(deliveredCode.length === 6 && !(await page.locator("body").innerText()).includes(deliveredCode)).toBe(true);
     expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
+    await expectHeaderSettled(page);
     const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
-    expect(accessibility.violations.length).toBe(0);
+    expect(accessibility.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target.join(" ")) }))).toEqual([]);
     await expect(requestCode).toBeDisabled();
     await page.clock.fastForward(60_001); await expect(requestCode).toBeEnabled();
     await page.clock.fastForward(240_000);
@@ -205,8 +207,9 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByRole("button", { name: copy.emailVerify, exact: true }).click();
     await expect(page.getByTestId("auth-error")).toBeFocused();
     await expect(field).toHaveAttribute("aria-invalid", "true");
+    await expectHeaderSettled(page);
     const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
-    expect(accessibility.violations.length).toBe(0);
+    expect(accessibility.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target.join(" ")) }))).toEqual([]);
     await testInfo.attach(`${locale}-staff-email-challenge-${testInfo.project.name}`, {
       body: await page.screenshot({ fullPage: true, mask: [page.getByTestId("synthetic-inbox"), field] }), contentType: "image/png",
     });
