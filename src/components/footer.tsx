@@ -1,6 +1,6 @@
 import { Link } from "@/components/ui/link";
 import Image from "next/image";
-import { brandLogo } from "@/content/brand-identity";
+import { brandLogo, brandLogoRendition } from "@/content/brand-identity";
 import { Container } from "@/components/ui/container";
 import { homepageNarrative } from "@/content/homepage-narrative";
 import { publicSitemap } from "@/content/public-site";
@@ -37,7 +37,7 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
         <Container>
           <div className="footer-top">
             <div className="footer-brand">
-              <Image src={brandLogo.onPurple} alt="" width={152} height={48} loading="lazy" className="footer-logo" />
+              <Image src={brandLogo.onPurple} alt="" width={brandLogoRendition.width} height={brandLogoRendition.height} loading="eager" className="footer-logo" />
               <span className="footer-identity sr-only" dir="ltr" lang="en">MSRC<span>2027</span></span>
               <div className="footer-brand-copy">
                 <p>{footer.description}</p>

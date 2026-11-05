@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { brandLogo } from "@/content/brand-identity";
+import { brandLogo, brandLogoRendition } from "@/content/brand-identity";
 import { Link } from "@/components/ui/link";
 import { MobileNav, type NavigationLink } from "@/components/mobile-nav";
 import { usePathname } from "next/navigation";
@@ -199,7 +199,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         <span className="header-glass" aria-hidden="true" />
         {/* A native anchor intentionally reloads home, even when already on home. */}
         <a className="wordmark" href={`/${locale}`}>
-          <Image src={brandLogo.onPurple} alt="" width={114} height={36} loading="eager" className="wordmark-logo" />
+          <Image src={brandLogo.onPurple} alt="" width={brandLogoRendition.width} height={brandLogoRendition.height} loading="eager" className="wordmark-logo" />
           <span className="wordmark-name sr-only" dir="ltr" lang="en">MSRC 2027</span>
           <span className="wordmark-edition sr-only">{copy.edition}</span>
           <span className="sr-only">{copy.homeSuffix}</span>
