@@ -1,6 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { clickHeroCue } from "./helpers/hero-navigation";
 
 // DSN-01/02, ACC-01, LOC-01/03, MED-01/02/04: the cinema view reuses
 // the exact approved homepage film. It is not a new public media catalogue,
@@ -54,7 +53,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}?view=cinema#legacy`);
     const watch = page.locator("#legacy").getByTestId("watch-opening-film");
     const video = page.locator(".conference-hero video");
-    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
     const player = await video.elementHandle();
     const source = await video.getAttribute("src");
     await watch.scrollIntoViewIfNeeded();
@@ -66,6 +65,7 @@ for (const locale of ["en", "ar"] as const) {
       await page.keyboard.press("Enter");
       await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=cinema#film$`));
       await expectCinemaView(page);
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
       await expect(page.getByTestId("cinematic-close")).toHaveAccessibleName(locale === "ar" ? "العودة إلى المؤتمر" : "Back to conference");
       await expect(video).toHaveCount(1);
       await expect(video).toHaveAttribute("src", source!);
@@ -181,11 +181,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("iframe, a[download]")).toHaveCount(0);
   });
 
-  test(`${locale} cinema returns to the watching position after using the hero anchor`, async ({ page }) => {
-    await page.goto(`/${locale}?view=chapters`);
-    await clickHeroCue(page);
+  test(`${locale} cinema returns to the watching position after reading participation`, async ({ page }) => {
+    await page.goto(`/${locale}?view=chapters#participate`);
     await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=chapters#participate$`));
-    await expect(page.locator("#participate")).toBeFocused();
     const watch = page.locator("#legacy").getByTestId("watch-opening-film");
     await watch.scrollIntoViewIfNeeded();
     await watch.focus();
@@ -294,8 +292,9 @@ test("cinema respects the visitor's paused background state after a deliberate v
   await page.goto("/en");
   const video = page.locator(".conference-hero video");
   const background = page.locator(".conference-hero .hero-media-toggle");
+  const labeled = page.locator(".conference-hero .hero-media-control");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
-  await background.focus();
+  await labeled.focus();
   await page.keyboard.press("Space");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
   await page.setViewportSize(viewport);
@@ -309,7 +308,7 @@ test("cinema respects the visitor's paused background state after a deliberate v
   await expect(watch).toBeFocused();
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
   if (viewport.width <= 700) await expect(background).toBeHidden();
-  else await expect(background).toHaveAccessibleName("Play background video");
+  else await expect(labeled).toHaveAccessibleName("Play background video");
   expect(await retainedVideo!.evaluate((element) => element.isConnected)).toBe(true);
 });
 

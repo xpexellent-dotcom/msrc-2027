@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 
 const mediaRoot = "/media/msrc2026";
 const mediaPaths = {
@@ -8,10 +8,19 @@ const mediaPaths = {
   mobilePoster: `${mediaRoot}/poster-mobile-v1.jpg`,
 };
 
+async function expectUnobscured(control: Locator) {
+  await expect(control).toBeInViewport({ ratio: 1 });
+  await expect.poll(() => control.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+    return hit !== null && element.contains(hit);
+  }), { message: "Keyboard focus on the labeled film control clears the rising content sheet." }).toBe(true);
+}
+
 // MED-01/02/04, DSN-01, ACC-01, LOC-01: these are the exact organizer-approved
 // derivatives. The current revision keeps preference-aware background motion
-// and semantic keyboard/tap pause without a permanent visible Pause button;
-// browser refusal still provides a discoverable manual Play recovery.
+// and a labeled desktop pause button; phone controls retain ORG-054's exception.
+// Browser refusal still provides a discoverable manual Play recovery.
 // The original source and local-only review endpoints remain private.
 for (const locale of ["en", "ar"] as const) {
   test(`${locale} public film selects one responsive source and keyboard pause freezes its frame`, async ({ page }) => {
@@ -27,7 +36,8 @@ for (const locale of ["en", "ar"] as const) {
     const source = mobile ? mediaPaths.mobile : mediaPaths.desktop;
     const poster = mobile ? mediaPaths.mobilePoster : mediaPaths.desktopPoster;
     const video = page.locator(".conference-hero video");
-    const control = page.locator(".conference-hero .hero-media-toggle");
+    const background = page.locator(".conference-hero .hero-media-toggle");
+    const control = mobile ? background : page.locator(".conference-hero .hero-media-control");
     await expect(video).toHaveAttribute("src", source);
     await expect(video).toHaveAttribute("autoplay", "");
     await expect(video).toHaveAttribute("playsinline", "");
@@ -48,14 +58,17 @@ for (const locale of ["en", "ar"] as const) {
       return;
     }
     await expect(control).toHaveCount(1);
-    await expect(control).toHaveAttribute("aria-keyshortcuts", "Space Enter");
-    await expect(control).toBeEmpty();
-    await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
+    await expect(control).not.toBeEmpty();
+    await expect(background).toHaveAttribute("aria-keyshortcuts", "Space Enter");
+    await expect(background).toHaveAttribute("aria-hidden", "true");
+    await expect(background).toHaveAttribute("tabindex", "-1");
+    await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(1);
     const dimensions = await control.boundingBox();
     expect(dimensions?.width).toBeGreaterThanOrEqual(44);
     expect(dimensions?.height).toBeGreaterThanOrEqual(44);
     await control.focus();
     await expect(control).toBeFocused();
+    await expectUnobscured(control);
     await expect(control).toHaveAccessibleName(locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video");
     expect(await control.evaluate((element) => {
       const style = getComputedStyle(element);
@@ -75,6 +88,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(await video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeCloseTo(frozenTime, 2);
     await page.keyboard.press("Shift+Tab");
     await expect(control).toBeFocused();
+    await expectUnobscured(control);
     await page.keyboard.press("Enter");
     await expect(control).toBeFocused();
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
@@ -159,7 +173,8 @@ test("public film pauses when hidden, resumes when visible, and preserves an exp
   });
   await page.goto("/en");
   const video = page.locator(".conference-hero video");
-  const control = page.locator(".conference-hero .hero-media-toggle");
+  const phone = (page.viewportSize()?.width ?? 1280) <= 700;
+  const control = page.locator(phone ? ".conference-hero .hero-media-toggle" : ".conference-hero .hero-media-control");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
   const retainedVideo = await video.elementHandle();
   const source = await video.getAttribute("src");
@@ -249,8 +264,8 @@ for (const locale of ["en", "ar"] as const) {
     })).toHaveCount(0);
     await play.focus();
     await page.keyboard.press("Enter");
-    await expect(page.locator(".conference-hero .hero-media-toggle")).toBeFocused();
-    await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
+    await expect(page.locator(".conference-hero .hero-media-control")).toBeFocused();
+    await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(1);
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
     expect(errors).toEqual([]);
   });

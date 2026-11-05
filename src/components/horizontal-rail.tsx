@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
+import { Arrow } from "@/components/ui/arrow";
 
 /** Native scrolling remains the primary interaction; arrows are an additional affordance. */
-export function HorizontalRail({ children, label, locale, className = "", stepByItem = false, hint = true }: {
-  children: ReactNode; label: string; locale: Locale; className?: string; stepByItem?: boolean; hint?: boolean;
+export function HorizontalRail({ children, label, locale, className = "", stepByItem = false }: {
+  children: ReactNode; label: string; locale: Locale; className?: string; stepByItem?: boolean;
 }) {
   const rail = useRef<HTMLDivElement>(null);
   const destination = useRef<number | null>(null);
@@ -43,6 +44,7 @@ export function HorizontalRail({ children, label, locale, className = "", stepBy
     const rtl = locale === "ar";
     const end = Math.max(0, element.scrollWidth - element.clientWidth);
     const position = destination.current ?? Math.abs(element.scrollLeft);
+    const paddingStart = parseFloat(getComputedStyle(element).paddingInlineStart) || 0;
     const stops = Array.from(element.children).map((child) => {
       const item = child as HTMLElement;
       // Layout offsets remain stable during smooth scrolling. Measure from the
@@ -51,7 +53,7 @@ export function HorizontalRail({ children, label, locale, className = "", stepBy
         ? first.offsetLeft + first.offsetWidth - item.offsetLeft - item.offsetWidth
         : item.offsetLeft - first.offsetLeft;
       // Existing full-width venue galleries retain their start alignment.
-      const offset = start - (stepByItem ? 0 : (element.clientWidth - item.offsetWidth) / 2);
+      const offset = start - (stepByItem ? 0 : (element.clientWidth - item.offsetWidth) / 2 - paddingStart);
       return Math.max(0, Math.min(end, offset));
     });
     const target = direction > 0
@@ -63,13 +65,13 @@ export function HorizontalRail({ children, label, locale, className = "", stepBy
       behavior: keyboard || matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   };
   return <div className={`horizontal-rail ${className}`}>
-    <div className={`rail-tools${hint ? "" : " rail-tools--no-hint"}`}>
-      {hint ? <p>{locale === "ar" ? "اسحب لاستكشاف المزيد" : "Scroll to explore"}</p> : null}
+    <div className="rail-tools">
+      <p>{locale === "ar" ? "اسحب لاستكشاف المزيد" : "Scroll to explore"}</p>
       <div className="rail-buttons">
         {([-1, 1] as const).map((direction) => <button key={direction} type="button" disabled={direction < 0 ? edges.start : edges.end}
           aria-label={direction < 0 ? locale === "ar" ? "السابق" : "Previous" : locale === "ar" ? "التالي" : "Next"}
           onClick={(event) => move(direction, event.detail === 0)}>
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className={direction < 0 ? "rail-back" : "rail-next"}><path d="M4 12h16m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <Arrow className={direction < 0 ? "rail-back" : "rail-next"} />
         </button>)}
       </div>
     </div>

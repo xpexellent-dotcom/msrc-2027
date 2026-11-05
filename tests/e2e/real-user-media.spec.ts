@@ -181,7 +181,7 @@ for (const locale of ["en", "ar"] as const) {
     const mediaOrigin = process.env.REAL_USER_MEDIA_BASE_URL;
     await page.goto(mediaOrigin ? new URL(`/${locale}`, mediaOrigin).href : `/${locale}`);
     const video = page.locator(".conference-hero video");
-    const toggle = page.locator(".conference-hero .hero-media-toggle");
+    const toggle = page.locator(".conference-hero .hero-media-control");
     // Hydration attaches this optional player after document load. Observe its
     // real decoder boundary before testing autoplay; otherwise attachment work
     // consumes the behavior assertion's five-second polling budget under load.

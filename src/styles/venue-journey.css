@@ -278,7 +278,7 @@ html:has(.venue-arrival-journey[data-journey-moving="true"]) { overflow-anchor: 
 /* Over the dark journey a live header blur is nearly invisible but re-blurs the
    moving map every frame; an opaque glass of the same tone replaces it. */
 html:has(.venue-arrival-journey[data-in-view="true"]) .axiom-header .header-glass,
-html:has(.venue-arrival-journey[data-in-view="true"]) .axiom-header .wordmark::before { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: rgb(24 12 40 / .9); }
+html:has(.venue-arrival-journey[data-in-view="true"]) .axiom-header .wordmark::before { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: var(--color-purple); }
 
 /* ---- Overview → journey handover ---- */
 /* The light overview melts into the journey instead of meeting it at a hard

@@ -76,7 +76,8 @@ type HeroControlsMode = "button" | "video";
 type MediaControlState = {
   locale: Locale; approved: boolean; load: boolean; hydrated: boolean;
   failed: boolean; playing: boolean; controlsMode: HeroControlsMode;
-  autoplayBlocked: boolean; togglePlayback: () => void;
+  autoplayBlocked: boolean; labeledControlAvailable: boolean;
+  togglePlayback: () => void;
 };
 const MediaControls = createContext<MediaControlState | null>(null);
 
@@ -87,12 +88,27 @@ export function HeroMediaControls() {
   const text = copy[state.locale];
   if (state.controlsMode === "video") {
     if (state.failed) return <span className="sr-only" role="status">{text.unavailable}</span>;
-    if (!state.autoplayBlocked || !state.load) return null;
+    // ENG-094: normal desktop keeps a visible label; the full-screen film retains
+    // its existing recovery-only control and background keyboard toggle.
+    if (!state.load || (!state.autoplayBlocked && !state.labeledControlAvailable)) return null;
   }
   return (
     <div className="hero-media-controls">
       {state.load && (
-        <button type="button" className="hero-media-control" onClick={state.togglePlayback}>
+        <button type="button" className="hero-media-control" onClick={state.togglePlayback} onFocus={(event) => {
+          if (!state.labeledControlAvailable || !event.currentTarget.matches(":focus-visible")) return;
+          const journey = event.currentTarget.closest(".homepage-journey");
+          const sheet = journey?.querySelector(".homepage-content-sheet");
+          // Native focus scrolling cannot detect a sticky film underneath the
+          // opaque reading sheet. Reveal the requested keyboard control itself.
+          const bounds = event.currentTarget.getBoundingClientRect();
+          const stage = event.currentTarget.closest(".hero-scroll-stage");
+          const hero = event.currentTarget.closest(".conference-hero");
+          if (sheet && stage && hero && (sheet.getBoundingClientRect().top < bounds.bottom + 6 || bounds.bottom + 6 > window.innerHeight || bounds.top < 6)) {
+            const top = stage.getBoundingClientRect().top + window.scrollY + Math.max(0, hero.getBoundingClientRect().height - window.innerHeight);
+            window.scrollTo({ top, behavior: "instant" });
+          }
+        }}>
           <svg aria-hidden="true" focusable="false" viewBox="0 0 20 20" width="18" height="18" fill="none">
             {state.playing ? <path d="M7 4v12M13 4v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /> : <path d="m6 4 10 6-10 6V4Z" fill="currentColor" />}
           </svg>
@@ -116,6 +132,7 @@ export function HeroMedia({
   allowPreview = false,
   playbackPolicy = "respect-preferences",
   controlsMode = "button",
+  showLabeledControls = false,
   children,
 }: {
   locale: Locale;
@@ -124,12 +141,15 @@ export function HeroMedia({
   allowPreview?: boolean;
   playbackPolicy?: HeroPlaybackPolicy;
   controlsMode?: HeroControlsMode;
+  showLabeledControls?: boolean;
   children?: ReactNode;
 }) {
   const preferences: MediaPreferences = JSON.parse(
     useSyncExternalStore(subscribePreferences, preferenceSnapshot, () => serverPreferences),
   );
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(true);
   const backgroundToggleRef = useRef<HTMLButtonElement>(null);
   const videoInstructionsId = useId();
   const [userPaused, setUserPaused] = useState(false);
@@ -138,6 +158,7 @@ export function HeroMedia({
   const [failed, setFailed] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const [explicitFilm, setExplicitFilm] = useState(false);
+  const [filmActive, setFilmActive] = useState(false);
   const pausedBeforeFilm = useRef(false);
   const cinematicActive = useRef(false);
   const approved = hasRenderableVideo(video, allowPreview);
@@ -145,11 +166,25 @@ export function HeroMedia({
   // follows visibility, motion/data preferences and the visitor's durable pause.
   const effectivePolicy = explicitFilm ? "autoplay" : playbackPolicy;
   const load = approved && shouldLoadHeroVideo({ ...preferences, visible: true }, effectivePolicy) && !failed;
-  const play = load && shouldPlayHeroVideo(preferences, userPaused, effectivePolicy) && !autoplayBlocked;
+  const play = load && (inView || explicitFilm) && shouldPlayHeroVideo(preferences, userPaused, effectivePolicy) && !autoplayBlocked;
   const poster = approved ? video.poster : isLocalPoster(posterSrc) ? posterSrc : defaultHeroPoster;
   const source = approved ? (preferences.smallScreen && video.mobileSrc ? video.mobileSrc : video.src) : undefined;
   const videoControls = controlsMode === "video";
+  const labeledControlAvailable = showLabeledControls && preferences.hydrated
+    && !preferences.smallScreen && !filmActive && load;
   const text = copy[locale];
+
+  useEffect(() => {
+    const media = mediaRef.current;
+    if (!media || !window.IntersectionObserver) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      const visible = entry.isIntersecting && entry.intersectionRatio >= .1;
+      if (!visible && !cinematicActive.current) videoRef.current?.pause();
+      setInView(visible);
+    }, { threshold: [0, .1] });
+    observer.observe(media);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!approved || !videoControls) return;
@@ -158,6 +193,7 @@ export function HeroMedia({
       if (active) {
         if (!cinematicActive.current) pausedBeforeFilm.current = userPaused;
         cinematicActive.current = true;
+        setFilmActive(true);
         setExplicitFilm(explicit);
         setUserPaused(false);
         setAutoplayBlocked(false);
@@ -165,6 +201,7 @@ export function HeroMedia({
         if (explicit && videoRef.current) void videoRef.current.play().catch(() => {});
       } else if (cinematicActive.current) {
         cinematicActive.current = false;
+        setFilmActive(false);
         setExplicitFilm(false);
         setUserPaused(pausedBeforeFilm.current);
       }
@@ -207,9 +244,9 @@ export function HeroMedia({
       if (element) void element.play().then(() => {
         setPlaying(true);
         setAutoplayBlocked(false);
-        // The recovery button disappears after successful play. Keep keyboard
-        // focus on its background toggle so a visitor can pause it again.
-        if (videoControls && autoplayBlocked) backgroundToggleRef.current?.focus({ preventScroll: true });
+        // Film recovery disappears after play and returns focus to its keyboard
+        // toggle. The persistent desktop label keeps its own focus instead.
+        if (videoControls && autoplayBlocked && !labeledControlAvailable) backgroundToggleRef.current?.focus({ preventScroll: true });
       }).catch((error: unknown) => {
         setPlaying(false);
         if (error instanceof DOMException && error.name === "NotAllowedError") setAutoplayBlocked(true);
@@ -219,8 +256,8 @@ export function HeroMedia({
   }
 
   return (
-    <MediaControls.Provider value={{ locale, approved, load, hydrated: preferences.hydrated, failed, playing, controlsMode, autoplayBlocked, togglePlayback }}>
-    <div className="hero-media" data-playback-policy={effectivePolicy} data-controls-mode={controlsMode} data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
+    <MediaControls.Provider value={{ locale, approved, load, hydrated: preferences.hydrated, failed, playing, controlsMode, autoplayBlocked, labeledControlAvailable, togglePlayback }}>
+    <div ref={mediaRef} className="hero-media" data-playback-policy={effectivePolicy} data-controls-mode={controlsMode} data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
       <picture>
         {approved && video.mobilePoster && <source media="(max-width: 700px)" srcSet={video.mobilePoster} />}
         <Image
@@ -232,7 +269,7 @@ export function HeroMedia({
         <video
           ref={videoRef} src={source} poster={preferences.smallScreen && video.mobilePoster ? video.mobilePoster : poster}
           className={`hero-media-video${frameAvailable ? " is-playing" : ""}`}
-          muted autoPlay={!userPaused && !autoplayBlocked && preferences.visible} playsInline loop preload="metadata"
+          muted autoPlay={!userPaused && !autoplayBlocked && preferences.visible && (inView || explicitFilm)} playsInline loop preload="metadata"
           aria-hidden="true" tabIndex={-1}
           disablePictureInPicture disableRemotePlayback
           onLoadStart={() => setFrameAvailable(false)}
@@ -246,6 +283,7 @@ export function HeroMedia({
       {videoControls && load && <>
         <button
           ref={backgroundToggleRef} type="button" className="hero-media-toggle"
+          aria-hidden={labeledControlAvailable || undefined} tabIndex={labeledControlAvailable ? -1 : undefined}
           aria-label={playing ? text.pause : text.resume} aria-describedby={videoInstructionsId}
           aria-keyshortcuts="Space Enter" onClick={togglePlayback}
         />

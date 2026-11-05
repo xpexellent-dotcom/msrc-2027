@@ -1,9 +1,11 @@
 import { Link } from "@/components/ui/link";
+import Image from "next/image";
+import { brandLogo } from "@/content/brand-identity";
 import { Container } from "@/components/ui/container";
 import { homepageNarrative } from "@/content/homepage-narrative";
 import { publicSitemap } from "@/content/public-site";
 import type { Locale } from "@/lib/i18n";
-const footerCopy = {
+export const footerCopy = {
   en: {
     description: "The fifth Medical Students Research Conference.",
     institution: "King Abdulaziz University · Jeddah",
@@ -35,7 +37,8 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
         <Container>
           <div className="footer-top">
             <div className="footer-brand">
-              <span className="footer-identity" dir="ltr" lang="en">MSRC<span>2027</span></span>
+              <Image src={brandLogo.onPurple} alt="" width={152} height={48} loading="lazy" className="footer-logo" />
+              <span className="footer-identity sr-only" dir="ltr" lang="en">MSRC<span>2027</span></span>
               <div className="footer-brand-copy">
                 <p>{footer.description}</p>
                 <p className="footer-institution">{footer.institution}</p>

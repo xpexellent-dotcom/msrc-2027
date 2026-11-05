@@ -2,7 +2,7 @@ import { Link } from "@/components/ui/link";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 type ButtonAppearance = {
-  variant?: "primary" | "secondary" | "ghost" | "gold";
+  variant?: "primary" | "secondary" | "ghost" | "gold" | "ivory" | "outline-inverse";
   size?: "default" | "small";
 };
 

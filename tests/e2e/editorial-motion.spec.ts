@@ -4,6 +4,8 @@ import { expect, test } from "@playwright/test";
 // rendered positions, real controls and truthful content, not animation declarations alone.
 for (const locale of ["en", "ar"] as const) {
   const finalCount = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-US").format(4007) + "+";
+  // The visible count groups digits with a baseline comma in both locales; only the sr-only value keeps Intl's U+066C.
+  const visualFinalCount = finalCount.replace(/٬/g, ",");
 
   test(`${locale} the speaker ambience settles once without extra controls and respects reduced motion`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
@@ -45,7 +47,6 @@ for (const locale of ["en", "ar"] as const) {
       await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(240);
       expect((await hero.boundingBox())!.y).toBeCloseTo(initialHero.y - 240, 0);
       await expect(page.locator(".hero-layout")).toHaveCSS("opacity", "1");
-      await expect(page.locator(".hero-bottom")).toHaveCSS("opacity", "1");
       await page.mouse.wheel(0, -240);
       await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
       expect((await hero.boundingBox())!.y).toBeCloseTo(initialHero.y, 0);
@@ -85,7 +86,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(sheet).toHaveCSS("margin-top", "0px");
   });
 
-  test(`${locale} phone benefit icons align beside readable titles and full-width copy`, async ({ page, isMobile }) => {
+  test(`${locale} phone benefit icons align beside readable titles and copy shares the text edge`, async ({ page, isMobile }) => {
     test.skip(!isMobile, "Phone composition; desktop layout is covered separately.");
     await page.emulateMedia({ reducedMotion: "reduce" });
     for (const width of [320, 390]) {
@@ -96,17 +97,28 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator(".pathway-list > article")).toHaveCount(5);
       const cards = page.locator(".benefit-card");
       await expect(cards).toHaveCount(6);
-      for (const index of [0, 4, 5]) await expect(cards.nth(index).locator("p")).toHaveCount(1);
-      for (const index of [1, 2, 3]) await expect(cards.nth(index).locator("p")).toHaveCount(0);
       for (const card of await cards.all()) {
         const icon = (await card.locator(":scope > :is(.benefit-artwork, .benefit-cme)").boundingBox())!;
         const title = (await card.locator("h3").boundingBox())!;
-        const body = await card.locator("p").count() ? (await card.locator("p").boundingBox())! : null;
-        expect(Math.abs(icon.y + icon.height / 2 - title.y - title.height / 2)).toBeLessThan(2);
-        if (body) {
-          expect(body.width).toBeGreaterThan(title.width + 40);
-          expect(body.y).toBeGreaterThanOrEqual(Math.max(icon.y + icon.height, title.y + title.height));
+        const body = (await card.locator("p").boundingBox())!;
+        const cme = await card.locator(".benefit-cme").count();
+        if (cme) {
+          const note = card.locator(".benefit-cme-note");
+          expect(await note.evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(13);
+          const noteBox = (await note.boundingBox())!;
+          const cardBox = (await card.boundingBox())!;
+          expect(noteBox.y + noteBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height);
+          expect(noteBox.x).toBeGreaterThanOrEqual(cardBox.x);
+          expect(noteBox.x + noteBox.width).toBeLessThanOrEqual(cardBox.x + cardBox.width);
+          const overlapsBody = noteBox.x < body.x + body.width && noteBox.x + noteBox.width > body.x && noteBox.y < body.y + body.height && noteBox.y + noteBox.height > body.y;
+          expect(overlapsBody).toBe(false);
+        } else {
+          expect(Math.abs(icon.y + icon.height / 2 - title.y - title.height / 2)).toBeLessThan(2);
+          expect(body.y).toBeGreaterThanOrEqual(icon.y + icon.height);
         }
+        expect(Math.abs(body.x - title.x)).toBeLessThanOrEqual(1);
+        expect(Math.abs(body.width - title.width)).toBeLessThanOrEqual(1);
+        expect(body.y).toBeGreaterThanOrEqual(title.y + title.height);
         expect(await card.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
@@ -125,7 +137,7 @@ for (const locale of ["en", "ar"] as const) {
     await visual.scrollIntoViewIfNeeded();
     await expect(visual).toHaveAttribute("data-counting", "true");
     await expect(accessible).toHaveText(finalCount);
-    await expect(visual).toHaveText(finalCount);
+    await expect(visual).toHaveText(visualFinalCount);
     await expect(visual).toHaveAttribute("data-counting", "false");
     await visual.evaluate((element) => {
       element.setAttribute("data-test-mutations", "0");
@@ -145,7 +157,7 @@ for (const locale of ["en", "ar"] as const) {
       requestAnimationFrame(sample);
     }));
     await expect(visual).toHaveAttribute("data-test-mutations", "0");
-    await expect(visual).toHaveText(finalCount);
+    await expect(visual).toHaveText(visualFinalCount);
     await expect(accessible).toHaveText(finalCount);
     await expect(page.locator(".history-total dt")).toContainText(locale === "ar" ? "إجمالي الزوار" : "Total visitors");
   });
@@ -177,7 +189,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} reduced motion starts with final history values and static artwork`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
-    await expect(page.locator(".history-total .history-count")).toHaveText(finalCount);
+    await expect(page.locator(".history-total .history-count")).toHaveText(visualFinalCount);
     await expect(page.locator(".history-count[data-counting='true']")).toHaveCount(0);
     const artwork = page.locator(".research-artwork");
     await artwork.scrollIntoViewIfNeeded();
@@ -185,7 +197,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(artwork.getByRole("button")).toHaveCount(0);
     await expect(artwork.locator(".research-artwork-image")).toHaveCSS("animation-name", "none");
     await page.locator(".history-numbers").scrollIntoViewIfNeeded();
-    await expect(page.locator(".history-total .history-count")).toHaveText(finalCount);
+    await expect(page.locator(".history-total .history-count")).toHaveText(visualFinalCount);
     await expect(page.locator(".history-count[data-counting='true']")).toHaveCount(0);
   });
 
@@ -206,8 +218,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".benefit-cme-note")).toHaveText(locale === "ar" ? "مثال بصري" : "Illustrative");
     await expect(page.locator(".program-experiences .benefit-artwork")).toHaveCount(5);
     await expect(page.locator("a.editorial-action", { hasText: locale === "ar" ? "كيف تشارك" : "How to take part" })).toHaveAttribute("href", `/${locale}/participate`);
-    await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(0);
-    await expect(page.locator("#speakers .portrait-placeholder")).toHaveCount(0);
+    await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(4);
+    await expect(page.locator("#speakers .portrait-placeholder")).toHaveCount(4);
     await expect(page.locator("#speakers img, .demo-chip, .portrait-provenance, .pathways-archive-note")).toHaveCount(0);
     const venue = page.locator("#venue");
     await venue.scrollIntoViewIfNeeded();

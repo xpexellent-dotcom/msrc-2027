@@ -21,13 +21,10 @@
 @import "../styles/homepage.css";
 @import "../styles/axiom-navigation.css";
 @import "../styles/editorial-motion.css";
-@import "../styles/premium-home.css";
-@import "../styles/premium-actions.css";
+@import "../styles/brand-system.css";
 @import "../styles/premium-interiors.css";
 @import "../styles/fluid-journeys.css";
 @import "../styles/fluid-surfaces.css";
-@import "../styles/pathway-track-nav.css";
-@import "../styles/community-numbers.css";
 @import "../styles/venue-program-refinement.css";
 @import "../styles/venue-gallery.css";
 @import "../styles/venue-journey.css";
@@ -36,7 +33,7 @@
 @import "../styles/research-competition.css";
 @import "../styles/participant-accounts.css";
 @import "../styles/abstract-submissions.css";
-@import "../styles/immersive-home.css";
+@import "../styles/home-v2.css";
 @import "../features/content/public-content.css";
 @import "../styles/print.css";
 

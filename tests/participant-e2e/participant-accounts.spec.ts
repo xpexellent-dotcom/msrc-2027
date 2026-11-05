@@ -279,6 +279,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("participant-account-state")).toHaveText(copy.verifiedState);
     await expect(page.getByTestId("participant-registration-closed")).toHaveText(copy.registrationClosed);
     await expect(page.locator("form")).toHaveCount(0);
+    await expect(page).toHaveTitle(/\S+/);
     expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
     await page.getByRole("button", { name: copy.signOut, exact: true }).click();
     await expect(page.getByTestId("participant-profile-name")).toHaveCount(0);

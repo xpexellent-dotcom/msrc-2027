@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
+import { FlowRibbon } from "@/components/brand/flow-ribbon";
 
 type Connection = EventTarget & { saveData?: boolean; effectiveType?: string };
 
@@ -39,12 +40,13 @@ export function ClosingCity({ children, locale, video, poster }: { children: Rea
     return () => { document.removeEventListener("visibilitychange", sync); element.pause(); };
   }, [canLoad, visible, paused, failed]);
   return <section className="closing-section city-closing" aria-labelledby="closing-title" ref={section}>
+    <FlowRibbon edge="top" />
     <div className="city-media" aria-hidden="true"><Image src={poster} alt="" fill sizes="100vw" />
       {canLoad && visible && !failed && <video ref={film} src={video} poster={poster} muted loop playsInline preload="none" tabIndex={-1}
         onError={() => setFailed(true)} onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)} />}
     </div>
     {children}
-    {canLoad && visible && !failed && <button type="button" className="city-control" onClick={() => {
+    {canLoad && visible && !failed && <button type="button" className="city-control icon-button icon-button--dark" onClick={() => {
       if (!playing) { setPaused(false); void film.current?.play().catch(() => setPlaying(false)); }
       else setPaused(true);
     }} aria-label={playing ? locale === "ar" ? "إيقاف فيديو جدة" : "Pause Jeddah video" : locale === "ar" ? "تشغيل فيديو جدة" : "Play Jeddah video"}>

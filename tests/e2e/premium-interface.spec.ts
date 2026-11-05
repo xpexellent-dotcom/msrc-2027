@@ -58,9 +58,16 @@ for (const locale of ["en", "ar"] as const) {
     await expect(control).toHaveCount(1);
     await expect(control).toHaveJSProperty("tagName", "BUTTON");
     await expect(control).toBeEmpty();
-    if ((page.viewportSize()?.width ?? 1280) <= 700) await expect(control).toBeHidden();
-    else await expect(control).toBeVisible();
-    await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
+    const labeled = page.locator(".conference-hero .hero-media-control");
+    if ((page.viewportSize()?.width ?? 1280) <= 700) {
+      await expect(control).toBeHidden();
+      await expect(labeled).toHaveCount(0);
+    } else {
+      await expect(labeled).toHaveCount(1);
+      await expect(labeled).toBeVisible();
+      await expect(control).toHaveAttribute("aria-hidden", "true");
+      await expect(control).toHaveAttribute("tabindex", "-1");
+    }
     await expect(page.locator(".footer-directory-note, .program-sample-label, .hero-media-status")).toHaveCount(0);
     await expect(page.locator(".conference-hero [data-countdown]")).toHaveCount(1);
     await expect(page.locator(".date-band [data-countdown]")).toHaveCount(0);
@@ -88,7 +95,7 @@ for (const locale of ["en", "ar"] as const) {
     }
 
     const photographs = page.locator(".pathway-photo img");
-    await expect(photographs).toHaveCount(5);
+    await expect(photographs).toHaveCount(1);
     for (const visual of await photographs.all()) {
       await expect(visual).toHaveAttribute("alt", "");
       await expect(visual).not.toHaveAttribute("tabindex", "0");
@@ -113,7 +120,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(card.locator(".pathway-action")).toBeInViewport();
       if (await card.getAttribute("data-pathway") === "/registration") await expect(card.locator(".status-badge")).toHaveCount(0);
       else await expect(card.locator(".status-badge")).toContainText(locale === "en" ? /not open/i : /لم.*يفتح|لم.*يُفتح|غير متاح|لم يبدأ/);
-      expect(await card.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
+      await expect.poll(() => card.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
     }
     await page.locator("#top").scrollIntoViewIfNeeded();
     await cards.first().scrollIntoViewIfNeeded();
@@ -159,7 +166,7 @@ for (const locale of ["en", "ar"] as const) {
         return style.animationName === "none" && style.transform === "none" && style.transitionDuration === "0s";
       }))).toBe(true);
     }
-    await expect(page.locator(".pathway-tile").first()).toHaveCSS("scale", "none");
+    await expect(page.locator(".path-tile").first()).toHaveCSS("scale", "none");
     // The decorative composition may have a static rotation, but must never
     // travel or animate when the visitor requests reduced motion.
     const artwork = page.locator(".ambient-art, .ambient-art *");

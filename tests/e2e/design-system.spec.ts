@@ -137,6 +137,8 @@ test("public footage and the synthetic fixture avoid video requests when motion 
 
 test("synthetic video controls pause, resume and fall back after an asset failure", async ({ page }) => {
   await page.goto("/en/design-system");
+  // ENG-094 pauses reusable HeroMedia instances while their own frame is off-screen.
+  await page.locator(".design-media-frame").scrollIntoViewIfNeeded();
   const video = page.locator(".design-media-frame video");
   await expect(video).toHaveAttribute("playsinline", "");
   expect(await video.evaluate((element: HTMLVideoElement) => element.muted)).toBe(true);

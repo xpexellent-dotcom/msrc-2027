@@ -1,5 +1,8 @@
 # Immersive mobile homepage
 
+> Superseded by [homepage v2](homepage-v2.md), ORG-072 / ENG-094, 4 November 2026.
+> This file is the historical ORG-071 / ENG-093 implementation record.
+
 Owner direction: 3 November 2026; implementation: 4 November 2026, home1 worktree
 `claude/mobile-immersive-home`, baseline `13469ad`. Decisions: ORG-071 and ENG-093
 in [DECISIONS](../DECISIONS.md). Requirements: SCP-01, DSN-01/02, ACC-01,

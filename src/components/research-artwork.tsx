@@ -20,6 +20,6 @@ export function ResearchArtwork() {
     return () => { observer?.disconnect(); motion.removeEventListener("change", update); document.removeEventListener("visibilitychange", update); };
   }, []);
   return <div ref={root} className="research-artwork" data-running={running} data-settled={settled} aria-hidden="true">
-    <div className="research-artwork-image" onAnimationEnd={() => { completed.current = true; setSettled(true); setRunning(false); }}><Image src="/media/msrc-demo/research-sculpture.jpg" alt="" fill sizes="(max-width: 800px) 100vw, 46vw" /></div>
+    <div className="research-artwork-image" onAnimationEnd={() => { completed.current = true; setSettled(true); setRunning(false); }}><Image src="/media/msrc-demo/research-sculpture.jpg" alt="" fill sizes="(max-width: 800px) 92vw, 46vw" /></div>
   </div>;
 }

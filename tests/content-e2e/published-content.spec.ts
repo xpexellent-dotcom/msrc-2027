@@ -1,4 +1,3 @@
-import { homepageNarrative } from "../../src/content/homepage-narrative";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { teamCommittees } from "../../src/content/team";
@@ -43,12 +42,11 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
     if (populated) {
       await expect(page.getByTestId("home-published-speakers")).toContainText(speaker);
-      await expect(page.getByTestId("home-published-programme")).toContainText(session);
       expect((await new AxeBuilder({ page }).include("#speakers").withRules(["color-contrast"]).analyze()).violations).toEqual([]);
+      await expect(page.getByTestId("home-published-programme")).toContainText(session);
       await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(0);
     } else {
-      await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(0);
-      await expect(page.locator("#speakers .speakers-pending")).toHaveText(homepageNarrative[locale].speakersPending);
+      await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(4);
       await expect(page.getByTestId("home-published-speakers")).toHaveCount(0);
     }
   });

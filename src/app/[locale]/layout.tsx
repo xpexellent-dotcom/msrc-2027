@@ -4,7 +4,7 @@ import { VercelObservability } from "@/components/vercel-observability";
 import { conferenceConfig } from "@/config/conference";
 import { defaultLocale, dictionaries, direction, isLocale, locales } from "@/lib/i18n";
 import "../globals.css";
-import { arabicFont, bodyFont, displayFont, headingFont } from "@/lib/fonts";
+import { arabicDisplayFont, arabicFont, displayFont, staffDisplayFont, staffFont, textFont } from "@/lib/fonts";
 import { siteOrigin } from "@/lib/metadata";
 
 // Keep zoom and native keyboard scrolling. Safari reports unknown viewport keys
@@ -48,7 +48,7 @@ export default async function LocaleLayout({
   // Route pages validate the locale before rendering any conference content.
   const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
   return (
-    <html lang={locale} dir={direction(locale)} className={`${headingFont.variable} ${bodyFont.variable} ${arabicFont.variable} ${displayFont.variable}`}>
+    <html lang={locale} dir={direction(locale)} className={`${displayFont.variable} ${textFont.variable} ${staffFont.variable} ${staffDisplayFont.variable} ${arabicFont.variable} ${arabicDisplayFont.variable}`}>
       <body>
         <SiteShell locale={locale}>{children}</SiteShell>
         {/* ORG-008: production only. Previews would count the team; elsewhere (local, CI) the

@@ -1,5 +1,6 @@
 import { useId } from "react";
 import type { Locale } from "@/lib/i18n";
+import { BrandIcon } from "@/components/brand/brand-icon";
 
 /** The organizer selected 7 for this illustrative graphic, not an approved hour count. */
 const illustrativeCmeHours = 7;
@@ -17,11 +18,13 @@ const paths: Record<Exclude<BenefitIcon, "cme">, React.ReactNode> = {
   priority: <g><path d="M14 30h62v10a7 7 0 0 0 0 14v10H14V54a7 7 0 0 0 0-14V30Z" /><path d="m45 36 3.5 7 7.5 1-5.5 5 1.5 7.5L45 53l-7 3.5 1.5-7.5-5.5-5 7.5-1 3.5-7ZM62 30v34" /></g>,
 };
 
-export function BenefitArtwork({ icon, locale }: { icon: BenefitIcon; locale: Locale }) {
+export function BenefitArtwork({ icon, locale, variant = "line" }: { icon: BenefitIcon; locale: Locale; variant?: "line" | "brand" }) {
   const gradient = useId();
+  const brandIcons = { practice: "19-workshops", network: "13-collaboration", research: "12-posters", award: "14-awards", certificate: "17-education" } as const;
+  if (variant === "brand" && icon in brandIcons) return <BrandIcon className="benefit-artwork" name={brandIcons[icon as keyof typeof brandIcons]} size={56} />;
   if (icon === "cme") return <div className="benefit-cme" role="img" aria-label={locale === "ar" ? "٧ ساعات تعليم طبي مستمر: مثال بصري فقط، العدد غير مؤكد" : "7 CME hours: illustrative only, hours unconfirmed"}>
     <span className="benefit-cme-number" aria-hidden="true">{locale === "ar" ? "٧" : illustrativeCmeHours}</span>
-    <span className="benefit-cme-label" aria-hidden="true">CME</span>
+    <span className="benefit-cme-label" aria-hidden="true" dir="ltr" lang="en">CME</span>
     <span className="benefit-cme-note" aria-hidden="true">{locale === "ar" ? "مثال بصري" : "Illustrative"}</span>
   </div>;
   return <svg className="benefit-artwork" viewBox="0 0 90 90" fill="none" aria-hidden="true">

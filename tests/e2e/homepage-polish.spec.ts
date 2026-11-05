@@ -50,7 +50,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(flow).toHaveAttribute("aria-hidden", "true");
       await expect(flow).toHaveCSS("pointer-events", "none");
       await expect(flow).toHaveCSS("animation-name", "none");
-      if (width > 800) expect(await flow.evaluate(element => {
+      expect(await flow.evaluate(element => {
         const art = element.getBoundingClientRect();
         return [".history-numbers", ".gallery-rail"].every(selector => {
           const content = document.querySelector(selector)!.getBoundingClientRect();
@@ -60,11 +60,8 @@ for (const locale of ["en", "ar"] as const) {
       const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
       expect(accessibility.violations).toEqual([]);
       await page.emulateMedia({ reducedMotion: "no-preference" });
-      if (width > 800) {
-        await expect(flow).toHaveCSS("animation-name", "community-flow-drift");
-        const initialTransform = await flow.evaluate(element => getComputedStyle(element).transform);
-        await expect.poll(() => flow.evaluate(element => getComputedStyle(element).transform)).not.toBe(initialTransform);
-      } else await expect(flow).toBeHidden();
+      await expect(flow).toHaveCSS("animation-name", "none");
+      await expect.poll(() => flow.locator(".ambient-flow path").first().evaluate(element => getComputedStyle(element).strokeDashoffset)).toBe("0px");
       await page.emulateMedia({ reducedMotion: "reduce" });
       await expect(flow).toHaveCSS("animation-name", "none");
       await expect(flow).toHaveCSS("transform", "none");
@@ -117,7 +114,7 @@ for (const locale of ["en", "ar"] as const) {
         } else {
           await expect.poll(() => hero.locator("video").evaluate((video: HTMLVideoElement) => !video.paused && video.readyState >= 2)).toBe(true);
           if (phone) await expect(hero.getByRole("button", { name: /background video|فيديو الخلفية/ })).toHaveCount(0);
-          else await expect(hero.locator(".hero-media-toggle")).toBeVisible();
+          else await expect(hero.locator(".hero-media-control")).toBeVisible();
         }
 
         const benefits = page.locator(".program-experiences");
@@ -125,13 +122,13 @@ for (const locale of ["en", "ar"] as const) {
         for (const card of await benefits.locator(".benefit-card").all()) {
           const layout = await card.evaluate(element => {
             const box = element.getBoundingClientRect();
-            const body = element.querySelector("p")?.getBoundingClientRect();
+            const body = element.querySelector("p")!.getBoundingClientRect();
             const title = element.querySelector("h3")!;
-            return { bottomSpace: body ? box.bottom - body.bottom : null, padding: parseFloat(getComputedStyle(element).paddingBottom), title: parseFloat(getComputedStyle(title).fontSize) };
+            return { bottomSpace: box.bottom - body.bottom, padding: parseFloat(getComputedStyle(element).paddingBottom), title: parseFloat(getComputedStyle(title).fontSize) };
           });
           if (phone) {
             expect(layout.padding).toBeLessThanOrEqual(18);
-            if (layout.bottomSpace !== null) expect(layout.bottomSpace).toBeLessThanOrEqual(layout.padding + 2);
+            expect(layout.bottomSpace).toBeLessThanOrEqual(layout.padding + 2);
             expect(layout.title).toBeGreaterThanOrEqual(25.6);
           }
         }
@@ -146,7 +143,8 @@ for (const locale of ["en", "ar"] as const) {
         const gallery = page.locator(".gallery-rail");
         const track = gallery.locator(".rail-track");
         await gallery.scrollIntoViewIfNeeded();
-        await expect(track).toHaveCSS("scroll-snap-type", "x mandatory");
+        // Chromium serializes the default proximity strictness as just "x".
+        await expect(track).toHaveCSS("scroll-snap-type", /^x(?: proximity)?$/);
         const previous = gallery.getByRole("button", { name: locale === "ar" ? "السابق" : "Previous", exact: true });
         const next = gallery.getByRole("button", { name: locale === "ar" ? "التالي" : "Next", exact: true });
         const count = await track.locator(":scope > *").count();

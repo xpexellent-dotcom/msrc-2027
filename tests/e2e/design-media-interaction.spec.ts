@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { prepareHeroCue } from "./helpers/hero-navigation";
 
 // MED-01/02, ACC-01, LOC-01/03: exercise the previously intercepted central
 // film surface, not just the uncovered eight-pixel gutter.
@@ -49,9 +48,11 @@ for (const locale of ["en", "ar"] as const) {
       expect(await page.evaluate(() => window.getSelection()?.toString().trim().length)).toBeGreaterThan(0);
       expect(await video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
     }
-    // Read the tall sticky hero through its final row before activating its CTA.
-    // Generic centering can scroll its covering content sheet over the pinned link.
-    if (!isMobile) await prepareHeroCue(page);
+    // Read the bottom-aligned opening before activating its CTA.
+    await page.evaluate(() => document.fonts.ready);
+    await page.locator(".conference-hero").evaluate((hero) => {
+      window.scrollTo({ top: Math.max(0, hero.getBoundingClientRect().height - window.innerHeight), behavior: "instant" });
+    });
     const action = page.locator(".hero-actions a").first();
     await expect(action).toBeInViewport({ ratio: 1 });
     await expect.poll(() => action.evaluate((element) => {

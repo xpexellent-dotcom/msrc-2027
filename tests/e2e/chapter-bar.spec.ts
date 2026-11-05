@@ -1,36 +1,8 @@
-import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { prepareHeroCue } from "./helpers/hero-navigation";
 
-// The Axiom demo replaces the chapter bar with the shared masthead and a native hero cue.
-// Keep the destination, focus, history and readable section hierarchy covered on every device.
+// ORG-072 removes the hero cue and keeps native scrolling and the shared masthead.
+// Keep readable section hierarchy and distinct participation destinations covered.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} the hero cue reaches participation while ordinary scrolling stays native`, async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto(`/${locale}`);
-    await expect(page.locator(".section-journey")).toHaveCount(0);
-    const cue = await prepareHeroCue(page);
-    await expect(cue).toBeVisible();
-    expect((await cue.boundingBox())?.height).toBeGreaterThanOrEqual(44);
-    await cue.click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}#participate$`));
-    const details = page.locator("#participate");
-    await expect(details).toBeFocused();
-    await expect(details).toBeInViewport();
-    expect((await new AxeBuilder({ page }).include("#participate")
-      .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
-    expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
-    const position = await page.evaluate(() => window.scrollY);
-    await page.keyboard.press("PageDown");
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(position);
-    await page.goBack();
-    await expect(page).toHaveURL(new RegExp(`/${locale}$`));
-    await expect(page.locator("#hero-title")).toBeVisible();
-
-    await page.setViewportSize({ width: 820, height: 1180 });
-    await expect(page.locator(".section-journey")).toHaveCount(0);
-  });
-
   test(`${locale} homepage sections retain ordered headings and five distinct participation destinations`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
@@ -53,6 +25,6 @@ for (const locale of ["en", "ar"] as const) {
       .toEqual(["registration", "abstracts", "workshops", "hackathon", "3mt"].map((path) => `/${locale}/${path}`));
     await expect(page.locator(".pathways-archive-note")).toHaveCount(0);
     await expect(page.locator(".hero-countdown [data-countdown]")).toHaveCount(1);
-    await expect(page.locator("#essentials [data-countdown]")).toHaveCount(0);
+    await expect(page.locator("#essentials")).toHaveCount(0);
   });
 }

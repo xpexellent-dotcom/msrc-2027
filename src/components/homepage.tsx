@@ -17,8 +17,7 @@ import { HistoryNumbers } from "@/components/history-numbers";
 import { SpeakerAtmosphere } from "@/components/speaker-atmosphere";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { BenefitArtwork } from "@/components/benefit-artwork";
-import { PathwayTrackNav } from "@/components/pathway-track-nav";
-import { PathwayDeck } from "@/components/pathway-deck";
+import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { conferenceExpectations } from "@/content/conference-expectations";
 import { conferenceConfig } from "@/config/conference";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
@@ -30,8 +29,15 @@ import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { SessionRow, SpeakerCard } from "@/components/conference-experiences";
 import type { PublicSession, PublicSpeaker } from "@/content/conference-experiences";
 
+import { Arrow } from "@/components/ui/arrow";
+import { BrandIcon } from "@/components/brand/brand-icon";
+import { Sparkle } from "@/components/brand/sparkle";
+import { FlowRibbon } from "@/components/brand/flow-ribbon";
+import { HeroSocialRow } from "@/components/home/hero-social-row";
+import { SponsorBelt } from "@/components/home/sponsor-belt";
+import { homePlaceholdersEnabled } from "@/lib/preview-placeholders";
+
 export type HomepageMediaPreview = { video: PreviewHeroVideo; poster: string; caption: string };
-const Arrow = () => <svg className="directional-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 
 export function HomePageContent({ locale, media, speakers = [], sessions = [] }: { locale: Locale; media?: HomepageMediaPreview; speakers?: readonly PublicSpeaker[]; sessions?: readonly PublicSession[] }) {
   const copy = homepageCopy[locale];
@@ -40,79 +46,69 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
   const expectations = conferenceExpectations[locale];
   const dates = conferenceConfig.dates;
   const dateRange = dates ? formatConferenceDateRange(dates, locale) : copy.pending;
+  const placeholders = homePlaceholdersEnabled();
   const pathways = [...copy.pathways, demo.threeMinute];
 
   return <div className="homepage-journey cinematic-home editorial-motion-home">
     <HeroScrollStage>
     <section id="top" tabIndex={-1} className="conference-hero" aria-labelledby="hero-title">
-      <HeroMedia locale={locale} video={media?.video ?? homepageAssets.heroVideo} posterSrc={media?.poster ?? homepageAssets.heroPoster} allowPreview={Boolean(media)} playbackPolicy="respect-preferences" controlsMode="video">
+      <HeroMedia locale={locale} video={media?.video ?? homepageAssets.heroVideo} posterSrc={media?.poster ?? homepageAssets.heroPoster} allowPreview={Boolean(media)} playbackPolicy="respect-preferences" controlsMode="video" showLabeledControls>
         <Container className="hero-content">
           <div className="hero-layout"><div className="hero-editorial">
+            <p className="hero-conference-name"><Sparkle size={14} />{copy.kicker}</p>
             <h1 id="hero-title"><span>{copy.title[0]}</span>{" "}<span>{copy.title[1]}</span></h1>
-            <p className="hero-conference-name">{copy.kicker}</p>
           </div></div>
           <div className="hero-bottom-grid">
             <div className="hero-introduction">
               <p className="hero-location"><span>{dateRange}</span><span aria-hidden="true">·</span><span>{copy.city}</span></p>
               <div className="hero-actions">
                 <ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink>
-                <Link className="hero-secondary" href={`/${locale}/program`}>{narrative.programmeAction}<Arrow /></Link>
+                <ButtonLink variant="ivory" href={`/${locale}/program`}>{narrative.programmeAction}<Arrow /></ButtonLink>
               </div>
+              <HeroSocialRow locale={locale} placeholders={placeholders} />
             </div>
-            {dates && <div className="hero-countdown"><ConferenceCountdown dates={dates} locale={locale} dateRange={dateRange} /></div>}
-          </div>
-          <div className="hero-bottom">
-            <Link href="#participate" className="hero-scroll"><span className="hero-scroll-label">{narrative.scroll}</span><span className="scroll-line" aria-hidden="true" /></Link>
+            {dates && <div className="hero-countdown"><ConferenceCountdown dates={dates} locale={locale} dateRange={dateRange} pauseWhenHidden /></div>}
           </div>
         </Container>
       </HeroMedia>
+      <FlowRibbon edge="bottom" />
       <CinematicFilm locale={locale} />
     </section>
     </HeroScrollStage>
     <div className="homepage-content-sheet">
     <ScrollScenes />
+    {placeholders && homepageAssets.sponsors.length === 0 ? <SponsorBelt locale={locale} /> : null}
 
     <section id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
-      <AmbientArtwork variant="paths" />
+      <AmbientArtwork variant="flow" figure="paths" />
       <Container className="pathways-layout">
         <div className="pathways-introduction">
           <SectionHeading chapter title={copy.pathwaysTitle} accents={locale === "ar" ? ["مسارك.", "مسارك"] : ["path.", "path"]} id="pathways-title" />
-          <PathwayTrackNav locale={locale} tracks={pathways.map((pathway) => ({ id: `pathway-${pathway.href.slice(1)}`, label: pathway.href === "/3mt" ? "3MT" : pathway.category }))} />
         </div>
-        <div className="pathway-list" data-pathway-deck="">{pathways.map((pathway, index) => {
+        <Reveal className="pathway-list path-bento" stagger="cascade">{pathways.map((pathway, index) => {
           const slug = pathway.href.slice(1);
-          const is3mt = pathway.href === "/3mt";
-          return <article className="pathway-card" key={pathway.href} data-pathway={pathway.href} id={`pathway-${slug}`} tabIndex={-1}>
-            <div className="pathway-tile">
-              <div className="pathway-photo"><Image src={demoImages.pathways[index]} alt="" fill sizes="(max-width: 800px) 200vw, (max-width: 1400px) 60vw, 850px" /></div>
-              <div className="pathway-card-body">
-                <p className="pathway-kicker">{pathway.title}</p>
-                <h3 className="pathway-name">{is3mt ? <><span aria-hidden="true">3MT</span><span className="sr-only">{pathway.category}</span></> : pathway.category}</h3>
-                <div className="pathway-meta">
-                  {pathway.href !== "/registration" ? <StatusBadge tone="neutral">{copy.closed}</StatusBadge> : null}
-                  <Link className="pathway-action ih-orb" href={`/${locale}${pathway.href}`} aria-label={`${narrative.pathwayLink}: ${pathway.category}`}><Arrow /></Link>
-                </div>
-              </div>
-            </div>
+          const attend = index === 0;
+          const icon = (["06-publications", "06-publications", "19-workshops", "20-hackathon", "15-schedule"] as const)[index];
+          return <article className={`pathway-card path-tile path-tile--${slug}`} key={pathway.href} data-pathway={pathway.href} id={`pathway-${slug}`}>
+            {attend ? <div className="pathway-photo"><Image src={demoImages.pathways[0]} alt="" fill sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1023px) 100vw, 760px" /></div> : <div className="path-tile-top"><BrandIcon name={icon} size={56} /><Arrow /></div>}
+            <h3 className="pathway-name"><Link className="pathway-action" href={`/${locale}${pathway.href}`} aria-describedby={`pathway-${slug}-kicker`}>{pathway.category}</Link></h3>
+            <p className="pathway-kicker" id={`pathway-${slug}-kicker`}>{pathway.title}</p>
+            {attend ? <><p className="path-tile-description">{pathway.description}</p><span className="path-cue" aria-hidden="true">{narrative.pathwayLink}<Arrow /></span></> : <StatusBadge tone="neutral">{copy.closed}</StatusBadge>}
           </article>;
-        })}</div>
-        <PathwayDeck />
+        })}</Reveal>
       </Container>
     </section>
 
     <section id="program" tabIndex={-1} className="editorial-section program-section" aria-labelledby="program-title">
-      <AmbientArtwork variant="benefits" />
+      <AmbientArtwork variant="flow" figure="program" />
       <Container>
         <Reveal className="program-opening" stagger>
           <SectionHeading chapter title={expectations.title} accents={locale === "ar" ? ["بفضولك.", "إمكاناتك."] : ["curiosity.", "possibility."]} id="program-title" />
-          <div><Link className="editorial-action" href={`/${locale}/participate`}>{expectations.link}<Arrow /></Link></div>
+          <div><p>{expectations.introduction}</p><Link className="editorial-action" href={`/${locale}/participate`}>{expectations.link}<Arrow /></Link></div>
         </Reveal>
         <div className="expectations-layout">
           <ResearchArtwork />
-          <div className="program-experiences">{expectations.benefits.map((benefit) => {
-            const showBody = ["cme", "award", "certificate"].includes(benefit.icon);
-            return <article className="benefit-card" key={benefit.title}><BenefitArtwork icon={benefit.icon} locale={locale} /><div className="benefit-copy"><h3>{benefit.title}</h3>{showBody ? <p>{benefit.homepageBody ?? benefit.body}</p> : null}</div></article>;
-          })}</div>
+          <Reveal className="program-experiences" stagger="cascade">{expectations.benefits.map((benefit) => <article className="benefit-card" key={benefit.title}><BenefitArtwork icon={benefit.icon} locale={locale} variant="brand" /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.homepageBody ?? benefit.body}</p></div></article>)}</Reveal>
         </div>
         {sessions.length ? <div className="public-home-programme" data-testid="home-published-programme">{sessions.slice(0, 4).map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}<Link className="editorial-action" href={`/${locale}/program`}>{narrative.programmeLink}<Arrow /></Link></div> : null}
       </Container>
@@ -121,54 +117,53 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
     <section id="speakers" tabIndex={-1} className="editorial-section speakers-section" aria-labelledby="speakers-title">
       <SpeakerAtmosphere />
       <Container>
-        <Reveal className="section-topline" stagger><SectionHeading chapter inverse title={narrative.speakersTitle} accents={locale === "ar" ? ["المتحدثين.", "المتحدثين"] : ["speakers.", "speakers"]} id="speakers-title" /><Link className="editorial-action orb-link" href={`/${locale}/speakers`}>{narrative.speakersLink}<span className="ih-orb" aria-hidden="true"><Arrow /></span></Link></Reveal>
-        {speakers.length ? <div className="speaker-grid public-home-speakers" data-testid="home-published-speakers">{speakers.slice(0, 4).map((speaker) => <SpeakerCard key={speaker.slug} locale={locale} speaker={speaker} />)}</div> : <p className="ih-pill speakers-pending"><span className="status-badge-dot" aria-hidden="true" />{narrative.speakersPending}</p>}
+        <Reveal className="section-topline" stagger><SectionHeading chapter title={narrative.speakersTitle} accents={locale === "ar" ? ["المتحدثين.", "المتحدثين"] : ["speakers.", "speakers"]} id="speakers-title" /><Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link></Reveal>
+        {!speakers.length ? <p className="section-intro-text">{narrative.speakersBody}</p> : null}
+        {speakers.length ? <div className="speaker-grid public-home-speakers" data-testid="home-published-speakers">{speakers.slice(0, 4).map((speaker) => <SpeakerCard key={speaker.slug} locale={locale} speaker={speaker} />)}</div> : <HorizontalRail className="speaker-rail" locale={locale} label={demo.speakerRail}>
+          {[0, 1, 2, 3].map((index) => <article className="speaker-preview-card" key={index}>
+            <div className="speaker-preview-portrait"><PortraitPlaceholder variant={index} /></div>
+            <div className="speaker-preview-content"><h3>{demo.speakerTitle}</h3><p>{demo.speakerPending}</p>{/* Pointer shortcut only: the section's "Meet the speakers" link already reaches this page, so the four identical placeholder cards add no keyboard or screen-reader stops. */}<Link className="speaker-preview-link" href={`/${locale}/speakers`} tabIndex={-1} aria-hidden="true"><Arrow /></Link></div>
+          </article>)}
+        </HorizontalRail>}
       </Container>
     </section>
 
     <section id="legacy" tabIndex={-1} className="editorial-section legacy-section" aria-labelledby="legacy-title">
-      <div className="community-image" aria-hidden="true"><Image src="/media/msrc-demo/community-majed-9804.jpg" alt="" fill sizes="(max-width: 800px) 200vw, 60vw" /></div>
-      <div className="community-flow" aria-hidden="true"><AmbientArtwork variant="people" /></div>
+      <div className="community-image" aria-hidden="true"><Image src="/media/msrc-demo/community-majed-9804.jpg" alt="" fill sizes="(max-width: 800px) 100vw, 60vw" /></div>
+      <div className="community-flow" aria-hidden="true"><AmbientArtwork variant="flow" figure="people" /></div>
       <Container>
-        <Reveal className="section-topline" stagger><SectionHeading chapter title={expectations.historyTitle} accents={locale === "ar" ? ["ينمو.", "يجمعنا."] : ["community.", "ambition."]} id="legacy-title" inverse /><Link className="editorial-action orb-link" href={`/${locale}/media`}>{expectations.legacyLink}<span className="ih-orb" aria-hidden="true"><Arrow /></span></Link></Reveal>
+        <Reveal className="section-topline" stagger><SectionHeading chapter title={expectations.historyTitle} accents={locale === "ar" ? ["ينمو.", "يجمعنا."] : ["community.", "ambition."]} id="legacy-title" inverse /><Link className="editorial-action" href={`/${locale}/media`}>{expectations.legacyLink}<Arrow /></Link></Reveal>
+        <p className="legacy-film-note">{expectations.historyBody}</p>
         <HistoryNumbers locale={locale} />
-        <HorizontalRail className="gallery-rail" hint={false} locale={locale} label={demo.galleryRail}>
+        <HorizontalRail className="gallery-rail" locale={locale} label={demo.galleryRail}>
           {demoImages.gallery.map((photo) => <figure className="gallery-card" key={photo.src}>
-            <div className="gallery-photo"><Image src={photo.src} alt={photo.alt[locale]} fill style={{ objectPosition: photo.objectPosition }} sizes="(max-width: 600px) 84vw, (max-width: 1100px) 62vw, 44vw" /><span className="home-photo-edition" dir="ltr">{photo.edition}</span></div>
+            <div className="gallery-photo"><Image src={photo.src} alt={photo.alt[locale]} fill style={{ objectPosition: photo.objectPosition }} sizes="(max-width: 800px) min(calc(100vw - max(1.25rem, 3.2vw) - 4rem), 34rem), min(52vw, 52rem)" /><span className="home-photo-edition" dir="ltr">{photo.edition}</span></div>
             <figcaption><span>{photo.caption[locale]}</span></figcaption>
           </figure>)}
         </HorizontalRail>
-        <div className="legacy-links"><CinematicFilmLink locale={locale}>{narrative.filmLink}<Arrow /></CinematicFilmLink></div>
+        <div className="legacy-links"><CinematicFilmLink locale={locale}>{narrative.filmLink}</CinematicFilmLink></div>
       </Container>
     </section>
 
     <section id="venue" tabIndex={-1} className="editorial-section home-venue-section" aria-labelledby="home-venue-title">
+      <AmbientArtwork variant="flow" figure="venue" />
       <Container>
-        <Reveal className="home-venue-opening" stagger>
-          <SectionHeading chapter title={expectations.venueTitle} accents={locale === "ar" ? ["جديدة."] : ["perspectives."]} id="home-venue-title" />
-          <div className="home-venue-place">
-            <figure className="home-venue-photo"><Image src="/media/msrc-demo/king-faisal-venue.jpg" alt={expectations.venueAlt} fill sizes="(max-width: 800px) 100vw, 90vw" /></figure>
-            <div className="home-venue-copy">
-              <p className="home-venue-kicker">{expectations.venueLocation}</p>
-              <h3>{expectations.venueName}</h3>
-              <Link className="editorial-action orb-link" href={`/${locale}/dates-venue`}>{expectations.venueLink}<span className="ih-orb" aria-hidden="true"><Arrow /></span></Link>
-            </div>
-          </div>
-        </Reveal>
+        <Reveal className="home-venue-opening" stagger><SectionHeading chapter title={expectations.venueTitle} accents={locale === "ar" ? ["جديدة."] : ["perspectives."]} id="home-venue-title" /><div><h3>{expectations.venueName}</h3><p>{expectations.venueBody}</p><Link className="editorial-action" href={`/${locale}/dates-venue`}>{expectations.venueLink}<Arrow /></Link></div></Reveal>
+        <Reveal className="home-venue-figure"><figure className="home-venue-photo"><Image src="/media/msrc-demo/king-faisal-venue.jpg" alt={expectations.venueAlt} fill sizes="(max-width: 800px) 94vw, 1200px" /><figcaption><Sparkle size={12} />{expectations.venueLocation}</figcaption></figure></Reveal>
       </Container>
     </section>
 
     <section id="faq" tabIndex={-1} className="editorial-section faq-section" aria-labelledby="practical-title">
       <Container><div className="faq-grid">
-        <Reveal className="faq-introduction"><SectionHeading chapter title={narrative.practicalTitle} id="practical-title" /><div className="faq-utility-links"><Link className="editorial-action" href={`/${locale}/contact`}>{demo.contact}<Arrow /></Link></div></Reveal>
+        <Reveal className="faq-introduction"><SectionHeading chapter title={narrative.practicalTitle} accents={locale === "ar" ? ["تصل."] : ["arrive."]} id="practical-title" /><div className="faq-utility-links"><Link className="editorial-action" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link><Link className="editorial-action" href={`/${locale}/contact`}>{demo.contact}<Arrow /></Link></div></Reveal>
         <div className="faq-list" aria-label={narrative.faqLabel}>{narrative.faq.map((faq) => <details className="faq-item" key={faq.question}>
-          <summary><span>{faq.question}</span><span className="faq-icon-circle"><svg className="faq-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5v14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg></span></summary><p>{faq.answer}</p>
+          <summary><span>{faq.question}</span><span className="faq-icon-circle"><svg className="faq-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path className="faq-plus-vertical" d="M12 5v14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg></span></summary><p>{faq.answer}</p>
         </details>)}</div>
       </div></Container>
     </section>
 
     <ClosingCity locale={locale} video={demoImages.closing.video} poster={demoImages.closing.poster}>
-      <Container><Reveal className="closing-grid" stagger><div><h2 id="closing-title">{copy.endingTitle}</h2><p className="closing-date">{dateRange} · {copy.city}</p></div><ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink></Reveal></Container>
+      <Container><Reveal className="closing-grid" stagger><div><h2 id="closing-title">{copy.endingTitle}</h2><p className="closing-date"><Sparkle size={12} /><span>{dateRange}</span>{" "}<span aria-hidden="true">·</span>{" "}<span>{copy.city}</span></p></div><ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink></Reveal></Container>
     </ClosingCity>
     </div>
   </div>;

@@ -1,4 +1,3 @@
-import { homepageNarrative } from "@/content/homepage-narrative";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -6,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import HomePage from "@/app/[locale]/(preview)/page";
 import DesignSystemPage from "@/app/[locale]/design-system/page";
 import HeroPreviewPage from "@/app/[locale]/hero-preview/page";
-import { demoImages } from "@/content/cinematic-demo";
+import { cinematicCopy, demoImages } from "@/content/cinematic-demo";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
 import { hasApprovedVideo } from "@/lib/media-policy";
 import { conferenceEventJsonLd } from "@/lib/structured-data";
@@ -22,10 +21,13 @@ describe("approved design publication without preview authorization (DSN-01/02, 
   it.each(["en", "ar"] as const)("renders the complete approved %s homepage with preview flags absent", async (locale) => {
     const html = renderToStaticMarkup(await HomePage({ params: Promise.resolve({ locale }) }));
     expect(html).toContain(homepageCopy[locale].title[0]);
-    expect(html).toContain(homepageNarrative[locale].speakersPending);
+    expect(html).toContain(cinematicCopy[locale].speakerPending);
     expect(html).toContain('id="participate"');
     expect(html).toContain('id="legacy"');
-    expect(html).toContain('class="pathway-track-nav"');
+    expect(html).toMatch(/class="[^"]*\bpathway-list path-bento"/);
+    expect(html.match(/class="[^"]*\bpathway-action"/g)).toHaveLength(5);
+    expect(html).not.toContain("sponsor-belt");
+    expect(html).not.toContain("hero-social");
     expect(html).toContain("community-majed-9804.jpg");
     expect(html).toContain("jeddah-opening-cropped-poster.jpg");
     expect(html).toContain(locale === "en" ? "Illustrative" : "مثال بصري");

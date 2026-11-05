@@ -16,7 +16,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
     await page.keyboard.press("Tab");
 
-    for (const selector of ['#program .editorial-action', '#legacy [data-testid="watch-opening-film"]']) {
+    for (const selector of ['#program .editorial-action', '#legacy .button--outline-inverse[data-testid="watch-opening-film"]', '.hero-actions .button--ivory']) {
       const action = page.locator(selector);
       await action.focus();
       await expect(action).toBeFocused();
