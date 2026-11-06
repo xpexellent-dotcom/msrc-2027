@@ -257,7 +257,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       </Container>
       {menuOpen || menuClosing ? <MobileNav id={menuId} label={copy.navigation} links={links} locale={locale}
         pathname={pathname} status={copy.registration} action={action.label} actionHref={action.href} animate={animateMenu} closing={menuClosing}
-        onExited={finishMenuClose} onNavigate={onNavigate} /> : null}
+        onExited={finishMenuClose} onNavigate={onNavigate} reserveFocusReturn={() => toggleRef.current} /> : null}
     </header>
   );
 }

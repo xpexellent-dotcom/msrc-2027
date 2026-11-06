@@ -61,7 +61,7 @@ for (const locale of ["en", "ar"] as const) {
         const gutter = probe.getBoundingClientRect().width;
         probe.remove();
         const edge = Math.max(gutter, (innerWidth - parseFloat(style.getPropertyValue("--home-container")) * parseFloat(getComputedStyle(document.documentElement).fontSize)) / 2);
-        const selectors = [".hero-conference-name", "#hero-title", ".hero-actions > .reserve-seat", ".hero-actions > a", ".hero-location", ".wordmark", "#participate h2", ".path-bento", "#practical-title", ".footer-wordmark", ".footer-directory-group"];
+        const selectors = [".hero-conference-name", "#hero-title", ".hero-actions > a", ".hero-location", ".wordmark", "#participate h2", ".path-bento", "#practical-title", ".footer-wordmark", ".footer-directory-group"];
         return { edge, items: selectors.map((selector) => {
           const box = document.querySelector(selector)!.getBoundingClientRect();
           return { selector, edge: document.documentElement.dir === "rtl" ? innerWidth - box.right : box.left };
@@ -102,7 +102,7 @@ for (const locale of ["en", "ar"] as const) {
       expect(Math.abs(venue.width - (width - 2 * edges.edge))).toBeLessThanOrEqual(1);
       await expect(page.locator(".home-venue-photo img")).toHaveAttribute("sizes", "(max-width: 800px) 94vw, 1200px");
       for (const part of await page.locator(".countdown-time-part").all()) await expect(part).toHaveCSS("text-align", "start");
-      const actions = page.locator(".hero-actions > .button, .hero-actions > .reserve-seat > .button");
+      const actions = page.locator(".hero-actions > .button");
       await expect(actions).toHaveCount(2);
       const primary = (await actions.nth(0).boundingBox())!;
       const secondary = (await actions.nth(1).boundingBox())!;

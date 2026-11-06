@@ -85,16 +85,16 @@ test("disabled and loading demonstrations cannot trigger operations", async ({ p
   }
   await page.goto("/en");
   const action = page.locator(".header-primary-action");
-  await expect(action).toHaveAttribute("aria-expanded", "false");
+  await expect(action).toHaveAttribute("aria-haspopup", "dialog");
   if (await action.isVisible()) {
     await action.click();
-    await page.locator(".header-primary-action-wrap .reserve-seat-panel a").first().click();
   }
   else {
     await page.locator(".menu-toggle").click();
-    await page.locator(".mobile-menu").getByRole("link", { name: "Reserve your seat", exact: true }).click();
+    await page.locator(".mobile-menu").getByRole("button", { name: "Reserve your seat", exact: true }).click();
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
   }
+  await page.locator(".reserve-seat-dialog a").first().click();
   await expect(page).toHaveURL(/\/en\/sign-in$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.locator("main form, main input, main textarea")).toHaveCount(0);

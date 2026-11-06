@@ -447,3 +447,149 @@ The moving illustrative belt retains the explicit owner-directed WCAG 2.2.2 trad
 Screenshot review found the path tiles inconsistent: Attend's badge floated mid-photo with two arrows, Hackathon's badge and arrow sat in different corners, and Attend shared Research's icon. All tiles now use one layout: brand badge at the top inline-end, arrow at the bottom inline-end (Attend keeps only its "Explore this pathway" arrow, and the small-tile arrows are hidden under 360px so they cannot touch the status pill). Attend uses `13-collaboration`.
 
 Rerun on final source: `pnpm build` PASS; `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm test` PASS, 5,660; `pnpm exec playwright test` PASS, 922 passed / 170 skipped / 0 failed. Tile captures reviewed at EN 320/390/1440 and AR 320. The other suites ran before this CSS and icon-only change and were not rerun.
+
+## Reserve pop-up (6 November 2026)
+
+This follow-up supersedes the earlier Reserve disclosure receipts. Starting branch:
+claude/mobile-immersive-home, HEAD c25191b528889c5749408a0946dda17a9f4cde4c.
+The stopped run left a native-dialog implementation and test edits uncommitted;
+those relevant edits were retained and corrected for the latest owner clarification.
+Incumbent untracked identity exports were preserved.
+
+ORG-073 and ENG-095 are amended in place. Only navigation Reserve actions open the
+shared native showModal() dialog: desktop header or phone menu, with the menu
+removed synchronously first. Hero and closing actions are ordinary localized
+Participate links. Existing headerAction and ENG-085/086 signed-in profile behavior
+remain unchanged. The dialog reuses brand-identity's seal, participantCopy's
+newHereBody/signIn/signUp and existing bilingual title/close labels. Gold and
+outlined choices have equal widths and 56px minimum heights. Close is 44px.
+
+Native modality contains focus and handles Escape; initial focus goes to Sign in.
+Close, Escape and outside-rectangle backdrop clicks restore desktop trigger focus
+or the surviving phone menu toggle. There is no blur dismissal, scroll handler,
+body scroll lock, added dependency or backdrop blur. The page scrollbar is retained.
+Logical close positioning, mirrored shared arrows, 16px gutters, short-viewport
+internal overflow, a gentle 180ms open animation, reduced-motion and forced-colors
+fallbacks cover LOC-01, ACC-01 and DSN-02; AUTH-01 workflow flags remain closed.
+Old reserve-seat-panel markup/CSS and the redundant phone sign-up link are removed.
+
+Retargeted tests (only affected selectors, roles and destinations):
+
+| Files under tests/e2e unless stated | Change |
+| --- | --- |
+| axiom-navigation, dates-venue, premium-interface, public-shell | Header dialog semantics; updated hero link selectors; phone button focus and dialog choice activation. |
+| brand-motion, design-motion-refinement, design-system, participation-flow, private-csp | Follow navigation trigger into the native dialog, then activate Sign in. Preserve navigation/focus/CSP checks. |
+| axiom-city, design-media-interaction, participant-journey, participation-flow, home-v2 | Hero/closing use Participate links; retain media, bounds, reading and pathway assertions. |
+| mobile-menu-panel, mobile-navigation, conference-experience | Phone Reserve is the first button/focus target; menu closes before the dialog opens. |
+| home-owner-round3 | EN/AR header and phone opening, both destinations, native modality and focus containment, Escape/close/backdrop plus focus return, stable wordmark bounds, 320/390/1024/1440 and 667x320 landscape, 44px targets, no-JS header fallback, forced colors, reduced motion and axe while open. Captures are written once by the desktop project to avoid concurrent overwrites. |
+| tests/participant-e2e/participant-accounts | Signed-out navigation enters the dialog; existing synthetic sign-in, My profile, initials/avatar assertions retained. |
+
+Initial investigation: an interrupted default run exposed the old first-link
+keyboard assertion in conference-experience. The analogous public-shell and
+mobile-navigation expectations were corrected without relaxing focus assertions.
+The targeted home-owner-round3 run completed all 16 cases successfully. Windows
+server cleanup needed an explicit stop of its own loopback Next process after
+all cases finished. The final matrix below is rerun sequentially on final source.
+
+Screenshot evidence is in .tools/home-v2/round4/. No commit, push, branch,
+deployment, hosted setting, live email, workflow activation, docs/PROGRESS.md edit
+or journey-stepper.ts edit is authorized or performed.
+
+Intermediate verification findings: two interrupted default runs exposed stale
+first-link focus assumptions (including the 200% participant journey). Those
+assertions now target the Reserve button and keep the original focus/bounds
+requirements. Lint also caught a syntax error in a test edit; it was corrected
+before the final full matrix. No retries or assertion timeouts were added.
+
+The first final-source real-user run with its configured two workers reported
+144 passed / 5 skipped / 1 failed. The failure was page.goto before document load,
+net::ERR_NO_BUFFER_SPACE, on Android EN /program in the pre-hydration navigation
+case (real-user-navigation.spec.ts:91). The same case passed in AR. Its original
+log and copied trace remain in .tools/home-v2/round4/real-user.log and
+.tools/home-v2/round4/real-user-initial-failure-trace.zip. An unchanged-source full serial rerun uses --workers=1 to reduce local
+socket pressure; its result is recorded below. No application or test source is
+changed for this environmental rerun.
+
+### Final-source verification matrix
+
+Commands ran one suite at a time, with zero configured retries. Logs are under
+.tools/home-v2/round4/; results.json records exact exit codes and elapsed seconds.
+
+| Command | Result | Observed evidence |
+| --- | --- | --- |
+| `pnpm lint` | PASS | clean; 42s |
+| `pnpm typecheck` | PASS | clean; 5s |
+| `pnpm test` | PASS | 5,660 passed; 24s |
+| `pnpm build` | PASS | production build completed; 12s |
+| `pnpm exec playwright test` | PASS | 926 passed / 170 skipped; 1164s |
+| `pnpm exec playwright test --config playwright.participant.config.ts` | PASS | 212 passed / 4 skipped; 611s |
+| `pnpm exec playwright test --config playwright.auth.config.ts` | PASS | 81 passed; 64s |
+| `pnpm exec playwright test --config playwright.contact.config.ts --project contact-safari` | PASS | 42 passed; 238s |
+| `node scripts/build-home-preview-e2e.ts` | PASS | isolated build completed; 14s |
+| `pnpm exec playwright test --config playwright.home-preview.config.ts` | PASS | 16 passed; 29s |
+| `pnpm exec playwright test --config playwright.real-user.config.ts --project chrome-chromium --project android-chromium` | FAIL (see explanation) | 144 passed / 5 skipped / 1 ERR_NO_BUFFER_SPACE before page load; 209s |
+| `pnpm exec playwright test --config playwright.real-user.config.ts --project chrome-chromium --project android-chromium --workers=1` | PASS | 145 passed / 5 skipped; 388s |
+| `pnpm exec playwright test --config .tools/home-v2/round4/dialog-webkit.config.ts` | FAIL (see explanation) | temporary launcher cwd error before tests; 1s |
+| `pnpm exec playwright test --config .tools/home-v2/round4/dialog-webkit.config.ts` | PASS | 8 passed; both links, EN/AR, desktop/iPhone emulation, Escape and focus return; 31s |
+
+The optional WebKit launcher initially resolved node_modules relative to its
+.tools directory and failed before tests. Its temporary config now explicitly
+uses the workspace cwd; the corrected run passes all eight cases. This modifies
+no tracked configuration. Its first log is preserved as
+dialog-webkit-launcher-failure.log.
+
+Local Windows Playwright server-tree cleanup did not terminate the loopback Next
+servers on its own. The local cleanup helper waited until every test result was
+received, then stopped only that suite's own loopback server PIDs. Each passing
+suite exited zero. Commands, PIDs and result totals are preserved in
+local-server-cleanup.log. Test retries, timeouts, assertions and tracked runners
+were not changed for this environment workaround.
+
+### Screenshots and visual review
+
+PASS for settled layout review. Final canonical PNGs are
+{en,ar}-reserve-{320,390,1024,1440}-{motion,reduce}.png in .tools/home-v2/round4/.
+Each phone capture opens through the phone menu; 1024 and 1440 open through the
+header. Phone height is 844px, desktop height 900px. Additional 667x320 landscape
+captures include a -choices image after native internal scrolling reaches both
+links. The final eight normal-preference width/locale captures and reduced-motion
+390/1440 captures were opened and visually reviewed. Seal, text, choice separation,
+mirrored arrows, close position and viewport bounds are readable and contained.
+
+Commands: node .tools/home-v2/round4/capture.mjs; node
+.tools/home-v2/round4/capture-webkit.mjs; node
+.tools/home-v2/round4/capture-settled.mjs. All completed with exit zero.
+The final canonical files use Chromium and Playwright animations: disabled for
+stable, settled layout snapshots; they do not prove hardware motion performance.
+Their geometry, locale, motion preference and trigger are recorded in
+capture-evidence-settled.json. Earlier engine samples are retained in
+chromium-captures/ and webkit-captures/.
+
+Visual limitation: unfrozen motion captures intermittently omitted painted
+layers, particularly the seal and parts of button surfaces in wider Arabic
+views. This also occurred in a WebKit capture. Native DOM hit testing, visibility,
+bounds and scroll offsets stayed correct, and unchanged fresh captures could
+render correctly. Runtime-only probes compared animation endpoints, disabled
+animation, overflow, header blur and paused video without isolating a reliable
+CSS cause. These probes made no source changes. paint-debug.json,
+paint-variants.json and ar-paint/variant PNGs retain this evidence. An optional
+full-Chromium-channel launch probe was BLOCKED by spawn UNKNOWN in this runtime.
+Do not describe this as confirmed fixed on physical devices. Physical iPhone
+motion, reload/memory behavior and assistive-technology testing remain NOT TESTED;
+these are the next manual review items. Static screenshots pass; they do not
+close this hardware check.
+
+### Final integrity
+
+PASS: node .tools/home-v2/round4/final-integrity.mjs; git diff --check.
+Branch remains claude/mobile-immersive-home; HEAD remains
+c25191b528889c5749408a0946dda17a9f4cde4c. Application/test source hash is
+aac383c942472c8a442717790e6882d689dcd3272c75cc33d75838de91bec6d3,
+unchanged across the final verification and diagnostics. docs/PROGRESS.md,
+src/lib/journey-stepper.ts, src/content/policies.ts and pnpm-lock.yaml match HEAD.
+All four overwritten .impeccable/review/venue-journey JPGs were restored from
+exact binary HEAD blobs without touching the worktree index and match HEAD.
+Incumbent untracked identity exports remain present. The only decision entries
+amended are ORG-073 and ENG-095. Work is uncommitted. No hosted changes, commits,
+pushes, deployments, paid resources, live workflow activation or real participant
+communications occurred.

@@ -5569,8 +5569,10 @@ one exception to ENG-094's iOS prohibition on backdrop-filter, with blur capped
 at 14px. Other elements retain the prohibition. A real iPhone reload check is
 still required.
 
-For signed-out visitors, Reserve your seat opens Sign in and Sign up choices in
-the header, hero and closing section. The signed-in header retains My profile
+For signed-out visitors, only navigation Reserve your seat opens a centred
+Sign in and Sign up modal: the desktop header and phone menu (which closes first).
+The homepage hero and closing actions are plain links to the Participate page.
+The signed-in header retains My profile
 with its existing picture or initials under ENG-085/086. The phone menu retains
 sign-in and sign-up access. Navigation alone calls Research competition
 Abstracts, using the site's existing Arabic abstracts term.
@@ -5625,14 +5627,25 @@ removed. Before hydration, without JavaScript or without IntersectionObserver,
 the header uses a readable solid surface. Home starts dark. Interior pages start
 light over their existing ivory header clearance and change tone as their
 sections pass under the bar. Reduced transparency, unsupported
-backdrop-filter and forced-colors have solid fallbacks. The dropdown, phone menu
-and seat popover use opaque surfaces. Background blur declarations on other
+backdrop-filter and forced-colors have solid fallbacks. The dropdown and phone menu
+use opaque surfaces. The Reserve dialog also uses an opaque surface.
+Background blur declarations on other
 legacy public surfaces are removed, implementing the sole-element iOS budget.
 
-The shared seat component server-renders a sign-in link, upgrades after
-hydration to a real disclosure button, and preserves keyboard focus rules,
-Escape, outside dismissal, logical alignment and viewport bounds. Closing
-choices open above their button. Phone menu Sign up reuses participant copy.
+The shared seat component server-renders a sign-in link and upgrades after
+hydration to a dialog trigger. The 6 November Reserve pop-up refinement uses one
+native dialog opened with showModal() from the signed-out desktop header and
+phone menu actions only. Hero and closing remain plain Participate links. Its
+opaque purple surface has the existing seal,
+approved bilingual account introduction, equal Sign in / Sign up choices and a
+44px close control at the inline end. A plain dark translucent backdrop has no
+blur. Native modality supplies focus containment and Escape. Explicit focus
+starts at Sign in and returns to the opener on dismissal. The phone menu closes
+synchronously before opening and returns focus to its surviving menu toggle.
+Backdrop clicks dismiss only outside the dialog rectangle. No blur dismissal or
+scroll handlers are added, and the page scrollbar is retained. Logical layout,
+16px gutters at 320px, internal short-viewport scrolling, reduced-motion and
+forced-colors styles apply. The signed-in header remains under ENG-085/086.
 Registration, submission, account and delivery flags are unchanged.
 
 conferenceConfig.dates is null. Separate localized month labels and the
@@ -5666,7 +5679,7 @@ contains a partly framed standing person. Cropping cannot recover that missing
 source area. The Legacy image covers the entire section beneath an even 82%
 purple scrim. Homepage-only --home-container grows from 75rem to 90rem at 1680px.
 The header and footer inherit the same homepage edge. Interior container widths
-retain their existing values. Badge sizes, popover radii, photo borders and
+retain their existing values. Badge sizes, dialog radii, photo borders and
 phone clear space form the restrained consistency pass. Native scrolling and
 src/lib/journey-stepper.ts are preserved.
 
@@ -5676,5 +5689,6 @@ AGENTS.md and ENG-094, and ORG-001's published exact days. It does not approve a
 legal rewrite, a replacement registration/abstract deadline, operational
 activation, hosted configuration or a deployment. The task's dedicated receipt
 overrides the ordinary AGENTS.md instruction to edit docs/PROGRESS.md. Only this
-entry and ORG-073 are appended. Verification, measurements, retargeted tests and
+entry and ORG-073 were originally appended; the Reserve refinement amends both
+in place with no new IDs. Verification, measurements, retargeted tests and
 visual evidence are recorded in [the round-three receipt](progress/2026-11-06-homepage-owner-edits.md).

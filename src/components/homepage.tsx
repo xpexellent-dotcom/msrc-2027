@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { ReserveSeat } from "@/components/reserve-seat";
 import { HeroMedia } from "@/components/hero-media";
 import { HeroScrollStage } from "@/components/hero-scroll-stage";
 import { CinematicFilm, CinematicFilmLink } from "@/components/cinematic-film";
@@ -63,7 +62,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
             <div className="hero-introduction">
               <p className="hero-location"><span>{dateRange}</span><span aria-hidden="true">·</span><span>{copy.city}</span></p>
               <div className="hero-actions">
-                <ReserveSeat locale={locale} label={demo.join} />
+                <ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink>
                 <ButtonLink variant="ivory" href={`/${locale}/program`}>{narrative.programmeAction}<Arrow /></ButtonLink>
               </div>
               <HeroSocialRow locale={locale} placeholders={placeholders} />
@@ -164,7 +163,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
     </section>
 
     <ClosingCity video={demoImages.closing.video} poster={demoImages.closing.poster}>
-      <Container><Reveal className="closing-grid" stagger><div><h2 id="closing-title">{copy.endingTitle}</h2><p className="closing-date"><Sparkle size={12} /><span>{dateRange}</span>{" "}<span aria-hidden="true">·</span>{" "}<span>{copy.city}</span></p></div><ReserveSeat locale={locale} label={demo.join} placement="above" /></Reveal></Container>
+      <Container><Reveal className="closing-grid" stagger><div><h2 id="closing-title">{copy.endingTitle}</h2><p className="closing-date"><Sparkle size={12} /><span>{dateRange}</span>{" "}<span aria-hidden="true">·</span>{" "}<span>{copy.city}</span></p></div><ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink></Reveal></Container>
     </ClosingCity>
     </div>
   </div>;

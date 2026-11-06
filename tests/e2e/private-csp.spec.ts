@@ -77,8 +77,8 @@ for (const locale of ["en", "ar"] as const) {
       await page.locator(".mobile-reserve-action").click();
     } else {
       await page.locator(".header-primary-action").click();
-      await page.locator(".header-primary-action-wrap .reserve-seat-panel a").first().click();
     }
+    await page.locator(".reserve-seat-dialog a").first().click();
     // ENG-085: the header action now opens Sign in, itself a protected page.
     await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
     expect(await page.locator("script").first().evaluate((script) => script.nonce)).not.toBe("");

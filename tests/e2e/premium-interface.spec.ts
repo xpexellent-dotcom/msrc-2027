@@ -61,8 +61,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".footer-directory-note, .program-sample-label, .hero-media-status")).toHaveCount(0);
     await expect(page.locator(".conference-hero [data-countdown]")).toHaveCount(1);
     await expect(page.locator(".date-band [data-countdown]")).toHaveCount(0);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("aria-expanded", "false");
-    await expect(page.locator(".hero-actions > .button, .hero-actions > .reserve-seat > .button")).toHaveCount(2);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(page.locator(".hero-actions > .button, .hero-actions > a[href$=\"/participate\"]")).toHaveCount(2);
     const opening = await page.locator(".conference-hero").boundingBox();
     const viewport = await page.evaluate(() => ({ width: document.documentElement.clientWidth, height: window.innerHeight }));
     expect(opening?.width).toBeGreaterThanOrEqual(viewport.width - 1);
@@ -180,7 +180,7 @@ test("the opening headline and navigation appear while footage is still loading"
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(content.en.title);
     await expect(page.locator(".site-header-inner")).toBeVisible();
     await expect(page.locator(".conference-hero .hero-media-poster")).toBeVisible();
-    await expect(page.locator(".hero-actions > .reserve-seat > .button")).toBeVisible();
+    await expect(page.locator(".hero-actions > a[href$=\"/participate\"]")).toBeVisible();
   } finally {
     releaseFilm?.();
   }

@@ -52,7 +52,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.locator(".conference-hero").evaluate((hero) => {
       window.scrollTo({ top: Math.max(0, hero.getBoundingClientRect().height - window.innerHeight), behavior: "instant" });
     });
-    const action = page.locator(".hero-actions .reserve-seat > button");
+    const action = page.locator(".hero-actions a[href$=\"/participate\"]");
     await expect(action).toBeInViewport({ ratio: 1 });
     await expect.poll(() => action.evaluate((element) => {
       const box = element.getBoundingClientRect();
@@ -60,9 +60,7 @@ for (const locale of ["en", "ar"] as const) {
       return hit !== null && element.contains(hit);
     }), { message: "The visible registration link receives a real pointer hit." }).toBe(true);
     await action.click();
-    await expect(action).toHaveAttribute("aria-expanded", "true");
-    await page.locator(".hero-actions .reserve-seat-panel").getByRole("link").first().click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
+    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
   });
 
   for (const reducedMotion of ["reduce", "no-preference"] as const) {

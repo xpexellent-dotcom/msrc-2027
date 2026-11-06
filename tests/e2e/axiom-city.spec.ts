@@ -81,11 +81,10 @@ for (const preference of [
     await expect.poll(() => poster.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
     await expect(closing.locator("video, .city-control")).toHaveCount(0);
     await expect(closing.locator("#closing-title")).toBeVisible();
-    const reserve = closing.locator(".reserve-seat > button");
-    await expect(reserve).toHaveAttribute("aria-expanded", "false");
+    const reserve = closing.locator(`a[href="/${preference.locale}/participate"]`);
+    await expect(reserve).toHaveAttribute("href", `/${preference.locale}/participate`);
     await reserve.click();
-    expect(await closing.getByRole("link").evaluateAll(links => links.map(link => link.getAttribute("href"))))
-      .toEqual([`/${preference.locale}/sign-in`, `/${preference.locale}/sign-up`]);
+    await expect(page).toHaveURL(new RegExp(`/${preference.locale}/participate$`));
     expect(requests).toEqual([]);
     expect(errors).toEqual([]);
   });

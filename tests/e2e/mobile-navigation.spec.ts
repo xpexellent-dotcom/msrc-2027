@@ -53,13 +53,13 @@ for (const locale of ["en", "ar"] as const) {
       await toggle.click();
       await expect(toggle).toHaveAttribute("aria-expanded", "true");
       await expect(page.locator(".mobile-menu")).toBeVisible();
-      const firstLink = page.locator(".mobile-menu").getByRole("link").first();
+      const firstAction = page.locator(".mobile-menu .mobile-reserve-action");
       // Windows WebKit's default keyboard policy tabs to controls, skipping links.
       // Chromium verifies native Tab order; WebKit verifies explicit link focus and
       // keyboard activation below, without changing browser or system preferences.
-      if (browserName === "webkit") await firstLink.focus();
+      if (browserName === "webkit") await firstAction.focus();
       else await page.keyboard.press("Tab");
-      await expect(firstLink).toBeFocused();
+      await expect(firstAction).toBeFocused();
       await page.keyboard.press("Escape");
       await expect(page.locator(".mobile-menu")).toHaveCount(0);
       await expect(toggle).toBeFocused();

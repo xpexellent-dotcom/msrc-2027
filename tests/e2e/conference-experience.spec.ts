@@ -487,7 +487,7 @@ test("floating mobile navigation supports keyboard dismissal, current page and l
     const program = menu.locator(`a[href="/${locale}/program"]`);
     await expect(program).toHaveAttribute("aria-current", "page");
     await page.keyboard.press("Tab");
-    await expect(menu.getByRole("link").first()).toBeFocused();
+    await expect(menu.locator(".mobile-reserve-action")).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(menu).toHaveCount(0);
     await expect(toggle).toBeFocused();
