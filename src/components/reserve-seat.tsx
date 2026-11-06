@@ -14,7 +14,7 @@ const serverSnapshot = () => false;
 const ReserveContext = createContext<((trigger: HTMLElement) => void) | null>(null);
 
 /** One native top-layer dialog shared by navigation Reserve actions. */
-export function ReserveSeatProvider({ children, locale }: { children: React.ReactNode; locale: Locale }) {
+export function ReserveSeatProvider({ children, locale, enabled = true }: { children: React.ReactNode; locale: Locale; enabled?: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const firstChoice = useRef<HTMLDivElement>(null);
@@ -30,7 +30,7 @@ export function ReserveSeatProvider({ children, locale }: { children: React.Reac
   };
   return <ReserveContext value={open}>
     {children}
-    <dialog ref={dialog} className="reserve-seat-dialog" aria-labelledby={titleId} aria-describedby={bodyId}
+    {enabled ? <dialog ref={dialog} className="reserve-seat-dialog" aria-labelledby={titleId} aria-describedby={bodyId}
       onClose={() => returnFocus.current?.focus({ preventScroll: true })}
       onClick={(event) => {
         if (event.target !== event.currentTarget) return;
@@ -47,7 +47,7 @@ export function ReserveSeatProvider({ children, locale }: { children: React.Reac
         <ButtonLink href={"/" + locale + "/sign-in"} variant="gold" onClick={close}>{copy.signIn}<Arrow /></ButtonLink>
         <ButtonLink href={"/" + locale + "/sign-up"} variant="outline-inverse" onClick={close}>{copy.signUp}<Arrow /></ButtonLink>
       </div>
-    </dialog>
+    </dialog> : null}
   </ReserveContext>;
 }
 

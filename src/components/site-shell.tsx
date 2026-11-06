@@ -15,7 +15,7 @@ export function SiteShell({ children, locale, showDesignSystem = false }: {
   const copy = dictionaries[locale];
   const privateStaffRoute = /^\/(en|ar)\/(?:staff(?:\/|$)|(?:reviewer|judge)\/competitions(?:\/|$))/.test(usePathname());
   return (
-    <ReserveSeatProvider locale={locale}>
+    <ReserveSeatProvider locale={locale} enabled={!privateStaffRoute}>
       <a className="skip-link" href="#main-content" tabIndex={0}>{copy.skip}</a>
       {!privateStaffRoute ? <SiteHeader locale={locale} /> : null}
       <main data-header-section={privateStaffRoute ? undefined : "light"} id="main-content" className={privateStaffRoute ? "staff-main" : undefined} tabIndex={-1}>{children}</main>

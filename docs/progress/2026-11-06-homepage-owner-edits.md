@@ -593,3 +593,7 @@ Incumbent untracked identity exports remain present. The only decision entries
 amended are ORG-073 and ENG-095. Work is uncommitted. No hosted changes, commits,
 pushes, deployments, paid resources, live workflow activation or real participant
 communications occurred.
+
+### CI follow-up: staff routes (6 November 2026)
+
+CI failed `tests/staff-password-e2e/password-change.spec.ts` at a820be1: the closed dialog's seal image rendered on private staff routes, which have no Reserve trigger. `ReserveSeatProvider` now takes `enabled`, and `SiteShell` omits the dialog on those routes. After `pnpm build`, staff-password passed 26 (2 skipped); server-closed and database-closed gates passed 6 each; `home-owner-round3` + `mobile-navigation` passed 24 (8 skipped); staff-profile passed 4 on the pre-rebuild server; lint and typecheck passed. The rest of the staff workflow is confirmed by CI.
