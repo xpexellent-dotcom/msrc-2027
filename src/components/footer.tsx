@@ -33,11 +33,11 @@ const directoryGroups = [
 export function Footer({locale, showDesignSystem = false}: {locale: Locale; showDesignSystem?: boolean}) {
   const footer = footerCopy[locale];
   return (
-      <footer className="site-footer">
+      <footer className="site-footer" data-header-section="dark">
         <Container>
           <div className="footer-top">
             <div className="footer-brand">
-              <Image src={brandLogo.onPurple} alt="" width={brandLogoRendition.width} height={brandLogoRendition.height} loading="eager" className="footer-logo" />
+              <div className="footer-wordmark" dir="ltr" aria-hidden="true"><Image src={brandLogo.onPurple} alt="" width={brandLogoRendition.width} height={brandLogoRendition.height} loading="eager" unoptimized className="footer-logo" /><span className="brand-word" lang="en">MSRC’27</span></div>
               <span className="footer-identity sr-only" dir="ltr" lang="en">MSRC<span>2027</span></span>
               <div className="footer-brand-copy">
                 <p>{footer.description}</p>

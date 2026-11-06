@@ -92,13 +92,13 @@ test("paragraphs and list items wrap without a lone last word where supported", 
   }
 });
 
-// The clock counts whole days to 00:00 Riyadh on Day 1 (2027-01-26T21:00Z); each instant sits
+// The clock counts to April 2027 at Riyadh midnight (2027-03-31T21:00Z); each instant sits
 // half a day before a boundary. Plural categories alone gave «٠ يومًا» and «١٠٠ يومًا».
 for (const [instant, days, unit] of [
-  ["2027-01-26T09:00:00Z", "٠", "يوم"],
-  ["2027-01-24T09:00:00Z", "٢", "يومان"],
-  ["2026-10-19T09:00:00Z", "٩٩", "يومًا"],
-  ["2026-10-18T09:00:00Z", "١٠٠", "يوم"],
+  ["2027-03-31T09:00:00Z", "٠", "يوم"],
+  ["2027-03-29T09:00:00Z", "٢", "يومان"],
+  ["2026-12-22T09:00:00Z", "٩٩", "يومًا"],
+  ["2026-12-21T09:00:00Z", "١٠٠", "يوم"],
 ] as const) {
   test(`Arabic countdown pairs ${days} with ${unit}`, async ({ page }) => {
     await page.clock.install({ time: new Date(instant) });
@@ -168,7 +168,8 @@ test("a portrait phone keeps the header in view while reading down", async ({ pa
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/en/participate");
   const header = page.locator(".site-header");
-  await expect.poll(async () => { await page.evaluate(() => window.scrollBy(0, 300)); return header.getAttribute("data-scrolled"); }, { timeout: 15_000 }).toBe("true");
+  await page.evaluate(() => window.scrollBy(0, 300));
+  await expect(header).not.toHaveAttribute("data-compact");
   await page.evaluate(() => window.scrollBy(0, 600));
   await page.waitForTimeout(600);
   expect(await header.evaluate((element) => element.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);

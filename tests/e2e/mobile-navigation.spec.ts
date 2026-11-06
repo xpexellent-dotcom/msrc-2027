@@ -20,19 +20,19 @@ for (const locale of ["en", "ar"] as const) {
     for (const top of [20, 28, 44, 18]) {
       await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), top);
       await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      await expect(header).toHaveAttribute("data-scrolled", "false");
+      await expect(header).not.toHaveAttribute("data-scrolled");
     }
     await page.evaluate(() => window.scrollTo({ top: 80, behavior: "instant" }));
-    await expect(header).toHaveAttribute("data-scrolled", "true");
+    await expect(header).not.toHaveAttribute("data-scrolled");
     const docked = (await header.boundingBox())!.y;
     for (const top of [42, 29, 20, 40, 16]) {
       await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), top);
       await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      await expect(header).toHaveAttribute("data-scrolled", "true");
+      await expect(header).not.toHaveAttribute("data-scrolled");
       expect((await header.boundingBox())!.y).toBeCloseTo(docked, 0);
     }
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    await expect(header).toHaveAttribute("data-scrolled", "false");
+    await expect(header).not.toHaveAttribute("data-scrolled");
   });
 
   test(`${locale} mobile menu remains reachable after scrolling down and back up`, async ({ page, isMobile, browserName }) => {

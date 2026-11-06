@@ -24,6 +24,8 @@ export interface ConferenceConfig {
   readonly edition: number;
   readonly timeZone: "Asia/Riyadh";
   readonly dates: Readonly<{ day1: CalendarDate; day2: CalendarDate }> | null;
+  readonly monthLabel: LocalizedVenueText;
+  readonly countdownTarget: string;
   readonly venue: ConferenceVenue | null;
   readonly registrationPrice: Readonly<{ amountMinor: number; currency: string }> | null;
   readonly conferenceCapacity: number | null;
@@ -34,7 +36,10 @@ export interface ConferenceConfig {
 export const conferenceConfig: ConferenceConfig = Object.freeze({
   edition: 2027,
   timeZone: "Asia/Riyadh",
-  dates: Object.freeze({ day1: "2027-01-27", day2: "2027-01-28" }),
+  dates: null,
+  monthLabel: Object.freeze({ en: "April 2027", ar: "أبريل ٢٠٢٧" }),
+  // ORG-073. Display target only, never a conference day or workflow gate.
+  countdownTarget: "2027-04-01T00:00:00+03:00",
   // ORG-031 / CFG-01: venue confirmed on 5 October 2026; rooms and times remain unset.
   venue: Object.freeze({
     name: Object.freeze({ en: "King Faisal Conference Center", ar: "مركز الملك فيصل للمؤتمرات" }),

@@ -284,32 +284,22 @@ for (const locale of ["en", "ar"] as const) {
   });
 }
 
-test("cinema respects the visitor's paused background state after a deliberate viewing", async ({ page }) => {
-  // The normal phone homepage has no pause target; establish the durable pause
-  // on desktop, then retain the project viewport for explicit film viewing.
-  const viewport = page.viewportSize()!;
-  await page.setViewportSize({ width: 1440, height: 900 });
+test("cinema retains its controls and returns to finite background playback", async ({ page }) => {
   await page.goto("/en");
   const video = page.locator(".conference-hero video");
-  const background = page.locator(".conference-hero .hero-media-toggle");
-  const labeled = page.locator(".conference-hero .hero-media-control");
-  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
-  await labeled.focus();
-  await page.keyboard.press("Space");
-  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
-  await page.setViewportSize(viewport);
+  await expect(page.locator(".hero-media-toggle, .hero-media-control")).toHaveCount(0);
   const retainedVideo = await video.elementHandle();
   const watch = page.locator("#legacy").getByTestId("watch-opening-film");
   await watch.scrollIntoViewIfNeeded();
   await watch.click();
   await expectCinemaView(page);
+  await expect(video).toHaveAttribute("loop", "");
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused)).toBe(true);
   await page.keyboard.press("Escape");
   await expect(watch).toBeFocused();
-  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
-  if (viewport.width <= 700) await expect(background).toBeHidden();
-  else await expect(labeled).toHaveAccessibleName("Play background video");
-  expect(await retainedVideo!.evaluate((element) => element.isConnected)).toBe(true);
+  await expect(video).not.toHaveAttribute("loop");
+  await expect(page.locator(".hero-media-toggle, .hero-media-control")).toHaveCount(0);
+  expect(await retainedVideo!.evaluate(element => element.isConnected)).toBe(true);
 });
 
 test("tablet film view keeps its close action reachable in both directions", async ({ page }, testInfo) => {

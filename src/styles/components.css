@@ -150,3 +150,17 @@
 /* ENG-086: participant initials or picture (also used in the header action). */
 .participant-profile-avatar { display: grid; place-items: center; flex: none; inline-size: 3.5rem; block-size: 3.5rem; overflow: hidden; border: 1px solid currentColor; border-radius: 50%; background: var(--color-surface-lilac); color: var(--color-purple); font-size: 1.15rem; font-weight: 600; }
 .participant-profile-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+.reserve-seat { position: relative; display: inline-flex; max-inline-size: 100%; pointer-events: auto; }
+.reserve-seat-panel { position: absolute; z-index: 20; inset-block-start: calc(100% + .5rem); inset-inline-start: 0; inline-size: min(17rem, calc(100vw - 2.5rem)); padding: .5rem; border: 1px solid var(--color-line); border-radius: var(--r-button); background: var(--color-ivory); color: var(--color-purple); box-shadow: var(--shadow-header); }
+.reserve-seat-panel[hidden] { display: none; }
+.reserve-seat[data-placement="above"] .reserve-seat-panel { inset-block-start: auto; inset-block-end: calc(100% + .5rem); }
+.header-primary-action-wrap .reserve-seat-panel { inset-inline-start: auto; inset-inline-end: 0; }
+.reserve-seat-panel a.site-link { display: flex; align-items: center; justify-content: space-between; min-block-size: 48px; gap: 1rem; padding: .6rem .8rem; border-radius: 8px; color: var(--color-purple); text-decoration: none; }
+.reserve-seat-panel a:hover { background: var(--color-mist); }
+.reserve-seat-panel a:focus-visible { outline: 3px solid var(--color-purple); outline-offset: -3px; }
+.reserve-seat-panel .directional-arrow { inline-size: 18px; block-size: 18px; }
+.mobile-sign-up { text-align: center; }
+@media (forced-colors: active) { .reserve-seat-panel { background: Canvas; color: LinkText; border-color: CanvasText; } .reserve-seat-panel a.site-link { color: LinkText; } }
+
+.hero-actions > .reserve-seat, .hero-actions > .reserve-seat > .button { inline-size: 100%; }

@@ -33,7 +33,7 @@ for (const locale of ["en", "ar"] as const) for (const width of [360, 390, 1440]
         }
         if (!route) {
           await expect(page.locator('[data-pathway="/registration"] .status-badge')).toHaveCount(0);
-          await expect(page.locator(".hero-actions a").first()).toHaveAttribute("href", `/${locale}/participate`);
+          await expect(page.locator(".hero-actions .reserve-seat > button")).toHaveAttribute("aria-expanded", "false");
           if (await page.locator(".menu-toggle").isVisible()) {
             const toggle = page.locator(".menu-toggle");
             await expect(toggle).toBeEnabled();

@@ -183,7 +183,7 @@
 [data-map-compact="true"] .venue-journey-map-caption { inset-inline: 1rem; inset-block-end: .75rem; font-size: .75rem; max-inline-size: none; text-align: end; }
 [data-map-compact="true"] .venue-journey-map-caption p { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 [data-map-compact="true"] .venue-journey-map-caption a { display: inline-flex; align-items: center; min-block-size: 44px; }
-[data-map-compact="true"][data-frame-pinned="true"]:not([data-reading-flow="true"]) .venue-journey-frame::before { content: ""; position: absolute; inset-inline: 0; inset-block-end: 100%; block-size: var(--site-header-height,5rem); opacity: 1; pointer-events: none; background: linear-gradient(180deg,rgb(25 18 34 / 45%),rgb(25 18 34 / 88%)); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+[data-map-compact="true"][data-frame-pinned="true"]:not([data-reading-flow="true"]) .venue-journey-frame::before { content: ""; position: absolute; inset-inline: 0; inset-block-end: 100%; block-size: var(--site-header-height,5rem); opacity: 1; pointer-events: none; background: linear-gradient(180deg,rgb(25 18 34 / 45%),rgb(25 18 34 / 88%));   }
 [data-map-compact="true"] .venue-map-detail { inset-inline: 1rem; inline-size: auto; inset-block-end: max(1rem,env(safe-area-inset-bottom)); padding: 1.25rem; }
 [data-reading-flow="true"] .venue-map-controls { inset-block-start: 1rem; }
 [data-reading-flow="true"] .venue-journey-reading { opacity: 1 !important; transition: none; }
@@ -277,8 +277,7 @@ html:has(.venue-arrival-journey[data-journey-moving="true"]) { overflow-anchor: 
 .venue-journey-camera > img, .venue-journey-thread { will-change: transform; }
 /* Over the dark journey a live header blur is nearly invisible but re-blurs the
    moving map every frame; an opaque glass of the same tone replaces it. */
-html:has(.venue-arrival-journey[data-in-view="true"]) .axiom-header .header-glass,
-html:has(.venue-arrival-journey[data-in-view="true"]) .axiom-header .wordmark::before { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: var(--color-purple); }
+
 
 /* ---- Overview → journey handover ---- */
 /* The light overview melts into the journey instead of meeting it at a hard

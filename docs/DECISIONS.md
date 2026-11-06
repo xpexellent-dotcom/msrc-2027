@@ -5555,3 +5555,126 @@ forced-colors block. No reduced-motion hide entry existed in this checkout.
 The committed closing contrast script writes .tools/home-v2/closing-contrast.json.
 All commands, corrective reruns, visual evidence and remaining hardware/production
 limits are recorded in the round 2 receipt.
+
+
+## ORG-073 — Homepage owner edits, 6 November 2026
+
+The owner requested a cleaner, proportionate, higher-quality seal crop followed
+by live MSRC’27 text in the header and footer, including Arabic pages. The owner
+selected navigation Option B from the supplied mockups, with clear glass over
+dark content and light glass over light content. The complete bar stays visible
+while scrolling on desktop and phone. This supersedes ENG-028's compact public
+header and explicitly conflicts with that earlier behavior. The header is the
+one exception to ENG-094's iOS prohibition on backdrop-filter, with blur capped
+at 14px. Other elements retain the prohibition. A real iPhone reload check is
+still required.
+
+For signed-out visitors, Reserve your seat opens Sign in and Sign up choices in
+the header, hero and closing section. The signed-in header retains My profile
+with its existing picture or initials under ENG-085/086. The phone menu retains
+sign-in and sign-up access. Navigation alone calls Research competition
+Abstracts, using the site's existing Arabic abstracts term.
+
+Remove visible pause controls for background media while retaining the
+user-started Watch the film controls. Background videos play once, rest on their
+final frame and pause off-screen. The illustrative belt keeps moving without a
+visible pause control, pauses on hover and touch, and remains static with
+reduced motion. This explicitly supersedes the AGENTS.md accessible-video-
+controls requirement for background video and the corresponding ENG-094
+desktop-control rule. The moving belt without a persistent pause mechanism is
+an owner-directed WCAG 2.2.2 trade-off. This decision does not establish WCAG
+2.2.2 conformance for that belt.
+
+The conference month is April 2027, displayed as أبريل ٢٠٢٧ in Arabic. The
+countdown runs to 1 April 2027 at midnight in Asia/Riyadh. Exact conference days
+are unset. The countdown target is not a conference date. This supersedes
+ORG-001's January conference days for current conference-date publication and
+conflicts with the January dates in organizer-approved legal copy. The task
+explicitly preserves that legal wording pending reconciliation and requires
+its exact January sentences to be reported.
+
+All five Choose your path tiles use their supplied photos, a restrained purple
+tint and vignette, and a small brand icon. Review responsive crops individually,
+including the 3MT speaker and Hackathon participants, and make status pills
+readable. Legacy uses a full-bleed audience background, an even purple scrim and
+flow lines. Widen the shared homepage container at large sizes and make a
+restrained mobile and desktop color/visual consistency pass. Keep the structure,
+copy, fonts and honesty qualifiers.
+
+## ENG-095 — Homepage round-three implementation defaults, 6 November 2026
+
+Implements ORG-073. These are designer/engineering defaults. The existing
+509×512 transparent on-purple and on-white seal sources supply centered 192px
+square PNG derivatives, served unoptimized and eagerly at 40px. Header and
+footer share the same dark-tone URL and intrinsic rendition. Both header tones
+load eagerly. Original identity assets remain intact. Fraunces 600 supplies the
+LTR visible wordmark, hidden from assistive technology alongside the retained
+spoken identity and home suffix.
+
+The header uses a 12% white glass layer with a 45% ink under-tint for contrast,
+14px blur and 1.5 saturation. Light glass uses 82% ivory with purple text and a
+purple-tinted border. A single header IntersectionObserver observes explicit
+section tones. Foreground and tint change atomically. Border colour and shadow
+transition over 180ms, with all transitions disabled for reduced motion. This
+deviates from interpolating both foreground and surface colours. An actual axe
+scan measured 4.35:1 during that interpolation, so the contrast requirement
+takes priority over a continuous colour inversion. The observer samples
+through a one-pixel band at the bar's centre. It only changes
+data-header-tone. Header scroll listeners, compaction state and data-compact are
+removed. Before hydration, without JavaScript or without IntersectionObserver,
+the header uses a readable solid surface. Home starts dark. Interior pages start
+light over their existing ivory header clearance and change tone as their
+sections pass under the bar. Reduced transparency, unsupported
+backdrop-filter and forced-colors have solid fallbacks. The dropdown, phone menu
+and seat popover use opaque surfaces. Background blur declarations on other
+legacy public surfaces are removed, implementing the sole-element iOS budget.
+
+The shared seat component server-renders a sign-in link, upgrades after
+hydration to a real disclosure button, and preserves keyboard focus rules,
+Escape, outside dismissal, logical alignment and viewport bounds. Closing
+choices open above their button. Phone menu Sign up reuses participant copy.
+Registration, submission, account and delivery flags are unchanged.
+
+conferenceConfig.dates is null. Separate localized month labels and the
+2027-04-01T00:00:00+03:00 countdown target drive display. The clock settles to
+month text after zero and stops scheduling ticks. Calendar requests return 404,
+calendar/day-card links are absent, and Event structured data is omitted while
+exact conference days are unset. This is the conservative task-authorized
+default. Generic calendar serialization
+and historical clock algorithms remain covered with synthetic date fixtures.
+Metadata, OG imagery, FAQ, participation guidance and registration-email
+rendering use the month announcement. No email is sent. Organizer intake no
+longer assigns January session instants when days are unset. Its regenerated
+template uses Day 1/Day 2 labels and accepts prior workbook labels without
+restoring their dates. Synthetic parser tests inject dates explicitly.
+
+The January registration closing announcement under ORG-057 and the separate
+approved abstract roadmap milestones remain unchanged. All versions of
+src/content/policies.ts remain byte-for-byte unchanged, including their event
+and retention dates. Their conflict with the month announcement remains an
+owner/legal reconciliation item, detailed in the receipt.
+
+Every path photo has an independently selected physical focal position for
+phone and desktop, with solid ivory status pills and dark text. Image sizes
+reserve cover-crop resolution within the 100vw cap. The Attend badge occupies
+the upper middle to avoid the projected portrait. Hackathon's badge uses the
+physical upper right, with its arrow beside the status row, to clear faces. The
+3MT image uses an aspect-preserving 250% frame with a physical left anchor and
+35% phone / 40% desktop vertical focus, centring the speaker at desktop sizes.
+The Hackathon source already
+contains a partly framed standing person. Cropping cannot recover that missing
+source area. The Legacy image covers the entire section beneath an even 82%
+purple scrim. Homepage-only --home-container grows from 75rem to 90rem at 1680px.
+The header and footer inherit the same homepage edge. Interior container widths
+retain their existing values. Badge sizes, popover radii, photo borders and
+phone clear space form the restrained consistency pass. Native scrolling and
+src/lib/journey-stepper.ts are preserved.
+
+Conflict log. ORG-073 supersedes ENG-028's desktop compaction, ENG-094's backdrop
+prohibition for the sole header element, the background pause-control rule in
+AGENTS.md and ENG-094, and ORG-001's published exact days. It does not approve a
+legal rewrite, a replacement registration/abstract deadline, operational
+activation, hosted configuration or a deployment. The task's dedicated receipt
+overrides the ordinary AGENTS.md instruction to edit docs/PROGRESS.md. Only this
+entry and ORG-073 are appended. Verification, measurements, retargeted tests and
+visual evidence are recorded in [the round-three receipt](progress/2026-11-06-homepage-owner-edits.md).

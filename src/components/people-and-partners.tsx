@@ -21,7 +21,7 @@ function PeoplePageIntro({ locale, page }: { locale: Locale; page: "sponsors" })
   const copy = peopleAndPartnersCopy[locale];
   const intro = copy[page];
   return (
-    <section className={`people-page-intro people-page-intro--${page}`} aria-labelledby="people-page-title">
+    <section data-header-section="light" className={`people-page-intro people-page-intro--${page}`} aria-labelledby="people-page-title">
       <Container>
         <nav className="experience-breadcrumb" aria-label={copy.breadcrumb}><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
         <div className="people-page-heading"><h1 id="people-page-title">{intro.title}</h1><div><p>{intro.lead}</p>{page === "sponsors" ? <ButtonLink className="sponsor-top-action" href={`/${locale}/contact`} variant="gold">{copy.sponsors.nextLink}<Arrow /></ButtonLink> : null}</div></div>
@@ -36,7 +36,7 @@ function TeamIntro({ locale, publishedRoster = false }: { locale: Locale; publis
   const team = teamCopy[locale];
   const lines = copy.team.title.split("\n");
   return (
-    <section className="experience-intro experience-intro--team premium-photo-hero fluid-journey-hero" aria-labelledby="experience-title">
+    <section data-header-section="dark" className="experience-intro experience-intro--team premium-photo-hero fluid-journey-hero" aria-labelledby="experience-title">
       <div className="premium-hero-image" aria-hidden="true"><Image src="/media/team/team-header-v1.jpg" alt="" fill sizes="100vw" priority /></div>
       <Container>
         <nav aria-label={copy.breadcrumb} className="experience-breadcrumb"><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{copy.team.label}</span></li></ol></nav>
@@ -115,7 +115,7 @@ export function TeamExperience({ locale, items = [] }: { locale: Locale; items?:
         </section>)}</>}
       </Container>
     </section>
-    <section className="people-next"><Container><h2>{copy.nextTitle}</h2><ButtonLink href={`/${locale}/participate`} variant="gold">{copy.nextLink}<Arrow /></ButtonLink></Container></section>
+    <section data-header-section="dark" className="people-next"><Container><h2>{copy.nextTitle}</h2><ButtonLink href={`/${locale}/participate`} variant="gold">{copy.nextLink}<Arrow /></ButtonLink></Container></section>
   </>;
 }
 

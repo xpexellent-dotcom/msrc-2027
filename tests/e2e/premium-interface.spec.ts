@@ -55,24 +55,14 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByText(content[locale].preview, { exact: true })).toHaveCount(0);
     await expect(page.locator(".preview-banner")).toHaveCount(0);
     const control = page.locator(".conference-hero .hero-media-toggle");
-    await expect(control).toHaveCount(1);
-    await expect(control).toHaveJSProperty("tagName", "BUTTON");
-    await expect(control).toBeEmpty();
+    await expect(control).toHaveCount(0);
     const labeled = page.locator(".conference-hero .hero-media-control");
-    if ((page.viewportSize()?.width ?? 1280) <= 700) {
-      await expect(control).toBeHidden();
-      await expect(labeled).toHaveCount(0);
-    } else {
-      await expect(labeled).toHaveCount(1);
-      await expect(labeled).toBeVisible();
-      await expect(control).toHaveAttribute("aria-hidden", "true");
-      await expect(control).toHaveAttribute("tabindex", "-1");
-    }
+    await expect(labeled).toHaveCount(0);
     await expect(page.locator(".footer-directory-note, .program-sample-label, .hero-media-status")).toHaveCount(0);
     await expect(page.locator(".conference-hero [data-countdown]")).toHaveCount(1);
     await expect(page.locator(".date-band [data-countdown]")).toHaveCount(0);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/sign-in`);
-    await expect(page.locator(".hero-actions a")).toHaveCount(2);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator(".hero-actions > .button, .hero-actions > .reserve-seat > .button")).toHaveCount(2);
     const opening = await page.locator(".conference-hero").boundingBox();
     const viewport = await page.evaluate(() => ({ width: document.documentElement.clientWidth, height: window.innerHeight }));
     expect(opening?.width).toBeGreaterThanOrEqual(viewport.width - 1);
@@ -95,7 +85,7 @@ for (const locale of ["en", "ar"] as const) {
     }
 
     const photographs = page.locator(".pathway-photo img");
-    await expect(photographs).toHaveCount(1);
+    await expect(photographs).toHaveCount(5);
     for (const visual of await photographs.all()) {
       await expect(visual).toHaveAttribute("alt", "");
       await expect(visual).not.toHaveAttribute("tabindex", "0");
@@ -190,7 +180,7 @@ test("the opening headline and navigation appear while footage is still loading"
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(content.en.title);
     await expect(page.locator(".site-header-inner")).toBeVisible();
     await expect(page.locator(".conference-hero .hero-media-poster")).toBeVisible();
-    await expect(page.locator(".hero-actions a").first()).toBeVisible();
+    await expect(page.locator(".hero-actions > .reserve-seat > .button")).toBeVisible();
   } finally {
     releaseFilm?.();
   }

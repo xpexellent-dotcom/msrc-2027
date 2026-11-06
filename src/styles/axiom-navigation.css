@@ -31,22 +31,17 @@
 }
 
 .axiom-header .wordmark {
-  position: relative; isolation: isolate; padding-block: .375rem; padding-inline: 0 .5rem;
+  position: relative; isolation: isolate; padding-block: .25rem; padding-inline: 0 .5rem;
   min-block-size: 48px; color: var(--color-ivory); text-decoration: none;
   pointer-events: auto; flex-shrink: 0; justify-content: center;
   transition: transform var(--header-travel-duration) var(--header-travel-ease);
 }
-.axiom-header .wordmark::before {
-  content: ""; position: absolute; inset-block: 0; inset-inline: -.75rem -.25rem; z-index: -1;
-  border-radius: var(--r-card); background: var(--color-purple); opacity: 0;
-  border: 1px solid var(--hair-inverse); box-shadow: var(--shadow-header);
-  transform: scale(.96); transition: opacity 220ms var(--header-ease), transform var(--header-travel-duration) var(--header-travel-ease);
-}
+
 .axiom-header .header-middle {
   display: flex; align-items: center; justify-content: center; flex: 1;
-  min-inline-size: 0; gap: .4rem; opacity: 1; filter: blur(0);
+  min-inline-size: 0; gap: .4rem; opacity: 1;
   transform-origin: center;
-  transition: opacity 220ms var(--header-ease), transform var(--header-travel-duration) var(--header-travel-ease), filter 220ms var(--header-ease);
+  transition: none;
 }
 .axiom-header .desktop-nav { flex: 1; justify-content: center; flex-wrap: nowrap; gap: .1rem; }
 .axiom-header .header-nav-item { position: relative; display: flex; align-items: center; transition: transform var(--header-travel-duration) var(--header-travel-ease); }
@@ -112,23 +107,6 @@
 .axiom-header .header-dropdown a:focus-visible { outline-color: var(--color-purple); }
 .axiom-header .header-primary-action:focus-visible { outline-color: var(--color-gold); }
 
-/* The visual middle remains in native focus order. Focus reveals it synchronously;
-   keyboard and assistive navigation never wait for a fade before finding a link. */
-@media (min-width: 1200px) and (hover: hover) and (pointer: fine) {
-  .axiom-header[data-compact="true"] .site-header-inner { pointer-events: none; }
-  .axiom-header[data-compact="true"] .header-glass { opacity: 0; transform: scale(1.06, .96); }
-  .axiom-header[data-compact="true"] .wordmark { transform: translateX(calc(-1 * var(--header-travel) * var(--motion-inline-direction))) scale(1.025); }
-  .axiom-header[data-compact="true"] .header-actions { transform: translateX(calc(var(--header-travel) * var(--motion-inline-direction))) scale(1.015); }
-  .axiom-header[data-compact="true"] .wordmark::before { inset-block: -.375rem; opacity: 1; transform: none; }
-  .axiom-header[data-compact="true"] .header-middle { opacity: 0; transform: translateY(-8px) scale(.96); filter: blur(7px); pointer-events: none; }
-  .axiom-header[data-compact="true"] .header-nav-item { transform: translateX(calc(var(--nav-exit-x, 0px) * var(--motion-inline-direction))); }
-  .axiom-header[data-compact="true"] .header-dropdown { visibility: hidden; pointer-events: none; }
-  .axiom-header:has(:focus-visible) .site-header-inner { pointer-events: auto; }
-  .axiom-header:has(:focus-visible) .header-glass { opacity: 1; transform: none; }
-  .axiom-header:has(:focus-visible) .wordmark::before { opacity: 0; }
-  .axiom-header:has(:focus-visible) :is(.wordmark, .header-actions, .header-nav-item) { transform: none; }
-  .axiom-header:has(:focus-visible) .header-middle { opacity: 1; transform: none; filter: none; pointer-events: auto; }
-}
 .axiom-header[data-keyboard="true"] :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass),
 .axiom-header[data-keyboard="true"] .wordmark::before { transition: none; }
 .axiom-header[data-keyboard="true"] :is(.menu-toggle, .menu-toggle svg path, .mobile-menu, .mobile-menu-registration, .mobile-nav-group) { transition: none; }
@@ -223,7 +201,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .axiom-header *, .axiom-header *::before, .axiom-header *::after { transition: none !important; animation: none !important; }
-  .axiom-header[data-compact="true"] .header-middle { filter: none; }
   .axiom-header .menu-toggle:active,
   .axiom-header .menu-toggle:not([aria-expanded="true"]):active,
   .axiom-header .header-mobile-language .language-switch:active { transform: none; translate: none; }
@@ -233,3 +210,49 @@
   .axiom-header :is(.wordmark, .wordmark-year, .wordmark-edition, .desktop-nav a, .header-dropdown-toggle, .language-switch, .menu-toggle) { color: LinkText; }
   .axiom-header .header-dropdown, .axiom-header .mobile-menu { border: 1px solid CanvasText; background: Canvas; }
 }
+
+/* ORG-073 / ENG-095. The sole backdrop-filter surface, capped at 14px. */
+.axiom-header { --header-ink: var(--color-ivory); --header-highlight: var(--color-ivory); }
+.axiom-header[data-header-tone="light"] { --header-ink: var(--color-purple); --header-highlight: var(--color-purple); }
+.axiom-header .header-glass { background: var(--color-ink); transition: border-color 180ms ease, box-shadow 180ms ease; }
+.axiom-header[data-header-tone="light"] .header-glass { background: var(--color-ivory); border-color: rgb(59 30 109 / .22); }
+@supports (backdrop-filter: blur(1px)) {
+  .axiom-header .header-glass { background: linear-gradient(rgb(255 255 255 / .12), rgb(255 255 255 / .12)), rgb(31 25 48 / .45); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); border-color: rgb(255 255 255 / .32); }
+  .axiom-header[data-header-tone="light"] .header-glass { background: rgb(248 246 240 / .82); border-color: rgb(59 30 109 / .22); }
+}
+.axiom-header[data-header-ready="false"] .header-glass { background: var(--color-ink); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.axiom-header[data-header-ready="false"][data-header-tone="light"] .header-glass { background: var(--color-ivory); }
+.axiom-header .wordmark { display: inline-flex; flex-direction: row; align-items: center; gap: .5rem; direction: ltr; color: var(--header-ink); }
+.axiom-header .wordmark-logo { inline-size: 40px; block-size: 40px; flex: 0 0 40px; object-fit: contain; }
+.axiom-header .wordmark-logo--light { display: none; }
+.axiom-header[data-header-tone="light"] .wordmark-logo--dark { display: none; }
+.axiom-header[data-header-tone="light"] .wordmark-logo--light { display: block; }
+.brand-word { font-family: var(--font-fraunces), Georgia, serif; font-weight: 600; font-size: 1.3rem; line-height: 1.2; letter-spacing: .01em; white-space: nowrap; }
+.footer-wordmark { display: flex; align-items: center; gap: .65rem; margin-block: 1rem; color: var(--color-ivory); }
+.footer-wordmark .footer-logo { inline-size: 40px; block-size: 40px; margin: 0; object-fit: contain; }
+.axiom-header :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle) { color: var(--header-ink); transition: border-color 180ms ease, box-shadow 180ms ease; }
+.axiom-header[data-header-tone="light"] :is(.menu-toggle, .header-mobile-language .language-switch) { border-color: rgb(59 30 109 / .4); }
+.axiom-header .menu-toggle[aria-expanded="true"] { color: var(--color-purple); }
+.axiom-header .header-primary-action-wrap { pointer-events: auto; }
+@container navigation (width < 35rem) { .axiom-header .header-primary-action-wrap { display: none; } }
+@media (hover: hover) and (pointer: fine) {
+  .axiom-header[data-header-tone="light"] :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle):hover { color: var(--color-purple); background: rgb(59 30 109 / .08); }
+}
+@media (hover: none), (pointer: coarse) { .axiom-header .menu-toggle:not([aria-expanded="true"]):hover { color: var(--header-ink); } }
+@supports not (backdrop-filter: blur(1px)) {
+  .axiom-header .header-glass { background: var(--color-ink); }
+  .axiom-header[data-header-tone="light"] .header-glass { background: var(--color-ivory); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .axiom-header .header-glass { background: var(--color-ink); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .axiom-header[data-header-tone="light"] .header-glass { background: var(--color-ivory); }
+}
+@media (prefers-reduced-motion: reduce) { .axiom-header * { transition: none !important; } }
+@media (forced-colors: active) {
+  .axiom-header .header-glass, .axiom-header[data-header-tone="light"] .header-glass { background: Canvas; border: 1px solid CanvasText; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .axiom-header { --header-ink: LinkText; --header-highlight: Highlight; }
+  .axiom-header[data-header-tone="light"] { --header-ink: LinkText; --header-highlight: Highlight; }
+}
+
+@container navigation (width < 20rem) { .axiom-header .brand-word { font-size: min(1.125rem, 6.5cqi); } .axiom-header .wordmark { gap: .35rem; } }
+@media (max-width: 359px) { .footer-wordmark .brand-word { font-size: min(1.3rem, 6.5vw); } .footer-wordmark { gap: .5rem; } }

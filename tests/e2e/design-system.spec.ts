@@ -85,8 +85,11 @@ test("disabled and loading demonstrations cannot trigger operations", async ({ p
   }
   await page.goto("/en");
   const action = page.locator(".header-primary-action");
-  await expect(action).toHaveAttribute("href", "/en/sign-in");
-  if (await action.isVisible()) await action.click();
+  await expect(action).toHaveAttribute("aria-expanded", "false");
+  if (await action.isVisible()) {
+    await action.click();
+    await page.locator(".header-primary-action-wrap .reserve-seat-panel a").first().click();
+  }
   else {
     await page.locator(".menu-toggle").click();
     await page.locator(".mobile-menu").getByRole("link", { name: "Reserve your seat", exact: true }).click();
@@ -135,43 +138,23 @@ test("public footage and the synthetic fixture avoid video requests when motion 
   expect(videoRequests).toEqual([]);
 });
 
-test("synthetic video controls pause, resume and fall back after an asset failure", async ({ page }) => {
+test("synthetic background video respects preferences and falls back after an asset failure", async ({ page }) => {
   await page.goto("/en/design-system");
   // ENG-094 pauses reusable HeroMedia instances while their own frame is off-screen.
   await page.locator(".design-media-frame").scrollIntoViewIfNeeded();
   const video = page.locator(".design-media-frame video");
   await expect(video).toHaveAttribute("playsinline", "");
   expect(await video.evaluate((element: HTMLVideoElement) => element.muted)).toBe(true);
-  await expect(page.getByRole("button", { name: "Pause background video" })).toBeVisible();
-  const pause = page.getByRole("button", { name: "Pause background video" });
-  await pause.focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("button", { name: "Play background video" })).toBeFocused();
-  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
-  // A manual pause freezes the visible frame instead of swapping back to the poster.
-  await expect(video).toHaveClass(/is-playing/);
-  await expect(page.locator(".design-media-frame .hero-media")).toHaveAttribute("data-media-state", "paused");
-  // A system preference change must not silently undo the user's pause.
+  await expect(page.locator(".design-media-frame button")).toHaveCount(0);
+  await expect(video).not.toHaveAttribute("loop");
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused)).toBe(true);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(video).toHaveCount(0);
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await expect(video).toHaveCount(1);
-  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
-  const resume = page.getByRole("button", { name: "Play background video" });
-  await expect(resume).toBeVisible();
-  await resume.focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("button", { name: "Pause background video" })).toBeFocused();
-  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
-
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(video).toHaveCount(0);
-  await expect(page.getByText("Still image mode", { exact: true })).toBeVisible();
   await expect(page.locator(".hero-media-poster")).toBeVisible();
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.route("**/brand/synthetic-motion.webm", (route) => route.abort("failed"));
   await page.reload();
-  await expect(page.getByRole("status").filter({ hasText: "Background video unavailable. Showing a still image." })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Background video unavailable. Showing a still image." })).toHaveCount(1);
   await expect(video).toHaveCount(0);
   await expect(page.locator(".hero-media-poster")).toBeVisible();
 });

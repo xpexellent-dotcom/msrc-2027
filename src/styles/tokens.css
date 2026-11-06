@@ -107,7 +107,9 @@
   --scrim-hero: linear-gradient(to top, rgb(31 25 48 / .9) 0%, rgb(31 25 48 / .72) 40%, rgb(31 25 48 / .55) 72%, rgb(31 25 48 / .6) 100%);
   --scrim-hero-phone: linear-gradient(to top, rgb(31 25 48 / .9) 0%, rgb(31 25 48 / .8) 40%, rgb(31 25 48 / .66) 70%, rgb(31 25 48 / .6) 100%);
   --scrim-hero-side: linear-gradient(to right, rgb(31 25 48 / .7), rgb(31 25 48 / .2) 65%, transparent);
-  --scrim-attend: linear-gradient(to top, rgb(31 25 48 / .92), rgb(31 25 48 / .66) 55%, transparent 90%);
+  --scrim-attend: linear-gradient(to top, rgb(31 25 48 / .97), rgb(31 25 48 / .88) 45%, rgb(59 30 109 / .2) 80%, rgb(59 30 109 / .12));
+  --scrim-path: linear-gradient(to top, rgb(31 25 48 / .97), rgb(31 25 48 / .88) 48%, rgb(59 30 109 / .15) 74%, rgb(59 30 109 / .12));
+  --scrim-community: rgb(59 30 109 / .82);
   --scrim-closing: linear-gradient(to top, rgb(31 25 48 / .86), rgb(31 25 48 / .65) 55%, rgb(31 25 48 / .5));
   --scrim-community-desktop: linear-gradient(to left, rgb(59 30 109 / .55), rgb(59 30 109 / .75) 60%, var(--color-purple)), linear-gradient(0deg, var(--color-purple), transparent 55%);
   --scrim-community-phone: linear-gradient(180deg, rgb(59 30 109 / .82), rgb(59 30 109 / .7) 35%, var(--color-purple));
@@ -252,3 +254,5 @@ html:has(.site-header)[lang="ar"] { --hero-k: 8.27605; --hero-max: 6rem; --hero-
   --scrim-hero-side: linear-gradient(to left, rgb(31 25 48 / .7), rgb(31 25 48 / .2) 65%, transparent);
   --scrim-community-desktop: linear-gradient(to right, rgb(59 30 109 / .55), rgb(59 30 109 / .75) 60%, var(--color-purple)), linear-gradient(0deg, var(--color-purple), transparent 55%);
 }
+
+@media (min-width: 1680px) { html:has(.homepage-journey) { --home-container: 90rem; } }

@@ -18,9 +18,9 @@ async function noOverflow(page: Page) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} v2 title is exactly two lines from 320 to 1920 and its gradient crosses both`, async ({ page }, testInfo) => {
+  test(`${locale} v2 title is exactly two lines from 320 to 2560 and its gradient crosses both`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "The exact viewport matrix runs once.");
-    for (const width of [320, 360, 390, 430, 768, 1024, 1440, 1920]) {
+    for (const width of [320, 360, 390, 430, 768, 1024, 1440, 1680, 1920, 2560]) {
       await ready(page, locale, width);
       const title = page.locator("#hero-title");
       const geometry = await title.evaluate((element) => {
@@ -49,7 +49,7 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} v2 header, title, actions, chapters and footer share the content edge`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "The exact viewport matrix runs once.");
-    for (const width of [390, 768, 1024, 1440, 1920]) {
+    for (const width of [390, 768, 1024, 1440, 1680, 1920, 2560]) {
       await ready(page, locale, width, "no-preference");
       const edges = await page.evaluate(() => {
         const journey = document.querySelector(".homepage-journey")!;
@@ -61,7 +61,7 @@ for (const locale of ["en", "ar"] as const) {
         const gutter = probe.getBoundingClientRect().width;
         probe.remove();
         const edge = Math.max(gutter, (innerWidth - parseFloat(style.getPropertyValue("--home-container")) * parseFloat(getComputedStyle(document.documentElement).fontSize)) / 2);
-        const selectors = [".hero-conference-name", "#hero-title", ".hero-actions a:first-child", ".hero-actions a:last-child", ".hero-location", ".wordmark-logo", "#participate h2", ".path-bento", "#practical-title", ".footer-brand img", ".footer-directory-group"];
+        const selectors = [".hero-conference-name", "#hero-title", ".hero-actions > .reserve-seat", ".hero-actions > a", ".hero-location", ".wordmark", "#participate h2", ".path-bento", "#practical-title", ".footer-wordmark", ".footer-directory-group"];
         return { edge, items: selectors.map((selector) => {
           const box = document.querySelector(selector)!.getBoundingClientRect();
           return { selector, edge: document.documentElement.dir === "rtl" ? innerWidth - box.right : box.left };
@@ -102,24 +102,14 @@ for (const locale of ["en", "ar"] as const) {
       expect(Math.abs(venue.width - (width - 2 * edges.edge))).toBeLessThanOrEqual(1);
       await expect(page.locator(".home-venue-photo img")).toHaveAttribute("sizes", "(max-width: 800px) 94vw, 1200px");
       for (const part of await page.locator(".countdown-time-part").all()) await expect(part).toHaveCSS("text-align", "start");
-      const actions = page.locator(".hero-actions a");
+      const actions = page.locator(".hero-actions > .button, .hero-actions > .reserve-seat > .button");
       await expect(actions).toHaveCount(2);
       const primary = (await actions.nth(0).boundingBox())!;
       const secondary = (await actions.nth(1).boundingBox())!;
       expect(Math.abs(primary.x - secondary.x)).toBeLessThanOrEqual(1);
       expect(Math.abs(primary.width - secondary.width)).toBeLessThanOrEqual(1);
       expect(secondary.y).toBeGreaterThanOrEqual(primary.y + primary.height);
-      if (width > 700) {
-        const control = page.locator(".hero-media-controls");
-        await expect(control.locator(".hero-media-control")).toBeVisible();
-        const box = (await control.boundingBox())!;
-        expect(box.height).toBeGreaterThanOrEqual(44);
-        expect(Math.abs((locale === "ar" ? box.x : width - box.x - box.width) - edges.edge)).toBeLessThanOrEqual(1);
-        for (const selector of [".hero-countdown", ".conference-hero > .flow-ribbon"]) {
-          const other = (await page.locator(selector).boundingBox())!;
-          expect(box.x < other.x + other.width && box.x + box.width > other.x && box.y < other.y + other.height && box.y + box.height > other.y, `control clears ${selector}`).toBe(false);
-        }
-      }
+      await expect(page.locator(".hero-media-control, .city-control")).toHaveCount(0);
     }
   });
 
@@ -151,7 +141,7 @@ for (const locale of ["en", "ar"] as const) {
       }
       await expect(cards.locator(":is(a,button) :is(a,button)")).toHaveCount(0);
       await expect(cards.locator(".status-badge")).toHaveCount(4);
-      await expect(cards.locator(".brand-icon img[alt='']")).toHaveCount(4);
+      await expect(cards.locator(".brand-icon img[alt='']")).toHaveCount(5);
       if (locale === "ar" && width >= 768) expect((await cards.first().boundingBox())!.x).toBeGreaterThan((await cards.nth(1).boundingBox())!.x);
       await page.keyboard.press("Tab");
       await cards.nth(1).locator("a").focus();
@@ -167,7 +157,7 @@ for (const locale of ["en", "ar"] as const) {
     await noOverflow(page);
   });
 
-  test(`${locale} v2 public controls are rounded rectangles and official logos sit on purple`, async ({ page }) => {
+  test(`${locale} v2 public controls are rounded rectangles with shared seals and glass navigation`, async ({ page }) => {
     await ready(page, locale);
     const circles = await page.locator("main :is(a,button), .header-primary-action, .language-switch, .menu-toggle, .header-dropdown-toggle").evaluateAll((elements) => elements.flatMap((element) => {
       const style = getComputedStyle(element);
@@ -176,13 +166,13 @@ for (const locale of ["en", "ar"] as const) {
       return parseFloat(style.borderTopLeftRadius) >= box.height / 2 - 1 ? [`${element.className}: ${style.borderTopLeftRadius} / ${box.height}`] : [];
     }));
     expect(circles).toEqual([]);
-    await expect(page.locator('.wordmark img[src*="msrc27-logo-on-purple"]')).toHaveAttribute("alt", "");
-    await expect(page.locator('.footer-brand img[src*="msrc27-logo-on-purple"]')).toHaveAttribute("alt", "");
-    await expect(page.locator(".header-glass")).toHaveCSS("background-color", "rgb(59, 30, 109)");
+    await expect(page.locator('.wordmark img[src*="msrc27-seal-dark-192"]')).toHaveAttribute("alt", "");
+    await expect(page.locator('.footer-brand img[src*="msrc27-seal-dark-192"]')).toHaveAttribute("alt", "");
+    await expect(page.locator(".axiom-header")).toHaveAttribute("data-header-tone", /dark|light/);
     await expect(page.locator(".site-footer")).toHaveCSS("background-color", "rgb(59, 30, 109)");
     await page.goto(`/${locale}/dates-venue`);
     await page.getByTestId("venue-arrival-journey").scrollIntoViewIfNeeded();
-    await expect(page.locator(".header-glass")).toHaveCSS("background-color", "rgb(59, 30, 109)");
+    await expect(page.locator(".axiom-header")).toHaveAttribute("data-header-tone", /dark|light/);
   });
 
   test(`${locale} v2 iOS materials, image sizes and phone positioning stay within budget`, async ({ page }) => {
@@ -190,7 +180,7 @@ for (const locale of ["en", "ar"] as const) {
     const violations = await page.evaluate(() => [...document.querySelectorAll("*")].flatMap((element) => {
       const style = getComputedStyle(element);
       const faults = [];
-      if (style.backdropFilter !== "none") faults.push("backdrop");
+      if (style.backdropFilter !== "none" && (!element.matches(".axiom-header .header-glass") || style.backdropFilter !== "blur(14px) saturate(1.5)")) faults.push("backdrop");
       if (style.mixBlendMode !== "normal") faults.push("blend");
       if (element.closest("main") && /blur\((?!0(?:px)?\))/.test(style.filter)) faults.push(`filter ${style.filter}`);
       if (element.closest("main") && style.position === "sticky") faults.push("phone sticky");
@@ -341,7 +331,7 @@ for (const locale of ["en", "ar"] as const) {
       await noOverflow(page);
     }
     await page.emulateMedia({ forcedColors: "active" });
-    for (const selector of [".community-image", ".community-flow", ".pathway-photo"]) await expect(page.locator(selector)).toBeHidden();
+    for (const selector of [".community-image", ".community-flow", ".pathway-photo"]) for (const element of await page.locator(selector).all()) await expect(element).toBeHidden();
     await expect(page.locator(".path-tile--registration h3")).toBeVisible();
     await expect(page.locator(".history-total .history-count")).toBeVisible();
     await page.emulateMedia({ forcedColors: "none", media: "print" });

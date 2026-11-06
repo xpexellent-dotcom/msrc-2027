@@ -143,8 +143,14 @@ for (const locale of ["en", "ar"] as const) {
     const toggle = page.locator(".menu-toggle");
     if (await toggle.isVisible()) await toggle.click();
     const action = page.locator(await toggle.isVisible() ? ".mobile-menu .mobile-reserve-action" : ".header-primary-action");
-    await expect(action).toHaveAttribute("href", `/${locale}/sign-in`);
-    await action.click();
+    if (await toggle.isVisible()) {
+      await expect(action).toHaveAttribute("href", `/${locale}/sign-in`);
+      await action.click();
+    } else {
+      await expect(action).toHaveAttribute("aria-expanded", "false");
+      await action.click();
+      await page.locator(".header-primary-action-wrap .reserve-seat-panel a").first().click();
+    }
     await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
     await expect(page.getByRole("main")).toBeFocused();
     await page.goBack();

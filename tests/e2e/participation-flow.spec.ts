@@ -9,20 +9,21 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} reserve actions lead to sign in and abstract naming is consistent`, async ({ page, isMobile }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/sign-in`);
-    await expect(page.locator(".hero-actions a").first()).toHaveAttribute("href", `/${locale}/participate`);
-    await expect(page.locator(".closing-grid a")).toHaveAttribute("href", `/${locale}/participate`);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator(".hero-actions .reserve-seat > button")).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator(".closing-grid .reserve-seat > button")).toHaveAttribute("aria-expanded", "false");
     const label = locale === "en" ? "Research competition" : "مسابقة الأبحاث";
     await expect(page.locator(`.pathway-card`).filter({ has: page.locator(`a[href='/${locale}/abstracts']`) })).toContainText(label);
     if (isMobile) {
       await page.locator(".menu-toggle").click();
       await expect(page.locator(".mobile-reserve-action")).toHaveAttribute("href", `/${locale}/sign-in`);
-      await expect(page.locator(`.mobile-nav-children a[href='/${locale}/abstracts']`)).toHaveText(label);
+      await expect(page.locator(`.mobile-nav-children a[href='/${locale}/abstracts']`)).toHaveText(locale === "en" ? "Abstracts" : "الملخصات");
       await page.locator(".mobile-reserve-action").click();
     } else {
       await page.locator(`.desktop-nav > .header-nav-item > a[href='/${locale}/participate']`).hover();
-      await expect(page.locator(`.header-dropdown a[href='/${locale}/abstracts']`)).toContainText(label);
+      await expect(page.locator(`.header-dropdown a[href='/${locale}/abstracts']`)).toContainText(locale === "en" ? "Abstracts" : "الملخصات");
       await page.locator(".header-primary-action").click();
+      await page.locator(".header-primary-action-wrap .reserve-seat-panel a").first().click();
     }
     // ENG-085: "Reserve your seat" opens Sign in, which offers a clear Sign up.
     await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));

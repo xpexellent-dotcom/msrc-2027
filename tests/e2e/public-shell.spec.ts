@@ -41,13 +41,13 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(page.locator("form, input, textarea, select")).toHaveCount(0);
     await expect(page.locator('a[href*="/api/workflows/"], a[href*="/payment"], a[href*="/admin"]')).toHaveCount(0);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/sign-in`);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("aria-expanded", "false");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     expect(response?.headers()["x-robots-tag"]).toContain("noindex");
     // ORG-001/002: explicit date and montage approval does not open operations.
     await expect(page.locator("iframe")).toHaveCount(0);
     await expect(page.locator("[data-countdown]")).toHaveCount(1);
-    await expect(page.locator(".hero-location")).toContainText(locale === "en" ? /27\D+28 January 2027/ : /٢٧\D+٢٨ يناير ٢٠٢٧/);
+    await expect(page.locator(".hero-location")).toContainText(locale === "en" ? /April 2027/ : /أبريل ٢٠٢٧/);
     const missingAnchors = await page.locator('a[href*="#"]').evaluateAll((links) => links
       .map((link) => new URL((link as HTMLAnchorElement).href))
       .filter((url) => url.pathname === location.pathname)

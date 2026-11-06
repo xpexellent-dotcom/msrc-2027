@@ -55,9 +55,15 @@ for (const locale of ["en", "ar"] as const) {
     // Registration and Sign in share the private document CSP. Crossing to Program
     // deliberately reloads the document, so it cannot test client arrival focus.
     const action = page.locator(await toggle.isVisible() ? ".mobile-menu .mobile-reserve-action" : ".header-primary-action");
-    await expect(action).toHaveAttribute("href", `/${locale}/sign-in`);
+    if (await toggle.isVisible()) await expect(action).toHaveAttribute("href", `/${locale}/sign-in`);
+    else await expect(action).toHaveAttribute("aria-expanded", "false");
     await action.focus();
     await page.keyboard.press("Enter");
+    if (!await toggle.isVisible()) {
+      await page.keyboard.press("Tab");
+      await expect(page.locator(".header-primary-action-wrap .reserve-seat-panel a").first()).toBeFocused();
+      await page.keyboard.press("Enter");
+    }
     await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
     await expect(page.getByRole("main")).toBeFocused();
     expect(await page.evaluate(() => window.designMotionEvidence.slides)).toEqual([]);

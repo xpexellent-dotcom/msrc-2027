@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { sponsorBeltCopy } from "../../src/content/sponsor-belt";
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} preview belt is illustrative, controllable and paused off-screen`, async ({ page }) => {
+  test(`${locale} preview belt is illustrative and pauses on hover, touch and off-screen`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}`);
     await page.evaluate(() => document.fonts.ready);
@@ -19,24 +19,20 @@ for (const locale of ["en", "ar"] as const) {
       expect(await group.locator(".belt-item > span").allTextContents()).toEqual(Array(8).fill(copy.placeholder));
     }
     await expect(groups.nth(1)).toHaveJSProperty("inert", true);
-    const pause = belt.getByRole("button", { name: copy.pause, exact: true });
+    await expect(belt.getByRole("button")).toHaveCount(0);
     const track = belt.locator(".belt-track");
     await belt.scrollIntoViewIfNeeded();
+    await page.mouse.move(0, 0);
     await expect(belt).toHaveClass(/is-visible/);
-    await expect(pause).toHaveAttribute("aria-pressed", "false");
-    await pause.click();
-    await expect(pause).toHaveAttribute("aria-pressed", "true");
-    await expect(pause).toHaveAccessibleName(copy.pause);
-    await expect(track).toHaveCSS("animation-play-state", "paused");
-    await pause.click();
-    await expect(pause).toHaveAttribute("aria-pressed", "false");
-    await expect(pause).toBeFocused();
     await expect(track).toHaveCSS("animation-name", locale === "ar" ? "belt-rtl" : "belt-ltr");
     await expect(track).toHaveCSS("animation-play-state", "running");
     await belt.locator(".belt-window").hover();
     await expect(track).toHaveCSS("animation-play-state", "paused");
     await page.mouse.move(0, 0);
-    await pause.focus();
+    await expect(track).toHaveCSS("animation-play-state", "running");
+    await belt.locator(".belt-window").dispatchEvent("touchstart");
+    await expect(track).toHaveCSS("animation-play-state", "paused");
+    await belt.locator(".belt-window").dispatchEvent("touchend");
     await expect(track).toHaveCSS("animation-play-state", "running");
     await page.locator(".site-footer").scrollIntoViewIfNeeded();
     await expect(belt).not.toHaveClass(/is-visible/);
@@ -81,7 +77,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(Math.abs(locale === "ar" ? socialBox!.x + socialBox!.width - edge!.x - edge!.width : socialBox!.x - edge!.x)).toBeLessThanOrEqual(1);
     await page.locator(".hero-actions a").last().focus();
     await page.keyboard.press("Tab");
-    await expect(page.locator(".sponsor-belt").getByRole("button", { name: sponsorBeltCopy[locale].pause, exact: true })).toBeFocused();
+    await expect(page.locator(".pathway-action").first()).toBeFocused();
   });
 
   test(`${locale} preview decorative regions remain accessible`, async ({ page }) => {

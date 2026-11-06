@@ -55,16 +55,8 @@ test("sitemap destinations, internal links, previews, icons and calendar have us
   }
   for (const locale of ["en", "ar"]) {
     const response = await request.get(`/${locale}/msrc-2027.ics`);
-    expect(response.headers()["content-type"]).toContain("text/calendar");
-    expect(response.headers()["content-disposition"]).toContain("attachment");
-    const calendar = (await response.text()).replace(/\r\n /g, "");
-    // Confirmed calendar days, deliberately all-day: no approved session times
-    // exist to convert to UTC or a floating device timezone.
-    expect(calendar).toContain("DTSTART;VALUE=DATE:20270127\r\n");
-    expect(calendar).toContain("DTEND;VALUE=DATE:20270129\r\n");
-    expect(calendar).toContain(locale === "en" ? "King Faisal Conference Center" : "مركز الملك فيصل للمؤتمرات");
-    expect(calendar).toContain("UID:msrc-2027-conference@msrc2027.com");
-    expect(calendar).not.toMatch(/DTSTART(?:;TZID=[^:]*)?:\d{8}T/);
+    expect(response.status()).toBe(404);
+    expect(response.headers()["content-disposition"]).toBeUndefined();
   }
   await testInfo.attach("link-inventory", { body: JSON.stringify({ listed, internal: [...destinations], external: [...external] }, null, 2), contentType: "application/json" });
 });

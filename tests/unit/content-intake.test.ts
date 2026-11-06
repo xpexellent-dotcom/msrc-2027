@@ -2,9 +2,13 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { conferenceConfig } from "@/config/conference";
 import {
-  buildTemplate, checkWorkbook, conferenceDays, formatReport, howToRows, howToSheetName, intakeSheets, readWorkbook,
-  readZip, riyadhInstant, validateIntake, writeZip, type RawCell, type RawSheet,
+  buildTemplate, checkWorkbook as checkConfiguredWorkbook, conferenceDays, formatReport, howToRows, howToSheetName, intakeSheets, readWorkbook,
+  readZip, riyadhInstant, validateIntake as validateConfiguredIntake, writeZip, type RawCell, type RawSheet,
 } from "../../scripts/content-intake";
+
+const fixtureDates = { day1: "2027-01-27", day2: "2027-01-28" } as const;
+const validateIntake = (sheets: readonly RawSheet[]) => validateConfiguredIntake(sheets, fixtureDates);
+const checkWorkbook = (file: Buffer) => checkConfiguredWorkbook(file, fixtureDates);
 
 // Synthetic organizer rows only. Nothing here is an approved speaker, session or workshop.
 type Values = Readonly<Record<string, RawCell | undefined>>;
@@ -23,7 +27,7 @@ const speaker: Values = {
   link1Label: "ORCID", link1Href: "https://orcid.org/0000-0000-0000-0000",
 };
 const session: Values = {
-  slug: "synthetic-keynote", status: "Approved", day: "Day 2 - 28 January 2027", title: "Synthetic keynote", description: "A synthetic description.",
+  slug: "synthetic-keynote", status: "Approved", day: "Day 2", title: "Synthetic keynote", description: "A synthetic description.",
   start: "09:00", end: "09:45", formatCode: "keynote", formatEn: "Keynote", formatAr: "محاضرة رئيسية", topic: "Evidence",
   room: "Synthetic Hall", speakers: "synthetic-speaker", objectives: "1. First objective\n- Second objective",
 };
@@ -66,7 +70,7 @@ describe("organizer content template (CMS-03)", () => {
     const xml = readZip(buildTemplate());
     const sessions = xml.get("xl/worksheets/sheet3.xml")!.toString("utf8");
     expect(sessions).toContain('<formula1>"Approved,Draft"</formula1>');
-    expect(sessions).toContain('<formula1>"Day 1 - 27 January 2027,Day 2 - 28 January 2027"</formula1>');
+    expect(sessions).toContain('<formula1>"Day 1,Day 2"</formula1>');
     expect(sessions).toContain('<pane xSplit="1" ySplit="3"');
     expect(xml.get("xl/worksheets/sheet4.xml")!.toString("utf8")).toMatch(/type="whole"[^>]*sqref="P5:P504"/);
   });
@@ -112,7 +116,7 @@ describe("organizer content import (CMS-03, PRG-01, WKS-01)", () => {
   it("keeps optional fields null and a speaker without a photo valid", () => {
     const result = check({
       speakers: [{ ...speaker, photo: undefined, photoAltEn: undefined, photoAltAr: undefined, link1Label: undefined, link1Href: undefined }],
-      sessions: [{ slug: "synthetic-untimed", status: "Draft", day: "Day 1 - 27 January 2027", title: "T", description: "D", formatCode: "panel", formatEn: "Panel", formatAr: "حلقة نقاش", topic: "Evidence" }],
+      sessions: [{ slug: "synthetic-untimed", status: "Draft", day: "Day 1", title: "T", description: "D", formatCode: "panel", formatEn: "Panel", formatAr: "حلقة نقاش", topic: "Evidence" }],
     });
     expect(result.problems).toEqual([]);
     expect(result.speakers[0]).toMatchObject({ portrait: null, portraitAlt: { en: "", ar: "" }, professionalLinks: [] });
@@ -135,7 +139,7 @@ describe("organizer content import (CMS-03, PRG-01, WKS-01)", () => {
     expect(messages(result, "error")).toEqual(expect.arrayContaining([
       'Sessions|5|Session ID|"Bad ID" is not a valid ID. Use only lowercase English letters, numbers and single hyphens, for example example-opening-keynote.',
       'Sessions|5|Publication status|"Maybe" is not one of the allowed choices. Please choose "Approved" or "Draft" from the list.',
-      'Sessions|5|Conference day|"Day 3" is not one of the allowed choices. Please choose "Day 1 - 27 January 2027" or "Day 2 - 28 January 2027" from the list.',
+      'Sessions|5|Conference day|"Day 3" is not one of the allowed choices. Please choose "Day 1" or "Day 2" from the list.',
       "Sessions|5|Session title (English)|This is required. Please fill it in.",
       'Sessions|5|Start time|"25:00" is not a time this sheet understands. Please write it in 24-hour format, for example 09:30 or 14:00.',
     ]));
@@ -229,4 +233,11 @@ describe("organizer content import (CMS-03, PRG-01, WKS-01)", () => {
     expect(result.sessions[0]).toMatchObject({ slug: "opening", startAt: "2027-01-27T06:00:00Z", endAt: "2027-01-27T06:45:00Z", objectives: ["Obj one", "Obj two"] });
     expect(result.workshops[0]).toMatchObject({ startAt: "2027-01-26T10:00:00Z", capacity: 30, bookingDeadline: "2027-01-20T20:59:00Z" });
   });
+});
+
+it("blocks invented session instants while conference days are unset", () => {
+  const rows = [sheet("Speakers", []), sheet("Sessions", [{ slug: "pending", status: "Draft", day: "Day 1", title: "Synthetic", description: "Synthetic", formatCode: "talk", formatEn: "Talk", formatAr: "محاضرة", topic: "Evidence", start: "09:00", end: "09:45" }]), sheet("Workshops", [])];
+  const result = validateConfiguredIntake(rows);
+  expect(result.problems.some(problem => problem.message.includes("Exact conference days"))).toBe(true);
+  expect(result.sessions).toEqual([]);
 });

@@ -453,8 +453,14 @@ for (const locale of ["en", "ar"] as const) test(`${locale} header action opens 
   // ENG-085: signed out, "Reserve your seat" opens Sign in.
   const action = isMobile ? page.locator(".mobile-reserve-action") : page.getByTestId("header-primary-action");
   if (isMobile) await page.locator(".menu-toggle").click();
-  await expect(action).toHaveAttribute("href", `/${locale}/sign-in`);
-  await action.click();
+  if (isMobile) {
+    await expect(action).toHaveAttribute("href", `/${locale}/sign-in`);
+    await action.click();
+  } else {
+    await expect(action).toHaveAttribute("aria-expanded", "false");
+    await action.click();
+    await page.locator(".header-primary-action-wrap .reserve-seat-panel").getByRole("link", { name: copy.signIn, exact: true }).click();
+  }
   await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
   const callout = page.getByTestId("participant-signup-callout");
   await expect(callout.getByRole("heading", { name: copy.newHere })).toBeVisible();

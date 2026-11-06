@@ -113,8 +113,8 @@ for (const locale of ["en", "ar"] as const) {
           await expect(hero.locator(".hero-media-poster")).toBeVisible();
         } else {
           await expect.poll(() => hero.locator("video").evaluate((video: HTMLVideoElement) => !video.paused && video.readyState >= 2)).toBe(true);
-          if (phone) await expect(hero.getByRole("button", { name: /background video|فيديو الخلفية/ })).toHaveCount(0);
-          else await expect(hero.locator(".hero-media-control")).toBeVisible();
+          await expect(hero.locator(".hero-media-control, .hero-media-toggle")).toHaveCount(0);
+          await expect(hero.locator("video")).not.toHaveAttribute("loop");
         }
 
         const benefits = page.locator(".program-experiences");
@@ -182,8 +182,9 @@ for (const locale of ["en", "ar"] as const) {
           expect(videos).toEqual([]);
         } else {
           await expect.poll(() => closing.locator("video").evaluate((video: HTMLVideoElement) => !video.paused && video.readyState >= 2)).toBe(true);
-          if (phone) await expect(closing.getByRole("button", { name: /Jeddah video|فيديو جدة/ })).toHaveCount(0);
-          else await expect(closing.locator(".city-control")).toBeVisible();
+          await expect(closing.getByRole("button", { name: /Jeddah video|فيديو جدة/ })).toHaveCount(0);
+          await expect(closing.locator(".city-control")).toHaveCount(0);
+          await expect(closing.locator("video")).not.toHaveAttribute("loop");
         }
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
         expect(errors).toEqual([]);

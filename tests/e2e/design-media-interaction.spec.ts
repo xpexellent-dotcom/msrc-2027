@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 // MED-01/02, ACC-01, LOC-01/03: exercise the previously intercepted central
 // film surface, not just the uncovered eight-pixel gutter.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} empty hero space pauses the film while copy and links stay usable`, async ({ page, isMobile }) => {
+  test(`${locale} empty hero space keeps finite motion while copy and seat choices stay usable`, async ({ page, isMobile }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}`);
     const video = page.locator(".conference-hero video");
@@ -18,12 +18,11 @@ for (const locale of ["en", "ar"] as const) {
     });
     // Exercise the visible open film above the poster copy, never a header or text target.
     expect(point.emptyHeight).toBeGreaterThan(16);
-    const phone = (page.viewportSize()?.width ?? 1280) <= 700;
-    expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.classList.contains("hero-media-toggle"), point)).toBe(!phone);
-    for (const paused of [true, false]) {
-      if (isMobile) await page.touchscreen.tap(point.x, point.y);
+    expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.classList.contains("hero-media-toggle"), point)).toBe(false);
+    for (const click of [0, 1]) {
+      if (isMobile) await page.touchscreen.tap(point.x + click, point.y);
       else await page.mouse.click(point.x, point.y);
-      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(phone ? false : paused);
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
     }
     const heading = page.locator("#hero-title");
     await expect(heading).toHaveCSS("pointer-events", "auto");
@@ -53,7 +52,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.locator(".conference-hero").evaluate((hero) => {
       window.scrollTo({ top: Math.max(0, hero.getBoundingClientRect().height - window.innerHeight), behavior: "instant" });
     });
-    const action = page.locator(".hero-actions a").first();
+    const action = page.locator(".hero-actions .reserve-seat > button");
     await expect(action).toBeInViewport({ ratio: 1 });
     await expect.poll(() => action.evaluate((element) => {
       const box = element.getBoundingClientRect();
@@ -61,7 +60,9 @@ for (const locale of ["en", "ar"] as const) {
       return hit !== null && element.contains(hit);
     }), { message: "The visible registration link receives a real pointer hit." }).toBe(true);
     await action.click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
+    await expect(action).toHaveAttribute("aria-expanded", "true");
+    await page.locator(".hero-actions .reserve-seat-panel").getByRole("link").first().click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
   });
 
   for (const reducedMotion of ["reduce", "no-preference"] as const) {

@@ -31,7 +31,8 @@ for (const locale of ["en", "ar"] as const) {
       await page.getByTestId("program-day-2027-01-29").click();
       await expect(page.getByRole("link", { name: locale === "ar" ? "يوم إضافي تجريبي" : "Synthetic Additional Day", exact: true })).toBeVisible();
       await expect(page.getByRole("link", { name: session, exact: true })).toHaveCount(0);
-      await page.getByTestId("program-day-day1").click();
+      // With null conference dates, filter by the published fixture's actual stored day.
+      await page.getByTestId("program-day-2027-01-27").click();
       await page.getByRole("link", { name: session, exact: true }).click();
       await expect(page.getByRole("heading", { level: 1, name: session })).toBeVisible();
       await expect(page).toHaveTitle(`${session} | MSRC 2027`);
