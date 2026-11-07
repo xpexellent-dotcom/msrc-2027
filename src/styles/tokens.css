@@ -64,7 +64,7 @@
   --t-tile-lg: clamp(1.75rem, 1.3rem + 1.8vw, 2.75rem);
   --t-tile: clamp(1.125rem, 1rem + .55vw, 1.375rem);
   --t-stat: clamp(2.25rem, 1.6rem + 2.4vw, 3.5rem);
-  --t-stat-compact: min(var(--t-stat), 30cqi);
+  --t-stat-compact: min(var(--t-stat), 24cqi);
   --t-lead: clamp(1.0625rem, 1rem + .35vw, 1.25rem);
   --t-body: 1rem;
   --t-small: .9375rem;

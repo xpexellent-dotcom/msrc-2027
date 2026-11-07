@@ -597,3 +597,7 @@ communications occurred.
 ### CI follow-up: staff routes (6 November 2026)
 
 CI failed `tests/staff-password-e2e/password-change.spec.ts` at a820be1: the closed dialog's seal image rendered on private staff routes, which have no Reserve trigger. `ReserveSeatProvider` now takes `enabled`, and `SiteShell` omits the dialog on those routes. After `pnpm build`, staff-password passed 26 (2 skipped); server-closed and database-closed gates passed 6 each; `home-owner-round3` + `mobile-navigation` passed 24 (8 skipped); staff-profile passed 4 on the pre-rebuild server; lint and typecheck passed. The rest of the staff workflow is confirmed by CI.
+
+### Stat numbers (7 November 2026)
+
+Owner feedback from a real iPhone: the stat numbers were hard to read. `.history-count` now uses the bold interface font (DM Sans; Noto Sans Arabic in Arabic) instead of the display font. The count-up is unchanged and was sampled running (1,362+ up to 4,007+). `--t-stat-compact` drops to 24cqi so Arabic fits at 280px with doubled text. `pnpm build`, Vitest 5,660, and `home-v2`, `homepage-polish`, `editorial-motion` (95 passed, 43 skipped) pass. Layout options are mock-ups only and are not in the code.

@@ -189,7 +189,7 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
 .homepage-journey .history-numbers > div { position: relative; display: flex; flex-direction: column; container-type: inline-size; min-inline-size: 0; padding: 1rem; border: 1px solid var(--hair-inverse); border-radius: var(--r-card); background: var(--surface-stat); }
 .homepage-journey .history-numbers dd { order: -1; margin: 0 0 .75rem; padding-inline-end: 2.75rem; }
 .homepage-journey .history-count-suffix { font-family: var(--font-interface); font-weight: 700; font-size: .72em; }
-.homepage-journey .history-count { display: block; white-space: nowrap; font: 500 var(--t-stat)/1.05 var(--font-display); font-variation-settings: "opsz" 144; font-variant-numeric: tabular-nums; color: var(--color-ivory); }
+.homepage-journey .history-count { display: block; white-space: nowrap; font: 700 var(--t-stat)/1.05 var(--font-interface); font-variant-numeric: lining-nums tabular-nums; letter-spacing: -.02em; color: var(--color-ivory); }
 [dir="rtl"] .homepage-journey .history-count { text-align: right; }
 .homepage-journey .history-total .history-count { color: var(--color-gold); }
 .homepage-journey .history-count[data-counting="true"] { animation: count-focus 300ms var(--ease-out) backwards; }
