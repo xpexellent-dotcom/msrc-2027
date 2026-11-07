@@ -1,5 +1,6 @@
 "use client";
 
+import { ReserveSeatProvider } from "@/components/reserve-seat";
 import { Footer } from "@/components/footer";
 import { SiteHeader } from "@/components/site-header";
 import { usePathname } from "next/navigation";
@@ -14,11 +15,11 @@ export function SiteShell({ children, locale, showDesignSystem = false }: {
   const copy = dictionaries[locale];
   const privateStaffRoute = /^\/(en|ar)\/(?:staff(?:\/|$)|(?:reviewer|judge)\/competitions(?:\/|$))/.test(usePathname());
   return (
-    <>
+    <ReserveSeatProvider locale={locale} enabled={!privateStaffRoute}>
       <a className="skip-link" href="#main-content" tabIndex={0}>{copy.skip}</a>
       {!privateStaffRoute ? <SiteHeader locale={locale} /> : null}
-      <main id="main-content" className={privateStaffRoute ? "staff-main" : undefined} tabIndex={-1}>{children}</main>
+      <main data-header-section={privateStaffRoute ? undefined : "light"} id="main-content" className={privateStaffRoute ? "staff-main" : undefined} tabIndex={-1}>{children}</main>
       {!privateStaffRoute ? <Footer locale={locale} showDesignSystem={showDesignSystem} /> : null}
-    </>
+    </ReserveSeatProvider>
   );
 }

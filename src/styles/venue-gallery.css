@@ -74,7 +74,9 @@
 .venue-header-collage { min-inline-size: 0; inline-size: 100%; max-inline-size: 36rem; }
 .venue-header-collage .rail-tools { color: var(--color-ivory); }
 .venue-header-collage .rail-tools p { color: var(--color-lilac); }
-.venue-header-collage .rail-buttons button { color: var(--color-ivory); border-color: rgb(220 207 240 / 65%); }
+html:has(.site-header) .venue-header-collage .rail-buttons button { background: var(--ink-55); color: var(--color-ivory); border-color: var(--line-lilac-35); }
+html:has(.site-header) .venue-header-collage .rail-buttons button:focus-visible { outline-color: var(--color-gold); }
+@media (hover: hover) { html:has(.site-header) .venue-header-collage .rail-buttons button:hover:not(:disabled) { background: var(--fill-lilac-12); color: var(--color-ivory); } }
 .venue-header-collage .rail-track:focus-visible { outline-color: var(--color-ivory); }
 .venue-header-collage .venue-collage-photo { position: relative; flex: 0 0 100%; min-inline-size: 0; margin: 0; aspect-ratio: 8 / 5; scroll-snap-align: start; }
 .venue-collage-photo-button { position: relative; display: block; inline-size: 100%; block-size: 100%; min-block-size: 44px; padding: 0; border: 0; border-radius: 16px; overflow: hidden; background: var(--color-purple); color: var(--color-ivory); cursor: pointer; --focus-ring: #eddaaf; }

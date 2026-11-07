@@ -21,7 +21,7 @@ function selectDay(event: MouseEvent<HTMLAnchorElement>) {
 export function ConferenceDayLinks({ locale }: { locale: Locale }) {
   const dates = conferenceConfig.dates;
   const copy = datesVenueCopy[locale];
-  if (!dates) return <p>{copy.datesPending}</p>;
+  if (!dates) return <p>{conferenceConfig.monthLabel[locale]}</p>;
   return <ol className="dates-day-list">
     {(["day1", "day2"] as const).map((day) => <li key={day}>
       <Link className="conference-day-link" href={`/${locale}/program?day=${day}#programme`} onClick={selectDay}>

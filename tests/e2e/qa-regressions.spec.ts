@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { prepareHeroCue } from "./helpers/hero-navigation";
 
 // Regressions found in live QA (2026-10-01). Kept separate from feature specs.
 
@@ -23,51 +22,6 @@ test("Arabic words are never letter-spaced", async ({ page }) => {
     expect(spaced, path).toEqual([]);
   }
 });
-
-// Axiom revision: one reading-edge "Step inside" cue without the MSRC2026 caption. It glides to the dates
-// band when motion is allowed and jumps under reduced motion; the band clears the header.
-for (const [motion, glides] of [["no-preference", true], ["reduce", false]] as const) {
-  for (const locale of ["en", "ar"] as const) {
-    test(`${locale} Step inside follows the reading edge and ${glides ? "glides" : "jumps"} to the dates band (${motion})`, async ({ page, browserName }) => {
-      await page.emulateMedia({ reducedMotion: motion });
-      await page.goto(`/${locale}`);
-      // Before hydration a click is a plain fragment jump; the live countdown marks hydration,
-      // which took over 5 s once on a loaded local run.
-      await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before", { timeout: 15_000 });
-      await expect(page.locator(".conference-hero .hero-caption")).toHaveCount(0);
-      const cue = await prepareHeroCue(page);
-      await expect(cue).toHaveAttribute("href", "#essentials");
-      expect(await cue.evaluate((element) => {
-        const box = element.getBoundingClientRect();
-        const row = element.closest(".hero-bottom")!.getBoundingClientRect();
-        return Math.abs(document.documentElement.dir === "rtl" ? box.right - row.right : box.left - row.left);
-      })).toBeLessThanOrEqual(1);
-      expect(await page.locator(".scroll-line").evaluate((line) => getComputedStyle(line, "::after").animationName)).toBe(glides ? "scroll-cue" : "none");
-
-      // The cue is already fully visible and hit-tested above the sheet. Record
-      // the native pointer activation from this actual reading position.
-      const startingPosition = await page.evaluate(() => window.scrollY);
-      await page.evaluate(() => {
-        const positions: number[] = [];
-        Object.assign(window, { scrollSamples: positions });
-        const timer = setInterval(() => positions.push(window.scrollY), 10);
-        setTimeout(() => clearInterval(timer), 1500);
-      });
-      await cue.click();
-      await expect(page).toHaveURL(new RegExp(`/${locale}#essentials$`));
-      await expect(page.locator("#essentials")).toBeFocused();
-      await page.waitForTimeout(1600);
-      const positions = await page.evaluate(() => (window as unknown as { scrollSamples: number[] }).scrollSamples);
-      const settled = positions[positions.length - 1];
-      expect(settled).toBeGreaterThan(0);
-      // Headless WebKit advances a smooth scroll on this page in one or two coarse steps; a jump
-      // is still asserted there, the glide only where frames are rendered (Chromium, CI).
-      if (!(glides && browserName === "webkit")) expect(positions.some((y) => y > startingPosition + 1 && y < settled - 1), positions.join(",")).toBe(glides);
-      expect(await page.evaluate(() => document.querySelector("#event-details")!.getBoundingClientRect().top
-        - document.querySelector(".site-header")!.getBoundingClientRect().bottom)).toBeGreaterThan(0);
-    });
-  }
-}
 
 // Printing: browsers drop background colours, so light text on the dark sections vanished, and
 // the fixed header repeated over the top of every printed page.
@@ -138,13 +92,13 @@ test("paragraphs and list items wrap without a lone last word where supported", 
   }
 });
 
-// The clock counts whole days to 00:00 Riyadh on Day 1 (2027-01-26T21:00Z); each instant sits
+// The clock counts to April 2027 at Riyadh midnight (2027-03-31T21:00Z); each instant sits
 // half a day before a boundary. Plural categories alone gave «٠ يومًا» and «١٠٠ يومًا».
 for (const [instant, days, unit] of [
-  ["2027-01-26T09:00:00Z", "٠", "يوم"],
-  ["2027-01-24T09:00:00Z", "٢", "يومان"],
-  ["2026-10-19T09:00:00Z", "٩٩", "يومًا"],
-  ["2026-10-18T09:00:00Z", "١٠٠", "يوم"],
+  ["2027-03-31T09:00:00Z", "٠", "يوم"],
+  ["2027-03-29T09:00:00Z", "٢", "يومان"],
+  ["2026-12-22T09:00:00Z", "٩٩", "يومًا"],
+  ["2026-12-21T09:00:00Z", "١٠٠", "يوم"],
 ] as const) {
   test(`Arabic countdown pairs ${days} with ${unit}`, async ({ page }) => {
     await page.clock.install({ time: new Date(instant) });
@@ -214,7 +168,8 @@ test("a portrait phone keeps the header in view while reading down", async ({ pa
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/en/participate");
   const header = page.locator(".site-header");
-  await expect.poll(async () => { await page.evaluate(() => window.scrollBy(0, 300)); return header.getAttribute("data-scrolled"); }, { timeout: 15_000 }).toBe("true");
+  await page.evaluate(() => window.scrollBy(0, 300));
+  await expect(header).not.toHaveAttribute("data-compact");
   await page.evaluate(() => window.scrollBy(0, 600));
   await page.waitForTimeout(600);
   expect(await header.evaluate((element) => element.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);

@@ -20,19 +20,19 @@ for (const locale of ["en", "ar"] as const) {
     for (const top of [20, 28, 44, 18]) {
       await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), top);
       await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      await expect(header).toHaveAttribute("data-scrolled", "false");
+      await expect(header).not.toHaveAttribute("data-scrolled");
     }
     await page.evaluate(() => window.scrollTo({ top: 80, behavior: "instant" }));
-    await expect(header).toHaveAttribute("data-scrolled", "true");
+    await expect(header).not.toHaveAttribute("data-scrolled");
     const docked = (await header.boundingBox())!.y;
     for (const top of [42, 29, 20, 40, 16]) {
       await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), top);
       await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      await expect(header).toHaveAttribute("data-scrolled", "true");
+      await expect(header).not.toHaveAttribute("data-scrolled");
       expect((await header.boundingBox())!.y).toBeCloseTo(docked, 0);
     }
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    await expect(header).toHaveAttribute("data-scrolled", "false");
+    await expect(header).not.toHaveAttribute("data-scrolled");
   });
 
   test(`${locale} mobile menu remains reachable after scrolling down and back up`, async ({ page, isMobile, browserName }) => {
@@ -53,13 +53,13 @@ for (const locale of ["en", "ar"] as const) {
       await toggle.click();
       await expect(toggle).toHaveAttribute("aria-expanded", "true");
       await expect(page.locator(".mobile-menu")).toBeVisible();
-      const firstLink = page.locator(".mobile-menu").getByRole("link").first();
+      const firstAction = page.locator(".mobile-menu .mobile-reserve-action");
       // Windows WebKit's default keyboard policy tabs to controls, skipping links.
       // Chromium verifies native Tab order; WebKit verifies explicit link focus and
       // keyboard activation below, without changing browser or system preferences.
-      if (browserName === "webkit") await firstLink.focus();
+      if (browserName === "webkit") await firstAction.focus();
       else await page.keyboard.press("Tab");
-      await expect(firstLink).toBeFocused();
+      await expect(firstAction).toBeFocused();
       await page.keyboard.press("Escape");
       await expect(page.locator(".mobile-menu")).toHaveCount(0);
       await expect(toggle).toBeFocused();

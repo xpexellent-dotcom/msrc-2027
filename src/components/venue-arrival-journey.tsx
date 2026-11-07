@@ -531,7 +531,7 @@ export function VenueArrivalJourney({ locale, venue }: { locale: Locale; venue: 
       <span className="venue-journey-point-detail" id={`venue-${point}-point-detail`} role="tooltip"><strong>{name}</strong><span>{airport ? journey.airportNote : venue.address.streetAddress[locale]}</span></span>
     </Link>;
   };
-  return <section ref={root} className="venue-arrival-journey" data-testid="venue-arrival-journey" data-active-step={venueJourneySteps[active]} data-point-details-open={selectedPoint !== null} aria-label={journey.label}>
+  return <section data-header-section="dark" ref={root} className="venue-arrival-journey" data-testid="venue-arrival-journey" data-active-step={venueJourneySteps[active]} data-point-details-open={selectedPoint !== null} aria-label={journey.label}>
     <div className="venue-journey-world">
       <div className="venue-journey-frame">
       <div className="venue-journey-atlas">

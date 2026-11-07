@@ -34,9 +34,9 @@ describe("date-only publication and localization (CFG-01, LOC-01/03)", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-01T12:00:00Z"));
     const dateRange = formatConferenceDateRange(dates, "en");
-    const first = renderToStaticMarkup(createElement(ConferenceCountdown, { dates, locale: "en", dateRange }));
+    const first = renderToStaticMarkup(createElement(ConferenceCountdown, { target: "2027-04-01T00:00:00+03:00", locale: "en", dateRange }));
     vi.setSystemTime(new Date("2027-01-29T12:00:00Z"));
-    const later = renderToStaticMarkup(createElement(ConferenceCountdown, { dates, locale: "en", dateRange }));
+    const later = renderToStaticMarkup(createElement(ConferenceCountdown, { target: "2027-04-01T00:00:00+03:00", locale: "en", dateRange }));
     expect(later).toBe(first);
     expect(first).toContain('data-countdown="dates"');
     expect(first).toMatch(/27\D+28 January 2027/);
@@ -49,7 +49,7 @@ describe("date-only publication and localization (CFG-01, LOC-01/03)", () => {
     const browserFormatter = vi.spyOn(Intl.DateTimeFormat.prototype, "formatRange")
       .mockReturnValue("27 – 28 January 2027");
     const markup = renderToStaticMarkup(createElement(ConferenceCountdown, {
-      dates, locale: "en", dateRange: serverRange,
+      target: "2027-04-01T00:00:00+03:00", locale: "en", dateRange: serverRange,
     }));
     expect(markup).toContain(serverRange);
     expect(markup).not.toContain("27 – 28 January 2027");

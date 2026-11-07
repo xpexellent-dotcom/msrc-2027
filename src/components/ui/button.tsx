@@ -1,8 +1,8 @@
 import { Link } from "@/components/ui/link";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ComponentPropsWithRef, ReactNode } from "react";
 
 type ButtonAppearance = {
-  variant?: "primary" | "secondary" | "ghost" | "gold";
+  variant?: "primary" | "secondary" | "ghost" | "gold" | "ivory" | "outline-inverse";
   size?: "default" | "small";
 };
 
@@ -20,7 +20,7 @@ export function Button({
   children,
   type = "button",
   ...props
-}: ComponentPropsWithoutRef<"button"> & ButtonAppearance & { loading?: boolean; loadingLabel?: ReactNode }) {
+}: ComponentPropsWithRef<"button"> & ButtonAppearance & { loading?: boolean; loadingLabel?: ReactNode }) {
   return (
     <button
       {...props}

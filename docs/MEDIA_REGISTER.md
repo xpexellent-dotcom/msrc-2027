@@ -46,7 +46,7 @@ Read access is established for the inventory reviewed. It does not establish pub
 
 | Asset or group | Current status | Intended next use |
 |---|---|---|
-| Final MSRC 2027 logo and variants | Required input; final source/approval unverified | Header, footer, metadata and event branding |
+| Official MSRC 2027 on-purple logo | Owner-supplied official identity adopted 4 November 2026 under ORG-072; opaque R-counter artefact NOT FIXED | Header and footer on Royal Purple; transparent-counter replacement remains an owner release input |
 | Approved KAU/institutional marks | Source files and usage guidance required | Institutional strip and approved placements |
 | Source brand reference sheet | Located in Canva; text read and palette/English fonts corroborated; visual review and final approval pending | Confirm final identity and source assets |
 | Generated Website Brand Guide | Two pages reviewed; working direction | Development defaults; see [DESIGN_GUIDE.md](DESIGN_GUIDE.md) |
@@ -288,3 +288,43 @@ Never overwrite a published file: ship a corrected cut or poster under a new ver
 | Proposed purpose and status | Banner above the English and Arabic participant email drafts. Replace this one PNG when the official asset arrives. Complete bilingual compositions remain **DRAFT pending owner approval before sending**. |
 | Accessibility and delivery | English alt text: `MSRC 2027`; absolute site-origin HTTPS image URL; display width at most 600px; no tracking pixel or remote font |
 | Release boundary | No hosted change, real email or delivery activation. The source still and its homepage presentation are unchanged |
+
+
+## Official homepage identity — 4 November 2026, ORG-072 / ENG-094
+
+The owner supplied the official identity assets on 4 November 2026. Source files
+remain unchanged in `public/brand/identity/`. The header and footer use
+`msrc27-logo-on-purple.webp` (1200 × 380px) on solid Royal Purple (`#3B1E6D`).
+Its opaque R counter (`#361E5B`) is **NOT FIXED**. Request a transparent-counter
+export and a small horizontal lockup before treating that export as release-ready.
+Do not recolour the logo. PNG logos, ribbon PNGs, the on-white mark, seals and
+unused icons remain owner source.
+
+The homepage uses these ten official WebP icons from
+`public/brand/identity/icons/`:
+
+- `01-research.webp`
+- `06-publications.webp`
+- `12-posters.webp`
+- `13-collaboration.webp`
+- `14-awards.webp`
+- `15-schedule.webp`
+- `16-global.webp`
+- `17-education.webp`
+- `19-workshops.webp`
+- `20-hackathon.webp`
+
+Preserve their colours and do not mirror the artwork. A physical 2% horizontal
+shift centres each lilac disc; the shift does not mirror in Arabic. These assets
+do not establish a sponsor identity, a 2027 participant or an endorsement.
+
+The `brand-x`, `brand-linkedin`, `brand-instagram` and `brand-tiktok` glyph paths
+were copied by hand from the official `@tabler/icons` package, pinned to 3.49.0
+(published 5 October 2026). The tarball was packed in a new scratch directory
+outside the repository; Tabler was not installed as a dependency. The full MIT
+licence and pinned provenance remain in `src/components/social-glyphs.tsx`.
+All social URLs remain `null`. The illustrative social row and sponsor belt
+appear only in preview builds.
+
+Fraunces 5.3.0 and El Messiri 5.3.0 are self-hosted under OFL-1.1. Static ribbons,
+flow lines and sparkles use small inline SVGs; large raster ribbons are not shipped.

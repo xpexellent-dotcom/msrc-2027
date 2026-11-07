@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: DatesVenuePageProps): Promise
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = datesVenueCopy[locale];
-  const description = `${conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}. ` : ""}${copy.metadataDescription}`;
+  const description = `${conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}. ` : `${conferenceConfig.monthLabel[locale]}. `}${copy.metadataDescription}`;
   return {
     ...localizedPageMetadata(locale, "/dates-venue", copy.metadataTitle, description),
     title: copy.metadataTitle,
@@ -41,8 +41,8 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
 
   return (
     <>
-      <section className="venue-gallery-hero" aria-labelledby="dates-page-title">
-        <div className="venue-photo-header premium-photo-hero">
+      <section data-header-section="dark" className="venue-gallery-hero" aria-labelledby="dates-page-title">
+        <div data-header-section="dark" className="venue-photo-header premium-photo-hero">
           <div className="premium-hero-image" aria-hidden="true"><Image src="/media/msrc-demo/king-faisal-venue.jpg" alt="" fill priority sizes="100vw" /></div>
           <Container>
             <nav aria-label={copy.breadcrumb} className="about-breadcrumb">
@@ -54,7 +54,7 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
             <div className="venue-header-layout">
             <div className="venue-hero-intro">
               <h1 id="dates-page-title">{locale === "en" ? <><span>Your way</span><br /> <span className="premium-title-accent">to MSRC.</span></> : <><span>طريقك</span><br /> <span className="premium-title-accent">إلى المؤتمر.</span></>}</h1>
-              <p className="dates-lead">{copy.lead}</p>
+              <p className="dates-lead">{conferenceConfig.monthLabel[locale]} · {copy.lead}</p>
             </div>
               <VenueHeaderCollage locale={locale} />
             </div>

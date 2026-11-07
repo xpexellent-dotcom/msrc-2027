@@ -1,7 +1,7 @@
 /* The public shell is a ruled congress masthead. Staff routes do not render this shell. */
 .site-header { position: fixed; inset-inline: 0; inset-block-start: 0; z-index: 40; background: var(--color-ivory); border-block-end: 1px solid var(--color-line); }
 .site-header-inner { min-block-size: 80px; padding-block: .75rem; gap: 1rem 2rem; }
-.wordmark-name { font-family: var(--font-manrope), Arial, sans-serif; font-size: 1.8rem; gap: .65rem; font-weight: 800; letter-spacing: -.04em; }
+.wordmark-name { font-family: var(--font-display), Arial, sans-serif; font-size: 1.8rem; gap: .65rem; font-weight: 800; letter-spacing: -.04em; }
 .wordmark-year { padding: 0; border: 0; border-radius: 0; font-size: .85rem; font-weight: 600; letter-spacing: 0; }
 .wordmark-edition { margin-block-start: .35rem; font-size: .7rem; }
 .desktop-nav { flex: 1; min-inline-size: 0; gap: .15rem; }
@@ -18,16 +18,12 @@
 .site-header .mobile-menu nav a[aria-current="page"] { background: var(--color-info-surface); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .3em; }
 .mobile-menu-status { margin-block-start: 1.25rem; font-size: .875rem; }
 
-/* Scope the public control shape to pages with this shell, preserving staff controls. */
-html:has(.site-header) .button { border-radius: 999px; font-family: var(--font-interface); box-shadow: none; }
-html:has(.site-header) .button--small { font-size: .8125rem; }
+/* Shared public button geometry and type live in brand-system.css. */
 html:has(.site-header) .button:not(:disabled):not([aria-disabled="true"]):hover { box-shadow: none; }
-html:has(.site-header) .section-heading h2 { letter-spacing: -.04em; }
-html[lang="ar"]:has(.site-header) .section-heading h2 { letter-spacing: 0; }
 html:has(.site-header) main:not(:has(.homepage-journey)) { padding-block-start: var(--site-header-height, 81px); }
 html:has(.site-header) { scroll-padding-block-start: calc(var(--site-header-height, 81px) + 1rem); }
 html:has(.homepage-journey) { scroll-padding-block-start: 0; }
-.homepage-journey > .editorial-section, .date-band { min-block-size: 0; scroll-margin-block-start: calc(var(--site-header-height, 81px) + 1rem); }
+.homepage-journey > .editorial-section { min-block-size: 0; scroll-margin-block-start: calc(var(--site-header-height, 81px) + 1rem); }
 
 /* The desktop index is navigation, not a second card. Numerals describe the reading order. */
 .section-journey { position: sticky; inset-block-start: var(--site-header-height, 81px); z-index: 15; padding-block: .5rem; background: var(--color-ivory); border-block-end: 1px solid var(--color-line); }

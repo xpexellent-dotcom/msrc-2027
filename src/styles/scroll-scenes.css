@@ -28,14 +28,10 @@ html[data-scenes="on"][dir="rtl"] .chapter-stage .eyebrow-rule { transform-origi
 @keyframes reveal-rise { from { opacity: 0; transform: translateY(var(--motion-reveal-distance)); } to { opacity: 1; transform: none; } }
 
 /* The opening: the headline's lines rise out of a fold, then the rest follows. */
-.hero-editorial h1 > span { animation: hero-line 700ms var(--motion-enter-easing) both; }
-.hero-editorial h1 > span:last-child { animation-delay: 80ms; }
-.hero-conference-name, .hero-lead, .hero-location, .hero-actions { animation: hero-follow 500ms var(--motion-enter-easing) both; }
+.hero-conference-name, .hero-location, .hero-actions { animation: hero-follow 500ms var(--motion-enter-easing) both; }
 .hero-conference-name { animation-delay: 0ms; }
-.hero-lead { animation-delay: 160ms; }
 .hero-location { animation-delay: 200ms; }
 .hero-actions { animation-delay: 240ms; }
-@keyframes hero-line { from { opacity: 0; transform: translateY(.2em); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(-25% -10% -25% -10%); } }
 @keyframes hero-follow { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 /* The countdown is computed only in the browser. Until it hydrates, its plain-dates
    fallback stays hidden so the hero does not flash one text and swap to another; it
@@ -50,12 +46,11 @@ html[data-scenes="on"][dir="rtl"] .chapter-stage .eyebrow-rule { transform-origi
    its normal flow instead of fading before the reader reaches the last control. */
 @media (min-width: 801px) {
 html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero .hero-layout { transform: translateY(calc(var(--leave, 0) * -1.5rem)); opacity: calc(1 - var(--leave, 0) * .85); }
-html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero .hero-bottom { opacity: calc(1 - var(--leave, 0) * 1.4); }
 html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero :is(.hero-media-poster, .hero-media-video) { transform: scale(calc(1 + var(--leave, 0) * .03)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-editorial h1 > span, .hero-conference-name, .hero-lead, .hero-location, .hero-actions, .hero-countdown .countdown-clock, .reveal--rise > * { animation: none; }
+  .hero-editorial h1, .hero-social, .hero-conference-name, .hero-location, .hero-actions, .hero-countdown .countdown-clock, .reveal--rise > * { animation: none; }
   .reveal[data-reveal-state="waiting"] > :not(.chapter-stage, :has(.chapter-stage)) { opacity: 1; transform: none; }
 }
 @media print {
@@ -63,3 +58,5 @@ html[data-scenes="on"]:not([data-cinematic="true"]) .conference-hero :is(.hero-m
   .chapter-stage .title-word, .chapter-stage .eyebrow, .conference-hero .hero-layout, .reveal > * { opacity: 1 !important; }
   .reveal > * { transform: none !important; animation: none !important; }
 }
+
+@media print { .hero-editorial h1, .hero-social { animation: none; translate: none; } }

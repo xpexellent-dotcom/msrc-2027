@@ -60,9 +60,8 @@ for (const locale of ["en", "ar"] as const) {
       const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
       expect(accessibility.violations).toEqual([]);
       await page.emulateMedia({ reducedMotion: "no-preference" });
-      await expect(flow).toHaveCSS("animation-name", "community-flow-drift");
-      const initialTransform = await flow.evaluate(element => getComputedStyle(element).transform);
-      await expect.poll(() => flow.evaluate(element => getComputedStyle(element).transform)).not.toBe(initialTransform);
+      await expect(flow).toHaveCSS("animation-name", "none");
+      await expect.poll(() => flow.locator(".ambient-flow path").first().evaluate(element => getComputedStyle(element).strokeDashoffset)).toBe("0px");
       await page.emulateMedia({ reducedMotion: "reduce" });
       await expect(flow).toHaveCSS("animation-name", "none");
       await expect(flow).toHaveCSS("transform", "none");
@@ -114,8 +113,8 @@ for (const locale of ["en", "ar"] as const) {
           await expect(hero.locator(".hero-media-poster")).toBeVisible();
         } else {
           await expect.poll(() => hero.locator("video").evaluate((video: HTMLVideoElement) => !video.paused && video.readyState >= 2)).toBe(true);
-          if (phone) await expect(hero.getByRole("button", { name: /background video|فيديو الخلفية/ })).toHaveCount(0);
-          else await expect(hero.locator(".hero-media-toggle")).toBeVisible();
+          await expect(hero.locator(".hero-media-control, .hero-media-toggle")).toHaveCount(0);
+          await expect(hero.locator("video")).not.toHaveAttribute("loop");
         }
 
         const benefits = page.locator(".program-experiences");
@@ -144,7 +143,8 @@ for (const locale of ["en", "ar"] as const) {
         const gallery = page.locator(".gallery-rail");
         const track = gallery.locator(".rail-track");
         await gallery.scrollIntoViewIfNeeded();
-        await expect(track).toHaveCSS("scroll-snap-type", "x mandatory");
+        // Chromium serializes the default proximity strictness as just "x".
+        await expect(track).toHaveCSS("scroll-snap-type", /^x(?: proximity)?$/);
         const previous = gallery.getByRole("button", { name: locale === "ar" ? "السابق" : "Previous", exact: true });
         const next = gallery.getByRole("button", { name: locale === "ar" ? "التالي" : "Next", exact: true });
         const count = await track.locator(":scope > *").count();
@@ -182,8 +182,9 @@ for (const locale of ["en", "ar"] as const) {
           expect(videos).toEqual([]);
         } else {
           await expect.poll(() => closing.locator("video").evaluate((video: HTMLVideoElement) => !video.paused && video.readyState >= 2)).toBe(true);
-          if (phone) await expect(closing.getByRole("button", { name: /Jeddah video|فيديو جدة/ })).toHaveCount(0);
-          else await expect(closing.locator(".city-control")).toBeVisible();
+          await expect(closing.getByRole("button", { name: /Jeddah video|فيديو جدة/ })).toHaveCount(0);
+          await expect(closing.locator(".city-control")).toHaveCount(0);
+          await expect(closing.locator("video")).not.toHaveAttribute("loop");
         }
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
         expect(errors).toEqual([]);

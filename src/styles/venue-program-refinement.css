@@ -7,8 +7,6 @@
   padding: 1rem;
   border-color: rgb(220 207 240 / 38%);
   background: linear-gradient(135deg, rgb(111 79 152 / 60%), rgb(59 30 109 / 42%) 55%, rgb(35 23 58 / 66%));
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   color: var(--color-ivory);
 }
 .program-date-panel::after { display: none; }

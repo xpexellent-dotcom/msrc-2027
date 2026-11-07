@@ -7,7 +7,7 @@ const cityVideoPath = "/media/msrc-demo/jeddah-opening-cropped.mp4";
 const cityPosterPath = "/media/msrc-demo/jeddah-opening-cropped-poster.jpg";
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} Jeddah video loads only on approach and supports real keyboard playback`, async ({ page }) => {
+  test(`${locale} Jeddah video loads in view, pauses off-screen and rests after one play`, async ({ page }) => {
     const requests: string[] = [];
     const errors: string[] = [];
     page.on("request", (request) => {
@@ -26,10 +26,10 @@ for (const locale of ["en", "ar"] as const) {
     expect(requests).toEqual([]);
 
     // Enter the documented 160px approach zone without first making the section visible.
-    await closing.evaluate((element) => window.scrollTo({ top: window.scrollY + element.getBoundingClientRect().top - window.innerHeight - 80, behavior: "instant" }));
+    await closing.evaluate((element) => window.scrollTo({ top: window.scrollY + element.getBoundingClientRect().top - window.innerHeight + 80, behavior: "instant" }));
     await expect(video).toHaveAttribute("src", cityVideoPath);
     await expect(video).toHaveAttribute("poster", cityPosterPath);
-    await expect(video).toHaveAttribute("loop", "");
+    await expect(video).not.toHaveAttribute("loop");
     await expect(video).toHaveAttribute("playsinline", "");
     await expect(video).toHaveAttribute("preload", "none");
     await expect(video).toHaveAttribute("tabindex", "-1");
@@ -42,25 +42,16 @@ for (const locale of ["en", "ar"] as const) {
     if (audioBytes !== undefined) expect(audioBytes).toBe(0);
 
     await closing.scrollIntoViewIfNeeded();
-    const control = closing.locator(".city-control");
-    if ((page.viewportSize()?.width ?? 1280) <= 700) {
-      await expect(control).toBeHidden();
-      await expect(closing.getByRole("button", { name: /فيديو جدة|Jeddah video/ })).toHaveCount(0);
-      expect(errors).toEqual([]);
-      return;
-    }
-    await expect(control).toHaveAccessibleName(locale === "ar" ? "إيقاف فيديو جدة" : "Pause Jeddah video");
-    const size = await control.boundingBox();
-    expect(size!.width).toBeGreaterThanOrEqual(44);
-    expect(size!.height).toBeGreaterThanOrEqual(44);
-    await control.focus();
-    await page.keyboard.press("Enter");
+    await expect(closing.locator(".city-control")).toHaveCount(0);
+    await page.locator("#program").scrollIntoViewIfNeeded();
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
-    await expect(control).toHaveAccessibleName(locale === "ar" ? "تشغيل فيديو جدة" : "Play Jeddah video");
-    await expect(control).toBeFocused();
-    await page.keyboard.press("Space");
-    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused && element.readyState >= 2)).toBe(true);
-    await expect(control).toHaveAccessibleName(locale === "ar" ? "إيقاف فيديو جدة" : "Pause Jeddah video");
+    await closing.scrollIntoViewIfNeeded();
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => !element.paused)).toBe(true);
+    await video.evaluate((element: HTMLVideoElement) => { element.currentTime = element.duration - .15; });
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.ended)).toBe(true);
+    await page.locator("#program").scrollIntoViewIfNeeded();
+    await closing.scrollIntoViewIfNeeded();
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused && element.ended)).toBe(true);
     expect(errors).toEqual([]);
   });
 }
@@ -83,14 +74,17 @@ for (const preference of [
     await page.goto(`/${preference.locale}`);
     const closing = page.locator(".city-closing");
     await closing.scrollIntoViewIfNeeded();
-    await expect(page.locator(".site-header")).toHaveAttribute("data-scrolled", "true");
+    await expect(page.locator(".site-header")).not.toHaveAttribute("data-scrolled");
     await expect(closing.locator(".closing-grid")).toHaveAttribute("data-reveal-state", "complete");
     const poster = closing.locator(".city-media img");
     await expect(poster).toBeVisible();
     await expect.poll(() => poster.evaluate((element: HTMLImageElement) => element.complete && element.naturalWidth > 0)).toBe(true);
     await expect(closing.locator("video, .city-control")).toHaveCount(0);
     await expect(closing.locator("#closing-title")).toBeVisible();
-    await expect(closing.getByRole("link")).toHaveAttribute("href", `/${preference.locale}/participate`);
+    const reserve = closing.locator(`a[href="/${preference.locale}/participate"]`);
+    await expect(reserve).toHaveAttribute("href", `/${preference.locale}/participate`);
+    await reserve.click();
+    await expect(page).toHaveURL(new RegExp(`/${preference.locale}/participate$`));
     expect(requests).toEqual([]);
     expect(errors).toEqual([]);
   });
@@ -108,7 +102,7 @@ test("missing IntersectionObserver leaves a readable Jeddah poster without a run
   await page.goto("/en");
   const closing = page.locator(".city-closing");
   await closing.scrollIntoViewIfNeeded();
-  await expect(page.locator(".site-header")).toHaveAttribute("data-scrolled", "true");
+  await expect(page.locator(".site-header")).not.toHaveAttribute("data-scrolled");
   await expect(closing.locator(".closing-grid")).toHaveAttribute("data-reveal-state", "complete");
   await expect(closing.locator("#closing-title")).toBeVisible();
   await expect(closing.locator(".city-media img")).toBeVisible();

@@ -24,7 +24,10 @@ describe("approved design publication without preview authorization (DSN-01/02, 
     expect(html).toContain(cinematicCopy[locale].speakerPending);
     expect(html).toContain('id="participate"');
     expect(html).toContain('id="legacy"');
-    expect(html).toContain('class="pathway-track-nav"');
+    expect(html).toMatch(/class="[^"]*\bpathway-list path-bento"/);
+    expect(html.match(/class="[^"]*\bpathway-action"/g)).toHaveLength(5);
+    expect(html).not.toContain("sponsor-belt");
+    expect(html).not.toContain("hero-social");
     expect(html).toContain("community-majed-9804.jpg");
     expect(html).toContain("jeddah-opening-cropped-poster.jpg");
     expect(html).toContain(locale === "en" ? "Illustrative" : "مثال بصري");

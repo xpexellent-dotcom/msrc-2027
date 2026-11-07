@@ -1,6 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
 import { languageLink, revealDesktopHeader } from "./helpers/header-navigation";
-import { clickHeroCue, prepareHeroCue } from "./helpers/hero-navigation";
 
 declare global {
   interface Window {
@@ -29,6 +28,11 @@ async function observeNavigation(page: Page) {
       return scrollIntoView.call(this, options);
     };
   });
+}
+
+async function registrationJump(page: Page) {
+  await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue("--site-header-height"))).not.toBe("");
+  return page.getByTestId("registration-steps-jump");
 }
 
 async function headerNavigation(page: Page) {
@@ -61,25 +65,29 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("main")).toBeFocused();
   });
 
-  test(`${locale} the hero anchor glides and slides without controlling ordinary scrolling`, async ({ page }) => {
+  test(`${locale} the registration steps anchor glides and slides without controlling ordinary scrolling`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
-    await page.goto(`/${locale}`);
-    const cue = await prepareHeroCue(page);
+    await page.goto(`/${locale}/registration`);
+    const cue = await registrationJump(page);
     expect((await cue.boundingBox())?.height).toBeGreaterThanOrEqual(44);
     await expect(page.locator(".section-journey")).toHaveCount(0);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType)).toBe("none");
     await cue.click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}#essentials$`));
-    await expect(page.locator("#essentials")).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "essentials")?.behavior)).toBe("smooth");
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "essentials")?.duration)).toBe(220);
-    const slide = await page.evaluate(() => window.navigationEvidence.slides.find((entry) => entry.id === "essentials"));
+    await expect(page).toHaveURL(new RegExp(`/${locale}/registration#journey-steps$`));
+    await expect(page.locator("#journey-steps")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "journey-steps")?.behavior)).toBe("smooth");
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.find((slide) => slide.id === "journey-steps")?.duration)).toBe(220);
+    const slide = await page.evaluate(() => window.navigationEvidence.slides.find((entry) => entry.id === "journey-steps"));
     expect(slide?.frames[0].transform).toBe(`translateX(${locale === "ar" ? -8 : 8}px)`);
     expect(slide?.frames[1].transform).toBe("translateX(0)");
-    await expect.poll(() => page.locator("#essentials").evaluate((element) =>
-      Math.round(element.getBoundingClientRect().top) - parseFloat(getComputedStyle(element).scrollMarginBlockStart),
+    await expect.poll(() => page.locator("#journey-steps").evaluate((element) =>
+      Math.abs(element.getBoundingClientRect().top - parseFloat(getComputedStyle(element).scrollMarginBlockStart)
+        - parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart)),
     )).toBeLessThanOrEqual(1);
+    expect(await page.locator("#journey-steps-title").evaluate((element) =>
+      element.getBoundingClientRect().top - document.querySelector(".site-header")!.getBoundingClientRect().bottom,
+    )).toBeGreaterThanOrEqual(0);
     const position = await page.evaluate(() => window.scrollY);
     await page.keyboard.press("PageDown");
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(position);
@@ -120,39 +128,53 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} an anchor followed by a page visit retains the hash and query on Back`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
-    await page.goto(`/${locale}?view=motion`);
-    await clickHeroCue(page);
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#essentials$`));
-    await expect(page.locator("#essentials")).toBeFocused();
-    await expect.poll(() => page.locator("#essentials").evaluate((element) =>
-      Math.round(element.getBoundingClientRect().top) - parseFloat(getComputedStyle(element).scrollMarginBlockStart),
+    await page.goto(`/${locale}/registration?view=motion`);
+    await (await registrationJump(page)).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/registration\\?view=motion#journey-steps$`));
+    await expect(page.locator("#journey-steps")).toBeFocused();
+    await expect.poll(() => page.locator("#journey-steps").evaluate((element) =>
+      Math.abs(element.getBoundingClientRect().top - parseFloat(getComputedStyle(element).scrollMarginBlockStart)
+        - parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart)),
     )).toBeLessThanOrEqual(1);
-    const navigation = await headerNavigation(page);
-    await navigation.locator(`a[href="/${locale}/participate"]`).click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
+    expect(await page.locator("#journey-steps-title").evaluate((element) =>
+      element.getBoundingClientRect().top - document.querySelector(".site-header")!.getBoundingClientRect().bottom,
+    )).toBeGreaterThanOrEqual(0);
+    // Keep this route visit within registration's private document CSP boundary.
+    const toggle = page.locator(".menu-toggle");
+    if (await toggle.isVisible()) await toggle.click();
+    const action = page.locator(await toggle.isVisible() ? ".mobile-menu .mobile-reserve-action" : ".header-primary-action");
+    if (await toggle.isVisible()) {
+      await expect(action).toHaveAttribute("aria-haspopup", "dialog");
+      await action.click();
+    } else {
+      await expect(action).toHaveAttribute("aria-haspopup", "dialog");
+      await action.click();
+    }
+    await page.locator(".reserve-seat-dialog a").first().click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
     await expect(page.getByRole("main")).toBeFocused();
     await page.goBack();
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=motion#essentials$`));
-    await expect(page.locator("#essentials")).toBeInViewport();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/registration\\?view=motion#journey-steps$`));
+    await expect(page.locator("#journey-steps")).toBeInViewport();
   });
 
   test(`${locale} language navigation preserves query, hash, destination focus and directional slide`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
     const targetLocale = locale === "en" ? "ar" : "en";
-    await page.goto(`/${locale}?view=motion`);
-    await clickHeroCue(page);
-    await expect(page.locator("#essentials")).toBeFocused();
+    await page.goto(`/${locale}/registration?view=motion`);
+    await (await registrationJump(page)).click();
+    await expect(page.locator("#journey-steps")).toBeFocused();
     await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(1);
     const language = await languageLink(page, locale === "en" ? "View this page in Arabic" : "View this page in English");
-    await expect(language).toHaveAttribute("href", `/${targetLocale}?view=motion#essentials`);
+    await expect(language).toHaveAttribute("href", `/${targetLocale}/registration?view=motion#journey-steps`);
     await language.click();
-    await expect(page).toHaveURL(new RegExp(`/${targetLocale}\\?view=motion#essentials$`));
+    await expect(page).toHaveURL(new RegExp(`/${targetLocale}/registration\\?view=motion#journey-steps$`));
     await expect(page.locator("html")).toHaveAttribute("dir", targetLocale === "ar" ? "rtl" : "ltr");
-    await expect(page.locator("#essentials")).toBeFocused();
+    await expect(page.locator("#journey-steps")).toBeFocused();
     await expect.poll(() => page.evaluate(() => window.navigationEvidence.slides.length)).toBe(2);
     const slide = await page.evaluate(() => window.navigationEvidence.slides.at(-1));
-    expect(slide?.id).toBe("essentials");
+    expect(slide?.id).toBe("journey-steps");
     expect(slide?.frames[0].transform).toBe(`translateX(${targetLocale === "ar" ? -8 : 8}px)`);
     expect(slide?.duration).toBe(220);
   });
@@ -166,9 +188,10 @@ for (const locale of ["en", "ar"] as const) {
     await button.hover();
     expect(await button.evaluate((element) => getComputedStyle(element).transform)).toBe("none");
     expect(await button.evaluate((element) => getComputedStyle(element, "::before").transitionDuration)).toBe("0s");
-    await clickHeroCue(page);
-    await expect(page.locator("#essentials")).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "essentials")?.behavior)).toBe("instant");
+    await page.goto(`/${locale}/registration`);
+    await (await registrationJump(page)).click();
+    await expect(page.locator("#journey-steps")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.navigationEvidence.scrolls.find((scroll) => scroll.id === "journey-steps")?.behavior)).toBe("instant");
     expect(await page.evaluate(() => window.navigationEvidence.slides)).toEqual([]);
   });
 }

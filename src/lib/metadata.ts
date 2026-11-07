@@ -56,10 +56,11 @@ const descriptionCity: Record<Locale, string> = { en: ", Jeddah. ", ar: "، جد
 
 /**
  * A page's search snippet led by the confirmed dates, venue and city, as on the homepage:
- * "27–28 January 2027, King Faisal Conference Center, Jeddah. Practical learning…"
+ * "April 2027, King Faisal Conference Center, Jeddah. Practical learning…"
  */
 export function conferenceDescription(locale: Locale, text: string): string {
   const venue = conferenceConfig.venue;
   const location = `${venue ? `${locale === "ar" ? "، " : ", "}${venue.name[locale]}` : ""}${descriptionCity[locale]}`;
-  return conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}${location}${text}` : text;
+  const date = conferenceConfig.dates ? formatConferenceDateRange(conferenceConfig.dates, locale) : conferenceConfig.monthLabel[locale];
+  return `${date}${location}${text}`;
 }

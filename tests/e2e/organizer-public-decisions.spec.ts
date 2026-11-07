@@ -47,7 +47,7 @@ for (const locale of ["en", "ar"] as const) {
       await page.evaluate(() => document.fonts.ready);
       if (!route) {
         await expect(page.locator(".pathway-card")).toHaveCount(5);
-        await expect(page.locator(".event-strip")).toContainText(locale === "en" ? "King Faisal Conference Center" : "مركز الملك فيصل للمؤتمرات");
+        await expect(page.locator("#venue h3")).toContainText(locale === "en" ? "King Faisal Conference Center" : "مركز الملك فيصل للمؤتمرات");
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
       const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"]).analyze();

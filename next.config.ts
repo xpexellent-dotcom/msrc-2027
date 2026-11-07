@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { previewPlaceholdersAllowed } from "./src/lib/preview-placeholders";
 
 // ORG-013: production is public and indexable; previews, local runs and CI stay noindex.
 const production = process.env.VERCEL_ENV === "production";
@@ -12,6 +13,12 @@ const nextConfig: NextConfig = {
   // Preserve the handoff's existing project instructions unchanged.
   agentRules: false,
   poweredByHeader: false,
+  // ENG-094: source maps retain original env identifiers even after executable code is inlined.
+  // Keep the placeholder freeze auditable across the complete server output, including prerender.
+  productionBrowserSourceMaps: false,
+  enablePrerenderSourceMaps: false,
+  // ORG-072 / ENG-094: freeze illustrative homepage content at build time, including ISR.
+  env: { MSRC_HOME_PLACEHOLDERS: previewPlaceholdersAllowed({ VERCEL_ENV: process.env.VERCEL_ENV, MSRC_PREVIEW_PLACEHOLDERS: process.env.MSRC_PREVIEW_PLACEHOLDERS }) ? "true" : "false" },
   serverExternalPackages: ["pdfkit"],
   // The authorized import reads checked-in image sources in the server runtime.
   // Films stay static; only their WebP posters enter the image pipeline.
@@ -24,8 +31,10 @@ const nextConfig: NextConfig = {
   // The regular build type-checks the same sources, so these test builds skip that pass.
   ...(/^\.next\/content-(published|empty|down)$/.test(process.env.MSRC_CONTENT_E2E_DIST_DIR ?? "")
     ? { distDir: process.env.MSRC_CONTENT_E2E_DIST_DIR, typescript: { ignoreBuildErrors: true } } : {}),
+  ...(process.env.MSRC_HOME_PREVIEW_DIST_DIR === ".next/home-preview"
+    ? { distDir: ".next/home-preview", typescript: { ignoreBuildErrors: true } } : {}),
   // ENG-045: unmatched routes bypass the throwing catch-all and render a localized document.
-  experimental: { globalNotFound: true },
+  experimental: { globalNotFound: true, serverSourceMaps: false },
   // English is the default locale (LOC-01). A config redirect is answered at the CDN edge;
   // the previous route handler made every root visit wait on a function in iad1.
   // A browser whose first language is Arabic opens the Arabic site; everyone else gets English.

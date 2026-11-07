@@ -16,7 +16,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
     await page.keyboard.press("Tab");
 
-    for (const selector of ['#program .editorial-action', '#legacy [data-testid="watch-opening-film"]']) {
+    for (const selector of ['#program .editorial-action', '#legacy .button--outline-inverse[data-testid="watch-opening-film"]', '.hero-actions .button--ivory']) {
       const action = page.locator(selector);
       await action.focus();
       await expect(action).toBeFocused();
@@ -51,10 +51,17 @@ for (const locale of ["en", "ar"] as const) {
         await expectReflow(page);
         await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
         await expectReflow(page);
-        const clippedReadingText = await page.locator(".pathway-description, .experience-publication-status, .experience-lead").evaluateAll((elements) => elements.some((element) => {
-          const range = document.createRange();
-          range.selectNodeContents(element);
-          return [...range.getClientRects()].some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
+        const clippedReadingText = await page.locator(".pathway-kicker, .pathway-name, .experience-publication-status, .experience-lead").evaluateAll((elements) => elements.some((element) => {
+          const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+          for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            // The 3MT tile has an intentionally clipped, screen-reader-only full
+            // category name. Check every visible glyph, including its aria-hidden short name.
+            if (node.parentElement?.closest(".sr-only")) continue;
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            if ([...range.getClientRects()].some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1)) return true;
+          }
+          return false;
         }));
         expect(clippedReadingText).toBe(false);
       }

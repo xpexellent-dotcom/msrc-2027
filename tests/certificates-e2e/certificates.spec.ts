@@ -1,10 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
+import { expectHeaderSettled } from "../helpers/header";
 import { randomBytes } from "node:crypto";
 import { expect, test, type Page } from "../helpers/csp";
 import { certificateCopy } from "../../src/components/certificates/copy";
 import { id, participantFixture, staffFixture, syntheticSurvey } from "./fixtures";
 
 async function accessible(page: Page) {
+  await expectHeaderSettled(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
 }

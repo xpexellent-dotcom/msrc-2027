@@ -5237,3 +5237,458 @@ From the same owner chat: Terms v1.1 reviewed by the owner (PR #149); supervisor
 email subject "MSRC'27 abstract submission" approved (ENG-091). These decisions
 do not activate delivery, AI, accounts or submissions. The owner separately
 authorized applying the merged migrations to the hosted database the same day.
+
+## ORG-071 — Owner request 3 Nov 2026: immersive mobile homepage
+
+Authority: the owner's 3 November request and final build specification supplied
+on 4 November 2026. The whole homepage is in scope, principally on mobile through
+800px: edge-to-edge natural photographs, giant chapter/category headings,
+restrained MSRC colour fields and gradient arrow orbs. Desktop keeps its layout
+with the same copy removals, pathway card language, purple speakers curtain and
+FAQ orbs. Requirements: SCP-01, DSN-01/02, ACC-01, LOC-01/03, MED-01/04 and CFG-12.
+
+Path cards show the existing sentence title as a small kicker above the giant
+short category name, then the existing “Not open yet” status on four paths and
+an arrow orb. Registration has no closed-status pill. The visible 3MT name is
+“3MT” with the full existing category as its accessible heading name. No new
+copy keys, factual claims, dates, numbers, people or workflow approvals are added.
+
+Stop rendering R1–R14 in the feature note: hero lead; date/venue band;
+pathways body and Explore participation link; five pathway descriptions and
+old category wrappers; program introduction; practice/network/research benefit
+bodies; unpublished speaker introduction/placeholder rail; legacy film note;
+homepage gallery hint; venue body; venue figure caption (moved above the venue
+name); and the FAQ dates/venue link. Retain all content keys, FAQ answers,
+metadata/Event JSON-LD lead, CME “7” illustration and its qualification, pending
+CME/award/certificate bodies, historical scopes, gallery year badges and film
+link. No small-print qualifier is removed while its unconfirmed claim remains.
+
+This supersedes ORG-007's cue destination from `#essentials` to `#participate`;
+the visible Step inside / «اكتشف الأجواء» label stays at every width above a
+48px mobile ring. The hero film, poster, countdown and date/city content stay.
+The date band is removed. Existing section/h2 ids are retained except the removed
+`#essentials` and `#event-details` nodes; `#film` and `#faq` remain addressable.
+
+The unpublished homepage speakers surface becomes one purple curtain at every
+width, with an inverse heading, Meet the speakers orb link and the single
+existing `speakersPending` pill. This supersedes ENG-024's carried-forward
+placeholder presentation and the actual ENG-023 sentence “Anonymous designed
+portraits and pending names remain” (historical line 720), plus the “Preserve …
+placeholder rosters” clause of the public-design approval note (historical
+line 612), for the homepage only. The final build spec attributed the line-720
+sentence to ENG-024; inspection places it under ENG-023. Both prior directions
+are explicitly reconciled here. Published SpeakerCard grids and other-page
+placeholder use remain governed by their incumbent content boundary.
+
+Accept the specified slide-over text dwell, keep the Step inside label, and
+keep the 1000px King Faisal venue photograph with the capped mobile tile rather
+than reusing a different venue photograph. Existing provenance and publication
+scope remain unchanged. The receipt records visual sharpness observations.
+This task authorizes local uncommitted implementation and verification only:
+no commit, push, branch creation, PR publication, hosted deployment, activation
+or operational setting change. `docs/PROGRESS.md` stays untouched; evidence goes
+to [the home1 receipt](progress/2026-11-04-mobile-immersive-home.md).
+
+## ENG-093 — Native mobile pathway stacking deck, 4 November 2026
+
+Implement ORG-071 in `claude/mobile-immersive-home` from `13469ad`. Follow
+[DESIGN_GUIDE](DESIGN_GUIDE.md), DSN-01/02, ACC-01 and LOC-01/03, preserving
+ORG-010/011's native scrolling and removal of the mobile chapter bar. Chapter
+headings retain their incumbent reading-line behaviour. ENG-039's separate Venue
+journey stepper is untouched. Homepage rules live in `immersive-home.css`, scoped
+to `.homepage-journey`, imported after existing homepage styles and directly
+before public-content.css. Legacy edits only remove dead selectors, remove the
+date-band mixed selector and refine the specified 3MT focal point.
+
+At widths through 800px, heights at least 560px and no reduced-motion preference,
+five direct-child articles stack with native `position: sticky; top: 0` inside
+the non-sticky list. Each card is `100lvh`, with a `100vh` fallback and tile
+bottom padding of `100lvh - 100svh` to keep controls above collapsed-toolbar
+peeks. List height is exactly the sum of the five cards: no runway, scroll snap,
+wheel/touch/keyboard interception or mandatory hold. The last card releases
+with its list into Program. Sticky ancestry keeps overflow visible or clip;
+the content sheet itself receives no overflow clipping.
+
+One named view timeline on the list progressively enhances supported browsers:
+covered tiles scale to .9 and receive a separate dim layer; photos settle from
+1.12; only kicker/name translate and fade; meta fades without a transform so
+the orb's stretched whole-tile link keeps the tile as its containing block.
+Use ordered animation longhands followed by timeline/range declarations;
+verify the built CSS preserves timeline, exit-crossing, named-view-timeline and
+100lvh declarations. No will-change, animated filter or new backdrop-filter.
+Unsupported timeline browsers retain native sticky stacking with visible text.
+
+Keyboard `:has(:focus-visible)` raises the focused card and disables its tile,
+dim and text animations. Taps do not raise cards. The orb and its ancestor body
+and meta stay untransformed and non-positioned; feedback moves its arrow only.
+Reduced motion, short screens and enlarged text that cannot fit use static
+full-screen tiles which grow with their content. Desktop retains its existing
+grid, sticky intro and exact `pathway-track-nav` class/behaviour. Logical gutters,
+orbs and hairlines mirror in Arabic; image focal points and year badges do not.
+
+The small null-rendering PathwayDeck client gate measures body height against
+a stable 100svh probe plus measured header clearance. ResizeObserver, resize and
+matchMedia change events update `data-deck`; it adds no scroll, wheel, touch or
+IntersectionObserver listener. Cleanup removes the observer/listeners, probe
+and dataset. CSS provides stack behaviour before JavaScript; known gap: without
+JavaScript or before hydration, unusually tall enlarged text can be clipped in
+stack mode until the fit gate runs, although CSS short-height and reduced-motion
+guards still apply. Real iOS/Safari and Android toolbar behaviour, Firefox's
+no-timeline stack and pre-hydration/no-JavaScript behaviour require separate
+verification and are explicitly NOT TESTED in this task.
+
+Accept the owner's slide-over dwell trade-off: text is fully readable for about
+one text-block (roughly 250–300px of scroll at 390×844), plus its approach reveal.
+Do not add a hold, move the text upward or replace the deck with a peel effect.
+All operational gates and approved media/copy boundaries stay in force. Checks,
+screenshots, limitations and any observed desktop venue fallback belong in the
+[feature note](features/mobile-immersive-home.md) and
+[receipt](progress/2026-11-04-mobile-immersive-home.md), with no progress-index edit.
+
+
+## ORG-072 — Owner homepage design direction, 4 November 2026
+
+Authority: the owner's verbatim feedback of 3 and 4 November 2026 and the owner's answers on bento A, social networks, sponsor belt and the iOS reload (4 November 2026).
+Requirements: SCP-01, DSN-01/02, ACC-01, LOC-01/03, MED-01/04, CFG-12, NFR-02,
+CMS-04 and REL-01.
+
+Keep the title gradient and fit it on two lines. Place Reserve your seat on the title edge, with a contrasting-colour Explore the program button directly below.
+Use consistent margins, brand colours, supplied logo and icons, a smoother, professional, clean presentation with creative design and animation. Remove Step inside and its ring,
+superseding ORG-007. Remove scrolling cards; use the selected Bento A on white.
+Keep Program through the footer like the original, with visual improvements.
+Use unique, fitting fonts (font selection is delegated to the designer), and
+replace circular arrow controls with one consistent button system.
+
+Add the requested social row for X, LinkedIn, Instagram and TikTok and an
+illustrative sponsor belt. Official account URLs remain pending; placeholders
+are preview-only and excluded from production. Fix the reported iPhone Safari self-reload while scrolling.
+
+The 3 November removals of the hero lead, date/venue band, pathways introduction
+and Explore participation remain. No content keys or honesty qualifiers are
+deleted. Preserve ORG-012's reversible chapters, ORG-032's no-index rule, ORG-052,
+ORG-054's mirrored Program and phone film-control exception, and physical gallery
+year badges under ORG-071 / ENG-093. No operational workflow is opened.
+Designer/engineering interpretations and unresolved owner questions belong in
+ENG-094 below; they do not establish additional owner approvals.
+
+## ENG-094 — Homepage v2 implementation, 4 November 2026
+
+Implements ORG-072; supersedes ENG-093's immersive deck and presentation rules.
+The available origin/main ref 13469ade8be45e77833abf3f02b52939146c605c supplies the
+Program–FAQ restoration. Fetch is BLOCKED by managed filesystem permissions on
+external worktree Git metadata. No index, commit or owner source asset is changed.
+
+Public type supersedes ENG-007's public baseline: Fraunces 5.3.0 display and DM Sans
+text; El Messiri 5.3.0 Arabic display and Noto Sans Arabic text. Each new package
+was independently verified as published 19 July 2026, beyond the 14-day minimum.
+Both are OFL-1.1. Fraunces latin-opsz exposes opsz 9–144 and wght 100–900, so the
+full-file alternative is unnecessary. Staff roles stay ENG-007; Inter and Manrope
+remain installed with preload:false. Public role selectors also match lang
+descendants. No explicit staff use of --font-display was found; removing unused
+Manrope is follow-up work. Tabler 3.49.0's four copied social paths retain MIT
+attribution; it is not a dependency.
+
+Hero K is measured at 100px with the shipped weight, tracking, opsz 144 and 3%
+safety: EN 7.4444859375; AR 8.27605. Arabic display fallback advances over the
+approved hero and every homepage h2, including the hidden film dialog, give
+M = .8748321167883212; size-adjust 87.4832%; ascent 116.4795%; descent 62.1834%;
+line gap 0. The fallback uses Tahoma Bold. iOS without Tahoma uses Geeza Pro
+unadjusted; its real-device swap remains NOT TESTED.
+
+Next/font's automatic EN fallback configuration is retained. Its generated
+127.27% Times adjustment rewrapped the 600-weight, opsz-144 hero into four phone
+lines and produced CLS .0950 after the clock reserve fix. An additional exact
+600-weight Times Bold face, calibrated by scripts/measure-hero-fallback.mjs, uses
+size-adjust 93.5665%, ascent 104.5246%, descent 27.2534%, gap 0. This measured
+refinement deviates from the automatic-only EN fallback baseline to satisfy the
+two-line and CLS requirements. Final delayed-font CLS values are in the receipt.
+
+Type, colour, spacing, radius, elevation, motion and homepage literal primitives
+live in tokens.css. home-v2.css contains no literal hex/rgb colours or clamp().
+Cold font payload before: EN 110,024 / AR 275,984 bytes. After: EN 104,236 /
+AR 292,476 bytes. Public pages request neither Inter nor Manrope. The remeasured
+phone countdown reserves are EN 184px and AR 194px; desktop reserves interpolate
+between measured 1024px and 1440px heights.
+
+Public buttons use 14px corners and 52px height. Icon controls are 44px with 12px
+corners; header controls remain 48px with 14px corners. Delete premium-actions.css,
+superseding ENG-024's champagne material. Removing the old components.css rule
+returns arrows on phone buttons site-wide. The header is solid Royal Purple with
+20px capsule corners, without blur or grain. This supersedes ENG-028's glass
+material only: compaction and the transient fine-pointer nav fade remain.
+Logo edges and compact-pill clear space are adjusted; the dates-venue override
+also uses purple. ENG-039's stepper source and behaviour are untouched. The footer
+is purple and uses the 1200px container on the homepage. The existing interior
+header mismatch (76rem versus 1600px content, about 200px at a 1920px viewport)
+remains outside this homepage alignment task.
+
+The owner-supplied on-purple WebP appears in header/footer; finalLogo and its
+contract test are updated. The R counter #361E5B against #3B1E6D is NOT FIXED
+pending a replacement export. The established spoken link name remains MSRC 2027 Fifth edition,
+home page. Visible MSRC'27 is not an exact substring: record this WCAG 2.5.3
+trade-off while retaining MSRC at the start of the name. Delete fixed grain
+site-wide, superseding ENG-023. Remove PathwayTrackNav, superseding ENG-026, as
+well as the deck, marquee, cue helper and obsolete styles/tests.
+
+The production-first pure preview predicate feeds next.config env and freezes
+the literal process.env.MSRC_HOME_PLACEHOLDERS at build time, preventing ISR from
+changing the decision. Installed Next documentation confirms replacement. Official
+Vercel documentation describes VERCEL_ENV at build/runtime; actual hosted build
+exposure remains NOT TESTED. Never promote a preview artifact without rebuilding
+for production. Disable generated server source maps using supported Next config
+options so the whole server output, including maps, contains no flag identifier.
+
+R1–R11 safeguards: no sticky phone photo stacks or lvh/dvh flow dimensions; dvh
+remains only for permitted fixed-film/menu/overlay limits. Every image sizes value
+is ≤100vw. No homepage/header/footer backdrop filter or blend layers; no media or
+icon blur/drop shadow. Hero playback pauses below 10% visibility and on hidden
+tabs; countdown work pauses offscreen while preserving focus refresh. Only the
+visibility-gated belt loops. One-shots settle to none, with no new per-frame loop,
+scroll timeline, heavy ribbon PNG or homepage will-change. ScrollScenes measures
+nearby stages through IO and writes --leave only above 800px. Native scrolling
+and ORG-012's reversible chapters remain. An event-driven animation budget finishes
+offscreen finite animations and caps overlapping arrivals at ten. Homepage rails
+use proximity snap. Research/contours are one-shot; speaker-orbit and speaker-echo
+names stay. BenefitArtwork's brand variant is homepage-only; option pages keep line art.
+
+Normal desktop hero playback has the specified visible-label pause control.
+The full-frame pointer overlay is excluded from keyboard/accessibility while that
+control is present; phones retain the ORG-054 exception. Film-mode recovery controls
+retain their existing contracts. Keyboard focus returns the labeled control to a
+safe native reading position if the sticky sheet would obscure it. Regression tests
+hit-test the real button after initial focus and Shift+Tab; they do not force clicks.
+
+FAQ layout reconciliation (review amendment): restore the original two-column
+composition at >=801px: .75fr sticky introduction (heading, rule and stacked
+dates/contact links) and 1.25fr answer rows. The heading starts on E; the rows
+start after the introduction column, a documented exception to the original
+spec's universal edge assertion. Through 800px, both share E in one column.
+Remove the extra intro boundary. Keep the new hairline, gold bar and plus.
+
+Measured hero/Attend minima across the required six cases: h1 4.7026:1; kicker
+4.6191:1; location 5.7712:1; Attend description 10.0719:1. Strengthen the desktop
+hero's upper scrim stops to .55 at 72% / .6 at 100%. An additional closing-film
+audit caught bright-frame headline contrast below 3:1. Its final .86/.65/.5 scrim
+passes all four locale/size cases: h2 minimum 4.1424:1; date minimum 7.2248:1.
+The receipt contains every case and measurement method.
+
+Conflict log: retain ORG-054 phone controls and mirrored Program; ORG-032's index
+prohibition; ScrollScenes under ORG-012 while phone headline size is superseded
+by ORG-072; physical gallery badges; and header /sign-in versus hero/closing
+/participate destinations. No account, registration, workshop, payment, AI or
+email workflow opens. Documentation, cleanup, deleted/retargeted tests, preview
+build/CI configuration, verification commands and screenshots are recorded in
+[the receipt](progress/2026-11-04-homepage-v2.md). Real-iPhone testing, deployed
+production HTML exclusion and actual Vercel build-time environment confirmation
+remain NOT TESTED. The logo counter remains NOT FIXED.
+
+Review amendments and designer/engineering defaults pending owner review:
+
+- Gold primary / ivory secondary CTA colours, motion intensity and reduced-motion
+  behaviour, and the iOS memory safeguards with real-device reload verification
+  as a release gate are designer/engineering defaults pending owner review.
+
+- Font families (Fraunces / DM Sans / El Messiri / Noto Sans Arabic), the 1200px
+  content container, icon mapping, Attend description, full Three Minute Thesis
+  name, exact radii, optical sizes, highlight treatment, colour/motion tokens and
+  other implementation geometry are designer/engineering defaults, not verbatim
+  owner decisions. The 3 November R5/R6 interpretation keeps Attend's existing
+  description, omits the other descriptions, and uses categories as h3. Lower
+  section restoration and the visible full 3MT name reuse existing bilingual copy.
+- Keep the existing header /sign-in and hero/closing /participate destinations,
+  four closed-status labels, El Messiri without italic and offscreen hero pause.
+  Phone pause controls remain under ORG-054. The transparent-R-counter export,
+  a larger Venue source, official social URLs, date-driven pathway statuses and
+  real iOS reload/layer measurements remain owner/content or release questions.
+- Review overrides the spec's tight chapter/closing tracking: EN display tracking
+  -.005em and word spacing .04em use shared tokens. EN interior h1/h2 and sponsor
+  display words use these tokens at weight 600; homepage weights and Arabic
+  tracking remain separate. Hero tracking stays -.02em and its K is unchanged.
+- Review overrides the 1000px Venue rendering cap: retain the existing source,
+  span E to W-E and use sizes='(max-width: 800px) 94vw, 1200px'. This improves
+  composition without claiming a new higher-resolution source.
+- Review corrects the history-markup wording: dt precedes dd semantically in each
+  group; CSS shows dd first. Arabic edition digits have no English language tag.
+  CountUp animates the number while its visible + suffix has a heavier span;
+  the accessible final total stays intact. Icons sit at the top inline end and
+  the opaque stat surface replaces the transparent spec material.
+- Rails bleed to the viewport, keeping the first card on E and a clear phone
+  peek. Benefit copy shares its text edge. Desktop hero introduction starts at
+  the grid top; 801-1199px stacks the countdown and widens the Program title
+  column. Phone chapter top lines stack. Date chips, social rows and footer
+  lists reflow compactly; the footer gold rule starts at E.
+- The illustrative belt pauses only over its moving window, not on button focus
+  or hover; Resume works immediately. Reduced motion wraps it into at most four
+  phone rows without separators, and disables FAQ height transitions. Open FAQ
+  gold bars occupy the logical gutter. Shared button base specificity is lowered
+  so interior sizing wins. Shared Arrow, dark focus/venue controls, forced-colors
+  decoration removal and global rail print rules restore the intended contracts.
+- The review receipt records current commands, measurements and visual evidence;
+  previous-run figures above remain historical until explicitly reconciled there.
+
+Review-fix measurements (5 November 2026):
+EN chapter word gaps are 8px at 390 and 14.234375px at 1440, with -.005em tracking
+and .04em word spacing. Hero tracking/K are unchanged (no K rerun required).
+Stat group maxima: phone 348.09px / desktop 168.64px. Its new opaque
+RGB 85,60,127 surface gives gold/ivory/lilac contrast 3.7410/8.3075/6.0821:1.
+Remeasured hero h1/kicker/location/Attend minima: 4.7026/4.6191/5.2957/10.0748:1;
+closing h2/date minima 4.0865/7.2189:1. No desktop controls overlap at
+1024/1280/1440/1920 in EN/AR. Final visual review extends the wider Program
+heading column to all desktop widths and compacts the reduced-motion belt at
+320px too. Attend uses border 0 so hover cannot restore its ring. These results
+supersede the corresponding earlier figures; the dated receipt has commands,
+per-item status, raw evidence and manual-device limits.
+
+Round 2 review amendment (5 November 2026), within ENG-094. Attend has a definite
+full inline size and cover-aware image sizes. Arabic historical grouping alone
+uses the text face, including count-up ticks and server-rendered final values.
+Speaker widths and their desktop gap reserve a 3.5rem next-card peek with a 28rem
+cap, while the section clips only horizontal bleed. Tablet speakers/gallery
+have separate caps. Only CME spans its note across the text rows, with the note
+remaining at least 13px. Reduced-motion sponsors share the caption container
+and use four desktop columns. Closing date/place use separate unbroken spans
+and two phone lines with the sparkle retained. Live social targets retain 44px.
+Arabic research headings use El Messiri at 700/600 and preserve rubric leading.
+The research closing uses ink, and footer rules follow each footer container.
+The static footer rule is removed from the actual hide list, which was in the
+forced-colors block. No reduced-motion hide entry existed in this checkout.
+The committed closing contrast script writes .tools/home-v2/closing-contrast.json.
+All commands, corrective reruns, visual evidence and remaining hardware/production
+limits are recorded in the round 2 receipt.
+
+
+## ORG-073 — Homepage owner edits, 6 November 2026
+
+The owner requested a cleaner, proportionate, higher-quality seal crop followed
+by live MSRC’27 text in the header and footer, including Arabic pages. The owner
+selected navigation Option B from the supplied mockups, with clear glass over
+dark content and light glass over light content. The complete bar stays visible
+while scrolling on desktop and phone. This supersedes ENG-028's compact public
+header and explicitly conflicts with that earlier behavior. The header is the
+one exception to ENG-094's iOS prohibition on backdrop-filter, with blur capped
+at 14px. Other elements retain the prohibition. A real iPhone reload check is
+still required.
+
+For signed-out visitors, only navigation Reserve your seat opens a centred
+Sign in and Sign up modal: the desktop header and phone menu (which closes first).
+The homepage hero and closing actions are plain links to the Participate page.
+The signed-in header retains My profile
+with its existing picture or initials under ENG-085/086. The phone menu retains
+sign-in and sign-up access. Navigation alone calls Research competition
+Abstracts, using the site's existing Arabic abstracts term.
+
+Remove visible pause controls for background media while retaining the
+user-started Watch the film controls. Background videos play once, rest on their
+final frame and pause off-screen. The illustrative belt keeps moving without a
+visible pause control, pauses on hover and touch, and remains static with
+reduced motion. This explicitly supersedes the AGENTS.md accessible-video-
+controls requirement for background video and the corresponding ENG-094
+desktop-control rule. The moving belt without a persistent pause mechanism is
+an owner-directed WCAG 2.2.2 trade-off. This decision does not establish WCAG
+2.2.2 conformance for that belt.
+
+The conference month is April 2027, displayed as أبريل ٢٠٢٧ in Arabic. The
+countdown runs to 1 April 2027 at midnight in Asia/Riyadh. Exact conference days
+are unset. The countdown target is not a conference date. This supersedes
+ORG-001's January conference days for current conference-date publication and
+conflicts with the January dates in organizer-approved legal copy. The task
+explicitly preserves that legal wording pending reconciliation and requires
+its exact January sentences to be reported.
+
+All five Choose your path tiles use their supplied photos, a restrained purple
+tint and vignette, and a small brand icon. Review responsive crops individually,
+including the 3MT speaker and Hackathon participants, and make status pills
+readable. Legacy uses a full-bleed audience background, an even purple scrim and
+flow lines. Widen the shared homepage container at large sizes and make a
+restrained mobile and desktop color/visual consistency pass. Keep the structure,
+copy, fonts and honesty qualifiers.
+
+## ENG-095 — Homepage round-three implementation defaults, 6 November 2026
+
+Implements ORG-073. These are designer/engineering defaults. The existing
+509×512 transparent on-purple and on-white seal sources supply centered 192px
+square PNG derivatives, served unoptimized and eagerly at 40px. Header and
+footer share the same dark-tone URL and intrinsic rendition. Both header tones
+load eagerly. Original identity assets remain intact. Fraunces 600 supplies the
+LTR visible wordmark, hidden from assistive technology alongside the retained
+spoken identity and home suffix.
+
+The header uses a 12% white glass layer with a 45% ink under-tint for contrast,
+14px blur and 1.5 saturation. Light glass uses 82% ivory with purple text and a
+purple-tinted border. A single header IntersectionObserver observes explicit
+section tones. Foreground and tint change atomically. Border colour and shadow
+transition over 180ms, with all transitions disabled for reduced motion. This
+deviates from interpolating both foreground and surface colours. An actual axe
+scan measured 4.35:1 during that interpolation, so the contrast requirement
+takes priority over a continuous colour inversion. The observer samples
+through a one-pixel band at the bar's centre. It only changes
+data-header-tone. Header scroll listeners, compaction state and data-compact are
+removed. Before hydration, without JavaScript or without IntersectionObserver,
+the header uses a readable solid surface. Home starts dark. Interior pages start
+light over their existing ivory header clearance and change tone as their
+sections pass under the bar. Reduced transparency, unsupported
+backdrop-filter and forced-colors have solid fallbacks. The dropdown and phone menu
+use opaque surfaces. The Reserve dialog also uses an opaque surface.
+Background blur declarations on other
+legacy public surfaces are removed, implementing the sole-element iOS budget.
+
+The shared seat component server-renders a sign-in link and upgrades after
+hydration to a dialog trigger. The 6 November Reserve pop-up refinement uses one
+native dialog opened with showModal() from the signed-out desktop header and
+phone menu actions only. Hero and closing remain plain Participate links. Its
+opaque purple surface has the existing seal,
+approved bilingual account introduction, equal Sign in / Sign up choices and a
+44px close control at the inline end. A plain dark translucent backdrop has no
+blur. Native modality supplies focus containment and Escape. Explicit focus
+starts at Sign in and returns to the opener on dismissal. The phone menu closes
+synchronously before opening and returns focus to its surviving menu toggle.
+Backdrop clicks dismiss only outside the dialog rectangle. No blur dismissal or
+scroll handlers are added, and the page scrollbar is retained. Logical layout,
+16px gutters at 320px, internal short-viewport scrolling, reduced-motion and
+forced-colors styles apply. The signed-in header remains under ENG-085/086.
+Registration, submission, account and delivery flags are unchanged.
+
+conferenceConfig.dates is null. Separate localized month labels and the
+2027-04-01T00:00:00+03:00 countdown target drive display. The clock settles to
+month text after zero and stops scheduling ticks. Calendar requests return 404,
+calendar/day-card links are absent, and Event structured data is omitted while
+exact conference days are unset. This is the conservative task-authorized
+default. Generic calendar serialization
+and historical clock algorithms remain covered with synthetic date fixtures.
+Metadata, OG imagery, FAQ, participation guidance and registration-email
+rendering use the month announcement. No email is sent. Organizer intake no
+longer assigns January session instants when days are unset. Its regenerated
+template uses Day 1/Day 2 labels and accepts prior workbook labels without
+restoring their dates. Synthetic parser tests inject dates explicitly.
+
+The January registration closing announcement under ORG-057 and the separate
+approved abstract roadmap milestones remain unchanged. All versions of
+src/content/policies.ts remain byte-for-byte unchanged, including their event
+and retention dates. Their conflict with the month announcement remains an
+owner/legal reconciliation item, detailed in the receipt.
+
+Every path photo has an independently selected physical focal position for
+phone and desktop, with solid ivory status pills and dark text. Image sizes
+reserve cover-crop resolution within the 100vw cap. The Attend badge occupies
+the upper middle to avoid the projected portrait. Hackathon's badge uses the
+physical upper right, with its arrow beside the status row, to clear faces. The
+3MT image uses an aspect-preserving 250% frame with a physical left anchor and
+35% phone / 40% desktop vertical focus, centring the speaker at desktop sizes.
+The Hackathon source already
+contains a partly framed standing person. Cropping cannot recover that missing
+source area. The Legacy image covers the entire section beneath an even 82%
+purple scrim. Homepage-only --home-container grows from 75rem to 90rem at 1680px.
+The header and footer inherit the same homepage edge. Interior container widths
+retain their existing values. Badge sizes, dialog radii, photo borders and
+phone clear space form the restrained consistency pass. Native scrolling and
+src/lib/journey-stepper.ts are preserved.
+
+Conflict log. ORG-073 supersedes ENG-028's desktop compaction, ENG-094's backdrop
+prohibition for the sole header element, the background pause-control rule in
+AGENTS.md and ENG-094, and ORG-001's published exact days. It does not approve a
+legal rewrite, a replacement registration/abstract deadline, operational
+activation, hosted configuration or a deployment. The task's dedicated receipt
+overrides the ordinary AGENTS.md instruction to edit docs/PROGRESS.md. Only this
+entry and ORG-073 were originally appended; the Reserve refinement amends both
+in place with no new IDs. Verification, measurements, retargeted tests and
+visual evidence are recorded in [the round-three receipt](progress/2026-11-06-homepage-owner-edits.md).

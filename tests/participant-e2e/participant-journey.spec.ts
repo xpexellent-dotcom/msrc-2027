@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { expectHeaderSettled } from "../helpers/header";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { expect, test, type Page } from "../helpers/csp";
@@ -80,7 +81,11 @@ async function capture(page: Page, locale: string, project: string, state: strin
 }
 
 async function accessible(page: Page) {
+  await expectHeaderSettled(page);
   await expectStylesheetsReady(page);
+  // Dynamic private routes stream metadata after their visible account shell.
+  // Keep axe's document-title rule, and wait for the actual document to finish it.
+  await expect(page).toHaveTitle(/\S+/);
   expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   const smallTargets = await page.locator(".participant-account-card").evaluate((panel) => Array.from(panel.querySelectorAll<HTMLElement>('button, a, input:not([type="checkbox"]):not([name="website"]), .choice-label')).filter((element) => {

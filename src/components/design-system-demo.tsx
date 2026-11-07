@@ -19,7 +19,7 @@ const copy = {
     palette: ["Royal purple", "Warm gold", "Ivory", "Soft lilac", "Deep ink"],
     typography: "Type specimens", headingSample: "Research starts with a question.",
     bodySample: "A clear interface makes room for ideas. Reading surfaces, labels and supporting text share a consistent rhythm.",
-    headingFont: "DM Sans · headings and buttons", bodyFont: "Inter · body and details", arabicFont: "Noto Sans Arabic · Arabic interface",
+    headingFont: "Fraunces · public display", bodyFont: "DM Sans · public text", arabicFont: "Noto Sans Arabic · Arabic text", arabicDisplayFont: "El Messiri · Arabic display", staffFont: "Inter, Manrope · staff",
     spacing: "Spacing scale", interaction: "2 / Interaction", interactionTitle: "Responsive, restrained controls",
     interactionDescription: "Use Tab to inspect focus, hover to preview feedback, and press to see the active state. Motion is removed when reduced motion is requested.",
     primary: "Primary action", secondary: "Secondary action", quiet: "Quiet action", gold: "On a dark surface",
@@ -46,7 +46,7 @@ const copy = {
     palette: ["البنفسجي الملكي", "الذهبي الدافئ", "العاجي", "الليلكي الفاتح", "الحبر الداكن"],
     typography: "نماذج الخطوط", headingSample: "البحث يبدأ بسؤال.",
     bodySample: "تتيح الواجهة الواضحة مساحة للأفكار. تتبع مساحات القراءة والعناوين والنصوص المساندة إيقاعًا متّسقًا.",
-    headingFont: "DM Sans · العناوين والأزرار الإنجليزية", bodyFont: "Inter · النصوص والتفاصيل الإنجليزية", arabicFont: "Noto Sans Arabic · الواجهة العربية",
+    headingFont: <><bdi dir="ltr">Fraunces</bdi> · العناوين العامة</>, bodyFont: <><bdi dir="ltr">DM Sans</bdi> · النصوص العامة</>, arabicFont: <><bdi dir="ltr">Noto Sans Arabic</bdi> · النصوص العربية</>, arabicDisplayFont: <><bdi dir="ltr">El Messiri</bdi> · العناوين العربية</>, staffFont: <><bdi dir="ltr">Inter، Manrope</bdi> · واجهات الفريق</>,
     spacing: "مقياس المسافات", interaction: "٢ / التفاعل", interactionTitle: "عناصر تحكم واضحة ومتجاوبة",
     interactionDescription: "استخدم مفتاح Tab لفحص التركيز، ومرّر المؤشر ثم اضغط لمعاينة التفاعل. تُزال الحركة عند تفعيل تفضيل تقليل الحركة.",
     primary: "إجراء أساسي", secondary: "إجراء ثانوي", quiet: "إجراء بسيط", gold: "على خلفية داكنة",
@@ -148,7 +148,7 @@ export function DesignSystemDemo({ locale }: { locale: Locale }) {
           <p className="design-type-heading">{text.headingSample}</p>
           <p className="design-type-body">{text.bodySample}</p>
           <p lang="ar" dir="rtl" className="design-type-arabic">مساحة للأفكار، وخطوة نحو المعرفة.</p>
-          <ul><li>{text.headingFont}</li><li>{text.bodyFont}</li><li>{text.arabicFont}</li></ul>
+          <ul><li>{text.headingFont}</li><li>{text.bodyFont}</li><li>{text.arabicDisplayFont}</li><li>{text.arabicFont}</li><li>{text.staffFont}</li></ul>
         </div>
         <div className="design-spacing">
           <h3>{text.spacing}</h3>

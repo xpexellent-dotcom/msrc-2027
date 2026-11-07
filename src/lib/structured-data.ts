@@ -29,6 +29,7 @@ export function websiteJsonLd(locale: Locale) {
  */
 export function conferenceEventJsonLd(locale: Locale) {
   const dates = conferenceConfig.dates;
+  // ORG-073. Month-only announcement has no full schema.org Event Date.
   if (!dates) return null;
   const copy = homepageCopy[locale];
   const venue = conferenceConfig.venue;

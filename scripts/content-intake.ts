@@ -1,3 +1,5 @@
+import { conferenceConfig } from "../src/config/conference.ts";
+import type { ConferenceDates } from "../src/lib/conference-dates";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -28,9 +30,9 @@ export type Column = Readonly<{
 }>;
 export type SheetSpec = Readonly<{ name: "Speakers" | "Sessions" | "Workshops"; columns: readonly Column[] }>;
 
-export const conferenceDays = Object.freeze({ day1: "2027-01-27", day2: "2027-01-28" });
+export const conferenceDays = conferenceConfig.dates;
 export const statusOptions = Object.freeze({ Approved: "approved", Draft: "draft" } as const);
-export const dayOptions = Object.freeze({ "Day 1 - 27 January 2027": "day1", "Day 2 - 28 January 2027": "day2" } as const);
+export const dayOptions = Object.freeze({ "Day 1": "day1", "Day 2": "day2" } as const);
 const riyadhOffsetMinutes = 3 * 60; // Asia/Riyadh has no daylight saving; matches src/lib/conference-dates.ts.
 const exampleIdPrefix = "example-";
 const maxLinks = 3;
@@ -62,7 +64,7 @@ const speakerColumns: Column[] = [
 const sessionColumns: Column[] = [
   { key: "slug", header: "Session ID", requirement: "required", kind: "id", hint: idHint, example: "example-opening-keynote", width: 26 },
   statusColumn(),
-  { key: "day", header: "Conference day", requirement: "required", kind: "day", hint: "Choose the day from the list.", example: "Day 1 - 27 January 2027", width: 24 },
+  { key: "day", header: "Conference day", requirement: "required", kind: "day", hint: "Choose the day from the list.", example: "Day 1", width: 24 },
   { key: "title", header: "Session title (English)", requirement: "required", kind: "english", hint: "Scientific sessions are shown in English only.", example: "Example keynote on research methods", width: 36 },
   { key: "description", header: "Session description (English)", requirement: "required", kind: "english", hint: "Two to four sentences in English describing the session.", example: "A synthetic example description used only to show the format of this row.", width: 50 },
   { key: "start", header: "Start time", requirement: "optional", kind: "time", hint: timeHint, example: "09:00", width: 12 },
@@ -527,8 +529,11 @@ class RowReader {
   }
 
   choice<T extends string>(key: string, options: Readonly<Record<string, T>>): T | null {
-    const value = this.text(key);
-    if (value === null) return null;
+    const raw = this.text(key);
+    if (raw === null) return null;
+    // Previously issued workbooks retain their day labels, without reviving dates.
+    const historicalDays: Record<string, string> = { "Day 1 - 27 January 2027": "Day 1", "Day 2 - 28 January 2027": "Day 2" };
+    const value = key === "day" ? historicalDays[raw] ?? raw : raw;
     const match = Object.entries(options).find(([label]) => normalizeHeader(label) === normalizeHeader(value));
     if (!match) {
       this.error(key, `"${value}" is not one of the allowed choices. Please choose ${Object.keys(options).map((label) => `"${label}"`).join(" or ")} from the list.`);
@@ -626,7 +631,7 @@ function claimId(seen: Map<string, number>, slug: string | null, row: number, re
   else seen.set(slug, row);
 }
 
-export function validateIntake(sheets: readonly RawSheet[]): IntakeResult {
+export function validateIntake(sheets: readonly RawSheet[], dates: ConferenceDates | null = conferenceDays): IntakeResult {
   const problems: Problem[] = [];
   let skippedExampleRows = 0;
   const sheetByName = (name: string) => sheets.find((sheet) => sheet.name.trim().toLowerCase() === name.toLowerCase());
@@ -725,10 +730,14 @@ export function validateIntake(sheets: readonly RawSheet[]): IntakeResult {
     const recordingSlug = read.id("recording");
     if (sessionReport.problems.filter((problem) => problem.level === "error").length > before) continue;
     checkSpeakers(read, "speakers", speakerSlugs, publication, "session");
-    const date = conferenceDays[day!];
+    const date = dates?.[day!];
+    if (!date && (start !== null || end !== null)) {
+      sessionReport.error(row.number, read.column("start"), "Exact conference days are awaiting confirmation. Leave session times blank.");
+      continue;
+    }
     sessions.push({
       slug: slug!, publication: publication!, day: day!, title: title!, description: description!,
-      startAt: start === null ? null : riyadhInstant(date, start), endAt: end === null ? null : riyadhInstant(date, end),
+      startAt: start === null ? null : riyadhInstant(date!, start), endAt: end === null ? null : riyadhInstant(date!, end),
       category: { id: formatCode!, label: formats.get(formatCode!)!.label }, topic: topic!, room,
       speakerSlugs, objectives, recordingSlug,
     });
@@ -785,7 +794,7 @@ export function validateIntake(sheets: readonly RawSheet[]): IntakeResult {
   return { speakers, sessions, workshops, problems, skippedExampleRows };
 }
 
-export function checkWorkbook(file: Buffer): IntakeResult {
+export function checkWorkbook(file: Buffer, dates: ConferenceDates | null = conferenceDays): IntakeResult {
   let sheets: RawSheet[];
   try {
     sheets = readWorkbook(file);
@@ -794,7 +803,7 @@ export function checkWorkbook(file: Buffer): IntakeResult {
     const message = error instanceof IntakeFileError ? error.message : "The workbook file is damaged or incomplete. Please save it again from Excel and resend it.";
     return { speakers: [], sessions: [], workshops: [], skippedExampleRows: 0, problems: [{ level: "error", sheet: "Workbook", row: null, column: null, message }] };
   }
-  return validateIntake(sheets);
+  return validateIntake(sheets, dates);
 }
 
 export function formatReport(result: IntakeResult): string {
