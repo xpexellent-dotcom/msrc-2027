@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { conferenceCalendar } from "@/lib/calendar";
 
 const unfold = (ics: string) => ics.replace(/\r\n /g, "");
@@ -28,4 +28,9 @@ describe("Add to calendar (.ics)", () => {
     expect(unfold(conferenceCalendar("en")!)).toContain(String.raw`LOCATION:King Faisal Conference Center\, Abdullah Sulayman St\, King Abdulaziz University\, Jeddah 22254\, Saudi Arabia`);
     for (const line of ics.split("\r\n")) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);
   });
+});
+
+vi.mock("@/config/conference", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/config/conference")>();
+  return { conferenceConfig: { ...actual.conferenceConfig, dates: { day1: "2027-01-27", day2: "2027-01-28" } } };
 });

@@ -86,15 +86,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator("iframe, textarea, input[type=email], input[type=password], input[type=file]")).toHaveCount(0);
       await expect(page.getByRole("main")).not.toContainText(/Abdulrahman Ismail|Fatimah Al Farhah/i);
       await expect(page.locator('a[href*="/admin"], a[href*="/reviewer"]')).toHaveCount(0);
-      // Program exposes only the confirmed all-day calendar file. Unpublished
-      // brochures, scientific records and other downloads remain unavailable.
-      if (route === "program") {
-        await expect(page.locator("a[download]")).toHaveCount(1);
-        await expect(page.locator("a[download]")).toHaveAttribute("href", `/${locale}/msrc-2027.ics`);
-        await expect(page.locator("a[download]")).toHaveAttribute("download", "msrc-2027.ics");
-      } else {
-        await expect(page.locator("a[download]")).toHaveCount(0);
-      }
+      await expect(page.locator("a[download]")).toHaveCount(0);
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
       expect(response?.headers()["x-robots-tag"]).toContain("noindex");
       await expectNoHorizontalOverflow(page);
@@ -114,34 +106,32 @@ for (const locale of ["en", "ar"] as const) {
     expect(writes).toEqual([]);
   });
 
-  test(`${locale} pages fit narrow phone, tablet and desktop with enlarged text`, async ({ page }, testInfo) => {
+  for (const width of [320, 791, 1440]) test(`${locale} pages fit ${width}px with enlarged text`, async ({ page }, testInfo) => {
     // Explicit widths include the tablet size even when the existing Playwright
     // project allowlist does not include this new suite. Avoid duplicate matrix
     // work in the mobile project; its separate interaction tests still run.
     test.skip(testInfo.project.name !== "chromium-desktop", "Responsive matrix runs once per locale.");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    for (const width of [320, 791, 1440]) {
-      await page.setViewportSize({ width, height: width === 320 ? 850 : 1000 });
-      for (const route of routes) {
-        // Decorative fill images do not determine layout; readiness depends on the document and fonts.
-        await page.goto(`/${locale}/${route}`, { waitUntil: "domcontentloaded" });
-        await page.evaluate(() => document.fonts.ready);
-        await expectNoHorizontalOverflow(page);
-        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-        if (["program", "media", "participate"].includes(route)) {
-          await testInfo.attach(`${locale}-${route}-${width}`, {
-            body: await page.screenshot({ fullPage: true }), contentType: "image/png",
-          });
-        }
-        await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
-        await expectNoHorizontalOverflow(page);
-        const clippedHeadings = await page.locator("main h1, main h2").evaluateAll((headings) => headings.some((heading) => {
-          const range = document.createRange();
-          range.selectNodeContents(heading);
-          return Array.from(range.getClientRects()).some((text) => text.left < -1 || text.right > document.documentElement.clientWidth + 1);
-        }));
-        expect(clippedHeadings, `${route} at ${width}px`).toBe(false);
+    await page.setViewportSize({ width, height: width === 320 ? 850 : 1000 });
+    for (const route of routes) {
+      // Decorative fill images do not determine layout; readiness depends on the document and fonts.
+      await page.goto(`/${locale}/${route}`, { waitUntil: "domcontentloaded" });
+      await page.evaluate(() => document.fonts.ready);
+      await expectNoHorizontalOverflow(page);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      if (["program", "media", "participate"].includes(route)) {
+        await testInfo.attach(`${locale}-${route}-${width}`, {
+          body: await page.screenshot({ fullPage: true }), contentType: "image/png",
+        });
       }
+      await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+      await expectNoHorizontalOverflow(page);
+      const clippedHeadings = await page.locator("main h1, main h2").evaluateAll((headings) => headings.some((heading) => {
+        const range = document.createRange();
+        range.selectNodeContents(heading);
+        return Array.from(range.getClientRects()).some((text) => text.left < -1 || text.right > document.documentElement.clientWidth + 1);
+      }));
+      expect(clippedHeadings, `${route} at ${width}px`).toBe(false);
     }
   });
 
@@ -497,7 +487,7 @@ test("floating mobile navigation supports keyboard dismissal, current page and l
     const program = menu.locator(`a[href="/${locale}/program"]`);
     await expect(program).toHaveAttribute("aria-current", "page");
     await page.keyboard.press("Tab");
-    await expect(menu.getByRole("link").first()).toBeFocused();
+    await expect(menu.locator(".mobile-reserve-action")).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(menu).toHaveCount(0);
     await expect(toggle).toBeFocused();

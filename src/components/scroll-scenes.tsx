@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { observeHomeMotionBudget } from "@/lib/home-motion-budget";
 
 /**
  * ORG-012: homepage motion that follows the reader's scroll, on phones and desktop.
@@ -20,17 +21,21 @@ function write(element: HTMLElement, name: string, value: number) {
 }
 
 export function ScrollScenes() {
+  useEffect(observeHomeMotionBudget, []);
   useEffect(() => {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    const desktop = matchMedia("(min-width: 801px)");
     const root = document.documentElement;
     let frame = 0;
     let stages: HTMLElement[] = [];
     let hero: HTMLElement | null = null;
+    let stageObserver: IntersectionObserver | null = null;
+    const nearbyStages = new Set<HTMLElement>();
 
     const update = () => {
       frame = 0;
       const height = window.innerHeight;
-      for (const stage of stages) {
+      for (const stage of nearbyStages) {
         const top = stage.getBoundingClientRect().top;
         // From entering at the bottom edge to the upper reading line, about half a screen. A title
         // wholly below the screen stays as rendered: it dims only once its stage edge is in view,
@@ -39,7 +44,7 @@ export function ScrollScenes() {
         write(stage, "--scene", progress);
         write(stage, "--scene-eased", ease(progress));
       }
-      if (hero) {
+      if (hero && desktop.matches) {
         write(hero, "--leave", clamp(window.scrollY / (height * .85)));
       }
     };
@@ -47,6 +52,9 @@ export function ScrollScenes() {
     const stop = () => {
       cancelAnimationFrame(frame);
       frame = 0;
+      stageObserver?.disconnect();
+      stageObserver = null;
+      nearbyStages.clear();
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
       delete root.dataset.scenes;
@@ -60,6 +68,21 @@ export function ScrollScenes() {
       if (reduced.matches) return;
       stages = [...document.querySelectorAll<HTMLElement>(".homepage-journey .chapter-stage")];
       hero = document.querySelector<HTMLElement>(".homepage-journey .conference-hero");
+      if (window.IntersectionObserver) {
+        stageObserver = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            const stage = entry.target as HTMLElement;
+            if (entry.isIntersecting) nearbyStages.add(stage);
+            else {
+              nearbyStages.delete(stage);
+              write(stage, "--scene", 1);
+              write(stage, "--scene-eased", 1);
+            }
+          }
+          schedule();
+        }, { rootMargin: "50% 0px 50% 0px" });
+        stages.forEach((stage) => stageObserver?.observe(stage));
+      } else stages.forEach((stage) => nearbyStages.add(stage));
       update();
       root.dataset.scenes = "on";
       window.addEventListener("scroll", schedule, { passive: true });
@@ -67,10 +90,13 @@ export function ScrollScenes() {
     };
 
     start();
+    const viewport = () => { if (!desktop.matches) hero?.style.removeProperty("--leave"); schedule(); };
     reduced.addEventListener("change", start);
+    desktop.addEventListener("change", viewport);
     return () => {
       stop();
       reduced.removeEventListener("change", start);
+      desktop.removeEventListener("change", viewport);
     };
   }, []);
   return null;

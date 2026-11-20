@@ -50,12 +50,13 @@ async function fastSpin(page: Page, direction: 1 | -1) {
 }
 
 async function trackpadSwipe(page: Page, direction: 1 | -1) {
-  // Rising then long decaying deltas, as a precision trackpad's inertia sends.
-  for (let sample = 0; sample < 70; sample++) {
+  // Schedule the native rising/decaying burst independently of browser
+  // acknowledgements, which can otherwise split one gesture under rendering load.
+  await Promise.all(Array.from({ length: 70 }, async (_, sample) => {
     const size = sample < 5 ? 12 * (sample + 1) : 60 * .93 ** (sample - 5);
+    await pause(sample * 16);
     await page.mouse.wheel(0, direction * Math.max(1, size));
-    await pause(16);
-  }
+  }));
 }
 
 async function swipe(page: Page, direction: 1 | -1) {

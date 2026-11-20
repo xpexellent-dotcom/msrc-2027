@@ -165,7 +165,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(errors).toEqual([]);
   });
 
-  test(`${locale} film preserves explicit pause through rotation, offline recovery and visibility changes`, async ({ page, context }, testInfo) => {
+  test(`${locale} background film preserves recovery through rotation, offline and visibility changes`, async ({ page, context }, testInfo) => {
     const errors = watchPage(page);
     await page.addInitScript(() => {
       let visibility: DocumentVisibilityState = "visible";
@@ -181,7 +181,7 @@ for (const locale of ["en", "ar"] as const) {
     const mediaOrigin = process.env.REAL_USER_MEDIA_BASE_URL;
     await page.goto(mediaOrigin ? new URL(`/${locale}`, mediaOrigin).href : `/${locale}`);
     const video = page.locator(".conference-hero video");
-    const toggle = page.locator(".conference-hero .hero-media-toggle");
+    const toggle = page.locator(".conference-hero .hero-media-control");
     // Hydration attaches this optional player after document load. Observe its
     // real decoder boundary before testing autoplay; otherwise attachment work
     // consumes the behavior assertion's five-second polling budget under load.
@@ -209,26 +209,16 @@ for (const locale of ["en", "ar"] as const) {
     }));
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.readyState >= 2 && !element.paused)).toBe(true);
     const viewport = page.viewportSize()!;
-    const phone = viewport.width <= 700;
-    if (phone) await expect(toggle).toBeHidden();
-    else {
-      await expect(toggle).toHaveAccessibleName(locale === "ar" ? "إيقاف فيديو الخلفية مؤقتًا" : "Pause background video");
-      await toggle.focus();
-      await page.keyboard.press("Space");
-    }
-    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(!phone);
+    await expect(toggle).toHaveCount(0);
+    await expect(video).not.toHaveAttribute("loop");
     await page.setViewportSize({ width: viewport.height, height: viewport.width });
-    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(!phone);
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
     await page.setViewportSize(viewport);
     await context.setOffline(true);
     await page.evaluate(() => (window as Window & { qaVisibility?: (state: DocumentVisibilityState) => void }).qaVisibility?.("hidden"));
     await context.setOffline(false);
     await page.evaluate(() => (window as Window & { qaVisibility?: (state: DocumentVisibilityState) => void }).qaVisibility?.("visible"));
-    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(!phone);
-    if (!phone) {
-      await toggle.focus();
-      await page.keyboard.press("Enter");
-    }
+    await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(false);
     await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.readyState >= 2 && !element.paused)).toBe(true);
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(video).toHaveCount(0);

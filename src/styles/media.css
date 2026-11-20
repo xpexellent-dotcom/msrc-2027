@@ -11,8 +11,7 @@
    selectable and foreground links independently interactive. */
 .conference-hero .hero-content { pointer-events: none; }
 .conference-hero .hero-editorial > :is(h1, p),
-.conference-hero .hero-actions a,
-.conference-hero .hero-bottom > * { pointer-events: auto; }
+.conference-hero .hero-actions a { pointer-events: auto; }
 .hero-media-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(31 25 48 / 80%) 0%, rgb(31 25 48 / 80%) 12%, transparent 35%, transparent 55%, rgb(31 25 48 / 92%) 100%), linear-gradient(90deg, rgb(31 25 48 / 86%) 0%, rgb(31 25 48 / 78%) 64%, rgb(59 30 109 / 46%) 100%); }
 html[dir="rtl"] .hero-media-scrim { transform: scaleX(-1); }
 .hero-media-control, .hero-media-status { position: absolute; z-index: 3; inset-inline-end: 2rem; inset-block-end: 1.25rem; border: 1px solid var(--color-lilac); background: var(--color-ink); color: var(--color-ivory); padding: 0.6rem 0.9rem; font-size: 0.75rem; border-radius: 2rem; }
@@ -22,7 +21,6 @@ html[dir="rtl"] .hero-media-scrim { transform: scaleX(-1); }
 .hero-media-control:hover { background: var(--color-purple); }
 .hero-media-control { transition: background-color var(--motion-feedback) var(--motion-easing), transform var(--motion-feedback) var(--motion-easing); cursor: pointer; }
 .hero-media-control:active { transform: scale(var(--motion-press-scale)); }
-.conference-hero:has(.hero-media-control, .hero-media-status) .hero-caption { padding-inline-end: min(22rem, 35%); }
 .hero-media-control:focus-visible { outline: 3px solid var(--color-ivory); outline-offset: 4px; }
 .hero-media-status { display: inline-block; max-width: min(32rem, calc(100% - 2rem)); }
 @media (max-width: 640px) {
@@ -31,8 +29,6 @@ html[dir="rtl"] .hero-media-scrim { transform: scaleX(-1); }
   .hero-media-control, .hero-media-status { inset-inline-end: 1rem; inset-block-end: 1rem; }
   .conference-hero .hero-media-controls { min-block-size: 60px; padding-block-start: 1rem; align-self: flex-end; max-inline-size: 100%; }
   .conference-hero .hero-media-control, .conference-hero .hero-media-status { position: static; max-inline-size: 100%; }
-  .conference-hero:has(.hero-media-control, .hero-media-status) .hero-caption { padding-inline-end: 0; padding-block-end: 5rem; }
-  .conference-hero:has(.hero-media-control, .hero-media-status) .hero-caption { padding-block-end: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-media[data-playback-policy="respect-preferences"] .hero-media-video { display: none; }

@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { expectHeaderSettled } from "../helpers/header";
 import { randomUUID } from "node:crypto";
 import type { Page } from "@playwright/test";
 import { expect, test } from "../helpers/csp";
@@ -8,6 +9,7 @@ import { myRegistrationCopy } from "../../src/features/registration/my-registrat
 const origin = "http://127.0.0.1:3216";
 const deadline = () => new Date(Date.now() + 3_600_000).toISOString();
 async function accessible(page: Page, locale: "en" | "ar") {
+  await expectHeaderSettled(page);
   await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);

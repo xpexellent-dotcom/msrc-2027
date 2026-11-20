@@ -3,23 +3,28 @@
 import { Link } from "@/components/ui/link";
 import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
+import { ReserveSeat } from "@/components/reserve-seat";
+import { flushSync } from "react-dom";
 import type { CSSProperties } from "react";
 import type { Locale } from "@/lib/i18n";
 
 export type NavigationLink = { href: string; label: string; children?: readonly { href: string; label: string }[] };
 
 /** A disclosure navigation, not a modal: native Tab order stays intact. */
-export function MobileNav({ id, label, links, pathname, status, action, actionHref, animate, closing, onExited, onNavigate }: {
+export function MobileNav({ id, label, links, locale, pathname, status, action, actionHref, animate, closing, onExited, onNavigate, reserveFocusReturn }: {
   id: string; label: string; links: readonly NavigationLink[]; locale: Locale;
   pathname: string; status: string; action: string; actionHref: string; animate: boolean; closing: boolean;
-  onExited: () => void; onNavigate: () => void;
+  onExited: () => void; onNavigate: () => void; reserveFocusReturn: () => HTMLElement | null;
 }) {
   return <div id={id} className="mobile-menu" data-animate={animate} data-closing={closing}
     inert={closing} aria-hidden={closing || undefined} onTransitionEnd={(event) => {
       if (closing && event.target === event.currentTarget && event.propertyName === "opacity") onExited();
     }}><Container>
     <div className="mobile-menu-registration" style={{ "--menu-index": 0 } as CSSProperties}>
-      <ButtonLink className="mobile-reserve-action" href={actionHref} variant="gold" onClick={onNavigate}>{action}</ButtonLink>
+      {actionHref.endsWith("/sign-in")
+        ? <ReserveSeat locale={locale} label={action} className="mobile-reserve-action"
+            beforeOpen={() => flushSync(onNavigate)} focusReturn={reserveFocusReturn} />
+        : <ButtonLink className="mobile-reserve-action" href={actionHref} variant="gold" onClick={onNavigate}>{action}</ButtonLink>}
       <p className="mobile-menu-status">{status}</p>
     </div>
     <nav aria-label={label}>{links.map((link, index) => <div className="mobile-nav-group" key={link.href}

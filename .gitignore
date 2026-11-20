@@ -24,3 +24,5 @@ supabase/.temp/
 supabase/.branches/
 *.log
 deliverables/
+
+playwright-home-preview-report/

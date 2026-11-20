@@ -126,14 +126,6 @@
 .team-group > h2 { max-inline-size: 24ch; margin-block: 0 2.25rem; font-family: var(--font-display); font-size: clamp(2.4rem, 4vw, 3.8rem); font-weight: 500; line-height: 1.15; letter-spacing: -.035em; color: var(--color-purple); }
 .team-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; }
 .team-card { min-inline-size: 0; }
-.portrait-placeholder { position: relative; isolation: isolate; overflow: hidden; inline-size: 100%; block-size: 100%; color: var(--color-lilac); background: var(--color-purple); }
-.portrait-placeholder--1 { color: var(--color-gold); background: var(--color-ink); }
-.portrait-placeholder--2 { color: var(--color-surface-lilac); background: var(--color-purple-hover); }
-.portrait-placeholder-mark { position: absolute; z-index: 1; inset-block-start: 1.75rem; inset-inline-start: 1.75rem; display: flex; flex-direction: column; gap: .3rem; font-family: var(--font-manrope), Arial, sans-serif; font-size: 1.4rem; font-weight: 500; line-height: 1.1; letter-spacing: -.03em; }
-.portrait-placeholder-mark > span { font-size: .6em; letter-spacing: .05em; }
-.portrait-placeholder-head { position: absolute; inset-block-start: 23%; inset-inline-start: 33%; inline-size: 34%; aspect-ratio: 1; border-radius: 50%; background: currentColor; opacity: .22; }
-.portrait-placeholder-shoulders { position: absolute; inset-block-start: 53%; inset-inline-start: 12%; inline-size: 76%; aspect-ratio: 1.1; border-radius: 50% 50% 0 0; background: currentColor; opacity: .17; }
-.portrait-placeholder-frame { position: absolute; inset: 1.25rem; border: 1px solid currentColor; opacity: .12; border-radius: 8px; }
 .team-portrait { block-size: auto; min-block-size: 18rem; aspect-ratio: 4 / 5; border-radius: 16px; }
 .team-card-copy { padding-block-start: 1.5rem; }
 .team-card-copy > p, .team-card-copy > span { display: block; color: var(--color-muted); font-size: 1rem; line-height: 1.65; }
@@ -154,7 +146,7 @@
 .sponsor-tier--platinum .sponsor-brand { min-block-size: 19rem; }
 .sponsor-tier--gold .sponsor-brand { background: var(--color-surface-warm); }
 .sponsor-tier--silver .sponsor-brand { background: var(--color-white); }
-.sponsor-brand-word { display: inline-flex; align-items: start; gap: .2em; font-family: var(--font-manrope), Arial, sans-serif; font-size: clamp(2.75rem, 5vw, 4.75rem); font-weight: 500; line-height: 1.05; letter-spacing: -.04em; }
+.sponsor-brand-word { display: inline-flex; align-items: start; gap: .2em; font-family: var(--font-display); font-size: clamp(2.75rem, 5vw, 4.75rem); font-weight: 500; line-height: 1.05; letter-spacing: -.04em; }
 .sponsor-invitation > .site-container { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(3rem, 6vw, 5rem); }
 .sponsor-invitation h2 { max-inline-size: 18ch; font-size: clamp(3rem, 6vw, 5.5rem); }
 .sponsor-invitation-action.button { display: flex; inline-size: 100%; min-block-size: 110px; justify-content: space-between; padding: clamp(1.5rem, 4vw, 3rem); font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1.3; }
@@ -166,18 +158,6 @@
 .sponsor-tiers--compact .sponsor-tier-heading { margin-block-end: 1.5rem; }
 .sponsor-tiers--compact .sponsor-brand { min-block-size: 12rem; }
 .sponsor-tiers--compact .sponsor-brand-word { font-size: clamp(2.5rem, 4vw, 4rem); }
-
-/* A quiet, spacious directory closes the same public experience. */
-.site-footer { padding-block-start: clamp(4.5rem, 8vw, 8rem); border-block-start: 0; }
-.footer-identity { font-weight: 500; }
-.footer-brand-copy p { font-size: 1.1875rem; }
-.footer-brand-copy .footer-institution { font-size: 1rem; }
-.footer-directory-group h2 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 500; }
-.footer-directory li, [lang="ar"] .footer-directory li { font-size: 1.125rem; }
-.footer-directory a, .footer-unpublished { min-block-size: 48px; }
-.footer-directory ul { gap: .45rem; margin-block-start: 1.5rem; }
-.footer-soon, [lang="ar"] .footer-soon { padding: .15rem .6rem; border-radius: 999px; font-size: .875rem; }
-.footer-bottom, [lang="ar"] .footer-bottom { font-size: 1rem; padding-block-start: 1.75rem; }
 
 html[lang="ar"] :is(.experience-intro h1, .about-hero-copy h1, .contact-hero h1, .dates-hero h1, .policy-hero h1, .people-page-heading h1) { font-size: clamp(3rem, 6vw, 5.3rem); font-weight: 500; line-height: 1.5; letter-spacing: 0; }
 [lang="ar"] :is(.team-group > h2, .team-card-copy h3, .people-next h2, .sponsor-tier-heading h2) { line-height: 1.5; letter-spacing: 0; }
@@ -214,7 +194,6 @@ html[lang="ar"] :is(.experience-intro h1, .about-hero-copy h1, .contact-hero h1,
   .sponsor-tier--gold .sponsor-brand-word { font-size: 2rem; }
   .sponsor-tier--silver .sponsor-brand-word { font-size: 1.375rem; }
   .sponsor-tier-heading { align-items: start; flex-direction: column; gap: .75rem; }
-  .footer-directory { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem 2rem; }
 }
 /* Common phones keep two columns at normal text size. Footer columns also
    collapse when enlarged text needs more room for complete words (ENG-059). */
@@ -222,18 +201,10 @@ html[lang="ar"] :is(.experience-intro h1, .about-hero-copy h1, .contact-hero h1,
   .team-grid { gap: 1.25rem .875rem; }
   .team-portrait { min-block-size: 0; }
   .team-card .portrait-placeholder-mark { inset-block-start: 1rem; inset-inline-start: 1rem; font-size: 1.05rem; }
-  .team-card .portrait-placeholder-frame { inset: .75rem; }
   .team-grid .team-card-copy { padding: .875rem 1rem 1rem; }
   .team-card-copy h3, [lang="ar"] .team-card-copy h3 { margin-block: 0; font-size: 1.0625rem; }
-  .footer-top { gap: 2rem; }
-  .footer-directory { grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); gap: 2.25rem 1.25rem; }
-  .footer-directory-group h2 { font-size: 1.25rem; }
-  .footer-directory ul { gap: 0; margin-block-start: .75rem; }
-  .footer-directory li, [lang="ar"] .footer-directory li { font-size: 1rem; line-height: 1.4; }
-  .footer-directory a, .footer-unpublished { min-block-size: 44px; }
 }
 @media (max-width: 359px) {
-  .team-grid, .footer-directory { grid-template-columns: minmax(0, 1fr); }
   .team-portrait { min-block-size: 18rem; max-block-size: 24rem; }
   .team-card-copy h3, [lang="ar"] .team-card-copy h3 { font-size: 1.45rem; }
 }

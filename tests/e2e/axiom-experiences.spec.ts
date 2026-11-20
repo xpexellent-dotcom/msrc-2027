@@ -74,6 +74,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} homepage omits sponsor sections and photographic speaker placeholders`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
+    await expect(page.locator("main .sponsor-belt, .hero-social")).toHaveCount(0);
     await expect(page.locator("main .brand-marquee, main .sponsor-tiers")).toHaveCount(0);
     const speakers = page.locator(".speaker-preview-card");
     expect(await speakers.count()).toBeGreaterThan(0);

@@ -56,9 +56,7 @@ for (const locale of ["en", "ar"] as const) {
         mask: [page.locator('input[type="password"], #participant-code')] });
     };
     await page.goto(`/${locale}`);
-    await page.locator(".hero-actions a").first().click();
-    await expect(page).toHaveURL(new RegExp(`/${locale}/participate$`));
-    await page.locator(`.participation-path-link[href="/${locale}/registration"]`).click();
+    await page.locator(`.path-tile--registration a[href="/${locale}/registration"]`).click();
     await expect(page.getByTestId("registration-status")).toHaveText(registration.denied);
     await capture("01-attend-signed-out");
     await page.getByRole("link", { name: registration.createAccount, exact: true }).click();

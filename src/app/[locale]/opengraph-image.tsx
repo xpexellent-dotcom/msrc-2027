@@ -34,7 +34,7 @@ export default function OpenGraphImage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
           <div style={{ display: "flex", width: 100, height: 6, borderRadius: 3, background: "#C9A24A" }} />
-          {conferenceConfig.dates && <span style={{ fontSize: 32, color: "#DCCFF0" }}>{formatConferenceDateRange(conferenceConfig.dates, "en")}</span>}
+          {<span style={{ fontSize: 32, color: "#DCCFF0" }}>{conferenceConfig.dates ? formatConferenceDateRange(conferenceConfig.dates, "en") : conferenceConfig.monthLabel.en}</span>}
         </div>
       </div>
     ),

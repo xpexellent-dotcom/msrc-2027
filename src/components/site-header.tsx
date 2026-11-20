@@ -1,11 +1,14 @@
 "use client";
 
+import Image from "next/image";
+import { brandLogo, brandLogoRendition } from "@/content/brand-identity";
 import { Link } from "@/components/ui/link";
 import { MobileNav, type NavigationLink } from "@/components/mobile-nav";
 import { usePathname } from "next/navigation";
 import { Suspense, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { LanguageSwitch, LanguageSwitchFallback } from "@/components/language-switch";
 import { HeaderPrimaryAction, headerAction, useParticipantName } from "@/components/header-account-link";
+import { ReserveSeat } from "@/components/reserve-seat";
 import { Container } from "@/components/ui/container";
 import type { Locale } from "@/lib/i18n";
 import { revealPageNavigation } from "@/lib/anchor-navigation";
@@ -21,7 +24,7 @@ const headerCopy = {
     edition: "Fifth edition", registration: "Conference registration", action: "Reserve your seat", options: "options",
     links: [
       { label: "Participate", href: "/participate", children: [
-        { label: "Attend", href: "/registration" }, { label: "Research competition", href: "/abstracts" },
+        { label: "Attend", href: "/registration" }, { label: "Abstracts", href: "/abstracts" },
         { label: "Workshops", href: "/workshops" }, { label: "Hackathon", href: "/hackathon" },
         { label: "3MT", href: "/3mt" },
       ] },
@@ -35,7 +38,7 @@ const headerCopy = {
     edition: "النسخة الخامسة", registration: "التسجيل في المؤتمر", action: "احجز مقعدك", options: "خيارات",
     links: [
       { label: "المشاركة", href: "/participate", children: [
-        { label: "الحضور", href: "/registration" }, { label: "مسابقة الأبحاث", href: "/abstracts" },
+        { label: "الحضور", href: "/registration" }, { label: "الملخصات", href: "/abstracts" },
         { label: "ورش العمل", href: "/workshops" }, { label: "الهاكاثون", href: "/hackathon" },
         { label: "أطروحة في ثلاث دقائق", href: "/3mt" },
       ] },
@@ -54,11 +57,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
   const [animateMenu, setAnimateMenu] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [readingDown, setReadingDown] = useState(false);
-  const [focusWithin, setFocusWithin] = useState(false);
   const [keyboard, setKeyboard] = useState(false);
-  const [canCompact, setCanCompact] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -88,50 +87,35 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     if (dropdownCloseRef.current !== null) clearTimeout(dropdownCloseRef.current);
     dropdownCloseRef.current = null;
   }, []);
-  const compact = canCompact && scrolled && readingDown && !focusWithin && !menuOpen && !openDropdown;
 
   useEffect(() => revealPageNavigation(pathname), [pathname]);
   useEffect(() => cancelDropdownClose, [cancelDropdownClose]);
   useEffect(() => cancelMenuClose, [cancelMenuClose]);
 
   useEffect(() => {
-    let docked = window.scrollY > 48;
-    let lastY = window.scrollY;
-    let frame: number | null = null;
-    const update = () => {
-      frame = null;
-      const y = window.scrollY;
-      if (y > 48) docked = true;
-      else if (y < 8) docked = false;
-      setScrolled(docked);
-      if (y < 160) { setReadingDown(false); lastY = y; return; }
-      if (Math.abs(y - lastY) < 8) return;
-      setReadingDown(y > lastY);
-      lastY = y;
+    const header = headerRef.current;
+    if (!header || !window.IntersectionObserver) return;
+    let observer: IntersectionObserver | undefined;
+    const observe = () => {
+      observer?.disconnect();
+      const bar = header.querySelector(".site-header-inner")!.getBoundingClientRect();
+      const y = Math.round(bar.top + bar.height / 2);
+      const visible = new Set<Element>();
+      const sections = [...document.querySelectorAll<HTMLElement>("[data-header-section]")];
+      observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.add(entry.target);
+          else visible.delete(entry.target);
+        }
+        const section = sections.findLast((node) => visible.has(node));
+        if (section) header.dataset.headerTone = section.dataset.headerSection;
+      }, { rootMargin: `-${y}px 0px -${Math.max(0, innerHeight - y - 1)}px 0px`, threshold: 0 });
+      for (const section of sections) observer.observe(section);
     };
-    const onScroll = () => { if (frame === null) frame = requestAnimationFrame(update); };
-    const desktop = window.matchMedia("(min-width: 1200px) and (hover: hover) and (pointer: fine)");
-    const viewport = () => setCanCompact(desktop.matches && window.innerWidth >= 75 * parseFloat(getComputedStyle(document.documentElement).fontSize));
-    const leave = () => {
-      cancelDropdownClose();
-      if (!headerRef.current?.querySelector(":focus-visible")) setOpenDropdown(null);
-    };
-    update(); viewport();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    document.documentElement.addEventListener("pointerleave", leave);
-    desktop.addEventListener("change", viewport);
-    window.addEventListener("resize", viewport);
-    const textSize = new MutationObserver(viewport);
-    textSize.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (frame !== null) cancelAnimationFrame(frame);
-      document.documentElement.removeEventListener("pointerleave", leave);
-      desktop.removeEventListener("change", viewport);
-      window.removeEventListener("resize", viewport);
-      textSize.disconnect();
-    };
-  }, [cancelDropdownClose]);
+    observe();
+    window.addEventListener("resize", observe);
+    return () => { observer?.disconnect(); window.removeEventListener("resize", observe); };
+  }, [pathname]);
 
   useEffect(() => {
     const masthead = headerRef.current?.querySelector<HTMLElement>(".site-header-inner");
@@ -182,22 +166,19 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   }));
 
   return (
-    <header ref={headerRef} className="site-header axiom-header" data-scrolled={scrolled} data-tucked="false"
-      data-compact={compact} data-home={pathname === `/${locale}`} data-menu-open={menuOpen} data-keyboard={keyboard}
-      onPointerDownCapture={() => setKeyboard(false)}
-      onKeyDownCapture={() => { setKeyboard(true); setFocusWithin(true); }}
-      onFocusCapture={(event) => {
-        const visibleFocus = event.target.matches(":focus-visible");
-        // Keep an existing keyboard focus session open during a mouse handoff;
-        // moving the target before pointerup would swallow the user's click.
-        if (visibleFocus) { setFocusWithin(true); setKeyboard(true); }
-      }}
-      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocusWithin(false); }}>
+    <header ref={headerRef} className="site-header axiom-header"
+      data-header-ready={hydrated && typeof IntersectionObserver !== "undefined"}
+      data-header-tone={pathname === `/${locale}` ? "dark" : "light"}
+      data-home={pathname === `/${locale}`} data-menu-open={menuOpen} data-keyboard={keyboard}
+      onPointerDownCapture={() => setKeyboard(false)} onKeyDownCapture={() => setKeyboard(true)}>
       <Container className="site-header-inner">
         <span className="header-glass" aria-hidden="true" />
         {/* A native anchor intentionally reloads home, even when already on home. */}
         <a className="wordmark" href={`/${locale}`}>
-          <span className="wordmark-name" dir="ltr" lang="en">MSRC <span className="wordmark-year">2027</span></span>
+          <Image src={brandLogo.onPurple} alt="" width={brandLogoRendition.width} height={brandLogoRendition.height} loading="eager" unoptimized className="wordmark-logo wordmark-logo--dark" />
+          <Image src={brandLogo.onWhite} alt="" width={brandLogoRendition.width} height={brandLogoRendition.height} loading="eager" unoptimized className="wordmark-logo wordmark-logo--light" />
+          <span className="brand-word" dir="ltr" lang="en" aria-hidden="true">MSRC’27</span>
+          <span className="wordmark-name sr-only" dir="ltr" lang="en">MSRC 2027</span>
           <span className="wordmark-edition sr-only">{copy.edition}</span>
           <span className="sr-only">{copy.homeSuffix}</span>
         </a>
@@ -256,7 +237,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           <Suspense fallback={<LanguageSwitchFallback locale={locale} pathname={pathname} />}><LanguageSwitch locale={locale} /></Suspense>
         </div>
         <div className="header-actions">
-          <HeaderPrimaryAction action={action} />
+          {action.name ? <HeaderPrimaryAction action={action} /> : <ReserveSeat locale={locale} label={copy.action} className="header-primary-action" size="small" testId="header-primary-action" />}
           <div className="header-mobile-language" onClick={onNavigate}>
             <Suspense fallback={<LanguageSwitchFallback locale={locale} pathname={pathname} iconOnly />}><LanguageSwitch locale={locale} iconOnly /></Suspense>
           </div>
@@ -276,7 +257,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
       </Container>
       {menuOpen || menuClosing ? <MobileNav id={menuId} label={copy.navigation} links={links} locale={locale}
         pathname={pathname} status={copy.registration} action={action.label} actionHref={action.href} animate={animateMenu} closing={menuClosing}
-        onExited={finishMenuClose} onNavigate={onNavigate} /> : null}
+        onExited={finishMenuClose} onNavigate={onNavigate} reserveFocusReturn={() => toggleRef.current} /> : null}
     </header>
   );
 }

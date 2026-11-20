@@ -30,8 +30,9 @@ for (const locale of ["en", "ar"] as const) {
         await expect(page.getByTestId("program-empty")).toBeVisible();
         return;
       }
-      await page.getByTestId("program-day-day1").click();
-      await expect(page).toHaveURL(/day=day1/);
+      // Exact conference days are unset. The published synthetic session keeps its authored date.
+      await page.getByTestId("program-day-2027-01-27").click();
+      await expect(page).toHaveURL(/day=2027-01-27/);
       await expect(page.locator(".conference-session-row")).toHaveCount(2);
       await page.getByTestId("program-category").selectOption("talk");
       await page.getByTestId("program-room").selectOption(locale === "ar" ? "قاعة تجريبية" : "Synthetic room");

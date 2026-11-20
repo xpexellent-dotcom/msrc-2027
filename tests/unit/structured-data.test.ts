@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { conferenceEventJsonLd, jsonLdScript, websiteJsonLd } from "@/lib/structured-data";
 
 describe("homepage Event structured data", () => {
@@ -32,4 +32,9 @@ describe("homepage WebSite structured data", () => {
   it.each(["en", "ar"] as const)("names the site MSRC 2027 at the root in %s", (locale) => {
     expect(websiteJsonLd(locale)).toMatchObject({ "@type": "WebSite", name: "MSRC 2027", url: "https://www.msrc2027.com/" });
   });
+});
+
+vi.mock("@/config/conference", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/config/conference")>();
+  return { conferenceConfig: { ...actual.conferenceConfig, dates: { day1: "2027-01-27", day2: "2027-01-28" } } };
 });

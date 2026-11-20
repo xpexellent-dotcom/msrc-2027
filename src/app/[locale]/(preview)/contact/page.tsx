@@ -39,7 +39,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
 
   return (
     <>
-      <section className="contact-hero fluid-art-surface" aria-labelledby="contact-page-title">
+      <section data-header-section="dark" className="contact-hero fluid-art-surface" aria-labelledby="contact-page-title">
         <AmbientArtwork variant="people" />
         <Container>
           <nav aria-label={copy.breadcrumb} className="about-breadcrumb">

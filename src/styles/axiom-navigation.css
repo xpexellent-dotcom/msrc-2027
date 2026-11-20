@@ -1,12 +1,14 @@
 /* ENG-028 / DSN-01, ACC-01, LOC-01/03: one continuous glass capsule, scroll-driven outward motion.
    Scoped last in the public cascade; operational interfaces retain their own shell. */
+.axiom-header .mobile-menu nav a { font-family: var(--font-interface); }
 .axiom-header {
   --header-ease: cubic-bezier(.32, .72, 0, 1);
   --header-travel-ease: cubic-bezier(.76, 0, .24, 1);
   --header-travel-duration: 520ms;
   --header-inset: max(20px, calc(env(safe-area-inset-top, 0px) + 8px));
-  --header-side-inset: max(20px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
-  --header-travel: max(12px, calc((100vw - 1240px) / 2 - 12px));
+  --header-max: calc(var(--home-container) + 1rem);
+  --header-side-inset: max(.75rem, calc(var(--container-gutter) - .5rem), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+  --header-travel: max(12px, calc((100vw - var(--header-max)) / 2 - 12px));
   --header-highlight: #fff4d6;
   --focus-ring: var(--header-highlight);
   container: navigation / inline-size;
@@ -16,58 +18,37 @@
 }
 .axiom-header .site-header-inner {
   position: relative; isolation: isolate; inline-size: calc(100% - var(--header-side-inset) * 2);
-  max-inline-size: 1240px; min-block-size: 60px; min-height: 0;
+  max-inline-size: var(--header-max); min-block-size: 60px; min-height: 0;
   display: flex; flex-wrap: nowrap; gap: .6rem; padding: .375rem .5rem;
   pointer-events: auto;
 }
 .axiom-header .header-glass {
   position: absolute; inset: 0; z-index: -1; overflow: hidden;
-  border-radius: 999px; pointer-events: none;
-  background:
-    radial-gradient(ellipse at 18% 0%, rgb(201 162 74 / .055), transparent 58%),
-    linear-gradient(115deg, rgb(255 255 255 / .015), transparent 42%, rgb(255 255 255 / .01)),
-    linear-gradient(115deg, rgb(30 5 72 / .64), rgb(24 9 44 / .69) 58%, rgb(40 8 82 / .66));
-  backdrop-filter: blur(24px) saturate(1.2);
-  border: 1px solid rgb(255 255 255 / .28);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / .1), 0 10px 30px rgb(20 10 36 / .14);
+  border-radius: var(--r-card); pointer-events: none; background: var(--color-purple);
+  border: 1px solid var(--hair-inverse); box-shadow: var(--shadow-header);
   transform-origin: center;
   transition: transform var(--header-travel-duration) var(--header-travel-ease), opacity 220ms var(--header-ease);
 }
-.axiom-header .header-glass::after {
-  content: ""; position: absolute; inset: 0; opacity: .025;
-  background: url('/media/msrc-demo/film-grain.jpg') repeat; background-size: 256px;
-  mix-blend-mode: screen; pointer-events: none;
-}
+
 .axiom-header .wordmark {
-  position: relative; isolation: isolate; padding: .45rem .75rem;
+  position: relative; isolation: isolate; padding-block: .25rem; padding-inline: 0 .5rem;
   min-block-size: 48px; color: var(--color-ivory); text-decoration: none;
   pointer-events: auto; flex-shrink: 0; justify-content: center;
   transition: transform var(--header-travel-duration) var(--header-travel-ease);
 }
-.axiom-header .wordmark::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 999px;
-  background:
-    radial-gradient(ellipse at 18% 0%, rgb(201 162 74 / .055), transparent 70%),
-    linear-gradient(115deg, rgb(255 255 255 / .015), transparent 62%),
-    linear-gradient(125deg, rgb(40 8 82 / .66), rgb(24 9 44 / .69));
-  backdrop-filter: blur(24px); opacity: 0;
-  border: 1px solid rgb(255 255 255 / .26); box-shadow: inset 0 1px 0 rgb(255 255 255 / .08), 0 8px 24px rgb(25 13 43 / .15);
-  transform: scale(.96); transition: opacity 220ms var(--header-ease), transform var(--header-travel-duration) var(--header-travel-ease);
-}
-.axiom-header .wordmark-name { font-size: 1.5rem; letter-spacing: -.04em; }
-.axiom-header .wordmark-year { color: var(--header-highlight); font-size: .9rem; }
+
 .axiom-header .header-middle {
   display: flex; align-items: center; justify-content: center; flex: 1;
-  min-inline-size: 0; gap: .4rem; opacity: 1; filter: blur(0);
+  min-inline-size: 0; gap: .4rem; opacity: 1;
   transform-origin: center;
-  transition: opacity 220ms var(--header-ease), transform var(--header-travel-duration) var(--header-travel-ease), filter 220ms var(--header-ease);
+  transition: none;
 }
 .axiom-header .desktop-nav { flex: 1; justify-content: center; flex-wrap: nowrap; gap: .1rem; }
 .axiom-header .header-nav-item { position: relative; display: flex; align-items: center; transition: transform var(--header-travel-duration) var(--header-travel-ease); }
 .axiom-header .header-nav-item:nth-child(-n + 3) { --nav-exit-x: -22px; }
 .axiom-header .header-nav-item:nth-child(n + 5) { --nav-exit-x: 22px; }
 .axiom-header .desktop-nav a {
-  min-block-size: 44px; padding-inline: .5rem; font-size: 1rem;
+  min-block-size: 44px; padding-inline: .5rem; font-family: var(--font-interface); font-size: .9375rem;
   font-weight: 500; border-radius: 8px; color: var(--color-ivory); background: transparent;
 }
 .axiom-header .desktop-nav a::after { inset-inline: .55rem; background: var(--header-highlight); block-size: 1px; }
@@ -100,23 +81,23 @@
 }
 .axiom-header .header-dropdown a::after { content: none; }
 .axiom-header .header-dropdown a svg { inline-size: 16px; block-size: 16px; flex-shrink: 0; transform: scaleX(var(--motion-inline-direction)); }
-.axiom-header .language-switch { color: var(--color-ivory); font-size: 1rem; padding-inline: .5rem; }
+.axiom-header .language-switch { min-block-size: 48px; min-height: 48px; border-radius: var(--r-button); color: var(--color-ivory); font-size: 1rem; padding-inline: .5rem; }
 .axiom-header .header-mobile-language { display: none; }
 .axiom-header :is(.language-switch, .menu-toggle, .header-dropdown-toggle) { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
 .axiom-header .header-actions { flex-shrink: 0; flex-wrap: nowrap; gap: .5rem; transition: transform var(--header-travel-duration) var(--header-travel-ease); }
 .axiom-header .header-primary-action.button {
-  display: inline-flex; min-block-size: 48px; padding-inline: 1.15rem; border-radius: 999px;
+  display: inline-flex; min-block-size: 48px; padding-inline: 1.15rem; border-radius: var(--r-button);
   font-size: 1rem; color: var(--color-ink); pointer-events: auto;
 }
 .axiom-header .menu-toggle {
   inline-size: auto; min-inline-size: 94px; min-block-size: 48px; block-size: auto; gap: .6rem; padding: .6rem .85rem;
-  border: 1px solid rgb(220 207 240 / .45); border-radius: 999px;
+  border: 1px solid rgb(220 207 240 / .45); border-radius: var(--r-button);
   color: var(--color-ivory); font: inherit; font-size: 1rem; cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: transform 120ms var(--motion-enter-easing), background-color 120ms ease, color 120ms ease;
 }
 .axiom-header .menu-toggle[aria-expanded="true"] { background: var(--color-ivory); color: var(--color-purple); }
-.axiom-header .menu-toggle:active { transform: scale(.96); }
+.axiom-header .menu-toggle:active { transform: none; translate: 0 1px; }
 .axiom-header .menu-toggle svg path { transition: transform 200ms var(--motion-enter-easing); }
 .axiom-header .menu-toggle-line-top { transform-origin: 12px 8px; }
 .axiom-header .menu-toggle-line-bottom { transform-origin: 12px 16px; }
@@ -124,25 +105,8 @@
 .axiom-header .menu-toggle[aria-expanded="true"] .menu-toggle-line-bottom { transform: translateY(-4px) rotate(-45deg); }
 .axiom-header :is(a, button):focus-visible { outline: 3px solid var(--header-highlight); outline-offset: 3px; }
 .axiom-header .header-dropdown a:focus-visible { outline-color: var(--color-purple); }
-.axiom-header .header-primary-action:focus-visible { outline-color: var(--color-ivory); }
+.axiom-header .header-primary-action:focus-visible { outline-color: var(--color-gold); }
 
-/* The visual middle remains in native focus order. Focus reveals it synchronously;
-   keyboard and assistive navigation never wait for a fade before finding a link. */
-@media (min-width: 1200px) and (hover: hover) and (pointer: fine) {
-  .axiom-header[data-compact="true"] .site-header-inner { pointer-events: none; }
-  .axiom-header[data-compact="true"] .header-glass { opacity: 0; transform: scale(1.06, .96); }
-  .axiom-header[data-compact="true"] .wordmark { transform: translateX(calc(-1 * var(--header-travel) * var(--motion-inline-direction))) scale(1.025); }
-  .axiom-header[data-compact="true"] .header-actions { transform: translateX(calc(var(--header-travel) * var(--motion-inline-direction))) scale(1.015); }
-  .axiom-header[data-compact="true"] .wordmark::before { opacity: 1; transform: none; }
-  .axiom-header[data-compact="true"] .header-middle { opacity: 0; transform: translateY(-8px) scale(.96); filter: blur(7px); pointer-events: none; }
-  .axiom-header[data-compact="true"] .header-nav-item { transform: translateX(calc(var(--nav-exit-x, 0px) * var(--motion-inline-direction))); }
-  .axiom-header[data-compact="true"] .header-dropdown { visibility: hidden; pointer-events: none; }
-  .axiom-header:has(:focus-visible) .site-header-inner { pointer-events: auto; }
-  .axiom-header:has(:focus-visible) .header-glass { opacity: 1; transform: none; }
-  .axiom-header:has(:focus-visible) .wordmark::before { opacity: 0; }
-  .axiom-header:has(:focus-visible) :is(.wordmark, .header-actions, .header-nav-item) { transform: none; }
-  .axiom-header:has(:focus-visible) .header-middle { opacity: 1; transform: none; filter: none; pointer-events: auto; }
-}
 .axiom-header[data-keyboard="true"] :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass),
 .axiom-header[data-keyboard="true"] .wordmark::before { transition: none; }
 .axiom-header[data-keyboard="true"] :is(.menu-toggle, .menu-toggle svg path, .mobile-menu, .mobile-menu-registration, .mobile-nav-group) { transition: none; }
@@ -151,8 +115,8 @@
   .axiom-header .header-dropdown a:hover { background: var(--color-info-surface); color: var(--color-purple); }
 }
 @media (min-width: 1200px) and (max-width: 1320px) {
-  .axiom-header .site-header-inner { gap: .35rem; padding-inline: .45rem; }
-  .axiom-header .wordmark { padding-inline: .5rem; }
+  .axiom-header .site-header-inner { gap: .35rem; padding-inline: .5rem; }
+  .axiom-header .wordmark { padding-inline: 0 .5rem; }
   .axiom-header .desktop-nav a { padding-inline: .4rem; }
   .axiom-header .header-middle { gap: .25rem; }
   .axiom-header .header-primary-action.button { padding-inline: 1rem; }
@@ -162,16 +126,16 @@
 @container navigation (width < 75rem) {
   .axiom-header .site-header-inner { min-block-size: 60px; flex-wrap: wrap; gap: .4rem; padding: .375rem .5rem; }
   .axiom-header .header-middle { display: none; }
-  .axiom-header .wordmark { min-block-size: 48px; padding-inline: .5rem; min-inline-size: 0; }
+  .axiom-header .wordmark { min-block-size: 48px; padding-inline: 0 .5rem; min-inline-size: 0; }
   .axiom-header .header-actions { margin-inline-start: auto; }
   .axiom-header .header-mobile-language { display: block; }
   .axiom-header .header-mobile-language .language-switch {
     display: grid; place-items: center; inline-size: 48px; block-size: 48px; min-block-size: 48px;
-    padding: 0; border: 1px solid rgb(220 207 240 / .45); border-radius: 999px; background: transparent;
+    padding: 0; border: 1px solid rgb(220 207 240 / .45); border-radius: var(--r-button); background: transparent;
     transition: transform 120ms var(--header-ease), background-color 120ms var(--header-ease);
   }
   .axiom-header .header-mobile-language .language-switch svg { display: block; inline-size: 22px; block-size: 22px; }
-  .axiom-header .header-mobile-language .language-switch:active { background: rgb(220 207 240 / .15); transform: scale(.96); }
+  .axiom-header .header-mobile-language .language-switch:active { background: rgb(220 207 240 / .15); transform: none; translate: 0 1px; }
   .axiom-header .menu-toggle { display: flex; align-items: center; justify-content: center; }
   .axiom-header .mobile-menu {
     display: block;
@@ -225,27 +189,70 @@
   .axiom-header .menu-toggle > span { display: none; }
 }
 @container navigation (width < 20rem) {
-  .axiom-header .header-glass { border-radius: 16px; }
+  .axiom-header .header-glass, .axiom-header .wordmark::before { border-radius: 16px; }
 }
-@media (max-width: 559px) {
-  .axiom-header { --header-side-inset: max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); }
-}
+
 /* Legacy shared hover fills must not stick after a finger releases a control. */
 @media (hover: none), (pointer: coarse) {
   .axiom-header .menu-toggle:not([aria-expanded="true"]):hover { background: transparent; color: var(--color-ivory); }
-  .axiom-header .menu-toggle:not([aria-expanded="true"]):active { background: rgb(220 207 240 / .15); transform: scale(.96); }
+  .axiom-header .menu-toggle:not([aria-expanded="true"]):active { background: rgb(220 207 240 / .15); transform: none; translate: 0 1px; }
   .axiom-header .mobile-menu nav a:hover { background: transparent; }
   .axiom-header .mobile-menu nav a:active { background: var(--color-info-surface); }
 }
 @media (prefers-reduced-motion: reduce) {
   .axiom-header *, .axiom-header *::before, .axiom-header *::after { transition: none !important; animation: none !important; }
-  .axiom-header[data-compact="true"] .header-middle { filter: none; }
   .axiom-header .menu-toggle:active,
-  .axiom-header .menu-toggle:not([aria-expanded="true"]):active { transform: none; }
+  .axiom-header .menu-toggle:not([aria-expanded="true"]):active,
+  .axiom-header .header-mobile-language .language-switch:active { transform: none; translate: none; }
 }
 @media (forced-colors: active) {
   .axiom-header .header-glass, .axiom-header .wordmark::before { background: Canvas; border: 1px solid CanvasText; }
   .axiom-header :is(.wordmark, .wordmark-year, .wordmark-edition, .desktop-nav a, .header-dropdown-toggle, .language-switch, .menu-toggle) { color: LinkText; }
-  .axiom-header .header-glass::after { display: none; }
   .axiom-header .header-dropdown, .axiom-header .mobile-menu { border: 1px solid CanvasText; background: Canvas; }
 }
+
+/* ORG-073 / ENG-095. The sole backdrop-filter surface, capped at 14px. */
+.axiom-header { --header-ink: var(--color-ivory); --header-highlight: var(--color-ivory); }
+.axiom-header[data-header-tone="light"] { --header-ink: var(--color-purple); --header-highlight: var(--color-purple); }
+.axiom-header .header-glass { background: var(--color-ink); transition: border-color 180ms ease, box-shadow 180ms ease; }
+.axiom-header[data-header-tone="light"] .header-glass { background: var(--color-ivory); border-color: rgb(59 30 109 / .22); }
+@supports (backdrop-filter: blur(1px)) {
+  .axiom-header .header-glass { background: linear-gradient(rgb(255 255 255 / .12), rgb(255 255 255 / .12)), rgb(31 25 48 / .45); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); border-color: rgb(255 255 255 / .32); }
+  .axiom-header[data-header-tone="light"] .header-glass { background: rgb(248 246 240 / .82); border-color: rgb(59 30 109 / .22); }
+}
+.axiom-header[data-header-ready="false"] .header-glass { background: var(--color-ink); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.axiom-header[data-header-ready="false"][data-header-tone="light"] .header-glass { background: var(--color-ivory); }
+.axiom-header .wordmark { display: inline-flex; flex-direction: row; align-items: center; gap: .5rem; direction: ltr; color: var(--header-ink); }
+.axiom-header .wordmark-logo { inline-size: 40px; block-size: 40px; flex: 0 0 40px; object-fit: contain; }
+.axiom-header .wordmark-logo--light { display: none; }
+.axiom-header[data-header-tone="light"] .wordmark-logo--dark { display: none; }
+.axiom-header[data-header-tone="light"] .wordmark-logo--light { display: block; }
+.brand-word { font-family: var(--font-fraunces), Georgia, serif; font-weight: 600; font-size: 1.3rem; line-height: 1.2; letter-spacing: .01em; white-space: nowrap; }
+.footer-wordmark { display: flex; align-items: center; gap: .65rem; margin-block: 1rem; color: var(--color-ivory); }
+.footer-wordmark .footer-logo { inline-size: 40px; block-size: 40px; margin: 0; object-fit: contain; }
+.axiom-header :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle) { color: var(--header-ink); transition: border-color 180ms ease, box-shadow 180ms ease; }
+.axiom-header[data-header-tone="light"] :is(.menu-toggle, .header-mobile-language .language-switch) { border-color: rgb(59 30 109 / .4); }
+.axiom-header .menu-toggle[aria-expanded="true"] { color: var(--color-purple); }
+.axiom-header .header-primary-action-wrap { pointer-events: auto; }
+@container navigation (width < 35rem) { .axiom-header .header-primary-action-wrap { display: none; } }
+@media (hover: hover) and (pointer: fine) {
+  .axiom-header[data-header-tone="light"] :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle):hover { color: var(--color-purple); background: rgb(59 30 109 / .08); }
+}
+@media (hover: none), (pointer: coarse) { .axiom-header .menu-toggle:not([aria-expanded="true"]):hover { color: var(--header-ink); } }
+@supports not (backdrop-filter: blur(1px)) {
+  .axiom-header .header-glass { background: var(--color-ink); }
+  .axiom-header[data-header-tone="light"] .header-glass { background: var(--color-ivory); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .axiom-header .header-glass { background: var(--color-ink); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .axiom-header[data-header-tone="light"] .header-glass { background: var(--color-ivory); }
+}
+@media (prefers-reduced-motion: reduce) { .axiom-header * { transition: none !important; } }
+@media (forced-colors: active) {
+  .axiom-header .header-glass, .axiom-header[data-header-tone="light"] .header-glass { background: Canvas; border: 1px solid CanvasText; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .axiom-header { --header-ink: LinkText; --header-highlight: Highlight; }
+  .axiom-header[data-header-tone="light"] { --header-ink: LinkText; --header-highlight: Highlight; }
+}
+
+@container navigation (width < 20rem) { .axiom-header .brand-word { font-size: min(1.125rem, 6.5cqi); } .axiom-header .wordmark { gap: .35rem; } }
+@media (max-width: 359px) { .footer-wordmark .brand-word { font-size: min(1.3rem, 6.5vw); } .footer-wordmark { gap: .5rem; } }

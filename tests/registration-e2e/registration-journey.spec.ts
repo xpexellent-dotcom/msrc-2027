@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { expectHeaderSettled } from "../helpers/header";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { Page, TestInfo } from "@playwright/test";
 import { expect, test } from "../helpers/csp";
@@ -17,6 +18,7 @@ async function capture(page: Page, info: TestInfo, locale: string, state: string
 }
 
 async function accessible(page: Page) {
+  await expectHeaderSettled(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
 }

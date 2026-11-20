@@ -88,7 +88,7 @@ export function ExperienceIntro({ locale, page, announcement, children }: { loca
   const intro = copy.pages[page];
   const photo = experiencePhotos[page];
   const lines = intro.title.split("\n");
-  return <section className={`experience-intro experience-intro--${page}${photo ? " premium-photo-hero fluid-journey-hero" : ""}`} data-publication-pending={announcement ? true : undefined} aria-labelledby="experience-title">
+  return <section data-header-section={photo ? "dark" : "light"} className={`experience-intro experience-intro--${page}${photo ? " premium-photo-hero fluid-journey-hero" : ""}`} data-publication-pending={announcement ? true : undefined} aria-labelledby="experience-title">
     {photo ? <div className="premium-hero-image" aria-hidden="true"><Image src={photo.startsWith("/") ? photo : `/media/msrc-demo/${photo}`} alt="" fill sizes="100vw" priority /></div> : null}
     <Container>
       <nav aria-label={copy.breadcrumb} className="experience-breadcrumb"><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
@@ -98,7 +98,7 @@ export function ExperienceIntro({ locale, page, announcement, children }: { loca
           <h1 id="experience-title">{lines.map((line, index) => <span key={line} className={page !== "hackathon" && index === lines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{page === "hackathon" && index === lines.length - 1 ? <>{line.slice(0, line.lastIndexOf(" ") + 1)}<span className="hackathon-title-word">{line.slice(line.lastIndexOf(" ") + 1)}</span></> : line}</span>)}</h1>
           {announcement ? <p className="experience-publication-status">{announcement}</p> : null}<p className="experience-lead">{intro.lead}</p>{children ? <div className="fluid-journey-hero-actions">{children}</div> : null}
         </div>
-        <div className="experience-intro-art">{page === "hackathon" ? <HackathonTechArt /> : page === "program" ? <div className="program-date-panel" role="group" aria-label={datesVenueCopy[locale].datesHeading}><ConferenceDayLinks locale={locale} />{conferenceConfig.dates ? <a className="text-link program-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{datesVenueCopy[locale].addToCalendar}</a> : null}</div> : showsEventFacts(page) ? <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div> : null}</div>
+        <div className="experience-intro-art">{page === "hackathon" ? <HackathonTechArt /> : page === "program" ? <div className="program-date-panel" role="group" aria-label={conferenceConfig.dates ? datesVenueCopy[locale].datesHeading : conferenceConfig.monthLabel[locale]}><ConferenceDayLinks locale={locale} />{conferenceConfig.dates ? <a className="text-link program-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{datesVenueCopy[locale].addToCalendar}</a> : null}</div> : showsEventFacts(page) ? <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div> : null}</div>
       </div>
     </Container>
     {page === "hackathon" ? <HackathonHeartbeat /> : null}

@@ -33,7 +33,7 @@ for (const locale of ["en", "ar"] as const) for (const width of [360, 390, 1440]
         }
         if (!route) {
           await expect(page.locator('[data-pathway="/registration"] .status-badge')).toHaveCount(0);
-          await expect(page.locator(".hero-actions a").first()).toHaveAttribute("href", `/${locale}/participate`);
+          await expect(page.locator(`.hero-actions a[href="/${locale}/participate"]`)).toHaveAttribute("href", `/${locale}/participate`);
           if (await page.locator(".menu-toggle").isVisible()) {
             const toggle = page.locator(".menu-toggle");
             await expect(toggle).toBeEnabled();
@@ -43,10 +43,10 @@ for (const locale of ["en", "ar"] as const) for (const width of [360, 390, 1440]
             await expect(menu.locator(".mobile-menu-status")).toHaveText(locale === "en" ? "Conference registration" : "التسجيل في المؤتمر");
             if (width < 700) expect(await menu.locator(".mobile-nav-children").evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length)).toBe(size === 100 ? 2 : 1);
             await page.keyboard.press("Tab");
-            const first = menu.locator("a").first();
+            const first = menu.locator(".mobile-reserve-action");
             await expect(first).toBeFocused();
             expect(await first.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");
-            for (const link of await menu.locator("a").all()) {
+            for (const link of await menu.locator("a, button").all()) {
               await link.scrollIntoViewIfNeeded();
               await expect(link).toBeInViewport();
               const bounds = (await link.boundingBox())!;

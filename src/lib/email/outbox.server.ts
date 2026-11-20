@@ -80,7 +80,7 @@ export function validOutboxRecipient(value: string): boolean {
 function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
   if (!registrationEmailTemplates.includes(message.template_key as RegistrationEmailTemplate)
     || message.template_version !== 1 || !["en", "ar"].includes(message.locale)
-    || !validOutboxRecipient(message.recipient_email) || !conferenceConfig.dates) {
+    || !validOutboxRecipient(message.recipient_email)) {
     throw new OutboxSendError("template_invalid", false);
   }
   const offered = message.template_key === "registration_offered";
@@ -175,9 +175,9 @@ function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
         `سجّل الدخول إلى صفحة تسجيلي: ${arabicRegistrationUrl}`];
       break;
   }
-  const body = renderParticipantBody([homepageCopy.en.kicker, `Conference dates: ${formatConferenceDateRange(conferenceConfig.dates, "en")}.`,
+  const body = renderParticipantBody([homepageCopy.en.kicker, `Conference dates: ${conferenceConfig.dates ? formatConferenceDateRange(conferenceConfig.dates, "en") : conferenceConfig.monthLabel.en}.`,
     ...paragraphs, `Support: ${contactConfig.recipient}`],
-  [homepageCopy.ar.kicker, `موعد المؤتمر: ${formatConferenceDateRange(conferenceConfig.dates, "ar")}.`,
+  [homepageCopy.ar.kicker, `موعد المؤتمر: ${conferenceConfig.dates ? formatConferenceDateRange(conferenceConfig.dates, "ar") : conferenceConfig.monthLabel.ar}.`,
     ...arabicParagraphs, `للدعم: ${contactConfig.recipient}`],
   [registrationUrl + "/ticket", registrationUrl, arabicRegistrationUrl + "/ticket", arabicRegistrationUrl]);
   return Object.freeze({ from: `MSRC ${conferenceConfig.edition} <${contactConfig.sender}>`,

@@ -16,7 +16,7 @@ export const homepageNarrative = {
     partnersEyebrow: "6 / Shared purpose", partnersTitle: "Further,\ntogether.", partnersBody: "Confirmed partners and sponsors will be introduced here.", partnersPending: "Partner announcements to follow",
     practicalEyebrow: "7 / Plan your visit", practicalTitle: "Before\nyou arrive.", datesLink: "Dates & venue details", faqLabel: "Frequently asked questions",
     faq: [
-      { question: "When and where is MSRC 2027?", answer: "The conference takes place on 27–28 January 2027 at King Faisal Conference Center, King Abdulaziz University, Jeddah. Session times will be announced." },
+      { question: "When and where is MSRC 2027?", answer: "The conference takes place in April 2027 at King Faisal Conference Center, King Abdulaziz University, Jeddah. Session times will be announced." },
       { question: "Can I register or submit research now?", answer: "Check each participation page for its current availability, confirmed requirements and important dates." },
       { question: "What research can I submit?", answer: "Presenters must be undergraduate medical students or medical interns. Research must be completed, with analysis finished and the manuscript written within the past three years. Each participant has one submission chance, and abstracts may contain up to 350 words including the six section headings." },
       { question: "Do workshops have separate bookings?", answer: "Yes. Book each workshop separately with your confirmed conference registration. We'll email you to confirm your workshop place. Workshops and availability will be announced." },
@@ -38,7 +38,7 @@ export const homepageNarrative = {
     partnersEyebrow: "٦ / هدف يجمعنا", partnersTitle: "نرتقي\nمعًا.", partnersBody: "سنعرض الشركاء والرعاة المؤكدين هنا.", partnersPending: "إعلانات الشركاء قريبًا",
     practicalEyebrow: "٧ / خطّط لزيارتك", practicalTitle: "قبل أن\nتصل.", datesLink: "تفاصيل المواعيد والمقر", faqLabel: "الأسئلة الشائعة",
     faq: [
-      { question: "متى وأين يُقام المؤتمر؟", answer: "يُقام المؤتمر يومي ٢٧ و٢٨ يناير ٢٠٢٧ في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة. ستُعلن مواعيد الجلسات لاحقًا." },
+      { question: "متى وأين يُقام المؤتمر؟", answer: "يُقام المؤتمر في أبريل ٢٠٢٧ في مركز الملك فيصل للمؤتمرات بجامعة الملك عبدالعزيز في جدة. ستُعلن مواعيد الجلسات لاحقًا." },
       { question: "هل يمكنني التسجيل أو تقديم بحث الآن؟", answer: "راجع صفحة كل مسار لمعرفة إتاحته الحالية ومتطلباته المؤكدة ومواعيده المهمة." },
       { question: "ما الأبحاث التي يمكنني تقديمها؟", answer: "يجب أن يكون مقدّم العرض طالب طب في مرحلة البكالوريوس أو طبيب امتياز. ويجب أن يكون البحث مكتملًا، بتحليل منتهٍ ومخطوطة مكتوبة خلال السنوات الثلاث الماضية. لكل مشارك فرصة تقديم واحدة، ويجب ألا يتجاوز الملخص ٣٥٠ كلمة شاملة عناوين الأقسام الستة." },
       { question: "هل لورش العمل حجوزات منفصلة؟", answer: "نعم. احجز كل ورشة بشكل منفصل بعد تأكيد تسجيلك في المؤتمر. سنرسل إليك رسالة لتأكيد مقعدك في الورشة. سنعلن الورش والأماكن المتاحة لاحقًا." },
