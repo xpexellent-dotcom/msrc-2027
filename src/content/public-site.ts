@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n";
+import { brandLogo } from "@/content/brand-identity";
 
 type Bilingual = Readonly<Record<Locale, string>>;
 export type PublicPage = Readonly<{
@@ -38,7 +39,7 @@ export const homepageAssets = {
     poster: "/media/msrc2026/poster-desktop-v1.jpg",
     mobilePoster: "/media/msrc2026/poster-mobile-v1.jpg",
   },
-  finalLogo: null,
+  finalLogo: brandLogo.onPurple,
   sponsors: [],
   gallery: [],
 } as const;

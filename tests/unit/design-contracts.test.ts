@@ -56,7 +56,7 @@ describe("public content publication boundaries (SCP-02, CFG-12, MED-01)", () =>
     expect(hasApprovedVideo(homepageAssets.heroVideo)).toBe(true);
     expect(homepageAssets.heroVideo.src).toBe("/media/msrc2026/hero-desktop-v1.mp4");
     expect(homepageAssets.heroVideo.mobileSrc).toBe("/media/msrc2026/hero-mobile-v1.mp4");
-    expect(homepageAssets).toMatchObject({ finalLogo: null, sponsors: [], gallery: [] });
+    expect(homepageAssets).toMatchObject({ finalLogo: "/brand/identity/msrc27-seal-dark-192.png", sponsors: [], gallery: [] });
   });
 });
 

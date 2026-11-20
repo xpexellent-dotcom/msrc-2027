@@ -4,7 +4,7 @@ import type { Locale } from "@/lib/i18n";
 import { siteOrigin } from "@/lib/metadata";
 
 /**
- * "Add to calendar" for the confirmed days (ORG-001): one all-day event over 27–28 January.
+ * "Add to calendar" only when exact conference days are confirmed.
  * Date-only on purpose: no doors or session times exist yet (TIM-01). The venue is confirmed
  * by ORG-031. Both languages share one UID, so a calendar keeps a single event whichever
  * file is added.

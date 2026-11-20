@@ -31,8 +31,8 @@ for (const locale of ["en", "ar"] as const) {
       const action = menu.locator(".mobile-reserve-action");
       const firstDestination = menu.locator("nav a").first();
       const status = menu.locator(".mobile-menu-status");
-      await expect(menu.getByRole("link").first()).toHaveClass(/\bmobile-reserve-action\b/);
-      await expect(action).toHaveAttribute("href", `/${locale}/sign-in`);
+      await expect(menu.getByRole("button").first()).toHaveClass(/\bmobile-reserve-action\b/);
+      await expect(action).toHaveAttribute("aria-haspopup", "dialog");
       await expect(action).toBeInViewport();
       await expect(status).toHaveText(locale === "en" ? "Conference registration" : "التسجيل في المؤتمر");
       await expect(status).toBeInViewport();
@@ -63,7 +63,7 @@ for (const locale of ["en", "ar"] as const) {
     }
   });
 
-  test(`${locale} top registration action navigates to the participation hub`, async ({ page, isMobile }) => {
+  test(`${locale} top registration action opens the seat dialog and navigates to sign in`, async ({ page, isMobile }) => {
     test.skip(!isMobile, "Phone registration action.");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`/${locale}`);
@@ -72,6 +72,7 @@ for (const locale of ["en", "ar"] as const) {
     const action = page.locator(".mobile-menu .mobile-reserve-action");
     await expect(action).toBeInViewport();
     await action.tap();
+    await page.locator(".reserve-seat-dialog a").first().click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

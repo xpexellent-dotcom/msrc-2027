@@ -4,17 +4,17 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} countdown updates after time passes and a suspended tab returns`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    await page.clock.install({ time: new Date("2027-01-25T19:58:28Z") });
+    await page.clock.install({ time: new Date("2027-03-30T19:58:28Z") });
     await page.goto(`/${locale}`);
     const clock = page.locator("[data-countdown]");
     await expect(clock).toHaveAttribute("data-countdown", "before");
-    await page.clock.pauseAt(new Date("2027-01-25T19:58:58Z"));
+    await page.clock.pauseAt(new Date("2027-03-30T19:58:58Z"));
     await expect(clock.locator('[data-countdown-unit="seconds"]')).toHaveText(locale === "ar" ? "٠٢" : "02");
     await page.clock.runFor(1_000);
     await expect(clock.locator('[data-countdown-unit="seconds"]')).toHaveText(locale === "ar" ? "٠١" : "01");
-    await page.clock.setSystemTime(new Date("2027-01-27T21:00:00Z"));
+    await page.clock.setSystemTime(new Date("2027-04-01T21:00:00Z"));
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-    await expect(clock).toHaveAttribute("data-countdown", "day2");
+    await expect(clock).toHaveAttribute("data-countdown", "after");
     expect(errors).toEqual([]);
   });
 

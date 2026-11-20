@@ -90,6 +90,11 @@ for (const locale of ["en", "ar"] as const) {
     await expect(area.getByRole("status")).toHaveText(copy.conflictOutcome); await expect(area).toContainText(copy.statuses.offered);
     await page.unroute("**/api/workshops?locale=*"); await fixture(page, { state: "area-not-ready" }); await page.reload();
     await expect(area).toContainText(copy.notReady); await expect(page.getByTestId("participant-profile-name")).toHaveText("Synthetic Participant");
+    // Keyboard entry holds the actual header open throughout the accessibility
+    // scan, including when reload restores a compact reading position.
+    await page.locator(".wordmark").press("Tab");
+    await expect(page.locator(".axiom-header")).toHaveAttribute("data-keyboard", "true");
+    await expect(page.locator(".header-middle")).toHaveCSS("opacity", "1");
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
 }

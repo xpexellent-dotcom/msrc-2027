@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cinematicRequestEvent, setCinematicPlayback } from "@/lib/cinematic-film";
 import type { Locale } from "@/lib/i18n";
+import { PlayGlyph } from "@/components/ui/arrow";
 
 const copy = {
   en: { title: "MSRC 2026 opening film", close: "Back to conference", play: "Play film", instructions: "Footage from MSRC 2026. Press Escape to return to the conference. The film background can be paused or resumed using Space or Enter." },
@@ -12,9 +13,9 @@ const copy = {
 type Origin = { href: string; scroll: number; focus: HTMLElement | null; pushed: boolean };
 
 export function CinematicFilmLink({ children }: { locale: Locale; children: ReactNode }) {
-  return <button className="button button--gold cinematic-launch" data-testid="watch-opening-film" type="button" onClick={(event) => {
+  return <button className="button button--outline-inverse cinematic-launch" data-testid="watch-opening-film" type="button" onClick={(event) => {
     window.dispatchEvent(new CustomEvent(cinematicRequestEvent, { detail: { source: event.currentTarget } }));
-  }}>{children}</button>;
+  }}><PlayGlyph />{children}</button>;
 }
 
 /** Reframes the existing approved homepage hero; never creates a second media player. */
@@ -145,7 +146,7 @@ export function CinematicFilm({ locale }: { locale: Locale }) {
   return <div id="film" className="cinematic-ui" hidden={!open}>
     <h2 id="cinematic-title" className="sr-only">{text.title}</h2>
     <p id="cinematic-instructions" className="sr-only">{text.instructions}</p>
-    <button ref={closeRef} className="cinematic-close" data-testid="cinematic-close" type="button" aria-label={text.close} onClick={() => exitRef.current()}><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="m6 6 12 12M6 18 18 6" stroke="currentColor" strokeWidth="1.6" /></svg></button>
+    <button ref={closeRef} className="cinematic-close icon-button icon-button--dark" data-testid="cinematic-close" type="button" aria-label={text.close} onClick={() => exitRef.current()}><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="m6 6 12 12M6 18 18 6" stroke="currentColor" strokeWidth="1.6" /></svg></button>
     <span className="cinematic-provenance">{locale === "en" ? "MSRC 2026" : "نسخة ٢٠٢٦"}</span>
     {open && needsPlay ? <button className="button button--gold cinematic-start" type="button" onClick={() => {
       setNeedsPlay(false);

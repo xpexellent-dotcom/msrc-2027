@@ -49,22 +49,20 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} cinematic homepage has a hero countdown, floating navigation and decorative photographs`, async ({ page }) => {
     await page.goto(`/${locale}`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(content[locale].title);
-    await expect(page.locator(".hero-lead")).toHaveText(content[locale].lead);
+    await expect(page.locator(".hero-lead")).toHaveCount(0);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", expect.stringContaining(content[locale].lead));
     // ORG-013: the site is public; the development-preview notice is gone.
     await expect(page.getByText(content[locale].preview, { exact: true })).toHaveCount(0);
     await expect(page.locator(".preview-banner")).toHaveCount(0);
     const control = page.locator(".conference-hero .hero-media-toggle");
-    await expect(control).toHaveCount(1);
-    await expect(control).toHaveJSProperty("tagName", "BUTTON");
-    await expect(control).toBeEmpty();
-    if ((page.viewportSize()?.width ?? 1280) <= 700) await expect(control).toBeHidden();
-    else await expect(control).toBeVisible();
-    await expect(page.locator(".conference-hero .hero-media-control")).toHaveCount(0);
+    await expect(control).toHaveCount(0);
+    const labeled = page.locator(".conference-hero .hero-media-control");
+    await expect(labeled).toHaveCount(0);
     await expect(page.locator(".footer-directory-note, .program-sample-label, .hero-media-status")).toHaveCount(0);
     await expect(page.locator(".conference-hero [data-countdown]")).toHaveCount(1);
     await expect(page.locator(".date-band [data-countdown]")).toHaveCount(0);
-    await expect(page.locator(".header-primary-action")).toHaveAttribute("href", `/${locale}/sign-in`);
-    await expect(page.locator(".hero-actions a")).toHaveCount(2);
+    await expect(page.locator(".header-primary-action")).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(page.locator(".hero-actions > .button, .hero-actions > a[href$=\"/participate\"]")).toHaveCount(2);
     const opening = await page.locator(".conference-hero").boundingBox();
     const viewport = await page.evaluate(() => ({ width: document.documentElement.clientWidth, height: window.innerHeight }));
     expect(opening?.width).toBeGreaterThanOrEqual(viewport.width - 1);
@@ -112,7 +110,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(card.locator(".pathway-action")).toBeInViewport();
       if (await card.getAttribute("data-pathway") === "/registration") await expect(card.locator(".status-badge")).toHaveCount(0);
       else await expect(card.locator(".status-badge")).toContainText(locale === "en" ? /not open/i : /لم.*يفتح|لم.*يُفتح|غير متاح|لم يبدأ/);
-      expect(await card.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
+      await expect.poll(() => card.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
     }
     await page.locator("#top").scrollIntoViewIfNeeded();
     await cards.first().scrollIntoViewIfNeeded();
@@ -158,6 +156,7 @@ for (const locale of ["en", "ar"] as const) {
         return style.animationName === "none" && style.transform === "none" && style.transitionDuration === "0s";
       }))).toBe(true);
     }
+    await expect(page.locator(".path-tile").first()).toHaveCSS("scale", "none");
     // The decorative composition may have a static rotation, but must never
     // travel or animate when the visitor requests reduced motion.
     const artwork = page.locator(".ambient-art, .ambient-art *");
@@ -181,7 +180,7 @@ test("the opening headline and navigation appear while footage is still loading"
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(content.en.title);
     await expect(page.locator(".site-header-inner")).toBeVisible();
     await expect(page.locator(".conference-hero .hero-media-poster")).toBeVisible();
-    await expect(page.locator(".hero-actions a").first()).toBeVisible();
+    await expect(page.locator(".hero-actions > a[href$=\"/participate\"]")).toBeVisible();
   } finally {
     releaseFilm?.();
   }

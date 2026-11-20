@@ -57,14 +57,14 @@ const serverPreferences = JSON.stringify({
 
 const copy = {
   en: {
-    pause: "Pause background video", resume: "Play background video",
+    pause: "Pause film", resume: "Play film",
     still: "Still image mode", unavailable: "Background video unavailable. Showing a still image.",
-    videoInstructions: "Press Space or Enter to pause or play the background video.",
+    videoInstructions: "Press Space or Enter to pause or play the film.",
   },
   ar: {
-    pause: "إيقاف فيديو الخلفية مؤقتًا", resume: "تشغيل فيديو الخلفية",
+    pause: "إيقاف الفيلم مؤقتًا", resume: "تشغيل الفيلم",
     still: "وضع الصورة الثابتة", unavailable: "فيديو الخلفية غير متاح. تُعرض صورة ثابتة.",
-    videoInstructions: "اضغط مفتاح المسافة أو الإدخال لإيقاف فيديو الخلفية مؤقتًا أو تشغيله.",
+    videoInstructions: "اضغط مفتاح المسافة أو الإدخال لإيقاف الفيلم مؤقتًا أو تشغيله.",
   },
 } satisfies Record<Locale, {
   pause: string; resume: string; still: string; unavailable: string;
@@ -76,7 +76,8 @@ type HeroControlsMode = "button" | "video";
 type MediaControlState = {
   locale: Locale; approved: boolean; load: boolean; hydrated: boolean;
   failed: boolean; playing: boolean; controlsMode: HeroControlsMode;
-  autoplayBlocked: boolean; togglePlayback: () => void;
+  autoplayBlocked: boolean; filmActive: boolean;
+  togglePlayback: () => void;
 };
 const MediaControls = createContext<MediaControlState | null>(null);
 
@@ -84,10 +85,12 @@ const MediaControls = createContext<MediaControlState | null>(null);
 export function HeroMediaControls() {
   const state = useContext(MediaControls);
   if (!state?.approved) return null;
+  if (state.failed) return <span className="sr-only" role="status">{copy[state.locale].unavailable}</span>;
+  if (!state.filmActive) return null;
   const text = copy[state.locale];
   if (state.controlsMode === "video") {
     if (state.failed) return <span className="sr-only" role="status">{text.unavailable}</span>;
-    if (!state.autoplayBlocked || !state.load) return null;
+    if (!state.filmActive || !state.load || !state.autoplayBlocked) return null;
   }
   return (
     <div className="hero-media-controls">
@@ -130,48 +133,77 @@ export function HeroMedia({
     useSyncExternalStore(subscribePreferences, preferenceSnapshot, () => serverPreferences),
   );
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(true);
   const backgroundToggleRef = useRef<HTMLButtonElement>(null);
   const videoInstructionsId = useId();
   const [userPaused, setUserPaused] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [ended, setEnded] = useState(false);
   const [frameAvailable, setFrameAvailable] = useState(false);
   const [failed, setFailed] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const [explicitFilm, setExplicitFilm] = useState(false);
+  const [filmActive, setFilmActive] = useState(false);
   const pausedBeforeFilm = useRef(false);
+  const endedBeforeFilm = useRef(false);
   const cinematicActive = useRef(false);
   const approved = hasRenderableVideo(video, allowPreview);
   // Keep the selected frame/source across hidden tabs; actual playback still
   // follows visibility, motion/data preferences and the visitor's durable pause.
   const effectivePolicy = explicitFilm ? "autoplay" : playbackPolicy;
   const load = approved && shouldLoadHeroVideo({ ...preferences, visible: true }, effectivePolicy) && !failed;
-  const play = load && shouldPlayHeroVideo(preferences, userPaused, effectivePolicy) && !autoplayBlocked;
+  const play = load && (inView || explicitFilm) && shouldPlayHeroVideo(preferences, userPaused, effectivePolicy) && !autoplayBlocked && (!ended || filmActive);
   const poster = approved ? video.poster : isLocalPoster(posterSrc) ? posterSrc : defaultHeroPoster;
   const source = approved ? (preferences.smallScreen && video.mobileSrc ? video.mobileSrc : video.src) : undefined;
   const videoControls = controlsMode === "video";
   const text = copy[locale];
 
   useEffect(() => {
+    const media = mediaRef.current;
+    if (!media || !window.IntersectionObserver) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      const visible = entry.isIntersecting && entry.intersectionRatio >= .1;
+      if (!visible && !cinematicActive.current) videoRef.current?.pause();
+      setInView(visible);
+    }, { threshold: [0, .1] });
+    observer.observe(media);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     if (!approved || !videoControls) return;
     const cinematic = (event: Event) => {
       const { active, explicit } = (event as CustomEvent<CinematicPlayback>).detail;
       if (active) {
-        if (!cinematicActive.current) pausedBeforeFilm.current = userPaused;
+        if (!cinematicActive.current) {
+          pausedBeforeFilm.current = userPaused;
+          endedBeforeFilm.current = ended;
+        }
         cinematicActive.current = true;
+        setFilmActive(true);
         setExplicitFilm(explicit);
+        setEnded(false);
+        if (explicit && videoRef.current?.ended) videoRef.current.currentTime = 0;
         setUserPaused(false);
         setAutoplayBlocked(false);
         // Retain actual gesture activation when the existing player is loaded.
         if (explicit && videoRef.current) void videoRef.current.play().catch(() => {});
       } else if (cinematicActive.current) {
         cinematicActive.current = false;
+        setFilmActive(false);
         setExplicitFilm(false);
         setUserPaused(pausedBeforeFilm.current);
+        setEnded(endedBeforeFilm.current);
+        if (endedBeforeFilm.current && videoRef.current && Number.isFinite(videoRef.current.duration)) {
+          videoRef.current.currentTime = videoRef.current.duration;
+          videoRef.current.pause();
+        }
       }
     };
     window.addEventListener(cinematicPlaybackEvent, cinematic);
     return () => window.removeEventListener(cinematicPlaybackEvent, cinematic);
-  }, [approved, videoControls, userPaused]);
+  }, [approved, videoControls, userPaused, ended]);
 
   useEffect(() => {
     const element = videoRef.current;
@@ -207,8 +239,8 @@ export function HeroMedia({
       if (element) void element.play().then(() => {
         setPlaying(true);
         setAutoplayBlocked(false);
-        // The recovery button disappears after successful play. Keep keyboard
-        // focus on its background toggle so a visitor can pause it again.
+        // Film recovery disappears after play and returns focus to its keyboard
+        // toggle. The persistent desktop label keeps its own focus instead.
         if (videoControls && autoplayBlocked) backgroundToggleRef.current?.focus({ preventScroll: true });
       }).catch((error: unknown) => {
         setPlaying(false);
@@ -219,8 +251,8 @@ export function HeroMedia({
   }
 
   return (
-    <MediaControls.Provider value={{ locale, approved, load, hydrated: preferences.hydrated, failed, playing, controlsMode, autoplayBlocked, togglePlayback }}>
-    <div className="hero-media" data-playback-policy={effectivePolicy} data-controls-mode={controlsMode} data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
+    <MediaControls.Provider value={{ locale, approved, load, hydrated: preferences.hydrated, failed, playing, controlsMode, autoplayBlocked, filmActive, togglePlayback }}>
+    <div ref={mediaRef} className="hero-media" data-playback-policy={effectivePolicy} data-controls-mode={controlsMode} data-media-state={playing && load ? "playing" : frameAvailable && load ? "paused" : "poster"}>
       <picture>
         {approved && video.mobilePoster && <source media="(max-width: 700px)" srcSet={video.mobilePoster} />}
         <Image
@@ -232,18 +264,19 @@ export function HeroMedia({
         <video
           ref={videoRef} src={source} poster={preferences.smallScreen && video.mobilePoster ? video.mobilePoster : poster}
           className={`hero-media-video${frameAvailable ? " is-playing" : ""}`}
-          muted autoPlay={!userPaused && !autoplayBlocked && preferences.visible} playsInline loop preload="metadata"
+          muted autoPlay={!userPaused && !autoplayBlocked && !ended && preferences.visible && (inView || explicitFilm)} playsInline loop={filmActive} preload="metadata"
           aria-hidden="true" tabIndex={-1}
           disablePictureInPicture disableRemotePlayback
           onLoadStart={() => setFrameAvailable(false)}
           onLoadedData={() => setFrameAvailable(true)}
           onPlaying={() => { setFrameAvailable(true); setPlaying(true); }}
+          onEnded={() => { setEnded(true); setPlaying(false); }}
           onPause={() => setPlaying(false)}
           onError={() => { setPlaying(false); setFailed(true); }}
         />
       )}
       <div className="hero-media-scrim" aria-hidden="true" />
-      {videoControls && load && <>
+      {videoControls && filmActive && load && <>
         <button
           ref={backgroundToggleRef} type="button" className="hero-media-toggle"
           aria-label={playing ? text.pause : text.resume} aria-describedby={videoInstructionsId}

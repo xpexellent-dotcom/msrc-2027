@@ -271,3 +271,83 @@ Participation uses warm ivory with white cards. Public headings use the supplied
 Sans at600/700 weights, with Noto Sans Arabic/RTL parity. Reduce repeated prose and
 actions while retaining useful facts, distinct journeys and honest closed states.
 Latest checks, publication and rollback: [refinement note](features/cinematic-release-refinements.md).
+
+
+## Homepage v2 public identity — ORG-072 / ENG-094, 4 November 2026
+
+This section supersedes older public presentation defaults where they conflict.
+English display text uses Fraunces: chapter headings at weight 500, card headings
+at 560, and the hero and closing at 600. Large display roles use a fixed optical
+size (`"opsz" 144`). English body and UI text use DM Sans at weights 400–600.
+Arabic display text uses El Messiri: chapter headings at 600, and the hero and
+closing at 700. Arabic body text uses Noto Sans Arabic at 400. Staff retains
+ENG-007's separate Inter and Manrope roles.
+
+Fraunces 5.3.0 and El Messiri 5.3.0 are self-hosted under OFL-1.1. The four social
+glyphs copied from Tabler Icons 3.49.0 retain the MIT licence and attribution.
+Tabler is not installed as a dependency.
+
+The type scale lives in `src/styles/tokens.css`: `--t-hero`, `--t-closing`,
+`--t-h2`, `--t-card`, `--t-tile-lg`, `--t-tile`, `--t-stat`, `--t-lead`,
+`--t-body`, `--t-small` and `--t-label`. Hero K is measured separately for each
+locale. Arabic never uses letter spacing or uppercase transforms. Its line
+heights are 1.8 for body text, 1.35 for h2, 1.5 for h3, 1.3 for the hero and
+closing, and 1.6 for labels. Gradient text has `.14em` of block paint clearance
+in English and `.2em` in Arabic. Public `[lang]` descendants retain these public
+font roles. Inter and Manrope remain staff-only, with `preload: false`.
+
+Royal Purple remains the primary brand colour. Gold is limited to primary
+buttons, sparkles, the first `2.5rem` of chapter and footer rules, large numerals
+on purple, ribbon strokes, one short segment per flow line, the open FAQ bar and
+focus rings on dark surfaces. Paths and FAQ use white; Program and Speakers
+share continuous mist; Venue and the preview belt use ivory; Legacy, the header
+and footer use purple. Light surfaces use ink or slate text; purple uses ivory
+or lilac. Gold is never text on a light surface. Contrast over photographs and
+video must be measured.
+
+The homepage uses `--home-container: 75rem` (1200px at the default root text
+size). Its content edge is `E = max(gutter, (W − 1200px) / 2)`. The mirrored
+desktop Program heading, compact header travel and end-aligned media controls
+and countdown are the recorded exceptions. Chapter rhythm uses `--section-y`,
+`--head-gap` and `--tile-pad`.
+
+The radius tokens are `--r-icon: 12px`, `--r-button: 14px`, `--r-card: 20px` and
+`--r-pill: 999px`. The pill is reserved for non-interactive status badges, year
+badges and chips. Public buttons are at least 52px tall; small buttons and icon
+controls are 44px. The header CTA, language and menu controls remain 48px.
+Focus rings are 3px wide with a 3px offset: purple on light surfaces and gold on
+dark surfaces.
+
+Motion uses `--ease-out`, `--ease-std` and `--ease-draw`. Duration tokens are
+`--d-color: 160ms`, `--d-control: 240ms`, `--d-tile: 320ms`,
+`--d-reveal: 700ms` and `--d-draw: 1600ms`. Chapters retain reversible ORG-012
+lighting. Bento and benefit cards cascade once in 70ms steps, with at most six
+animated children per group. Vector lines draw once, and media unveils settle
+to `transform: none`. The homepage permits at most ten concurrent CSS animations;
+completed or offscreen one-shots settle instead of accumulating behind a fast
+reader. The belt alone loops, paused by default and while offscreen. Reduced
+motion is static and readable. The homepage has no backdrop filter, blend grain,
+media blur, glow, drop shadow or persistent layer hint.
+
+The sparkle budget is one heading sparkle and one content sparkle per section.
+Preview belt separators and one shoulder sparkle per anonymous portrait card are
+the exceptions. The hero and closing each have one sparkle; Venue has its
+heading and caption sparkles. Ribbons carry none.
+
+Official logos appear only on solid purple, with unchanged proportions and
+colours, no shadow, and clear space of about one-third of the logo height. The
+current R-counter defect remains a replacement-export gate. Brand icons retain
+their colours and use a physical 2% horizontal shift to centre the disc; this
+shift does not mirror in Arabic.
+
+ENG-094 records a measured fallback refinement. The generated automatic Times
+fallback's 127.27% size adjustment rewrapped the weight-600, `"opsz" 144 English
+hero into four phone lines, producing CLS 0.0950 even after reserving countdown
+space. Keep next/font's automatic configuration and general fallback face, with
+an additional exact-weight-600 Times Bold match calibrated by
+`scripts/measure-hero-fallback.mjs`: `size-adjust: 93.5665%`,
+`ascent-override: 104.5246%`, `descent-override: 27.2534%` and
+`line-gap-override: 0%`. This refines the specification's automatic-only English
+fallback baseline to meet its two-line and CLS requirements. An 800ms delayed-font
+response experiment measured CLS 0.00349015 at 390px and 0.00752726 at 1440px.
+The receipt records final verification against the built pages.

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ButtonLink } from "@/components/ui/button";
+import { Arrow } from "@/components/ui/arrow";
 import { hasParticipantHint, requestAccount } from "@/features/participant-accounts/participant-client";
 import { participantCopy } from "@/features/participant-accounts/participant-copy";
 import { ProfileAvatar } from "@/features/participant-accounts/profile-avatar";
@@ -50,6 +51,6 @@ export function HeaderPrimaryAction({ action }: { action: ReturnType<typeof head
     aria-label={action.name ? `${action.label}: ${action.name}` : undefined} data-testid="header-primary-action">
     {action.name ? <ProfileAvatar name={action.name} url={action.avatarUrl} className="header-profile-avatar" /> : null}
     {action.label}
-    {action.name ? null : <svg className="directional-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 19 19 5M5 5h14v14" /></svg>}
+    {action.name ? null : <Arrow />}
   </ButtonLink>;
 }

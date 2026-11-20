@@ -104,7 +104,7 @@
 .research-criteria dt { color: var(--color-purple); font-weight: 750; font-size: 1.1rem; }
 .research-criteria dd { color: var(--color-muted); margin-block: .5rem 0; margin-inline: 0; line-height: 1.85; }
 @media (max-width: 59.999rem) { .research-rubric-panel { grid-template-columns: minmax(0, 1fr); } }
-.research-closing { padding-block: clamp(4rem, 7vw, 7rem); color: var(--color-ivory); background: var(--color-purple); }
+.research-closing { padding-block: clamp(4rem, 7vw, 7rem); color: var(--color-ivory); background: var(--color-ink); --focus-ring: var(--color-gold); }
 .research-closing h2 { max-inline-size: 20ch; font-size: clamp(2.2rem, 4.5vw, 4rem); line-height: 1.15; letter-spacing: -.035em; margin-block: 0 1.5rem; }
 .research-closing p { line-height: 1.85; margin-block: 0 2rem; }
 .research-closing-actions { display: flex; flex-wrap: wrap; gap: 1.5rem 2rem; align-items: center; }
@@ -121,7 +121,8 @@
 .research-acknowledgement__actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-block-start: 1.75rem; }
 .research-acknowledgement__actions .button { white-space: normal; text-align: center; }
 .research-acknowledgement :is(input, button):focus-visible { outline: 3px solid var(--color-purple); outline-offset: 4px; }
-[lang="ar"] .research-competition :is(h1, h2, h3), [lang="ar"] .research-acknowledgement h2 { font-family: var(--font-arabic); letter-spacing: 0; line-height: 1.5; font-weight: 800; }
+[lang="ar"] .research-competition :is(h1, h2, h3), [lang="ar"] .research-acknowledgement h2 { font-family: var(--font-display); letter-spacing: 0; line-height: 1.5; font-weight: 600; }
+[lang="ar"] .research-competition h1 { font-weight: 700; }
 [lang="ar"] .research-rubric-intro h2 { line-height: 1.3; }
 @media (max-width: 700px) {
   .research-hero { padding-block: 7.5rem 4rem; }

@@ -67,7 +67,19 @@ export function getConferenceCountdown(dates: ConferenceDates, today: CalendarDa
  * Counts to the start of the confirmed calendar date, not doors or session time.
  * Riyadh midnight is a display convention; it must never open an operational gate.
  */
-export function getConferenceClockCountdown(dates: ConferenceDates, now: Date): ConferenceClockCountdown {
+export function getConferenceClockCountdown(dates: ConferenceDates | string, now: Date): ConferenceClockCountdown {
+  if (typeof dates === "string") {
+    const remainingSeconds = Math.max(0, Math.ceil((Date.parse(dates) - now.getTime()) / 1000));
+    if (!Number.isFinite(remainingSeconds)) throw new RangeError("Expected a valid countdown target.");
+    if (remainingSeconds === 0) return { phase: "after" };
+    return {
+      phase: "before",
+      days: Math.floor(remainingSeconds / 86_400),
+      hours: Math.floor(remainingSeconds % 86_400 / 3_600),
+      minutes: Math.floor(remainingSeconds % 3_600 / 60),
+      seconds: remainingSeconds % 60,
+    };
+  }
   const phase = getConferenceCountdown(dates, getRiyadhCalendarDate(now)).phase;
   if (phase !== "before") return { phase };
   const dateBoundary = calendarEpoch(dates.day1) - RIYADH_OFFSET_MS;
@@ -102,7 +114,7 @@ export type CountdownClockEnvironment = DayClockEnvironment & {
 
 /** Visible tabs tick on second boundaries; suspended tabs recalculate from the clock. */
 export function subscribeToConferenceClock(
-  onChange: () => void, clock: CountdownClockEnvironment, dates: ConferenceDates,
+  onChange: () => void, clock: CountdownClockEnvironment, dates: ConferenceDates | string,
 ): () => void {
   let timer: number | undefined;
   let active = true;
@@ -110,6 +122,7 @@ export function subscribeToConferenceClock(
     if (timer !== undefined) clock.cancel(timer);
     timer = undefined;
     if (!clock.isVisible()) return;
+    if (typeof dates === "string" && getConferenceClockCountdown(dates, clock.now()).phase === "after") return;
     const now = clock.now();
     const delay = getConferenceClockCountdown(dates, now).phase === "before"
       ? 1000 - (now.getTime() % 1000)

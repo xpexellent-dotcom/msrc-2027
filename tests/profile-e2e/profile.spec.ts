@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { expectHeaderSettled } from "../helpers/header";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { expect, test, type Page } from "../helpers/csp";
@@ -57,6 +58,7 @@ async function chooseOther(page: Page, locale: "en" | "ar", institution: string)
 }
 
 async function accessible(page: Page) {
+  await expectHeaderSettled(page);
   await expectStylesheetsReady(page);
   expect((await new AxeBuilder({ page }).include('[data-testid="participant-profile-card"]').withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);

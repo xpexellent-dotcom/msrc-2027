@@ -36,13 +36,13 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} keyboard anchors and routes keep focus and history without arrival motion`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await observeNavigation(page);
-    await page.goto(`/${locale}?view=keyboard-motion`);
+    await page.goto(`/${locale}/registration?view=keyboard-motion`);
     await waitForHeader(page);
-    await page.locator(".hero-scroll").focus();
+    await page.locator("[data-testid=registration-steps-jump]").focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=keyboard-motion#essentials$`));
-    await expect(page.locator("#essentials")).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.designMotionEvidence.scrolls.at(-1))).toEqual({ id: "essentials", behavior: "instant" });
+    await expect(page).toHaveURL(new RegExp(`/${locale}/registration\\?view=keyboard-motion#journey-steps$`));
+    await expect(page.locator("#journey-steps")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.designMotionEvidence.scrolls.at(-1))).toEqual({ id: "journey-steps", behavior: "instant" });
     expect(await page.evaluate(() => window.designMotionEvidence.slides)).toEqual([]);
 
     const toggle = page.locator(".menu-toggle");
@@ -52,16 +52,21 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator(".mobile-menu")).toBeVisible();
       expect(await page.locator(".mobile-menu").evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
     }
-    const navigation = page.locator(await toggle.isVisible() ? ".mobile-menu nav" : ".desktop-nav");
-    await navigation.locator(`a[href='/${locale}/program']`).focus();
+    // Registration and Sign in share the private document CSP. Crossing to Program
+    // deliberately reloads the document, so it cannot test client arrival focus.
+    const action = page.locator(await toggle.isVisible() ? ".mobile-menu .mobile-reserve-action" : ".header-primary-action");
+    await expect(action).toHaveAttribute("aria-haspopup", "dialog");
+    await action.focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(new RegExp(`/${locale}/program$`));
+    await expect(page.locator(".reserve-seat-dialog a").first()).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(new RegExp(`/${locale}/sign-in$`));
     await expect(page.getByRole("main")).toBeFocused();
     expect(await page.evaluate(() => window.designMotionEvidence.slides)).toEqual([]);
     await expect(page.locator(".mobile-menu")).toHaveCount(0);
     await page.goBack();
-    await expect(page).toHaveURL(new RegExp(`/${locale}\\?view=keyboard-motion#essentials$`));
-    await expect(page.locator("#essentials")).toBeInViewport();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/registration\\?view=keyboard-motion#journey-steps$`));
+    await expect(page.locator("#journey-steps")).toBeInViewport();
   });
 
   test(`${locale} pointer navigation retains a short directional arrival and native Back`, async ({ page }) => {
