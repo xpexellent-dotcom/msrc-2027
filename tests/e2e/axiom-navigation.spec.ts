@@ -7,24 +7,37 @@ async function settle(page: Page) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} whole desktop glass bar changes tone and keeps keyboard access while scrolling`, async ({ page, isMobile }) => {
+  test(`${locale} desktop header splits on scroll and restores the tone-aware bar on keyboard focus`, async ({ page, isMobile }) => {
     test.skip(isMobile, "Fine-pointer desktop behavior.");
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`/${locale}`);
     await settle(page);
     const header = page.locator(".axiom-header");
     const logo = header.locator(".wordmark");
+    const reserve = header.locator(".header-primary-action");
     const initial = await logo.boundingBox();
+    const initialReserve = await reserve.boundingBox();
     await expect(header).toHaveAttribute("data-header-tone", "dark");
     await page.locator("#participate").evaluate(element => window.scrollTo({ top: element.getBoundingClientRect().top + scrollY + 100, behavior: "instant" }));
     await expect(header).toHaveAttribute("data-header-tone", "light");
-    await expect(header).not.toHaveAttribute("data-compact");
-    await expect(header.locator(".header-middle")).toHaveCSS("opacity", "1");
-    await expect(header.locator(".header-middle")).toHaveCSS("filter", "none");
-    expect(Math.abs((await logo.boundingBox())!.x - initial!.x)).toBeLessThan(1);
+    await expect(header).toHaveAttribute("data-compact", "true");
+    await expect(header.locator(".header-middle")).toHaveCSS("opacity", "0");
+    await expect(header.locator(".site-header-inner")).toHaveCSS("pointer-events", "none");
+    const inlineDirection = locale === "en" ? 1 : -1;
+    await expect.poll(async () => (initial!.x - (await logo.boundingBox())!.x) * inlineDirection).toBeGreaterThan(70);
+    await expect.poll(async () => ((await reserve.boundingBox())!.x - initialReserve!.x) * inlineDirection).toBeGreaterThan(70);
+    await page.mouse.move(720, 40);
+    await expect(header).toHaveAttribute("data-compact", "true");
+    await reserve.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(reserve).toBeFocused();
     await logo.focus();
     await page.keyboard.press("Tab");
     await expect(header.locator(`.desktop-nav a[href="/${locale}/participate"]`)).toBeFocused();
+    await expect(header).not.toHaveAttribute("data-compact");
+    await expect(header.locator(".header-middle")).toHaveCSS("opacity", "1");
+    expect(Math.abs((await logo.boundingBox())!.x - initial!.x)).toBeLessThan(1);
     await page.locator("#legacy").evaluate(element => window.scrollTo({ top: element.getBoundingClientRect().top + scrollY + 100, behavior: "instant" }));
     await expect(header).toHaveAttribute("data-header-tone", "dark");
   });
@@ -40,7 +53,7 @@ for (const locale of ["en", "ar"] as const) {
     const speakers = header.locator(`.desktop-nav > .header-nav-item > a[href="/${locale}/speakers"]`);
     await page.mouse.move(700, 650);
     await page.evaluate(() => window.scrollTo({ top: 1400, behavior: "instant" }));
-    await expect(header).not.toHaveAttribute("data-compact");
+    await expect(header).toHaveAttribute("data-compact", "true");
     await header.locator(".wordmark").focus();
     await page.keyboard.press("Tab");
     await page.keyboard.press("Escape");
@@ -77,7 +90,7 @@ for (const locale of ["en", "ar"] as const) {
     const options = dropdown.locator("a");
     await page.mouse.move(700, 650);
     await page.evaluate(() => window.scrollTo({ top: 1400, behavior: "instant" }));
-    await expect(header).not.toHaveAttribute("data-compact");
+    await expect(header).toHaveAttribute("data-compact", "true");
     await page.mouse.wheel(0, -150);
     await expect(header).not.toHaveAttribute("data-compact");
     await expect(header.locator(".header-middle")).toHaveCSS("opacity", "1");
@@ -114,7 +127,7 @@ for (const locale of ["en", "ar"] as const) {
         await expect(toggle).toHaveAttribute("aria-expanded", "false");
         await expect(header).not.toHaveAttribute("data-compact");
         await page.mouse.wheel(0, 150);
-        await expect(header).not.toHaveAttribute("data-compact");
+        await expect(header).toHaveAttribute("data-compact", "true");
       }
     }
     await options.last().click();
@@ -269,7 +282,20 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
     await settle(page);
     if (!isMobile) {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      const header = page.locator(".axiom-header");
+      await page.evaluate(() => window.scrollTo({ top: 1400, behavior: "instant" }));
+      await expect(header).toHaveAttribute("data-compact", "true");
       await expect(page.locator(".header-middle")).toHaveCSS("transition-duration", "0s");
+      await expect(page.locator(".header-middle")).toHaveCSS("opacity", "0");
+      await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+      await expect(header).not.toHaveAttribute("data-compact");
+      await expect(header.locator(".menu-toggle")).toBeInViewport();
+      await page.evaluate(() => {
+        document.documentElement.style.removeProperty("font-size");
+        window.scrollTo({ top: 0, behavior: "instant" });
+      });
+      await expect(header).not.toHaveAttribute("data-compact");
       await page.locator(`.desktop-nav > .header-nav-item > a[href="/${locale}/participate"]`).hover();
       await expect(page.locator(".header-dropdown").first()).toHaveCSS("transition-duration", "0s");
     } else {

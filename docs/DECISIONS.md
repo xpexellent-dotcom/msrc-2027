@@ -5692,3 +5692,13 @@ overrides the ordinary AGENTS.md instruction to edit docs/PROGRESS.md. Only this
 entry and ORG-073 were originally appended; the Reserve refinement amends both
 in place with no new IDs. Verification, measurements, retargeted tests and
 visual evidence are recorded in [the round-three receipt](progress/2026-11-06-homepage-owner-edits.md).
+
+## ORG-074 — Restore the split desktop homepage navigation, 21 November 2026
+
+The owner requested the return of the navigation that separates on downward
+scroll in draft PR #154. This supersedes ORG-073's full-width scrolling bar on
+the English and Arabic homepages at wide, fine-pointer sizes. Restore ENG-028's
+directional scroll and keyboard behavior, with the current seal, tone-aware
+glass and Reserve dialog. Arabic mirrors the split. Phone, enlarged-text and
+interior navigation keep the full header. Requirements: DSN-01/02, ACC-01,
+LOC-01/03, REL-06.

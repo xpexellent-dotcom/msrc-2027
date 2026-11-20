@@ -54,10 +54,14 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const action = headerAction(locale, useParticipantName(), copy.action);
   const hydrated = useSyncExternalStore(subscribeHydration, clientSnapshot, serverSnapshot);
   const pathname = usePathname();
+  const isHome = pathname === `/${locale}`;
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
   const [animateMenu, setAnimateMenu] = useState(false);
   const [keyboard, setKeyboard] = useState(false);
+  const [canCompact, setCanCompact] = useState(false);
+  const [readingDown, setReadingDown] = useState(false);
+  const [focusWithin, setFocusWithin] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const menuId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -87,10 +91,46 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     if (dropdownCloseRef.current !== null) clearTimeout(dropdownCloseRef.current);
     dropdownCloseRef.current = null;
   }, []);
+  const compact = isHome && canCompact && readingDown && !focusWithin && !openDropdown && !menuOpen && !menuClosing;
 
   useEffect(() => revealPageNavigation(pathname), [pathname]);
   useEffect(() => cancelDropdownClose, [cancelDropdownClose]);
   useEffect(() => cancelMenuClose, [cancelMenuClose]);
+
+  useEffect(() => {
+    const middle = headerRef.current?.querySelector(".header-middle");
+    if (!middle) return;
+    const desktop = window.matchMedia("(min-width: 1200px) and (hover: hover) and (pointer: fine)");
+    let previousY = window.scrollY;
+    let frame: number | null = null;
+    const updateViewport = () => {
+      setCanCompact(desktop.matches && middle.getClientRects().length > 0);
+    };
+    const updateDirection = () => {
+      frame = null;
+      const y = window.scrollY;
+      if (y < 160 || !desktop.matches) {
+        setReadingDown(false);
+      } else {
+        if (Math.abs(y - previousY) < 8) return;
+        setReadingDown(y > previousY);
+      }
+      previousY = y;
+    };
+    const onScroll = () => {
+      if (frame === null) frame = requestAnimationFrame(updateDirection);
+    };
+    const observer = new ResizeObserver(updateViewport);
+    observer.observe(middle);
+    desktop.addEventListener("change", updateViewport);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      observer.disconnect();
+      desktop.removeEventListener("change", updateViewport);
+      window.removeEventListener("scroll", onScroll);
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
+  }, []);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -168,9 +208,20 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   return (
     <header ref={headerRef} className="site-header axiom-header"
       data-header-ready={hydrated && typeof IntersectionObserver !== "undefined"}
-      data-header-tone={pathname === `/${locale}` ? "dark" : "light"}
-      data-home={pathname === `/${locale}`} data-menu-open={menuOpen} data-keyboard={keyboard}
-      onPointerDownCapture={() => setKeyboard(false)} onKeyDownCapture={() => setKeyboard(true)}>
+      data-header-tone={isHome ? "dark" : "light"}
+      data-home={isHome} data-compact={compact || undefined} data-menu-open={menuOpen} data-keyboard={keyboard}
+      onPointerDownCapture={() => setKeyboard(false)}
+      onKeyDownCapture={() => { setKeyboard(true); setFocusWithin(true); }}
+      onFocusCapture={(event) => {
+        if (event.target.matches(":focus-visible")) {
+          setKeyboard(true);
+          setFocusWithin(true);
+        }
+      }}
+      onBlurCapture={(event) => {
+        // Keep a keyboard-opened bar steady through pointer press and release.
+        if (!event.currentTarget.contains(event.relatedTarget)) setFocusWithin(false);
+      }}>
       <Container className="site-header-inner">
         <span className="header-glass" aria-hidden="true" />
         {/* A native anchor intentionally reloads home, even when already on home. */}
