@@ -1,5 +1,21 @@
 # Progress and session handover
 
+## 21 November 2026 — Restore the split desktop homepage navigation
+
+- ORG-074 restores the two-corner desktop navigation in draft PR #154. The
+  full English and Arabic bar returns on upward scroll or keyboard focus.
+  Checked the Reserve dialog, dropdown pointer travel, reduced motion,
+  enlarged text and the phone menu. Requirements: DSN-01/02, ACC-01, LOC-01/03,
+  REL-06.
+- Local checks with Node v24.21.0 and pnpm 11.19.0. `pnpm build`, targeted
+  ESLint, `pnpm exec tsc --noEmit`, two homepage unit specs (8 tests) and
+  `git diff --check` passed. The Chromium desktop and mobile navigation run
+  recorded 126 passes, 36 intentional skips and four archive photo decode
+  timeouts in the combined run. All four archive cases passed in isolation on
+  both this change and the unmodified draft head `b0c8734`. Inspected desktop
+  and phone header captures in both languages. WebKit and physical devices
+  were not tested.
+
 ## 17 October 2026 — Hackathon Option E medical artwork
 
 - Refreshed PR #101's `codex/hackathon-technology` baseline to `5ae3c9a` before

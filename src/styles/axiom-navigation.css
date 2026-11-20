@@ -8,7 +8,7 @@
   --header-inset: max(20px, calc(env(safe-area-inset-top, 0px) + 8px));
   --header-max: calc(var(--home-container) + 1rem);
   --header-side-inset: max(.75rem, calc(var(--container-gutter) - .5rem), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
-  --header-travel: max(12px, calc((100vw - var(--header-max)) / 2 - 12px));
+  --header-travel: max(0px, calc((100vw - var(--header-max)) / 2 - var(--header-side-inset)));
   --header-highlight: #fff4d6;
   --focus-ring: var(--header-highlight);
   container: navigation / inline-size;
@@ -27,7 +27,6 @@
   border-radius: var(--r-card); pointer-events: none; background: var(--color-purple);
   border: 1px solid var(--hair-inverse); box-shadow: var(--shadow-header);
   transform-origin: center;
-  transition: transform var(--header-travel-duration) var(--header-travel-ease), opacity 220ms var(--header-ease);
 }
 
 .axiom-header .wordmark {
@@ -36,12 +35,25 @@
   pointer-events: auto; flex-shrink: 0; justify-content: center;
   transition: transform var(--header-travel-duration) var(--header-travel-ease);
 }
+.axiom-header .wordmark::before {
+  content: "";
+  position: absolute;
+  inset: 0 -.375rem;
+  z-index: -1;
+  border: 1px solid var(--header-detached-border);
+  border-radius: var(--r-card);
+  background: var(--header-detached-surface);
+  box-shadow: var(--shadow-header);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms var(--header-ease);
+}
 
 .axiom-header .header-middle {
   display: flex; align-items: center; justify-content: center; flex: 1;
   min-inline-size: 0; gap: .4rem; opacity: 1;
   transform-origin: center;
-  transition: none;
+  transition: opacity 220ms var(--header-ease), transform var(--header-travel-duration) var(--header-travel-ease);
 }
 .axiom-header .desktop-nav { flex: 1; justify-content: center; flex-wrap: nowrap; gap: .1rem; }
 .axiom-header .header-nav-item { position: relative; display: flex; align-items: center; transition: transform var(--header-travel-duration) var(--header-travel-ease); }
@@ -107,8 +119,23 @@
 .axiom-header .header-dropdown a:focus-visible { outline-color: var(--color-purple); }
 .axiom-header .header-primary-action:focus-visible { outline-color: var(--color-gold); }
 
-.axiom-header[data-keyboard="true"] :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass),
-.axiom-header[data-keyboard="true"] .wordmark::before { transition: none; }
+/* Keep links in the native tab order. Visible focus restores the complete
+   header immediately, and the space between the corners passes pointer input. */
+@media (min-width: 1200px) and (hover: hover) and (pointer: fine) {
+  @container navigation (width >= 75rem) {
+    .axiom-header[data-compact="true"]:not(:has(:focus-visible)) {
+      & .site-header-inner { pointer-events: none; }
+      & .header-glass { opacity: 0; transform: scale(1.06, .96); }
+      & .wordmark { transform: translateX(calc(-1 * var(--header-travel) * var(--motion-inline-direction))); }
+      & .header-actions { transform: translateX(calc(var(--header-travel) * var(--motion-inline-direction))); }
+      & .wordmark::before { opacity: 1; }
+      & .header-middle { opacity: 0; transform: translateY(-8px) scale(.96); pointer-events: none; }
+      & .header-nav-item { transform: translateX(calc(var(--nav-exit-x, 0px) * var(--motion-inline-direction))); }
+    }
+  }
+}
+.axiom-header:is([data-keyboard="true"], [data-home="true"]:has(:focus-visible)) :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass),
+.axiom-header:is([data-keyboard="true"], [data-home="true"]:has(:focus-visible)) .wordmark::before { transition: none; }
 .axiom-header[data-keyboard="true"] :is(.menu-toggle, .menu-toggle svg path, .mobile-menu, .mobile-menu-registration, .mobile-nav-group) { transition: none; }
 @media (hover: hover) and (pointer: fine) {
   .axiom-header :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle):hover { background: rgb(220 207 240 / .04); color: #fff; }
@@ -212,9 +239,23 @@
 }
 
 /* ORG-073 / ENG-095. The sole backdrop-filter surface, capped at 14px. */
-.axiom-header { --header-ink: var(--color-ivory); --header-highlight: var(--color-ivory); }
-.axiom-header[data-header-tone="light"] { --header-ink: var(--color-purple); --header-highlight: var(--color-purple); }
-.axiom-header .header-glass { background: var(--color-ink); transition: border-color 180ms ease, box-shadow 180ms ease; }
+.axiom-header {
+  --header-ink: var(--color-ivory);
+  --header-highlight: var(--color-ivory);
+  --header-detached-surface: var(--color-ink);
+  --header-detached-border: var(--hair-inverse);
+}
+.axiom-header[data-header-tone="light"] {
+  --header-ink: var(--color-purple);
+  --header-highlight: var(--color-purple);
+  --header-detached-surface: var(--color-ivory);
+  --header-detached-border: rgb(59 30 109 / .22);
+}
+.axiom-header .header-glass {
+  background: var(--color-ink);
+  transition: border-color 180ms ease, box-shadow 180ms ease, opacity 220ms var(--header-ease),
+    transform var(--header-travel-duration) var(--header-travel-ease);
+}
 .axiom-header[data-header-tone="light"] .header-glass { background: var(--color-ivory); border-color: rgb(59 30 109 / .22); }
 @supports (backdrop-filter: blur(1px)) {
   .axiom-header .header-glass { background: linear-gradient(rgb(255 255 255 / .12), rgb(255 255 255 / .12)), rgb(31 25 48 / .45); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); border-color: rgb(255 255 255 / .32); }

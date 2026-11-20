@@ -74,3 +74,11 @@ plus the public and enabled-workflow verification matrix. The reusable closing
 contrast command is `node scripts/measure-closing-contrast.mjs <base URL>`, with
 output at `.tools/home-v2/closing-contrast.json`. Physical iPhone and deployed
 production gating remain NOT TESTED.
+
+## Review follow-up, 21 November 2026
+
+Under ORG-074, the full bar on wide homepage layouts separates into the logo
+and Reserve or account control when scrolling down. Upward scroll or visible
+keyboard focus restores the full navigation. The corner layout mirrors in
+Arabic and settles without animation under reduced motion. The detached logo
+uses a solid surface matched to the current header tone.
