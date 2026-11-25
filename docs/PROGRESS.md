@@ -19,6 +19,12 @@
   wheel-step mismatch. ORG-073 separately records that the redesign's April
   conference month and January text in approved legal pages need organizer
   reconciliation.
+- `pnpm audit --prod` on Next.js 16.3.8 reported nine advisories, including
+  two critical. Pinned Next.js and its ESLint config to the stable 16.4.6
+  release and regenerated the lockfile with pnpm 11.19.0. The same production
+  audit returned no known vulnerabilities after the update.
+  [Next.js security release](https://nextjs.org/blog/november-2026-security-release)
+  and [16.4.6 release notes](https://github.com/vercel/next.js/releases/tag/v16.4.6).
 
 ## 21 November 2026 — Restore the split desktop homepage navigation
 
