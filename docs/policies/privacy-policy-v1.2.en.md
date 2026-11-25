@@ -2,7 +2,7 @@
 
 **Version 1.2** · Effective from the date it is published on www.msrc2027.com
 
-This Privacy Policy explains how personal information is collected, used, shared and protected for the 5th Medical Students Research Conference (MSRC 2027), held at King Faisal Conference Center, King Abdulaziz University, Jeddah, on 27–28 January 2027. It applies to www.msrc2027.com and to all conference activities, including accounts, registration, research submissions, the hackathon, the Three Minute Thesis competition, attendance and certificates.
+This Privacy Policy explains how personal information is collected, used, shared and protected for the 5th Medical Students Research Conference (MSRC 2027), held at King Faisal Conference Center, King Abdulaziz University, Jeddah, on 7–8 April 2027. It applies to www.msrc2027.com and to all conference activities, including accounts, registration, research submissions, the hackathon, the Three Minute Thesis competition, attendance and certificates.
 
 By using the website or taking part in the conference, you acknowledge that you have read this policy.
 
@@ -98,8 +98,8 @@ We keep personal information only for as long as it is needed for the purposes i
 
 | Information | Retention period |
 | --- | --- |
-| Accounts (including profile information, profile pictures and identity document numbers), registrations (including national ID or Iqama numbers) and research submissions | Deleted one year after the conference (by 28 January 2028) |
-| Certificate verification record (name, certificate number and date) | Two years from the conference date (until 28 January 2029), so certificates can be verified |
+| Accounts (including profile information, profile pictures and identity document numbers), registrations (including national ID or Iqama numbers) and research submissions | Deleted by 28 January 2028 |
+| Certificate verification record (name, certificate number and date) | Kept until 28 January 2029 so certificates can be verified |
 | Contact messages in the organizers' inbox | Deleted one year after the conference |
 | Emails stored by our email provider (Resend) | 30 days |
 | Spam-prevention codes | Up to 24 hours |

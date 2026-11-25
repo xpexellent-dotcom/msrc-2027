@@ -4,7 +4,7 @@
 
 ## 1. About these terms
 
-These Terms and Conditions apply to the website www.msrc2027.com and to participation in the 5th Medical Students Research Conference (MSRC 2027), held at King Faisal Conference Center, King Abdulaziz University, Jeddah, on 27–28 January 2027.
+These Terms and Conditions apply to the website www.msrc2027.com and to participation in the 5th Medical Students Research Conference (MSRC 2027), held at King Faisal Conference Center, King Abdulaziz University, Jeddah, on 7–8 April 2027.
 
 MSRC 2027 is organized by the Research Principles Club on behalf of the Faculty of Medicine, King Abdulaziz University ("we", "us").
 

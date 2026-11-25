@@ -10,10 +10,9 @@ import { VenueJourneyEntry } from "@/components/venue-journey-entry";
 import { VenueArrivalJourney } from "@/components/venue-arrival-journey";
 import { VenueGeographicMap } from "@/components/venue-geographic-map";
 import { VenueIcon } from "@/components/venue-icon";
-import { conferenceConfig } from "@/config/conference";
+import { conferenceConfig, conferenceDateLabel } from "@/config/conference";
 import { datesVenueCopy } from "@/content/dates-venue";
 import { venueTravelCopy } from "@/content/venue-travel";
-import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { isLocale } from "@/lib/i18n";
 import { localizedPageMetadata } from "@/lib/metadata";
 import { venueMapLinks } from "@/lib/venue-travel";
@@ -24,7 +23,7 @@ export async function generateMetadata({ params }: DatesVenuePageProps): Promise
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = datesVenueCopy[locale];
-  const description = `${conferenceConfig.dates ? `${formatConferenceDateRange(conferenceConfig.dates, locale)}. ` : `${conferenceConfig.monthLabel[locale]}. `}${copy.metadataDescription}`;
+  const description = `${conferenceDateLabel(locale)}. ${copy.metadataDescription}`;
   return {
     ...localizedPageMetadata(locale, "/dates-venue", copy.metadataTitle, description),
     title: copy.metadataTitle,
@@ -54,7 +53,7 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
             <div className="venue-header-layout">
             <div className="venue-hero-intro">
               <h1 id="dates-page-title">{locale === "en" ? <><span>Your way</span><br /> <span className="premium-title-accent">to MSRC.</span></> : <><span>طريقك</span><br /> <span className="premium-title-accent">إلى المؤتمر.</span></>}</h1>
-              <p className="dates-lead">{conferenceConfig.monthLabel[locale]} · {copy.lead}</p>
+              <p className="dates-lead">{conferenceDateLabel(locale)} · {copy.lead}</p>
             </div>
               <VenueHeaderCollage locale={locale} />
             </div>

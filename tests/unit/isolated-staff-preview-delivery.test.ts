@@ -23,6 +23,7 @@ beforeEach(() => {
   Object.defineProperty(process, "platform", { value: "win32" });
   vi.stubEnv("MSRC_AUTH_PREVIEW", "synthetic"); vi.stubEnv("MSRC_AUTH_PREVIEW_EMAIL", "isolated");
   vi.stubEnv("MSRC_ISOLATED_EMAIL_SELF_RECIPIENT", "approved-self@example.invalid");
+  vi.stubEnv("SystemRoot", undefined);
   for (const name of ["CI", "GITHUB_ACTIONS", "VERCEL", "VERCEL_ENV", "VERCEL_TARGET_ENV", "VERCEL_URL", "NEXT_PUBLIC_VERCEL_ENV"]) vi.stubEnv(name, "");
   mocks.spawn.mockReset(); mocks.lstat.mockReset();
   mocks.lstat.mockResolvedValue({ isFile: () => true, isSymbolicLink: () => false });
@@ -54,6 +55,19 @@ describe("local isolated staff delivery dependency", () => {
     vi.stubEnv(name, value);
     expect(await deliverIsolatedStaffPreview(message())).toBe(false);
     expect(mocks.lstat).not.toHaveBeenCalled(); expect(mocks.spawn).not.toHaveBeenCalled();
+  });
+  it.each(["", "Windows", "\\Windows", "\\\\host\\Windows"])("rejects a non-drive-qualified Windows directory %s", async (systemRoot) => {
+    vi.stubEnv("SystemRoot", systemRoot);
+    expect(await deliverIsolatedStaffPreview(message())).toBe(false);
+    expect(mocks.lstat).not.toHaveBeenCalled();
+    expect(mocks.spawn).not.toHaveBeenCalled();
+  });
+  it("uses the Windows installation drive when supplied by the host", async () => {
+    vi.stubEnv("SystemRoot", "D:\\Windows");
+    const { child, result } = await running();
+    expect(mocks.spawn.mock.calls[0][0]).toBe("D:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
+    child.emit("close", 1);
+    expect(await result).toBe(false);
   });
   it("denies non-Windows execution without trying another mail transport", async () => {
     Object.defineProperty(process, "platform", { value: "linux" });

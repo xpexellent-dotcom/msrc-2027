@@ -78,8 +78,12 @@ describe("organizer content template (CMS-03)", () => {
   it("uses the site's confirmed conference days and Riyadh time", () => {
     expect(conferenceDays).toEqual(conferenceConfig.dates);
     expect(conferenceConfig.timeZone).toBe("Asia/Riyadh");
-    expect(riyadhInstant("2027-01-27", 9 * 60)).toBe("2027-01-27T06:00:00Z");
-    expect(riyadhInstant("2027-01-27", 1)).toBe("2027-01-26T21:01:00Z");
+    const result = validateConfiguredIntake([
+      sheet("Speakers", []), sheet("Sessions", [{ ...session, day: "Day 1", speakers: undefined }]), sheet("Workshops", []),
+    ]);
+    expect(result.problems).toEqual([]);
+    expect(result.sessions[0]).toMatchObject({ day: "day1", startAt: "2027-04-07T06:00:00Z", endAt: "2027-04-07T06:45:00Z" });
+    expect(riyadhInstant("2027-04-07", 1)).toBe("2027-04-06T21:01:00Z");
   });
 
   it("treats the untouched template as empty, skipping guidance and example rows", () => {
@@ -237,7 +241,7 @@ describe("organizer content import (CMS-03, PRG-01, WKS-01)", () => {
 
 it("blocks invented session instants while conference days are unset", () => {
   const rows = [sheet("Speakers", []), sheet("Sessions", [{ slug: "pending", status: "Draft", day: "Day 1", title: "Synthetic", description: "Synthetic", formatCode: "talk", formatEn: "Talk", formatAr: "محاضرة", topic: "Evidence", start: "09:00", end: "09:45" }]), sheet("Workshops", [])];
-  const result = validateConfiguredIntake(rows);
+  const result = validateConfiguredIntake(rows, null);
   expect(result.problems.some(problem => problem.message.includes("Exact conference days"))).toBe(true);
   expect(result.sessions).toEqual([]);
 });

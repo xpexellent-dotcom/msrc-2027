@@ -30,7 +30,10 @@ for (const locale of ["en", "ar"] as const) {
         await expect(page.getByTestId("program-empty")).toBeVisible();
         return;
       }
-      // Exact conference days are unset. The published synthetic session keeps its authored date.
+      await page.getByTestId("program-day-day1").click();
+      await expect(page).toHaveURL(/day=day1/);
+      await expect(page.getByTestId("program-empty")).toBeVisible();
+      // The additional synthetic session dates stay separate from the conference days.
       await page.getByTestId("program-day-2027-01-27").click();
       await expect(page).toHaveURL(/day=2027-01-27/);
       await expect(page.locator(".conference-session-row")).toHaveCount(2);

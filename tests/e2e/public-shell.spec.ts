@@ -44,10 +44,16 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".header-primary-action")).toHaveAttribute("aria-haspopup", "dialog");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     expect(response?.headers()["x-robots-tag"]).toContain("noindex");
-    // ORG-001/002: explicit date and montage approval does not open operations.
+    // Publishing the conference dates and montage leaves operational workflows closed.
     await expect(page.locator("iframe")).toHaveCount(0);
     await expect(page.locator("[data-countdown]")).toHaveCount(1);
-    await expect(page.locator(".hero-location")).toContainText(locale === "en" ? /April 2027/ : /أبريل ٢٠٢٧/);
+    const dateRange = locale === "en" ? "7–8 April 2027" : "٧–٨ أبريل ٢٠٢٧";
+    await expect(page.locator(".hero-location")).toContainText(dateRange);
+    await expect(page.locator(".closing-date")).toContainText(dateRange);
+    const structuredData = await page.locator('script[type="application/ld+json"]').textContent();
+    expect(JSON.parse(structuredData ?? "[]")).toContainEqual(expect.objectContaining({
+      "@type": "Event", startDate: "2027-04-07", endDate: "2027-04-08", inLanguage: locale,
+    }));
     const missingAnchors = await page.locator('a[href*="#"]').evaluateAll((links) => links
       .map((link) => new URL((link as HTMLAnchorElement).href))
       .filter((url) => url.pathname === location.pathname)

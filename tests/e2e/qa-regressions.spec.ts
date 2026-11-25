@@ -92,13 +92,13 @@ test("paragraphs and list items wrap without a lone last word where supported", 
   }
 });
 
-// The clock counts to April 2027 at Riyadh midnight (2027-03-31T21:00Z); each instant sits
+// The clock counts to 7 April 2027 at Riyadh midnight (2027-04-06T21:00Z); each instant sits
 // half a day before a boundary. Plural categories alone gave «٠ يومًا» and «١٠٠ يومًا».
 for (const [instant, days, unit] of [
-  ["2027-03-31T09:00:00Z", "٠", "يوم"],
-  ["2027-03-29T09:00:00Z", "٢", "يومان"],
-  ["2026-12-22T09:00:00Z", "٩٩", "يومًا"],
-  ["2026-12-21T09:00:00Z", "١٠٠", "يوم"],
+  ["2027-04-06T09:00:00Z", "٠", "يوم"],
+  ["2027-04-04T09:00:00Z", "٢", "يومان"],
+  ["2026-12-28T09:00:00Z", "٩٩", "يومًا"],
+  ["2026-12-27T09:00:00Z", "١٠٠", "يوم"],
 ] as const) {
   test(`Arabic countdown pairs ${days} with ${unit}`, async ({ page }) => {
     await page.clock.install({ time: new Date(instant) });

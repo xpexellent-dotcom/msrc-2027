@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import { conferenceConfig } from "@/config/conference";
 import { contactConfig } from "@/config/contact";
 import { createConsoleOutboxSender, createResendOutboxSender, createTestOutboxSender, registrationEmailTemplates,
   renderOutboxMessage, type OutboxMessage, type RegistrationEmailTemplate } from "@/lib/email/outbox.server";
@@ -20,7 +19,6 @@ describe("DRAFT bilingual registration email templates", () => {
   it.each(registrationEmailTemplates)("renders complete English and Arabic with the banner for %s", (template) => {
     const rendered = renderOutboxMessage(message(template));
     expect(rendered).toMatchSnapshot();
-    expect(rendered.text).toContain(conferenceConfig.monthLabel.en);
     expect(rendered.text).toContain(contactConfig.recipient);
     expect(rendered.html).toContain('<html lang="en">');
     expect(rendered.html).toContain('<div dir="rtl" lang="ar"');
@@ -30,12 +28,13 @@ describe("DRAFT bilingual registration email templates", () => {
     // The banner is HTML-only decoration; the plain-text part starts with the message itself.
     expect(rendered.text).not.toContain(participantEmailBanner.src);
     const [english, arabic] = rendered.text.split("\n\n---\n\n");
+    expect(english).toContain("Conference dates: 7–8 April 2027.");
     expect(english).toBe(originalEnglish[template].text);
     expect(rendered.subject.split(" | ")[0]).toBe(originalEnglish[template].subject);
     expect(rendered.subject.split(" | ")[1]).toMatch(/[\u0600-\u06ff]/);
     expect(rendered.subject.length).toBeLessThanOrEqual(200);
     expect(arabic).toContain("المؤتمر الخامس لأبحاث طلاب الطب");
-    expect(arabic).toContain(conferenceConfig.monthLabel.ar);
+    expect(arabic).toContain("موعد المؤتمر: ٧–٨ أبريل ٢٠٢٧.");
     expect(arabic).toContain(contactConfig.recipient);
     expect(arabic).toContain("/ar/registration");
     expect(rendered.html.indexOf("<img ")).toBeLessThan(rendered.html.indexOf('dir="ltr" lang="en"'));

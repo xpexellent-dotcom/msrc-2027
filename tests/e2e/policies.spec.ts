@@ -34,6 +34,7 @@ for (const locale of ["en", "ar"] as const) for (const kind of ["privacy", "term
       await expect(page.locator(".policy-page")).toHaveAttribute("data-policy-version", version);
       await expect(page.locator(".policy-version-details")).toContainText(locale === "en" ? `Version ${version.slice(1)}` : kind === "privacy" ? "الإصدار ١.٢" : "الإصدار ١.١");
       await expect(page.locator(`.policy-version-details time[datetime="${effectiveDate}"]`)).toHaveText(locale === "en" ? "6 October 2026" : "٦ أكتوبر ٢٠٢٦");
+      await expect(page.getByRole("main")).toContainText(locale === "en" ? "7–8 April 2027" : "٧–٨ أبريل ٢٠٢٧");
       await expect(page.getByRole("main")).not.toContainText(unfinished);
       await expect(page.locator(".policy-draft-notice, .policy-section-status, [data-policy-section-status=placeholder]")).toHaveCount(0);
       // Branch previews and local review retain ORG-013's noindex safety.

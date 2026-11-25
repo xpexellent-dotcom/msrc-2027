@@ -24,6 +24,10 @@ export async function deliverIsolatedStaffPreview(message: IsolatedStaffCode): P
     || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)
     || typeof message.code !== "string" || message.code.length !== 6 || !/^\d{6}$/.test(message.code) || !Number.isSafeInteger(message.expiresAt)
     || message.expiresAt <= Date.now() || message.expiresAt > Date.now() + 300_000) return false;
+  // Resolve the host executable at runtime, outside Turbopack's application file trace.
+  const systemRoot = process.env.SystemRoot ?? "C:\\Windows";
+  if (!/^[A-Za-z]:[\\/]/.test(systemRoot)) return false;
+  const powershell = path.win32.join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
   const helper = path.join(process.cwd(), ".tools", "Send-IsolatedStaffCode.ps1");
   try {
     const file = await lstat(helper);
@@ -33,7 +37,7 @@ export async function deliverIsolatedStaffPreview(message: IsolatedStaffCode): P
   return new Promise<boolean>((resolve) => {
     let finished = false;
     let output = "";
-    const child = spawn("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    const child = spawn(powershell,
       ["-NoLogo", "-NoProfile", "-NonInteractive", "-File", helper],
       { shell: false, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
     const finish = (delivered: boolean) => {

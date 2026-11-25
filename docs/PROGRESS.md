@@ -1,5 +1,75 @@
 # Progress and session handover
 
+## 25 November 2026 — Confirmed dates and homepage publication
+
+- ORG-075 confirms 7–8 April 2027 and authorizes publication through PR #155.
+  The current bilingual Privacy v1.2 and Terms v1.1 show the confirmed
+  dates. The approved fixed privacy retention limits are 28 January 2028
+  and 28 January 2029. The production policy versions match the release
+  source, and the candidate adds no database migrations.
+- The public date range, countdown, and calendar use the confirmed days.
+  Hosted workflow and attendance settings are managed separately.
+  Requirements: SCP-01, CFG-01, TIM-01/02, LOC-01/03, PRV-01/05/08,
+  INF-05 and REL-06.
+- Recorded the planned abstract and other workflow date revisions and the
+  future policy change for retaining email and contact information beyond
+  one year. Exact workflow windows and approved retention terms are pending.
+- Local verification passed the production build, lint, all 5,665 unit tests,
+  12 legal browser checks and 65 public browser checks across the two languages.
+  The production dependency audit found no known vulnerabilities.
+- The first hosted WebKit run exposed an Arabic range punctuation difference
+  during hydration on Participate. Use the approved bilingual range labels
+  consistently for server-rendered and interactive public copy.
+
+## 25 November 2026 — Homepage release review
+
+- Brought the reviewed split-navigation change from draft PR #154 onto
+  `main` at `f75b4a1` for a focused release PR. The redesign from PR #153
+  is already in that base. The original draft keeps the full redesign
+  comparison. Requirements: DSN-01/02, ACC-01, LOC-01/03, INF-05, REL-06.
+- Read-only setting review confirmed the Vercel project is on Pro, linked to
+  this repository, with Next.js, Node 24.x, protected Previews, and automatic
+  assignment of production domains from `main`. At review, the public site
+  still served `13469ad` and both languages and runtime health returned HTTP 200.
+  A successful Production build is needed to publish the redesign from #153
+  together with the navigation change.
+- The focused change introduces no migration or operational configuration.
+  Recheck the candidate's GitHub Actions and exact-commit Vercel Preview.
+  The previous draft's WebKit Venue run stalled on the optimized hero image
+  during page load. The original merge's Chromium Venue run reported a reverse
+  wheel-step mismatch. ORG-073 separately records that the redesign's April
+  conference month and January text in approved legal pages need organizer
+  reconciliation.
+- `pnpm audit --prod` on Next.js 16.3.8 reported nine advisories, including
+  two critical. Pinned Next.js and its ESLint config to the stable 16.4.6
+  release and regenerated the lockfile with pnpm 11.19.0. The same production
+  audit returned no known vulnerabilities after the update.
+  [Next.js security release](https://nextjs.org/blog/november-2026-security-release)
+  and [16.4.6 release notes](https://github.com/vercel/next.js/releases/tag/v16.4.6).
+- The full audit also identified test-tool advisories. Pinned Vitest 5.0.3
+  and its Vite peer 8.3.8. `pnpm audit` then returned no known vulnerabilities.
+  The newer Turbopack build traces literal executable paths. The isolated
+  staff test bridge now resolves its Windows system executable at runtime.
+  Its 48 unit checks passed, including denial before transport outside the
+  local test boundary and for invalid executable roots. Requirements: SEC-01,
+  INF-04/05 and REL-06.
+
+## 21 November 2026 — Restore the split desktop homepage navigation
+
+- ORG-074 restores the two-corner desktop navigation in draft PR #154. The
+  full English and Arabic bar returns on upward scroll or keyboard focus.
+  Checked the Reserve dialog, dropdown pointer travel, reduced motion,
+  enlarged text and the phone menu. Requirements: DSN-01/02, ACC-01, LOC-01/03,
+  REL-06.
+- Local checks with Node v24.21.0 and pnpm 11.19.0. `pnpm build`, targeted
+  ESLint, `pnpm exec tsc --noEmit`, two homepage unit specs (8 tests) and
+  `git diff --check` passed. The Chromium desktop and mobile navigation run
+  recorded 126 passes, 36 intentional skips and four archive photo decode
+  timeouts in the combined run. All four archive cases passed in isolation on
+  both this change and the unmodified draft head `b0c8734`. Inspected desktop
+  and phone header captures in both languages. WebKit and physical devices
+  were not tested.
+
 ## 17 October 2026 — Hackathon Option E medical artwork
 
 - Refreshed PR #101's `codex/hackathon-technology` baseline to `5ae3c9a` before

@@ -9,6 +9,10 @@ import { readApprovedPolicy } from "../policy-source";
 
 const privateOrganizerNames = /\b(?:Emad|Abdulrahman|Akram)\b|عماد|عبد\s*الرحمن|[أا]كرم/iu;
 const unfinished = /\b(?:draft|placeholder)\b|Organizer decision|awaiting review|wording pending|مسودة|نص مؤقت|بانتظار/iu;
+const conferenceDates = {
+  en: { archived: "27–28 January 2027", current: "7–8 April 2027" },
+  ar: { archived: "٢٧–٢٨ يناير ٢٠٢٧", current: "٧–٨ أبريل ٢٠٢٧" },
+} as const;
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -62,7 +66,7 @@ describe("approved privacy v1.2 and Terms v1.1 (ORG-069 / ORG-067 / BL-PUB-08 / 
     for (const text of ["صورة ملفك الشخصي", "وجامعتك أو مؤسستك", "وصفتك الطلابية وسنتك الدراسية", "والتخصصات التي تهمك", "اختيارية", "للمنظمين المصرح لهم", "ولا يوجد دليل عام", "موافقتك التي تمنحها عند إضافتها", "ويمكنك إزالتها في أي وقت"]) expect(arabic).toContain(text);
   });
 
-  it("archives v1.1 unchanged and limits v1.2 changes to approved profile data, purposes, retention and security", () => {
+  it("archives v1.1 and limits v1.2 changes to approved profile language and the date correction", () => {
     const archived = readApprovedPolicy("privacy", "v1.1");
     expect(getPolicyDocument("privacy", "en", "v1.1").document.sections.map(({ title, blocks }) => ({ title, blocks }))).toEqual(archived.sections);
     expect(isPolicyVersion("v1.2", "terms")).toBe(false);
@@ -70,8 +74,19 @@ describe("approved privacy v1.2 and Terms v1.1 (ORG-069 / ORG-067 / BL-PUB-08 / 
     for (const locale of ["en", "ar"] as const) {
       const before = getPolicyDocument("privacy", locale, "v1.1").document;
       const after = getPolicyDocument("privacy", locale, "v1.2").document;
+      const { archived, current } = conferenceDates[locale];
       expect(after.title).toBe(before.title);
-      expect(after.lead).toBe(before.lead);
+      expect(before.lead).toContain(archived);
+      expect(after.lead).toBe(before.lead.replace(archived, current));
+      const previousRetention = before.sections.find(({ id }) => id === "retention")!.blocks.find((block) => block.type === "table")!;
+      const currentRetention = after.sections.find(({ id }) => id === "retention")!.blocks.find((block) => block.type === "table")!;
+      expect(currentRetention.headers).toEqual(previousRetention.headers);
+      expect(currentRetention.rows.map(([, period]) => period)).toEqual([
+        ...(locale === "en"
+          ? ["Deleted by 28 January 2028", "Kept until 28 January 2029 so certificates can be verified"]
+          : ["تُحذف بحلول ٢٨ يناير ٢٠٢٨", "يُحتفظ به حتى ٢٨ يناير ٢٠٢٩ لإتاحة التحقق من الشهادات"]),
+        ...previousRetention.rows.slice(2).map(([, period]) => period),
+      ]);
       for (const section of before.sections) {
         const updated = after.sections.find(({ id }) => id === section.id)!;
         expect(updated.title).toBe(section.title);
@@ -102,7 +117,7 @@ describe("approved privacy v1.2 and Terms v1.1 (ORG-069 / ORG-067 / BL-PUB-08 / 
     expect(isPolicyVersion(version)).toBe(false);
   });
 
-  it("archives Terms v1.0 and changes only the research paragraph in v1.1 EN/AR (ORG-069)", () => {
+  it("archives Terms v1.0 and changes only the opening date and approved research paragraph in v1.1 EN/AR", () => {
     expect(getPolicyDocument("terms", "en", "v1.0").document.sections.map(({ title, blocks }) => ({ title, blocks }))).toEqual(readApprovedPolicy("terms", "v1.0").sections);
     for (const locale of ["en", "ar"] as const) {
       const before = getPolicyDocument("terms", locale, "v1.0").document;
@@ -110,6 +125,10 @@ describe("approved privacy v1.2 and Terms v1.1 (ORG-069 / ORG-067 / BL-PUB-08 / 
       expect(after.title).toBe(before.title);
       expect(after.lead).toBe(before.lead);
       expect(after.sections.map(({ id, title }) => ({ id, title }))).toEqual(before.sections.map(({ id, title }) => ({ id, title })));
+      const { archived, current } = conferenceDates[locale];
+      const opening = before.sections.find(({ id }) => id === "about")!.blocks.find((block) => block.type === "paragraph")!;
+      expect(opening.text).toContain(archived);
+      expect(after.sections.find(({ id }) => id === "about")!.blocks[0]).toEqual({ ...opening, text: opening.text.replace(archived, current) });
       const changes: string[] = [];
       before.sections.forEach((section, i) => {
         expect(after.sections[i].blocks).toHaveLength(section.blocks.length);
@@ -119,7 +138,7 @@ describe("approved privacy v1.2 and Terms v1.1 (ORG-069 / ORG-067 / BL-PUB-08 / 
       });
       const research = after.sections.find(({ id }) => id === "submissions")!;
       const index = research.blocks.findIndex(block => block.type === "paragraph" && block.text.startsWith(locale === "en" ? "**Research abstracts.**" : "**ملخصات الأبحاث.**"));
-      expect(changes).toEqual([`submissions:${index}`]);
+      expect(changes).toEqual(["about:0", `submissions:${index}`]);
       const text = JSON.stringify(research.blocks[index]);
       for (const rule of locale === "en"
         ? ["350 words", "including the six section headings", "Background, Objectives, Methods, Results, Limitations and Conclusion", "completed within the past three years", "analysis must be finished and the manuscript written", "one research abstract submission per edition", "cannot be edited", "withdrawal or rejection does not restore", "undergraduate medical student or medical intern", "supervising physician is required at submission"]

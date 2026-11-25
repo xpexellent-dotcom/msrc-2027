@@ -86,7 +86,13 @@ for (const locale of ["en", "ar"] as const) {
       await expect(page.locator("iframe, textarea, input[type=email], input[type=password], input[type=file]")).toHaveCount(0);
       await expect(page.getByRole("main")).not.toContainText(/Abdulrahman Ismail|Fatimah Al Farhah/i);
       await expect(page.locator('a[href*="/admin"], a[href*="/reviewer"]')).toHaveCount(0);
-      await expect(page.locator("a[download]")).toHaveCount(0);
+      const downloads = page.locator("a[download]");
+      if (route === "program") {
+        await expect(downloads).toHaveCount(1);
+        await expect(downloads).toHaveAttribute("href", `/${locale}/msrc-2027.ics`);
+      } else {
+        await expect(downloads).toHaveCount(0);
+      }
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
       expect(response?.headers()["x-robots-tag"]).toContain("noindex");
       await expectNoHorizontalOverflow(page);

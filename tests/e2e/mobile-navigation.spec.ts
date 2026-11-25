@@ -43,6 +43,7 @@ for (const locale of ["en", "ar"] as const) {
     const toggle = page.locator(".menu-toggle");
     for (const top of [1800, 700, 40, 0, 1800, 700]) {
       await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), top);
+      await expect(page.locator(".axiom-header")).not.toHaveAttribute("data-compact");
       await expect(toggle).toBeInViewport();
       await expect.poll(() => toggle.evaluate((button) => {
         const box = button.getBoundingClientRect();

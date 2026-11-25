@@ -1,9 +1,30 @@
 import { expect, type Page } from "@playwright/test";
 
-/** ORG-073. The full bar stays available throughout native scrolling. */
+/** The wide homepage navigation becomes available again on upward scroll. */
 export async function revealDesktopHeader(page: Page) {
-  await expect(page.locator(".axiom-header")).not.toHaveAttribute("data-compact");
-  await expect(page.locator(".axiom-header .header-middle")).toHaveCSS("opacity", "1");
+  const header = page.locator(".axiom-header");
+  if (await header.getAttribute("data-home") === "true") {
+    // An anchor or form fill can still be moving when a navigation click is next.
+    const scrollY = await page.evaluate(() => new Promise<number>((resolve) => {
+      let previousY = window.scrollY;
+      let restingFrames = 0;
+      const observe = () => {
+        const y = window.scrollY;
+        restingFrames = y === previousY ? restingFrames + 1 : 0;
+        previousY = y;
+        if (restingFrames >= 2) resolve(y);
+        else requestAnimationFrame(observe);
+      };
+      requestAnimationFrame(observe);
+    }));
+    if (scrollY >= 160) {
+      await page.mouse.move((page.viewportSize()?.width ?? 1280) / 2, 8);
+      await page.mouse.wheel(0, -160);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(scrollY);
+    }
+  }
+  await expect(header).not.toHaveAttribute("data-compact");
+  await expect(header.locator(".header-middle")).toHaveCSS("opacity", "1");
 }
 
 /** Language is directly available in the phone header and in the full desktop bar. */

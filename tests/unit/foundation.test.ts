@@ -14,9 +14,9 @@ import { approvedAtVenue, approvedTravelTime } from "../fixtures/approved-venue-
 describe("confirmed dates and closed business configuration (CFG-01/02/10)", () => {
   it("records calendar days and the venue while keeping prices, capacities, and regions unset", () => {
     expect(conferenceConfig).toMatchObject({
-      dates: null,
+      dates: { day1: "2027-04-07", day2: "2027-04-08" },
       monthLabel: { en: "April 2027", ar: "أبريل ٢٠٢٧" },
-      countdownTarget: "2027-04-01T00:00:00+03:00",
+      countdownTarget: "2027-04-07T00:00:00+03:00",
       venue: {
         name: { en: "King Faisal Conference Center", ar: "مركز الملك فيصل للمؤتمرات" },
         address: {
@@ -31,7 +31,6 @@ describe("confirmed dates and closed business configuration (CFG-01/02/10)", () 
       workshopCapacity: null,
       production: { vercelRegion: null, supabaseRegion: null },
     });
-    expect(conferenceConfig.dates).toBeNull();
     expect(Object.isFrozen(conferenceConfig.dates)).toBe(true);
     expect(Object.isFrozen(conferenceConfig.venue)).toBe(true);
     expect(Object.isFrozen(conferenceConfig.venue?.name)).toBe(true);

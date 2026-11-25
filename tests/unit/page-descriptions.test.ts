@@ -5,9 +5,9 @@ import { conferenceDescription } from "@/lib/metadata";
 describe("page descriptions", () => {
   it("prefixes the confirmed dates, venue and Jeddah in each language", () => {
     expect(conferenceDescription("en", "Practical learning alongside the scientific programme."))
-      .toBe("April 2027, King Faisal Conference Center, Jeddah. Practical learning alongside the scientific programme.");
+      .toBe("7–8 April 2027, King Faisal Conference Center, Jeddah. Practical learning alongside the scientific programme.");
     expect(conferenceDescription("ar", "تعلّم عملي إلى جانب البرنامج العلمي."))
-      .toBe("أبريل ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. تعلّم عملي إلى جانب البرنامج العلمي.");
+      .toBe("٧–٨ أبريل ٢٠٢٧، مركز الملك فيصل للمؤتمرات، جدة. تعلّم عملي إلى جانب البرنامج العلمي.");
   });
 });
 

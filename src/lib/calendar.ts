@@ -64,8 +64,9 @@ export function conferenceCalendar(locale: Locale): string | null {
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
     "UID:msrc-2027-conference@msrc2027.com",
-    // The latest confirmed event revision (ORG-031), so every build produces the same file.
-    "DTSTAMP:20261005T000000Z",
+    // The date revision supersedes the original January event while keeping its UID.
+    "DTSTAMP:20261125T000000Z",
+    "SEQUENCE:1",
     `DTSTART;VALUE=DATE:${icsDate(dates.day1)}`,
     `DTEND;VALUE=DATE:${nextDay(dates.day2)}`,
     `SUMMARY:${text(event.summary)}`,

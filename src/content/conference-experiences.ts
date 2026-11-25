@@ -1,3 +1,4 @@
+import { conferenceDateLabel } from "@/config/conference";
 import { participationJourneyCopy, type JourneyCopy } from "@/content/participation-copy";
 import type { Locale } from "@/lib/i18n";
 
@@ -120,7 +121,7 @@ const arabicPages: ExperienceCopy["pages"] = {
 
 export const experienceCopy: Record<Locale, ExperienceCopy> = {
   en: {
-    home: "Home", breadcrumb: "Breadcrumb", dates: "April 2027", location: "King Faisal Conference Center · King Abdulaziz University, Jeddah", timezone: "Saudi local time · Asia/Riyadh (UTC+03:00)", conferenceDays: "Conference days", essentials: "The essentials",
+    home: "Home", breadcrumb: "Breadcrumb", dates: conferenceDateLabel("en"), location: "King Faisal Conference Center · King Abdulaziz University, Jeddah", timezone: "Saudi local time · Asia/Riyadh (UTC+03:00)", conferenceDays: "Conference days", essentials: "The essentials",
     day1: "Day 1", day2: "Day 2", day1Short: "Day 1", day2Short: "Day 2", allDays: "Both days", allFormats: "All formats", allRooms: "All rooms", category: "Session format", room: "Room",
     searchSessions: "Search sessions", searchSessionsPlaceholder: "Search by title or topic", clear: "Clear filters", filterNote: "Formats and rooms will appear with the confirmed program.",
     programPending: "Program to be announced", programPendingBody: "Session times, rooms and speakers will appear here once confirmed.", noResults: "No matching results", noResultsBody: "Try another search or clear your filters.", timePending: "Time to be announced",
@@ -133,7 +134,7 @@ export const experienceCopy: Record<Locale, ExperienceCopy> = {
     journeys: participationJourneyCopy.en,
   },
   ar: {
-    home: "الرئيسية", breadcrumb: "مسار التنقل", dates: "أبريل ٢٠٢٧", location: "مركز الملك فيصل للمؤتمرات · جامعة الملك عبدالعزيز، جدة", timezone: "بتوقيت السعودية · Asia/Riyadh (UTC+03:00)", conferenceDays: "أيام المؤتمر", essentials: "المتطلبات الأساسية",
+    home: "الرئيسية", breadcrumb: "مسار التنقل", dates: conferenceDateLabel("ar"), location: "مركز الملك فيصل للمؤتمرات · جامعة الملك عبدالعزيز، جدة", timezone: "بتوقيت السعودية · Asia/Riyadh (UTC+03:00)", conferenceDays: "أيام المؤتمر", essentials: "المتطلبات الأساسية",
     day1: "اليوم الأول", day2: "اليوم الثاني", day1Short: "اليوم الأول", day2Short: "اليوم الثاني", allDays: "كلا اليومين", allFormats: "جميع الأنواع", allRooms: "جميع القاعات", category: "نوع الجلسة", room: "القاعة", searchSessions: "البحث في الجلسات", searchSessionsPlaceholder: "ابحث بعنوان الجلسة أو الموضوع", clear: "مسح عوامل التصفية", filterNote: "ستظهر أنواع الجلسات والقاعات مع البرنامج المعتمد.",
     programPending: "سيُعلن البرنامج لاحقًا", programPendingBody: "ستظهر أوقات الجلسات والقاعات والمتحدثون هنا بعد اعتمادها.", noResults: "لا توجد نتائج مطابقة", noResultsBody: "جرّب بحثًا آخر أو امسح عوامل التصفية.", timePending: "سيُعلن الوقت لاحقًا", sessionDetails: "تفاصيل الجلسة", programmeLink: "استكشف البرنامج", speakersLink: "تعرّف إلى المتحدثين", participateLink: "مسارات المشاركة",
     speakersPending: "سيُعلن المتحدثون لاحقًا", speakersPendingBody: "ستظهر الملفات والجلسات المرتبطة بالمتحدثين هنا بعد اعتمادها.", speakerSessions: "الجلسات", biography: "عن المتحدث", objectives: "الأهداف التعليمية", format: "النوع", time: "الوقت", duration: "المدة", recording: "التسجيل", recordingPending: "سيُعلن التسجيل لاحقًا", recordingRestricted: "ستُعلن تفاصيل الإتاحة لاحقًا", mediaLink: "استكشف الوسائط",
