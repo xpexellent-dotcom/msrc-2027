@@ -75,3 +75,10 @@ screenshots verified the pending registration card, roadmap, speaker preview,
 and 96px desktop and 72px phone seal. The 280px enlarged-text test covers the
 Program time-zone label and remains at its original width limit. Physical
 devices and screen-reader sessions remain open.
+
+The production-build registration, copy and readability suites passed 40
+cases with four duplicate profile skips. The official synthetic content
+suite passed 12 cases across the published, empty and provider-down states.
+A separate 280px doubled-text check found that the Arabic native selects
+needed more inline space in WebKit. The tighter filter frame passed
+English and Arabic reflow, day selection and clearing in both engines.

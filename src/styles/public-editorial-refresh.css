@@ -74,6 +74,16 @@
   min-block-size: 56px;
   background: var(--color-ivory);
 }
+.catalogue-filter-frame .experience-filters select {
+  inline-size: 100%;
+  min-inline-size: 0;
+  text-overflow: ellipsis;
+}
+/* Give native selects room for their labels at narrow, enlarged text sizes. */
+@media (max-width: 320px) {
+  .catalogue-filter-frame,
+  .catalogue-filter-frame .experience-filters select { padding-inline: .5rem; }
+}
 .catalogue-filter-frame .experience-search input { min-block-size: 54px; }
 .catalogue-filter-frame .experience-filters select:disabled { background: var(--color-disabled-surface); }
 .programme-catalogue .experience-result-bar > a {
