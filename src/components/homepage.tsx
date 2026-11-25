@@ -86,7 +86,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
         <Reveal className="pathway-list path-bento" stagger="cascade">{pathways.map((pathway, index) => {
           const slug = pathway.href.slice(1);
           const attend = index === 0;
-          const icon = (["13-collaboration", "06-publications", "19-workshops", "20-hackathon", "15-schedule"] as const)[index];
+          const icon = (["13-collaboration", "06-publications", "19-workshops", "20-hackathon", "21-3mt"] as const)[index];
           return <article className={`pathway-card path-tile path-tile--${slug}`} key={pathway.href} data-pathway={pathway.href} id={`pathway-${slug}`}>
             <div className="pathway-photo"><Image src={demoImages.pathways[index]} alt="" fill sizes={attend || index === 4 ? "(max-width: 800px) 100vw, 900px" : "(max-width: 800px) 100vw, 540px"} /></div><div className="path-tile-top"><BrandIcon name={icon} size={40} /><Arrow /></div>
             <h3 className="pathway-name"><Link className="pathway-action" href={`/${locale}${pathway.href}`} aria-describedby={`pathway-${slug}-kicker`}>{pathway.category}</Link></h3>
@@ -153,7 +153,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
 
     <section data-header-section="light" id="faq" tabIndex={-1} className="editorial-section faq-section" aria-labelledby="practical-title">
       <Container><div className="faq-grid">
-        <Reveal className="faq-introduction"><SectionHeading chapter title={narrative.practicalTitle} accents={locale === "ar" ? ["تصل."] : ["arrive."]} id="practical-title" /><div className="faq-utility-links"><Link className="editorial-action" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link><Link className="editorial-action" href={`/${locale}/contact`}>{demo.contact}<Arrow /></Link></div></Reveal>
+        <Reveal className="faq-introduction"><BrandIcon name="25-faq" /><SectionHeading chapter title={narrative.practicalTitle} accents={locale === "ar" ? ["تصل."] : ["arrive."]} id="practical-title" /><div className="faq-utility-links"><Link className="editorial-action" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link><Link className="editorial-action" href={`/${locale}/contact`}>{demo.contact}<Arrow /></Link></div></Reveal>
         <div className="faq-list" aria-label={narrative.faqLabel}>{narrative.faq.map((faq) => <details className="faq-item" key={faq.question}>
           <summary><span>{faq.question}</span><span className="faq-icon-circle"><svg className="faq-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path className="faq-plus-vertical" d="M12 5v14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg></span></summary><p>{faq.answer}</p>
         </details>)}</div>

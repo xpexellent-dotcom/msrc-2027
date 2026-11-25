@@ -3,7 +3,7 @@ import Image from "next/image";
 import { brandLogo, brandLogoRendition } from "@/content/brand-identity";
 import { Container } from "@/components/ui/container";
 import { homepageNarrative } from "@/content/homepage-narrative";
-import { publicSitemap } from "@/content/public-site";
+import { homepageCopy, publicSitemap } from "@/content/public-site";
 import type { Locale } from "@/lib/i18n";
 export const footerCopy = {
   en: {
@@ -68,6 +68,7 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
             <p dir="ltr" lang="en">MSRC / 2027</p>
             {/* ORG-038: the Research Principles Club organizes on behalf of the Faculty of Medicine, KAU. */}
             <p className="footer-organizer">{homepageNarrative[locale].organizer}</p>
+            <a className="footer-return" href="#main-content">{homepageCopy[locale].backToTop}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-5 5 5-5 5 5" /></svg></a>
             {showDesignSystem ? <Link href={`/${locale}/design-system`}>{footer.designSystem}</Link> : null}
           </div>
         </Container>

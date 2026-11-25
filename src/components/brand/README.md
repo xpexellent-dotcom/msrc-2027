@@ -9,8 +9,7 @@ artefact pending a corrected owner source.
 
 `BrandIcon` renders the supplied full-colour WebP icons without recolouring.
 Its physical 2% image shift centres the lilac disc and does not mirror in Arabic.
-The homepage uses ten approved identity icons; the remaining source assets stay
-untouched.
+The homepage and interior pages share the approved illustrations. ORG-076 adds icons rendered from the matching Canva PDF vector artwork. See the project media register for the asset record.
 
 `Sparkle` is the shared decorative gold star. Each section has at most one heading
 sparkle and one content sparkle. The preview belt separators and one sparkle per

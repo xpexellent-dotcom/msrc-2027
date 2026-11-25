@@ -21,7 +21,7 @@ export default async function Page({ params }: PageProps) {
   if (!isLocale(locale)) notFound();
   const state = await readRegistrationTicketPageState(locale);
   const copy = registrationTicketCopy[locale];
-  return <Container className="participant-account-page" narrow>
+  return <Container className="participant-account-page public-participation-workspace public-ticket-page" narrow>
     <header className="participant-account-intro"><h1>{copy.title}</h1><p>{copy.lead}</p></header>
     <RegistrationTicketCard locale={locale} initial={state} />
   </Container>;

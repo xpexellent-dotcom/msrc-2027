@@ -10,7 +10,7 @@ import { participantCopy, type ParticipantScreen } from "./participant-copy";
 
 export function ParticipantAccountPage({ locale, screen, state, announcements, workshopBookings }: { locale: Locale; screen: ParticipantScreen; state: ParticipantPageState; announcements?: ParticipantAnnouncementsResponse; workshopBookings?: WorkshopParticipantResponse }) {
   const copy = participantCopy[locale];
-  if (!state.enabled) return <Container className="participant-account-page" narrow>
+  if (!state.enabled) return <Container className="participant-account-page" data-participant-screen={screen} narrow>
     <header className="participant-account-intro">
       <p className="eyebrow">{copy.eyebrow}</p>
       <h1>{copy.comingSoon}</h1>
@@ -26,7 +26,7 @@ export function ParticipantAccountPage({ locale, screen, state, announcements, w
       <ButtonLink href={`/${locale}/participate`}>{copy.explore}</ButtonLink>
     </section>
   </Container>;
-  return <Container className="participant-account-page" narrow>
+  return <Container className="participant-account-page" data-participant-screen={screen} narrow>
     <header className="participant-account-intro">
       <p className="eyebrow">{copy.eyebrow}</p>
       <h1>{copy.titles[screen]}</h1>

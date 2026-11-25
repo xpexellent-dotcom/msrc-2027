@@ -1,0 +1,181 @@
+/* The homepage identity extends to public interiors through a ruled masthead,
+   route-specific art and the same type and control tokens. */
+.experience-intro--branded {
+  --masthead-rule: var(--hair-inverse);
+  --masthead-accent: var(--color-gold);
+  --masthead-photo: linear-gradient(110deg, rgb(26 13 47 / .96) 2%, rgb(42 22 72 / .88) 52%, rgb(42 22 72 / .54)),
+    linear-gradient(0deg, rgb(31 25 48 / .54), transparent 72%);
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+
+.experience-intro--branded.premium-photo-hero::after { background: var(--masthead-photo); }
+[dir="rtl"] .experience-intro--branded.premium-photo-hero { --masthead-photo: linear-gradient(250deg, rgb(26 13 47 / .96) 2%, rgb(42 22 72 / .88) 52%, rgb(42 22 72 / .54)), linear-gradient(0deg, rgb(31 25 48 / .54), transparent 72%); }
+.experience-intro--branded .premium-hero-image { inset: 0; }
+.experience-intro--branded .premium-hero-image img { filter: none; transform: none; }
+.experience-intro--branded .experience-breadcrumb,
+.venue-photo-header .about-breadcrumb {
+  position: relative;
+  border-block-end: 1px solid var(--masthead-rule, var(--hair-inverse));
+  margin-block-end: clamp(1.5rem, 3.5vw, 3.25rem);
+}
+.experience-intro--branded .experience-breadcrumb::after,
+.venue-photo-header .about-breadcrumb::after {
+  content: "";
+  position: absolute;
+  inset-block-end: -1px;
+  inset-inline-start: 0;
+  inline-size: 2.5rem;
+  border-block-end: 1px solid var(--masthead-accent, var(--color-gold));
+  pointer-events: none;
+}
+.experience-intro--branded .experience-intro-grid { padding-block-start: 0; }
+.experience-intro--branded .experience-intro-grid > :first-child { min-inline-size: 0; }
+.experience-intro--branded .experience-intro-art:empty { display: none; }
+.experience-intro--branded .experience-location { border-color: var(--line-lilac-35); }
+.experience-intro--branded .experience-lead { max-inline-size: 49ch; }
+.experience-intro--branded.premium-photo-hero h1 .premium-title-accent:not(:only-child) {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--color-lilac);
+}
+.experience-intro--branded .experience-intro-art--seal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: clip;
+  min-inline-size: 0;
+  min-block-size: clamp(10rem, 16vw, 16rem);
+  border-inline-start: 1px solid var(--masthead-rule);
+}
+.experience-intro-art--seal .flow-lines {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  color: var(--line-lilac-35);
+  pointer-events: none;
+}
+[dir="rtl"] .experience-intro-art--seal .flow-lines { scale: -1 1; }
+.experience-intro-art--seal .brand-icon {
+  position: relative;
+  inline-size: clamp(6rem, 11vw, 10rem);
+  block-size: auto;
+  aspect-ratio: 1;
+}
+.experience-intro--branded.experience-intro--media {
+  --masthead-rule: var(--hair);
+  --masthead-accent: var(--color-purple);
+  background: var(--color-mist);
+  color: var(--color-ink);
+}
+.experience-intro--branded.experience-intro--media :is(h1, .premium-title-accent) {
+  color: var(--color-purple);
+}
+.experience-intro--branded.experience-intro--media :is(.experience-lead, .experience-breadcrumb) { color: var(--color-slate); }
+.experience-intro--media .experience-breadcrumb [aria-current] { color: var(--color-purple); font-weight: 600; }
+.experience-intro--media .experience-intro-art--seal .flow-lines { color: var(--purple-35); }
+.experience-intro--branded .program-date-panel { border-radius: var(--r-card); border-color: var(--line-lilac-35); background: rgb(38 20 67 / .88); }
+
+/* Venue orientation puts the map and planning shortcuts in the same reading frame. */
+.venue-photo-header .venue-header-layout { padding-block-start: .5rem; }
+.venue-hero-orientation.button { margin-block-start: 1.75rem; }
+.venue-hero-orientation .venue-icon { flex-shrink: 0; }
+.venue-gallery-stage {
+  background: var(--color-ivory);
+  border-block-start: 1px solid var(--hair);
+}
+.venue-gallery-stage::after { content: none; }
+.venue-gallery-stage .ambient-art { opacity: .3; }
+.venue-stage-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  grid-template-rows: auto 1fr;
+  column-gap: clamp(2.5rem, 6vw, 6rem);
+  row-gap: clamp(1.75rem, 3vw, 3rem);
+  padding-block: clamp(1rem, 2.5vw, 2.5rem);
+}
+.venue-stage-intro .brand-icon { margin-block-end: 1rem; inline-size: 72px; block-size: 72px; }
+.venue-stage-intro h2 { max-inline-size: 16ch; margin-block-end: 1rem; }
+.venue-stage-layout .venue-hero-map { grid-column: 2; grid-row: 1 / 3; }
+.venue-stage-layout .venue-stage-guidance { grid-column: 1; display: block; }
+.venue-stage-resources { gap: 0; border-block-end: 1px solid var(--hair); }
+.venue-stage-resources .button {
+  border-width: 1px 0 0;
+  border-color: var(--hair);
+  border-radius: 0;
+  padding-inline: .25rem;
+  font-weight: 600;
+}
+.venue-stage-guidance .venue-international summary { min-block-size: 48px; }
+.venue-stage-layout .venue-hero-map .venue-map-links .button { justify-content: space-between; }
+.venue-stage-layout .venue-hero-map .venue-geographic-caption { padding: .875rem 1rem; }
+
+/* Keep the homepage journey and split navigation, with a clearer current route
+   on interior menus and an unobtrusive return action on long pages. */
+.axiom-header .desktop-nav .header-dropdown a[aria-current="page"] {
+  background: var(--color-mist);
+  color: var(--color-purple);
+  font-weight: 650;
+}
+.footer-directory-group h2 { padding-block-start: .85rem; border-block-start: 1px solid var(--hair-inverse); }
+.site-footer .footer-bottom .footer-return { gap: .5rem; margin-inline-start: auto; }
+.footer-return svg { flex-shrink: 0; inline-size: 18px; block-size: 18px; }
+.homepage-journey .faq-introduction .brand-icon { margin-block-end: .85rem; }
+
+@media (min-width: 1001px) {
+  .experience-intro--branded.fluid-journey-hero:not(.experience-intro--program) .experience-intro-grid { align-items: center; }
+}
+@media (max-width: 1000px) {
+  .experience-intro--branded .experience-intro-art--seal { display: none; }
+}
+@media (max-width: 800px) {
+  .venue-stage-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
+  .venue-stage-layout .venue-hero-map { grid-column: auto; grid-row: auto; }
+  .venue-stage-intro .brand-icon { inline-size: 56px; block-size: 56px; }
+}
+@media (max-width: 480px) {
+  .site-footer .footer-bottom .footer-return { margin-inline-start: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .experience-intro-art--seal .brand-icon { animation: brand-art-arrive 380ms var(--ease-out) both; }
+  .footer-return svg { transition: translate var(--d-color) var(--ease-out); }
+  @media (hover: hover) and (pointer: fine) {
+    .footer-return:hover svg { translate: 0 -3px; }
+  }
+}
+@keyframes brand-art-arrive {
+  from { opacity: .65; translate: 0 .5rem; }
+  to { opacity: 1; translate: none; }
+}
+@media print, (forced-colors: active) {
+  .experience-intro--branded .experience-intro-art--seal,
+  .venue-stage-intro .brand-icon,
+  .homepage-journey .faq-introduction .brand-icon { display: none; }
+}
+@media (forced-colors: active) {
+  .experience-intro--branded .program-date-panel { background: Canvas; border-color: CanvasText; }
+  .experience-intro--branded.premium-photo-hero h1 .premium-title-accent:not(:only-child) { color: CanvasText; }
+}
+
+/* Correspondence and sign-in share the same public type and paper treatment. */
+.participant-account-page[data-participant-screen]:not([data-participant-screen="my-msrc"]) .participant-account-intro {
+  position: relative;
+  padding-block-end: clamp(1.5rem, 3vw, 2.25rem);
+  border-block-end: 1px solid var(--hair);
+}
+.participant-account-page[data-participant-screen]:not([data-participant-screen="my-msrc"]) .participant-account-intro::after {
+  content: "";
+  position: absolute;
+  inset-block-end: -1px;
+  inset-inline-start: 0;
+  inline-size: 2.5rem;
+  border-block-end: 1px solid var(--color-gold);
+}
+.participant-account-page[data-participant-screen]:not([data-participant-screen="my-msrc"]) .participant-account-card {
+  border-radius: var(--r-card);
+  border-color: var(--hair);
+}
+.participant-account-page[data-participant-screen] .participant-account-card :is(input, select, textarea) {
+  accent-color: var(--color-purple);
+}

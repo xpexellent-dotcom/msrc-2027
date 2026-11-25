@@ -37,7 +37,7 @@ export default async function Page({ params }: PageProps) {
     // request instead of pairing a not-requested heading with a submitted form.
     if (form?.state === "submitted") state = await readMyRegistrationPageState(locale);
     const copy = myRegistrationCopy[locale];
-    return <Container className="participant-account-page" narrow>
+    return <Container className="participant-account-page public-participation-workspace" narrow>
       <header className="participant-account-intro"><h1>{copy.title}</h1><p>{copy.lead}</p></header>
       <MyRegistration locale={locale} initial={state} initialForm={form} />
     </Container>;

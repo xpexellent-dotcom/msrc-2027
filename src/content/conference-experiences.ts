@@ -1,4 +1,5 @@
 import { conferenceDateLabel } from "@/config/conference";
+import type { BrandIconName } from "@/components/brand/brand-icon";
 import { participationJourneyCopy, type JourneyCopy } from "@/content/participation-copy";
 import type { Locale } from "@/lib/i18n";
 
@@ -143,11 +144,10 @@ export const experienceCopy: Record<Locale, ExperienceCopy> = {
   },
 };
 
-/** Replace any null icon with an approved local SVG/image path; no component edit needed. */
-export const participationPaths: readonly { id: keyof typeof participationJourneyCopy.en; href: string; icon: string | null; glyph: number }[] = [
-  { id: "registration", href: "/registration", icon: null, glyph: 0 },
-  { id: "submissions", href: "/abstracts", icon: null, glyph: 1 },
-  { id: "workshops", href: "/workshops", icon: null, glyph: 5 },
-  { id: "hackathon", href: "/hackathon", icon: null, glyph: 6 },
-  { id: "threeMinuteThesis", href: "/3mt", icon: null, glyph: 7 },
+export const participationPaths: readonly { id: keyof typeof participationJourneyCopy.en; href: string; icon: BrandIconName }[] = [
+  { id: "registration", href: "/registration", icon: "27-tickets" },
+  { id: "submissions", href: "/abstracts", icon: "06-publications" },
+  { id: "workshops", href: "/workshops", icon: "19-workshops" },
+  { id: "hackathon", href: "/hackathon", icon: "20-hackathon" },
+  { id: "threeMinuteThesis", href: "/3mt", icon: "21-3mt" },
 ];

@@ -1,5 +1,20 @@
 # Progress and session handover
 
+## 25 November 2026 — Sitewide brand refresh
+
+- ORG-076 extends the PR #155 design across public pages and participant
+  entry screens. Eight illustrations from the supplied vector identity are
+  used alongside existing conference photography. The homepage retains its
+  film and split navigation. The Venue, participation, research and Team
+  pages have clearer in-page navigation.
+- Local lint, TypeScript, 5,665 unit tests and the production build passed.
+  Bilingual desktop and mobile checks covered editorial and participation
+  routes, keyboard navigation, reduced motion, enlarged text and the
+  relevant closed states. See the [feature note](features/sitewide-brand-refresh.md).
+- Preview review is the next release step. The PR carries presentation and
+  accessibility changes under SCP-01/02, DSN-01/02, ACC-01, LOC-01/03,
+  MED-02, CFG-12, NFR-02 and REL-06.
+
 ## 25 November 2026 — Confirmed dates and homepage publication
 
 - ORG-075 confirms 7–8 April 2027 and authorizes publication through PR #155.

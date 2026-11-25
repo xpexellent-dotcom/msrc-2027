@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
+import { BrandIcon } from "@/components/brand/brand-icon";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { VenueHeaderCollage } from "@/components/venue-header-collage";
 import { VenueJourneyEntry } from "@/components/venue-journey-entry";
@@ -54,6 +55,9 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
             <div className="venue-hero-intro">
               <h1 id="dates-page-title">{locale === "en" ? <><span>Your way</span><br /> <span className="premium-title-accent">to MSRC.</span></> : <><span>طريقك</span><br /> <span className="premium-title-accent">إلى المؤتمر.</span></>}</h1>
               <p className="dates-lead">{conferenceDateLabel(locale)} · {copy.lead}</p>
+              {venue && <ButtonLink href="#venue-orientation" variant="outline-inverse" className="venue-hero-orientation">
+                {locale === "ar" ? "خريطة المقر" : "View venue map"}<VenueIcon name="address" />
+              </ButtonLink>}
             </div>
               <VenueHeaderCollage locale={locale} />
             </div>
@@ -64,6 +68,7 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
           <Container>
           <div className="venue-stage-layout">
             {venue && <section className="venue-stage-intro" aria-labelledby="venue-stage-title">
+              <BrandIcon name="23-venue" size={72} />
               <h2 id="venue-stage-title">{venue.name[locale]}</h2>
               <p>{copy.hostValue}<br />{copy.cityValue}</p>
             </section>}

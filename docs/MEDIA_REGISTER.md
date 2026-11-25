@@ -328,3 +328,20 @@ appear only in preview builds.
 
 Fraunces 5.3.0 and El Messiri 5.3.0 are self-hosted under OFL-1.1. Static ribbons,
 flow lines and sparkles use small inline SVGs; large raster ribbons are not shipped.
+
+## Sitewide brand refresh — 25 November 2026, ORG-076
+
+The organizer supplied the [Canva identity kit](https://canva.link/tmbbile9pyczmy9)
+and its PDF export. The Canva connector confirmed the design ID
+DAHa-312LU4 and the icon sheet on page 8. The connector could read the
+design but original media download was restricted. The matching PDF
+retained individual vector artwork. Extracted its clipped vector groups
+and rendered 256 × 256 transparent, lossless WebP files under
+`public/brand/identity/icons/`.
+
+- `11-speakers.webp`, `21-3mt.webp`, `22-partners.webp`, `23-venue.webp`
+- `24-gallery.webp`, `25-faq.webp`, `26-contact.webp`, `27-tickets.webp`
+
+The inline icons are decorative. Their visible labels and accessible
+names come from the page content. The source illustrations retain the
+physical centring correction and their original colours.

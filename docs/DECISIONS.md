@@ -5738,3 +5738,23 @@ TIM-01/02, LOC-01/03, PRV-01/05/08, INF-05 and REL-06.
   purpose, legal wording and handling of existing records before approving
   a policy or hosted retention change. The date correction uses the current
   retention commitments.
+
+## ORG-076 — Extend the public identity across MSRC 2027, 25 November 2026
+
+The organizer supplied the Canva identity kit and matching PDF for this
+presentation update. Use the supplied illustrations and design cues across
+the public site and preserve PR #155's homepage composition, typography,
+cinematic film and split desktop navigation. Scope is a new review PR with
+a preview deployment. The document's internal notes are visual reference.
+The organizer's request governs website scope and public claims.
+
+The implementation uses the incumbent Fraunces and El Messiri display roles
+where the kit proposes different faces. English and Arabic retain their shared
+type scale, with native direction and localized controls. Sitewide motion is
+limited to page art and feedback where it supports the action. Reduced-motion
+pages keep the complete reading and navigation experience.
+
+The approved conference dates, policy versions, workflow windows and release
+controls follow their existing decisions. Requirements: SCP-01/02, DSN-01/02,
+ACC-01, LOC-01/03, MED-02, CFG-12, NFR-02 and REL-06. See the
+[sitewide visual update](features/sitewide-brand-refresh.md).
