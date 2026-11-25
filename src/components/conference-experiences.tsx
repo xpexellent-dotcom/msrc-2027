@@ -10,7 +10,7 @@ import { Link } from "@/components/ui/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ResearchVisual } from "@/components/research-visual";
 import { FlowLines } from "@/components/brand/flow-lines";
-import { BrandIcon } from "@/components/brand/brand-icon";
+import { BrandIcon, type BrandIconName } from "@/components/brand/brand-icon";
 import { HorizontalRail } from "@/components/horizontal-rail";
 import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { ConferenceDayLinks } from "@/components/conference-day-links";
