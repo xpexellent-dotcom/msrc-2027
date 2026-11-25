@@ -358,11 +358,11 @@ Continue the homepage's royal purple, warm ivory, lilac and small gold
 accents. Keep the display and body type roles from ORG-072. The homepage's
 film, composition and split navigation retain the PR #155 treatment.
 
-The public interior mastheads use a ruled breadcrumb and photographic
-composition where approved photos exist. Media opens on a light lilac
-surface. Programme dates retain a compact, legible panel. Keep artwork
-subordinate to the task and use the unmirrored, full-colour brand illustrations
-for related subjects. Utility arrows follow the reading direction.
+Keep the existing page headers, including the approved serif headline
+treatment, colour gradient and photographic scrim. Programme dates retain
+their compact panel. Use the unmirrored, full-colour brand illustrations
+for related subjects in the content below. Utility arrows follow the reading
+direction. Archive photos retain their approved 16:9 crop.
 
 Use an editorial index for application guidance, readable controls and rows
 for catalogues, portrait framing for the team and a contents rail for legal

@@ -4,8 +4,8 @@
 
 - ORG-076 extends the PR #155 design across public pages and participant
   entry screens. Eight illustrations from the supplied vector identity are
-  used alongside existing conference photography. The homepage retains its
-  film and split navigation. The Venue, participation, research and Team
+  used alongside existing conference photography. The approved page headers,
+  homepage film and split navigation retain their PR #155 treatment. The Venue, participation, research and Team
   pages have clearer in-page navigation.
 - Local lint, TypeScript, 5,665 unit tests and the production build passed.
   Bilingual desktop and mobile checks covered editorial and participation

@@ -24,17 +24,9 @@ function PeoplePageIntro({ locale, page }: { locale: Locale; page: "sponsors" })
   const intro = copy[page];
   return (
     <section data-header-section="light" className={`people-page-intro people-page-intro--${page}`} aria-labelledby="people-page-title">
-      <FlowLines className="sponsor-intro-lines" />
       <Container>
         <nav className="experience-breadcrumb" aria-label={copy.breadcrumb}><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
-        <div className="people-page-heading">
-          <h1 id="people-page-title">{intro.title}</h1>
-          <div className="sponsor-intro-info">
-            <BrandIcon className="sponsor-intro-icon" name="22-partners" size={136} />
-            <p>{intro.lead}</p>
-            <ButtonLink className="sponsor-top-action" href={`/${locale}/contact`} variant="gold">{intro.nextLink}<Arrow /></ButtonLink>
-          </div>
-        </div>
+        <div className="people-page-heading"><h1 id="people-page-title">{intro.title}</h1><div><p>{intro.lead}</p>{page === "sponsors" ? <ButtonLink className="sponsor-top-action" href={`/${locale}/contact`} variant="gold">{copy.sponsors.nextLink}<Arrow /></ButtonLink> : null}</div></div>
       </Container>
     </section>
   );
@@ -145,6 +137,7 @@ export function SponsorsExperience({ locale, items = [] }: { locale: Locale; ite
       <FlowLines className="sponsor-invitation-lines" />
       <Container>
         <div><h2>{copy.nextTitle}</h2><p>{copy.nextBody}</p></div>
+        <BrandIcon className="sponsor-invitation-icon" name="22-partners" size={192} />
       </Container>
     </section>
   </>;

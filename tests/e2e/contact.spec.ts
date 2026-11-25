@@ -169,7 +169,7 @@ test("Contact keyboard and language navigation preserve the page and section", a
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/en/contact?view=preview");
   await page.keyboard.press("Tab");
-  await expect(page.locator('a[href="#main-content"]')).toBeFocused();
+  await expect(page.locator('a.skip-link[href="#main-content"]')).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
   await page.goto("/en/contact?view=preview#contact-form");

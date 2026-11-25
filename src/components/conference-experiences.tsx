@@ -10,7 +10,7 @@ import { Link } from "@/components/ui/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ResearchVisual } from "@/components/research-visual";
 import { FlowLines } from "@/components/brand/flow-lines";
-import { BrandIcon, type BrandIconName } from "@/components/brand/brand-icon";
+import { BrandIcon } from "@/components/brand/brand-icon";
 import { HorizontalRail } from "@/components/horizontal-rail";
 import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { ConferenceDayLinks } from "@/components/conference-day-links";
@@ -81,11 +81,6 @@ const experiencePhotos: Partial<Record<ExperiencePageId, string>> = {
   speakers: "speakers-rania-9801.jpg",
 };
 
-const experienceArtwork: Partial<Record<ExperiencePageId, BrandIconName>> = {
-  media: "24-gallery",
-  speakers: "11-speakers",
-};
-
 /** ORG-054: the date, edition and venue block appears only on the Participate hub and Attend. */
 const showsEventFacts = (page: ExperiencePageId) => page === "participate" || page === "registration";
 
@@ -94,8 +89,7 @@ export function ExperienceIntro({ locale, page, announcement, children }: { loca
   const intro = copy.pages[page];
   const photo = experiencePhotos[page];
   const lines = intro.title.split("\n");
-  const artwork = experienceArtwork[page];
-  return <section data-header-section={photo ? "dark" : "light"} className={`experience-intro experience-intro--branded experience-intro--${page}${photo ? " premium-photo-hero fluid-journey-hero" : ""}`} data-publication-pending={announcement ? true : undefined} aria-labelledby="experience-title">
+  return <section data-header-section={photo ? "dark" : "light"} className={`experience-intro experience-intro--${page}${photo ? " premium-photo-hero fluid-journey-hero" : ""}`} data-publication-pending={announcement ? true : undefined} aria-labelledby="experience-title">
     {photo ? <div className="premium-hero-image" aria-hidden="true"><Image src={photo.startsWith("/") ? photo : `/media/msrc-demo/${photo}`} alt="" fill sizes="100vw" priority /></div> : null}
     <Container>
       <nav aria-label={copy.breadcrumb} className="experience-breadcrumb"><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li><span aria-hidden="true">/</span><span aria-current="page">{intro.label}</span></li></ol></nav>
@@ -105,7 +99,7 @@ export function ExperienceIntro({ locale, page, announcement, children }: { loca
           <h1 id="experience-title">{lines.map((line, index) => <span key={line} className={page !== "hackathon" && index === lines.length - 1 ? "premium-title-accent" : undefined}>{index > 0 ? <><br />{" "}</> : null}{page === "hackathon" && index === lines.length - 1 ? <>{line.slice(0, line.lastIndexOf(" ") + 1)}<span className="hackathon-title-word">{line.slice(line.lastIndexOf(" ") + 1)}</span></> : line}</span>)}</h1>
           {announcement ? <p className="experience-publication-status">{announcement}</p> : null}<p className="experience-lead">{intro.lead}</p>{children ? <div className="fluid-journey-hero-actions">{children}</div> : null}
         </div>
-        <div className={`experience-intro-art${artwork ? " experience-intro-art--seal" : ""}`}>{page === "hackathon" ? <HackathonTechArt /> : page === "program" ? <div className="program-date-panel" role="group" aria-label={conferenceConfig.dates ? datesVenueCopy[locale].datesHeading : conferenceConfig.monthLabel[locale]}><ConferenceDayLinks locale={locale} />{conferenceConfig.dates ? <a className="text-link program-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{datesVenueCopy[locale].addToCalendar}</a> : null}</div> : showsEventFacts(page) ? <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div> : artwork ? <><FlowLines /><BrandIcon name={artwork} size={160} /></> : null}</div>
+        <div className="experience-intro-art">{page === "hackathon" ? <HackathonTechArt /> : page === "program" ? <div className="program-date-panel" role="group" aria-label={conferenceConfig.dates ? datesVenueCopy[locale].datesHeading : conferenceConfig.monthLabel[locale]}><ConferenceDayLinks locale={locale} />{conferenceConfig.dates ? <a className="text-link program-calendar-link" href={`/${locale}/msrc-2027.ics`} download="msrc-2027.ics">{datesVenueCopy[locale].addToCalendar}</a> : null}</div> : showsEventFacts(page) ? <div className="experience-location"><span dir="ltr">MSRC / 2027</span><span>{copy.dates}</span><span>{copy.location}</span></div> : null}</div>
       </div>
     </Container>
     {page === "hackathon" ? <HackathonHeartbeat /> : null}
@@ -301,9 +295,10 @@ export function ParticipateExperience({ locale }: { locale: Locale }) {
   const copy = experienceCopy[locale];
   const options = locale === "ar" ? "استكشف مسارات المشاركة" : "Explore ways to participate";
   return <>
-    <ExperienceIntro locale={locale} page="participate">
-      <ButtonLink variant="gold" href="#participation-options">{options}<Arrow /></ButtonLink>
-    </ExperienceIntro>
+    <ExperienceIntro locale={locale} page="participate" />
+    <div className="participation-hub-shortcut">
+      <Container><ButtonLink variant="secondary" href="#participation-options">{options}<Arrow /></ButtonLink></Container>
+    </div>
     <RegistrationOpeningNotice locale={locale} />
     <section id="participation-options" tabIndex={-1} className="participation-hub" aria-label={copy.pages.participate.label}>
       <Container>

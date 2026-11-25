@@ -6,9 +6,9 @@
 
 - The homepage retains its cinematic entry and desktop split navigation.
   The official thesis and FAQ illustrations connect it to the rest of the site.
-- The public mastheads share a ruled breadcrumb and use existing photography
-  or subject-specific illustrations. The Venue map has a direct jump link.
-  The footer offers a keyboard-accessible return link.
+- The page headers retain their PR #155 type, colour and photographic
+  treatment, as confirmed by the organizer. The Venue map has a direct
+  jump link, and the footer offers a keyboard-accessible return link.
 - Program, Speakers and Media have clearer results, filters and publication
   states. Team adds in-page committee navigation. Contact and legal pages
   group the details and links visitors use most.
@@ -42,3 +42,13 @@ existing release decisions.
   outside this visual review. A Windows WebKit emulation probe reproduced
   the incumbent Fraunces optical-size rendering difference on the
   homepage. The review retains the calibrated PR #155 heading and font.
+
+### Header preservation follow-up
+
+- Compared the Program header with the live PR #155 design in Chromium
+  at 390px and 1440px for each locale. The headings matched on type,
+  position, size, accent gradient and the photographic scrim.
+- Twenty-two focused Chromium checks passed after preserving the 16:9
+  archive photos and explicitly selecting the skip-to-content control in
+  keyboard tests. The Venue test also checks the existing Program title
+  gradient and separately verifies the new footer return link.

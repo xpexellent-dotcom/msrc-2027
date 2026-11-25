@@ -55,9 +55,6 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
             <div className="venue-hero-intro">
               <h1 id="dates-page-title">{locale === "en" ? <><span>Your way</span><br /> <span className="premium-title-accent">to MSRC.</span></> : <><span>طريقك</span><br /> <span className="premium-title-accent">إلى المؤتمر.</span></>}</h1>
               <p className="dates-lead">{conferenceDateLabel(locale)} · {copy.lead}</p>
-              {venue && <ButtonLink href="#venue-orientation" variant="outline-inverse" className="venue-hero-orientation">
-                {locale === "ar" ? "خريطة المقر" : "View venue map"}<VenueIcon name="address" />
-              </ButtonLink>}
             </div>
               <VenueHeaderCollage locale={locale} />
             </div>
@@ -71,6 +68,9 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
               <BrandIcon name="23-venue" size={72} />
               <h2 id="venue-stage-title">{venue.name[locale]}</h2>
               <p>{copy.hostValue}<br />{copy.cityValue}</p>
+              <Link href="#venue-orientation" className="editorial-action venue-map-shortcut">
+                {locale === "ar" ? "خريطة المقر" : "View venue map"}<VenueIcon name="address" />
+              </Link>
             </section>}
             {venue && <div id="venue-orientation" tabIndex={-1} className="venue-hero-map">
               <VenueGeographicMap locale={locale} variant="hero" />

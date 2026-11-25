@@ -250,26 +250,15 @@
 .team-roster .team-row:focus-within .team-name,
 .team-roster .team-leader:focus-within .team-name { text-decoration: underline; text-decoration-color: var(--hair-hover); text-underline-offset: .2em; }
 
-.contact-hero .contact-email {
-  --focus-ring: var(--color-purple);
-  position: relative;
-  border-color: var(--hair);
-  background: var(--color-ivory);
-  color: var(--color-ink);
-}
-.contact-email-heading {
+.contact-form-section { background: var(--color-ivory); }
+.contact-form-heading {
   display: flex;
   align-items: center;
   gap: .8rem;
-  margin-block-end: .8rem;
+  padding-block-end: 1rem;
+  border-block-end: 1px solid var(--hair-hover);
 }
-.contact-email-heading .brand-icon { display: inline-flex; flex: none; }
-.contact-hero .contact-email h2,
-.contact-hero .contact-email-link { margin-block-end: 0; color: var(--color-purple); }
-.contact-hero .contact-email p { color: var(--color-slate); }
-.contact-email-link { text-decoration-color: var(--hair-hover); text-underline-offset: .3em; }
-.contact-form-section { background: var(--color-ivory); }
-.contact-form-introduction .section-heading { padding-block-end: 1rem; border-block-end: 1px solid var(--hair-hover); }
+.contact-form-heading .brand-icon { inline-size: 44px; block-size: 44px; }
 .contact-form-introduction p { max-inline-size: 34ch; }
 .contact-form-section .contact-form { border: 1px solid var(--hair); }
 .contact-form-section .contact-closed-note {
@@ -281,18 +270,6 @@
   transition: border-color var(--d-control) var(--ease-out);
 }
 
-.policy-page .policy-hero {
-  background: linear-gradient(130deg, var(--color-ivory), var(--color-mist));
-  border-block-end: 1px solid var(--hair);
-}
-.policy-page .policy-hero-grid { gap: clamp(1.25rem, 4vw, 4rem); }
-.policy-page .policy-version-details {
-  border-block: 1px solid var(--hair-hover);
-  font-variant-numeric: tabular-nums;
-}
-.policy-page .policy-version-details dd { font-weight: 650; }
-.policy-page .policy-version-link { display: inline-flex; align-items: center; gap: .7rem; color: var(--color-purple); }
-.policy-page .policy-version-link svg { flex-shrink: 0; }
 .policy-page .policy-reading-layout { grid-template-columns: minmax(13rem, 1fr) minmax(0, 2.35fr); }
 .policy-page .policy-contents {
   border: 1px solid var(--hair);
@@ -336,7 +313,6 @@
   .media-catalogue .conference-media-grid:has(> :nth-child(2)[data-media-kind="photograph"]) {
     & > :first-child[data-media-kind="photograph"] { grid-column: span 7; }
     & > :first-child[data-media-kind="photograph"] + [data-media-kind="photograph"] { grid-column: span 5; }
-    & > :first-child[data-media-kind="photograph"] + [data-media-kind="photograph"] .conference-media-player { aspect-ratio: 5 / 4; }
   }
 }
 @media screen and (min-width: 58rem) and (min-height: 54rem) {
@@ -363,8 +339,7 @@
   .programme-toolbar .programme-days a:not([aria-current="true"]):hover,
   .team-directory .site-link:hover,
   .policy-page .policy-contents a:hover { background: var(--color-mist); }
-  .programme-results .conference-session-row h3 .site-link:hover,
-  .contact-email-link:hover { text-decoration-color: currentColor; }
+  .programme-results .conference-session-row h3 .site-link:hover { text-decoration-color: currentColor; }
 }
 @media (prefers-reduced-motion: reduce) {
   .contact-form-section .contact-fields .field-input { transition: none; }

@@ -1,7 +1,7 @@
 /** ORG-069: Arabic and ethics/registration helpers are owner-approved. */
 export const researchCompetitionCopy = {
   en: {
-    title: "Research competition", home: "Home",
+    title: "Research competition", kicker: "MSRC’27 · Research", home: "Home",
     intro: "The MSRC Research Competition provides medical students with an opportunity to present their research, communicate scientific findings, and engage with fellow students and academic professionals.",
     description: "Explore the MSRC’27 Research Competition: eligibility, abstract guidelines, submission dates and evaluation criteria.",
     journey: "Your abstract’s journey", by: "By", from: "From", current: "Current step",
@@ -59,7 +59,7 @@ export const researchCompetitionCopy = {
     cta: { closed: "Submissions closed", opening: "Opens", signIn: "Sign in to submit", profile: "Complete your profile first", draft: "Continue your draft", finalized: "View your submission", submit: "Submit your abstract" },
   },
   ar: {
-    title: "مسابقة الأبحاث", home: "الرئيسية",
+    title: "مسابقة الأبحاث", kicker: "المؤتمر الطلابي للأبحاث الطبية ٢٠٢٧ · الأبحاث", home: "الرئيسية",
     intro: "تتيح مسابقة الأبحاث في المؤتمر الطلابي للأبحاث الطبية لطلاب الطب فرصة عرض أبحاثهم، ونقل النتائج العلمية، والتفاعل مع زملائهم من الطلاب والمختصين الأكاديميين.",
     description: "تعرّف على مسابقة الأبحاث في المؤتمر الطلابي للأبحاث الطبية ٢٠٢٧: الأهلية وإرشادات الملخصات ومواعيد التقديم ومعايير التقييم.",
     journey: "رحلة ملخصك البحثي", by: "بحلول", from: "ابتداءً من", current: "الخطوة الحالية",

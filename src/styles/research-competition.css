@@ -8,6 +8,8 @@
 .research-breadcrumb ol { display: flex; flex-wrap: wrap; gap: .75rem; padding: 0; list-style: none; margin-block: 0 3rem; font-size: .875rem; }
 .research-breadcrumb a { color: inherit; text-underline-offset: .3em; }
 .research-breadcrumb li + li::before { content: "/"; margin-inline-end: .75rem; opacity: .55; }
+.research-kicker { display: flex; align-items: center; gap: .85rem; color: var(--color-lilac); font-size: .9rem; font-weight: 700; margin-block: 0 1.5rem; }
+.research-kicker::before { content: ""; inline-size: 2.5rem; block-size: 2px; background: var(--color-gold); }
 .research-hero h1 { font-size: clamp(3rem, 7vw, 6.5rem); line-height: 1.05; letter-spacing: -.045em; max-inline-size: 14ch; margin-block: 0 2rem; }
 .research-hero-intro { max-inline-size: 72ch; font-size: clamp(1.05rem, 1.35vw, 1.2rem); line-height: 1.9; margin-block: 0 2.5rem; color: #f0eaf6; }
 .research-submission-cta { gap: .4em; flex-wrap: wrap; text-align: center; max-inline-size: 100%; font-weight: 750; }

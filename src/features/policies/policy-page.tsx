@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Arrow } from "@/components/ui/arrow";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -48,7 +47,7 @@ export function PolicyPage({ kind, locale, version, dated = false }: {
   const other = kind === "privacy" ? "terms" : "privacy";
   return (
     <div className="policy-page" data-policy-kind={kind} data-policy-version={snapshot.version} data-policy-status={snapshot.status}>
-      <section data-header-section="light" className="policy-hero" aria-labelledby="policy-page-title">
+      <section className="policy-hero" aria-labelledby="policy-page-title">
         <Container>
           <nav aria-label={labels.breadcrumb} className="about-breadcrumb">
             <ol>
@@ -67,7 +66,7 @@ export function PolicyPage({ kind, locale, version, dated = false }: {
           </div>
           {document.lead.split(/\n\n+/).filter(Boolean).map((paragraph) => <p className="policy-lead" key={paragraph}>{inlinePolicyText(paragraph)}</p>)}
           <Link className="text-link policy-version-link" href={dated ? `/${locale}/${kind}` : `/${locale}/${kind}/${snapshot.version}`}>
-            {dated ? labels.latestLink : labels.versionLink}<Arrow />
+            {dated ? labels.latestLink : labels.versionLink}
           </Link>
         </Container>
       </section>

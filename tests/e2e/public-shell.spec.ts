@@ -155,9 +155,9 @@ test("English pages do not download the Arabic webfont", async ({ page }) => {
 test("keyboard access reaches content and changes language without losing location", async ({ page }) => {
   await page.goto("/en?view=preview");
   await page.keyboard.press("Tab");
-  await expect(page.locator('a[href="#main-content"]')).toBeFocused();
-  await expect(page.locator('a[href="#main-content"]')).toBeVisible();
-  expect(await page.locator('a[href="#main-content"]').evaluate((element) => {
+  await expect(page.locator('a.skip-link[href="#main-content"]')).toBeFocused();
+  await expect(page.locator('a.skip-link[href="#main-content"]')).toBeVisible();
+  expect(await page.locator('a.skip-link[href="#main-content"]').evaluate((element) => {
     const outline = getComputedStyle(element);
     return outline.outlineStyle !== "none" && parseFloat(outline.outlineWidth) >= 2;
   })).toBe(true);

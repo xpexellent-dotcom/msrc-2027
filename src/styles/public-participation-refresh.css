@@ -1,4 +1,13 @@
 /* Participation paths and publication states use the same type and colours as the homepage. */
+.participation-hub-shortcut {
+  padding-block: 1.25rem;
+  border-block-end: 1px solid var(--color-line);
+  background: var(--color-white);
+}
+
+.participation-hub-shortcut .site-container { max-inline-size: 66rem; }
+.participation-hub-shortcut .button { max-inline-size: 100%; white-space: normal; }
+
 .participation-hub {
   padding-block: clamp(2.75rem, 5.5vw, 5.5rem) var(--section-y);
 }
@@ -218,20 +227,6 @@
 .participation-journey .fluid-workshop-copy h3 { font-family: var(--font-display); font-weight: 600; }
 
 /* Research guidance stays readable at rest, with native table-of-contents links. */
-.research-competition .research-hero {
-  padding-block-end: clamp(4rem, 8vw, 8rem);
-}
-
-.research-competition .research-hero::after {
-  background: linear-gradient(105deg, #1d102f 3%, rgb(40 20 68 / 85%) 56%, rgb(38 20 63 / 48%));
-}
-
-.research-competition .research-hero h1 {
-  max-inline-size: 16ch;
-  font-size: clamp(3rem, 6.5vw, 6rem);
-}
-
-.research-competition .research-hero-intro { max-inline-size: 62ch; }
 .research-index { border-block-end: 1px solid var(--color-line); background: var(--color-white); }
 .research-index ul {
   display: flex;
@@ -341,36 +336,17 @@
 
 [dir="rtl"] :is(.research-closing-lines, .sponsor-invitation-lines) { transform: scaleX(-1); }
 
-.people-page-intro--sponsors {
-  position: relative;
-  isolation: isolate;
-  overflow: clip;
-  padding-block-end: clamp(2rem, 4vw, 4.5rem);
+.sponsor-invitation > .site-container {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
 }
 
-.sponsor-intro-lines {
-  position: absolute;
-  z-index: -1;
-  inset-inline-end: -18%;
-  inset-block-start: -65%;
-  inline-size: min(82vw, 61rem);
-  color: var(--color-violet);
-  opacity: .18;
-  mask-image: radial-gradient(closest-side, black 18%, transparent 98%);
-  pointer-events: none;
-}
-
-[dir="rtl"] .sponsor-intro-lines { transform: scaleX(-1); }
-.sponsor-intro-info { display: grid; justify-items: start; align-content: end; }
-.sponsor-intro-info .sponsor-intro-icon {
-  inline-size: clamp(3.5rem, 6.5vw, 6rem);
+.sponsor-invitation .sponsor-invitation-icon {
+  inline-size: clamp(6rem, 16vw, 13rem);
   block-size: auto;
   aspect-ratio: 1;
-  margin-block-end: .5rem;
-}
-
-.people-page-intro--sponsors + .sponsors-page {
-  padding-block-start: clamp(2.5rem, 5.5vw, 5.5rem);
+  border-radius: var(--r-panel, 1rem);
+  background: var(--color-ivory);
 }
 
 /* A compact editorial catalogue accommodates both pending and published sponsors. */
@@ -467,7 +443,9 @@
     border-block-end: 1px solid var(--color-line);
   }
 
-  .sponsors-page .sponsor-tier { grid-template-columns: minmax(0, 1fr); }
+  .sponsors-page .sponsor-tier,
+  .sponsor-invitation > .site-container { grid-template-columns: minmax(0, 1fr); }
+  .sponsor-invitation .sponsor-invitation-icon { display: none; }
   .sponsors-page .sponsor-tier--silver .sponsor-brand-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 6rem), 1fr)); }
 }
 
@@ -480,6 +458,5 @@
   .participation-journey .journey-availability-dot { background: CanvasText; }
 
   .research-closing-lines,
-  .sponsor-intro-lines,
   .sponsor-invitation-lines { display: none; }
 }

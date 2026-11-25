@@ -56,6 +56,9 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/program`);
     await expect(page.locator(".program-date-panel time")).toHaveText([copy[locale].first, copy[locale].second]);
     await expect(page.getByTestId("program-day-all")).toHaveAttribute("aria-current", "true");
+    const titleAccent = page.locator("#experience-title .premium-title-accent");
+    await expect(titleAccent).toHaveCSS("background-clip", "text");
+    await expect(titleAccent).toHaveCSS("background-image", /linear-gradient/);
     await expect(page.locator(".premium-hero-image img")).toHaveCount(1);
     expect(await page.locator(".premium-hero-image img").evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0s");
   });
@@ -180,7 +183,7 @@ test("Dates and Venue keyboard and language navigation preserve the section and 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/en/dates-venue?view=planning");
   await page.keyboard.press("Tab");
-  const skip = page.locator('a[href="#main-content"]');
+  const skip = page.locator('a.skip-link[href="#main-content"]');
   await expect(skip).toBeFocused();
   await expect(skip).toBeVisible();
   expect(await skip.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");
