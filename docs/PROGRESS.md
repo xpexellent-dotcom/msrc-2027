@@ -25,6 +25,13 @@
   audit returned no known vulnerabilities after the update.
   [Next.js security release](https://nextjs.org/blog/november-2026-security-release)
   and [16.4.6 release notes](https://github.com/vercel/next.js/releases/tag/v16.4.6).
+- The full audit also identified test-tool advisories. Pinned Vitest 5.0.3
+  and its Vite peer 8.3.8. `pnpm audit` then returned no known vulnerabilities.
+  The newer Turbopack build traces literal executable paths. The isolated
+  staff test bridge now resolves its Windows system executable at runtime.
+  Its 48 unit checks passed, including denial before transport outside the
+  local test boundary and for invalid executable roots. Requirements: SEC-01,
+  INF-04/05 and REL-06.
 
 ## 21 November 2026 — Restore the split desktop homepage navigation
 
