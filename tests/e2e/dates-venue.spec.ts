@@ -7,22 +7,23 @@ import { expect, test } from "@playwright/test";
 const copy = {
   en: {
     title: "Dates & venue | MSRC 2027", heading: "Your way to MSRC.",
-    first: "27 January 2027", second: "28 January 2027", venue: "King Faisal Conference Center",
+    first: "7 April 2027", second: "8 April 2027", range: "7–8 April 2027", venue: "King Faisal Conference Center",
     host: "King Abdulaziz University", closed: "Registration not open yet",
     breadcrumb: "Breadcrumb", home: "Home", footer: "Dates & venue",
   },
   ar: {
     title: "المواعيد والمقر | MSRC 2027", heading: "طريقك إلى المؤتمر.",
-    first: "٢٧ يناير ٢٠٢٧", second: "٢٨ يناير ٢٠٢٧", venue: "مركز الملك فيصل للمؤتمرات",
+    first: "٧ أبريل ٢٠٢٧", second: "٨ أبريل ٢٠٢٧", range: "٧–٨ أبريل ٢٠٢٧", venue: "مركز الملك فيصل للمؤتمرات",
     host: "جامعة الملك عبدالعزيز", closed: "لم يُفتح التسجيل بعد",
     breadcrumb: "مسار التنقل", home: "الرئيسية", footer: "المواعيد والمقر",
   },
 } as const;
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} venue introduces four views and Program keeps exact days unset`, async ({ page }) => {
+  test(`${locale} Venue introduces four views and Program shows the confirmed days`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/dates-venue`);
+    await expect(page.locator(".dates-lead")).toContainText(copy[locale].range);
     await expect(page.locator(".dates-calendar")).toHaveCount(0);
     const photos = page.locator(".venue-photo-gallery img");
     await expect(photos).toHaveCount(4);
@@ -41,8 +42,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#journey-airport").getByRole("heading").first()).toBeInViewport();
     await expect(page.locator("#journey-airport .venue-journey-reading")).toHaveCSS("opacity", "1");
     await page.goto(`/${locale}/program`);
-    await expect(page.locator(".program-date-panel")).toContainText(locale === "en" ? "April 2027" : "أبريل ٢٠٢٧");
-    await expect(page.locator(".program-date-panel a, .program-date-panel time")).toHaveCount(0);
+    await expect(page.locator(".program-date-panel time")).toHaveText([copy[locale].first, copy[locale].second]);
     await expect(page.getByTestId("program-day-all")).toHaveAttribute("aria-current", "true");
     await expect(page.locator(".premium-hero-image img")).toHaveCount(1);
     expect(await page.locator(".premium-hero-image img").evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0s");
@@ -190,11 +190,19 @@ test("Dates and Venue keyboard and language navigation preserve the section and 
 });
 
 for (const [locale, label] of [["en", "Add to calendar"], ["ar", "أضف إلى التقويم"]] as const) {
-  test(`${locale} calendar stays unavailable while exact days are unset`, async ({ page }) => {
+  test(`${locale} Program downloads an all-day calendar revision for 7–8 April`, async ({ page }) => {
     await page.goto(`/${locale}/program`);
-    await expect(page.locator(".program-date-panel")).toContainText(locale === "en" ? "April 2027" : "أبريل ٢٠٢٧");
-    await expect(page.locator(".program-date-panel time")).toHaveCount(0);
-    await expect(page.getByRole("link", { name: label })).toHaveCount(0);
-    expect((await page.request.get(`/${locale}/msrc-2027.ics`)).status()).toBe(404);
+    const url = `/${locale}/msrc-2027.ics`;
+    const link = page.getByRole("link", { name: label });
+    await expect(link).toHaveAttribute("href", url);
+    await expect(link).toHaveAttribute("download", "msrc-2027.ics");
+    const response = await page.request.get(url);
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("text/calendar");
+    const lines = (await response.text()).split("\r\n");
+    expect(lines).toContain("UID:msrc-2027-conference@msrc2027.com");
+    expect(lines).toContain("SEQUENCE:1");
+    expect(lines).toContain("DTSTART;VALUE=DATE:20270407");
+    expect(lines).toContain("DTEND;VALUE=DATE:20270409");
   });
 }

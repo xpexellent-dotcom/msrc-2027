@@ -2,26 +2,28 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
 import { ConferenceCountdown } from "@/components/conference-countdown";
+import { conferenceConfig } from "@/config/conference";
 import {
   formatConferenceDate, formatConferenceDateRange, getConferenceCountdown, getConferenceClockCountdown,
   getRiyadhCalendarDate, millisecondsToNextRiyadhDay, subscribeToRiyadhDayChange, subscribeToConferenceClock,
   type CalendarDate, type CountdownClockEnvironment, type DayClockEnvironment,
 } from "@/lib/conference-dates";
 
-const dates = { day1: "2027-01-27", day2: "2027-01-28" } as const;
+const confirmedDates = conferenceConfig.dates!;
+const dates = { day1: "2027-01-27", day2: "2027-01-28" } as const; // Fixed dates for clock math fixtures.
 
 afterEach(() => { vi.useRealTimers(); });
 
 describe("date-only publication and localization (CFG-01, LOC-01/03)", () => {
   it("formats approved Gregorian days without assuming an opening time", () => {
-    expect(formatConferenceDate(dates.day1, "en")).toBe("27 January 2027");
-    expect(formatConferenceDate(dates.day2, "en")).toBe("28 January 2027");
-    // Matches the hand-written copy ("27–28 January 2027"), whatever ICU's range spacing.
-    expect(formatConferenceDateRange(dates, "en")).toBe("27–28 January 2027");
+    expect(formatConferenceDate(confirmedDates.day1, "en")).toBe("7 April 2027");
+    expect(formatConferenceDate(confirmedDates.day2, "en")).toBe("8 April 2027");
+    // Matches the approved copy regardless of ICU's same-month range spacing.
+    expect(formatConferenceDateRange(confirmedDates, "en")).toBe("7–8 April 2027");
     expect(formatConferenceDateRange({ day1: "2027-01-31", day2: "2027-02-01" }, "en")).toMatch(/^31 January\s–\s1 February 2027$/);
-    expect(formatConferenceDate(dates.day1, "ar")).toBe("٢٧ يناير ٢٠٢٧");
-    expect(formatConferenceDateRange(dates, "ar")).toBe("٢٧–٢٨ يناير ٢٠٢٧");
-    expect(formatConferenceDateRange(dates, "ar")).not.toMatch(/[0-9]/);
+    expect(formatConferenceDate(confirmedDates.day1, "ar")).toBe("٧ أبريل ٢٠٢٧");
+    expect(formatConferenceDateRange(confirmedDates, "ar")).toBe("٧–٨ أبريل ٢٠٢٧");
+    expect(formatConferenceDateRange(confirmedDates, "ar")).not.toMatch(/[0-9]/);
   });
 
   it.each(["2027-02-29", "2027-01-32", "2027-13-01", "2027-1-27", "2027-01-27T00:00:00Z"])(
@@ -33,26 +35,26 @@ describe("date-only publication and localization (CFG-01, LOC-01/03)", () => {
   it("renders useful static dates rather than freezing a live count into cached HTML", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-01T12:00:00Z"));
-    const dateRange = formatConferenceDateRange(dates, "en");
-    const first = renderToStaticMarkup(createElement(ConferenceCountdown, { target: "2027-04-01T00:00:00+03:00", locale: "en", dateRange }));
-    vi.setSystemTime(new Date("2027-01-29T12:00:00Z"));
-    const later = renderToStaticMarkup(createElement(ConferenceCountdown, { target: "2027-04-01T00:00:00+03:00", locale: "en", dateRange }));
+    const dateRange = formatConferenceDateRange(confirmedDates, "en");
+    const first = renderToStaticMarkup(createElement(ConferenceCountdown, { target: conferenceConfig.countdownTarget, locale: "en", dateRange }));
+    vi.setSystemTime(new Date("2027-04-09T12:00:00Z"));
+    const later = renderToStaticMarkup(createElement(ConferenceCountdown, { target: conferenceConfig.countdownTarget, locale: "en", dateRange }));
     expect(later).toBe(first);
     expect(first).toContain('data-countdown="dates"');
-    expect(first).toMatch(/27\D+28 January 2027/);
+    expect(first).toContain("7–8 April 2027");
     expect(first).not.toContain("countdown-number");
     expect(first).not.toContain("aria-live");
   });
 
   it("preserves the server-provided date text despite different browser ICU range spacing", () => {
-    const serverRange = "27\u2009–\u200928 January 2027";
+    const serverRange = "7\u2009–\u20098 April 2027";
     const browserFormatter = vi.spyOn(Intl.DateTimeFormat.prototype, "formatRange")
-      .mockReturnValue("27 – 28 January 2027");
+      .mockReturnValue("7 – 8 April 2027");
     const markup = renderToStaticMarkup(createElement(ConferenceCountdown, {
-      target: "2027-04-01T00:00:00+03:00", locale: "en", dateRange: serverRange,
+      target: conferenceConfig.countdownTarget, locale: "en", dateRange: serverRange,
     }));
     expect(markup).toContain(serverRange);
-    expect(markup).not.toContain("27 – 28 January 2027");
+    expect(markup).not.toContain("7 – 8 April 2027");
     expect(browserFormatter).not.toHaveBeenCalled();
   });
 });

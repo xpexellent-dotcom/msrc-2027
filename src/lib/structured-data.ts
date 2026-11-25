@@ -23,13 +23,12 @@ export function websiteJsonLd(locale: Locale) {
 
 /**
  * schema.org Event for the homepage, so search results can show the conference's name, dates
- * and city. Built only from facts the page already publishes: confirmed dates (ORG-001), the
+ * and city. Built only from facts the page already publishes: confirmed dates, the
  * city, the organizer line and the lead. ORG-031 adds the confirmed venue and street address.
  * There are no offers, times, prices or capacities.
  */
 export function conferenceEventJsonLd(locale: Locale) {
   const dates = conferenceConfig.dates;
-  // ORG-073. Month-only announcement has no full schema.org Event Date.
   if (!dates) return null;
   const copy = homepageCopy[locale];
   const venue = conferenceConfig.venue;

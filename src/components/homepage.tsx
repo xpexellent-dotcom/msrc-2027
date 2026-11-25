@@ -19,13 +19,12 @@ import { AmbientArtwork } from "@/components/ambient-artwork";
 import { BenefitArtwork } from "@/components/benefit-artwork";
 import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { conferenceExpectations } from "@/content/conference-expectations";
-import { conferenceConfig } from "@/config/conference";
+import { conferenceConfig, conferenceDateLabel } from "@/config/conference";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
 import { homepageNarrative } from "@/content/homepage-narrative";
 import { cinematicCopy, demoImages } from "@/content/cinematic-demo";
 import type { Locale } from "@/lib/i18n";
 import type { PreviewHeroVideo } from "@/lib/media-policy";
-import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { SessionRow, SpeakerCard } from "@/components/conference-experiences";
 import type { PublicSession, PublicSpeaker } from "@/content/conference-experiences";
 
@@ -44,8 +43,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
   const narrative = homepageNarrative[locale];
   const demo = cinematicCopy[locale];
   const expectations = conferenceExpectations[locale];
-  const dates = conferenceConfig.dates;
-  const dateRange = dates ? formatConferenceDateRange(dates, locale) : conferenceConfig.monthLabel[locale];
+  const dateRange = conferenceDateLabel(locale);
   const placeholders = homePlaceholdersEnabled();
   const pathways = [...copy.pathways, demo.threeMinute];
 

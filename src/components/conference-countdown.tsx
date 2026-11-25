@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useSyncExternalStore } from "react";
 import {
-  getConferenceClockCountdown, subscribeToConferenceClock,
+  formatConferenceDate, getConferenceClockCountdown, getRiyadhCalendarDate, subscribeToConferenceClock,
 } from "@/lib/conference-dates";
 import type { Locale } from "@/lib/i18n";
 
@@ -55,6 +55,7 @@ export function ConferenceCountdown({ target, locale, dateRange, pauseWhenHidden
   const currentSecond = useSyncExternalStore(subscribeToClock, getSnapshot, getServerSnapshot);
   const countdown = currentSecond !== null ? getConferenceClockCountdown(target, new Date(currentSecond * 1000)) : null;
   const label = locale === "ar" ? "العدّ التنازلي" : "Until MSRC 2027";
+  const targetDate = formatConferenceDate(getRiyadhCalendarDate(new Date(target)), locale);
 
   const number = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", {
     numberingSystem: locale === "ar" ? "arab" : "latn", useGrouping: false,
@@ -67,7 +68,7 @@ export function ConferenceCountdown({ target, locale, dateRange, pauseWhenHidden
     <div ref={root} className="conference-countdown" data-countdown={countdown?.phase ?? "dates"}>
       {countdown?.phase !== "after" && <p className="countdown-label">{label}</p>}
       {countdown?.phase === "before" && (
-        <div className="countdown-clock" role="timer" aria-live="off" aria-label={locale === "ar" ? "العدّ التنازلي حتى أبريل ٢٠٢٧ بتوقيت الرياض (Asia/Riyadh)" : "Countdown to April 2027 in Riyadh (Asia/Riyadh)"}>
+        <div className="countdown-clock" role="timer" aria-live="off" aria-label={locale === "ar" ? `العدّ التنازلي حتى ${targetDate} بتوقيت الرياض (Asia/Riyadh)` : `Countdown to ${targetDate} in Riyadh (Asia/Riyadh)`}>
           <p className="countdown-remaining">
             <span className="countdown-number" data-countdown-unit="days">{number.format(countdown.days)}</span>
             <span className="countdown-unit">{countdownDayUnit(countdown.days, locale)}</span>
@@ -87,7 +88,7 @@ export function ConferenceCountdown({ target, locale, dateRange, pauseWhenHidden
         </div>
       )}
       <div className="countdown-context">
-        <p className="countdown-dates"><time dateTime="2027-04">{dateRange}</time></p>
+        <p className="countdown-dates">{dateRange}</p>
       </div>
     </div>
   );

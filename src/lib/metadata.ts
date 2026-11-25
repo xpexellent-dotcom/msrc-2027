@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { conferenceConfig } from "@/config/conference";
-import { formatConferenceDateRange } from "@/lib/conference-dates";
+import { conferenceConfig, conferenceDateLabel } from "@/config/conference";
 import type { Locale } from "@/lib/i18n";
 
 /** Public origin for absolute metadata URLs. Previews also point shared links at the public site. */
@@ -56,11 +55,10 @@ const descriptionCity: Record<Locale, string> = { en: ", Jeddah. ", ar: "، جد
 
 /**
  * A page's search snippet led by the confirmed dates, venue and city, as on the homepage:
- * "April 2027, King Faisal Conference Center, Jeddah. Practical learning…"
+ * "7–8 April 2027, King Faisal Conference Center, Jeddah. Practical learning…"
  */
 export function conferenceDescription(locale: Locale, text: string): string {
   const venue = conferenceConfig.venue;
   const location = `${venue ? `${locale === "ar" ? "، " : ", "}${venue.name[locale]}` : ""}${descriptionCity[locale]}`;
-  const date = conferenceConfig.dates ? formatConferenceDateRange(conferenceConfig.dates, locale) : conferenceConfig.monthLabel[locale];
-  return `${date}${location}${text}`;
+  return `${conferenceDateLabel(locale)}${location}${text}`;
 }

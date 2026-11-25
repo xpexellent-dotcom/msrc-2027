@@ -1,4 +1,4 @@
-import type { CalendarDate } from "@/lib/conference-dates";
+import { formatConferenceDateRange, type CalendarDate } from "../lib/conference-dates.ts";
 import type { Locale } from "@/lib/i18n";
 
 export type LocalizedVenueText = Readonly<Record<Locale, string>>;
@@ -33,13 +33,15 @@ export interface ConferenceConfig {
   readonly production: Readonly<{ vercelRegion: string | null; supabaseRegion: string | null }>;
 }
 
+const confirmedDates = Object.freeze({ day1: "2027-04-07", day2: "2027-04-08" } as const);
+
 export const conferenceConfig: ConferenceConfig = Object.freeze({
   edition: 2027,
   timeZone: "Asia/Riyadh",
-  dates: null,
+  dates: confirmedDates,
   monthLabel: Object.freeze({ en: "April 2027", ar: "أبريل ٢٠٢٧" }),
-  // ORG-073. Display target only, never a conference day or workflow gate.
-  countdownTarget: "2027-04-01T00:00:00+03:00",
+  // Riyadh midnight starts the calendar day for display only (TIM-01).
+  countdownTarget: `${confirmedDates.day1}T00:00:00+03:00`,
   // ORG-031 / CFG-01: venue confirmed on 5 October 2026; rooms and times remain unset.
   venue: Object.freeze({
     name: Object.freeze({ en: "King Faisal Conference Center", ar: "مركز الملك فيصل للمؤتمرات" }),
@@ -92,3 +94,8 @@ export const conferenceConfig: ConferenceConfig = Object.freeze({
   workshopCapacity: null,
   production: Object.freeze({ vercelRegion: null, supabaseRegion: null }),
 });
+
+export function conferenceDateLabel(locale: Locale): string {
+  const { dates, monthLabel } = conferenceConfig;
+  return dates ? formatConferenceDateRange(dates, locale) : monthLabel[locale];
+}

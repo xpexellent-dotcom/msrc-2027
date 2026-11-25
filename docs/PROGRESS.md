@@ -1,5 +1,23 @@
 # Progress and session handover
 
+## 25 November 2026 — Confirmed dates and homepage publication
+
+- ORG-075 confirms 7–8 April 2027 and authorizes publication through PR #155.
+  The current bilingual Privacy v1.2 and Terms v1.1 show the confirmed
+  dates. The approved fixed privacy retention limits are 28 January 2028
+  and 28 January 2029. The production policy versions match the release
+  source, and the candidate adds no database migrations.
+- The public date range, countdown, and calendar use the confirmed days.
+  Hosted workflow and attendance settings are managed separately.
+  Requirements: SCP-01, CFG-01, TIM-01/02, LOC-01/03, PRV-01/05/08,
+  INF-05 and REL-06.
+- Recorded the planned abstract and other workflow date revisions and the
+  future policy change for retaining email and contact information beyond
+  one year. Exact workflow windows and approved retention terms are pending.
+- Local verification passed the production build, lint, all 5,665 unit tests,
+  12 legal browser checks and 65 public browser checks across the two languages.
+  The production dependency audit found no known vulnerabilities.
+
 ## 25 November 2026 — Homepage release review
 
 - Brought the reviewed split-navigation change from draft PR #154 onto

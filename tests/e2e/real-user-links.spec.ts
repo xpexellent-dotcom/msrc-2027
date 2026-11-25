@@ -55,8 +55,9 @@ test("sitemap destinations, internal links, previews, icons and calendar have us
   }
   for (const locale of ["en", "ar"]) {
     const response = await request.get(`/${locale}/msrc-2027.ics`);
-    expect(response.status()).toBe(404);
-    expect(response.headers()["content-disposition"]).toBeUndefined();
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("text/calendar");
+    expect(response.headers()["content-disposition"]).toBe('attachment; filename="msrc-2027.ics"');
   }
   await testInfo.attach("link-inventory", { body: JSON.stringify({ listed, internal: [...destinations], external: [...external] }, null, 2), contentType: "application/json" });
 });

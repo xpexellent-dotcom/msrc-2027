@@ -82,3 +82,10 @@ and Reserve or account control when scrolling down. Upward scroll or visible
 keyboard focus restores the full navigation. The corner layout mirrors in
 Arabic and settles without animation under reduced motion. The detached logo
 uses a solid surface matched to the current header tone.
+
+## Confirmed dates, 25 November 2026
+
+ORG-075 confirms 7–8 April 2027. The homepage and countdown use the shared
+conference dates. The countdown targets the start of 7 April in Asia/Riyadh
+as a display boundary. The public dates also appear in the current bilingual
+Privacy Policy and Terms, with their approved acceptance versions retained.

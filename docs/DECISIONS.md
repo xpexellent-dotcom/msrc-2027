@@ -5702,3 +5702,39 @@ directional scroll and keyboard behavior, with the current seal, tone-aware
 glass and Reserve dialog. Arabic mirrors the split. Phone, enlarged-text and
 interior navigation keep the full header. Requirements: DSN-01/02, ACC-01,
 LOC-01/03, REL-06.
+
+## ORG-075 — Confirm 7–8 April 2027 and correct the legal pages, 25 November 2026
+
+The organizer confirms Day 1 on **7 April 2027** and Day 2 on **8 April
+2027** in Asia/Riyadh. This supersedes ORG-001's January days and ORG-073's
+month-only display and 1 April countdown target. Use the confirmed days in
+public date displays and the all-day calendar entry. The countdown uses
+Riyadh midnight at the start of Day 1 as a display boundary. Doors, session
+times, registration and submission windows follow their own approvals.
+
+Correct the event dates in current Privacy v1.2 and Terms v1.1 in English
+and Arabic as an organizer-approved editorial correction. Keep their
+effective date, acceptance version identifiers and older archived versions.
+State the existing 28 January 2028 deletion deadline and 28 January 2029
+certificate-verification limit as fixed dates under ORG-041. They take
+precedence over the old text that equated those limits with conference
+anniversaries. Hosted policy, retention and workflow settings follow their
+own approvals.
+
+The organizer authorizes merging PR #155 and verifying its Production
+release. Close the superseded full-diff PR #154 once the release is verified
+and preserve its branch and review history. Requirements: SCP-01, CFG-01,
+TIM-01/02, LOC-01/03, PRV-01/05/08, INF-05 and REL-06.
+
+### Follow-ups pending organizer details
+
+- Align the abstract schedule and the other conference workflow dates with
+  the April event. Record the exact opening, submission, review, decision,
+  registration and other applicable windows in Asia/Riyadh when confirmed.
+  Conference days do not establish those independent deadlines.
+- Prepare a future bilingual Privacy Policy and Terms revision for retaining
+  email and contact information beyond the current one-year rule. Confirm
+  which contact fields and email records are covered, the retention period,
+  purpose, legal wording and handling of existing records before approving
+  a policy or hosted retention change. The date correction uses the current
+  retention commitments.

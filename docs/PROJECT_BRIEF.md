@@ -15,7 +15,7 @@ Akram Awan is the project requester and has identified his role in conversation 
 | Edition | Fifth MSRC, 2027, KAU, Jeddah | Conference context |
 | Domain | `msrc2027.com` | Purchase reported by user; current DNS, renewal, and account control not inspected |
 | Event length | Two-day conference | Product baseline |
-| Event dates | Day 1: 27 January 2027; Day 2: 28 January 2027 | Confirmed by the project requester in the current chat on 1 October 2026; see ORG-001 in DECISIONS |
+| Event dates | Day 1: 7 April 2027; Day 2: 8 April 2027 | Confirmed by the project requester on 25 November 2026; see ORG-075 in DECISIONS |
 | Venue and schedule | King Faisal Conference Center / مركز الملك فيصل للمؤتمرات, King Abdulaziz University, Jeddah; Abdullah Sulayman St, Jeddah 22254 | Venue confirmed 5 October 2026 by ORG-031; rooms, doors/session times and workflow windows remain unset |
 | Ownership | MSRC/RPClub organizational accounts with institutional authorization, O1 | Selected model; custodians/authorization evidence pending |
 | Hosting and data | Managed Vercel plus managed Supabase | Project ecemjggwlzqpjcwmchrl designated Production by ORG-017; production plan/region/privacy/operational approvals unresolved; synthetic data isolated |

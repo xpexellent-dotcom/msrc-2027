@@ -1,7 +1,6 @@
 import { ImageResponse } from "next/og";
 import { locales } from "@/lib/i18n";
-import { conferenceConfig } from "@/config/conference";
-import { formatConferenceDateRange } from "@/lib/conference-dates";
+import { conferenceDateLabel } from "@/config/conference";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -34,7 +33,7 @@ export default function OpenGraphImage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
           <div style={{ display: "flex", width: 100, height: 6, borderRadius: 3, background: "#C9A24A" }} />
-          {<span style={{ fontSize: 32, color: "#DCCFF0" }}>{conferenceConfig.dates ? formatConferenceDateRange(conferenceConfig.dates, "en") : conferenceConfig.monthLabel.en}</span>}
+          <span style={{ fontSize: 32, color: "#DCCFF0" }}>{conferenceDateLabel("en")}</span>
         </div>
       </div>
     ),
