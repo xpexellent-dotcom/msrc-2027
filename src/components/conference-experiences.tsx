@@ -225,8 +225,24 @@ function SpeakerPreviewRail({ locale }: { locale: Locale }) {
   </div>;
 }
 
-export function SpeakerCard({ locale, speaker }: { locale: Locale; speaker: PublicSpeaker }) {
-  return <article className="conference-speaker-card"><Link className="conference-speaker-card-link" href={`/${locale}/speakers/${speaker.slug}`} aria-label={speaker.name}><div className="conference-speaker-portrait">{speaker.portrait ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} unoptimized={speaker.portrait.startsWith("https:") || speaker.portrait.startsWith("http:")} style={{ objectPosition: speaker.portraitPosition }} fill sizes="(max-width: 600px) 90vw, (max-width: 900px) 45vw, 28vw" /> : <ResearchVisual variant={0} />}<FlowLines className="speaker-flow-lines" /></div><div className="conference-speaker-copy" lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}><h2>{speaker.name}</h2><p>{speaker.title}</p><p>{speaker.institution}</p></div></Link></article>;
+export function SpeakerCard({ locale, speaker, compact = false }: { locale: Locale; speaker: PublicSpeaker; compact?: boolean }) {
+  const Heading = compact ? "h3" : "h2";
+  const sizes = compact ? "72px" : "(max-width: 600px) 90vw, (max-width: 900px) 45vw, 28vw";
+  return <article className="conference-speaker-card">
+    <Link className="conference-speaker-card-link" href={`/${locale}/speakers/${speaker.slug}`} aria-label={speaker.name}>
+      <div className="conference-speaker-portrait">
+        {speaker.portrait
+          ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} unoptimized={speaker.portrait.startsWith("https:") || speaker.portrait.startsWith("http:")} style={{ objectPosition: speaker.portraitPosition }} fill sizes={sizes} />
+          : <ResearchVisual variant={0} />}
+        <FlowLines className="speaker-flow-lines" />
+      </div>
+      <div className="conference-speaker-copy" lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>
+        <Heading>{speaker.name}</Heading>
+        <p>{speaker.title}</p>
+        <p>{speaker.institution}</p>
+      </div>
+    </Link>
+  </article>;
 }
 
 export function MediaExperience({ locale, media, sessions }: { locale: Locale; media: readonly PublicMedia[]; sessions: readonly PublicSession[]; initialQuery?: CatalogueQuery }) {

@@ -5760,3 +5760,18 @@ The approved conference dates, policy versions, workflow windows and release
 controls follow their existing decisions. Requirements: SCP-01/02, DSN-01/02,
 ACC-01, LOC-01/03, MED-02, CFG-12, NFR-02 and REL-06. See the
 [sitewide visual update](features/sitewide-brand-refresh.md).
+
+## ORG-077 — Public registration and visual follow-up, 26 November 2026
+
+The organizer confirmed that the public registration opening and closing
+dates shown on Participate are TBD. This supersedes the dated public
+registration display in ORG-058, which drew on ORG-056 and ORG-057.
+Show both as pending in English and Arabic and retain free attendance.
+The conference dates are 7–8 April 2027 under ORG-075. Staff-entered
+windows and the separate abstract calendar follow their own decisions.
+
+Restore the PR #155 research roadmap presentation, enlarge the Research
+Principles Club seal in the footer, and make the homepage Speakers
+section a concise preview that points to the full catalogue. Keep the
+approved page headers. Requirements: REG-02, TIM-01, DSN-01/02, ACC-01,
+LOC-01/03 and REL-06. See the [sitewide visual update](features/sitewide-brand-refresh.md).

@@ -48,9 +48,13 @@ for (const locale of ["en", "ar"] as const) {
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.mouse.move(0, 0);
+    await expect(page.locator(".research-roadmap-reveal")).toHaveAttribute("data-reveal", "ready");
+    const firstDetail = steps.first().locator(".research-step-detail");
+    await expect(firstDetail).toHaveCSS("opacity", "0");
     const numeral = steps.first().locator(".research-step-number");
     await expect(numeral).toHaveCSS("color", "rgb(217, 210, 223)");
     await steps.first().hover();
+    await expect(firstDetail).toHaveCSS("opacity", "1");
     await expect(numeral).toHaveCSS("color", "rgb(59, 30, 109)");
     await expect(numeral).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, -3)");
     const line = await steps.first().evaluate((node) => { const style = getComputedStyle(node, "::before"); return { color: style.backgroundColor, origin: style.transformOrigin, width: node.getBoundingClientRect().width }; });
@@ -63,6 +67,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(numeral).toHaveCSS("color", "rgb(59, 30, 109)");
     await page.keyboard.press("Tab");
     await expect(steps.nth(1)).toBeFocused();
+    await expect(steps.nth(1).locator(".research-step-detail")).toHaveCSS("opacity", "1");
     await expect(steps.nth(1).locator(".research-step-number")).toHaveCSS("color", "rgb(59, 30, 109)");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(steps.nth(1).locator(".research-step-number")).toHaveCSS("transition-duration", "0s");
@@ -102,8 +107,11 @@ for (const locale of ["en", "ar"] as const) {
     await expect(presentations.getByRole("article")).toHaveCount(2);
     await expect(presentations.getByRole("article").getByRole("heading", { level: 3 })).toHaveText([copy.oral, copy.poster]);
     await expect(presentations.locator(".research-format-label")).toHaveCount(2);
-    await expect(presentations.locator(".research-format-art[aria-hidden='true'] .research-format-numeral")).toHaveCount(2);
-    await expect(presentations.locator("svg[aria-hidden='true']")).toHaveCount(2);
+    const illustrations = presentations.locator(".research-format-art[aria-hidden='true'] img");
+    await expect(illustrations).toHaveCount(2);
+    await expect(illustrations.first()).toHaveAttribute("src", /11-speakers\.webp/);
+    await expect(illustrations.last()).toHaveAttribute("src", /12-posters\.webp/);
+    for (const illustration of await illustrations.all()) await expect(illustration).toHaveAttribute("alt", "");
     await expect(presentations.locator(".research-winners")).toContainText(copy.winners);
     await expect(page.locator(".research-submission-cta").first()).toHaveAttribute("aria-disabled", "true");
     await expect(page.locator(".research-submission-cta").first()).toContainText(copy.cta.opening);

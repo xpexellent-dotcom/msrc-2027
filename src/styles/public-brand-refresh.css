@@ -41,6 +41,10 @@
 .footer-return svg { flex-shrink: 0; inline-size: 18px; block-size: 18px; }
 .homepage-journey .faq-introduction .brand-icon { margin-block-end: .85rem; }
 
+@media (min-width: 1200px) {
+  .venue-stage-layout { padding-block: 0; row-gap: 1rem; }
+  .venue-stage-resources { margin-block-start: .75rem; }
+}
 @media (max-width: 800px) {
   .venue-stage-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
   .venue-stage-layout .venue-hero-map { grid-column: auto; grid-row: auto; }

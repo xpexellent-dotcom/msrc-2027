@@ -71,15 +71,15 @@ for (const locale of ["en", "ar"] as const) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   });
 
-  test(`${locale} homepage omits sponsor sections and photographic speaker placeholders`, async ({ page }) => {
+  test(`${locale} homepage omits sponsor sections and offers a concise speakers overview`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await expect(page.locator("main .sponsor-belt, .hero-social")).toHaveCount(0);
     await expect(page.locator("main .brand-marquee, main .sponsor-tiers")).toHaveCount(0);
-    const speakers = page.locator(".speaker-preview-card");
-    expect(await speakers.count()).toBeGreaterThan(0);
-    await expect(speakers.locator("img, .demo-chip, .portrait-provenance")).toHaveCount(0);
-    await expect(speakers.locator(".portrait-placeholder")).toHaveCount(await speakers.count());
+    const speakers = page.locator("#speakers");
+    await expect(speakers.getByRole("link")).toHaveAttribute("href", `/${locale}/speakers`);
+    await expect(speakers.locator(".home-speaker-icon img")).toHaveAttribute("alt", "");
+    await expect(speakers.locator(".rail-track, .portrait-placeholder, .demo-chip, .portrait-provenance")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   });
 

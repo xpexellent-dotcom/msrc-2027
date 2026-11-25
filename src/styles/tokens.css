@@ -77,6 +77,9 @@
   --countdown-reserve-phone-en: 184px;
   --countdown-reserve-phone-ar: 194px;
   --home-gallery-width: clamp(25rem, 52vw, 52rem);
+  --home-speaker-section-y: clamp(2rem, 4vw, 3.75rem);
+  --home-speaker-pad: clamp(1rem, 2.75vw, 2rem);
+  --t-home-speaker: clamp(1.875rem, 3.6vw, 3.1rem);
   --color-mist: #eee8f7;
   --color-violet: #8066a8;
   --color-mauve: #b89ac7;

@@ -17,7 +17,6 @@ import { HistoryNumbers } from "@/components/history-numbers";
 import { SpeakerAtmosphere } from "@/components/speaker-atmosphere";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { BenefitArtwork } from "@/components/benefit-artwork";
-import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { conferenceExpectations } from "@/content/conference-expectations";
 import { conferenceConfig, conferenceDateLabel } from "@/config/conference";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
@@ -115,14 +114,19 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
     <section data-header-section="light" id="speakers" tabIndex={-1} className="editorial-section speakers-section" aria-labelledby="speakers-title">
       <SpeakerAtmosphere />
       <Container>
-        <Reveal className="section-topline" stagger><SectionHeading chapter title={narrative.speakersTitle} accents={locale === "ar" ? ["المتحدثين.", "المتحدثين"] : ["speakers.", "speakers"]} id="speakers-title" /><Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link></Reveal>
-        {!speakers.length ? <p className="section-intro-text">{narrative.speakersBody}</p> : null}
-        {speakers.length ? <div className="speaker-grid public-home-speakers" data-testid="home-published-speakers">{speakers.slice(0, 4).map((speaker) => <SpeakerCard key={speaker.slug} locale={locale} speaker={speaker} />)}</div> : <HorizontalRail className="speaker-rail" locale={locale} label={demo.speakerRail}>
-          {[0, 1, 2, 3].map((index) => <article className="speaker-preview-card" key={index}>
-            <div className="speaker-preview-portrait"><PortraitPlaceholder variant={index} /></div>
-            <div className="speaker-preview-content"><h3>{demo.speakerTitle}</h3><p>{demo.speakerPending}</p>{/* Pointer shortcut only: the section's "Meet the speakers" link already reaches this page, so the four identical placeholder cards add no keyboard or screen-reader stops. */}<Link className="speaker-preview-link" href={`/${locale}/speakers`} tabIndex={-1} aria-hidden="true"><Arrow /></Link></div>
-          </article>)}
-        </HorizontalRail>}
+        <Reveal className="home-speaker-overview">
+          <div className="home-speaker-introduction">
+            <BrandIcon className="home-speaker-icon" name="11-speakers" size={56} />
+            <div className="home-speaker-copy">
+              <SectionHeading chapter title={narrative.speakersTitle} accents={locale === "ar" ? ["المتحدثين."] : ["speakers."]} id="speakers-title" />
+              {!speakers.length ? <p>{narrative.speakersPending}</p> : null}
+            </div>
+          </div>
+          <Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link>
+        </Reveal>
+        {speakers.length ? <div className="home-speaker-cards" data-testid="home-published-speakers">
+          {speakers.slice(0, 2).map((speaker) => <SpeakerCard compact key={speaker.slug} locale={locale} speaker={speaker} />)}
+        </div> : null}
       </Container>
     </section>
 

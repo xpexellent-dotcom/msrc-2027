@@ -20,7 +20,6 @@
   .homepage-journey .legacy-section .section-heading .title-word--accent { background-image: var(--fluid-title-inverse); }
 }
 .homepage-journey .section-topline { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 1.25rem 3rem; margin-block-end: var(--head-gap); }
-.homepage-journey .section-intro-text { max-inline-size: 52ch; font: 500 var(--t-lead)/1.6 var(--font-body); color: var(--color-slate); margin-block: calc(-1 * var(--head-gap) + 1.25rem) var(--head-gap); }
 
 /* Calm opening and the retained desktop film hold. */
 .homepage-journey :is(.hero-scroll-stage, .homepage-content-sheet) { --hero-hold: 65svh; }
@@ -162,7 +161,61 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
 .homepage-journey .public-home-programme { margin-block-start: var(--head-gap); }
 .homepage-journey .public-home-programme .session-row { border-color: var(--hair); }
 .homepage-journey .rail-track { --rail-edge: max(var(--container-gutter), calc((100vw - var(--home-container)) / 2)); margin-inline: calc(-1 * var(--rail-edge)); padding-inline: var(--rail-edge); scroll-padding-inline: var(--rail-edge); scroll-snap-type: x proximity; }
-.homepage-journey .speakers-section { overflow-x: clip; }
+.homepage-journey .speakers-section {
+  overflow-x: clip;
+  padding-block: var(--home-speaker-section-y);
+}
+.homepage-journey .home-speaker-overview {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem 1.5rem;
+  padding: var(--home-speaker-pad);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-card);
+  background: var(--color-white);
+}
+.home-speaker-introduction {
+  display: flex;
+  flex: 1 1 25rem;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem var(--grid-gap);
+  min-inline-size: 0;
+}
+.home-speaker-copy { flex: 1 1 12rem; min-inline-size: 0; }
+.homepage-journey .home-speaker-copy .section-heading { padding: 0; }
+.homepage-journey .home-speaker-copy .section-heading::before,
+.homepage-journey .home-speaker-copy .section-heading::after { display: none; }
+.homepage-journey .home-speaker-copy .section-heading h2 { font-size: var(--t-home-speaker); }
+.home-speaker-copy > p { margin-block-start: .5rem; color: var(--color-slate); font: 500 var(--t-body)/1.65 var(--font-body); }
+.home-speaker-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: .6rem 1.5rem;
+  margin-block-start: .75rem;
+}
+.homepage-journey .home-speaker-cards .conference-speaker-card-link {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  padding: .75rem;
+  border-radius: 12px;
+  background: var(--color-white);
+}
+.homepage-journey .home-speaker-cards .conference-speaker-portrait {
+  inline-size: min(72px, 25%);
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+.homepage-journey .home-speaker-cards .conference-speaker-copy { padding: 0; border: 0; min-inline-size: 0; }
+.home-speaker-cards h3 { color: var(--color-purple); font: 600 1.25rem/1.25 var(--font-display); }
+.home-speaker-cards .conference-speaker-copy p { margin-block-start: .25rem; font-size: var(--t-small); }
+.home-speaker-cards .conference-speaker-card-link:focus-visible h3 { text-decoration: underline; text-underline-offset: .2em; }
+@media (hover: hover) and (pointer: fine) {
+  .home-speaker-cards .conference-speaker-card-link:hover h3 { text-decoration: underline; text-underline-offset: .2em; }
+}
 .homepage-journey .speaker-atmosphere { position: absolute; inset: 0; pointer-events: none; mask-image: linear-gradient(transparent, var(--mask-opaque) 16%, var(--mask-opaque) 84%, transparent); }
 .homepage-journey .speaker-contours { position: absolute; inset: 0; overflow: clip; }
 .homepage-journey .speaker-contours svg { inline-size: 120%; max-inline-size: none; block-size: 100%; stroke: var(--purple-16); stroke-width: 1; }
@@ -271,8 +324,6 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
   .homepage-journey .path-tile--registration { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; max-block-size: none; }
 }
 @media (min-width: 801px) {
-  .homepage-journey .speakers-section .rail-track { --speaker-gap: max(1.5rem, calc((100vw - var(--rail-edge) - 3 * 28rem - 3.5rem) / 3)); gap: var(--speaker-gap); }
-  .homepage-journey .speaker-preview-card { inline-size: max(17rem, min(28rem, calc((100vw - var(--rail-edge) - 3 * var(--speaker-gap) - 3.5rem) / 3))); }
   .homepage-journey :is(.program-opening, .expectations-layout, .home-venue-opening) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--head-gap); }
   .homepage-journey .program-opening { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
   .homepage-journey .program-opening > .chapter-stage { grid-column: 2; grid-row: 1; text-align: end; }
@@ -331,7 +382,6 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
   .homepage-journey .community-image { inline-size: 100%; block-size: 100%; }
   .homepage-journey .community-image::after { background: var(--scrim-community); }
   .homepage-journey .gallery-card { inline-size: min(calc(100vw - var(--container-gutter) - 4rem), 34rem); }
-  .homepage-journey .speaker-preview-card { inline-size: min(calc(100vw - var(--container-gutter) - 4rem), 25rem); }
   .homepage-journey .legacy-section { overflow: clip; }
   .homepage-journey .section-topline { flex-direction: column; align-items: start; gap: 1.25rem; }
   .homepage-journey .home-venue-photo { aspect-ratio: 4 / 3; }
@@ -382,9 +432,9 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
 [lang="ar"] .homepage-journey .title-word--accent { padding-block: .2em; margin-block: -.2em; }
 [lang="ar"] .homepage-journey :is(.pathway-name, .benefit-copy h3, .home-venue-opening h3) { font-weight: 600; line-height: 1.5; }
 [lang="ar"] .homepage-journey .path-tile--registration .pathway-name { line-height: 1.4; }
-[lang="ar"] .homepage-journey :is(.benefit-copy p, .path-tile-description, .home-venue-opening p, .faq-item > p, .program-opening > div:last-child > p, .legacy-film-note, .section-intro-text) { line-height: 1.8; }
+[lang="ar"] .homepage-journey :is(.benefit-copy p, .path-tile-description, .home-venue-opening p, .faq-item > p, .program-opening > div:last-child > p, .legacy-film-note, .home-speaker-copy > p) { line-height: 1.8; }
 [lang="ar"] .homepage-journey :is(.hero-conference-name, .belt-caption, .social-soon > span, .countdown-label, .countdown-time-label) { line-height: 1.6; }
-[lang="ar"] .homepage-journey :is(.hero-location, .speaker-preview-content p) { line-height: 1.8; }
+[lang="ar"] .homepage-journey .hero-location { line-height: 1.8; }
 [lang="ar"] .homepage-journey :is(.pathway-kicker, .gallery-card figcaption, .history-numbers dt > span:not(.brand-icon)) { line-height: 1.75; }
 [lang="ar"] .homepage-journey :is(.status-badge, .history-numbers dt) { line-height: 1.6; }
 [lang="ar"] .homepage-journey .closing-grid h2 { font-weight: 700; line-height: 1.3; padding-block: .2em; margin-block: -.2em; }
@@ -421,7 +471,7 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
   .homepage-journey :is(.hero-editorial h1, .closing-grid h2, .title-word--accent) { -webkit-text-fill-color: CanvasText; color: CanvasText; background: none; }
 }
 @media print {
-  .homepage-journey :is(.sponsor-belt, .hero-social, .flow-ribbon, .ambient-flow, .rail-tools, .city-media, .speaker-atmosphere, .pathway-photo, .research-artwork, .home-venue-figure, .gallery-photo, .speaker-preview-portrait) { display: none !important; }
+  .homepage-journey :is(.sponsor-belt, .hero-social, .flow-ribbon, .ambient-flow, .rail-tools, .city-media, .speaker-atmosphere, .pathway-photo, .research-artwork, .home-venue-figure, .gallery-photo, .home-speaker-icon, .home-speaker-cards .conference-speaker-portrait) { display: none !important; }
   .homepage-journey :is(.hero-scroll-stage, .homepage-content-sheet) { --hero-hold: 0px; }
   .homepage-journey .hero-scroll-stage[data-hold-ready="true"] > .conference-hero { position: relative; inset-block-start: auto; }
   .homepage-journey .hero-content { padding-block: 0; }

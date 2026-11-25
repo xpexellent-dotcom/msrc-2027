@@ -10,9 +10,8 @@ export const homepageNarrative = {
     community: "Medical students, researchers, clinicians and academic faculty. Together to share research, learn practical skills and develop ideas that can improve healthcare.",
     pathwayLink: "Explore this pathway", threeMinute: "Postgraduate researcher? Explore the Three Minute Thesis pathway.",
     programmeLink: "Browse the program", programmeStatus: "Program to be announced", programmeNote: "Session times, rooms and speakers will appear here when confirmed.",
-    speakersEyebrow: "4 / People & perspectives", speakersTitle: "Meet the\nspeakers.",
-    speakersBody: "Meet the researchers, clinicians, and educators joining MSRC 2027. The speaker lineup will be announced here.",
-    speakersPending: "Speaker lineup to be announced", speakersLink: "Meet the speakers", portraitLabel: "MSRC / PERSPECTIVES",
+    speakersEyebrow: "4 / People & perspectives", speakersTitle: "Meet the speakers.",
+    speakersPending: "Speaker lineup to be announced", speakersLink: "View speakers", portraitLabel: "MSRC / PERSPECTIVES",
     legacyLink: "Explore the media library", filmLink: "Watch the film", legacyCaption: "MSRC 2026. The people, the ideas, the atmosphere.",
     partnersEyebrow: "6 / Shared purpose", partnersTitle: "Further,\ntogether.", partnersBody: "Confirmed partners and sponsors will be introduced here.", partnersPending: "Partner announcements to follow",
     practicalEyebrow: "7 / Plan your visit", practicalTitle: "Before\nyou arrive.", datesLink: "Dates & venue details", faqLabel: "Frequently asked questions",
@@ -32,9 +31,8 @@ export const homepageNarrative = {
     community: "طلاب الطب والباحثون والأطباء وأعضاء هيئة التدريس. نجتمع لمشاركة الأبحاث، وتعلّم مهارات عملية، وتطوير أفكار تسهم في تحسين الرعاية الصحية.",
     pathwayLink: "استكشف هذا المسار", threeMinute: "باحث في الدراسات العليا؟ تعرّف إلى مسار الأطروحة في ثلاث دقائق.",
     programmeLink: "تصفّح البرنامج", programmeStatus: "سيُعلن البرنامج لاحقًا", programmeNote: "ستظهر مواعيد الجلسات وقاعاتها والمتحدثون عند تأكيدها.",
-    speakersEyebrow: "٤ / أشخاص ووجهات نظر", speakersTitle: "تعرّف إلى\nالمتحدثين.",
-    speakersBody: "تعرّف إلى الباحثين والأطباء والأكاديميين المشاركين في المؤتمر. سنعلن أسماء المتحدثين هنا.",
-    speakersPending: "سيُعلن المتحدثون لاحقًا", speakersLink: "تعرّف إلى المتحدثين", portraitLabel: "MSRC / وجهات نظر",
+    speakersEyebrow: "٤ / أشخاص ووجهات نظر", speakersTitle: "تعرّف إلى المتحدثين.",
+    speakersPending: "سيُعلن المتحدثون لاحقًا", speakersLink: "عرض المتحدثين", portraitLabel: "MSRC / وجهات نظر",
     legacyLink: "استكشف مكتبة الوسائط", filmLink: "شاهد الفيلم", legacyCaption: "نسخة ٢٠٢٦. أشخاص وأفكار وأجواء تجمعنا.",
     partnersEyebrow: "٦ / هدف يجمعنا", partnersTitle: "نرتقي\nمعًا.", partnersBody: "سنعرض الشركاء والرعاة المؤكدين هنا.", partnersPending: "إعلانات الشركاء قريبًا",
     practicalEyebrow: "٧ / خطّط لزيارتك", practicalTitle: "قبل أن\nتصل.", datesLink: "تفاصيل المواعيد والمقر", faqLabel: "الأسئلة الشائعة",
@@ -51,7 +49,7 @@ export const homepageNarrative = {
   identity: string; programmeAction: string; participationAction: string; scroll: string; dateNote: string;
   organizer: string; community: string; pathwayLink: string; threeMinute: string; programmeLink: string;
   programmeStatus: string; programmeNote: string; speakersEyebrow: string; speakersTitle: string;
-  speakersBody: string; speakersPending: string; speakersLink: string; portraitLabel: string;
+  speakersPending: string; speakersLink: string; portraitLabel: string;
   legacyLink: string; filmLink: string; legacyCaption: string; partnersEyebrow: string; partnersTitle: string;
   partnersBody: string; partnersPending: string; practicalEyebrow: string; practicalTitle: string;
   datesLink: string; faqLabel: string; faq: readonly { question: string; answer: string }[];

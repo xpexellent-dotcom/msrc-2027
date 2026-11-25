@@ -93,21 +93,6 @@
   background: var(--color-white);
 }
 
-.registration-opening .registration-opening-dates {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.registration-opening-dates dd time {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: .1rem .85rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.registration-opening-clock { font-weight: 500; }
-.registration-opening-details time { font-variant-numeric: tabular-nums; }
-
 .participation-journey .fluid-journey-availability {
   padding-block: clamp(1.75rem, 3.5vw, 3rem);
   border-block-end: 1px solid var(--color-line);
@@ -226,7 +211,7 @@
 
 .participation-journey .fluid-workshop-copy h3 { font-family: var(--font-display); font-weight: 600; }
 
-/* Research guidance stays readable at rest, with native table-of-contents links. */
+/* Native table-of-contents links for the research guidance. */
 .research-index { border-block-end: 1px solid var(--color-line); background: var(--color-white); }
 .research-index ul {
   display: flex;
@@ -248,26 +233,6 @@
 
 .research-section h2[id] { scroll-margin-block-start: 1rem; }
 .research-section .section-heading-description { line-height: 1.75; }
-.research-competition .research-roadmap { border-block-start: 1px solid var(--color-line); }
-.research-competition .research-roadmap li {
-  padding-block: 1.25rem 1.75rem;
-  padding-inline: 3.75rem .875rem;
-  border: 0;
-  border-block-end: 1px solid var(--color-line);
-}
-
-.research-competition .research-roadmap li::before { display: none; }
-.research-competition .research-step-number {
-  inset-block-start: 1.35rem;
-  inset-inline-start: .1rem;
-  color: #755990;
-  font: 600 1.6rem/1.1 var(--font-display);
-  position: absolute;
-}
-
-.research-competition .research-roadmap li:hover .research-step-number { transform: none; }
-.research-competition .research-roadmap p { max-inline-size: 54ch; }
-.research-competition .research-step-detail { margin-block-start: .5rem; }
 
 .research-competition .research-presentations,
 .research-competition .research-evaluation {
@@ -419,13 +384,6 @@
 [lang="ar"] :is(.participation-path h2, .public-participation-workspace h1, .abstract-submission-page h1, .research-index a) {
   letter-spacing: 0;
   line-height: 1.5;
-}
-
-@media (min-width: 56rem) {
-  .research-competition .research-roadmap { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .research-competition .research-roadmap li:not(:nth-child(3n)) { border-inline-end: 1px solid var(--color-line); }
-  .research-competition .research-roadmap li:not(:nth-child(3n + 1)) { padding-inline-start: 4.35rem; }
-  .research-competition .research-roadmap li:not(:nth-child(3n + 1)) .research-step-number { inset-inline-start: .65rem; }
 }
 
 @media (max-width: 45rem) {

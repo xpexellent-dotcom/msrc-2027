@@ -241,10 +241,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(program.locator(".benefit-cme-note")).toHaveText(locale === "en" ? "Illustrative" : "مثال بصري");
     await expect(program.locator(".benefit-cme")).toHaveAccessibleName(locale === "en" ? "7 CME hours: illustrative only, hours unconfirmed" : "٧ ساعات تعليم طبي مستمر: مثال بصري فقط، العدد غير مؤكد");
     const speakers = page.locator("#speakers");
-    await expect(speakers).toContainText(narrative.speakersBody);
-    await expect(speakers.getByText(demo.speakerTitle, { exact: true })).toHaveCount(4);
-    await expect(speakers.getByText(demo.speakerPending, { exact: true })).toHaveCount(4);
-    await expect(speakers.locator("img")).toHaveCount(0);
+    await expect(speakers.getByText(narrative.speakersPending, { exact: true })).toHaveCount(1);
+    await expect(speakers.getByRole("link", { name: narrative.speakersLink, exact: true })).toHaveAttribute("href", `/${locale}/speakers`);
+    await expect(speakers.locator(".rail-track, .speaker-preview-card")).toHaveCount(0);
     const legacy = page.locator("#legacy");
     for (const text of [expectations.historyBody, expectations.attendance, expectations.editions, expectations.historyEdition, expectations.lastEdition, expectations.research]) await expect(legacy).toContainText(text);
     expect(await legacy.locator(".history-numbers > div").evaluateAll((groups) => groups.map((group) => [...group.children].map((child) => child.tagName)))).toEqual([["DT", "DD"], ["DT", "DD"], ["DT", "DD"]]);
@@ -301,7 +300,7 @@ for (const locale of ["en", "ar"] as const) {
     test.skip(testInfo.project.name !== "chromium-desktop", "Exact phone and desktop geometry runs once.");
     for (const width of [320, 390, 1024, 1440]) {
       await ready(page, locale, width);
-      for (const rail of await page.locator(".homepage-journey .rail-track").all()) {
+      for (const rail of await page.locator(".homepage-journey .gallery-rail .rail-track").all()) {
         const boxes = await rail.evaluate((element) => {
           const items = [...element.children].map((item) => item.getBoundingClientRect());
           const gutter = parseFloat(getComputedStyle(element).paddingInlineStart);
@@ -366,7 +365,7 @@ for (const locale of ["en", "ar"] as const) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} speaker bleed stays inside a classic-scrollbar viewport`, async ({ playwright }, testInfo) => {
+  test(`${locale} speaker overview stays inside a classic-scrollbar viewport`, async ({ playwright }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "Classic desktop scrollbar regression.");
     // Playwright hides headless scrollbars by default. Restore native scrollbars
     // so clientWidth really excludes the 15px gutter and catches the vw bleed.
@@ -375,9 +374,13 @@ for (const locale of ["en", "ar"] as const) {
       const page = await browser.newPage();
       await ready(page, locale, 1440);
       await page.addStyleTag({ content: "html { overflow-y: scroll; } ::-webkit-scrollbar { width: 15px; }" });
-      await page.locator("#speakers").scrollIntoViewIfNeeded();
+      const overview = page.locator(".home-speaker-overview");
+      await overview.scrollIntoViewIfNeeded();
+      const frame = (await overview.boundingBox())!;
       const widths = await page.evaluate(() => ({ viewport: innerWidth, client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
       expect(widths.viewport - widths.client).toBe(15);
+      expect(frame.x).toBeGreaterThanOrEqual(0);
+      expect(frame.x + frame.width).toBeLessThanOrEqual(widths.client + 1);
       expect(widths.scroll).toBeLessThanOrEqual(widths.client);
     } finally {
       await browser.close();

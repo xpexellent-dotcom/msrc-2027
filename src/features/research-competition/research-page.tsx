@@ -31,7 +31,7 @@ export function ResearchCompetitionPage({ locale }: { locale: Locale }) {
         </ul>
       </Container>
     </nav>
-    <section className="research-section research-journey" aria-labelledby="research-journey"><Container><SectionHeading id="research-journey" title={copy.journey} /><AbstractRoadmap locale={locale} /></Container></section>
+    <section className="research-section research-journey" aria-labelledby="research-journey"><Container><SectionHeading id="research-journey" title={copy.journey} /><AbstractRoadmap locale={locale} reveal /></Container></section>
     <section className="research-section research-presentations" aria-labelledby="research-presentations"><Container><SectionHeading id="research-presentations" title={copy.presentations} />
       <div className="research-presentation-grid">{[[copy.oral, copy.oralText], [copy.poster, copy.posterText]].map(([title, text], index) => <article className={`research-presentation-card research-presentation-card--${index === 0 ? "oral" : "poster"}`} key={title} aria-labelledby={`research-format-${index}`}>
         <div className="research-format-art" aria-hidden="true"><BrandIcon name={index === 0 ? "11-speakers" : "12-posters"} size={128} /></div>

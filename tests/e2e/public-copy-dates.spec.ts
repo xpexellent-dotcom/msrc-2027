@@ -28,6 +28,9 @@ for (const locale of ["en", "ar"] as const) {
         await expect(timeline.locator("time")).toHaveText(locale === "en"
           ? ["23 November 2026", "13 December 2026", "18 December 2026", "19 December 2026", "2 January 2027", "7 January 2027", "10 January 2027"]
           : ["٢٣ نوفمبر ٢٠٢٦", "١٣ ديسمبر ٢٠٢٦", "١٨ ديسمبر ٢٠٢٦", "١٩ ديسمبر ٢٠٢٦", "٢ يناير ٢٠٢٧", "٧ يناير ٢٠٢٧", "١٠ يناير ٢٠٢٧"]);
+        for (const detail of await timeline.locator(".research-step-detail").all()) {
+          await expect(detail).toHaveCSS("opacity", "1");
+        }
         await timeline.scrollIntoViewIfNeeded();
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);

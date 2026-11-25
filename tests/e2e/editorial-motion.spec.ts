@@ -218,9 +218,10 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".benefit-cme-note")).toHaveText(locale === "ar" ? "مثال بصري" : "Illustrative");
     await expect(page.locator(".program-experiences .benefit-artwork")).toHaveCount(5);
     await expect(page.locator("a.editorial-action", { hasText: locale === "ar" ? "كيف تشارك" : "How to take part" })).toHaveAttribute("href", `/${locale}/participate`);
-    await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(4);
-    await expect(page.locator("#speakers .portrait-placeholder")).toHaveCount(4);
-    await expect(page.locator("#speakers img, .demo-chip, .portrait-provenance, .pathways-archive-note")).toHaveCount(0);
+    const speakers = page.locator("#speakers");
+    await expect(speakers.locator(".home-speaker-overview")).toBeVisible();
+    await expect(speakers.locator(".rail-track, .portrait-placeholder, .conference-speaker-portrait")).toHaveCount(0);
+    await expect(page.locator(".demo-chip, .portrait-provenance, .pathways-archive-note")).toHaveCount(0);
     const venue = page.locator("#venue");
     await venue.scrollIntoViewIfNeeded();
     await expect(venue.getByRole("heading", { level: 3 })).toHaveText(locale === "ar" ? "مركز الملك فيصل للمؤتمرات" : "King Faisal Conference Center");
@@ -230,17 +231,17 @@ for (const locale of ["en", "ar"] as const) {
     await expect(venue.locator("a")).toHaveAttribute("href", `/${locale}/dates-venue`);
   });
 
-  test(`${locale} editorial benefits, statistics and venue reflow at 280px with doubled text`, async ({ page }, testInfo) => {
+  test(`${locale} editorial benefits, speakers, statistics and venue reflow at 280px with doubled text`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "Extreme text-reflow matrix runs once per locale.");
     await page.setViewportSize({ width: 280, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
-    for (const id of ["program", "legacy", "venue", "faq"]) {
+    for (const id of ["program", "speakers", "legacy", "venue", "faq"]) {
       await page.locator(`#${id}`).scrollIntoViewIfNeeded();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), id).toBe(true);
-      const clipped = await page.locator(`#${id} h2, #${id} h3, #${id} p, #${id} dt, #${id} .history-count`).evaluateAll((elements) => elements.some((element) => {
+      const clipped = await page.locator(`#${id} h2, #${id} h3, #${id} p, #${id} dt, #${id} a.editorial-action, #${id} .history-count`).evaluateAll((elements) => elements.some((element) => {
         const range = document.createRange();
         range.selectNodeContents(element);
         return [...range.getClientRects()].some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);

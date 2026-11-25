@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { teamCommittees } from "../../src/content/team";
+import { homepageNarrative } from "../../src/content/homepage-narrative";
 
 for (const locale of ["en", "ar"] as const) {
   test(`${locale}: public collection fallback or published programme and speakers`, async ({ page }, testInfo) => {
@@ -41,15 +42,19 @@ for (const locale of ["en", "ar"] as const) {
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({ path: testInfo.outputPath(`${locale}-programme.png`), fullPage: true });
     await page.goto(`/${locale}`);
+    const homeSpeakers = page.locator("#speakers");
+    const pending = homeSpeakers.getByText(homepageNarrative[locale].speakersPending, { exact: true });
     if (populated) {
-      await expect(page.getByTestId("home-published-speakers")).toContainText(speaker);
+      await expect(page.getByTestId("home-published-speakers").getByRole("heading", { name: speaker, exact: true, level: 3 })).toBeVisible();
       expect((await new AxeBuilder({ page }).include("#speakers").withRules(["color-contrast"]).analyze()).violations).toEqual([]);
       await expect(page.getByTestId("home-published-programme")).toContainText(session);
-      await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(0);
+      await expect(pending).toHaveCount(0);
     } else {
-      await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(4);
+      await expect(pending).toBeVisible();
       await expect(page.getByTestId("home-published-speakers")).toHaveCount(0);
     }
+    await expect(homeSpeakers.locator(".speaker-preview-card")).toHaveCount(0);
+    await expect(homeSpeakers.getByRole("link", { name: homepageNarrative[locale].speakersLink, exact: true })).toHaveAttribute("href", `/${locale}/speakers`);
   });
 
   test(`${locale}: public partners and team replace static collection only after publication`, async ({ page, request }, testInfo) => {

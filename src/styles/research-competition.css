@@ -27,6 +27,16 @@
 .research-roadmap h3 { color: var(--color-ink); font-size: 1.05rem; line-height: 1.6; margin: 0; font-weight: 750; }
 .research-roadmap p { max-inline-size: 42ch; color: var(--color-muted); font-size: .9rem; line-height: 1.8; margin-block: .7rem 0; }
 .research-roadmap p { overflow-wrap: break-word; }
+/* Keep all detail readable without JavaScript, under reduced motion, and in print. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .research-roadmap-reveal .research-step-detail { transition: opacity 450ms cubic-bezier(.2,.8,.2,1), transform 450ms cubic-bezier(.2,.8,.2,1); }
+  @media (hover: none), (pointer: coarse) {
+    .research-roadmap-reveal[data-reveal="ready"] li:not(.is-revealed, :focus-within) .research-step-detail { opacity: 0; transform: translateY(8px); }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .research-roadmap-reveal[data-reveal="ready"] li:not(:hover, :focus-within) .research-step-detail { opacity: 0; transform: translateY(6px); }
+  }
+}
 .research-roadmap .research-step-date { color: #59357c; font-size: .875rem; font-weight: 650; }
 .research-roadmap li:is(:hover, :focus-within, [aria-current="step"])::before { transform: scaleY(1); }
 .research-roadmap li:is(:hover, :focus-within, [aria-current="step"]) .research-step-number { color: var(--color-purple); transform: translateY(-3px); }

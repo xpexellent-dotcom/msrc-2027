@@ -1,5 +1,17 @@
 # Progress and session handover
 
+## 26 November 2026 — Organiser feedback on PR #156
+
+- ORG-077 supersedes the dated registration announcement. Participate shows
+  both dates as pending in English and Arabic. The research roadmap restores
+  the earlier desktop and phone layouts. The footer seal is larger and the
+  homepage Speakers section is condensed to a preview.
+- The Program time-zone label wraps at enlarged text sizes. The day controls
+  take one row where space allows, the Contact notice has tighter spacing,
+  and the desktop Venue overview fits its initial reading frame.
+- Requirements: REG-02, TIM-01, DSN-01/02, ACC-01, LOC-01/03 and REL-06.
+  See the [verification notes](features/sitewide-brand-refresh.md).
+
 ## 25 November 2026 — Sitewide brand refresh
 
 - ORG-076 extends the PR #155 design across public pages and participant

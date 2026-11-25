@@ -1,18 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-// ORG-072 replaces four pathway photos with brand icons. Retain the shared
-// speaker-caption collision guard across RTL/LTR and narrow screens.
+// The short homepage introduction keeps its text and catalogue action distinct in both directions.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} speaker placeholder captions clear their pointer action`, async ({ page }, testInfo) => {
+  test(`${locale} speaker overview copy clears its catalogue action`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width: testInfo.project.name === "chromium-mobile" ? 390 : 1440, height: 960 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await page.evaluate(() => document.fonts.ready);
-    const card = page.locator(".speaker-preview-card").first();
+    const card = page.locator(".home-speaker-overview");
     await card.scrollIntoViewIfNeeded();
     const collisions = await card.evaluate((element) => {
-      const action = element.querySelector(".speaker-preview-link")!.getBoundingClientRect();
-      const caption = element.querySelector(".speaker-preview-content p")!;
+      const action = element.querySelector("a")!.getBoundingClientRect();
+      const caption = element.querySelector(".home-speaker-copy")!;
       const walker = document.createTreeWalker(caption, NodeFilter.SHOW_TEXT);
       let node: Node | null;
       const overlaps: string[] = [];
@@ -25,7 +24,8 @@ for (const locale of ["en", "ar"] as const) {
       }
       return overlaps;
     });
-    expect(collisions, "caption glyphs must not overlap the action").toEqual([]);
+    expect(collisions, "overview text must not overlap the action").toEqual([]);
+    expect((await card.getByRole("link").boundingBox())!.height).toBeGreaterThanOrEqual(44);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await testInfo.attach("speaker-caption-evidence", { body: JSON.stringify({ locale, collisions }, null, 2), contentType: "application/json" });
   });

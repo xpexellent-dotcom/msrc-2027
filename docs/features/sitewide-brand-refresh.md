@@ -52,3 +52,26 @@ existing release decisions.
   archive photos and explicitly selecting the skip-to-content control in
   keyboard tests. The Venue test also checks the existing Program title
   gradient and separately verifies the new footer return link.
+
+### Organiser follow-up, 26 November 2026
+
+- ORG-077 marks the public registration opening and closing dates as pending
+  in both languages. Free attendance remains visible.
+- The older abstracts roadmap returns as a six-stop desktop timeline with
+  a vertical phone layout. Reduced motion and JavaScript-disabled browsing
+  show every detail.
+- The footer displays the existing Research Principles Club seal at 72–96 CSS
+  pixels at standard text scale. The homepage uses a single Speakers teaser
+  and reserves the full directory for the dedicated page.
+- The Program time-zone label wraps without horizontal scroll, the day
+  shortcuts form a compact row when space allows, and the Contact notice
+  has tighter insets. Desktop Venue spacing fits its original overview frame
+  without changing its one-stop-per-gesture behavior.
+
+Local follow-up checks passed for 32 homepage and readability cases, with
+eight duplicate profile cases skipped. The six previously failing abstract
+cases and both desktop Venue overview cases passed. Chromium and WebKit
+screenshots verified the pending registration card, roadmap, speaker preview,
+and 96px desktop and 72px phone seal. The 280px enlarged-text test covers the
+Program time-zone label and remains at its original width limit. Physical
+devices and screen-reader sessions remain open.
