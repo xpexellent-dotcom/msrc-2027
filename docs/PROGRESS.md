@@ -17,6 +17,9 @@
 - Local verification passed the production build, lint, all 5,665 unit tests,
   12 legal browser checks and 65 public browser checks across the two languages.
   The production dependency audit found no known vulnerabilities.
+- The first hosted WebKit run exposed an Arabic range punctuation difference
+  during hydration on Participate. Use the approved bilingual range labels
+  consistently for server-rendered and interactive public copy.
 
 ## 25 November 2026 — Homepage release review
 

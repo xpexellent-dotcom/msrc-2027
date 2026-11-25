@@ -1,4 +1,4 @@
-import { formatConferenceDateRange, type CalendarDate } from "../lib/conference-dates.ts";
+import type { CalendarDate } from "@/lib/conference-dates";
 import type { Locale } from "@/lib/i18n";
 
 export type LocalizedVenueText = Readonly<Record<Locale, string>>;
@@ -34,6 +34,11 @@ export interface ConferenceConfig {
 }
 
 const confirmedDates = Object.freeze({ day1: "2027-04-07", day2: "2027-04-08" } as const);
+// Preserve the approved labels across Node and browser ICU versions during hydration.
+const confirmedDateLabels = {
+  en: { range: "7–8 April 2027", day1: "7 April 2027", day2: "8 April 2027" },
+  ar: { range: "٧–٨ أبريل ٢٠٢٧", day1: "٧ أبريل ٢٠٢٧", day2: "٨ أبريل ٢٠٢٧" },
+} as const;
 
 export const conferenceConfig: ConferenceConfig = Object.freeze({
   edition: 2027,
@@ -95,7 +100,7 @@ export const conferenceConfig: ConferenceConfig = Object.freeze({
   production: Object.freeze({ vercelRegion: null, supabaseRegion: null }),
 });
 
-export function conferenceDateLabel(locale: Locale): string {
+export function conferenceDateLabel(locale: Locale, label: keyof typeof confirmedDateLabels.en = "range"): string {
   const { dates, monthLabel } = conferenceConfig;
-  return dates ? formatConferenceDateRange(dates, locale) : monthLabel[locale];
+  return dates ? confirmedDateLabels[locale][label] : monthLabel[locale];
 }

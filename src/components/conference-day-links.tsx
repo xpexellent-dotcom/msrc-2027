@@ -2,9 +2,8 @@
 
 import type { MouseEvent } from "react";
 import { Link } from "@/components/ui/link";
-import { conferenceConfig } from "@/config/conference";
+import { conferenceConfig, conferenceDateLabel } from "@/config/conference";
 import { datesVenueCopy } from "@/content/dates-venue";
-import { formatConferenceDate } from "@/lib/conference-dates";
 import type { Locale } from "@/lib/i18n";
 import { VenueIcon } from "@/components/venue-icon";
 
@@ -26,7 +25,7 @@ export function ConferenceDayLinks({ locale }: { locale: Locale }) {
     {(["day1", "day2"] as const).map((day) => <li key={day}>
       <Link className="conference-day-link" href={`/${locale}/program?day=${day}#programme`} onClick={selectDay}>
         <span className="conference-day-label">{copy[day]}<VenueIcon name="arrow" /></span>
-        <time dateTime={dates[day]}>{formatConferenceDate(dates[day], locale)}</time>
+        <time dateTime={dates[day]}>{conferenceDateLabel(locale, day)}</time>
       </Link>
     </li>)}
   </ol>;
