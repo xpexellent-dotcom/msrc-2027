@@ -1,5 +1,25 @@
 # Progress and session handover
 
+## 25 November 2026 — Homepage release review
+
+- Brought the reviewed split-navigation change from draft PR #154 onto
+  `main` at `f75b4a1` for a focused release PR. The redesign from PR #153
+  is already in that base. The original draft keeps the full redesign
+  comparison. Requirements: DSN-01/02, ACC-01, LOC-01/03, INF-05, REL-06.
+- Read-only setting review confirmed the Vercel project is on Pro, linked to
+  this repository, with Next.js, Node 24.x, protected Previews, and automatic
+  assignment of production domains from `main`. At review, the public site
+  still served `13469ad` and both languages and runtime health returned HTTP 200.
+  A successful Production build is needed to publish the redesign from #153
+  together with the navigation change.
+- The focused change introduces no migration or operational configuration.
+  Recheck the candidate's GitHub Actions and exact-commit Vercel Preview.
+  The previous draft's WebKit Venue run stalled on the optimized hero image
+  during page load. The original merge's Chromium Venue run reported a reverse
+  wheel-step mismatch. ORG-073 separately records that the redesign's April
+  conference month and January text in approved legal pages need organizer
+  reconciliation.
+
 ## 21 November 2026 — Restore the split desktop homepage navigation
 
 - ORG-074 restores the two-corner desktop navigation in draft PR #154. The
