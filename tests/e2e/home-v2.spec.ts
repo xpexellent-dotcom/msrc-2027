@@ -167,7 +167,9 @@ for (const locale of ["en", "ar"] as const) {
     }));
     expect(circles).toEqual([]);
     await expect(page.locator('.wordmark img[src*="msrc27-seal-dark-192"]')).toHaveAttribute("alt", "");
-    await expect(page.locator('.footer-brand img[src*="msrc27-seal-dark-192"]')).toHaveAttribute("alt", "");
+    const footerSeal = page.locator('.footer-brand img[src*="msrc27-seal-dark-456"]');
+    await expect(footerSeal).toHaveAttribute("alt", "");
+    await expect(footerSeal).toHaveCSS("width", "112px");
     await expect(page.locator(".axiom-header")).toHaveAttribute("data-header-tone", /dark|light/);
     await expect(page.locator(".site-footer")).toHaveCSS("background-color", "rgb(59, 30, 109)");
     await page.goto(`/${locale}/dates-venue`);

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { BrandIcon } from "@/components/brand/brand-icon";
+import { BrandIcon, type BrandIconName } from "@/components/brand/brand-icon";
 import { FlowLines } from "@/components/brand/flow-lines";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
@@ -10,8 +10,14 @@ import { researchCompetitionCopy } from "./copy";
 import { DecorativeNumeral } from "./decorative-numeral";
 import { AbstractSubmissionCta } from "./submission-cta";
 
+const eligibilityIcons: readonly BrandIconName[] = ["17-education", "11-speakers", "01-research"];
+
 export function ResearchCompetitionPage({ locale }: { locale: Locale }) {
   const copy = researchCompetitionCopy[locale];
+  const formats = [
+    { id: "oral", heading: copy.oral, label: copy.formats[0], description: copy.oralText, icon: "11-speakers" },
+    { id: "poster", heading: copy.poster, label: copy.formats[1], description: copy.posterText, icon: "12-posters" },
+  ] as const;
   const criterionNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
   return <div className="research-competition" data-testid="research-competition-page">
     <section data-header-section="dark" className="research-hero" aria-labelledby="research-title">
@@ -32,14 +38,40 @@ export function ResearchCompetitionPage({ locale }: { locale: Locale }) {
       </Container>
     </nav>
     <section className="research-section research-journey" aria-labelledby="research-journey"><Container><SectionHeading id="research-journey" title={copy.journey} /><AbstractRoadmap locale={locale} reveal /></Container></section>
-    <section className="research-section research-presentations" aria-labelledby="research-presentations"><Container><SectionHeading id="research-presentations" title={copy.presentations} />
-      <div className="research-presentation-grid">{[[copy.oral, copy.oralText], [copy.poster, copy.posterText]].map(([title, text], index) => <article className={`research-presentation-card research-presentation-card--${index === 0 ? "oral" : "poster"}`} key={title} aria-labelledby={`research-format-${index}`}>
-        <div className="research-format-art" aria-hidden="true"><BrandIcon name={index === 0 ? "11-speakers" : "12-posters"} size={128} /></div>
-        <p className="research-format-label">{copy.formats[index]}</p><h3 id={`research-format-${index}`}>{title}</h3><p>{text}</p>
-      </article>)}</div>
-      <aside className="research-winners"><BrandIcon name="14-awards" size={80} /><div><h3>{copy.distinction}</h3><p>{copy.winners}</p></div></aside>
-    </Container></section>
-    <section className="research-section" aria-labelledby="research-eligibility"><Container><SectionHeading id="research-eligibility" title={copy.eligibility} description={copy.eligibilityIntro} /><div className="research-eligibility-grid">{copy.eligibilityCards.map(([title, text]) => <article className="research-eligibility-card" key={title}><h3>{title}</h3><p>{text}</p></article>)}</div></Container></section>
+    <section className="research-section research-presentations" aria-labelledby="research-presentations">
+      <Container>
+        <SectionHeading id="research-presentations" title={copy.presentations} />
+        <div className="research-presentation-grid">
+          {formats.map(({ id, heading, label, description, icon }) => (
+            <article key={id} className={`research-presentation-card research-presentation-card--${id}`} aria-labelledby={`research-format-${id}`}>
+              <div className="research-format-art" aria-hidden="true"><BrandIcon name={icon} size={160} /></div>
+              <div className="research-format-copy">
+                <h3 id={`research-format-${id}`}>{heading}</h3>
+                <p className="research-format-label">{label}</p>
+                <p>{description}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+        <aside className="research-winners">
+          <BrandIcon name="14-awards" size={80} />
+          <div><h3>{copy.distinction}</h3><p>{copy.winners}</p></div>
+        </aside>
+      </Container>
+    </section>
+    <section className="research-section research-eligibility" aria-labelledby="research-eligibility">
+      <Container>
+        <SectionHeading id="research-eligibility" title={copy.eligibility} description={copy.eligibilityIntro} />
+        <ul className="research-eligibility-list" role="list">
+          {copy.eligibilityCards.map(([heading, description], index) => (
+            <li key={heading}>
+              <BrandIcon name={eligibilityIcons[index]} size={64} />
+              <div><h3>{heading}</h3><p>{description}</p></div>
+            </li>
+          ))}
+        </ul>
+      </Container>
+    </section>
     <section className="research-section" aria-labelledby="research-guidelines"><Container><SectionHeading id="research-guidelines" title={copy.guidelines} description={copy.guidelinesIntro} /><ol className="research-guidelines">{copy.sections.map(([title, text, range], index) => <li key={title}><span className="research-card-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span><div><h3>{title}</h3><p>{text}</p></div><span className="research-suggested">{range} {copy.suggested}</span></li>)}</ol><aside className="research-word-limit"><p><strong>{copy.wordLimit}</strong></p><p>{copy.headingCount}</p></aside></Container></section>
     <section className="research-section research-evaluation" aria-labelledby="research-evaluation"><Container><div className="research-rubric-panel">
       <div className="research-rubric-intro"><DecorativeNumeral locale={locale} className="research-criteria-count" value={formatIndex(copy.criteria.length, locale)} /><h2 id="research-evaluation">{copy.evaluation}</h2><p>{copy.evaluationIntro}</p></div>

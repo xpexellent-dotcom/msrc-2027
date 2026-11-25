@@ -345,3 +345,10 @@ and rendered 256 × 256 transparent, lossless WebP files under
 The inline icons are decorative. Their visible labels and accessible
 names come from the page content. The source illustrations retain the
 physical centring correction and their original colours.
+
+## Footer seal rendition — 26 November 2026, ORG-078
+
+`public/brand/identity/msrc27-seal-dark-456.webp` is a 456 × 456 lossless
+transparent WebP derived from the dark lockup on page 10 of the supplied
+brand guide. It preserves the seal's original white lettering and gold artwork.
+The footer lazy-loads this rendition and displays it at 112–152 CSS pixels.

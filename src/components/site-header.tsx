@@ -91,7 +91,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     if (dropdownCloseRef.current !== null) clearTimeout(dropdownCloseRef.current);
     dropdownCloseRef.current = null;
   }, []);
-  const compact = isHome && canCompact && readingDown && !focusWithin && !openDropdown && !menuOpen && !menuClosing;
+  const compact = canCompact && readingDown && !focusWithin && !openDropdown && !menuOpen && !menuClosing;
 
   useEffect(() => revealPageNavigation(pathname), [pathname]);
   useEffect(() => cancelDropdownClose, [cancelDropdownClose]);
@@ -209,7 +209,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     <header ref={headerRef} className="site-header axiom-header"
       data-header-ready={hydrated && typeof IntersectionObserver !== "undefined"}
       data-header-tone={isHome ? "dark" : "light"}
-      data-home={isHome} data-compact={compact || undefined} data-menu-open={menuOpen} data-keyboard={keyboard}
+      data-compact={compact || undefined} data-menu-open={menuOpen} data-keyboard={keyboard}
       onPointerDownCapture={() => setKeyboard(false)}
       onKeyDownCapture={() => { setKeyboard(true); setFocusWithin(true); }}
       onFocusCapture={(event) => {

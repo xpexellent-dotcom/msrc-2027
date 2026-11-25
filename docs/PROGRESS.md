@@ -1,5 +1,16 @@
 # Progress and session handover
 
+## 26 November 2026 — Shared navigation and design review follow-up
+
+- ORG-078 extends split desktop navigation to the shared public header.
+  Downward scroll separates the wordmark and action. Upward scroll and
+  keyboard focus restore the complete bar in both languages.
+- The footer promotes the Research Principles Club seal. The homepage
+  uses a compact portrait teaser for Speakers. Presentation formats and
+  the eligibility list have updated artwork, contrast and reading order.
+- Applies DSN-01/02, LOC-01/03, ACC-01, ABS-04/09 and REL-06.
+  See the [verification notes](features/sitewide-brand-refresh.md).
+
 ## 26 November 2026 — Organiser feedback on PR #156
 
 - ORG-077 supersedes the dated registration announcement. Participate shows

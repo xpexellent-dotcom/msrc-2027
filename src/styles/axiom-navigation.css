@@ -134,8 +134,8 @@
     }
   }
 }
-.axiom-header:is([data-keyboard="true"], [data-home="true"]:has(:focus-visible)) :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass),
-.axiom-header:is([data-keyboard="true"], [data-home="true"]:has(:focus-visible)) .wordmark::before { transition: none; }
+.axiom-header:is([data-keyboard="true"], :has(:focus-visible)) :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass),
+.axiom-header:is([data-keyboard="true"], :has(:focus-visible)) .wordmark::before { transition: none; }
 .axiom-header[data-keyboard="true"] :is(.menu-toggle, .menu-toggle svg path, .mobile-menu, .mobile-menu-registration, .mobile-nav-group) { transition: none; }
 @media (hover: hover) and (pointer: fine) {
   .axiom-header :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle):hover { background: rgb(220 207 240 / .04); color: #fff; }

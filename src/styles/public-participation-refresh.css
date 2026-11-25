@@ -234,39 +234,10 @@
 .research-section h2[id] { scroll-margin-block-start: 1rem; }
 .research-section .section-heading-description { line-height: 1.75; }
 
-.research-competition .research-presentations,
 .research-competition .research-evaluation {
   background: color-mix(in srgb, var(--color-mist) 68%, var(--color-white));
 }
 
-.research-competition .research-presentation-grid { background: var(--color-white); }
-.research-competition .research-presentation-card--oral {
-  color: var(--color-ink);
-  background: color-mix(in srgb, var(--color-mist) 60%, var(--color-white));
-  border-inline-end: 1px solid var(--color-line);
-}
-
-.research-competition .research-presentation-card--poster { background: var(--color-white); }
-.research-competition .research-presentation-card h3 { color: var(--color-purple); }
-.research-competition .research-presentation-card .research-format-label { color: var(--color-muted); }
-.research-competition .research-format-art {
-  min-block-size: 0;
-  margin-block-end: 1.5rem;
-  padding-block-end: 1rem;
-  border-block-end-color: var(--color-line);
-}
-
-.research-format-art .brand-icon {
-  inline-size: clamp(4.5rem, 9vw, 7.5rem);
-  block-size: auto;
-  aspect-ratio: 1;
-}
-
-.research-competition .research-winners {
-  border-color: var(--color-line);
-  background: var(--color-ivory);
-}
-.research-competition .research-eligibility-card { border-block-start-width: 1px; }
 .research-competition .research-criteria > li { border-inline-start-width: 1px; }
 .research-competition .research-criterion-number { color: #765b23; }
 .research-competition .research-word-limit {
@@ -396,11 +367,6 @@
   .participation-path-link > .directional-arrow { padding: .28rem; }
   .participation-path p { font-size: .9rem; }
   .participation-path-icon .brand-icon { inline-size: 44px; }
-  .research-competition .research-presentation-card--oral {
-    border-inline-end: 0;
-    border-block-end: 1px solid var(--color-line);
-  }
-
   .sponsors-page .sponsor-tier,
   .sponsor-invitation > .site-container { grid-template-columns: minmax(0, 1fr); }
   .sponsor-invitation .sponsor-invitation-icon { display: none; }

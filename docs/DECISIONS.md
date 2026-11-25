@@ -5775,3 +5775,23 @@ Principles Club seal in the footer, and make the homepage Speakers
 section a concise preview that points to the full catalogue. Keep the
 approved page headers. Requirements: REG-02, TIM-01, DSN-01/02, ACC-01,
 LOC-01/03 and REL-06. See the [sitewide visual update](features/sitewide-brand-refresh.md).
+
+## ORG-078 — Global desktop navigation and public design refinements, 26 November 2026
+
+The organizer extends the split navigation across pages that use the
+shared public header. This supersedes the homepage-only scope in ORG-074.
+On a wide fine-pointer viewport, downward scroll separates the logo and
+primary action. Upward scroll and keyboard focus restore the full bar.
+The phone and enlarged-text menus continue to use their compact layout.
+
+Give the Research Principles Club seal more prominence in the footer.
+Use a compact portrait-led speaker preview and a route to the full
+catalogue. Pending artwork depicts an anonymous portrait. Published
+profiles follow the approved catalogue.
+
+Distinguish oral and poster formats with different brand treatments.
+Rewrite and group the existing eligibility requirements for easier reading,
+including presenter duties, co-author recognition and completed research.
+This is an editorial change under ORG-069, with the current criteria and
+research roadmap retained. Applies DSN-01/02, LOC-01/03, ACC-01, ABS-04/09
+and REL-06. See the [sitewide visual update](features/sitewide-brand-refresh.md).

@@ -113,12 +113,16 @@ for (const locale of ["en", "ar"] as const) {
     await expect(illustrations.last()).toHaveAttribute("src", /12-posters\.webp/);
     for (const illustration of await illustrations.all()) await expect(illustration).toHaveAttribute("alt", "");
     await expect(presentations.locator(".research-winners")).toContainText(copy.winners);
+    const eligibility = page.getByRole("region", { name: copy.eligibility });
+    const requirements = eligibility.getByRole("listitem");
+    await expect(requirements.getByRole("heading", { level: 3 })).toHaveText(copy.eligibilityCards.map(([heading]) => heading));
+    await expect(requirements.locator("p")).toHaveText(copy.eligibilityCards.map(([, description]) => description));
     await expect(page.locator(".research-submission-cta").first()).toHaveAttribute("aria-disabled", "true");
     await expect(page.locator(".research-submission-cta").first()).toContainText(copy.cta.opening);
     await expect(page.locator(".research-submission-cta time").first()).toHaveAttribute("datetime", "2026-11-22T21:00:00.000Z");
     expect(await page.locator("html").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await captureAbstractViews(page, testInfo.project.name, locale, "public", [["roadmap", "#research-journey"], ["presentations", "#research-presentations"], ["evaluation", "#research-evaluation"], ["closing", "#research-closing"]]);
+    await captureAbstractViews(page, testInfo.project.name, locale, "public", [["roadmap", "#research-journey"], ["presentations", "#research-presentations"], ["eligibility", "#research-eligibility"], ["evaluation", "#research-evaluation"], ["closing", "#research-closing"]]);
     await page.getByRole("link", { name: copy.contact, exact: true }).focus();
     await expect(page.getByRole("link", { name: copy.contact, exact: true })).toBeFocused();
     await page.setViewportSize({ width: 320, height: 800 });

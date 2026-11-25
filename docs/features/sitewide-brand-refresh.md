@@ -82,3 +82,23 @@ suite passed 12 cases across the published, empty and provider-down states.
 A separate 280px doubled-text check found that the Arabic native selects
 needed more inline space in WebKit. The tighter filter frame passed
 English and Arabic reflow, day selection and clearing in both engines.
+
+### Shared navigation and design refinements, 26 November 2026
+
+- ORG-078 applies the split desktop navigation to the shared public header.
+  It restores on upward scroll or keyboard entry and continues to mirror in
+  Arabic. Menus and visible focus support reading at enlarged text sizes.
+- A larger official seal anchors the footer. The homepage Speakers teaser
+  pairs portrait illustration with a direct catalogue action. Up to two
+  approved profile previews take its place when the catalogue is published.
+- The research page distinguishes the oral and poster formats using the
+  supplied icon artwork with different brand surfaces. The eligibility list
+  presents presenter qualifications, presenter and co-author roles, and the
+  completion window as separate scan points.
+
+The shared navigation suite passed 26 Chromium desktop and phone cases
+with 14 profile-specific skips. Footer artwork decoding and layout passed
+20 Chromium and WebKit probes, including 280px at 200% text. Scoped checks
+for the portrait teaser and research formats covered English, Arabic,
+reduced motion, enlarged text and automated accessibility. Physical
+handsets and assistive-technology sessions remain open.

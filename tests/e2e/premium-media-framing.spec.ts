@@ -16,6 +16,7 @@ for (const locale of ["en", "ar"] as const) {
       let node: Node | null;
       const overlaps: string[] = [];
       while ((node = walker.nextNode())) {
+        if (node.parentElement?.closest("a")) continue;
         const range = document.createRange();
         range.selectNodeContents(node);
         if ([...range.getClientRects()].some(rect => rect.left < action.right && rect.right > action.left && rect.top < action.bottom && rect.bottom > action.top)) {

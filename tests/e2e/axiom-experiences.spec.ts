@@ -78,8 +78,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("main .brand-marquee, main .sponsor-tiers")).toHaveCount(0);
     const speakers = page.locator("#speakers");
     await expect(speakers.getByRole("link")).toHaveAttribute("href", `/${locale}/speakers`);
-    await expect(speakers.locator(".home-speaker-icon img")).toHaveAttribute("alt", "");
-    await expect(speakers.locator(".rail-track, .portrait-placeholder, .demo-chip, .portrait-provenance")).toHaveCount(0);
+    await expect(speakers.locator(".home-speaker-portrait .portrait-placeholder")).toHaveAttribute("aria-hidden", "true");
+    await expect(speakers.locator("img, .rail-track, .demo-chip, .portrait-provenance")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   });
 

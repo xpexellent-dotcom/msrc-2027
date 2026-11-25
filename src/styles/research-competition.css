@@ -53,26 +53,162 @@
   .abstract-workspace .research-roadmap { grid-template-columns: repeat(3, minmax(0, 1fr)); border-block-start: 0; gap: 2rem 1rem; }
   .abstract-workspace .research-roadmap li { border-block-start: 1px solid var(--color-line); }
 }
-/* Two complementary formats, composed as a single editorial spread. */
-.research-presentations { background: #eee9e0; }
-.research-presentation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid #d4cadc; border-radius: 1.25rem; overflow: hidden; }
-.research-presentation-card { min-inline-size: 0; padding: clamp(1.5rem, 3.5vw, 3.5rem); }
-.research-presentation-card--oral { color: var(--color-ivory); background: var(--color-purple); }
-.research-presentation-card--poster { color: var(--color-ink); background: var(--color-ivory); }
-.research-format-art { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-block-size: 8rem; margin-block-end: 2rem; padding-block-end: 1.5rem; border-block-end: 1px solid #b09bc5; }
-.research-presentation-card .research-format-label { font-size: .85rem; font-weight: 750; color: var(--color-lilac); margin: 0 0 .85rem; }
-[lang="en"] .research-format-label { text-transform: uppercase; letter-spacing: .14em; }
-.research-presentation-card--poster .research-format-label { color: #644780; }
-.research-presentation-card h3 { font-size: clamp(1.65rem, 2.4vw, 2.5rem); line-height: 1.25; letter-spacing: -.025em; margin-block: 0 1.5rem; }
-.research-presentation-card--poster h3 { color: var(--color-purple); }
-.research-presentation-card > p:last-child { line-height: 1.9; margin: 0; font-size: 1.02rem; }
-.research-winners { display: flex; align-items: center; gap: clamp(1.25rem, 3vw, 2.5rem); margin-block-start: 1.25rem; padding: clamp(1.5rem, 2.8vw, 2.5rem); border: 1px solid #cdbd98; border-radius: 1.25rem; background: #e8e0d0; }
-.research-winners h3 { font-size: 1.05rem; color: var(--color-purple); margin: 0 0 .6rem; }
-.research-winners p { max-inline-size: 76ch; margin: 0; line-height: 1.85; font-weight: 550; }
-.research-eligibility-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
-.research-eligibility-card { border-block-start: 3px solid var(--color-gold); padding-block-start: 1.5rem; }
-.research-eligibility-card h3 { font-size: 1.25rem; line-height: 1.5; color: var(--color-purple); margin-block: 0 1rem; }
-.research-eligibility-card p { line-height: 1.9; margin: 0; }
+/* The two formats share a reading rhythm and each uses its own illustration field. */
+.research-presentations { background: color-mix(in srgb, var(--color-mist) 68%, var(--color-white)); }
+
+.research-presentation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(.9rem, 2vw, 1.75rem);
+}
+
+.research-presentation-card {
+  min-inline-size: 0;
+  overflow: hidden;
+  border: 1px solid var(--format-border);
+  border-radius: 1rem;
+}
+
+.research-presentation-card--oral {
+  --format-border: #624587;
+  --format-art-surface: #2e194d;
+  --format-art-line: #b89ac7;
+  --format-caption: #eddcb7;
+  background: var(--color-purple);
+  color: var(--color-ivory);
+}
+
+.research-presentation-card--poster {
+  --format-border: var(--color-line);
+  --format-art-surface: #e9e1f3;
+  --format-art-line: #644780;
+  --format-caption: #5c4373;
+  background: var(--color-white);
+  color: var(--color-purple);
+}
+
+.research-format-art {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-block-size: clamp(8.5rem, 16vw, 13rem);
+  overflow: clip;
+  border-block-end: 1px solid var(--format-border);
+  background: var(--format-art-surface);
+}
+
+.research-format-art::before,
+.research-format-art::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  margin: auto;
+  inline-size: min(64%, 22rem);
+  block-size: 70%;
+  border: 1px solid var(--format-art-line);
+  opacity: .38;
+}
+
+.research-format-art::after {
+  inline-size: min(76%, 27rem);
+  block-size: 91%;
+  opacity: .29;
+}
+
+.research-presentation-card--oral .research-format-art::before,
+.research-presentation-card--oral .research-format-art::after { border-radius: 50%; }
+
+.research-presentation-card--poster .research-format-art::before,
+.research-presentation-card--poster .research-format-art::after {
+  border-radius: .5rem;
+  rotate: var(--format-paper-angle, -8deg);
+}
+
+[dir="rtl"] .research-presentation-card--poster { --format-paper-angle: 8deg; }
+
+.research-format-art .brand-icon {
+  inline-size: clamp(6rem, 12vw, 10rem);
+  block-size: auto;
+  aspect-ratio: 1;
+}
+
+.research-format-copy { padding: clamp(1.25rem, 3.5vw, 2.75rem); }
+
+.research-format-copy h3 {
+  margin: 0;
+  color: inherit;
+  font-size: clamp(1.55rem, 2.8vw, 2.75rem);
+  line-height: 1.2;
+}
+
+.research-format-label {
+  margin: .4rem 0 clamp(1.15rem, 2vw, 1.6rem);
+  color: var(--format-caption);
+  font-size: .875rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+[lang="en"] .research-format-label { text-transform: uppercase; letter-spacing: .08em; }
+
+.research-format-copy > p:last-child { margin: 0; max-inline-size: 66ch; line-height: 1.8; }
+.research-presentation-card--poster .research-format-copy > p:last-child { color: var(--color-muted); }
+
+.research-winners {
+  display: flex;
+  align-items: center;
+  gap: clamp(.85rem, 3vw, 2rem);
+  margin-block-start: clamp(1rem, 2.5vw, 2rem);
+  padding: clamp(1.15rem, 3vw, 2rem);
+  border: 1px solid #d8c5a0;
+  border-radius: 1rem;
+  background: var(--color-sand);
+}
+
+.research-winners h3 { font-size: 1.3rem; color: var(--color-purple); margin: 0 0 .25rem; }
+.research-winners p { max-inline-size: 76ch; margin: 0; line-height: 1.75; }
+
+.research-eligibility > .site-container {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
+  gap: clamp(1.5rem, 5.5vw, 6rem);
+}
+
+.research-eligibility .section-heading { margin: 0; }
+
+.research-eligibility-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-block-start: 1px solid var(--color-line-strong);
+}
+
+.research-eligibility-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(.85rem, 3vw, 1.75rem);
+  padding-block: clamp(1.15rem, 3vw, 2rem);
+  border-block-end: 1px solid var(--color-line);
+}
+
+.research-eligibility-list .brand-icon {
+  inline-size: clamp(2.5rem, 5vw, 4.25rem);
+  block-size: auto;
+  aspect-ratio: 1;
+}
+
+.research-eligibility-list h3 {
+  margin: 0 0 .45rem;
+  color: var(--color-purple);
+  font-size: clamp(1.2rem, 2.25vw, 1.65rem);
+  line-height: 1.35;
+}
+
+.research-eligibility-list p { max-inline-size: 68ch; margin: 0; color: var(--color-muted); line-height: 1.8; }
+
 .research-evaluation { background: #eee9e0; }
 .research-rubric-panel { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 7fr); border: 1px solid var(--color-line); border-radius: 14px; overflow: hidden; background: var(--color-white); }
 .research-rubric-intro { min-inline-size: 0; padding: clamp(1.5rem, 3vw, 3rem); color: var(--color-ivory); background: var(--color-purple); }
@@ -122,19 +258,16 @@
   .research-hero { padding-block: 7.5rem 4rem; }
   .research-hero h1 { font-size: clamp(2.6rem, 11vw, 4rem); }
   .research-breadcrumb ol { margin-block-end: 2rem; }
-  .research-presentation-grid, .research-eligibility-grid { grid-template-columns: 1fr; }
-  .research-format-art { min-block-size: 7rem; }
+  .research-presentation-grid, .research-eligibility > .site-container { grid-template-columns: minmax(0, 1fr); }
   .research-winners { align-items: start; }
   .research-guidelines li { grid-template-columns: 1.4rem minmax(0, 1fr); gap: .75rem; }
   .research-suggested { grid-column: 2; }
   .research-word-limit { padding: 1.25rem; }
-  .research-eligibility-grid { gap: 2rem; }
   .research-closing-actions { align-items: start; flex-direction: column; }
 }
 @media (max-width: 400px) {
   .research-acknowledgement { inline-size: calc(100% - 1rem); max-block-size: calc(100dvh - 1rem); border-radius: .85rem; }
   .research-acknowledgement__actions { flex-direction: column; }
-  .research-winners { flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) { .research-competition .button, .research-acknowledgement .button { animation: none; transition: none; transform: none; } }
 @media (forced-colors: active) { .research-format-art { display: none; } }

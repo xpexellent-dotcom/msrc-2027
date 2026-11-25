@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 // DSN-01/02, ACC-01, LOC-01/03: the expressive header keeps native access.
 async function settle(page: Page) {
   await page.evaluate(async () => { await document.fonts.ready; });
-  await expect(page.locator(".axiom-header")).toBeVisible();
+  await expect(page.locator(".axiom-header")).toHaveAttribute("data-header-ready", "true");
 }
 
 for (const locale of ["en", "ar"] as const) {
@@ -40,6 +40,36 @@ for (const locale of ["en", "ar"] as const) {
     expect(Math.abs((await logo.boundingBox())!.x - initial!.x)).toBeLessThan(1);
     await page.locator("#legacy").evaluate(element => window.scrollTo({ top: element.getBoundingClientRect().top + scrollY + 100, behavior: "instant" }));
     await expect(header).toHaveAttribute("data-header-tone", "dark");
+  });
+
+  test(`${locale} interior navigation splits on downward scroll and restores for upward scroll and keyboard focus`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "Fine-pointer desktop behavior.");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const route of ["program", "abstracts"] as const) {
+      await page.goto(`/${locale}/${route}`);
+      const header = page.locator(".axiom-header");
+      const middle = header.locator(".header-middle");
+      await expect(header).toHaveAttribute("data-header-ready", "true");
+      await expect(middle).toHaveCSS("opacity", "1");
+      await page.mouse.move(720, 400);
+      await page.evaluate(() => window.scrollTo({ top: 650, behavior: "instant" }));
+      await expect(header).toHaveAttribute("data-compact", "true");
+      await expect(middle).toHaveCSS("opacity", "0");
+      await expect(header.locator(".site-header-inner")).toHaveCSS("pointer-events", "none");
+
+      await page.mouse.wheel(0, -150);
+      await expect(header).not.toHaveAttribute("data-compact");
+      await expect(middle).toHaveCSS("opacity", "1");
+      await page.mouse.wheel(0, 150);
+      await expect(header).toHaveAttribute("data-compact", "true");
+
+      await header.locator(".wordmark").focus();
+      await page.keyboard.press("Tab");
+      await expect(header.locator(`.desktop-nav a[href="/${locale}/participate"]`)).toBeFocused();
+      await expect(header).not.toHaveAttribute("data-compact");
+      await expect(middle).toHaveCSS("opacity", "1");
+    }
   });
 
   test(`${locale} keyboard-expanded navigation keeps its target when switching to a pointer click`, async ({ page, isMobile }) => {

@@ -24,6 +24,7 @@ describe("approved design publication without preview authorization (DSN-01/02, 
     expect(html).toContain(homepageCopy[locale].title[0]);
     expect(html).toContain(homepageNarrative[locale].speakersPending);
     expect(html).toContain(`href="/${locale}/speakers"`);
+    expect(html).toContain("home-speaker-portrait");
     expect(html).not.toContain("speaker-preview-card");
     expect(html).toContain('id="participate"');
     expect(html).toContain('id="legacy"');

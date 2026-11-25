@@ -220,7 +220,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("a.editorial-action", { hasText: locale === "ar" ? "كيف تشارك" : "How to take part" })).toHaveAttribute("href", `/${locale}/participate`);
     const speakers = page.locator("#speakers");
     await expect(speakers.locator(".home-speaker-overview")).toBeVisible();
-    await expect(speakers.locator(".rail-track, .portrait-placeholder, .conference-speaker-portrait")).toHaveCount(0);
+    await expect(speakers.locator(".home-speaker-portrait .portrait-placeholder")).toHaveCount(1);
+    await expect(speakers.locator(".rail-track, .conference-speaker-portrait")).toHaveCount(0);
     await expect(page.locator(".demo-chip, .portrait-provenance, .pathways-archive-note")).toHaveCount(0);
     const venue = page.locator("#venue");
     await venue.scrollIntoViewIfNeeded();

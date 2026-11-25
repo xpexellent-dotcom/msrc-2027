@@ -15,6 +15,7 @@ import { ClosingCity } from "@/components/closing-city";
 import { ResearchArtwork } from "@/components/research-artwork";
 import { HistoryNumbers } from "@/components/history-numbers";
 import { SpeakerAtmosphere } from "@/components/speaker-atmosphere";
+import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { BenefitArtwork } from "@/components/benefit-artwork";
 import { conferenceExpectations } from "@/content/conference-expectations";
@@ -115,18 +116,15 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
       <SpeakerAtmosphere />
       <Container>
         <Reveal className="home-speaker-overview">
-          <div className="home-speaker-introduction">
-            <BrandIcon className="home-speaker-icon" name="11-speakers" size={56} />
-            <div className="home-speaker-copy">
-              <SectionHeading chapter title={narrative.speakersTitle} accents={locale === "ar" ? ["المتحدثين."] : ["speakers."]} id="speakers-title" />
-              {!speakers.length ? <p>{narrative.speakersPending}</p> : null}
-            </div>
+          <div className="home-speaker-copy">
+            <SectionHeading title={narrative.speakersTitle} id="speakers-title" />
+            {!speakers.length ? <p>{narrative.speakersPending}</p> : null}
+            <Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link>
           </div>
-          <Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link>
+          {speakers.length ? <div className="home-speaker-cards" data-testid="home-published-speakers">
+            {speakers.slice(0, 2).map((speaker) => <SpeakerCard compact key={speaker.slug} locale={locale} speaker={speaker} />)}
+          </div> : <div className="home-speaker-portrait"><PortraitPlaceholder variant={1} /></div>}
         </Reveal>
-        {speakers.length ? <div className="home-speaker-cards" data-testid="home-published-speakers">
-          {speakers.slice(0, 2).map((speaker) => <SpeakerCard compact key={speaker.slug} locale={locale} speaker={speaker} />)}
-        </div> : null}
       </Container>
     </section>
 

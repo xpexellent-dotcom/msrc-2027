@@ -49,8 +49,10 @@ for (const locale of ["en", "ar"] as const) {
       expect((await new AxeBuilder({ page }).include("#speakers").withRules(["color-contrast"]).analyze()).violations).toEqual([]);
       await expect(page.getByTestId("home-published-programme")).toContainText(session);
       await expect(pending).toHaveCount(0);
+      await expect(homeSpeakers.locator(".home-speaker-portrait")).toHaveCount(0);
     } else {
       await expect(pending).toBeVisible();
+      await expect(homeSpeakers.locator(".home-speaker-portrait")).toBeVisible();
       await expect(page.getByTestId("home-published-speakers")).toHaveCount(0);
     }
     await expect(homeSpeakers.locator(".speaker-preview-card")).toHaveCount(0);
