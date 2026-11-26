@@ -99,7 +99,13 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
     await expect(page.locator(".research-roadmap > li")).toHaveCount(6);
-    await expect(page.locator(".research-roadmap time")).toHaveCount(7);
+    const stepIcons = page.locator(".research-step-marker .brand-icon img");
+    await expect(stepIcons).toHaveCount(6);
+    for (const [index, icon] of ["06-publications", "25-faq", "17-education", "26-contact", "15-schedule", "11-speakers"].entries()) {
+      await expect(stepIcons.nth(index)).toHaveAttribute("src", new RegExp(icon + "\\.webp"));
+      await expect(stepIcons.nth(index)).toHaveAttribute("alt", "");
+    }
+    await expect(page.getByRole("main").locator("time")).toHaveCount(0);
     await expect(page.locator(".research-guidelines > li")).toHaveCount(6);
     await expect(page.locator(".research-criteria dt")).toHaveCount(7);
     await expect(page.locator("#research-prepare, #research-rules")).toHaveCount(0);
@@ -113,13 +119,14 @@ for (const locale of ["en", "ar"] as const) {
     await expect(illustrations.last()).toHaveAttribute("src", /12-posters\.webp/);
     for (const illustration of await illustrations.all()) await expect(illustration).toHaveAttribute("alt", "");
     await expect(presentations.locator(".research-winners")).toContainText(copy.winners);
+    await expect(presentations.locator(".research-winners")).toContainText(locale === "en" ? "cash prizes" : "جوائز نقدية");
+    await expect(page.locator(".research-rubric-magnifier")).toHaveAttribute("aria-hidden", "true");
     const eligibility = page.getByRole("region", { name: copy.eligibility });
     const requirements = eligibility.getByRole("listitem");
     await expect(requirements.getByRole("heading", { level: 3 })).toHaveText(copy.eligibilityCards.map(([heading]) => heading));
     await expect(requirements.locator("p")).toHaveText(copy.eligibilityCards.map(([, description]) => description));
     await expect(page.locator(".research-submission-cta").first()).toHaveAttribute("aria-disabled", "true");
-    await expect(page.locator(".research-submission-cta").first()).toContainText(copy.cta.opening);
-    await expect(page.locator(".research-submission-cta time").first()).toHaveAttribute("datetime", "2026-11-22T21:00:00.000Z");
+    await expect(page.locator(".research-submission-cta").first()).toHaveText(copy.cta.opening);
     expect(await page.locator("html").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await captureAbstractViews(page, testInfo.project.name, locale, "public", [["roadmap", "#research-journey"], ["presentations", "#research-presentations"], ["eligibility", "#research-eligibility"], ["evaluation", "#research-evaluation"], ["closing", "#research-closing"]]);

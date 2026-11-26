@@ -34,7 +34,7 @@ describe("approved design publication without preview authorization (DSN-01/02, 
     expect(html).not.toContain("hero-social");
     expect(html).toContain("community-majed-9804.jpg");
     expect(html).toContain("jeddah-opening-cropped-poster.jpg");
-    expect(html).toContain(locale === "en" ? "Illustrative" : "مثال بصري");
+    expect(html).toContain("/brand/identity/icons/28-cme-hours.svg");
     expect(html).toContain(`href="/${locale}/participate"`);
     expect(html).not.toContain("/api/preview-media/");
     expect(html).not.toContain("/design-system");

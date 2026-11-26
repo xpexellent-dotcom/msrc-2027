@@ -3,7 +3,7 @@ export const researchCompetitionCopy = {
   en: {
     title: "Research competition", kicker: "MSRC’27 · Research", home: "Home",
     intro: "The MSRC Research Competition provides medical students with an opportunity to present their research, communicate scientific findings, and engage with fellow students and academic professionals.",
-    description: "Explore the MSRC’27 Research Competition: eligibility, abstract guidelines, submission dates and evaluation criteria.",
+    description: "Explore the MSRC’27 Research Competition: eligibility, abstract guidelines and evaluation criteria.",
     journey: "Your abstract’s journey", by: "By", from: "From", current: "Current step",
     steps: ["Submit", "Initial screening", "Scientific review", "Decision", "Confirm attendance and receive instructions", "Present"],
     stepDetails: ["Prepare, review and submit your abstract.", "Abstracts undergo an initial eligibility screening.", "Eligible abstracts receive scientific review.", "Accepted or rejected; oral or poster presentation assigned.", "Confirm attendance and prepare for your presentation.", "Share your research through an oral or poster presentation."],
@@ -12,7 +12,7 @@ export const researchCompetitionCopy = {
     oral: "Oral Presentation", poster: "Poster Presentation",
     oralText: "Participants whose abstracts are selected for oral presentation will present their research verbally to an audience and a panel of judges. The presentation should clearly explain the research background, objectives, methodology, results, and conclusions. Presenters will also have the opportunity to answer questions from the judges and discuss their findings.",
     posterText: "Participants whose abstracts are selected for poster presentation will communicate their research through a scientific poster that summarizes the study’s background, objectives, methods, results, and conclusions. Presenters will explain their work to the judges and answer questions about their research.",
-    winners: "Three winners will be selected in each presentation category, recognizing outstanding research and presentation quality.",
+    winners: "Cash prizes will be awarded to the top three presenters in each of the oral and poster categories, in recognition of the quality of their research and presentations.",
     eligibility: "Eligibility", eligibilityIntro: "All three requirements apply.",
     eligibilityCards: [
       ["Presenter qualifications", "Presenters must be undergraduate medical students or medical interns."],
@@ -56,12 +56,12 @@ export const researchCompetitionCopy = {
       ["One submission", "Each participant has one submission chance only."],
     ],
     closing: "Ready to share your research?", contact: "Contact us", closingText: "Prepare your abstract and review every detail before submitting.",
-    cta: { closed: "Submissions closed", opening: "Opens", signIn: "Sign in to submit", profile: "Complete your profile first", draft: "Continue your draft", finalized: "View your submission", submit: "Submit your abstract" },
+    cta: { closed: "Submissions closed", opening: "Submissions have yet to open", signIn: "Sign in to submit", profile: "Complete your profile first", draft: "Continue your draft", finalized: "View your submission", submit: "Submit your abstract" },
   },
   ar: {
     title: "مسابقة الأبحاث", kicker: "المؤتمر الطلابي للأبحاث الطبية ٢٠٢٧ · الأبحاث", home: "الرئيسية",
     intro: "تتيح مسابقة الأبحاث في المؤتمر الطلابي للأبحاث الطبية لطلاب الطب فرصة عرض أبحاثهم، ونقل النتائج العلمية، والتفاعل مع زملائهم من الطلاب والمختصين الأكاديميين.",
-    description: "تعرّف على مسابقة الأبحاث في المؤتمر الطلابي للأبحاث الطبية ٢٠٢٧: الأهلية وإرشادات الملخصات ومواعيد التقديم ومعايير التقييم.",
+    description: "تعرّف على مسابقة الأبحاث في المؤتمر الطلابي للأبحاث الطبية ٢٠٢٧: الأهلية وإرشادات الملخصات ومعايير التقييم.",
     journey: "رحلة ملخصك البحثي", by: "بحلول", from: "ابتداءً من", current: "الخطوة الحالية",
     steps: ["التقديم", "الفرز الأولي", "التحكيم العلمي", "القرار", "تأكيد الحضور واستلام التعليمات", "العرض"],
     stepDetails: ["أعدّ ملخصك وراجعه ثم قدّمه.", "تُفحص أهلية الملخصات في مرحلة الفرز الأولي.", "تخضع الملخصات المؤهلة للتحكيم العلمي.", "قبول أو رفض، مع تخصيص عرض شفهي أو ملصق علمي للمقبولين.", "أكّد حضورك واستعد لعرض بحثك.", "شارك بحثك من خلال عرض شفهي أو ملصق علمي."],
@@ -69,7 +69,7 @@ export const researchCompetitionCopy = {
     formats: ["الصيغة الأولى", "الصيغة الثانية"], distinction: "التميّز البحثي",
     oralText: "سيعرض المشاركون الذين تُختار ملخصاتهم للعرض الشفهي أبحاثهم شفهيًا أمام الجمهور ولجنة التحكيم. وينبغي أن يوضح العرض خلفية البحث وأهدافه ومنهجيته ونتائجه واستنتاجاته. وستتاح للمقدمين أيضًا فرصة الإجابة عن أسئلة المحكّمين ومناقشة نتائجهم.",
     posterText: "سيشارك المشاركون الذين تُختار ملخصاتهم لعرض الملصق العلمي أبحاثهم عبر ملصق علمي يلخّص خلفية الدراسة وأهدافها وطرقها ونتائجها واستنتاجاتها. وسيشرح المقدمون أعمالهم للمحكّمين ويجيبون عن الأسئلة المتعلقة بأبحاثهم.",
-    winners: "سيُختار ثلاثة فائزين في كل فئة من فئتي العرض، تقديرًا لتميّز البحث وجودة العرض.",
+    winners: "تُمنح جوائز نقدية لأصحاب المراكز الثلاثة الأولى في كلٍّ من فئتي العرض الشفهي وعرض الملصق العلمي، تقديرًا لتميّز أبحاثهم وجودة عروضهم.",
     eligibility: "الأهلية", eligibilityIntro: "يشترط استيفاء المتطلبات الثلاثة الآتية.",
     eligibilityCards: [
       ["مؤهلات مقدّم العرض", "يجب أن يكون مقدّم العرض طالب طب في مرحلة البكالوريوس أو طبيب امتياز."],
@@ -113,6 +113,6 @@ export const researchCompetitionCopy = {
       ["طلب واحد", "لكل مشارك فرصة تقديم واحدة فقط."],
     ],
     closing: "هل أنت مستعد لمشاركة بحثك؟", contact: "تواصل معنا", closingText: "أعدّ ملخصك وراجع جميع التفاصيل قبل تقديمه.",
-    cta: { closed: "التقديم مغلق", opening: "يُفتح التقديم في", signIn: "سجّل الدخول للتقديم", profile: "أكمل ملفك أولًا", draft: "تابع مسودتك", finalized: "اعرض طلبك", submit: "قدّم ملخصك" },
+    cta: { closed: "التقديم مغلق", opening: "لم يُفتح باب التقديم بعد", signIn: "سجّل الدخول للتقديم", profile: "أكمل ملفك أولًا", draft: "تابع مسودتك", finalized: "اعرض طلبك", submit: "قدّم ملخصك" },
   },
 } as const;

@@ -24,6 +24,29 @@
 .research-roadmap li { position: relative; min-inline-size: 0; border-inline-start: 1px solid var(--color-line); padding-block: 0 2.25rem; padding-inline: 4.5rem 0; }
 .research-roadmap li::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: -1px; inline-size: 2px; background: var(--color-gold); transform: scaleY(0); transform-origin: top; transition: transform 400ms cubic-bezier(.2,.8,.2,1); }
 .research-step-number { display: block; position: absolute; inset-block-start: 0; inset-inline-start: .75rem; color: var(--color-line); font-family: Georgia, "Times New Roman", serif; font-size: 2.25rem; line-height: 1; font-weight: 400; font-variant-numeric: tabular-nums; transition: color 400ms cubic-bezier(.2,.8,.2,1), transform 400ms cubic-bezier(.2,.8,.2,1); }
+.research-roadmap--public li { min-block-size: 5.5rem; }
+
+.research-step-marker {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: .7rem;
+  display: grid;
+  justify-items: start;
+  gap: .15rem;
+}
+
+.research-step-marker .research-step-number {
+  position: static;
+  margin: 0;
+  font-size: clamp(1.35rem, 2.35vw, 1.95rem);
+}
+
+.research-step-marker .brand-icon {
+  inline-size: clamp(34px, 4.25vw, 56px);
+  block-size: auto;
+  aspect-ratio: 1;
+}
+
 .research-roadmap h3 { color: var(--color-ink); font-size: 1.05rem; line-height: 1.6; margin: 0; font-weight: 750; }
 .research-roadmap p { max-inline-size: 42ch; color: var(--color-muted); font-size: .9rem; line-height: 1.8; margin-block: .7rem 0; }
 .research-roadmap p { overflow-wrap: break-word; }
@@ -49,6 +72,13 @@
   .research-roadmap li::before { inset-block: -1px auto; inset-inline-start: 0; inline-size: 100%; block-size: 2px; transform: scaleX(0); transform-origin: left; }
   [dir="rtl"] .research-roadmap li::before { transform-origin: right; }
   .research-step-number { position: static; margin-block-end: 1.25rem; }
+  .research-step-marker {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: clamp(.25rem, 1vw, .85rem);
+    margin-block-end: 1.25rem;
+  }
   .research-roadmap li:is(:hover, :focus-within, [aria-current="step"])::before { transform: scaleX(1); }
   .abstract-workspace .research-roadmap { grid-template-columns: repeat(3, minmax(0, 1fr)); border-block-start: 0; gap: 2rem 1rem; }
   .abstract-workspace .research-roadmap li { border-block-start: 1px solid var(--color-line); }
@@ -167,8 +197,22 @@
   background: var(--color-sand);
 }
 
-.research-winners h3 { font-size: 1.3rem; color: var(--color-purple); margin: 0 0 .25rem; }
-.research-winners p { max-inline-size: 76ch; margin: 0; line-height: 1.75; }
+.research-winners .brand-icon { inline-size: clamp(48px, 6vw, 80px); block-size: auto; aspect-ratio: 1; }
+
+.research-winners h3 {
+  margin: 0 0 .5rem;
+  color: var(--color-purple);
+  font-size: clamp(1.65rem, 3.25vw, 2.85rem);
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.research-winners p {
+  max-inline-size: 67ch;
+  margin: 0;
+  font-size: clamp(1rem, .96rem + .25vw, 1.125rem);
+  line-height: 1.75;
+}
 
 .research-eligibility > .site-container {
   display: grid;
@@ -211,7 +255,58 @@
 
 .research-evaluation { background: #eee9e0; }
 .research-rubric-panel { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 7fr); border: 1px solid var(--color-line); border-radius: 14px; overflow: hidden; background: var(--color-white); }
-.research-rubric-intro { min-inline-size: 0; padding: clamp(1.5rem, 3vw, 3rem); color: var(--color-ivory); background: var(--color-purple); }
+.research-rubric-intro {
+  position: relative;
+  isolation: isolate;
+  min-inline-size: 0;
+  overflow: clip;
+  padding: clamp(1.5rem, 3vw, 3rem);
+  color: var(--color-ivory);
+  background: var(--color-purple);
+}
+
+.research-rubric-magnifier {
+  position: absolute;
+  z-index: -1;
+  inset-inline-end: -5%;
+  inset-block-end: -13%;
+  inline-size: min(91%, 23rem);
+  aspect-ratio: 1;
+  color: var(--color-lilac);
+  opacity: .24;
+  pointer-events: none;
+}
+
+.research-rubric-magnifier::before,
+.research-rubric-magnifier::after {
+  content: "";
+  position: absolute;
+  border: 2px solid currentColor;
+}
+
+.research-rubric-magnifier::before {
+  inset: 0 auto auto 0;
+  inline-size: 71%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 .5rem rgb(220 207 240 / 18%);
+}
+
+.research-rubric-magnifier::after {
+  inset: 60% auto auto 58%;
+  inline-size: 10%;
+  block-size: 37%;
+  border-radius: 999px;
+  background: var(--color-purple);
+  transform-origin: top center;
+  rotate: -42deg;
+}
+
+[dir="rtl"] .research-rubric-magnifier { scale: -1 1; }
+
+@media (min-width: 60rem) {
+  .research-rubric-magnifier { inset-block-end: 4%; }
+}
 .research-criteria-count { display: block; color: var(--color-gold); font-family: Georgia, "Times New Roman", serif; font-size: clamp(5rem, 8vw, 8rem); font-weight: 400; line-height: 1; margin-block-end: 2rem; }
 .research-rubric-intro h2 { color: var(--color-ivory); font-size: clamp(1.9rem, 3vw, 2.6rem); font-weight: 800; line-height: 1.12; letter-spacing: -.035em; margin: 0; }
 .research-rubric-intro p { color: var(--color-lilac); line-height: 1.85; margin-block: 1.5rem 0; }
@@ -270,8 +365,8 @@
   .research-acknowledgement__actions { flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) { .research-competition .button, .research-acknowledgement .button { animation: none; transition: none; transform: none; } }
-@media (forced-colors: active) { .research-format-art { display: none; } }
-@media print { .research-hero-photo, .research-format-art, .research-acknowledgement { display: none; } .research-presentation-card { border: 1px solid; } }
+@media (forced-colors: active) { .research-format-art, .research-step-marker .brand-icon, .research-rubric-magnifier { display: none; } }
+@media print { .research-hero-photo, .research-format-art, .research-rubric-magnifier, .research-acknowledgement { display: none; } .research-presentation-card { border: 1px solid; } }
 
 @media (prefers-reduced-motion: reduce) {
   .research-roadmap li::before, .research-step-number, .research-criteria > li { transition: none; transform: none; }

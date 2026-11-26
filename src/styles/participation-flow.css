@@ -91,10 +91,6 @@
 
 /* Benefit artwork by meaning (shared with the homepage), sized for the journey lists. */
 .participation-benefit .benefit-artwork { inline-size: 2.75rem; block-size: 2.75rem; margin: 0; }
-.participation-benefit .benefit-cme { inline-size: 2.75rem; }
-.participation-benefit .benefit-cme-number { font-size: 1.9rem; }
-.participation-benefit .benefit-cme-label { font-size: .625rem; }
-.participation-benefit .benefit-cme-note { font-size: .5625rem; }
 
 /* Decorative ink lives in reserved heading cells or clipped outer gutters.
    Fades soften the drawings; clipping, not the fade, protects the reading column. */

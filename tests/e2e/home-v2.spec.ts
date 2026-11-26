@@ -240,8 +240,7 @@ for (const locale of ["en", "ar"] as const) {
       await expect(program).toContainText(benefit.title);
       await expect(program).toContainText(benefit.homepageBody ?? benefit.body);
     }
-    await expect(program.locator(".benefit-cme-note")).toHaveText(locale === "en" ? "Illustrative" : "مثال بصري");
-    await expect(program.locator(".benefit-cme")).toHaveAccessibleName(locale === "en" ? "7 CME hours: illustrative only, hours unconfirmed" : "٧ ساعات تعليم طبي مستمر: مثال بصري فقط، العدد غير مؤكد");
+    await expect(program.locator(".benefit-card").first().locator("img[src$='28-cme-hours.svg']")).toHaveAttribute("alt", "");
     const speakers = page.locator("#speakers");
     await expect(speakers.getByText(narrative.speakersPending, { exact: true })).toHaveCount(1);
     await expect(speakers.getByRole("link", { name: narrative.speakersLink, exact: true })).toHaveAttribute("href", `/${locale}/speakers`);

@@ -5795,3 +5795,23 @@ including presenter duties, co-author recognition and completed research.
 This is an editorial change under ORG-069, with the current criteria and
 research roadmap retained. Applies DSN-01/02, LOC-01/03, ACC-01, ABS-04/09
 and REL-06. See the [sitewide visual update](features/sitewide-brand-refresh.md).
+
+## ORG-079 — Attend, research and workshop presentation, 26 November 2026
+
+The organizer replaces the illustrative CME number with an hourglass on
+the homepage and Attend. The accredited hours are pending. Update Attend
+and Workshops benefits with the supplied icons and a new layout. Use the
+requested Attend sentence, “Check in on both days for a conference
+certificate.” Keep the general survey requirement visible under CRT-01.
+
+Withdraw the public abstract milestone dates in ORG-058 and ORG-069 while a
+revised calendar is pending. Keep the six steps and add illustrations.
+The top three in each of the oral and poster presentation categories
+receive cash prizes. Amounts remain pending. Add decorative magnifier
+artwork to the evaluation panel. The separate submission window settings
+and private receipt are outside this public display change.
+
+Give workshop catalogue cards a larger cover area for future images.
+Use the supplied Workshops illustration as the decorative cover pending
+workshop photography. DSN-01/02, ACC-01, LOC-01/03, TIM-01, CRT-01, WKS-01/02,
+ABS-01, REV-10 and MED-02 apply. See the [sitewide design notes](features/sitewide-brand-refresh.md).

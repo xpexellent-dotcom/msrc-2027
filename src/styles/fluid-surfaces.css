@@ -38,10 +38,6 @@
 :is(.pathways-section, .program-section, .fluid-art-surface) > .site-container { position: relative; z-index: 1; }
 /* The shared boundary is a single colour; decorative strokes fade before it. */
 .benefit-artwork { inline-size: 4.5rem; block-size: 4.5rem; margin-block-start: .1rem; }
-.benefit-cme { display: flex; flex-direction: column; align-items: center; color: var(--color-purple); line-height: 1; }
-.benefit-cme-number { font-family: var(--font-display); font-size: 4.8rem; font-weight: 750; letter-spacing: -.04em; background: var(--fluid-title); background-clip: text; -webkit-text-fill-color: transparent; }
-.benefit-cme-label { font-size: 1.125rem; font-weight: 750; letter-spacing: .08em; margin-block-start: .15rem; }
-.benefit-cme-note { inline-size: max-content; white-space: nowrap; font-size: .75rem; line-height: 1.5; margin-block-start: .6rem; color: var(--color-muted); text-align: center; }
 /* An eased fade through lilac: a linear ivory fade leaves a grey band over the dark film. */
 
 .fluid-art-surface { background: radial-gradient(ellipse at 90% 20%, rgb(220 207 240 / .72), transparent 60%), var(--color-ivory); }
@@ -78,17 +74,11 @@
 @media (max-width: 800px) {
   .contact-hero-grid, .contact-form-layout { grid-template-columns: minmax(0,1fr); }
   .benefit-artwork { inline-size: 3.25rem; block-size: 3.25rem; }
-  .benefit-cme-number { font-size: 3.75rem; }
-  .benefit-cme-label { font-size: .95rem; }
   .ambient-art--paths svg { inline-size: 160%; max-inline-size: none; }
   .people-page-heading > div { max-inline-size: 55ch; }
 }
 @media (max-width: 420px) {
   .benefit-artwork { inline-size: 3rem; block-size: 3rem; }
-  .benefit-cme { inline-size: 3rem; }
-  .benefit-cme-number { font-size: 3.5rem; }
-  .benefit-cme-label { font-size: .875rem; }
-  .benefit-cme-note { font-size: .75rem; margin-block-start: .35rem; }
   .contact-form { padding: 16px; }
   .contact-form .contact-closed-note { padding: 16px; }
 }
@@ -100,10 +90,10 @@
 }
 @media (forced-colors: active) {
   .ambient-art, .title-word--accent::after, .dates-location-details > div::after { display: none; }
-  :is(.people-page-heading h1, .dates-content-grid .section-heading h2, .dates-travel .section-heading h2, .contact-form-introduction h2, .experience-intro h1, .premium-photo-hero h1, .premium-title-accent, .contact-hero h1, .benefit-cme-number) { -webkit-text-fill-color: CanvasText; background: none; color: CanvasText; }
+  :is(.people-page-heading h1, .dates-content-grid .section-heading h2, .dates-travel .section-heading h2, .contact-form-introduction h2, .experience-intro h1, .premium-photo-hero h1, .premium-title-accent, .contact-hero h1) { -webkit-text-fill-color: CanvasText; background: none; color: CanvasText; }
 }
 @media print {
   .ambient-art, .title-word--accent::after { display: none; }
-  h1, h2, .title-word, .benefit-cme-number { -webkit-text-fill-color: #000 !important; background: none !important; color: #000 !important; }
+  h1, h2, .title-word { -webkit-text-fill-color: #000 !important; background: none !important; color: #000 !important; }
 }
 [dir="rtl"] { --fluid-title: linear-gradient(245deg, #28163f 8%, #57317e 53%, #7b4e99 92%); --fluid-title-inverse: linear-gradient(245deg, #fff 12%, #e9daf8 58%, #eddaaf 98%); }

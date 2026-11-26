@@ -102,3 +102,25 @@ with 14 profile-specific skips. Footer artwork decoding and layout passed
 for the portrait teaser and research formats covered English, Arabic,
 reduced motion, enlarged text and automated accessibility. Physical
 handsets and assistive-technology sessions remain open.
+
+### Attend, abstracts and workshop review, 26 November 2026
+
+- ORG-079 replaces the illustrative CME number with a branded hourglass.
+  Attend and Workshop benefits use the supplied illustrations, including
+  the extracted certificate artwork. The Attend certificate uses the
+  requested two-day wording and a separate survey requirement.
+- The public abstracts roadmap shows six illustrated steps without
+  dates. The distinction callout announces cash prizes for the top
+  three in each category. The decorative magnifier sits behind the
+  rubric introduction.
+- Workshop catalogue cards reserve a 16:10 cover using conference
+  artwork while individual images are pending. The existing horizontal
+  scroll, keyboard controls and booking states continue to work.
+
+The targeted Chromium checks covered the homepage, Attend, Workshop
+catalogue, public research layout and the synthetic submission-window
+states. Chromium and WebKit also verified the English and Arabic
+responsive artwork. Twelve scoped axe checks on the new benefits found
+zero violations, including at 280px and 200% text. Four synthetic
+published workshop cases passed locally. Physical devices and screen
+readers remain open.

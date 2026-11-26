@@ -60,6 +60,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} numbered content fits 320px, phone, tablet and desktop`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "Run the explicit width matrix once per locale.");
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.clock.setFixedTime(new Date("2027-04-06T20:00:00Z"));
     for (const width of [320, 390, 791, 1440]) {
       await page.setViewportSize({ width, height: width < 700 ? 844 : 1000 });
       for (const route of ["", "participate", "program", "registration", "workshops", "design-system"]) {
@@ -73,7 +74,7 @@ for (const locale of ["en", "ar"] as const) {
           // rows above are the rendered numbering surface at this stage.
           await expect(page.locator(".conference-session-row")).toHaveCount(0);
         } else if (!["registration", "workshops", "participate"].includes(route)) {
-          expect(await numbers.count(), `${route} numbered content`).toBeGreaterThan(0);
+          await expect(numbers.first(), `${route || "home"} numbered content`).toBeAttached();
         }
         // Section indices are unpadded; hours, minutes and seconds intentionally use two digits.
         for (const text of await indices.allTextContents()) expect(text.trim(), route).not.toMatch(paddedIndex);

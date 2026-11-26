@@ -340,6 +340,7 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
   const content = journey === "hackathon" && hackathonTracks && original.tracks ? { ...original, tracks: { ...original.tracks, items: original.tracks.items.map((track, index) => { const configured = hackathonTracks[index === 0 ? "translating_research" : "advancing_research"]; return { ...track, title: configured.label[locale], body: configured.description[locale] }; }) } } : original;
   const workshops = published(approvedWorkshops);
   const actions = journeyActionCopy[locale];
+  const illustratedBenefits = journey === "registration" || journey === "workshops";
   return <div className={`participation-journey participation-journey--${journey}`}><ExperienceIntro locale={locale} page={journey}>
       {journey !== "registration" ? <ButtonLink variant="gold" href={journey === "workshops" ? "#workshop-catalogue" : "#journey-availability"} aria-describedby={journey === "workshops" ? undefined : "journey-closed-title"}>{actions.primary[journey]}<Arrow /></ButtonLink>
         : <ButtonLink variant="gold" href="#journey-steps" data-testid="registration-steps-jump">{actions.primary.registration}<Arrow /></ButtonLink>}
@@ -347,7 +348,22 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
     </ExperienceIntro>
     <section id="journey-availability" tabIndex={-1} className="journey-availability fluid-journey-availability" data-testid="journey-closed" aria-labelledby="journey-closed-title"><Container><div className="journey-availability-dot" aria-hidden="true" /><div><h2 id="journey-closed-title">{content.closed}</h2><p>{content.closedBody}</p></div></Container></section>
     {content.tracks ? <section id="journey-tracks" className="participation-tracks participation-ambient" aria-labelledby="journey-tracks-title"><SideArtwork motif={journey} area="tracks" /><Container><ArtworkHeading motif={journey} area="tracks"><h2 id="journey-tracks-title">{content.tracks.title}</h2></ArtworkHeading><div className="participation-track-list">{content.tracks.items.map((track) => <article className="participation-track" key={track.label}><p className="participation-track-label">{track.label}</p><h3 lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>{track.title}</h3><p>{track.body}</p></article>)}</div><p className="participation-track-note">{content.tracks.note}</p></Container></section> : null}
-    <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title"><SideArtwork motif={journey} area="benefits" /><Container><ArtworkHeading motif={journey} area="benefits"><h2 id="journey-benefits-title">{content.detailsTitle}</h2></ArtworkHeading><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
+    <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title">
+      <SideArtwork motif={journey} area="benefits" />
+      <Container>
+        <ArtworkHeading motif={journey} area="benefits"><h2 id="journey-benefits-title">{content.detailsTitle}</h2></ArtworkHeading>
+        <div className={`participation-benefit-list${illustratedBenefits ? " participation-benefit-list--illustrated" : ""}`}>
+          {content.details.map((detail, index) => (
+            <article className="participation-benefit" key={detail.title}>
+              <BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} variant={illustratedBenefits ? "brand" : "line"} size={illustratedBenefits ? 112 : 56} />
+              <div>
+                <h3>{detail.title}</h3>
+                <p>{detail.body}</p>
+                {detail.note ? <p className="participation-benefit-note">{detail.note}</p> : null}
+              </div>
+            </article>
+          ))}
+        </div>
       {content.goodToKnow ? <aside className="participation-good-to-know" aria-labelledby="good-to-know-title"><h3 id="good-to-know-title">{content.goodToKnow.title}</h3><ul>{content.goodToKnow.points.map((point) => <li key={point}>{point}</li>)}</ul></aside> : null}
     </Container></section>
     {journey === "submissions" ? <section className="participation-schedule abstract-timeline" aria-labelledby="abstract-dates-title"><Container><h2 id="abstract-dates-title">{locale === "ar" ? "مواعيد مهمة" : "Important dates"}</h2><ol className="abstract-timeline-list" role="list">{abstractDates.map((item, index) => <li key={item.date} style={{ "--timeline-index": index } as CSSProperties}><span className="abstract-timeline-dot" aria-hidden="true" /><div className="abstract-timeline-card"><time className="participation-schedule-day" dateTime={item.date}>{formatRegistrationOpeningDate(item.date, locale, false)}</time><h3>{item[locale]}</h3></div></li>)}</ol></Container></section> : null}
@@ -412,7 +428,7 @@ function WorkshopRail({ locale, workshops: initialWorkshops }: { locale: Locale;
     <ArtworkHeading motif="workshops" area="rail"><h2 id="workshop-catalogue-title">{heading}</h2></ArtworkHeading>
     {!workshops.length ? <div data-testid="workshops-empty" className="fluid-workshop-pending"><BrandIcon name="19-workshops" size={96} /><div><h3>{copy.workshopsPending}</h3><p>{copy.workshopsPendingBody}</p></div></div> : null}
     <HorizontalRail locale={locale} label={copy.pages.workshops.label} className="fluid-workshop-rail">
-      {workshops.length ? workshops.map((workshop) => <article className="fluid-workshop-card" key={workshop.slug}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{workshop.title[locale]}</h3><p>{workshop.description[locale]}</p>
+      {workshops.length ? workshops.map((workshop) => <article className="fluid-workshop-card" key={workshop.slug}><WorkshopCardCover /><div className="fluid-workshop-copy"><h3>{workshop.title[locale]}</h3><p>{workshop.description[locale]}</p>
         {workshop.instructor ? <p>{locale === "ar" ? "المدرّب" : "Instructor"}: <bdi>{workshop.instructor}</bdi></p> : null}
         <p>{sessionClock(workshop.startAt, locale) ?? copy.timePending}{workshop.endAt ? " – " + sessionClock(workshop.endAt, locale) : ""}{workshop.room ? ` · ${workshop.room}` : ""}</p>
         {workshop.eligibility ? <p>{workshop.eligibility[locale]}</p> : null}
@@ -422,13 +438,16 @@ function WorkshopRail({ locale, workshops: initialWorkshops }: { locale: Locale;
         {workshop.bookingDeadline ? <p>{locale === "ar" ? "آخر موعد للحجز" : "Booking deadline"}: {new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Riyadh" }).format(new Date(workshop.bookingDeadline))} ({locale === "ar" ? "بتوقيت الرياض" : "Riyadh time"})</p> : null}
         {workshop.transferBufferMinutes !== null && workshop.transferBufferMinutes !== undefined ? <p>{locale === "ar" ? "وقت الانتقال بالدقائق" : "Transfer buffer in minutes"}: {formatIndex(workshop.transferBufferMinutes, locale)}</p> : null}
         {workshop.bookingAvailable ? <ButtonLink href={`/${locale}/my-msrc`} variant="secondary">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</ButtonLink> : <StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge>}
-      </div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
+      </div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopCardCover /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
     </HorizontalRail>
   </Container></section>;
 }
 
-function WorkshopImagePlaceholder() {
-  return <div className="fluid-workshop-image" aria-hidden="true" />;
+function WorkshopCardCover() {
+  return <div className="fluid-workshop-image" aria-hidden="true">
+    <FlowLines className="workshop-cover-lines" />
+    <BrandIcon name="19-workshops" size={152} />
+  </div>;
 }
 
 export function SessionDetailExperience({ locale, session, speakers: approvedSpeakers = [], recording }: { locale: Locale; session: PublicSession; speakers?: readonly PublicSpeaker[]; recording?: PublicMedia }) {

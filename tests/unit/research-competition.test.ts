@@ -17,6 +17,7 @@ describe("ORG-068 public research competition", () => {
     expect(html.match(/aria-current="step"/g)).toHaveLength(1);
     expect(html).toContain(copy.current);
     expect(html).toContain(copy.steps[4]);
+    for (const { date } of abstractDates) expect(html).toContain(`dateTime="${date}"`);
     for (const detail of copy.stepDetails) expect(html).toContain(detail);
     expect(html).toContain(`<text x="${locale === "ar" ? "140" : "0"}" y="80" text-anchor="${locale === "ar" ? "end" : "start"}" font-size="100">${locale === "en" ? "01" : "١"}</text>`);
     expect(copy.evaluationIntro.endsWith(".")).toBe(true);
@@ -35,8 +36,7 @@ describe("ORG-068 public research competition", () => {
     expect(html).toContain(copy.cancel);
     expect(html).not.toContain("<dialog open");
   });
-  it("uses the saved operational window independently of the public calendar", () => {
-    expect(abstractDates[0].date).toBe("2026-11-23");
+  it("uses the saved operational window independently of the roadmap", () => {
     expect(researchCtaState({ signedIn: true, response: ready, window: { state: "opening", opensAt: "2026-11-22T21:00:00Z", closesAt: "2026-12-13T20:59:00Z" } })).toBe("opening");
     expect(researchCtaState({ signedIn: false, window: { state: "open", opensAt: "2026-11-22T21:00:00Z", closesAt: "2026-12-13T20:59:00Z" } })).toBe("signIn");
   });

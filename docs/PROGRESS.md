@@ -1,5 +1,17 @@
 # Progress and session handover
 
+## 26 November 2026 — Attend, abstracts and workshop design review
+
+- ORG-079 replaces the illustrative CME count with an hourglass and
+  updates the Attend and Workshops benefit layouts. See the
+  [design and verification notes](features/sitewide-brand-refresh.md).
+- The public research roadmap retains six steps with illustrated
+  markers and omits the previous dates pending a revised calendar.
+  The distinction callout confirms cash prizes for the top three in each
+  presentation category. The rubric includes a decorative magnifier.
+- Workshop catalogue cards have larger covers using the supplied
+  Workshops illustration while individual photography is pending.
+
 ## 26 November 2026 — Shared navigation and design review follow-up
 
 - ORG-078 extends split desktop navigation to the shared public header.

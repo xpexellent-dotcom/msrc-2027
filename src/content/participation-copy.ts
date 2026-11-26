@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n";
 export type ParticipationJourney = "registration" | "submissions" | "workshops" | "hackathon" | "threeMinuteThesis";
 export type JourneyCopy = {
   closed: string; closedBody: string; detailsTitle: string;
-  details: readonly { title: string; body: string }[];
+  details: readonly { title: string; body: string; note?: string }[];
   stepsTitle: string; steps: readonly string[];
   goodToKnow?: { title: string; points: readonly string[] };
   /** ORG-054: the hackathon's two tracks, shown before the benefits. */
@@ -21,7 +21,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
       closed: "Registration is not open yet", closedBody: "Free attendance. Visit the Participate page for registration dates.",
       detailsTitle: "Two days. So much to take away.",
       details: [
-        { title: "Your conference certificate", body: "Check in on both days and complete the general survey for your full conference certificate." },
+        { title: "Your conference certificate", body: "Check in on both days for a conference certificate.", note: "Complete the general survey as well." },
         { title: "Learn from the community", body: "Discover the questions and ideas shaping student research." },
         { title: "Make new connections", body: "Meet researchers, clinicians and speakers." },
         { title: "CME hours", body: conferenceExpectations.en.benefits[0].body },
@@ -98,7 +98,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
       closed: "لم يُفتح التسجيل بعد", closedBody: "الحضور مجاني. راجع صفحة المشاركة للاطلاع على مواعيد التسجيل.",
       detailsTitle: "يومان يفتحان لك آفاقًا.",
       details: [
-        { title: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين وأكمل الاستبيان العام للحصول على شهادة حضور المؤتمر كاملًا." },
+        { title: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين للحصول على شهادة حضور المؤتمر.", note: "يجب أيضًا إكمال الاستبيان العام." },
         { title: "تعلّم من المجتمع البحثي", body: "اكتشف الأسئلة والأفكار التي ترسم ملامح أبحاث الطلاب." },
         { title: "علاقات جديدة", body: "تعرّف إلى باحثين وأطباء ومتحدثين." },
         { title: "ساعات تعليم طبي مستمر", body: conferenceExpectations.ar.benefits[0].body },
@@ -179,9 +179,9 @@ export const participationPathDescriptions: Record<Locale, Record<ParticipationJ
 
 /** Benefit artwork by meaning, not position (shared by EN and AR, which list benefits in the same order). */
 export const participationBenefitIcons: Record<ParticipationJourney, readonly BenefitIcon[]> = {
-  registration: ["certificate", "community", "network", "cme", "research"],
+  registration: ["certificate", "community", "network", "cme", "schedule"],
   submissions: ["research", "community", "award", "network"],
-  workshops: ["practice", "certificate", "priority", "community"],
+  workshops: ["practice", "certificate", "priority", "schedule"],
   hackathon: ["community", "network", "community", "research"],
   threeMinuteThesis: ["research", "community"],
 };

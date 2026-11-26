@@ -44,7 +44,7 @@ for (const locale of ["en", "ar"] as const) {
     expect(writes).toEqual([]);
   });
 
-  test(`${locale} workshop placeholders are a keyboard-accessible native rail and paths reflow`, async ({ page }, testInfo) => {
+  test(`${locale} large workshop covers keep the native keyboard rail and narrow reflow`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "Explicit narrow viewport matrix runs once per locale.");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 320, height: 844 });
@@ -62,8 +62,17 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/workshops`);
     const rail = page.locator(".fluid-workshop-rail .rail-track");
     await expect(rail).toHaveAttribute("tabindex", "0");
-    await expect(page.locator(".fluid-workshop-card")).toHaveCount(3);
-    await expect(page.locator(".fluid-workshop-card img")).toHaveCount(0);
+    const cards = page.locator(".fluid-workshop-card");
+    await expect(cards).toHaveCount(3);
+    for (const card of await cards.all()) {
+      const cover = card.locator(".fluid-workshop-image");
+      await expect(cover).toHaveAttribute("aria-hidden", "true");
+      await expect(cover.locator("img")).toHaveAttribute("src", /19-workshops\.webp/);
+      const frame = (await cover.boundingBox())!;
+      expect(frame.width).toBeGreaterThanOrEqual(235);
+      expect(frame.height).toBeGreaterThanOrEqual(145);
+      expect(frame.width / frame.height).toBeCloseTo(1.6, 1);
+    }
     await expect(page.getByTestId("workshops-empty")).toBeVisible();
     await rail.focus();
     await expect(rail).toBeFocused();

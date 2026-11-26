@@ -352,3 +352,12 @@ physical centring correction and their original colours.
 transparent WebP derived from the dark lockup on page 10 of the supplied
 brand guide. It preserves the seal's original white lettering and gold artwork.
 The footer lazy-loads this rendition and displays it at 112–152 CSS pixels.
+
+## Public benefit icon additions — 26 November 2026, ORG-079
+
+- `public/brand/identity/icons/28-cme-hours.svg` is an original hourglass
+  in the conference art style. It carries no accredited-hours estimate.
+- `public/brand/identity/icons/29-certificate.svg` contains the supplied
+  certificate artwork extracted from page 8 of the brand guide.
+- Workshop catalogue covers use the supplied `19-workshops.webp`
+  illustration. It is decorative on pending and published cards.
