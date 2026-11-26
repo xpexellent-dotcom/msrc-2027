@@ -5869,3 +5869,9 @@ and the Vercel preview. This approval covers the public presentation
 refresh and verified accessibility fixes. Existing hosted workflow
 settings and the approved public content rules continue to apply.
 DSN-01/02, ACC-01, LOC-01/03, REL-01 and REL-06 apply.
+
+## ORG-085 — Research Principles Club browser icon, 26 November 2026
+
+The organizer selected the supplied Canva Research Principles Club seal
+for the browser tab icon. Use this mark on the shared public and portal
+icon resources and the home-screen shortcut. DSN-01/02 and CFG-12 apply.

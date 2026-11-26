@@ -43,6 +43,9 @@ const nextConfig: NextConfig = {
       ...(production ? vercelHosts.map((value) => ({ source: "/:path*", has: [{ type: "host" as const, value }], destination: "https://www.msrc2027.com/:path*", permanent: true })) : []),
       { source: "/", has: [{ type: "header" as const, key: "accept-language", value: arabicFirst }], destination: "/ar", permanent: false },
       { source: "/", destination: "/en", permanent: false },
+      // Cached manifests and bookmarks can still resolve the old icon addresses.
+      { source: "/icon.svg", destination: "/icon.png", permanent: true },
+      { source: "/apple-icon", destination: "/apple-icon.png", permanent: true },
       // ORG-037: the published short policy URLs follow the same locale preference.
       // ORG-067/069: independent Privacy and Terms snapshots, with Terms aliases.
       ...["privacy", "terms"].flatMap((kind) => (kind === "privacy" ? ["", "/v1.0", "/v1.1", "/v1.2"] : ["", "/v1.0", "/v1.1", "/1.0", "/1.1"]).flatMap((suffix) => [
