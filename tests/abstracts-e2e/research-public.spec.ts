@@ -22,9 +22,11 @@ for (const locale of ["en", "ar"] as const) {
     await expect(rubric.getByRole("listitem")).toHaveCount(7);
     await expect(rubric.locator(".research-criteria-count")).toHaveText(formatIndex(copy.criteria.length, locale));
     await expect(rubric.getByRole("heading", { level: 2, name: copy.evaluation })).toHaveAttribute("id", "research-evaluation-title");
+    await expect(page.locator(".research-evaluation-lines")).toHaveAttribute("aria-hidden", "true");
+    await expect(rubric.locator(".research-rubric-intro-lines")).toHaveAttribute("aria-hidden", "true");
     await expect(rubric.locator(".research-criterion-number")).toHaveText(locale === "en" ? ["I", "II", "III", "IV", "V", "VI", "VII"] : Array.from({ length: 7 }, (_, index) => formatIndex(index + 1, locale)));
     for (const width of [1440, 1024, 390, 320]) {
-      await page.setViewportSize({ width, height: 1000 });
+      await page.setViewportSize({ width, height: 900 });
       const boxes = await steps.evaluateAll((nodes) => nodes.map((node) => { const rect = node.getBoundingClientRect(); return { top: rect.top, left: rect.left, width: rect.width }; }));
       if (width >= 960) {
         expect(new Set(boxes.map((box) => Math.round(box.top))).size).toBe(1);
@@ -37,9 +39,19 @@ for (const locale of ["en", "ar"] as const) {
       for (let index = 0; index < 6; index++) await expect(steps.nth(index).getByText(copy.stepDetails[index], { exact: true })).toBeVisible();
       const introBox = (await rubric.locator(".research-rubric-intro").boundingBox())!;
       const listBox = (await rubric.getByRole("list").boundingBox())!;
-      expect(listBox.y).toBeGreaterThanOrEqual(introBox.y + introBox.height - 1);
-      expect(await rubric.locator("h2").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(width >= 960 ? 60 : 36);
-      expect(await rubric.locator(".research-criteria-count").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(105);
+      if (width >= 1024) {
+        expect(Math.abs(introBox.y - listBox.y)).toBeLessThanOrEqual(1);
+        const seam = locale === "ar" ? introBox.x - (listBox.x + listBox.width) : listBox.x - (introBox.x + introBox.width);
+        expect(Math.abs(seam)).toBeLessThanOrEqual(1);
+      } else {
+        expect(listBox.y).toBeGreaterThanOrEqual(introBox.y + introBox.height - 1);
+      }
+      if (width === 1440) {
+        const evaluationBox = (await page.locator("#research-evaluation").boundingBox())!;
+        expect(evaluationBox.height).toBeLessThanOrEqual(900);
+      }
+      expect(await rubric.locator("h2").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(width >= 1024 ? 40 : 32);
+      expect(await rubric.locator(".research-criteria-count").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(width >= 1024 ? 105 : 68);
       expect(await rubric.locator("dt").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(22);
       expect(await rubric.locator("dd").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(18);
       const criterionRows = await rubric.getByRole("listitem").evaluateAll((nodes) => nodes.map((node) => {

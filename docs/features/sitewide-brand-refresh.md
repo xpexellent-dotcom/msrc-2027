@@ -169,3 +169,13 @@ Twenty-two public browser cases passed. The synthetic participant suites
 passed twelve certificate cases and six registration cases in both
 languages. These checked unpublished and actionable survey states,
 completion after reload and day-by-day attendance without survey reminders.
+
+### Compact evaluation criteria, 26 November 2026
+
+ORG-083 places the gold-seal introduction beside a single vertical list
+of all seven criteria on desktop. Brand contour lines sit behind the seal
+and extend into the section background. At 1440 × 900 and standard text,
+the entire section measured about 838px in English and 825px in Arabic.
+On phones and at enlarged text sizes the layout stacks and expands.
+The browser regression checks cover row order, compactness, RTL alignment,
+artwork accessibility and enlarged-text reflow.

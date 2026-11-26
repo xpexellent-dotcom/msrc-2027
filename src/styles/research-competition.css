@@ -1,4 +1,4 @@
-﻿/* ABS-12, DSN-01/02, LOC-01/03, ACC-01: research editorial surfaces. */
+/* ABS-12, DSN-01/02, LOC-01/03, ACC-01: research editorial surfaces. */
 .research-competition { color: var(--color-ink); background: var(--color-ivory); overflow-wrap: anywhere; }
 .research-competition :is(h1, h2, h3) { font-family: var(--font-display); font-weight: 800; }
 .research-hero { position: relative; isolation: isolate; overflow: hidden; padding-block: clamp(8rem, 14vw, 12rem) clamp(4rem, 7vw, 7rem); color: var(--color-ivory); background: var(--color-purple); }
@@ -254,9 +254,31 @@
 
 .research-eligibility-list p { max-inline-size: 68ch; margin: 0; color: var(--color-muted); line-height: 1.8; }
 
-.research-evaluation { background: #eee9e0; }
+.research-section.research-evaluation {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  padding-block: clamp(2.75rem, 4.2vw, 4.5rem);
+  background:
+    radial-gradient(ellipse at 0 100%, rgb(201 162 74 / .12), transparent 55%),
+    #eee9e0;
+}
+
+.research-evaluation > .site-container { container: research-rubric / inline-size; }
+
+.research-evaluation-lines {
+  position: absolute;
+  z-index: -1;
+  inset-block-start: -24%;
+  inset-inline-end: -7%;
+  inline-size: min(60rem, 80vw);
+  color: var(--color-violet);
+  opacity: .22;
+  mask-image: radial-gradient(closest-side, black 25%, transparent 96%);
+  pointer-events: none;
+}
+
 .research-rubric-panel {
-  container: research-rubric / inline-size;
   --rubric-rule: color-mix(in srgb, var(--color-purple) 19%, var(--color-ivory));
 }
 
@@ -283,6 +305,20 @@
 
 [dir="rtl"] .research-rubric-intro { --rubric-art-origin: 14%; }
 .research-rubric-copy { display: contents; }
+
+.research-rubric-intro-lines {
+  position: absolute;
+  z-index: -1;
+  inset-block-end: -35%;
+  inset-inline-end: -19%;
+  inline-size: min(37rem, 122%);
+  color: var(--color-champagne);
+  opacity: .23;
+  mask-image: radial-gradient(closest-side, black, transparent);
+  pointer-events: none;
+}
+
+[dir="rtl"] :is(.research-evaluation-lines, .research-rubric-intro-lines) { transform: scaleX(-1); }
 
 .research-criteria-count {
   grid-area: count;
@@ -416,7 +452,76 @@
 
 [lang="ar"] .research-criteria dt { line-height: 1.45; }
 
+@container research-rubric (width >= 58rem) {
+  .research-rubric-panel {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.25fr);
+    min-block-size: 44rem;
+    overflow: clip;
+    border: 1px solid var(--rubric-rule);
+    border-radius: 1rem;
+  }
+
+  .research-rubric-intro {
+    grid-template: "copy" auto "art" 1fr / minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(.75rem, 1.7cqi, 1.5rem);
+    padding: clamp(1.65rem, 3.4cqi, 3.15rem);
+    border: 0;
+    border-radius: 0;
+  }
+
+  .research-criteria-count { font-size: clamp(6.75rem, 10.5cqi, 9.5rem); }
+
+  .research-rubric-intro h2 {
+    max-inline-size: 12ch;
+    margin-block: -.08em .3em;
+    font-size: clamp(2.6rem, 4.65cqi, 4.45rem);
+  }
+
+  .research-rubric-intro p {
+    max-inline-size: 31ch;
+    font-size: clamp(1.125rem, 1.4cqi, 1.25rem);
+  }
+
+  .research-rubric-art {
+    place-self: center;
+    inline-size: min(100%, clamp(13rem, 19.4cqi, 17.25rem));
+    margin: 0;
+  }
+
+  .research-rubric-intro-lines { inset-block-end: -17%; }
+
+  .research-criteria {
+    display: grid;
+    grid-auto-rows: minmax(min-content, 1fr);
+    border: 0;
+    border-radius: 0;
+  }
+
+  .research-criteria > li {
+    grid-template-columns: clamp(3rem, 4.75cqi, 4.25rem) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(.85rem, 1.65cqi, 1.5rem);
+    padding: .875rem clamp(1.15rem, 2.5cqi, 2.25rem);
+  }
+
+  .research-criterion-number { font-size: clamp(1.8rem, 2.9cqi, 2.5rem); }
+  .research-criteria dt { font-size: clamp(1.4rem, 2.05cqi, 1.8rem); }
+
+  .research-criteria dd {
+    max-inline-size: 58ch;
+    margin-block-start: .24rem;
+    font-size: clamp(1.125rem, 1.36cqi, 1.25rem);
+    line-height: 1.45;
+  }
+}
+
 @container research-rubric (width < 15rem) {
+  .research-rubric-intro,
+  .research-criteria > li { padding-inline: clamp(12px, 6cqi, 20px); }
+
+  .research-rubric-intro { column-gap: .5rem; }
   .research-criteria > li { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
 }
 
@@ -456,8 +561,8 @@
   .research-acknowledgement__actions { flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) { .research-competition .button, .research-acknowledgement .button { animation: none; transition: none; transform: none; } }
-@media (forced-colors: active) { .research-format-art, .research-step-marker .brand-icon, .research-rubric-art { display: none; } }
-@media print { .research-hero-photo, .research-format-art, .research-rubric-art, .research-acknowledgement { display: none; } .research-presentation-card { border: 1px solid; } }
+@media (forced-colors: active) { .research-format-art, .research-step-marker .brand-icon, .research-rubric-art, .research-rubric-intro-lines, .research-evaluation-lines { display: none; } }
+@media print { .research-hero-photo, .research-format-art, .research-rubric-art, .research-rubric-intro-lines, .research-evaluation-lines, .research-acknowledgement { display: none; } .research-presentation-card { border: 1px solid; } }
 
 @media (prefers-reduced-motion: reduce) {
   .research-roadmap li::before, .research-step-number { transition: none; transform: none; }

@@ -80,9 +80,11 @@ export function ResearchCompetitionPage({ locale }: { locale: Locale }) {
     </section>
     <section className="research-section" aria-labelledby="research-guidelines"><Container><SectionHeading id="research-guidelines" title={copy.guidelines} description={copy.guidelinesIntro} /><ol className="research-guidelines">{copy.sections.map(([title, text, range], index) => <li key={title}><span className="research-card-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span><div><h3>{title}</h3><p>{text}</p></div><span className="research-suggested">{range} {copy.suggested}</span></li>)}</ol><aside className="research-word-limit"><p><strong>{copy.wordLimit}</strong></p><p>{copy.headingCount}</p></aside></Container></section>
     <section id="research-evaluation" className="research-section research-evaluation" aria-labelledby="research-evaluation-title">
+      <FlowLines className="research-evaluation-lines" />
       <Container>
         <div className="research-rubric-panel">
           <header className="research-rubric-intro">
+            <FlowLines className="research-rubric-intro-lines" />
             <div className="research-rubric-copy">
               <DecorativeNumeral locale={locale} className="research-criteria-count" value={formatIndex(copy.criteria.length, locale)} />
               <h2 id="research-evaluation-title">{copy.evaluation}</h2>

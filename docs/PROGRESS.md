@@ -1,5 +1,11 @@
 # Progress and session handover
 
+## 26 November 2026 — Compact Abstracts evaluation
+
+- ORG-083 places the illustrated evaluation introduction beside the seven
+  criteria on desktop. The single list and seal stack on narrow displays.
+  See the [design and verification notes](features/sitewide-brand-refresh.md).
+
 ## 26 November 2026 — Gallery motion and vertical evaluation
 
 - ORG-081 gives the Legacy gallery the homepage reveal motion after the

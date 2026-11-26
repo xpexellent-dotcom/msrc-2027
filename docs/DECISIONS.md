@@ -5852,3 +5852,12 @@ the approved Terms and Privacy disclosures retain their authority.
 Align the Abstracts breadcrumb with the shared breadcrumb pattern.
 Preserve the approved hero and localized navigation. ACC-01, LOC-01/03,
 DSN-01/02 and CRT-01 apply.
+
+## ORG-083 — Compact evaluation rubric, 26 November 2026
+
+Use the reference as a size guide for an evaluation section roughly one
+desktop viewport high. Pair the gold-seal introduction and supporting
+background artwork with the single vertical list of seven criteria.
+On narrow screens and at enlarged text sizes, let the section reflow
+naturally. Preserve the approved headings, descriptions and numbering
+under ORG-081. DSN-01/02, ACC-01, LOC-01/03 and MED-02 apply.
