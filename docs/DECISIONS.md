@@ -5918,3 +5918,10 @@ The organizer corrected the roster title approved under ORG-050 to
 “قيادة فريق المسؤولين العلميين”, following the roster’s convention for
 lead roles. Use these labels for the existing member on the Team page.
 Requirements: CNT-01, LOC-01/03.
+
+## ORG-089 — Homepage attendee benefit order, 26 November 2026
+
+The organizer set the reading order for the six homepage benefit cards.
+Show awards and cash prizes first, followed by certificates, hands-on
+workshops, networking with experts, research exposure and CME hours.
+Use this sequence in English and Arabic. Requirements: DSN-01, LOC-01/03, ACC-01.

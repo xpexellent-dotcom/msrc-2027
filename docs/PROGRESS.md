@@ -1,5 +1,16 @@
 # Progress and session handover
 
+## 26 November 2026 — Homepage attendee benefit order
+
+- ORG-089 sets the homepage sequence in both languages to awards and cash
+  prizes, certificates, hands-on workshops, networking with experts, research
+  exposure and CME hours.
+- Targeted ESLint, `pnpm build`, four public participation copy unit tests,
+  and four Playwright homepage cases passed. A browser probe confirmed the
+  top-to-bottom sequence and card fit in English and Arabic on 1440 px
+  Chromium and 390 px and 320 px WebKit. Requirements: DSN-01, LOC-01/03,
+  ACC-01.
+
 ## 26 November 2026 — Scientific Officers Lead roster title
 
 - ORG-088 updates Mohammad Alsayegh’s fallback Team roster title to

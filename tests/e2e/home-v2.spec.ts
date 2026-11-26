@@ -235,12 +235,16 @@ for (const locale of ["en", "ar"] as const) {
     const narrative = homepageNarrative[locale];
     const demo = cinematicCopy[locale];
     const program = page.locator("#program");
+    const cards = program.locator(".benefit-card");
+    const expectedOrder = ["award", "certificate", "practice", "network", "research", "cme"] as const;
     await expect(program).toContainText(expectations.introduction);
+    await expect(cards.locator("h3")).toHaveText(
+      expectedOrder.map((icon) => expectations.benefits.find((benefit) => benefit.icon === icon)!.title),
+    );
     for (const benefit of expectations.benefits) {
-      await expect(program).toContainText(benefit.title);
       await expect(program).toContainText(benefit.homepageBody ?? benefit.body);
     }
-    await expect(program.locator(".benefit-card").first().locator("img[src$='28-cme-hours.svg']")).toHaveAttribute("alt", "");
+    await expect(cards.last().locator("img[src$='28-cme-hours.svg']")).toHaveAttribute("alt", "");
     const speakers = page.locator("#speakers");
     await expect(speakers.getByText(narrative.speakersPending, { exact: true })).toHaveCount(1);
     await expect(speakers.getByRole("link", { name: narrative.speakersLink, exact: true })).toHaveAttribute("href", `/${locale}/speakers`);
