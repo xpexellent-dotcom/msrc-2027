@@ -3,7 +3,7 @@ import { expectHeaderSettled } from "../helpers/header";
 import { randomBytes } from "node:crypto";
 import { expect, test, type Page } from "../helpers/csp";
 import { certificateCopy } from "../../src/components/certificates/copy";
-import { id, participantFixture, staffFixture, syntheticSurvey } from "./fixtures";
+import { id, participantFixture, participantView, staffFixture, syntheticSurvey } from "./fixtures";
 
 async function accessible(page: Page) {
   await expectHeaderSettled(page);
@@ -75,13 +75,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
   });
   test(`${locale} participant sees no survey reminder before a survey is published`, async ({ page, context }) => {
-    await participantFixture(context);
-    await page.route("**/api/certificates", (route) => route.fulfill({ json: {
-      state: "ready", surveys: [], eligibility: [{
-        kind: "conference", workshopId: null, recipientName: "Synthetic Participant", activity: "Synthetic conference",
-        eligible: false, reasons: ["general_survey_required"],
-      }],
-    } }));
+    await participantFixture(context, "ready", { ...participantView, surveys: [] });
     await page.goto(`/${locale}/my-msrc/certificates`);
     const area = page.getByTestId("participant-certificates");
     await expect(area.getByText(copy.notEligible, { exact: true })).toBeVisible();

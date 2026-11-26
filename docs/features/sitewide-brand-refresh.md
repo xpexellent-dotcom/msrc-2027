@@ -163,3 +163,9 @@ Scoped checks covered Chromium and WebKit desktop and emulated phones.
 They verified the gallery animation at intermediate and finished opacity,
 the evaluation list at 280px with doubled text, and the shared breadcrumb
 alignment, accessible navigation and keyboard focus.
+
+The final production build passed lint, TypeScript and 5,665 unit tests.
+Twenty-two public browser cases passed. The synthetic participant suites
+passed twelve certificate cases and six registration cases in both
+languages. These checked unpublished and actionable survey states,
+completion after reload and day-by-day attendance without survey reminders.
