@@ -1,5 +1,89 @@
 # Progress and session handover
 
+## 26 November 2026 — Sitewide release QA
+
+- The organizer approved publishing PR #156 after GitHub and Vercel QA
+  under ORG-084. The scope is public presentation and accessibility.
+- Doubled text on narrow screens exposed overflow on Participate, Contact,
+  Dates & Venue, 3MT and Media. The fixes keep links, notices and form
+  controls inside the reading area in English and Arabic.
+- See the [release verification notes](features/sitewide-brand-refresh.md)
+  for evidence under DSN-01/02, ACC-01, LOC-01/03 and REL-06.
+
+## 26 November 2026 — Compact Abstracts evaluation
+
+- ORG-083 places the illustrated evaluation introduction beside the seven
+  criteria on desktop. The single list and seal stack on narrow displays.
+  See the [design and verification notes](features/sitewide-brand-refresh.md).
+
+## 26 November 2026 — Gallery motion and vertical evaluation
+
+- ORG-081 gives the Legacy gallery the homepage reveal motion after the
+  background-first entrance. See the [sitewide design notes](features/sitewide-brand-refresh.md).
+- Evaluation criteria follow one numbered column at every viewport width.
+- ORG-082 removes advance certificate survey reminders in both languages and
+  aligns the Abstracts breadcrumb with the public navigation pattern.
+
+## 26 November 2026 — Homepage gallery reveal and Abstracts evaluation
+
+- ORG-080 lets the homepage community photograph read before the gallery
+  fades in with vertical scroll. The rail remains usable with the keyboard,
+  touch and reduced motion. The three statistics use translucent glass with
+  high-contrast text.
+- The Abstracts evaluation section uses the selected gold conference
+  seal, a larger introduction and more readable typography for all seven
+  criteria. See the [sitewide design notes](features/sitewide-brand-refresh.md).
+
+## 26 November 2026 — Attend, abstracts and workshop design review
+
+- ORG-079 replaces the illustrative CME count with an hourglass and
+  updates the Attend and Workshops benefit layouts. See the
+  [design and verification notes](features/sitewide-brand-refresh.md).
+- The public research roadmap retains six steps with illustrated
+  markers and omits the previous dates pending a revised calendar.
+  The distinction callout confirms cash prizes for the top three in each
+  presentation category. The rubric includes a decorative magnifier.
+- Workshop catalogue cards have larger covers using the supplied
+  Workshops illustration while individual photography is pending.
+
+## 26 November 2026 — Shared navigation and design review follow-up
+
+- ORG-078 extends split desktop navigation to the shared public header.
+  Downward scroll separates the wordmark and action. Upward scroll and
+  keyboard focus restore the complete bar in both languages.
+- The footer promotes the Research Principles Club seal. The homepage
+  uses a compact portrait teaser for Speakers. Presentation formats and
+  the eligibility list have updated artwork, contrast and reading order.
+- Applies DSN-01/02, LOC-01/03, ACC-01, ABS-04/09 and REL-06.
+  See the [verification notes](features/sitewide-brand-refresh.md).
+
+## 26 November 2026 — Organiser feedback on PR #156
+
+- ORG-077 supersedes the dated registration announcement. Participate shows
+  both dates as pending in English and Arabic. The research roadmap restores
+  the earlier desktop and phone layouts. The footer seal is larger and the
+  homepage Speakers section is condensed to a preview.
+- The Program time-zone label wraps at enlarged text sizes. The day controls
+  take one row where space allows, the Contact notice has tighter spacing,
+  and the desktop Venue overview fits its initial reading frame.
+- Requirements: REG-02, TIM-01, DSN-01/02, ACC-01, LOC-01/03 and REL-06.
+  See the [verification notes](features/sitewide-brand-refresh.md).
+
+## 25 November 2026 — Sitewide brand refresh
+
+- ORG-076 extends the PR #155 design across public pages and participant
+  entry screens. Eight illustrations from the supplied vector identity are
+  used alongside existing conference photography. The approved page headers,
+  homepage film and split navigation retain their PR #155 treatment. The Venue, participation, research and Team
+  pages have clearer in-page navigation.
+- Local lint, TypeScript, 5,665 unit tests and the production build passed.
+  Bilingual desktop and mobile checks covered editorial and participation
+  routes, keyboard navigation, reduced motion, enlarged text and the
+  relevant closed states. See the [feature note](features/sitewide-brand-refresh.md).
+- Preview review is the next release step. The PR carries presentation and
+  accessibility changes under SCP-01/02, DSN-01/02, ACC-01, LOC-01/03,
+  MED-02, CFG-12, NFR-02 and REL-06.
+
 ## 25 November 2026 — Confirmed dates and homepage publication
 
 - ORG-075 confirms 7–8 April 2027 and authorizes publication through PR #155.

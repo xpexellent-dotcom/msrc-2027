@@ -328,3 +328,44 @@ appear only in preview builds.
 
 Fraunces 5.3.0 and El Messiri 5.3.0 are self-hosted under OFL-1.1. Static ribbons,
 flow lines and sparkles use small inline SVGs; large raster ribbons are not shipped.
+
+## Sitewide brand refresh — 25 November 2026, ORG-076
+
+The organizer supplied the [Canva identity kit](https://canva.link/tmbbile9pyczmy9)
+and its PDF export. The Canva connector confirmed the design ID
+DAHa-312LU4 and the icon sheet on page 8. The connector could read the
+design but original media download was restricted. The matching PDF
+retained individual vector artwork. Extracted its clipped vector groups
+and rendered 256 × 256 transparent, lossless WebP files under
+`public/brand/identity/icons/`.
+
+- `11-speakers.webp`, `21-3mt.webp`, `22-partners.webp`, `23-venue.webp`
+- `24-gallery.webp`, `25-faq.webp`, `26-contact.webp`, `27-tickets.webp`
+
+The inline icons are decorative. Their visible labels and accessible
+names come from the page content. The source illustrations retain the
+physical centring correction and their original colours.
+
+## Footer seal rendition — 26 November 2026, ORG-078
+
+`public/brand/identity/msrc27-seal-dark-456.webp` is a 456 × 456 lossless
+transparent WebP derived from the dark lockup on page 10 of the supplied
+brand guide. It preserves the seal's original white lettering and gold artwork.
+The footer lazy-loads this rendition and displays it at 112–152 CSS pixels.
+
+## Public benefit icon additions — 26 November 2026, ORG-079
+
+- `public/brand/identity/icons/28-cme-hours.svg` is an original hourglass
+  in the conference art style. It carries no accredited-hours estimate.
+- `public/brand/identity/icons/29-certificate.svg` contains the supplied
+  certificate artwork extracted from page 8 of the brand guide.
+- Workshop catalogue covers use the supplied `19-workshops.webp`
+  illustration. It is decorative on pending and published cards.
+
+## Gold evaluation seal rendition — 26 November 2026, ORG-080
+
+`public/brand/identity/msrc27-seal-gold-456.webp` is a 456 × 456 lossless
+transparent WebP of the seal selected on page 18 of the supplied Canva
+design. The supplied PDF cover contains the same group at a different
+scale. The isolated rendition preserves the gold lettering, podium,
+ivory lens and downward-left handle. It is decorative on Abstracts.

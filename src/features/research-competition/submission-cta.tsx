@@ -3,7 +3,6 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import type { PublicSubmissionWindow } from "@/features/submissions/submission-window";
-import { formatWindowInstant } from "@/features/submissions/window-copy";
 import { hasParticipantHint, requestAccount } from "@/features/participant-accounts/participant-client";
 import type { AbstractResponse } from "@/features/submissions/contracts";
 import type { Locale } from "@/lib/i18n";
@@ -12,7 +11,6 @@ import { researchCtaState, type ResearchCtaState } from "./cta-state";
 
 export function AbstractSubmissionCta({ locale }: { locale: Locale }) {
   // Keep the public server render independent of cookies and private data.
-  const [savedWindow, setWindow] = useState<PublicSubmissionWindow | null>(null);
   const [state, setState] = useState<ResearchCtaState>("signIn");
   const [checked, setChecked] = useState<boolean[]>([]);
   const [open, setOpen] = useState(false);
@@ -31,7 +29,6 @@ export function AbstractSubmissionCta({ locale }: { locale: Locale }) {
         window = data;
       } catch { if (!controller.signal.aborted && current === generation) setState("closed"); return; }
       if (controller.signal.aborted || current !== generation) return;
-      setWindow(window);
       const initial = researchCtaState({ signedIn: false, window });
       setState(initial);
       if (initial === "opening" || initial === "closed" || !hasParticipantHint()) return;
@@ -89,7 +86,7 @@ export function AbstractSubmissionCta({ locale }: { locale: Locale }) {
   }
   return <>
     <ButtonLink href={href} variant="gold" disabled={state === "opening" || state === "closed"} className="research-submission-cta" data-testid="research-submission-cta" onClick={acknowledge} aria-haspopup={state === "submit" || state === "draft" ? "dialog" : undefined}>
-      {state === "opening" ? <>{copy.cta.opening} <time dateTime={savedWindow?.opensAt ?? undefined}>{savedWindow?.opensAt ? formatWindowInstant(savedWindow.opensAt, locale) : ""}</time></> : copy.cta[state]}
+      {copy.cta[state]}
     </ButtonLink>
     <dialog ref={dialog} className="research-acknowledgement" aria-labelledby={headingId} aria-describedby={introId} dir={locale === "ar" ? "rtl" : "ltr"} onKeyDown={wrapDialogFocus} onClose={() => { setOpen(false); trigger.current?.focus({ preventScroll: true }); }}>
       <div className="research-acknowledgement__header">

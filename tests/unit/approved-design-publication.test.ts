@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import HomePage from "@/app/[locale]/(preview)/page";
 import DesignSystemPage from "@/app/[locale]/design-system/page";
 import HeroPreviewPage from "@/app/[locale]/hero-preview/page";
-import { cinematicCopy, demoImages } from "@/content/cinematic-demo";
+import { demoImages } from "@/content/cinematic-demo";
+import { homepageNarrative } from "@/content/homepage-narrative";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
 import { hasApprovedVideo } from "@/lib/media-policy";
 import { conferenceEventJsonLd } from "@/lib/structured-data";
@@ -21,7 +22,10 @@ describe("approved design publication without preview authorization (DSN-01/02, 
   it.each(["en", "ar"] as const)("renders the complete approved %s homepage with preview flags absent", async (locale) => {
     const html = renderToStaticMarkup(await HomePage({ params: Promise.resolve({ locale }) }));
     expect(html).toContain(homepageCopy[locale].title[0]);
-    expect(html).toContain(cinematicCopy[locale].speakerPending);
+    expect(html).toContain(homepageNarrative[locale].speakersPending);
+    expect(html).toContain(`href="/${locale}/speakers"`);
+    expect(html).toContain("home-speaker-portrait");
+    expect(html).not.toContain("speaker-preview-card");
     expect(html).toContain('id="participate"');
     expect(html).toContain('id="legacy"');
     expect(html).toMatch(/class="[^"]*\bpathway-list path-bento"/);
@@ -30,7 +34,7 @@ describe("approved design publication without preview authorization (DSN-01/02, 
     expect(html).not.toContain("hero-social");
     expect(html).toContain("community-majed-9804.jpg");
     expect(html).toContain("jeddah-opening-cropped-poster.jpg");
-    expect(html).toContain(locale === "en" ? "Illustrative" : "مثال بصري");
+    expect(html).toContain("/brand/identity/icons/28-cme-hours.svg");
     expect(html).toContain(`href="/${locale}/participate"`);
     expect(html).not.toContain("/api/preview-media/");
     expect(html).not.toContain("/design-system");

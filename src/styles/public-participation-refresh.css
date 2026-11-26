@@ -1,0 +1,450 @@
+/* Participation paths and publication states use the same type and colours as the homepage. */
+.participation-hub-shortcut {
+  padding-block: 1.25rem;
+  border-block-end: 1px solid var(--color-line);
+  background: var(--color-white);
+}
+
+.participation-hub-shortcut .site-container { max-inline-size: 66rem; }
+.participation-hub-shortcut .button { max-inline-size: 100%; white-space: normal; }
+
+.participation-hub {
+  padding-block: clamp(2.75rem, 5.5vw, 5.5rem) var(--section-y);
+}
+
+.participation-paths {
+  container: participation-paths / inline-size;
+  gap: 0;
+  border-block-start: 1px solid var(--color-line-strong);
+}
+
+.participation-path-link.site-link {
+  grid-template-columns: minmax(3rem, 7rem) minmax(0, 1fr) auto;
+  min-block-size: clamp(6.5rem, 11vw, 9.25rem);
+  padding: clamp(1rem, 2.25vw, 1.8rem) clamp(.75rem, 2.4vw, 1.75rem);
+  border: 0;
+  border-block-end: 1px solid var(--color-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: background-color 180ms ease;
+}
+
+.participation-path--registration .participation-path-link.site-link {
+  background: color-mix(in srgb, var(--color-mist) 60%, var(--color-ivory));
+}
+
+.participation-path-icon,
+.participation-path-icon .brand-icon {
+  inline-size: clamp(3rem, 7vw, 6.25rem);
+  block-size: auto;
+  aspect-ratio: 1;
+  background: transparent;
+}
+
+.participation-path-icon .brand-icon img { inline-size: 100%; block-size: 100%; }
+
+.participation-path h2 {
+  color: var(--color-purple);
+  font: 600 clamp(1.25rem, 2.75vw, 2.3rem)/1.2 var(--font-display);
+}
+
+.participation-path p { max-inline-size: 64ch; margin-block-start: .5rem; }
+
+.participation-path-link > .directional-arrow {
+  box-sizing: content-box;
+  padding: .55rem;
+  border: 1px solid var(--color-line);
+  border-radius: 50%;
+  transition: translate 180ms var(--ease-out), border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.participation-path-link.site-link:focus-visible {
+  outline-offset: -3px;
+  background: var(--color-white);
+}
+
+.participation-path-link.site-link:active { transform: none; }
+
+[dir="rtl"] .participation-path-link { --path-arrow-offset: -3px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .participation-path-link.site-link:hover {
+    background: var(--color-white);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .participation-path-link:hover > .directional-arrow {
+    translate: var(--path-arrow-offset, 3px) 0;
+    border-color: var(--color-purple);
+    background: var(--color-purple);
+    color: var(--color-white);
+  }
+}
+
+.registration-opening {
+  padding-block-start: clamp(2.75rem, 5.5vw, 5.5rem);
+}
+
+.registration-opening .registration-opening-content {
+  padding: clamp(1.25rem, 3.5vw, 2.25rem);
+  border: 1px solid var(--color-line);
+  border-radius: var(--r-panel, 1rem);
+  background: var(--color-white);
+}
+
+.participation-journey .fluid-journey-availability {
+  padding-block: clamp(1.75rem, 3.5vw, 3rem);
+  border-block-end: 1px solid var(--color-line);
+  background: var(--color-mist);
+}
+
+.participation-journey .fluid-journey-availability h2 {
+  font-family: var(--font-body);
+  font-size: clamp(1.1rem, 1rem + .45vw, 1.35rem);
+}
+
+.participation-journey .fluid-journey-availability p { margin-block-start: .25rem; }
+
+.participation-journey .journey-availability-dot {
+  inline-size: .55rem;
+  block-size: .55rem;
+  margin-block-start: .7rem;
+  background: var(--color-purple);
+  box-shadow: 0 0 0 3px var(--color-white);
+}
+
+.participation-journey .participation-benefits { padding-block: var(--section-y); }
+.participation-journey .participation-benefit-list { column-gap: clamp(1.5rem, 5vw, 5rem); }
+.participation-journey .participation-benefit { gap: clamp(.75rem, 2vw, 1.5rem); }
+
+.participation-journey .participation-benefit-list--illustrated {
+  gap: clamp(.65rem, 1.4vw, 1.25rem);
+}
+
+.participation-benefit-list--illustrated .participation-benefit {
+  --benefit-icon-size: clamp(48px, 6vw, 80px);
+  grid-template-columns: var(--benefit-icon-size) minmax(0, 1fr);
+  padding: clamp(.9rem, 2.3vw, 2rem);
+  border: 1px solid var(--color-line);
+  border-radius: var(--r-panel, 1rem);
+  background: var(--color-white);
+}
+
+.participation-benefit-list--illustrated .participation-benefit :is(.benefit-artwork, .benefit-artwork img) {
+  inline-size: var(--benefit-icon-size);
+  block-size: var(--benefit-icon-size);
+}
+
+.participation-benefit-list--illustrated .participation-benefit h3 {
+  font-family: var(--font-display);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.participation-journey--registration .participation-benefit-list--illustrated > article:first-child {
+  grid-column: 1 / -1;
+  background:
+    radial-gradient(ellipse at 75% 10%, rgb(161 129 196 / .28), transparent 60%),
+    var(--color-purple);
+}
+
+.participation-journey--registration .participation-benefit-list--illustrated > article:first-child h3 {
+  color: var(--color-ivory);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.participation-journey--registration .participation-benefit-list--illustrated > article:first-child p { color: var(--color-ivory); }
+.participation-journey--workshops .participation-benefit-list--illustrated > article:first-child { background: var(--color-mist); }
+
+@media (min-width: 70rem) {
+  .participation-journey--registration .participation-benefit-list--illustrated {
+    grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr));
+  }
+
+  .participation-journey--registration .participation-benefit-list--illustrated > article:first-child {
+    --benefit-icon-size: clamp(80px, 8vw, 112px);
+    grid-column: 1;
+    grid-row: span 2;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+  }
+}
+
+@media (max-width: 23rem) {
+  .participation-benefit-list--illustrated .participation-benefit { grid-template-columns: minmax(0, 1fr); }
+}
+
+.participation-journey .participation-good-to-know {
+  max-inline-size: 80ch;
+  margin-block-start: clamp(1rem, 3vw, 2.5rem);
+  border: 1px solid var(--color-line);
+  border-radius: var(--r-panel, 1rem);
+  background: var(--color-white);
+}
+.participation-journey .participation-good-to-know li::marker { color: var(--color-purple); }
+
+.participation-journey :is(.participation-steps, .fluid-journey-resources) { padding-block: var(--section-y); }
+.participation-journey .participation-steps { background: color-mix(in srgb, var(--color-mist) 72%, var(--color-white)); }
+.participation-journey .participation-steps li > span { border-color: var(--color-purple); }
+.participation-journey .step-tracker .step-tracker-item { box-shadow: none; }
+
+.participation-journey .fluid-resource-grid {
+  column-gap: clamp(.75rem, 3.5vw, 3rem);
+}
+
+.participation-journey .fluid-resource {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  align-content: start;
+  gap: .65rem 1rem;
+  min-block-size: 5.5rem;
+  padding: 1rem 0;
+  border-block-start: 1px solid var(--color-line-strong);
+  border-radius: 0;
+  background: transparent;
+}
+
+.participation-journey .fluid-resource .brand-icon { inline-size: 46px; block-size: 46px; }
+.participation-journey .fluid-resource--pending p { grid-column: 2 / -1; }
+.participation-journey .fluid-resource--pending .button { white-space: normal; }
+.participation-journey .fluid-resource > .directional-arrow { margin-inline-end: .25rem; }
+
+@media (hover: hover) and (pointer: fine) {
+  .participation-journey .fluid-resource.site-link:hover {
+    background: color-mix(in srgb, var(--color-mist) 40%, var(--color-white));
+    transform: none;
+  }
+
+  .participation-journey .fluid-resource.site-link:hover > span:not(.brand-icon) {
+    text-decoration: underline;
+    text-underline-offset: .26em;
+  }
+}
+
+.participation-journey--hackathon .participation-tracks {
+  padding-block: clamp(3.5rem, 6vw, 6rem) clamp(1.5rem, 3.5vw, 3rem);
+  background: color-mix(in srgb, var(--color-mist) 72%, var(--color-ivory));
+}
+
+.participation-journey--hackathon .participation-track-list { gap: .65rem; }
+
+.participation-journey--hackathon :is(.participation-track, .participation-schedule-list li) {
+  border-radius: var(--r-panel, 1rem);
+  box-shadow: none;
+}
+
+.participation-journey--hackathon .participation-track:nth-child(2) { background: #271443; }
+.participation-journey--hackathon .participation-track-label { color: var(--color-lilac); }
+.participation-journey--hackathon .participation-track-note { max-inline-size: 68ch; }
+
+.participation-journey--hackathon .participation-schedule {
+  background: #211336;
+}
+
+.participation-journey--hackathon .participation-schedule-list li {
+  border-block-start-color: var(--color-mauve);
+  background: rgb(248 246 240 / 6%);
+}
+
+.participation-journey--threeMinuteThesis .participation-benefits { background: var(--color-white); }
+
+.participation-journey--threeMinuteThesis .fluid-journey-availability .site-container > div {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.participation-journey--workshops .fluid-workshop-section { background: var(--color-mist); }
+
+.participation-journey .fluid-workshop-pending {
+  display: flex;
+  align-items: center;
+  gap: clamp(.7rem, 2vw, 1.4rem);
+  padding-inline-start: 1rem;
+  border-inline-start: 1px solid var(--color-violet);
+}
+
+.participation-journey .fluid-workshop-pending p { overflow-wrap: anywhere; }
+.participation-journey .fluid-workshop-copy h3 { font-family: var(--font-display); font-weight: 600; }
+
+/* Native table-of-contents links for the research guidance. */
+.research-index { border-block-end: 1px solid var(--color-line); background: var(--color-white); }
+.research-index ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .1rem clamp(.75rem, 2vw, 2rem);
+  margin: 0;
+  padding: .7rem 0;
+  list-style: none;
+}
+
+.research-index .site-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--color-purple);
+  font-weight: 600;
+  text-underline-offset: .25em;
+}
+
+.research-section h2[id] { scroll-margin-block-start: 1rem; }
+.research-section .section-heading-description { line-height: 1.75; }
+
+.research-competition .research-word-limit {
+  border: 1px solid var(--color-line);
+  border-radius: var(--r-panel, 1rem);
+  background: var(--color-white);
+}
+
+.research-competition .research-index a:focus-visible,
+.research-competition .research-section a:focus-visible { outline-color: var(--color-purple); }
+
+/* Keep details anchored and use the artwork behind the quieter closing bands. */
+.research-closing,
+.sponsor-invitation {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+
+.research-closing-lines,
+.sponsor-invitation-lines {
+  position: absolute;
+  z-index: -1;
+  inset-block-start: -35%;
+  inset-inline-end: 0;
+  inline-size: min(70%, 48rem);
+  color: var(--color-mauve);
+  opacity: .35;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 65%, transparent);
+}
+
+[dir="rtl"] :is(.research-closing-lines, .sponsor-invitation-lines) { transform: scaleX(-1); }
+
+.sponsor-invitation > .site-container {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.sponsor-invitation .sponsor-invitation-icon {
+  inline-size: clamp(6rem, 16vw, 13rem);
+  block-size: auto;
+  aspect-ratio: 1;
+  border-radius: var(--r-panel, 1rem);
+  background: var(--color-ivory);
+}
+
+/* A compact editorial catalogue accommodates both pending and published sponsors. */
+.sponsors-page { padding-block: var(--section-y); }
+.sponsors-page .sponsor-tiers { gap: 0; }
+.sponsors-page .sponsor-tier {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  align-items: start;
+  gap: clamp(1rem, 3.25vw, 3rem);
+  padding-block: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.sponsors-page .sponsor-tier:last-child { border-block-end: 1px solid var(--color-line-strong); }
+.sponsors-page .sponsor-tier-heading { margin-block-end: 0; }
+.sponsors-page .sponsor-tier-heading h2 { font-size: clamp(1.5rem, 3vw, 2.75rem); overflow-wrap: anywhere; }
+.sponsors-page .sponsor-brand-grid { gap: .65rem; }
+.sponsors-page .sponsor-brand {
+  min-block-size: clamp(5rem, 10vw, 8rem);
+  padding: clamp(.55rem, 2.25vw, 1.5rem);
+  border: 1px solid var(--color-line);
+  border-radius: var(--r-panel, 1rem);
+  background: var(--color-white);
+}
+
+.sponsors-page .sponsor-tier--platinum .sponsor-brand { min-block-size: clamp(7rem, 13vw, 11rem); }
+.sponsors-page .sponsor-tier--platinum .sponsor-brand:not(.public-content-partner) { background: var(--color-mist); }
+.sponsors-page .sponsor-brand-word {
+  color: var(--color-muted);
+  font-size: clamp(1.25rem, 3vw, 2.375rem);
+}
+
+.sponsors-page .sponsor-brand img { block-size: clamp(3rem, 9vw, 7.5rem); }
+
+/* Public previews share a reading frame while participant actions retain their own states. */
+:is(.public-participation-workspace, .abstract-submission-page) .participant-account-intro {
+  margin-block-end: clamp(1.5rem, 4vw, 3rem);
+  padding-block-end: clamp(1rem, 3.5vw, 2.5rem);
+  border-block-end: 1px solid var(--color-line);
+}
+
+:is(.public-participation-workspace, .abstract-submission-page) .participant-account-intro h1 {
+  font: 600 clamp(2rem, 5.2vw, 4.25rem)/1.15 var(--font-display);
+}
+
+:is(.public-participation-workspace, .abstract-submission-page) .participant-account-intro p { max-inline-size: 65ch; }
+
+.abstract-submission-page .abstract-submission-rules {
+  border: 1px solid var(--color-line);
+  background: var(--color-mist);
+}
+
+.abstract-submission-page .abstract-guidance {
+  border-color: var(--color-line);
+  background: var(--color-ivory);
+}
+
+.public-ticket-page .ticket-status-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.public-ticket-page .ticket-status-label p { margin: 0; }
+.public-entries-page > .participant-account-card {
+  border-color: var(--color-line);
+  background: var(--color-mist);
+}
+
+[lang="ar"] :is(.participation-path h2, .public-participation-workspace h1, .abstract-submission-page h1, .research-index a) {
+  letter-spacing: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 45rem) {
+  .participation-path-link.site-link {
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    gap: .55rem;
+    padding-inline: .4rem;
+  }
+
+  .participation-path-link > .directional-arrow { padding: .28rem; }
+  .participation-path p { font-size: .9rem; }
+  .participation-path-icon .brand-icon { inline-size: 44px; }
+  .sponsors-page .sponsor-tier,
+  .sponsor-invitation > .site-container { grid-template-columns: minmax(0, 1fr); }
+  .sponsor-invitation .sponsor-invitation-icon { display: none; }
+  .sponsors-page .sponsor-tier--silver .sponsor-brand-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 6rem), 1fr)); }
+}
+
+@container participation-paths (width < 17rem) {
+  .participation-path-link.site-link {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-inline: 6px;
+  }
+
+  .participation-path-icon { inline-size: 44px; }
+  .participation-path-copy p { overflow-wrap: anywhere; }
+  .participation-path-link > .directional-arrow { inline-size: 16px; block-size: 16px; padding: 3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .participation-path-link > .directional-arrow { transition: none; }
+  .participation-path-link:hover > .directional-arrow { translate: none; }
+}
+
+@media (forced-colors: active) {
+  .participation-journey .journey-availability-dot { background: CanvasText; }
+
+  .research-closing-lines,
+  .sponsor-invitation-lines { display: none; }
+}

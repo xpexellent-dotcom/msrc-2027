@@ -41,9 +41,10 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} hub rows stay horizontal, mirror in RTL and support enlarged text`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "Explicit width and text matrix runs once per locale.");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    for (const width of [320, 390, 1440]) {
+    for (const width of [280, 320, 390, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       await page.goto(`/${locale}/participate`);
+      await expect(page.locator("[data-header-ready]")).toHaveAttribute("data-header-ready", "true");
       const photo = page.locator(".experience-intro--participate .premium-hero-image");
       await expect(photo).toHaveAttribute("aria-hidden", "true");
       await expect(photo.locator("img")).toHaveAttribute("alt", "");

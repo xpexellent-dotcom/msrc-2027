@@ -317,17 +317,18 @@ for (const locale of ["en", "ar"] as const) {
   });
 }
 
-// Live QA (2026-10-13): the four identical placeholder speaker cards each added a separate
-// "Meet the speakers" tab stop to the same page. The section action is the one keyboard route.
+// The overview gives keyboard visitors one catalogue link before any profiles are published.
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} placeholder speaker cards add no duplicate keyboard stops`, async ({ page }) => {
+  test(`${locale} the homepage speaker overview opens the dedicated catalogue by keyboard`, async ({ page }) => {
     await page.goto(`/${locale}`);
-    const name = locale === "ar" ? "تعرّف إلى المتحدثين" : "Meet the speakers";
-    await expect(page.locator("#speakers").getByRole("link", { name, exact: true })).toHaveCount(1);
-    await expect(page.locator(".speaker-preview-link")).toHaveCount(4);
-    for (const link of await page.locator(".speaker-preview-link").all()) {
-      await expect(link).toHaveAttribute("tabindex", "-1");
-      await expect(link).toHaveAttribute("href", `/${locale}/speakers`);
-    }
+    const name = locale === "ar" ? "عرض المتحدثين" : "View speakers";
+    const speakers = page.locator("#speakers");
+    const link = speakers.getByRole("link", { name, exact: true });
+    await expect(speakers.getByRole("link")).toHaveCount(1);
+    await expect(link).toHaveAttribute("href", `/${locale}/speakers`);
+    await link.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(`/${locale}/speakers`);
+    await expect(page.getByTestId("speakers-empty")).toBeVisible();
   });
 }

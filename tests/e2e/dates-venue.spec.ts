@@ -31,6 +31,13 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("venue-geographic-map")).toHaveCount(1);
     await expect(photos.first()).toHaveAttribute("alt", /\S/);
     await expect.poll(() => photos.first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    const mapShortcut = page.getByRole("link", { name: locale === "ar" ? "خريطة المقر" : "View venue map" });
+    await mapShortcut.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(new RegExp(`/${locale}/dates-venue#venue-orientation$`));
+    const map = page.locator("#venue-orientation");
+    await expect(map).toBeFocused();
+    await expect(map.getByTestId("venue-geographic-map")).toBeInViewport();
     const begin = page.locator(".venue-journey-invitation .venue-hero-action");
     await expect(begin).toHaveCount(1);
     await expect(begin).toHaveAttribute("href", "#journey-airport");
@@ -41,9 +48,17 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator('.venue-journey-index a[href="#journey-airport"]')).toHaveAttribute("aria-current", "location");
     await expect(page.locator("#journey-airport").getByRole("heading").first()).toBeInViewport();
     await expect(page.locator("#journey-airport .venue-journey-reading")).toHaveCSS("opacity", "1");
+    const backToTop = page.getByRole("link", { name: locale === "ar" ? "العودة إلى الأعلى" : "Back to the beginning" });
+    await backToTop.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("main")).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
     await page.goto(`/${locale}/program`);
     await expect(page.locator(".program-date-panel time")).toHaveText([copy[locale].first, copy[locale].second]);
     await expect(page.getByTestId("program-day-all")).toHaveAttribute("aria-current", "true");
+    const titleAccent = page.locator("#experience-title .premium-title-accent");
+    await expect(titleAccent).toHaveCSS("background-clip", "text");
+    await expect(titleAccent).toHaveCSS("background-image", /linear-gradient/);
     await expect(page.locator(".premium-hero-image img")).toHaveCount(1);
     expect(await page.locator(".premium-hero-image img").evaluate((element) => getComputedStyle(element).transitionDuration)).toBe("0s");
   });
@@ -128,7 +143,7 @@ for (const locale of ["en", "ar"] as const) {
     const assertReadable = async () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth))
         .toBeLessThanOrEqual(await page.evaluate(() => document.documentElement.clientWidth));
-      const clipping = await page.locator("main h1, main h2:not(.sr-only), main time").evaluateAll((elements) => elements.some((element) => {
+      const clipping = await page.locator("main h1, main h2:not(.sr-only), main time, main .venue-journey-continue").evaluateAll((elements) => elements.some((element) => {
         const range = document.createRange();
         range.selectNodeContents(element);
         return Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
@@ -146,6 +161,11 @@ for (const locale of ["en", "ar"] as const) {
     // Verify that adaptation before measuring the resulting enlarged layout.
     await expect(page.getByTestId("venue-arrival-journey")).toHaveAttribute("data-reading-flow", "true");
     await assertReadable();
+    if (testInfo.project.name === "chromium-mobile") {
+      await page.setViewportSize({ width: 280, height: 844 });
+      await assertReadable();
+      await page.setViewportSize({ width: 320, height: 850 });
+    }
     await page.evaluate(() => { document.documentElement.style.fontSize = ""; });
 
     await page.getByRole("navigation", { name: copy[locale].breadcrumb })
@@ -168,7 +188,7 @@ test("Dates and Venue keyboard and language navigation preserve the section and 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/en/dates-venue?view=planning");
   await page.keyboard.press("Tab");
-  const skip = page.locator('a[href="#main-content"]');
+  const skip = page.locator('a.skip-link[href="#main-content"]');
   await expect(skip).toBeFocused();
   await expect(skip).toBeVisible();
   expect(await skip.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");

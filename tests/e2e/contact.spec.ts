@@ -140,8 +140,8 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} registration stays closed with useful preparation and unavailable ticket actions`, async ({ page }) => {
     const notice = locale === "en"
-      ? { heading: "Your conference certificate", body: "Check in on both days and complete the general survey for your full conference certificate.", opening: "Registration is not open yet" }
-      : { heading: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين وأكمل الاستبيان العام للحصول على شهادة حضور المؤتمر كاملًا.", opening: "لم يُفتح التسجيل بعد" };
+      ? { heading: "Your conference certificate", body: "Check in on both days for a conference certificate.", opening: "Registration is not open yet" }
+      : { heading: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين للحصول على شهادة حضور المؤتمر.", opening: "لم يُفتح التسجيل بعد" };
     const writes: string[] = [];
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
     const response = await page.goto(`/${locale}/registration`);
@@ -155,6 +155,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(preparation).toHaveCount(1);
     await expect(preparation.getByRole("heading", { level: 3 })).toBeVisible();
     await expect(preparation.locator("p")).toHaveText(notice.body);
+    await expect(preparation.locator("img[src$='29-certificate.svg']")).toHaveAttribute("alt", "");
     await expect(page.getByTestId("ticket-unavailable")).toBeDisabled();
     await expect(page.getByTestId("brochure-unavailable")).toBeDisabled();
     await expect(page.locator("#ticket-unavailable-note")).toContainText(locale === "en" ? "confirmed by email" : "البريد الإلكتروني");
@@ -169,7 +170,7 @@ test("Contact keyboard and language navigation preserve the page and section", a
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/en/contact?view=preview");
   await page.keyboard.press("Tab");
-  await expect(page.locator('a[href="#main-content"]')).toBeFocused();
+  await expect(page.locator('a.skip-link[href="#main-content"]')).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
   await page.goto("/en/contact?view=preview#contact-form");

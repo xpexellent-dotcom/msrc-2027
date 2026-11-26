@@ -66,13 +66,28 @@ export function ParticipantCertificates({ locale, initialState, standalone = fal
   return <section className="certificate-area" aria-labelledby="participant-certificates-title" data-testid="participant-certificates" dir={locale === "ar" ? "rtl" : "ltr"}>
     <header><Heading id="participant-certificates-title">{copy.participantTitle}</Heading><p>{copy.participantLead}</p></header>
     <p className="certificate-feedback" role="status" tabIndex={-1} ref={status}>{busy ? copy.pending : feedback}</p>
-    {!view ? <p>{copy.loading}</p> : view.state !== "ready" ? <div className="certificate-card"><p>{certificateMessage(view.state, locale)}</p>{!["closed", "denied"].includes(view.state) ? <Button variant="secondary" onClick={() => setGeneration((value) => value + 1)}>{copy.retry}</Button> : null}</div> : <>
-      <section className="certificate-card" aria-labelledby="participant-certificate-eligibility"><h3 id="participant-certificate-eligibility">{copy.preview}</h3><p>{copy.evidenceHint}</p>
-        {!view.eligibility?.length ? <p>{copy.noEligibility}</p> : <ul className="certificate-stack">{view.eligibility.map((item) => <li key={item.kind + (item.workshopId ?? "conference")}><h4>{copy[item.kind]}</h4><p>{item.activity}</p><p className="certificate-status">{item.eligible ? copy.eligible : copy.notEligible}</p>{item.reasons.length ? <ul>{item.reasons.map((reason) => <li key={reason}>{eligibilityReason(reason, locale)}</li>)}</ul> : null}</li>)}</ul>}
+    {!view ? <p>{copy.loading}</p> : view.state !== "ready" ? (
+      <div className="certificate-card">
+        <p>{view.state === "closed" ? copy.participantClosed : certificateMessage(view.state, locale)}</p>
+        {!["closed", "denied"].includes(view.state) ? <Button variant="secondary" onClick={() => setGeneration((value) => value + 1)}>{copy.retry}</Button> : null}
+      </div>
+    ) : <>
+      <section className="certificate-card" aria-labelledby="participant-certificate-eligibility"><h3 id="participant-certificate-eligibility">{copy.preview}</h3>
+        {!view.eligibility?.length ? <p>{copy.noEligibility}</p> : <ul className="certificate-stack">{view.eligibility.map((item) => {
+          const reasons = item.reasons.filter((reason) => reason !== "general_survey_required" && reason !== "workshop_survey_required");
+          return (
+            <li key={item.kind + (item.workshopId ?? "conference")}>
+              <h4>{copy[item.kind]}</h4>
+              <p>{item.activity}</p>
+              <p className="certificate-status">{item.eligible ? copy.eligible : copy.notEligible}</p>
+              {reasons.length ? <ul>{reasons.map((reason) => <li key={reason}>{eligibilityReason(reason, locale)}</li>)}</ul> : null}
+            </li>
+          );
+        })}</ul>}
       </section>
-      <section className="certificate-card" aria-labelledby="participant-certificate-surveys"><h3 id="participant-certificate-surveys">{copy.surveyHeading}</h3><p>{copy.answersSeparated}</p>
-        {!surveyRows.length ? <p>{copy.surveyEmpty}</p> : <ul className="certificate-stack">{surveyRows.map((survey) => <li key={survey.id} data-testid="certificate-survey" data-survey-id={survey.id}><h4>{locale === "ar" ? survey.titleAr : survey.titleEn}</h4>{survey.deadline ? <p>{copy.surveyDeadline}: <time dateTime={survey.deadline}>{new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh" }).format(new Date(survey.deadline))}</time> ({copy.riyadh})</p> : null}{survey.completed ? <p className="certificate-status">{copy.completed}</p> : <Button variant="secondary" disabled={busy || !view.formToken || now !== null && Date.parse(survey.deadline ?? "") <= now} onClick={() => setSelectedSurvey(survey)}>{copy.takeSurvey}</Button>}</li>)}</ul>}
-      </section>
+      {surveyRows.length ? <section className="certificate-card" aria-labelledby="participant-certificate-surveys"><h3 id="participant-certificate-surveys">{copy.surveyHeading}</h3><p>{copy.answersSeparated}</p>
+        <ul className="certificate-stack">{surveyRows.map((survey) => <li key={survey.id} data-testid="certificate-survey" data-survey-id={survey.id}><h4>{locale === "ar" ? survey.titleAr : survey.titleEn}</h4>{survey.deadline ? <p>{copy.surveyDeadline}: <time dateTime={survey.deadline}>{new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh" }).format(new Date(survey.deadline))}</time> ({copy.riyadh})</p> : null}{survey.completed ? <p className="certificate-status">{copy.completed}</p> : <Button variant="secondary" disabled={busy || !view.formToken || now !== null && Date.parse(survey.deadline ?? "") <= now} onClick={() => setSelectedSurvey(survey)}>{copy.takeSurvey}</Button>}</li>)}</ul>
+      </section> : null}
       {selectedSurvey ? <SurveyForm key={selectedSurvey.id} locale={locale} survey={selectedSurvey} busy={busy} act={act} close={() => setSelectedSurvey(null)} /> : null}
       <section className="certificate-card" aria-labelledby="participant-certificate-list"><h3 id="participant-certificate-list">{copy.certificateHeading}</h3>
         {!view.certificates?.length ? <p>{copy.noCertificates}</p> : <ul className="certificate-stack">{view.certificates.map((item) => <li key={item.id} data-testid="participant-certificate"><h4>{copy[item.kind]}</h4><p><bdi>{item.recipientName}</bdi></p><p>{item.edition ? `${item.edition} · ` : ""}{item.activity}</p><p className="certificate-status">{copy.status[item.status]}</p>

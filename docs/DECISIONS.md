@@ -5738,3 +5738,134 @@ TIM-01/02, LOC-01/03, PRV-01/05/08, INF-05 and REL-06.
   purpose, legal wording and handling of existing records before approving
   a policy or hosted retention change. The date correction uses the current
   retention commitments.
+
+## ORG-076 — Extend the public identity across MSRC 2027, 25 November 2026
+
+The organizer supplied the Canva identity kit and matching PDF for this
+presentation update. Use the supplied illustrations and design cues across
+the public site and preserve PR #155's homepage composition, typography,
+cinematic film and split desktop navigation. The organizer confirmed the
+existing page-header design and asked to retain its serif titles, pale
+gradient and purple photographic treatment. Carry the refresh into the
+content below the headers. Scope is a new review PR with a preview deployment. The document's internal notes are visual reference.
+The organizer's request governs website scope and public claims.
+
+The implementation uses the incumbent Fraunces and El Messiri display roles
+where the kit proposes different faces. English and Arabic retain their shared
+type scale, with native direction and localized controls. Sitewide motion is
+limited to page art and feedback where it supports the action. Reduced-motion
+pages keep the complete reading and navigation experience.
+
+The approved conference dates, policy versions, workflow windows and release
+controls follow their existing decisions. Requirements: SCP-01/02, DSN-01/02,
+ACC-01, LOC-01/03, MED-02, CFG-12, NFR-02 and REL-06. See the
+[sitewide visual update](features/sitewide-brand-refresh.md).
+
+## ORG-077 — Public registration and visual follow-up, 26 November 2026
+
+The organizer confirmed that the public registration opening and closing
+dates shown on Participate are TBD. This supersedes the dated public
+registration display in ORG-058, which drew on ORG-056 and ORG-057.
+Show both as pending in English and Arabic and retain free attendance.
+The conference dates are 7–8 April 2027 under ORG-075. Staff-entered
+windows and the separate abstract calendar follow their own decisions.
+
+Restore the PR #155 research roadmap presentation, enlarge the Research
+Principles Club seal in the footer, and make the homepage Speakers
+section a concise preview that points to the full catalogue. Keep the
+approved page headers. Requirements: REG-02, TIM-01, DSN-01/02, ACC-01,
+LOC-01/03 and REL-06. See the [sitewide visual update](features/sitewide-brand-refresh.md).
+
+## ORG-078 — Global desktop navigation and public design refinements, 26 November 2026
+
+The organizer extends the split navigation across pages that use the
+shared public header. This supersedes the homepage-only scope in ORG-074.
+On a wide fine-pointer viewport, downward scroll separates the logo and
+primary action. Upward scroll and keyboard focus restore the full bar.
+The phone and enlarged-text menus continue to use their compact layout.
+
+Give the Research Principles Club seal more prominence in the footer.
+Use a compact portrait-led speaker preview and a route to the full
+catalogue. Pending artwork depicts an anonymous portrait. Published
+profiles follow the approved catalogue.
+
+Distinguish oral and poster formats with different brand treatments.
+Rewrite and group the existing eligibility requirements for easier reading,
+including presenter duties, co-author recognition and completed research.
+This is an editorial change under ORG-069, with the current criteria and
+research roadmap retained. Applies DSN-01/02, LOC-01/03, ACC-01, ABS-04/09
+and REL-06. See the [sitewide visual update](features/sitewide-brand-refresh.md).
+
+## ORG-079 — Attend, research and workshop presentation, 26 November 2026
+
+The organizer replaces the illustrative CME number with an hourglass on
+the homepage and Attend. The accredited hours are pending. Update Attend
+and Workshops benefits with the supplied icons and a new layout. Use the
+requested Attend sentence, “Check in on both days for a conference
+certificate.” Keep the general survey requirement visible under CRT-01.
+
+Withdraw the public abstract milestone dates in ORG-058 and ORG-069 while a
+revised calendar is pending. Keep the six steps and add illustrations.
+The top three in each of the oral and poster presentation categories
+receive cash prizes. Amounts remain pending. Add decorative magnifier
+artwork to the evaluation panel. The separate submission window settings
+and private receipt are outside this public display change.
+
+Give workshop catalogue cards a larger cover area for future images.
+Use the supplied Workshops illustration as the decorative cover pending
+workshop photography. DSN-01/02, ACC-01, LOC-01/03, TIM-01, CRT-01, WKS-01/02,
+ABS-01, REV-10 and MED-02 apply. See the [sitewide design notes](features/sitewide-brand-refresh.md).
+
+## ORG-080 — Homepage gallery arrival and illustrated evaluation, 26 November 2026
+
+Let visitors see the existing homepage community photograph before the
+gallery photographs fade into view. Tie the reveal to ordinary vertical
+scroll and keep the gallery available to keyboard and touch users.
+Reduced motion and JavaScript-free visits show the full gallery. Give the three
+community statistics a translucent glass treatment with readable type.
+
+The organizer requests a larger, more visual Abstracts evaluation
+section. Use the gold conference seal on page 18 of the supplied Canva
+design and give the seven existing criteria more readable typography.
+This supersedes the decorative magnifier treatment in ORG-079.
+Requirements DSN-01/02, ACC-01, LOC-01/03 and MED-02 apply. See the
+[sitewide design notes](features/sitewide-brand-refresh.md).
+
+## ORG-081 — Shared gallery reveal and vertical evaluation criteria, 26 November 2026
+
+Use the same smooth fade as the surrounding homepage content when the
+Legacy gallery enters view. Retain the clear view of the community
+photograph before the gallery arrives. The gallery remains available
+immediately for interaction and in reduced-motion or JavaScript-free
+views. This refines ORG-080 under DSN-01/02 and ACC-01.
+
+The seven evaluation criteria form a single numbered list at every width.
+Retain the gold-seal cover, the larger type and localized numbering.
+
+## ORG-082 — Contextual survey copy and research breadcrumb, 26 November 2026
+
+Remove certificate survey reminders from the homepage, Attend, Workshops
+and participant pre-event guidance. The My Certificates page presents a
+survey through its published form. CRT-01 eligibility, staff evidence and
+the approved Terms and Privacy disclosures retain their authority.
+
+Align the Abstracts breadcrumb with the shared breadcrumb pattern.
+Preserve the approved hero and localized navigation. ACC-01, LOC-01/03,
+DSN-01/02 and CRT-01 apply.
+
+## ORG-083 — Compact evaluation rubric, 26 November 2026
+
+Use the reference as a size guide for an evaluation section roughly one
+desktop viewport high. Pair the gold-seal introduction and supporting
+background artwork with the single vertical list of seven criteria.
+On narrow screens and at enlarged text sizes, let the section reflow
+naturally. Preserve the approved headings, descriptions and numbering
+under ORG-081. DSN-01/02, ACC-01, LOC-01/03 and MED-02 apply.
+
+## ORG-084 — Publish the public brand refresh, 26 November 2026
+
+The organizer approved publishing PR #156 after iterative QA on GitHub
+and the Vercel preview. This approval covers the public presentation
+refresh and verified accessibility fixes. Existing hosted workflow
+settings and the approved public content rules continue to apply.
+DSN-01/02, ACC-01, LOC-01/03, REL-01 and REL-06 apply.

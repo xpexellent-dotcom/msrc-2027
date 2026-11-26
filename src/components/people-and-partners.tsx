@@ -3,6 +3,8 @@ import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
 import { SponsorTiers } from "@/components/sponsor-tiers";
 import Image from "next/image";
+import { BrandIcon } from "@/components/brand/brand-icon";
+import { FlowLines } from "@/components/brand/flow-lines";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { TeamSpotlight } from "@/components/team-spotlight";
 import { Reveal } from "@/components/ui/reveal";
@@ -87,14 +89,21 @@ export function TeamExperience({ locale, items = [] }: { locale: Locale; items?:
       <TeamSpotlight />
       <AmbientArtwork variant="people" />
       <Container>
-        {useCards ? <PublishedTeam locale={locale} items={items} /> : <><section className="team-leaders" aria-labelledby="team-leaders-title">
+        {useCards ? <PublishedTeam locale={locale} items={items} /> : <>
+          <nav className="team-directory" aria-label={locale === "ar" ? "أقسام فريق المؤتمر" : "Conference team sections"}>
+            <ul>
+              <li><a className="site-link" href="#team-leaders">{team.leadersTitle}<Arrow /></a></li>
+              {committees.map((committee) => <li key={committee.id}><a className="site-link" href={`#team-${committee.id}`}>{committee.title[locale]}<Arrow /></a></li>)}
+            </ul>
+          </nav>
+          <section id="team-leaders" tabIndex={-1} className="team-leaders" aria-labelledby="team-leaders-title">
           <h2 id="team-leaders-title" className="team-section-title">{team.leadersTitle}</h2>
           <Reveal className="team-leader-grid" stagger>{committees.map((committee) => <article className={`team-leader team-leader--${committee.id}`} key={committee.id}>
             <TeamPortrait person={committee.lead} size="leader" />
             <TeamIdentity person={committee.lead} locale={locale} heading="h3" />
           </article>)}</Reveal>
         </section>
-        {committees.map((committee) => <section className={`team-committee team-committee--${committee.id}`} key={committee.id} aria-labelledby={`team-${committee.id}-title`}>
+        {committees.map((committee) => <section id={`team-${committee.id}`} tabIndex={-1} className={`team-committee team-committee--${committee.id}`} key={committee.id} aria-labelledby={`team-${committee.id}-title`}>
           <div className="team-committee-heading">
             <h2 id={`team-${committee.id}-title`} className="team-section-title">{committee.title[locale]}</h2>
             <p>{formatIndex(committee.leads.length, locale)} {team.leadsLabel}</p>
@@ -124,6 +133,12 @@ export function SponsorsExperience({ locale, items = [] }: { locale: Locale; ite
   return <>
     <PeoplePageIntro locale={locale} page="sponsors" />
     <section className="sponsors-page" aria-label={copy.label}><Container>{items.length ? <PublishedPartners locale={locale} items={items} /> : <SponsorTiers locale={locale} />}</Container></section>
-    <section className="people-next sponsor-invitation"><Container><div><h2>{copy.nextTitle}</h2><p>{copy.nextBody}</p></div></Container></section>
+    <section className="people-next sponsor-invitation">
+      <FlowLines className="sponsor-invitation-lines" />
+      <Container>
+        <div><h2>{copy.nextTitle}</h2><p>{copy.nextBody}</p></div>
+        <BrandIcon className="sponsor-invitation-icon" name="22-partners" size={192} />
+      </Container>
+    </section>
   </>;
 }

@@ -8,6 +8,8 @@ import { contactConfig } from "@/config/contact";
 import { contactCopy } from "@/features/contact/contact-copy";
 import { ContactForm } from "@/features/contact/contact-form";
 import { AmbientArtwork } from "@/components/ambient-artwork";
+import { BrandIcon } from "@/components/brand/brand-icon";
+import { Arrow } from "@/components/ui/arrow";
 import { VenueIcon } from "@/components/venue-icon";
 import { getContactDeliveryConfig } from "@/features/contact/delivery-config.server";
 import { getContactPageDelivery } from "@/features/contact/security.server";
@@ -63,7 +65,14 @@ export default async function ContactPage({ params }: ContactPageProps) {
       </section>
       <section id="contact-form" tabIndex={-1} className="editorial-section contact-form-section" aria-labelledby="contact-form-title">
         <Container className="contact-form-layout">
-          <div className="contact-form-introduction"><SectionHeading title={copy.formHeading} id="contact-form-title" /><p>{locale === "en" ? "Find a quick answer, or get in touch with the conference team." : "اعثر على إجابة سريعة، أو تواصل مع فريق المؤتمر."}</p><Link className="editorial-action" href={`/${locale}#faq`}>{locale === "en" ? "Frequently asked questions" : "الأسئلة الشائعة"}</Link></div>
+          <div className="contact-form-introduction">
+            <div className="contact-form-heading">
+              <BrandIcon name="26-contact" size={44} />
+              <SectionHeading title={copy.formHeading} id="contact-form-title" />
+            </div>
+            <p>{locale === "en" ? "Find a quick answer, or get in touch with the conference team." : "اعثر على إجابة سريعة، أو تواصل مع فريق المؤتمر."}</p>
+            <Link className="editorial-action" href={`/${locale}#faq`}>{locale === "en" ? "Frequently asked questions" : "الأسئلة الشائعة"}<Arrow /></Link>
+          </div>
           <ContactForm locale={locale} delivery={delivery} />
         </Container>
       </section>

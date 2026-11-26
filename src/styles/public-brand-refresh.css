@@ -1,0 +1,87 @@
+/* Venue orientation puts the map and planning shortcuts in the same reading frame. */
+.venue-gallery-stage {
+  background: var(--color-ivory);
+  border-block-start: 1px solid var(--hair);
+}
+.venue-gallery-stage::after { content: none; }
+.venue-gallery-stage .ambient-art { opacity: .3; }
+.venue-stage-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  grid-template-rows: auto 1fr;
+  column-gap: clamp(2.5rem, 6vw, 6rem);
+  row-gap: clamp(1.75rem, 3vw, 3rem);
+  padding-block: clamp(1rem, 2.5vw, 2.5rem);
+}
+.venue-stage-intro .brand-icon { margin-block-end: 1rem; inline-size: 72px; block-size: 72px; }
+.venue-map-shortcut { margin-block-start: 1rem; }
+.venue-stage-intro h2 { max-inline-size: 16ch; margin-block-end: 1rem; }
+.venue-stage-layout .venue-hero-map { grid-column: 2; grid-row: 1 / 3; }
+.venue-stage-layout .venue-stage-guidance { grid-column: 1; display: block; }
+.venue-stage-resources { gap: 0; border-block-end: 1px solid var(--hair); }
+.venue-stage-resources .button {
+  border-width: 1px 0 0;
+  border-color: var(--hair);
+  border-radius: 0;
+  padding-inline: .25rem;
+  font-weight: 600;
+}
+.venue-stage-guidance .venue-international summary { min-block-size: 48px; }
+.venue-stage-layout .venue-hero-map .venue-map-links .button { justify-content: space-between; }
+.venue-stage-layout .venue-hero-map .venue-geographic-caption { padding: .875rem 1rem; }
+
+/* Keep the homepage journey and split navigation, with a clearer current route
+   on interior menus and an unobtrusive return action on long pages. */
+.axiom-header .desktop-nav .header-dropdown a[aria-current="page"] {
+  background: var(--color-mist);
+  color: var(--color-purple);
+  font-weight: 650;
+}
+.footer-directory-group h2 { padding-block-start: .85rem; border-block-start: 1px solid var(--hair-inverse); }
+.site-footer .footer-bottom .footer-return { gap: .5rem; margin-inline-start: auto; }
+.footer-return svg { flex-shrink: 0; inline-size: 18px; block-size: 18px; }
+.homepage-journey .faq-introduction .brand-icon { margin-block-end: .85rem; }
+
+@media (min-width: 1200px) {
+  .venue-stage-layout { padding-block: 0; row-gap: 1rem; }
+  .venue-stage-resources { margin-block-start: .75rem; }
+}
+@media (max-width: 800px) {
+  .venue-stage-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
+  .venue-stage-layout .venue-hero-map { grid-column: auto; grid-row: auto; }
+  .venue-stage-intro .brand-icon { inline-size: 56px; block-size: 56px; }
+}
+@media (max-width: 480px) {
+  .site-footer .footer-bottom .footer-return { margin-inline-start: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .footer-return svg { transition: translate var(--d-color) var(--ease-out); }
+  @media (hover: hover) and (pointer: fine) {
+    .footer-return:hover svg { translate: 0 -3px; }
+  }
+}
+@media print, (forced-colors: active) {
+  .venue-stage-intro .brand-icon,
+  .homepage-journey .faq-introduction .brand-icon { display: none; }
+}
+
+/* Correspondence and sign-in share the same public type and paper treatment. */
+.participant-account-page[data-participant-screen]:not([data-participant-screen="my-msrc"]) .participant-account-intro {
+  position: relative;
+  padding-block-end: clamp(1.5rem, 3vw, 2.25rem);
+  border-block-end: 1px solid var(--hair);
+}
+.participant-account-page[data-participant-screen]:not([data-participant-screen="my-msrc"]) .participant-account-intro::after {
+  content: "";
+  position: absolute;
+  inset-block-end: -1px;
+  inset-inline-start: 0;
+  inline-size: 2.5rem;
+  border-block-end: 1px solid var(--color-gold);
+}
+.participant-account-page[data-participant-screen]:not([data-participant-screen="my-msrc"]) .participant-account-card {
+  border-radius: var(--r-card);
+  border-color: var(--hair);
+}
+.participant-account-page[data-participant-screen] .participant-account-card :is(input, select, textarea) {
+  accent-color: var(--color-purple);
+}

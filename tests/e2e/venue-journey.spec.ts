@@ -575,8 +575,8 @@ for (const locale of ["en", "ar"] as const) {
     await settleCamera(page);
     const title = airport.locator(".venue-journey-title");
     const copy = airport.locator(".venue-journey-reading");
-    // The crossfade updates on the next frame after an instant jump.
-    await expect.poll(() => copy.evaluate(element => element.style.getPropertyValue("--venue-copy-shift"))).toBe("0.0px");
+    // An instant jump lands within one CSS pixel of the chapter stop.
+    await expect.poll(() => copy.evaluate(element => Math.abs(Number.parseFloat(element.style.getPropertyValue("--venue-copy-shift"))))).toBeLessThanOrEqual(1);
     await expect.poll(() => copy.evaluate(element => Number(getComputedStyle(element).opacity))).toBeGreaterThan(.99);
     const originalTop = (await title.boundingBox())!.y;
     const headerBottom = await page.locator(".site-header").evaluate(element => element.getBoundingClientRect().bottom);

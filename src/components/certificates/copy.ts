@@ -3,7 +3,7 @@ import type { Locale } from "@/lib/i18n";
 export const certificateCopy = {
   en: {
     staffTitle: "Surveys and certificates", participantTitle: "My certificates", verifyTitle: "Verify a certificate",
-    staffLead: "Define feedback surveys, review attendance evidence and manage approved certificate batches.", participantLead: "Check the evidence needed for your certificates, complete surveys and download released certificates.",
+    staffLead: "Define feedback surveys, review attendance evidence and manage approved certificate batches.", participantLead: "Track your certificate status and download your certificates after they are issued.", participantClosed: "Certificates are not available yet.",
     closed: "Surveys and certificates are not open yet.", notReady: "This area is not ready yet. Please try again later.", unavailable: "We could not load this area. Please try again.", denied: "Sign in with the account that owns these records.", limited: "Too many requests. Please try again later.", loading: "Loading…", retry: "Try again", saved: "Saved.", pending: "Saving…", failure: "The change could not be saved. Refresh the area and try again.",
     privacy: "Survey completion is recorded separately from feedback. Feedback answers cannot be linked back to your account by staff, including Super Admins. Do not include your name, email or other identifying details in your answers. Use Contact for personal follow-up.", identifyingText: "Remove names, email addresses and other identifying details from your feedback, then submit again.", surveyLocked: "This survey has recorded completions and cannot be edited.",
     privacyStaff: "Only completion counts are shown here. Feedback has no account-to-response mapping, including for Super Admins. Question sets, deadlines, retention and the unlinking method need approval before opening surveys.",
@@ -22,7 +22,7 @@ export const certificateCopy = {
   },
   ar: {
     staffTitle: "الاستبيانات والشهادات", participantTitle: "شهاداتي", verifyTitle: "التحقق من شهادة",
-    staffLead: "إعداد استبيانات التقييم ومراجعة أدلة الحضور وإدارة دفعات الشهادات المعتمدة.", participantLead: "راجع متطلبات شهاداتك وأكمل الاستبيانات وحمّل الشهادات بعد إصدارها.",
+    staffLead: "إعداد استبيانات التقييم ومراجعة أدلة الحضور وإدارة دفعات الشهادات المعتمدة.", participantLead: "تابع حالة شهاداتك وحمّلها بعد إصدارها.", participantClosed: "الشهادات غير متاحة بعد.",
     closed: "الاستبيانات والشهادات غير متاحة بعد.", notReady: "هذا القسم غير جاهز بعد. يرجى المحاولة لاحقًا.", unavailable: "تعذر تحميل هذا القسم. يرجى المحاولة مجددًا.", denied: "سجّل الدخول بالحساب المرتبط بهذه السجلات.", limited: "طلبات كثيرة. يرجى المحاولة لاحقًا.", loading: "جارٍ التحميل…", retry: "المحاولة مجددًا", saved: "تم الحفظ.", pending: "جارٍ الحفظ…", failure: "تعذر حفظ التغيير. حدّث القسم وحاول مجددًا.",
     privacy: "يُسجَّل إكمال الاستبيان منفصلًا عن إجابات التقييم. لا يستطيع الموظفون، بمن فيهم المشرفون العامون، ربط الإجابات بحسابك. لا تذكر اسمك أو بريدك الإلكتروني أو أي تفاصيل تكشف هويتك في الإجابات. استخدم صفحة التواصل للمتابعة الشخصية.", identifyingText: "احذف الأسماء وعناوين البريد الإلكتروني والتفاصيل التي تكشف الهوية من إجاباتك، ثم أرسلها مجددًا.", surveyLocked: "سُجّلت إجابات مكتملة لهذا الاستبيان، ولا يمكن تعديله.",
     privacyStaff: "تُعرض هنا أعداد الإكمال فقط. لا توجد خريطة تربط الإجابات بالحسابات، حتى للمشرفين العامين. يجب اعتماد الأسئلة والمواعيد وسياسة الاحتفاظ وطريقة فصل البيانات قبل إتاحة الاستبيانات.",

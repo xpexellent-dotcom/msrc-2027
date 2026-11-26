@@ -14,6 +14,12 @@ async function expectItemInView(track: Locator, index: number) {
   }, index), { message: `Item ${index + 1} is fully visible at its settled centre or end stop` }).toBe(true);
 }
 
+function moveGalleryTo(track: Locator, fraction: number) {
+  return track.evaluate((element, fraction) => {
+    window.scrollBy({ top: element.getBoundingClientRect().top - window.innerHeight * fraction, behavior: "instant" });
+  }, fraction);
+}
+
 for (const locale of ["en", "ar"] as const) {
   for (const width of [390, 1440, 1920]) {
     test(`${locale} homepage ${width}: mirrored benefits, continuous surfaces and accessible ambience`, async ({ page }, testInfo) => {
@@ -93,6 +99,72 @@ for (const locale of ["en", "ar"] as const) {
       await expectItemInView(track, index);
     }
     await expect(next).toBeDisabled();
+  });
+
+
+  test(`${locale} Legacy photos fade fully after one scroll threshold crossing`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}`);
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator("html")).toHaveAttribute("data-scenes", "on");
+    const gallery = page.locator(".gallery-rail");
+    const track = gallery.locator(".rail-track");
+    const background = page.locator(".community-image img");
+
+    await moveGalleryTo(track, .84);
+    await expect(track).toHaveCSS("opacity", "0");
+    await expect.poll(() => background.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+    await expect(gallery.getByRole("button").last()).toBeVisible();
+
+    const arrival = await track.evaluate((element) => new Promise<{ opacity: number; duration: string; easing: string; scrollY: number }>((resolve) => {
+      element.addEventListener("animationstart", () => {
+        const { animationDuration: duration, animationTimingFunction: easing } = getComputedStyle(element);
+        const scrollY = window.scrollY;
+        const sample = () => {
+          const opacity = Number(getComputedStyle(element).opacity);
+          if (opacity === 0 && element.getAttribute("data-gallery-arrival") === "arriving") requestAnimationFrame(sample);
+          else resolve({ opacity, duration, easing, scrollY });
+        };
+        sample();
+      }, { once: true });
+      window.scrollBy({ top: element.getBoundingClientRect().top - window.innerHeight * .64, behavior: "instant" });
+    }));
+    expect(arrival.opacity).toBeGreaterThan(0);
+    expect(arrival.opacity).toBeLessThan(1);
+    expect(arrival.duration).toBe("0.7s");
+    expect(arrival.easing).toBe("cubic-bezier(0.16, 1, 0.3, 1)");
+    await expect(track).toHaveCSS("opacity", "1");
+    await expect(track).not.toHaveAttribute("data-gallery-arrival");
+    expect(await page.evaluate(() => window.scrollY)).toBeCloseTo(arrival.scrollY, 0);
+
+    await moveGalleryTo(track, .84);
+    await expect(track).toHaveCSS("opacity", "1");
+    await moveGalleryTo(track, .64);
+    await expect(track).toHaveCSS("animation-name", "none");
+  });
+
+  test(`${locale} Legacy photos appear immediately for reduced motion and gallery focus`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}`);
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator("html")).toHaveAttribute("data-scenes", "on");
+    const gallery = page.locator(".gallery-rail");
+    const track = gallery.locator(".rail-track");
+    await moveGalleryTo(track, .84);
+    await expect(track).toHaveCSS("opacity", "0");
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(track).toHaveCSS("opacity", "1");
+    await expect(track).toHaveCSS("animation-name", "none");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await expect(track).toHaveCSS("opacity", "0");
+
+    const next = gallery.getByRole("button").last();
+    await next.evaluate((button) => (button as HTMLButtonElement).focus({ preventScroll: true }));
+    await expect(track).toHaveCSS("opacity", "1");
+    await expect(track).toHaveCSS("animation-name", "none");
+    await next.evaluate((button) => (button as HTMLButtonElement).blur());
+    await expect(track).toHaveCSS("opacity", "1");
   });
   for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 1440, height: 900 }]) {
     for (const motion of ["reduce", "no-preference"] as const) {

@@ -1,28 +1,19 @@
 import type { Locale } from "@/lib/i18n";
 
-/**
- * ORG-056 opening announcement; ORG-057 closing date. Public display only.
- * Database registration settings remain authoritative for actual access;
- * these dates are not defaults, seeds or inputs to registration logic.
- */
-export const registrationOpeningDates = {
-  general: "2026-11-18T20:00:00+03:00",
-  closing: "2027-01-26T23:59:00+03:00",
-} as const;
-
+/** Public notice only. Revised opening and closing dates are awaiting confirmation. */
 export const registrationOpeningCopy = {
   en: {
-    title: "Registration opens",
-    timezone: "All times are Riyadh time.",
-    general: "Public registration",
+    title: "Registration dates",
+    opening: "Registration opens",
     closing: "Registration closes",
+    pending: "To be announced",
     attendance: "Free attendance",
   },
   ar: {
-    title: "مواعيد فتح التسجيل",
-    timezone: "جميع المواعيد بتوقيت الرياض.",
-    general: "التسجيل العام",
-    closing: "يُغلق التسجيل",
+    title: "مواعيد التسجيل",
+    opening: "فتح التسجيل",
+    closing: "إغلاق التسجيل",
+    pending: "سيُعلن لاحقًا",
     attendance: "الحضور مجاني",
   },
 } as const;

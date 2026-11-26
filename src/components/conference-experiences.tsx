@@ -3,13 +3,14 @@
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { RegistrationStepTracker } from "@/components/registration-step-tracker";
-import { useId, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ResearchVisual } from "@/components/research-visual";
 import { FlowLines } from "@/components/brand/flow-lines";
+import { BrandIcon, type BrandIconName } from "@/components/brand/brand-icon";
 import { HorizontalRail } from "@/components/horizontal-rail";
 import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { ConferenceDayLinks } from "@/components/conference-day-links";
@@ -105,14 +106,15 @@ export function ExperienceIntro({ locale, page, announcement, children }: { loca
   </section>;
 }
 
-function EmptyCatalogue({ title, body, testId, children }: { title: string; body: string; testId: string; children?: ReactNode }) {
-  return <div className="experience-empty" data-testid={testId}>
-    <div className="experience-empty-copy"><h2>{title}</h2><p>{body}</p>{children}</div>
+function EmptyCatalogue({ title, body, testId, icon }: { title: string; body: string; testId: string; icon: BrandIconName }) {
+  return <div className="experience-empty catalogue-status" data-testid={testId}>
+    <BrandIcon className="catalogue-status-icon" name={icon} size={72} />
+    <div className="experience-empty-copy"><h2>{title}</h2><p>{body}</p></div>
   </div>;
 }
 
 function ExploreBand({ locale, title, href, label }: { locale: Locale; title: string; href: string; label: string }) {
-  return <section className="experience-band"><Container><h2>{title}</h2><ButtonLink variant="gold" href={`/${locale}${href}`}>{label}<Arrow /></ButtonLink></Container></section>;
+  return <section className="experience-band media-film-invitation" data-header-section="dark"><Container><h2>{title}</h2><ButtonLink variant="gold" href={`/${locale}${href}`}>{label}<Arrow /></ButtonLink></Container></section>;
 }
 
 export function ProgrammeExperience({ locale, sessions: approvedSessions, speakers, bookingsEnabled = false }: { locale: Locale; sessions: readonly PublicSession[]; speakers: readonly PublicSpeaker[]; bookingsEnabled?: boolean; initialQuery?: CatalogueQuery }) {
@@ -149,25 +151,27 @@ export function ProgrammeExperience({ locale, sessions: approvedSessions, speake
 
   return <>
     <ExperienceIntro locale={locale} page="program" announcement={confirmed.length === 0 ? copy.programPending : undefined} />
-    <section id="programme" data-hydrated={hydrated} tabIndex={-1} className="experience-catalogue" aria-label={copy.pages.program.label}>
+    <section id="programme" data-hydrated={hydrated} tabIndex={-1} className="experience-catalogue programme-catalogue" aria-label={copy.pages.program.label}>
       <Container>
-        <div className="programme-toolbar"><div className="programme-days" role="group" aria-label={copy.conferenceDays}>
-          {(["all", ...days] as const).map((value) => <a data-testid={`program-day-${value}`} key={value} aria-current={day === value ? "true" : undefined} href={dayHref(value)} onClick={(event) => { if (hydrated && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); change({ day: value }); } }}>{value === "all" ? days.length > 2 ? locale === "ar" ? "جميع الأيام" : "All days" : copy.allDays : programmeDayLabel(value, locale, true)}</a>)}
-        </div><p className="experience-timezone">{copy.timezone}</p></div>
-        {bookingsEnabled ? <ProgramBookingsLink locale={locale} /> : null}
-        <form className="experience-filters" action={`/${locale}/program#programme`} method="get">
-          <input type="hidden" name="day" value={day} />
-          <label className="experience-search" htmlFor="programme-search">{copy.searchSessions}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="programme-search" data-testid="program-search" name="q" type="search" value={query} onChange={(event) => change({ q: event.target.value })} placeholder={copy.searchSessionsPlaceholder} /></span></label>
-          <label htmlFor="programme-category">{copy.category}<select id="programme-category" name="category" data-testid="program-category" value={category} onChange={(event) => change({ category: event.target.value })} disabled={categories.length === 0} aria-describedby={categories.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allFormats}</option>{categories.map((item) => <option value={item.id} key={item.id}>{item.label[locale]}</option>)}</select></label>
-          <label htmlFor="programme-room">{copy.room}<select id="programme-room" name="room" data-testid="program-room" value={room} onChange={(event) => change({ room: event.target.value })} disabled={rooms.length === 0} aria-describedby={rooms.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allRooms}</option>{rooms.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <Button type="submit">{locale === "ar" ? "تطبيق المرشحات" : "Apply filters"}</Button>
-        </form>
-        {categories.length === 0 || rooms.length === 0 ? <p id="programme-filter-note" className="experience-filter-note">{copy.filterNote}</p> : null}
+        <div className="catalogue-filter-frame">
+          <div className="programme-toolbar"><div className="programme-days" role="group" aria-label={copy.conferenceDays}>
+            {(["all", ...days] as const).map((value) => <a data-testid={`program-day-${value}`} key={value} aria-current={day === value ? "true" : undefined} href={dayHref(value)} onClick={(event) => { if (hydrated && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); change({ day: value }); } }}>{value === "all" ? days.length > 2 ? locale === "ar" ? "جميع الأيام" : "All days" : copy.allDays : programmeDayLabel(value, locale, true)}</a>)}
+          </div><p className="experience-timezone"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l2.75 1.75" /></svg>{copy.timezone}</p></div>
+          {bookingsEnabled ? <ProgramBookingsLink locale={locale} /> : null}
+          <form className="experience-filters" action={`/${locale}/program#programme`} method="get">
+            <input type="hidden" name="day" value={day} />
+            <label className="experience-search" htmlFor="programme-search">{copy.searchSessions}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="programme-search" data-testid="program-search" name="q" type="search" value={query} onChange={(event) => change({ q: event.target.value })} placeholder={copy.searchSessionsPlaceholder} /></span></label>
+            <label htmlFor="programme-category">{copy.category}<select id="programme-category" name="category" data-testid="program-category" value={category} onChange={(event) => change({ category: event.target.value })} disabled={categories.length === 0} aria-describedby={categories.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allFormats}</option>{categories.map((item) => <option value={item.id} key={item.id}>{item.label[locale]}</option>)}</select></label>
+            <label htmlFor="programme-room">{copy.room}<select id="programme-room" name="room" data-testid="program-room" value={room} onChange={(event) => change({ room: event.target.value })} disabled={rooms.length === 0} aria-describedby={rooms.length === 0 ? "programme-filter-note" : undefined}><option value="all">{copy.allRooms}</option>{rooms.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+            <Button type="submit">{locale === "ar" ? "تطبيق المرشحات" : "Apply filters"}</Button>
+          </form>
+          {categories.length === 0 || rooms.length === 0 ? <p id="programme-filter-note" className="experience-filter-note">{copy.filterNote}</p> : null}
+        </div>
         <div className={`experience-result-bar${!sessions.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!sessions.length ? "sr-only" : undefined} role="status" aria-live="polite">{sessions.length ? formatResultCount(sessions.length, locale) : filtering ? copy.noResults : copy.programPending}</p>{hasActiveFilters ? <a data-testid="program-clear" href={clearHref()} onClick={(event) => { if (hydrated && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); document.getElementById("programme-search")?.focus(); change({ day: "all", category: "all", room: "all", q: "" }); } }}>{copy.clear}</a> : null}</div>
         {sessions.length ? <div className="programme-results">{days.map((value) => {
           const rows = sessions.filter((session) => session.day === value);
           return rows.length ? <section key={value} aria-labelledby={`programme-${value}-heading`}><h2 id={`programme-${value}-heading`} className="programme-day-heading">{programmeDayLabel(value, locale)}</h2>{groupProgramSlots(rows).map((slot) => <div className="programme-time-slot" data-testid="program-time-slot" key={slot.key} role="group" aria-label={`${sessionClock(slot.sessions[0].startAt, locale)} - ${sessionClock(slot.sessions[0].endAt, locale)}`}><div className="programme-parallel">{slot.sessions.map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}</div></div>)}</section> : null;
-        })}</div> : <EmptyCatalogue testId="program-empty" title={filtering ? copy.noResults : copy.programPending} body={filtering ? copy.noResultsBody : copy.programPendingBody} />}
+        })}</div> : <EmptyCatalogue icon="15-schedule" testId="program-empty" title={filtering ? copy.noResults : copy.programPending} body={filtering ? copy.noResultsBody : copy.programPendingBody} />}
       </Container>
     </section>
   </>;
@@ -197,7 +201,7 @@ export function SessionRow({ locale, session, speakers: approvedSpeakers = [] }:
 export function SpeakersExperience({ locale, speakers: approvedSpeakers }: { locale: Locale; speakers: readonly PublicSpeaker[] }) {
   const copy = experienceCopy[locale];
   const speakers = published(approvedSpeakers);
-  return <><ExperienceIntro locale={locale} page="speakers" /><section className="experience-catalogue fluid-speakers-catalogue fluid-art-surface"><AmbientArtwork variant="people" /><Container>{speakers.length ? <div className="speaker-grid">{speakers.map((speaker) => <SpeakerCard locale={locale} speaker={speaker} key={speaker.slug} />)}</div> : <><EmptyCatalogue testId="speakers-empty" title={copy.speakersPending} body={copy.speakersPendingBody} /><SpeakerPreviewRail locale={locale} /></>}</Container></section></>;
+  return <><ExperienceIntro locale={locale} page="speakers" /><section className="experience-catalogue fluid-speakers-catalogue fluid-art-surface"><AmbientArtwork variant="people" /><Container>{speakers.length ? <div className="speaker-grid">{speakers.map((speaker) => <SpeakerCard locale={locale} speaker={speaker} key={speaker.slug} />)}</div> : <><EmptyCatalogue icon="11-speakers" testId="speakers-empty" title={copy.speakersPending} body={copy.speakersPendingBody} /><SpeakerPreviewRail locale={locale} /></>}</Container></section></>;
 }
 
 /** Anonymous cards until the approved speaker roster is published. */
@@ -221,8 +225,24 @@ function SpeakerPreviewRail({ locale }: { locale: Locale }) {
   </div>;
 }
 
-export function SpeakerCard({ locale, speaker }: { locale: Locale; speaker: PublicSpeaker }) {
-  return <article className="conference-speaker-card"><Link className="conference-speaker-card-link" href={`/${locale}/speakers/${speaker.slug}`} aria-label={speaker.name}><div className="conference-speaker-portrait">{speaker.portrait ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} unoptimized={speaker.portrait.startsWith("https:") || speaker.portrait.startsWith("http:")} style={{ objectPosition: speaker.portraitPosition }} fill sizes="(max-width: 600px) 90vw, (max-width: 900px) 45vw, 28vw" /> : <ResearchVisual variant={0} />}<FlowLines className="speaker-flow-lines" /></div><div className="conference-speaker-copy" lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}><h2>{speaker.name}</h2><p>{speaker.title}</p><p>{speaker.institution}</p></div></Link></article>;
+export function SpeakerCard({ locale, speaker, compact = false }: { locale: Locale; speaker: PublicSpeaker; compact?: boolean }) {
+  const Heading = compact ? "h3" : "h2";
+  const sizes = compact ? "72px" : "(max-width: 600px) 90vw, (max-width: 900px) 45vw, 28vw";
+  return <article className="conference-speaker-card">
+    <Link className="conference-speaker-card-link" href={`/${locale}/speakers/${speaker.slug}`} aria-label={speaker.name}>
+      <div className="conference-speaker-portrait">
+        {speaker.portrait
+          ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} unoptimized={speaker.portrait.startsWith("https:") || speaker.portrait.startsWith("http:")} style={{ objectPosition: speaker.portraitPosition }} fill sizes={sizes} />
+          : <ResearchVisual variant={0} />}
+        <FlowLines className="speaker-flow-lines" />
+      </div>
+      <div className="conference-speaker-copy" lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>
+        <Heading>{speaker.name}</Heading>
+        <p>{speaker.title}</p>
+        <p>{speaker.institution}</p>
+      </div>
+    </Link>
+  </article>;
 }
 
 export function MediaExperience({ locale, media, sessions }: { locale: Locale; media: readonly PublicMedia[]; sessions: readonly PublicSession[]; initialQuery?: CatalogueQuery }) {
@@ -246,17 +266,17 @@ export function MediaExperience({ locale, media, sessions }: { locale: Locale; m
     change({ q: "", edition: "all", kind: "all" });
   }
   const editionText = edition === "all" ? copy.mediaPendingBody : copy.selectedMediaPending.replace("{edition}", new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { numberingSystem: locale === "ar" ? "arab" : "latn", useGrouping: false }).format(Number(edition)));
-  return <><ExperienceIntro locale={locale} page="media" /><section className="experience-catalogue" data-testid="media-catalogue"><Container>
-    <div className="experience-filters">
+  return <><ExperienceIntro locale={locale} page="media" /><section className="experience-catalogue media-catalogue" data-testid="media-catalogue"><Container>
+    <div className="experience-filters catalogue-filter-frame">
       <label className="experience-search" htmlFor="media-search">{copy.searchMedia}<span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.5" /></svg><input id="media-search" data-testid="media-search" type="search" value={query} disabled={!hydrated} placeholder={copy.searchMediaPlaceholder} onChange={(event) => change({ q: event.target.value })} /></span></label>
       <label htmlFor="media-edition">{copy.edition}<select id="media-edition" data-testid="media-edition" value={edition} disabled={!hydrated} onChange={(event) => change({ edition: queryEdition(event.target.value) })}><option value="all">{copy.allEditions}</option>{editionOptions.map((year) => <option value={year} key={year}>MSRC {year}</option>)}</select></label>
       <label htmlFor="media-kind">{copy.mediaKind}<select id="media-kind" data-testid="media-kind" value={kind} disabled={!hydrated} onChange={(event) => change({ kind: event.target.value })}><option value="all">{copy.allMedia}</option><option value="recording">{copy.recordings}</option><option value="highlight">{copy.highlights}</option><option value="photograph">{copy.photographs}</option></select></label>
     </div>
     <div className={`experience-result-bar${!records.length && !hasActiveFilters ? " experience-result-bar--quiet" : ""}`}><p className={!records.length ? "sr-only" : undefined} role="status" aria-live="polite">{records.length ? formatResultCount(records.length, locale) : filtering ? copy.noResults : copy.mediaPending}</p>{hasActiveFilters ? <Button variant="ghost" size="small" data-testid="media-clear" disabled={!hydrated} onClick={clear}>{copy.clear}</Button> : null}</div>
     {records.length ? <div className="conference-media-albums">{editions.map((year) => <section className="conference-media-edition" data-edition={year} aria-labelledby={`media-edition-${year}`} key={year}>
-      <h2 id={`media-edition-${year}`} dir="ltr">MSRC {year}</h2>
+      <h2 id={`media-edition-${year}`}><bdi dir="ltr">MSRC {year}</bdi></h2>
       <div className="conference-media-grid">{records.filter((record) => record.edition === year).map((record) => <MediaCard locale={locale} record={record} session={published(sessions).find((session) => session.slug === record.sessionSlug)} key={record.slug} />)}</div>
-    </section>)}</div> : <EmptyCatalogue testId="media-empty" title={filtering ? copy.noResults : copy.mediaPending} body={filtering ? copy.noResultsBody : editionText} />}
+    </section>)}</div> : <EmptyCatalogue icon="24-gallery" testId="media-empty" title={filtering ? copy.noResults : copy.mediaPending} body={filtering ? copy.noResultsBody : editionText} />}
     <p className="experience-access-note" data-testid="media-access-note">{copy.accessNote}</p>
   </Container></section><ExploreBand locale={locale} title={copy.previousTitle} href="/#film" label={copy.previousLink} /></>;
 }
@@ -289,12 +309,29 @@ export function MediaCard({ locale, record, session }: { locale: Locale; record:
 
 export function ParticipateExperience({ locale }: { locale: Locale }) {
   const copy = experienceCopy[locale];
-  return <><ExperienceIntro locale={locale} page="participate" /><RegistrationOpeningNotice locale={locale} /><section className="participation-hub" aria-label={copy.pages.participate.label}><Container><div className="participation-paths">{participationPaths.map((path) => <article className="participation-path" key={path.id} id={path.id === "threeMinuteThesis" ? "three-minute-thesis" : path.id} tabIndex={-1}>
-    <Link className="participation-path-link" href={`/${locale}${path.href}`}>
-      <span className="participation-path-icon" aria-hidden="true">{path.icon ? <Image src={path.icon} alt="" width={56} height={56} /> : <JourneyIcon variant={path.glyph} />}</span>
-      <div className="participation-path-copy"><h2>{copy.pages[path.id].label}</h2><p>{participationPathDescriptions[locale][path.id]}</p></div><Arrow />
-    </Link>
-  </article>)}</div></Container></section></>;
+  const options = locale === "ar" ? "استكشف مسارات المشاركة" : "Explore ways to participate";
+  return <>
+    <ExperienceIntro locale={locale} page="participate" />
+    <div className="participation-hub-shortcut">
+      <Container><ButtonLink variant="secondary" href="#participation-options">{options}<Arrow /></ButtonLink></Container>
+    </div>
+    <RegistrationOpeningNotice locale={locale} />
+    <section id="participation-options" tabIndex={-1} className="participation-hub" aria-label={copy.pages.participate.label}>
+      <Container>
+        <div className="participation-paths">
+          {participationPaths.map((path) => (
+            <article className={`participation-path participation-path--${path.id}`} key={path.id} id={path.id === "threeMinuteThesis" ? "three-minute-thesis" : path.id} tabIndex={-1}>
+              <Link className="participation-path-link" href={`/${locale}${path.href}`}>
+                <span className="participation-path-icon" aria-hidden="true"><BrandIcon name={path.icon} size={96} /></span>
+                <div className="participation-path-copy"><h2>{copy.pages[path.id].label}</h2><p>{participationPathDescriptions[locale][path.id]}</p></div>
+                <Arrow />
+              </Link>
+            </article>
+          ))}
+        </div>
+      </Container>
+    </section>
+  </>;
 }
 
 export function JourneyExperience({ locale, journey, workshops: approvedWorkshops = [], hackathonTracks }: { locale: Locale; journey: keyof typeof experienceCopy.en.journeys; workshops?: readonly PublicWorkshop[]; hackathonTracks?: PublicHackathonTracks | null }) {
@@ -303,14 +340,29 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
   const content = journey === "hackathon" && hackathonTracks && original.tracks ? { ...original, tracks: { ...original.tracks, items: original.tracks.items.map((track, index) => { const configured = hackathonTracks[index === 0 ? "translating_research" : "advancing_research"]; return { ...track, title: configured.label[locale], body: configured.description[locale] }; }) } } : original;
   const workshops = published(approvedWorkshops);
   const actions = journeyActionCopy[locale];
+  const illustratedBenefits = journey === "registration" || journey === "workshops";
   return <div className={`participation-journey participation-journey--${journey}`}><ExperienceIntro locale={locale} page={journey}>
-      {journey !== "registration" ? <ButtonLink variant="gold" href={journey === "workshops" ? "#workshop-catalogue" : "#journey-availability"} aria-describedby="journey-closed-title">{actions.primary[journey]}<Arrow /></ButtonLink>
+      {journey !== "registration" ? <ButtonLink variant="gold" href={journey === "workshops" ? "#workshop-catalogue" : "#journey-availability"} aria-describedby={journey === "workshops" ? undefined : "journey-closed-title"}>{actions.primary[journey]}<Arrow /></ButtonLink>
         : <ButtonLink variant="gold" href="#journey-steps" data-testid="registration-steps-jump">{actions.primary.registration}<Arrow /></ButtonLink>}
       <div className="participation-program"><Button disabled data-testid="brochure-unavailable" aria-describedby="brochure-unavailable-note" variant="ghost" size="small">{actions.brochure}</Button><p id="brochure-unavailable-note">{actions.brochurePending}</p></div>
     </ExperienceIntro>
     <section id="journey-availability" tabIndex={-1} className="journey-availability fluid-journey-availability" data-testid="journey-closed" aria-labelledby="journey-closed-title"><Container><div className="journey-availability-dot" aria-hidden="true" /><div><h2 id="journey-closed-title">{content.closed}</h2><p>{content.closedBody}</p></div></Container></section>
-    {content.tracks ? <section id="journey-tracks" className="participation-tracks participation-ambient" aria-labelledby="journey-tracks-title"><SideArtwork motif={journey} area="tracks" /><Container><ArtworkHeading motif={journey} area="tracks"><p className="participation-section-label">{content.tracks.label}</p><h2 id="journey-tracks-title">{content.tracks.title}</h2></ArtworkHeading><div className="participation-track-list">{content.tracks.items.map((track) => <article className="participation-track" key={track.label}><p className="participation-track-label">{track.label}</p><h3 lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>{track.title}</h3><p>{track.body}</p></article>)}</div><p className="participation-track-note">{content.tracks.note}</p></Container></section> : null}
-    <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title"><SideArtwork motif={journey} area="benefits" /><Container><ArtworkHeading motif={journey} area="benefits"><p className="participation-section-label">{journey === "workshops" ? actions.learning : actions.benefits}</p><h2 id="journey-benefits-title">{content.detailsTitle}</h2></ArtworkHeading><div className="participation-benefit-list">{content.details.map((detail, index) => <article className="participation-benefit" key={detail.title}><BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} locale={locale} /><div><h3>{detail.title}</h3><p>{detail.body}</p></div></article>)}</div>
+    {content.tracks ? <section id="journey-tracks" className="participation-tracks participation-ambient" aria-labelledby="journey-tracks-title"><SideArtwork motif={journey} area="tracks" /><Container><ArtworkHeading motif={journey} area="tracks"><h2 id="journey-tracks-title">{content.tracks.title}</h2></ArtworkHeading><div className="participation-track-list">{content.tracks.items.map((track) => <article className="participation-track" key={track.label}><p className="participation-track-label">{track.label}</p><h3 lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>{track.title}</h3><p>{track.body}</p></article>)}</div><p className="participation-track-note">{content.tracks.note}</p></Container></section> : null}
+    <section id="journey-benefits" className="participation-benefits participation-ambient" aria-labelledby="journey-benefits-title">
+      <SideArtwork motif={journey} area="benefits" />
+      <Container>
+        <ArtworkHeading motif={journey} area="benefits"><h2 id="journey-benefits-title">{content.detailsTitle}</h2></ArtworkHeading>
+        <div className={`participation-benefit-list${illustratedBenefits ? " participation-benefit-list--illustrated" : ""}`}>
+          {content.details.map((detail, index) => (
+            <article className="participation-benefit" key={detail.title}>
+              <BenefitArtwork icon={participationBenefitIcons[journey][index] ?? "research"} variant={illustratedBenefits ? "brand" : "line"} size={illustratedBenefits ? 112 : 56} />
+              <div>
+                <h3>{detail.title}</h3>
+                <p>{detail.body}</p>
+              </div>
+            </article>
+          ))}
+        </div>
       {content.goodToKnow ? <aside className="participation-good-to-know" aria-labelledby="good-to-know-title"><h3 id="good-to-know-title">{content.goodToKnow.title}</h3><ul>{content.goodToKnow.points.map((point) => <li key={point}>{point}</li>)}</ul></aside> : null}
     </Container></section>
     {journey === "submissions" ? <section className="participation-schedule abstract-timeline" aria-labelledby="abstract-dates-title"><Container><h2 id="abstract-dates-title">{locale === "ar" ? "مواعيد مهمة" : "Important dates"}</h2><ol className="abstract-timeline-list" role="list">{abstractDates.map((item, index) => <li key={item.date} style={{ "--timeline-index": index } as CSSProperties}><span className="abstract-timeline-dot" aria-hidden="true" /><div className="abstract-timeline-card"><time className="participation-schedule-day" dateTime={item.date}>{formatRegistrationOpeningDate(item.date, locale, false)}</time><h3>{item[locale]}</h3></div></li>)}</ol></Container></section> : null}
@@ -320,9 +372,9 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
         : <ol>{content.steps.map((step, index) => <li key={step}><span aria-hidden="true">{formatIndex(index + 1, locale)}</span><p>{step}</p></li>)}</ol>}
     </Container></section>
     <section className="fluid-journey-resources participation-ambient" aria-labelledby="journey-resources-title"><SideArtwork motif={journey} area="resources" /><Container><ArtworkHeading motif={journey} area="resources"><h2 id="journey-resources-title">{actions.resources}</h2></ArtworkHeading><div className="fluid-resource-grid">
-      <div className="fluid-resource fluid-resource--pending"><JourneyIcon variant={3} /><Button disabled data-testid="ticket-unavailable" aria-describedby="ticket-unavailable-note" variant="secondary">{actions.ticket}</Button><p id="ticket-unavailable-note">{actions.ticketPending}</p></div>
-      <Link className="fluid-resource" href={`/${locale}/participate`}><JourneyIcon variant={0} /><span>{copy.otherPaths}</span><Arrow /></Link>
-      <Link className="fluid-resource" href={`/${locale}#faq`}><JourneyIcon variant={4} /><span>{actions.faq}</span><Arrow /></Link>
+      <div className="fluid-resource fluid-resource--pending"><BrandIcon name="27-tickets" /><Button disabled data-testid="ticket-unavailable" aria-describedby="ticket-unavailable-note" variant="secondary">{actions.ticket}</Button><p id="ticket-unavailable-note">{actions.ticketPending}</p></div>
+      <Link className="fluid-resource" href={`/${locale}/participate`}><BrandIcon name="13-collaboration" /><span>{copy.otherPaths}</span><Arrow /></Link>
+      <Link className="fluid-resource" href={`/${locale}#faq`}><BrandIcon name="25-faq" /><span>{actions.faq}</span><Arrow /></Link>
     </div></Container></section>
   </div>;
 }
@@ -330,33 +382,15 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
 const journeyActionCopy = {
   en: {
     primary: { registration: "Sign up for MSRC", submissions: "Submit your abstract", workshops: "Explore workshops", hackathon: "Enter the hackathon", threeMinuteThesis: "Enter 3MT" },
-    benefits: "What you gain", learning: "Practical learning",
     resources: "Your next move.", ticket: "View my ticket", ticketPending: "Tickets will be available after registration opens and your place is confirmed by email.",
     guidelines: "View submission guidelines", requirements: "Review participation requirements", faq: "Frequently asked questions", brochure: "Download the program", brochurePending: "The program brochure will be available once published.",
   },
   ar: {
     primary: { registration: "سجّل في MSRC", submissions: "قدّم ملخصك البحثي", workshops: "استكشف ورش العمل", hackathon: "شارك في الهاكاثون", threeMinuteThesis: "شارك في 3MT" },
-    benefits: "ما الذي تكتسبه", learning: "تعلّم عملي",
     resources: "خطوتك التالية.", ticket: "عرض تذكرتي", ticketPending: "ستتاح التذاكر بعد فتح التسجيل وتأكيد مقعدك عبر البريد الإلكتروني.",
     guidelines: "عرض إرشادات التقديم", requirements: "مراجعة متطلبات المشاركة", faq: "الأسئلة الشائعة", brochure: "تنزيل البرنامج", brochurePending: "سيتاح كتيّب البرنامج بعد نشره.",
   },
 } as const;
-
-/** Geometric symbols share the card material without implying announced services. */
-function JourneyIcon({ variant }: { variant: number }) {
-  const gradientId = useId();
-  const symbols = [
-    <g key="community"><circle cx="24" cy="17" r="6" /><path d="M12 37v-3a12 12 0 0 1 24 0v3M10 12a5 5 0 0 0 0 10M38 12a5 5 0 0 1 0 10M5 33v-2a9 9 0 0 1 5-8M43 33v-2a9 9 0 0 0-5-8" /></g>,
-    <g key="document"><path d="M14 6h15l8 8v27H11V6h3M29 6v9h8M18 23h12M18 30h12" /></g>,
-    <g key="check"><rect x="7" y="11" width="34" height="26" rx="5" /><path d="m8 14 16 12 16-12m-22 9 6 6 12-12" /></g>,
-    <g key="ticket"><path d="M6 14h36v8a5 5 0 0 0 0 10v7H6v-7a5 5 0 0 0 0-10v-8Z" /><path d="M30 14v5m0 5v5m0 5v5" /></g>,
-    <g key="conversation"><path d="M39 26a14 14 0 0 1-14 14H9l4-7A14 14 0 1 1 39 26Z" /><path d="M20 17a5 5 0 0 1 10 0c0 4-5 4-5 8m0 5h.01" /></g>,
-    <g key="calendar"><rect x="7" y="10" width="34" height="31" rx="5" /><path d="M15 6v9M33 6v9M7 21h34M16 28h4m8 0h4m-16 7h4m8 0h4" /></g>,
-    <g key="idea"><path d="M24 6a12 12 0 0 0-7.2 21.6c1.3 1 2.2 2.6 2.2 4.3V34h10v-2.1c0-1.7.9-3.3 2.2-4.3A12 12 0 0 0 24 6Z" /><path d="M19 39h10M21 43h6M24 14v6m-4-2 4 4 4-4" /></g>,
-    <g key="stopwatch"><circle cx="24" cy="27" r="14" /><path d="M24 27v-7M20 6h8M24 6v7M35 15l3-3" /></g>,
-  ];
-  return <span className="fluid-journey-icon" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke={`url(#${gradientId})`} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id={gradientId} x1="7" y1="7" x2="41" y2="41" gradientUnits="userSpaceOnUse"><stop stopColor="#9b76c5" /><stop offset=".55" stopColor="#512f7b" /><stop offset="1" stopColor="#9b7529" /></linearGradient></defs>{symbols[variant % symbols.length]}</svg></span>;
-}
 
 type ArtworkArea = "tracks" | "benefits" | "rail" | "steps" | "resources";
 const journeyOrder = ["registration", "submissions", "workshops", "hackathon", "threeMinuteThesis"] as const;
@@ -391,9 +425,9 @@ function WorkshopRail({ locale, workshops: initialWorkshops }: { locale: Locale;
   const heading = locale === "ar" ? "اختر مساحةً للتعلّم." : "Find your next skill.";
   return <section id="workshop-catalogue" tabIndex={-1} className="fluid-workshop-section fluid-art-surface participation-ambient" aria-labelledby="workshop-catalogue-title"><SideArtwork motif="workshops" area="rail" /><Container>
     <ArtworkHeading motif="workshops" area="rail"><h2 id="workshop-catalogue-title">{heading}</h2></ArtworkHeading>
-    {!workshops.length ? <div data-testid="workshops-empty" className="fluid-workshop-pending"><h3>{copy.workshopsPending}</h3><p>{copy.workshopsPendingBody}</p></div> : null}
+    {!workshops.length ? <div data-testid="workshops-empty" className="fluid-workshop-pending"><BrandIcon name="19-workshops" size={96} /><div><h3>{copy.workshopsPending}</h3><p>{copy.workshopsPendingBody}</p></div></div> : null}
     <HorizontalRail locale={locale} label={copy.pages.workshops.label} className="fluid-workshop-rail">
-      {workshops.length ? workshops.map((workshop) => <article className="fluid-workshop-card" key={workshop.slug}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{workshop.title[locale]}</h3><p>{workshop.description[locale]}</p>
+      {workshops.length ? workshops.map((workshop) => <article className="fluid-workshop-card" key={workshop.slug}><WorkshopCardCover /><div className="fluid-workshop-copy"><h3>{workshop.title[locale]}</h3><p>{workshop.description[locale]}</p>
         {workshop.instructor ? <p>{locale === "ar" ? "المدرّب" : "Instructor"}: <bdi>{workshop.instructor}</bdi></p> : null}
         <p>{sessionClock(workshop.startAt, locale) ?? copy.timePending}{workshop.endAt ? " – " + sessionClock(workshop.endAt, locale) : ""}{workshop.room ? ` · ${workshop.room}` : ""}</p>
         {workshop.eligibility ? <p>{workshop.eligibility[locale]}</p> : null}
@@ -403,24 +437,27 @@ function WorkshopRail({ locale, workshops: initialWorkshops }: { locale: Locale;
         {workshop.bookingDeadline ? <p>{locale === "ar" ? "آخر موعد للحجز" : "Booking deadline"}: {new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory" : "en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Riyadh" }).format(new Date(workshop.bookingDeadline))} ({locale === "ar" ? "بتوقيت الرياض" : "Riyadh time"})</p> : null}
         {workshop.transferBufferMinutes !== null && workshop.transferBufferMinutes !== undefined ? <p>{locale === "ar" ? "وقت الانتقال بالدقائق" : "Transfer buffer in minutes"}: {formatIndex(workshop.transferBufferMinutes, locale)}</p> : null}
         {workshop.bookingAvailable ? <ButtonLink href={`/${locale}/my-msrc`} variant="secondary">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</ButtonLink> : <StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge>}
-      </div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopImagePlaceholder /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
+      </div></article>) : Array.from({ length: 3 }, (_, index) => <article className="fluid-workshop-card" key={index}><WorkshopCardCover /><div className="fluid-workshop-copy"><h3>{locale === "ar" ? "سيُعلن عن الورشة لاحقًا" : "Workshop to be announced"}</h3><p>{locale === "ar" ? "سيُضاف الموضوع والمدرب والوقت بعد إعلان دليل الورش." : "Topic, instructor and time will follow the catalogue announcement."}</p><StatusBadge tone="neutral">{copy.closedLabel}</StatusBadge></div></article>)}
     </HorizontalRail>
   </Container></section>;
 }
 
-function WorkshopImagePlaceholder() {
-  return <div className="fluid-workshop-image" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="8" width="36" height="32" rx="4" stroke="currentColor" strokeWidth="1.5" /><circle cx="18" cy="18" r="3" stroke="currentColor" strokeWidth="1.5" /><path d="m8 34 10-9 8 7 7-7 7 9" stroke="currentColor" strokeWidth="1.5" /></svg></div>;
+function WorkshopCardCover() {
+  return <div className="fluid-workshop-image" aria-hidden="true">
+    <FlowLines className="workshop-cover-lines" />
+    <BrandIcon name="19-workshops" size={152} />
+  </div>;
 }
 
 export function SessionDetailExperience({ locale, session, speakers: approvedSpeakers = [], recording }: { locale: Locale; session: PublicSession; speakers?: readonly PublicSpeaker[]; recording?: PublicMedia }) {
   const copy = experienceCopy[locale];
   const speakers = published(approvedSpeakers).filter((speaker) => session.speakerSlugs.includes(speaker.slug));
   const start = sessionClock(session.startAt, locale); const end = sessionClock(session.endAt, locale); const duration = sessionMinutes(session);
-  return <><section className="experience-detail-intro"><Container><Link href={`/${locale}/program`}>{copy.pages.program.label}</Link><p className="eyebrow">{session.category.label[locale]} · {programmeDayLabel(session.day, locale)}</p><h1 lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{session.title}</h1><dl className="session-detail-facts"><div><dt>{copy.time}</dt><dd>{start ? `${start}${end ? ` – ${end}` : ""}` : copy.timePending}</dd></div>{duration ? <div><dt>{copy.duration}</dt><dd>{formatMinutes(duration, locale)}</dd></div> : null}{session.room ? <div><dt>{copy.room}</dt><dd><bdi>{session.room}</bdi></dd></div> : null}</dl><p className="experience-timezone">{copy.timezone}</p></Container></section><section className="experience-detail-body"><Container narrow><p lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{session.description}</p>{session.objectives.length ? <div><h2>{copy.objectives}</h2><ul lang="en" dir="ltr">{session.objectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></div> : null}{speakers.length ? <div><h2>{copy.pages.speakers.label}</h2><div className="speaker-grid">{speakers.map((speaker) => <SpeakerCard locale={locale} speaker={speaker} key={speaker.slug} />)}</div></div> : null}<div><h2>{copy.recording}</h2>{recording ? <MediaCard locale={locale} record={recording} session={session} /> : <p>{copy.recordingPending}</p>}</div></Container></section></>;
+  return <><section data-header-section="light" className="experience-detail-intro"><Container><Link className="catalogue-back-link" href={`/${locale}/program`}><Arrow />{copy.pages.program.label}</Link><h1 lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{session.title}</h1><p className="catalogue-detail-meta">{session.category.label[locale]} · {programmeDayLabel(session.day, locale)}</p><dl className="session-detail-facts"><div><dt>{copy.time}</dt><dd>{start ? `${start}${end ? ` – ${end}` : ""}` : copy.timePending}</dd></div>{duration ? <div><dt>{copy.duration}</dt><dd>{formatMinutes(duration, locale)}</dd></div> : null}{session.room ? <div><dt>{copy.room}</dt><dd><bdi>{session.room}</bdi></dd></div> : null}</dl><p className="experience-timezone">{copy.timezone}</p></Container></section><section className="experience-detail-body"><Container narrow><p lang={session.contentLocale ?? "en"} dir={session.contentLocale === "ar" ? "rtl" : "ltr"}>{session.description}</p>{session.objectives.length ? <div><h2>{copy.objectives}</h2><ul lang="en" dir="ltr">{session.objectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></div> : null}{speakers.length ? <div><h2>{copy.pages.speakers.label}</h2><div className="speaker-grid">{speakers.map((speaker) => <SpeakerCard locale={locale} speaker={speaker} key={speaker.slug} />)}</div></div> : null}<div><h2>{copy.recording}</h2>{recording ? <MediaCard locale={locale} record={recording} session={session} /> : <p>{copy.recordingPending}</p>}</div></Container></section></>;
 }
 
 export function SpeakerDetailExperience({ locale, speaker, sessions: approvedSessions = [] }: { locale: Locale; speaker: PublicSpeaker; sessions?: readonly PublicSession[] }) {
   const copy = experienceCopy[locale];
   const sessions = published(approvedSessions).filter((session) => session.speakerSlugs.includes(speaker.slug));
-  return <><section className="experience-detail-intro"><Container><Link href={`/${locale}/speakers`}>{copy.pages.speakers.label}</Link><div className="speaker-profile-heading"><div><p className="eyebrow">MSRC / 2027</p><h1 lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.name}</h1><p lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.title}</p><p lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.institution}</p></div><div className="conference-speaker-portrait">{speaker.portrait ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} unoptimized={speaker.portrait.startsWith("https:") || speaker.portrait.startsWith("http:")} style={{ objectPosition: speaker.portraitPosition }} fill sizes="(max-width: 600px) 90vw, 35vw" priority /> : <ResearchVisual variant={0} />}</div></div></Container></section><section className="experience-detail-body"><Container narrow><h2>{copy.biography}</h2><p lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.biography}</p>{speaker.professionalLinks.length ? <ul className="speaker-professional-links">{speaker.professionalLinks.map((link) => <li key={link.href}><Link href={link.href} target="_blank" rel="noopener noreferrer">{link.label}<Arrow /></Link></li>)}</ul> : null}<div><h2>{copy.speakerSessions}</h2>{sessions.length ? sessions.map((session) => <SessionRow key={session.slug} locale={locale} session={session} speakers={[speaker]} />) : <p>{copy.programPending}</p>}</div></Container></section></>;
+  return <><section data-header-section="light" className="experience-detail-intro"><Container><Link className="catalogue-back-link" href={`/${locale}/speakers`}><Arrow />{copy.pages.speakers.label}</Link><div className="speaker-profile-heading"><div><h1 lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.name}</h1><p lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.title}</p><p lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.institution}</p></div><div className="conference-speaker-portrait">{speaker.portrait ? <Image src={speaker.portrait} alt={speaker.portraitAlt[locale]} unoptimized={speaker.portrait.startsWith("https:") || speaker.portrait.startsWith("http:")} style={{ objectPosition: speaker.portraitPosition }} fill sizes="(max-width: 600px) 90vw, 35vw" priority /> : <ResearchVisual variant={0} />}</div></div></Container></section><section className="experience-detail-body"><Container narrow><h2>{copy.biography}</h2><p lang={speaker.contentLocale ?? "en"} dir={speaker.contentLocale === "ar" ? "rtl" : "ltr"}>{speaker.biography}</p>{speaker.professionalLinks.length ? <ul className="speaker-professional-links">{speaker.professionalLinks.map((link) => <li key={link.href}><Link href={link.href} target="_blank" rel="noopener noreferrer">{link.label}<Arrow /></Link></li>)}</ul> : null}<div><h2>{copy.speakerSessions}</h2>{sessions.length ? sessions.map((session) => <SessionRow key={session.slug} locale={locale} session={session} speakers={[speaker]} />) : <p>{copy.programPending}</p>}</div></Container></section></>;
 }

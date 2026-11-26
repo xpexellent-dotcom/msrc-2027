@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { BrandIcon } from "@/components/brand/brand-icon";
 import { useEffect, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
@@ -30,7 +31,10 @@ export function RegistrationTicketCard({ locale, initial }: { locale: Locale; in
     : result.state === "area-not-ready" ? copy.areaNotReady : result.state === "unavailable" ? copy.unavailable
       : ticket?.status === "revoked" ? copy.revoked : ticket?.status === "issued" ? copy.issued : copy.empty;
   return <section className="participant-account-card registration-ticket" aria-label={copy.title} data-testid="registration-ticket">
-    <p className="participant-account-status" role="status">{message}</p>
+    <div className="ticket-status-label">
+      <BrandIcon name="27-tickets" size={64} />
+      <p className="participant-account-status" role="status">{message}</p>
+    </div>
     {ticket ? <>
       <dl className="participant-account-profile"><div><dt>{copy.reference}</dt><dd><bdi dir="ltr" data-testid="ticket-reference">{ticket.referenceCode}</bdi></dd></div></dl>
       {ticket.status === "issued" && ticket.qrDataUrl?.startsWith("data:image/png;base64,") ? <figure className="registration-ticket-qr">

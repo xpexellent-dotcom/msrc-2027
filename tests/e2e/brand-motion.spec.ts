@@ -52,7 +52,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
-    const skip = page.locator('a[href="#main-content"]');
+    const skip = page.locator('a.skip-link[href="#main-content"]');
     expect(await skip.evaluate((element) => element.getBoundingClientRect().bottom)).toBeLessThan(0);
     await page.keyboard.press("Tab");
     await expect(skip).toBeFocused();

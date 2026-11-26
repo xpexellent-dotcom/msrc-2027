@@ -15,9 +15,9 @@ import { ClosingCity } from "@/components/closing-city";
 import { ResearchArtwork } from "@/components/research-artwork";
 import { HistoryNumbers } from "@/components/history-numbers";
 import { SpeakerAtmosphere } from "@/components/speaker-atmosphere";
+import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { BenefitArtwork } from "@/components/benefit-artwork";
-import { PortraitPlaceholder } from "@/components/portrait-placeholder";
 import { conferenceExpectations } from "@/content/conference-expectations";
 import { conferenceConfig, conferenceDateLabel } from "@/config/conference";
 import { homepageAssets, homepageCopy } from "@/content/public-site";
@@ -86,7 +86,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
         <Reveal className="pathway-list path-bento" stagger="cascade">{pathways.map((pathway, index) => {
           const slug = pathway.href.slice(1);
           const attend = index === 0;
-          const icon = (["13-collaboration", "06-publications", "19-workshops", "20-hackathon", "15-schedule"] as const)[index];
+          const icon = (["13-collaboration", "06-publications", "19-workshops", "20-hackathon", "21-3mt"] as const)[index];
           return <article className={`pathway-card path-tile path-tile--${slug}`} key={pathway.href} data-pathway={pathway.href} id={`pathway-${slug}`}>
             <div className="pathway-photo"><Image src={demoImages.pathways[index]} alt="" fill sizes={attend || index === 4 ? "(max-width: 800px) 100vw, 900px" : "(max-width: 800px) 100vw, 540px"} /></div><div className="path-tile-top"><BrandIcon name={icon} size={40} /><Arrow /></div>
             <h3 className="pathway-name"><Link className="pathway-action" href={`/${locale}${pathway.href}`} aria-describedby={`pathway-${slug}-kicker`}>{pathway.category}</Link></h3>
@@ -106,7 +106,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
         </Reveal>
         <div className="expectations-layout">
           <ResearchArtwork />
-          <Reveal className="program-experiences" stagger="cascade">{expectations.benefits.map((benefit) => <article className="benefit-card" key={benefit.title}><BenefitArtwork icon={benefit.icon} locale={locale} variant="brand" /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.homepageBody ?? benefit.body}</p></div></article>)}</Reveal>
+          <Reveal className="program-experiences" stagger="cascade">{expectations.benefits.map((benefit) => <article className="benefit-card" key={benefit.title}><BenefitArtwork icon={benefit.icon} variant="brand" /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.homepageBody ?? benefit.body}</p></div></article>)}</Reveal>
         </div>
         {sessions.length ? <div className="public-home-programme" data-testid="home-published-programme">{sessions.slice(0, 4).map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}<Link className="editorial-action" href={`/${locale}/program`}>{narrative.programmeLink}<Arrow /></Link></div> : null}
       </Container>
@@ -115,14 +115,16 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
     <section data-header-section="light" id="speakers" tabIndex={-1} className="editorial-section speakers-section" aria-labelledby="speakers-title">
       <SpeakerAtmosphere />
       <Container>
-        <Reveal className="section-topline" stagger><SectionHeading chapter title={narrative.speakersTitle} accents={locale === "ar" ? ["المتحدثين.", "المتحدثين"] : ["speakers.", "speakers"]} id="speakers-title" /><Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link></Reveal>
-        {!speakers.length ? <p className="section-intro-text">{narrative.speakersBody}</p> : null}
-        {speakers.length ? <div className="speaker-grid public-home-speakers" data-testid="home-published-speakers">{speakers.slice(0, 4).map((speaker) => <SpeakerCard key={speaker.slug} locale={locale} speaker={speaker} />)}</div> : <HorizontalRail className="speaker-rail" locale={locale} label={demo.speakerRail}>
-          {[0, 1, 2, 3].map((index) => <article className="speaker-preview-card" key={index}>
-            <div className="speaker-preview-portrait"><PortraitPlaceholder variant={index} /></div>
-            <div className="speaker-preview-content"><h3>{demo.speakerTitle}</h3><p>{demo.speakerPending}</p>{/* Pointer shortcut only: the section's "Meet the speakers" link already reaches this page, so the four identical placeholder cards add no keyboard or screen-reader stops. */}<Link className="speaker-preview-link" href={`/${locale}/speakers`} tabIndex={-1} aria-hidden="true"><Arrow /></Link></div>
-          </article>)}
-        </HorizontalRail>}
+        <Reveal className="home-speaker-overview">
+          <div className="home-speaker-copy">
+            <SectionHeading title={narrative.speakersTitle} id="speakers-title" />
+            {!speakers.length ? <p>{narrative.speakersPending}</p> : null}
+            <Link className="editorial-action" href={`/${locale}/speakers`}>{narrative.speakersLink}<Arrow /></Link>
+          </div>
+          {speakers.length ? <div className="home-speaker-cards" data-testid="home-published-speakers">
+            {speakers.slice(0, 2).map((speaker) => <SpeakerCard compact key={speaker.slug} locale={locale} speaker={speaker} />)}
+          </div> : <div className="home-speaker-portrait"><PortraitPlaceholder variant={1} /></div>}
+        </Reveal>
       </Container>
     </section>
 
@@ -153,7 +155,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
 
     <section data-header-section="light" id="faq" tabIndex={-1} className="editorial-section faq-section" aria-labelledby="practical-title">
       <Container><div className="faq-grid">
-        <Reveal className="faq-introduction"><SectionHeading chapter title={narrative.practicalTitle} accents={locale === "ar" ? ["تصل."] : ["arrive."]} id="practical-title" /><div className="faq-utility-links"><Link className="editorial-action" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link><Link className="editorial-action" href={`/${locale}/contact`}>{demo.contact}<Arrow /></Link></div></Reveal>
+        <Reveal className="faq-introduction"><BrandIcon name="25-faq" /><SectionHeading chapter title={narrative.practicalTitle} accents={locale === "ar" ? ["تصل."] : ["arrive."]} id="practical-title" /><div className="faq-utility-links"><Link className="editorial-action" href={`/${locale}/dates-venue`}>{narrative.datesLink}<Arrow /></Link><Link className="editorial-action" href={`/${locale}/contact`}>{demo.contact}<Arrow /></Link></div></Reveal>
         <div className="faq-list" aria-label={narrative.faqLabel}>{narrative.faq.map((faq) => <details className="faq-item" key={faq.question}>
           <summary><span>{faq.question}</span><span className="faq-icon-circle"><svg className="faq-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path className="faq-plus-vertical" d="M12 5v14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg></span></summary><p>{faq.answer}</p>
         </details>)}</div>

@@ -46,6 +46,25 @@ for (const locale of ["en", "ar"] as const) {
     }
   });
 
+  test(`${locale} Contact topic stays in its field at 280px with doubled text`, async ({ page }) => {
+    await page.setViewportSize({ width: 280, height: 844 });
+    await page.goto(`/${locale}/contact`);
+    await expect(page.locator("[data-header-ready]")).toHaveAttribute("data-header-ready", "true");
+    const field = page.locator(".contact-fields .field").filter({ has: page.locator('select[name="topic"]') });
+    const topic = field.locator("select");
+    await expect(topic).toBeDisabled();
+    await page.evaluate(async () => {
+      document.documentElement.style.fontSize = "200%";
+      await document.fonts.ready;
+    });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(280);
+    const size = await field.evaluate((element) => ({
+      width: element.clientWidth,
+      content: element.scrollWidth,
+    }));
+    expect(size.content).toBeLessThanOrEqual(size.width + 1);
+  });
+
   test(`${locale} the first keyboard Tab reaches the skip link in every browser`, async ({ page }) => {
     await page.goto(`/${locale}/program`);
     await ready(page);

@@ -20,6 +20,8 @@
 .contact-field-wide { grid-column: 1 / -1; min-inline-size: 0; }
 .contact-fields .field { min-inline-size: 0; }
 .contact-fields .field-input { inline-size: 100%; background: var(--color-ivory); }
+/* Keep the native select's text within its control in narrow WebKit layouts. */
+.contact-fields select.field-input { contain: paint; padding-inline: min(.85rem, 3vw); }
 .contact-fields .field-input:disabled { opacity: 1; background: var(--color-disabled-surface); }
 .contact-message { display: block; min-block-size: 12rem; resize: vertical; }
 .contact-form > .button { margin-block-start: 2rem; }

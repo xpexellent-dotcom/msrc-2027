@@ -2,7 +2,6 @@ export const myRegistrationCopy = {
   en: {
     title: "My registration", lead: "Follow your seat request and manage your conference registration.",
     attendance: "Conference attendance", checkedIn: "Checked in", notCheckedIn: "Not checked in", checkedInAt: "Recorded at (Riyadh time)",
-    attendanceHint: "An ordinary full-conference certificate requires check-in on both conference days and completion of the general survey.",
     states: {
       not_requested: "Not requested", pending_approval: "Pending approval", waitlisted: "On the waiting list",
       offered: "A seat is available for you", approved: "Your seat is approved", confirmed: "Your seat is confirmed",
@@ -43,7 +42,6 @@ export const myRegistrationCopy = {
   ar: {
     title: "تسجيلي", lead: "تابع طلب مقعدك وأدر تسجيلك في المؤتمر.",
     attendance: "حضور المؤتمر", checkedIn: "تم تسجيل الحضور", notCheckedIn: "لم يُسجّل الحضور", checkedInAt: "وقت التسجيل (توقيت الرياض)",
-    attendanceHint: "تتطلب شهادة حضور المؤتمر الكاملة تسجيل الحضور في يومَي المؤتمر وإكمال الاستبيان العام.",
     states: {
       not_requested: "لم يُقدَّم طلب", pending_approval: "بانتظار الموافقة", waitlisted: "على قائمة الانتظار",
       offered: "يتوفر لك مقعد", approved: "تمت الموافقة على مقعدك", confirmed: "تم تأكيد مقعدك",

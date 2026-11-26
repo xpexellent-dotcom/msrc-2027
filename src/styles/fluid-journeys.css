@@ -50,10 +50,44 @@
 .fluid-workshop-pending { max-inline-size: 52rem; margin-block-end: 2rem; }
 .fluid-workshop-pending h3 { font-size: 1.25rem; font-weight: 650; color: var(--color-purple); }
 .fluid-workshop-pending p { color: #62526f; font-size: 1.0625rem; line-height: 1.8; margin-block-start: .5rem; }
-.fluid-workshop-rail .rail-track { gap: 1.25rem; padding-block-end: .5rem; }
-.fluid-workshop-card { flex: 0 0 min(26rem, 86%); min-inline-size: 0; overflow: hidden; border: 1px solid #e6dcf0; border-radius: 16px; background: #faf8fc; scroll-snap-align: start; }
-.fluid-workshop-image { display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 10; background: linear-gradient(135deg, #e5dcef, #f6f1fa 52%, #e4d8ef); color: #9276ae; }
-.fluid-workshop-copy { padding: clamp(1.4rem, 2vw, 2rem); }
+.fluid-workshop-rail .rail-track { gap: var(--grid-gap); padding-block-end: .5rem; }
+.fluid-workshop-card {
+  flex: 0 0 min(34rem, 89%);
+  min-inline-size: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: var(--color-white);
+  scroll-snap-align: start;
+}
+.fluid-workshop-image {
+  --workshop-cover-color: var(--color-lilac);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  overflow: clip;
+  aspect-ratio: 16 / 10;
+  border-block-end: 1px solid var(--color-line);
+  background: radial-gradient(ellipse at center, var(--color-ivory), transparent 72%), var(--workshop-cover-color);
+}
+.fluid-workshop-card:nth-child(3n + 2) .fluid-workshop-image { --workshop-cover-color: var(--color-sand); }
+.fluid-workshop-card:nth-child(3n + 3) .fluid-workshop-image { --workshop-cover-color: var(--color-mauve); }
+.fluid-workshop-image .workshop-cover-lines {
+  position: absolute;
+  z-index: -1;
+  inset: -27% -11%;
+  inline-size: 122%;
+  block-size: 154%;
+  color: var(--purple-16);
+  rotate: -17deg;
+}
+.fluid-workshop-image .brand-icon {
+  inline-size: min(9.5rem, 30%);
+  block-size: auto;
+  aspect-ratio: 1;
+}
+.fluid-workshop-copy { padding: clamp(1.15rem, 2.7vw, 2.1rem); overflow-wrap: anywhere; }
 .fluid-workshop-copy h3 { color: #3b2460; font-size: 1.75rem; line-height: 1.3; font-weight: 700; letter-spacing: -.025em; margin: 0; }
 .fluid-workshop-copy p { color: #62526f; font-size: 1rem; line-height: 1.8; margin-block: 1rem; }
 .fluid-speakers-catalogue { position: relative; background: #f5effa; }

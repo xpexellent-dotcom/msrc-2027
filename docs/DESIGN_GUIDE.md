@@ -351,3 +351,22 @@ an additional exact-weight-600 Times Bold match calibrated by
 fallback baseline to meet its two-line and CLS requirements. An 800ms delayed-font
 response experiment measured CLS 0.00349015 at 390px and 0.00752726 at 1440px.
 The receipt records final verification against the built pages.
+
+## Public interiors — ORG-076, 25 November 2026
+
+Continue the homepage's royal purple, warm ivory, lilac and small gold
+accents. Keep the display and body type roles from ORG-072. The homepage's
+film, composition and split navigation retain the PR #155 treatment.
+
+Keep the existing page headers, including the approved serif headline
+treatment, colour gradient and photographic scrim. Programme dates retain
+their compact panel. Use the unmirrored, full-colour brand illustrations
+for related subjects in the content below. Utility arrows follow the reading
+direction. Archive photos retain their approved 16:9 crop.
+
+Use an editorial index for application guidance, readable controls and rows
+for catalogues, portrait framing for the team and a contents rail for legal
+reading. Use persistent, clearly labelled status information for unavailable
+paths. In-page links reach a focusable destination when used with a keyboard.
+Motion uses existing ease-out and control duration tokens. New decorative motion
+is one-shot and has a static reduced-motion state.

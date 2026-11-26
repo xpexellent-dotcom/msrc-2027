@@ -146,7 +146,7 @@ export function MyRegistration({ locale, initial, initialForm }: {
             }).format(new Date(day.conferenceDay + "T00:00:00Z"))}</bdi></time></dt>
             <dd><strong><span aria-hidden="true">{day.checkedInAt ? "✓ " : "○ "}</span>{day.checkedInAt ? copy.checkedIn : copy.notCheckedIn}</strong>
               {day.checkedInAt ? <span>{copy.checkedInAt}: <time dateTime={day.checkedInAt}><bdi dir="ltr">{dateTime(day.checkedInAt, locale)}</bdi></time></span> : null}</dd>
-          </div>)}</dl><p className="field-hint">{copy.attendanceHint}</p>
+          </div>)}</dl>
         </section> : null}
         {confirmation ? <section className="registration-confirmation" aria-labelledby="registration-confirm-title" data-testid="registration-confirmation">
           <h3 id="registration-confirm-title" tabIndex={-1} ref={confirmationHeading}>{confirmation === "cancel" ? copy.cancelTitle : confirmation === "release" ? copy.releaseTitle : copy.declineTitle}</h3>

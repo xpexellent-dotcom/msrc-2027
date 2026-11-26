@@ -5,18 +5,12 @@
 .registration-opening-content { max-inline-size: 66rem; margin-inline: auto; padding-block: 1.25rem; border-block-start: 2px solid var(--color-gold); border-block-end: 1px solid var(--color-line); }
 .registration-opening-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 2rem; }
 .registration-opening-heading h2 { margin: 0; color: var(--color-purple); font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 650; line-height: 1.4; letter-spacing: -.02em; }
-.registration-opening-heading p { margin: 0; color: var(--color-muted); font-size: .875rem; }
 .registration-opening-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 3rem; margin: 1.5rem 0; }
 .registration-opening-dates > div { min-inline-size: 0; }
 .registration-opening-dates dt { margin-block-end: .5rem; color: var(--color-muted); font-size: .875rem; font-weight: 600; }
-.registration-opening-dates dd { margin: 0; }
-.registration-opening-dates time { display: block; color: var(--color-purple); font-size: clamp(1.125rem, 1.8vw, 1.4rem); font-weight: 600; line-height: 1.6; }
-.registration-opening-clock { display: block; }
-.registration-opening-dates dd p { margin: .5rem 0 0; color: var(--color-muted); font-size: .9375rem; line-height: 1.7; }
-.registration-opening-details { padding-block-start: 1rem; border-block-start: 1px solid var(--color-line); color: var(--color-muted); font-size: .875rem; line-height: 1.8; }
-.registration-opening-details p { margin: 0; }
-.registration-opening-details .registration-opening-attendance { margin-block-end: .35rem; color: var(--color-ink); font-size: 1rem; font-weight: 500; }
-.registration-opening-content :is(p, time) { overflow-wrap: anywhere; }
+.registration-opening-dates dd { margin: 0; color: var(--color-purple); font-size: clamp(1.125rem, 1.8vw, 1.4rem); font-weight: 600; line-height: 1.6; }
+.registration-opening-attendance { margin: 0; padding-block-start: 1rem; border-block-start: 1px solid var(--color-line); color: var(--color-ink); font-size: 1rem; font-weight: 500; }
+.registration-opening-content :is(dt, dd, p) { overflow-wrap: anywhere; }
 [lang="ar"] .registration-opening-heading h2 { letter-spacing: 0; }
 @media (max-width: 600px) {
   .registration-opening-dates { grid-template-columns: minmax(0, 1fr); }
@@ -97,10 +91,6 @@
 
 /* Benefit artwork by meaning (shared with the homepage), sized for the journey lists. */
 .participation-benefit .benefit-artwork { inline-size: 2.75rem; block-size: 2.75rem; margin: 0; }
-.participation-benefit .benefit-cme { inline-size: 2.75rem; }
-.participation-benefit .benefit-cme-number { font-size: 1.9rem; }
-.participation-benefit .benefit-cme-label { font-size: .625rem; }
-.participation-benefit .benefit-cme-note { font-size: .5625rem; }
 
 /* Decorative ink lives in reserved heading cells or clipped outer gutters.
    Fades soften the drawings; clipping, not the fade, protects the reading column. */

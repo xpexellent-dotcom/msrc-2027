@@ -22,8 +22,8 @@ export const demoImages = {
 type CinematicCopy = {
   join: string; pathwaysLink: string; archiveNote: string; archiveCaption: string;
   threeMinute: { category: string; title: string; description: string; href: string };
-  day1: string; day2: string; speakerDemoNote: string; speakerRail: string; demoSpeaker: string;
-  speakerTitle: string; speakerPending: string; portraitProvenance: string; galleryRail: string;
+  day1: string; day2: string; speakerDemoNote: string; demoSpeaker: string;
+  portraitProvenance: string; galleryRail: string;
   previousEditions: string; edition: string; partnersTitle: string; partnersLink: string; contact: string;
 };
 
@@ -34,8 +34,7 @@ export const cinematicCopy: Record<Locale, CinematicCopy> = {
     threeMinute: { category: "Three Minute Thesis", title: "Make your research heard", description: "Communicate your postgraduate research in three minutes through the distinct 3MT pathway.", href: "/3mt" },
     day1: "Day 1", day2: "Day 2",
     speakerDemoNote: "Demo preview. These cards show the proposed layout with MSRC 2026 archive photographs. The 2027 speakers are not confirmed here.",
-    speakerRail: "Speakers", demoSpeaker: "",
-    speakerTitle: "A new perspective.", speakerPending: "Name and session to be announced.",
+    demoSpeaker: "",
     portraitProvenance: "", galleryRail: "MSRC previous editions photograph gallery",
     previousEditions: "More from previous editions", edition: "MSRC 2026", partnersTitle: "Shared\npurpose.", partnersLink: "Explore partners & sponsors", contact: "Contact the conference",
   },
@@ -45,8 +44,7 @@ export const cinematicCopy: Record<Locale, CinematicCopy> = {
     threeMinute: { category: "الأطروحة في ثلاث دقائق", title: "أوصل صوت بحثك", description: "قدّم بحثك في الدراسات العليا خلال ثلاث دقائق عبر مسار 3MT المستقل.", href: "/3mt" },
     day1: "اليوم الأول", day2: "اليوم الثاني",
     speakerDemoNote: "معاينة توضيحية. تعرض هذه البطاقات التصميم المقترح بصور من أرشيف مؤتمر ٢٠٢٦، ولا تمثل تأكيدًا لمتحدثي نسخة ٢٠٢٧.",
-    speakerRail: "المتحدثون", demoSpeaker: "",
-    speakerTitle: "وجهة نظر جديدة.", speakerPending: "سيُعلن الاسم والجلسة لاحقًا.",
+    demoSpeaker: "",
     portraitProvenance: "", galleryRail: "معرض صور النسخ السابقة للمؤتمر",
     previousEditions: "المزيد من النسخ السابقة", edition: "مؤتمر ٢٠٢٦", partnersTitle: "هدف\nيجمعنا.", partnersLink: "استكشف الشركاء والرعاة", contact: "تواصل مع المؤتمر",
   },

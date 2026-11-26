@@ -139,7 +139,7 @@ test("policy versions survive keyboard language and native section navigation", 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(`/en/privacy/${version}?view=review`);
   await page.keyboard.press("Tab");
-  await expect(page.locator('a[href="#main-content"]')).toBeFocused();
+  await expect(page.locator('a.skip-link[href="#main-content"]')).toBeFocused();
   await page.keyboard.press("Enter"); await expect(page.getByRole("main")).toBeFocused();
   await page.locator('.policy-contents a[href="#rights"]').focus(); await page.keyboard.press("Enter");
   await expect(page.locator("#rights")).toBeFocused(); await expect(page.locator("#rights")).toBeInViewport();

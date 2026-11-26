@@ -45,6 +45,9 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/workshops`);
     const catalogue = page.locator("#workshop-catalogue");
     await expect(catalogue.getByRole("heading", { name: locale === "ar" ? workshop.titleAr! : workshop.titleEn!, exact: true })).toBeVisible();
+    const cover = catalogue.locator(".fluid-workshop-image");
+    await expect(cover).toHaveAttribute("aria-hidden", "true");
+    await expect(cover.locator("img")).toHaveAttribute("src", /19-workshops\.webp/);
     await expect(catalogue.getByTestId("workshop-public-remaining")).toContainText(locale === "ar" ? "١" : "1");
     await expect(catalogue).toContainText(workshop.instructor!); await expect(catalogue).toContainText(workshop.room!);
     await expect(catalogue.getByRole("button", { name: copy.request, exact: true })).toHaveCount(0);

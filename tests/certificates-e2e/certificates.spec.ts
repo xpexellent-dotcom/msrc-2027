@@ -3,7 +3,7 @@ import { expectHeaderSettled } from "../helpers/header";
 import { randomBytes } from "node:crypto";
 import { expect, test, type Page } from "../helpers/csp";
 import { certificateCopy } from "../../src/components/certificates/copy";
-import { id, participantFixture, staffFixture, syntheticSurvey } from "./fixtures";
+import { id, participantFixture, participantView, staffFixture, syntheticSurvey } from "./fixtures";
 
 async function accessible(page: Page) {
   await expectHeaderSettled(page);
@@ -50,7 +50,8 @@ for (const locale of ["en", "ar"] as const) {
     await participantFixture(context); await page.goto(`/${locale}/my-msrc/certificates`);
     const area = page.getByTestId("participant-certificates");
     await expect(page.getByRole("heading", { level: 1, name: copy.participantTitle })).toBeVisible();
-    await expect(area.getByText(copy.reasons.general_survey_required, { exact: true })).toBeVisible();
+    await expect(area.getByTestId("certificate-survey").getByRole("button", { name: copy.takeSurvey, exact: true })).toBeEnabled();
+    await expect(area.getByText(copy.reasons.general_survey_required, { exact: true })).toHaveCount(0);
     await area.getByRole("button", { name: copy.takeSurvey, exact: true }).click();
     await expect(area.getByText(copy.privacy, { exact: true })).toBeVisible();
     const form = area.getByTestId("certificate-survey-form");
@@ -72,6 +73,14 @@ for (const locale of ["en", "ar"] as const) {
     await page.reload(); await expect(area.getByText(copy.completed, { exact: true })).toBeVisible();
     await expect(area.getByRole("link", { name: copy.download, exact: true })).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+  });
+  test(`${locale} participant sees no survey reminder before a survey is published`, async ({ page, context }) => {
+    await participantFixture(context, "ready", { ...participantView, surveys: [] });
+    await page.goto(`/${locale}/my-msrc/certificates`);
+    const area = page.getByTestId("participant-certificates");
+    await expect(area.getByText(copy.notEligible, { exact: true })).toBeVisible();
+    await expect(area.getByRole("heading", { name: copy.surveyHeading, exact: true })).toHaveCount(0);
+    await expect(area.getByText(copy.reasons.general_survey_required, { exact: true })).toHaveCount(0);
   });
   test(`${locale} pending survey migration keeps the participant session and reports area-not-ready`, async ({ page, context }) => {
     await participantFixture(context, "missing");

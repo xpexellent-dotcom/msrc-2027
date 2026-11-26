@@ -9,7 +9,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/abstracts`); const cta = page.locator(".research-submission-cta").first(), text = researchCompetitionCopy[locale].cta;
     if (state === "open") { await expect(cta).toHaveText(text.signIn); await expect(cta).toHaveAttribute("href", `/${locale}/sign-in`); }
     else { await expect(cta).toHaveAttribute("aria-disabled", "true"); await expect(cta).toContainText(state === "opening" ? text.opening : text.closed); }
-    if (state === "opening") { await expect(cta.locator("time")).toHaveAttribute("datetime", PUBLISHED_WINDOW.opensAt); await expect(cta).toContainText(locale === "ar" ? "توقيت الرياض" : "Riyadh time"); }
+    await expect(cta.locator("time")).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });

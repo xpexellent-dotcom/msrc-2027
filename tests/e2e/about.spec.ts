@@ -22,7 +22,7 @@ test("Participate keyboard and language navigation preserve page, query and sect
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/en/participate?view=editorial");
   await page.keyboard.press("Tab");
-  const skip = page.locator('a[href="#main-content"]');
+  const skip = page.locator('a.skip-link[href="#main-content"]');
   await expect(skip).toBeFocused();
   await expect(skip).toBeVisible();
   expect(await skip.evaluate((element) => {

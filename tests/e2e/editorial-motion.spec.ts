@@ -98,24 +98,11 @@ for (const locale of ["en", "ar"] as const) {
       const cards = page.locator(".benefit-card");
       await expect(cards).toHaveCount(6);
       for (const card of await cards.all()) {
-        const icon = (await card.locator(":scope > :is(.benefit-artwork, .benefit-cme)").boundingBox())!;
+        const icon = (await card.locator(":scope > .benefit-artwork").boundingBox())!;
         const title = (await card.locator("h3").boundingBox())!;
         const body = (await card.locator("p").boundingBox())!;
-        const cme = await card.locator(".benefit-cme").count();
-        if (cme) {
-          const note = card.locator(".benefit-cme-note");
-          expect(await note.evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(13);
-          const noteBox = (await note.boundingBox())!;
-          const cardBox = (await card.boundingBox())!;
-          expect(noteBox.y + noteBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height);
-          expect(noteBox.x).toBeGreaterThanOrEqual(cardBox.x);
-          expect(noteBox.x + noteBox.width).toBeLessThanOrEqual(cardBox.x + cardBox.width);
-          const overlapsBody = noteBox.x < body.x + body.width && noteBox.x + noteBox.width > body.x && noteBox.y < body.y + body.height && noteBox.y + noteBox.height > body.y;
-          expect(overlapsBody).toBe(false);
-        } else {
-          expect(Math.abs(icon.y + icon.height / 2 - title.y - title.height / 2)).toBeLessThan(2);
-          expect(body.y).toBeGreaterThanOrEqual(icon.y + icon.height);
-        }
+        expect(Math.abs(icon.y + icon.height / 2 - title.y - title.height / 2)).toBeLessThan(2);
+        expect(body.y).toBeGreaterThanOrEqual(icon.y + icon.height);
         expect(Math.abs(body.x - title.x)).toBeLessThanOrEqual(1);
         expect(Math.abs(body.width - title.width)).toBeLessThanOrEqual(1);
         expect(body.y).toBeGreaterThanOrEqual(title.y + title.height);
@@ -206,7 +193,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
     await expect(page.locator("main #about, main #partners, main .brand-marquee, main .sponsor-tiers")).toHaveCount(0);
     await expect(page.locator(`a[href='/${locale}/about']`)).toHaveCount(0);
-    // Owner decision (16 October 2026, ORG-052): attendee benefits only; the CME figure stays illustrative.
+    // ORG-052/079: attendee benefits only, with an hourglass and no proposed number.
     await expect(page.locator(".program-experiences > article")).toHaveCount(6);
     await expect(page.locator(".program-experiences .benefit-group-label")).toHaveCount(0);
     await expect(page.locator(".program-experiences")).not.toContainText(locale === "ar" ? /فريق التنظيم|عميد كلية الطب|أولوية/ : /organizing team|Dean of the Faculty|Priority access/);
@@ -214,13 +201,14 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "ورش عمل تطبيقية" : "Hands-on workshops");
     await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "تواصل مع الخبراء" : "Network with experts");
     await expect(page.locator(".program-experiences")).toContainText(locale === "ar" ? "عددها المعتمد لاحقًا" : "number to be confirmed");
-    await expect(page.locator(".benefit-cme")).toHaveAttribute("aria-label", locale === "ar" ? /مثال بصري فقط، العدد غير مؤكد/ : /illustrative only, hours unconfirmed/);
-    await expect(page.locator(".benefit-cme-note")).toHaveText(locale === "ar" ? "مثال بصري" : "Illustrative");
-    await expect(page.locator(".program-experiences .benefit-artwork")).toHaveCount(5);
+    await expect(page.locator(".program-experiences .benefit-artwork img[src$='28-cme-hours.svg']")).toHaveAttribute("alt", "");
+    await expect(page.locator(".program-experiences .benefit-artwork")).toHaveCount(6);
     await expect(page.locator("a.editorial-action", { hasText: locale === "ar" ? "كيف تشارك" : "How to take part" })).toHaveAttribute("href", `/${locale}/participate`);
-    await expect(page.locator("#speakers .speaker-preview-card")).toHaveCount(4);
-    await expect(page.locator("#speakers .portrait-placeholder")).toHaveCount(4);
-    await expect(page.locator("#speakers img, .demo-chip, .portrait-provenance, .pathways-archive-note")).toHaveCount(0);
+    const speakers = page.locator("#speakers");
+    await expect(speakers.locator(".home-speaker-overview")).toBeVisible();
+    await expect(speakers.locator(".home-speaker-portrait .portrait-placeholder")).toHaveCount(1);
+    await expect(speakers.locator(".rail-track, .conference-speaker-portrait")).toHaveCount(0);
+    await expect(page.locator(".demo-chip, .portrait-provenance, .pathways-archive-note")).toHaveCount(0);
     const venue = page.locator("#venue");
     await venue.scrollIntoViewIfNeeded();
     await expect(venue.getByRole("heading", { level: 3 })).toHaveText(locale === "ar" ? "مركز الملك فيصل للمؤتمرات" : "King Faisal Conference Center");
@@ -230,17 +218,17 @@ for (const locale of ["en", "ar"] as const) {
     await expect(venue.locator("a")).toHaveAttribute("href", `/${locale}/dates-venue`);
   });
 
-  test(`${locale} editorial benefits, statistics and venue reflow at 280px with doubled text`, async ({ page }, testInfo) => {
+  test(`${locale} editorial benefits, speakers, statistics and venue reflow at 280px with doubled text`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "Extreme text-reflow matrix runs once per locale.");
     await page.setViewportSize({ width: 280, height: 844 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
-    for (const id of ["program", "legacy", "venue", "faq"]) {
+    for (const id of ["program", "speakers", "legacy", "venue", "faq"]) {
       await page.locator(`#${id}`).scrollIntoViewIfNeeded();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), id).toBe(true);
-      const clipped = await page.locator(`#${id} h2, #${id} h3, #${id} p, #${id} dt, #${id} .history-count`).evaluateAll((elements) => elements.some((element) => {
+      const clipped = await page.locator(`#${id} h2, #${id} h3, #${id} p, #${id} dt, #${id} a.editorial-action, #${id} .history-count`).evaluateAll((elements) => elements.some((element) => {
         const range = document.createRange();
         range.selectNodeContents(element);
         return [...range.getClientRects()].some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);

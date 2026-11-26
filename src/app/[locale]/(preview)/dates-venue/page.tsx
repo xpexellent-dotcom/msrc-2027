@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
+import { BrandIcon } from "@/components/brand/brand-icon";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { VenueHeaderCollage } from "@/components/venue-header-collage";
 import { VenueJourneyEntry } from "@/components/venue-journey-entry";
@@ -64,8 +65,12 @@ export default async function DatesVenuePage({ params }: DatesVenuePageProps) {
           <Container>
           <div className="venue-stage-layout">
             {venue && <section className="venue-stage-intro" aria-labelledby="venue-stage-title">
+              <BrandIcon name="23-venue" size={72} />
               <h2 id="venue-stage-title">{venue.name[locale]}</h2>
               <p>{copy.hostValue}<br />{copy.cityValue}</p>
+              <Link href="#venue-orientation" className="editorial-action venue-map-shortcut">
+                {locale === "ar" ? "خريطة المقر" : "View venue map"}<VenueIcon name="address" />
+              </Link>
             </section>}
             {venue && <div id="venue-orientation" tabIndex={-1} className="venue-hero-map">
               <VenueGeographicMap locale={locale} variant="hero" />

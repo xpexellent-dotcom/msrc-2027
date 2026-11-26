@@ -240,7 +240,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
         </dl>
         {profileEnabled && !draft.pending ? <ParticipantProfileCard locale={locale} name={profile.name} identity={profile.email ?? profile.name} /> : null}
         <NextSteps locale={locale} registrationAvailable={registrationAvailable} abstractsAvailable={abstractsAvailable} workshopsAvailable={workshopsAvailable} competitionsAvailable={competitionsAvailable} />
-        {certificatesAvailable ? <ButtonLink href={`/${locale}/my-msrc/certificates`} variant="secondary">{locale === "ar" ? "الاستبيانات والشهادات" : "Surveys and certificates"}</ButtonLink> : null}
+        {certificatesAvailable ? <ButtonLink href={`/${locale}/my-msrc/certificates`} variant="secondary">{locale === "ar" ? "شهاداتي" : "My certificates"}</ButtonLink> : null}
         {!draft.pending && researchJudgingAvailable ? <ResearchParticipantWorkspace locale={locale} /> : null}
         {!workshopsAvailable ? <section id="my-bookings" tabIndex={-1} aria-labelledby="my-bookings-title"><h2 id="my-bookings-title">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</h2><p>{locale === "ar" ? "حجز ورش العمل غير متاح حاليًا. هذا القسم مخصص للحجوزات الفعلية لورش العمل." : "Workshop booking is not available yet. This section is reserved for actual workshop bookings."}</p></section> : null}
         {!draft.pending ? <ParticipantInbox locale={locale} initialState={initialAnnouncements} /> : null}

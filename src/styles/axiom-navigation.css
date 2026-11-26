@@ -134,8 +134,8 @@
     }
   }
 }
-.axiom-header:is([data-keyboard="true"], [data-home="true"]:has(:focus-visible)) :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass),
-.axiom-header:is([data-keyboard="true"], [data-home="true"]:has(:focus-visible)) .wordmark::before { transition: none; }
+.axiom-header:is([data-keyboard="true"], :has(:focus-visible)) :is(.header-middle, .header-nav-item, .header-dropdown, .header-dropdown-toggle svg, .wordmark, .header-actions, .header-glass),
+.axiom-header:is([data-keyboard="true"], :has(:focus-visible)) .wordmark::before { transition: none; }
 .axiom-header[data-keyboard="true"] :is(.menu-toggle, .menu-toggle svg path, .mobile-menu, .mobile-menu-registration, .mobile-nav-group) { transition: none; }
 @media (hover: hover) and (pointer: fine) {
   .axiom-header :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle):hover { background: rgb(220 207 240 / .04); color: #fff; }
@@ -269,8 +269,6 @@
 .axiom-header[data-header-tone="light"] .wordmark-logo--dark { display: none; }
 .axiom-header[data-header-tone="light"] .wordmark-logo--light { display: block; }
 .brand-word { font-family: var(--font-fraunces), Georgia, serif; font-weight: 600; font-size: 1.3rem; line-height: 1.2; letter-spacing: .01em; white-space: nowrap; }
-.footer-wordmark { display: flex; align-items: center; gap: .65rem; margin-block: 1rem; color: var(--color-ivory); }
-.footer-wordmark .footer-logo { inline-size: 40px; block-size: 40px; margin: 0; object-fit: contain; }
 .axiom-header :is(.desktop-nav > .header-nav-item > a, .header-dropdown-toggle, .language-switch, .menu-toggle) { color: var(--header-ink); transition: border-color 180ms ease, box-shadow 180ms ease; }
 .axiom-header[data-header-tone="light"] :is(.menu-toggle, .header-mobile-language .language-switch) { border-color: rgb(59 30 109 / .4); }
 .axiom-header .menu-toggle[aria-expanded="true"] { color: var(--color-purple); }
@@ -296,4 +294,3 @@
 }
 
 @container navigation (width < 20rem) { .axiom-header .brand-word { font-size: min(1.125rem, 6.5cqi); } .axiom-header .wordmark { gap: .35rem; } }
-@media (max-width: 359px) { .footer-wordmark .brand-word { font-size: min(1.3rem, 6.5vw); } .footer-wordmark { gap: .5rem; } }

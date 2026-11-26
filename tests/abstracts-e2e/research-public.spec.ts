@@ -21,10 +21,12 @@ for (const locale of ["en", "ar"] as const) {
     await expect(steps.nth(4).getByRole("heading")).toHaveText(copy.steps[4]);
     await expect(rubric.getByRole("listitem")).toHaveCount(7);
     await expect(rubric.locator(".research-criteria-count")).toHaveText(formatIndex(copy.criteria.length, locale));
-    await expect(rubric.getByRole("heading", { level: 2, name: copy.evaluation })).toHaveAttribute("id", "research-evaluation");
+    await expect(rubric.getByRole("heading", { level: 2, name: copy.evaluation })).toHaveAttribute("id", "research-evaluation-title");
+    await expect(page.locator(".research-evaluation-lines")).toHaveAttribute("aria-hidden", "true");
+    await expect(rubric.locator(".research-rubric-intro-lines")).toHaveAttribute("aria-hidden", "true");
     await expect(rubric.locator(".research-criterion-number")).toHaveText(locale === "en" ? ["I", "II", "III", "IV", "V", "VI", "VII"] : Array.from({ length: 7 }, (_, index) => formatIndex(index + 1, locale)));
     for (const width of [1440, 1024, 390, 320]) {
-      await page.setViewportSize({ width, height: 1000 });
+      await page.setViewportSize({ width, height: 900 });
       const boxes = await steps.evaluateAll((nodes) => nodes.map((node) => { const rect = node.getBoundingClientRect(); return { top: rect.top, left: rect.left, width: rect.width }; }));
       if (width >= 960) {
         expect(new Set(boxes.map((box) => Math.round(box.top))).size).toBe(1);
@@ -37,9 +39,28 @@ for (const locale of ["en", "ar"] as const) {
       for (let index = 0; index < 6; index++) await expect(steps.nth(index).getByText(copy.stepDetails[index], { exact: true })).toBeVisible();
       const introBox = (await rubric.locator(".research-rubric-intro").boundingBox())!;
       const listBox = (await rubric.getByRole("list").boundingBox())!;
-      if (width >= 960) expect(introBox.y).toBeCloseTo(listBox.y, 1);
-      else expect(listBox.y).toBeGreaterThanOrEqual(introBox.y + introBox.height - 1);
-      expect(await rubric.locator("h2").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(30);
+      if (width >= 1024) {
+        expect(Math.abs(introBox.y - listBox.y)).toBeLessThanOrEqual(1);
+        const seam = locale === "ar" ? introBox.x - (listBox.x + listBox.width) : listBox.x - (introBox.x + introBox.width);
+        expect(Math.abs(seam)).toBeLessThanOrEqual(1);
+      } else {
+        expect(listBox.y).toBeGreaterThanOrEqual(introBox.y + introBox.height - 1);
+      }
+      if (width === 1440) {
+        const evaluationBox = (await page.locator("#research-evaluation").boundingBox())!;
+        expect(evaluationBox.height).toBeLessThanOrEqual(900);
+      }
+      expect(await rubric.locator("h2").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(width >= 1024 ? 40 : 32);
+      expect(await rubric.locator(".research-criteria-count").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(width >= 1024 ? 105 : 68);
+      expect(await rubric.locator("dt").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(22);
+      expect(await rubric.locator("dd").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(18);
+      const criterionRows = await rubric.getByRole("listitem").evaluateAll((nodes) => nodes.map((node) => {
+        const { top, bottom, left, width } = node.getBoundingClientRect();
+        return { top, bottom, left, width };
+      }));
+      expect(criterionRows.every((row, index) => index === 0 || row.top >= criterionRows[index - 1].bottom - 1)).toBe(true);
+      expect(new Set(criterionRows.map((row) => Math.round(row.left))).size).toBe(1);
+      expect(new Set(criterionRows.map((row) => Math.round(row.width))).size).toBe(1);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
       if (width !== 320) {
         await page.locator(".research-journey").screenshot({ path: `output/abs4/${locale}-${width}-journey.png`, animations: "disabled", style: ".site-header { visibility: hidden !important; }" });
@@ -48,9 +69,13 @@ for (const locale of ["en", "ar"] as const) {
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.mouse.move(0, 0);
+    await expect(page.locator(".research-roadmap-reveal")).toHaveAttribute("data-reveal", "ready");
+    const firstDetail = steps.first().locator(".research-step-detail");
+    await expect(firstDetail).toHaveCSS("opacity", "0");
     const numeral = steps.first().locator(".research-step-number");
     await expect(numeral).toHaveCSS("color", "rgb(217, 210, 223)");
     await steps.first().hover();
+    await expect(firstDetail).toHaveCSS("opacity", "1");
     await expect(numeral).toHaveCSS("color", "rgb(59, 30, 109)");
     await expect(numeral).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, -3)");
     const line = await steps.first().evaluate((node) => { const style = getComputedStyle(node, "::before"); return { color: style.backgroundColor, origin: style.transformOrigin, width: node.getBoundingClientRect().width }; });
@@ -63,15 +88,13 @@ for (const locale of ["en", "ar"] as const) {
     await expect(numeral).toHaveCSS("color", "rgb(59, 30, 109)");
     await page.keyboard.press("Tab");
     await expect(steps.nth(1)).toBeFocused();
+    await expect(steps.nth(1).locator(".research-step-detail")).toHaveCSS("opacity", "1");
     await expect(steps.nth(1).locator(".research-step-number")).toHaveCSS("color", "rgb(59, 30, 109)");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(steps.nth(1).locator(".research-step-number")).toHaveCSS("transition-duration", "0s");
     await expect(steps.nth(1).locator(".research-step-number")).toHaveCSS("transform", "none");
     expect(await steps.nth(1).evaluate((node) => getComputedStyle(node, "::before").transitionDuration)).toBe("0s");
     expect(await steps.nth(1).evaluate((node) => getComputedStyle(node, "::before").opacity)).toBe("1");
-    await rubric.locator("li").first().hover();
-    await expect(rubric.locator("li").first()).toHaveCSS("border-inline-start-color", "rgb(201, 162, 74)");
-    await expect(rubric.locator("li").first()).toHaveCSS("background-color", "rgb(248, 246, 240)");
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.setViewportSize({ width: 320, height: 800 });
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
@@ -93,8 +116,26 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveTitle(`${copy.title} | MSRC 2027`);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
+    const breadcrumb = page.locator(".research-breadcrumb");
+    await expect(breadcrumb.getByRole("link", { name: copy.home, exact: true })).toHaveAttribute("href", `/${locale}`);
+    await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText(copy.title);
+    await expect(breadcrumb.getByText("/", { exact: true })).toHaveAttribute("aria-hidden", "true");
+    await page.evaluate(() => document.fonts.ready);
+    const positions = await breadcrumb.locator("a, [aria-hidden='true'], [aria-current='page']").evaluateAll((nodes) => nodes.map((node) => {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      const { top, bottom } = range.getBoundingClientRect();
+      return (top + bottom) / 2;
+    }));
+    expect(Math.max(...positions) - Math.min(...positions)).toBeLessThanOrEqual(1);
     await expect(page.locator(".research-roadmap > li")).toHaveCount(6);
-    await expect(page.locator(".research-roadmap time")).toHaveCount(7);
+    const stepIcons = page.locator(".research-step-marker .brand-icon img");
+    await expect(stepIcons).toHaveCount(6);
+    for (const [index, icon] of ["06-publications", "25-faq", "17-education", "26-contact", "15-schedule", "11-speakers"].entries()) {
+      await expect(stepIcons.nth(index)).toHaveAttribute("src", new RegExp(icon + "\\.webp"));
+      await expect(stepIcons.nth(index)).toHaveAttribute("alt", "");
+    }
+    await expect(page.getByRole("main").locator("time")).toHaveCount(0);
     await expect(page.locator(".research-guidelines > li")).toHaveCount(6);
     await expect(page.locator(".research-criteria dt")).toHaveCount(7);
     await expect(page.locator("#research-prepare, #research-rules")).toHaveCount(0);
@@ -102,15 +143,26 @@ for (const locale of ["en", "ar"] as const) {
     await expect(presentations.getByRole("article")).toHaveCount(2);
     await expect(presentations.getByRole("article").getByRole("heading", { level: 3 })).toHaveText([copy.oral, copy.poster]);
     await expect(presentations.locator(".research-format-label")).toHaveCount(2);
-    await expect(presentations.locator(".research-format-art[aria-hidden='true'] .research-format-numeral")).toHaveCount(2);
-    await expect(presentations.locator("svg[aria-hidden='true']")).toHaveCount(2);
+    const illustrations = presentations.locator(".research-format-art[aria-hidden='true'] img");
+    await expect(illustrations).toHaveCount(2);
+    await expect(illustrations.first()).toHaveAttribute("src", /11-speakers\.webp/);
+    await expect(illustrations.last()).toHaveAttribute("src", /12-posters\.webp/);
+    for (const illustration of await illustrations.all()) await expect(illustration).toHaveAttribute("alt", "");
     await expect(presentations.locator(".research-winners")).toContainText(copy.winners);
+    await expect(presentations.locator(".research-winners")).toContainText(locale === "en" ? /cash prizes/i : "جوائز نقدية");
+    const rubricArt = page.locator(".research-rubric-art");
+    await expect(rubricArt).toHaveAttribute("aria-hidden", "true");
+    await expect(rubricArt.locator("img")).toHaveAttribute("src", "/brand/identity/msrc27-seal-gold-456.webp");
+    await expect(rubricArt.locator("img")).toHaveAttribute("alt", "");
+    const eligibility = page.getByRole("region", { name: copy.eligibility });
+    const requirements = eligibility.getByRole("listitem");
+    await expect(requirements.getByRole("heading", { level: 3 })).toHaveText(copy.eligibilityCards.map(([heading]) => heading));
+    await expect(requirements.locator("p")).toHaveText(copy.eligibilityCards.map(([, description]) => description));
     await expect(page.locator(".research-submission-cta").first()).toHaveAttribute("aria-disabled", "true");
-    await expect(page.locator(".research-submission-cta").first()).toContainText(copy.cta.opening);
-    await expect(page.locator(".research-submission-cta time").first()).toHaveAttribute("datetime", "2026-11-22T21:00:00.000Z");
+    await expect(page.locator(".research-submission-cta").first()).toHaveText(copy.cta.opening);
     expect(await page.locator("html").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await captureAbstractViews(page, testInfo.project.name, locale, "public", [["roadmap", "#research-journey"], ["presentations", "#research-presentations"], ["evaluation", "#research-evaluation"], ["closing", "#research-closing"]]);
+    await captureAbstractViews(page, testInfo.project.name, locale, "public", [["roadmap", "#research-journey"], ["presentations", "#research-presentations"], ["eligibility", "#research-eligibility"], ["evaluation", "#research-evaluation"], ["closing", "#research-closing"]]);
     await page.getByRole("link", { name: copy.contact, exact: true }).focus();
     await expect(page.getByRole("link", { name: copy.contact, exact: true })).toBeFocused();
     await page.setViewportSize({ width: 320, height: 800 });

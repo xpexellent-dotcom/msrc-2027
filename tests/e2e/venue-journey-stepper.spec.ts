@@ -82,8 +82,21 @@ for (const locale of ["en", "ar"] as const) {
     const visited = [];
     for (let flick = 0; flick < 4; flick++) { await fastSpin(page, 1); visited.push(await stopAt(page)); }
     expect(visited).toEqual(["overview", "airport", "city", "arrival"]);
-    await fastSpin(page, 1);
-    expect(await stopAt(page)).toMatch(/^native@/);
+    const arrival = (await stops(page))[3];
+    // Settle a real native exit within the journey's one-viewport re-entry range.
+    // A full burst outside the managed stops has browser-dependent travel.
+    await page.evaluate((arrival) => {
+      document.documentElement.dataset.qaVenueNativeExit = "pending";
+      const complete = () => {
+        if (window.scrollY <= arrival + 3) return;
+        document.documentElement.dataset.qaVenueNativeExit = "settled";
+        document.removeEventListener("scrollend", complete);
+      };
+      document.addEventListener("scrollend", complete);
+    }, arrival);
+    await page.mouse.wheel(0, 120);
+    await expect(page.locator("html")).toHaveAttribute("data-qa-venue-native-exit", "settled");
+    expect(await page.evaluate(() => window.scrollY - window.innerHeight)).toBeLessThan(arrival);
     const back = [];
     for (let flick = 0; flick < 4; flick++) { await fastSpin(page, -1); back.push(await stopAt(page)); }
     expect(back).toEqual(["arrival", "city", "airport", "overview"]);
