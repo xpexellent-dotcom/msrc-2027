@@ -5904,3 +5904,9 @@ self-tests continue to use the current delivery layout under ORG-059/063.
 Existing layout approvals and frozen provider requests stay in effect. The
 composer identifies the design as a draft for review. EML-04, DSN-02, CFG-12,
 LOC-01/03 and ACC-01 apply.
+
+The organizer requested a combined PR and a Vercel review link. Carry the
+homepage work from ORG-086 and the recent main changes into the review build.
+On the protected branch Preview, the staff email review page reuses the
+catalogue with its 11 fixed synthetic messages. The staff portal's ordinary
+sign-in and authorization rules still govern the operational portal.

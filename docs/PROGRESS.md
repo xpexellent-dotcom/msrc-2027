@@ -6,8 +6,12 @@
   registration drafts, three abstract outcomes, the live Announcements
   composer and the local verification inbox. Staff previews retain English
   above Arabic with RTL. The synthetic verification message stays English.
-  The update is ready for design review in the local worktree. The new HTML
-  layout is selected by preview paths alone.
+  The new HTML layout is selected by preview paths alone.
+- The combined review branch carries the homepage changes from PR #158
+  and starts from main after the favicon update in PR #157. Its exact
+  Vercel Preview deployment host serves the read-only catalogue at
+  `/en/staff/email-preview-review` and `/ar/staff/email-preview-review`.
+  The route uses Vercel project access and fixed samples for design review.
 - On Node v24.21.0 and pnpm 11.19.0, `pnpm check` passed lint, TypeScript, all
   5,665 unit tests and the production build.
 - `pnpm exec playwright test -c playwright.staff.config.ts email-previews.spec.ts announcements.spec.ts`

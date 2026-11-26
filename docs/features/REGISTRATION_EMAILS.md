@@ -448,6 +448,12 @@ HTML source. The HTML references the site-hosted PNG through an absolute HTTPS
 URL. The plain text starts with the bilingual message body.
 Copy controls retain a manual-copy message if clipboard access is refused.
 
+The protected review deployment for `codex/email-preview-brand-refresh`
+serves the same 11 synthetic samples at `/[locale]/staff/email-preview-review`.
+Open it on the exact Vercel deployment hostname with Vercel project access.
+The review page has its own language switch and uses the catalogue component
+outside the operational staff layout.
+
 The page and its GET area independently reuse existing staff authority; the GET
 requires a Super Admin role and completed exact-session TOTP before rendering.
 Authenticated server-page rendering supplies the same preview data. There is no
