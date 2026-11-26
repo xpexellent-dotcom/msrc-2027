@@ -1,5 +1,14 @@
 # Progress and session handover
 
+## 26 November 2026 — Scientific Officers Lead roster title
+
+- ORG-088 updates Mohammad Alsayegh’s fallback Team roster title to
+  “Scientific Officers Lead” in English and “قيادة فريق المسؤولين العلميين”
+  in Arabic. The published CMS roster uses its own versioned record.
+- Targeted ESLint, TypeScript and `pnpm build` passed. Both language
+  variants rendered the corrected title on desktop Chromium and 320 px
+  WebKit, with the label fitting its card. Requirements CNT-01, LOC-01/03.
+
 ## 26 November 2026 — Visitor QA proxy socket recovery
 
 - PR #159 visitor shard 2 received a loopback proxy 502 while iPad WebKit

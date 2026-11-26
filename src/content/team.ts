@@ -47,7 +47,7 @@ export const teamCommittees: TeamCommittee[] = [
         description: { en: "Reading abstracts so you don't have to", ar: "أقرأ الملخصات حتى لا تضطر أنت لذلك" }, profile: "https://www.linkedin.com/in/heba-ahmed-mousa-412154380" },
       { slug: "akram-awan", photo: photo("akram-awan"), name: { en: "Akram Awan", ar: "أكرم أوان" }, role: { en: "Digital & Analytics Lead", ar: "قيادة الحلول الرقمية والتحليلات" },
         description: { en: "The numbers are being difficult", ar: "الأرقام تعاندني" }, profile: "https://www.linkedin.com/in/akram-awan-233a7b2bb" },
-      { slug: "mohammad-alsayegh", photo: photo("mohammad-alsayegh"), name: { en: "Mohammad Alsayegh", ar: "محمد الصايغ" }, role: { en: "Scientific Officer", ar: "المسؤولية العلمية" },
+      { slug: "mohammad-alsayegh", photo: photo("mohammad-alsayegh"), name: { en: "Mohammad Alsayegh", ar: "محمد الصايغ" }, role: { en: "Scientific Officers Lead", ar: "قيادة فريق المسؤولين العلميين" },
         description: { en: "Dealing a hand, across all scientific operations", ar: "يد عون في كل العمليات العلمية" } },
       { slug: "reem-albeladi", photo: photo("reem-albeladi"), name: { en: "Reem Albeladi", ar: "ريم البلادي" }, role: { en: "Judges & Faculty Lead", ar: "قيادة المحكّمين وأعضاء هيئة التدريس" },
         description: { en: "Behind every fair evaluation", ar: "خلف كل تقييم عادل" }, profile: "https://www.linkedin.com/in/reem-albeladi-8964ab347" },

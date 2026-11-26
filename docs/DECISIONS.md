@@ -5910,3 +5910,11 @@ homepage work from ORG-086 and the recent main changes into the review build.
 On the protected branch Preview, the staff email review page reuses the
 catalogue with its 11 fixed synthetic messages. The staff portal's ordinary
 sign-in and authorization rules still govern the operational portal.
+
+## ORG-088 — Mohammad Alsayegh’s Team title, 26 November 2026
+
+The organizer corrected the roster title approved under ORG-050 to
+“Scientific Officers Lead”. The Arabic Team label is
+“قيادة فريق المسؤولين العلميين”, following the roster’s convention for
+lead roles. Use these labels for the existing member on the Team page.
+Requirements: CNT-01, LOC-01/03.
