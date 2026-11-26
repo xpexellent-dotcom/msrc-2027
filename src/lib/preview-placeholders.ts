@@ -1,6 +1,6 @@
 export type PlaceholderEnv = Readonly<Partial<Record<"VERCEL_ENV" | "MSRC_PREVIEW_PLACEHOLDERS", string>>>;
 
-/** ORG-072: illustrative social/sponsor placeholders never reach Vercel production. Never enable for a publicly served build. Pure; unit-tested. */
+/** ORG-072/086: the illustrative sponsor belt is excluded from Vercel production. */
 export function previewPlaceholdersAllowed(env: PlaceholderEnv): boolean {
   if (env.VERCEL_ENV === "production") return false;
   return env.VERCEL_ENV === "preview" || env.MSRC_PREVIEW_PLACEHOLDERS === "true";

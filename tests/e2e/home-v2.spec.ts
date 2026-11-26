@@ -113,9 +113,9 @@ for (const locale of ["en", "ar"] as const) {
     }
   });
 
-  test(`${locale} v2 removes the cue, stacks and default-build placeholders`, async ({ page }) => {
+  test(`${locale} v2 removes the cue, former stacks and preview sponsor belt`, async ({ page }) => {
     await ready(page, locale);
-    await expect(page.locator(".hero-scroll, .hero-bottom, [data-pathway-deck], .pathway-track-nav, .sponsor-belt, .hero-social, .social-item--placeholder")).toHaveCount(0);
+    await expect(page.locator(".hero-scroll, .hero-bottom, [data-pathway-deck], .pathway-track-nav, .sponsor-belt")).toHaveCount(0);
     await expect(page.locator("main").getByText(homepageCopy[locale].lead, { exact: true })).toHaveCount(0);
     for (const script of await page.locator("script[src]").evaluateAll((nodes) => nodes.map((node) => (node as HTMLScriptElement).src))) {
       expect(await (await page.request.get(script)).text()).not.toContain("MSRC_HOME_PLACEHOLDERS");
@@ -388,19 +388,35 @@ for (const locale of ["en", "ar"] as const) {
     }
   });
 
-  test(`${locale} a future live social link retains a 44px target at 320`, async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "chromium-desktop", "Synthetic live-link style fixture runs once.");
+  test(`${locale} public homepage shows one live social link and three pending accounts`, async ({ page }) => {
     await ready(page, locale, 320);
-    // All official URLs remain null. Exercise the real live-link classes locally.
-    await page.locator(".hero-introduction").evaluate((node) => {
-      const row = document.createElement("ul");
-      row.className = "hero-social";
-      row.innerHTML = '<li><a class="social-item" href="#program" aria-label="Synthetic social target">X</a></li><li aria-hidden="true"><span class="social-item social-item--placeholder">X</span></li><li class="social-soon" aria-hidden="true"><span>Soon</span></li>';
-      node.append(row);
-    });
-    const box = await page.getByRole("link", { name: "Synthetic social target" }).boundingBox();
+    const social = page.locator(".hero-social");
+    const live = social.getByRole("link", { name: "X", exact: true });
+    const soon = locale === "en" ? "Soon" : "قريبًا";
+    await expect(live).toHaveAttribute("href", "https://x.com/Research__PC");
+    await expect(social.locator("a, button, [tabindex='0']")).toHaveCount(1);
+    const pending = social.locator("span.social-item--placeholder");
+    await expect(pending).toHaveCount(3);
+    await expect(pending.locator(".sr-only")).toHaveText(
+      ["LinkedIn", "Instagram", "TikTok"].map((network) => `${network} — ${soon}`),
+    );
+    await expect(social.locator(".social-soon > span")).toBeVisible();
+    await expect(social.locator(".social-soon > span")).toHaveText(soon);
+
+    const box = await live.boundingBox();
     expect(box?.width).toBeGreaterThanOrEqual(44);
     expect(box?.height).toBeGreaterThanOrEqual(44);
+    await noOverflow(page);
+
+    await page.locator(".hero-actions a").last().focus();
+    await page.keyboard.press("Tab");
+    await expect(live).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(social.locator(":focus")).toHaveCount(0);
+
+    await page.setViewportSize({ width: 280, height: 844 });
+    await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+    expect(await social.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
     await noOverflow(page);
   });
 }

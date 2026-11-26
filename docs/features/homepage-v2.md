@@ -24,10 +24,11 @@ footer. Ten official icons retain their artwork and physical centring correction
 Public buttons use 14px corners and arrows; icon controls use rounded squares.
 Header controls remain 48px. No owner source asset is modified or removed.
 
-Sponsor and social placeholders are opt-in and frozen at build time by
-`next.config.ts`. Production takes precedence over every opt-in flag. Social URLs
-remain null. The illustrative belt has a constant-name pause toggle, stops over the moving strip and on exit, and wraps statically under reduced motion. A preview build must
-never be promoted to production without rebuilding.
+The illustrative sponsor belt is opted in and frozen at build time by
+`next.config.ts`. Production takes precedence over every opt-in flag.
+The preview belt pauses over the moving strip and off-screen and wraps
+statically under reduced motion. See the ORG-086 follow-up below for the
+public social row and sponsor belt.
 
 Homepage rules live in `home-v2.css`; shared controls, identity and rails live in
 `brand-system.css`. Public typography overrides also match `[lang]` descendants so
@@ -89,3 +90,17 @@ ORG-075 confirms 7–8 April 2027. The homepage and countdown use the shared
 conference dates. The countdown targets the start of 7 April in Asia/Riyadh
 as a display boundary. The public dates also appear in the current bilingual
 Privacy Policy and Terms, with their approved acceptance versions retained.
+
+## Public social row and sponsor belt, 26 November 2026
+
+ORG-086 shows X, LinkedIn, Instagram and TikTok on the English and Arabic
+homepages. X links to the organizer-supplied Research Principles Club
+profile. The other three show “Soon” / “قريبًا” and stay outside the
+keyboard tab order until their URLs are configured in
+`src/content/social-links.ts`.
+
+The public belt reads the homepage-approved names and local logo files
+listed in `homepageAssets.sponsors`. That list is empty while sponsor
+assets are pending, so the live layout omits the belt. The approved-logo
+strip uses native horizontal scrolling. The sample animation is available
+in preview when the approved list is empty.

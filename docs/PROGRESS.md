@@ -38,6 +38,25 @@
 - See the [release verification notes](features/sitewide-brand-refresh.md)
   for evidence under DSN-01/02, ACC-01, LOC-01/03 and REL-06.
 
+## 26 November 2026 — Homepage social links and sponsor belt
+
+- ORG-086 adds the supplied Research Principles Club X link to the English
+  and Arabic homepages. LinkedIn, Instagram and TikTok show the localized
+  “Soon” status and stay outside the keyboard tab order.
+- The public sponsor belt stays hidden while the homepage-approved list is
+  empty. The approved-logo strip uses native horizontal scrolling. The
+  illustrative belt remains in Preview. Approved sponsor assets are pending.
+- `pnpm check` passed lint, types, 5,666 unit tests and the production build.
+  The focused Playwright public run passed 14 cases across desktop and
+  emulated mobile Chromium. Separate desktop Chromium and mobile WebKit
+  probes checked the rendered row, exact outbound destination and axe
+  results in both languages. The probes intercepted the outbound request.
+- `node scripts/build-home-preview-e2e.ts` and
+  `pnpm exec playwright test --config playwright.home-preview.config.ts`
+  passed all 16 local Preview cases. Physical device checks were not run.
+- [Homepage implementation notes](features/homepage-v2.md). Requirements
+  SCP-02, DSN-01/02, LOC-01/03, ACC-01, SPN-01, CMS-04, CFG-12 and REL-01/06.
+
 ## 26 November 2026 — Compact Abstracts evaluation
 
 - ORG-083 places the illustrated evaluation introduction beside the seven

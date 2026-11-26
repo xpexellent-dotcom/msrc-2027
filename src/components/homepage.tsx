@@ -34,6 +34,7 @@ import { Sparkle } from "@/components/brand/sparkle";
 import { FlowRibbon } from "@/components/brand/flow-ribbon";
 import { HeroSocialRow } from "@/components/home/hero-social-row";
 import { SponsorBelt } from "@/components/home/sponsor-belt";
+import { ApprovedSponsorBelt } from "@/components/home/approved-sponsor-belt";
 import { homePlaceholdersEnabled } from "@/lib/preview-placeholders";
 
 export type HomepageMediaPreview = { video: PreviewHeroVideo; poster: string; caption: string };
@@ -63,7 +64,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
                 <ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink>
                 <ButtonLink variant="ivory" href={`/${locale}/program`}>{narrative.programmeAction}<Arrow /></ButtonLink>
               </div>
-              <HeroSocialRow locale={locale} placeholders={placeholders} />
+              <HeroSocialRow locale={locale} />
             </div>
             <div className="hero-countdown"><ConferenceCountdown target={conferenceConfig.countdownTarget} locale={locale} dateRange={dateRange} pauseWhenHidden /></div>
           </div>
@@ -75,7 +76,9 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
     </HeroScrollStage>
     <div className="homepage-content-sheet">
     <ScrollScenes />
-    {placeholders && homepageAssets.sponsors.length === 0 ? <SponsorBelt locale={locale} /> : null}
+    {homepageAssets.sponsors.length > 0
+      ? <ApprovedSponsorBelt locale={locale} sponsors={homepageAssets.sponsors} />
+      : placeholders && <SponsorBelt locale={locale} />}
 
     <section data-header-section="light" id="participate" tabIndex={-1} className="editorial-section pathways-section" aria-labelledby="pathways-title">
       <AmbientArtwork variant="flow" figure="paths" />
