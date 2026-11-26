@@ -5830,3 +5830,25 @@ design and give the seven existing criteria more readable typography.
 This supersedes the decorative magnifier treatment in ORG-079.
 Requirements DSN-01/02, ACC-01, LOC-01/03 and MED-02 apply. See the
 [sitewide design notes](features/sitewide-brand-refresh.md).
+
+## ORG-081 — Shared gallery reveal and vertical evaluation criteria, 26 November 2026
+
+Use the same smooth fade as the surrounding homepage content when the
+Legacy gallery enters view. Retain the clear view of the community
+photograph before the gallery arrives. The gallery remains available
+immediately for interaction and in reduced-motion or JavaScript-free
+views. This refines ORG-080 under DSN-01/02 and ACC-01.
+
+The seven evaluation criteria form a single numbered list at every width.
+Retain the gold-seal cover, the larger type and localized numbering.
+
+## ORG-082 — Contextual survey copy and research breadcrumb, 26 November 2026
+
+Remove certificate survey reminders from the homepage, Attend, Workshops
+and participant pre-event guidance. The My Certificates page presents a
+survey through its published form. CRT-01 eligibility, staff evidence and
+the approved Terms and Privacy disclosures retain their authority.
+
+Align the Abstracts breadcrumb with the shared breadcrumb pattern.
+Preserve the approved hero and localized navigation. ACC-01, LOC-01/03,
+DSN-01/02 and CRT-01 apply.

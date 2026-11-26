@@ -145,3 +145,21 @@ the test began its return from a settled native scroll within capture range.
 The glass cards passed ten browser cases, including high-contrast modes,
 and retained at least 5.04:1 sampled contrast over the treated photograph.
 Physical devices and screen readers remain open.
+
+### Gallery fade, evaluation list and survey copy, 26 November 2026
+
+- ORG-081 uses the homepage's 700ms ease-out timing for the gallery fade.
+  It starts after the background-first entrance and completes even when
+  scrolling stops. The photos stay visible on return. Keyboard, touch,
+  reduced-motion and JavaScript-free access are immediate.
+- All seven evaluation criteria use one ordered list at any width.
+  English retains Roman numerals and Arabic retains localized numerals.
+- ORG-082 aligns the Abstracts breadcrumb with the shared layout and
+  removes advance survey reminders in English and Arabic. Published survey
+  forms remain available within My Certificates under the existing release
+  and eligibility settings.
+
+Scoped checks covered Chromium and WebKit desktop and emulated phones.
+They verified the gallery animation at intermediate and finished opacity,
+the evaluation list at 280px with doubled text, and the shared breadcrumb
+alignment, accessible navigation and keyboard focus.

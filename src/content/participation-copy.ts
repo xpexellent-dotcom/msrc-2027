@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n";
 export type ParticipationJourney = "registration" | "submissions" | "workshops" | "hackathon" | "threeMinuteThesis";
 export type JourneyCopy = {
   closed: string; closedBody: string; detailsTitle: string;
-  details: readonly { title: string; body: string; note?: string }[];
+  details: readonly { title: string; body: string }[];
   stepsTitle: string; steps: readonly string[];
   goodToKnow?: { title: string; points: readonly string[] };
   /** ORG-054: the hackathon's two tracks, shown before the benefits. */
@@ -21,7 +21,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
       closed: "Registration is not open yet", closedBody: "Free attendance. Visit the Participate page for registration dates.",
       detailsTitle: "Two days. So much to take away.",
       details: [
-        { title: "Your conference certificate", body: "Check in on both days for a conference certificate.", note: "Complete the general survey as well." },
+        { title: "Your conference certificate", body: "Check in on both days for a conference certificate." },
         { title: "Learn from the community", body: "Discover the questions and ideas shaping student research." },
         { title: "Make new connections", body: "Meet researchers, clinicians and speakers." },
         { title: "CME hours", body: conferenceExpectations.en.benefits[0].body },
@@ -51,7 +51,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
       detailsTitle: "About the workshops",
       details: [
         { title: "Hands-on learning", body: "Build practical skills through focused, hands-on learning." },
-        { title: "Your workshop certificate", body: "A confirmed booking, workshop check-in, completion confirmation and the workshop survey are required for your workshop certificate." },
+        { title: "Your workshop certificate", body: "Workshop participation certificates are issued separately from the conference certificate." },
         { title: "A separate booking", body: "Book each workshop separately with your confirmed conference registration." },
         { title: "Room for more", body: "Attend more than one workshop when their times do not overlap." },
       ],
@@ -98,7 +98,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
       closed: "لم يُفتح التسجيل بعد", closedBody: "الحضور مجاني. راجع صفحة المشاركة للاطلاع على مواعيد التسجيل.",
       detailsTitle: "يومان يفتحان لك آفاقًا.",
       details: [
-        { title: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين للحصول على شهادة حضور المؤتمر.", note: "يجب أيضًا إكمال الاستبيان العام." },
+        { title: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين للحصول على شهادة حضور المؤتمر." },
         { title: "تعلّم من المجتمع البحثي", body: "اكتشف الأسئلة والأفكار التي ترسم ملامح أبحاث الطلاب." },
         { title: "علاقات جديدة", body: "تعرّف إلى باحثين وأطباء ومتحدثين." },
         { title: "ساعات تعليم طبي مستمر", body: conferenceExpectations.ar.benefits[0].body },
@@ -128,7 +128,7 @@ export const participationJourneyCopy: Record<Locale, Record<ParticipationJourne
       detailsTitle: "عن ورش العمل",
       details: [
         { title: "تعلّم بالممارسة", body: "طوّر مهاراتك العملية من خلال تعلّم مركّز وتطبيقي." },
-        { title: "شهادة ورشة العمل", body: "تتطلب شهادة الورشة حجزًا مؤكدًا وتسجيل حضور الورشة وتأكيد إتمامها واستبيان الورشة." },
+        { title: "شهادة ورشة العمل", body: "تُصدر شهادات المشاركة في ورش العمل بصورة مستقلة عن شهادة حضور المؤتمر." },
         { title: "حجز مستقل", body: "احجز كل ورشة على حدة بعد تأكيد تسجيلك في المؤتمر." },
         { title: "مساحة للمزيد", body: "يمكنك حضور أكثر من ورشة عندما لا تتداخل أوقاتها." },
       ],

@@ -142,13 +142,6 @@
   overflow-wrap: anywhere;
 }
 
-.participation-benefit-list--illustrated .participation-benefit-note {
-  max-inline-size: 32ch;
-  padding-block-start: .6rem;
-  border-block-start: 1px solid rgb(220 207 240 / .35);
-  font-size: .875rem;
-}
-
 .participation-journey--registration .participation-benefit-list--illustrated > article:first-child {
   grid-column: 1 / -1;
   background:

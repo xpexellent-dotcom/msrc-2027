@@ -140,8 +140,8 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} registration stays closed with useful preparation and unavailable ticket actions`, async ({ page }) => {
     const notice = locale === "en"
-      ? { heading: "Your conference certificate", body: "Check in on both days for a conference certificate.", note: "Complete the general survey as well.", opening: "Registration is not open yet" }
-      : { heading: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين للحصول على شهادة حضور المؤتمر.", note: "يجب أيضًا إكمال الاستبيان العام.", opening: "لم يُفتح التسجيل بعد" };
+      ? { heading: "Your conference certificate", body: "Check in on both days for a conference certificate.", opening: "Registration is not open yet" }
+      : { heading: "شهادة حضور المؤتمر", body: "سجّل حضورك في اليومين للحصول على شهادة حضور المؤتمر.", opening: "لم يُفتح التسجيل بعد" };
     const writes: string[] = [];
     page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.url()); });
     const response = await page.goto(`/${locale}/registration`);
@@ -154,7 +154,7 @@ for (const locale of ["en", "ar"] as const) {
     });
     await expect(preparation).toHaveCount(1);
     await expect(preparation.getByRole("heading", { level: 3 })).toBeVisible();
-    await expect(preparation.locator("p")).toHaveText([notice.body, notice.note]);
+    await expect(preparation.locator("p")).toHaveText(notice.body);
     await expect(preparation.locator("img[src$='29-certificate.svg']")).toHaveAttribute("alt", "");
     await expect(page.getByTestId("ticket-unavailable")).toBeDisabled();
     await expect(page.getByTestId("brochure-unavailable")).toBeDisabled();

@@ -42,9 +42,13 @@ for (const locale of ["en", "ar"] as const) {
       expect(await rubric.locator(".research-criteria-count").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(105);
       expect(await rubric.locator("dt").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(22);
       expect(await rubric.locator("dd").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(18);
-      const criterionBoxes = await rubric.getByRole("listitem").evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().top));
-      if (width >= 960) expect(criterionBoxes[0]).toBeCloseTo(criterionBoxes[1], 1);
-      else expect(criterionBoxes[1]).toBeGreaterThan(criterionBoxes[0]);
+      const criterionRows = await rubric.getByRole("listitem").evaluateAll((nodes) => nodes.map((node) => {
+        const { top, bottom, left, width } = node.getBoundingClientRect();
+        return { top, bottom, left, width };
+      }));
+      expect(criterionRows.every((row, index) => index === 0 || row.top >= criterionRows[index - 1].bottom - 1)).toBe(true);
+      expect(new Set(criterionRows.map((row) => Math.round(row.left))).size).toBe(1);
+      expect(new Set(criterionRows.map((row) => Math.round(row.width))).size).toBe(1);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
       if (width !== 320) {
         await page.locator(".research-journey").screenshot({ path: `output/abs4/${locale}-${width}-journey.png`, animations: "disabled", style: ".site-header { visibility: hidden !important; }" });
@@ -100,6 +104,18 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page).toHaveTitle(`${copy.title} | MSRC 2027`);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible();
+    const breadcrumb = page.locator(".research-breadcrumb");
+    await expect(breadcrumb.getByRole("link", { name: copy.home, exact: true })).toHaveAttribute("href", `/${locale}`);
+    await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText(copy.title);
+    await expect(breadcrumb.getByText("/", { exact: true })).toHaveAttribute("aria-hidden", "true");
+    await page.evaluate(() => document.fonts.ready);
+    const positions = await breadcrumb.locator("a, [aria-hidden='true'], [aria-current='page']").evaluateAll((nodes) => nodes.map((node) => {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      const { top, bottom } = range.getBoundingClientRect();
+      return (top + bottom) / 2;
+    }));
+    expect(Math.max(...positions) - Math.min(...positions)).toBeLessThanOrEqual(1);
     await expect(page.locator(".research-roadmap > li")).toHaveCount(6);
     const stepIcons = page.locator(".research-step-marker .brand-icon img");
     await expect(stepIcons).toHaveCount(6);

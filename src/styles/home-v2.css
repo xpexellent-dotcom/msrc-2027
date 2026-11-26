@@ -304,8 +304,10 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
 .homepage-journey .legacy-section .rail-tools > p { color: var(--color-lilac); }
 .homepage-journey .legacy-section .rail-buttons button { background: var(--ink-55); color: var(--color-ivory); border-color: var(--line-lilac-35); }
 @media screen and (prefers-reduced-motion: no-preference) {
-  .homepage-journey .gallery-rail:not(:focus-within) .rail-track { opacity: var(--gallery-arrival, 1); }
+  .homepage-journey .gallery-rail:not(:focus-within) .rail-track[data-gallery-arrival="waiting"] { opacity: 0; }
+  .homepage-journey .gallery-rail:not(:focus-within) .rail-track[data-gallery-arrival="arriving"] { animation: gallery-arrive var(--d-reveal) var(--ease-out) backwards; }
 }
+@keyframes gallery-arrive { from { opacity: 0; } to { opacity: 1; } }
 .homepage-journey .gallery-card { inline-size: var(--home-gallery-width); margin: 0; }
 .homepage-journey .gallery-photo { position: relative; aspect-ratio: 16 / 9; overflow: clip; border-radius: var(--r-card); }
 .homepage-journey .gallery-photo img { object-fit: cover; }
@@ -519,7 +521,7 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
   .homepage-journey :is(.flow-ribbon, .ambient-flow, .sparkle, .speaker-atmosphere, .home-speaker-portrait, .community-image, .community-flow, .pathway-photo), .homepage-journey .section-heading::before, .homepage-journey .section-heading::after, .homepage-journey .title-word--accent::after { display: none; }
   .homepage-journey :is(.hero-editorial h1, .closing-grid h2, .title-word--accent) { -webkit-text-fill-color: CanvasText; color: CanvasText; background: none; }
   .homepage-journey .home-speaker-overview:has(.home-speaker-portrait) { grid-template-columns: minmax(0, 1fr); }
-  .homepage-journey .gallery-rail:not(:focus-within) .rail-track { opacity: 1; }
+  .homepage-journey .gallery-rail:not(:focus-within) .rail-track[data-gallery-arrival] { animation: none; opacity: 1; }
   .homepage-journey .history-numbers > div { background: Canvas; border-color: CanvasText; }
 }
 @media print {

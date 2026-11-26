@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { experienceCopy } from "@/content/conference-experiences";
+import { conferenceExpectations } from "@/content/conference-expectations";
 import { participationFormGuidance } from "@/content/participation-form-guidance";
 import { homepageNarrative } from "@/content/homepage-narrative";
 import { homepageCopy } from "@/content/public-site";
 import { participantCopy } from "@/features/participant-accounts/participant-copy";
+import { myRegistrationCopy } from "@/features/registration/my-registration-copy";
 import { locales } from "@/lib/i18n";
 
 // 5 October 2026 organizer decision: registration and workshop enforcement stays
@@ -26,6 +28,8 @@ describe("public registration and workshop wording", () => {
       participantAccount: participantCopy[locale],
     };
     expect(JSON.stringify(publicCopy)).not.toMatch(privateProcessWords);
+    const certificatePromotion = { ...publicCopy, benefits: conferenceExpectations[locale].benefits, attendance: myRegistrationCopy[locale] };
+    expect(JSON.stringify(certificatePromotion)).not.toMatch(/\bsurveys?\b|استبيان/i);
   });
 
   it.each(locales)("%s makes email confirmation the final registration and workshop step", (locale) => {

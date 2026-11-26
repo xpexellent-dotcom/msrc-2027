@@ -5,9 +5,10 @@
 .research-hero::after { position: absolute; z-index: -1; inset: 0; content: ""; background: linear-gradient(90deg, rgb(30 16 52 / 97%), rgb(49 24 87 / 91%) 60%, rgb(49 24 87 / 76%)); }
 [dir="rtl"] .research-hero::after { transform: scaleX(-1); }
 .research-hero-photo { object-fit: cover; object-position: center 40%; z-index: -2; }
-.research-breadcrumb ol { display: flex; flex-wrap: wrap; gap: .75rem; padding: 0; list-style: none; margin-block: 0 3rem; font-size: .875rem; }
+.research-breadcrumb { margin-block-end: 3rem; color: inherit; font-size: .875rem; }
 .research-breadcrumb a { color: inherit; text-underline-offset: .3em; }
-.research-breadcrumb li + li::before { content: "/"; margin-inline-end: .75rem; opacity: .55; }
+.research-breadcrumb li:last-child { flex-wrap: nowrap; }
+.research-breadcrumb [aria-hidden="true"] { align-self: flex-start; opacity: .55; }
 .research-kicker { display: flex; align-items: center; gap: .85rem; color: var(--color-lilac); font-size: .9rem; font-weight: 700; margin-block: 0 1.5rem; }
 .research-kicker::before { content: ""; inline-size: 2.5rem; block-size: 2px; background: var(--color-gold); }
 .research-hero h1 { font-size: clamp(3rem, 7vw, 6.5rem); line-height: 1.05; letter-spacing: -.045em; max-inline-size: 14ch; margin-block: 0 2rem; }
@@ -361,7 +362,6 @@
 .research-word-limit p { margin: 0; }
 .research-word-limit p + p { margin-block-start: .75rem; }
 .research-criteria {
-  display: grid;
   min-inline-size: 0;
   overflow: clip;
   margin: 0;
@@ -416,12 +416,6 @@
 
 [lang="ar"] .research-criteria dt { line-height: 1.45; }
 
-@container research-rubric (width >= 54rem) {
-  .research-criteria { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .research-criteria > li:nth-child(odd):not(:last-child) { border-inline-end: 1px solid var(--rubric-rule); }
-  .research-criteria > li:last-child { grid-column: 1 / -1; }
-}
-
 @container research-rubric (width < 15rem) {
   .research-criteria > li { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
 }
@@ -449,7 +443,7 @@
 @media (max-width: 700px) {
   .research-hero { padding-block: 7.5rem 4rem; }
   .research-hero h1 { font-size: clamp(2.6rem, 11vw, 4rem); }
-  .research-breadcrumb ol { margin-block-end: 2rem; }
+  .research-breadcrumb { margin-block-end: 2rem; }
   .research-presentation-grid, .research-eligibility > .site-container { grid-template-columns: minmax(0, 1fr); }
   .research-winners { align-items: start; }
   .research-guidelines li { grid-template-columns: 1.4rem minmax(0, 1fr); gap: .75rem; }

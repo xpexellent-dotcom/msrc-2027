@@ -359,7 +359,6 @@ export function JourneyExperience({ locale, journey, workshops: approvedWorkshop
               <div>
                 <h3>{detail.title}</h3>
                 <p>{detail.body}</p>
-                {detail.note ? <p className="participation-benefit-note">{detail.note}</p> : null}
               </div>
             </article>
           ))}

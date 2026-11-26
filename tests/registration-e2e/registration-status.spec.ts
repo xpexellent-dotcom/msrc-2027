@@ -28,7 +28,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(attendance.getByTestId("attendance-2027-01-27")).toContainText(copy.checkedIn);
     await expect(attendance.getByTestId("attendance-2027-01-28")).toContainText(copy.notCheckedIn);
     await expect(attendance.locator('time[datetime="2027-01-27T06:30:00Z"]')).toBeVisible();
-    await expect(attendance).toContainText(copy.attendanceHint);
+    await expect(attendance).not.toContainText(/\bsurveys?\b|استبيان/i);
     await accessible(page, locale);
     const originalCookie = (await context.cookies()).find((cookie) => cookie.name === "msrc-participant-test")?.value;
     await request.post("http://127.0.0.1:3218/__synthetic/registration", {

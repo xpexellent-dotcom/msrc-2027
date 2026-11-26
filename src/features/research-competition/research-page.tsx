@@ -22,7 +22,13 @@ export function ResearchCompetitionPage({ locale }: { locale: Locale }) {
   return <div className="research-competition" data-testid="research-competition-page">
     <section data-header-section="dark" className="research-hero" aria-labelledby="research-title">
       <Image className="research-hero-photo" src="/media/msrc-demo/share-research-manar-2560.jpg" alt="" fill sizes="100vw" priority />
-      <Container><nav className="research-breadcrumb" aria-label={locale === "ar" ? "مسار التنقل" : "Breadcrumb"}><ol><li><Link href={`/${locale}`}>{copy.home}</Link></li><li aria-current="page">{copy.title}</li></ol></nav>
+      <Container>
+        <nav className="experience-breadcrumb research-breadcrumb" aria-label={locale === "ar" ? "مسار التنقل" : "Breadcrumb"}>
+          <ol>
+            <li><Link href={`/${locale}`}>{copy.home}</Link></li>
+            <li><span aria-hidden="true">/</span><span aria-current="page">{copy.title}</span></li>
+          </ol>
+        </nav>
         <p className="research-kicker">{copy.kicker}</p><h1 id="research-title">{copy.title}</h1><p className="research-hero-intro">{copy.intro}</p><AbstractSubmissionCta locale={locale} />
       </Container>
     </section>

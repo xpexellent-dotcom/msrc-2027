@@ -1,5 +1,13 @@
 # Progress and session handover
 
+## 26 November 2026 — Gallery motion and vertical evaluation
+
+- ORG-081 gives the Legacy gallery the homepage reveal motion after the
+  background-first entrance. See the [sitewide design notes](features/sitewide-brand-refresh.md).
+- Evaluation criteria follow one numbered column at every viewport width.
+- ORG-082 removes advance certificate survey reminders in both languages and
+  aligns the Abstracts breadcrumb with the public navigation pattern.
+
 ## 26 November 2026 — Homepage gallery reveal and Abstracts evaluation
 
 - ORG-080 lets the homepage community photograph read before the gallery
