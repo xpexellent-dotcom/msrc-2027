@@ -1,5 +1,20 @@
 # Progress and session handover
 
+## 26 November 2026 — Visitor QA proxy socket recovery
+
+- PR #159 visitor shard 2 received a loopback proxy 502 while iPad WebKit
+  loaded an image on the Arabic homepage. The upstream connection reset on
+  a reused socket. The existing one-time replay can now open its own connection
+  outside the keep-alive pool. Replay remains limited to bodiless GET and HEAD
+  requests before response headers are sent.
+- A Node 24.21.0 loopback probe forced both pooled connections to reset on
+  reuse. The original GET returned 502, the corrected GET and HEAD returned
+  200 on a fresh connection, and POST made a single upstream attempt.
+- `pnpm exec eslint scripts/real-user-test-server.ts` and
+  `pnpm exec tsc --noEmit` passed. The real-user Playwright configuration
+  passed six English and Arabic homepage discovery runs on `ipad-webkit`.
+  Requirements INF-05 and REL-06.
+
 ## 26 November 2026 — Email preview brand refresh
 
 - ORG-087 applies the official MSRC seal and live MSRC’27 wordmark to eight

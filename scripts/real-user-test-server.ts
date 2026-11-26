@@ -31,12 +31,12 @@ const next = process.env.REAL_USER_REUSE_SERVER === "1" ? undefined : spawn(proc
 const upstreamAgent = new Agent({ keepAlive: true, maxSockets: 32, maxFreeSockets: 16, scheduling: "lifo" });
 const proxy = createServer({ key: readFileSync(keyPath), cert: readFileSync(certificatePath) }, (request, response) => {
   // A kept-alive socket can be closed by Next just as it is reused; Node reports
-  // that race as ECONNRESET with reusedSocket set. Bodiless reads are replayed once
-  // on a fresh request instead of surfacing a spurious 502 to the browser suites.
+  // that race as ECONNRESET with reusedSocket set. Replay bodiless reads once
+  // outside the pool so the replay cannot pick another stale socket.
   const replayable = (request.method === "GET" || request.method === "HEAD")
     && !request.headers["content-length"] && !request.headers["transfer-encoding"];
   const send = (retried: boolean) => {
-    const upstream = httpRequest({ agent: upstreamAgent, hostname: "127.0.0.1", port: 3210, path: request.url, method: request.method,
+    const upstream = httpRequest({ agent: retried ? false : upstreamAgent, hostname: "127.0.0.1", port: 3210, path: request.url, method: request.method,
       // Keep the browser-facing Host, Origin, cookies and request body intact.
       headers: { ...request.headers, "x-forwarded-proto": "https", "x-forwarded-host": request.headers.host,
         "x-forwarded-for": request.socket.remoteAddress ?? "127.0.0.1" } }, (result) => {
