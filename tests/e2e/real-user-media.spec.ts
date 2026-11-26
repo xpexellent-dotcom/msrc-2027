@@ -131,12 +131,26 @@ for (const locale of ["en", "ar"] as const) {
     await cdp.detach();
   });
 
-  test(`${locale} media filters survive rapid changes, empty results, rotation, locale and back navigation`, async ({ page }) => {
+  test(`${locale} media filters survive rapid changes, empty results, rotation, locale and back navigation`, async ({ page }, testInfo) => {
     const errors = watchPage(page);
     await page.goto(`/${locale}/media`);
     const edition = page.locator("#media-edition");
     const kind = page.locator("#media-kind");
     await expect(edition).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
+    const portrait = page.viewportSize()!;
+    if (testInfo.project.name === "iphone-webkit") {
+      await page.setViewportSize({ width: 280, height: 844 });
+      const layout = await page.evaluate(async () => {
+        await document.fonts.ready;
+        document.documentElement.style.fontSize = "200%";
+        await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+        const viewport = document.documentElement.clientWidth;
+        return { viewport, content: document.documentElement.scrollWidth };
+      });
+      expect(layout.content).toBeLessThanOrEqual(layout.viewport);
+      await page.evaluate(() => { document.documentElement.style.removeProperty("font-size"); });
+      await page.setViewportSize(portrait);
+    }
     await edition.selectOption("2026");
     await kind.selectOption("photograph");
     await expect(page.locator(".conference-media-edition")).toHaveCount(1);
@@ -151,7 +165,6 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator(".conference-media-card").first()).toBeVisible();
     await edition.selectOption("2027");
     await expect(page.getByTestId("media-empty")).toBeVisible();
-    const portrait = page.viewportSize()!;
     await page.setViewportSize({ width: portrait.height, height: portrait.width });
     await expect(edition).toHaveValue("2027");
     await page.setViewportSize(portrait);

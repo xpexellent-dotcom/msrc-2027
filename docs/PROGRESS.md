@@ -1,5 +1,15 @@
 # Progress and session handover
 
+## 26 November 2026 — Sitewide release QA
+
+- The organizer approved publishing PR #156 after GitHub and Vercel QA
+  under ORG-084. The scope is public presentation and accessibility.
+- Doubled text on narrow screens exposed overflow on Participate, Contact,
+  Dates & Venue, 3MT and Media. The fixes keep links, notices and form
+  controls inside the reading area in English and Arabic.
+- See the [release verification notes](features/sitewide-brand-refresh.md)
+  for evidence under DSN-01/02, ACC-01, LOC-01/03 and REL-06.
+
 ## 26 November 2026 — Compact Abstracts evaluation
 
 - ORG-083 places the illustrated evaluation introduction beside the seven

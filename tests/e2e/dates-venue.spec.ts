@@ -143,7 +143,7 @@ for (const locale of ["en", "ar"] as const) {
     const assertReadable = async () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth))
         .toBeLessThanOrEqual(await page.evaluate(() => document.documentElement.clientWidth));
-      const clipping = await page.locator("main h1, main h2:not(.sr-only), main time").evaluateAll((elements) => elements.some((element) => {
+      const clipping = await page.locator("main h1, main h2:not(.sr-only), main time, main .venue-journey-continue").evaluateAll((elements) => elements.some((element) => {
         const range = document.createRange();
         range.selectNodeContents(element);
         return Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
@@ -161,6 +161,11 @@ for (const locale of ["en", "ar"] as const) {
     // Verify that adaptation before measuring the resulting enlarged layout.
     await expect(page.getByTestId("venue-arrival-journey")).toHaveAttribute("data-reading-flow", "true");
     await assertReadable();
+    if (testInfo.project.name === "chromium-mobile") {
+      await page.setViewportSize({ width: 280, height: 844 });
+      await assertReadable();
+      await page.setViewportSize({ width: 320, height: 850 });
+    }
     await page.evaluate(() => { document.documentElement.style.fontSize = ""; });
 
     await page.getByRole("navigation", { name: copy[locale].breadcrumb })

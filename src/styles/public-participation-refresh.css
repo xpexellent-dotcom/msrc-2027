@@ -13,6 +13,7 @@
 }
 
 .participation-paths {
+  container: participation-paths / inline-size;
   gap: 0;
   border-block-start: 1px solid var(--color-line-strong);
 }
@@ -249,6 +250,12 @@
 }
 
 .participation-journey--threeMinuteThesis .participation-benefits { background: var(--color-white); }
+
+.participation-journey--threeMinuteThesis .fluid-journey-availability .site-container > div {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
 .participation-journey--workshops .fluid-workshop-section { background: var(--color-mist); }
 
 .participation-journey .fluid-workshop-pending {
@@ -416,6 +423,18 @@
   .sponsor-invitation > .site-container { grid-template-columns: minmax(0, 1fr); }
   .sponsor-invitation .sponsor-invitation-icon { display: none; }
   .sponsors-page .sponsor-tier--silver .sponsor-brand-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 6rem), 1fr)); }
+}
+
+@container participation-paths (width < 17rem) {
+  .participation-path-link.site-link {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-inline: 6px;
+  }
+
+  .participation-path-icon { inline-size: 44px; }
+  .participation-path-copy p { overflow-wrap: anywhere; }
+  .participation-path-link > .directional-arrow { inline-size: 16px; block-size: 16px; padding: 3px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -179,3 +179,19 @@ the entire section measured about 838px in English and 825px in Arabic.
 On phones and at enlarged text sizes the layout stacks and expands.
 The browser regression checks cover row order, compactness, RTL alignment,
 artwork accessibility and enlarged-text reflow.
+
+### Release QA, 26 November 2026
+
+ORG-084 authorizes publication after GitHub and Vercel review. The narrow
+layout was checked in English and Arabic with doubled text. Participate
+keeps its directional links readable. The native Contact and Media selects
+fit inside their filter or form surfaces. The Venue continuation and 3MT
+availability copy wrap. The Venue journey keeps its existing gesture and
+keyboard behavior.
+
+The initial GitHub PR revision `7654706` passed all 20 reported checks.
+The protected Vercel preview opened in an authorized browser. Its
+Abstracts evaluation shortcut landed on the criteria region and moved
+keyboard focus there. The production release uses a Git-triggered Vercel
+build on `main`. Read-only checks compare the live public routes and
+availability states before and after the release.

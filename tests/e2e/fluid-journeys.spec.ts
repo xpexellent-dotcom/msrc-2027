@@ -47,18 +47,21 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} large workshop covers keep the native keyboard rail and narrow reflow`, async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium-desktop", "Explicit narrow viewport matrix runs once per locale.");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.setViewportSize({ width: 320, height: 844 });
     for (const [route] of routes) {
+      const width = route === "3mt" ? 280 : 320;
+      await page.setViewportSize({ width, height: 844 });
       await page.goto(`/${locale}/${route}`);
+      await expect(page.locator(".site-header")).toHaveAttribute("data-header-ready", "true");
       await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
       await page.evaluate(() => document.fonts.ready);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth), route).toBeLessThanOrEqual(320);
-      const clippedText = await page.locator(".participation-benefit h3, .participation-benefit p, .participation-steps p, .fluid-resource p").evaluateAll((nodes) => nodes.some((node) => {
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), route).toBeLessThanOrEqual(width);
+      const clippedText = await page.locator(".participation-benefit h3, .participation-benefit p, .participation-steps p, .fluid-resource p, .fluid-journey-availability h2, .fluid-journey-availability p").evaluateAll((nodes) => nodes.some((node) => {
         const range = document.createRange(); range.selectNodeContents(node);
         return Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
       }));
       expect(clippedText, route).toBe(false);
     }
+    await page.setViewportSize({ width: 320, height: 844 });
     await page.goto(`/${locale}/workshops`);
     const rail = page.locator(".fluid-workshop-rail .rail-track");
     await expect(rail).toHaveAttribute("tabindex", "0");

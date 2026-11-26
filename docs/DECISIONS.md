@@ -5861,3 +5861,11 @@ background artwork with the single vertical list of seven criteria.
 On narrow screens and at enlarged text sizes, let the section reflow
 naturally. Preserve the approved headings, descriptions and numbering
 under ORG-081. DSN-01/02, ACC-01, LOC-01/03 and MED-02 apply.
+
+## ORG-084 — Publish the public brand refresh, 26 November 2026
+
+The organizer approved publishing PR #156 after iterative QA on GitHub
+and the Vercel preview. This approval covers the public presentation
+refresh and verified accessibility fixes. Existing hosted workflow
+settings and the approved public content rules continue to apply.
+DSN-01/02, ACC-01, LOC-01/03, REL-01 and REL-06 apply.
