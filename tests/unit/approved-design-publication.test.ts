@@ -31,7 +31,9 @@ describe("approved design publication without preview authorization (DSN-01/02, 
     expect(html).toMatch(/class="[^"]*\bpathway-list path-bento"/);
     expect(html.match(/class="[^"]*\bpathway-action"/g)).toHaveLength(5);
     expect(html).not.toContain("sponsor-belt");
-    expect(html).not.toContain("hero-social");
+    expect(html).toContain('class="hero-social"');
+    expect(html).toContain('href="https://x.com/Research__PC"');
+    expect(html.match(/class="social-item social-item--placeholder"/g)).toHaveLength(3);
     expect(html).toContain("community-majed-9804.jpg");
     expect(html).toContain("jeddah-opening-cropped-poster.jpg");
     expect(html).toContain("/brand/identity/icons/28-cme-hours.svg");

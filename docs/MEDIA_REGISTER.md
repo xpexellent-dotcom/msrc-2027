@@ -323,8 +323,9 @@ were copied by hand from the official `@tabler/icons` package, pinned to 3.49.0
 (published 5 October 2026). The tarball was packed in a new scratch directory
 outside the repository; Tabler was not installed as a dependency. The full MIT
 licence and pinned provenance remain in `src/components/social-glyphs.tsx`.
-All social URLs remain `null`. The illustrative social row and sponsor belt
-appear only in preview builds.
+At the time of ORG-072 all social URLs were pending. ORG-086 approves the
+Research Principles Club X URL and the public “Soon” treatment for the
+remaining icons. The illustrative sponsor belt remains preview-only.
 
 Fraunces 5.3.0 and El Messiri 5.3.0 are self-hosted under OFL-1.1. Static ribbons,
 flow lines and sparkles use small inline SVGs; large raster ribbons are not shipped.

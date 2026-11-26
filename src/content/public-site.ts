@@ -1,5 +1,6 @@
 import type { Locale } from "@/lib/i18n";
 import { brandLogo } from "@/content/brand-identity";
+import type { HomepageSponsor } from "@/content/sponsor-belt";
 
 type Bilingual = Readonly<Record<Locale, string>>;
 export type PublicPage = Readonly<{
@@ -29,6 +30,9 @@ export const publicSitemap = [
   { id: "terms", path: "/terms", label: { en: "Terms", ar: "الشروط" }, previewHref: "/terms" },
 ] as const satisfies readonly PublicPage[];
 
+/** Names and logos explicitly approved for placement on the homepage. */
+const homepageSponsors: readonly HomepageSponsor[] = [];
+
 export const homepageAssets = {
   // User-approved 18.7s previous-edition cut; source original stays private.
   heroPoster: "/media/msrc2026/poster-desktop-v1.jpg",
@@ -40,7 +44,7 @@ export const homepageAssets = {
     mobilePoster: "/media/msrc2026/poster-mobile-v1.jpg",
   },
   finalLogo: brandLogo.onPurple,
-  sponsors: [],
+  sponsors: homepageSponsors,
   gallery: [],
 } as const;
 

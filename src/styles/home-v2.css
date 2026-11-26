@@ -73,7 +73,7 @@
 html[data-cinematic="true"] .homepage-journey .flow-ribbon { display: none; }
 html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-hero { position: fixed; inset-block-start: 0; }
 
-/* Preview-only social placeholders and pausable sponsor belt. */
+/* Homepage social links and sponsorship. */
 .homepage-journey .hero-social { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; margin: 1.75rem 0 0; animation: hero-follow 500ms 300ms var(--ease-out) both; pointer-events: auto; }
 .homepage-journey .social-item { display: grid; place-items: center; inline-size: 44px; block-size: 44px; border: 1px solid var(--line-lilac-35); border-radius: var(--r-icon); color: var(--color-ivory); }
 .homepage-journey .social-item--placeholder { border-style: dashed; }
@@ -94,6 +94,31 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
 .homepage-journey .sponsor-belt.is-visible .belt-window:not(:hover):not([data-touched="true"]) .belt-track { animation-play-state: running; }
 @keyframes belt-ltr { to { transform: translate3d(-50%, 0, 0); } }
 @keyframes belt-rtl { to { transform: translate3d(50%, 0, 0); } }
+
+.homepage-journey .approved-belt-window {
+  overflow-x: auto;
+  margin-block-start: .5rem;
+  scrollbar-color: var(--color-purple) transparent;
+}
+.homepage-journey .approved-belt-list {
+  display: flex;
+  margin: 0;
+  padding: .25rem 0 .75rem;
+  list-style: none;
+}
+.homepage-journey .approved-belt-item {
+  display: grid;
+  flex: 0 0 10rem;
+  align-content: start;
+  justify-items: center;
+  gap: .5rem;
+  padding: .5rem 1rem;
+  color: var(--color-slate);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.homepage-journey .approved-belt-item + .approved-belt-item { border-inline-start: 1px solid var(--hair); }
+.homepage-journey .approved-belt-logo { inline-size: 100%; max-inline-size: 8rem; block-size: 3rem; object-fit: contain; }
 
 /* Five clear destinations on a white bento surface. */
 .homepage-journey .pathways-section { background: radial-gradient(60% 45% at 100% 0, var(--color-mist), transparent 70%), var(--color-white); }
@@ -400,7 +425,7 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
   .homepage-journey .hero-countdown { justify-self: start; margin-block-end: 3.5rem; }
 }
 @media (max-width: 359px) {
-  .homepage-journey .hero-social { flex-wrap: nowrap; gap: .375rem; }
+  .homepage-journey .hero-social { gap: .375rem; }
   .homepage-journey .social-item--placeholder { inline-size: 40px; block-size: 44px; }
   .homepage-journey .social-soon { margin-inline-start: 0; padding-inline-start: .5rem; }
 }

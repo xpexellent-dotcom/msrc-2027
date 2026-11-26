@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { socialHosts, socialLinks, socialRowModel, type SocialLink } from "@/content/social-links";
+import { socialHosts, socialLinks, type SocialLink } from "@/content/social-links";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { HeroSocialRow } from "@/components/home/hero-social-row";
 
-describe("social identity publication boundary (ORG-072)", () => {
-  it("keeps all official URLs pending today", () => expect(socialLinks.every((link) => link.url === null)).toBe(true));
+describe("homepage social identity publication", () => {
+  it("configures the organizer-supplied X account and keeps the other accounts pending", () => {
+    expect(socialLinks).toEqual([
+      { network: "x", url: "https://x.com/Research__PC" },
+      { network: "linkedin", url: null },
+      { network: "instagram", url: null },
+      { network: "tiktok", url: null },
+    ]);
+  });
+
   it("allows only HTTPS URLs on the network's official hosts", () => {
     for (const link of socialLinks) if (link.url) {
       const url = new URL(link.url);
@@ -14,20 +22,29 @@ describe("social identity publication boundary (ORG-072)", () => {
     }
     expect(socialHosts.x).toEqual(expect.arrayContaining(["www.x.com", "www.twitter.com"]));
   });
-  it("renders nothing when every account is pending in production", () => expect(socialRowModel(socialLinks, false)).toBeNull());
-  it("exposes only pending glyphs in preview today", () => expect(socialRowModel(socialLinks, true)).toEqual({ live: [], pending: ["x", "linkedin", "instagram", "tiktok"] }));
-  it("keeps only live identities in production", () => {
-    const links: SocialLink[] = [{ network: "x", url: "https://www.x.com/synthetic-test" }, { network: "linkedin", url: null }];
-    expect(socialRowModel(links, false)).toEqual({ live: [links[0]], pending: [] });
-    expect(socialRowModel(links, true)).toEqual({ live: [links[0]], pending: ["linkedin"] });
+
+  it("renders nothing when no social networks are configured", () => {
+    expect(renderToStaticMarkup(createElement(HeroSocialRow, { locale: "en", links: [] }))).toBe("");
   });
-  it("hides each pending item from assistive technology while keeping a mixed row's live link", () => {
-    const html = renderToStaticMarkup(createElement(HeroSocialRow, { locale: "en", placeholders: true, links: [
-      { network: "x", url: "https://www.x.com/synthetic-test" }, { network: "linkedin", url: null },
-    ] }));
-    expect(html).toContain('<ul class="hero-social">');
-    expect(html).toMatch(/<li><a class="social-item"[^>]+href="https:\/\/www.x.com\/synthetic-test"/);
-    expect(html).toContain('<li aria-hidden="true"><span class="social-item social-item--placeholder">');
-    expect(html).toContain('<li class="social-soon" aria-hidden="true">');
+
+  it.each([
+    ["en", "Soon"],
+    ["ar", "قريبًا"],
+  ] as const)("renders pending %s statuses and preserves the order of configured networks", (locale, soon) => {
+    const links: readonly SocialLink[] = [
+      { network: "linkedin", url: null },
+      { network: "x", url: "https://www.x.com/synthetic-test" },
+      { network: "instagram", url: null },
+    ];
+    const html = renderToStaticMarkup(createElement(HeroSocialRow, { locale, links }));
+
+    expect(html).toMatch(/<ul\b[^>]*class="hero-social"/);
+    expect(html.match(/<a\b/g)).toHaveLength(1);
+    expect(html).toContain('href="https://www.x.com/synthetic-test"');
+    expect(html.match(/<span class="social-item social-item--placeholder"/g)).toHaveLength(2);
+    expect(html).toContain(`class="sr-only">LinkedIn — ${soon}</span>`);
+    expect(html).toContain(`class="sr-only">Instagram — ${soon}</span>`);
+    expect(html.indexOf("LinkedIn")).toBeLessThan(html.indexOf("synthetic-test"));
+    expect(html.indexOf("synthetic-test")).toBeLessThan(html.indexOf("Instagram"));
   });
 });
