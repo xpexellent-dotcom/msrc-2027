@@ -21,7 +21,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(steps.nth(4).getByRole("heading")).toHaveText(copy.steps[4]);
     await expect(rubric.getByRole("listitem")).toHaveCount(7);
     await expect(rubric.locator(".research-criteria-count")).toHaveText(formatIndex(copy.criteria.length, locale));
-    await expect(rubric.getByRole("heading", { level: 2, name: copy.evaluation })).toHaveAttribute("id", "research-evaluation");
+    await expect(rubric.getByRole("heading", { level: 2, name: copy.evaluation })).toHaveAttribute("id", "research-evaluation-title");
     await expect(rubric.locator(".research-criterion-number")).toHaveText(locale === "en" ? ["I", "II", "III", "IV", "V", "VI", "VII"] : Array.from({ length: 7 }, (_, index) => formatIndex(index + 1, locale)));
     for (const width of [1440, 1024, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
@@ -37,9 +37,14 @@ for (const locale of ["en", "ar"] as const) {
       for (let index = 0; index < 6; index++) await expect(steps.nth(index).getByText(copy.stepDetails[index], { exact: true })).toBeVisible();
       const introBox = (await rubric.locator(".research-rubric-intro").boundingBox())!;
       const listBox = (await rubric.getByRole("list").boundingBox())!;
-      if (width >= 960) expect(introBox.y).toBeCloseTo(listBox.y, 1);
-      else expect(listBox.y).toBeGreaterThanOrEqual(introBox.y + introBox.height - 1);
-      expect(await rubric.locator("h2").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(30);
+      expect(listBox.y).toBeGreaterThanOrEqual(introBox.y + introBox.height - 1);
+      expect(await rubric.locator("h2").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(width >= 960 ? 60 : 36);
+      expect(await rubric.locator(".research-criteria-count").evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(105);
+      expect(await rubric.locator("dt").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(22);
+      expect(await rubric.locator("dd").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(18);
+      const criterionBoxes = await rubric.getByRole("listitem").evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().top));
+      if (width >= 960) expect(criterionBoxes[0]).toBeCloseTo(criterionBoxes[1], 1);
+      else expect(criterionBoxes[1]).toBeGreaterThan(criterionBoxes[0]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
       if (width !== 320) {
         await page.locator(".research-journey").screenshot({ path: `output/abs4/${locale}-${width}-journey.png`, animations: "disabled", style: ".site-header { visibility: hidden !important; }" });
@@ -74,9 +79,6 @@ for (const locale of ["en", "ar"] as const) {
     await expect(steps.nth(1).locator(".research-step-number")).toHaveCSS("transform", "none");
     expect(await steps.nth(1).evaluate((node) => getComputedStyle(node, "::before").transitionDuration)).toBe("0s");
     expect(await steps.nth(1).evaluate((node) => getComputedStyle(node, "::before").opacity)).toBe("1");
-    await rubric.locator("li").first().hover();
-    await expect(rubric.locator("li").first()).toHaveCSS("border-inline-start-color", "rgb(201, 162, 74)");
-    await expect(rubric.locator("li").first()).toHaveCSS("background-color", "rgb(248, 246, 240)");
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.setViewportSize({ width: 320, height: 800 });
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
@@ -120,7 +122,10 @@ for (const locale of ["en", "ar"] as const) {
     for (const illustration of await illustrations.all()) await expect(illustration).toHaveAttribute("alt", "");
     await expect(presentations.locator(".research-winners")).toContainText(copy.winners);
     await expect(presentations.locator(".research-winners")).toContainText(locale === "en" ? /cash prizes/i : "جوائز نقدية");
-    await expect(page.locator(".research-rubric-magnifier")).toHaveAttribute("aria-hidden", "true");
+    const rubricArt = page.locator(".research-rubric-art");
+    await expect(rubricArt).toHaveAttribute("aria-hidden", "true");
+    await expect(rubricArt.locator("img")).toHaveAttribute("src", "/brand/identity/msrc27-seal-gold-456.webp");
+    await expect(rubricArt.locator("img")).toHaveAttribute("alt", "");
     const eligibility = page.getByRole("region", { name: copy.eligibility });
     const requirements = eligibility.getByRole("listitem");
     await expect(requirements.getByRole("heading", { level: 3 })).toHaveText(copy.eligibilityCards.map(([heading]) => heading));

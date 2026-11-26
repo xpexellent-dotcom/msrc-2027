@@ -73,10 +73,30 @@ export function ResearchCompetitionPage({ locale }: { locale: Locale }) {
       </Container>
     </section>
     <section className="research-section" aria-labelledby="research-guidelines"><Container><SectionHeading id="research-guidelines" title={copy.guidelines} description={copy.guidelinesIntro} /><ol className="research-guidelines">{copy.sections.map(([title, text, range], index) => <li key={title}><span className="research-card-number" aria-hidden="true">{formatIndex(index + 1, locale)}</span><div><h3>{title}</h3><p>{text}</p></div><span className="research-suggested">{range} {copy.suggested}</span></li>)}</ol><aside className="research-word-limit"><p><strong>{copy.wordLimit}</strong></p><p>{copy.headingCount}</p></aside></Container></section>
-    <section className="research-section research-evaluation" aria-labelledby="research-evaluation"><Container><div className="research-rubric-panel">
-      <div className="research-rubric-intro"><span className="research-rubric-magnifier" aria-hidden="true" /><DecorativeNumeral locale={locale} className="research-criteria-count" value={formatIndex(copy.criteria.length, locale)} /><h2 id="research-evaluation">{copy.evaluation}</h2><p>{copy.evaluationIntro}</p></div>
-      <ol className="research-criteria" role="list">{copy.criteria.map(([name, description], index) => <li key={name}><DecorativeNumeral locale={locale} className="research-criterion-number" value={locale === "ar" ? formatIndex(index + 1, locale) : criterionNumerals[index]} /><dl><dt>{name}</dt><dd>{description}</dd></dl></li>)}</ol>
-    </div></Container></section>
+    <section id="research-evaluation" className="research-section research-evaluation" aria-labelledby="research-evaluation-title">
+      <Container>
+        <div className="research-rubric-panel">
+          <header className="research-rubric-intro">
+            <div className="research-rubric-copy">
+              <DecorativeNumeral locale={locale} className="research-criteria-count" value={formatIndex(copy.criteria.length, locale)} />
+              <h2 id="research-evaluation-title">{copy.evaluation}</h2>
+              <p>{copy.evaluationIntro}</p>
+            </div>
+            <div className="research-rubric-art" aria-hidden="true">
+              <Image src="/brand/identity/msrc27-seal-gold-456.webp" alt="" width={456} height={456} unoptimized />
+            </div>
+          </header>
+          <ol className="research-criteria" role="list">
+            {copy.criteria.map(([name, description], index) => (
+              <li key={name}>
+                <DecorativeNumeral locale={locale} className="research-criterion-number" value={locale === "ar" ? formatIndex(index + 1, locale) : criterionNumerals[index]} />
+                <dl><dt>{name}</dt><dd>{description}</dd></dl>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </Container>
+    </section>
     <section data-header-section="dark" className="research-closing" aria-labelledby="research-closing"><FlowLines className="research-closing-lines" /><Container><h2 id="research-closing">{copy.closing}</h2><p>{copy.closingText}</p><div className="research-closing-actions"><AbstractSubmissionCta locale={locale} /><Link href={`/${locale}/contact`} className="research-contact">{copy.contact}</Link></div></Container></section>
   </div>;
 }

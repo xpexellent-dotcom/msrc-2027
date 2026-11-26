@@ -5815,3 +5815,18 @@ Give workshop catalogue cards a larger cover area for future images.
 Use the supplied Workshops illustration as the decorative cover pending
 workshop photography. DSN-01/02, ACC-01, LOC-01/03, TIM-01, CRT-01, WKS-01/02,
 ABS-01, REV-10 and MED-02 apply. See the [sitewide design notes](features/sitewide-brand-refresh.md).
+
+## ORG-080 — Homepage gallery arrival and illustrated evaluation, 26 November 2026
+
+Let visitors see the existing homepage community photograph before the
+gallery photographs fade into view. Tie the reveal to ordinary vertical
+scroll and keep the gallery available to keyboard and touch users.
+Reduced motion and JavaScript-free visits show the full gallery. Give the three
+community statistics a translucent glass treatment with readable type.
+
+The organizer requests a larger, more visual Abstracts evaluation
+section. Use the gold conference seal on page 18 of the supplied Canva
+design and give the seven existing criteria more readable typography.
+This supersedes the decorative magnifier treatment in ORG-079.
+Requirements DSN-01/02, ACC-01, LOC-01/03 and MED-02 apply. See the
+[sitewide design notes](features/sitewide-brand-refresh.md).

@@ -106,6 +106,7 @@
   --highlight-inverse: color-mix(in srgb, var(--color-lilac) 35%, transparent);
   --surface-tile: color-mix(in srgb, var(--color-mist) 55%, var(--color-white));
   --surface-stat: color-mix(in srgb, var(--color-purple) 86%, var(--color-ivory));
+  --surface-stat-glass: linear-gradient(145deg, color-mix(in srgb, var(--color-white) 10%, transparent), transparent 68%), var(--ink-55);
   --mask-opaque: #000;
   --scrim-hero: linear-gradient(to top, rgb(31 25 48 / .9) 0%, rgb(31 25 48 / .72) 40%, rgb(31 25 48 / .55) 72%, rgb(31 25 48 / .6) 100%);
   --scrim-hero-phone: linear-gradient(to top, rgb(31 25 48 / .9) 0%, rgb(31 25 48 / .8) 40%, rgb(31 25 48 / .66) 70%, rgb(31 25 48 / .6) 100%);

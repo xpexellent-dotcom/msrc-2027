@@ -124,3 +124,24 @@ responsive artwork. Twelve scoped axe checks on the new benefits found
 zero violations, including at 280px and 200% text. Four synthetic
 published workshop cases passed locally. Physical devices and screen
 readers remain open.
+
+### Community gallery and evaluation design, 26 November 2026
+
+- ORG-080 ties the gallery fade to vertical scroll, leaving its existing
+  community photo visible on approach. Interacting with the rail shows the
+  photos immediately. Reduced-motion and JavaScript-free visits show the
+  gallery in full. The three history statistics use translucent glass with a
+  strong text contrast and a solid fallback for reduced transparency.
+- The public Abstracts evaluation cover uses the selected gold conference
+  seal. The seven criteria use larger labels and descriptions in a grid that
+  stacks on narrow screens. The evaluation shortcut lands at the full section.
+
+The bilingual Chromium and WebKit checks covered desktop and phone
+gallery opacity, reverse scrolling, native rail input, focus and reduced
+motion. The rubric also passed 16 browser, locale and viewport combinations
+for reflow, artwork decoding and scoped accessibility, including 280px at
+200% text. Venue stepper coverage passed three repeat runs per locale after
+the test began its return from a settled native scroll within capture range.
+The glass cards passed ten browser cases, including high-contrast modes,
+and retained at least 5.04:1 sampled contrast over the treated photograph.
+Physical devices and screen readers remain open.

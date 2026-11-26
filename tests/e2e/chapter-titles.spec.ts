@@ -3,7 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 // ORG-012: chapter titles follow the reader's scroll on phones and desktop. Their state is a
 // function of scroll position alone, so scrolling up and down can never strand a title, and
 // titles never pin or add scroll distance. The film's separate sticky stage is covered by editorial-motion.spec.ts.
-const chapters = ["participate", "program", "speakers", "legacy", "venue", "faq"] as const;
+// The compact Speakers teaser uses a regular heading with separate backdrop motion.
+const chapters = ["participate", "program", "legacy", "venue", "faq"] as const;
 
 async function hydrated(page: Page) {
   await expect(page.locator("[data-countdown]")).toHaveAttribute("data-countdown", "before", { timeout: 15_000 });
@@ -35,6 +36,8 @@ for (const locale of ["en", "ar"] as const) {
     await hydrated(page);
     const height = page.viewportSize()!.height;
     const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+    await expect(page.locator(".chapter-stage")).toHaveCount(chapters.length);
+    await expect(page.locator("#speakers .chapter-stage")).toHaveCount(0);
 
     for (const id of chapters) {
       const start = await title(page, id);

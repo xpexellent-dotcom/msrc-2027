@@ -361,3 +361,11 @@ The footer lazy-loads this rendition and displays it at 112–152 CSS pixels.
   certificate artwork extracted from page 8 of the brand guide.
 - Workshop catalogue covers use the supplied `19-workshops.webp`
   illustration. It is decorative on pending and published cards.
+
+## Gold evaluation seal rendition — 26 November 2026, ORG-080
+
+`public/brand/identity/msrc27-seal-gold-456.webp` is a 456 × 456 lossless
+transparent WebP of the seal selected on page 18 of the supplied Canva
+design. The supplied PDF cover contains the same group at a different
+scale. The isolated rendition preserves the gold lettering, podium,
+ivory lens and downward-left handle. It is decorative on Abstracts.

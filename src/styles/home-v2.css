@@ -276,12 +276,26 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
 .homepage-journey .community-flow .ambient-flow { stroke: var(--lilac-25); }
 .homepage-journey .legacy-film-note { max-inline-size: 46ch; font: 500 var(--t-lead)/1.6 var(--font-body); color: var(--color-lilac); margin-block: calc(-1 * var(--head-gap) + 1.25rem) 0; }
 .homepage-journey .history-numbers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 1rem; margin: 2.5rem 0; padding: 0; }
-.homepage-journey .history-numbers > div { position: relative; display: flex; flex-direction: column; container-type: inline-size; min-inline-size: 0; padding: 1rem; border: 1px solid var(--hair-inverse); border-radius: var(--r-card); background: var(--surface-stat); }
+.homepage-journey .history-numbers > div {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+  min-inline-size: 0;
+  padding: 1rem;
+  border: 1px solid var(--line-lilac-35);
+  border-block-start-color: var(--line-ivory-45);
+  border-radius: var(--r-card);
+  background: var(--surface-stat-glass);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .homepage-journey .history-numbers > div { background: var(--surface-stat); }
+}
 .homepage-journey .history-numbers dd { order: -1; margin: 0 0 .75rem; padding-inline-end: 2.75rem; }
 .homepage-journey .history-count-suffix { font-family: var(--font-interface); font-weight: 700; font-size: .72em; }
 .homepage-journey .history-count { display: block; white-space: nowrap; font: 700 var(--t-stat)/1.05 var(--font-interface); font-variant-numeric: lining-nums tabular-nums; letter-spacing: -.02em; color: var(--color-ivory); }
 [dir="rtl"] .homepage-journey .history-count { text-align: right; }
-.homepage-journey .history-total .history-count { color: var(--color-gold); }
+.homepage-journey .history-total .history-count { color: var(--color-champagne); }
 .homepage-journey .history-count[data-counting="true"] { animation: count-focus 300ms var(--ease-out) backwards; }
 @keyframes count-focus { from { opacity: .35; } to { opacity: 1; } }
 .homepage-journey .history-numbers dt { color: var(--color-ivory); font: 600 var(--t-body)/1.5 var(--font-interface); }
@@ -289,6 +303,9 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
 .homepage-journey .history-numbers .history-icon { position: absolute; inset-block-start: 1rem; inset-inline-end: 1rem; display: inline-flex; inline-size: 40px; block-size: 40px; }
 .homepage-journey .legacy-section .rail-tools > p { color: var(--color-lilac); }
 .homepage-journey .legacy-section .rail-buttons button { background: var(--ink-55); color: var(--color-ivory); border-color: var(--line-lilac-35); }
+@media screen and (prefers-reduced-motion: no-preference) {
+  .homepage-journey .gallery-rail:not(:focus-within) .rail-track { opacity: var(--gallery-arrival, 1); }
+}
 .homepage-journey .gallery-card { inline-size: var(--home-gallery-width); margin: 0; }
 .homepage-journey .gallery-photo { position: relative; aspect-ratio: 16 / 9; overflow: clip; border-radius: var(--r-card); }
 .homepage-journey .gallery-photo img { object-fit: cover; }
@@ -502,6 +519,8 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
   .homepage-journey :is(.flow-ribbon, .ambient-flow, .sparkle, .speaker-atmosphere, .home-speaker-portrait, .community-image, .community-flow, .pathway-photo), .homepage-journey .section-heading::before, .homepage-journey .section-heading::after, .homepage-journey .title-word--accent::after { display: none; }
   .homepage-journey :is(.hero-editorial h1, .closing-grid h2, .title-word--accent) { -webkit-text-fill-color: CanvasText; color: CanvasText; background: none; }
   .homepage-journey .home-speaker-overview:has(.home-speaker-portrait) { grid-template-columns: minmax(0, 1fr); }
+  .homepage-journey .gallery-rail:not(:focus-within) .rail-track { opacity: 1; }
+  .homepage-journey .history-numbers > div { background: Canvas; border-color: CanvasText; }
 }
 @media print {
   .homepage-journey :is(.sponsor-belt, .hero-social, .flow-ribbon, .ambient-flow, .rail-tools, .city-media, .speaker-atmosphere, .pathway-photo, .research-artwork, .home-venue-figure, .gallery-photo, .home-speaker-portrait, .home-speaker-cards .conference-speaker-portrait) { display: none !important; }

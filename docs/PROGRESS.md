@@ -1,5 +1,15 @@
 # Progress and session handover
 
+## 26 November 2026 — Homepage gallery reveal and Abstracts evaluation
+
+- ORG-080 lets the homepage community photograph read before the gallery
+  fades in with vertical scroll. The rail remains usable with the keyboard,
+  touch and reduced motion. The three statistics use translucent glass with
+  high-contrast text.
+- The Abstracts evaluation section uses the selected gold conference
+  seal, a larger introduction and more readable typography for all seven
+  criteria. See the [sitewide design notes](features/sitewide-brand-refresh.md).
+
 ## 26 November 2026 — Attend, abstracts and workshop design review
 
 - ORG-079 replaces the illustrative CME count with an hourglass and

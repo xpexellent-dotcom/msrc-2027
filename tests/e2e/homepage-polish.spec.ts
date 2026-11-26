@@ -94,6 +94,44 @@ for (const locale of ["en", "ar"] as const) {
     }
     await expect(next).toBeDisabled();
   });
+
+  test(`${locale} Legacy photos follow scroll and become immediately visible on gallery focus`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`/${locale}`);
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator("html")).toHaveAttribute("data-scenes", "on");
+    const gallery = page.locator(".gallery-rail");
+    const track = gallery.locator(".rail-track");
+    const background = page.locator(".community-image img");
+    const scrollGalleryTo = (fraction: number) => track.evaluate((element, fraction) => {
+      window.scrollBy({ top: element.getBoundingClientRect().top - window.innerHeight * fraction, behavior: "instant" });
+    }, fraction);
+
+    await scrollGalleryTo(.84);
+    await expect(track).toHaveCSS("opacity", "0");
+    await expect.poll(() => background.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+    await expect(gallery.getByRole("button").last()).toBeVisible();
+
+    await scrollGalleryTo(.64);
+    const opacity = () => track.evaluate((element) => Number(getComputedStyle(element).opacity));
+    await expect.poll(opacity).toBeGreaterThan(0);
+    await expect.poll(opacity).toBeLessThan(1);
+
+    await scrollGalleryTo(.38);
+    await expect(track).toHaveCSS("opacity", "1");
+    await scrollGalleryTo(.84);
+    await expect(track).toHaveCSS("opacity", "0");
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(track).toHaveCSS("opacity", "1");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await expect(track).toHaveCSS("opacity", "0");
+
+    await gallery.getByRole("button").last().evaluate((button) => (button as HTMLButtonElement).focus({ preventScroll: true }));
+    await expect(track).toHaveCSS("opacity", "1");
+    await gallery.getByRole("button").last().evaluate((button) => (button as HTMLButtonElement).blur());
+    await expect(track).toHaveCSS("opacity", "1");
+  });
   for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 1440, height: 900 }]) {
     for (const motion of ["reduce", "no-preference"] as const) {
       test(`${locale} homepage ${viewport.width} ${motion}: compact cards, one-item rail and film controls`, async ({ page }, testInfo) => {
