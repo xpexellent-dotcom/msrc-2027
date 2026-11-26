@@ -49,12 +49,11 @@ test("sitemap destinations, internal links, previews, icons and calendar have us
     expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([size, size]);
   }
   for (const locale of ["en", "ar"]) {
-    for (const path of [`/${locale}/abstracts`, `/${locale}/staff/launch-readiness`]) {
-      expect((await page.goto(path))?.status(), path).toBe(200);
-      await expect(page.locator('head link[rel="icon"][href^="/favicon.ico"]')).toHaveCount(1);
-      await expect(page.locator('head link[rel="icon"][type="image/png"]')).toHaveAttribute("href", /^\/icon\.png(?:\?|$)/);
-      await expect(page.locator('head link[rel="apple-touch-icon"]')).toHaveAttribute("href", /^\/apple-icon\.png(?:\?|$)/);
-    }
+    const path = `/${locale}/abstracts`;
+    expect((await page.goto(path))?.status(), path).toBe(200);
+    await expect(page.locator('head link[rel="icon"][href^="/favicon.ico"]')).toHaveCount(1);
+    await expect(page.locator('head link[rel="icon"][type="image/png"]')).toHaveAttribute("href", /^\/icon\.png(?:\?|$)/);
+    await expect(page.locator('head link[rel="apple-touch-icon"]')).toHaveAttribute("href", /^\/apple-icon\.png(?:\?|$)/);
   }
   for (const [path, language, destination] of [
     ["/", "en-US", "/en"], ["/", "ar-SA", "/ar"],

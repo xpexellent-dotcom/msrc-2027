@@ -81,6 +81,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.locator(".site-header, .site-footer")).toHaveCount(0);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    await expect(page.locator('head link[rel="icon"][type="image/png"]')).toHaveAttribute("href", /^\/icon\.png(?:\?|$)/);
     await axe(page); await screenshot(page, `${locale}-sign-in`, testInfo.project.name);
     await page.getByLabel(copy.email).fill("staff@example.invalid");
     await page.getByLabel(copy.password).fill("Synthetic password only");
