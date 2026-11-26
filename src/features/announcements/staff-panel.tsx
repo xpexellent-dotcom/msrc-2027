@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { EmailMessagePreview } from "@/components/staff/email-message-preview";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
 import { formatStaffDate, formatStaffNumber } from "@/features/staff-portal/console-shell";
@@ -36,16 +36,21 @@ function LayoutConfirmation({ locale, approved, busy, error, onClose, onConfirm 
   </dialog>;
 }
 
-/** Same structured preview frame as the existing email previews; authored text is React-escaped. */
+function announcementMessage(subject: string, body: string) {
+  const paragraphs = body.replace(/\r\n?/g, "\n").split(/\n[\t ]*\n/).filter((paragraph) => paragraph.trim());
+  return <><p>{subject}</p>
+    {paragraphs.map((paragraph, index) => <p className="staff-announcement-paragraph" key={index}>{paragraph}</p>)}
+  </>;
+}
+
 function LiveEmail({ locale, fields, rendered }: { locale: Locale; fields: AnnouncementFields; rendered?: AnnouncementResponse["rendered"] }) {
   const text = announcementCopy[locale];
   return <section className="staff-panel staff-email-preview" aria-labelledby="announcement-email-preview"><h3 id="announcement-email-preview">{text.previewEmail}</h3><p className="staff-muted">{text.previewHint}</p>
-    <div className="staff-email-message" data-testid="announcement-email-preview">
-      <Image src="/brand/email-banner.png" alt="MSRC 2027" width={600} height={338} unoptimized className="staff-email-banner" />
-      <div className="staff-email-message-body">{(["en", "ar"] as const).map((language, index) => <div key={language}>{index ? <hr /> : null}<div lang={language} dir={language === "ar" ? "rtl" : "ltr"} className={language === "ar" ? "staff-email-arabic" : undefined}>
-        <p><strong>{fields[language === "ar" ? "subjectAr" : "subjectEn"]}</strong></p>{fields[language === "ar" ? "bodyAr" : "bodyEn"].replace(/\r\n?/g, "\n").split(/\n[\t ]*\n/).map((paragraph, n) => <p className="staff-announcement-paragraph" key={n}>{paragraph}</p>)}
-      </div></div>)}</div>
-    </div>
+    <EmailMessagePreview
+      testId="announcement-email-preview"
+      english={announcementMessage(fields.subjectEn, fields.bodyEn)}
+      arabic={announcementMessage(fields.subjectAr, fields.bodyAr)}
+    />
     {rendered ? <><details className="staff-history"><summary>{text.previewText}</summary><pre dir="ltr" className="staff-email-text">{rendered.text}</pre></details><details className="staff-history"><summary>{text.previewSource}</summary><pre dir="ltr" lang="en" className="staff-email-text staff-email-source"><code>{rendered.html}</code></pre></details></> : <p className="staff-muted">{text.renderPending}</p>}
   </section>;
 }

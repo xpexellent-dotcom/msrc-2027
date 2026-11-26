@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { StaffSecurityPreview } from "@/features/auth/staff-security-preview";
 import { isAuthPreviewAllowed } from "@/lib/auth-preview.server";
 import { isLocale } from "@/lib/i18n";
+import "@/styles/email-message-preview.css";
 import "@/styles/staff-security-preview.css";
 
 export const dynamic = "force-dynamic";

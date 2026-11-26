@@ -42,7 +42,7 @@ async function axe(page: Page) {
 
 for (const locale of ["en", "ar"] as const) {
   const copy = emailPreviewsCopy[locale];
-  test(`${locale} email previews show draft bilingual messages with the banner and copy exact plain text by keyboard`, async ({ page }, testInfo) => {
+  test(`${locale} email previews show the current seal and bilingual drafts and copy exact plain text by keyboard`, async ({ page }, testInfo) => {
     const mock = await fixture(page);
     await page.goto(`/${locale}/staff/email-previews`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(staffCopy[locale].areas["email-previews"]);
@@ -60,14 +60,17 @@ for (const locale of ["en", "ar"] as const) {
       await expect(arabic).toHaveAttribute("lang", "ar"); await expect(arabic).toHaveAttribute("dir", "rtl");
       await expect(english.locator("p")).toHaveText(previews[index].englishText.split("\n\n"));
       await expect(arabic.locator("p")).toHaveText(previews[index].arabicText.split("\n\n"));
-      const banner = card.getByRole("img", { name: previews[index].banner.alt, exact: true });
-      await expect(banner).toHaveAttribute("src", "/brand/email-banner.png");
-      await banner.scrollIntoViewIfNeeded();
-      await expect.poll(() => banner.evaluate((node) => (node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
-      expect(await banner.evaluate((node) => {
+      const brand = card.locator(".staff-email-brand");
+      const logo = brand.locator("img");
+      await expect(brand).toHaveCSS("direction", "ltr");
+      await expect(brand.getByText("MSRC’27", { exact: true })).toBeVisible();
+      await expect(logo).toHaveAttribute("src", "/brand/identity/msrc27-seal-dark-192.png");
+      await expect(logo).toHaveAttribute("alt", "");
+      await logo.scrollIntoViewIfNeeded();
+      await expect.poll(() => logo.evaluate((node) => {
         const image = node as HTMLImageElement;
-        return { width: image.naturalWidth, height: image.naturalHeight, alt: image.alt };
-      })).toEqual({ width: 600, height: 338, alt: "MSRC 2027" });
+        return { width: image.naturalWidth, height: image.naturalHeight };
+      })).toEqual({ width: 192, height: 192 });
       await card.getByRole("button").focus(); await page.keyboard.press("Enter");
       await expect(card.getByRole("status")).toHaveText(copy.copied);
       await card.getByText(copy.html, { exact: true }).click();
@@ -119,6 +122,16 @@ for (const locale of ["en", "ar"] as const) {
     await page.evaluate(async () => { await document.fonts.ready; });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
     const card = page.getByTestId("email-preview").first();
+    const brand = card.locator(".staff-email-brand");
+    const messageBounds = (await card.getByTestId("email-preview-message").boundingBox())!;
+    const brandBounds = (await brand.boundingBox())!;
+    expect(brandBounds.x).toBeGreaterThanOrEqual(messageBounds.x);
+    expect(brandBounds.x + brandBounds.width).toBeLessThanOrEqual(messageBounds.x + messageBounds.width);
+    for (const element of [brand.locator("img"), brand.getByText("MSRC’27", { exact: true })]) {
+      const bounds = (await element.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(brandBounds.x);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(brandBounds.x + brandBounds.width);
+    }
     await card.getByRole("button").focus(); await page.keyboard.press("Enter");
     await expect(card.getByRole("status")).toHaveText(copy.copied);
     await card.getByText(copy.html, { exact: true }).click();

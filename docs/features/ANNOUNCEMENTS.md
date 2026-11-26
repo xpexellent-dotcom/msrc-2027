@@ -13,9 +13,10 @@ they know a route or function name. Staff chrome is English/Arabic with RTL.
 The author supplies an English subject/body and Arabic subject/body. These are
 plain text with paragraphs, never raw HTML. The technical limits are 90 UTF-16
 units per subject and 3,500 per body, fitting the existing 64 KiB provider snapshot.
-There is no automatic translation. The shared renderer escapes content and uses
-the ORG-062 plain branded PLACEHOLDER banner, complete English, a divider, then complete
-Arabic with RTL. The live staff email frame previews this same renderer.
+The shared renderer escapes all content and renders English, a divider and then
+Arabic with RTL. Under ORG-087, the live staff preview and its HTML source show
+the current MSRC seal and wordmark as a draft layout for review. Tests and
+audience email use the existing ORG-062 delivery layout and its banner.
 
 ## Private layout approval
 

@@ -2,7 +2,7 @@ export const emailPreviewsCopy = {
   en: {
     synthetic: "SYNTHETIC examples",
     draft: "DRAFT — awaiting owner approval. Delivery is off.",
-    intro: "These participant email previews use fixed sample data and the same templates as the email outbox. Each message has a brand banner, English first and Arabic below.",
+    intro: "Review the updated MSRC email design with fixed samples from the participant templates. Each message shows English first, followed by Arabic.",
     sample: "The recipient, abstract reference, instructions and deadlines are synthetic examples. Every bilingual template is DRAFT pending owner approval.",
     recipient: "Sample recipient", subject: "Subject", rendered: "Message preview", text: "Plain text", html: "HTML source (escaped)",
     copy: "Copy text", copied: "Text copied.", copyFailed: "Copy was unavailable. Select the plain text and copy it manually.",
@@ -11,7 +11,7 @@ export const emailPreviewsCopy = {
   ar: {
     synthetic: "أمثلة تجريبية (SYNTHETIC)",
     draft: "مسودة — بانتظار اعتماد المالك. الإرسال متوقف.",
-    intro: "تستخدم معاينات رسائل المشاركين بيانات نموذجية ثابتة والقوالب نفسها المستخدمة في قائمة إرسال الرسائل. تتضمن كل رسالة صورة للهوية البصرية، ثم النص الإنجليزي، وتحته الترجمة العربية.",
+    intro: "راجع التصميم المحدّث لبريد المؤتمر باستخدام أمثلة ثابتة من قوالب رسائل المشاركين. يظهر النص الإنجليزي أولًا، ثم الترجمة العربية.",
     sample: "المستلم ومرجع الملخص والتعليمات والمواعيد النهائية أمثلة تجريبية. جميع القوالب الثنائية اللغة مسودات بانتظار اعتماد المالك.",
     recipient: "مستلم تجريبي", subject: "الموضوع", rendered: "معاينة الرسالة", text: "النص العادي", html: "مصدر HTML (معروض كنص)",
     copy: "نسخ النص", copied: "تم نسخ النص.", copyFailed: "تعذّر النسخ. حدّد النص العادي وانسخه يدويًا.",

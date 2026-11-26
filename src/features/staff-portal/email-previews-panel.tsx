@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { EmailMessagePreview } from "@/components/staff/email-message-preview";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/lib/i18n";
 import { emailPreviewsCopy } from "./email-previews-copy";
@@ -31,14 +31,10 @@ function EmailPreview({ locale, preview }: { locale: Locale; preview: StaffEmail
     <p>{copy.recipient}: <bdi>{preview.recipient}</bdi></p>
     <h3>{copy.subject}</h3><p dir="ltr" data-testid="email-preview-subject"><BilingualSubject value={preview.subject} /></p>
     <h3>{copy.rendered}</h3>
-    <div className="staff-email-message" data-testid="email-preview-message">
-      <Image src="/brand/email-banner.png" alt={preview.banner.alt} width={preview.banner.width} height={preview.banner.height} unoptimized className="staff-email-banner" />
-      <div className="staff-email-message-body">
-        <div lang="en" dir="ltr" data-testid="email-message-english">{preview.englishText.split("\n\n").map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
-        <hr />
-        <div lang="ar" dir="rtl" className="staff-email-arabic" data-testid="email-message-arabic">{preview.arabicText.split("\n\n").map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
-      </div>
-    </div>
+    <EmailMessagePreview testId="email-preview-message"
+      english={preview.englishText.split("\n\n").map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+      arabic={preview.arabicText.split("\n\n").map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+    />
     <h3>{copy.text}</h3><pre dir="ltr" className="staff-email-text" data-testid="email-preview-text"><span lang="en" dir="ltr">{englishPlainText}</span>{"\n\n---\n\n"}<span lang="ar" dir="rtl" className="staff-email-arabic">{arabicPlainText}</span></pre>
     {preview.html ? <details className="staff-history"><summary>{copy.html}</summary><pre lang="en" dir="ltr" className="staff-email-text staff-email-source" data-testid="email-preview-html"><code>{preview.html}</code></pre></details> : null}
     <p className="staff-email-copy-status" role="status" aria-live="polite">{outcome ? copy[outcome] : ""}</p>

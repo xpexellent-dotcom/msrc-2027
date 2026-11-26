@@ -7,25 +7,25 @@ original English wording of the first six templates; that approval does not
 approve the added translations or bilingual presentation. The two ENG-064
 confirm-your-seat messages remain drafts in both languages.
 
-HTML starts with the ORG-062 **PLACEHOLDER** plain branded banner,
+The existing delivery HTML uses the ORG-062 **PLACEHOLDER** plain branded banner,
 `public/brand/email-banner.png` (600 × 338px). It uses the deep purple and gold
 from `src/styles/tokens.css`, with “MSRC 2027” and
 “Medical Students Research Conference”; no photograph, people or invented logo.
-Rebuild with `node scripts/build-email-banner.mjs`. The official banner can
-later replace this one PNG without changing email renderers.
+Rebuild that asset with `node scripts/build-email-banner.mjs`. Existing
+provider requests reference this URL.
 The banner URL is `https://www.msrc2027.com/brand/email-banner.png`, with English
 alt text `MSRC 2027` and a maximum display
 width of 600px. Its use in this email composition awaits owner approval with
 the translation. The complete English message is followed by a divider and
 the complete Arabic message in a `dir="rtl" lang="ar"`
-block with a local Arabic font stack. Plain text starts with the banner's alt
-text and absolute URL, then repeats both complete messages and the divider.
+block with a local Arabic font stack. Current plain text starts with the English
+message body, then includes the divider and Arabic message.
 Subjects use `English subject | Arabic subject`. No tracking pixel, remote font,
 attachment or QR credential is included. Sign-in remains necessary to see a ticket.
 
-Facts come from the existing published site configuration: the name from
-`homepageCopy.en.kicker`, the 27–28 January 2027 dates from `conferenceConfig`,
-the support address and sender from `contactConfig`, and `siteOrigin` for links.
+The renderer uses the name from `homepageCopy.en.kicker`, dates from
+`conferenceConfig`, the support address and sender from `contactConfig`, and
+`siteOrigin` for links. ORG-075 sets the current dates to 7–8 April 2027.
 No prices, capacities, room times or new legal wording are introduced.
 The sender is the incumbent `MSRC 2027 <no-reply@msrc2027.com>`; sender verification,
 monitored reply handling and inbox delivery remain release checks, not claims
@@ -40,8 +40,9 @@ are rendered in both languages with Arabic month names and Riyadh time in Arabic
 never recalculates or extends them. The synthetic instant
 `2026-11-19T17:00:00+00:00` is 20:00 Riyadh time on 19 November 2026.
 
-The previews below are exact synthetic renderer output, not live participant messages.
-Their sample offer/confirmation deadlines are fixtures, not operational settings.
+The excerpts below record the original October 2026 draft. See Staff email
+previews below for current design and wording. The offer and confirmation
+deadlines shown in examples are synthetic fixtures.
 
 ## DRAFT — Seat request received
 
@@ -431,19 +432,27 @@ handle overlapping cron invocations; cron execution alone is not proof that
 any email was delivered.
 [Vercel cron authentication and behavior](https://vercel.com/docs/cron-jobs/manage-cron-jobs).
 
-## Staff email previews (ENG-057/066)
+## Staff email previews (ENG-057/066, ORG-087)
 
 The Super Admin-only EN/AR staff area at `/[locale]/staff/email-previews` shows
-all eight registration templates and all three abstract decision outcomes through
-the same server-side outbox renderer. Every bilingual composition is labeled
+all eight registration templates and all three abstract decision outcomes using
+the outbox wording and validation. Every bilingual composition is labeled
 DRAFT pending owner approval; [ABSTRACT_REVIEW](ABSTRACT_REVIEW.md) contains the
 three complete abstract preview texts.
 Recipient `sample@example.invalid` and the offer deadline are fixed SYNTHETIC
 examples; no recipient, deadline, or payload can be supplied by the browser.
 Email content shows English followed by Arabic in both staff interface locales;
-page controls and notices support EN/AR/RTL. The banner and formatted bilingual
-HTML are previewable alongside the subject, plain text and escaped HTML source.
+page controls and notices support EN/AR/RTL. The refreshed design uses the
+official MSRC seal and live MSRC’27 wordmark in the visual preview and escaped
+HTML source. The HTML references the site-hosted PNG through an absolute HTTPS
+URL. The plain text starts with the bilingual message body.
 Copy controls retain a manual-copy message if clipboard access is refused.
+
+The protected review deployment for `codex/email-preview-brand-refresh`
+serves the same 11 synthetic samples at `/[locale]/staff/email-preview-review`.
+Open it on the exact Vercel deployment hostname with Vercel project access.
+The review page has its own language switch and uses the catalogue component
+outside the operational staff layout.
 
 The page and its GET area independently reuse existing staff authority; the GET
 requires a Super Admin role and completed exact-session TOTP before rendering.

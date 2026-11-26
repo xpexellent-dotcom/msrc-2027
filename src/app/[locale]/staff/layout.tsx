@@ -5,6 +5,7 @@ import { getStaffConfig } from "@/features/staff-portal/config.server";
 import { staffCopy } from "@/features/staff-portal/copy";
 import "@/styles/staff-portal.css";
 import "@/styles/staff-console.css";
+import "@/styles/email-message-preview.css";
 import "@/styles/staff-media.css";
 import "@/styles/staff-content.css";
 import "@/styles/staff-research.css";

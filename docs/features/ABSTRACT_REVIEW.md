@@ -198,18 +198,14 @@ the committee must prepare a new decision against the current review basis.
 ## DRAFT bilingual decision template
 
 Registry: `abstract_decision`, version 1, **DRAFT — owner approval pending**.
-ORG-059/ENG-067 adds a banner and complete Arabic translation below the complete
-English message for each accepted, not-accepted and revision outcome. The
-English meaning is preserved. Subjects use `English subject | Arabic subject`;
-HTML separates its language blocks with a divider and gives Arabic `dir="rtl"`
-and `lang="ar"` with the local Arabic font stack. Plain text includes the banner
-alt text and absolute URL, English, a divider and Arabic. The image is the
-600 × 338px resize of the approved previous-edition homepage still
-`public/media/msrc2026/poster-desktop-v1.jpg` (MEDIA_REGISTER §9), served from
-`https://www.msrc2027.com/brand/email-banner.png`. Its English alt text is
-`MSRC 2026 conference audience — previous edition`; email placement awaits owner
-approval with the composition. There are no tracking
-pixels, remote fonts, new artwork or delivery claims.
+ORG-059/ENG-067 adds complete Arabic below the English message for each decision
+outcome. Subjects use `English subject | Arabic subject`. The HTML separates its
+language blocks with a divider and gives Arabic `dir="rtl"`, `lang="ar"` and a
+local Arabic font stack. Current plain text starts with the English body.
+ORG-087 applies the official MSRC seal and live MSRC’27 wordmark to the [staff
+previews](REGISTRATION_EMAILS.md#staff-email-previews-eng-057066-org-087). The
+existing delivery layout uses the ORG-062 placeholder. Both layouts use local
+font stacks and a site-hosted image.
 
 Publication still queues held jobs in the existing transactional outbox. The
 SQL claim path excludes held jobs, and the worker independently refuses this
@@ -251,9 +247,9 @@ screens retain their English/LTR policy.
 
 ## Synthetic bilingual decision previews
 
-These exact renderer fixtures use `SYNTHETIC-ABSTRACT-001` and
+These October 2026 draft excerpts use `SYNTHETIC-ABSTRACT-001` and
 `sample@example.invalid`. The revision deadline and paired instructions are
-fixed synthetic examples, not live decisions, policy or configured workflow dates.
+fixed synthetic examples. The staff catalogue has the current rendered drafts.
 
 ### DRAFT — Accepted
 

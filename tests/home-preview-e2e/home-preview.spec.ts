@@ -59,15 +59,16 @@ for (const locale of ["en", "ar"] as const) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   });
 
-  test(`${locale} preview social placeholders are visible and add no keyboard stop`, async ({ page }) => {
+  test(`${locale} preview social row has one keyboard stop and three visible pending icons`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 844 });
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(`/${locale}`);
     await page.evaluate(() => document.fonts.ready);
     const social = page.locator("ul.hero-social");
-    await expect(social).toHaveAttribute("aria-hidden", "true");
-    await expect(social.locator("span.social-item--placeholder")).toHaveCount(4);
-    await expect(social.locator("a")).toHaveCount(0);
+    const live = social.getByRole("link", { name: "X", exact: true });
+    await expect(live).toHaveAttribute("href", "https://x.com/Research__PC");
+    await expect(social.locator("span.social-item--placeholder")).toHaveCount(3);
+    await expect(social.locator("a, button, [tabindex='0']")).toHaveCount(1);
     await expect(social.locator(".social-soon > span")).toHaveText(locale === "en" ? "Soon" : "\u0642\u0631\u064a\u0628\u064b\u0627");
     expect(await social.locator("span.social-item--placeholder").evaluateAll((elements) => elements.every((element) => (element as HTMLElement).tabIndex === -1))).toBe(true);
     const edge = await page.locator(".hero-actions a").last().boundingBox();
@@ -77,10 +78,12 @@ for (const locale of ["en", "ar"] as const) {
     expect(Math.abs(locale === "ar" ? socialBox!.x + socialBox!.width - edge!.x - edge!.width : socialBox!.x - edge!.x)).toBeLessThanOrEqual(1);
     await page.locator(".hero-actions a").last().focus();
     await page.keyboard.press("Tab");
+    await expect(live).toBeFocused();
+    await page.keyboard.press("Tab");
     await expect(page.locator(".pathway-action").first()).toBeFocused();
   });
 
-  test(`${locale} preview decorative regions remain accessible`, async ({ page }) => {
+  test(`${locale} preview belt and social row remain accessible`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}`);
     await page.evaluate(() => document.fonts.ready);

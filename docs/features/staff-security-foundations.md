@@ -16,7 +16,8 @@ Branch `codex/email-authenticator-no-sms` disables Vercel Git deployment. Enable
 
 Password login is simulated. Default email codes appear in an ephemeral test inbox at
 issuance; optional private Windows test delivery hides codes from UI/API and sends only
-to the approved self-recipient. Super Admin enrollment returns transient QR/manual setup
+to the approved self-recipient. ORG-087 gives the synthetic inbox message the same
+MSRC seal and live wordmark as the other draft previews. Super Admin enrollment returns transient QR/manual setup
 once; status/refresh never repeat it. Successful verification/terminal states clear
 setup/codes; reload loses setup and requires enrollment restart. Secrets/codes never
 enter logs, browser storage or audit. No live account is created.

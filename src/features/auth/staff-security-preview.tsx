@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { EmailMessagePreview } from "@/components/staff/email-message-preview";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { FormField } from "@/components/forms/form-field";
@@ -98,9 +99,11 @@ function SyntheticMessage({ message, locale }: { message: TestMessage; locale: L
     <section className="staff-security-test-message" aria-labelledby={`test-message-${message.channel}`}>
       <h3 id={`test-message-${message.channel}`}>{text.emailMessage}</h3>
       <p>{text.messageDelivery} · {text.emailDestination} <bdi dir="ltr" data-testid={`synthetic-${message.channel}-destination`}>{message.destination.replace(/^Synthetic email\s+/, "")}</bdi></p>
-      <p dir="ltr" lang="en" data-testid="synthetic-email-body">Use this one-time code to complete your MSRC 2027 verification. If you did not request it, do not share or use the code.</p>
-      <label htmlFor={`synthetic-${message.channel}-code`}>{text.messageCode}</label>
-      <output id={`synthetic-${message.channel}-code`} data-testid={`synthetic-${message.channel}-code`} className="staff-security-test-code" dir="ltr" lang="en">{message.code}</output>
+      <EmailMessagePreview testId="synthetic-email-preview" english={<>
+        <p dir="ltr" lang="en" data-testid="synthetic-email-body">Use this one-time code to complete your MSRC 2027 verification. If you did not request it, do not share or use the code.</p>
+        <label htmlFor={`synthetic-${message.channel}-code`} lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>{text.messageCode}</label>
+        <output id={`synthetic-${message.channel}-code`} data-testid={`synthetic-${message.channel}-code`} className="staff-security-test-code" dir="ltr" lang="en">{message.code}</output>
+      </>} />
       <p>{text.messageExpiry}: <time dateTime={new Date(message.expiresAt).toISOString()}>{formatExpiry(message.expiresAt, locale)}</time></p>
     </section>
   );

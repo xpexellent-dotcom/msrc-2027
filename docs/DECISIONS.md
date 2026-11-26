@@ -5371,6 +5371,20 @@ year badges under ORG-071 / ENG-093. No operational workflow is opened.
 Designer/engineering interpretations and unresolved owner questions belong in
 ENG-094 below; they do not establish additional owner approvals.
 
+## ORG-086 — Homepage social accounts and sponsor belt, 26 November 2026
+
+The organizer supplied `https://x.com/Research__PC` for the homepage X
+icon and approved showing LinkedIn, Instagram and TikTok with a “Soon”
+label on the public homepage while their official URLs are pending.
+Pending icons present a localized status without links.
+
+The organizer directed that the public sponsor belt stay hidden for now.
+Use only names and logos approved for homepage display when they are
+supplied. This supersedes the social placeholder restriction in ORG-072.
+The illustrative sponsor belt remains available in preview only.
+Requirements: SCP-02, DSN-01/02, LOC-01/03, ACC-01, SPN-01, CMS-04,
+CFG-12 and REL-01/06.
+
 ## ENG-094 — Homepage v2 implementation, 4 November 2026
 
 Implements ORG-072; supersedes ENG-093's immersive deck and presentation rules.
@@ -5875,3 +5889,24 @@ DSN-01/02, ACC-01, LOC-01/03, REL-01 and REL-06 apply.
 The organizer selected the supplied Canva Research Principles Club seal
 for the browser tab icon. Use this mark on the shared public and portal
 icon resources and the home-screen shortcut. DSN-01/02 and CFG-12 apply.
+
+## ORG-087 — Update the staff email design previews, 26 November 2026
+
+The organizer asked to update all email previews to the current design and logo
+standard. The registration and abstract catalogue, the Announcements composer
+and the local synthetic verification inbox all use the ORG-073 conference seal,
+live MSRC’27 wordmark and current purple, ivory and champagne palette. The
+catalogue and composer keep the English-first bilingual reading order and
+Arabic RTL under ORG-059. The synthetic inbox retains its English test message.
+
+This review uses the existing message wording. The outbox and announcement
+self-tests continue to use the current delivery layout under ORG-059/063.
+Existing layout approvals and frozen provider requests stay in effect. The
+composer identifies the design as a draft for review. EML-04, DSN-02, CFG-12,
+LOC-01/03 and ACC-01 apply.
+
+The organizer requested a combined PR and a Vercel review link. Carry the
+homepage work from ORG-086 and the recent main changes into the review build.
+On the protected branch Preview, the staff email review page reuses the
+catalogue with its 11 fixed synthetic messages. The staff portal's ordinary
+sign-in and authorization rules still govern the operational portal.

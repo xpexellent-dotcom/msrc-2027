@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { expect, test, type Page } from "../helpers/csp";
+import { brandLogo } from "../../src/content/brand-identity";
 import { announcementCopy } from "../../src/features/announcements/staff-copy";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import type { Announcement, AnnouncementPayload } from "../../src/features/announcements/contracts";
@@ -57,7 +58,14 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#announcement-body-ar")).toHaveAttribute("dir", "rtl");
     await page.locator("#announcement-body-en").fill("Updated English paragraph.\n\nAn English translation pair.");
     await expect(page.getByRole("button", { name: text.preview, exact: true })).toBeDisabled();
-    await expect(page.getByTestId("announcement-email-preview")).toContainText("Updated English paragraph.");
+    await expect(page.getByRole("heading", { name: text.previewEmail })).toBeVisible();
+    await expect(page.getByText(text.previewHint, { exact: true })).toBeVisible();
+    const email = page.getByTestId("announcement-email-preview");
+    await expect(email.getByTestId("email-message-english")).toContainText("Updated English paragraph.");
+    await expect(email.getByTestId("email-message-arabic")).toHaveAttribute("dir", "rtl");
+    await expect(email.locator("img")).toHaveAttribute("src", brandLogo.onPurple);
+    await email.locator("img").scrollIntoViewIfNeeded();
+    await expect.poll(() => email.locator("img").evaluate((node) => (node as HTMLImageElement).naturalWidth)).toBe(brandLogo.width);
     await page.getByRole("button", { name: text.save, exact: true }).click(); await expect(page.getByRole("status").filter({ hasText: text.saved })).toBeVisible();
     await axe(page); await mkdir(".tools/announcements", { recursive: true }); await page.screenshot({ path: `.tools/announcements/staff-${locale}-${testInfo.project.name}-compose.png`, fullPage: true });
     await page.getByRole("button", { name: text.preview, exact: true }).click();

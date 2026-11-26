@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expectHeaderSettled } from "../helpers/header";
 import { createHmac } from "node:crypto";
 import { expect, test, type Page } from "../helpers/csp";
+import { brandLogo } from "../../src/content/brand-identity";
 import { staffSecurityCopy } from "../../src/features/auth/staff-security-copy";
 import { languageLink } from "./helpers/header-navigation";
 
@@ -43,6 +44,18 @@ async function inboxCode(page: Page, channel: "email") {
   const code = (await output.textContent())?.trim() ?? "";
   expect(/^\d{6}$/.test(code)).toBe(true);
   return code;
+}
+async function expectBrandedInbox(page: Page, locale: "en" | "ar") {
+  const preview = page.getByTestId("synthetic-email-preview");
+  const seal = preview.locator("img");
+  await expect(seal).toHaveAttribute("src", brandLogo.onPurple);
+  await seal.scrollIntoViewIfNeeded();
+  await expect.poll(() => seal.evaluate((node) => (node as HTMLImageElement).naturalWidth)).toBe(brandLogo.width);
+  await expect(preview.getByText("MSRC’27", { exact: true })).toBeVisible();
+  await expect(preview.getByTestId("synthetic-email-body")).toHaveAttribute("lang", "en");
+  await expect(preview.getByTestId("synthetic-email-body")).toHaveAttribute("dir", "ltr");
+  await expect(preview.getByTestId("email-message-arabic")).toHaveCount(0);
+  await expect(preview.getByText(staffSecurityCopy[locale].messageCode, { exact: true })).toHaveAttribute("lang", locale);
 }
 function wrongCode(code: string) { return code === "000000" ? "000001" : "000000"; }
 
@@ -158,6 +171,7 @@ for (const locale of ["en", "ar"] as const) {
     const field = page.locator("#staff-email-code"); await expect(field).toBeFocused();
     await expect(field).toHaveAttribute("autocomplete", "one-time-code"); await expect(field).toHaveAttribute("dir", "ltr");
     await expect(page.getByTestId("synthetic-inbox")).toHaveCount(0);
+    await expect(page.getByTestId("synthetic-email-preview")).toHaveCount(0);
     await expect(page.getByTestId("synthetic-email-code")).toHaveCount(0);
     await expect(page.getByTestId("isolated-email-delivery")).toContainText(staffSecurityCopy[locale].isolatedEmailSent);
     expect(deliveredCode.length === 6 && !(await page.locator("body").innerText()).includes(deliveredCode)).toBe(true);
@@ -192,8 +206,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(field).toBeFocused();
     await expect(field).toHaveAttribute("autocomplete", "one-time-code");
     await expect(field).toHaveAttribute("dir", "ltr");
-    await expect(page.getByTestId("synthetic-email-body")).toHaveAttribute("lang", "en");
-    await expect(page.getByTestId("synthetic-email-body")).toHaveAttribute("dir", "ltr");
+    await expectBrandedInbox(page, locale);
     await expect(page.getByRole("button", { name: copy.emailChallenge, exact: true })).toBeDisabled();
     await expect(page.getByTestId("email-resend-wait")).toBeVisible();
     const sent = (await api(page, "status")).view;
@@ -362,6 +375,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("auth-error")).toHaveText(copy.accountRequired);
     await page.getByRole("button", { name: copy.emailChallenge, exact: true }).click();
     const oldCode = await inboxCode(page, "email");
+    await expectBrandedInbox(page, locale);
     await page.getByRole("button", { name: copy.emailChallenge, exact: true }).click();
     await expect.poll(async () => await inboxCode(page, "email") !== oldCode).toBe(true);
     const currentCode = await inboxCode(page, "email");
