@@ -369,3 +369,11 @@ transparent WebP of the seal selected on page 18 of the supplied Canva
 design. The supplied PDF cover contains the same group at a different
 scale. The isolated rendition preserves the gold lettering, podium,
 ivory lens and downward-left handle. It is decorative on Abstracts.
+
+## Research Principles Club app icons — 26 November 2026, ORG-085
+
+The favicon, manifest icon and Apple touch icon use the same Canva gold
+seal. The browser favicon includes 16, 32 and 48 pixel transparent
+renditions. The 192 pixel PNG retains the transparent background. The
+180 pixel Apple icon places the seal on brand purple with padding for the
+system corner mask.

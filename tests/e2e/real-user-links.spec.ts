@@ -41,6 +41,21 @@ test("sitemap destinations, internal links, previews, icons and calendar have us
   const manifest = await (await request.get("/manifest.webmanifest")).json();
   expect(manifest.short_name).toBe("MSRC 2027");
   expect(manifest.theme_color).toBe("#F8F6F0");
+  for (const [path, size] of [["/icon.png", 192], ["/apple-icon.png", 180]] as const) {
+    const icon = await request.get(path);
+    expect(icon.status(), path).toBe(200);
+    expect(icon.headers()["content-type"]).toContain("image/png");
+    const bytes = await icon.body();
+    expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([size, size]);
+  }
+  for (const locale of ["en", "ar"]) {
+    for (const path of [`/${locale}/abstracts`, `/${locale}/staff/launch-readiness`]) {
+      expect((await page.goto(path))?.status(), path).toBe(200);
+      await expect(page.locator('head link[rel="icon"][href^="/favicon.ico"]')).toHaveCount(1);
+      await expect(page.locator('head link[rel="icon"][type="image/png"]')).toHaveAttribute("href", /^\/icon\.png(?:\?|$)/);
+      await expect(page.locator('head link[rel="apple-touch-icon"]')).toHaveAttribute("href", /^\/apple-icon\.png(?:\?|$)/);
+    }
+  }
   for (const [path, language, destination] of [
     ["/", "en-US", "/en"], ["/", "ar-SA", "/ar"],
     ["/privacy", "en-US", "/en/privacy"], ["/terms/v1.0", "ar-SA", "/ar/terms/v1.0"],

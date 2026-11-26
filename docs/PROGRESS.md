@@ -1,5 +1,11 @@
 # Progress and session handover
 
+## 26 November 2026 — Research Principles Club favicon
+
+- ORG-085 uses the gold seal from the supplied Canva design for browser
+  tabs and home-screen shortcuts. The previous icon URLs resolve to the
+  new artwork. See the [asset record](MEDIA_REGISTER.md).
+
 ## 26 November 2026 — Sitewide release QA
 
 - The organizer approved publishing PR #156 after GitHub and Vercel QA

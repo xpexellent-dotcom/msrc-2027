@@ -16,6 +16,9 @@ describe("web app manifest", () => {
     const { default: manifest } = await import("@/app/manifest");
     const value = manifest();
     expect(value).toMatchObject({ short_name: "MSRC 2027", start_url: "/", display: "browser" });
-    expect(value.icons?.map((icon) => icon.src)).toEqual(["/icon.svg", "/apple-icon"]);
+    expect(value.icons).toEqual([
+      { src: "/icon.png", sizes: "192x192", type: "image/png" },
+      { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ]);
   });
 });
