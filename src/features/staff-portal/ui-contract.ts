@@ -20,7 +20,6 @@ export type StaffCheckInView = { conferenceDays: string[] | null; summary: { day
 export type StaffEmailPreview = {
   wordingStatus: "draft"; previewKey: string; templateKey: string; templateVersion: number;
   recipient: string; subject: string; text: string; html: string; englishText: string; arabicText: string;
-  banner: { src: string; alt: string; width: number; height: number };
 };
 export type StaffProfile = { actorId: string; name: string; roles: Role[] };
 export type StaffPerson = { actorId: string; name: string; email: string; roles: Role[]; status: "active" | "suspended"; lastSignIn: string | null; recoveryState?: "none" | "pending" | "failed" | "awaiting_invitation" };

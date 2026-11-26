@@ -89,7 +89,9 @@ export function createAnnouncementHandler(dependencies: { readiness?: () => Staf
       if (input.action === "render") {
         const fields = decodeAnnouncementFields(input.fields);
         if (!keys("fields") || !fields) return reply({ state: "invalid" }, 400);
-        const rendered = renderAnnouncementEmail({ subject_en: fields.subjectEn, subject_ar: fields.subjectAr, body_en: fields.bodyEn, body_ar: fields.bodyAr });
+        const rendered = renderAnnouncementEmail({
+          subject_en: fields.subjectEn, subject_ar: fields.subjectAr, body_en: fields.bodyEn, body_ar: fields.bodyAr,
+        }, undefined, "brand-preview");
         return reply({ state: "ready", rendered: { subject: rendered.subject, text: rendered.text, html: rendered.html } });
       }
       const claimed = announcementRecord(await backend.rpc("msrc_staff_form_claim", { nonce_hash: staffHash(config, "nonce", nonce), ip_hash: staffHash(config, "ip", ip) }));

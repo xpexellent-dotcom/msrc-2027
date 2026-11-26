@@ -5875,3 +5875,18 @@ DSN-01/02, ACC-01, LOC-01/03, REL-01 and REL-06 apply.
 The organizer selected the supplied Canva Research Principles Club seal
 for the browser tab icon. Use this mark on the shared public and portal
 icon resources and the home-screen shortcut. DSN-01/02 and CFG-12 apply.
+
+## ORG-087 — Update the staff email design previews, 26 November 2026
+
+The organizer asked to update all email previews to the current design and logo
+standard. The registration and abstract catalogue, the Announcements composer
+and the local synthetic verification inbox all use the ORG-073 conference seal,
+live MSRC’27 wordmark and current purple, ivory and champagne palette. The
+catalogue and composer keep the English-first bilingual reading order and
+Arabic RTL under ORG-059. The synthetic inbox retains its English test message.
+
+This review uses the existing message wording. The outbox and announcement
+self-tests continue to use the current delivery layout under ORG-059/063.
+Existing layout approvals and frozen provider requests stay in effect. The
+composer identifies the design as a draft for review. EML-04, DSN-02, CFG-12,
+LOC-01/03 and ACC-01 apply.

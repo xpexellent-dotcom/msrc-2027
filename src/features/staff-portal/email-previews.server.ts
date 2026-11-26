@@ -1,7 +1,6 @@
 import "server-only";
 
-import { abstractDecisionTemplate, registrationEmailTemplates, renderOutboxMessage, type OutboxMessage } from "@/lib/email/outbox.server";
-import { participantEmailBanner } from "@/lib/email/participant-message.server";
+import { abstractDecisionTemplate, registrationEmailTemplates, renderParticipantEmailPreview, type OutboxMessage } from "@/lib/email/outbox.server";
 import type { StaffEmailPreview } from "./ui-contract";
 
 /** Fixed SYNTHETIC examples only. No recipient, deadline or payload comes from a request. */
@@ -22,11 +21,11 @@ export function renderRegistrationEmailPreviews(): StaffEmailPreview[] {
       attempt_count: 0, lease_token: "e2000000-0000-4000-8000-000000000001", lease_expires_at: "2026-11-18T17:02:00Z",
       provider_idempotency_key: "synthetic-preview-only", provider_request: null, first_attempt_at: "2026-11-18T17:00:00Z",
     };
-    const rendered = renderOutboxMessage(message, previewKey === "abstract_decision_revise"
+    const rendered = renderParticipantEmailPreview(message, previewKey === "abstract_decision_revise"
       ? { abstractInstructions: { english: "Please clarify the methods in the abstract.", arabic: "يُرجى توضيح المنهجية في الملخص." } } : undefined);
     const [englishText, arabicText] = rendered.text.split("\n\n---\n\n");
     return { previewKey, templateKey, templateVersion: message.template_version, wordingStatus: "draft",
       recipient: rendered.to[0], subject: rendered.subject, text: rendered.text, html: rendered.html,
-      englishText, arabicText, banner: participantEmailBanner };
+      englishText, arabicText };
   });
 }

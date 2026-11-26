@@ -21,10 +21,11 @@
 .staff-security-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block-start: var(--space-5); }
 .staff-security-actions > .button { white-space: normal; text-align: center; }
 .staff-security-verification-step { margin-block-start: var(--space-5); padding-block-start: var(--space-5); border-block-start: 1px solid var(--color-line); }
-.staff-security-test-message { min-inline-size: 0; margin-block-start: var(--space-5); padding: var(--space-4); border: 1px dashed var(--color-line-strong); border-radius: var(--radius-medium); background: var(--color-ivory); }
-.staff-security-test-message > label { display: block; font-size: var(--text-caption); }
+.staff-security-test-message { min-inline-size: 0; margin-block-start: var(--space-5); }
+.staff-security-test-message > p:last-child { margin-block: var(--space-4) 0; }
+.staff-security-test-message label { display: block; inline-size: fit-content; font-size: var(--text-caption); }
 .staff-security-test-message bdi { overflow-wrap: anywhere; }
-.staff-security-test-code { display: block; inline-size: fit-content; margin-block: var(--space-3); padding: var(--space-2) var(--space-4); border: 1px solid var(--color-line-strong); border-radius: var(--radius-small); background: var(--color-white); color: var(--color-purple); font-family: monospace; font-size: 1.5rem; letter-spacing: .15em; font-weight: 600; }
+.staff-security-test-code { display: block; inline-size: fit-content; margin-block-start: var(--space-3); padding: var(--space-2) var(--space-4); border: 1px solid var(--color-line-strong); border-radius: var(--radius-small); background: var(--color-white); color: var(--color-purple); font-family: monospace; font-size: 1.5rem; letter-spacing: .15em; font-weight: 600; }
 .staff-security-confirmed { padding: var(--space-4); border-inline-start: 3px solid var(--color-success); background: var(--color-success-surface); color: var(--color-success); }
 .staff-security-policy { min-inline-size: 0; padding: var(--space-5); background: var(--color-surface-lilac); border-radius: 1rem; }
 .staff-security-policy ul { padding-inline-start: var(--space-5); }

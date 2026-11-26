@@ -1,5 +1,27 @@
 # Progress and session handover
 
+## 26 November 2026 — Email preview brand refresh
+
+- ORG-087 applies the official MSRC seal and live MSRC’27 wordmark to eight
+  registration drafts, three abstract outcomes, the live Announcements
+  composer and the local verification inbox. Staff previews retain English
+  above Arabic with RTL. The synthetic verification message stays English.
+  The update is ready for design review in the local worktree. The new HTML
+  layout is selected by preview paths alone.
+- On Node v24.21.0 and pnpm 11.19.0, `pnpm check` passed lint, TypeScript, all
+  5,665 unit tests and the production build.
+- `pnpm exec playwright test -c playwright.staff.config.ts email-previews.spec.ts announcements.spec.ts`
+  passed 50 cases with two desktop skips for mobile-only enlarged text.
+  The focused staff and participant email cases from `playwright.auth.config.ts`
+  passed 18 cases across desktop, tablet and mobile. The auth suite used a
+  temporary config with a free loopback port because port 3211 was occupied.
+- The local HTML render check covered all 11 catalogue drafts at 320px and
+  780px in Chromium and WebKit and confirmed that the body and live wordmark
+  remain visible when the seal request is blocked. Desktop and phone captures
+  are under `.tools/email-brand-review/`. Physical phones, hosted staff pages,
+  and email-client delivery are NOT TESTED. Requirements: EML-04, DSN-02,
+  CFG-12, LOC-01/03 and ACC-01.
+
 ## 26 November 2026 — Research Principles Club favicon
 
 - ORG-085 uses the gold seal from the supplied Canva design for browser

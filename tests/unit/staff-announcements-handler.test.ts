@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SESSION_POLICY } from "@/config/session-policy";
+import { brandLogo } from "@/content/brand-identity";
+import { siteOrigin } from "@/lib/metadata";
 import { ROLES, type Role } from "@/lib/permissions/contract";
 import { createAnnouncementHandler } from "@/features/announcements/staff-handler.server";
 import { decodeAnnouncement, decodeAnnouncementFields } from "@/features/announcements/contracts";
@@ -101,9 +103,13 @@ describe("announcements server authority and transport", () => {
       replies.msrc_staff_announcements_list = result; const response = await handle(request()); expect(response.status).toBe(503); expect(await response.text()).not.toContain("diagnostic");
     }
   });
-  it("renders the bilingual preview through the shared renderer without claiming or enqueuing", async () => {
+  it("renders the new bilingual preview with the official seal without claiming or enqueuing", async () => {
     const response = await handle(request({ action: "render", fields })); expect(response.status).toBe(200);
-    const body = await response.json(); expect(body.rendered.html).toContain('dir="rtl"'); expect(body.rendered.subject).toBe(fields.subjectEn + " | " + fields.subjectAr);
+    const body = await response.json();
+    expect(body.rendered.html).toContain('dir="rtl" lang="ar"');
+    expect(body.rendered.html).toContain('src="' + siteOrigin + brandLogo.onPurple + '"');
+    expect(body.rendered.html).not.toContain("/brand/email-banner.png");
+    expect(body.rendered.subject).toBe(fields.subjectEn + " | " + fields.subjectAr);
     expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => /enqueue|announcement_send|form_claim/.test(name))).toBe(false);
     roles = ["finance"]; expect((await handle(request({ action: "render", fields }))).status).toBe(403);
   });

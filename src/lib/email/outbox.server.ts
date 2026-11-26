@@ -7,7 +7,7 @@ import { contactConfig } from "@/config/contact";
 import { homepageCopy } from "@/content/public-site";
 import { formatConferenceDateRange } from "@/lib/conference-dates";
 import { siteOrigin } from "@/lib/metadata";
-import { renderParticipantBody } from "./participant-message.server";
+import { renderParticipantBody, type ParticipantEmailLayout } from "./participant-message.server";
 import { announcementTemplate, renderAnnouncementEmail, validAnnouncementPayload } from "./announcement.server";
 import { workshopNoticeTemplate, renderWorkshopNotice, validWorkshopNoticePayload } from "./workshop-message.server";
 import { certificateNoticeTemplate, renderCertificateNotice, validCertificateNoticePayload } from "./certificate-message.server";
@@ -77,7 +77,7 @@ export function validOutboxRecipient(value: string): boolean {
 /** ORG-057 English wording is preserved; the bilingual compositions are all DRAFT under ORG-059.
  * Independent wording and delivery activation gates remain (EML-04).
  * No bearer token, participant name, identity number or caller-supplied URL is accepted. */
-function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
+function renderRegistrationMessage(message: OutboxMessage, layout?: ParticipantEmailLayout): EmailRequest {
   if (!registrationEmailTemplates.includes(message.template_key as RegistrationEmailTemplate)
     || message.template_version !== 1 || !["en", "ar"].includes(message.locale)
     || !validOutboxRecipient(message.recipient_email)) {
@@ -179,7 +179,7 @@ function renderRegistrationMessage(message: OutboxMessage): EmailRequest {
     ...paragraphs, `Support: ${contactConfig.recipient}`],
   [homepageCopy.ar.kicker, `موعد المؤتمر: ${conferenceConfig.dates ? formatConferenceDateRange(conferenceConfig.dates, "ar") : conferenceConfig.monthLabel.ar}.`,
     ...arabicParagraphs, `للدعم: ${contactConfig.recipient}`],
-  [registrationUrl + "/ticket", registrationUrl, arabicRegistrationUrl + "/ticket", arabicRegistrationUrl]);
+  [registrationUrl + "/ticket", registrationUrl, arabicRegistrationUrl + "/ticket", arabicRegistrationUrl], layout);
   return Object.freeze({ from: `MSRC ${conferenceConfig.edition} <${contactConfig.sender}>`,
     to: [message.recipient_email], subject: `${subject} | ${arabicSubject}`, ...body });
 }
@@ -190,7 +190,7 @@ function arabicDeadline(value: string): string {
     dateStyle: "long", timeStyle: "short", hourCycle: "h23" }).format(new Date(value)) + " (بتوقيت الرياض)";
 }
 
-/** Preview participant wording. Existing provider snapshots must never be rewritten. */
+/** Render the existing delivery layout. Provider snapshots must never be rewritten. */
 export function renderOutboxMessage(message: OutboxMessage, translations?: ParticipantEmailTranslations): EmailRequest {
   if (message.template_key === supervisorTemplate.key) {
     if (message.template_version !== 1 || message.locale !== "en" || !validOutboxRecipient(message.recipient_email) || !validSupervisorPayload(message.payload)) throw new OutboxSendError("template_invalid", false);
@@ -229,8 +229,15 @@ export function renderOutboxMessage(message: OutboxMessage, translations?: Parti
     html: `<html lang="en"><body><p>Synthetic development notice.</p><p>Reference: ${reference}.</p><p>This is not a registration or ticket.</p></body></html>` });
 }
 
+/** Reuse the configured wording and validation for the separate staff design review. */
+export function renderParticipantEmailPreview(message: OutboxMessage, translations?: ParticipantEmailTranslations): EmailRequest {
+  return message.template_key === abstractDecisionTemplate.key
+    ? renderAbstractDecision(message, translations, "brand-preview")
+    : renderRegistrationMessage(message, "brand-preview");
+}
+
 /** Bilingual DRAFT; the payload contains no reviewer identity, score or private note. */
-function renderAbstractDecision(message: OutboxMessage, translations?: ParticipantEmailTranslations): EmailRequest {
+function renderAbstractDecision(message: OutboxMessage, translations?: ParticipantEmailTranslations, layout?: ParticipantEmailLayout): EmailRequest {
   const { reference, outcome, instructions, revision_deadline: deadline } = message.payload;
   const fields = Object.keys(message.payload).sort().join(",");
   if (message.template_version !== 1 || message.locale !== "en" || !validOutboxRecipient(message.recipient_email)
@@ -268,7 +275,7 @@ function renderAbstractDecision(message: OutboxMessage, translations?: Participa
   }
   paragraphs.push(`Sign in to view your abstract: ${siteOrigin}/en/abstracts/submit`, `Support: ${contactConfig.recipient}`);
   arabicParagraphs.push(`سجّل الدخول لعرض ملخصك: ${siteOrigin}/ar/abstracts/submit`, `للدعم: ${contactConfig.recipient}`);
-  const body = renderParticipantBody(paragraphs, arabicParagraphs, [`${siteOrigin}/en/abstracts/submit`, `${siteOrigin}/ar/abstracts/submit`]);
+  const body = renderParticipantBody(paragraphs, arabicParagraphs, [`${siteOrigin}/en/abstracts/submit`, `${siteOrigin}/ar/abstracts/submit`], layout);
   // Keep the full reference in both bodies. Bound subject length for the incumbent SQL 200-character limit.
   const subjectReference = reference.length > 100 ? reference.slice(0, 100) + "…" : reference;
   return Object.freeze({ from: `MSRC ${conferenceConfig.edition} <${contactConfig.sender}>`, to: [message.recipient_email],

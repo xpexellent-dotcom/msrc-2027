@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { brandLogo } from "@/content/brand-identity";
 import { renderAnnouncementEmail, validAnnouncementPayload } from "@/lib/email/announcement.server";
 import { OutboxSendError, renderOutboxMessage, type OutboxMessage } from "@/lib/email/outbox.server";
 import { participantEmailBanner } from "@/lib/email/participant-message.server";
@@ -13,11 +14,12 @@ function message(change: Partial<OutboxMessage> = {}): OutboxMessage {
 }
 
 describe("bilingual announcement renderer governed by private layout approval", () => {
-  it("uses the shared approved banner and complete English before Arabic", () => {
+  it("keeps the current delivery banner and complete English before Arabic", () => {
     const rendered = renderOutboxMessage(message());
     expect(rendered.subject).toBe("Conference update | مستجدات المؤتمر");
     expect(rendered.to).toEqual(["participant@example.invalid"]);
     expect(rendered.html).toContain(`src="${participantEmailBanner.src}"`);
+    expect(rendered.html).not.toContain(brandLogo.onPurple);
     expect(rendered.html).toContain('dir="rtl" lang="ar"');
     expect(rendered.html.indexOf(payload.body_en.split("\n")[0])).toBeLessThan(rendered.html.indexOf(payload.body_ar.split("\n")[0]));
     expect(rendered.text.indexOf(payload.body_en)).toBeLessThan(rendered.text.indexOf(payload.body_ar));
