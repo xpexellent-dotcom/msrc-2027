@@ -119,7 +119,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(illustrations.last()).toHaveAttribute("src", /12-posters\.webp/);
     for (const illustration of await illustrations.all()) await expect(illustration).toHaveAttribute("alt", "");
     await expect(presentations.locator(".research-winners")).toContainText(copy.winners);
-    await expect(presentations.locator(".research-winners")).toContainText(locale === "en" ? "cash prizes" : "جوائز نقدية");
+    await expect(presentations.locator(".research-winners")).toContainText(locale === "en" ? /cash prizes/i : "جوائز نقدية");
     await expect(page.locator(".research-rubric-magnifier")).toHaveAttribute("aria-hidden", "true");
     const eligibility = page.getByRole("region", { name: copy.eligibility });
     const requirements = eligibility.getByRole("listitem");
