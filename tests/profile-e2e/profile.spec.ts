@@ -11,23 +11,30 @@ import { SAUDI_UNIVERSITIES } from "../../src/content/saudi-universities";
 import { EMPTY_PARTICIPANT_PROFILE, type OptionalParticipantProfile, type ParticipantProfileResponse } from "../../src/features/participant-accounts/profile-contract";
 import { languageLink } from "../e2e/helpers/header-navigation";
 
-const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=", "base64");
+const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGOwlMv9DwADHAHESsQ2AwAAAABJRU5ErkJggg==", "base64");
 /** Synthetic fixture labels only, never a replacement for the configured abstract specialty list. */
 const specialties = Array.from({ length: 6 }, (_, index) => ({ id: `synthetic-${index}`, label: `Synthetic specialty ${index + 1}` }));
 
-async function fixture(page: Page, account = { name: "Synthetic Participant", email: "synthetic@example.invalid" }) {
+async function fixture(
+  page: Page,
+  account = { name: "Synthetic Participant", email: "synthetic@example.invalid" },
+  { latinNameAvailable = true } = {},
+) {
   let profile: OptionalParticipantProfile = { ...EMPTY_PARTICIPANT_PROFILE };
   let unavailable = false;
   let failure: "conflict" | "unavailable" | null = null;
   let saves = 0;
-  let catalog = specialties;
+  let catalog = latinNameAvailable ? specialties : specialties.slice(0, 1);
+  const ready = (): ParticipantProfileResponse => ({
+    state: "ready", profile, specialties: catalog, formToken: "synthetic-profile-token", latinNameAvailable,
+  });
   await page.route("**/api/participant-accounts", async (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({
     state: "ready", formToken: "synthetic-account-token", profileEnabled: true,
     profile: { ...account, accountState: "verified", createdAt: "2026-10-25T10:00:00Z" },
   }) }));
   await page.route("**/api/participant-accounts/profile/avatar?*", async (route) => route.fulfill({ contentType: "image/png", body: png, headers: { "cache-control": "private, no-store" } }));
   await page.route("**/api/participant-accounts/profile", async (route) => {
-    let result: ParticipantProfileResponse = { state: "ready", profile, specialties: catalog, formToken: "synthetic-profile-token" };
+    let result = ready();
     if (unavailable) result = { state: "area-not-ready" };
     else if (route.request().method() === "POST") {
       saves += 1;
@@ -36,6 +43,7 @@ async function fixture(page: Page, account = { name: "Synthetic Participant", em
         const request = new Request("http://synthetic.invalid", { method: "POST", headers: route.request().headers(), body: new Uint8Array(route.request().postDataBuffer()!) });
         const data = await request.formData();
         expect(data.get("action")).toBe("save"); expect(data.get("formToken")).toBe("synthetic-profile-token"); expect(data.get("website")).toBe(""); expect(data.get("version")).toBe(String(profile.version));
+        expect(data.has("latinName")).toBe(latinNameAvailable);
         const status = data.get("status") as OptionalParticipantProfile["status"];
         profile = { ...profile, institutionId: String(data.get("institutionId")) || null, institutionOther: String(data.get("institutionOther")).trim() || null, institution: String(data.get("institutionOther")).trim() || null,
           status: status || null, year: null, arabicName: String(data.get("arabicName") ?? "").trim() || null,
@@ -46,7 +54,7 @@ async function fixture(page: Page, account = { name: "Synthetic Participant", em
           interests: JSON.parse(String(data.get("interests"))), version: profile.version + 1,
           avatarUrl: data.get("avatar") ? `/api/participant-accounts/profile/avatar?v=${profile.version + 1}` : data.get("removeAvatar") === "true" ? null : profile.avatarUrl };
         expect(profile.interests.every((id) => catalog.some((option) => option.id === id))).toBe(true);
-        result = { state: "ready", profile, specialties: catalog, formToken: "synthetic-profile-token" };
+        result = ready();
       }
     }
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(result) });
@@ -150,6 +158,35 @@ for (const locale of ["en", "ar"] as const) {
     await expect(inbox).toContainText(participantAnnouncementsCopy[locale].empty);
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
     await accessible(page, "main");
+  });
+
+  test(`${locale} legacy profiles still save and load private avatars before the name migration`, async ({ page }) => {
+    const mock = await fixture(page, undefined, { latinNameAvailable: false });
+    await page.goto(`/${locale}/my-msrc`);
+    const card = page.getByTestId("participant-profile-card");
+    const progress = card.locator("progress");
+    const edit = card.getByRole("button", { name: copy.edit, exact: true });
+    const arabicName = card.getByRole("textbox", { name: copy.arabicName, exact: true });
+    const latinName = card.getByRole("textbox", { name: copy.latinName, exact: true });
+    await expect(progress).toHaveAttribute("max", "11");
+    await edit.click();
+    await expect(arabicName).toBeVisible();
+    await expect(latinName).toHaveCount(0);
+
+    const savedName = "دانا الحربي";
+    await arabicName.fill(savedName);
+    await page.locator("#profile-avatar").setInputFiles({ name: "synthetic.png", mimeType: "image/png", buffer: png });
+    await card.getByRole("button", { name: copy.save, exact: true }).click();
+    await expect(progress).toHaveAttribute("value", "2");
+    await expect(progress).toHaveAttribute("max", "11");
+    expect(mock.saves()).toBe(1);
+    const avatar = card.locator('.participant-profile-avatar img[src="/api/participant-accounts/profile/avatar?v=1"]');
+    await expect(avatar).toHaveJSProperty("naturalWidth", 1);
+
+    await edit.click();
+    await expect(arabicName).toHaveValue(savedName);
+    await expect(latinName).toHaveCount(0);
+    await accessible(page);
   });
 
   test(`${locale} profile prefills the signup name by script and preserves saved spellings`, async ({ page }) => {

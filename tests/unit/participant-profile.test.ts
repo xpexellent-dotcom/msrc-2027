@@ -19,7 +19,8 @@ const actorId = "da000000-0000-4000-8000-000000000001", sessionId = "db000000-00
 const otherId = "da000000-0000-4000-8000-000000000002", avatarObject = "dc000000-0000-4000-8000-000000000001.webp";
 const claims = { sub: actorId, session_id: sessionId, exp: now / 1000 + 3600, iat: now / 1000, role: "authenticated", aal: "aal1", amr: [{ method: "password", timestamp: now / 1000 }] };
 const token = (value: unknown = claims) => "synthetic." + Buffer.from(JSON.stringify(value)).toString("base64url") + ".synthetic";
-const profile = { institution: null, institutionId: null, institutionOther: null, studentStatus: null, studentYear: null, arabicName: null, latinName: null, nationality: null, gender: null, dateOfBirth: null, city: null, phone: null, identityType: null, identityLast4: null, specialtyInterests: [], avatarObject: null, version: 0 };
+const legacyProfile = { institution: null, institutionId: null, institutionOther: null, studentStatus: null, studentYear: null, arabicName: null, nationality: null, gender: null, dateOfBirth: null, city: null, phone: null, identityType: null, identityLast4: null, specialtyInterests: [], avatarObject: null, version: 0 };
+const profile = { ...legacyProfile, latinName: null };
 const current = { state: "ready", profile, specialties: abstractSettings.specialties, sessionDeadline: new Date(deadline).toISOString() };
 const status = { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true, cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
 function form(extra: Record<string, string | Blob> = {}) {
@@ -28,7 +29,7 @@ function form(extra: Record<string, string | Blob> = {}) {
     interests: JSON.stringify([abstractSettings.specialties[0].id]), version: "0", formToken: profileFormToken(config, origin, actorId, sessionId, now), website: "", ...extra })) result.set(key, value);
   return result;
 }
-function fixture(options: { identity?: string | null; accessClaims?: unknown; current?: unknown; save?: unknown; claim?: string;
+function fixture(options: { identity?: string | null; accessClaims?: unknown; current?: unknown; save?: unknown; claim?: string; legacy?: boolean;
   refresh?: Awaited<ReturnType<ParticipantProfileBackend["refresh"]>>; upload?: boolean; remove?: boolean; abandon?: string; error?: Error; errorRpc?: string; onSave?: () => void; onRead?: () => void } = {}) {
   const backend: ParticipantProfileBackend = {
     identity: vi.fn(async () => Object.hasOwn(options, "identity") ? options.identity! : actorId),
@@ -38,7 +39,10 @@ function fixture(options: { identity?: string | null; accessClaims?: unknown; cu
     rpc: vi.fn(async (name, args) => {
       if (options.error && name === (options.errorRpc ?? "msrc_participant_profile_read")) throw options.error;
       if (name === "msrc_participant_status") return status;
-      if (name === "msrc_participant_profile_read") { options.onRead?.(); return options.current ?? current; }
+      if (name === "msrc_participant_profile_read") {
+        options.onRead?.();
+        return options.current ?? (options.legacy ? { ...current, profile: legacyProfile } : current);
+      }
       if (name === "msrc_participant_form_claim") return { state: options.claim ?? "claimed" };
       if (name === "msrc_participant_profile_avatar_reserve") return { state: "reserved" };
       if (name === "msrc_participant_profile_avatar_abandon") return { state: options.abandon ?? "queued" };
@@ -47,8 +51,8 @@ function fixture(options: { identity?: string | null; accessClaims?: unknown; cu
         options.onSave?.();
         const input = args?.profile_input as Record<string, unknown>;
         const identity = input.identity as { type: string; last4: string } | null;
-        return options.save ?? { ...current, profile: { ...profile, institution: input.institutionOther, institutionId: input.institutionId, institutionOther: input.institutionOther, studentStatus: input.status,
-          studentYear: null, arabicName: input.arabicName, latinName: input.latinName ?? null, specialtyInterests: input.interests, identityType: identity?.type ?? null, identityLast4: identity?.last4 ?? null, avatarObject: args?.avatar_object ?? null, version: 1 } };
+        return options.save ?? { ...current, profile: { ...legacyProfile, institution: input.institutionOther, institutionId: input.institutionId, institutionOther: input.institutionOther, studentStatus: input.status,
+          studentYear: null, arabicName: input.arabicName, ...(!options.legacy ? { latinName: input.latinName ?? null } : {}), specialtyInterests: input.interests, identityType: identity?.type ?? null, identityLast4: identity?.last4 ?? null, avatarObject: args?.avatar_object ?? null, version: 1 } };
       }
       throw new Error("Unexpected profile RPC");
     }),
@@ -194,14 +198,63 @@ describe("optional private participant profile boundary (ENG-086 / AUTH-07 / PRV
     expect(f.backend.upload).toHaveBeenCalledOnce(); expect(f.backend.remove).not.toHaveBeenCalled();
     expect(f.backend.rpc).toHaveBeenCalledWith("msrc_participant_profile_avatar_abandon", expect.objectContaining({ object_name: vi.mocked(f.backend.upload).mock.calls[0][0] }));
   });
-  it("refuses edits when the stored profile projection predates bilingual names", async () => {
-    const legacyProfile: Partial<typeof profile> = { ...profile };
-    delete legacyProfile.latinName;
-    const f = fixture({ current: { ...current, profile: legacyProfile } });
-    const response = await f.post({ latinName: "Synthetic Participant" });
+  it("serves the private profile and avatar before the bilingual name migration", async () => {
+    const f = fixture({ legacy: true, current: { ...current, profile: { ...legacyProfile, avatarObject, arabicName: "مشارك تجريبي" } } });
+    const response = await f.get();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      state: "ready", latinNameAvailable: false, profile: { arabicName: "مشارك تجريبي", latinName: null, avatarUrl: "/api/participant-accounts/profile/avatar?v=0" },
+    });
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    const avatar = await f.get("/avatar?v=0");
+    expect(avatar.status).toBe(200);
+    expect(await avatar.text()).toBe("synthetic image bytes");
+    expect(f.backend.download).toHaveBeenCalledExactlyOnceWith(avatarObject);
+  });
+  it.each([undefined, ""])("lets a legacy save through with Latin name %s using the original RPC shape", async (latinName) => {
+    const f = fixture({ legacy: true });
+    const response = await f.post(latinName === undefined ? {} : { latinName });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      state: "ready", latinNameAvailable: false, profile: { latinName: null, institutionOther: "Synthetic institution", version: 1 },
+    });
+    const payload = vi.mocked(f.backend.rpc).mock.calls.find(([name]) => name === "msrc_participant_profile_save")?.[1]?.profile_input;
+    expect(payload).toMatchObject({ institutionOther: "Synthetic institution", status: "year_3" });
+    expect(payload).not.toHaveProperty("latinName");
+  });
+  it("does not claim or mutate a legacy profile when a Latin name would be lost", async () => {
+    const f = fixture({ legacy: true });
+    const response = await f.post({ latinName: "Synthetic Participant", avatar: await image() });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ state: "area-not-ready" });
+    expect(vi.mocked(f.backend.rpc).mock.calls.map(([name]) => name)).toEqual([
+      "msrc_participant_status", "msrc_participant_profile_read",
+    ]);
+    expect(f.backend.upload).not.toHaveBeenCalled();
+  });
+  it("keeps missing institution fields unavailable", async () => {
+    const outdatedProfile: Partial<typeof profile> = { ...profile };
+    delete outdatedProfile.institutionId;
+    const f = fixture({ current: { ...current, profile: outdatedProfile } });
+    const response = await f.get();
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ state: "area-not-ready" });
-    expect(vi.mocked(f.backend.rpc).mock.calls.map(([name]) => name)).not.toContain("msrc_participant_profile_save");
+  });
+  it("allows a blank Latin spelling to be edited when the migrated projection supplies the key", async () => {
+    const f = fixture();
+    const response = await f.get();
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({ state: "ready", profile: { latinName: null } });
+    expect(body.latinNameAvailable).not.toBe(false);
+  });
+  it("updates name availability from a save response that crosses migration deployment", async () => {
+    const f = fixture({ legacy: true, save: { ...current, profile: { ...profile, version: 1 } } });
+    const response = await f.post();
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({ state: "ready", profile: { latinName: null, version: 1 } });
+    expect(body.latinNameAvailable).not.toBe(false);
   });
   it.each(["msrc_participant_profile_read", "msrc_participant_profile_save", "msrc_participant_profile_avatar_reserve"])("missing RPC %s degrades to area-not-ready without changing login", async (errorRpc) => {
     const f = fixture({ error: new ParticipantProfileRpcMissingError(), errorRpc });

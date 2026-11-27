@@ -16,7 +16,8 @@ function projection(value: unknown, token: string): ParticipantProfileResponse {
   const result = record(value), profile = record(result?.profile);
   if (result?.state !== "ready" || !profile || !(profile.avatarObject === null || typeof profile.avatarObject === "string" && avatarObjectPattern.test(profile.avatarObject))) return { state: "unavailable", formToken: token };
   return decodeProfileResponse({ state: "ready", profile: { institution: profile.institution, status: profile.studentStatus, year: profile.studentYear,
-    institutionId: profile.institutionId, institutionOther: profile.institutionOther, arabicName: profile.arabicName, latinName: profile.latinName, nationality: profile.nationality, gender: profile.gender, dateOfBirth: profile.dateOfBirth, city: profile.city, phone: profile.phone, identityType: profile.identityType, identityLast4: profile.identityLast4,
+    institutionId: profile.institutionId, institutionOther: profile.institutionOther, arabicName: profile.arabicName,
+    ...(Object.hasOwn(profile, "latinName") ? { latinName: profile.latinName } : {}), nationality: profile.nationality, gender: profile.gender, dateOfBirth: profile.dateOfBirth, city: profile.city, phone: profile.phone, identityType: profile.identityType, identityLast4: profile.identityLast4,
     interests: profile.specialtyInterests, version: profile.version,
     avatarUrl: profile.avatarObject ? "/api/participant-accounts/profile/avatar?v=" + profile.version : null }, specialties: result?.specialties, formToken: token });
 }
@@ -60,7 +61,8 @@ export function createParticipantProfileHandler(dependencies: {
         || Date.parse(current.sessionDeadline) !== session.deadline) return reply({ state: "unavailable" }, 503);
       const fresh = () => profileFormToken(config, origin, session.actorId, session.sessionId, now);
       const currentProfile = record(current.profile);
-      if (!currentProfile || !Object.hasOwn(currentProfile, "institutionId") || !Object.hasOwn(currentProfile, "latinName")) return reply({ state: "area-not-ready" }, 503);
+      if (!currentProfile || !Object.hasOwn(currentProfile, "institutionId")) return reply({ state: "area-not-ready" }, 503);
+      const latinNameAvailable = Object.hasOwn(currentProfile, "latinName");
       const present = projection(current, fresh());
       if (present.state !== "ready") return reply(present, 503);
       if (process.env.PARTICIPANT_PROFILE_ENABLED !== "true" || (dependencies.readiness ?? getParticipantConfig)().state !== "ready") return reply({ state: "closed" }, 503);
@@ -79,6 +81,8 @@ export function createParticipantProfileHandler(dependencies: {
       if (!validated.ok) return reply({ state: "invalid_input", fieldErrors: validated.fieldErrors, formToken: fresh() }, 400);
       const input = validated.value, ip = participantIp(config, request);
       if (!ip || !readProfileFormToken(config, input.formToken, origin, session.actorId, session.sessionId, now)) return reply({ state: "invalid_input", formToken: fresh() }, 400);
+      // The legacy RPC rejects the new key. Never claim a save that would discard a supplied spelling.
+      if (!latinNameAvailable && input.latinName !== null) return reply({ state: "area-not-ready", formToken: fresh() }, 503);
       const claim = record(await backend.rpc("msrc_participant_form_claim", { nonce_hash: participantHash(config, "nonce", randomUUID()), ip_hash: participantHash(config, "ip", ip) }));
       if (claim?.state !== "claimed") return reply({ state: "limited", formToken: fresh() }, 429);
       const image = input.avatar ? await reencodeProfileAvatar(input.avatar) : null;
@@ -95,7 +99,8 @@ export function createParticipantProfileHandler(dependencies: {
           if (!await backend.upload(object, image)) return reply({ state: "unavailable", formToken: fresh() }, 503);
         }
         if (process.env.PARTICIPANT_PROFILE_ENABLED !== "true" || (dependencies.readiness ?? getParticipantConfig)().state !== "ready") return reply({ state: "closed" }, 503);
-        const saved = record(await backend.rpc("msrc_participant_profile_save", { ...args, profile_input: { institutionId: input.institutionId, institutionOther: input.institutionOther, arabicName: input.arabicName, latinName: input.latinName, nationality: input.nationality, gender: input.gender, dateOfBirth: input.dateOfBirth, city: input.city, phone: input.phone,
+        const saved = record(await backend.rpc("msrc_participant_profile_save", { ...args, profile_input: { institutionId: input.institutionId, institutionOther: input.institutionOther, arabicName: input.arabicName,
+          ...(latinNameAvailable ? { latinName: input.latinName } : {}), nationality: input.nationality, gender: input.gender, dateOfBirth: input.dateOfBirth, city: input.city, phone: input.phone,
           status: input.status, interests: input.interests, identity, removeIdentity: input.removeIdentity }, expected_version: input.version, avatar_object: object, remove_avatar: input.removeAvatar }));
         if (saved?.state === "conflict") return reply({ state: "conflict", formToken: fresh() }, 409);
         if (saved?.state === "invalid") return reply({ state: "invalid_input", formToken: fresh() }, 400);

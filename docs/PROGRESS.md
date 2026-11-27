@@ -1,5 +1,17 @@
 # Progress and session handover
 
+## 27 November 2026 — Profile compatibility before merging PR #162
+
+- The production profile feature passed its readiness check, while the
+  production profile schema still used the existing Arabic-name projection.
+  Preserve profile reads, private avatar access, partial saves and the existing
+  completion count until the reviewed ORG-091 migration adds the Latin field.
+- The owner API leaves the new key out of legacy RPC saves and rejects a
+  supplied unsupported spelling before starting a mutation. All 5,700 unit
+  tests, ESLint, and the production build passed locally. Combined-head browser
+  and GitHub verification are recorded on PR #162. Requirements AUTH-07,
+  SEC-01/02, LOC-01/03 and REL-06.
+
 ## 27 November 2026 — Combined My MSRC, Contact and footer draft
 
 - Draft PR #162 includes PR #161 at commit 4622db6 on the shared

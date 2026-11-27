@@ -5951,10 +5951,10 @@ cannot be classified leaves both missing fields empty.
 Extend the ORG-067 completion rule to require both saved spellings. A
 participant may still save a partial profile. On new abstract drafts and
 finalization, use the saved Latin spelling as the presenting-author name.
-Previous finalized submission snapshots remain authoritative. Apply the
-profile migration and application rollout together through the existing
-release gates. Requirements AUTH-01/07, SCP-03, ABS-01/12, PRV-02/03/05,
-SEC-01/02, LOC-01/03 and ACC-01 apply.
+Previous finalized submission snapshots remain authoritative. Until the
+reviewed profile migration is applied, the app supports the existing profile
+fields, avatar access, and completion rule. Requirements AUTH-01/07, SCP-03,
+ABS-01/12, PRV-02/03/05, SEC-01/02, LOC-01/03 and ACC-01 apply.
 
 ## ORG-092 — Form-first Contact and public footer, 27 November 2026
 

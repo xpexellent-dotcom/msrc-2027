@@ -18,7 +18,7 @@ export const PROFILE_FIELDS = ["avatar", "institution", "institutionOther", "sta
 export type ProfileField = typeof PROFILE_FIELDS[number];
 export type ProfileErrors = Partial<Record<ProfileField, "required" | "invalid" | "too_long">>;
 export type ParticipantProfileResponse = {
-  state: "ready"; profile: OptionalParticipantProfile; specialties: ProfileSpecialty[]; formToken: string;
+  state: "ready"; profile: OptionalParticipantProfile; specialties: ProfileSpecialty[]; formToken: string; latinNameAvailable?: boolean;
 } | {
   state: "closed" | "denied" | "area-not-ready" | "unavailable" | "invalid_input" | "limited" | "conflict";
   formToken?: string; fieldErrors?: ProfileErrors;
@@ -62,8 +62,8 @@ export function profileCompletion(profile: OptionalParticipantProfile, specialti
   if (specialties.length) items.push(profile.interests.some((id) => specialties.some((specialty) => specialty.id === id)));
   return items.filter(Boolean).length;
 }
-export function profileCompletionTotal(specialties: ProfileSpecialty[] = []) {
-  return 11 + Number(specialties.length > 0);
+export function profileCompletionTotal(specialties: ProfileSpecialty[] = [], latinNameAvailable = true) {
+  return 10 + Number(latinNameAvailable) + Number(specialties.length > 0);
 }
 export function profileComplete(profile: OptionalParticipantProfile, specialties: ProfileSpecialty[] = [], now = new Date()) {
   return profileCompletion(profile, specialties, now) === profileCompletionTotal(specialties);
@@ -100,10 +100,13 @@ export function decodeProfileResponse(value: unknown): ParticipantProfileRespons
   const row = record(value);
   if (!row) return { state: "unavailable" };
   if (row.state === "ready") {
-    const profile = decodeOptionalParticipantProfile(row.profile);
+    const profileData = record(row.profile);
+    const profile = decodeOptionalParticipantProfile(profileData);
     if (!profile || typeof row.formToken !== "string" || row.formToken.length > 1200 || !Array.isArray(row.specialties) || row.specialties.length > 500
       || !row.specialties.every((item) => { const specialty = record(item); return specialty && safeProfileText(specialty.id, 100) && specialty.id.length > 0 && safeProfileText(specialty.label, 200) && specialty.label.length > 0; })) return { state: "unavailable" };
-    return { state: "ready", profile, specialties: row.specialties.map((item) => ({ id: item.id, label: item.label })), formToken: row.formToken };
+    const latinNameAvailable = row.latinNameAvailable !== false && Object.hasOwn(profileData ?? {}, "latinName");
+    return { state: "ready", profile, specialties: row.specialties.map((item) => ({ id: item.id, label: item.label })), formToken: row.formToken,
+      ...(latinNameAvailable ? {} : { latinNameAvailable: false }) };
   }
   if (!["closed", "denied", "area-not-ready", "unavailable", "invalid_input", "limited", "conflict"].includes(String(row.state))) return { state: "unavailable" };
   const response: ParticipantProfileResponse = { state: row.state as Exclude<ParticipantProfileResponse["state"], "ready"> };

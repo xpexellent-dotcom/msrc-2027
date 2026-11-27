@@ -21,10 +21,11 @@ export { profileCompletion } from "./profile-contract";
 type EditorValues = { institutionId: string | null; institutionOther: string; status: OptionalParticipantProfile["status"]; arabicName: string; latinName: string; nationality: string;
   gender: "male" | "female" | ""; dateOfBirth: string; city: string; phone: string; identityType: ProfileIdentityType | ""; identityNumber: string };
 const emptyValues: EditorValues = { institutionId: null, institutionOther: "", status: null, arabicName: "", latinName: "", nationality: "", gender: "", dateOfBirth: "", city: "", phone: "", identityType: "", identityNumber: "" };
-function valuesFromProfile(profile: OptionalParticipantProfile, accountName: string): EditorValues {
+function valuesFromProfile(profile: OptionalParticipantProfile, accountName: string, latinNameAvailable: boolean): EditorValues {
   const accountNames = profileNamesFromAccount(accountName);
   return { institutionId: profile.institutionId, institutionOther: profile.institutionOther ?? "", status: profile.status,
-    arabicName: profile.arabicName ?? accountNames.arabicName, latinName: profile.latinName ?? accountNames.latinName,
+    arabicName: profile.arabicName ?? accountNames.arabicName,
+    latinName: latinNameAvailable ? profile.latinName ?? accountNames.latinName : "",
     nationality: profile.nationality ?? "", gender: profile.gender ?? "", dateOfBirth: profile.dateOfBirth ?? "", city: profile.city ?? "", phone: profile.phone ?? "", identityType: profile.identityType ?? "", identityNumber: "" };
 }
 
@@ -33,6 +34,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   const copy = profileCopy[locale];
   const [restoredDraft] = useState(() => readProfileEditorDraft(identity));
   const [profile, setProfile] = useState<OptionalParticipantProfile | null>(null);
+  const [latinNameAvailable, setLatinNameAvailable] = useState(true);
   const [specialties, setSpecialties] = useState<ProfileSpecialty[]>([]);
   const [state, setState] = useState<ParticipantProfileResponse["state"] | "loading">("loading");
   const [formToken, setFormToken] = useState<string | null>(null);
@@ -66,9 +68,10 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
       if (controller.signal.aborted) return;
       setState(result.state);
       if (result.state === "ready") {
-        setProfile(result.profile); setSpecialties(result.specialties); setFormToken(result.formToken);
+        const canEditLatinName = result.latinNameAvailable !== false;
+        setProfile(result.profile); setSpecialties(result.specialties); setFormToken(result.formToken); setLatinNameAvailable(canEditLatinName);
         if (editor.current.editing && editor.current.version !== null && editor.current.version !== result.profile.version) setState("conflict");
-        if (restoredDraft) setValues((current) => ({ ...valuesFromProfile(result.profile, name), institutionId: current.institutionId, institutionOther: current.institutionOther, status: current.status }));
+        if (restoredDraft) setValues((current) => ({ ...valuesFromProfile(result.profile, name, canEditLatinName), institutionId: current.institutionId, institutionOther: current.institutionOther, status: current.status }));
       } else if (result.state === "denied" || result.state === "closed") clearSessionData();
     })();
     return () => controller.abort();
@@ -92,12 +95,12 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
       editButton.current?.focus();
     }
   }, [editing]);
-  useEffect(() => { if (Object.values(errors).some(Boolean) || ["invalid_input", "limited", "conflict", "unavailable"].includes(state) && editing) summary.current?.focus(); }, [errors, state, editing]);
+  useEffect(() => { if (Object.values(errors).some(Boolean) || ["invalid_input", "limited", "conflict", "unavailable", "area-not-ready"].includes(state) && editing) summary.current?.focus(); }, [errors, state, editing]);
   function update<Key extends keyof EditorValues>(field: Key, value: EditorValues[Key]) { setValues((current) => ({ ...current, [field]: value })); setErrors((current) => ({ ...current, [field]: undefined })); }
   function clearPreview() { previewReader.current?.abort(); previewReader.current = null; setPreview(null); setAvatar(null); }
   function openEditor() {
     if (!profile) return;
-    setValues(valuesFromProfile(profile, name)); setOtherInstitution(!!profile.institutionOther); setPhoneCountry(profile.phone ? phoneCountries.find((item) => profile.phone!.startsWith(item.prefix))?.prefix ?? "" : "+966"); setInterests(profile.interests);
+    setValues(valuesFromProfile(profile, name, latinNameAvailable)); setOtherInstitution(!!profile.institutionOther); setPhoneCountry(profile.phone ? phoneCountries.find((item) => profile.phone!.startsWith(item.prefix))?.prefix ?? "" : "+966"); setInterests(profile.interests);
     editor.current = { editing: true, version: profile.version };
     clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setErrors({}); setSaved(false); setEditorVersion(profile.version); setEditing(true);
   }
@@ -121,7 +124,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
     const checked: ProfileErrors = {};
     if (Array.from(values.institutionOther.trim()).length > 160) checked.institutionOther = "too_long";
     if (values.arabicName.trim() && !isArabicProfileName(values.arabicName.trim())) checked.arabicName = "invalid";
-    if (values.latinName.trim() && !isLatinProfileName(values.latinName.trim())) checked.latinName = "invalid";
+    if (latinNameAvailable && values.latinName.trim() && !isLatinProfileName(values.latinName.trim())) checked.latinName = "invalid";
     if (values.dateOfBirth && !isAdultProfileDate(values.dateOfBirth)) checked.dateOfBirth = "invalid";
     if (Array.from(values.city.trim()).length > 80) checked.city = "too_long";
     if (values.phone && !isProfilePhone(values.phone)) checked.phone = "invalid";
@@ -133,7 +136,9 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
     submitting.current = true; setPending(true); setSaved(false); setErrors({});
     const payload = new FormData();
     payload.set("action", "save"); payload.set("formToken", formToken); payload.set("version", String(editorVersion));
-    for (const [key, value] of Object.entries(values)) payload.set(key, value ?? "");
+    for (const [key, value] of Object.entries(values)) {
+      if (key !== "latinName" || latinNameAvailable) payload.set(key, value ?? "");
+    }
     payload.set("interests", JSON.stringify(interests)); payload.set("website", String(new FormData(event.currentTarget).get("website") ?? ""));
     if (avatar) payload.set("avatar", avatar); if (removeAvatar) payload.set("removeAvatar", "true"); if (removeIdentity) payload.set("removeIdentity", "true");
     actionController.current = new AbortController();
@@ -143,7 +148,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
     if (result.state === "ready") {
       restoreEditFocus.current = true;
       editor.current = { editing: false, version: result.profile.version };
-      setProfile(result.profile); setEditorVersion(result.profile.version); setSpecialties(result.specialties); setValues({ ...emptyValues }); clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setEditing(false); setSaved(true); clearProfileEditorDraft(identity);
+      setProfile(result.profile); setLatinNameAvailable(result.latinNameAvailable !== false); setEditorVersion(result.profile.version); setSpecialties(result.specialties); setValues({ ...emptyValues }); clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setEditing(false); setSaved(true); clearProfileEditorDraft(identity);
       window.dispatchEvent(new Event("msrc-participant-profile"));
     } else if (result.state === "invalid_input") setErrors(result.fieldErrors ?? {});
     else if (result.state === "denied" || result.state === "closed") clearSessionData();
@@ -161,7 +166,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   const accountNames = profileNamesFromAccount(name);
   const canShowProfile = profile !== null && state !== "closed" && state !== "denied";
   const completedItems = profile ? profileCompletion(profile, specialties) : 0;
-  const total = profileCompletionTotal(specialties);
+  const total = profileCompletionTotal(specialties, latinNameAvailable);
   const isComplete = completedItems === total;
   const hasError = editing && (Object.values(errors).some(Boolean) || !["loading", "ready"].includes(state));
   const number = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB");
@@ -239,9 +244,9 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
             <FormField id="profile-arabicName" name="arabicName" label={copy.arabicName} value={values.arabicName}
               hint={!profile.arabicName && values.arabicName && values.arabicName === accountNames.arabicName ? copy.nameFromSignup : undefined}
               dir="rtl" lang="ar" autoComplete="off" maxLength={160} error={errorText("arabicName")} onChange={(event) => update("arabicName", event.target.value)} />
-            <FormField id="profile-latinName" name="latinName" label={copy.latinName} value={values.latinName}
+            {latinNameAvailable ? <FormField id="profile-latinName" name="latinName" label={copy.latinName} value={values.latinName}
               hint={!profile.latinName && values.latinName && values.latinName === accountNames.latinName ? copy.nameFromSignup : undefined}
-              dir="ltr" lang="en" autoComplete="off" maxLength={160} error={errorText("latinName")} onChange={(event) => update("latinName", event.target.value)} />
+              dir="ltr" lang="en" autoComplete="off" maxLength={160} error={errorText("latinName")} onChange={(event) => update("latinName", event.target.value)} /> : null}
             <Select id="profile-nationality" name="nationality" label={copy.nationality} value={values.nationality} error={errorText("nationality")} onChange={(event) => update("nationality", event.target.value)}><option value="">{copy.choose}</option>{COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country[locale === "ar" ? "nameAr" : "nameEn"]}</option>)}</Select>
             <Select id="profile-gender" name="gender" label={copy.gender} value={values.gender} error={errorText("gender")} onChange={(event) => update("gender", event.target.value as EditorValues["gender"])}><option value="">{copy.choose}</option>{Object.entries(copy.genders).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</Select>
             <FormField id="profile-dateOfBirth" name="dateOfBirth" type="date" label={copy.dateOfBirth} hint={copy.ageHint} value={values.dateOfBirth} dir="ltr" autoComplete="bday" error={errorText("dateOfBirth")} onChange={(event) => update("dateOfBirth", event.target.value)} />

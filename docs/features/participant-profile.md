@@ -57,8 +57,11 @@ The review migration backfills the Latin value only for existing completed
 profiles that already have a valid Latin account name. It adds no profile
 rows. The two saved names share the existing private profile's authorization
 and retention. Older save calls that omit the new value preserve it.
-Apply the reviewed migration and reload the database API schema before
-serving the new profile writes in the same environment.
+The app can deploy before the reviewed migration. The owner API recognizes a
+legacy profile projection and keeps the existing editor, avatar and completion
+count available. The Latin field and new completion rule take effect when the
+schema exposes the new field. Apply the migration and reload the database API
+schema through the existing release process.
 
 Status is one of Year 1–6, Internship, Clinical placement, Postgraduate, Residency,
 or Faculty. The migration maps medical-student years, intern, resident and faculty
