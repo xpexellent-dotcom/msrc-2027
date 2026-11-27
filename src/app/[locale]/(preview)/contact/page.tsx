@@ -4,13 +4,11 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { Link } from "@/components/ui/link";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { contactConfig } from "@/config/contact";
 import { contactCopy } from "@/features/contact/contact-copy";
 import { ContactForm } from "@/features/contact/contact-form";
 import { AmbientArtwork } from "@/components/ambient-artwork";
 import { BrandIcon } from "@/components/brand/brand-icon";
 import { Arrow } from "@/components/ui/arrow";
-import { VenueIcon } from "@/components/venue-icon";
 import { getContactDeliveryConfig } from "@/features/contact/delivery-config.server";
 import { getContactPageDelivery } from "@/features/contact/security.server";
 import { isLocale } from "@/lib/i18n";
@@ -50,16 +48,9 @@ export default async function ContactPage({ params }: ContactPageProps) {
               <li><span aria-hidden="true">/</span><span aria-current="page">{copy.page}</span></li>
             </ol>
           </nav>
-          <div className="contact-hero-grid">
-            <div>
-              <h1 id="contact-page-title">{copy.title}</h1>
-              <p className="contact-lead">{copy.lead}</p>
-            </div>
-            <aside className="contact-email" aria-labelledby="contact-email-title">
-              <h2 id="contact-email-title"><VenueIcon name="arrow" />{copy.emailHeading}</h2>
-              <p>{copy.emailBody}</p>
-              <a className="text-link contact-email-link" href={`mailto:${contactConfig.recipient}`} dir="ltr" lang="en">{contactConfig.recipient}</a>
-            </aside>
+          <div className="contact-hero-copy">
+            <h1 id="contact-page-title">{copy.title}</h1>
+            <p className="contact-lead">{delivery ? copy.enabledLead : copy.closedLead}</p>
           </div>
         </Container>
       </section>

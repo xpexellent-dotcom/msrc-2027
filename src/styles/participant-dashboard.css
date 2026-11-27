@@ -1,0 +1,346 @@
+/* The signed-in My MSRC surface. Other account screens use the shared form shell. */
+.participant-account-page:has(.participant-dashboard) {
+  max-inline-size: 72rem;
+  padding-block-start: max(clamp(1.5rem, 4vw, 3.25rem), calc(var(--site-header-height, 88px) + 1.5rem - 120px));
+}
+
+.participant-account-page:has(.participant-dashboard) .participant-account-intro {
+  margin-block-end: var(--space-5);
+}
+
+.participant-account-page:has(.participant-dashboard) .participant-account-intro h1 {
+  margin: 0 0 var(--space-2);
+  font-size: 2.5rem;
+  letter-spacing: 0;
+}
+
+.participant-account-page:has(.participant-dashboard) .participant-account-intro > p {
+  max-inline-size: 60ch;
+  font-size: 1rem;
+}
+
+.participant-dashboard-shell {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.participant-dashboard-shell .participant-account-feedback:has(> .participant-account-status:empty):not(:has(> .participant-account-error)) {
+  margin: 0;
+}
+
+.participant-dashboard {
+  --dashboard-gutter: clamp(1rem, 2.5vw, 1.65rem);
+  --dashboard-gap: clamp(1rem, 2vw, 1.5rem);
+  container: participant-dashboard / inline-size;
+  display: grid;
+  gap: var(--dashboard-gap);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.participant-dashboard-identity,
+.participant-dashboard-surface {
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+  background: var(--color-white);
+  min-inline-size: 0;
+}
+
+.participant-dashboard-cover {
+  --dashboard-cover-angle: 115deg;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dashboard-gap);
+  padding: clamp(1.25rem, 3vw, 2.1rem) clamp(1.25rem, 3.5vw, 2.75rem);
+  overflow: hidden;
+  border-start-start-radius: calc(1rem - 1px);
+  border-start-end-radius: calc(1rem - 1px);
+  background: linear-gradient(var(--dashboard-cover-angle), color-mix(in srgb, var(--color-purple) 66%, var(--color-ink)), var(--color-purple) 70%, var(--color-purple-hover));
+  color: var(--color-ivory);
+}
+
+[dir="rtl"] .participant-dashboard-cover {
+  --dashboard-cover-angle: 245deg;
+}
+
+.participant-dashboard-cover-lines {
+  position: absolute;
+  z-index: -1;
+  inset-block-start: 50%;
+  inset-inline-end: -6%;
+  inline-size: min(78%, 44rem);
+  block-size: auto;
+  transform: translateY(-47%) rotate(-11deg);
+  color: var(--color-gold);
+  opacity: .28;
+  pointer-events: none;
+}
+
+.participant-dashboard-cover-copy {
+  min-inline-size: 0;
+}
+
+.participant-dashboard-cover h2 {
+  margin: 0;
+  color: inherit;
+  font-size: 2.5rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.participant-dashboard-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  margin-block: .65rem 0;
+  color: var(--color-ivory);
+  font-size: var(--t-small);
+  font-weight: 600;
+}
+
+.participant-dashboard-verified svg {
+  color: var(--color-gold);
+}
+
+.participant-dashboard-icon {
+  flex: none;
+  inline-size: 1.15rem;
+  block-size: 1.15rem;
+}
+
+.participant-dashboard-seal {
+  display: block;
+  inline-size: clamp(3.75rem, 11vw, 7.5rem);
+  max-inline-size: 32%;
+  block-size: auto;
+  flex: none;
+}
+
+.participant-dashboard-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  padding: .9rem var(--dashboard-gutter);
+}
+
+.participant-dashboard-account dl {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1 1 24rem;
+  gap: var(--space-3) clamp(1.5rem, 5vw, 3.5rem);
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.participant-dashboard-account dl > div {
+  min-inline-size: 0;
+}
+
+.participant-dashboard-account dt {
+  color: var(--color-muted);
+  font-size: var(--t-label);
+}
+
+.participant-dashboard-account dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--t-small);
+  font-weight: 650;
+}
+
+.participant-dashboard-account .button {
+  min-block-size: var(--touch-target);
+}
+
+.participant-dashboard-shortcuts ul,
+.participant-dashboard-paths {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.participant-dashboard-shortcuts ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .5rem;
+}
+
+.participant-dashboard-shortcuts .site-link:not(.button):not(.wordmark) {
+  gap: .5rem;
+  max-inline-size: 100%;
+  padding: .4rem .8rem;
+  border-radius: .55rem;
+  color: var(--color-purple);
+  font-size: var(--t-small);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.participant-dashboard-grid,
+.participant-dashboard-main,
+.participant-dashboard-side {
+  display: grid;
+  align-content: start;
+  gap: var(--dashboard-gap);
+  min-inline-size: 0;
+}
+
+.participant-dashboard-grid {
+  align-items: start;
+}
+
+.participant-dashboard-main > .button {
+  justify-self: start;
+}
+
+.participant-dashboard-surface {
+  padding: var(--dashboard-gutter);
+}
+
+.participant-dashboard-surface h2 {
+  margin-block: 0 .35rem;
+  font-size: 1.5rem;
+  line-height: 1.45;
+}
+
+.participant-dashboard-panel-heading > p,
+.participant-dashboard-path-copy p,
+.participant-dashboard-activity > p,
+.participant-dashboard-activity > header > p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--t-small);
+  line-height: 1.65;
+}
+
+.participant-dashboard-panel-heading {
+  margin-block-end: var(--space-4);
+}
+
+.participant-dashboard-paths > li {
+  display: grid;
+  align-items: start;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .35rem var(--space-3);
+  padding-block: .9rem;
+  border-block-start: 1px solid var(--color-line);
+}
+
+.participant-dashboard-paths > li:last-child {
+  padding-block-end: 0;
+}
+
+.participant-dashboard-paths .brand-icon {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: .65rem;
+  background: var(--color-surface-lilac);
+}
+
+.participant-dashboard-paths .brand-icon img {
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  object-fit: contain;
+}
+
+.participant-dashboard-path-copy h3 {
+  margin: 0 0 .2rem;
+  color: var(--color-purple);
+  font: 700 1.05rem/1.5 var(--font-interface);
+}
+
+.participant-dashboard-path-action {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .1rem .65rem;
+  min-inline-size: 0;
+}
+
+.participant-dashboard-closed {
+  padding: .15rem .55rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-lilac);
+  color: var(--color-purple);
+  font-size: var(--t-label);
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.participant-dashboard-path-link {
+  gap: .5rem;
+  min-inline-size: var(--touch-target);
+  color: var(--color-purple);
+  font-size: var(--t-small);
+  font-weight: 700;
+}
+
+.participant-dashboard-activity {
+  margin: 0;
+}
+
+.participant-dashboard-activity > header,
+.participant-dashboard-activity > p + p,
+.participant-dashboard-activity > p + .button {
+  margin-block-end: .65rem;
+}
+
+.participant-dashboard-activity .participant-announcement {
+  padding: .9rem;
+}
+
+.participant-dashboard-bookings .workshop-bookings {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.participant-dashboard :is(#profile, #participation, #my-bookings, #announcements) {
+  scroll-margin-block-start: 1rem;
+}
+
+@media (hover: hover) {
+  .participant-dashboard-shortcuts .site-link:hover {
+    background: var(--color-surface-lilac);
+  }
+}
+
+@container participant-dashboard (min-width: 54rem) {
+  .participant-dashboard-grid {
+    grid-template-columns: minmax(0, 2.15fr) minmax(0, 1fr);
+  }
+}
+
+@container participant-dashboard (min-width: 35rem) {
+  .participant-dashboard-paths > li {
+    align-items: center;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 11.25rem);
+    column-gap: var(--space-4);
+  }
+
+  .participant-dashboard-path-action {
+    grid-column: 3;
+    flex-direction: column;
+    align-items: end;
+    text-align: end;
+  }
+}
+
+@media (max-width: 40rem) {
+  .participant-account-page:has(.participant-dashboard) .participant-account-intro h1,
+  .participant-dashboard-cover h2 {
+    font-size: 2rem;
+  }
+
+  .participant-dashboard-shortcuts .site-link:not(.button):not(.wordmark) {
+    padding-inline: .5rem;
+  }
+}

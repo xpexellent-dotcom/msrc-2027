@@ -4,28 +4,37 @@ import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { expect, test, type Page } from "../helpers/csp";
 import { expectStylesheetsReady } from "../helpers/stylesheets";
+import { participantAnnouncementsCopy } from "../../src/features/announcements/participant-copy";
+import { participantCopy } from "../../src/features/participant-accounts/participant-copy";
 import { profileCopy } from "../../src/features/participant-accounts/profile-copy";
 import { SAUDI_UNIVERSITIES } from "../../src/content/saudi-universities";
 import { EMPTY_PARTICIPANT_PROFILE, type OptionalParticipantProfile, type ParticipantProfileResponse } from "../../src/features/participant-accounts/profile-contract";
 import { languageLink } from "../e2e/helpers/header-navigation";
 
-const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=", "base64");
+const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGOwlMv9DwADHAHESsQ2AwAAAABJRU5ErkJggg==", "base64");
 /** Synthetic fixture labels only, never a replacement for the configured abstract specialty list. */
 const specialties = Array.from({ length: 6 }, (_, index) => ({ id: `synthetic-${index}`, label: `Synthetic specialty ${index + 1}` }));
 
-async function fixture(page: Page) {
+async function fixture(
+  page: Page,
+  account = { name: "Synthetic Participant", email: "synthetic@example.invalid" },
+  { latinNameAvailable = true } = {},
+) {
   let profile: OptionalParticipantProfile = { ...EMPTY_PARTICIPANT_PROFILE };
   let unavailable = false;
   let failure: "conflict" | "unavailable" | null = null;
   let saves = 0;
-  let catalog = specialties;
+  let catalog = latinNameAvailable ? specialties : specialties.slice(0, 1);
+  const ready = (): ParticipantProfileResponse => ({
+    state: "ready", profile, specialties: catalog, formToken: "synthetic-profile-token", latinNameAvailable,
+  });
   await page.route("**/api/participant-accounts", async (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({
     state: "ready", formToken: "synthetic-account-token", profileEnabled: true,
-    profile: { name: "Synthetic Participant", accountState: "verified", email: "synthetic@example.invalid" },
+    profile: { ...account, accountState: "verified", createdAt: "2026-10-25T10:00:00Z" },
   }) }));
   await page.route("**/api/participant-accounts/profile/avatar?*", async (route) => route.fulfill({ contentType: "image/png", body: png, headers: { "cache-control": "private, no-store" } }));
   await page.route("**/api/participant-accounts/profile", async (route) => {
-    let result: ParticipantProfileResponse = { state: "ready", profile, specialties: catalog, formToken: "synthetic-profile-token" };
+    let result = ready();
     if (unavailable) result = { state: "area-not-ready" };
     else if (route.request().method() === "POST") {
       saves += 1;
@@ -34,16 +43,18 @@ async function fixture(page: Page) {
         const request = new Request("http://synthetic.invalid", { method: "POST", headers: route.request().headers(), body: new Uint8Array(route.request().postDataBuffer()!) });
         const data = await request.formData();
         expect(data.get("action")).toBe("save"); expect(data.get("formToken")).toBe("synthetic-profile-token"); expect(data.get("website")).toBe(""); expect(data.get("version")).toBe(String(profile.version));
+        expect(data.has("latinName")).toBe(latinNameAvailable);
         const status = data.get("status") as OptionalParticipantProfile["status"];
         profile = { ...profile, institutionId: String(data.get("institutionId")) || null, institutionOther: String(data.get("institutionOther")).trim() || null, institution: String(data.get("institutionOther")).trim() || null,
-          status: status || null, year: null, arabicName: String(data.get("arabicName")).trim() || null, nationality: String(data.get("nationality")) || null,
+          status: status || null, year: null, arabicName: String(data.get("arabicName") ?? "").trim() || null,
+          latinName: String(data.get("latinName") ?? "").trim() || null, nationality: String(data.get("nationality")) || null,
           gender: String(data.get("gender")) as OptionalParticipantProfile["gender"] || null, dateOfBirth: String(data.get("dateOfBirth")) || null, city: String(data.get("city")).trim() || null, phone: String(data.get("phone")) || null,
           identityType: data.get("removeIdentity") === "true" ? null : String(data.get("identityType")) as OptionalParticipantProfile["identityType"] || null,
           identityLast4: data.get("removeIdentity") === "true" ? null : data.get("identityNumber") ? String(data.get("identityNumber")).slice(-4) : profile.identityLast4,
           interests: JSON.parse(String(data.get("interests"))), version: profile.version + 1,
           avatarUrl: data.get("avatar") ? `/api/participant-accounts/profile/avatar?v=${profile.version + 1}` : data.get("removeAvatar") === "true" ? null : profile.avatarUrl };
         expect(profile.interests.every((id) => catalog.some((option) => option.id === id))).toBe(true);
-        result = { state: "ready", profile, specialties: catalog, formToken: "synthetic-profile-token" };
+        result = ready();
       }
     }
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(result) });
@@ -57,15 +68,174 @@ async function chooseOther(page: Page, locale: "en" | "ar", institution: string)
   await page.locator("#profile-institutionOther").fill(institution);
 }
 
-async function accessible(page: Page) {
+async function accessible(page: Page, scope = '[data-testid="participant-profile-card"]') {
   await expectHeaderSettled(page);
   await expectStylesheetsReady(page);
-  expect((await new AxeBuilder({ page }).include('[data-testid="participant-profile-card"]').withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
+  expect((await new AxeBuilder({ page }).include(scope).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 }
 
 for (const locale of ["en", "ar"] as const) {
   const copy = profileCopy[locale];
+  test(`${locale} dashboard links reach private sections and honor each workflow flag`, async ({ page }, testInfo) => {
+    const account = {
+      name: locale === "ar" ? "دانا الحربي" : "Dana Alharbi",
+      email: "dana.alharbi@example.invalid",
+    };
+    await fixture(page, account);
+    await page.route("**/api/announcements?locale=*", (route) =>
+      route.fulfill({ json: { state: "ready", announcements: [], formToken: "synthetic-inbox-token" } }));
+
+    await page.goto(`/${locale}/my-msrc`);
+    const main = page.getByRole("main");
+    const profileCard = main.getByTestId("participant-profile-card");
+    const nextSteps = main.getByTestId("participant-next-steps");
+    const inbox = main.getByTestId("participant-announcements");
+    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+    await expect(main.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(main.getByTestId("participant-profile-name")).toHaveText(account.name);
+    await expect(main.getByTestId("participant-profile-email").locator("bdi")).toHaveAttribute("dir", "ltr");
+    await expect(main.getByTestId("participant-profile-email")).toHaveText(account.email);
+    await expect(main.getByTestId("participant-member-since")).toBeVisible();
+    await expect(profileCard.locator("progress")).toHaveAttribute("value", "0");
+    await expect(inbox).toContainText(participantAnnouncementsCopy[locale].empty);
+    await expect(main.getByRole("link", { name: participantCopy[locale].links["sign-in"], exact: true })).toHaveCount(0);
+    await expect(main.getByRole("button", { name: participantCopy[locale].signOut, exact: true })).toBeEnabled();
+
+    const steps = [
+      ["attend", "false", "/registration"],
+      ["abstract", "true", "/abstracts/submit"],
+      ["workshops", "false", "/workshops"],
+      ["hackathon", "false", "/hackathon"],
+      ["three-minute-thesis", "false", "/3mt"],
+    ];
+    await expect(nextSteps.getByRole("listitem")).toHaveCount(steps.length);
+    for (const [step, open, path] of steps) {
+      const item = nextSteps.locator(`[data-step="${step}"]`);
+      await expect(item).toHaveAttribute("data-open", open);
+      await expect(item.getByRole("link")).toHaveAttribute("href", `/${locale}${path}`);
+    }
+    await expect(main.locator("#my-bookings").getByRole("button")).toHaveCount(0);
+
+    await accessible(page, "main");
+    await page.evaluate(async () => { await document.fonts.ready; });
+    const directory = resolve(".tools/profile-review");
+    await mkdir(directory, { recursive: true });
+    await page.screenshot({ path: resolve(directory, `${locale}-${testInfo.project.name}-dashboard.png`), fullPage: true, scale: "css" });
+
+    const navigation = main.getByRole("navigation").filter({ has: page.locator('a[href="#participation"]') });
+    await expect(navigation).toHaveAccessibleName(/\S/);
+    for (const target of ["profile", "participation", "my-bookings", "announcements"]) {
+      const shortcut = navigation.locator(`a[href="#${target}"]`);
+      await shortcut.press("Enter");
+      await expect(page).toHaveURL(new RegExp(`#${target}$`));
+      const destination = main.locator(`#${target}`);
+      await expect(destination).toBeInViewport();
+      await expect(destination).toBeFocused();
+    }
+    const edit = profileCard.getByRole("button", { name: copy.edit, exact: true });
+    await edit.click();
+    await expect(page.locator("#participant-profile-editor-title")).toBeFocused();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await expectHeaderSettled(page);
+    await page.screenshot({ path: resolve(directory, `${locale}-${testInfo.project.name}-editor-overview.png`), fullPage: true, scale: "css" });
+
+    const cancelEditing = profileCard.getByRole("button", { name: copy.cancelEditing, exact: true });
+    await expect(cancelEditing).toHaveAttribute("aria-expanded", "true");
+    await cancelEditing.press("Enter");
+    await expect(profileCard.locator("form")).toHaveCount(0);
+    await expect(edit).toBeFocused();
+    await expect(edit).toHaveAttribute("aria-expanded", "false");
+
+    await edit.click();
+    await profileCard.getByRole("button", { name: copy.cancel, exact: true }).click();
+    await expect(edit).toBeFocused();
+
+    account.email = `${"participant".repeat(12)}@example.invalid`;
+    await page.reload();
+    await expect(main.getByTestId("participant-profile-email")).toHaveText(account.email);
+    await expect(profileCard.locator("progress")).toHaveAttribute("value", "0");
+    await expect(inbox).toContainText(participantAnnouncementsCopy[locale].empty);
+    await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+    await accessible(page, "main");
+  });
+
+  test(`${locale} legacy profiles still save and load private avatars before the name migration`, async ({ page }) => {
+    const mock = await fixture(page, undefined, { latinNameAvailable: false });
+    await page.goto(`/${locale}/my-msrc`);
+    const card = page.getByTestId("participant-profile-card");
+    const progress = card.locator("progress");
+    const edit = card.getByRole("button", { name: copy.edit, exact: true });
+    const arabicName = card.getByRole("textbox", { name: copy.arabicName, exact: true });
+    const latinName = card.getByRole("textbox", { name: copy.latinName, exact: true });
+    await expect(progress).toHaveAttribute("max", "11");
+    await edit.click();
+    await expect(arabicName).toBeVisible();
+    await expect(latinName).toHaveCount(0);
+
+    const savedName = "دانا الحربي";
+    await arabicName.fill(savedName);
+    await page.locator("#profile-avatar").setInputFiles({ name: "synthetic.png", mimeType: "image/png", buffer: png });
+    await card.getByRole("button", { name: copy.save, exact: true }).click();
+    await expect(progress).toHaveAttribute("value", "2");
+    await expect(progress).toHaveAttribute("max", "11");
+    expect(mock.saves()).toBe(1);
+    const avatar = card.locator('.participant-profile-avatar img[src="/api/participant-accounts/profile/avatar?v=1"]');
+    await expect(avatar).toHaveJSProperty("naturalWidth", 1);
+
+    await edit.click();
+    await expect(arabicName).toHaveValue(savedName);
+    await expect(latinName).toHaveCount(0);
+    await accessible(page);
+  });
+
+  test(`${locale} profile prefills the signup name by script and preserves saved spellings`, async ({ page }) => {
+    const account = {
+      name: locale === "en" ? "دانا عبد الرحمن" : "Élodie Smith-Jones",
+      email: "synthetic@example.invalid",
+    };
+    const mock = await fixture(page, account);
+    await page.goto(`/${locale}/my-msrc`);
+    const card = page.getByTestId("participant-profile-card");
+    const progress = card.locator("progress");
+    const edit = card.getByRole("button", { name: copy.edit, exact: true });
+    const save = card.getByRole("button", { name: copy.save, exact: true });
+    const arabicName = card.getByRole("textbox", { name: copy.arabicName, exact: true });
+    const latinName = card.getByRole("textbox", { name: copy.latinName, exact: true });
+
+    await edit.click();
+    await expect(arabicName).toHaveValue(locale === "en" ? account.name : "");
+    await expect(latinName).toHaveValue(locale === "ar" ? account.name : "");
+    await expect(locale === "en" ? arabicName : latinName).toHaveAccessibleDescription(copy.nameFromSignup);
+    await expect(arabicName).toHaveAttribute("dir", "rtl");
+    await expect(latinName).toHaveAttribute("dir", "ltr");
+    await expect(progress).toHaveAttribute("value", "0");
+    await expect(progress).toHaveAttribute("max", "12");
+    expect(mock.saves()).toBe(0);
+
+    const savedArabicName = "دانا الحربي";
+    const savedLatinName = "Élodie Alharbi";
+    await arabicName.fill(savedArabicName);
+    await latinName.fill("Dana دانا");
+    await save.click();
+    await expect(latinName).toHaveAttribute("aria-invalid", "true");
+    await expect(latinName).toHaveAccessibleDescription(copy.invalidLatinName);
+    await expect(card.getByRole("alert")).toBeFocused();
+    expect(mock.saves()).toBe(0);
+
+    await latinName.fill(savedLatinName);
+    await save.click();
+    await expect(progress).toHaveAttribute("value", "2");
+    expect(mock.saves()).toBe(1);
+
+    await page.reload();
+    await edit.click();
+    await expect(arabicName).toHaveValue(savedArabicName);
+    await expect(latinName).toHaveValue(savedLatinName);
+    await expect(page.getByTestId("participant-profile-name")).toHaveText(account.name);
+    await accessible(page);
+  });
+
   test(`${locale} university combobox searches both languages and supports keyboard selection`, async ({ page }) => {
     await fixture(page); await page.goto(`/${locale}/my-msrc`);
     const card = page.getByTestId("participant-profile-card"); await card.getByRole("button", { name: copy.edit, exact: true }).click();
@@ -76,7 +246,7 @@ for (const locale of ["en", "ar"] as const) {
     await input.press("ArrowDown"); await expect(input).toBeFocused(); await input.press("Enter");
     await expect(input).toHaveValue(university[locale === "ar" ? "nameAr" : "nameEn"]); await expect(input).toHaveAttribute("aria-expanded", "false");
     await expect(page.locator("#profile-institutionOther")).toHaveCount(0);
-    await card.getByRole("button", { name: copy.save, exact: true }).click(); await expect(card.locator("progress")).toHaveAttribute("value", "1");
+    await card.getByRole("button", { name: copy.save, exact: true }).click(); await expect(card.locator("progress")).toHaveAttribute("value", "2");
     await card.getByRole("button", { name: copy.edit, exact: true }).click(); await input.focus(); await input.press("End");
     await expect(card.getByRole("option", { name: copy.other, exact: true })).toBeInViewport(); await input.press("Enter");
     await expect(page.locator("#profile-institutionOther")).toBeVisible(); await accessible(page);
@@ -115,15 +285,24 @@ for (const locale of ["en", "ar"] as const) {
     await accessible(page);
     const directory = resolve(".tools/profile-review"); await mkdir(directory, { recursive: true });
     await card.screenshot({ path: resolve(directory, `${locale}-${testInfo.project.name}-editor.png`), scale: "css" });
+
+    await page.locator("#profile-latinName").clear();
+    await card.getByRole("button", { name: copy.save, exact: true }).click();
+    await expect(card.locator("progress")).toHaveAttribute("value", "11");
+    await expect(card.getByText(copy.complete, { exact: true })).toHaveCount(0);
+    await card.getByRole("button", { name: copy.edit, exact: true }).click();
+    await page.locator("#profile-latinName").fill("Synthetic Participant");
     await card.getByRole("button", { name: copy.save, exact: true }).click();
     await expect(card.getByRole("heading", { name: copy.title, exact: true })).toBeVisible();
     await expect(card.getByText(copy.complete, { exact: true })).toBeVisible();
+    await expect(card.locator("progress")).toHaveAttribute("value", "12");
     await expect(card.locator("form")).toHaveCount(0);
+    await expect(card.getByRole("button", { name: copy.edit, exact: true })).toBeFocused();
     await expect(page.getByTestId("header-primary-action").locator("img")).toHaveAttribute("src", /avatar\?v=1$/);
     await card.getByRole("button", { name: copy.edit, exact: true }).click();
     await card.getByRole("button", { name: copy.remove, exact: true }).click();
     await card.getByRole("button", { name: copy.clearInstitution, exact: true }).click(); await page.locator("#profile-status").selectOption("");
-    for (const field of ["arabicName", "dateOfBirth", "city", "phone"]) await page.locator("#profile-" + field).fill("");
+    for (const field of ["arabicName", "latinName", "dateOfBirth", "city", "phone"]) await page.locator("#profile-" + field).fill("");
     await page.locator("#profile-nationality").selectOption(""); await page.locator("#profile-gender").selectOption("");
     await expect(page.locator("#profile-identityNumber")).toHaveValue(""); await expect(card).toContainText("4321");
     await card.getByRole("button", { name: copy.removeIdentity, exact: true }).click();
@@ -133,7 +312,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("header-primary-action").locator("img")).toHaveCount(0);
     await expect(page.getByTestId("header-primary-action").locator("bdi")).toHaveText("SP");
     await accessible(page);
-    expect(mock.saves()).toBe(2);
+    expect(mock.saves()).toBe(3);
   });
 
   test(`${locale} missing migration and concurrent update remain recoverable`, async ({ page }) => {
@@ -198,6 +377,6 @@ for (const locale of ["en", "ar"] as const) {
     await card.getByRole("button", { name: copy.clearInterests, exact: true }).click();
     await chooseOther(page, locale, "Synthetic Institution after catalog change");
     await card.getByRole("button", { name: copy.save, exact: true }).click();
-    await expect(card.locator("form")).toHaveCount(0); await expect(card.locator("progress")).toHaveAttribute("value", "1"); expect(mock.saves()).toBe(2);
+    await expect(card.locator("form")).toHaveCount(0); await expect(card.locator("progress")).toHaveAttribute("value", "2"); expect(mock.saves()).toBe(2);
   });
 }

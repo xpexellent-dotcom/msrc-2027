@@ -8,6 +8,11 @@ export const socialLinks: readonly SocialLink[] = [
   { network: "instagram", url: null },
   { network: "tiktok", url: null },
 ];
+export const socialLinkCopy = {
+  en: { label: "Social media", soon: "Soon" },
+  ar: { label: "وسائل التواصل الاجتماعي", soon: "قريبًا" },
+} as const;
+
 export const socialNetworkName: Record<SocialNetwork, string> = { x: "X", linkedin: "LinkedIn", instagram: "Instagram", tiktok: "TikTok" };
 export const socialHosts: Record<SocialNetwork, readonly string[]> = {
   x: ["x.com", "www.x.com", "twitter.com", "www.twitter.com"],

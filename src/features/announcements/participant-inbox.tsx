@@ -48,10 +48,10 @@ export function ParticipantInbox({ locale, initialState }: { locale: Locale; ini
     } catch { if (mounted.current && sequence === requestGeneration.current) setFailed(true); }
     finally { if (mounted.current && sequence === requestGeneration.current) setPending(null); }
   }
-  if (state?.state === "denied" || state?.state === "closed") return null;
-  return <section className="participant-announcements" aria-labelledby="participant-announcements-heading" data-testid="participant-announcements">
+  const unavailable = state?.state === "denied" || state?.state === "closed";
+  return <section id="announcements" tabIndex={-1} className="participant-announcements participant-dashboard-surface participant-dashboard-activity" aria-labelledby="participant-announcements-heading" data-testid="participant-announcements">
     <header><h2 id="participant-announcements-heading">{copy.title}</h2><p>{copy.lead}</p></header>
-    {!state ? <p role="status">{copy.loading}</p> : state.state !== "ready" ? <>
+    {unavailable ? <p role="status">{copy.notReady}</p> : !state ? <p role="status">{copy.loading}</p> : state.state !== "ready" ? <>
       <p role="status">{state.state === "area-not-ready" ? copy.notReady : copy.unavailable}</p>
       <Button variant="secondary" onClick={() => setGeneration((value) => value + 1)}>{copy.retry}</Button>
     </> : <>

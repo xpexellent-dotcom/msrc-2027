@@ -68,8 +68,9 @@ async function race(firstSql: string, secondSql: string, name: string) {
     return (await Promise.all([first, second!])).map(response);
   } finally { await Promise.allSettled([first, ...(second ? [second] : [])]); }
 }
-const save = (n: number, institution: string, version: number) =>
-  `select public.msrc_participant_profile_save('${edition}',pg_temp.registration_claims(${n}),jsonb_build_object('institutionOther','${institution}','status','internship','interests','[]'::jsonb),${version})::text;`;
+const save = (n: number, institution: string, version: number, latinName?: string) =>
+  `select public.msrc_participant_profile_save('${edition}',pg_temp.registration_claims(${n}),
+    jsonb_build_object('institutionOther','${institution}','status','internship','interests','[]'::jsonb${latinName ? `, 'latinName', '${latinName}'` : ""}),${version})::text;`;
 
 describe.skipIf(!isolatedCi)("Participant profile concurrent edits (disposable GitHub CI only)", () => {
   beforeAll(async () => {
@@ -99,14 +100,16 @@ insert into msrc_abstracts.screening_settings(edition_key,version,similarity_thr
       commit;`);
   });
   it("two simultaneous saves with the same expected version preserve exactly one winner", async () => {
-    const results = await race("begin;" + save(88601, "Winning synthetic institution", 0),
-      "begin;" + save(88601, "Losing synthetic institution", 0), "participant-profile-edit-race");
+    const results = await race("begin;" + save(88601, "Winning synthetic institution", 0, "Winning Synthetic Name"),
+      "begin;" + save(88601, "Losing synthetic institution", 0, "Losing Synthetic Name"), "participant-profile-edit-race");
     expect(results.map((row) => row.state)).toEqual(["ready", "conflict"]);
+    expect(results[0].profile).toMatchObject({ latinName: "Winning Synthetic Name" });
+    expect(scalar(await query(`select latin_name from msrc_participant.profile_details where actor_id='${actor(88601)}';`))).toBe("Winning Synthetic Name");
     expect(scalar(await query(`select institution_other from msrc_participant.profile_details where actor_id='${actor(88601)}';`))).toBe("Winning synthetic institution");
     expect(scalar(await query(`select version from msrc_participant.profile_details where actor_id='${actor(88601)}';`))).toBe("1");
     const other = response(await query(`select public.msrc_participant_profile_read('${edition}',pg_temp.registration_claims(88602))::text;`));
     expect(other.state).toBe("ready");
-    expect(other.profile).toMatchObject({ institution: null, avatarObject: null, version: 0 });
+    expect(other.profile).toMatchObject({ institution: null, latinName: null, avatarObject: null, version: 0 });
   });
   it("abandonment waiting for a successful commit cannot delete its active avatar", async () => {
     const path = "f8860000-0000-4000-8000-000000000003.webp";

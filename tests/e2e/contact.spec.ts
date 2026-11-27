@@ -9,6 +9,7 @@ const copy = {
     title: "Contact | MSRC 2027",
     heading: "Contact the team.",
     footer: "Contact",
+    businessInquiries: "For business inquiries",
     breadcrumb: "Breadcrumb",
     home: "Home",
     closed: "The form is not open yet",
@@ -20,6 +21,7 @@ const copy = {
     title: "تواصل معنا | MSRC 2027",
     heading: "تواصل مع فريق المؤتمر.",
     footer: "التواصل",
+    businessInquiries: "للاستفسارات التجارية",
     breadcrumb: "مسار التنقل",
     home: "الرئيسية",
     closed: "النموذج غير متاح حاليًا",
@@ -79,7 +81,11 @@ for (const locale of ["en", "ar"] as const) {
     await expect(send).toHaveAttribute("type", "button");
     expect(await form.evaluate((element) => Array.from(new FormData(element as HTMLFormElement).entries()))).toEqual([]);
 
-    const email = page.getByRole("main").getByRole("link", { name: "contact@msrc2027.com", exact: true });
+    const main = page.getByRole("main");
+    const footer = page.getByRole("contentinfo");
+    await expect(main.locator('a[href^="mailto:"]')).toHaveCount(0);
+    await expect(footer.getByText(copy[locale].businessInquiries, { exact: true })).toBeVisible();
+    const email = footer.getByRole("link", { name: "contact@msrc2027.com", exact: true });
     await expect(email).toHaveAttribute("href", "mailto:contact@msrc2027.com");
     await expect(email).toHaveAttribute("dir", "ltr");
     await email.focus();
@@ -115,7 +121,7 @@ for (const locale of ["en", "ar"] as const) {
     const assertReadable = async () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth))
         .toBeLessThanOrEqual(await page.evaluate(() => document.documentElement.clientWidth));
-      const clipped = await page.locator("main h1, main h2:not(.sr-only), main h3, .contact-email-link").evaluateAll((elements) => elements.some((element) => {
+      const clipped = await page.locator("main h1, main h2:not(.sr-only), main h3, .footer-business-label, .footer-business-email").evaluateAll((elements) => elements.some((element) => {
         const range = document.createRange();
         range.selectNodeContents(element);
         return Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
@@ -203,7 +209,8 @@ test("Contact stays closed without JavaScript", async ({ browser, baseURL }) => 
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy[locale].heading);
       await expect(page.locator(".contact-form fieldset")).toHaveAttribute("disabled");
       await expect(page.locator(".contact-form button")).toBeDisabled();
-      await expect(page.getByRole("main").getByRole("link", { name: "contact@msrc2027.com", exact: true }))
+      await expect(page.getByRole("main").locator('a[href^="mailto:"]')).toHaveCount(0);
+      await expect(page.getByRole("contentinfo").getByRole("link", { name: "contact@msrc2027.com", exact: true }))
         .toHaveAttribute("href", "mailto:contact@msrc2027.com");
     }
     expect(writes).toEqual([]);

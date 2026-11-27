@@ -22,7 +22,7 @@ select pg_temp.registration_staff_fixture(8792,'synthetic-profile-complete','che
 
 create function pg_temp.profile_input() returns jsonb language sql immutable as $$
  select jsonb_build_object('institutionId',null,'institutionOther','Synthetic Institute','status','year_4',
- 'arabicName','اسم مشارك تجريبي','nationality','SA','gender','female','dateOfBirth','1990-01-01','city','Synthetic city','phone','+966500000000',
+ 'arabicName','اسم مشارك تجريبي','latinName','Synthetic Participant','nationality','SA','gender','female','dateOfBirth','1990-01-01','city','Synthetic city','phone','+966500000000',
  'interests','["synthetic-specialty"]'::jsonb,'identity',null,'removeIdentity',false);
 $$;
 create function pg_temp.profile_save(input jsonb,version integer default 1,n integer default 8701) returns jsonb language sql as $$
@@ -37,8 +37,11 @@ select ok(not msrc_participant.unknown_erasure_reference(),'New personal columns
 set local role authenticated;
 select throws_ok($$select public.msrc_participant_profile_complete('synthetic-profile-complete','{}'::jsonb)$$,'42501',null,'Clients cannot call completion RPC with forged claims');
 select throws_ok($$select identity_envelope from msrc_participant.profile_details$$,'42501',null,'Participants cannot read stored identity envelopes directly');
+select throws_ok($$select latin_name from msrc_participant.profile_details$$,'42501',null,'Participants cannot read stored Latin names directly');
 reset role;
 select ok(not has_table_privilege('service_role','msrc_participant.profile_details','SELECT'),'Even server transport has no direct identity table grant');
+select ok(not has_function_privilege('authenticated','msrc_participant.profile_latin_name_valid(text)','EXECUTE')
+ and not has_function_privilege('service_role','msrc_participant.profile_latin_name_valid(text)','EXECUTE'),'The database name validator is internal');
 select ok(not exists(select 1 from pg_policy where polrelid='msrc_participant.profile_details'::regclass),'Profile identity has no client RLS policies');
 select ok((select c.relrowsecurity and c.relforcerowsecurity from pg_class c where c.oid='msrc_participant.profile_details'::regclass),'Existing profile table still forces RLS');
 select ok(not (msrc_participant.profile_projection(pg_temp.registration_actor(8701)) ?| array['identityEnvelope','identityLookup','identityNumber']),'Owner projection excludes ciphertext, HMAC and full identity number');
@@ -48,11 +51,11 @@ select is(msrc_participant.profile_projection(pg_temp.registration_actor(8701))-
 create function pg_temp.missing_profile_fields() returns setof text language plpgsql as $$
 declare field text;original msrc_participant.profile_details%rowtype;begin
  select p.* into original from msrc_participant.profile_details p where p.actor_id=pg_temp.registration_actor(8701);
- foreach field in array array['institution_other','student_status','arabic_name','nationality','gender','date_of_birth','city','phone','avatar_object'] loop
+ foreach field in array array['institution_other','student_status','arabic_name','latin_name','nationality','gender','date_of_birth','city','phone','avatar_object'] loop
   execute format('update msrc_participant.profile_details set %I=null where actor_id=$1',field) using original.actor_id;
   return next ok(not msrc_participant.profile_complete(original.actor_id,'synthetic-profile-complete'),'Missing '||field||' blocks completion');
   update msrc_participant.profile_details p set institution_other=original.institution_other,student_status=original.student_status,
-   arabic_name=original.arabic_name,nationality=original.nationality,gender=original.gender,date_of_birth=original.date_of_birth,
+   arabic_name=original.arabic_name,latin_name=original.latin_name,nationality=original.nationality,gender=original.gender,date_of_birth=original.date_of_birth,
    city=original.city,phone=original.phone,avatar_object=original.avatar_object where p.actor_id=original.actor_id;
  end loop;
 end$$;
@@ -80,6 +83,11 @@ select is(pg_temp.profile_save(pg_temp.profile_input()||'{"gender":"other"}'::js
 select is(pg_temp.profile_save(pg_temp.profile_input()||'{"status":"medical_student"}'::jsonb)->>'state','invalid','Retired status is not accepted by the new save contract');
 select is(pg_temp.profile_save(pg_temp.profile_input()||'{"arabicName":"English name"}'::jsonb)->>'state','invalid','Arabic full name must contain Arabic letters');
 select is(pg_temp.profile_save(pg_temp.profile_input()||'{"arabicName":"اسم English"}'::jsonb)->>'state','invalid','Arabic name does not accept Latin name text');
+select is(pg_temp.profile_save(pg_temp.profile_input()||'{"latinName":"اسم مشارك"}'::jsonb)->>'state','invalid','The Latin spelling must contain Latin letters');
+select is(pg_temp.profile_save(pg_temp.profile_input()||'{"latinName":"Synthetic اسم"}'::jsonb)->>'state','invalid','A mixed Arabic and Latin spelling is invalid');
+select is(pg_temp.profile_save(pg_temp.profile_input()||'{"latinName":"  - ... ’  "}'::jsonb)->>'state','invalid','Punctuation alone is invalid');
+select is(pg_temp.profile_save(pg_temp.profile_input()||'{"latinName":123}'::jsonb)->>'state','invalid','The Latin spelling must be a string or null');
+select is(pg_temp.profile_save(pg_temp.profile_input()||jsonb_build_object('latinName',repeat('A',161)))->>'state','invalid','The Latin spelling is bounded to 160 characters');
 select is(pg_temp.profile_save(pg_temp.profile_input()||jsonb_build_object('dateOfBirth',((statement_timestamp() at time zone 'UTC')::date-interval '18 years'+interval '1 day')::date::text))->>'state','invalid','A person one day below 18 is rejected');
 select is(pg_temp.profile_save(pg_temp.profile_input()||'{"dateOfBirth":"2000-02-30"}'::jsonb)->>'state','invalid','Impossible calendar dates are rejected');
 select is(pg_temp.profile_save(pg_temp.profile_input()||'{"dateOfBirth":"infinity"}'::jsonb)->>'state','invalid','Nonfinite dates cannot satisfy the age rule');
@@ -95,6 +103,22 @@ select is(pg_temp.profile_save(pg_temp.profile_input()||'{"removeIdentity":true}
 select ok(not msrc_participant.profile_complete(pg_temp.registration_actor(8701),'synthetic-profile-complete'),'Removing identity blocks later submissions');
 select ok((select identity_envelope is null and identity_lookup is null and identity_last4 is null from msrc_participant.profile_details where actor_id=pg_temp.registration_actor(8701)),'Identity removal erases envelope, HMAC and suffix atomically');
 
+-- A partial editor retains its own spelling through older saves and private avatar actions.
+select is(pg_temp.profile_save(jsonb_build_object('interests','[]'::jsonb,'latinName',U&'  Jose\0301 O\2019Neil-Smith.  '),0,8704)#>>'{profile,latinName}',
+ U&'Jose\0301 O\2019Neil-Smith.','Owner can save just a Latin spelling with diacritics and name punctuation');
+select is(public.msrc_participant_profile_read('synthetic-profile-complete',pg_temp.registration_claims(8703))#>>'{profile,latinName}',
+ null::text,'Another account cannot read the saved Latin spelling');
+select is(pg_temp.profile_save('{"interests":[]}'::jsonb,1,8704)#>>'{profile,latinName}',
+ U&'Jose\0301 O\2019Neil-Smith.','An old save request that omits the new key preserves it');
+select is(public.msrc_participant_profile_avatar_reserve('synthetic-profile-complete',pg_temp.registration_claims(8704),'f8700000-0000-4000-8000-000000000004.webp')->>'state',
+ 'reserved','The same actor can stage a private picture');
+select is(public.msrc_participant_profile_avatar_register('synthetic-profile-complete',pg_temp.registration_claims(8704),'f8700000-0000-4000-8000-000000000004.webp',2)#>>'{profile,latinName}',
+ U&'Jose\0301 O\2019Neil-Smith.','Avatar-only registration preserves the saved Latin spelling');
+select is(public.msrc_participant_profile_avatar_remove('synthetic-profile-complete',pg_temp.registration_claims(8704),3)#>>'{profile,latinName}',
+ U&'Jose\0301 O\2019Neil-Smith.','Avatar-only removal preserves the saved Latin spelling');
+select is(pg_temp.profile_save('{"interests":[],"latinName":null}'::jsonb,4,8704)#>'{profile,latinName}',
+ 'null'::jsonb,'Explicit null clears the Latin spelling');
+
 -- Authorized organizers use only the established audited participant detail.
 do $$begin perform set_config('request.jwt.claims',pg_temp.registration_claims(8791)::text,true);end$$;
 select is(public.msrc_staff_participant_detail('synthetic-profile-complete',pg_temp.registration_actor(8702))#>>'{participant,optionalProfile,identityLast4}','0000','Existing audited staff detail includes the masked suffix');
@@ -108,11 +132,20 @@ do $$begin perform set_config('request.jwt.claims','{}',true);end$$;
 create temporary table profile_gate_result(kind text primary key,result jsonb);
 insert into profile_gate_result values('abstract',public.msrc_abstracts_save_draft('synthetic-profile-complete',pg_temp.registration_claims(8705),null,0,pg_temp.abstract_document(),gen_random_uuid()));
 select is((select result->>'state' from profile_gate_result where kind='abstract'),'saved','Incomplete profile does not prevent saving an abstract draft');
+select is((select result#>>'{submission,document,authors,0,name}' from profile_gate_result where kind='abstract'),
+ (select name from msrc_participant.profiles where actor_id=pg_temp.registration_actor(8705)),'A draft can use the account name when no Latin spelling is saved');
 select is(public.msrc_abstracts_finalize('synthetic-profile-complete',pg_temp.registration_claims(8705),(select (result#>>'{submission,id}')::uuid from profile_gate_result where kind='abstract'),1,gen_random_uuid())->>'state','profile_incomplete','Abstract finalization enforces the distinct profile-incomplete state');
 select is((select count(*) from msrc_abstracts.snapshots),0::bigint,'Blocked abstract creates no immutable submission snapshot');
 select pg_temp.complete_profile(8705,'synthetic-profile-complete');
 update msrc_participant.profile_details set student_status='year_6' where actor_id=pg_temp.registration_actor(8705);
 select is(public.msrc_abstracts_finalize('synthetic-profile-complete',pg_temp.registration_claims(8705),(select (result#>>'{submission,id}')::uuid from profile_gate_result where kind='abstract'),1,gen_random_uuid())->>'state','finalized','Completing the profile permits otherwise-authorized abstract finalization');
+select is((select document#>>'{authors,0,name}' from msrc_abstracts.snapshots
+ where submission_id=(select (result#>>'{submission,id}')::uuid from profile_gate_result where kind='abstract')),
+ 'Synthetic Profile Presenter','Finalization snapshots the saved Latin spelling');
+update msrc_participant.profile_details set latin_name='Synthetic Revised Spelling' where actor_id=pg_temp.registration_actor(8705);
+select is((select document#>>'{authors,0,name}' from msrc_abstracts.snapshots
+ where submission_id=(select (result#>>'{submission,id}')::uuid from profile_gate_result where kind='abstract')),
+ 'Synthetic Profile Presenter','Later profile editing leaves the finalized name intact');
 
 insert into msrc_competitions.settings(edition_key,kind,version,configuration,enabled,evidence_ready)
  select 'synthetic-profile-complete',kind,1,pg_temp.profile_competition_settings(kind),true,true from unnest(array['hackathon','three_minute_thesis']) kind;

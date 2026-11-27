@@ -5925,3 +5925,41 @@ The organizer set the reading order for the six homepage benefit cards.
 Show awards and cash prizes first, followed by certificates, hands-on
 workshops, networking with experts, research exposure and CME hours.
 Use this sequence in English and Arabic. Requirements: DSN-01, LOC-01/03, ACC-01.
+
+## ORG-090 — My MSRC participant profile redesign, 27 November 2026
+
+The organizer requested a full visual and usability refresh of My MSRC
+in a draft PR. Extend the supplied MSRC Canva identity into the signed-in
+dashboard with the existing seal, pathway artwork and public type roles.
+Group account details, profile completion, participation, bookings and
+announcements. Give Hackathon and Three Minute Thesis their own links.
+
+Profile access and editing follow ORG-067. Research competition copy follows
+ORG-068/069. The dashboard reflects the existing per-workflow gates.
+Requirements SCP-03/05, AUTH-07, DSN-01/02, LOC-01/03, ACC-01 and MED-02
+apply. See the [participant profile notes](features/participant-profile.md).
+
+## ORG-091 — One sign-up name and two profile spellings, 27 November 2026
+
+The organizer wants sign-up to collect one name, with guidance in both
+languages. In Edit profile, show the full Arabic name and the full name in
+Latin letters. Prefill the matching empty field from the sign-up spelling
+based on its script. The participant can correct the prefill. Keep a saved
+profile spelling whenever it exists. A mixed-script sign-up value that
+cannot be classified leaves both missing fields empty.
+
+Extend the ORG-067 completion rule to require both saved spellings. A
+participant may still save a partial profile. On new abstract drafts and
+finalization, use the saved Latin spelling as the presenting-author name.
+Previous finalized submission snapshots remain authoritative. Until the
+reviewed profile migration is applied, the app supports the existing profile
+fields, avatar access, and completion rule. Requirements AUTH-01/07, SCP-03,
+ABS-01/12, PRV-02/03/05, SEC-01/02, LOC-01/03 and ACC-01 apply.
+
+## ORG-092 — Form-first Contact and public footer, 27 November 2026
+
+Direct general inquiries to the Contact form when it is available. Move the
+published email link from the Contact page content to the shared footer under
+“For business inquiries”. Show the same social accounts and availability as the
+homepage in both languages, using the account approvals under ORG-086. This
+supersedes the placement in ORG-021. Requirements SUP-01/02, LOC-01/03 and ACC-01.

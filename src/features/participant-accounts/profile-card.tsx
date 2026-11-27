@@ -6,28 +6,35 @@ import { FieldMessages, FormField } from "@/components/forms/form-field";
 import { Select } from "@/components/forms/select";
 import { Button } from "@/components/ui/button";
 import { ContactPhoneField, phoneCountries } from "./contact-phone-field";
+import { DashboardIcon } from "./dashboard-icon";
 import { COUNTRIES } from "@/content/countries";
 import type { Locale } from "@/lib/i18n";
 import { InstitutionCombobox } from "./institution-combobox";
 import { ProfileAvatar } from "./profile-avatar";
 import { requestParticipantProfile } from "./profile-client";
 import { profileCopy } from "./profile-copy";
-import { PROFILE_FIELDS, profileCompletion, isAdultProfileDate, isArabicProfileName, isProfileIdentityNumber, isProfilePhone,
+import { PROFILE_FIELDS, profileCompletion, profileCompletionTotal, profileNamesFromAccount, isAdultProfileDate, isArabicProfileName, isLatinProfileName, isProfileIdentityNumber, isProfilePhone,
   type OptionalParticipantProfile, type ParticipantProfileResponse, type ProfileSpecialty, type ProfileField, type ProfileErrors, type ProfileIdentityType } from "./profile-contract";
 import { clearProfileEditorDraft, readProfileEditorDraft, saveProfileEditorDraft } from "./profile-editor-draft";
 
 export { profileCompletion } from "./profile-contract";
-type EditorValues = { institutionId: string | null; institutionOther: string; status: OptionalParticipantProfile["status"]; arabicName: string; nationality: string;
+type EditorValues = { institutionId: string | null; institutionOther: string; status: OptionalParticipantProfile["status"]; arabicName: string; latinName: string; nationality: string;
   gender: "male" | "female" | ""; dateOfBirth: string; city: string; phone: string; identityType: ProfileIdentityType | ""; identityNumber: string };
-const emptyValues: EditorValues = { institutionId: null, institutionOther: "", status: null, arabicName: "", nationality: "", gender: "", dateOfBirth: "", city: "", phone: "", identityType: "", identityNumber: "" };
-function valuesFromProfile(profile: OptionalParticipantProfile): EditorValues { return { institutionId: profile.institutionId, institutionOther: profile.institutionOther ?? "", status: profile.status,
-  arabicName: profile.arabicName ?? "", nationality: profile.nationality ?? "", gender: profile.gender ?? "", dateOfBirth: profile.dateOfBirth ?? "", city: profile.city ?? "", phone: profile.phone ?? "", identityType: profile.identityType ?? "", identityNumber: "" }; }
+const emptyValues: EditorValues = { institutionId: null, institutionOther: "", status: null, arabicName: "", latinName: "", nationality: "", gender: "", dateOfBirth: "", city: "", phone: "", identityType: "", identityNumber: "" };
+function valuesFromProfile(profile: OptionalParticipantProfile, accountName: string, latinNameAvailable: boolean): EditorValues {
+  const accountNames = profileNamesFromAccount(accountName);
+  return { institutionId: profile.institutionId, institutionOther: profile.institutionOther ?? "", status: profile.status,
+    arabicName: profile.arabicName ?? accountNames.arabicName,
+    latinName: latinNameAvailable ? profile.latinName ?? accountNames.latinName : "",
+    nationality: profile.nationality ?? "", gender: profile.gender ?? "", dateOfBirth: profile.dateOfBirth ?? "", city: profile.city ?? "", phone: profile.phone ?? "", identityType: profile.identityType ?? "", identityNumber: "" };
+}
 
 /** ENG-087 / ORG-067: saving progress is independent of submission eligibility. */
 export function ParticipantProfileCard({ locale, name, identity }: { locale: Locale; name: string; identity: string }) {
   const copy = profileCopy[locale];
   const [restoredDraft] = useState(() => readProfileEditorDraft(identity));
   const [profile, setProfile] = useState<OptionalParticipantProfile | null>(null);
+  const [latinNameAvailable, setLatinNameAvailable] = useState(true);
   const [specialties, setSpecialties] = useState<ProfileSpecialty[]>([]);
   const [state, setState] = useState<ParticipantProfileResponse["state"] | "loading">("loading");
   const [formToken, setFormToken] = useState<string | null>(null);
@@ -44,6 +51,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   const [errors, setErrors] = useState<ProfileErrors>({});
   const [pending, setPending] = useState(false), [saved, setSaved] = useState(false), [refresh, setRefresh] = useState(0);
   const summary = useRef<HTMLDivElement>(null), editorHeading = useRef<HTMLHeadingElement>(null);
+  const editButton = useRef<HTMLButtonElement>(null), restoreEditFocus = useRef(false);
   const previewReader = useRef<FileReader | null>(null), active = useRef(true), submitting = useRef(false);
   const actionController = useRef<AbortController | null>(null);
   const editor = useRef({ editing: !!restoredDraft, version: restoredDraft?.version ?? null as number | null });
@@ -60,13 +68,14 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
       if (controller.signal.aborted) return;
       setState(result.state);
       if (result.state === "ready") {
-        setProfile(result.profile); setSpecialties(result.specialties); setFormToken(result.formToken);
+        const canEditLatinName = result.latinNameAvailable !== false;
+        setProfile(result.profile); setSpecialties(result.specialties); setFormToken(result.formToken); setLatinNameAvailable(canEditLatinName);
         if (editor.current.editing && editor.current.version !== null && editor.current.version !== result.profile.version) setState("conflict");
-        if (restoredDraft) setValues((current) => ({ ...valuesFromProfile(result.profile), institutionId: current.institutionId, institutionOther: current.institutionOther, status: current.status }));
+        if (restoredDraft) setValues((current) => ({ ...valuesFromProfile(result.profile, name, canEditLatinName), institutionId: current.institutionId, institutionOther: current.institutionOther, status: current.status }));
       } else if (result.state === "denied" || result.state === "closed") clearSessionData();
     })();
     return () => controller.abort();
-  }, [refresh, clearSessionData, locale, restoredDraft]);
+  }, [refresh, clearSessionData, locale, name, restoredDraft]);
   useEffect(() => {
     if (!profile) return;
     if (editing && editorVersion !== null) saveProfileEditorDraft({ owner: identity, version: editorVersion, institutionId: values.institutionId, institutionOther: values.institutionOther, status: values.status, interests, avatar, removeAvatar });
@@ -80,12 +89,18 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   }, [restoredDraft]);
   const profileLoaded = profile !== null;
   useEffect(() => { if (editing && profileLoaded) editorHeading.current?.focus(); }, [editing, profileLoaded]);
-  useEffect(() => { if (Object.values(errors).some(Boolean) || ["invalid_input", "limited", "conflict", "unavailable"].includes(state) && editing) summary.current?.focus(); }, [errors, state, editing]);
+  useEffect(() => {
+    if (!editing && restoreEditFocus.current) {
+      restoreEditFocus.current = false;
+      editButton.current?.focus();
+    }
+  }, [editing]);
+  useEffect(() => { if (Object.values(errors).some(Boolean) || ["invalid_input", "limited", "conflict", "unavailable", "area-not-ready"].includes(state) && editing) summary.current?.focus(); }, [errors, state, editing]);
   function update<Key extends keyof EditorValues>(field: Key, value: EditorValues[Key]) { setValues((current) => ({ ...current, [field]: value })); setErrors((current) => ({ ...current, [field]: undefined })); }
   function clearPreview() { previewReader.current?.abort(); previewReader.current = null; setPreview(null); setAvatar(null); }
   function openEditor() {
     if (!profile) return;
-    setValues(valuesFromProfile(profile)); setOtherInstitution(!!profile.institutionOther); setPhoneCountry(profile.phone ? phoneCountries.find((item) => profile.phone!.startsWith(item.prefix))?.prefix ?? "" : "+966"); setInterests(profile.interests);
+    setValues(valuesFromProfile(profile, name, latinNameAvailable)); setOtherInstitution(!!profile.institutionOther); setPhoneCountry(profile.phone ? phoneCountries.find((item) => profile.phone!.startsWith(item.prefix))?.prefix ?? "" : "+966"); setInterests(profile.interests);
     editor.current = { editing: true, version: profile.version };
     clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setErrors({}); setSaved(false); setEditorVersion(profile.version); setEditing(true);
   }
@@ -101,7 +116,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   function errorText(field: ProfileField) {
     if (!errors[field]) return undefined;
     return field === "avatar" ? copy.invalidImage : field === "interests" ? copy.tooMany : errors[field] === "required" ? copy.required : errors[field] === "too_long" ? copy.tooLong
-      : field === "dateOfBirth" ? copy.invalidAge : field === "phone" ? copy.invalidPhone : field === "arabicName" ? copy.invalidArabicName : copy.invalid;
+      : field === "dateOfBirth" ? copy.invalidAge : field === "phone" ? copy.invalidPhone : field === "arabicName" ? copy.invalidArabicName : field === "latinName" ? copy.invalidLatinName : copy.invalid;
   }
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,6 +124,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
     const checked: ProfileErrors = {};
     if (Array.from(values.institutionOther.trim()).length > 160) checked.institutionOther = "too_long";
     if (values.arabicName.trim() && !isArabicProfileName(values.arabicName.trim())) checked.arabicName = "invalid";
+    if (latinNameAvailable && values.latinName.trim() && !isLatinProfileName(values.latinName.trim())) checked.latinName = "invalid";
     if (values.dateOfBirth && !isAdultProfileDate(values.dateOfBirth)) checked.dateOfBirth = "invalid";
     if (Array.from(values.city.trim()).length > 80) checked.city = "too_long";
     if (values.phone && !isProfilePhone(values.phone)) checked.phone = "invalid";
@@ -120,7 +136,9 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
     submitting.current = true; setPending(true); setSaved(false); setErrors({});
     const payload = new FormData();
     payload.set("action", "save"); payload.set("formToken", formToken); payload.set("version", String(editorVersion));
-    for (const [key, value] of Object.entries(values)) payload.set(key, value ?? "");
+    for (const [key, value] of Object.entries(values)) {
+      if (key !== "latinName" || latinNameAvailable) payload.set(key, value ?? "");
+    }
     payload.set("interests", JSON.stringify(interests)); payload.set("website", String(new FormData(event.currentTarget).get("website") ?? ""));
     if (avatar) payload.set("avatar", avatar); if (removeAvatar) payload.set("removeAvatar", "true"); if (removeIdentity) payload.set("removeIdentity", "true");
     actionController.current = new AbortController();
@@ -128,31 +146,72 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
     submitting.current = false; if (!active.current) return;
     setPending(false); setState(result.state); setFormToken("formToken" in result ? result.formToken ?? null : null);
     if (result.state === "ready") {
+      restoreEditFocus.current = true;
       editor.current = { editing: false, version: result.profile.version };
-      setProfile(result.profile); setEditorVersion(result.profile.version); setSpecialties(result.specialties); setValues({ ...emptyValues }); clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setEditing(false); setSaved(true); clearProfileEditorDraft(identity);
-      window.dispatchEvent(new Event("msrc-participant-profile")); document.getElementById("participant-profile-edit")?.focus();
+      setProfile(result.profile); setLatinNameAvailable(result.latinNameAvailable !== false); setEditorVersion(result.profile.version); setSpecialties(result.specialties); setValues({ ...emptyValues }); clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setEditing(false); setSaved(true); clearProfileEditorDraft(identity);
+      window.dispatchEvent(new Event("msrc-participant-profile"));
     } else if (result.state === "invalid_input") setErrors(result.fieldErrors ?? {});
     else if (result.state === "denied" || result.state === "closed") clearSessionData();
   }
   function reload() { clearProfileEditorDraft(identity); editor.current = { editing: false, version: null }; setEditing(false); setValues({ ...emptyValues }); clearPreview(); setErrors({}); setProfile(null); setState("loading"); setRefresh((value) => value + 1); }
-  if (state === "closed" || state === "denied") return null;
-  const complete = profile ? profileCompletion(profile, specialties) : 0, total = 10 + Number(specialties.length > 0);
+  function cancelEdit() {
+    clearPreview();
+    clearProfileEditorDraft(identity);
+    editor.current.editing = false;
+    restoreEditFocus.current = true;
+    setValues({ ...emptyValues });
+    setErrors({});
+    setEditing(false);
+  }
+  const accountNames = profileNamesFromAccount(name);
+  const canShowProfile = profile !== null && state !== "closed" && state !== "denied";
+  const completedItems = profile ? profileCompletion(profile, specialties) : 0;
+  const total = profileCompletionTotal(specialties, latinNameAvailable);
+  const isComplete = completedItems === total;
   const hasError = editing && (Object.values(errors).some(Boolean) || !["loading", "ready"].includes(state));
-  const number = (value: number) => new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB").format(value);
-  return <section id="profile" className={`participant-profile-card${complete === total && !editing ? " participant-profile-card--complete" : ""}`} aria-labelledby="participant-profile-heading" data-testid="participant-profile-card">
-    <div className="participant-profile-overview">
-      {profile ? <ProfileAvatar name={name} url={profile.avatarUrl} /> : null}
-      <div className="participant-profile-overview-copy">
-        <h2 id="participant-profile-heading">{copy.title}</h2>
-        {profile && complete === total ? <p className="participant-profile-complete-state" role="status">{copy.complete}</p> : null}
-        {profile ? <><p>{copy.lead}</p><label className="participant-profile-progress" htmlFor="participant-profile-progress"><span>{copy.filled.replace("{count}", number(complete)).replace("{total}", number(total))}</span><progress id="participant-profile-progress" value={complete} max={total} aria-label={copy.progress} /></label></> : null}
+  const number = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB");
+  const progressText = isComplete ? copy.complete : copy.filled.replace("{count}", number.format(completedItems)).replace("{total}", number.format(total));
+  return <section id="profile" className="participant-profile-card" tabIndex={-1} aria-labelledby="participant-profile-heading" data-testid="participant-profile-card">
+    <header className="participant-profile-overview">
+      <div className="participant-profile-identity">
+        {canShowProfile ? <ProfileAvatar name={name} url={profile.avatarUrl} /> : null}
+        <div className="participant-profile-overview-copy">
+          <h2 id="participant-profile-heading">{copy.title}</h2>
+          {canShowProfile && !isComplete ? <p>{copy.lead}</p> : null}
+        </div>
       </div>
-      {profile ? <Button id="participant-profile-edit" variant="secondary" size="small" onClick={openEditor} disabled={pending || state === "conflict"} aria-expanded={editing} aria-controls={editing ? "participant-profile-editor" : undefined}>{copy.edit}</Button> : null}
-    </div>
-    {state === "loading" ? <p role="status">{copy.loading}</p> : !profile ? <><p role="status">{copy.unavailable}</p><Button variant="secondary" size="small" onClick={reload}>{copy.retry}</Button></> : null}
-    <p role="status" aria-live="polite" className="participant-profile-feedback">{pending ? copy.saving : saved ? copy.saved : ""}</p>
-    {editing && profile ? <form id="participant-profile-editor" onSubmit={(event) => void save(event)} noValidate aria-busy={pending} aria-labelledby="participant-profile-editor-title">
-      <h3 id="participant-profile-editor-title" ref={editorHeading} tabIndex={-1}>{copy.edit}</h3><p className="field-hint">{copy.partial}</p>
+      {canShowProfile ? <Button
+        id="participant-profile-edit"
+        ref={editButton}
+        className="participant-profile-edit"
+        variant={editing ? "secondary" : "primary"}
+        size="small"
+        onClick={editing ? cancelEdit : openEditor}
+        disabled={pending}
+        aria-expanded={editing}
+        aria-controls={editing ? "participant-profile-editor" : undefined}
+      >
+        <DashboardIcon name={editing ? "close" : "pencil"} />
+        <span>{editing ? copy.cancelEditing : copy.edit}</span>
+      </Button> : null}
+    </header>
+    {canShowProfile ? <div className="participant-profile-progress">
+      <div className="participant-profile-progress-label">
+        <label htmlFor="participant-profile-progress">{copy.progress}</label>
+        <span>{progressText}</span>
+      </div>
+      <progress id="participant-profile-progress" value={completedItems} max={total} aria-valuetext={progressText} />
+    </div> : <div className="participant-profile-availability">
+      <p role="status">{state === "loading" ? copy.loading : copy.unavailable}</p>
+      {state !== "loading" ? <Button variant="secondary" size="small" onClick={reload}>{copy.retry}</Button> : null}
+    </div>}
+    <p role="status" className="participant-profile-feedback">{canShowProfile ? pending ? copy.saving : saved ? copy.saved : "" : ""}</p>
+    {canShowProfile ? <p className="participant-profile-privacy"><DashboardIcon name="lock" /><span>{copy.privacy}</span></p> : null}
+    {editing && canShowProfile ? <form id="participant-profile-editor" onSubmit={(event) => void save(event)} noValidate aria-busy={pending} aria-labelledby="participant-profile-editor-title">
+      <header className="participant-profile-editor-intro">
+        <h3 id="participant-profile-editor-title" ref={editorHeading} tabIndex={-1}>{copy.edit}</h3>
+        <p className="field-hint">{copy.partial}</p>
+      </header>
       {hasError ? <div ref={summary} className="participant-account-error" role="alert" tabIndex={-1}>
         <h4>{copy.errorsTitle}</h4><p>{state === "conflict" ? copy.conflict : state === "limited" ? copy.limited : copy.error}</p>
         {PROFILE_FIELDS.some((field) => errors[field]) ? <ul>{PROFILE_FIELDS.filter((field) => errors[field]).map((field) => <li key={field}><a href={`#profile-${field}`} onClick={(event) => { event.preventDefault(); document.getElementById(`profile-${field}`)?.focus(); }}>{label(field)}</a></li>)}</ul> : null}
@@ -162,8 +221,10 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
       <fieldset className="participant-account-fields" disabled={pending || state === "conflict"}>
         <div className="participant-profile-picture">
           <ProfileAvatar name={name} url={preview ?? (removeAvatar ? null : profile.avatarUrl)} previewLabel={copy.preview} />
-          <FileUpload key={removeAvatar ? "removed" : "picture"} id="profile-avatar" name="avatar" label={copy.picture} hint={copy.imageHint} accept="image/jpeg,image/png,image/webp" error={errorText("avatar")} clearLabel={copy.clear} selectionLabel={copy.selected} onSelectionChange={selectFile} />
-          {avatar || profile.avatarUrl && !removeAvatar ? <Button variant="secondary" size="small" onClick={() => { clearPreview(); setRemoveAvatar(true); setErrors((value) => ({ ...value, avatar: undefined })); }}>{copy.remove}</Button> : null}
+          <div className="participant-profile-picture-controls">
+            <FileUpload key={removeAvatar ? "removed" : "picture"} id="profile-avatar" name="avatar" label={copy.picture} hint={copy.imageHint} accept="image/jpeg,image/png,image/webp" error={errorText("avatar")} clearLabel={copy.clear} selectionLabel={copy.selected} onSelectionChange={selectFile} />
+            {avatar || profile.avatarUrl && !removeAvatar ? <Button variant="secondary" size="small" onClick={() => { clearPreview(); setRemoveAvatar(true); setErrors((value) => ({ ...value, avatar: undefined })); }}>{copy.remove}</Button> : null}
+          </div>
         </div>
         <fieldset className="participant-profile-group">
           <legend className="participant-profile-group-title">{copy.groups.studies}</legend>
@@ -180,7 +241,12 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
         <fieldset className="participant-profile-group">
           <legend className="participant-profile-group-title">{copy.groups.about}</legend>
           <div className="participant-profile-group-grid">
-            <FormField id="profile-arabicName" name="arabicName" label={copy.arabicName} value={values.arabicName} dir="rtl" lang="ar" autoComplete="name" maxLength={160} error={errorText("arabicName")} onChange={(event) => update("arabicName", event.target.value)} />
+            <FormField id="profile-arabicName" name="arabicName" label={copy.arabicName} value={values.arabicName}
+              hint={!profile.arabicName && values.arabicName && values.arabicName === accountNames.arabicName ? copy.nameFromSignup : undefined}
+              dir="rtl" lang="ar" autoComplete="off" maxLength={160} error={errorText("arabicName")} onChange={(event) => update("arabicName", event.target.value)} />
+            {latinNameAvailable ? <FormField id="profile-latinName" name="latinName" label={copy.latinName} value={values.latinName}
+              hint={!profile.latinName && values.latinName && values.latinName === accountNames.latinName ? copy.nameFromSignup : undefined}
+              dir="ltr" lang="en" autoComplete="off" maxLength={160} error={errorText("latinName")} onChange={(event) => update("latinName", event.target.value)} /> : null}
             <Select id="profile-nationality" name="nationality" label={copy.nationality} value={values.nationality} error={errorText("nationality")} onChange={(event) => update("nationality", event.target.value)}><option value="">{copy.choose}</option>{COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country[locale === "ar" ? "nameAr" : "nameEn"]}</option>)}</Select>
             <Select id="profile-gender" name="gender" label={copy.gender} value={values.gender} error={errorText("gender")} onChange={(event) => update("gender", event.target.value as EditorValues["gender"])}><option value="">{copy.choose}</option>{Object.entries(copy.genders).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</Select>
             <FormField id="profile-dateOfBirth" name="dateOfBirth" type="date" label={copy.dateOfBirth} hint={copy.ageHint} value={values.dateOfBirth} dir="ltr" autoComplete="bday" error={errorText("dateOfBirth")} onChange={(event) => update("dateOfBirth", event.target.value)} />
@@ -202,7 +268,10 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
         </fieldset>
         <div className="participant-account-trap" aria-hidden="true"><label htmlFor="profile-website">Website</label><input id="profile-website" name="website" autoComplete="off" tabIndex={-1} /></div>
       </fieldset>
-      <div className="participant-account-actions"><Button type="submit" disabled={pending || !formToken || state === "conflict"}>{copy.save}</Button><Button variant="secondary" disabled={pending} onClick={() => { clearPreview(); clearProfileEditorDraft(identity); editor.current.editing = false; setValues({ ...emptyValues }); setErrors({}); setEditing(false); document.getElementById("participant-profile-edit")?.focus(); }}>{copy.cancel}</Button></div>
+      <div className="participant-account-actions">
+        <Button type="submit" disabled={pending || !formToken || state === "conflict"}>{copy.save}</Button>
+        <Button variant="secondary" disabled={pending} onClick={cancelEdit}>{copy.cancel}</Button>
+      </div>
     </form> : null}
   </section>;
 }

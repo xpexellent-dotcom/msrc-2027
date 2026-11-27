@@ -1,6 +1,6 @@
 ﻿import "server-only";
 import sharp from "sharp";
-import { PROFILE_STATUSES, PROFILE_IDENTITY_TYPES, safeProfileText, isAdultProfileDate, isArabicProfileName, isProfileIdentityNumber, isProfilePhone, type ProfileStatus, type ProfileIdentityType, type ProfileErrors, type OptionalParticipantProfile, type ProfileSpecialty } from "./profile-contract";
+import { PROFILE_STATUSES, PROFILE_IDENTITY_TYPES, safeProfileText, isAdultProfileDate, isArabicProfileName, isLatinProfileName, isProfileIdentityNumber, isProfilePhone, type ProfileStatus, type ProfileIdentityType, type ProfileErrors, type OptionalParticipantProfile, type ProfileSpecialty } from "./profile-contract";
 import { isCountryCode } from "@/content/countries";
 import { SAUDI_UNIVERSITIES } from "@/content/saudi-universities";
 
@@ -28,7 +28,7 @@ export async function readProfileForm(request: Request): Promise<FormData> {
 }
 export type ProfileSaveInput = {
   institutionId: string | null; institutionOther: string | null; status: ProfileStatus | null;
-  arabicName: string | null; nationality: string | null; gender: "male" | "female" | null;
+  arabicName: string | null; latinName: string | null; nationality: string | null; gender: "male" | "female" | null;
   dateOfBirth: string | null; city: string | null; phone: string | null;
   identityType: ProfileIdentityType | null; identityNumber: string | null; removeIdentity: boolean; interests: string[];
   avatar: File | null; removeAvatar: boolean; version: number; formToken: string;
@@ -37,9 +37,11 @@ export function validateProfileForm(form: FormData, specialties: ProfileSpecialt
   { ok: true; value: ProfileSaveInput } | { ok: false; fieldErrors: ProfileErrors } {
   const errors: ProfileErrors = {};
   const scalarKeys = ["institutionId", "institutionOther", "status", "arabicName", "nationality", "gender", "dateOfBirth", "city", "phone", "identityType", "identityNumber"] as const;
-  const allowed = ["action", ...scalarKeys, "interests", "avatar", "removeAvatar", "removeIdentity", "version", "formToken", "website"];
+  const latinNameEntry = form.get("latinName");
+  const allowed = ["action", ...scalarKeys, "latinName", "interests", "avatar", "removeAvatar", "removeIdentity", "version", "formToken", "website"];
   if (Array.from(form.keys()).some((key) => !allowed.includes(key) || form.getAll(key).length !== 1)
     || scalarKeys.some((key) => typeof form.get(key) !== "string")
+    || latinNameEntry !== null && typeof latinNameEntry !== "string"
     || form.get("action") !== "save" || form.get("website") !== ""
     || typeof form.get("formToken") !== "string" || !/^\d{1,10}$/.test(String(form.get("version")))) return { ok: false, fieldErrors: errors };
   const text = (key: typeof scalarKeys[number]) => String(form.get(key)).trim();
@@ -51,6 +53,8 @@ export function validateProfileForm(form: FormData, specialties: ProfileSpecialt
   if (status !== null && !PROFILE_STATUSES.includes(status)) errors.status = "invalid";
   const arabicName = text("arabicName") || null, nationality = text("nationality") || null;
   if (arabicName !== null && !isArabicProfileName(arabicName)) errors.arabicName = Array.from(arabicName).length > 160 ? "too_long" : "invalid";
+  const latinName = typeof latinNameEntry === "string" ? latinNameEntry.trim() || null : existing?.latinName ?? null;
+  if (latinName !== null && !isLatinProfileName(latinName)) errors.latinName = Array.from(latinName).length > 160 ? "too_long" : "invalid";
   if (nationality !== null && !isCountryCode(nationality)) errors.nationality = "invalid";
   const gender = text("gender") as "male" | "female" || null;
   if (gender !== null && !["male", "female"].includes(gender)) errors.gender = "invalid";
@@ -79,7 +83,7 @@ export function validateProfileForm(form: FormData, specialties: ProfileSpecialt
     || !["image/jpeg", "image/png", "image/webp"].includes(avatar.type))) errors.avatar = "invalid";
   if (avatar && remove === "true") errors.avatar = "invalid";
   if (Object.keys(errors).length) return { ok: false, fieldErrors: errors };
-  return { ok: true, value: { institutionId, institutionOther, status, arabicName, nationality, gender, dateOfBirth, city, phone,
+  return { ok: true, value: { institutionId, institutionOther, status, arabicName, latinName, nationality, gender, dateOfBirth, city, phone,
     identityType, identityNumber, removeIdentity, interests, avatar: avatar instanceof File ? avatar : null,
     removeAvatar: remove === "true", version: Number(form.get("version")), formToken: String(form.get("formToken")) } };
 }

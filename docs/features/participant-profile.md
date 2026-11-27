@@ -10,14 +10,58 @@ PRV-02/03/04/05/06, SEC-01/02/06, LOC-01/03 and ACC-01 apply.
 See the [implementation receipt](../progress/2026-10-28-codex-profile-complete.md)
 and [original profile receipt](../progress/2026-10-27-codex-participant-profile.md).
 
+## My MSRC dashboard review
+
+ORG-090 applies the Canva identity to the private dashboard. The cover uses
+the existing MSRC seal and Flow of Knowledge artwork. Each participation
+row uses the supplied pathway icon. The palette and bilingual typography
+follow the public brand refresh. [Media register](../MEDIA_REGISTER.md#sitewide-brand-refresh--25-november-2026-org-076)
+
+The account summary keeps verified-email status, member date and sign-out
+together. Section shortcuts support native fragments and move keyboard
+focus to the destination. Profile details show completion and privacy
+context before the editor. Participants can cancel at the top or bottom of
+the editor and return focus to Edit profile.
+
+The five participation rows link to the available entry point or public
+guidance according to their existing gates. Announcements and My Bookings
+have distinct sections. Desktop groups activity alongside participation.
+Narrow layouts and enlarged text stack the sections in reading order.
+
+The layout borrows task grouping from common account settings and keeps
+the profile edit control near the identity it changes.
+[Google Account](https://support.google.com/accounts/answer/27442?hl=en)
+[GitHub profile settings](https://docs.github.com/en/account-and-profile/tutorials/personalize-your-profile)
+
+The profile Playwright suite exercises the dashboard with synthetic
+participants. It saves bilingual desktop and mobile review captures in
+the existing participant feature browser artifact.
+
 ## Completion and editing
 
 Completion requires a private picture, institution, status, full Arabic name,
-ISO 3166-1 alpha-2 nationality, gender, date of birth establishing age 18 or older,
-city (80 characters maximum), E.164 contact phone, and a saved identity document.
-At least one specialty interest is required only while the edition's abstract
-specialty catalog is nonempty. The card shows ten baseline items, or eleven with
-configured specialties, and a complete state when all are present.
+full name in Latin letters, ISO 3166-1 alpha-2 nationality, gender, date of
+birth establishing age 18 or older, city (80 characters maximum), E.164
+contact phone, and a saved identity document. At least one specialty interest
+is required only while the edition's abstract specialty catalog is nonempty.
+The card shows eleven baseline items, or twelve with configured specialties.
+
+ORG-091 keeps one name at sign-up. Edit profile prefills the matching field
+when an existing sign-up spelling uses that script and the field has no saved
+value. The second spelling is supplied by the participant. The prefill is
+editable and becomes part of profile progress after Save. An existing saved
+spelling takes precedence. The Latin spelling is used for new presenting-author
+records under ORG-068 with the usual immutable finalization snapshot.
+
+The review migration backfills the Latin value only for existing completed
+profiles that already have a valid Latin account name. It adds no profile
+rows. The two saved names share the existing private profile's authorization
+and retention. Older save calls that omit the new value preserve it.
+The app can deploy before the reviewed migration. The owner API recognizes a
+legacy profile projection and keeps the existing editor, avatar and completion
+count available. The Latin field and new completion rule take effect when the
+schema exposes the new field. Apply the migration and reload the database API
+schema through the existing release process.
 
 Status is one of Year 1–6, Internship, Clinical placement, Postgraduate, Residency,
 or Faculty. The migration maps medical-student years, intern, resident and faculty

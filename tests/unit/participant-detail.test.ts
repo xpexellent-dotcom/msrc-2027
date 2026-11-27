@@ -93,7 +93,7 @@ describe("ENG-083 participant detail", () => {
 describe("ENG-086 private staff participant profile", () => {
   const object = "39000000-0000-4000-8000-000000000004.webp";
   const newFields = { institutionId: null, institutionOther: "Synthetic Institution", arabicName: null, nationality: null, gender: null, dateOfBirth: null, city: null, phone: null, identityType: null, identityLast4: null };
-  const optionalProfile = { ...newFields, institution: "Synthetic Institution", studentStatus: "year_3", studentYear: null,
+  const optionalProfile = { ...newFields, latinName: "Private Synthetic Name", institution: "Synthetic Institution", studentStatus: "year_3", studentYear: null,
     specialtyInterests: ["synthetic-specialty"], specialties: [{ id: "synthetic-specialty", label: "Synthetic specialty" }], avatarObject: object, version: 2 };
   const avatarRequest = (query = `?actorId=${target}&v=2`) => new Request(origin + "/api/staff-portal/participant-detail/avatar" + query, { headers: request().headers });
   const avatar = vi.fn(async () => new Blob([new Uint8Array([1, 2, 3])], { type: "image/webp" }));
@@ -112,6 +112,7 @@ describe("ENG-086 private staff participant profile", () => {
     expect(json.participant.optionalProfile).toEqual({ ...newFields, institution: "Synthetic Institution", status: "year_3", year: null,
       interests: ["synthetic-specialty"], specialties: optionalProfile.specialties, version: 2,
       avatarUrl: `/api/staff-portal/participant-detail/avatar?actorId=${target}&v=2` });
+    expect(json.participant.optionalProfile).not.toHaveProperty("latinName");
     expect(JSON.stringify(json)).not.toContain(object); expect(avatar).not.toHaveBeenCalled();
     expect(rpcNames()).toContain("msrc_staff_participant_detail");
   });

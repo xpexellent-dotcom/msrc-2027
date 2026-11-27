@@ -8,11 +8,15 @@ role grants, session policies and other operational workflows remain closed/unch
 
 ## Behavior and data
 
-Off or unset `CONTACT_DELIVERY_ENABLED` preserves the previous disabled EN/AR form and
-`503 CONTACT_CLOSED` API before reading visitor headers, URL or body. The mailto link
-always remains. An enabled but incomplete/untrusted environment fails unavailable.
-Real delivery is restricted to Vercel Production at `msrc2027.com` or
-`www.msrc2027.com`. Preview cannot deliver. No-JavaScript visitors use the mailto fallback.
+Off or unset `CONTACT_DELIVERY_ENABLED` renders the disabled EN/AR form and returns
+`503 CONTACT_CLOSED` before reading visitor headers, URL or body. An enabled but
+incomplete or untrusted environment fails unavailable. Real delivery is restricted
+to Vercel Production at `msrc2027.com` or `www.msrc2027.com`. Preview cannot deliver.
+
+ORG-092 directs general inquiries to the form when it is available. The shared
+public footer shows the existing inbox for business inquiries in both languages.
+Closed-form visitors are directed to the FAQ or can return later. The enabled
+form asks visitors without JavaScript to enable it before submitting.
 
 Enabled requests require a same-origin POST, bounded uncompressed JSON, strict existing
 field validation/honeypot, Vercel's trusted IP header and a signed locale/origin-bound
@@ -157,7 +161,8 @@ the daily cap. Actual concurrency/ACL/cron execution is verified only in disposa
 3. Set `CONTACT_DELIVERY_ENABLED=true` for Production and **redeploy**. Vercel applies
    environment changes to the next deployment, not running deployments
    ([Vercel documentation](https://vercel.com/docs/environment-variables)). Check EN/AR
-   rendering and the mailto fallback. Never add the real secrets to a Preview deployment.
+   rendering, the business email in the footer and the no-JavaScript notice.
+   Never add the real secrets to a Preview deployment.
 4. Perform an owner-authorized small human test: wait the minimum fill time, submit to
    the fixed inbox, verify tag/summary, plaintext/language, From and Reply-To and no
    automatic visitor acknowledgment. Confirm actual inbox receipt and replying, not just

@@ -9,22 +9,22 @@ export type ProfileIdentityType = typeof PROFILE_IDENTITY_TYPES[number];
 export type ProfileSpecialty = { id: string; label: string };
 export type OptionalParticipantProfile = {
   institution: string | null; institutionId: string | null; institutionOther: string | null;
-  status: ProfileStatus | null; year: null; arabicName: string | null; nationality: string | null;
+  status: ProfileStatus | null; year: null; arabicName: string | null; latinName: string | null; nationality: string | null;
   gender: "male" | "female" | null; dateOfBirth: string | null; city: string | null; phone: string | null;
   identityType: ProfileIdentityType | null; identityLast4: string | null;
   interests: string[]; avatarUrl: string | null; version: number;
 };
-export const PROFILE_FIELDS = ["avatar", "institution", "institutionOther", "status", "arabicName", "nationality", "gender", "dateOfBirth", "city", "phone", "identityType", "identityNumber", "interests"] as const;
+export const PROFILE_FIELDS = ["avatar", "institution", "institutionOther", "status", "arabicName", "latinName", "nationality", "gender", "dateOfBirth", "city", "phone", "identityType", "identityNumber", "interests"] as const;
 export type ProfileField = typeof PROFILE_FIELDS[number];
 export type ProfileErrors = Partial<Record<ProfileField, "required" | "invalid" | "too_long">>;
 export type ParticipantProfileResponse = {
-  state: "ready"; profile: OptionalParticipantProfile; specialties: ProfileSpecialty[]; formToken: string;
+  state: "ready"; profile: OptionalParticipantProfile; specialties: ProfileSpecialty[]; formToken: string; latinNameAvailable?: boolean;
 } | {
   state: "closed" | "denied" | "area-not-ready" | "unavailable" | "invalid_input" | "limited" | "conflict";
   formToken?: string; fieldErrors?: ProfileErrors;
 };
 export const EMPTY_PARTICIPANT_PROFILE: OptionalParticipantProfile = { institution: null, institutionId: null, institutionOther: null,
-  status: null, year: null, arabicName: null, nationality: null, gender: null, dateOfBirth: null, city: null, phone: null,
+  status: null, year: null, arabicName: null, latinName: null, nationality: null, gender: null, dateOfBirth: null, city: null, phone: null,
   identityType: null, identityLast4: null, interests: [], avatarUrl: null, version: 0 };
 export const safeProfileText = (value: unknown, max: number): value is string => typeof value === "string" && Array.from(value).length <= max && !/[\x00-\x1f\x7f]/.test(value);
 export function isAdultProfileDate(value: string, now = new Date()): boolean {
@@ -38,19 +38,35 @@ export function isAdultProfileDate(value: string, now = new Date()): boolean {
 }
 export function isProfilePhone(value: string) { return /^\+[1-9]\d{1,14}$/.test(value); }
 export function isArabicProfileName(value: string) { return safeProfileText(value, 160) && /[\u0621-\u064a\u066e-\u06d3]/u.test(value) && !/[A-Za-z]/.test(value); }
+const latinNameLetter = /[A-Za-zÀ-ÖØ-öø-ɏḀ-ỿ]/u;
+const latinNameCharacters = /^[A-Za-zÀ-ÖØ-öø-ɏḀ-ỿ\u0300-\u036f .’'ʻʼ-]+$/u;
+export function isLatinProfileName(value: string) {
+  return safeProfileText(value, 160) && latinNameLetter.test(value) && latinNameCharacters.test(value);
+}
+export function profileNamesFromAccount(name: string) {
+  const value = name.trim();
+  return {
+    arabicName: isArabicProfileName(value) && !/\p{L}/u.test(value.replace(/\p{Script_Extensions=Arabic}/gu, "")) ? value : "",
+    latinName: isLatinProfileName(value) ? value : "",
+  };
+}
 export function isProfileIdentityNumber(type: ProfileIdentityType, value: string) {
   return type === "national_id" ? /^1\d{9}$/.test(value) : type === "iqama" ? /^2\d{9}$/.test(value) : /^[A-Z0-9]{6,20}$/i.test(value);
 }
 export function profileCompletion(profile: OptionalParticipantProfile, specialties: ProfileSpecialty[] = [], now = new Date()) {
   const items = [!!profile.avatarUrl, !!(profile.institutionId || profile.institutionOther?.trim()), !!profile.status,
-    !!profile.arabicName && isArabicProfileName(profile.arabicName), !!profile.nationality && isCountryCode(profile.nationality),
+    !!profile.arabicName && isArabicProfileName(profile.arabicName), !!profile.latinName && isLatinProfileName(profile.latinName),
+    !!profile.nationality && isCountryCode(profile.nationality),
     !!profile.gender, !!profile.dateOfBirth && isAdultProfileDate(profile.dateOfBirth, now), !!profile.city?.trim(),
     !!profile.phone && isProfilePhone(profile.phone), !!profile.identityType && !!profile.identityLast4];
   if (specialties.length) items.push(profile.interests.some((id) => specialties.some((specialty) => specialty.id === id)));
   return items.filter(Boolean).length;
 }
+export function profileCompletionTotal(specialties: ProfileSpecialty[] = [], latinNameAvailable = true) {
+  return 10 + Number(latinNameAvailable) + Number(specialties.length > 0);
+}
 export function profileComplete(profile: OptionalParticipantProfile, specialties: ProfileSpecialty[] = [], now = new Date()) {
-  return profileCompletion(profile, specialties, now) === 10 + Number(specialties.length > 0);
+  return profileCompletion(profile, specialties, now) === profileCompletionTotal(specialties);
 }
 const record = (value: unknown): Record<string, unknown> | null => value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 export function decodeOptionalParticipantProfile(value: unknown): OptionalParticipantProfile | null {
@@ -61,6 +77,7 @@ export function decodeOptionalParticipantProfile(value: unknown): OptionalPartic
     || row.institutionId !== null && row.institutionOther !== null
     || !(row.status === null || PROFILE_STATUSES.includes(row.status as ProfileStatus)) || row.year !== null
     || !(row.arabicName === null || safeProfileText(row.arabicName, 160))
+    || !(row.latinName == null || typeof row.latinName === "string" && isLatinProfileName(row.latinName))
     || !(row.nationality === null || typeof row.nationality === "string" && isCountryCode(row.nationality))
     || ![null, "male", "female"].includes(row.gender as null | string)
     || !(row.dateOfBirth === null || typeof row.dateOfBirth === "string" && /^\d{4}-\d{2}-\d{2}$/.test(row.dateOfBirth))
@@ -75,7 +92,7 @@ export function decodeOptionalParticipantProfile(value: unknown): OptionalPartic
       || safeProfileText(row.avatarUrl, 3000) && /^https?:\/\//.test(row.avatarUrl))
     || !Number.isSafeInteger(row.version) || Number(row.version) < 0) return null;
   return { institution: row.institution, institutionId: row.institutionId, institutionOther: row.institutionOther,
-    status: row.status, year: null, arabicName: row.arabicName, nationality: row.nationality, gender: row.gender,
+    status: row.status, year: null, arabicName: row.arabicName, latinName: row.latinName ?? null, nationality: row.nationality, gender: row.gender,
     dateOfBirth: row.dateOfBirth, city: row.city, phone: row.phone, identityType: row.identityType,
     identityLast4: row.identityLast4, interests: [...row.interests], avatarUrl: row.avatarUrl, version: row.version } as OptionalParticipantProfile;
 }
@@ -83,10 +100,13 @@ export function decodeProfileResponse(value: unknown): ParticipantProfileRespons
   const row = record(value);
   if (!row) return { state: "unavailable" };
   if (row.state === "ready") {
-    const profile = decodeOptionalParticipantProfile(row.profile);
+    const profileData = record(row.profile);
+    const profile = decodeOptionalParticipantProfile(profileData);
     if (!profile || typeof row.formToken !== "string" || row.formToken.length > 1200 || !Array.isArray(row.specialties) || row.specialties.length > 500
       || !row.specialties.every((item) => { const specialty = record(item); return specialty && safeProfileText(specialty.id, 100) && specialty.id.length > 0 && safeProfileText(specialty.label, 200) && specialty.label.length > 0; })) return { state: "unavailable" };
-    return { state: "ready", profile, specialties: row.specialties.map((item) => ({ id: item.id, label: item.label })), formToken: row.formToken };
+    const latinNameAvailable = row.latinNameAvailable !== false && Object.hasOwn(profileData ?? {}, "latinName");
+    return { state: "ready", profile, specialties: row.specialties.map((item) => ({ id: item.id, label: item.label })), formToken: row.formToken,
+      ...(latinNameAvailable ? {} : { latinNameAvailable: false }) };
   }
   if (!["closed", "denied", "area-not-ready", "unavailable", "invalid_input", "limited", "conflict"].includes(String(row.state))) return { state: "unavailable" };
   const response: ParticipantProfileResponse = { state: row.state as Exclude<ParticipantProfileResponse["state"], "ready"> };
