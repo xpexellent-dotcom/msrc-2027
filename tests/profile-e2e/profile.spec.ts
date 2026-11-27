@@ -302,9 +302,33 @@ for (const locale of ["en", "ar"] as const) {
     await page.locator("#profile-nationality").selectOption("SA"); await page.locator("#profile-gender").selectOption("male");
     await page.locator("#profile-city").fill("Synthetic City");
     await expect(page.locator("#profile-phone-country")).toHaveValue("+966");
-    await page.locator("#profile-phone").fill("+966500000000");
-    await page.locator("#profile-identityType").selectOption("national_id"); await page.locator("#profile-identityNumber").fill("1000004321");
-    await expect(page.locator("#profile-identityNumber")).toHaveAttribute("dir", "ltr");
+    const phone = page.locator("#profile-phone");
+    await expect(phone).toHaveAccessibleDescription("");
+    await expect(card.locator("#profile-phone-hint")).toHaveCount(0);
+    await phone.fill("+966500000000");
+
+    const identityType = page.locator("#profile-identityType");
+    const identityNumber = page.locator("#profile-identityNumber");
+    const identityFormat = card.locator("#profile-identity-format");
+    await expect(identityNumber).toHaveJSProperty("placeholder", "");
+    await expect(identityFormat).toHaveCount(0);
+    await identityType.focus();
+    await page.keyboard.press("Tab");
+    await expect(identityNumber).toBeFocused();
+    for (const [type, example] of [["passport", "A1234567"], ["iqama", "2XXXXXXXXX"], ["national_id", "1XXXXXXXXX"]] as const) {
+      await identityType.selectOption(type);
+      await expect(identityNumber).toHaveAttribute("placeholder", example);
+      await expect(identityNumber).toHaveAccessibleDescription(copy.identityFormats[type]);
+    }
+    await expect(identityFormat).toHaveClass(/\bsr-only\b/);
+    await expect(card.locator("#profile-identityNumber-hint")).toHaveCount(0);
+    await expect(identityNumber).toHaveAttribute("dir", "ltr");
+    expect(await identityNumber.evaluate((input) => getComputedStyle(input, "::placeholder").color)).toBe("rgb(100, 91, 112)");
+    await identityNumber.fill("100");
+    await card.getByRole("button", { name: copy.save, exact: true }).click();
+    await expect(card.locator("#profile-identityNumber-error")).toContainText(copy.identityFormats.national_id);
+    expect(mock.saves()).toBe(0);
+    await identityNumber.fill("1000004321");
     for (const option of specialties.slice(0, 5)) await card.getByRole("button", { name: option.label, exact: true }).click();
     await expect(card.getByRole("button", { name: specialties[5].label, exact: true })).toBeDisabled();
     await page.locator("#profile-avatar").setInputFiles({ name: "synthetic.png", mimeType: "image/png", buffer: png });
@@ -333,7 +357,8 @@ for (const locale of ["en", "ar"] as const) {
     await card.getByRole("button", { name: copy.clearInstitution, exact: true }).click(); await page.locator("#profile-status").selectOption("");
     for (const field of ["arabicName", "latinName", "dateOfBirth", "city", "phone"]) await page.locator("#profile-" + field).fill("");
     await page.locator("#profile-nationality").selectOption(""); await page.locator("#profile-gender").selectOption("");
-    await expect(page.locator("#profile-identityNumber")).toHaveValue(""); await expect(card).toContainText("4321");
+    await expect(identityNumber).toHaveValue("");
+    await expect(identityNumber).toHaveAccessibleDescription(/4321/);
     await card.getByRole("button", { name: copy.removeIdentity, exact: true }).click();
     for (const option of specialties.slice(0, 5)) await card.getByRole("button", { name: option.label, exact: true }).click();
     await card.getByRole("button", { name: copy.save, exact: true }).click();

@@ -5981,3 +5981,12 @@ Both satisfy the status field for profile completion. Presenting-author
 eligibility continues to follow ORG-068. The profile editor offers the new
 choices when the authorized profile projection reports database support.
 Requirements AUTH-07, SCP-03, ABS-12, PRV-03, SEC-02, LOC-01/03 and ACC-01.
+
+## ORG-095 — Profile phone and identity guidance, 27 November 2026
+
+Remove the explanatory text under the participant profile contact phone label.
+After the participant selects a National ID, Iqama, or passport, show an example
+for that type in the identity number field. Provide the selected format to
+assistive technology and use it to explain invalid entries in both languages.
+Keep the existing masked saved-number guidance. Requirements AUTH-07, PRV-03,
+LOC-01/03 and ACC-01.

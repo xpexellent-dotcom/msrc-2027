@@ -80,6 +80,12 @@ only assigned ISO codes are stored. The phone picker starts at +966 and accepts
 international E.164 contact numbers; ORG-016 still prohibits authentication phone
 collection, SMS, phone verification and phone-based sign-in.
 
+ORG-095 removes the helper beneath the profile contact phone label. The identity
+number field shows a grey example after a document type is selected. Screen
+readers and invalid-number errors use localized guidance for the selected type.
+The masked number and instructions for keeping it remain visible for a saved
+document.
+
 The editor supports removal and partial saving. New identity numbers, birth dates
 and contact details remain in the current editor only; they are not placed in
 browser persistent storage or the cross-language draft. Arabic names are RTL;

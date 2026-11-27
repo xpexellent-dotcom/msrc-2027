@@ -1,5 +1,18 @@
 # Progress and session handover
 
+## 27 November 2026 — Profile phone and identity guidance
+
+- ORG-095 removes the contact phone helper and adds a grey identity number
+  example for each document type after selection. The editor links the
+  localized format guidance to the input and uses it for invalid numbers.
+  Saved documents still show the masked suffix and how to keep it.
+- Scoped ESLint, 223 profile and abstract unit tests, and the production
+  build passed. All 44 profile Playwright cases passed before the final
+  Arabic wording adjustment. The four focused EN/AR desktop and mobile
+  cases passed on the final build, covering all three placeholders, the
+  accessible descriptions, keyboard navigation, validation and the saved mask.
+  Requirements AUTH-07, PRV-03, LOC-01/03 and ACC-01.
+
 ## 27 November 2026 — Consultant and Specialist profile statuses
 
 - ORG-094 adds Consultant and Specialist to the English and Arabic profile

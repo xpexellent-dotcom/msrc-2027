@@ -21,6 +21,7 @@ export { profileCompletion } from "./profile-contract";
 type EditorValues = { institutionId: string | null; institutionOther: string; status: OptionalParticipantProfile["status"]; arabicName: string; latinName: string; nationality: string;
   gender: "male" | "female" | ""; dateOfBirth: string; city: string; phone: string; identityType: ProfileIdentityType | ""; identityNumber: string };
 const emptyValues: EditorValues = { institutionId: null, institutionOther: "", status: null, arabicName: "", latinName: "", nationality: "", gender: "", dateOfBirth: "", city: "", phone: "", identityType: "", identityNumber: "" };
+const identityExamples = { national_id: "1XXXXXXXXX", iqama: "2XXXXXXXXX", passport: "A1234567" } satisfies Record<ProfileIdentityType, string>;
 function valuesFromProfile(profile: OptionalParticipantProfile, accountName: string, latinNameAvailable: boolean): EditorValues {
   const accountNames = profileNamesFromAccount(accountName);
   return { institutionId: profile.institutionId, institutionOther: profile.institutionOther ?? "", status: profile.status,
@@ -175,6 +176,8 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   const hasError = editing && (Object.values(errors).some(Boolean) || !["loading", "ready"].includes(state));
   const number = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB");
   const progressText = isComplete ? copy.complete : copy.filled.replace("{count}", number.format(completedItems)).replace("{total}", number.format(total));
+  const identityFormat = values.identityType ? copy.identityFormats[values.identityType] : undefined;
+  const invalidIdentityFormat = errors.identityNumber === "invalid" ? identityFormat : undefined;
   return <section id="profile" className="participant-profile-card" tabIndex={-1} aria-labelledby="participant-profile-heading" data-testid="participant-profile-card">
     <header className="participant-profile-overview">
       <div className="participant-profile-identity">
@@ -260,13 +263,22 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
           <legend className="participant-profile-group-title">{copy.groups.contact}</legend>
           <FormField id="profile-city" name="city" label={copy.city} hint={copy.cityHint} value={values.city} dir="auto" autoComplete="address-level2" maxLength={80} error={errorText("city")} onChange={(event) => update("city", event.target.value)} />
           <ContactPhoneField id="profile-phone" name="phone" locale={locale} country={phoneCountry} onCountryChange={setPhoneCountry} value={values.phone} onChange={(value) => update("phone", value)}
-            labels={{ country: copy.phoneCountry, phone: copy.phone, hint: copy.phoneHint, international: copy.internationalPhone }} error={errorText("phone")} />
+            labels={{ country: copy.phoneCountry, phone: copy.phone, international: copy.internationalPhone }} error={errorText("phone")} />
         </fieldset>
         <fieldset className="participant-profile-group">
           <legend className="participant-profile-group-title">{copy.groups.identity}</legend>
           <div className="participant-profile-group-grid">
             <Select id="profile-identityType" name="identityType" label={copy.identityType} value={values.identityType} error={errorText("identityType")} onChange={(event) => { update("identityType", event.target.value as EditorValues["identityType"]); update("identityNumber", ""); setRemoveIdentity(!event.target.value && !!profile.identityLast4); }}><option value="">{copy.choose}</option>{Object.entries(copy.identityTypes).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</Select>
-            <FormField id="profile-identityNumber" name="identityNumber" label={copy.identityNumber} hint={profile.identityLast4 && !removeIdentity && values.identityType === profile.identityType ? copy.savedIdentity.replace("{last4}", profile.identityLast4) : copy.identityHint} value={values.identityNumber} dir="ltr" inputMode={values.identityType === "passport" ? "text" : "numeric"} autoComplete="off" maxLength={20} error={errorText("identityNumber")} onChange={(event) => { update("identityNumber", event.target.value); setRemoveIdentity(false); }} />
+            <FormField
+              id="profile-identityNumber" name="identityNumber" label={copy.identityNumber}
+              hint={profile.identityLast4 && !removeIdentity && values.identityType === profile.identityType ? copy.savedIdentity.replace("{last4}", profile.identityLast4) : undefined}
+              placeholder={values.identityType ? identityExamples[values.identityType] : undefined}
+              aria-describedby={identityFormat && !invalidIdentityFormat ? "profile-identity-format" : undefined}
+              value={values.identityNumber} dir="ltr" inputMode={values.identityType === "passport" ? "text" : "numeric"}
+              autoComplete="off" maxLength={20} error={invalidIdentityFormat ?? errorText("identityNumber")}
+              onChange={(event) => { update("identityNumber", event.target.value); setRemoveIdentity(false); }}
+            />
+            {identityFormat && !invalidIdentityFormat ? <span id="profile-identity-format" className="sr-only">{identityFormat}</span> : null}
             {profile.identityLast4 && !removeIdentity ? <Button variant="secondary" size="small" onClick={() => { update("identityType", ""); update("identityNumber", ""); setRemoveIdentity(true); }}>{copy.removeIdentity}</Button> : null}
           </div>
         </fieldset>
