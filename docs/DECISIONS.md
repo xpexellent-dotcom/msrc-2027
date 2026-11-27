@@ -5990,3 +5990,8 @@ for that type in the identity number field. Provide the selected format to
 assistive technology and use it to explain invalid entries in both languages.
 Keep the existing masked saved-number guidance. Requirements AUTH-07, PRV-03,
 LOC-01/03 and ACC-01.
+
+## ORG-096 — Footer inquiries label, 27 November 2026
+
+Use “Inquiries” and “للاستفسارات” above the footer email link. This supersedes
+the label wording in ORG-092. Requirements SUP-01, LOC-01/03 and ACC-01.

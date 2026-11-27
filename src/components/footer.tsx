@@ -10,7 +10,7 @@ export const footerCopy = {
   en: {
     description: "The fifth Medical Students Research Conference.",
     institution: "King Abdulaziz University · Jeddah",
-    businessInquiries: "For business inquiries",
+    inquiries: "Inquiries",
     navigation: "Explore the conference",
     groups: ["The conference", "Take part", "Information"],
     designSystem: "Design system preview",
@@ -19,7 +19,7 @@ export const footerCopy = {
   ar: {
     description: "المؤتمر الخامس لأبحاث طلاب الطب.",
     institution: "جامعة الملك عبدالعزيز · جدة",
-    businessInquiries: "للاستفسارات التجارية",
+    inquiries: "للاستفسارات",
     navigation: "استكشف المؤتمر",
     groups: ["المؤتمر", "المشاركة", "معلومات"],
     designSystem: "معاينة نظام التصميم",
@@ -54,7 +54,7 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
                   <p className="footer-institution">{footer.institution}</p>
                 </div>
                 <div className="footer-contact">
-                  <p className="footer-business-label">{footer.businessInquiries}</p>
+                  <p className="footer-business-label">{footer.inquiries}</p>
                   <a className="footer-business-email" href={`mailto:${contactConfig.recipient}`} dir="ltr" lang="en">{contactConfig.recipient}</a>
                   <SocialLinksRow locale={locale} className="footer-social" />
                 </div>

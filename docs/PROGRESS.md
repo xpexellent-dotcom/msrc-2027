@@ -1,5 +1,12 @@
 # Progress and session handover
 
+## 27 November 2026 — Footer inquiries label
+
+- ORG-096 updates the shared footer label to “Inquiries” and “للاستفسارات”.
+  Scoped ESLint, the production build and all 12 targeted Contact browser
+  cases passed across English and Arabic desktop, tablet and mobile layouts.
+  Requirements SUP-01, LOC-01/03 and ACC-01.
+
 ## 27 November 2026 — Profile phone and identity guidance
 
 - ORG-095 removes the contact phone helper and adds a grey identity number
