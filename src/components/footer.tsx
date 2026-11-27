@@ -1,6 +1,8 @@
 import { Link } from "@/components/ui/link";
 import Image from "next/image";
+import { SocialLinksRow } from "@/components/social-links-row";
 import { Container } from "@/components/ui/container";
+import { contactConfig } from "@/config/contact";
 import { homepageNarrative } from "@/content/homepage-narrative";
 import { homepageCopy, publicSitemap } from "@/content/public-site";
 import type { Locale } from "@/lib/i18n";
@@ -8,6 +10,7 @@ export const footerCopy = {
   en: {
     description: "The fifth Medical Students Research Conference.",
     institution: "King Abdulaziz University · Jeddah",
+    businessInquiries: "For business inquiries",
     navigation: "Explore the conference",
     groups: ["The conference", "Take part", "Information"],
     designSystem: "Design system preview",
@@ -16,6 +19,7 @@ export const footerCopy = {
   ar: {
     description: "المؤتمر الخامس لأبحاث طلاب الطب.",
     institution: "جامعة الملك عبدالعزيز · جدة",
+    businessInquiries: "للاستفسارات التجارية",
     navigation: "استكشف المؤتمر",
     groups: ["المؤتمر", "المشاركة", "معلومات"],
     designSystem: "معاينة نظام التصميم",
@@ -47,6 +51,9 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
               <div className="footer-brand-copy">
                 <p>{footer.description}</p>
                 <p className="footer-institution">{footer.institution}</p>
+                <p className="footer-business-label">{footer.businessInquiries}</p>
+                <a className="footer-business-email" href={`mailto:${contactConfig.recipient}`} dir="ltr" lang="en">{contactConfig.recipient}</a>
+                <SocialLinksRow locale={locale} className="footer-social" />
               </div>
             </div>
             <nav className="footer-directory" aria-label={footer.navigation}>

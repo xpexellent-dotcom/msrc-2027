@@ -74,13 +74,7 @@ html[data-cinematic="true"] .homepage-journey .flow-ribbon { display: none; }
 html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-hero { position: fixed; inset-block-start: 0; }
 
 /* Homepage social links and sponsorship. */
-.homepage-journey .hero-social { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; margin: 1.75rem 0 0; animation: hero-follow 500ms 300ms var(--ease-out) both; pointer-events: auto; }
-.homepage-journey .social-item { display: grid; place-items: center; inline-size: 44px; block-size: 44px; border: 1px solid var(--line-lilac-35); border-radius: var(--r-icon); color: var(--color-ivory); }
-.homepage-journey .social-item--placeholder { border-style: dashed; }
-.homepage-journey .social-item--placeholder svg { opacity: .6; }
-.homepage-journey .social-item:focus-visible { outline-color: var(--color-gold); background: var(--color-ivory); color: var(--color-purple); }
-.homepage-journey .social-soon { margin-inline-start: .25rem; padding-inline-start: .75rem; border-inline-start: 1px solid var(--hair-inverse); }
-.homepage-journey .social-soon > span { display: block; padding: .4rem .65rem; border: 1px solid var(--line-lilac-35); border-radius: var(--r-pill); font: 600 var(--t-label)/1.3 var(--font-interface); letter-spacing: .14em; text-transform: uppercase; }
+.homepage-journey .hero-social { margin-block-start: 1.75rem; animation: hero-follow 500ms 300ms var(--ease-out) both; pointer-events: auto; }
 .homepage-journey .sponsor-belt { background: var(--color-ivory); border-block: 1px solid var(--hair); padding-block: 1rem; }
 .homepage-journey .belt-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .homepage-journey .belt-caption { margin: 0; color: var(--color-slate); font: 600 var(--t-label)/1.3 var(--font-interface); letter-spacing: .14em; text-transform: uppercase; }
@@ -490,7 +484,6 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
   .homepage-journey .benefit-copy p { grid-column: 1; grid-row: 3; }
 }
 @media (hover: hover) {
-  .homepage-journey .social-item:not(.social-item--placeholder):hover { background: var(--color-ivory); color: var(--color-purple); }
   .homepage-journey .path-tile:hover { translate: 0 -4px; border-color: var(--hair-hover); box-shadow: var(--e2); background-color: var(--color-mist); }
   .homepage-journey .path-tile:hover .brand-icon { scale: 1.04; }
   .homepage-journey .path-tile:hover .path-tile-top > .directional-arrow { translate: calc(4px * var(--motion-inline-direction)) 0; }
@@ -501,7 +494,7 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
 }
 .homepage-journey .path-tile:active { translate: 0 -1px; }
 [lang="ar"] .homepage-journey { line-height: 1.8; }
-[lang="ar"] .homepage-journey :is(h1, h2, h3, .hero-conference-name, .countdown-label, .countdown-time-label, .belt-caption, .social-soon > span, .closing-date, .history-count, .countdown-number) { letter-spacing: 0; text-transform: none; }
+[lang="ar"] .homepage-journey :is(h1, h2, h3, .hero-conference-name, .countdown-label, .countdown-time-label, .belt-caption, .closing-date, .history-count, .countdown-number) { letter-spacing: 0; text-transform: none; }
 [lang="ar"] .homepage-journey .history-count-group { font-family: var(--font-dm-sans), Arial, sans-serif; }
 [lang="ar"] .homepage-journey .hero-editorial h1 { font-weight: 700; padding-block: .2em; margin-block: -.2em; }
 [lang="ar"] .homepage-journey .section-heading h2 { font-weight: 600; line-height: 1.35; }
@@ -509,7 +502,7 @@ html[data-cinematic="true"] .homepage-journey .hero-scroll-stage > .conference-h
 [lang="ar"] .homepage-journey :is(.pathway-name, .benefit-copy h3, .home-venue-opening h3) { font-weight: 600; line-height: 1.5; }
 [lang="ar"] .homepage-journey .path-tile--registration .pathway-name { line-height: 1.4; }
 [lang="ar"] .homepage-journey :is(.benefit-copy p, .path-tile-description, .home-venue-opening p, .faq-item > p, .program-opening > div:last-child > p, .legacy-film-note, .home-speaker-copy > p) { line-height: 1.8; }
-[lang="ar"] .homepage-journey :is(.hero-conference-name, .belt-caption, .social-soon > span, .countdown-label, .countdown-time-label) { line-height: 1.6; }
+[lang="ar"] .homepage-journey :is(.hero-conference-name, .belt-caption, .countdown-label, .countdown-time-label) { line-height: 1.6; }
 [lang="ar"] .homepage-journey .hero-location { line-height: 1.8; }
 [lang="ar"] .homepage-journey :is(.pathway-kicker, .gallery-card figcaption, .history-numbers dt > span:not(.brand-icon)) { line-height: 1.75; }
 [lang="ar"] .homepage-journey :is(.status-badge, .history-numbers dt) { line-height: 1.6; }

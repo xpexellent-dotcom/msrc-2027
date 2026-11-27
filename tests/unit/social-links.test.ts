@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { socialHosts, socialLinks, type SocialLink } from "@/content/social-links";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { HeroSocialRow } from "@/components/home/hero-social-row";
+import { SocialLinksRow } from "@/components/social-links-row";
 
-describe("homepage social identity publication", () => {
+describe("public social identity publication", () => {
   it("configures the organizer-supplied X account and keeps the other accounts pending", () => {
     expect(socialLinks).toEqual([
       { network: "x", url: "https://x.com/Research__PC" },
@@ -24,7 +24,7 @@ describe("homepage social identity publication", () => {
   });
 
   it("renders nothing when no social networks are configured", () => {
-    expect(renderToStaticMarkup(createElement(HeroSocialRow, { locale: "en", links: [] }))).toBe("");
+    expect(renderToStaticMarkup(createElement(SocialLinksRow, { locale: "en", className: "hero-social", links: [] }))).toBe("");
   });
 
   it.each([
@@ -36,14 +36,14 @@ describe("homepage social identity publication", () => {
       { network: "x", url: "https://www.x.com/synthetic-test" },
       { network: "instagram", url: null },
     ];
-    const html = renderToStaticMarkup(createElement(HeroSocialRow, { locale, links }));
+    const html = renderToStaticMarkup(createElement(SocialLinksRow, { locale, className: "hero-social", links }));
 
-    expect(html).toMatch(/<ul\b[^>]*class="hero-social"/);
+    expect(html).toMatch(/<ul\b[^>]*class="social-links hero-social"/);
     expect(html.match(/<a\b/g)).toHaveLength(1);
     expect(html).toContain('href="https://www.x.com/synthetic-test"');
     expect(html.match(/<span class="social-item social-item--placeholder"/g)).toHaveLength(2);
-    expect(html).toContain(`class="sr-only">LinkedIn — ${soon}</span>`);
-    expect(html).toContain(`class="sr-only">Instagram — ${soon}</span>`);
+    expect(html).toContain(`class="sr-only"><span lang="en">LinkedIn</span> — ${soon}</span>`);
+    expect(html).toContain(`class="sr-only"><span lang="en">Instagram</span> — ${soon}</span>`);
     expect(html.indexOf("LinkedIn")).toBeLessThan(html.indexOf("synthetic-test"));
     expect(html.indexOf("synthetic-test")).toBeLessThan(html.indexOf("Instagram"));
   });

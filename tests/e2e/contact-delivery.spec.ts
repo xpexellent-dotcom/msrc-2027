@@ -81,7 +81,7 @@ async function send(page: Page, locale: Locale) {
 async function assertReadable(page: Page) {
   const widths = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth }));
   expect(widths.content).toBeLessThanOrEqual(widths.viewport);
-  const clipped = await page.locator("main h1, main h2:not(.sr-only), main h3, .contact-email-link").evaluateAll((elements) => elements.some((element) => {
+  const clipped = await page.locator("main h1, main h2:not(.sr-only), main h3, .footer-business-label, .footer-business-email").evaluateAll((elements) => elements.some((element) => {
     const range = document.createRange();
     range.selectNodeContents(element);
     return Array.from(range.getClientRects()).some((rect) => rect.left < -1 || rect.right > document.documentElement.clientWidth + 1);
@@ -99,7 +99,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("#contact-name")).toBeDisabled();
     await expect(page.locator(".contact-form button")).toBeDisabled();
     await expect(page.locator("#contact-form-closed")).toContainText(copy[locale].closed);
-    await expect(page.getByRole("main").getByRole("link", { name: "contact@msrc2027.com", exact: true })).toHaveAttribute("href", "mailto:contact@msrc2027.com");
+    await expect(page.getByRole("main").locator('a[href^="mailto:"]')).toHaveCount(0);
+    await expect(page.getByRole("contentinfo").getByRole("link", { name: "contact@msrc2027.com", exact: true })).toHaveAttribute("href", "mailto:contact@msrc2027.com");
     const response = await request.post(`${closedOrigin}/api/contact`, { data: "not parsed", headers: { "Content-Type": "application/json" } });
     expect(response.status()).toBe(503);
     expect(await response.json()).toEqual({ state: "closed", code: "CONTACT_CLOSED" });
@@ -527,7 +528,7 @@ test("Fast repeated clicks and direct token replay cannot send a second email", 
   expect((await counts(request)).sendCount).toBe(1);
 });
 
-test("Enabled delivery without JavaScript offers email and never submits form values", async ({ browser, request }) => {
+test("Enabled delivery without JavaScript shows the footer business email and never submits form values", async ({ browser, request }) => {
   await control(request);
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   try {
@@ -541,7 +542,8 @@ test("Enabled delivery without JavaScript offers email and never submits form va
       await expect(page.locator(".contact-form button")).toBeDisabled();
       await expect(page.locator("[data-contact-no-script]")).toBeVisible();
       await expect(page.locator("[data-contact-no-script]")).toContainText(locale === "en" ? "Please enable JavaScript" : "يرجى تفعيل JavaScript");
-      await expect(page.getByRole("main").getByRole("link", { name: "contact@msrc2027.com", exact: true })).toHaveAttribute("href", "mailto:contact@msrc2027.com");
+      await expect(page.getByRole("main").locator('a[href^="mailto:"]')).toHaveCount(0);
+      await expect(page.getByRole("contentinfo").getByRole("link", { name: "contact@msrc2027.com", exact: true })).toHaveAttribute("href", "mailto:contact@msrc2027.com");
     }
     expect(writes).toEqual([]);
     expect((await counts(request)).sendCount).toBe(0);

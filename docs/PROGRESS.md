@@ -1,5 +1,23 @@
 # Progress and session handover
 
+## 27 November 2026 — Contact form and public footer
+
+- ORG-090 removes the direct email card from Contact in English and Arabic.
+  The page directs general questions to the form when delivery is available.
+  The shared footer lists `contact@msrc2027.com` for business inquiries and
+  uses the homepage social row. X links to the approved account. LinkedIn,
+  Instagram and TikTok show the localized “Soon” status.
+- `pnpm check` passed ESLint, TypeScript, 5,683 unit tests and the production
+  build. The targeted Contact and homepage Playwright run passed 31 cases.
+  The loopback Contact suite passed 75 focused cases across Chromium and
+  WebKit, including submission, delivery failures and the no-JavaScript
+  state. A temporary test config moved the closed instance to port 3413
+  because port 3213 was occupied.
+- Visual checks passed in English and Arabic on desktop Chromium and emulated
+  iPhone WebKit, including the enabled and closed states. The footer links fit
+  at 280 px with 200% text in WebKit. Hosted delivery and physical devices
+  were not tested. Requirements SUP-01/02, LOC-01/03 and ACC-01.
+
 ## 26 November 2026 — Homepage attendee benefit order
 
 - ORG-089 sets the homepage sequence in both languages to awards and cash

@@ -32,7 +32,7 @@ import { Arrow } from "@/components/ui/arrow";
 import { BrandIcon } from "@/components/brand/brand-icon";
 import { Sparkle } from "@/components/brand/sparkle";
 import { FlowRibbon } from "@/components/brand/flow-ribbon";
-import { HeroSocialRow } from "@/components/home/hero-social-row";
+import { SocialLinksRow } from "@/components/social-links-row";
 import { SponsorBelt } from "@/components/home/sponsor-belt";
 import { ApprovedSponsorBelt } from "@/components/home/approved-sponsor-belt";
 import { homePlaceholdersEnabled } from "@/lib/preview-placeholders";
@@ -69,7 +69,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
                 <ButtonLink href={`/${locale}/participate`} variant="gold">{demo.join}<Arrow /></ButtonLink>
                 <ButtonLink variant="ivory" href={`/${locale}/program`}>{narrative.programmeAction}<Arrow /></ButtonLink>
               </div>
-              <HeroSocialRow locale={locale} />
+              <SocialLinksRow locale={locale} className="hero-social" />
             </div>
             <div className="hero-countdown"><ConferenceCountdown target={conferenceConfig.countdownTarget} locale={locale} dateRange={dateRange} pauseWhenHidden /></div>
           </div>

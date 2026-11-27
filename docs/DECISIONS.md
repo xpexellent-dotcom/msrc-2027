@@ -5925,3 +5925,11 @@ The organizer set the reading order for the six homepage benefit cards.
 Show awards and cash prizes first, followed by certificates, hands-on
 workshops, networking with experts, research exposure and CME hours.
 Use this sequence in English and Arabic. Requirements: DSN-01, LOC-01/03, ACC-01.
+
+## ORG-090 — Form-first Contact and public footer, 27 November 2026
+
+Direct general inquiries to the Contact form when it is available. Move the
+published email link from the Contact page content to the shared footer under
+“For business inquiries”. Show the same social accounts and availability as the
+homepage in both languages, using the account approvals under ORG-086. This
+supersedes the placement in ORG-021. Requirements SUP-01/02, LOC-01/03 and ACC-01.
