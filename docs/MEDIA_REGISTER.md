@@ -378,3 +378,16 @@ seal. The browser favicon includes 16, 32 and 48 pixel transparent
 renditions. The 192 pixel PNG retains the transparent background. The
 180 pixel Apple icon places the seal on brand purple with padding for the
 system corner mask.
+
+## Public link-preview artwork — 27 November 2026
+
+The 1200 × 630 English and Arabic share cards use the ORG-078 dark seal
+with the public Fraunces wordmark. Conference artwork uses the site palette
+and keeps the identity inside the central square. The Open Graph image
+routes serve the PNGs in `public/brand/share/`.
+
+After changing the artwork or confirmed conference dates, run
+`node scripts/render-social-share-card.mjs` in the installed checkout with
+Playwright Chromium available. Review both cards at full width and in
+a 112 × 112 center crop, and bump `shareCardRevision` when publishing
+updated PNGs.

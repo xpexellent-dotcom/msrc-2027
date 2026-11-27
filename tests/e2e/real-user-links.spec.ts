@@ -20,7 +20,7 @@ test("sitemap destinations, internal links, previews, icons and calendar have us
     }
     for (const selector of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
       const url = new URL(await page.locator(selector).getAttribute("content") ?? "", baseURL);
-      const image = await request.get(url.pathname);
+      const image = await request.get(url.pathname + url.search);
       expect(image.status(), `${path} preview`).toBe(200);
       expect(image.headers()["content-type"]).toContain("image/");
       const bytes = await image.body();

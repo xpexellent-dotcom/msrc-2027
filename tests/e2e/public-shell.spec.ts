@@ -112,16 +112,24 @@ for (const locale of ["en", "ar"] as const) {
 }
 
 test("shared links carry a working preview image and language alternates", async ({ page, request }) => {
+  const imageBodies: Buffer[] = [];
   for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}`);
     const image = await page.locator('meta[property="og:image"]').getAttribute("content");
-    expect(image).toMatch(new RegExp(`/${locale}/opengraph-image`));
-    const response = await request.get(new URL(image!).pathname);
+    expect(image).toContain(`/${locale}/opengraph-image?v=`);
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", image!);
+    const { pathname, search } = new URL(image!);
+    const response = await request.get(pathname + search);
     expect(response.status()).toBe(200);
     expect(response.headers()["content-type"]).toBe("image/png");
+    const body = await response.body();
+    expect(body.length).toBeLessThan(600_000);
+    expect([body.readUInt32BE(16), body.readUInt32BE(20)]).toEqual([1200, 630]);
+    imageBodies.push(body);
     await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveAttribute("href", /\/ar$/);
     await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", /\/en$/);
   }
+  expect(imageBodies[0].equals(imageBodies[1])).toBe(false);
 });
 
 test("public pages pass axe best-practice rules, including landmark coverage", async ({ page }) => {

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { shareCardDomain } from "@/content/share-card";
 import { describe, expect, it } from "vitest";
 import { dictionaries, locales } from "@/lib/i18n";
 
@@ -11,8 +11,6 @@ describe("public launch wording", () => {
   });
 
   it("the link-preview card carries the address instead of a preview badge", () => {
-    const source = readFileSync("src/app/[locale]/opengraph-image.tsx", "utf8");
-    expect(source).not.toMatch(/WEBSITE PREVIEW/);
-    expect(source).toContain("msrc2027.com");
+    expect(shareCardDomain).toBe("msrc2027.com");
   });
 });

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { conferenceConfig, conferenceDateLabel } from "@/config/conference";
+import { shareCardCopy, shareCardRevision, shareCardSize } from "@/content/share-card";
 import type { Locale } from "@/lib/i18n";
 
 /** Public origin for absolute metadata URLs. Previews also point shared links at the public site. */
@@ -29,8 +30,13 @@ export function siteTitle(page: string): string {
  */
 export function localizedPageMetadata(locale: Locale, path: string, title: string, description: string): Metadata {
   const other: Locale = locale === "ar" ? "en" : "ar";
-  // Page-level openGraph replaces the segment's file-based image, so reference it explicitly.
-  const image = { url: `/${locale}/opengraph-image`, width: 1200, height: 630, alt: "MSRC 2027" };
+  const { title: imageTitle, institution } = shareCardCopy[locale];
+  const image = {
+    // Give crawlers a new image URL for the refreshed artwork.
+    url: `/${locale}/opengraph-image?v=${shareCardRevision}`,
+    ...shareCardSize,
+    alt: `${imageTitle} · ${conferenceDateLabel(locale)} · ${institution}`,
+  };
   return {
     robots: { index: indexable, follow: indexable },
     alternates: {
@@ -47,7 +53,7 @@ export function localizedPageMetadata(locale: Locale, path: string, title: strin
       alternateLocale: openGraphLocale[other],
       images: [image],
     },
-    twitter: { card: "summary_large_image", title, description, images: [image.url] },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
   };
 }
 
