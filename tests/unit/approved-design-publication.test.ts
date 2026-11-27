@@ -31,7 +31,7 @@ describe("approved design publication without preview authorization (DSN-01/02, 
     expect(html).toMatch(/class="[^"]*\bpathway-list path-bento"/);
     expect(html.match(/class="[^"]*\bpathway-action"/g)).toHaveLength(5);
     expect(html).not.toContain("sponsor-belt");
-    expect(html).toContain('class="hero-social"');
+    expect(html).toMatch(/class="[^"]*\bhero-social\b[^"]*"/);
     expect(html).toContain('href="https://x.com/Research__PC"');
     expect(html.match(/class="social-item social-item--placeholder"/g)).toHaveLength(3);
     expect(html).toContain("community-majed-9804.jpg");

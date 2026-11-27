@@ -1,12 +1,8 @@
 /* Contact: a clear service entrance and a focused, accessible form surface. */
 .contact-hero { --focus-ring: var(--color-ivory); padding-block: 1.5rem clamp(3rem, 6vw, 6rem); background: var(--color-purple); color: var(--color-ivory); }
-.contact-hero-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(2.5rem, 7vw, 7rem); align-items: end; padding-block-start: clamp(2.5rem, 5vw, 5rem); }
+.contact-hero-copy { padding-block-start: clamp(2.5rem, 5vw, 5rem); }
 .contact-hero h1 { margin: 0 0 1.75rem; color: var(--color-ivory); font-family: var(--font-display); font-size: clamp(3rem, 6.5vw, 6rem); font-weight: 600; line-height: 1.07; letter-spacing: -.04em; }
 .contact-lead { max-inline-size: 54ch; color: var(--color-lilac); font-size: var(--text-lead); line-height: 1.85; }
-.contact-email { min-inline-size: 0; border-block-start: 1px solid var(--color-gold); padding-block-start: 1.5rem; }
-.contact-email h2 { margin-block-end: .75rem; color: var(--color-ivory); font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
-.contact-email p { color: var(--color-lilac); line-height: 1.8; }
-.contact-email-link { display: inline-flex; align-items: center; min-block-size: var(--touch-target); max-inline-size: 100%; margin-block-start: .75rem; color: var(--color-ivory); font-size: 1.05rem; font-weight: 500; overflow-wrap: anywhere; }
 .contact-form-section { background: var(--color-white); }
 .contact-form-layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.5fr); align-items: start; gap: clamp(2.5rem, 6vw, 6rem); }
 .contact-form-layout > .section-heading h2 { margin-block-start: 0; font-family: var(--font-display); font-weight: 600; }
@@ -36,10 +32,8 @@
 .contact-delivery-note p + p { margin-block-start: .5rem; }
 .contact-duplicate-warning { margin-block-start: 1rem; padding: 1rem; background: var(--color-warning-surface); color: var(--color-warning); line-height: 1.85; }
 [lang="ar"] .contact-hero h1 { letter-spacing: 0; line-height: 1.5; font-size: clamp(2.6rem, 5.3vw, 5rem); }
-[lang="ar"] .contact-email h2 { line-height: 1.6; }
 @media (max-width: 800px) {
-  .contact-hero-grid, .contact-form-layout { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
-  .contact-email { max-inline-size: 36rem; }
+  .contact-form-layout { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
 }
 @media (max-width: 600px) {
   .contact-hero h1 { font-size: clamp(2.5rem, 10vw, 3.5rem); }

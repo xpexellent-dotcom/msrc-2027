@@ -5955,3 +5955,11 @@ Previous finalized submission snapshots remain authoritative. Apply the
 profile migration and application rollout together through the existing
 release gates. Requirements AUTH-01/07, SCP-03, ABS-01/12, PRV-02/03/05,
 SEC-01/02, LOC-01/03 and ACC-01 apply.
+
+## ORG-092 — Form-first Contact and public footer, 27 November 2026
+
+Direct general inquiries to the Contact form when it is available. Move the
+published email link from the Contact page content to the shared footer under
+“For business inquiries”. Show the same social accounts and availability as the
+homepage in both languages, using the account approvals under ORG-086. This
+supersedes the placement in ORG-021. Requirements SUP-01/02, LOC-01/03 and ACC-01.

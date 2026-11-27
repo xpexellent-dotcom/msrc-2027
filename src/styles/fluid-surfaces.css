@@ -55,10 +55,6 @@
 
 .contact-hero.fluid-art-surface { background: radial-gradient(ellipse at 80% 30%, #654387, transparent 60%), #281b3e; color: var(--color-ivory); }
 .contact-hero .ambient-art svg { stroke: rgb(220 207 240 / .2); }
-.contact-hero-grid { grid-template-columns: minmax(0,1.25fr) minmax(0,.8fr); align-items: center; gap: clamp(2.5rem,5vw,5rem); }
-.contact-email { border: 1px solid rgb(220 207 240 / .26); border-radius: 16px; padding: clamp(1.5rem,3vw,2.5rem); background: linear-gradient(135deg,rgb(255 255 255 / .1),rgb(255 255 255 / .025)); }
-.contact-email h2 { display: flex; align-items: center; gap: .8rem; margin: 0 0 1rem; }
-.contact-email-link { display: block; inline-size: fit-content; padding-block: .65rem; font-size: clamp(1rem,1.3vw,1.25rem); font-weight: 650; }
 .contact-form-section { padding-block: clamp(4rem,7vw,7rem); background: linear-gradient(130deg, var(--color-ivory), #f1ebf6); }
 .contact-form-layout { grid-template-columns: minmax(0,.7fr) minmax(0,1.3fr); gap: clamp(2.5rem,6vw,6rem); }
 .contact-form-introduction h2 { margin: 0; font-size: clamp(2.6rem,4vw,4rem); line-height: 1.18; font-weight: 650; }
@@ -72,7 +68,7 @@
   .benefit-artwork { transition: transform 260ms cubic-bezier(.23,1,.32,1); }
 }
 @media (max-width: 800px) {
-  .contact-hero-grid, .contact-form-layout { grid-template-columns: minmax(0,1fr); }
+  .contact-form-layout { grid-template-columns: minmax(0,1fr); }
   .benefit-artwork { inline-size: 3.25rem; block-size: 3.25rem; }
   .ambient-art--paths svg { inline-size: 160%; max-inline-size: none; }
   .people-page-heading > div { max-inline-size: 55ch; }

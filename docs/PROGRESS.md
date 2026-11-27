@@ -1,5 +1,16 @@
 # Progress and session handover
 
+## 27 November 2026 — Combined My MSRC, Contact and footer draft
+
+- Draft PR #162 includes PR #161 at commit 4622db6 on the shared
+  a4ed65b main baseline. The branches overlapped in the decision and progress
+  notes. The Contact decision is ORG-092 in the combined draft, preserving
+  ORG-090 and ORG-091 for the profile work.
+- Full ESLint, 5,694 unit tests and the production build with TypeScript
+  passed on the combined tree under Node 24.21.0 and pnpm 11.19.0. The draft
+  carries the combined browser and GitHub check evidence. Hosted delivery
+  and the profile migration follow their existing release decisions.
+
 ## 27 November 2026 — Sign-up and bilingual profile names
 
 - ORG-091 keeps one sign-up name and explains both accepted scripts in each
@@ -32,6 +43,24 @@
   and privacy context before the form. Physical-device and hosted signed-in
   use are not tested. Requirements SCP-03/05, AUTH-07, DSN-01/02, ACC-01,
   LOC-01/03 and MED-02.
+
+## 27 November 2026 — Contact form and public footer
+
+- ORG-092 removes the direct email card from Contact in English and Arabic.
+  The page directs general questions to the form when delivery is available.
+  The shared footer lists `contact@msrc2027.com` for business inquiries and
+  uses the homepage social row. X links to the approved account. LinkedIn,
+  Instagram and TikTok show the localized “Soon” status.
+- `pnpm check` passed ESLint, TypeScript, 5,683 unit tests and the production
+  build. The targeted Contact and homepage Playwright run passed 31 cases.
+  The loopback Contact suite passed 75 focused cases across Chromium and
+  WebKit, including submission, delivery failures and the no-JavaScript
+  state. A temporary test config moved the closed instance to port 3413
+  because port 3213 was occupied.
+- Visual checks passed in English and Arabic on desktop Chromium and emulated
+  iPhone WebKit, including the enabled and closed states. The footer links fit
+  at 280 px with 200% text in WebKit. Hosted delivery and physical devices
+  were not tested. Requirements SUP-01/02, LOC-01/03 and ACC-01.
 
 ## 26 November 2026 — Homepage attendee benefit order
 

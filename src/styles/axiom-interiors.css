@@ -79,9 +79,9 @@
 .speaker-page-preview { padding-block: 1rem 2rem; }
 
 /* Reading pages use the same scale without changing approved public or legal wording. */
-.about-hero-grid, .contact-hero-grid, .dates-hero-grid, .policy-hero-grid { padding-block-start: clamp(2rem, 4vw, 4rem); }
+.about-hero-grid, .contact-hero-copy, .dates-hero-grid, .policy-hero-grid { padding-block-start: clamp(2rem, 4vw, 4rem); }
 .about-identity dt, .dates-day-list li > span, .dates-location-details dt, .policy-version-details dt { font-size: 1rem; }
-.about-identity dd, .contact-email-link, .dates-location-details dd, .policy-version-details dd { font-size: 1.1875rem; }
+.about-identity dd, .dates-location-details dd, .policy-version-details dd { font-size: 1.1875rem; }
 .about-purpose .section-heading h2, .about-community .section-heading h2, .about-explore .section-heading h2,
 .contact-form-layout > .section-heading h2, .dates-content-grid .section-heading h2, .dates-travel .section-heading h2 {
   font-size: clamp(2.5rem, 4.4vw, 4.25rem);
@@ -99,8 +99,7 @@
 .dates-day-list time { font-size: clamp(2rem, 3vw, 2.75rem); font-weight: 500; }
 .venue-travel-cards h4 { font-size: 1.5rem; font-weight: 500; }
 .venue-arrival-details dt { font-size: 1.125rem; }
-.contact-email h2 { font-size: 1.6rem; font-weight: 500; }
-.contact-email p, .contact-closed-note p, .contact-delivery-intro, .contact-processing-note { font-size: 1.125rem; }
+.contact-closed-note p, .contact-delivery-intro, .contact-processing-note { font-size: 1.125rem; }
 .contact-closed-note { border: 0; border-radius: 16px; padding: clamp(1.5rem, 3vw, 2.5rem); }
 .contact-closed-note h3 { font-size: 1.4rem; font-weight: 500; }
 .contact-required-hint { font-size: 1rem; }

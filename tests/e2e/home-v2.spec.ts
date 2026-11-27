@@ -395,6 +395,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} public homepage shows one live social link and three pending accounts`, async ({ page }) => {
     await ready(page, locale, 320);
     const social = page.locator(".hero-social");
+    const footerSocial = page.getByRole("contentinfo").getByRole("list", { name: locale === "en" ? "Social media" : "وسائل التواصل الاجتماعي" });
     const live = social.getByRole("link", { name: "X", exact: true });
     const soon = locale === "en" ? "Soon" : "قريبًا";
     await expect(live).toHaveAttribute("href", "https://x.com/Research__PC");
@@ -406,6 +407,12 @@ for (const locale of ["en", "ar"] as const) {
     );
     await expect(social.locator(".social-soon > span")).toBeVisible();
     await expect(social.locator(".social-soon > span")).toHaveText(soon);
+    await expect(footerSocial.getByRole("link", { name: "X", exact: true })).toHaveAttribute("href", "https://x.com/Research__PC");
+    await expect(footerSocial.getByRole("link")).toHaveCount(1);
+    await expect(footerSocial.locator(".social-item--placeholder .sr-only")).toHaveText(
+      ["LinkedIn", "Instagram", "TikTok"].map((network) => `${network} — ${soon}`),
+    );
+    await expect(footerSocial.locator(".social-soon > span")).toHaveText(soon);
 
     const box = await live.boundingBox();
     expect(box?.width).toBeGreaterThanOrEqual(44);
@@ -420,7 +427,9 @@ for (const locale of ["en", "ar"] as const) {
 
     await page.setViewportSize({ width: 280, height: 844 });
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
-    expect(await social.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    for (const row of [social, footerSocial]) {
+      expect(await row.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    }
     await noOverflow(page);
   });
 }
