@@ -4,6 +4,8 @@ import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { expect, test, type Page } from "../helpers/csp";
 import { expectStylesheetsReady } from "../helpers/stylesheets";
+import { participantAnnouncementsCopy } from "../../src/features/announcements/participant-copy";
+import { participantCopy } from "../../src/features/participant-accounts/participant-copy";
 import { profileCopy } from "../../src/features/participant-accounts/profile-copy";
 import { SAUDI_UNIVERSITIES } from "../../src/content/saudi-universities";
 import { EMPTY_PARTICIPANT_PROFILE, type OptionalParticipantProfile, type ParticipantProfileResponse } from "../../src/features/participant-accounts/profile-contract";
@@ -13,7 +15,7 @@ const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR
 /** Synthetic fixture labels only, never a replacement for the configured abstract specialty list. */
 const specialties = Array.from({ length: 6 }, (_, index) => ({ id: `synthetic-${index}`, label: `Synthetic specialty ${index + 1}` }));
 
-async function fixture(page: Page) {
+async function fixture(page: Page, account = { name: "Synthetic Participant", email: "synthetic@example.invalid" }) {
   let profile: OptionalParticipantProfile = { ...EMPTY_PARTICIPANT_PROFILE };
   let unavailable = false;
   let failure: "conflict" | "unavailable" | null = null;
@@ -21,7 +23,7 @@ async function fixture(page: Page) {
   let catalog = specialties;
   await page.route("**/api/participant-accounts", async (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({
     state: "ready", formToken: "synthetic-account-token", profileEnabled: true,
-    profile: { name: "Synthetic Participant", accountState: "verified", email: "synthetic@example.invalid" },
+    profile: { ...account, accountState: "verified", createdAt: "2026-10-25T10:00:00Z" },
   }) }));
   await page.route("**/api/participant-accounts/profile/avatar?*", async (route) => route.fulfill({ contentType: "image/png", body: png, headers: { "cache-control": "private, no-store" } }));
   await page.route("**/api/participant-accounts/profile", async (route) => {
@@ -57,15 +59,98 @@ async function chooseOther(page: Page, locale: "en" | "ar", institution: string)
   await page.locator("#profile-institutionOther").fill(institution);
 }
 
-async function accessible(page: Page) {
+async function accessible(page: Page, scope = '[data-testid="participant-profile-card"]') {
   await expectHeaderSettled(page);
   await expectStylesheetsReady(page);
-  expect((await new AxeBuilder({ page }).include('[data-testid="participant-profile-card"]').withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
+  expect((await new AxeBuilder({ page }).include(scope).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations.map(({ id, impact }) => ({ id, impact }))).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 }
 
 for (const locale of ["en", "ar"] as const) {
   const copy = profileCopy[locale];
+  test(`${locale} dashboard links reach private sections and honor each workflow flag`, async ({ page }, testInfo) => {
+    const account = {
+      name: locale === "ar" ? "دانا الحربي" : "Dana Alharbi",
+      email: "dana.alharbi@example.invalid",
+    };
+    await fixture(page, account);
+    await page.route("**/api/announcements?locale=*", (route) =>
+      route.fulfill({ json: { state: "ready", announcements: [], formToken: "synthetic-inbox-token" } }));
+
+    await page.goto(`/${locale}/my-msrc`);
+    const main = page.getByRole("main");
+    const profileCard = main.getByTestId("participant-profile-card");
+    const nextSteps = main.getByTestId("participant-next-steps");
+    const inbox = main.getByTestId("participant-announcements");
+    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+    await expect(main.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(main.getByTestId("participant-profile-name")).toHaveText(account.name);
+    await expect(main.getByTestId("participant-profile-email").locator("bdi")).toHaveAttribute("dir", "ltr");
+    await expect(main.getByTestId("participant-profile-email")).toHaveText(account.email);
+    await expect(main.getByTestId("participant-member-since")).toBeVisible();
+    await expect(profileCard.locator("progress")).toHaveAttribute("value", "0");
+    await expect(inbox).toContainText(participantAnnouncementsCopy[locale].empty);
+    await expect(main.getByRole("link", { name: participantCopy[locale].links["sign-in"], exact: true })).toHaveCount(0);
+    await expect(main.getByRole("button", { name: participantCopy[locale].signOut, exact: true })).toBeEnabled();
+
+    const steps = [
+      ["attend", "false", "/registration"],
+      ["abstract", "true", "/abstracts/submit"],
+      ["workshops", "false", "/workshops"],
+      ["hackathon", "false", "/hackathon"],
+      ["three-minute-thesis", "false", "/3mt"],
+    ];
+    await expect(nextSteps.getByRole("listitem")).toHaveCount(steps.length);
+    for (const [step, open, path] of steps) {
+      const item = nextSteps.locator(`[data-step="${step}"]`);
+      await expect(item).toHaveAttribute("data-open", open);
+      await expect(item.getByRole("link")).toHaveAttribute("href", `/${locale}${path}`);
+    }
+    await expect(main.locator("#my-bookings").getByRole("button")).toHaveCount(0);
+
+    await accessible(page, "main");
+    await page.evaluate(async () => { await document.fonts.ready; });
+    const directory = resolve(".tools/profile-review");
+    await mkdir(directory, { recursive: true });
+    await page.screenshot({ path: resolve(directory, `${locale}-${testInfo.project.name}-dashboard.png`), fullPage: true, scale: "css" });
+
+    const navigation = main.getByRole("navigation").filter({ has: page.locator('a[href="#participation"]') });
+    await expect(navigation).toHaveAccessibleName(/\S/);
+    for (const target of ["profile", "participation", "my-bookings", "announcements"]) {
+      const shortcut = navigation.locator(`a[href="#${target}"]`);
+      await shortcut.press("Enter");
+      await expect(page).toHaveURL(new RegExp(`#${target}$`));
+      const destination = main.locator(`#${target}`);
+      await expect(destination).toBeInViewport();
+      await expect(destination).toBeFocused();
+    }
+    const edit = profileCard.getByRole("button", { name: copy.edit, exact: true });
+    await edit.click();
+    await expect(page.locator("#participant-profile-editor-title")).toBeFocused();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await expectHeaderSettled(page);
+    await page.screenshot({ path: resolve(directory, `${locale}-${testInfo.project.name}-editor-overview.png`), fullPage: true, scale: "css" });
+
+    const cancelEditing = profileCard.getByRole("button", { name: copy.cancelEditing, exact: true });
+    await expect(cancelEditing).toHaveAttribute("aria-expanded", "true");
+    await cancelEditing.press("Enter");
+    await expect(profileCard.locator("form")).toHaveCount(0);
+    await expect(edit).toBeFocused();
+    await expect(edit).toHaveAttribute("aria-expanded", "false");
+
+    await edit.click();
+    await profileCard.getByRole("button", { name: copy.cancel, exact: true }).click();
+    await expect(edit).toBeFocused();
+
+    account.email = `${"participant".repeat(12)}@example.invalid`;
+    await page.reload();
+    await expect(main.getByTestId("participant-profile-email")).toHaveText(account.email);
+    await expect(profileCard.locator("progress")).toHaveAttribute("value", "0");
+    await expect(inbox).toContainText(participantAnnouncementsCopy[locale].empty);
+    await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+    await accessible(page, "main");
+  });
+
   test(`${locale} university combobox searches both languages and supports keyboard selection`, async ({ page }) => {
     await fixture(page); await page.goto(`/${locale}/my-msrc`);
     const card = page.getByTestId("participant-profile-card"); await card.getByRole("button", { name: copy.edit, exact: true }).click();
@@ -119,6 +204,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(card.getByRole("heading", { name: copy.title, exact: true })).toBeVisible();
     await expect(card.getByText(copy.complete, { exact: true })).toBeVisible();
     await expect(card.locator("form")).toHaveCount(0);
+    await expect(card.getByRole("button", { name: copy.edit, exact: true })).toBeFocused();
     await expect(page.getByTestId("header-primary-action").locator("img")).toHaveAttribute("src", /avatar\?v=1$/);
     await card.getByRole("button", { name: copy.edit, exact: true }).click();
     await card.getByRole("button", { name: copy.remove, exact: true }).click();

@@ -28,8 +28,8 @@ export function ParticipantAccountPage({ locale, screen, state, announcements, w
   </Container>;
   return <Container className="participant-account-page" data-participant-screen={screen} narrow>
     <header className="participant-account-intro">
-      <p className="eyebrow">{copy.eyebrow}</p>
-      <h1>{copy.titles[screen]}</h1>
+      {screen !== "my-msrc" ? <p className="eyebrow">{copy.eyebrow}</p> : null}
+      <h1 id={screen === "my-msrc" ? "participant-dashboard-title" : undefined}>{copy.titles[screen]}</h1>
       <p>{copy.leads[screen]}</p>
     </header>
     <ParticipantAccountForm locale={locale} screen={screen} initialState={state} initialAnnouncements={announcements} initialWorkshopBookings={workshopBookings} profileEnabled={process.env.PARTICIPANT_PROFILE_ENABLED === "true"} researchJudgingAvailable={process.env.RESEARCH_JUDGING_ENABLED === "true"} certificatesAvailable={process.env.CERTIFICATES_ENABLED === "true"} workshopsAvailable={process.env.WORKSHOP_BOOKING_ENABLED === "true"} registrationAvailable={process.env.REGISTRATION_ENABLED === "true"} abstractsAvailable={process.env.ABSTRACT_SUBMISSIONS_ENABLED === "true"} competitionsAvailable={process.env.COMPETITIONS_ENABLED === "true"} />

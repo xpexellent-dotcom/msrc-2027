@@ -1,8 +1,9 @@
 ﻿export const profileCopy = {
   en: {
     groups: { studies: "Studies", about: "About you", contact: "Contact", identity: "Identity document" },
-    title: "Complete your profile", optionalProfile: "Participant profile", lead: "Complete your profile before submitting an abstract, hackathon or 3MT entry. Your profile is visible only to you and authorized organizers.",
-    complete: "Profile complete", edit: "Edit profile", progress: "Profile progress", filled: "{count} of {total} items added", loading: "Loading your profile…",
+    title: "Profile details", optionalProfile: "Participant profile", lead: "Complete your profile before submitting an abstract, a hackathon entry or a Three Minute Thesis entry.",
+    privacy: "Only you and authorized organizers can see your profile.",
+    complete: "Profile complete", edit: "Edit profile", cancelEditing: "Cancel editing", progress: "Profile progress", filled: "{count} of {total} items added", loading: "Loading your profile…",
     unavailable: "Your profile is not available yet.", retry: "Try again", save: "Save profile", saving: "Saving your profile…", saved: "Your profile has been saved.", cancel: "Cancel",
     partial: "You can save your progress and complete the remaining items later.",
     picture: "Profile picture", imageHint: "JPEG, PNG or WebP, up to 2 MB.", remove: "Remove picture", clear: "Clear selection", selected: "Selected:", preview: "Profile picture preview",
@@ -18,8 +19,9 @@
   },
   ar: {
     groups: { studies: "الدراسة", about: "معلومات عنك", contact: "التواصل", identity: "وثيقة الهوية" },
-    title: "أكمل ملفك الشخصي", optionalProfile: "الملف الشخصي للمشارك", lead: "يجب إكمال ملفك الشخصي قبل تقديم ملخص بحثي أو مشاركة في الهاكاثون أو مسابقة الأطروحة في ثلاث دقائق. لا يظهر ملفك إلا لك وللمنظمين المخوّلين.",
-    complete: "ملفك الشخصي مكتمل", edit: "تعديل الملف الشخصي", progress: "اكتمال الملف الشخصي", filled: "تمت إضافة {count} من {total} عناصر", loading: "جارٍ تحميل ملفك الشخصي…",
+    title: "بيانات الملف الشخصي", optionalProfile: "الملف الشخصي للمشارك", lead: "أكمل ملفك الشخصي قبل تقديم ملخص بحثي أو المشاركة في الهاكاثون أو مسابقة الأطروحة في ثلاث دقائق.",
+    privacy: "لا يطّلع على ملفك الشخصي إلا أنت والمنظمون المخوّلون.",
+    complete: "ملفك الشخصي مكتمل", edit: "تعديل الملف الشخصي", cancelEditing: "إلغاء التعديل", progress: "اكتمال الملف الشخصي", filled: "العناصر المكتملة {count} من {total}", loading: "جارٍ تحميل ملفك الشخصي…",
     unavailable: "الملف الشخصي غير متاح بعد.", retry: "حاول مجددًا", save: "حفظ الملف الشخصي", saving: "جارٍ حفظ ملفك الشخصي…", saved: "تم حفظ ملفك الشخصي.", cancel: "إلغاء",
     partial: "يمكنك حفظ ما أضفته وإكمال العناصر المتبقية لاحقًا.",
     picture: "الصورة الشخصية", imageHint: "صورة JPEG أو PNG أو WebP بحجم لا يتجاوز ٢ ميغابايت.", remove: "إزالة الصورة", clear: "مسح الاختيار", selected: "الملف المحدد:", preview: "معاينة الصورة الشخصية",

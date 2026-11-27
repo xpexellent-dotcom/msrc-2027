@@ -10,6 +10,33 @@ PRV-02/03/04/05/06, SEC-01/02/06, LOC-01/03 and ACC-01 apply.
 See the [implementation receipt](../progress/2026-10-28-codex-profile-complete.md)
 and [original profile receipt](../progress/2026-10-27-codex-participant-profile.md).
 
+## My MSRC dashboard review
+
+ORG-090 applies the Canva identity to the private dashboard. The cover uses
+the existing MSRC seal and Flow of Knowledge artwork. Each participation
+row uses the supplied pathway icon. The palette and bilingual typography
+follow the public brand refresh. [Media register](../MEDIA_REGISTER.md#sitewide-brand-refresh--25-november-2026-org-076)
+
+The account summary keeps verified-email status, member date and sign-out
+together. Section shortcuts support native fragments and move keyboard
+focus to the destination. Profile details show completion and privacy
+context before the editor. Participants can cancel at the top or bottom of
+the editor and return focus to Edit profile.
+
+The five participation rows link to the available entry point or public
+guidance according to their existing gates. Announcements and My Bookings
+have distinct sections. Desktop groups activity alongside participation.
+Narrow layouts and enlarged text stack the sections in reading order.
+
+The layout borrows task grouping from common account settings and keeps
+the profile edit control near the identity it changes.
+[Google Account](https://support.google.com/accounts/answer/27442?hl=en)
+[GitHub profile settings](https://docs.github.com/en/account-and-profile/tutorials/personalize-your-profile)
+
+The profile Playwright suite exercises the dashboard with synthetic
+participants. It saves bilingual desktop and mobile review captures in
+the existing participant feature browser artifact.
+
 ## Completion and editing
 
 Completion requires a private picture, institution, status, full Arabic name,

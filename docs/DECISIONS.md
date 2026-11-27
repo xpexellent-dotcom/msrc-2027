@@ -5925,3 +5925,16 @@ The organizer set the reading order for the six homepage benefit cards.
 Show awards and cash prizes first, followed by certificates, hands-on
 workshops, networking with experts, research exposure and CME hours.
 Use this sequence in English and Arabic. Requirements: DSN-01, LOC-01/03, ACC-01.
+
+## ORG-090 — My MSRC participant profile redesign, 27 November 2026
+
+The organizer requested a full visual and usability refresh of My MSRC
+in a draft PR. Extend the supplied MSRC Canva identity into the signed-in
+dashboard with the existing seal, pathway artwork and public type roles.
+Group account details, profile completion, participation, bookings and
+announcements. Give Hackathon and Three Minute Thesis their own links.
+
+Profile access and editing follow ORG-067. Research competition copy follows
+ORG-068/069. The dashboard reflects the existing per-workflow gates.
+Requirements SCP-03/05, AUTH-07, DSN-01/02, LOC-01/03, ACC-01 and MED-02
+apply. See the [participant profile notes](features/participant-profile.md).

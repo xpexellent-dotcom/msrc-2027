@@ -7,18 +7,14 @@ import { currentTermsVersion } from "@/config/policies";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { myRegistrationCopy } from "@/features/registration/my-registration-copy";
-import { abstractCopy } from "@/features/submissions/copy";
-import { ResearchParticipantWorkspace } from "@/features/research-judging/participant-workspace";
-import { ParticipantInbox } from "@/features/announcements/participant-inbox";
 import type { ParticipantAnnouncementsResponse } from "@/features/announcements/participant-contracts";
-import { MyWorkshopBookings } from "@/features/workshops/my-bookings";
 import type { WorkshopParticipantResponse } from "@/features/workshops/participant-contracts";
 import type { Locale } from "@/lib/i18n";
 import type { ParticipantAction, ParticipantField, ParticipantPageState, ParticipantPayload, ParticipantProfile, ParticipantResponse, ParticipantState } from "./contracts";
 import { participantCopy, type ParticipantScreen } from "./participant-copy";
 import { requestAccount } from "./participant-client";
 import { beginParticipantAction, finishParticipantAction, normalizeParticipantCode, updateParticipantDraft, useParticipantDraft } from "./participant-draft";
-import { ParticipantProfileCard } from "./profile-card";
+import { ParticipantDashboard } from "./participant-dashboard";
 
 const fields: ParticipantField[] = ["firstName", "lastName", "email", "password", "confirmPassword", "code", "ageConfirmed"];
 const failedStates = new Set<ParticipantState>(["invalid_input", "invalid_credentials", "invalid_code", "limited", "unavailable", "closed"]);
@@ -31,31 +27,6 @@ function countdown(milliseconds: number, locale: Locale) {
   const digits = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB", { useGrouping: false });
   const seconds = total % 60;
   return `${digits.format(Math.floor(total / 60))}:${seconds < 10 ? digits.format(0) : ""}${digits.format(seconds)}`;
-}
-function memberSince(value: string, locale: Locale) {
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed) ? new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { dateStyle: "long", calendar: "gregory", timeZone: "Asia/Riyadh" }).format(parsed) : value;
-}
-
-/** ENG-084: what a new participant can do next, with each part's real availability. */
-function NextSteps({ locale, registrationAvailable, abstractsAvailable, workshopsAvailable, competitionsAvailable }: { locale: Locale; registrationAvailable: boolean; abstractsAvailable: boolean; workshopsAvailable: boolean; competitionsAvailable: boolean }) {
-  const copy = participantCopy[locale];
-  const items = [
-    { key: "attend", open: registrationAvailable, action: myRegistrationCopy[locale].title, href: "/registration", info: "/registration", testId: "participant-registration-closed", closed: copy.registrationClosed },
-    { key: "abstract", open: abstractsAvailable, action: abstractCopy[locale].title, href: "/abstracts/submit", info: "/abstracts", testId: undefined, closed: copy.opensSoon },
-    { key: "workshops", open: workshopsAvailable, action: copy.stepActions.workshops, href: "/workshops", info: "/workshops", testId: undefined, closed: copy.opensSoon },
-    { key: "competitions", open: competitionsAvailable, action: copy.stepActions.competitions, href: "/entries", info: "/hackathon", testId: undefined, closed: copy.opensSoon },
-  ] as const;
-  return <section className="participant-next-steps" aria-labelledby="participant-next-steps-title" data-testid="participant-next-steps">
-    <h2 id="participant-next-steps-title">{copy.nextSteps}</h2>
-    <p>{copy.nextStepsLead}</p>
-    <ul>{items.map((item) => <li key={item.key} data-step={item.key} data-open={item.open}>
-      <h3>{copy.steps[item.key].title}</h3>
-      <p>{copy.steps[item.key].body}</p>
-      {item.open ? <ButtonLink href={`/${locale}${item.href}`} variant="secondary" size="small">{item.action}</ButtonLink>
-        : <p className="participant-next-step-closed"><span data-testid={item.testId}>{item.closed}</span> · <Link href={`/${locale}${item.info}`}>{copy.learnMore}</Link></p>}
-    </li>)}</ul>
-  </section>;
 }
 
 export function ParticipantAccountForm({ locale, screen, initialState, profileEnabled = false, registrationAvailable = false, abstractsAvailable = false, competitionsAvailable = false, workshopsAvailable = false, certificatesAvailable = false, researchJudgingAvailable = false, initialAnnouncements, initialWorkshopBookings }: { locale: Locale; screen: ParticipantScreen; initialState: ParticipantPageState; profileEnabled?: boolean; registrationAvailable?: boolean; abstractsAvailable?: boolean; competitionsAvailable?: boolean; workshopsAvailable?: boolean; certificatesAvailable?: boolean; researchJudgingAvailable?: boolean; initialAnnouncements?: ParticipantAnnouncementsResponse; initialWorkshopBookings?: WorkshopParticipantResponse }) {
@@ -219,10 +190,11 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
     const action: ParticipantAction = screen === "sign-up" ? "signup" : screen === "sign-in" ? "signin" : screen === "verify-email" ? "verify" : screen === "forgot-password" ? "forgot" : "reset";
     void handleAction(action);
   }
-  const navigation: ParticipantScreen[] = signedIn ? registrationAvailable ? ["my-msrc"] : [] : screen === "sign-up" ? ["sign-in"] : screen === "sign-in" ? ["sign-up", "forgot-password", "verify-email"] : screen === "forgot-password" ? ["reset-password", "sign-in"] : screen === "verify-email" ? ["sign-in"] : screen === "reset-password" ? ["forgot-password", "sign-in"] : ["sign-in"];
+  const dashboardReady = screen === "my-msrc" && profile !== null && availability === "ready";
+  const navigation: ParticipantScreen[] = dashboardReady ? [] : signedIn ? registrationAvailable ? ["my-msrc"] : [] : screen === "sign-up" ? ["sign-in"] : screen === "sign-in" ? ["sign-up", "forgot-password", "verify-email"] : screen === "forgot-password" ? ["reset-password", "sign-in"] : screen === "verify-email" ? ["sign-in"] : screen === "reset-password" ? ["forgot-password", "sign-in"] : ["sign-in"];
 
   if (availability === "closed") return <section className="participant-account-card" data-testid="participant-accounts-closed"><h2>{copy.comingSoon}</h2><p>{copy.closed}</p><ButtonLink href={`/${locale}/participate`}>{copy.explore}</ButtonLink></section>;
-  return <section className="participant-account-card" data-testid="participant-account-panel">
+  return <div className={dashboardReady ? "participant-account-card participant-dashboard-shell" : "participant-account-card"} data-testid="participant-account-panel">
     <div className="participant-account-feedback">
       {errorState ? <div ref={summary} role="alert" tabIndex={-1} className="participant-account-error" data-testid="participant-account-error">
         <h2>{copy.errorsTitle}</h2><p>{copy.states[errorState]}</p>
@@ -231,22 +203,12 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
       <p ref={outcome} role="status" aria-live="polite" aria-atomic="true" tabIndex={-1} className="participant-account-status" data-testid="participant-account-status">{signingIn ? copy.signingIn : draft.pending ? copy.pending : availability === "checking" ? copy.checking : availability === "unavailable" ? copy.states.unavailable : carried && draft.outcome === "accepted" ? "" : !errorState && draft.outcome ? copy.states[draft.outcome] : ""}</p>
     </div>
     {screen === "my-msrc" ? <>
-      {profile && availability === "ready" ? <>
-        <dl className="participant-account-profile">
-          <div><dt>{copy.profileName}</dt><dd data-testid="participant-profile-name"><bdi dir="auto">{profile.name}</bdi></dd></div>
-          {profile.email ? <div><dt>{copy.profileEmail}</dt><dd data-testid="participant-profile-email"><bdi dir="ltr">{profile.email}</bdi></dd></div> : null}
-          <div><dt>{copy.accountState}</dt><dd data-testid="participant-account-state">{copy.verifiedState}</dd></div>
-          {profile.createdAt ? <div><dt>{copy.memberSince}</dt><dd data-testid="participant-member-since">{memberSince(profile.createdAt, locale)}</dd></div> : null}
-        </dl>
-        {profileEnabled && !draft.pending ? <ParticipantProfileCard locale={locale} name={profile.name} identity={profile.email ?? profile.name} /> : null}
-        <NextSteps locale={locale} registrationAvailable={registrationAvailable} abstractsAvailable={abstractsAvailable} workshopsAvailable={workshopsAvailable} competitionsAvailable={competitionsAvailable} />
-        {certificatesAvailable ? <ButtonLink href={`/${locale}/my-msrc/certificates`} variant="secondary">{locale === "ar" ? "شهاداتي" : "My certificates"}</ButtonLink> : null}
-        {!draft.pending && researchJudgingAvailable ? <ResearchParticipantWorkspace locale={locale} /> : null}
-        {!workshopsAvailable ? <section id="my-bookings" tabIndex={-1} aria-labelledby="my-bookings-title"><h2 id="my-bookings-title">{locale === "ar" ? "حجوزاتي" : "My Bookings"}</h2><p>{locale === "ar" ? "حجز ورش العمل غير متاح حاليًا. هذا القسم مخصص للحجوزات الفعلية لورش العمل." : "Workshop booking is not available yet. This section is reserved for actual workshop bookings."}</p></section> : null}
-        {!draft.pending ? <ParticipantInbox locale={locale} initialState={initialAnnouncements} /> : null}
-        {!draft.pending && workshopsAvailable ? <div id="my-bookings" tabIndex={-1}><MyWorkshopBookings locale={locale} initialState={initialWorkshopBookings} /></div> : null}
-        <div className="participant-account-actions"><Button variant="secondary" disabled={disabled} onClick={() => void handleAction("logout", false)}>{copy.signOut}</Button></div>
-      </> : availability === "ready" ? <p data-testid="participant-signin-required">{copy.needSignIn}</p> : null}
+      {dashboardReady ? <ParticipantDashboard locale={locale} profile={profile} profileEnabled={profileEnabled}
+        registrationAvailable={registrationAvailable} abstractsAvailable={abstractsAvailable}
+        competitionsAvailable={competitionsAvailable} workshopsAvailable={workshopsAvailable}
+        certificatesAvailable={certificatesAvailable} researchJudgingAvailable={researchJudgingAvailable}
+        announcements={initialAnnouncements} workshopBookings={initialWorkshopBookings} pending={draft.pending}
+        signOutDisabled={disabled} onSignOut={() => void handleAction("logout", false)} /> : availability === "ready" ? <p data-testid="participant-signin-required">{copy.needSignIn}</p> : null}
     </> : signedIn ? <ButtonLink className="participant-account-primary-next" href={`/${locale}/${registrationAvailable ? "registration" : "my-msrc"}`}>{registrationAvailable ? myRegistrationCopy[locale].title : copy.links["my-msrc"]}</ButtonLink>
       : screen === "sign-up" && !notice ? <p className="participant-account-notice" data-testid="participant-privacy-pending">{copy.privacyPending}</p> : complete ? signedInAfterVerify ? <ButtonLink href={`/${locale}/my-msrc`} data-testid="participant-continue-profile">{copy.links["my-msrc"]}</ButtonLink> : signingIn ? null : <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : <>
       {screen === "sign-up" && notice ? <aside className="participant-account-notice" aria-labelledby="participant-privacy-title">
@@ -290,5 +252,5 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
       <ButtonLink href={`/${locale}/sign-up`} variant="gold">{copy.signUp}</ButtonLink>
     </aside> : null}
     {navigation.length ? <nav className="participant-account-navigation" aria-label={copy.navigation}>{navigation.map((destination) => <Link key={destination} href={`/${locale}/${destination}`}>{copy.links[destination]}</Link>)}</nav> : null}
-  </section>;
+  </div>;
 }

@@ -1,5 +1,21 @@
 # Progress and session handover
 
+## 27 November 2026 — My MSRC participant dashboard review
+
+- ORG-090 applies the official MSRC seal, signature linework and supplied
+  pathway icons to the bilingual participant dashboard. Account details,
+  profile progress, bookings and announcements have direct navigation.
+  Hackathon and Three Minute Thesis lead to their distinct entry paths.
+- On Node 24.21.0 and pnpm 11.19.0, the frozen install, full ESLint, 5,683
+  unit tests and production build passed. The profile Playwright suite
+  passed 32 Chromium cases with desktop and 360 px English/Arabic layouts,
+  keyboard focus, profile editing, workflow gates, axe and 200% text.
+- Synthetic captures cover the dashboard and open editor in both languages
+  and viewport sizes. Review confirmed the sign-out state, top cancel action
+  and privacy context before the form. Physical-device and hosted signed-in
+  use are not tested. Requirements SCP-03/05, AUTH-07, DSN-01/02, ACC-01,
+  LOC-01/03 and MED-02.
+
 ## 26 November 2026 — Homepage attendee benefit order
 
 - ORG-089 sets the homepage sequence in both languages to awards and cash
