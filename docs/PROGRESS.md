@@ -1,5 +1,17 @@
 # Progress and session handover
 
+## 27 November 2026 — Desktop footer contact placement
+
+- ORG-093 moves the business email and social links into the wide footer's
+  middle track. Arabic mirrors the wide arrangement. Narrow footers present
+  the wordmark, conference description, and contact group in reading order.
+- Scoped ESLint, ten unit tests, the production build and the Impeccable
+  layout detector passed. Twelve Contact and homepage browser cases passed,
+  with two existing desktop-only cases skipped on mobile. Four responsive
+  Chromium probes covered EN/AR at 1280 and 1440 px and 320, 360 and 390 px,
+  200% text, keyboard focus, and footer axe with zero violations.
+  Requirements SCP-02, SUP-02, DSN-02, LOC-01/03 and ACC-01.
+
 ## 27 November 2026 — Profile compatibility before merging PR #162
 
 - The production profile feature passed its readiness check, while the

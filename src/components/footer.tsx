@@ -48,12 +48,16 @@ export function Footer({locale, showDesignSystem = false}: {locale: Locale; show
                 <span className="brand-word" lang="en">MSRC’27</span>
               </div>
               <span className="footer-identity sr-only" dir="ltr" lang="en">MSRC<span>2027</span></span>
-              <div className="footer-brand-copy">
-                <p>{footer.description}</p>
-                <p className="footer-institution">{footer.institution}</p>
-                <p className="footer-business-label">{footer.businessInquiries}</p>
-                <a className="footer-business-email" href={`mailto:${contactConfig.recipient}`} dir="ltr" lang="en">{contactConfig.recipient}</a>
-                <SocialLinksRow locale={locale} className="footer-social" />
+              <div className="footer-brand-details">
+                <div className="footer-brand-copy">
+                  <p>{footer.description}</p>
+                  <p className="footer-institution">{footer.institution}</p>
+                </div>
+                <div className="footer-contact">
+                  <p className="footer-business-label">{footer.businessInquiries}</p>
+                  <a className="footer-business-email" href={`mailto:${contactConfig.recipient}`} dir="ltr" lang="en">{contactConfig.recipient}</a>
+                  <SocialLinksRow locale={locale} className="footer-social" />
+                </div>
               </div>
             </div>
             <nav className="footer-directory" aria-label={footer.navigation}>

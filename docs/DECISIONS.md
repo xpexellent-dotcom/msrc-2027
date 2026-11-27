@@ -5963,3 +5963,12 @@ published email link from the Contact page content to the shared footer under
 “For business inquiries”. Show the same social accounts and availability as the
 homepage in both languages, using the account approvals under ORG-086. This
 supersedes the placement in ORG-021. Requirements SUP-01/02, LOC-01/03 and ACC-01.
+
+## ORG-093 — Desktop footer contact placement, 27 November 2026
+
+The organizer's annotated footer moves the business inquiry email and
+social accounts into the middle of the upper footer. Place the group
+between the wordmark and conference description when the footer has
+room for three columns. Mirror the layout for Arabic. On narrower
+footers, keep the wordmark, description, and contact details in
+reading order. Requirements SCP-02, SUP-02, DSN-02, LOC-01/03 and ACC-01.

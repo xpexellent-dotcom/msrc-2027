@@ -353,7 +353,7 @@ Arrival uses locally served OpenStreetMap geometry, attribution, north arrow, sc
 
 FAQ remains native disclosure with circular plus and ordinary reading text. Pending names and closed destinations stay honest; redundant archive/demo disclaimers remain removed. Sponsor placeholders appear only on their dedicated page.
 
-Contact pairs its solid ivory title with a short introduction and places the form on the light surface below. The public footer carries the business email and the same social accounts and availability indicators as the homepage.
+Contact pairs its solid ivory title with a short introduction and places the form on the light surface below. The public footer groups the business email and homepage social accounts with their availability indicators. At wide widths, the contact group sits between the wordmark and conference description. At narrow widths, it follows the conference description.
 
 The opener, cinema recovery, existing media controls and poster fallbacks remain. The supplied Jeddah source (0–23s) becomes an (8.2s) silent montage at (2.8×); crop changes are recorded with its media asset. An ivory-to-film fade replaces the hard FAQ boundary. It is neither venue footage nor an original time-lapse. Media mounts only when approach/preferences allow, pauses when unseen and retains failure posters. Local editing does not establish public reuse clearance.
 
