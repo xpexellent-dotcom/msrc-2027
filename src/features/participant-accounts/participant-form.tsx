@@ -221,9 +221,12 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
       {needsCode && !hasCodeRequest ? <p className="participant-account-notice" data-testid="participant-code-restart">{screen === "verify-email" ? copy.verificationRestart : copy.recoveryRestart}</p> : null}
       <form ref={form} onSubmit={submit} noValidate aria-label={copy.titles[screen]} aria-busy={draft.pending}>
         <fieldset className="participant-account-fields" disabled={frozen}>
-          {needsName ? <div className="participant-name-row">
-            <FormField id="participant-firstName" name="firstName" label={copy.firstName} value={draft.firstName} onChange={(event) => edit("firstName", event.target.value)} autoComplete="given-name" dir="auto" maxLength={60} error={fieldError("firstName")} required />
-            <FormField id="participant-lastName" name="lastName" label={copy.lastName} value={draft.lastName} onChange={(event) => edit("lastName", event.target.value)} autoComplete="family-name" dir="auto" maxLength={59} error={fieldError("lastName")} required />
+          {needsName ? <div className="participant-name-fields">
+            <p id="participant-signup-name-hint" className="field-hint">{copy.signupNameHint}</p>
+            <div className="participant-name-row">
+              <FormField id="participant-firstName" name="firstName" label={copy.firstName} value={draft.firstName} onChange={(event) => edit("firstName", event.target.value)} autoComplete="given-name" dir="auto" maxLength={60} error={fieldError("firstName")} aria-describedby="participant-signup-name-hint" required />
+              <FormField id="participant-lastName" name="lastName" label={copy.lastName} value={draft.lastName} onChange={(event) => edit("lastName", event.target.value)} autoComplete="family-name" dir="auto" maxLength={59} error={fieldError("lastName")} aria-describedby="participant-signup-name-hint" required />
+            </div>
           </div> : null}
           {!carried ? <FormField id="participant-email" name="email" type="email" label={copy.email} value={draft.email} onChange={(event) => edit("email", event.target.value)} autoComplete={screen === "sign-in" ? "username" : "email"} dir="ltr" spellCheck={false} autoCapitalize="none" error={fieldError("email")} required /> : null}
           {needsCode ? <FormField id="participant-code" name="code" label={copy.code} hint={copy.codeHint} value={draft.code} onChange={(event) => edit("code", event.target.value)} inputMode="numeric" autoComplete="one-time-code" dir="ltr" spellCheck={false} maxLength={6} error={fieldError("code")} required /> : null}

@@ -6,7 +6,7 @@ import { createParticipantProfileHandler } from "@/features/participant-accounts
 import { profileFormToken, readProfileFormToken } from "@/features/participant-accounts/profile-security.server";
 import { MAX_AVATAR_BYTES, readProfileForm, reencodeProfileAvatar, validateProfileForm } from "@/features/participant-accounts/profile-validation.server";
 import { participantCookie, participantFormToken, readParticipantSession } from "@/features/participant-accounts/security.server";
-import { EMPTY_PARTICIPANT_PROFILE, PROFILE_STATUSES, isProfileIdentityNumber, isAdultProfileDate, isProfilePhone } from "@/features/participant-accounts/profile-contract";
+import { EMPTY_PARTICIPANT_PROFILE, PROFILE_STATUSES, isProfileIdentityNumber, isAdultProfileDate, isLatinProfileName, isProfilePhone } from "@/features/participant-accounts/profile-contract";
 import { abstractSettings } from "../fixtures/abstracts";
 
 const readiness = resolveParticipantConfig({ PARTICIPANT_ACCOUNTS_ENABLED: "true", PARTICIPANT_ACCOUNTS_TEST_MODE: "true", PARTICIPANT_AUTH_SECURITY_SECRET: "a".repeat(64),
@@ -19,7 +19,7 @@ const actorId = "da000000-0000-4000-8000-000000000001", sessionId = "db000000-00
 const otherId = "da000000-0000-4000-8000-000000000002", avatarObject = "dc000000-0000-4000-8000-000000000001.webp";
 const claims = { sub: actorId, session_id: sessionId, exp: now / 1000 + 3600, iat: now / 1000, role: "authenticated", aal: "aal1", amr: [{ method: "password", timestamp: now / 1000 }] };
 const token = (value: unknown = claims) => "synthetic." + Buffer.from(JSON.stringify(value)).toString("base64url") + ".synthetic";
-const profile = { institution: null, institutionId: null, institutionOther: null, studentStatus: null, studentYear: null, arabicName: null, nationality: null, gender: null, dateOfBirth: null, city: null, phone: null, identityType: null, identityLast4: null, specialtyInterests: [], avatarObject: null, version: 0 };
+const profile = { institution: null, institutionId: null, institutionOther: null, studentStatus: null, studentYear: null, arabicName: null, latinName: null, nationality: null, gender: null, dateOfBirth: null, city: null, phone: null, identityType: null, identityLast4: null, specialtyInterests: [], avatarObject: null, version: 0 };
 const current = { state: "ready", profile, specialties: abstractSettings.specialties, sessionDeadline: new Date(deadline).toISOString() };
 const status = { enabled: true, ageEnforcementReady: true, retentionEnforcementReady: true, cleanupEnabled: true, privacyVersion: "synthetic-privacy-ci-v1", emailDailyLimit: 40 };
 function form(extra: Record<string, string | Blob> = {}) {
@@ -48,7 +48,7 @@ function fixture(options: { identity?: string | null; accessClaims?: unknown; cu
         const input = args?.profile_input as Record<string, unknown>;
         const identity = input.identity as { type: string; last4: string } | null;
         return options.save ?? { ...current, profile: { ...profile, institution: input.institutionOther, institutionId: input.institutionId, institutionOther: input.institutionOther, studentStatus: input.status,
-          studentYear: null, specialtyInterests: input.interests, identityType: identity?.type ?? null, identityLast4: identity?.last4 ?? null, avatarObject: args?.avatar_object ?? null, version: 1 } };
+          studentYear: null, arabicName: input.arabicName, latinName: input.latinName ?? null, specialtyInterests: input.interests, identityType: identity?.type ?? null, identityLast4: identity?.last4 ?? null, avatarObject: args?.avatar_object ?? null, version: 1 } };
       }
       throw new Error("Unexpected profile RPC");
     }),
@@ -104,19 +104,37 @@ describe("optional private participant profile boundary (ENG-086 / AUTH-07 / PRV
     expect((await fixture({ current: { state: "denied" } }).get()).status).toBe(403);
   });
   it("returns only the allowed private projection with no storage path or actor identity", async () => {
-    const f = fixture({ current: { ...current, profile: { ...profile, avatarObject, secret: "private database diagnostic" } } });
+    const f = fixture({ current: { ...current, profile: { ...profile, avatarObject, arabicName: "مشارك تجريبي", latinName: "Synthetic Participant", secret: "private database diagnostic" } } });
     const response = await f.get("?locale=ar"), body = await response.json();
-    expect(response.status).toBe(200); expect(body).toMatchObject({ state: "ready", profile: { avatarUrl: "/api/participant-accounts/profile/avatar?v=0" } });
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({ state: "ready", profile: {
+      avatarUrl: "/api/participant-accounts/profile/avatar?v=0", arabicName: "مشارك تجريبي", latinName: "Synthetic Participant",
+    } });
     expect(JSON.stringify(body)).not.toContain(avatarObject); expect(JSON.stringify(body)).not.toContain("private database diagnostic");
     expect(JSON.stringify(body)).not.toContain(actorId); expect(response.headers.get("cache-control")).toContain("no-store");
     expect(response.headers.get("referrer-policy")).toBe("no-referrer"); expect(response.headers.get("set-cookie")).toBeNull();
   });
   it("normalizes fields and sends only verified claims to the atomic save RPC", async () => {
-    const f = fixture({ accessClaims: { ...claims, user_metadata: { role: "super_admin" } } }), response = await f.post();
-    expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ state: "ready", profile: { institutionOther: "Synthetic institution", status: "year_3", year: null } });
+    const f = fixture({ accessClaims: { ...claims, user_metadata: { role: "super_admin" } } });
+    const response = await f.post({ arabicName: "  مشارك تجريبي  ", latinName: "  Élodie D’Arcy-Smith  " });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "ready", profile: {
+      institutionOther: "Synthetic institution", status: "year_3", year: null, arabicName: "مشارك تجريبي", latinName: "Élodie D’Arcy-Smith",
+    } });
     const args = vi.mocked(f.backend.rpc).mock.calls.find(([name]) => name === "msrc_participant_profile_save")![1]!;
-    expect(args).toMatchObject({ profile_input: { institutionOther: "Synthetic institution", status: "year_3", interests: [abstractSettings.specialties[0].id] }, expected_version: 0 });
+    expect(args).toMatchObject({ profile_input: {
+      institutionOther: "Synthetic institution", status: "year_3", arabicName: "مشارك تجريبي", latinName: "Élodie D’Arcy-Smith",
+      interests: [abstractSettings.specialties[0].id],
+    }, expected_version: 0 });
     expect(args.session_claims).not.toHaveProperty("user_metadata"); expect(f.backend.upload).not.toHaveBeenCalled();
+  });
+  it("returns the Latin name field error without making a save or storage mutation", async () => {
+    const f = fixture();
+    const response = await f.post({ latinName: "Synthetic مشارك" });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ state: "invalid_input", fieldErrors: { latinName: "invalid" } });
+    expect(vi.mocked(f.backend.rpc).mock.calls.map(([name]) => name)).not.toContain("msrc_participant_profile_save");
+    expect(f.backend.upload).not.toHaveBeenCalled();
   });
   it("rejects other-session, wrong-purpose, malformed and expired form tokens without saving", async () => {
     for (const formToken of [profileFormToken(config, origin, actorId, otherId, now), participantFormToken(config, origin, now),
@@ -176,6 +194,15 @@ describe("optional private participant profile boundary (ENG-086 / AUTH-07 / PRV
     expect(f.backend.upload).toHaveBeenCalledOnce(); expect(f.backend.remove).not.toHaveBeenCalled();
     expect(f.backend.rpc).toHaveBeenCalledWith("msrc_participant_profile_avatar_abandon", expect.objectContaining({ object_name: vi.mocked(f.backend.upload).mock.calls[0][0] }));
   });
+  it("refuses edits when the stored profile projection predates bilingual names", async () => {
+    const legacyProfile: Partial<typeof profile> = { ...profile };
+    delete legacyProfile.latinName;
+    const f = fixture({ current: { ...current, profile: legacyProfile } });
+    const response = await f.post({ latinName: "Synthetic Participant" });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ state: "area-not-ready" });
+    expect(vi.mocked(f.backend.rpc).mock.calls.map(([name]) => name)).not.toContain("msrc_participant_profile_save");
+  });
   it.each(["msrc_participant_profile_read", "msrc_participant_profile_save", "msrc_participant_profile_avatar_reserve"])("missing RPC %s degrades to area-not-ready without changing login", async (errorRpc) => {
     const f = fixture({ error: new ParticipantProfileRpcMissingError(), errorRpc });
     const response = await f.post(errorRpc.includes("reserve") ? { avatar: await image() } : {});
@@ -205,6 +232,19 @@ describe("optional private participant profile boundary (ENG-086 / AUTH-07 / PRV
 });
 
 describe("profile field and image validation", () => {
+  it("accepts Latin names with accents and name punctuation while rejecting other scripts or digits", () => {
+    for (const name of ["Élodie D’Arcy-Smith", "Jose\u0301 de la Cruz", "Jean-Luc O'Malley"]) expect(isLatinProfileName(name)).toBe(true);
+    for (const name of ["مشارك تجريبي", "Synthetic مشارك", "Синтетика", "Synthetic 2", "---"]) {
+      expect(isLatinProfileName(name)).toBe(false);
+      expect(validateProfileForm(form({ latinName: name }), abstractSettings.specialties)).toMatchObject({ ok: false, fieldErrors: { latinName: "invalid" } });
+    }
+    expect(validateProfileForm(form({ latinName: "a".repeat(161) }), abstractSettings.specialties)).toMatchObject({ ok: false, fieldErrors: { latinName: "too_long" } });
+  });
+  it("allows legacy saves without a Latin name and explicit empty values in partial profiles", () => {
+    const existing = { ...EMPTY_PARTICIPANT_PROFILE, latinName: "Synthetic Participant" };
+    expect(validateProfileForm(form(), abstractSettings.specialties, existing)).toMatchObject({ ok: true, value: { latinName: existing.latinName } });
+    expect(validateProfileForm(form({ latinName: "" }), abstractSettings.specialties)).toMatchObject({ ok: true, value: { latinName: null } });
+  });
   it("validates ID formats independently and permits a saved masked ID to remain unchanged", () => {
     for (const [type, valid, invalid] of [["national_id", "1000000000", "2000000000"], ["iqama", "2000000000", "1000000000"], ["passport", "AB1234", "AB123"]] as const) {
       expect(isProfileIdentityNumber(type, valid)).toBe(true); expect(isProfileIdentityNumber(type, invalid)).toBe(false);

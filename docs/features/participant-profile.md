@@ -40,11 +40,25 @@ the existing participant feature browser artifact.
 ## Completion and editing
 
 Completion requires a private picture, institution, status, full Arabic name,
-ISO 3166-1 alpha-2 nationality, gender, date of birth establishing age 18 or older,
-city (80 characters maximum), E.164 contact phone, and a saved identity document.
-At least one specialty interest is required only while the edition's abstract
-specialty catalog is nonempty. The card shows ten baseline items, or eleven with
-configured specialties, and a complete state when all are present.
+full name in Latin letters, ISO 3166-1 alpha-2 nationality, gender, date of
+birth establishing age 18 or older, city (80 characters maximum), E.164
+contact phone, and a saved identity document. At least one specialty interest
+is required only while the edition's abstract specialty catalog is nonempty.
+The card shows eleven baseline items, or twelve with configured specialties.
+
+ORG-091 keeps one name at sign-up. Edit profile prefills the matching field
+when an existing sign-up spelling uses that script and the field has no saved
+value. The second spelling is supplied by the participant. The prefill is
+editable and becomes part of profile progress after Save. An existing saved
+spelling takes precedence. The Latin spelling is used for new presenting-author
+records under ORG-068 with the usual immutable finalization snapshot.
+
+The review migration backfills the Latin value only for existing completed
+profiles that already have a valid Latin account name. It adds no profile
+rows. The two saved names share the existing private profile's authorization
+and retention. Older save calls that omit the new value preserve it.
+Apply the reviewed migration and reload the database API schema before
+serving the new profile writes in the same environment.
 
 Status is one of Year 1–6, Internship, Clinical placement, Postgraduate, Residency,
 or Faculty. The migration maps medical-student years, intern, resident and faculty

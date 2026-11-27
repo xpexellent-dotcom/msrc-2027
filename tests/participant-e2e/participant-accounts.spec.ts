@@ -110,6 +110,9 @@ for (const locale of ["en", "ar"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${locale}/sign-up`);
     await fillSignup(page, "مشارك مصطنع");
+    await expect(page.locator("#participant-signup-name-hint")).toHaveText(copy.signupNameHint);
+    await expect(page.locator("#participant-firstName")).toHaveAccessibleDescription(copy.signupNameHint);
+    await expect(page.locator("#participant-lastName")).toHaveAccessibleDescription(copy.signupNameHint);
     await expect(page.locator('form input:not([name="website"]):not([type="checkbox"])')).toHaveCount(5);
     await expect(page.locator('input[type="checkbox"]')).toHaveCount(1);
     await expect(page.locator('input[type="tel"], input[type="date"], input[name="dob"], input[name="dateOfBirth"]')).toHaveCount(0);

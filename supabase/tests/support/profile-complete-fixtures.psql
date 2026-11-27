@@ -5,9 +5,9 @@ create function pg_temp.complete_profile(n integer,edition text) returns void la
 declare object_name text:=pg_temp.registration_actor(n)::text||'.webp';begin
  insert into msrc_participant.avatar_objects(object_name,actor_id,edition_key,state)
  values(object_name,pg_temp.registration_actor(n),edition,'active');
- insert into msrc_participant.profile_details(actor_id,edition_key,institution_other,student_status,arabic_name,nationality,gender,date_of_birth,city,phone,
+ insert into msrc_participant.profile_details(actor_id,edition_key,institution_other,student_status,arabic_name,latin_name,nationality,gender,date_of_birth,city,phone,
   specialty_interests,avatar_object,version,identity_type,identity_envelope,identity_lookup,identity_last4)
- values(pg_temp.registration_actor(n),edition,'Synthetic University','postgraduate','اسم مشارك تجريبي','SA','male',date '1990-01-01','Synthetic city','+966500000000',
+ values(pg_temp.registration_actor(n),edition,'Synthetic University','postgraduate','اسم مشارك تجريبي','Synthetic Profile Presenter','SA','male',date '1990-01-01','Synthetic city','+966500000000',
   array(select specialty->>'id' from jsonb_array_elements(msrc_participant.profile_specialties(edition)) specialty limit 1),object_name,1,
   'passport','v1:synthetic:YWJjZGVmZ2hpamts:YWJjZGVmZ2hpamtsbW5vcA==:U1lOVEhFVElDX0VOVkVMT1BF',lpad(to_hex(n),64,'0'),'0000');
 end$$;

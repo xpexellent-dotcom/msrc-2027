@@ -120,6 +120,12 @@ describe("participant accounts closed-by-default and private server protocol", (
     expect(token.issued).toBe(Date.parse(result.expiresAt) - 600_000);
     await pending[0](); expect(backend.deliver).toHaveBeenCalledTimes(1);
   });
+  it.each(["مشارك تجريبي", "Élodie D’Arcy-Smith"])("accepts %s as the single signup name", async (name) => {
+    const { backend, post } = fixture();
+    const response = await post("signup", { name: `  ${name}  ` });
+    expect(response.status).toBe(202);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_participant_email_begin", expect.objectContaining({ name }));
+  });
   it("omits retained signup fields when requesting password recovery", async () => {
     const { backend, post } = fixture(); const base = backend.rpc.bind(backend);
     backend.rpc = vi.fn(async (name, args, token) => name === "msrc_participant_email_begin"

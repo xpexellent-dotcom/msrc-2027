@@ -5938,3 +5938,20 @@ Profile access and editing follow ORG-067. Research competition copy follows
 ORG-068/069. The dashboard reflects the existing per-workflow gates.
 Requirements SCP-03/05, AUTH-07, DSN-01/02, LOC-01/03, ACC-01 and MED-02
 apply. See the [participant profile notes](features/participant-profile.md).
+
+## ORG-091 — One sign-up name and two profile spellings, 27 November 2026
+
+The organizer wants sign-up to collect one name, with guidance in both
+languages. In Edit profile, show the full Arabic name and the full name in
+Latin letters. Prefill the matching empty field from the sign-up spelling
+based on its script. The participant can correct the prefill. Keep a saved
+profile spelling whenever it exists. A mixed-script sign-up value that
+cannot be classified leaves both missing fields empty.
+
+Extend the ORG-067 completion rule to require both saved spellings. A
+participant may still save a partial profile. On new abstract drafts and
+finalization, use the saved Latin spelling as the presenting-author name.
+Previous finalized submission snapshots remain authoritative. Apply the
+profile migration and application rollout together through the existing
+release gates. Requirements AUTH-01/07, SCP-03, ABS-01/12, PRV-02/03/05,
+SEC-01/02, LOC-01/03 and ACC-01 apply.

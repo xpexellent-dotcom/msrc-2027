@@ -38,7 +38,8 @@ async function fixture(page: Page, account = { name: "Synthetic Participant", em
         expect(data.get("action")).toBe("save"); expect(data.get("formToken")).toBe("synthetic-profile-token"); expect(data.get("website")).toBe(""); expect(data.get("version")).toBe(String(profile.version));
         const status = data.get("status") as OptionalParticipantProfile["status"];
         profile = { ...profile, institutionId: String(data.get("institutionId")) || null, institutionOther: String(data.get("institutionOther")).trim() || null, institution: String(data.get("institutionOther")).trim() || null,
-          status: status || null, year: null, arabicName: String(data.get("arabicName")).trim() || null, nationality: String(data.get("nationality")) || null,
+          status: status || null, year: null, arabicName: String(data.get("arabicName") ?? "").trim() || null,
+          latinName: String(data.get("latinName") ?? "").trim() || null, nationality: String(data.get("nationality")) || null,
           gender: String(data.get("gender")) as OptionalParticipantProfile["gender"] || null, dateOfBirth: String(data.get("dateOfBirth")) || null, city: String(data.get("city")).trim() || null, phone: String(data.get("phone")) || null,
           identityType: data.get("removeIdentity") === "true" ? null : String(data.get("identityType")) as OptionalParticipantProfile["identityType"] || null,
           identityLast4: data.get("removeIdentity") === "true" ? null : data.get("identityNumber") ? String(data.get("identityNumber")).slice(-4) : profile.identityLast4,
@@ -151,6 +152,53 @@ for (const locale of ["en", "ar"] as const) {
     await accessible(page, "main");
   });
 
+  test(`${locale} profile prefills the signup name by script and preserves saved spellings`, async ({ page }) => {
+    const account = {
+      name: locale === "en" ? "دانا عبد الرحمن" : "Élodie Smith-Jones",
+      email: "synthetic@example.invalid",
+    };
+    const mock = await fixture(page, account);
+    await page.goto(`/${locale}/my-msrc`);
+    const card = page.getByTestId("participant-profile-card");
+    const progress = card.locator("progress");
+    const edit = card.getByRole("button", { name: copy.edit, exact: true });
+    const save = card.getByRole("button", { name: copy.save, exact: true });
+    const arabicName = card.getByRole("textbox", { name: copy.arabicName, exact: true });
+    const latinName = card.getByRole("textbox", { name: copy.latinName, exact: true });
+
+    await edit.click();
+    await expect(arabicName).toHaveValue(locale === "en" ? account.name : "");
+    await expect(latinName).toHaveValue(locale === "ar" ? account.name : "");
+    await expect(locale === "en" ? arabicName : latinName).toHaveAccessibleDescription(copy.nameFromSignup);
+    await expect(arabicName).toHaveAttribute("dir", "rtl");
+    await expect(latinName).toHaveAttribute("dir", "ltr");
+    await expect(progress).toHaveAttribute("value", "0");
+    await expect(progress).toHaveAttribute("max", "12");
+    expect(mock.saves()).toBe(0);
+
+    const savedArabicName = "دانا الحربي";
+    const savedLatinName = "Élodie Alharbi";
+    await arabicName.fill(savedArabicName);
+    await latinName.fill("Dana دانا");
+    await save.click();
+    await expect(latinName).toHaveAttribute("aria-invalid", "true");
+    await expect(latinName).toHaveAccessibleDescription(copy.invalidLatinName);
+    await expect(card.getByRole("alert")).toBeFocused();
+    expect(mock.saves()).toBe(0);
+
+    await latinName.fill(savedLatinName);
+    await save.click();
+    await expect(progress).toHaveAttribute("value", "2");
+    expect(mock.saves()).toBe(1);
+
+    await page.reload();
+    await edit.click();
+    await expect(arabicName).toHaveValue(savedArabicName);
+    await expect(latinName).toHaveValue(savedLatinName);
+    await expect(page.getByTestId("participant-profile-name")).toHaveText(account.name);
+    await accessible(page);
+  });
+
   test(`${locale} university combobox searches both languages and supports keyboard selection`, async ({ page }) => {
     await fixture(page); await page.goto(`/${locale}/my-msrc`);
     const card = page.getByTestId("participant-profile-card"); await card.getByRole("button", { name: copy.edit, exact: true }).click();
@@ -161,7 +209,7 @@ for (const locale of ["en", "ar"] as const) {
     await input.press("ArrowDown"); await expect(input).toBeFocused(); await input.press("Enter");
     await expect(input).toHaveValue(university[locale === "ar" ? "nameAr" : "nameEn"]); await expect(input).toHaveAttribute("aria-expanded", "false");
     await expect(page.locator("#profile-institutionOther")).toHaveCount(0);
-    await card.getByRole("button", { name: copy.save, exact: true }).click(); await expect(card.locator("progress")).toHaveAttribute("value", "1");
+    await card.getByRole("button", { name: copy.save, exact: true }).click(); await expect(card.locator("progress")).toHaveAttribute("value", "2");
     await card.getByRole("button", { name: copy.edit, exact: true }).click(); await input.focus(); await input.press("End");
     await expect(card.getByRole("option", { name: copy.other, exact: true })).toBeInViewport(); await input.press("Enter");
     await expect(page.locator("#profile-institutionOther")).toBeVisible(); await accessible(page);
@@ -200,16 +248,24 @@ for (const locale of ["en", "ar"] as const) {
     await accessible(page);
     const directory = resolve(".tools/profile-review"); await mkdir(directory, { recursive: true });
     await card.screenshot({ path: resolve(directory, `${locale}-${testInfo.project.name}-editor.png`), scale: "css" });
+
+    await page.locator("#profile-latinName").clear();
+    await card.getByRole("button", { name: copy.save, exact: true }).click();
+    await expect(card.locator("progress")).toHaveAttribute("value", "11");
+    await expect(card.getByText(copy.complete, { exact: true })).toHaveCount(0);
+    await card.getByRole("button", { name: copy.edit, exact: true }).click();
+    await page.locator("#profile-latinName").fill("Synthetic Participant");
     await card.getByRole("button", { name: copy.save, exact: true }).click();
     await expect(card.getByRole("heading", { name: copy.title, exact: true })).toBeVisible();
     await expect(card.getByText(copy.complete, { exact: true })).toBeVisible();
+    await expect(card.locator("progress")).toHaveAttribute("value", "12");
     await expect(card.locator("form")).toHaveCount(0);
     await expect(card.getByRole("button", { name: copy.edit, exact: true })).toBeFocused();
     await expect(page.getByTestId("header-primary-action").locator("img")).toHaveAttribute("src", /avatar\?v=1$/);
     await card.getByRole("button", { name: copy.edit, exact: true }).click();
     await card.getByRole("button", { name: copy.remove, exact: true }).click();
     await card.getByRole("button", { name: copy.clearInstitution, exact: true }).click(); await page.locator("#profile-status").selectOption("");
-    for (const field of ["arabicName", "dateOfBirth", "city", "phone"]) await page.locator("#profile-" + field).fill("");
+    for (const field of ["arabicName", "latinName", "dateOfBirth", "city", "phone"]) await page.locator("#profile-" + field).fill("");
     await page.locator("#profile-nationality").selectOption(""); await page.locator("#profile-gender").selectOption("");
     await expect(page.locator("#profile-identityNumber")).toHaveValue(""); await expect(card).toContainText("4321");
     await card.getByRole("button", { name: copy.removeIdentity, exact: true }).click();
@@ -219,7 +275,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("header-primary-action").locator("img")).toHaveCount(0);
     await expect(page.getByTestId("header-primary-action").locator("bdi")).toHaveText("SP");
     await accessible(page);
-    expect(mock.saves()).toBe(2);
+    expect(mock.saves()).toBe(3);
   });
 
   test(`${locale} missing migration and concurrent update remain recoverable`, async ({ page }) => {
@@ -284,6 +340,6 @@ for (const locale of ["en", "ar"] as const) {
     await card.getByRole("button", { name: copy.clearInterests, exact: true }).click();
     await chooseOther(page, locale, "Synthetic Institution after catalog change");
     await card.getByRole("button", { name: copy.save, exact: true }).click();
-    await expect(card.locator("form")).toHaveCount(0); await expect(card.locator("progress")).toHaveAttribute("value", "1"); expect(mock.saves()).toBe(2);
+    await expect(card.locator("form")).toHaveCount(0); await expect(card.locator("progress")).toHaveAttribute("value", "2"); expect(mock.saves()).toBe(2);
   });
 }

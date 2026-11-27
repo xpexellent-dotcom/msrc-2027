@@ -78,7 +78,8 @@
 .participant-announcements-feedback[data-error="true"] { color: var(--color-error); }
 
 /* First and last name sit side by side when there is room. */
-.participant-name-row { display: grid; gap: inherit; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+.participant-name-fields { display: grid; gap: var(--space-2); }
+.participant-name-row { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
 .participant-name-row > * { min-width: 0; }
 
 /* ENG-085: a clear way to create an account from Sign in. */

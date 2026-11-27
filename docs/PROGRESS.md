@@ -1,5 +1,22 @@
 # Progress and session handover
 
+## 27 November 2026 — Sign-up and bilingual profile names
+
+- ORG-091 keeps one sign-up name and explains both accepted scripts in each
+  locale. Edit profile shows both spellings and prefills the matching empty
+  field. Saved values win and both names count toward completion after Save.
+- The review migration preserves existing qualifying Latin spellings and
+  binds the Latin name to new abstract presenter snapshots. On Node 24.21.0
+  and pnpm 11.19.0, full ESLint, 5,694 unit tests and the production build
+  passed. Four focused EN/AR Chromium desktop and 360 px cases passed.
+- The exact migration ran in disposable PostgreSQL 18.3 with synthetic
+  Auth and Storage helpers. Backfill, validation, owner access, partial
+  saves, avatar updates and snapshot preservation passed. Native Supabase
+  pgTAP and concurrent RPC verification remain pending in CI because local
+  Docker was unavailable. Hosted migration requires a separate release step.
+  Requirements AUTH-01/07, SCP-03, ABS-01/12, PRV-02/03/05, SEC-01/02,
+  LOC-01/03 and ACC-01.
+
 ## 27 November 2026 — My MSRC participant dashboard review
 
 - ORG-090 applies the official MSRC seal, signature linework and supplied
