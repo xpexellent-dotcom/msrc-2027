@@ -9,7 +9,7 @@ export const phoneCountries = [{ code: "SA", prefix: "+966" }, { code: "AE", pre
 /** Shared contact-only profile/supervisor input. No authentication or delivery behavior. */
 export function ContactPhoneField({ id, locale, country, onCountryChange, value, onChange, labels, error, name }: {
   id: string; locale: Locale; country: string; onCountryChange: (value: string) => void; value: string; onChange: (value: string) => void;
-  labels: { country: string; phone: string; hint: string; international: string }; error?: string; name?: string;
+  labels: { country: string; phone: string; hint?: string; international: string }; error?: string; name?: string;
 }) {
   return <div className="participant-profile-phone">
     <Select id={`${id}-country`} label={labels.country} value={country} onChange={(event) => { const prefix = event.target.value; onCountryChange(prefix); if (value) onChange(prefix); }}>

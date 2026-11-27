@@ -18,7 +18,7 @@ const specialties = Array.from({ length: 6 }, (_, index) => ({ id: `synthetic-${
 async function fixture(
   page: Page,
   account = { name: "Synthetic Participant", email: "synthetic@example.invalid" },
-  { latinNameAvailable = true } = {},
+  { latinNameAvailable = true, professionalStatusesAvailable = false } = {},
 ) {
   let profile: OptionalParticipantProfile = { ...EMPTY_PARTICIPANT_PROFILE };
   let unavailable = false;
@@ -27,6 +27,7 @@ async function fixture(
   let catalog = latinNameAvailable ? specialties : specialties.slice(0, 1);
   const ready = (): ParticipantProfileResponse => ({
     state: "ready", profile, specialties: catalog, formToken: "synthetic-profile-token", latinNameAvailable,
+    ...(professionalStatusesAvailable ? { professionalStatusesAvailable } : {}),
   });
   await page.route("**/api/participant-accounts", async (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({
     state: "ready", formToken: "synthetic-account-token", profileEnabled: true,
@@ -236,9 +237,37 @@ for (const locale of ["en", "ar"] as const) {
     await accessible(page);
   });
 
+  test(`${locale} consultant and specialist statuses can be selected and saved`, async ({ page }) => {
+    const mock = await fixture(page, undefined, { professionalStatusesAvailable: true });
+    await page.goto(`/${locale}/my-msrc`);
+    const card = page.getByTestId("participant-profile-card");
+    const edit = card.getByRole("button", { name: copy.edit, exact: true });
+    const form = card.locator("form");
+    const status = card.locator("#profile-status");
+    const statuses = locale === "en"
+      ? { consultant: "Consultant", specialist: "Specialist" }
+      : { consultant: "استشاري", specialist: "أخصائي" };
+    await edit.click();
+
+    for (const [value, label] of Object.entries(statuses)) {
+      await expect(status.locator(`option[value="${value}"]`)).toHaveText(label);
+      await status.selectOption({ label });
+      await expect(status).toHaveValue(value);
+      await card.getByRole("button", { name: copy.save, exact: true }).click();
+      await expect(form).toHaveCount(0);
+      await expect(card.locator("progress")).toHaveAttribute("value", "2");
+
+      await page.reload();
+      await edit.click();
+      await expect(status).toHaveValue(value);
+    }
+    expect(mock.saves()).toBe(2);
+  });
+
   test(`${locale} university combobox searches both languages and supports keyboard selection`, async ({ page }) => {
     await fixture(page); await page.goto(`/${locale}/my-msrc`);
     const card = page.getByTestId("participant-profile-card"); await card.getByRole("button", { name: copy.edit, exact: true }).click();
+    await expect(card.locator('#profile-status option:is([value="consultant"], [value="specialist"])')).toHaveCount(0);
     const input = page.locator("#profile-institution"), university = SAUDI_UNIVERSITIES.find((item) => item.id === "king-abdulaziz")!;
     await input.fill(locale === "en" ? "عَبْدالعَزيز" : "ABDULAZIZ");
     await expect(input).toHaveAttribute("aria-expanded", "true");
@@ -273,9 +302,33 @@ for (const locale of ["en", "ar"] as const) {
     await page.locator("#profile-nationality").selectOption("SA"); await page.locator("#profile-gender").selectOption("male");
     await page.locator("#profile-city").fill("Synthetic City");
     await expect(page.locator("#profile-phone-country")).toHaveValue("+966");
-    await page.locator("#profile-phone").fill("+966500000000");
-    await page.locator("#profile-identityType").selectOption("national_id"); await page.locator("#profile-identityNumber").fill("1000004321");
-    await expect(page.locator("#profile-identityNumber")).toHaveAttribute("dir", "ltr");
+    const phone = page.locator("#profile-phone");
+    await expect(phone).toHaveAccessibleDescription("");
+    await expect(card.locator("#profile-phone-hint")).toHaveCount(0);
+    await phone.fill("+966500000000");
+
+    const identityType = page.locator("#profile-identityType");
+    const identityNumber = page.locator("#profile-identityNumber");
+    const identityFormat = card.locator("#profile-identity-format");
+    await expect(identityNumber).toHaveJSProperty("placeholder", "");
+    await expect(identityFormat).toHaveCount(0);
+    await identityType.focus();
+    await page.keyboard.press("Tab");
+    await expect(identityNumber).toBeFocused();
+    for (const [type, example] of [["passport", "A1234567"], ["iqama", "2XXXXXXXXX"], ["national_id", "1XXXXXXXXX"]] as const) {
+      await identityType.selectOption(type);
+      await expect(identityNumber).toHaveAttribute("placeholder", example);
+      await expect(identityNumber).toHaveAccessibleDescription(copy.identityFormats[type]);
+    }
+    await expect(identityFormat).toHaveClass(/\bsr-only\b/);
+    await expect(card.locator("#profile-identityNumber-hint")).toHaveCount(0);
+    await expect(identityNumber).toHaveAttribute("dir", "ltr");
+    expect(await identityNumber.evaluate((input) => getComputedStyle(input, "::placeholder").color)).toBe("rgb(100, 91, 112)");
+    await identityNumber.fill("100");
+    await card.getByRole("button", { name: copy.save, exact: true }).click();
+    await expect(card.locator("#profile-identityNumber-error")).toContainText(copy.identityFormats.national_id);
+    expect(mock.saves()).toBe(0);
+    await identityNumber.fill("1000004321");
     for (const option of specialties.slice(0, 5)) await card.getByRole("button", { name: option.label, exact: true }).click();
     await expect(card.getByRole("button", { name: specialties[5].label, exact: true })).toBeDisabled();
     await page.locator("#profile-avatar").setInputFiles({ name: "synthetic.png", mimeType: "image/png", buffer: png });
@@ -304,7 +357,8 @@ for (const locale of ["en", "ar"] as const) {
     await card.getByRole("button", { name: copy.clearInstitution, exact: true }).click(); await page.locator("#profile-status").selectOption("");
     for (const field of ["arabicName", "latinName", "dateOfBirth", "city", "phone"]) await page.locator("#profile-" + field).fill("");
     await page.locator("#profile-nationality").selectOption(""); await page.locator("#profile-gender").selectOption("");
-    await expect(page.locator("#profile-identityNumber")).toHaveValue(""); await expect(card).toContainText("4321");
+    await expect(identityNumber).toHaveValue("");
+    await expect(identityNumber).toHaveAccessibleDescription(/4321/);
     await card.getByRole("button", { name: copy.removeIdentity, exact: true }).click();
     for (const option of specialties.slice(0, 5)) await card.getByRole("button", { name: option.label, exact: true }).click();
     await card.getByRole("button", { name: copy.save, exact: true }).click();

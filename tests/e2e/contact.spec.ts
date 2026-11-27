@@ -9,7 +9,7 @@ const copy = {
     title: "Contact | MSRC 2027",
     heading: "Contact the team.",
     footer: "Contact",
-    businessInquiries: "For business inquiries",
+    inquiries: "Inquiries",
     breadcrumb: "Breadcrumb",
     home: "Home",
     closed: "The form is not open yet",
@@ -21,7 +21,7 @@ const copy = {
     title: "تواصل معنا | MSRC 2027",
     heading: "تواصل مع فريق المؤتمر.",
     footer: "التواصل",
-    businessInquiries: "للاستفسارات التجارية",
+    inquiries: "للاستفسارات",
     breadcrumb: "مسار التنقل",
     home: "الرئيسية",
     closed: "النموذج غير متاح حاليًا",
@@ -84,7 +84,7 @@ for (const locale of ["en", "ar"] as const) {
     const main = page.getByRole("main");
     const footer = page.getByRole("contentinfo");
     await expect(main.locator('a[href^="mailto:"]')).toHaveCount(0);
-    await expect(footer.getByText(copy[locale].businessInquiries, { exact: true })).toBeVisible();
+    await expect(footer.getByText(copy[locale].inquiries, { exact: true })).toBeVisible();
     const email = footer.getByRole("link", { name: "contact@msrc2027.com", exact: true });
     await expect(email).toHaveAttribute("href", "mailto:contact@msrc2027.com");
     await expect(email).toHaveAttribute("dir", "ltr");
