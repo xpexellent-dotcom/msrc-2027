@@ -25,9 +25,10 @@ async function ready(page: Page) {
 }
 
 for (const locale of ["en", "ar"] as const) {
-  test(`${locale} programme and media filters reflow at 200% text on tablet widths`, async ({ page }, testInfo) => {
-    await page.setViewportSize({ width: 810, height: 1080 });
-    for (const route of ["program", "media"] as const) {
+  // Each independent page gets its own document and console-error check.
+  for (const route of ["program", "media"] as const) {
+    test(`${locale} ${route} filters reflow at 200% text on tablet widths`, async ({ page }, testInfo) => {
+      await page.setViewportSize({ width: 810, height: 1080 });
       await page.goto(`/${locale}/${route}`);
       await expect(page.getByTestId(`${route}-search`)).toBeEnabled({ timeout: 15_000 }); // Hydration can exceed 5s on shared CI WebKit runners.
       await page.evaluate(async () => {
@@ -43,8 +44,8 @@ for (const locale of ["en", "ar"] as const) {
         await page.locator(".experience-filters").scrollIntoViewIfNeeded();
         await testInfo.attach(`${locale}-${route}-tablet-200-text`, { body: await page.screenshot(), contentType: "image/png" });
       }
-    }
-  });
+    });
+  }
 
   test(`${locale} Contact topic stays in its field at 280px with doubled text`, async ({ page }) => {
     await page.setViewportSize({ width: 280, height: 844 });

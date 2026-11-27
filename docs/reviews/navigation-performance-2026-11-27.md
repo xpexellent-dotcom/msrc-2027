@@ -56,13 +56,15 @@ isolated records.
 
 | Journey | Before | After | Condition |
 | --- | ---: | ---: | --- |
-| Staff Audit log search usable | 524.50 ms | 195.05 ms | Chromium production builds, 12 samples per build, 150 ms added to every shared staff API request |
-| My profile Sign out usable | 2,737.50 ms | 48.65 ms | Chromium production builds, eight samples per build, 350 ms announcements delay and 150 ms added per account/profile GET |
-| My profile first typing | 869.30 ms | 433.05 ms | Same synthetic delay conditions and sample count |
+| Staff People and roles controls usable | 535.85 ms | 195.25 ms | Chromium production builds, 12 samples per build, 150 ms added to every shared staff API request |
+| Staff Audit log search usable | 524.50 ms | 191.35 ms | Same synthetic delay conditions and sample count |
+| My profile Sign out usable | 2,749.75 ms | 57.40 ms | Chromium production builds, eight samples per build, 350 ms announcements delay and 150 ms added per account/profile GET |
+| My profile first typing | 836.05 ms | 451.50 ms | Same synthetic delay conditions and sample count |
 
-Audit log used three follow-up shared API requests before and one after.
-The participant benchmark used an authenticated synthetic session and timed
-button readiness and editor typing.
+People and roles and Audit log used three follow-up shared API requests before
+and one after. The participant benchmark used an authenticated synthetic session,
+waited for header hydration before navigating and timed button readiness and
+editor typing. The dashboard and header now share one profile details request.
 
 ## Local verification
 
@@ -74,5 +76,10 @@ button readiness and editor typing.
   mobile.
 - Public navigation and media smoke coverage passed 16 browser cases. Four
   desktop-only cases were skipped in the mobile project.
+- The competition staff and research judging suites passed 78 cases.
+- Program and Media enlarged-text tests use independent documents. This keeps
+  the strict browser error checks on each page and avoids aborting the earlier
+  page's prefetch during an unrelated layout check. All 20 targeted Chromium
+  and WebKit cases passed locally.
 - The authenticated production observations above are the live baseline. The
   pull request carries its deployment and native integration results.
