@@ -24,7 +24,7 @@ export function participantFormToken(config: ParticipantConfig, origin: string, 
     expires: now + 30 * 60 * 1000, nonce: randomBytes(24).toString("hex") })).toString("base64url");
   return encoded + "." + createHmac("sha256", Buffer.from(config.securitySecret, "hex")).update(encoded).digest("base64url");
 }
-export function readParticipantFormToken(config: ParticipantConfig, supplied: unknown, origin: string, now = Date.now()): string | null {
+function readFormToken(config: ParticipantConfig, supplied: unknown, origin: string, now: number, minimumAgeMs: number): string | null {
   if (typeof supplied !== "string" || supplied.length > 1024) return null;
   const parts = supplied.split(".");
   if (parts.length !== 2 || !parts.every((part) => /^[A-Za-z0-9_-]+$/.test(part))) return null;
@@ -36,10 +36,19 @@ export function readParticipantFormToken(config: ParticipantConfig, supplied: un
     if (!value || Object.keys(value).sort().join(",") !== "expires,issued,nonce,origin,purpose"
       || value.purpose !== "participant-form-v1" || value.origin !== origin || !config.origins.includes(origin)
       || !Number.isSafeInteger(value.issued) || !Number.isSafeInteger(value.expires)
-      || value.expires !== value.issued + 30 * 60 * 1000 || value.expires <= now || value.issued > now - 2000
+      || value.expires !== value.issued + 30 * 60 * 1000 || value.expires <= now || value.issued > now - minimumAgeMs
       || typeof value.nonce !== "string" || !/^[a-f0-9]{48}$/.test(value.nonce)) return null;
     return value.nonce;
   } catch { return null; }
+}
+
+export function readParticipantFormToken(config: ParticipantConfig, supplied: unknown, origin: string, now = Date.now()): string | null {
+  return readFormToken(config, supplied, origin, now, 2_000);
+}
+
+/** Logout still requires an origin-bound nonce, with no form to fill. */
+export function readParticipantLogoutToken(config: ParticipantConfig, supplied: unknown, origin: string, now = Date.now()): string | null {
+  return readFormToken(config, supplied, origin, now, 0);
 }
 
 export interface ParticipantSessionCookie { actorId: string; sessionId: string; accessToken: string; refreshToken: string; deadline: number; origin: string }

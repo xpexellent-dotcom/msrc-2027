@@ -60,6 +60,56 @@ describe("ENG-074 private workshop server boundary", () => {
     expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_workshop_mutate", { edition_key: config.editionKey, input: { action: "reserve", operationId, workshopId, seats: 1, releaseAt: "2026-10-25T06:00:00Z", reason: "Synthetic reservation" } }, accessToken);
     expect(await response.text()).not.toContain("accessToken"); expect(response.headers.get("cache-control")).toContain("no-store");
   });
+  it("returns the same authorized overview after a successful opt-in mutation", async () => {
+    replies.msrc_staff_workshop_read = { ...view(), bookings: [{ ...booking, status: "approved", rawIdentity: "PRIVATE" }] };
+    const input = { action: "approve", bookingId, reason: "Synthetic review" };
+    const response = await handle(request(input, true, {}, "?include=overview"));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    const body = await response.json();
+    expect(body).toMatchObject({ state: "updated", formToken: expect.any(String), overview: { state: "ready", bookings: [{ status: "approved" }] } });
+    expect(JSON.stringify(body)).not.toContain("PRIVATE");
+    expect(body.overview).not.toHaveProperty("formToken");
+    expect(vi.mocked(backend.rpc).mock.calls.slice(-5)).toEqual([
+      ["msrc_staff_workshop_mutate", { edition_key: config.editionKey, input: { operationId, ...input } }, accessToken],
+      ["msrc_staff_status"],
+      ["msrc_session_context", { edition_key: config.editionKey }, accessToken],
+      ["msrc_staff_profile", { edition_key: config.editionKey }, accessToken],
+      ["msrc_staff_workshop_read", { edition_key: config.editionKey }, accessToken],
+    ]);
+    expect(backend.identity).toHaveBeenCalledTimes(2);
+    const standalone = await handle(request(input));
+    expect(await standalone.json()).toMatchObject({ state: "updated" });
+    expect(vi.mocked(backend.rpc).mock.calls.filter(([name]) => name === "msrc_staff_workshop_read")).toHaveLength(1);
+  });
+  it("does not read the overview after a denied or conflicting mutation", async () => {
+    for (const [state, status] of [["denied", 403], ["conflict", 409]] as const) {
+      replies.msrc_staff_workshop_mutate = { state };
+      const response = await handle(request({ action: "approve", bookingId, reason: "Synthetic review" }, true, {}, "?include=overview"));
+      expect(response.status).toBe(status);
+      expect(await response.json()).toEqual({ state, formToken: expect.any(String) });
+    }
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name === "msrc_staff_workshop_read")).toBe(false);
+  });
+  it.each([["denied", { state: "denied" }], ["area-not-ready", new StaffRpcMissingError()], ["unavailable", new Error("PRIVATE")]] as const)(
+    "preserves a committed mutation when the independently authorized overview is %s", async (state, result) => {
+      replies.msrc_staff_workshop_read = result;
+      const response = await handle(request({ action: "approve", bookingId, reason: "Synthetic review" }, true, {}, "?include=overview"));
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ state: "updated", formToken: expect.any(String), overview: { state } });
+    });
+  it("rechecks access after the mutation and omits rows when role is removed", async () => {
+    const original = backend.rpc;
+    backend.rpc = vi.fn(async (name, params, token) => {
+      const result = await original(name, params, token);
+      if (name === "msrc_staff_workshop_mutate") roles = ["finance"];
+      return result;
+    });
+    const response = await handle(request({ action: "approve", bookingId, reason: "Synthetic review" }, true, {}, "?include=overview"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ state: "updated", formToken: expect.any(String), overview: { state: "denied" } });
+    expect(vi.mocked(backend.rpc).mock.calls.some(([name]) => name === "msrc_staff_workshop_read")).toBe(false);
+  });
   it("shows area-not-ready for missing pending RPC without logging out", async () => {
     replies.msrc_staff_workshop_read = new StaffRpcMissingError(); const response = await handle(request()); expect(response.status).toBe(503); expect((await response.json()).state).toBe("area-not-ready"); expect(backend.logout).not.toHaveBeenCalled();
   });

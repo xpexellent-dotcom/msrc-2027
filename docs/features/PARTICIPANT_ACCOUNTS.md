@@ -14,6 +14,19 @@ never-verified account deletion after 30 days, and record registration-only iden
 controller and provider decisions. Their publication does not activate accounts.
 Account creation never opens registration or any other operational workflow.
 
+## My profile responsiveness
+
+The private, verified My MSRC page prepares a signed form token for Sign out.
+Logout can use a fresh token while the account is already verified. The API
+still validates origin, signature, expiration, and one-use claim before
+revoking the session. Sign-up, sign-in and recovery retain their two-second
+minimum form age. Background account reads are cancelled when sign-out
+starts, and the dashboard hides private details while sign-out is pending.
+
+Participant page rendering reuses the database readiness result for session
+observation. Announcements and bookings load in their own protected panels
+after the dashboard shell is shown.
+
 ## Implemented boundary
 
 Sign-up collects name, normalized email and password, plus a required signup-only

@@ -107,20 +107,32 @@ export function createStaffCompetitionHandler(dependencies: { readiness?: () => 
       const kind = request.method === "GET" ? query.get("kind") : input?.kind;
       if (!COMPETITION_KINDS.includes(kind as CompetitionKind)) return reply({ state: "invalid" }, 400);
       const reviewer = roles.includes(kind === "hackathon" ? "hackathonReviewer" : "threeMinuteThesisReviewer");
-      const deliver = async (view: string, name: string, args: Record<string, unknown>) => {
+      const read = async (view: string, name: string, args: Record<string, unknown>): Promise<StaffCompetitionResponse> => {
         let raw = await backend.rpc(name, { edition_key: config.editionKey, competition_type: kind, ...args }, session.accessToken);
         // Committee readiness never acquires the scientific review projection,
         // even if a provider accidentally adds another area's fields.
         if (view === "list" && committee && !science && !admin) { const value = record(raw); if (value && Array.isArray(value.entries)) raw = { ...value, entries: value.entries.filter((entry) => kind === "hackathon" || record(entry)?.status === "accepted").map((entry) => { const item = record(entry)!; return { ...Object.fromEntries(Object.entries(item).filter(([key]) => !["reviewBasis", "decision"].includes(key))), assignedCount: 0, completedCount: 0 }; }) }; }
-        const decoded = projectStaffCompetitionResponse(view, raw); if (!decoded) return reply({ state: "unavailable" }, 503);
-        return reply(decoded, successes.includes(decoded.state) ? 200 : decoded.state === "denied" ? 403 : decoded.state === "limited" ? 429 : ["closed", "unavailable", "area-not-ready"].includes(decoded.state) ? 503 : 409);
+        return projectStaffCompetitionResponse(view, raw) ?? { state: "unavailable" };
       };
+      const deliver = (value: StaffCompetitionResponse) => reply(value, successes.includes(value.state) ? 200 : value.state === "denied" ? 403 : value.state === "limited" ? 429 : ["closed", "unavailable", "area-not-ready"].includes(value.state) ? 503 : 409);
       if (request.method === "GET") {
-        const view = query.get("view"), entryId = query.get("entryId");
-        if (!view || !["settings", "list", "queue", "packet", "judge_queue", "judge_packet", "export", "eligibility"].includes(view) || query.size !== (["packet", "judge_packet"].includes(view) ? 3 : 2) || ["packet", "judge_packet"].includes(view) && !uuid(entryId)) return reply({ state: "invalid" }, 400);
-        const permitted = view === "eligibility" ? kind === "hackathon" && (eligibility || admin) : view === "export" ? science || admin : ["settings", "list"].includes(view) ? science || committee || admin : view.startsWith("judge_") ? judge || admin : reviewer || admin;
+        const view = query.get("view"), entryId = query.get("entryId"), withSettings = query.get("settings") === "1";
+        const packet = view === "packet" || view === "judge_packet";
+        if (!view || !["settings", "list", "queue", "packet", "judge_queue", "judge_packet", "export", "eligibility"].includes(view)
+          || query.has("settings") && (!withSettings || !["list", "eligibility"].includes(view))
+          || query.size !== 2 + Number(packet) + Number(withSettings)
+          || packet && !uuid(entryId) || !packet && query.has("entryId")) return reply({ state: "invalid" }, 400);
+        const canReadSettings = science || committee || admin;
+        const permitted = view === "eligibility" ? kind === "hackathon" && (eligibility || admin) : view === "export" ? science || admin : ["settings", "list"].includes(view) ? canReadSettings : view.startsWith("judge_") ? judge || admin : reviewer || admin;
         if (!permitted) return reply({ state: "denied" }, 403);
-        return await deliver(view, "msrc_staff_competitions_data", { view, entry_id: entryId });
+        const value = await read(view, "msrc_staff_competitions_data", { view, entry_id: entryId });
+        if (!withSettings || !successes.includes(value.state)) return deliver(value);
+        // The database still authorizes and projects both reads independently.
+        const policy = canReadSettings
+          ? await read("settings", "msrc_staff_competitions_data", { view: "settings", entry_id: null })
+            .catch((error: unknown) => ({ state: error instanceof StaffRpcMissingError ? "area-not-ready" : "unavailable" }))
+          : { state: "denied" };
+        return deliver({ ...value, policy });
       }
       if (!input || query.size || Object.keys(input).some((key) => !["action", "kind", "payload", "operationId", "formToken"].includes(key)) || !text(input.action, 50) || !uuid(input.operationId)) return reply({ state: "invalid" }, 400);
       const action = input.action, allowed = action === "settings" ? admin : action === "file_read" ? science || committee || judge || eligibility || admin : action === "eligibility_flag" ? kind === "hackathon" && (eligibility || admin) : ["eligibility", "eligibility_flag"].includes(action) ? admin || (kind === "hackathon" ? eligibility : science) : ["prepare_packet", "assign", "select", "publish_selection", "third_review", "reserve_offer"].includes(action) ? science || admin : ["panel", "activity", "outcome", "committee_review", "roster_change", "withdraw"].includes(action) ? committee || admin : ["review", "conflict", "affiliations"].includes(action) ? reviewer : ["judge", "judge_conflict", "judge_flag", "judge_concern"].includes(action) ? judge : false;
@@ -135,7 +147,7 @@ export function createStaffCompetitionHandler(dependencies: { readiness?: () => 
         const url = await (dependencies.storage ?? createCompetitionStorage)(config).sign(String(raw.path), false);
         return reply({ state: "ready", fileTransfer: { fileId: String(payload.fileId), url } });
       }
-      return await deliver("mutation", "msrc_staff_competitions_mutate", { action, payload, operation_id: input.operationId });
+      return deliver(await read("mutation", "msrc_staff_competitions_mutate", { action, payload, operation_id: input.operationId }));
     } catch (error) { return reply({ state: error instanceof StaffRpcMissingError ? "area-not-ready" : "unavailable" }, 503); }
   };
 }

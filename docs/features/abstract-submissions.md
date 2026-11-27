@@ -18,6 +18,11 @@ private data; the calendar remains informational. Private page-state observation
 uses the same saved window via its existing abstract handler. Missing database
 capabilities return area-not-ready and never clear the account session.
 
+The private workspace GET projects one authorized abstract snapshot after account,
+workflow, identity and profile-completion checks. Draft saves and finalization still
+read the persisted snapshot again after the transaction so the workspace displays
+the current version and outcome. Responses remain private and uncached.
+
 ORG-070 supersedes ABS-09/11's participant similarity-report upload and AT-08's
 stage-one similarity PDF requirement: organizers run screening Gate 7. ORG-068
 item 7 already replaces ethics and study-registration files with reference text.

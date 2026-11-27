@@ -37,6 +37,14 @@ The profile Playwright suite exercises the dashboard with synthetic
 participants. It saves bilingual desktop and mobile review captures in
 the existing participant feature browser artifact.
 
+## Edit profile while details load
+
+The verified dashboard accepts an Edit profile click while the owner-only
+profile read is pending. It announces that the editor is opening and puts
+focus on the editor heading once the current authorized profile arrives.
+Editing and saving still use the loaded version, and an unavailable or denied
+read displays the existing retry state.
+
 ## Completion and editing
 
 Completion requires a private picture, institution, status, full Arabic name,

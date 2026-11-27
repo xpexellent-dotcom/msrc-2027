@@ -13,7 +13,7 @@ import { auditActionLabel, auditResultLabel, auditSearchQuery } from "./audit-la
 import { canChangeOwnPassword, STAFF_ROLES, staffMenu, type StaffMenuKey } from "./menu";
 import { PasswordChangeForm } from "./password-change-form";
 import { clearStaffDraft, normalizeStaffCode, requestStaff, updateStaffDraft, useStaffDraft } from "./staff-client";
-import type { StaffAction, StaffArea, StaffPayload, StaffPerson, StaffProfile, StaffResponse, StaffScreen, StaffEmailPreview } from "./ui-contract";
+import { isStaffNavigationArea, type StaffAction, type StaffPayload, type StaffPerson, type StaffProfile, type StaffResponse, type StaffScreen, type StaffEmailPreview } from "./ui-contract";
 import { StaffLanding, StaffSidebar } from "./console-shell";
 import { OrganizerAuditPanel, OrganizerDashboard } from "./organizer-dashboard";
 import type { LandingKey } from "./console-copy";
@@ -36,7 +36,6 @@ import { WorkshopStaffPanel } from "@/features/workshops/staff-panel";
 
 const areaFailures = new Set(["area-not-ready", "unavailable", "denied"]);
 const errors = new Set(["area-not-ready", "offer-window-not-set", "closed", "unavailable", "invalid-input", "invalid-credentials", "invalid-code", "denied", "limited", "reauthentication-required", "capacity-not-set", "payment-configuration-required", "capacity-below-held", "enable-not-allowed-here", "operation-conflict"]);
-function areaFor(screen: StaffScreen): StaffArea | undefined { return screen === "people" || screen === "audit" || screen === "participants" || screen === "registration" || screen === "priority" || screen === "early-access" || screen === "registration-settings" || screen === "email-previews" || screen === "check-in" || screen === "launch-readiness" ? screen : undefined; }
 function date(value: string | null, locale: Locale, fallback: string) {
   const parsed = value ? Date.parse(value) : NaN;
   return Number.isFinite(parsed) ? new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh", calendar: "gregory" }).format(parsed) : fallback;
@@ -65,7 +64,7 @@ function PersonActions({ locale, person, actorId, busy, act }: { locale: Locale;
   </details>;
 }
 
-export function StaffPortal({ locale, screen, landing, initialProfile, initialPasswordChangeAvailable = false, initialEmailPreviews, testMode = false }: { locale: Locale; screen: StaffScreen; landing?: LandingKey; initialProfile: StaffProfile | null; initialPasswordChangeAvailable?: boolean; initialEmailPreviews?: StaffEmailPreview[]; testMode?: boolean }) {
+export function StaffPortal({ locale, screen, landing, initialProfile, initialPasswordChangeAvailable = false, initialEmailPreviews, initialNavigationFormToken, testMode = false }: { locale: Locale; screen: StaffScreen; landing?: LandingKey; initialProfile: StaffProfile | null; initialPasswordChangeAvailable?: boolean; initialEmailPreviews?: StaffEmailPreview[]; initialNavigationFormToken?: string; testMode?: boolean }) {
   const copy = staffCopy[locale], router = useRouter(), draft = useStaffDraft();
   const [view, setView] = useState<StaffResponse>({ state: initialProfile ? "authenticated" : "ready", profile: initialProfile, emailPreviews: initialEmailPreviews });
   const [busy, setBusy] = useState(true), [outcome, setOutcome] = useState<string>(""), [query, setQuery] = useState("");
@@ -82,8 +81,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
   const lock = useRef(false), formToken = useRef<string | undefined>(undefined), feedback = useRef<HTMLDivElement>(null);
   const searchQuery = useRef("");
   const logoutRequested = useRef(false);
-  const generation = useRef(0), alive = useRef(true), area = areaFor(screen);
-  const fetchArea: StaffArea | undefined = area;
+  const generation = useRef(0), alive = useRef(true), area = isStaffNavigationArea(screen) ? screen : undefined;
   const passwordChangeAvailable = view.passwordChangeAvailable ?? initialPasswordChangeAvailable;
   const profile = view.profile ?? null, menu = profile ? staffMenu(profile.roles, { passwordChangeAvailable }) : [];
   const permitted = screen === "security" ? passwordChangeAvailable && !!profile && canChangeOwnPassword(profile.roles) : screen === "certificates" ? !!profile?.roles.some((role) => role === "superAdmin" || role === "registrationWorkshopAdministrator") : screen === "announcements" ? !!profile?.roles.includes("superAdmin") : screen === "workshops" ? !!profile?.roles.some((role) => role !== "participant") : landing ? menu.some((entry) => entry.key === landing) : !area || menu.some((entry) => entry.key === area);
@@ -92,7 +90,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
   const language = locale === "en" ? "ar" : "en";
   useEffect(() => { searchQuery.current = query; }, [query]);
 
-  const restore = useCallback(async (signal?: AbortSignal, search = "", recordActivity = false) => {
+  const restore = useCallback(async (signal?: AbortSignal, search = "", recordActivity = false, navigationFormToken?: string) => {
     const controller = new AbortController(), cancel = () => controller.abort();
     restores.current.add(controller);
     signal?.addEventListener("abort", cancel, { once: true });
@@ -101,18 +99,33 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
     try {
       const before = generation.current;
       const activitySequence = activity.current;
-      let response = await requestStaff(undefined, { signal: requestSignal });
-      // Only a mounted navigation or actual input can request an idle-clock touch.
-      // Visibility polling by itself observes, so an unattended tab still expires.
-      if (!logoutRequested.current && !lock.current && before === generation.current && recordActivity && response.state === "authenticated" && response.formToken) {
-        response = await requestStaff({ action: "activity", formToken: response.formToken }, { signal: requestSignal });
-        if (response.state === "authenticated") acknowledgedActivity.current = activitySequence;
-      }
-      if (!logoutRequested.current && response.state === "authenticated" && fetchArea && fetchArea !== "summary") {
-        // A failed area read keeps the signed-in console and explains itself; only the session read decides sign-in state.
-        const areaResponse = await requestStaff(undefined, { area: fetchArea, query: fetchArea === "audit" ? auditSearchQuery(search, locale) : search, status: fetchArea === "registration" ? queueStatusRef.current : undefined, signal: requestSignal });
-        response = areaResponse.state === "authenticated" || !areaFailures.has(areaResponse.state) ? areaResponse
-          : { ...response, formToken: areaResponse.formToken ?? response.formToken, areaFailure: areaResponse.state };
+      let response: StaffResponse;
+      const canRecordActivity = () => !logoutRequested.current && !lock.current && before === generation.current;
+      const defaultFilter = area !== "registration" || queueStatusRef.current === "all";
+      const startup = navigationFormToken && recordActivity && defaultFilter && canRecordActivity() && !requestSignal.aborted
+        ? await requestStaff({ action: "activity", ...(area ? { area } : {}), formToken: navigationFormToken }, { signal: requestSignal })
+        : undefined;
+
+      if (startup?.state === "authenticated") {
+        response = startup;
+        acknowledgedActivity.current = activitySequence;
+      } else {
+        // Recover the session and obtain a fresh token if a rendered token was
+        // already used (such as on Back), expired, or the session changed.
+        if (startup && (requestSignal.aborted || !canRecordActivity())) return;
+        response = await requestStaff(undefined, { signal: requestSignal });
+        // Only a mounted navigation or actual input can request an idle-clock touch.
+        // Visibility polling by itself observes, so an unattended tab still expires.
+        if (canRecordActivity() && recordActivity && response.state === "authenticated" && response.formToken) {
+          response = await requestStaff({ action: "activity", formToken: response.formToken }, { signal: requestSignal });
+          if (response.state === "authenticated") acknowledgedActivity.current = activitySequence;
+        }
+        if (!logoutRequested.current && response.state === "authenticated" && area) {
+          // A failed area read keeps the signed-in console and explains itself; only the session read decides sign-in state.
+          const areaResponse = await requestStaff(undefined, { area, query: area === "audit" ? auditSearchQuery(search, locale) : search, status: area === "registration" ? queueStatusRef.current : undefined, signal: requestSignal });
+          response = areaResponse.state === "authenticated" || !areaFailures.has(areaResponse.state) ? areaResponse
+            : { ...response, formToken: areaResponse.formToken ?? response.formToken, areaFailure: areaResponse.state };
+        }
       }
       if (!alive.current || requestSignal.aborted || lock.current || before !== generation.current) return;
       formToken.current = response.formToken;
@@ -120,23 +133,14 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
       if (errors.has(response.state)) setOutcome(response.state);
       else if (response.areaFailure) setOutcome(response.areaFailure);
       setBusy(false);
-      // Dashboard counts load in the background: optional, never blocking the console, and
-      // cancelled by sign-out like any other pending read.
-      if (fetchArea === "summary" && response.state === "authenticated" && !logoutRequested.current) {
-        const summaryController = new AbortController();
-        restores.current.add(summaryController);
-        void requestStaff(undefined, { area: "summary", signal: summaryController.signal }).then((summary) => {
-          if (alive.current && !summaryController.signal.aborted && !logoutRequested.current && before === generation.current && summary.state === "authenticated" && summary.summary) setView((previous) => previous.profile ? { ...previous, summary: summary.summary } : previous);
-        }).finally(() => restores.current.delete(summaryController));
-      }
     } finally { signal?.removeEventListener("abort", cancel); restores.current.delete(controller); }
-  }, [fetchArea, locale]);
+  }, [area, locale]);
 
   useEffect(() => {
     alive.current = true;
     const pendingRestores = restores.current;
     const controller = new AbortController();
-    const startup = window.setTimeout(() => { void restore(controller.signal, "", true); }, 0);
+    const startup = window.setTimeout(() => { void restore(controller.signal, "", true, initialNavigationFormToken); }, 0);
     if (screen === "accept-invitation") {
       const parameters = new URLSearchParams(window.location.hash.slice(1));
       const invitationId = parameters.get("invitation"), token = parameters.get("token");
@@ -153,7 +157,7 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
     const resume = (event: PageTransitionEvent) => { if (event.persisted) void restore(undefined, "", true); };
     window.addEventListener("pagehide", clearPrivate); window.addEventListener("pageshow", resume);
     return () => { alive.current = false; controller.abort(); for (const pending of pendingRestores) pending.abort(); window.clearTimeout(startup); window.clearInterval(timer); window.removeEventListener("pagehide", clearPrivate); window.removeEventListener("pageshow", resume); for (const event of inputEvents) window.removeEventListener(event, input); };
-  }, [restore, screen]);
+  }, [initialNavigationFormToken, restore, screen]);
 
   useEffect(() => { if (outcome && (errors.has(outcome) || outcome in copy.errors)) feedback.current?.focus(); }, [outcome, copy.errors]);
 

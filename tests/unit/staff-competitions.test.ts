@@ -14,11 +14,86 @@ const emptySettings = () => Object.fromEntries(COMPETITION_SETTING_KEYS.map((key
 const settings = () => ({ state: "ready", version: 0, settings: emptySettings(), enabled: false, evidenceReady: false, stageStates: { entry: "not_ready", selection: "not_ready", judging: "not_ready", final_material: "not_ready", membership: "not_ready" } });
 const packet = { title: "Synthetic project", pitch: "Synthetic pitch", narrative: "", track: "translating_research" }, rubric = [{ id: "synthetic", label: "Synthetic criterion", min: 0, max: 7 }], scorecard = { scores: [{ criterionId: "synthetic", value: 0 }], comments: "Synthetic comments" };
 const assignment = () => ({ id: entryId, entryId, version: 1, status: "assigned", title: packet.title, packet, rubric, scorecard });
+const entry = { id: entryId, kind: "hackathon", version: 1, status: "submitted", title: packet.title, track: packet.track,
+  eligibility: "pending", assignedCount: 0, completedCount: 0, roster: [], files: [], outcome: null };
 let roles: Role[], assurance: boolean, backend: StaffBackend, data: unknown, mutation: unknown;
 function persisted() { const superAdmin = roles.includes("superAdmin"); return { schemaVersion: 1, editionId: config.editionKey, principal: { userId: actorId, sessionId }, privileged: true, authenticationTier: superAdmin ? "super_admin" : "staff", sessionPolicySatisfied: assurance, reason: assurance ? null : superAdmin ? "mfa_required" : "staff_email_check_required", mfaValid: superAdmin && assurance, passwordValid: true, staffEmailValid: !superAdmin && assurance, emailVerified: true, timing: { startedAt: new Date(now).toISOString(), lastActivityAt: new Date(now).toISOString(), absoluteExpiresAt: new Date(session.deadline).toISOString(), idleExpiresAt: new Date(now + 30 * 60000).toISOString(), authenticatedAt: new Date(now).toISOString() }, policy: SESSION_POLICY, operationalAccessReady: false, privilegedAccessReady: false }; }
 function request(body?: Record<string, unknown>, query = "?kind=hackathon&view=settings", extra: Record<string, string> = {}) { return new Request(origin + "/api/staff-portal/competitions" + (body ? "" : query), { method: body ? "POST" : "GET", headers: { host: "127.0.0.1:3219", cookie: staffCookie(config, session, now).split(";")[0], ...(body ? { origin, "Content-Type": "application/json" } : {}), ...extra }, body: body ? JSON.stringify({ formToken: staffFormToken(config, origin, now), operationId: sessionId, kind: "hackathon", ...body }) : undefined }); }
 const handle = (req: Request) => createStaffCompetitionHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => now })(req);
 beforeEach(() => { vi.stubEnv("COMPETITIONS_ENABLED", "true"); roles = ["superAdmin"]; assurance = true; data = settings(); mutation = { state: "updated" }; backend = { rpc: vi.fn(async (name) => { if (name === "msrc_staff_status") return { enabled: true, emailDailyLimit: 40 }; if (name === "msrc_staff_form_claim") return { state: "claimed" }; if (name === "msrc_session_context") return persisted(); if (name === "msrc_staff_profile") return { schemaVersion: 1, actorId, name: "Synthetic Staff", roles, session: persisted() }; const value = name === "msrc_staff_competitions_data" ? data : mutation; if (value instanceof Error) throw value; return value; }), identity: vi.fn(async () => actorId), refresh: vi.fn(async () => session), logout: vi.fn() } as unknown as StaffBackend; });
+function prepareNavigationReads(policy: unknown, entries: unknown = { state: "ready", entries: [entry] }) {
+  const original = backend.rpc;
+  backend.rpc = vi.fn(async (name, args, bearer) => {
+    if (name !== "msrc_staff_competitions_data") return original(name, args, bearer);
+    const value = args?.view === "settings" ? policy : entries;
+    if (value instanceof Error) throw value;
+    return value;
+  });
+}
+const competitionReads = () => vi.mocked(backend.rpc).mock.calls.filter(([name]) => name === "msrc_staff_competitions_data");
+
+describe("competition navigation settings", () => {
+  it.each([["list", ["superAdmin"]], ["eligibility", ["registrationWorkshopAdministrator", "scientificAdministrator"]]] as const)(
+    "bundles %s and its separately authorized policy with the current bearer", async (view, allowedRoles) => {
+      roles = [...allowedRoles];
+      prepareNavigationReads({ ...settings(), privateField: "PRIVATE POLICY" },
+        { state: "ready", entries: [{ ...entry, hidden: "PRIVATE ENTRY" }], policy: { hidden: "PRIVATE RAW POLICY" } });
+      const response = await handle(request(undefined, `?kind=hackathon&view=${view}&settings=1`));
+      expect(response.status).toBe(200);
+      expect(response.headers.get("cache-control")).toContain("no-store");
+      const result = await response.json();
+      expect(result).toMatchObject({ state: "ready", entries: [{ id: entryId, title: packet.title }], policy: settings(), formToken: expect.any(String) });
+      expect(result).not.toHaveProperty("settings");
+      expect(result.policy).not.toHaveProperty("formToken");
+      expect(JSON.stringify(result)).not.toContain("PRIVATE");
+      expect(competitionReads()).toEqual([view, "settings"].map((part) => ["msrc_staff_competitions_data",
+        { edition_key: config.editionKey, competition_type: "hackathon", view: part, entry_id: null }, accessToken]));
+    });
+
+  it("keeps policy denied for eligibility-only staff and never sends the settings RPC", async () => {
+    roles = ["registrationWorkshopAdministrator"];
+    prepareNavigationReads(settings());
+    const response = await handle(request(undefined, "?kind=hackathon&view=eligibility&settings=1"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ entries: [{ id: entryId }], policy: { state: "denied" } });
+    expect((await handle(request())).status).toBe(403);
+    expect(competitionReads().map(([, args]) => args?.view)).toEqual(["eligibility"]);
+  });
+
+  it.each([["hackathonReviewer", "queue"], ["facultyJudge", "judge_queue"]] as const)("excludes the %s scoring view", async (role, view) => {
+    roles = [role];
+    data = { state: "ready", assignments: [assignment()] };
+    expect((await handle(request(undefined, "?kind=hackathon&view=list&settings=1"))).status).toBe(403);
+    expect((await handle(request(undefined, `?kind=hackathon&view=${view}&settings=1`))).status).toBe(400);
+    expect(competitionReads()).toHaveLength(0);
+    const response = await handle(request(undefined, `?kind=hackathon&view=${view}`));
+    expect(response.status).toBe(200);
+    expect(await response.json()).not.toHaveProperty("policy");
+  });
+
+  it.each([["denied", { state: "denied" }], ["area-not-ready", new StaffRpcMissingError()], ["unavailable", new Error("Synthetic settings error")]] as const)(
+    "preserves the list if the separately authorized policy is %s", async (state, policy) => {
+      prepareNavigationReads(policy);
+      const response = await handle(request(undefined, "?kind=hackathon&view=list&settings=1"));
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).toMatchObject({ state: "ready", entries: [{ id: entryId }] });
+      expect(body.policy).toEqual({ state });
+    });
+
+  it("preserves standalone settings and avoids reading policy after a denied list", async () => {
+    prepareNavigationReads(settings(), { state: "denied" });
+    const denied = await handle(request(undefined, "?kind=hackathon&view=list&settings=1"));
+    expect(denied.status).toBe(403);
+    expect(competitionReads().map(([, args]) => args?.view)).toEqual(["list"]);
+    const standalone = await handle(request());
+    expect(standalone.status).toBe(200);
+    const body = await standalone.json();
+    expect(body).toMatchObject(settings());
+    expect(body).not.toHaveProperty("policy");
+  });
+});
+
 describe("ENG-077 competition staff boundary", () => {
   it("remains closed before any backend read when the independent switch is unset", async () => { vi.stubEnv("COMPETITIONS_ENABLED", "false"); expect((await handle(request())).status).toBe(503); expect(backend.rpc).not.toHaveBeenCalled(); });
   it.each(ROLES)("restricts policy mutations to Super Admin for %s", async (role) => { roles = [role]; expect((await handle(request({ action: "settings", payload: { expectedVersion: 0, settings: emptySettings() } }))).status).toBe(role === "superAdmin" ? 200 : 403); });

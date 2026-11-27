@@ -159,15 +159,47 @@ describe("ORG-068 presenter eligibility and one-chance state", () => {
 });
 describe("participant abstract API authorization and failures", () => {
   it("stays closed before constructing a backend", async () => { vi.stubEnv("ABSTRACT_SUBMISSIONS_ENABLED", ""); const f = fixture(); expect((await f.get()).status).toBe(503); expect(f.backend.rpc).not.toHaveBeenCalled(); });
-  it("returns private authorized saved drafts", async () => { const response = await fixture().get(); expect(response.status).toBe(200); expect(response.headers.get("cache-control")).toContain("no-store"); expect((await response.json()).submissions).toHaveLength(1); });
+  it("returns private saved drafts using one authorized snapshot read", async () => {
+    const f = fixture(), response = await f.get();
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect((await response.json()).submissions).toHaveLength(1);
+    expect(vi.mocked(f.backend.rpc).mock.calls.map(([name]) => name)).toEqual([
+      "msrc_participant_status", "msrc_abstracts_status", "msrc_participant_profile_complete", "msrc_abstracts_me",
+    ]);
+    expect(f.backend.identity).toHaveBeenCalledWith(token());
+    expect(f.backend.rpc).toHaveBeenCalledWith("msrc_abstracts_me", { edition_key: config.editionKey, session_claims: claims });
+  });
   it("missing RPC retains sign-in", async () => { const response = await fixture({ error: new AbstractRpcMissingError() }).get(); expect(await response.json()).toEqual({ state: "area-not-ready" }); expect(response.headers.get("set-cookie")).toBeNull(); });
-  it("rejects cross-account native identity", async () => { expect((await fixture({ identity: operationId }).get()).status).toBe(401); });
+  it("rejects cross-account native identity before loading private abstracts", async () => {
+    const f = fixture({ identity: operationId });
+    expect((await f.get()).status).toBe(401);
+    expect(vi.mocked(f.backend.rpc).mock.calls.map(([name]) => name)).toEqual(["msrc_participant_status", "msrc_abstracts_status"]);
+  });
   it("rejects missing session", async () => { expect((await fixture().get({ cookie: "" })).status).toBe(401); });
   it("does not authorize user metadata", async () => { expect((await fixture({ claims: { ...claims, aal: "aal2", user_metadata: { role: "participant" } } }).get()).status).toBe(401); });
   it.each([{ origin: "https://attacker.invalid" }, { "sec-fetch-site": "cross-site" }])("rejects cross-origin mutations %#", async (headers) => expect((await fixture().post({}, headers)).status).toBe(400));
   it("rejects absent CSRF and client actor identifiers", async () => { expect((await fixture().post({ formToken: "" })).status).toBe(400); expect((await fixture().post({ actorId })).status).toBe(400); });
   it("rejects over-350 body server-side before any save", async () => { const f = fixture(); expect((await f.post({ document: { ...abstractDocument, body: { ...abstractDocument.body, background: "word ".repeat(351) } } })).status).toBe(400); expect(f.backend.rpc).not.toHaveBeenCalledWith("msrc_abstracts_save_draft", expect.anything()); });
   it("sends canonical session context and expected version to the save RPC", async () => { const f = fixture(); expect((await f.post()).status).toBe(200); expect(f.backend.rpc).toHaveBeenCalledWith("msrc_abstracts_save_draft", { edition_key: config.editionKey, session_claims: claims, submission_id: abstractSubmission.id, expected_version: 1, operation_id: operationId, document: { ...abstractDocument, presentingAuthorId: actorId, authors: [{ id: actorId, name: "Synthetic Profile Presenter", email: "profile-presenter@example.invalid", affiliations: ["Synthetic Profile Institution"] }] } }); });
+  it("reads a fresh persisted snapshot after an authorized draft write", async () => {
+    const f = fixture(), rpc = f.backend.rpc;
+    let committed = false;
+    f.backend.rpc = vi.fn(async (name, args) => {
+      const value = await rpc(name, args);
+      if (name === "msrc_abstracts_save_draft") committed = true;
+      if (name === "msrc_abstracts_me" && committed && value && typeof value === "object") {
+        return { ...value, submissions: [{ ...abstractSubmission, version: 2 }] };
+      }
+      return value;
+    });
+    const response = await f.post();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "ready", outcome: "saved", submissions: [{ id: abstractSubmission.id, version: 2 }] });
+    expect(vi.mocked(f.backend.rpc).mock.calls.map(([name]) => name).slice(-3)).toEqual([
+      "msrc_abstracts_me", "msrc_abstracts_save_draft", "msrc_abstracts_me",
+    ]);
+  });
   it.each(["conflict", "evidence_gate", "invalid"])("preserves saved data and explains %s", async (outcome) => { const response = await fixture({ outcome }).post(); expect(response.status).toBe(409); expect((await response.json()).outcome).toBe(outcome); });
   it("maps a locked snapshot to a recoverable conflict", async () => { const response = await fixture({ outcome: "locked" }).post(); expect(response.status).toBe(409); expect((await response.json()).outcome).toBe("conflict"); });
   it("finalizes only the identified saved version without client scientific data", async () => {

@@ -18,7 +18,11 @@ export type WorkshopReservation = { id: string; workshopId: string; seats: numbe
 export type WorkshopConflict = { id: string; bookingId: string; otherBookingId: string; createdAt: string; resolvedAt: string | null };
 export type WorkshopStaffView = { policy: WorkshopPolicy | null; workshops: StaffWorkshop[]; bookings: WorkshopBooking[]; reservations: WorkshopReservation[]; conflicts: WorkshopConflict[] };
 export type WorkshopStaffPayload = { action: string; operationId: string; formToken?: string; workshop?: WorkshopFields; policy?: WorkshopPolicy; reason?: string; bookingId?: string; workshopId?: string; reservationId?: string; expiresAt?: string; releaseAt?: string; seats?: number };
-export type WorkshopStaffResponse = Partial<WorkshopStaffView> & { state: string; formToken?: string };
+export type WorkshopStaffOverview = Partial<WorkshopStaffView> & { state: string };
+export type WorkshopStaffResponse = WorkshopStaffOverview & { formToken?: string; overview?: WorkshopStaffOverview };
+export function workshopStaffMutationSucceeded(state: string): boolean {
+  return ["ready", "updated", "created", "already_checked_in", "already_completed"].includes(state);
+}
 
 export function emptyWorkshopFields(): WorkshopFields { return { id: null, version: 0, titleEn: null, titleAr: null, descriptionEn: null, descriptionAr: null, instructor: null, instructorActorId: null, room: null, startAt: null, endAt: null, capacity: null, eligibilityEn: null, eligibilityAr: null, eligibilityRule: null, priceMinor: null, currency: null, bookingDeadline: null, transferBufferMinutes: null, published: false }; }
 export function decodeWorkshopFields(value: unknown): WorkshopFields | null {

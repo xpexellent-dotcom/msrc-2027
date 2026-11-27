@@ -5,10 +5,10 @@ import { parsePersistedSessionContext } from "@/lib/supabase/session.server";
 import type { Locale } from "@/lib/i18n";
 import { createParticipantBackend, type ParticipantBackend, type NativeParticipantSession } from "./backend.server";
 import { getParticipantConfig, type ParticipantConfig, type ParticipantReadiness } from "./config.server";
-import type { ParticipantPayload, ParticipantProfile, ParticipantResponse } from "./contracts";
+import { participantAccountViewHeader, type ParticipantPayload, type ParticipantProfile, type ParticipantResponse } from "./contracts";
 import { participantNotice } from "./privacy.server";
 import { nativeTokenNeedsRefresh, participantCookie, participantFormToken, participantHash, participantIp, participantOrigin,
-  participantUuid, readParticipantFormToken, readParticipantJson, readParticipantSession, type ParticipantSessionCookie } from "./security.server";
+  participantUuid, readParticipantFormToken, readParticipantJson, readParticipantLogoutToken, readParticipantSession, type ParticipantSessionCookie } from "./security.server";
 import { validateParticipantPayload } from "./validation.server";
 import type { ParticipantCodePurpose } from "./email.server";
 
@@ -28,7 +28,7 @@ async function ready(config: ParticipantConfig, backend: ParticipantBackend): Pr
     && result.privacyVersion === participantNotice("en", config.testMode)?.version
     && result.emailDailyLimit === config.emailDailyLimit;
 }
-async function ownProfile(config: ParticipantConfig, backend: ParticipantBackend, native: NativeParticipantSession, now: number) {
+async function ownProfile(config: ParticipantConfig, backend: ParticipantBackend, native: NativeParticipantSession, now: number, includeAccountDetails = true) {
   if (await backend.identity(native.accessToken) !== native.actorId) return null;
   const context = parsePersistedSessionContext(await backend.rpc("msrc_session_context", { edition_key: config.editionKey }, native.accessToken), native.actorId, config.editionKey);
   if (!context || !context.sessionPolicySatisfied || context.authenticationTier !== "participant"
@@ -42,11 +42,13 @@ async function ownProfile(config: ParticipantConfig, backend: ParticipantBackend
     || observed.principal.sessionId !== native.sessionId || observed.timing.absoluteExpiresAtMs !== context.timing.absoluteExpiresAtMs) return null;
   const profile: ParticipantProfile = { name: value.name, accountState: "verified" };
   // ENG-083: own email and join date for the profile page. Missing details never block sign-in.
-  try {
-    const details = record(await backend.rpc("msrc_participant_account_details", {}, native.accessToken));
-    if (details && typeof details.email === "string" && details.email.length <= 254) profile.email = details.email;
-    if (details && typeof details.createdAt === "string" && Number.isFinite(Date.parse(details.createdAt))) profile.createdAt = details.createdAt;
-  } catch { /* Profile still loads without the optional details. */ }
+  if (includeAccountDetails) {
+    try {
+      const details = record(await backend.rpc("msrc_participant_account_details", {}, native.accessToken));
+      if (details && typeof details.email === "string" && details.email.length <= 254) profile.email = details.email;
+      if (details && typeof details.createdAt === "string" && Number.isFinite(Date.parse(details.createdAt))) profile.createdAt = details.createdAt;
+    } catch { /* Profile still loads without the optional details. */ }
+  }
   return { profile, deadline: context.timing.absoluteExpiresAtMs };
 }
 
@@ -89,7 +91,8 @@ export function createParticipantHandler(dependencies: {
           if (!refreshed || refreshed.actorId !== cookie.actorId || refreshed.sessionId !== cookie.sessionId) cookie = null;
           else { cookie = { ...cookie, ...refreshed }; changed = true; }
         }
-        const own = cookie && await ownProfile(config, backend, cookie, now);
+        const includeAccountDetails = request.headers.get(participantAccountViewHeader) !== "header";
+        const own = cookie && await ownProfile(config, backend, cookie, now, includeAccountDetails);
         const allowed = cookie && own?.deadline === cookie.deadline ? own : null;
         if (cookie && !allowed) cookie = null;
         return reply({ state: allowed ? "authenticated" : "ready", notice: participantNotice(locale, config.testMode),
@@ -104,7 +107,8 @@ export function createParticipantHandler(dependencies: {
       if (!parsed.ok) return respond({ state: "invalid_input", fieldErrors: parsed.fieldErrors }, 400);
       payload = parsed.value;
     } catch { return respond({ state: "invalid_input" }, 400); }
-    const nonce = readParticipantFormToken(config, payload.formToken, origin, now);
+    const readFormToken = payload.action === "logout" ? readParticipantLogoutToken : readParticipantFormToken;
+    const nonce = readFormToken(config, payload.formToken, origin, now);
     const ip = participantIp(config, request);
     if (!nonce || !ip || payload.website) return respond({ state: "invalid_input" }, 400);
     const ipHash = participantHash(config, "ip", ip);
@@ -198,16 +202,23 @@ export function createParticipantHandler(dependencies: {
 }
 
 export const handleParticipantRequest = createParticipantHandler();
-export async function participantPageReady(config: ParticipantConfig): Promise<boolean> {
-  try { return await ready(config, createParticipantBackend(config)); } catch { return false; }
-}
 /** RSC renders never rotate refresh tokens: only API GET can attach the new encrypted cookie. */
-export async function observeParticipantPage(request: Request, config: ParticipantConfig): Promise<ParticipantProfile | null> {
-  const cookie = readParticipantSession(config, request);
-  if (!cookie || nativeTokenNeedsRefresh(cookie.accessToken)) return null;
-  try { const backend = createParticipantBackend(config);
-    if (!await ready(config, backend)) return null;
-    const own = await ownProfile(config, backend, cookie, Date.now());
-    return own?.deadline === cookie.deadline ? own.profile : null;
-  } catch { return null; }
+export async function observeParticipantPage(request: Request, config: ParticipantConfig, dependencies: {
+  backend?: (config: ParticipantConfig) => ParticipantBackend;
+  now?: () => number;
+} = {}): Promise<{ enabled: boolean; profile: ParticipantProfile | null }> {
+  const closed = { enabled: false, profile: null };
+  let backend: ParticipantBackend;
+  try {
+    backend = (dependencies.backend ?? createParticipantBackend)(config);
+    if (!await ready(config, backend)) return closed;
+  } catch { return closed; }
+  const anonymous = { enabled: true, profile: null };
+  const now = (dependencies.now ?? Date.now)();
+  const cookie = readParticipantSession(config, request, now);
+  if (!cookie || nativeTokenNeedsRefresh(cookie.accessToken, now)) return anonymous;
+  try {
+    const own = await ownProfile(config, backend, cookie, now);
+    return own?.deadline === cookie.deadline ? { enabled: true, profile: own.profile } : anonymous;
+  } catch { return anonymous; }
 }

@@ -23,11 +23,21 @@ async function fixture(context: BrowserContext, roles: Role[], options: { assign
   return { actions: async () => (await (await context.request.post("http://127.0.0.1:3220/__synthetic/actions", { headers: { apikey: "sb_secret_staff_mock_only" }, data: { actorId } })).json()).actions };
 }
 async function accessible(page: Page) { expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1); expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]); }
+function reads(page: Page) {
+  const queries: Record<string, string>[] = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (request.method() === "GET" && url.pathname === "/api/staff-portal/competitions") queries.push(Object.fromEntries(url.searchParams));
+  });
+  return queries;
+}
 for (const locale of ["en", "ar"] as const) {
   const copy = staffCompetitionCopy[locale];
   test(`${locale} Super Admin sees unset policies and saves without activation`, async ({ page, context }, info) => {
-    const f = await fixture(context, ["superAdmin"]); await page.goto(`/${locale}/staff/competitions`); await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible(); await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+    const f = await fixture(context, ["superAdmin"]), initialReads = reads(page);
+    await page.goto(`/${locale}/staff/competitions`); await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible(); await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await page.locator(".competition-settings > summary").click();
+    expect(initialReads).toEqual([{ kind: "hackathon", view: "list", settings: "1" }]);
     for (const key of ["finalistCapPerTrack", "minimumReviews", "judgeCount", "pitchPromptStructure"] as const) await expect(page.getByLabel(competitionSettingLabels[key][locale], { exact: true })).toHaveValue("");
     await expect(page.getByLabel(competitionSettingLabels.soloConsumesFinalistQuota[locale], { exact: true })).toHaveValue("");
     await page.getByRole("button", { name: copy.saveSettings, exact: true }).click(); await expect(page.getByRole("status").filter({ hasText: copy.saved })).toBeVisible();
@@ -58,7 +68,9 @@ for (const locale of ["en", "ar"] as const) {
     await page.locator(".competition-settings > summary").click(); await accessible(page);
   });
   test(`${locale} eligibility staff inspect private profile and refer history concerns without committee clearance`, async ({ page, context }) => {
-    const f = await fixture(context, ["registrationWorkshopAdministrator"], { entries: true }); await page.goto(`/${locale}/staff/competitions`); await page.locator(".competition-entry > summary").click();
+    const f = await fixture(context, ["registrationWorkshopAdministrator"], { entries: true }), initialReads = reads(page);
+    await page.goto(`/${locale}/staff/competitions`); await page.locator(".competition-entry > summary").click();
+    expect(initialReads).toEqual([{ kind: "hackathon", view: "eligibility" }]);
     await expect(page.getByText("+966500000000", { exact: true })).toBeVisible(); await expect(page.getByText("Synthetic Saudi University", { exact: true })).toBeVisible(); await expect(page.locator(".competition-settings")).toHaveCount(0);
     await page.locator(".competition-application-declarations > summary").click(); await expect(page.getByText("Synthetic unawarded presentation", { exact: true })).toBeVisible();
     const form = page.getByRole("form", { name: locale === "ar" ? "إحالة ملاحظة أهلية أو نزاهة للجنة" : "Refer eligibility or integrity concern to committee" });
@@ -80,9 +92,11 @@ for (const locale of ["en", "ar"] as const) {
 }
 for (const mode of ["reviewer", "judge"] as const) {
   test(`${mode} Arabic route arrives in English and persists an own scorecard`, async ({ page, context }, info) => {
-    const f = await fixture(context, [mode === "judge" ? "facultyJudge" : "hackathonReviewer"], { assignment: true }); await page.goto(`/ar/${mode}/competitions`); await expect(page).toHaveURL(`/en/${mode}/competitions`); await expect(page.locator("html")).toHaveAttribute("lang", "en"); await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
+    const f = await fixture(context, [mode === "judge" ? "facultyJudge" : "hackathonReviewer"], { assignment: true }), initialReads = reads(page);
+    await page.goto(`/ar/${mode}/competitions`); await expect(page).toHaveURL(`/en/${mode}/competitions`); await expect(page.locator("html")).toHaveAttribute("lang", "en"); await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
     await expect(page.getByRole("heading", { level: 1 })).toBeInViewport(); await expect(page.locator("#main-content")).toHaveClass("staff-main"); await expect(page.locator("main")).toHaveCount(1); await expect(page.locator(".site-header, footer")).toHaveCount(0);
     const workspace = page.getByTestId(`competition-${mode}`); await expect(workspace.getByRole("heading", { name: packet.title, exact: true }).first()).toBeVisible(); await expect(workspace).not.toContainText("SYNTHETIC PRIVATE PRE-EVENT CARD"); await expect(workspace).not.toContainText("synthetic-member@example.invalid");
+    expect(initialReads).toEqual([{ kind: "hackathon", view: mode === "judge" ? "judge_queue" : "queue" }]);
     if (mode === "judge") { await workspace.getByRole("button", { name: "Request private download", exact: true }).click(); await expect(workspace.getByRole("link", { name: "Open file — link expires in one minute" })).toHaveAttribute("href", /storage\/v1\/object\/sign\/msrc-competition-files\/synthetic-staff-2027\//); }
     await workspace.getByLabel("Synthetic criterion (0–7)", { exact: true }).fill("0"); await workspace.getByLabel(staffCompetitionCopy.en.comments).fill("Synthetic final comments"); await workspace.getByRole("button", { name: staffCompetitionCopy.en.draft, exact: true }).click(); await expect(workspace.getByRole("status").filter({ hasText: staffCompetitionCopy.en.saved })).toBeVisible();
     await page.reload(); await expect(workspace.getByLabel("Synthetic criterion (0–7)", { exact: true })).toHaveValue("0"); await accessible(page); await page.screenshot({ path: info.outputPath(`${mode}-english-scorecard.png`), fullPage: true });

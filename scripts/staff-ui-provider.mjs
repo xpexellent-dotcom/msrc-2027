@@ -36,6 +36,16 @@ const server = http.createServer(async (request, response) => {
   if (url.pathname === "/rest/v1/rpc/msrc_staff_profile") return send(response, { schemaVersion: 1, actorId: claims.sub, name: "Synthetic Staff", roles: current.roles, session: context });
   if (url.pathname === "/rest/v1/rpc/msrc_staff_summary") return send(response, { state: "ready", summary: {} });
   if (url.pathname === "/rest/v1/rpc/msrc_staff_audit") return send(response, { state: "ready", rows: [] });
+  if (url.pathname === "/rest/v1/rpc/msrc_staff_people") {
+    if (!superAdmin) return send(response, { state: "denied" });
+    return send(response, { state: "ready", staff: [{ actorId: claims.sub, name: "Synthetic Staff", email: "synthetic-staff@example.invalid",
+      roles: current.roles, status: "active", lastSignIn: null }], invitations: [] });
+  }
+  if (url.pathname === "/rest/v1/rpc/msrc_staff_participants") {
+    if (!superAdmin && !current.roles.includes("registrationWorkshopAdministrator")) return send(response, { state: "denied" });
+    return send(response, { state: "ready", rows: [{ actorId: "fd000000-0000-4000-8000-000000000001", name: "Synthetic Participant",
+      email: "participant@example.invalid", status: "verified", createdAt: new Date(current.now).toISOString(), identityMasked: "••••••1234" }] });
+  }
   if (!url.pathname.startsWith("/rest/v1/rpc/msrc_staff_dashboard")) return send(response, {}, 404);
   if (current.missing) return send(response, { code: "PGRST202" }, 404);
   const name = url.pathname.slice("/rest/v1/rpc/".length);

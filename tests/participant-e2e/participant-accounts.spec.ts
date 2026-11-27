@@ -436,11 +436,10 @@ test("authentication completed after a locale change restores current owner stat
     await expect(page.getByTestId("participant-profile-name")).toHaveText("Synthetic Participant");
     await page.getByRole("button", { name: participantCopy.ar.signOut, exact: true }).click();
     await signingOut;
-    const staleOwnerStatus = page.waitForResponse((response) => response.url().endsWith("/api/participant-accounts") && response.request().method() === "GET");
     await (await languageLink(page, "View this page in English")).click();
     await expect(page).toHaveURL(/\/en\/my-msrc$/);
-    await staleOwnerStatus;
-    await expect(page.getByTestId("participant-profile-name")).toHaveText("Synthetic Participant");
+    await expect(page.getByTestId("participant-account-status")).toHaveText(participantCopy.en.pending);
+    await expect(page.getByTestId("participant-profile-name")).toHaveCount(0);
     releaseLogout();
     await expect(page.getByTestId("participant-account-status")).toHaveText(participantCopy.en.states.signed_out);
     await expect(page.getByTestId("participant-profile-name")).toHaveCount(0);
