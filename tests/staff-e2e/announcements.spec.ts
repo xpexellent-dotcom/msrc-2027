@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { expect, test, type Page } from "../helpers/csp";
+import { openStaffNavigation } from "./helpers/navigation";
 import { brandLogo } from "../../src/content/brand-identity";
 import { announcementCopy } from "../../src/features/announcements/staff-copy";
 import { staffCopy } from "../../src/features/staff-portal/copy";
@@ -148,7 +149,8 @@ for (const locale of ["en", "ar"] as const) {
   });
   test(`${locale} other staff cannot see the tab or compose area`, async ({ page }) => {
     const { actions } = await fixture(page, { role: "contentMediaEditor" }); await page.goto(`/${locale}/staff/announcements`);
-    await expect(page.getByRole("navigation", { name: copy.menu })).toBeVisible(); await expect(page.getByRole("navigation").getByRole("link", { name: copy.areas.announcements, exact: true })).toHaveCount(0);
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: copy.areas.announcements, exact: true })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: text.compose })).toHaveCount(0); expect(actions).toHaveLength(0);
   });
 }

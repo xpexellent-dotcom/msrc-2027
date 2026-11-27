@@ -3,6 +3,7 @@ import { createCipheriv, randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import type { BrowserContext } from "@playwright/test";
 import { expect, test, type Page } from "../helpers/csp";
+import { staffCopy } from "../../src/features/staff-portal/copy";
 import { organizerCopy } from "../../src/features/staff-portal/organizer-copy";
 import type { Role } from "../../src/lib/permissions/contract";
 
@@ -58,8 +59,12 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     const csv = await download(page); expect(csv).toContain('"module","dimension","value","count"'); expect(csv).toContain('"registrations","status","pending_approval","8"');
     expect((await f.actions()).some((action) => action.name === "msrc_staff_dashboard_export" && action.export_kind === "aggregate")).toBe(true);
-    await page.getByTestId("organizer-dashboard").getByRole("button", { name: copy.refresh, exact: true }).click();
+    const statistics = page.getByRole("region", { name: copy.title, exact: true });
+    const refresh = statistics.getByRole("button", { name: copy.refresh, exact: true });
+    await refresh.press("Enter");
     await expect.poll(async () => (await f.actions()).filter((action) => action.name === "msrc_staff_dashboard").length).toBe(2);
+    await expect(statistics.getByRole("status")).toHaveText(copy.refreshed);
+    await expect(refresh).toBeFocused();
     expect(await download(page)).toContain('"registrations","status","pending_approval","8"');
     await accessible(page); await page.screenshot({ path: info.outputPath(`${locale}-organizer-dashboard.png`), fullPage: true });
   });
@@ -99,6 +104,9 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByTestId("organizer-cell-workshops-status-confirmed")).toContainText(locale === "ar" ? "٩" : "9");
     await expect(page.getByTestId("organizer-cell-accounts-status-verified")).toHaveCount(0); await expect(page.getByTestId("organizer-find-query")).toHaveCount(0);
     await expect(page.getByTestId("organizer-export-kind").locator('option[value="personal"]')).toHaveCount(0); await expect(page.getByText(copy.suppression, { exact: true })).toBeVisible();
+    const directory = page.locator(".staff-directory");
+    await expect(directory.getByRole("link", { name: staffCopy[locale].areas.workshops, exact: true })).toBeVisible();
+    await expect(directory.getByRole("link", { name: staffCopy[locale].areas.audit, exact: true })).toHaveCount(0);
     const session = await context.request.get(origin + "/api/staff-portal"), token = (await session.json()).formToken;
     for (const data of [{ action: "find", query: "synthetic@example.invalid" }, { action: "audit" }, { action: "export", module: "registrations", kind: "personal" }]) {
       const response = await context.request.post(origin + "/api/staff-portal/organizer", { headers: { origin }, data: { ...data, formToken: token } }); expect(response.status()).toBe(403); expect(await response.json()).toMatchObject({ state: "denied" });
@@ -119,6 +127,15 @@ for (const locale of ["en", "ar"] as const) {
 
   test(`${locale} missing organizer migration preserves the private staff session`, async ({ page, context }) => {
     await fixture(context, ["superAdmin"], { missing: true }); const before = (await context.cookies()).find((cookie) => cookie.name === "msrc-staff-test")?.value;
-    await page.goto(`/${locale}/staff`); await expect(page.getByText(copy.missing, { exact: true })).toBeVisible(); expect((await context.cookies()).find((cookie) => cookie.name === "msrc-staff-test")?.value).toBe(before); await accessible(page);
+    await page.goto(`/${locale}/staff`);
+    await expect(page.getByText(copy.missing, { exact: true })).toBeVisible();
+    expect((await context.cookies()).find((cookie) => cookie.name === "msrc-staff-test")?.value).toBe(before);
+    const index = page.getByRole("navigation", { name: copy.onDashboard, exact: true });
+    await expect(index.getByRole("link", { name: copy.export, exact: true })).toHaveCount(0);
+    await index.getByRole("link", { name: copy.areas, exact: true }).press("Enter");
+    await expect(page.locator("#organizer-work-areas")).toBeFocused();
+    const directory = page.locator(".staff-directory");
+    await expect(directory.getByRole("link", { name: staffCopy[locale].areas.registration, exact: true })).toBeVisible();
+    await accessible(page);
   });
 }

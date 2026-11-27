@@ -4,12 +4,30 @@ import type { StaffMenuKey } from "./menu";
 
 type LandingKey = "finance" | "check-in" | "review" | "science" | "judging" | "faculty-judging" | "content" | "sponsorship";
 
+export const workspaceCopy = {
+  en: {
+    areas: "Work areas",
+    skip: "Skip to workspace",
+    directory: "All work areas",
+    capabilities: "What you can do",
+    groups: { operations: "Event operations", scientific: "Research and judging", communications: "Content and communications", administration: "Administration" },
+  },
+  ar: {
+    areas: "مساحات العمل",
+    skip: "انتقل إلى مساحة العمل",
+    directory: "جميع مساحات العمل",
+    capabilities: "ما يمكنك القيام به",
+    groups: { operations: "عمليات المؤتمر", scientific: "الأبحاث والتحكيم", communications: "المحتوى والتواصل", administration: "الإدارة" },
+  },
+} as const;
+
 /** ORG-055 console wording. Landing pages describe planned tools; they open no workflow. */
 export const consoleCopy = {
   en: {
     overview: "Overview", overviewIntro: "Your areas and what needs attention.", open: "Open",
     cards: { pending: "Seat requests waiting", approved: "Seats approved", offered: "Offers waiting for a reply", remaining: "Seats remaining", capacityUnset: "Capacity not set", participants: "Participant accounts", staff: "Staff members", audit: "Audit events in the last 24 hours", priority: "Organizing-team members marked" },
     registration: {
+      requests: "Seat requests",
       intro: "Review seat requests, approve them one at a time or together, and move requests to the waitlist when seats run out.",
       closedNote: "Registration is closed to participants. Requests appear here once it opens.",
       filter: "Show", statuses: { all: "All requests", pending_approval: "Waiting for approval", approved: "Approved", approved_awaiting_payment: "Approved, awaiting payment", waitlisted: "Waitlisted", offered: "Offered a seat", confirmed: "Confirmed", cancelled: "Cancelled", expired: "Expired" } satisfies Record<StaffRegistrationStatus | "all", string>,
@@ -59,6 +77,7 @@ export const consoleCopy = {
     overview: "نظرة عامة", overviewIntro: "مجالات عملك وما يحتاج إلى متابعة.", open: "فتح",
     cards: { pending: "طلبات مقاعد بانتظار الموافقة", approved: "مقاعد معتمدة", offered: "عروض بانتظار الرد", remaining: "مقاعد متبقية", capacityUnset: "لم تُحدَّد السعة", participants: "حسابات المشاركين", staff: "أعضاء الفريق", audit: "أحداث التدقيق خلال ٢٤ ساعة", priority: "أعضاء فريق التنظيم المحددون" },
     registration: {
+      requests: "طلبات المقاعد",
       intro: "راجع طلبات المقاعد، واعتمدها فرديًا أو مجتمعة، وانقل الطلبات إلى قائمة الانتظار عند نفاد المقاعد.",
       closedNote: "التسجيل مغلق أمام المشاركين. تظهر الطلبات هنا عند فتحه.",
       filter: "عرض", statuses: { all: "جميع الطلبات", pending_approval: "بانتظار الموافقة", approved: "معتمد", approved_awaiting_payment: "معتمد بانتظار الدفع", waitlisted: "في قائمة الانتظار", offered: "عُرض عليه مقعد", confirmed: "مؤكَّد", cancelled: "ملغى", expired: "منتهٍ" } satisfies Record<StaffRegistrationStatus | "all", string>,

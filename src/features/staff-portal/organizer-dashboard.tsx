@@ -7,10 +7,11 @@ import { FormField } from "@/components/forms/form-field";
 import type { Locale } from "@/lib/i18n";
 import type { Role } from "@/lib/permissions/contract";
 import { formatStaffDate, formatStaffNumber, StaffDashboard } from "./console-shell";
-import { staffMenu } from "./menu";
+import { staffMenu, type StaffMenuKey } from "./menu";
 import { requestStaff } from "./staff-client";
-import { ORGANIZER_AUDIT_MODULES, type OrganizerAuditEvent, type OrganizerDashboardData, type OrganizerExportKind, type OrganizerMatch, type OrganizerPayload, type OrganizerResponse } from "./organizer-contract";
+import { ORGANIZER_AUDIT_MODULES, type OrganizerAuditEvent, type OrganizerCell, type OrganizerDashboardData, type OrganizerExportKind, type OrganizerMatch, type OrganizerPayload, type OrganizerResponse } from "./organizer-contract";
 import { organizerAuditActionLabel, organizerAuditResultLabel, organizerCopy, organizerError, organizerModuleLabel, organizerValueLabel } from "./organizer-copy";
+import "@/styles/staff-organizer.css";
 
 async function requestOrganizer(payload: OrganizerPayload, signal?: AbortSignal): Promise<OrganizerResponse> {
   try {
@@ -26,7 +27,37 @@ async function requestOrganizer(payload: OrganizerPayload, signal?: AbortSignal)
   } catch { return { state: "unavailable" }; }
 }
 
-const moduleAreas: Record<string, string> = { registrations: "registration", accounts: "participants", orders: "finance", submissions: "science", reviews: "review", accepted: "science", workshops: "workshops", attendance: "check-in", certificates: "certificates", announcements: "announcements" };
+const moduleAreas: Readonly<Partial<Record<string, StaffMenuKey>>> = { registrations: "registration", accounts: "participants", orders: "finance", submissions: "science", reviews: "review", accepted: "science", workshops: "workshops", attendance: "check-in", certificates: "certificates", announcements: "announcements" };
+
+function DashboardModule({ locale, module, cells, area }: { locale: Locale; module: string; cells: readonly OrganizerCell[]; area?: ReturnType<typeof staffMenu>[number] }) {
+  const copy = organizerCopy[locale];
+  const label = organizerModuleLabel(module, locale);
+  const dimensions = new Map<string, OrganizerCell[]>();
+  for (const cell of cells) {
+    const group = dimensions.get(cell.dimension);
+    if (group) group.push(cell);
+    else dimensions.set(cell.dimension, [cell]);
+  }
+
+  return <li className="staff-organizer-module" data-testid={`organizer-card-${module}`}>
+    <div className="staff-organizer-module-heading">
+      <h3>{label}</h3>
+      {area ? <Link className="staff-organizer-module-link" href={`/${locale}/staff/${area.key}`}>
+        {area.built ? copy.open : copy.planned}<span className="sr-only"> · {label}</span>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
+      </Link> : null}
+    </div>
+    {!cells.length ? <p className="staff-organizer-empty">{copy.empty}</p> : [...dimensions].map(([dimension, group]) => <div key={dimension} className="staff-organizer-dimension">
+      <h4>{organizerValueLabel(dimension, locale)}</h4>
+      <dl>{group.map((cell) => <div key={cell.value} className="staff-organizer-count">
+        <dt><bdi lang={dimension === "specialty" ? "en" : undefined} dir={dimension === "specialty" ? "ltr" : undefined}>{dimension === "specialty" ? cell.value : organizerValueLabel(cell.value, locale)}</bdi></dt>
+        <dd data-testid={`organizer-cell-${module}-${dimension}-${cell.value}`} title={cell.count === null ? copy.suppression : undefined}>
+          {cell.count === null ? <><span aria-hidden="true">—</span><span className="sr-only">{copy.hiddenCount}</span></> : formatStaffNumber(cell.count, locale)}
+        </dd>
+      </div>)}</dl>
+    </div>)}
+  </li>;
+}
 function ModuleSelect({ id, locale, value, onChange, modules, disabled, all = true }: { id: string; locale: Locale; value: string; onChange: (value: string) => void; modules: readonly string[]; disabled: boolean; all?: boolean }) {
   const copy = organizerCopy[locale];
   return <div className="field"><label className="field-label" htmlFor={id}>{copy.module}</label><select className="field-input" id={id} data-testid={id} value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled}>
@@ -50,12 +81,16 @@ function ParticipantFinder({ locale, token }: { locale: Locale; token: string })
     }
     controller.current = null;
   }
-  return <section className="staff-panel" aria-labelledby="organizer-find-title"><h2 id="organizer-find-title">{copy.find}</h2><p>{copy.findHint}</p>
+  return <section className="staff-panel staff-organizer-tool" aria-labelledby="organizer-find-title"><h2 id="organizer-find-title" tabIndex={-1}>{copy.find}</h2><p>{copy.findHint}</p>
     <form className="staff-search" aria-busy={busy} onSubmit={(event) => { event.preventDefault(); void find(); }}>
       <FormField id="organizer-find-query" data-testid="organizer-find-query" type="search" label={copy.query} value={query} onChange={(event) => { setQuery(event.target.value); setMatches(null); }} maxLength={254} dir="ltr" autoComplete="off" required disabled={busy} />
       <Button type="submit" data-testid="organizer-find-submit" disabled={busy || !query.trim()}>{copy.search}</Button>
-    </form>{error ? <p role="alert">{error}</p> : null}
-    {matches ? <div role="status">{!matches.length ? <p>{copy.empty}</p> : <ul className="staff-candidates">{matches.map((match) => <li key={match.actorId}><div><strong><bdi>{match.name}</bdi></strong><bdi dir="ltr">{match.email}</bdi><span>{copy.account}: <bdi dir="ltr">{match.actorId}</bdi></span><ul>{match.records.map((record) => <li key={`${record.module}:${record.reference}`}><span>{organizerModuleLabel(record.module, locale)} · </span><bdi dir="ltr">{record.reference}</bdi><span> · {organizerValueLabel(record.status, locale)}</span></li>)}</ul></div></li>)}</ul>}</div> : null}
+    </form>
+    {error ? <p className="staff-organizer-message" role="alert">{error}</p> : null}
+    <div role="status" className={busy || matches?.length === 0 ? "staff-organizer-message" : "sr-only"}>
+      {busy ? copy.finding : matches?.length === 0 ? copy.empty : matches ? copy.results.replace("{count}", formatStaffNumber(matches.length, locale)) : ""}
+    </div>
+    {matches?.length ? <ul className="staff-candidates">{matches.map((match) => <li key={match.actorId}><div><strong><bdi>{match.name}</bdi></strong><bdi dir="ltr">{match.email}</bdi><span>{copy.account}: <bdi dir="ltr">{match.actorId}</bdi></span><ul>{match.records.map((record) => <li key={`${record.module}:${record.reference}`}><span>{organizerModuleLabel(record.module, locale)} · </span><bdi dir="ltr">{record.reference}</bdi><span> · {organizerValueLabel(record.status, locale)}</span></li>)}</ul></div></li>)}</ul> : null}
   </section>;
 }
 
@@ -87,7 +122,7 @@ function OrganizerExports({ locale, token, modules, superAdmin }: { locale: Loca
     } catch { if (!pending.signal.aborted) setError(copy.unavailable); }
     finally { if (!pending.signal.aborted) setBusy(false); controller.current = null; }
   }
-  return <section className="staff-panel" aria-labelledby="organizer-export-title"><h2 id="organizer-export-title">{copy.export}</h2><p>{copy.exportHint}</p>
+  return <section className="staff-panel staff-organizer-tool" aria-labelledby="organizer-export-title"><h2 id="organizer-export-title" tabIndex={-1}>{copy.export}</h2><p>{copy.exportHint}</p>
     <form className="staff-organizer-filters" aria-busy={busy} onSubmit={(event) => { event.preventDefault(); void download(); }}>
       <ModuleSelect id="organizer-export-module" locale={locale} value={module} onChange={setModule} modules={modules} disabled={busy} all={kind === "aggregate"} />
       <div className="field"><label className="field-label" htmlFor="organizer-export-kind">{copy.kind}</label><select className="field-input" id="organizer-export-kind" data-testid="organizer-export-kind" value={kind} disabled={busy} onChange={(event) => { const next = event.target.value as OrganizerExportKind; setKind(next); if (next !== "aggregate" && module === "all") setModule(modules[0] ?? "all"); }}>
@@ -95,38 +130,84 @@ function OrganizerExports({ locale, token, modules, superAdmin }: { locale: Loca
       </select></div>
       <FormField id="organizer-export-status" data-testid="organizer-export-status" label={copy.statusFilter} hint={copy.statusHint} value={status} onChange={(event) => setStatus(event.target.value)} dir="ltr" maxLength={60} disabled={busy || kind === "aggregate"} />
       <Button type="submit" data-testid="organizer-export-download" disabled={busy || !modules.length}>{copy.download}</Button>
-    </form>{kind === "personal" ? <p className="staff-note">{copy.personalHint}</p> : null}{error ? <p role="alert">{error}</p> : null}{downloaded ? <p role="status">{copy.downloaded}</p> : null}
+    </form>
+    {kind === "personal" ? <p className="staff-note">{copy.personalHint}</p> : null}
+    {error ? <p className="staff-organizer-message" role="alert">{error}</p> : null}
+    <div role="status" className={busy || downloaded ? "staff-organizer-message" : "sr-only"}>{busy ? copy.preparingReport : downloaded ? copy.downloaded : ""}</div>
   </section>;
 }
 
 /** Counts come only from the role-scoped aggregate RPC; legacy summary totals are not used. */
-export function OrganizerDashboard({ locale, roles, formToken }: { locale: Locale; roles: readonly Role[]; formToken?: string }) {
-  const copy = organizerCopy[locale], [data, setData] = useState<OrganizerDashboardData>(), [error, setError] = useState(""), [busy, setBusy] = useState(true), [reload, setReload] = useState(0);
-  const currentToken = useRef(formToken), superAdmin = roles.includes("superAdmin"), menu = staffMenu(roles);
-  useEffect(() => { currentToken.current = formToken; }, [formToken]);
+export function OrganizerDashboard({ locale, roles, formToken, passwordChangeAvailable }: {
+  locale: Locale; roles: readonly Role[]; formToken?: string; passwordChangeAvailable?: boolean;
+}) {
+  const copy = organizerCopy[locale];
+  const [data, setData] = useState<OrganizerDashboardData>();
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(true);
+  const [reload, setReload] = useState(0);
+  const superAdmin = roles.includes("superAdmin");
+  const menu = staffMenu(roles, { passwordChangeAvailable });
   useEffect(() => {
     if (!formToken) return;
     const controller = new AbortController();
     void requestOrganizer({ action: "dashboard", formToken }, controller.signal).then((response) => {
       if (controller.signal.aborted) return;
-      if (response.formToken) currentToken.current = response.formToken;
-      if (response.state === "ready" && response.dashboard) { setData(response.dashboard); setError(""); } else { setData(undefined); setError(organizerError(response.state, locale)); }
+      if (response.state === "ready" && response.dashboard) {
+        setData(response.dashboard);
+        setError("");
+      } else {
+        setData(undefined);
+        setError(organizerError(response.state, locale));
+      }
       setBusy(false);
     });
     return () => controller.abort();
   }, [formToken, locale, reload]);
+
   const modules = data?.modules ?? [];
+
   return <div className="staff-organizer" data-testid="organizer-dashboard">
-    <section className="staff-dashboard" aria-labelledby="organizer-dashboard-title" aria-busy={busy}><div className="staff-organizer-heading"><div><h2 id="organizer-dashboard-title">{copy.title}</h2><p className="staff-muted">{copy.intro}</p></div><Button variant="secondary" size="small" disabled={!formToken || busy} onClick={() => { setBusy(true); setReload((value) => value + 1); }}>{copy.refresh}</Button></div>
-      {!superAdmin ? <p className="staff-note">{copy.suppression}</p> : null}
-      {error ? <p role="alert">{error}</p> : !data ? <p role="status">{copy.loading}</p> : <>
-        {data.modules.includes("orders") ? <p className="staff-note" data-testid="organizer-mock-payment-note">{copy.mock}</p> : null}
-        {!modules.length ? <p>{copy.empty}</p> : <ul className="staff-card-grid">{modules.map((module) => <li className="staff-card" key={module} data-testid={`organizer-card-${module}`}><h3>{organizerModuleLabel(module, locale)}</h3>{!data.cells.some((cell) => cell.module === module) ? <p className="staff-muted">{copy.empty}</p> : null}<dl className="staff-metrics">{data.cells.filter((cell) => cell.module === module).map((cell) => <div key={`${cell.dimension}:${cell.value}`}><dt><span>{organizerValueLabel(cell.dimension, locale)}</span><span><bdi lang={cell.dimension === "specialty" ? "en" : undefined} dir={cell.dimension === "specialty" ? "ltr" : undefined}>{cell.dimension === "specialty" ? cell.value : organizerValueLabel(cell.value, locale)}</bdi></span></dt><dd data-testid={`organizer-cell-${module}-${cell.dimension}-${cell.value}`} title={cell.count === null ? copy.suppression : undefined}>{cell.count === null ? "—" : formatStaffNumber(cell.count, locale)}</dd></div>)}</dl>{moduleAreas[module] && menu.some((entry) => entry.key === moduleAreas[module]) ? <Link className="staff-card-link" href={`/${locale}/staff/${moduleAreas[module]}`}>{copy.open}<span className="sr-only"> {organizerModuleLabel(module, locale)}</span></Link> : null}</li>)}</ul>}
-      </>}
+    <nav className="staff-organizer-index" aria-label={copy.onDashboard}>
+      <ul role="list">
+        <li><a href="#organizer-dashboard-title">{copy.statistics}</a></li>
+        {superAdmin && formToken ? <li><a href="#organizer-find-title">{copy.find}</a></li> : null}
+        {data && formToken ? <li><a href="#organizer-export-title">{copy.export}</a></li> : null}
+        <li><a href="#organizer-work-areas">{copy.areas}</a></li>
+      </ul>
+    </nav>
+    <section className="staff-organizer-statistics" aria-labelledby="organizer-dashboard-title">
+      <div className="staff-organizer-heading">
+        <h2 id="organizer-dashboard-title" tabIndex={-1}>{copy.title}</h2>
+        <Button variant="secondary" size="small" disabled={!formToken} aria-disabled={busy || undefined} onClick={() => {
+          if (busy) return;
+          setBusy(true);
+          setError("");
+          setReload((value) => value + 1);
+        }}>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8 8 0 0 0-14-5L3 9m0-5v5h5m-4 4a8 8 0 0 0 14 5l3-3m0 5v-5h-5" /></svg>
+          {copy.refresh}
+        </Button>
+        <p>{copy.intro}</p>
+      </div>
+      {!superAdmin ? <p className="staff-organizer-note">{copy.suppression}</p> : null}
+      {modules.includes("orders") ? <p className="staff-organizer-note" data-testid="organizer-mock-payment-note">{copy.mock}</p> : null}
+      <div className={busy && !data ? "staff-organizer-message" : "sr-only"} role="status">
+        {busy ? copy.loading : data && reload > 0 ? copy.refreshed : ""}
+      </div>
+      {error ? <p className="staff-organizer-message" role="alert">{error}</p> : null}
+      <div aria-busy={busy}>
+        {data && !modules.length ? <p className="staff-organizer-message">{copy.empty}</p> : null}
+        {data && modules.length ? <ul className="staff-organizer-modules" role="list">{modules.map((module) => {
+          const area = menu.find((entry) => entry.key === moduleAreas[module]);
+          const cells = data.cells.filter((cell) => cell.module === module);
+          return <DashboardModule key={module} locale={locale} module={module} cells={cells} area={area} />;
+        })}</ul> : null}
+      </div>
     </section>
-    {data && formToken ? <OrganizerExports locale={locale} token={formToken} modules={data.modules} superAdmin={superAdmin} /> : null}
     {superAdmin && formToken ? <ParticipantFinder locale={locale} token={formToken} /> : null}
-    <details className="staff-history"><summary>{copy.areas}</summary><StaffDashboard locale={locale} menu={menu} /></details>
+    {data && formToken ? <OrganizerExports locale={locale} token={formToken} modules={data.modules} superAdmin={superAdmin} /> : null}
+    <StaffDashboard locale={locale} menu={menu} />
   </div>;
 }
 
@@ -150,7 +231,7 @@ export function OrganizerAuditPanel({ locale, formToken, fallback }: { locale: L
     filters.current = { module, ...(actor.trim() ? { actor: actor.trim() } : {}), ...(event.trim() ? { event: event.trim() } : {}), ...(from ? { from } : {}), ...(to ? { to } : {}) };
     setBusy(true); void load(0, filters.current, currentToken.current);
   }
-  return <section className="staff-panel" data-testid="organizer-audit" aria-labelledby="organizer-audit-title"><h2 id="organizer-audit-title">{copy.audit}</h2><p>{copy.auditHint}</p>
+  return <section className="staff-panel staff-organizer-audit" data-testid="organizer-audit" aria-labelledby="organizer-audit-title"><h2 id="organizer-audit-title">{copy.audit}</h2><p>{copy.auditHint}</p>
     <form className="staff-organizer-filters" aria-busy={busy} onSubmit={(submit) => { submit.preventDefault(); apply(); }}>
       <ModuleSelect id="organizer-audit-module" locale={locale} value={module} onChange={setModule} modules={ORGANIZER_AUDIT_MODULES} disabled={busy} />
       <FormField id="organizer-audit-actor" data-testid="organizer-audit-actor" label={copy.actor} value={actor} onChange={(change) => setActor(change.target.value)} dir="ltr" maxLength={36} disabled={busy} />

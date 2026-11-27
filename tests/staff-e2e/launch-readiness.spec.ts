@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { expect, test, type Page } from "../helpers/csp";
+import { openStaffNavigation } from "./helpers/navigation";
 import { ROLES, type Role } from "../../src/lib/permissions/contract";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { launchReadinessCopy } from "../../src/features/staff-portal/launch-readiness-copy";
@@ -65,7 +66,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(panel).toContainText(locale === "ar" ? "٤٢" : "42");
     const riyadh = new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh", calendar: "gregory" }).format(new Date("2028-03-01T17:00:00Z"));
     await expect(panel).toContainText(riyadh);
-    await expect(page.getByRole("navigation", { name: staff.menu }).getByRole("link", { name: staff.areas["launch-readiness"] })).toHaveAttribute("aria-current", "page");
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: staff.areas["launch-readiness"] })).toHaveAttribute("aria-current", "page");
     await axe(page, locale);
     await mkdir(".tools/launch-readiness", { recursive: true });
     await page.screenshot({ path: `.tools/launch-readiness/${locale}-${testInfo.project.name}.png`, fullPage: true });
@@ -92,7 +94,8 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} registration approver cannot see the readiness area`, async ({ page }) => {
     await fixture(page, { roles: ["registrationWorkshopAdministrator"] });
     await page.goto(`/${locale}/staff/launch-readiness`);
-    await expect(page.getByRole("navigation", { name: staff.menu }).getByRole("link", { name: staff.areas["launch-readiness"] })).toHaveCount(0);
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: staff.areas["launch-readiness"] })).toHaveCount(0);
     await expect(page.getByText(staff.states.denied, { exact: true }).first()).toBeVisible();
     await expect(page.locator(".staff-launch-readiness")).toHaveCount(0);
     await axe(page, locale);

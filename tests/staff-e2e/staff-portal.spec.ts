@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "../helpers/csp";
+import { openStaffNavigation } from "./helpers/navigation";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { auditActionLabel, auditResultLabel } from "../../src/features/staff-portal/audit-labels";
 import { staffMenu } from "../../src/features/staff-portal/menu";
@@ -95,9 +96,12 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByLabel(copy.emailCode).fill(locale === "ar" ? "٦٥٤٣٢١" : "654321");
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/${locale}/staff$`));
-    await expect(page.getByRole("navigation", { name: copy.menu })).toContainText(copy.areas.registration);
-    await expect(page.getByRole("navigation", { name: copy.menu })).not.toContainText(copy.areas.finance);
-    await page.getByRole("link", { name: copy.participants, exact: true }).click();
+    await expect(page.getByTestId("staff-portal")).toHaveAttribute("data-screen", "home");
+    await expect(page.getByRole("heading", { name: copy.home, level: 1, exact: true })).toBeVisible();
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: copy.areas.registration, exact: true })).toBeVisible();
+    await expect(navigation.getByRole("link", { name: copy.areas.finance })).toHaveCount(0);
+    await navigation.getByRole("link", { name: copy.participants, exact: true }).click();
     await expect(page.getByRole("cell", { name: "••••••1234" })).toBeVisible();
     await expect(page.getByRole("button", { name: copy.reveal, exact: true })).toHaveCount(0);
     await expect(page.locator("body")).not.toContainText("SYNTHETIC1234");
@@ -149,14 +153,20 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByRole("button", { name: copy.inviteSend, exact: true }).click();
     await expect(page.getByRole("status")).toContainText(copy.states.invited);
     expect(mock.actions.some((action) => action.action === "invite" && action.roles?.includes("finance"))).toBe(true);
-    await page.getByRole("link", { name: copy.home, exact: true }).click();
-    await page.getByRole("link", { name: copy.participants, exact: true }).click();
+    await page.getByRole("link", { name: `${copy.portal} · ${copy.home}`, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/staff$`));
+    await expect(page.getByRole("heading", { name: copy.home, level: 1, exact: true })).toBeVisible();
+    const navigation = await openStaffNavigation(page, locale);
+    await navigation.getByRole("link", { name: copy.participants, exact: true }).click();
     await expect(page.getByRole("cell", { name: "••••••1234", exact: true })).toBeVisible();
     await screenshot(page, `${locale}-super-admin-participants`, testInfo.project.name);
     await expect(page.getByRole("button", { name: copy.reveal, exact: true })).toHaveCount(0);
     expect(mock.actions.some((action) => action.action === "reveal-identity")).toBe(false);
-    await page.getByRole("link", { name: copy.home, exact: true }).click();
-    await page.getByRole("link", { name: copy.audit, exact: true }).click();
+    await page.getByRole("link", { name: `${copy.portal} · ${copy.home}`, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/staff$`));
+    await expect(page.getByRole("heading", { name: copy.home, level: 1, exact: true })).toBeVisible();
+    await openStaffNavigation(page, locale);
+    await navigation.getByRole("link", { name: copy.audit, exact: true }).click();
     await expect(page.getByRole("cell", { name: auditActionLabel("invite", locale), exact: true })).toBeVisible();
     await expect(page.getByRole("cell", { name: auditResultLabel("completed", locale), exact: true })).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
@@ -304,10 +314,13 @@ test("every staff role receives only its permitted navigation entries", async ({
     await page.unroute("**/api/staff-portal**");
     await fixture(page, [role], true);
     await page.goto("/ar/staff");
-    const menu = page.getByRole("navigation", { name: staffCopy.ar.menu });
-    await expect(menu).toBeVisible();
-    for (const entry of staffMenu([role])) await expect(menu).toContainText(entry.englishOnly ? staffCopy.en.areas[entry.key] : staffCopy.ar.areas[entry.key]);
-    await expect(menu.locator("li")).toHaveCount(staffMenu([role]).length);
-    if (["abstractReviewer", "hackathonReviewer", "threeMinuteThesisReviewer", "facultyJudge"].includes(role)) await expect(menu.locator('[lang="en"]')).toHaveAttribute("dir", "ltr");
+    const navigation = await openStaffNavigation(page, "ar");
+    const areas = staffMenu([role]);
+    const hrefs = await navigation.getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")).sort());
+    expect(hrefs).toEqual(["/ar/staff", ...areas.map((area) => `/ar/staff/${area.key}`)].sort());
+    for (const area of areas.filter((entry) => entry.englishOnly)) {
+      const link = navigation.getByRole("link", { name: staffCopy.en.areas[area.key] });
+      await expect(link.locator('[lang="en"][dir="ltr"]')).toHaveCount(1);
+    }
   }
 });

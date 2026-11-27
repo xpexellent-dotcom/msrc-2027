@@ -66,7 +66,7 @@ export function RegistrationQueue({ locale, data, busy, status, onStatus, query,
   const number = (value: number | null | undefined) => typeof value === "number" ? formatStaffNumber(value, locale) : "—";
 
   return <section className="staff-panel staff-queue" aria-labelledby="staff-queue-title">
-    <h2 id="staff-queue-title">{copy.areas.registration}</h2>
+    <h2 id="staff-queue-title">{text.requests}</h2>
     <p>{text.intro}</p>
     <dl className="staff-seat-bar" aria-label={text.seats}>
       <div><dt>{text.capacity}</dt><dd>{capacitySet ? number(counts?.capacity) : "—"}</dd></div>
