@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "../helpers/csp";
+import { openStaffNavigation } from "./helpers/navigation";
 import { staffActionSummary, staffCopy } from "../../src/features/staff-portal/copy";
 import type { Role } from "../../src/lib/permissions/contract";
 import type { StaffPayload, StaffResponse, StaffState } from "../../src/features/staff-portal/ui-contract";
@@ -29,14 +30,20 @@ async function axe(page: Page) {
 }
 
 for (const locale of ["en", "ar"] as const) {
+  const roleGuidance = locale === "ar" ? "ما يمكنك القيام به" : "What you can do";
+
   test(`${locale} current roles and built actions stay scoped and disappear before verification`, async ({ page }) => {
     const copy = staffCopy[locale];
     for (const [roles, available] of [[["superAdmin"], false], [["superAdmin"], true], [["registrationWorkshopAdministrator", "finance"], true], [["finance"], true]] as [Role[], boolean][]) {
       await page.unroute("**/api/staff-portal**"); await fixture(page, roles, available);
       await page.goto(`/${locale}/staff`);
       await expect(page.getByTestId("staff-current-roles")).toHaveText(`${copy.yourRoles}: ${roles.map((role) => copy.roleLabels[role]).join(locale === "ar" ? "، " : ", ")}`);
+      await expect(page.getByTestId("staff-action-summary")).toBeHidden();
+      await page.locator("summary").filter({ hasText: roleGuidance }).press("Enter");
       await expect(page.getByTestId("staff-action-summary")).toHaveText(staffActionSummary(locale, roles, { passwordChangeAvailable: available })!);
-      await expect(page.getByRole("link", { name: copy.security, exact: true })).toHaveCount(roles.includes("superAdmin") && available ? 1 : 0);
+      await expect(page.getByTestId("staff-action-summary")).toBeVisible();
+      const navigation = await openStaffNavigation(page, locale);
+      await expect(navigation.getByRole("link", { name: copy.security, exact: true })).toHaveCount(roles.includes("superAdmin") && available ? 1 : 0);
       await expect(page.locator(".staff-policy")).toHaveCount(0);
     }
     await page.unroute("**/api/staff-portal**"); const mock = await fixture(page, ["superAdmin"]);
@@ -58,6 +65,7 @@ for (const locale of ["en", "ar"] as const) {
     test.skip(!testInfo.project.name.includes("mobile"), "Narrow layout is covered by the mobile project.");
     const copy = staffCopy[locale]; await fixture(page, ["superAdmin"]);
     await page.setViewportSize({ width: 320, height: 720 }); await page.goto(`/${locale}/staff/people`);
+    await page.locator("summary").filter({ hasText: roleGuidance }).press("Enter");
     await expect(page.getByTestId("staff-action-summary")).toBeVisible();
     await page.evaluate(() => { document.documentElement.style.setProperty("font-size", "200%", "important"); });
     await expect(page.locator("html")).toHaveAttribute("lang", locale); await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
@@ -77,7 +85,9 @@ for (const locale of ["en", "ar"] as const) {
     await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), headingPosition);
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(headingPosition);
     await expect(heading).toBeInViewport();
-    await page.getByRole("link", { name: copy.home, exact: true }).focus(); await page.keyboard.press("Tab");
+    await page.getByRole("link", { name: `${copy.portal} · ${copy.home}`, exact: true }).focus(); await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name: locale === "ar" ? "English" : "العربية", exact: true })).toBeFocused();
+    await page.keyboard.press("Tab");
     await expect(page.getByRole("button", { name: copy.signOut, exact: true })).toBeFocused();
     await axe(page);
     await heading.focus();

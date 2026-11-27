@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { expect, test, type Page } from "../helpers/csp";
+import { openStaffNavigation } from "./helpers/navigation";
 import { reviewCopy } from "../../src/features/staff-portal/research-copy";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { consoleCopy } from "../../src/features/staff-portal/console-copy";
@@ -125,19 +126,81 @@ async function shot(page: Page, name: string, project: string) {
 for (const locale of ["en", "ar"] as const) {
   const copy = staffCopy[locale], text = consoleCopy[locale];
 
-  test(`${locale} Super Admin sees every area tab and live dashboard counts`, async ({ page }, testInfo) => {
+  test(`${locale} Super Admin sees every grouped work area and dashboard count`, async ({ page }, testInfo) => {
     await consoleFixture(page, ["superAdmin"]);
     await page.goto(`/${locale}/staff`);
-    const menu = page.getByRole("navigation", { name: copy.menu });
-    await expect(menu).toBeVisible();
-    await expect(menu.locator("li")).toHaveCount(staffMenu(["superAdmin"]).length);
-    for (const key of ["registration", "priority", "early-access", "finance", "check-in", "science", "content", "sponsorship"] as const) await expect(menu).toContainText(copy.areas[key]);
-    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     const overview = page.getByTestId("organizer-dashboard");
     await expect(overview.getByTestId("organizer-cell-registrations-status-pending_approval")).toHaveText(locale === "en" ? "1,999" : "١٬٩٩٩");
     await expect(overview.getByTestId("organizer-cell-accounts-status-verified")).toHaveText(locale === "en" ? "128" : "١٢٨");
     await shot(page, `${locale}-dashboard`, testInfo.project.name);
+    const navigation = await openStaffNavigation(page, locale);
+    const areas = staffMenu(["superAdmin"]);
+    const hrefs = await navigation.getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")).sort());
+    expect(hrefs).toEqual([`/${locale}/staff`, ...areas.map((area) => `/${locale}/staff/${area.key}`)].sort());
+    expect(await navigation.locator(".staff-navigation-group:visible").count()).toBeGreaterThan(1);
+    await expect(navigation.getByRole("link", { name: text.overview, exact: true })).toHaveAttribute("aria-current", "page");
+    for (const area of areas.filter((entry) => !entry.built)) {
+      const labels = staffCopy[area.englishOnly ? "en" : locale];
+      await expect(navigation.getByRole("link", { name: labels.areas[area.key] })).toContainText(labels.soon);
+    }
+    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await axe(page);
+  });
+
+  test(`${locale} narrow work areas support keyboard navigation, skip and reflow`, async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.includes("mobile"), "Narrow layout is covered by the mobile project.");
+    await page.setViewportSize({ width: 280, height: 720 });
+    await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
+    await consoleFixture(page, ["superAdmin"]);
+    await page.goto(`/${locale}/staff`);
+    await page.evaluate(() => document.documentElement.style.setProperty("font-size", "200%", "important"));
+    await page.evaluate(async () => { await document.fonts.ready; });
+
+    const wordmark = page.getByRole("link", { name: `${copy.portal} · ${copy.home}`, exact: true }).locator("strong");
+    const wordsStayWhole = await wordmark.evaluate((title) => {
+      const textNode = title.firstChild;
+      if (!(textNode instanceof Text)) return false;
+      return [...textNode.data.matchAll(/\S+/g)].every((word) => {
+        const start = word.index ?? 0;
+        const range = document.createRange();
+        range.setStart(textNode, start);
+        range.setEnd(textNode, start + word[0].length);
+        return range.getClientRects().length === 1;
+      });
+    });
+    expect(wordsStayWhole).toBe(true);
+
+    const navigation = page.getByRole("navigation", { name: copy.menu, exact: true });
+    const toggle = navigation.locator(".staff-nav-toggle");
+    const overview = navigation.getByRole("link", { name: text.overview, exact: true });
+    await expect(toggle).toHaveText(locale === "ar" ? "مساحات العمل" : "Work areas");
+    await expect(overview).toHaveCount(0);
+
+    const skip = page.getByRole("link", { name: locale === "ar" ? "انتقل إلى مساحة العمل" : "Skip to workspace", exact: true });
+    await skip.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+
+    await toggle.focus();
+    await page.keyboard.press("Enter");
+    await expect(overview).toHaveAttribute("aria-current", "page");
+    await page.keyboard.press("Tab");
+    await expect(overview).toBeFocused();
+    expect(await overview.evaluate((link) => parseFloat(getComputedStyle(link).outlineWidth))).toBeGreaterThanOrEqual(2);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    await page.keyboard.press("Escape");
+    await expect(toggle).toBeFocused();
+    await expect(overview).toHaveCount(0);
+
+    await page.keyboard.press("Space");
+    const registration = navigation.getByRole("link", { name: copy.areas.registration, exact: true });
+    await registration.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(new RegExp(`/${locale}/staff/registration$`));
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy.areas.registration);
+    await expect(overview).toHaveCount(0);
+    await openStaffNavigation(page, locale);
+    await expect(registration).toHaveAttribute("aria-current", "page");
   });
 
   test(`${locale} registration queue bulk-approves selected requests and keeps seat counts`, async ({ page }, testInfo) => {
@@ -189,7 +252,8 @@ for (const locale of ["en", "ar"] as const) {
     const mock = await consoleFixture(page, ["superAdmin"]);
     await page.goto(`/${locale}/staff/early-access`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy.areas["early-access"]);
-    await expect(page.getByRole("navigation", { name: copy.menu }).getByRole("link", { name: copy.areas["early-access"], exact: true })).toHaveAttribute("aria-current", "page");
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: copy.areas["early-access"], exact: true })).toHaveAttribute("aria-current", "page");
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByTestId("early-row")).toHaveCount(2);
     await expect(page.getByRole("columnheader", { name: early.account, exact: true })).toBeVisible();
@@ -249,9 +313,9 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} a registration administrator cannot see or open early-access controls`, async ({ page }) => {
     const mock = await consoleFixture(page, ["registrationWorkshopAdministrator"]);
     await page.goto(`/${locale}/staff`);
-    const menu = page.getByRole("navigation", { name: copy.menu });
-    await expect(menu).toContainText(copy.areas.registration);
-    await expect(menu.getByRole("link", { name: copy.areas["early-access"], exact: true })).toHaveCount(0);
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: copy.areas.registration, exact: true })).toBeVisible();
+    await expect(navigation.getByRole("link", { name: copy.areas["early-access"], exact: true })).toHaveCount(0);
     await page.goto(`/${locale}/staff/early-access`);
     await expect(page.locator(".staff-workspace").getByRole("alert")).toHaveText(copy.states.denied);
     await expect(page.getByTestId("early-add")).toHaveCount(0);
@@ -408,8 +472,8 @@ test("a refused export explains itself instead of saving an error file", async (
 test("a role without priority access never sees the priority tab", async ({ page }) => {
   await consoleFixture(page, ["registrationWorkshopAdministrator"]);
   await page.goto("/en/staff");
-  const menu = page.getByRole("navigation", { name: staffCopy.en.menu });
-  await expect(menu).toContainText(staffCopy.en.areas.registration);
-  await expect(menu).not.toContainText(staffCopy.en.areas.priority);
-  await expect(menu).not.toContainText(staffCopy.en.areas.people);
+  const navigation = await openStaffNavigation(page, "en");
+  await expect(navigation.getByRole("link", { name: staffCopy.en.areas.registration, exact: true })).toBeVisible();
+  await expect(navigation.getByRole("link", { name: staffCopy.en.areas.priority, exact: true })).toHaveCount(0);
+  await expect(navigation.getByRole("link", { name: staffCopy.en.areas.people, exact: true })).toHaveCount(0);
 });

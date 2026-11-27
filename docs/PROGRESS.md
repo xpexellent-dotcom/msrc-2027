@@ -48,6 +48,42 @@
   200% text, keyboard focus, and footer axe with zero violations.
   Requirements SCP-02, SUP-02, DSN-02, LOC-01/03 and ACC-01.
 
+## 27 November 2026 — Staff workspace redesign
+
+- The staff overview and shared shell now use the conference seal, ivory and
+  plum surfaces, and the public title typefaces. Authorized work areas are
+  grouped on desktop and available through a keyboard-operable disclosure on
+  narrow screens. Current roles stay visible and the complete capability
+  description can be expanded.
+- The overview links directly to scoped statistics, available reports, Super
+  Admin participant lookup and the full work-area directory. Status labels,
+  hidden counts, mock-payment notices, all existing data and actions, and the
+  English-only assessment interfaces are preserved. Existing staff and workflow
+  gates apply. See the [staff portal feature note](features/STAFF_PORTAL.md#staff-workspace-design).
+  Requirements ACC-01, DSN-02, LOC-01/03, ADM-01/02/04 and ROL-01/10.
+- Local verification used Node 24.21.0 and pnpm 11.19.0.
+  `node node_modules/eslint/bin/eslint.js . --max-warnings=0` and
+  `node node_modules/vitest/vitest.mjs run` passed, including 5,700 unit
+  tests. The final `node node_modules/next/dist/bin/next build` passed
+  TypeScript and generated 144 static pages.
+- `node node_modules/@playwright/test/cli.js test --config playwright.staff.config.ts --workers 6`
+  passed 449 Chromium cases and skipped 14
+  profile-specific duplicates. One Arabic research readiness case stopped
+  with a local `ERR_NO_BUFFER_SPACE` before loading. That case passed in
+  the final-build focused run, which passed 42 cases with two profile skips.
+- `node node_modules/@playwright/test/cli.js test --config playwright.staff-password.config.ts --workers 2`
+  passed 26 account-security cases with two profile skips.
+- Seven Chromium and emulated WebKit captures had no page-level horizontal
+  overflow and no violations in the WCAG-tagged axe scans. Keyboard checks
+  covered the skip link, disclosure and focus return in both languages,
+  with a 280 px and 200% text check in Chromium. Four local staff page
+  requests returned 404 with the staff flag closed. Physical phones and
+  screen-reader sessions remain untested.
+- After rebasing onto `84ec436a` from PR #163, full ESLint and all 5,711
+  unit tests passed. The production build and 18 targeted staff browser
+  cases passed with two desktop profile skips. A `git merge-tree` check
+  against the performance draft PR #164 at `c8b60c7c` merged cleanly.
+
 ## 27 November 2026 — Profile compatibility before merging PR #162
 
 - The production profile feature passed its readiness check, while the

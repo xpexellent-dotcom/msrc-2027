@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { expect, test, type Page } from "../helpers/csp";
+import { openStaffNavigation } from "./helpers/navigation";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { emailPreviewsCopy } from "../../src/features/staff-portal/email-previews-copy";
 import type { StaffEmailPreview, StaffResponse } from "../../src/features/staff-portal/ui-contract";
@@ -46,7 +47,8 @@ for (const locale of ["en", "ar"] as const) {
     const mock = await fixture(page);
     await page.goto(`/${locale}/staff/email-previews`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(staffCopy[locale].areas["email-previews"]);
-    await expect(page.getByRole("navigation", { name: staffCopy[locale].menu }).getByRole("link", { name: staffCopy[locale].areas["email-previews"], exact: true })).toHaveAttribute("aria-current", "page");
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: staffCopy[locale].areas["email-previews"], exact: true })).toHaveAttribute("aria-current", "page");
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByText(copy.draft, { exact: true })).toHaveCount(previews.length);
     const cards = page.getByTestId("email-preview");
@@ -107,7 +109,8 @@ for (const locale of ["en", "ar"] as const) {
     await fixture(page, { denied: true });
     await page.goto(`/${locale}/staff/email-previews`);
     await expect(page.getByTestId("staff-name")).toBeVisible();
-    await expect(page.getByRole("navigation", { name: staffCopy[locale].menu }).getByRole("link", { name: staffCopy[locale].areas["email-previews"], exact: true })).toHaveCount(0);
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: staffCopy[locale].areas["email-previews"], exact: true })).toHaveCount(0);
     await expect(page.getByTestId("email-preview")).toHaveCount(0);
     await expect(page.getByText(copy.draft, { exact: true })).toHaveCount(0);
     await axe(page);

@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { expect, test, type Page } from "../helpers/csp";
+import { openStaffNavigation } from "./helpers/navigation";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { registrationSettingsCopy } from "../../src/features/staff-portal/registration-settings-copy";
 import type { Role } from "../../src/lib/permissions/contract";
@@ -103,7 +104,7 @@ for (const locale of ["en", "ar"] as const) {
     const mock = await fixture(page, { settings: null });
     await page.goto(`/${locale}/staff/registration-settings`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(staffCopy[locale].areas["registration-settings"]);
-    const nav = page.getByRole("navigation", { name: staffCopy[locale].menu });
+    const nav = await openStaffNavigation(page, locale);
     await expect(nav.getByRole("link", { name: staffCopy[locale].areas["registration-settings"], exact: true })).toHaveAttribute("aria-current", "page");
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.locator("#registration-settings-free")).toBeChecked();
@@ -205,7 +206,8 @@ for (const locale of ["en", "ar"] as const) {
     const mock = await fixture(page, { roles: ["registrationWorkshopAdministrator"] });
     await page.goto(`/${locale}/staff/registration-settings`);
     await expect(page.getByTestId("staff-name")).toBeVisible();
-    await expect(page.getByRole("navigation", { name: staffCopy[locale].menu }).getByRole("link", { name: staffCopy[locale].areas["registration-settings"], exact: true })).toHaveCount(0);
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: staffCopy[locale].areas["registration-settings"], exact: true })).toHaveCount(0);
     await expect(page.getByTestId("registration-settings-review")).toHaveCount(0);
     await expect(page.locator("#registration-settings-terms_version")).toHaveCount(0);
     expect(mock.actions).toEqual([]);
