@@ -1,5 +1,17 @@
 # Progress and session handover
 
+## 27 November 2026 — Public link-preview photo follow-up
+
+- Used the organizer-selected auditorium photograph as the blurred background
+  under a purple gradient on both localized cards. Only the metadata-stripped
+  derivative is included in the generator. The centered identity still fits
+  the 112 × 112 chat crop. Requirements MED-01/02, DSN-02 and ACC-01.
+- Both full cards and square crops were visually reviewed. Scoped ESLint,
+  14 targeted unit tests, the production build and all three Chromium
+  shared-link smoke cases passed on the updated artwork. The final PNGs are
+  548,720 bytes in English and 542,287 bytes in Arabic. Production and
+  the native WhatsApp client were not tested for this revision.
+
 ## 27 November 2026 — Public link-preview artwork
 
 - The English and Arabic Open Graph cards now use the public seal, Fraunces

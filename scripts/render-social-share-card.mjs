@@ -10,8 +10,9 @@ const embedded = async (path, mime) => {
   return `data:${mime};base64,${bytes.toString("base64")}`;
 };
 
-const [seal, fraunces, dmSans, arabicDisplay, arabicText] = await Promise.all([
+const [seal, auditoriumPhoto, fraunces, dmSans, arabicDisplay, arabicText] = await Promise.all([
   embedded("public/brand/identity/msrc27-seal-dark-456.webp", "image/webp"),
+  embedded("scripts/assets/share-card-auditorium.webp", "image/webp"),
   embedded("node_modules/@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2", "font/woff2"),
   embedded("node_modules/@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2", "font/woff2"),
   embedded("node_modules/@fontsource-variable/el-messiri/files/el-messiri-arabic-wght-normal.woff2", "font/woff2"),
@@ -40,31 +41,26 @@ try {
             display: grid;
             place-items: center;
             color: #f8f6f0;
-            background:
-              radial-gradient(ellipse at 50% 22%, #4b2c80 0, #3b1e6d 31%, transparent 73%),
-              #1f1930;
+            background: #1f1930;
             font-family: "DM Sans", sans-serif;
             overflow: hidden;
           }
-          .frame {
-            position: absolute;
-            inset: 26px;
-            border: 1px solid #e8d5a53d;
-            overflow: hidden;
+          .backdrop { position: absolute; inset: 0; overflow: hidden; }
+          .backdrop img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(0.8);
           }
-          .frame::before, .frame::after {
+          .backdrop::after {
             content: "";
             position: absolute;
-            top: 50%;
-            width: 870px;
-            aspect-ratio: 1;
-            translate: 0 -50%;
-            border: 1px solid #dccff022;
-            border-radius: 50%;
-            box-shadow: 0 0 0 24px #dccff00a, 0 0 0 54px #dccff009;
+            inset: 0;
+            background:
+              linear-gradient(180deg, #29174348, #23143262 56%, #160f25f5),
+              radial-gradient(ellipse at 50% 45%, #26153de3 5%, #31194eab 45%, #3b1e6d48 100%);
           }
-          .frame::before { right: calc(100% - 215px); }
-          .frame::after { left: calc(100% - 215px); }
           main {
             position: relative;
             width: 510px;
@@ -91,7 +87,9 @@ try {
           [lang="ar"] .title { font: 600 40px/1.22 "El Messiri", "DM Sans", sans-serif; }
           [lang="ar"] .date, [lang="ar"] .institution { font-family: "Noto Sans Arabic", "DM Sans", sans-serif; line-height: 1.55; }
         </style>
-        <div class="frame" aria-hidden="true"></div>
+        <div class="backdrop" aria-hidden="true">
+          <img src="${auditoriumPhoto}" alt="">
+        </div>
         <main>
           <img class="seal" src="${seal}" alt="">
           <p class="wordmark" dir="ltr" lang="en">MSRC<span class="year">’27</span></p>
@@ -106,7 +104,7 @@ try {
       document.querySelector(".title").textContent = title;
       document.querySelector(".date").textContent = date;
       document.querySelector(".institution").textContent = institution;
-      await Promise.all([document.fonts.ready, document.images[0].decode()]);
+      await Promise.all([document.fonts.ready, ...Array.from(document.images, (image) => image.decode())]);
     }, { ...copy, date: conferenceDateLabel(locale) });
 
     await page.screenshot({ path: fileURLToPath(new URL(`${locale}.png`, output)) });

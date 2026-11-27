@@ -386,6 +386,12 @@ with the public Fraunces wordmark. Conference artwork uses the site palette
 and keeps the identity inside the central square. The Open Graph image
 routes serve the PNGs in `public/brand/share/`.
 
+The organizer selected the supplied auditorium photograph `IMG_9755.HEIC`
+for this backdrop. The generator uses a cropped, blurred, metadata-stripped
+WebP from `scripts/assets/share-card-auditorium.webp` under a purple
+gradient. The HEIF original stays outside source control and public delivery.
+Requirements MED-01/02, DSN-02 and ACC-01.
+
 After changing the artwork or confirmed conference dates, run
 `node scripts/render-social-share-card.mjs` in the installed checkout with
 Playwright Chromium available. Review both cards at full width and in

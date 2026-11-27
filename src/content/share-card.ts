@@ -1,7 +1,7 @@
 import type { Locale } from "@/lib/i18n";
 
 export const shareCardSize = { width: 1200, height: 630 } as const;
-export const shareCardRevision = "conference-brand";
+export const shareCardRevision = "conference-auditorium";
 export const shareCardDomain = "msrc2027.com";
 
 export const shareCardCopy = {
