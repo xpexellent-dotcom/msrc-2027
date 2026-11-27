@@ -12,11 +12,16 @@ describe("localized link metadata (LOC-01, CMS-04)", () => {
       canonical: "/ar/participate",
       languages: { en: "/en/participate", ar: "/ar/participate", "x-default": "/en/participate" },
     });
+    const image = {
+      url: expect.stringMatching(/^\/ar\/opengraph-image\?v=.+$/),
+      width: 1200,
+      height: 630,
+      alt: expect.stringContaining("المؤتمر الخامس لأبحاث طلاب الطب"),
+    };
     expect(metadata.openGraph).toMatchObject({
-      url: "/ar/participate", locale: "ar_SA", alternateLocale: "en_US",
-      images: [{ url: "/ar/opengraph-image", width: 1200, height: 630 }],
+      url: "/ar/participate", locale: "ar_SA", alternateLocale: "en_US", images: [image],
     });
-    expect(metadata.twitter).toMatchObject({ card: "summary_large_image", images: ["/ar/opengraph-image"] });
+    expect(metadata.twitter).toMatchObject({ card: "summary_large_image", images: [image] });
   });
 });
 

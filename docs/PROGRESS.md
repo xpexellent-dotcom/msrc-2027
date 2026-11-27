@@ -1,5 +1,33 @@
 # Progress and session handover
 
+## 27 November 2026 — Public link-preview photo follow-up
+
+- Used the organizer-selected auditorium photograph as the blurred background
+  under a purple gradient on both localized cards. Only the metadata-stripped
+  derivative is included in the generator. The centered identity still fits
+  the 112 × 112 chat crop. Requirements MED-01/02, DSN-02 and ACC-01.
+- Both full cards and square crops were visually reviewed. Scoped ESLint,
+  14 targeted unit tests, the production build and all three Chromium
+  shared-link smoke cases passed on the updated artwork. The final PNGs are
+  548,720 bytes in English and 542,287 bytes in Arabic. Production and
+  the native WhatsApp client were not tested for this revision.
+
+## 27 November 2026 — Public link-preview artwork
+
+- The English and Arabic Open Graph cards now use the public seal, Fraunces
+  wordmark, purple palette and April dates. The seal and wordmark fit the
+  middle 630 pixels of the 1200 × 630 artwork for square chat previews.
+- The localized PNGs are served at the existing image routes. Open Graph
+  and Twitter share a versioned image URL and localized alternative text.
+  Requirements DSN-02, LOC-01/03, CMS-04 and ACC-01.
+- Rendered both cards with the checked-in generator and visually reviewed
+  the full cards and 112 × 112 centered crops. Scoped ESLint, 14 targeted
+  unit tests and the production build passed. The preview smoke test
+  passed on Chromium desktop, tablet and mobile. All five visitor link
+  checks passed, including preview metadata and image delivery across the
+  bilingual sitemap. Live artwork and the native WhatsApp client remain
+  unverified for this branch.
+
 ## 27 November 2026 — Site speed audit
 
 - Integrated the staff workspace redesign from PR #165. The People and roles
