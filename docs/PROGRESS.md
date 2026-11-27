@@ -1,5 +1,21 @@
 # Progress and session handover
 
+## 27 November 2026 — Consultant and Specialist profile statuses
+
+- ORG-094 adds Consultant and Specialist to the English and Arabic profile
+  status list. Both count toward profile completion. Abstract presenter
+  eligibility continues to follow ORG-068. The editor exposes the choices
+  once the database supports and can save them.
+- `pnpm lint`, all 5,711 unit tests, and `pnpm build` passed. All 44 profile
+  Playwright cases passed, including both localized status options through
+  save and reload on Chromium desktop and 360 px mobile. Synthetic browser
+  fixtures also covered an older schema that exposes the existing options.
+- Disposable PostgreSQL 18.3 verified the migration after ORG-091, including
+  saves, owner reads, completion, eligibility, input validation, version
+  conflicts and ACL/RLS. Native Supabase pgTAP remains pending in CI because
+  the local Docker daemon was unavailable. The hosted migration is pending.
+  Requirements AUTH-07, SCP-03, ABS-12, PRV-03, SEC-02, LOC-01/03 and ACC-01.
+
 ## 27 November 2026 — Desktop footer contact placement
 
 - ORG-093 moves the business email and social links into the wide footer's

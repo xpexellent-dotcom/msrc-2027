@@ -13,7 +13,7 @@ import { InstitutionCombobox } from "./institution-combobox";
 import { ProfileAvatar } from "./profile-avatar";
 import { requestParticipantProfile } from "./profile-client";
 import { profileCopy } from "./profile-copy";
-import { PROFILE_FIELDS, profileCompletion, profileCompletionTotal, profileNamesFromAccount, isAdultProfileDate, isArabicProfileName, isLatinProfileName, isProfileIdentityNumber, isProfilePhone,
+import { PROFILE_FIELDS, PROFILE_STATUSES, isProfessionalProfileStatus, profileCompletion, profileCompletionTotal, profileNamesFromAccount, isAdultProfileDate, isArabicProfileName, isLatinProfileName, isProfileIdentityNumber, isProfilePhone,
   type OptionalParticipantProfile, type ParticipantProfileResponse, type ProfileSpecialty, type ProfileField, type ProfileErrors, type ProfileIdentityType } from "./profile-contract";
 import { clearProfileEditorDraft, readProfileEditorDraft, saveProfileEditorDraft } from "./profile-editor-draft";
 
@@ -35,6 +35,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   const [restoredDraft] = useState(() => readProfileEditorDraft(identity));
   const [profile, setProfile] = useState<OptionalParticipantProfile | null>(null);
   const [latinNameAvailable, setLatinNameAvailable] = useState(true);
+  const [professionalStatusesAvailable, setProfessionalStatusesAvailable] = useState(false);
   const [specialties, setSpecialties] = useState<ProfileSpecialty[]>([]);
   const [state, setState] = useState<ParticipantProfileResponse["state"] | "loading">("loading");
   const [formToken, setFormToken] = useState<string | null>(null);
@@ -70,6 +71,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
       if (result.state === "ready") {
         const canEditLatinName = result.latinNameAvailable !== false;
         setProfile(result.profile); setSpecialties(result.specialties); setFormToken(result.formToken); setLatinNameAvailable(canEditLatinName);
+        setProfessionalStatusesAvailable(result.professionalStatusesAvailable === true);
         if (editor.current.editing && editor.current.version !== null && editor.current.version !== result.profile.version) setState("conflict");
         if (restoredDraft) setValues((current) => ({ ...valuesFromProfile(result.profile, name, canEditLatinName), institutionId: current.institutionId, institutionOther: current.institutionOther, status: current.status }));
       } else if (result.state === "denied" || result.state === "closed") clearSessionData();
@@ -148,7 +150,8 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
     if (result.state === "ready") {
       restoreEditFocus.current = true;
       editor.current = { editing: false, version: result.profile.version };
-      setProfile(result.profile); setLatinNameAvailable(result.latinNameAvailable !== false); setEditorVersion(result.profile.version); setSpecialties(result.specialties); setValues({ ...emptyValues }); clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setEditing(false); setSaved(true); clearProfileEditorDraft(identity);
+      setProfile(result.profile); setLatinNameAvailable(result.latinNameAvailable !== false);
+      setProfessionalStatusesAvailable(result.professionalStatusesAvailable === true); setEditorVersion(result.profile.version); setSpecialties(result.specialties); setValues({ ...emptyValues }); clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setEditing(false); setSaved(true); clearProfileEditorDraft(identity);
       window.dispatchEvent(new Event("msrc-participant-profile"));
     } else if (result.state === "invalid_input") setErrors(result.fieldErrors ?? {});
     else if (result.state === "denied" || result.state === "closed") clearSessionData();
@@ -166,6 +169,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   const accountNames = profileNamesFromAccount(name);
   const canShowProfile = profile !== null && state !== "closed" && state !== "denied";
   const completedItems = profile ? profileCompletion(profile, specialties) : 0;
+  const availableStatuses = PROFILE_STATUSES.filter(status => professionalStatusesAvailable || !isProfessionalProfileStatus(status));
   const total = profileCompletionTotal(specialties, latinNameAvailable);
   const isComplete = completedItems === total;
   const hasError = editing && (Object.values(errors).some(Boolean) || !["loading", "ready"].includes(state));
@@ -230,7 +234,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
           <legend className="participant-profile-group-title">{copy.groups.studies}</legend>
           <InstitutionCombobox locale={locale} value={values.institutionId} other={otherInstitution} error={errorText("institution")} onChange={(id, other) => { update("institutionId", id); setOtherInstitution(other); if (!other) update("institutionOther", ""); setErrors((current) => ({ ...current, institution: undefined })); }} />
           {otherInstitution ? <FormField id="profile-institutionOther" name="institutionOther" label={copy.institutionOther} value={values.institutionOther} dir="auto" autoComplete="organization" maxLength={160} error={errorText("institutionOther")} onChange={(event) => update("institutionOther", event.target.value)} /> : null}
-          <Select id="profile-status" name="status" label={copy.status} value={values.status ?? ""} error={errorText("status")} onChange={(event) => update("status", event.target.value as OptionalParticipantProfile["status"] || null)}><option value="">{copy.choose}</option>{Object.entries(copy.statuses).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</Select>
+          <Select id="profile-status" name="status" label={copy.status} value={values.status ?? ""} error={errorText("status")} onChange={(event) => update("status", event.target.value as OptionalParticipantProfile["status"] || null)}><option value="">{copy.choose}</option>{availableStatuses.map(status => <option key={status} value={status}>{copy.statuses[status]}</option>)}</Select>
           <fieldset className="participant-profile-interests" id="profile-interests" tabIndex={-1} aria-describedby={`profile-interests-hint${errors.interests ? " profile-interests-error" : ""}`}>
             <legend className="field-label">{copy.interests}</legend><p id="profile-interests-hint" className="field-hint">{copy.interestsHint}</p>
             {specialties.length ? <div className="participant-profile-chips">{specialties.map((option) => <button key={option.id} type="button" lang="en" dir="ltr" aria-pressed={interests.includes(option.id)} disabled={!interests.includes(option.id) && interests.length >= 5} onClick={() => { setInterests((current) => current.includes(option.id) ? current.filter((value) => value !== option.id) : [...current, option.id]); setErrors((value) => ({ ...value, interests: undefined })); }}>{option.label}</button>)}</div> : <p>{copy.interestsUnavailable}</p>}

@@ -232,6 +232,43 @@ describe("optional private participant profile boundary (ENG-086 / AUTH-07 / PRV
     ]);
     expect(f.backend.upload).not.toHaveBeenCalled();
   });
+  it.each(["consultant", "specialist"])("exposes and saves the migrated professional status %s", async (status) => {
+    const saved = { ...profile, professionalStatusesAvailable: true, studentStatus: status, version: 1 };
+    const f = fixture({
+      current: { ...current, profile: { ...saved, version: 0 } },
+      save: { ...current, profile: saved },
+    });
+    const read = await f.get();
+    expect(read.status).toBe(200);
+    expect(await read.json()).toMatchObject({ state: "ready", professionalStatusesAvailable: true, profile: { status, version: 0 } });
+    const response = await f.post({ status });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "ready", professionalStatusesAvailable: true, profile: { status, version: 1 } });
+    const input = vi.mocked(f.backend.rpc).mock.calls.find(([name]) => name === "msrc_participant_profile_save")?.[1]?.profile_input;
+    expect(input).toHaveProperty("status", status);
+    expect(input).not.toHaveProperty("professionalStatusesAvailable");
+  });
+  it.each(["consultant", "specialist"])("does not claim or mutate a pre-migration profile for status %s", async (status) => {
+    const f = fixture({ accessClaims: { ...claims, user_metadata: { professionalStatusesAvailable: true } } });
+    const response = await f.post({ status, avatar: await image() });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ state: "area-not-ready" });
+    expect(vi.mocked(f.backend.rpc).mock.calls.map(([name]) => name)).toEqual([
+      "msrc_participant_status", "msrc_participant_profile_read",
+    ]);
+    expect(f.backend.upload).not.toHaveBeenCalled();
+  });
+  it("keeps existing statuses available before the professional status migration", async () => {
+    const f = fixture({ current: { ...current, profile: { ...profile, studentStatus: "year_3" } } });
+    const read = await f.get();
+    const body = await read.json();
+    expect(read.status).toBe(200);
+    expect(body).toMatchObject({ state: "ready", profile: { status: "year_3" } });
+    expect(body.professionalStatusesAvailable).not.toBe(true);
+    const response = await f.post({ status: "internship" });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ state: "ready", profile: { status: "internship" } });
+  });
   it("keeps missing institution fields unavailable", async () => {
     const outdatedProfile: Partial<typeof profile> = { ...profile };
     delete outdatedProfile.institutionId;

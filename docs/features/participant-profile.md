@@ -64,9 +64,15 @@ schema exposes the new field. Apply the migration and reload the database API
 schema through the existing release process.
 
 Status is one of Year 1–6, Internship, Clinical placement, Postgraduate, Residency,
-or Faculty. The migration maps medical-student years, intern, resident and faculty
-values to these choices; legacy other becomes null. Existing institution text moves
-to `institution_other`. A listed `institution_id` and `institution_other` are
+Faculty, Consultant, or Specialist (ORG-094). The initial profile migration maps
+medical-student years, intern, resident and faculty values to the current choices
+and clears the legacy `other` value. Consultant and Specialist become available
+after the professional-status migration extends the status constraint and save
+RPC. That migration follows ORG-091 in schema order. An older database keeps its
+current choices and valid saves.
+
+Existing institution text moves to `institution_other`. A listed
+`institution_id` and `institution_other` are
 mutually exclusive. The bilingual Ministry-sourced catalog and accessible
 combobox support EN/AR search, Arabic article/diacritic normalization and keyboard
 selection. Other reveals a free-text field. Country names display in EN/AR while

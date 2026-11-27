@@ -18,7 +18,7 @@ const specialties = Array.from({ length: 6 }, (_, index) => ({ id: `synthetic-${
 async function fixture(
   page: Page,
   account = { name: "Synthetic Participant", email: "synthetic@example.invalid" },
-  { latinNameAvailable = true } = {},
+  { latinNameAvailable = true, professionalStatusesAvailable = false } = {},
 ) {
   let profile: OptionalParticipantProfile = { ...EMPTY_PARTICIPANT_PROFILE };
   let unavailable = false;
@@ -27,6 +27,7 @@ async function fixture(
   let catalog = latinNameAvailable ? specialties : specialties.slice(0, 1);
   const ready = (): ParticipantProfileResponse => ({
     state: "ready", profile, specialties: catalog, formToken: "synthetic-profile-token", latinNameAvailable,
+    ...(professionalStatusesAvailable ? { professionalStatusesAvailable } : {}),
   });
   await page.route("**/api/participant-accounts", async (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({
     state: "ready", formToken: "synthetic-account-token", profileEnabled: true,
@@ -236,9 +237,37 @@ for (const locale of ["en", "ar"] as const) {
     await accessible(page);
   });
 
+  test(`${locale} consultant and specialist statuses can be selected and saved`, async ({ page }) => {
+    const mock = await fixture(page, undefined, { professionalStatusesAvailable: true });
+    await page.goto(`/${locale}/my-msrc`);
+    const card = page.getByTestId("participant-profile-card");
+    const edit = card.getByRole("button", { name: copy.edit, exact: true });
+    const form = card.locator("form");
+    const status = card.locator("#profile-status");
+    const statuses = locale === "en"
+      ? { consultant: "Consultant", specialist: "Specialist" }
+      : { consultant: "استشاري", specialist: "أخصائي" };
+    await edit.click();
+
+    for (const [value, label] of Object.entries(statuses)) {
+      await expect(status.locator(`option[value="${value}"]`)).toHaveText(label);
+      await status.selectOption({ label });
+      await expect(status).toHaveValue(value);
+      await card.getByRole("button", { name: copy.save, exact: true }).click();
+      await expect(form).toHaveCount(0);
+      await expect(card.locator("progress")).toHaveAttribute("value", "2");
+
+      await page.reload();
+      await edit.click();
+      await expect(status).toHaveValue(value);
+    }
+    expect(mock.saves()).toBe(2);
+  });
+
   test(`${locale} university combobox searches both languages and supports keyboard selection`, async ({ page }) => {
     await fixture(page); await page.goto(`/${locale}/my-msrc`);
     const card = page.getByTestId("participant-profile-card"); await card.getByRole("button", { name: copy.edit, exact: true }).click();
+    await expect(card.locator('#profile-status option:is([value="consultant"], [value="specialist"])')).toHaveCount(0);
     const input = page.locator("#profile-institution"), university = SAUDI_UNIVERSITIES.find((item) => item.id === "king-abdulaziz")!;
     await input.fill(locale === "en" ? "عَبْدالعَزيز" : "ABDULAZIZ");
     await expect(input).toHaveAttribute("aria-expanded", "true");
