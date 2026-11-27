@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import sharp from "sharp";
 import { expect, test, type Page } from "../helpers/csp";
+import { openStaffNavigation } from "./helpers/navigation";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { mediaCopy } from "../../src/features/staff-portal/media-copy";
 import type { Role } from "../../src/lib/permissions/contract";
@@ -104,12 +105,14 @@ for (const locale of ["en", "ar"] as const) {
     await fixture(page);
     const initial = await page.goto(`/${locale}/staff`);
     expect(initial!.headers()["content-security-policy"]).toContain("connect-src 'self';");
+    const navigation = await openStaffNavigation(page, locale);
     const mediaDocument = page.waitForResponse((response) => response.request().resourceType() === "document" && new URL(response.url()).pathname === `/${locale}/staff/content`);
-    await page.getByRole("navigation", { name: staff.menu }).getByRole("link", { name: staff.areas.content, exact: true }).click();
+    await navigation.getByRole("link", { name: staff.areas.content, exact: true }).click();
     expect((await mediaDocument).headers()["content-security-policy"]).toContain("connect-src 'self' http://127.0.0.1:3220;");
     await expect(page.getByRole("heading", { name: copy.title, exact: true })).toBeVisible();
+    await openStaffNavigation(page, locale);
     const staffDocument = page.waitForResponse((response) => response.request().resourceType() === "document" && new URL(response.url()).pathname === `/${locale}/staff`);
-    await page.getByRole("navigation", { name: staff.menu }).locator(`a[href="/${locale}/staff"]`).click();
+    await navigation.getByRole("link").and(navigation.locator(`a[href="/${locale}/staff"]`)).click();
     expect((await staffDocument).headers()["content-security-policy"]).toContain("connect-src 'self';");
   });
 
@@ -121,7 +124,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.getByRole("button", { name: `${copy.open}: Synthetic draft.png`, exact: true })).toBeVisible();
     await expect.poll(() => page.locator(".staff-media-grid img").evaluateAll((images) => images.every((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth === 1280))).toBe(true);
-    await expect(page.getByRole("navigation", { name: staff.menu }).getByRole("link", { name: staff.areas.content, exact: true })).toHaveAttribute("aria-current", "page");
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: staff.areas.content, exact: true })).toHaveAttribute("aria-current", "page");
     await axe(page, locale);
     await page.getByLabel(copy.filter, { exact: true }).selectOption("published");
     await expect(page.getByRole("button", { name: `${copy.open}: Synthetic published.webp`, exact: true })).toBeVisible();
@@ -282,7 +286,8 @@ for (const locale of ["en", "ar"] as const) {
     const mock = await fixture(page, { roles: ["registrationWorkshopAdministrator"] });
     await page.goto(`/${locale}/staff/content`);
     await expect(page.getByText(staff.states.denied, { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("navigation", { name: staff.menu }).getByRole("link", { name: staff.areas.content, exact: true })).toHaveCount(0);
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: staff.areas.content, exact: true })).toHaveCount(0);
     await expect(page.locator("#media-upload")).toHaveCount(0);
     expect(mock.actions).toHaveLength(0); expect(mock.reads).toHaveLength(0);
     await axe(page, locale);

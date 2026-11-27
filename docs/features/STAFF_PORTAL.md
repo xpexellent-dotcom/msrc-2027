@@ -22,6 +22,30 @@ gates and session guarantees remain mandatory. Participant registration does not
 open as a consequence. The backend-only worktree needs the planner's EN/AR screen,
 menu and client changes before its expanded contract can typecheck/build with UI.
 
+## Staff workspace design
+
+The workspace uses the conference seal, an ivory canvas, plum navigation and
+champagne accents. The workspace title uses Fraunces in English and El Messiri
+in Arabic. Staff can see their current roles beneath the page title and expand
+**What you can do** for the full description of available actions.
+
+- The desktop sidebar and narrow-screen **Work areas** disclosure group the same
+  role-scoped destinations under event operations, research and judging, content
+  and communications, and administration. The current route is marked and planned
+  areas retain their status labels. The workspace skip link focuses the page
+  heading. Escape closes the narrow menu and returns focus to its summary.
+  [Carbon UI shell](https://www.carbondesignsystem.com/building-blocks/core/components/ui-shell-left-panel/accessibility)
+  · [GOV.UK task list](https://design-system.service.gov.uk/components/task-list/)
+- The dashboard index jumps to statistics, available reports, participant lookup
+  for Super Admins, and the work-area directory. Grouped count rows retain the
+  mock-payment and small-count suppression notices. Screen readers announce
+  hidden counts and refresh feedback. Existing server permissions govern module
+  data, searches, exports and audit access.
+- Organizer pages use English and Arabic with mirrored RTL layout. Reviewer and
+  faculty-judge assessments use English.
+
+Requirements ACC-01, DSN-02, LOC-01/03, ADM-01/02/04 and ROL-01/10.
+
 ## Authentication and membership
 
 Native Supabase verifies password identity; private database evidence supplies
@@ -96,6 +120,10 @@ and settings together. Each database read still uses its own permission and
 projection. If the settings read fails after a successful list read, the
 workspace can still show the list. Reviewer and judge queues use their
 existing dedicated reads.
+
+The organizer browser suite opens People and roles and Participants from the
+desktop sidebar or the narrow-screen Work areas menu in both locales. It waits
+for the overview statistics and then verifies one protected request per destination.
 
 Requirements AUTH-04/05, ROL-01/03–06/10/12, SEC-01/02/06, LOC-01/03, NFR-02.
 

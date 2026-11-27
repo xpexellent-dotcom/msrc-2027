@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { expect, test, type Page } from "../helpers/csp";
+import { openStaffNavigation } from "./helpers/navigation";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { checkInCopy } from "../../src/features/staff-portal/check-in-copy";
 import { checkInFallbackCopy } from "../../src/features/staff-portal/check-in-fallback-copy";
@@ -58,7 +59,8 @@ for (const locale of ["en", "ar"] as const) {
     expect(initial?.headers()["permissions-policy"]).toContain("camera=()");
     const cameraAllowed = () => page.evaluate(() => (document as Document & { featurePolicy?: { allowsFeature: (feature: string) => boolean } }).featurePolicy?.allowsFeature("camera"));
     const initiallyAllowed = await cameraAllowed(); if (typeof initiallyAllowed === "boolean") expect(initiallyAllowed).toBe(false);
-    const scannerLink = page.getByRole("navigation", { name: staffCopy[locale].menu }).getByRole("link", { name: staffCopy[locale].areas["check-in"], exact: true });
+    const navigation = await openStaffNavigation(page, locale);
+    const scannerLink = navigation.getByRole("link", { name: staffCopy[locale].areas["check-in"], exact: true });
     const [entered] = await Promise.all([
       page.waitForResponse((response) => response.request().resourceType() === "document" && new URL(response.url()).pathname === `/${locale}/staff/check-in`),
       scannerLink.click(),
@@ -68,7 +70,7 @@ for (const locale of ["en", "ar"] as const) {
     const scannerAllowed = await cameraAllowed(); if (typeof scannerAllowed === "boolean") expect(scannerAllowed).toBe(true);
     const [left] = await Promise.all([
       page.waitForResponse((response) => response.request().resourceType() === "document" && new URL(response.url()).pathname === `/${locale}/staff`),
-      page.getByRole("link", { name: staffCopy[locale].home, exact: true }).click(),
+      page.getByRole("link", { name: `${staffCopy[locale].portal} · ${staffCopy[locale].home}`, exact: true }).click(),
     ]);
     expect(left.headers()["permissions-policy"]).toContain("camera=()");
     const allowedAfterExit = await cameraAllowed(); if (typeof allowedAfterExit === "boolean") expect(allowedAfterExit).toBe(false);
@@ -80,7 +82,8 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(staffCopy[locale].areas["check-in"]);
     await expect(page.getByRole("combobox", { name: copy.day, exact: true })).toHaveValue(days[0]);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
-    await expect(page.getByRole("navigation", { name: staffCopy[locale].menu }).getByRole("link", { name: staffCopy[locale].areas["check-in"], exact: true })).toHaveAttribute("aria-current", "page");
+    const navigation = await openStaffNavigation(page, locale);
+    await expect(navigation.getByRole("link", { name: staffCopy[locale].areas["check-in"], exact: true })).toHaveAttribute("aria-current", "page");
     await page.getByRole("textbox", { name: copy.entryPoint, exact: true }).fill("Synthetic north door");
     await page.getByLabel(copy.feedback, { exact: false }).check();
     for (const outcome of outcomes) {

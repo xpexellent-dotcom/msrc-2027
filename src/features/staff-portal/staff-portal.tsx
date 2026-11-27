@@ -6,6 +6,7 @@ import Image from "next/image";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
+import { brandLogo } from "@/content/brand-identity";
 import type { Locale } from "@/lib/i18n";
 import type { Role } from "@/lib/permissions/contract";
 import { staffActionSummary, staffCopy } from "./copy";
@@ -21,7 +22,7 @@ import { RegistrationQueue, type RegistrationFilter } from "./registration-queue
 import { PriorityPanel } from "./priority-panel";
 import { EarlyAccessPanel } from "./early-access-panel";
 import { RegistrationSettingsPanel } from "./registration-settings-panel";
-import { consoleCopy } from "./console-copy";
+import { consoleCopy, workspaceCopy } from "./console-copy";
 import { EmailPreviewsPanel } from "./email-previews-panel";
 import { LaunchReadinessPanel } from "./launch-readiness-panel";
 import { CheckInPanel } from "./check-in-panel";
@@ -220,13 +221,29 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
   const title = passwordReentry ? copy.security : verification ? view.state === "pending-email" ? copy.emailStep : view.state === "enroll-totp" ? copy.enroll : copy.totpStep : screen === "accept-invitation" && !profile ? copy.accept : !profile ? copy.signIn : landingTitle ? landingTitle : screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? copy.home : screen === "registration" || screen === "priority" || screen === "early-access" || screen === "registration-settings" || screen === "email-previews" || screen === "check-in" || screen === "launch-readiness" || screen === "announcements" || screen === "workshops" || screen === "certificates" ? copy.areas[screen] : copy[screen];
   const inConsole = !!profile && !verification && !passwordReentry && !acceptedInvitation;
   const current: StaffMenuKey | "home" = landing ?? (screen === "home" || screen === "sign-in" || screen === "accept-invitation" ? "home" : screen);
-  const heading = <div className="staff-heading"><p className="eyebrow">{copy.private}</p><h1 tabIndex={-1}>{title}</h1>{profile ? <><p className="staff-name" data-testid="staff-name"><bdi>{profile.name}</bdi></p>{view.state === "authenticated" && !verification && profile.roles.length > 0 ? <><p data-testid="staff-current-roles">{copy.yourRoles}: {profile.roles.map((role) => copy.roleLabels[role]).join(locale === "ar" ? "، " : ", ")}</p><p data-testid="staff-action-summary">{staffActionSummary(locale, profile.roles, { passwordChangeAvailable })}</p></> : null}<div className="staff-actions"><Link href={`/${locale}/staff`}>{copy.home}</Link><Button variant="secondary" size="small" disabled={busy} onClick={() => void act({ action: "logout" })}>{copy.signOut}</Button></div></> : null}</div>;
+  const englishHeading = inConsole && landing === "faculty-judging";
+  const signOut = <Button variant="secondary" size="small" disabled={busy} onClick={() => void act({ action: "logout" })}>{copy.signOut}</Button>;
+  const roleDetails = view.state === "authenticated" && !verification && profile && profile.roles.length > 0 ? <>
+    <p data-testid="staff-current-roles">{copy.yourRoles}: {profile.roles.map((role) => copy.roleLabels[role]).join(locale === "ar" ? "، " : ", ")}</p>
+    <details className="staff-role-details">
+      <summary>{workspaceCopy[locale].capabilities}</summary>
+      <p data-testid="staff-action-summary">{staffActionSummary(locale, profile.roles, { passwordChangeAvailable })}</p>
+    </details>
+  </> : null;
+  const heading = <div className="staff-heading">
+    <h1 id={inConsole ? "staff-workspace-title" : undefined} lang={englishHeading ? "en" : undefined} dir={englishHeading ? "ltr" : undefined} tabIndex={-1}>{title}</h1>
+    {profile ? <div className="staff-session">
+      <p className="staff-name" data-testid="staff-name"><bdi>{profile.name}</bdi></p>
+      {roleDetails}
+      {!inConsole ? <div className="staff-actions"><Link href={`/${locale}/staff`}>{copy.home}</Link>{signOut}</div> : null}
+    </div> : null}
+  </div>;
   const feedbackRegion = <div ref={feedback} tabIndex={-1} className={message ? "staff-feedback" : "staff-feedback staff-feedback--empty"} role={errors.has(outcome) || outcome in copy.errors ? "alert" : "status"} aria-live="polite">{busy ? copy.loading : message}</div>;
   const retrySignOut = signOutFailure ? <Button variant="secondary" disabled={busy} onClick={() => void act({ action: "logout" })}>{copy.retrySignOut}</Button> : null;
   const searchArea = () => { setDecidedText(""); setOutcome(""); setBusy(true); void restore(undefined, query); };
   const workspace = <>
     {profile && !permitted ? <p role="alert">{copy.states.denied}</p> : null}
-    {profile && permitted && screen === "home" && !landing ? <OrganizerDashboard locale={locale} roles={profile.roles} formToken={view.formToken} /> : null}
+    {profile && permitted && screen === "home" && !landing ? <OrganizerDashboard locale={locale} roles={profile.roles} formToken={view.formToken} passwordChangeAvailable={passwordChangeAvailable} /> : null}
     {profile && permitted && landing === "content" ? <div className="staff-content-workspace"><ContentEditorPanel locale={locale} /><MediaLibraryPanel locale={locale} /></div> : profile && permitted && landing === "science" ? <ScienceWorkspace locale={locale} roles={profile.roles} /> : profile && permitted && landing === "review" ? <ReviewPanel roles={profile.roles} /> : profile && permitted && landing ? <StaffLanding locale={locale} area={landing} roles={profile.roles} /> : null}
     {profile && permitted && screen === "security" ? <PasswordChangeForm locale={locale} busy={busy} act={act} /> : null}
     {profile && permitted && screen === "registration" ? <RegistrationQueue locale={locale} data={view.registration} busy={busy} status={queueStatus} onStatus={(value) => { setQueueStatus(value); queueStatusRef.current = value; setBusy(true); void restore(undefined, query); }} query={query} onQuery={setQuery} onSearch={searchArea} act={act} onDecided={setDecidedText} canExport={profile.roles.includes("superAdmin")} loadConfirmationPreview={() => requestStaff(undefined, { area: "registration-confirmation-preview" })} loadDetail={(requestId) => requestStaff(undefined, { area: "registration-detail", requestId })} /> : null}
@@ -253,8 +270,21 @@ export function StaffPortal({ locale, screen, landing, initialProfile, initialPa
     {profile && permitted && screen === "audit" ? <OrganizerAuditPanel locale={locale} formToken={view.formToken} /> : null}
   </>;
   const languageHref = `/${language}/staff${landing ? `/${landing}` : screen === "home" ? "" : `/${screen}`}`;
+  const brand = <>
+    <Image className="staff-seal" src={brandLogo.onPurple} alt="" width={48} height={48} unoptimized />
+    <span className="staff-brand-text"><strong>{copy.portal}</strong><span>{copy.private}</span></span>
+  </>;
   return <div className="staff-portal" lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} data-testid="staff-portal" data-screen={screen} data-console={inConsole ? "true" : undefined}>
-    <header className="staff-topbar"><span className="staff-wordmark" dir="ltr" lang="en">MSRC<span>2027</span></span><span>{copy.portal}</span>{landing !== "review" ? <Link href={languageHref} hrefLang={language} lang={language} dir={language === "ar" ? "rtl" : "ltr"} aria-label={copy.language}>{language === "ar" ? "العربية" : "English"}</Link> : null}</header>
+    {inConsole ? <a className="skip-link" href="#staff-workspace-title">{workspaceCopy[locale].skip}</a> : null}
+    <header className="staff-topbar">
+      {inConsole
+        ? <Link className="staff-brand" href={`/${locale}/staff`} aria-label={`${copy.portal} · ${copy.home}`}>{brand}</Link>
+        : <div className="staff-brand">{brand}</div>}
+      <div className="staff-topbar-actions">
+        {landing !== "review" ? <Link className="staff-language" href={languageHref} hrefLang={language} lang={language} dir={language === "ar" ? "rtl" : "ltr"}>{language === "ar" ? "العربية" : "English"}</Link> : null}
+        {inConsole ? signOut : null}
+      </div>
+    </header>
     {testMode ? <p className="staff-test-note">{copy.testMode}</p> : null}
     {inConsole ? <div className="staff-shell">
       <StaffSidebar locale={locale} menu={menu} current={current} />

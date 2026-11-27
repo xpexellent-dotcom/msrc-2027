@@ -1,14 +1,35 @@
 "use client";
 
+import { useId, type KeyboardEvent } from "react";
 import { Link } from "@/components/ui/link";
 import type { Locale } from "@/lib/i18n";
 import type { Role } from "@/lib/permissions/contract";
 import { staffCopy } from "./copy";
-import { consoleCopy, englishOnlyLanding, type LandingKey } from "./console-copy";
+import { consoleCopy, englishOnlyLanding, workspaceCopy, type LandingKey } from "./console-copy";
 import { isOversightOnly, type STAFF_MENU, type StaffMenuKey } from "./menu";
-import type { StaffSummary } from "./ui-contract";
 
 type MenuEntry = (typeof STAFF_MENU)[number];
+type CurrentArea = StaffMenuKey | "home";
+
+const areaGroup = {
+  registration: "operations", participants: "operations", workshops: "operations",
+  "check-in": "operations", certificates: "operations", finance: "operations",
+  science: "scientific", review: "scientific", judging: "scientific", "faculty-judging": "scientific",
+  content: "communications", announcements: "communications", "email-previews": "communications",
+  sponsorship: "communications",
+  "launch-readiness": "administration", "registration-settings": "administration",
+  "early-access": "administration", priority: "administration", people: "administration",
+  audit: "administration", security: "administration",
+} as const satisfies Record<StaffMenuKey, string>;
+
+type AreaGroup = (typeof areaGroup)[StaffMenuKey];
+const groupOrder: readonly AreaGroup[] = ["operations", "scientific", "communications", "administration"];
+
+function groupedAreas(menu: readonly MenuEntry[]) {
+  return groupOrder
+    .map((group) => ({ group, entries: menu.filter((entry) => areaGroup[entry.key] === group) }))
+    .filter(({ entries }) => entries.length > 0);
+}
 
 export function formatStaffDate(value: string | null | undefined, locale: Locale, fallback: string) {
   const parsed = value ? Date.parse(value) : NaN;
@@ -16,53 +37,70 @@ export function formatStaffDate(value: string | null | undefined, locale: Locale
 }
 export function formatStaffNumber(value: number, locale: Locale) { return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB").format(value); }
 
-function AreaLabel({ locale, entry }: { locale: Locale; entry: MenuEntry }) {
-  return entry.englishOnly ? <span lang="en" dir="ltr">{staffCopy.en.areas[entry.key]}</span> : <span>{staffCopy[locale].areas[entry.key]}</span>;
+function AreaLink({ locale, entry, current, directory = false }: { locale: Locale; entry: MenuEntry; current?: CurrentArea; directory?: boolean }) {
+  const language = entry.englishOnly ? "en" : locale;
+  const copy = staffCopy[language];
+  return <Link href={`/${locale}/staff/${entry.key}`} aria-current={current === entry.key ? "page" : undefined}>
+    <span className="staff-nav-label" lang={entry.englishOnly ? "en" : undefined} dir={entry.englishOnly ? "ltr" : undefined}>
+      <span>{copy.areas[entry.key]}</span>
+      {!entry.built ? <span className="staff-badge">{directory ? consoleCopy[language].landing.status : copy.soon}</span> : null}
+    </span>
+    {directory ? <Chevron /> : null}
+  </Link>;
 }
 
-/** ORG-055: one tab per area the roles allow; Super Admin sees all. Projection only. */
-export function StaffSidebar({ locale, menu, current }: { locale: Locale; menu: readonly MenuEntry[]; current: StaffMenuKey | "home" }) {
-  const copy = staffCopy[locale], text = consoleCopy[locale];
+function Chevron({ down = false }: { down?: boolean }) {
+  return <svg className={down ? "staff-chevron staff-chevron--down" : "staff-chevron"} viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d={down ? "m5 8 5 5 5-5" : "m8 5 5 5-5 5"} />
+  </svg>;
+}
+
+function NavigationLinks({ locale, menu, current }: { locale: Locale; menu: readonly MenuEntry[]; current: CurrentArea }) {
+  const id = useId();
+  const text = workspaceCopy[locale];
+  return <div className="staff-navigation-links">
+    <Link className="staff-nav-home" href={`/${locale}/staff`} aria-current={current === "home" ? "page" : undefined}>
+      <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"><path d="M3 3h6v6H3zM11 3h6v6h-6zM3 11h6v6H3zM11 11h6v6h-6z" /></svg>
+      {consoleCopy[locale].overview}
+    </Link>
+    {groupedAreas(menu).map(({ group, entries }) => <div className="staff-navigation-group" key={group}>
+      <p id={`${id}-${group}`}>{text.groups[group]}</p>
+      <ul aria-labelledby={`${id}-${group}`}>{entries.map((entry) => <li key={entry.key}><AreaLink locale={locale} entry={entry} current={current} /></li>)}</ul>
+    </div>)}
+    {!menu.length ? <p className="staff-navigation-empty">{staffCopy[locale].noAreas}</p> : null}
+  </div>;
+}
+
+function dismissNavigation(event: KeyboardEvent<HTMLDetailsElement>) {
+  if (event.key !== "Escape" || !event.currentTarget.open) return;
+  event.preventDefault();
+  event.currentTarget.open = false;
+  event.currentTarget.querySelector("summary")?.focus();
+}
+
+/** ORG-055: navigation projects the available areas without granting access. */
+export function StaffSidebar({ locale, menu, current }: { locale: Locale; menu: readonly MenuEntry[]; current: CurrentArea }) {
   return <aside className="staff-sidebar">
-    <nav aria-label={copy.menu} className="staff-menu">
-      <Link className="staff-nav-home" href={`/${locale}/staff`} aria-current={current === "home" ? "page" : undefined}>{text.overview}</Link>
-      <ul>{menu.map((entry) => <li key={entry.key}>
-        <Link href={`/${locale}/staff/${entry.key}`} aria-current={current === entry.key ? "page" : undefined}>
-          {entry.englishOnly ? <span className="staff-nav-label" lang="en" dir="ltr">{staffCopy.en.areas[entry.key]}{!entry.built ? <span className="staff-badge">{staffCopy.en.soon}</span> : null}</span>
-            : <span className="staff-nav-label">{copy.areas[entry.key]}{!entry.built ? <span className="staff-badge">{copy.soon}</span> : null}</span>}
-        </Link>
-      </li>)}</ul>
-      {!menu.length ? <p>{copy.noAreas}</p> : null}
+    <nav aria-label={staffCopy[locale].menu} className="staff-menu">
+      <div className="staff-nav-desktop"><NavigationLinks locale={locale} menu={menu} current={current} /></div>
+      <details key={current} className="staff-nav-narrow" onKeyDown={dismissNavigation}>
+        <summary className="staff-nav-toggle">{workspaceCopy[locale].areas}<Chevron down /></summary>
+        <NavigationLinks locale={locale} menu={menu} current={current} />
+      </details>
     </nav>
   </aside>;
 }
 
-function count(value: number | null | undefined, locale: Locale) { return typeof value === "number" ? formatStaffNumber(value, locale) : "—"; }
-
-/** Dashboard home: a card per area with its live counts (aggregate only). */
-export function StaffDashboard({ locale, menu, summary }: { locale: Locale; menu: readonly MenuEntry[]; summary?: StaffSummary }) {
-  const copy = staffCopy[locale], text = consoleCopy[locale];
-  const metrics: Partial<Record<StaffMenuKey, { label: string; value: string }[]>> = {
-    registration: summary?.registration ? [
-      { label: text.cards.pending, value: count(summary.registration.pending, locale) },
-      { label: text.cards.approved, value: count(summary.registration.approved, locale) },
-      ...(summary.registration.offered ? [{ label: text.cards.offered, value: count(summary.registration.offered, locale) }] : []),
-      { label: summary.registration.capacity === null ? text.cards.capacityUnset : text.cards.remaining, value: summary.registration.capacity === null ? "—" : count(summary.registration.remaining, locale) },
-    ] : undefined,
-    participants: typeof summary?.participants === "number" ? [{ label: text.cards.participants, value: count(summary.participants, locale) }] : undefined,
-    people: typeof summary?.staff === "number" ? [{ label: text.cards.staff, value: count(summary.staff, locale) }] : undefined,
-    audit: typeof summary?.auditLast24h === "number" ? [{ label: text.cards.audit, value: count(summary.auditLast24h, locale) }] : undefined,
-    priority: typeof summary?.priority === "number" ? [{ label: text.cards.priority, value: count(summary.priority, locale) }] : undefined,
-  };
-  const cards = menu.filter((entry) => entry.key !== "security");
-  return <section className="staff-dashboard" aria-labelledby="staff-overview-title">
-    <h2 id="staff-overview-title">{text.overview}</h2><p className="staff-muted">{text.overviewIntro}</p>
-    <ul className="staff-card-grid">{cards.map((entry) => <li key={entry.key} className={entry.built ? "staff-card" : "staff-card staff-card--planned"}>
-      <h3><AreaLabel locale={locale} entry={entry} /></h3>
-      {metrics[entry.key]?.length ? <dl className="staff-metrics">{metrics[entry.key]!.map((metric) => <div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div>)}</dl>
-        : !entry.built ? <p className="staff-muted">{entry.englishOnly ? consoleCopy.en.landing.status : text.landing.status}</p> : null}
-      <Link className="staff-card-link" href={`/${locale}/staff/${entry.key}`}>{text.open}<span className="sr-only"> {entry.englishOnly ? staffCopy.en.areas[entry.key] : copy.areas[entry.key]}</span></Link>
-    </li>)}</ul>
+export function StaffDashboard({ locale, menu }: { locale: Locale; menu: readonly MenuEntry[] }) {
+  const text = workspaceCopy[locale];
+  const groups = groupedAreas(menu);
+  return <section className="staff-directory" aria-labelledby="organizer-work-areas">
+    <h2 id="organizer-work-areas" tabIndex={-1}>{text.directory}</h2>
+    <p className="staff-muted">{consoleCopy[locale].overviewIntro}</p>
+    {groups.length ? <div className="staff-directory-grid">{groups.map(({ group, entries }) => <section key={group} aria-labelledby={`staff-directory-${group}`}>
+      <h3 id={`staff-directory-${group}`}>{text.groups[group]}</h3>
+      <ul role="list">{entries.map((entry) => <li key={entry.key}><AreaLink locale={locale} entry={entry} directory /></li>)}</ul>
+    </section>)}</div> : <p>{staffCopy[locale].noAreas}</p>}
   </section>;
 }
 

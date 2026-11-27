@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { ROLES } from "../../src/lib/permissions/contract";
+import { openStaffNavigation } from "../staff-e2e/helpers/navigation";
 import { passwordFixture } from "./fixture";
 
 async function axe(page: Page) {
@@ -26,7 +27,7 @@ for (const locale of ["en", "ar"] as const) {
   test(`${locale} owner password change requires fresh normal password/TOTP and returns to sign-in`, async ({ page }) => {
     const copy = staffCopy[locale], mock = await passwordFixture(page);
     await page.goto(`/${locale}/staff`);
-    await page.getByRole("link", { name: copy.security, exact: true }).click();
+    await (await openStaffNavigation(page, locale)).getByRole("link", { name: copy.security, exact: true }).click();
     await expect(page.getByRole("heading", { name: copy.security, exact: true })).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
@@ -48,13 +49,13 @@ for (const locale of ["en", "ar"] as const) {
     await page.getByLabel(copy.totpCode).fill(locale === "ar" ? "٦٥٤٣٢١" : "654321");
     await page.getByRole("button", { name: copy.verify, exact: true }).click();
     await expect(page.getByTestId("staff-portal")).toHaveAttribute("data-screen", "home");
-    await page.getByRole("link", { name: copy.security, exact: true }).click();
+    await (await openStaffNavigation(page, locale)).getByRole("link", { name: copy.security, exact: true }).click();
     await fillPassword(page, "Synthetic New Password");
     await page.getByRole("button", { name: copy.changePassword, exact: true }).click();
     await expect(page.locator('.staff-feedback[role="status"]')).toHaveText(copy.states["password-changed"]);
     await expect(page.getByTestId("staff-name")).toHaveCount(0);
     await expect(page.getByRole("navigation", { name: copy.menu })).toHaveCount(0);
-    await expect(page.locator("form, input, img, code")).toHaveCount(0);
+    await expect(page.locator("form, input, img:not(.staff-seal), code")).toHaveCount(0);
     const changes = mock.actions.filter((action) => action.action === "password-change");
     expect(changes).toHaveLength(2);
     for (const change of changes) {
@@ -124,7 +125,7 @@ for (const locale of ["en", "ar"] as const) {
     await page.goto(`/${locale}/staff/security`);
     await expect(page.getByRole("button", { name: copy.changePassword, exact: true })).toBeEnabled();
     await fillPassword(page, "Synthetic New Password");
-    await page.getByRole("link", { name: copy.language, exact: true }).click();
+    await page.getByRole("link", { name: locale === "ar" ? "English" : "العربية", exact: true }).click();
     const other = locale === "en" ? "ar" : "en";
     await expect(page.getByRole("heading", { name: staffCopy[other].security, exact: true })).toBeVisible();
     await expect(page.locator("#staff-new-password")).toHaveValue("");
@@ -190,8 +191,9 @@ test("security navigation and the password form remain Super Admin only", async 
   for (const role of ROLES.filter((role) => role !== "participant")) {
     await page.unroute("**/api/staff-portal**"); await passwordFixture(page, { roles: [role], fresh: true });
     await page.goto("/ar/staff");
-    await expect(page.getByRole("navigation", { name: staffCopy.ar.menu })).toBeVisible();
-    await expect(page.getByRole("link", { name: staffCopy.ar.security, exact: true })).toHaveCount(role === "superAdmin" ? 1 : 0);
+    const navigation = await openStaffNavigation(page, "ar");
+    await expect(navigation.getByRole("link", { name: staffCopy.ar.security, exact: true })).toHaveCount(role === "superAdmin" ? 1 : 0);
+    await expect(page.getByTestId("organizer-dashboard").getByRole("link", { name: staffCopy.ar.security, exact: true })).toHaveCount(role === "superAdmin" ? 1 : 0);
     await page.goto("/ar/staff/security");
     if (role === "superAdmin") await expect(page.getByRole("button", { name: staffCopy.ar.changePassword, exact: true })).toBeEnabled();
     else { await expect(page.locator("#staff-new-password")).toHaveCount(0); await expect(page.getByText(staffCopy.ar.states.denied, { exact: true })).toBeVisible(); }
@@ -201,7 +203,7 @@ test("security navigation and the password form remain Super Admin only", async 
 test("security navigation closes immediately when observed availability becomes false", async ({ page }) => {
   await passwordFixture(page, { fresh: true, available: false });
   await page.goto("/en/staff");
-  await expect(page.getByRole("navigation", { name: staffCopy.en.menu })).toBeVisible();
+  await openStaffNavigation(page, "en");
   await expect(page.getByRole("link", { name: staffCopy.en.security, exact: true })).toHaveCount(0);
   await page.goto("/en/staff/security");
   await expect(page.getByText(staffCopy.en.states.denied, { exact: true })).toBeVisible();
