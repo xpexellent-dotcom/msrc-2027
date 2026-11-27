@@ -262,7 +262,7 @@ export function HeroMedia({
       </picture>
       {load && (
         <video
-          ref={videoRef} src={source} poster={preferences.smallScreen && video.mobilePoster ? video.mobilePoster : poster}
+          ref={videoRef} src={source}
           className={`hero-media-video${frameAvailable ? " is-playing" : ""}`}
           muted autoPlay={!userPaused && !autoplayBlocked && !ended && preferences.visible && (inView || explicitFilm)} playsInline loop={filmActive} preload="metadata"
           aria-hidden="true" tabIndex={-1}

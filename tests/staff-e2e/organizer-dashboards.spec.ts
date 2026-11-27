@@ -6,6 +6,7 @@ import { expect, test, type Page } from "../helpers/csp";
 import { staffCopy } from "../../src/features/staff-portal/copy";
 import { organizerCopy } from "../../src/features/staff-portal/organizer-copy";
 import type { Role } from "../../src/lib/permissions/contract";
+import { openStaffNavigation } from "./helpers/navigation";
 
 const origin = "http://127.0.0.1:3219", provider = "http://127.0.0.1:3220";
 const participantId = "fd000000-0000-4000-8000-000000000001";
@@ -52,6 +53,50 @@ async function download(page: Page) {
 
 for (const locale of ["en", "ar"] as const) {
   const copy = organizerCopy[locale];
+
+  for (const [area, role] of [["people", "superAdmin"], ["participants", "registrationWorkshopAdministrator"]] as const) {
+    test(`${locale} ${area} opens from the sidebar in one protected request`, async ({ page, context }) => {
+      await fixture(context, [role]);
+      const labels = staffCopy[locale];
+      const overviewActivity = page.waitForResponse((response) => {
+        const request = response.request();
+        return new URL(response.url()).pathname === "/api/staff-portal" && request.method() === "POST"
+          && request.postDataJSON()?.action === "activity";
+      });
+      await page.goto(`/${locale}/staff`);
+      const overviewResponse = await overviewActivity;
+      expect(overviewResponse.ok()).toBe(true);
+      expect(overviewResponse.request().postDataJSON()).not.toHaveProperty("area");
+      await expect(page.getByRole("button", { name: labels.signOut, exact: true })).toBeEnabled();
+      await expect(page.getByTestId("organizer-cell-registrations-status-pending_approval")).toBeVisible();
+      const navigation = await openStaffNavigation(page, locale);
+
+      const portalRequests: string[] = [];
+      page.on("request", (request) => {
+        const url = new URL(request.url());
+        if (url.pathname === "/api/staff-portal") portalRequests.push(request.method() + url.search);
+      });
+      const areaRead = page.waitForResponse((response) => {
+        const request = response.request();
+        return new URL(response.url()).pathname === "/api/staff-portal" && request.method() === "POST"
+          && request.postDataJSON()?.area === area;
+      });
+      await navigation.getByRole("link", { name: labels.areas[area], exact: true }).click();
+      if (area === "people") {
+        await expect(page.getByRole("rowheader", { name: "Synthetic Staff synthetic-staff@example.invalid" })).toBeVisible();
+        await expect(page.getByRole("button", { name: labels.inviteSend, exact: true })).toBeEnabled();
+      } else {
+        await expect(page.getByRole("cell", { name: "••••••1234", exact: true })).toBeVisible();
+        await expect(page.getByRole("button", { name: labels.search, exact: true })).toBeEnabled();
+      }
+      const response = await areaRead;
+      expect(response.status()).toBe(200);
+      expect(response.headers()["cache-control"]).toContain("no-store");
+      expect(response.request().postDataJSON()).toMatchObject({ action: "activity", area, formToken: expect.any(String) });
+      expect(portalRequests).toEqual(["POST"]);
+    });
+  }
+
   test(`${locale} scoped dashboard and statistics download use the real staff endpoint`, async ({ page, context }, info) => {
     const f = await fixture(context, ["superAdmin"]); await page.goto(`/${locale}/staff`);
     await expect(page.getByTestId("organizer-dashboard")).toBeVisible(); await expect(page.getByTestId("organizer-cell-registrations-status-pending_approval")).toContainText(locale === "ar" ? "٨" : "8");

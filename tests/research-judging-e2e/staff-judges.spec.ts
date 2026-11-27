@@ -1,13 +1,24 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { researchStaffCopy } from "../../src/features/research-judging/staff-copy";
 import { accessible, assignmentId, awardId, emptySettings, judgeAssignment, judgeId, settings, staffEntry, staffFixture, submissionId, title } from "./fixtures";
+
+function reads(page: Page) {
+  const queries: Record<string, string>[] = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (request.method() === "GET" && url.pathname === "/api/staff-portal/research-event") queries.push(Object.fromEntries(url.searchParams));
+  });
+  return queries;
+}
 
 for (const locale of ["en", "ar"] as const) {
   const copy = researchStaffCopy[locale];
   test(`${locale} empty research settings are editable without activating judging`, async ({ page, context }, info) => {
-    const f = await staffFixture(context, ["superAdmin"]); await page.goto(`/${locale}/staff/research-judging`);
+    const f = await staffFixture(context, ["superAdmin"]), initialReads = reads(page);
+    await page.goto(`/${locale}/staff/research-judging`);
     await expect(page.getByRole("heading", { level: 1, name: copy.title })).toBeVisible(); await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await page.locator("details > summary").filter({ hasText: copy.settings }).click();
+    expect(initialReads).toEqual([{ view: "list", settings: "1" }]);
     for (const key of ["judgeCount", "tieRule", "lockAt", "supervisorDeadline", "supervisorEvidence"]) await expect(page.locator(`#setting-${key}`)).toHaveValue("");
     await expect(page.locator('[id^="criterion-"]')).toHaveCount(0); await expect(page.locator('[id^="category-"]')).toHaveCount(0);
     await page.getByRole("button", { name: copy.saveSettings, exact: true }).click(); await expect(page.getByRole("status").filter({ hasText: copy.saved })).toBeVisible();
@@ -62,8 +73,10 @@ for (const locale of ["en", "ar"] as const) {
   });
 }
 test("Arabic judge route redirects to English; independent own card survives reload and can be submitted", async ({ page, context }, info) => {
-  const f = await staffFixture(context, ["facultyJudge"], { assignments: [judgeAssignment] }); await page.goto("/ar/judge/research"); await expect(page).toHaveURL("/en/judge/research"); await expect(page.locator("html")).toHaveAttribute("lang", "en"); await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
+  const f = await staffFixture(context, ["facultyJudge"], { assignments: [judgeAssignment] }), initialReads = reads(page);
+  await page.goto("/ar/judge/research"); await expect(page).toHaveURL("/en/judge/research"); await expect(page.locator("html")).toHaveAttribute("lang", "en"); await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
   await expect(page.getByRole("heading", { level: 1, name: researchStaffCopy.en.judgeTitle })).toBeVisible(); await expect(page.getByRole("heading", { name: title, exact: true }).first()).toBeVisible();
+  expect(initialReads).toEqual([{ view: "judge_queue" }]);
   const result = await page.request.get("/api/staff-portal/research-event?view=judge_queue"); const body = await result.text(); expect(body).not.toContain("SYNTHETIC PRIVATE PRE-EVENT SCORE"); expect(body).not.toContain("SYNTHETIC PRIVATE REVIEWER NOTE");
   await page.getByLabel("Synthetic criterion (0–7)", { exact: true }).fill("0"); await page.getByLabel(researchStaffCopy.en.comments, { exact: true }).fill("Synthetic independent event assessment"); await page.getByRole("button", { name: researchStaffCopy.en.saveDraft, exact: true }).click(); await expect.poll(async () => (await f.actions()).length).toBe(1);
   await page.reload(); await expect(page.getByLabel("Synthetic criterion (0–7)", { exact: true })).toHaveValue("0"); await page.getByRole("button", { name: researchStaffCopy.en.submit, exact: true }).click(); await expect.poll(async () => (await f.actions()).length).toBe(2);

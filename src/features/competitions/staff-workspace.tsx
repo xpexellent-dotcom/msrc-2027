@@ -70,19 +70,25 @@ function EntryTools({ locale, entry, busy, act, science, committee, eligibility,
 export function StaffCompetitionWorkspace({ locale, roles, mode = "staff" }: { locale: Locale; roles: readonly Role[]; mode?: Mode }) {
   const copy = staffCompetitionCopy[locale], admin = roles.includes("superAdmin"), science = roles.includes("scientificAdministrator"), committee = roles.includes("judgingCommittee"), eligibility = roles.includes("registrationWorkshopAdministrator");
   const [identityView, setIdentityView] = useState(eligibility && !science && !committee && !admin);
-  const [kind, setKind] = useState<CompetitionKind>("hackathon"), [data, setData] = useState<StaffCompetitionResponse>({ state: "loading" }), [settings, setSettings] = useState<StaffCompetitionResponse | null>(null), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
+  const [kind, setKind] = useState<CompetitionKind>("hackathon"), [data, setData] = useState<StaffCompetitionResponse>({ state: "loading" }), [settings, setSettings] = useState<StaffCompetitionResponse["policy"] | null>(null), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
   const token = useRef<string | undefined>(undefined), lock = useRef(false), active = useRef(true), requests = useRef(new Set<AbortController>()), feedback = useRef<HTMLParagraphElement>(null), generation = useRef(0);
   const view = mode === "staff" ? kind === "hackathon" && identityView ? "eligibility" : "list" : mode === "judge" ? "judge_queue" : "queue";
   const error = useCallback((state: string) => state === "closed" ? copy.workflowClosed : state === "denied" ? copy.denied : state === "area-not-ready" ? copy.notReady : state === "invalid" ? copy.invalid : state === "limited" ? copy.limited : state === "conflict" ? copy.conflictState : state === "unavailable" ? copy.unavailable : copy.blocked, [copy]);
-  const request = useCallback(async (options: { view?: string; action?: string; payload?: Record<string, unknown> }) => {
+  const request = useCallback(async (options: { view?: string; action?: string; payload?: Record<string, unknown>; withSettings?: boolean }): Promise<StaffCompetitionResponse> => {
     const controller = new AbortController(); requests.current.add(controller);
     try {
-      const query = new URLSearchParams({ kind, view: options.view ?? view }), response = await fetch("/api/staff-portal/competitions" + (options.action ? "" : "?" + query), { method: options.action ? "POST" : "GET", credentials: "same-origin", cache: "no-store", signal: controller.signal, ...(options.action ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, action: options.action, payload: options.payload, operationId: crypto.randomUUID(), formToken: token.current }) } : {}) });
+      const query = new URLSearchParams({ kind, view: options.view ?? view, ...(options.withSettings ? { settings: "1" } : {}) }), response = await fetch("/api/staff-portal/competitions" + (options.action ? "" : "?" + query), { method: options.action ? "POST" : "GET", credentials: "same-origin", cache: "no-store", signal: controller.signal, ...(options.action ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, action: options.action, payload: options.payload, operationId: crypto.randomUUID(), formToken: token.current }) } : {}) });
       if (!response.headers.get("content-type")?.includes("application/json")) return { state: "unavailable" };
       const value = await response.json() as StaffCompetitionResponse; if (value?.formToken) token.current = value.formToken; return value && typeof value.state === "string" ? value : { state: "unavailable" };
     } catch { return { state: "unavailable" }; } finally { requests.current.delete(controller); }
   }, [kind, view]);
-  const load = useCallback(async () => { const currentGeneration = ++generation.current, value = await request({}); if (!active.current || currentGeneration !== generation.current) return; setData(value); if (mode === "staff" && ok(value.state) && (!eligibility || science || committee || admin)) { const policy = await request({ view: "settings" }); if (active.current && currentGeneration === generation.current) setSettings(policy); } }, [request, mode, eligibility, science, committee, admin]);
+  const load = useCallback(async () => {
+    const currentGeneration = ++generation.current;
+    const value = await request({ withSettings: mode === "staff" && (!eligibility || science || committee || admin) });
+    if (!active.current || currentGeneration !== generation.current) return;
+    setData(value);
+    setSettings(value.policy ?? null);
+  }, [request, mode, eligibility, science, committee, admin]);
   useEffect(() => { active.current = true; const pending = requests.current; void load(); return () => { active.current = false; for (const controller of pending) controller.abort(); }; }, [load]);
   useEffect(() => { if (message) feedback.current?.focus(); }, [message]);
   const act: Action = async (action, payload) => { if (lock.current || !token.current) return; lock.current = true; setBusy(true); setMessage(""); const value = await request({ action, payload }); if (active.current) { setMessage(ok(value.state) ? copy.saved : error(value.state)); if (ok(value.state) && action !== "file_read") await load(); setBusy(false); } lock.current = false; return value; };

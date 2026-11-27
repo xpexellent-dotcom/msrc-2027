@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Request } from "@playwright/test";
 
 // DSN-01/02, ACC-01, LOC-01/03: the expressive header keeps native access.
 async function settle(page: Page) {
@@ -7,6 +7,32 @@ async function settle(page: Page) {
 }
 
 for (const locale of ["en", "ar"] as const) {
+  test(`${locale} desktop navigation prefetches visible links and waits for the participation submenu to open`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "The desktop submenu remains mounted while closed.");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const prefetched: string[] = [];
+    const isPrefetch = (request: Request) => {
+      const headers = request.headers();
+      return "next-router-prefetch" in headers || "next-router-segment-prefetch" in headers;
+    };
+    page.on("request", request => {
+      if (isPrefetch(request)) prefetched.push(new URL(request.url()).pathname);
+    });
+    const visiblePrefetch = page.waitForRequest(request => isPrefetch(request) && new URL(request.url()).pathname === `/${locale}/sponsors`);
+    await page.goto(`/${locale}/team`);
+    await settle(page);
+    await visiblePrefetch;
+    const toggle = page.locator(`[data-dropdown-toggle="/${locale}/participate"]`);
+    const child = `/${locale}/3mt`;
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(prefetched).not.toContain(child);
+
+    const childPrefetch = page.waitForRequest(request => isPrefetch(request) && new URL(request.url()).pathname === child);
+    await toggle.press("Space");
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await childPrefetch;
+  });
+
   test(`${locale} desktop header splits on scroll and restores the tone-aware bar on keyboard focus`, async ({ page, isMobile }) => {
     test.skip(isMobile, "Fine-pointer desktop behavior.");
     await page.setViewportSize({ width: 1440, height: 900 });

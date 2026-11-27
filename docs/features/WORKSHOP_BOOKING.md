@@ -53,6 +53,11 @@ published-only server endpoint after hydration; `/en/workshops` and `/ar/worksho
 remain SSG. Staff policy save cannot activate a closed booking or mock-payment
 switch. Entirely unset drafts can be prepared without registration settings.
 
+The staff editor requests the refreshed overview with a successful save. The handler
+checks current staff access again after the mutation and calls the same role-scoped
+overview function. An overview failure leaves the save acknowledged and permits a
+separate refresh. Operation IDs and manual approval rules still apply.
+
 The trusted certificates module can call
 `msrc_workshop_completion_evidence(edition_key, actor_id, workshop_id)` through
 the service-only transport. It returns confirmed-booking, check-in and completion

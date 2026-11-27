@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { SESSION_POLICY } from "@/config/session-policy";
 import { resolveParticipantConfig } from "@/features/participant-accounts/config.server";
-import { createParticipantHandler } from "@/features/participant-accounts/handler.server";
+import { createParticipantHandler, observeParticipantPage } from "@/features/participant-accounts/handler.server";
 import type { ParticipantBackend } from "@/features/participant-accounts/backend.server";
 import { participantCodeEmail } from "@/features/participant-accounts/email.server";
+import { participantAccountViewHeader } from "@/features/participant-accounts/contracts";
 import { approvedParticipantPrivacy, participantNotice } from "@/features/participant-accounts/privacy.server";
-import { nativeSessionId, participantCookie, participantFormToken, participantHash, readParticipantFormToken, readParticipantSession,
+import { nativeSessionId, participantCookie, participantFormToken, participantHash, readParticipantFormToken, readParticipantLogoutToken, readParticipantSession,
   sealParticipantSession } from "@/features/participant-accounts/security.server";
 import { normalizeParticipantCode, validateParticipantPayload } from "@/features/participant-accounts/validation.server";
 
@@ -282,6 +283,31 @@ describe("participant accounts closed-by-default and private server protocol", (
     backend.refresh = vi.fn(async () => ({ ...native, actorId: "dd000000-0000-4000-8000-000000000001" }));
     expect((await (await handle(new Request(origin, { headers: { Cookie: cookie } }))).json()).profile).toBeNull();
   });
+  it("accepts an immediate sign-out token once while keeping the sign-in minimum fill time", async () => {
+    const { post, backend } = fixture();
+    const formToken = participantFormToken(config, origin, now);
+    const cookie = participantCookie(config, { ...native, deadline: now + 72 * 3600 * 1000, origin }, now).split(";")[0];
+    expect((await post("signin", { formToken })).status).toBe(400);
+    expect(backend.login).not.toHaveBeenCalled();
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_participant_form_claim", expect.anything());
+
+    const signedOut = await post("logout", { formToken }, { Cookie: cookie });
+    expect(signedOut.status).toBe(200);
+    expect(await signedOut.json()).toMatchObject({ state: "signed_out" });
+    expect(signedOut.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(signedOut.headers.get("cache-control")).toContain("no-store");
+    expect((await post("logout", { formToken }, { Cookie: cookie })).status).toBe(429);
+    expect(backend.logout).toHaveBeenCalledExactlyOnceWith(accessToken);
+    expect(backend.rpc).toHaveBeenCalledWith("msrc_session_logout", { edition_key: config.editionKey }, accessToken);
+  });
+  it("rejects a foreign-origin sign-out even with a fresh legitimate form token", async () => {
+    const { post, backend } = fixture();
+    const formToken = participantFormToken(config, origin, now);
+    const cookie = participantCookie(config, { ...native, deadline: now + 72 * 3600 * 1000, origin }, now).split(";")[0];
+    expect((await post("logout", { formToken }, { Cookie: cookie, Origin: "https://hostile.example" })).status).toBe(400);
+    expect(backend.logout).not.toHaveBeenCalled();
+    expect(backend.rpc).not.toHaveBeenCalled();
+  });
   it("does not report logout success if shared revocation fails", async () => {
     const { post, backend } = fixture(); const base = backend.rpc.bind(backend);
     backend.rpc = vi.fn(async (name, args, token) => name === "msrc_session_logout" ? false : base(name, args, token));
@@ -305,6 +331,69 @@ describe("participant accounts closed-by-default and private server protocol", (
   });
 });
 
+it("omits account details for the header after verifying the same participant session", async () => {
+  const { backend, handle } = fixture();
+  const cookie = participantCookie(config, { ...native, origin, deadline: now + 72 * 3600 * 1000 }, now).split(";")[0];
+  const response = await handle(new Request(origin + "/api/participant-accounts", {
+    headers: { Cookie: cookie, [participantAccountViewHeader]: "header" },
+  }));
+  expect(response.headers.get("cache-control")).toContain("no-store");
+  expect(await response.json()).toMatchObject({ state: "authenticated", profile: { name: "Synthetic Participant", accountState: "verified" } });
+  expect(backend.identity).toHaveBeenCalledWith(accessToken);
+  expect(vi.mocked(backend.rpc).mock.calls.map(([name]) => name)).toEqual([
+    "msrc_participant_status", "msrc_session_context", "msrc_participant_profile",
+  ]);
+});
+
+describe("participant account page observation", () => {
+  const deadline = now + 72 * 3600 * 1000;
+  function observe(backend: ParticipantBackend, session = native, expiresAt = deadline) {
+    const cookie = participantCookie(config, { ...session, deadline: expiresAt, origin }, now).split(";")[0];
+    return observeParticipantPage(new Request(origin, { headers: { Cookie: cookie } }), config, { backend: () => backend, now: () => now });
+  }
+
+  it("checks readiness once before observing the current native identity and session", async () => {
+    const { backend } = fixture();
+    expect(await observe(backend)).toEqual({ enabled: true, profile: { name: "Synthetic Participant", accountState: "verified" } });
+    expect(backend.identity).toHaveBeenCalledExactlyOnceWith(accessToken);
+    expect(vi.mocked(backend.rpc).mock.calls.map(([name]) => name)).toEqual([
+      "msrc_participant_status", "msrc_session_context", "msrc_participant_profile", "msrc_participant_account_details",
+    ]);
+    expect(backend.refresh).not.toHaveBeenCalled();
+  });
+
+  it.each(["closed", "unavailable"])("keeps a %s page closed before inspecting native identity", async (state) => {
+    const rpc = vi.fn(async () => {
+      if (state === "unavailable") throw new Error("Synthetic provider failure");
+      return { enabled: false };
+    });
+    const { backend } = fixture({ rpc });
+    expect(await observe(backend)).toEqual({ enabled: false, profile: null });
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("msrc_participant_status");
+    expect(backend.identity).not.toHaveBeenCalled();
+  });
+
+  it("leaves an expiring native token for the browser to refresh", async () => {
+    const { backend } = fixture();
+    const expiring = { ...native, accessToken: "synthetic." + Buffer.from(JSON.stringify({
+      session_id: sessionId, exp: Math.floor(now / 1000) + 60,
+    })).toString("base64url") + ".synthetic" };
+    expect(await observe(backend, expiring)).toEqual({ enabled: true, profile: null });
+    expect(backend.rpc).toHaveBeenCalledExactlyOnceWith("msrc_participant_status");
+    expect(backend.identity).not.toHaveBeenCalled();
+    expect(backend.refresh).not.toHaveBeenCalled();
+  });
+
+  it("keeps a revoked or deadline-mismatched session anonymous", async () => {
+    const { backend } = fixture();
+    expect(await observe(backend, native, deadline - 1)).toEqual({ enabled: true, profile: null });
+    const base = backend.rpc.bind(backend);
+    backend.rpc = vi.fn(async (name, args, token) => name === "msrc_session_context" ? null : base(name, args, token));
+    expect(await observe(backend)).toEqual({ enabled: true, profile: null });
+    expect(backend.rpc).not.toHaveBeenCalledWith("msrc_participant_profile", expect.anything(), expect.anything());
+  });
+});
+
 describe("participant code/cookie protection", () => {
   it("binds form tokens to origin, minimum-fill, expiration and HMAC without client-controlled authority", () => {
     const token = participantFormToken(config, origin, now);
@@ -314,6 +403,14 @@ describe("participant code/cookie protection", () => {
     expect(readParticipantFormToken(config, token, origin, now + 1800000)).toBeNull();
     expect(readParticipantFormToken(config, token + "x", origin, now + 2000)).toBeNull();
     expect(participantHash(config, "code", "verify_email:id:123456")).not.toBe(participantHash(config, "code", "reset_password:id:123456"));
+  });
+  it("checks logout token time, origin, and signature without a form-fill minimum", () => {
+    const token = participantFormToken(config, origin, now);
+    expect(readParticipantLogoutToken(config, token, origin, now)).toMatch(/^[a-f0-9]{48}$/);
+    expect(readParticipantLogoutToken(config, token, origin, now - 1)).toBeNull();
+    expect(readParticipantLogoutToken(config, token, "https://hostile.example", now)).toBeNull();
+    expect(readParticipantLogoutToken(config, token, origin, now + 30 * 60 * 1000)).toBeNull();
+    expect(readParticipantLogoutToken(config, token + "x", origin, now)).toBeNull();
   });
   it("rejects expired, tampered, duplicate and foreign-origin encrypted session cookies", () => {
     const value = { ...native, deadline: now + 1000, origin };

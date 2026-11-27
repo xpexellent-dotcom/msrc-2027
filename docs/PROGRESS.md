@@ -1,5 +1,56 @@
 # Progress and session handover
 
+## 27 November 2026 — Site speed audit
+
+- Integrated the staff workspace redesign from PR #165. The People and roles
+  and Participants browser cases wait for overview statistics before counting
+  requests, then follow the desktop sidebar or narrow-screen Work areas menu.
+  Both destinations must load from one protected request in English and Arabic.
+  The organizer browser cases run with `pnpm exec playwright test --config playwright.staff.config.ts organizer-dashboards.spec.ts`.
+- Combined staff navigation and My profile improvements with public
+  prefetch and poster changes, lightweight account header reads, and
+  removal of duplicate reads in abstracts and staff workshops.
+- Measured all 30 live sitemap URLs and sampled signed-in My profile and
+  Staff Audit log on the serving production build. The [audit receipt](reviews/navigation-performance-2026-11-27.md)
+  records the scope, measured paths and access boundaries.
+- `pnpm check` passed with 5,776 unit tests and a production build. Local
+  browser runs covered English and Arabic across desktop and mobile for
+  My profile, account navigation, staff, workshops, abstracts and public
+  navigation. The pull request carries hosted and native integration evidence.
+- Requirements NFR-01–03, AUTH-03/04/05/07, ROL-01/03–06/10/12,
+  SEC-01/02/06, PRV-02/05, LOC-01/03, ACC-01 and REL-06.
+
+## 27 November 2026 — My profile responsiveness
+
+- My profile renders the verified account shell before announcements and
+  bookings complete. The two panels load through their existing authorized
+  requests. The account page reuses the database readiness result for session
+  observation.
+- The verified server render supplies a signed one-use token for immediate
+  Sign out. Logout validates origin, signature, expiry, nonce and rate limit,
+  and performs the existing session revocation. Sign-up, sign-in and recovery
+  retain the two-second minimum form age. Pending or stale account reads
+  cannot restore the signed-in dashboard during logout.
+- Edit profile accepts the click while the owner-only details load. An English
+  or Arabic status confirms the click, then focus moves to the editor when
+  the current authorized profile and version arrive.
+- Synthetic authenticated Chromium comparison against `4b6bff9` used eight
+  navigations per build and condition. With a 350 ms announcement-provider delay,
+  median Sign out readiness improved from 2,603.75 ms to 48.40 ms with no added
+  browser delay and from 2,737.50 ms to 48.65 ms with 150 ms added to each
+  browser account and profile GET. Median time from navigation to first
+  typing in the editor improved from 695.30 ms to 277.50 ms and from
+  869.30 ms to 433.05 ms, respectively.
+- The production build, targeted ESLint and `pnpm test` passed (5,712 units).
+  `pnpm exec playwright test --config playwright.profile.config.ts` passed 52
+  cases. The targeted participant-accounts run passed 14 cases covering
+  sign-in readiness, profile ownership, the header action and locale changes
+  during logout. Both suites covered English and Arabic on desktop and mobile.
+- The site speed audit above records the follow-up live timings and native
+  Supabase verification.
+- Requirements AUTH-03/05/07, PRV-02/05, SEC-01/02/06, LOC-01/03,
+  ACC-01 and NFR-02.
+
 ## 27 November 2026 — Footer inquiries label
 
 - ORG-096 updates the shared footer label to “Inquiries” and “للاستفسارات”.

@@ -1,7 +1,12 @@
 import type { Role } from "@/lib/permissions/contract";
 
-export type StaffScreen = "sign-in" | "accept-invitation" | "home" | "people" | "audit" | "participants" | "security" | "registration" | "priority" | "early-access" | "registration-settings" | "email-previews" | "check-in" | "launch-readiness" | "announcements" | "workshops" | "certificates";
-export type StaffArea = "people" | "audit" | "participants" | "registration" | "registration-detail" | "registration-export" | "registration-confirmation-preview" | "priority" | "early-access" | "registration-settings" | "email-previews" | "summary" | "check-in" | "launch-readiness";
+const staffNavigationAreas = ["people", "audit", "participants", "registration", "priority", "early-access", "registration-settings", "email-previews", "check-in", "launch-readiness"] as const;
+export type StaffNavigationArea = (typeof staffNavigationAreas)[number];
+export function isStaffNavigationArea(value: unknown): value is StaffNavigationArea {
+  return staffNavigationAreas.some((area) => area === value);
+}
+export type StaffScreen = StaffNavigationArea | "sign-in" | "accept-invitation" | "home" | "security" | "announcements" | "workshops" | "certificates";
+export type StaffArea = StaffNavigationArea | "registration-detail" | "registration-export" | "registration-confirmation-preview" | "summary";
 export type StaffReadinessStatus = "green" | "amber" | "red";
 export type StaffLaunchCheckKey = "migrations" | "settings" | "confirmationSettings" | "participantAccounts" | "participantPolicy" | "retention" | "outboxDelivery" | "outboxSweeps" | "outboxCap" | "conferenceDays" | "approvers" | "checkInStaff" | "earlyAccess" | "secondSuperAdmin" | "health" | "latestDrain";
 export type StaffLaunchReadiness = {
@@ -65,7 +70,7 @@ export type StaffRegistrationSettingsView = { settings: StaffRegistrationSetting
 export type StaffSummary = { registration?: StaffRegistrationCounts; participants?: number; staff?: number; auditLast24h?: number; priority?: number };
 export type StaffAction = "signin" | "logout" | "activity" | "enroll-totp" | "challenge-totp" | "verify-totp" | "challenge-email" | "verify-email" | "invite-accept" | "invite" | "invite-resend" | "invite-revoke" | "roles" | "suspend" | "reactivate" | "revoke-sessions" | "reset-authenticator" | "reset-account" | "reveal-identity" | "password-change" | "registration-approve" | "registration-waitlist" | "registration-offer" | "priority-set" | "priority-remove" | "early-access-add" | "early-access-remove" | "registration-confirmation-start" | "registration-settings-save" | "check-in" | "check-in-undo";
 export type StaffPayload = {
-  action: StaffAction; formToken?: string; email?: string; password?: string; passwordConfirmation?: string; name?: string;
+  action: StaffAction; formToken?: string; area?: StaffNavigationArea; email?: string; password?: string; passwordConfirmation?: string; name?: string;
   code?: string; factorId?: string; challengeId?: string; invitationId?: string; token?: string;
   targetId?: string; roles?: Role[]; reason?: string; requestIds?: string[]; status?: StaffRegistrationStatus | "all";
   emails?: string[]; entryIds?: string[]; changes?: StaffRegistrationSettingsChanges; operationId?: string;
@@ -87,7 +92,7 @@ export type StaffResponse = {
   priority?: { designations: StaffPriorityRow[]; candidates?: StaffParticipant[] }; summary?: StaffSummary;
   earlyAccess?: { entries: StaffEarlyAccessEntry[] }; added?: number; removed?: number; invalid?: string[];
   decided?: { approved: number; waitlisted: number; offered?: number; skipped: number };
-  /** Client-only: an area read failed while the session read stayed signed in. */
+  /** An area read failed while the session stayed signed in. */
   areaFailure?: StaffState;
   identity?: string; retryAfter?: number;
 };
