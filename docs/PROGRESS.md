@@ -1,5 +1,26 @@
 # Progress and session handover
 
+## 27 November 2026 — Cross-platform release assurance
+
+- Added three GitHub release gate jobs covering the foundation, participant
+  and staff workflows. Each requires all of its upstream jobs to succeed.
+- Added a post-merge production smoke run. It ties the serving Vercel
+  deployment to the GitHub commit, checks English and Arabic document
+  direction and the apex domain, and verifies the existing read-only
+  Supabase runtime health response.
+- Added `msrc_registration` and `msrc_outbox` to strict local Supabase lint.
+  Read-only hosted catalog verification found forced RLS on all 20 tables
+  across those two schemas, with no direct table grants to anonymous or
+  authenticated clients.
+- `pnpm check` passed with 5,795 unit tests and a production build. The
+  production probe passed against the baseline `9045764d` deployment.
+- The production profile migrations `20261127072649` and
+  `20261127083018` are pending. Leaked-password protection remains tracked
+  in the [participant activation runbook](features/PARTICIPANT_ACTIVATION_RUNBOOK.md).
+- Requirements SEC-02, INF-04, REL-01 and REL-06. The
+  [release evidence guide](ACCEPTANCE_AND_RELEASE.md#automated-release-evidence)
+  describes the checks and how to rerun the production probe.
+
 ## 27 November 2026 — Public link-preview photo follow-up
 
 - Used the organizer-selected auditorium photograph as the blurred background

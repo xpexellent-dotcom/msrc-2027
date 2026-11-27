@@ -20,6 +20,17 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  required:
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Staff diagnostics summary' || 'Staff release gate' }}
+    if: ${{ always() && github.event_name != 'workflow_dispatch' }}
+    needs: [browser, native]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    env:
+      JOB_RESULTS: ${{ toJSON(needs.*.result) }}
+    steps:
+      - run: jq -e 'length > 0 and all(.[]; . == "success")' <<< "$JOB_RESULTS"
+
   browser:
     name: Closed staff routes and synthetic EN/AR browser checks
     runs-on: ubuntu-24.04

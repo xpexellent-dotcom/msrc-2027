@@ -51,6 +51,23 @@ Use PASS only after actual execution/inspection. Use FAIL for an observed defect
 
 For a code slice, run the relevant build/type/lint checks and tests needed to resolve its concrete risks. Permission-sensitive work needs denied-access tests. Capacity/payment work needs concurrency and retry tests. Submission/review work needs versioning/anonymity tests. A small copy or style change normally needs targeted content/visual checks. Complete all applicable release gates before opening the affected workflow.
 
+## Automated release evidence
+
+- On a pull request, **Foundation release gate**, **Participant release gate**
+  and **Staff release gate** each summarize their workflow's required test jobs.
+  The gates report failure when a prerequisite fails or is skipped. Manual
+  diagnostic runs can select a subset and are kept outside these checks.
+- Pushes to `main` run **Production smoke**. The run waits up to five minutes
+  for GitHub's Vercel status and the public aliases to converge on the same
+  deployment. It checks the English and Arabic homepage document direction
+  and calls the existing no-store runtime health endpoint. That endpoint
+  confirms Supabase connectivity through a dedicated read-only RPC.
+- Rerun **Production smoke** from Actions on `main` after investigating a
+  failure. The exact commit and deployment ID appear in the successful job
+  log. Check the three release gate jobs for native Supabase migration, RLS
+  and authorization evidence. The live probe covers reachability
+  and public document delivery.
+
 ## Release record
 
 ```markdown
