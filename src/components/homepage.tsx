@@ -39,11 +39,16 @@ import { homePlaceholdersEnabled } from "@/lib/preview-placeholders";
 
 export type HomepageMediaPreview = { video: PreviewHeroVideo; poster: string; caption: string };
 
+const homepageBenefitOrder = ["award", "certificate", "practice", "network", "research", "cme"] as const;
+
 export function HomePageContent({ locale, media, speakers = [], sessions = [] }: { locale: Locale; media?: HomepageMediaPreview; speakers?: readonly PublicSpeaker[]; sessions?: readonly PublicSession[] }) {
   const copy = homepageCopy[locale];
   const narrative = homepageNarrative[locale];
   const demo = cinematicCopy[locale];
   const expectations = conferenceExpectations[locale];
+  const benefits = expectations.benefits.toSorted(
+    (a, b) => homepageBenefitOrder.indexOf(a.icon) - homepageBenefitOrder.indexOf(b.icon),
+  );
   const dateRange = conferenceDateLabel(locale);
   const placeholders = homePlaceholdersEnabled();
   const pathways = [...copy.pathways, demo.threeMinute];
@@ -109,7 +114,7 @@ export function HomePageContent({ locale, media, speakers = [], sessions = [] }:
         </Reveal>
         <div className="expectations-layout">
           <ResearchArtwork />
-          <Reveal className="program-experiences" stagger="cascade">{expectations.benefits.map((benefit) => <article className="benefit-card" key={benefit.title}><BenefitArtwork icon={benefit.icon} variant="brand" /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.homepageBody ?? benefit.body}</p></div></article>)}</Reveal>
+          <Reveal className="program-experiences" stagger="cascade">{benefits.map((benefit) => <article className="benefit-card" key={benefit.icon}><BenefitArtwork icon={benefit.icon} variant="brand" /><div className="benefit-copy"><h3>{benefit.title}</h3><p>{benefit.homepageBody ?? benefit.body}</p></div></article>)}</Reveal>
         </div>
         {sessions.length ? <div className="public-home-programme" data-testid="home-published-programme">{sessions.slice(0, 4).map((session) => <SessionRow locale={locale} session={session} speakers={speakers} key={session.slug} />)}<Link className="editorial-action" href={`/${locale}/program`}>{narrative.programmeLink}<Arrow /></Link></div> : null}
       </Container>

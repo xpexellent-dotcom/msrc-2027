@@ -104,3 +104,10 @@ listed in `homepageAssets.sponsors`. That list is empty while sponsor
 assets are pending, so the live layout omits the belt. The approved-logo
 strip uses native horizontal scrolling. The sample animation is available
 in preview when the approved list is empty.
+
+## Attendee benefit order, 26 November 2026
+
+ORG-089 places awards and cash prizes first, followed by certificates, hands-on
+workshops, networking with experts, research exposure and CME hours. The
+homepage renders this order in both languages. Each card retains its approved
+copy and artwork, including the pending accreditation qualifier on CME hours.
