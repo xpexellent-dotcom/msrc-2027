@@ -41,10 +41,58 @@
   cases. The targeted participant-accounts run passed 14 cases covering
   sign-in readiness, profile ownership, the header action and locale changes
   during logout. Both suites covered English and Arabic on desktop and mobile.
-- Native Supabase integration and live account timing are NOT TESTED. The fix
-  is in the local worktree.
+- The site speed audit above records the follow-up live timings and native
+  Supabase verification.
 - Requirements AUTH-03/05/07, PRV-02/05, SEC-01/02/06, LOC-01/03,
   ACC-01 and NFR-02.
+
+## 27 November 2026 — Footer inquiries label
+
+- ORG-096 updates the shared footer label to “Inquiries” and “للاستفسارات”.
+  Scoped ESLint, the production build and all 12 targeted Contact browser
+  cases passed across English and Arabic desktop, tablet and mobile layouts.
+  Requirements SUP-01, LOC-01/03 and ACC-01.
+
+## 27 November 2026 — Profile phone and identity guidance
+
+- ORG-095 removes the contact phone helper and adds a grey identity number
+  example for each document type after selection. The editor links the
+  localized format guidance to the input and uses it for invalid numbers.
+  Saved documents still show the masked suffix and how to keep it.
+- Scoped ESLint, 223 profile and abstract unit tests, and the production
+  build passed. All 44 profile Playwright cases passed before the final
+  Arabic wording adjustment. The four focused EN/AR desktop and mobile
+  cases passed on the final build, covering all three placeholders, the
+  accessible descriptions, keyboard navigation, validation and the saved mask.
+  Requirements AUTH-07, PRV-03, LOC-01/03 and ACC-01.
+
+## 27 November 2026 — Consultant and Specialist profile statuses
+
+- ORG-094 adds Consultant and Specialist to the English and Arabic profile
+  status list. Both count toward profile completion. Abstract presenter
+  eligibility continues to follow ORG-068. The editor exposes the choices
+  once the database supports and can save them.
+- `pnpm lint`, all 5,711 unit tests, and `pnpm build` passed. All 44 profile
+  Playwright cases passed, including both localized status options through
+  save and reload on Chromium desktop and 360 px mobile. Synthetic browser
+  fixtures also covered an older schema that exposes the existing options.
+- Disposable PostgreSQL 18.3 verified the migration after ORG-091, including
+  saves, owner reads, completion, eligibility, input validation, version
+  conflicts and ACL/RLS. Native Supabase pgTAP remains pending in CI because
+  the local Docker daemon was unavailable. The hosted migration is pending.
+  Requirements AUTH-07, SCP-03, ABS-12, PRV-03, SEC-02, LOC-01/03 and ACC-01.
+
+## 27 November 2026 — Desktop footer contact placement
+
+- ORG-093 moves the business email and social links into the wide footer's
+  middle track. Arabic mirrors the wide arrangement. Narrow footers present
+  the wordmark, conference description, and contact group in reading order.
+- Scoped ESLint, ten unit tests, the production build and the Impeccable
+  layout detector passed. Twelve Contact and homepage browser cases passed,
+  with two existing desktop-only cases skipped on mobile. Four responsive
+  Chromium probes covered EN/AR at 1280 and 1440 px and 320, 360 and 390 px,
+  200% text, keyboard focus, and footer axe with zero violations.
+  Requirements SCP-02, SUP-02, DSN-02, LOC-01/03 and ACC-01.
 
 ## 27 November 2026 — Profile compatibility before merging PR #162
 

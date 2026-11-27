@@ -13,7 +13,7 @@ import { InstitutionCombobox } from "./institution-combobox";
 import { ProfileAvatar } from "./profile-avatar";
 import { publishParticipantProfileAvatar, requestParticipantProfile } from "./profile-client";
 import { profileCopy } from "./profile-copy";
-import { PROFILE_FIELDS, profileCompletion, profileCompletionTotal, profileNamesFromAccount, isAdultProfileDate, isArabicProfileName, isLatinProfileName, isProfileIdentityNumber, isProfilePhone,
+import { PROFILE_FIELDS, PROFILE_STATUSES, isProfessionalProfileStatus, profileCompletion, profileCompletionTotal, profileNamesFromAccount, isAdultProfileDate, isArabicProfileName, isLatinProfileName, isProfileIdentityNumber, isProfilePhone,
   type OptionalParticipantProfile, type ParticipantProfileResponse, type ProfileSpecialty, type ProfileField, type ProfileErrors, type ProfileIdentityType } from "./profile-contract";
 import { clearProfileEditorDraft, readProfileEditorDraft, saveProfileEditorDraft } from "./profile-editor-draft";
 
@@ -21,6 +21,7 @@ export { profileCompletion } from "./profile-contract";
 type EditorValues = { institutionId: string | null; institutionOther: string; status: OptionalParticipantProfile["status"]; arabicName: string; latinName: string; nationality: string;
   gender: "male" | "female" | ""; dateOfBirth: string; city: string; phone: string; identityType: ProfileIdentityType | ""; identityNumber: string };
 const emptyValues: EditorValues = { institutionId: null, institutionOther: "", status: null, arabicName: "", latinName: "", nationality: "", gender: "", dateOfBirth: "", city: "", phone: "", identityType: "", identityNumber: "" };
+const identityExamples = { national_id: "1XXXXXXXXX", iqama: "2XXXXXXXXX", passport: "A1234567" } satisfies Record<ProfileIdentityType, string>;
 function valuesFromProfile(profile: OptionalParticipantProfile, accountName: string, latinNameAvailable: boolean): EditorValues {
   const accountNames = profileNamesFromAccount(accountName);
   return { institutionId: profile.institutionId, institutionOther: profile.institutionOther ?? "", status: profile.status,
@@ -35,6 +36,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   const [restoredDraft] = useState(() => readProfileEditorDraft(identity));
   const [profile, setProfile] = useState<OptionalParticipantProfile | null>(null);
   const [latinNameAvailable, setLatinNameAvailable] = useState(true);
+  const [professionalStatusesAvailable, setProfessionalStatusesAvailable] = useState(false);
   const [specialties, setSpecialties] = useState<ProfileSpecialty[]>([]);
   const [state, setState] = useState<ParticipantProfileResponse["state"] | "loading">("loading");
   const [formToken, setFormToken] = useState<string | null>(null);
@@ -85,6 +87,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
       if (result.state === "ready") {
         const canEditLatinName = result.latinNameAvailable !== false;
         setProfile(result.profile); setSpecialties(result.specialties); setFormToken(result.formToken); setLatinNameAvailable(canEditLatinName);
+        setProfessionalStatusesAvailable(result.professionalStatusesAvailable === true);
         if (wantsEditor) { beginEditing(result.profile, canEditLatinName); return; }
         if (editor.current.editing && editor.current.version !== null && editor.current.version !== result.profile.version) setState("conflict");
         if (restoredDraft) setValues((current) => ({ ...valuesFromProfile(result.profile, name, canEditLatinName), institutionId: current.institutionId, institutionOther: current.institutionOther, status: current.status }));
@@ -165,7 +168,9 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
     if (result.state === "ready") {
       restoreEditFocus.current = true;
       editor.current = { editing: false, version: result.profile.version };
-      setProfile(result.profile); setLatinNameAvailable(result.latinNameAvailable !== false); setEditorVersion(result.profile.version); setSpecialties(result.specialties); setValues({ ...emptyValues }); clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setEditing(false); setSaved(true); clearProfileEditorDraft(identity);
+      setProfile(result.profile); setLatinNameAvailable(result.latinNameAvailable !== false);
+      setProfessionalStatusesAvailable(result.professionalStatusesAvailable === true);
+      setEditorVersion(result.profile.version); setSpecialties(result.specialties); setValues({ ...emptyValues }); clearPreview(); setRemoveAvatar(false); setRemoveIdentity(false); setEditing(false); setSaved(true); clearProfileEditorDraft(identity);
       publishParticipantProfileAvatar(result.profile.avatarUrl);
       window.dispatchEvent(new Event("msrc-participant-profile"));
     } else if (result.state === "invalid_input") setErrors(result.fieldErrors ?? {});
@@ -188,11 +193,14 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
   const canShowProfile = profile !== null && state !== "closed" && state !== "denied";
   const editorOpen = editing && canShowProfile;
   const completedItems = profile ? profileCompletion(profile, specialties) : 0;
+  const availableStatuses = PROFILE_STATUSES.filter(status => professionalStatusesAvailable || !isProfessionalProfileStatus(status));
   const total = profileCompletionTotal(specialties, latinNameAvailable);
   const isComplete = completedItems === total;
   const hasError = editing && (Object.values(errors).some(Boolean) || !["loading", "ready"].includes(state));
   const number = new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-GB");
   const progressText = isComplete ? copy.complete : copy.filled.replace("{count}", number.format(completedItems)).replace("{total}", number.format(total));
+  const identityFormat = values.identityType ? copy.identityFormats[values.identityType] : undefined;
+  const invalidIdentityFormat = errors.identityNumber === "invalid" ? identityFormat : undefined;
   return <section id="profile" className="participant-profile-card" tabIndex={-1} aria-labelledby="participant-profile-heading" data-testid="participant-profile-card">
     <header className="participant-profile-overview">
       <div className="participant-profile-identity">
@@ -252,7 +260,7 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
           <legend className="participant-profile-group-title">{copy.groups.studies}</legend>
           <InstitutionCombobox locale={locale} value={values.institutionId} other={otherInstitution} error={errorText("institution")} onChange={(id, other) => { update("institutionId", id); setOtherInstitution(other); if (!other) update("institutionOther", ""); setErrors((current) => ({ ...current, institution: undefined })); }} />
           {otherInstitution ? <FormField id="profile-institutionOther" name="institutionOther" label={copy.institutionOther} value={values.institutionOther} dir="auto" autoComplete="organization" maxLength={160} error={errorText("institutionOther")} onChange={(event) => update("institutionOther", event.target.value)} /> : null}
-          <Select id="profile-status" name="status" label={copy.status} value={values.status ?? ""} error={errorText("status")} onChange={(event) => update("status", event.target.value as OptionalParticipantProfile["status"] || null)}><option value="">{copy.choose}</option>{Object.entries(copy.statuses).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</Select>
+          <Select id="profile-status" name="status" label={copy.status} value={values.status ?? ""} error={errorText("status")} onChange={(event) => update("status", event.target.value as OptionalParticipantProfile["status"] || null)}><option value="">{copy.choose}</option>{availableStatuses.map(status => <option key={status} value={status}>{copy.statuses[status]}</option>)}</Select>
           <fieldset className="participant-profile-interests" id="profile-interests" tabIndex={-1} aria-describedby={`profile-interests-hint${errors.interests ? " profile-interests-error" : ""}`}>
             <legend className="field-label">{copy.interests}</legend><p id="profile-interests-hint" className="field-hint">{copy.interestsHint}</p>
             {specialties.length ? <div className="participant-profile-chips">{specialties.map((option) => <button key={option.id} type="button" lang="en" dir="ltr" aria-pressed={interests.includes(option.id)} disabled={!interests.includes(option.id) && interests.length >= 5} onClick={() => { setInterests((current) => current.includes(option.id) ? current.filter((value) => value !== option.id) : [...current, option.id]); setErrors((value) => ({ ...value, interests: undefined })); }}>{option.label}</button>)}</div> : <p>{copy.interestsUnavailable}</p>}
@@ -278,13 +286,22 @@ export function ParticipantProfileCard({ locale, name, identity }: { locale: Loc
           <legend className="participant-profile-group-title">{copy.groups.contact}</legend>
           <FormField id="profile-city" name="city" label={copy.city} hint={copy.cityHint} value={values.city} dir="auto" autoComplete="address-level2" maxLength={80} error={errorText("city")} onChange={(event) => update("city", event.target.value)} />
           <ContactPhoneField id="profile-phone" name="phone" locale={locale} country={phoneCountry} onCountryChange={setPhoneCountry} value={values.phone} onChange={(value) => update("phone", value)}
-            labels={{ country: copy.phoneCountry, phone: copy.phone, hint: copy.phoneHint, international: copy.internationalPhone }} error={errorText("phone")} />
+            labels={{ country: copy.phoneCountry, phone: copy.phone, international: copy.internationalPhone }} error={errorText("phone")} />
         </fieldset>
         <fieldset className="participant-profile-group">
           <legend className="participant-profile-group-title">{copy.groups.identity}</legend>
           <div className="participant-profile-group-grid">
             <Select id="profile-identityType" name="identityType" label={copy.identityType} value={values.identityType} error={errorText("identityType")} onChange={(event) => { update("identityType", event.target.value as EditorValues["identityType"]); update("identityNumber", ""); setRemoveIdentity(!event.target.value && !!profile.identityLast4); }}><option value="">{copy.choose}</option>{Object.entries(copy.identityTypes).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</Select>
-            <FormField id="profile-identityNumber" name="identityNumber" label={copy.identityNumber} hint={profile.identityLast4 && !removeIdentity && values.identityType === profile.identityType ? copy.savedIdentity.replace("{last4}", profile.identityLast4) : copy.identityHint} value={values.identityNumber} dir="ltr" inputMode={values.identityType === "passport" ? "text" : "numeric"} autoComplete="off" maxLength={20} error={errorText("identityNumber")} onChange={(event) => { update("identityNumber", event.target.value); setRemoveIdentity(false); }} />
+            <FormField
+              id="profile-identityNumber" name="identityNumber" label={copy.identityNumber}
+              hint={profile.identityLast4 && !removeIdentity && values.identityType === profile.identityType ? copy.savedIdentity.replace("{last4}", profile.identityLast4) : undefined}
+              placeholder={values.identityType ? identityExamples[values.identityType] : undefined}
+              aria-describedby={identityFormat && !invalidIdentityFormat ? "profile-identity-format" : undefined}
+              value={values.identityNumber} dir="ltr" inputMode={values.identityType === "passport" ? "text" : "numeric"}
+              autoComplete="off" maxLength={20} error={invalidIdentityFormat ?? errorText("identityNumber")}
+              onChange={(event) => { update("identityNumber", event.target.value); setRemoveIdentity(false); }}
+            />
+            {identityFormat && !invalidIdentityFormat ? <span id="profile-identity-format" className="sr-only">{identityFormat}</span> : null}
             {profile.identityLast4 && !removeIdentity ? <Button variant="secondary" size="small" onClick={() => { update("identityType", ""); update("identityNumber", ""); setRemoveIdentity(true); }}>{copy.removeIdentity}</Button> : null}
           </div>
         </fieldset>

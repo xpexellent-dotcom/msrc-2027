@@ -5963,3 +5963,35 @@ published email link from the Contact page content to the shared footer under
 “For business inquiries”. Show the same social accounts and availability as the
 homepage in both languages, using the account approvals under ORG-086. This
 supersedes the placement in ORG-021. Requirements SUP-01/02, LOC-01/03 and ACC-01.
+
+## ORG-093 — Desktop footer contact placement, 27 November 2026
+
+The organizer's annotated footer moves the business inquiry email and
+social accounts into the middle of the upper footer. Place the group
+between the wordmark and conference description when the footer has
+room for three columns. Mirror the layout for Arabic. On narrower
+footers, keep the wordmark, description, and contact details in
+reading order. Requirements SCP-02, SUP-02, DSN-02, LOC-01/03 and ACC-01.
+
+## ORG-094 — Consultant and Specialist profile statuses, 27 November 2026
+
+Add Consultant and Specialist to the existing participant profile status
+choices in English and Arabic, stored as consultant and specialist.
+Both satisfy the status field for profile completion. Presenting-author
+eligibility continues to follow ORG-068. The profile editor offers the new
+choices when the authorized profile projection reports database support.
+Requirements AUTH-07, SCP-03, ABS-12, PRV-03, SEC-02, LOC-01/03 and ACC-01.
+
+## ORG-095 — Profile phone and identity guidance, 27 November 2026
+
+Remove the explanatory text under the participant profile contact phone label.
+After the participant selects a National ID, Iqama, or passport, show an example
+for that type in the identity number field. Provide the selected format to
+assistive technology and use it to explain invalid entries in both languages.
+Keep the existing masked saved-number guidance. Requirements AUTH-07, PRV-03,
+LOC-01/03 and ACC-01.
+
+## ORG-096 — Footer inquiries label, 27 November 2026
+
+Use “Inquiries” and “للاستفسارات” above the footer email link. This supersedes
+the label wording in ORG-092. Requirements SUP-01, LOC-01/03 and ACC-01.

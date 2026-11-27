@@ -14,7 +14,10 @@ incomplete or untrusted environment fails unavailable. Real delivery is restrict
 to Vercel Production at `msrc2027.com` or `www.msrc2027.com`. Preview cannot deliver.
 
 ORG-092 directs general inquiries to the form when it is available. The shared
-public footer shows the existing inbox for business inquiries in both languages.
+public footer shows the existing inbox under “Inquiries” and “للاستفسارات”
+(ORG-096).
+ORG-093 groups the email and social links in the middle of the wide footer.
+Narrow footers show the group after the conference description.
 Closed-form visitors are directed to the FAQ or can return later. The enabled
 form asks visitors without JavaScript to enable it before submitting.
 

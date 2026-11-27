@@ -2,8 +2,11 @@
 import { SAUDI_UNIVERSITIES } from "@/content/saudi-universities";
 
 /** ENG-087 / ORG-067. Partial saves remain available; completion gates submissions. */
-export const PROFILE_STATUSES = ["year_1", "year_2", "year_3", "year_4", "year_5", "year_6", "internship", "clinical_placement", "postgraduate", "residency", "faculty"] as const;
+export const PROFILE_STATUSES = ["year_1", "year_2", "year_3", "year_4", "year_5", "year_6", "internship", "clinical_placement", "postgraduate", "residency", "faculty", "consultant", "specialist"] as const;
 export type ProfileStatus = typeof PROFILE_STATUSES[number];
+export function isProfessionalProfileStatus(status: ProfileStatus | null) {
+  return status === "consultant" || status === "specialist";
+}
 export const PROFILE_IDENTITY_TYPES = ["national_id", "iqama", "passport"] as const;
 export type ProfileIdentityType = typeof PROFILE_IDENTITY_TYPES[number];
 export type ProfileSpecialty = { id: string; label: string };
@@ -18,7 +21,7 @@ export const PROFILE_FIELDS = ["avatar", "institution", "institutionOther", "sta
 export type ProfileField = typeof PROFILE_FIELDS[number];
 export type ProfileErrors = Partial<Record<ProfileField, "required" | "invalid" | "too_long">>;
 export type ParticipantProfileResponse = {
-  state: "ready"; profile: OptionalParticipantProfile; specialties: ProfileSpecialty[]; formToken: string; latinNameAvailable?: boolean;
+  state: "ready"; profile: OptionalParticipantProfile; specialties: ProfileSpecialty[]; formToken: string; latinNameAvailable?: boolean; professionalStatusesAvailable?: boolean;
 } | {
   state: "closed" | "denied" | "area-not-ready" | "unavailable" | "invalid_input" | "limited" | "conflict";
   formToken?: string; fieldErrors?: ProfileErrors;
@@ -106,7 +109,8 @@ export function decodeProfileResponse(value: unknown): ParticipantProfileRespons
       || !row.specialties.every((item) => { const specialty = record(item); return specialty && safeProfileText(specialty.id, 100) && specialty.id.length > 0 && safeProfileText(specialty.label, 200) && specialty.label.length > 0; })) return { state: "unavailable" };
     const latinNameAvailable = row.latinNameAvailable !== false && Object.hasOwn(profileData ?? {}, "latinName");
     return { state: "ready", profile, specialties: row.specialties.map((item) => ({ id: item.id, label: item.label })), formToken: row.formToken,
-      ...(latinNameAvailable ? {} : { latinNameAvailable: false }) };
+      ...(latinNameAvailable ? {} : { latinNameAvailable: false }),
+      ...(row.professionalStatusesAvailable === true ? { professionalStatusesAvailable: true } : {}) };
   }
   if (!["closed", "denied", "area-not-ready", "unavailable", "invalid_input", "limited", "conflict"].includes(String(row.state))) return { state: "unavailable" };
   const response: ParticipantProfileResponse = { state: row.state as Exclude<ParticipantProfileResponse["state"], "ready"> };

@@ -4,7 +4,7 @@ import { encryptProfileIdentity } from "./profile-identity.server";
 import { participantReady, verifiedClaims } from "@/features/registration/handler.server";
 import { getParticipantConfig, type ParticipantConfig, type ParticipantReadiness } from "./config.server";
 import { createParticipantProfileBackend, avatarObjectPattern, ParticipantProfileRpcMissingError, type ParticipantProfileBackend } from "./profile-backend.server";
-import { decodeProfileResponse, type ParticipantProfileResponse } from "./profile-contract";
+import { decodeProfileResponse, isProfessionalProfileStatus, type ParticipantProfileResponse } from "./profile-contract";
 import { profileFormToken, readProfileFormToken } from "./profile-security.server";
 import { readProfileForm, reencodeProfileAvatar, validateProfileForm } from "./profile-validation.server";
 import { nativeTokenNeedsRefresh, participantCookie, participantHash, participantIp, participantOrigin, readParticipantSession } from "./security.server";
@@ -19,7 +19,8 @@ function projection(value: unknown, token: string): ParticipantProfileResponse {
     institutionId: profile.institutionId, institutionOther: profile.institutionOther, arabicName: profile.arabicName,
     ...(Object.hasOwn(profile, "latinName") ? { latinName: profile.latinName } : {}), nationality: profile.nationality, gender: profile.gender, dateOfBirth: profile.dateOfBirth, city: profile.city, phone: profile.phone, identityType: profile.identityType, identityLast4: profile.identityLast4,
     interests: profile.specialtyInterests, version: profile.version,
-    avatarUrl: profile.avatarObject ? "/api/participant-accounts/profile/avatar?v=" + profile.version : null }, specialties: result?.specialties, formToken: token });
+    avatarUrl: profile.avatarObject ? "/api/participant-accounts/profile/avatar?v=" + profile.version : null }, specialties: result.specialties, formToken: token,
+    professionalStatusesAvailable: profile.professionalStatusesAvailable === true });
 }
 export function createParticipantProfileHandler(dependencies: {
   readiness?: () => ParticipantReadiness; backend?: (config: ParticipantConfig) => ParticipantProfileBackend; now?: () => number;
@@ -83,6 +84,7 @@ export function createParticipantProfileHandler(dependencies: {
       if (!ip || !readProfileFormToken(config, input.formToken, origin, session.actorId, session.sessionId, now)) return reply({ state: "invalid_input", formToken: fresh() }, 400);
       // The legacy RPC rejects the new key. Never claim a save that would discard a supplied spelling.
       if (!latinNameAvailable && input.latinName !== null) return reply({ state: "area-not-ready", formToken: fresh() }, 503);
+      if (isProfessionalProfileStatus(input.status) && currentProfile.professionalStatusesAvailable !== true) return reply({ state: "area-not-ready", formToken: fresh() }, 503);
       const claim = record(await backend.rpc("msrc_participant_form_claim", { nonce_hash: participantHash(config, "nonce", randomUUID()), ip_hash: participantHash(config, "ip", ip) }));
       if (claim?.state !== "claimed") return reply({ state: "limited", formToken: fresh() }, 429);
       const image = input.avatar ? await reencodeProfileAvatar(input.avatar) : null;

@@ -119,6 +119,30 @@ select is(public.msrc_participant_profile_avatar_remove('synthetic-profile-compl
 select is(pg_temp.profile_save('{"interests":[],"latinName":null}'::jsonb,4,8704)#>'{profile,latinName}',
  'null'::jsonb,'Explicit null clears the Latin spelling');
 
+-- Professional statuses use the same owned, versioned save and read path.
+select is(public.msrc_participant_profile_read('synthetic-profile-complete',pg_temp.registration_claims(8705))#>'{profile,professionalStatusesAvailable}',
+ 'true'::jsonb,'Profile capability is advertised before the participant has saved a profile');
+select is(pg_temp.profile_save(pg_temp.profile_input()||'{"status":"consultant"}'::jsonb,1,8702)#>>'{profile,status}',
+ 'consultant','Consultant is accepted by the authorized profile save');
+select is(public.msrc_participant_profile_read('synthetic-profile-complete',pg_temp.registration_claims(8702))#>>'{profile,status}',
+ 'consultant','Owner profile reads return the saved Consultant status');
+select ok(msrc_participant.profile_complete(pg_temp.registration_actor(8702),'synthetic-profile-complete'),'Consultant satisfies the profile status field');
+select ok(not msrc_abstracts.presenter_eligible(pg_temp.registration_actor(8702),'synthetic-profile-complete'),'Consultant does not change abstract presenter eligibility');
+select is(pg_temp.profile_save(pg_temp.profile_input()||'{"status":"specialist"}'::jsonb,1,8702)->>'state',
+ 'conflict','A stale professional-status edit cannot overwrite the newer profile');
+select is(pg_temp.profile_save(pg_temp.profile_input()||'{"status":"specialist"}'::jsonb,2,8702)#>>'{profile,status}',
+ 'specialist','Specialist is accepted by the authorized profile save');
+select is(public.msrc_participant_profile_read('synthetic-profile-complete',pg_temp.registration_claims(8702))#>>'{profile,status}',
+ 'specialist','Owner profile reads return the saved Specialist status');
+select ok(msrc_participant.profile_complete(pg_temp.registration_actor(8702),'synthetic-profile-complete'),'Specialist satisfies the profile status field');
+select ok(not msrc_abstracts.presenter_eligible(pg_temp.registration_actor(8702),'synthetic-profile-complete'),'Specialist does not change abstract presenter eligibility');
+select is(pg_temp.profile_save(pg_temp.profile_input()||'{"status":"senior_specialist"}'::jsonb,3,8702)->>'state',
+ 'invalid','Unrecognized professional statuses are still rejected by the save RPC');
+select throws_ok($$update msrc_participant.profile_details set student_status='senior_specialist' where actor_id=pg_temp.registration_actor(8702)$$,
+ '23514',null,'The table status constraint still rejects values outside the approved list');
+select is(public.msrc_participant_profile_read('synthetic-profile-complete',pg_temp.registration_claims(8703))#>>'{profile,status}',
+ null::text,'Another participant cannot read the saved Specialist status');
+
 -- Authorized organizers use only the established audited participant detail.
 do $$begin perform set_config('request.jwt.claims',pg_temp.registration_claims(8791)::text,true);end$$;
 select is(public.msrc_staff_participant_detail('synthetic-profile-complete',pg_temp.registration_actor(8702))#>>'{participant,optionalProfile,identityLast4}','0000','Existing audited staff detail includes the masked suffix');

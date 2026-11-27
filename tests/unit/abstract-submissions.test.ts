@@ -148,7 +148,10 @@ describe("ORG-068 structured v2 fields and fixed taxonomy", () => {
   });
 });
 describe("ORG-068 presenter eligibility and one-chance state", () => {
-  it.each(PROFILE_STATUSES)("maps completed profile status %s", (status) => expect(presenterEligible(status)).toBe(!["postgraduate", "residency", "faculty"].includes(status)));
+  const eligibleStatuses = new Set(["year_1", "year_2", "year_3", "year_4", "year_5", "year_6", "internship", "clinical_placement"]);
+  it.each(PROFILE_STATUSES)("maps completed profile status %s to the presenter allowlist", (status) => {
+    expect(presenterEligible(status)).toBe(eligibleStatuses.has(status));
+  });
   it.each([null, undefined, "", "student", "Year_1", 1])("refuses unknown status %j", (status) => expect(presenterEligible(status)).toBe(false));
   it("uses only drafts as unspent and retains the chance after withdrawal/rejection", () => {
     expect(submissionChanceUsed([])).toBe(false); expect(submissionChanceUsed([{ status: "draft", finalizedAt: null }])).toBe(false);
@@ -242,6 +245,8 @@ describe("ENG-087 abstract profile submission gate", () => {
     [{ windowState: "closed", profileComplete: false, presenterStatus: "faculty", used: true }, "closed"],
     [{ profileComplete: false, presenterStatus: "faculty", used: true }, "profile_incomplete"],
     [{ presenterStatus: "faculty", used: true }, "presenter_ineligible"],
+    [{ presenterStatus: "consultant" }, "presenter_ineligible"],
+    [{ presenterStatus: "specialist" }, "presenter_ineligible"],
   ] as const)("checks the ordered finalization gates: %j", async (options, state) => {
     const f = fixture(options), response = await f.post({ action: "finalize", document: undefined });
     expect(response.status).toBe(409); expect(await response.json()).toEqual({ state });
